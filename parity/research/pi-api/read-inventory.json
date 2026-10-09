@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-08T05:00:48.810Z",
+  "revision": "abe508e1b89912adde45528136c3221eb69acdd7",
+  "scope": "Source inspection only, not runtime or acceptance verification.",
+  "independentlyAudited": false,
+  "files": [
+    {
+      "path": "packages/coding-agent/src/core/extensions/types.ts",
+      "readingComplete": true,
+      "sha256": "d9a24065cc9830dc8bdc8d2e41299ad6ce125b3d156a0de1674faeabcb439122"
+    },
+    {
+      "path": "packages/coding-agent/src/core/sdk.ts",
+      "readingComplete": true,
+      "sha256": "61f398403c7510bec849583b2c46272df11ac5aa8d2e24b4ded97a108dd55b28"
+    },
+    {
+      "path": "packages/coding-agent/src/core/agent-session-runtime.ts",
+      "readingComplete": true,
+      "sha256": "b163ce35d2b6e3ba1fc080c0674044a3f1cd9faec93cc2ed015e31b69780bf4a"
+    },
+    {
+      "path": "packages/coding-agent/src/core/agent-session-services.ts",
+      "readingComplete": true,
+      "sha256": "c69826f519aa21b2dc04768eb63b0d10e88be071195beaf43bb1292dec187d01"
+    },
+    {
+      "path": "packages/coding-agent/src/core/model-registry.ts",
+      "readingComplete": true,
+      "sha256": "f4ced2d92df9097647aba7da3ae0bb273fa8089e966be15dba880db51d5dee0b"
+    },
+    {
+      "path": "packages/coding-agent/docs/virtual-models.md",
+      "readingComplete": true,
+      "sha256": "5ab04dee3b3712b317522bb0784e28a3fef2e6b7fe1aeb1c1ca27778685a38f7"
+    },
+    {
+      "path": "packages/coding-agent/examples/extensions/jev-router.ts",
+      "readingComplete": true,
+      "sha256": "cf2c9ef4baf9233faa133e99255786b00518cb4977d068c811a11b3c96f0a2d6"
+    },
+    {
+      "path": "packages/coding-agent/test/suite/regressions/6363-agent-settled-event.test.ts",
+      "readingComplete": true,
+      "sha256": "9ec05b50ca39a589062996393e60603ba6be1bbf11580320df4cfe3240b58424"
+    },
+    {
+      "path": "packages/coding-agent/src/core/agent-session.ts",
+      "ranges": [
+        [
+          1038,
+          1207
+        ],
+        [
+          1780,
+          1969
+        ]
+      ],
+      "readingComplete": false,
+      "sha256": "19186bf8a79876131a296fe17333c6276a671f8f48401df238c9814eeba0f5df"
+    },
+    {
+      "path": "packages/coding-agent/src/core/resource-loader.ts",
+      "ranges": [
+        [
+          342,
+          401
+        ]
+      ],
+      "readingComplete": false,
+      "sha256": "dbe87c11983b8dac949377904f4cf0511155771498ba88d2fefb0cd0d5dd9e28"
+    },
+    {
+      "path": "packages/coding-agent/src/main.ts",
+      "ranges": [
+        [
+          565,
+          594
+        ]
+      ],
+      "readingComplete": false,
+      "sha256": "e99bd9d46949afd12daa91306b926c1ec9b4992ec386c674cbd928e6f06a4e08"
+    }
+  ],
+  "implementationReading": {
+    "revision": "78dd5a04279436ebf6dde44853bacdab88ca9ae0",
+    "files": [
+      {
+        "path": "extensions/pi-pstack/src/worker-support.ts",
+        "readingComplete": true,
+        "sha256": "913fd8e753ebbdd3e667265101f699211e82de4ed89d42b46ef9319343233ecb"
+      }
+    ]
+  }
+}

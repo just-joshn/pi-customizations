@@ -1,0 +1,39 @@
+$ vitest run "--testNamePattern=a digest array"
+
+ RUN  v5.0.2 /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity
+
+ ❯ test/preflight.test.mjs (70 tests | 1 failed | 69 skipped) 12ms
+   × a digest array cannot masquerade as a valid string digest 11ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/preflight.test.mjs > a digest array cannot masquerade as a valid string digest
+AssertionError: expected [ …(3) ] to deeply equal [ 'ARTIFACT_INVALID_SHAPE', …(2) ]
+
+- Expected
++ Received
+
+  [
+-   "ARTIFACT_INVALID_SHAPE",
++   "REQUIREMENT_SOURCE_HASH_MISMATCH",
+    "ACCEPTANCE_AUTHORITY_UNAVAILABLE",
+    "PAIRED_ACCEPTANCE_VERIFIER_UNIMPLEMENTED",
+  ]
+
+ ❯ test/preflight.test.mjs:271:44
+    269|   const changed = { ...requirement, source: { ...requirement.source, s…
+    270|   const root = await fixture({ ...records, 'requirements.json': { ...r…
+    271|   expect(codes(await inspectParity(root))).toEqual(['ARTIFACT_INVALID_…
+       |                                            ^
+    272| });
+    273|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 69 skipped (70)
+   Start at  21:27:33
+   Duration  121ms (transform 49%, tests 24%, import 23%, worker 4%)
+
+error: script "test" exited with code 1

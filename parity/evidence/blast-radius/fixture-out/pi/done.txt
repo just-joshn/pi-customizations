@@ -1,0 +1,1 @@
+PROOF=step4 certainty=4 fact=sessionStore.retainLive relies on isExpired(ttl:0)=false for immortal sessions; change purges them (UNSAFE)

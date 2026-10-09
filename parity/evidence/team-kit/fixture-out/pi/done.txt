@@ -1,0 +1,1 @@
+STATUS=verified reason=probe.txt has exact line VALUE=7

@@ -1,0 +1,6 @@
+{
+  "src/greet.js": "c89c8dd63027eb35f935551bbbdeee2c039d85802f10770bd4c408e3822bf014",
+  "src/core.js": "f81f3fd50fc3ee2c8b7235fe8262a9cf69be7099c5eeb9674a02bf2417b266a9",
+  "src/legacyValidate.js": "a2321806d8b0e621023f80993442e2a6751354185d7770197793ade1024aafda",
+  "src/stubRefs.js": "ab738e32c2859bc4d6342268efa1eb6343147d0115ccdd4b209ceb41d7df7b8f"
+}

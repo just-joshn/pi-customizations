@@ -1,0 +1,36 @@
+                                                                                                                       ┃
+
+ ┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+ │ Clarifying Questions                                                                                               │
+ │                                                                                                                    │
+ │ Question 2 of 2                                                                                                    │
+ │                                                                                                                    │
+ │ 2. Current roles (one line per role; do not summarize):                                                            │
+ │ feature, refactoring: xai/grok-4.7:medium                                                                          │
+ │ bug-fix: auto                                                                                                      │
+ │ perf-issue: xai/grok-4.7:medium                                                                                    │
+ │ hillclimb: xai/grok-4.7:medium                                                                                     │
+ │ judgment and prose: claude-subscription/claude-opus-5-5:medium                                                     │
+ │ hardest tasks: claude-subscription/claude-opus-5-5:medium                                                          │
+ │ how explorer: inherit-parent                                                                                       │
+ │ how explainer: claude-subscription/claude-opus-5-5:medium                                                          │
+ │ why investigators: xai/grok-4.7:medium                                                                             │
+ │ why synthesizer: claude-subscription/claude-opus-5-5:medium                                                        │
+ │ reflect tooling: xai/grok-4.7:medium                                                                               │
+ │ reflect judgment, divergent, synthesizer: claude-subscription/claude-opus-5-5:medium                               │
+ │ arena runners: claude-subscription/claude-opus-5-5:medium, xai/grok-4.7:medium                                     │
+ │ arena cross-judge pool: claude-subscription/claude-opus-5-5:medium, xai/grok-4.7:medium                            │
+ │ swarm workers: xai/grok-4.7:medium                                                                                 │
+ │ architect runners: claude-subscription/claude-opus-5-5:medium, xai/grok-4.7:medium                                 │
+ │ interrogate reviewers: claude-subscription/claude-opus-5-5:medium, xai/grok-4.7:medium                             │
+ │ Dropped retired roles: none.                                                                                       │
+ │ Accept as-is, or change specific roles?                                                                            │
+ │                                                                                                                    │
+ │     [ ] Accept as-is                                                                                               │
+ │     [ ] Change specific roles                                                                                      │
+ │   › [ ] Other: ▏                                                                                                   │
+ │                                                                                                                    │
+ │ ↑/↓ option · ←/→ question · Space select · Enter next/submit · Esc to skip                                         │
+ └────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run (refactor/pi-pstack-parity-again)
+↑6 ↓796 R35k W21k CH92.7% $0.099 (sub) 3.0%/1.0M (auto)                 (claude-subscription) claude-sonnet-5-5 • medium

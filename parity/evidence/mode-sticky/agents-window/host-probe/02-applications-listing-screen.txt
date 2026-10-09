@@ -1,0 +1,25 @@
+SCREEN: /Applications listing (host Agents Window probe)
+capturedAt: 2026-10-09T01:57:06.492Z
+expect: Cursor.app present for Agents Window (Cmd+Shift+P → Open Agents Window)
+cursorish_entries: (none)
+Custom Mode chrome on this screen: absent (no Cursor IDE UI)
+--- Application names ---
+Android Studio.app
+Bruno.app
+CuaDriver.app
+Desktop Plus.app
+Ghostty.app
+GIMP.app
+Google Chrome.app
+Lapce.app
+Maccy.app
+Microsoft Outlook.app
+Microsoft Teams.app
+OrbStack.app
+ProtonVPN.app
+Rectangle.app
+Safari.app
+Slack.app
+Utilities
+Visual Studio Code.app
+zoom.us.app

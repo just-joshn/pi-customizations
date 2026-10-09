@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "cmd-comment-sicko-first-output",
+  "status": "pass-paired",
+  "requirements": [
+    "PSTACK-CMD-COMMENT-SICKO-FIRST-OUTPUT-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/agents/comment-sicko.md#Comment Sicko first spawned output contract",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Fresh Comment Sicko spawn with no prior agent turns in that child. Preconditions: Locked pstack agents directory loaded.",
+    "digest": null
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Start the agent with a scoped diff or files to review.. The agent's first output is exactly the two-line catchphrase \"Yes... Ha ha ha... Yes!\" before other review content."
+    }
+  ],
+  "execution": {
+    "pairId": "no-comments-sicko-2",
+    "verdict": "pass",
+    "pair": "parity/evidence/no-comments/pair-no-comments-sicko-2.json",
+    "attempts": {
+      "cursor": "f4cd66ea-5fcd-49fc-aa35-9789e6fcfddc",
+      "pi": "c0cf9e02-9dd1-4c47-961a-b5a4d4029003"
+    }
+  }
+}

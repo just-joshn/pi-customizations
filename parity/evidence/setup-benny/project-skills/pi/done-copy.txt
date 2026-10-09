@@ -1,0 +1,1 @@
+STATUS=stop-explain reason=no project-scoped pi package; pstack only via user-level settings

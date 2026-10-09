@@ -1,0 +1,36 @@
+   [ ] Accept as-is                                                                                                    │
+   [ ] Change specific roles                                                                                           │
+   [x] Other:  Keep budget small — medium reasoning. Keep "feature, refactoring" as inherit-parent. Keep "perf-issue"  │
+ as auto. Set only "bug-fix" to the real slug parity-unavailable-model-zzz. Then accept and write if validation        │
+ allows. If parity-unavailable-model-zzz is not in the detected set, stop the write and ask again. Do not invent       │
+ detected models. Decline any verification skill offer.                                                                │
+                                                                                                                       │
+                                                                                                                       │
+ The slug parity-unavailable-model-zzz isn't in the detected set, so I'm not writing the rule. You said to ask again   │
+ in that case.                                                                                                         │
+                                                                                                                       │
+                                                                                                                       │
+ AskQuestion Clarifying Questions (1)                                                                                  ┃
+ 1. parity-unavailable-model-zzz is not an available model. What should bug-fix use?                                   ┃
+   [ ] inherit-parent                                                                                                  ┃
+   [ ] auto                                                                                                            ┃
+   [ ] claude-subscription/claude-opus-5-5                                                                             ┃
+   [ ] openai/gpt-5.5                                                                                                  ┃
+   [x] Other: inherit                                                                                                  ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ Keep budget small — medium reasoning. Keep "feature, refactoring" as inherit-parent. Keep "perf-issue" as auto. Set   ┃
+ only "bug-fix" to the real slug parity-unavailable-model-zzz. Then accept and write if validation allows. If          ┃
+ parity-unavailable-model-zzz is not in the detected set, stop the write and ask again. Do not invent detected models. ┃
+ Decline any verification skill offer.                                                                                 ┃
+                                                                                                                       ┃
+
+ Steering: Keep budget small — medium reasoning. Keep "feature, refactoring" as inherit-parent. Keep "perf-issue" as... 
+ ↳ Option+Up to edit all queued messages                                                                                
+
+── ⠧ Working ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run (refactor/pi-pstack-parity-again)
+↑8 ↓557 R63k W21k CH97.8% $0.101 (sub) 2.9%/1.0M (auto)                 (claude-subscription) claude-sonnet-5-5 • medium

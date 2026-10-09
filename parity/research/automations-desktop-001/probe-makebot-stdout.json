@@ -1,0 +1,21 @@
+{
+  "attemptId": "1e5149f4-d4b5-4377-8587-ec2ed0e0db49",
+  "mode": "makebot",
+  "method": "agent-helper MCP keyboard/click drive of Cursor Agents Window",
+  "evidenceDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/make-bot-ui/agents-window/1e5149f4-d4b5-4377-8587-ec2ed0e0db49",
+  "probe": "make-bot-ui-key-server",
+  "pathsTried": [
+    "cmd+shift+p Open Agents Window",
+    "cmd+n New Chat",
+    "/make-bot-ui slash menu",
+    "cmd+shift+i agent/Routines panel",
+    "cmd+shift+p Routines",
+    "cmd+shift+p update_state"
+  ],
+  "didNot": [
+    "fabricate webhook sender key",
+    "claim update_state success without UI proof",
+    "mint Cloud Agent",
+    "post to Slack"
+  ]
+}

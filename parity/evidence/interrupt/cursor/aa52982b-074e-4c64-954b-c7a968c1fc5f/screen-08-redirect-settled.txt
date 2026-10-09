@@ -1,0 +1,37 @@
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Try Cursor Grok 4.7 via /model, frontier intelligence at a fraction of the cost.
+
+                                                                                                                       
+  /how does startAttempt in parity/recorder/attempt.mjs allocate the attempt directory and append events.jsonl?        
+  Trace the real source under parity/recorder/ with line citations. Before finishing, write exactly                    
+  CANCELLED-HOW-COMPLETE as the only line of                                                                           
+  /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/interrupt/fixture-out/cursor/cancelled       
+  -how.txt. Do not edit product code or ledgers. Be thorough.Stop. Ignore the prior /how completely. Do not            
+  continue that investigation and do not write                                                                         
+  /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/interrupt/fixture-out/cursor/cancelled       
+  -how.txt. New objective only: write exactly REDIRECT-OK as the only line of                                          
+  /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/interrupt/fixture-out/cursor/redirect-       
+  ok.txt, then reply with the single line REDIRECT-OK 56 and nothing about the recorder.                               
+                                                                                                                       
+
+  Understood — stopping the /how work and only writing the redirect marker.
+
+  $ mkdir -p /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/interrupt/fixture-out/cursor &&
+    printf 'REDIRECT-OK\n' > /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/interrupt/fixture
+    -out/cursor/redirect-ok.txt && cat /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/interru
+    pt/fixture-out/cursor/redirect-ok.txt 1.0s
+    REDIRECT-OK
+
+  REDIRECT-OK 56
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 9%                                                                                             Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run · refactor/pi-pstack-parity-again

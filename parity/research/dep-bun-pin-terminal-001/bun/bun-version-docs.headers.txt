@@ -1,0 +1,3 @@
+HTTP 404
+final-url: https://bun.com/docs/guides/install/bun-version
+reason: Not Found

@@ -1,0 +1,40 @@
+[Skill conflicts]                                                                                                      ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+/create-skill. Complete ONLY Phase 2 Design from the create-skill skill. Requirements already gathered (do not          
+rediscover): Purpose=echo CREATE-SKILL-PROBE-MARKER when user says "run the create-skill probe"; Location=project       
+skill path .pi/skills/parity-create-skill-probe/SKILL.md; name=parity-create-skill-probe; Triggers include              
+"create-skill probe" and "parity-create-skill-probe"; Constraints=under 80 lines, no supporting files/scripts, marker   
+on its own line; Patterns=create-skill frontmatter + concise body. Write                                                
+/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-out/design/pi/design.md    
+with: skill name, third-person description with trigger terms, main section outline, and whether supporting             
+files/scripts are needed (must be no). Do not write SKILL.md. Do not implement. When design.md is on disk, write        
+exactly one line to                                                                                                     
+/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-out/design/pi/done.txt as  
+STATUS=designed|env-blocked|other reason=<short>. Do not edit parity ledgers, parity/mismatches.json,                   
+parity/requirements.json, or parity/progress.md.                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-app (refactor/pi-pstack-parity-again)
+$0.000 (sub) 0.0%/1.0M (auto)                                           (claude-subscription) claude-sonnet-5-5 • medium

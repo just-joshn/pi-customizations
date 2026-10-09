@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "id": "setup-alias-always-valid",
+  "status": "executed-pass-paired",
+  "requirements": [
+    "PSTACK-SETUP-ALIAS-ALWAYS-VALID-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/setup-pstack/SKILL.md#### 1. Detect available models, aliases inherit-parent and auto",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Documented preconditions satisfied; behavior not yet paired. Preconditions: Setup may write role lines.",
+    "digest": "sha256:5f7e90885d37c4b9b7e2027755436f435f8fba765f74c3c92373bb30d0bc9d9b"
+  },
+  "actions": [
+    {
+      "kind": "type",
+      "literal": "/setup-pstack",
+      "expect": "inherit-parent and auto are accepted as role values without appearing in the detected real-slug set."
+    }
+  ],
+  "execution": {
+    "referenceRun": "428e113d-8047-473a-aea6-3b632f080322",
+    "candidateRun": "6769d1c3-6f00-4528-85c5-7a251f30aeff",
+    "pairId": "setup-rerun-mutate-role-1",
+    "pairPath": "parity/evidence/setup-rerun/pair-setup-rerun-mutate-role-1.json",
+    "verdict": "pass-paired",
+    "closedAt": "2026-10-08T21:45:00Z",
+    "note": "inherit-parent and auto present in identical rule-after both hosts."
+  }
+}

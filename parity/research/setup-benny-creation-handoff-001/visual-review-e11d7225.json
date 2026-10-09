@@ -1,0 +1,33 @@
+{
+  "attemptId": "e11d7225-4c8a-4c09-8f30-273e941a52d2",
+  "profile": "benny-triage",
+  "metaFlags": {
+    "automateHandoffWitnessed": false,
+    "editorChromeWitnessed": false,
+    "draftNameWitnessed": false,
+    "draftNameSeenInSession": true
+  },
+  "visualOracle": {
+    "screen": "screen-07-poll-28.png",
+    "ocr": "screen-07-poll-28.png.ocr.txt",
+    "automationsListShows": [
+      "parity-webhook-witness",
+      "Untitled",
+      "benny-triage"
+    ],
+    "status": "Inactive for all three",
+    "bennyTriageInactive": true
+  },
+  "chatOracle": {
+    "screen": "screen-07-poll-10.png",
+    "draftApproved": true,
+    "readinessAsk": true,
+    "noSaveNoActivateStated": true,
+    "scheduleMention": "daily 9:05"
+  },
+  "saved": false,
+  "activated": false,
+  "slack": false,
+  "verdict": "PARTIAL",
+  "note": "Benny-named Inactive draft present after /automate Benny triage intent. Same-frame editor chrome titled benny-triage not captured. Untitled editor chrome seen on prior attempts in this unit."
+}

@@ -1,0 +1,57 @@
+{
+  "screenFinal": {
+    "skillMention": true,
+    "envBlocked": false,
+    "working": false
+  },
+  "pty": {
+    "skillMention": true,
+    "envBlocked": true,
+    "working": true
+  },
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/weekly-review/done.txt",
+    "line": "STATUS=verified reason=summary written from 2 authored commits",
+    "status": "verified"
+  },
+  "summaryExists": true,
+  "seededSkill": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/weekly-review/.pi/skills/weekly-review/SKILL.md",
+    "sha256": "b56a2c283916b4551aeb322398ab99a19b4b5d7678ffd7f9c9f3df9fa05f4712"
+  },
+  "oracle": {
+    "summaryExists": true,
+    "mentionsAlpha": true,
+    "hasClass": true,
+    "done": {
+      "exists": true,
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/weekly-review/done.txt",
+      "line": "STATUS=verified reason=summary written from 2 authored commits",
+      "status": "verified"
+    },
+    "closed": true,
+    "honestBlocker": false
+  },
+  "score": {
+    "skillPath": true,
+    "envBlocked": false,
+    "doneStatus": "verified",
+    "oracleClosed": true,
+    "closed": true,
+    "honestBlocker": false,
+    "oracle": {
+      "summaryExists": true,
+      "mentionsAlpha": true,
+      "hasClass": true,
+      "done": {
+        "exists": true,
+        "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/weekly-review/done.txt",
+        "line": "STATUS=verified reason=summary written from 2 authored commits",
+        "status": "verified"
+      },
+      "closed": true,
+      "honestBlocker": false
+    }
+  }
+}

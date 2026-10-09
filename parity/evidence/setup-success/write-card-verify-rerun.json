@@ -1,0 +1,62 @@
+{
+  "schema": 1,
+  "comparator": "write-card-v1",
+  "sides": {
+    "cursor": [
+      {
+        "check": "edited-title",
+        "pass": true,
+        "observed": "Edited pstack-models.mdc +1 -1"
+      },
+      {
+        "check": "no-wrote-form",
+        "pass": true,
+        "observed": 0
+      },
+      {
+        "check": "diff-removed-budget",
+        "pass": true,
+        "observed": "▎- # budget: small (medium)"
+      },
+      {
+        "check": "diff-added-budget",
+        "pass": true,
+        "observed": "▎+ # budget: unlimited (max)"
+      },
+      {
+        "check": "diff-context-role",
+        "pass": true,
+        "observed": "▎  # `inherit-parent` or `auto` as a value: the role runs on the parent chat model (omit Task `model`). Alias"
+      }
+    ],
+    "pi": [
+      {
+        "check": "edited-title",
+        "pass": true,
+        "observed": "Edited pstack-models.mdc +1 -1"
+      },
+      {
+        "check": "no-wrote-form",
+        "pass": true,
+        "observed": 0
+      },
+      {
+        "check": "diff-removed-budget",
+        "pass": true,
+        "observed": "▎- # budget: small (medium)"
+      },
+      {
+        "check": "diff-added-budget",
+        "pass": true,
+        "observed": "▎+ # budget: unlimited (max)"
+      },
+      {
+        "check": "diff-context-role",
+        "pass": true,
+        "observed": "▎  # `inherit-parent` or `auto` as a value: the role runs on the parent chat model (omit Task `model`). Alias entries"
+      }
+    ]
+  },
+  "pass": true,
+  "failures": []
+}

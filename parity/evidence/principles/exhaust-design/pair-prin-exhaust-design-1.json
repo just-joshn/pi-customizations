@@ -1,0 +1,135 @@
+{
+  "schema": 1,
+  "pairId": "prin-exhaust-design-1",
+  "scenarioRef": "prin-exhaust-design",
+  "journeyFamily": "journey-family-principles",
+  "requirementIds": [
+    "PSTACK-PRIN-EXHAUST-DESIGN-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "/poteto-mode This fixture needs a next-action picker for incomplete relay jobs. There is no prior picker, menu, hotkey, or filter pattern in this repo. Ship pickNext(jobs) in src/picker.js so node scripts/verify.mjs prints EXHAUST-OK. Before committing one design, leave 2-3 competing sketches under prototypes/ (each with a distinct APPROACH: line) and a short DECISION.md that compares them and names the chosen approach with CHOSEN: <id>. ... When EXHAUST-OK is on disk, write verified=yes|no to .../exhaust-design/fixture-out/<side>/done.txt, then stop.",
+  "steps": [
+    {
+      "wait": "ready screen (Tip: on Cursor; Pi chat ready without Trust dialog)"
+    },
+    {
+      "send": "/poteto-mode make EXHAUST-OK; 2-3 prototypes + DECISION.md; leaf SKILL.md for applied principles; write verified=yes|no"
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "wait": "on-disk evidence/verify-out.txt with EXHAUST-OK"
+    },
+    {
+      "wait": "done marker verified=yes"
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "c51f3304-680f-49c6-8b30-e387a5bbae7c",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/exhaust-design/cursor/c51f3304-680f-49c6-8b30-e387a5bbae7c",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "transcript": "/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/agent-transcripts/04192c2d-dc41-4c2e-840c-42afd6038163/04192c2d-dc41-4c2e-840c-42afd6038163.jsonl",
+    "proofCopyPath": "parity/evidence/principles/exhaust-design/fixture-out/cursor/evidence/verify-out.txt",
+    "observations": {
+      "potetoMode": true,
+      "leafSkillRead": true,
+      "leafSkillPath": "/Users/josh-desktop/.claude/skills/principle-exhaust-the-design-space/SKILL.md",
+      "prototypesPresent": true,
+      "prototypesBeforeProduct": true,
+      "decisionExists": true,
+      "exhaustOk": true,
+      "productOk": true,
+      "keptVerifyOk": true,
+      "verifyLine": "EXHAUST-OK prototypes=3 chosen=stalest-first",
+      "prototypeCount": 3,
+      "verifiedDone": true,
+      "modelAutoInvoke": false,
+      "contractHeld": true,
+      "ranVerifyScript": true,
+      "modelChrome": "unobserved on ready/settled screen dumps",
+      "oracleNote": "3 distinct prototypes + DECISION.md then pickNext; EXHAUST-OK prototypes=3 chosen=stalest-first."
+    }
+  },
+  "pi": {
+    "attemptId": "b0270896-62fc-40a8-8f26-c29164b1976a",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/exhaust-design/pi/b0270896-62fc-40a8-8f26-c29164b1976a",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-principles-exhaust-design-fixture-app--/2026-10-09T01-18-45-743Z_01a11e3d-bfee-7088-bfca-95de224e6078.jsonl",
+    "proofCopyPath": "parity/evidence/principles/exhaust-design/fixture-out/pi/evidence/verify-out.txt",
+    "observations": {
+      "potetoMode": true,
+      "leafSkillRead": true,
+      "leafSkillPath": "extensions/pi-pstack/skills/principle-exhaust-the-design-space/SKILL.md",
+      "prototypesPresent": true,
+      "prototypesBeforeProduct": true,
+      "decisionExists": true,
+      "exhaustOk": true,
+      "productOk": true,
+      "keptVerifyOk": true,
+      "verifyLine": "EXHAUST-OK prototypes=3 chosen=rule-table",
+      "prototypeCount": 3,
+      "verifiedDone": true,
+      "modelAutoInvoke": false,
+      "contractHeld": true,
+      "ranVerifyScript": true,
+      "modelChrome": "(claude-subscription) claude-sonnet-5-5 \u2022 medium",
+      "oracleNote": "3 distinct prototypes + DECISION.md then pickNext; EXHAUST-OK prototypes=3 chosen=rule-table."
+    }
+  },
+  "deltas": [
+    {
+      "topic": "leaf skill path",
+      "cursor": "Read ~/.claude/skills/principle-exhaust-the-design-space/SKILL.md",
+      "pi": "Read extensions/pi-pstack/skills/principle-exhaust-the-design-space/SKILL.md",
+      "reconciled": true
+    },
+    {
+      "topic": "chosen approach",
+      "cursor": "stalest-first",
+      "pi": "rule-table",
+      "reconciled": true
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "unobserved on screen dumps",
+      "pi": "claude-sonnet-5-5 medium via claude-subscription",
+      "reconciled": false
+    },
+    {
+      "topic": "exhaust-design outcome",
+      "cursor": "contractHeld. Leaf Read + 3 prototypes + DECISION + EXHAUST-OK.",
+      "pi": "contractHeld. Leaf Read + 3 prototypes + DECISION + EXHAUST-OK.",
+      "reconciled": true
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-prin-exhaust-design.mjs --both",
+    "capturedAt": "2026-10-09T01:19:36Z",
+    "shellTaskId": "275528",
+    "brief": "parity/briefs/u-journey-prin-exhaust-design.md"
+  }
+}

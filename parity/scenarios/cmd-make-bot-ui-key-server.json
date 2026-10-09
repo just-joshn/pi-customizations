@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "id": "cmd-make-bot-ui-key-server",
+  "status": "blocked-env",
+  "requirements": [
+    "PSTACK-CMD-MAKE-BOT-UI-KEY-SERVER-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/make-bot-ui/SKILL.md#make-bot-ui keeps webhook sender key on the server only",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "No bot UI yet, or an existing UI is being revised. Preconditions: Host supports webhook routines / update_state as assumed by the skill.",
+    "digest": null
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Follow Make Bot UI to create the page and webhook wiring.. The sender key stays on the server and is not placed in the browser, chat, or the skill file."
+    }
+  ],
+  "execution": {
+    "pairId": "make-bot-ui-key-server-1",
+    "verdict": "blocker",
+    "pair": "parity/evidence/make-bot-ui/pair-make-bot-ui-key-server-1.json",
+    "blocker": "parity/evidence/make-bot-ui/blocker-make-bot-ui-key-server-1.json",
+    "attempts": {
+      "cursor": "bb50ed1b-29ac-4961-bb0a-5c2ffd9834b2",
+      "pi": "8721faf4-89e1-4bc5-8abd-105870b4923d"
+    },
+    "mismatchId": "MAKE-BOT-UI-KEY-SERVER-HOST"
+  }
+}

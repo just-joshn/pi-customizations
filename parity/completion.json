@@ -1,0 +1,860 @@
+{
+  "kind": "completion",
+  "gateVersion": 1,
+  "verdict": "BLOCKED",
+  "blockers": [
+    {
+      "code": "SOURCE_LOCK_INCOMPLETE",
+      "file": "source-lock.json",
+      "locator": "status",
+      "contractLocator": "contract.md §2",
+      "message": "The source lock is not finalized."
+    },
+    {
+      "code": "SOURCE_CLOSURE_INCOMPLETE",
+      "file": "source-lock.json",
+      "locator": "cursorPlugins.completeDependencyClosure",
+      "contractLocator": "contract.md §2",
+      "message": "Complete dependency source closure remains required."
+    },
+    {
+      "code": "DEPENDENCY_REFERENCE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "unresolvedReferences[0]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency reference is unresolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[0]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[1]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "ACCEPTANCE_DEFINITIONS_UNFROZEN",
+      "file": "requirements.json",
+      "locator": "acceptanceDefinitionsFrozen",
+      "contractLocator": "contract.md §4",
+      "message": "Independent acceptance definitions are not frozen."
+    }
+  ],
+  "cursorReference": {
+    "pluginsRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+    "cliVersion": "2026.10.01-e373342"
+  },
+  "piVersion": "1.1.0",
+  "sourceRevisions": {
+    "cursorPlugins": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+    "pi": "abe508e1b89912adde45528136c3221eb69acdd7",
+    "implementationBaseline": "78dd5a04279436ebf6dde44853bacdab88ca9ae0"
+  },
+  "candidateRevision": "78dd5a04279436ebf6dde44853bacdab88ca9ae0",
+  "packageDigest": "sha512-4k21Tcx0vWhqSfQ4arJX96cIgQSp3cVwAGJ5+IL4exoBDquGgW2GNU6zB3CGR2a51UXDHnuloWkWfUzFLI0MVA==",
+  "deploymentManifestDigest": "0882671bcc81811716c34b43d96539ff63824e9f15695e8fe58b579559f3ea53",
+  "acceptanceDefinitionHashes": {
+    "frozen": false,
+    "owner": null
+  },
+  "configurationMatrix": "configurations.json",
+  "requirementCount": 98,
+  "executedJourneyCount": 98,
+  "evidenceIndex": [
+    {
+      "requirementId": "PSTACK-MODE-ONE-MESSAGE-001",
+      "pair": "parity/evidence/mode-one-message/pair-mode-one-message-1.json",
+      "attempts": {
+        "cursor": "5fd487a4-cf8e-4fe4-bbc0-7de39af1a159",
+        "pi": "f19e11c7-b1e5-4788-9f04-bb0e5c9de559"
+      }
+    },
+    {
+      "requirementId": "PSTACK-MODE-STICKY-001",
+      "pair": "parity/evidence/mode-sticky/pair-mode-sticky-1.json",
+      "attempts": {
+        "cursor": "521ce15e-a8f8-4f74-8fec-208ceddb7603",
+        "pi": "96494327-f90c-470a-8e11-cf7c5b6cad89"
+      }
+    },
+    {
+      "requirementId": "PSTACK-SETUP-MODEL-DISCOVERY-001",
+      "pair": "parity/evidence/setup-prepair/pair-setup-first-run-canonical-2.json",
+      "attempts": {
+        "cursor": "c7970c07-4c28-4cca-be3d-3d15ceedd207",
+        "pi": "1e448f41-07cb-4335-8a96-aa6312d6d125"
+      }
+    },
+    {
+      "requirementId": "PSTACK-SETUP-BUDGET-LABELS-001",
+      "pair": "parity/evidence/setup-prepair/pair-setup-first-run-canonical-2.json",
+      "attempts": {
+        "cursor": "c7970c07-4c28-4cca-be3d-3d15ceedd207",
+        "pi": "1e448f41-07cb-4335-8a96-aa6312d6d125"
+      }
+    },
+    {
+      "requirementId": "PSTACK-CMD-PLUGIN-SKILLS-REGISTER-001",
+      "pair": "parity/evidence/plugin-skills/pair-plugin-skills-register-1.json",
+      "attempts": {
+        "cursor": "ca0f3e61-9af8-434c-b2f2-a98d9823725f",
+        "pi": "11c4b783-86f3-426a-a1eb-e2048792071e"
+      }
+    },
+    {
+      "requirementId": "PSTACK-CMD-DISABLE-MODEL-INVOCATION-001",
+      "pair": "parity/evidence/disable-model/pair-disable-model-invocation-1.json",
+      "attempts": {
+        "cursor": "d5cca07e-5927-437f-863c-92d0471f95b7",
+        "pi": "2b4fc338-046f-4572-8a7a-b6ce9a8b56ad"
+      }
+    },
+    {
+      "requirementId": "PSTACK-CMD-HOW-SIMPLE-PATH-001",
+      "pair": "parity/evidence/investigate/pair-investigate-3.json",
+      "attempts": {
+        "cursor": "c1abf807-141d-4731-a887-182cf312ad02",
+        "pi": "951a315d-ac83-4901-9342-c82fbcd235a1"
+      }
+    },
+    {
+      "requirementId": "PSTACK-CMD-SWARM-FANOUT-001",
+      "pair": "parity/evidence/swarm/pair-swarm-n2-isolated-1.json",
+      "attempts": {
+        "cursor": "1aaf5610-1b40-4bc6-b265-6249dca1d6e1",
+        "pi": "408c6db6-2522-4fec-99f9-e76911bb21cf"
+      }
+    },
+    {
+      "requirementId": "PSTACK-CMD-ARENA-BASE-GRAFT-001",
+      "pair": "parity/evidence/arena/pair-arena-base-graft-1.json",
+      "attempts": {
+        "cursor": "c29a2b1d-9134-40bf-927f-68411fdb5772",
+        "pi": "e4631b87-3d59-4e77-b3ff-05f7b0a740a3"
+      }
+    },
+    {
+      "requirementId": "PSTACK-CMD-ARCHITECT-GROUND-HOW-001",
+      "pair": "parity/evidence/architect/pair-architect-ground-how-1.json",
+      "attempts": {
+        "cursor": "284b1831-6051-4b83-92b4-44a4b72609bf",
+        "pi": "ab355606-e9f0-48e7-9508-08a6952de959"
+      }
+    },
+    {
+      "requirementId": "PSTACK-CMD-INTERROGATE-NO-AUTOAPPLY-001",
+      "pair": "parity/evidence/interrogate/pair-interrogate-no-autoapply-1.json",
+      "attempts": {
+        "cursor": "e94a4325-4950-4d13-839c-d51aa452ec28",
+        "pi": "f23257ca-3195-4872-bc76-a41553e0c3da"
+      }
+    },
+    {
+      "requirementId": "PSTACK-CMD-REFLECT-TRIGGER-001",
+      "pair": "parity/evidence/reflect/pair-reflect-trigger-1.json",
+      "attempts": {
+        "cursor": "1ad53d5a-d80b-462e-94da-a55a17bffae7",
+        "pi": "09278a2c-bebe-4d95-b358-439cdc456fe5"
+      }
+    },
+    {
+      "requirementId": "PSTACK-CMD-WHY-MOTIVATION-001",
+      "pair": "parity/evidence/why/pair-why-1.json",
+      "attempts": {
+        "cursor": "97771f92-7d64-4ad8-9821-48701fe13881",
+        "pi": "ceff7d79-2c2a-479b-b2a8-a7e529d9e8ce"
+      }
+    },
+    {
+      "requirementId": "PSTACK-CMD-POTETO-HELP-NO-WORK-001",
+      "pair": "parity/evidence/commands/pair-commands-help-cancel-1.json",
+      "attempts": {
+        "cursor": "d20bff6f-9012-4d81-a1dc-cccd7202c4b8",
+        "pi": "e6909603-6d1f-4828-a1f2-d9f2d6d0be4c"
+      }
+    },
+    {
+      "requirementId": "PSTACK-CMD-TDD-EXPLICIT-GATE-001",
+      "pair": "parity/evidence/tdd/pair-tdd-explicit-gate-1.json",
+      "attempts": {
+        "cursor": "168c3046-79db-4405-b8d3-1f6385608d65",
+        "pi": "852f2c23-5efc-43ba-b2ea-d8b4f9ee5670"
+      }
+    },
+    {
+      "requirementId": "PSTACK-CMD-CREATE-VERIFY-SKILL-001",
+      "pair": "parity/evidence/create-verify/pair-create-verify-reuse-1.json",
+      "attempts": {
+        "cursor": "9a4dae62-0072-494c-a6d5-7f013fbfb66e",
+        "pi": "fba64ade-c697-4368-84ea-4281386b9e81"
+      }
+    },
+    {
+      "requirementId": "PSTACK-CMD-SHOW-ME-YOUR-WORK-TSV-001",
+      "pair": "parity/evidence/show-me-your-work/pair-show-me-your-work-tsv-1.json",
+      "attempts": {
+        "cursor": "9da98ab4-2dda-47d1-9c06-8927937c3e23",
+        "pi": "cb93e390-6979-4e43-a7f9-ee35df2ccc0b"
+      }
+    },
+    {
+      "requirementId": "PSTACK-CMD-FIGURE-IT-OUT-PLAYBOOK-FIRST-001",
+      "pair": "parity/evidence/figure-it-out/pair-figure-it-out-playbook-first-1.json",
+      "attempts": {
+        "cursor": "38afcd44-b9f2-4ba3-ad91-f345d71bdd73",
+        "pi": "a45d9cf4-4cea-4974-a9ad-7d56195c5259"
+      }
+    },
+    {
+      "requirementId": "PSTACK-CMD-CORRECT-ENCODE-001",
+      "pair": "parity/evidence/correct/pair-correct-encode-1.json",
+      "attempts": {
+        "cursor": "e05d5254-aa98-4533-b9e7-be0a6092eb3a",
+        "pi": "694910a7-666d-48cf-96ee-312a10d94927"
+      }
+    },
+    {
+      "requirementId": "PSTACK-CMD-TECHNICAL-WRITING-DOCS-001",
+      "pair": "parity/evidence/technical-writing/pair-technical-writing-docs-1.json",
+      "attempts": {
+        "cursor": "5b48533b-5d65-48de-ab6d-08c089583c46",
+        "pi": "60f6b4f6-d503-4b64-9909-853243f70563"
+      }
+    },
+    {
+      "requirementId": "PSTACK-CMD-NO-COMMENTS-SICKO-001",
+      "pair": "parity/evidence/no-comments/pair-no-comments-sicko-1.json",
+      "attempts": {
+        "cursor": "f4cd66ea-5fcd-49fc-aa35-9789e6fcfddc",
+        "pi": "44860f00-0364-48b9-805d-0c4146cb9e9d"
+      }
+    },
+    {
+      "requirementId": "PSTACK-CMD-COMMENT-SICKO-FIRST-OUTPUT-001",
+      "pair": "parity/evidence/no-comments/pair-no-comments-sicko-1.json",
+      "attempts": {
+        "cursor": "f4cd66ea-5fcd-49fc-aa35-9789e6fcfddc",
+        "pi": "44860f00-0364-48b9-805d-0c4146cb9e9d"
+      }
+    },
+    {
+      "requirementId": "PSTACK-CMD-POTETO-AGENT-READ-SKILL-001",
+      "pair": "parity/evidence/poteto-agent/pair-poteto-agent-read-skill-1.json",
+      "attempts": {
+        "cursor": "3632cd35-dfe5-4cc4-9bd0-ebcf7d44d240",
+        "pi": "6288c9b7-08ac-4b5f-850c-021446b26409"
+      }
+    },
+    {
+      "requirementId": "PSTACK-CMD-BENNY-REPRO-FAIL-CLOSED-001",
+      "pair": "parity/evidence/benny-repro/pair-benny-repro-fail-closed-1.json",
+      "attempts": {
+        "cursor": "e3e5e224-5d6a-4e9d-ab62-064386174fdc",
+        "pi": "85ff157c-90dc-43dd-927f-e2a8b32488bf"
+      }
+    },
+    {
+      "requirementId": "PSTACK-CMD-SETUP-BENNY-NOT-SLASH-001",
+      "pair": "parity/evidence/setup-benny/pair-setup-benny-not-slash-1.json",
+      "attempts": {
+        "cursor": "78443bd1-b96b-4e85-9abc-89f42abaae14",
+        "pi": "0ff31b2a-d6cc-45f4-8264-aa0d1982e6bc"
+      }
+    },
+    {
+      "requirementId": "PSTACK-CMD-BENNY-TRIAGE-THREAD-ONLY-001",
+      "pair": "parity/evidence/benny-triage/pair-benny-triage-fail-closed-1.json",
+      "attempts": {
+        "cursor": "876cbcf4-ea8d-4276-9e9b-f0ec2a7da379",
+        "pi": "5e2be54e-ec04-4238-a2d0-2fd622e87cc0"
+      }
+    },
+    {
+      "requirementId": "PSTACK-CMD-AUTOMATE-ME-EXISTING-SKILL-001",
+      "pair": "parity/evidence/automate-me/pair-automate-me-existing-skill-1.json",
+      "attempts": {
+        "cursor": "3064817a-7f0e-4b58-a466-99ed71b4f99c",
+        "pi": "cf572eb4-8f89-4044-b2aa-7cd5507c41eb"
+      }
+    },
+    {
+      "requirementId": "PSTACK-CMD-BENCHMARK-CHECKLIST-EVIDENCE-001",
+      "pair": "parity/evidence/benchmark/pair-benchmark-checklist-evidence-1.json",
+      "attempts": {
+        "cursor": "fef1b56c-e1bd-4f8c-83d1-dca9487c6b44",
+        "pi": "f35d81bd-a200-44fb-a673-039bdf1192ae"
+      }
+    },
+    {
+      "requirementId": "PSTACK-CMD-BLAST-RADIUS-RUN-PROOF-001",
+      "pair": "parity/evidence/blast-radius/pair-blast-radius-run-proof-1.json",
+      "attempts": {
+        "cursor": "10de693f-5087-438e-bd91-5cd266fc75e3",
+        "pi": "25fbb44d-c4bd-40ea-a4e5-c46f62166074"
+      }
+    },
+    {
+      "requirementId": "PSTACK-CMD-BRO-RESTATE-001",
+      "pair": "parity/evidence/bro/pair-bro-restate-1.json",
+      "attempts": {
+        "cursor": "7ee333ca-e68a-4ddf-a8dd-447d0299b524",
+        "pi": "245dd8fa-b145-4258-9c81-cdc0101caf61"
+      }
+    },
+    {
+      "requirementId": "PSTACK-CMD-MAINTAIN-VERIFY-OUTCOMES-001",
+      "pair": "parity/evidence/create-verify/pair-create-verify-maintain-1.json",
+      "attempts": {
+        "cursor": "24c341d9-3827-4f87-bd4d-9245b9eccb09",
+        "pi": "951f8414-e0c0-465e-acb2-7b40ad6fd6b2"
+      }
+    },
+    {
+      "requirementId": "PSTACK-CMD-MAKE-BOT-UI-KEY-SERVER-001",
+      "pair": "parity/evidence/make-bot-ui/pair-make-bot-ui-key-server-1.json",
+      "attempts": {
+        "cursor": "55f42e27-ee7e-4d6b-8f12-5b35824addff",
+        "pi": "e75f8e08-0d8c-4d55-ad3f-6946c405bbaf"
+      }
+    },
+    {
+      "requirementId": "PSTACK-CMD-POTETO-PLAYBOOK-TODO-001",
+      "pair": "parity/evidence/poteto-playbook/pair-poteto-playbook-todo-1.json",
+      "attempts": {
+        "cursor": "ff0f431a-1d09-40e2-b395-16a031182476",
+        "pi": "3d51f05d-e208-417b-835f-75df86da0a47"
+      }
+    },
+    {
+      "requirementId": "PSTACK-CMD-RECALL-CAPSULE-001",
+      "pair": "parity/evidence/recall/pair-recall-capsule-1.json",
+      "attempts": {
+        "cursor": "25c1bcca-e7ad-41b3-80dd-1fbac71066ec",
+        "pi": "ed0f279b-00a6-4934-8142-5859899cf832"
+      }
+    },
+    {
+      "requirementId": "PSTACK-CMD-SETUP-WRITE-RULE-001",
+      "pair": "parity/evidence/setup-rerun/pair-setup-rerun-mutate-role-1.json",
+      "attempts": {
+        "cursor": "428e113d-8047-473a-aea6-3b632f080322",
+        "pi": "6769d1c3-6f00-4528-85c5-7a251f30aeff"
+      }
+    },
+    {
+      "requirementId": "PSTACK-CMD-TEACH-HOW-WHY-001",
+      "pair": "parity/evidence/teach/pair-teach-how-why-1.json",
+      "attempts": {
+        "cursor": "738b745d-a4e0-464e-809a-928d12529074",
+        "pi": "9056a9b3-2f90-4015-b907-8895a599ae3a"
+      }
+    },
+    {
+      "requirementId": "PSTACK-CMD-TYPESCRIPT-PATHS-001",
+      "pair": "parity/evidence/typescript/pair-typescript-paths-2.json",
+      "attempts": {
+        "cursor": "b7688706-b64f-4a12-a61c-fd09c78a2722",
+        "pi": "3ab0995e-f5c8-4ce3-a1e3-55e86e66a8f3"
+      }
+    },
+    {
+      "requirementId": "PSTACK-CMD-UNSLOP-PROCESS-001",
+      "pair": "parity/evidence/unslop/pair-unslop-process-1.json",
+      "attempts": {
+        "cursor": "f365bb05-6976-45a4-a821-24fd7294247f",
+        "pi": "17fc084a-37e9-44c4-bf62-9149cf6cc9ba"
+      }
+    },
+    {
+      "requirementId": "PSTACK-SETUP-ALIAS-ALWAYS-VALID-001",
+      "pair": "parity/evidence/setup-rerun/pair-setup-rerun-mutate-role-1.json",
+      "attempts": {
+        "cursor": "428e113d-8047-473a-aea6-3b632f080322",
+        "pi": "6769d1c3-6f00-4528-85c5-7a251f30aeff"
+      }
+    },
+    {
+      "requirementId": "PSTACK-SETUP-LOAD-STATE-001",
+      "pair": "parity/evidence/setup-load-state/pair-setup-load-state-retired-1.json",
+      "attempts": {
+        "cursor": "b4bac448-d442-4c34-9eec-b73895bd063b",
+        "pi": "3f46cd66-2f53-40f1-bbcc-2c7de7828615"
+      }
+    },
+    {
+      "requirementId": "PSTACK-SETUP-BUDGET-APPLY-001",
+      "pair": "parity/evidence/setup-budget-apply/pair-setup-budget-apply-large-1.json",
+      "attempts": {
+        "cursor": "66de566f-5754-4e84-b3c2-2683254d419d",
+        "pi": "bf23823c-fcb1-4d97-9367-6d15b7a66591"
+      }
+    },
+    {
+      "requirementId": "PSTACK-SETUP-RERUN-PRESERVE-001",
+      "pair": "parity/evidence/setup-rerun/pair-setup-rerun-mutate-role-1.json",
+      "attempts": {
+        "cursor": "428e113d-8047-473a-aea6-3b632f080322",
+        "pi": "6769d1c3-6f00-4528-85c5-7a251f30aeff"
+      }
+    },
+    {
+      "requirementId": "PSTACK-SETUP-GROK-XHIGH-CAP-001",
+      "pair": "parity/evidence/setup-grok-xhigh-cap/pair-setup-grok-xhigh-cap-1.json",
+      "attempts": {
+        "cursor": "faeae5d9-c831-4b7b-9f47-abad3ed21433",
+        "pi": "94c9aab6-b015-44b7-8815-5cf6849f8025"
+      }
+    },
+    {
+      "requirementId": "PSTACK-SETUP-ROLE-CONFIRM-001",
+      "pair": "parity/evidence/setup-role-confirm/pair-setup-role-confirm-1.json",
+      "attempts": {
+        "cursor": "b72b2ad5-c36a-4219-81ba-04954cb9888c",
+        "pi": "f9259bfa-d306-4b5b-8ea4-c4d0de00b6fb"
+      }
+    },
+    {
+      "requirementId": "PSTACK-SETUP-PANEL-LIST-FANOUT-001",
+      "pair": "parity/evidence/setup-panel-fanout/pair-setup-panel-list-fanout-1.json",
+      "attempts": {
+        "cursor": "43dc2c2b-215d-4765-ab70-2682cb620fd8",
+        "pi": "925469ca-f277-4870-a986-2969e0e1ecbe"
+      }
+    },
+    {
+      "requirementId": "PSTACK-SETUP-VALIDATE-001",
+      "pair": "parity/evidence/setup-alias-validate/pair-setup-alias-validate-1.json",
+      "attempts": {
+        "cursor": "441393b8-841f-4c85-8c9e-3589b4d889c4",
+        "pi": "926d4a3d-7f9c-47ae-b237-cf2b83e0b3ad"
+      }
+    },
+    {
+      "requirementId": "PSTACK-SETUP-WRITE-RULE-001",
+      "pair": "parity/evidence/setup-rerun/pair-setup-rerun-mutate-role-1.json",
+      "attempts": {
+        "cursor": "428e113d-8047-473a-aea6-3b632f080322",
+        "pi": "6769d1c3-6f00-4528-85c5-7a251f30aeff"
+      }
+    },
+    {
+      "requirementId": "PSTACK-SETUP-WRITE-CARD-001",
+      "pair": "parity/evidence/setup-success/pair-setup-success-write-card-2.json",
+      "attempts": {
+        "cursor": "de231068-bb59-4872-a415-cfac64ddfdfe",
+        "pi": "0d269402-43a6-48fd-bb62-c8ca90306a5c"
+      }
+    },
+    {
+      "requirementId": "PSTACK-SETUP-CONFIRM-WRITTEN-001",
+      "pair": "parity/evidence/setup-rerun/pair-setup-rerun-mutate-role-1.json",
+      "attempts": {
+        "cursor": "428e113d-8047-473a-aea6-3b632f080322",
+        "pi": "6769d1c3-6f00-4528-85c5-7a251f30aeff"
+      }
+    },
+    {
+      "requirementId": "PSTACK-SETUP-CANCEL-NO-WRITE-001",
+      "pair": "parity/evidence/setup-cancel/pair-setup-escape-cancel-2.json",
+      "attempts": {
+        "cursor": "6193b87b-9040-4edb-a3b4-97d7ac6cb6f0",
+        "pi": "1c010fa9-b2be-44e8-a4fb-baa9febfafd3"
+      }
+    },
+    {
+      "requirementId": "PSTACK-SETUP-VERIFY-OFFER-001",
+      "pair": "parity/evidence/setup-verify-offer/pair-setup-verify-offer-1.json",
+      "attempts": {
+        "cursor": "b12de787-9406-4de1-8993-bd3b818bb912",
+        "pi": "27567808-9734-4516-b6e2-629dfb650d68"
+      }
+    },
+    {
+      "requirementId": "PSTACK-SETUP-NEW-SESSION-APPLIES-001",
+      "pair": "parity/evidence/setup-rerun/pair-setup-rerun-mutate-role-1.json",
+      "attempts": {
+        "cursor": "428e113d-8047-473a-aea6-3b632f080322",
+        "pi": "6769d1c3-6f00-4528-85c5-7a251f30aeff"
+      }
+    },
+    {
+      "requirementId": "PSTACK-SETUP-GUIDE-RERUN-KEEP-001",
+      "pair": "parity/evidence/setup-rerun/pair-setup-rerun-mutate-role-1.json",
+      "attempts": {
+        "cursor": "428e113d-8047-473a-aea6-3b632f080322",
+        "pi": "6769d1c3-6f00-4528-85c5-7a251f30aeff"
+      }
+    },
+    {
+      "requirementId": "PSTACK-SETUP-BENNY-NO-SECRET-001",
+      "pair": "parity/evidence/setup-benny/pair-setup-benny-no-secret-1.json",
+      "attempts": {
+        "cursor": "0b97cbde-da37-493c-8cf4-7992d17522ee",
+        "pi": "4b4a8d2a-6560-4384-82d4-520d1dc78833"
+      }
+    },
+    {
+      "requirementId": "PSTACK-SETUP-BENNY-PACK-MERGE-001",
+      "pair": "parity/evidence/setup-benny/pair-setup-benny-pack-merge-1.json",
+      "attempts": {
+        "cursor": "d9e476af-9b22-46f2-90fd-1d42cc2e068b",
+        "pi": "fe70b3f6-7866-4469-bc4e-fa045d67f52d"
+      }
+    },
+    {
+      "requirementId": "PSTACK-SETUP-BENNY-SETTINGS-ENABLE-001",
+      "pair": "parity/evidence/setup-benny/pair-setup-benny-settings-enable-1.json",
+      "attempts": {
+        "cursor": "57007345-8ea8-4ec2-8cc9-288b87c88fc2",
+        "pi": "868b09be-5b1f-4ec9-957e-6ceaa1aa84c6"
+      }
+    },
+    {
+      "requirementId": "PSTACK-SETUP-BENNY-PROJECT-SKILLS-001",
+      "pair": "parity/evidence/setup-benny/pair-setup-benny-project-skills-1.json",
+      "attempts": {
+        "cursor": "59fc7130-bd2d-4edc-8ee0-f491ed12128a",
+        "pi": "29b59723-b273-423c-a63a-524b3040157d"
+      }
+    },
+    {
+      "requirementId": "PSTACK-SETUP-BENNY-USER-CONFIG-OUTSIDE-001",
+      "pair": "parity/evidence/setup-benny/pair-setup-benny-user-config-outside-1.json",
+      "attempts": {
+        "cursor": "4ee10a59-d826-4875-8667-515f596d7cb7",
+        "pi": "5d95d377-27f7-4914-88f0-9ab4ab010516"
+      }
+    },
+    {
+      "requirementId": "PSTACK-SETUP-BENNY-REQUIRED-EXPLICIT-001",
+      "pair": "parity/evidence/setup-benny/pair-setup-benny-required-explicit-1.json",
+      "attempts": {
+        "cursor": "a3944805-df12-4454-9a0c-7a06d1757fb6",
+        "pi": "c8714d86-a05e-40e7-a1d3-e2a816efb52b"
+      }
+    },
+    {
+      "requirementId": "PSTACK-SETUP-BENNY-CONTROL-FAIL-CLOSED-001",
+      "pair": "parity/evidence/setup-benny/pair-setup-benny-control-fail-closed-1.json",
+      "attempts": {
+        "cursor": "370c1adb-5e53-4c1d-9d9c-34f21299d18d",
+        "pi": "e6185d9b-6960-4680-ae75-5349f6b148a2"
+      }
+    },
+    {
+      "requirementId": "PSTACK-SETUP-BENNY-EXISTING-NO-AUTOMATE-001",
+      "pair": "parity/evidence/setup-benny/pair-setup-benny-existing-no-automate-1.json",
+      "attempts": {
+        "cursor": "7f533016-def9-48db-9e2b-9f53ce47c127",
+        "pi": "0564c7c5-740d-48f0-b4ad-011d9422e558"
+      }
+    },
+    {
+      "requirementId": "PSTACK-SETUP-BENNY-CREATION-BOUNDARY-001",
+      "pair": "parity/evidence/setup-benny/pair-setup-benny-creation-boundary-1.json",
+      "attempts": {
+        "cursor": "e11d7225-4c8a-4c09-8f30-273e941a52d2",
+        "cursorEditorTitle": "475ab346-80a0-4d73-8ae1-d2b8042ee66f",
+        "cursorEditorReverify": "2c525e93-3392-4253-81ef-dd965fde2e7d",
+        "pi": "4d40a1d5-ea54-4ce2-922b-bf82e78b6577"
+      }
+    },
+    {
+      "requirementId": "PSTACK-SETUP-BENNY-THREAD-SAFETY-001",
+      "pair": "parity/evidence/setup-benny/pair-setup-benny-thread-safety-1.json",
+      "attempts": {
+        "cursor": "de707056-289d-44b8-85a4-4d400e849815",
+        "pi": "16520327-0d45-4817-a0cd-2f8c1c0e494a"
+      }
+    },
+    {
+      "requirementId": "PSTACK-SETUP-CREATE-VERIFY-INTERVIEW-001",
+      "pair": "parity/evidence/create-verify/pair-create-verify-interview-1.json",
+      "attempts": {
+        "cursor": "ee9d86df-a0c3-4169-80e1-103a3d000bf9",
+        "pi": "27b66016-7b03-4c3b-bc36-1e7fe17f27e3"
+      }
+    },
+    {
+      "requirementId": "PSTACK-SETUP-CREATE-VERIFY-GENERATE-001",
+      "pair": "parity/evidence/create-verify/pair-create-verify-helpers-1.json",
+      "attempts": {
+        "cursor": "66b7eaf6-e605-4446-8b68-cb18f6d64d8d",
+        "pi": "530af8b2-6322-44f6-848f-d9b62d85323b"
+      }
+    },
+    {
+      "requirementId": "PSTACK-SETUP-CREATE-VERIFY-FEATURE-MAP-001",
+      "pair": "parity/evidence/create-verify/pair-create-verify-reuse-1.json",
+      "attempts": {
+        "cursor": "9a4dae62-0072-494c-a6d5-7f013fbfb66e",
+        "pi": "fba64ade-c697-4368-84ea-4281386b9e81"
+      }
+    },
+    {
+      "requirementId": "PSTACK-SETUP-CREATE-VERIFY-PROVE-001",
+      "pair": "parity/evidence/create-verify/pair-create-verify-prove-1.json",
+      "attempts": {
+        "cursor": "e5599015-5bb9-4aac-b1cd-ee11fe31bf05",
+        "pi": "20d8304d-3d04-4913-b6b1-a67cf292c6e4"
+      }
+    },
+    {
+      "requirementId": "PSTACK-SETUP-CREATE-VERIFY-OFFER-MAINTAIN-001",
+      "pair": "parity/evidence/create-verify/pair-create-verify-maintain-1.json",
+      "attempts": {
+        "cursor": "24c341d9-3827-4f87-bd4d-9245b9eccb09",
+        "pi": "951f8414-e0c0-465e-acb2-7b40ad6fd6b2"
+      }
+    },
+    {
+      "requirementId": "PSTACK-SETUP-MAINTAIN-VERIFY-OUTCOMES-001",
+      "pair": "parity/evidence/maintain-verify/pair-maintain-verify-outcomes-1.json",
+      "attempts": {
+        "cursor": "c3f0f75c-eb59-4cfc-b4e1-9495dc84e4e7",
+        "pi": "d2597177-5cde-460b-8458-c2ee14b395d7"
+      }
+    },
+    {
+      "requirementId": "PSTACK-SETUP-MAINTAIN-VERIFY-EDIT-SCOPE-001",
+      "pair": "parity/evidence/create-verify/pair-create-verify-maintain-1.json",
+      "attempts": {
+        "cursor": "24c341d9-3827-4f87-bd4d-9245b9eccb09",
+        "pi": "951f8414-e0c0-465e-acb2-7b40ad6fd6b2"
+      }
+    },
+    {
+      "requirementId": "PSTACK-SETUP-MAINTAIN-VERIFY-LOCATE-001",
+      "pair": "parity/evidence/maintain-verify/pair-maintain-verify-locate-1.json",
+      "attempts": {
+        "cursor": "66944536-aadc-4b80-9be0-d3bd924e4057",
+        "pi": "073160f6-9e82-49fc-9bd0-9c1539341f50",
+        "cursorNone": "f8ea88ab-9875-4370-875e-a2771c5d3753",
+        "piNone": "ab0b1495-90e3-482c-b195-93600c824b5f"
+      }
+    },
+    {
+      "requirementId": "PSTACK-SETUP-MAINTAIN-VERIFY-SOURCE-WAVE-001",
+      "pair": "parity/evidence/maintain-verify/pair-maintain-verify-source-wave-1.json",
+      "attempts": {
+        "cursor": "7d0f9dfd-9f01-4199-b783-64ac80d7552f",
+        "pi": "e3203616-b69f-4113-a036-8e664cfaca64"
+      }
+    },
+    {
+      "requirementId": "PSTACK-SETUP-MAINTAIN-VERIFY-LIVE-PASS-001",
+      "pair": "parity/evidence/maintain-verify/pair-maintain-verify-live-pass-1.json",
+      "attempts": {
+        "cursor": "311766cd-245f-4bfb-8ade-d9235193c6a9",
+        "pi": "2f0c388b-c4fc-4763-9cab-0f0aa377ae69"
+      }
+    },
+    {
+      "requirementId": "PSTACK-SETUP-MAINTAIN-VERIFY-SHIP-001",
+      "pair": "parity/evidence/maintain-verify/pair-maintain-verify-outcomes-1.json",
+      "attempts": {
+        "cursor": "c3f0f75c-eb59-4cfc-b4e1-9495dc84e4e7",
+        "pi": "d2597177-5cde-460b-8458-c2ee14b395d7"
+      }
+    },
+    {
+      "requirementId": "PSTACK-PRIN-ATTACK-PREMISE-001",
+      "pair": "parity/evidence/principles/attack-premise/pair-prin-attack-premise-1.json",
+      "attempts": {
+        "cursor": "57e687cf-f41b-46bc-a084-493c3a40fc61",
+        "pi": "4f10f963-4a6b-4535-a836-9a6971c045a9"
+      }
+    },
+    {
+      "requirementId": "PSTACK-PRIN-BOUNDARY-001",
+      "pair": "parity/evidence/principles/boundary/pair-prin-boundary-1.json",
+      "attempts": {
+        "cursor": "f9bbb2d6-e5b4-47e2-b4f0-91b03291f4b9",
+        "pi": "d8c69f86-0236-4851-a2c0-1a911175877e"
+      }
+    },
+    {
+      "requirementId": "PSTACK-PRIN-BUILD-LEVER-001",
+      "pair": "parity/evidence/principles/build-lever/pair-prin-build-lever-1.json",
+      "attempts": {
+        "cursor": "ae01feb5-b373-4d64-9b2d-8d5b0b67c080",
+        "pi": "889c66cf-151f-48ba-9a4d-d80f1201fa80"
+      }
+    },
+    {
+      "requirementId": "PSTACK-PRIN-ENCODE-STRUCTURE-001",
+      "pair": "parity/evidence/principles/encode-structure/pair-prin-encode-structure-1.json",
+      "attempts": {
+        "cursor": "28d00da4-064a-466a-ae71-2d1f249fb6cd",
+        "pi": "fa41db21-da46-4503-b8dc-35d69586e835"
+      }
+    },
+    {
+      "requirementId": "PSTACK-PRIN-EXHAUST-DESIGN-001",
+      "pair": "parity/evidence/principles/exhaust-design/pair-prin-exhaust-design-1.json",
+      "attempts": {
+        "cursor": "c51f3304-680f-49c6-8b30-e387a5bbae7c",
+        "pi": "b0270896-62fc-40a8-8f26-c29164b1976a"
+      }
+    },
+    {
+      "requirementId": "PSTACK-PRIN-EXPERIENCE-FIRST-001",
+      "pair": "parity/evidence/principles/experience-first/pair-prin-experience-first-1.json",
+      "attempts": {
+        "cursor": "c4dcc551-833e-46ee-bffc-651864b86bf7",
+        "pi": "624b7baf-b01d-424d-9dac-3b9c39828a79"
+      }
+    },
+    {
+      "requirementId": "PSTACK-PRIN-EXPLAIN-NUMBER-001",
+      "pair": "parity/evidence/principles/explain-number/pair-prin-explain-number-1.json",
+      "attempts": {
+        "cursor": "0adb3d89-a142-4c2a-9487-4209954140ef",
+        "pi": "029fedbc-568d-499e-ba31-1da197a2d866"
+      }
+    },
+    {
+      "requirementId": "PSTACK-PRIN-FIX-ROOT-001",
+      "pair": "parity/evidence/principles/fix-root/pair-prin-fix-root-1.json",
+      "attempts": {
+        "cursor": "5d36f6ca-23fd-462c-8e35-7666ddf387de",
+        "pi": "dffb963b-d1b4-42a4-bca0-e36b02bef0f3"
+      }
+    },
+    {
+      "requirementId": "PSTACK-PRIN-FOUNDATIONAL-001",
+      "pair": "parity/evidence/principles/foundational/pair-prin-foundational-1.json",
+      "attempts": {
+        "cursor": "65219cb4-d58b-4567-b7bb-0300966d0a31",
+        "pi": "d553905a-8e0a-47c6-ab11-bdb96fe53f60"
+      }
+    },
+    {
+      "requirementId": "PSTACK-PRIN-GUARD-CONTEXT-001",
+      "pair": "parity/evidence/principles/guard-context/pair-prin-guard-context-1.json",
+      "attempts": {
+        "cursor": "6910fcce-9e65-4d40-830e-fcf478d32991",
+        "pi": "b5f36281-63a5-4572-8efc-4af4f27a7627"
+      }
+    },
+    {
+      "requirementId": "PSTACK-PRIN-LAZINESS-001",
+      "pair": "parity/evidence/principles/laziness/pair-prin-laziness-1.json",
+      "attempts": {
+        "cursor": "f3a6669a-3e76-4ae3-9f8e-50ce94f2fc2a",
+        "pi": "7e4c208d-60c8-4529-9849-1e70eed051fa"
+      }
+    },
+    {
+      "requirementId": "PSTACK-PRIN-IDEMPOTENT-001",
+      "pair": "parity/evidence/principles/idempotent/pair-prin-idempotent-1.json",
+      "attempts": {
+        "cursor": "fef5e774-50d6-4214-9d76-6228f155b229",
+        "pi": "4e21a4e0-18c1-42e8-b286-6779858d9fe1"
+      }
+    },
+    {
+      "requirementId": "PSTACK-PRIN-MIGRATE-DELETE-001",
+      "pair": "parity/evidence/principles/migrate-delete/pair-prin-migrate-delete-1.json",
+      "attempts": {
+        "cursor": "358649f2-255f-4700-9f7f-443f53f771eb",
+        "pi": "00a3375f-c96c-4f68-bb47-8cd357376365"
+      }
+    },
+    {
+      "requirementId": "PSTACK-PRIN-MINIMIZE-READER-001",
+      "pair": "parity/evidence/principles/minimize-reader/pair-prin-minimize-reader-1.json",
+      "attempts": {
+        "cursor": "a0563963-92bc-4f7d-b63d-37051663e79b",
+        "pi": "f698e8a7-1dbd-46cb-96d2-7ecaabbebaeb"
+      }
+    },
+    {
+      "requirementId": "PSTACK-PRIN-MODEL-DOMAIN-001",
+      "pair": "parity/evidence/principles/model-domain/pair-prin-model-domain-1.json",
+      "attempts": {
+        "cursor": "5b46963a-1d66-4053-a9c8-4f4e8037ae9d",
+        "pi": "3ac75dad-b288-4b1e-b104-2b234865575b"
+      }
+    },
+    {
+      "requirementId": "PSTACK-PRIN-NEVER-BLOCK-001",
+      "pair": "parity/evidence/principles/never-block/pair-prin-never-block-1.json",
+      "attempts": {
+        "cursor": "c38eb9b1-9ac3-4d16-a43d-009c3c9d7eb8",
+        "pi": "d0a66bac-7951-4adb-a7d5-95b46f0d4e15"
+      }
+    },
+    {
+      "requirementId": "PSTACK-PRIN-OUTCOME-ORIENTED-001",
+      "pair": "parity/evidence/principles/outcome-oriented/pair-prin-outcome-oriented-1.json",
+      "attempts": {
+        "cursor": "342ef99a-aa7a-41b2-9cea-1fad66a4e714",
+        "pi": "df45bc1d-780c-410a-9475-a41c2bde9e1e"
+      }
+    },
+    {
+      "requirementId": "PSTACK-PRIN-PROVE-IT-001",
+      "pair": "parity/evidence/principles/pair-prin-prove-it-1.json",
+      "attempts": {
+        "cursor": "9f605907-9633-4897-8357-c174bf170c65",
+        "pi": "4af22cca-9d26-4592-81e2-058a9d96f4fc"
+      }
+    },
+    {
+      "requirementId": "PSTACK-PRIN-REDESIGN-FIRST-001",
+      "pair": "parity/evidence/principles/redesign-first/pair-prin-redesign-first-1.json",
+      "attempts": {
+        "cursor": "dcb80bb4-cf3a-4a78-a9b1-df6f0a0aa370",
+        "pi": "e297cc00-bdd7-4b7b-a489-e7a267dc328a"
+      }
+    },
+    {
+      "requirementId": "PSTACK-PRIN-SEPARATE-STATE-001",
+      "pair": "parity/evidence/principles/separate-state/pair-prin-separate-state-1.json",
+      "attempts": {
+        "cursor": "f8041da0-089d-4161-b775-e5fb91c488e3",
+        "pi": "3b9d8593-e469-4816-a7e2-751bf90e51bf"
+      }
+    },
+    {
+      "requirementId": "PSTACK-PRIN-SEQUENCE-UNITS-001",
+      "pair": "parity/evidence/principles/sequence-units/pair-prin-sequence-units-1.json",
+      "attempts": {
+        "cursor": "a25ac05b-fb4c-4d6c-a195-2a2e13a0b2cf",
+        "pi": "1b0ebd6e-1254-4932-9f79-5765a701c913"
+      }
+    },
+    {
+      "requirementId": "PSTACK-PRIN-SUBTRACT-FIRST-001",
+      "pair": "parity/evidence/principles/subtract-first/pair-prin-subtract-first-1.json",
+      "attempts": {
+        "cursor": "8ff2e73a-52d1-4d2c-a601-bed33a6bec3d",
+        "pi": "949c5a02-da60-4b0d-8838-d6ccf3b7914a"
+      }
+    },
+    {
+      "requirementId": "PSTACK-PRIN-TEST-BEHAVIOR-001",
+      "pair": "parity/evidence/principles/test-behavior/pair-prin-test-behavior-1.json",
+      "attempts": {
+        "cursor": "b70c73d6-63a5-4255-b8a3-62f3217e5704",
+        "pi": "753e87d4-b2c8-4c0e-8fd4-1ca3bacbcbac"
+      }
+    },
+    {
+      "requirementId": "PSTACK-PRIN-TYPE-DISCIPLINE-001",
+      "pair": "parity/evidence/principles/type-discipline/pair-prin-type-discipline-1.json",
+      "attempts": {
+        "cursor": "33d927a2-8d1d-471f-8d0b-f6284c67b21b",
+        "pi": "9cae5688-2cb4-4719-8c5f-fa1c908a983e"
+      }
+    }
+  ],
+  "evaluatedAt": "2026-10-09T17:34:00.362Z"
+}

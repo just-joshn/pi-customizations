@@ -1,0 +1,82 @@
+{
+  "skillActivated": true,
+  "jargonHitsTurn1": [
+    "event loop",
+    "microtask",
+    "libuv",
+    "thread pool",
+    "macrotask",
+    "I/O completion",
+    "phase"
+  ],
+  "jargonDensePrior": true,
+  "screenScore": {
+    "broSkill": true,
+    "plainHints": true,
+    "jargonHits": [],
+    "jargonCount": 0,
+    "continuedPrior": false,
+    "restated": true,
+    "doneYes": true,
+    "doneNo": false,
+    "doneFail": false,
+    "outcome": "restate_plain",
+    "working": false
+  },
+  "ptyScore": {
+    "broSkill": true,
+    "plainHints": true,
+    "jargonHits": [],
+    "jargonCount": 0,
+    "continuedPrior": false,
+    "restated": true,
+    "doneYes": true,
+    "doneNo": false,
+    "doneFail": false,
+    "outcome": "restate_plain",
+    "working": true
+  },
+  "sessionScore": null,
+  "fileScore": {
+    "broSkill": false,
+    "plainHints": true,
+    "jargonHits": [],
+    "jargonCount": 0,
+    "continuedPrior": false,
+    "restated": true,
+    "doneYes": true,
+    "doneNo": false,
+    "doneFail": false,
+    "outcome": "restate_plain",
+    "working": false
+  },
+  "bestScore": {
+    "broSkill": false,
+    "plainHints": true,
+    "jargonHits": [],
+    "jargonCount": 0,
+    "continuedPrior": false,
+    "restated": true,
+    "doneYes": true,
+    "doneNo": false,
+    "doneFail": false,
+    "outcome": "restate_plain",
+    "working": false
+  },
+  "outcome": "restate_plain",
+  "restatedPlain": true,
+  "continuedPriorTask": false,
+  "productFilesTouched": [],
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/bro/fixture-out/cursor/done.txt",
+    "line": "bro=yes"
+  },
+  "restate": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/bro/fixture-out/cursor/restate.md",
+    "digest": "6d6cc52eddd4a9218319bab3e14476e3a292864f797e283c38396fc498e83c8f",
+    "preview": "Node runs one waiting job at a time from a series of queues. After each job, it finishes all pending Promise callbacks before moving on. Slow work like reading files runs on background workers; when they finish, their results wait in line on the main loop. Promise callbacks never run on those workers—only on the main loop after a finished job gets its turn.\n"
+  },
+  "session": null
+}

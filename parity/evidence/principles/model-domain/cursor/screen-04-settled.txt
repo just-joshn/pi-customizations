@@ -1,0 +1,39 @@
+  Implement ticket status lifecycle (9518b3bb-127c-4d22-9252-a344619104ed) filled src/ticket.js. Parent re-ran 
+  verify on the real script.
+
+  Throughput checkpoint.
+
+  ┌─────────────────────────────┬─────────────────────────┐
+  │ Dimension                   │ Verdict                 │
+  ├─────────────────────────────┼─────────────────────────┤
+  │ Blocking first steps        │ Design pick before edit │
+  ├─────────────────────────────┼─────────────────────────┤
+  │ Independent workstreams     │ n/a: one file           │
+  ├─────────────────────────────┼─────────────────────────┤
+  │ Shared mutable state        │ n/a: immutable returns  │
+  ├─────────────────────────────┼─────────────────────────┤
+  │ Smallest safe decomposition │ One worker on ticket.js │
+  └─────────────────────────────┴─────────────────────────┘
+
+  Open decisions. None in scope. Re-hold / re-release stay throw-on-reentry.
+
+  Principles that changed the call.
+  • Model the Domain. Status machine instead of another synced boolean.
+  • Exhaust the Design Space. Three arena sketches before coding.
+  • Type System Discipline. Four statuses, no illegal flag lattice.
+  • Encode Lessons in Structure. Illegal hold/close edges enforced by the discriminant, not prose.
+  • Boundary Discipline. Status checks only at transition entries.
+  • Laziness Protocol. Deleted the booleans. No exported transition helper.
+  • Prove It Works. Re-ran scripts/verify.mjs (exit 0) before done.txt.
+  • Separate Before Serializing Shared State. Arena candidates wrote to separate /tmp dirs.
+  • Never Block on the Human. Picked the consensus base and started implementation without a human checkpoint.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 25.4% · 7 files edited                                                                         Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/principles/model-domain/fixture-app · 
+  refactor/pi-pstack-parity-again

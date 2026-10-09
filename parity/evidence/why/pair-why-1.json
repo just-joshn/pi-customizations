@@ -1,0 +1,60 @@
+{
+  "schema": 1,
+  "pairId": "why-1",
+  "scenarioRef": "why:motivation-question",
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "question": "why what forces led pstack to use inherit-parent on role model lines in models.mdc",
+  "steps": [
+    {
+      "send": "/why what forces led pstack to use inherit-parent on role model lines in models.mdc"
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "settle": true
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "97771f92-7d64-4ad8-9821-48701fe13881",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/why/cursor/97771f92-7d64-4ad8-9821-48701fe13881",
+    "ruleUnchanged": true,
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    }
+  },
+  "pi": {
+    "attemptId": "ceff7d79-2c2a-479b-b2a8-a7e529d9e8ce",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/why/pi/ceff7d79-2c2a-479b-b2a8-a7e529d9e8ce",
+    "ruleUnchanged": true,
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-fixtures-first-run--/2026-10-08T18-40-43-235Z_01a11cd1-54e2-7682-b270-88f82019de00.jsonl"
+  },
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-why.mjs --both",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "packagePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack",
+    "priorAttempt": "parity/evidence/why/attempt-1-residual-yesno",
+    "priorAttemptIds": {
+      "cursor": "90041dbb-c06d-4595-a4c4-3fd83674de22",
+      "pi": "5c9a69d5-fa5e-4cbc-9fbc-71198406592b"
+    }
+  }
+}

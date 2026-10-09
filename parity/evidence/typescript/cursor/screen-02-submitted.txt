@@ -1,0 +1,22 @@
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Type ? in the prompt bar to show in-app hints.
+
+                                                                                                                       
+  /typescript-best-practices brand UserId in src/id.ts (stop using bare string) and tighten src/Badge.tsx so           
+  status is a required discriminant, not optional bags. Keep the change small. Work only inside this fixture           
+  cwd. Do not edit ledgers, parity/, or files outside this cwd. When finished, write exactly one line to               
+  /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/typescript/fixture-out/cursor/done.txt       
+  naming the files you edited, then stop.                                                                              
+                                                                                                                       
+
+ ⠠⠛ Working
+
+                                                                                                                       
+  → Add a follow-up                                                                                     ctrl+c to stop 
+                                                                                                                       
+
+  Auto                                                                                                  Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/typescript/fixture-app · refactor/pi-pstack-parity-again

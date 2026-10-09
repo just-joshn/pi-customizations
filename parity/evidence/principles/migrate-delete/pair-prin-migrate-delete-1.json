@@ -1,0 +1,130 @@
+{
+  "schema": 1,
+  "pairId": "prin-migrate-delete-1",
+  "scenarioRef": "prin-migrate-delete",
+  "journeyFamily": "journey-family-principles",
+  "requirementIds": [
+    "PSTACK-PRIN-MIGRATE-DELETE-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "/poteto-mode Introduce the formatName API described in NOTES.md. greet.js and banner.js still call formatNameLegacy. Migrate those callers and remove the old API in the same change so node scripts/verify.mjs prints MIGRATE-OK. Do not leave a permanent compatibility shim. For any poteto-mode principle you apply before declaring done, read that principle's leaf SKILL.md in full first (not only the poteto-mode Principles index). Work only inside this fixture cwd. Do not edit ledgers, parity/, or files outside this cwd except the named done path. When MIGRATE-OK is on disk, write exactly one line to .../migrate-delete/fixture-out/<side>/done.txt as verified=yes|no, then stop.",
+  "steps": [
+    {
+      "wait": "ready screen (Tip: on Cursor; Pi chat ready without Trust dialog)"
+    },
+    {
+      "send": "/poteto-mode introduce formatName; migrate callers; delete legacyFormat; leaf SKILL.md for applied principles; verify; write verified=yes|no"
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "wait": "on-disk evidence/verify-out.txt with MIGRATE-OK"
+    },
+    {
+      "wait": "done marker verified=yes"
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "358649f2-255f-4700-9f7f-443f53f771eb",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/migrate-delete/cursor/358649f2-255f-4700-9f7f-443f53f771eb",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "transcript": "/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/agent-transcripts/28d67651-4c58-450c-993d-347dde8c645b/28d67651-4c58-450c-993d-347dde8c645b.jsonl",
+    "proofCopyPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/migrate-delete/fixture-out/cursor/evidence/verify-out.txt",
+    "observations": {
+      "potetoMode": true,
+      "leafSkillRead": true,
+      "leafSkillPath": "/Users/josh-desktop/.claude/skills/principle-migrate-callers-then-delete-legacy-apis/SKILL.md",
+      "legacyDeleted": true,
+      "callersMigrated": true,
+      "formatPresent": true,
+      "compatShim": false,
+      "sameWave": true,
+      "keptVerifyOk": true,
+      "verifyLine": "MIGRATE-OK greet=\"hello, WORLD\" banner=\"BANNER:TEAM\" files=banner.js,format.js,greet.js",
+      "productOk": true,
+      "verifiedDone": true,
+      "modelAutoInvoke": false,
+      "contractHeld": true,
+      "ranVerifyScript": true,
+      "modelChrome": "Auto (screen-04-settled)",
+      "oracleNote": "Poll shows format.js then callers then legacyFormat.js deleted in one attempt. Final src is format.js+greet.js+banner.js using formatName. No formatNameLegacy. MIGRATE-OK and verified=yes."
+    }
+  },
+  "pi": {
+    "attemptId": "00a3375f-c96c-4f68-bb47-8cd357376365",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/migrate-delete/pi/00a3375f-c96c-4f68-bb47-8cd357376365",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-principles-migrate-delete-fixture-app--/2026-10-09T00-56-16-067Z_01a11e29-27c2-72f2-96b6-6ac013638b79.jsonl",
+    "proofCopyPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/migrate-delete/fixture-out/pi/evidence/verify-out.txt",
+    "observations": {
+      "potetoMode": true,
+      "leafSkillRead": true,
+      "leafSkillPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-migrate-callers-then-delete-legacy-apis/SKILL.md",
+      "legacyDeleted": true,
+      "callersMigrated": true,
+      "formatPresent": true,
+      "compatShim": false,
+      "sameWave": true,
+      "keptVerifyOk": true,
+      "verifyLine": "MIGRATE-OK greet=\"hello, WORLD\" banner=\"BANNER:TEAM\" files=banner.js,format.js,greet.js",
+      "productOk": true,
+      "verifiedDone": true,
+      "modelAutoInvoke": false,
+      "contractHeld": true,
+      "ranVerifyScript": true,
+      "modelChrome": "(claude-subscription) claude-sonnet-5-5 • medium",
+      "oracleNote": "Session read migrate leaf, then one bash writes format.js, sed-migrates greet/banner, rm legacyFormat.js, runs verify. Same-wave migrate+delete. No shim."
+    }
+  },
+  "deltas": [
+    {
+      "topic": "leaf skill path",
+      "cursor": "Read ~/.claude/skills/principle-migrate-callers-then-delete-legacy-apis/SKILL.md",
+      "pi": "Read extensions/pi-pstack/skills/principle-migrate-callers-then-delete-legacy-apis/SKILL.md",
+      "reconciled": true
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "Auto (screen-04-settled)",
+      "pi": "claude-sonnet-5-5 medium via claude-subscription",
+      "reconciled": false
+    },
+    {
+      "topic": "migrate-delete outcome",
+      "cursor": "contractHeld. Leaf Read + formatName + callers migrated + legacyFormat deleted + MIGRATE-OK. No compat shim.",
+      "pi": "contractHeld. Leaf Read + formatName + callers migrated + legacyFormat deleted + MIGRATE-OK. No compat shim.",
+      "reconciled": true
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-prin-migrate-delete.mjs --both",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "fixtureApp": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/migrate-delete/fixture-app",
+    "decisionLog": "parity/evidence/principles/migrate-delete/.audit/u-journey-prin-migrate-delete.tsv",
+    "notes": "PSTACK-PRIN-MIGRATE-DELETE-001. Dedicated migrate-delete/ fixture. Legacy formatNameLegacy callers. Ledgers untouched. disable-model-invocation true on package leaf copies; modelAutoInvoke false on both. Sequential same-scenario captures, not one recordPair() call."
+  }
+}

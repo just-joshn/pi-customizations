@@ -1,0 +1,151 @@
+{
+  "score": {
+    "frontmatterOk": true,
+    "leafSkillRead": true,
+    "usedChrome": true,
+    "modelAutoInvoke": false,
+    "ranVerifyScript": true,
+    "exhaustOk": true,
+    "productOk": true,
+    "prototypesPresent": true,
+    "prototypesBeforeProduct": true,
+    "decisionExists": true,
+    "verifiedDone": true,
+    "contractHeld": true,
+    "screen": {
+      "potetoMode": false,
+      "leafChrome": false,
+      "hostAttached": false,
+      "verifyMention": true,
+      "protoMention": true,
+      "working": false
+    },
+    "pty": {
+      "potetoMode": true,
+      "leafChrome": false,
+      "hostAttached": true,
+      "verifyMention": true,
+      "protoMention": true,
+      "working": true
+    }
+  },
+  "firstProductAt": "2026-10-09T01:18:16.378Z",
+  "firstVerifyAt": "2026-10-09T01:18:19.197Z",
+  "firstProtoAt": "2026-10-09T01:17:40.997Z",
+  "firstDecisionAt": "2026-10-09T01:18:15.174Z",
+  "productPaths": [
+    "src/picker.js"
+  ],
+  "prototypeArtifacts": [
+    "prototypes/stalest-first.mjs",
+    "prototypes/menu-index.mjs",
+    "prototypes/title-scan.mjs",
+    "prototypes/switcher.mjs"
+  ],
+  "prototypeAnalysis": {
+    "count": 3,
+    "approaches": [
+      {
+        "rel": "prototypes/menu-index.mjs",
+        "id": "menu-index"
+      },
+      {
+        "rel": "prototypes/stalest-first.mjs",
+        "id": "stalest-first"
+      },
+      {
+        "rel": "prototypes/title-scan.mjs",
+        "id": "title-scan"
+      }
+    ],
+    "distinctApproaches": 3,
+    "okCount": true,
+    "okDistinct": true
+  },
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/exhaust-design/fixture-out/cursor/done.txt",
+    "line": "verified=yes"
+  },
+  "verifyOut": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/exhaust-design/fixture-app/evidence/verify-out.txt",
+    "line": "EXHAUST-OK prototypes=3 chosen=stalest-first",
+    "ok": true
+  },
+  "productOk": true,
+  "decisionExists": true,
+  "frontmatter": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/principle-exhaust-the-design-space/SKILL.md",
+    "ok": true,
+    "name": "principle-exhaust-the-design-space",
+    "disableModelInvocation": true
+  },
+  "session": null,
+  "transcript": {
+    "path": "/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/agent-transcripts/04192c2d-dc41-4c2e-840c-42afd6038163/04192c2d-dc41-4c2e-840c-42afd6038163.jsonl",
+    "leafSkillRead": true,
+    "leafSkillReadAt": "2026-10-09T01:18:45.449Z",
+    "ranVerifyScript": true,
+    "firstVerifyAt": "2026-10-09T01:18:45.449Z",
+    "firstProtoWriteAt": "2026-10-09T01:18:45.449Z",
+    "firstProductWriteAt": "2026-10-09T01:18:45.450Z",
+    "wroteDecision": true,
+    "toolOrder": [
+      "Read",
+      "GetDynamicTools",
+      "Glob",
+      "Read",
+      "GetDynamicTools",
+      "Read",
+      "Read",
+      "Read(verify.mjs)",
+      "Read",
+      "Read",
+      "CallDynamicTool",
+      "Read(exhaust-leaf)",
+      "Read",
+      "blob-mention(exhaust-leaf)",
+      "CallDynamicTool",
+      "Write(prototype)",
+      "Write(prototype)",
+      "Write(prototype)",
+      "Write(prototype)",
+      "Shell",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Write(prototype)",
+      "Write(prototype)",
+      "Write(prototype)",
+      "Shell",
+      "Read",
+      "Read",
+      "Read",
+      "Write(decision)",
+      "Write(product)",
+      "Shell(verify.mjs)",
+      "Shell",
+      "CallDynamicTool"
+    ],
+    "mtimeMs": 1791508709202.9329
+  },
+  "pollSamples": 156,
+  "screenFinal": {
+    "potetoMode": false,
+    "leafChrome": false,
+    "hostAttached": false,
+    "verifyMention": true,
+    "protoMention": true,
+    "working": false
+  },
+  "pty": {
+    "potetoMode": true,
+    "leafChrome": false,
+    "hostAttached": true,
+    "verifyMention": true,
+    "protoMention": true,
+    "working": true
+  }
+}

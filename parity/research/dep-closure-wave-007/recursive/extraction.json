@@ -1,0 +1,2270 @@
+{
+  "capturedAt": "2026-10-09T00:52:24Z",
+  "distributionInventory": "parity/reference/distribution-inventory.txt",
+  "distributionInventorySha256": "d4c5cda5fa994f654782af04b027741c1e5ec061bfc0229b827fe511b36a7568",
+  "inventoryEntryCount": 193,
+  "textFilesScanned": 185,
+  "binaryOrUnreadableSkipped": 8,
+  "extractionStatus": "complete",
+  "runtimeAuditStatus": "open",
+  "uniqueReferenceCount": 176,
+  "absoluteUrlCount": 31,
+  "relativeEscapeCount": 145,
+  "topHosts": [
+    [
+      "github.com",
+      12
+    ],
+    [
+      "cursor.com",
+      5
+    ],
+    [
+      "127.0.0.1:4173`",
+      3
+    ],
+    [
+      "tracker.example",
+      2
+    ],
+    [
+      "127.0.0.1:<port",
+      1
+    ],
+    [
+      "127.0.0.1:<debug-port",
+      1
+    ],
+    [
+      "127.0.0.1:8432",
+      1
+    ],
+    [
+      "fonts.googleapis.com",
+      1
+    ],
+    [
+      "x.com",
+      1
+    ],
+    [
+      "api2.cursor.sh",
+      1
+    ],
+    [
+      "<hostname",
+      1
+    ],
+    [
+      "<100.x.x.x",
+      1
+    ],
+    [
+      "tailscale.com",
+      1
+    ]
+  ],
+  "disposition": "Wave-007 extracted absolute URLs and relative-escape markdown links from every readable text file in the locked distribution inventory (185 files). Extraction is complete with path+hash custody of source files. Live/runtime audit of extracted external targets remains open.",
+  "blockerForRuntimeAudit": "Extracted external URLs and escape links require follow-up custody and behavioral audit. This wave records extraction only.",
+  "sourcesScanned": [
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/.cursor-plugin/plugin.json",
+      "inventoryPath": "cursor-team-kit/.cursor-plugin/plugin.json",
+      "sha256": "9c8622d0577205959b6469a5454cbe2787ad3c6412439759328e92dc0115584d",
+      "byteLength": 899
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/LICENSE",
+      "inventoryPath": "cursor-team-kit/LICENSE",
+      "sha256": "702f5f331b56aff0e33d8c7826df5202559f894145eb70355c6477b55b5bb8a0",
+      "byteLength": 1063
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/README.md",
+      "inventoryPath": "cursor-team-kit/README.md",
+      "sha256": "6f0e34073ee503824eb5baf52a52119cffe330f2685477ea8d303e881ecd1679",
+      "byteLength": 2526
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/agents/ci-watcher.md",
+      "inventoryPath": "cursor-team-kit/agents/ci-watcher.md",
+      "sha256": "8bc93b9ced5588f0ece54ce52690e9682ac49a7fd64be7124379b0e2e128556e",
+      "byteLength": 984
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/agents/thermo-nuclear-code-quality-review.md",
+      "inventoryPath": "cursor-team-kit/agents/thermo-nuclear-code-quality-review.md",
+      "sha256": "4d15c05be503f9fdb795a292807334558e7619ffc2fd75ddbc9e97e0d6312234",
+      "byteLength": 1874
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/rules/no-inline-imports.mdc",
+      "inventoryPath": "cursor-team-kit/rules/no-inline-imports.mdc",
+      "sha256": "91bb4412f2775b386ddf6af0d235fbe8160907f6104c76928470fdf51be69edd",
+      "byteLength": 314
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/rules/typescript-exhaustive-switch.mdc",
+      "inventoryPath": "cursor-team-kit/rules/typescript-exhaustive-switch.mdc",
+      "sha256": "58214625757c38b73fc3e66a715ea4b2ae609f6b3e285edc4393c5144430a8f4",
+      "byteLength": 297
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/skills/check-compiler-errors/SKILL.md",
+      "inventoryPath": "cursor-team-kit/skills/check-compiler-errors/SKILL.md",
+      "sha256": "1ad76beccd581fc285199334709e0a37cdc2f76e5d0d33c90e1dc21905518004",
+      "byteLength": 535
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/skills/control-cli/SKILL.md",
+      "inventoryPath": "cursor-team-kit/skills/control-cli/SKILL.md",
+      "sha256": "13ac93e595bbda2000849bdb815d5f2ca03f7c2ca63788c8335f9212b9b422a2",
+      "byteLength": 4333
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/skills/control-ui/SKILL.md",
+      "inventoryPath": "cursor-team-kit/skills/control-ui/SKILL.md",
+      "sha256": "410cae25bdb1e5d2323b126abc5047b0213be7fdb0195710213fa8de8a751871",
+      "byteLength": 4802
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/skills/deslop/SKILL.md",
+      "inventoryPath": "cursor-team-kit/skills/deslop/SKILL.md",
+      "sha256": "2f7b7def74af7ed11f5b44b4d32f0f91fca8c5d1f92bf2171e8d12fd33a0f810",
+      "byteLength": 719
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/skills/fix-ci/SKILL.md",
+      "inventoryPath": "cursor-team-kit/skills/fix-ci/SKILL.md",
+      "sha256": "925f8c3e11de8bcc0cd015ec907f4d00b12cde6714246554ed3a52e096536522",
+      "byteLength": 901
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/skills/fix-merge-conflicts/SKILL.md",
+      "inventoryPath": "cursor-team-kit/skills/fix-merge-conflicts/SKILL.md",
+      "sha256": "738b251281b30fd33e3892d0679cf94249e9c9e29e1bed40bcdde4a6aca98a76",
+      "byteLength": 988
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/skills/get-pr-comments/SKILL.md",
+      "inventoryPath": "cursor-team-kit/skills/get-pr-comments/SKILL.md",
+      "sha256": "8bf292736cab922276feb4d8377edc2fc4102a7beb62bcd1f3f5cf72a79b16cc",
+      "byteLength": 529
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/skills/loop-on-ci/SKILL.md",
+      "inventoryPath": "cursor-team-kit/skills/loop-on-ci/SKILL.md",
+      "sha256": "66b85dbd2bc3700386283539292a55438652bbe227271fd90b73b74525b9b9de",
+      "byteLength": 1611
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/skills/make-pr-easy-to-review/SKILL.md",
+      "inventoryPath": "cursor-team-kit/skills/make-pr-easy-to-review/SKILL.md",
+      "sha256": "e8da0d4a85b7c04823698f539251617389f827fd9137100ef7eaea5dcc992fe7",
+      "byteLength": 2275
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/skills/new-branch-and-pr/SKILL.md",
+      "inventoryPath": "cursor-team-kit/skills/new-branch-and-pr/SKILL.md",
+      "sha256": "4e8f502fcf48553949387a9a7f58b21349e0ff87c24bf8ff5c0013e9da6819fd",
+      "byteLength": 665
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/skills/pr-review-canvas/SKILL.md",
+      "inventoryPath": "cursor-team-kit/skills/pr-review-canvas/SKILL.md",
+      "sha256": "88a07a2459197acba3c5e06b7d695e35ad618a998442b72d05cdba4efc117ac6",
+      "byteLength": 9088
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/skills/pr-review-canvas/renderer.js",
+      "inventoryPath": "cursor-team-kit/skills/pr-review-canvas/renderer.js",
+      "sha256": "d78d36a46b0aeae755e2edd9b712970fd181183bb1c320d10caa8d9f776695c6",
+      "byteLength": 6762
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/skills/pr-review-canvas/styles.css",
+      "inventoryPath": "cursor-team-kit/skills/pr-review-canvas/styles.css",
+      "sha256": "3c3ff002dd3bfe7f4fdbda521fce05e336c4a7922f4bd4d848f6566a961ceb19",
+      "byteLength": 5788
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/skills/pr-review-canvas/template.html",
+      "inventoryPath": "cursor-team-kit/skills/pr-review-canvas/template.html",
+      "sha256": "cb56bc764384856da4733d1c999521c3e1b20d65ed80605630b74da448abe756",
+      "byteLength": 513
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/skills/review-and-ship/SKILL.md",
+      "inventoryPath": "cursor-team-kit/skills/review-and-ship/SKILL.md",
+      "sha256": "5c8e88c91e726e024c824d2b02be6bfc7ad81ac5e67c104ef2b66840715373c1",
+      "byteLength": 1398
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/skills/run-smoke-tests/SKILL.md",
+      "inventoryPath": "cursor-team-kit/skills/run-smoke-tests/SKILL.md",
+      "sha256": "848c9f34af50f8a0edecbdc239707b694f5f9ac497c61b5907f2bf0caa1372fb",
+      "byteLength": 967
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/skills/thermo-nuclear-code-quality-review/SKILL.md",
+      "inventoryPath": "cursor-team-kit/skills/thermo-nuclear-code-quality-review/SKILL.md",
+      "sha256": "7faca08b51b643b2ddd0836f92af15574444024685dcc1e677dbbb39ae8c9e8f",
+      "byteLength": 12437
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/skills/verify-this/SKILL.md",
+      "inventoryPath": "cursor-team-kit/skills/verify-this/SKILL.md",
+      "sha256": "c1c7b27c1133085bd3409c601ea12b6e6f61b4b23debcd52bc248fc01907e7de",
+      "byteLength": 2805
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/skills/weekly-review/SKILL.md",
+      "inventoryPath": "cursor-team-kit/skills/weekly-review/SKILL.md",
+      "sha256": "b56a2c283916b4551aeb322398ab99a19b4b5d7678ffd7f9c9f3df9fa05f4712",
+      "byteLength": 902
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/skills/what-did-i-get-done/SKILL.md",
+      "inventoryPath": "cursor-team-kit/skills/what-did-i-get-done/SKILL.md",
+      "sha256": "479813c9abaacb5b6b0531f1de7dc5eb2f3bd9673707a992d1073335836e82f8",
+      "byteLength": 1012
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/skills/workflow-from-chats/SKILL.md",
+      "inventoryPath": "cursor-team-kit/skills/workflow-from-chats/SKILL.md",
+      "sha256": "b568176390165921c5e351cc73b553e3e997f92c9f85dfb1c5a220c943fbaa16",
+      "byteLength": 2685
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/.cursor-plugin/plugin.json",
+      "inventoryPath": "pstack/.cursor-plugin/plugin.json",
+      "sha256": "7bc736c60985805f70465e044e5adc7028663f72a73deea7fa3e95e52d70dc8e",
+      "byteLength": 722
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/.gitignore",
+      "inventoryPath": "pstack/.gitignore",
+      "sha256": "8ffe9de56bd30c1a95cd945262d6e3ac355ada4111551dde41f67851b9f1fc55",
+      "byteLength": 30
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/LICENSE",
+      "inventoryPath": "pstack/LICENSE",
+      "sha256": "bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e",
+      "byteLength": 1067
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/README.md",
+      "inventoryPath": "pstack/README.md",
+      "sha256": "7f39feae81103e18b567e1fa5075cba86425cf4697a01be66a7422ef93c2c855",
+      "byteLength": 24538
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/agents/comment-sicko.md",
+      "inventoryPath": "pstack/agents/comment-sicko.md",
+      "sha256": "c0fd0383008da45fc78cfac17b9007d62c42f87ad1c8d5c2fb658b1fd01f7c82",
+      "byteLength": 2230
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/agents/poteto-agent.md",
+      "inventoryPath": "pstack/agents/poteto-agent.md",
+      "sha256": "abe41c169ecbfe65641f1725f4188d568e046c0dec7fd2dc271abb594c299201",
+      "byteLength": 686
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/automations/benny/FOR_AGENTS.md",
+      "inventoryPath": "pstack/automations/benny/FOR_AGENTS.md",
+      "sha256": "a125e317dec1b8731fdc71f404c669f1127a73af932f7a7b8b8744a5542328a7",
+      "byteLength": 7460
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/automations/benny/README.md",
+      "inventoryPath": "pstack/automations/benny/README.md",
+      "sha256": "ca3c42cbb7f0bf7068f7407eb355815e6c234d5c2786942f3cbe751a3690024b",
+      "byteLength": 1321
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md",
+      "inventoryPath": "pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md",
+      "sha256": "1363cc07343fe86aab42853b1bd4563288cbcbdf12f1c265b3b3b1afa25c09cb",
+      "byteLength": 14238
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/automations/benny/skills/reproduce-and-fix-issues/references/control-adapter.md",
+      "inventoryPath": "pstack/automations/benny/skills/reproduce-and-fix-issues/references/control-adapter.md",
+      "sha256": "58b0615d2fca895f9a20df83266e280042b0d585b5f2fd324e2094a682fd846b",
+      "byteLength": 5517
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/automations/benny/skills/reproduce-and-fix-issues/references/feature-map.example.md",
+      "inventoryPath": "pstack/automations/benny/skills/reproduce-and-fix-issues/references/feature-map.example.md",
+      "sha256": "1e5c7c8522daec3e43fcc2e73ceb97289ded65b552949ce65a11cc8eb3d2b6ee",
+      "byteLength": 5646
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/automations/benny/skills/reproduce-and-fix-issues/references/verify-existing-fix.md",
+      "inventoryPath": "pstack/automations/benny/skills/reproduce-and-fix-issues/references/verify-existing-fix.md",
+      "sha256": "c90eae00abcdec71a58fa8d60f2c495b082a526ad50b8e8e494837609129bf29",
+      "byteLength": 3149
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/automations/benny/skills/setup-benny/SKILL.md",
+      "inventoryPath": "pstack/automations/benny/skills/setup-benny/SKILL.md",
+      "sha256": "5a3cbe63360c9f6373b6cb6c79a1eaf7e0eba181bfaa1577e2e6431af3407282",
+      "byteLength": 13992
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/automations/benny/skills/triage-issue-reports/SKILL.md",
+      "inventoryPath": "pstack/automations/benny/skills/triage-issue-reports/SKILL.md",
+      "sha256": "216a758b8711e64d19a55e6032c496527daac6364d010611040f3c04ef1a448f",
+      "byteLength": 10320
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/automations/benny/skills/triage-issue-reports/references/routing.example.md",
+      "inventoryPath": "pstack/automations/benny/skills/triage-issue-reports/references/routing.example.md",
+      "sha256": "e5e53013692568cf69da8e8b302fff929fe2fbc9aec1a4651fd7997e2c7a4025",
+      "byteLength": 1892
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/automations/benny/templates/configuration.example.yaml",
+      "inventoryPath": "pstack/automations/benny/templates/configuration.example.yaml",
+      "sha256": "13e24b4ce9b9a0913916e85fe3b080b88d45f8e55dccfe8ae38e0751a997b6f5",
+      "byteLength": 2424
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/automations/benny/templates/reproduce-automation-prompt.md",
+      "inventoryPath": "pstack/automations/benny/templates/reproduce-automation-prompt.md",
+      "sha256": "71ec574f1844e379394ae4ef14c48d7df10afbaa319d395c788d7f856f0e6899",
+      "byteLength": 1822
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/automations/benny/templates/triage-automation-prompt.md",
+      "inventoryPath": "pstack/automations/benny/templates/triage-automation-prompt.md",
+      "sha256": "e0bba594547834f013ec805915610eb597e7929efe3ffbe85ae00339ee16d474",
+      "byteLength": 1569
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/docs/guide/01-setup.md",
+      "inventoryPath": "pstack/docs/guide/01-setup.md",
+      "sha256": "86d0330f245d16254a2069955f993c15d96cf29cd1a73690a0164074b7ac1190",
+      "byteLength": 4313
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/docs/guide/02-poteto-mode.md",
+      "inventoryPath": "pstack/docs/guide/02-poteto-mode.md",
+      "sha256": "979f61ca3d44cb8e68affda40327d32797e93fa9cc53ced7444c15e2600897e1",
+      "byteLength": 7045
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/docs/guide/03-understand.md",
+      "inventoryPath": "pstack/docs/guide/03-understand.md",
+      "sha256": "0090afa9b8670adf175466a2a973ff4349e95ed67d2aa8cebdfc55ff4b7382c9",
+      "byteLength": 5197
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/docs/guide/04-design.md",
+      "inventoryPath": "pstack/docs/guide/04-design.md",
+      "sha256": "31f2abe6e9b29feafd1a9eece8f4fe21992f86b8c19ab2e9b5c11a20f36587e7",
+      "byteLength": 8759
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/docs/guide/05-build-and-clean.md",
+      "inventoryPath": "pstack/docs/guide/05-build-and-clean.md",
+      "sha256": "a93cc7771f7b35c7b54d0120b6f66e8367794ce6791237e889a30e7585c190fa",
+      "byteLength": 5696
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/docs/guide/06-verify-and-ship.md",
+      "inventoryPath": "pstack/docs/guide/06-verify-and-ship.md",
+      "sha256": "3ef0eed5ea084dfbbaf1b1ae9e08d84f2c8a2b536ffb3ef5226710bf105f70e6",
+      "byteLength": 9683
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/docs/guide/07-overnight.md",
+      "inventoryPath": "pstack/docs/guide/07-overnight.md",
+      "sha256": "d7bd33a3d880768688dff4c1c2b5481ca9f0f194f5d97e44b65c9f96624d3ff0",
+      "byteLength": 9139
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/docs/guide/08-principles.md",
+      "inventoryPath": "pstack/docs/guide/08-principles.md",
+      "sha256": "73c3db659d356d4aa6d7674d30d0db46fab2bdd60152fca717c2d1772a042bdc",
+      "byteLength": 5916
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/docs/guide/09-make-it-yours.md",
+      "inventoryPath": "pstack/docs/guide/09-make-it-yours.md",
+      "sha256": "157e0c20ad3c657857c2fbbea3afd26895b71b8f68475bc56f4c382dcdd0e118",
+      "byteLength": 7632
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/docs/guide/10-recipes-and-pitfalls.md",
+      "inventoryPath": "pstack/docs/guide/10-recipes-and-pitfalls.md",
+      "sha256": "c652474764b08da4a6364d85f5d03cf1fc1cf35e9d7c549348fb66e2d09f7b1f",
+      "byteLength": 7419
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/docs/guide/README.md",
+      "inventoryPath": "pstack/docs/guide/README.md",
+      "sha256": "49d92cfe91e01c04bd1150e5b000ee4fd4dfda8ce789b66a9dda98f7e5456e00",
+      "byteLength": 2608
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/architect/SKILL.md",
+      "inventoryPath": "pstack/skills/architect/SKILL.md",
+      "sha256": "922238947195f2fb825e90688bb6cfa520b81a35a7bee12223c73a6cf96ae64b",
+      "byteLength": 5661
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/architect/references/design-red-flags.md",
+      "inventoryPath": "pstack/skills/architect/references/design-red-flags.md",
+      "sha256": "d0e639e4cc588ec865f930d3a4111faad60987ae36925917e319d7ceca7c69ce",
+      "byteLength": 3009
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/architect/references/rationale-template.md",
+      "inventoryPath": "pstack/skills/architect/references/rationale-template.md",
+      "sha256": "0cedfccdc7b47fc881febd5a8293eecbc542c20f8df825639904a8102d2eb5d3",
+      "byteLength": 3050
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/architect/references/runner-prompt.md",
+      "inventoryPath": "pstack/skills/architect/references/runner-prompt.md",
+      "sha256": "21dd5314aab778c5007228027a4591d97693fbec6ab86524037772b63f40948e",
+      "byteLength": 3092
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/arena/SKILL.md",
+      "inventoryPath": "pstack/skills/arena/SKILL.md",
+      "sha256": "6e17736b5228b661569c3af054f8302c55cf9bf1649447652d53705cce38bed6",
+      "byteLength": 4937
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/automate-me/SKILL.md",
+      "inventoryPath": "pstack/skills/automate-me/SKILL.md",
+      "sha256": "1510979b0b71b54284427a19c09918f8b1fdfc168f9b7f9e30098793a5ec88ef",
+      "byteLength": 7164
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/benchmark-checklist/SKILL.md",
+      "inventoryPath": "pstack/skills/benchmark-checklist/SKILL.md",
+      "sha256": "6a767e788a60428fa14e645ee10fe2e49896e514ff654f668b1d824deb9038e8",
+      "byteLength": 5409
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/blast-radius/SKILL.md",
+      "inventoryPath": "pstack/skills/blast-radius/SKILL.md",
+      "sha256": "2e10745b97f5862323dcda3b29ca60d56b5c3c98e37020085d26b48efbe0a436",
+      "byteLength": 3856
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/bro/SKILL.md",
+      "inventoryPath": "pstack/skills/bro/SKILL.md",
+      "sha256": "aa329d0ceeeecb6822a7174ad76bb07a7826a3c52ceb6a588dec4138815084bb",
+      "byteLength": 267
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/correct/SKILL.md",
+      "inventoryPath": "pstack/skills/correct/SKILL.md",
+      "sha256": "bf482bacc972b3f124a4af8bf9364b4b3e280cb5845e44c326ea4f4565e5c904",
+      "byteLength": 2445
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/create-verification-skill/SKILL.md",
+      "inventoryPath": "pstack/skills/create-verification-skill/SKILL.md",
+      "sha256": "644f2551403c1bca01a2855b34611b6e7be0ce0dc5b204514c376c0f6a6e6ac4",
+      "byteLength": 5879
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/create-verification-skill/references/feature-map-example/README.md",
+      "inventoryPath": "pstack/skills/create-verification-skill/references/feature-map-example/README.md",
+      "sha256": "cb7bd782cf89968a4ba3d58a5151db837430db92d19a6f52a906973b77b516ba",
+      "byteLength": 2601
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/create-verification-skill/references/feature-map-example/create-note.md",
+      "inventoryPath": "pstack/skills/create-verification-skill/references/feature-map-example/create-note.md",
+      "sha256": "644a44c74f35d38c2feb7cd05a0121fdebbb623e8dc376c185b565a581d1ccf7",
+      "byteLength": 2926
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/create-verification-skill/references/feature-map-example/search.md",
+      "inventoryPath": "pstack/skills/create-verification-skill/references/feature-map-example/search.md",
+      "sha256": "6e87b9e7f2791a7776ba1bb83f371cd285c306c67f19d245cc4dd6ca3015c823",
+      "byteLength": 3478
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/figure-it-out/SKILL.md",
+      "inventoryPath": "pstack/skills/figure-it-out/SKILL.md",
+      "sha256": "0eb9485f0e7d84fee56b5d0f0af0faf4635e3ca87c8cba3970c01293b76ecc19",
+      "byteLength": 4059
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/how/SKILL.md",
+      "inventoryPath": "pstack/skills/how/SKILL.md",
+      "sha256": "7e0d902484a90eba73dcf518bff478dc5b962b456d23c3d0a188c2ce36b236d8",
+      "byteLength": 3081
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/how/references/explainer-prompt.md",
+      "inventoryPath": "pstack/skills/how/references/explainer-prompt.md",
+      "sha256": "ddb89cebefc24e2b54517a331aedfe045b6971e101f45c71b8cef4cccff45bff",
+      "byteLength": 3085
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/how/references/explorer-prompt.md",
+      "inventoryPath": "pstack/skills/how/references/explorer-prompt.md",
+      "sha256": "a3b44a6e5bb16a6d4d1cac19db8ed5322ffd5f5f5d45baca4e73990ca096f8be",
+      "byteLength": 2684
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/interrogate/SKILL.md",
+      "inventoryPath": "pstack/skills/interrogate/SKILL.md",
+      "sha256": "2f7e570ec23791ed2e485a09c98ed0597c46035e2050b351b84d3dc760ddd71f",
+      "byteLength": 4998
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/interrogate/references/code-quality-review.md",
+      "inventoryPath": "pstack/skills/interrogate/references/code-quality-review.md",
+      "sha256": "79162fda183eafd40d51661fbb5e151c7ba250f89e506ba17f5bd135dcbd50a8",
+      "byteLength": 5217
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/interrogate/references/lead-judgment.md",
+      "inventoryPath": "pstack/skills/interrogate/references/lead-judgment.md",
+      "sha256": "6e5bdf5670eb34017692e9b6c546f36ac7552e6bb9f3f2f3429164fcc46a9361",
+      "byteLength": 3465
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/interrogate/references/reviewer-prompt.md",
+      "inventoryPath": "pstack/skills/interrogate/references/reviewer-prompt.md",
+      "sha256": "e0598e254792b56de39bb16b1e6db559b03a522fdc54b98f942d254090920ae6",
+      "byteLength": 2491
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/interrogate/references/rubric.md",
+      "inventoryPath": "pstack/skills/interrogate/references/rubric.md",
+      "sha256": "a85aa801abbaf14434f00579440abc0d8e2723227ba8bf57de7cca8d6e7d2f25",
+      "byteLength": 5025
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/maintain-verification-skill/SKILL.md",
+      "inventoryPath": "pstack/skills/maintain-verification-skill/SKILL.md",
+      "sha256": "515c0eaa054b3f6be1b1fb06f2c2f173c80fddb58bbcac57576f89c479bc68e8",
+      "byteLength": 4922
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/make-bot-ui/SKILL.md",
+      "inventoryPath": "pstack/skills/make-bot-ui/SKILL.md",
+      "sha256": "3624c8ef16cf2e48deb2a4049e72c6962a9431c8d6c6af90e7bd7ea0375224ec",
+      "byteLength": 4649
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/no-comments/SKILL.md",
+      "inventoryPath": "pstack/skills/no-comments/SKILL.md",
+      "sha256": "5c5b0882297d704c3a9720c52b7a793c68b013eaf717989f0945624efdfe2b05",
+      "byteLength": 2560
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-help/SKILL.md",
+      "inventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "sha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e",
+      "byteLength": 13433
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-help/references/prompting.md",
+      "inventoryPath": "pstack/skills/poteto-help/references/prompting.md",
+      "sha256": "463f450c44a60afd001a2f69fdf8a5dea174351f339369b12ec3c41515e564d3",
+      "byteLength": 3166
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-help/references/recipes.md",
+      "inventoryPath": "pstack/skills/poteto-help/references/recipes.md",
+      "sha256": "1872323419a3e5c7783b1933f7a180ca26c25a6e1f4ec83bd65e091ebbfb812b",
+      "byteLength": 3287
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/SKILL.md",
+      "inventoryPath": "pstack/skills/poteto-mode/SKILL.md",
+      "sha256": "31cd02290360ce63564ef22b74d69fc6d90e62181d05a644cbed8f6c47cc9412",
+      "byteLength": 20563
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/playbooks/authoring-a-skill.md",
+      "inventoryPath": "pstack/skills/poteto-mode/playbooks/authoring-a-skill.md",
+      "sha256": "f6a13a445c360b48d6cd72780ac01955f45b82826476efe0e67c7559329407aa",
+      "byteLength": 831
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/playbooks/autonomous-run.md",
+      "inventoryPath": "pstack/skills/poteto-mode/playbooks/autonomous-run.md",
+      "sha256": "15e54ad3ac92565613980772d8708de6e19cc4690bfd4bb3fb8836522407377b",
+      "byteLength": 1878
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/playbooks/autopilot-full.md",
+      "inventoryPath": "pstack/skills/poteto-mode/playbooks/autopilot-full.md",
+      "sha256": "05ca30a16242c19d0c78ba1e88cca66f858d75252cb154fd740099fe292de802",
+      "byteLength": 9431
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/playbooks/autopilot-stack.md",
+      "inventoryPath": "pstack/skills/poteto-mode/playbooks/autopilot-stack.md",
+      "sha256": "007c0a3b12011954a224f54773ef4ad7b75918be0a311914c1b51ad4e794c1e5",
+      "byteLength": 5031
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/playbooks/babysit.md",
+      "inventoryPath": "pstack/skills/poteto-mode/playbooks/babysit.md",
+      "sha256": "a0346c37c2313f36a863b80f66ee7b98059c2242adf74fc7b3e48abdb9ec6f5a",
+      "byteLength": 8289
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/playbooks/bug-fix.md",
+      "inventoryPath": "pstack/skills/poteto-mode/playbooks/bug-fix.md",
+      "sha256": "018bbc146ae19145caa6c7e70591fee081b64447dda1c1c4b681c9974d928b13",
+      "byteLength": 2255
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/playbooks/eval.md",
+      "inventoryPath": "pstack/skills/poteto-mode/playbooks/eval.md",
+      "sha256": "b862bfa2fae2399abf047a8e80d3e3dddb64003af96fb1cebb625216131e36bb",
+      "byteLength": 2524
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/playbooks/feature.md",
+      "inventoryPath": "pstack/skills/poteto-mode/playbooks/feature.md",
+      "sha256": "3a62cc4a8cbcf144bb9dd05f05420a15be0d38b784d3b141bb730a5852f50a62",
+      "byteLength": 2766
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/playbooks/hillclimb.md",
+      "inventoryPath": "pstack/skills/poteto-mode/playbooks/hillclimb.md",
+      "sha256": "244f289898fe67a458065e90fe8217c916c5acf61cdee8975ade3f9831a12e91",
+      "byteLength": 4403
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/playbooks/investigation.md",
+      "inventoryPath": "pstack/skills/poteto-mode/playbooks/investigation.md",
+      "sha256": "dc66bcf6af3a074fc7f67aa5e12b93ef571a4fb4d8e17f2f1af5ae5359f42e46",
+      "byteLength": 928
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/playbooks/multi-phase-plan.md",
+      "inventoryPath": "pstack/skills/poteto-mode/playbooks/multi-phase-plan.md",
+      "sha256": "27d310e3fc3937a60b8fcbe1318f9d249a7477a722907bf85b3e4eb3dc436b11",
+      "byteLength": 12977
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/playbooks/opening-a-pr.md",
+      "inventoryPath": "pstack/skills/poteto-mode/playbooks/opening-a-pr.md",
+      "sha256": "ab40de7163c1c6e274f46ee559b2e53ef45673703f601f13f4931c199e6fb90f",
+      "byteLength": 6142
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/playbooks/orchestrate.md",
+      "inventoryPath": "pstack/skills/poteto-mode/playbooks/orchestrate.md",
+      "sha256": "d42b4375f1bd4ce23da0b575a198571a2117df7eea10c3c9fc6d92ae1053f7be",
+      "byteLength": 16779
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/playbooks/pause-safely.md",
+      "inventoryPath": "pstack/skills/poteto-mode/playbooks/pause-safely.md",
+      "sha256": "77968cfe5f4a71a8cd33e0ae8ffcdbd88dd693a212c240457773e6c40c96c21d",
+      "byteLength": 1135
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/playbooks/perf-issue.md",
+      "inventoryPath": "pstack/skills/poteto-mode/playbooks/perf-issue.md",
+      "sha256": "2b88ad0f880e4d4d755ac19fe52414d6631d6baa816d060f53cf0a7429d7e14a",
+      "byteLength": 1446
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/playbooks/prototype.md",
+      "inventoryPath": "pstack/skills/poteto-mode/playbooks/prototype.md",
+      "sha256": "7aa1f52c691c3d46d5afc527b23f90977fce869ce33573c73c81a4c7f0cde962",
+      "byteLength": 2161
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/playbooks/refactoring.md",
+      "inventoryPath": "pstack/skills/poteto-mode/playbooks/refactoring.md",
+      "sha256": "50f4f7d3d301551f8b8a57c3303c99958c5ca630ae0d0051823b6987c0eb5b96",
+      "byteLength": 3211
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/playbooks/runtime-forensics.md",
+      "inventoryPath": "pstack/skills/poteto-mode/playbooks/runtime-forensics.md",
+      "sha256": "594f02c40c243a346e1f57b688ecf2ed5e882f21b3d24ed2204d1ac6f1c24a8a",
+      "byteLength": 1210
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/playbooks/session-pickup.md",
+      "inventoryPath": "pstack/skills/poteto-mode/playbooks/session-pickup.md",
+      "sha256": "1604fb463f7c7410d43fa024ca76c1c1824c166a01fd69d61f073d06fdca2a47",
+      "byteLength": 1678
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/playbooks/shipping.md",
+      "inventoryPath": "pstack/skills/poteto-mode/playbooks/shipping.md",
+      "sha256": "19f3f6803a7bbe9ff04f624b03e3b55f07ac0a05e991aa00d5fe51239b920b2a",
+      "byteLength": 5439
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/playbooks/trace-forensics.md",
+      "inventoryPath": "pstack/skills/poteto-mode/playbooks/trace-forensics.md",
+      "sha256": "137ce3984fb96e45971fdff4d3c79fa4ccc647c5b30ae4945783b9fb23f8cec7",
+      "byteLength": 1865
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/playbooks/visual-parity.md",
+      "inventoryPath": "pstack/skills/poteto-mode/playbooks/visual-parity.md",
+      "sha256": "950ca51999a6454c98eee6bcbc3d1bbe501a4e3a5d5439b6f6ddc378991b256c",
+      "byteLength": 1197
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/playbooks/worktree-cleanup.md",
+      "inventoryPath": "pstack/skills/poteto-mode/playbooks/worktree-cleanup.md",
+      "sha256": "fc464dc4121926df1704f483c5feca83717c0a40b4651d3e11bd3aedd89441b6",
+      "byteLength": 2932
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/references/bugbot-triage.md",
+      "inventoryPath": "pstack/skills/poteto-mode/references/bugbot-triage.md",
+      "sha256": "b2d146c770d8d3593e1ef3d77b668039b8e1f78093ea1a86f1d45d7f99614309",
+      "byteLength": 9629
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bootstrap.ts",
+      "inventoryPath": "pstack/skills/poteto-mode/scripts/bootstrap.ts",
+      "sha256": "ccd2ed08fd9da9d0d942e5f2491cfc74bb92d8a08fa51755e0da1ac8de287361",
+      "byteLength": 1737
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock",
+      "inventoryPath": "pstack/skills/poteto-mode/scripts/bun.lock",
+      "sha256": "667d9cf7222e9aae3fa42a4be383e657784216e9df115da02227fbc5ac7bbe46",
+      "byteLength": 6679
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/check-plan.mjs",
+      "inventoryPath": "pstack/skills/poteto-mode/scripts/check-plan.mjs",
+      "sha256": "4f9432d9989880b6afc2bdda503d5b12a9d07d357ecf31936b7ab5e83bc80523",
+      "byteLength": 7594
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/orch/orch.test.ts",
+      "inventoryPath": "pstack/skills/poteto-mode/scripts/orch/orch.test.ts",
+      "sha256": "773153ac74de6eb15f58d2682f487f5f30672d7efe3ef1d24a131aa9129d279b",
+      "byteLength": 18425
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/orch/orch.ts",
+      "inventoryPath": "pstack/skills/poteto-mode/scripts/orch/orch.ts",
+      "sha256": "f091687df627a0b75fabd54af58945a9cd6c7039ef0622012ac9ed60cd8ec434",
+      "byteLength": 15511
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/orch/store.ts",
+      "inventoryPath": "pstack/skills/poteto-mode/scripts/orch/store.ts",
+      "sha256": "0eae7cf69282e827b1227166f2e32cee3560f2f3e65b3f1f2faf6fb83d3b4c5b",
+      "byteLength": 42927
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/package.json",
+      "inventoryPath": "pstack/skills/poteto-mode/scripts/package.json",
+      "sha256": "d1f815091209d49763775cc188e8e06ff32d5fec648bffd2272bc25a165e87c3",
+      "byteLength": 352
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/watch-pr/cli.test.ts",
+      "inventoryPath": "pstack/skills/poteto-mode/scripts/watch-pr/cli.test.ts",
+      "sha256": "a35592b4c6da96caf8d47987e9cd503fab6c7774ab87d11a43f24b4b5df2a9d1",
+      "byteLength": 6161
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/watch-pr/cli.ts",
+      "inventoryPath": "pstack/skills/poteto-mode/scripts/watch-pr/cli.ts",
+      "sha256": "89c08863089181a232be782c4b2ed90a1552f44aeecb0dcb7aac2c623620e680",
+      "byteLength": 6983
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/watch-pr/fakes.test-helper.ts",
+      "inventoryPath": "pstack/skills/poteto-mode/scripts/watch-pr/fakes.test-helper.ts",
+      "sha256": "e53e31b7f03068063f53a99a3591b052aaed66e4e2b196b3a364980f60324ab1",
+      "byteLength": 2944
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/watch-pr/github.test.ts",
+      "inventoryPath": "pstack/skills/poteto-mode/scripts/watch-pr/github.test.ts",
+      "sha256": "0cbce011050522938523e36bb42a260e92b812dcd2076930fa681672ad316b24",
+      "byteLength": 9059
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/watch-pr/github.ts",
+      "inventoryPath": "pstack/skills/poteto-mode/scripts/watch-pr/github.ts",
+      "sha256": "d1bbbafbe8e2c703c84da2029de7f2c4011412512f8cf65a42100f46bcb92c8a",
+      "byteLength": 24072
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/watch-pr/policy.test.ts",
+      "inventoryPath": "pstack/skills/poteto-mode/scripts/watch-pr/policy.test.ts",
+      "sha256": "a9fedb25feefd1f57ef6a662f80c99018690170a3a8070773a08eaf694d1d3d9",
+      "byteLength": 12397
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/watch-pr/policy.ts",
+      "inventoryPath": "pstack/skills/poteto-mode/scripts/watch-pr/policy.ts",
+      "sha256": "68d240505852cf23c9b2dea463342e9e61243f486b3cc86c735d140f9ee7be49",
+      "byteLength": 25132
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/watch-pr/render.ts",
+      "inventoryPath": "pstack/skills/poteto-mode/scripts/watch-pr/render.ts",
+      "sha256": "2b709e86628d5b8fdb61f860e60ababc342b0626c67576305442cf548283a604",
+      "byteLength": 7083
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/watch-pr/tsconfig.json",
+      "inventoryPath": "pstack/skills/poteto-mode/scripts/watch-pr/tsconfig.json",
+      "sha256": "1ecccc72320b086c63ce3f73c959896fd747363e63553b3b1136296ea4069e45",
+      "byteLength": 270
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/watch-pr/types.compile.ts",
+      "inventoryPath": "pstack/skills/poteto-mode/scripts/watch-pr/types.compile.ts",
+      "sha256": "621af4c9a664fbf699a9737efccdc248abb416df8819c9dc5f824beae2b9b1d6",
+      "byteLength": 2258
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/watch-pr/types.ts",
+      "inventoryPath": "pstack/skills/poteto-mode/scripts/watch-pr/types.ts",
+      "sha256": "64ba6221e3bfe61bbb292337d199cdec6309455477280efb060203dba34e0e91",
+      "byteLength": 12359
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/watch-pr/watch-pr",
+      "inventoryPath": "pstack/skills/poteto-mode/scripts/watch-pr/watch-pr",
+      "sha256": "d955603be6cc0e8b8ffcec722f635192b2261410b1f2929abea94480e47eb5d4",
+      "byteLength": 211
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/worktree-audit.sh",
+      "inventoryPath": "pstack/skills/poteto-mode/scripts/worktree-audit.sh",
+      "sha256": "95b8530f3c0ccada8cabc4b0727c052fbc85c141531375aaace65c427af8aecc",
+      "byteLength": 3984
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/principle-attack-the-premise/SKILL.md",
+      "inventoryPath": "pstack/skills/principle-attack-the-premise/SKILL.md",
+      "sha256": "c87bd7536f772f8a403ad8155535ee17a1bbec9a353156693eb3bb1520c87ae3",
+      "byteLength": 1941
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/principle-boundary-discipline/SKILL.md",
+      "inventoryPath": "pstack/skills/principle-boundary-discipline/SKILL.md",
+      "sha256": "62ac2862c2caa22dd14531f51c9c6bb445ceb198ca98a687e25b4d47c1f10a28",
+      "byteLength": 1883
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/principle-build-the-lever/SKILL.md",
+      "inventoryPath": "pstack/skills/principle-build-the-lever/SKILL.md",
+      "sha256": "458b269eab8e95a1573276955312f7d2a13ae8599879a9efc748248f6bc34b56",
+      "byteLength": 2458
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/principle-encode-lessons-in-structure/SKILL.md",
+      "inventoryPath": "pstack/skills/principle-encode-lessons-in-structure/SKILL.md",
+      "sha256": "77044c83a9ac6df78fc643887ea5f1f11f082adaf14b717c060cdaed03cce863",
+      "byteLength": 2211
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/principle-exhaust-the-design-space/SKILL.md",
+      "inventoryPath": "pstack/skills/principle-exhaust-the-design-space/SKILL.md",
+      "sha256": "8583310d7297b7823d75494faa57b003564d436807febecdecbd8321abe5cf6e",
+      "byteLength": 1152
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/principle-experience-first/SKILL.md",
+      "inventoryPath": "pstack/skills/principle-experience-first/SKILL.md",
+      "sha256": "58903529d733b1c1a7c9ccf127d45ef3c7d0d9f0b81164a4dc6b80efe6f2912b",
+      "byteLength": 1184
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/principle-explain-the-number/SKILL.md",
+      "inventoryPath": "pstack/skills/principle-explain-the-number/SKILL.md",
+      "sha256": "5aac99e7ce0bb1b37e2579acf4fe88c32a1456d9d46afd4a57cfe1df9092e89c",
+      "byteLength": 2109
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/principle-fix-root-causes/SKILL.md",
+      "inventoryPath": "pstack/skills/principle-fix-root-causes/SKILL.md",
+      "sha256": "ba4cd38da1dcc8fe5432feb64457cba95594736a9b21b2ebf8f8c52aee068707",
+      "byteLength": 1246
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/principle-foundational-thinking/SKILL.md",
+      "inventoryPath": "pstack/skills/principle-foundational-thinking/SKILL.md",
+      "sha256": "864b827e8199d946ce58beca0f89c4ed4099ed6e426fb698a3aaa45de2a9eea2",
+      "byteLength": 1530
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/principle-guard-the-context-window/SKILL.md",
+      "inventoryPath": "pstack/skills/principle-guard-the-context-window/SKILL.md",
+      "sha256": "d2cef147862576e3d709b7afc149d85196245e8338b9c7eef337c95fba412b3e",
+      "byteLength": 939
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/principle-laziness-protocol/SKILL.md",
+      "inventoryPath": "pstack/skills/principle-laziness-protocol/SKILL.md",
+      "sha256": "9006579e9e3f33955d17569733db688ae65f22577dc3b21803d219a5a8445aff",
+      "byteLength": 1371
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/principle-make-operations-idempotent/SKILL.md",
+      "inventoryPath": "pstack/skills/principle-make-operations-idempotent/SKILL.md",
+      "sha256": "540738217c3da7bf513b9886924ad6a2bc77e58be867f5bd2e1831c74bf2ce70",
+      "byteLength": 1390
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/principle-migrate-callers-then-delete-legacy-apis/SKILL.md",
+      "inventoryPath": "pstack/skills/principle-migrate-callers-then-delete-legacy-apis/SKILL.md",
+      "sha256": "09978915a4a11990cf0a9a02d9c08cc59e0b7a04c5c24b83aa560fbe4146f75b",
+      "byteLength": 1146
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/principle-minimize-reader-load/SKILL.md",
+      "inventoryPath": "pstack/skills/principle-minimize-reader-load/SKILL.md",
+      "sha256": "42551c5dc74cd578163c148da552db3ff67d29b78600ef216bfd311fb828fe69",
+      "byteLength": 2095
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/principle-model-the-domain/SKILL.md",
+      "inventoryPath": "pstack/skills/principle-model-the-domain/SKILL.md",
+      "sha256": "bbadbb9a723fac3f76e782ae45665eb94058ec10993e4bae36d4dc6b0e4eac07",
+      "byteLength": 2082
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/principle-never-block-on-the-human/SKILL.md",
+      "inventoryPath": "pstack/skills/principle-never-block-on-the-human/SKILL.md",
+      "sha256": "f2764bb9338cbfc788c903cf4b9cd0a5f4042d3a04dd6d59cbd525d9beaadd0a",
+      "byteLength": 1172
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/principle-outcome-oriented-execution/SKILL.md",
+      "inventoryPath": "pstack/skills/principle-outcome-oriented-execution/SKILL.md",
+      "sha256": "10eb91633aa570355ba4bb37088fcade2b22e498df7a58edc749e65bc5a78e2d",
+      "byteLength": 1078
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/principle-prove-it-works/SKILL.md",
+      "inventoryPath": "pstack/skills/principle-prove-it-works/SKILL.md",
+      "sha256": "ec79a15025bac8d33d62011c54f3b612733fd2a024e623b531b3637aa75070e2",
+      "byteLength": 1371
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/principle-redesign-from-first-principles/SKILL.md",
+      "inventoryPath": "pstack/skills/principle-redesign-from-first-principles/SKILL.md",
+      "sha256": "a1c7fd0a96b40e12a74bceb0e6bb20a9666dd844dcabfb624acb27da23b929fe",
+      "byteLength": 844
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/principle-separate-before-serializing-shared-state/SKILL.md",
+      "inventoryPath": "pstack/skills/principle-separate-before-serializing-shared-state/SKILL.md",
+      "sha256": "05294b40448e927c5da1c7b6f5c6b9fed3744637e3833d2d948b9154a9dd00bb",
+      "byteLength": 1565
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/principle-sequence-verifiable-units/SKILL.md",
+      "inventoryPath": "pstack/skills/principle-sequence-verifiable-units/SKILL.md",
+      "sha256": "2ccbbacc56ace5afdfb8670cef19d7bd009fb2a0033b9a741cbdf2b6baf72187",
+      "byteLength": 1705
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/principle-subtract-before-you-add/SKILL.md",
+      "inventoryPath": "pstack/skills/principle-subtract-before-you-add/SKILL.md",
+      "sha256": "a983a50e732c1ed315eba7aaf47a61329e31c4794eb1ab9d25d9945265b31e03",
+      "byteLength": 1094
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/principle-test-behavior-not-implementation/SKILL.md",
+      "inventoryPath": "pstack/skills/principle-test-behavior-not-implementation/SKILL.md",
+      "sha256": "87e40efe4e486f7ea639d2ed1fc0abe6c93b8fd0e89a81218086909d2470a52e",
+      "byteLength": 2575
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/principle-type-system-discipline/SKILL.md",
+      "inventoryPath": "pstack/skills/principle-type-system-discipline/SKILL.md",
+      "sha256": "c83da8031ffb4c86410030d3e261f659598fca2b7d8158fd9dc269d70a3a025e",
+      "byteLength": 4922
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/recall/SKILL.md",
+      "inventoryPath": "pstack/skills/recall/SKILL.md",
+      "sha256": "d265b0e5b6dc5b89c0407f3387d24462c988e1990a37d5359735137908128c5a",
+      "byteLength": 5212
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/reflect/SKILL.md",
+      "inventoryPath": "pstack/skills/reflect/SKILL.md",
+      "sha256": "31b8fb866ebe084e7fb7f16dc0ea46ab84ffdc838d54f948edc78556f301a497",
+      "byteLength": 4992
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/reflect/references/divergent-reviewer.md",
+      "inventoryPath": "pstack/skills/reflect/references/divergent-reviewer.md",
+      "sha256": "221dfc0abf7cbcd25e1da3cd87323f5d1050fc3bf652e096d093584e183c98fb",
+      "byteLength": 3889
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/reflect/references/judgment-reviewer.md",
+      "inventoryPath": "pstack/skills/reflect/references/judgment-reviewer.md",
+      "sha256": "a40ecb9b28bd2a3491e11a541157fe58efe158e0eda7b61a5006c14590aabe61",
+      "byteLength": 3255
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/reflect/references/synthesizer.md",
+      "inventoryPath": "pstack/skills/reflect/references/synthesizer.md",
+      "sha256": "2f76c847eb45b182dc6fbcbf7d96c8ee7e2986ecfd9e0d640fec44e3cc5a617c",
+      "byteLength": 4164
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/reflect/references/tooling-reviewer.md",
+      "inventoryPath": "pstack/skills/reflect/references/tooling-reviewer.md",
+      "sha256": "bc49ced90fa81eaba3083b88aeb430d900a6d8f14ff40c1d6b52263bacfc77b6",
+      "byteLength": 4609
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/setup-pstack/SKILL.md",
+      "inventoryPath": "pstack/skills/setup-pstack/SKILL.md",
+      "sha256": "d61b47256a18155a81c8e5ef95e3cc6569ce8c18317c35c4dd9c8015cf68cb59",
+      "byteLength": 5716
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/show-me-your-work/SKILL.md",
+      "inventoryPath": "pstack/skills/show-me-your-work/SKILL.md",
+      "sha256": "bcff5f7f9fd23f92c12b251f9cd6b947e9485e1055cfacb6fdd9cae0789d7550",
+      "byteLength": 6418
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/show-me-your-work/references/decision-log-template.tsv",
+      "inventoryPath": "pstack/skills/show-me-your-work/references/decision-log-template.tsv",
+      "sha256": "6779378006a2f5225e8c06deb84f1d913fb532041ebbb6e50d94600bfe3f4b76",
+      "byteLength": 38
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/show-me-your-work/scripts/log.sh",
+      "inventoryPath": "pstack/skills/show-me-your-work/scripts/log.sh",
+      "sha256": "a65a4bc5fb7cdeadbdb7b7ff1ca4682f4d9c42420942b2977cd17b46c4ac338e",
+      "byteLength": 1377
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/swarm/SKILL.md",
+      "inventoryPath": "pstack/skills/swarm/SKILL.md",
+      "sha256": "bdcee4168e22428036e93d7cdeec3f391dbc4132f927f6db2540328c22db0273",
+      "byteLength": 2949
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/tdd/SKILL.md",
+      "inventoryPath": "pstack/skills/tdd/SKILL.md",
+      "sha256": "eeb868e2dfebee528d730a67d7b17498fac4bb85dec2e38bc5c5176aca4d5d2f",
+      "byteLength": 3143
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/teach/SKILL.md",
+      "inventoryPath": "pstack/skills/teach/SKILL.md",
+      "sha256": "bd286e5a6290673be2cd28aef7af2ec7f1fb138e6bce156ea657368c7e7fc8a4",
+      "byteLength": 5623
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/technical-writing/SKILL.md",
+      "inventoryPath": "pstack/skills/technical-writing/SKILL.md",
+      "sha256": "f5c512ffeec70bc4e0dee50f7bb4c26742e1be77967a6e8b15d1921e1c209ceb",
+      "byteLength": 9792
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/typescript-best-practices/SKILL.md",
+      "inventoryPath": "pstack/skills/typescript-best-practices/SKILL.md",
+      "sha256": "28f9e61710e205f6f3c5476f333483cff0e988f6a5b639e2faad536344b40c5e",
+      "byteLength": 2684
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/typescript-best-practices/references/patterns.md",
+      "inventoryPath": "pstack/skills/typescript-best-practices/references/patterns.md",
+      "sha256": "faa1362055374452efccac1b629677c61acfb0bcc6c4e3311836b5715638ee18",
+      "byteLength": 9214
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/unslop/SKILL.md",
+      "inventoryPath": "pstack/skills/unslop/SKILL.md",
+      "sha256": "195411d320b5b328f9f642baf59757ed19aaf0931c0838740e0aca273d538dc1",
+      "byteLength": 6015
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/why/SKILL.md",
+      "inventoryPath": "pstack/skills/why/SKILL.md",
+      "sha256": "442215bf70e491d4d31bd200c197f2ec447445df38e074c40880fc4bf30a1f9e",
+      "byteLength": 10362
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/why/references/epistemics.md",
+      "inventoryPath": "pstack/skills/why/references/epistemics.md",
+      "sha256": "fcc0f559c072832c869a5ada72434b4849320a637ae63c09e8ee14f7ad787059",
+      "byteLength": 7749
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/why/references/investigator-prompt.md",
+      "inventoryPath": "pstack/skills/why/references/investigator-prompt.md",
+      "sha256": "6892956a7ab0b5ee6c4babaf4f793703abe89b350ea7cb9463b4a56eea1c8266",
+      "byteLength": 6985
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/why/references/source-playbook.md",
+      "inventoryPath": "pstack/skills/why/references/source-playbook.md",
+      "sha256": "9ae9dcb9d09111c9facc68510331c5aba4aed9b1b057314ff1fc0e166ad3993a",
+      "byteLength": 1363
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/why/references/sources/code-archaeology.md",
+      "inventoryPath": "pstack/skills/why/references/sources/code-archaeology.md",
+      "sha256": "8c14aa382f0de40829b2668d43e3f54814480bb93a486c9282ada4003f6b9dbd",
+      "byteLength": 3489
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/why/references/sources/databricks.md",
+      "inventoryPath": "pstack/skills/why/references/sources/databricks.md",
+      "sha256": "236ede7aab6454662a992db088a5393537a5233a4c26719c93188f9e174488f6",
+      "byteLength": 6994
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/why/references/sources/datadog.md",
+      "inventoryPath": "pstack/skills/why/references/sources/datadog.md",
+      "sha256": "ebe9c07bac28e47757ee7f16fb93b0c01d427a08c501957d047f395a2f37b7e7",
+      "byteLength": 5323
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/why/references/sources/incident-postmortem.md",
+      "inventoryPath": "pstack/skills/why/references/sources/incident-postmortem.md",
+      "sha256": "a899470f05f86029630a13a2696491cc708ca7b56a6e822a69ff6e954d6ff8cf",
+      "byteLength": 1973
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/why/references/sources/linear.md",
+      "inventoryPath": "pstack/skills/why/references/sources/linear.md",
+      "sha256": "01304e7f1badfcfb78babbb0edcadeb3cc8dd3f713793420cdff24ba190f907c",
+      "byteLength": 2996
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/why/references/sources/notion.md",
+      "inventoryPath": "pstack/skills/why/references/sources/notion.md",
+      "sha256": "3bcfa695c49dfad4ac036d5d7181c12585f55ac04f1936198d16ab75a2788997",
+      "byteLength": 2853
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/why/references/sources/sentry.md",
+      "inventoryPath": "pstack/skills/why/references/sources/sentry.md",
+      "sha256": "6f292bc4fb1548e956f95e1900b9481abf5134254419f1cd9edec95428c82d73",
+      "byteLength": 4947
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/why/references/sources/slack.md",
+      "inventoryPath": "pstack/skills/why/references/sources/slack.md",
+      "sha256": "58fee61d024b3700b407e7acbed367944720ff05adfddb6954d36c88368f3ba7",
+      "byteLength": 3105
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/why/references/synthesizer-prompt.md",
+      "inventoryPath": "pstack/skills/why/references/synthesizer-prompt.md",
+      "sha256": "733a3e9cf897b1aca56aaddeae01a3832e4bfed024c2f602db2d1bf807d7a73b",
+      "byteLength": 7984
+    }
+  ],
+  "references": [
+    {
+      "kind": "absolute_url",
+      "target": "https://github.com/cursor/plugins",
+      "host": "github.com",
+      "fromInventoryPath": "cursor-team-kit/.cursor-plugin/plugin.json",
+      "fromSha256": "9c8622d0577205959b6469a5454cbe2787ad3c6412439759328e92dc0115584d"
+    },
+    {
+      "kind": "absolute_url",
+      "target": "http://127.0.0.1:<port",
+      "host": "127.0.0.1:<port",
+      "fromInventoryPath": "cursor-team-kit/skills/control-ui/SKILL.md",
+      "fromSha256": "410cae25bdb1e5d2323b126abc5047b0213be7fdb0195710213fa8de8a751871"
+    },
+    {
+      "kind": "absolute_url",
+      "target": "http://127.0.0.1:<debug-port",
+      "host": "127.0.0.1:<debug-port",
+      "fromInventoryPath": "cursor-team-kit/skills/control-ui/SKILL.md",
+      "fromSha256": "410cae25bdb1e5d2323b126abc5047b0213be7fdb0195710213fa8de8a751871"
+    },
+    {
+      "kind": "absolute_url",
+      "target": "http://127.0.0.1:8432/pr-review-{number}.html`",
+      "host": "127.0.0.1:8432",
+      "fromInventoryPath": "cursor-team-kit/skills/pr-review-canvas/SKILL.md",
+      "fromSha256": "88a07a2459197acba3c5e06b7d695e35ad618a998442b72d05cdba4efc117ac6"
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap",
+      "host": "fonts.googleapis.com",
+      "fromInventoryPath": "cursor-team-kit/skills/pr-review-canvas/template.html",
+      "fromSha256": "cb56bc764384856da4733d1c999521c3e1b20d65ed80605630b74da448abe756"
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://github.com/cursor/plugins/tree/main/pstack",
+      "host": "github.com",
+      "fromInventoryPath": "pstack/.cursor-plugin/plugin.json",
+      "fromSha256": "7bc736c60985805f70465e044e5adc7028663f72a73deea7fa3e95e52d70dc8e"
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://github.com/cursor/plugins",
+      "host": "github.com",
+      "fromInventoryPath": "pstack/.cursor-plugin/plugin.json",
+      "fromSha256": "7bc736c60985805f70465e044e5adc7028663f72a73deea7fa3e95e52d70dc8e"
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://x.com/poteto",
+      "host": "x.com",
+      "fromInventoryPath": "pstack/README.md",
+      "fromSha256": "7f39feae81103e18b567e1fa5075cba86425cf4697a01be66a7422ef93c2c855"
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://cursor.com/docs/skills",
+      "host": "cursor.com",
+      "fromInventoryPath": "pstack/README.md",
+      "fromSha256": "7f39feae81103e18b567e1fa5075cba86425cf4697a01be66a7422ef93c2c855"
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://tracker.example/issue/123",
+      "host": "tracker.example",
+      "fromInventoryPath": "pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md",
+      "fromSha256": "1363cc07343fe86aab42853b1bd4563288cbcbdf12f1c265b3b3b1afa25c09cb"
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://github.com/{owner}/{repo}/pull/{number}`",
+      "host": "github.com",
+      "fromInventoryPath": "pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md",
+      "fromSha256": "1363cc07343fe86aab42853b1bd4563288cbcbdf12f1c265b3b3b1afa25c09cb"
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://tracker.example/issue/123",
+      "host": "tracker.example",
+      "fromInventoryPath": "pstack/automations/benny/skills/triage-issue-reports/SKILL.md",
+      "fromSha256": "216a758b8711e64d19a55e6032c496527daac6364d010611040f3c04ef1a448f"
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://github.com/example-org/example-repo",
+      "host": "github.com",
+      "fromInventoryPath": "pstack/automations/benny/templates/configuration.example.yaml",
+      "fromSha256": "13e24b4ce9b9a0913916e85fe3b080b88d45f8e55dccfe8ae38e0751a997b6f5"
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://github.com/{owner}/{repo}/pull/{number}",
+      "host": "github.com",
+      "fromInventoryPath": "pstack/automations/benny/templates/configuration.example.yaml",
+      "fromSha256": "13e24b4ce9b9a0913916e85fe3b080b88d45f8e55dccfe8ae38e0751a997b6f5"
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://cursor.com/docs/skills",
+      "host": "cursor.com",
+      "fromInventoryPath": "pstack/docs/guide/01-setup.md",
+      "fromSha256": "86d0330f245d16254a2069955f993c15d96cf29cd1a73690a0164074b7ac1190"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/setup-pstack/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/01-setup.md",
+      "fromSha256": "86d0330f245d16254a2069955f993c15d96cf29cd1a73690a0164074b7ac1190"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/create-verification-skill/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/01-setup.md",
+      "fromSha256": "86d0330f245d16254a2069955f993c15d96cf29cd1a73690a0164074b7ac1190"
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://cursor.com/docs/subagents#cloud-subagents",
+      "host": "cursor.com",
+      "fromInventoryPath": "pstack/docs/guide/02-poteto-mode.md",
+      "fromSha256": "979f61ca3d44cb8e68affda40327d32797e93fa9cc53ced7444c15e2600897e1"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/",
+      "fromInventoryPath": "pstack/docs/guide/02-poteto-mode.md",
+      "fromSha256": "979f61ca3d44cb8e68affda40327d32797e93fa9cc53ced7444c15e2600897e1"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/opening-a-pr.md",
+      "fromInventoryPath": "pstack/docs/guide/02-poteto-mode.md",
+      "fromSha256": "979f61ca3d44cb8e68affda40327d32797e93fa9cc53ced7444c15e2600897e1"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/worktree-cleanup.md",
+      "fromInventoryPath": "pstack/docs/guide/02-poteto-mode.md",
+      "fromSha256": "979f61ca3d44cb8e68affda40327d32797e93fa9cc53ced7444c15e2600897e1"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/figure-it-out/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/02-poteto-mode.md",
+      "fromSha256": "979f61ca3d44cb8e68affda40327d32797e93fa9cc53ced7444c15e2600897e1"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/show-me-your-work/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/02-poteto-mode.md",
+      "fromSha256": "979f61ca3d44cb8e68affda40327d32797e93fa9cc53ced7444c15e2600897e1"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/02-poteto-mode.md",
+      "fromSha256": "979f61ca3d44cb8e68affda40327d32797e93fa9cc53ced7444c15e2600897e1"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/investigation.md",
+      "fromInventoryPath": "pstack/docs/guide/03-understand.md",
+      "fromSha256": "0090afa9b8670adf175466a2a973ff4349e95ed67d2aa8cebdfc55ff4b7382c9"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/how/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/03-understand.md",
+      "fromSha256": "0090afa9b8670adf175466a2a973ff4349e95ed67d2aa8cebdfc55ff4b7382c9"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/why/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/03-understand.md",
+      "fromSha256": "0090afa9b8670adf175466a2a973ff4349e95ed67d2aa8cebdfc55ff4b7382c9"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/teach/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/03-understand.md",
+      "fromSha256": "0090afa9b8670adf175466a2a973ff4349e95ed67d2aa8cebdfc55ff4b7382c9"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/recall/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/03-understand.md",
+      "fromSha256": "0090afa9b8670adf175466a2a973ff4349e95ed67d2aa8cebdfc55ff4b7382c9"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/session-pickup.md",
+      "fromInventoryPath": "pstack/docs/guide/03-understand.md",
+      "fromSha256": "0090afa9b8670adf175466a2a973ff4349e95ed67d2aa8cebdfc55ff4b7382c9"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/architect/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/04-design.md",
+      "fromSha256": "31f2abe6e9b29feafd1a9eece8f4fe21992f86b8c19ab2e9b5c11a20f36587e7"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/arena/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/04-design.md",
+      "fromSha256": "31f2abe6e9b29feafd1a9eece8f4fe21992f86b8c19ab2e9b5c11a20f36587e7"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/setup-pstack/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/04-design.md",
+      "fromSha256": "31f2abe6e9b29feafd1a9eece8f4fe21992f86b8c19ab2e9b5c11a20f36587e7"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/swarm/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/04-design.md",
+      "fromSha256": "31f2abe6e9b29feafd1a9eece8f4fe21992f86b8c19ab2e9b5c11a20f36587e7"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/interrogate/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/04-design.md",
+      "fromSha256": "31f2abe6e9b29feafd1a9eece8f4fe21992f86b8c19ab2e9b5c11a20f36587e7"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/prototype.md",
+      "fromInventoryPath": "pstack/docs/guide/04-design.md",
+      "fromSha256": "31f2abe6e9b29feafd1a9eece8f4fe21992f86b8c19ab2e9b5c11a20f36587e7"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/technical-writing/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/04-design.md",
+      "fromSha256": "31f2abe6e9b29feafd1a9eece8f4fe21992f86b8c19ab2e9b5c11a20f36587e7"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/multi-phase-plan.md",
+      "fromInventoryPath": "pstack/docs/guide/04-design.md",
+      "fromSha256": "31f2abe6e9b29feafd1a9eece8f4fe21992f86b8c19ab2e9b5c11a20f36587e7"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/bug-fix.md",
+      "fromInventoryPath": "pstack/docs/guide/05-build-and-clean.md",
+      "fromSha256": "a93cc7771f7b35c7b54d0120b6f66e8367794ce6791237e889a30e7585c190fa"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/feature.md",
+      "fromInventoryPath": "pstack/docs/guide/05-build-and-clean.md",
+      "fromSha256": "a93cc7771f7b35c7b54d0120b6f66e8367794ce6791237e889a30e7585c190fa"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/refactoring.md",
+      "fromInventoryPath": "pstack/docs/guide/05-build-and-clean.md",
+      "fromSha256": "a93cc7771f7b35c7b54d0120b6f66e8367794ce6791237e889a30e7585c190fa"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/perf-issue.md",
+      "fromInventoryPath": "pstack/docs/guide/05-build-and-clean.md",
+      "fromSha256": "a93cc7771f7b35c7b54d0120b6f66e8367794ce6791237e889a30e7585c190fa"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/hillclimb.md",
+      "fromInventoryPath": "pstack/docs/guide/05-build-and-clean.md",
+      "fromSha256": "a93cc7771f7b35c7b54d0120b6f66e8367794ce6791237e889a30e7585c190fa"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/benchmark-checklist/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/05-build-and-clean.md",
+      "fromSha256": "a93cc7771f7b35c7b54d0120b6f66e8367794ce6791237e889a30e7585c190fa"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/runtime-forensics.md",
+      "fromInventoryPath": "pstack/docs/guide/05-build-and-clean.md",
+      "fromSha256": "a93cc7771f7b35c7b54d0120b6f66e8367794ce6791237e889a30e7585c190fa"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/trace-forensics.md",
+      "fromInventoryPath": "pstack/docs/guide/05-build-and-clean.md",
+      "fromSha256": "a93cc7771f7b35c7b54d0120b6f66e8367794ce6791237e889a30e7585c190fa"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/tdd/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/05-build-and-clean.md",
+      "fromSha256": "a93cc7771f7b35c7b54d0120b6f66e8367794ce6791237e889a30e7585c190fa"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/typescript-best-practices/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/05-build-and-clean.md",
+      "fromSha256": "a93cc7771f7b35c7b54d0120b6f66e8367794ce6791237e889a30e7585c190fa"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/opening-a-pr.md",
+      "fromInventoryPath": "pstack/docs/guide/05-build-and-clean.md",
+      "fromSha256": "a93cc7771f7b35c7b54d0120b6f66e8367794ce6791237e889a30e7585c190fa"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/unslop/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/05-build-and-clean.md",
+      "fromSha256": "a93cc7771f7b35c7b54d0120b6f66e8367794ce6791237e889a30e7585c190fa"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/no-comments/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/05-build-and-clean.md",
+      "fromSha256": "a93cc7771f7b35c7b54d0120b6f66e8367794ce6791237e889a30e7585c190fa"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../agents/comment-sicko.md",
+      "fromInventoryPath": "pstack/docs/guide/05-build-and-clean.md",
+      "fromSha256": "a93cc7771f7b35c7b54d0120b6f66e8367794ce6791237e889a30e7585c190fa"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-prove-it-works/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/06-verify-and-ship.md",
+      "fromSha256": "3ef0eed5ea084dfbbaf1b1ae9e08d84f2c8a2b536ffb3ef5226710bf105f70e6"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/visual-parity.md",
+      "fromInventoryPath": "pstack/docs/guide/06-verify-and-ship.md",
+      "fromSha256": "3ef0eed5ea084dfbbaf1b1ae9e08d84f2c8a2b536ffb3ef5226710bf105f70e6"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/blast-radius/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/06-verify-and-ship.md",
+      "fromSha256": "3ef0eed5ea084dfbbaf1b1ae9e08d84f2c8a2b536ffb3ef5226710bf105f70e6"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/benchmark-checklist/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/06-verify-and-ship.md",
+      "fromSha256": "3ef0eed5ea084dfbbaf1b1ae9e08d84f2c8a2b536ffb3ef5226710bf105f70e6"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-explain-the-number/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/06-verify-and-ship.md",
+      "fromSha256": "3ef0eed5ea084dfbbaf1b1ae9e08d84f2c8a2b536ffb3ef5226710bf105f70e6"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/create-verification-skill/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/06-verify-and-ship.md",
+      "fromSha256": "3ef0eed5ea084dfbbaf1b1ae9e08d84f2c8a2b536ffb3ef5226710bf105f70e6"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/create-verification-skill/references/feature-map-example/",
+      "fromInventoryPath": "pstack/docs/guide/06-verify-and-ship.md",
+      "fromSha256": "3ef0eed5ea084dfbbaf1b1ae9e08d84f2c8a2b536ffb3ef5226710bf105f70e6"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/swarm/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/06-verify-and-ship.md",
+      "fromSha256": "3ef0eed5ea084dfbbaf1b1ae9e08d84f2c8a2b536ffb3ef5226710bf105f70e6"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-build-the-lever/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/06-verify-and-ship.md",
+      "fromSha256": "3ef0eed5ea084dfbbaf1b1ae9e08d84f2c8a2b536ffb3ef5226710bf105f70e6"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/maintain-verification-skill/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/06-verify-and-ship.md",
+      "fromSha256": "3ef0eed5ea084dfbbaf1b1ae9e08d84f2c8a2b536ffb3ef5226710bf105f70e6"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/opening-a-pr.md",
+      "fromInventoryPath": "pstack/docs/guide/06-verify-and-ship.md",
+      "fromSha256": "3ef0eed5ea084dfbbaf1b1ae9e08d84f2c8a2b536ffb3ef5226710bf105f70e6"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/babysit.md",
+      "fromInventoryPath": "pstack/docs/guide/06-verify-and-ship.md",
+      "fromSha256": "3ef0eed5ea084dfbbaf1b1ae9e08d84f2c8a2b536ffb3ef5226710bf105f70e6"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/shipping.md",
+      "fromInventoryPath": "pstack/docs/guide/06-verify-and-ship.md",
+      "fromSha256": "3ef0eed5ea084dfbbaf1b1ae9e08d84f2c8a2b536ffb3ef5226710bf105f70e6"
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://cursor.com/blog/projects",
+      "host": "cursor.com",
+      "fromInventoryPath": "pstack/docs/guide/07-overnight.md",
+      "fromSha256": "d7bd33a3d880768688dff4c1c2b5481ca9f0f194f5d97e44b65c9f96624d3ff0"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/autonomous-run.md",
+      "fromInventoryPath": "pstack/docs/guide/07-overnight.md",
+      "fromSha256": "d7bd33a3d880768688dff4c1c2b5481ca9f0f194f5d97e44b65c9f96624d3ff0"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/figure-it-out/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/07-overnight.md",
+      "fromSha256": "d7bd33a3d880768688dff4c1c2b5481ca9f0f194f5d97e44b65c9f96624d3ff0"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/pause-safely.md",
+      "fromInventoryPath": "pstack/docs/guide/07-overnight.md",
+      "fromSha256": "d7bd33a3d880768688dff4c1c2b5481ca9f0f194f5d97e44b65c9f96624d3ff0"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/show-me-your-work/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/07-overnight.md",
+      "fromSha256": "d7bd33a3d880768688dff4c1c2b5481ca9f0f194f5d97e44b65c9f96624d3ff0"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/autopilot-full.md",
+      "fromInventoryPath": "pstack/docs/guide/07-overnight.md",
+      "fromSha256": "d7bd33a3d880768688dff4c1c2b5481ca9f0f194f5d97e44b65c9f96624d3ff0"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/autopilot-stack.md",
+      "fromInventoryPath": "pstack/docs/guide/07-overnight.md",
+      "fromSha256": "d7bd33a3d880768688dff4c1c2b5481ca9f0f194f5d97e44b65c9f96624d3ff0"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/orchestrate.md",
+      "fromInventoryPath": "pstack/docs/guide/07-overnight.md",
+      "fromSha256": "d7bd33a3d880768688dff4c1c2b5481ca9f0f194f5d97e44b65c9f96624d3ff0"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../automations/benny/README.md",
+      "fromInventoryPath": "pstack/docs/guide/07-overnight.md",
+      "fromSha256": "d7bd33a3d880768688dff4c1c2b5481ca9f0f194f5d97e44b65c9f96624d3ff0"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../automations/benny/FOR_AGENTS.md",
+      "fromInventoryPath": "pstack/docs/guide/07-overnight.md",
+      "fromSha256": "d7bd33a3d880768688dff4c1c2b5481ca9f0f194f5d97e44b65c9f96624d3ff0"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-laziness-protocol/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/08-principles.md",
+      "fromSha256": "73c3db659d356d4aa6d7674d30d0db46fab2bdd60152fca717c2d1772a042bdc"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-foundational-thinking/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/08-principles.md",
+      "fromSha256": "73c3db659d356d4aa6d7674d30d0db46fab2bdd60152fca717c2d1772a042bdc"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-redesign-from-first-principles/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/08-principles.md",
+      "fromSha256": "73c3db659d356d4aa6d7674d30d0db46fab2bdd60152fca717c2d1772a042bdc"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-attack-the-premise/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/08-principles.md",
+      "fromSha256": "73c3db659d356d4aa6d7674d30d0db46fab2bdd60152fca717c2d1772a042bdc"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-subtract-before-you-add/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/08-principles.md",
+      "fromSha256": "73c3db659d356d4aa6d7674d30d0db46fab2bdd60152fca717c2d1772a042bdc"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-minimize-reader-load/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/08-principles.md",
+      "fromSha256": "73c3db659d356d4aa6d7674d30d0db46fab2bdd60152fca717c2d1772a042bdc"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-outcome-oriented-execution/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/08-principles.md",
+      "fromSha256": "73c3db659d356d4aa6d7674d30d0db46fab2bdd60152fca717c2d1772a042bdc"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-experience-first/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/08-principles.md",
+      "fromSha256": "73c3db659d356d4aa6d7674d30d0db46fab2bdd60152fca717c2d1772a042bdc"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-exhaust-the-design-space/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/08-principles.md",
+      "fromSha256": "73c3db659d356d4aa6d7674d30d0db46fab2bdd60152fca717c2d1772a042bdc"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-build-the-lever/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/08-principles.md",
+      "fromSha256": "73c3db659d356d4aa6d7674d30d0db46fab2bdd60152fca717c2d1772a042bdc"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-model-the-domain/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/08-principles.md",
+      "fromSha256": "73c3db659d356d4aa6d7674d30d0db46fab2bdd60152fca717c2d1772a042bdc"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-boundary-discipline/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/08-principles.md",
+      "fromSha256": "73c3db659d356d4aa6d7674d30d0db46fab2bdd60152fca717c2d1772a042bdc"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-type-system-discipline/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/08-principles.md",
+      "fromSha256": "73c3db659d356d4aa6d7674d30d0db46fab2bdd60152fca717c2d1772a042bdc"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-make-operations-idempotent/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/08-principles.md",
+      "fromSha256": "73c3db659d356d4aa6d7674d30d0db46fab2bdd60152fca717c2d1772a042bdc"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-migrate-callers-then-delete-legacy-apis/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/08-principles.md",
+      "fromSha256": "73c3db659d356d4aa6d7674d30d0db46fab2bdd60152fca717c2d1772a042bdc"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-separate-before-serializing-shared-state/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/08-principles.md",
+      "fromSha256": "73c3db659d356d4aa6d7674d30d0db46fab2bdd60152fca717c2d1772a042bdc"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-prove-it-works/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/08-principles.md",
+      "fromSha256": "73c3db659d356d4aa6d7674d30d0db46fab2bdd60152fca717c2d1772a042bdc"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-fix-root-causes/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/08-principles.md",
+      "fromSha256": "73c3db659d356d4aa6d7674d30d0db46fab2bdd60152fca717c2d1772a042bdc"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-sequence-verifiable-units/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/08-principles.md",
+      "fromSha256": "73c3db659d356d4aa6d7674d30d0db46fab2bdd60152fca717c2d1772a042bdc"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-test-behavior-not-implementation/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/08-principles.md",
+      "fromSha256": "73c3db659d356d4aa6d7674d30d0db46fab2bdd60152fca717c2d1772a042bdc"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-explain-the-number/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/08-principles.md",
+      "fromSha256": "73c3db659d356d4aa6d7674d30d0db46fab2bdd60152fca717c2d1772a042bdc"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/benchmark-checklist/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/08-principles.md",
+      "fromSha256": "73c3db659d356d4aa6d7674d30d0db46fab2bdd60152fca717c2d1772a042bdc"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-guard-the-context-window/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/08-principles.md",
+      "fromSha256": "73c3db659d356d4aa6d7674d30d0db46fab2bdd60152fca717c2d1772a042bdc"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-never-block-on-the-human/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/08-principles.md",
+      "fromSha256": "73c3db659d356d4aa6d7674d30d0db46fab2bdd60152fca717c2d1772a042bdc"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-encode-lessons-in-structure/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/08-principles.md",
+      "fromSha256": "73c3db659d356d4aa6d7674d30d0db46fab2bdd60152fca717c2d1772a042bdc"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/correct/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/08-principles.md",
+      "fromSha256": "73c3db659d356d4aa6d7674d30d0db46fab2bdd60152fca717c2d1772a042bdc"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/automate-me/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/09-make-it-yours.md",
+      "fromSha256": "157e0c20ad3c657857c2fbbea3afd26895b71b8f68475bc56f4c382dcdd0e118"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/unslop/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/09-make-it-yours.md",
+      "fromSha256": "157e0c20ad3c657857c2fbbea3afd26895b71b8f68475bc56f4c382dcdd0e118"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/reflect/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/09-make-it-yours.md",
+      "fromSha256": "157e0c20ad3c657857c2fbbea3afd26895b71b8f68475bc56f4c382dcdd0e118"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/correct/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/09-make-it-yours.md",
+      "fromSha256": "157e0c20ad3c657857c2fbbea3afd26895b71b8f68475bc56f4c382dcdd0e118"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/authoring-a-skill.md",
+      "fromInventoryPath": "pstack/docs/guide/09-make-it-yours.md",
+      "fromSha256": "157e0c20ad3c657857c2fbbea3afd26895b71b8f68475bc56f4c382dcdd0e118"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/create-verification-skill/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/09-make-it-yours.md",
+      "fromSha256": "157e0c20ad3c657857c2fbbea3afd26895b71b8f68475bc56f4c382dcdd0e118"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/maintain-verification-skill/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/09-make-it-yours.md",
+      "fromSha256": "157e0c20ad3c657857c2fbbea3afd26895b71b8f68475bc56f4c382dcdd0e118"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/technical-writing/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/09-make-it-yours.md",
+      "fromSha256": "157e0c20ad3c657857c2fbbea3afd26895b71b8f68475bc56f4c382dcdd0e118"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/eval.md",
+      "fromInventoryPath": "pstack/docs/guide/09-make-it-yours.md",
+      "fromSha256": "157e0c20ad3c657857c2fbbea3afd26895b71b8f68475bc56f4c382dcdd0e118"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/make-bot-ui/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/09-make-it-yours.md",
+      "fromSha256": "157e0c20ad3c657857c2fbbea3afd26895b71b8f68475bc56f4c382dcdd0e118"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/bro/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/10-recipes-and-pitfalls.md",
+      "fromSha256": "c652474764b08da4a6364d85f5d03cf1fc1cf35e9d7c549348fb66e2d09f7b1f"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/authoring-a-skill.md",
+      "fromInventoryPath": "pstack/docs/guide/10-recipes-and-pitfalls.md",
+      "fromSha256": "c652474764b08da4a6364d85f5d03cf1fc1cf35e9d7c549348fb66e2d09f7b1f"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-help/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/README.md",
+      "fromSha256": "49d92cfe91e01c04bd1150e5b000ee4fd4dfda8ce789b66a9dda98f7e5456e00"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../SKILL.md#phase-a-ground-the-problem",
+      "fromInventoryPath": "pstack/skills/architect/references/rationale-template.md",
+      "fromSha256": "0cedfccdc7b47fc881febd5a8293eecbc542c20f8df825639904a8102d2eb5d3"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../arena/SKILL.md",
+      "fromInventoryPath": "pstack/skills/architect/references/rationale-template.md",
+      "fromSha256": "0cedfccdc7b47fc881febd5a8293eecbc542c20f8df825639904a8102d2eb5d3"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../principle-explain-the-number/SKILL.md",
+      "fromInventoryPath": "pstack/skills/benchmark-checklist/SKILL.md",
+      "fromSha256": "6a767e788a60428fa14e645ee10fe2e49896e514ff654f668b1d824deb9038e8"
+    },
+    {
+      "kind": "absolute_url",
+      "target": "http://127.0.0.1:4173`",
+      "host": "127.0.0.1:4173`",
+      "fromInventoryPath": "pstack/skills/create-verification-skill/references/feature-map-example/README.md",
+      "fromSha256": "cb7bd782cf89968a4ba3d58a5151db837430db92d19a6f52a906973b77b516ba"
+    },
+    {
+      "kind": "absolute_url",
+      "target": "http://127.0.0.1:4173`",
+      "host": "127.0.0.1:4173`",
+      "fromInventoryPath": "pstack/skills/create-verification-skill/references/feature-map-example/create-note.md",
+      "fromSha256": "644a44c74f35d38c2feb7cd05a0121fdebbb623e8dc376c185b565a581d1ccf7"
+    },
+    {
+      "kind": "absolute_url",
+      "target": "http://127.0.0.1:4173`",
+      "host": "127.0.0.1:4173`",
+      "fromInventoryPath": "pstack/skills/create-verification-skill/references/feature-map-example/search.md",
+      "fromSha256": "6e87b9e7f2791a7776ba1bb83f371cd285c306c67f19d245cc4dd6ca3015c823"
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://api2.cursor.sh/automations/webhook/<id",
+      "host": "api2.cursor.sh",
+      "fromInventoryPath": "pstack/skills/make-bot-ui/SKILL.md",
+      "fromSha256": "3624c8ef16cf2e48deb2a4049e72c6962a9431c8d6c6af90e7bd7ea0375224ec"
+    },
+    {
+      "kind": "absolute_url",
+      "target": "http://<hostname",
+      "host": "<hostname",
+      "fromInventoryPath": "pstack/skills/make-bot-ui/SKILL.md",
+      "fromSha256": "3624c8ef16cf2e48deb2a4049e72c6962a9431c8d6c6af90e7bd7ea0375224ec"
+    },
+    {
+      "kind": "absolute_url",
+      "target": "http://<100.x.x.x",
+      "host": "<100.x.x.x",
+      "fromInventoryPath": "pstack/skills/make-bot-ui/SKILL.md",
+      "fromSha256": "3624c8ef16cf2e48deb2a4049e72c6962a9431c8d6c6af90e7bd7ea0375224ec"
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://tailscale.com/install.sh",
+      "host": "tailscale.com",
+      "fromInventoryPath": "pstack/skills/make-bot-ui/SKILL.md",
+      "fromSha256": "3624c8ef16cf2e48deb2a4049e72c6962a9431c8d6c6af90e7bd7ea0375224ec"
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://github.com/cursor/plugins/blob/main/pstack/`",
+      "host": "github.com",
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e"
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://cursor.com/docs/skills",
+      "host": "cursor.com",
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../poteto-mode/SKILL.md",
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../setup-pstack/SKILL.md",
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../README.md",
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../docs/guide/01-setup.md",
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../docs/guide/02-poteto-mode.md",
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../how/SKILL.md",
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../why/SKILL.md",
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../teach/SKILL.md",
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../recall/SKILL.md",
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../blast-radius/SKILL.md",
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../architect/SKILL.md",
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../arena/SKILL.md",
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../swarm/SKILL.md",
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../interrogate/SKILL.md",
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../tdd/SKILL.md",
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../typescript-best-practices/SKILL.md",
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../no-comments/SKILL.md",
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../unslop/SKILL.md",
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../technical-writing/SKILL.md",
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../bro/SKILL.md",
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../create-verification-skill/SKILL.md",
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../maintain-verification-skill/SKILL.md",
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../benchmark-checklist/SKILL.md",
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../figure-it-out/SKILL.md",
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../show-me-your-work/SKILL.md",
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../automate-me/SKILL.md",
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../reflect/SKILL.md",
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../correct/SKILL.md",
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../make-bot-ui/SKILL.md",
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../docs/guide/06-verify-and-ship.md",
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../poteto-mode/playbooks/multi-phase-plan.md",
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../docs/guide/08-principles.md",
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../docs/guide/07-overnight.md",
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../docs/guide/10-recipes-and-pitfalls.md",
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../docs/guide/09-make-it-yours.md",
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e"
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://github.com/<owner",
+      "host": "github.com",
+      "fromInventoryPath": "pstack/skills/poteto-mode/SKILL.md",
+      "fromSha256": "31cd02290360ce63564ef22b74d69fc6d90e62181d05a644cbed8f6c47cc9412"
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://github.com/owner/repo/pull/1",
+      "host": "github.com",
+      "fromInventoryPath": "pstack/skills/poteto-mode/scripts/watch-pr/cli.test.ts",
+      "fromSha256": "a35592b4c6da96caf8d47987e9cd503fab6c7774ab87d11a43f24b4b5df2a9d1"
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://github.com/${normalized.slice(15",
+      "host": "github.com",
+      "fromInventoryPath": "pstack/skills/poteto-mode/scripts/watch-pr/github.ts",
+      "fromSha256": "d1bbbafbe8e2c703c84da2029de7f2c4011412512f8cf65a42100f46bcb92c8a"
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://github.com/${normalized.slice(21",
+      "host": "github.com",
+      "fromInventoryPath": "pstack/skills/poteto-mode/scripts/watch-pr/github.ts",
+      "fromSha256": "d1bbbafbe8e2c703c84da2029de7f2c4011412512f8cf65a42100f46bcb92c8a"
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://github.com/${row.context.owner}/${row.context.repo}/pull/${row.context.number}`",
+      "host": "github.com",
+      "fromInventoryPath": "pstack/skills/poteto-mode/scripts/watch-pr/render.ts",
+      "fromSha256": "2b709e86628d5b8fdb61f860e60ababc342b0626c67576305442cf548283a604"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../principle-build-the-lever/SKILL.md",
+      "fromInventoryPath": "pstack/skills/principle-attack-the-premise/SKILL.md",
+      "fromSha256": "c87bd7536f772f8a403ad8155535ee17a1bbec9a353156693eb3bb1520c87ae3"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../principle-fix-root-causes/SKILL.md",
+      "fromInventoryPath": "pstack/skills/principle-attack-the-premise/SKILL.md",
+      "fromSha256": "c87bd7536f772f8a403ad8155535ee17a1bbec9a353156693eb3bb1520c87ae3"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../principle-laziness-protocol/SKILL.md",
+      "fromInventoryPath": "pstack/skills/principle-attack-the-premise/SKILL.md",
+      "fromSha256": "c87bd7536f772f8a403ad8155535ee17a1bbec9a353156693eb3bb1520c87ae3"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../principle-redesign-from-first-principles/SKILL.md",
+      "fromInventoryPath": "pstack/skills/principle-attack-the-premise/SKILL.md",
+      "fromSha256": "c87bd7536f772f8a403ad8155535ee17a1bbec9a353156693eb3bb1520c87ae3"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../principle-laziness-protocol/SKILL.md",
+      "fromInventoryPath": "pstack/skills/principle-build-the-lever/SKILL.md",
+      "fromSha256": "458b269eab8e95a1573276955312f7d2a13ae8599879a9efc748248f6bc34b56"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../principle-encode-lessons-in-structure/SKILL.md",
+      "fromInventoryPath": "pstack/skills/principle-build-the-lever/SKILL.md",
+      "fromSha256": "458b269eab8e95a1573276955312f7d2a13ae8599879a9efc748248f6bc34b56"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../principle-prove-it-works/SKILL.md",
+      "fromInventoryPath": "pstack/skills/principle-build-the-lever/SKILL.md",
+      "fromSha256": "458b269eab8e95a1573276955312f7d2a13ae8599879a9efc748248f6bc34b56"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../benchmark-checklist/SKILL.md",
+      "fromInventoryPath": "pstack/skills/principle-explain-the-number/SKILL.md",
+      "fromSha256": "5aac99e7ce0bb1b37e2579acf4fe88c32a1456d9d46afd4a57cfe1df9092e89c"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../principle-prove-it-works/SKILL.md",
+      "fromInventoryPath": "pstack/skills/principle-explain-the-number/SKILL.md",
+      "fromSha256": "5aac99e7ce0bb1b37e2579acf4fe88c32a1456d9d46afd4a57cfe1df9092e89c"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../principle-guard-the-context-window/SKILL.md",
+      "fromInventoryPath": "pstack/skills/principle-minimize-reader-load/SKILL.md",
+      "fromSha256": "42551c5dc74cd578163c148da552db3ff67d29b78600ef216bfd311fb828fe69"
+    }
+  ]
+}

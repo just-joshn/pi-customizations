@@ -1,0 +1,49 @@
+V New Chat
+Search
+Automations
+B° Customize
+Projects
++ New Project
+Pinned
+• /make-bot-ui
+45m
+Cursor automation setup E
+yes
+Thought briefly
+Draft approved.
+To finish in the editor: confirm the daily 9:05 schedule if the Ul shows a timezone picker. Leave it
+disabled - do not Save or Activate from this chat. No Slack is attached.
+Cloud compute is configured in the Cloud Agent dashboard if you need it later.
+Are you ready for me to open the Automations editor with this draft?
+IDE A •• •
+Open Tabs
+4) Browser
+On Home
+Browser
+• Terminal
+• Files
+Repositories
+A No Repo
+Cursor automation setup
+Cursor automation setup
+• Cursor automation setup
+• Automation setup instruction
+/make-bot-ui
+• /automate
+/automate
+Sticky mode activation
+Getting Started
+1m
+6m
+8m
+17m
+47m
+49m
+51m
+1h
+3/3 O
+* Connect Slack
+Joshua Humphrey
++ Send follow-up
+• This Mac v
+Auto v

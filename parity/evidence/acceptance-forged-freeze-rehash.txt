@@ -1,0 +1,1 @@
+{"status":"FROZEN","definitions":43,"configurationCells":92,"denominatorComplete":false,"manifestSha256":"80f7372884628fb6a4c3854e96cdade3793cff818fe9aac1feac534d949be72a"}

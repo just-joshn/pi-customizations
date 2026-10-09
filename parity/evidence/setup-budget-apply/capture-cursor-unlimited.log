@@ -1,0 +1,9 @@
+file:///Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/scripts/capture-setup-budget-apply.mjs:368
+    if (!sawWrite) throw new Error('Timed out waiting for budget-apply write (screen or rule file).');
+                         ^
+
+Error: Timed out waiting for budget-apply write (screen or rule file).
+    at runSide (file:///Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/scripts/capture-setup-budget-apply.mjs:368:26)
+    at async file:///Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/scripts/capture-setup-budget-apply.mjs:468:18
+
+Node.js v24.21.0

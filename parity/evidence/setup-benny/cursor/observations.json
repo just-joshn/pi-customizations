@@ -1,0 +1,42 @@
+{
+  "forAgentsRel": ".upstream/automations/benny/FOR_AGENTS.md",
+  "setupSkillRel": ".upstream/automations/benny/skills/setup-benny/SKILL.md",
+  "productRel": "src/app.js",
+  "productBeforeDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e",
+  "productAfterDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e",
+  "productUnchanged": true,
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/fixture-out/cursor/done.txt",
+    "line": "STATUS=not-slash reason=pack bootstrap to destination setup-benny",
+    "status": "not-slash"
+  },
+  "outcome": "not_slash",
+  "contractHeld": true,
+  "engaged": true,
+  "pathEntry": true,
+  "notSlashSignal": true,
+  "forbidden": false,
+  "screen": {
+    "forAgentsChrome": true,
+    "setupBennyPathChrome": true,
+    "notSlashClaim": false,
+    "slashInvoked": false,
+    "automationCreated": false,
+    "secretWrite": false,
+    "working": false
+  },
+  "pty": {
+    "forAgentsChrome": true,
+    "setupBennyPathChrome": true,
+    "notSlashClaim": false,
+    "slashInvoked": false,
+    "automationCreated": false,
+    "secretWrite": false,
+    "working": true
+  },
+  "session": null,
+  "rescored": true,
+  "pairedAttemptId": "78443bd1-b96b-4e85-9abc-89f42abaae14",
+  "scorerNote": "not_slash requires path engagement + not-slash signal + unchanged src/app.js + no affirmative slash invoke + no automation create (negated backtick /setup-benny stripped)"
+}

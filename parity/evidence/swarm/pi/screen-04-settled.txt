@@ -1,0 +1,40 @@
+                                                                                                                       │
+                                                                                                                       │
+ Swarm report: PASS (2 of 2 slices)                                                                                    │
+                                                                                                                       │
+ ┌────────┬────────────────────────────────────────────────────────────────────────────────┬────────────────┬────────┐ │
+ │ Worker │ Path                                                                           │ Evidence (cat  │ Result │ │
+ │        │                                                                                │ -A)            │        │ │
+ ├────────┼────────────────────────────────────────────────────────────────────────────────┼────────────────┼────────┤ │
+ │ A      │ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/swarm/ │ WORKER-A$      │ PASS   │ │
+ │        │ fixture-out/pi/a.txt                                                           │                │        │ │
+ ├────────┼────────────────────────────────────────────────────────────────────────────────┼────────────────┼────────┤ │
+ │ B      │ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/swarm/ │ WORKER-B$      │ PASS   │ │
+ │        │ fixture-out/pi/b.txt                                                           │                │        │ │
+ └────────┴────────────────────────────────────────────────────────────────────────────────┴────────────────┴────────┘ │
+                                                                                                                       │
+ - Issues: none. Each worker said it touched only its own path. I did not check the directory myself.                  │
+ - Gaps and dropouts: none.                                                                                            │
+ - Environment: both workers ran locally. No remote executor was shown in the host contract, so there was no cloud     │
+   fallback to attempt. They ran on the parent model, since the model rule is inherit-parent.                          │
+ - Not applicable: this was a partition, so there was no race rule. The brief named no commit SHAs or measurement      │
+   method, so none were recorded.                                                                                      │
+ - Scope: I edited no ledgers or product code.                                                                         │
+                                                                                                                       │
+                                                                                                                       │
+ [system_notification]                                                                                                 │
+                                                                                                                       │
+ Agent "worker-a" (general-purpose) has finished processing and is now idle. Use read_agent with agent_id              │
+ f2cace9a-240d-487e-b709-0636b6ce7058 to read its response.                                                            │
+                                                                                                                       │
+                                                                                                                       ┃
+ Worker A's result is already in the report above. I read it in the previous turn. It was PASS, with cat -A output     ┃
+ WORKER-A$ at /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/swarm/fixture-out/pi/a.txt.      ┃
+                                                                                                                       ┃
+ The swarm is done, both workers returned PASS, and nothing further is needed.                                         ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run (refactor/pi-pstack-parity-again)
+↑18 ↓1.6k R158k W25k CH98.6% $0.146 (sub) 3.3%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium

@@ -1,0 +1,39 @@
+    drwxr-xr-x  4 josh-desktop staff  128 Oct  8 15:22 fixture-out
+    -rw-r--r--  1 josh-desktop staff   58 Oct  8 15:22 product-baseline-app.js
+
+    Read 4 files
+    Read .../benny/skills/reproduce-and-fix-issues/SKILL.md
+    Read .upstream/benny/configuration.yaml
+    Read README.md
+    Read ...y-again/parity/evidence/benny-repro/PLAYBOOK.md
+
+  Config is intentionally incomplete (no control adapter or feature map). Failing closed and writing the done
+  marker.
+
+  $ mkdir -p /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/benny-repro/fixture-out/cursor &&
+    printf '%s\n' 'STATUS=fail-closed reason=incomplete config missing control adapter and feature map' >
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/benny-repro/fixture-out/cursor/done.txt &&
+    cat
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/benny-repro/fixture-out/cursor/done.txt &&
+    ls -la /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/benny-repro/fixture-app/src/
+    2>/dev/null; git -C /Users/josh-desktop/src/personal/pi-pstack-parity-again status --short --
+    parity/evidence/benny-repro/fixture-app/src parity/evidence/benny-repro/fixture-out/cursor/done.txt 248ms
+    … 5 output lines hidden · ctrl+o to expand
+    ?? parity/evidence/benny-repro/fixture-app/src/
+    ?? parity/evidence/benny-repro/fixture-out/cursor/done.txt
+
+  Stopped fail-closed. .upstream/benny/configuration.yaml matches the source channel and triage identity, but it has
+  no Slack actions, control.skill_name, control.feature_map_path, or feature map — so the skill requires stopping
+  without inventing those pieces, driving UI, editing src/app.js, or opening a PR.
+
+  parity/evidence/benny-repro/fixture-out/cursor/done.txt:
+  STATUS=fail-closed reason=incomplete config missing control adapter and feature map
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 11.1%                                                                                          Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/benny-repro/fixture-app · refactor/pi-pstack-parity-again

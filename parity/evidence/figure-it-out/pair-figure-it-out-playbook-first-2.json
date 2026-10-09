@@ -1,0 +1,123 @@
+{
+  "schema": 1,
+  "pairId": "figure-it-out-playbook-first-2",
+  "scenarioRef": "cmd-figure-it-out-playbook-first",
+  "journeyFamily": "journey-family-05-playbook-complete-journeys",
+  "requirementIds": [
+    "PSTACK-CMD-FIGURE-IT-OUT-PLAYBOOK-FIRST-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "/figure-it-out multi-part note-store migration (persist notes.json, ISO timestamps in format, cli loads file) plus side-specific done.txt path",
+  "steps": [
+    { "send": "/figure-it-out this is a multi-part note-store migration I will review after stepping away. ..." },
+    { "send": "\r" },
+    { "settle": true },
+    { "cancel": true }
+  ],
+  "cursor": {
+    "attemptId": "38afcd44-b9f2-4ba3-ad91-f345d71bdd73",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/figure-it-out/cursor/38afcd44-b9f2-4ba3-ad91-f345d71bdd73",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "observations": {
+      "figureItOutSkill": true,
+      "firstPlaybookAt": "2026-10-08T19:14:06.421Z",
+      "firstProductAt": "2026-10-08T19:14:35.506Z",
+      "playbookPaths": ["decisions.tsv"],
+      "productPaths": ["src/store.js", "src/format.js", "src/cli.js", "notes.json"],
+      "structuredPlaybook": true,
+      "ordering": "playbook_before_product",
+      "playbookBeforeProduct": true,
+      "playbookArtifactNote": "Reuse from pair-1. First on-disk artifact was decisions.tsv with phase rows and a falsifiable done predicate. Product edits began ~29s later. Fixture digest unchanged.",
+      "doneMarkerWritten": true
+    }
+  },
+  "pi": {
+    "attemptId": "8a0cf95a-64a7-4256-accb-89ca93ac5804",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/figure-it-out/pi/8a0cf95a-64a7-4256-accb-89ca93ac5804",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-figure-it-out-fixture-app--/2026-10-08T19-27-00-063Z_01a11cfb-b3df-75a4-a7fd-1055068a9723.jsonl",
+    "observations": {
+      "figureItOutSkill": true,
+      "firstPlaybookAt": "2026-10-08T19:27:17.106Z",
+      "firstProductAt": "2026-10-08T19:27:30.652Z",
+      "playbookPaths": ["PLAYBOOK.md", "decisions.tsv", ".audit/baseline.txt"],
+      "productPaths": ["src/cli.js", "src/format.js", "src/store.js", "notes.json"],
+      "structuredPlaybook": true,
+      "ordering": "playbook_before_product",
+      "playbookBeforeProduct": true,
+      "sessionToolOrder": [
+        "TodoWrite",
+        "bash (blocked by figure-it-out-playbook-gate, twice)",
+        "read src/store.js, src/format.js, src/cli.js",
+        "write PLAYBOOK.md",
+        "write decisions.tsv",
+        "edit PLAYBOOK.md",
+        "bash baseline / verify",
+        "write src/store.js, src/format.js, src/cli.js",
+        "bash verify",
+        "fixture-out/pi/done.txt"
+      ],
+      "gateBlockedEarlyBash": true,
+      "doneMarkerWritten": true
+    }
+  },
+  "deltas": [
+    {
+      "topic": "playbook before product code",
+      "cursor": "decisions.tsv at 19:14:06Z; first product src/store.js at 19:14:35Z (reuse pair-1).",
+      "pi": "PLAYBOOK.md at 19:27:17Z; first product at 19:27:30Z. Early bash blocked by registerFigureItOutPlaybookGate; agent wrote PLAYBOOK.md via write before product.",
+      "reconciled": true
+    },
+    {
+      "topic": "playbook artifact shape",
+      "cursor": "decisions.tsv trail with phase rows and falsifiable done predicate.",
+      "pi": "PLAYBOOK.md (structured phases + done predicate) plus decisions.tsv and .audit/baseline.txt.",
+      "reconciled": true
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "Auto",
+      "pi": "claude-sonnet-5-5 • medium (claude-subscription)",
+      "reconciled": false
+    },
+    {
+      "topic": "slash residual",
+      "cursor": "Keeps /figure-it-out visible with the full prompt.",
+      "pi": "Shows [skill] figure-it-out; residual prompt starts with this is a multi-part note-store migration...",
+      "reconciled": true
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-figure-it-out-playbook-first.mjs --pi-only (Cursor reused from pair-1; identical locked fixture digest)",
+    "priorFailPair": "parity/evidence/figure-it-out/pair-figure-it-out-playbook-first-1.json",
+    "productFix": [
+      "extensions/pi-pstack/src/figure-it-out-playbook-gate.ts",
+      "extensions/pi-pstack/src/index.ts",
+      "extensions/pi-pstack/test/figure-it-out-playbook-gate.test.ts",
+      "parity/scripts/capture-figure-it-out-playbook-first.mjs (isPlaybookPath includes decisions.md)"
+    ],
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "packagePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack",
+    "markerRoot": "parity/evidence/figure-it-out/fixture-out/{cursor,pi}/"
+  }
+}

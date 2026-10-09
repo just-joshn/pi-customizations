@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "benny-triage-valid-1",
+  "scenarioRef": "cmd-benny-triage-thread-only",
+  "requirements": [
+    "PSTACK-CMD-BENNY-TRIAGE-THREAD-ONLY-001"
+  ],
+  "path": "valid-config-thread-only-verdict",
+  "verdict": "blocker",
+  "attemptIds": null,
+  "pairPath": null,
+  "probe": "parity/evidence/benny-triage/valid-env-probe.json",
+  "probeScript": "parity/scripts/probe-benny-triage-valid-env.mjs",
+  "priorNegativePair": "parity/evidence/benny-triage/pair-benny-triage-fail-closed-1.json",
+  "whyBlocked": [
+    "No operator Benny user config at ~/.config/benny/configuration.yaml.",
+    "No BENNY_SLACK_BOT_TOKEN or SLACK_BOT_TOKEN in this environment.",
+    "configuration.example.yaml Slack action names are placeholders; the PTY harness has no resolvable Cursor/Reference Slack read or thread-post actions.",
+    "Slack MCP interactive auth is unavailable in this agent environment.",
+    "Standing preferences forbid customer messages without explicit account-owner action; a live thread verdict post is that class of action.",
+    "triage-issue-reports does not accept invented file-backed Slack stubs as configured actions; filling placeholders would fabricate a pass."
+  ],
+  "whatWouldUnblock": [
+    "Operator-owned valid Benny configuration with real source_channel_id and triage identity.",
+    "Workspace-wired Slack read and thread-post actions that the skill can invoke on both Cursor and Pi hosts.",
+    "Explicit account-owner grant to post one thread-only verdict in a designated non-customer test channel, or an oracle freeze that accepts an incomplete-config-only contract for this requirement."
+  ],
+  "honestGaps": [
+    "Valid-config one thread-only verdict remains unpaid.",
+    "Negative-path fail-closed pair already exists and does not cover this half.",
+    "No Cursor or Pi attempt IDs for the valid path (none run; would have been a fake pass)."
+  ]
+}

@@ -1,0 +1,39 @@
+
+  Do not ship the bare 4.8x. Measured ratio of means is 4.72x, limited by the single-threaded parse loop on one CPU
+  core in src/parse.js (n=5 warm trials; baseline 408–421 ms, optimized 84–91 ms). Evidence is in
+  evidence/explain-report.md. evidence/verify-out.txt has EXPLAIN-OK. fixture-out/cursor/done.txt is verified=yes.
+
+  throughput checkpoint: n/a, read-only investigation
+
+  Overview. RESULTS.md rounds a warm-run microbench. The raw trials support ~4.7x, not a freestanding 4.8x claim.
+
+  Key concepts. Speedup needs a named limiter, run count, and spread (or a link to data/trials.json) before you act
+  on it.
+
+  How it works. Means from data/trials.json give 413.2 / 87.6 ≈ 4.72x. Profile notes map wall time to one busy core
+  and the parse loop, not I/O or the load generator.
+
+  Where things live. Trials and profile notes under data/. Report under evidence/explain-report.md. Checker is
+  scripts/verify.mjs.
+
+  Gotchas. Cold first runs were discarded. The optimized path is still single-threaded, so “why not double?” stops
+  at one core.
+
+  Principles. principle-explain-the-number drove keeping limiter, n, and spread with the number instead of trusting
+  the bare RESULTS.md figure. unslop shaped this reply.
+
+  Playbook steps.
+  1. skip: user named principle-explain-the-number and fixture-only scope; not a codebase how/why probe
+  2. done
+  3. done
+  4. done
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 15.8% · 1 file edited                                                                          Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/principles/explain-number/fixture-app · 
+  refactor/pi-pstack-parity-again

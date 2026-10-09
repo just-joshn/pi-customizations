@@ -1,0 +1,21 @@
+{
+  "status": 0,
+  "stdout": "{\"side\":\"pi\",\"channel\":\"C085H0B5PN1\",\"thread_ts\":\"1791566827.685249\",\"reply_ts\":\"1791566861.358439\",\"marker\":\"[benny:bug]\",\"replyCount\":1,\"rootCountBefore\":2,\"rootCountAfter\":2,\"rootPostCreated\":false,\"contract\":{\"oneThreadReply\":true,\"hasMarker\":true,\"noNewRoot\":true}}\n",
+  "stderr": "",
+  "result": {
+    "side": "pi",
+    "channel": "C085H0B5PN1",
+    "thread_ts": "1791566827.685249",
+    "reply_ts": "1791566861.358439",
+    "marker": "[benny:bug]",
+    "replyCount": 1,
+    "rootCountBefore": 2,
+    "rootCountAfter": 2,
+    "rootPostCreated": false,
+    "contract": {
+      "oneThreadReply": true,
+      "hasMarker": true,
+      "noNewRoot": true
+    }
+  }
+}

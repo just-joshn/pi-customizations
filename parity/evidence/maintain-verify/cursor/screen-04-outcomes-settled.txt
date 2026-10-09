@@ -1,0 +1,39 @@
+    .cursor/evidence/verify-hello-cli/stderr.txt && echo '--- exit ---' && cat
+    .cursor/evidence/verify-hello-cli/exit-code.txt && test "$(cat .cursor/evidence/verify-hello-cli/stdout.txt)" =
+    "HELLO-FAMILY-13" && test ! -s .cursor/evidence/verify-hello-cli/stderr.txt && test "$(cat
+    .cursor/evidence/verify-hello-cli/exit-code.txt)" = "0" && echo LIVE_PASS_OK && ls -la
+    .cursor/evidence/verify-hello-cli/ 426ms
+    … 14 output lines hidden · ctrl+o to expand
+    -rw-r--r-- 1 josh-desktop staff   0 Oct  8 17:08 stderr.txt
+    -rw-r--r-- 1 josh-desktop staff  16 Oct  8 17:08 stdout.txt
+
+  Live pass succeeded with full coverage and no skill edits needed — writing clean and stopping.
+
+  $ mkdir -p
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-out/cursor &&
+    printf '%s\n' 'OUTCOME=clean' 'PR=none' 'BLOCKER=none' > /Users/josh-desktop/src/personal/pi-pstack-parity-again/p
+    arity/evidence/maintain-verify/fixture-out/cursor/maintain-outcome.txt && cat /Users/josh-desktop/src/personal/pi-
+    pstack-parity-again/parity/evidence/maintain-verify/fixture-out/cursor/maintain-outcome.txt 207ms
+    … 1 output lines hidden · ctrl+o to expand
+    PR=none
+    BLOCKER=none
+
+  clean — source and live coverage both matched the seeded skill; nothing to ship.
+
+  • Located verify-hello-cli; index has one feature (hello-print) and matches the filesystem.
+  • Source wave: no drift vs hello.sh / README / skill.
+  • Live: doctor-ok; drive captured HELLO-FAMILY-13\n, empty stderr, exit 0.
+  • No skill-dir edits, no branch, no PR.
+
+     1 │OUTCOME=clean
+     2 │PR=none
+     3 │BLOCKER=none
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 12.8%                                                                                          Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app · refactor/pi-pstack-parity-again

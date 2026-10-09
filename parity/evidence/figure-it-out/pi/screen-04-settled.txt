@@ -1,0 +1,40 @@
+ $ printf 'verify\tnode verify.mjs FAIL at baseline, PASS after; reload check passed (gamma persisted)\tpredicate      │
+ items 1-4 met\n' >> decisions.tsv                                                                                     │
+ mkdir -p ../fixture-out/pi && echo "Done predicate: from a clean tree (notes.json deleted) node verify.mjs failed at  │
+ baseline and now passes — running src/cli.js twice persists notes.json with alpha/beta, prints '- <ISO timestamp>     │
+ <text>' per line identically on both runs, and added notes survive store reload." > ../fixture-out/pi/done.txt; wc -l │
+ ../fixture-out/pi/done.txt (timeout 10s)                                                                              │
+                                                                                                                       │
+ 1 ../fixture-out/pi/done.txt                                                                                          │
+                                                                                                                       │
+ Took 0.0s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ The migration is done and node verify.mjs now passes. Before the change it failed with "notes.json missing after      │
+ first cli run". I also ran a store-reload check (add gamma, rebuild the store, list() returns alpha, beta, gamma),    │
+ and that passed.                                                                                                      │
+                                                                                                                       │
+ - Playbook: PLAYBOOK.md holds the done predicate and phases, written before any code edit. The decision trail is      │
+   decisions.tsv, and the pre-change CLI output is in .audit/baseline.txt.                                             │
+ - Rigor: low. The edits are three small, reversible files in a fixture, so I skipped architect/arena and fan-out. The │
+   gate is the existing verify.mjs, checked against the baseline before the change.                                    │
+ - src/store.js: createStore({ file }) loads notes.json, or writes the seed notes on first run. add() saves to disk.   │
+   list() still returns plain strings, and a new entries() returns { text, createdAt }.                                │
+ - src/format.js: formatNote(text, createdAt) now returns - <ISO> <text>, which is the line format verify.mjs checks.  │
+ - src/cli.js: it loads notes.json from the project root, so the path doesn't depend on the working directory. It      │
+   prints each note with its stored timestamp. The same timestamps print on every run.                                 │
+ - done.txt: it is written as one line at …/fixture-out/pi/done.txt.                                                   ┃
+ - Still open: notes.json is left in the fixture from the last verify run. The printed line format is - <ISO> <text>,  ┃
+   with the timestamp first. That was my reading of verify.mjs, since your note didn't specify the position.           ┃
+
+[>] Read Principles section of poteto-mode skill (in_progress)
+[ ] Phase A: Frame (pending)
+[ ] Phase B: Design workflow, write PLAYBOOK.md (pending)
+[ ] Phase C: Run loop (baseline, store, format, cli) (pending)
+[ ] Phase D: decisions.tsv audit trail (pending)
+[ ] Phase E: Verify, write done.txt (pending)
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/figure-it-out/fixture-app (refactor/pi-pstack-parity-again)
+↑22 ↓4.8k R271k W25k CH98.9% $0.201 (sub) 3.3%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium

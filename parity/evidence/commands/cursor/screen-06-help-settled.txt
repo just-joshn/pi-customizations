@@ -1,0 +1,35 @@
+  4. small — medium reasoning
+
+  Detected Task models this session: claude-fable-5-1-thinking-high, claude-opus-5-5-medium,
+  claude-sonnet-5-5-medium, composer-2.5-fast, cursor-grok-4.6-high-fast, gemini-3.8-flash-high, gpt-5.6-sol-medium,
+  grok-4.7-high, muse-spark-1.3-high — plus always-valid inherit-parent / auto.
+
+  Reply with one of the four labels (or the short name: unlimited / large / medium / small).
+
+                                                                                                                       
+  /poteto-help which skill should i use to review this branch?                                                         
+                                                                                                                       
+
+  Branch review maps to /interrogate — I'll pull a concrete prompt from that skill.
+
+    Read 2 files
+    Read ...rsor-plugins/pstack/skills/interrogate/SKILL.md
+    Read ...tack/skills/poteto-help/references/prompting.md
+
+  /interrogate — multi-model adversarial review of the branch diff. It synthesizes a verdict; it does not auto-apply
+  fixes.
+
+  If you mainly care what else the change could break, use /blast-radius instead.
+
+  /interrogate review this branch against main. Act on anything that would block a real PR; don't apply fixes.
+
+  Source: interrogate/SKILL.md (https://github.com/cursor/plugins/blob/main/pstack/skills/interrogate/SKILL.md)
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 15.4%                                                                                          Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run · refactor/pi-pstack-parity-again

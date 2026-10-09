@@ -1,0 +1,28 @@
+{
+  "unit": "u-dep-live-integrations-001",
+  "createdAt": "2026-10-09T02:48:01Z",
+  "inventorySha256": "63ef7f8f4c35e3918556e787f22eb308666e5e8d0b444b41584524ce13b867d4",
+  "counts": {
+    "a_custody_complete": 275,
+    "b_environment_bound": 119,
+    "c_already_evidenced": 22
+  },
+  "reasonCounts": {
+    "inventory_or_doc_custody_without_live_exercise": 275,
+    "third_party_live_install_needs_operator_grant": 39,
+    "models_pricing_paired_via_setup_grok_xhigh_cap": 22,
+    "webhook_routine_or_secret_live_needs_operator_grant": 29,
+    "automations_editor_runtime_needs_operator_grant": 7,
+    "live_slack_needs_operator_grant": 44
+  },
+  "canCloseUnresolvedReference": false,
+  "canNarrowUnresolvedReference": true,
+  "blockerMismatchIds": [
+    "BENNY-TRIAGE-VALID-CONFIG-ENV",
+    "MAKE-BOT-UI-KEY-SERVER-HOST",
+    "SETUP-BENNY-CREATION-BOUNDARY-ENV",
+    "SETUP-BENNY-THREAD-SAFETY-ENV"
+  ],
+  "behavioralExerciseClaim": false,
+  "narrowedReferenceText": "Live integrations live-exercise remains open after u-dep-live-integrations-001 disposition at parity/research/dep-live-integrations-001/dispositions.json (inventory sha256 63ef7f8f4c35e3918556e787f22eb308666e5e8d0b444b41584524ce13b867d4; a_custody_complete=275, b_environment_bound=119, c_already_evidenced=22). Operator-grant blockers: Benny/Slack valid-config + thread-safety, Automations editor create/save, make-bot/webhook routines+secrets, and third-party live installs (Linear/Notion/GitHub/GitLab/Teams). No fabricated Slack posts, Automations editor saves, or webhook routines."
+}

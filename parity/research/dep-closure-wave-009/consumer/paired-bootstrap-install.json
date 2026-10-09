@@ -1,0 +1,14 @@
+{
+  "unit": "u-dep-consumer-journeys-003",
+  "pair": "parity/evidence/consumer/pair-consumer-bootstrap-install-1.json",
+  "attempts": {
+    "cursor": "86de8b3f-95da-47f3-ac6f-c2575543249f",
+    "pi": "4d9f3f54-35b9-4b22-ab6c-936056420a67"
+  },
+  "packageId": "source-tools-bootstrap",
+  "activation": "install",
+  "consumerPath": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bootstrap.ts",
+  "status": "closed",
+  "recordedAt": "2026-10-09T02:47:58Z",
+  "note": "Forced install-key mismatch; postconditions are key rewrite + commander present + orch help chrome. Install stdout is silent on success by design in bootstrap.ts."
+}

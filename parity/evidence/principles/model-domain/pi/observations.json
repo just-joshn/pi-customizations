@@ -1,0 +1,101 @@
+{
+  "score": {
+    "frontmatterOk": true,
+    "leafSkillRead": true,
+    "usedChrome": true,
+    "modelAutoInvoke": false,
+    "ranVerifyScript": true,
+    "structuredDomain": true,
+    "scatteredOnly": false,
+    "keptVerifyOk": true,
+    "productOk": true,
+    "verifiedDone": true,
+    "contractHeld": true,
+    "screen": {
+      "potetoMode": false,
+      "leafChrome": false,
+      "hostAttached": false,
+      "verifyMention": true,
+      "working": false
+    },
+    "pty": {
+      "potetoMode": true,
+      "leafChrome": false,
+      "hostAttached": true,
+      "verifyMention": true,
+      "working": true
+    }
+  },
+  "firstProductAt": "2026-10-09T00:55:18.673Z",
+  "firstVerifyAt": "2026-10-09T00:55:18.673Z",
+  "productPaths": [
+    "src/ticket.js"
+  ],
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/model-domain/fixture-out/pi/done.txt",
+    "line": "verified=yes"
+  },
+  "verifyOut": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/model-domain/fixture-app/evidence/verify-out.txt",
+    "line": "DOMAIN-OK hold=held-label close-held=rejected release=open",
+    "ok": true
+  },
+  "productOk": true,
+  "productAnalysis": {
+    "hasHeldApi": true,
+    "hasStatusField": true,
+    "hasRegistry": true,
+    "hasLookupTable": false,
+    "hasReducer": false,
+    "structuredDomain": true,
+    "syncedBooleans": false,
+    "scatteredOnly": false
+  },
+  "frontmatter": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-model-the-domain/SKILL.md",
+    "ok": true,
+    "name": "principle-model-the-domain",
+    "disableModelInvocation": true
+  },
+  "session": {
+    "sessionPath": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-principles-model-domain-fixture-app--/2026-10-09T00-55-00-562Z_01a11e28-00d2-77fc-bfe4-1723e521fc3e.jsonl",
+    "hostAttached": false,
+    "leafSkillRead": true,
+    "leafSkillReadAt": "2026-10-09T00:55:06.063Z",
+    "ranVerifyScript": true,
+    "firstVerifyAt": "2026-10-09T00:55:06.063Z",
+    "firstProductWriteAt": "2026-10-09T00:55:18.531Z",
+    "toolOrder": [
+      "bash(verify.mjs)",
+      "read(model-domain-leaf)",
+      "read",
+      "blob-mention(model-domain-leaf)",
+      "read",
+      "bash(verify.mjs)",
+      "TodoWrite",
+      "bash(verify.mjs)",
+      "write(product)",
+      "bash(verify.mjs)",
+      "bash"
+    ]
+  },
+  "transcript": null,
+  "pollSamples": 32,
+  "screenFinal": {
+    "potetoMode": false,
+    "leafChrome": false,
+    "hostAttached": false,
+    "verifyMention": true,
+    "working": false
+  },
+  "pty": {
+    "potetoMode": true,
+    "leafChrome": false,
+    "hostAttached": true,
+    "verifyMention": true,
+    "working": true
+  },
+  "rescoreNote": "Re-scored hasHeldApi for export const hold/release after capture; PTY artifacts unchanged."
+}

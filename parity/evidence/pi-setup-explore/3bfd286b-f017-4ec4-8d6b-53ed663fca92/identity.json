@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "attemptId": "3bfd286b-f017-4ec4-8d6b-53ed663fca92",
+  "side": "pi",
+  "scenarioRef": "explore:setup-pstack",
+  "fixtureRef": null,
+  "executable": {
+    "path": "/Users/josh-desktop/.local/bin/pi",
+    "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+  },
+  "artifacts": [],
+  "launch": {
+    "argv": [
+      "/Users/josh-desktop/.local/bin/pi",
+      "--model",
+      "claude-subscription/claude-sonnet-5-5:medium"
+    ],
+    "cwd": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/fixtures/first-run",
+    "envNames": [
+      "HOME",
+      "PATH",
+      "PI_CODING_AGENT_DIR",
+      "TERM"
+    ],
+    "publicEnv": {
+      "TERM": "xterm-256color",
+      "PI_CODING_AGENT_DIR": "/tmp/pi-ref-agent"
+    }
+  },
+  "geometry": {
+    "rows": 36,
+    "cols": 120
+  },
+  "observedEnv": {
+    "platform": "darwin",
+    "node": "v24.21.0",
+    "TERM": "xterm-256color"
+  }
+}

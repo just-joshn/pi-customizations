@@ -1,6 +1,9 @@
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
+import { Container } from '@earendil-works/pi-tui';
 import { type Static, Type } from 'typebox';
 import { boundedResult } from './results.ts';
+import { type PanelAnswer, type PanelInput, initialPanelState, panelAnswers, reducePanel, renderPanel, toPanelInput } from './questions-panel.ts';
+import { askQuestionResultCard } from './tool-cards.ts';
 
 const text = Type.String({ minLength: 1, pattern: '\\S' });
 const Question = Type.Object({
@@ -67,20 +70,58 @@ export function registerQuestions(pi: ExtensionAPI): void {
     description: 'Ask the user a preference or required approval through an interactive dialog. Errors only when the session has no UI. Never infer consent from cancellation.',
     promptSnippet: 'Ask the user a preference or approval question through Pi dialogs',
     promptGuidelines: ['AskQuestion works in interactive and RPC sessions; in print mode it errors, so ask in conversation instead. Cancellation is not approval.'],
-    parameters: Type.Object({ questions: Type.Array(Question, { minItems: 1, maxItems: 4 }) }),
+    parameters: Type.Object({ questions: Type.Array(Question, { minItems: 1, maxItems: 4 }), title: Type.Optional(Type.String({ minLength: 1, pattern: '\\S' })) }),
     outputSchema: AnswersOutput,
     exposure: 'model-only',
     annotations: { readOnlyHint: false, openWorldHint: false, destructiveHint: false },
+    renderCall(_args, _theme, context) {
+      const component = (context.lastComponent as Container | undefined) ?? new Container();
+      component.clear();
+      return component;
+    },
+    renderResult(result, _options, theme, context) {
+      const component = (context.lastComponent as Container | undefined) ?? new Container();
+      component.clear();
+      component.addChild(askQuestionResultCard(context.args, (result.details ?? []) as readonly PanelAnswer[], theme));
+      return component;
+    },
     async execute(_id, params, signal, _update, ctx) {
       validateQuestions(params.questions);
       if (!ctx.hasUI || process.env['PI_PSTACK_HEADLESS']) throw new Error('AskQuestion requires Pi TUI or an RPC client supporting extension dialogs. Ask in the conversation and wait for a user reply.');
       let answers: Answer[] = [];
-      for (const question of params.questions) {
-        const answer = await ask(question, ctx, signal);
-        answers = [...answers, answer];
-        if (answer.cancelled) break;
+      if (ctx.mode === 'tui') {
+        answers = [...(await askWithPanel(params.questions, params.title, ctx))];
+      } else {
+        for (const question of params.questions) {
+          const answer = await ask(question, ctx, signal);
+          answers = [...answers, answer];
+          if (answer.cancelled) break;
+        }
       }
       return boundedResult(JSON.stringify(answers), answers, ctx);
     },
+  });
+}
+
+function normalize(question: Question) {
+  return { id: question.id, prompt: question.prompt, options: question.options ?? [], allowMultiple: question.allow_multiple ?? false };
+}
+
+async function askWithPanel(questions: readonly Question[], title: string | undefined, ctx: ExtensionContext): Promise<readonly PanelAnswer[]> {
+  return ctx.ui.custom<readonly PanelAnswer[]>((tui, _theme, _keybindings, done) => {
+    let state = initialPanelState(questions.map(normalize), title);
+    return {
+      render: (width: number) => renderPanel(state, width),
+      invalidate() {},
+      handleInput(data: string) {
+        const input: PanelInput | undefined = toPanelInput(data);
+        if (!input) return;
+        const next = reducePanel(state, input);
+        if (next === state) return;
+        state = next;
+        tui.requestRender();
+        if (state.finished) done(panelAnswers(state));
+      },
+    };
   });
 }

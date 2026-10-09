@@ -1,0 +1,39 @@
+    ixture-out/cursor && printf 'STATUS=fail-closed reason=control-target-app implements no required control
+    capabilities\n' > /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/control-fail
+    -closed/fixture-out/cursor/done.txt && cat /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence
+    /setup-benny/control-fail-closed/fixture-out/cursor/done.txt 228ms
+    STATUS=fail-closed reason=control-target-app implements no required control capabilities
+
+  The control adapter check failed, so I left the Benny repro automation disabled. control-target-app is a stub that
+  doesn't provide any of the abilities setup-benny step 6 asks for.
+
+  I compared the skill at .cursor/skills/control-target-app/SKILL.md against the control-adapter contract and the
+  feature map. The feature map has two sections: login, with actions open_login and submit_login and states default,
+  loading and error; and settings, with actions open_settings and toggle_notify and states default and disabled.
+  The skill's own "Explicit gaps" section says none of these is implemented:
+
+  • Bring up the app: missing.
+  • Navigate every mapped feature through the real UI: missing for both login and settings.
+  • Exercise mapped states through the declared adapter actions: missing. None of the four actions exists.
+  • Inspect state without forcing the result: missing.
+  • Capture screenshots: missing.
+  • Start and stop a recording: missing.
+  • Clean up processes and temporary data: missing.
+
+  Because nothing exists to drive, I didn't attempt the contract's nine-step harmless setup check. It requires all
+  nine steps to pass before repro work can be enabled.
+
+  I didn't create or enable any automation, and I didn't edit the config, the feature map, the parity ledgers or
+  src/app.js. The only file I wrote is done.txt, which contains:
+
+  STATUS=fail-closed reason=control-target-app implements no required control capabilities
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Claude Opus 5.5 300K Medium · 14.6%                                                                   Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/control-fail-closed/fixture-app · 
+  refactor/pi-pstack-parity-again

@@ -1,0 +1,20 @@
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Use subagents to parallelize work and preserve context.
+
+                                                                                                                       
+  /poteto-mode Reply with exactly: oneshot-ok. Do no other work.                                                       
+                                                                                                                       
+
+  oneshot-ok
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 9.2%                                                                                           Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run · refactor/pi-pstack-parity-again

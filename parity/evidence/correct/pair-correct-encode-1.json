@@ -1,0 +1,141 @@
+{
+  "schema": 1,
+  "pairId": "correct-encode-1",
+  "scenarioRef": "cmd-correct-encode",
+  "journeyFamily": "journey-family-05-playbook-complete-journeys",
+  "requirementIds": [
+    "PSTACK-CMD-CORRECT-ENCODE-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "single turn /correct on store-boundary fixture; encode above docs; prove fail on history/past-mistake-1.js; write encoding.md + proof.txt + done.txt",
+  "steps": [
+    { "send": "/correct agents keep importing src/db.js ... encode highest level ... prove fail on past-mistake-1.js + markers" },
+    { "send": "\r" },
+    { "settle": true },
+    { "cancel": true }
+  ],
+  "cursor": {
+    "attemptId": "e05d5254-aa98-4533-b9e7-be0a6092eb3a",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/correct/cursor/e05d5254-aa98-4533-b9e7-be0a6092eb3a",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "observations": {
+      "correctSkill": true,
+      "skillSource": "slash /correct via plugin-dir pstack skill (prompt retained on screen)",
+      "outcome": "encoded_with_proof",
+      "encodingLevel": "lint",
+      "aboveDocs": true,
+      "docsOnly": false,
+      "provedFailOnPastMistake": true,
+      "proofCommand": "node scripts/check-store-boundary.js history/past-mistake-1.js",
+      "proofExitCode": 1,
+      "proofRerunExitCode": 1,
+      "doneMarkerWritten": true,
+      "doneLine": "correct=yes",
+      "fixtureDiff": {
+        "added": ["scripts/check-store-boundary.js", "test/store-boundary.test.js"],
+        "changed": ["AGENTS.md", "package.json"],
+        "removed": []
+      },
+      "encodingNoteDigest": "c2d9ce4a084e07dd15d6751cbcb365ac4032468a9994542ccb2c94daace5d107",
+      "proofDigest": "1f6df96c6f1666e576aaf6010df659080143fb866b4a1db3ed1285d7808ec4d2",
+      "ordering": "screen-02 submitted /correct; screen-04 settled with lint encoding, proof exit 1, correct=yes"
+    }
+  },
+  "pi": {
+    "attemptId": "694910a7-666d-48cf-96ee-312a10d94927",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/correct/pi/694910a7-666d-48cf-96ee-312a10d94927",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-correct-fixture-app--/2026-10-08T21-46-59-072Z_01a11d7b-dc80-746d-a60f-e6cd09bdf229.jsonl",
+    "observations": {
+      "correctSkill": true,
+      "skillSource": "extensions/pi-pstack prompts/skills correct injection (session skillInjected+promptInjected)",
+      "outcome": "encoded_with_proof",
+      "encodingLevel": "lint",
+      "aboveDocs": true,
+      "docsOnly": false,
+      "provedFailOnPastMistake": true,
+      "proofCommand": "node scripts/check-store-boundary.js history/past-mistake-1.js",
+      "proofExitCode": 1,
+      "proofRerunExitCode": 1,
+      "toolOrder": ["bash", "bash", "bash"],
+      "doneMarkerWritten": true,
+      "doneLine": "correct=yes",
+      "fixtureDiff": {
+        "added": ["scripts/check-store-boundary.js", "test/store-boundary.test.js"],
+        "changed": ["AGENTS.md", "package.json"],
+        "removed": []
+      },
+      "encodingNoteDigest": "8204a5af4be40d390b2b5f6c0d328395c42572f01fc6c44f0c13aaea374956f8",
+      "proofDigest": "f4abf28f8ef8693d6e0d39fc9b689a4f3aef449508b054f4397bd512ca5b8b3c",
+      "ordering": "screen-02 submitted /correct; session injects correct skill; screen-04 settled with lint encoding, proof exit 1, correct=yes"
+    }
+  },
+  "deltas": [
+    {
+      "topic": "skill / prompt activation",
+      "cursor": "PTY keeps /correct with the full prompt; working line then lint encode + markers.",
+      "pi": "Session injects correct prompt/skill; residual slash chrome thinner; bash tools for encode/proof/markers.",
+      "reconciled": true
+    },
+    {
+      "topic": "encoding level",
+      "cursor": "lint via scripts/check-store-boundary.js + npm run lint:store-boundary + test. Agent rejected architecture (store already one path; no TS) and docs-only.",
+      "pi": "lint via scripts/check-store-boundary.js wired through npm test. Agent rejected architecture (plain Node relative imports cannot hide db.js without bundler/restructure).",
+      "reconciled": true
+    },
+    {
+      "topic": "fail-on-past-mistake proof",
+      "cursor": "proof.txt exit_code=1. Harness and post-capture rerun on fixture-after both exit 1 with store-boundary stderr naming src/store.js.",
+      "pi": "proof.txt exit code 1. Harness and post-capture rerun on fixture-after both exit 1 naming src/store.js.",
+      "reconciled": true
+    },
+    {
+      "topic": "proof.txt command path",
+      "cursor": "Relative to fixture cwd: node scripts/check-store-boundary.js history/past-mistake-1.js",
+      "pi": "Wrote a repo-root cd prefix in proof.txt; extracted command still fails correctly when run from fixture cwd.",
+      "reconciled": true
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "Auto",
+      "pi": "claude-sonnet-5-5 • medium (claude-subscription)",
+      "reconciled": false
+    },
+    {
+      "topic": "check script wording",
+      "cursor": "stderr: store-boundary: do not import src/db.js ... use src/store.js (e.g. getUser)",
+      "pi": "stderr: history/past-mistake-1.js: imports db.js directly. Use getUser/etc. from src/store.js",
+      "reconciled": true
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-correct-encode.mjs --cursor-only then --pi-only",
+    "workerPlaybook": "parity/evidence/correct/PLAYBOOK.md",
+    "decisionTrail": "parity/evidence/correct/.audit/u-journey-cmd-correct.tsv",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "packagePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack",
+    "markerRoot": "parity/evidence/correct/fixture-out/{cursor,pi}/",
+    "heldOutFixture": "parity/evidence/correct/fixture-app",
+    "fixtureBaseline": "parity/evidence/correct/fixture-baseline"
+  }
+}

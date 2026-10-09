@@ -1,0 +1,32 @@
+{
+  "unit": "u-automations-new-url-001",
+  "editorChromeWitnessed": true,
+  "automateHandoffWitnessed": true,
+  "urlProbeAttemptId": "f6e29fb7-5878-4c8c-841e-1538b39d1cf7",
+  "urlOpened": "https://cursor.com/automations/new",
+  "urlLanded": "cursor.com/automations/8ddd3f0f-c3b0-11f1-ac31-5e2d0494121f",
+  "urlScreen": "parity/evidence/setup-benny/creation-boundary/web/f6e29fb7-5878-4c8c-841e-1538b39d1cf7/01-after-open.png",
+  "handoffAttemptId": "b60a705b-e2ea-40c4-adeb-7014fde433b4",
+  "handoffNegativeAttemptId": "8ab451a4-1988-4e55-bcfc-1d3f9359b277",
+  "handoffEvidenceDir": "parity/evidence/setup-benny/creation-boundary/agents-window/b60a705b-e2ea-40c4-adeb-7014fde433b4/",
+  "handoffScreen": "parity/evidence/setup-benny/creation-boundary/agents-window/b60a705b-e2ea-40c4-adeb-7014fde433b4/screen-07-poll-5.png",
+  "handoffDraftName": "parity-witness-draft",
+  "observedEditorChrome": [
+    "Inactive",
+    "Add Trigger",
+    "Agent Instructions",
+    "Save",
+    "Test",
+    "+ Add Tool or MCP"
+  ],
+  "saved": false,
+  "activated": false,
+  "slack": false,
+  "bennyEnable": false,
+  "ledgerEdits": false,
+  "draftDiscardGuidance": [
+    "Inactive Untitled draft 8ddd3f0f-c3b0-11f1-ac31-5e2d0494121f from /automations/new: do not Save; discard in Automations UI if unwanted.",
+    "Inactive parity-witness-draft from /automate handoff attempt b60a705b: do not Save or Activate; discard in Automations UI if unwanted."
+  ],
+  "mergeRecommendation": "close-env SETUP-BENNY-CREATION-BOUNDARY-ENV (editor host + /automate handoff harness-witnessed). Keep Save/Activate/Benny enable unpaid under operator grant and SETUP-BENNY-THREAD-SAFETY-ENV. New Automation button path remains exhaustive-negative and is not required once /automate handoff works."
+}

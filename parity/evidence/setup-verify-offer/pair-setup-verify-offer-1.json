@@ -1,0 +1,115 @@
+{
+  "schema": 1,
+  "pairId": "setup-verify-offer-1",
+  "scenarioRef": "setup-pstack:verify-offer",
+  "scenarioId": "setup-verify-offer",
+  "requirementIds": [
+    "PSTACK-SETUP-VERIFY-OFFER-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "fixturePath": "parity/evidence/setup-verify-offer/fixture-locked.mdc",
+  "fixtureApp": "parity/evidence/setup-verify-offer/fixture-app",
+  "branchPaired": "no",
+  "branchNotPaired": "yes",
+  "verdict": "pass",
+  "checks": {
+    "offeredOnce": {
+      "cursor": true,
+      "pi": true
+    },
+    "noBranchContinuedWithoutPush": {
+      "cursor": true,
+      "pi": true
+    },
+    "createVerifyInvokedOnNo": {
+      "cursor": false,
+      "pi": false
+    },
+    "skillWrittenOnNo": {
+      "cursor": false,
+      "pi": false
+    },
+    "yesBranchPaired": false
+  },
+  "cursor": {
+    "attemptId": "b12de787-9406-4de1-8993-bd3b818bb912",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-verify-offer/cursor/b12de787-9406-4de1-8993-bd3b818bb912",
+    "branch": "no",
+    "offeredOnce": true,
+    "offerHit": "create-verification-skill",
+    "createVerifyInvoked": false,
+    "skillWritten": false,
+    "continuedWithoutPush": true,
+    "branchOk": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "wroteBytesChanged": false,
+    "pathNotes": [
+      "budget=chatform-budget",
+      "confirm=timeout",
+      "accept=chatform-accept",
+      "answer=chatform-offer"
+    ],
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "keyScreens": [
+      "screen-03-write-card.txt",
+      "screen-04-offer.txt",
+      "screen-06-branch-timeout.txt"
+    ],
+    "settledPhrase": "Understood — skipping the verification skill. Setup is done.",
+    "oracleNote": "Initial createAttached true was a false positive from offer text plus find SKILL.md glob; corrected from screen-06-branch-timeout.txt. No second Cursor PTY."
+  },
+  "pi": {
+    "attemptId": "27567808-9734-4516-b6e2-629dfb650d68",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-verify-offer/pi/27567808-9734-4516-b6e2-629dfb650d68",
+    "branch": "no",
+    "offeredOnce": true,
+    "offerHit": "create-verification-skill",
+    "createVerifyInvoked": false,
+    "skillWritten": false,
+    "continuedWithoutPush": true,
+    "branchOk": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "wroteBytesChanged": false,
+    "pathNotes": [
+      "budget=askquestion-budget",
+      "confirm=role-confirm",
+      "accept=askquestion-accept",
+      "answer=chatform-offer"
+    ],
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "keyScreens": [
+      "screen-03-write-card.txt",
+      "screen-04-offer.txt",
+      "screen-06-branch-settled.txt"
+    ],
+    "settledPhrase": "Okay, I won't create one. Setup is finished."
+  },
+  "hostDeltas": [
+    "Cursor offers in free chat after write; Pi offers in free chat after AskQuestion accept and write card.",
+    "Cursor confirm path timed out into chatform accept; Pi used AskQuestion Accept as-is / Change specific roles.",
+    "Cursor chrome is Auto; Pi is claude-subscription claude-sonnet-5-5 medium.",
+    "Cursor skip line: Understood — skipping the verification skill. Pi skip line: Okay, I won't create one."
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-setup-verify-offer.mjs --both --no",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "lockedFixtureRestored": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "sharedRuleLock": "/Users/josh-desktop/.cursor/rules/pstack-models.mdc.parity-lock"
+  }
+}

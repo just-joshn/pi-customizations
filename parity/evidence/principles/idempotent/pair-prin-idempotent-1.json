@@ -1,0 +1,124 @@
+{
+  "schema": 1,
+  "pairId": "prin-idempotent-1",
+  "scenarioRef": "prin-idempotent",
+  "journeyFamily": "journey-family-principles",
+  "requirementIds": [
+    "PSTACK-PRIN-IDEMPOTENT-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "/poteto-mode The lifecycle in src/apply.js may crash mid-run (CRASH_AFTER=1 after step-1). Today a re-run after that partial state changes the end state (run counter drifts). Make apply() converge to the same end state on re-run after a partial prior execution. node scripts/verify.mjs must print APPLY-OK converge=yes (it cleans, runs once, crashes after step-1, re-runs, and compares final digests). For any poteto-mode principle you apply before declaring done, read that principle's leaf SKILL.md in full first (not only the poteto-mode Principles index). Work only inside this fixture cwd. Do not edit ledgers, parity/, or files outside this cwd except the named done path. When APPLY-OK converge=yes is on disk, write exactly one line to .../idempotent/fixture-out/<side>/done.txt as verified=yes|no, then stop.",
+  "steps": [
+    {
+      "wait": "ready screen (Tip: on Cursor; Pi chat ready without Trust dialog)"
+    },
+    {
+      "send": "/poteto-mode fix apply() so mid-crash re-run converges; leaf SKILL.md for applied principles; verify APPLY-OK converge=yes; write verified=yes|no"
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "wait": "on-disk evidence/verify-out.txt with APPLY-OK converge=yes"
+    },
+    {
+      "wait": "done marker verified=yes"
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "fef5e774-50d6-4214-9d76-6228f155b229",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/idempotent/cursor/fef5e774-50d6-4214-9d76-6228f155b229",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "transcript": "/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/agent-transcripts/281d4a7e-0759-477c-b2b8-cea56b81dafc/281d4a7e-0759-477c-b2b8-cea56b81dafc.jsonl",
+    "proofCopyPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/idempotent/fixture-out/cursor/evidence/verify-out.txt",
+    "observations": {
+      "potetoMode": true,
+      "leafSkillRead": true,
+      "leafSkillPath": "/Users/josh-desktop/.claude/skills/principle-make-operations-idempotent/SKILL.md",
+      "ranVerifyScript": true,
+      "convergeOk": true,
+      "convergentFix": true,
+      "stillIncrementsRun": false,
+      "verifyLine": "APPLY-OK converge=yes digest=4937429a2af37562d35881f93fb984223786dde868d71f2aab621b5980487659",
+      "productOk": true,
+      "verifiedDone": true,
+      "modelAutoInvoke": false,
+      "contractHeld": true,
+      "modelChrome": "Auto",
+      "oracleNote": "Transcript Read of idempotent leaf. Dropped prev.run+1; run constant 1. verify.mjs mid-crash then re-run digests match. Independent re-prove same digest 4937429a…7659."
+    }
+  },
+  "pi": {
+    "attemptId": "4e21a4e0-18c1-42e8-b286-6779858d9fe1",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/idempotent/pi/4e21a4e0-18c1-42e8-b286-6779858d9fe1",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-principles-idempotent-fixture-app--/2026-10-09T01-05-41-464Z_01a11e31-c857-74af-9e53-c39401b6383f.jsonl",
+    "proofCopyPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/idempotent/fixture-out/pi/evidence/verify-out.txt",
+    "observations": {
+      "potetoMode": true,
+      "leafSkillRead": true,
+      "leafSkillPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-make-operations-idempotent/SKILL.md",
+      "ranVerifyScript": true,
+      "convergeOk": true,
+      "convergentFix": true,
+      "stillIncrementsRun": false,
+      "verifyLine": "APPLY-OK converge=yes digest=4937429a2af37562d35881f93fb984223786dde868d71f2aab621b5980487659",
+      "productOk": true,
+      "verifiedDone": true,
+      "modelAutoInvoke": false,
+      "contractHeld": true,
+      "modelChrome": "(claude-subscription) claude-sonnet-5-5 • medium",
+      "oracleNote": "Session tool order: bash(verify.mjs) then read(idempotent-leaf) then product edit path. Same constant-run fix. Mid-crash re-run digests match."
+    }
+  },
+  "deltas": [
+    {
+      "topic": "leaf skill path",
+      "cursor": "Read ~/.claude/skills/principle-make-operations-idempotent/SKILL.md",
+      "pi": "Read extensions/pi-pstack/skills/principle-make-operations-idempotent/SKILL.md",
+      "reconciled": true
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "Auto",
+      "pi": "claude-sonnet-5-5 medium via claude-subscription",
+      "reconciled": false
+    },
+    {
+      "topic": "idempotent outcome",
+      "cursor": "contractHeld. Leaf Read + APPLY-OK converge=yes + no run increment.",
+      "pi": "contractHeld. Leaf Read + APPLY-OK converge=yes + no run increment.",
+      "reconciled": true
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-prin-idempotent.mjs --both",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "fixtureApp": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/idempotent/fixture-app",
+    "decisionLog": "parity/evidence/principles/idempotent/.audit/u-journey-prin-idempotent.tsv",
+    "notes": "PSTACK-PRIN-IDEMPOTENT-001. Dedicated idempotent/ fixture. Scripted mid-crash (crashAfter:1) then re-run oracle in scripts/verify.mjs. Ledgers untouched. disable-model-invocation true on package leaf copies; modelAutoInvoke false on both."
+  }
+}

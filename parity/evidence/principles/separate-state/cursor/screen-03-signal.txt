@@ -1,0 +1,21 @@
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Use /mcp to connect Cursor to your tools and data sources.
+
+                                                                                                                       
+  [Pasted text #1 +1 lines]                                                                                            
+                                                                                                                       
+
+  I'll follow poteto-mode: read its skill first, then run the fixture work only in this cwd.
+
+ ⠘⠆ Working  29 tokens
+
+                                                                                                                       
+  → Add a follow-up                                                                                     ctrl+c to stop 
+                                                                                                                       
+
+  Auto                                                                                                  Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/principles/separate-state/fixture-app · 
+  refactor/pi-pstack-parity-again

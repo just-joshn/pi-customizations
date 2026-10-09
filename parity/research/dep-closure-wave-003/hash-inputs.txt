@@ -1,0 +1,14 @@
+ccd2ed08fd9da9d0d942e5f2491cfc74bb92d8a08fa51755e0da1ac8de287361  parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bootstrap.ts
+d1f815091209d49763775cc188e8e06ff32d5fec648bffd2272bc25a165e87c3  parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/package.json
+667d9cf7222e9aae3fa42a4be383e657784216e9df115da02227fbc5ac7bbe46  parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock
+d955603be6cc0e8b8ffcec722f635192b2261410b1f2929abea94480e47eb5d4  parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/watch-pr/watch-pr
+89c08863089181a232be782c4b2ed90a1552f44aeecb0dcb7aac2c623620e680  parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/watch-pr/cli.ts
+f091687df627a0b75fabd54af58945a9cd6c7039ef0622012ac9ed60cd8ec434  parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/orch/orch.ts
+bbf7734a336e0d67c20e5326fc9e32c1f4d4e5d6272dea41705cb5e69066da1a  parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/node_modules/commander/package.json
+a9ceb020282d7c61ad99ccd13de0c8831dd57499ac32af31b5f4afc9e9e186d0  parity/research/continuation/computer-use.md
+2606b4bd74d43bd579c59945506ab691cd49de8da3386556e265c854f6c9d205  parity/research/continuation/model-management.md
+2211227f0a514ac4b853b8e93b7b6acb8f3a6e5606275911e752be8c16b7a50c  parity/research/dep-closure-wave-002/bun/official-capture.json
+58a0e274c3bb2de2eed6486d2aa0e1f477095cf3b9b7d11067efa9be82986604  parity/research/dep-closure-wave-002/bun/bun-version.txt
+eaef3a697e7173c7347ca4c1e60dd2bc1d38214d2aaecce89d70881a51d7fde7  parity/reference/npm/commander-14.0.0/package.tgz
+19bfb53788883180ca7fd295b1b0c7261da478ed9b0971423cf2791906b90653  parity/research/npm/commander-14.0.0/read-inventory.json
+a1d5024b8fb41828b072ac3a199d50b431947dc565fc09e6e72ecf5caba6370c  parity/reviews/commander-reading-parent-audit.json

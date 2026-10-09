@@ -1,0 +1,8 @@
+{
+  "at": "2026-10-09T14:46:07.821Z",
+  "status": 2,
+  "signal": null,
+  "error": null,
+  "stdoutTail": "{\"attemptId\": \"3941ef77-249b-4ba2-b70c-4edf39178ea7\", \"cursorOutcome\": \"host_blocked\", \"blocker\": \"untitled_new_automation_without_generate\", \"listOpenSawPrefillError\": false, \"listOpenSawUntitled\": true, \"fallbackHandoff\": true, \"handoff\": {\"promptSent\": true, \"editorWitnessed\": false, \"yesSentCount\": 0, \"prefillParseErrorSeen\": false, \"untitledSeen\": true, \"anyEditorChrome\": true, \"draftNameInFinal\": false}}\n",
+  "stderrTail": ""
+}

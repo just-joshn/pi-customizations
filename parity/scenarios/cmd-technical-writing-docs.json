@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "cmd-technical-writing-docs",
+  "status": "executed-pass-paired",
+  "requirements": [
+    "PSTACK-CMD-TECHNICAL-WRITING-DOCS-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/technical-writing/SKILL.md#YAML frontmatter description naming /technical-writing",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "greet fixture messy README for Diátaxis rewrite",
+    "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Invoke /technical-writing on a README draft.. Writing follows the layered technical-writing standard named in the skill description (Diátaxis, Google developer style, STE, Global English)."
+    }
+  ],
+  "execution": {
+    "referenceRun": "5b48533b-5d65-48de-ab6d-08c089583c46",
+    "candidateRun": "60f6b4f6-d503-4b64-9909-853243f70563",
+    "pairId": "technical-writing-docs-1",
+    "pairPath": "parity/evidence/technical-writing/pair-technical-writing-docs-1.json",
+    "verdict": "pass-paired",
+    "closedAt": "2026-10-08T19:46:00Z"
+  }
+}

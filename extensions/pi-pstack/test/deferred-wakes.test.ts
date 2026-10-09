@@ -181,7 +181,7 @@ test.for(['aborted', 'error'])('a %s run postpones a held wake through both hook
       await session.extensionRunner.emit({ type: 'agent_end', messages: [{ ...assistant, stopReason: reason }] });
       const preview = context;
       await session.extensionRunner.emitBoundary({ type: 'agent_before_settle', outcome: reason }, () => preview);
-      await session.extensionRunner.emit({ type: 'agent_settled' });
+      await session.extensionRunner.emit({ type: 'agent_settled', aborted: reason === 'aborted' });
       expect(notices(session)).toEqual([]);
       await prompt(session, 'clean retry');
       expect(notices(session)).toHaveLength(1);

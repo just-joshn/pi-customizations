@@ -1,0 +1,40 @@
+ 1. `# Parity Create-Skill Probe` - one-line purpose.                                                                  │
+ 2. `## Instructions` - when the user says "run the create-skill probe", reply with the marker on its own line and     │
+ nothing else required.                                                                                                │
+ 3. `## Output` - exact marker line: `CREATE-SKILL-PROBE-MARKER`, alone on its line.                                   │
+                                                                                                                       │
+ Constraints: under 80 lines total (target ~15), concise.                                                              │
+                                                                                                                       │
+ ## Supporting files / scripts                                                                                         │
+ Needed: **no**. SKILL.md only; no reference.md, examples.md, or scripts/.                                             │
+ EOF                                                                                                                   │
+ echo "STATUS=designed reason=design.md written" > $d/done.txt (timeout 10s)                                           │
+                                                                                                                       │
+ (no output)                                                                                                           │
+                                                                                                                       │
+ Took 0.0s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ Phase 2 is done: the design is in fixture-out/design/pi/design.md, and done.txt in the same folder reads              │
+ STATUS=designed reason=design.md written. I wrote only those two files, not SKILL.md, and I didn't edit any parity    │
+ ledgers.                                                                                                              ┃
+                                                                                                                       ┃
+ - Name and location: parity-create-skill-probe, a project skill at .pi/skills/parity-create-skill-probe/SKILL.md.     ┃
+ - Description: third person, covering what it does (echoes CREATE-SKILL-PROBE-MARKER) and when to use it. The trigger ┃
+   terms are "run the create-skill probe", "create-skill probe" and "parity-create-skill-probe".                       ┃
+ - Frontmatter: I added disable-model-invocation: true, which is the create-skill default, so the skill only loads     ┃
+   when named. You didn't specify this, so say if you'd rather it auto-invoke.                                         ┃
+ - Section outline:                                                                                                    ┃
+     1. A title with a one-line purpose.                                                                               ┃
+     2. An Instructions section: on "run the create-skill probe", reply with the marker.                               ┃
+     3. An Output section giving the marker line, alone on its own line.                                               ┃
+ - Length: under 80 lines, targeting about 15.                                                                         ┃
+ - Supporting files or scripts: none needed.                                                                           ┃
+                                                                                                                       ┃
+ I read only the first 200 of 530 lines of the create-skill skill, which was enough to cover what the design needed.   ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-app (refactor/pi-pstack-parity-again)
+↑8 ↓1.2k R61k W20k CH97.9% $0.105 (sub) 2.9%/1.0M (auto)                (claude-subscription) claude-sonnet-5-5 • medium

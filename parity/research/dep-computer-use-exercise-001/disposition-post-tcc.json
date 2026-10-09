@@ -1,0 +1,13 @@
+{
+  "capturedAt": "2026-10-09T04:21:04.795Z",
+  "note": "User enabled TCC; terminal restart still pending for full effect.",
+  "workerDesktopShare": {
+    "screenRecording": false,
+    "accessibility": false,
+    "ready": false
+  },
+  "screencaptureWorks": true,
+  "screencapturePath": "/tmp/post-tcc-display.png",
+  "osascriptGotForegroundApp": true,
+  "next": "After terminal restart: re-run worker debug until Accessibility=yes Screen Recording=yes Desktop share Ready=yes; then capture sticky + computer-use live exercise."
+}

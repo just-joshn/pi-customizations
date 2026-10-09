@@ -1,0 +1,13 @@
+HTTP/2 200 
+age: 2569
+cache-control: public, max-age=3600
+content-type: text/markdown; charset=utf-8
+date: Thu, 08 Oct 2026 03:59:30 GMT
+link: </llms.txt>; rel="describedby"; type="text/plain"; title="llms.txt", </docs/sitemap.xml>; rel="sitemap"; type="application/xml"
+server: Vercel
+strict-transport-security: max-age=63072000
+vary: Accept
+x-matched-path: /api/raw
+x-vercel-cache: HIT
+x-vercel-id: pdx1::iad1::7zhl4-1791434539822-73c855ccc074
+

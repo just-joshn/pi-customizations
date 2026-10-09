@@ -1,0 +1,47 @@
+pi-pstack-parity-again
+Agents Window 7
+• New Agent ×
+• PI-PSTACK-PARITY-AGAIN
+.audit
+.github
+_pi
+docs
+extensions
+node_modules
+parity
+scripts
+skills
+= .coveragerc
+•gitattributes
+•gitignore
+AGENTS.md
+(} biome.json
+(} bun.lock
+* LICENSE
+M Makefile
+() package.json
+README.md
+TS tsconfig.json
+Plan, Build, / for skills, @ for context
+∞o Agent v
+Auto v
+M
+M
+New Agent
+Show Terminal
+Search Files
+Maximize Chat
+Add Repository
+* L
+The git repository ati/Users/josh-
+desktop/src/personal/pi-pstack-parity-
+again" has too many active changes, only a
+subset of Git features will be enabled.
+Source: Git
+Don't Show Again
+& refactor/pi-pstack-parity-again* C
+OK
+pi-pstack-parity-again
+ЗОДО
+Cursor Tab
+* Tab Stats: 0/0 (0%) Agent Stats: 0/0 (0%) o- No commit scored C

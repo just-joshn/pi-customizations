@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "cmd-figure-it-out-playbook-first",
+  "status": "executed-pass-paired",
+  "requirements": [
+    "PSTACK-CMD-FIGURE-IT-OUT-PLAYBOOK-FIRST-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/figure-it-out/SKILL.md#frontmatter and opening Figure it out paragraph",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "multi-part note-store migration fixture for playbook-first ordering",
+    "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Invoke /figure-it-out on a large multi-part change with no matching playbook.. Before any code, the agent designs an auditable workflow playbook with phases, a falsifiable done predicate, and a decision trail via show-me-your-work."
+    }
+  ],
+  "execution": {
+    "referenceRun": "38afcd44-b9f2-4ba3-ad91-f345d71bdd73",
+    "candidateRun": "8a0cf95a-64a7-4256-accb-89ca93ac5804",
+    "pairId": "figure-it-out-playbook-first-2",
+    "pairPath": "parity/evidence/figure-it-out/pair-figure-it-out-playbook-first-2.json",
+    "verdict": "pass-paired",
+    "closedAt": "2026-10-08T19:31:00Z",
+    "commit": "71d47389e46010d6bf478b972b71bb38882070fe"
+  }
+}

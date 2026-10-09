@@ -1,0 +1,97 @@
+New Chat
+Search
+Automations
+Bº Customize
+Projects
++ New Project
+Pinned
+• /make-bot-ui
+Repositories
+A No Repo
+Parity webhook witness
+Cursor automation setu
+Cursor automation setu
+Cursor automation setu
+Cursor automation setu
+Automation setup instri
+/make-bot-ui
+/automate
+/automate
+Sticky mode activation
+/poteto-mode
+Getting Started
+- Connect Slac
+Joshua Humphrev
+IDE 7
+Q Search Plugins, Skills, MCPs...
+pi-pstack-parity-again
+Agents Window 7
+• PI-PSTACK-P...
+audit
+› ‚github
+pi
+docs
+extensions
+› node_modules
+parity
+scripts
+> skills
+.coveragerc
+gitattributes
+gitignore
+AGENTS.md
+{} biome.json
+f} bun.lock
+LICENSE
+M Makefile
+{} package.json
+@ README md
+TS tsconfig.json
+* Cursor Settings X
+M
+M
+a
+Plugins, MCPs, Skills, and Rules have moved
+to Customize
+We've introduced a new home for all the
+ways to customize Cursor.
+Dismiss
+General
+Cursor Account
+Manage your account and billing
+Preferences
+Editor Settings
+Configure font, formatting, minimap and more
+Keyboard Shortcuts
+Configure keyboard shortcuts
+Import Settings from VS Code
+Import settings, extensions, and keybindings from VS Code
+Reset "Don't Ask Again" Dialogs
+See warnings and tips that you've hidden
+Lavout
+The git repository at "/Users/josh-
+desktop/src/personal/pi-pstack-paritv-
+again has too many active changes, only a
+subset of Git features will be enabled
+v Layout
+between Agent and Editor default layouts
+Source: Git
+Don't Show Again
+OK
+U refactor/pi-pstack-parity-again* C
+pi-pstack-parity-again
+XOAO
+•
+Open Customize →
+Browse Marketplace
+• New Agent ×
+Plan, Build, / for skills, @ for context
+› Agent ~
+Auto v
+Open •
+Open
+Open
+Import
+Show
+Cursor Tab
+→ Tab Stats: 0/0 (0%) 2 Agent Stats: 0/0 (0%) o- No commit scored

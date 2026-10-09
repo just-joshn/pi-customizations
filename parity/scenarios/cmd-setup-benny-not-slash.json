@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "cmd-setup-benny-not-slash",
+  "status": "paired",
+  "requirements": [
+    "PSTACK-CMD-SETUP-BENNY-NOT-SLASH-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/automations/benny/skills/setup-benny/SKILL.md#setup-benny is not a slash skill; entered via FOR_AGENTS.md bootstrap",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Target repository has not completed Benny setup, or setup is being revised. Preconditions: Benny pack available under the locked plugin tree or a copied destination.",
+    "digest": null
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Follow FOR_AGENTS.md bootstrap so setup-benny/SKILL.md is read at the destination path.. Setup proceeds from the copied pack path; the skill is treated as not a plugin slash skill, and no automation is created until the user explicitly asks."
+    }
+  ],
+  "execution": {
+    "pairId": "setup-benny-not-slash-1",
+    "verdict": "pass",
+    "pair": "parity/evidence/setup-benny/pair-setup-benny-not-slash-1.json",
+    "attempts": {
+      "cursor": "78443bd1-b96b-4e85-9abc-89f42abaae14",
+      "pi": "0ff31b2a-d6cc-45f4-8264-aa0d1982e6bc"
+    }
+  }
+}

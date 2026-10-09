@@ -1,0 +1,19 @@
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Hit shift+tab to enable Plan Mode for large or complex changes.
+
+
+
+                                                                                                                       
+  → evidence/verify-out.txt). For any poteto-mode principle you apply before declaring done, read that principle's     
+    leaf SKILL.md in full first (not only the poteto-mode Principles index). Work only inside this fixture cwd. Do     
+    not edit ledgers, parity/, or files outside this cwd except the named done path. When the fix is verified against  
+     the real artifact, write exactly one line to                                                                      
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/fixture-out/cursor/done.txt as  
+     verified=yes|no, then stop.                                                                                       
+                                                                                                                       
+
+  Auto                                                                                                  Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/principles/fixture-app · refactor/pi-pstack-parity-again

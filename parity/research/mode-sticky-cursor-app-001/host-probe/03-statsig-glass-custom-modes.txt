@@ -1,0 +1,14 @@
+statsig-cache.exists: true
+statsig-cache.size: 905368
+statsig-cache.glass_custom_modes_string: false
+cli-config.exists: true
+cli-config.glass_custom_modes_string: false
+state.vscdb: {
+  "exists": true,
+  "glassLastSignedInAuthId": "signed-out",
+  "glassSharedApplicationStorageGateEnabled": "true",
+  "stripeMembershipType": "free",
+  "statsigBootstrapLen": 809934,
+  "glass_custom_modes_string_in_bootstrap": false,
+  "customModes_string_in_bootstrap": false
+}

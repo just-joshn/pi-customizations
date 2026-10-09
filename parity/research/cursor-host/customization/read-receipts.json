@@ -1,0 +1,247 @@
+{
+  "reader": "how explorer",
+  "model_identity": "Not established by runtime tool metadata in this partition; no provider authentication inferred from environment.",
+  "files": [
+    {
+      "source_file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/contract.md",
+      "sha256": "ffb66225c10486e861d79f60415138fd79cc2fa8e6794825b2124998924c4f6f",
+      "line_count": 436,
+      "read_ranges": [
+        [
+          1,
+          387
+        ],
+        [
+          388,
+          437
+        ]
+      ],
+      "read_status": "full",
+      "retrieval_time_authenticated": false,
+      "original_job_start": "2026-10-08T03:25:31.833Z",
+      "per_file_retrieval_time": null,
+      "mtime_observation_only": "2026-10-08T03:23:21.302342+00:00"
+    },
+    {
+      "source_file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reviews/source-discovery.md",
+      "sha256": "15fb483b39f281d330b6566476c434afbcc333459c27b1ea66686a94b781478b",
+      "line_count": 241,
+      "read_ranges": [
+        [
+          1,
+          241
+        ]
+      ],
+      "read_status": "full",
+      "retrieval_time_authenticated": false,
+      "original_job_start": "2026-10-08T03:25:31.833Z",
+      "per_file_retrieval_time": null,
+      "mtime_observation_only": "2026-10-08T03:18:42.228026+00:00"
+    },
+    {
+      "source_file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/customize-cursor.md",
+      "sha256": "9ae0878d97465512ad29459f5406538ec7b427dfbaa39e1cc95d3deb447f363e",
+      "line_count": 74,
+      "read_ranges": [
+        [
+          1,
+          74
+        ]
+      ],
+      "read_status": "full",
+      "retrieval_time_authenticated": false,
+      "original_job_start": "2026-10-08T03:25:31.833Z",
+      "per_file_retrieval_time": null,
+      "mtime_observation_only": "2026-10-08T03:25:34.398708+00:00"
+    },
+    {
+      "source_file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/plugins.md",
+      "sha256": "cf4ca6bb6ab24ba3f933a4e711881612060a50c013311279b58120aa6403693b",
+      "line_count": 364,
+      "read_ranges": [
+        [
+          1,
+          364
+        ]
+      ],
+      "read_status": "full",
+      "retrieval_time_authenticated": false,
+      "original_job_start": "2026-10-08T03:25:31.833Z",
+      "per_file_retrieval_time": null,
+      "mtime_observation_only": "2026-10-08T03:25:33.649746+00:00"
+    },
+    {
+      "source_file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/skills.md",
+      "sha256": "5ccb25304f16e82a7f58c0241a0a16a072adb33f7697e43c5704c46738e002ac",
+      "line_count": 344,
+      "read_ranges": [
+        [
+          1,
+          344
+        ]
+      ],
+      "read_status": "full",
+      "retrieval_time_authenticated": false,
+      "original_job_start": "2026-10-08T03:25:31.833Z",
+      "per_file_retrieval_time": null,
+      "mtime_observation_only": "2026-10-08T03:25:33.769766+00:00"
+    },
+    {
+      "source_file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/subagents.md",
+      "sha256": "e1be8a37fe4244e970469fbe5e69555d1c56b6503fc0b1e662f68373157a65c8",
+      "line_count": 492,
+      "read_ranges": [
+        [
+          1,
+          492
+        ]
+      ],
+      "read_status": "full",
+      "retrieval_time_authenticated": false,
+      "original_job_start": "2026-10-08T03:25:31.833Z",
+      "per_file_retrieval_time": null,
+      "mtime_observation_only": "2026-10-08T03:25:33.875396+00:00"
+    },
+    {
+      "source_file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/rules.md",
+      "sha256": "884c67ca161142c2f3f0e4ef66a732dd48119cb08bd0dc2ff73e693721546bc8",
+      "line_count": 399,
+      "read_ranges": [
+        [
+          1,
+          399
+        ]
+      ],
+      "read_status": "full",
+      "retrieval_time_authenticated": false,
+      "original_job_start": "2026-10-08T03:25:31.833Z",
+      "per_file_retrieval_time": null,
+      "mtime_observation_only": "2026-10-08T03:25:34.105367+00:00"
+    },
+    {
+      "source_file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/hooks.md",
+      "sha256": "7294a2d63b19d79a5283c948afe174cba8b06a7585563d34a2c41b90f5df0d39",
+      "line_count": 1490,
+      "read_ranges": [
+        [
+          1,
+          400
+        ],
+        [
+          401,
+          800
+        ],
+        [
+          801,
+          1200
+        ],
+        [
+          1201,
+          1490
+        ]
+      ],
+      "read_status": "full",
+      "retrieval_time_authenticated": false,
+      "original_job_start": "2026-10-08T03:25:31.833Z",
+      "per_file_retrieval_time": null,
+      "mtime_observation_only": "2026-10-08T03:25:33.994808+00:00"
+    },
+    {
+      "source_file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/mcp.md",
+      "sha256": "8f6b54387a93616c82e2087ac5f2198c150832406c4c280880a7350e610c5e7e",
+      "line_count": 410,
+      "read_ranges": [
+        [
+          1,
+          410
+        ]
+      ],
+      "read_status": "full",
+      "retrieval_time_authenticated": false,
+      "original_job_start": "2026-10-08T03:25:31.833Z",
+      "per_file_retrieval_time": null,
+      "mtime_observation_only": "2026-10-08T03:25:34.207736+00:00"
+    },
+    {
+      "source_file": "parity/research/cursor-host/customization/sources/plugin-reference.md",
+      "sha256": "5d087ad7c3ae1d48ea3f28f69a6cc67d8a2410e06908e1669ff3f20b2eb5c0ad",
+      "line_count": 527,
+      "read_ranges": [
+        [
+          1,
+          400
+        ],
+        [
+          401,
+          528
+        ]
+      ],
+      "read_status": "full",
+      "retrieval_time_authenticated": false,
+      "retrieval_times_captured_locally": true
+    },
+    {
+      "source_file": "parity/research/cursor-host/customization/sources/prompting.md",
+      "sha256": "438f77bf7295d28002c81ce0658134ce7debe6dfa76bae926058b918ed378410",
+      "line_count": 71,
+      "read_ranges": [
+        [
+          1,
+          71
+        ]
+      ],
+      "read_status": "full",
+      "retrieval_time_authenticated": false,
+      "retrieval_times_captured_locally": true
+    },
+    {
+      "source_file": "parity/research/cursor-host/customization/sources/third-party-hooks.md",
+      "sha256": "c2d2e67fd529f5d14feaaab22b3662f9eac2d21a4c54846f3e28fca6d63292c6",
+      "line_count": 278,
+      "read_ranges": [
+        [
+          1,
+          278
+        ]
+      ],
+      "read_status": "full",
+      "retrieval_time_authenticated": false,
+      "retrieval_times_captured_locally": true
+    },
+    {
+      "source_file": "parity/research/cursor-host/customization/sources/mcp-install-links.md",
+      "sha256": "426de167d81dae9474ded2f6a2a8156070641ecd32e041130284eae56e4742af",
+      "line_count": 65,
+      "read_ranges": [
+        [
+          1,
+          65
+        ]
+      ],
+      "read_status": "full",
+      "retrieval_time_authenticated": false,
+      "retrieval_times_captured_locally": true
+    },
+    {
+      "source_file": "parity/research/cursor-host/customization/sources/mcp-extension-api.md",
+      "sha256": "4f98eb063d1914a3100f2c7e6bab3a449877d33da375eb3c05edc3a61e78afb1",
+      "line_count": 10,
+      "read_ranges": [
+        [
+          1,
+          10
+        ]
+      ],
+      "read_status": "full",
+      "retrieval_time_authenticated": false,
+      "retrieval_times_captured_locally": true
+    },
+    {
+      "source_file": "parity/research/cursor-host/customization/sources/run-modes.md",
+      "sha256": "7373592c3e2e6f57a6acce95ace7979226568e7191b1059ae96c46425639d561",
+      "read_ranges": [],
+      "read_status": "unread",
+      "note": "Retrieved body preserved; not read in this session."
+    }
+  ]
+}

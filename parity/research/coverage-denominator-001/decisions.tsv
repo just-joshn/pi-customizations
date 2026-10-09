@@ -1,0 +1,194 @@
+path	status	requirementIds	packageRole	citation
+cursor-team-kit/.cursor-plugin/plugin.json	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+cursor-team-kit/LICENSE	out-of-scope		package-role-license	parity/contract.md#4-model-the-behavior-before-implementing-it
+cursor-team-kit/README.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+cursor-team-kit/agents/ci-watcher.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+cursor-team-kit/agents/thermo-nuclear-code-quality-review.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+cursor-team-kit/assets/avatar.png	out-of-scope		package-role-asset	parity/contract.md#4-model-the-behavior-before-implementing-it
+cursor-team-kit/rules/no-inline-imports.mdc	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+cursor-team-kit/rules/typescript-exhaustive-switch.mdc	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+cursor-team-kit/skills/check-compiler-errors/SKILL.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+cursor-team-kit/skills/control-cli/SKILL.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+cursor-team-kit/skills/control-ui/SKILL.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+cursor-team-kit/skills/deslop/SKILL.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+cursor-team-kit/skills/fix-ci/SKILL.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+cursor-team-kit/skills/fix-merge-conflicts/SKILL.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+cursor-team-kit/skills/get-pr-comments/SKILL.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+cursor-team-kit/skills/loop-on-ci/SKILL.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+cursor-team-kit/skills/make-pr-easy-to-review/SKILL.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+cursor-team-kit/skills/new-branch-and-pr/SKILL.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+cursor-team-kit/skills/pr-review-canvas/SKILL.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+cursor-team-kit/skills/pr-review-canvas/renderer.js	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+cursor-team-kit/skills/pr-review-canvas/styles.css	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+cursor-team-kit/skills/pr-review-canvas/template.html	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+cursor-team-kit/skills/review-and-ship/SKILL.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+cursor-team-kit/skills/run-smoke-tests/SKILL.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+cursor-team-kit/skills/thermo-nuclear-code-quality-review/SKILL.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+cursor-team-kit/skills/verify-this/SKILL.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+cursor-team-kit/skills/weekly-review/SKILL.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+cursor-team-kit/skills/what-did-i-get-done/SKILL.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+cursor-team-kit/skills/workflow-from-chats/SKILL.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/.cursor-plugin/plugin.json	mapped	PSTACK-CMD-PLUGIN-SKILLS-REGISTER-001		parity/requirements.json
+pstack/.gitignore	out-of-scope		package-role-vcs-ignore	parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/LICENSE	out-of-scope		package-role-license	parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/README.md	mapped	PSTACK-MODE-ONE-MESSAGE-001,PSTACK-MODE-STICKY-001		parity/requirements.json
+pstack/agents/comment-sicko.md	mapped	PSTACK-CMD-COMMENT-SICKO-FIRST-OUTPUT-001		parity/requirements.json
+pstack/agents/poteto-agent.md	mapped	PSTACK-CMD-POTETO-AGENT-READ-SKILL-001		parity/requirements.json
+pstack/assets/logo.png	out-of-scope		package-role-asset	parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/automations/benny/FOR_AGENTS.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/automations/benny/README.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md	mapped	PSTACK-CMD-BENNY-REPRO-FAIL-CLOSED-001		parity/requirements.json
+pstack/automations/benny/skills/reproduce-and-fix-issues/references/control-adapter.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/automations/benny/skills/reproduce-and-fix-issues/references/feature-map.example.md	out-of-scope		non-requirement-example-asset	parity/research/requirement-slices/slice-setup-002/dispositions.json
+pstack/automations/benny/skills/reproduce-and-fix-issues/references/verify-existing-fix.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/automations/benny/skills/setup-benny/SKILL.md	mapped	PSTACK-CMD-SETUP-BENNY-NOT-SLASH-001,PSTACK-SETUP-BENNY-CONTROL-FAIL-CLOSED-001,PSTACK-SETUP-BENNY-CREATION-BOUNDARY-001,PSTACK-SETUP-BENNY-EXISTING-NO-AUTOMATE-001,PSTACK-SETUP-BENNY-NO-SECRET-001,PSTACK-SETUP-BENNY-PACK-MERGE-001,PSTACK-SETUP-BENNY-PROJECT-SKILLS-001,PSTACK-SETUP-BENNY-REQUIRED-EXPLICIT-001,PSTACK-SETUP-BENNY-SETTINGS-ENABLE-001,PSTACK-SETUP-BENNY-THREAD-SAFETY-001,PSTACK-SETUP-BENNY-USER-CONFIG-OUTSIDE-001		parity/requirements.json
+pstack/automations/benny/skills/triage-issue-reports/SKILL.md	mapped	PSTACK-CMD-BENNY-TRIAGE-THREAD-ONLY-001		parity/requirements.json
+pstack/automations/benny/skills/triage-issue-reports/references/routing.example.md	out-of-scope		non-requirement-example-asset	parity/research/requirement-slices/slice-setup-002/dispositions.json
+pstack/automations/benny/templates/configuration.example.yaml	out-of-scope		non-requirement-example-asset	parity/research/requirement-slices/slice-setup-002/dispositions.json
+pstack/automations/benny/templates/reproduce-automation-prompt.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/automations/benny/templates/triage-automation-prompt.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/docs/guide/01-setup.md	mapped	PSTACK-SETUP-GUIDE-RERUN-KEEP-001,PSTACK-SETUP-NEW-SESSION-APPLIES-001		parity/requirements.json
+pstack/docs/guide/02-poteto-mode.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/docs/guide/03-understand.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/docs/guide/04-design.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/docs/guide/05-build-and-clean.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/docs/guide/06-verify-and-ship.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/docs/guide/07-overnight.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/docs/guide/08-principles.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/docs/guide/09-make-it-yours.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/docs/guide/10-recipes-and-pitfalls.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/docs/guide/README.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/docs/guide/images/design.jpg	out-of-scope		package-role-asset	parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/docs/guide/images/overnight.jpg	out-of-scope		package-role-asset	parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/docs/guide/images/recipes.jpg	out-of-scope		package-role-asset	parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/docs/guide/images/router.jpg	out-of-scope		package-role-asset	parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/docs/guide/images/understanding.jpg	out-of-scope		package-role-asset	parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/docs/guide/images/verification.jpg	out-of-scope		package-role-asset	parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/architect/SKILL.md	mapped	PSTACK-CMD-ARCHITECT-GROUND-HOW-001		parity/requirements.json
+pstack/skills/architect/references/design-red-flags.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/architect/references/rationale-template.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/architect/references/runner-prompt.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/arena/SKILL.md	mapped	PSTACK-CMD-ARENA-BASE-GRAFT-001		parity/requirements.json
+pstack/skills/automate-me/SKILL.md	mapped	PSTACK-CMD-AUTOMATE-ME-EXISTING-SKILL-001		parity/requirements.json
+pstack/skills/benchmark-checklist/SKILL.md	mapped	PSTACK-CMD-BENCHMARK-CHECKLIST-EVIDENCE-001		parity/requirements.json
+pstack/skills/blast-radius/SKILL.md	mapped	PSTACK-CMD-BLAST-RADIUS-RUN-PROOF-001		parity/requirements.json
+pstack/skills/bro/SKILL.md	mapped	PSTACK-CMD-BRO-RESTATE-001		parity/requirements.json
+pstack/skills/correct/SKILL.md	mapped	PSTACK-CMD-CORRECT-ENCODE-001		parity/requirements.json
+pstack/skills/create-verification-skill/SKILL.md	mapped	PSTACK-CMD-CREATE-VERIFY-SKILL-001,PSTACK-SETUP-CREATE-VERIFY-FEATURE-MAP-001,PSTACK-SETUP-CREATE-VERIFY-GENERATE-001,PSTACK-SETUP-CREATE-VERIFY-INTERVIEW-001,PSTACK-SETUP-CREATE-VERIFY-OFFER-MAINTAIN-001,PSTACK-SETUP-CREATE-VERIFY-PROVE-001		parity/requirements.json
+pstack/skills/create-verification-skill/references/feature-map-example/README.md	out-of-scope		non-requirement-example-asset	parity/research/requirement-slices/slice-setup-002/dispositions.json
+pstack/skills/create-verification-skill/references/feature-map-example/create-note.md	out-of-scope		non-requirement-example-asset	parity/research/requirement-slices/slice-setup-002/dispositions.json
+pstack/skills/create-verification-skill/references/feature-map-example/search.md	out-of-scope		non-requirement-example-asset	parity/research/requirement-slices/slice-setup-002/dispositions.json
+pstack/skills/figure-it-out/SKILL.md	mapped	PSTACK-CMD-FIGURE-IT-OUT-PLAYBOOK-FIRST-001		parity/requirements.json
+pstack/skills/how/SKILL.md	mapped	PSTACK-CMD-DISABLE-MODEL-INVOCATION-001,PSTACK-CMD-HOW-SIMPLE-PATH-001		parity/requirements.json
+pstack/skills/how/references/explainer-prompt.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/how/references/explorer-prompt.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/interrogate/SKILL.md	mapped	PSTACK-CMD-INTERROGATE-NO-AUTOAPPLY-001		parity/requirements.json
+pstack/skills/interrogate/references/code-quality-review.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/interrogate/references/lead-judgment.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/interrogate/references/reviewer-prompt.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/interrogate/references/rubric.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/maintain-verification-skill/SKILL.md	mapped	PSTACK-CMD-MAINTAIN-VERIFY-OUTCOMES-001,PSTACK-SETUP-MAINTAIN-VERIFY-EDIT-SCOPE-001,PSTACK-SETUP-MAINTAIN-VERIFY-LIVE-PASS-001,PSTACK-SETUP-MAINTAIN-VERIFY-LOCATE-001,PSTACK-SETUP-MAINTAIN-VERIFY-OUTCOMES-001,PSTACK-SETUP-MAINTAIN-VERIFY-SHIP-001,PSTACK-SETUP-MAINTAIN-VERIFY-SOURCE-WAVE-001		parity/requirements.json
+pstack/skills/make-bot-ui/SKILL.md	mapped	PSTACK-CMD-MAKE-BOT-UI-KEY-SERVER-001		parity/requirements.json
+pstack/skills/no-comments/SKILL.md	mapped	PSTACK-CMD-NO-COMMENTS-SICKO-001		parity/requirements.json
+pstack/skills/poteto-help/SKILL.md	mapped	PSTACK-CMD-POTETO-HELP-NO-WORK-001		parity/requirements.json
+pstack/skills/poteto-help/references/prompting.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/poteto-help/references/recipes.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/poteto-mode/SKILL.md	mapped	PSTACK-CMD-POTETO-PLAYBOOK-TODO-001		parity/requirements.json
+pstack/skills/poteto-mode/playbooks/authoring-a-skill.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/poteto-mode/playbooks/autonomous-run.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/poteto-mode/playbooks/autopilot-full.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/poteto-mode/playbooks/autopilot-stack.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/poteto-mode/playbooks/babysit.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/poteto-mode/playbooks/bug-fix.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/poteto-mode/playbooks/eval.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/poteto-mode/playbooks/feature.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/poteto-mode/playbooks/hillclimb.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/poteto-mode/playbooks/investigation.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/poteto-mode/playbooks/multi-phase-plan.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/poteto-mode/playbooks/opening-a-pr.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/poteto-mode/playbooks/orchestrate.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/poteto-mode/playbooks/pause-safely.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/poteto-mode/playbooks/perf-issue.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/poteto-mode/playbooks/prototype.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/poteto-mode/playbooks/refactoring.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/poteto-mode/playbooks/runtime-forensics.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/poteto-mode/playbooks/session-pickup.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/poteto-mode/playbooks/shipping.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/poteto-mode/playbooks/trace-forensics.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/poteto-mode/playbooks/visual-parity.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/poteto-mode/playbooks/worktree-cleanup.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/poteto-mode/references/bugbot-triage.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/poteto-mode/scripts/bootstrap.ts	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/poteto-mode/scripts/bun.lock	out-of-scope		package-role-lockfile	parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/poteto-mode/scripts/check-plan.mjs	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/poteto-mode/scripts/orch/orch.test.ts	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/poteto-mode/scripts/orch/orch.ts	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/poteto-mode/scripts/orch/store.ts	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/poteto-mode/scripts/package.json	out-of-scope		package-role-manifest	parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/poteto-mode/scripts/watch-pr/cli.test.ts	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/poteto-mode/scripts/watch-pr/cli.ts	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/poteto-mode/scripts/watch-pr/fakes.test-helper.ts	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/poteto-mode/scripts/watch-pr/github.test.ts	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/poteto-mode/scripts/watch-pr/github.ts	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/poteto-mode/scripts/watch-pr/policy.test.ts	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/poteto-mode/scripts/watch-pr/policy.ts	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/poteto-mode/scripts/watch-pr/render.ts	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/poteto-mode/scripts/watch-pr/tsconfig.json	out-of-scope		package-role-tsconfig	parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/poteto-mode/scripts/watch-pr/types.compile.ts	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/poteto-mode/scripts/watch-pr/types.ts	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/poteto-mode/scripts/watch-pr/watch-pr	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/poteto-mode/scripts/worktree-audit.sh	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/principle-attack-the-premise/SKILL.md	mapped	PSTACK-PRIN-ATTACK-PREMISE-001		parity/requirements.json
+pstack/skills/principle-boundary-discipline/SKILL.md	mapped	PSTACK-PRIN-BOUNDARY-001		parity/requirements.json
+pstack/skills/principle-build-the-lever/SKILL.md	mapped	PSTACK-PRIN-BUILD-LEVER-001		parity/requirements.json
+pstack/skills/principle-encode-lessons-in-structure/SKILL.md	mapped	PSTACK-PRIN-ENCODE-STRUCTURE-001		parity/requirements.json
+pstack/skills/principle-exhaust-the-design-space/SKILL.md	mapped	PSTACK-PRIN-EXHAUST-DESIGN-001		parity/requirements.json
+pstack/skills/principle-experience-first/SKILL.md	mapped	PSTACK-PRIN-EXPERIENCE-FIRST-001		parity/requirements.json
+pstack/skills/principle-explain-the-number/SKILL.md	mapped	PSTACK-PRIN-EXPLAIN-NUMBER-001		parity/requirements.json
+pstack/skills/principle-fix-root-causes/SKILL.md	mapped	PSTACK-PRIN-FIX-ROOT-001		parity/requirements.json
+pstack/skills/principle-foundational-thinking/SKILL.md	mapped	PSTACK-PRIN-FOUNDATIONAL-001		parity/requirements.json
+pstack/skills/principle-guard-the-context-window/SKILL.md	mapped	PSTACK-PRIN-GUARD-CONTEXT-001		parity/requirements.json
+pstack/skills/principle-laziness-protocol/SKILL.md	mapped	PSTACK-PRIN-LAZINESS-001		parity/requirements.json
+pstack/skills/principle-make-operations-idempotent/SKILL.md	mapped	PSTACK-PRIN-IDEMPOTENT-001		parity/requirements.json
+pstack/skills/principle-migrate-callers-then-delete-legacy-apis/SKILL.md	mapped	PSTACK-PRIN-MIGRATE-DELETE-001		parity/requirements.json
+pstack/skills/principle-minimize-reader-load/SKILL.md	mapped	PSTACK-PRIN-MINIMIZE-READER-001		parity/requirements.json
+pstack/skills/principle-model-the-domain/SKILL.md	mapped	PSTACK-PRIN-MODEL-DOMAIN-001		parity/requirements.json
+pstack/skills/principle-never-block-on-the-human/SKILL.md	mapped	PSTACK-PRIN-NEVER-BLOCK-001		parity/requirements.json
+pstack/skills/principle-outcome-oriented-execution/SKILL.md	mapped	PSTACK-PRIN-OUTCOME-ORIENTED-001		parity/requirements.json
+pstack/skills/principle-prove-it-works/SKILL.md	mapped	PSTACK-PRIN-PROVE-IT-001		parity/requirements.json
+pstack/skills/principle-redesign-from-first-principles/SKILL.md	mapped	PSTACK-PRIN-REDESIGN-FIRST-001		parity/requirements.json
+pstack/skills/principle-separate-before-serializing-shared-state/SKILL.md	mapped	PSTACK-PRIN-SEPARATE-STATE-001		parity/requirements.json
+pstack/skills/principle-sequence-verifiable-units/SKILL.md	mapped	PSTACK-PRIN-SEQUENCE-UNITS-001		parity/requirements.json
+pstack/skills/principle-subtract-before-you-add/SKILL.md	mapped	PSTACK-PRIN-SUBTRACT-FIRST-001		parity/requirements.json
+pstack/skills/principle-test-behavior-not-implementation/SKILL.md	mapped	PSTACK-PRIN-TEST-BEHAVIOR-001		parity/requirements.json
+pstack/skills/principle-type-system-discipline/SKILL.md	mapped	PSTACK-PRIN-TYPE-DISCIPLINE-001		parity/requirements.json
+pstack/skills/recall/SKILL.md	mapped	PSTACK-CMD-RECALL-CAPSULE-001		parity/requirements.json
+pstack/skills/reflect/SKILL.md	mapped	PSTACK-CMD-REFLECT-TRIGGER-001		parity/requirements.json
+pstack/skills/reflect/references/divergent-reviewer.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/reflect/references/judgment-reviewer.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/reflect/references/synthesizer.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/reflect/references/tooling-reviewer.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/setup-pstack/SKILL.md	mapped	PSTACK-CMD-SETUP-WRITE-RULE-001,PSTACK-SETUP-ALIAS-ALWAYS-VALID-001,PSTACK-SETUP-BUDGET-APPLY-001,PSTACK-SETUP-BUDGET-LABELS-001,PSTACK-SETUP-CANCEL-NO-WRITE-001,PSTACK-SETUP-CONFIRM-WRITTEN-001,PSTACK-SETUP-GROK-XHIGH-CAP-001,PSTACK-SETUP-LOAD-STATE-001,PSTACK-SETUP-MODEL-DISCOVERY-001,PSTACK-SETUP-PANEL-LIST-FANOUT-001,PSTACK-SETUP-RERUN-PRESERVE-001,PSTACK-SETUP-ROLE-CONFIRM-001,PSTACK-SETUP-VALIDATE-001,PSTACK-SETUP-VERIFY-OFFER-001,PSTACK-SETUP-WRITE-CARD-001,PSTACK-SETUP-WRITE-RULE-001		parity/requirements.json
+pstack/skills/show-me-your-work/SKILL.md	mapped	PSTACK-CMD-SHOW-ME-YOUR-WORK-TSV-001		parity/requirements.json
+pstack/skills/show-me-your-work/references/decision-log-template.tsv	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/show-me-your-work/scripts/log.sh	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/swarm/SKILL.md	mapped	PSTACK-CMD-SWARM-FANOUT-001		parity/requirements.json
+pstack/skills/tdd/SKILL.md	mapped	PSTACK-CMD-TDD-EXPLICIT-GATE-001		parity/requirements.json
+pstack/skills/teach/SKILL.md	mapped	PSTACK-CMD-TEACH-HOW-WHY-001		parity/requirements.json
+pstack/skills/technical-writing/SKILL.md	mapped	PSTACK-CMD-TECHNICAL-WRITING-DOCS-001		parity/requirements.json
+pstack/skills/typescript-best-practices/SKILL.md	mapped	PSTACK-CMD-TYPESCRIPT-PATHS-001		parity/requirements.json
+pstack/skills/typescript-best-practices/references/patterns.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/unslop/SKILL.md	mapped	PSTACK-CMD-UNSLOP-PROCESS-001		parity/requirements.json
+pstack/skills/why/SKILL.md	mapped	PSTACK-CMD-WHY-MOTIVATION-001		parity/requirements.json
+pstack/skills/why/references/epistemics.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/why/references/investigator-prompt.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/why/references/source-playbook.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/why/references/sources/code-archaeology.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/why/references/sources/databricks.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/why/references/sources/datadog.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/why/references/sources/incident-postmortem.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/why/references/sources/linear.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/why/references/sources/notion.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/why/references/sources/sentry.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/why/references/sources/slack.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it
+pstack/skills/why/references/synthesizer-prompt.md	deferred			parity/requirements.json#openWork;parity/contract.md#4-model-the-behavior-before-implementing-it

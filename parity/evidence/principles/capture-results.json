@@ -1,0 +1,21 @@
+{
+  "scenario": "prin-prove-it",
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "pairId": "prin-prove-it-1",
+  "results": [
+    {
+      "side": "cursor",
+      "attemptId": "9f605907-9633-4897-8357-c174bf170c65",
+      "contractHeld": true,
+      "leafSkillRead": true,
+      "directArtifactVerify": true
+    },
+    {
+      "side": "pi",
+      "attemptId": "4af22cca-9d26-4592-81e2-058a9d96f4fc",
+      "contractHeld": true,
+      "leafSkillRead": true,
+      "directArtifactVerify": true
+    }
+  ]
+}

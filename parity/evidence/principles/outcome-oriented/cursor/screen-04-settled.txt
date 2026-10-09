@@ -1,0 +1,39 @@
+  is gone. No shim.
+
+  Pin / proof. Pre-move pin was cart:5 / pay:5. Verify printed OUTCOME-OK cart="cart:5" checkout="pay:5" 
+  files=cart.js,checkout.js,pricing.js.
+
+  Arena. Pricing design candidate 1 (86f0bfa0-069a-434c-8b36-625281568ff0) (ternary) beat Pricing design candidate 2
+  (0c26ef57-bda6-4a25-9a6e-670bfce27cc9) (table). Same public API; one SKU does not earn a catalog.
+
+  Principles that changed a choice.
+  • outcome-oriented-execution. End state only. Temporary breakage of the old import was fine. No dual path.
+  • migrate-callers-then-delete-legacy-apis. Callers moved and V1 deleted in one wave.
+  • laziness-protocol / model-the-domain. Kept the ternary. Rejected the table for a one-SKU fixture.
+  • prove-it-works. Gate was scripts/verify.mjs, not "it imports".
+  • minimize-reader-load. One pricing name, two-deep call chain.
+
+  Playbook steps.
+  1. Pin + how — done
+  2. Model the domain — done
+  3. Target shape + architect/arena — done
+  4. Subtract before add — done (pricingV1 deleted; no wrappers added)
+  5. Migrate + delete same wave — done
+  6. Prove on real artifact — done
+  7. Reader-load check — done (kept)
+  8. Commits / Opening a PR — skip: user said write done.txt then stop
+
+  Finished Read /Users/josh-desktop/.claude/skills/architect/SKILL.md in full, then /Users/
+
+  No follow-up needed. Pricing design candidate 1 (86f0bfa0-069a-434c-8b36-625281568ff0) was already the base for 
+  the implemented rewrite, and done.txt is already verified=yes.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 23.4% · 5 files edited                                                                         Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/principles/outcome-oriented/fixture-app · 
+  refactor/pi-pstack-parity-again

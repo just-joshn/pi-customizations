@@ -1,0 +1,40 @@
+[Skill conflicts]                                                                                                      ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ [skill] poteto-mode (ctrl+o to expand)                                                                                ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ Continue debugging after the second shared-premise failure. NOTES.md and history/ document two fixes that both        ┃
+ assumed the same premise and both failed the gate. Make node scripts/verify.mjs print PREMISE-OK. Before another      ┃
+ compensatory fix, write the premise down and produce a rerunnable census of which actors hold the imbalance. For any  ┃
+ poteto-mode principle you apply before declaring done, read that principle's leaf SKILL.md in full first (not only    ┃
+ the poteto-mode Principles index). Work only inside this fixture cwd. Do not edit ledgers, parity/, or files outside  ┃
+ this cwd except the named done path. When PREMISE-OK is on disk, write exactly one line to                            ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/attack-premise/fixture-out/pi/done ┃
+ .txt as verified=yes|no, then stop.                                                                                   ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ $ cat NOTES.md; ls -R . | head -50; cat scripts/verify.mjs; cat                                                       ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-attack-the-premise/SKIL ┃
+ L.md                                                                                                                  ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+── ⠦ Working ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/principles/attack-premise/fixture-app (refactor/pi-pstack-parit...
+$0.000 (sub) 2.1%/1.0M (auto)                                           (claude-subscription) claude-sonnet-5-5 • medium

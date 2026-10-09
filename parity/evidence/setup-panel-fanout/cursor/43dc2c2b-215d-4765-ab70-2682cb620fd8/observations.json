@@ -1,0 +1,59 @@
+{
+  "arenaSkill": true,
+  "fanoutChrome": true,
+  "candidateDirs": [
+    {
+      "name": "c1",
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-panel-fanout/fixture-out/cursor/candidates/c1",
+      "hasCode": true,
+      "hasRationale": true
+    },
+    {
+      "name": "c2",
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-panel-fanout/fixture-out/cursor/candidates/c2",
+      "hasCode": true,
+      "hasRationale": true
+    },
+    {
+      "name": "c3",
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-panel-fanout/fixture-out/cursor/candidates/c3",
+      "hasCode": true,
+      "hasRationale": true
+    }
+  ],
+  "note": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-panel-fanout/fixture-out/cursor/fanout-note.md",
+    "text": "# Fan-out note\n\n- **arena runners list read:** `inherit-parent, inherit-parent, inherit-parent` (from always-applied `pstack-models.mdc` panel)\n- **list length:** 3\n- **runners spawned:** 3 (one subagent per list entry; duplicate aliases not collapsed)\n"
+  },
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-panel-fanout/fixture-out/cursor/done.txt",
+    "line": "listLength=3 spawnCount=3 panelDriven=yes"
+  },
+  "scoring": {
+    "expectedListLength": 3,
+    "panelListLength": 3,
+    "panelEntries": [
+      "inherit-parent",
+      "inherit-parent",
+      "inherit-parent"
+    ],
+    "candidateCountOnDisk": 3,
+    "taskCount": 0,
+    "spawnCount": 3,
+    "nThreeChrome": true,
+    "panelMention": true,
+    "panelDriven": true,
+    "lengthMatches": true,
+    "contractOk": true,
+    "doneParsed": {
+      "raw": "listLength=3 spawnCount=3 panelDriven=yes",
+      "listLength": "3",
+      "spawnCount": "3",
+      "panelDriven": "yes"
+    },
+    "toolOrder": null
+  },
+  "session": null
+}

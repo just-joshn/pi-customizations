@@ -1,0 +1,40 @@
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/blast-radius/fixture-out/pi/done.txt (timeout │
+ 30s)                                                                                                                  │
+                                                                                                                       │
+ ... (408 earlier lines, ctrl+o to expand)                                                                             │
+ ?? ../../../scripts/completion.mjs                                                                                    │
+ ?? ../../../scripts/probe-benny-triage-valid-env.mjs                                                                  │
+ ?? ../../../test/check-completion.test.mjs                                                                            │
+ PROOF=step4 certainty=4 fact=sessionStore.retainLive relies on isExpired(ttl:0)=false for immortal sessions; change   │
+ purges them (UNSAFE)                                                                                                  │
+                                                                                                                       │
+ Took 0.3s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ Verdict: the change is unsafe. I ran prove-unsafe.mjs against the real code (certainty step 4). It applied the diff's │
+ semantics to src/ttl.js and restored the file afterwards.                                                             │
+                                                                                                                       │
+ - What it does: isExpired now returns true for ttl === 0. Before, 0 meant "never expire".                             │
+ - The fact the old code was safe because of: retainLive (src/sessionStore.js:4) calls purge, and purge only keeps     │
+   entries where isExpired is false. The comment on retainLive documents ttl: 0 as the way to make a session immortal. │
+   That only works while isExpired(ttl:0) is false.                                                                    │
+ - Proof output:                                                                                                       │
+     - Before the change, retainLive([{id:'immortal', ttl:0, createdAt:0}], now) returns the session.                  ┃
+     - After the change, it returns [].                                                                                ┃
+ - Risk: every immortal session is deleted the next time retainLive runs before persist. Likelihood is certain for any ┃
+   session with ttl: 0. The cost is permanent data loss.                                                               ┃
+ - Cleared: nothing else in the fixture depends on ttl. Positive-ttl behaviour is unchanged.                           ┃
+ - Before you merge: run node prove-unsafe.mjs. If ttl: 0 is meant to change meaning, migrate the existing ttl: 0      ┃
+   sessions to a different immortal marker first (for example Infinity or null) and update the retainLive comment.     ┃
+                                                                                                                       ┃
+ I wrote the done line to                                                                                              ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/blast-radius/fixture-out/pi/done.txt:         ┃
+                                                                                                                       ┃
+ PROOF=step4 certainty=4 fact=sessionStore.retainLive relies on isExpired(ttl:0)=false for immortal sessions; change   ┃
+ purges them (UNSAFE)                                                                                                  ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/blast-radius/fixture-app (refactor/pi-pstack-parity-again)
+↑10 ↓1.2k R89k W31k CH72.8% $0.153 (sub) 4.0%/1.0M (auto)               (claude-subscription) claude-sonnet-5-5 • medium

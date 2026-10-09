@@ -22,5 +22,5 @@ test('every helper overlay edit is present in the shipped helper file', async ()
 });
 
 test('shipped helpers match the complete resource replay', () => {
-  expect(execFileSync(process.execPath, [join(root, 'scripts/resources.mjs')], { encoding: 'utf8' })).toBe('Verified 190 upstream files and 211 generated resources.\n');
+  expect(execFileSync(process.execPath, [join(root, 'scripts/resources.mjs')], { encoding: 'utf8' })).toBe('Verified 193 upstream files and 215 generated resources.\n');
 });

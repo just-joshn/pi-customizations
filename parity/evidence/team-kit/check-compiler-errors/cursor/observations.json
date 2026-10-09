@@ -1,0 +1,52 @@
+{
+  "screenFinal": {
+    "skillMention": true,
+    "envBlocked": false,
+    "working": false
+  },
+  "pty": {
+    "skillMention": true,
+    "envBlocked": false,
+    "working": true
+  },
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/check-compiler-errors/done.txt",
+    "line": "STATUS=verified reason=typecheck ok after VALUE=7",
+    "status": "verified"
+  },
+  "summaryExists": true,
+  "seededSkill": null,
+  "oracle": {
+    "typecheckOk": true,
+    "summaryExists": true,
+    "done": {
+      "exists": true,
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/check-compiler-errors/done.txt",
+      "line": "STATUS=verified reason=typecheck ok after VALUE=7",
+      "status": "verified"
+    },
+    "closed": true,
+    "honestBlocker": false
+  },
+  "score": {
+    "skillPath": true,
+    "envBlocked": false,
+    "doneStatus": "verified",
+    "oracleClosed": true,
+    "closed": true,
+    "honestBlocker": false,
+    "oracle": {
+      "typecheckOk": true,
+      "summaryExists": true,
+      "done": {
+        "exists": true,
+        "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/check-compiler-errors/done.txt",
+        "line": "STATUS=verified reason=typecheck ok after VALUE=7",
+        "status": "verified"
+      },
+      "closed": true,
+      "honestBlocker": false
+    }
+  }
+}

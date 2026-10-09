@@ -1,0 +1,40 @@
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/run-smoke-tests/SKILL.md (skipped)             │
+  "tdd" collision:                                                                                                     │
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        │
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         │
+                                                                                                                       ┃
+                                                                                                                       ┃
+ [skill] run-smoke-tests (ctrl+o to expand)                                                                            ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ Do not ask questions. Follow the run-smoke-tests skill. Workspace is                                                  ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/run-smoke-tests. Run    ┃
+ npm run smoketest. It currently fails. Apply a minimal fix so ready is true, rerun until SMOKE_OK, and write the      ┃
+ results summary to                                                                                                    ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/run-smoke-tests/summa ┃
+ ry.md. Then write exactly one line to                                                                                 ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/run-smoke-tests/done. ┃
+ txt as STATUS=verified|not-verified|inconclusive|env-blocked reason=<short phrase> and stop. Artifacts stay under     ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/run-smoke-tests. Do   ┃
+ not edit parity ledgers.                                                                                              ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ $ ls -a; cat package.json; npm run smoketest 2>&1 | tail -20 (timeout 120s)                                           ┃
+                                                                                                                       ┃
+ ... (1 earlier lines, ctrl+o to expand)                                                                               ┃
+ ..                                                                                                                    ┃
+ .pi                                                                                                                   ┃
+ app.js                                                                                                                ┃
+ package.json                                                                                                          ┃
+ scripts                                                                                                               ┃
+                                                                                                                       ┃
+ Elapsed 0.0s                                                                                                          ┃
+                                                                                                                       ┃
+
+── ⠼ Working ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/run-smoke-tests (refactor/pi-pstack-parit...
+↑4 ↓98 R8.2k W17k CH32.1% $0.072 (sub) 2.6%/1.0M (auto)                 (claude-subscription) claude-sonnet-5-5 • medium

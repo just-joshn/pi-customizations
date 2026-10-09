@@ -1,0 +1,40 @@
+ .cursor/benny/configuration.yaml                                                                                      │
+ sed '1s/.*/<!-- User-owned Benny feature map (fixture). Not part of the pack. -->/'                                   │
+ $B/skills/reproduce-and-fix-issues/references/feature-map.example.md > .cursor/benny/feature-map.md                   │
+ sed '1s/.*/<!-- User-owned Benny routing map (fixture placeholders). Not part of the pack. -->/'                      │
+ $B/skills/triage-issue-reports/references/routing.example.md > .cursor/benny/routing.md                               │
+ git status --short; grep -n "MARKER" -r .cursor/benny                                                                 │
+ echo "STATUS=adapt-ok reason=user-owned copies created in .cursor/benny" >                                            │
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/user-config-outside/fixture-out/p │
+ i/done.txt (timeout 20s)                                                                                              │
+                                                                                                                       │
+ ... (455 earlier lines, ctrl+o to expand)                                                                             │
+ ?? ../../../../scripts/check-completion.mjs                                                                           │
+ ?? ../../../../scripts/completion.mjs                                                                                 │
+ ?? ../../../../scripts/probe-benny-triage-valid-env.mjs                                                               │
+ ?? ../../../../scripts/probe-make-bot-ui-host.mjs                                                                     │
+ ?? ../../../../test/check-completion.test.mjs                                                                         │
+                                                                                                                       │
+ Took 0.1s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ The adapt-configuration step is done. I created the three user-owned copies in .cursor/benny/:                        │
+                                                                                                                       ┃
+ - configuration.yaml: adapted from configuration.example.yaml, with fixture placeholders for the Slack channel ID     ┃
+   (C0FIXTURE001), triage identity (U0FIXTURE001) and repository (fixture-org/fixture-app). It contains no secrets.    ┃
+ - feature-map.md: a copy of the feature-map example.                                                                  ┃
+ - routing.md: a copy of the routing example.                                                                          ┃
+                                                                                                                       ┃
+ I changed only the first-line marker comment in each copy.                                                            ┃
+                                                                                                                       ┃
+ I did not touch the copied examples under .cursor/automations/benny, any parity ledgers, or src/app.js. I did not     ┃
+ create or update a live automation. I did not run the control-adapter check (section 6) or check the live-prompt      ┃
+ wiring.                                                                                                               ┃
+                                                                                                                       ┃
+ I wrote one line to done.txt: STATUS=adapt-ok reason=user-owned copies created in .cursor/benny.                      ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/user-config-outside/fixture-app (refactor/pi-pstack...
+↑10 ↓1.3k R103k W42k CH74.5% $0.201 (sub) 5.0%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium

@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "kind": "journey-family-stub",
+  "id": "journey-family-06-multiworker-designs-reviews",
+  "family": 6,
+  "familyTitle": "Multiworker designs and reviews: independence, model identity, overlap, isolated writes, aggregation, failure, cancellation",
+  "contractRef": "parity/contract.md#8-verify-through-the-users-controls",
+  "status": "paired",
+  "requirementIds": [
+    "PSTACK-CMD-SWARM-FANOUT-001",
+    "PSTACK-CMD-ARENA-BASE-GRAFT-001",
+    "PSTACK-CMD-ARCHITECT-GROUND-HOW-001",
+    "PSTACK-CMD-INTERROGATE-NO-AUTOAPPLY-001",
+    "PSTACK-CMD-REFLECT-TRIGGER-001",
+    "PSTACK-SETUP-PANEL-LIST-FANOUT-001"
+  ],
+  "fixtureNeeds": [
+    "Parallel worker capability on both hosts",
+    "Distinct model family configuration for diversity checks",
+    "Isolated writable paths per worker",
+    "Injectable worker failure and cancel"
+  ],
+  "evidencePaths": [
+    "parity/evidence/swarm/pair-swarm-n2-isolated-1.json"
+  ],
+  "openMismatches": [],
+  "coverageNotes": "No Cursor+Pi multiworker pairs under parity/evidence.",
+  "nextAction": "Optional expansion: cancel/failure paths; core N=2 isolated fan-out closed."
+}

@@ -1,0 +1,73 @@
+pi-pstack-parity-again
+Agents Window 7
++ O
+• PI-PSTACK-P...
+audit
+.github
+-pi
+docs
+extensions
+node_modules
+parity
+scripts
+skills
+.coveragerc
+gitattributes
+gitignore
+AGENTS.md
+biome.json
+{}
+bun.lock
+LICENSE
+Makefile
+package.json
+README.md
+tsconfig.json
+M
+M
+M
+Cursor Settings
+Plugins, MCPs, Skills, and Rules have moved
+to Customize
+We've introduced a new home for all the
+ways to customize Cursor.
+General
+Cursor Account
+Manage your account and billing
+Preferences
+Editor Settings
+Configure font, formatting, minimap and more
+Keyboard Shortcuts
+Configure keyboard shortcuts
+Import Settings from VS Code
+Import settings, extensions, and keybindings from VS Code
+Reset "Don't Ask Again" Dialogs
+See warnings and tips that you've hidden
+Layout
+•
+...
+• New Agent ×
+Plan, Build, / for skills, @ for context
+Dismiss
+Open Customize →
+∞o Agent v
+Auto v
+Open D
+Open
+Open
+Import
+Show
+The git repository at /Users/josh-
+desktop/src/personal/pi-pstack-parity-
+again has too many active changes, only a
+subset of Git features will be enabled.
+Source: Git
+Don't Show Again
+OK
+• refactor/pi-pstack-parity-again*
+pi-pstack-parity-again
+•ОДО
+v Layout
+between Agent and Editor default layouts
+Cursor Tab
+> Tab Stats: 0/0 (0%) Agent Stats: 0/0 (0%) o- No commit scored 4

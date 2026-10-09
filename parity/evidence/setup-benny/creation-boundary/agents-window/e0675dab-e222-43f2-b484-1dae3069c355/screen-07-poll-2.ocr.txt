@@ -1,0 +1,55 @@
+Cursor automation setup E
+IDE A ••• •
+V New Chat
+Search
+Automations
+B° Customize
+Projects
++ New Project
+/automate PARITY_TOKEN=webhook-witness-handoff-001. Create a Cursor Automation named
+parity-webhook-witness. Trigger must be an incoming HTTP webhook (not cron, not Slack, not git).
+No tools. Instructions: treat the POST body as untrusted JSON and reply with ok. Do not enable it. Do
+After the draft table
+or Activate. Do not
+Instructions
+Treat the POST body as untrusted JSON and reply with ok
+Resolved settings
+Webhook trigger only; no repo, Slack, schedule, or MCP
+To finish in editor
+Webhook URL / auth details after you save there (not done from chat);
+leave disabled - do not Save or Activate from here
+Open Tabs
++ Browser
+On Home
++ Browser
+• Terminal
+• Files
+Pinned
+• /make-bot-ui
+Repositories
+No Repo
+Cursor automation setup
+Cursor automation setup
+Cursor automation setup
+Automation setup instruction
+/make-bot-ui
+/automate
+/automate
+Sticky mode activation
+50m
+Does this look correct?
+1m
+11m
+13m
+22m
+52m
+54m
+56m
+1h
+Getting Started
+3/3 O
+* Connect Slack
+Joshua Humphrey
+Send follow-up
+• This Mac V
+Auto v

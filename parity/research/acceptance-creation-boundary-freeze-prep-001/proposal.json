@@ -1,0 +1,40 @@
+{
+  "brief": "u-acceptance-creation-boundary-freeze-prep-001",
+  "requirementId": "PSTACK-SETUP-BENNY-CREATION-BOUNDARY-001",
+  "recommendedOption": "A",
+  "options": {
+    "A": {
+      "label": "keep-unverified",
+      "meaning": "Leave PSTACK-SETUP-BENNY-CREATION-BOUNDARY-001 unverified until a real Pi Automations editor handoff exists and completes the pair.",
+      "requirementStatus": "unverified",
+      "pairedVerify": false
+    },
+    "B": {
+      "label": "freeze-Cursor-only",
+      "meaning": "Owner explicitly accepts permanent Pi-incapable for this requirement and freezes the cell as Cursor-only evidence.",
+      "requirementStatus": "would become verified or accepted-exclusion only after owner grant",
+      "pairedVerify": false,
+      "scopeReduction": true
+    }
+  },
+  "whyRecommendA": [
+    "Standing preference 4 forbids scope reduction for platform differences. Option B is that reduction.",
+    "Standing preference 5. Unverified remains unverified. Fabricating a Pi finish is forbidden.",
+    "Done predicate requires paired Cursor+Pi user journeys. Cursor half is paid. Pi half f4c7eec5 is env-blocked.",
+    "ENV mismatch is closed-env-resolved. The remaining gap is missing Pi product surface, not a false Cursor claim.",
+    "Prior unit u-journey-setup-benny-creation-pi-001 already preferred keep-unverified over freeze."
+  ],
+  "whenBWouldApply": "Only if an independent owner (not the implementation parent) grants permanent Pi-incapable for this cell in writing, after G3 custody is paid for any acceptance-oracle freeze that accompanies that grant.",
+  "acceptanceDefinitionsFrozen": {
+    "current": false,
+    "thisUnitSets": false,
+    "coordinatorMustNotFreezeWithout": [
+      "G3 independent owner named (not implementation parent)",
+      "external custody established (same-user checkout is not custody)",
+      "explicit freeze authorization after owner + custody"
+    ]
+  },
+  "g3OwnerDecisionLanguage": "Coordinator must not freeze without G3 owner + custody auth. Do not set acceptanceDefinitionsFrozen. Do not mark PSTACK-SETUP-BENNY-CREATION-BOUNDARY-001 verified. Preferred owner decision is Option A keep-unverified until Pi Automations editor exists. Option B freeze-Cursor-only requires an independent owner grant that accepts permanent Pi-incapable for this requirement, and still does not by itself authorize acceptanceDefinitionsFrozen.",
+  "ledgersTouched": false,
+  "inventedPiAutomationsUi": false
+}

@@ -1,0 +1,325 @@
+{
+  "scenario": "prin-test-behavior",
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "frontmatter": {
+    "cursor": {
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/principle-test-behavior-not-implementation/SKILL.md",
+      "ok": true,
+      "name": "principle-test-behavior-not-implementation",
+      "disableModelInvocation": true
+    },
+    "pi": {
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-test-behavior-not-implementation/SKILL.md",
+      "ok": true,
+      "name": "principle-test-behavior-not-implementation",
+      "disableModelInvocation": true
+    }
+  },
+  "results": [
+    {
+      "side": "cursor",
+      "attemptDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/test-behavior/cursor/b70c73d6-63a5-4255-b8a3-62f3217e5704",
+      "attemptId": "b70c73d6-63a5-4255-b8a3-62f3217e5704",
+      "ruleUnchanged": true,
+      "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "prompt": "/poteto-mode The unit test in test/slugify.test.js is too weak. Rewrite it so it calls slugify with the concrete input \"Hello, World!\" and asserts the literal result hello-world. node scripts/verify.mjs must print TEST-OK. Keep the verify output under evidence/. For any poteto-mode principle you apply before declaring done, read that principle's leaf SKILL.md in full first (not only the poteto-mode Principles index). Work only inside this fixture cwd. Do not edit ledgers, parity/, or files outside this cwd except the named done path. When verify passes, write exactly one line to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/test-behavior/fixture-out/cursor/done.txt as verified=yes|no, then stop.",
+      "observations": {
+        "score": {
+          "frontmatterOk": true,
+          "leafSkillRead": true,
+          "usedChrome": true,
+          "modelAutoInvoke": false,
+          "keptVerifyOk": true,
+          "behaviorTestOk": true,
+          "productOk": true,
+          "verifiedDone": true,
+          "ranVerifyScript": true,
+          "contractHeld": true,
+          "screen": {
+            "potetoMode": false,
+            "leafChrome": false,
+            "hostAttached": false,
+            "askPhrase": false,
+            "irreversibleMention": false,
+            "verifyMention": true,
+            "working": false
+          },
+          "pty": {
+            "potetoMode": true,
+            "leafChrome": false,
+            "hostAttached": true,
+            "askPhrase": false,
+            "irreversibleMention": false,
+            "verifyMention": true,
+            "working": true
+          }
+        },
+        "firstProductAt": "2026-10-09T00:41:25.767Z",
+        "firstVerifyAt": "2026-10-09T00:41:22.961Z",
+        "productPaths": [
+          "test/slugify.test.js"
+        ],
+        "done": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/test-behavior/fixture-out/cursor/done.txt",
+          "line": "verified=yes"
+        },
+        "verifyOut": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/test-behavior/fixture-app/evidence/verify-out.txt",
+          "line": "TEST-OK input=\"Hello, World!\" expected=hello-world",
+          "ok": true
+        },
+        "behaviorTest": {
+          "callsSubject": true,
+          "literalAssert": true,
+          "weakOnly": false,
+          "ok": true
+        },
+        "productOk": true,
+        "frontmatter": {
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/principle-test-behavior-not-implementation/SKILL.md",
+          "ok": true,
+          "name": "principle-test-behavior-not-implementation",
+          "disableModelInvocation": true
+        },
+        "session": null,
+        "transcript": {
+          "path": "/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/agent-transcripts/64f28010-ad07-4cc2-b6ca-1e655b25ba79/64f28010-ad07-4cc2-b6ca-1e655b25ba79.jsonl",
+          "leafSkillRead": true,
+          "leafSkillReadAt": "2026-10-09T00:41:41.060Z",
+          "ranVerifyScript": true,
+          "askTool": false,
+          "irreversibleTool": false,
+          "toolOrder": [
+            "Shell",
+            "Read(test-behavior-leaf)",
+            "blob-mention(test-behavior-leaf)",
+            "Read",
+            "Shell(verify.mjs)",
+            "Write",
+            "Shell(verify.mjs)",
+            "Shell(verify.mjs)"
+          ],
+          "askPhrase": true,
+          "mtimeMs": 1791506493849.6636
+        },
+        "pollSamples": 44,
+        "screenFinal": {
+          "potetoMode": false,
+          "leafChrome": false,
+          "hostAttached": false,
+          "askPhrase": false,
+          "irreversibleMention": false,
+          "verifyMention": true,
+          "working": false
+        },
+        "pty": {
+          "potetoMode": true,
+          "leafChrome": false,
+          "hostAttached": true,
+          "askPhrase": false,
+          "irreversibleMention": false,
+          "verifyMention": true,
+          "working": true
+        }
+      },
+      "identity": {
+        "schema": 1,
+        "attemptId": "b70c73d6-63a5-4255-b8a3-62f3217e5704",
+        "side": "cursor",
+        "scenarioRef": "prin-test-behavior",
+        "fixtureRef": {
+          "path": "/Users/josh-desktop/.cursor/rules/pstack-models.mdc",
+          "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+        },
+        "executable": {
+          "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+          "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+        },
+        "artifacts": [],
+        "launch": {
+          "argv": [
+            "/Users/josh-desktop/.local/bin/cursor-agent",
+            "--plugin-dir",
+            "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack",
+            "--plugin-dir",
+            "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/cursor-team-kit"
+          ],
+          "cwd": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/test-behavior/fixture-app",
+          "envNames": [
+            "HOME",
+            "PATH",
+            "TERM"
+          ],
+          "publicEnv": {
+            "TERM": "xterm-256color"
+          }
+        },
+        "geometry": {
+          "rows": 40,
+          "cols": 120
+        },
+        "observedEnv": {
+          "platform": "darwin",
+          "node": "v24.21.0",
+          "TERM": "xterm-256color"
+        }
+      }
+    },
+    {
+      "side": "pi",
+      "attemptDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/test-behavior/pi/753e87d4-b2c8-4c0e-8fd4-1ca3bacbcbac",
+      "attemptId": "753e87d4-b2c8-4c0e-8fd4-1ca3bacbcbac",
+      "ruleUnchanged": true,
+      "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "prompt": "/poteto-mode The unit test in test/slugify.test.js is too weak. Rewrite it so it calls slugify with the concrete input \"Hello, World!\" and asserts the literal result hello-world. node scripts/verify.mjs must print TEST-OK. Keep the verify output under evidence/. For any poteto-mode principle you apply before declaring done, read that principle's leaf SKILL.md in full first (not only the poteto-mode Principles index). Work only inside this fixture cwd. Do not edit ledgers, parity/, or files outside this cwd except the named done path. When verify passes, write exactly one line to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/test-behavior/fixture-out/pi/done.txt as verified=yes|no, then stop.",
+      "observations": {
+        "score": {
+          "frontmatterOk": true,
+          "leafSkillRead": true,
+          "usedChrome": true,
+          "modelAutoInvoke": false,
+          "keptVerifyOk": true,
+          "behaviorTestOk": true,
+          "productOk": true,
+          "verifiedDone": true,
+          "ranVerifyScript": true,
+          "contractHeld": true,
+          "screen": {
+            "potetoMode": false,
+            "leafChrome": false,
+            "hostAttached": false,
+            "askPhrase": false,
+            "irreversibleMention": false,
+            "verifyMention": true,
+            "working": false
+          },
+          "pty": {
+            "potetoMode": true,
+            "leafChrome": false,
+            "hostAttached": true,
+            "askPhrase": false,
+            "irreversibleMention": false,
+            "verifyMention": true,
+            "working": true
+          }
+        },
+        "firstProductAt": "2026-10-09T00:41:58.294Z",
+        "firstVerifyAt": "2026-10-09T00:42:00.297Z",
+        "productPaths": [
+          "test/slugify.test.js"
+        ],
+        "done": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/test-behavior/fixture-out/pi/done.txt",
+          "line": "verified=yes"
+        },
+        "verifyOut": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/test-behavior/fixture-app/evidence/verify-out.txt",
+          "line": "TEST-OK input=\"Hello, World!\" expected=hello-world",
+          "ok": true
+        },
+        "behaviorTest": {
+          "callsSubject": true,
+          "literalAssert": true,
+          "weakOnly": false,
+          "ok": true
+        },
+        "productOk": true,
+        "frontmatter": {
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-test-behavior-not-implementation/SKILL.md",
+          "ok": true,
+          "name": "principle-test-behavior-not-implementation",
+          "disableModelInvocation": true
+        },
+        "session": {
+          "sessionPath": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-principles-test-behavior-fixture-app--/2026-10-09T00-41-41-351Z_01a11e1b-cee7-73d7-8df2-cc72fe1a5328.jsonl",
+          "hostAttached": false,
+          "askPhrase": true,
+          "leafSkillRead": true,
+          "leafSkillReadAt": "2026-10-09T00:41:46.884Z",
+          "ranVerifyScript": true,
+          "askTool": false,
+          "irreversibleTool": false,
+          "toolOrder": [
+            "bash(verify.mjs)",
+            "read(test-behavior-leaf)",
+            "read",
+            "blob-mention(test-behavior-leaf)",
+            "TodoWrite",
+            "bash(verify.mjs)",
+            "read",
+            "write",
+            "bash(verify.mjs)",
+            "bash"
+          ]
+        },
+        "transcript": null,
+        "pollSamples": 36,
+        "screenFinal": {
+          "potetoMode": false,
+          "leafChrome": false,
+          "hostAttached": false,
+          "askPhrase": false,
+          "irreversibleMention": false,
+          "verifyMention": true,
+          "working": false
+        },
+        "pty": {
+          "potetoMode": true,
+          "leafChrome": false,
+          "hostAttached": true,
+          "askPhrase": false,
+          "irreversibleMention": false,
+          "verifyMention": true,
+          "working": true
+        }
+      },
+      "identity": {
+        "schema": 1,
+        "attemptId": "753e87d4-b2c8-4c0e-8fd4-1ca3bacbcbac",
+        "side": "pi",
+        "scenarioRef": "prin-test-behavior",
+        "fixtureRef": {
+          "path": "/tmp/pi-ref-agent/pstack/models.mdc",
+          "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+        },
+        "executable": {
+          "path": "/Users/josh-desktop/.local/bin/pi",
+          "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+        },
+        "artifacts": [],
+        "launch": {
+          "argv": [
+            "/Users/josh-desktop/.local/bin/pi",
+            "--model",
+            "claude-subscription/claude-sonnet-5-5:medium"
+          ],
+          "cwd": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/test-behavior/fixture-app",
+          "envNames": [
+            "HOME",
+            "PATH",
+            "PI_CODING_AGENT_DIR",
+            "TERM"
+          ],
+          "publicEnv": {
+            "TERM": "xterm-256color"
+          }
+        },
+        "geometry": {
+          "rows": 40,
+          "cols": 120
+        },
+        "observedEnv": {
+          "platform": "darwin",
+          "node": "v24.21.0",
+          "TERM": "xterm-256color"
+        }
+      }
+    }
+  ]
+}

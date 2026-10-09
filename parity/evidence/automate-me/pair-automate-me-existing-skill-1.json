@@ -1,0 +1,139 @@
+{
+  "schema": 1,
+  "pairId": "automate-me-existing-skill-1",
+  "scenarioRef": "cmd-automate-me-existing-skill",
+  "journeyFamily": "journey-family-13-generated-resources-reuse",
+  "requirementIds": [
+    "PSTACK-CMD-AUTOMATE-ME-EXISTING-SKILL-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "/automate-me update existing parity-fixture-mode skill in place (host-specific path) plus side-specific done.txt UPDATED= line",
+  "steps": [
+    { "send": "/automate-me update my existing parity-fixture-mode skill at <host-skill-rel> ..." },
+    { "send": "\r" },
+    { "settle": true },
+    { "cancel": true }
+  ],
+  "cursor": {
+    "attemptId": "3064817a-7f0e-4b58-a466-99ed71b4f99c",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/automate-me/cursor/3064817a-7f0e-4b58-a466-99ed71b4f99c",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "observations": {
+      "automateMeSkill": true,
+      "skillSource": "slash /automate-me via plugin-dir pstack skill (screen Used automate-me)",
+      "existingSkillRel": ".cursor/skills/parity-fixture-mode/SKILL.md",
+      "beforeDigest": "e30091ea9749321c18dd7b590745f2fc24a3c25f2567632be10f110caf9d9852",
+      "afterDigest": "a99d167cde6fa5211b40bdba00fc64f61f419561c036c2c02281b99bd3abe158",
+      "firstChangeAt": "2026-10-08T20:52:01.544Z",
+      "seedPreserved": true,
+      "refreshNeedlePresent": true,
+      "parallelModeSkills": [],
+      "existingPathReused": true,
+      "updatedInPlace": true,
+      "outcome": "refreshed_in_place",
+      "doneMarkerWritten": true,
+      "doneLine": "UPDATED=/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/automate-me/fixture-app/.cursor/skills/parity-fixture-mode/SKILL.md"
+    }
+  },
+  "pi": {
+    "attemptId": "cf572eb4-8f89-4044-b2aa-7cd5507c41eb",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/automate-me/pi/cf572eb4-8f89-4044-b2aa-7cd5507c41eb",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-automate-me-fixture-app--/2026-10-08T21-08-37-134Z_01a11d58-bc8e-72a9-91b5-d312de54c2c6.jsonl",
+    "observations": {
+      "automateMeSkill": true,
+      "skillSource": "extensions/pi-pstack/skills/automate-me/SKILL.md (session user message skill block; screen shows [skill] automate-me)",
+      "existingSkillRel": ".pi/skills/parity-fixture-mode/SKILL.md",
+      "beforeDigest": "e30091ea9749321c18dd7b590745f2fc24a3c25f2567632be10f110caf9d9852",
+      "afterDigest": "a99d167cde6fa5211b40bdba00fc64f61f419561c036c2c02281b99bd3abe158",
+      "firstChangeAt": "2026-10-08T21:08:45.364Z",
+      "seedPreserved": true,
+      "refreshNeedlePresent": true,
+      "parallelModeSkills": [],
+      "existingPathReused": true,
+      "updatedInPlace": true,
+      "outcome": "refreshed_in_place",
+      "sessionToolOrder": [
+        "read: .pi/skills/parity-fixture-mode/SKILL.md",
+        "edit: add Prefer one short paragraph bullet",
+        "bash: write fixture-out/pi/done.txt UPDATED= line"
+      ],
+      "doneMarkerWritten": true,
+      "doneLine": "UPDATED=/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/automate-me/fixture-app/.pi/skills/parity-fixture-mode/SKILL.md"
+    }
+  },
+  "deltas": [
+    {
+      "topic": "skill activation",
+      "cursor": "PTY shows Used automate-me then edits the seeded .cursor path.",
+      "pi": "Screen shows [skill] automate-me; session injects package SKILL.md at extensions/pi-pstack/skills/automate-me/SKILL.md.",
+      "reconciled": true
+    },
+    {
+      "topic": "existing mode skill path reused",
+      "cursor": "Before/after digests on .cursor/skills/parity-fixture-mode/SKILL.md only. Seed kept. Refresh bullet added. parallelModeSkills [].",
+      "pi": "Before/after digests on .pi/skills/parity-fixture-mode/SKILL.md only. Seed kept. Same after digest as Cursor. parallelModeSkills [].",
+      "reconciled": true
+    },
+    {
+      "topic": "host skill root",
+      "cursor": ".cursor/skills/<handle>-mode/SKILL.md (Cursor automate-me step 0 paths).",
+      "pi": ".pi/skills/<handle>-mode/SKILL.md (Pi automate-me step 0 paths).",
+      "reconciled": true
+    },
+    {
+      "topic": "AskQuestion update-versus-fresh confirm",
+      "cursor": "Not observed. Explicit update request skipped confirm per skill step 0.",
+      "pi": "Not observed. Explicit update request skipped AskQuestion per skill step 0.",
+      "reconciled": true
+    },
+    {
+      "topic": "unrelated skill collision chrome",
+      "cursor": "No collision banner on the captured screens.",
+      "pi": "Screen still shows a tdd collision banner (user ~/.agents/skills/tdd vs package), unrelated to automate-me which loaded from the package path.",
+      "reconciled": false
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "Auto",
+      "pi": "claude-sonnet-5-5 • medium (claude-subscription)",
+      "reconciled": false
+    },
+    {
+      "topic": "slash residual",
+      "cursor": "Keeps /automate-me visible with the full prompt.",
+      "pi": "Shows [skill] automate-me; residual prompt starts with update my existing parity-fixture-mode skill...",
+      "reconciled": true
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-automate-me-existing-skill.mjs --cursor-only then --pi-only",
+    "workerPlaybook": "parity/evidence/automate-me/PLAYBOOK.md",
+    "decisionTrail": "parity/evidence/automate-me/.audit/u-journey-cmd-automate-me.tsv",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "packagePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack",
+    "markerRoot": "parity/evidence/automate-me/fixture-out/{cursor,pi}/",
+    "heldOutFixture": "parity/evidence/automate-me/fixture-app (seeded parity-fixture-mode on .cursor and .pi paths)",
+    "supersededPiAttempt": "409fa59d-489a-4727-8ff9-11321f2ef8e5 (Trust dialog ate Enter before ensurePiTrust/waitPiChatReady)"
+  }
+}

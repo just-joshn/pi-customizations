@@ -1,0 +1,36 @@
+{
+  "buttons": [
+    {
+      "index": "96",
+      "frame": {
+        "height": 24,
+        "y": 893,
+        "x": 828,
+        "width": 121
+      },
+      "actions": [
+        "AXShowMenu",
+        "AXScrollToVisible"
+      ]
+    },
+    {
+      "index": "67",
+      "frame": {
+        "height": 28,
+        "y": 218,
+        "x": 1293,
+        "width": 116
+      },
+      "actions": [
+        "AXShowMenu",
+        "AXScrollToVisible"
+      ]
+    }
+  ],
+  "log": [
+    {
+      "secondary": true,
+      "raw": "{'id': 10, 'result': {'isError': False, 'content': [{'type': 'text', 'text': 'Performed action.'}]}, 'jsonrpc': '2.0'}"
+    }
+  ]
+}

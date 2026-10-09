@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "prin-type-discipline",
+  "status": "pass-paired",
+  "requirements": [
+    "PSTACK-PRIN-TYPE-DISCIPLINE-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/principle-type-system-discipline/SKILL.md#Type System Discipline frontmatter trigger and disable-model-invocation",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file. Preconditions: Locked pstack poteto-mode and principle-type-system-discipline skill loaded.; Typed-language design or signature work is in scope.",
+    "digest": null
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Introduce or change domain types for a feature.. The agent Reads the leaf skill and makes illegal states unrepresentable (or brands/parses at boundaries) rather than relying on casts and bag-of-optionals."
+    }
+  ],
+  "execution": {
+    "pairId": "prin-type-discipline-1",
+    "verdict": "pass",
+    "pair": "parity/evidence/principles/type-discipline/pair-prin-type-discipline-1.json",
+    "attempts": {
+      "cursor": "33d927a2-8d1d-471f-8d0b-f6284c67b21b",
+      "pi": "9cae5688-2cb4-4719-8c5f-fa1c908a983e"
+    }
+  }
+}

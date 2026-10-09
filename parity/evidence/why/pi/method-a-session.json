@@ -1,0 +1,50 @@
+{
+  "attemptId": "3a299cdd-e423-436e-b850-e58fc207c688",
+  "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-fixtures-first-run--/2026-10-08T18-47-11-482Z_01a11cd7-417a-77e5-b224-66ea9521604a.jsonl",
+  "sessionId": "01a11cd7-417a-77e5-b224-66ea9521604a",
+  "toolCallsObserved": ["bash", "pstack_context", "bash", "bash", "task", "task"],
+  "taskBeforeAnswer": true,
+  "parentToolSequence": [
+    {
+      "tool": "bash",
+      "outcome": "ran",
+      "note": "Step 2 code-anchor tools before Task (gate allows bash until settle nudge)"
+    },
+    {
+      "tool": "pstack_context",
+      "outcome": "ran"
+    },
+    {
+      "tool": "bash",
+      "outcome": "ran"
+    },
+    {
+      "tool": "bash",
+      "outcome": "ran"
+    },
+    {
+      "tool": "task",
+      "agent_type": "general-purpose",
+      "name": "why-source-control",
+      "mode": "sync",
+      "outcome": "ran",
+      "subagentId": "2cc47f69-9825-482a-8825-c168ed0a2f9f"
+    },
+    {
+      "tool": "task",
+      "agent_type": "general-purpose",
+      "name": "why-synthesizer",
+      "mode": "sync",
+      "outcome": "ran",
+      "subagentId": "8b4bc428-a6bc-47c6-90d2-88326f079840"
+    }
+  ],
+  "subagentTranscripts": [
+    "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-fixtures-first-run--/01a11cd7-417a-77e5-b224-66ea9521604a/subagents/agent-2cc47f69-9825-482a-8825-c168ed0a2f9f.jsonl",
+    "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-fixtures-first-run--/01a11cd7-417a-77e5-b224-66ea9521604a/subagents/agent-8b4bc428-a6bc-47c6-90d2-88326f079840.jsonl"
+  ],
+  "settleNudgeFired": false,
+  "methodADisposition": "pass",
+  "methodANotes": "Parent spawned general-purpose Task investigators (why-source-control then why-synthesizer) before the final Sources consulted answer. why-spawn-gate armed; settle nudge not required on this run because Task started before first settle.",
+  "gateRevision": "uncommitted-why-spawn-gate"
+}

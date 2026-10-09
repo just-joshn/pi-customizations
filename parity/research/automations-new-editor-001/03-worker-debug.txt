@@ -1,0 +1,46 @@
+Cursor Worker Debug Report
+==========================
+
+Connection
+  Endpoint          https://api2.cursor.sh
+  Ghost mode        on (privacy)
+
+Auth
+  Method            login
+
+Identity
+  Email             josh.rg.humphrey@proton.me
+  User ID           422798837
+  Team ID           none
+
+Worker
+  ID                0400ae0d-aa5c-4949-a4b8-88e40cd9611a
+  Name              MacBook-Pro
+  Mode              multi-use
+  Workspace         /Users/josh-desktop/src/personal/pi-pstack-parity-again
+  Data dir          /Users/josh-desktop/.local/share/cursor-agent
+  Labels            repo=just-joshn/pi-customizations
+
+Computer use
+  Ready             yes
+  Mac app           yes
+
+Desktop share (macOS session)
+  Supported         yes
+  Mode              view
+  Ready             yes
+  Helper            installed  0.1.0-2d0725c
+  Helper path       /Users/josh-desktop/.cursor/agent-helper/Cursor Agent Helper.app/Contents/MacOS/cursor-agent-helper
+  Helper pid        none
+  Screen recording  yes
+  Accessibility     yes
+  GUI session       yes
+  Console UID match yes
+  Screen locked     no
+  Frame source      sck
+  Input             none
+  Socket            /Users/josh-desktop/.local/share/cursor-agent/desktop/rfb.sock
+
+Visibility
+  Non-privacy       0 workers
+  Privacy           same as non-privacy

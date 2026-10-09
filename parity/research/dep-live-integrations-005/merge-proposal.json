@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "unit": "u-dep-live-integrations-005",
+  "status": "merged",
+  "createdAt": "2026-10-09T17:33:15Z",
+  "canCloseLiveIntegrationsUnresolvedReference": false,
+  "canNarrowLiveIntegrationsUnresolvedReference": true,
+  "proposedUnresolvedReferenceText": "Live integrations live-exercise remains open after u-dep-live-integrations-005 disposition at parity/research/dep-live-integrations-005/dispositions.json (inventory sha256 63ef7f8f4c35e3918556e787f22eb308666e5e8d0b444b41584524ce13b867d4; a_custody_complete=275, b_environment_bound=62, c_already_evidenced=79). Progress since 004: Benny triage+thread-safety paid on #playwright-results (cursor de707056, pi 16520327); 44 Slack rows → c_already_evidenced. Still unpaid: third-party installs (G11); webhook routine/secret live; Automations save/activate; CU cloud attempt IDs (G1); enterprise policy witness (G2). No fabricated Slack posts. completeDependencyClosure stays false.",
+  "counts": {
+    "a_custody_complete": 275,
+    "b_environment_bound": 62,
+    "c_already_evidenced": 79
+  },
+  "bennyTriageCursorAttemptId": "de707056-289d-44b8-85a4-4d400e849815",
+  "bennyTriagePiAttemptId": "16520327-0d45-4817-a0cd-2f8c1c0e494a",
+  "evidence": [
+    "parity/research/dep-live-integrations-005/dispositions.json",
+    "parity/research/dep-live-integrations-005/summary.json",
+    "parity/briefs/reports/u-dep-live-integrations-005-report.md",
+    "parity/evidence/benny-triage/pair-benny-triage-valid-1.json",
+    "parity/evidence/setup-benny/pair-setup-benny-thread-safety-1.json",
+    "parity/research/setup-benny-thread-safety-post-save-001/disposition.json",
+    "parity/briefs/reports/u-journey-cmd-benny-triage-valid-post-slack-001-report.md",
+    "parity/briefs/reports/u-journey-setup-benny-thread-safety-post-save-001-report.md"
+  ],
+  "mergedAt": "2026-10-09T17:33:20.950Z"
+}

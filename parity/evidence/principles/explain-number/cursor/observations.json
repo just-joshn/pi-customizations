@@ -1,0 +1,116 @@
+{
+  "score": {
+    "frontmatterOk": true,
+    "leafSkillRead": true,
+    "usedChrome": false,
+    "modelAutoInvoke": false,
+    "keptVerifyOk": true,
+    "reportOk": true,
+    "namedLimiter": true,
+    "runCountPresent": true,
+    "spreadPresent": true,
+    "verifiedDone": true,
+    "contractHeld": true,
+    "screen": {
+      "potetoMode": false,
+      "leafChrome": false,
+      "hostAttached": false,
+      "verifyMention": true,
+      "reportMention": true,
+      "working": false
+    },
+    "pty": {
+      "potetoMode": true,
+      "leafChrome": true,
+      "hostAttached": false,
+      "verifyMention": true,
+      "reportMention": true,
+      "working": true
+    }
+  },
+  "firstReportAt": "2026-10-09T01:21:48.054Z",
+  "firstVerifyAt": "2026-10-09T01:21:53.288Z",
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/explain-number/fixture-out/cursor/done.txt",
+    "line": "verified=yes"
+  },
+  "verifyOut": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/explain-number/fixture-app/evidence/verify-out.txt",
+    "line": "EXPLAIN-OK",
+    "ok": true
+  },
+  "report": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/explain-number/fixture-app/evidence/explain-report.md",
+    "hasLimiter": true,
+    "hasRunCount": true,
+    "hasSpread": true,
+    "hasNumber": true,
+    "textPreview": "# Explain report: parser microbench speedup\n\n## Measured speedup\n\nRatio of means from `data/trials.json` is **4.72x** (baseline mean 413.2 ms / optimized mean 87.6 ms).\n`RESULTS.md` rounds this to 4.8x. Do not ship the bare 4.8x without the limiter and trial context below.\n\nWorkload: parse 10k synthetic records (`src/parse.js`).\n\n## Named limiter\n\nProfile notes (`data/profile-notes.txt`) say that during the five warm runs, one CPU core stayed near 100% while other cores were idle.\nWall time tracked the single-threaded parse loop in `src/parse.js`.\nNot disk, not network, not the load generator.\n\nWhy not double: the optimized path is still single-threaded and bound by that one-core parse loop. Doubling throughput would need more than one core on the parse work, or less work per record inside that loop.\n\n## Run count and spread\n\n- Runs: n = 5 warm trials per side (cold-cache first runs discarded; not in the artifact).\n- Baseline spread: min 408 ms, max 421 ms.\n- Optimized spread: min 84 ms, max 91 ms.\n- Trial artifact: `data/trials.json`.\n\n## What else this number could be measuring (ruled out)\n\n| Alternative | Evidence |\n| --- | --- |\n| Failed or errored requests | Each trial returns"
+  },
+  "frontmatter": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/principle-explain-the-number/SKILL.md",
+    "ok": true,
+    "name": "principle-explain-the-number",
+    "disableModelInvocation": true
+  },
+  "session": null,
+  "transcript": {
+    "path": "/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/agent-transcripts/0015e749-445a-4faf-beae-1c7f8086ad89/0015e749-445a-4faf-beae-1c7f8086ad89.jsonl",
+    "leafSkillRead": true,
+    "leafSkillReadAt": "2026-10-09T01:22:25.270Z",
+    "ranVerifyScript": true,
+    "wroteReport": true,
+    "toolOrder": [
+      "GetDynamicTools",
+      "Read",
+      "Read",
+      "Glob",
+      "Glob",
+      "GetDynamicTools",
+      "Glob",
+      "Grep",
+      "Shell",
+      "Grep",
+      "Glob",
+      "Read",
+      "Read",
+      "Read(verify.mjs)",
+      "Grep",
+      "Shell",
+      "Read(explain-leaf)",
+      "CallDynamicTool(verify.mjs)",
+      "blob-mention(explain-leaf)",
+      "Read",
+      "Read",
+      "Read",
+      "CallDynamicTool",
+      "Shell",
+      "Read",
+      "Write(report)",
+      "Shell(verify.mjs)",
+      "CallDynamicTool",
+      "CallDynamicTool"
+    ],
+    "mtimeMs": 1791508928253.4475
+  },
+  "pollSamples": 88,
+  "screenFinal": {
+    "potetoMode": false,
+    "leafChrome": false,
+    "hostAttached": false,
+    "verifyMention": true,
+    "reportMention": true,
+    "working": false
+  },
+  "pty": {
+    "potetoMode": true,
+    "leafChrome": true,
+    "hostAttached": false,
+    "verifyMention": true,
+    "reportMention": true,
+    "working": true
+  }
+}

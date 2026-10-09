@@ -1,0 +1,43 @@
+{
+  "capturedAt": "2026-10-09T01:17:40Z",
+  "unit": "u-dep-closure-wave-008",
+  "skillPath": "parity/research/dep-closure-wave-001/nodes/cursor-create-skill/SKILL.md",
+  "skillSha256": "255a3d3be7bac8984a13279f754f091a1de6f72c82bdf73e6b3c868e77e7ee82",
+  "skillByteLength": 15034,
+  "liveInstallPath": "/Users/josh-desktop/.cursor/skills-cursor/create-skill/SKILL.md",
+  "liveInstallSha256": "255a3d3be7bac8984a13279f754f091a1de6f72c82bdf73e6b3c868e77e7ee82",
+  "captureMatchesLiveInstall": true,
+  "priorJourneyMatrix": "parity/research/dep-closure-wave-007/create-skill/journey-matrix.json",
+  "priorJourneyMatrixSha256": "ff7e8a0f0069db28f2623db9403e06dbd4e19063e99300a5715e52f5fffa9ac7",
+  "phaseSectionCount": 4,
+  "journeyMatrix": [
+    {
+      "id": "create-skill-discovery",
+      "title": "Phase 1 Discovery paired journey",
+      "requiredEvidence": "Cursor+Pi pair that gathers skill requirements per Phase 1",
+      "status": "not_run"
+    },
+    {
+      "id": "create-skill-design",
+      "title": "Phase 2 Design paired journey",
+      "requiredEvidence": "Cursor+Pi pair that produces skill design artifacts per Phase 2",
+      "status": "not_run"
+    },
+    {
+      "id": "create-skill-implementation",
+      "title": "Phase 3 Implementation paired journey",
+      "requiredEvidence": "Cursor+Pi pair that writes SKILL.md via /create-skill or equivalent",
+      "status": "not_run"
+    },
+    {
+      "id": "create-skill-verification",
+      "title": "Phase 4 Verification paired journey",
+      "requiredEvidence": "Cursor+Pi pair that verifies discovery and application of the authored skill",
+      "status": "not_run"
+    }
+  ],
+  "journeysStillOpenCount": 4,
+  "journeyAuditStatus": "open",
+  "disposition": "Wave-008 re-checks create-skill capture vs live install hash and retains the wave-007 four-phase journey matrix. No paired Cursor+Pi journey was run.",
+  "blockerForJourneyClosure": "Paired Cursor+Pi user journeys across Discovery, Design, Implementation, and Verification remain required."
+}

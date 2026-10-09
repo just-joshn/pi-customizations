@@ -1,0 +1,35 @@
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/fixtures/first-run
+
+    Edited pstack-models.mdc +17 -17
+
+    ▎    4   ---
+    ▎    5   # pstack model configuration. One line per role. Delete a line to fall back to the skill default.
+    ▎    6   # `inherit-parent` or `auto` as a value: the role runs on the parent chat model (omit Task `model`).
+    ▎        Alias entries  ...
+    ▎    7 - # budget: small (medium)
+    ▎    8 - feature, refactoring: inherit-parent
+    ▎    9 - bug-fix: inherit-parent
+    ▎   10 - perf-issue: inherit-parent
+    ▎   11 - hillclimb: inherit-parent
+    ▎   12 - judgment and prose: inherit-parent
+    ▎   13 - hardest tasks: inherit-parent
+    ▎    7 + # budget: unlimited (max)
+    ▎    8 + feature, refactoring: claude-sonnet-5-5-max
+    ▎   13  … truncated (26 more lines) · ctrl+r to review
+
+  $ cat ~/.cursor/rules/pstack-models.mdc 216ms
+    … 22 output lines hidden · ctrl+o to expand
+    architect runners: claude-opus-5-5-max, claude-sonnet-5-5-max
+    interrogate reviewers: claude-opus-5-5-max, claude-sonnet-5-5-max
+
+  Wrote ~/.cursor/rules/pstack-models.mdc with # budget: unlimited (max). Real slugs remapped to …-max; bug-fix: 
+  auto and how explorer: inherit-parent kept. Applies to new sessions; re-run /setup-pstack to update again.
+
+
+
+                                                                                                                       
+  → [Pasted text #1 +1 lines]                                                                                          
+                                                                                                                       
+
+  Auto · 14.6% · 1 file edited                                                                          Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run · refactor/pi-pstack-parity-again

@@ -1,0 +1,20 @@
+# Probe flags that are literals (not env-detected)
+
+## probe-benny-triage-valid-env.mjs
+58: configuredSlackActionsResolvableInHarness: false,
+59: slackMcpInteractiveAuthAvailableInThisAgent: false,
+60: liveSlackPostAllowedWithoutOwnerGate: false,
+
+## probe-setup-benny-thread-safety-env.mjs
+58: ok: false,
+78: : { ok: false, status: null, stdout: '', stderr: 'slack CLI not on PATH', error: null };
+84: : { ok: false, status: null, stdout: '', stderr: 'slack CLI not on PATH', error: null };
+105: automationsEditorAvailableInPtyHarness: false,
+108: slackMcpInteractiveAuthAvailableInThisAgent: false,
+109: configuredSlackActionsResolvableInHarness: false,
+111: liveSlackSevenCheckPostAllowedWithoutOwnerGate: false,
+112: designatedTestChannelConfigured: false,
+
+## probe-setup-benny-creation-boundary-host.mjs
+130: automationsEditorUiAvailableInCursorAgentPty: false,
+131: automationsEditorUiAvailableInPiPty: false,

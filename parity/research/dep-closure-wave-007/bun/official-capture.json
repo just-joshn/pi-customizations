@@ -1,0 +1,108 @@
+{
+  "capturedAt": "2026-10-09T00:52:24Z",
+  "localBunVersionCapture": "parity/research/dep-closure-wave-007/bun/bun-version.txt",
+  "localBunVersionSha256": "b99b4c7cdf236f59bc9f65d963deaecae3b16a7dad87939cacb9057f7664daee",
+  "localBunStdout": "1.4.2",
+  "docs": [
+    {
+      "label": "install",
+      "url": "https://bun.com/docs/installation",
+      "finalUrl": "https://bun.com/docs/installation",
+      "path": "parity/research/dep-closure-wave-007/bun/install.html",
+      "sha256": "afc8a8be3c99d25d81683fb7259315b9421eaae5804cbf5adae5672661099150",
+      "byteLength": 192792,
+      "headersPath": "parity/research/dep-closure-wave-007/bun/install.headers.txt",
+      "status": "fetched"
+    },
+    {
+      "label": "lockfile",
+      "url": "https://bun.com/docs/pm/lockfile",
+      "finalUrl": "https://bun.com/docs/pm/lockfile",
+      "path": "parity/research/dep-closure-wave-007/bun/lockfile.html",
+      "sha256": "974285c98875e1b7503be3ef87def5c0fb2b2bcb5530c0414b8c96afa524e782",
+      "byteLength": 67078,
+      "headersPath": "parity/research/dep-closure-wave-007/bun/lockfile.headers.txt",
+      "status": "fetched"
+    },
+    {
+      "label": "nodejs-compat",
+      "url": "https://bun.com/docs/runtime/nodejs-compat",
+      "finalUrl": "https://bun.com/docs/runtime/nodejs-compat",
+      "path": "parity/research/dep-closure-wave-007/bun/nodejs-compat.html",
+      "sha256": "758885b2b5dc5aa54ba43338292bde9839193eb767dbf40ab0e3cd8a4a2c3176",
+      "byteLength": 293649,
+      "headersPath": "parity/research/dep-closure-wave-007/bun/nodejs-compat.headers.txt",
+      "status": "fetched"
+    },
+    {
+      "label": "package-manager",
+      "url": "https://bun.com/docs/pm/cli/install",
+      "finalUrl": "https://bun.com/docs/pm/cli/install",
+      "path": "parity/research/dep-closure-wave-007/bun/package-manager.html",
+      "sha256": "5ace0f3f9af047f270d905b1bbedaf900e18473af799c336600e5a46148bc575",
+      "byteLength": 312397,
+      "headersPath": "parity/research/dep-closure-wave-007/bun/package-manager.headers.txt",
+      "status": "fetched"
+    },
+    {
+      "label": "bunfig",
+      "url": "https://bun.com/docs/runtime/bunfig",
+      "finalUrl": "https://bun.com/docs/runtime/bunfig",
+      "path": "parity/research/dep-closure-wave-007/bun/bunfig.html",
+      "sha256": "2c87a330c846626889f139deecdbfad570dd9c38599a75ff07a9d6557a36a873",
+      "byteLength": 437450,
+      "headersPath": "parity/research/dep-closure-wave-007/bun/bunfig.headers.txt",
+      "status": "fetched"
+    },
+    {
+      "label": "bun-version-docs-legacy",
+      "note": "Legacy guide URL. Pin guidance lives under installation older-versions and bunfig docs.",
+      "url": "https://bun.com/docs/guides/install/bun-version",
+      "path": "parity/research/dep-closure-wave-007/bun/bun-version-docs.html",
+      "sha256": "cf0111d694ba188746577d2122ade94277088357ff4ccf6a2074cffd1e2f2098",
+      "byteLength": 28732,
+      "headersPath": "parity/research/dep-closure-wave-007/bun/bun-version-docs.headers.txt",
+      "status": "http_error",
+      "httpStatus": 404,
+      "reason": "Not Found"
+    }
+  ],
+  "pinCandidatesChecked": {
+    "package.json.engines": null,
+    "package.json.packageManager": null,
+    "package.json.volta": null,
+    "package.json.devEngines": null,
+    "dotBunVersionFile": false,
+    "bunfigToml": false,
+    "miseToml": false,
+    "toolVersions": false,
+    "nvmrc": false,
+    "nodeVersion": false,
+    "bunLockPinsBunBinary": false,
+    "pinFilesUnderPotetoMode": [],
+    "shebangEnvBunFiles": [
+      {
+        "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/watch-pr/watch-pr",
+        "firstLine": "#!/usr/bin/env bun"
+      },
+      {
+        "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/orch/orch.ts",
+        "firstLine": "#!/usr/bin/env bun"
+      }
+    ],
+    "hostWhichBun": "/Users/josh-desktop/.local/share/mise/installs/bun/latest/bin/bun",
+    "hostWhichBunIsMiseLatest": true
+  },
+  "manifestDevDependencies": {
+    "bun-types": "latest",
+    "typescript": "latest"
+  },
+  "lockBunTypesResolved": "bun-types",
+  "typesVersusRuntimeNote": "Lock resolves bun-types; local bun --version is 1.4.2. bun-types is not an official Bun runtime pin. Host bun from mise 'latest' is environment state, not a tools subtree pin.",
+  "pinStatus": "unresolved",
+  "closureCriteria": [
+    "Exact Bun binary version declared in tools subtree via engines.bun, packageManager, volta, .bun-version, bunfig, or equivalent lock binding",
+    "Declaration must be in source custody under poteto-mode/scripts or a documented official pin path for this package"
+  ],
+  "note": "Wave-007 re-probed tools scripts and poteto-mode tree for pin files, recorded shebang usage and host mise-latest path, and re-fetched official Bun docs. No official Bun binary pin exists. Do not invent a pin from local version, mise latest, or bun-types."
+}

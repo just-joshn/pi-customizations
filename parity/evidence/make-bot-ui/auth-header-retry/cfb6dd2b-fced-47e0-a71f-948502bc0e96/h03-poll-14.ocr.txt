@@ -1,0 +1,53 @@
+Automations > New Automation
+V New Chat
+Search
+Automations
+Customize
+Projects
++ New Project
+Pinned
+• /make-bot-ui|
+Repositories
++ No Repo
+Cursor automation setup
+Cursor automation setup
+Cursor automation setup
+Cursor automation setup
+Automation setup instruction
+/make-bot-ui
+/automate
+/automate|
+Untitled
+Active
+Select repository V
+Could not parse automation prefill from URL. Please check the prefill payload.
+Triggers
+Add Trigger
+1h
+Agent Instructions
+Type @ for tools, /|
+Unsaved Changes
+Save or discard changes before continuing
+Getting Started
+13m
+21m
+33m
+35m
+44m
+1h
+1h
+1h
+3/3 O
+Discard
+Keep Editing
+Save
+Grok 4.7 High Fast v
+Tools
+Memories
+Add Tool or MCP
+* Connect Slack
+Joshua Humphrey|
+Create
+IDE 7
+×
+Manage

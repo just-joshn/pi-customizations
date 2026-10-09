@@ -1,0 +1,7 @@
+capturedAt	decision	evidence
+2026-10-09T01:17:40Z	resolve cursor-pstack→cursor-team-kit on 29/29 custody	parity/research/dep-closure-wave-008/team-kit/custody-disposition.json
+2026-10-09T01:17:40Z	keep cursor-pstack→cursor-cli-host unverified environment-bound	parity/research/dep-closure-wave-008/cli-host/persistent-mode-disposition.json
+2026-10-09T01:17:40Z	keep host computer-use/enterprise unresolved environment-bound	parity/research/dep-closure-wave-008/host/host-edge-disposition.json
+2026-10-09T01:17:40Z	bun pin still unresolved	parity/research/dep-closure-wave-008/bun/official-capture.json
+2026-10-09T01:17:40Z	typescript deep semantics still open drift=0	parity/research/dep-closure-wave-008/npm/typescript-deep-semantics-disposition.json
+2026-10-09T01:17:40Z	completeDependencyClosure remains false	parity/research/dep-closure-wave-008/merge-proposal.json

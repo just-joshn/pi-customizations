@@ -1,0 +1,4 @@
+{"ts":"2026-10-09T00:40:58.823Z","green":[],"greenCount":0,"status":"fail","line":"SEQUENCE-FAIL green=none alpha=OLD_alpha expected=NEW_alpha; beta=OLD_beta expected=NEW_beta; gamma=OLD_gamma expected=NEW_gamma"}
+{"ts":"2026-10-09T00:41:04.066Z","green":["alpha"],"greenCount":1,"status":"partial","line":"SEQUENCE-FAIL green=alpha beta=OLD_beta expected=NEW_beta; gamma=OLD_gamma expected=NEW_gamma"}
+{"ts":"2026-10-09T00:41:08.118Z","green":["alpha","beta"],"greenCount":2,"status":"partial","line":"SEQUENCE-FAIL green=alpha,beta gamma=OLD_gamma expected=NEW_gamma"}
+{"ts":"2026-10-09T00:41:14.594Z","green":["alpha","beta","gamma"],"greenCount":3,"status":"ok","line":"SEQUENCE-OK units=3"}

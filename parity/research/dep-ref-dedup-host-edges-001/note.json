@@ -1,0 +1,26 @@
+{
+  "mergedAt": "2026-10-09T02:45:00Z",
+  "removed": [
+    "cursor-cli-host edges to computer-use and enterprise policy remain unresolved after wave-009 environment-bound disposition at parity/research/dep-closure-wave-009/host/host-edge-disposition.json; no new runtime evidence; services were not exercised.",
+    "cursor-pstack \u2192 cursor-cli-host persistent-mode edge remains unverified after wave-009 environment-bound disposition at parity/research/dep-closure-wave-009/cli-host/persistent-mode-disposition.json (glass_custom_modes off; attempts 6977eeec-08bd-4829-810c-11d526d9f9fb / 9857dda0-a74d-4546-b69e-1ff3528bdf3e; no success attempt ID; no new evidence)."
+  ],
+  "keptCount": 4,
+  "edgesRemainNonResolved": [
+    [
+      "cursor-cli-host",
+      "cursor-self-hosted-computer-use",
+      "unresolved"
+    ],
+    [
+      "cursor-cli-host",
+      "cursor-enterprise-integration-policy",
+      "unresolved"
+    ],
+    [
+      "cursor-pstack",
+      "cursor-cli-host",
+      "unverified"
+    ]
+  ],
+  "rationale": "Dedup only; edges still block completion."
+}

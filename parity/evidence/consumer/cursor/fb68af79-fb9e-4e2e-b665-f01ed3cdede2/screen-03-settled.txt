@@ -1,0 +1,35 @@
+    … 20 output lines hidden · ctrl+o to expand
+      --pretty                    render human text instead of JSON (default: false)
+      -h, --help                  display help for command
+
+  $ printf 'EXIT=0\n' > /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/consumer/fixture-out/c
+    ursor/watch-pr-help-done.txt 204ms
+
+  Usage: watch-pr [options]
+
+  Options:
+    --owner <owner>             GitHub repository owner
+    --repo <repo>               GitHub repository name
+    --pr <number>               pull request number
+    --stack                     watch the connected open stack (default: false)
+    --queued-stack              watch the captured stack until all PRs merge
+                                (default: false)
+    --stack-prs <n,...>         frozen bottom-to-top queue (queued mode only)
+    --interval <seconds>        poll interval (default: 60)
+    --sweep-interval <seconds>  whole-stack sweep interval (default: 300)
+    --timeout <seconds>         deadline; 0 disables it (default: 0)
+    --max-query-errors <count>  consecutive query-error budget (default: 5)
+    --status-only               print one status table and exit 0 (default: false)
+    --allow-draft               do not treat a draft as a merge gate (default:
+                                false)
+    --pretty                    render human text instead of JSON (default: false)
+    -h, --help                  display help for command
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 7.5%                                                                                           Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts · main · #330

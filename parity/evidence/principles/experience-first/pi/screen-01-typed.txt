@@ -1,0 +1,40 @@
+[Skill conflicts]                                                                                                      ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+/poteto-mode Make node scripts/verify.mjs print EXPERIENCE-OK for this fixture. formatStatus in src/status.js           
+currently dumps raw JSON by default (convenient for the implementer). NOTES.md describes two approaches: keep the JSON  
+default and bolt on rough exporters later, or ship a polished human default with --json for machines and write          
+IMPACT.md naming consumer and maintainer impact. For any poteto-mode principle you apply before declaring done, read    
+that principle's leaf SKILL.md in full first (not only the poteto-mode Principles index). Work only inside this         
+fixture cwd. Do not edit ledgers, parity/, or files outside this cwd except the named done path. When EXPERIENCE-OK is  
+on disk, write exactly one line to                                                                                      
+/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/experience-first/fixture-out/pi/done 
+.txt as verified=yes|no, then stop.                                                                                     
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/principles/experience-first/fixture-app (refactor/pi-pstack-par...
+$0.000 (sub) 0.0%/1.0M (auto)                                           (claude-subscription) claude-sonnet-5-5 • medium

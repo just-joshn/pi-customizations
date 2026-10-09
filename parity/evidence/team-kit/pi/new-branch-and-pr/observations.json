@@ -1,0 +1,44 @@
+{
+  "screenFinal": {
+    "skillMention": true,
+    "ghMention": true,
+    "envBlocked": false,
+    "working": false,
+    "fixtureComment": false,
+    "fixtureGuidance": false
+  },
+  "pty": {
+    "skillMention": true,
+    "ghMention": true,
+    "envBlocked": true,
+    "working": true,
+    "fixtureComment": false,
+    "fixtureGuidance": false
+  },
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/new-branch-and-pr/done.txt",
+    "line": "STATUS=verified reason=PR created and pushed",
+    "status": "verified"
+  },
+  "post": {
+    "prUrl": "https://github.com/just-joshn/team-kit-gh-fixture/pull/3",
+    "prExists": true
+  },
+  "seededSkill": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh/.pi/skills/new-branch-and-pr/SKILL.md",
+    "sha256": "4e8f502fcf48553949387a9a7f58b21349e0ff87c24bf8ff5c0013e9da6819fd"
+  },
+  "score": {
+    "skillPath": true,
+    "envBlocked": false,
+    "doneStatus": "verified",
+    "artifactOk": true,
+    "post": {
+      "prUrl": "https://github.com/just-joshn/team-kit-gh-fixture/pull/3",
+      "prExists": true
+    },
+    "closed": true,
+    "honestBlocker": false
+  }
+}

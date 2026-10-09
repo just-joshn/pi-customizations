@@ -1,0 +1,1 @@
+STATUS=checklist-ok reason=gave editor checklist without automate

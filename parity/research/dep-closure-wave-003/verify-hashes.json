@@ -1,0 +1,91 @@
+{
+  "unit": "u-dep-closure-wave-003",
+  "verifiedAt": "2026-10-08T19:13:21Z",
+  "status": "VERIFIED",
+  "results": [
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bootstrap.ts",
+      "expected": "ccd2ed08fd9da9d0d942e5f2491cfc74bb92d8a08fa51755e0da1ac8de287361",
+      "actual": "ccd2ed08fd9da9d0d942e5f2491cfc74bb92d8a08fa51755e0da1ac8de287361",
+      "ok": true
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/package.json",
+      "expected": "d1f815091209d49763775cc188e8e06ff32d5fec648bffd2272bc25a165e87c3",
+      "actual": "d1f815091209d49763775cc188e8e06ff32d5fec648bffd2272bc25a165e87c3",
+      "ok": true
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock",
+      "expected": "667d9cf7222e9aae3fa42a4be383e657784216e9df115da02227fbc5ac7bbe46",
+      "actual": "667d9cf7222e9aae3fa42a4be383e657784216e9df115da02227fbc5ac7bbe46",
+      "ok": true
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/watch-pr/watch-pr",
+      "expected": "d955603be6cc0e8b8ffcec722f635192b2261410b1f2929abea94480e47eb5d4",
+      "actual": "d955603be6cc0e8b8ffcec722f635192b2261410b1f2929abea94480e47eb5d4",
+      "ok": true
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/orch/orch.ts",
+      "expected": "f091687df627a0b75fabd54af58945a9cd6c7039ef0622012ac9ed60cd8ec434",
+      "actual": "f091687df627a0b75fabd54af58945a9cd6c7039ef0622012ac9ed60cd8ec434",
+      "ok": true
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/watch-pr/cli.ts",
+      "expected": "89c08863089181a232be782c4b2ed90a1552f44aeecb0dcb7aac2c623620e680",
+      "actual": "89c08863089181a232be782c4b2ed90a1552f44aeecb0dcb7aac2c623620e680",
+      "ok": true
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/node_modules/commander/package.json",
+      "expected": "bbf7734a336e0d67c20e5326fc9e32c1f4d4e5d6272dea41705cb5e69066da1a",
+      "actual": "bbf7734a336e0d67c20e5326fc9e32c1f4d4e5d6272dea41705cb5e69066da1a",
+      "ok": true
+    },
+    {
+      "path": "parity/reference/npm/commander-14.0.0/package.tgz",
+      "expected": "eaef3a697e7173c7347ca4c1e60dd2bc1d38214d2aaecce89d70881a51d7fde7",
+      "actual": "eaef3a697e7173c7347ca4c1e60dd2bc1d38214d2aaecce89d70881a51d7fde7",
+      "ok": true
+    },
+    {
+      "path": "parity/research/npm/commander-14.0.0/read-inventory.json",
+      "expected": "19bfb53788883180ca7fd295b1b0c7261da478ed9b0971423cf2791906b90653",
+      "actual": "19bfb53788883180ca7fd295b1b0c7261da478ed9b0971423cf2791906b90653",
+      "ok": true
+    },
+    {
+      "path": "parity/research/continuation/computer-use.md",
+      "expected": "a9ceb020282d7c61ad99ccd13de0c8831dd57499ac32af31b5f4afc9e9e186d0",
+      "actual": "a9ceb020282d7c61ad99ccd13de0c8831dd57499ac32af31b5f4afc9e9e186d0",
+      "ok": true
+    },
+    {
+      "path": "parity/research/continuation/model-management.md",
+      "expected": "2606b4bd74d43bd579c59945506ab691cd49de8da3386556e265c854f6c9d205",
+      "actual": "2606b4bd74d43bd579c59945506ab691cd49de8da3386556e265c854f6c9d205",
+      "ok": true
+    },
+    {
+      "path": "parity/research/dep-closure-wave-003/bun/nodejs-compat.html",
+      "expected": "5ee498723663e81c9be95b25e3396d991276c8b1388a6a798f68b446e5833b27",
+      "actual": "5ee498723663e81c9be95b25e3396d991276c8b1388a6a798f68b446e5833b27",
+      "ok": true
+    },
+    {
+      "path": "parity/research/dep-closure-wave-003/bun/bun-version.txt",
+      "expected": "b99b4c7cdf236f59bc9f65d963deaecae3b16a7dad87939cacb9057f7664daee",
+      "actual": "b99b4c7cdf236f59bc9f65d963deaecae3b16a7dad87939cacb9057f7664daee",
+      "ok": true
+    },
+    {
+      "path": "parity/research/dep-closure-wave-003/bun/commander-smoke.txt",
+      "expected": "24a93bea5ae40d1246fe748e4caf5da4784cd39d5f176edd8f15498dd28a3a65",
+      "actual": "24a93bea5ae40d1246fe748e4caf5da4784cd39d5f176edd8f15498dd28a3a65",
+      "ok": true
+    }
+  ]
+}

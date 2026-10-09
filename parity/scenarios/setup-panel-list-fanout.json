@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "setup-panel-list-fanout",
+  "status": "executed-pass-paired",
+  "requirements": [
+    "PSTACK-SETUP-PANEL-LIST-FANOUT-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/setup-pstack/SKILL.md#### 3. Budget, map, and confirm, subsection (c) panel list length",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Documented preconditions satisfied; behavior not yet paired. Preconditions: Role is arena runners, architect runners, interrogate reviewers, or arena cross-judge pool.",
+    "digest": "sha256:b3619375c3368685352e4e213ec1fb8d1391a661ff87c59f79e662c96b95ed43"
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Configure a panel role value as a comma-separated list.. Panel role values are lists. One subagent runs per entry, including alias entries, so list length sets fan-out count. arena cross-judge pool remains a list from which Arena selects one differing-family value when possible."
+    }
+  ],
+  "execution": {
+    "referenceRun": "43dc2c2b-215d-4765-ab70-2682cb620fd8",
+    "candidateRun": "925469ca-f277-4870-a986-2969e0e1ecbe",
+    "pairId": "setup-panel-list-fanout-1",
+    "pairPath": "parity/evidence/setup-panel-fanout/pair-setup-panel-list-fanout-1.json",
+    "verdict": "pass-paired",
+    "closedAt": "2026-10-08T21:52:00Z",
+    "note": "L=3 \u2192 spawn 3 both hosts; planted fixture; cross-judge unpaired."
+  }
+}

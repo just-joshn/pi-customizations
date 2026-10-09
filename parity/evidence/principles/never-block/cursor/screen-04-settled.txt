@@ -1,0 +1,39 @@
+  Nothing else in the fixture changed.
+
+  What I chose and why. I picked plain text. It is the exact greeting with no extra encoding, and verify accepts it
+  as is. JSON would have added a wrapper object that nothing here reads.
+
+  Principles applied. I read each leaf SKILL.md in full before using it.
+  • Never Block on the Human. I chose the format myself instead of asking you which one, because NOTES.md accepts
+    both and switching later is a one-line change.
+  • Laziness Protocol. The change is one return statement plus one data line. I added no format option or helper.
+  • Prove It Works. I didn't rely on the subagent's report. I read both files myself, checked the bytes of
+    choice.txt with od, and reran verify. I also confirmed that evidence/verify-out.txt contains the same GREET-OK
+    line.
+
+  Throughput checkpoint. Nothing had to run first, there were no parallel workstreams, and no state was shared. One
+  worker was right because the whole job was two tiny files.
+
+  Open decisions. None. If you want JSON instead, change the return value to '{"msg":"hello, world"}' and choice.txt
+  to json.
+
+  Playbook steps.
+  1. skip: the affected code is a 3-line file plus a 50-line verify script, and I read both in full.
+  2. skip: it's one function with no design to explore. The only choice was plain vs. JSON.
+  3. done.
+  4. done. A general-purpose subagent made the edit, running in the foreground on the parent model as your feature
+     role setting says.
+  5. done.
+  6. skip: you scoped writes to this folder and didn't ask for commits.
+  7. skip: the design isn't contested, since NOTES.md allows both formats.
+  8. skip: no PR was requested.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Claude Opus 5.5 300K Medium · 18.3% · 2 files edited                                                  Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/principles/never-block/fixture-app · 
+  refactor/pi-pstack-parity-again

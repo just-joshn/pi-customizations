@@ -1,0 +1,123 @@
+{
+  "capturedAt": "2026-10-09T06:58:47Z",
+  "unit": "u-dep-enterprise-observe-001",
+  "membership": {
+    "stripeMembershipType": "pro_plus",
+    "stripeSubscriptionStatus": "active",
+    "signedIn": true,
+    "emailRedacted": true
+  },
+  "adminSettingsSafe": {
+    "allowedModels": [],
+    "blockedModels": [],
+    "sandGroupAccessMode": 1,
+    "dotCursorProtection": false,
+    "browserFeatures": false,
+    "browserOriginAllowlist": [],
+    "byokDisabled": false,
+    "marketplaceLeaderboardDisabled": false,
+    "enforceHooksReadiness": false,
+    "networkDenylist": [],
+    "networkAllowlist": [],
+    "cloudAgentEgressAllowlist": [],
+    "remotePermissionsFilePaths": [],
+    "localPermissionsFilePath": [],
+    "permissionsFileOverridesAutoRun": false,
+    "autoReview": {
+      "keys": [
+        "allowInstructions",
+        "blockInstructions"
+      ],
+      "len": 2
+    },
+    "sharedConversationSettings": {
+      "keys": [
+        "allowPublicIndexing",
+        "allowedVisibilities",
+        "enabled"
+      ],
+      "len": 3
+    },
+    "sharedCanvasSettings": {
+      "keys": [
+        "enabled"
+      ],
+      "len": 1
+    },
+    "cursorBlameSettings": {
+      "keys": [
+        "enabled"
+      ],
+      "len": 1
+    },
+    "projectsSettings": {
+      "keys": [
+        "enabled"
+      ],
+      "len": 1
+    },
+    "attributionControls": {
+      "keys": [
+        "disableAttribution"
+      ],
+      "len": 1
+    },
+    "pullRequestPreferences": {
+      "keys": [
+        "prReviewOpenDestination"
+      ],
+      "len": 1
+    },
+    "remoteControlV2Policy": {
+      "keys": [
+        "automaticRegistrationEnabled",
+        "automaticRegistrationReleased",
+        "available",
+        "enabled"
+      ],
+      "len": 4
+    }
+  },
+  "authInfoSafeKeys": [
+    "authIdPrefix",
+    "authIdPresent",
+    "displayName",
+    "email",
+    "userId"
+  ],
+  "authInfoSafe": {
+    "email": "<redacted>",
+    "displayName": "<redacted>",
+    "userId": "<redacted>",
+    "authIdPresent": true,
+    "authIdPrefix": "auth0|user_0\u2026"
+  },
+  "serverConfigCacheSummary": {
+    "topKeys": [
+      "agentUrlConfig",
+      "authCacheKey",
+      "backendUrl",
+      "cliSandboxDefaultEnabled",
+      "serverHttp2Config",
+      "updatedAt"
+    ],
+    "hits": [],
+    "hitCount": 0
+  },
+  "privacyCacheSummary": {
+    "keys": [
+      "ghostMode",
+      "privacyMode",
+      "updatedAt"
+    ],
+    "value": {
+      "ghostMode": true,
+      "privacyMode": 2,
+      "updatedAt": 1791527911733
+    }
+  },
+  "noTeamPluginKeysPresent": true,
+  "enterpriseModelProvidersObservable": false,
+  "enterpriseOrgGroupsObservable": false,
+  "reason": "Host membership is pro_plus; storage uses no-team plugin namespace; adminSettings.cached has empty allowlists and no Model Providers/Groups policy payload; docs mark Team Settings Model Providers as Enterprise only."
+}

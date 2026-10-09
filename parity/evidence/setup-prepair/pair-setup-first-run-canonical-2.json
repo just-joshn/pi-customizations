@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "pairId": "setup-first-run-canonical-2",
+  "scenarioRef": "setup-pstack:first-run-clarifying-questions",
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "steps": [
+    { "send": "/setup-pstack" },
+    { "send": "\r" },
+    { "send": "\r" },
+    { "send": " " },
+    { "send": "\r" },
+    { "send": " " },
+    { "send": "\r" },
+    { "cancel": true }
+  ],
+  "cursor": {
+    "attemptId": "c7970c07-4c28-4cca-be3d-3d15ceedd207",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-prepair/cursor/c7970c07-4c28-4cca-be3d-3d15ceedd207",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    }
+  },
+  "pi": {
+    "attemptId": "1e448f41-07cb-4335-8a96-aa6312d6d125",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-prepair/pi/1e448f41-07cb-4335-8a96-aa6312d6d125",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    }
+  }
+}

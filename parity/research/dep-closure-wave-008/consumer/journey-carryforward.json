@@ -1,0 +1,14 @@
+{
+  "capturedAt": "2026-10-09T01:17:40Z",
+  "unit": "u-dep-closure-wave-008",
+  "label": "consumer-journeys",
+  "sourcePath": "parity/research/dep-closure-wave-007/consumer/journey-matrix.json",
+  "sourceSha256": "0d007527cd8d70f9888776cdd5135151b8db34167af26f5820cae939fc743ed3",
+  "sourceByteLength": 4354,
+  "carryForward": true,
+  "disposition": "Wave-007 consumer journey matrix (6 journeys; local smokes exit 0) stands. Wave-008 re-hashes it. Paired Cursor+Pi acceptance journeys remain open.",
+  "localSmokeRefresh": {
+    "orchHelpExit": 0,
+    "typecheckExit": 0
+  }
+}

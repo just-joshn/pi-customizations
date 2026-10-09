@@ -1,0 +1,61 @@
+{
+  "observedAt": "2026-10-08T04:43:43.185811+00:00",
+  "observer": "ae7e9b63-1daf-4498-ab8e-62a411ff8226",
+  "runtimeSessionEntries": [
+    {
+      "type": "model_change",
+      "timestamp": "2026-10-08T04:40:39.802Z",
+      "provider": "openai",
+      "modelId": "gpt-6.1-sol"
+    },
+    {
+      "type": "thinking_level_change",
+      "timestamp": "2026-10-08T04:40:39.802Z",
+      "thinkingLevel": "low"
+    }
+  ],
+  "assistantRuntimeLabels": [
+    {
+      "provider": "openai",
+      "model": "gpt-6.1-sol",
+      "api": "openai-responses"
+    }
+  ],
+  "claimLimit": "Runtime metadata labels only. No authenticated physical-provider identity, network attestation, or model-family diversity claim. pstack_context lists available registered models, not active physical execution identity. Environment variables were not used as proof.",
+  "delegatedReaders": [
+    {
+      "task_id": "62ab7ff0-8072-4f00-972b-7cb6071736cd",
+      "runtimeSessionEntries": [
+        {
+          "type": "model_change",
+          "timestamp": "2026-10-08T04:41:52.618Z",
+          "provider": "openai",
+          "modelId": "gpt-6.1-sol"
+        },
+        {
+          "type": "thinking_level_change",
+          "timestamp": "2026-10-08T04:41:52.618Z",
+          "thinkingLevel": "low"
+        }
+      ],
+      "limit": "Runtime metadata labels, not authenticated physical provider or model execution attestation."
+    },
+    {
+      "task_id": "5e5c9d46-3b36-4a5d-8baa-e987e7ea689b",
+      "runtimeSessionEntries": [
+        {
+          "type": "model_change",
+          "timestamp": "2026-10-08T04:41:52.689Z",
+          "provider": "openai",
+          "modelId": "gpt-6.1-sol"
+        },
+        {
+          "type": "thinking_level_change",
+          "timestamp": "2026-10-08T04:41:52.690Z",
+          "thinkingLevel": "low"
+        }
+      ],
+      "limit": "Runtime metadata labels, not authenticated physical provider or model execution attestation."
+    }
+  ]
+}

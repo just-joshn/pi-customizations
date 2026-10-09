@@ -1,0 +1,19 @@
+HTTP/2 200 
+date: Thu, 08 Oct 2026 21:44:26 GMT
+content-type: text/html; charset=utf-8
+access-control-allow-origin: *
+age: 22928
+cache-control: public, max-age=0, must-revalidate
+content-disposition: inline; filename="installation"
+nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+etag: W/"b43bda4d2b4872e5a3b8889e3c102132"
+last-modified: Thu, 08 Oct 2026 15:22:17 GMT
+server: cloudflare
+strict-transport-security: max-age=63072000
+x-vercel-cache: HIT
+x-vercel-id: pdx1::5n9lc-1791495866619-fa7d3c3e11ba
+cf-cache-status: DYNAMIC
+vary: accept-encoding
+report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=2Qhn3U5EVr81Gx%2Fz4dD80zryjMhWF3spa6T1kQqIfBqbzwTzPjPPRKCpDPHvn3qQgI%2FPrWIf0QUpq22cWy0gd2BEjUiRCAKIpEj3Ve0gX0ImdA%2BFxclxjYmdumuBeiHkALfagws%3D"}]}
+cf-ray: a47853ae4fba5eea-PDX
+

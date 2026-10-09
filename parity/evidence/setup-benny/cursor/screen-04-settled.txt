@@ -1,0 +1,39 @@
+
+  Found them under the fixture-app workspace. Reading the bootstrap next.
+
+    Read .upstream/automations/benny/FOR_AGENTS.md
+
+  Bootstrap says ask the target repo first, then merge into .cursor/automations/benny/ and read setup-benny from
+  there. Checking what's already in place.
+
+  $ find .cursor .upstream -type f 2>/dev/null | head -100; echo '---'; ls -la
+    .cursor/automations/benny/skills/setup-benny/ 2>/dev/null; ls -la .cursor/automations/benny/ 2>/dev/null 254ms
+    … 34 output lines hidden · ctrl+o to expand
+    drwxr-xr-x 5 josh-desktop staff  160 Oct  7 20:07 skills
+    drwxr-xr-x 5 josh-desktop staff  160 Oct  7 20:07 templates
+
+  Pack is already at the destination. Reading setup-benny from there to confirm bootstrap entry.
+
+    Read .cursor/automations/benny/skills/setup-benny/SKILL.md
+
+  Verifying the destination pack contents, then writing the status line and stopping.
+
+  $ test -f .cursor/automations/benny/FOR_AGENTS.md && \
+    test -f .cursor/automations/benny/skills/setup-benny/SKILL.md && \ 237ms
+    … 13 input lines hidden · ctrl+o to expand
+    pack-verify=ok
+    STATUS=not-slash reason=pack bootstrap to destination setup-benny
+
+  Entered via pack bootstrap (FOR_AGENTS.md → destination .cursor/automations/benny/skills/setup-benny/SKILL.md).
+  Pack copy verified (FOR_AGENTS, setup-benny, both operational skills, references, templates).
+
+  Which repository will run the Benny automations?
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 11.5%                                                                                          Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/fixture-app · refactor/pi-pstack-parity-again

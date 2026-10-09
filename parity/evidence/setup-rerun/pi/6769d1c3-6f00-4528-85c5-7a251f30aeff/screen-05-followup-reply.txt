@@ -1,0 +1,36 @@
+ in a panel list still count toward its fan-out.                                                                       │
+ ▎  # budget: small (medium)                                                                                           │
+ ▎- feature, refactoring: inherit-parent                                                                               │
+ ▎+ feature, refactoring: auto                                                                                         │
+ ▎  bug-fix: auto                                                                                                      │
+ ▎  perf-issue: inherit-parent                                                                                         │
+ ▎  hillclimb: inherit-parent                                                                                          │
+                                                                                                                       │
+                                                                                                                       │
+ The pstack model rule is written with budget small (medium reasoning). feature, refactoring is now auto, and bug-fix  │
+ stays auto. Every other role is unchanged at inherit-parent. No lines were dropped. The rule applies to new sessions, │
+ and re-running /setup-pstack updates it. I skipped the verification skill, as you asked.                              │
+                                                                                                                       │
+                                                                                                                       │
+ No                                                                                                                    │
+                                                                                                                       │
+                                                                                                                       │
+ Thinking...                                                                                                           ┃
+                                                                                                                       ┃
+ Understood. I won't set up a verification skill, and the model rule stays as written. If you meant something else,    ┃
+ tell me what you'd like changed.                                                                                      ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ Reply with exactly one line that starts with MODEL-ID-CHECK and then your model identifier. Do no other work.         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ Thinking...                                                                                                           ┃
+                                                                                                                       ┃
+ MODEL-ID-CHECK I don't know my exact model identifier. I'm Claude, and nothing in my context states the specific      ┃
+ model ID.                                                                                                             ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run (refactor/pi-pstack-parity-again)
+↑20 ↓895 R179k W25k CH99.6% $0.144 (sub) 3.3%/1.0M (auto)               (claude-subscription) claude-sonnet-5-5 • medium

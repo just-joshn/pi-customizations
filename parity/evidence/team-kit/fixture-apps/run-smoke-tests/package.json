@@ -1,0 +1,8 @@
+{
+  "name": "team-kit-run-smoke-tests-fixture",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "smoketest": "node scripts/smoketest.mjs"
+  }
+}

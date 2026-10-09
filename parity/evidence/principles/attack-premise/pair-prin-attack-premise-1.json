@@ -1,0 +1,134 @@
+{
+  "schema": 1,
+  "pairId": "prin-attack-premise-1",
+  "scenarioRef": "prin-attack-premise",
+  "journeyFamily": "journey-family-principles",
+  "requirementIds": [
+    "PSTACK-PRIN-ATTACK-PREMISE-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "/poteto-mode Continue debugging after the second shared-premise failure. NOTES.md and history/ document two fixes that both assumed the same premise and both failed the gate. Make node scripts/verify.mjs print PREMISE-OK. Before another compensatory fix, write the premise down and produce a rerunnable census of which actors hold the imbalance. For any poteto-mode principle you apply before declaring done, read that principle's leaf SKILL.md in full first (not only the poteto-mode Principles index). Work only inside this fixture cwd. Do not edit ledgers, parity/, or files outside this cwd except the named done path. When PREMISE-OK is on disk, write exactly one line to .../attack-premise/fixture-out/<side>/done.txt as verified=yes|no, then stop.",
+  "steps": [
+    {
+      "wait": "ready screen (Tip: on Cursor; Pi chat ready without Trust dialog)"
+    },
+    {
+      "send": "/poteto-mode continue after second shared-premise failure; PREMISE-OK via premise+census; leaf SKILL.md for applied principles; write verified=yes|no"
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "wait": "on-disk evidence/verify-out.txt with PREMISE-OK"
+    },
+    {
+      "wait": "done marker verified=yes"
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "57e687cf-f41b-46bc-a084-493c3a40fc61",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/attack-premise/cursor/57e687cf-f41b-46bc-a084-493c3a40fc61",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "transcript": "/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/agent-transcripts/ecdbecf3-0002-4bf3-8d29-ba3242b5c649/ecdbecf3-0002-4bf3-8d29-ba3242b5c649.jsonl",
+    "proofCopyPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/attack-premise/fixture-out/cursor/evidence/verify-out.txt",
+    "observations": {
+      "potetoMode": true,
+      "leafSkillRead": true,
+      "leafSkillPath": "/Users/josh-desktop/.claude/skills/principle-attack-the-premise/SKILL.md",
+      "premiseWritten": true,
+      "censusScript": true,
+      "noCompensatory": true,
+      "keptVerifyOk": true,
+      "verifyLine": "PREMISE-OK premise=yes census=yes files=actors.js,assign.js,run.js",
+      "censusOut": "alpha=100 beta=0 gamma=0",
+      "productOk": true,
+      "verifiedDone": true,
+      "modelAutoInvoke": false,
+      "contractHeld": true,
+      "ranVerifyScript": true,
+      "modelChrome": "unobserved on ready/settled screen dumps",
+      "oracleNote": "Wrote evidence/premise.txt and scripts/census.mjs. Census shows alpha holds every hot role. PREMISE-OK. No capacity/buffer compensatory files. Did not rewire assign.js."
+    }
+  },
+  "pi": {
+    "attemptId": "4f10f963-4a6b-4535-a836-9a6971c045a9",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/attack-premise/pi/4f10f963-4a6b-4535-a836-9a6971c045a9",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-principles-attack-premise-fixture-app--/2026-10-09T01-01-30-778Z_01a11e2d-f519-71af-a099-ec07c0d3b058.jsonl",
+    "proofCopyPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/attack-premise/fixture-out/pi/evidence/verify-out.txt",
+    "observations": {
+      "potetoMode": true,
+      "leafSkillRead": true,
+      "leafSkillPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-attack-the-premise/SKILL.md",
+      "premiseWritten": true,
+      "censusScript": true,
+      "noCompensatory": true,
+      "keptVerifyOk": true,
+      "verifyLine": "PREMISE-OK premise=yes census=yes files=actors.js,assign.js,run.js",
+      "censusOut": "alpha=10 beta=10 gamma=10",
+      "productOk": true,
+      "verifiedDone": true,
+      "modelAutoInvoke": false,
+      "contractHeld": true,
+      "ranVerifyScript": true,
+      "modelChrome": "(claude-subscription) claude-sonnet-5-5 • medium",
+      "oracleNote": "Session tool order includes read(attack-premise-leaf) and bash(verify.mjs). Premise+census first, then rotated pickLeader. PREMISE-OK. No capacity/buffer files."
+    }
+  },
+  "deltas": [
+    {
+      "topic": "leaf skill path",
+      "cursor": "Read ~/.claude/skills/principle-attack-the-premise/SKILL.md",
+      "pi": "Read extensions/pi-pstack/skills/principle-attack-the-premise/SKILL.md",
+      "reconciled": true
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "unobserved on screen dumps",
+      "pi": "claude-sonnet-5-5 medium via claude-subscription",
+      "reconciled": false
+    },
+    {
+      "topic": "post-census product edit",
+      "cursor": "Left assign.js skewed (census alpha=100). Premise+census only.",
+      "pi": "Rotated pickLeader after premise+census (census even).",
+      "reconciled": true
+    },
+    {
+      "topic": "attack-premise outcome",
+      "cursor": "contractHeld. Leaf Read + premise + census + PREMISE-OK, no compensatory patch.",
+      "pi": "contractHeld. Leaf Read + premise + census + PREMISE-OK, no compensatory patch.",
+      "reconciled": true
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-prin-attack-premise.mjs --both",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "fixtureApp": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/attack-premise/fixture-app",
+    "decisionLog": "parity/evidence/principles/attack-premise/.audit/u-journey-prin-attack-premise.tsv",
+    "notes": "PSTACK-PRIN-ATTACK-PREMISE-001. Dedicated attack-premise/ fixture with two documented shared-premise gate failures. Ledgers untouched. disable-model-invocation true on package leaf copies; modelAutoInvoke false on both."
+  }
+}

@@ -1,0 +1,29 @@
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Type ? in the prompt bar to show in-app hints.
+
+                                                                                                                       
+  [Pasted text #1 +1 lines]                                                                                            
+                                                                                                                       
+
+  I'll follow poteto-mode: open the Feature playbook, read Experience First (and any other principles I apply), then
+  make verify print EXPERIENCE-OK inside this fixture only.
+
+    Explored available MCP tools cursor · TodoWrite
+
+    Reading, globbing 2 files, 1 glob
+    Reading ....claude/skills/poteto-mode/playbooks/feature.md
+    Using principle-experience-first
+    Globbing "**/*" in .
+
+ ⠰⠰ Working  636 tokens
+
+                                                                                                                       
+  → Add a follow-up                                                                                     ctrl+c to stop 
+                                                                                                                       
+
+  Auto                                                                                                  Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/principles/experience-first/fixture-app · 
+  refactor/pi-pstack-parity-again

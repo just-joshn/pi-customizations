@@ -1,0 +1,6 @@
+step	decision	reason
+frame	no arena, no fan-out	small reversible fixture edits
+design	list() keeps returning strings	preserve public store API; add entries()
+design	notes.json path relative to project root via import.meta.url	cwd-independent CLI
+design	seed written on first load with fixed createdAt at creation time	timestamps stable across runs
+verify	node verify.mjs FAIL at baseline, PASS after; reload check passed (gamma persisted)	predicate items 1-4 met

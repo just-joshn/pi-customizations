@@ -1,0 +1,35 @@
+    (eval):1: no matches found: /Users/josh-desktop/.pi/*/models.mdc
+    /Users/josh-desktop/.pi/agent/pstack/models.mdc
+
+  Confirmed grok-4.7-xhigh-fast and claude-opus-5-5-xhigh are entitled. Writing the remapped rule.
+
+    Edited pstack-models.mdc +16 -16
+
+    ▎    4   ---
+    ▎    5   # pstack model configuration. One line per role. Delete a line to fall back to the skill default.
+    ▎    6   # `inherit-parent` or `auto` as a value: the role runs on the parent chat model (omit Task `model`).
+    ▎        Alias entries  ...
+    ▎    7 - # budget: small (medium)
+    ▎    8 - feature, refactoring: grok-4.7-medium-fast
+    ▎    7 + # budget: large (xhigh)
+    ▎    8 + feature, refactoring: grok-4.7-xhigh-fast
+    ▎    9   bug-fix: auto
+    ▎   10 - perf-issue: grok-4.7-medium-fast
+    ▎   11 - hillclimb: grok-4.7-medium-fast
+    ▎   12 - judgment and prose: claude-opus-5-5-medium
+    ▎   13 - hardest tasks: claude-opus-5-5-medium
+    ▎   13  … truncated (25 more lines) · ctrl+r to review
+
+ ⠠⠛ Editing  4.21k tokens
+
+                                                                                                                       
+  → current table. Budget choice: large — xhigh reasoning. The current rule already has real slugs at medium effort    
+    plus bug-fix: auto and how explorer: inherit-parent. Apply effort mapping only: every real slug becomes its xhigh  
+     form (…-xhigh or …-xhigh-fast; panel list entries included). Do not replace real slugs with inherit-parent or     
+    auto. Keep bug-fix as auto and how explorer as inherit-parent exactly. Prefer the full entitled model list (for    
+    example cursor-agent --list-models) when checking availability, not only the short Task subset. Accept that        
+    remapped table and write the rule. Decline any verification skill offer.                                           
+                                                                                                                       
+
+  Auto · 14.2% · 1 file edited                                                                          Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run · refactor/pi-pstack-parity-again

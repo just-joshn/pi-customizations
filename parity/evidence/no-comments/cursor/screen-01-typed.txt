@@ -1,0 +1,17 @@
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Use /config to customize Cursor settings and behavior.
+
+
+
+                                                                                                                       
+  → /no-comments clean the AI slop comments in src/greet.js. Scope is only that file. Work only inside this fixture    
+    cwd. Do not edit ledgers, parity/, or files outside this cwd. When finished, write exactly one line to             
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/no-comments/fixture-out/cursor/done.txt    
+    with delete-count=<n> sicko=<yes|no> catchphrase=<yes|no>, then stop.                                              
+                                                                                                                       
+
+  Auto                                                                                                  Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/no-comments/fixture-app · refactor/pi-pstack-parity-again

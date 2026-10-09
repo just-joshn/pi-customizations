@@ -1,0 +1,36 @@
+{
+  "schema": 2,
+  "pairId": "setup-escape-cancel-2",
+  "pairPath": "parity/evidence/setup-cancel/pair-setup-escape-cancel-2.json",
+  "comparedAt": "2026-10-08T11:10:48.169Z",
+  "ruleUnchanged": {
+    "cursor": true,
+    "pi": true,
+    "bothDigests": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+  },
+  "panelAppearedBeforeEscape": {
+    "cursor": true,
+    "pi": true,
+    "evidence": "screen-01-question-unanswered on both sides shows the Clarifying Questions box"
+  },
+  "panelGoneAfterEscape": {
+    "cursor": true,
+    "pi": true,
+    "evidence": "screen-02-after-escape on both sides shows no panel box"
+  },
+  "cancellationSemantics": {
+    "cursor": "collapsed AskQuestion card labeled 'Questions skipped by user', question blocks unchecked",
+    "pi": "identical collapsed card form, verified by cancel-card-v1",
+    "comparator": "parity/scripts/compare-cancel-card.mjs",
+    "report": "parity/evidence/setup-cancel/card-parity-2.json"
+  },
+  "noWriteAfterCancel": {
+    "match": true,
+    "note": "Forbidden side effect (writing configuration before confirmation) absent on both sides"
+  },
+  "modelAuthoredVariance": {
+    "note": "Question count (cursor 1 vs pi 2), titles, and post-escape chat text are model-authored; classified per the established rubric, not normalized away."
+  },
+  "unexplainedDifferences": 0,
+  "openFindings": []
+}

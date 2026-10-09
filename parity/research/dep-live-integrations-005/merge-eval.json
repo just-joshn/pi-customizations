@@ -1,0 +1,12 @@
+{
+  "at": "2026-10-09T17:33:20.948Z",
+  "dryRun": false,
+  "cursor": "de707056-289d-44b8-85a4-4d400e849815",
+  "pi": "16520327-0d45-4817-a0cd-2f8c1c0e494a",
+  "canClose": false,
+  "counts": {
+    "a_custody_complete": 275,
+    "b_environment_bound": 62,
+    "c_already_evidenced": 79
+  }
+}

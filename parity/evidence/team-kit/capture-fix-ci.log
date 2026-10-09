@@ -1,0 +1,12 @@
+file:///Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/scripts/capture-team-kit-gh-skill.mjs:605
+    throw new Error(`Timed out waiting for failing checks on ${url}. Last:\n${last}`);
+          ^
+
+Error: Timed out waiting for failing checks on https://github.com/just-joshn/team-kit-gh-fixture/pull/6. Last:
+Command failed: gh pr checks 6 --repo just-joshn/team-kit-gh-fixture
+
+    at createFailingPr (file:///Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/scripts/capture-team-kit-gh-skill.mjs:605:11)
+    at async runSide (file:///Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/scripts/capture-team-kit-gh-skill.mjs:617:25)
+    at async file:///Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/scripts/capture-team-kit-gh-skill.mjs:851:20
+
+Node.js v24.21.0

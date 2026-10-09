@@ -1,0 +1,5 @@
+Error: No Cursor IDE installation found. Use 'cursor agent' or 'agent' to run the agent.
+Or, install Cursor at https://cursor.com/download
+Command failed: /Users/josh-desktop/.local/bin/cursor --help
+Error: No Cursor IDE installation found. Use 'cursor agent' or 'agent' to run the agent.
+Or, install Cursor at https://cursor.com/download

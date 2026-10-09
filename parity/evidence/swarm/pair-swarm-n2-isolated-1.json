@@ -1,0 +1,119 @@
+{
+  "schema": 1,
+  "pairId": "swarm-n2-isolated-1",
+  "scenarioRef": "swarm:n2-isolated-writes",
+  "journeyFamily": "journey-family-06-multiworker-designs-reviews",
+  "requirementIds": [
+    "PSTACK-CMD-SWARM-FANOUT-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptTemplate": "/swarm N=2 partition. Worker A must write exactly the single line WORKER-A to <evidence>/fixture-out/<side>/a.txt and nothing else. Worker B must write exactly the single line WORKER-B to <evidence>/fixture-out/<side>/b.txt and nothing else. Neither worker may write the other's path. Parent drains both, then returns one rolled-up PASS/ISSUES/BLOCKED report listing both absolute paths. Do not edit ledgers or product code.",
+  "steps": [
+    { "wait": "ready screen (Tip: on Cursor, first-run chrome on Pi)" },
+    { "send": "/swarm N=2 partition ... isolated a.txt/b.txt paths ..." },
+    { "send": "\r" },
+    { "wait": "fan-out chrome or [skill] swarm" },
+    { "wait": "settled Swarm report PASS with both paths; on-disk WORKER-A and WORKER-B" },
+    { "cancel": true }
+  ],
+  "cursor": {
+    "attemptId": "1aaf5610-1b40-4bc6-b265-6249dca1d6e1",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/swarm/cursor/1aaf5610-1b40-4bc6-b265-6249dca1d6e1",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "writeRoot": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/swarm/fixture-out/cursor",
+    "observations": {
+      "fanOutStarted": true,
+      "todoPhases": ["Frame", "Fan out Worker A and Worker B", "Drain both workers and verify files", "Return rolled-up PASS/ISSUES/BLOCKED report"],
+      "isolatedWritesOk": true,
+      "fileA": "WORKER-A",
+      "fileB": "WORKER-B",
+      "collision": false,
+      "rollupStatus": "PASS",
+      "rollupListedBothPaths": true,
+      "issuesNone": true,
+      "gapsNone": true,
+      "modelChrome": "Auto"
+    },
+    "discardedAttempts": [
+      {
+        "attemptId": "b5707e63-ce83-4947-9ce7-e259b4cb718b",
+        "reason": "Orphan attempt dir under evidence/swarm/cursor with events but not the linked pair screens or fixture-out used for this pair. Linked attempt is 1aaf5610-1b40-4bc6-b265-6249dca1d6e1."
+      }
+    ]
+  },
+  "pi": {
+    "attemptId": "408c6db6-2522-4fec-99f9-e76911bb21cf",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/swarm/pi/408c6db6-2522-4fec-99f9-e76911bb21cf",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-fixtures-first-run--/2026-10-08T18-58-43-663Z_01a11ce1-d14e-744c-be30-3552428f62a0.jsonl",
+    "writeRoot": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/swarm/fixture-out/pi",
+    "observations": {
+      "skillBlock": true,
+      "fanOutStarted": true,
+      "isolatedWritesOk": true,
+      "fileA": "WORKER-A",
+      "fileB": "WORKER-B",
+      "collision": false,
+      "rollupStatus": "PASS (2 of 2 slices)",
+      "rollupListedBothPaths": true,
+      "issuesNone": true,
+      "gapsNone": true,
+      "workersLocalNotRemote": true,
+      "parentSaidDidNotRecatDirectory": true,
+      "lateWorkerIdleNotification": true,
+      "modelChrome": "(claude-subscription) claude-sonnet-5-5 • medium"
+    }
+  },
+  "deltas": [
+    {
+      "topic": "swarm skill chrome",
+      "cursor": "Used swarm via todo phases Frame/Fan out/Drain/Report; no [skill] swarm block on settled screen.",
+      "pi": "[skill] swarm (ctrl+o to expand) on mid screen; settled screen is the rollup table.",
+      "reconciled": false
+    },
+    {
+      "topic": "worker environment",
+      "cursor": "Status chrome Auto. Fan-out via Cursor Task/subagent path (todo Fan out Worker A and Worker B).",
+      "pi": "Parent reported both workers ran locally on the parent model (inherit-parent). No remote executor. Status chrome claude-sonnet-5-5 medium.",
+      "reconciled": false
+    },
+    {
+      "topic": "isolation proof on screen",
+      "cursor": "Settled screen showed ls of a.txt/b.txt then PASS table with WORKER-A\\n / WORKER-B\\n evidence.",
+      "pi": "PASS table with cat -A WORKER-A$ / WORKER-B$. Parent prose said it did not re-check the directory itself; on-disk files still match.",
+      "reconciled": false
+    },
+    {
+      "topic": "drain completion UX",
+      "cursor": "Todos flipped to All done before follow-up prompt.",
+      "pi": "Rollup printed, then a late system_notification that worker-a finished; parent restated the swarm was already done.",
+      "reconciled": false
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-swarm-fanout.mjs --cursor-only then --pi-only",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "packagePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack",
+    "decisionLog": ".audit/u-journey-family-06.tsv"
+  }
+}

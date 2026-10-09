@@ -1,0 +1,40 @@
+ - Shipped BETA polish (8bba16d, 2026-10-08) refining the delivered work.                                              │
+                                                                                                                       │
+ ## Classification                                                                                                     │
+ Based on commit messages only: no clear bug fixes or tech debt work; ALPHA is the net-new functionality, and BETA     │
+ polish is a light incremental refinement.                                                                             │
+ E                                                                                                                     │
+ echo 'STATUS=verified reason=summary written from 2 authored commits' > $o/done.txt (timeout 20s)                     │
+                                                                                                                       │
+ ... (3 earlier lines, ctrl+o to expand)                                                                               │
+  1 file changed, 1 insertion(+)                                                                                       │
+ ship BETA polish                                                                                                      │
+                                                                                                                       │
+  beta.txt | 1 +                                                                                                       │
+  1 file changed, 1 insertion(+)                                                                                       │
+                                                                                                                       │
+ Took 0.0s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ I wrote the weekly recap and the status line. I based the recap on the two commits by worker@example.com in the last  │
+ 10 days; neither is a merge commit.                                                                                   │
+                                                                                                                       ┃
+ - ALPHA: commit c3ab73c on 2026-10-07 shipped the ALPHA feature, adding alpha.txt.                                    ┃
+ - BETA: commit 8bba16d on 2026-10-08 shipped BETA polish, adding beta.txt.                                            ┃
+                                                                                                                       ┃
+ The classification paragraph says there are no clear bug fixes or tech debt items. It treats ALPHA as net-new         ┃
+ functionality and BETA as a light incremental refinement. That rests on commit messages and the diffs, which are      ┃
+ one-line additions to a single file each.                                                                             ┃
+                                                                                                                       ┃
+ The status line reads STATUS=verified reason=summary written from 2 authored commits.                                 ┃
+                                                                                                                       ┃
+ Files are in                                                                                                          ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/weekly-review:        ┃
+ - summary.md                                                                                                          ┃
+ - done.txt                                                                                                            ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/weekly-review (main)
+↑8 ↓888 R59k W18k CH98.3% $0.092 (sub) 2.6%/1.0M (auto)                 (claude-subscription) claude-sonnet-5-5 • medium

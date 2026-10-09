@@ -1,0 +1,39 @@
+    11
+    no secret-looking values
+
+  The copies parse, their keys match the example exactly, and the example files are unchanged. Now I'll write the
+  status line.
+
+    Edited done.txt +1
+
+    ▎    1 + STATUS=adapt-mismatch reason=fixture has no user-facing features for feature map
+
+  The adapt step is done, and I wrote STATUS=adapt-mismatch to done.txt. The fixture has no user-facing features, so
+  the feature map has nothing to cover.
+
+  User-owned copies are in fixture-app/.cursor/benny/:
+  • configuration.yaml: adapted from the template. It parses, and its keys match the example exactly. Every value
+    is a public placeholder, and a scan found no secret-looking values.
+  • feature-map.md: created with no feature sections, because src/app.js is a single pure greet() function with no
+    screens or controls. The repro automation needs a real feature map before it can be enabled.
+  • routing.md: empty routes, empty fallback, owner pings off.
+
+  Still placeholders, to fill in before enabling either automation:
+  • Slack channel and triage identity IDs
+  • Tracker adapter, team, project, labels, and status
+  • Control skill and environment
+  • All four model slugs, which I did not guess
+
+  The pack copy under .cursor/automations/benny/ was not modified, and the example files match upstream. The
+  destination README.md still has a local edit and the destination-only DESTINATION_ONLY.md is still present, and I
+  left both alone. I did not create or update any automation, touch parity ledgers, or edit src/app.js.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Claude Haiku 5.5 300K High · 20% · 4 files edited                                                     Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/user-config-outside/fixture-app · 
+  refactor/pi-pstack-parity-again

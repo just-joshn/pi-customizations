@@ -1,0 +1,131 @@
+{
+  "schema": 1,
+  "pairId": "typescript-paths-2",
+  "scenarioRef": "cmd-typescript-paths",
+  "journeyFamily": "journey-family-05-playbook-complete-journeys",
+  "requirementIds": [
+    "PSTACK-CMD-TYPESCRIPT-PATHS-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "/typescript-best-practices brand UserId in src/id.ts and tighten src/Badge.tsx plus side-specific done.txt path",
+  "steps": [
+    { "send": "/typescript-best-practices brand UserId in src/id.ts ..." },
+    { "send": "\r" },
+    { "settle": true },
+    { "cancel": true }
+  ],
+  "cursor": {
+    "attemptId": "b7688706-b64f-4a12-a61c-fd09c78a2722",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/typescript/cursor/b7688706-b64f-4a12-a61c-fd09c78a2722",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "observations": {
+      "typescriptSkill": true,
+      "skillSource": "slash /typescript-best-practices via plugin-dir pstack skill (screen-01-typed and screen-02-submitted retain the slash)",
+      "skillFilePath": "parity/reference/cursor-plugins/pstack/skills/typescript-best-practices/SKILL.md",
+      "skillDigest": "28f9e61710e205f6f3c5476f333483cff0e988f6a5b639e2faad536344b40c5e",
+      "matchesLockedDigest": true,
+      "pathsField": "[\"**/*.ts\", \"**/*.tsx\"]",
+      "pathsOk": true,
+      "disableModelInvocation": true,
+      "typeSystemDisciplineFirst": true,
+      "firstBodyLine": "Apply the **type-system-discipline** principle skill first.",
+      "contractOk": true,
+      "firstEditAt": "2026-10-08T21:44:45.350Z",
+      "editedPaths": ["src/id.ts", "src/Badge.tsx"],
+      "doneMarkerWritten": true,
+      "doneLine": "src/id.ts src/Badge.tsx",
+      "reusedFromPair": "typescript-paths-1",
+      "reuseReason": "fixture digest unchanged; Cursor skill digest unchanged"
+    }
+  },
+  "pi": {
+    "attemptId": "3ab0995e-f5c8-4ce3-a1e3-55e86e66a8f3",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/typescript/pi/3ab0995e-f5c8-4ce3-a1e3-55e86e66a8f3",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-typescript-fixture-app--/2026-10-08T21-51-07-152Z_01a11d7f-a58f-7449-9e94-b9eab8662daf.jsonl",
+    "observations": {
+      "typescriptSkill": true,
+      "skillSource": "extensions/pi-pstack/skills/typescript-best-practices/SKILL.md (screen-02-submitted [skill] typescript-best-practices; session user message skill block)",
+      "skillFilePath": "extensions/pi-pstack/skills/typescript-best-practices/SKILL.md",
+      "skillDigest": "28f9e61710e205f6f3c5476f333483cff0e988f6a5b639e2faad536344b40c5e",
+      "matchesLockedDigest": true,
+      "pathsField": "[\"**/*.ts\", \"**/*.tsx\"]",
+      "pathsOk": true,
+      "disableModelInvocation": true,
+      "typeSystemDisciplineFirst": true,
+      "firstBodyLine": "Apply the **type-system-discipline** principle skill first.",
+      "contractOk": true,
+      "hostPathsSubstitute": "pstack_host rule in session system message still requires reading the package typescript-best-practices SKILL.md before editing .ts/.tsx because Pi has no file-path skill trigger. This is complementary host behavior, not a substitute for the frontmatter paths field now present on disk.",
+      "upstreamSkillHasPaths": true,
+      "upstreamSkillPath": "extensions/pi-pstack/upstream/skills/typescript-best-practices/SKILL.md",
+      "firstEditAt": "2026-10-08T21:51:15.538Z",
+      "editedPaths": ["src/id.ts", "src/Badge.tsx"],
+      "doneMarkerWritten": true,
+      "doneLine": "src/id.ts, src/Badge.tsx"
+    }
+  },
+  "deltas": [
+    {
+      "topic": "paths frontmatter",
+      "cursor": "Locked skill digests 28f9e617… and declares paths [\"**/*.ts\", \"**/*.tsx\"].",
+      "pi": "Shipped package skill digests 28f9e617… and declares the same paths line. Generator retains paths metadata; host read-before-edit rule remains as Pi runtime adaptation.",
+      "reconciled": true
+    },
+    {
+      "topic": "disable-model-invocation",
+      "cursor": "Frontmatter disable-model-invocation: true on locked skill file.",
+      "pi": "Frontmatter disable-model-invocation: true on package skill file. Session skill block injects body without YAML frontmatter.",
+      "reconciled": true
+    },
+    {
+      "topic": "type-system-discipline first",
+      "cursor": "First body line after H1 is Apply the **type-system-discipline** principle skill first.",
+      "pi": "Same first body line on package skill and in the session-injected skill block.",
+      "reconciled": true
+    },
+    {
+      "topic": "skill activation chrome",
+      "cursor": "Keeps /typescript-best-practices with the full prompt on typed/submitted screens.",
+      "pi": "Shows [skill] typescript-best-practices; residual prompt starts with brand UserId...",
+      "reconciled": true
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "Auto",
+      "pi": "claude-sonnet-5-5 • medium (claude-subscription)",
+      "reconciled": false
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-typescript-paths.mjs --pi-only after generator fix; Cursor reused from typescript-paths-1",
+    "workerPlaybook": "parity/evidence/typescript/PLAYBOOK.md",
+    "decisionTrail": "parity/evidence/typescript/.audit/u-journey-cmd-typescript.tsv",
+    "gateBrief": "parity/briefs/u-typescript-paths-gate.md",
+    "gateReport": "parity/briefs/reports/u-typescript-paths-gate-report.md",
+    "priorFailPair": "parity/evidence/typescript/pair-typescript-paths-1.json",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "packagePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack",
+    "markerRoot": "parity/evidence/typescript/fixture-out/{cursor,pi}/",
+    "heldOutFixture": "parity/evidence/typescript/fixture-app (src/id.ts + src/Badge.tsx)"
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "capturedAt": "2026-10-09T03:39:39Z",
+  "unit": "u-dep-host-edges-terminal-001",
+  "mdfindComputerUse": {
+    "command": [
+      "mdfind",
+      "kMDItemCFBundleIdentifier == \"co.anysphere.cursor-computer-use\""
+    ],
+    "exitCode": 0,
+    "stdout": "",
+    "stderr": "",
+    "matchesFound": false
+  },
+  "mdfindAgentHelper": {
+    "command": [
+      "mdfind",
+      "kMDItemCFBundleIdentifier == \"co.anysphere.cursor.agent-helper\""
+    ],
+    "exitCode": 0,
+    "stdout": "",
+    "stderr": "",
+    "matchesFound": false
+  },
+  "homeHelperDir": {
+    "path": "/Users/josh-desktop/.cursor/cursor-computer-use",
+    "exists": false
+  },
+  "applicationsHelper": {
+    "path": "/Applications/Cursor Computer Use.app",
+    "exists": false
+  },
+  "liveExerciseAttempted": false,
+  "liveExerciseAttemptIds": []
+}

@@ -1,0 +1,124 @@
+{
+  "schema": 1,
+  "pairId": "tdd-explicit-gate-1",
+  "scenarioRef": "cmd-tdd-explicit-gate",
+  "journeyFamily": "journey-family-05-playbook-complete-journeys",
+  "requirementIds": [
+    "PSTACK-CMD-TDD-EXPLICIT-GATE-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "/tdd focused failing regression for clamp upper-bound bug plus side-specific done.txt path",
+  "steps": [
+    { "send": "/tdd write a focused failing regression test for the upper-bound bug in src/clamp.js ..." },
+    { "send": "\r" },
+    { "settle": true },
+    { "cancel": true }
+  ],
+  "cursor": {
+    "attemptId": "168c3046-79db-4405-b8d3-1f6385608d65",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/tdd/cursor/168c3046-79db-4405-b8d3-1f6385608d65",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "observations": {
+      "tddSkill": true,
+      "firstTestAt": "2026-10-08T19:32:32.749Z",
+      "firstProductAt": "2026-10-08T19:33:02.379Z",
+      "testPaths": ["test/clamp.test.js"],
+      "productPaths": ["src/clamp.js"],
+      "ordering": "test_before_product",
+      "testBeforeProduct": true,
+      "redRunBeforeProduct": true,
+      "redBeforeGreen": true,
+      "redEvidence": "PTY output showed 'Red confirmed (10 !== 5). Fixing production code next.' before Editing clamp.js; FS poll kept test-only for ~30s before src/clamp.js digest changed",
+      "doneMarkerWritten": true,
+      "doneLine": "test/clamp.test.js: AssertionError 10 !== 5"
+    }
+  },
+  "pi": {
+    "attemptId": "852f2c23-5efc-43ba-b2ea-d8b4f9ee5670",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/tdd/pi/852f2c23-5efc-43ba-b2ea-d8b4f9ee5670",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-tdd-fixture-app--/2026-10-08T19-34-30-951Z_01a11d02-9526-721e-a729-8d202f69ff5e.jsonl",
+    "observations": {
+      "tddSkill": true,
+      "skillSource": "~/.agents/skills/tdd/SKILL.md (package skill skipped on name collision)",
+      "firstTestAt": "2026-10-08T19:34:37.357Z",
+      "firstProductAt": "2026-10-08T19:34:39.873Z",
+      "testPaths": ["test/clamp.test.js"],
+      "productPaths": ["src/clamp.js"],
+      "ordering": "test_before_product",
+      "testBeforeProduct": true,
+      "redRunBeforeProduct": true,
+      "redBeforeGreen": true,
+      "sessionToolOrder": [
+        "bash: inspect clamp.js + package.json",
+        "bash: write test/clamp.test.js then node --test (RED: 10 !== 5)",
+        "bash: write fixed src/clamp.js then node --test (GREEN: pass 1) then done.txt at wrong relative path"
+      ],
+      "doneMarkerWritten": true,
+      "donePathExpected": "parity/evidence/tdd/fixture-out/pi/done.txt",
+      "donePathActual": "parity/evidence/fixture-out/pi/done.txt",
+      "doneLine": "test/clamp.test.js failed red with AssertionError 10 !== 5 (actual: 10, expected: 5) for clamp(10, 0, 5)"
+    }
+  },
+  "deltas": [
+    {
+      "topic": "red test before product change",
+      "cursor": "FS poll firstTestAt 19:32:32Z, firstProductAt 19:33:02Z. PTY showed Red confirmed (10 !== 5) before Editing clamp.js.",
+      "pi": "FS poll firstTestAt 19:34:37Z, firstProductAt 19:34:39Z. Session bash wrote+ran failing test (10 !== 5) before the bash that rewrote src/clamp.js.",
+      "reconciled": true
+    },
+    {
+      "topic": "done.txt path",
+      "cursor": "Wrote the prompted absolute path under parity/evidence/tdd/fixture-out/cursor/done.txt.",
+      "pi": "Used relative ../../fixture-out/pi from fixture-app, landing at parity/evidence/fixture-out/pi/done.txt instead of the prompted tdd/fixture-out/pi path.",
+      "reconciled": false
+    },
+    {
+      "topic": "tdd skill source",
+      "cursor": "Slash /tdd via plugin-dir pstack skill.",
+      "pi": "Screen reported tdd collision; auto-selected ~/.agents/skills/tdd/SKILL.md and skipped the package skill under extensions/pi-pstack/skills/tdd.",
+      "reconciled": false
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "Auto",
+      "pi": "claude-sonnet-5-5 • medium (claude-subscription)",
+      "reconciled": false
+    },
+    {
+      "topic": "slash residual",
+      "cursor": "Keeps /tdd visible with the full prompt.",
+      "pi": "Shows [skill] tdd; residual prompt starts with write a focused failing regression test...",
+      "reconciled": true
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-tdd-explicit-gate.mjs --cursor-only then --pi-only",
+    "workerPlaybook": "parity/evidence/tdd/PLAYBOOK.md",
+    "decisionTrail": "parity/evidence/tdd/.audit/u-journey-cmd-tdd.tsv",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "packagePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack",
+    "markerRoot": "parity/evidence/tdd/fixture-out/{cursor,pi}/",
+    "heldOutFixture": "parity/evidence/tdd/fixture-app (buggy src/clamp.js, empty test/)"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "attemptId": "e49fe741-2634-4f95-999c-32ab5643da9b",
+  "mode": "open-benny-triage-from-list",
+  "saved": false,
+  "activated": false,
+  "slack": false,
+  "listHasBennyTriage": false,
+  "listHasInactive": false,
+  "axHits": [],
+  "clicked": false,
+  "editorChromeByOcr": false,
+  "draftNameInEditor": false,
+  "ocrMarks": {
+    "hasInactive": false,
+    "hasAddTrigger": false,
+    "hasAgentInstructions": false,
+    "hasUntitled": false,
+    "hasSave": true
+  },
+  "didNot": [
+    "press Save",
+    "Activate",
+    "Slack",
+    "ledger edits"
+  ],
+  "evidenceDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/creation-boundary/agents-window/e49fe741-2634-4f95-999c-32ab5643da9b"
+}

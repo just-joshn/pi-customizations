@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "cmd-poteto-playbook-todo",
+  "status": "executed-pass-paired",
+  "requirements": [
+    "PSTACK-CMD-POTETO-PLAYBOOK-TODO-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/poteto-mode/SKILL.md#poteto-mode Playbooks section requires matching a playbook and copying steps into a todolist",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "inc.js off-by-one fixture for poteto-mode Bug fix playbook todos",
+    "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Begin executing the user task under poteto-mode.. The agent matches a playbook, opens its file, and opens a todolist whose first items are that playbook's steps copied verbatim, with skipped steps marked skip and a reason."
+    }
+  ],
+  "execution": {
+    "referenceRun": "ff0f431a-1d09-40e2-b395-16a031182476",
+    "candidateRun": "6954317a-4e7e-42d9-b6ca-1c4a1651531a",
+    "pairId": "poteto-playbook-todo-2",
+    "pairPath": "parity/evidence/poteto-playbook/pair-poteto-playbook-todo-2.json",
+    "verdict": "pass-paired",
+    "closedAt": "2026-10-08T20:05:00Z",
+    "commit": "10a5c630fe9de01123b3ef46920c24a61d0f6797"
+  }
+}

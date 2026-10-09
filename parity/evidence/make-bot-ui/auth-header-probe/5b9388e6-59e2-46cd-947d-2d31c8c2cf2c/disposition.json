@@ -1,0 +1,25 @@
+{
+  "attemptId": "5b9388e6-59e2-46cd-947d-2d31c8c2cf2c",
+  "draftName": "parity-webhook-witness",
+  "profile": "auth-header-probe",
+  "savedByHarness": false,
+  "activatedByHarness": false,
+  "generateAuthHeaderClicked": false,
+  "keyStoredServerSide": false,
+  "secretPathOwned": "/Users/josh-desktop/.local/share/pi-pstack-parity/make-bot-auth-header-probe-001/5b9388e6-59e2-46cd-947d-2d31c8c2cf2c.json",
+  "secretMode": null,
+  "webhookUrlHost": null,
+  "probe": null,
+  "cursorOutcome": "host_blocked",
+  "blocker": "editor_not_open_from_list_row",
+  "updateStateUsed": false,
+  "senderKeyInChatOrEvidence": false,
+  "evidenceDir": "parity/evidence/make-bot-ui/auth-header-probe/5b9388e6-59e2-46cd-947d-2d31c8c2cf2c",
+  "draftRowClick": {
+    "draftHits": 2,
+    "clicked": true,
+    "elementIndex": "258",
+    "via": "index"
+  },
+  "editorOpen": false
+}

@@ -1,0 +1,40 @@
+  "pr-review-canvas" collision:                                                                                        │
+    ✓ auto (project)                                                                                                   │
+~/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh/.pi/skills/pr-review-canvas/SKILL.md                 │
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/pr-review-canvas/SKILL.md (skipped)            │
+  "review-and-ship" collision:                                                                                         │
+    ✓ auto (project)                                                                                                   │
+~/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh/.pi/skills/review-and-ship/SKILL.md                  │
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/review-and-ship/SKILL.md (skipped)             │
+  "tdd" collision:                                                                                                     │
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ [skill] review-and-ship (ctrl+o to expand)                                                                            ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ Do not ask questions. Follow the review-and-ship skill. From main, create branch fixture/review-ship-pi-mv0ectuf,     ┃
+ append one README.md line mentioning REVIEW_SHIP_pi, commit, push, open a PR into main, and write findings plus the   ┃
+ PR URL to                                                                                                             ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/review-and-ship/ship- ┃
+ notes.md. Include marker FIXTURE_SHIP in                                                                              ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/review-and-ship/ship- ┃
+ notes.md. Then write exactly one line to                                                                              ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/review-and-ship/done. ┃
+ txt as STATUS=verified|not-verified|inconclusive|env-blocked reason=<short phrase> and stop. Artifacts stay under     ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/review-and-ship. Do   ┃
+ not edit parity ledgers. Do not force-push.                                                                           ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ $ cd /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh && git status --short |      ┃
+ head; git branch --show-current; git remote -v; ls                                                                    ┃
+                                                                                                                       ┃
+
+── ⠧ Working ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh (main)
+$0.000 (sub) 1.7%/1.0M (auto)                                           (claude-subscription) claude-sonnet-5-5 • medium

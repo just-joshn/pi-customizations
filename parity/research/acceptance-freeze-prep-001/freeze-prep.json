@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "decision": "BLOCKED",
+  "checkedAt": "2026-10-08T17:55:00Z",
+  "checkoutRevision": "1a7b0f7e7323650378e9509f1b000b988f65e930",
+  "candidate": {
+    "status": "DRAFT",
+    "owner": null,
+    "definitionBytesPath": null,
+    "configurationBytesPath": null,
+    "recordedDefinitionSha256": "e4e84566a31803388d70e977f7a2bf4e7d53afe0c931543f877328e860805cb4",
+    "recordedConfigurationSha256": "3755a29140cdbf700f01eadd5e268b3abc459152c619bd0037bfe70cc355a80f",
+    "recordedManifestSha256": "bfad0bc07db47217dc543841a0d6d069673df6af761a3984a6b9f58a01f25ef2",
+    "definitionCount": 43,
+    "configurationCellCount": 92,
+    "denominatorComplete": false
+  },
+  "custodyChecklist": [
+    {
+      "id": "recorded-definition-hash-consistent",
+      "pass": true,
+      "evidence": [
+        "parity/reviews/acceptance-owner-report.md",
+        "parity/reviews/acceptance-repair-parent-audit.md",
+        "parity/evidence/acceptance-repair-structural.json"
+      ]
+    },
+    {
+      "id": "recorded-configuration-hash-consistent",
+      "pass": true,
+      "evidence": [
+        "parity/reviews/acceptance-owner-report.md",
+        "parity/reviews/acceptance-repair-parent-audit.md"
+      ]
+    },
+    {
+      "id": "exact-candidate-bytes-present-in-checkout",
+      "pass": false,
+      "evidence": [
+        "parity/acceptance/setup-pstack/definitions.json is absent",
+        "parity/acceptance/setup-pstack/configurations.json is absent"
+      ]
+    },
+    {
+      "id": "independent-owner-named",
+      "pass": false,
+      "evidence": [
+        "parity/requirements.json acceptanceDefinitionOwner is null",
+        "parity/configurations.json acceptanceDefinitionOwner is null"
+      ]
+    },
+    {
+      "id": "external-custody-established",
+      "pass": false,
+      "evidence": [
+        "parity/reviews/acceptance-custody-triage.md",
+        "parity/evidence/acceptance-repair-structural.json blocker NO_EXTERNAL_CUSTODY"
+      ]
+    },
+    {
+      "id": "authorization-granted",
+      "pass": false,
+      "evidence": [
+        "parity/evidence/acceptance-repair-structural.json authorization NONE"
+      ]
+    },
+    {
+      "id": "coverage-denominator-complete",
+      "pass": false,
+      "evidence": [
+        "parity/requirements.json coverageDenominatorComplete is false",
+        "parity/evidence/acceptance-repair-structural.json denominatorComplete is false"
+      ]
+    },
+    {
+      "id": "supporting-verifier-safe-for-custody",
+      "pass": false,
+      "evidence": [
+        "parity/reviews/acceptance-repair-independent-triage.md",
+        "parity/reviews/acceptance-symlink-parent-reproduction.md"
+      ]
+    }
+  ],
+  "evidenceSha256": {
+    "parity/reviews/acceptance-owner-report.md": "122b3b85309642289a1bd8696f395bffb1489206ed347c270402d37dd4cbb1ca",
+    "parity/reviews/acceptance-repair-parent-audit.md": "e388ebf74245234228cb2fa52872c746ceb806449ab9c34a8992613a504934e0",
+    "parity/evidence/acceptance-repair-structural.json": "f4116350c970c66055c30b154ba72d93654c376434b4312c4feffcb731405d18"
+  }
+}

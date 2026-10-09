@@ -1,0 +1,138 @@
+{
+  "score": {
+    "frontmatterOk": true,
+    "leafSkillRead": true,
+    "usedChrome": true,
+    "modelAutoInvoke": false,
+    "ranVerifyScript": true,
+    "structuredDomain": true,
+    "scatteredOnly": false,
+    "keptVerifyOk": true,
+    "productOk": true,
+    "verifiedDone": true,
+    "contractHeld": true,
+    "screen": {
+      "potetoMode": false,
+      "leafChrome": false,
+      "hostAttached": false,
+      "verifyMention": true,
+      "working": false
+    },
+    "pty": {
+      "potetoMode": true,
+      "leafChrome": false,
+      "hostAttached": true,
+      "verifyMention": true,
+      "working": true
+    }
+  },
+  "firstProductAt": "2026-10-09T00:53:36.394Z",
+  "firstVerifyAt": "2026-10-09T00:53:38.800Z",
+  "productPaths": [
+    "src/ticket.js"
+  ],
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/model-domain/fixture-out/cursor/done.txt",
+    "line": "verified=yes"
+  },
+  "verifyOut": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/model-domain/fixture-app/evidence/verify-out.txt",
+    "line": "DOMAIN-OK hold=held-label close-held=rejected release=open",
+    "ok": true
+  },
+  "productOk": true,
+  "productAnalysis": {
+    "hasHeldApi": true,
+    "hasStatusField": true,
+    "hasRegistry": false,
+    "hasLookupTable": false,
+    "hasReducer": false,
+    "structuredDomain": true,
+    "syncedBooleans": false,
+    "scatteredOnly": false
+  },
+  "frontmatter": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/principle-model-the-domain/SKILL.md",
+    "ok": true,
+    "name": "principle-model-the-domain",
+    "disableModelInvocation": true
+  },
+  "session": null,
+  "transcript": {
+    "path": "/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/agent-transcripts/a8bc32f6-6f14-48ee-82d6-d91f1e9e0d79/a8bc32f6-6f14-48ee-82d6-d91f1e9e0d79.jsonl",
+    "leafSkillRead": true,
+    "leafSkillReadAt": "2026-10-09T00:55:00.246Z",
+    "ranVerifyScript": true,
+    "firstVerifyAt": "2026-10-09T00:55:00.246Z",
+    "firstProductWriteAt": null,
+    "toolOrder": [
+      "GetDynamicTools",
+      "Read",
+      "Read(model-domain-leaf)",
+      "Glob",
+      "blob-mention(model-domain-leaf)",
+      "CallDynamicTool",
+      "Read",
+      "Read(verify.mjs)",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "GetDynamicTools",
+      "Read",
+      "Read",
+      "CallDynamicTool(verify.mjs)",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "CallDynamicTool",
+      "Shell(verify.mjs)",
+      "CallDynamicTool(verify.mjs)",
+      "CallDynamicTool(verify.mjs)",
+      "CallDynamicTool(verify.mjs)",
+      "CallDynamicTool",
+      "Shell",
+      "Shell",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "CallDynamicTool",
+      "CallDynamicTool",
+      "CallDynamicTool(verify.mjs)",
+      "Read",
+      "Read",
+      "Shell",
+      "CallDynamicTool",
+      "Read",
+      "Shell(verify.mjs)",
+      "Read",
+      "Shell",
+      "CallDynamicTool(verify.mjs)"
+    ],
+    "mtimeMs": 1791507275524.549
+  },
+  "pollSamples": 202,
+  "screenFinal": {
+    "potetoMode": false,
+    "leafChrome": false,
+    "hostAttached": false,
+    "verifyMention": true,
+    "working": false
+  },
+  "pty": {
+    "potetoMode": true,
+    "leafChrome": false,
+    "hostAttached": true,
+    "verifyMention": true,
+    "working": true
+  }
+}

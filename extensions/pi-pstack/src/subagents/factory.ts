@@ -4,6 +4,7 @@ import type { Model } from '@earendil-works/pi-ai';
 import { type ExtensionAPI, type ExtensionContext, getAgentDir } from '@earendil-works/pi-coding-agent';
 import type { AgentDefinition } from './agent-definition.ts';
 import type { AgentNode } from './agent-node.ts';
+import { personaTaskAgents } from '../persona-agents.ts';
 import { type AgentGates, offeredAgents, type RegistryInputs, resolveAgentType } from './agent-registry.ts';
 import type { ChildContextEntry } from './child-session.ts';
 import { parsePatterns } from './content-exclusion.ts';
@@ -89,7 +90,12 @@ export class SubagentFactory {
   registryInputs(ctx: ExtensionContext, settings: ReferenceSettings): RegistryInputs {
     const found = this.discovery.get({ cwd: ctx.cwd, agentDir: getAgentDir() });
     for (const message of found.diagnostics) this.deps.log(message);
-    return { custom: found.agents, policy: {}, disabled: settings.subagents.disabledSubagents, gates: this.gates(settings) };
+    return {
+      custom: [...personaTaskAgents(), ...found.agents],
+      policy: {},
+      disabled: settings.subagents.disabledSubagents,
+      gates: this.gates(settings),
+    };
   }
 
   offered(ctx: ExtensionContext): readonly AgentDefinition[] {

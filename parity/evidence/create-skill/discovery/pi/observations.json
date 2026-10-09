@@ -1,0 +1,53 @@
+{
+  "screenFinal": {
+    "createSkillMention": true,
+    "skillPathMention": false,
+    "markerMention": false,
+    "askMention": true,
+    "envBlocked": false,
+    "working": false
+  },
+  "pty": {
+    "createSkillMention": true,
+    "skillPathMention": false,
+    "markerMention": false,
+    "askMention": true,
+    "envBlocked": true,
+    "working": true
+  },
+  "artifact": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-out/discovery/pi/requirements.md",
+    "text": "# Requirements (Phase 1 Discovery)\n\n## Purpose\nTrivial no-op/echo workflow skill, used only to exercise create-skill in a probe.\n\n## Location\nProject skill: .pi/skills/<skill-name>/ in this repo.\n\n## Triggers\nExplicit only; set `disable-model-invocation: true` (no ambient auto-invoke).\n\n## Constraints\nMinimal; single SKILL.md, no scripts or extra files. No verbatim user text supplied.\n\n## Patterns\nNone required; no existing conventions to follow.\n",
+    "byteLength": 451,
+    "sha256": "sha256:e78211ca5dcdb22f992bd2199c9a75a61743eac2e67a06ed60c5af64416fd3e4",
+    "ok": true
+  },
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-out/discovery/pi/done.txt",
+    "line": "STATUS=discovered reason=answers collected via AskQuestion",
+    "status": "discovered"
+  },
+  "skill": {
+    "exists": false,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-app/.pi/skills/parity-create-skill-probe/SKILL.md",
+    "nameOk": false,
+    "hasMarker": false,
+    "byteLength": 0,
+    "sha256": null,
+    "ok": false
+  },
+  "discoveryAnswersSent": false,
+  "verifyTriggerSent": false,
+  "askUiDrives": 0,
+  "score": {
+    "artifactOk": true,
+    "createPath": true,
+    "envBlocked": false,
+    "doneStatus": "discovered",
+    "wroteSkill": false,
+    "phaseClosed": true,
+    "honestBlocker": false
+  }
+}

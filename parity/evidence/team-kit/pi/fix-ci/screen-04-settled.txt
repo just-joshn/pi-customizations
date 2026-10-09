@@ -1,0 +1,40 @@
+ $ perl -pi -e 's/VALUE: 0/VALUE: 7/' hello.js && npm test 2>&1 | tail -1 && git add hello.js && git commit -qm "Fix   │
+ VALUE so npm test passes" && git push -q 2>&1; sleep 60; gh pr checks 8 --json name,bucket,state 2>&1 (timeout 150s)  │
+                                                                                                                       │
+ ok fixture-alpha                                                                                                      │
+ [{"bucket":"pass","name":"test","state":"SUCCESS"},{"bucket":"pass","name":"test","state":"SUCCESS"}]                 │
+                                                                                                                       │
+ Took 1m 2s                                                                                                            │
+                                                                                                                       │
+                                                                                                                       │
+                                                                                                                       │
+ $ d=/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/fix-ci; mkdir -p  │
+ $d                                                                                                                    │
+ cat > $d/ci-fix-notes.md <<'E'                                                                                        │
+ # FIXTURE_CI_FIX                                                                                                      │
+ Failing job: test (workflow ci), `npm test` exit 1.                                                                   │
+ Iteration 1: root cause hello.js VALUE was 0, test requires 7. Changed to 7, pushed (normal push).                    │
+ Result: gh pr checks 8 -> both `test` checks pass.                                                                    │
+ E                                                                                                                     │
+ echo "STATUS=verified reason=gh pr checks all pass after VALUE fix" > $d/done.txt (timeout 10s)                       │
+                                                                                                                       │
+ (no output)                                                                                                           │
+                                                                                                                       │
+ Took 0.0s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       ┃
+ CI is green. I changed VALUE in hello.js from 0 to 7, because the failing test job (workflow ci) runs npm test, which ┃
+ exits 1 unless VALUE is 7.                                                                                            ┃
+                                                                                                                       ┃
+ I committed and pushed to the PR branch with a normal push. npm test passes locally, and gh pr checks 8 now shows     ┃
+ both test checks passing.                                                                                             ┃
+                                                                                                                       ┃
+ The iteration notes, with the FIXTURE_CI_FIX marker and the failing job name, are in ci-fix-notes.md. done.txt says   ┃
+ STATUS=verified reason=gh pr checks all pass after VALUE fix. Both files are under                                    ┃
+ parity/evidence/team-kit/fixture-out/pi/fix-ci/.                                                                      ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh (fixture/fail-ci-pi-mv0eoqcw)
+↑14 ↓1.2k R139k W19k CH98.8% $0.116 (sub) 2.8%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium

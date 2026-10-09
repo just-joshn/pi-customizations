@@ -1,0 +1,40 @@
+ $ echo "verified=yes" >                                                                                               │
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/build-lever/fixture-out/pi/done.tx │
+ t (timeout 10s)                                                                                                       │
+                                                                                                                       │
+ (no output)                                                                                                           │
+                                                                                                                       │
+ Took 0.0s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ TAG in all three modules is now APP_alpha, APP_beta and APP_gamma. node scripts/verify.mjs printed PREFIX-OK units=3, │
+ and evidence/verify-out.txt has the same line. I wrote verified=yes to done.txt.                                      │
+                                                                                                                       │
+ I added scripts/rewrite-prefix.mjs, which a reviewer can re-run. It rewrites each src/*.js TAG to APP_ plus the file  │
+ stem. It is safe to run twice, and I ran it twice with no further change.                                             │
+                                                                                                                       │
+ verify.mjs was the check, and it failed before the rewrite. It printed PREFIX-FAIL with all three modules still on    │
+ LEGACY_.                                                                                                              │
+                                                                                                                       │
+ Principles. I read both leaf skills in full before applying them.                                                     │
+ - principle-build-the-lever: this is why I wrote the rewrite script instead of editing the three files by hand.       │
+ - principle-prove-it-works: this is why I ran verify.mjs before and after the rewrite and kept its output under       ┃
+   evidence/.                                                                                                          ┃
+                                                                                                                       ┃
+ I matched this to the Refactoring playbook and skipped most of its steps, since this is a mechanical rename. I made   ┃
+ no commit.                                                                                                            ┃
+
+[>] Pin the behavior contract first. Run the **how** skill over the affected subsystem to learn the contract, then wr...
+[-] Name the structure the code is missing per **principle-model-the-domain**. skip: trivial rename (cancelled)
+[-] Name the target shape. skip: no structural change (cancelled)
+[-] Subtract before you add. skip: nothing to delete (cancelled)
+[ ] Move in small behavior-preserving steps, each keeping the pin green. Script does the rename. (pending)
+[ ] Prove behavior is unchanged on the real artifact, not "it compiles" (**principle-prove-it-works**). (pending)
+[-] Confirm the change is worth keeping. skip: mechanical rename requested (cancelled)
+[-] Rebase into small ordered commits / Opening a PR. skip: no commit requested (cancelled)
+... 1 more
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/principles/build-lever/fixture-app (refactor/pi-pstack-parity-a...
+↑16 ↓2.3k R223k W30k CH99.6% $0.188 (sub) 3.9%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium

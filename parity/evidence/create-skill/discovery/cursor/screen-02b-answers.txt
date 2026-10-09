@@ -1,0 +1,39 @@
+  From the sparse ask + fixture README I already treat these as provisional (please confirm or correct):
+
+  • Location: project skill in this repo (not personal)
+  • Probe framing: small skill for a create-skill parity probe; fixture hints name parity-create-skill-probe and
+    marker CREATE-SKILL-PROBE-MARKER
+
+  Please answer these:
+
+  1. Purpose — What should the skill make the agent do when applied? (e.g. emit the marker phrase, follow a tiny
+     checklist, something else?) Is “parity create-skill probe” the real purpose, or a placeholder for a different
+     workflow?
+
+  2. Location — Confirm project skill under .claude/skills/ (or .cursor/skills/ / another path in this repo)? Any
+     directory you want pinned?
+
+  3. Triggers — When should the agent load it? Slash-only (/…), natural-language phrases, both? Any exact trigger
+     wording?
+
+  4. Constraints — Must-haves / must-nots (verbatim phrases, no scripts, under N lines, disable-model-invocation,
+     don’t touch parity ledgers, etc.)?
+
+  5. Patterns — Any existing skill, template, or convention to mirror? Should the body include the fixture marker
+     CREATE-SKILL-PROBE-MARKER verbatim?
+
+  Reply with answers (short bullets fine). After that I’ll write requirements.md and the one-line done.txt only.
+
+
+
+                                                                                                                       
+  → the create-skill probe". 2) Location: project skill (parity-create-skill-probe). 3) Triggers: "run the             
+    create-skill probe", "parity-create-skill-probe", "create-skill probe". 4) Constraints: under 80 lines, no         
+    scripts, body must include exact marker CREATE-SKILL-PROBE-MARKER on its own line. 5) Patterns: follow             
+    create-skill SKILL.md structure. Write the gathered requirements to the requirements.md path from the first        
+    message. Write STATUS=discovered to the done path. Do not write SKILL.md. Do not start Design or Implementation.   
+    Stop.                                                                                                              
+                                                                                                                       
+
+  Auto · 10.3%                                                                                          Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-app · refactor/pi-pstack-parity-again

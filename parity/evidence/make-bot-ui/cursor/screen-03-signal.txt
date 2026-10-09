@@ -1,0 +1,25 @@
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Use /plan to plan execution and reach the right outcome faster.
+
+                                                                                                                       
+  /make-bot-ui build a small local page in this fixture whose server wakes a bot over a webhook. Follow Make Bot       
+  UI for the page and webhook wiring. Keep the sender key on the server only. Do not put the sender key in the         
+  browser, in chat, in the skill file, in tool arguments, in environment variables, or in logs. If this host           
+  cannot create webhook routines (missing update_state or RoutinePrepare), stop honestly and say so. Do not            
+  invent a sender key. Work only inside this fixture cwd. Do not edit parity ledgers. When finished, write             
+  exactly one line to                                                                                                  
+  /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/make-bot-ui/fixture-out/cursor/done.tx       
+  t as STATUS=key-server-ok|key-leaked|host-blocked|incomplete|other reason=<short phrase> then stop.                  
+                                                                                                                       
+
+ ⠀⠞ Working
+
+                                                                                                                       
+  → Add a follow-up                                                                                     ctrl+c to stop 
+                                                                                                                       
+
+  Auto                                                                                                  Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/make-bot-ui/fixture-app · refactor/pi-pstack-parity-again

@@ -1,0 +1,40 @@
+  "tdd" collision:                                                                                                     │
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ Run /maintain-verification-skill now against the existing verify-hello-cli skill at                                   ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app-source-wave/.pi/s ┃
+ kills/verify-hello-cli/SKILL.md. Complete Pass steps 0–2 only (Locate, Index hygiene, Source wave). Stop after Source ┃
+ wave. Do not run Live pass. Do not open a PR. Do not edit product code (hello.sh, README.md). Never edit parity/      ┃
+ ledgers or ~/.cursor/rules/pstack-models.mdc. The feature map has exactly two feature files (hello-print.md and       ┃
+ exit-zero.md). After index hygiene, launch one read-only subagent per feature file concurrently (two children). Each  ┃
+ child must return feature summary, source entry points, likely drift or none, and one live-verification recipe.       ┃
+ Children must never drive the app and must never edit files. Write each child's return verbatim to                    ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-out/source-wave/pi/ch ┃
+ ildren/hello-print.md and                                                                                             ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-out/source-wave/pi/ch ┃
+ ildren/exit-zero.md. Then write exactly these lines to                                                                ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-out/source-wave/pi/so ┃
+ urce-wave.txt and stop:                                                                                               ┃
+ SOURCE_WAVE=done                                                                                                      ┃
+ FEATURES=2                                                                                                            ┃
+ CONCURRENT_CHILDREN=yes                                                                                               ┃
+ FIELDS=summary,entrypoints,drift,recipe                                                                               ┃
+ CHILDREN_DROVE=no                                                                                                     ┃
+ CHILDREN_EDITED=no                                                                                                    ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ [skill] maintain-verification-skill:1-200 (ctrl+o to expand)                                                          ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ $ cd                                                                                                                  ┃
+                                                                                                                       ┃
+
+── ⠦ Working ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app-source-wave (refactor/pi-pstack-par...
+$0.000 (sub) 1.6%/1.0M (auto)                                           (claude-subscription) claude-sonnet-5-5 • medium

@@ -1,0 +1,40 @@
+[Skill conflicts]                                                                                                      ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ Help set up Benny for this repository by completing the project-scoped skill resolve check only. Follow               ┃
+ .upstream/automations/benny/FOR_AGENTS.md so .upstream/automations/benny/skills/setup-benny/SKILL.md is read. Project ┃
+ settings already enable pstack in .cursor/settings.json. This is a fresh agent rooted in the target. Verify that      ┃
+ these shared pstack skills resolve from project-scoped pstack: how, why, tdd, unslop,                                 ┃
+ principle-separate-before-serializing-shared-state, principle-minimize-reader-load,                                   ┃
+ principle-guard-the-context-window, principle-sequence-verifiable-units, principle-fix-root-causes,                   ┃
+ principle-prove-it-works. Do not count a skill loaded from the current session (--plugin-dir) or a user-scoped        ┃
+ install (~/.claude/skills, ~/.cursor/skills, ~/.agents/skills, or the agent-home skills tree). Project-scoped means a ┃
+ path under this repository that the project settings or project package install made available (for Cursor,           ┃
+ project-enabled pstack; for Pi, .pi/skills or project .pi/settings.json packages). If project-scoped plugin/package   ┃
+ install is unavailable or any listed skill fails to resolve from project scope, stop and explain the failure. Write   ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/project-skills/fixture-out/pi/res ┃
+ olve-manifest.json as JSON: { "skills": [ { "name": "<skill>", "path": "<absolute-or-repo-relative SKILL.md path or   ┃
+ null>", "scope": "project|user|session|package|missing|other", "notes": "<short>" } ] }. Do not create or update a    ┃
+ live automation. Do not edit parity ledgers or src/app.js. When the check is done (or you stop), write exactly one    ┃
+ line to                                                                                                               ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/project-skills/fixture-out/pi/don ┃
+ e.txt as STATUS=resolve-ok|stop-explain|resolve-fail|blocked|other reason=<short phrase> then stop.                   ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ $ cat .upstream/automations/benny/FOR_AGENTS.md; ls -la . .pi .cursor 2>&1; cat .cursor/settings.json                 ┃
+ .pi/settings.json 2>&1                                                                                                ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+── ⠼ Working ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/project-skills/fixture-app (refactor/pi-pstack-pari...
+$0.000 (sub) 1.6%/1.0M (auto)                                           (claude-subscription) claude-sonnet-5-5 • medium

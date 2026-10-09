@@ -1,0 +1,63 @@
+{
+  "scenario": "setup-benny-creation-boundary",
+  "requirementId": "PSTACK-SETUP-BENNY-CREATION-BOUNDARY-001",
+  "path": "first-time-automate-editor-handoff",
+  "probedAt": "2026-10-09T11:02:58.075Z",
+  "runnable": false,
+  "verdict": "blocker",
+  "checks": {
+    "cursorAgentBinPresent": true,
+    "cursorAgentHelpExit": 0,
+    "cursorAgentHelpMentionsAutomateSlash": false,
+    "cursorAgentHelpMentionsAutomationsEditor": false,
+    "cursorAgentHelpMentionsAgentsWindow": false,
+    "cursorAgentHelpMentionsUpdateState": false,
+    "cursorAgentHelpMentionsWebhookRoutine": false,
+    "cursorAgentBundleAutomateSkillMdCount": 0,
+    "cursorAgentBundleAutomateMdCount": 0,
+    "docsRetrievalPresent": true,
+    "docsSayAgentsWindowOrCursorAutomationsUrl": true,
+    "docsSayAutomateSkillPath": true,
+    "setupBennyCreationBoundaryPresent": true,
+    "piAutomateMePresent": true,
+    "piBuiltInAutomateSkillPresent": true,
+    "automationsEditorUiAvailableInCursorAgentPty": false,
+    "automationsEditorUiAvailableInPiPty": true,
+    "piThreadSafetyReceiptToolPresent": true,
+    "piSetupBennyAdapterUsesAutomatePath": true
+  },
+  "missing": [
+    "cursor-agent --help does not mention /automate",
+    "cursor-agent --help does not mention Automations editor",
+    "no automate/SKILL.md found under locked cursor-agent 2026.10.01-e373342 bundle",
+    "Automations editor UI is not available inside cursor-agent PTY harness",
+    "Cursor docs place creation at Agents Window / cursor.com/automations / local /automate, none of which the PTY harness can drive to editor save"
+  ],
+  "evidenceNotes": {
+    "cursorHelpDigest": "sha256:e14ff4d09c43831bb400cf37e74c62522d728a7f0df88ec92edd60efd0cb9de5",
+    "cursorHelpSnippet": "Usage: cursor agent [options] [command] [prompt...]\n\nStart the Cursor Agent\n\nArguments:\n  prompt                       Initial prompt for the agent\n\nOptions:\n  -v, --version                Output the version number\n  --api-key <key>              API key for authentication (can also use\n                               CURSOR_API_KEY env var)\n  -H, --header <header>        Add custom header to agent requests (format:\n                               'Name: Value', can be used multiple times)\n  -e, --endpoint <url>         Target API endpoint URL (can also use\n                               CURSOR_API_ENDPOINT env var) (default:\n                               \"https://api2.cursor.sh\", env:\n                               CURSOR_API_ENDPOINT)\n  -p, --print                  Print responses to console (for scripts or\n                               non-interactive use). Has access to all tools,\n                               including write and shell. (default: false)\n  --output-format <format>     Output format (only works with --print): text |\n                               json | stream-json (default: \"text\")\n  --stream-partial-output      Stream partial output as individual text deltas\n  ",
+    "automateSkillHits": [],
+    "docsRetrievalRel": "parity/research/cursor-host/services/retrievals/docs_cloud-agent_automations.md",
+    "setupBennyLocator": "## 7. Prepare the live automations / ### Creation boundary",
+    "piAutomateSkillPathChecked": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/host/skills/automate/SKILL.md",
+    "piAutomateMePathChecked": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/automate-me/SKILL.md",
+    "piAutomationsEditorPathChecked": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/src/automations-editor.ts",
+    "piAutomationsToolsPathChecked": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/src/automations.ts",
+    "piAutomationsEditorTestPathChecked": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/test/automations-editor.test.ts",
+    "piAutomationsEditorDetection": {
+      "available": true,
+      "reasons": []
+    },
+    "piThreadSafetyReceiptDetection": {
+      "available": true,
+      "reasons": []
+    },
+    "piSetupBennyAdapterPathChecked": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/host/adapters/benny/SKILL.md",
+    "piSetupBennyAdapterDetection": {
+      "available": true,
+      "reasons": []
+    },
+    "ptyEditorNote": "piBuiltInAutomateSkillPresent tracks host/skills/automate/SKILL.md presence only. automationsEditorUiAvailableInPiPty flips true only when automations-editor.ts exports AUTOMATIONS_EDITOR_CHROME plus render/reduce, automations.ts opens via ctx.ui.custom (not ctx.ui.editor), and automations-editor.test.ts covers Inactive chrome with save/cancel. Creation-boundary requirement is verified-pass-paired separately (Pi 4d40a1d5 + Cursor e11d7225/475ab346). piThreadSafetyReceiptToolPresent means AutomationRecordThreadSafety can write thread-safety.json; it does not claim live Slack seven-checks or PSTACK-SETUP-BENNY-THREAD-SAFETY-001 verify. piSetupBennyAdapterUsesAutomatePath means host/adapters/benny/SKILL.md routes first-time Slack Benny through /automate + AutomationPrepare/OpenEditor and refuses webhook Routine* finish (design gap 6)."
+  },
+  "skillAcceptanceNote": "setup-benny creation boundary requires finishing new automations only through the built-in automate skill reviewed Automations editor handoff, with no direct automation backend, draft-field browser URL, or Cursor protocol deep link, and no enablement before thread-safety after editor save. Paired Method A verify is separate from this host probe runnable flag."
+}

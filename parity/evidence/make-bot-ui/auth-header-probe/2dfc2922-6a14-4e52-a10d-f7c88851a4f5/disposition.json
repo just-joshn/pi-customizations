@@ -1,0 +1,19 @@
+{
+  "attemptId": "2dfc2922-6a14-4e52-a10d-f7c88851a4f5",
+  "priorHandoffAttemptId": "beb9d748-5985-4d4c-a2ee-ca1224fe9a84",
+  "savedByHarness": true,
+  "activatedByHarness": false,
+  "generateAuthHeaderClicked": false,
+  "keyStoredServerSide": false,
+  "productSaidSaveRequiredForAuth": true,
+  "updateStateUsed": false,
+  "saveClick": {
+    "index": "16",
+    "title": "Save"
+  },
+  "blocker": "auth_key_not_materialized_after_save",
+  "cursorOutcome": "host_blocked",
+  "leakScanFindings": [],
+  "senderKeyInChatOrEvidence": false,
+  "webhookUrlHost": null
+}

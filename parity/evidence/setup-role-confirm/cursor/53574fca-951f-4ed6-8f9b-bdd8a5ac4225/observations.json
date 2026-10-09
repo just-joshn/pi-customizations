@@ -1,0 +1,90 @@
+{
+  "side": "cursor",
+  "expectedRoles": {
+    "feature, refactoring": "inherit-parent",
+    "bug-fix": "inherit-parent",
+    "perf-issue": "inherit-parent",
+    "hillclimb": "inherit-parent",
+    "judgment and prose": "inherit-parent",
+    "hardest tasks": "inherit-parent",
+    "how explorer": "inherit-parent",
+    "how explainer": "inherit-parent",
+    "why investigators": "inherit-parent",
+    "why synthesizer": "inherit-parent",
+    "reflect tooling": "inherit-parent",
+    "reflect judgment, divergent, synthesizer": "inherit-parent",
+    "arena runners": "inherit-parent",
+    "arena cross-judge pool": "inherit-parent",
+    "swarm workers": "inherit-parent",
+    "architect runners": "inherit-parent",
+    "interrogate reviewers": "inherit-parent"
+  },
+  "screens": {
+    "confirm": {
+      "writeCard": false,
+      "askQuestion": false,
+      "chatForm": false,
+      "acceptPrompt": false,
+      "changePrompt": false
+    },
+    "writeCard": {
+      "writeCard": true,
+      "askQuestion": false,
+      "chatForm": false,
+      "acceptPrompt": true,
+      "changePrompt": false
+    }
+  },
+  "budgetPath": "chatform-budget",
+  "digestAfterBudgetAnswer": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "wroteDuringBudget": false,
+  "confirmKind": "timeout",
+  "roleConfirmScore": {
+    "expectedRoleCount": 17,
+    "rolesListedAnyForm": 10,
+    "rolesListedWithModel": 0,
+    "rolesMissing": [
+      {
+        "role": "feature, refactoring",
+        "model": "inherit-parent"
+      },
+      {
+        "role": "bug-fix",
+        "model": "inherit-parent"
+      },
+      {
+        "role": "perf-issue",
+        "model": "inherit-parent"
+      },
+      {
+        "role": "hillclimb",
+        "model": "inherit-parent"
+      },
+      {
+        "role": "judgment and prose",
+        "model": "inherit-parent"
+      },
+      {
+        "role": "hardest tasks",
+        "model": "inherit-parent"
+      },
+      {
+        "role": "how explorer",
+        "model": "inherit-parent"
+      }
+    ],
+    "acceptOrChangePrompt": false,
+    "acceptPrompt": false,
+    "changePrompt": false,
+    "summaryOnly": false,
+    "askQuestion": false,
+    "writeCardOnSameScreen": false,
+    "everyRoleShownWithModel": false
+  },
+  "digestBeforeAccept": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "writeBeforeConfirm": false,
+  "acceptPath": "chatform-accept",
+  "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "wrote": false,
+  "writeOnlyAfterConfirm": false
+}

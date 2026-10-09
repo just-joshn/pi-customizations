@@ -1,0 +1,32 @@
+{
+  "unit": "u-dep-computer-use-live-001",
+  "capturedAt": "2026-10-09T06:06:30Z",
+  "mergePayloadReady": false,
+  "completeDependencyClosure": false,
+  "ledgersEdited": false,
+  "edgeMutations": [],
+  "recommendation": {
+    "edge": {
+      "from": "cursor-cli-host",
+      "to": "cursor-self-hosted-computer-use"
+    },
+    "setStatusResolved": false,
+    "reason": "Live Agent Helper MCP exercise exists (before/after screenshots + typed marker CU_LIVE_001_177e3351) but cloud-agent claim attempt IDs are absent. Acceptance allows resolved only when live exercise with attempt IDs exists. Coordinator must not mutate the edge."
+  },
+  "liveExercise": true,
+  "attemptIds": [],
+  "evidence": [
+    "parity/evidence/computer-use/live-001/exercise-summary.json",
+    "parity/evidence/computer-use/live-001/before-0.png",
+    "parity/evidence/computer-use/live-001/after-0.png",
+    "parity/research/dep-computer-use-exercise-001/disposition-live-001.json",
+    "parity/research/dep-computer-use-exercise-001/stdout-live-001-worker-start.txt",
+    "parity/research/dep-computer-use-exercise-001/cloud-claim-probe.json",
+    "parity/briefs/reports/u-dep-computer-use-live-001-report.md"
+  ],
+  "operatorNext": [
+    "Create a User API Key (Cursor Dashboard → API Keys) or authorize a dashboard cloud-agent claim against workerId 0400ae0d-aa5c-4949-a4b8-88e40cd9611a with computer-use screenshot/click.",
+    "Publish the cloud attempt ID(s) and chat screenshot artifact.",
+    "Then coordinator may set edge status resolved with those IDs."
+  ]
+}

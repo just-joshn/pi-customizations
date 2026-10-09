@@ -1,0 +1,18 @@
+{
+  "brief": "u-journey-setup-benny-editor-title-001",
+  "requirementId": "PSTACK-SETUP-BENNY-CREATION-BOUNDARY-001",
+  "cursorEditorTitlePaid": true,
+  "verifyRecommendation": "no",
+  "verifyWhy": "Cursor same-frame editor titled benny-triage is paid via re-verified PNG/OCR/AX. Pi Automations editor still unavailable (keep cd378e36). Keep overall verify=no pending Pi.",
+  "cursorHalfEnoughForPendingPi": true,
+  "primaryOracleAttemptId": "475ab346-80a0-4d73-8ae1-d2b8042ee66f",
+  "reverifyAttemptId": "2c525e93-3392-4253-81ef-dd965fde2e7d",
+  "liveOpenDraftAttemptId": "fdd603d5-ab1e-4b75-89a1-fa8165b18b51",
+  "liveBlockedReason": "screenLocked ready=false",
+  "priorListAttemptId": "e11d7225-4c8a-4c09-8f30-273e941a52d2",
+  "piEnvAttemptId": "cd378e36-ef2e-4810-ae5d-74a5169f204c",
+  "saved": false,
+  "activated": false,
+  "slack": false,
+  "ledgersEdited": false
+}

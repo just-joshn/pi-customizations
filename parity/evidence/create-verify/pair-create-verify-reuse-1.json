@@ -1,0 +1,133 @@
+{
+  "schema": 1,
+  "pairId": "create-verify-reuse-1",
+  "scenarioRef": "create-verify:generate-then-reuse",
+  "journeyFamily": "journey-family-13-generated-resources-reuse",
+  "requirementIds": [
+    "PSTACK-CMD-CREATE-VERIFY-SKILL-001",
+    "PSTACK-SETUP-CREATE-VERIFY-GENERATE-001",
+    "PSTACK-SETUP-CREATE-VERIFY-FEATURE-MAP-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptTemplateCreate": "/create-verification-skill for this tiny hello-cli only. Interview from README.md and hello.sh. Write <host-skill-root>/verify-hello-cli/SKILL.md with Launch/Doctor/Drive/Evidence/Cleanup. Seed one feature. Skip live prove and maintain offer. List absolute paths and stop.",
+  "promptTemplateReuse": "Second turn reuse. Discover verify-hello-cli at <skill-abs>. Do not regenerate. Read Launch or Doctor, write exactly REUSED=<skill-abs> to <reuse-path>. Stop.",
+  "steps": [
+    {
+      "wait": "ready screen (Tip: on Cursor, fixture/pi chrome on Pi)"
+    },
+    {
+      "send": "/create-verification-skill ... constrained generate for hello-cli ..."
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "wait": "on-disk SKILL.md with name: verify-hello-cli and ## Launch"
+    },
+    {
+      "send": "Second turn reuse. Discover ... write REUSED=..."
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "wait": "on-disk reuse.txt with REUSED=<skill-abs>"
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "9a4dae62-0072-494c-a6d5-7f013fbfb66e",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/cursor/9a4dae62-0072-494c-a6d5-7f013fbfb66e",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "skillPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app/.cursor/skills/verify-hello-cli/SKILL.md",
+    "reusePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-out/cursor/reuse.txt",
+    "observations": {
+      "createVerifyInvoked": true,
+      "skillCreated": true,
+      "skillNameOk": true,
+      "skillHasLaunch": true,
+      "featureMapSeeded": true,
+      "liveProveSkippedAsInstructed": true,
+      "secondTurnReuseOk": true,
+      "reuseLine": "REUSED=/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app/.cursor/skills/verify-hello-cli/SKILL.md",
+      "reuseChrome": "Used verify-hello-cli",
+      "modelChrome": "Auto"
+    }
+  },
+  "pi": {
+    "attemptId": "fba64ade-c697-4368-84ea-4281386b9e81",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/pi/fba64ade-c697-4368-84ea-4281386b9e81",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-create-verify-fixture-app--/2026-10-08T19-05-25-544Z_01a11ce7-f327-71cc-bfc6-46a98f230ae2.jsonl",
+    "skillPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app/.pi/skills/verify-hello-cli/SKILL.md",
+    "reusePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-out/pi/reuse.txt",
+    "observations": {
+      "createVerifyInvoked": true,
+      "skillCreated": true,
+      "skillNameOk": true,
+      "skillHasLaunch": true,
+      "featureMapSeeded": true,
+      "liveProveSkippedAsInstructed": true,
+      "secondTurnReuseOk": true,
+      "reuseLine": "REUSED=/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app/.pi/skills/verify-hello-cli/SKILL.md",
+      "reuseChrome": "[skill] verify-hello-cli:1-30",
+      "createFinalScreenRegexMissedSkillName": true,
+      "modelChrome": "(claude-subscription) claude-sonnet-5-5 • medium"
+    }
+  },
+  "deltas": [
+    {
+      "topic": "generated skill root",
+      "cursor": "Writes under .cursor/skills/verify-hello-cli/.",
+      "pi": "Writes under .pi/skills/verify-hello-cli/.",
+      "reconciled": false
+    },
+    {
+      "topic": "reuse discovery chrome",
+      "cursor": "Settled reuse screen showed Used verify-hello-cli then a shell printf to reuse.txt.",
+      "pi": "Settled reuse screen showed [skill] verify-hello-cli:1-30 then a write tool call to reuse.txt.",
+      "reconciled": false
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "Status chrome Auto.",
+      "pi": "Status chrome claude-sonnet-5-5 medium via claude-subscription.",
+      "reconciled": false
+    },
+    {
+      "topic": "create-settled screen regex",
+      "cursor": "createFinal.createVerifySkill true from screen text.",
+      "pi": "createFinal.createVerifySkill false on settled screen (path list only). On-disk SKILL.md still present with nameOk and hasLaunch. Oracle is the file, not that regex.",
+      "reconciled": false
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-create-verify-reuse.mjs --cursor-only then --pi-only",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "fixtureApp": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app",
+    "packagePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack",
+    "notes": "Smallest create-verify path on both hosts. Live prove and maintain offer intentionally skipped per prompt so the pair stays inside the family-13 generate-then-reuse scope."
+  }
+}

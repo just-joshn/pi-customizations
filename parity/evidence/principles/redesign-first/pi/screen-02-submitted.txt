@@ -1,0 +1,40 @@
+[Skill conflicts]                                                                                                      ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ [skill] poteto-mode (ctrl+o to expand)                                                                                ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ Every product price must carry an explicit currency. Today price is a bare number and the docs treat USD as implied.  ┃
+ Make node scripts/verify.mjs print REDESIGN-OK. Prefer redesigning Price as if currency had always been part of the   ┃
+ core shape (createProduct, formatPrice, docs/price.md, README examples) rather than keeping bare-number prices with   ┃
+ an optional side field. Keep verify output under evidence/ (scripts/verify.mjs already writes                         ┃
+ evidence/verify-out.txt). For any poteto-mode principle you apply before declaring done, read that principle's leaf   ┃
+ SKILL.md in full first (not only the poteto-mode Principles index). Work only inside this fixture cwd. Do not edit    ┃
+ ledgers, parity/, or files outside this cwd except the named done path. When REDESIGN-OK is on disk, write exactly    ┃
+ one line to                                                                                                           ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/redesign-first/fixture-out/pi/done ┃
+ .txt as verified=yes|no, then stop.                                                                                   ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ $ cd /Users/josh-desktop/src/personal                                                                                 ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+── ⠼ Working ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/principles/redesign-first/fixture-app (refactor/pi-pstack-parit...
+$0.000 (sub) 2.2%/1.0M (auto)                                           (claude-subscription) claude-sonnet-5-5 • medium

@@ -1,0 +1,228 @@
+{
+  "attemptId": "8ff6b213-1dbf-4d47-8cec-6671d5ec9cc7",
+  "method": "system-events-AXShowMenu-setValue-keys",
+  "log": [
+    {
+      "step": "AXShowMenu-SE",
+      "code": 0,
+      "out": "SHOWMENU_OK",
+      "err": ""
+    },
+    {
+      "after": "showmenu",
+      "markers": {
+        "webhook": false,
+        "schedule": false,
+        "cron": false,
+        "slack": false,
+        "secret": false,
+        "every day": false,
+        "on a schedule": false,
+        "inspect": true
+      },
+      "interesting": [
+        [
+          "AXPopUpButton",
+          "Add Tool or MCP"
+        ],
+        [
+          "AXComboBox",
+          "Add Trigger"
+        ],
+        [
+          "AXStaticText",
+          "Add Trigger"
+        ],
+        [
+          "AXStaticText",
+          "Triggers"
+        ]
+      ]
+    },
+    {
+      "step": "set-value-SE",
+      "code": 0,
+      "out": "SET_OK",
+      "err": ""
+    },
+    {
+      "after": "setvalue",
+      "markers": {
+        "webhook": false,
+        "schedule": false,
+        "cron": false,
+        "slack": false,
+        "secret": false,
+        "every day": false,
+        "on a schedule": false,
+        "inspect": false
+      },
+      "interesting": [
+        [
+          "AXPopUpButton",
+          "Add Tool or MCP"
+        ],
+        [
+          "AXComboBox",
+          "Add Trigger"
+        ],
+        [
+          "AXStaticText",
+          "Add Trigger"
+        ],
+        [
+          "AXStaticText",
+          "Triggers"
+        ]
+      ]
+    },
+    {
+      "step": "helper-set_value",
+      "ok": true,
+      "idx": "87"
+    },
+    {
+      "after": "helper-setvalue",
+      "markers": {
+        "webhook": false,
+        "schedule": false,
+        "cron": false,
+        "slack": false,
+        "secret": false,
+        "every day": false,
+        "on a schedule": false,
+        "inspect": false
+      },
+      "interesting": [
+        [
+          "AXPopUpButton",
+          "Add Tool or MCP"
+        ],
+        [
+          "AXComboBox",
+          "Add Trigger"
+        ],
+        [
+          "AXStaticText",
+          "Add Trigger"
+        ],
+        [
+          "AXStaticText",
+          "Triggers"
+        ]
+      ]
+    },
+    {
+      "step": "click-down",
+      "code": 0,
+      "out": "KEYS_OK",
+      "err": ""
+    },
+    {
+      "after": "click-down",
+      "markers": {
+        "webhook": false,
+        "schedule": false,
+        "cron": false,
+        "slack": false,
+        "secret": false,
+        "every day": false,
+        "on a schedule": false,
+        "inspect": false
+      },
+      "interesting": [
+        [
+          "AXPopUpButton",
+          "Add Tool or MCP"
+        ],
+        [
+          "AXComboBox",
+          "Add Trigger"
+        ],
+        [
+          "AXStaticText",
+          "Add Trigger"
+        ],
+        [
+          "AXStaticText",
+          "Triggers"
+        ]
+      ]
+    },
+    {
+      "step": "tools-showmenu",
+      "code": 0,
+      "out": "TOOLS_SHOWMENU_OK",
+      "err": ""
+    },
+    {
+      "after": "tools",
+      "markers": {
+        "webhook": false,
+        "schedule": false,
+        "cron": false,
+        "slack": false,
+        "secret": false,
+        "every day": false,
+        "on a schedule": false,
+        "inspect": true
+      },
+      "interesting": [
+        [
+          "AXPopUpButton",
+          "Add Tool or MCP"
+        ],
+        [
+          "AXComboBox",
+          "Add Trigger"
+        ],
+        [
+          "AXStaticText",
+          "Add Trigger"
+        ],
+        [
+          "AXStaticText",
+          "Triggers"
+        ]
+      ]
+    },
+    {
+      "after": "tools-secret",
+      "markers": {
+        "webhook": false,
+        "schedule": false,
+        "cron": false,
+        "slack": false,
+        "secret": false,
+        "every day": false,
+        "on a schedule": false,
+        "inspect": true
+      },
+      "interesting": [
+        [
+          "AXPopUpButton",
+          "Add Tool or MCP"
+        ],
+        [
+          "AXComboBox",
+          "Add Trigger"
+        ],
+        [
+          "AXStaticText",
+          "Add Trigger"
+        ],
+        [
+          "AXStaticText",
+          "Triggers"
+        ]
+      ]
+    }
+  ],
+  "webhookSeenAny": false,
+  "scheduleSeenAny": false,
+  "secretSeenAny": false,
+  "savePressed": false,
+  "activatePressed": false,
+  "updateStateInvented": false,
+  "evidenceDir": "parity/evidence/make-bot-ui/automations-editor/8ff6b213-1dbf-4d47-8cec-6671d5ec9cc7"
+}

@@ -1,0 +1,122 @@
+{
+  "schema": 1,
+  "pairId": "setup-benny-not-slash-1",
+  "scenarioRef": "cmd-setup-benny-not-slash",
+  "journeyFamily": "journey-family-11-benny-and-automations",
+  "requirementIds": [
+    "PSTACK-CMD-SETUP-BENNY-NOT-SLASH-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "Point host at .upstream/automations/benny/FOR_AGENTS.md bootstrap; read destination setup-benny/SKILL.md; treat as not a slash skill; create no automation this turn; write STATUS= line to host-specific fixture-out done.txt",
+  "steps": [
+    { "send": "Follow FOR_AGENTS.md bootstrap so setup-benny/SKILL.md is read at the destination path; do not run /setup-benny; do not create a live automation ..." },
+    { "send": "\r" },
+    { "settle": true },
+    { "cancel": true }
+  ],
+  "cursor": {
+    "attemptId": "78443bd1-b96b-4e85-9abc-89f42abaae14",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/cursor/78443bd1-b96b-4e85-9abc-89f42abaae14",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "observations": {
+      "outcome": "not_slash",
+      "contractHeld": true,
+      "productBeforeDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e",
+      "productAfterDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e",
+      "productUnchanged": true,
+      "doneMarkerWritten": true,
+      "doneLine": "STATUS=not-slash reason=pack bootstrap to destination setup-benny",
+      "slashInvoked": false,
+      "automationCreated": false,
+      "pathEntry": true,
+      "filesRead": [
+        ".upstream/automations/benny/FOR_AGENTS.md",
+        ".cursor/automations/benny/FOR_AGENTS.md",
+        ".cursor/automations/benny/skills/setup-benny/SKILL.md"
+      ]
+    }
+  },
+  "pi": {
+    "attemptId": "0ff31b2a-d6cc-45f4-8264-aa0d1982e6bc",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/pi/0ff31b2a-d6cc-45f4-8264-aa0d1982e6bc",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-setup-benny-fixture-app--/2026-10-08T23-06-12-131Z_01a11dc4-6323-74cc-9873-794cf22765b6.jsonl",
+    "observations": {
+      "outcome": "not_slash",
+      "contractHeld": true,
+      "productBeforeDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e",
+      "productAfterDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e",
+      "productUnchanged": true,
+      "doneMarkerWritten": true,
+      "doneLine": "STATUS=not-slash reason=asked first setup question which repository",
+      "slashInvoked": false,
+      "automationCreated": false,
+      "forAgentsRead": true,
+      "setupBennyRead": true,
+      "sessionToolOrder": [
+        "bash(FOR_AGENTS.md)",
+        "bash"
+      ]
+    }
+  },
+  "deltas": [
+    {
+      "topic": "not-slash pack bootstrap entry",
+      "cursor": "STATUS=not-slash reason=pack bootstrap to destination setup-benny. Read FOR_AGENTS then destination setup-benny/SKILL.md. Asked which repository. No /setup-benny invoke. No live automation.",
+      "pi": "STATUS=not-slash reason=asked first setup question which repository. Read FOR_AGENTS via bash, stopped at first setup question, stated not invoking slash skill and not creating automation.",
+      "reconciled": true
+    },
+    {
+      "topic": "how far setup proceeded before stop",
+      "cursor": "Verified pack copy at destination path then asked which repository.",
+      "pi": "Asked which repository before merging or reading destination setup-benny/SKILL.md (FOR_AGENTS step order).",
+      "reconciled": true
+    },
+    {
+      "topic": "destination path chrome in FOR_AGENTS prose",
+      "cursor": "Settled screen also shows .cursor/automations/benny/ paths from pack prose while fixture files live under .upstream/automations/benny/.",
+      "pi": "Session tool read .upstream/automations/benny/FOR_AGENTS.md; assistant prose still names .cursor destination from the pack text.",
+      "reconciled": true
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "Auto",
+      "pi": "claude-sonnet-5-5 • medium (claude-subscription)",
+      "reconciled": false
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-setup-benny-not-slash.mjs --cursor-only then --pi-only (plus one accidental import-triggered rerun whose Cursor attempt 78443bd1 is paired; Pi attempt 0ff31b2a from the intentional --pi-only)",
+    "workerPlaybook": "parity/evidence/setup-benny/PLAYBOOK.md",
+    "decisionTrail": "parity/evidence/setup-benny/.audit/u-journey-cmd-setup-benny-not-slash.tsv",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "heldOutFixture": "parity/evidence/setup-benny/fixture-app (Benny pack under .upstream/automations/benny, setup incomplete)",
+    "markerRoot": "parity/evidence/setup-benny/fixture-out/{cursor,pi}/",
+    "scorerNote": "Negated /setup-benny mentions (including backticks) stripped before affirmative slash detection. Import of capture module gated by isMain.",
+    "discardedAttempts": [
+      "cursor/5e5b3016-df51-45fa-b226-72c2831fcf10 (first Cursor; models.mdc raced mid-run to c839b86e)",
+      "pi/b850b50f-59fe-4ed1-8fb4-50194be5aa20 (import-triggered incomplete/killed Pi rerun)"
+    ],
+    "preflightNote": "Waited twice for capture-setup-grok-xhigh-cap.mjs to release ~/.cursor/rules/pstack-models.mdc; restored/verified locked digest sha256:2b6b4668…6004 before each side."
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "capturedAt": "2026-10-09T01:52:19Z",
+  "unit": "u-dep-closure-wave-009",
+  "label": "recursive-extraction",
+  "sourcePath": "parity/research/dep-closure-wave-007/recursive/extraction.json",
+  "sourceSha256": "eb531640c75896c1443fd0f8c12f5a82b79c3500d6cbbe9425611222621ca323",
+  "sourceByteLength": 102942,
+  "carryForward": true,
+  "disposition": "Wave-007 recursive extraction remains complete. Wave-009 re-hashes it. Live/runtime audit of external targets stays open."
+}

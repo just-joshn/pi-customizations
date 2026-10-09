@@ -1,0 +1,11 @@
+{
+  "afterHelp": {
+    "usedPotetoHelp": false,
+    "skillBlock": false,
+    "helpRecommended": "/interrogate",
+    "mentionsInterrogate": true,
+    "mentionsReviewAndShip": true,
+    "handsPrompt": true,
+    "working": false
+  }
+}

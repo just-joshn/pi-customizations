@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "cmd-unslop-process",
+  "status": "executed-pass-paired",
+  "requirements": [
+    "PSTACK-CMD-UNSLOP-PROCESS-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/unslop/SKILL.md#unslop process scans patterns then rewrites",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Sloppy draft.md with AI-tell patterns for /unslop rewrite.",
+    "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Invoke /unslop or apply the unslop skill to the draft.. The skill scans for the listed patterns and rewrites, preserving meaning and intended tone."
+    }
+  ],
+  "execution": {
+    "referenceRun": "f365bb05-6976-45a4-a821-24fd7294247f",
+    "candidateRun": "17fc084a-37e9-44c4-bf62-9149cf6cc9ba",
+    "pairId": "unslop-process-1",
+    "pairPath": "parity/evidence/unslop/pair-unslop-process-1.json",
+    "verdict": "pass-paired",
+    "closedAt": "2026-10-08T21:29:00Z"
+  }
+}

@@ -1,0 +1,110 @@
+[
+  {
+    "index": 59,
+    "id": "https://cursor.com/docs/cloud-agent/api/webhooks.md",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "webhook_create_witnessed_generate_auth_unpaid"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "webhook_generate_key_probe_evidenced"
+    }
+  },
+  {
+    "index": 220,
+    "id": "cursor.services.docs_cloud-agent_api_webhooks",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "webhook_create_witnessed_generate_auth_unpaid"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "webhook_generate_key_probe_evidenced"
+    }
+  },
+  {
+    "index": 221,
+    "id": "cursor.host.services.docs_cloud-agent_api_webhooks.webhooks",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "webhook_create_witnessed_generate_auth_unpaid"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "webhook_generate_key_probe_evidenced"
+    }
+  },
+  {
+    "index": 222,
+    "id": "cursor.host.services.docs_cloud-agent_api_webhooks.webhook-verification",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "webhook_create_witnessed_generate_auth_unpaid"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "webhook_generate_key_probe_evidenced"
+    }
+  },
+  {
+    "index": 223,
+    "id": "cursor.host.services.docs_cloud-agent_api_webhooks.headers",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "webhook_create_witnessed_generate_auth_unpaid"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "webhook_generate_key_probe_evidenced"
+    }
+  },
+  {
+    "index": 224,
+    "id": "cursor.host.services.docs_cloud-agent_api_webhooks.signature-verification",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "webhook_create_witnessed_generate_auth_unpaid"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "webhook_generate_key_probe_evidenced"
+    }
+  },
+  {
+    "index": 225,
+    "id": "cursor.host.services.docs_cloud-agent_api_webhooks.payload-format",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "webhook_create_witnessed_generate_auth_unpaid"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "webhook_generate_key_probe_evidenced"
+    }
+  },
+  {
+    "index": 226,
+    "id": "cursor.host.services.docs_cloud-agent_api_webhooks.best-practices",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "webhook_create_witnessed_generate_auth_unpaid"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "webhook_generate_key_probe_evidenced"
+    }
+  },
+  {
+    "index": 238,
+    "id": "cursor.host.services.docs_cloud-agent_automations.webhook-triggers",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "webhook_create_witnessed_generate_auth_unpaid"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "webhook_generate_key_probe_evidenced"
+    }
+  }
+]

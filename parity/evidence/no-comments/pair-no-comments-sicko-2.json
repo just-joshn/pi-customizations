@@ -1,0 +1,149 @@
+{
+  "schema": 1,
+  "pairId": "no-comments-sicko-2",
+  "scenarioRef": "cmd-no-comments-sicko",
+  "optionalScenarioRef": "cmd-comment-sicko-first-output",
+  "journeyFamily": "journey-family-05-playbook-complete-journeys",
+  "requirementIds": [
+    "PSTACK-CMD-NO-COMMENTS-SICKO-001",
+    "PSTACK-CMD-COMMENT-SICKO-FIRST-OUTPUT-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "/no-comments clean AI slop comments in src/greet.js plus side-specific done.txt delete-count/sicko/catchphrase line",
+  "steps": [
+    { "send": "/no-comments clean the AI slop comments in src/greet.js. Scope is only that file. ..." },
+    { "send": "\r" },
+    { "settle": true },
+    { "cancel": true }
+  ],
+  "cursor": {
+    "attemptId": "f4cd66ea-5fcd-49fc-aa35-9789e6fcfddc",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/no-comments/cursor/f4cd66ea-5fcd-49fc-aa35-9789e6fcfddc",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "observations": {
+      "noCommentsSkill": true,
+      "skillSource": "slash /no-comments via plugin-dir pstack skill",
+      "sickoSpawnAttempted": true,
+      "sickoSpawnSucceeded": true,
+      "sickoPathHeld": true,
+      "firstSickoAt": "2026-10-08T20:08:31.788Z",
+      "firstProductAt": "2026-10-08T20:08:42.794Z",
+      "productPaths": ["src/greet.js"],
+      "baselineCommentCount": 7,
+      "afterCommentCount": 0,
+      "commentsRemoved": true,
+      "cleanupHeld": true,
+      "catchphraseObservedOnParentPty": false,
+      "catchphraseObservedInChildTranscript": true,
+      "catchphraseFirstAssistantOutput": true,
+      "childTranscript": "/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/agent-transcripts/139f27a2-1329-40fc-b2b1-86a7b25ba916/139f27a2-1329-40fc-b2b1-86a7b25ba916.jsonl",
+      "doneMarkerWritten": true,
+      "doneLine": "delete-count=7 sicko=yes catchphrase=yes",
+      "screenEvidence": "Spawning Comment Sicko on src/greet.js only; 1 agent completed; Comment Sicko greet.js Done",
+      "reuseNote": "Reused from pair-no-comments-sicko-1 per brief Pi + Cursor reuse after product fix."
+    }
+  },
+  "pi": {
+    "attemptId": "c0cf9e02-9dd1-4c47-961a-b5a4d4029003",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/no-comments/pi/c0cf9e02-9dd1-4c47-961a-b5a4d4029003",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-no-comments-fixture-app--/2026-10-08T20-19-54-746Z_01a11d2c-24fa-738c-9e7a-53549f4347bb.jsonl",
+    "observations": {
+      "noCommentsSkill": true,
+      "skillSource": "session injects extensions/pi-pstack/skills/no-comments/SKILL.md",
+      "sickoSpawnAttempted": true,
+      "sickoSpawnSucceeded": true,
+      "sickoPathHeld": true,
+      "sickoSpawnError": null,
+      "taskArgs": {
+        "agent_type": "Comment Sicko",
+        "name": "comment-sicko",
+        "promptScope": "src/greet.js only"
+      },
+      "sessionToolOrder": ["bash", "task", "bash"],
+      "firstSickoAt": "2026-10-08T20:20:00.146Z",
+      "firstProductAt": "2026-10-08T20:20:06.075Z",
+      "productPaths": ["src/greet.js"],
+      "baselineCommentCount": 7,
+      "afterCommentCount": 0,
+      "commentsRemoved": true,
+      "cleanupHeld": true,
+      "inlineReviewFallback": false,
+      "catchphraseObservedOnParentPty": false,
+      "catchphraseObservedInChildTranscript": true,
+      "catchphraseFirstAssistantOutput": true,
+      "childTranscript": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-no-comments-fixture-app--/01a11d2c-24fa-738c-9e7a-53549f4347bb/subagents/agent-55da7a33-5410-4f97-b8a5-a9fff0437e17.jsonl",
+      "doneMarkerWritten": true,
+      "doneLine": "delete-count=7 sicko=yes catchphrase=no",
+      "screenEvidence": "task agent_type Comment Sicko completed; parent applied 7 deletions; done sicko=yes"
+    }
+  },
+  "deltas": [
+    {
+      "topic": "Comment Sicko spawn success",
+      "cursor": "Task/Agent spawned Comment Sicko; screen shows 1 agent completed on greet.js.",
+      "pi": "lowercase task with agent_type Comment Sicko succeeded after persona bridge; child returned deletions report.",
+      "reconciled": true
+    },
+    {
+      "topic": "comment cleanup",
+      "cursor": "src/greet.js went from 7 line comments to 0. cleanupHeld true.",
+      "pi": "src/greet.js went from 7 line comments to 0 after Sicko report. cleanupHeld true.",
+      "reconciled": true
+    },
+    {
+      "topic": "Comment Sicko first-output catchphrase",
+      "cursor": "Child transcript 139f27a2 first assistant text is exactly Yes... Ha ha ha... Yes! before review body. Parent PTY did not show it.",
+      "pi": "Child transcript agent-55da7a33 first assistant text is exactly Yes... Ha ha ha... Yes!. Parent done.txt catchphrase=no (PTY not required).",
+      "reconciled": true
+    },
+    {
+      "topic": "skill activation",
+      "cursor": "PTY keeps /no-comments with prompt; Comment Sicko chrome on screen.",
+      "pi": "Session injects no-comments SKILL.md; agent spawns Comment Sicko via task then acts.",
+      "reconciled": true
+    },
+    {
+      "topic": "delegation tool shape",
+      "cursor": "Capital Task / Agent with subagent_type Comment Sicko.",
+      "pi": "Lowercase task with agent_type Comment Sicko (persona bridged into task registry). Capital Task also remains available.",
+      "reconciled": true
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "Auto",
+      "pi": "claude-sonnet-5-5 • medium (claude-subscription)",
+      "reconciled": false
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-no-comments-sicko.mjs --pi-only after persona-agents bridge; cursor reused from pair-no-comments-sicko-1",
+    "workerPlaybook": "parity/evidence/no-comments/PLAYBOOK.md",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "packagePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack",
+    "markerRoot": "parity/evidence/no-comments/fixture-out/{cursor,pi}/",
+    "heldOutFixture": "parity/evidence/no-comments/fixture-app (AI-commented src/greet.js)",
+    "priorFailPair": "parity/evidence/no-comments/pair-no-comments-sicko-1.json",
+    "productFix": "extensions/pi-pstack/src/persona-agents.ts bridged into SubagentFactory.registryInputs"
+  }
+}

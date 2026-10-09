@@ -1,0 +1,9 @@
+$ shasum tool, selftest, manifest, oracles
+5a33e1d4138283fe5d474cef5ccca575847e66e61f4a0c655ab6372106711aa7  /private/tmp/pi-pstack-parity-acceptance-owner/parity/acceptance/tools/verify-acceptance.mjs
+3bd5d296a589b7c355d9e70cbd48a78a01e26267e8279d967f0eb50a10ec3b9a  /private/tmp/pi-pstack-parity-acceptance-owner/parity/acceptance/tools/selftest.sh
+de2d01434531e7cad6a6f138975db44145e1d97753f27450e4dd56d26409898a  /private/tmp/pi-pstack-parity-acceptance-owner/parity/acceptance/MANIFEST.sha256
+e4e84566a31803388d70e977f7a2bf4e7d53afe0c931543f877328e860805cb4  /private/tmp/pi-pstack-parity-acceptance-owner/parity/acceptance/setup-pstack/definitions.json
+3755a29140cdbf700f01eadd5e268b3abc459152c619bd0037bfe70cc355a80f  /private/tmp/pi-pstack-parity-acceptance-owner/parity/acceptance/setup-pstack/configurations.json
+4a218e21d7a6264daa45552fa39abdcd4c67337f145a79e191d136375a668238  /private/tmp/pi-pstack-parity-acceptance-owner/parity/acceptance/setup-pstack/record-hashes.json
+$ git -C owner status/rev
+?? parity/

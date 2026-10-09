@@ -1,0 +1,2751 @@
+{
+  "schema": 1,
+  "comparator": {
+    "version": 1,
+    "normalizationAllowlistDigest": "sha256:01c70098206e7f36bd9c72ec8d266f84bb525d9e142294196eda9145de65237c",
+    "normalizationRules": [
+      "attempt-id",
+      "process-id",
+      "recorder-utc-timestamp",
+      "recorder-monotonic-timestamp",
+      "equivalent-fixture-path"
+    ]
+  },
+  "pairId": "setup-first-run-canonical-2",
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "evidence": {
+    "cursor": {
+      "attemptId": "c7970c07-4c28-4cca-be3d-3d15ceedd207",
+      "traceDigest": "sha256:7028cb7f917f4a7df39930f1904bc891566079d703051a4887142759b0f79fdf",
+      "inputDigest": "sha256:c56c63ebffd0e6ae107a64ea83633598453ea3fa3b126df3159f38546eb4cabe",
+      "outputDigest": "sha256:ef94ea0b2409455dc1c4567cd75f8728c9e666422cdcb89cb9c7e6e5469a044f"
+    },
+    "pi": {
+      "attemptId": "1e448f41-07cb-4335-8a96-aa6312d6d125",
+      "traceDigest": "sha256:f7765fba0dc8c2ec28c30714801f68501e200003841b789492e4754654b0de9c",
+      "inputDigest": "sha256:c56c63ebffd0e6ae107a64ea83633598453ea3fa3b126df3159f38546eb4cabe",
+      "outputDigest": "sha256:14587d78722f611c093ec664f01563a94616f6ceb6c2eed2772340728a88cb41"
+    }
+  },
+  "verdict": "fail",
+  "pass": false,
+  "hasUnexplainedDifferences": true,
+  "counts": {
+    "rawOutputDifferences": 243331,
+    "normalizations": 9,
+    "inputDifferences": 0,
+    "outcomeDifferences": 1,
+    "unexplainedDifferences": 243583
+  },
+  "refusals": [],
+  "differences": {
+    "rawOutput": [
+      {
+        "offset": 2,
+        "cursor": {
+          "byte": 62,
+          "seq": 2,
+          "eventByteOffset": 2
+        },
+        "pi": {
+          "byte": 63,
+          "seq": 2,
+          "eventByteOffset": 2
+        }
+      },
+      {
+        "offset": 4,
+        "cursor": {
+          "byte": 117,
+          "seq": 2,
+          "eventByteOffset": 4
+        },
+        "pi": {
+          "byte": 48,
+          "seq": 2,
+          "eventByteOffset": 4
+        }
+      },
+      {
+        "offset": 5,
+        "cursor": {
+          "byte": 27,
+          "seq": 3,
+          "eventByteOffset": 0
+        },
+        "pi": {
+          "byte": 52,
+          "seq": 2,
+          "eventByteOffset": 5
+        }
+      },
+      {
+        "offset": 6,
+        "cursor": {
+          "byte": 93,
+          "seq": 3,
+          "eventByteOffset": 1
+        },
+        "pi": {
+          "byte": 57,
+          "seq": 2,
+          "eventByteOffset": 6
+        }
+      },
+      {
+        "offset": 7,
+        "cursor": {
+          "byte": 49,
+          "seq": 3,
+          "eventByteOffset": 2
+        },
+        "pi": {
+          "byte": 104,
+          "seq": 2,
+          "eventByteOffset": 7
+        }
+      },
+      {
+        "offset": 8,
+        "cursor": {
+          "byte": 49,
+          "seq": 3,
+          "eventByteOffset": 3
+        },
+        "pi": {
+          "byte": 27,
+          "seq": 2,
+          "eventByteOffset": 8
+        }
+      },
+      {
+        "offset": 9,
+        "cursor": {
+          "byte": 59,
+          "seq": 3,
+          "eventByteOffset": 4
+        },
+        "pi": {
+          "byte": 91,
+          "seq": 2,
+          "eventByteOffset": 9
+        }
+      },
+      {
+        "offset": 11,
+        "cursor": {
+          "byte": 7,
+          "seq": 3,
+          "eventByteOffset": 6
+        },
+        "pi": {
+          "byte": 55,
+          "seq": 2,
+          "eventByteOffset": 11
+        }
+      },
+      {
+        "offset": 12,
+        "cursor": {
+          "byte": 27,
+          "seq": 4,
+          "eventByteOffset": 0
+        },
+        "pi": {
+          "byte": 108,
+          "seq": 2,
+          "eventByteOffset": 12
+        }
+      },
+      {
+        "offset": 13,
+        "cursor": {
+          "byte": 91,
+          "seq": 4,
+          "eventByteOffset": 1
+        },
+        "pi": {
+          "byte": 27,
+          "seq": 2,
+          "eventByteOffset": 13
+        }
+      },
+      {
+        "offset": 14,
+        "cursor": {
+          "byte": 50,
+          "seq": 4,
+          "eventByteOffset": 2
+        },
+        "pi": {
+          "byte": 91,
+          "seq": 2,
+          "eventByteOffset": 14
+        }
+      },
+      {
+        "offset": 15,
+        "cursor": {
+          "byte": 75,
+          "seq": 4,
+          "eventByteOffset": 3
+        },
+        "pi": {
+          "byte": 63,
+          "seq": 2,
+          "eventByteOffset": 15
+        }
+      },
+      {
+        "offset": 16,
+        "cursor": {
+          "byte": 27,
+          "seq": 4,
+          "eventByteOffset": 4
+        },
+        "pi": {
+          "byte": 49,
+          "seq": 2,
+          "eventByteOffset": 16
+        }
+      },
+      {
+        "offset": 17,
+        "cursor": {
+          "byte": 91,
+          "seq": 4,
+          "eventByteOffset": 5
+        },
+        "pi": {
+          "byte": 48,
+          "seq": 2,
+          "eventByteOffset": 17
+        }
+      },
+      {
+        "offset": 18,
+        "cursor": {
+          "byte": 71,
+          "seq": 4,
+          "eventByteOffset": 6
+        },
+        "pi": {
+          "byte": 48,
+          "seq": 2,
+          "eventByteOffset": 18
+        }
+      },
+      {
+        "offset": 19,
+        "cursor": {
+          "byte": 13,
+          "seq": 4,
+          "eventByteOffset": 7
+        },
+        "pi": {
+          "byte": 48,
+          "seq": 2,
+          "eventByteOffset": 19
+        }
+      },
+      {
+        "offset": 20,
+        "cursor": {
+          "byte": 10,
+          "seq": 4,
+          "eventByteOffset": 8
+        },
+        "pi": {
+          "byte": 104,
+          "seq": 2,
+          "eventByteOffset": 20
+        }
+      },
+      {
+        "offset": 21,
+        "cursor": {
+          "byte": 13,
+          "seq": 4,
+          "eventByteOffset": 9
+        },
+        "pi": {
+          "byte": 27,
+          "seq": 2,
+          "eventByteOffset": 21
+        }
+      },
+      {
+        "offset": 22,
+        "cursor": {
+          "byte": 10,
+          "seq": 4,
+          "eventByteOffset": 10
+        },
+        "pi": {
+          "byte": 91,
+          "seq": 2,
+          "eventByteOffset": 22
+        }
+      },
+      {
+        "offset": 23,
+        "cursor": {
+          "byte": 32,
+          "seq": 4,
+          "eventByteOffset": 11
+        },
+        "pi": {
+          "byte": 63,
+          "seq": 2,
+          "eventByteOffset": 23
+        }
+      },
+      {
+        "offset": 24,
+        "cursor": {
+          "byte": 32,
+          "seq": 4,
+          "eventByteOffset": 12
+        },
+        "pi": {
+          "byte": 49,
+          "seq": 2,
+          "eventByteOffset": 24
+        }
+      },
+      {
+        "offset": 25,
+        "cursor": {
+          "byte": 67,
+          "seq": 4,
+          "eventByteOffset": 13
+        },
+        "pi": {
+          "byte": 48,
+          "seq": 2,
+          "eventByteOffset": 25
+        }
+      },
+      {
+        "offset": 26,
+        "cursor": {
+          "byte": 117,
+          "seq": 4,
+          "eventByteOffset": 14
+        },
+        "pi": {
+          "byte": 48,
+          "seq": 2,
+          "eventByteOffset": 26
+        }
+      },
+      {
+        "offset": 27,
+        "cursor": {
+          "byte": 114,
+          "seq": 4,
+          "eventByteOffset": 15
+        },
+        "pi": {
+          "byte": 50,
+          "seq": 2,
+          "eventByteOffset": 27
+        }
+      },
+      {
+        "offset": 28,
+        "cursor": {
+          "byte": 115,
+          "seq": 4,
+          "eventByteOffset": 16
+        },
+        "pi": {
+          "byte": 104,
+          "seq": 2,
+          "eventByteOffset": 28
+        }
+      },
+      {
+        "offset": 29,
+        "cursor": {
+          "byte": 111,
+          "seq": 4,
+          "eventByteOffset": 17
+        },
+        "pi": {
+          "byte": 27,
+          "seq": 2,
+          "eventByteOffset": 29
+        }
+      },
+      {
+        "offset": 30,
+        "cursor": {
+          "byte": 114,
+          "seq": 4,
+          "eventByteOffset": 18
+        },
+        "pi": {
+          "byte": 91,
+          "seq": 2,
+          "eventByteOffset": 30
+        }
+      },
+      {
+        "offset": 31,
+        "cursor": {
+          "byte": 32,
+          "seq": 4,
+          "eventByteOffset": 19
+        },
+        "pi": {
+          "byte": 63,
+          "seq": 2,
+          "eventByteOffset": 31
+        }
+      },
+      {
+        "offset": 32,
+        "cursor": {
+          "byte": 65,
+          "seq": 4,
+          "eventByteOffset": 20
+        },
+        "pi": {
+          "byte": 49,
+          "seq": 2,
+          "eventByteOffset": 32
+        }
+      },
+      {
+        "offset": 33,
+        "cursor": {
+          "byte": 103,
+          "seq": 4,
+          "eventByteOffset": 21
+        },
+        "pi": {
+          "byte": 48,
+          "seq": 2,
+          "eventByteOffset": 33
+        }
+      },
+      {
+        "offset": 34,
+        "cursor": {
+          "byte": 101,
+          "seq": 4,
+          "eventByteOffset": 22
+        },
+        "pi": {
+          "byte": 48,
+          "seq": 2,
+          "eventByteOffset": 34
+        }
+      },
+      {
+        "offset": 35,
+        "cursor": {
+          "byte": 110,
+          "seq": 4,
+          "eventByteOffset": 23
+        },
+        "pi": {
+          "byte": 51,
+          "seq": 2,
+          "eventByteOffset": 35
+        }
+      },
+      {
+        "offset": 36,
+        "cursor": {
+          "byte": 116,
+          "seq": 4,
+          "eventByteOffset": 24
+        },
+        "pi": {
+          "byte": 104,
+          "seq": 2,
+          "eventByteOffset": 36
+        }
+      },
+      {
+        "offset": 37,
+        "cursor": {
+          "byte": 13,
+          "seq": 4,
+          "eventByteOffset": 25
+        },
+        "pi": {
+          "byte": 27,
+          "seq": 2,
+          "eventByteOffset": 37
+        }
+      },
+      {
+        "offset": 38,
+        "cursor": {
+          "byte": 10,
+          "seq": 4,
+          "eventByteOffset": 26
+        },
+        "pi": {
+          "byte": 91,
+          "seq": 2,
+          "eventByteOffset": 38
+        }
+      },
+      {
+        "offset": 39,
+        "cursor": {
+          "byte": 32,
+          "seq": 4,
+          "eventByteOffset": 27
+        },
+        "pi": {
+          "byte": 63,
+          "seq": 2,
+          "eventByteOffset": 39
+        }
+      },
+      {
+        "offset": 40,
+        "cursor": {
+          "byte": 32,
+          "seq": 4,
+          "eventByteOffset": 28
+        },
+        "pi": {
+          "byte": 49,
+          "seq": 2,
+          "eventByteOffset": 40
+        }
+      },
+      {
+        "offset": 41,
+        "cursor": {
+          "byte": 27,
+          "seq": 4,
+          "eventByteOffset": 29
+        },
+        "pi": {
+          "byte": 48,
+          "seq": 2,
+          "eventByteOffset": 41
+        }
+      },
+      {
+        "offset": 42,
+        "cursor": {
+          "byte": 91,
+          "seq": 4,
+          "eventByteOffset": 30
+        },
+        "pi": {
+          "byte": 48,
+          "seq": 2,
+          "eventByteOffset": 42
+        }
+      },
+      {
+        "offset": 43,
+        "cursor": {
+          "byte": 50,
+          "seq": 4,
+          "eventByteOffset": 31
+        },
+        "pi": {
+          "byte": 52,
+          "seq": 2,
+          "eventByteOffset": 43
+        }
+      },
+      {
+        "offset": 44,
+        "cursor": {
+          "byte": 109,
+          "seq": 4,
+          "eventByteOffset": 32
+        },
+        "pi": {
+          "byte": 104,
+          "seq": 2,
+          "eventByteOffset": 44
+        }
+      },
+      {
+        "offset": 45,
+        "cursor": {
+          "byte": 118,
+          "seq": 4,
+          "eventByteOffset": 33
+        },
+        "pi": {
+          "byte": 27,
+          "seq": 2,
+          "eventByteOffset": 45
+        }
+      },
+      {
+        "offset": 46,
+        "cursor": {
+          "byte": 50,
+          "seq": 4,
+          "eventByteOffset": 34
+        },
+        "pi": {
+          "byte": 91,
+          "seq": 2,
+          "eventByteOffset": 46
+        }
+      },
+      {
+        "offset": 47,
+        "cursor": {
+          "byte": 48,
+          "seq": 4,
+          "eventByteOffset": 35
+        },
+        "pi": {
+          "byte": 63,
+          "seq": 2,
+          "eventByteOffset": 47
+        }
+      },
+      {
+        "offset": 48,
+        "cursor": {
+          "byte": 50,
+          "seq": 4,
+          "eventByteOffset": 36
+        },
+        "pi": {
+          "byte": 49,
+          "seq": 2,
+          "eventByteOffset": 48
+        }
+      },
+      {
+        "offset": 49,
+        "cursor": {
+          "byte": 54,
+          "seq": 4,
+          "eventByteOffset": 37
+        },
+        "pi": {
+          "byte": 48,
+          "seq": 2,
+          "eventByteOffset": 49
+        }
+      },
+      {
+        "offset": 50,
+        "cursor": {
+          "byte": 46,
+          "seq": 4,
+          "eventByteOffset": 38
+        },
+        "pi": {
+          "byte": 48,
+          "seq": 2,
+          "eventByteOffset": 50
+        }
+      },
+      {
+        "offset": 51,
+        "cursor": {
+          "byte": 49,
+          "seq": 4,
+          "eventByteOffset": 39
+        },
+        "pi": {
+          "byte": 54,
+          "seq": 2,
+          "eventByteOffset": 51
+        }
+      },
+      {
+        "offset": 52,
+        "cursor": {
+          "byte": 48,
+          "seq": 4,
+          "eventByteOffset": 40
+        },
+        "pi": {
+          "byte": 104,
+          "seq": 2,
+          "eventByteOffset": 52
+        }
+      },
+      {
+        "offset": 53,
+        "cursor": {
+          "byte": 46,
+          "seq": 4,
+          "eventByteOffset": 41
+        },
+        "pi": {
+          "byte": 27,
+          "seq": 2,
+          "eventByteOffset": 53
+        }
+      },
+      {
+        "offset": 54,
+        "cursor": {
+          "byte": 48,
+          "seq": 4,
+          "eventByteOffset": 42
+        },
+        "pi": {
+          "byte": 91,
+          "seq": 2,
+          "eventByteOffset": 54
+        }
+      },
+      {
+        "offset": 55,
+        "cursor": {
+          "byte": 49,
+          "seq": 4,
+          "eventByteOffset": 43
+        },
+        "pi": {
+          "byte": 50,
+          "seq": 2,
+          "eventByteOffset": 55
+        }
+      },
+      {
+        "offset": 56,
+        "cursor": {
+          "byte": 45,
+          "seq": 4,
+          "eventByteOffset": 44
+        },
+        "pi": {
+          "byte": 74,
+          "seq": 2,
+          "eventByteOffset": 56
+        }
+      },
+      {
+        "offset": 57,
+        "cursor": {
+          "byte": 101,
+          "seq": 4,
+          "eventByteOffset": 45
+        },
+        "pi": {
+          "byte": 27,
+          "seq": 2,
+          "eventByteOffset": 57
+        }
+      },
+      {
+        "offset": 58,
+        "cursor": {
+          "byte": 51,
+          "seq": 4,
+          "eventByteOffset": 46
+        },
+        "pi": {
+          "byte": 91,
+          "seq": 2,
+          "eventByteOffset": 58
+        }
+      },
+      {
+        "offset": 59,
+        "cursor": {
+          "byte": 55,
+          "seq": 4,
+          "eventByteOffset": 47
+        },
+        "pi": {
+          "byte": 72,
+          "seq": 2,
+          "eventByteOffset": 59
+        }
+      },
+      {
+        "offset": 60,
+        "cursor": {
+          "byte": 51,
+          "seq": 4,
+          "eventByteOffset": 48
+        },
+        "pi": {
+          "byte": 27,
+          "seq": 2,
+          "eventByteOffset": 60
+        }
+      },
+      {
+        "offset": 61,
+        "cursor": {
+          "byte": 51,
+          "seq": 4,
+          "eventByteOffset": 49
+        },
+        "pi": {
+          "byte": 91,
+          "seq": 2,
+          "eventByteOffset": 61
+        }
+      },
+      {
+        "offset": 62,
+        "cursor": {
+          "byte": 52,
+          "seq": 4,
+          "eventByteOffset": 50
+        },
+        "pi": {
+          "byte": 63,
+          "seq": 2,
+          "eventByteOffset": 62
+        }
+      },
+      {
+        "offset": 64,
+        "cursor": {
+          "byte": 27,
+          "seq": 4,
+          "eventByteOffset": 52
+        },
+        "pi": {
+          "byte": 53,
+          "seq": 2,
+          "eventByteOffset": 64
+        }
+      },
+      {
+        "offset": 65,
+        "cursor": {
+          "byte": 91,
+          "seq": 4,
+          "eventByteOffset": 53
+        },
+        "pi": {
+          "byte": 108,
+          "seq": 2,
+          "eventByteOffset": 65
+        }
+      },
+      {
+        "offset": 66,
+        "cursor": {
+          "byte": 50,
+          "seq": 4,
+          "eventByteOffset": 54
+        },
+        "pi": {
+          "byte": 27,
+          "seq": 3,
+          "eventByteOffset": 0
+        }
+      },
+      {
+        "offset": 67,
+        "cursor": {
+          "byte": 50,
+          "seq": 4,
+          "eventByteOffset": 55
+        },
+        "pi": {
+          "byte": 91,
+          "seq": 3,
+          "eventByteOffset": 1
+        }
+      },
+      {
+        "offset": 68,
+        "cursor": {
+          "byte": 109,
+          "seq": 4,
+          "eventByteOffset": 56
+        },
+        "pi": {
+          "byte": 63,
+          "seq": 3,
+          "eventByteOffset": 2
+        }
+      },
+      {
+        "offset": 69,
+        "cursor": {
+          "byte": 13,
+          "seq": 4,
+          "eventByteOffset": 57
+        },
+        "pi": {
+          "byte": 50,
+          "seq": 3,
+          "eventByteOffset": 3
+        }
+      },
+      {
+        "offset": 70,
+        "cursor": {
+          "byte": 10,
+          "seq": 4,
+          "eventByteOffset": 58
+        },
+        "pi": {
+          "byte": 48,
+          "seq": 3,
+          "eventByteOffset": 4
+        }
+      },
+      {
+        "offset": 71,
+        "cursor": {
+          "byte": 32,
+          "seq": 4,
+          "eventByteOffset": 59
+        },
+        "pi": {
+          "byte": 48,
+          "seq": 3,
+          "eventByteOffset": 5
+        }
+      },
+      {
+        "offset": 72,
+        "cursor": {
+          "byte": 32,
+          "seq": 4,
+          "eventByteOffset": 60
+        },
+        "pi": {
+          "byte": 52,
+          "seq": 3,
+          "eventByteOffset": 6
+        }
+      },
+      {
+        "offset": 73,
+        "cursor": {
+          "byte": 27,
+          "seq": 4,
+          "eventByteOffset": 61
+        },
+        "pi": {
+          "byte": 104,
+          "seq": 3,
+          "eventByteOffset": 7
+        }
+      },
+      {
+        "offset": 74,
+        "cursor": {
+          "byte": 91,
+          "seq": 4,
+          "eventByteOffset": 62
+        },
+        "pi": {
+          "byte": 27,
+          "seq": 4,
+          "eventByteOffset": 0
+        }
+      },
+      {
+        "offset": 75,
+        "cursor": {
+          "byte": 50,
+          "seq": 4,
+          "eventByteOffset": 63
+        },
+        "pi": {
+          "byte": 91,
+          "seq": 4,
+          "eventByteOffset": 1
+        }
+      },
+      {
+        "offset": 76,
+        "cursor": {
+          "byte": 109,
+          "seq": 4,
+          "eventByteOffset": 64
+        },
+        "pi": {
+          "byte": 62,
+          "seq": 4,
+          "eventByteOffset": 2
+        }
+      },
+      {
+        "offset": 77,
+        "cursor": {
+          "byte": 84,
+          "seq": 4,
+          "eventByteOffset": 65
+        },
+        "pi": {
+          "byte": 55,
+          "seq": 4,
+          "eventByteOffset": 3
+        }
+      },
+      {
+        "offset": 78,
+        "cursor": {
+          "byte": 105,
+          "seq": 4,
+          "eventByteOffset": 66
+        },
+        "pi": {
+          "byte": 117,
+          "seq": 4,
+          "eventByteOffset": 4
+        }
+      },
+      {
+        "offset": 79,
+        "cursor": {
+          "byte": 112,
+          "seq": 4,
+          "eventByteOffset": 67
+        },
+        "pi": {
+          "byte": 27,
+          "seq": 4,
+          "eventByteOffset": 5
+        }
+      },
+      {
+        "offset": 80,
+        "cursor": {
+          "byte": 58,
+          "seq": 4,
+          "eventByteOffset": 68
+        },
+        "pi": {
+          "byte": 91,
+          "seq": 4,
+          "eventByteOffset": 6
+        }
+      },
+      {
+        "offset": 81,
+        "cursor": {
+          "byte": 32,
+          "seq": 4,
+          "eventByteOffset": 69
+        },
+        "pi": {
+          "byte": 63,
+          "seq": 4,
+          "eventByteOffset": 7
+        }
+      },
+      {
+        "offset": 82,
+        "cursor": {
+          "byte": 85,
+          "seq": 4,
+          "eventByteOffset": 70
+        },
+        "pi": {
+          "byte": 117,
+          "seq": 4,
+          "eventByteOffset": 8
+        }
+      },
+      {
+        "offset": 83,
+        "cursor": {
+          "byte": 115,
+          "seq": 4,
+          "eventByteOffset": 71
+        },
+        "pi": {
+          "byte": 27,
+          "seq": 4,
+          "eventByteOffset": 9
+        }
+      },
+      {
+        "offset": 84,
+        "cursor": {
+          "byte": 101,
+          "seq": 4,
+          "eventByteOffset": 72
+        },
+        "pi": {
+          "byte": 93,
+          "seq": 4,
+          "eventByteOffset": 10
+        }
+      },
+      {
+        "offset": 85,
+        "cursor": {
+          "byte": 32,
+          "seq": 4,
+          "eventByteOffset": 73
+        },
+        "pi": {
+          "byte": 55,
+          "seq": 4,
+          "eventByteOffset": 11
+        }
+      },
+      {
+        "offset": 86,
+        "cursor": {
+          "byte": 47,
+          "seq": 4,
+          "eventByteOffset": 74
+        },
+        "pi": {
+          "byte": 53,
+          "seq": 4,
+          "eventByteOffset": 12
+        }
+      },
+      {
+        "offset": 87,
+        "cursor": {
+          "byte": 100,
+          "seq": 4,
+          "eventByteOffset": 75
+        },
+        "pi": {
+          "byte": 48,
+          "seq": 4,
+          "eventByteOffset": 13
+        }
+      },
+      {
+        "offset": 88,
+        "cursor": {
+          "byte": 101,
+          "seq": 4,
+          "eventByteOffset": 76
+        },
+        "pi": {
+          "byte": 49,
+          "seq": 4,
+          "eventByteOffset": 14
+        }
+      },
+      {
+        "offset": 89,
+        "cursor": {
+          "byte": 98,
+          "seq": 4,
+          "eventByteOffset": 77
+        },
+        "pi": {
+          "byte": 59,
+          "seq": 4,
+          "eventByteOffset": 15
+        }
+      },
+      {
+        "offset": 90,
+        "cursor": {
+          "byte": 117,
+          "seq": 4,
+          "eventByteOffset": 78
+        },
+        "pi": {
+          "byte": 63,
+          "seq": 4,
+          "eventByteOffset": 16
+        }
+      },
+      {
+        "offset": 91,
+        "cursor": {
+          "byte": 103,
+          "seq": 4,
+          "eventByteOffset": 79
+        },
+        "pi": {
+          "byte": 27,
+          "seq": 4,
+          "eventByteOffset": 17
+        }
+      },
+      {
+        "offset": 92,
+        "cursor": {
+          "byte": 32,
+          "seq": 4,
+          "eventByteOffset": 80
+        },
+        "pi": {
+          "byte": 92,
+          "seq": 4,
+          "eventByteOffset": 18
+        }
+      },
+      {
+        "offset": 93,
+        "cursor": {
+          "byte": 116,
+          "seq": 4,
+          "eventByteOffset": 81
+        },
+        "pi": {
+          "byte": 27,
+          "seq": 4,
+          "eventByteOffset": 19
+        }
+      },
+      {
+        "offset": 94,
+        "cursor": {
+          "byte": 111,
+          "seq": 4,
+          "eventByteOffset": 82
+        },
+        "pi": {
+          "byte": 91,
+          "seq": 4,
+          "eventByteOffset": 20
+        }
+      },
+      {
+        "offset": 95,
+        "cursor": {
+          "byte": 32,
+          "seq": 4,
+          "eventByteOffset": 83
+        },
+        "pi": {
+          "byte": 99,
+          "seq": 4,
+          "eventByteOffset": 21
+        }
+      },
+      {
+        "offset": 96,
+        "cursor": {
+          "byte": 105,
+          "seq": 4,
+          "eventByteOffset": 84
+        },
+        "pi": {
+          "byte": 27,
+          "seq": 5,
+          "eventByteOffset": 0
+        }
+      },
+      {
+        "offset": 97,
+        "cursor": {
+          "byte": 110,
+          "seq": 4,
+          "eventByteOffset": 85
+        },
+        "pi": {
+          "byte": 91,
+          "seq": 5,
+          "eventByteOffset": 1
+        }
+      },
+      {
+        "offset": 98,
+        "cursor": {
+          "byte": 115,
+          "seq": 4,
+          "eventByteOffset": 86
+        },
+        "pi": {
+          "byte": 63,
+          "seq": 5,
+          "eventByteOffset": 2
+        }
+      },
+      {
+        "offset": 99,
+        "cursor": {
+          "byte": 116,
+          "seq": 4,
+          "eventByteOffset": 87
+        },
+        "pi": {
+          "byte": 50,
+          "seq": 5,
+          "eventByteOffset": 3
+        }
+      },
+      {
+        "offset": 100,
+        "cursor": {
+          "byte": 114,
+          "seq": 4,
+          "eventByteOffset": 88
+        },
+        "pi": {
+          "byte": 53,
+          "seq": 5,
+          "eventByteOffset": 4
+        }
+      },
+      {
+        "offset": 101,
+        "cursor": {
+          "byte": 117,
+          "seq": 4,
+          "eventByteOffset": 89
+        },
+        "pi": {
+          "byte": 108,
+          "seq": 5,
+          "eventByteOffset": 5
+        }
+      },
+      {
+        "offset": 102,
+        "cursor": {
+          "byte": 109,
+          "seq": 4,
+          "eventByteOffset": 90
+        },
+        "pi": {
+          "byte": 27,
+          "seq": 6,
+          "eventByteOffset": 0
+        }
+      },
+      {
+        "offset": 103,
+        "cursor": {
+          "byte": 101,
+          "seq": 4,
+          "eventByteOffset": 91
+        },
+        "pi": {
+          "byte": 93,
+          "seq": 6,
+          "eventByteOffset": 1
+        }
+      },
+      {
+        "offset": 104,
+        "cursor": {
+          "byte": 110,
+          "seq": 4,
+          "eventByteOffset": 92
+        },
+        "pi": {
+          "byte": 49,
+          "seq": 6,
+          "eventByteOffset": 2
+        }
+      }
+    ],
+    "normalizations": [
+      {
+        "side": "cursor",
+        "rule": "equivalent-fixture-path",
+        "raw": "/Users/josh-desktop/.cursor/rules/pstack-models.mdc",
+        "replacement": "<FIXTURE_PATH>",
+        "seq": 116,
+        "byteOffset": 87993
+      },
+      {
+        "side": "cursor",
+        "rule": "equivalent-fixture-path",
+        "raw": "/Users/josh-desktop/.cursor/rules/pstack-models.mdc",
+        "replacement": "<FIXTURE_PATH>",
+        "seq": 118,
+        "byteOffset": 89043
+      },
+      {
+        "side": "pi",
+        "rule": "equivalent-fixture-path",
+        "raw": "/tmp/pi-ref-agent/pstack/models.mdc",
+        "replacement": "<FIXTURE_PATH>",
+        "seq": 62,
+        "byteOffset": 23611
+      },
+      {
+        "side": "pi",
+        "rule": "equivalent-fixture-path",
+        "raw": "/tmp/pi-ref-agent/pstack/models.mdc",
+        "replacement": "<FIXTURE_PATH>",
+        "seq": 83,
+        "byteOffset": 34903
+      },
+      {
+        "side": "pi",
+        "rule": "equivalent-fixture-path",
+        "raw": "/tmp/pi-ref-agent/pstack/models.mdc",
+        "replacement": "<FIXTURE_PATH>",
+        "seq": 1033,
+        "byteOffset": 81980
+      },
+      {
+        "side": "pi",
+        "rule": "equivalent-fixture-path",
+        "raw": "/tmp/pi-ref-agent/pstack/models.mdc",
+        "replacement": "<FIXTURE_PATH>",
+        "seq": 1041,
+        "byteOffset": 88777
+      },
+      {
+        "side": "pi",
+        "rule": "equivalent-fixture-path",
+        "raw": "/tmp/pi-ref-agent/pstack/models.mdc",
+        "replacement": "<FIXTURE_PATH>",
+        "seq": 1081,
+        "byteOffset": 114308
+      },
+      {
+        "side": "pi",
+        "rule": "equivalent-fixture-path",
+        "raw": "/tmp/pi-ref-agent/pstack/models.mdc",
+        "replacement": "<FIXTURE_PATH>",
+        "seq": 1117,
+        "byteOffset": 131078
+      },
+      {
+        "side": "pi",
+        "rule": "equivalent-fixture-path",
+        "raw": "/tmp/pi-ref-agent/pstack/models.mdc",
+        "replacement": "<FIXTURE_PATH>",
+        "seq": 1118,
+        "byteOffset": 131466
+      }
+    ],
+    "input": [],
+    "outcome": [
+      {
+        "cursor": {
+          "kind": "cancelled",
+          "exit": {
+            "exitCode": 143,
+            "signal": null
+          }
+        },
+        "pi": {
+          "kind": "cancelled",
+          "exit": {
+            "exitCode": 0,
+            "signal": null
+          }
+        }
+      }
+    ],
+    "unexplainedOutput": [
+      {
+        "offset": 2,
+        "cursor": {
+          "byte": 62,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 63,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 4,
+        "cursor": {
+          "byte": 117,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 48,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 5,
+        "cursor": {
+          "byte": 27,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 52,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 6,
+        "cursor": {
+          "byte": 93,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 57,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 7,
+        "cursor": {
+          "byte": 49,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 104,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 8,
+        "cursor": {
+          "byte": 49,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 27,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 9,
+        "cursor": {
+          "byte": 59,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 91,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 11,
+        "cursor": {
+          "byte": 7,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 55,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 12,
+        "cursor": {
+          "byte": 27,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 108,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 13,
+        "cursor": {
+          "byte": 91,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 27,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 14,
+        "cursor": {
+          "byte": 50,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 91,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 15,
+        "cursor": {
+          "byte": 75,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 63,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 16,
+        "cursor": {
+          "byte": 27,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 49,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 17,
+        "cursor": {
+          "byte": 91,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 48,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 18,
+        "cursor": {
+          "byte": 71,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 48,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 19,
+        "cursor": {
+          "byte": 13,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 48,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 20,
+        "cursor": {
+          "byte": 10,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 104,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 21,
+        "cursor": {
+          "byte": 13,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 27,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 22,
+        "cursor": {
+          "byte": 10,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 91,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 23,
+        "cursor": {
+          "byte": 32,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 63,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 24,
+        "cursor": {
+          "byte": 32,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 49,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 25,
+        "cursor": {
+          "byte": 67,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 48,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 26,
+        "cursor": {
+          "byte": 117,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 48,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 27,
+        "cursor": {
+          "byte": 114,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 50,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 28,
+        "cursor": {
+          "byte": 115,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 104,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 29,
+        "cursor": {
+          "byte": 111,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 27,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 30,
+        "cursor": {
+          "byte": 114,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 91,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 31,
+        "cursor": {
+          "byte": 32,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 63,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 32,
+        "cursor": {
+          "byte": 65,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 49,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 33,
+        "cursor": {
+          "byte": 103,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 48,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 34,
+        "cursor": {
+          "byte": 101,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 48,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 35,
+        "cursor": {
+          "byte": 110,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 51,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 36,
+        "cursor": {
+          "byte": 116,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 104,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 37,
+        "cursor": {
+          "byte": 13,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 27,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 38,
+        "cursor": {
+          "byte": 10,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 91,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 39,
+        "cursor": {
+          "byte": 32,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 63,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 40,
+        "cursor": {
+          "byte": 32,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 49,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 41,
+        "cursor": {
+          "byte": 27,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 48,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 42,
+        "cursor": {
+          "byte": 91,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 48,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 43,
+        "cursor": {
+          "byte": 50,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 52,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 44,
+        "cursor": {
+          "byte": 109,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 104,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 45,
+        "cursor": {
+          "byte": 118,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 27,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 46,
+        "cursor": {
+          "byte": 50,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 91,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 47,
+        "cursor": {
+          "byte": 48,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 63,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 48,
+        "cursor": {
+          "byte": 50,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 49,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 49,
+        "cursor": {
+          "byte": 54,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 48,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 50,
+        "cursor": {
+          "byte": 46,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 48,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 51,
+        "cursor": {
+          "byte": 49,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 54,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 52,
+        "cursor": {
+          "byte": 48,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 104,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 53,
+        "cursor": {
+          "byte": 46,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 27,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 54,
+        "cursor": {
+          "byte": 48,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 91,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 55,
+        "cursor": {
+          "byte": 49,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 50,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 56,
+        "cursor": {
+          "byte": 45,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 74,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 57,
+        "cursor": {
+          "byte": 101,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 27,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 58,
+        "cursor": {
+          "byte": 51,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 91,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 59,
+        "cursor": {
+          "byte": 55,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 72,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 60,
+        "cursor": {
+          "byte": 51,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 27,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 61,
+        "cursor": {
+          "byte": 51,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 91,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 62,
+        "cursor": {
+          "byte": 52,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 63,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 64,
+        "cursor": {
+          "byte": 27,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 53,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 65,
+        "cursor": {
+          "byte": 91,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 108,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 66,
+        "cursor": {
+          "byte": 50,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 27,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 67,
+        "cursor": {
+          "byte": 50,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 91,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 68,
+        "cursor": {
+          "byte": 109,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 63,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 69,
+        "cursor": {
+          "byte": 13,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 50,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 70,
+        "cursor": {
+          "byte": 10,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 48,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 71,
+        "cursor": {
+          "byte": 32,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 48,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 72,
+        "cursor": {
+          "byte": 32,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 52,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 73,
+        "cursor": {
+          "byte": 27,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 104,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 74,
+        "cursor": {
+          "byte": 91,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 27,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 75,
+        "cursor": {
+          "byte": 50,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 91,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 76,
+        "cursor": {
+          "byte": 109,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 62,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 77,
+        "cursor": {
+          "byte": 84,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 55,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 78,
+        "cursor": {
+          "byte": 105,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 117,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 79,
+        "cursor": {
+          "byte": 112,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 27,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 80,
+        "cursor": {
+          "byte": 58,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 91,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 81,
+        "cursor": {
+          "byte": 32,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 63,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 82,
+        "cursor": {
+          "byte": 85,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 117,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 83,
+        "cursor": {
+          "byte": 115,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 27,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 84,
+        "cursor": {
+          "byte": 101,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 93,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 85,
+        "cursor": {
+          "byte": 32,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 55,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 86,
+        "cursor": {
+          "byte": 47,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 53,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 87,
+        "cursor": {
+          "byte": 100,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 48,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 88,
+        "cursor": {
+          "byte": 101,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 49,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 89,
+        "cursor": {
+          "byte": 98,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 59,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 90,
+        "cursor": {
+          "byte": 117,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 63,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 91,
+        "cursor": {
+          "byte": 103,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 27,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 92,
+        "cursor": {
+          "byte": 32,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 92,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 93,
+        "cursor": {
+          "byte": 116,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 27,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 94,
+        "cursor": {
+          "byte": 111,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 91,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 95,
+        "cursor": {
+          "byte": 32,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 99,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 96,
+        "cursor": {
+          "byte": 105,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 27,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 97,
+        "cursor": {
+          "byte": 110,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 91,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 98,
+        "cursor": {
+          "byte": 115,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 63,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 99,
+        "cursor": {
+          "byte": 116,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 50,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 100,
+        "cursor": {
+          "byte": 114,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 53,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 101,
+        "cursor": {
+          "byte": 117,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 108,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 102,
+        "cursor": {
+          "byte": 109,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 27,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 103,
+        "cursor": {
+          "byte": 101,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 93,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      },
+      {
+        "offset": 104,
+        "cursor": {
+          "byte": 110,
+          "seq": null,
+          "eventByteOffset": null
+        },
+        "pi": {
+          "byte": 49,
+          "seq": null,
+          "eventByteOffset": null
+        }
+      }
+    ]
+  },
+  "boundedSamples": {
+    "rawOutput": {
+      "total": 243331,
+      "retained": 100
+    },
+    "unexplainedOutput": {
+      "total": 243582,
+      "retained": 100
+    },
+    "note": "Full lists recomputable via parity/comparator/compare.mjs on the pair record; both attempt dirs are retained."
+  }
+}

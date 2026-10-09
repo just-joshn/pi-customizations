@@ -1,0 +1,39 @@
+  • After beta: UNIT-OK beta=NEW_beta. The run was SEQUENCE-FAIL green=alpha,beta.
+  • After gamma: SEQUENCE-OK units=3, exit 0.
+
+  evidence/verify-log.jsonl has entries for the baseline and each module run. The baseline entry is an extra run you
+  didn't ask for. It shows the check was red before the edits.
+
+  Playbook steps. Matched to the Refactoring playbook.
+  1. Pin the contract: done. The pin is verify.mjs plus the baseline run. Each unit's TAG value is the contract.
+  2. Name the missing structure: skip. The change is one string literal per module. There are no branches or
+     invalid states to remove.
+  3. Name the target shape: skip. No function boundary was crossed, so architect didn't apply. The target is TAG = 
+     'NEW_<stem>' in each module.
+  4. Subtract before you add: skip. There is no dead code, wrapper, or validator to remove.
+  5. Move in small steps: done. Each module was one edit. I made the three literal edits myself, not through a
+     subagent. Each edit was one line and the per-unit gate covered it.
+  6. Prove behavior: done. evidence/verify-out.txt reads SEQUENCE-OK units=3. I also grepped src/ and found no
+     OLD_ left.
+  7. Reader load: skip. The rename is what you asked for, and the structure is unchanged, so there's no
+     reader-load gain to measure. I kept it.
+  8. Commits and PR: skip. You scoped writes to this cwd and the done path. The fixture sits inside the parent git
+     repo, so a commit would touch files outside the cwd.
+
+  Principles. I read these two leaf skills in full and they shaped the work.
+  • Sequence Work into Verifiable Units decided the one-module-at-a-time order and the marker gate. It also set
+    the baseline run before any edit.
+  • Prove It Works decided that I checked the marker files and verify-out.txt directly, not the exit code. I also
+    grepped src/ for leftover OLD_.
+
+  README.md and NOTES.md still describe the OLD_ prefix. I left them alone because you didn't ask for doc edits.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Claude Haiku 5.5 300K High · 22.4% · 4 files edited                                                   Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/principles/sequence-units/fixture-app · 
+  refactor/pi-pstack-parity-again

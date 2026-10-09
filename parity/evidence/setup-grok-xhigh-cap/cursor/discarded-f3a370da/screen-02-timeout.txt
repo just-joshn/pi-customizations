@@ -1,0 +1,35 @@
+  /setup-pstack                                                                                                        
+                                                                                                                       
+
+  Running setup-pstack: detecting available models and loading the current rule, then asking for budget.
+
+    Read /Users/josh-desktop/.cursor/rules/pstack-models.mdc
+
+    Explored available MCP tools pattern AskQuestion|ask_question
+
+    Globbed "**/verify*/SKILL.md" in ...osh-desktop/src/personal/pi-pstack-parity-again
+    Found 0 files
+
+    Explored available MCP tools pattern Ask|Question|question
+
+  Current rule is budget: small (medium), and every role is already inherit-parent (aliases stay as-is when a budget
+  is applied).
+
+  Pick a budget:
+
+  1. unlimited — keep max
+  2. large — xhigh reasoning
+  3. medium — high reasoning
+  4. small — medium reasoning
+
+  Reply with one of those labels (or the number). After that I’ll show the full role table for confirm/edit before
+  writing.
+
+
+
+                                                                                                                       
+  → [Pasted text #1 +2 lines]                                                                                          
+                                                                                                                       
+
+  Auto · 9.8%                                                                                           Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run · refactor/pi-pstack-parity-again

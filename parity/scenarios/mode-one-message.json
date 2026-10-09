@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "id": "mode-one-message",
+  "status": "executed-pass-paired",
+  "requirements": [
+    "PSTACK-MODE-ONE-MESSAGE-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/README.md#just-use-/poteto-mode",
+  "configurationIds": [
+    "default"
+  ],
+  "fixture": {
+    "description": "first-run fixture for mode one-message pair",
+    "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+  },
+  "actions": [
+    {
+      "kind": "type",
+      "literal": "/poteto-mode",
+      "expect": "Slash menu or command path ready"
+    },
+    {
+      "kind": "key",
+      "literal": "Enter",
+      "expect": "One-message skill attach; no sticky mode"
+    },
+    {
+      "kind": "observe",
+      "expect": "First-turn task reply; no persistent mode chrome"
+    },
+    {
+      "kind": "observe",
+      "expect": "Follow-up turn still non-sticky"
+    }
+  ],
+  "execution": {
+    "referenceRun": "5fd487a4-cf8e-4fe4-bbc0-7de39af1a159",
+    "candidateRun": "f19e11c7-b1e5-4788-9f04-bb0e5c9de559",
+    "pairId": "mode-one-message-1",
+    "pairPath": "parity/evidence/mode-one-message/pair-mode-one-message-1.json",
+    "verdict": "pass-paired",
+    "closedAt": "2026-10-08T17:55:03Z",
+    "commit": "33153ac6e2e3f13d191b2e17264499bef18cac45"
+  }
+}

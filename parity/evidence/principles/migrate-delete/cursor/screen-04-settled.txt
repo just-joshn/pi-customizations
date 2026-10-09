@@ -1,0 +1,39 @@
+  format.js present, no legacy symbol or compat shim).
+
+  Proof. Measured: evidence/verify-out.txt contains MIGRATE-OK greet="hello, WORLD" banner="BANNER:TEAM" 
+  files=banner.js,format.js,greet.js.
+
+  Reader load. One formatter name and one module. Dual-path and Legacy naming are gone.
+
+  Principles that changed choices.
+  • Migrate Callers Then Delete Legacy APIs. Migrated greet.js and banner.js, then deleted legacyFormat.js in one
+    wave.
+  • Outcome-Oriented Execution. No temporary formatNameLegacy re-export.
+  • Subtract Before You Add / Laziness Protocol. Deleted the legacy module instead of wrapping it. Skipped arena
+    because NOTES already names formatName in src/format.js.
+  • Model the Domain / Foundational Thinking / Redesign from First Principles. One formatName module as the
+    day-one shape.
+  • Prove It Works. Ran verify and read the on-disk line.
+  • Minimize Reader Load. Kept the change because dual API paths are gone.
+  • Sequence Work into Verifiable Units. One migrate-delete unit, then verify. Skip commits and Opening a PR
+    because this fixture forbids work outside the cwd except done.txt.
+
+  Playbook steps.
+  1. done
+  2. done
+  3. done (arena skipped. NOTES locks the API.)
+  4. done
+  5. done
+  6. done
+  7. done
+  8. skip: fixture scope forbids commits and Opening a PR outside this cwd except the named done path
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 18.3% · 3 files edited                                                                         Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/principles/migrate-delete/fixture-app · 
+  refactor/pi-pstack-parity-again

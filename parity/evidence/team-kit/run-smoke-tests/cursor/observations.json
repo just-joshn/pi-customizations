@@ -1,0 +1,54 @@
+{
+  "screenFinal": {
+    "skillMention": true,
+    "envBlocked": false,
+    "working": false
+  },
+  "pty": {
+    "skillMention": true,
+    "envBlocked": false,
+    "working": true
+  },
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/run-smoke-tests/done.txt",
+    "line": "STATUS=verified reason=SMOKE_OK after ready=true",
+    "status": "verified"
+  },
+  "summaryExists": true,
+  "seededSkill": null,
+  "oracle": {
+    "fixed": true,
+    "summaryExists": true,
+    "mentionsSmoke": true,
+    "done": {
+      "exists": true,
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/run-smoke-tests/done.txt",
+      "line": "STATUS=verified reason=SMOKE_OK after ready=true",
+      "status": "verified"
+    },
+    "closed": true,
+    "honestBlocker": false
+  },
+  "score": {
+    "skillPath": true,
+    "envBlocked": false,
+    "doneStatus": "verified",
+    "oracleClosed": true,
+    "closed": true,
+    "honestBlocker": false,
+    "oracle": {
+      "fixed": true,
+      "summaryExists": true,
+      "mentionsSmoke": true,
+      "done": {
+        "exists": true,
+        "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/run-smoke-tests/done.txt",
+        "line": "STATUS=verified reason=SMOKE_OK after ready=true",
+        "status": "verified"
+      },
+      "closed": true,
+      "honestBlocker": false
+    }
+  }
+}

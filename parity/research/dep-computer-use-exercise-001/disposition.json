@@ -1,0 +1,39 @@
+{
+  "unit": "u-dep-computer-use-exercise-001",
+  "capturedAt": "2026-10-09T04:17:16.827Z",
+  "computerUse": {
+    "ready": true,
+    "macApp": true,
+    "bundleId": "co.anysphere.cursor-computer-use",
+    "version": "0.0.13",
+    "teamId": "DCNK4UB866"
+  },
+  "agentHelper": {
+    "installed": true,
+    "path": "/Users/josh-desktop/.cursor/agent-helper/Cursor Agent Helper.app",
+    "version": "0.1.0-2d0725c"
+  },
+  "desktopShare": {
+    "supported": false,
+    "ready": false,
+    "screenRecording": false,
+    "accessibility": false,
+    "guiSession": true,
+    "consoleUidMatch": true,
+    "screenLocked": false
+  },
+  "applescriptAssistiveAccess": false,
+  "screencaptureWorks": false,
+  "liveExerciseAttemptId": null,
+  "edgeStatusMustRemain": "unresolved",
+  "operatorGrantRequired": [
+    "System Settings → Privacy & Security → Accessibility → enable Cursor Computer Use",
+    "System Settings → Privacy & Security → Screen Recording → enable Cursor Computer Use",
+    "Optionally same grants for Cursor Agent Helper if using --share-desktop",
+    "Then recapture live desktop exercise with attempt IDs (screenshot/click/type)"
+  ],
+  "evidence": [
+    "parity/research/dep-computer-use-exercise-001/stdout-after-helper.txt",
+    "parity/research/dep-computer-use-exercise-001/stdout-share.txt"
+  ]
+}

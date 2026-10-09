@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "unit": "u-dep-typescript-oracle-suite-001",
+  "capturedAt": "2026-10-09T03:03:05Z",
+  "package": "typescript@7.0.2",
+  "deepCompilerSemanticsStatus": "closed_with_oracle",
+  "verdict": "closed-with-oracle",
+  "pin": {
+    "repo": "https://github.com/microsoft/typescript-go",
+    "sha": "2bd066d87f5bafd315be9f40889d0a60b9e58e0b",
+    "source": "npm typescript@7.0.2 package.json gitHead",
+    "packageGitHeadMatches": true,
+    "note": "microsoft/TypeScript tag v7.0.2 is not the semantic pin. That archive's package.json version is 6.0.0. gitHead resolves on microsoft/typescript-go only."
+  },
+  "oracle": {
+    "suite": "hereby test:api",
+    "cwd": "parity/research/dep-typescript-oracle-suite-001/go-fetch/typescript-go-2bd066d87f5bafd315be9f40889d0a60b9e58e0b",
+    "exitCode": 0,
+    "tests": 459,
+    "pass": 459,
+    "fail": 0,
+    "logPath": "parity/research/dep-typescript-oracle-suite-001/runs/test-api-verify.log",
+    "logSha256": "c55c11ef3b1602c827ee436e17368612c17fd0a7436157e76960178c5896e20b",
+    "mapCode": {
+      "action": "present",
+      "path": "parity/research/dep-typescript-oracle-suite-001/go-fetch/typescript-go-2bd066d87f5bafd315be9f40889d0a60b9e58e0b/_submodules/TypeScript/src/services/mapCode.ts",
+      "sha256": "8eafe28f7a395a748cfa4f409b30b6a108262536e194d51f8581f2e1785fe6f1",
+      "byteLength": 9772
+    },
+    "covers": "JS API tests for dist/ast, dist/enums, dist/internal (unstable AST/enum/helper contracts)",
+    "notRun": "hereby test (full Go conformance against TypeScript submodule cases)"
+  },
+  "builtVsPublished136": {
+    "catalogCount": 136,
+    "builtMatchesPublishedCount": 136,
+    "catalogVsPublishedDriftCount": 0,
+    "builtPresentCount": 136,
+    "publishedPresentCount": 136
+  },
+  "honesty": {
+    "npmPackageShipsNoTests": true,
+    "consumerTypecheckIsNotDeepSemantics": true,
+    "catalogHashAloneIsNotDeepSemantics": true,
+    "oracleIsPinnedTypescriptGoTestApi": true,
+    "builtDistByteIdenticalToPublished136": true,
+    "doNotClaim": [
+      "full hereby test Go conformance suite was run",
+      "microsoft/TypeScript tag v7.0.2 package.json version 7.0.2",
+      "closure from consumer typecheck alone"
+    ]
+  },
+  "removeUnresolvedReference": true,
+  "blocker": null
+}

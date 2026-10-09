@@ -1,0 +1,40 @@
+[Skill conflicts]                                                                                                      ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ [skill] poteto-mode (ctrl+o to expand)                                                                                ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ New playbook task. Spawn exactly one fresh poteto-agent Task (subagent_type poteto-agent; do not substitute           ┃
+ generalPurpose) to write exactly the single line HELLO to                                                             ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/poteto-agent/fixture-out/pi/marker.txt.       ┃
+ Parent must not write that marker itself. Work only inside this fixture cwd. Do not edit ledgers, parity/, or files   ┃
+ outside this cwd. After the child finishes, parent writes exactly one line to                                         ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/poteto-agent/fixture-out/pi/done.txt naming   ┃
+ the agent type used, then stop.                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+── ⠼ Working ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/poteto-agent/fixture-app (refactor/pi-pstack-parity-again)
+$0.000 (sub) 2.1%/1.0M (auto)                                           (claude-subscription) claude-sonnet-5-5 • medium

@@ -1,0 +1,40 @@
+                                                                                                                       │
+ **Verdict:** the code matches the log's final state. The log itself has weaknesses.                                   │
+                                                                                                                       │
+ **Claims vs. files**                                                                                                  │
+ - Every cited line checks out. `greet.js:2` returns `'hello'`, and `greet.js:5` is `farewell()` returning `'bye'`.    │
+ - The row-4 correction is plausible. The current file says `hello`, which is consistent with the failed `sed`.        │
+                                                                                                                       │
+ **Weak evidence**                                                                                                     │
+ - The evidence column holds only file:line pointers. No row has a command output, a diff, or a run of the README's    │
+ `node -e` check. A pointer shows where the code is now, not that it was verified.                                     │
+ ... (13 more lines, ctrl+o to expand)                                                                                 │
+                                                                                                                       │
+                                                                                                                       │
+ Both phases are done and logged in decisions.tsv, but the log has a wrong row and I ran no tests. I also wrote        │
+ done.txt before the reviewer ran, so the data-row count in it was fixed before the review. No code changed after the  │
+ review, so the count still stands.                                                                                    │
+                                                                                                                       │
+ - Phase 1: greet() in src/greet.js now returns 'hello'.                                                               │
+ - Phase 2: farewell() returning 'bye' is added to src/greet.js.                                                       │
+ - Log: decisions.tsv has 4 data rows. I did not commit anything.                                                      │
+ - Done file: fixture-out/pi/done.txt has the one line naming the TSV path and the 4 data rows.                        │
+                                                                                                                       │
+ Attention                                                                                                             │
+                                                                                                                       │
+ reviewed by Claude (Anthropic); the reviewer said it didn't know its exact model version, and it is the same model    │
+ family as the one that did the work, so this is not the cross-family review the skill asks for.                       ┃
+ - Wrong phase1 row (row 3): it says done but the file still said hi, because my first sed failed on macOS syntax. The ┃
+   log is append-only, so row 5 supersedes it. A script that filters on phase1 plus done will find both rows.          ┃
+ - Extra start row: I wrote it on a new log, where the skill doesn't call for one, so there are 4 data rows instead of ┃
+   the 2 you'd expect.                                                                                                 ┃
+ - Weak evidence: the evidence cells are only file:line pointers. I ran no test of farewell, and the sed error output  ┃
+   wasn't captured.                                                                                                    ┃
+ - Row timestamps: the first three rows share one timestamp because I wrote them in a batch.                           ┃
+ - Stale README: README.md still says greet() returns hi. I left it alone because you said to touch only src/greet.js. ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/show-me-your-work/fixture-app (refactor/pi-pstack-parity-again)
+↑18 ↓3.1k R145k W32k CH96.7% $0.189 (sub) 3.0%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium

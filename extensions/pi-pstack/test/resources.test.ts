@@ -75,9 +75,9 @@ test('resource generation is reproducible across both source bundles', async () 
   const f = await fixture();
   try {
     const before = await readFile(join(f.directory, 'docs/resource-map.json'));
-    expect(f.run('--write')).toMatch(/190 upstream files and 211 generated resources/);
+    expect(f.run('--write')).toMatch(/193 upstream files and 215 generated resources/);
     expect(await readFile(join(f.directory, 'docs/resource-map.json'))).toEqual(before);
-    expect(f.run()).toMatch(/190 upstream files and 211 generated resources/);
+    expect(f.run()).toMatch(/193 upstream files and 215 generated resources/);
   } finally {
     await f.close();
   }
@@ -87,17 +87,25 @@ test('generation separates reusable prompts from procedural skills and Reference
   const f = await fixture();
   try {
     f.run('--write');
-    expect((await readdir(join(f.directory, 'prompts'))).length).toBe(66);
-    expect((await readdir(join(f.directory, 'skills'), { withFileTypes: true })).filter((entry) => entry.isDirectory()).length).toBe(67);
+    expect((await readdir(join(f.directory, 'prompts'))).length).toBe(67);
+    expect((await readdir(join(f.directory, 'skills'), { withFileTypes: true })).filter((entry) => entry.isDirectory()).length).toBe(68);
     await expect(readFile(join(f.directory, 'skills/bro/SKILL.md'))).rejects.toMatchObject({ code: 'ENOENT' });
     expect(await readFile(join(f.directory, 'prompts/bro.md'), 'utf8')).toMatch(/Restate your last message/);
-    expect(await readFile(join(f.directory, 'prompts/architect.md'), 'utf8')).toMatch(/architect\/SKILL\.md/);
-    expect(await readFile(join(f.directory, 'prompts/architect.md'), 'utf8')).toMatch(/\$ARGUMENTS/);
+    const architectTemplate = await readFile(join(f.directory, 'prompts/architect.md'), 'utf8');
+    const architectBody = (await readFile(join(f.directory, 'skills/architect/SKILL.md'), 'utf8')).replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, '').trim();
+    expect(architectTemplate).toContain(architectBody);
+    expect(architectTemplate).not.toMatch(/architect\/SKILL\.md in full/);
+    expect(architectTemplate).toMatch(/\$ARGUMENTS/);
     await expect(readFile(join(f.directory, 'prompts/poteto-mode.md'))).rejects.toMatchObject({ code: 'ENOENT' });
     await expect(readFile(join(f.directory, 'prompts/setup-pstack.md'))).rejects.toMatchObject({ code: 'ENOENT' });
-    for (const name of ['poteto-mode', 'typescript-best-practices']) {
-      const text = await readFile(join(f.directory, `skills/${name}/SKILL.md`), 'utf8');
+    {
+      const text = await readFile(join(f.directory, 'skills/poteto-mode/SKILL.md'), 'utf8');
       expect(text).not.toMatch(/^(mode|icon|color|reminder|paths):/m);
+    }
+    {
+      const text = await readFile(join(f.directory, 'skills/typescript-best-practices/SKILL.md'), 'utf8');
+      expect(text).not.toMatch(/^(mode|icon|color|reminder):/m);
+      expect(text).toMatch(/^paths:\s*\["\*\*\/\*\.ts",\s*"\*\*\/\*\.tsx"\]\s*$/m);
     }
   } finally {
     await f.close();

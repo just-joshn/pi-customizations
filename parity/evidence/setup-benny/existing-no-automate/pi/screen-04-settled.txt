@@ -1,0 +1,40 @@
+     - configuration.yaml still has placeholder values for the tracker, the model slugs and the control skill          │
+       (control-target-app). routing.md is also all placeholders.                                                      │
+     - I did not run the fresh-agent check that the shared pstack skills resolve from project scope.                   │
+     - I did not run the control-adapter capability check.                                                             │
+     - Commit .cursor/settings.json, .cursor/automations/benny/ and the secret-free .cursor/benny/ files before        │
+       enabling.                                                                                                       │
+     - The thread-safety test must pass after the editor save.                                                         │
+ - Both automations in the inventory (benny-triage, benny-reproduce) are enabled: false. I did not invent any cloud    │
+   IDs.                                                                                                                │
+                                                                                                                       │
+ Please edit benny-triage (inventory stub auto_fixture_triage_001) directly in its Automations editor                  │
+ - Name and description.                                                                                               │
+ - Instruction to read .cursor/automations/benny/skills/triage-issue-reports/SKILL.md.                                 │
+ - Trigger: new top-level Slack report, source channel C0FIXTURE001.                                                   │
+ - Slack thread read and reply capabilities.                                                                           │
+ - Issue-tracker integration.                                                                                          │
+ - Paraphrased triage instructions, the thread-only rule (never post a root message), and the [benny:bug],             │
+   [benny:performance] and [benny:other] verdict markers.                                                              │
+                                                                                                                       │
+ Please edit benny-reproduce (inventory stub auto_fixture_repro_001) directly in its Automations editor                │
+ - Name and description.                                                                                               │
+ - Instruction to read .cursor/automations/benny/skills/reproduce-and-fix-issues/SKILL.md.                             │
+ - Matching Slack trigger and source channel.                                                                          │
+ - Repository fixture-org/fixture-app, branch main.                                                                    │
+ - Slack thread read and reply capabilities.                                                                           │
+ - Pull request action (draft only).                                                                                   ┃
+ - Tracker, control-adapter and feature-map requirements (.cursor/benny/feature-map.md).                               ┃
+ - Paraphrased instructions: wait for the triage marker from U0FIXTURE001, reproduce twice through the real UI with    ┃
+   evidence, verify an existing fix without authoring over it, and attempt one bounded fix.                            ┃
+                                                                                                                       ┃
+ Don't create replacements or duplicates.                                                                              ┃
+                                                                                                                       ┃
+ I wrote STATUS=checklist-ok reason=checklist given; editor not openable in CLI PTY, user edits both existing          ┃
+ automations to done.txt.                                                                                              ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/existing-no-automate/fixture-app (refactor/pi-pstac...
+↑12 ↓1.8k R138k W28k CH99.2% $0.159 (sub) 3.7%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium

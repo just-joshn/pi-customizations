@@ -1,0 +1,89 @@
+{
+  "schema": 1,
+  "pairId": "team-kit-verify-this-1",
+  "scenarioRef": "team-kit:verify-this",
+  "journeyFamily": "cursor-team-kit",
+  "skillId": "verify-this",
+  "skillMdPath": "parity/reference/cursor-plugins/cursor-team-kit/skills/verify-this/SKILL.md",
+  "skillMdSha256": "c1c7b27c1133085bd3409c601ea12b6e6f61b4b23debcd52bc248fc01907e7de",
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "claim": "probe.txt contains the exact line VALUE=7",
+  "steps": [
+    {
+      "wait": "ready screen (Tip: on Cursor; Pi chat ready without Trust dialog)"
+    },
+    {
+      "send": "/verify-this Claim: probe.txt contains VALUE=7 ..."
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "wait": "verdict.md first line VERIFIED and STATUS=verified, or STATUS=env-blocked"
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "abb96d2b-c7d7-4012-9f4d-956e4e605743",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/cursor/abb96d2b-c7d7-4012-9f4d-956e4e605743",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "verdictPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/verify-this/verdict.md",
+    "donePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/done.txt",
+    "observations": {
+      "verdictOk": true,
+      "skillPath": true,
+      "envBlocked": false,
+      "doneStatus": "verified",
+      "verdict": "VERIFIED",
+      "closed": true,
+      "honestBlocker": false
+    }
+  },
+  "pi": {
+    "attemptId": "8f04dd82-a425-474f-95dc-b1a005c43169",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/pi/8f04dd82-a425-474f-95dc-b1a005c43169",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "verdictPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/verify-this/verdict.md",
+    "donePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/done.txt",
+    "seededSkill": {
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-app/.pi/skills/verify-this/SKILL.md",
+      "sha256": "c1c7b27c1133085bd3409c601ea12b6e6f61b4b23debcd52bc248fc01907e7de"
+    },
+    "observations": {
+      "verdictOk": true,
+      "skillPath": true,
+      "envBlocked": false,
+      "doneStatus": "verified",
+      "verdict": "VERIFIED",
+      "closed": true,
+      "honestBlocker": false
+    }
+  },
+  "skillClosure": {
+    "verify-this": "closed_by_this_pair"
+  },
+  "note": "Cursor loads locked team-kit via --plugin-dir. Pi seeds the same SKILL.md bytes under .pi/skills/verify-this/. Full 18-skill team-kit closure is not claimed by this pair alone.",
+  "verdict": "pass"
+}

@@ -1,0 +1,33 @@
+{
+  "attemptId": "55f42e27-ee7e-4d6b-8f12-5b35824addff",
+  "profile": "ready4-enable-repo-probe",
+  "unit": "u-make-bot-auth-header-post-unlock-002",
+  "cursorOutcome": "key_server_ok",
+  "generateAuthHeaderClicked": true,
+  "generateLabel": "Copy auth header",
+  "keyStoredServerSide": true,
+  "activatedByHarness": true,
+  "enabledForProbe": true,
+  "repoAttached": "pi-pstack just-joshn",
+  "probe": {
+    "ok": true,
+    "httpStatus": 200,
+    "attempts": [
+      {
+        "httpStatus": 200,
+        "headerFileSuffix": ".hdr"
+      }
+    ]
+  },
+  "blocker": null,
+  "clickPolicy": "cgevent_hid_copy_enable_repo",
+  "secretStore": {
+    "dir": "/Users/josh-desktop/.local/share/pi-pstack-parity/make-bot-auth-header-post-unlock-002",
+    "fileName": "55f42e27-ee7e-4d6b-8f12-5b35824addff.json",
+    "mode": "0o600",
+    "present": true
+  },
+  "note": "Auth header valid while disabled (400 is disabled). Enable + pi-pstack repo required for probe acceptance. Brief defaulted no Activate; product required Active+git for HTTP 200.",
+  "senderKeyInChatOrEvidence": false,
+  "keyLeak": false
+}

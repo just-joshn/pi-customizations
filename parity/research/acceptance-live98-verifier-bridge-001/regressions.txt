@@ -1,0 +1,19 @@
+=== hardlinked-output.sh ===
+ok hardlinked-output rejected (exit 1), canary unchanged
+  FAIL MANIFEST.sha256 has 2 hard links; hash files must be unlinked regular files inside the acceptance root
+=== invalid-locator.sh ===
+ok invalid-locator rejected (exit 1)
+  FAIL ACC-SETUP-BADLOC has invalid locator not-a-line; positive ordered integer locators only
+=== ledger-byte-drift.sh ===
+ok ledger-byte-drift rejected (exit 1)
+  FAIL setup-pstack/record-hashes.json bytes do not match the canonical recorded hashes
+=== missing-pin-arg.sh ===
+ok missing-pin-value rejected (exit 1)
+  --expect-manifest-sha256 requires a sha256 hex digest
+ok empty-pin-value rejected (exit 1)
+  --expect-manifest-sha256 requires a sha256 hex digest
+ok malformed-pin-value rejected (exit 1)
+  --expect-manifest-sha256 value is not a sha256 hex digest: not-a-hash
+=== symlinked-output-parent.sh ===
+ok symlinked-output-parent rejected (exit 1), outside unchanged
+  FAIL setup-pstack/record-hashes.json: path component setup-pstack is a symlink; hash files must stay inside the acceptance root

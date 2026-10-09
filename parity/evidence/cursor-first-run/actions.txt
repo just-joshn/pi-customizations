@@ -1,0 +1,14 @@
+Launched cursor-agent with both locked official plugin directories at 120x36.
+Captured the workspace trust prompt in 00-initial-screen.txt.
+Sent the literal key a through tmux to trust the dedicated fixture only.
+This preliminary action log lacks per-action timestamps and is not acceptance evidence.
+2026-10-08T03:11:44Z
+Sent literal text /setup-pstack without Enter to inspect command discovery.
+2026-10-08T03:12:08Z
+Sent Enter to invoke the discovered /setup-pstack command. Existing user rule remains the reference configuration; no write approved yet.
+2026-10-08T03:13:00Z
+First Enter closed autocomplete without submitting. Sent a second Enter to submit /setup-pstack.
+2026-10-08T03:14:40Z
+Sent Escape after included_usage error; no account settings changed.
+2026-10-08T03:22:28Z
+Captured final screen and closed the owned reference terminal after the usage failure. No model-backed work remained active.

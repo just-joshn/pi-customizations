@@ -1,0 +1,90 @@
+{
+  "attemptId": "8ab451a4-1988-4e55-bcfc-1d3f9359b277",
+  "mode": "automate-handoff",
+  "method": "agent-helper MCP keyboard/click drive of Cursor Agents Window",
+  "evidenceDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/creation-boundary/agents-window/8ab451a4-1988-4e55-bcfc-1d3f9359b277",
+  "probe": "automate-handoff",
+  "slashMenuShowedAutomate": true,
+  "automateHandoffWitnessed": false,
+  "editorChromeWitnessed": false,
+  "pollLog": [
+    {
+      "poll": 0,
+      "editorChromeByAx": false,
+      "hasInactive": false,
+      "hasAddTrigger": false,
+      "hasAgentInstructions": false,
+      "hasSave": false
+    },
+    {
+      "poll": 1,
+      "editorChromeByAx": false,
+      "hasInactive": false,
+      "hasAddTrigger": false,
+      "hasAgentInstructions": false,
+      "hasSave": false
+    },
+    {
+      "poll": 2,
+      "editorChromeByAx": false,
+      "hasInactive": false,
+      "hasAddTrigger": false,
+      "hasAgentInstructions": false,
+      "hasSave": false
+    },
+    {
+      "poll": 3,
+      "editorChromeByAx": false,
+      "hasInactive": false,
+      "hasAddTrigger": false,
+      "hasAgentInstructions": false,
+      "hasSave": false
+    },
+    {
+      "poll": 4,
+      "editorChromeByAx": false,
+      "hasInactive": false,
+      "hasAddTrigger": false,
+      "hasAgentInstructions": false,
+      "hasSave": false
+    },
+    {
+      "poll": 5,
+      "editorChromeByAx": false,
+      "hasInactive": false,
+      "hasAddTrigger": false,
+      "hasAgentInstructions": false,
+      "hasSave": false
+    },
+    {
+      "poll": 6,
+      "editorChromeByAx": false,
+      "hasInactive": false,
+      "hasAddTrigger": false,
+      "hasAgentInstructions": false,
+      "hasSave": false
+    },
+    {
+      "poll": 7,
+      "editorChromeByAx": false,
+      "hasInactive": false,
+      "hasAddTrigger": false,
+      "hasAgentInstructions": false,
+      "hasSave": false
+    }
+  ],
+  "pathsTried": [
+    "cmd+n New Chat",
+    "/automate slash menu",
+    "Return select built-in automate skill",
+    "poll AX for Automations editor chrome"
+  ],
+  "didNot": [
+    "press Save",
+    "toggle Inactive/Activate",
+    "enable Benny",
+    "post to Slack",
+    "edit ledgers",
+    "mint Cloud Agent"
+  ]
+}

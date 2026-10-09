@@ -1,0 +1,9 @@
+{
+  "scenario": "cmd-benchmark-checklist-evidence",
+  "pairId": "benchmark-checklist-evidence-1",
+  "pair": "parity/evidence/benchmark/pair-benchmark-checklist-evidence-1.json",
+  "cursorAttemptId": "fef1b56c-e1bd-4f8c-83d1-dca9487c6b44",
+  "piAttemptId": "f35d81bd-a200-44fb-a673-039bdf1192ae",
+  "bothContractHeld": true,
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+}

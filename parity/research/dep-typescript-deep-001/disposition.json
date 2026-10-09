@@ -1,0 +1,103 @@
+{
+  "schemaVersion": 1,
+  "unit": "u-dep-typescript-deep-001",
+  "capturedAt": "2026-10-09T02:43:33Z",
+  "package": "typescript@7.0.2",
+  "deepCompilerSemanticsStatus": "still_open",
+  "verdict": "still-open-with-merge-note",
+  "priorWave009Disposition": "parity/research/dep-closure-wave-009/npm/typescript-deep-semantics-disposition.json",
+  "priorWave009Sha256": "a3ac9a4f564b3f698dccfdf2dce74f9ec729c3e517bf60dbbc9f9fc579730bb2",
+  "priorMinimalOracle": {
+    "path": "parity/research/dep-typescript-oracle-001",
+    "disposition": {
+      "unit": "u-dep-typescript-oracle-001",
+      "deepCompilerSemanticsStatus": "still_open",
+      "note": "Minimal emit oracle for enums/namespaces under typescript@7.0.2. Not a substitute for full compiler-test suite. Does not close unresolvedReference.",
+      "tscExit": 1,
+      "emitFileCount": 0,
+      "emitHashesPath": "parity/research/dep-typescript-oracle-001/emit-hashes.json"
+    },
+    "tscExit": {
+      "exitCode": 1
+    },
+    "tscStdout": "error TS5042: Option 'project' cannot be mixed with source files on a command line.",
+    "emitHashes": {},
+    "closesDeepSemantics": false,
+    "note": "Minimal enums/namespace emit attempt failed (TS5042 project+source-files mix; exit 1; emitFileCount 0). Explicitly not deep-semantics closure."
+  },
+  "catalogReverify": {
+    "deepInternalFileCount": 136,
+    "verifiedCount": 136,
+    "catalogHashDriftCount": 0,
+    "catalogHashDrift": [],
+    "note": "Catalog re-verify is not deep compiler-behavior semantics."
+  },
+  "npmPackageShipsNoCompilerTests": {
+    "packageJsonFilesField": [
+      "bin",
+      "lib",
+      "dist",
+      "vendor",
+      "NOTICE.txt"
+    ],
+    "topLevelEntries": [
+      "LICENSE",
+      "NOTICE.txt",
+      "README.md",
+      "bin",
+      "dist",
+      "lib",
+      "package.json",
+      "vendor"
+    ],
+    "hasTestsDirectory": false,
+    "note": "Published typescript@7.0.2 tarball lists bin/lib/dist/vendor only. No compiler-test suite is present in the locked install tree."
+  },
+  "nonClosingProbes": {
+    "consumerActivationProbe": {
+      "command": [
+        "bun",
+        "x",
+        "typescript@7.0.2",
+        "tsc",
+        "--version"
+      ],
+      "cwd": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts",
+      "exitCode": 0,
+      "stdout": "Version 7.0.2",
+      "stderr": "",
+      "note": "Package activation only. Not deep compiler-behavior semantics."
+    },
+    "consumerTypecheckProbe": {
+      "command": [
+        "bun",
+        "run",
+        "typecheck"
+      ],
+      "cwd": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts",
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "$ tsc --project watch-pr/tsconfig.json --noEmit --strict",
+      "note": "Consumer typecheck via locked typescript. Does not prove AST/enum/internal helper semantics for 136 internal dist files."
+    }
+  },
+  "honesty": {
+    "structuralBodyAuditComplete": true,
+    "catalogReverifyIsNotDeepSemantics": true,
+    "consumerTypecheckIsNotDeepSemantics": true,
+    "tscVersionProbeIsNotDeepSemantics": true,
+    "minimalEmitOracleIsNotDeepSemantics": true,
+    "doNotInventFullConformanceSuiteClaim": true,
+    "whatWouldCloseDeepSemantics": "A compiler-test oracle that (1) pins microsoft/TypeScript (or equivalent) tests to the same 7.0.2 semantics as the locked npm package, (2) runs a documented suite subset that exercises AST/enum/helper contracts covering the 136 internal_module_surface files, (3) records command, exit codes, and path+sha256 evidence for expected outputs. Absent that oracle, unresolvedReference must stay open. Do not close on catalogHashDriftCount=0 or typecheck exit 0.",
+    "honestStatus": "deep_compiler_semantics_still_open",
+    "doNotClaim": [
+      "catalogHashDriftCount=0 closes deep semantics",
+      "bun run typecheck closes deep semantics",
+      "tsc --version closes deep semantics",
+      "prior dep-typescript-oracle-001 minimal emit closes deep semantics",
+      "full TypeScript conformance suite was run in this unit"
+    ]
+  },
+  "blocker": "No compiler-test oracle exists for typescript@7.0.2 deep semantics. The npm package ships no tests (files: bin, lib, dist, vendor). Prior minimal emit under dep-typescript-oracle-001 failed (exit 1, emitFileCount 0) and does not cover the 136 internal_module_surface contracts. Catalog re-verify (catalogHashDriftCount=0) and consumer typecheck (exit 0) remain non-proof. Closure requires a pinned compiler-test oracle with path+hash evidence, not catalog/typecheck alone.",
+  "disposition": "u-dep-typescript-deep-001 honesty terminal. Re-verified wave-009 disposition sha256 and all 136 internal file hashes (catalogHashDriftCount=0). Consumer typecheck and tsc --version still exit 0. npm tarball has no compiler tests. Prior minimal emit oracle is not closure. deepCompilerSemanticsStatus remains still_open."
+}

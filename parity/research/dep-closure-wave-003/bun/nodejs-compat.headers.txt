@@ -1,0 +1,19 @@
+HTTP/2 200 
+date: Thu, 08 Oct 2026 19:11:55 GMT
+content-type: text/html; charset=utf-8
+access-control-allow-origin: *
+age: 130615
+cache-control: public, max-age=0, must-revalidate
+content-disposition: inline; filename="nodejs-compat"
+nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+etag: W/"0b08ff9a07943569cb72a285d1da71cd"
+last-modified: Wed, 07 Oct 2026 06:54:59 GMT
+server: cloudflare
+strict-transport-security: max-age=63072000
+x-vercel-cache: HIT
+x-vercel-id: pdx1::db7wg-1791486715218-bc8104927095
+cf-cache-status: DYNAMIC
+vary: accept-encoding
+report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=1sFOjjyWSvhiccehiDLYDj%2FMqrrocO0dCZoRrA01rhIRtJdiBUw2OVNB440GDVjfnLgWqEH8apXw0JBJG310t0BCIjS%2F5POey4NLtLtKF458If2QCRqkgr9%2Fp5A6lSP3ahvaipY%3D"}]}
+cf-ray: a4777441ffe71561-PDX
+

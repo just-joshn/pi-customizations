@@ -1,0 +1,3 @@
+path: /Users/josh-desktop/Library/Application Support/Cursor/User/settings.json
+exists: true
+needles: {"customMode":false,"glassCustomModes":false,"useAsMode":false,"agentsWindow":false,"raw":"{\n    \"window.autoDetectColorScheme\": true\n}"}

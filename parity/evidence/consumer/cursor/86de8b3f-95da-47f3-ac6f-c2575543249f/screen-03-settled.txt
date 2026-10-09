@@ -1,0 +1,35 @@
+
+  I'll run the exact command in this cwd, then write the EXIT=0 marker after a clean exit.
+
+  $ bun run orch/orch.ts --help 954ms
+    … 17 output lines hidden · ctrl+o to expand
+      status         render status.md and print a summary
+      standing       manage standing orders
+
+  $ printf 'EXIT=0\n' > /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/consumer/fixture-out/c
+    ursor/bootstrap-install-done.txt && cat /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/co
+    nsumer/fixture-out/cursor/bootstrap-install-done.txt 201ms
+    EXIT=0
+
+  Usage: orch [--store <dir>] [--json] [--force] <command>
+
+  Commands:
+    init           initialize the store
+    unit           manage work units
+    ledger         manage verification records
+    inbox          manage agent pointers
+    gate           manage decision gates
+    frontier       manage the Graphite stack frontier
+    status         render status.md and print a summary
+    standing       manage standing orders
+
+  EXIT=0 written to bootstrap-install-done.txt.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 7.6%                                                                                           Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts · main · #330

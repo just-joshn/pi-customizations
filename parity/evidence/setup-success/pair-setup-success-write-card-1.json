@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "pairId": "setup-success-write-card-1",
+  "scenarioRef": "setup-pstack:success-write-card",
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "afterDigest": "sha256:9146cd9fe687813f13618724c14da1ced71a72151a9be4ae6ae166ae23218aaa",
+  "comparator": "write-card-v1",
+  "cursor": {
+    "attemptId": "c7970c07-4c28-4cca-be3d-3d15ceedd207",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-prepair/cursor/c7970c07-4c28-4cca-be3d-3d15ceedd207",
+    "screen": "parity/evidence/setup-prepair/cursor/screen-04-final.txt",
+    "note": "Reference write-card dump from the locked-fixture success journey (canonical-2). A same-session Cursor recapture in setup-success stalled when the model used chat-form questions instead of AskQuestion; the write-card chrome is the stable observable under comparison."
+  },
+  "pi": {
+    "attemptId": "0d269402-43a6-48fd-bb62-c8ca90306a5c",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-success/pi/0d269402-43a6-48fd-bb62-c8ca90306a5c",
+    "screen": "parity/evidence/setup-success/pi/screen-02-write-card.txt"
+  },
+  "report": "parity/evidence/setup-success/write-card-parity.json",
+  "verdict": "provisional",
+  "caveat": "Assembled after the fact from a setup-prepair Cursor dump and a later Pi recapture. Demoted from pass after trail review f6850081. Awaiting same-session linked pair."
+}

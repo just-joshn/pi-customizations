@@ -1,0 +1,40 @@
+[Skill conflicts]                                                                                                      ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+/poteto-mode Implement greet() in src/greet.js so that node scripts/verify.mjs prints GREET-OK. NOTES.md allows either  
+plain-text or JSON for the greeting. Pick a format, implement greet(), and write your choice as one line (plain or      
+json) to out/choice.txt. For any poteto-mode principle you apply before declaring done, read that principle's leaf      
+SKILL.md in full first (not only the poteto-mode Principles index). Work only inside this fixture cwd. Do not edit      
+ledgers, parity/, or files outside this cwd except the named done path. When verify passes, write exactly one line to   
+/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/never-block/fixture-out/pi/done.txt  
+as verified=yes|no, then stop.                                                                                          
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/principles/never-block/fixture-app (refactor/pi-pstack-parity-a...
+$0.000 (sub) 0.0%/1.0M (auto)                                           (claude-subscription) claude-sonnet-5-5 • medium

@@ -1,0 +1,150 @@
+{
+  "schema": 1,
+  "pairId": "disable-model-invocation-1",
+  "scenarioRef": "cmd-disable-model-invocation",
+  "journeyFamily": "journey-cmd-disable-model-invocation",
+  "requirementIds": [
+    "PSTACK-CMD-DISABLE-MODEL-INVOCATION-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "ordinary architectural layering question on store.js/api.js soft-delete ownership; no slash-skill invocation; write answer.md then answered=yes|no",
+  "steps": [
+    {
+      "send": "In this fixture, walk through how store.js and api.js connect at runtime, and say which file should own soft-delete if we add it. ..."
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "settle": true
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "d5cca07e-5927-437f-863c-92d0471f95b7",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/disable-model/cursor/d5cca07e-5927-437f-863c-92d0471f95b7",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "observations": {
+      "frontmatterDisableModelInvocation": true,
+      "howHostAttached": false,
+      "howInAvailableSkills": false,
+      "voluntaryHowRead": false,
+      "promptHasSlashHow": false,
+      "answered": true,
+      "contractHeld": true,
+      "doneLine": "answered=yes",
+      "answerPath": "parity/evidence/disable-model/fixture-out/cursor/answer.md",
+      "screen": {
+        "usedHow": false,
+        "skillBracketHow": false,
+        "skillXmlHow": false,
+        "howExplainerChrome": false,
+        "hostAttached": false
+      },
+      "pty": {
+        "usedHow": false,
+        "skillBracketHow": false,
+        "skillXmlHow": false,
+        "howExplainerChrome": false,
+        "hostAttached": false
+      },
+      "scorerNote": "no Used how / [skill] how / how explainer on settled screen or full PTY; frontmatter disable-model-invocation true on locked cursor plugin how skill"
+    }
+  },
+  "pi": {
+    "attemptId": "2b4fc338-046f-4572-8a7a-b6ce9a8b56ad",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/disable-model/pi/2b4fc338-046f-4572-8a7a-b6ce9a8b56ad",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-disable-model-fixture-app--/2026-10-08T21-44-47-408Z_01a11d79-da2f-765c-a865-93d2f0f0403b.jsonl",
+    "observations": {
+      "frontmatterDisableModelInvocation": true,
+      "howHostAttached": false,
+      "howInAvailableSkills": false,
+      "voluntaryHowRead": false,
+      "promptHasSlashHow": false,
+      "answered": true,
+      "contractHeld": true,
+      "doneLine": "answered=yes",
+      "answerPath": "parity/evidence/disable-model/fixture-out/pi/answer.md",
+      "sessionToolOrder": [
+        "bash",
+        "bash"
+      ],
+      "skillInjectHow": false,
+      "howSkillFileRead": false,
+      "screen": {
+        "usedHow": false,
+        "skillBracketHow": false,
+        "skillXmlHow": false,
+        "howExplainerChrome": false,
+        "hostAttached": false
+      },
+      "pty": {
+        "usedHow": false,
+        "skillBracketHow": false,
+        "skillXmlHow": false,
+        "howExplainerChrome": false,
+        "hostAttached": false
+      },
+      "scorerNote": "session has no <skill name=\"how\"> inject, how absent from available_skills, no how/SKILL.md read; answered via bash only"
+    }
+  },
+  "deltas": [
+    {
+      "topic": "how not auto-attached from description match",
+      "cursor": "howHostAttached false; no Used how chrome on PTY/screens; contractHeld true",
+      "pi": "howHostAttached false; skillInjectHow false; howInAvailableSkills false; contractHeld true",
+      "reconciled": true
+    },
+    {
+      "topic": "frontmatter disable-model-invocation",
+      "cursor": "reference cursor-plugins/pstack/skills/how/SKILL.md disable-model-invocation true",
+      "pi": "extensions/pi-pstack/skills/how/SKILL.md disable-model-invocation true",
+      "reconciled": true
+    },
+    {
+      "topic": "tool path answering the layering question",
+      "cursor": "answered without reading how skill; wrote answer.md + done.txt",
+      "pi": "bash then bash only; no skill read; wrote answer.md + done.txt",
+      "reconciled": true
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "Auto",
+      "pi": "claude-sonnet-5-5 • medium (claude-subscription)",
+      "reconciled": false
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-disable-model-invocation.mjs --cursor-only then --pi-only",
+    "workerPlaybook": "parity/evidence/disable-model/PLAYBOOK.md",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "packagePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack",
+    "markerRoot": "parity/evidence/disable-model/fixture-out/{cursor,pi}/",
+    "heldOutFixture": "parity/evidence/disable-model/fixture-app (src/store.js + api.js)",
+    "auditTrail": "parity/evidence/disable-model/.audit/u-journey-cmd-disable-model.tsv",
+    "frontmatterSnapshot": "parity/evidence/disable-model/frontmatter.json"
+  }
+}

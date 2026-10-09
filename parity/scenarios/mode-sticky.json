@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "id": "mode-sticky",
+  "status": "pass-paired",
+  "requirements": [
+    "PSTACK-MODE-STICKY-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/README.md#just-use-/poteto-mode",
+  "configurationIds": [
+    "default"
+  ],
+  "fixture": {
+    "description": "Same fixture digest family as mode-one-message; sticky activation spelling /poteto-mode sticky on Pi",
+    "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+  },
+  "actions": [
+    {
+      "kind": "type",
+      "literal": "/poteto-mode sticky",
+      "expect": "Sticky mode activates"
+    },
+    {
+      "kind": "observe",
+      "expect": "Mode chrome persists across follow-up"
+    }
+  ],
+  "execution": {
+    "referenceRun": "521ce15e-a8f8-4f74-8fec-208ceddb7603",
+    "candidateRun": "96494327-f90c-470a-8e11-cf7c5b6cad89",
+    "pairId": "mode-sticky-1",
+    "pairPath": "parity/evidence/mode-sticky/pair-mode-sticky-1.json",
+    "verdict": "pass-paired",
+    "updatedAt": "2026-10-09T06:14:25Z",
+    "notes": "Cursor Agents Window sticky Custom Mode (alt+Return) + Pi /poteto-mode sticky; both hold across follow-up."
+  },
+  "openWork": []
+}

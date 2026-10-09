@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "prin-sequence-units",
+  "status": "paired",
+  "requirements": [
+    "PSTACK-PRIN-SEQUENCE-UNITS-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/principle-sequence-verifiable-units/SKILL.md#Sequence verifiable units frontmatter trigger and disable-model-invocation",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file. Preconditions: Locked pstack poteto-mode and principle-sequence-verifiable-units skill loaded.; Work has multiple similar units or stacked delivery.",
+    "digest": null
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Run a multi-unit migration or stack commits for a fix.. The agent Reads the leaf skill, verifies each unit before the next, and orders delivery so a reviewer sees a proving sequence (for example failing test then fix)."
+    }
+  ],
+  "execution": {
+    "pairId": "prin-sequence-units-1",
+    "verdict": "pass",
+    "pair": "parity/evidence/principles/sequence-units/pair-prin-sequence-units-1.json",
+    "attempts": {
+      "cursor": "a25ac05b-fb4c-4d6c-a195-2a2e13a0b2cf",
+      "pi": "1b0ebd6e-1254-4932-9f79-5765a701c913"
+    }
+  }
+}

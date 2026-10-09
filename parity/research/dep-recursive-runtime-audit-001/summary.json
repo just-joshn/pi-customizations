@@ -1,0 +1,15 @@
+{
+  "uniqueReferenceCount": 176,
+  "dispositionCounts": {
+    "fetched+hashed": 12,
+    "classified-non-fetchable": 164
+  },
+  "fetchedUniqueUrlCount": 9,
+  "blockedCount": 0,
+  "fetchedCount": 12,
+  "classifiedNonFetchableCount": 164,
+  "canCloseRecursiveUnresolvedReference": true,
+  "auditPath": "parity/research/dep-recursive-runtime-audit-001/audit.json",
+  "mergeProposalPath": "parity/research/dep-recursive-runtime-audit-001/merge-proposal.json",
+  "sampleSha256Path": "parity/research/dep-recursive-runtime-audit-001/sample-sha256.txt"
+}

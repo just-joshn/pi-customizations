@@ -1,0 +1,35 @@
+    1. Accept this rule as-is, or adjust roles? (If promoting: judgment-heavy roles →
+    claude-fable-5-1-thinking-high, fast roles → grok-4.7-high-fast.)
+      [x] Accept as-is — all roles stay on inherit-parent
+      [ ] Promote roles to detected slugs at max effort
+      [ ] Change specific roles
+
+  Step 4: all values are aliases — validation passes. Step 5: writing the rule (overwrites the whole file, keeping
+  re-runs idempotent):
+
+    Edited pstack-models.mdc +1 -1
+
+    ▎  ---
+    ▎  # pstack model configuration. One line per role. Delete a line to fall back to the skill default.
+    ▎  # `inherit-parent` or `auto` as a value: the role runs on the parent chat model (omit Task `model`). Alias
+    ▎  entries  ...
+    ▎- # budget: small (medium)
+    ▎+ # budget: unlimited (max)
+    ▎  feature, refactoring: inherit-parent
+    ▎  bug-fix: inherit-parent
+    ▎  perf-issue: inherit-parent
+
+  Rule written to ~/.cursor/rules/pstack-models.mdc — budget unlimited (max), all 17 roles on inherit-parent. It
+  applies to new sessions; re-running /setup-pstack updates it.
+
+  Step 7: your repo already has a verification harness (pi-pstack's scripts/verify-*.mjs journeys), so no
+  verification-skill offer needed.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  GLM 5.3 Flash Max · 10.9% · 1 file edited                                                             Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run · refactor/pi-pstack-parity-again

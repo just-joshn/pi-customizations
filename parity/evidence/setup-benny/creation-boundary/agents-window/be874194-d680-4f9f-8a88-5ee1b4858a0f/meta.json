@@ -1,0 +1,20 @@
+{
+  "attemptId": "be874194-d680-4f9f-8a88-5ee1b4858a0f",
+  "mode": "benny",
+  "method": "agent-helper MCP keyboard/click drive of Cursor Agents Window",
+  "evidenceDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/creation-boundary/agents-window/be874194-d680-4f9f-8a88-5ee1b4858a0f",
+  "probe": "benny-creation-boundary",
+  "pathsTried": [
+    "cmd+shift+p Open Agents Window",
+    "cmd+n New Chat",
+    "/automate slash menu",
+    "left-rail Automations clicks (1280x800)",
+    "cmd+shift+p Automations filter"
+  ],
+  "didNot": [
+    "enable Benny automations",
+    "fabricate Automations editor save",
+    "open Cloud Agent mint path intentionally",
+    "post to Slack"
+  ]
+}

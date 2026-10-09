@@ -1,0 +1,11 @@
+{
+  "runCount": 1,
+  "n": 5000,
+  "slowMs": 18.531540999999997,
+  "fastMs": 0.22770900000000438,
+  "speedupPct": 98.77123548441004,
+  "errorCount": 0,
+  "outputsCorrect": true,
+  "workHappened": true,
+  "timedRegion": "sortSlow then sortFast over the same input array"
+}

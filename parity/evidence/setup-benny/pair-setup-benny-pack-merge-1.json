@@ -1,0 +1,129 @@
+{
+  "schema": 1,
+  "pairId": "setup-benny-pack-merge-1",
+  "scenarioRef": "setup-benny-pack-merge",
+  "journeyFamily": "journey-family-11-benny-and-automations",
+  "requirementIds": [
+    "PSTACK-SETUP-BENNY-PACK-MERGE-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "Follow FOR_AGENTS.md / setup-benny merge rules; merge .upstream/automations/benny into .cursor/automations/benny; preserve DESTINATION_ONLY + PACK-MERGE-LOCAL-EDIT-MARKER; never overwrite .cursor/benny/ user-owned maps; verify required pack files; no live automation; STATUS= marker",
+  "steps": [
+    { "send": "Help set up Benny... pack-merge step only... merge source into .cursor/automations/benny... STATUS=..." },
+    { "send": "\r" },
+    { "settle": true },
+    { "cancel": true }
+  ],
+  "cursor": {
+    "attemptId": "d9e476af-9b22-46f2-90fd-1d42cc2e068b",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/pack-merge/cursor/d9e476af-9b22-46f2-90fd-1d42cc2e068b",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "observations": {
+      "outcome": "merge_ok",
+      "contractHeld": true,
+      "productBeforeDigest": "sha256:a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e",
+      "productAfterDigest": "sha256:a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e",
+      "productUnchanged": true,
+      "userOwnedUnchanged": true,
+      "requiredPresent": true,
+      "allSourceCopied": true,
+      "destOnlyOk": true,
+      "localEditOk": true,
+      "doneMarkerWritten": true,
+      "doneLine": "STATUS=merge-ok reason=full pack merged with local README edit and dest-only file preserved",
+      "automationCreated": false,
+      "sourceFileCount": 12,
+      "destFileCountAfter": 13
+    }
+  },
+  "pi": {
+    "attemptId": "fe70b3f6-7866-4469-bc4e-fa045d67f52d",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/pack-merge/pi/fe70b3f6-7866-4469-bc4e-fa045d67f52d",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-setup-benny-pack-merge-fixture-app--/2026-10-09T00-34-38-416Z_01a11e15-5ad0-75f4-849b-5ff27a17a062.jsonl",
+    "observations": {
+      "outcome": "merge_ok",
+      "contractHeld": true,
+      "productBeforeDigest": "sha256:a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e",
+      "productAfterDigest": "sha256:a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e",
+      "productUnchanged": true,
+      "userOwnedUnchanged": true,
+      "requiredPresent": true,
+      "allSourceCopied": true,
+      "destOnlyOk": true,
+      "localEditOk": true,
+      "doneMarkerWritten": true,
+      "doneLine": "STATUS=merge-ok reason=pack merged, local edit and dest-only file preserved",
+      "automationCreated": false,
+      "forAgentsRead": true,
+      "setupBennyRead": true,
+      "packWrite": true,
+      "askedConflict": true,
+      "sessionToolOrder": [
+        "bash(FOR_AGENTS.md)",
+        "bash(pack-dest)",
+        "bash(pack-dest)"
+      ],
+      "sourceFileCount": 12,
+      "destFileCountAfter": 13
+    }
+  },
+  "deltas": [
+    {
+      "topic": "pack merge onto partial destination",
+      "cursor": "Copied missing source files into .cursor/automations/benny/. Required pack files present. DESTINATION_ONLY and local README marker preserved. User-owned .cursor/benny/* digests unchanged. STATUS=merge-ok.",
+      "pi": "Same FS contract. Session tools bash(FOR_AGENTS.md) then pack-dest writes. STATUS=merge-ok. Settled screen says copied missing files without overwriting existing dest/user-owned paths.",
+      "reconciled": true
+    },
+    {
+      "topic": "README conflict handling",
+      "cursor": "Left seeded README (upstream body + PACK-MERGE-LOCAL-EDIT-MARKER) unchanged; digest identical before/after. Did not discard local edit.",
+      "pi": "Same: README digest unchanged; marker still present. Assistant noted merge without overwriting.",
+      "reconciled": true
+    },
+    {
+      "topic": "create-if-absent vs empty destination",
+      "cursor": "Destination already had DESTINATION_ONLY + README; missing pack paths were created. Did not start from a fully absent .cursor/automations/benny/.",
+      "pi": "Same fixture seed",
+      "reconciled": true
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "Auto",
+      "pi": "claude-sonnet-5-5 • medium (claude-subscription)",
+      "reconciled": false
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-setup-benny-pack-merge.mjs --cursor-only then --pi-only",
+    "workerPlaybook": "parity/evidence/setup-benny/PLAYBOOK-pack-merge.md",
+    "decisionTrail": "parity/evidence/setup-benny/.audit/u-journey-setup-benny-pack-merge.tsv",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "heldOutFixture": "parity/evidence/setup-benny/pack-merge/fixture-app",
+    "markerRoot": "parity/evidence/setup-benny/pack-merge/fixture-out/{cursor,pi}/",
+    "evidenceRoot": "parity/evidence/setup-benny/pack-merge/",
+    "scorerNote": "merge_ok = required pack files at destination + all source rel paths present + DESTINATION_ONLY preserved + user-owned digests unchanged + local README marker preserved (or stop-and-ask) + product unchanged",
+    "siblingClaim": "none; settings-enable / no-secret / not-slash remain separate",
+    "independentVerify": "find dest tree (12 source + DESTINATION_ONLY); digests for dest-only/README/user-owned/product match baseline; rg markers present; both identity.json + events.jsonl on disk"
+  }
+}

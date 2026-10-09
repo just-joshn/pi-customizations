@@ -19,8 +19,10 @@ test('the dormant native pack preserves source algorithms and replaces host setu
   const files = await nativeBennyFiles();
   expect(files['skills/triage-issue-reports/SKILL.md']).toContain('Verify that the issue is canceled, closed, or deleted.');
   expect(files['skills/reproduce-and-fix-issues/SKILL.md']).toContain('The exact discriminating symptom must appear twice through real UI interaction.');
-  expect(files['skills/setup-benny/SKILL.md']).toContain('RoutinePrepare');
-  expect(files['skills/setup-benny/SKILL.md']).toContain('RoutineEnable');
+  expect(files['skills/setup-benny/SKILL.md']).toContain('AutomationPrepare');
+  expect(files['skills/setup-benny/SKILL.md']).toContain('/automate');
+  expect(files['skills/setup-benny/SKILL.md']).toContain('Do not finish Slack Benny through webhook `Routine*` tools.');
+  expect(files['skills/setup-benny/SKILL.md']).not.toMatch(/Call `Routine(?:Prepare|Enable)`/);
   expect(files['templates/triage-automation-prompt.md']).toContain('.pi/automations/benny/skills/triage-issue-reports/SKILL.md');
   expect(Object.values(files).join('\n')).not.toContain('.upstream/');
 });

@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "kind": "journey-family-stub",
+  "id": "journey-family-09-timers-subscriptions-ci-wakes",
+  "family": 9,
+  "familyTitle": "Timers, dynamic subscriptions, CI-event wakes, duplicates, updates, expiry, cancel, restart recovery",
+  "contractRef": "parity/contract.md#8-verify-through-the-users-controls",
+  "status": "missing",
+  "requirementIds": [
+    "PSTACK-CMD-BENNY-TRIAGE-THREAD-ONLY-001",
+    "PSTACK-SETUP-BENNY-SETTINGS-ENABLE-001"
+  ],
+  "fixtureNeeds": [
+    "Controllable timer and subscription fixtures",
+    "Synthetic CI event source",
+    "Restart recovery with persisted subscription state"
+  ],
+  "evidencePaths": [],
+  "openMismatches": [],
+  "coverageNotes": "No paired evidence for timers/subscriptions/CI wakes.",
+  "nextAction": "Inventory Benny and loop/subscription entry points, then capture a paired timer+cancel+restart scenario."
+}

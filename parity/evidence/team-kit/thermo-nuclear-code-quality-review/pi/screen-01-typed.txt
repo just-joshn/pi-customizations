@@ -1,0 +1,40 @@
+[Skill conflicts]                                                                                                      ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+  "thermo-nuclear-code-quality-review" collision:                                                                      ┃
+    ✓ auto (project)                                                                                                   ┃
+~/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/thermo-nuclear-code-quality-review/.pi/skil┃
+ls/thermo-nuclear-code-quality-review/SKILL.md                                                                         ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/thermo-nuclear-code-quality-review/SKILL.md    ┃
+(skipped)                                                                                                              ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+/thermo-nuclear-code-quality-review Do not ask questions. Follow the thermo-nuclear-code-quality-review skill.          
+Workspace is                                                                                                            
+/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/thermo-nuclear-code-quali 
+ty-review. Review the current branch diff against main for src/process.js. Write the review to                          
+/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/thermo-nuclear-code-qua 
+lity-review/summary.md. The review must mention spaghetti or nested conditionals and propose at least one structural    
+simplification (code judo). Do not edit source files. Then write exactly one line to                                    
+/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/thermo-nuclear-code-qua 
+lity-review/done.txt as STATUS=verified|not-verified|inconclusive|env-blocked reason=<short phrase> and stop.           
+Artifacts stay under                                                                                                    
+/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/thermo-nuclear-code-qua 
+lity-review. Do not edit parity ledgers.                                                                                
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/thermo-nuclear-code-quality-review (messy)
+$0.000 (sub) 0.0%/1.0M (auto)                                           (claude-subscription) claude-sonnet-5-5 • medium

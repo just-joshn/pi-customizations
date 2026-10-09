@@ -1,0 +1,39 @@
+{
+  "ready": {
+    "swarmSkill": false,
+    "fanOutStarted": false,
+    "isolationMention": false,
+    "rollupReport": false,
+    "working": false
+  },
+  "mid": {
+    "swarmSkill": true,
+    "fanOutStarted": true,
+    "isolationMention": true,
+    "rollupReport": true,
+    "working": true
+  },
+  "midFiles": {
+    "a": null,
+    "b": null,
+    "aPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/swarm/fixture-out/pi/a.txt",
+    "bPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/swarm/fixture-out/pi/b.txt",
+    "isolatedOk": false,
+    "collision": false
+  },
+  "final": {
+    "swarmSkill": false,
+    "fanOutStarted": false,
+    "isolationMention": true,
+    "rollupReport": true,
+    "working": false
+  },
+  "files": {
+    "a": "WORKER-A",
+    "b": "WORKER-B",
+    "aPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/swarm/fixture-out/pi/a.txt",
+    "bPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/swarm/fixture-out/pi/b.txt",
+    "isolatedOk": true,
+    "collision": false
+  }
+}

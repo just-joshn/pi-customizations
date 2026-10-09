@@ -1,0 +1,25 @@
+{
+  "unit": "u-dep-computer-use-probe-001",
+  "capturedAt": "2026-10-09T04:08:16.714Z",
+  "helperPresent": true,
+  "helperPath": "/Users/josh-desktop/.cursor/cursor-computer-use/Cursor Computer Use.app",
+  "bundleId": "co.anysphere.cursor-computer-use",
+  "version": "0.0.13",
+  "teamIdentifier": "DCNK4UB866",
+  "installedVersion": "0.0.13",
+  "expectedTeamId": "DCNK4UB866",
+  "teamIdMatchesDocs": true,
+  "workerReady": true,
+  "note": "Helper installed (co.anysphere.cursor-computer-use 0.0.13, Team ID DCNK4UB866). Worker debug after install: Computer use Ready=yes, Mac app=yes. Desktop share Ready=no (Agent Helper not installed). No live screenshot/click exercise attempt ID yet — edge stays unresolved until exercised with attempt IDs + required TCC grants observed.",
+  "evidence": [
+    "parity/research/dep-computer-use-probe-001/stdout.txt",
+    "parity/research/dep-computer-use-probe-001/stdout-after-install.txt",
+    "parity/research/dep-computer-use-probe-001/stderr.txt",
+    "parity/research/dep-computer-use-probe-001/stdout-after-install.txt"
+  ],
+  "edgeMutation": "none",
+  "recommendedStatus": "unresolved",
+  "macApp": true,
+  "desktopShareReady": false,
+  "liveExerciseAttemptId": null
+}

@@ -1,0 +1,83 @@
+{
+  "screenFinal": {
+    "showMeYourWork": true,
+    "decisionsTsv": true,
+    "working": false
+  },
+  "pty": {
+    "showMeYourWork": true,
+    "decisionsTsv": true,
+    "working": true
+  },
+  "firstTrailAt": "2026-10-08T21:15:29.864Z",
+  "firstProductAt": "2026-10-08T21:15:29.864Z",
+  "trailPaths": [
+    "decisions.tsv"
+  ],
+  "productPaths": [
+    "src/greet.js"
+  ],
+  "trail": {
+    "rel": "decisions.tsv",
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/show-me-your-work/fixture-app/decisions.tsv",
+    "header": [
+      "ts",
+      "phase",
+      "decision",
+      "why",
+      "evidence",
+      "result"
+    ],
+    "dataRowCount": 4,
+    "rows": [
+      {
+        "ts": "2026-10-08T21:15:29Z",
+        "phase": "start",
+        "decision": "first run on this log",
+        "why": "new log, nothing earlier",
+        "evidence": "decisions.tsv",
+        "result": "open"
+      },
+      {
+        "ts": "2026-10-08T21:15:29Z",
+        "phase": "phase1",
+        "decision": "changed greet() to return hello",
+        "why": "asked to replace hi with hello",
+        "evidence": "src/greet.js:2",
+        "result": "done"
+      },
+      {
+        "ts": "2026-10-08T21:15:29Z",
+        "phase": "phase2",
+        "decision": "added farewell() returning bye",
+        "why": "asked for a farewell helper",
+        "evidence": "src/greet.js:5",
+        "result": "done"
+      },
+      {
+        "ts": "2026-10-08T21:15:37Z",
+        "phase": "phase1",
+        "decision": "actually changed greet() to hello now; the earlier phase1 row was wrong because the sed failed",
+        "why": "first sed errored on BSD syntax, file still said hi",
+        "evidence": "src/greet.js:2",
+        "result": "done, supersedes earlier phase1 row"
+      }
+    ]
+  },
+  "score": {
+    "contractHeld": true,
+    "reason": "ok",
+    "hasPrescribedColumns": true,
+    "dataRowCount": 4,
+    "evidencePointersOk": true,
+    "missingCols": [],
+    "proseEvidence": []
+  },
+  "showMeYourWorkSkill": true,
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/show-me-your-work/fixture-out/pi/done.txt",
+    "line": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/show-me-your-work/fixture-app/decisions.tsv 4 data rows"
+  },
+  "pollSamples": 96
+}

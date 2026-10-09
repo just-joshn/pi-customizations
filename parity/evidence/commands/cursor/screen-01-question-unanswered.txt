@@ -1,0 +1,35 @@
+    Globbed "**/pstack-models.md*" in /Users/josh-desktop
+
+    Explored available MCP tools cursor
+
+  Current budget is small. Checking whether Cursor exposes a fuller models list, then I'll ask which budget you
+  want.
+
+  $ cursor --help 2>/dev/null | head -80; which cursor; ls ~/.cursor 2>/dev/null | head -40 871ms
+    … 10 output lines hidden · ctrl+o to expand
+    skills-cursor
+    statsig-cache.json
+
+    Explored available MCP tools pattern AskQuestion|ask.*question
+
+  Current budget is small (medium). Every role is currently inherit-parent (run on the parent chat model).
+
+  Pick a reasoning budget:
+
+  1. unlimited — max reasoning
+  2. large — xhigh reasoning
+  3. medium — high reasoning
+  4. small — medium reasoning
+
+  Detected Task models this session: claude-fable-5-1-thinking-high, claude-opus-5-5-medium,
+  claude-sonnet-5-5-medium, composer-2.5-fast, cursor-grok-4.6-high-fast, gemini-3.8-flash-high, gpt-5.6-sol-medium,
+  grok-4.7-high, `muse-spark
+
+ ⠰⠰ Working  11.43k tokens
+
+                                                                                                                       
+  → Add a follow-up                                                                                     ctrl+c to stop 
+                                                                                                                       
+
+  Auto · 12.8%                                                                                          Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run · refactor/pi-pstack-parity-again

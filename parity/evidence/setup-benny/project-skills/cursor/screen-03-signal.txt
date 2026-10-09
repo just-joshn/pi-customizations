@@ -1,0 +1,26 @@
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Use /config to customize Cursor settings and behavior.
+
+                                                                                                                       
+  [Pasted text #1 +1 lines]                                                                                            
+                                                                                                                       
+
+  I'll follow Benny's agent docs first, then verify those skills resolve only from project-scoped pstack.
+
+    Reading, globbing 2 files, 1 glob
+    Reading ...again/.upstream/automations/benny/FOR_AGENTS.md
+    Reading .cursor/settings.json
+    Globbing "**/setup-benny/SKILL.md" in ...osh-desktop/src/personal/pi-pstack-parity-again
+
+ ⠰⠳ Working  21 tokens
+
+                                                                                                                       
+  → Add a follow-up                                                                                     ctrl+c to stop 
+                                                                                                                       
+
+  Auto                                                                                                  Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/project-skills/fixture-app · 
+  refactor/pi-pstack-parity-again

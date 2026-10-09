@@ -1,0 +1,15 @@
+
+                                                                                                                       
+  small — medium reasoning                                                                                             
+                                                                                                                       
+
+  Budget small — medium reasoning applied. Aliases stay as-is; no real slugs to downgrade.
+
+
+
+                                                                                                                       
+  → small — medium reasoning                                                                                           
+                                                                                                                       
+
+  Auto · 9.6%                                                                                           Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run · refactor/pi-pstack-parity-again

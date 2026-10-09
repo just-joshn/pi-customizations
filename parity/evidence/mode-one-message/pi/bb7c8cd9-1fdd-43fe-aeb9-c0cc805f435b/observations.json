@@ -1,0 +1,75 @@
+{
+  "ready": {
+    "usedSkill": false,
+    "usedAny": false,
+    "customModeChrome": false,
+    "piStickyBadge": false,
+    "slashMenuOpen": false,
+    "composerHasPoteto": false,
+    "followUpReady": false,
+    "firstReply": false,
+    "secondReply": false
+  },
+  "afterPlainEnter": {
+    "usedSkill": false,
+    "usedAny": false,
+    "customModeChrome": false,
+    "piStickyBadge": true,
+    "slashMenuOpen": false,
+    "composerHasPoteto": false,
+    "followUpReady": false,
+    "firstReply": true,
+    "secondReply": false
+  },
+  "afterFirstTurn": {
+    "usedSkill": false,
+    "usedAny": false,
+    "customModeChrome": false,
+    "piStickyBadge": true,
+    "slashMenuOpen": false,
+    "composerHasPoteto": false,
+    "followUpReady": false,
+    "firstReply": true,
+    "secondReply": false
+  },
+  "afterSecondTurn": {
+    "usedSkill": false,
+    "usedAny": false,
+    "customModeChrome": false,
+    "piStickyBadge": true,
+    "slashMenuOpen": false,
+    "composerHasPoteto": false,
+    "followUpReady": false,
+    "firstReply": true,
+    "secondReply": true
+  },
+  "verified": {
+    "afterPlainEnter": {
+      "usedSkill": false,
+      "customModeChrome": false,
+      "piStickyBadge": true,
+      "firstReply": true,
+      "secondReply": false,
+      "working": false
+    },
+    "afterFirstTurn": {
+      "usedSkill": false,
+      "customModeChrome": false,
+      "piStickyBadge": true,
+      "firstReply": true,
+      "secondReply": false,
+      "working": false
+    },
+    "afterSecondTurn": {
+      "usedSkill": false,
+      "customModeChrome": false,
+      "piStickyBadge": true,
+      "firstReply": true,
+      "secondReply": false,
+      "working": false
+    },
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "note": "ruleUnchanged corrected via digest compare; original Buffer===string compare was a false negative"
+  }
+}

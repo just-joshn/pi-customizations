@@ -1,0 +1,17 @@
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Try Cursor Grok 4.7 via /model, frontier intelligence at a fraction of the cost.
+
+
+
+                                                                                                                       
+  → /how does startAttempt in parity/recorder/attempt.mjs allocate the attempt directory and append events.jsonl?      
+    Trace the real source under parity/recorder/ with line citations. Before finishing, write exactly                  
+    CANCELLED-HOW-COMPLETE as the only line of /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidenc  
+    e/interrupt/fixture-out/cursor/cancelled-how.txt. Do not edit product code or ledgers. Be thorough.                
+                                                                                                                       
+
+  Auto                                                                                                  Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run · refactor/pi-pstack-parity-again

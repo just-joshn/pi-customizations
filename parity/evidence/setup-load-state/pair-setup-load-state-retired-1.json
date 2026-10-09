@@ -1,0 +1,110 @@
+{
+  "schema": 1,
+  "pairId": "setup-load-state-retired-1",
+  "scenarioRef": "setup-pstack:load-state-retired-line",
+  "requirementIds": [
+    "PSTACK-SETUP-LOAD-STATE-001"
+  ],
+  "fixtureDigest": "sha256:e8dcb7b71c421dd7ceae42b69f478396223d15ffe12257cb963fe7bba4e8f0a2",
+  "fixturePath": "parity/evidence/setup-load-state/fixture-with-retired.mdc",
+  "verdict": "pass-paired",
+  "steps": [
+    {
+      "send": "/setup-pstack"
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "note": "Pi AskQuestion budget/roles; Cursor chat-form budget then role table"
+    },
+    {
+      "wait": "budget + roles confirmation"
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "b4bac448-d442-4c34-9eec-b73895bd063b",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-load-state/cursor/b4bac448-d442-4c34-9eec-b73895bd063b",
+    "path": "chatform",
+    "observations": {
+      "budgetNamed": true,
+      "markerRoleLoaded": true,
+      "retiredNamed": true,
+      "droppedLanguage": true,
+      "retiredListed": true,
+      "askQuestion": false,
+      "chatForm": true,
+      "writeCard": false
+    },
+    "loadFromExisting": true,
+    "retiredHandling": "dropped-and-listed",
+    "budgetNamed": true,
+    "markerRoleLoaded": true,
+    "retiredListed": true,
+    "screenQuote": "Current rule budget: small — medium reasoning. Retired role that will be dropped: how critics. Role table: bug-fix | auto",
+    "fixtureHeldThroughScreens": true,
+    "midRunLocked": false,
+    "isolation": {
+      "peersAtStart": [],
+      "peersAtEnd": [],
+      "sharedRuleLockPath": "/Users/josh-desktop/.cursor/rules/pstack-models.mdc.parity-lock"
+    },
+    "supersedesAttemptId": "54a67064-eac9-4e9b-921b-c23085ef3295",
+    "supersedeReason": "Prior Cursor attempt ran while other setup captures restored ~/.cursor/rules/pstack-models.mdc; rule-after matched locked digest. Isolated recapture held fixture digest through screens.",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    }
+  },
+  "pi": {
+    "attemptId": "3f46cd66-2f53-40f1-bbcc-2c7de7828615",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-load-state/pi/3f46cd66-2f53-40f1-bbcc-2c7de7828615",
+    "path": "askquestion",
+    "observations": {
+      "budgetNamed": true,
+      "markerRoleLoaded": true,
+      "retiredNamed": true,
+      "droppedLanguage": true,
+      "retiredListed": true,
+      "askQuestion": true,
+      "chatForm": false,
+      "writeCard": false
+    },
+    "loadFromExisting": true,
+    "retiredHandling": "dropped-and-listed",
+    "budgetNamed": true,
+    "markerRoleLoaded": true,
+    "retiredListed": true,
+    "screenQuote": "Pick a budget (current: small (medium)). Roles currently all inherit-parent except bug-fix: auto. Retired line dropped: how critics.",
+    "reused": true,
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "orphanAttemptNote": "26843b51-a913-4acf-a166-f6c39533fbfb was a hung duplicate session without how-critics evidence; not cited"
+  },
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-setup-load-state.mjs --cursor-only (isolated; peer captures drained; fcntl lock + digest checkpoints). Pi reused from prior pass.",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "lockedFixtureRestored": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "fixture": "parity/evidence/setup-load-state/fixture-with-retired.mdc",
+    "priorFailClassification": "harness-race-shared-rule-restore",
+    "isolatedPassClassification": "real-load-ok-under-isolation"
+  }
+}

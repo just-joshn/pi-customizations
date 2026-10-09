@@ -1,0 +1,40 @@
+{
+  "steps": [
+    {
+      "via": "system-events-axpress",
+      "needle": "Discard",
+      "ok": false,
+      "stdout": "false",
+      "stderr": "",
+      "returncode": 0
+    },
+    {
+      "clicked": true,
+      "needle": "Discard",
+      "xy": [
+        522,
+        442
+      ]
+    },
+    {
+      "cmdw": true,
+      "via": "system-events-axpress",
+      "needle": "Discard",
+      "ok": false,
+      "stdout": "false",
+      "stderr": "",
+      "returncode": 0
+    }
+  ],
+  "beforeHasModal": true,
+  "beforeUntitled": true,
+  "afterSeModal": true,
+  "discardAxHits": [],
+  "afterIndexModal": true,
+  "afterOcrModal": true,
+  "afterCmdwModal": true,
+  "afterCmdwUntitled": true,
+  "afterCmdwSeesDraft": false,
+  "isActive": false,
+  "seWindowCount": "0"
+}

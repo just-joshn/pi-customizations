@@ -1,0 +1,36 @@
+[Skill conflicts]                                                                                                      ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ [skill] setup-pstack (ctrl+o to expand)                                                                               ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ AskQuestion Clarifying Questions (2)                                                                                  ┃
+ 1. Current budget is small (medium). Pick a budget:                                                                   ┃
+   [ ] unlimited — max reasoning                                                                                       ┃
+   [ ] large — xhigh reasoning                                                                                         ┃
+   [ ] medium — high reasoning                                                                                         ┃
+   [ ] small — medium reasoning                                                                                        ┃
+   [x] Other:  Keep budget small — medium reasoning. Keep "feature, refactoring" as inherit-parent. Keep "perf-issue"  ┃
+ as auto. Set only "bug-fix" to the real slug parity-unavailable-model-zzz. Then accept and write if validation        ┃
+ allows. If parity-unavailable-model-zzz is not in the detected set, stop the write and ask again. Do not invent       ┃
+ detected models. Decline any verification skill offer.                                                                ┃
+                                                                                                                       ┃
+ 2. All roles currently inherit-parent (perf-issue: auto). Accept as-is?                                               ┃
+   [ ] Accept as-is                                                                                                    ┃
+   [ ] Change specific roles                                                                                           ┃
+   [x] Other:  Keep budget small — medium reasoning. Keep "feature, refactoring" as inherit-parent. Keep "perf-issue"  ┃
+ as auto. Set only "bug-fix" to the real slug parity-unavailable-model-zzz. Then accept and write if validation        ┃
+ allows. If parity-unavailable-model-zzz is not in the detected set, stop the write and ask again. Do not invent       ┃
+ detected models. Decline any verification skill offer.                                                                ┃
+                                                                                                                       ┃
+
+── ⠋ Working ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run (refactor/pi-pstack-parity-again)
+↑6 ↓310 R35k W20k CH95.0% $0.090 (sub) 2.9%/1.0M (auto)                 (claude-subscription) claude-sonnet-5-5 • medium

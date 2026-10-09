@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "id": "setup-maintain-verify-edit-scope",
+  "status": "paired",
+  "requirements": [
+    "PSTACK-SETUP-MAINTAIN-VERIFY-EDIT-SCOPE-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/maintain-verification-skill/SKILL.md### Edit scope",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Documented preconditions satisfied; behavior not yet paired. Preconditions: Target verification skill directory exists.",
+    "digest": null
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Any edit during /maintain-verification-skill.. Edits stay inside the verification skill directory (SKILL.md, features/, harness scripts it owns). Product code is never edited. Map-vs-app mismatch is either doc drift fixed in the map or a product regression reported without papering over it in docs."
+    }
+  ],
+  "execution": {
+    "pairId": "create-verify-maintain-1",
+    "verdict": "pass",
+    "pair": "parity/evidence/create-verify/pair-create-verify-maintain-1.json",
+    "attempts": {
+      "cursor": "24c341d9-3827-4f87-bd4d-9245b9eccb09",
+      "pi": "951f8414-e0c0-465e-acb2-7b40ad6fd6b2"
+    },
+    "note": "Wired from create-verify-maintain pair; edit scope only."
+  }
+}

@@ -1,0 +1,107 @@
+{
+  "schema": 1,
+  "pairId": "mode-sticky-1",
+  "scenarioRef": "mode-sticky",
+  "requirementId": "PSTACK-MODE-STICKY-001",
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "firstTask": "Reply with exactly the three words: sticky mode on. Do no other work.",
+  "followup": "Reply with exactly the digit 7. Do no other work.",
+  "steps": {
+    "pi": [
+      { "send": "/poteto-mode sticky <firstTask>", "note": "explicit sticky spelling after MODE-PLAIN-ENTER-STICKY repair" },
+      { "send": "\r" },
+      { "wait": "assistant reply sticky mode on; crown Poteto Mode badge" },
+      { "send": "<followup>" },
+      { "send": "\r" },
+      { "wait": "assistant reply 7; crown still present" },
+      { "cancel": true }
+    ],
+    "cursor": [
+      { "note": "Agents Window path (CLI Option+Enter remains glass_custom_modes-gated)" },
+      { "action": "open Agents Window / New Chat" },
+      { "send": "/poteto-mode", "note": "slash menu shows Use as Mode footer" },
+      { "send": "alt+Return", "note": "Use as Mode; crown poteto-mode badge" },
+      { "send": "<firstTask>" },
+      { "send": "Return" },
+      { "wait": "assistant reply sticky mode on; poteto-mode badge still in composer" },
+      { "send": "<followup>" },
+      { "send": "Return" },
+      { "wait": "assistant reply 7; poteto-mode badge still present" }
+    ]
+  },
+  "cursor": {
+    "attemptId": "521ce15e-a8f8-4f74-8fec-208ceddb7603",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/mode-sticky/agents-window/521ce15e-a8f8-4f74-8fec-208ceddb7603",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Applications/Cursor.app/Contents/MacOS/Cursor",
+      "version": "3.24.9",
+      "bundleId": "com.todesktop.230313mzl4w4u92"
+    },
+    "helper": {
+      "path": "/Users/josh-desktop/.cursor/agent-helper/Cursor Agent Helper.app/Contents/MacOS/cursor-agent-helper",
+      "version": "0.1.0-2d0725c"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "desktopShareReady": true,
+      "computerUseReady": true,
+      "accessibility": true,
+      "screenRecording": true,
+      "auth": "signed-in",
+      "stripeMembershipType": "pro_plus"
+    },
+    "observations": {
+      "surface": "Agents Window",
+      "slashMenuOpen": true,
+      "useAsModeFooterSeen": true,
+      "customModeReached": true,
+      "customModeStickyAcrossFollowup": true,
+      "optionEnterEquivalent": "alt+Return",
+      "modeBadgeAfterFirstTurn": true,
+      "modeBadgeAfterSecondTurn": true,
+      "firstReply": true,
+      "secondReply": true,
+      "priorCliHarnessLimitationAttemptId": "9a6e00d0-b7c7-43c1-b09a-7a2db3209dc7"
+    }
+  },
+  "pi": {
+    "attemptId": "96494327-f90c-470a-8e11-cf7c5b6cad89",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/mode-sticky/pi/96494327-f90c-470a-8e11-cf7c5b6cad89",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-fixtures-first-run--/2026-10-08T17-55-13-741Z_01a11ca7-aecd-71e3-a20d-d83b780759ad.jsonl",
+    "observations": {
+      "stickyBadgeAfterStickySubmit": true,
+      "stickyBadgeAfterFirstTurn": true,
+      "stickyBadgeAfterSecondTurn": true,
+      "skillBlockShown": true,
+      "pstackModeEnabledTool": true,
+      "firstReply": true,
+      "secondReply": true,
+      "revalidatedAt": "2026-10-09T06:10:00Z",
+      "revalidation": "screens still show crown Poteto Mode after sticky submit, first turn, and second turn"
+    }
+  },
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-mode-sticky-agents-window.py (Cursor Agents Window) + prior capture-mode-sticky.mjs --pi-only",
+    "cursorReport": "parity/briefs/reports/u-mode-sticky-desktop-ready-001-report.md",
+    "researchDir": "parity/research/mode-sticky-desktop-ready-001/",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "packagePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack",
+    "priorOptionEnterProbe": "parity/evidence/mode-one-message/probe-option-enter/c109809a-9a42-4876-989d-d71dd576e5f8",
+    "priorCliHarnessLimitation": "parity/evidence/mode-sticky/cursor/9a6e00d0-b7c7-43c1-b09a-7a2db3209dc7",
+    "plainEnterPair": "parity/evidence/mode-one-message/pair-mode-one-message-1.json",
+    "pairStatus": "pass-paired"
+  }
+}

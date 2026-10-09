@@ -1,0 +1,6 @@
+{
+  "fixture-app/src/app.js": "sha256:a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e",
+  "fixture-app/.cursor/benny/configuration.yaml": "sha256:6e828fc7cbffadc80b30b84402fa6cc7f7b2d3246ead4931637311421346903a",
+  "fixture-app/.cursor/benny/feature-map.md": "sha256:4d25b1d9531e9f475b8f110369317c07e2a4b9cd9387bb075136279056210fa3",
+  "fixture-app/.cursor/skills/control-target-app/SKILL.md": "sha256:4c1bfa86ebbe4d2b0e537bafe4dc0a9a954b33bd447072436d0581ed95301b6f"
+}

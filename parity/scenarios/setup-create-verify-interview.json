@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "id": "setup-create-verify-interview",
+  "status": "paired",
+  "requirements": [
+    "PSTACK-SETUP-CREATE-VERIFY-INTERVIEW-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/create-verification-skill/SKILL.md### 1. Interview the repo, not the user",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Documented preconditions satisfied; behavior not yet paired. Preconditions: Repository checkout is available.",
+    "digest": null
+  },
+  "actions": [
+    {
+      "kind": "type",
+      "literal": "/create-verification-skill",
+      "expect": "Surface, run, drive, observe, and isolate answers come from the codebase first. The user is asked only what cannot be observed. If the checkout does not build or start, that is fixed or reported precisely before generating. Generated skills may create irrelevant missing assets only as marked verification scaffolding removed in cleanup."
+    }
+  ],
+  "execution": {
+    "pairId": "create-verify-interview-1",
+    "verdict": "pass",
+    "pair": "parity/evidence/create-verify/pair-create-verify-interview-1.json",
+    "attempts": {
+      "cursor": "ee9d86df-a0c3-4169-80e1-103a3d000bf9",
+      "pi": "27b66016-7b03-4c3b-bc36-1e7fe17f27e3"
+    }
+  }
+}

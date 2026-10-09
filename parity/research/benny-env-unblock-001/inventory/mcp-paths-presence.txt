@@ -1,0 +1,10 @@
+# MCP / Cursor Slack-related config presence
+captured_at_utc=2026-10-09T04:23:22Z
+ABSENT path=/Users/josh-desktop/.cursor/mcp.json
+ABSENT path=/Users/josh-desktop/.claude/mcp.json
+PRESENT path=/Users/josh-desktop/Library/Application Support/Cursor/User/globalStorage
+ABSENT path=/Users/josh-desktop/src/personal/pi-pstack-parity-again/.cursor/mcp.json
+ABSENT path=/Users/josh-desktop/src/personal/pi-pstack-parity-again/.mcp.json
+
+## Grep for slack/benny MCP server keys in known config files (key names only)
+FILE /Users/josh-desktop/.cursor/cli-config.json

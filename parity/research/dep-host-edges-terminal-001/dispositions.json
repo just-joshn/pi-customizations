@@ -1,0 +1,138 @@
+{
+  "capturedAt": "2026-10-09T03:39:39Z",
+  "unit": "u-dep-host-edges-terminal-001",
+  "verdict": "none-honestly-resolvable",
+  "mergePayloadReady": false,
+  "resolvedEdgeCount": 0,
+  "edges": [
+    {
+      "capturedAt": "2026-10-09T03:39:39Z",
+      "unit": "u-dep-host-edges-terminal-001",
+      "edge": {
+        "from": "cursor-cli-host",
+        "to": "cursor-self-hosted-computer-use"
+      },
+      "currentStatus": "unresolved",
+      "recommendStatus": "unresolved",
+      "resolvedHonest": false,
+      "disposition": "environment-bound",
+      "absentInSourceApplicable": false,
+      "absentInSourceWhyNot": "Contract is present in public docs (computer-use.md). Runtime helper identity, privacy grants, Linux display packages, and desktop-sharing transport remain required. Empty mdfind is a missing install, not an absent contract.",
+      "doc": {
+        "path": "parity/research/continuation/computer-use.md",
+        "sha256": "a9ceb020282d7c61ad99ccd13de0c8831dd57499ac32af31b5f4afc9e9e186d0",
+        "byteLength": 15653,
+        "matchesLedgerDocSha256": true,
+        "ledgerDocSha256": "a9ceb020282d7c61ad99ccd13de0c8831dd57499ac32af31b5f4afc9e9e186d0"
+      },
+      "helperProbePath": "parity/research/dep-host-edges-terminal-001/probes/helper-mdfind.json",
+      "priorEvidence": [
+        "parity/research/continuation/computer-use.md",
+        "parity/research/dep-closure-wave-009/host/host-edge-disposition.json",
+        "parity/research/dep-closure-wave-009/nodes/host-edge-disposition.md",
+        "parity/research/dep-closure-wave-008/host/host-edge-disposition.json"
+      ],
+      "whyNotResolved": "Docs custody alone does not satisfy the edge contract. No live Computer Use exercise was run. No attempt ID exists. Helper bundle not installed (mdfind empty; ~/.cursor/cursor-computer-use missing). Preference 4 forbids inventing a resolution that lowers the bar.",
+      "operatorGrantToClose": [
+        "Install or allow first-run download of Cursor Computer Use helper (bundle co.anysphere.cursor-computer-use / Team ID DCNK4UB866).",
+        "Grant macOS Accessibility and Screen Recording to that helper.",
+        "On Linux workers, install required X11/desktop packages and configure display.",
+        "Run agent worker --computer-use start (and Linux --share-desktop if in scope) with recorded attempt IDs showing activation and sharing controls.",
+        "Publish path+hash evidence and only then set edge.status to resolved."
+      ],
+      "liveExerciseAttempted": false,
+      "liveExerciseAttemptIds": []
+    },
+    {
+      "capturedAt": "2026-10-09T03:39:39Z",
+      "unit": "u-dep-host-edges-terminal-001",
+      "edge": {
+        "from": "cursor-cli-host",
+        "to": "cursor-enterprise-integration-policy"
+      },
+      "currentStatus": "unresolved",
+      "recommendStatus": "unresolved",
+      "resolvedHonest": false,
+      "disposition": "environment-bound",
+      "absentInSourceApplicable": false,
+      "absentInSourceWhyNot": "Contract is present in public docs (model-management.md). Live Enterprise team/org model access, MCP allowlist enforcement, and CLI applicability remain required.",
+      "doc": {
+        "path": "parity/research/continuation/model-management.md",
+        "sha256": "2606b4bd74d43bd579c59945506ab691cd49de8da3386556e265c854f6c9d205",
+        "byteLength": 12119,
+        "matchesLedgerDocSha256": true,
+        "ledgerDocSha256": "2606b4bd74d43bd579c59945506ab691cd49de8da3386556e265c854f6c9d205"
+      },
+      "priorEvidence": [
+        "parity/research/continuation/model-management.md",
+        "parity/research/dep-closure-wave-009/host/host-edge-disposition.json",
+        "parity/research/dep-closure-wave-009/nodes/host-edge-disposition.md",
+        "parity/research/dep-closure-wave-008/host/host-edge-disposition.json"
+      ],
+      "whyNotResolved": "Docs custody alone does not satisfy the edge contract. No live Enterprise policy observation was run. No attempt ID exists. Standing orders forbid broad allowlist or authorization changes by workers.",
+      "operatorGrantToClose": [
+        "Provide an Enterprise team/org account with observable Model Providers / Groups model-access settings.",
+        "Authorize a read-only policy observation journey (no worker-initiated allowlist widening unless account owner explicitly grants it).",
+        "Measure MCP policy precedence and CLI applicability with attempt IDs.",
+        "Publish evidence and only then set edge.status to resolved."
+      ],
+      "liveExerciseAttempted": false,
+      "liveExerciseAttemptIds": []
+    },
+    {
+      "capturedAt": "2026-10-09T03:39:39Z",
+      "unit": "u-dep-host-edges-terminal-001",
+      "edge": {
+        "from": "cursor-pstack",
+        "to": "cursor-cli-host"
+      },
+      "currentStatus": "unverified",
+      "recommendStatus": "unverified",
+      "resolvedHonest": false,
+      "disposition": "environment-bound",
+      "absentInSourceApplicable": false,
+      "absentInSourceWhyNot": "Product docs define Option/Alt+Enter Custom Mode sticky path. Measured exhaustive-negative proves the gate is off on locked cursor-agent, not that the contract is absent from source.",
+      "cursorAgentVersion": {
+        "command": [
+          "cursor-agent",
+          "--version"
+        ],
+        "exitCode": 0,
+        "stdout": "2026.10.01-e373342\n",
+        "stderr": "",
+        "expectedLock": "2026.10.01-e373342",
+        "matchesLock": true
+      },
+      "customModeProbe": {
+        "reportPath": "parity/briefs/reports/u-cursor-custom-mode-path-report.md",
+        "reportSha256": "285b46915c829d691dac04fadc56c90a3eeb93aef5242fe0253185a6846eae21",
+        "summaryPath": "parity/evidence/mode-sticky/probes/probe-custom-mode-path-summary.json",
+        "summarySha256": "85e3fd494484dad4415fdb588f97f5a2d7eaee334333c1ac1910174b641676bc",
+        "baselineAttemptId": "6977eeec-08bd-4829-810c-11d526d9f9fb",
+        "statsigOverrideAttemptId": "9857dda0-a74d-4546-b69e-1ff3528bdf3e",
+        "successAttemptId": null,
+        "gate": "glass_custom_modes",
+        "gateObserved": "off"
+      },
+      "priorEvidence": [
+        "parity/briefs/reports/u-cursor-custom-mode-path-report.md",
+        "parity/evidence/mode-sticky/probes/probe-custom-mode-path-summary.json",
+        "parity/research/dep-closure-wave-009/cli-host/persistent-mode-disposition.json",
+        "parity/research/dep-closure-wave-009/nodes/cli-host-persistent-mode.md",
+        "parity/mismatches.json",
+        "parity/requirements.json"
+      ],
+      "whyNotResolved": "completion.mjs requires edge.status === resolved. Current status is unverified. Success sticky attempt ID is null. glass_custom_modes remains off on locked cursor-agent 2026.10.01-e373342. Prefer Preference 4: keep the unsatisfied sticky requirement active. Do not promote exhaustive-negative to resolved.",
+      "operatorGrantToClose": [
+        "Enable Custom Modes for the reference account so glass_custom_modes is on (slash footer option+enter to use as mode visible), or ship/use a cursor-agent build where the gate defaults on.",
+        "Recapture paired Cursor+Pi sticky evidence with a success attempt ID for Option/Alt+Enter Custom Mode on /poteto-mode.",
+        "Alternatively capture via Agents Window / IDE Use as Mode path with the same paired success IDs if CLI stays gated.",
+        "Only then set edge.status to resolved."
+      ],
+      "newLiveExerciseAttempted": false,
+      "newLiveExerciseAttemptIds": []
+    }
+  ],
+  "bunAbsentInSourcePatternNote": "Bun pin closed only because exhaustive source custody proved no pin declaration exists. These three edges have present contracts that require live or gated-host exercise. Do not reuse absent-in-source here.",
+  "preference4": "Keep unsatisfied requirements active. Do not invent a resolution that lowers the bar."
+}

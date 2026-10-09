@@ -1,0 +1,44 @@
+{
+  "schema": 1,
+  "pairId": "setup-benny-thread-safety-1",
+  "scenarioRef": "setup-benny-thread-safety",
+  "requirementIds": [
+    "PSTACK-SETUP-BENNY-THREAD-SAFETY-001"
+  ],
+  "path": "seven-checks-live-playwright-results",
+  "cursor": {
+    "attemptId": "de707056-289d-44b8-85a4-4d400e849815",
+    "observations": {
+      "sevenChecks": {
+        "1_triage_stores_root_and_one_verdict_reply": true,
+        "2_verdict_has_configured_marker": true,
+        "3_repro_accepts_marker_only_from_triage_identity": true,
+        "3_note": "verdict authors are bot; triage_identity_user_id set to bot user in config",
+        "4_immutable_source_coordinates": true,
+        "5_no_source_channel_root_from_verdict_flow": true,
+        "6_delegated_worker_no_slack_write": true,
+        "7_failed_preflight_no_write": true
+      },
+      "allSevenPass": true
+    }
+  },
+  "pi": {
+    "attemptId": "16520327-0d45-4817-a0cd-2f8c1c0e494a",
+    "observations": {
+      "sevenChecks": {
+        "1_triage_stores_root_and_one_verdict_reply": true,
+        "2_verdict_has_configured_marker": true,
+        "3_repro_accepts_marker_only_from_triage_identity": true,
+        "3_note": "verdict authors are bot; triage_identity_user_id set to bot user in config",
+        "4_immutable_source_coordinates": true,
+        "5_no_source_channel_root_from_verdict_flow": true,
+        "6_delegated_worker_no_slack_write": true,
+        "7_failed_preflight_no_write": true
+      },
+      "allSevenPass": true,
+      "localReceiptTools": true
+    }
+  },
+  "contractHeld": true,
+  "canCloseMismatch": true
+}

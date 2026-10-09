@@ -1,0 +1,126 @@
+{
+  "schema": 1,
+  "pairId": "prin-minimize-reader-1",
+  "scenarioRef": "prin-minimize-reader",
+  "journeyFamily": "journey-family-principles",
+  "requirementIds": [
+    "PSTACK-PRIN-MINIMIZE-READER-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "/poteto-mode Make node scripts/verify.mjs print TRACE-OK for this fixture. greet() already returns the right string, but the call path routes through greeting-loader.js → greeting-fetch.js → greeting-resolve.js before core.js. NOTES.md describes the failure and some possible approaches. For any poteto-mode principle you apply before declaring done, read that principle's leaf SKILL.md in full first (not only the poteto-mode Principles index). Work only inside this fixture cwd. Do not edit ledgers, parity/, or files outside this cwd except the named done path. When TRACE-OK is on disk, write exactly one line to .../minimize-reader/fixture-out/<side>/done.txt as verified=yes|no, then stop.",
+  "steps": [
+    {
+      "wait": "ready screen (Tip: on Cursor; Pi chat ready without Trust dialog)"
+    },
+    {
+      "send": "/poteto-mode make TRACE-OK; NOTES.md approaches; leaf SKILL.md for applied principles; write verified=yes|no"
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "wait": "on-disk evidence/verify-out.txt with TRACE-OK"
+    },
+    {
+      "wait": "done marker verified=yes"
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "a0563963-92bc-4f7d-b63d-37051663e79b",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/minimize-reader/cursor/a0563963-92bc-4f7d-b63d-37051663e79b",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "transcript": "/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/agent-transcripts/809cc0f3-c53d-4b4c-a293-b4b101571ab2/809cc0f3-c53d-4b4c-a293-b4b101571ab2.jsonl",
+    "proofCopyPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/minimize-reader/fixture-out/cursor/evidence/verify-out.txt",
+    "observations": {
+      "potetoMode": true,
+      "leafSkillRead": true,
+      "leafSkillPath": "/Users/josh-desktop/.claude/skills/principle-minimize-reader-load/SKILL.md",
+      "wrappersCollapsed": true,
+      "addedLayer": false,
+      "allWrappersGone": true,
+      "keptVerifyOk": true,
+      "verifyLine": "TRACE-OK path=collapse files=core.js,greet.js",
+      "productOk": true,
+      "verifiedDone": true,
+      "modelAutoInvoke": false,
+      "contractHeld": true,
+      "ranVerifyScript": true,
+      "modelChrome": "unobserved on ready/settled screen dumps",
+      "oracleNote": "Deleted greeting-loader/fetch/resolve. greet.js calls core.message() directly. TRACE-OK. No facade."
+    }
+  },
+  "pi": {
+    "attemptId": "f698e8a7-1dbd-46cb-96d2-7ecaabbebaeb",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/minimize-reader/pi/f698e8a7-1dbd-46cb-96d2-7ecaabbebaeb",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-principles-minimize-reader-fixture-app--/2026-10-09T00-53-56-101Z_01a11e27-0505-7310-938a-ba52c22bcfba.jsonl",
+    "proofCopyPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/minimize-reader/fixture-out/pi/evidence/verify-out.txt",
+    "observations": {
+      "potetoMode": true,
+      "leafSkillRead": true,
+      "leafSkillPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-minimize-reader-load/SKILL.md",
+      "wrappersCollapsed": true,
+      "addedLayer": false,
+      "allWrappersGone": true,
+      "keptVerifyOk": true,
+      "verifyLine": "TRACE-OK path=collapse files=core.js,greet.js",
+      "productOk": true,
+      "verifiedDone": true,
+      "modelAutoInvoke": false,
+      "contractHeld": true,
+      "ranVerifyScript": true,
+      "modelChrome": "(claude-subscription) claude-sonnet-5-5 • medium",
+      "oracleNote": "Session tool order includes read(minimize-reader-leaf) and bash(verify.mjs). Same collapse to greet→core. TRACE-OK. No facade."
+    }
+  },
+  "deltas": [
+    {
+      "topic": "leaf skill path",
+      "cursor": "Read ~/.claude/skills/principle-minimize-reader-load/SKILL.md",
+      "pi": "Read extensions/pi-pstack/skills/principle-minimize-reader-load/SKILL.md",
+      "reconciled": true
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "unobserved on screen dumps",
+      "pi": "claude-sonnet-5-5 medium via claude-subscription",
+      "reconciled": false
+    },
+    {
+      "topic": "minimize-reader outcome",
+      "cursor": "contractHeld. Leaf Read + collapsed one-caller wrappers + TRACE-OK, no facade.",
+      "pi": "contractHeld. Leaf Read + collapsed one-caller wrappers + TRACE-OK, no facade.",
+      "reconciled": true
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-prin-minimize-reader.mjs --both",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "fixtureApp": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/minimize-reader/fixture-app",
+    "decisionLog": "parity/evidence/principles/minimize-reader/.audit/u-journey-prin-minimize-reader.tsv",
+    "notes": "PSTACK-PRIN-MINIMIZE-READER-001. Dedicated minimize-reader/ fixture with working greet through three one-caller pass-throughs. Ledgers untouched. disable-model-invocation true on package leaf copies; modelAutoInvoke false on both."
+  }
+}

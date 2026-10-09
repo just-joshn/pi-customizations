@@ -1,0 +1,40 @@
+                                                                                                                       │
+ Node's event loop is a libuv-driven cycle with ordered phases: timers → pending callbacks → idle/prepare → poll (I/O  │
+ completion) → check (setImmediate) → close callbacks. Each phase has its own FIFO queue of macrotask callbacks.       │
+                                                                                                                       │
+ Microtasks (promise reactions, queueMicrotask) are not a libuv phase. They live in V8's microtask queue.              │
+ process.nextTick has a separate queue that Node drains first. Node drains the nextTick queue and then the promise     │
+ microtask queue whenever the JS stack empties. In practice that happens after each macrotask callback (since Node     │
+ 11), so it also happens between callbacks within a phase, not only at phase boundaries. Microtasks queued by other    │
+ microtasks run in the same drain, so a recursive microtask chain starves the loop and I/O.                            ┃
+                                                                                                                       ┃
+ The libuv thread pool (default 4 threads, UV_THREADPOOL_SIZE) handles work that has no portable non-blocking kernel   ┃
+ interface. That covers fs, dns.lookup, crypto.pbkdf2/scrypt/randomBytes, and zlib. The main thread submits a work     ┃
+ request. A worker thread runs the blocking syscall off-loop. On completion the worker posts to the loop through an    ┃
+ async handle (uv_async_send, an eventfd or pipe wakeup), and the loop's poll phase runs the completion callback on    ┃
+ the main thread. Network sockets skip the pool. They use epoll, kqueue, or IOCP, and readiness or completion is also  ┃
+ reported in the poll phase.                                                                                           ┃
+                                                                                                                       ┃
+ Promise interaction: an await on a pool-backed API suspends the async function. When the pool completion callback     ┃
+ runs in poll, it resolves the promise. That enqueues a microtask, which runs right after the callback returns, before ┃
+ the loop moves to the next callback or phase. The resulting ordering is: sync code, then nextTick, then promise       ┃
+ microtasks, then the macrotask phases. From the main script, setTimeout(0) versus setImmediate is non-deterministic.  ┃
+ From inside an I/O callback, setImmediate always fires first.                                                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ Restate your last message. Stop using jargon and speak coherently. State it more simply and concisely, like one human ┃
+ talking to another.                                                                                                   ┃
+                                                                                                                       ┃
+ Restate your last message in plain human language with no jargon. Do not continue any prior task and do not create    ┃
+ product code. Work only inside this fixture cwd for marker files. Write the plain restatement to                      ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/bro/fixture-out/pi/restate.md. Then write     ┃
+ exactly one line to                                                                                                   ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/bro/fixture-out/pi/done.txt as                ┃
+ bro=yes|no|fail, then stop.                                                                                           ┃
+                                                                                                                       ┃
+
+── ⠸ Working ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/bro/fixture-app (refactor/pi-pstack-parity-again)
+↑4 ↓713 R8.1k W16k CH33.1% $0.074 (sub) 2.5%/1.0M (auto)                (claude-subscription) claude-sonnet-5-5 • medium

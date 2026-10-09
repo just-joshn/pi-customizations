@@ -1,0 +1,14 @@
+{
+  "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/typescript-best-practices/SKILL.md",
+  "digest": "28f9e61710e205f6f3c5476f333483cff0e988f6a5b639e2faad536344b40c5e",
+  "matchesLockedDigest": true,
+  "frontmatterRaw": "name: typescript-best-practices\ndescription: TypeScript best practices. Use when reading or editing any .ts or .tsx file.\npaths: [\"**/*.ts\", \"**/*.tsx\"]\ndisable-model-invocation: true",
+  "pathsField": "[\"**/*.ts\", \"**/*.tsx\"]",
+  "hasPathsTs": true,
+  "hasPathsTsx": true,
+  "pathsOk": true,
+  "disableModelInvocation": true,
+  "typeSystemDisciplineFirst": true,
+  "firstBodyLine": "Apply the **type-system-discipline** principle skill first.",
+  "contractOk": true
+}

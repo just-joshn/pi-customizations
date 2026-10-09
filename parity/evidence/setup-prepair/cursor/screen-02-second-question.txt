@@ -1,0 +1,33 @@
+  │ why synthesizer                          │ inherit-parent │
+  ├──────────────────────────────────────────┼────────────────┤
+  │ reflect tooling                          │ inherit-parent │
+  ├──────────────────────────────────────────┼────────────────┤
+  │ reflect judgment, divergent, synthesizer │ inherit-parent │
+  ├──────────────────────────────────────────┼────────────────┤
+  │ arena runners                            │ inherit-parent │
+  ├──────────────────────────────────────────┼────────────────┤
+  │ arena cross-judge pool                   │ inherit-parent │
+  ├──────────────────────────────────────────┼────────────────┤
+  │ swarm workers                            │ inherit-parent │
+  ├──────────────────────────────────────────┼────────────────┤
+  │ architect runners                        │ inherit-parent │
+  ├──────────────────────────────────────────┼────────────────┤
+  │ interrogate reviewers                    │ inherit-parent │
+  └──────────────────────────────────────────┴────────────────┘
+
+  Budget line: # budget: unlimited (max)
+
+ ┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+ │ Clarifying Questions                                                                                               │
+ │                                                                                                                    │
+ │ Question 1 of 1                                                                                                    │
+ │                                                                                                                    │
+ │ 1. Accept this configuration? "Change specific roles" lets you pick a role and set it to one of the detected       │
+ │ models, or `inherit-parent` / `auto`.                                                                              │
+ │                                                                                                                    │
+ │   › [ ] Accept as-is — write the rule                                                                              │
+ │     [ ] Change specific roles                                                                                      │
+ │     [ ] Other: (type to answer)                                                                                    │
+ │                                                                                                                    │
+ │ ↑/↓ option · ←/→ question · Space select · Enter next/submit · Esc to skip                                         │
+ └────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘

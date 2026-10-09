@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "id": "cmd-benny-triage-thread-only",
+  "status": "partial-fail-closed-paired-valid-blocked",
+  "requirements": [
+    "PSTACK-CMD-BENNY-TRIAGE-THREAD-ONLY-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/automations/benny/skills/triage-issue-reports/SKILL.md#triage-issue-reports one thread-only verdict and fail-closed without config",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "One Slack report thread awaiting triage. Preconditions: Benny triage automation configured or intentionally missing config for negative path.",
+    "digest": null
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Run triage with missing or incomplete external Benny configuration.. With bad or missing config the skill stops without posting or writing to the tracker; with valid config the contract is one thread-only verdict and no reproduce-or-fix work in this skill."
+    }
+  ],
+  "execution": {
+    "pairId": "benny-triage-fail-closed-1",
+    "verdict": "partial",
+    "pair": "parity/evidence/benny-triage/pair-benny-triage-fail-closed-1.json",
+    "attempts": {
+      "cursor": "876cbcf4-ea8d-4276-9e9b-f0ec2a7da379",
+      "pi": "5e2be54e-ec04-4238-a2d0-2fd622e87cc0"
+    },
+    "note": "negative path paired; valid-config thread-only unpaid",
+    "validConfig": {
+      "verdict": "blocker",
+      "blocker": "parity/evidence/benny-triage/blocker-benny-triage-valid-1.json",
+      "probe": "parity/evidence/benny-triage/valid-env-probe.json",
+      "report": "parity/briefs/reports/u-journey-cmd-benny-triage-valid-report.md"
+    }
+  }
+}

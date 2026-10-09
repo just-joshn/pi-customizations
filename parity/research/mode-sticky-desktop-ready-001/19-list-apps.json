@@ -1,0 +1,13 @@
+{
+  "id": 2,
+  "jsonrpc": "2.0",
+  "result": {
+    "content": [
+      {
+        "text": "{\"apps\":[{\"bundleIdentifier\":\"org.alacritty\",\"name\":\"Alacritty\",\"isActive\":false,\"isRunning\":true,\"pid\":14950},{\"pid\":81918,\"name\":\"Cursor\",\"isActive\":true,\"bundleIdentifier\":\"com.todesktop.230313mzl4w4u92\",\"isRunning\":true},{\"pid\":3756,\"name\":\"Desktop Plus\",\"isActive\":false,\"bundleIdentifier\":\"org.desktop-plus.DesktopPlus\",\"isRunning\":true},{\"pid\":674,\"name\":\"Finder\",\"isActive\":false,\"bundleIdentifier\":\"com.apple.finder\",\"isRunning\":true},{\"pid\":62999,\"name\":\"Google Chrome\",\"isActive\":false,\"bundleIdentifier\":\"com.google.Chrome\",\"isRunning\":true},{\"pid\":55150,\"name\":\"Messages\",\"isActive\":false,\"bundleIdentifier\":\"com.apple.MobileSMS\",\"isRunning\":true},{\"pid\":54153,\"name\":\"Slack\",\"isActive\":false,\"bundleIdentifier\":\"com.tinyspeck.slackmacgap\",\"isRunning\":true}]}",
+        "type": "text"
+      }
+    ],
+    "isError": false
+  }
+}

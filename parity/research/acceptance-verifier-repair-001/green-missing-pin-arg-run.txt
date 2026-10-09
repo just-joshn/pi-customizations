@@ -1,0 +1,7 @@
+ok missing-pin-value rejected (exit 1)
+  --expect-manifest-sha256 requires a sha256 hex digest
+ok empty-pin-value rejected (exit 1)
+  --expect-manifest-sha256 requires a sha256 hex digest
+ok malformed-pin-value rejected (exit 1)
+  --expect-manifest-sha256 value is not a sha256 hex digest: not-a-hash
+exit=0

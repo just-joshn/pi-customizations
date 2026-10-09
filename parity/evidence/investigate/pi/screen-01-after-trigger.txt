@@ -1,0 +1,36 @@
+[Skill conflicts]                                                                                                      ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ [skill] how (ctrl+o to expand)                                                                                        ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ does the pstack budget line in models.mdc change agent behavior?                                                      ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ read ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/how/references/explainer-prompt.md:1-200       ┃
+                                                                                                                       ┃
+ The how skill is active. Spawn one readonly Task (subagent_type generalPurpose, how explainer role) before direct     ┃
+ exploration or the final answer (Step 2b / Step 2a).                                                                  ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ Thinking...                                                                                                           ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ task agent_type="explore" name="how-explainer" description="Explain budget line behavior" prompt="Read...             ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+── ⠙ Working ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run (refactor/pi-pstack-parity-again)
+↑4 ↓144 R7.7k W17k CH30.7% $0.073 (sub) 2.5%/1.0M (auto)                (claude-subscription) claude-sonnet-5-5 • medium

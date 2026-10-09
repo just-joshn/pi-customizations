@@ -1,0 +1,40 @@
+ 0                                                                                                                     │
+                                                                                                                       │
+ Took 0.0s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ Index matches; source (single echo) and live run agree. Writing outcome.                                              │
+                                                                                                                       │
+                                                                                                                       │
+ $ d=/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-out/pi; mkdir -p  │
+ $d; printf 'OUTCOME=clean\nPR=none\nBLOCKER=none\n' > $d/maintain-outcome.txt; cat $d/maintain-outcome.txt (timeout   │
+ 10s)                                                                                                                  │
+                                                                                                                       │
+ OUTCOME=clean                                                                                                         │
+ PR=none                                                                                                               │
+ BLOCKER=none                                                                                                          │
+                                                                                                                       │
+ Took 0.0s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ The outcome is clean: the verify-hello-cli skill already matches ./hello.sh, so there is nothing to ship. I created   │
+ no branch and no PR, and edited no files.                                                                             │
+                                                                                                                       ┃
+ - Index: the feature map lists one feature, hello print, and features/hello-print.md exists. There are no missing,    ┃
+   extra or dead entries.                                                                                              ┃
+ - Source: I read hello.sh myself and did not launch a subagent. It is a single echo HELLO-FAMILY-13 under #!/bin/sh,  ┃
+   which matches the skill.                                                                                            ┃
+ - Live run:                                                                                                           ┃
+     - The doctor check printed #!/bin/sh and doctor-ok.                                                               ┃
+     - The drive produced HELLO-FAMILY-13 on stdout.                                                                   ┃
+     - stderr was empty.                                                                                               ┃
+     - The exit code was 0.                                                                                            ┃
+     - The evidence files are in .pi/evidence/verify-hello-cli/.                                                       ┃
+                                                                                                                       ┃
+ I wrote OUTCOME=clean, PR=none and BLOCKER=none to fixture-out/pi/maintain-outcome.txt.                               ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app (refactor/pi-pstack-parity-again)
+↑10 ↓1.2k R90k W20k CH99.1% $0.112 (sub) 2.9%/1.0M (auto)               (claude-subscription) claude-sonnet-5-5 • medium

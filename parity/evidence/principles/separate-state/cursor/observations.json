@@ -1,0 +1,125 @@
+{
+  "score": {
+    "frontmatterOk": true,
+    "leafSkillRead": true,
+    "usedChrome": true,
+    "modelAutoInvoke": false,
+    "ranVerifyScript": true,
+    "separateOk": true,
+    "separatedFix": true,
+    "stillShared": false,
+    "productOk": true,
+    "verifiedDone": true,
+    "contractHeld": true,
+    "screen": {
+      "potetoMode": false,
+      "leafChrome": false,
+      "hostAttached": false,
+      "failMention": true,
+      "verifyMention": true,
+      "shareMention": true,
+      "working": false
+    },
+    "pty": {
+      "potetoMode": true,
+      "leafChrome": false,
+      "hostAttached": true,
+      "failMention": true,
+      "verifyMention": true,
+      "shareMention": true,
+      "working": true
+    }
+  },
+  "firstProductAt": "2026-10-09T01:31:00.803Z",
+  "firstVerifyAt": "2026-10-09T01:30:00.577Z",
+  "productPaths": [
+    "src/workers.js"
+  ],
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/separate-state/fixture-out/cursor/done.txt",
+    "line": "verified=yes"
+  },
+  "verifyOut": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/separate-state/fixture-app/evidence/verify-out.txt",
+    "line": "SEPARATE-OK separated=yes indexer=state/indexer.json metrics=state/metrics.json lastIndexed=idx-5 lastMetrics=met-5",
+    "ok": true
+  },
+  "productOk": true,
+  "productAnalysis": {
+    "stillShared": false,
+    "separated": true,
+    "reportMerges": true,
+    "indexerFiles": [
+      "state/indexer.json"
+    ],
+    "metricsFiles": [
+      "state/metrics.json"
+    ]
+  },
+  "frontmatter": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/principle-separate-before-serializing-shared-state/SKILL.md",
+    "ok": true,
+    "name": "principle-separate-before-serializing-shared-state",
+    "disableModelInvocation": true
+  },
+  "session": null,
+  "transcript": {
+    "path": "/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/agent-transcripts/b817238e-d918-4650-a337-5c64f326f0c8/b817238e-d918-4650-a337-5c64f326f0c8.jsonl",
+    "leafSkillRead": true,
+    "leafSkillReadAt": "2026-10-09T01:31:37.404Z",
+    "ranVerifyScript": true,
+    "firstVerifyAt": "2026-10-09T01:31:37.404Z",
+    "firstProductWriteAt": null,
+    "ranConcurrentProof": true,
+    "toolOrder": [
+      "Read",
+      "GetDynamicTools",
+      "Read",
+      "CallDynamicTool(verify.mjs)",
+      "Glob",
+      "Shell(verify.mjs)",
+      "Read",
+      "Read(verify.mjs)",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read(separate-state-leaf)",
+      "Read",
+      "blob-mention(separate-state-leaf)",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "CallDynamicTool",
+      "Write(concurrent)",
+      "Shell(verify.mjs)",
+      "Shell",
+      "CallDynamicTool(verify.mjs)"
+    ],
+    "failMention": false,
+    "mtimeMs": 1791509482365.2217
+  },
+  "pollSamples": 237,
+  "screenFinal": {
+    "potetoMode": false,
+    "leafChrome": false,
+    "hostAttached": false,
+    "failMention": true,
+    "verifyMention": true,
+    "shareMention": true,
+    "working": false
+  },
+  "pty": {
+    "potetoMode": true,
+    "leafChrome": false,
+    "hostAttached": true,
+    "failMention": true,
+    "verifyMention": true,
+    "shareMention": true,
+    "working": true
+  }
+}

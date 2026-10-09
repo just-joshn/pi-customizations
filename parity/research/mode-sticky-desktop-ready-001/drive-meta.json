@@ -1,0 +1,7 @@
+{
+  "attemptId": "521ce15e-a8f8-4f74-8fec-208ceddb7603",
+  "method": "agent-helper MCP keyboard drive of Cursor",
+  "firstTask": "Reply with exactly the three words: sticky mode on. Do no other work.",
+  "followup": "Reply with exactly the digit 7. Do no other work.",
+  "evidenceDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/mode-sticky/agents-window/521ce15e-a8f8-4f74-8fec-208ceddb7603"
+}

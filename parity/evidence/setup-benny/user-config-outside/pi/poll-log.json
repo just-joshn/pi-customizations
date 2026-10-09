@@ -1,0 +1,277 @@
+[
+  {
+    "ts": "2026-10-09T00:41:31.071Z",
+    "doneExists": false,
+    "doneStatus": null,
+    "userOwnedCount": 0,
+    "preferredPresent": [
+      false,
+      false,
+      false
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:31.624Z",
+    "doneExists": false,
+    "doneStatus": null,
+    "userOwnedCount": 0,
+    "preferredPresent": [
+      false,
+      false,
+      false
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:32.179Z",
+    "doneExists": false,
+    "doneStatus": null,
+    "userOwnedCount": 0,
+    "preferredPresent": [
+      false,
+      false,
+      false
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:32.742Z",
+    "doneExists": false,
+    "doneStatus": null,
+    "userOwnedCount": 0,
+    "preferredPresent": [
+      false,
+      false,
+      false
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:33.318Z",
+    "doneExists": false,
+    "doneStatus": null,
+    "userOwnedCount": 0,
+    "preferredPresent": [
+      false,
+      false,
+      false
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:33.911Z",
+    "doneExists": false,
+    "doneStatus": null,
+    "userOwnedCount": 0,
+    "preferredPresent": [
+      false,
+      false,
+      false
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:34.518Z",
+    "doneExists": false,
+    "doneStatus": null,
+    "userOwnedCount": 0,
+    "preferredPresent": [
+      false,
+      false,
+      false
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:35.187Z",
+    "doneExists": false,
+    "doneStatus": null,
+    "userOwnedCount": 0,
+    "preferredPresent": [
+      false,
+      false,
+      false
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:35.872Z",
+    "doneExists": false,
+    "doneStatus": null,
+    "userOwnedCount": 0,
+    "preferredPresent": [
+      false,
+      false,
+      false
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:36.576Z",
+    "doneExists": false,
+    "doneStatus": null,
+    "userOwnedCount": 0,
+    "preferredPresent": [
+      false,
+      false,
+      false
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:37.278Z",
+    "doneExists": false,
+    "doneStatus": null,
+    "userOwnedCount": 0,
+    "preferredPresent": [
+      false,
+      false,
+      false
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:38.001Z",
+    "doneExists": false,
+    "doneStatus": null,
+    "userOwnedCount": 0,
+    "preferredPresent": [
+      false,
+      false,
+      false
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:38.754Z",
+    "doneExists": false,
+    "doneStatus": null,
+    "userOwnedCount": 0,
+    "preferredPresent": [
+      false,
+      false,
+      false
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:39.563Z",
+    "doneExists": false,
+    "doneStatus": null,
+    "userOwnedCount": 0,
+    "preferredPresent": [
+      false,
+      false,
+      false
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:40.447Z",
+    "doneExists": true,
+    "doneStatus": "adapt-ok",
+    "userOwnedCount": 3,
+    "preferredPresent": [
+      true,
+      true,
+      true
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:41.327Z",
+    "doneExists": true,
+    "doneStatus": "adapt-ok",
+    "userOwnedCount": 3,
+    "preferredPresent": [
+      true,
+      true,
+      true
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:42.221Z",
+    "doneExists": true,
+    "doneStatus": "adapt-ok",
+    "userOwnedCount": 3,
+    "preferredPresent": [
+      true,
+      true,
+      true
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:43.133Z",
+    "doneExists": true,
+    "doneStatus": "adapt-ok",
+    "userOwnedCount": 3,
+    "preferredPresent": [
+      true,
+      true,
+      true
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:44.094Z",
+    "doneExists": true,
+    "doneStatus": "adapt-ok",
+    "userOwnedCount": 3,
+    "preferredPresent": [
+      true,
+      true,
+      true
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:45.034Z",
+    "doneExists": true,
+    "doneStatus": "adapt-ok",
+    "userOwnedCount": 3,
+    "preferredPresent": [
+      true,
+      true,
+      true
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:45.960Z",
+    "doneExists": true,
+    "doneStatus": "adapt-ok",
+    "userOwnedCount": 3,
+    "preferredPresent": [
+      true,
+      true,
+      true
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:46.897Z",
+    "doneExists": true,
+    "doneStatus": "adapt-ok",
+    "userOwnedCount": 3,
+    "preferredPresent": [
+      true,
+      true,
+      true
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:47.823Z",
+    "doneExists": true,
+    "doneStatus": "adapt-ok",
+    "userOwnedCount": 3,
+    "preferredPresent": [
+      true,
+      true,
+      true
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:48.767Z",
+    "doneExists": true,
+    "doneStatus": "adapt-ok",
+    "userOwnedCount": 3,
+    "preferredPresent": [
+      true,
+      true,
+      true
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:41:49.711Z",
+    "doneExists": true,
+    "doneStatus": "adapt-ok",
+    "userOwnedCount": 3,
+    "preferredPresent": [
+      true,
+      true,
+      true
+    ]
+  }
+]

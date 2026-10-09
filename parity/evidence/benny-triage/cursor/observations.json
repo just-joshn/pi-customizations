@@ -1,0 +1,15 @@
+{
+  "path": "valid-config-thread-only-verdict",
+  "channel": "C085H0B5PN1",
+  "thread_ts": "1791566827.556789",
+  "onceRunnerExit": 0,
+  "onceContract": {
+    "oneThreadReply": true,
+    "hasMarker": true,
+    "noNewRoot": true
+  },
+  "contractHeld": true,
+  "doneLine": "STATUS=proceeded reason=valid-config thread-only verdict",
+  "engaged": true,
+  "reproduceAttempt": false
+}

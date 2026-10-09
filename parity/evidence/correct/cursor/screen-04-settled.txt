@@ -1,0 +1,39 @@
+
+    Edited encoding.md +1
+
+    ▎    1 + Level: lint/CI check (`scripts/check-store-boundary.js`, `npm run lint:store-boundary`). Architecture 
+    ▎        already gives ...
+
+    Edited proof.txt +2
+
+    ▎    1 + node scripts/check-store-boundary.js history/past-mistake-1.js
+    ▎    2 + exit_code=1
+
+    Edited done.txt +1
+
+    ▎    1 + correct=yes
+
+    To-do All done
+    ✔ Mine CORRECTIONS.md + history; pick encoding level
+    ✔ Encode store-boundary check in fixture-app
+    ✔ Prove check fails on history/past-mistake-1.js
+    ✔ Write encoding.md, proof.txt, done.txt
+
+  Class: Feature modules importing src/db.js instead of src/store.js (twice: history/past-mistake-1.js,
+  history/past-mistake-2.js).
+
+  Level: Lint/CI — scripts/check-store-boundary.js via npm run lint:store-boundary. Architecture already had one
+  supported path (store); no TypeScript for a type-level ban; docs-only AGENTS.md had already failed twice.
+
+  Proof: node scripts/check-store-boundary.js history/past-mistake-1.js → exit 1.
+
+  Markers written under fixture-out/cursor/ (encoding.md, proof.txt, done.txt → correct=yes).
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 15.6% · 7 files edited                                                                         Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/correct/fixture-app · refactor/pi-pstack-parity-again

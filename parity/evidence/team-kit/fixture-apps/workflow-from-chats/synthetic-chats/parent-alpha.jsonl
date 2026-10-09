@@ -1,0 +1,3 @@
+{"role":"user","text":"I prefer short commits. Always run tests before opening a PR. Never force-push."}
+{"role":"assistant","text":"Understood. I will keep commits small and test before PRs."}
+{"role":"user","text":"Stop summarizing chats. FIXTURE_PREF: encode the test-before-PR rule."}

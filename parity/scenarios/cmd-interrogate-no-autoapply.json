@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "cmd-interrogate-no-autoapply",
+  "status": "executed-pass-paired",
+  "requirements": [
+    "PSTACK-CMD-INTERROGATE-NO-AUTOAPPLY-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/interrogate/SKILL.md## Interrogate opening paragraphs through deliverable rule",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Tiny contested product file for adversarial review without auto-apply.",
+    "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Invoke interrogate on the current branch diff.. Multiple model reviewers challenge the changes; the deliverable is a synthesized verdict and changes are not auto-applied."
+    }
+  ],
+  "execution": {
+    "referenceRun": "e94a4325-4950-4d13-839c-d51aa452ec28",
+    "candidateRun": "f23257ca-3195-4872-bc76-a41553e0c3da",
+    "pairId": "interrogate-no-autoapply-1",
+    "pairPath": "parity/evidence/interrogate/pair-interrogate-no-autoapply-1.json",
+    "verdict": "pass-paired",
+    "closedAt": "2026-10-08T21:17:00Z"
+  }
+}

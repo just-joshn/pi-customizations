@@ -1,0 +1,9 @@
+decision	evidence	result
+platform-cpu-os-none-audit	parity/research/dep-closure-wave-004/platform-matrix.json	resolved_ref
+tools-lock-registry-custody	parity/research/dep-closure-wave-004/registry-custody.json	resolved_ref
+bun-official-pin	parity/research/dep-closure-wave-004/bun/official-capture.json	unresolved
+typescript-contract-surface	parity/research/dep-closure-wave-004/npm/typescript-contract-surface.json	partial_ref_replace
+typescript-semantic-per-file	parity/research/dep-closure-wave-004/npm/typescript-contract-surface.json	unresolved
+host-computer-use	parity/research/dep-closure-wave-004/host-edge-disposition.json	unresolved
+host-enterprise	parity/research/dep-closure-wave-004/host-edge-disposition.json	unresolved
+completeDependencyClosure	n/a	false

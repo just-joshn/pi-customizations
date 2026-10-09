@@ -1,0 +1,21 @@
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Use /skills to give Cursor specialized knowledge for tasks.
+
+                                                                                                                       
+  [Pasted text #1 +1 lines]                                                                                            
+                                                                                                                       
+
+  I'll follow poteto-mode: encode the ALLOW_DEBUG rule as a check instead of duplic
+
+ ⠠⠜ Working  203 tokens
+
+                                                                                                                       
+  → Add a follow-up                                                                                     ctrl+c to stop 
+                                                                                                                       
+
+  Auto                                                                                                  Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/principles/encode-structure/fixture-app · 
+  refactor/pi-pstack-parity-again

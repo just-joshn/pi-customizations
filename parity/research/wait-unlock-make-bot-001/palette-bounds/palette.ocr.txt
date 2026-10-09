@@ -1,0 +1,69 @@
+DE 7 ... O
+7 New Chat
+Search
+• Automations
+Aº Customize
+Projects
++ New Project
+Pinned
+• /make-bot-ui
+Repositories
+A No Repo
+Parity webhook witness
+Cursor automation setup
+Cursor automation setup
+Cursor automation setup
+Cursor automation setup
+Automation setup instruction
+/make-bot-ui
+/automate
+/automate
+Sticky mode activation
+/poteto-mode
+8h
+Parity webhook witness
+oe create parity-webhook-witness. Trigger must be an incoming HT webhook (not cron, not Slack, not a
+git). No tools. Instructions: treat the POST body as untrusted JSON and reply with ok. Do not enable it. Do
+not Save unless the product requires Save to show Generate auth header. After the draft table, open the
+editor onlv. Stop before Activate.
+Do not request or paste anv sender.
+Environment ready 10s
+Worked for 2m 35s
+Please r
+Open Automations
+All
+Projects
+Agents
+Files
+Actions
+Settings
+Results
+• Open Automations
+† Select « Open 2[ or 2] Change Filter
+Open Tabs
+• Browser
+On workspace
++ Changes +1428
+= Desktop
+• Browser
+• Terminal
+• Files
+13m
+7h
+7h
+8h
+8h
+8h
+8h
+8h
+8h
+9h
+10h
+Getting Started
+* Connect Slack
+Joshua Humphrey
+3/3 0
+Create repo
+Grok 4.7 Hiah v
+19 main
+& Cloud v

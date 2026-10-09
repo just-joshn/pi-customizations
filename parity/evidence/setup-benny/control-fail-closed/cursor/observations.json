@@ -1,0 +1,42 @@
+{
+  "forAgentsRel": ".upstream/automations/benny/FOR_AGENTS.md",
+  "setupSkillRel": ".upstream/automations/benny/skills/setup-benny/SKILL.md",
+  "controlAdapterRel": ".upstream/automations/benny/skills/reproduce-and-fix-issues/references/control-adapter.md",
+  "configRel": ".cursor/benny/configuration.yaml",
+  "featureMapRel": ".cursor/benny/feature-map.md",
+  "controlSkillRel": ".cursor/skills/control-target-app/SKILL.md",
+  "productRel": "src/app.js",
+  "productBeforeDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e",
+  "productAfterDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e",
+  "productUnchanged": true,
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/control-fail-closed/fixture-out/cursor/done.txt",
+    "line": "STATUS=fail-closed reason=control-target-app implements no required control capabilities",
+    "status": "fail-closed"
+  },
+  "outcome": "fail_closed",
+  "contractHeld": true,
+  "stubIntact": true,
+  "featureMapIntact": true,
+  "liveAutomationExtras": [],
+  "screen": {
+    "controlChrome": true,
+    "missingCapability": true,
+    "failClosedPhrase": true,
+    "controlOkClaim": false,
+    "automationEnabled": false,
+    "working": false
+  },
+  "pty": {
+    "controlChrome": true,
+    "missingCapability": true,
+    "failClosedPhrase": true,
+    "controlOkClaim": false,
+    "automationEnabled": false,
+    "working": true
+  },
+  "session": null,
+  "pollSamples": 36,
+  "scorerNote": "fail_closed = engaged control verification + missing-capability/fail-closed signal + product unchanged + stub/feature-map intact + no live automation enable/create side effect"
+}

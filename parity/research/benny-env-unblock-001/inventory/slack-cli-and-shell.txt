@@ -1,0 +1,72 @@
+# Slack CLI doctor / auth.test (redacted)
+captured_at_utc=2026-10-09T04:23:42Z
+
+## slack doctor
+
+SYSTEM
+
+    ✔ Operating System (the computer conductor)
+        Version: darwin (arm64)
+
+    ✔ Git (a version control system)
+        Version: git version 2.56.0
+
+
+SLACK
+
+    ✔ CLI (this tool for building Slack apps)
+        Version: v4.7.0
+
+    ✔ Configurations (any adjustments to settings)
+        System ID: 37db6ef0-b1f2-442f-b3d8-585ed288bc6a
+        Last updated: 2026-10-08 17:49:42 -07:00
+        Experiments: None
+
+    ✔ Credentials (your Slack authentication)
+        Team domain: acreconnect
+        Team ID: T02CSDVG532
+        User ID: U07N9N540SG
+        Last updated: 2026-10-08 17:49:41 -07:00
+        Authorization level: Workspace
+        Token status: Valid
+
+
+Errors: 0
+
+We would love to know how things are going
+   Share your development experience with `slack feedback`
+
+
+## slack api auth.test
+{"ok":false,"error":"not_authed"}
+## ~/.slack listing (names only)
+/Users/josh-desktop/.slack
+/Users/josh-desktop/.slack/bin
+/Users/josh-desktop/.slack/bin/slack
+/Users/josh-desktop/.slack/config.json
+/Users/josh-desktop/.slack/logs
+/Users/josh-desktop/.slack/logs/slack-debug-20261009.log
+/Users/josh-desktop/.slack/credentials.json
+
+## shell/profile export name presence for SLACK/BENNY
+FILE /Users/josh-desktop/.zshrc NO_MATCHING_EXPORTS
+FILE /Users/josh-desktop/.zprofile NO_MATCHING_EXPORTS
+FILE /Users/josh-desktop/.zshenv NO_MATCHING_EXPORTS
+ABSENT /Users/josh-desktop/.bashrc
+ABSENT /Users/josh-desktop/.bash_profile
+ABSENT /Users/josh-desktop/.profile
+ABSENT /Users/josh-desktop/.config/fish/config.fish
+ABSENT /Users/josh-desktop/src/personal/pi-pstack-parity-again/.env
+ABSENT /Users/josh-desktop/src/personal/pi-pstack-parity-again/.env.local
+ABSENT /Users/josh-desktop/.env
+
+## direnv / mise / 1password agent hints (presence)
+ABSENT path=/Users/josh-desktop/src/personal/pi-pstack-parity-again/.envrc
+ABSENT path=/Users/josh-desktop/.config/op
+ABSENT path=/Users/josh-desktop/.config/direnv
+ABSENT path=/Users/josh-desktop/Library/Group Containers/2BUA8C4S2C.com.1password/Library/Application Support/1Password/Data
+OP_CLI=absent
+KEYCHAIN_CLI=present
+KEYCHAIN_MATCH_LINE_PRESENT
+KEYCHAIN_MATCH_LINE_PRESENT
+KEYCHAIN_MATCH_LINE_PRESENT

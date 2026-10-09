@@ -1,0 +1,24 @@
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Type ? in the prompt bar to show in-app hints.
+
+                                                                                                                       
+  [Pasted text #1 +1 lines]                                                                                            
+                                                                                                                       
+
+  I'll follow the Benny agent docs and setup-benny skill (existing automations path), then finish validation and
+  give you the editor checklist—no /automate, no duplicates.
+
+    Reading .upstream/automations/benny/FOR_AGENTS.md
+
+ ⠰⠰ Reading  253 tokens
+
+                                                                                                                       
+  → Add a follow-up                                                                                     ctrl+c to stop 
+                                                                                                                       
+
+  Auto                                                                                                  Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/existing-no-automate/fixture-app · 
+  refactor/pi-pstack-parity-again

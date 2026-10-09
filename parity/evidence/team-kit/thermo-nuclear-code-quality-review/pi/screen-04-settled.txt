@@ -1,0 +1,40 @@
+                                                                                                                       │
+ ## 3. Boundary / contract                                                                                             │
+ - The input is loosely shaped (`kind`, `value`, with no type or doc). If this is TypeScript or JSDoc-typed, use a     │
+ discriminated union and make the invariant explicit.                                                                  │
+ - `value` is never validated. A non-numeric `value` silently becomes `0`, because `undefined > 0` is false. Decide    │
+ whether that fallback is intended.                                                                                    │
+ - The function name `processItem` says nothing about the "increment positive value" semantics. Rename it.             │
+                                                                                                                       │
+ ## 4. Other                                                                                                           │
+ - File size is fine (23 lines, far below 1k).                                                                         │
+ - No tests accompany the new behavior. Add tests for null, a non-object, an unknown kind, and value <= 0 for each     │
+ kind.                                                                                                                 │
+ E                                                                                                                     │
+ echo "STATUS=verified reason=review written with nested-conditional findings and code-judo proposal" > $d/done.txt    │
+ (timeout 20s)                                                                                                         │
+                                                                                                                       │
+ (no output)                                                                                                           │
+                                                                                                                       │
+ Took 0.0s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ I reviewed the src/process.js diff against main and wrote the review to                                               │
+ fixture-out/pi/thermo-nuclear-code-quality-review/summary.md. The verdict is blocking. I didn't run anything or edit  │
+ source files.                                                                                                         │
+                                                                                                                       ┃
+ - Nested conditionals: processItem went from a one-line identity to four levels of nested conditionals, with a        ┃
+   mutable result and a no-op else.                                                                                    ┃
+ - Duplicated branches: the a and b branches are identical apart from the increment (+1 vs +2).                        ┃
+ - Code-judo proposal: replace the pyramid with a lookup table of increments by kind plus guard clauses. The summary   ┃
+   includes the full snippet and notes that it should preserve current behavior.                                       ┃
+ - Other points: a non-numeric value silently becomes 0, the name says nothing about the behavior, and there are no    ┃
+   tests.                                                                                                              ┃
+                                                                                                                       ┃
+ done.txt contains STATUS=verified reason=review written with nested-conditional findings and code-judo proposal.      ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/thermo-nuclear-code-quality-review (messy)
+↑8 ↓1.4k R67k W23k CH96.9% $0.117 (sub) 3.1%/1.0M (auto)                (claude-subscription) claude-sonnet-5-5 • medium

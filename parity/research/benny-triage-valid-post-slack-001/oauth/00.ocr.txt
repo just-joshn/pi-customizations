@@ -1,0 +1,31 @@
+acreconnect.slack.com/oauth?client_id=36607
+• LLM USAGE D AAID AI
+• slack
+Allow the "Cursor" app to
+access Slack
+• App is approved by Slack
+Apps are reviewed for quality before they are listed in
+the Slack Marketplace. Learn more about app reviews.
+Where do you want to use Cursor?
++ AcreConnect
++
+Ask Gemini
+3Awrite%2Cchannels%3...
+• All Bookmarks
+Review app permissions
+Manage permissions
+Information "Cursor" can view
+Content and info about channels &
+conversations
+Content and info about your workspace
+Actions "Cursor" can take
+a
+Perform actions in channels &
+conversations
+V More permissions
+Slack will share your granted permissions with Cursor. View Slack's
+privacy policy. By agreeing to allow Slack to share your granted
+permissions, you are also agreeing to Cursor's privacy agreement and
+terms of service. Please review Cursor's terms before installing.
+Cancel
+Allow

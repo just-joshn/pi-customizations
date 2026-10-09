@@ -1,0 +1,82 @@
+{
+  "schema": 1,
+  "comparator": "cancel-card-v1",
+  "sides": {
+    "cursor": [
+      {
+        "check": "exactly-one-card-line",
+        "pass": true,
+        "observed": 1
+      },
+      {
+        "check": "skip-label-right-aligned",
+        "pass": true,
+        "observed": "               Questions skipped by user"
+      },
+      {
+        "check": "title-before-label",
+        "pass": true,
+        "observed": "AskQuestion Clarifying Questions (1)                        "
+      },
+      {
+        "check": "blocks-unchecked",
+        "pass": true,
+        "observed": 0
+      },
+      {
+        "check": "blocks-present",
+        "pass": true,
+        "observed": 4
+      },
+      {
+        "check": "no-json-echo",
+        "pass": true,
+        "observed": 0
+      },
+      {
+        "check": "no-setup-tool-cards",
+        "pass": true,
+        "observed": 0
+      }
+    ],
+    "pi": [
+      {
+        "check": "exactly-one-card-line",
+        "pass": true,
+        "observed": 1
+      },
+      {
+        "check": "skip-label-right-aligned",
+        "pass": true,
+        "observed": "               Questions skipped by user"
+      },
+      {
+        "check": "title-before-label",
+        "pass": true,
+        "observed": "AskQuestion pstack setup (2)               Questions skipped"
+      },
+      {
+        "check": "blocks-unchecked",
+        "pass": true,
+        "observed": 0
+      },
+      {
+        "check": "blocks-present",
+        "pass": true,
+        "observed": 6
+      },
+      {
+        "check": "no-json-echo",
+        "pass": true,
+        "observed": 0
+      },
+      {
+        "check": "no-setup-tool-cards",
+        "pass": true,
+        "observed": 0
+      }
+    ]
+  },
+  "pass": true,
+  "failures": []
+}

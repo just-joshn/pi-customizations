@@ -1,0 +1,39 @@
+
+    Edited checklist-report.md +31
+
+    ▎    1 + # Benchmark checklist (ballpark, one run)
+    ▎    2 + 
+    ▎    3 + Claim under review (from `claim.md`): `sortFast is about 25% faster than sortSlow on 5000 random ints`.
+    ▎    4 + 
+    ▎    5 + Measurement: one run of `measure.mjs` → `run-evidence.json` in the fixture cwd.
+    ▎    6 + 
+    ▎    7 + **This is one run.** Quick ballpark only; questions 1–3, 5, and 6 skipped because the run does not look
+    ▎        wrong (erro ...
+    ▎    8 + 
+    ▎    9 + ## Verdict
+    ▎   10 + 
+    ▎   11 + Inconclusive for the draft “about 25%” sentence. The single run shows a much larger gap: `slowMs` 18.01
+    ▎        ms → `fastM ...
+    ▎   12 + 
+    ▎   13  … truncated (19 more lines) · ctrl+r to review
+
+    Edited done.txt +1
+
+    ▎    1 + q4=yes q7=yes oneRun=yes evidence=parity/evidence/benchmark/fixture-app/run-evidence.json
+
+  One-run ballpark done.
+
+  • Q4: yes — errorCount: 0, outputsCorrect: true
+  • Q7: yes — workHappened: true
+  • Draft “~25% faster” does not match this run (~98.6%: 18.0 ms → 0.25 ms); report marks that claim inconclusive
+
+  Wrote fixture-out/cursor/checklist-report.md and done.txt.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 12.2% · 2 files edited                                                                         Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/benchmark/fixture-app · refactor/pi-pstack-parity-again

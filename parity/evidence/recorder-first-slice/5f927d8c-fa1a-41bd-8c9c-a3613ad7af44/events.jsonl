@@ -1,0 +1,6 @@
+{"seq":0,"monoNs":"226377996126625","utc":"2026-10-08T07:24:55.483Z","kind":"launch_intent"}
+{"seq":1,"monoNs":"226377998366000","utc":"2026-10-08T07:24:55.485Z","kind":"process_started","pid":77741}
+{"seq":2,"monoNs":"226378221360083","utc":"2026-10-08T07:24:55.708Z","kind":"output","dataB64":"MS4xLjANCg=="}
+{"seq":3,"monoNs":"226378228692166","utc":"2026-10-08T07:24:55.715Z","kind":"exited","exitCode":0,"signal":null}
+{"seq":4,"monoNs":"226378329861958","utc":"2026-10-08T07:24:55.816Z","kind":"drained"}
+{"seq":5,"monoNs":"226378329872083","utc":"2026-10-08T07:24:55.816Z","kind":"sealed","eventCount":6}

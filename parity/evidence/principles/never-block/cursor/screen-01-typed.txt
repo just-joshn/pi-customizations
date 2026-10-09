@@ -1,0 +1,20 @@
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Use /config to customize Cursor settings and behavior.
+
+
+
+                                                                                                                       
+  → (plain or json) to out/choice.txt. For any poteto-mode principle you apply before declaring done, read that        
+    principle's leaf SKILL.md in full first (not only the poteto-mode Principles index). Work only inside this         
+    fixture cwd. Do not edit ledgers, parity/, or files outside this cwd except the named done path. When verify       
+    passes, write exactly one line to                                                                                  
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/never-block/fixture-out/cursor  
+    /done.txt as verified=yes|no, then stop.                                                                           
+                                                                                                                       
+
+  Claude Opus 5.5 300K Medium                                                                           Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/principles/never-block/fixture-app · 
+  refactor/pi-pstack-parity-again

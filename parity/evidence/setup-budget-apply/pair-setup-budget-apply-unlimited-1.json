@@ -1,0 +1,100 @@
+{
+  "schema": 1,
+  "pairId": "setup-budget-apply-unlimited-1",
+  "scenarioRef": "setup-pstack:budget-apply-unlimited",
+  "scenarioId": "setup-budget-apply",
+  "requirementIds": [
+    "PSTACK-SETUP-BUDGET-APPLY-001"
+  ],
+  "targetBudget": "unlimited",
+  "targetEffort": "max",
+  "steps": [
+    {
+      "send": "/setup-pstack"
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "send": "<instruction: choose unlimited, remap real slugs to max, keep auto and inherit-parent>",
+      "note": "Cursor used chat-form free text; Pi used AskQuestion Other with a Pi-native instruction"
+    },
+    {
+      "wait": "budget unlimited (max) written with remapped real slugs"
+    }
+  ],
+  "cursor": {
+    "attemptId": "f1a6ea10-e71e-4edf-806b-b246331fef0f",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-budget-apply/cursor/f1a6ea10-e71e-4edf-806b-b246331fef0f",
+    "path": "chatform",
+    "fixturePath": "parity/evidence/setup-budget-apply/fixture-cursor-claude-medium.mdc",
+    "fixtureDigest": "sha256:7a45a664ea4b64fdcaf14f237da5231fadedeeafd7578af2bb282f1576654d35",
+    "afterDigest": "sha256:54d24978f827b5ec4420e29d86b3a370642309c257e12124c7893bef89b449c3",
+    "score": {
+      "budgetBefore": "small (medium)",
+      "budgetAfter": "unlimited (max)",
+      "realMappedCount": 19,
+      "realTotal": 19,
+      "aliasesPreserved": true,
+      "panelMapped": true,
+      "pass": true
+    },
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    }
+  },
+  "pi": {
+    "attemptId": "b6d37ee7-3912-48f0-988a-e4f6e5de23ed",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-budget-apply/pi/b6d37ee7-3912-48f0-988a-e4f6e5de23ed",
+    "path": "askquestion-driven",
+    "fixturePath": "parity/evidence/setup-budget-apply/fixture-pi.mdc",
+    "fixtureDigest": "sha256:7730fa20076154d85fe522cc685975982ca7ee1008213ae45a300bffbb448843",
+    "afterDigest": "sha256:723bc0180840c02c6ce79145268bbb032ff77989893abe44747932faf7c2f6c5",
+    "score": {
+      "budgetBefore": "small (medium)",
+      "budgetAfter": "unlimited (max)",
+      "realMappedCount": 19,
+      "realTotal": 19,
+      "aliasesPreserved": true,
+      "panelMapped": true,
+      "pass": true
+    },
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    }
+  },
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-setup-budget-apply.mjs --budget=unlimited --effort=max --cursor-only then --pi-only",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "lockedFixtureRestored": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "failedAttempts": {
+      "cursor": [
+        "ddb6e126-6f20-448a-b183-1c5084acca6b"
+      ],
+      "pi": []
+    }
+  },
+  "hostDeltas": [
+    "Cursor fixture uses effort-in-slug tokens. Pi fixture uses provider/id:effort (claude-subscription/...) because Cursor-style slugs fail Pi validateRole and Grok is not in pstack_setup availableModels.",
+    "Pi pstack_setup write does not apply budget remapping; the agent must pass roleOverrides. Cursor agent writes the rule file directly.",
+    "After digests differ because host slug formats differ. Mapping oracle (19/19 real entries to target effort, aliases preserved) matches on both sides.",
+    "Cursor unlimited selector still shows unlimited \u2014 keep max (known label mismatch). Instruction accepted that option and wrote # budget: unlimited (max).",
+    "Unlimited Cursor fixture is Claude-only so every real slug can reach max. Grok tops out at xhigh under unlimited per skill; a mixed Grok fixture would not pass an all-to-max oracle."
+  ],
+  "verdict": "pass"
+}

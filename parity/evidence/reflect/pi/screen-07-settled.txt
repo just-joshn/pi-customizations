@@ -1,0 +1,40 @@
+ │ A bare /reflect on a trivial        │ Add one sentence to "When to invoke". │ Trivial edit to                     │ │
+ │ session still starts three          │ If the session has no corrections, no │ extensions/pi-pstack/skills/reflect │ │
+ │ reviewers, because the skip rule    │ failed tool calls and only a few tool │ /SKILL.md, "When to invoke".        │ │
+ │ gives no cheap exit. Two reviewers  │ calls, report "no durable learnings"  │                                     │ │
+ │ flagged it.                         │ without starting reviewers, even when │                                     │ │
+ │                                     │ the user invoked it explicitly.       │                                     │ │
+ └─────────────────────────────────────┴───────────────────────────────────────┴─────────────────────────────────────┘ │
+                                                                                                                       │
+ Rejected                                                                                                              │
+                                                                                                                       │
+ - Run a quick check before reporting code as unverified: rejected as skill-not-used. The principle-prove-it-works     │
+   skill was never read in this session.                                                                               │
+ - clamp() has no lo > hi or NaN guard, against the boundary note: rejected as skill-not-used. The                     │
+   principle-boundary-discipline skill was never read.                                                                 │
+ - Placeholder line kept beside the new NOTES.md line: rejected as durability. The reviewer called it a one-off.       │
+ - Name the reviewer prompt directory in the reflect skill: rejected as specificity. Nothing in the transcript shows   │
+   this gap, and deleting the broken block already removes the improvised ls.                                          │
+ - Tooling reviewer's "no durable learnings": rejected as decision-changing. It proposes nothing.                      │
+                                                                                                                       │
+ Backlog                                                                                                               │
+                                                                                                                       │
+ - Empty command in a skill code block: the reflect step 1 block has only a redirect and a pipe, with no command. Add  │
+   a lint to the SKILL.md validator that flags bash blocks with no leading command.                                    │
+                                                                                                                       │
+                                                                                                                       │
+ [system_notification]                                                                                                 │
+                                                                                                                       │
+ Agent "reflect-tooling" (general-purpose) has finished processing and is now idle. Use read_agent with agent_id       │
+ c83a451f-fb0a-4d94-9aeb-e602e3487b4b to read its response.                                                            │
+                                                                                                                       │
+                                                                                                                       ┃
+ I already read the reflect-tooling output and it was part of the synthesis. It found no durable tooling learnings and ┃
+ nothing for the agent to fetch for itself. This notification adds nothing new, and the run is finished, so I'm        ┃
+ stopping.                                                                                                             ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/reflect/fixture-app (refactor/pi-pstack-parity-again)
+↑34 ↓8.1k R371k W50k CH98.0% $0.355 (sub) 4.4%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium

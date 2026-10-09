@@ -1,0 +1,54 @@
+{
+  "screenFinal": {
+    "skillMention": true,
+    "ghMention": true,
+    "envBlocked": false,
+    "working": false,
+    "fixtureComment": false,
+    "fixtureGuidance": false
+  },
+  "pty": {
+    "skillMention": true,
+    "ghMention": true,
+    "envBlocked": true,
+    "working": true,
+    "fixtureComment": false,
+    "fixtureGuidance": false
+  },
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/loop-on-ci/done.txt",
+    "line": "STATUS=verified reason=PR checks green after fixing hello.js VALUE",
+    "status": "verified"
+  },
+  "post": {
+    "artifactHasMarker": true,
+    "checksPass": true,
+    "checkSummary": "test\tpass\t5s\thttps://github.com/just-joshn/team-kit-gh-fixture/actions/runs/37879874122/job/113656855960\t\ntest\tpass\t8s\thttps://github.com/just-joshn/team-kit-gh-fixture/actions/runs/37879877015/job/113656864986",
+    "artifactBytes": 392
+  },
+  "sideCtx": {
+    "failingPrUrl": "https://github.com/just-joshn/team-kit-gh-fixture/pull/10",
+    "failingPrNumber": 10,
+    "branch": "fixture/fail-ci-pi-mv0eub1z",
+    "initialChecks": "test\tfail\t5s\thttps://github.com/just-joshn/team-kit-gh-fixture/actions/runs/37879803691/job/113656635374\t\ntest\tfail\t5s\thttps://github.com/just-joshn/team-kit-gh-fixture/actions/runs/37879806715/job/113656645072\t\n"
+  },
+  "seededSkill": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh/.pi/skills/loop-on-ci/SKILL.md",
+    "sha256": "66b85dbd2bc3700386283539292a55438652bbe227271fd90b73b74525b9b9de"
+  },
+  "score": {
+    "skillPath": true,
+    "envBlocked": false,
+    "doneStatus": "verified",
+    "artifactOk": true,
+    "post": {
+      "artifactHasMarker": true,
+      "checksPass": true,
+      "checkSummary": "test\tpass\t5s\thttps://github.com/just-joshn/team-kit-gh-fixture/actions/runs/37879874122/job/113656855960\t\ntest\tpass\t8s\thttps://github.com/just-joshn/team-kit-gh-fixture/actions/runs/37879877015/job/113656864986",
+      "artifactBytes": 392
+    },
+    "closed": true,
+    "honestBlocker": false
+  }
+}

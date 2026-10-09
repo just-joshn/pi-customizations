@@ -1,0 +1,27 @@
+schema_version: 1
+
+# Intentionally incomplete Benny external config for fail-closed repro.
+# Missing: required Slack actions, control.skill_name, control.feature_map_path,
+# repository.pull_request_action, and any completed feature map file.
+
+automations:
+  triage_name: "benny-triage"
+  reproduce_name: "benny-reproduce"
+
+slack:
+  source_channel_id: "C_PARITY_BENNY_SOURCE"
+  operations_channel_id: ""
+  triage_identity_user_id: "U_PARITY_TRIAGE"
+  prefer_cursor_actions: true
+  allow_source_root_posts: false
+  allow_worker_slack_writes: false
+
+repository:
+  url: "https://github.com/example-org/parity-benny-fixture"
+  default_branch: "main"
+  draft_only: true
+
+verdict_markers:
+  bug: "[benny:bug]"
+  performance: "[benny:performance]"
+  other: "[benny:other]"

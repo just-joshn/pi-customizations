@@ -1,0 +1,894 @@
+=== hereby test:api rerun with mapCode 2026-10-09T03:00:31Z ===
+npm warn Unknown user config "tokenHelper" (//npm.pkg.github.com/:tokenHelper). This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+Using ~/src/personal/pi-pstack-parity-again/parity/research/dep-typescript-oracle-suite-001/go-fetch/typescript-go-2bd066d87f5bafd315be9f40889d0a60b9e58e0b/Herebyfile.mjs to run test:api
+Starting lib
+Starting tsgo:build
+[20:00:32.486] [0] $ go build '-tags=noembed' -o ./built/local/ ./cmd/tsgo
+Starting build:api:test
+[20:00:32.497] [1] $ npm run -w '@typescript/native-preview' 'build:test'
+Finished lib in 14ms
+npm warn Unknown user config "tokenHelper" (//npm.pkg.github.com/:tokenHelper). This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> @typescript/native-preview@0.0.0 prebuild:test
+> npm run generate
+
+npm warn Unknown user config "tokenHelper" (//npm.pkg.github.com/:tokenHelper). This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> @typescript/native-preview@0.0.0 generate
+> npm run generate:ast && npm run generate:encoder && npm run generate:enums && npm run generate:sync
+
+[20:00:32.864] [0] ✔ (done in 377ms)
+Finished tsgo:build in 379ms
+npm warn Unknown user config "tokenHelper" (//npm.pkg.github.com/:tokenHelper). This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> @typescript/native-preview@0.0.0 generate:ast
+> node --experimental-strip-types --no-warnings ../../_scripts/generate-ts-ast.ts
+
+Generating TS AST code...
+Formatted [0m[1m1[0m file.
+Generated /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/dep-typescript-oracle-suite-001/go-fetch/typescript-go-2bd066d87f5bafd315be9f40889d0a60b9e58e0b/_packages/native-preview/src/ast/ast.generated.ts
+Formatted [0m[1m1[0m file.
+Generated /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/dep-typescript-oracle-suite-001/go-fetch/typescript-go-2bd066d87f5bafd315be9f40889d0a60b9e58e0b/_packages/native-preview/src/ast/factory.generated.ts
+Generated /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/dep-typescript-oracle-suite-001/go-fetch/typescript-go-2bd066d87f5bafd315be9f40889d0a60b9e58e0b/_packages/native-preview/src/ast/is.generated.ts
+Generated /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/dep-typescript-oracle-suite-001/go-fetch/typescript-go-2bd066d87f5bafd315be9f40889d0a60b9e58e0b/_packages/native-preview/src/ast/visitor.generated.ts
+npm warn Unknown user config "tokenHelper" (//npm.pkg.github.com/:tokenHelper). This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> @typescript/native-preview@0.0.0 generate:encoder
+> npm run node -- ../../_scripts/generate-encoder.ts
+
+npm warn Unknown user config "tokenHelper" (//npm.pkg.github.com/:tokenHelper). This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> @typescript/native-preview@0.0.0 node
+> node --experimental-strip-types --no-warnings --conditions @typescript/source ../../_scripts/generate-encoder.ts
+
+Generating encoder/decoder code...
+Formatted [0m[1m1[0m file.
+Wrote /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/dep-typescript-oracle-suite-001/go-fetch/typescript-go-2bd066d87f5bafd315be9f40889d0a60b9e58e0b/internal/api/encoder/encoder_generated.go
+Formatted [0m[1m1[0m file.
+Wrote /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/dep-typescript-oracle-suite-001/go-fetch/typescript-go-2bd066d87f5bafd315be9f40889d0a60b9e58e0b/internal/api/encoder/decoder_generated.go
+Formatted [0m[1m1[0m file.
+Wrote /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/dep-typescript-oracle-suite-001/go-fetch/typescript-go-2bd066d87f5bafd315be9f40889d0a60b9e58e0b/_packages/native-preview/src/api/node/protocol.generated.ts
+Formatted [0m[1m1[0m file.
+Wrote /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/dep-typescript-oracle-suite-001/go-fetch/typescript-go-2bd066d87f5bafd315be9f40889d0a60b9e58e0b/_packages/native-preview/src/api/node/encoder.generated.ts
+Formatted [0m[1m1[0m file.
+Wrote /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/dep-typescript-oracle-suite-001/go-fetch/typescript-go-2bd066d87f5bafd315be9f40889d0a60b9e58e0b/_packages/native-preview/src/api/node/node.generated.ts
+Done!
+npm warn Unknown user config "tokenHelper" (//npm.pkg.github.com/:tokenHelper). This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> @typescript/native-preview@0.0.0 generate:enums
+> npx hereby generate:enums --herebyfile ../../Herebyfile.mjs
+
+npm warn Unknown user config "tokenHelper" (//npm.pkg.github.com/:tokenHelper). This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+Using ~/src/personal/pi-pstack-parity-again/parity/research/dep-typescript-oracle-suite-001/go-fetch/typescript-go-2bd066d87f5bafd315be9f40889d0a60b9e58e0b/Herebyfile.mjs to run generate:enums
+Starting generate:enums
+Generating enums from Go source...
+  SymbolFlags: 68 members → symbolFlags.enum.ts, symbolFlags.ts
+  TypeFlags: 73 members → typeFlags.enum.ts, typeFlags.ts
+  ObjectFlags: 47 members → objectFlags.enum.ts, objectFlags.ts
+  SignatureFlags: 12 members → signatureFlags.enum.ts, signatureFlags.ts
+  SignatureKind: 2 members → signatureKind.enum.ts, signatureKind.ts
+  ElementFlags: 9 members → elementFlags.enum.ts, elementFlags.ts
+  TypePredicateKind: 4 members → typePredicateKind.enum.ts, typePredicateKind.ts
+  DiagnosticCategory: 4 members → diagnosticCategory.enum.ts, diagnosticCategory.ts
+  SyntaxKind: 386 members → syntaxKind.enum.ts, syntaxKind.ts
+  NodeFlags: 41 members → nodeFlags.enum.ts, nodeFlags.ts
+  OuterExpressionKinds: 13 members → outerExpressionKinds.enum.ts, outerExpressionKinds.ts
+  ModifierFlags: 39 members → modifierFlags.enum.ts, modifierFlags.ts
+  ModuleKind: 14 members → moduleKind.enum.ts, moduleKind.ts
+  ModuleResolutionKind: 6 members → moduleResolutionKind.enum.ts, moduleResolutionKind.ts
+  ModuleDetectionKind: 4 members → moduleDetectionKind.enum.ts, moduleDetectionKind.ts
+  NewLineKind: 3 members → newLineKind.enum.ts, newLineKind.ts
+  JsxEmit: 6 members → jsxEmit.enum.ts, jsxEmit.ts
+  TokenFlags: 27 members → tokenFlags.enum.ts, tokenFlags.ts
+  NodeBuilderFlags: 33 members → nodeBuilderFlags.enum.ts, nodeBuilderFlags.ts
+  CompletionItemKind: 25 members → completionItemKind.enum.ts, completionItemKind.ts
+  InternalSymbolName: 20 members → internalSymbolName.enum.ts, internalSymbolName.ts
+[20:00:40.328] [0] $ dprint fmt _packages/native-preview/src/enums/symbolFlags.enum.ts _packages/native-preview/src/enums/symbolFlags.ts _packages/native-preview/src/enums/typeFlags.enum.ts _packages/native-preview/src/enums/typeFlags.ts _packages/native-preview/src/enums/objectFlags.enum.ts _packages/native-preview/src/enums/objectFlags.ts _packages/native-preview/src/enums/signatureFlags.enum.ts _packages/native-preview/src/enums/signatureFlags.ts _packages/native-preview/src/enums/signatureKind.enum.ts _packages/native-preview/src/enums/signatureKind.ts _packages/native-preview/src/enums/elementFlags.enum.ts _packages/native-preview/src/enums/elementFlags.ts _packages/native-preview/src/enums/typePredicateKind.enum.ts _packages/native-preview/src/enums/typePredicateKind.ts _packages/native-preview/src/enums/diagnosticCategory.enum.ts _packages/native-preview/src/enums/diagnosticCategory.ts _packages/native-preview/src/enums/syntaxKind.enum.ts _packages/native-preview/src/enums/syntaxKind.ts _packages/native-preview/src/enums/nodeFlags.enum.ts _packages/native-preview/src/enums/nodeFlags.ts _packages/native-preview/src/enums/outerExpressionKinds.enum.ts _packages/native-preview/src/enums/outerExpressionKinds.ts _packages/native-preview/src/enums/modifierFlags.enum.ts _packages/native-preview/src/enums/modifierFlags.ts _packages/native-preview/src/enums/moduleKind.enum.ts _packages/native-preview/src/enums/moduleKind.ts _packages/native-preview/src/enums/moduleResolutionKind.enum.ts _packages/native-preview/src/enums/moduleResolutionKind.ts _packages/native-preview/src/enums/moduleDetectionKind.enum.ts _packages/native-preview/src/enums/moduleDetectionKind.ts _packages/native-preview/src/enums/newLineKind.enum.ts _packages/native-preview/src/enums/newLineKind.ts _packages/native-preview/src/enums/jsxEmit.enum.ts _packages/native-preview/src/enums/jsxEmit.ts _packages/native-preview/src/enums/tokenFlags.enum.ts _packages/native-preview/src/enums/tokenFlags.ts _packages/native-preview/src/enums/nodeBuilderFlags.enum.ts _packages/native-preview/src/enums/nodeBuilderFlags.ts _packages/native-preview/src/enums/completionItemKind.enum.ts _packages/native-preview/src/enums/completionItemKind.ts _packages/native-preview/src/enums/internalSymbolName.enum.ts _packages/native-preview/src/enums/internalSymbolName.ts
+Formatted [0m[1m42[0m files.
+[20:00:40.406] [0] ✔ (done in 78ms)
+Done.
+Finished generate:enums in 223ms
+Completed generate:enums in 223ms
+npm warn Unknown user config "tokenHelper" (//npm.pkg.github.com/:tokenHelper). This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> @typescript/native-preview@0.0.0 generate:sync
+> npm run node -- scripts/generateSync.ts
+
+npm warn Unknown user config "tokenHelper" (//npm.pkg.github.com/:tokenHelper). This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> @typescript/native-preview@0.0.0 node
+> node --experimental-strip-types --no-warnings --conditions @typescript/source scripts/generateSync.ts
+
+Generating sync API from async source...
+  src/api/async/types.ts → src/api/sync/types.ts
+  src/api/async/api.ts → src/api/sync/api.ts
+  test/async/api.test.ts → test/sync/api.test.ts
+  test/async/api.bench.ts → test/sync/api.bench.ts
+  test/async/astnav.test.ts → test/sync/astnav.test.ts
+Formatting...
+Done.
+
+> @typescript/native-preview@0.0.0 build:test
+> tsc -b test
+
+[20:00:41.280] [1] ✔ (done in 8.7s)
+Finished build:api:test in 8.7s
+Starting test:api
+[20:00:41.281] [2] $ npm run -w '@typescript/native-preview' 'test:only'
+npm warn Unknown user config "tokenHelper" (//npm.pkg.github.com/:tokenHelper). This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> @typescript/native-preview@0.0.0 test:only
+> npm run node -- --test './test/**/*.test.ts'
+
+npm warn Unknown user config "tokenHelper" (//npm.pkg.github.com/:tokenHelper). This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> @typescript/native-preview@0.0.0 node
+> node --experimental-strip-types --no-warnings --conditions @typescript/source --test ./test/**/*.test.ts
+
+▶ API
+  ✔ parseConfigFile (224.291667ms)
+✔ API (225.01125ms)
+▶ Checker - getImmediateAliasedSymbol
+  ✔ resolves one level of alias indirection (56.171917ms)
+✔ Checker - getImmediateAliasedSymbol (56.330292ms)
+▶ Snapshot
+  ✔ updateSnapshot returns snapshot with projects (54.6425ms)
+  ✔ getSymbolAtPosition (41.963042ms)
+  ✔ getSymbolAtLocation (47.529833ms)
+  ✔ getTypeOfSymbol (48.511209ms)
+✔ Snapshot (192.993084ms)
+▶ Checker - getApparentType
+  ✔ returns the apparent type of a literal type (45.228333ms)
+✔ Checker - getApparentType (45.392916ms)
+▶ Checker - getMemberInModuleExports
+  ✔ returns a named export when present (39.536833ms)
+✔ Checker - getMemberInModuleExports (39.667416ms)
+▶ SourceFile
+  ✔ getSourceFileNames returns all program files, not just root files (13.415542ms)
+  ✔ source file metadata identifies external library and default library files (44.240042ms)
+  ✔ source file metadata reports implied node format (36.60375ms)
+  ✔ file properties (35.381792ms)
+  ✔ extended data (33.229625ms)
+  ✔ forEachChild with visitList does not visit array children twice (33.094708ms)
+✔ SourceFile (196.309333ms)
+✔ unicode escapes (34.776542ms)
+✔ template unicode escapes (34.490583ms)
+✔ Object equality (34.866ms)
+✔ Snapshot dispose (33.470958ms)
+▶ Multiple snapshots
+  ✔ two snapshots work independently (35.595417ms)
+  ✔ each snapshot has its own server-side lifecycle (33.214083ms)
+  ✔ adding a new file is reflected in the next snapshot (35.023083ms)
+  ✔ multiple sequential edits produce correct snapshots (36.149625ms)
+✔ Multiple snapshots (140.189083ms)
+▶ Source file caching
+  ✔ same file from same snapshot returns cached object (33.625334ms)
+  ✔ same file from two snapshots (same content) returns cached object (34.333291ms)
+  ✔ modified file returns a different source file object (34.09575ms)
+  ✔ unmodified file retains cached object across file change notification (35.994583ms)
+  ✔ cache entries survive when one of two snapshots is disposed (34.063ms)
+  ✔ invalidateAll causes all files to be re-fetched (48.47025ms)
+  ✔ node handles from a cached source file should be valid in a new snapshot (36.946333ms)
+✔ Source file caching (257.868708ms)
+▶ Snapshot disposal
+  ✔ dispose is idempotent (35.381375ms)
+  ✔ api.close disposes all active snapshots (33.983167ms)
+✔ Snapshot disposal (69.543916ms)
+▶ Source file cache keying across projects
+  ✔ different parse modes produce separate cached objects; same parse modes share (35.43975ms)
+✔ Source file cache keying across projects (35.552625ms)
+▶ Checker - symbol identity across projects
+  ✔ getSymbolAtPosition returns same Symbol instance across projects (33.336542ms)
+✔ Checker - symbol identity across projects (33.429291ms)
+▶ Checker - types and signatures
+  ✔ getTypeAtPosition (36.486791ms)
+  ✔ getTypeAtPosition batched (32.39225ms)
+  ✔ getTypeAtLocation (34.864333ms)
+  ✔ getTypeAtLocation returns property type for parenthesized and chained access (issue #3938) (36.769959ms)
+  ✔ getTypeAtLocation returns call result type for private method call (issue #4041) (36.010458ms)
+  ✔ getSignaturesOfType - call signatures (33.30625ms)
+  ✔ getSignaturesOfType - construct signatures (35.630208ms)
+  ✔ Signature declaration can be resolved (36.962875ms)
+  ✔ getSignaturesOfType - signature type parameters (36.628459ms)
+  ✔ Signature.getParameters() returns parameter symbols with correct names (34.073375ms)
+  ✔ Signature.getThisParameter() returns undefined when no explicit this parameter (32.912875ms)
+  ✔ Signature.getThisParameter() returns symbol for explicit this parameter (34.450458ms)
+  ✔ Signature.getTarget() returns undefined for a non-instantiated signature (33.936916ms)
+  ✔ Signature.getTarget() returns the generic source signature for an instantiated call (35.10975ms)
+✔ Checker - types and signatures (490.121167ms)
+▶ Symbol - parent, members, exports
+  ✔ getMembers returns class members (34.636958ms)
+  ✔ getExports returns module exports via sourceFile symbol (34.234958ms)
+  ✔ getParent returns containing symbol (34.229875ms)
+✔ Symbol - parent, members, exports (103.283667ms)
+▶ Type - getSymbol
+  ✔ getSymbol returns the symbol of a type (33.033ms)
+✔ Type - getSymbol (33.139667ms)
+▶ Type - sub-property fetchers
+  ✔ TypeReference.getTarget() returns the generic target (33.345375ms)
+  ✔ UnionOrIntersectionType.getTypes() returns union members (34.352125ms)
+  ✔ UnionOrIntersectionType.getTypes() returns intersection members (32.911042ms)
+  ✔ UnionOrIntersectionType.getTypes() on a wrongly-cast type returns undefined without hitting the server (33.84275ms)
+  ✔ IndexType.getTarget() returns the target type (33.722292ms)
+  ✔ IndexedAccessType.getObjectType() and getIndexType() (33.466792ms)
+  ✔ ConditionalType.getCheckType() and getExtendsType() (32.405083ms)
+  ✔ ConditionalType.getTrueType() and getFalseType() (34.584333ms)
+  ✔ TemplateLiteralType.texts and getTypes() (33.60525ms)
+  ✔ StringMappingType.getTarget() returns the mapped type (32.910958ms)
+  ✔ TupleType properties (35.7565ms)
+✔ Type - sub-property fetchers (371.374584ms)
+▶ Checker - intrinsic type getters
+  ✔ getAnyType returns a type with Any flag (33.331583ms)
+  ✔ getStringType returns a type with String flag (32.194708ms)
+  ✔ getNumberType returns a type with Number flag (34.633458ms)
+  ✔ getBooleanType returns a type with Boolean flag (35.562292ms)
+  ✔ getVoidType returns a type with Void flag (33.805084ms)
+  ✔ getUndefinedType returns a type with Undefined flag (33.643166ms)
+  ✔ getNullType returns a type with Null flag (32.769959ms)
+  ✔ getNeverType returns a type with Never flag (34.029833ms)
+  ✔ getUnknownType returns a type with Unknown flag (34.277459ms)
+  ✔ getBigIntType returns a type with BigInt flag (35.146792ms)
+  ✔ getESSymbolType returns a type with ESSymbol flag (35.7805ms)
+✔ Checker - intrinsic type getters (375.853625ms)
+▶ Checker - multi-project type ID uniqueness
+  ✔ intrinsic types from 3 projects in the same snapshot have non-colliding IDs (40.825209ms)
+  ✔ symbol and signature handles from 3 projects in the same snapshot have non-colliding IDs (42.528084ms)
+✔ Checker - multi-project type ID uniqueness (83.498041ms)
+▶ Checker - getBaseTypeOfLiteralType
+  ✔ number literal widens to number (32.369875ms)
+  ✔ string literal widens to string (34.281833ms)
+✔ Checker - getBaseTypeOfLiteralType (66.779084ms)
+▶ Checker - getContextualType
+  ✔ contextual type from function parameter (33.309792ms)
+✔ Checker - getContextualType (33.411625ms)
+▶ Checker - getTypeOfSymbolAtLocation
+  ✔ narrowed type via typeof check (35.995333ms)
+✔ Checker - getTypeOfSymbolAtLocation (36.164916ms)
+▶ Checker - getShorthandAssignmentValueSymbol
+  ✔ shorthand property symbol resolves to variable (33.22475ms)
+✔ Checker - getShorthandAssignmentValueSymbol (33.330334ms)
+▶ readFile callback semantics
+  ✔ readFile: string returns content, null blocks fallback, undefined falls through to real FS (33.222583ms)
+✔ readFile callback semantics (33.33025ms)
+▶ Checker - isArrayType / isTupleType
+  ✔ number[] is array, not tuple (33.032334ms)
+  ✔ readonly number[] is array (33.002791ms)
+  ✔ Array<number> is array, not tuple (34.76125ms)
+  ✔ [number, string] is tuple, not array (32.016ms)
+  ✔ readonly [number, string] is tuple, not array (35.470917ms)
+  ✔ string is neither array nor tuple (33.092875ms)
+✔ Checker - isArrayType / isTupleType (201.679ms)
+▶ Checker - getReturnTypeOfSignature
+  ✔ returns the return type of a function signature (34.857792ms)
+✔ Checker - getReturnTypeOfSignature (34.966375ms)
+▶ Checker - getRestTypeOfSignature
+  ✔ returns the rest type of a signature with rest parameter (33.354667ms)
+✔ Checker - getRestTypeOfSignature (33.451291ms)
+▶ Checker - getTypePredicateOfSignature
+  ✔ returns type predicate for 'x is T' guard (33.492375ms)
+  ✔ returns type predicate for 'this is T' guard (34.645958ms)
+  ✔ returns type predicate for 'asserts x is T' (34.1135ms)
+  ✔ returns undefined for signature without type predicate (34.413125ms)
+✔ Checker - getTypePredicateOfSignature (136.871709ms)
+▶ Checker - getBaseTypes
+  ✔ returns base types of a class (34.144375ms)
+  ✔ returns base types of an interface (34.2465ms)
+  ✔ does not panic for a type alias to a generic interface instantiation (33.394875ms)
+✔ Checker - getBaseTypes (101.949041ms)
+▶ Type - getBaseTypes
+  ✔ returns base types for a class type and undefined for a non-class/interface (34.339709ms)
+✔ Type - getBaseTypes (34.44125ms)
+▶ Type - isErrorType
+  ✔ identifies the error type from an unresolvable annotation (37.608042ms)
+✔ Type - isErrorType (37.707291ms)
+▶ Checker - well-known symbols
+  ✔ isUnknownSymbol identifies the aliased unknown symbol (33.195375ms)
+✔ Checker - well-known symbols (33.290375ms)
+▶ Symbol - escaped names and tables
+  ✔ getExports/getMembers return a cached Map keyed by escaped name (34.594459ms)
+  ✔ anonymous type symbol has a __-escaped name, never the \xFE sentinel (33.932625ms)
+✔ Symbol - escaped names and tables (68.686625ms)
+▶ ast - escapeLeadingUnderscores
+  ✔ round-trips display and escaped names (0.097792ms)
+✔ ast - escapeLeadingUnderscores (0.133583ms)
+▶ ast - getJSDocTags
+  ✔ returns a node's own tags, and inherited @param / @template tags (33.330709ms)
+  ✔ a function-expression parameter inherits @param tags from the variable statement (33.748125ms)
+  ✔ a @type cast tag is owned by its parenthesized expression, not the declaration (32.175083ms)
+✔ ast - getJSDocTags (99.413292ms)
+▶ Checker - getPropertiesOfType
+  ✔ returns properties of an object type (33.709541ms)
+✔ Checker - getPropertiesOfType (33.809625ms)
+▶ Checker - getIndexInfosOfType
+  ✔ returns index signatures of an indexed type (33.346375ms)
+  ✔ readonly index signature reports isReadonly true (33.236042ms)
+✔ Checker - getIndexInfosOfType (66.70425ms)
+▶ Checker - getConstraintOfTypeParameter
+  ✔ returns constraint of a type parameter (34.206292ms)
+✔ Checker - getConstraintOfTypeParameter (34.342125ms)
+▶ Checker - getTypeArguments
+  ✔ returns type arguments of a generic instantiation (33.470875ms)
+  ✔ a wrongly-typed call throws on the client without taking down the server (34.220792ms)
+✔ Checker - getTypeArguments (67.834834ms)
+▶ Checker - getBaseConstraintOfType
+  ✔ returns the base constraint of a type parameter (33.149416ms)
+  ✔ returns undefined for a non-instantiable type (34.065917ms)
+✔ Checker - getBaseConstraintOfType (67.336959ms)
+▶ Checker - getPropertyOfType
+  ✔ returns a named property symbol of a type (33.369375ms)
+✔ Checker - getPropertyOfType (33.454125ms)
+▶ Checker - getConstantValue
+  ✔ returns numeric value of an enum member (32.963792ms)
+  ✔ returns string value of a string-initialized enum member (33.406708ms)
+✔ Checker - getConstantValue (66.52725ms)
+▶ Checker - getSignatureFromDeclaration
+  ✔ returns the signature of a function declaration (33.917708ms)
+✔ Checker - getSignatureFromDeclaration (34.030458ms)
+▶ Checker - getExportSpecifierLocalTargetSymbol
+  ✔ resolves the local target of an export specifier (35.009041ms)
+✔ Checker - getExportSpecifierLocalTargetSymbol (35.093792ms)
+▶ Checker - getAliasedSymbol
+  ✔ resolves an import alias to its target symbol (32.978792ms)
+✔ Checker - getAliasedSymbol (33.06775ms)
+▶ Checker - getExportsOfModule
+  ✔ returns all exports including re-exports via 'export *' (32.54275ms)
+✔ Checker - getExportsOfModule (32.6325ms)
+▶ Symbol - getDocumentationComment and getJsDocTags
+  ✔ getDocumentationComment returns the leading comment text (33.668666ms)
+  ✔ getJsDocTags returns structured tag name/text pairs (32.8245ms)
+✔ Symbol - getDocumentationComment and getJsDocTags (66.645042ms)
+▶ TypeParameter - isThisType
+  ✔ isThisType is true for the polymorphic 'this' type in a class method (34.396875ms)
+  ✔ isThisType is absent for a regular generic type parameter (33.391833ms)
+✔ TypeParameter - isThisType (67.920292ms)
+▶ Type - getAliasTypeArguments
+  ✔ returns the type arguments of a single-param generic type alias (31.836333ms)
+  ✔ returns multiple type arguments for a multi-param generic type alias (34.40175ms)
+  ✔ returns empty array for a non-alias generic type (34.086375ms)
+✔ Type - getAliasTypeArguments (100.472917ms)
+▶ Type - getAliasSymbol
+  ✔ returns the symbol for a non-generic type alias (33.537584ms)
+  ✔ returns the symbol for a generic type alias (33.078167ms)
+  ✔ returns undefined for a non-alias type (33.562375ms)
+✔ Type - getAliasSymbol (100.339458ms)
+▶ IntrinsicType - intrinsicName
+  ✔ intrinsicName matches the primitive type name (32.478708ms)
+✔ IntrinsicType - intrinsicName (32.578625ms)
+▶ FreshableType - getFreshType and getRegularType
+  ✔ LiteralType.value is empty string for the empty-string literal type (34.241625ms)
+  ✔ LiteralType.value is accessible via the FreshableType hierarchy (32.942541ms)
+  ✔ BigIntLiteralType.value is a bigint (positive and negative) (32.528084ms)
+  ✔ getFreshType() returns a fresh twin with matching value (35.094458ms)
+  ✔ getRegularType() on a fresh literal returns the regular twin (35.045292ms)
+  ✔ getFreshType() and getRegularType() work for computed enum types (TypeFlags.Enum) (33.72675ms)
+✔ FreshableType - getFreshType and getRegularType (203.890042ms)
+▶ Checker - isContextSensitive
+  ✔ arrow function with no type annotation is context sensitive (31.554375ms)
+✔ Checker - isContextSensitive (31.645792ms)
+▶ Checker - isTypeAssignableTo
+  ✔ returns true when source is assignable to target (37.199667ms)
+  ✔ returns false when source is not assignable to target (32.058834ms)
+  ✔ a string literal type is assignable to string but not number (32.943541ms)
+✔ Checker - isTypeAssignableTo (102.346708ms)
+▶ Checker - getCompletionsAtPosition
+  ✔ returns member completions after a dot (31.463708ms)
+  ✔ completion entries include sortText (32.248833ms)
+  ✔ returns undefined for a non-existent file (33.571834ms)
+  ✔ includeSymbol: true populates symbol on property completions (33.598375ms)
+✔ Checker - getCompletionsAtPosition (131.114167ms)
+▶ Emitter - printNode
+  ✔ printNode with factory-created keyword type (32.406208ms)
+  ✔ printNode with factory-created union type (32.586042ms)
+  ✔ printNode with factory-created function type (34.292916ms)
+  ✔ printNode with factory-created type reference (34.435625ms)
+  ✔ printNode with factory-created array type (34.44125ms)
+  ✔ typeToTypeNode + printNode round-trip (34.713375ms)
+  ✔ visitEachChild on typeToTypeNode result with keyword types (36.634625ms)
+  ✔ typeToString (34.864667ms)
+  ✔ printNode with terminateUnterminatedLiterals option (46.860542ms)
+✔ Emitter - printNode (321.679792ms)
+▶ modifierFlags
+  ✔ export async function has Export | Async flags (42.267084ms)
+  ✔ node without modifiers has ModifierFlags.None (33.257125ms)
+✔ modifierFlags (75.6475ms)
+▶ Checker - getResolvedSymbol
+  ✔ resolves variable reference to its declaration symbol (34.041291ms)
+✔ Checker - getResolvedSymbol (34.129375ms)
+▶ VariableDeclarationList - BlockScoped flags
+  ✔ let declaration has Let flag (34.203875ms)
+  ✔ const declaration has Const flag (33.677584ms)
+✔ VariableDeclarationList - BlockScoped flags (68.021833ms)
+✔ TypeOperator operator kind (33.501625ms)
+✔ SpreadAssignment roundtrip (33.261958ms)
+✔ VariableDeclarationList const flag clone (39.724917ms)
+✔ JSDoc before ExpressionStatement allowed (34.230333ms)
+✔ Factory ModifierList auto-conversion (34.188375ms)
+✔ Parse-clone-emit roundtrip (2.336291ms)
+▶ Program - diagnostics
+  ✔ getSyntacticDiagnostics (34.9975ms)
+  ✔ getSemanticDiagnostics with messageChain and relatedInformation (34.173417ms)
+  ✔ getSuggestionDiagnostics (34.377125ms)
+  ✔ getConfigFileParsingDiagnostics (39.1855ms)
+  ✔ getDeclarationDiagnostics (42.530541ms)
+  ✔ getBindDiagnostics (33.55225ms)
+  ✔ getProgramDiagnostics (32.408458ms)
+  ✔ getGlobalDiagnostics (177.898083ms)
+  ✔ getGlobalDiagnostics returns file-less diagnostics from the checker (11.888083ms)
+✔ Program - diagnostics (441.401792ms)
+▶ Checker - getReferencedSymbolsForNode
+  ✔ getReferencedSymbolsForNode (52.118459ms)
+✔ Checker - getReferencedSymbolsForNode (52.229625ms)
+▶ Checker - getSignatureUsage
+  ✔ getSignatureUsage (53.791333ms)
+✔ Checker - getSignatureUsage (53.908833ms)
+▶ getDefaultProjectForFile
+  ✔ finds inferred project for d.ts in node_modules after openFiles (36.492875ms)
+  ✔ keeps previously opened files open across subsequent openFiles calls (37.857542ms)
+  ✔ opening a file resolves to a configured project via ancestor search (33.007292ms)
+  ✔ closeProjects releases a project opened via openProjects (32.901167ms)
+Warning: TypeScript submodule is not cloned; skipping benchmarks.
+  ✔ closeFiles releases a file opened via openFiles (35.203209ms)
+✔ getDefaultProjectForFile (175.757208ms)
+✔ Benchmarks (0.47025ms)
+▶ Timing
+  ✔ collects combined client, server, and transport timing info (33.363333ms)
+  ✔ tracks source-file node materialization (34.271708ms)
+  ✔ is disabled by default (9.75525ms)
+✔ Timing (77.552542ms)
+  getTokenAtPosition: checked 9772 positions
+  getTouchingPropertyName: checked 9772 positions
+  findPrecedingToken: checked 9772 positions
+  findNextToken: checked 9772 positions
+▶ astnav
+  ✔ getTokenAtPosition (51.761375ms)
+  ✔ getTouchingPropertyName (57.838292ms)
+  ✔ findPrecedingToken (84.958208ms)
+  ✔ findNextToken (58.073791ms)
+✔ astnav (578.530792ms)
+▶ CompilerOptions type stays in sync with Go
+  ✔ sanity: both sides parsed a plausible number of options (0.334709ms)
+  ✔ no public Go option is missing from the TS interface (0.349958ms)
+  ✔ no TS option is absent from the public Go struct (0.079041ms)
+✔ CompilerOptions type stays in sync with Go (1.317833ms)
+▶ Encoder
+  ✔ encodes empty source file (1.04075ms)
+  ✔ encodes source file with identifier (0.352083ms)
+  ✔ encodes if statement with optional else (0.213458ms)
+  ✔ encodes if statement with else (0.145292ms)
+  ✔ encodes function declaration (0.177584ms)
+  ✔ encodes arbitrary node (not source file) (0.08675ms)
+  ✔ protocol version is 5 (0.0665ms)
+  ✔ boolean properties are encoded (0.063584ms)
+  ✔ postfix unary operator is preserved through encode/decode (0.1635ms)
+  ✔ prefix unary operator is preserved through encode/decode (0.141375ms)
+  ✔ postfix decrement operator is preserved (0.106125ms)
+  ✔ single-child node with no children returns undefined (0.213625ms)
+  ✔ NodeList element access is consistent across forward, backward, and random order (0.930959ms)
+✔ Encoder (4.470959ms)
+▶ UTF-8 vs UTF-16 position encoding
+  ✔ ASCII: text.slice(pos, end) works (0.085584ms)
+  ✔ 2-byte char: text.slice(pos, end) works (0.059084ms)
+  ✔ 4-byte char (supplementary plane): text.slice(pos, end) works (0.044333ms)
+  ✔ multi-byte identifier: text.slice(pos, end) works (0.039375ms)
+✔ UTF-8 vs UTF-16 position encoding (0.311667ms)
+▶ Line and character mapping
+  ✔ getLineStarts for empty file (0.120625ms)
+  ✔ getLineStarts for LF-separated lines (0.053ms)
+  ✔ getLineStarts for CRLF-separated lines (0.057958ms)
+  ✔ getLineStarts is cached (0.04125ms)
+  ✔ getLineAndCharacterOfPosition (0.101917ms)
+  ✔ getLineAndCharacterOfPosition uses UTF-16 code units (0.07525ms)
+  ✔ getPositionOfLineAndCharacter round-trips (0.07075ms)
+  ✔ getPositionOfLineAndCharacter throws for out-of-range line (0.199875ms)
+✔ Line and character mapping (0.823417ms)
+Warning: TypeScript submodule is not cloned; skipping benchmarks.
+▶ API
+  ✔ parseConfigFile (225.824792ms)
+✔ API (226.462166ms)
+▶ Checker - getImmediateAliasedSymbol
+  ✔ resolves one level of alias indirection (54.3165ms)
+✔ Checker - getImmediateAliasedSymbol (54.435209ms)
+▶ Snapshot
+  ✔ updateSnapshot returns snapshot with projects (53.231541ms)
+  ✔ getSymbolAtPosition (48.591584ms)
+  ✔ getSymbolAtLocation (44.74575ms)
+  ✔ getTypeOfSymbol (40.550709ms)
+✔ Snapshot (187.554167ms)
+▶ Checker - getApparentType
+  ✔ returns the apparent type of a literal type (46.226833ms)
+✔ Checker - getApparentType (46.505209ms)
+▶ Checker - getMemberInModuleExports
+  ✔ returns a named export when present (39.268875ms)
+✔ Checker - getMemberInModuleExports (39.432084ms)
+▶ SourceFile
+  ✔ getSourceFileNames returns all program files, not just root files (10.906667ms)
+  ✔ source file metadata identifies external library and default library files (35.509917ms)
+  ✔ source file metadata reports implied node format (33.908916ms)
+  ✔ file properties (33.490708ms)
+  ✔ extended data (32.606875ms)
+  ✔ forEachChild with visitList does not visit array children twice (33.594042ms)
+✔ SourceFile (180.311584ms)
+✔ unicode escapes (31.717083ms)
+✔ template unicode escapes (31.932875ms)
+✔ Object equality (34.605375ms)
+✔ Snapshot dispose (34.168583ms)
+▶ Multiple snapshots
+  ✔ two snapshots work independently (32.986125ms)
+  ✔ each snapshot has its own server-side lifecycle (31.598666ms)
+  ✔ adding a new file is reflected in the next snapshot (32.837916ms)
+  ✔ multiple sequential edits produce correct snapshots (30.964333ms)
+✔ Multiple snapshots (128.581292ms)
+▶ Source file caching
+  ✔ same file from same snapshot returns cached object (33.16225ms)
+  ✔ same file from two snapshots (same content) returns cached object (31.596958ms)
+  ✔ modified file returns a different source file object (32.052125ms)
+  ✔ unmodified file retains cached object across file change notification (31.304667ms)
+  ✔ cache entries survive when one of two snapshots is disposed (32.204125ms)
+  ✔ invalidateAll causes all files to be re-fetched (38.924417ms)
+  ✔ node handles from a cached source file should be valid in a new snapshot (38.100583ms)
+✔ Source file caching (237.666417ms)
+▶ Snapshot disposal
+  ✔ dispose is idempotent (33.815ms)
+  ✔ api.close disposes all active snapshots (33.377125ms)
+✔ Snapshot disposal (67.298958ms)
+▶ Source file cache keying across projects
+  ✔ different parse modes produce separate cached objects; same parse modes share (33.210834ms)
+✔ Source file cache keying across projects (33.292833ms)
+▶ Checker - symbol identity across projects
+  ✔ getSymbolAtPosition returns same Symbol instance across projects (33.099541ms)
+✔ Checker - symbol identity across projects (33.159958ms)
+▶ Checker - types and signatures
+  ✔ getTypeAtPosition (31.828083ms)
+  ✔ getTypeAtPosition batched (30.975541ms)
+  ✔ getTypeAtLocation (32.090917ms)
+  ✔ getTypeAtLocation returns property type for parenthesized and chained access (issue #3938) (33.964666ms)
+  ✔ getTypeAtLocation returns call result type for private method call (issue #4041) (34.314833ms)
+  ✔ getSignaturesOfType - call signatures (33.068209ms)
+  ✔ getSignaturesOfType - construct signatures (32.35525ms)
+  ✔ Signature declaration can be resolved (33.10225ms)
+  ✔ getSignaturesOfType - signature type parameters (31.637041ms)
+  ✔ Signature.getParameters() returns parameter symbols with correct names (32.922958ms)
+  ✔ Signature.getThisParameter() returns undefined when no explicit this parameter (32.331042ms)
+  ✔ Signature.getThisParameter() returns symbol for explicit this parameter (32.134166ms)
+  ✔ Signature.getTarget() returns undefined for a non-instantiated signature (32.385916ms)
+  ✔ Signature.getTarget() returns the generic source signature for an instantiated call (30.9725ms)
+✔ Checker - types and signatures (455.212542ms)
+▶ Symbol - parent, members, exports
+  ✔ getMembers returns class members (31.332542ms)
+  ✔ getExports returns module exports via sourceFile symbol (31.078875ms)
+  ✔ getParent returns containing symbol (31.67625ms)
+✔ Symbol - parent, members, exports (94.212417ms)
+▶ Type - getSymbol
+  ✔ getSymbol returns the symbol of a type (32.135375ms)
+✔ Type - getSymbol (32.202458ms)
+▶ Type - sub-property fetchers
+  ✔ TypeReference.getTarget() returns the generic target (32.918416ms)
+  ✔ UnionOrIntersectionType.getTypes() returns union members (32.084542ms)
+  ✔ UnionOrIntersectionType.getTypes() returns intersection members (32.786292ms)
+  ✔ UnionOrIntersectionType.getTypes() on a wrongly-cast type returns undefined without hitting the server (32.008791ms)
+  ✔ IndexType.getTarget() returns the target type (31.096833ms)
+  ✔ IndexedAccessType.getObjectType() and getIndexType() (31.148583ms)
+  ✔ ConditionalType.getCheckType() and getExtendsType() (32.783417ms)
+  ✔ ConditionalType.getTrueType() and getFalseType() (31.629333ms)
+  ✔ TemplateLiteralType.texts and getTypes() (31.62825ms)
+  ✔ StringMappingType.getTarget() returns the mapped type (31.373166ms)
+  ✔ TupleType properties (33.442083ms)
+✔ Type - sub-property fetchers (353.333875ms)
+▶ Checker - intrinsic type getters
+  ✔ getAnyType returns a type with Any flag (30.187667ms)
+  ✔ getStringType returns a type with String flag (30.196917ms)
+  ✔ getNumberType returns a type with Number flag (30.515916ms)
+  ✔ getBooleanType returns a type with Boolean flag (31.47575ms)
+  ✔ getVoidType returns a type with Void flag (30.986875ms)
+  ✔ getUndefinedType returns a type with Undefined flag (31.40125ms)
+  ✔ getNullType returns a type with Null flag (30.632333ms)
+  ✔ getNeverType returns a type with Never flag (31.804583ms)
+  ✔ getUnknownType returns a type with Unknown flag (32.215375ms)
+  ✔ getBigIntType returns a type with BigInt flag (31.598208ms)
+  ✔ getESSymbolType returns a type with ESSymbol flag (31.645292ms)
+✔ Checker - intrinsic type getters (343.134167ms)
+▶ Checker - multi-project type ID uniqueness
+  ✔ intrinsic types from 3 projects in the same snapshot have non-colliding IDs (36.525584ms)
+  ✔ symbol and signature handles from 3 projects in the same snapshot have non-colliding IDs (37.359ms)
+✔ Checker - multi-project type ID uniqueness (73.98175ms)
+▶ Checker - getBaseTypeOfLiteralType
+  ✔ number literal widens to number (34.558209ms)
+  ✔ string literal widens to string (34.413375ms)
+✔ Checker - getBaseTypeOfLiteralType (69.068708ms)
+▶ Checker - getContextualType
+  ✔ contextual type from function parameter (33.231958ms)
+✔ Checker - getContextualType (33.300833ms)
+▶ Checker - getTypeOfSymbolAtLocation
+  ✔ narrowed type via typeof check (32.414917ms)
+✔ Checker - getTypeOfSymbolAtLocation (32.482334ms)
+▶ Checker - getShorthandAssignmentValueSymbol
+  ✔ shorthand property symbol resolves to variable (31.808542ms)
+✔ Checker - getShorthandAssignmentValueSymbol (31.878584ms)
+▶ readFile callback semantics
+  ✔ readFile: string returns content, null blocks fallback, undefined falls through to real FS (32.487ms)
+✔ readFile callback semantics (32.545708ms)
+▶ Checker - isArrayType / isTupleType
+  ✔ number[] is array, not tuple (31.631125ms)
+  ✔ readonly number[] is array (31.132042ms)
+  ✔ Array<number> is array, not tuple (34.067834ms)
+  ✔ [number, string] is tuple, not array (31.528292ms)
+  ✔ readonly [number, string] is tuple, not array (32.510125ms)
+  ✔ string is neither array nor tuple (32.872ms)
+✔ Checker - isArrayType / isTupleType (193.977ms)
+▶ Checker - getReturnTypeOfSignature
+  ✔ returns the return type of a function signature (32.788375ms)
+✔ Checker - getReturnTypeOfSignature (32.84575ms)
+▶ Checker - getRestTypeOfSignature
+  ✔ returns the rest type of a signature with rest parameter (33.919333ms)
+✔ Checker - getRestTypeOfSignature (33.981042ms)
+▶ Checker - getTypePredicateOfSignature
+  ✔ returns type predicate for 'x is T' guard (33.37925ms)
+  ✔ returns type predicate for 'this is T' guard (31.575416ms)
+  ✔ returns type predicate for 'asserts x is T' (32.812625ms)
+  ✔ returns undefined for signature without type predicate (30.410792ms)
+✔ Checker - getTypePredicateOfSignature (128.334875ms)
+▶ Checker - getBaseTypes
+  ✔ returns base types of a class (33.765875ms)
+  ✔ returns base types of an interface (30.518792ms)
+  ✔ does not panic for a type alias to a generic interface instantiation (31.693125ms)
+✔ Checker - getBaseTypes (96.098375ms)
+▶ Type - getBaseTypes
+  ✔ returns base types for a class type and undefined for a non-class/interface (30.624417ms)
+✔ Type - getBaseTypes (30.688708ms)
+▶ Type - isErrorType
+  ✔ identifies the error type from an unresolvable annotation (33.667375ms)
+✔ Type - isErrorType (33.728833ms)
+▶ Checker - well-known symbols
+  ✔ isUnknownSymbol identifies the aliased unknown symbol (31.594458ms)
+✔ Checker - well-known symbols (31.657084ms)
+▶ Symbol - escaped names and tables
+  ✔ getExports/getMembers return a cached Map keyed by escaped name (31.258333ms)
+  ✔ anonymous type symbol has a __-escaped name, never the \xFE sentinel (32.705875ms)
+✔ Symbol - escaped names and tables (64.054958ms)
+▶ ast - escapeLeadingUnderscores
+  ✔ round-trips display and escaped names (0.095959ms)
+✔ ast - escapeLeadingUnderscores (0.133583ms)
+▶ ast - getJSDocTags
+  ✔ returns a node's own tags, and inherited @param / @template tags (31.062667ms)
+  ✔ a function-expression parameter inherits @param tags from the variable statement (31.818333ms)
+  ✔ a @type cast tag is owned by its parenthesized expression, not the declaration (30.932667ms)
+✔ ast - getJSDocTags (93.923375ms)
+▶ Checker - getPropertiesOfType
+  ✔ returns properties of an object type (31.793083ms)
+✔ Checker - getPropertiesOfType (31.857916ms)
+▶ Checker - getIndexInfosOfType
+  ✔ returns index signatures of an indexed type (30.646458ms)
+  ✔ readonly index signature reports isReadonly true (32.587125ms)
+✔ Checker - getIndexInfosOfType (63.317875ms)
+▶ Checker - getConstraintOfTypeParameter
+  ✔ returns constraint of a type parameter (31.800458ms)
+✔ Checker - getConstraintOfTypeParameter (31.864917ms)
+▶ Checker - getTypeArguments
+  ✔ returns type arguments of a generic instantiation (30.516417ms)
+  ✔ a wrongly-typed call throws on the client without taking down the server (32.834125ms)
+✔ Checker - getTypeArguments (63.435792ms)
+▶ Checker - getBaseConstraintOfType
+  ✔ returns the base constraint of a type parameter (30.754459ms)
+  ✔ returns undefined for a non-instantiable type (30.692209ms)
+✔ Checker - getBaseConstraintOfType (61.531292ms)
+▶ Checker - getPropertyOfType
+  ✔ returns a named property symbol of a type (30.489375ms)
+✔ Checker - getPropertyOfType (30.561125ms)
+▶ Checker - getConstantValue
+  ✔ returns numeric value of an enum member (32.075125ms)
+  ✔ returns string value of a string-initialized enum member (31.848ms)
+✔ Checker - getConstantValue (64.01425ms)
+▶ Checker - getSignatureFromDeclaration
+  ✔ returns the signature of a function declaration (31.258375ms)
+✔ Checker - getSignatureFromDeclaration (31.323667ms)
+▶ Checker - getExportSpecifierLocalTargetSymbol
+  ✔ resolves the local target of an export specifier (31.838375ms)
+✔ Checker - getExportSpecifierLocalTargetSymbol (31.903291ms)
+▶ Checker - getAliasedSymbol
+  ✔ resolves an import alias to its target symbol (32.783625ms)
+✔ Checker - getAliasedSymbol (32.851667ms)
+▶ Checker - getExportsOfModule
+  ✔ returns all exports including re-exports via 'export *' (32.427625ms)
+✔ Checker - getExportsOfModule (32.486417ms)
+▶ Symbol - getDocumentationComment and getJsDocTags
+  ✔ getDocumentationComment returns the leading comment text (31.430834ms)
+  ✔ getJsDocTags returns structured tag name/text pairs (31.5715ms)
+✔ Symbol - getDocumentationComment and getJsDocTags (63.080541ms)
+▶ TypeParameter - isThisType
+  ✔ isThisType is true for the polymorphic 'this' type in a class method (31.9475ms)
+  ✔ isThisType is absent for a regular generic type parameter (32.477833ms)
+✔ TypeParameter - isThisType (64.515459ms)
+▶ Type - getAliasTypeArguments
+  ✔ returns the type arguments of a single-param generic type alias (32.43225ms)
+  ✔ returns multiple type arguments for a multi-param generic type alias (32.348084ms)
+  ✔ returns empty array for a non-alias generic type (32.042792ms)
+✔ Type - getAliasTypeArguments (96.947167ms)
+▶ Type - getAliasSymbol
+  ✔ returns the symbol for a non-generic type alias (31.133333ms)
+  ✔ returns the symbol for a generic type alias (31.123334ms)
+  ✔ returns undefined for a non-alias type (31.743083ms)
+✔ Type - getAliasSymbol (94.117625ms)
+▶ IntrinsicType - intrinsicName
+  ✔ intrinsicName matches the primitive type name (31.063ms)
+✔ IntrinsicType - intrinsicName (31.1325ms)
+▶ FreshableType - getFreshType and getRegularType
+  ✔ LiteralType.value is empty string for the empty-string literal type (32.396417ms)
+  ✔ LiteralType.value is accessible via the FreshableType hierarchy (32.551ms)
+  ✔ BigIntLiteralType.value is a bigint (positive and negative) (32.667375ms)
+  ✔ getFreshType() returns a fresh twin with matching value (31.8125ms)
+  ✔ getRegularType() on a fresh literal returns the regular twin (32.905959ms)
+  ✔ getFreshType() and getRegularType() work for computed enum types (TypeFlags.Enum) (32.286834ms)
+✔ FreshableType - getFreshType and getRegularType (194.884375ms)
+▶ Checker - isContextSensitive
+  ✔ arrow function with no type annotation is context sensitive (32.394417ms)
+✔ Checker - isContextSensitive (32.50375ms)
+▶ Checker - isTypeAssignableTo
+  ✔ returns true when source is assignable to target (31.808ms)
+  ✔ returns false when source is not assignable to target (31.12425ms)
+  ✔ a string literal type is assignable to string but not number (31.680791ms)
+✔ Checker - isTypeAssignableTo (94.736708ms)
+▶ Checker - getCompletionsAtPosition
+  ✔ returns member completions after a dot (32.184375ms)
+  ✔ completion entries include sortText (32.149584ms)
+  ✔ returns undefined for a non-existent file (30.154041ms)
+  ✔ includeSymbol: true populates symbol on property completions (31.209959ms)
+✔ Checker - getCompletionsAtPosition (125.88125ms)
+▶ Emitter - printNode
+  ✔ printNode with factory-created keyword type (30.559375ms)
+  ✔ printNode with factory-created union type (30.402917ms)
+  ✔ printNode with factory-created function type (30.097292ms)
+  ✔ printNode with factory-created type reference (30.626875ms)
+  ✔ printNode with factory-created array type (29.345666ms)
+  ✔ typeToTypeNode + printNode round-trip (30.231584ms)
+  ✔ visitEachChild on typeToTypeNode result with keyword types (30.457916ms)
+  ✔ typeToString (32.287875ms)
+  ✔ printNode with terminateUnterminatedLiterals option (33.866541ms)
+✔ Emitter - printNode (278.193375ms)
+▶ modifierFlags
+  ✔ export async function has Export | Async flags (31.559041ms)
+  ✔ node without modifiers has ModifierFlags.None (30.347208ms)
+✔ modifierFlags (61.992042ms)
+▶ Checker - getResolvedSymbol
+  ✔ resolves variable reference to its declaration symbol (32.311125ms)
+✔ Checker - getResolvedSymbol (32.372167ms)
+▶ VariableDeclarationList - BlockScoped flags
+  ✔ let declaration has Let flag (32.223917ms)
+  ✔ const declaration has Const flag (31.185375ms)
+✔ VariableDeclarationList - BlockScoped flags (63.49725ms)
+✔ TypeOperator operator kind (32.182208ms)
+✔ SpreadAssignment roundtrip (30.765416ms)
+✔ VariableDeclarationList const flag clone (32.849583ms)
+✔ JSDoc before ExpressionStatement allowed (31.405ms)
+✔ Factory ModifierList auto-conversion (44.360083ms)
+✔ Parse-clone-emit roundtrip (7.161208ms)
+▶ Program - diagnostics
+  ✔ getSyntacticDiagnostics (35.4565ms)
+  ✔ getSemanticDiagnostics with messageChain and relatedInformation (33.205875ms)
+  ✔ getSuggestionDiagnostics (33.555834ms)
+  ✔ getConfigFileParsingDiagnostics (34.30075ms)
+  ✔ getDeclarationDiagnostics (31.8435ms)
+  ✔ getBindDiagnostics (31.708792ms)
+  ✔ getProgramDiagnostics (32.36975ms)
+  ✔ getGlobalDiagnostics (176.269958ms)
+  ✔ getGlobalDiagnostics returns file-less diagnostics from the checker (10.63225ms)
+✔ Program - diagnostics (419.696792ms)
+▶ Checker - getReferencedSymbolsForNode
+  ✔ getReferencedSymbolsForNode (50.829208ms)
+✔ Checker - getReferencedSymbolsForNode (50.890875ms)
+▶ Checker - getSignatureUsage
+  ✔ getSignatureUsage (60.341625ms)
+✔ Checker - getSignatureUsage (60.410875ms)
+▶ getDefaultProjectForFile
+  ✔ finds inferred project for d.ts in node_modules after openFiles (33.796ms)
+  ✔ keeps previously opened files open across subsequent openFiles calls (32.838875ms)
+  ✔ opening a file resolves to a configured project via ancestor search (32.499834ms)
+  ✔ closeProjects releases a project opened via openProjects (30.936125ms)
+  ✔ closeFiles releases a file opened via openFiles (32.324375ms)
+✔ getDefaultProjectForFile (162.645292ms)
+✔ Benchmarks (0.806042ms)
+▶ Timing
+  ✔ collects combined client, server, and transport timing info (30.838542ms)
+  ✔ tracks source-file node materialization (32.878042ms)
+  ✔ is disabled by default (8.582834ms)
+✔ Timing (72.467375ms)
+▶ cloneNode
+  ✔ clones an identifier (0.783666ms)
+  ✔ clones a numeric literal (0.104167ms)
+  ✔ clones a string literal (0.1ms)
+  ✔ preserves text range (0.059375ms)
+  ✔ clone is shallow (children are shared) (0.12925ms)
+  ✔ clone has no parent (0.081125ms)
+  ✔ clones a token (0.0625ms)
+✔ cloneNode (1.965333ms)
+▶ visitNode
+  ✔ returns undefined for undefined input (0.094792ms)
+  ✔ returns visitor result (0.076709ms)
+  ✔ visitor can return undefined to remove node (0.090125ms)
+✔ visitNode (0.401417ms)
+▶ visitNodes
+  ✔ returns undefined for undefined input (0.074167ms)
+  ✔ returns same array if nothing changed (0.09575ms)
+  ✔ filters out undefined results (0.050625ms)
+  ✔ replaces nodes (0.047584ms)
+✔ visitNodes (0.348125ms)
+▶ visitEachChild
+  ✔ returns same node if nothing changed (identity visitor) (0.206875ms)
+  ✔ returns undefined for undefined input (0.027708ms)
+  ✔ creates new node when child changes (0.052583ms)
+  ✔ works on if statement with optional else (0.120041ms)
+  ✔ works on nodes with NodeArray children (0.076791ms)
+  ✔ returns same node for leaf nodes (0.028917ms)
+✔ visitEachChild (0.59275ms)
+▶ getSynthesizedDeepClone
+  ✔ deeply clones identifier (0.177125ms)
+  ✔ deeply clones identifier without trivia (0.035458ms)
+  ✔ deeply clones binary expression (0.141167ms)
+  ✔ sets parent pointers on deep clone (0.685042ms)
+  ✔ returns undefined for undefined input (0.03025ms)
+  ✔ deeply clones if statement with optional else (0.084792ms)
+  ✔ preserves tree structure with nested children (0.088833ms)
+  ✔ deeply clones string literal (0.035708ms)
+  ✔ deeply clones numeric literal (0.03575ms)
+  ✔ clone has same syntax structure (0.429583ms)
+✔ getSynthesizedDeepClone (1.88275ms)
+▶ getSynthesizedDeepClones
+  ✔ deeply clones a NodeArray (0.0705ms)
+  ✔ returns undefined for undefined input (0.026375ms)
+  ✔ preserves pos and end on NodeArray (0.03775ms)
+✔ getSynthesizedDeepClones (0.185708ms)
+▶ visitor transformation
+  ✔ rename all identifiers via recursive visitor (0.065875ms)
+  ✔ deep clone + modify produces independent tree (0.05675ms)
+✔ visitor transformation (0.157833ms)
+▶ RemoteNode + cloneNode
+  ✔ cloneNode produces a NodeObject from a RemoteNode (322.503084ms)
+  ✔ cloneNode clones a remote import declaration (55.256125ms)
+  ✔ cloneNode preserves text on remote identifier (55.354125ms)
+✔ RemoteNode + cloneNode (433.236416ms)
+▶ RemoteNode + visitEachChild
+  ✔ identity visitor returns same remote node (43.079125ms)
+  ✔ visitor can transform remote tree into NodeObject tree (39.517917ms)
+✔ RemoteNode + visitEachChild (82.711084ms)
+▶ RemoteNodeList inherited array methods
+  ✔ filter/map/slice return plain arrays without throwing (40.616375ms)
+✔ RemoteNodeList inherited array methods (40.700584ms)
+▶ RemoteNode + getSynthesizedDeepClone
+  ✔ deep clones a remote import declaration (38.172083ms)
+  ✔ deep clone of remote tree produces independent NodeObject tree (34.493708ms)
+  ✔ deep clone of remote SourceFile preserves top-level metadata references (32.6895ms)
+✔ RemoteNode + getSynthesizedDeepClone (105.471042ms)
+▶ RemoteNode + position/text getters
+  ✔ position and text getters on a parsed statement (32.23225ms)
+  ✔ getText/getFullText on a nested node (32.544375ms)
+  ✔ getStart can include leading JSDoc comments (31.877125ms)
+  ✔ a node without leading trivia has zero leading trivia width (31.306917ms)
+  ✔ the SourceFile node spans the whole file text (32.569875ms)
+  ✔ getter invariants hold for every node in a representative tree (32.238ms)
+  ✔ getter invariants hold even for malformed source with missing nodes (31.117042ms)
+✔ RemoteNode + position/text getters (224.1585ms)
+  getTokenAtPosition: checked 9772 positions
+  getTouchingPropertyName: checked 9772 positions
+  findPrecedingToken: checked 9772 positions
+  findNextToken: checked 9772 positions
+▶ astnav
+  ✔ getTokenAtPosition (53.231834ms)
+  ✔ getTouchingPropertyName (71.075625ms)
+  ✔ findPrecedingToken (79.642917ms)
+  ✔ findNextToken (60.855ms)
+✔ astnav (595.853292ms)
+▶ Wtf8Decoder
+  ✔ decodes standard UTF-8 (0.391958ms)
+  ✔ preserves WTF-8 encoded lone surrogates (0.724167ms)
+✔ Wtf8Decoder (2.112333ms)
+ℹ tests 459
+ℹ suites 143
+ℹ pass 459
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6865.987458
+[20:00:48.419] [2] ✔ (done in 7.1s)
+Finished test:api in 7.1s
+Completed test:api in 15.9s
+EXIT:0

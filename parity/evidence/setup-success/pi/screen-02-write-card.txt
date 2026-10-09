@@ -1,0 +1,36 @@
+   [ ] large — xhigh reasoning                                                                                         │
+   [ ] medium — high reasoning                                                                                         │
+   [ ] small — medium reasoning                                                                                        │
+   [x] Other: unlimited                                                                                                │
+                                                                                                                       │
+ 2. Roles: keep all as inherit-parent, or change specific ones?                                                        │
+   [ ] Accept as-is (all inherit-parent)                                                                               │
+   [ ] Change specific roles                                                                                           ┃
+   [x] Other: keep                                                                                                     ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ Edited pstack-models.mdc +1 -1                                                                                        ┃
+                                                                                                                       ┃
+ ▎  ---                                                                                                                ┃
+ ▎  # pstack model configuration. One line per role. Delete a line to fall back to the skill default.                  ┃
+ ▎  # `inherit-parent` or `auto` as a value: the role runs on the parent chat model (omit Task `model`). Alias entries ┃
+ in a panel list still count toward its fan-out.                                                                       ┃
+ ▎- # budget: small (medium)                                                                                           ┃
+ ▎+ # budget: unlimited (max)                                                                                          ┃
+ ▎  feature, refactoring: inherit-parent                                                                               ┃
+ ▎  bug-fix: inherit-parent                                                                                            ┃
+ ▎  perf-issue: inherit-parent                                                                                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ The rule is written to /tmp/pi-ref-agent/pstack/models.mdc. The budget changed from small (medium) to unlimited       ┃
+ (max). Every role is still inherit-parent, so it runs on the parent chat model. No retired role lines needed          ┃
+ dropping. The rule applies to new sessions, and re-running this skill updates it.                                     ┃
+                                                                                                                       ┃
+ I didn't offer the optional verification skill.                                                                       ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run (refactor/pi-pstack-parity-again)
+↑10 ↓558 R85k W19k CH99.6% $0.099 (sub) 2.7%/1.0M (auto)                (claude-subscription) claude-sonnet-5-5 • medium

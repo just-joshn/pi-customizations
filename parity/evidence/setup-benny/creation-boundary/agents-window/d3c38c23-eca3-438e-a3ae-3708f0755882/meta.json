@@ -1,0 +1,9 @@
+{
+  "attemptId": "d3c38c23-eca3-438e-a3ae-3708f0755882",
+  "mode": "new-automation-ax-rel-click",
+  "evidenceDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/creation-boundary/agents-window/d3c38c23-eca3-438e-a3ae-3708f0755882",
+  "didNot": [
+    "save",
+    "enable"
+  ]
+}

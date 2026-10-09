@@ -1,0 +1,39 @@
+    Edited clamp.js +1 -1
+
+    ▎    1   /** Clamp n into [min, max]. */
+    ▎    2   export function clamp(n, min, max) {
+    ▎    3     if (n < min) return min;
+    ▎    4 -   // Bug: upper bound is ignored when n > max.
+    ▎    4 +   if (n > max) return max;
+    ▎    5     return n;
+    ▎    6   }
+
+  $ npm test && mkdir -p
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/tdd/fixture-out/cursor && printf '%s\n'
+    'test/clamp.test.js: AssertionError 10 !== 5' >
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/tdd/fixture-out/cursor/done.txt && cat
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/tdd/fixture-out/cursor/done.txt 585ms
+    … 13 output lines hidden · ctrl+o to expand
+    ℹ duration_ms 43.861917
+    test/clamp.test.js: AssertionError 10 !== 5
+
+    To-do All done
+    ✔ Write failing regression test for clamp upper bound
+    ✔ Run test red, fix clamp.js, rerun green
+    ✔ Write done.txt with failing-before evidence
+
+  Red → green complete.
+
+  • Red: test/clamp.test.js failed with AssertionError: 10 !== 5
+  • Fix: clamp now returns max when n > max
+  • Green: same test passes
+  • Evidence: fixture-out/cursor/done.txt → test/clamp.test.js: AssertionError 10 !== 5
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 10.1% · 1 file edited                                                                          Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/tdd/fixture-app · refactor/pi-pstack-parity-again

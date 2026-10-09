@@ -8,7 +8,7 @@ disable-model-invocation: true
 
 Benny has two workflows. `benny-triage` classifies a new Slack report and leaves one thread verdict. `benny-reproduce` waits for that trusted verdict, gathers twice-reproduced UI evidence, and may prepare a bounded draft fix. The preserved operational files own the algorithms.
 
-This adapter replaces Reference project settings, the unavailable built-in automation creator, and its editor with concrete project files and reviewed Pi routine drafts. It does not authorize setup or activation by its presence. Create or update definitions only when the user explicitly asks. Never send Slack messages during installation.
+This adapter replaces Reference project settings with concrete project files and the host `/automate` skill's reviewed Automations editor handoff. It does not authorize setup or activation by its presence. Create or update definitions only when the user explicitly asks. Never send Slack messages during installation. Webhook button routines stay on `/make-bot-ui` and `Routine*` tools; do not reuse them for Slack Benny automations.
 
 ## 1. Merge the dormant project pack
 
@@ -76,19 +76,42 @@ Live prompts read the exact committed `.pi/automations/benny/skills/triage-issue
 
 ## 6. Prepare sequential reviewed definitions
 
-Distinguish first-time creation from an existing deployment. Inspect existing routine receipts first and never create duplicate active workflows. A changed definition is a new disabled revision. Review the old and new definitions, preserve the old receipt, and disable the old workflow before replacement activation.
+Distinguish first-time creation from an existing deployment. Inspect existing automation drafts first and never create duplicate active workflows. A changed definition is a new disabled revision. Review the old and new definitions, preserve prior thread-safety receipts only for the matching revision, and keep the old workflow disabled before replacement activation.
 
-Run the `unslop` skill on the final routine names, descriptions, and prompt shims before calling `RoutinePrepare`. Each new draft gets that pass.
+Run the `unslop` skill on the final automation names, descriptions, and prompt shims before calling `AutomationPrepare`. Each new draft gets that pass.
 
-For first-time creation, finish triage review and readiness handoff before preparing repro. Read the corresponding native prompt template as secondary intent. Include the validated source channel, repository, branch, verified runtime commit, configuration, integration actions, models, and budgets in the draft review.
+### First-time creation
 
-Call `RoutinePrepare` for `benny-triage` only after creation is authorized. Use the declared JSON fields `source_channel_id`, `message_ts`, and `thread_ts`, plus a harmless `action` value the prompt ignores. Present its complete definition and immutable revision. Give the user its hidden terminal sender-key initializer. Keep the key out of chat and delegate environments.
+Create one automation at a time. Finish the triage editor handoff before starting repro.
 
-Obtain draft approval and confirm readiness for the authorized test channel. The routine remains disabled until the explicit `RoutineEnable` confirmation for that exact revision. Configure the actual trusted trigger adapter to send only the harmless test report during verification. This native confirmation and the resulting receiver receipt replace the unavailable editor handoff. Do not invent an editor URL or backend call.
+Read `FOR_AGENTS.md` from the copied pack as the primary user-intent source. Read the matching native prompt template as secondary intent. Include the validated source channel, repository, branch, verified runtime commit, configuration, integration actions, models, and budgets.
 
-After that triage handoff is complete, repeat the review for `benny-reproduce`. Its prompt requires the trusted marker from an actual Slack read, the completed control map, twice-reproduced evidence, ownership checks, existing-fix verification, rejection window, bounded fix, draft-only PR, and cleanup.
+Read and follow the host `/automate` skill. Tell each live prompt to read and follow its exact committed operational file under `.pi/automations/benny/`. Use repository-relative paths only. Do not copy operational file contents into the live prompt.
 
-Do not route normal traffic to either workflow until the seven checks below pass. Any definition or capability change invalidates its previous readiness evidence.
+Let `/automate` confirm the pack and referenced configuration files are committed, show its draft table, obtain approval, ask readiness, and open the Automations editor (`AutomationOpenEditor`). Editor Save persists a disabled draft only. Do not invent an editor URL, protocol deep link, or Cursor Automations backend call. Do not finish Slack Benny through webhook `Routine*` tools.
+
+Give `/automate` this complete triage intent, filled from configuration:
+
+- Name `benny-triage`.
+- Read and follow `.pi/automations/benny/skills/triage-issue-reports/SKILL.md` for every run.
+- Trigger on each new top-level report in the configured source Slack channel (`trigger.type = slack.top_level`).
+- Read the triggering thread and reply only inside it.
+- Use the configured issue-tracker integration.
+- Classify, inspect evidence, trace cause, dedupe, and create only clear new bugs.
+- End one thread-only verdict with the configured marker and optional tracker URL.
+- Never post a source-channel root message.
+
+After that triage handoff is complete, repeat for `benny-reproduce`. Its prompt requires the trusted marker from an actual Slack read, the completed control map, twice-reproduced evidence, ownership checks, existing-fix verification, rejection window, bounded fix, draft-only PR, and cleanup.
+
+### Existing automations
+
+The host `/automate` skill is creation-only. Do not use it to search for, inspect, or update existing automations. Ask the user to update each existing automation directly in its Automations editor. Do not create replacements or duplicates.
+
+### Creation boundary
+
+Never call a direct automation backend service or backend automation tool. Never use a browser URL that carries draft fields. Never build or open a Reference protocol deep link. For new automations, the only finish path is the host `/automate` skill's reviewed Automations editor handoff.
+
+Do not enable either automation until the thread-safety test passes after the editor save. After the seven checks pass for an exact revision, call `AutomationRecordThreadSafety` for that revision, then `AutomationEnable` for the same revision (interactive confirm). Enable marks the draft enabled locally and does not start Slack ingress. Do not route normal traffic until every required check passes and the user authorizes activation.
 
 ## 7. Test all seven thread safeguards
 
@@ -114,4 +137,4 @@ A new fix requires a twice-confirmed repro, independent media approval, no exist
 
 Only the coordinator reviews the final diff, creates allowed commits, and opens a draft PR. Keep media and tokens out of source control. Never merge or deploy. Success goes to the operations thread, when configured. Never add another unprompted source reply. Follow the source's bounded follow-up and cleanup rules.
 
-Enable normal trigger traffic only after every required check passes and the user authorizes that activation. `RoutineDisable` stops acceptance and drains its worker. Crashes and partially delivered external writes require reconciliation before replay.
+Enable normal trigger traffic only after every required check passes and the user authorizes that activation. Keep drafts disabled until then. `AutomationDisable` clears local enabled status without deleting the definition or thread-safety receipt. Crashes and partially delivered external writes require reconciliation before replay.

@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "cmd-benchmark-checklist-evidence",
+  "status": "paired",
+  "requirements": [
+    "PSTACK-CMD-BENCHMARK-CHECKLIST-EVIDENCE-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/benchmark-checklist/SKILL.md#benchmark-checklist requires run evidence before reporting a perf number",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Claim draft exists or a measurement script is about to run. Preconditions: A performance claim is being formed from a run or is about to be.",
+    "digest": null
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Invoke /benchmark-checklist (or attach the skill) against the claim.. Answers to the checklist questions use evidence from a run, not guesses about the code; a one-run ballpark still checks questions 4 and 7 and labels itself as one run."
+    }
+  ],
+  "execution": {
+    "pairId": "benchmark-checklist-evidence-1",
+    "verdict": "pass",
+    "pair": "parity/evidence/benchmark/pair-benchmark-checklist-evidence-1.json",
+    "attempts": {
+      "cursor": "fef1b56c-e1bd-4f8c-83d1-dca9487c6b44",
+      "pi": "f35d81bd-a200-44fb-a673-039bdf1192ae"
+    }
+  }
+}

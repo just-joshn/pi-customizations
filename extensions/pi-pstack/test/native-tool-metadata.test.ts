@@ -4,6 +4,7 @@ import { join } from 'node:path';
 
 import { DefaultResourceLoader, SettingsManager } from '@earendil-works/pi-coding-agent';
 import { expect, test } from 'vitest';
+import { registerAutomations } from '../src/automations.ts';
 import { registerGoal } from '../src/goal.ts';
 import { registerRoutines } from '../src/routines.ts';
 import { registerShells } from '../src/shells.ts';
@@ -14,6 +15,19 @@ const families = [
   { register: registerGoal, namespace: 'pstack_goals', names: ['CreateGoal', 'GetGoal', 'UpdateGoal'] },
   { register: registerTimers, namespace: 'pstack_timers', names: ['SubscribeTimer', 'SubscribeGithubCI', 'SubscribeOriginCI', 'ListSubscriptions', 'Unsubscribe', 'RestartSubscriptions'] },
   { register: registerRoutines, namespace: 'pstack_routines', names: ['RoutinePrepare', 'RoutineInspect', 'RoutineEnable', 'RoutineDisable'] },
+  {
+    register: registerAutomations,
+    namespace: 'pstack_automations',
+    names: [
+      'AutomationPrepare',
+      'AutomationInspect',
+      'AutomationOpenEditor',
+      'AutomationSave',
+      'AutomationRecordThreadSafety',
+      'AutomationEnable',
+      'AutomationDisable',
+    ],
+  },
   { register: registerWorkers, namespace: 'pstack_workers', names: ['Task', 'TaskOutput', 'TaskStop', 'TaskMessage', 'TaskList', 'TaskAttach'] },
   { register: registerShells, namespace: 'pstack_shells', names: ['BackgroundShell', 'Background' + 'ShellList', 'Background' + 'ShellStop'] },
 ];
@@ -35,6 +49,8 @@ test.for(families)('$namespace publishes native group guidance', async ({ regist
   await loader.reload();
   expect(loader.getExtensions().errors).toHaveLength(0);
   const tools = loader.getExtensions().extensions.flatMap((extension) => [...extension.tools.values()]);
+  const inNamespace = tools.filter((tool) => tool.definition.namespace?.name === namespace);
+  expect(inNamespace.map((tool) => tool.definition.name).sort()).toEqual([...names].sort());
   for (const name of names) {
     const tool = tools.find((tool) => tool.definition.name === name);
     expect(tool).toBeDefined();

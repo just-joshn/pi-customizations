@@ -1,0 +1,19 @@
+file:///Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/scripts/capture-setup-grok-xhigh-cap.mjs:480
+      const err = new Error(
+                  ^
+
+Error: Timed out waiting for unlimited budget-apply write (screen or rule file).
+    at runSide (file:///Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/scripts/capture-setup-grok-xhigh-cap.mjs:480:19)
+    at async file:///Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/scripts/capture-setup-grok-xhigh-cap.mjs:596:20 {
+  code: 'WRITE_TIMEOUT'
+}
+
+Node.js v24.21.0
+high-cap.mjs:253:7)
+    at Socket.emit (node:events:514:28)
+    at addChunk (node:internal/streams/readable:568:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:519:3)
+    at Readable.push (node:internal/streams/readable:399:5)
+    at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)
+
+Node.js v24.21.0

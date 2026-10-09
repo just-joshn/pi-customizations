@@ -1,0 +1,22 @@
+HTTP 200
+final-url: https://bun.com/docs/installation
+Date: Fri, 09 Oct 2026 02:05:31 GMT
+Content-Type: text/html; charset=utf-8
+Transfer-Encoding: chunked
+Connection: close
+access-control-allow-origin: *
+Age: 13372
+Cache-Control: public, max-age=0, must-revalidate
+content-disposition: inline; filename="installation"
+Nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+Report-To: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=2SxuD6OlYPpIKimiS3Yycf3MJ3u%2BiMSBIauobov6TjIgBWp5vbGtz%2FlZZF8cdF7pED9JYdg7HDtJajtfrmj%2F2iqK9bbEEDFvppjXlyi5bUbXsKqtNqhJgm%2BLcbU5%2ByYIopy0wI4%3D"}]}
+last-modified: Thu, 08 Oct 2026 22:22:39 GMT
+Server: cloudflare
+strict-transport-security: max-age=63072000
+x-vercel-cache: HIT
+x-vercel-id: pdx1::r5m4m-1791511531614-1f5ed650fefa
+cf-cache-status: DYNAMIC
+vary: accept-encoding
+Server-Timing: cfCacheStatus;desc="DYNAMIC"
+Server-Timing: cfEdge;dur=18,cfOrigin;dur=31
+CF-RAY: a479d2206d4a87ab-PDX

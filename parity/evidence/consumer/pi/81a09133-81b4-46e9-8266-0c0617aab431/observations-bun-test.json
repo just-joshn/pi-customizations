@@ -1,0 +1,19 @@
+{
+  "afterBunTest": {
+    "bunRunTest": true,
+    "passCount": 52,
+    "failCount": 0,
+    "fiftyTwoPass": true,
+    "zeroFail": true,
+    "ranAcrossFiles": true,
+    "working": false
+  },
+  "bunTestChromeOk": true,
+  "doneMarkerOk": true,
+  "consumerPath": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/package.json",
+  "consumerSha256": "d1f815091209d49763775cc188e8e06ff32d5fec648bffd2272bc25a165e87c3",
+  "consumerMatchesLocked": true,
+  "bunTypesVersion": "1.3.14",
+  "bunTypesMatchesLocked": true,
+  "journeyClosed": true
+}

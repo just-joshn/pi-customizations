@@ -1,0 +1,35 @@
+  one line EXIT=0 to                                                                                                   
+  /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/consumer/fixture-out/cursor/orch-help-       
+  done.txt and stop.                                                                                                   
+                                                                                                                       
+
+  Running the exact help command in this cwd, then writing the evidence file once it exits 0.
+
+  $ bun run orch/orch.ts --help 1.2s
+    … 17 output lines hidden · ctrl+o to expand
+      status         render status.md and print a summary
+      standing       manage standing orders
+
+  $ printf 'EXIT=0\n' > /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/consumer/fixture-out/c
+    ursor/orch-help-done.txt 215ms
+
+  Usage: orch [--store <dir>] [--json] [--force] <command>
+
+  Commands:
+    init           initialize the store
+    unit           manage work units
+    ledger         manage verification records
+    inbox          manage agent pointers
+    gate           manage decision gates
+    frontier       manage the Graphite stack frontier
+    status         render status.md and print a summary
+    standing       manage standing orders
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 7.9%                                                                                           Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts · main · #330

@@ -1,0 +1,25 @@
+{
+  "afterHelp": {
+    "usageOrch": true,
+    "commandsHeader": true,
+    "cmdInit": true,
+    "cmdUnit": true,
+    "cmdStanding": true,
+    "helpFlag": false,
+    "installMention": false,
+    "working": false
+  },
+  "helpChromeOk": true,
+  "doneMarkerOk": true,
+  "consumerPath": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bootstrap.ts",
+  "consumerSha256": "ccd2ed08fd9da9d0d942e5f2491cfc74bb92d8a08fa51755e0da1ac8de287361",
+  "consumerMatchesLocked": true,
+  "installKeyBeforeForced": "29ea404a008c469c17a2d88c14edd3fe861a3b2e47be92343c132a7c49529121",
+  "installKeyForced": "deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef",
+  "installKeyExpected": "29ea404a008c469c17a2d88c14edd3fe861a3b2e47be92343c132a7c49529121",
+  "installKeyAfter": "29ea404a008c469c17a2d88c14edd3fe861a3b2e47be92343c132a7c49529121",
+  "installKeyRewrittenToExpected": true,
+  "commanderPresentAfter": true,
+  "bootstrapFileOracleOk": true,
+  "journeyClosed": true
+}

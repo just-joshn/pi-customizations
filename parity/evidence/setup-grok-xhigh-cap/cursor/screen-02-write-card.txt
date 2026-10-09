@@ -1,0 +1,35 @@
+  auto.
+
+                                                                                                                       
+  [Pasted text #1 +1 lines]                                                                                            
+                                                                                                                       
+
+  Re-reading the on-disk rule, then writing the unlimited (max) remapped table per your remap rules.
+
+    Read /Users/josh-desktop/.cursor/rules/pstack-models.mdc
+
+    Edited pstack-models.mdc +17 -17
+
+    ▎    4   ---
+    ▎    5   # pstack model configuration. One line per role. Delete a line to fall back to the skill default.
+    ▎    6   # `inherit-parent` or `auto` as a value: the role runs on the parent chat model (omit Task `model`).
+    ▎        Alias entries  ...
+    ▎    7 - # budget: small (medium)
+    ▎    8 - feature, refactoring: inherit-parent
+    ▎    9 - bug-fix: inherit-parent
+    ▎   10 - perf-issue: inherit-parent
+    ▎   11 - hillclimb: inherit-parent
+    ▎   12 - judgment and prose: inherit-parent
+    ▎   13 - hardest tasks: inherit-parent
+    ▎    7 + # budget: unlimited (max)
+    ▎    8 + feature, refactoring: grok-4.7-xhigh-fast
+    ▎   13  … truncated (26 more lines) · ctrl+r to review
+
+ ⠀⠞ Editing  878 tokens
+
+                                                                                                                       
+  → Add a follow-up                                                                                     ctrl+c to stop 
+                                                                                                                       
+
+  Auto · 13.3% · 1 file edited                                                                          Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run · refactor/pi-pstack-parity-again

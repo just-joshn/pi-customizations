@@ -1,0 +1,31 @@
+{
+  "scenario": "cmd-make-bot-ui-key-server",
+  "path": "create-page-and-webhook-key-server-boundary",
+  "runnable": false,
+  "verdict": "blocker",
+  "checks": {
+    "cursorSkillPresent": true,
+    "cursorSkillRequiresUpdateState": true,
+    "cursorSkillRequiresSecretRequest": true,
+    "cursorAgentHelpMentionsUpdateState": false,
+    "cursorAgentHelpMentionsWebhookRoutine": false,
+    "cursorCliWebhookRoutinesAvailableInHarness": false,
+    "piSkillPresent": true,
+    "piSkillRequiresRoutinePrepare": true,
+    "piRoutinesSourceRegistersPrepare": true,
+    "piRefAgentSettingsPresent": true,
+    "piRefAgentLoadsPiPstack": true,
+    "sandboxExecPresent": true,
+    "senderKeyEnvAbsent": true
+  },
+  "missing": [
+    "cursor-agent PTY harness has no update_state / webhook Routines panel / secret-request delivery for Automations",
+    "Cursor skill requires update_state but cursor-agent --help does not expose it"
+  ],
+  "piPackages": [
+    "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-anthropic-oauth",
+    "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-antigravity-oauth",
+    "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack"
+  ],
+  "skillAcceptanceNote": "Make Bot UI expects host webhook routine creation (Cursor update_state + secret-request, or Pi RoutinePrepare/RoutineEnable) and keeps the sender key server-side. Inventing a key, pasting one into chat, or stubbing update_state would fabricate a pass."
+}

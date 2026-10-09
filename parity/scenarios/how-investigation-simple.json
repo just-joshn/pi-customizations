@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "how-investigation-simple",
+  "status": "executed-pass-paired",
+  "requirements": [
+    "PSTACK-CMD-HOW-SIMPLE-PATH-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/how/SKILL.md",
+  "configurationIds": [
+    "default"
+  ],
+  "fixture": {
+    "description": "existing paired evidence",
+    "digest": null
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Closed HOW-WORKFLOW-EXPLAINER-STEP Method A on investigate-3"
+    }
+  ],
+  "execution": {
+    "referenceRun": "c1abf807-141d-4731-a887-182cf312ad02",
+    "candidateRun": "951a315d-ac83-4901-9342-c82fbcd235a1",
+    "pairId": "investigate-3",
+    "pairPath": "parity/evidence/investigate/pair-investigate-3.json",
+    "verdict": "pass-paired",
+    "closedAt": "2026-10-08T17:57:16Z"
+  }
+}

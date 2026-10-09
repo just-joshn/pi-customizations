@@ -1,0 +1,40 @@
+ "verified=yes" >                                                                                                      │
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/idempotent/fixture-out/pi/done.txt │
+  (timeout 10s)                                                                                                        │
+                                                                                                                       │
+ (no output)                                                                                                           │
+                                                                                                                       │
+ Took 0.0s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ apply() now converges after a crash. node scripts/verify.mjs prints APPLY-OK converge=yes, and I wrote verified=yes   │
+ to done.txt.                                                                                                          │
+                                                                                                                       │
+ What was broken. apply() read the leftover state/step-1.json and set run = prev.run + 1. After a crash following      │
+ step-1, the re-run ended with run: 2 instead of run: 1, so the final digest differed from a clean run.                │
+                                                                                                                       │
+ Fix. In src/apply.js, run is now a constant 1. Step-1 is only overwritten and never read back, so a partial prior run │
+ can't change the result. I also dropped the unused readFile import and updated the doc comment.                       │
+                                                                                                                       │
+ Verification. Before the fix, verify.mjs printed APPLY-FAIL converge=no, with the clean run at run:1 and the          │
+ post-crash re-run at run:2. After the fix, both digests match: 4937429a…7659.                                         │
+                                                                                                                       │
+ Principle applied. Make Operations Idempotent (principle-make-operations-idempotent, leaf read this session). Its     ┃
+ test asks whether a run crashed halfway changes the next run's outcome. That led me to remove the read of prior state ┃
+ instead of adding a cleanup step.                                                                                     ┃
+                                                                                                                       ┃
+ I used the Bug fix playbook but skipped the subagent delegation, commits and PR, since this was a one-file fixture    ┃
+ change.                                                                                                               ┃
+
+[>] Reproduce it yourself on the matching surface via the control skill (Non-negotiables), even when a debug or instr...
+[ ] Binary-search the cause. Form the candidate hypotheses, then rule them out until one survives. Get runtime eviden...
+[ ] Plan the fix. skip architect/delegation: single-file fixture, done directly (pending)
+[ ] Verify on the same surface. The original repro now passes: node scripts/verify.mjs prints APPLY-OK converge=yes (...
+[ ] Stage commits. skip: no commits requested (pending)
+[ ] Run Opening a PR. skip: no PR requested (pending)
+[ ] Write done.txt with verified=yes|no (pending)
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/principles/idempotent/fixture-app (refactor/pi-pstack-parity-ag...
+↑16 ↓2.2k R219k W30k CH99.5% $0.184 (sub) 3.8%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium

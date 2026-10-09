@@ -1,0 +1,13 @@
+{
+  "ts": "2026-10-09T10:53:02.723677Z",
+  "unit": "u-dep-cu-cloud-claim-002",
+  "cursorApiKeyEnv": false,
+  "cursorApiKeyMeta": null,
+  "listAgents": {
+    "status": null,
+    "error": "CURSOR_API_KEY unset"
+  },
+  "postCreate": "skipped-no-owner-spend-grant",
+  "attemptIds": [],
+  "note": "GET list only; no POST create"
+}

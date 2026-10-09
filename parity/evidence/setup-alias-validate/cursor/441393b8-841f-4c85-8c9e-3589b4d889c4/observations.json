@@ -1,0 +1,68 @@
+{
+  "side": "cursor",
+  "path": "chatform",
+  "screens": {
+    "ready": {
+      "writeCard": false,
+      "askQuestion": false,
+      "chatForm": false,
+      "unavailableMention": false,
+      "unavailableRejected": false,
+      "aliasMention": true,
+      "working": false
+    },
+    "terminal": {
+      "writeCard": false,
+      "askQuestion": false,
+      "chatForm": true,
+      "unavailableMention": true,
+      "unavailableRejected": true,
+      "aliasMention": true,
+      "working": true
+    },
+    "noWriteSettled": {
+      "writeCard": false,
+      "askQuestion": false,
+      "chatForm": false,
+      "unavailableMention": true,
+      "unavailableRejected": true,
+      "aliasMention": true,
+      "working": false
+    },
+    "followup": {
+      "writeCard": false,
+      "askQuestion": false,
+      "chatForm": false,
+      "unavailableMention": true,
+      "unavailableRejected": true,
+      "aliasMention": true,
+      "working": false
+    }
+  },
+  "instruction": "Keep budget small — medium reasoning. Keep \"feature, refactoring\" as inherit-parent. Keep \"perf-issue\" as auto. Set only \"bug-fix\" to the real slug parity-unavailable-model-zzz. Then accept and write if validation allows. If parity-unavailable-model-zzz is not in the detected set, stop the write and ask again. Do not invent detected models. Decline any verification skill offer.",
+  "unavailableSlug": "parity-unavailable-model-zzz",
+  "terminalNeedle": "ask again",
+  "ruleScore": {
+    "wrote": true,
+    "unavailablePersisted": false,
+    "keepAliasPreserved": true,
+    "autoRoleValue": "inherit-parent",
+    "mutateRoleValue": "inherit-parent",
+    "aliasOnlyTable": true,
+    "inheritParentCount": 17,
+    "autoCount": 0,
+    "beforeDigest": "sha256:19b21aeb5e1e75fac7b425a67ea35817e7d1dd027adbd88be6ec43ccc1b1dd5f",
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+  },
+  "oracles": {
+    "aliasAlwaysValid": true,
+    "validateUnavailableStopsWrite": true,
+    "notes": {
+      "anyUnavailableRejected": true,
+      "anyUnavailableMention": true,
+      "anyWriteCard": false,
+      "wrote": true,
+      "unavailablePersisted": false
+    }
+  }
+}

@@ -1,0 +1,142 @@
+{
+  "score": {
+    "frontmatterOk": true,
+    "leafSkillRead": true,
+    "usedChrome": true,
+    "modelAutoInvoke": false,
+    "keptVerifyOk": true,
+    "productFixed": true,
+    "docsPropagated": true,
+    "bareRejected": true,
+    "foundationalRedesign": true,
+    "verifiedDone": true,
+    "contractHeld": true,
+    "screen": {
+      "potetoMode": false,
+      "leafChrome": false,
+      "hostAttached": false,
+      "verifyMention": true,
+      "redesignMention": true,
+      "working": false
+    },
+    "pty": {
+      "potetoMode": true,
+      "leafChrome": false,
+      "hostAttached": true,
+      "verifyMention": true,
+      "redesignMention": true,
+      "working": true
+    }
+  },
+  "firstProductAt": "2026-10-09T01:39:13.687Z",
+  "firstVerifyAt": "2026-10-09T01:39:20.114Z",
+  "firstDocsAt": "2026-10-09T01:39:14.489Z",
+  "productPaths": [
+    "src/product.js"
+  ],
+  "docsPaths": [
+    "docs/price.md",
+    "README.md"
+  ],
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/redesign-first/fixture-out/cursor/done.txt",
+    "line": "verified=yes"
+  },
+  "verifyOut": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/redesign-first/fixture-app/evidence/verify-out.txt",
+    "line": "REDESIGN-OK",
+    "ok": true
+  },
+  "productCheck": {
+    "ok": true,
+    "bareRejected": true,
+    "label": "12.00 EUR"
+  },
+  "docsCheck": {
+    "ok": true,
+    "coreDoc": true,
+    "oldDoc": false,
+    "readmeOk": true
+  },
+  "frontmatter": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/principle-redesign-from-first-principles/SKILL.md",
+    "ok": true,
+    "name": "principle-redesign-from-first-principles",
+    "disableModelInvocation": true
+  },
+  "session": null,
+  "transcript": {
+    "path": "/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/agent-transcripts/222d0e43-2d28-40f1-9221-6baa43bafcae/222d0e43-2d28-40f1-9221-6baa43bafcae.jsonl",
+    "leafSkillRead": true,
+    "leafSkillReadAt": "2026-10-09T01:40:34.769Z",
+    "ranVerifyScript": true,
+    "wroteProduct": true,
+    "wroteDocs": true,
+    "toolOrder": [
+      "Read",
+      "GetDynamicTools",
+      "Read",
+      "Read(redesign-leaf)",
+      "Glob",
+      "blob-mention(redesign-leaf)",
+      "CallDynamicTool(verify.mjs)",
+      "Read",
+      "Read(verify.mjs)",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "GetDynamicTools",
+      "CallDynamicTool(verify.mjs)",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "CallDynamicTool",
+      "CallDynamicTool",
+      "CallDynamicTool",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "CallDynamicTool",
+      "Read",
+      "Read",
+      "Read",
+      "CallDynamicTool",
+      "Write(product)",
+      "Write(docs)",
+      "Write(verify.mjs)",
+      "Shell(verify.mjs)",
+      "Shell",
+      "CallDynamicTool"
+    ],
+    "mtimeMs": 1791509984502.9644
+  },
+  "pollSamples": 187,
+  "screenFinal": {
+    "potetoMode": false,
+    "leafChrome": false,
+    "hostAttached": false,
+    "verifyMention": true,
+    "redesignMention": true,
+    "working": false
+  },
+  "pty": {
+    "potetoMode": true,
+    "leafChrome": false,
+    "hostAttached": true,
+    "verifyMention": true,
+    "redesignMention": true,
+    "working": true
+  }
+}

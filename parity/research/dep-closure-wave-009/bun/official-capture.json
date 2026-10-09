@@ -1,0 +1,69 @@
+{
+  "capturedAt": "2026-10-09T01:52:19Z",
+  "unit": "u-dep-closure-wave-009",
+  "localBunVersionCapture": "parity/research/dep-closure-wave-009/bun/bun-version.txt",
+  "localBunVersionSha256": "b99b4c7cdf236f59bc9f65d963deaecae3b16a7dad87939cacb9057f7664daee",
+  "localBunStdout": "1.4.2",
+  "whichBun": "/Users/josh-desktop/.local/share/mise/installs/bun/latest/bin/bun",
+  "docs": [
+    {
+      "label": "install",
+      "url": "https://bun.com/docs/installation",
+      "finalUrl": "https://bun.com/docs/installation",
+      "path": "parity/research/dep-closure-wave-009/bun/install.html",
+      "sha256": "afc8a8be3c99d25d81683fb7259315b9421eaae5804cbf5adae5672661099150",
+      "byteLength": 192792,
+      "headersPath": "parity/research/dep-closure-wave-009/bun/install.html.headers.txt",
+      "status": "fetched",
+      "httpStatus": 200,
+      "reason": null
+    },
+    {
+      "label": "lockfile",
+      "url": "https://bun.com/docs/pm/lockfile",
+      "finalUrl": "https://bun.com/docs/pm/lockfile",
+      "path": "parity/research/dep-closure-wave-009/bun/lockfile.html",
+      "sha256": "974285c98875e1b7503be3ef87def5c0fb2b2bcb5530c0414b8c96afa524e782",
+      "byteLength": 67078,
+      "headersPath": "parity/research/dep-closure-wave-009/bun/lockfile.html.headers.txt",
+      "status": "fetched",
+      "httpStatus": 200,
+      "reason": null
+    },
+    {
+      "label": "bunfig",
+      "url": "https://bun.com/docs/runtime/bunfig",
+      "finalUrl": "https://bun.com/docs/runtime/bunfig",
+      "path": "parity/research/dep-closure-wave-009/bun/bunfig.html",
+      "sha256": "2c87a330c846626889f139deecdbfad570dd9c38599a75ff07a9d6557a36a873",
+      "byteLength": 437450,
+      "headersPath": "parity/research/dep-closure-wave-009/bun/bunfig.html.headers.txt",
+      "status": "fetched",
+      "httpStatus": 200,
+      "reason": null
+    },
+    {
+      "label": "bun-version-docs-legacy",
+      "note": "Legacy guide URL still expected 404.",
+      "url": "https://bun.com/docs/guides/install/bun-version",
+      "finalUrl": "https://bun.com/docs/guides/install/bun-version",
+      "path": "parity/research/dep-closure-wave-009/bun/bun-version-docs.html",
+      "sha256": "cf0111d694ba188746577d2122ade94277088357ff4ccf6a2074cffd1e2f2098",
+      "byteLength": 28732,
+      "headersPath": "parity/research/dep-closure-wave-009/bun/bun-version-docs.headers.txt",
+      "status": "http_error",
+      "httpStatus": 404,
+      "reason": "Not Found"
+    }
+  ],
+  "pinCandidatesChecked": {
+    "package.json.engines": null,
+    "package.json.packageManager": null,
+    "package.json.volta": null,
+    "package.json.devEngines": null,
+    "pinFilesFoundUnderToolsOrPoteto": []
+  },
+  "pinStatus": "unresolved",
+  "disposition": "Wave-009 re-probed tools/poteto pin files, recorded host bun path and version, and re-fetched Bun install/lockfile/bunfig docs. No official Bun binary pin exists under the tools subtree. Do not invent a pin from local 1.4.2, mise latest, or bun-types.",
+  "blocker": "No engines/packageManager/volta/.bun-version/bunfig/mise/.tool-versions pin under poteto-mode scripts. Local bun --version and host mise bun/latest are not official pins."
+}

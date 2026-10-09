@@ -1,0 +1,85 @@
+{
+  "status": "candidate-reference-observations-not-executed-not-frozen",
+  "authorization": "None of these candidates is authorized for execution by this discovery task. Model-backed Cursor runs, service activation, installs, account changes, secret reads, external communication and publication are prohibited here. A future execution owner needs explicit applicable authorization and permitted working reference access.",
+  "reference_anchor": {
+    "source": "preserved/source-lock.json",
+    "cursor_cli": "2026.10.01-e373342",
+    "pstack": "0.15.15",
+    "plugins_revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+    "limitation": "Prior incomplete lock, not revalidated here. Web and API backend deployments are not pinned by a CLI version. A future observer must record live deployment/build metadata when exposed, account rollout state, UI build, effective configuration and observation times; unavailable metadata stays unavailable. Do not fabricate a backend lock."
+  },
+  "shared_capture": [
+    "Resettable nonproduction repository and no-repo fixtures with digests; preprovisioned controlled read-only MCP endpoints for distinct legacy SSE and Streamable HTTP protocols, plus a preinstalled harmless stdio fixture. Fixtures must not depend on an illustrative vendor URL.",
+    "Use the actual reference UI and literal API controls under a separately authorized observation protocol. Capture every action, intermediate UI state, API request shape without credentials, status, response headers/body, configuration digest, run/agent identifiers, start/end timestamps and content hashes.",
+    "Keep stable identifiers and protocol traces intact. Record actual negotiated protocol and controlled endpoint connection/tool-call traces. Successful create response alone cannot establish tool discovery or execution.",
+    "Request only the fixture read_echo tool with fixed harmless input. Capture its literal result and call location. No PR, customer contact, Slack message, publication, secret disclosure or account/spending change.",
+    "Use a credential-safe control outside model prompts and recordings. If no safe working account exists, record that prerequisite; an unavailable-service response does not settle transport success.",
+    "Retain all repetitions under a declared protocol, including failures. Observations settle only the tested time, configuration, entry point and versions. No universal claim follows from one case."
+  ],
+  "scenarios": [
+    {
+      "id": "MCP-01",
+      "question": "Does the saved cloud custom-server entry point reject SSE while accepting HTTP and stdio?",
+      "starting_state": "Authorized preconfigured nonproduction cloud account. Record personal versus team context separately without changing policy.",
+      "actions": ["Open the Cloud Agents MCP dropdown. Inspect the custom-server transport choices.", "Under future authorization, submit the controlled SSE definition through its real entry controls. Retain any validation or unsupported message.", "Repeat with the same tool and controlled HTTP and stdio definitions. If a run is separately authorized, invoke read_echo and capture tool availability and result."],
+      "discriminating_observations": ["Offered controls and literal validation text.", "Save acceptance versus run tool discovery versus actual tool completion.", "Differences between personal and shared configurations without assuming they share backend policy."],
+      "sources": ["cloud-mcp-personal-team-entry", "cloud-mcp-sse-prohibition", "cloud-http-backend", "cloud-stdio-vm"]
+    },
+    {
+      "id": "MCP-02",
+      "question": "Does v1 inline create accept and execute explicit SSE?",
+      "starting_state": "Same authorized fixture account and cloud environment as MCP-01. Controlled endpoints already available. No account changes.",
+      "actions": ["Send POST /v1/agents with prompt.text equal to Use read_echo once with value transport-check and report its literal result. Set autoCreatePR false and mcpServers to one named read_echo_fixture with type sse and the controlled SSE URL.", "Capture response and follow the returned run through its real status and stream controls. Capture endpoint initialize, tools/list and tools/call traces.", "Repeat with explicit http on the controlled Streamable HTTP endpoint and with omitted type on that same endpoint."],
+      "discriminating_observations": ["Request validation rejection, connection/authentication failure, tool skip, discovery success and execution success remain separate outcomes.", "Protocol traces distinguish SSE from an HTTP path ending in /sse.", "No successful branch can be inferred from the published enum alone."],
+      "sources": ["api-mcp-type-defaults", "schema-remote", "schema-create-mcp"]
+    },
+    {
+      "id": "MCP-03",
+      "question": "Which execution boundary applies to self-hosted MCP transports?",
+      "starting_state": "Separately authorized already-running controlled worker with permitted pool access. No worker start, deployment or service activation in this task.",
+      "actions": ["Use the real reference pool selection with the harmless fixture tool configured separately for stdio, HTTP and SSE.", "Capture worker process and outbound connection evidence plus controlled endpoint traces during tool execution.", "Compare against local locked CLI MCP use with the same fixture input through the actual terminal controls."],
+      "discriminating_observations": ["Actual process/connection attribution, not a worker label.", "Pool documented backend URL routing versus worker-local stdio execution.", "Local CLI support does not close cloud support."],
+      "sources": ["pool-mcp-routing", "self-hosted-execution", "general-mcp-transports"]
+    },
+    {
+      "id": "MCP-04",
+      "question": "Is mcp-remote excluded by program policy independently of the stdio enum?",
+      "starting_state": "Future explicitly authorized environment with a preexisting pinned mcp-remote fixture. No install or execution here.",
+      "actions": ["Inspect the real saved custom-server validation with a stdio definition naming the pinned program.", "Only if separately authorized, compare v1 inline stdio create against the ordinary harmless stdio control."],
+      "discriminating_observations": ["Program-specific unsupported response versus schema validation versus launch failure.", "Do not classify arbitrary command schema as runtime permission."],
+      "sources": ["cloud-mcp-sse-prohibition", "schema-stdio"]
+    },
+    {
+      "id": "MCP-05",
+      "question": "Does an inline follow-up replacement persist into a later omitted configuration?",
+      "starting_state": "Authorized durable agent created with fixture A, no active run.",
+      "actions": ["Create a follow-up run with fixture B as mcpServers and ask Use read_echo once with value config-B.", "After terminal state, create another run omitting mcpServers and ask List the available fixture tools and use read_echo once with value config-omitted.", "From a reset equivalent agent, repeat with mcpServers equal to an empty array, then omission."],
+      "discriminating_observations": ["Actual A/B discovery and endpoint call trace for every run.", "Replacement run versus later omitted run versus explicit empty array."],
+      "sources": ["api-inline-followup", "schema-run-mcp"]
+    },
+    {
+      "id": "MCP-06",
+      "question": "Which prose-only validation constraints are enforced by the real API?",
+      "starting_state": "Future authorized safe validation protocol with no uncontrolled endpoint or credential. Any potentially accepted create can enqueue work, so no request is safe to execute under this discovery authorization.",
+      "actions": ["Prepare separate cases for mixed command/url, unknown type, missing name, duplicate names, omitted type, non-HTTP URI and inert URL userinfo.", "Prepare the headers-plus-auth case using fixture authentication only, never real secret values in model context.", "Under separate authorization, capture response and any actual run. Do not infer headers/auth precedence without fixture traces."],
+      "discriminating_observations": ["Published closed branches versus actual validation.", "Prose constraints, schema constraints and fallback behavior stay separate."],
+      "sources": ["schema-stdio", "schema-remote", "schema-mcp-oneof", "schema-oauth", "schema-create-mcp", "api-mcp-remote-url"]
+    },
+    {
+      "id": "LIFECYCLE-01",
+      "question": "Does GET /v1/agents/{id} return IDLE after a terminal run?",
+      "starting_state": "Authorized nonproduction durable agent with harmless no-write prompt.",
+      "actions": ["Capture agent and run state during creation, active work and terminal run.", "After the run terminates, read agent metadata again through the documented control.", "Archive and unarchive only if separately authorized, with no delete."],
+      "discriminating_observations": ["Literal agent status and separate run status, preserving timestamps.", "Do not use absent IDLE observations as proof it is impossible."],
+      "sources": ["api-status-idle", "schema-agent-status", "archive-idempotent", "unarchive-idempotent"]
+    },
+    {
+      "id": "MODEL-01",
+      "question": "Does backend validation accept inherit despite the published oneOf overlap?",
+      "starting_state": "Future separately authorized reference create with harmless custom subagent, matched parent model and safe fixture.",
+      "actions": ["Compare literal customSubagents model inherit, omitted model and explicit supported model object through actual v1 create controls.", "Capture validation and, if separately authorized, actual delegation metadata."],
+      "discriminating_observations": ["API acceptance versus actual inherited selection.", "Unsigned labels do not authenticate physical model identity."],
+      "sources": ["schema-custom-model"]
+    }
+  ]
+}

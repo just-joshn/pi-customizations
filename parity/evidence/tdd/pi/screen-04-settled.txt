@@ -1,0 +1,40 @@
+     expected: 5,                                                                                                      │
+                                                                                                                       │
+ Took 0.1s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+                                                                                                                       │
+ $ cat > src/clamp.js <<'E'                                                                                            │
+ /** Clamp n into [min, max]. */                                                                                       │
+ export function clamp(n, min, max) {                                                                                  │
+   if (n < min) return min;                                                                                            │
+   if (n > max) return max;                                                                                            │
+   return n;                                                                                                           │
+ }                                                                                                                     │
+ E                                                                                                                     │
+ node --test test/clamp.test.js 2>&1 | grep -E "^ℹ (pass|fail)"                                                        │
+ mkdir -p ../../fixture-out/pi && echo "test/clamp.test.js failed red with AssertionError 10 !== 5 (actual: 10,        │
+ expected: 5) for clamp(10, 0, 5)" > ../../fixture-out/pi/done.txt (timeout 30s)                                       │
+                                                                                                                       │
+ ℹ pass 1                                                                                                              │
+ ℹ fail 0                                                                                                              │
+                                                                                                                       ┃
+ Took 0.1s                                                                                                             ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ The bug is fixed: clamp(10, 0, 5) now returns 5.                                                                      ┃
+                                                                                                                       ┃
+ - Red: I added test/clamp.test.js and ran it before touching src/clamp.js. It failed with 10 !== 5 (actual 10,        ┃
+   expected 5).                                                                                                        ┃
+ - Fix: src/clamp.js now has if (n > max) return max; after the lower-bound check.                                     ┃
+ - Green: I reran node --test test/clamp.test.js. It reported pass 1, fail 0. I did not run the rest of the suite or   ┃
+   add tests for other inputs.                                                                                         ┃
+                                                                                                                       ┃
+ I wrote the one-line failing-before note to                                                                           ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/tdd/fixture-out/pi/done.txt.                  ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/tdd/fixture-app (refactor/pi-pstack-parity-again)
+↑10 ↓851 R84k W18k CH98.9% $0.099 (sub) 2.6%/1.0M (auto)                (claude-subscription) claude-sonnet-5-5 • medium

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "cmd-create-verify-skill",
+  "status": "executed-pass-paired",
+  "requirements": [
+    "PSTACK-CMD-CREATE-VERIFY-SKILL-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/create-verification-skill/SKILL.md#frontmatter and opening generate paragraph",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "hello-cli fixture generate-then-reuse",
+    "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Invoke /create-verification-skill.. Agent interviews the repo and writes .cursor/skills/verify-<app>/SKILL.md with YAML frontmatter so the skill registers."
+    }
+  ],
+  "execution": {
+    "referenceRun": "9a4dae62-0072-494c-a6d5-7f013fbfb66e",
+    "candidateRun": "fba64ade-c697-4368-84ea-4281386b9e81",
+    "pairId": "create-verify-reuse-1",
+    "pairPath": "parity/evidence/create-verify/pair-create-verify-reuse-1.json",
+    "verdict": "pass-paired",
+    "closedAt": "2026-10-08T19:07:00Z"
+  }
+}

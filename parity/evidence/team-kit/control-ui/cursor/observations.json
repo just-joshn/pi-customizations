@@ -1,0 +1,54 @@
+{
+  "screenFinal": {
+    "skillMention": true,
+    "envBlocked": false,
+    "working": false
+  },
+  "pty": {
+    "skillMention": true,
+    "envBlocked": false,
+    "working": true
+  },
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/control-ui/done.txt",
+    "line": "STATUS=verified reason=UI_PROBE_OK confirmed via Chrome CDP",
+    "status": "verified"
+  },
+  "summaryExists": true,
+  "seededSkill": null,
+  "oracle": {
+    "shotExists": true,
+    "summaryExists": true,
+    "hasProbe": true,
+    "done": {
+      "exists": true,
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/control-ui/done.txt",
+      "line": "STATUS=verified reason=UI_PROBE_OK confirmed via Chrome CDP",
+      "status": "verified"
+    },
+    "closed": true,
+    "honestBlocker": false
+  },
+  "score": {
+    "skillPath": true,
+    "envBlocked": false,
+    "doneStatus": "verified",
+    "oracleClosed": true,
+    "closed": true,
+    "honestBlocker": false,
+    "oracle": {
+      "shotExists": true,
+      "summaryExists": true,
+      "hasProbe": true,
+      "done": {
+        "exists": true,
+        "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/control-ui/done.txt",
+        "line": "STATUS=verified reason=UI_PROBE_OK confirmed via Chrome CDP",
+        "status": "verified"
+      },
+      "closed": true,
+      "honestBlocker": false
+    }
+  }
+}

@@ -1,0 +1,112 @@
+{
+  "package": "commander@14.0.0",
+  "manifestDependencyFields": {
+    "dependencies": "<absent>",
+    "optionalDependencies": "<absent>",
+    "peerDependencies": "<absent>",
+    "bundleDependencies": "<absent>",
+    "bundledDependencies": "<absent>"
+  },
+  "thirdPartyRuntimeDependencies": [],
+  "thirdPartyRuntimeDependencyCount": 0,
+  "importScanFileCount": 8,
+  "imports": [
+    {
+      "file": "esm.mjs",
+      "specifier": "./index.js",
+      "kind": "relative"
+    },
+    {
+      "file": "index.js",
+      "specifier": "./lib/argument.js",
+      "kind": "relative"
+    },
+    {
+      "file": "index.js",
+      "specifier": "./lib/command.js",
+      "kind": "relative"
+    },
+    {
+      "file": "index.js",
+      "specifier": "./lib/error.js",
+      "kind": "relative"
+    },
+    {
+      "file": "index.js",
+      "specifier": "./lib/help.js",
+      "kind": "relative"
+    },
+    {
+      "file": "index.js",
+      "specifier": "./lib/option.js",
+      "kind": "relative"
+    },
+    {
+      "file": "lib/argument.js",
+      "specifier": "./error.js",
+      "kind": "relative"
+    },
+    {
+      "file": "lib/command.js",
+      "specifier": "node:events",
+      "kind": "node-builtin"
+    },
+    {
+      "file": "lib/command.js",
+      "specifier": "node:child_process",
+      "kind": "node-builtin"
+    },
+    {
+      "file": "lib/command.js",
+      "specifier": "node:path",
+      "kind": "node-builtin"
+    },
+    {
+      "file": "lib/command.js",
+      "specifier": "node:fs",
+      "kind": "node-builtin"
+    },
+    {
+      "file": "lib/command.js",
+      "specifier": "node:process",
+      "kind": "node-builtin"
+    },
+    {
+      "file": "lib/command.js",
+      "specifier": "./argument.js",
+      "kind": "relative"
+    },
+    {
+      "file": "lib/command.js",
+      "specifier": "./error.js",
+      "kind": "relative"
+    },
+    {
+      "file": "lib/command.js",
+      "specifier": "./help.js",
+      "kind": "relative"
+    },
+    {
+      "file": "lib/command.js",
+      "specifier": "./option.js",
+      "kind": "relative"
+    },
+    {
+      "file": "lib/command.js",
+      "specifier": "./suggestSimilar",
+      "kind": "relative"
+    },
+    {
+      "file": "lib/help.js",
+      "specifier": "./argument.js",
+      "kind": "relative"
+    },
+    {
+      "file": "lib/option.js",
+      "specifier": "./error.js",
+      "kind": "relative"
+    }
+  ],
+  "expectation": "none",
+  "matchesExpectation": true
+}

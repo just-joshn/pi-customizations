@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "kind": "source-lock-refresh",
+  "generatedAt": "2026-10-09T13:56:09Z",
+  "priorLock": {
+    "path": "parity/source-lock.json",
+    "status": "incomplete",
+    "cursorPluginsRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+    "pstackVersion": "0.15.15",
+    "piRelease": "v1.1.0"
+  },
+  "cursorPlugins": {
+    "repository": "https://github.com/cursor/plugins",
+    "clonePath": "parity/research/source-lock-refresh-20261009/cursor-plugins",
+    "headSha": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+    "lsRemoteHeadSha": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+    "retrievedAt": "2026-10-09T13:55:31Z",
+    "changedVsPriorLock": false,
+    "priorLockRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+    "pstack": {
+      "version": "0.15.15",
+      "manifest": "pstack/.cursor-plugin/plugin.json",
+      "manifestSha256": "7bc736c60985805f70465e044e5adc7028663f72a73deea7fa3e95e52d70dc8e"
+    },
+    "cursorTeamKit": {
+      "version": "1.2.0",
+      "manifest": "cursor-team-kit/.cursor-plugin/plugin.json",
+      "manifestSha256": "9c8622d0577205959b6469a5454cbe2787ad3c6412439759328e92dc0115584d"
+    }
+  },
+  "pi": {
+    "repository": "https://github.com/earendil-works/pi",
+    "latestReleaseUrl": "https://github.com/earendil-works/pi/releases/latest",
+    "tag": "v1.1.0",
+    "publishedAt": "2026-10-07T22:26:31Z",
+    "sha256sumsFile": "parity/research/source-lock-refresh-20261009/SHA256SUMS",
+    "sha256sumsFileSha256": "23714cb82b9a1301cc30a69e4adee9cc01bf3c8aa3dea383d60e3d76df3b62ce",
+    "darwinArm64": {
+      "asset": "pi-darwin-arm64.tar.gz",
+      "digestFromSha256sums": "3455b13de35c15a5893cdebc922678199e90a7ce99b06cbc23f37860e90d63c7",
+      "digestFromGitHubApi": "sha256:3455b13de35c15a5893cdebc922678199e90a7ce99b06cbc23f37860e90d63c7"
+    },
+    "tagCommit": "abe508e1b89912adde45528136c3221eb69acdd7"
+  },
+  "installed": {
+    "cursor": {
+      "command": "cursor --version",
+      "stdoutLines": [
+        "3.24.9",
+        "cd6d2a1f2e56e9841f0ed9c7c24542087b4e69b0",
+        "arm64"
+      ]
+    },
+    "cursorAgent": {
+      "command": "cursor-agent --version",
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "version": "2026.10.01-e373342"
+    },
+    "pi": {
+      "command": "pi --version",
+      "version": "1.1.0"
+    },
+    "agentNote": {
+      "command": "agent --version",
+      "stdout": "grok 1.0.46 (2765805b9442) [stable]",
+      "note": "PATH agent is grok, not cursor-agent; cursor-agent recorded separately"
+    }
+  },
+  "completeDependencyClosure": false,
+  "completeDependencyClosureClaimed": false,
+  "notes": [
+    "Research refresh only. Did not edit parity/source-lock.json or ledger files.",
+    "cursor/plugins HEAD equals prior lock revision ccb5507cec1546dc88135c1139c811e6c59115ba.",
+    "PATH agent resolves to grok; cursor-agent is the Cursor CLI agent binary."
+  ]
+}

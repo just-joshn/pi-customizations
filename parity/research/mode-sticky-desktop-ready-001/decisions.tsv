@@ -1,0 +1,6 @@
+ts	phase	decision	why	evidence	result
+2026-10-09T06:01:03Z	start	start MODE-STICKY desktop-ready capture	autonomous-run exit predicate set; desktop Ready claimed by prior unit	parity/research/dep-computer-use-exercise-001/disposition-ready.json	predicate open
+2026-10-09T06:02:32Z	ready	rechecked desktop Ready and auth	prove-it-works on helper status + worker debug before drive	02-desktop-share-status.json;04-worker-debug-cmd.txt;05-auth-glass.txt	Ready=yes; pro_plus; glass signed-in
+2026-10-09T06:11:37Z	capture	Agents Window sticky Custom Mode reached and held across follow-up	alt+Return selected Use as Mode; crown poteto-mode badge remained after turn 1 and turn 2	parity/evidence/mode-sticky/agents-window/521ce15e-a8f8-4f74-8fec-208ceddb7603/screen-06-after-second-turn-sticky.png	sticky yes; attempt 521ce15e
+2026-10-09T06:13:04Z	verify	pair pass-paired and screens verified	prove-it-works on evidence files and pair JSON fields	parity/evidence/mode-sticky/pair-mode-sticky-1.json	predicate met
+2026-10-09T06:13:04Z	merge	recommend close MODE-STICKY harness and PSTACK-MODE-STICKY-001	both halves hold; coordinator owns ledger merge	parity/briefs/reports/u-mode-sticky-desktop-ready-001-report.md	merge yes; ledgers untouched

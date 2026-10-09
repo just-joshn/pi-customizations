@@ -1,0 +1,1442 @@
+{
+  "schemaVersion": 1,
+  "sliceId": "slice-commands-002",
+  "kind": "requirement-proposals",
+  "status": "draft-not-merged",
+  "sourceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "sourceLockNote": "Official pstack 0.15.15 @ ccb5507 under parity/reference/cursor-plugins/pstack/",
+  "topic": "leftover slash commands and skill entry points from slice-commands-001 (Benny + user skills preferred)",
+  "topicInventoryDefinition": "Leftover uncovered paths listed in parity/research/requirement-slices/slice-commands-001/report.md",
+  "priorLeftoverInventoryCount": 41,
+  "coveredInventoryCount": 17,
+  "leftoverInventoryCount": 24,
+  "proposalCount": 17,
+  "excludedExistingRequirements": [
+    "PSTACK-MODE-ONE-MESSAGE-001",
+    "PSTACK-MODE-STICKY-001",
+    "PSTACK-SETUP-MODEL-DISCOVERY-001",
+    "PSTACK-SETUP-BUDGET-LABELS-001"
+  ],
+  "deferredToLaterSlice": [
+    "pstack/skills/principle-attack-the-premise/SKILL.md",
+    "pstack/skills/principle-boundary-discipline/SKILL.md",
+    "pstack/skills/principle-build-the-lever/SKILL.md",
+    "pstack/skills/principle-encode-lessons-in-structure/SKILL.md",
+    "pstack/skills/principle-exhaust-the-design-space/SKILL.md",
+    "pstack/skills/principle-experience-first/SKILL.md",
+    "pstack/skills/principle-explain-the-number/SKILL.md",
+    "pstack/skills/principle-fix-root-causes/SKILL.md",
+    "pstack/skills/principle-foundational-thinking/SKILL.md",
+    "pstack/skills/principle-guard-the-context-window/SKILL.md",
+    "pstack/skills/principle-laziness-protocol/SKILL.md",
+    "pstack/skills/principle-make-operations-idempotent/SKILL.md",
+    "pstack/skills/principle-migrate-callers-then-delete-legacy-apis/SKILL.md",
+    "pstack/skills/principle-minimize-reader-load/SKILL.md",
+    "pstack/skills/principle-model-the-domain/SKILL.md",
+    "pstack/skills/principle-never-block-on-the-human/SKILL.md",
+    "pstack/skills/principle-outcome-oriented-execution/SKILL.md",
+    "pstack/skills/principle-prove-it-works/SKILL.md",
+    "pstack/skills/principle-redesign-from-first-principles/SKILL.md",
+    "pstack/skills/principle-separate-before-serializing-shared-state/SKILL.md",
+    "pstack/skills/principle-sequence-verifiable-units/SKILL.md",
+    "pstack/skills/principle-subtract-before-you-add/SKILL.md",
+    "pstack/skills/principle-test-behavior-not-implementation/SKILL.md",
+    "pstack/skills/principle-type-system-discipline/SKILL.md"
+  ],
+  "configurationMatrixRef": "parity/configurations.json",
+  "domainModel": {
+    "record": "RequirementProposal",
+    "organizingStructure": "typed proposal records plus prior leftover set, coverage set, and unresolved queue",
+    "invariants": [
+      "status never verified in this slice",
+      "every quote recomputes to quoteSha256",
+      "fullFileSha256 matches inventoryItemSha256",
+      "configurationCells reference parity/configurations.json ids",
+      "no re-proposal of poteto-mode enter or setup-pstack discovery/budget already in requirements.json"
+    ]
+  },
+  "proposals": [
+    {
+      "id": "PSTACK-CMD-COMMENT-SICKO-FIRST-OUTPUT-001",
+      "status": "draft-proposal",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/agents/comment-sicko.md",
+        "locator": "Comment Sicko first spawned output contract",
+        "lineStart": 8,
+        "lineEnd": 10,
+        "fullFileSha256": "c0fd0383008da45fc78cfac17b9007d62c42f87ad1c8d5c2fb658b1fd01f7c82",
+        "quoteSha256": "a08d071a2c49b477cc7484e9f68099a7fb0e6c0b5b15a50d2541229bece19abf",
+        "quote": "My first output when spawned is exactly this.\n\nYes... Ha ha ha... Yes!\n"
+      },
+      "inventoryPath": "pstack/agents/comment-sicko.md",
+      "inventoryItemSha256": "c0fd0383008da45fc78cfac17b9007d62c42f87ad1c8d5c2fb658b1fd01f7c82",
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Spawn the Comment Sicko agent (Task subagent_type Comment Sicko or host equivalent).",
+      "preconditions": [
+        "Locked pstack agents directory loaded."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "configurationCells": [
+        {
+          "id": "default",
+          "role": "required-unverified-matrix-cell"
+        },
+        {
+          "id": "installed-user",
+          "role": "required-unverified-matrix-cell"
+        }
+      ],
+      "startingState": "Fresh Comment Sicko spawn with no prior agent turns in that child.",
+      "actions": [
+        {
+          "input": "Start the agent with a scoped diff or files to review.",
+          "expectedObservation": "The agent's first output is exactly the two-line catchphrase \"Yes... Ha ha ha... Yes!\" before other review content."
+        }
+      ],
+      "expectedObservations": [
+        "The agent's first output is exactly the two-line catchphrase \"Yes... Ha ha ha... Yes!\" before other review content."
+      ],
+      "requiredSideEffects": [
+        "First visible agent message matches the mandated catchphrase."
+      ],
+      "forbiddenSideEffects": [
+        "Skipping the catchphrase or substituting a different opening."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "unresolved": [
+        "Whether the host strips or reformats the exact catchphrase whitespace is unresolved without a reference journey.",
+        "Interaction with no-comments skill orchestration remains a separate requirement."
+      ],
+      "evidence": [],
+      "notes": "Agent entry definition leftover from slice-commands-001. Distinct from PSTACK-CMD-NO-COMMENTS-SICKO-001 skill trigger. Proposal only. Not merged into parity/requirements.json. Status must not be verified."
+    },
+    {
+      "id": "PSTACK-CMD-POTETO-AGENT-READ-SKILL-001",
+      "status": "draft-proposal",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/agents/poteto-agent.md",
+        "locator": "poteto-agent frontmatter and body require reading poteto-mode SKILL.md",
+        "lineStart": 1,
+        "lineEnd": 9,
+        "fullFileSha256": "abe41c169ecbfe65641f1725f4188d568e046c0dec7fd2dc271abb594c299201",
+        "quoteSha256": "abe41c169ecbfe65641f1725f4188d568e046c0dec7fd2dc271abb594c299201",
+        "quote": "---\nname: poteto-agent\ndescription: Routing target for `/poteto-mode` and any request for poteto's style. Spawn a fresh `poteto-agent` for each new task, and resume one only in the strict cases that poteto-mode's Subagents section names. Reads the `poteto-mode` skill's `SKILL.md` in full before any work, including its inline Principles index. Substituting `generalPurpose` skips that read and drifts.\nis_background: true\n---\n\n# Poteto subagent\n\nYou are operating as poteto-mode's full agent style. Read the `poteto-mode` skill's `SKILL.md` in full before doing any work, including its inline Principles index. Navigate to a leaf `principle-*` skill whenever you apply that principle.\n"
+      },
+      "inventoryPath": "pstack/agents/poteto-agent.md",
+      "inventoryItemSha256": "abe41c169ecbfe65641f1725f4188d568e046c0dec7fd2dc271abb594c299201",
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Spawn a poteto-agent for a new poteto-mode playbook task.",
+      "preconditions": [
+        "Locked pstack poteto-mode skill and poteto-agent definition loaded."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "configurationCells": [
+        {
+          "id": "default",
+          "role": "required-unverified-matrix-cell"
+        },
+        {
+          "id": "installed-user",
+          "role": "required-unverified-matrix-cell"
+        }
+      ],
+      "startingState": "New task requiring poteto-mode style; no prior poteto-agent resume grant.",
+      "actions": [
+        {
+          "input": "Launch Task with subagent_type poteto-agent.",
+          "expectedObservation": "The agent reads poteto-mode SKILL.md in full before other work, including the Principles index, and does not substitute generalPurpose for that read."
+        }
+      ],
+      "expectedObservations": [
+        "The agent reads poteto-mode SKILL.md in full before other work, including the Principles index, and does not substitute generalPurpose for that read."
+      ],
+      "requiredSideEffects": [
+        "poteto-mode SKILL.md is loaded before task execution continues."
+      ],
+      "forbiddenSideEffects": [
+        "Substituting generalPurpose (or equivalent) and skipping the poteto-mode SKILL.md read."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "unresolved": [
+        "is_background:true host scheduling semantics need paired observation.",
+        "Strict resume cases named in poteto-mode Subagents section need their own requirement."
+      ],
+      "evidence": [],
+      "notes": "Covers agent definition leftover; does not restate Enter vs Option+Enter mode attachment. Proposal only. Not merged into parity/requirements.json. Status must not be verified."
+    },
+    {
+      "id": "PSTACK-CMD-BENNY-REPRO-FAIL-CLOSED-001",
+      "status": "draft-proposal",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md",
+        "locator": "reproduce-and-fix-issues fail-closed when config or adapter missing",
+        "lineStart": 1,
+        "lineEnd": 11,
+        "fullFileSha256": "1363cc07343fe86aab42853b1bd4563288cbcbdf12f1c265b3b3b1afa25c09cb",
+        "quoteSha256": "5788c8974092c74dbe5a027eb6c11bda2071565163d212d2fa634d2acbf9cefa",
+        "quote": "---\nname: reproduce-and-fix-issues\ndescription: Reproduce triaged Slack bugs through a configured app-control adapter, verify existing fixes, and open a bounded draft pull request only after before-and-after proof. Use only from the configured Benny repro automation.\ndisable-model-invocation: true\n---\n\n# Reproduce and fix issues\n\nWait for a trusted triage marker in the source thread. Reproduce the exact symptom through the target app's real UI. Verify an existing fix when one exists. Attempt a bounded fix only after a confirmed repro.\n\nLoad the external Benny configuration supplied by the automation. If the config, required actions, control adapter, or completed feature map is missing, fail closed.\n"
+      },
+      "inventoryPath": "pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md",
+      "inventoryItemSha256": "1363cc07343fe86aab42853b1bd4563288cbcbdf12f1c265b3b3b1afa25c09cb",
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Benny repro automation invokes reproduce-and-fix-issues without complete external config.",
+      "preconditions": [
+        "Benny automation pack present; external config intentionally incomplete or missing required actions, control adapter, or completed feature map."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "configurationCells": [
+        {
+          "id": "default",
+          "role": "required-unverified-matrix-cell"
+        },
+        {
+          "id": "installed-user",
+          "role": "required-unverified-matrix-cell"
+        }
+      ],
+      "startingState": "Trusted triage marker may or may not be present; repro skill entry begins.",
+      "actions": [
+        {
+          "input": "Start the repro skill with missing required Benny configuration pieces.",
+          "expectedObservation": "The skill fails closed and does not attempt UI repro, product edits, or a draft PR."
+        }
+      ],
+      "expectedObservations": [
+        "The skill fails closed and does not attempt UI repro, product edits, or a draft PR."
+      ],
+      "requiredSideEffects": [
+        "Fail-closed stop without opening a draft PR."
+      ],
+      "forbiddenSideEffects": [
+        "Proceeding to reproduce or fix without required config, adapter, or feature map."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "unresolved": [
+        "Exact fail-closed user-visible message text is host-dependent and unverified.",
+        "Trusted triage marker wait path needs a separate positive-path requirement."
+      ],
+      "evidence": [],
+      "notes": "Benny operational skill; not registered as a normal pstack slash skill root entry. Proposal only. Not merged into parity/requirements.json. Status must not be verified."
+    },
+    {
+      "id": "PSTACK-CMD-SETUP-BENNY-NOT-SLASH-001",
+      "status": "draft-proposal",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/automations/benny/skills/setup-benny/SKILL.md",
+        "locator": "setup-benny is not a slash skill; entered via FOR_AGENTS.md bootstrap",
+        "lineStart": 7,
+        "lineEnd": 15,
+        "fullFileSha256": "5a3cbe63360c9f6373b6cb6c79a1eaf7e0eba181bfaa1577e2e6431af3407282",
+        "quoteSha256": "f3b118dbf2940197bbd9dd300feb6be480f045ccd3e5764192d71d24bf635509",
+        "quote": "# Set up Benny\n\nBenny ships as a dormant automation pack inside pstack. The plugin manifest exposes only pstack's normal skill root; this file and the two operational files are not slash skills.\n\nThe human enters setup by pointing Cursor at the pack's `FOR_AGENTS.md`. The bootstrap flow copies the whole pack into the target repository, then reads this file directly at `.cursor/automations/benny/skills/setup-benny/SKILL.md`.\n\nBenny needs external configuration and two live Cursor automations.\n\nDo not create or update an automation until the user explicitly asks. Never put a secret value in plugin files, prompts, or committed configuration.\n"
+      },
+      "inventoryPath": "pstack/automations/benny/skills/setup-benny/SKILL.md",
+      "inventoryItemSha256": "5a3cbe63360c9f6373b6cb6c79a1eaf7e0eba181bfaa1577e2e6431af3407282",
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Human points Cursor at the Benny pack FOR_AGENTS.md to install or reconfigure Benny.",
+      "preconditions": [
+        "Benny pack available under the locked plugin tree or a copied destination."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "configurationCells": [
+        {
+          "id": "default",
+          "role": "required-unverified-matrix-cell"
+        },
+        {
+          "id": "installed-user",
+          "role": "required-unverified-matrix-cell"
+        }
+      ],
+      "startingState": "Target repository has not completed Benny setup, or setup is being revised.",
+      "actions": [
+        {
+          "input": "Follow FOR_AGENTS.md bootstrap so setup-benny/SKILL.md is read at the destination path.",
+          "expectedObservation": "Setup proceeds from the copied pack path; the skill is treated as not a plugin slash skill, and no automation is created until the user explicitly asks."
+        }
+      ],
+      "expectedObservations": [
+        "Setup proceeds from the copied pack path; the skill is treated as not a plugin slash skill, and no automation is created until the user explicitly asks."
+      ],
+      "requiredSideEffects": [
+        "Entry via pack bootstrap rather than plugin slash-menu skill registration."
+      ],
+      "forbiddenSideEffects": [
+        "Creating or updating a live automation before explicit user ask.",
+        "Writing secret values into plugin files, prompts, or committed configuration."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "unresolved": [
+        "Whether any host still surfaces setup-benny in a slash menu via path globbing is unresolved.",
+        "Copy-pack merge conflict behavior needs a separate requirement."
+      ],
+      "evidence": [],
+      "notes": "Documents non-slash entry for Benny setup leftover inventory path. Proposal only. Not merged into parity/requirements.json. Status must not be verified."
+    },
+    {
+      "id": "PSTACK-CMD-BENNY-TRIAGE-THREAD-ONLY-001",
+      "status": "draft-proposal",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/automations/benny/skills/triage-issue-reports/SKILL.md",
+        "locator": "triage-issue-reports one thread-only verdict and fail-closed without config",
+        "lineStart": 1,
+        "lineEnd": 11,
+        "fullFileSha256": "216a758b8711e64d19a55e6032c496527daac6364d010611040f3c04ef1a448f",
+        "quoteSha256": "fdd5547be45f4f2ecfc12239dc7a82a16c7b16aaa8e84ee2601618a2451e2aec",
+        "quote": "---\nname: triage-issue-reports\ndescription: Triage Slack issue reports with one thread-only verdict, evidence review, cause-aware routing, tracker dedupe, and fail-closed ticket creation. Use only from the configured Benny triage automation.\ndisable-model-invocation: true\n---\n\n# Triage issue reports\n\nClassify one Slack report and post one useful verdict in its source thread. Create a tracker issue only for a clear, new bug. Do not reproduce or fix it here.\n\nLoad the external Benny configuration supplied by the automation. If the config is missing, malformed, or incomplete, stop without posting or writing to the tracker.\n"
+      },
+      "inventoryPath": "pstack/automations/benny/skills/triage-issue-reports/SKILL.md",
+      "inventoryItemSha256": "216a758b8711e64d19a55e6032c496527daac6364d010611040f3c04ef1a448f",
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Benny triage automation invokes triage-issue-reports on a Slack issue report.",
+      "preconditions": [
+        "Benny triage automation configured or intentionally missing config for negative path."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "configurationCells": [
+        {
+          "id": "default",
+          "role": "required-unverified-matrix-cell"
+        },
+        {
+          "id": "installed-user",
+          "role": "required-unverified-matrix-cell"
+        }
+      ],
+      "startingState": "One Slack report thread awaiting triage.",
+      "actions": [
+        {
+          "input": "Run triage with missing or incomplete external Benny configuration.",
+          "expectedObservation": "With bad or missing config the skill stops without posting or writing to the tracker; with valid config the contract is one thread-only verdict and no reproduce-or-fix work in this skill."
+        }
+      ],
+      "expectedObservations": [
+        "With bad or missing config the skill stops without posting or writing to the tracker; with valid config the contract is one thread-only verdict and no reproduce-or-fix work in this skill."
+      ],
+      "requiredSideEffects": [
+        "No tracker write and no Slack post when config is missing, malformed, or incomplete."
+      ],
+      "forbiddenSideEffects": [
+        "Posting a root message in the source channel.",
+        "Reproducing or fixing the bug inside the triage skill."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "unresolved": [
+        "Positive-path single-verdict post needs paired Slack journey evidence.",
+        "Tracker dedupe rules need a separate atomic requirement."
+      ],
+      "evidence": [],
+      "notes": "Benny triage leftover; complements repro fail-closed proposal. Proposal only. Not merged into parity/requirements.json. Status must not be verified."
+    },
+    {
+      "id": "PSTACK-CMD-AUTOMATE-ME-EXISTING-SKILL-001",
+      "status": "draft-proposal",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/automate-me/SKILL.md",
+        "locator": "automate-me step 0 checks for an existing personal -mode skill",
+        "lineStart": 1,
+        "lineEnd": 17,
+        "fullFileSha256": "1510979b0b71b54284427a19c09918f8b1fdfc168f9b7f9e30098793a5ec88ef",
+        "quoteSha256": "59fe53d5f6edcf6e06794e4dc5472d53ff2368dcda4c4eb382060e6a01f75d31",
+        "quote": "---\nname: automate-me\ndescription: \"Use for \\\"automate me\\\", \\\"create/update/refresh my -mode skill\\\", \\\"turn/capture my preferences or working style into a skill\\\", or wanting agents to follow how the user works. Drafts or revises a personal -mode skill via create-skill + unslop, optionally pulling fresh evidence from recent transcripts.\"\ndisable-model-invocation: true\n---\n\n# Automate me\n\nA guided flow for turning the user's working conventions into a skill agents will follow. The output is one `-mode` skill tailored to them (e.g. `jay-mode`, `priya-mode`).\n\nThis skill orchestrates three others: an inline mining pass (see step 1), Cursor's built-in `create-skill` (authoring), and the **unslop** skill (prose discipline). It sequences them. It doesn't replace them.\n\n## Flow\n\n### 0. Check for an existing skill\n\nLook recursively for `.cursor/skills/**/*-mode/SKILL.md` and `~/.cursor/skills/*-mode/SKILL.md` matching the user's handle. Mode skills can live in a personal category directory (`.cursor/skills/<handle>/`), not only at the top level. If one exists, confirm intent with `AskQuestion` (unless they already said \"update my skill\" or similar):\n"
+      },
+      "inventoryPath": "pstack/skills/automate-me/SKILL.md",
+      "inventoryItemSha256": "1510979b0b71b54284427a19c09918f8b1fdfc168f9b7f9e30098793a5ec88ef",
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "User invokes /automate-me or equivalent phrasing to capture working style into a skill.",
+      "preconditions": [
+        "pstack automate-me skill loaded."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "configurationCells": [
+        {
+          "id": "default",
+          "role": "required-unverified-matrix-cell"
+        },
+        {
+          "id": "installed-user",
+          "role": "required-unverified-matrix-cell"
+        }
+      ],
+      "startingState": "User may or may not already have a matching *-mode/SKILL.md under .cursor/skills or ~/.cursor/skills.",
+      "actions": [
+        {
+          "input": "Invoke automate-me at the start of the flow.",
+          "expectedObservation": "The skill searches for an existing matching -mode skill and, if found without an explicit update request, confirms update-versus-fresh intent before drafting."
+        }
+      ],
+      "expectedObservations": [
+        "The skill searches for an existing matching -mode skill and, if found without an explicit update request, confirms update-versus-fresh intent before drafting."
+      ],
+      "requiredSideEffects": [
+        "Existing-skill discovery runs before mining and authoring steps."
+      ],
+      "forbiddenSideEffects": [
+        "Silently overwriting an existing -mode skill without confirm when intent was ambiguous."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "unresolved": [
+        "Exact AskQuestion option copy needs UI observation.",
+        "Transcript mining window rules for update mode need a separate requirement."
+      ],
+      "evidence": [],
+      "notes": "User-facing slash workflow leftover. Proposal only. Not merged into parity/requirements.json. Status must not be verified."
+    },
+    {
+      "id": "PSTACK-CMD-BENCHMARK-CHECKLIST-EVIDENCE-001",
+      "status": "draft-proposal",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/benchmark-checklist/SKILL.md",
+        "locator": "benchmark-checklist requires run evidence before reporting a perf number",
+        "lineStart": 1,
+        "lineEnd": 11,
+        "fullFileSha256": "6a767e788a60428fa14e645ee10fe2e49896e514ff654f668b1d824deb9038e8",
+        "quoteSha256": "0735d257afa0939cc978e1b461d366059a9b6d2277c39babbab25d575710248d",
+        "quote": "---\nname: benchmark-checklist\ndescription: \"Vet a perf measurement (limiter, tuning, limits, errors, repeatability, relevance, and whether the work happened) before you report or act on it. Use when you run a benchmark or report a speedup or regression you measured.\"\ndisable-model-invocation: true\n---\n\n# Benchmark checklist\n\nUse this when you produce a performance number: a PR's before and after, a regression claim, a hillclimb harness, or a library or config choice. [Explain the Number](../principle-explain-the-number/SKILL.md) says why. Answer each question below with evidence from a run, not from a guess about the code.\n\nFor a quick ballpark the user asked for, one run is enough. Still check questions 4 and 7, and say that it is one run. Skip the rest unless that run looks wrong. A choice between options is never a ballpark.\n"
+      },
+      "inventoryPath": "pstack/skills/benchmark-checklist/SKILL.md",
+      "inventoryItemSha256": "6a767e788a60428fa14e645ee10fe2e49896e514ff654f668b1d824deb9038e8",
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "User or agent is about to report or act on a measured speedup, regression, or benchmark.",
+      "preconditions": [
+        "A performance claim is being formed from a run or is about to be."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "configurationCells": [
+        {
+          "id": "default",
+          "role": "required-unverified-matrix-cell"
+        },
+        {
+          "id": "installed-user",
+          "role": "required-unverified-matrix-cell"
+        }
+      ],
+      "startingState": "Claim draft exists or a measurement script is about to run.",
+      "actions": [
+        {
+          "input": "Invoke /benchmark-checklist (or attach the skill) against the claim.",
+          "expectedObservation": "Answers to the checklist questions use evidence from a run, not guesses about the code; a one-run ballpark still checks questions 4 and 7 and labels itself as one run."
+        }
+      ],
+      "expectedObservations": [
+        "Answers to the checklist questions use evidence from a run, not guesses about the code; a one-run ballpark still checks questions 4 and 7 and labels itself as one run."
+      ],
+      "requiredSideEffects": [
+        "Reported answers cite run evidence or explicitly mark one-run ballpark limits."
+      ],
+      "forbiddenSideEffects": [
+        "Shipping a comparative claim labeled as a ballpark without the required checks."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "unresolved": [
+        "Full question table enforcement needs per-question requirements.",
+        "Machine-noise interleaving guidance needs paired observation."
+      ],
+      "evidence": [],
+      "notes": "User skill leftover for perf measurement hygiene. Proposal only. Not merged into parity/requirements.json. Status must not be verified."
+    },
+    {
+      "id": "PSTACK-CMD-BLAST-RADIUS-RUN-PROOF-001",
+      "status": "draft-proposal",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/blast-radius/SKILL.md",
+        "locator": "blast-radius refuses writeup-only safety claims; prefers run proof",
+        "lineStart": 15,
+        "lineEnd": 29,
+        "fullFileSha256": "2e10745b97f5862323dcda3b29ca60d56b5c3c98e37020085d26b48efbe0a436",
+        "quoteSha256": "944d22fc56a0809739720f6f55a0c392e79a8a9ec00c7a5e04472e75a057a1e1",
+        "quote": "## Don't trust your own writeup\n\nA blast-radius writeup that sounds right is worthless. It reads as convincing whether or not it's true. So don't hand back the writeup. Find the one or two facts the whole thing depends on and prove them by running code.\n\n### How sure are you\n\nFor each fact the change's safety depends on, get it as far down this list as is cheap, and say where it stopped.\n\n1. You said so. Worthless on its own.\n2. You pointed at the line. A real `file:line`, or the library's own source.\n3. You showed the bad case can't happen. You walked the failure step by step and it doesn't reach.\n4. You ran it. A script or test that calls the real code and fails loud if you're wrong.\n5. You reproduced it in the running app.\n\nStep 4 is usually one small script that imports the same library the app ships and calls the exact function you're worried about.\n"
+      },
+      "inventoryPath": "pstack/skills/blast-radius/SKILL.md",
+      "inventoryItemSha256": "2e10745b97f5862323dcda3b29ca60d56b5c3c98e37020085d26b48efbe0a436",
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "User asks for blast radius of a change or reviews a small untrusted diff via /blast-radius.",
+      "preconditions": [
+        "Candidate change or diff in scope."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "configurationCells": [
+        {
+          "id": "default",
+          "role": "required-unverified-matrix-cell"
+        },
+        {
+          "id": "installed-user",
+          "role": "required-unverified-matrix-cell"
+        }
+      ],
+      "startingState": "Change under review; no prior blast-radius proof artifacts required.",
+      "actions": [
+        {
+          "input": "Invoke blast-radius and produce the safety-dependent facts.",
+          "expectedObservation": "The reply does not stop at a persuasive writeup; each critical safety fact is pushed as far down the certainty list as cheap, with step 4 (run a script or test against real code) as the usual target."
+        }
+      ],
+      "expectedObservations": [
+        "The reply does not stop at a persuasive writeup; each critical safety fact is pushed as far down the certainty list as cheap, with step 4 (run a script or test against real code) as the usual target."
+      ],
+      "requiredSideEffects": [
+        "At least one critical fact is proven by running code or an explicit cheaper stop is named."
+      ],
+      "forbiddenSideEffects": [
+        "Handing back only a narrative blast-radius writeup with no certainty level stated."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "unresolved": [
+        "When step 5 (running app) is required versus step 4 remains judgmental and needs scenarios.",
+        "Exact script shape is repo-specific."
+      ],
+      "evidence": [],
+      "notes": "Companion skill leftover; entry-point proof posture. Proposal only. Not merged into parity/requirements.json. Status must not be verified."
+    },
+    {
+      "id": "PSTACK-CMD-BRO-RESTATE-001",
+      "status": "draft-proposal",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/bro/SKILL.md",
+        "locator": "bro restates the last message without jargon",
+        "lineStart": 1,
+        "lineEnd": 7,
+        "fullFileSha256": "aa329d0ceeeecb6822a7174ad76bb07a7826a3c52ceb6a588dec4138815084bb",
+        "quoteSha256": "aa329d0ceeeecb6822a7174ad76bb07a7826a3c52ceb6a588dec4138815084bb",
+        "quote": "---\nname: bro\ndescription: Restate the last message in plain human language, with no jargon.\ndisable-model-invocation: true\n---\n\nRestate your last message. Stop using jargon and speak coherently. State it more simply and concisely, like one human talking to another.\n"
+      },
+      "inventoryPath": "pstack/skills/bro/SKILL.md",
+      "inventoryItemSha256": "aa329d0ceeeecb6822a7174ad76bb07a7826a3c52ceb6a588dec4138815084bb",
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "User invokes /bro after a jargon-heavy agent message.",
+      "preconditions": [
+        "A prior agent message exists in the turn history."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "configurationCells": [
+        {
+          "id": "default",
+          "role": "required-unverified-matrix-cell"
+        },
+        {
+          "id": "installed-user",
+          "role": "required-unverified-matrix-cell"
+        }
+      ],
+      "startingState": "Last agent message used jargon or dense technical phrasing.",
+      "actions": [
+        {
+          "input": "Invoke /bro.",
+          "expectedObservation": "The agent restates its last message more simply and concisely in plain human language, without jargon."
+        }
+      ],
+      "expectedObservations": [
+        "The agent restates its last message more simply and concisely in plain human language, without jargon."
+      ],
+      "requiredSideEffects": [
+        "A plain-language restatement of the prior message is produced."
+      ],
+      "forbiddenSideEffects": [
+        "Continuing the prior task with new work instead of restating.",
+        "Restating while keeping the same jargon density."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "unresolved": [
+        "Whether /bro may edit files as part of restatement is unspecified and unresolved.",
+        "Multi-message selection beyond \"last message\" is unspecified."
+      ],
+      "evidence": [],
+      "notes": "Minimal user skill leftover. Proposal only. Not merged into parity/requirements.json. Status must not be verified."
+    },
+    {
+      "id": "PSTACK-CMD-MAINTAIN-VERIFY-OUTCOMES-001",
+      "status": "draft-proposal",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/maintain-verification-skill/SKILL.md",
+        "locator": "maintain-verification-skill ends in clean, changed, or blocked",
+        "lineStart": 1,
+        "lineEnd": 17,
+        "fullFileSha256": "515c0eaa054b3f6be1b1fb06f2c2f173c80fddb58bbcac57576f89c479bc68e8",
+        "quoteSha256": "f385d58a2361d3c6a9be2d4cdba019fc0c8d60061e09e8d1983f68b423f1e3f8",
+        "quote": "---\nname: maintain-verification-skill\ndescription: \"Periodic pass that keeps a project's verification skill and feature map honest: parallel source readers per feature, one live session driving every feature, at most one PR of proven corrections. Use for /maintain-verification-skill or \\\"audit the verify skill\\\".\"\ndisable-model-invocation: true\n---\n\n# Maintain a verification skill\n\nA feature map rots the moment the app changes. This skill is the upkeep loop for a skill generated by `/create-verification-skill` (or any project-local verification skill with a feature map). The unit of rigor is the feature, not every sentence: cover every feature file from source and exercise every feature live, without terminalising every bullet.\n\n## Outcomes\n\nPick one, and say which:\n\n- **clean** \u2014 every feature got source and live coverage; nothing worth shipping. No branch, no PR.\n- **changed** \u2014 one PR ships proven doc, harness, or map corrections.\n- **blocked** \u2014 coverage could not finish or a proven fix could not ship safely. Say exactly what blocked it.\n"
+      },
+      "inventoryPath": "pstack/skills/maintain-verification-skill/SKILL.md",
+      "inventoryItemSha256": "515c0eaa054b3f6be1b1fb06f2c2f173c80fddb58bbcac57576f89c479bc68e8",
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "User invokes /maintain-verification-skill or asks to audit the verify skill.",
+      "preconditions": [
+        "A project-local verification skill with a feature map exists, or none exists for the none-path."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "configurationCells": [
+        {
+          "id": "default",
+          "role": "required-unverified-matrix-cell"
+        },
+        {
+          "id": "installed-user",
+          "role": "required-unverified-matrix-cell"
+        }
+      ],
+      "startingState": "Verification skill directory is the only intended edit scope.",
+      "actions": [
+        {
+          "input": "Run maintain-verification-skill to completion of the pass decision.",
+          "expectedObservation": "The run reports exactly one outcome among clean, changed, or blocked, and does not edit product code during the pass."
+        }
+      ],
+      "expectedObservations": [
+        "The run reports exactly one outcome among clean, changed, or blocked, and does not edit product code during the pass."
+      ],
+      "requiredSideEffects": [
+        "Outcome label is one of clean, changed, blocked.",
+        "Product code outside the verification skill directory is not edited."
+      ],
+      "forbiddenSideEffects": [
+        "Editing product code to paper over map drift.",
+        "Ending without naming clean, changed, or blocked."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "unresolved": [
+        "Live-pass doctor invariants need separate requirements.",
+        "None-candidate redirect to /create-verification-skill needs paired observation."
+      ],
+      "evidence": [],
+      "notes": "Upkeep loop leftover called out by slice-commands-001 unresolved notes. Proposal only. Not merged into parity/requirements.json. Status must not be verified."
+    },
+    {
+      "id": "PSTACK-CMD-MAKE-BOT-UI-KEY-SERVER-001",
+      "status": "draft-proposal",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/make-bot-ui/SKILL.md",
+        "locator": "make-bot-ui keeps webhook sender key on the server only",
+        "lineStart": 1,
+        "lineEnd": 11,
+        "fullFileSha256": "3624c8ef16cf2e48deb2a4049e72c6962a9431c8d6c6af90e7bd7ea0375224ec",
+        "quoteSha256": "242aca4e23a6110013f95dd7ca5c50dfc134909c5e9e814caf2f307c6c10c3a5",
+        "quote": "---\nname: Make Bot UI\ndescription: >-\n  Use when building a custom UI (page, dashboard, buttons) that should wake a\n  Grok Bot over a webhook, when the user must provide a webhook sender key, or\n  when exposing that UI on Tailscale.\ndisable-model-invocation: true\n---\n# How to make a bot UI\n\nBuild a page the user clicks. A server on this computer POSTs JSON to a webhook routine. The bot wakes with that JSON. Keep the sender key on the server. Do not put the sender key in the browser, in chat, or in this skill.\n"
+      },
+      "inventoryPath": "pstack/skills/make-bot-ui/SKILL.md",
+      "inventoryItemSha256": "3624c8ef16cf2e48deb2a4049e72c6962a9431c8d6c6af90e7bd7ea0375224ec",
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "User asks to build a custom UI that wakes a Grok Bot over a webhook via Make Bot UI.",
+      "preconditions": [
+        "Host supports webhook routines / update_state as assumed by the skill."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "configurationCells": [
+        {
+          "id": "default",
+          "role": "required-unverified-matrix-cell"
+        },
+        {
+          "id": "installed-user",
+          "role": "required-unverified-matrix-cell"
+        }
+      ],
+      "startingState": "No bot UI yet, or an existing UI is being revised.",
+      "actions": [
+        {
+          "input": "Follow Make Bot UI to create the page and webhook wiring.",
+          "expectedObservation": "The sender key stays on the server and is not placed in the browser, chat, or the skill file."
+        }
+      ],
+      "expectedObservations": [
+        "The sender key stays on the server and is not placed in the browser, chat, or the skill file."
+      ],
+      "requiredSideEffects": [
+        "Sender key storage remains server-side."
+      ],
+      "forbiddenSideEffects": [
+        "Embedding the sender key in browser code, chat, or committed skill text."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "unresolved": [
+        "Tailscale exposure steps need a separate requirement.",
+        "update_state confirm-card UX needs UI observation."
+      ],
+      "evidence": [],
+      "notes": "User skill leftover with secret-boundary entry behavior. Proposal only. Not merged into parity/requirements.json. Status must not be verified."
+    },
+    {
+      "id": "PSTACK-CMD-POTETO-PLAYBOOK-TODO-001",
+      "status": "draft-proposal",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/poteto-mode/SKILL.md",
+        "locator": "poteto-mode Playbooks section requires matching a playbook and copying steps into a todolist",
+        "lineStart": 119,
+        "lineEnd": 121,
+        "fullFileSha256": "31cd02290360ce63564ef22b74d69fc6d90e62181d05a644cbed8f6c47cc9412",
+        "quoteSha256": "d332a937e629581aec8e255c398f7abe1199034be4a75fb1657323380f19bdf1",
+        "quote": "## Playbooks\n\nOpen a todolist whose first items are the matched playbook's steps, copied in verbatim, before any task-specific todos. A step you choose not to do stays in the list with a one-line `skip: <reason>`. Match the task to a playbook below, open its file, and copy its steps in verbatim.\n"
+      },
+      "inventoryPath": "pstack/skills/poteto-mode/SKILL.md",
+      "inventoryItemSha256": "31cd02290360ce63564ef22b74d69fc6d90e62181d05a644cbed8f6c47cc9412",
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Agent is operating under poteto-mode on a new task that needs a playbook.",
+      "preconditions": [
+        "poteto-mode skill body is attached for the turn or sticky mode."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "configurationCells": [
+        {
+          "id": "default",
+          "role": "required-unverified-matrix-cell"
+        },
+        {
+          "id": "installed-user",
+          "role": "required-unverified-matrix-cell"
+        }
+      ],
+      "startingState": "Task start before playbook steps are listed.",
+      "actions": [
+        {
+          "input": "Begin executing the user task under poteto-mode.",
+          "expectedObservation": "The agent matches a playbook, opens its file, and opens a todolist whose first items are that playbook's steps copied verbatim, with skipped steps marked skip and a reason."
+        }
+      ],
+      "expectedObservations": [
+        "The agent matches a playbook, opens its file, and opens a todolist whose first items are that playbook's steps copied verbatim, with skipped steps marked skip and a reason."
+      ],
+      "requiredSideEffects": [
+        "Todolist begins with verbatim playbook steps for the matched playbook."
+      ],
+      "forbiddenSideEffects": [
+        "Proceeding with task-specific todos only and never listing playbook steps."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "unresolved": [
+        "Host todolist tool availability varies; fallback checklist behavior needs paired observation.",
+        "Does not cover Enter vs Option+Enter attachment already in requirements.json."
+      ],
+      "evidence": [],
+      "notes": "Covers poteto-mode inventory path without re-proposing mode enter/sticky semantics. Proposal only. Not merged into parity/requirements.json. Status must not be verified."
+    },
+    {
+      "id": "PSTACK-CMD-RECALL-CAPSULE-001",
+      "status": "draft-proposal",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/recall/SKILL.md",
+        "locator": "recall output contract capsule, threads, problems, next move",
+        "lineStart": 24,
+        "lineEnd": 31,
+        "fullFileSha256": "d265b0e5b6dc5b89c0407f3387d24462c988e1990a37d5359735137908128c5a",
+        "quoteSha256": "195070f860c79092b713f14f58368714f640215dc51df9a236c69389e2ab3702",
+        "quote": "## Output contract\n\nLead with the capsule, then the thread status, then the problems, then the next move. Deeper detail goes below or gets cut.\n\n- **Capsule.** At most 5 bullets. What this work is and where it stands overall.\n- **Threads.** One line each, prefixed with exactly one status tag: `[merged #N]`, `[open PR #N]`, `[in flight <branch>]`, `[verified, uncommitted]`, `[reverted #N]`, or `[planned, not started]`. A thread with no tag is not done yet, so tag it.\n- **Problems.** At most 5, the recurring ones. Include the symptoms users keep reporting and any fix that shipped and was reverted, so the next attempt starts where the last one failed.\n- **Next move.** The single most useful next action, concrete.\n"
+      },
+      "inventoryPath": "pstack/skills/recall/SKILL.md",
+      "inventoryItemSha256": "d265b0e5b6dc5b89c0407f3387d24462c988e1990a37d5359735137908128c5a",
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "User invokes /recall or asks to catch up on recent work before acting.",
+      "preconditions": [
+        "Transcripts and optional shared-record sources available for the scoped workspace."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "configurationCells": [
+        {
+          "id": "default",
+          "role": "required-unverified-matrix-cell"
+        },
+        {
+          "id": "installed-user",
+          "role": "required-unverified-matrix-cell"
+        }
+      ],
+      "startingState": "User has not already supplied a full state capsule that would skip mining.",
+      "actions": [
+        {
+          "input": "Invoke recall with a topic or recent-work ask.",
+          "expectedObservation": "The reply follows the output contract: capsule (at most 5 bullets), tagged threads, problems (at most 5), and a single concrete next move."
+        }
+      ],
+      "expectedObservations": [
+        "The reply follows the output contract: capsule (at most 5 bullets), tagged threads, problems (at most 5), and a single concrete next move."
+      ],
+      "requiredSideEffects": [
+        "Brief includes capsule, tagged threads, problems, and next move sections per contract."
+      ],
+      "forbiddenSideEffects": [
+        "Returning only a free-form essay without thread status tags.",
+        "Quietly widening \"all\" history beyond the stated scope window."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "unresolved": [
+        "Default 7-day window enforcement needs paired observation.",
+        "Shared-record why-investigator steering needs a separate requirement."
+      ],
+      "evidence": [],
+      "notes": "User skill leftover for working-context reconstruction. Proposal only. Not merged into parity/requirements.json. Status must not be verified."
+    },
+    {
+      "id": "PSTACK-CMD-SETUP-WRITE-RULE-001",
+      "status": "draft-proposal",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/setup-pstack/SKILL.md",
+        "locator": "setup-pstack step 5 writes alwaysApply pstack-models.mdc idempotently",
+        "lineStart": 37,
+        "lineEnd": 39,
+        "fullFileSha256": "d61b47256a18155a81c8e5ef95e3cc6569ce8c18317c35c4dd9c8015cf68cb59",
+        "quoteSha256": "933fbb00b21068fc0f24724598db243bbb211a05370a1634949fb147e4de331e",
+        "quote": "### 5. Write the rule\n\nWrite `~/.cursor/rules/pstack-models.mdc` with `alwaysApply: true`, a `# budget` line with the chosen label and its target effort, and one line per role, using the same labels poteto-mode uses. Overwrite the whole file so re-runs stay idempotent. Shape:\n"
+      },
+      "inventoryPath": "pstack/skills/setup-pstack/SKILL.md",
+      "inventoryItemSha256": "d61b47256a18155a81c8e5ef95e3cc6569ce8c18317c35c4dd9c8015cf68cb59",
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "User completes /setup-pstack through confirm and the write step runs.",
+      "preconditions": [
+        "Model choices and budget label already confirmed in the setup flow."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "configurationCells": [
+        {
+          "id": "default",
+          "role": "required-unverified-matrix-cell"
+        },
+        {
+          "id": "installed-user",
+          "role": "required-unverified-matrix-cell"
+        }
+      ],
+      "startingState": "Rule file may be absent or present from a prior run.",
+      "actions": [
+        {
+          "input": "Execute step 5 Write the rule.",
+          "expectedObservation": "The skill writes ~/.cursor/rules/pstack-models.mdc with alwaysApply true, a # budget line, and one line per role, overwriting the whole file so re-runs stay idempotent."
+        }
+      ],
+      "expectedObservations": [
+        "The skill writes ~/.cursor/rules/pstack-models.mdc with alwaysApply true, a # budget line, and one line per role, overwriting the whole file so re-runs stay idempotent."
+      ],
+      "requiredSideEffects": [
+        "pstack-models.mdc is written with alwaysApply true and role lines."
+      ],
+      "forbiddenSideEffects": [
+        "Appending a partial rule without overwrite semantics.",
+        "Skipping the write after confirm."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "unresolved": [
+        "Exact YAML frontmatter keys beyond alwaysApply need file observation on both hosts.",
+        "Does not restate model discovery or budget label option lists already in requirements.json."
+      ],
+      "evidence": [],
+      "notes": "setup-pstack leftover covering write/idempotence, not discovery or budget labels. Proposal only. Not merged into parity/requirements.json. Status must not be verified."
+    },
+    {
+      "id": "PSTACK-CMD-TEACH-HOW-WHY-001",
+      "status": "draft-proposal",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/teach/SKILL.md",
+        "locator": "teach runs how and why then weaves one explanation",
+        "lineStart": 1,
+        "lineEnd": 11,
+        "fullFileSha256": "bd286e5a6290673be2cd28aef7af2ec7f1fb138e6bce156ea657368c7e7fc8a4",
+        "quoteSha256": "db798e6927335d43eae8dedafb1706853afff9f7889e04a1dba681b83076ee43",
+        "quote": "---\nname: teach\ndescription: \"Explain a body of work plainly so a person actually understands it. Runs the `how` and `why` skills and weaves what they find into one clear explanation. Use for 'teach me this', 'help me really understand X', 'explain this change or subsystem to me'.\"\ndisable-model-invocation: true\n---\n\n# Teach\n\n**You explain what a thing is, how it works, and why it's built that way, in one plain account at the person's pace. The goal is that they understand it, not that you change anything.**\n\nTeach sits on top of `how` and `why`. Get your bearings on what the work is and what it touches, then run `how` for how it works and `why` for why it's that way. Those are real skill invocations that do their own digging. Blend what they find into one plain explanation, lead with what matters to the person, and go deeper when they ask. Reword freely for teaching, with one exception. Keep `why`'s confidence language intact (its hedges are findings, not style).\n"
+      },
+      "inventoryPath": "pstack/skills/teach/SKILL.md",
+      "inventoryItemSha256": "bd286e5a6290673be2cd28aef7af2ec7f1fb138e6bce156ea657368c7e7fc8a4",
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "User invokes /teach or asks to really understand a change or subsystem.",
+      "preconditions": [
+        "how and why skills available from locked pstack."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "configurationCells": [
+        {
+          "id": "default",
+          "role": "required-unverified-matrix-cell"
+        },
+        {
+          "id": "installed-user",
+          "role": "required-unverified-matrix-cell"
+        }
+      ],
+      "startingState": "Explanatory ask; no code-change goal.",
+      "actions": [
+        {
+          "input": "Invoke teach on the named subject.",
+          "expectedObservation": "Teach orients, runs how and why as real skill invocations (in parallel when both are needed), and blends them into one plain explanation without changing the subject code."
+        }
+      ],
+      "expectedObservations": [
+        "Teach orients, runs how and why as real skill invocations (in parallel when both are needed), and blends them into one plain explanation without changing the subject code."
+      ],
+      "requiredSideEffects": [
+        "how and/or why are actually invoked rather than re-implemented inline by default."
+      ],
+      "forbiddenSideEffects": [
+        "Editing product code as part of teach.",
+        "Stripping why confidence hedges during rewording."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "unresolved": [
+        "When only one of how or why is enough remains judgmental.",
+        "Diagram build-up rules need separate visual requirements."
+      ],
+      "evidence": [],
+      "notes": "User skill leftover composing how/why. Proposal only. Not merged into parity/requirements.json. Status must not be verified."
+    },
+    {
+      "id": "PSTACK-CMD-TYPESCRIPT-PATHS-001",
+      "status": "draft-proposal",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/typescript-best-practices/SKILL.md",
+        "locator": "typescript-best-practices paths frontmatter and type-system-discipline first",
+        "lineStart": 1,
+        "lineEnd": 10,
+        "fullFileSha256": "28f9e61710e205f6f3c5476f333483cff0e988f6a5b639e2faad536344b40c5e",
+        "quoteSha256": "990a27e635d2bf4958cda9e6b8e13a3ab426133c1ff7b2e658cf599743a7731d",
+        "quote": "---\nname: typescript-best-practices\ndescription: TypeScript best practices. Use when reading or editing any .ts or .tsx file.\npaths: [\"**/*.ts\", \"**/*.tsx\"]\ndisable-model-invocation: true\n---\n\n# TypeScript best practices\n\nApply the **type-system-discipline** principle skill first.\n"
+      },
+      "inventoryPath": "pstack/skills/typescript-best-practices/SKILL.md",
+      "inventoryItemSha256": "28f9e61710e205f6f3c5476f333483cff0e988f6a5b639e2faad536344b40c5e",
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "User or agent reads or edits a .ts or .tsx file with the skill available.",
+      "preconditions": [
+        "Locked typescript-best-practices skill loaded."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "configurationCells": [
+        {
+          "id": "default",
+          "role": "required-unverified-matrix-cell"
+        },
+        {
+          "id": "installed-user",
+          "role": "required-unverified-matrix-cell"
+        }
+      ],
+      "startingState": "TypeScript file in the workspace is being read or edited.",
+      "actions": [
+        {
+          "input": "Attach or invoke typescript-best-practices for the TypeScript edit.",
+          "expectedObservation": "Skill metadata declares paths **/*.ts and **/*.tsx, disable-model-invocation is true, and the body requires applying type-system-discipline first."
+        }
+      ],
+      "expectedObservations": [
+        "Skill metadata declares paths **/*.ts and **/*.tsx, disable-model-invocation is true, and the body requires applying type-system-discipline first."
+      ],
+      "requiredSideEffects": [
+        "paths globs are present in frontmatter as declared.",
+        "type-system-discipline is applied before the rule table work."
+      ],
+      "forbiddenSideEffects": [
+        "Model auto-invoking the skill solely from description match when disable-model-invocation is true."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "unresolved": [
+        "Host path-glob auto-attach behavior is unverified at runtime.",
+        "Individual table rules need separate requirements if treated as oracles."
+      ],
+      "evidence": [],
+      "notes": "User skill leftover with path-scoped entry metadata. Proposal only. Not merged into parity/requirements.json. Status must not be verified."
+    },
+    {
+      "id": "PSTACK-CMD-UNSLOP-PROCESS-001",
+      "status": "draft-proposal",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/unslop/SKILL.md",
+        "locator": "unslop process scans patterns then rewrites",
+        "lineStart": 1,
+        "lineEnd": 14,
+        "fullFileSha256": "195411d320b5b328f9f642baf59757ed19aaf0931c0838740e0aca273d538dc1",
+        "quoteSha256": "f774f3fd143aaa1ad1a6701f7b81b7641dfb0bf764386b1573f56482fc32f784",
+        "quote": "---\nname: unslop\ndescription: Cut AI tells from any writing. Must always apply.\ndisable-model-invocation: true\n---\n\n# Unslop\n\nEdit text to remove AI patterns.\n\n## Process\n\n1. Scan for the patterns below.\n2. Rewrite. Preserve meaning, match intended tone.\n"
+      },
+      "inventoryPath": "pstack/skills/unslop/SKILL.md",
+      "inventoryItemSha256": "195411d320b5b328f9f642baf59757ed19aaf0931c0838740e0aca273d538dc1",
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "User or another skill requires prose to pass through unslop.",
+      "preconditions": [
+        "Text to edit exists in the turn."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "configurationCells": [
+        {
+          "id": "default",
+          "role": "required-unverified-matrix-cell"
+        },
+        {
+          "id": "installed-user",
+          "role": "required-unverified-matrix-cell"
+        }
+      ],
+      "startingState": "Draft prose contains candidate AI-tell patterns.",
+      "actions": [
+        {
+          "input": "Invoke /unslop or apply the unslop skill to the draft.",
+          "expectedObservation": "The skill scans for the listed patterns and rewrites, preserving meaning and intended tone."
+        }
+      ],
+      "expectedObservations": [
+        "The skill scans for the listed patterns and rewrites, preserving meaning and intended tone."
+      ],
+      "requiredSideEffects": [
+        "A rewrite pass occurs against the pattern list."
+      ],
+      "forbiddenSideEffects": [
+        "Leaving listed AI-tell patterns untouched while claiming unslop applied."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "unresolved": [
+        "Stable rule-number gaps (missing 1,2,4,...) are intentional and not defects.",
+        "Interaction with poteto-mode Writing the reply section needs cross-skill pairing."
+      ],
+      "evidence": [],
+      "notes": "User skill leftover; process entry point. Proposal only. Not merged into parity/requirements.json. Status must not be verified."
+    }
+  ],
+  "unresolvedQueue": [
+    {
+      "proposalId": "PSTACK-CMD-COMMENT-SICKO-FIRST-OUTPUT-001",
+      "item": "Whether the host strips or reformats the exact catchphrase whitespace is unresolved without a reference journey."
+    },
+    {
+      "proposalId": "PSTACK-CMD-COMMENT-SICKO-FIRST-OUTPUT-001",
+      "item": "Interaction with no-comments skill orchestration remains a separate requirement."
+    },
+    {
+      "proposalId": "PSTACK-CMD-POTETO-AGENT-READ-SKILL-001",
+      "item": "is_background:true host scheduling semantics need paired observation."
+    },
+    {
+      "proposalId": "PSTACK-CMD-POTETO-AGENT-READ-SKILL-001",
+      "item": "Strict resume cases named in poteto-mode Subagents section need their own requirement."
+    },
+    {
+      "proposalId": "PSTACK-CMD-BENNY-REPRO-FAIL-CLOSED-001",
+      "item": "Exact fail-closed user-visible message text is host-dependent and unverified."
+    },
+    {
+      "proposalId": "PSTACK-CMD-BENNY-REPRO-FAIL-CLOSED-001",
+      "item": "Trusted triage marker wait path needs a separate positive-path requirement."
+    },
+    {
+      "proposalId": "PSTACK-CMD-SETUP-BENNY-NOT-SLASH-001",
+      "item": "Whether any host still surfaces setup-benny in a slash menu via path globbing is unresolved."
+    },
+    {
+      "proposalId": "PSTACK-CMD-SETUP-BENNY-NOT-SLASH-001",
+      "item": "Copy-pack merge conflict behavior needs a separate requirement."
+    },
+    {
+      "proposalId": "PSTACK-CMD-BENNY-TRIAGE-THREAD-ONLY-001",
+      "item": "Positive-path single-verdict post needs paired Slack journey evidence."
+    },
+    {
+      "proposalId": "PSTACK-CMD-BENNY-TRIAGE-THREAD-ONLY-001",
+      "item": "Tracker dedupe rules need a separate atomic requirement."
+    },
+    {
+      "proposalId": "PSTACK-CMD-AUTOMATE-ME-EXISTING-SKILL-001",
+      "item": "Exact AskQuestion option copy needs UI observation."
+    },
+    {
+      "proposalId": "PSTACK-CMD-AUTOMATE-ME-EXISTING-SKILL-001",
+      "item": "Transcript mining window rules for update mode need a separate requirement."
+    },
+    {
+      "proposalId": "PSTACK-CMD-BENCHMARK-CHECKLIST-EVIDENCE-001",
+      "item": "Full question table enforcement needs per-question requirements."
+    },
+    {
+      "proposalId": "PSTACK-CMD-BENCHMARK-CHECKLIST-EVIDENCE-001",
+      "item": "Machine-noise interleaving guidance needs paired observation."
+    },
+    {
+      "proposalId": "PSTACK-CMD-BLAST-RADIUS-RUN-PROOF-001",
+      "item": "When step 5 (running app) is required versus step 4 remains judgmental and needs scenarios."
+    },
+    {
+      "proposalId": "PSTACK-CMD-BLAST-RADIUS-RUN-PROOF-001",
+      "item": "Exact script shape is repo-specific."
+    },
+    {
+      "proposalId": "PSTACK-CMD-BRO-RESTATE-001",
+      "item": "Whether /bro may edit files as part of restatement is unspecified and unresolved."
+    },
+    {
+      "proposalId": "PSTACK-CMD-BRO-RESTATE-001",
+      "item": "Multi-message selection beyond \"last message\" is unspecified."
+    },
+    {
+      "proposalId": "PSTACK-CMD-MAINTAIN-VERIFY-OUTCOMES-001",
+      "item": "Live-pass doctor invariants need separate requirements."
+    },
+    {
+      "proposalId": "PSTACK-CMD-MAINTAIN-VERIFY-OUTCOMES-001",
+      "item": "None-candidate redirect to /create-verification-skill needs paired observation."
+    },
+    {
+      "proposalId": "PSTACK-CMD-MAKE-BOT-UI-KEY-SERVER-001",
+      "item": "Tailscale exposure steps need a separate requirement."
+    },
+    {
+      "proposalId": "PSTACK-CMD-MAKE-BOT-UI-KEY-SERVER-001",
+      "item": "update_state confirm-card UX needs UI observation."
+    },
+    {
+      "proposalId": "PSTACK-CMD-POTETO-PLAYBOOK-TODO-001",
+      "item": "Host todolist tool availability varies; fallback checklist behavior needs paired observation."
+    },
+    {
+      "proposalId": "PSTACK-CMD-POTETO-PLAYBOOK-TODO-001",
+      "item": "Does not cover Enter vs Option+Enter attachment already in requirements.json."
+    },
+    {
+      "proposalId": "PSTACK-CMD-RECALL-CAPSULE-001",
+      "item": "Default 7-day window enforcement needs paired observation."
+    },
+    {
+      "proposalId": "PSTACK-CMD-RECALL-CAPSULE-001",
+      "item": "Shared-record why-investigator steering needs a separate requirement."
+    },
+    {
+      "proposalId": "PSTACK-CMD-SETUP-WRITE-RULE-001",
+      "item": "Exact YAML frontmatter keys beyond alwaysApply need file observation on both hosts."
+    },
+    {
+      "proposalId": "PSTACK-CMD-SETUP-WRITE-RULE-001",
+      "item": "Does not restate model discovery or budget label option lists already in requirements.json."
+    },
+    {
+      "proposalId": "PSTACK-CMD-TEACH-HOW-WHY-001",
+      "item": "When only one of how or why is enough remains judgmental."
+    },
+    {
+      "proposalId": "PSTACK-CMD-TEACH-HOW-WHY-001",
+      "item": "Diagram build-up rules need separate visual requirements."
+    },
+    {
+      "proposalId": "PSTACK-CMD-TYPESCRIPT-PATHS-001",
+      "item": "Host path-glob auto-attach behavior is unverified at runtime."
+    },
+    {
+      "proposalId": "PSTACK-CMD-TYPESCRIPT-PATHS-001",
+      "item": "Individual table rules need separate requirements if treated as oracles."
+    },
+    {
+      "proposalId": "PSTACK-CMD-UNSLOP-PROCESS-001",
+      "item": "Stable rule-number gaps (missing 1,2,4,...) are intentional and not defects."
+    },
+    {
+      "proposalId": "PSTACK-CMD-UNSLOP-PROCESS-001",
+      "item": "Interaction with poteto-mode Writing the reply section needs cross-skill pairing."
+    }
+  ],
+  "leftoverUncoveredTopicInventory": [
+    "pstack/skills/principle-attack-the-premise/SKILL.md",
+    "pstack/skills/principle-boundary-discipline/SKILL.md",
+    "pstack/skills/principle-build-the-lever/SKILL.md",
+    "pstack/skills/principle-encode-lessons-in-structure/SKILL.md",
+    "pstack/skills/principle-exhaust-the-design-space/SKILL.md",
+    "pstack/skills/principle-experience-first/SKILL.md",
+    "pstack/skills/principle-explain-the-number/SKILL.md",
+    "pstack/skills/principle-fix-root-causes/SKILL.md",
+    "pstack/skills/principle-foundational-thinking/SKILL.md",
+    "pstack/skills/principle-guard-the-context-window/SKILL.md",
+    "pstack/skills/principle-laziness-protocol/SKILL.md",
+    "pstack/skills/principle-make-operations-idempotent/SKILL.md",
+    "pstack/skills/principle-migrate-callers-then-delete-legacy-apis/SKILL.md",
+    "pstack/skills/principle-minimize-reader-load/SKILL.md",
+    "pstack/skills/principle-model-the-domain/SKILL.md",
+    "pstack/skills/principle-never-block-on-the-human/SKILL.md",
+    "pstack/skills/principle-outcome-oriented-execution/SKILL.md",
+    "pstack/skills/principle-prove-it-works/SKILL.md",
+    "pstack/skills/principle-redesign-from-first-principles/SKILL.md",
+    "pstack/skills/principle-separate-before-serializing-shared-state/SKILL.md",
+    "pstack/skills/principle-sequence-verifiable-units/SKILL.md",
+    "pstack/skills/principle-subtract-before-you-add/SKILL.md",
+    "pstack/skills/principle-test-behavior-not-implementation/SKILL.md",
+    "pstack/skills/principle-type-system-discipline/SKILL.md"
+  ],
+  "hashVerification": [
+    {
+      "id": "PSTACK-CMD-COMMENT-SICKO-FIRST-OUTPUT-001",
+      "hashCheck": "PASS",
+      "fullFileSha256": "c0fd0383008da45fc78cfac17b9007d62c42f87ad1c8d5c2fb658b1fd01f7c82",
+      "quoteSha256": "a08d071a2c49b477cc7484e9f68099a7fb0e6c0b5b15a50d2541229bece19abf",
+      "inventoryMatch": true
+    },
+    {
+      "id": "PSTACK-CMD-POTETO-AGENT-READ-SKILL-001",
+      "hashCheck": "PASS",
+      "fullFileSha256": "abe41c169ecbfe65641f1725f4188d568e046c0dec7fd2dc271abb594c299201",
+      "quoteSha256": "abe41c169ecbfe65641f1725f4188d568e046c0dec7fd2dc271abb594c299201",
+      "inventoryMatch": true
+    },
+    {
+      "id": "PSTACK-CMD-BENNY-REPRO-FAIL-CLOSED-001",
+      "hashCheck": "PASS",
+      "fullFileSha256": "1363cc07343fe86aab42853b1bd4563288cbcbdf12f1c265b3b3b1afa25c09cb",
+      "quoteSha256": "5788c8974092c74dbe5a027eb6c11bda2071565163d212d2fa634d2acbf9cefa",
+      "inventoryMatch": true
+    },
+    {
+      "id": "PSTACK-CMD-SETUP-BENNY-NOT-SLASH-001",
+      "hashCheck": "PASS",
+      "fullFileSha256": "5a3cbe63360c9f6373b6cb6c79a1eaf7e0eba181bfaa1577e2e6431af3407282",
+      "quoteSha256": "f3b118dbf2940197bbd9dd300feb6be480f045ccd3e5764192d71d24bf635509",
+      "inventoryMatch": true
+    },
+    {
+      "id": "PSTACK-CMD-BENNY-TRIAGE-THREAD-ONLY-001",
+      "hashCheck": "PASS",
+      "fullFileSha256": "216a758b8711e64d19a55e6032c496527daac6364d010611040f3c04ef1a448f",
+      "quoteSha256": "fdd5547be45f4f2ecfc12239dc7a82a16c7b16aaa8e84ee2601618a2451e2aec",
+      "inventoryMatch": true
+    },
+    {
+      "id": "PSTACK-CMD-AUTOMATE-ME-EXISTING-SKILL-001",
+      "hashCheck": "PASS",
+      "fullFileSha256": "1510979b0b71b54284427a19c09918f8b1fdfc168f9b7f9e30098793a5ec88ef",
+      "quoteSha256": "59fe53d5f6edcf6e06794e4dc5472d53ff2368dcda4c4eb382060e6a01f75d31",
+      "inventoryMatch": true
+    },
+    {
+      "id": "PSTACK-CMD-BENCHMARK-CHECKLIST-EVIDENCE-001",
+      "hashCheck": "PASS",
+      "fullFileSha256": "6a767e788a60428fa14e645ee10fe2e49896e514ff654f668b1d824deb9038e8",
+      "quoteSha256": "0735d257afa0939cc978e1b461d366059a9b6d2277c39babbab25d575710248d",
+      "inventoryMatch": true
+    },
+    {
+      "id": "PSTACK-CMD-BLAST-RADIUS-RUN-PROOF-001",
+      "hashCheck": "PASS",
+      "fullFileSha256": "2e10745b97f5862323dcda3b29ca60d56b5c3c98e37020085d26b48efbe0a436",
+      "quoteSha256": "944d22fc56a0809739720f6f55a0c392e79a8a9ec00c7a5e04472e75a057a1e1",
+      "inventoryMatch": true
+    },
+    {
+      "id": "PSTACK-CMD-BRO-RESTATE-001",
+      "hashCheck": "PASS",
+      "fullFileSha256": "aa329d0ceeeecb6822a7174ad76bb07a7826a3c52ceb6a588dec4138815084bb",
+      "quoteSha256": "aa329d0ceeeecb6822a7174ad76bb07a7826a3c52ceb6a588dec4138815084bb",
+      "inventoryMatch": true
+    },
+    {
+      "id": "PSTACK-CMD-MAINTAIN-VERIFY-OUTCOMES-001",
+      "hashCheck": "PASS",
+      "fullFileSha256": "515c0eaa054b3f6be1b1fb06f2c2f173c80fddb58bbcac57576f89c479bc68e8",
+      "quoteSha256": "f385d58a2361d3c6a9be2d4cdba019fc0c8d60061e09e8d1983f68b423f1e3f8",
+      "inventoryMatch": true
+    },
+    {
+      "id": "PSTACK-CMD-MAKE-BOT-UI-KEY-SERVER-001",
+      "hashCheck": "PASS",
+      "fullFileSha256": "3624c8ef16cf2e48deb2a4049e72c6962a9431c8d6c6af90e7bd7ea0375224ec",
+      "quoteSha256": "242aca4e23a6110013f95dd7ca5c50dfc134909c5e9e814caf2f307c6c10c3a5",
+      "inventoryMatch": true
+    },
+    {
+      "id": "PSTACK-CMD-POTETO-PLAYBOOK-TODO-001",
+      "hashCheck": "PASS",
+      "fullFileSha256": "31cd02290360ce63564ef22b74d69fc6d90e62181d05a644cbed8f6c47cc9412",
+      "quoteSha256": "d332a937e629581aec8e255c398f7abe1199034be4a75fb1657323380f19bdf1",
+      "inventoryMatch": true
+    },
+    {
+      "id": "PSTACK-CMD-RECALL-CAPSULE-001",
+      "hashCheck": "PASS",
+      "fullFileSha256": "d265b0e5b6dc5b89c0407f3387d24462c988e1990a37d5359735137908128c5a",
+      "quoteSha256": "195070f860c79092b713f14f58368714f640215dc51df9a236c69389e2ab3702",
+      "inventoryMatch": true
+    },
+    {
+      "id": "PSTACK-CMD-SETUP-WRITE-RULE-001",
+      "hashCheck": "PASS",
+      "fullFileSha256": "d61b47256a18155a81c8e5ef95e3cc6569ce8c18317c35c4dd9c8015cf68cb59",
+      "quoteSha256": "933fbb00b21068fc0f24724598db243bbb211a05370a1634949fb147e4de331e",
+      "inventoryMatch": true
+    },
+    {
+      "id": "PSTACK-CMD-TEACH-HOW-WHY-001",
+      "hashCheck": "PASS",
+      "fullFileSha256": "bd286e5a6290673be2cd28aef7af2ec7f1fb138e6bce156ea657368c7e7fc8a4",
+      "quoteSha256": "db798e6927335d43eae8dedafb1706853afff9f7889e04a1dba681b83076ee43",
+      "inventoryMatch": true
+    },
+    {
+      "id": "PSTACK-CMD-TYPESCRIPT-PATHS-001",
+      "hashCheck": "PASS",
+      "fullFileSha256": "28f9e61710e205f6f3c5476f333483cff0e988f6a5b639e2faad536344b40c5e",
+      "quoteSha256": "990a27e635d2bf4958cda9e6b8e13a3ab426133c1ff7b2e658cf599743a7731d",
+      "inventoryMatch": true
+    },
+    {
+      "id": "PSTACK-CMD-UNSLOP-PROCESS-001",
+      "hashCheck": "PASS",
+      "fullFileSha256": "195411d320b5b328f9f642baf59757ed19aaf0931c0838740e0aca273d538dc1",
+      "quoteSha256": "f774f3fd143aaa1ad1a6701f7b81b7641dfb0bf764386b1573f56482fc32f784",
+      "inventoryMatch": true
+    }
+  ]
+}

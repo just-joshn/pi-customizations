@@ -1,0 +1,35 @@
+  4. Runtime consumption. The always-applied rule lands in session context. Skills (how, why, arena, swarm, etc.)
+  set model from the role line — not from # budget. No runtime code reads the budget comment.
+
+  5. Model resolution in Pi. resolveModel in src/models.ts resolves aliases to the parent, exact IDs, or id:<level>.
+  A budget only reaches a Pi subagent if some role value carries a :level suffix or names a model whose levels
+  differ.
+
+  Where Things Live
+
+  • extensions/pi-pstack/src/setup-tool.ts — budget label → effort map, rule rendering, write
+  • extensions/pi-pstack/src/models.ts — skillDefaultTable, readModelRule, resolveModel, unused applyBudget
+  • extensions/pi-pstack/src/host.ts / src/index.ts — system-prompt injection
+  • Host setup skills under Cursor / Claude / Pi setup-pstack
+  • Skills that read role lines: how, why, arena, swarm, architect, interrogate, reflect
+
+  Gotchas
+
+  • In Pi the budget doesn't rewrite roles by itself. writeAction only stamps # budget: X (effort); the agent must
+    send effort-adjusted values as roleOverrides. applyBudget exists but nothing calls it.
+  • Your current Cursor rule shows the budget doing nothing. # budget: small (medium) with every role
+    inherit-parent means every subagent inherits the parent — aliases are exempt.
+  • A project rule can't change the budget. readModelRule skips # lines from the project overlay; the user rule's
+    budget comment wins.
+  • Labels must match exactly (including the em dash form in the picker).
+  • Claude Code's large equals unlimited for role rewriting.
+  • Rule changes take effect in new sessions.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 12.5%                                                                                          Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run · refactor/pi-pstack-parity-again

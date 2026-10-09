@@ -1,0 +1,17 @@
+{
+  "unit": "u-dep-typescript-deep-001",
+  "capturedAt": "2026-10-09T02:43:33Z",
+  "hashes": {
+    "wave009Disposition": "a3ac9a4f564b3f698dccfdf2dce74f9ec729c3e517bf60dbbc9f9fc579730bb2",
+    "disposition": "54a2b55db5eb26545476cf15af7f1f7bbb3d45f8907e0f501d16adf7b4e5c7f9",
+    "mergePayload": "c078be629275b4e25e7d18a08e8c9cda0063d09e69ddfe224cd1a8968a7416b9"
+  },
+  "catalogHashDriftCount": 0,
+  "verifiedInternalFileCount": 136,
+  "typecheckExit": 0,
+  "tscVersionExit": 0,
+  "tscVersionStdout": "Version 7.0.2",
+  "verdict": "still-open-with-merge-note",
+  "mergePayloadReady": true,
+  "removeUnresolvedReference": false
+}

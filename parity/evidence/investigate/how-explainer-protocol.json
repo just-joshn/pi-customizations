@@ -1,0 +1,123 @@
+{
+  "schema": 1,
+  "finding": "HOW-WORKFLOW-EXPLAINER-STEP",
+  "requirementId": "PSTACK-PLAYBOOK-HOW-001",
+  "dispositionPath": "parity/reviews/how-explainer-disposition.md",
+  "acceptanceVerdict": "undecided",
+  "note": "Names comparison methods only. Does not pass or fail the requirement.",
+  "fixture": {
+    "scenarioRef": "how:investigation-question",
+    "question": "how does the pstack budget line in models.mdc change agent behavior?",
+    "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "captureScript": "parity/scripts/capture-investigate.mjs",
+    "pairs": [
+      "parity/evidence/investigate/pair-investigate-1.json",
+      "parity/evidence/investigate/pair-investigate-2.json"
+    ]
+  },
+  "skillText": {
+    "reference": {
+      "path": "parity/reference/cursor-plugins/pstack/skills/how/SKILL.md",
+      "step2bImperative": "Spawn one Task subagent that explores and explains in one pass:"
+    },
+    "candidate": {
+      "path": "extensions/pi-pstack/skills/how/SKILL.md",
+      "step2bImperative": "Spawn one Task subagent that explores and explains in one pass:"
+    },
+    "simplePathLine": "When in doubt, take the simple path.",
+    "simplePathMeaning": "Chooses Step 2b over 2a. Does not authorize skipping spawn."
+  },
+  "attempts": {
+    "referenceSpawn": [
+      {
+        "id": "dfe89f1a-a5a9-4837-ac17-0b21ba5ee462",
+        "pair": "investigate-1",
+        "spawn": true,
+        "signals": [
+          "per the /how workflow I'll spawn a single explainer",
+          "Running subagent",
+          "Overview"
+        ]
+      },
+      {
+        "id": "6f45e2db-c821-4663-bc85-ac9a01fc76e8",
+        "pair": "investigate-2",
+        "spawn": true,
+        "signals": [
+          "simple path: one explainer subagent, no explorers",
+          "Running subagent"
+        ]
+      }
+    ],
+    "candidateSkip": [
+      {
+        "id": "05056781-f5a2-4f64-8480-9748deee5686",
+        "pair": "investigate-1",
+        "deliveryEra": "pre-delivery-repair",
+        "spawn": false
+      },
+      {
+        "id": "03252b53-a395-476d-86c2-a7636c4c4116",
+        "pair": "investigate-2",
+        "deliveryEra": "post-delivery-repair",
+        "spawn": false,
+        "signals": [
+          "without the explorer-findings section",
+          "instead of spawning explorers"
+        ]
+      },
+      {
+        "id": "8ad2dbc5-5ffa-48e3-8b76-0f6de82f6219",
+        "pair": "chip-expand-follow-up",
+        "deliveryEra": "post-expand-delivery",
+        "spawn": false,
+        "signals": [
+          "[skill] how (ctrl+o to expand)",
+          "instead of spawning explainer agents"
+        ]
+      }
+    ],
+    "candidateSkipSupplemental": [
+      {
+        "id": "71003cfe-3806-4276-8dab-438f304c23c2",
+        "spawn": false,
+        "note": "Present under evidence/investigate/pi but not a pair-investigate-1/2 row"
+      }
+    ]
+  },
+  "deliveryRuledOut": {
+    "closedFinding": "HOW-SKILL-DELIVERY-MODE",
+    "source": "parity/evidence/investigate/investigate-parity.json"
+  },
+  "capability": {
+    "candidateTaskTool": "extensions/pi-pstack/src/workers.ts",
+    "note": "Skip is not explained by a missing Task tool registration"
+  },
+  "methods": {
+    "recommended": "A-deterministic-spawn-required",
+    "A-deterministic-spawn-required": {
+      "pass": "Parent starts one explainer Task / Running subagent before final answer",
+      "fail": "Parent answers with direct tools only and never starts explainer Task",
+      "moreReferenceRunsRequiredBeforeRepair": false,
+      "optionalConfidenceProtocol": {
+        "nAdditionalReferenceRuns": 1,
+        "totalReferenceTarget": 3,
+        "fixture": "same as pair-investigate-2.json",
+        "stopRule": "If the extra reference run skips spawn, switch to Method B. If it spawns, keep Method A."
+      }
+    },
+    "B-model-choice-variance-with-retention": {
+      "pass": "Skill activated, read-only held, rule digest unchanged, grounded answer present",
+      "doNotRequire": "Task spawn",
+      "retention": {
+        "minReferenceAttempts": 2,
+        "minPostDeliveryCandidateAttempts": 2,
+        "sameFixtureDigest": true,
+        "keepAllAttemptDirs": true
+      },
+      "stopRule": "If a later reference skips spawn or a later post-delivery candidate spawns, reopen method choice. Do not close from one more identical candidate skip.",
+      "moreReferenceRunsRequiredBeforeRepair": false,
+      "repairImplied": false
+    }
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "unit": "u-dep-commander-closure-001",
+  "status": "merged",
+  "verdict": "close",
+  "auditVerdict": "CLOSURE_AUDITED",
+  "targets": {
+    "parity/dependencies.json": {
+      "nodeId": "npm:commander@14.0.0",
+      "set": {
+        "closureAudited": true
+      }
+    },
+    "parity/source-lock.json": {
+      "externalDependency": "commander@14.0.0",
+      "set": {
+        "closureAudited": true,
+        "signatureAuthenticated": true
+      }
+    },
+    "parity/reference/npm/commander-14.0.0/integrity.json": {
+      "set": {
+        "signatureAuthenticated": true
+      },
+      "note": "Coordinator-owned reference refresh. This unit did not edit the file."
+    }
+  },
+  "evidence": {
+    "audit": "parity/research/dep-commander-closure-001/audit.md",
+    "hashVerify": "parity/research/dep-commander-closure-001/hash-verify.json",
+    "hashShasumList": "parity/research/dep-commander-closure-001/hash-verify.shasum.txt",
+    "runtimeDeps": "parity/research/dep-commander-closure-001/runtime-deps.json",
+    "signatureAuth": "parity/research/dep-commander-closure-001/signature-auth.json",
+    "npmKeys": "parity/research/dep-commander-closure-001/npm-v1-keys.json",
+    "priorInventory": "parity/research/npm/commander-14.0.0/read-inventory.json",
+    "npmRefreshReceipt": "parity/research/npm/commander-14.0.0/closure-audit-001-receipt.json",
+    "report": "parity/briefs/reports/u-dep-commander-closure-001-report.md"
+  },
+  "basis": {
+    "tarballSha256": "eaef3a697e7173c7347ca4c1e60dd2bc1d38214d2aaecce89d70881a51d7fde7",
+    "inventorySha256": "19bfb53788883180ca7fd295b1b0c7261da478ed9b0971423cf2791906b90653",
+    "npmKeysSha256": "faf23d8753d5bb79df250f10391ac89b63ecf7743e48487a544a99c847f9c8df",
+    "hashVerification": "VERIFIED",
+    "packageFileCount": 14,
+    "consumerCount": 2,
+    "thirdPartyRuntimeDependencyCount": 0,
+    "signatureAuthenticated": true,
+    "signatureKeyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U",
+    "opensslVerifiedOk": true
+  },
+  "preserve": {
+    "parity/source-lock.json.status": "incomplete",
+    "parity/source-lock.json.cursorPlugins.completeDependencyClosure": false,
+    "completeDependencyClosure": false,
+    "liveIntegrations": "unchanged open",
+    "hostComputerUseEnterpriseEdges": "unchanged open",
+    "source-bun-runtime edge / Bun pin": "unchanged separate concern"
+  },
+  "meaning": "Node-level and source-lock externalDependency closureAudited may flip to true for commander@14.0.0 after this independent custody audit. signatureAuthenticated may flip to true after ECDSA verification against published npm v1 keys. This does not claim completeDependencyClosure, freeze source-lock status, close live integrations, or close host CU/enterprise edges.",
+  "doNotEditInThisUnit": [
+    "parity/dependencies.json",
+    "parity/source-lock.json",
+    "parity/requirements.json",
+    "parity/mismatches.json",
+    "parity/progress.md",
+    "parity/completion.json",
+    "parity/decisions.md",
+    "parity/reference/npm/commander-14.0.0/integrity.json"
+  ],
+  "proposedAt": "2026-10-09T09:13:54Z",
+  "mergedAt": "2026-10-09T09:15:24Z"
+}

@@ -1,0 +1,14 @@
+{
+  "surface": "CLI: a short-lived shell script (hello.sh) that prints a fixed line to stdout and exits. No web UI, TUI, server, or library surface.",
+  "run": "From the fixture-app root, run ./hello.sh (documented in README.md). No deps, ports, env vars, seed data, or auth. Ready when the process exits; success is exit 0 with stdout HELLO-FAMILY-13.",
+  "drive": "Invoke ./hello.sh in an isolated shell (or capture stdout/stderr/exit via a one-shot shell redirection). No Playwright, PTY prompt loop, or HTTP harness is required; the user path is a single command.",
+  "observe": "Capture the command, stdout (must be exactly HELLO-FAMILY-13 plus a trailing newline), empty stderr, and exit code 0. Write transcript artifacts under a named proof directory that cleanup must leave alone.",
+  "isolate": "Each run is a new process with no shared ports, data dirs, or profiles. Multiple side-by-side invocations are safe; never attach to or kill an unrelated shell session.",
+  "evidencePaths": [
+    "README.md",
+    "hello.sh"
+  ],
+  "askedUser": false,
+  "askedUserAbout": [],
+  "baseBuildsOrReported": true
+}

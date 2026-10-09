@@ -1,0 +1,55 @@
+Automations > benny-triage
+Save
+D Test
+IDE 7
+V New Chat
+Search
+Automations
+Customize
+Projects
++ New Project
+Pinned
+• /make-bot-ui|
+Repositories
+@ No Repo
+:.. Cursor automation setup
+Cursor automation setup
+Cursor automation setup
+Automation setup instruction
+/make-bot-ui
+/automate
+/automate
+Sticky mode activation
+benny-triage
+Inactive
+• No Repository v | By Joshua Humphrey
+Open Agents WindowOpen Automations/automate PARITY_TOKEN=webhook-a
+All
+Projects
+Agents Files
+Actions
+Settings
+No results found
+46m
++ Select
+Open [ or 9] Change Filter
+1m|
+7m
+9m
+18m
+48m
+50m
+52m
+1h
+3/3 O
+Agent Instructions
+Read and follow the Benny triage-issue-reports skill. Classify reports; reply only inside the triggering thread; end with one of
+[benny:bug], [benny:performance], or [benny:other]; never post a source-channel root message.
+Grok 4.7 High Fast v
+Tools
+Getting Started
+* Connect Slack
+Joshua Humphrey
+Memories
++ Add Tool or MCP
+Manage

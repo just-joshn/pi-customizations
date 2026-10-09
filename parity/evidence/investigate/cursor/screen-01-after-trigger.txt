@@ -1,0 +1,22 @@
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Use /config to customize Cursor settings and behavior.
+
+                                                                                                                       
+  /how does the pstack budget line in models.mdc change agent behavior?                                                
+                                                                                                                       
+
+  I'll follow the how skill for this.
+
+    Used how
+
+ ⠘⠤ Reading  890 tokens
+
+                                                                                                                       
+  → Add a follow-up                                                                                     ctrl+c to stop 
+                                                                                                                       
+
+  Auto · 7.6%                                                                                           Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run · refactor/pi-pstack-parity-again

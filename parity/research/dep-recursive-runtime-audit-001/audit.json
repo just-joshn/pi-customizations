@@ -1,0 +1,2000 @@
+{
+  "unit": "u-dep-recursive-runtime-audit-001",
+  "capturedAt": "2026-10-09T02:07:31Z",
+  "extractionPath": "parity/research/dep-closure-wave-007/recursive/extraction.json",
+  "extractionSha256": "eb531640c75896c1443fd0f8c12f5a82b79c3500d6cbbe9425611222621ca323",
+  "uniqueReferenceCount": 176,
+  "dispositionCounts": {
+    "fetched+hashed": 12,
+    "classified-non-fetchable": 164
+  },
+  "classReasonCounts": {
+    "public_http_candidate": 12,
+    "localhost_or_loopback": 6,
+    "example_documentation_host": 2,
+    "template_or_markdown_artifact": 9,
+    "documentation_placeholder_url": 2,
+    "relative_escape_in_distribution": 145
+  },
+  "fetchedUniqueUrlCount": 9,
+  "fetchedUniqueUrls": [
+    {
+      "fetchUrl": "https://cursor.com/blog/projects",
+      "finalUrl": "https://cursor.com/blog/projects",
+      "sha256": "2ae7fa6e93e3365402268b4319ecc5dc7b0ed8d2e48bfe6ce16ed6343341213e",
+      "byteLength": 185489,
+      "path": "parity/research/dep-recursive-runtime-audit-001/bodies/cursor.com_b09bf6f2d73ad55c.bin",
+      "headersPath": "parity/research/dep-recursive-runtime-audit-001/headers/cursor.com_b09bf6f2d73ad55c.headers.txt",
+      "httpStatus": 200
+    },
+    {
+      "fetchUrl": "https://cursor.com/docs/skills",
+      "finalUrl": "https://cursor.com/docs/skills",
+      "sha256": "214ae1e8719f12562eba98aa4a1005d69efde0c7910b784a7adaaf05b2fe0b4d",
+      "byteLength": 502740,
+      "path": "parity/research/dep-recursive-runtime-audit-001/bodies/cursor.com_00e29e3269f39d02.bin",
+      "headersPath": "parity/research/dep-recursive-runtime-audit-001/headers/cursor.com_00e29e3269f39d02.headers.txt",
+      "httpStatus": 200
+    },
+    {
+      "fetchUrl": "https://cursor.com/docs/subagents#cloud-subagents",
+      "finalUrl": "https://cursor.com/docs/subagents#cloud-subagents",
+      "sha256": "91501df321b1a76105cb4d25f32435e0379b1f34913f8ae93aede4c55fc4fd97",
+      "byteLength": 700143,
+      "path": "parity/research/dep-recursive-runtime-audit-001/bodies/cursor.com_2b08aae71f8ac4f9.bin",
+      "headersPath": "parity/research/dep-recursive-runtime-audit-001/headers/cursor.com_2b08aae71f8ac4f9.headers.txt",
+      "httpStatus": 200
+    },
+    {
+      "fetchUrl": "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap",
+      "finalUrl": "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap",
+      "sha256": "6eb402fe7dd4733eae8c16533c6ea4a06dd8fc31d822723f6443bee2aac293aa",
+      "byteLength": 1581,
+      "path": "parity/research/dep-recursive-runtime-audit-001/bodies/fonts.googleapis.com_319f232a762dcaa6.bin",
+      "headersPath": "parity/research/dep-recursive-runtime-audit-001/headers/fonts.googleapis.com_319f232a762dcaa6.headers.txt",
+      "httpStatus": 200
+    },
+    {
+      "fetchUrl": "https://github.com/cursor/plugins",
+      "finalUrl": "https://github.com/cursor/plugins",
+      "sha256": "1bc34b7bca351de0de7534be142359c662542783c5df86c557cba639ce92fd7c",
+      "byteLength": 365196,
+      "path": "parity/research/dep-recursive-runtime-audit-001/bodies/github.com_a50d216def4cada3.bin",
+      "headersPath": "parity/research/dep-recursive-runtime-audit-001/headers/github.com_a50d216def4cada3.headers.txt",
+      "httpStatus": 200
+    },
+    {
+      "fetchUrl": "https://github.com/cursor/plugins/blob/main/pstack/",
+      "finalUrl": "https://github.com/cursor/plugins/tree/main/pstack",
+      "sha256": "47872963ce2d3f2a62265335df36a4385f1a36d096131e99fdf0a6b9d6dfa6ac",
+      "byteLength": 344361,
+      "path": "parity/research/dep-recursive-runtime-audit-001/bodies/github.com_92f11e8d70a40c50.bin",
+      "headersPath": "parity/research/dep-recursive-runtime-audit-001/headers/github.com_92f11e8d70a40c50.headers.txt",
+      "httpStatus": 200
+    },
+    {
+      "fetchUrl": "https://github.com/cursor/plugins/tree/main/pstack",
+      "finalUrl": "https://github.com/cursor/plugins/tree/main/pstack",
+      "sha256": "1f52a4167b631d03b35a8ca64d2a513b6aceb0caa433b8f94046cbc65371e44c",
+      "byteLength": 344361,
+      "path": "parity/research/dep-recursive-runtime-audit-001/bodies/github.com_b57692b69684810f.bin",
+      "headersPath": "parity/research/dep-recursive-runtime-audit-001/headers/github.com_b57692b69684810f.headers.txt",
+      "httpStatus": 200
+    },
+    {
+      "fetchUrl": "https://tailscale.com/install.sh",
+      "finalUrl": "https://tailscale.com/install.sh",
+      "sha256": "4207f322e10ad26b3054abe7c99dfb54da09843c8d0a50d0a82f8eff4972a0d1",
+      "byteLength": 20309,
+      "path": "parity/research/dep-recursive-runtime-audit-001/bodies/tailscale.com_8ad1a37a394d949a.bin",
+      "headersPath": "parity/research/dep-recursive-runtime-audit-001/headers/tailscale.com_8ad1a37a394d949a.headers.txt",
+      "httpStatus": 200
+    },
+    {
+      "fetchUrl": "https://x.com/poteto",
+      "finalUrl": "https://x.com/poteto",
+      "sha256": "b49911b819424ce8b516b72d3d7833e62ab125491ccdd3ba0efdab8e21b60b5d",
+      "byteLength": 177200,
+      "path": "parity/research/dep-recursive-runtime-audit-001/bodies/x.com_097ed41d64fc7943.bin",
+      "headersPath": "parity/research/dep-recursive-runtime-audit-001/headers/x.com_097ed41d64fc7943.headers.txt",
+      "httpStatus": 200
+    }
+  ],
+  "sampleSha256Path": "parity/research/dep-recursive-runtime-audit-001/sample-sha256.txt",
+  "behavioralExerciseClaim": false,
+  "behavioralExerciseNote": "HTTP custody fetch/classify only. No live Automations, Slack, or editor behavioral exercise was performed.",
+  "references": [
+    {
+      "kind": "absolute_url",
+      "target": "https://github.com/cursor/plugins",
+      "host": "github.com",
+      "fromInventoryPath": "cursor-team-kit/.cursor-plugin/plugin.json",
+      "fromSha256": "9c8622d0577205959b6469a5454cbe2787ad3c6412439759328e92dc0115584d",
+      "classReason": "public_http_candidate",
+      "fetchAttempted": true,
+      "fetchUrl": "https://github.com/cursor/plugins",
+      "disposition": "fetched+hashed",
+      "fetch": {
+        "fetchUrl": "https://github.com/cursor/plugins",
+        "finalUrl": "https://github.com/cursor/plugins",
+        "path": "parity/research/dep-recursive-runtime-audit-001/bodies/github.com_a50d216def4cada3.bin",
+        "sha256": "1bc34b7bca351de0de7534be142359c662542783c5df86c557cba639ce92fd7c",
+        "byteLength": 365196,
+        "headersPath": "parity/research/dep-recursive-runtime-audit-001/headers/github.com_a50d216def4cada3.headers.txt",
+        "status": "fetched",
+        "httpStatus": 200
+      }
+    },
+    {
+      "kind": "absolute_url",
+      "target": "http://127.0.0.1:<port",
+      "host": "127.0.0.1:<port",
+      "fromInventoryPath": "cursor-team-kit/skills/control-ui/SKILL.md",
+      "fromSha256": "410cae25bdb1e5d2323b126abc5047b0213be7fdb0195710213fa8de8a751871",
+      "disposition": "classified-non-fetchable",
+      "classReason": "localhost_or_loopback",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "absolute_url",
+      "target": "http://127.0.0.1:<debug-port",
+      "host": "127.0.0.1:<debug-port",
+      "fromInventoryPath": "cursor-team-kit/skills/control-ui/SKILL.md",
+      "fromSha256": "410cae25bdb1e5d2323b126abc5047b0213be7fdb0195710213fa8de8a751871",
+      "disposition": "classified-non-fetchable",
+      "classReason": "localhost_or_loopback",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "absolute_url",
+      "target": "http://127.0.0.1:8432/pr-review-{number}.html`",
+      "host": "127.0.0.1:8432",
+      "fromInventoryPath": "cursor-team-kit/skills/pr-review-canvas/SKILL.md",
+      "fromSha256": "88a07a2459197acba3c5e06b7d695e35ad618a998442b72d05cdba4efc117ac6",
+      "disposition": "classified-non-fetchable",
+      "classReason": "localhost_or_loopback",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap",
+      "host": "fonts.googleapis.com",
+      "fromInventoryPath": "cursor-team-kit/skills/pr-review-canvas/template.html",
+      "fromSha256": "cb56bc764384856da4733d1c999521c3e1b20d65ed80605630b74da448abe756",
+      "classReason": "public_http_candidate",
+      "fetchAttempted": true,
+      "fetchUrl": "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap",
+      "disposition": "fetched+hashed",
+      "fetch": {
+        "fetchUrl": "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap",
+        "finalUrl": "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap",
+        "path": "parity/research/dep-recursive-runtime-audit-001/bodies/fonts.googleapis.com_319f232a762dcaa6.bin",
+        "sha256": "6eb402fe7dd4733eae8c16533c6ea4a06dd8fc31d822723f6443bee2aac293aa",
+        "byteLength": 1581,
+        "headersPath": "parity/research/dep-recursive-runtime-audit-001/headers/fonts.googleapis.com_319f232a762dcaa6.headers.txt",
+        "status": "fetched",
+        "httpStatus": 200
+      }
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://github.com/cursor/plugins/tree/main/pstack",
+      "host": "github.com",
+      "fromInventoryPath": "pstack/.cursor-plugin/plugin.json",
+      "fromSha256": "7bc736c60985805f70465e044e5adc7028663f72a73deea7fa3e95e52d70dc8e",
+      "classReason": "public_http_candidate",
+      "fetchAttempted": true,
+      "fetchUrl": "https://github.com/cursor/plugins/tree/main/pstack",
+      "disposition": "fetched+hashed",
+      "fetch": {
+        "fetchUrl": "https://github.com/cursor/plugins/tree/main/pstack",
+        "finalUrl": "https://github.com/cursor/plugins/tree/main/pstack",
+        "path": "parity/research/dep-recursive-runtime-audit-001/bodies/github.com_b57692b69684810f.bin",
+        "sha256": "1f52a4167b631d03b35a8ca64d2a513b6aceb0caa433b8f94046cbc65371e44c",
+        "byteLength": 344361,
+        "headersPath": "parity/research/dep-recursive-runtime-audit-001/headers/github.com_b57692b69684810f.headers.txt",
+        "status": "fetched",
+        "httpStatus": 200
+      }
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://github.com/cursor/plugins",
+      "host": "github.com",
+      "fromInventoryPath": "pstack/.cursor-plugin/plugin.json",
+      "fromSha256": "7bc736c60985805f70465e044e5adc7028663f72a73deea7fa3e95e52d70dc8e",
+      "classReason": "public_http_candidate",
+      "fetchAttempted": true,
+      "fetchUrl": "https://github.com/cursor/plugins",
+      "disposition": "fetched+hashed",
+      "fetch": {
+        "fetchUrl": "https://github.com/cursor/plugins",
+        "finalUrl": "https://github.com/cursor/plugins",
+        "path": "parity/research/dep-recursive-runtime-audit-001/bodies/github.com_a50d216def4cada3.bin",
+        "sha256": "1bc34b7bca351de0de7534be142359c662542783c5df86c557cba639ce92fd7c",
+        "byteLength": 365196,
+        "headersPath": "parity/research/dep-recursive-runtime-audit-001/headers/github.com_a50d216def4cada3.headers.txt",
+        "status": "fetched",
+        "httpStatus": 200
+      }
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://x.com/poteto",
+      "host": "x.com",
+      "fromInventoryPath": "pstack/README.md",
+      "fromSha256": "7f39feae81103e18b567e1fa5075cba86425cf4697a01be66a7422ef93c2c855",
+      "classReason": "public_http_candidate",
+      "fetchAttempted": true,
+      "fetchUrl": "https://x.com/poteto",
+      "disposition": "fetched+hashed",
+      "fetch": {
+        "fetchUrl": "https://x.com/poteto",
+        "finalUrl": "https://x.com/poteto",
+        "path": "parity/research/dep-recursive-runtime-audit-001/bodies/x.com_097ed41d64fc7943.bin",
+        "sha256": "b49911b819424ce8b516b72d3d7833e62ab125491ccdd3ba0efdab8e21b60b5d",
+        "byteLength": 177200,
+        "headersPath": "parity/research/dep-recursive-runtime-audit-001/headers/x.com_097ed41d64fc7943.headers.txt",
+        "status": "fetched",
+        "httpStatus": 200
+      }
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://cursor.com/docs/skills",
+      "host": "cursor.com",
+      "fromInventoryPath": "pstack/README.md",
+      "fromSha256": "7f39feae81103e18b567e1fa5075cba86425cf4697a01be66a7422ef93c2c855",
+      "classReason": "public_http_candidate",
+      "fetchAttempted": true,
+      "fetchUrl": "https://cursor.com/docs/skills",
+      "disposition": "fetched+hashed",
+      "fetch": {
+        "fetchUrl": "https://cursor.com/docs/skills",
+        "finalUrl": "https://cursor.com/docs/skills",
+        "path": "parity/research/dep-recursive-runtime-audit-001/bodies/cursor.com_00e29e3269f39d02.bin",
+        "sha256": "214ae1e8719f12562eba98aa4a1005d69efde0c7910b784a7adaaf05b2fe0b4d",
+        "byteLength": 502740,
+        "headersPath": "parity/research/dep-recursive-runtime-audit-001/headers/cursor.com_00e29e3269f39d02.headers.txt",
+        "status": "fetched",
+        "httpStatus": 200
+      }
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://tracker.example/issue/123",
+      "host": "tracker.example",
+      "fromInventoryPath": "pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md",
+      "fromSha256": "1363cc07343fe86aab42853b1bd4563288cbcbdf12f1c265b3b3b1afa25c09cb",
+      "disposition": "classified-non-fetchable",
+      "classReason": "example_documentation_host",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://github.com/{owner}/{repo}/pull/{number}`",
+      "host": "github.com",
+      "fromInventoryPath": "pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md",
+      "fromSha256": "1363cc07343fe86aab42853b1bd4563288cbcbdf12f1c265b3b3b1afa25c09cb",
+      "disposition": "classified-non-fetchable",
+      "classReason": "template_or_markdown_artifact",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://tracker.example/issue/123",
+      "host": "tracker.example",
+      "fromInventoryPath": "pstack/automations/benny/skills/triage-issue-reports/SKILL.md",
+      "fromSha256": "216a758b8711e64d19a55e6032c496527daac6364d010611040f3c04ef1a448f",
+      "disposition": "classified-non-fetchable",
+      "classReason": "example_documentation_host",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://github.com/example-org/example-repo",
+      "host": "github.com",
+      "fromInventoryPath": "pstack/automations/benny/templates/configuration.example.yaml",
+      "fromSha256": "13e24b4ce9b9a0913916e85fe3b080b88d45f8e55dccfe8ae38e0751a997b6f5",
+      "disposition": "classified-non-fetchable",
+      "classReason": "documentation_placeholder_url",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://github.com/{owner}/{repo}/pull/{number}",
+      "host": "github.com",
+      "fromInventoryPath": "pstack/automations/benny/templates/configuration.example.yaml",
+      "fromSha256": "13e24b4ce9b9a0913916e85fe3b080b88d45f8e55dccfe8ae38e0751a997b6f5",
+      "disposition": "classified-non-fetchable",
+      "classReason": "template_or_markdown_artifact",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://cursor.com/docs/skills",
+      "host": "cursor.com",
+      "fromInventoryPath": "pstack/docs/guide/01-setup.md",
+      "fromSha256": "86d0330f245d16254a2069955f993c15d96cf29cd1a73690a0164074b7ac1190",
+      "classReason": "public_http_candidate",
+      "fetchAttempted": true,
+      "fetchUrl": "https://cursor.com/docs/skills",
+      "disposition": "fetched+hashed",
+      "fetch": {
+        "fetchUrl": "https://cursor.com/docs/skills",
+        "finalUrl": "https://cursor.com/docs/skills",
+        "path": "parity/research/dep-recursive-runtime-audit-001/bodies/cursor.com_00e29e3269f39d02.bin",
+        "sha256": "214ae1e8719f12562eba98aa4a1005d69efde0c7910b784a7adaaf05b2fe0b4d",
+        "byteLength": 502740,
+        "headersPath": "parity/research/dep-recursive-runtime-audit-001/headers/cursor.com_00e29e3269f39d02.headers.txt",
+        "status": "fetched",
+        "httpStatus": 200
+      }
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/setup-pstack/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/01-setup.md",
+      "fromSha256": "86d0330f245d16254a2069955f993c15d96cf29cd1a73690a0164074b7ac1190",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/create-verification-skill/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/01-setup.md",
+      "fromSha256": "86d0330f245d16254a2069955f993c15d96cf29cd1a73690a0164074b7ac1190",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://cursor.com/docs/subagents#cloud-subagents",
+      "host": "cursor.com",
+      "fromInventoryPath": "pstack/docs/guide/02-poteto-mode.md",
+      "fromSha256": "979f61ca3d44cb8e68affda40327d32797e93fa9cc53ced7444c15e2600897e1",
+      "classReason": "public_http_candidate",
+      "fetchAttempted": true,
+      "fetchUrl": "https://cursor.com/docs/subagents#cloud-subagents",
+      "disposition": "fetched+hashed",
+      "fetch": {
+        "fetchUrl": "https://cursor.com/docs/subagents#cloud-subagents",
+        "finalUrl": "https://cursor.com/docs/subagents#cloud-subagents",
+        "path": "parity/research/dep-recursive-runtime-audit-001/bodies/cursor.com_2b08aae71f8ac4f9.bin",
+        "sha256": "91501df321b1a76105cb4d25f32435e0379b1f34913f8ae93aede4c55fc4fd97",
+        "byteLength": 700143,
+        "headersPath": "parity/research/dep-recursive-runtime-audit-001/headers/cursor.com_2b08aae71f8ac4f9.headers.txt",
+        "status": "fetched",
+        "httpStatus": 200
+      }
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/02-poteto-mode.md",
+      "fromSha256": "979f61ca3d44cb8e68affda40327d32797e93fa9cc53ced7444c15e2600897e1",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/opening-a-pr.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/02-poteto-mode.md",
+      "fromSha256": "979f61ca3d44cb8e68affda40327d32797e93fa9cc53ced7444c15e2600897e1",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/worktree-cleanup.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/02-poteto-mode.md",
+      "fromSha256": "979f61ca3d44cb8e68affda40327d32797e93fa9cc53ced7444c15e2600897e1",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/figure-it-out/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/02-poteto-mode.md",
+      "fromSha256": "979f61ca3d44cb8e68affda40327d32797e93fa9cc53ced7444c15e2600897e1",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/show-me-your-work/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/02-poteto-mode.md",
+      "fromSha256": "979f61ca3d44cb8e68affda40327d32797e93fa9cc53ced7444c15e2600897e1",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/02-poteto-mode.md",
+      "fromSha256": "979f61ca3d44cb8e68affda40327d32797e93fa9cc53ced7444c15e2600897e1",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/investigation.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/03-understand.md",
+      "fromSha256": "0090afa9b8670adf175466a2a973ff4349e95ed67d2aa8cebdfc55ff4b7382c9",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/how/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/03-understand.md",
+      "fromSha256": "0090afa9b8670adf175466a2a973ff4349e95ed67d2aa8cebdfc55ff4b7382c9",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/why/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/03-understand.md",
+      "fromSha256": "0090afa9b8670adf175466a2a973ff4349e95ed67d2aa8cebdfc55ff4b7382c9",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/teach/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/03-understand.md",
+      "fromSha256": "0090afa9b8670adf175466a2a973ff4349e95ed67d2aa8cebdfc55ff4b7382c9",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/recall/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/03-understand.md",
+      "fromSha256": "0090afa9b8670adf175466a2a973ff4349e95ed67d2aa8cebdfc55ff4b7382c9",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/session-pickup.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/03-understand.md",
+      "fromSha256": "0090afa9b8670adf175466a2a973ff4349e95ed67d2aa8cebdfc55ff4b7382c9",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/architect/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/04-design.md",
+      "fromSha256": "31f2abe6e9b29feafd1a9eece8f4fe21992f86b8c19ab2e9b5c11a20f36587e7",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/arena/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/04-design.md",
+      "fromSha256": "31f2abe6e9b29feafd1a9eece8f4fe21992f86b8c19ab2e9b5c11a20f36587e7",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/setup-pstack/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/04-design.md",
+      "fromSha256": "31f2abe6e9b29feafd1a9eece8f4fe21992f86b8c19ab2e9b5c11a20f36587e7",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/swarm/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/04-design.md",
+      "fromSha256": "31f2abe6e9b29feafd1a9eece8f4fe21992f86b8c19ab2e9b5c11a20f36587e7",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/interrogate/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/04-design.md",
+      "fromSha256": "31f2abe6e9b29feafd1a9eece8f4fe21992f86b8c19ab2e9b5c11a20f36587e7",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/prototype.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/04-design.md",
+      "fromSha256": "31f2abe6e9b29feafd1a9eece8f4fe21992f86b8c19ab2e9b5c11a20f36587e7",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/technical-writing/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/04-design.md",
+      "fromSha256": "31f2abe6e9b29feafd1a9eece8f4fe21992f86b8c19ab2e9b5c11a20f36587e7",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/multi-phase-plan.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/04-design.md",
+      "fromSha256": "31f2abe6e9b29feafd1a9eece8f4fe21992f86b8c19ab2e9b5c11a20f36587e7",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/bug-fix.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/05-build-and-clean.md",
+      "fromSha256": "a93cc7771f7b35c7b54d0120b6f66e8367794ce6791237e889a30e7585c190fa",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/feature.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/05-build-and-clean.md",
+      "fromSha256": "a93cc7771f7b35c7b54d0120b6f66e8367794ce6791237e889a30e7585c190fa",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/refactoring.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/05-build-and-clean.md",
+      "fromSha256": "a93cc7771f7b35c7b54d0120b6f66e8367794ce6791237e889a30e7585c190fa",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/perf-issue.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/05-build-and-clean.md",
+      "fromSha256": "a93cc7771f7b35c7b54d0120b6f66e8367794ce6791237e889a30e7585c190fa",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/hillclimb.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/05-build-and-clean.md",
+      "fromSha256": "a93cc7771f7b35c7b54d0120b6f66e8367794ce6791237e889a30e7585c190fa",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/benchmark-checklist/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/05-build-and-clean.md",
+      "fromSha256": "a93cc7771f7b35c7b54d0120b6f66e8367794ce6791237e889a30e7585c190fa",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/runtime-forensics.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/05-build-and-clean.md",
+      "fromSha256": "a93cc7771f7b35c7b54d0120b6f66e8367794ce6791237e889a30e7585c190fa",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/trace-forensics.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/05-build-and-clean.md",
+      "fromSha256": "a93cc7771f7b35c7b54d0120b6f66e8367794ce6791237e889a30e7585c190fa",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/tdd/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/05-build-and-clean.md",
+      "fromSha256": "a93cc7771f7b35c7b54d0120b6f66e8367794ce6791237e889a30e7585c190fa",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/typescript-best-practices/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/05-build-and-clean.md",
+      "fromSha256": "a93cc7771f7b35c7b54d0120b6f66e8367794ce6791237e889a30e7585c190fa",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/opening-a-pr.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/05-build-and-clean.md",
+      "fromSha256": "a93cc7771f7b35c7b54d0120b6f66e8367794ce6791237e889a30e7585c190fa",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/unslop/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/05-build-and-clean.md",
+      "fromSha256": "a93cc7771f7b35c7b54d0120b6f66e8367794ce6791237e889a30e7585c190fa",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/no-comments/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/05-build-and-clean.md",
+      "fromSha256": "a93cc7771f7b35c7b54d0120b6f66e8367794ce6791237e889a30e7585c190fa",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../agents/comment-sicko.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/05-build-and-clean.md",
+      "fromSha256": "a93cc7771f7b35c7b54d0120b6f66e8367794ce6791237e889a30e7585c190fa",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-prove-it-works/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/06-verify-and-ship.md",
+      "fromSha256": "3ef0eed5ea084dfbbaf1b1ae9e08d84f2c8a2b536ffb3ef5226710bf105f70e6",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/visual-parity.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/06-verify-and-ship.md",
+      "fromSha256": "3ef0eed5ea084dfbbaf1b1ae9e08d84f2c8a2b536ffb3ef5226710bf105f70e6",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/blast-radius/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/06-verify-and-ship.md",
+      "fromSha256": "3ef0eed5ea084dfbbaf1b1ae9e08d84f2c8a2b536ffb3ef5226710bf105f70e6",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/benchmark-checklist/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/06-verify-and-ship.md",
+      "fromSha256": "3ef0eed5ea084dfbbaf1b1ae9e08d84f2c8a2b536ffb3ef5226710bf105f70e6",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-explain-the-number/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/06-verify-and-ship.md",
+      "fromSha256": "3ef0eed5ea084dfbbaf1b1ae9e08d84f2c8a2b536ffb3ef5226710bf105f70e6",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/create-verification-skill/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/06-verify-and-ship.md",
+      "fromSha256": "3ef0eed5ea084dfbbaf1b1ae9e08d84f2c8a2b536ffb3ef5226710bf105f70e6",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/create-verification-skill/references/feature-map-example/",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/06-verify-and-ship.md",
+      "fromSha256": "3ef0eed5ea084dfbbaf1b1ae9e08d84f2c8a2b536ffb3ef5226710bf105f70e6",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/swarm/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/06-verify-and-ship.md",
+      "fromSha256": "3ef0eed5ea084dfbbaf1b1ae9e08d84f2c8a2b536ffb3ef5226710bf105f70e6",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-build-the-lever/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/06-verify-and-ship.md",
+      "fromSha256": "3ef0eed5ea084dfbbaf1b1ae9e08d84f2c8a2b536ffb3ef5226710bf105f70e6",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/maintain-verification-skill/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/06-verify-and-ship.md",
+      "fromSha256": "3ef0eed5ea084dfbbaf1b1ae9e08d84f2c8a2b536ffb3ef5226710bf105f70e6",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/opening-a-pr.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/06-verify-and-ship.md",
+      "fromSha256": "3ef0eed5ea084dfbbaf1b1ae9e08d84f2c8a2b536ffb3ef5226710bf105f70e6",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/babysit.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/06-verify-and-ship.md",
+      "fromSha256": "3ef0eed5ea084dfbbaf1b1ae9e08d84f2c8a2b536ffb3ef5226710bf105f70e6",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/shipping.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/06-verify-and-ship.md",
+      "fromSha256": "3ef0eed5ea084dfbbaf1b1ae9e08d84f2c8a2b536ffb3ef5226710bf105f70e6",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://cursor.com/blog/projects",
+      "host": "cursor.com",
+      "fromInventoryPath": "pstack/docs/guide/07-overnight.md",
+      "fromSha256": "d7bd33a3d880768688dff4c1c2b5481ca9f0f194f5d97e44b65c9f96624d3ff0",
+      "classReason": "public_http_candidate",
+      "fetchAttempted": true,
+      "fetchUrl": "https://cursor.com/blog/projects",
+      "disposition": "fetched+hashed",
+      "fetch": {
+        "fetchUrl": "https://cursor.com/blog/projects",
+        "finalUrl": "https://cursor.com/blog/projects",
+        "path": "parity/research/dep-recursive-runtime-audit-001/bodies/cursor.com_b09bf6f2d73ad55c.bin",
+        "sha256": "2ae7fa6e93e3365402268b4319ecc5dc7b0ed8d2e48bfe6ce16ed6343341213e",
+        "byteLength": 185489,
+        "headersPath": "parity/research/dep-recursive-runtime-audit-001/headers/cursor.com_b09bf6f2d73ad55c.headers.txt",
+        "status": "fetched",
+        "httpStatus": 200
+      }
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/autonomous-run.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/07-overnight.md",
+      "fromSha256": "d7bd33a3d880768688dff4c1c2b5481ca9f0f194f5d97e44b65c9f96624d3ff0",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/figure-it-out/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/07-overnight.md",
+      "fromSha256": "d7bd33a3d880768688dff4c1c2b5481ca9f0f194f5d97e44b65c9f96624d3ff0",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/pause-safely.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/07-overnight.md",
+      "fromSha256": "d7bd33a3d880768688dff4c1c2b5481ca9f0f194f5d97e44b65c9f96624d3ff0",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/show-me-your-work/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/07-overnight.md",
+      "fromSha256": "d7bd33a3d880768688dff4c1c2b5481ca9f0f194f5d97e44b65c9f96624d3ff0",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/autopilot-full.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/07-overnight.md",
+      "fromSha256": "d7bd33a3d880768688dff4c1c2b5481ca9f0f194f5d97e44b65c9f96624d3ff0",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/autopilot-stack.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/07-overnight.md",
+      "fromSha256": "d7bd33a3d880768688dff4c1c2b5481ca9f0f194f5d97e44b65c9f96624d3ff0",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/orchestrate.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/07-overnight.md",
+      "fromSha256": "d7bd33a3d880768688dff4c1c2b5481ca9f0f194f5d97e44b65c9f96624d3ff0",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../automations/benny/README.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/07-overnight.md",
+      "fromSha256": "d7bd33a3d880768688dff4c1c2b5481ca9f0f194f5d97e44b65c9f96624d3ff0",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../automations/benny/FOR_AGENTS.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/07-overnight.md",
+      "fromSha256": "d7bd33a3d880768688dff4c1c2b5481ca9f0f194f5d97e44b65c9f96624d3ff0",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-laziness-protocol/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/08-principles.md",
+      "fromSha256": "73c3db659d356d4aa6d7674d30d0db46fab2bdd60152fca717c2d1772a042bdc",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-foundational-thinking/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/08-principles.md",
+      "fromSha256": "73c3db659d356d4aa6d7674d30d0db46fab2bdd60152fca717c2d1772a042bdc",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-redesign-from-first-principles/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/08-principles.md",
+      "fromSha256": "73c3db659d356d4aa6d7674d30d0db46fab2bdd60152fca717c2d1772a042bdc",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-attack-the-premise/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/08-principles.md",
+      "fromSha256": "73c3db659d356d4aa6d7674d30d0db46fab2bdd60152fca717c2d1772a042bdc",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-subtract-before-you-add/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/08-principles.md",
+      "fromSha256": "73c3db659d356d4aa6d7674d30d0db46fab2bdd60152fca717c2d1772a042bdc",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-minimize-reader-load/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/08-principles.md",
+      "fromSha256": "73c3db659d356d4aa6d7674d30d0db46fab2bdd60152fca717c2d1772a042bdc",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-outcome-oriented-execution/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/08-principles.md",
+      "fromSha256": "73c3db659d356d4aa6d7674d30d0db46fab2bdd60152fca717c2d1772a042bdc",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-experience-first/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/08-principles.md",
+      "fromSha256": "73c3db659d356d4aa6d7674d30d0db46fab2bdd60152fca717c2d1772a042bdc",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-exhaust-the-design-space/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/08-principles.md",
+      "fromSha256": "73c3db659d356d4aa6d7674d30d0db46fab2bdd60152fca717c2d1772a042bdc",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-build-the-lever/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/08-principles.md",
+      "fromSha256": "73c3db659d356d4aa6d7674d30d0db46fab2bdd60152fca717c2d1772a042bdc",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-model-the-domain/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/08-principles.md",
+      "fromSha256": "73c3db659d356d4aa6d7674d30d0db46fab2bdd60152fca717c2d1772a042bdc",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-boundary-discipline/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/08-principles.md",
+      "fromSha256": "73c3db659d356d4aa6d7674d30d0db46fab2bdd60152fca717c2d1772a042bdc",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-type-system-discipline/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/08-principles.md",
+      "fromSha256": "73c3db659d356d4aa6d7674d30d0db46fab2bdd60152fca717c2d1772a042bdc",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-make-operations-idempotent/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/08-principles.md",
+      "fromSha256": "73c3db659d356d4aa6d7674d30d0db46fab2bdd60152fca717c2d1772a042bdc",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-migrate-callers-then-delete-legacy-apis/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/08-principles.md",
+      "fromSha256": "73c3db659d356d4aa6d7674d30d0db46fab2bdd60152fca717c2d1772a042bdc",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-separate-before-serializing-shared-state/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/08-principles.md",
+      "fromSha256": "73c3db659d356d4aa6d7674d30d0db46fab2bdd60152fca717c2d1772a042bdc",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-prove-it-works/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/08-principles.md",
+      "fromSha256": "73c3db659d356d4aa6d7674d30d0db46fab2bdd60152fca717c2d1772a042bdc",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-fix-root-causes/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/08-principles.md",
+      "fromSha256": "73c3db659d356d4aa6d7674d30d0db46fab2bdd60152fca717c2d1772a042bdc",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-sequence-verifiable-units/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/08-principles.md",
+      "fromSha256": "73c3db659d356d4aa6d7674d30d0db46fab2bdd60152fca717c2d1772a042bdc",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-test-behavior-not-implementation/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/08-principles.md",
+      "fromSha256": "73c3db659d356d4aa6d7674d30d0db46fab2bdd60152fca717c2d1772a042bdc",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-explain-the-number/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/08-principles.md",
+      "fromSha256": "73c3db659d356d4aa6d7674d30d0db46fab2bdd60152fca717c2d1772a042bdc",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/benchmark-checklist/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/08-principles.md",
+      "fromSha256": "73c3db659d356d4aa6d7674d30d0db46fab2bdd60152fca717c2d1772a042bdc",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-guard-the-context-window/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/08-principles.md",
+      "fromSha256": "73c3db659d356d4aa6d7674d30d0db46fab2bdd60152fca717c2d1772a042bdc",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-never-block-on-the-human/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/08-principles.md",
+      "fromSha256": "73c3db659d356d4aa6d7674d30d0db46fab2bdd60152fca717c2d1772a042bdc",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/principle-encode-lessons-in-structure/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/08-principles.md",
+      "fromSha256": "73c3db659d356d4aa6d7674d30d0db46fab2bdd60152fca717c2d1772a042bdc",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/correct/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/08-principles.md",
+      "fromSha256": "73c3db659d356d4aa6d7674d30d0db46fab2bdd60152fca717c2d1772a042bdc",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/automate-me/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/09-make-it-yours.md",
+      "fromSha256": "157e0c20ad3c657857c2fbbea3afd26895b71b8f68475bc56f4c382dcdd0e118",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/unslop/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/09-make-it-yours.md",
+      "fromSha256": "157e0c20ad3c657857c2fbbea3afd26895b71b8f68475bc56f4c382dcdd0e118",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/reflect/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/09-make-it-yours.md",
+      "fromSha256": "157e0c20ad3c657857c2fbbea3afd26895b71b8f68475bc56f4c382dcdd0e118",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/correct/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/09-make-it-yours.md",
+      "fromSha256": "157e0c20ad3c657857c2fbbea3afd26895b71b8f68475bc56f4c382dcdd0e118",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/authoring-a-skill.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/09-make-it-yours.md",
+      "fromSha256": "157e0c20ad3c657857c2fbbea3afd26895b71b8f68475bc56f4c382dcdd0e118",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/create-verification-skill/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/09-make-it-yours.md",
+      "fromSha256": "157e0c20ad3c657857c2fbbea3afd26895b71b8f68475bc56f4c382dcdd0e118",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/maintain-verification-skill/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/09-make-it-yours.md",
+      "fromSha256": "157e0c20ad3c657857c2fbbea3afd26895b71b8f68475bc56f4c382dcdd0e118",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/technical-writing/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/09-make-it-yours.md",
+      "fromSha256": "157e0c20ad3c657857c2fbbea3afd26895b71b8f68475bc56f4c382dcdd0e118",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/eval.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/09-make-it-yours.md",
+      "fromSha256": "157e0c20ad3c657857c2fbbea3afd26895b71b8f68475bc56f4c382dcdd0e118",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/make-bot-ui/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/09-make-it-yours.md",
+      "fromSha256": "157e0c20ad3c657857c2fbbea3afd26895b71b8f68475bc56f4c382dcdd0e118",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/bro/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/10-recipes-and-pitfalls.md",
+      "fromSha256": "c652474764b08da4a6364d85f5d03cf1fc1cf35e9d7c549348fb66e2d09f7b1f",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/authoring-a-skill.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/10-recipes-and-pitfalls.md",
+      "fromSha256": "c652474764b08da4a6364d85f5d03cf1fc1cf35e9d7c549348fb66e2d09f7b1f",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-help/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/docs/guide/README.md",
+      "fromSha256": "49d92cfe91e01c04bd1150e5b000ee4fd4dfda8ce789b66a9dda98f7e5456e00",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../SKILL.md#phase-a-ground-the-problem",
+      "host": null,
+      "fromInventoryPath": "pstack/skills/architect/references/rationale-template.md",
+      "fromSha256": "0cedfccdc7b47fc881febd5a8293eecbc542c20f8df825639904a8102d2eb5d3",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../arena/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/skills/architect/references/rationale-template.md",
+      "fromSha256": "0cedfccdc7b47fc881febd5a8293eecbc542c20f8df825639904a8102d2eb5d3",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../principle-explain-the-number/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/skills/benchmark-checklist/SKILL.md",
+      "fromSha256": "6a767e788a60428fa14e645ee10fe2e49896e514ff654f668b1d824deb9038e8",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "absolute_url",
+      "target": "http://127.0.0.1:4173`",
+      "host": "127.0.0.1:4173`",
+      "fromInventoryPath": "pstack/skills/create-verification-skill/references/feature-map-example/README.md",
+      "fromSha256": "cb7bd782cf89968a4ba3d58a5151db837430db92d19a6f52a906973b77b516ba",
+      "disposition": "classified-non-fetchable",
+      "classReason": "localhost_or_loopback",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "absolute_url",
+      "target": "http://127.0.0.1:4173`",
+      "host": "127.0.0.1:4173`",
+      "fromInventoryPath": "pstack/skills/create-verification-skill/references/feature-map-example/create-note.md",
+      "fromSha256": "644a44c74f35d38c2feb7cd05a0121fdebbb623e8dc376c185b565a581d1ccf7",
+      "disposition": "classified-non-fetchable",
+      "classReason": "localhost_or_loopback",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "absolute_url",
+      "target": "http://127.0.0.1:4173`",
+      "host": "127.0.0.1:4173`",
+      "fromInventoryPath": "pstack/skills/create-verification-skill/references/feature-map-example/search.md",
+      "fromSha256": "6e87b9e7f2791a7776ba1bb83f371cd285c306c67f19d245cc4dd6ca3015c823",
+      "disposition": "classified-non-fetchable",
+      "classReason": "localhost_or_loopback",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://api2.cursor.sh/automations/webhook/<id",
+      "host": "api2.cursor.sh",
+      "fromInventoryPath": "pstack/skills/make-bot-ui/SKILL.md",
+      "fromSha256": "3624c8ef16cf2e48deb2a4049e72c6962a9431c8d6c6af90e7bd7ea0375224ec",
+      "disposition": "classified-non-fetchable",
+      "classReason": "template_or_markdown_artifact",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "absolute_url",
+      "target": "http://<hostname",
+      "host": "<hostname",
+      "fromInventoryPath": "pstack/skills/make-bot-ui/SKILL.md",
+      "fromSha256": "3624c8ef16cf2e48deb2a4049e72c6962a9431c8d6c6af90e7bd7ea0375224ec",
+      "disposition": "classified-non-fetchable",
+      "classReason": "template_or_markdown_artifact",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "absolute_url",
+      "target": "http://<100.x.x.x",
+      "host": "<100.x.x.x",
+      "fromInventoryPath": "pstack/skills/make-bot-ui/SKILL.md",
+      "fromSha256": "3624c8ef16cf2e48deb2a4049e72c6962a9431c8d6c6af90e7bd7ea0375224ec",
+      "disposition": "classified-non-fetchable",
+      "classReason": "template_or_markdown_artifact",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://tailscale.com/install.sh",
+      "host": "tailscale.com",
+      "fromInventoryPath": "pstack/skills/make-bot-ui/SKILL.md",
+      "fromSha256": "3624c8ef16cf2e48deb2a4049e72c6962a9431c8d6c6af90e7bd7ea0375224ec",
+      "classReason": "public_http_candidate",
+      "fetchAttempted": true,
+      "fetchUrl": "https://tailscale.com/install.sh",
+      "disposition": "fetched+hashed",
+      "fetch": {
+        "fetchUrl": "https://tailscale.com/install.sh",
+        "finalUrl": "https://tailscale.com/install.sh",
+        "path": "parity/research/dep-recursive-runtime-audit-001/bodies/tailscale.com_8ad1a37a394d949a.bin",
+        "sha256": "4207f322e10ad26b3054abe7c99dfb54da09843c8d0a50d0a82f8eff4972a0d1",
+        "byteLength": 20309,
+        "headersPath": "parity/research/dep-recursive-runtime-audit-001/headers/tailscale.com_8ad1a37a394d949a.headers.txt",
+        "status": "fetched",
+        "httpStatus": 200
+      }
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://github.com/cursor/plugins/blob/main/pstack/`",
+      "host": "github.com",
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e",
+      "classReason": "public_http_candidate",
+      "fetchAttempted": true,
+      "fetchUrl": "https://github.com/cursor/plugins/blob/main/pstack/",
+      "disposition": "fetched+hashed",
+      "fetch": {
+        "fetchUrl": "https://github.com/cursor/plugins/blob/main/pstack/",
+        "finalUrl": "https://github.com/cursor/plugins/tree/main/pstack",
+        "path": "parity/research/dep-recursive-runtime-audit-001/bodies/github.com_92f11e8d70a40c50.bin",
+        "sha256": "47872963ce2d3f2a62265335df36a4385f1a36d096131e99fdf0a6b9d6dfa6ac",
+        "byteLength": 344361,
+        "headersPath": "parity/research/dep-recursive-runtime-audit-001/headers/github.com_92f11e8d70a40c50.headers.txt",
+        "status": "fetched",
+        "httpStatus": 200
+      }
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://cursor.com/docs/skills",
+      "host": "cursor.com",
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e",
+      "classReason": "public_http_candidate",
+      "fetchAttempted": true,
+      "fetchUrl": "https://cursor.com/docs/skills",
+      "disposition": "fetched+hashed",
+      "fetch": {
+        "fetchUrl": "https://cursor.com/docs/skills",
+        "finalUrl": "https://cursor.com/docs/skills",
+        "path": "parity/research/dep-recursive-runtime-audit-001/bodies/cursor.com_00e29e3269f39d02.bin",
+        "sha256": "214ae1e8719f12562eba98aa4a1005d69efde0c7910b784a7adaaf05b2fe0b4d",
+        "byteLength": 502740,
+        "headersPath": "parity/research/dep-recursive-runtime-audit-001/headers/cursor.com_00e29e3269f39d02.headers.txt",
+        "status": "fetched",
+        "httpStatus": 200
+      }
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../poteto-mode/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../setup-pstack/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../README.md",
+      "host": null,
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../docs/guide/01-setup.md",
+      "host": null,
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../docs/guide/02-poteto-mode.md",
+      "host": null,
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../how/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../why/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../teach/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../recall/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../blast-radius/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../architect/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../arena/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../swarm/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../interrogate/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../tdd/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../typescript-best-practices/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../no-comments/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../unslop/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../technical-writing/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../bro/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../create-verification-skill/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../maintain-verification-skill/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../benchmark-checklist/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../figure-it-out/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../show-me-your-work/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../automate-me/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../reflect/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../correct/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../make-bot-ui/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../docs/guide/06-verify-and-ship.md",
+      "host": null,
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../poteto-mode/playbooks/multi-phase-plan.md",
+      "host": null,
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../docs/guide/08-principles.md",
+      "host": null,
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../docs/guide/07-overnight.md",
+      "host": null,
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../docs/guide/10-recipes-and-pitfalls.md",
+      "host": null,
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../docs/guide/09-make-it-yours.md",
+      "host": null,
+      "fromInventoryPath": "pstack/skills/poteto-help/SKILL.md",
+      "fromSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://github.com/<owner",
+      "host": "github.com",
+      "fromInventoryPath": "pstack/skills/poteto-mode/SKILL.md",
+      "fromSha256": "31cd02290360ce63564ef22b74d69fc6d90e62181d05a644cbed8f6c47cc9412",
+      "disposition": "classified-non-fetchable",
+      "classReason": "template_or_markdown_artifact",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://github.com/owner/repo/pull/1",
+      "host": "github.com",
+      "fromInventoryPath": "pstack/skills/poteto-mode/scripts/watch-pr/cli.test.ts",
+      "fromSha256": "a35592b4c6da96caf8d47987e9cd503fab6c7774ab87d11a43f24b4b5df2a9d1",
+      "disposition": "classified-non-fetchable",
+      "classReason": "documentation_placeholder_url",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://github.com/${normalized.slice(15",
+      "host": "github.com",
+      "fromInventoryPath": "pstack/skills/poteto-mode/scripts/watch-pr/github.ts",
+      "fromSha256": "d1bbbafbe8e2c703c84da2029de7f2c4011412512f8cf65a42100f46bcb92c8a",
+      "disposition": "classified-non-fetchable",
+      "classReason": "template_or_markdown_artifact",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://github.com/${normalized.slice(21",
+      "host": "github.com",
+      "fromInventoryPath": "pstack/skills/poteto-mode/scripts/watch-pr/github.ts",
+      "fromSha256": "d1bbbafbe8e2c703c84da2029de7f2c4011412512f8cf65a42100f46bcb92c8a",
+      "disposition": "classified-non-fetchable",
+      "classReason": "template_or_markdown_artifact",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://github.com/${row.context.owner}/${row.context.repo}/pull/${row.context.number}`",
+      "host": "github.com",
+      "fromInventoryPath": "pstack/skills/poteto-mode/scripts/watch-pr/render.ts",
+      "fromSha256": "2b709e86628d5b8fdb61f860e60ababc342b0626c67576305442cf548283a604",
+      "disposition": "classified-non-fetchable",
+      "classReason": "template_or_markdown_artifact",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../principle-build-the-lever/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/skills/principle-attack-the-premise/SKILL.md",
+      "fromSha256": "c87bd7536f772f8a403ad8155535ee17a1bbec9a353156693eb3bb1520c87ae3",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../principle-fix-root-causes/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/skills/principle-attack-the-premise/SKILL.md",
+      "fromSha256": "c87bd7536f772f8a403ad8155535ee17a1bbec9a353156693eb3bb1520c87ae3",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../principle-laziness-protocol/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/skills/principle-attack-the-premise/SKILL.md",
+      "fromSha256": "c87bd7536f772f8a403ad8155535ee17a1bbec9a353156693eb3bb1520c87ae3",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../principle-redesign-from-first-principles/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/skills/principle-attack-the-premise/SKILL.md",
+      "fromSha256": "c87bd7536f772f8a403ad8155535ee17a1bbec9a353156693eb3bb1520c87ae3",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../principle-laziness-protocol/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/skills/principle-build-the-lever/SKILL.md",
+      "fromSha256": "458b269eab8e95a1573276955312f7d2a13ae8599879a9efc748248f6bc34b56",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../principle-encode-lessons-in-structure/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/skills/principle-build-the-lever/SKILL.md",
+      "fromSha256": "458b269eab8e95a1573276955312f7d2a13ae8599879a9efc748248f6bc34b56",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../principle-prove-it-works/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/skills/principle-build-the-lever/SKILL.md",
+      "fromSha256": "458b269eab8e95a1573276955312f7d2a13ae8599879a9efc748248f6bc34b56",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../benchmark-checklist/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/skills/principle-explain-the-number/SKILL.md",
+      "fromSha256": "5aac99e7ce0bb1b37e2579acf4fe88c32a1456d9d46afd4a57cfe1df9092e89c",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../principle-prove-it-works/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/skills/principle-explain-the-number/SKILL.md",
+      "fromSha256": "5aac99e7ce0bb1b37e2579acf4fe88c32a1456d9d46afd4a57cfe1df9092e89c",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../principle-guard-the-context-window/SKILL.md",
+      "host": null,
+      "fromInventoryPath": "pstack/skills/principle-minimize-reader-load/SKILL.md",
+      "fromSha256": "42551c5dc74cd578163c148da552db3ff67d29b78600ef216bfd311fb828fe69",
+      "disposition": "classified-non-fetchable",
+      "classReason": "relative_escape_in_distribution",
+      "fetchAttempted": false
+    }
+  ]
+}

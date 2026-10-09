@@ -1,0 +1,227 @@
+[
+  {
+    "ts": "2026-10-09T00:34:39.455Z",
+    "doneExists": false,
+    "doneStatus": null,
+    "destPresentCount": 0,
+    "missingRequired": 11,
+    "destOnlyPreserved": true,
+    "localEditPreserved": true
+  },
+  {
+    "ts": "2026-10-09T00:34:39.999Z",
+    "doneExists": false,
+    "doneStatus": null,
+    "destPresentCount": 0,
+    "missingRequired": 11,
+    "destOnlyPreserved": true,
+    "localEditPreserved": true
+  },
+  {
+    "ts": "2026-10-09T00:34:40.553Z",
+    "doneExists": false,
+    "doneStatus": null,
+    "destPresentCount": 0,
+    "missingRequired": 11,
+    "destOnlyPreserved": true,
+    "localEditPreserved": true
+  },
+  {
+    "ts": "2026-10-09T00:34:41.121Z",
+    "doneExists": false,
+    "doneStatus": null,
+    "destPresentCount": 0,
+    "missingRequired": 11,
+    "destOnlyPreserved": true,
+    "localEditPreserved": true
+  },
+  {
+    "ts": "2026-10-09T00:34:41.695Z",
+    "doneExists": false,
+    "doneStatus": null,
+    "destPresentCount": 0,
+    "missingRequired": 11,
+    "destOnlyPreserved": true,
+    "localEditPreserved": true
+  },
+  {
+    "ts": "2026-10-09T00:34:42.282Z",
+    "doneExists": false,
+    "doneStatus": null,
+    "destPresentCount": 0,
+    "missingRequired": 11,
+    "destOnlyPreserved": true,
+    "localEditPreserved": true
+  },
+  {
+    "ts": "2026-10-09T00:34:42.878Z",
+    "doneExists": false,
+    "doneStatus": null,
+    "destPresentCount": 0,
+    "missingRequired": 11,
+    "destOnlyPreserved": true,
+    "localEditPreserved": true
+  },
+  {
+    "ts": "2026-10-09T00:34:43.496Z",
+    "doneExists": false,
+    "doneStatus": null,
+    "destPresentCount": 0,
+    "missingRequired": 11,
+    "destOnlyPreserved": true,
+    "localEditPreserved": true
+  },
+  {
+    "ts": "2026-10-09T00:34:44.148Z",
+    "doneExists": false,
+    "doneStatus": null,
+    "destPresentCount": 0,
+    "missingRequired": 11,
+    "destOnlyPreserved": true,
+    "localEditPreserved": true
+  },
+  {
+    "ts": "2026-10-09T00:34:44.812Z",
+    "doneExists": false,
+    "doneStatus": null,
+    "destPresentCount": 0,
+    "missingRequired": 11,
+    "destOnlyPreserved": true,
+    "localEditPreserved": true
+  },
+  {
+    "ts": "2026-10-09T00:34:45.486Z",
+    "doneExists": false,
+    "doneStatus": null,
+    "destPresentCount": 0,
+    "missingRequired": 11,
+    "destOnlyPreserved": true,
+    "localEditPreserved": true
+  },
+  {
+    "ts": "2026-10-09T00:34:46.195Z",
+    "doneExists": false,
+    "doneStatus": null,
+    "destPresentCount": 0,
+    "missingRequired": 11,
+    "destOnlyPreserved": true,
+    "localEditPreserved": true
+  },
+  {
+    "ts": "2026-10-09T00:34:46.964Z",
+    "doneExists": false,
+    "doneStatus": null,
+    "destPresentCount": 0,
+    "missingRequired": 11,
+    "destOnlyPreserved": true,
+    "localEditPreserved": true
+  },
+  {
+    "ts": "2026-10-09T00:34:47.804Z",
+    "doneExists": false,
+    "doneStatus": null,
+    "destPresentCount": 0,
+    "missingRequired": 11,
+    "destOnlyPreserved": true,
+    "localEditPreserved": true
+  },
+  {
+    "ts": "2026-10-09T00:34:48.710Z",
+    "doneExists": true,
+    "doneStatus": "merge-ok",
+    "destPresentCount": 11,
+    "missingRequired": 0,
+    "destOnlyPreserved": true,
+    "localEditPreserved": true
+  },
+  {
+    "ts": "2026-10-09T00:34:49.674Z",
+    "doneExists": true,
+    "doneStatus": "merge-ok",
+    "destPresentCount": 11,
+    "missingRequired": 0,
+    "destOnlyPreserved": true,
+    "localEditPreserved": true
+  },
+  {
+    "ts": "2026-10-09T00:34:50.633Z",
+    "doneExists": true,
+    "doneStatus": "merge-ok",
+    "destPresentCount": 11,
+    "missingRequired": 0,
+    "destOnlyPreserved": true,
+    "localEditPreserved": true
+  },
+  {
+    "ts": "2026-10-09T00:34:51.616Z",
+    "doneExists": true,
+    "doneStatus": "merge-ok",
+    "destPresentCount": 11,
+    "missingRequired": 0,
+    "destOnlyPreserved": true,
+    "localEditPreserved": true
+  },
+  {
+    "ts": "2026-10-09T00:34:52.597Z",
+    "doneExists": true,
+    "doneStatus": "merge-ok",
+    "destPresentCount": 11,
+    "missingRequired": 0,
+    "destOnlyPreserved": true,
+    "localEditPreserved": true
+  },
+  {
+    "ts": "2026-10-09T00:34:53.599Z",
+    "doneExists": true,
+    "doneStatus": "merge-ok",
+    "destPresentCount": 11,
+    "missingRequired": 0,
+    "destOnlyPreserved": true,
+    "localEditPreserved": true
+  },
+  {
+    "ts": "2026-10-09T00:34:54.579Z",
+    "doneExists": true,
+    "doneStatus": "merge-ok",
+    "destPresentCount": 11,
+    "missingRequired": 0,
+    "destOnlyPreserved": true,
+    "localEditPreserved": true
+  },
+  {
+    "ts": "2026-10-09T00:34:55.564Z",
+    "doneExists": true,
+    "doneStatus": "merge-ok",
+    "destPresentCount": 11,
+    "missingRequired": 0,
+    "destOnlyPreserved": true,
+    "localEditPreserved": true
+  },
+  {
+    "ts": "2026-10-09T00:34:56.557Z",
+    "doneExists": true,
+    "doneStatus": "merge-ok",
+    "destPresentCount": 11,
+    "missingRequired": 0,
+    "destOnlyPreserved": true,
+    "localEditPreserved": true
+  },
+  {
+    "ts": "2026-10-09T00:34:57.551Z",
+    "doneExists": true,
+    "doneStatus": "merge-ok",
+    "destPresentCount": 11,
+    "missingRequired": 0,
+    "destOnlyPreserved": true,
+    "localEditPreserved": true
+  },
+  {
+    "ts": "2026-10-09T00:34:58.560Z",
+    "doneExists": true,
+    "doneStatus": "merge-ok",
+    "destPresentCount": 11,
+    "missingRequired": 0,
+    "destOnlyPreserved": true,
+    "localEditPreserved": true
+  }
+]

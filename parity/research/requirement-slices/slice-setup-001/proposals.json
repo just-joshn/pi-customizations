@@ -1,0 +1,417 @@
+{
+  "schemaVersion": 1,
+  "sliceId": "slice-setup-001",
+  "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "package": "pstack@0.15.15",
+  "note": "Atomic setup requirement proposals for coordinator merge. status is never verified. Existing ledger rows PSTACK-SETUP-MODEL-DISCOVERY-001 and PSTACK-SETUP-BUDGET-LABELS-001 are not restated as new proposals; they remain the closed budget and discovery contracts.",
+  "proposals": [
+    {
+      "id": "PSTACK-SETUP-ALIAS-ALWAYS-VALID-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/setup-pstack/SKILL.md",
+        "locator": "### 1. Detect available models, aliases inherit-parent and auto",
+        "lineStart": 14,
+        "lineEnd": 14,
+        "fileSha256": "d61b47256a18155a81c8e5ef95e3cc6569ce8c18317c35c4dd9c8015cf68cb59",
+        "spanSha256": "406588c87450b53a8b2e69943b09c5102cf71e2ebf74e7a267df8f580a555bac"
+      },
+      "trigger": "/setup-pstack with alias role values.",
+      "preconditions": ["Setup may write role lines."],
+      "configurationIds": ["default", "installed-user"],
+      "expectedObservation": "inherit-parent and auto are accepted as role values without appearing in the detected real-slug set.",
+      "forbiddenSideEffects": ["Rejecting inherit-parent or auto solely because they are not detected model slugs."],
+      "status": "proposal-unverified",
+      "evidenceMapping": {
+        "kind": "paired-evidence",
+        "pairs": [
+          "parity/evidence/setup-prepair/pair-setup-first-run-canonical-2.json",
+          "parity/evidence/setup-prepair/panel-parity.json"
+        ],
+        "note": "Canonical-2 fixture keeps all roles as inherit-parent and still writes a matching rule; discovery requirement already closed on the same pair."
+      }
+    },
+    {
+      "id": "PSTACK-SETUP-LOAD-STATE-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/setup-pstack/SKILL.md",
+        "locator": "### 2. Load current state",
+        "lineStart": 16,
+        "lineEnd": 18,
+        "fileSha256": "d61b47256a18155a81c8e5ef95e3cc6569ce8c18317c35c4dd9c8015cf68cb59",
+        "spanSha256": "e4defeabe554e552c143d28663521324ebf39bd86b68a7a06154198512a54c97"
+      },
+      "trigger": "/setup-pstack when ~/.cursor/rules/pstack-models.mdc may already exist.",
+      "preconditions": ["Rule file may be absent or present."],
+      "configurationIds": ["default", "installed-user"],
+      "expectedObservation": "Existing rule budget and role values become the current choices when the file exists; otherwise skill defaults are used. Retired role lines such as how critics are dropped and listed later.",
+      "status": "proposal-unverified",
+      "evidenceMapping": {
+        "kind": "paired-evidence",
+        "pairs": [
+          "parity/evidence/setup-prepair/pair-setup-first-run-canonical-2.json",
+          "parity/evidence/setup-success/pair-setup-success-write-card-2.json"
+        ],
+        "note": "Both success and first-run pairs start from fixture digest sha256:2b6b4668… (budget small, inherit-parent roster) and load that state before mapping."
+      }
+    },
+    {
+      "id": "PSTACK-SETUP-BUDGET-APPLY-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/setup-pstack/SKILL.md",
+        "locator": "### 3. Budget, map, and confirm, subsection (b) effort mapping",
+        "lineStart": 29,
+        "lineEnd": 29,
+        "fileSha256": "d61b47256a18155a81c8e5ef95e3cc6569ce8c18317c35c4dd9c8015cf68cb59",
+        "spanSha256": "401715ecd936ef71608e205c2f6208afa4da1fd9941eb33069c57997e3dfa91f"
+      },
+      "trigger": "Budget choice after discovery and load.",
+      "preconditions": ["Budget labels contract available (PSTACK-SETUP-BUDGET-LABELS-001)."],
+      "configurationIds": ["default", "installed-user"],
+      "expectedObservation": "unlimited, large, medium, and small set every real slug effort token to max, xhigh, high, or medium respectively, including panel list entries. inherit-parent and auto are unchanged.",
+      "status": "proposal-unverified",
+      "evidenceMapping": {
+        "kind": "paired-evidence",
+        "pairs": [
+          "parity/evidence/setup-prepair/pair-setup-first-run-canonical-2.json",
+          "parity/evidence/setup-success/write-card-parity-linked.json"
+        ],
+        "note": "Paired writes show small (medium) to unlimited (max) budget line change with identical afterDigest sha256:9146cd9f…."
+      }
+    },
+    {
+      "id": "PSTACK-SETUP-RERUN-PRESERVE-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/setup-pstack/SKILL.md",
+        "locator": "### 3. Budget, map, and confirm, subsection (b) re-run keep",
+        "lineStart": 29,
+        "lineEnd": 29,
+        "fileSha256": "d61b47256a18155a81c8e5ef95e3cc6569ce8c18317c35c4dd9c8015cf68cb59",
+        "spanSha256": "401715ecd936ef71608e205c2f6208afa4da1fd9941eb33069c57997e3dfa91f"
+      },
+      "trigger": "Re-run /setup-pstack after prior role edits by family, list, or alias.",
+      "preconditions": ["An existing rule with at least one non-default role value."],
+      "configurationIds": ["installed-user"],
+      "expectedObservation": "Roles previously changed by family, list, or alias remain those values while the new budget effort mapping is applied to real slugs.",
+      "status": "proposal-unverified",
+      "evidenceMapping": {
+        "kind": "paired-evidence",
+        "pairs": [
+          "parity/evidence/setup-success/pair-setup-success-write-card-2.json",
+          "parity/evidence/setup-success/write-card-verify-rerun.json"
+        ],
+        "note": "Success-path re-run preserves inherit-parent roster while changing only the budget line (+1 -1). Guide line 27 restates the same keep-on-rerun rule."
+      }
+    },
+    {
+      "id": "PSTACK-SETUP-GROK-XHIGH-CAP-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/setup-pstack/SKILL.md",
+        "locator": "### 3. Budget, map, and confirm, subsection (b) Grok xhigh cap",
+        "lineStart": 29,
+        "lineEnd": 29,
+        "fileSha256": "d61b47256a18155a81c8e5ef95e3cc6569ce8c18317c35c4dd9c8015cf68cb59",
+        "spanSha256": "401715ecd936ef71608e205c2f6208afa4da1fd9941eb33069c57997e3dfa91f"
+      },
+      "trigger": "Budget unlimited when a role uses a Grok slug.",
+      "preconditions": ["Detected set includes a Grok family slug."],
+      "configurationIds": ["default", "installed-user"],
+      "expectedObservation": "Under unlimited, Grok roles stay at xhigh (including grok-*-xhigh-fast) rather than max.",
+      "status": "proposal-unverified",
+      "evidenceMapping": {
+        "kind": "unverified",
+        "note": "Canonical pairs used inherit-parent for all roles, so the Grok cap branch was not exercised in paired evidence."
+      }
+    },
+    {
+      "id": "PSTACK-SETUP-ROLE-CONFIRM-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/setup-pstack/SKILL.md",
+        "locator": "### 3. Budget, map, and confirm, subsection (c)",
+        "lineStart": 31,
+        "lineEnd": 31,
+        "fileSha256": "d61b47256a18155a81c8e5ef95e3cc6569ce8c18317c35c4dd9c8015cf68cb59",
+        "spanSha256": "923be1dd4b332de54fb59b6538fe89950035136bae1e641cb77e43e26b4cad02"
+      },
+      "trigger": "After budget apply, before validate/write.",
+      "preconditions": ["Working role table built."],
+      "configurationIds": ["default", "installed-user"],
+      "expectedObservation": "Every role is shown with its model. Real slugs missing from the detected set are marked as needing a choice. Dropped retired lines from step 2 are listed. User is asked to accept as-is or change specific roles via AskQuestion (preferred) with detected models plus inherit-parent and auto.",
+      "forbiddenSideEffects": ["Writing the rule before this confirmation completes."],
+      "status": "proposal-unverified",
+      "evidenceMapping": {
+        "kind": "paired-evidence",
+        "pairs": [
+          "parity/evidence/setup-prepair/pair-setup-first-run-canonical-2.json",
+          "parity/evidence/setup-prepair/panel-parity.json"
+        ],
+        "note": "AskQuestion panel chrome matched; question batching remains model-authored per design rubric."
+      }
+    },
+    {
+      "id": "PSTACK-SETUP-PANEL-LIST-FANOUT-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/setup-pstack/SKILL.md",
+        "locator": "### 3. Budget, map, and confirm, subsection (c) panel list length",
+        "lineStart": 31,
+        "lineEnd": 31,
+        "fileSha256": "d61b47256a18155a81c8e5ef95e3cc6569ce8c18317c35c4dd9c8015cf68cb59",
+        "spanSha256": "923be1dd4b332de54fb59b6538fe89950035136bae1e641cb77e43e26b4cad02"
+      },
+      "trigger": "Configure a panel role value as a comma-separated list.",
+      "preconditions": ["Role is arena runners, architect runners, interrogate reviewers, or arena cross-judge pool."],
+      "configurationIds": ["default", "installed-user"],
+      "expectedObservation": "Panel role values are lists. One subagent runs per entry, including alias entries, so list length sets fan-out count. arena cross-judge pool remains a list from which Arena selects one differing-family value when possible.",
+      "status": "proposal-unverified",
+      "evidenceMapping": {
+        "kind": "unverified",
+        "note": "Paired setup journeys used inherit-parent single values, not multi-entry panel lists."
+      }
+    },
+    {
+      "id": "PSTACK-SETUP-VALIDATE-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/setup-pstack/SKILL.md",
+        "locator": "### 4. Validate",
+        "lineStart": 33,
+        "lineEnd": 35,
+        "fileSha256": "d61b47256a18155a81c8e5ef95e3cc6569ce8c18317c35c4dd9c8015cf68cb59",
+        "spanSha256": "1ba1ddd11fe05f13dc04c56bc8ab2a29928c0dd391272f1bd7ff265c727ca2e2"
+      },
+      "trigger": "User accepts role table after confirmation.",
+      "preconditions": ["Detected model set known."],
+      "configurationIds": ["default", "installed-user"],
+      "expectedObservation": "Every real slug to be written is in the detected set. inherit-parent and auto always pass. An unavailable real slug stops the write and re-asks.",
+      "forbiddenSideEffects": ["Persisting an unavailable real slug."],
+      "status": "proposal-unverified",
+      "evidenceMapping": {
+        "kind": "paired-evidence",
+        "pairs": [
+          "parity/evidence/setup-prepair/pair-setup-first-run-canonical-2.json",
+          "parity/evidence/setup-success/pair-setup-success-write-card-2.json"
+        ],
+        "note": "Happy-path pairs validate alias-only tables then write. Negative unavailable-slug branch has no paired capture."
+      }
+    },
+    {
+      "id": "PSTACK-SETUP-WRITE-RULE-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/setup-pstack/SKILL.md",
+        "locator": "### 5. Write the rule",
+        "lineStart": 37,
+        "lineEnd": 66,
+        "fileSha256": "d61b47256a18155a81c8e5ef95e3cc6569ce8c18317c35c4dd9c8015cf68cb59",
+        "spanSha256": "7ae29a99fa0d4d09041c58065d020eb004a79c4a334489e3f62ccdecadc529a4"
+      },
+      "trigger": "Validation passed.",
+      "preconditions": ["Confirmed budget and role table."],
+      "configurationIds": ["default", "installed-user"],
+      "expectedObservation": "Writes ~/.cursor/rules/pstack-models.mdc with alwaysApply true, a # budget line naming the chosen label and target effort, and one line per role using poteto-mode labels. Whole file overwrite keeps re-runs idempotent.",
+      "status": "proposal-unverified",
+      "evidenceMapping": {
+        "kind": "paired-evidence",
+        "pairs": [
+          "parity/evidence/setup-prepair/panel-parity.json",
+          "parity/evidence/setup-success/pair-setup-success-write-card-2.json"
+        ],
+        "note": "Byte-identical afterDigest sha256:9146cd9f… on both hosts for unlimited (max) over the small fixture."
+      }
+    },
+    {
+      "id": "PSTACK-SETUP-WRITE-CARD-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/setup-pstack/SKILL.md",
+        "locator": "### 5. Write the rule (host edit-card observation after write)",
+        "lineStart": 37,
+        "lineEnd": 66,
+        "fileSha256": "d61b47256a18155a81c8e5ef95e3cc6569ce8c18317c35c4dd9c8015cf68cb59",
+        "spanSha256": "7ae29a99fa0d4d09041c58065d020eb004a79c4a334489e3f62ccdecadc529a4"
+      },
+      "trigger": "Successful rule write during /setup-pstack.",
+      "preconditions": ["Write completed."],
+      "configurationIds": ["installed-user"],
+      "expectedObservation": "Transcript shows a host edit card Edited pstack-models.mdc +N -M with gutter context for removed and added budget lines, not a bare Wrote path summary.",
+      "status": "proposal-unverified",
+      "evidenceMapping": {
+        "kind": "paired-evidence",
+        "pairs": [
+          "parity/evidence/setup-success/pair-setup-success-write-card-2.json",
+          "parity/evidence/setup-success/write-card-parity-linked.json",
+          "parity/evidence/setup-success/write-card-verify-rerun.json"
+        ],
+        "note": "write-card-v1 pass on both sides. Mismatch SETUP-WRITE-CARD still open pending operator-requested commit hash (standing order 13)."
+      },
+      "relatedMismatchId": "SETUP-WRITE-CARD"
+    },
+    {
+      "id": "PSTACK-SETUP-CONFIRM-WRITTEN-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/setup-pstack/SKILL.md",
+        "locator": "### 6. Confirm",
+        "lineStart": 68,
+        "lineEnd": 70,
+        "fileSha256": "d61b47256a18155a81c8e5ef95e3cc6569ce8c18317c35c4dd9c8015cf68cb59",
+        "spanSha256": "9999d5f67f442f1557a2ab43db6c49e98ebea03a1487b18fdec687db053c6057"
+      },
+      "trigger": "After successful write.",
+      "preconditions": ["Rule file written."],
+      "configurationIds": ["default", "installed-user"],
+      "expectedObservation": "User is told the rule was written and that it applies to new sessions. Re-running the skill updates it.",
+      "status": "proposal-unverified",
+      "evidenceMapping": {
+        "kind": "paired-evidence",
+        "pairs": [
+          "parity/evidence/setup-prepair/pair-setup-first-run-canonical-2.json",
+          "parity/evidence/setup-success/pair-setup-success-write-card-2.json"
+        ],
+        "note": "Post-write chat text is model-authored; both sides complete the confirm step after the write card."
+      }
+    },
+    {
+      "id": "PSTACK-SETUP-CANCEL-NO-WRITE-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/setup-pstack/SKILL.md",
+        "locator": "### 3. Budget, map, and confirm, subsection (c) confirmation gate before write",
+        "lineStart": 31,
+        "lineEnd": 31,
+        "fileSha256": "d61b47256a18155a81c8e5ef95e3cc6569ce8c18317c35c4dd9c8015cf68cb59",
+        "spanSha256": "923be1dd4b332de54fb59b6538fe89950035136bae1e641cb77e43e26b4cad02"
+      },
+      "trigger": "User skips or cancels AskQuestion during setup before accepting the write.",
+      "preconditions": ["AskQuestion panel is showing."],
+      "configurationIds": ["installed-user"],
+      "expectedObservation": "Panel dismisses (Esc to skip). Rule file digest is unchanged. No configuration write occurs after cancel.",
+      "forbiddenSideEffects": ["Writing configuration before confirmation."],
+      "status": "proposal-unverified",
+      "evidenceMapping": {
+        "kind": "paired-evidence",
+        "pairs": [
+          "parity/evidence/setup-cancel/pair-setup-escape-cancel-2.json",
+          "parity/evidence/setup-cancel/cancel-parity.json",
+          "parity/evidence/setup-cancel/card-parity-2.json"
+        ],
+        "note": "ruleUnchanged true on both sides at fixture digest sha256:2b6b4668…. cancel-card-v1 pass. SETUP-ASKQUESTION-TRANSCRIPT-RENDERING closed on this pair."
+      }
+    },
+    {
+      "id": "PSTACK-SETUP-VERIFY-OFFER-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/setup-pstack/SKILL.md",
+        "locator": "### 7. Offer a verification skill (optional)",
+        "lineStart": 72,
+        "lineEnd": 74,
+        "fileSha256": "d61b47256a18155a81c8e5ef95e3cc6569ce8c18317c35c4dd9c8015cf68cb59",
+        "spanSha256": "a72e912ce9785e83eb0967701c1245061b49766f2d67b953ceb44591bb7a2713"
+      },
+      "trigger": "After confirm, when project has neither verify-* skill nor existing harness.",
+      "preconditions": ["Write and confirm completed."],
+      "configurationIds": ["default", "installed-user"],
+      "expectedObservation": "Offers once to generate a project-local verification skill via /create-verification-skill. On yes, invokes that skill. On no, continues without pushing.",
+      "status": "proposal-unverified",
+      "evidenceMapping": {
+        "kind": "unverified",
+        "note": "Design record mentions step-7 resolution in chat on the prepair cursor journey, but no structured paired comparator pins the offer/yes/no branches."
+      }
+    },
+    {
+      "id": "PSTACK-SETUP-NEW-SESSION-APPLIES-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/docs/guide/01-setup.md",
+        "locator": "## Accept the verification offer, or don't, new-session sentence",
+        "lineStart": 39,
+        "lineEnd": 39,
+        "fileSha256": "86d0330f245d16254a2069955f993c15d96cf29cd1a73690a0164074b7ac1190",
+        "spanSha256": "76989a0307d353df5555383ce7d8c9442c16b3c3aa180180871917e56661b19b"
+      },
+      "trigger": "User finishes /setup-pstack.",
+      "preconditions": ["Rule written."],
+      "configurationIds": ["default", "installed-user"],
+      "expectedObservation": "Guidance states the model rule applies to new sessions, matching skill step 6.",
+      "status": "proposal-unverified",
+      "evidenceMapping": {
+        "kind": "unverified",
+        "note": "Documentation contract only. Paired journeys confirm the chat message, not a second-session application probe."
+      }
+    },
+    {
+      "id": "PSTACK-SETUP-GUIDE-RERUN-KEEP-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/docs/guide/01-setup.md",
+        "locator": "## Pick your models, rerun keep paragraph",
+        "lineStart": 27,
+        "lineEnd": 27,
+        "fileSha256": "86d0330f245d16254a2069955f993c15d96cf29cd1a73690a0164074b7ac1190",
+        "spanSha256": "11122a93013867827ae3afbea72009ef135865b381bc64665e7f9a98274ccd26"
+      },
+      "trigger": "User reads guide or re-runs /setup-pstack after customizing roles.",
+      "preconditions": ["Prior rule may pin old defaults."],
+      "configurationIds": ["installed-user"],
+      "expectedObservation": "A rerun keeps roles whose model differs from the default. Restoring a default requires deleting that role line or the file, then running /setup-pstack again.",
+      "status": "proposal-unverified",
+      "evidenceMapping": {
+        "kind": "paired-evidence",
+        "pairs": [
+          "parity/evidence/setup-success/pair-setup-success-write-card-2.json",
+          "parity/evidence/setup-success/write-card-verify-rerun.json"
+        ],
+        "note": "Paired rerun kept inherit-parent role lines while updating budget. Delete-to-restore-default branch has no paired capture."
+      }
+    }
+  ],
+  "unresolvedQueue": [
+    {
+      "id": "UQ-SETUP-UNAVAILABLE-SLUG-NEG",
+      "need": "Paired journey where a chosen real slug is not in the detected set, proving stop-and-reask without write.",
+      "blocks": ["PSTACK-SETUP-VALIDATE-001 negative branch"]
+    },
+    {
+      "id": "UQ-SETUP-GROK-UNLIMITED",
+      "need": "Paired journey with real Grok role slugs under budget unlimited.",
+      "blocks": ["PSTACK-SETUP-GROK-XHIGH-CAP-001"]
+    },
+    {
+      "id": "UQ-SETUP-PANEL-LIST",
+      "need": "Paired journey writing multi-entry panel role lists and observing fan-out count semantics.",
+      "blocks": ["PSTACK-SETUP-PANEL-LIST-FANOUT-001"]
+    },
+    {
+      "id": "UQ-SETUP-VERIFY-OFFER",
+      "need": "Structured paired capture of step-7 offer, yes path invoking create-verification-skill, and no path with no further push.",
+      "blocks": ["PSTACK-SETUP-VERIFY-OFFER-001"]
+    },
+    {
+      "id": "UQ-SETUP-WRITE-CARD-COMMIT",
+      "need": "Operator-requested commit hash so SETUP-WRITE-CARD can leave pass-structured-pending-commit.",
+      "blocks": ["PSTACK-SETUP-WRITE-CARD-001 ledger close", "standing order 13"]
+    },
+    {
+      "id": "UQ-SETUP-FLOW-LEDGER",
+      "need": "Coordinator split of PSTACK-SETUP-FLOW-001 mismatch bucket into atomic requirement rows from this slice.",
+      "blocks": ["denominator merge"]
+    },
+    {
+      "id": "UQ-SETUP-BENNY",
+      "need": "Separate slice or explicit exclusion for setup-benny automation pack (different product surface).",
+      "blocks": ["inventory disposition for setup-benny"]
+    },
+    {
+      "id": "UQ-CREATE-VERIFICATION-BODY",
+      "need": "Atomic proposals from create-verification-skill and maintain-verification-skill bodies beyond the setup offer gate.",
+      "blocks": ["inventory coverage for verification-skill tree"]
+    }
+  ]
+}

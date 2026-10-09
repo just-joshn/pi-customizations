@@ -1,0 +1,40 @@
+ $ printf "export function greet() {\n  return 'hello, world';\n}\n" > src/greet.js; echo plain > out/choice.txt; node │
+ scripts/verify.mjs && r=yes || r=no; echo "verified=$r" >                                                             │
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/never-block/fixture-out/pi/done.tx │
+ t; cat                                                                                                                │
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/never-block/fixture-out/pi/done.tx │
+ t (timeout 20s)                                                                                                       │
+                                                                                                                       │
+ GREET-OK format=plain choice=plain                                                                                    │
+ verified=yes                                                                                                          │
+                                                                                                                       │
+ Took 0.0s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ greet() in src/greet.js now returns the plain string hello, world. node scripts/verify.mjs prints GREET-OK            │
+ format=plain choice=plain.                                                                                            │
+                                                                                                                       │
+ I wrote plain to out/choice.txt and verified=yes to done.txt.                                                         │
+                                                                                                                       │
+ Principle applied. Never block on the human (I read its SKILL.md in full). The format choice was reversible and       │
+ either one was allowed, so I picked plain instead of asking.                                                          ┃
+                                                                                                                       ┃
+ Skipped. I made the edit myself instead of delegating it to a subagent. I skipped the how and architect steps, the    ┃
+ commit and PR steps, and the interrogate step. The task was one function with no PR requested and no contested        ┃
+ design.                                                                                                               ┃
+                                                                                                                       ┃
+ Open decision. The JSON format would also pass. Switching means changing greet() and out/choice.txt together.         ┃
+
+[x] `how` over the affected subsystem. (skip: single-file trivial fixture) (completed)
+[x] `architect` for parallel design exploration. (skip: single function) (completed)
+[x] Write the throughput checkpoint: n/a single file, no fan-out, one worker. (completed)
+[>] Delegate code-writing to a subagent ... (skip: owning the diff directly, trivial fixture) (in_progress)
+[ ] Verify on the matching surface. (pending)
+[-] Rebase into small, ordered commits. (skip: no commits requested) (cancelled)
+[-] If the design is contested, interrogate. (skip: not contested) (cancelled)
+[-] Run Opening a PR. (skip: no PR requested) (cancelled)
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/principles/never-block/fixture-app (refactor/pi-pstack-parity-a...
+↑12 ↓1.6k R145k W28k CH99.1% $0.159 (sub) 3.7%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium

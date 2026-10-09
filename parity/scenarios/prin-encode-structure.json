@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "prin-encode-structure",
+  "status": "pass-paired",
+  "requirements": [
+    "PSTACK-PRIN-ENCODE-STRUCTURE-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/principle-encode-lessons-in-structure/SKILL.md#Encode Lessons in Structure frontmatter trigger and disable-model-invocation",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file. Preconditions: Locked pstack poteto-mode and principle-encode-lessons-in-structure skill loaded.; A prior textual instruction or human correction already exists for the same rule.",
+    "digest": null
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Encounter the same rule that was previously written as prose instruction.. The agent Reads the leaf skill and encodes a lint, metadata flag, runtime check, or script instead of adding another prose copy."
+    }
+  ],
+  "execution": {
+    "pairId": "prin-encode-structure-1",
+    "verdict": "pass",
+    "pair": "parity/evidence/principles/encode-structure/pair-prin-encode-structure-1.json",
+    "attempts": {
+      "cursor": "28d00da4-064a-466a-ae71-2d1f249fb6cd",
+      "pi": "fa41db21-da46-4503-b8dc-35d69586e835"
+    }
+  }
+}

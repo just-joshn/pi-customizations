@@ -1,0 +1,223 @@
+Usage: cursor agent worker [options] [command]
+
+Run a self-hosted Cloud Agent worker that connects to Cursor and executes agent
+tool calls on this machine. Without --pool it is a personal My Machines worker
+(no Enterprise plan needed); with --pool it joins a team Self-Hosted Pool
+(Enterprise plan + service account API key).
+
+Options:
+  --auth-token-file <path>          Path to a file containing the worker auth
+                                    token. Intended for operator-managed Secret
+                                    mounts.
+  --worker-dir <path>               Workspace root to expose to agents
+                                    (repeatable; first value is the assignment
+                                    identity and defaults to current directory)
+  --management-addr <address>       Listen address for an optional HTTP server:
+                                    GET /healthz, /readyz (Kubernetes probes),
+                                    and /metrics (Prometheus text scrape) (e.g.
+                                    ':8080' or '0.0.0.0:8080')
+  --label <key=value>               Add a label to the worker (format:
+                                    key=value, can be used multiple times).
+                                    Cannot be used with --labels-file.
+  --labels-file <path>              Path to a JSON or TOML file containing
+                                    labels. Cannot be used with --label. Can
+                                    also be set via CURSOR_WORKER_LABELS_FILE
+                                    env var. (env: CURSOR_WORKER_LABELS_FILE)
+  --idle-release-timeout <seconds>  Seconds the worker may stay connected after
+                                    becoming idle before it is released. When
+                                    the timeout hits, the worker exits with code
+                                    0 so a supervisor can restart a clean
+                                    process. Default 3600. Pass 0 to disable
+                                    idle-based release (other release reasons
+                                    still apply). (default: 3600, env:
+                                    CURSOR_WORKER_IDLE_RELEASE_TIMEOUT)
+  --pool [name]                     Join a team Self-Hosted Pool instead of
+                                    registering a personal My Machines worker.
+                                    One cloud agent claims this worker at a
+                                    time. Requires a Cursor Enterprise plan and
+                                    a team service account API key (personal,
+                                    team admin, and organization API keys are
+                                    rejected). Optional pool name; defaults to
+                                    'default'. Without --pool, the worker allows
+                                    shared assignment (multiple concurrent
+                                    agents). (preset: "default")
+  --mint-github-token               Receive short-lived GitHub tokens during
+                                    claimed runs. Pool workers only (requires
+                                    --pool). This does not enable dashboard
+                                    secret sync. Requires your team admin to
+                                    enable GitHub token minting for self-hosted
+                                    pool workers. Run at most one
+                                    credential-enabled worker per OS user /
+                                    container (see the deployment note below).
+                                    (default: false)
+  --clone-git-repos                 Check out the claimed agent's Git
+                                    repositories in this worker's workspace: a
+                                    clean checkout of the same repository
+                                    already in the worker directory is reused
+                                    and fetched to the requested ref; anything
+                                    else is cloned. Any-repo pool workers only:
+                                    a named --pool other than 'default', with no
+                                    bound repository or machine (no repo= or
+                                    name=). Implies --mint-github-token; fetch
+                                    and clone use that minted token (never
+                                    unauthenticated). Off by default: any-repo
+                                    agents do not touch git unless this flag is
+                                    set. (default: false)
+  --sync-dashboard-secrets          Receive eligible dashboard Cloud Agent
+                                    secrets as environment variables during
+                                    claimed runs. Pool workers only (requires
+                                    --pool). This does not enable GitHub token
+                                    delivery. Requires your team admin to enable
+                                    dashboard secret sync for self-hosted pool
+                                    workers. Run at most one credential-enabled
+                                    worker per OS user / container (see the
+                                    deployment note below). (default: false)
+  --on-session-start <command>      Add a worker-host sessionStart command after
+                                    a pool claim. The primary configuration path
+                                    remains hooks.json.
+  --on-session-end <command>        Add a worker-host sessionEnd command before
+                                    pool claim teardown. The primary
+                                    configuration path remains hooks.json.
+  --identity-socket                 Expose a per-claim OIDC identity socket to
+                                    claimed agents (published as
+                                    CURSOR_AGENT_SOCKET in agent shells). Agents
+                                    can POST /v1/tokens/oidc over it to mint
+                                    short-lived Cursor cloud-agent identity
+                                    tokens for an audience of their choice. Off
+                                    by default; the socket is only created when
+                                    this flag is set. (default: false)
+  --computer-use                    Let claimed cloud agents drive this
+                                    machine's desktop (screenshot, click, type).
+                                    Explicit opt-in, off by default; never
+                                    enabled by the server. Linux: uses --display
+                                    or a reachable DISPLAY when supplied;
+                                    otherwise starts a Cursor-managed TigerVNC
+                                    desktop (needs xdotool and ffmpeg on PATH).
+                                    macOS: downloads Cursor Computer Use to
+                                    ~/.cursor/cursor-computer-use/; Cursor.app
+                                    is not required. Grant Accessibility and
+                                    Screen Recording to Cursor Computer Use (not
+                                    Terminal, not Cursor, not Agent Helper). On
+                                    unsigned macOS builds, also downloads and
+                                    spawns the Developer ID-signed CLI so the
+                                    computer-use sidecar can verify the caller.
+                                    This is not Cursor Agent Helper
+                                    (--share-desktop). Cursor does not install
+                                    system packages. The worker advertises
+                                    computer-use support only when the daemon
+                                    registers an executor. Run `cursor-agent
+                                    worker debug` for the preflight report.
+                                    (default: false)
+  --display <display>               Existing X11 display to require for
+                                    --computer-use (for example :0). Linux only.
+                                    When omitted, a reachable DISPLAY is reused
+                                    or a managed TigerVNC desktop is started.
+  --share-desktop [mode]            Let authorized viewers watch this worker's
+                                    desktop through Cursor ("Show desktop"). On
+                                    Linux this shares a worker-created, isolated
+                                    agent desktop, and the flag without a mode
+                                    defaults to "view_and_control": viewers can
+                                    take mouse/keyboard control, enforced on
+                                    this machine by a fail-closed input filter
+                                    (clipboard transfer stays blocked). On macOS
+                                    this shares this machine's real desktop —
+                                    the operator's login session — so the flag
+                                    defaults to "view" (watch-only) and
+                                    "view_and_control" is explicit opt-in. Off
+                                    by default; never enabled by the server.
+                                    Requires Linux with
+                                    tigervnc-standalone-server installed, or
+                                    macOS where Cursor installs its signed
+                                    Computer Use helper. Pixels egress only
+                                    through your existing outbound worker
+                                    connection — no inbound ports. Run
+                                    `cursor-agent worker debug` for the
+                                    preflight report. (choices: "view",
+                                    "view_and_control", preset: "view")
+  --connect-workspace               Let Cursor connect to the live workspace
+                                    (files, changes, terminal, ports) of agents
+                                    this worker runs, by starting the Linux
+                                    cursor-server on this machine. Agents on
+                                    this machine open in Glass as trusted
+                                    workspaces, so repo-configured tasks and
+                                    settings, including tasks that run on open,
+                                    run as this OS user for anyone with VM
+                                    access to the agent, teammates included when
+                                    the team has VM sharing on. Linux only. Off
+                                    by default; never enabled by the server.
+                                    When Cursor allows a session, this worker
+                                    downloads the published cursor-server build
+                                    matching the Cursor app opening the agent
+                                    from https://cursor.blob.core.windows.net to
+                                    ~/.cursor-server/bin/<commit>/ and starts it
+                                    on 127.0.0.1; editor traffic egresses only
+                                    through your existing outbound worker
+                                    connection — no inbound ports. Locked-down
+                                    networks must allow outbound HTTPS to that
+                                    download host; Cursor provides no mirror.
+                                    Nothing is downloaded until a session is
+                                    allowed. (default: false)
+  --single-use                      Same as --pool (legacy alias).
+  --pool-name <name>                Deprecated alias for --pool <name>. Requires
+                                    --pool or --single-use. (env:
+                                    CURSOR_WORKER_POOL_NAME)
+  --name <name>                     Custom display name for this worker.
+                                    Defaults to the machine hostname. (env:
+                                    CURSOR_WORKER_NAME)
+  --data-dir <path>                 Base directory for logs, artifacts, and
+                                    recording data. Defaults to /opt/cursor if
+                                    writable, otherwise
+                                    ~/.local/share/cursor-agent. (env:
+                                    CURSOR_DATA_DIR)
+  --wait [seconds]                  Wait for another worker using this data
+                                    directory to stop. With no value, wait
+                                    indefinitely; with seconds, exit if the
+                                    timeout elapses.
+  --debug                           Print worker debug diagnostics before
+                                    starting bridge mode
+  -h, --help                        Display help for command
+
+Commands:
+  start [options]                   Start the worker and connect to Cursor
+  controller [options]              Run one of two explicit modes:
+    claim-then-spawn (default): watch GET /v0/private-workers/pending-requests/stream (the primary dispatch path), claim each created request and exec the spawn hook once per claim; claimed-but-offline events (hibernated machines) exec the same hook with CURSOR_WAKE=1 and no claim call. A 60s reconcile list per --pool converges anything the best-effort stream missed.
+    warm pool (--warm-idle <count>): keep <count> idle workers connected in each --pool by pre-spawning unclaimed workers; never calls claim. The server assigns queued agents to warm workers. A claimed-but-offline request (hibernated machine; only present when that pool has a reconnect window) execs the same hook with CURSOR_WAKE=1 and is not counted as idle.
+  Auth is one pipe. The service-account key binds the team. The same key and public API URL are used for pool registration, pending-requests, the pending-requests stream, claim, and the spawn hook:
+    --api-key / CURSOR_API_KEY  Bearer token and hook env CURSOR_API_KEY
+    --pool <name>  claim mode: GET ?pool=<name> (repeatable; one list/stream call per name). Non-default names are registered at startup. Warm mode: the pool(s) to keep warm. Mutually exclusive with --all-pools
+    --all-pools  omit ?pool= (team-wide list and stream). Does not register pools. Mutually exclusive with --pool; not allowed in warm mode
+    --warm-idle <count>  keep <count> idle workers per --pool; skips claim entirely. Claimed-but-offline requests on a pool with a reconnect window are resumed (CURSOR_WAKE=1) instead of being left for an idle spare. Run one warm controller per pool: without claim there is no server-side lease, so concurrent controllers can transiently over-spawn
+    --endpoint / CURSOR_API_ENDPOINT  Override the public API base (default https://api.cursor.com) and hook env CURSOR_API_URL / CURSOR_API_ENDPOINT
+    --repository  pending-requests filter and pool registration pin (required for repo-scoped keys); in warm mode also pins pool stats to that repo's row
+    --spawn  exec once after a successful claim (fresh machine), or once per missing warm worker. In both modes it is also execed once per claimed-but-offline pending request (a hibernated machine on a pool with a wake window): the hook then gets CURSOR_WAKE=1 and CURSOR_WAKE_TIMEOUT_MS, CURSOR_AGENT_WORKER_ID is the durable claimed worker id to revive, and no claim call is made — boot the machine holding that identity's preserved workspace and re-run the worker to resume the run in place. A hook that ignores CURSOR_WAKE provisions fresh, which matches the wake-window-expiry outcome sooner
+    --session-token  claim mode only: the hook gets CURSOR_AUTH_TOKEN (a token that serves only its claim, from claim or, for a wake, POST /v0/private-workers/tokens) and CURSOR_AUTH_TOKEN_EXPIRES_AT instead of CURSOR_API_KEY. Start the runner with it: `agent worker --pool --auth-token-file <file> start`. Requires private-worker session tokens enabled for the team
+  Session login is not used. Dashboard GetMe is not used. Missing key or pool selection exits immediately.
+  debug [options]                   Run private worker preflight diagnostics for
+                                    auth, privacy, routing, and visibility
+  help [command]                    Display help for command
+
+Worker types:
+  cursor agent worker start
+    My Machines: a personal worker for the signed-in user. Works on any plan
+    with Cloud Agents; no Enterprise plan or service account is needed. Sign in
+    with `cursor agent login`, a personal user API key, or a user-scoped
+    token. Once connected, the machine appears in the Cloud Agent environment
+    selector.
+    Docs: https://cursor.com/docs/cloud-agent/self-hosted-guides/my-machines
+  cursor agent worker --pool [name] start
+    Self-Hosted Pool: a team-shared worker that one cloud agent claims at a
+    time. Requires a Cursor Enterprise plan and a team service account API key;
+    personal, team admin, and organization API keys are rejected.
+    Docs: https://cursor.com/docs/cloud-agent/self-hosted-guides/pool
+
+Deployment requirements (--mint-github-token, --clone-git-repos, --sync-dashboard-secrets):
+  These flags independently authorize run-owner credentials to enter the
+  worker through git config, gh config, or process environment variables.
+  --clone-git-repos implies --mint-github-token so the clone can use the
+  minted token. Credential-enabled workers assume one worker per container /
+  OS user. Run at most one worker using any of these flags per user space.
+  Co-locating multiple credential-enabled workers under the same user is
+  unsupported. Shared git, gh, and environment state could expose one run's
+  credentials to another concurrently claimed run. To scale, run each pool
+  worker in its own container or under a separate OS user. Deploy keys,
+  static PATs, and workers using none of these flags have no such restriction.

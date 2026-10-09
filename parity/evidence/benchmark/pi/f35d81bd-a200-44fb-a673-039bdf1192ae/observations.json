@@ -1,0 +1,56 @@
+{
+  "screenFinal": {
+    "benchmarkChecklist": false,
+    "working": false
+  },
+  "pty": {
+    "benchmarkChecklist": true,
+    "working": true
+  },
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/benchmark/fixture-out/pi/done.txt",
+    "line": "q4=yes q7=yes oneRun=yes evidence=run-evidence.json slowMs=18.53 fastMs=0.228",
+    "scored": {
+      "ok": true,
+      "fields": {
+        "q4": "yes",
+        "q7": "yes",
+        "oneRun": "yes",
+        "evidence": "run-evidence.json",
+        "slowMs": "18.53",
+        "fastMs": "0.228"
+      }
+    }
+  },
+  "report": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/benchmark/fixture-out/pi/checklist-report.md",
+    "bytes": 1113,
+    "preview": "# Checklist report (ballpark, ONE run)\n\nVerdict: sortFast is faster than sortSlow, but the draft \"about 25% faster\" does not match this run. One run measured sortSlow 18.53 ms vs sortFast 0.228 ms (~98.8% less time, ~81x). Ballpark only; no range.\n\n- Q4 Did it error? Yes, checked: errorCount=0, both outputs sorted, length 5000 (run-evidence.json).\n- Q7 Did it happen? Yes, checked: both sorts ran in the timed region, outputs were verified after timing and workHappened=true. The result is consumed by the checks.\n- Caveats: input is a deterministic pattern ((i*17+3)%9973), not random, as the claim says. Sides ran in a fixed order (slow, then fast) with the sides not alternated. Fast ran second, so it may benefit from JIT warmup of shared code, but the gap is far larger than that. Load average ~2.2. Q1-Q3, Q5, Q6 skipped per the ballpark scope (the run does not look wrong; the O(n^2) vs O(n log n) gap is consistent with the numbers, but the limiter was not profiled).\n- Suggested claim wording: \"sortFast is far faster than sortSlow (~18.5 ms vs ~0.23 ms) on 5000 ints in one run.\" Drop the 25% figure.\n"
+  },
+  "runEvidenceExists": true,
+  "runEvidence": {
+    "runCount": 1,
+    "n": 5000,
+    "slowMs": 18.531540999999997,
+    "fastMs": 0.22770900000000438,
+    "speedupPct": 98.77123548441004,
+    "errorCount": 0,
+    "outputsCorrect": true,
+    "workHappened": true,
+    "timedRegion": "sortSlow then sortFast over the same input array"
+  },
+  "score": {
+    "contractHeld": true,
+    "q4": true,
+    "q7": true,
+    "oneRun": true,
+    "runEvidence": true,
+    "skillChrome": true,
+    "comparativeWinnerWithoutChecks": false,
+    "reason": "ok"
+  },
+  "measureDigest": "sha256:fc3f9b614ec397fe5444395bb26b1d74d57326a349b2aaaac437e36e2f56d866",
+  "claimDigest": "sha256:508628fb557465868cbee0b13dc3c6af00e5ce3922efbabc9422d1ada95ebf54",
+  "productUnchanged": true
+}

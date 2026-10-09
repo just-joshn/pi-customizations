@@ -1,0 +1,30 @@
+{
+  "brief": "u-dep-cu-cloud-claim-001",
+  "mergePayloadReady": false,
+  "edgeMutations": [],
+  "recommendation": {
+    "setStatusResolved": false,
+    "reason": "Local live Helper MCP evidence remains valid (live-001 / CU_LIVE_001_177e3351). Fresh re-probe still finds no MacRemoteComputerUseExecutor / cloud-agent attempt IDs. CURSOR_API_KEY unset; keychain jwt-like cursor-access-token rejected by GET https://api.cursor.com/v0/agents as Invalid User API Key (401). No account-owner spend grant on machine, so POST create and dashboard paid claim were not used."
+  },
+  "liveExercise": true,
+  "liveEvidencePath": "parity/evidence/computer-use/live-001/",
+  "liveMarker": "CU_LIVE_001_177e3351",
+  "attemptIds": [],
+  "workerId": "0400ae0d-aa5c-4949-a4b8-88e40cd9611a",
+  "ready": {
+    "accessibility": true,
+    "screenRecording": true,
+    "desktopShareViewAndControl": true
+  },
+  "probeArtifacts": [
+    "parity/research/dep-cu-cloud-claim-001/cloud-claim-probe.json",
+    "parity/research/dep-cu-cloud-claim-001/permissions.json",
+    "parity/research/dep-cu-cloud-claim-001/desktop-share-status.json",
+    "parity/evidence/computer-use/claim-001/cloud-claim-probe.json"
+  ],
+  "operatorGrantRequired": [
+    "Mint a User API Key at Cursor Dashboard → API Keys and export CURSOR_API_KEY (or pass --api-key).",
+    "Optionally authorize one dashboard cloud-agent claim against workerId 0400ae0d-aa5c-4949-a4b8-88e40cd9611a that exercises computer-use screenshot/click.",
+    "Publish the resulting cloud attempt ID(s) and chat screenshot; coordinator then may set the edge resolved."
+  ]
+}

@@ -1,0 +1,40 @@
+                                                                                                                       │
+                                                                                                                       │
+                                                                                                                       │
+ $ mkdir -p                                                                                                            │
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/subtract-first/fixture-out/pi;     │
+ echo "verified=yes" >                                                                                                 │
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/subtract-first/fixture-out/pi/done │
+ .txt (timeout 10s)                                                                                                    │
+                                                                                                                       │
+ (no output)                                                                                                           │
+                                                                                                                       │
+ Took 0.0s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ greet({ shout: true }) now returns HELLO, WORLD, and greet() still returns hello, world. node scripts/verify.mjs      │
+ prints SUBTRACT-OK and exits 0. I wrote verified=yes to done.txt.                                                     │
+                                                                                                                       │
+ I deleted src/legacyValidate.js and src/stubRefs.js first, then rewrote src/greet.js to build shout on core.js.       │
+ Callers and the next maintainer now have two small source files, with no dead imports to trace.                       │
+                                                                                                                       │
+ I only read the Subtract Before You Add leaf SKILL.md, so it is the only principle I'm citing. It made me take        │
+ approach 2 from NOTES.md: remove the dead modules before adding the feature. Verify requires that approach anyway. I  ┃
+ did not use the other principle leaf skills.                                                                          ┃
+                                                                                                                       ┃
+ I skipped the how, architect and interrogate steps, the throughput fan-out, delegation, commits and a PR. The change  ┃
+ touched one tiny function and nothing was contested.                                                                  ┃
+
+[ ] `how` over the affected subsystem. (pending)
+[ ] `architect` for parallel design exploration. skip: single tiny function (pending)
+[ ] Throughput checkpoint. n/a: single file, no fan-out, one worker (pending)
+[ ] Delegate code-writing. skip: owning the diff directly, tiny change (pending)
+[ ] Verify on the matching surface (node scripts/verify.mjs). (pending)
+[ ] Rebase into small commits. skip: no commit requested (pending)
+[ ] interrogate. skip: not contested (pending)
+[ ] Opening a PR. skip: not requested (pending)
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/principles/subtract-first/fixture-app (refactor/pi-pstack-parit...
+↑16 ↓1.9k R222k W30k CH99.5% $0.182 (sub) 3.8%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium

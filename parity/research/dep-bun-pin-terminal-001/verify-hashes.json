@@ -1,0 +1,32 @@
+{
+  "unit": "u-dep-bun-pin-terminal-001",
+  "verifiedAt": "2026-10-09T02:05:00Z",
+  "captureSha256": "7d9c41e3c5519fe6b8473a119f427b7ac444235189cf7762e9ad7c4f5a2c9f97",
+  "bunVersionTxtSha256": "b99b4c7cdf236f59bc9f65d963deaecae3b16a7dad87939cacb9057f7664daee",
+  "docs": [
+    {
+      "label": "install",
+      "sha256": "afc8a8be3c99d25d81683fb7259315b9421eaae5804cbf5adae5672661099150",
+      "status": "fetched"
+    },
+    {
+      "label": "lockfile",
+      "sha256": "974285c98875e1b7503be3ef87def5c0fb2b2bcb5530c0414b8c96afa524e782",
+      "status": "fetched"
+    },
+    {
+      "label": "bunfig",
+      "sha256": "2c87a330c846626889f139deecdbfad570dd9c38599a75ff07a9d6557a36a873",
+      "status": "fetched"
+    },
+    {
+      "label": "bun-version-docs-legacy",
+      "sha256": "cf0111d694ba188746577d2122ade94277088357ff4ccf6a2074cffd1e2f2098",
+      "status": "http_error"
+    }
+  ],
+  "pinHitsCount": 0,
+  "verdict": "absent-in-source",
+  "mergePayloadReady": true,
+  "nonPinsStatement": "Host bun 1.4.2 / mise latest / bun-types are not pins. They must not be written into engines, packageManager, or .bun-version."
+}

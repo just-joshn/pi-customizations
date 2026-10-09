@@ -1,0 +1,35 @@
+  2. User Auto/cost preference — plausible from product docs; no proof for this machine’s first write.
+  3. Multi-harness safe default (draft PR #455) — separate lead; does not document locking all live roles as
+     official default.
+
+  What We Don't Know
+
+  • Who first wrote the all-inherit live bytes (human setup vs parity authoring).
+  • Whether Slack/Notion/Jira hold more intent (Slack/Atlassian need desktop auth; no workspace doc-search MCP
+    here).
+
+  Sources Consulted
+
+  • Source control history: cursor/plugins PR #163 lineage, setup skill, guide; parity scripts/designs/reports;
+    live rule digest.
+  • Issue / ticket tracker: GitHub on cursor/plugins (#163, #167, #264, #455, etc.). No issue about locking all
+    roles as a fixture.
+  • Long-form documents: Not searched. No Notion/Confluence workspace-search MCP.
+  • Real-time team chat: Not searched. Slack MCP needs auth unavailable in this environment.
+  • Infrastructure observability / error tracking / product analytics: Not searched. No matching MCP.
+
+  Confidence Summary
+
+  Alias exists so Task omits model and subagents stay on the parent/Auto model — high confidence from PR #163 and
+  docs. This live all-inherit-parent file matches a locked parity fixture digest — high confidence from parity
+  harness evidence. That it is the product’s intended default — contradicted by the setup template. First authorship
+  of the live bytes — unknown.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 28.8%                                                                                          Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run · refactor/pi-pstack-parity-again

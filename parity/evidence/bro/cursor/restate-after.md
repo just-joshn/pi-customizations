@@ -1,0 +1,1 @@
+Node runs one waiting job at a time from a series of queues. After each job, it finishes all pending Promise callbacks before moving on. Slow work like reading files runs on background workers; when they finish, their results wait in line on the main loop. Promise callbacks never run on those workers—only on the main loop after a finished job gets its turn.

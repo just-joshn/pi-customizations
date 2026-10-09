@@ -1,0 +1,4 @@
+schema: 1
+PACK-MERGE-USER-OWNED-CONFIG-MARKER: do-not-overwrite
+slack:
+  source_channel_id: C-FIXTURE

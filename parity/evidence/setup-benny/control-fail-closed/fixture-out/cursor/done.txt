@@ -1,0 +1,1 @@
+STATUS=fail-closed reason=control-target-app implements no required control capabilities

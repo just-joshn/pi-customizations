@@ -1,0 +1,19 @@
+HTTP/2 200 
+date: Thu, 08 Oct 2026 21:44:31 GMT
+content-type: text/html; charset=utf-8
+access-control-allow-origin: *
+age: 130062
+cache-control: public, max-age=0, must-revalidate
+content-disposition: inline; filename="lockfile"
+nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+etag: W/"656f4f7a5bf5a898e3d02e80888fbc30"
+last-modified: Wed, 07 Oct 2026 09:36:49 GMT
+server: cloudflare
+strict-transport-security: max-age=63072000
+x-vercel-cache: HIT
+x-vercel-id: pdx1::tnv7n-1791495871915-13b5e59bef44
+cf-cache-status: DYNAMIC
+vary: accept-encoding
+report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=NMdZpqsdWjtAo4CgJyZMMSjqkHM1M9f%2FJWpEbGdZsLBtEx0NOPpFxUxcjtEmXYAt9e1LSXDjJaoLc25nzMgwiM1GAUqu4kd14NJDSnyN5jr%2BuIKWp%2FScd7TvnW7IAvz%2FKr9BZpc%3D"}]}
+cf-ray: a47853cf6d7831df-PDX
+

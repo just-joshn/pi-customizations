@@ -1,0 +1,40 @@
+[Skill conflicts]                                                                                                      ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ [skill] poteto-mode (ctrl+o to expand)                                                                                ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ This fixture needs a next-action picker for incomplete relay jobs. There is no prior picker, menu, hotkey, or filter  ┃
+ pattern in this repo. Ship pickNext(jobs) in src/picker.js so node scripts/verify.mjs prints EXHAUST-OK. Before       ┃
+ committing one design, leave 2-3 competing sketches under prototypes/ (each with a distinct APPROACH: line) and a     ┃
+ short DECISION.md that compares them and names the chosen approach with CHOSEN: <id>. A second flavor of the same     ┃
+ shape does not count as a second approach. Keep verify output under evidence/. For any poteto-mode principle you      ┃
+ apply before declaring done, read that principle's leaf SKILL.md in full first (not only the poteto-mode Principles   ┃
+ index). Work only inside this fixture cwd. Do not edit ledgers, parity/, or files outside this cwd except the named   ┃
+ done path. When EXHAUST-OK is on disk, write exactly one line to                                                      ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/exhaust-design/fixture-out/pi/done ┃
+ .txt as verified=yes|no, then stop.                                                                                   ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ $ cd /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/                                                  ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+── ⠦ Working ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/principles/exhaust-design/fixture-app (refactor/pi-pstack-parit...
+$0.000 (sub) 2.2%/1.0M (auto)                                           (claude-subscription) claude-sonnet-5-5 • medium

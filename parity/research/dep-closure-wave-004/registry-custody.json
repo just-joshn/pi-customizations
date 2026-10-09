@@ -1,0 +1,281 @@
+{
+  "packageCount": 25,
+  "okCount": 25,
+  "missing": [],
+  "integrityMismatch": [],
+  "allCustodyPresent": true,
+  "results": [
+    {
+      "lockKey": "@types/node",
+      "resolved": "@types/node@26.1.2",
+      "lockIntegrity": "sha512-Vu4a5UFA9rIIFJ7rB/Vaafh9lrCQszopTCx6KjFboXTGQbPNasehVR5TEiithSDGyd1DEiUByggTZsg8jukeIg==",
+      "evidencePath": "parity/research/dep-closure-wave-001/npm/@types__node@26.1.2/retrieval.json",
+      "evidenceSha256": "0df0d9ed87ea61aa2db3c7c3f038c9daa7511ec94e3b4a0a7eaaef5bc7fa7788",
+      "retrievalIntegrity": "sha512-Vu4a5UFA9rIIFJ7rB/Vaafh9lrCQszopTCx6KjFboXTGQbPNasehVR5TEiithSDGyd1DEiUByggTZsg8jukeIg==",
+      "status": "OK",
+      "tarballPath": "parity/research/dep-closure-wave-001/npm/@types__node@26.1.2/package.tgz",
+      "license": null
+    },
+    {
+      "lockKey": "@typescript/typescript-aix-ppc64",
+      "resolved": "@typescript/typescript-aix-ppc64@7.0.2",
+      "lockIntegrity": "sha512-MTKKkWB7p/0E9xi1d1tHtZ5PiLkGEMIq88pK2CubZjOsLtYTLqhgIgi6zepFa+9GHZ6h05NMCkQxGKiPXMxXtQ==",
+      "evidencePath": "parity/research/dep-closure-wave-002/npm/@typescript__typescript-aix-ppc64@7.0.2/retrieval.json",
+      "evidenceSha256": "0f473b52c874bdd607ce9b7415705ac0d6b668804f1b0e66c9de38b733614b0b",
+      "retrievalIntegrity": "sha512-MTKKkWB7p/0E9xi1d1tHtZ5PiLkGEMIq88pK2CubZjOsLtYTLqhgIgi6zepFa+9GHZ6h05NMCkQxGKiPXMxXtQ==",
+      "status": "OK",
+      "tarballPath": "parity/research/dep-closure-wave-002/npm/@typescript__typescript-aix-ppc64@7.0.2/package.tgz",
+      "license": "Apache-2.0"
+    },
+    {
+      "lockKey": "@typescript/typescript-darwin-arm64",
+      "resolved": "@typescript/typescript-darwin-arm64@7.0.2",
+      "lockIntegrity": "sha512-gowzar9MwS/aRWp6f3a4KUqzRjAZjOsmGNCM6LcTgXum+dBfgsBVMN+AgvOCCbguXyick6LJhpBszxMebJ8syA==",
+      "evidencePath": "parity/research/dep-closure-wave-001/npm/@typescript__typescript-darwin-arm64@7.0.2/retrieval.json",
+      "evidenceSha256": "410ac5c24fe41d82e451b90742dd7a9998816c17f308aad21833ded2d8f2dd59",
+      "retrievalIntegrity": "sha512-gowzar9MwS/aRWp6f3a4KUqzRjAZjOsmGNCM6LcTgXum+dBfgsBVMN+AgvOCCbguXyick6LJhpBszxMebJ8syA==",
+      "status": "OK",
+      "tarballPath": "parity/research/dep-closure-wave-001/npm/@typescript__typescript-darwin-arm64@7.0.2/package.tgz",
+      "license": "Apache-2.0"
+    },
+    {
+      "lockKey": "@typescript/typescript-darwin-x64",
+      "resolved": "@typescript/typescript-darwin-x64@7.0.2",
+      "lockIntegrity": "sha512-SZ9xZInqApNlNGc9s0W1VSsktYSOe9cFqNOIqmN1Gs8SmkjKZYFt017G4VwPxASInODuAdbTW7sXiFUf893RgA==",
+      "evidencePath": "parity/research/dep-closure-wave-001/npm/@typescript__typescript-darwin-x64@7.0.2/retrieval.json",
+      "evidenceSha256": "a2a64285fda02e0061d9a3b613a0cf1444394e777ddfab1fb67591b428457f6d",
+      "retrievalIntegrity": "sha512-SZ9xZInqApNlNGc9s0W1VSsktYSOe9cFqNOIqmN1Gs8SmkjKZYFt017G4VwPxASInODuAdbTW7sXiFUf893RgA==",
+      "status": "OK",
+      "tarballPath": "parity/research/dep-closure-wave-001/npm/@typescript__typescript-darwin-x64@7.0.2/package.tgz",
+      "license": "Apache-2.0"
+    },
+    {
+      "lockKey": "@typescript/typescript-freebsd-arm64",
+      "resolved": "@typescript/typescript-freebsd-arm64@7.0.2",
+      "lockIntegrity": "sha512-W5NH4y/J0plIIS5b2xvTEkU7JFxyqdMAOgf+Ilhl0vHQXKO5dZoxd+C/jEtq56c4F3wk71RB4BMRQ2XdI+bwYQ==",
+      "evidencePath": "parity/research/dep-closure-wave-002/npm/@typescript__typescript-freebsd-arm64@7.0.2/retrieval.json",
+      "evidenceSha256": "11652da5a999f15a2f7a7a618e42ec6ee5a635fa47e6533b737cfaef1df95197",
+      "retrievalIntegrity": "sha512-W5NH4y/J0plIIS5b2xvTEkU7JFxyqdMAOgf+Ilhl0vHQXKO5dZoxd+C/jEtq56c4F3wk71RB4BMRQ2XdI+bwYQ==",
+      "status": "OK",
+      "tarballPath": "parity/research/dep-closure-wave-002/npm/@typescript__typescript-freebsd-arm64@7.0.2/package.tgz",
+      "license": "Apache-2.0"
+    },
+    {
+      "lockKey": "@typescript/typescript-freebsd-x64",
+      "resolved": "@typescript/typescript-freebsd-x64@7.0.2",
+      "lockIntegrity": "sha512-UMGDx5sTpzNw3WiPebH7l90IWfJggEd+egHt/q6p7/Cm3zqoV7VxkGXt+3DxPIw8CcmvAB0j3sVVfbhX+M4Tpw==",
+      "evidencePath": "parity/research/dep-closure-wave-002/npm/@typescript__typescript-freebsd-x64@7.0.2/retrieval.json",
+      "evidenceSha256": "8ab65e94cbb706faac8b40d158782c7068281c78ffea0e2d24f3e7681429cea5",
+      "retrievalIntegrity": "sha512-UMGDx5sTpzNw3WiPebH7l90IWfJggEd+egHt/q6p7/Cm3zqoV7VxkGXt+3DxPIw8CcmvAB0j3sVVfbhX+M4Tpw==",
+      "status": "OK",
+      "tarballPath": "parity/research/dep-closure-wave-002/npm/@typescript__typescript-freebsd-x64@7.0.2/package.tgz",
+      "license": "Apache-2.0"
+    },
+    {
+      "lockKey": "@typescript/typescript-linux-arm",
+      "resolved": "@typescript/typescript-linux-arm@7.0.2",
+      "lockIntegrity": "sha512-gffT3xPz9sR7j/YJExkyPntrI0P2EP9XbOyWzth2/Gs0RstK+90RBcO0ncXoXy/beYll1SXw846Nf2zdnEz0QQ==",
+      "evidencePath": "parity/research/dep-closure-wave-002/npm/@typescript__typescript-linux-arm@7.0.2/retrieval.json",
+      "evidenceSha256": "081afb1103533f682105e54d273dfea88d7f3df40b1f403c22df3cc7318a427d",
+      "retrievalIntegrity": "sha512-gffT3xPz9sR7j/YJExkyPntrI0P2EP9XbOyWzth2/Gs0RstK+90RBcO0ncXoXy/beYll1SXw846Nf2zdnEz0QQ==",
+      "status": "OK",
+      "tarballPath": "parity/research/dep-closure-wave-002/npm/@typescript__typescript-linux-arm@7.0.2/package.tgz",
+      "license": "Apache-2.0"
+    },
+    {
+      "lockKey": "@typescript/typescript-linux-arm64",
+      "resolved": "@typescript/typescript-linux-arm64@7.0.2",
+      "lockIntegrity": "sha512-Qh4eU4/y3yDjnfjjyPYihMj5/ODIlmt+Bzu17OI+fiSRDW57QmU5SiN63exPRNJPKUzcc1INa1NXdrJ+MqHjUQ==",
+      "evidencePath": "parity/research/dep-closure-wave-001/npm/@typescript__typescript-linux-arm64@7.0.2/retrieval.json",
+      "evidenceSha256": "8b2f5053eedac921f51ccffd7169ba2102b7cf02ce8c0ea85616b39218892a4e",
+      "retrievalIntegrity": "sha512-Qh4eU4/y3yDjnfjjyPYihMj5/ODIlmt+Bzu17OI+fiSRDW57QmU5SiN63exPRNJPKUzcc1INa1NXdrJ+MqHjUQ==",
+      "status": "OK",
+      "tarballPath": "parity/research/dep-closure-wave-001/npm/@typescript__typescript-linux-arm64@7.0.2/package.tgz",
+      "license": "Apache-2.0"
+    },
+    {
+      "lockKey": "@typescript/typescript-linux-loong64",
+      "resolved": "@typescript/typescript-linux-loong64@7.0.2",
+      "lockIntegrity": "sha512-uEHck9i8hoAzXPiYRib1O7miOnz23SxIeVl6F4LXox+qov1K35jHcEW6VHKvZI+pyvl7fZEP4MCU5LYvIq1GuQ==",
+      "evidencePath": "parity/research/dep-closure-wave-002/npm/@typescript__typescript-linux-loong64@7.0.2/retrieval.json",
+      "evidenceSha256": "feb9767c188e2ad39f94cc5836138c68727531272a2bf9ab93b0b1d0cef3242a",
+      "retrievalIntegrity": "sha512-uEHck9i8hoAzXPiYRib1O7miOnz23SxIeVl6F4LXox+qov1K35jHcEW6VHKvZI+pyvl7fZEP4MCU5LYvIq1GuQ==",
+      "status": "OK",
+      "tarballPath": "parity/research/dep-closure-wave-002/npm/@typescript__typescript-linux-loong64@7.0.2/package.tgz",
+      "license": "Apache-2.0"
+    },
+    {
+      "lockKey": "@typescript/typescript-linux-mips64el",
+      "resolved": "@typescript/typescript-linux-mips64el@7.0.2",
+      "lockIntegrity": "sha512-R4KvAMnE43W5Qeqb0Ly56O3mWMWIAgsMyz36DCaycd5nbg/9kzm0liw3JocfRqyJY0KPmzFjbswozXyW0DnIYA==",
+      "evidencePath": "parity/research/dep-closure-wave-002/npm/@typescript__typescript-linux-mips64el@7.0.2/retrieval.json",
+      "evidenceSha256": "0154e5a82af34f409f093308fbf0d4985fd25c32b61e3a93c70328a50656cfb3",
+      "retrievalIntegrity": "sha512-R4KvAMnE43W5Qeqb0Ly56O3mWMWIAgsMyz36DCaycd5nbg/9kzm0liw3JocfRqyJY0KPmzFjbswozXyW0DnIYA==",
+      "status": "OK",
+      "tarballPath": "parity/research/dep-closure-wave-002/npm/@typescript__typescript-linux-mips64el@7.0.2/package.tgz",
+      "license": "Apache-2.0"
+    },
+    {
+      "lockKey": "@typescript/typescript-linux-ppc64",
+      "resolved": "@typescript/typescript-linux-ppc64@7.0.2",
+      "lockIntegrity": "sha512-DORx5b3sd/4S7eayxm4FQv+A7CrkUIGRaHiwI8oiHTAI1fAPWhF4J0vAlkC8biAlHSVVwxMQ3tjZ2/DVbnQiiA==",
+      "evidencePath": "parity/research/dep-closure-wave-002/npm/@typescript__typescript-linux-ppc64@7.0.2/retrieval.json",
+      "evidenceSha256": "7fdc6e2ec0a7eafb9c733c3e69cd430d1c48a0941398ba95d1a2a31d3ce7ff46",
+      "retrievalIntegrity": "sha512-DORx5b3sd/4S7eayxm4FQv+A7CrkUIGRaHiwI8oiHTAI1fAPWhF4J0vAlkC8biAlHSVVwxMQ3tjZ2/DVbnQiiA==",
+      "status": "OK",
+      "tarballPath": "parity/research/dep-closure-wave-002/npm/@typescript__typescript-linux-ppc64@7.0.2/package.tgz",
+      "license": "Apache-2.0"
+    },
+    {
+      "lockKey": "@typescript/typescript-linux-riscv64",
+      "resolved": "@typescript/typescript-linux-riscv64@7.0.2",
+      "lockIntegrity": "sha512-wf0jqEDOjrPRnKwYRyyJDRo11KMbvMFrU+q4zqKyChODBzvlkbhNQfKvLxQCcwTpdDaXSHZTVuh0JoCrKCUMHQ==",
+      "evidencePath": "parity/research/dep-closure-wave-002/npm/@typescript__typescript-linux-riscv64@7.0.2/retrieval.json",
+      "evidenceSha256": "6a317f84592b0c31fb93d4108f082c1dfbec17bcee9f9ae9f07444d54c7f1522",
+      "retrievalIntegrity": "sha512-wf0jqEDOjrPRnKwYRyyJDRo11KMbvMFrU+q4zqKyChODBzvlkbhNQfKvLxQCcwTpdDaXSHZTVuh0JoCrKCUMHQ==",
+      "status": "OK",
+      "tarballPath": "parity/research/dep-closure-wave-002/npm/@typescript__typescript-linux-riscv64@7.0.2/package.tgz",
+      "license": "Apache-2.0"
+    },
+    {
+      "lockKey": "@typescript/typescript-linux-s390x",
+      "resolved": "@typescript/typescript-linux-s390x@7.0.2",
+      "lockIntegrity": "sha512-IkwJc3L7yhytWd/ewjyxNDfOmswCm9GWMJT/ue/dU4aZNbwZeYAetq42VyLmsmSjvoX7z74X6ZaYCtzAr0EuGw==",
+      "evidencePath": "parity/research/dep-closure-wave-002/npm/@typescript__typescript-linux-s390x@7.0.2/retrieval.json",
+      "evidenceSha256": "678d7417b94a25cf486b9537e0b176ea7300aba26f016300df2231babbddae8e",
+      "retrievalIntegrity": "sha512-IkwJc3L7yhytWd/ewjyxNDfOmswCm9GWMJT/ue/dU4aZNbwZeYAetq42VyLmsmSjvoX7z74X6ZaYCtzAr0EuGw==",
+      "status": "OK",
+      "tarballPath": "parity/research/dep-closure-wave-002/npm/@typescript__typescript-linux-s390x@7.0.2/package.tgz",
+      "license": "Apache-2.0"
+    },
+    {
+      "lockKey": "@typescript/typescript-linux-x64",
+      "resolved": "@typescript/typescript-linux-x64@7.0.2",
+      "lockIntegrity": "sha512-EYdf2cNg7rgCWJnxCdJ+F3V39O8ihb37eHAu1LK8oAFizgTQbPOK7zHHXbPt8rX24COqODXeI3sIf0fCXG7H/A==",
+      "evidencePath": "parity/research/dep-closure-wave-001/npm/@typescript__typescript-linux-x64@7.0.2/retrieval.json",
+      "evidenceSha256": "cde580f34fca1d44cfcac2f57b98a90a65bf68383e3a79635d11ef26d8a8091a",
+      "retrievalIntegrity": "sha512-EYdf2cNg7rgCWJnxCdJ+F3V39O8ihb37eHAu1LK8oAFizgTQbPOK7zHHXbPt8rX24COqODXeI3sIf0fCXG7H/A==",
+      "status": "OK",
+      "tarballPath": "parity/research/dep-closure-wave-001/npm/@typescript__typescript-linux-x64@7.0.2/package.tgz",
+      "license": "Apache-2.0"
+    },
+    {
+      "lockKey": "@typescript/typescript-netbsd-arm64",
+      "resolved": "@typescript/typescript-netbsd-arm64@7.0.2",
+      "lockIntegrity": "sha512-+polYF4MF04aPpO5FTkHran9yUQDSXqy5GiSDKpsll5jy3l3+g9QLhpf39T+ePtefhXLOGrLl0QIjkQP6VnelA==",
+      "evidencePath": "parity/research/dep-closure-wave-002/npm/@typescript__typescript-netbsd-arm64@7.0.2/retrieval.json",
+      "evidenceSha256": "655f22c351e8d6c90a3003b0932acb19839a66a8332d8e3a536cdabf69d0cd23",
+      "retrievalIntegrity": "sha512-+polYF4MF04aPpO5FTkHran9yUQDSXqy5GiSDKpsll5jy3l3+g9QLhpf39T+ePtefhXLOGrLl0QIjkQP6VnelA==",
+      "status": "OK",
+      "tarballPath": "parity/research/dep-closure-wave-002/npm/@typescript__typescript-netbsd-arm64@7.0.2/package.tgz",
+      "license": "Apache-2.0"
+    },
+    {
+      "lockKey": "@typescript/typescript-netbsd-x64",
+      "resolved": "@typescript/typescript-netbsd-x64@7.0.2",
+      "lockIntegrity": "sha512-8YIT0EHM/3dq10ZOVF/A7pc/YSMtbcecct4rWtexrnSCHOPcpC2KTLXfTCR6vDpnSiY12heNb1GiN/wu+T/FyA==",
+      "evidencePath": "parity/research/dep-closure-wave-002/npm/@typescript__typescript-netbsd-x64@7.0.2/retrieval.json",
+      "evidenceSha256": "dfd0d7d17385c3afd28bf8effd46c46dd4b8dc61243ed2aa9cec645e6cdb8040",
+      "retrievalIntegrity": "sha512-8YIT0EHM/3dq10ZOVF/A7pc/YSMtbcecct4rWtexrnSCHOPcpC2KTLXfTCR6vDpnSiY12heNb1GiN/wu+T/FyA==",
+      "status": "OK",
+      "tarballPath": "parity/research/dep-closure-wave-002/npm/@typescript__typescript-netbsd-x64@7.0.2/package.tgz",
+      "license": "Apache-2.0"
+    },
+    {
+      "lockKey": "@typescript/typescript-openbsd-arm64",
+      "resolved": "@typescript/typescript-openbsd-arm64@7.0.2",
+      "lockIntegrity": "sha512-APT8+ClYnuYm1u9+kgGXoMj2VzWzcymwh2gNSQVySHfkRDGOTVkoWLjCmOQSaO+PoqQ57B0flRp9SA+7GnnkzQ==",
+      "evidencePath": "parity/research/dep-closure-wave-002/npm/@typescript__typescript-openbsd-arm64@7.0.2/retrieval.json",
+      "evidenceSha256": "fdb0f46a28cc0970b5924a316fb6a6373ab8f85580e5d81351c0fff967a2ceed",
+      "retrievalIntegrity": "sha512-APT8+ClYnuYm1u9+kgGXoMj2VzWzcymwh2gNSQVySHfkRDGOTVkoWLjCmOQSaO+PoqQ57B0flRp9SA+7GnnkzQ==",
+      "status": "OK",
+      "tarballPath": "parity/research/dep-closure-wave-002/npm/@typescript__typescript-openbsd-arm64@7.0.2/package.tgz",
+      "license": "Apache-2.0"
+    },
+    {
+      "lockKey": "@typescript/typescript-openbsd-x64",
+      "resolved": "@typescript/typescript-openbsd-x64@7.0.2",
+      "lockIntegrity": "sha512-yX7s+Q0Dln0Dt9tEzZsAjXXR/+ytBM7AlglaqyeMPxQszJ1JhlJdZ6jLA+IzldHtflX81em7lDao1xXu+aRRkg==",
+      "evidencePath": "parity/research/dep-closure-wave-002/npm/@typescript__typescript-openbsd-x64@7.0.2/retrieval.json",
+      "evidenceSha256": "a2cf7c1fb771840f3355ab4074c5b93f248819519043536dd5cffb88a4fd9e7b",
+      "retrievalIntegrity": "sha512-yX7s+Q0Dln0Dt9tEzZsAjXXR/+ytBM7AlglaqyeMPxQszJ1JhlJdZ6jLA+IzldHtflX81em7lDao1xXu+aRRkg==",
+      "status": "OK",
+      "tarballPath": "parity/research/dep-closure-wave-002/npm/@typescript__typescript-openbsd-x64@7.0.2/package.tgz",
+      "license": "Apache-2.0"
+    },
+    {
+      "lockKey": "@typescript/typescript-sunos-x64",
+      "resolved": "@typescript/typescript-sunos-x64@7.0.2",
+      "lockIntegrity": "sha512-dLJDGaLZ1D4HPQn62u1n8mBDkJREwMsAkCdkwd4Ieqw+x3TUyTsqY0YiBCtE6H6OzzgGk3iuZ3vFWRS+E8/d1g==",
+      "evidencePath": "parity/research/dep-closure-wave-002/npm/@typescript__typescript-sunos-x64@7.0.2/retrieval.json",
+      "evidenceSha256": "e114410e774e6772522b453fc0b439da882923c402b09637b12f8a9b7cdf7bb7",
+      "retrievalIntegrity": "sha512-dLJDGaLZ1D4HPQn62u1n8mBDkJREwMsAkCdkwd4Ieqw+x3TUyTsqY0YiBCtE6H6OzzgGk3iuZ3vFWRS+E8/d1g==",
+      "status": "OK",
+      "tarballPath": "parity/research/dep-closure-wave-002/npm/@typescript__typescript-sunos-x64@7.0.2/package.tgz",
+      "license": "Apache-2.0"
+    },
+    {
+      "lockKey": "@typescript/typescript-win32-arm64",
+      "resolved": "@typescript/typescript-win32-arm64@7.0.2",
+      "lockIntegrity": "sha512-Gyl1Vy6OsWesLzmq+EP0Fb7b4Nid5232AvcA2SFcdYreldpNtYFFofPjnt62y9hQy7VTaZp65ICJjuAQRaVcIQ==",
+      "evidencePath": "parity/research/dep-closure-wave-001/npm/@typescript__typescript-win32-arm64@7.0.2/retrieval.json",
+      "evidenceSha256": "d2bf3c2eccb213ebdec62d7b5132a133d9145af2c21a6da6e6b5631172d8aff6",
+      "retrievalIntegrity": "sha512-Gyl1Vy6OsWesLzmq+EP0Fb7b4Nid5232AvcA2SFcdYreldpNtYFFofPjnt62y9hQy7VTaZp65ICJjuAQRaVcIQ==",
+      "status": "OK",
+      "tarballPath": "parity/research/dep-closure-wave-001/npm/@typescript__typescript-win32-arm64@7.0.2/package.tgz",
+      "license": "Apache-2.0"
+    },
+    {
+      "lockKey": "@typescript/typescript-win32-x64",
+      "resolved": "@typescript/typescript-win32-x64@7.0.2",
+      "lockIntegrity": "sha512-0BQ3HkAHHlKLSp1qRvf3SUhGpGsDuhB/jgFw75guyqbxJqEaS0Cw/VFO8i2nHglJUzQCRtMMR/IBAKE3ETMC4g==",
+      "evidencePath": "parity/research/dep-closure-wave-001/npm/@typescript__typescript-win32-x64@7.0.2/retrieval.json",
+      "evidenceSha256": "377013e356efc6460dd4728797d42afb07e17798319bee988b9f70b778b872c3",
+      "retrievalIntegrity": "sha512-0BQ3HkAHHlKLSp1qRvf3SUhGpGsDuhB/jgFw75guyqbxJqEaS0Cw/VFO8i2nHglJUzQCRtMMR/IBAKE3ETMC4g==",
+      "status": "OK",
+      "tarballPath": "parity/research/dep-closure-wave-001/npm/@typescript__typescript-win32-x64@7.0.2/package.tgz",
+      "license": "Apache-2.0"
+    },
+    {
+      "lockKey": "bun-types",
+      "resolved": "bun-types@1.3.14",
+      "lockIntegrity": "sha512-4N0ig0fEomHt5R0KCFWjovxow98rIoRwKolrYdCcknNwMekCXRnWEUvgu5soYV8QXtVsrUD8B95MBOZGPvr6KQ==",
+      "evidencePath": "parity/research/dep-closure-wave-001/npm/bun-types@1.3.14/retrieval.json",
+      "evidenceSha256": "6692f6449b8c5e1beffb74a48da5cc928277cea14a4aa5e3e43a9b07a8063091",
+      "retrievalIntegrity": "sha512-4N0ig0fEomHt5R0KCFWjovxow98rIoRwKolrYdCcknNwMekCXRnWEUvgu5soYV8QXtVsrUD8B95MBOZGPvr6KQ==",
+      "status": "OK",
+      "tarballPath": "parity/research/dep-closure-wave-001/npm/bun-types@1.3.14/package.tgz",
+      "license": "MIT"
+    },
+    {
+      "lockKey": "commander",
+      "resolved": "commander@14.0.0",
+      "lockIntegrity": "sha512-2uM9rYjPvyq39NwLRqaiLtWHyDC1FvryJDa2ATTVims5YAS4PupsEQsDvP14FqhFr0P49CYDugi59xaxJlTXRA==",
+      "evidencePath": "parity/research/npm/commander-14.0.0/read-inventory.json",
+      "evidenceSha256": "19bfb53788883180ca7fd295b1b0c7261da478ed9b0971423cf2791906b90653",
+      "status": "OK_VIA_INVENTORY"
+    },
+    {
+      "lockKey": "typescript",
+      "resolved": "typescript@7.0.2",
+      "lockIntegrity": "sha512-8FYau96o3NKOhbjKi/qNvG/W5jhzxkbdm5sj9AbZ/5T5sWqn3hJgLfGx27sRKZWTvyzCP8dLRBTf5tBTSRVUNA==",
+      "evidencePath": "parity/research/dep-closure-wave-002/npm/typescript@7.0.2/retrieval.json",
+      "evidenceSha256": "425b218192a402dae5895441fb56778d82c29a692c1fc5150cccda14a45b3b6b",
+      "retrievalIntegrity": "sha512-8FYau96o3NKOhbjKi/qNvG/W5jhzxkbdm5sj9AbZ/5T5sWqn3hJgLfGx27sRKZWTvyzCP8dLRBTf5tBTSRVUNA==",
+      "status": "OK",
+      "tarballPath": "parity/research/dep-closure-wave-002/npm/typescript@7.0.2/package.tgz",
+      "license": "Apache-2.0"
+    },
+    {
+      "lockKey": "undici-types",
+      "resolved": "undici-types@8.3.0",
+      "lockIntegrity": "sha512-j375ScV60dom+YkPFIfTLcOiPxkN/buHz5GobjLhixFuANaNs3C9l4GmrWqejgXWJ7BbJcFYpTEUkS1Ge8bpZQ==",
+      "evidencePath": "parity/research/dep-closure-wave-001/npm/undici-types@8.3.0/retrieval.json",
+      "evidenceSha256": "1cd19a9e60c44923e55cc12d1b08f8dd33d867d416ca196f1d04e3d00ffc10ae",
+      "retrievalIntegrity": "sha512-j375ScV60dom+YkPFIfTLcOiPxkN/buHz5GobjLhixFuANaNs3C9l4GmrWqejgXWJ7BbJcFYpTEUkS1Ge8bpZQ==",
+      "status": "OK",
+      "tarballPath": "parity/research/dep-closure-wave-001/npm/undici-types@8.3.0/package.tgz",
+      "license": "MIT"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Use /plan to iterate on an implementation plan before code changes.
+
+                                                                                                                       
+  /pote                                                                                                                
+  Reply with exactly: selected-ok. Do no other work.                                                                   
+                                                                                                                       
+
+ ⠠⠜ Working
+
+                                                                                                                       
+  → Add a follow-up                                                                                     ctrl+c to stop 
+                                                                                                                       
+
+  Auto                                                                                                  Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run · refactor/pi-pstack-parity-again

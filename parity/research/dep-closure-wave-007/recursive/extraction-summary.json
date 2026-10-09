@@ -1,0 +1,238 @@
+{
+  "capturedAt": "2026-10-09T00:52:24Z",
+  "distributionInventory": "parity/reference/distribution-inventory.txt",
+  "distributionInventorySha256": "d4c5cda5fa994f654782af04b027741c1e5ec061bfc0229b827fe511b36a7568",
+  "inventoryEntryCount": 193,
+  "textFilesScanned": 185,
+  "binaryOrUnreadableSkipped": 8,
+  "extractionStatus": "complete",
+  "runtimeAuditStatus": "open",
+  "uniqueReferenceCount": 176,
+  "absoluteUrlCount": 31,
+  "relativeEscapeCount": 145,
+  "topHosts": [
+    [
+      "github.com",
+      12
+    ],
+    [
+      "cursor.com",
+      5
+    ],
+    [
+      "127.0.0.1:4173`",
+      3
+    ],
+    [
+      "tracker.example",
+      2
+    ],
+    [
+      "127.0.0.1:<port",
+      1
+    ],
+    [
+      "127.0.0.1:<debug-port",
+      1
+    ],
+    [
+      "127.0.0.1:8432",
+      1
+    ],
+    [
+      "fonts.googleapis.com",
+      1
+    ],
+    [
+      "x.com",
+      1
+    ],
+    [
+      "api2.cursor.sh",
+      1
+    ],
+    [
+      "<hostname",
+      1
+    ],
+    [
+      "<100.x.x.x",
+      1
+    ],
+    [
+      "tailscale.com",
+      1
+    ]
+  ],
+  "disposition": "Wave-007 extracted absolute URLs and relative-escape markdown links from every readable text file in the locked distribution inventory (185 files). Extraction is complete with path+hash custody of source files. Live/runtime audit of extracted external targets remains open.",
+  "blockerForRuntimeAudit": "Extracted external URLs and escape links require follow-up custody and behavioral audit. This wave records extraction only.",
+  "sourcesScannedCount": 185,
+  "referencesSample": [
+    {
+      "kind": "absolute_url",
+      "target": "https://github.com/cursor/plugins",
+      "host": "github.com",
+      "fromInventoryPath": "cursor-team-kit/.cursor-plugin/plugin.json",
+      "fromSha256": "9c8622d0577205959b6469a5454cbe2787ad3c6412439759328e92dc0115584d"
+    },
+    {
+      "kind": "absolute_url",
+      "target": "http://127.0.0.1:<port",
+      "host": "127.0.0.1:<port",
+      "fromInventoryPath": "cursor-team-kit/skills/control-ui/SKILL.md",
+      "fromSha256": "410cae25bdb1e5d2323b126abc5047b0213be7fdb0195710213fa8de8a751871"
+    },
+    {
+      "kind": "absolute_url",
+      "target": "http://127.0.0.1:<debug-port",
+      "host": "127.0.0.1:<debug-port",
+      "fromInventoryPath": "cursor-team-kit/skills/control-ui/SKILL.md",
+      "fromSha256": "410cae25bdb1e5d2323b126abc5047b0213be7fdb0195710213fa8de8a751871"
+    },
+    {
+      "kind": "absolute_url",
+      "target": "http://127.0.0.1:8432/pr-review-{number}.html`",
+      "host": "127.0.0.1:8432",
+      "fromInventoryPath": "cursor-team-kit/skills/pr-review-canvas/SKILL.md",
+      "fromSha256": "88a07a2459197acba3c5e06b7d695e35ad618a998442b72d05cdba4efc117ac6"
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap",
+      "host": "fonts.googleapis.com",
+      "fromInventoryPath": "cursor-team-kit/skills/pr-review-canvas/template.html",
+      "fromSha256": "cb56bc764384856da4733d1c999521c3e1b20d65ed80605630b74da448abe756"
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://github.com/cursor/plugins/tree/main/pstack",
+      "host": "github.com",
+      "fromInventoryPath": "pstack/.cursor-plugin/plugin.json",
+      "fromSha256": "7bc736c60985805f70465e044e5adc7028663f72a73deea7fa3e95e52d70dc8e"
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://github.com/cursor/plugins",
+      "host": "github.com",
+      "fromInventoryPath": "pstack/.cursor-plugin/plugin.json",
+      "fromSha256": "7bc736c60985805f70465e044e5adc7028663f72a73deea7fa3e95e52d70dc8e"
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://x.com/poteto",
+      "host": "x.com",
+      "fromInventoryPath": "pstack/README.md",
+      "fromSha256": "7f39feae81103e18b567e1fa5075cba86425cf4697a01be66a7422ef93c2c855"
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://cursor.com/docs/skills",
+      "host": "cursor.com",
+      "fromInventoryPath": "pstack/README.md",
+      "fromSha256": "7f39feae81103e18b567e1fa5075cba86425cf4697a01be66a7422ef93c2c855"
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://tracker.example/issue/123",
+      "host": "tracker.example",
+      "fromInventoryPath": "pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md",
+      "fromSha256": "1363cc07343fe86aab42853b1bd4563288cbcbdf12f1c265b3b3b1afa25c09cb"
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://github.com/{owner}/{repo}/pull/{number}`",
+      "host": "github.com",
+      "fromInventoryPath": "pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md",
+      "fromSha256": "1363cc07343fe86aab42853b1bd4563288cbcbdf12f1c265b3b3b1afa25c09cb"
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://tracker.example/issue/123",
+      "host": "tracker.example",
+      "fromInventoryPath": "pstack/automations/benny/skills/triage-issue-reports/SKILL.md",
+      "fromSha256": "216a758b8711e64d19a55e6032c496527daac6364d010611040f3c04ef1a448f"
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://github.com/example-org/example-repo",
+      "host": "github.com",
+      "fromInventoryPath": "pstack/automations/benny/templates/configuration.example.yaml",
+      "fromSha256": "13e24b4ce9b9a0913916e85fe3b080b88d45f8e55dccfe8ae38e0751a997b6f5"
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://github.com/{owner}/{repo}/pull/{number}",
+      "host": "github.com",
+      "fromInventoryPath": "pstack/automations/benny/templates/configuration.example.yaml",
+      "fromSha256": "13e24b4ce9b9a0913916e85fe3b080b88d45f8e55dccfe8ae38e0751a997b6f5"
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://cursor.com/docs/skills",
+      "host": "cursor.com",
+      "fromInventoryPath": "pstack/docs/guide/01-setup.md",
+      "fromSha256": "86d0330f245d16254a2069955f993c15d96cf29cd1a73690a0164074b7ac1190"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/setup-pstack/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/01-setup.md",
+      "fromSha256": "86d0330f245d16254a2069955f993c15d96cf29cd1a73690a0164074b7ac1190"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/create-verification-skill/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/01-setup.md",
+      "fromSha256": "86d0330f245d16254a2069955f993c15d96cf29cd1a73690a0164074b7ac1190"
+    },
+    {
+      "kind": "absolute_url",
+      "target": "https://cursor.com/docs/subagents#cloud-subagents",
+      "host": "cursor.com",
+      "fromInventoryPath": "pstack/docs/guide/02-poteto-mode.md",
+      "fromSha256": "979f61ca3d44cb8e68affda40327d32797e93fa9cc53ced7444c15e2600897e1"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/",
+      "fromInventoryPath": "pstack/docs/guide/02-poteto-mode.md",
+      "fromSha256": "979f61ca3d44cb8e68affda40327d32797e93fa9cc53ced7444c15e2600897e1"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/opening-a-pr.md",
+      "fromInventoryPath": "pstack/docs/guide/02-poteto-mode.md",
+      "fromSha256": "979f61ca3d44cb8e68affda40327d32797e93fa9cc53ced7444c15e2600897e1"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/worktree-cleanup.md",
+      "fromInventoryPath": "pstack/docs/guide/02-poteto-mode.md",
+      "fromSha256": "979f61ca3d44cb8e68affda40327d32797e93fa9cc53ced7444c15e2600897e1"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/figure-it-out/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/02-poteto-mode.md",
+      "fromSha256": "979f61ca3d44cb8e68affda40327d32797e93fa9cc53ced7444c15e2600897e1"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/show-me-your-work/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/02-poteto-mode.md",
+      "fromSha256": "979f61ca3d44cb8e68affda40327d32797e93fa9cc53ced7444c15e2600897e1"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/SKILL.md",
+      "fromInventoryPath": "pstack/docs/guide/02-poteto-mode.md",
+      "fromSha256": "979f61ca3d44cb8e68affda40327d32797e93fa9cc53ced7444c15e2600897e1"
+    },
+    {
+      "kind": "relative_escape",
+      "target": "../../skills/poteto-mode/playbooks/investigation.md",
+      "fromInventoryPath": "pstack/docs/guide/03-understand.md",
+      "fromSha256": "0090afa9b8670adf175466a2a973ff4349e95ed67d2aa8cebdfc55ff4b7382c9"
+    }
+  ]
+}

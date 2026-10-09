@@ -1,0 +1,4871 @@
+[
+  {
+    "id": "pi-pstack@0.15.9-pi.1",
+    "name": "pi-pstack",
+    "version": "0.15.9-pi.1",
+    "size": 4047369,
+    "unpackedSize": 7778786,
+    "shasum": "4f34bc64cf08e46bc6c344058eda4f25236d1a33",
+    "integrity": "sha512-CwryS1k6asbmk2L1398Q9P143nAt6QprkDuzPatC+Z+lGe0pKFyv8pz19d39FjzEfBnRzWNCazkXwiY2Ge6YyQ==",
+    "filename": "pi-pstack-0.15.9-pi.1.tgz",
+    "files": [
+      {
+        "path": "CHANGELOG.md",
+        "size": 10923,
+        "mode": 420
+      },
+      {
+        "path": "LICENSE",
+        "size": 1067,
+        "mode": 420
+      },
+      {
+        "path": "README.md",
+        "size": 29293,
+        "mode": 420
+      },
+      {
+        "path": "docs/agents-compliance.md",
+        "size": 5742,
+        "mode": 420
+      },
+      {
+        "path": "docs/architecture.md",
+        "size": 5698,
+        "mode": 420
+      },
+      {
+        "path": "docs/comprehensive-audit.md",
+        "size": 13305,
+        "mode": 420
+      },
+      {
+        "path": "docs/current-source-parity.md",
+        "size": 17815,
+        "mode": 420
+      },
+      {
+        "path": "docs/decisions.tsv",
+        "size": 9106,
+        "mode": 420
+      },
+      {
+        "path": "docs/design-a.md",
+        "size": 11505,
+        "mode": 420
+      },
+      {
+        "path": "docs/design-b.md",
+        "size": 13248,
+        "mode": 420
+      },
+      {
+        "path": "docs/design-review.md",
+        "size": 6323,
+        "mode": 420
+      },
+      {
+        "path": "docs/durable-host-native-gaps.md",
+        "size": 7704,
+        "mode": 420
+      },
+      {
+        "path": "docs/final-review.md",
+        "size": 8791,
+        "mode": 420
+      },
+      {
+        "path": "docs/guide/01-setup.md",
+        "size": 3425,
+        "mode": 420
+      },
+      {
+        "path": "docs/guide/02-poteto-mode.md",
+        "size": 5297,
+        "mode": 420
+      },
+      {
+        "path": "docs/guide/03-understand.md",
+        "size": 3570,
+        "mode": 420
+      },
+      {
+        "path": "docs/guide/04-design.md",
+        "size": 4890,
+        "mode": 420
+      },
+      {
+        "path": "docs/guide/05-build-and-clean.md",
+        "size": 4873,
+        "mode": 420
+      },
+      {
+        "path": "docs/guide/06-verify-and-ship.md",
+        "size": 6020,
+        "mode": 420
+      },
+      {
+        "path": "docs/guide/07-overnight.md",
+        "size": 5764,
+        "mode": 420
+      },
+      {
+        "path": "docs/guide/08-principles.md",
+        "size": 5431,
+        "mode": 420
+      },
+      {
+        "path": "docs/guide/09-make-it-yours.md",
+        "size": 5430,
+        "mode": 420
+      },
+      {
+        "path": "docs/guide/10-recipes-and-pitfalls.md",
+        "size": 4620,
+        "mode": 420
+      },
+      {
+        "path": "docs/guide/README.md",
+        "size": 2114,
+        "mode": 420
+      },
+      {
+        "path": "docs/latest-parity-decisions.tsv",
+        "size": 4602,
+        "mode": 420
+      },
+      {
+        "path": "docs/latest-parity.md",
+        "size": 12418,
+        "mode": 420
+      },
+      {
+        "path": "docs/mechanism-audit.md",
+        "size": 13484,
+        "mode": 420
+      },
+      {
+        "path": "docs/mechanism-decisions.tsv",
+        "size": 3459,
+        "mode": 420
+      },
+      {
+        "path": "docs/native-parity-decisions.tsv",
+        "size": 8136,
+        "mode": 420
+      },
+      {
+        "path": "docs/native-parity-design.md",
+        "size": 6412,
+        "mode": 420
+      },
+      {
+        "path": "docs/native-parity-plan.md",
+        "size": 4988,
+        "mode": 420
+      },
+      {
+        "path": "docs/native-parity-remote-evidence.json",
+        "size": 12734,
+        "mode": 420
+      },
+      {
+        "path": "docs/native-parity-task-vm-evidence.json",
+        "size": 7648,
+        "mode": 420
+      },
+      {
+        "path": "docs/official-api.md",
+        "size": 4571,
+        "mode": 420
+      },
+      {
+        "path": "docs/parity.md",
+        "size": 13842,
+        "mode": 420
+      },
+      {
+        "path": "docs/parity/AUDIT.md",
+        "size": 6713,
+        "mode": 420
+      },
+      {
+        "path": "docs/parity/clauses/s1.json",
+        "size": 91959,
+        "mode": 420
+      },
+      {
+        "path": "docs/parity/clauses/s2.json",
+        "size": 117563,
+        "mode": 420
+      },
+      {
+        "path": "docs/parity/clauses/s3.json",
+        "size": 109508,
+        "mode": 420
+      },
+      {
+        "path": "docs/parity/clauses/s4.json",
+        "size": 73967,
+        "mode": 420
+      },
+      {
+        "path": "docs/parity/FIX.md",
+        "size": 8606,
+        "mode": 420
+      },
+      {
+        "path": "docs/parity/REAUDIT.md",
+        "size": 3861,
+        "mode": 420
+      },
+      {
+        "path": "docs/parity/reference.json",
+        "size": 438,
+        "mode": 420
+      },
+      {
+        "path": "docs/parity/reference/pstack-architecture-reconstruction.md",
+        "size": 81365,
+        "mode": 420
+      },
+      {
+        "path": "docs/provenance.json",
+        "size": 724,
+        "mode": 420
+      },
+      {
+        "path": "docs/research-parity-audit.md",
+        "size": 3701,
+        "mode": 420
+      },
+      {
+        "path": "docs/resource-map.json",
+        "size": 73917,
+        "mode": 420
+      },
+      {
+        "path": "docs/review.md",
+        "size": 5964,
+        "mode": 420
+      },
+      {
+        "path": "docs/source-audit.md",
+        "size": 42762,
+        "mode": 420
+      },
+      {
+        "path": "docs/source-inventory.json",
+        "size": 26729,
+        "mode": 420
+      },
+      {
+        "path": "docs/subagents-decisions.tsv",
+        "size": 9706,
+        "mode": 420
+      },
+      {
+        "path": "docs/subagents-design.md",
+        "size": 1640,
+        "mode": 420
+      },
+      {
+        "path": "docs/subagents-native-audit.md",
+        "size": 8501,
+        "mode": 420
+      },
+      {
+        "path": "docs/subagents-native-gaps.md",
+        "size": 6454,
+        "mode": 420
+      },
+      {
+        "path": "docs/subagents-parity.tsv",
+        "size": 103910,
+        "mode": 420
+      },
+      {
+        "path": "docs/subagents-work-plan.md",
+        "size": 1599,
+        "mode": 420
+      },
+      {
+        "path": "docs/team-kit-design-a.md",
+        "size": 10048,
+        "mode": 420
+      },
+      {
+        "path": "docs/team-kit-design-b.md",
+        "size": 10705,
+        "mode": 420
+      },
+      {
+        "path": "docs/team-kit-design-review.md",
+        "size": 6467,
+        "mode": 420
+      },
+      {
+        "path": "docs/team-kit-plan.md",
+        "size": 3751,
+        "mode": 420
+      },
+      {
+        "path": "docs/team-kit-review.md",
+        "size": 6396,
+        "mode": 420
+      },
+      {
+        "path": "docs/team-kit-runtime-review.md",
+        "size": 4791,
+        "mode": 420
+      },
+      {
+        "path": "docs/team-kit-source-inventory.json",
+        "size": 4479,
+        "mode": 420
+      },
+      {
+        "path": "docs/verification.md",
+        "size": 19220,
+        "mode": 420
+      },
+      {
+        "path": "docs/work-plan.md",
+        "size": 2146,
+        "mode": 420
+      },
+      {
+        "path": "host/adapters/benny/FOR_AGENTS.md",
+        "size": 1262,
+        "mode": 420
+      },
+      {
+        "path": "host/adapters/benny/README.md",
+        "size": 801,
+        "mode": 420
+      },
+      {
+        "path": "host/adapters/benny/reproduce-automation-prompt.md",
+        "size": 1756,
+        "mode": 420
+      },
+      {
+        "path": "host/adapters/benny/SKILL.md",
+        "size": 13527,
+        "mode": 420
+      },
+      {
+        "path": "host/adapters/benny/triage-automation-prompt.md",
+        "size": 1465,
+        "mode": 420
+      },
+      {
+        "path": "host/adapters/make-bot-ui/SKILL.md",
+        "size": 7010,
+        "mode": 420
+      },
+      {
+        "path": "host/prompts/create-skill.md",
+        "size": 454,
+        "mode": 420
+      },
+      {
+        "path": "host/prompts/loop.md",
+        "size": 511,
+        "mode": 420
+      },
+      {
+        "path": "host/prompts/origin.md",
+        "size": 663,
+        "mode": 420
+      },
+      {
+        "path": "host/skills/create-skill/SKILL.md",
+        "size": 16868,
+        "mode": 420
+      },
+      {
+        "path": "host/skills/goal/SKILL.md",
+        "size": 5508,
+        "mode": 420
+      },
+      {
+        "path": "host/skills/loop/SKILL.md",
+        "size": 8493,
+        "mode": 420
+      },
+      {
+        "path": "host/skills/origin/SKILL.md",
+        "size": 3900,
+        "mode": 420
+      },
+      {
+        "path": "package.json",
+        "size": 2566,
+        "mode": 420
+      },
+      {
+        "path": "prompts/architect.md",
+        "size": 464,
+        "mode": 420
+      },
+      {
+        "path": "prompts/arena.md",
+        "size": 456,
+        "mode": 420
+      },
+      {
+        "path": "prompts/automate-me.md",
+        "size": 468,
+        "mode": 420
+      },
+      {
+        "path": "prompts/benchmark-checklist.md",
+        "size": 484,
+        "mode": 420
+      },
+      {
+        "path": "prompts/blast-radius.md",
+        "size": 470,
+        "mode": 420
+      },
+      {
+        "path": "prompts/bro.md",
+        "size": 265,
+        "mode": 420
+      },
+      {
+        "path": "prompts/check-compiler-errors.md",
+        "size": 488,
+        "mode": 420
+      },
+      {
+        "path": "prompts/control-cli.md",
+        "size": 468,
+        "mode": 420
+      },
+      {
+        "path": "prompts/control-ui.md",
+        "size": 466,
+        "mode": 420
+      },
+      {
+        "path": "prompts/correct.md",
+        "size": 460,
+        "mode": 420
+      },
+      {
+        "path": "prompts/create-verification-skill.md",
+        "size": 496,
+        "mode": 420
+      },
+      {
+        "path": "prompts/deslop.md",
+        "size": 458,
+        "mode": 420
+      },
+      {
+        "path": "prompts/figure-it-out.md",
+        "size": 472,
+        "mode": 420
+      },
+      {
+        "path": "prompts/fix-ci.md",
+        "size": 458,
+        "mode": 420
+      },
+      {
+        "path": "prompts/fix-merge-conflicts.md",
+        "size": 484,
+        "mode": 420
+      },
+      {
+        "path": "prompts/get-pr-comments.md",
+        "size": 476,
+        "mode": 420
+      },
+      {
+        "path": "prompts/how.md",
+        "size": 452,
+        "mode": 420
+      },
+      {
+        "path": "prompts/interrogate.md",
+        "size": 468,
+        "mode": 420
+      },
+      {
+        "path": "prompts/loop-on-ci.md",
+        "size": 466,
+        "mode": 420
+      },
+      {
+        "path": "prompts/maintain-verification-skill.md",
+        "size": 500,
+        "mode": 420
+      },
+      {
+        "path": "prompts/make-bot-ui.md",
+        "size": 468,
+        "mode": 420
+      },
+      {
+        "path": "prompts/make-pr-easy-to-review.md",
+        "size": 490,
+        "mode": 420
+      },
+      {
+        "path": "prompts/new-branch-and-pr.md",
+        "size": 480,
+        "mode": 420
+      },
+      {
+        "path": "prompts/no-comments.md",
+        "size": 468,
+        "mode": 420
+      },
+      {
+        "path": "prompts/pr-review-canvas.md",
+        "size": 478,
+        "mode": 420
+      },
+      {
+        "path": "prompts/principle-attack-the-premise.md",
+        "size": 502,
+        "mode": 420
+      },
+      {
+        "path": "prompts/principle-boundary-discipline.md",
+        "size": 504,
+        "mode": 420
+      },
+      {
+        "path": "prompts/principle-build-the-lever.md",
+        "size": 496,
+        "mode": 420
+      },
+      {
+        "path": "prompts/principle-encode-lessons-in-structure.md",
+        "size": 520,
+        "mode": 420
+      },
+      {
+        "path": "prompts/principle-exhaust-the-design-space.md",
+        "size": 514,
+        "mode": 420
+      },
+      {
+        "path": "prompts/principle-experience-first.md",
+        "size": 498,
+        "mode": 420
+      },
+      {
+        "path": "prompts/principle-explain-the-number.md",
+        "size": 502,
+        "mode": 420
+      },
+      {
+        "path": "prompts/principle-fix-root-causes.md",
+        "size": 496,
+        "mode": 420
+      },
+      {
+        "path": "prompts/principle-foundational-thinking.md",
+        "size": 508,
+        "mode": 420
+      },
+      {
+        "path": "prompts/principle-guard-the-context-window.md",
+        "size": 514,
+        "mode": 420
+      },
+      {
+        "path": "prompts/principle-laziness-protocol.md",
+        "size": 500,
+        "mode": 420
+      },
+      {
+        "path": "prompts/principle-make-operations-idempotent.md",
+        "size": 518,
+        "mode": 420
+      },
+      {
+        "path": "prompts/principle-migrate-callers-then-delete-legacy-apis.md",
+        "size": 544,
+        "mode": 420
+      },
+      {
+        "path": "prompts/principle-minimize-reader-load.md",
+        "size": 506,
+        "mode": 420
+      },
+      {
+        "path": "prompts/principle-model-the-domain.md",
+        "size": 498,
+        "mode": 420
+      },
+      {
+        "path": "prompts/principle-never-block-on-the-human.md",
+        "size": 514,
+        "mode": 420
+      },
+      {
+        "path": "prompts/principle-outcome-oriented-execution.md",
+        "size": 518,
+        "mode": 420
+      },
+      {
+        "path": "prompts/principle-prove-it-works.md",
+        "size": 494,
+        "mode": 420
+      },
+      {
+        "path": "prompts/principle-redesign-from-first-principles.md",
+        "size": 526,
+        "mode": 420
+      },
+      {
+        "path": "prompts/principle-separate-before-serializing-shared-state.md",
+        "size": 546,
+        "mode": 420
+      },
+      {
+        "path": "prompts/principle-sequence-verifiable-units.md",
+        "size": 516,
+        "mode": 420
+      },
+      {
+        "path": "prompts/principle-subtract-before-you-add.md",
+        "size": 512,
+        "mode": 420
+      },
+      {
+        "path": "prompts/principle-test-behavior-not-implementation.md",
+        "size": 530,
+        "mode": 420
+      },
+      {
+        "path": "prompts/principle-type-system-discipline.md",
+        "size": 510,
+        "mode": 420
+      },
+      {
+        "path": "prompts/recall.md",
+        "size": 458,
+        "mode": 420
+      },
+      {
+        "path": "prompts/reflect.md",
+        "size": 460,
+        "mode": 420
+      },
+      {
+        "path": "prompts/review-and-ship.md",
+        "size": 476,
+        "mode": 420
+      },
+      {
+        "path": "prompts/run-smoke-tests.md",
+        "size": 476,
+        "mode": 420
+      },
+      {
+        "path": "prompts/show-me-your-work.md",
+        "size": 480,
+        "mode": 420
+      },
+      {
+        "path": "prompts/swarm.md",
+        "size": 456,
+        "mode": 420
+      },
+      {
+        "path": "prompts/tdd.md",
+        "size": 452,
+        "mode": 420
+      },
+      {
+        "path": "prompts/teach.md",
+        "size": 456,
+        "mode": 420
+      },
+      {
+        "path": "prompts/technical-writing.md",
+        "size": 480,
+        "mode": 420
+      },
+      {
+        "path": "prompts/thermo-nuclear-code-quality-review.md",
+        "size": 514,
+        "mode": 420
+      },
+      {
+        "path": "prompts/typescript-best-practices.md",
+        "size": 496,
+        "mode": 420
+      },
+      {
+        "path": "prompts/unslop.md",
+        "size": 458,
+        "mode": 420
+      },
+      {
+        "path": "prompts/verify-this.md",
+        "size": 468,
+        "mode": 420
+      },
+      {
+        "path": "prompts/weekly-review.md",
+        "size": 472,
+        "mode": 420
+      },
+      {
+        "path": "prompts/what-did-i-get-done.md",
+        "size": 484,
+        "mode": 420
+      },
+      {
+        "path": "prompts/why.md",
+        "size": 452,
+        "mode": 420
+      },
+      {
+        "path": "prompts/workflow-from-chats.md",
+        "size": 484,
+        "mode": 420
+      },
+      {
+        "path": "scripts/apply-parity-updates.mjs",
+        "size": 1776,
+        "mode": 420
+      },
+      {
+        "path": "scripts/audit-decision-log.mjs",
+        "size": 3176,
+        "mode": 420
+      },
+      {
+        "path": "scripts/benny-domain.d.mts",
+        "size": 1265,
+        "mode": 420
+      },
+      {
+        "path": "scripts/benny-domain.mjs",
+        "size": 2935,
+        "mode": 420
+      },
+      {
+        "path": "scripts/benny-runtime.d.mts",
+        "size": 833,
+        "mode": 420
+      },
+      {
+        "path": "scripts/benny-runtime.mjs",
+        "size": 2495,
+        "mode": 420
+      },
+      {
+        "path": "scripts/benny-settings.d.mts",
+        "size": 101,
+        "mode": 420
+      },
+      {
+        "path": "scripts/benny-settings.mjs",
+        "size": 4630,
+        "mode": 420
+      },
+      {
+        "path": "scripts/benny-setup.d.mts",
+        "size": 480,
+        "mode": 420
+      },
+      {
+        "path": "scripts/benny-setup.mjs",
+        "size": 6517,
+        "mode": 420
+      },
+      {
+        "path": "scripts/census-hedging.mjs",
+        "size": 583,
+        "mode": 420
+      },
+      {
+        "path": "scripts/check-latest-source.mjs",
+        "size": 3353,
+        "mode": 420
+      },
+      {
+        "path": "scripts/check-native-parity.mjs",
+        "size": 9862,
+        "mode": 420
+      },
+      {
+        "path": "scripts/check-subagent-native-first.d.mts",
+        "size": 212,
+        "mode": 420
+      },
+      {
+        "path": "scripts/check-subagent-native-first.mjs",
+        "size": 3534,
+        "mode": 420
+      },
+      {
+        "path": "scripts/check-subagent-parity.mjs",
+        "size": 3977,
+        "mode": 420
+      },
+      {
+        "path": "scripts/detached-rpc-client.d.mts",
+        "size": 1141,
+        "mode": 420
+      },
+      {
+        "path": "scripts/detached-rpc-client.mjs",
+        "size": 4954,
+        "mode": 420
+      },
+      {
+        "path": "scripts/detached-rpc-protocol.d.mts",
+        "size": 208,
+        "mode": 420
+      },
+      {
+        "path": "scripts/detached-rpc-protocol.mjs",
+        "size": 2981,
+        "mode": 420
+      },
+      {
+        "path": "scripts/detached-rpc-server.mjs",
+        "size": 6051,
+        "mode": 420
+      },
+      {
+        "path": "scripts/filesystem-launch.d.mts",
+        "size": 318,
+        "mode": 420
+      },
+      {
+        "path": "scripts/filesystem-launch.mjs",
+        "size": 3021,
+        "mode": 420
+      },
+      {
+        "path": "scripts/journey-client.mjs",
+        "size": 4850,
+        "mode": 420
+      },
+      {
+        "path": "scripts/journey-requests.mjs",
+        "size": 1227,
+        "mode": 420
+      },
+      {
+        "path": "scripts/overlays/log.mjs",
+        "size": 219,
+        "mode": 420
+      },
+      {
+        "path": "scripts/overlays/README.md",
+        "size": 438,
+        "mode": 420
+      },
+      {
+        "path": "scripts/overlays/worktree-audit.mjs",
+        "size": 745,
+        "mode": 420
+      },
+      {
+        "path": "scripts/parity-contracts.d.mts",
+        "size": 814,
+        "mode": 420
+      },
+      {
+        "path": "scripts/parity-contracts.mjs",
+        "size": 5076,
+        "mode": 420
+      },
+      {
+        "path": "scripts/probe-routing.mjs",
+        "size": 3591,
+        "mode": 420
+      },
+      {
+        "path": "scripts/profile-history.mjs",
+        "size": 3298,
+        "mode": 420
+      },
+      {
+        "path": "scripts/remote-executor-schema.d.mts",
+        "size": 432,
+        "mode": 420
+      },
+      {
+        "path": "scripts/remote-executor-schema.mjs",
+        "size": 1603,
+        "mode": 420
+      },
+      {
+        "path": "scripts/remote-lease.mjs",
+        "size": 1000,
+        "mode": 420
+      },
+      {
+        "path": "scripts/remote-rpc.mjs",
+        "size": 7694,
+        "mode": 420
+      },
+      {
+        "path": "scripts/remote-stop-orphan.py",
+        "size": 1524,
+        "mode": 420
+      },
+      {
+        "path": "scripts/resource-rows/10-placement.mjs",
+        "size": 1177,
+        "mode": 420
+      },
+      {
+        "path": "scripts/resource-rows/20-paths.mjs",
+        "size": 3483,
+        "mode": 420
+      },
+      {
+        "path": "scripts/resource-rows/30-playbooks.mjs",
+        "size": 7089,
+        "mode": 420
+      },
+      {
+        "path": "scripts/resource-rows/35-bugbot.mjs",
+        "size": 1139,
+        "mode": 420
+      },
+      {
+        "path": "scripts/resource-rows/40-skills.mjs",
+        "size": 4688,
+        "mode": 420
+      },
+      {
+        "path": "scripts/resource-rows/45-style.mjs",
+        "size": 260,
+        "mode": 420
+      },
+      {
+        "path": "scripts/resource-rows/50-forge.mjs",
+        "size": 3406,
+        "mode": 420
+      },
+      {
+        "path": "scripts/resource-text.mjs",
+        "size": 466,
+        "mode": 420
+      },
+      {
+        "path": "scripts/resource-transforms.mjs",
+        "size": 848,
+        "mode": 420
+      },
+      {
+        "path": "scripts/resources.mjs",
+        "size": 23658,
+        "mode": 420
+      },
+      {
+        "path": "scripts/routine-client.d.mts",
+        "size": 1187,
+        "mode": 420
+      },
+      {
+        "path": "scripts/routine-client.mjs",
+        "size": 6002,
+        "mode": 420
+      },
+      {
+        "path": "scripts/routine-domain.d.mts",
+        "size": 458,
+        "mode": 420
+      },
+      {
+        "path": "scripts/routine-domain.mjs",
+        "size": 1266,
+        "mode": 420
+      },
+      {
+        "path": "scripts/routine-relay.d.mts",
+        "size": 260,
+        "mode": 420
+      },
+      {
+        "path": "scripts/routine-relay.mjs",
+        "size": 4727,
+        "mode": 420
+      },
+      {
+        "path": "scripts/routine-secret.d.mts",
+        "size": 136,
+        "mode": 420
+      },
+      {
+        "path": "scripts/routine-secret.mjs",
+        "size": 3626,
+        "mode": 420
+      },
+      {
+        "path": "scripts/routine-service.mjs",
+        "size": 12888,
+        "mode": 420
+      },
+      {
+        "path": "scripts/rpc-process.d.mts",
+        "size": 409,
+        "mode": 420
+      },
+      {
+        "path": "scripts/rpc-process.mjs",
+        "size": 4147,
+        "mode": 420
+      },
+      {
+        "path": "scripts/rpc-turn.d.mts",
+        "size": 215,
+        "mode": 420
+      },
+      {
+        "path": "scripts/rpc-turn.mjs",
+        "size": 465,
+        "mode": 420
+      },
+      {
+        "path": "scripts/skill-creation-journey.mjs",
+        "size": 6917,
+        "mode": 420
+      },
+      {
+        "path": "scripts/source-census.mjs",
+        "size": 1544,
+        "mode": 420
+      },
+      {
+        "path": "scripts/timer-ci.d.mts",
+        "size": 1067,
+        "mode": 420
+      },
+      {
+        "path": "scripts/timer-ci.mjs",
+        "size": 4498,
+        "mode": 420
+      },
+      {
+        "path": "scripts/timer-client.d.mts",
+        "size": 1551,
+        "mode": 420
+      },
+      {
+        "path": "scripts/timer-client.mjs",
+        "size": 5687,
+        "mode": 420
+      },
+      {
+        "path": "scripts/timer-lease.mjs",
+        "size": 674,
+        "mode": 420
+      },
+      {
+        "path": "scripts/timer-root.d.mts",
+        "size": 487,
+        "mode": 420
+      },
+      {
+        "path": "scripts/timer-root.mjs",
+        "size": 4563,
+        "mode": 420
+      },
+      {
+        "path": "scripts/timer-schedules.d.mts",
+        "size": 508,
+        "mode": 420
+      },
+      {
+        "path": "scripts/timer-schedules.mjs",
+        "size": 3620,
+        "mode": 420
+      },
+      {
+        "path": "scripts/timer-service.mjs",
+        "size": 9362,
+        "mode": 420
+      },
+      {
+        "path": "scripts/verify-canvas-browser.mjs",
+        "size": 14898,
+        "mode": 420
+      },
+      {
+        "path": "scripts/verify-cli.mjs",
+        "size": 3059,
+        "mode": 420
+      },
+      {
+        "path": "scripts/verify-journeys.mjs",
+        "size": 45249,
+        "mode": 420
+      },
+      {
+        "path": "scripts/verify-progress-tui.mjs",
+        "size": 8661,
+        "mode": 420
+      },
+      {
+        "path": "scripts/verify-question-tui.mjs",
+        "size": 9700,
+        "mode": 420
+      },
+      {
+        "path": "scripts/verify-skill-reload-tui.mjs",
+        "size": 4847,
+        "mode": 420
+      },
+      {
+        "path": "scripts/verify-store-isolation.mjs",
+        "size": 4490,
+        "mode": 420
+      },
+      {
+        "path": "scripts/verify-upstream.d.mts",
+        "size": 123,
+        "mode": 420
+      },
+      {
+        "path": "scripts/verify-upstream.mjs",
+        "size": 2849,
+        "mode": 420
+      },
+      {
+        "path": "skills/architect/references/design-red-flags.md",
+        "size": 3009,
+        "mode": 420
+      },
+      {
+        "path": "skills/architect/references/rationale-template.md",
+        "size": 3050,
+        "mode": 420
+      },
+      {
+        "path": "skills/architect/references/runner-prompt.md",
+        "size": 3087,
+        "mode": 420
+      },
+      {
+        "path": "skills/architect/SKILL.md",
+        "size": 5675,
+        "mode": 420
+      },
+      {
+        "path": "skills/arena/SKILL.md",
+        "size": 4985,
+        "mode": 420
+      },
+      {
+        "path": "skills/automate-me/SKILL.md",
+        "size": 7273,
+        "mode": 420
+      },
+      {
+        "path": "skills/benchmark-checklist/SKILL.md",
+        "size": 5409,
+        "mode": 420
+      },
+      {
+        "path": "skills/blast-radius/SKILL.md",
+        "size": 3851,
+        "mode": 420
+      },
+      {
+        "path": "skills/check-compiler-errors/SKILL.md",
+        "size": 535,
+        "mode": 420
+      },
+      {
+        "path": "skills/control-cli/SKILL.md",
+        "size": 4333,
+        "mode": 420
+      },
+      {
+        "path": "skills/control-ui/SKILL.md",
+        "size": 4802,
+        "mode": 420
+      },
+      {
+        "path": "skills/correct/SKILL.md",
+        "size": 2445,
+        "mode": 420
+      },
+      {
+        "path": "skills/create-verification-skill/references/feature-map-example/create-note.md",
+        "size": 2926,
+        "mode": 420
+      },
+      {
+        "path": "skills/create-verification-skill/references/feature-map-example/README.md",
+        "size": 2601,
+        "mode": 420
+      },
+      {
+        "path": "skills/create-verification-skill/references/feature-map-example/search.md",
+        "size": 3478,
+        "mode": 420
+      },
+      {
+        "path": "skills/create-verification-skill/SKILL.md",
+        "size": 5852,
+        "mode": 420
+      },
+      {
+        "path": "skills/deslop/SKILL.md",
+        "size": 1389,
+        "mode": 420
+      },
+      {
+        "path": "skills/figure-it-out/SKILL.md",
+        "size": 4059,
+        "mode": 420
+      },
+      {
+        "path": "skills/fix-ci/SKILL.md",
+        "size": 901,
+        "mode": 420
+      },
+      {
+        "path": "skills/fix-merge-conflicts/SKILL.md",
+        "size": 988,
+        "mode": 420
+      },
+      {
+        "path": "skills/get-pr-comments/SKILL.md",
+        "size": 529,
+        "mode": 420
+      },
+      {
+        "path": "skills/how/references/explainer-prompt.md",
+        "size": 3085,
+        "mode": 420
+      },
+      {
+        "path": "skills/how/references/explorer-prompt.md",
+        "size": 2684,
+        "mode": 420
+      },
+      {
+        "path": "skills/how/SKILL.md",
+        "size": 3360,
+        "mode": 420
+      },
+      {
+        "path": "skills/interrogate/references/code-quality-review.md",
+        "size": 5217,
+        "mode": 420
+      },
+      {
+        "path": "skills/interrogate/references/lead-judgment.md",
+        "size": 3465,
+        "mode": 420
+      },
+      {
+        "path": "skills/interrogate/references/reviewer-prompt.md",
+        "size": 2491,
+        "mode": 420
+      },
+      {
+        "path": "skills/interrogate/references/rubric.md",
+        "size": 5025,
+        "mode": 420
+      },
+      {
+        "path": "skills/interrogate/SKILL.md",
+        "size": 5050,
+        "mode": 420
+      },
+      {
+        "path": "skills/loop-on-ci/SKILL.md",
+        "size": 1611,
+        "mode": 420
+      },
+      {
+        "path": "skills/maintain-verification-skill/SKILL.md",
+        "size": 4885,
+        "mode": 420
+      },
+      {
+        "path": "skills/make-bot-ui/SKILL.md",
+        "size": 7007,
+        "mode": 420
+      },
+      {
+        "path": "skills/make-pr-easy-to-review/SKILL.md",
+        "size": 2275,
+        "mode": 420
+      },
+      {
+        "path": "skills/new-branch-and-pr/SKILL.md",
+        "size": 665,
+        "mode": 420
+      },
+      {
+        "path": "skills/no-comments/SKILL.md",
+        "size": 2560,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/playbooks/authoring-a-skill.md",
+        "size": 853,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/playbooks/autonomous-run.md",
+        "size": 1877,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/playbooks/autopilot-full.md",
+        "size": 10585,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/playbooks/autopilot-stack.md",
+        "size": 6395,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/playbooks/babysit.md",
+        "size": 8882,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/playbooks/bug-fix.md",
+        "size": 2274,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/playbooks/eval.md",
+        "size": 2693,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/playbooks/feature.md",
+        "size": 2766,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/playbooks/hillclimb.md",
+        "size": 4403,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/playbooks/investigation.md",
+        "size": 928,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/playbooks/multi-phase-plan.md",
+        "size": 14429,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/playbooks/opening-a-pr.md",
+        "size": 6447,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/playbooks/orchestrate.md",
+        "size": 17354,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/playbooks/pause-safely.md",
+        "size": 1135,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/playbooks/perf-issue.md",
+        "size": 1446,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/playbooks/prototype.md",
+        "size": 2161,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/playbooks/refactoring.md",
+        "size": 3211,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/playbooks/runtime-forensics.md",
+        "size": 1210,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/playbooks/session-pickup.md",
+        "size": 1720,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/playbooks/shipping.md",
+        "size": 6843,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/playbooks/trace-forensics.md",
+        "size": 1865,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/playbooks/visual-parity.md",
+        "size": 1197,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/playbooks/worktree-cleanup.md",
+        "size": 3016,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/references/bugbot-triage.md",
+        "size": 9623,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/scripts/bootstrap.ts",
+        "size": 1737,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/scripts/bun.lock",
+        "size": 6681,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/scripts/check-plan.mjs",
+        "size": 7594,
+        "mode": 493
+      },
+      {
+        "path": "skills/poteto-mode/scripts/orch/orch.test.ts",
+        "size": 18424,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/scripts/orch/orch.ts",
+        "size": 15511,
+        "mode": 493
+      },
+      {
+        "path": "skills/poteto-mode/scripts/orch/store.ts",
+        "size": 42927,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/scripts/package.json",
+        "size": 354,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/scripts/watch-pr/cli.test.ts",
+        "size": 6161,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/scripts/watch-pr/cli.ts",
+        "size": 6983,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/scripts/watch-pr/fakes.test-helper.ts",
+        "size": 2944,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/scripts/watch-pr/github.test.ts",
+        "size": 9059,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/scripts/watch-pr/github.ts",
+        "size": 24072,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/scripts/watch-pr/policy.test.ts",
+        "size": 12397,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/scripts/watch-pr/policy.ts",
+        "size": 25132,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/scripts/watch-pr/render.ts",
+        "size": 7083,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/scripts/watch-pr/tsconfig.json",
+        "size": 270,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/scripts/watch-pr/types.compile.ts",
+        "size": 2258,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/scripts/watch-pr/types.ts",
+        "size": 12359,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/scripts/watch-pr/watch-pr",
+        "size": 211,
+        "mode": 493
+      },
+      {
+        "path": "skills/poteto-mode/scripts/worktree-audit.sh",
+        "size": 4907,
+        "mode": 493
+      },
+      {
+        "path": "skills/poteto-mode/SKILL.md",
+        "size": 20610,
+        "mode": 420
+      },
+      {
+        "path": "skills/pr-review-canvas/renderer.js",
+        "size": 6762,
+        "mode": 420
+      },
+      {
+        "path": "skills/pr-review-canvas/SKILL.md",
+        "size": 9153,
+        "mode": 420
+      },
+      {
+        "path": "skills/pr-review-canvas/styles.css",
+        "size": 5794,
+        "mode": 420
+      },
+      {
+        "path": "skills/pr-review-canvas/template.html",
+        "size": 513,
+        "mode": 420
+      },
+      {
+        "path": "skills/principle-attack-the-premise/SKILL.md",
+        "size": 1941,
+        "mode": 420
+      },
+      {
+        "path": "skills/principle-boundary-discipline/SKILL.md",
+        "size": 1883,
+        "mode": 420
+      },
+      {
+        "path": "skills/principle-build-the-lever/SKILL.md",
+        "size": 2458,
+        "mode": 420
+      },
+      {
+        "path": "skills/principle-encode-lessons-in-structure/SKILL.md",
+        "size": 2211,
+        "mode": 420
+      },
+      {
+        "path": "skills/principle-exhaust-the-design-space/SKILL.md",
+        "size": 1152,
+        "mode": 420
+      },
+      {
+        "path": "skills/principle-experience-first/SKILL.md",
+        "size": 1231,
+        "mode": 420
+      },
+      {
+        "path": "skills/principle-explain-the-number/SKILL.md",
+        "size": 2109,
+        "mode": 420
+      },
+      {
+        "path": "skills/principle-fix-root-causes/SKILL.md",
+        "size": 1246,
+        "mode": 420
+      },
+      {
+        "path": "skills/principle-foundational-thinking/SKILL.md",
+        "size": 1530,
+        "mode": 420
+      },
+      {
+        "path": "skills/principle-guard-the-context-window/SKILL.md",
+        "size": 939,
+        "mode": 420
+      },
+      {
+        "path": "skills/principle-laziness-protocol/SKILL.md",
+        "size": 1371,
+        "mode": 420
+      },
+      {
+        "path": "skills/principle-make-operations-idempotent/SKILL.md",
+        "size": 1390,
+        "mode": 420
+      },
+      {
+        "path": "skills/principle-migrate-callers-then-delete-legacy-apis/SKILL.md",
+        "size": 1146,
+        "mode": 420
+      },
+      {
+        "path": "skills/principle-minimize-reader-load/SKILL.md",
+        "size": 2095,
+        "mode": 420
+      },
+      {
+        "path": "skills/principle-model-the-domain/SKILL.md",
+        "size": 2082,
+        "mode": 420
+      },
+      {
+        "path": "skills/principle-never-block-on-the-human/SKILL.md",
+        "size": 1172,
+        "mode": 420
+      },
+      {
+        "path": "skills/principle-outcome-oriented-execution/SKILL.md",
+        "size": 1078,
+        "mode": 420
+      },
+      {
+        "path": "skills/principle-prove-it-works/SKILL.md",
+        "size": 1371,
+        "mode": 420
+      },
+      {
+        "path": "skills/principle-redesign-from-first-principles/SKILL.md",
+        "size": 844,
+        "mode": 420
+      },
+      {
+        "path": "skills/principle-separate-before-serializing-shared-state/SKILL.md",
+        "size": 1565,
+        "mode": 420
+      },
+      {
+        "path": "skills/principle-sequence-verifiable-units/SKILL.md",
+        "size": 1705,
+        "mode": 420
+      },
+      {
+        "path": "skills/principle-subtract-before-you-add/SKILL.md",
+        "size": 1094,
+        "mode": 420
+      },
+      {
+        "path": "skills/principle-test-behavior-not-implementation/SKILL.md",
+        "size": 2575,
+        "mode": 420
+      },
+      {
+        "path": "skills/principle-type-system-discipline/SKILL.md",
+        "size": 4922,
+        "mode": 420
+      },
+      {
+        "path": "skills/recall/SKILL.md",
+        "size": 5601,
+        "mode": 420
+      },
+      {
+        "path": "skills/reflect/references/divergent-reviewer.md",
+        "size": 3931,
+        "mode": 420
+      },
+      {
+        "path": "skills/reflect/references/judgment-reviewer.md",
+        "size": 3297,
+        "mode": 420
+      },
+      {
+        "path": "skills/reflect/references/synthesizer.md",
+        "size": 4224,
+        "mode": 420
+      },
+      {
+        "path": "skills/reflect/references/tooling-reviewer.md",
+        "size": 4651,
+        "mode": 420
+      },
+      {
+        "path": "skills/reflect/SKILL.md",
+        "size": 5282,
+        "mode": 420
+      },
+      {
+        "path": "skills/review-and-ship/SKILL.md",
+        "size": 1398,
+        "mode": 420
+      },
+      {
+        "path": "skills/run-smoke-tests/SKILL.md",
+        "size": 967,
+        "mode": 420
+      },
+      {
+        "path": "skills/setup-pstack/SKILL.md",
+        "size": 5883,
+        "mode": 420
+      },
+      {
+        "path": "skills/show-me-your-work/references/decision-log-template.tsv",
+        "size": 38,
+        "mode": 420
+      },
+      {
+        "path": "skills/show-me-your-work/scripts/log.sh",
+        "size": 1381,
+        "mode": 493
+      },
+      {
+        "path": "skills/show-me-your-work/SKILL.md",
+        "size": 6410,
+        "mode": 420
+      },
+      {
+        "path": "skills/swarm/SKILL.md",
+        "size": 3987,
+        "mode": 420
+      },
+      {
+        "path": "skills/tdd/SKILL.md",
+        "size": 3143,
+        "mode": 420
+      },
+      {
+        "path": "skills/teach/SKILL.md",
+        "size": 5750,
+        "mode": 420
+      },
+      {
+        "path": "skills/technical-writing/SKILL.md",
+        "size": 9792,
+        "mode": 420
+      },
+      {
+        "path": "skills/thermo-nuclear-code-quality-review/SKILL.md",
+        "size": 12437,
+        "mode": 420
+      },
+      {
+        "path": "skills/typescript-best-practices/references/patterns.md",
+        "size": 9121,
+        "mode": 420
+      },
+      {
+        "path": "skills/typescript-best-practices/SKILL.md",
+        "size": 2653,
+        "mode": 420
+      },
+      {
+        "path": "skills/unslop/SKILL.md",
+        "size": 6015,
+        "mode": 420
+      },
+      {
+        "path": "skills/verify-this/SKILL.md",
+        "size": 2805,
+        "mode": 420
+      },
+      {
+        "path": "skills/weekly-review/SKILL.md",
+        "size": 902,
+        "mode": 420
+      },
+      {
+        "path": "skills/what-did-i-get-done/SKILL.md",
+        "size": 1012,
+        "mode": 420
+      },
+      {
+        "path": "skills/why/references/epistemics.md",
+        "size": 7749,
+        "mode": 420
+      },
+      {
+        "path": "skills/why/references/investigator-prompt.md",
+        "size": 6985,
+        "mode": 420
+      },
+      {
+        "path": "skills/why/references/source-playbook.md",
+        "size": 1363,
+        "mode": 420
+      },
+      {
+        "path": "skills/why/references/sources/code-archaeology.md",
+        "size": 3489,
+        "mode": 420
+      },
+      {
+        "path": "skills/why/references/sources/databricks.md",
+        "size": 6994,
+        "mode": 420
+      },
+      {
+        "path": "skills/why/references/sources/datadog.md",
+        "size": 5323,
+        "mode": 420
+      },
+      {
+        "path": "skills/why/references/sources/incident-postmortem.md",
+        "size": 1973,
+        "mode": 420
+      },
+      {
+        "path": "skills/why/references/sources/linear.md",
+        "size": 2996,
+        "mode": 420
+      },
+      {
+        "path": "skills/why/references/sources/notion.md",
+        "size": 2853,
+        "mode": 420
+      },
+      {
+        "path": "skills/why/references/sources/sentry.md",
+        "size": 4947,
+        "mode": 420
+      },
+      {
+        "path": "skills/why/references/sources/slack.md",
+        "size": 3105,
+        "mode": 420
+      },
+      {
+        "path": "skills/why/references/synthesizer-prompt.md",
+        "size": 7984,
+        "mode": 420
+      },
+      {
+        "path": "skills/why/SKILL.md",
+        "size": 10274,
+        "mode": 420
+      },
+      {
+        "path": "skills/workflow-from-chats/SKILL.md",
+        "size": 2684,
+        "mode": 420
+      },
+      {
+        "path": "src/benny-domain.ts",
+        "size": 45,
+        "mode": 420
+      },
+      {
+        "path": "src/catalog.ts",
+        "size": 1539,
+        "mode": 420
+      },
+      {
+        "path": "src/cloud-filesystem.ts",
+        "size": 885,
+        "mode": 420
+      },
+      {
+        "path": "src/cloud-worker.ts",
+        "size": 5984,
+        "mode": 420
+      },
+      {
+        "path": "src/commands.ts",
+        "size": 5107,
+        "mode": 420
+      },
+      {
+        "path": "src/context.ts",
+        "size": 7389,
+        "mode": 420
+      },
+      {
+        "path": "src/deferred-wakes.ts",
+        "size": 1573,
+        "mode": 420
+      },
+      {
+        "path": "src/deliver.ts",
+        "size": 1297,
+        "mode": 420
+      },
+      {
+        "path": "src/ephemeral-dirs.ts",
+        "size": 920,
+        "mode": 420
+      },
+      {
+        "path": "src/goal.ts",
+        "size": 7628,
+        "mode": 420
+      },
+      {
+        "path": "src/history.ts",
+        "size": 4737,
+        "mode": 420
+      },
+      {
+        "path": "src/host-version.ts",
+        "size": 736,
+        "mode": 420
+      },
+      {
+        "path": "src/host.ts",
+        "size": 5997,
+        "mode": 420
+      },
+      {
+        "path": "src/index.ts",
+        "size": 4516,
+        "mode": 420
+      },
+      {
+        "path": "src/mode-rule.ts",
+        "size": 1013,
+        "mode": 420
+      },
+      {
+        "path": "src/models.ts",
+        "size": 13655,
+        "mode": 420
+      },
+      {
+        "path": "src/personas.ts",
+        "size": 1983,
+        "mode": 420
+      },
+      {
+        "path": "src/picker.ts",
+        "size": 2232,
+        "mode": 420
+      },
+      {
+        "path": "src/process-signal.ts",
+        "size": 589,
+        "mode": 420
+      },
+      {
+        "path": "src/questions.ts",
+        "size": 4500,
+        "mode": 420
+      },
+      {
+        "path": "src/remote-executors.ts",
+        "size": 3244,
+        "mode": 420
+      },
+      {
+        "path": "src/remote-worker-transport.ts",
+        "size": 4452,
+        "mode": 420
+      },
+      {
+        "path": "src/remote-worker.ts",
+        "size": 6266,
+        "mode": 420
+      },
+      {
+        "path": "src/resource-environment.ts",
+        "size": 1381,
+        "mode": 420
+      },
+      {
+        "path": "src/results.ts",
+        "size": 1560,
+        "mode": 420
+      },
+      {
+        "path": "src/routine-domain.ts",
+        "size": 47,
+        "mode": 420
+      },
+      {
+        "path": "src/routines.ts",
+        "size": 7269,
+        "mode": 420
+      },
+      {
+        "path": "src/setup-tool.ts",
+        "size": 1124,
+        "mode": 420
+      },
+      {
+        "path": "src/shell-descendants.ts",
+        "size": 1265,
+        "mode": 420
+      },
+      {
+        "path": "src/shell-ownership.ts",
+        "size": 1331,
+        "mode": 420
+      },
+      {
+        "path": "src/shell-runtime.ts",
+        "size": 10861,
+        "mode": 420
+      },
+      {
+        "path": "src/shells.ts",
+        "size": 6599,
+        "mode": 420
+      },
+      {
+        "path": "src/state.ts",
+        "size": 9214,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents.ts",
+        "size": 14967,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/abort-reasons.ts",
+        "size": 1461,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/agent-definition.ts",
+        "size": 2659,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/agent-locations.ts",
+        "size": 1738,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/agent-node.ts",
+        "size": 3744,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/agent-records.ts",
+        "size": 4240,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/agent-registry.ts",
+        "size": 3139,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/agent-selection.ts",
+        "size": 1939,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/agent-sources.ts",
+        "size": 1019,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/agent-storage.ts",
+        "size": 2532,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/agent-tools.ts",
+        "size": 8795,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/builtin-agents.ts",
+        "size": 3247,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/builtin-prompts.ts",
+        "size": 3800,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/child-events.ts",
+        "size": 2474,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/child-session.ts",
+        "size": 9714,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/child-settings.ts",
+        "size": 464,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/child-task.ts",
+        "size": 7975,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/child-turn.ts",
+        "size": 2764,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/close-session.ts",
+        "size": 925,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/cloud-tasks.ts",
+        "size": 5920,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/completion-notice.ts",
+        "size": 4544,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/completion-wake.ts",
+        "size": 1625,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/content-exclusion.ts",
+        "size": 1938,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/context-board.ts",
+        "size": 3422,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/context-builder.ts",
+        "size": 4512,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/context.ts",
+        "size": 195,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/custom-agents.ts",
+        "size": 7535,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/custom-discovery.ts",
+        "size": 1586,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/delegation-guidance.ts",
+        "size": 3903,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/environment-facts.ts",
+        "size": 2494,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/events.ts",
+        "size": 5766,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/factory.ts",
+        "size": 12615,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/feature-flags.ts",
+        "size": 882,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/file-tracking.ts",
+        "size": 325,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/finalize.ts",
+        "size": 2308,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/finished-record.ts",
+        "size": 1653,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/host-effects.ts",
+        "size": 3340,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/identifiers.ts",
+        "size": 185,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/identity-extension.ts",
+        "size": 1250,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/inbox.ts",
+        "size": 1664,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/limiter-provider.ts",
+        "size": 2862,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/limiter.ts",
+        "size": 2045,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/limits.ts",
+        "size": 176,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/mcp-inheritance.ts",
+        "size": 1922,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/mcp-specs.ts",
+        "size": 2429,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/model-history.ts",
+        "size": 668,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/model-selection.ts",
+        "size": 8651,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/notification.ts",
+        "size": 3694,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/orphan-notices.ts",
+        "size": 8198,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/orphan-plan.ts",
+        "size": 2773,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/orphan-recovery.ts",
+        "size": 4542,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/output-patterns.ts",
+        "size": 4990,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/output-trust.ts",
+        "size": 4842,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/permission-relay.ts",
+        "size": 2551,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/pi-command.ts",
+        "size": 1313,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/precondition-error.ts",
+        "size": 271,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/process-groups.ts",
+        "size": 1418,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/prompt-assembly.ts",
+        "size": 7266,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/rem-launcher.ts",
+        "size": 1444,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/remote-tasks.ts",
+        "size": 2650,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/restored-context.ts",
+        "size": 911,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/resume-errors.ts",
+        "size": 1402,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/rpc-child.ts",
+        "size": 5451,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/rpc.ts",
+        "size": 12327,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/scheduler.ts",
+        "size": 20856,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/session-context.ts",
+        "size": 464,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/settings-store.ts",
+        "size": 2232,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/settings.ts",
+        "size": 6176,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/shell-command.ts",
+        "size": 2285,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/sidekicks/definitions/cloud-session-search.md",
+        "size": 581,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/sidekicks/definitions/github-context-memory.md",
+        "size": 648,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/sidekicks/definitions/github-context.md",
+        "size": 690,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/sidekicks/definitions/session-search.md",
+        "size": 636,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/sidekicks/definitions/subconscious-agent.md",
+        "size": 757,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/sidekicks/manager.ts",
+        "size": 4816,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/sidekicks/spec.ts",
+        "size": 2717,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/sidekicks/wiring.ts",
+        "size": 3187,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/skill-loading.ts",
+        "size": 1799,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/specialized-tools.ts",
+        "size": 3773,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/status-line.ts",
+        "size": 4403,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/stop-control.ts",
+        "size": 1321,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/stop-deadline.ts",
+        "size": 1075,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/stop-pending.ts",
+        "size": 64,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/subagent-commands.ts",
+        "size": 5223,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/subagent-hooks.ts",
+        "size": 3364,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/subagent-preferences.ts",
+        "size": 6301,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/task-panel.ts",
+        "size": 4013,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/task-progress.ts",
+        "size": 3847,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/task-registry.ts",
+        "size": 3943,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/task-snapshots.ts",
+        "size": 2251,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/task-status.ts",
+        "size": 1436,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/tool-mapping.ts",
+        "size": 2708,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/tool-policy.ts",
+        "size": 1147,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/tool-results.ts",
+        "size": 4680,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/tool-stats.ts",
+        "size": 3845,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/tracked-bash.ts",
+        "size": 2668,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/turn-limit.ts",
+        "size": 863,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/types.ts",
+        "size": 121,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/workflows/limits.ts",
+        "size": 1948,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/workflows/runtime.ts",
+        "size": 15127,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/workflows/slots.ts",
+        "size": 1566,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/workflows/store.ts",
+        "size": 7619,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/workflows/tools.ts",
+        "size": 3944,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/workflows/types.ts",
+        "size": 2907,
+        "mode": 420
+      },
+      {
+        "path": "src/subagents/write-gate.ts",
+        "size": 582,
+        "mode": 420
+      },
+      {
+        "path": "src/task-discovery.ts",
+        "size": 3191,
+        "mode": 420
+      },
+      {
+        "path": "src/task-outcome.ts",
+        "size": 3384,
+        "mode": 420
+      },
+      {
+        "path": "src/timer-routine-output-schemas.ts",
+        "size": 3365,
+        "mode": 420
+      },
+      {
+        "path": "src/timer-schedules.ts",
+        "size": 156,
+        "mode": 420
+      },
+      {
+        "path": "src/timers.ts",
+        "size": 11136,
+        "mode": 420
+      },
+      {
+        "path": "src/worker-control.ts",
+        "size": 4532,
+        "mode": 420
+      },
+      {
+        "path": "src/worker-records.ts",
+        "size": 6036,
+        "mode": 420
+      },
+      {
+        "path": "src/worker-runtime.ts",
+        "size": 29767,
+        "mode": 420
+      },
+      {
+        "path": "src/worker-support.ts",
+        "size": 14290,
+        "mode": 420
+      },
+      {
+        "path": "src/workers.ts",
+        "size": 8794,
+        "mode": 420
+      },
+      {
+        "path": "test/agent-sources.test.ts",
+        "size": 2744,
+        "mode": 420
+      },
+      {
+        "path": "test/alias-resources.test.ts",
+        "size": 5445,
+        "mode": 420
+      },
+      {
+        "path": "test/benny-discovery.mjs",
+        "size": 474,
+        "mode": 420
+      },
+      {
+        "path": "test/benny-parity-discovery.mjs",
+        "size": 504,
+        "mode": 420
+      },
+      {
+        "path": "test/benny-parity.test.ts",
+        "size": 7012,
+        "mode": 420
+      },
+      {
+        "path": "test/benny.test.ts",
+        "size": 12437,
+        "mode": 420
+      },
+      {
+        "path": "test/canvas-browser-evidence.test.ts",
+        "size": 2408,
+        "mode": 420
+      },
+      {
+        "path": "test/canvas-browser-signal.test.ts",
+        "size": 3348,
+        "mode": 420
+      },
+      {
+        "path": "test/catalog.test.ts",
+        "size": 2301,
+        "mode": 420
+      },
+      {
+        "path": "test/child-harness.ts",
+        "size": 4573,
+        "mode": 420
+      },
+      {
+        "path": "test/child-rpc.test.ts",
+        "size": 4827,
+        "mode": 420
+      },
+      {
+        "path": "test/child-task-control.test.ts",
+        "size": 4718,
+        "mode": 420
+      },
+      {
+        "path": "test/child-task-lifecycle.test.ts",
+        "size": 5845,
+        "mode": 420
+      },
+      {
+        "path": "test/child-turn.test.ts",
+        "size": 4904,
+        "mode": 420
+      },
+      {
+        "path": "test/cleanup.test.ts",
+        "size": 981,
+        "mode": 420
+      },
+      {
+        "path": "test/cli.test.ts",
+        "size": 4079,
+        "mode": 420
+      },
+      {
+        "path": "test/cloud-directory.test.ts",
+        "size": 3124,
+        "mode": 420
+      },
+      {
+        "path": "test/cloud-filesystem.test.ts",
+        "size": 5129,
+        "mode": 420
+      },
+      {
+        "path": "test/cloud-record-control.test.ts",
+        "size": 7109,
+        "mode": 420
+      },
+      {
+        "path": "test/cloud-runtime-control.test.ts",
+        "size": 4046,
+        "mode": 420
+      },
+      {
+        "path": "test/cloud-startup.test.ts",
+        "size": 2742,
+        "mode": 420
+      },
+      {
+        "path": "test/cloud-tasks.test.ts",
+        "size": 4960,
+        "mode": 420
+      },
+      {
+        "path": "test/commands.test.ts",
+        "size": 15677,
+        "mode": 420
+      },
+      {
+        "path": "test/context-review.test.ts",
+        "size": 12234,
+        "mode": 420
+      },
+      {
+        "path": "test/context-rpc.test.ts",
+        "size": 3209,
+        "mode": 420
+      },
+      {
+        "path": "test/decision-audit.test.ts",
+        "size": 2467,
+        "mode": 420
+      },
+      {
+        "path": "test/decision-log.test.ts",
+        "size": 1907,
+        "mode": 420
+      },
+      {
+        "path": "test/deferred-wakes.test.ts",
+        "size": 7457,
+        "mode": 420
+      },
+      {
+        "path": "test/deliver.test.ts",
+        "size": 2424,
+        "mode": 420
+      },
+      {
+        "path": "test/dependency-mappings.test.ts",
+        "size": 5558,
+        "mode": 420
+      },
+      {
+        "path": "test/detached-activity.test.ts",
+        "size": 1116,
+        "mode": 420
+      },
+      {
+        "path": "test/detached-dialog.ts",
+        "size": 487,
+        "mode": 420
+      },
+      {
+        "path": "test/detached-isolation.test.ts",
+        "size": 2889,
+        "mode": 420
+      },
+      {
+        "path": "test/detached-records.test.ts",
+        "size": 1171,
+        "mode": 420
+      },
+      {
+        "path": "test/detached-rpc-fixture.mjs",
+        "size": 1194,
+        "mode": 420
+      },
+      {
+        "path": "test/detached-rpc.test.ts",
+        "size": 13120,
+        "mode": 420
+      },
+      {
+        "path": "test/durable-client-cancellation.test.ts",
+        "size": 11931,
+        "mode": 420
+      },
+      {
+        "path": "test/ephemeral-dirs.test.ts",
+        "size": 2160,
+        "mode": 420
+      },
+      {
+        "path": "test/expect-defined.test.ts",
+        "size": 386,
+        "mode": 420
+      },
+      {
+        "path": "test/first-action-rule.test.ts",
+        "size": 3427,
+        "mode": 420
+      },
+      {
+        "path": "test/fixtures/close-stdin-child.mjs",
+        "size": 143,
+        "mode": 420
+      },
+      {
+        "path": "test/fixtures/fake-pi.mjs",
+        "size": 5096,
+        "mode": 420
+      },
+      {
+        "path": "test/fixtures/mcp-probe-server.mjs",
+        "size": 987,
+        "mode": 420
+      },
+      {
+        "path": "test/fixtures/task-progress-sentinel.txt",
+        "size": 36,
+        "mode": 420
+      },
+      {
+        "path": "test/global-setup.ts",
+        "size": 320,
+        "mode": 420
+      },
+      {
+        "path": "test/goal-behavior.test.ts",
+        "size": 9946,
+        "mode": 420
+      },
+      {
+        "path": "test/goal-usage-rpc.test.ts",
+        "size": 3334,
+        "mode": 420
+      },
+      {
+        "path": "test/goal.test.ts",
+        "size": 5315,
+        "mode": 420
+      },
+      {
+        "path": "test/held-journey-provider.ts",
+        "size": 1819,
+        "mode": 420
+      },
+      {
+        "path": "test/helpers/check-plan.test.ts",
+        "size": 17306,
+        "mode": 420
+      },
+      {
+        "path": "test/helpers/leak-preload.ts",
+        "size": 340,
+        "mode": 420
+      },
+      {
+        "path": "test/helpers/log.test.ts",
+        "size": 4554,
+        "mode": 420
+      },
+      {
+        "path": "test/helpers/orch-cli.test.ts",
+        "size": 11290,
+        "mode": 420
+      },
+      {
+        "path": "test/helpers/orch-drain.test.ts",
+        "size": 1666,
+        "mode": 420
+      },
+      {
+        "path": "test/helpers/orch-fixtures.ts",
+        "size": 3586,
+        "mode": 420
+      },
+      {
+        "path": "test/helpers/orch-frontier.test.ts",
+        "size": 4213,
+        "mode": 420
+      },
+      {
+        "path": "test/helpers/orch-lock.test.ts",
+        "size": 5484,
+        "mode": 420
+      },
+      {
+        "path": "test/helpers/orch-store.test.ts",
+        "size": 9135,
+        "mode": 420
+      },
+      {
+        "path": "test/helpers/orch-typecheck.test.ts",
+        "size": 1257,
+        "mode": 420
+      },
+      {
+        "path": "test/helpers/overlays.test.ts",
+        "size": 1201,
+        "mode": 420
+      },
+      {
+        "path": "test/helpers/parse-tsv.py",
+        "size": 116,
+        "mode": 420
+      },
+      {
+        "path": "test/helpers/scratch.ts",
+        "size": 459,
+        "mode": 420
+      },
+      {
+        "path": "test/helpers/source-fidelity.test.ts",
+        "size": 2098,
+        "mode": 420
+      },
+      {
+        "path": "test/helpers/tsconfig.json",
+        "size": 250,
+        "mode": 420
+      },
+      {
+        "path": "test/helpers/watch-pr-bootstrap.test.ts",
+        "size": 4833,
+        "mode": 420
+      },
+      {
+        "path": "test/helpers/watch-pr-cli.test.ts",
+        "size": 13029,
+        "mode": 420
+      },
+      {
+        "path": "test/helpers/watch-pr-fakes.test-helper.ts",
+        "size": 5166,
+        "mode": 420
+      },
+      {
+        "path": "test/helpers/watch-pr-github.test.ts",
+        "size": 23723,
+        "mode": 420
+      },
+      {
+        "path": "test/helpers/watch-pr-live.test.ts",
+        "size": 3908,
+        "mode": 420
+      },
+      {
+        "path": "test/helpers/watch-pr-policy.test.ts",
+        "size": 24577,
+        "mode": 420
+      },
+      {
+        "path": "test/helpers/watch-pr-process.ts",
+        "size": 1697,
+        "mode": 420
+      },
+      {
+        "path": "test/helpers/watch-pr-typecheck.test.ts",
+        "size": 1479,
+        "mode": 420
+      },
+      {
+        "path": "test/helpers/worktree-audit.test.ts",
+        "size": 12054,
+        "mode": 420
+      },
+      {
+        "path": "test/history-boundary.test.ts",
+        "size": 2504,
+        "mode": 420
+      },
+      {
+        "path": "test/history-paths.test.ts",
+        "size": 1817,
+        "mode": 420
+      },
+      {
+        "path": "test/history-profile-signal.test.ts",
+        "size": 2285,
+        "mode": 420
+      },
+      {
+        "path": "test/history-profile.test.ts",
+        "size": 1951,
+        "mode": 420
+      },
+      {
+        "path": "test/history-rpc-watch.js",
+        "size": 1990,
+        "mode": 420
+      },
+      {
+        "path": "test/history.test.ts",
+        "size": 3592,
+        "mode": 420
+      },
+      {
+        "path": "test/host-environment.test.ts",
+        "size": 3787,
+        "mode": 420
+      },
+      {
+        "path": "test/how-command-rpc.test.ts",
+        "size": 2607,
+        "mode": 420
+      },
+      {
+        "path": "test/integration.test.ts",
+        "size": 34850,
+        "mode": 420
+      },
+      {
+        "path": "test/journey-provider.ts",
+        "size": 18230,
+        "mode": 420
+      },
+      {
+        "path": "test/latest-content-parity.test.ts",
+        "size": 3822,
+        "mode": 420
+      },
+      {
+        "path": "test/latest-source.test.ts",
+        "size": 6521,
+        "mode": 420
+      },
+      {
+        "path": "test/latest-workflows.test.ts",
+        "size": 3521,
+        "mode": 420
+      },
+      {
+        "path": "test/leaks.test.ts",
+        "size": 2692,
+        "mode": 420
+      },
+      {
+        "path": "test/model-errors.test.ts",
+        "size": 3754,
+        "mode": 420
+      },
+      {
+        "path": "test/models.test.ts",
+        "size": 21701,
+        "mode": 420
+      },
+      {
+        "path": "test/native-parity-gate.test.ts",
+        "size": 8023,
+        "mode": 420
+      },
+      {
+        "path": "test/native-tool-metadata.test.ts",
+        "size": 2380,
+        "mode": 420
+      },
+      {
+        "path": "test/native-typescript-source.test.ts",
+        "size": 1942,
+        "mode": 420
+      },
+      {
+        "path": "test/parity-ci-cloud-root.test.ts",
+        "size": 4131,
+        "mode": 420
+      },
+      {
+        "path": "test/parity-ci-fixtures.ts",
+        "size": 3524,
+        "mode": 420
+      },
+      {
+        "path": "test/parity-ci-provider.ts",
+        "size": 2129,
+        "mode": 420
+      },
+      {
+        "path": "test/parity-ci-subscription.test.ts",
+        "size": 9898,
+        "mode": 420
+      },
+      {
+        "path": "test/parity-contracts.test.ts",
+        "size": 2857,
+        "mode": 420
+      },
+      {
+        "path": "test/parity-generator-flags.test.ts",
+        "size": 3440,
+        "mode": 420
+      },
+      {
+        "path": "test/parity-generator-forge.test.ts",
+        "size": 4657,
+        "mode": 420
+      },
+      {
+        "path": "test/parity-generator-paths.test.ts",
+        "size": 7059,
+        "mode": 420
+      },
+      {
+        "path": "test/parity-generator-placement.test.ts",
+        "size": 4473,
+        "mode": 420
+      },
+      {
+        "path": "test/parity-generator-playbooks.test.ts",
+        "size": 5744,
+        "mode": 420
+      },
+      {
+        "path": "test/parity-generator-skills.test.ts",
+        "size": 5330,
+        "mode": 420
+      },
+      {
+        "path": "test/parity-package-docs.test.ts",
+        "size": 6377,
+        "mode": 420
+      },
+      {
+        "path": "test/parity-package-host-skills.test.ts",
+        "size": 5730,
+        "mode": 420
+      },
+      {
+        "path": "test/parity-package-manifest.test.ts",
+        "size": 3436,
+        "mode": 420
+      },
+      {
+        "path": "test/parity-runtime-agents.test.ts",
+        "size": 1897,
+        "mode": 420
+      },
+      {
+        "path": "test/parity-runtime-host-version.test.ts",
+        "size": 982,
+        "mode": 420
+      },
+      {
+        "path": "test/parity-runtime-host.test.ts",
+        "size": 6445,
+        "mode": 420
+      },
+      {
+        "path": "test/parity-runtime-mode.test.ts",
+        "size": 3041,
+        "mode": 420
+      },
+      {
+        "path": "test/parity-runtime-models.test.ts",
+        "size": 3260,
+        "mode": 420
+      },
+      {
+        "path": "test/parity-runtime-nesting.test.ts",
+        "size": 3822,
+        "mode": 420
+      },
+      {
+        "path": "test/parity-runtime-provider.ts",
+        "size": 2907,
+        "mode": 420
+      },
+      {
+        "path": "test/parity-runtime-readonly.test.ts",
+        "size": 2418,
+        "mode": 420
+      },
+      {
+        "path": "test/permission-relay.test.ts",
+        "size": 4170,
+        "mode": 420
+      },
+      {
+        "path": "test/personas.test.ts",
+        "size": 2877,
+        "mode": 420
+      },
+      {
+        "path": "test/pi-command.test.ts",
+        "size": 2903,
+        "mode": 420
+      },
+      {
+        "path": "test/pi-version.test.ts",
+        "size": 860,
+        "mode": 420
+      },
+      {
+        "path": "test/process-signal.test.ts",
+        "size": 2961,
+        "mode": 420
+      },
+      {
+        "path": "test/question-tui-fixture.ts",
+        "size": 1655,
+        "mode": 420
+      },
+      {
+        "path": "test/remote-cloud-routing.test.ts",
+        "size": 994,
+        "mode": 420
+      },
+      {
+        "path": "test/remote-executors.test.ts",
+        "size": 3841,
+        "mode": 420
+      },
+      {
+        "path": "test/remote-lease.test.ts",
+        "size": 1010,
+        "mode": 420
+      },
+      {
+        "path": "test/remote-tasks-roster.test.ts",
+        "size": 5991,
+        "mode": 420
+      },
+      {
+        "path": "test/remote-transport-fixture.mjs",
+        "size": 1043,
+        "mode": 420
+      },
+      {
+        "path": "test/remote-vm-journey.mjs",
+        "size": 7301,
+        "mode": 420
+      },
+      {
+        "path": "test/remote-vm-provider.ts",
+        "size": 2021,
+        "mode": 420
+      },
+      {
+        "path": "test/remote-worker-transport.test.ts",
+        "size": 2343,
+        "mode": 420
+      },
+      {
+        "path": "test/remote-worker.test.ts",
+        "size": 8373,
+        "mode": 420
+      },
+      {
+        "path": "test/research-parity.test.ts",
+        "size": 12165,
+        "mode": 420
+      },
+      {
+        "path": "test/resource-environment.test.ts",
+        "size": 4670,
+        "mode": 420
+      },
+      {
+        "path": "test/resources.test.ts",
+        "size": 8405,
+        "mode": 420
+      },
+      {
+        "path": "test/restored-context.test.ts",
+        "size": 1313,
+        "mode": 420
+      },
+      {
+        "path": "test/routine-ack-provider.ts",
+        "size": 3224,
+        "mode": 420
+      },
+      {
+        "path": "test/routine-field-names.test.ts",
+        "size": 2144,
+        "mode": 420
+      },
+      {
+        "path": "test/routine-initiator.mjs",
+        "size": 545,
+        "mode": 420
+      },
+      {
+        "path": "test/routine-isolation.test.ts",
+        "size": 1794,
+        "mode": 420
+      },
+      {
+        "path": "test/routine-provider.ts",
+        "size": 1031,
+        "mode": 420
+      },
+      {
+        "path": "test/routine-relay.test.ts",
+        "size": 4681,
+        "mode": 420
+      },
+      {
+        "path": "test/routine-secret-pty.py",
+        "size": 1328,
+        "mode": 420
+      },
+      {
+        "path": "test/routine-secret.test.ts",
+        "size": 1369,
+        "mode": 420
+      },
+      {
+        "path": "test/routine-service.test.ts",
+        "size": 17667,
+        "mode": 420
+      },
+      {
+        "path": "test/routines.test.ts",
+        "size": 11000,
+        "mode": 420
+      },
+      {
+        "path": "test/rpc-dialogs.test.ts",
+        "size": 5519,
+        "mode": 420
+      },
+      {
+        "path": "test/rpc-fixture.ts",
+        "size": 2052,
+        "mode": 420
+      },
+      {
+        "path": "test/rpc-process.test.ts",
+        "size": 4303,
+        "mode": 420
+      },
+      {
+        "path": "test/rpc-turn.test.ts",
+        "size": 2674,
+        "mode": 420
+      },
+      {
+        "path": "test/session-fixture.ts",
+        "size": 10715,
+        "mode": 420
+      },
+      {
+        "path": "test/setup-tool-behavior.test.ts",
+        "size": 2204,
+        "mode": 420
+      },
+      {
+        "path": "test/setup-tool.test.ts",
+        "size": 1129,
+        "mode": 420
+      },
+      {
+        "path": "test/setup-tui-fixture.ts",
+        "size": 965,
+        "mode": 420
+      },
+      {
+        "path": "test/shell-descendants.test.ts",
+        "size": 1370,
+        "mode": 420
+      },
+      {
+        "path": "test/shell-ownership.test.ts",
+        "size": 4393,
+        "mode": 420
+      },
+      {
+        "path": "test/shell-termination.test.ts",
+        "size": 2911,
+        "mode": 420
+      },
+      {
+        "path": "test/shells.test.ts",
+        "size": 20653,
+        "mode": 420
+      },
+      {
+        "path": "test/skill-layering.test.ts",
+        "size": 3751,
+        "mode": 420
+      },
+      {
+        "path": "test/skills-parity.test.ts",
+        "size": 13460,
+        "mode": 420
+      },
+      {
+        "path": "test/source-census.test.ts",
+        "size": 1731,
+        "mode": 420
+      },
+      {
+        "path": "test/source-policy-contract.test.ts",
+        "size": 6636,
+        "mode": 420
+      },
+      {
+        "path": "test/state-snapshots.test.ts",
+        "size": 27015,
+        "mode": 420
+      },
+      {
+        "path": "test/structure.test.ts",
+        "size": 4919,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-abort-reasons.test.ts",
+        "size": 1740,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-agent-locations.test.ts",
+        "size": 2597,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-agent-records.test.ts",
+        "size": 5540,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-agent-registry.test.ts",
+        "size": 4659,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-agent-storage.test.ts",
+        "size": 4851,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-builtin-agents.test.ts",
+        "size": 3758,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-child-mcp.test.ts",
+        "size": 1885,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-child-task.test.ts",
+        "size": 4354,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-child-trust.test.ts",
+        "size": 1248,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-commands.test.ts",
+        "size": 14752,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-completion-notice.test.ts",
+        "size": 5939,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-context-board.test.ts",
+        "size": 2842,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-context-builder.test.ts",
+        "size": 3835,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-custom-agents.test.ts",
+        "size": 5915,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-delegation-guidance.test.ts",
+        "size": 3544,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-depth-tree.test.ts",
+        "size": 1332,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-direct-helpers.test.ts",
+        "size": 7995,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-environment-facts.test.ts",
+        "size": 2678,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-events.test.ts",
+        "size": 6089,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-finalize.test.ts",
+        "size": 4912,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-hooks.test.ts",
+        "size": 3147,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-host-effects.test.ts",
+        "size": 3266,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-identifiers.test.ts",
+        "size": 2228,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-identity.test.ts",
+        "size": 1959,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-limiter.test.ts",
+        "size": 3208,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-limits.test.ts",
+        "size": 499,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-mcp-specs.test.ts",
+        "size": 4085,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-model-history.test.ts",
+        "size": 1209,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-model-walk.test.ts",
+        "size": 13098,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-native-first.test.ts",
+        "size": 1942,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-notification.test.ts",
+        "size": 3317,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-orphan-notices.test.ts",
+        "size": 9099,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-orphan-plan.test.ts",
+        "size": 6671,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-orphan-recovery.test.ts",
+        "size": 7663,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-output-trust.test.ts",
+        "size": 8572,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-parity-gate.test.ts",
+        "size": 4081,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-pi-native.test.ts",
+        "size": 10890,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-preferences.test.ts",
+        "size": 6645,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-process-groups.test.ts",
+        "size": 3751,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-project-trust.test.ts",
+        "size": 860,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-prompt-assembly.test.ts",
+        "size": 6442,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-rem-launcher.test.ts",
+        "size": 3170,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-resume-errors.test.ts",
+        "size": 1795,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-scheduler.test.ts",
+        "size": 13721,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-settings.test.ts",
+        "size": 4750,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-shell-command.test.ts",
+        "size": 1284,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-sidekicks.test.ts",
+        "size": 10827,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-skill-loading.test.ts",
+        "size": 2922,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-small.test.ts",
+        "size": 16149,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-specialized.test.ts",
+        "size": 4181,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-status-line.test.ts",
+        "size": 7301,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-stop-control.test.ts",
+        "size": 3355,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-stop-deadline.test.ts",
+        "size": 5446,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-stop.test.ts",
+        "size": 4394,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-task-panel.test.ts",
+        "size": 4988,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-task-registry.test.ts",
+        "size": 4840,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-task-snapshots.test.ts",
+        "size": 2397,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-task-status.test.ts",
+        "size": 4964,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-task-tool.test.ts",
+        "size": 3382,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-tool-contract.test.ts",
+        "size": 5478,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-tool-mapping.test.ts",
+        "size": 3122,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-tool-results.test.ts",
+        "size": 5694,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-tool-stats-boundary.test.ts",
+        "size": 4685,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-turn-limit.test.ts",
+        "size": 998,
+        "mode": 420
+      },
+      {
+        "path": "test/subagents-workflows.test.ts",
+        "size": 37288,
+        "mode": 420
+      },
+      {
+        "path": "test/support.test.ts",
+        "size": 11435,
+        "mode": 420
+      },
+      {
+        "path": "test/support/expect-defined.ts",
+        "size": 220,
+        "mode": 420
+      },
+      {
+        "path": "test/support/leaks.ts",
+        "size": 3450,
+        "mode": 420
+      },
+      {
+        "path": "test/support/native-typescript-source.ts",
+        "size": 1560,
+        "mode": 420
+      },
+      {
+        "path": "test/support/node-exec.ts",
+        "size": 509,
+        "mode": 420
+      },
+      {
+        "path": "test/support/run-dir.ts",
+        "size": 3728,
+        "mode": 420
+      },
+      {
+        "path": "test/support/scratch.ts",
+        "size": 349,
+        "mode": 420
+      },
+      {
+        "path": "test/task-discovery.test.ts",
+        "size": 3875,
+        "mode": 420
+      },
+      {
+        "path": "test/task-outcome.test.ts",
+        "size": 2730,
+        "mode": 420
+      },
+      {
+        "path": "test/task-progress.test.ts",
+        "size": 3600,
+        "mode": 420
+      },
+      {
+        "path": "test/timer-bootstrap-recovery.test.ts",
+        "size": 2504,
+        "mode": 420
+      },
+      {
+        "path": "test/timer-clock.ts",
+        "size": 988,
+        "mode": 420
+      },
+      {
+        "path": "test/timer-initiator.mjs",
+        "size": 919,
+        "mode": 420
+      },
+      {
+        "path": "test/timer-recovery.test.ts",
+        "size": 13325,
+        "mode": 420
+      },
+      {
+        "path": "test/timer-routine-output-schemas.test.ts",
+        "size": 2390,
+        "mode": 420
+      },
+      {
+        "path": "test/timer-schedules.test.ts",
+        "size": 1810,
+        "mode": 420
+      },
+      {
+        "path": "test/timer-service.test.ts",
+        "size": 5102,
+        "mode": 420
+      },
+      {
+        "path": "test/timer-tool-initiator.mjs",
+        "size": 1437,
+        "mode": 420
+      },
+      {
+        "path": "test/timer-tool-journey.test.ts",
+        "size": 1386,
+        "mode": 420
+      },
+      {
+        "path": "test/timer-tool-provider.ts",
+        "size": 1986,
+        "mode": 420
+      },
+      {
+        "path": "test/timers.test.ts",
+        "size": 17151,
+        "mode": 420
+      },
+      {
+        "path": "test/unit-coverage.test.ts",
+        "size": 18867,
+        "mode": 420
+      },
+      {
+        "path": "test/upstream-policy.test.ts",
+        "size": 2514,
+        "mode": 420
+      },
+      {
+        "path": "test/upstream/render.test.mjs",
+        "size": 8984,
+        "mode": 420
+      },
+      {
+        "path": "test/user-perspective.test.ts",
+        "size": 17523,
+        "mode": 420
+      },
+      {
+        "path": "test/worker-errors.test.ts",
+        "size": 14199,
+        "mode": 420
+      },
+      {
+        "path": "test/worker-fixture.ts",
+        "size": 7016,
+        "mode": 420
+      },
+      {
+        "path": "test/worker-gates.ts",
+        "size": 854,
+        "mode": 420
+      },
+      {
+        "path": "test/worker-provider.ts",
+        "size": 17409,
+        "mode": 420
+      },
+      {
+        "path": "test/worker-review.test.ts",
+        "size": 6519,
+        "mode": 420
+      },
+      {
+        "path": "test/worker-timing.ts",
+        "size": 185,
+        "mode": 420
+      },
+      {
+        "path": "test/worker-wait.test.ts",
+        "size": 1371,
+        "mode": 420
+      },
+      {
+        "path": "test/workers-native-capabilities.test.ts",
+        "size": 1689,
+        "mode": 420
+      },
+      {
+        "path": "test/workers.test.ts",
+        "size": 34939,
+        "mode": 420
+      },
+      {
+        "path": "tsconfig.json",
+        "size": 227,
+        "mode": 420
+      },
+      {
+        "path": "tsconfig.policy.json",
+        "size": 3549,
+        "mode": 420
+      },
+      {
+        "path": "upstream-team-kit/agents/ci-watcher.md",
+        "size": 984,
+        "mode": 420
+      },
+      {
+        "path": "upstream-team-kit/agents/thermo-nuclear-code-quality-review.md",
+        "size": 1860,
+        "mode": 420
+      },
+      {
+        "path": "upstream-team-kit/assets/avatar.png",
+        "size": 59641,
+        "mode": 420
+      },
+      {
+        "path": "upstream-team-kit/LICENSE",
+        "size": 1077,
+        "mode": 420
+      },
+      {
+        "path": "upstream-team-kit/plugin-metadata/plugin.json",
+        "size": 874,
+        "mode": 420
+      },
+      {
+        "path": "upstream-team-kit/README.md",
+        "size": 2512,
+        "mode": 420
+      },
+      {
+        "path": "upstream-team-kit/rules/no-inline-imports.mdc",
+        "size": 314,
+        "mode": 420
+      },
+      {
+        "path": "upstream-team-kit/rules/typescript-exhaustive-switch.mdc",
+        "size": 297,
+        "mode": 420
+      },
+      {
+        "path": "upstream-team-kit/skills/check-compiler-errors/SKILL.md",
+        "size": 535,
+        "mode": 420
+      },
+      {
+        "path": "upstream-team-kit/skills/control-cli/SKILL.md",
+        "size": 4333,
+        "mode": 420
+      },
+      {
+        "path": "upstream-team-kit/skills/control-ui/SKILL.md",
+        "size": 4802,
+        "mode": 420
+      },
+      {
+        "path": "upstream-team-kit/skills/deslop/SKILL.md",
+        "size": 719,
+        "mode": 420
+      },
+      {
+        "path": "upstream-team-kit/skills/fix-ci/SKILL.md",
+        "size": 901,
+        "mode": 420
+      },
+      {
+        "path": "upstream-team-kit/skills/fix-merge-conflicts/SKILL.md",
+        "size": 988,
+        "mode": 420
+      },
+      {
+        "path": "upstream-team-kit/skills/get-pr-comments/SKILL.md",
+        "size": 529,
+        "mode": 420
+      },
+      {
+        "path": "upstream-team-kit/skills/loop-on-ci/SKILL.md",
+        "size": 1611,
+        "mode": 420
+      },
+      {
+        "path": "upstream-team-kit/skills/make-pr-easy-to-review/SKILL.md",
+        "size": 2275,
+        "mode": 420
+      },
+      {
+        "path": "upstream-team-kit/skills/new-branch-and-pr/SKILL.md",
+        "size": 665,
+        "mode": 420
+      },
+      {
+        "path": "upstream-team-kit/skills/pr-review-canvas/renderer.js",
+        "size": 6762,
+        "mode": 420
+      },
+      {
+        "path": "upstream-team-kit/skills/pr-review-canvas/SKILL.md",
+        "size": 9088,
+        "mode": 420
+      },
+      {
+        "path": "upstream-team-kit/skills/pr-review-canvas/styles.css",
+        "size": 5794,
+        "mode": 420
+      },
+      {
+        "path": "upstream-team-kit/skills/pr-review-canvas/template.html",
+        "size": 513,
+        "mode": 420
+      },
+      {
+        "path": "upstream-team-kit/skills/review-and-ship/SKILL.md",
+        "size": 1398,
+        "mode": 420
+      },
+      {
+        "path": "upstream-team-kit/skills/run-smoke-tests/SKILL.md",
+        "size": 967,
+        "mode": 420
+      },
+      {
+        "path": "upstream-team-kit/skills/thermo-nuclear-code-quality-review/SKILL.md",
+        "size": 12437,
+        "mode": 420
+      },
+      {
+        "path": "upstream-team-kit/skills/verify-this/SKILL.md",
+        "size": 2805,
+        "mode": 420
+      },
+      {
+        "path": "upstream-team-kit/skills/weekly-review/SKILL.md",
+        "size": 902,
+        "mode": 420
+      },
+      {
+        "path": "upstream-team-kit/skills/what-did-i-get-done/SKILL.md",
+        "size": 1012,
+        "mode": 420
+      },
+      {
+        "path": "upstream-team-kit/skills/workflow-from-chats/SKILL.md",
+        "size": 2688,
+        "mode": 420
+      },
+      {
+        "path": "upstream/.gitignore",
+        "size": 30,
+        "mode": 420
+      },
+      {
+        "path": "upstream/agents/comment-sicko.md",
+        "size": 2230,
+        "mode": 420
+      },
+      {
+        "path": "upstream/agents/poteto-agent.md",
+        "size": 686,
+        "mode": 420
+      },
+      {
+        "path": "upstream/assets/logo.png",
+        "size": 361140,
+        "mode": 420
+      },
+      {
+        "path": "upstream/automations/benny/FOR_AGENTS.md",
+        "size": 7490,
+        "mode": 420
+      },
+      {
+        "path": "upstream/automations/benny/README.md",
+        "size": 1337,
+        "mode": 420
+      },
+      {
+        "path": "upstream/automations/benny/skills/reproduce-and-fix-issues/references/control-adapter.md",
+        "size": 5519,
+        "mode": 420
+      },
+      {
+        "path": "upstream/automations/benny/skills/reproduce-and-fix-issues/references/feature-map.example.md",
+        "size": 5650,
+        "mode": 420
+      },
+      {
+        "path": "upstream/automations/benny/skills/reproduce-and-fix-issues/references/verify-existing-fix.md",
+        "size": 3149,
+        "mode": 420
+      },
+      {
+        "path": "upstream/automations/benny/skills/reproduce-and-fix-issues/SKILL.md",
+        "size": 14241,
+        "mode": 420
+      },
+      {
+        "path": "upstream/automations/benny/skills/setup-benny/SKILL.md",
+        "size": 14045,
+        "mode": 420
+      },
+      {
+        "path": "upstream/automations/benny/skills/triage-issue-reports/references/routing.example.md",
+        "size": 1896,
+        "mode": 420
+      },
+      {
+        "path": "upstream/automations/benny/skills/triage-issue-reports/SKILL.md",
+        "size": 10320,
+        "mode": 420
+      },
+      {
+        "path": "upstream/automations/benny/templates/configuration.example.yaml",
+        "size": 2428,
+        "mode": 420
+      },
+      {
+        "path": "upstream/automations/benny/templates/reproduce-automation-prompt.md",
+        "size": 1824,
+        "mode": 420
+      },
+      {
+        "path": "upstream/automations/benny/templates/triage-automation-prompt.md",
+        "size": 1571,
+        "mode": 420
+      },
+      {
+        "path": "upstream/docs/guide/01-setup.md",
+        "size": 2965,
+        "mode": 420
+      },
+      {
+        "path": "upstream/docs/guide/02-poteto-mode.md",
+        "size": 4728,
+        "mode": 420
+      },
+      {
+        "path": "upstream/docs/guide/03-understand.md",
+        "size": 3516,
+        "mode": 420
+      },
+      {
+        "path": "upstream/docs/guide/04-design.md",
+        "size": 4866,
+        "mode": 420
+      },
+      {
+        "path": "upstream/docs/guide/05-build-and-clean.md",
+        "size": 4756,
+        "mode": 420
+      },
+      {
+        "path": "upstream/docs/guide/06-verify-and-ship.md",
+        "size": 6002,
+        "mode": 420
+      },
+      {
+        "path": "upstream/docs/guide/07-overnight.md",
+        "size": 5450,
+        "mode": 420
+      },
+      {
+        "path": "upstream/docs/guide/08-principles.md",
+        "size": 5427,
+        "mode": 420
+      },
+      {
+        "path": "upstream/docs/guide/09-make-it-yours.md",
+        "size": 4649,
+        "mode": 420
+      },
+      {
+        "path": "upstream/docs/guide/10-recipes-and-pitfalls.md",
+        "size": 4598,
+        "mode": 420
+      },
+      {
+        "path": "upstream/docs/guide/images/design.jpg",
+        "size": 402373,
+        "mode": 420
+      },
+      {
+        "path": "upstream/docs/guide/images/overnight.jpg",
+        "size": 347071,
+        "mode": 420
+      },
+      {
+        "path": "upstream/docs/guide/images/recipes.jpg",
+        "size": 410550,
+        "mode": 420
+      },
+      {
+        "path": "upstream/docs/guide/images/router.jpg",
+        "size": 450945,
+        "mode": 420
+      },
+      {
+        "path": "upstream/docs/guide/images/understanding.jpg",
+        "size": 376523,
+        "mode": 420
+      },
+      {
+        "path": "upstream/docs/guide/images/verification.jpg",
+        "size": 331450,
+        "mode": 420
+      },
+      {
+        "path": "upstream/docs/guide/README.md",
+        "size": 2011,
+        "mode": 420
+      },
+      {
+        "path": "upstream/LICENSE",
+        "size": 1067,
+        "mode": 420
+      },
+      {
+        "path": "upstream/plugin-metadata/plugin.json",
+        "size": 721,
+        "mode": 420
+      },
+      {
+        "path": "upstream/README.md",
+        "size": 23817,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/architect/references/design-red-flags.md",
+        "size": 3009,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/architect/references/rationale-template.md",
+        "size": 3050,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/architect/references/runner-prompt.md",
+        "size": 3087,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/architect/SKILL.md",
+        "size": 5675,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/arena/SKILL.md",
+        "size": 4977,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/automate-me/SKILL.md",
+        "size": 7184,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/benchmark-checklist/SKILL.md",
+        "size": 5409,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/blast-radius/SKILL.md",
+        "size": 3851,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/bro/SKILL.md",
+        "size": 267,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/correct/SKILL.md",
+        "size": 2445,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/create-verification-skill/references/feature-map-example/create-note.md",
+        "size": 2926,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/create-verification-skill/references/feature-map-example/README.md",
+        "size": 2601,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/create-verification-skill/references/feature-map-example/search.md",
+        "size": 3478,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/create-verification-skill/SKILL.md",
+        "size": 5885,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/figure-it-out/SKILL.md",
+        "size": 4059,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/how/references/explainer-prompt.md",
+        "size": 3085,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/how/references/explorer-prompt.md",
+        "size": 2684,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/how/SKILL.md",
+        "size": 3077,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/interrogate/references/code-quality-review.md",
+        "size": 5217,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/interrogate/references/lead-judgment.md",
+        "size": 3465,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/interrogate/references/reviewer-prompt.md",
+        "size": 2491,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/interrogate/references/rubric.md",
+        "size": 5025,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/interrogate/SKILL.md",
+        "size": 5056,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/maintain-verification-skill/SKILL.md",
+        "size": 4924,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/make-bot-ui/SKILL.md",
+        "size": 4651,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/no-comments/SKILL.md",
+        "size": 2560,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/poteto-mode/playbooks/authoring-a-skill.md",
+        "size": 834,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/poteto-mode/playbooks/autonomous-run.md",
+        "size": 1881,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/poteto-mode/playbooks/autopilot-full.md",
+        "size": 9420,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/poteto-mode/playbooks/autopilot-stack.md",
+        "size": 5027,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/poteto-mode/playbooks/babysit.md",
+        "size": 8292,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/poteto-mode/playbooks/bug-fix.md",
+        "size": 2258,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/poteto-mode/playbooks/eval.md",
+        "size": 2526,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/poteto-mode/playbooks/feature.md",
+        "size": 2766,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/poteto-mode/playbooks/hillclimb.md",
+        "size": 4403,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/poteto-mode/playbooks/investigation.md",
+        "size": 928,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/poteto-mode/playbooks/multi-phase-plan.md",
+        "size": 12956,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/poteto-mode/playbooks/opening-a-pr.md",
+        "size": 6135,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/poteto-mode/playbooks/orchestrate.md",
+        "size": 16778,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/poteto-mode/playbooks/pause-safely.md",
+        "size": 1135,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/poteto-mode/playbooks/perf-issue.md",
+        "size": 1446,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/poteto-mode/playbooks/prototype.md",
+        "size": 2161,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/poteto-mode/playbooks/refactoring.md",
+        "size": 3211,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/poteto-mode/playbooks/runtime-forensics.md",
+        "size": 1210,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/poteto-mode/playbooks/session-pickup.md",
+        "size": 1680,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/poteto-mode/playbooks/shipping.md",
+        "size": 5435,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/poteto-mode/playbooks/trace-forensics.md",
+        "size": 1865,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/poteto-mode/playbooks/visual-parity.md",
+        "size": 1197,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/poteto-mode/playbooks/worktree-cleanup.md",
+        "size": 2937,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/poteto-mode/references/bugbot-triage.md",
+        "size": 9629,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/poteto-mode/scripts/bootstrap.ts",
+        "size": 1737,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/poteto-mode/scripts/bun.lock",
+        "size": 6681,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/poteto-mode/scripts/check-plan.mjs",
+        "size": 7594,
+        "mode": 493
+      },
+      {
+        "path": "upstream/skills/poteto-mode/scripts/orch/orch.test.ts",
+        "size": 18424,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/poteto-mode/scripts/orch/orch.ts",
+        "size": 15511,
+        "mode": 493
+      },
+      {
+        "path": "upstream/skills/poteto-mode/scripts/orch/store.ts",
+        "size": 42927,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/poteto-mode/scripts/package.json",
+        "size": 354,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/poteto-mode/scripts/watch-pr/cli.test.ts",
+        "size": 6161,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/poteto-mode/scripts/watch-pr/cli.ts",
+        "size": 6983,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/poteto-mode/scripts/watch-pr/fakes.test-helper.ts",
+        "size": 2944,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/poteto-mode/scripts/watch-pr/github.test.ts",
+        "size": 9059,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/poteto-mode/scripts/watch-pr/github.ts",
+        "size": 24072,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/poteto-mode/scripts/watch-pr/policy.test.ts",
+        "size": 12397,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/poteto-mode/scripts/watch-pr/policy.ts",
+        "size": 25132,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/poteto-mode/scripts/watch-pr/render.ts",
+        "size": 7083,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/poteto-mode/scripts/watch-pr/tsconfig.json",
+        "size": 270,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/poteto-mode/scripts/watch-pr/types.compile.ts",
+        "size": 2258,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/poteto-mode/scripts/watch-pr/types.ts",
+        "size": 12359,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/poteto-mode/scripts/watch-pr/watch-pr",
+        "size": 211,
+        "mode": 493
+      },
+      {
+        "path": "upstream/skills/poteto-mode/scripts/worktree-audit.sh",
+        "size": 3988,
+        "mode": 493
+      },
+      {
+        "path": "upstream/skills/poteto-mode/SKILL.md",
+        "size": 20554,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/principle-attack-the-premise/SKILL.md",
+        "size": 1941,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/principle-boundary-discipline/SKILL.md",
+        "size": 1883,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/principle-build-the-lever/SKILL.md",
+        "size": 2458,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/principle-encode-lessons-in-structure/SKILL.md",
+        "size": 2211,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/principle-exhaust-the-design-space/SKILL.md",
+        "size": 1152,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/principle-experience-first/SKILL.md",
+        "size": 1184,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/principle-explain-the-number/SKILL.md",
+        "size": 2109,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/principle-fix-root-causes/SKILL.md",
+        "size": 1246,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/principle-foundational-thinking/SKILL.md",
+        "size": 1530,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/principle-guard-the-context-window/SKILL.md",
+        "size": 939,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/principle-laziness-protocol/SKILL.md",
+        "size": 1371,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/principle-make-operations-idempotent/SKILL.md",
+        "size": 1390,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/principle-migrate-callers-then-delete-legacy-apis/SKILL.md",
+        "size": 1146,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/principle-minimize-reader-load/SKILL.md",
+        "size": 2095,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/principle-model-the-domain/SKILL.md",
+        "size": 2082,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/principle-never-block-on-the-human/SKILL.md",
+        "size": 1172,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/principle-outcome-oriented-execution/SKILL.md",
+        "size": 1078,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/principle-prove-it-works/SKILL.md",
+        "size": 1371,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/principle-redesign-from-first-principles/SKILL.md",
+        "size": 844,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/principle-separate-before-serializing-shared-state/SKILL.md",
+        "size": 1565,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/principle-sequence-verifiable-units/SKILL.md",
+        "size": 1705,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/principle-subtract-before-you-add/SKILL.md",
+        "size": 1094,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/principle-test-behavior-not-implementation/SKILL.md",
+        "size": 2575,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/principle-type-system-discipline/SKILL.md",
+        "size": 4922,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/recall/SKILL.md",
+        "size": 5214,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/reflect/references/divergent-reviewer.md",
+        "size": 3895,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/reflect/references/judgment-reviewer.md",
+        "size": 3261,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/reflect/references/synthesizer.md",
+        "size": 4164,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/reflect/references/tooling-reviewer.md",
+        "size": 4615,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/reflect/SKILL.md",
+        "size": 4987,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/setup-pstack/SKILL.md",
+        "size": 5557,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/show-me-your-work/references/decision-log-template.tsv",
+        "size": 38,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/show-me-your-work/scripts/log.sh",
+        "size": 1377,
+        "mode": 493
+      },
+      {
+        "path": "upstream/skills/show-me-your-work/SKILL.md",
+        "size": 6420,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/swarm/SKILL.md",
+        "size": 2951,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/tdd/SKILL.md",
+        "size": 3143,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/teach/SKILL.md",
+        "size": 5623,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/technical-writing/SKILL.md",
+        "size": 9792,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/typescript-best-practices/references/patterns.md",
+        "size": 9214,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/typescript-best-practices/SKILL.md",
+        "size": 2684,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/unslop/SKILL.md",
+        "size": 6015,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/why/references/epistemics.md",
+        "size": 7749,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/why/references/investigator-prompt.md",
+        "size": 6985,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/why/references/source-playbook.md",
+        "size": 1363,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/why/references/sources/code-archaeology.md",
+        "size": 3489,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/why/references/sources/databricks.md",
+        "size": 6994,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/why/references/sources/datadog.md",
+        "size": 5323,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/why/references/sources/incident-postmortem.md",
+        "size": 1973,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/why/references/sources/linear.md",
+        "size": 2996,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/why/references/sources/notion.md",
+        "size": 2853,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/why/references/sources/sentry.md",
+        "size": 4947,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/why/references/sources/slack.md",
+        "size": 3105,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/why/references/synthesizer-prompt.md",
+        "size": 7984,
+        "mode": 420
+      },
+      {
+        "path": "upstream/skills/why/SKILL.md",
+        "size": 10366,
+        "mode": 420
+      }
+    ],
+    "entryCount": 971,
+    "bundled": []
+  }
+]

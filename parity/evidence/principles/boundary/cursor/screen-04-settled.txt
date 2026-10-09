@@ -1,0 +1,39 @@
+    ✔ Architect 5. Scrap if wrong (not needed).
+
+  BOUNDARY-OK is on disk. done.txt has verified=yes.
+
+  Broken. greet() threw missing domain name. Verify also saw boundaryValidated=false and businessRevalidates=true.
+
+  Root cause. loadConfig returned the wire object (displayName). formatGreeting re-checked wire fields and required
+  a domain name the boundary never built.
+
+  Fix. Candidate A from the arena. loadConfig validates displayName and returns { name }. formatGreeting only
+  uppercases cfg.name.
+
+  Before / after.
+
+     1 │BOUNDARY-FAIL value=null error=missing domain name boundaryValidated=false businessRevalidates=true
+     2 │BOUNDARY-OK value="hello, WORLD"
+
+  Principles. Boundary Discipline moved parse/validate/map to load-config.js. Laziness Protocol kept the
+  single-function boundary over B’s private pipeline. Model the Domain made wire → { name } the type at the edge.
+  Fix Root Causes rejected inventing name inside core. Prove It Works and Sequence Verifiable Units used verify.mjs
+  red then green.
+
+  Playbook steps.
+  1. done
+  2. done
+  3. done (verify.mjs already red)
+  4. done
+  5. done
+  6. skip: fixture exit is done.txt, not a PR
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 21.6% · 4 files edited                                                                         Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/principles/boundary/fixture-app · 
+  refactor/pi-pstack-parity-again

@@ -1,0 +1,39 @@
+    erge-conflicts && git add value.txt && git status && printf '%s\n' '--- value.txt ---' && cat -A value.txt &&
+    printf '%s\n' '--- markers ---' && (rg -n '^(<<<<<<<|=======|>>>>>>>)' value.txt || echo 'none') && printf '%s\n'
+    '--- line count ---' && wc -l value.txt && printf '%s\n' '--- exact ---' && [ "$(cat value.txt)" =
+    "resolved-value" ] && echo 'exact-match=yes' || echo 'exact-match=no' 245ms
+    … 13 output lines hidden · ctrl+o to expand
+    --- exact ---
+    exact-match=yes
+
+    Edited summary.md +12
+
+    ▎    1 + # fix-merge-conflicts resolution
+    ▎    2 + 
+    ▎    3 + ## Files resolved
+    ▎    4 + - `value.txt` (both modified: `main` vs `feature`)
+    ▎    5 + 
+    ▎    6 + ## Notable resolution choices
+    ▎    7 + - Replaced conflict markers with the required single-line content `resolved-value` (neither 
+    ▎        `main-value` nor `featu ...
+    ▎    8 + - Staged `value.txt`; left merge uncommitted per instructions (no push).
+    ▎    9 + 
+    ▎   10 + ## Build/test outcome
+    ▎   11 + - No package/build/test harness in this fixture.
+    ▎   12 + - Verified: one line, exact content `resolved-value`, zero conflict markers.
+
+    Edited done.txt +1
+
+    ▎    1 + STATUS=verified reason=value.txt exact one-line resolved-value
+
+  Resolved value.txt to the single line resolved-value, staged it (merge left uncommitted), and wrote the summary
+  plus done.txt under the fixture-out path. STATUS=verified.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 8% · 3 files edited                                                                            Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/fix-merge-conflicts · main

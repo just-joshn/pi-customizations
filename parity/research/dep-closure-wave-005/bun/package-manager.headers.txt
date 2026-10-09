@@ -1,0 +1,33 @@
+HTTP/2 308 
+date: Thu, 08 Oct 2026 22:22:39 GMT
+content-type: text/plain
+cache-control: public, max-age=0, must-revalidate
+location: /docs/pm/cli/install
+refresh: 0;url=/docs/pm/cli/install
+server: cloudflare
+strict-transport-security: max-age=63072000
+x-vercel-id: pdx1::thd9h-1791498159913-6f5464ae74df
+cf-cache-status: DYNAMIC
+report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=aYpa1YhvZvH0zMDf02Y1gfxKTm1qPssPx9BOqHP4tQWh%2F95BxGIdT6HRcDR5eVZZz%2B5opkHs7F5AJolqs1Yha3AzAj5D7O3EWhzRd%2BFaXOC9tFjS%2Fxpx52E1G8ZsD13aehnsSCc%3D"}]}
+nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+cf-ray: a4788bab581d3e6d-PDX
+
+HTTP/2 200 
+date: Thu, 08 Oct 2026 22:22:40 GMT
+content-type: text/html; charset=utf-8
+access-control-allow-origin: *
+age: 0
+cache-control: public, max-age=0, must-revalidate
+content-disposition: inline; filename="install"
+nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+etag: W/"f3e994315adb882d75d01ca2bc28be54"
+last-modified: Thu, 08 Oct 2026 22:22:40 GMT
+server: cloudflare
+strict-transport-security: max-age=63072000
+x-vercel-cache: MISS
+x-vercel-id: pdx1::pdrfl-1791498159967-80cdba17f6d0
+cf-cache-status: DYNAMIC
+vary: accept-encoding
+report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=bPeW3cOR69q39cwQqS00IWThh9MhsHuJgS%2BqcYy%2FjXBLfiPNnoX3Qg01OcDkauQ5ITrWXhrFPRmbbZdRrUIoo5BshJS8biiDynPtcLiUjOzznFhQcdICf9NQZ0nOhaGn4ORQepM%3D"}]}
+cf-ray: a4788bab98773e6d-PDX
+

@@ -1,0 +1,39 @@
+    ▎    7 + 
+    ▎    8 + slack:
+    ▎    9 +   # UNKNOWN / TBD. Do not treat as a real channel.
+    ▎   10 +   source_channel_id: ""
+    ▎   11 +   operations_channel_id: ""
+    ▎   12 +   triage_identity_user_id: "U012FIXTURETRIAGE"
+    ▎   13  … truncated (17 more lines) · ctrl+r to review
+
+    Edited done.txt +1
+
+    ▎    1 + STATUS=fail-closed reason=source-slack-channel-id-unknown
+
+  Setup is stopped and fails closed because the source Slack channel ID is unknown. I did not create or update any
+  automation.
+
+  What I did:
+  • Pack copy: .cursor/automations/benny/ already matched .upstream/automations/benny/ exactly, so I left it
+    alone.
+  • .cursor/settings.json: created with plugins.pstack.enabled: true. The file did not exist before.
+  • Partial draft: wrote .cursor/benny/configuration.cursor.yaml with source_channel_id: "" and the explicit
+    values you gave (repo URL, main, triage user U012FIXTURETRIAGE, tracker adapter, control skill, feature map
+    path).
+  • Done file: wrote STATUS=fail-closed reason=source-slack-channel-id-unknown to fixture-out/cursor/done.txt.
+
+  Still unconfirmed, so the draft leaves them unset: status emoji, PR URL format, budgets, models, operations
+  channel, and routing map. I did not guess model slugs. I also could not verify from a fresh agent that pstack's
+  shared skills resolve in project scope, which setup requires before continuing.
+
+  To finish setup, provide the source channel ID, and confirm the remaining values and a fresh-agent skill check.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Claude Haiku 5.5 300K High · 16.5% · 3 files edited                                                   Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/required-explicit/fixture-app · 
+  refactor/pi-pstack-parity-again

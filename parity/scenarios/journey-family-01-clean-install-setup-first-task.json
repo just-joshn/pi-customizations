@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "kind": "journey-family-stub",
+  "id": "journey-family-01-clean-install-setup-first-task",
+  "family": 1,
+  "familyTitle": "Clean install, discover commands/skills, complete setup, run first task",
+  "contractRef": "parity/contract.md#8-verify-through-the-users-controls",
+  "status": "partial",
+  "requirementIds": [
+    "PSTACK-SETUP-FLOW-001",
+    "PSTACK-SETUP-MODEL-DISCOVERY-001",
+    "PSTACK-SETUP-BUDGET-LABELS-001",
+    "PSTACK-SETUP-WRITE-CARD-001",
+    "PSTACK-SETUP-WRITE-RULE-001",
+    "PSTACK-SETUP-CONFIRM-WRITTEN-001",
+    "PSTACK-CMD-PLUGIN-SKILLS-REGISTER-001"
+  ],
+  "fixtureNeeds": [
+    "Clean Pi install of distributed package",
+    "Equivalent Cursor reference plugin load",
+    "Resettable workspace with controlled models.mdc absence or known baseline",
+    "Authenticated model catalogs on both hosts"
+  ],
+  "evidencePaths": [
+    "parity/evidence/setup-prepair/pair-setup-first-run-canonical-2.json",
+    "parity/evidence/setup-prepair/pair-report-canonical-2.json",
+    "parity/evidence/setup-success/pair-setup-success-write-card-2.json",
+    "parity/evidence/setup-cancel/pair-setup-escape-cancel-2.json",
+    "parity/scenarios/setup-budget-labels.json"
+  ],
+  "openMismatches": [],
+  "coverageNotes": "Paired setup-prepair, write-card success, and Escape cancel exist. Full family still missing clean package install discovery and a closed first-task journey after setup.",
+  "nextAction": "Add a clean-install pair that covers package discovery through first task under one fixture digest, then freeze acceptance definitions for SETUP-FLOW."
+}

@@ -1,0 +1,15 @@
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Use /mcp to connect Cursor to your tools and data sources.
+
+
+
+                                                                                                                       
+  → Plan, search, build anything                                                                                       
+                                                                                                                       
+
+  Claude Opus 5.5 300K Medium
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/principles/laziness/fixture-app · 
+  refactor/pi-pstack-parity-again

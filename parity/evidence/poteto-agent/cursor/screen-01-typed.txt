@@ -1,0 +1,19 @@
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Type ? in the prompt bar to show in-app hints.
+
+
+
+                                                                                                                       
+  → substitute generalPurpose) to write exactly the single line HELLO to                                               
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/poteto-agent/fixture-out/cursor/marker.tx  
+    t. Parent must not write that marker itself. Work only inside this fixture cwd. Do not edit ledgers, parity/, or   
+    files outside this cwd. After the child finishes, parent writes exactly one line to                                
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/poteto-agent/fixture-out/cursor/done.txt   
+    naming the agent type used, then stop.                                                                             
+                                                                                                                       
+
+  Auto                                                                                                  Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/poteto-agent/fixture-app · refactor/pi-pstack-parity-again

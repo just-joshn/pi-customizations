@@ -1,0 +1,137 @@
+[2K[G
+  [33m╭──────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮[39m
+  [33m│[39m                                                                                                                  [33m│[39m
+  [33m│[39m  [1m[33m⚠ [39mWorkspace Trust Required[22m                                                                                      [33m│[39m
+  [33m│[39m                                                                                                                  [33m│[39m
+  [33m│[39m  Cursor Agent can execute code and access files in this directory.                                               [33m│[39m
+  [33m│[39m                                                                                                                  [33m│[39m
+  [33m│[39m  Do you trust the contents of this directory?                                                                    [33m│[39m
+  [33m│[39m                                                                                                                  [33m│[39m
+  [33m│[39m    [1m[36m/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/fixtures/first-run[39m[22m                             [33m│[39m
+  [33m│[39m                                                                                                                  [33m│[39m
+  [33m│[39m                                                                                                                  [33m│[39m
+  [33m│[39m  [32m▶ [39m[1m[a] Trust this workspace[22m                                                                                      [33m│[39m
+  [33m│[39m  [2m  [q] Quit[22m                                                                                                      [33m│[39m
+  [33m│[39m                                                                                                                  [33m│[39m
+  [33m│[39m  [2mUse arrow keys to navigate, Enter to select, or press the key shown[22m                                             [33m│[39m
+  [33m│[39m                                                                                                                  [33m│[39m
+  [33m╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯[39m
+[?25l[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[G  [33m│[39m  [2m  [a] Trust this workspace[22m                                                                                      [33m│[39m
+  [33m│[39m  [2m  [q] Quit[22m                                                                                                      [33m│[39m
+  [33m│[39m                                                                                                                  [33m│[39m
+  [33m│[39m  [34m⏳ Trusting workspace...[39m                                                                                        [33m│[39m
+  [33m│[39m                                                                                                                  [33m│[39m
+  [33m╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯[39m
+[?25h[>1u]11;?[2K[G
+
+  Cursor Agent
+  [2mv2026.10.01-e373342[22m
+  [2mTip: Use /plan to plan execution and reach the right outcome faster.[22m
+
+
+ [38;2;21;21;21m▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄[39m
+ [48;2;21;21;21m [2m→ [22m[7mP[27m[2mlan, search, build anything[22m                                                                                       [49m
+ [38;2;21;21;21m▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀[39m
+  [2mAuto[22m
+  [2m~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run · refactor/pi-pstack-parity-again[22m
+[?25l[?2004h]0;Cursor Agent[?2031h[?1004h[2K[1A[2K[1A[2K[1A[2K[1A[2K[G [48;2;21;21;21m → [1m[36m/setup-pstack[39m[22m[7m [27m                                                                                                     [49m
+ [38;2;21;21;21m▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀[39m
+  [2mAuto[22m
+  [2m~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run · refactor/pi-pstack-parity-again[22m
+[2K[1A[2K[1A[2K[G   → [1m/setup-pstack[22m             [1mConfigure which models pstack uses per role and at what reasoning budget. Detects your…[22m
+[2K[1A[2K[1A[2K[1A[2K[G [48;2;21;21;21m → [1m[36m/setup-pstack[39m[22m [7m [27m                                                                                                    [49m
+ [38;2;21;21;21m▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀[39m
+   → [1m/setup-pstack[22m             [1mConfigure which models pstack uses per role and at what reasoning budget. Detects your…[22m
+[2K[1A[2K[G  [2mAuto[22m
+  [2m~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run · refactor/pi-pstack-parity-again[22m
+[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[G [48;2;36;36;40m                                                                                                                      [49m
+ [48;2;36;36;40m /setup-pstack                                                                                                        [49m
+ [48;2;36;36;40m                                                                                                                      [49m
+
+ [32m⠀⠞[39m [1mWorking[22m
+ [38;2;21;21;21m▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄[39m
+ [48;2;21;21;21m [2m→ [22m[7mA[27m[2mdd a follow-up[22m                                                                                     [2mctrl+c to stop[22m [49m
+ [38;2;21;21;21m▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀[39m
+  [2mAuto[22m
+  [2m~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run · refactor/pi-pstack-parity-again[22m
+]0;Cursor Agent[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[G  [38;5;245m  Tip: Use /mcp to connect Cursor to your tools and data sources.[39m
+ [38;2;21;21;21m▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄[39m
+ [48;2;21;21;21m [2m→ [22m[7mA[27m[2mdd a follow-up[22m                                                                                     [2mctrl+c to stop[22m [49m
+ [38;2;21;21;21m▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀[39m
+  [2mAuto[22m
+  [2m~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run · refactor/pi-pstack-parity-again[22m
+[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[G [32m⠠⠜[39m [1mWorking[22m
+  [38;5;245m  Tip: Use /mcp to connect Cursor to your tools and data sources.[39m
+ [38;2;21;21;21m▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄[39m
+ [48;2;21;21;21m [2m→ [22m[7mA[27m[2mdd a follow-up[22m                                                                                     [2mctrl+c to stop[22m [49m
+ [38;2;21;21;21m▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀[39m
+  [2mAuto[22m
+  [2m~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run · refactor/pi-pstack-parity-again[22m
+[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[G [32m⠰⠰[39m [1mWorking[22m
+  [38;5;245m  Tip: Use /mcp to connect Cursor to your tools and data sources.[39m
+ [38;2;21;21;21m▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄[39m
+ [48;2;21;21;21m [2m→ [22m[7mA[27m[2mdd a follow-up[22m                                                                                     [2mctrl+c to stop[22m [49m
+ [38;2;21;21;21m▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀[39m
+  [2mAuto[22m
+  [2m~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run · refactor/pi-pstack-parity-again[22m
+[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[G
+ [38;2;21;21;21m▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄[39m
+ [48;2;21;21;21m [2m→ [22m[7mP[27m[2mlan, search, build anything[22m                                                                                       [49m
+ [38;2;21;21;21m▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀[39m
+  [2mAuto[22m
+  [2m~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run · refactor/pi-pstack-parity-again[22m
+]0;Cursor Agent[2K[1A[2K[1A[2K[1A[2K[1A[2K[G [48;2;21;21;21m → [7mP[27m[2mlan, search, build anything[22m                                                                                       [49m
+ [38;2;21;21;21m▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀[39m
+  [2mAuto[22m
+  [2m~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run · refactor/pi-pstack-parity-again[22m
+[2K[1A[2K[1A[2K[1A[2K[1A[2K[G [48;2;21;21;21m → [1m[36m/setup-pstack[39m[22m[7m [27m                                                                                                     [49m
+ [38;2;21;21;21m▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀[39m
+   → [1m/setup-pstack[22m             [1mConfigure which models pstack uses per role and at what reasoning budget. Detects your…[22m
+[2K[G
+  [31mError: You've hit your usage limit[39m
+  [2mGet Cursor Pro for more Agent usage, unlimited Tab, and more.[22m
+  [2mfallbackModel: [22m
+  [2mspendLimitHit: false[22m
+  [2mlimitType: included_usage[22m
+  [2mchatMessage: *You've hit your free requests limit. [Upgrade to [22m
+  [2mPro](https://www.cursor.com/api/auth/checkoutDeepControl?tier=pro) for more usage, frontier models, Cloud Agents, [22m
+  [2mand more. Your usage limits will reset when your monthly cycle ends on 10/12/2026.*[22m
+  [2mspendLimits: [50,100,200][22m
+]0;PStack Setup]0;PStack Setup[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[G  [2mAuto[22m
+  [2m~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run · refactor/pi-pstack-parity-again[22m
+
+  [31mError: You've hit your usage limit[39m
+  [2mGet Cursor Pro for more Agent usage, unlimited Tab, and more.[22m
+  [2mfallbackModel: [22m
+  [2mspendLimitHit: false[22m
+  [2mlimitType: included_usage[22m
+  [2mchatMessage: *You've hit your free requests limit. [Upgrade to [22m
+  [2mPro](https://www.cursor.com/api/auth/checkoutDeepControl?tier=pro) for more usage, frontier models, Cloud Agents, [22m
+  [2mand more. Your usage limits will reset when your monthly cycle ends on 10/12/2026.*[22m
+  [2mspendLimits: [50,100,200][22m
+[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[G [48;2;21;21;21m [2m→ [22m[7mP[27m[2mlan, search, build anything[22m                                                                                       [49m
+ [38;2;21;21;21m▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀[39m
+
+  [2mPress Ctrl+C again to exit[22m
+
+  [31mError: You've hit your usage limit[39m
+  [2mGet Cursor Pro for more Agent usage, unlimited Tab, and more.[22m
+  [2mfallbackModel: [22m
+  [2mspendLimitHit: false[22m
+  [2mlimitType: included_usage[22m
+  [2mchatMessage: *You've hit your free requests limit. [Upgrade to [22m
+  [2mPro](https://www.cursor.com/api/auth/checkoutDeepControl?tier=pro) for more usage, frontier models, Cloud Agents, [22m
+  [2mand more. Your usage limits will reset when your monthly cycle ends on 10/12/2026.*[22m
+  [2mspendLimits: [50,100,200][22m
+[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[1A[2K[G  [2mAuto[22m
+  [2m~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run · refactor/pi-pstack-parity-again[22m
+
+  [31mError: You've hit your usage limit[39m
+  [2mGet Cursor Pro for more Agent usage, unlimited Tab, and more.[22m
+  [2mfallbackModel: [22m
+  [2mspendLimitHit: false[22m
+  [2mlimitType: included_usage[22m
+  [2mchatMessage: *You've hit your free requests limit. [Upgrade to [22m
+  [2mPro](https://www.cursor.com/api/auth/checkoutDeepControl?tier=pro) for more usage, frontier models, Cloud Agents, [22m
+  [2mand more. Your usage limits will reset when your monthly cycle ends on 10/12/2026.*[22m
+  [2mspendLimits: [50,100,200][22m

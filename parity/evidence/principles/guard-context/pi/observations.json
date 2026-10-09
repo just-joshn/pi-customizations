@@ -1,0 +1,109 @@
+{
+  "score": {
+    "frontmatterOk": true,
+    "leafSkillRead": true,
+    "usedChrome": true,
+    "modelAutoInvoke": false,
+    "subagentRouted": true,
+    "keptVerifyOk": true,
+    "summaryOk": true,
+    "productOk": true,
+    "verifiedDone": true,
+    "contractHeld": true,
+    "screen": {
+      "potetoMode": false,
+      "leafChrome": false,
+      "hostAttached": false,
+      "subagentChrome": false,
+      "verifyMention": true,
+      "working": false
+    },
+    "pty": {
+      "potetoMode": true,
+      "leafChrome": false,
+      "hostAttached": true,
+      "subagentChrome": false,
+      "verifyMention": true,
+      "working": true
+    }
+  },
+  "firstSummaryAt": "2026-10-09T01:41:33.529Z",
+  "firstVerifyAt": "2026-10-09T01:41:37.538Z",
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/guard-context/fixture-out/pi/done.txt",
+    "line": "verified=yes"
+  },
+  "verifyOut": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/guard-context/fixture-app/evidence/verify-out.txt",
+    "line": "GUARD-OK markers=8",
+    "ok": true
+  },
+  "summary": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/guard-context/fixture-app/out/summary.json",
+    "line": "{\"markers\": [\"MARKER-ALPHA\", \"MARKER-BRAVO\", \"MARKER-CHARLIE\", \"MARKER-DELTA\", \"MARKER-ECHO\", \"MARKER-FOXTROT\", \"MARKER-GOLF\", \"MARKER-HOTEL\"]}",
+    "ok": true,
+    "markers": [
+      "MARKER-ALPHA",
+      "MARKER-BRAVO",
+      "MARKER-CHARLIE",
+      "MARKER-DELTA",
+      "MARKER-ECHO",
+      "MARKER-FOXTROT",
+      "MARKER-GOLF",
+      "MARKER-HOTEL"
+    ]
+  },
+  "productOk": true,
+  "frontmatter": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-guard-the-context-window/SKILL.md",
+    "ok": true,
+    "name": "principle-guard-the-context-window",
+    "disableModelInvocation": true
+  },
+  "session": {
+    "sessionPath": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-principles-guard-context-fixture-app--/2026-10-09T01-41-18-387Z_01a11e52-63b3-7571-85fe-1a6b4b791a9b.jsonl",
+    "hostAttached": false,
+    "childSession": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-principles-guard-context-fixture-app--/01a11e52-63b3-7571-85fe-1a6b4b791a9b/subagents/agent-a292c095-acec-4c6a-b953-551e48b736e1.jsonl",
+    "leafSkillRead": true,
+    "leafSkillReadAt": "2026-10-09T01:41:23.068Z",
+    "ranVerifyScript": true,
+    "subagentRouted": true,
+    "subagentRoutedAt": "2026-10-09T01:41:30.754Z",
+    "parentCorpusReads": 0,
+    "toolOrder": [
+      "read",
+      "read(guard-leaf)",
+      "bash(verify.mjs)",
+      "blob-mention(guard-leaf)",
+      "TodoWrite",
+      "bash(verify.mjs)",
+      "task(subagent:general-purpose)",
+      "bash(verify.mjs)",
+      "bash"
+    ]
+  },
+  "transcript": null,
+  "pollSamples": 46,
+  "screenFinal": {
+    "potetoMode": false,
+    "leafChrome": false,
+    "hostAttached": false,
+    "subagentChrome": false,
+    "verifyMention": true,
+    "working": false
+  },
+  "pty": {
+    "potetoMode": true,
+    "leafChrome": false,
+    "hostAttached": true,
+    "subagentChrome": false,
+    "verifyMention": true,
+    "working": true
+  },
+  "baseline": {
+    "src/markers.json": "0020b9a076a8c60fa6a5316fd8a0e80e08efa98eac206b9a67a29e2d5a16c72e"
+  }
+}

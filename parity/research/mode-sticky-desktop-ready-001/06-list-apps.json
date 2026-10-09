@@ -1,0 +1,13 @@
+{
+  "id": 2,
+  "result": {
+    "isError": false,
+    "content": [
+      {
+        "text": "{\"apps\":[{\"pid\":14950,\"name\":\"Alacritty\",\"isRunning\":true,\"isActive\":false,\"bundleIdentifier\":\"org.alacritty\"},{\"bundleIdentifier\":\"com.todesktop.230313mzl4w4u92\",\"name\":\"Cursor\",\"isActive\":false,\"pid\":81918,\"isRunning\":true},{\"bundleIdentifier\":\"org.desktop-plus.DesktopPlus\",\"name\":\"Desktop Plus\",\"isActive\":false,\"pid\":3756,\"isRunning\":true},{\"bundleIdentifier\":\"com.apple.finder\",\"name\":\"Finder\",\"isActive\":false,\"pid\":674,\"isRunning\":true},{\"bundleIdentifier\":\"com.google.Chrome\",\"name\":\"Google Chrome\",\"isActive\":false,\"pid\":62999,\"isRunning\":true},{\"bundleIdentifier\":\"com.apple.MobileSMS\",\"name\":\"Messages\",\"isActive\":false,\"pid\":55150,\"isRunning\":true},{\"bundleIdentifier\":\"com.tinyspeck.slackmacgap\",\"name\":\"Slack\",\"isActive\":false,\"pid\":54153,\"isRunning\":true},{\"bundleIdentifier\":\"com.apple.TextEdit\",\"name\":\"TextEdit\",\"isActive\":false,\"pid\":16228,\"isRunning\":true}]}",
+        "type": "text"
+      }
+    ]
+  },
+  "jsonrpc": "2.0"
+}

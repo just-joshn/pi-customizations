@@ -1,0 +1,20 @@
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Use /run-everything to skip all approvals.
+
+                                                                                                                       
+  /tdd Reply with exactly: tdd-ok. Do no other work.                                                                   
+                                                                                                                       
+
+  tdd-ok
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 7.6%                                                                                           Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run · refactor/pi-pstack-parity-again

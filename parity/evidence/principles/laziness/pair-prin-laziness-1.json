@@ -1,0 +1,124 @@
+{
+  "schema": 1,
+  "pairId": "prin-laziness-1",
+  "scenarioRef": "prin-laziness",
+  "journeyFamily": "journey-family-principles",
+  "requirementIds": [
+    "PSTACK-PRIN-LAZINESS-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "/poteto-mode Make node scripts/verify.mjs print FLAT-OK for this fixture. src/greet.js currently routes through FormatPipeline in src/pipeline.js. NOTES.md describes the failure and some possible approaches. For any poteto-mode principle you apply before declaring done, read that principle's leaf SKILL.md in full first (not only the poteto-mode Principles index). Work only inside this fixture cwd. Do not edit ledgers, parity/, or files outside this cwd except the named done path. When FLAT-OK is on disk, write exactly one line to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/laziness/fixture-out/<side>/done.txt as verified=yes|no, then stop.",
+  "steps": [
+    {
+      "wait": "ready screen (Tip: on Cursor; Pi chat ready without Trust dialog)"
+    },
+    {
+      "send": "/poteto-mode make FLAT-OK; NOTES.md approaches; leaf SKILL.md for applied principles; write verified=yes|no"
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "wait": "on-disk evidence/verify-out.txt with FLAT-OK"
+    },
+    {
+      "wait": "done marker verified=yes"
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "f3a6669a-3e76-4ae3-9f8e-50ce94f2fc2a",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/laziness/cursor/f3a6669a-3e76-4ae3-9f8e-50ce94f2fc2a",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "transcript": "/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/agent-transcripts/32e37b5c-967c-45b2-8442-8d2b9830d953/32e37b5c-967c-45b2-8442-8d2b9830d953.jsonl",
+    "proofCopyPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/laziness/fixture-out/cursor/evidence/verify-out.txt",
+    "observations": {
+      "potetoMode": true,
+      "leafSkillRead": true,
+      "leafSkillPath": "/Users/josh-desktop/.claude/skills/principle-laziness-protocol/SKILL.md",
+      "preferredDeletion": true,
+      "addedLayer": false,
+      "pipelineGone": true,
+      "keptVerifyOk": true,
+      "verifyLine": "FLAT-OK path=delete files=core.js,greet.js",
+      "productOk": true,
+      "verifiedDone": true,
+      "modelAutoInvoke": false,
+      "contractHeld": true,
+      "ranVerifyScript": true,
+      "modelChrome": "unobserved on ready/settled screen dumps"
+    }
+  },
+  "pi": {
+    "attemptId": "7e4c208d-60c8-4529-9849-1e70eed051fa",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/laziness/pi/7e4c208d-60c8-4529-9849-1e70eed051fa",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-principles-laziness-fixture-app--/2026-10-09T00-40-43-072Z_01a11e1a-eb40-7314-8313-7ca44d283e23.jsonl",
+    "proofCopyPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/laziness/fixture-out/pi/evidence/verify-out.txt",
+    "observations": {
+      "potetoMode": true,
+      "leafSkillRead": true,
+      "leafSkillPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-laziness-protocol/SKILL.md",
+      "preferredDeletion": true,
+      "addedLayer": false,
+      "pipelineGone": true,
+      "keptVerifyOk": true,
+      "verifyLine": "FLAT-OK path=delete files=core.js,greet.js",
+      "productOk": true,
+      "verifiedDone": true,
+      "modelAutoInvoke": false,
+      "contractHeld": true,
+      "ranVerifyScript": true,
+      "modelChrome": "(claude-subscription) claude-sonnet-5-5 \u2022 medium"
+    }
+  },
+  "deltas": [
+    {
+      "topic": "leaf skill path",
+      "cursor": "Read ~/.claude/skills/principle-laziness-protocol/SKILL.md",
+      "pi": "Read extensions/pi-pstack/skills/principle-laziness-protocol/SKILL.md",
+      "reconciled": true
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "unobserved on screen dumps",
+      "pi": "claude-sonnet-5-5 medium via claude-subscription",
+      "reconciled": false
+    },
+    {
+      "topic": "laziness outcome",
+      "cursor": "contractHeld. Leaf Read + deleted pipeline + FLAT-OK, no strategies layer.",
+      "pi": "contractHeld. Leaf Read + deleted pipeline + FLAT-OK, no strategies layer.",
+      "reconciled": true
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-prin-laziness.mjs --both",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "fixtureApp": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/laziness/fixture-app",
+    "decisionLog": "parity/evidence/principles/laziness/.audit/u-journey-prin-laziness.tsv",
+    "notes": "PSTACK-PRIN-LAZINESS-001. Dedicated laziness/ fixture. Ledgers untouched. disable-model-invocation true on package leaf copies; modelAutoInvoke false on both."
+  }
+}

@@ -1,0 +1,1 @@
+{"screenshotScale":1,"app":{"pid":81918,"name":"Cursor","isActive":false,"bundleIdentifier":"com.todesktop.230313mzl4w4u92","isRunning":true}}

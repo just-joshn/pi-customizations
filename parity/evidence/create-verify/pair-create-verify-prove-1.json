@@ -1,0 +1,158 @@
+{
+  "schema": 1,
+  "pairId": "create-verify-prove-1",
+  "scenarioRef": "create-verify:generate-then-prove",
+  "journeyFamily": "journey-family-13-generated-resources-reuse",
+  "requirementIds": [
+    "PSTACK-SETUP-CREATE-VERIFY-PROVE-001"
+  ],
+  "priorPairId": "create-verify-helpers-1",
+  "priorPairRole": "GENERATE closed without prove; this pair covers live prove after generate.",
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptTemplateCreateProve": "/create-verification-skill for this tiny hello-cli only. Interview from README.md and hello.sh in the cwd. Write <host-skill-root>/verify-hello-cli/SKILL.md with YAML frontmatter name: verify-hello-cli and a real description. Fill Launch, Doctor, Drive, Evidence, Cleanup, and Helpers as ## headings from ./hello.sh (prints HELLO-FAMILY-13). Helpers may be the single word None if no helper scripts ship. Every section body must be real text with no TODO or placeholder wording. Cleanup must not kill by process name and must not delete named proof artifacts. Seed features/README.md plus one feature file for the hello print. After the skill and feature map are on disk, run the live prove step once end to end: launch, doctor, drive the hello-print feature, capture evidence at the location the skill names, then cleanup. After cleanup, confirm the evidence files still exist at that named location. Prefer the smallest prove path (./hello.sh stdout HELLO-FAMILY-13, exit 0). Skip the maintain-verification-skill offer entirely. When prove is finished, list the absolute paths of the skill and the surviving evidence files and stop.",
+  "steps": [
+    {
+      "wait": "ready screen (Tip: on Cursor; Pi chat ready without Trust dialog)"
+    },
+    {
+      "send": "/create-verification-skill ... generate including Helpers, then live prove, skip maintain ..."
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "wait": "on-disk SKILL.md with name: verify-hello-cli and ## Launch through ## Helpers"
+    },
+    {
+      "wait": "on-disk proof artifacts with HELLO-FAMILY-13 and exit 0 still present after cleanup"
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "e5599015-5bb9-4aac-b1cd-ee11fe31bf05",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/cursor/e5599015-5bb9-4aac-b1cd-ee11fe31bf05",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "skillPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app/.cursor/skills/verify-hello-cli/SKILL.md",
+    "proofLiveDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app/.cursor/evidence/verify-hello-cli",
+    "proofCopyPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-out/cursor/proof",
+    "observations": {
+      "createVerifyInvoked": true,
+      "skillCreated": true,
+      "skillNameOk": true,
+      "skillHasDescription": true,
+      "skillHasLaunch": true,
+      "skillHasHelpers": true,
+      "sectionsOk": true,
+      "hasTodoPlaceholder": false,
+      "liveProveRan": true,
+      "liveProvePassed": true,
+      "proofStdoutOk": true,
+      "proofExitOk": true,
+      "proofStderrOk": true,
+      "proofSurvivedCleanup": true,
+      "screenShowedProofOk": true,
+      "maintainOffered": false,
+      "modelChrome": "Auto",
+      "proofFilenames": ["stdout.txt", "stderr.txt", "exit-code.txt"]
+    }
+  },
+  "pi": {
+    "attemptId": "20d8304d-3d04-4913-b6b1-a67cf292c6e4",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/pi/20d8304d-3d04-4913-b6b1-a67cf292c6e4",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-create-verify-fixture-app--/2026-10-08T19-33-01-196Z_01a11d01-368c-7555-bc02-313817f38384.jsonl",
+    "skillPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app/.pi/skills/verify-hello-cli/SKILL.md",
+    "proofLiveDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app/.pi/skills/verify-hello-cli/evidence",
+    "proofCopyPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-out/pi/proof",
+    "oracleNote": "First capture pass reported liveProvePassed=false because the oracle only looked for stdout.txt under a few roots. Agent had already written hello-stdout.txt under the skill evidence/ dir (mtime during the attempt). Screen showed PROOF-OK. Oracle widened; observations patched; no second Pi PTY needed.",
+    "observations": {
+      "createVerifyInvoked": true,
+      "skillCreated": true,
+      "skillNameOk": true,
+      "skillHasDescription": true,
+      "skillHasLaunch": true,
+      "skillHasHelpers": true,
+      "sectionsOk": true,
+      "hasTodoPlaceholder": false,
+      "liveProveRan": true,
+      "liveProvePassed": true,
+      "proofStdoutOk": true,
+      "proofExitOk": true,
+      "proofStderrOk": true,
+      "proofSurvivedCleanup": true,
+      "screenShowedProofOk": true,
+      "maintainOffered": false,
+      "modelChrome": "(claude-subscription) claude-sonnet-5-5 • medium",
+      "proofFilenames": ["hello-stdout.txt", "hello-stderr.txt", "hello-exit-code.txt"],
+      "captureOracleInitiallyMissed": true
+    }
+  },
+  "deltas": [
+    {
+      "topic": "generated skill root",
+      "cursor": "Writes under .cursor/skills/verify-hello-cli/.",
+      "pi": "Writes under .pi/skills/verify-hello-cli/.",
+      "reconciled": false
+    },
+    {
+      "topic": "live prove evidence directory",
+      "cursor": ".cursor/evidence/verify-hello-cli/ with stdout.txt, stderr.txt, exit-code.txt.",
+      "pi": ".pi/skills/verify-hello-cli/evidence/ with hello-stdout.txt, hello-stderr.txt, hello-exit-code.txt.",
+      "reconciled": false
+    },
+    {
+      "topic": "proof filename convention",
+      "cursor": "stdout.txt / stderr.txt / exit-code.txt",
+      "pi": "hello-stdout.txt / hello-stderr.txt / hello-exit-code.txt",
+      "reconciled": false
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "Status chrome Auto.",
+      "pi": "Status chrome claude-sonnet-5-5 medium via claude-subscription.",
+      "reconciled": false
+    },
+    {
+      "topic": "live prove outcome",
+      "cursor": "Passed. Screen PROOF-OK / SURVIVED-OK. Durable copy at fixture-out/cursor/proof.",
+      "pi": "Passed. Screen PROOF-OK. Durable copy at fixture-out/pi/proof. Live dir still present under skill evidence/.",
+      "reconciled": true
+    },
+    {
+      "topic": "maintain offer",
+      "cursor": "Not observed on settled screen.",
+      "pi": "Not observed on settled screen.",
+      "reconciled": true
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-create-verify-reuse.mjs --prove --cursor-only then --prove --pi-only",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "fixtureApp": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app",
+    "packagePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack",
+    "decisionLog": "parity/evidence/create-verify/.audit/u-create-verify-prove.tsv",
+    "notes": "Live prove for PSTACK-SETUP-CREATE-VERIFY-PROVE-001. Maintain offer not observed and not claimed. Cursor fixture-app evidence dir was removed when Pi cleanGenerated ran next; durable Cursor proof is fixture-out/cursor/proof."
+  }
+}

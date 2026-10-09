@@ -1,0 +1,46 @@
+{
+  "schema": 3,
+  "pairId": "investigate-2",
+  "pairPath": "parity/evidence/investigate/pair-investigate-2.json",
+  "priorPairPath": "parity/evidence/investigate/pair-investigate-1.json",
+  "chipFollowUpAttempt": "parity/evidence/investigate/pi/8ad2dbc5-5ffa-48e3-8b76-0f6de82f6219",
+  "comparedAt": "2026-10-08T16:40:00.000Z",
+  "skillActivation": {
+    "cursor": "'Used how' chip after '/how ...' + Enter",
+    "pi": "'[skill] how (ctrl+o to expand)' after expand() delivery of a <skill name=\"how\"> block",
+    "match": true,
+    "note": "Host chrome wording differs (Used how vs [skill] how). Same activation job. Closed HOW-SKILL-TUI-CHIP as host-equivalent."
+  },
+  "delivery": {
+    "cursor": "skill body delivered inline in the invoking user message",
+    "pi": "user message carries <skill name=\"how\"> with full body including Step 2b; args appended after the block",
+    "match": true,
+    "closedFinding": "HOW-SKILL-DELIVERY-MODE"
+  },
+  "ruleUnchanged": {
+    "cursor": true,
+    "pi": true,
+    "bothDigests": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+  },
+  "readOnlyHeld": {
+    "cursor": true,
+    "pi": true
+  },
+  "workflowExecution": {
+    "cursor": "2/2 reference runs spawn Step 2b explainer (dfe89f1a, 6f45e2db)",
+    "pi": "3/3 candidate runs skip spawn after delivery repair (05056781, 03252b53, 8ad2dbc5). On 8ad2dbc5 the model thinking says it will grep directly rather than spawn a subagent.",
+    "match": false,
+    "finding": "HOW-WORKFLOW-EXPLAINER-STEP"
+  },
+  "openFindings": [
+    "HOW-WORKFLOW-EXPLAINER-STEP"
+  ],
+  "closedFindings": [
+    "HOW-SKILL-DELIVERY-MODE",
+    "HOW-SKILL-TUI-CHIP"
+  ],
+  "nextActions": [
+    "HOW-WORKFLOW-EXPLAINER-STEP remains open in parity/mismatches.json. Delivery is ruled out. Next levers are enforcement, rubric, or model role — not another identical recapture.",
+    "Continue acceptance families: success-flow write-card journey and remaining playbook journeys."
+  ]
+}

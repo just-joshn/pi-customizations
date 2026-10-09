@@ -1,0 +1,148 @@
+{
+  "schema": 1,
+  "pairId": "prin-separate-state-1",
+  "scenarioRef": "prin-separate-state",
+  "journeyFamily": "journey-family-principles",
+  "requirementIds": [
+    "PSTACK-PRIN-SEPARATE-STATE-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "/poteto-mode Two workers in src/workers.js (runIndexer and runMetrics) both read-modify-write state/state.json. Concurrent Promise.all runs lose one update. The facts are independent. Give each worker its own write target and merge only in report(). node scripts/verify.mjs must print SEPARATE-OK separated=yes. For any poteto-mode principle you apply before declaring done, read that principle's leaf SKILL.md in full first (not only the poteto-mode Principles index). Work only inside this fixture cwd. Do not edit ledgers, parity/, or files outside this cwd except the named done path. When SEPARATE-OK separated=yes is on disk, write exactly one line to .../separate-state/fixture-out/<side>/done.txt as verified=yes|no, then stop.",
+  "steps": [
+    {
+      "wait": "ready screen (Tip: on Cursor; Pi chat ready without Trust dialog)"
+    },
+    {
+      "send": "/poteto-mode give each worker its own write target; leaf SKILL.md for applied principles; SEPARATE-OK separated=yes; write verified=yes|no"
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "wait": "on-disk evidence/verify-out.txt with SEPARATE-OK separated=yes"
+    },
+    {
+      "wait": "done marker verified=yes"
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "f8041da0-089d-4161-b775-e5fb91c488e3",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/separate-state/cursor/f8041da0-089d-4161-b775-e5fb91c488e3",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "transcript": "/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/agent-transcripts/b817238e-d918-4650-a337-5c64f326f0c8/b817238e-d918-4650-a337-5c64f326f0c8.jsonl",
+    "proofCopyPath": "parity/evidence/principles/separate-state/fixture-out/cursor/evidence/verify-out.txt",
+    "observations": {
+      "potetoMode": true,
+      "leafSkillRead": true,
+      "leafSkillPath": "/Users/josh-desktop/.claude/skills/principle-separate-before-serializing-shared-state/SKILL.md",
+      "ranVerifyScript": true,
+      "separateOk": true,
+      "separatedFix": true,
+      "stillShared": false,
+      "verifyLine": "SEPARATE-OK separated=yes indexer=state/indexer.json metrics=state/metrics.json lastIndexed=idx-5 lastMetrics=met-5",
+      "productOk": true,
+      "verifiedDone": true,
+      "modelAutoInvoke": false,
+      "contractHeld": true,
+      "modelChrome": "unobserved on ready/settled screen dumps",
+      "indexerFiles": [
+        "state/indexer.json"
+      ],
+      "metricsFiles": [
+        "state/metrics.json"
+      ],
+      "oracleNote": "Transcript Read of separate-before-serializing-shared-state leaf. Owned state/indexer.json + state/metrics.json; report merges. SEPARATE-OK separated=yes."
+    }
+  },
+  "pi": {
+    "attemptId": "3b9d8593-e469-4816-a7e2-751bf90e51bf",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/separate-state/pi/3b9d8593-e469-4816-a7e2-751bf90e51bf",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-principles-separate-state-fixture-app--/2026-10-09T01-31-37-724Z_01a11e49-877b-751a-94f4-d993e3c1ee87.jsonl",
+    "proofCopyPath": "parity/evidence/principles/separate-state/fixture-out/pi/evidence/verify-out.txt",
+    "observations": {
+      "potetoMode": true,
+      "leafSkillRead": true,
+      "leafSkillPath": "extensions/pi-pstack/skills/principle-separate-before-serializing-shared-state/SKILL.md",
+      "ranVerifyScript": true,
+      "separateOk": true,
+      "separatedFix": true,
+      "stillShared": false,
+      "verifyLine": "SEPARATE-OK separated=yes indexer=state/indexer-state.json metrics=state/metrics-state.json lastIndexed=idx-5 lastMetrics=met-5",
+      "productOk": true,
+      "verifiedDone": true,
+      "modelAutoInvoke": false,
+      "contractHeld": true,
+      "modelChrome": "(claude-subscription) claude-sonnet-5-5 \u2022 medium",
+      "indexerFiles": [
+        "state/indexer-state.json"
+      ],
+      "metricsFiles": [
+        "state/metrics-state.json"
+      ],
+      "oracleNote": "Session tool order: bash(verify.mjs) then read(separate-state-leaf). Same owned write targets. SEPARATE-OK separated=yes."
+    }
+  },
+  "deltas": [
+    {
+      "topic": "leaf skill path",
+      "cursor": "Read ~/.claude/skills/principle-separate-before-serializing-shared-state/SKILL.md",
+      "pi": "Read extensions/pi-pstack/skills/principle-separate-before-serializing-shared-state/SKILL.md",
+      "reconciled": true
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "unobserved on screen dumps",
+      "pi": "claude-sonnet-5-5 medium via claude-subscription",
+      "reconciled": false
+    },
+    {
+      "topic": "separate-state outcome",
+      "cursor": "contractHeld. Leaf Read + owned write targets + SEPARATE-OK separated=yes.",
+      "pi": "contractHeld. Leaf Read + owned write targets + SEPARATE-OK separated=yes.",
+      "reconciled": true
+    },
+    {
+      "topic": "owned path names",
+      "cursor": "state/indexer.json + state/metrics.json",
+      "pi": "state/indexer-state.json + state/metrics-state.json",
+      "reconciled": true
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-prin-separate-state.mjs --both",
+    "capturedAt": "2026-10-09T01:32:39.352Z",
+    "brief": "parity/briefs/u-journey-prin-separate-state.md",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "fixtureApp": "parity/evidence/principles/separate-state/fixture-app",
+    "decisionLog": "parity/evidence/principles/separate-state/.audit/u-journey-prin-separate-state.tsv",
+    "notes": "PSTACK-PRIN-SEPARATE-STATE-001. Dedicated separate-state/ fixture. Concurrent workers oracle in scripts/verify.mjs. Ledgers untouched. disable-model-invocation true on package leaf copies; modelAutoInvoke false on both.",
+    "independentReprove": {
+      "cursor": "SEPARATE-OK separated=yes indexer=state/indexer.json metrics=state/metrics.json lastIndexed=idx-5 lastMetrics=met-5",
+      "pi": "SEPARATE-OK separated=yes indexer=state/indexer-state.json metrics=state/metrics-state.json lastIndexed=idx-5 lastMetrics=met-5"
+    }
+  }
+}

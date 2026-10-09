@@ -1,0 +1,268 @@
+{
+  "status": "source-reading-only",
+  "receipts": [
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/contract.md",
+      "preserved_copy": "parity/research/cursor-host/parent-inputs/contract.md",
+      "sha256": "ffb66225c10486e861d79f60415138fd79cc2fa8e6794825b2124998924c4f6f",
+      "readRanges": [
+        [
+          1,
+          220
+        ],
+        [
+          221,
+          436
+        ]
+      ],
+      "totalLines": 436,
+      "reader": "coordinator",
+      "reading": "full",
+      "retrievalTime": null,
+      "provenance": "Parent snapshot. Original network per-file timestamps not observed. Copy time not a retrieval time."
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/progress.md",
+      "preserved_copy": "parity/research/cursor-host/parent-inputs/progress.md",
+      "sha256": "d0a22a6c07a4b1fcbaba22134ad9089b47d9fab9e647f80185cea6dfb794a3c7",
+      "readRanges": [
+        [
+          1,
+          78
+        ]
+      ],
+      "totalLines": 78,
+      "reader": "coordinator",
+      "reading": "full",
+      "retrievalTime": null,
+      "provenance": "Parent snapshot. Original network per-file timestamps not observed. Copy time not a retrieval time."
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/source-lock.json",
+      "preserved_copy": "parity/research/cursor-host/parent-inputs/source-lock.json",
+      "sha256": "3f5b0d1eaa76d2102c0b55c346a8c3d525a066e06defbb1e6afdbd86ef989f74",
+      "readRanges": [
+        [
+          1,
+          71
+        ]
+      ],
+      "totalLines": 71,
+      "reader": "coordinator",
+      "reading": "full",
+      "retrievalTime": null,
+      "provenance": "Parent snapshot. Original network per-file timestamps not observed. Copy time not a retrieval time."
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/dependencies.json",
+      "preserved_copy": "parity/research/cursor-host/parent-inputs/dependencies.json",
+      "sha256": "72525f7b8821c11e3d2bb772bb80ba3a2cdb9b85413363153bf9b876a1ff8cbc",
+      "readRanges": [
+        [
+          1,
+          85
+        ]
+      ],
+      "totalLines": 85,
+      "reader": "coordinator",
+      "reading": "full",
+      "retrievalTime": null,
+      "provenance": "Parent snapshot. Original network per-file timestamps not observed. Copy time not a retrieval time."
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reviews/source-discovery.md",
+      "preserved_copy": "parity/research/cursor-host/parent-inputs/reviews/source-discovery.md",
+      "sha256": "15fb483b39f281d330b6566476c434afbcc333459c27b1ea66686a94b781478b",
+      "readRanges": [
+        [
+          1,
+          241
+        ]
+      ],
+      "totalLines": 241,
+      "reader": "coordinator",
+      "reading": "full",
+      "retrievalTime": null,
+      "provenance": "Parent snapshot. Original network per-file timestamps not observed. Copy time not a retrieval time."
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-llms.txt",
+      "preserved_copy": "parity/research/cursor-host/parent-inputs/reference/cursor-llms.txt",
+      "sha256": "ae0e4e261867db518252e75fdc1d30f354867b6a83996332460bf49505e69ca0",
+      "readRanges": [
+        [
+          1,
+          486
+        ]
+      ],
+      "totalLines": 486,
+      "reader": "coordinator",
+      "reading": "full",
+      "retrievalTime": null,
+      "provenance": "Parent snapshot. Original network per-file timestamps not observed. Copy time not a retrieval time."
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/README.md",
+      "preserved_copy": "parity/research/cursor-host/parent-inputs/reference/cursor-plugins/pstack/README.md",
+      "sha256": "7f39feae81103e18b567e1fa5075cba86425cf4697a01be66a7422ef93c2c855",
+      "readRanges": [
+        [
+          1,
+          210
+        ],
+        [
+          211,
+          267
+        ]
+      ],
+      "totalLines": 267,
+      "reader": "coordinator",
+      "reading": "full",
+      "retrievalTime": null,
+      "provenance": "Parent snapshot. Original network per-file timestamps not observed. Copy time not a retrieval time."
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/setup-pstack/SKILL.md",
+      "preserved_copy": "parity/research/cursor-host/parent-inputs/reference/cursor-plugins/pstack/skills/setup-pstack/SKILL.md",
+      "sha256": "d61b47256a18155a81c8e5ef95e3cc6569ce8c18317c35c4dd9c8015cf68cb59",
+      "readRanges": [
+        [
+          1,
+          74
+        ]
+      ],
+      "totalLines": 74,
+      "reader": "coordinator",
+      "reading": "full",
+      "retrievalTime": null,
+      "provenance": "Parent snapshot. Original network per-file timestamps not observed. Copy time not a retrieval time."
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/make-bot-ui/SKILL.md",
+      "preserved_copy": "parity/research/cursor-host/parent-inputs/reference/cursor-plugins/pstack/skills/make-bot-ui/SKILL.md",
+      "sha256": "3624c8ef16cf2e48deb2a4049e72c6962a9431c8d6c6af90e7bd7ea0375224ec",
+      "readRanges": [
+        [
+          1,
+          115
+        ]
+      ],
+      "totalLines": 115,
+      "reader": "coordinator",
+      "reading": "full",
+      "retrievalTime": null,
+      "provenance": "Parent snapshot. Original network per-file timestamps not observed. Copy time not a retrieval time."
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/recall/SKILL.md",
+      "preserved_copy": "parity/research/cursor-host/parent-inputs/reference/cursor-plugins/pstack/skills/recall/SKILL.md",
+      "sha256": "d265b0e5b6dc5b89c0407f3387d24462c988e1990a37d5359735137908128c5a",
+      "readRanges": [
+        [
+          1,
+          35
+        ]
+      ],
+      "totalLines": 35,
+      "reader": "coordinator",
+      "reading": "full",
+      "retrievalTime": null,
+      "provenance": "Parent snapshot. Original network per-file timestamps not observed. Copy time not a retrieval time."
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/playbooks/autonomous-run.md",
+      "preserved_copy": "parity/research/cursor-host/parent-inputs/reference/cursor-plugins/pstack/skills/poteto-mode/playbooks/autonomous-run.md",
+      "sha256": "15e54ad3ac92565613980772d8708de6e19cc4690bfd4bb3fb8836522407377b",
+      "readRanges": [
+        [
+          1,
+          13
+        ]
+      ],
+      "totalLines": 13,
+      "reader": "coordinator",
+      "reading": "full",
+      "retrievalTime": null,
+      "provenance": "Parent snapshot. Original network per-file timestamps not observed. Copy time not a retrieval time."
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/playbooks/babysit.md",
+      "preserved_copy": "parity/research/cursor-host/parent-inputs/reference/cursor-plugins/pstack/skills/poteto-mode/playbooks/babysit.md",
+      "sha256": "a0346c37c2313f36a863b80f66ee7b98059c2242adf74fc7b3e48abdb9ec6f5a",
+      "readRanges": [
+        [
+          1,
+          27
+        ]
+      ],
+      "totalLines": 27,
+      "reader": "coordinator",
+      "reading": "full",
+      "retrievalTime": null,
+      "provenance": "Parent snapshot. Original network per-file timestamps not observed. Copy time not a retrieval time."
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/playbooks/orchestrate.md",
+      "preserved_copy": "parity/research/cursor-host/parent-inputs/reference/cursor-plugins/pstack/skills/poteto-mode/playbooks/orchestrate.md",
+      "sha256": "d42b4375f1bd4ce23da0b575a198571a2117df7eea10c3c9fc6d92ae1053f7be",
+      "readRanges": [
+        [
+          1,
+          111
+        ]
+      ],
+      "totalLines": 111,
+      "reader": "coordinator",
+      "reading": "full",
+      "retrievalTime": null,
+      "provenance": "Parent snapshot. Original network per-file timestamps not observed. Copy time not a retrieval time."
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/figure-it-out/SKILL.md",
+      "preserved_copy": "parity/research/cursor-host/parent-inputs/reference/cursor-plugins/pstack/skills/figure-it-out/SKILL.md",
+      "sha256": "0eb9485f0e7d84fee56b5d0f0af0faf4635e3ca87c8cba3970c01293b76ecc19",
+      "readRanges": [
+        [
+          1,
+          53
+        ]
+      ],
+      "totalLines": 53,
+      "reader": "coordinator",
+      "reading": "full",
+      "retrievalTime": null,
+      "provenance": "Parent snapshot. Original network per-file timestamps not observed. Copy time not a retrieval time."
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/automations/benny/skills/setup-benny/SKILL.md",
+      "preserved_copy": "parity/research/cursor-host/parent-inputs/reference/cursor-plugins/pstack/automations/benny/skills/setup-benny/SKILL.md",
+      "sha256": "5a3cbe63360c9f6373b6cb6c79a1eaf7e0eba181bfaa1577e2e6431af3407282",
+      "readRanges": [
+        [
+          1,
+          266
+        ]
+      ],
+      "totalLines": 266,
+      "reader": "coordinator",
+      "reading": "full",
+      "retrievalTime": null,
+      "provenance": "Parent snapshot. Original network per-file timestamps not observed. Copy time not a retrieval time."
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/SKILL.md",
+      "preserved_copy": "parity/research/cursor-host/parent-inputs/reference/cursor-plugins/pstack/skills/poteto-mode/SKILL.md",
+      "sha256": "31cd02290360ce63564ef22b74d69fc6d90e62181d05a644cbed8f6c47cc9412",
+      "readRanges": [
+        [
+          1,
+          147
+        ]
+      ],
+      "totalLines": 147,
+      "reader": "coordinator",
+      "reading": "full",
+      "retrievalTime": null
+    }
+  ]
+}

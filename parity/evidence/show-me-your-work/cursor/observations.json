@@ -1,0 +1,67 @@
+{
+  "screenFinal": {
+    "showMeYourWork": true,
+    "decisionsTsv": true,
+    "working": false
+  },
+  "pty": {
+    "showMeYourWork": true,
+    "decisionsTsv": true,
+    "working": true
+  },
+  "firstTrailAt": "2026-10-08T21:14:23.036Z",
+  "firstProductAt": "2026-10-08T21:14:21.029Z",
+  "trailPaths": [
+    "decisions.tsv"
+  ],
+  "productPaths": [
+    "src/greet.js"
+  ],
+  "trail": {
+    "rel": "decisions.tsv",
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/show-me-your-work/fixture-app/decisions.tsv",
+    "header": [
+      "ts",
+      "phase",
+      "decision",
+      "why",
+      "evidence",
+      "result"
+    ],
+    "dataRowCount": 2,
+    "rows": [
+      {
+        "ts": "2026-10-08T21:14:22Z",
+        "phase": "phase-1",
+        "decision": "changed greet() to return hello",
+        "why": "user asked for hello instead of hi",
+        "evidence": "src/greet.js:2",
+        "result": "greet returns hello"
+      },
+      {
+        "ts": "2026-10-08T21:14:22Z",
+        "phase": "phase-2",
+        "decision": "added farewell() that returns bye",
+        "why": "user asked for farewell returning bye",
+        "evidence": "src/greet.js:5",
+        "result": "farewell returns bye"
+      }
+    ]
+  },
+  "score": {
+    "contractHeld": true,
+    "reason": "ok",
+    "hasPrescribedColumns": true,
+    "dataRowCount": 2,
+    "evidencePointersOk": true,
+    "missingCols": [],
+    "proseEvidence": []
+  },
+  "showMeYourWorkSkill": true,
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/show-me-your-work/fixture-out/cursor/done.txt",
+    "line": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/show-me-your-work/fixture-app/decisions.tsv 2"
+  },
+  "pollSamples": 132
+}

@@ -1,0 +1,79 @@
+{
+  "skillActivated": true,
+  "screenScore": {
+    "reflectSkill": true,
+    "skipped": false,
+    "judgment": false,
+    "tooling": true,
+    "divergent": false,
+    "lensHits": 1,
+    "spawnSignal": true,
+    "synthesizer": true,
+    "multiAgentReview": true,
+    "working": false
+  },
+  "ptyScore": {
+    "reflectSkill": true,
+    "skipped": true,
+    "judgment": true,
+    "tooling": true,
+    "divergent": true,
+    "lensHits": 3,
+    "spawnSignal": true,
+    "synthesizer": true,
+    "multiAgentReview": true,
+    "working": true
+  },
+  "sessionScore": {
+    "reflectSkill": true,
+    "skipped": true,
+    "judgment": true,
+    "tooling": true,
+    "divergent": true,
+    "lensHits": 3,
+    "spawnSignal": true,
+    "synthesizer": true,
+    "multiAgentReview": true,
+    "working": false
+  },
+  "bestScore": {
+    "reflectSkill": true,
+    "skipped": true,
+    "judgment": true,
+    "tooling": true,
+    "divergent": true,
+    "lensHits": 3,
+    "spawnSignal": true,
+    "synthesizer": true,
+    "multiAgentReview": true,
+    "working": false
+  },
+  "multiAgentReview": true,
+  "skipped": true,
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/reflect/fixture-out/pi/done.txt",
+    "line": "reflect=yes"
+  },
+  "clampDigest": "71c6d46fecc28ecf04479d24693ed0ddcc86de044d9ccb7c87181489f92b8203",
+  "notesDigest": "49c8e61bb87c822c80c665ca03c65829a2eaaf69c82f043fff0dc353ec063528",
+  "session": {
+    "sessionPath": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-reflect-fixture-app--/2026-10-08T21-31-04-372Z_01a11d6d-4b34-7337-8586-0bd48da0856b.jsonl",
+    "skillInjected": true,
+    "taskCount": 4,
+    "toolOrder": [
+      "bash",
+      "bash",
+      "bash",
+      "bash",
+      "task",
+      "task",
+      "task",
+      "read_agent",
+      "read_agent",
+      "read_agent",
+      "task",
+      "bash"
+    ]
+  }
+}

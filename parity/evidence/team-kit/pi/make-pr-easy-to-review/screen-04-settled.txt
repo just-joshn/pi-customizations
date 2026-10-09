@@ -1,0 +1,40 @@
+ d notes placeholder for review                                                                                        │
+ journey","oid":"6b9a3245b063682b221f8b6dc6cbae247e53f5a3"}],"files":[{"path":"notes.md","additions":3,"deletions":0," │
+ changeType":"ADDED"}],"headRefName":"fixture/pr-comments-seed","state":"OPEN","title":"Fixture PR for team-kit        │
+ journeys"}                                                                                                            │
+                                                                                                                       │
+ Took 0.4s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ The body already contains the TL;DR and marker and matches the diff. I'll write the notes and status.                 │
+                                                                                                                       │
+                                                                                                                       │
+ $                                                                                                                     │
+ d=/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/make-pr-easy-to-rev │
+ iew; mkdir -p $d                                                                                                      │
+ gh pr view https://github.com/just-joshn/team-kit-gh-fixture/pull/1 --json body -q .body > $d/reviewer-notes.md       │
+ grep -c FIXTURE_REVIEW_GUIDANCE $d/reviewer-notes.md                                                                  │
+ echo "STATUS=verified reason=PR body has TL;DR and marker; notes written" > $d/done.txt (timeout 60s)                 │
+                                                                                                                       │
+ 2                                                                                                                     ┃
+                                                                                                                       ┃
+ Took 0.5s                                                                                                             ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ Thinking...                                                                                                           ┃
+                                                                                                                       ┃
+ PR #1 already had a TL;DR and the FIXTURE_REVIEW_GUIDANCE marker, and both match the diff. The diff is one commit     ┃
+ that adds notes.md (3 lines). I didn't edit the PR body, rewrite history or force-push.                               ┃
+                                                                                                                       ┃
+ - Notes: reviewer-notes.md is a copy of the live PR body, so it carries the same guidance.                            ┃
+ - Status: done.txt reads STATUS=verified reason=PR body has TL;DR and marker; notes written.                          ┃
+                                                                                                                       ┃
+ Both files are in                                                                                                     ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/make-pr-easy-to-revie ┃
+ w.                                                                                                                    ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh (fixture/pr-comments-seed)
+↑8 ↓710 R61k W19k CH98.8% $0.094 (sub) 2.7%/1.0M (auto)                 (claude-subscription) claude-sonnet-5-5 • medium

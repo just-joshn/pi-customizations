@@ -1,0 +1,49 @@
+{
+  "skillActivated": true,
+  "screenScore": {
+    "hasIntent": false,
+    "hasReviewers": true,
+    "hasActOn": true,
+    "hasConsider": true,
+    "hasNoted": true,
+    "hasDismissed": true,
+    "hasAgreement": true,
+    "sectionHits": 6,
+    "findingsReported": true
+  },
+  "ptyScore": {
+    "hasIntent": true,
+    "hasReviewers": true,
+    "hasActOn": true,
+    "hasConsider": true,
+    "hasNoted": true,
+    "hasDismissed": true,
+    "hasAgreement": true,
+    "sectionHits": 7,
+    "findingsReported": true
+  },
+  "sessionScore": null,
+  "bestScore": {
+    "hasIntent": false,
+    "hasReviewers": true,
+    "hasActOn": true,
+    "hasConsider": true,
+    "hasNoted": true,
+    "hasDismissed": true,
+    "hasAgreement": true,
+    "sectionHits": 6,
+    "findingsReported": true
+  },
+  "findingsReported": true,
+  "productUnchanged": true,
+  "autoApplied": false,
+  "beforeDigest": "d79612f5fcc31ae51500259caa1f1ec988db986622f38620f6e496387f47aae7",
+  "afterDigest": "d79612f5fcc31ae51500259caa1f1ec988db986622f38620f6e496387f47aae7",
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/interrogate/fixture-out/cursor/done.txt",
+    "line": "findings=yes"
+  },
+  "session": null,
+  "reviewerSpawnSignal": true
+}

@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "attemptId": "8a1e29ea-faf8-4084-8a1f-2d4591c208b5",
+  "side": "cursor",
+  "scenarioRef": "discovery:--help",
+  "fixtureRef": null,
+  "executable": {
+    "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+    "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+  },
+  "artifacts": [
+    {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    }
+  ],
+  "launch": {
+    "argv": [
+      "/Users/josh-desktop/.local/bin/cursor-agent",
+      "--help"
+    ],
+    "cwd": "/tmp",
+    "env": {
+      "TERM": "xterm-256color",
+      "HOME": "/Users/josh-desktop",
+      "PATH": "/Users/josh-desktop/.grok/bin:/Users/josh-desktop/.local/share/mise/installs/node/lts/bin:/Users/josh-desktop/.local/share/mise/installs/java/temurin-25/bin:/Users/josh-desktop/.cargo/bin:/Users/josh-desktop/.local/share/mise/installs/python/latest/bin:/Users/josh-desktop/.local/share/mise/installs/pnpm/latest:/Users/josh-desktop/.local/share/mise/installs/bun/latest/bin:/Users/josh-desktop/.local/share/mise/shims:/opt/homebrew/opt/uutils-findutils/libexec/uubin:/opt/homebrew/opt/uutils-diffutils/libexec/uubin:/opt/homebrew/opt/uutils-coreutils/libexec/uubin:/Users/josh-desktop/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Applications/Ghostty.app/Contents/MacOS:/Users/josh-desktop/Library/Android/sdk/platform-tools:/Users/josh-desktop/Library/Android/sdk/emulator:/Users/josh-desktop/Library/Android/sdk/cmdline-tools/latest/bin:/Users/josh-desktop/.orbstack/bin:/Users/josh-desktop/.local/share/cursor-agent/versions/2026.10.01-e373342"
+    }
+  },
+  "geometry": {
+    "rows": 40,
+    "cols": 120
+  },
+  "observedEnv": {
+    "platform": "darwin",
+    "node": "v24.21.0",
+    "TERM": "xterm-256color"
+  }
+}

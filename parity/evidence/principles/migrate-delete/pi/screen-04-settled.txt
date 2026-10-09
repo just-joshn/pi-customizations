@@ -1,0 +1,40 @@
+                                                                                                                       │
+ Took 0.1s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+                                                                                                                       │
+ $ echo "verified=yes" >                                                                                               │
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/migrate-delete/fixture-out/pi/done │
+ .txt; cat evidence/verify-out.txt (timeout 10s)                                                                       │
+                                                                                                                       │
+ MIGRATE-OK greet="hello, WORLD" banner="BANNER:TEAM" files=banner.js,format.js,greet.js                               │
+                                                                                                                       │
+ Took 0.0s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ node scripts/verify.mjs now prints MIGRATE-OK, and I wrote verified=yes to fixture-out/pi/done.txt.                   │
+                                                                                                                       │
+ I added src/format.js with formatName, moved src/greet.js and src/banner.js onto it, and deleted src/legacyFormat.js. │
+ There is no shim. A grep for "legacy" in src, README.md and package.json finds only a prose mention in README.md,     │
+ which describes the migration and I left alone.                                                                       │
+                                                                                                                       │
+ The run output on disk is greet="hello, WORLD" banner="BANNER:TEAM" files=banner.js,format.js,greet.js.               │
+                                                                                                                       │
+ I used the refactoring playbook, matching the playbook's own steps. I skipped the characterization-test step because  │
+ verify.mjs already pins the behavior.                                                                                 ┃
+                                                                                                                       ┃
+ Two principles shaped the work, and I read both leaf skills first:                                                    ┃
+ - principle-migrate-callers-then-delete-legacy-apis: I migrated both callers and removed the old module in one        ┃
+   change, with no adapter left behind.                                                                                ┃
+ - principle-prove-it-works: I judged the result by running the real script and reading evidence/verify-out.txt, not   ┃
+   by assuming it compiles.                                                                                            ┃
+
+[>] Pin the behavior contract first. Run the **how** skill over the affected subsystem to learn the contract, then wr...
+[ ] Move in small behavior-preserving steps, each keeping the pin green. For API reshapes, migrate every caller and d...
+[ ] Prove behavior is unchanged on the real artifact, not "it compiles" (**principle-prove-it-works**). (pending)
+[ ] Write verified=yes|no to fixture-out/pi/done.txt (pending)
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/principles/migrate-delete/fixture-app (refactor/pi-pstack-parit...
+↑18 ↓2.1k R254k W30k CH99.5% $0.194 (sub) 3.9%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium

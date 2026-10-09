@@ -1,0 +1,6 @@
+[doctor] Checking environment and Pi CLI...
+✓ Node.js 24.21.0 (>= 22.19.0)
+✓ Pi CLI executable on PATH (1.1.0)
+✓ Workspace root verified at /Users/josh-desktop/src/personal/pi-pstack-parity-again
+✓ Pi RPC initialized with root package (5 commands available)
+[doctor] Doctor check passed cleanly.

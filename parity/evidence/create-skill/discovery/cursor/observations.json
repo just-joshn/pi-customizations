@@ -1,0 +1,52 @@
+{
+  "screenFinal": {
+    "createSkillMention": true,
+    "skillPathMention": true,
+    "markerMention": true,
+    "askMention": true,
+    "envBlocked": false,
+    "working": false
+  },
+  "pty": {
+    "createSkillMention": true,
+    "skillPathMention": true,
+    "markerMention": true,
+    "askMention": true,
+    "envBlocked": false,
+    "working": true
+  },
+  "artifact": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-out/discovery/cursor/requirements.md",
+    "text": "# Phase 1 Discovery — create-skill probe\n\n## Purpose\n\nTeach the agent to echo `CREATE-SKILL-PROBE-MARKER` when the user says \"run the create-skill probe\".\n\n## Location\n\nProject skill named `parity-create-skill-probe` (repository-scoped, not personal).\n\n## Triggers\n\n- \"run the create-skill probe\"\n- \"parity-create-skill-probe\"\n- \"create-skill probe\"\n\n## Constraints\n\n- SKILL.md under 80 lines\n- No scripts\n- Body must include the exact marker `CREATE-SKILL-PROBE-MARKER` on its own line\n\n## Patterns\n\nFollow the create-skill `SKILL.md` structure (YAML frontmatter with `name` / `description`, then markdown body with clear instructions).\n",
+    "byteLength": 640,
+    "sha256": "sha256:e9f92de31d421cc37a3b816acd4e4800e6dc2863fde6ecca0d861980451a693e",
+    "ok": true
+  },
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-out/discovery/cursor/done.txt",
+    "line": "STATUS=discovered",
+    "status": "discovered"
+  },
+  "skill": {
+    "exists": false,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-app/.cursor/skills/parity-create-skill-probe/SKILL.md",
+    "nameOk": false,
+    "hasMarker": false,
+    "byteLength": 0,
+    "sha256": null,
+    "ok": false
+  },
+  "discoveryAnswersSent": true,
+  "verifyTriggerSent": false,
+  "score": {
+    "artifactOk": true,
+    "createPath": true,
+    "envBlocked": false,
+    "doneStatus": "discovered",
+    "wroteSkill": false,
+    "phaseClosed": true,
+    "honestBlocker": false
+  }
+}

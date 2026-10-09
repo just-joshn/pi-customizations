@@ -5,7 +5,6 @@ import { join } from 'node:path';
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { expect, test } from 'vitest';
 import pstack from '../src/index.ts';
-import { pick } from '../src/picker.ts';
 import { registerQuestions } from '../src/questions.ts';
 import { registerShells } from '../src/shells.ts';
 
@@ -227,52 +226,6 @@ test('pstack index before_agent_start with enabled and todos', async () => {
 
   expect(event.systemPromptOptions.sections['pstack_mode']).toMatch(/References are relative to/);
   expect(event.systemPromptOptions.sections['pstack_todos']).toMatch(/Step 1/);
-});
-
-test('pick filters the TUI list before resolving the selected choice', async () => {
-  const ctx = {
-    mode: 'tui',
-    ui: {
-      custom: (factory: (...args: unknown[]) => unknown) =>
-        new Promise((resolve) => {
-          const theme = {
-            fg: (_role: string, text: string) => `[${text}]`,
-            bold: (text: string) => `*${text}*`,
-          };
-          const widget = factory({ requestRender() {} }, theme, undefined, resolve) as { render: (w: number) => string[]; handleInput: (k: string) => void };
-          expect(widget.render(80)).toContainEqual('[→ alpha]');
-          widget.handleInput('b');
-          const filtered = widget.render(80);
-          expect(filtered).toContainEqual('[→ beta]');
-          expect(filtered.some((line: string) => line.includes('alpha'))).toBe(false);
-          widget.handleInput('\r');
-        }),
-    },
-  } as unknown as ExtensionContext;
-
-  const result = await pick(ctx, 'Select', ['alpha', 'beta']);
-  expect(result).toBe('beta');
-});
-
-test('pick resolves undefined when the TUI list is cancelled', async () => {
-  const ctx = {
-    mode: 'tui',
-    ui: {
-      custom: (factory: (...args: unknown[]) => unknown) =>
-        new Promise((resolve) => {
-          const theme = {
-            fg: (_role: string, text: string) => `[${text}]`,
-            bold: (text: string) => `*${text}*`,
-          };
-          const widget = factory({ requestRender() {} }, theme, undefined, resolve) as { render: (w: number) => string[]; handleInput: (k: string) => void };
-          expect(widget.render(80).at(-1)).toBe('[type to filter  ↑↓ navigate  enter select  escape cancel]');
-          widget.handleInput('\x1b');
-        }),
-    },
-  } as unknown as ExtensionContext;
-
-  const result = await pick(ctx, 'Select', ['alpha', 'beta']);
-  expect(result).toBeUndefined();
 });
 
 test('a multi-select question offers the typed answer only once', async () => {

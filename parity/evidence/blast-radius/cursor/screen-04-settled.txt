@@ -1,0 +1,39 @@
+      return entry.createdAt + entry.ttl <= now;
+
+  Proof reached step 4. Writing the required done line.
+
+  $ printf '%s\n' 'PROOF=step4 certainty=4 fact=ttl0-immortal-sessions-purged' >
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/blast-radius/fixture-out/cursor/done.txt
+    && cat
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/blast-radius/fixture-out/cursor/done.txt
+    198ms
+    PROOF=step4 certainty=4 fact=ttl0-immortal-sessions-purged
+
+  Unsafe. CHANGE.diff flips ttl === 0 from immortal to dead; retainLive still assumes immortal and will purge those
+  sessions.
+
+  What it does. isExpired changes from ttl === 0 → false to ttl === 0 → true. purge / retainLive then drop every
+  ttl: 0 entry.
+
+  The one fact (certainty 4). Callers treat ttl: 0 as immortal (sessionStore.js:3 → purge). Under the candidate
+  ttl.js, retainLive([{ttl:0,...}]) returns [].
+
+  Proof (prove-unsafe.mjs against real modules):
+  • BEFORE: retainLive keeps {id:'immortal', ttl:0}
+  • AFTER applying diff semantics: same call returns []
+  • ttl.js restored afterward
+
+  Risks. Immortal sessions deleted before persist — certain if any ttl: 0 sessions exist; data loss.
+
+  Cleared. Positive-ttl expiry math unchanged aside from the 0 branch.
+
+  Before merge. Reject the contract flip, or update every ttl: 0 immortal caller first.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 11.6% · 1 file edited                                                                          Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/blast-radius/fixture-app · refactor/pi-pstack-parity-again

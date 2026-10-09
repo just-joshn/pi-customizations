@@ -1,0 +1,23 @@
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Use /config to customize Cursor settings and behavior.
+
+                                                                                                                       
+  [Pasted text #1 +1 lines]                                                                                            
+                                                                                                                       
+
+  I'll read the poteto-mode skill first, then look at the fixture.
+
+    Using poteto-mode
+
+ ⠘⠣ Reading  3 tokens
+
+                                                                                                                       
+  → Add a follow-up                                                                                     ctrl+c to stop 
+                                                                                                                       
+
+  Claude Opus 5.5 300K Medium                                                                           Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/principles/build-lever/fixture-app · 
+  refactor/pi-pstack-parity-again

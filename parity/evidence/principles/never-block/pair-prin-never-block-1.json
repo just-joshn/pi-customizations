@@ -1,0 +1,130 @@
+{
+  "schema": 1,
+  "pairId": "prin-never-block-1",
+  "scenarioRef": "prin-never-block",
+  "journeyFamily": "journey-family-principles",
+  "requirementIds": [
+    "PSTACK-PRIN-NEVER-BLOCK-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "/poteto-mode Implement greet() in src/greet.js so that node scripts/verify.mjs prints GREET-OK. NOTES.md allows either plain-text or JSON for the greeting. Pick a format, implement greet(), and write your choice as one line (plain or json) to out/choice.txt. For any poteto-mode principle you apply before declaring done, read that principle's leaf SKILL.md in full first (not only the poteto-mode Principles index). Work only inside this fixture cwd. Do not edit ledgers, parity/, or files outside this cwd except the named done path. When verify passes, write exactly one line to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/never-block/fixture-out/<side>/done.txt as verified=yes|no, then stop.",
+  "steps": [
+    {
+      "wait": "ready screen (Tip: on Cursor; Pi chat ready without Trust dialog)"
+    },
+    {
+      "send": "/poteto-mode implement greet(); pick plain|json; leaf SKILL.md for applied principles; verify; write verified=yes|no"
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "wait": "on-disk evidence/verify-out.txt with GREET-OK"
+    },
+    {
+      "wait": "done marker verified=yes"
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "c38eb9b1-9ac3-4d16-a43d-009c3c9d7eb8",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/never-block/cursor/c38eb9b1-9ac3-4d16-a43d-009c3c9d7eb8",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "transcript": "/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/agent-transcripts/051d0c3f-7305-4965-b857-c4e66509bb7f/051d0c3f-7305-4965-b857-c4e66509bb7f.jsonl",
+    "proofCopyPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/never-block/fixture-out/cursor/evidence/verify-out.txt",
+    "observations": {
+      "potetoMode": true,
+      "leafSkillRead": true,
+      "leafSkillPath": "/Users/josh-desktop/.claude/skills/principle-never-block-on-the-human/SKILL.md",
+      "proceededWithoutAsk": true,
+      "askedPermission": false,
+      "irreversibleAttempted": false,
+      "irreversibleGuardHeld": true,
+      "keptVerifyOk": true,
+      "verifyLine": "GREET-OK format=plain choice=plain",
+      "choice": "plain",
+      "productOk": true,
+      "verifiedDone": true,
+      "modelAutoInvoke": false,
+      "contractHeld": true,
+      "ranVerifyScript": true,
+      "modelChrome": "Auto",
+      "oracleNote": "Initial capture flagged askedPermission from explanatory 'which one' prose; rescored with tool-ask-authoritative oracle (rescore-results.json)."
+    }
+  },
+  "pi": {
+    "attemptId": "d0a66bac-7951-4adb-a7d5-95b46f0d4e15",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/never-block/pi/d0a66bac-7951-4adb-a7d5-95b46f0d4e15",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-principles-never-block-fixture-app--/2026-10-09T00-34-05-437Z_01a11e14-d9fc-72d4-9be2-b22c1a9e4fe3.jsonl",
+    "proofCopyPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/never-block/fixture-out/pi/evidence/verify-out.txt",
+    "observations": {
+      "potetoMode": true,
+      "leafSkillRead": true,
+      "leafSkillPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-never-block-on-the-human/SKILL.md",
+      "proceededWithoutAsk": true,
+      "askedPermission": false,
+      "irreversibleAttempted": false,
+      "irreversibleGuardHeld": true,
+      "keptVerifyOk": true,
+      "verifyLine": "GREET-OK format=plain choice=plain",
+      "choice": "plain",
+      "productOk": true,
+      "verifiedDone": true,
+      "modelAutoInvoke": false,
+      "contractHeld": true,
+      "ranVerifyScript": true,
+      "modelChrome": "(claude-subscription) claude-sonnet-5-5 \u2022 medium",
+      "oracleNote": "AskQuestion strings in session are tool-catalog/docs, not tool_call invocations. Same rescore as Cursor."
+    }
+  },
+  "deltas": [
+    {
+      "topic": "leaf skill path",
+      "cursor": "Read ~/.claude/skills/principle-never-block-on-the-human/SKILL.md",
+      "pi": "Read extensions/pi-pstack/skills/principle-never-block-on-the-human/SKILL.md",
+      "reconciled": true
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "Auto",
+      "pi": "claude-sonnet-5-5 medium via claude-subscription",
+      "reconciled": false
+    },
+    {
+      "topic": "never-block outcome",
+      "cursor": "contractHeld after oracle tighten. Leaf Read + GREET-OK + no AskQuestion tool.",
+      "pi": "contractHeld after oracle tighten. Leaf Read + GREET-OK + no AskQuestion tool_call.",
+      "reconciled": true
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-prin-never-block.mjs --both; oracle ask-detection tightened and observations rescored (rescore-results.json)",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "fixtureApp": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/never-block/fixture-app",
+    "decisionLog": "parity/evidence/principles/never-block/.audit/u-journey-prin-never-block.tsv",
+    "notes": "PSTACK-PRIN-NEVER-BLOCK-001. Dedicated never-block/ fixture. Irreversible confirmation not exercised (vacuous guard). Ledgers untouched. disable-model-invocation true on package leaf copies; modelAutoInvoke false on both."
+  }
+}

@@ -1,0 +1,40 @@
+[Skill conflicts]                                                                                                      ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ [skill] arena (ctrl+o to expand)                                                                                      ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ Use the arena runners line in pstack-models.mdc as the sole source of fan-out count. One subagent per list entry,     ┃
+ including alias entries. Do not invent a different N and do not collapse duplicate aliases. Bake off structurally     ┃
+ distinct pure JS clamp(n, lo, hi) helpers that return a number. Same task prompt for every candidate. Work only       ┃
+ inside this fixture cwd. Do not edit ledgers, parity/, or files outside this cwd except the named out paths. Each     ┃
+ candidate writes under                                                                                                ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-panel-fanout/fixture-out/pi/candidates/ ┃
+ cN/ (clamp.js plus rationale.md). After runners finish, write                                                         ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-panel-fanout/fixture-out/pi/fanout-note ┃
+ .md naming the arena runners list you read, its length, and how many runners you spawned. Then write exactly one line ┃
+ to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-panel-fanout/fixture-out/pi/done.txt ┃
+ as listLength=N spawnCount=N panelDriven=yes|no, then stop.                                                           ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ TodoWrite 0 items                                                                                                     ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+── ⠦ Working ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/setup-panel-fanout/fixture-app (refactor/pi-pstack-parity-again)
+$0.000 (sub) 1.7%/1.0M (auto)                                           (claude-subscription) claude-sonnet-5-5 • medium

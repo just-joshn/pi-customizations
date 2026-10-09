@@ -1,0 +1,100 @@
+{
+  "attemptId": "26d6bb8c-6053-4fa8-b219-be4d44f60be8",
+  "method": "system-events-click",
+  "results": [
+    {
+      "step": "se-click-center",
+      "xy": [
+        889.0,
+        403.0
+      ],
+      "code": 0,
+      "out": "combo box Add Trigger of group 1 of group 3 of group 2 of group 2 of UI element Automations of scroll area 1 of group 1 of group 2 of group 1 of group 1 of group 1 of group Automations - Google Chrome"
+    },
+    {
+      "after": "center",
+      "markers": {
+        "webhook": false,
+        "schedule": false,
+        "cron": false,
+        "slack": false,
+        "secret": false,
+        "every day": false,
+        "on a schedule": false,
+        "inspect": false,
+        "view page source": false
+      },
+      "interesting": []
+    },
+    {
+      "step": "se-click-left",
+      "xy": [
+        501,
+        403.0
+      ],
+      "code": 0,
+      "out": "combo box Add Trigger of group 1 of group 3 of group 2 of group 2 of UI element Automations of scroll area 1 of group 1 of group 2 of group 1 of group 1 of group 1 of group Automations - Google Chrome"
+    },
+    {
+      "after": "left",
+      "markers": {
+        "webhook": false,
+        "schedule": false,
+        "cron": false,
+        "slack": false,
+        "secret": false,
+        "every day": false,
+        "on a schedule": false,
+        "inspect": false,
+        "view page source": false
+      },
+      "interesting": []
+    },
+    {
+      "step": "se-tools",
+      "xy": [
+        889.0,
+        790.0
+      ],
+      "code": 0,
+      "out": "pop up button Add Tool or MCP of group 2 of group 3 of group 3 of group 2 of group 2 of UI element Automations of scroll area 1 of group 1 of group 2 of group 1 of group 1 of group 1 of group Automati"
+    },
+    {
+      "after": "tools",
+      "markers": {
+        "webhook": false,
+        "schedule": false,
+        "cron": false,
+        "slack": false,
+        "secret": false,
+        "every day": false,
+        "on a schedule": false,
+        "inspect": false,
+        "view page source": false
+      },
+      "interesting": []
+    },
+    {
+      "after": "tools-secret",
+      "markers": {
+        "webhook": false,
+        "schedule": false,
+        "cron": false,
+        "slack": false,
+        "secret": false,
+        "every day": false,
+        "on a schedule": false,
+        "inspect": false,
+        "view page source": false
+      },
+      "interesting": []
+    }
+  ],
+  "webhookSeenAny": false,
+  "scheduleSeenAny": false,
+  "secretSeenAny": false,
+  "savePressed": false,
+  "activatePressed": false,
+  "updateStateInvented": false,
+  "evidenceDir": "parity/evidence/make-bot-ui/automations-editor/26d6bb8c-6053-4fa8-b219-be4d44f60be8"
+}

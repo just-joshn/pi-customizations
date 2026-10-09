@@ -1,0 +1,35 @@
+
+  For panel roles (arena runners, architect runners, interrogate reviewers, arena cross-judge pool), you can pass a
+  comma-separated list; list length sets fan-out.
+
+                                                                                                                       
+  unlimited — max reasoningaccept                                                                                      
+                                                                                                                       
+
+  Writing the accepted mapping to the rule file.
+
+    Edited pstack-models.mdc +1 -1
+
+    ▎  ---
+    ▎  # pstack model configuration. One line per role. Delete a line to fall back to the skill default.
+    ▎  # `inherit-parent` or `auto` as a value: the role runs on the parent chat model (omit Task `model`). Alias
+    ▎  entries  ...
+    ▎- # budget: small (medium)
+    ▎+ # budget: unlimited (max)
+    ▎  feature, refactoring: inherit-parent
+    ▎  bug-fix: inherit-parent
+    ▎  perf-issue: inherit-parent
+
+    Globbed 2 globs
+    Globbed "**/verify-*/SKILL.md" in ...osh-desktop/src/personal/pi-pstack-parity-again
+    Globbed "**/create-verification-skill/SKILL.md" in ...osh-desktop/src/personal/pi-pstack-parity-again
+
+ ⠠⠛ Globbing  428 tokens
+    Tip: Use /config to customize Cursor settings and behavior.
+
+                                                                                                                       
+  → unlimited — max reasoningaccept                                                                                    
+                                                                                                                       
+
+  Auto · 9.1% · 1 file edited                                                                           Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run · refactor/pi-pstack-parity-again

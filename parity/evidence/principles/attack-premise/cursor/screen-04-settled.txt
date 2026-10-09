@@ -1,0 +1,39 @@
+  assumed alpha was undersized. The census shows alpha holds the imbalance on every run (alpha=100 beta=0 gamma=0),
+  so the skew is assignment, not capacity.
+
+  Failing repro.
+
+     1 │PREMISE-FAIL premiseOk=false censusScript=false censusRanOk=false noCompensatory=true ...
+     2 │exit:1
+
+  Passing repro.
+
+     1 │PREMISE-OK premise=yes census=yes files=actors.js,assign.js,run.js
+     2 │exit:0
+
+  Artifacts. evidence/premise.txt records the shared premise. scripts/census.mjs is the rerunnable census. No
+  compensatory capacity.js / buffer.js / alpha-queue files. done.txt is verified=yes.
+
+  Principles. Attack the Premise stopped a third compensatory patch and required the premise plus census first.
+  Build the Lever made the census a script, not a hand count. Fix Root Causes traced the skew to pickLeader always
+  returning alpha, not undersizing. Laziness Protocol kept the diff to those two artifacts. Prove It Works re-ran
+  node scripts/verify.mjs on disk.
+
+  Playbook steps.
+  1. done
+  2. done (how/why fan-out skipped: fixture already documents both failed fixes; assign.js is four lines; runtime
+     census is the split)
+  3. done (architect skipped: no function-boundary redesign; gate wants premise and census only)
+  4. done
+  5. skip: user did not ask for commits; fixture-only cwd
+  6. skip: fixture-only; no PR
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 17% · 2 files edited                                                                           Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/principles/attack-premise/fixture-app · 
+  refactor/pi-pstack-parity-again

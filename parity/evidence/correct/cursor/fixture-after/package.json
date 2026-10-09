@@ -1,0 +1,9 @@
+{
+  "name": "store-boundary-fixture",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint:store-boundary": "node scripts/check-store-boundary.js",
+    "test": "node --test test/*.test.js"
+  }
+}

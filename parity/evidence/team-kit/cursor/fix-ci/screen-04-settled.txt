@@ -1,0 +1,39 @@
+    completed   failure fixture fail-ci fix-ci cursor   ci  fixture/fail-ci-cursor-mv0el7ba pull_request    378792660…
+    completed   failure fixture: break ci for fix-ci cursor ci  fixture/fail-ci-cursor-mv0el7ba push    37879262662 8…
+
+  Both test checks are green. Writing final artifacts.
+
+    Edited ci-fix-notes.md +7 -2
+
+    ▎    9   ## Iteration 1
+    ▎   10   - Fix: `hello.js` `VALUE: 0` → `VALUE: 7`
+    ▎   11   - Local: `npm test` → `ok fixture-alpha`
+    ▎   12 - - Push: `d6b2fef` on `fixture/fail-ci-cursor-mv0el7ba`
+    ▎   13 - - Re-check: pending final PR check green confirmation
+    ▎   12 + - Push: `d6b2fef` on `fixture/fail-ci-cursor-mv0el7ba` (no force-push)
+    ▎   13 + - Re-check (`gh pr checks`): both `test` jobs SUCCESS
+    ▎   14 +   - https://github.com/just-joshn/team-kit-gh-fixture/actions/runs/37879313360/job/113655075327
+    ▎   15 +   - https://github.com/just-joshn/team-kit-gh-fixture/actions/runs/37879310558/job/113655067794
+    ▎   16 + 
+    ▎   17 + ## Final
+    ▎   18 + - PR CI green for workflow job `test`.
+
+    Edited done.txt +1
+
+    ▎    1 + STATUS=verified reason=test job green after VALUE=7 fix
+
+  CI is green on PR #7.
+
+  Failing job was test: hello.js had VALUE: 0, suite expected 7. One-line fix pushed as d6b2fef; both test checks
+  now SUCCESS.
+
+  Artifacts: ci-fix-notes.md (includes FIXTURE_CI_FIX + job name) and done.txt → STATUS=verified.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 10.9% · 3 files edited                                                                         Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh · fixture/fail-ci-cursor-mv0el7ba · #7

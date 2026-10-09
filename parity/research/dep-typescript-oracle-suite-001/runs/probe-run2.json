@@ -1,0 +1,16 @@
+{
+  "capturedAt": "2026-10-09T03:03:05Z",
+  "verdict": "closed-with-oracle",
+  "removeUnresolvedReference": true,
+  "pinOk": true,
+  "testApiExit": 0,
+  "tests": 459,
+  "pass": 459,
+  "fail": 0,
+  "builtMatchesPublishedCount": 136,
+  "catalogVsPublishedDriftCount": 0,
+  "dispositionSha256": "5317bef7fe3e6425fdc4ce6d144b8034496941823aa36764998ecae67e920876",
+  "mergePayloadSha256": "05dfd342d3aa119e7aade8d65df24f9bddefc24707c6428df48cec78a26590c1",
+  "testApiLogSha256": "c55c11ef3b1602c827ee436e17368612c17fd0a7436157e76960178c5896e20b",
+  "astnavSkipped": false
+}

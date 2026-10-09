@@ -1,0 +1,40 @@
+                                                                                                                       │
+ Took 0.0s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ node scripts/verify.mjs now prints REDESIGN-OK, and evidence/verify-out.txt contains the same line. I wrote           │
+ verified=yes to done.txt.                                                                                             │
+                                                                                                                       │
+ What changed. Every product price is now { amount, currency }.                                                        │
+ - createProduct rejects a bare number, and rejects any currency that isn't a three-letter uppercase code.             │
+ - formatPrice takes the same object and returns e.g. "12.00 EUR". The old $ formatting is gone.                       │
+ - createPrice is a new exported function in src/product.js. It validates a price object and both of the above call    │
+   it.                                                                                                                 │
+ - Docs. docs/price.md and README.md describe and show the new shape. Neither mentions an implied currency any more.   │
+                                                                                                                       │
+ Principle applied. I read principle-redesign-from-first-principles in full. It's why I made the currency part of the  │
+ core shape and updated every reference, rather than adding an optional currency field next to a numeric price.        │
+                                                                                                                       │
+ Playbook steps skipped. I skipped how, architect, interrogate and the PR step because the fixture is tiny and the     │
+ design was already specified. I wrote the code myself rather than delegating it, since nothing else depended on it.   │
+ Nothing is committed.                                                                                                 │
+                                                                                                                       │
+ Caveats.                                                                                                              ┃
+ - No $ formatting. USD now prints as 12.00 USD. Say if you want symbols for known currencies.                         ┃
+ - Currency code is format-checked only. It must match three uppercase letters, but it isn't checked against the real  ┃
+   ISO 4217 list.                                                                                                      ┃
+
+[>] `how` over the affected subsystem. skip: tiny fixture, read directly (in_progress)
+[ ] `architect` for parallel design exploration. skip: single shape, user specified the design (pending)
+[ ] Blocking first steps. n/a: read files first (pending)
+[ ] Independent workstreams. n/a: few small files (pending)
+[ ] Shared mutable state. n/a: single owner (pending)
+[ ] Smallest safe decomposition. one owner, tiny diff (pending)
+[ ] Delegate code-writing; owning diff directly (single owner, review separation via verify) (pending)
+[ ] Verify on the matching surface: node scripts/verify.mjs prints REDESIGN-OK (pending)
+... 4 more
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/principles/redesign-first/fixture-app (refactor/pi-pstack-parit...
+↑16 ↓2.9k R219k W30k CH99.6% $0.193 (sub) 3.9%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium

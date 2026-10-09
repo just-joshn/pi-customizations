@@ -1,0 +1,19 @@
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Use subagents to parallelize work and preserve context.
+
+
+
+                                                                                                                       
+  → soft-delete if we add it. This is an ordinary chat turn with no slash-skill invocation and no skill handoff. Do    
+    not edit src/, ledgers, or parity/ outside this cwd except the named out paths. Write a short overview to          
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/disable-model/fixture-out/cursor/answer.m  
+    d. Then write exactly one line to                                                                                  
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/disable-model/fixture-out/cursor/done.txt  
+     as answered=yes|no and stop.                                                                                      
+                                                                                                                       
+
+  Auto                                                                                                  Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/disable-model/fixture-app · refactor/pi-pstack-parity-again

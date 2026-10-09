@@ -3,8 +3,23 @@ description: "Invoke the bundled check-compiler-errors workflow."
 argument-hint: "[task]"
 ---
 
-Read check-compiler-errors/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.
-Follow those instructions, resolving references and supporting scripts relative to that skill directory.
-If the pstack host contract is unavailable, report that the package extension must be enabled to locate this bundled skill. Do not invent a path.
+# Check compiler errors
+
+## Trigger
+
+Compile or type-check failures are blocking local validation or CI.
+
+## Workflow
+
+1. Run the repo's compile and type-check commands.
+2. Summarize errors by file and type.
+3. Fix the highest-confidence issues first.
+4. Re-run checks until clean or blocked.
+
+## Output
+
+- Current compile and type-check status
+- Error summary grouped by file and category
+- Fixes applied and remaining blockers
 
 $ARGUMENTS

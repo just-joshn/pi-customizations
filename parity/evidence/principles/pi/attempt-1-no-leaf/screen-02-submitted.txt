@@ -1,0 +1,40 @@
+[Skill conflicts]                                                                                                      ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ [skill] poteto-mode (ctrl+o to expand)                                                                                ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ fix the off-by-one in src/add.js so that add(2, 3) returns 5 (it currently returns 4). Prefer a small check you can   ┃
+ re-run and keep its output under evidence/ (scripts/verify.mjs already writes evidence/verify-out.txt). Work only     ┃
+ inside this fixture cwd. Do not edit ledgers, parity/, or files outside this cwd except the named done path. When the ┃
+ fix is verified against the real artifact, write exactly one line to                                                  ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/fixture-out/pi/done.txt as         ┃
+ verified=yes|no, then stop.                                                                                           ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ read ~/src/personal/pi-pstack                                                                                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+── ⠼ Working ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/principles/fixture-app (refactor/pi-pstack-parity-again)
+$0.000 (sub) 2.1%/1.0M (auto)                                           (claude-subscription) claude-sonnet-5-5 • medium

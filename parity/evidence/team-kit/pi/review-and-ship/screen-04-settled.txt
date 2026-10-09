@@ -1,0 +1,40 @@
+ Warning: 4 uncommitted changes                                                                                        │
+ https://github.com/just-joshn/team-kit-gh-fixture/pull/5                                                              │
+                                                                                                                       │
+ Took 3.7s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+                                                                                                                       │
+ $ d=/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/review-and-ship;  │
+ mkdir -p $d                                                                                                           │
+ cat > $d/ship-notes.md <<'E'                                                                                          │
+ FIXTURE_SHIP                                                                                                          │
+ # Findings                                                                                                            │
+ - Critical: none                                                                                                      │
+ - Warning: none                                                                                                       │
+ - Note: one-line README.md append only (REVIEW_SHIP_pi); docs-only, no tests apply (gap documented).                  │
+ Tests run: none (no code changed).                                                                                    │
+ PR URL: https://github.com/just-joshn/team-kit-gh-fixture/pull/5                                                      │
+ E                                                                                                                     │
+ echo "STATUS=verified reason=pr opened and notes written" > $d/done.txt (timeout 10s)                                 │
+                                                                                                                       │
+ (no output)                                                                                                           │
+                                                                                                                       │
+ Took 0.0s                                                                                                             │
+                                                                                                                       ┃
+                                                                                                                       ┃
+ I created branch fixture/review-ship-pi-mv0ectuf, appended the REVIEW_SHIP_pi line to README.md, committed, pushed,   ┃
+ and opened a PR into main: https://github.com/just-joshn/team-kit-gh-fixture/pull/5                                   ┃
+                                                                                                                       ┃
+ I ran no tests, since the change is a one-line README addition with no code behind it. The review found no critical   ┃
+ issues and no warnings. I did not run gh pr checks or check the CI status.                                            ┃
+                                                                                                                       ┃
+ ship-notes.md has the findings, the PR URL and the FIXTURE_SHIP marker. done.txt has the single status line           ┃
+ STATUS=verified reason=pr opened and notes written. Both are in                                                       ┃
+ parity/evidence/team-kit/fixture-out/pi/review-and-ship/.                                                             ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh (fixture/review-ship-pi-mv0ectuf)
+↑10 ↓1.0k R86k W18k CH98.8% $0.101 (sub) 2.7%/1.0M (auto)               (claude-subscription) claude-sonnet-5-5 • medium

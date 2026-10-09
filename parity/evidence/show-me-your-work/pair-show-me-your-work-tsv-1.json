@@ -1,0 +1,115 @@
+{
+  "schema": 1,
+  "pairId": "show-me-your-work-tsv-1",
+  "scenarioRef": "cmd-show-me-your-work-tsv",
+  "journeyFamily": "journey-family-13-generated-resources-reuse",
+  "requirementIds": [
+    "PSTACK-CMD-SHOW-ME-YOUR-WORK-TSV-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "/show-me-your-work multi-phase greet() hello + farewell() bye; keep decisions.tsv with prescribed columns; write done.txt with TSV path and data-row count",
+  "steps": [
+    { "send": "/show-me-your-work this is a multi-phase run I will review after stepping away. Phase 1: change src/greet.js so greet() returns \"hello\"..." },
+    { "send": "\r" },
+    { "settle": true },
+    { "cancel": true }
+  ],
+  "cursor": {
+    "attemptId": "9da98ab4-2dda-47d1-9c06-8927937c3e23",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/show-me-your-work/cursor/9da98ab4-2dda-47d1-9c06-8927937c3e23",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "observations": {
+      "showMeYourWorkSkill": true,
+      "skillSource": "slash /show-me-your-work via plugin-dir pstack skill",
+      "trailRel": "decisions.tsv",
+      "trailSnapshot": "parity/evidence/show-me-your-work/fixture-out/cursor/decisions.tsv",
+      "doneLine": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/show-me-your-work/fixture-app/decisions.tsv 2",
+      "contractHeld": true,
+      "hasPrescribedColumns": true,
+      "dataRowCount": 2,
+      "evidencePointersOk": true,
+      "firstTrailAt": "2026-10-08T21:14:23.036Z",
+      "firstProductAt": "2026-10-08T21:14:21.029Z",
+      "productChanged": ["src/greet.js"],
+      "scorerNote": "Re-read fixture-out/cursor/decisions.tsv after capture; header ts/phase/decision/why/evidence/result; two phase rows with src/greet.js:N evidence"
+    }
+  },
+  "pi": {
+    "attemptId": "cb93e390-6979-4e43-a7f9-ee35df2ccc0b",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/show-me-your-work/pi/cb93e390-6979-4e43-a7f9-ee35df2ccc0b",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-show-me-your-work-fixture-app--/2026-10-08T21-15-20-562Z_01a11d5e-e472-72d9-b812-754672d55912.jsonl",
+    "observations": {
+      "showMeYourWorkSkill": true,
+      "skillSource": "session injects extensions/pi-pstack/skills/show-me-your-work/SKILL.md",
+      "trailRel": "decisions.tsv",
+      "trailSnapshot": "parity/evidence/show-me-your-work/fixture-out/pi/decisions.tsv",
+      "doneLine": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/show-me-your-work/fixture-app/decisions.tsv 4 data rows",
+      "contractHeld": true,
+      "hasPrescribedColumns": true,
+      "dataRowCount": 4,
+      "evidencePointersOk": true,
+      "firstTrailAt": "2026-10-08T21:15:29.864Z",
+      "firstProductAt": "2026-10-08T21:15:29.864Z",
+      "productChanged": ["src/greet.js"],
+      "includesStartRow": true,
+      "supersedeRow": true,
+      "scorerNote": "Re-read fixture-out/pi/decisions.tsv; start + phase1 + phase2 + superseding phase1 after BSD sed failure; evidence cells remain src/greet.js:N or decisions.tsv"
+    }
+  },
+  "deltas": [
+    {
+      "topic": "TSV contract (columns + data rows + pointer evidence)",
+      "cursor": "decisions.tsv with prescribed header; 2 data rows; evidence src/greet.js:2 and :5. contractHeld true.",
+      "pi": "decisions.tsv with prescribed header; 4 data rows (start + 2 phases + supersede); evidence pointers. contractHeld true.",
+      "reconciled": true
+    },
+    {
+      "topic": "row count and start row",
+      "cursor": "2 phase rows only; no phase=start row.",
+      "pi": "4 rows including phase=start and a superseding phase1 row after sed failed on BSD syntax.",
+      "reconciled": true
+    },
+    {
+      "topic": "product vs trail ordering",
+      "cursor": "firstProductAt 21:14:21Z before firstTrailAt 21:14:23Z (~2s).",
+      "pi": "firstTrailAt and firstProductAt both 21:15:29Z within one poll sample.",
+      "reconciled": true
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "Auto",
+      "pi": "claude-sonnet-5-5 • medium (claude-subscription)",
+      "reconciled": false
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-show-me-your-work-tsv.mjs --cursor-only then --pi-only",
+    "workerPlaybook": "parity/evidence/show-me-your-work/PLAYBOOK.md",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "packagePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack",
+    "markerRoot": "parity/evidence/show-me-your-work/fixture-out/{cursor,pi}/",
+    "heldOutFixture": "parity/evidence/show-me-your-work/fixture-app",
+    "auditTrail": "parity/evidence/show-me-your-work/.audit/u-journey-cmd-show-me-your-work.tsv"
+  }
+}

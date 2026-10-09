@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "pairId": "setup-success-write-card-2",
+  "scenarioRef": "setup-pstack:success-write-card",
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "afterDigest": "sha256:9146cd9fe687813f13618724c14da1ced71a72151a9be4ae6ae166ae23218aaa",
+  "comparator": "write-card-v1",
+  "cursor": {
+    "attemptId": "de231068-bb59-4872-a415-cfac64ddfdfe",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-success/cursor/de231068-bb59-4872-a415-cfac64ddfdfe",
+    "screen": "parity/evidence/setup-success/cursor/screen-02-write-card.txt"
+  },
+  "pi": {
+    "attemptId": "0d269402-43a6-48fd-bb62-c8ca90306a5c",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-success/pi/0d269402-43a6-48fd-bb62-c8ca90306a5c",
+    "screen": "parity/evidence/setup-success/pi/screen-02-write-card.txt"
+  },
+  "report": "parity/evidence/setup-success/write-card-parity-linked.json",
+  "verdict": "pass-structured",
+  "caveat": "Sequential same-scenario captures under setup-success (not one recordPair() call). Candidate write-card code still uncommitted. Chat-form driver concatenated budget+accept on one composer line once; write card still rendered."
+}

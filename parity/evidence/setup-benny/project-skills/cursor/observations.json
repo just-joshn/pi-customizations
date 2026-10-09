@@ -1,0 +1,140 @@
+{
+  "forAgentsRel": ".upstream/automations/benny/FOR_AGENTS.md",
+  "setupSkillRel": ".upstream/automations/benny/skills/setup-benny/SKILL.md",
+  "productRel": "src/app.js",
+  "settingsRel": ".cursor/settings.json",
+  "requiredSkills": [
+    "how",
+    "why",
+    "tdd",
+    "unslop",
+    "principle-separate-before-serializing-shared-state",
+    "principle-minimize-reader-load",
+    "principle-guard-the-context-window",
+    "principle-sequence-verifiable-units",
+    "principle-fix-root-causes",
+    "principle-prove-it-works"
+  ],
+  "productBeforeDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e",
+  "productAfterDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e",
+  "productUnchanged": true,
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/project-skills/fixture-out/cursor/done.txt",
+    "line": "STATUS=stop-explain reason=skills only resolve from user scope, not project pstack",
+    "status": "stop-explain"
+  },
+  "manifest": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/project-skills/fixture-out/cursor/resolve-manifest.json",
+    "error": null,
+    "skillCount": 10
+  },
+  "outcome": "stop_explain",
+  "contractHeld": true,
+  "usedPluginDir": false,
+  "analysis": {
+    "skills": [
+      {
+        "name": "how",
+        "claimedPath": "/Users/josh-desktop/.claude/skills/how/SKILL.md",
+        "claimedScope": "user",
+        "independentScope": "user",
+        "projectScoped": false,
+        "present": true
+      },
+      {
+        "name": "why",
+        "claimedPath": "/Users/josh-desktop/.claude/skills/why/SKILL.md",
+        "claimedScope": "user",
+        "independentScope": "user",
+        "projectScoped": false,
+        "present": true
+      },
+      {
+        "name": "tdd",
+        "claimedPath": "/Users/josh-desktop/.claude/skills/tdd/SKILL.md",
+        "claimedScope": "user",
+        "independentScope": "user",
+        "projectScoped": false,
+        "present": true
+      },
+      {
+        "name": "unslop",
+        "claimedPath": "/Users/josh-desktop/.claude/skills/unslop/SKILL.md",
+        "claimedScope": "user",
+        "independentScope": "user",
+        "projectScoped": false,
+        "present": true
+      },
+      {
+        "name": "principle-separate-before-serializing-shared-state",
+        "claimedPath": "/Users/josh-desktop/.claude/skills/principle-separate-before-serializing-shared-state/SKILL.md",
+        "claimedScope": "user",
+        "independentScope": "user",
+        "projectScoped": false,
+        "present": true
+      },
+      {
+        "name": "principle-minimize-reader-load",
+        "claimedPath": "/Users/josh-desktop/.claude/skills/principle-minimize-reader-load/SKILL.md",
+        "claimedScope": "user",
+        "independentScope": "user",
+        "projectScoped": false,
+        "present": true
+      },
+      {
+        "name": "principle-guard-the-context-window",
+        "claimedPath": "/Users/josh-desktop/.claude/skills/principle-guard-the-context-window/SKILL.md",
+        "claimedScope": "user",
+        "independentScope": "user",
+        "projectScoped": false,
+        "present": true
+      },
+      {
+        "name": "principle-sequence-verifiable-units",
+        "claimedPath": "/Users/josh-desktop/.claude/skills/principle-sequence-verifiable-units/SKILL.md",
+        "claimedScope": "user",
+        "independentScope": "user",
+        "projectScoped": false,
+        "present": true
+      },
+      {
+        "name": "principle-fix-root-causes",
+        "claimedPath": "/Users/josh-desktop/.claude/skills/principle-fix-root-causes/SKILL.md",
+        "claimedScope": "user",
+        "independentScope": "user",
+        "projectScoped": false,
+        "present": true
+      },
+      {
+        "name": "principle-prove-it-works",
+        "claimedPath": "/Users/josh-desktop/.claude/skills/principle-prove-it-works/SKILL.md",
+        "claimedScope": "user",
+        "independentScope": "user",
+        "projectScoped": false,
+        "present": true
+      }
+    ],
+    "allPresent": true,
+    "allProject": false,
+    "anyUserOrSession": true,
+    "missing": []
+  },
+  "screen": {
+    "resolveChrome": true,
+    "stopExplainClaim": true,
+    "resolveOkClaim": false,
+    "working": false
+  },
+  "pty": {
+    "resolveChrome": true,
+    "stopExplainClaim": true,
+    "resolveOkClaim": false,
+    "working": true
+  },
+  "settingsEnabledTrue": true,
+  "session": null,
+  "pollSamples": 43,
+  "scorerNote": "resolve_ok requires all ten skills independently classified project under the fixture with no --plugin-dir; stop_explain is also contractHeld when setup honestly refuses user/session/missing scope"
+}

@@ -1,0 +1,19 @@
+{
+  "selectedNodeIds": [
+    "cursor-cli-host",
+    "cursor-create-skill",
+    "source-bun-runtime",
+    "npm:typescript@7.0.2",
+    "npm:bun-types@1.3.14",
+    "npm:@types/node@26.1.2",
+    "npm:undici-types@8.3.0",
+    "npm:@typescript/typescript-darwin-arm64@7.0.2",
+    "npm:@typescript/typescript-darwin-x64@7.0.2",
+    "npm:@typescript/typescript-linux-x64@7.0.2",
+    "npm:@typescript/typescript-linux-arm64@7.0.2",
+    "npm:@typescript/typescript-win32-x64@7.0.2",
+    "npm:@typescript/typescript-win32-arm64@7.0.2"
+  ],
+  "incompleteCount": 27,
+  "selectionRationale": "host+runtime+create-skill then typescript lock chain heads and representative platform optional packages"
+}

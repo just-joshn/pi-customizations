@@ -1,0 +1,128 @@
+{
+  "schema": 1,
+  "pairId": "setup-benny-control-fail-closed-1",
+  "scenarioRef": "setup-benny-control-fail-closed",
+  "journeyFamily": "journey-family-11-benny-and-automations",
+  "requirementIds": [
+    "PSTACK-SETUP-BENNY-CONTROL-FAIL-CLOSED-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "Follow FOR_AGENTS.md / setup-benny step 6; verify control.skill_name=control-target-app against control-adapter.md and completed feature-map.md; stub lists all capabilities not implemented; leave repro automation disabled; STATUS= marker; no live automation",
+  "steps": [
+    { "send": "Help set up Benny... setup-benny step 6 verify control adapter... control-target-app stub... STATUS=..." },
+    { "send": "\r" },
+    { "settle": true },
+    { "cancel": true }
+  ],
+  "cursor": {
+    "attemptId": "370c1adb-5e53-4c1d-9d9c-34f21299d18d",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/control-fail-closed/cursor/370c1adb-5e53-4c1d-9d9c-34f21299d18d",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "observations": {
+      "outcome": "fail_closed",
+      "contractHeld": true,
+      "productBeforeDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e",
+      "productAfterDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e",
+      "productUnchanged": true,
+      "doneMarkerWritten": true,
+      "doneLine": "STATUS=fail-closed reason=control-target-app implements no required control capabilities",
+      "stubIntact": true,
+      "featureMapIntact": true,
+      "liveAutomationExtras": [],
+      "automationEnabled": false,
+      "controlChrome": true,
+      "missingCapability": true,
+      "failClosedPhrase": true
+    }
+  },
+  "pi": {
+    "attemptId": "e6185d9b-6960-4680-ae75-5349f6b148a2",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/control-fail-closed/pi/e6185d9b-6960-4680-ae75-5349f6b148a2",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-setup-benny-control-fail-closed-fixture-app--/2026-10-09T00-39-33-802Z_01a11e19-dca9-7000-9615-014a7ea95890.jsonl",
+    "observations": {
+      "outcome": "fail_closed",
+      "contractHeld": true,
+      "productBeforeDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e",
+      "productAfterDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e",
+      "productUnchanged": true,
+      "doneMarkerWritten": true,
+      "doneLine": "STATUS=fail-closed reason=control adapter stub implements no required capabilities",
+      "stubIntact": true,
+      "featureMapIntact": true,
+      "liveAutomationExtras": [],
+      "automationEnabled": false,
+      "controlChrome": true,
+      "missingCapability": true,
+      "failClosedPhrase": true,
+      "forAgentsRead": true,
+      "setupBennyRead": true,
+      "controlRead": true,
+      "stubRead": true,
+      "featureMapRead": true,
+      "sessionToolOrder": [
+        "bash(setup-benny/SKILL.md)",
+        "bash(feature-map.md)",
+        "bash"
+      ]
+    }
+  },
+  "deltas": [
+    {
+      "topic": "fail-closed when control capabilities missing",
+      "cursor": "STATUS=fail-closed reason=control-target-app implements no required control capabilities. Settled screen shows STATUS line. Product digest unchanged. No live automation extras under .cursor/automations outside benny pack.",
+      "pi": "STATUS=fail-closed reason=control adapter stub implements no required capabilities. Settled screen quotes stub gaps and STATUS line. Product digest unchanged. Same zero live-automation extras.",
+      "reconciled": true
+    },
+    {
+      "topic": "control verification path",
+      "cursor": "Prompted step 6 with control-adapter.md, feature map, and stub skill paths. Screen/PTY show control chrome and missing-capability language.",
+      "pi": "Session tools read setup-benny/SKILL.md and feature-map.md; controlRead/stubRead true from session parse. Same missing-capability and fail-closed phrases.",
+      "reconciled": true
+    },
+    {
+      "topic": "exact fail-closed reason string",
+      "cursor": "control-target-app implements no required control capabilities",
+      "pi": "control adapter stub implements no required capabilities",
+      "reconciled": true
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "Auto",
+      "pi": "claude-sonnet-5-5 • medium (claude-subscription)",
+      "reconciled": false
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-setup-benny-control-fail-closed.mjs --cursor-only then --pi-only",
+    "workerPlaybook": "parity/evidence/setup-benny/PLAYBOOK-control-fail-closed.md",
+    "decisionTrail": "parity/evidence/setup-benny/.audit/u-journey-setup-benny-control-fail-closed.tsv",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "heldOutFixture": "parity/evidence/setup-benny/control-fail-closed/fixture-app",
+    "markerRoot": "parity/evidence/setup-benny/control-fail-closed/fixture-out/{cursor,pi}/",
+    "evidenceRoot": "parity/evidence/setup-benny/control-fail-closed/",
+    "scorerNote": "fail_closed = engaged control verification + missing-capability/fail-closed signal + product unchanged + stub/feature-map intact + no live automation enable/create side effect",
+    "siblingClaim": "none; other SETUP-BENNY-* ids not claimed",
+    "independentVerify": "both done.txt STATUS=fail-closed; identity.json+events.jsonl present; liveAutomationExtras=[]; product digest a27de862…e0ed54e unchanged"
+  }
+}

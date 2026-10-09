@@ -1,0 +1,42 @@
+{
+  "triggers": [
+    {
+      "index": "87",
+      "role": "AXComboBox",
+      "actions": [
+        "AXShowMenu",
+        "AXScrollToVisible"
+      ],
+      "frame": {
+        "width": 856,
+        "height": 40,
+        "x": 461,
+        "y": 383
+      },
+      "settable": true
+    }
+  ],
+  "tools": [
+    {
+      "index": "109",
+      "role": "AXPopUpButton",
+      "actions": [
+        "AXShowMenu",
+        "AXScrollToVisible"
+      ],
+      "frame": {
+        "width": 856,
+        "height": 40,
+        "x": 461,
+        "y": 770
+      }
+    }
+  ],
+  "app": {
+    "name": "Google Chrome",
+    "pid": 62999,
+    "isRunning": true,
+    "bundleIdentifier": "com.google.Chrome",
+    "isActive": true
+  }
+}

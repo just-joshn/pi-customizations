@@ -1,0 +1,40 @@
+[Skill conflicts]                                                                                                      ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ [skill] poteto-mode (ctrl+o to expand)                                                                                ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ Implement the in-process job board in this fixture. Jobs need a clear record shape (id, status pending|done,          ┃
+ payload). Support enqueue, exclusive claim, and complete so two claimers never take the same pending job. Prefer      ┃
+ defining the core job shape (for example in src/types.js) before filling in board logic. Run node scripts/verify.mjs  ┃
+ until it prints BOARD-OK. For any poteto-mode principle you apply before declaring done, read that principle's leaf   ┃
+ SKILL.md in full first (not only the poteto-mode Principles index). Work only inside this fixture cwd. Do not edit    ┃
+ ledgers, parity/, or files outside this cwd except the named done path. When BOARD-OK is on disk, write exactly one   ┃
+ line to                                                                                                               ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/foundational/fixture-out/pi/done.t ┃
+ xt as verified=yes|no, then stop.                                                                                     ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+── ⠦ Working ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/principles/foundational/fixture-app (refactor/pi-pstack-parity-...
+$0.000 (sub) 2.1%/1.0M (auto)                                           (claude-subscription) claude-sonnet-5-5 • medium

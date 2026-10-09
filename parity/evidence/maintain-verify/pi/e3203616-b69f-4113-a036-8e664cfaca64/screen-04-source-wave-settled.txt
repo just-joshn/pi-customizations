@@ -1,0 +1,40 @@
+                                                                                                                       │
+ ... (1 earlier lines, ctrl+o to expand)                                                                               │
+ FEATURES=2                                                                                                            │
+ CONCURRENT_CHILDREN=yes                                                                                               │
+ FIELDS=summary,entrypoints,drift,recipe                                                                               │
+ CHILDREN_DROVE=no                                                                                                     │
+ CHILDREN_EDITED=no                                                                                                    │
+                                                                                                                       │
+ Took 0.0s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ Steps 0–2 are done, and I stopped after the Source wave. I did not run the Live pass or open a PR, and I edited       │
+ nothing in the skill or product code.                                                                                 │
+                                                                                                                       │
+ - Locate: the target is verify-hello-cli, and it is the only candidate.                                               │
+ - Index hygiene: features/README.md lists exactly hello-print.md and exit-zero.md. Both files exist, with no          │
+   duplicate, extra or dead entries, so I changed nothing.                                                             │
+ - Source wave: I launched two read-only subagents concurrently, one per feature file. Each returned a summary, source │
+   entry points, drift (both said none) and a live-verification recipe. Both said live behavior was not executed.      │
+ - Files written:                                                                                                      │
+     - Each child's return is saved verbatim as hello-print.md and exit-zero.md under                                  │
+       /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-out/source-wave │
+       /pi/children/.                                                                                                  │
+     - source-wave.txt is in the same pi/ directory and has exactly the six lines you specified.                       │
+                                                                                                                       │
+                                                                                                                       │
+ [system_notification]                                                                                                 │
+                                                                                                                       │
+ Agent "exit-zero" (explore) has finished processing and is now idle. Use read_agent with agent_id                     │
+ c0dba4ac-e97b-4bc2-865c-6f03c11b1ff7 to read its response.                                                            ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ I already read that agent's response, and it's in children/exit-zero.md. Nothing new to act on. The Source wave is    ┃
+ complete, and I've stopped as instructed.                                                                             ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app-source-wave (refactor/pi-pstack-par...
+↑18 ↓4.3k R185k W26k CH98.7% $0.185 (sub) 3.5%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium

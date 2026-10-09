@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "kind": "journey-family-stub",
+  "id": "journey-family-14-package-lifecycle",
+  "family": 14,
+  "familyTitle": "Reload, update, disable, re-enable, remove, reinstall; verify settings, sessions, subscriptions, unrelated Pi behavior",
+  "contractRef": "parity/contract.md#8-verify-through-the-users-controls",
+  "status": "missing",
+  "requirementIds": [
+    "PSTACK-CMD-PLUGIN-SKILLS-REGISTER-001",
+    "PSTACK-SETUP-VALIDATE-001"
+  ],
+  "fixtureNeeds": [
+    "Installed package with known settings and an active session",
+    "Disable/remove/reinstall sequence on both hosts where applicable",
+    "Unrelated Pi extension that must keep working"
+  ],
+  "evidencePaths": [],
+  "openMismatches": [],
+  "coverageNotes": "No lifecycle pairs.",
+  "nextAction": "Script a paired disable\u2192re-enable package journey asserting settings persistence and unrelated behavior."
+}

@@ -1,0 +1,382 @@
+{
+  "attemptId": "e11d7225-4c8a-4c09-8f30-273e941a52d2",
+  "mode": "automate-handoff",
+  "method": "agent-helper MCP keyboard/click drive of Cursor Agents Window",
+  "evidenceDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/creation-boundary/agents-window/e11d7225-4c8a-4c09-8f30-273e941a52d2",
+  "probe": "automate-handoff",
+  "profile": "benny-triage",
+  "draftName": "benny-triage",
+  "slashMenuShowedAutomate": true,
+  "automateHandoffWitnessed": false,
+  "editorChromeWitnessed": false,
+  "draftNameWitnessed": false,
+  "draftNameSeenInSession": true,
+  "composerFocus": {
+    "label": "screen-03b-composer-focus",
+    "clicked": true,
+    "elementIndex": "593",
+    "role": "AXTextArea"
+  },
+  "saved": false,
+  "activated": false,
+  "slack": false,
+  "axNote": "Strong AX markers often missing when editor is AXWebArea; OCR of PNGs used for Inactive/Add Trigger/Agent Instructions/draft name.",
+  "pollLog": [
+    {
+      "poll": 0,
+      "editorChromeByAx": false,
+      "editorChromeByOcr": false,
+      "hasInactive": false,
+      "hasAddTrigger": false,
+      "hasAgentInstructions": false,
+      "draftNameInEditor": false,
+      "draftNameSeenAnywhere": true
+    },
+    {
+      "poll": 1,
+      "editorChromeByAx": false,
+      "editorChromeByOcr": false,
+      "hasInactive": false,
+      "hasAddTrigger": false,
+      "hasAgentInstructions": false,
+      "draftNameInEditor": false,
+      "draftNameSeenAnywhere": true
+    },
+    {
+      "poll": 2,
+      "editorChromeByAx": false,
+      "editorChromeByOcr": false,
+      "hasInactive": false,
+      "hasAddTrigger": false,
+      "hasAgentInstructions": false,
+      "draftNameInEditor": false,
+      "draftNameSeenAnywhere": true
+    },
+    {
+      "poll": 3,
+      "editorChromeByAx": false,
+      "editorChromeByOcr": false,
+      "hasInactive": false,
+      "hasAddTrigger": false,
+      "hasAgentInstructions": false,
+      "draftNameInEditor": false,
+      "draftNameSeenAnywhere": true
+    },
+    {
+      "poll": 4,
+      "editorChromeByAx": false,
+      "editorChromeByOcr": false,
+      "hasInactive": false,
+      "hasAddTrigger": false,
+      "hasAgentInstructions": false,
+      "draftNameInEditor": false,
+      "draftNameSeenAnywhere": true
+    },
+    {
+      "poll": 5,
+      "editorChromeByAx": false,
+      "editorChromeByOcr": false,
+      "hasInactive": false,
+      "hasAddTrigger": false,
+      "hasAgentInstructions": false,
+      "draftNameInEditor": false,
+      "draftNameSeenAnywhere": true
+    },
+    {
+      "poll": 6,
+      "editorChromeByAx": false,
+      "editorChromeByOcr": false,
+      "hasInactive": false,
+      "hasAddTrigger": false,
+      "hasAgentInstructions": false,
+      "draftNameInEditor": false,
+      "draftNameSeenAnywhere": false
+    },
+    {
+      "poll": 7,
+      "editorChromeByAx": false,
+      "editorChromeByOcr": false,
+      "hasInactive": false,
+      "hasAddTrigger": false,
+      "hasAgentInstructions": false,
+      "draftNameInEditor": false,
+      "draftNameSeenAnywhere": true
+    },
+    {
+      "poll": 8,
+      "editorChromeByAx": false,
+      "editorChromeByOcr": false,
+      "hasInactive": false,
+      "hasAddTrigger": false,
+      "hasAgentInstructions": false,
+      "draftNameInEditor": false,
+      "draftNameSeenAnywhere": true
+    },
+    {
+      "poll": 9,
+      "editorChromeByAx": false,
+      "editorChromeByOcr": false,
+      "hasInactive": false,
+      "hasAddTrigger": false,
+      "hasAgentInstructions": false,
+      "draftNameInEditor": false,
+      "draftNameSeenAnywhere": true
+    },
+    {
+      "poll": 10,
+      "editorChromeByAx": false,
+      "editorChromeByOcr": false,
+      "hasInactive": false,
+      "hasAddTrigger": false,
+      "hasAgentInstructions": false,
+      "draftNameInEditor": false,
+      "draftNameSeenAnywhere": true
+    },
+    {
+      "poll": 11,
+      "editorChromeByAx": false,
+      "editorChromeByOcr": false,
+      "hasInactive": false,
+      "hasAddTrigger": false,
+      "hasAgentInstructions": false,
+      "draftNameInEditor": false,
+      "draftNameSeenAnywhere": true
+    },
+    {
+      "poll": 12,
+      "editorChromeByAx": false,
+      "editorChromeByOcr": false,
+      "hasInactive": false,
+      "hasAddTrigger": false,
+      "hasAgentInstructions": false,
+      "draftNameInEditor": false,
+      "draftNameSeenAnywhere": true
+    },
+    {
+      "poll": 13,
+      "editorChromeByAx": false,
+      "editorChromeByOcr": false,
+      "hasInactive": false,
+      "hasAddTrigger": false,
+      "hasAgentInstructions": false,
+      "draftNameInEditor": false,
+      "draftNameSeenAnywhere": true
+    },
+    {
+      "poll": 14,
+      "editorChromeByAx": false,
+      "editorChromeByOcr": false,
+      "hasInactive": false,
+      "hasAddTrigger": false,
+      "hasAgentInstructions": false,
+      "draftNameInEditor": false,
+      "draftNameSeenAnywhere": true
+    },
+    {
+      "poll": 15,
+      "editorChromeByAx": false,
+      "editorChromeByOcr": false,
+      "hasInactive": false,
+      "hasAddTrigger": false,
+      "hasAgentInstructions": false,
+      "draftNameInEditor": false,
+      "draftNameSeenAnywhere": true
+    },
+    {
+      "poll": 16,
+      "editorChromeByAx": false,
+      "editorChromeByOcr": false,
+      "hasInactive": false,
+      "hasAddTrigger": false,
+      "hasAgentInstructions": false,
+      "draftNameInEditor": false,
+      "draftNameSeenAnywhere": true
+    },
+    {
+      "poll": 17,
+      "editorChromeByAx": false,
+      "editorChromeByOcr": false,
+      "hasInactive": false,
+      "hasAddTrigger": false,
+      "hasAgentInstructions": false,
+      "draftNameInEditor": false,
+      "draftNameSeenAnywhere": true
+    },
+    {
+      "poll": 18,
+      "editorChromeByAx": false,
+      "editorChromeByOcr": false,
+      "hasInactive": false,
+      "hasAddTrigger": false,
+      "hasAgentInstructions": false,
+      "draftNameInEditor": false,
+      "draftNameSeenAnywhere": true
+    },
+    {
+      "poll": 19,
+      "editorChromeByAx": false,
+      "editorChromeByOcr": false,
+      "hasInactive": false,
+      "hasAddTrigger": false,
+      "hasAgentInstructions": false,
+      "draftNameInEditor": false,
+      "draftNameSeenAnywhere": true
+    },
+    {
+      "poll": 20,
+      "editorChromeByAx": false,
+      "editorChromeByOcr": false,
+      "hasInactive": false,
+      "hasAddTrigger": false,
+      "hasAgentInstructions": false,
+      "draftNameInEditor": false,
+      "draftNameSeenAnywhere": true
+    },
+    {
+      "poll": 21,
+      "editorChromeByAx": false,
+      "editorChromeByOcr": false,
+      "hasInactive": false,
+      "hasAddTrigger": false,
+      "hasAgentInstructions": false,
+      "draftNameInEditor": false,
+      "draftNameSeenAnywhere": true
+    },
+    {
+      "poll": 22,
+      "editorChromeByAx": false,
+      "editorChromeByOcr": false,
+      "hasInactive": false,
+      "hasAddTrigger": false,
+      "hasAgentInstructions": false,
+      "draftNameInEditor": false,
+      "draftNameSeenAnywhere": true
+    },
+    {
+      "poll": 23,
+      "editorChromeByAx": false,
+      "editorChromeByOcr": false,
+      "hasInactive": false,
+      "hasAddTrigger": false,
+      "hasAgentInstructions": false,
+      "draftNameInEditor": false,
+      "draftNameSeenAnywhere": true
+    },
+    {
+      "poll": 24,
+      "editorChromeByAx": false,
+      "editorChromeByOcr": false,
+      "hasInactive": false,
+      "hasAddTrigger": false,
+      "hasAgentInstructions": false,
+      "draftNameInEditor": false,
+      "draftNameSeenAnywhere": false
+    },
+    {
+      "poll": 25,
+      "editorChromeByAx": false,
+      "editorChromeByOcr": false,
+      "hasInactive": true,
+      "hasAddTrigger": false,
+      "hasAgentInstructions": false,
+      "draftNameInEditor": false,
+      "draftNameSeenAnywhere": true
+    },
+    {
+      "poll": 26,
+      "editorChromeByAx": false,
+      "editorChromeByOcr": false,
+      "hasInactive": true,
+      "hasAddTrigger": false,
+      "hasAgentInstructions": false,
+      "draftNameInEditor": false,
+      "draftNameSeenAnywhere": true
+    },
+    {
+      "poll": 27,
+      "editorChromeByAx": false,
+      "editorChromeByOcr": false,
+      "hasInactive": true,
+      "hasAddTrigger": false,
+      "hasAgentInstructions": false,
+      "draftNameInEditor": false,
+      "draftNameSeenAnywhere": true
+    },
+    {
+      "poll": 28,
+      "editorChromeByAx": false,
+      "editorChromeByOcr": false,
+      "hasInactive": true,
+      "hasAddTrigger": false,
+      "hasAgentInstructions": false,
+      "draftNameInEditor": false,
+      "draftNameSeenAnywhere": true
+    },
+    {
+      "poll": 29,
+      "editorChromeByAx": false,
+      "editorChromeByOcr": false,
+      "hasInactive": true,
+      "hasAddTrigger": false,
+      "hasAgentInstructions": false,
+      "draftNameInEditor": false,
+      "draftNameSeenAnywhere": true
+    }
+  ],
+  "pathsTried": [
+    "cmd+shift+p Open Agents Window",
+    "cmd+n New Chat",
+    "focus chat composer",
+    "/automate + Tab skill chip",
+    "send benny-triage no-Save prompt",
+    "poll AX for Automations editor chrome + draft name",
+    "yes replies if draft/readiness asked",
+    "dismiss permission sheets that steal focus"
+  ],
+  "didNot": [
+    "press Save",
+    "toggle Inactive/Activate",
+    "enable Benny",
+    "post to Slack",
+    "edit ledgers",
+    "mint Cloud Agent"
+  ],
+  "visualReview": {
+    "attemptId": "e11d7225-4c8a-4c09-8f30-273e941a52d2",
+    "profile": "benny-triage",
+    "metaFlags": {
+      "automateHandoffWitnessed": false,
+      "editorChromeWitnessed": false,
+      "draftNameWitnessed": false,
+      "draftNameSeenInSession": true
+    },
+    "visualOracle": {
+      "screen": "screen-07-poll-28.png",
+      "ocr": "screen-07-poll-28.png.ocr.txt",
+      "automationsListShows": [
+        "parity-webhook-witness",
+        "Untitled",
+        "benny-triage"
+      ],
+      "status": "Inactive for all three",
+      "bennyTriageInactive": true
+    },
+    "chatOracle": {
+      "screen": "screen-07-poll-10.png",
+      "draftApproved": true,
+      "readinessAsk": true,
+      "noSaveNoActivateStated": true,
+      "scheduleMention": "daily 9:05"
+    },
+    "saved": false,
+    "activated": false,
+    "slack": false,
+    "verdict": "PARTIAL",
+    "note": "Benny-named Inactive draft present after /automate Benny triage intent. Same-frame editor chrome titled benny-triage not captured. Untitled editor chrome seen on prior attempts in this unit."
+  },
+  "postHoc": {
+    "automationsListBennyTriageInactive": true,
+    "listScreen": "screen-07-poll-28.png",
+    "editorTitleBennyTriageWitnessed": false
+  }
+}

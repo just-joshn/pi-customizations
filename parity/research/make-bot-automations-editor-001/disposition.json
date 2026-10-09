@@ -1,0 +1,32 @@
+{
+  "unit": "u-make-bot-automations-editor-001",
+  "setStatusResolved": false,
+  "canCloseMismatch": false,
+  "mismatchId": "MAKE-BOT-UI-KEY-SERVER-HOST",
+  "requirementId": "PSTACK-CMD-MAKE-BOT-UI-KEY-SERVER-001",
+  "verdict": "webhook_path_proven_key_server_incomplete",
+  "primaryAttemptId": "c345b7ed-5c24-424c-86c3-55211b7bf0c8",
+  "supportingAttemptIds": {
+    "editorUrlChrome": "f6e29fb7-5878-4c8c-841e-1538b39d1cf7",
+    "automateHandoffScheduleWitness": "b60a705b-e2ea-40c4-adeb-7014fde433b4",
+    "triggerPickerExhaustiveNegative": "8ff6b213-1dbf-4d47-8cec-6671d5ec9cc7",
+    "piKeyServerOk": "e75f8e08-0d8c-4d55-ad3f-6946c405bbaf",
+    "cursorPtyHostBlocked": "bb50ed1b-29ac-4961-bb0a-5c2ffd9834b2"
+  },
+  "findings": {
+    "automateSkillDocumentsWebhookTrigger": true,
+    "webhookDraftTableWitnessed": true,
+    "webhookEditorTriggerWitnessed": true,
+    "webhookUrlWitnessed": true,
+    "generateAuthHeaderControlWitnessed": true,
+    "generateAuthHeaderClicked": false,
+    "secretRequestCardWitnessed": false,
+    "updateStateUsedOrInvented": false,
+    "senderKeyInChatBrowserOrEvidence": false,
+    "savePressedByHarness": false,
+    "activatePressedByHarness": false,
+    "manualAddTriggerPickerOpenedWithOptions": false
+  },
+  "mergeRecommendation": "Keep MAKE-BOT-UI-KEY-SERVER-HOST open. Record Cursor webhook Automations path attempt c345b7ed. Do not claim Cursor key_server_ok until Generate auth header is exercised with leak scan and a local probe HTTP 200. Keep Pi e75f8e08. Do not invent update_state.",
+  "ledgersEdited": false
+}

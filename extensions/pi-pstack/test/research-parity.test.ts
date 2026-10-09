@@ -109,7 +109,7 @@ test('setup keeps the documented 17 roles and four budget labels', async () => {
 test('setup documents all four reasoning budgets', async () => {
   expect.hasAssertions();
   const setup = await read('skills/setup-pstack/SKILL.md');
-  for (const label of ['unlimited — keep max', 'large — xhigh reasoning', 'medium — high reasoning', 'small — medium reasoning']) expect(setup).toContain(`\`${label}\``);
+  for (const label of ['unlimited — max reasoning', 'large — xhigh reasoning', 'medium — high reasoning', 'small — medium reasoning']) expect(setup).toContain(`\`${label}\``);
 });
 
 test('documented agents, team-kit skills, helper scripts, and Benny pack are shipped', async () => {
@@ -250,7 +250,10 @@ test('local /loop ships as a Pi skill and template that the host contract names'
   const skill = await read('host/skills/loop/SKILL.md');
   expect(skill).toMatch(/^---\nname: loop\ndescription: .+\ndisable-model-invocation: true\n---\n/);
   for (const text of ['Usage: /loop [interval] <prompt>', 'notify_on_output: "^AGENT_LOOP_TICK_<purpose>"', 'notify_on_output: "^AGENT_LOOP_WAKE_<purpose>"', 'Background' + 'ShellStop']) expect(skill.includes(text)).toBe(true);
-  expect((await read('host/prompts/loop.md')).includes('Read loop/SKILL.md in full under the pstack host skills directory')).toBe(true);
+  const loopTemplate = await read('host/prompts/loop.md');
+  const loopBody = skill.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, '').trim();
+  expect(loopTemplate.includes(loopBody)).toBe(true);
+  expect(loopTemplate.includes('Read loop/SKILL.md in full')).toBe(false);
   const { hostInstructions } = await import('../src/host.ts');
   const ctx = { cwd: '/w', sessionManager: { getSessionId: () => 's', getSessionDir: () => '/s', getSessionFile: () => '/s/f.jsonl' } };
   expect(hostInstructions('/pkg', ctx as unknown as Parameters<typeof hostInstructions>[1], '', '').includes('/loop is a Pi prompt template for the local loop skill')).toBe(true);

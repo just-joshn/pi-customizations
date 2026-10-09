@@ -1,0 +1,149 @@
+{
+  "schema": 1,
+  "pairId": "setup-benny-user-config-outside-1",
+  "scenarioRef": "setup-benny-user-config-outside",
+  "journeyFamily": "journey-family-11-benny-and-automations",
+  "requirementIds": [
+    "PSTACK-SETUP-BENNY-USER-CONFIG-OUTSIDE-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "Follow FOR_AGENTS.md / setup-benny section 2 adapt-configuration; pack under .cursor/automations/benny already present; create user-owned configuration.yaml, feature-map.md, routing.md outside the pack (prefer .cursor/benny/); do not edit copied examples; no live automation; STATUS= marker",
+  "exampleBaselineDigests": {
+    ".cursor/automations/benny/templates/configuration.example.yaml": "sha256:0df2a312685ba1371d7b6f9be73d0ec73baa777cdcf052f52530040eaa0af191",
+    ".cursor/automations/benny/skills/reproduce-and-fix-issues/references/feature-map.example.md": "sha256:9572deb073c21cffadbdf14eb599052e8823cf05fd1d0f7cbd32c5c62215017f",
+    ".cursor/automations/benny/skills/triage-issue-reports/references/routing.example.md": "sha256:67406ae5bbc0c90e3b062f425017b0948b270645ee338b6c28cfc9fc211f1532"
+  },
+  "steps": [
+    { "send": "Help set up Benny... adapt-configuration step only... user-owned copies outside pack... STATUS=..." },
+    { "send": "\r" },
+    { "settle": true },
+    { "cancel": true }
+  ],
+  "cursor": {
+    "attemptId": "4ee10a59-d826-4875-8667-515f596d7cb7",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/user-config-outside/cursor/4ee10a59-d826-4875-8667-515f596d7cb7",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "observations": {
+      "outcome": "adapt_ok",
+      "contractHeld": true,
+      "productBeforeDigest": "sha256:e798010fc8c298534ad1b05a51dadab9fb1077129eecee920ce524af012c583e",
+      "productAfterDigest": "sha256:e798010fc8c298534ad1b05a51dadab9fb1077129eecee920ce524af012c583e",
+      "productUnchanged": true,
+      "examplesUntouched": true,
+      "outsidePlacementOk": true,
+      "preferredAllPresent": true,
+      "noUserNamedInsidePack": true,
+      "doneMarkerWritten": true,
+      "doneLine": "STATUS=adapt-mismatch reason=fixture has no user-facing features for feature map",
+      "doneStatusVsFs": "STATUS said adapt-mismatch; on-disk contract still adapt_ok (outside placement + examples untouched)",
+      "automationCreated": false,
+      "userOwnedPaths": [
+        ".cursor/benny/configuration.yaml",
+        ".cursor/benny/feature-map.md",
+        ".cursor/benny/routing.md"
+      ],
+      "userOwnedDigests": {
+        ".cursor/benny/configuration.yaml": "sha256:0228c2bbf0b8aaa3178d1e6e953771b4a234564a10d50f15e248b49a483ef3ae",
+        ".cursor/benny/feature-map.md": "sha256:84af8b4e7228701caf9ef5d4bffb3523b6188402bfde6c23d66def383fdd929c",
+        ".cursor/benny/routing.md": "sha256:625f9ef810a103afa4528daa759096d66616e3b943ddf07f49dcfe7e01f07dbd"
+      }
+    }
+  },
+  "pi": {
+    "attemptId": "5d95d377-27f7-4914-88f0-9ab4ab010516",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/user-config-outside/pi/5d95d377-27f7-4914-88f0-9ab4ab010516",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-setup-benny-user-config-outside-fixture-app--/2026-10-09T00-41-29-819Z_01a11e1b-a1db-706e-8133-635d46ca62f6.jsonl",
+    "observations": {
+      "outcome": "adapt_ok",
+      "contractHeld": true,
+      "productBeforeDigest": "sha256:e798010fc8c298534ad1b05a51dadab9fb1077129eecee920ce524af012c583e",
+      "productAfterDigest": "sha256:e798010fc8c298534ad1b05a51dadab9fb1077129eecee920ce524af012c583e",
+      "productUnchanged": true,
+      "examplesUntouched": true,
+      "outsidePlacementOk": true,
+      "preferredAllPresent": true,
+      "noUserNamedInsidePack": true,
+      "doneMarkerWritten": true,
+      "doneLine": "STATUS=adapt-ok reason=user-owned copies created in .cursor/benny",
+      "automationCreated": false,
+      "forAgentsRead": true,
+      "setupBennyRead": true,
+      "userWrite": true,
+      "exampleEdit": false,
+      "sessionToolOrder": [
+        "bash(setup-benny/SKILL.md)",
+        "bash",
+        "bash(user-owned)"
+      ],
+      "userOwnedPaths": [
+        ".cursor/benny/configuration.yaml",
+        ".cursor/benny/feature-map.md",
+        ".cursor/benny/routing.md"
+      ],
+      "userOwnedDigests": {
+        ".cursor/benny/configuration.yaml": "sha256:c9d5018a4ddeff76724ad65aff487442bce88fce2fab8f55cc91030de070db60",
+        ".cursor/benny/feature-map.md": "sha256:39ec769d2376617ae776422daa6b7a5032a7dede63d4a991f878991ecfb3ddae",
+        ".cursor/benny/routing.md": "sha256:28d98cd22100de7504f756a276245c4d699ff02f6267c7ada6fec19d7cd6719a"
+      }
+    }
+  },
+  "deltas": [
+    {
+      "topic": "user-owned placement outside pack",
+      "cursor": "Wrote .cursor/benny/{configuration.yaml,feature-map.md,routing.md}. Examples digests unchanged. No same-named non-example files inside .cursor/automations/benny/.",
+      "pi": "Same FS contract. Session tools read setup-benny then wrote user-owned under .cursor/benny/. exampleEdit=false.",
+      "reconciled": true
+    },
+    {
+      "topic": "STATUS marker vs FS contract",
+      "cursor": "STATUS=adapt-mismatch reason=fixture has no user-facing features for feature map. Scorer still adapt_ok because placement + example immutability held.",
+      "pi": "STATUS=adapt-ok reason=user-owned copies created in .cursor/benny.",
+      "reconciled": false
+    },
+    {
+      "topic": "user-owned file digests",
+      "cursor": "Host-specific adapted bodies; digests differ from Pi.",
+      "pi": "Host-specific adapted bodies; digests differ from Cursor.",
+      "reconciled": true
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "Auto",
+      "pi": "claude-sonnet-5-5 • medium (claude-subscription)",
+      "reconciled": false
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-setup-benny-user-config-outside.mjs --cursor-only then --pi-only",
+    "workerPlaybook": "parity/evidence/setup-benny/PLAYBOOK-user-config-outside.md",
+    "decisionTrail": "parity/evidence/setup-benny/.audit/u-journey-setup-benny-user-config-outside.tsv",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "heldOutFixture": "parity/evidence/setup-benny/user-config-outside/fixture-app",
+    "markerRoot": "parity/evidence/setup-benny/user-config-outside/fixture-out/{cursor,pi}/",
+    "evidenceRoot": "parity/evidence/setup-benny/user-config-outside/",
+    "scorerNote": "adapt_ok = each of configuration.yaml, feature-map.md, routing.md outside .cursor/automations/benny/ + no same-named non-example files inside pack + example digests unchanged + product unchanged",
+    "siblingClaim": "none; pack-merge / settings-enable / no-secret remain separate",
+    "independentVerify": "identity.json + events.jsonl both sides; seed example digests match live examples; preferred .cursor/benny/* present after Pi run; ledgers not edited by this worker"
+  }
+}

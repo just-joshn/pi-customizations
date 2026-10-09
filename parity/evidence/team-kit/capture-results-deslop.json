@@ -1,0 +1,219 @@
+{
+  "scenario": "team-kit:deslop",
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "pairPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/pair-team-kit-deslop-1.json",
+  "results": [
+    {
+      "side": "cursor",
+      "attemptDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/deslop/cursor/92e79e5f-df73-40f1-be36-52840ea161ea",
+      "attemptId": "92e79e5f-df73-40f1-be36-52840ea161ea",
+      "ruleUnchanged": true,
+      "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "prompt": "/deslop Do not ask questions. Follow the deslop skill. Workspace is /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/deslop. Diff against main and remove AI slop from src/util.js. Restore a minimal double(n) implementation without the try/catch, without @type any, and without the explanatory comments. Keep behavior double(n)=n*2. Write a 1-3 sentence summary to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/deslop/summary.md. Then write exactly one line to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/deslop/done.txt as STATUS=verified|not-verified|inconclusive|env-blocked reason=<short phrase> and stop. Artifacts stay under /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/deslop. Do not edit parity ledgers. Do not commit.",
+      "observations": {
+        "screenFinal": {
+          "skillMention": true,
+          "envBlocked": false,
+          "working": false
+        },
+        "pty": {
+          "skillMention": true,
+          "envBlocked": false,
+          "working": true
+        },
+        "done": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/deslop/done.txt",
+          "line": "STATUS=verified reason=restored minimal double(n)",
+          "status": "verified"
+        },
+        "summaryExists": true,
+        "seededSkill": null,
+        "oracle": {
+          "slopGone": true,
+          "keepsBehavior": true,
+          "summaryExists": true,
+          "done": {
+            "exists": true,
+            "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/deslop/done.txt",
+            "line": "STATUS=verified reason=restored minimal double(n)",
+            "status": "verified"
+          },
+          "closed": true,
+          "honestBlocker": false
+        },
+        "score": {
+          "skillPath": true,
+          "envBlocked": false,
+          "doneStatus": "verified",
+          "oracleClosed": true,
+          "closed": true,
+          "honestBlocker": false,
+          "oracle": {
+            "slopGone": true,
+            "keepsBehavior": true,
+            "summaryExists": true,
+            "done": {
+              "exists": true,
+              "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/deslop/done.txt",
+              "line": "STATUS=verified reason=restored minimal double(n)",
+              "status": "verified"
+            },
+            "closed": true,
+            "honestBlocker": false
+          }
+        }
+      },
+      "identity": {
+        "schema": 1,
+        "attemptId": "92e79e5f-df73-40f1-be36-52840ea161ea",
+        "side": "cursor",
+        "scenarioRef": "team-kit:deslop",
+        "fixtureRef": {
+          "path": "/Users/josh-desktop/.cursor/rules/pstack-models.mdc",
+          "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+        },
+        "executable": {
+          "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+          "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+        },
+        "artifacts": [],
+        "launch": {
+          "argv": [
+            "/Users/josh-desktop/.local/bin/cursor-agent",
+            "--plugin-dir",
+            "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack",
+            "--plugin-dir",
+            "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/cursor-team-kit"
+          ],
+          "cwd": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/deslop",
+          "envNames": [
+            "HOME",
+            "PATH",
+            "TERM"
+          ],
+          "publicEnv": {
+            "TERM": "xterm-256color"
+          }
+        },
+        "geometry": {
+          "rows": 40,
+          "cols": 120
+        },
+        "observedEnv": {
+          "platform": "darwin",
+          "node": "v24.21.0",
+          "TERM": "xterm-256color"
+        }
+      }
+    },
+    {
+      "side": "pi",
+      "attemptDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/deslop/pi/c973eadd-a5cc-4893-8344-c25382e7ac82",
+      "attemptId": "c973eadd-a5cc-4893-8344-c25382e7ac82",
+      "ruleUnchanged": true,
+      "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "prompt": "/deslop Do not ask questions. Follow the deslop skill. Workspace is /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/deslop. Diff against main and remove AI slop from src/util.js. Restore a minimal double(n) implementation without the try/catch, without @type any, and without the explanatory comments. Keep behavior double(n)=n*2. Write a 1-3 sentence summary to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/deslop/summary.md. Then write exactly one line to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/deslop/done.txt as STATUS=verified|not-verified|inconclusive|env-blocked reason=<short phrase> and stop. Artifacts stay under /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/deslop. Do not edit parity ledgers. Do not commit.",
+      "observations": {
+        "screenFinal": {
+          "skillMention": true,
+          "envBlocked": false,
+          "working": false
+        },
+        "pty": {
+          "skillMention": true,
+          "envBlocked": true,
+          "working": true
+        },
+        "done": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/deslop/done.txt",
+          "line": "STATUS=verified reason=diff against main is empty for util.js",
+          "status": "verified"
+        },
+        "summaryExists": true,
+        "seededSkill": {
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/deslop/.pi/skills/deslop/SKILL.md",
+          "sha256": "2f7b7def74af7ed11f5b44b4d32f0f91fca8c5d1f92bf2171e8d12fd33a0f810"
+        },
+        "oracle": {
+          "slopGone": true,
+          "keepsBehavior": true,
+          "summaryExists": true,
+          "done": {
+            "exists": true,
+            "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/deslop/done.txt",
+            "line": "STATUS=verified reason=diff against main is empty for util.js",
+            "status": "verified"
+          },
+          "closed": true,
+          "honestBlocker": false
+        },
+        "score": {
+          "skillPath": true,
+          "envBlocked": false,
+          "doneStatus": "verified",
+          "oracleClosed": true,
+          "closed": true,
+          "honestBlocker": false,
+          "oracle": {
+            "slopGone": true,
+            "keepsBehavior": true,
+            "summaryExists": true,
+            "done": {
+              "exists": true,
+              "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/deslop/done.txt",
+              "line": "STATUS=verified reason=diff against main is empty for util.js",
+              "status": "verified"
+            },
+            "closed": true,
+            "honestBlocker": false
+          }
+        }
+      },
+      "identity": {
+        "schema": 1,
+        "attemptId": "c973eadd-a5cc-4893-8344-c25382e7ac82",
+        "side": "pi",
+        "scenarioRef": "team-kit:deslop",
+        "fixtureRef": {
+          "path": "/tmp/pi-ref-agent/pstack/models.mdc",
+          "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+        },
+        "executable": {
+          "path": "/Users/josh-desktop/.local/bin/pi",
+          "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+        },
+        "artifacts": [],
+        "launch": {
+          "argv": [
+            "/Users/josh-desktop/.local/bin/pi",
+            "--model",
+            "claude-subscription/claude-sonnet-5-5:medium"
+          ],
+          "cwd": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/deslop",
+          "envNames": [
+            "HOME",
+            "PATH",
+            "PI_CODING_AGENT_DIR",
+            "TERM"
+          ],
+          "publicEnv": {
+            "TERM": "xterm-256color"
+          }
+        },
+        "geometry": {
+          "rows": 40,
+          "cols": 120
+        },
+        "observedEnv": {
+          "platform": "darwin",
+          "node": "v24.21.0",
+          "TERM": "xterm-256color"
+        }
+      }
+    }
+  ]
+}

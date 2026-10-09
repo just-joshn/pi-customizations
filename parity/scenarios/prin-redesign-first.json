@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "prin-redesign-first",
+  "status": "pass-paired",
+  "requirements": [
+    "PSTACK-PRIN-REDESIGN-FIRST-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/principle-redesign-from-first-principles/SKILL.md#Redesign From First Principles frontmatter trigger and disable-model-invocation",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file. Preconditions: Locked pstack poteto-mode and principle-redesign-from-first-principles skill loaded.; A new requirement must integrate into existing design.",
+    "digest": null
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Integrate a new requirement into an established module.. The agent Reads the leaf skill and redesigns as if the requirement were foundational, propagating through types, docs, and references rather than bolting a side path."
+    }
+  ],
+  "execution": {
+    "pairId": "prin-redesign-first-1",
+    "verdict": "pass",
+    "pair": "parity/evidence/principles/redesign-first/pair-prin-redesign-first-1.json",
+    "attempts": {
+      "cursor": "dcb80bb4-cf3a-4a78-a9b1-df6f0a0aa370",
+      "pi": "e297cc00-bdd7-4b7b-a489-e7a267dc328a"
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "observedAt": "2026-10-08T05:55:07.649829+00:00",
+  "cwd": "/private/tmp/pi-pstack-host-contracts",
+  "gitHead": "78dd5a04279436ebf6dde44853bacdab88ca9ae0",
+  "gitBranch": "parity/host-contracts",
+  "platform": "macOS-27.0-arm64-64bit-Mach-O",
+  "python": "3.14.8",
+  "runtime_label": "Assistant runtime label openai/gpt-6.1-sol, not authenticated physical-provider identity.",
+  "context_tool_observation": "pstack_context returned workspace cwd, active entry timestamps, tool metadata and available-model identifiers. Available identifiers do not prove entitlement, role execution or physical model. Private transcript paths omitted.",
+  "delegate": "One readonly how explainer used inherit-parent. Its source analysis is corroboration, not model-diverse review. Quotation line numbers in its answer were checked against preserved LF spans and not copied into authoritative evidence.",
+  "limits": [
+    "No Cursor executable or backend was exercised.",
+    "No backend build/deployment ID or release-specific documentation binding established.",
+    "Source-lock is prior incomplete observation, not refreshed executable or provider proof.",
+    "Local timestamps and HTTP headers are not independently authenticated time attestations.",
+    "No secret values, account configuration, or credential files were inspected.",
+    "Parent structural audit of 1102 spans over 58 sources is not semantic audit or execution proof."
+  ]
+}

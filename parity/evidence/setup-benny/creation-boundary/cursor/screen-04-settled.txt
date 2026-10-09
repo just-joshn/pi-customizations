@@ -1,0 +1,39 @@
+    -40 754ms
+    … 30 output lines hidden · ctrl+o to expand
+    update-cli-config
+    update-cursor-settings
+
+    Grepped "env-blocked|/automate|Automations editor" in ...pstack-parity-again/parity/evidence/setup-benny
+    Found 16 matches 
+
+  Pack and config are already in place; this host has no /automate skill or Automations editor, so I'm stopping with
+  env-blocked rather than inventing a handoff.
+
+  $ printf '%s\n' 'STATUS=env-blocked reason=no /automate or Automations editor on this host' > "/Users/josh-desktop/s
+    rc/personal/pi-pstack-parity-again/parity/evidence/setup-benny/creation-boundary/fixture-out/cursor/done.txt" &&
+    cat "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/creation-boundary/fixture
+    -out/cursor/done.txt" 188ms
+    STATUS=env-blocked reason=no /automate or Automations editor on this host
+
+  Stopped: env-blocked. This host cannot finish first-time Benny creation.
+
+  What was already ready:
+  • Pack at .cursor/automations/benny/
+  • User config at .cursor/benny/configuration.yaml
+  • pstack enabled in .cursor/settings.json
+
+  Gap: no built-in /automate skill and no Automations editor handoff in this PTY/CLI session. Per the creation
+  boundary, I did not invent editor UI, cloud IDs, deep links, or enablement.
+
+  done.txt:
+  STATUS=env-blocked reason=no /automate or Automations editor on this host
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 15.9%                                                                                          Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/creation-boundary/fixture-app · 
+  refactor/pi-pstack-parity-again

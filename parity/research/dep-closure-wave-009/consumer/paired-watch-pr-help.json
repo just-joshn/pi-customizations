@@ -1,0 +1,12 @@
+{
+  "unit": "u-dep-consumer-journeys-002",
+  "pair": "parity/evidence/consumer/pair-consumer-watch-pr-help-1.json",
+  "attempts": {
+    "cursor": "fb68af79-fb9e-4e2e-b665-f01ed3cdede2",
+    "pi": "bbb6f903-9a40-46a1-9f97-50d5ed85512e"
+  },
+  "packageId": "npm:commander@14.0.0",
+  "consumerPath": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/watch-pr/cli.ts",
+  "status": "closed",
+  "recordedAt": "2026-10-09T02:11:01Z"
+}

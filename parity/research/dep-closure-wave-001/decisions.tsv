@@ -1,0 +1,8 @@
+ts	phase	decision	why	evidence	result
+2026-10-08T17:57:07Z	start	u-dep-closure-wave-001 worker start	figure-it-out framing done; owned path dep-closure-wave-001	parity/briefs/u-dep-closure-wave-001.md	open
+2026-10-08T18:01:02Z	frame	selected 13 incomplete nodes (host, create-skill, bun runtime, typescript chain)	highest leverage for SOURCE_READING_INCOMPLETE and lock edges	parity/research/dep-closure-wave-001/selection.json	selected
+2026-10-08T18:01:02Z	harness	built build_wave.py lever for fetch inventory proposal verify	reviewer must rerun hashes not trust self-report	parity/research/dep-closure-wave-001/build_wave.py	lever ready
+2026-10-08T18:01:02Z	read	read 13 nodes; typescript readingComplete stays false	full tarball tree not inventoried; no fabricated completion	parity/research/dep-closure-wave-001/read-inventory.json	inventory written
+2026-10-08T18:01:02Z	refcfg	captured redacted ~/.cursor/cli-config.json working-env snapshot	brief requires artifact path or measured blocker; full matrix still open	parity/research/dep-closure-wave-001/refcfg/working-env-snapshot.json	artifact captured
+2026-10-08T18:01:02Z	proposal	published merge-proposal.json; closureAudited false; no ledger edits	coordinator owns ledger merges	parity/research/dep-closure-wave-001/merge-proposal.json	proposal ready
+2026-10-08T18:01:02Z	verify	shasum -a 256 matched all inventory source hashes	prove against real files	parity/research/dep-closure-wave-001/verify-hashes.json	VERIFIED

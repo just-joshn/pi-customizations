@@ -1,0 +1,18 @@
+node:fs:483
+    return binding.readFileUtf8(path, stringToFlags(options.flag));
+                   ^
+
+Error: ENOENT: no such file or directory, open '/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/fixtures/acceptance-repair-audit.Pro5Ze/governance.json'
+    at readFileSync (node:fs:483:20)
+    at main (file:///private/tmp/pi-pstack-parity-acceptance-owner/parity/acceptance/tools/verify-acceptance.mjs:210:32)
+    at file:///private/tmp/pi-pstack-parity-acceptance-owner/parity/acceptance/tools/verify-acceptance.mjs:255:1
+    at ModuleJob.run (node:internal/modules/esm/module_job:561:25)
+    at async node:internal/modules/esm/loader:647:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/fixtures/acceptance-repair-audit.Pro5Ze/governance.json'
+}
+
+Node.js v24.21.0

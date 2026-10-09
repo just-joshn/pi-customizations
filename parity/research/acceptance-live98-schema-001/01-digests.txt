@@ -1,0 +1,3 @@
+5a33e1d4138283fe5d474cef5ccca575847e66e61f4a0c655ab6372106711aa7  parity/acceptance/tools/verify-acceptance.mjs
+e576101783702498af089397c1fea80b8b688fd303a3ec78f8df5e6e66a1afe5  parity/acceptance/setup-pstack/definitions.json
+9eea368548c2d990e426c6a8466a0a8d03e98bd8436e639eaefa6d838a8d8a4e  parity/acceptance/setup-pstack/configurations.json

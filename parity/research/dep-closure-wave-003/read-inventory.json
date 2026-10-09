@@ -1,0 +1,322 @@
+{
+  "schemaVersion": 1,
+  "unit": "u-dep-closure-wave-003",
+  "capturedAt": "2026-10-08T19:13:21Z",
+  "nodes": [
+    {
+      "nodeId": "source-tools-bootstrap",
+      "sourcesRead": [
+        {
+          "id": "bootstrap.ts",
+          "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bootstrap.ts",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bootstrap.ts",
+          "sha256": "ccd2ed08fd9da9d0d942e5f2491cfc74bb92d8a08fa51755e0da1ac8de287361",
+          "byteLength": 1737,
+          "role": "bootstrap install-key and Bun.spawnSync contracts"
+        },
+        {
+          "id": "package.json",
+          "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/package.json",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/package.json",
+          "sha256": "d1f815091209d49763775cc188e8e06ff32d5fec648bffd2272bc25a165e87c3",
+          "byteLength": 352,
+          "role": "tools manifest; runtime vs devDependencies"
+        },
+        {
+          "id": "bun.lock",
+          "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock",
+          "sha256": "667d9cf7222e9aae3fa42a4be383e657784216e9df115da02227fbc5ac7bbe46",
+          "byteLength": 6679,
+          "role": "frozen lock pin for commander@14.0.0"
+        },
+        {
+          "id": "watch-pr",
+          "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/watch-pr/watch-pr",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/watch-pr/watch-pr",
+          "sha256": "d955603be6cc0e8b8ffcec722f635192b2261410b1f2929abea94480e47eb5d4",
+          "byteLength": 211,
+          "role": "launcher shebang and bootstrap call"
+        }
+      ]
+    },
+    {
+      "nodeId": "source-tools-manifest",
+      "sourcesRead": [
+        {
+          "id": "package.json",
+          "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/package.json",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/package.json",
+          "sha256": "d1f815091209d49763775cc188e8e06ff32d5fec648bffd2272bc25a165e87c3",
+          "byteLength": 352,
+          "role": "tools manifest; runtime vs devDependencies"
+        },
+        {
+          "id": "bun.lock",
+          "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock",
+          "sha256": "667d9cf7222e9aae3fa42a4be383e657784216e9df115da02227fbc5ac7bbe46",
+          "byteLength": 6679,
+          "role": "frozen lock pin for commander@14.0.0"
+        },
+        {
+          "id": "installed-commander-package.json",
+          "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/node_modules/commander/package.json",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/node_modules/commander/package.json",
+          "sha256": "bbf7734a336e0d67c20e5326fc9e32c1f4d4e5d6272dea41705cb5e69066da1a",
+          "byteLength": 2097,
+          "role": "installed commander package.json matching tarball"
+        },
+        {
+          "id": "commander.tgz",
+          "path": "parity/reference/npm/commander-14.0.0/package.tgz",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/npm/commander-14.0.0/package.tgz",
+          "sha256": "eaef3a697e7173c7347ca4c1e60dd2bc1d38214d2aaecce89d70881a51d7fde7",
+          "byteLength": 53134,
+          "role": "exact commander@14.0.0 tarball"
+        }
+      ]
+    },
+    {
+      "nodeId": "npm:commander@14.0.0",
+      "sourcesRead": [
+        {
+          "id": "orch.ts",
+          "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/orch/orch.ts",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/orch/orch.ts",
+          "sha256": "f091687df627a0b75fabd54af58945a9cd6c7039ef0622012ac9ed60cd8ec434",
+          "byteLength": 15511,
+          "role": "Bun shebang consumer of commander"
+        },
+        {
+          "id": "cli.ts",
+          "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/watch-pr/cli.ts",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/watch-pr/cli.ts",
+          "sha256": "89c08863089181a232be782c4b2ed90a1552f44aeecb0dcb7aac2c623620e680",
+          "byteLength": 6983,
+          "role": "commander import consumer"
+        },
+        {
+          "id": "installed-commander-package.json",
+          "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/node_modules/commander/package.json",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/node_modules/commander/package.json",
+          "sha256": "bbf7734a336e0d67c20e5326fc9e32c1f4d4e5d6272dea41705cb5e69066da1a",
+          "byteLength": 2097,
+          "role": "installed commander package.json matching tarball"
+        },
+        {
+          "id": "commander.tgz",
+          "path": "parity/reference/npm/commander-14.0.0/package.tgz",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/npm/commander-14.0.0/package.tgz",
+          "sha256": "eaef3a697e7173c7347ca4c1e60dd2bc1d38214d2aaecce89d70881a51d7fde7",
+          "byteLength": 53134,
+          "role": "exact commander@14.0.0 tarball"
+        },
+        {
+          "id": "commander-read-inventory",
+          "path": "parity/research/npm/commander-14.0.0/read-inventory.json",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/npm/commander-14.0.0/read-inventory.json",
+          "sha256": "19bfb53788883180ca7fd295b1b0c7261da478ed9b0971423cf2791906b90653",
+          "byteLength": 4233,
+          "role": "prior commander file + consumer inventory"
+        },
+        {
+          "id": "commander-smoke.txt",
+          "path": "parity/research/dep-closure-wave-003/bun/commander-smoke.txt",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/dep-closure-wave-003/bun/commander-smoke.txt",
+          "sha256": "24a93bea5ae40d1246fe748e4caf5da4784cd39d5f176edd8f15498dd28a3a65",
+          "byteLength": 353,
+          "role": "commander smoke + orch help test under local bun"
+        }
+      ]
+    },
+    {
+      "nodeId": "source-bun-runtime",
+      "sourcesRead": [
+        {
+          "id": "bootstrap.ts",
+          "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bootstrap.ts",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bootstrap.ts",
+          "sha256": "ccd2ed08fd9da9d0d942e5f2491cfc74bb92d8a08fa51755e0da1ac8de287361",
+          "byteLength": 1737,
+          "role": "bootstrap install-key and Bun.spawnSync contracts"
+        },
+        {
+          "id": "watch-pr",
+          "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/watch-pr/watch-pr",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/watch-pr/watch-pr",
+          "sha256": "d955603be6cc0e8b8ffcec722f635192b2261410b1f2929abea94480e47eb5d4",
+          "byteLength": 211,
+          "role": "launcher shebang and bootstrap call"
+        },
+        {
+          "id": "orch.ts",
+          "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/orch/orch.ts",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/orch/orch.ts",
+          "sha256": "f091687df627a0b75fabd54af58945a9cd6c7039ef0622012ac9ed60cd8ec434",
+          "byteLength": 15511,
+          "role": "Bun shebang consumer of commander"
+        },
+        {
+          "id": "bun-nodejs-compat.html",
+          "path": "parity/research/dep-closure-wave-003/bun/nodejs-compat.html",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/dep-closure-wave-003/bun/nodejs-compat.html",
+          "sha256": "5ee498723663e81c9be95b25e3396d991276c8b1388a6a798f68b446e5833b27",
+          "byteLength": 293288,
+          "role": "official Bun Node.js compatibility docs"
+        },
+        {
+          "id": "bun-version.txt",
+          "path": "parity/research/dep-closure-wave-003/bun/bun-version.txt",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/dep-closure-wave-003/bun/bun-version.txt",
+          "sha256": "b99b4c7cdf236f59bc9f65d963deaecae3b16a7dad87939cacb9057f7664daee",
+          "byteLength": 6,
+          "role": "local bun --version capture"
+        },
+        {
+          "id": "commander-smoke.txt",
+          "path": "parity/research/dep-closure-wave-003/bun/commander-smoke.txt",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/dep-closure-wave-003/bun/commander-smoke.txt",
+          "sha256": "24a93bea5ae40d1246fe748e4caf5da4784cd39d5f176edd8f15498dd28a3a65",
+          "byteLength": 353,
+          "role": "commander smoke + orch help test under local bun"
+        }
+      ]
+    },
+    {
+      "nodeId": "host-edge-disposition:computer-use-enterprise",
+      "sourcesRead": [
+        {
+          "id": "computer-use.md",
+          "path": "parity/research/continuation/computer-use.md",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/continuation/computer-use.md",
+          "sha256": "a9ceb020282d7c61ad99ccd13de0c8831dd57499ac32af31b5f4afc9e9e186d0",
+          "byteLength": 15653,
+          "role": "public computer-use contract"
+        },
+        {
+          "id": "model-management.md",
+          "path": "parity/research/continuation/model-management.md",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/continuation/model-management.md",
+          "sha256": "2606b4bd74d43bd579c59945506ab691cd49de8da3386556e265c854f6c9d205",
+          "byteLength": 12119,
+          "role": "public enterprise model/integration contract"
+        }
+      ]
+    }
+  ],
+  "allSources": [
+    {
+      "id": "bootstrap.ts",
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bootstrap.ts",
+      "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bootstrap.ts",
+      "sha256": "ccd2ed08fd9da9d0d942e5f2491cfc74bb92d8a08fa51755e0da1ac8de287361",
+      "byteLength": 1737,
+      "role": "bootstrap install-key and Bun.spawnSync contracts"
+    },
+    {
+      "id": "package.json",
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/package.json",
+      "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/package.json",
+      "sha256": "d1f815091209d49763775cc188e8e06ff32d5fec648bffd2272bc25a165e87c3",
+      "byteLength": 352,
+      "role": "tools manifest; runtime vs devDependencies"
+    },
+    {
+      "id": "bun.lock",
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock",
+      "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock",
+      "sha256": "667d9cf7222e9aae3fa42a4be383e657784216e9df115da02227fbc5ac7bbe46",
+      "byteLength": 6679,
+      "role": "frozen lock pin for commander@14.0.0"
+    },
+    {
+      "id": "watch-pr",
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/watch-pr/watch-pr",
+      "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/watch-pr/watch-pr",
+      "sha256": "d955603be6cc0e8b8ffcec722f635192b2261410b1f2929abea94480e47eb5d4",
+      "byteLength": 211,
+      "role": "launcher shebang and bootstrap call"
+    },
+    {
+      "id": "orch.ts",
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/orch/orch.ts",
+      "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/orch/orch.ts",
+      "sha256": "f091687df627a0b75fabd54af58945a9cd6c7039ef0622012ac9ed60cd8ec434",
+      "byteLength": 15511,
+      "role": "Bun shebang consumer of commander"
+    },
+    {
+      "id": "cli.ts",
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/watch-pr/cli.ts",
+      "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/watch-pr/cli.ts",
+      "sha256": "89c08863089181a232be782c4b2ed90a1552f44aeecb0dcb7aac2c623620e680",
+      "byteLength": 6983,
+      "role": "commander import consumer"
+    },
+    {
+      "id": "installed-commander-package.json",
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/node_modules/commander/package.json",
+      "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/node_modules/commander/package.json",
+      "sha256": "bbf7734a336e0d67c20e5326fc9e32c1f4d4e5d6272dea41705cb5e69066da1a",
+      "byteLength": 2097,
+      "role": "installed commander package.json matching tarball"
+    },
+    {
+      "id": "commander.tgz",
+      "path": "parity/reference/npm/commander-14.0.0/package.tgz",
+      "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/npm/commander-14.0.0/package.tgz",
+      "sha256": "eaef3a697e7173c7347ca4c1e60dd2bc1d38214d2aaecce89d70881a51d7fde7",
+      "byteLength": 53134,
+      "role": "exact commander@14.0.0 tarball"
+    },
+    {
+      "id": "commander-read-inventory",
+      "path": "parity/research/npm/commander-14.0.0/read-inventory.json",
+      "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/npm/commander-14.0.0/read-inventory.json",
+      "sha256": "19bfb53788883180ca7fd295b1b0c7261da478ed9b0971423cf2791906b90653",
+      "byteLength": 4233,
+      "role": "prior commander file + consumer inventory"
+    },
+    {
+      "id": "computer-use.md",
+      "path": "parity/research/continuation/computer-use.md",
+      "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/continuation/computer-use.md",
+      "sha256": "a9ceb020282d7c61ad99ccd13de0c8831dd57499ac32af31b5f4afc9e9e186d0",
+      "byteLength": 15653,
+      "role": "public computer-use contract"
+    },
+    {
+      "id": "model-management.md",
+      "path": "parity/research/continuation/model-management.md",
+      "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/continuation/model-management.md",
+      "sha256": "2606b4bd74d43bd579c59945506ab691cd49de8da3386556e265c854f6c9d205",
+      "byteLength": 12119,
+      "role": "public enterprise model/integration contract"
+    },
+    {
+      "id": "bun-nodejs-compat.html",
+      "path": "parity/research/dep-closure-wave-003/bun/nodejs-compat.html",
+      "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/dep-closure-wave-003/bun/nodejs-compat.html",
+      "sha256": "5ee498723663e81c9be95b25e3396d991276c8b1388a6a798f68b446e5833b27",
+      "byteLength": 293288,
+      "role": "official Bun Node.js compatibility docs"
+    },
+    {
+      "id": "bun-version.txt",
+      "path": "parity/research/dep-closure-wave-003/bun/bun-version.txt",
+      "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/dep-closure-wave-003/bun/bun-version.txt",
+      "sha256": "b99b4c7cdf236f59bc9f65d963deaecae3b16a7dad87939cacb9057f7664daee",
+      "byteLength": 6,
+      "role": "local bun --version capture"
+    },
+    {
+      "id": "commander-smoke.txt",
+      "path": "parity/research/dep-closure-wave-003/bun/commander-smoke.txt",
+      "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/dep-closure-wave-003/bun/commander-smoke.txt",
+      "sha256": "24a93bea5ae40d1246fe748e4caf5da4784cd39d5f176edd8f15498dd28a3a65",
+      "byteLength": 353,
+      "role": "commander smoke + orch help test under local bun"
+    }
+  ]
+}

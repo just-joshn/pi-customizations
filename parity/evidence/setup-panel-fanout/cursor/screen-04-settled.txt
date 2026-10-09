@@ -1,0 +1,39 @@
+
+  All three candidate dirs have outputs. Writing fanout-note.md and done.txt, then stopping.
+
+    Edited fanout-note.md +5
+
+    ▎    1 + # Fan-out note
+    ▎    2 + 
+    ▎    3 + - **arena runners list read:** `inherit-parent, inherit-parent, inherit-parent` (from always-applied 
+    ▎        `pstack-models ...
+    ▎    4 + - **list length:** 3
+    ▎    5 + - **runners spawned:** 3 (one subagent per list entry; duplicate aliases not collapsed)
+
+    Edited done.txt +1
+
+    ▎    1 + listLength=3 spawnCount=3 panelDriven=yes
+
+    To-do All done
+    ✔ Phase A: Frame — artifact, rubric, runners from panel, output paths
+    ✔ Phase B: Fan out — spawn 3 arena runners with same clamp task
+    ✔ Write fanout-note.md and done.txt then stop
+
+  Arena clamp candidate c2 (8d7c00d4-c396-420a-aa31-bbf1c2b4e8eb) finished; c1/c2/c3 all had artifacts. Wrote 
+  fanout-note.md and done.txt (listLength=3 spawnCount=3 panelDriven=yes). Stopped.
+
+  Finished Bake off task: write a structurally distinct pure JS clamp(n, lo, hi) helper tha
+
+  Finished Bake off task: write a structurally distinct pure JS clamp(n, lo, hi) helper tha
+
+  No further action needed — fanout-note.md and done.txt were already written after all three candidates landed.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 13.5% · 8 files edited                                                                         Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/setup-panel-fanout/fixture-app · 
+  refactor/pi-pstack-parity-again

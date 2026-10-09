@@ -1,0 +1,40 @@
+ test   pass   8s   https://github.com/just-joshn/team-kit-gh-fixture/actions/runs/37879877015/job/113656864986        │
+ [{"bucket":"pass","link":"https://github.com/just-joshn/team-kit-gh-fixture/actions/runs/37879877015/job/113656864986 │
+ ","name":"test","state":"SUCCESS","workflow":"ci"},{"bucket":"pass","link":"https://github.com/just-joshn/team-kit-gh │
+ -fixture/actions/runs/37879874122/job/113656855960","name":"test","state":"SUCCESS","workflow":"ci"}]                 │
+                                                                                                                       │
+ Took 28.4s                                                                                                            │
+                                                                                                                       │
+                                                                                                                       │
+                                                                                                                       │
+ $ d=/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/loop-on-ci; mkdir │
+ -p $d                                                                                                                 │
+ cat > $d/ci-loop-notes.md <<E                                                                                         │
+ # FIXTURE_CI_LOOP                                                                                                     │
+ PR: https://github.com/just-joshn/team-kit-gh-fixture/pull/10                                                         │
+ - Initial gh pr checks: 2x test (ci) FAILURE. Log: npm test exits 1 because hello.js VALUE was 0 (expected 7).        │
+ - Fix: hello.js VALUE 0 -> 7, verified locally (npm test ok), committed and pushed (no force, no hooks bypass).       │
+ - Re-check via gh pr checks: both test (ci) checks pass (runs 37879874122, 37879877015).                              │
+ E                                                                                                                     │
+ echo "STATUS=verified reason=PR checks green after fixing hello.js VALUE" > $d/done.txt (timeout 10s)                 │
+                                                                                                                       │
+ (no output)                                                                                                           │
+                                                                                                                       │
+ Took 0.0s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ CI on PR #10 is green. Both test checks (workflow ci) now pass in gh pr checks.                                       │
+                                                                                                                       ┃
+ - Failure: npm test exited 1 because VALUE in hello.js was 0 and the test expects 7.                                  ┃
+ - Fix: I set VALUE: 7, confirmed npm test passes locally, then committed and pushed (no force-push, no hook bypass).  ┃
+ - Retry: my first attempt failed because macOS sed rejected the in-place edit syntax. Nothing was committed, and the  ┃
+   second attempt worked.                                                                                              ┃
+                                                                                                                       ┃
+ The loop notes (with FIXTURE_CI_LOOP) are in ci-loop-notes.md. done.txt contains STATUS=verified reason=PR checks     ┃
+ green after fixing hello.js VALUE. Both are under parity/evidence/team-kit/fixture-out/pi/loop-on-ci/.                ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh (fixture/fail-ci-pi-mv0eub1z)
+↑16 ↓1.7k R169k W21k CH98.6% $0.133 (sub) 2.9%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium

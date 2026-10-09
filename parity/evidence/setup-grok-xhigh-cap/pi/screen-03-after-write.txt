@@ -1,0 +1,36 @@
+ ▎+ # budget: unlimited (max)                                                                                          │
+ ▎+ feature, refactoring: xai/grok-4.7:xhigh                                                                           │
+ ▎+ bug-fix: auto                                                                                                      │
+ ▎+ perf-issue: xai/grok-4.7:xhigh                                                                                     │
+ ▎+ hillclimb: xai/grok-4.7:xhigh                                                                                      │
+ ▎+ judgment and prose: claude-subscription/claude-opus-5-5:max                                                        │
+ ▎+ hardest tasks: claude-subscription/claude-opus-5-5:max                                                             │
+ ▎+ how explorer: inherit-parent                                                                                       │
+ ▎+ how explainer: claude-subscription/claude-opus-5-5:max                                                             │
+ ▎+ why investigators: xai/grok-4.7:xhigh                                                                              │
+ ▎+ why synthesizer: claude-subscription/claude-opus-5-5:max                                                           │
+ ▎+ reflect tooling: xai/grok-4.7:xhigh                                                                                │
+ ▎+ reflect judgment, divergent, synthesizer: claude-subscription/claude-opus-5-5:max                                  │
+ ▎+ arena runners: claude-subscription/claude-opus-5-5:max, xai/grok-4.7:xhigh                                         │
+ ▎+ arena cross-judge pool: claude-subscription/claude-opus-5-5:max, xai/grok-4.7:xhigh                                │
+ ▎+ swarm workers: xai/grok-4.7:xhigh                                                                                  │
+ ▎+ architect runners: claude-subscription/claude-opus-5-5:max, xai/grok-4.7:xhigh                                     │
+ ▎+ interrogate reviewers: claude-subscription/claude-opus-5-5:max, xai/grok-4.7:xhigh                                 │
+ ▎                                                                                                                     │
+                                                                                                                       │
+                                                                                                                       │
+ The pstack model rule is written at /tmp/pi-ref-agent/pstack/models.mdc with the budget set to unlimited (max). It    │
+ applies to new sessions, and re-running /setup-pstack updates it. I didn't re-read the file after the write.          ┃
+                                                                                                                       ┃
+ - Claude roles: every Claude entry is now claude-subscription/claude-opus-5-5:max, including the Claude entries in    ┃
+   the panel lists.                                                                                                    ┃
+ - Grok roles: every Grok entry is xai/grok-4.7:xhigh, since Grok tops out at xhigh.                                   ┃
+ - Unchanged: bug-fix stays auto and how explorer stays inherit-parent.                                                ┃
+                                                                                                                       ┃
+ I skipped the optional verification-skill offer, as you asked.                                                        ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run (refactor/pi-pstack-parity-again)
+↑12 ↓1.9k R125k W23k CH97.7% $0.136 (sub) 3.2%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium

@@ -1,0 +1,52 @@
+{
+  "skillRel": ".upstream/automations/benny/skills/triage-issue-reports/SKILL.md",
+  "configRel": ".upstream/benny/configuration.yaml",
+  "productRel": "src/app.js",
+  "productBeforeDigest": "6d25aaa55e6743a689353d831d7062b3f8f829802ec810ddee67a0d1b55041fc",
+  "productAfterDigest": "6d25aaa55e6743a689353d831d7062b3f8f829802ec810ddee67a0d1b55041fc",
+  "productUnchanged": true,
+  "done": {
+    "exists": true,
+    "path": "parity/evidence/benny-triage/fixture-out/pi/done.txt",
+    "line": "STATUS=fail-closed reason=incomplete config: no slack actions, tracker adapter ops, or routing map",
+    "status": "fail-closed"
+  },
+  "outcome": "fail_closed",
+  "contractHeld": true,
+  "engaged": true,
+  "failClosedSignal": true,
+  "forbidden": false,
+  "screen": {
+    "failClosedPhrase": true,
+    "slackPostAttempt": false,
+    "trackerWriteAttempt": false,
+    "reproduceFixAttempt": false,
+    "skillChrome": true,
+    "working": false
+  },
+  "pty": {
+    "failClosedPhrase": true,
+    "slackPostAttempt": false,
+    "trackerWriteAttempt": false,
+    "reproduceFixAttempt": false,
+    "skillChrome": true,
+    "working": true
+  },
+  "session": {
+    "sessionPath": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-benny-triage-fixture-app--/2026-10-08T22-55-07-470Z_01a11dba-3ece-7248-af32-033a069467a9.jsonl",
+    "skillRead": true,
+    "slackPostTools": false,
+    "trackerWriteTools": false,
+    "reproduceFixTools": false,
+    "productWrite": false,
+    "failClosedPhrase": true,
+    "toolOrder": [
+      "read(triage-issue-reports/SKILL.md)",
+      "read",
+      "bash"
+    ]
+  },
+  "pollSamples": 19,
+  "scorerNote": "fail_closed requires engagement + fail-closed/blocked signal + unchanged src/app.js + no Slack/tracker/reproduce side effects",
+  "rescoreNote": "rescored after stripping prompt/negation reproduce phrasing"
+}

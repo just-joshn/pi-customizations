@@ -1,0 +1,36 @@
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Use subagents to parallelize work and preserve context.
+
+                                                                                                                       
+  In one short reply only, explain how Node's event loop interacts with the promise microtask queue and the            
+  libuv thread pool using precise systems terminology (event loop phases, microtasks, macrotasks, libuv thread         
+  pool, I/O completion). Do not create or edit any files. Do not run tools. Stop after the explanation.                
+                                                                                                                       
+
+  Node’s event loop (libuv) advances through phases—timers → pending callbacks → idle/prepare → poll → check →
+  close—dequeuing one macrotask/callback per turn from that phase’s queue. After each macrotask (and between phase
+  transitions), V8 drains the promise microtask queue to empty before the next macrotask or phase step.
+  Blocking/fs/crypto/DNS work is offloaded to the libuv thread pool; when that work finishes, the result is posted
+  as an I/O completion that becomes a macrotask in a later poll/pending phase—microtasks never run on the thread
+  pool, only on the main loop after the completion callback is scheduled.
+
+                                                                                                                       
+  /bro Restate your last message in plain human language with no jargon. Do not continue any prior task and do         
+  not create product code. Work only inside this fixture cwd for marker files. Write the plain restatement to          
+  /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/bro/fixture-out/cursor/restate.md.           
+  Then write exactly one line to                                                                                       
+  /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/bro/fixture-out/cursor/done.txt as           
+  bro=yes|no|fail, then stop.                                                                                          
+                                                                                                                       
+
+ ⠠⠛ Working
+
+                                                                                                                       
+  → Add a follow-up                                                                                     ctrl+c to stop 
+                                                                                                                       
+
+  Auto · 8.5%                                                                                           Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/bro/fixture-app · refactor/pi-pstack-parity-again

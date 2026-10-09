@@ -1,0 +1,242 @@
+[
+  {
+    "prior_proposal_file": "parity/research/cursor-host/services/proposals.json",
+    "edge": {
+      "id": "cursor.services.docs_cloud-agent_capabilities.37",
+      "from": "cursor.services.docs_cloud-agent_capabilities",
+      "to": "cursor.host.services.docs_cloud-agent_capabilities.custom-mcp-servers",
+      "source_file": "parity/research/cursor-host/services/retrievals/docs_cloud-agent_capabilities.md",
+      "locator": "### Custom MCP servers",
+      "line_span": [
+        37,
+        46
+      ],
+      "source_sha256": "42885b553c13ff35527334cc837d106fabcc06fd72c43a46538d4f55953a0512",
+      "verbatim_quote": "### Custom MCP servers\n\nYou can add custom MCP servers using either **HTTP** or **stdio** transport. SSE and `mcp-remote` are not supported.\n\nMCP configurations are encrypted at rest. Sensitive fields are redacted and cannot be read back by any user after saving:\n\n- **`env`** \u2014 environment variables for stdio servers\n- **`headers`** \u2014 request headers for HTTP servers\n- **`CLIENT_SECRET`** \u2014 OAuth client secret for HTTP servers\n",
+      "classification": "normative",
+      "evidence_note": "Official documented contract. Embedded sample identities, prices, vendors, prompts and sample payload values are illustrative unless surrounding prose explicitly fixes them. Conditional branch remains in scope. No behavior executed.",
+      "target_host_contract": "Custom MCP servers",
+      "status": "proposal-unverified"
+    }
+  },
+  {
+    "prior_proposal_file": "parity/research/cursor-host/customization/proposals.json",
+    "edge": {
+      "id": "cursor.customization.hooks.1042",
+      "from": "cursor.customization.hooks",
+      "to": "cursor.host.hooks.beforeshellexecution-beforemcpexecution",
+      "source_file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/hooks.md",
+      "locator": "#### beforeShellExecution / beforeMCPExecution",
+      "line_span": [
+        1042,
+        1084
+      ],
+      "source_sha256": "7294a2d63b19d79a5283c948afe174cba8b06a7585563d34a2c41b90f5df0d39",
+      "verbatim_quote": "#### beforeShellExecution / beforeMCPExecution\n\nCalled before any shell command or MCP tool is executed. Return a permission decision.\n\nInvalid JSON or a response that doesn't match the hook's schema blocks the action. Crashes, timeouts, and non-zero exit codes other than `2` fail open by default: Cursor logs the failure and allows the action through. Set `failClosed: true` on the hook definition to block on those failures too. This is recommended for security-critical `beforeMCPExecution` hooks.\n\n```json\n// beforeShellExecution input\n{\n  \"command\": \"<full terminal command>\",\n  \"cwd\": \"<current working directory>\",\n  \"sandbox\": false\n}\n\n// beforeMCPExecution input\n{\n  \"tool_name\": \"<tool name>\",\n  \"tool_input\": \"<json params>\",\n  \"mcp_server_name\": \"<server name from mcp.json>\"\n}\n// Plus either (HTTP/SSE servers):\n{ \"url\": \"<server url>\", \"mcp_server_url\": \"<server url>\" }\n// Or (stdio servers):\n{ \"command\": \"<launch command and args>\" }\n\n// Output\n{\n  \"permission\": \"allow\" | \"deny\" | \"ask\",\n  \"user_message\": \"<message shown in client>\",\n  \"agent_message\": \"<message sent to agent>\"\n}\n```\n\n| Field             | Type   | Description                                                                                          |\n| ----------------- | ------ | ---------------------------------------------------------------------------------------------------- |\n| `tool_name`       | string | Name of the MCP tool about to run                                                                    |\n| `tool_input`      | string | JSON params string that will be passed to the tool                                                   |\n| `mcp_server_name` | string | The server's key in its `mcp.json` (for example, `linear`). Use this to recognize a specific server. |\n| `mcp_server_url`  | string | Server URL, present only for HTTP/SSE servers                                                        |\n| `url`             | string | Same as `mcp_server_url`; present only for HTTP/SSE servers                                          |\n| `command`         | string | The stdio launch command and arguments joined with spaces; present only for stdio servers            |\n\nMatch on `mcp_server_name` (and `tool_name`) to decide whether a call targets your server. `command` is the launch string from the server's config and can differ between installs: relative paths, `${CURSOR_PLUGIN_ROOT}` expansion, or an HTTP transport (which has no `command` at all). A hook that allows anything it does not recognize should treat a missing or unexpected `mcp_server_name` as a deny.",
+      "classification": "normative",
+      "target_host_contract": "beforeShellExecution / beforeMCPExecution",
+      "resolution": "Host contract proposal; Pi binding and reference observation unresolved. Illustrative payloads are not fixed product requirements.",
+      "status": "proposal-unverified"
+    }
+  },
+  {
+    "prior_proposal_file": "parity/research/cursor-host/customization/proposals.json",
+    "edge": {
+      "id": "cursor.customization.hooks.1107",
+      "from": "cursor.customization.hooks",
+      "to": "cursor.host.hooks.aftermcpexecution",
+      "source_file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/hooks.md",
+      "locator": "#### afterMCPExecution",
+      "line_span": [
+        1107,
+        1129
+      ],
+      "source_sha256": "7294a2d63b19d79a5283c948afe174cba8b06a7585563d34a2c41b90f5df0d39",
+      "verbatim_quote": "#### afterMCPExecution\n\nFires after an MCP tool executes; includes the tool's input parameters and full JSON result.\n\n```json\n// Input\n{\n  \"tool_name\": \"<tool name>\",\n  \"tool_input\": \"<json params>\",\n  \"mcp_server_name\": \"<server name from mcp.json>\",\n  \"result_json\": \"<tool result json>\",\n  \"duration\": 1234\n}\n```\n\n| Field             | Type   | Description                                                                         |\n| ----------------- | ------ | ----------------------------------------------------------------------------------- |\n| `tool_name`       | string | Name of the MCP tool that was executed                                              |\n| `tool_input`      | string | JSON params string passed to the tool                                               |\n| `mcp_server_name` | string | The server's key in its `mcp.json`                                                  |\n| `mcp_server_url`  | string | Server URL, present only for HTTP/SSE servers                                       |\n| `result_json`     | string | JSON string of the tool response                                                    |\n| `duration`        | number | Duration in milliseconds spent executing the MCP tool (excludes approval wait time) |",
+      "classification": "normative",
+      "target_host_contract": "afterMCPExecution",
+      "resolution": "Host contract proposal; Pi binding and reference observation unresolved. Illustrative payloads are not fixed product requirements.",
+      "status": "proposal-unverified"
+    }
+  },
+  {
+    "prior_proposal_file": "parity/research/cursor-host/customization/proposals.json",
+    "edge": {
+      "id": "cursor.customization.mcp.15",
+      "from": "cursor.customization.mcp",
+      "to": "cursor.host.mcp.how-it-works",
+      "source_file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/mcp.md",
+      "locator": "### How it works",
+      "line_span": [
+        15,
+        25
+      ],
+      "source_sha256": "8f6b54387a93616c82e2087ac5f2198c150832406c4c280880a7350e610c5e7e",
+      "verbatim_quote": "### How it works\n\nMCP servers expose capabilities through the protocol, connecting Cursor to external tools or data sources.\n\nCursor supports three transport methods:\n\n| Transport             | Execution environment | Deployment       | Users          | Input                   | Auth   |\n| :-------------------- | :-------------------- | :--------------- | :------------- | :---------------------- | :----- |\n| **`stdio`**           | Local                 | Cursor manages   | Single user    | shell command           | Manual |\n| **`SSE`**             | Local/Remote          | Deploy as server | Multiple users | URL to an SSE endpoint  | OAuth  |\n| **`Streamable HTTP`** | Local/Remote          | Deploy as server | Multiple users | URL to an HTTP endpoint | OAuth  |",
+      "classification": "normative",
+      "target_host_contract": "How it works",
+      "resolution": "Host contract proposal; Pi binding and reference observation unresolved. Illustrative payloads are not fixed product requirements.",
+      "status": "proposal-unverified"
+    }
+  },
+  {
+    "prior_proposal_file": "parity/research/cursor-host/customization/proposals.json",
+    "edge": {
+      "id": "cursor.customization.mcp.54",
+      "from": "cursor.customization.mcp",
+      "to": "cursor.host.mcp.using-mcp-json",
+      "source_file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/mcp.md",
+      "locator": "### Using `mcp.json`",
+      "line_span": [
+        54,
+        98
+      ],
+      "source_sha256": "8f6b54387a93616c82e2087ac5f2198c150832406c4c280880a7350e610c5e7e",
+      "verbatim_quote": "### Using `mcp.json`\n\nConfigure custom MCP servers with a JSON file:\n\n```json title=\"CLI Server - Node.js\"\n{\n  \"mcpServers\": {\n    \"server-name\": {\n      \"command\": \"npx\",\n      \"args\": [\"-y\", \"mcp-server\"],\n      \"env\": {\n        \"API_KEY\": \"value\"\n      }\n    }\n  }\n}\n```\n\n```json title=\"CLI Server - Python\"\n{\n  \"mcpServers\": {\n    \"server-name\": {\n      \"command\": \"python\",\n      \"args\": [\"mcp-server.py\"],\n      \"env\": {\n        \"API_KEY\": \"value\"\n      }\n    }\n  }\n}\n```\n\n```json title=\"Remote Server\"\n// MCP server using HTTP or SSE - runs on a server\n{\n  \"mcpServers\": {\n    \"server-name\": {\n      \"url\": \"http://localhost:3000/mcp\",\n      \"headers\": {\n        \"API_KEY\": \"value\"\n      }\n    }\n  }\n}\n```",
+      "classification": "normative",
+      "target_host_contract": "Using `mcp.json`",
+      "resolution": "Host contract proposal; Pi binding and reference observation unresolved. Illustrative payloads are not fixed product requirements.",
+      "status": "proposal-unverified"
+    }
+  },
+  {
+    "prior_proposal_file": "parity/research/cursor-host/customization/proposals.json",
+    "edge": {
+      "id": "cursor.customization.mcp.165",
+      "from": "cursor.customization.mcp",
+      "to": "cursor.host.mcp.stdio-server-configuration",
+      "source_file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/mcp.md",
+      "locator": "### STDIO server configuration",
+      "line_span": [
+        165,
+        177
+      ],
+      "source_sha256": "8f6b54387a93616c82e2087ac5f2198c150832406c4c280880a7350e610c5e7e",
+      "verbatim_quote": "### STDIO server configuration\n\nFor STDIO servers (local command-line servers), configure these fields in your `mcp.json`:\n\n| Field       | Required | Description                                                                                             | Examples                                  |\n| :---------- | :------- | :------------------------------------------------------------------------------------------------------ | :---------------------------------------- |\n| **type**    | Yes      | Server connection type                                                                                  | `\"stdio\"`                                 |\n| **command** | Yes      | Command to start the server executable. Must be available on your system path or contain its full path. | `\"npx\"`, `\"node\"`, `\"python\"`, `\"docker\"` |\n| **args**    | No       | Array of arguments passed to the command                                                                | `[\"server.py\", \"--port\", \"3000\"]`         |\n| **env**     | No       | Environment variables for the server                                                                    | `{\"API_KEY\": \"${env:api-key}\"}`           |\n| **envFile** | No       | Path to an environment file to load more variables                                                      | `\".env\"`, `\"${workspaceFolder}/.env\"`     |\n\nThe `envFile` option is only available for STDIO servers. Remote servers (HTTP/SSE) do not support `envFile`. For remote servers, use [config interpolation](https://cursor.com/docs/mcp.md#config-interpolation) with environment variables set in your shell profile or system environment instead.",
+      "classification": "normative",
+      "target_host_contract": "STDIO server configuration",
+      "resolution": "Host contract proposal; Pi binding and reference observation unresolved. Illustrative payloads are not fixed product requirements.",
+      "status": "proposal-unverified"
+    }
+  },
+  {
+    "prior_proposal_file": "parity/research/cursor-host/customization/proposals.json",
+    "edge": {
+      "id": "cursor.customization.mcp.257",
+      "from": "cursor.customization.mcp",
+      "to": "cursor.host.mcp.mcp-allowlist",
+      "source_file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/mcp.md",
+      "locator": "### MCP Allowlist",
+      "line_span": [
+        257,
+        265
+      ],
+      "source_sha256": "8f6b54387a93616c82e2087ac5f2198c150832406c4c280880a7350e610c5e7e",
+      "verbatim_quote": "### MCP Allowlist\n\nEnterprise admins can control which MCP servers users may run from the Cursor dashboard. Open [Team Settings > MCP Configuration](https://cursor.com/dashboard/team-settings?view=mcp-configuration) to configure which servers and tools the team may run. The Plugins & MCPs page also links here. Allowlisting approves an MCP configuration. It does not distribute or install the server.\n\nUse the MCP Allowlist to define approved servers:\n\n- **Command entries** approve local `stdio` MCP servers by command pattern.\n- **URL entries** approve remote HTTP/SSE MCP servers by URL entry pattern.\n- **Tool allowlists** restrict which tools from an approved server can run automatically. Leave a tool allowlist empty to allow all tools from that server.",
+      "classification": "normative",
+      "target_host_contract": "MCP Allowlist",
+      "resolution": "Host contract proposal; Pi binding and reference observation unresolved. Illustrative payloads are not fixed product requirements.",
+      "status": "proposal-unverified"
+    }
+  },
+  {
+    "prior_proposal_file": "parity/research/cursor-host/customization/proposals.json",
+    "edge": {
+      "id": "cursor.customization.mcp.391",
+      "from": "cursor.customization.mcp",
+      "to": "cursor.host.mcp.can-i-use-mcp-servers-with-sensitive-data",
+      "source_file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/mcp.md",
+      "locator": "### Can I use MCP servers with sensitive data?",
+      "line_span": [
+        391,
+        399
+      ],
+      "source_sha256": "8f6b54387a93616c82e2087ac5f2198c150832406c4c280880a7350e610c5e7e",
+      "verbatim_quote": "### Can I use MCP servers with sensitive data?\n\nYes, but follow security best practices:\n\n- Use environment variables for secrets, never hardcode them\n- Run sensitive servers locally with `stdio` transport\n- Limit API key permissions to minimum required\n- Review server code before connecting to sensitive systems\n- Consider running servers in isolated environments",
+      "classification": "normative",
+      "target_host_contract": "Can I use MCP servers with sensitive data?",
+      "resolution": "Host contract proposal; Pi binding and reference observation unresolved. Illustrative payloads are not fixed product requirements.",
+      "status": "proposal-unverified"
+    }
+  },
+  {
+    "prior_proposal_file": "parity/research/cursor-host/customization/proposals.json",
+    "edge": {
+      "id": "cursor.customization.plugin-reference.328",
+      "from": "cursor.customization.plugin-reference",
+      "to": "cursor.host.plugin-reference.mcp-servers",
+      "source_file": "parity/research/cursor-host/customization/sources/plugin-reference.md",
+      "locator": "## MCP servers",
+      "line_span": [
+        328,
+        332
+      ],
+      "source_sha256": "5d087ad7c3ae1d48ea3f28f69a6cc67d8a2410e06908e1669ff3f20b2eb5c0ad",
+      "verbatim_quote": "## MCP servers\n\nBoth formats place `mcp.json` at the plugin root. Agent Plugins use the\nstandard's schema and declare each server's transport. Cursor Plugins can use\nCursor variables and infer the transport from `command` or `url`.",
+      "classification": "normative",
+      "target_host_contract": "MCP servers",
+      "resolution": "Host contract proposal; Pi binding and reference observation unresolved. Illustrative payloads are not fixed product requirements.",
+      "status": "proposal-unverified"
+    }
+  },
+  {
+    "prior_proposal_file": "parity/research/cursor-host/customization/proposals.json",
+    "edge": {
+      "id": "cursor.customization.mcp-install-links.1",
+      "from": "cursor.customization.mcp-install-links",
+      "to": "cursor.host.mcp-install-links.mcp-install-links",
+      "source_file": "parity/research/cursor-host/customization/sources/mcp-install-links.md",
+      "locator": "# MCP Install Links",
+      "line_span": [
+        1,
+        19
+      ],
+      "source_sha256": "426de167d81dae9474ded2f6a2a8156070641ecd32e041130284eae56e4742af",
+      "verbatim_quote": "# MCP Install Links\n\nLooking to share MCP servers, rules, and more? [Plugins](https://cursor.com/docs/plugins.md) make it easier to bundle and distribute everything in one package. You can publish to the [Cursor Marketplace](https://cursor.com/docs/plugins.md#the-marketplace) or your [team's private marketplace](https://cursor.com/docs/plugins.md#team-marketplaces).\n\nMCP servers can be installed with Cursor deeplinks. It uses the same format as [`mcp.json`](https://cursor.com/docs/mcp.md) with a name and transport configuration.\n\nInstall links:\n\n```text\ncursor://anysphere.cursor-deeplink/mcp/install?name=$NAME&config=$BASE64_ENCODED_CONFIG\n```\n\n| Component                   | Description                                           |\n| :-------------------------- | :---------------------------------------------------- |\n| `cursor://`                 | Protocol scheme                                       |\n| `anysphere.cursor-deeplink` | Deeplink handler                                      |\n| `/mcp/install`              | Path                                                  |\n| `name`                      | Query parameter for server name                       |\n| `config`                    | Query parameter for base64 encoded JSON configuration |",
+      "classification": "normative",
+      "target_host_contract": "MCP Install Links",
+      "resolution": "Host contract proposal; Pi binding and reference observation unresolved. Illustrative payloads are not fixed product requirements.",
+      "status": "proposal-unverified"
+    }
+  },
+  {
+    "prior_proposal_file": "parity/research/cursor-host/services/proposals.json",
+    "edge": {
+      "id": "cursor.services.docs_cloud-agent_api_endpoints.35",
+      "from": "cursor.services.docs_cloud-agent_api_endpoints",
+      "to": "cursor.host.services.docs_cloud-agent_api_endpoints.request-body",
+      "source_file": "parity/research/cursor-host/services/retrievals/docs_cloud-agent_api_endpoints.md",
+      "locator": "#### Request Body",
+      "line_span": [
+        35,
+        290
+      ],
+      "source_sha256": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+      "verbatim_quote": "#### Request Body\n\n`prompt` object (required)\n\nThe task prompt for the agent, including optional images.\n\n`prompt.text` string (required)\n\nThe instruction text for the agent.\n\n`prompt.images` array (optional)\n\nImage inputs for the prompt. Each entry must include either `data` (base64-encoded bytes with a required `mimeType`) or `url` (an http or https URL that Cursor fetches). Maximum 5 images, 15 MB each. Supported MIME types: `image/png`, `image/jpeg`, `image/gif`, `image/webp`.\n\n`model` object (optional)\n\nModel selection. Omit this field to use the configured default. When omitted, Cursor resolves your user default model, then your team default model, then a system default.\n\n`model.id` string (required if `model` provided)\n\nAn explicit model ID returned by `GET /v1/models` (for example, `claude-4-sonnet-thinking`).\n\n`model.params` array (optional)\n\nPer-model parameters to apply to the run, such as reasoning effort or context window size. Each item has an `id` and `value`. Use only parameters supported by the selected model \u2014 call `GET /v1/models` to discover the valid `id`/`params` combinations.\n\n`name` string (optional)\n\nDisplay name for the agent. Maximum 100 characters. When omitted, Cursor auto-derives a name from the prompt.\n\n`env` object (optional)\n\nExecution environment target. Use a named `cloud` environment, or route to a `pool` or `machine` you host. Mutually exclusive with explicit `repos` when selecting a named Cursor-hosted environment.\n\n`env.type` string (required if `env` provided)\n\nExecution environment type. `cloud` uses Cursor-hosted VMs; `pool` and `machine` route to your own workers.\n\n`env.name` string (optional)\n\nNamed Cursor-hosted environment, pool, or machine name. For `env.type: \"pool\"`, this is the pool name (defaults to `default` when omitted). An unknown pool name returns `400` instead of queueing forever. Name an [any-repo pool](https://cursor.com/docs/cloud-agent/self-hosted/pool.md#any-repo-pools) to send more than one entry in `repos`.\n\n`repos` array (optional)\n\nRepository configuration. Mutually exclusive with a named cloud environment. Omit both `repos` and `env` to start a no-repo agent. You can also omit `repos` when `env.type` is `pool` to target an [any-repo pool](https://cursor.com/docs/cloud-agent/self-hosted/pool.md#any-repo-pools). Maximum 20 repositories.\n\nOn self-hosted targets, only a named any-repo pool takes more than one repository. `machine`, the `default` pool, and repo-backed pools take one; sending more returns `400 validation_error` with the message \"My Machines and repo-bound pools accept one repo in repos. To start an agent with several repos, set env.name to an any-repo pool.\"\n\n`repos[0].url` string (required)\n\nRepository URL on any connected source control provider (for example, `https://github.com/your-org/your-repo` or `https://gitlab.example.com/your-group/your-repo`). Required on every repo entry, including when `prUrl` is provided.\n\n`repos[0].startingRef` string (optional)\n\nBranch name or commit SHA to use as the starting point. Ignored when `prUrl` is provided.\n\n`repos[0].prUrl` string (optional)\n\nPull request URL, called a merge request URL on GitLab. When provided, the agent works on that request's repository and branches; `startingRef` is ignored. `url` must still be set on the same `repos` entry.\n\n`workOnCurrentBranch` boolean (optional, default: false)\n\nWhen `false` (the default), Cursor pushes commits to a new auto-generated branch (`cursor/...`) based on `repos[0].startingRef` (or the PR base ref when `prUrl` is set). When `true`, Cursor pushes directly to that starting ref \u2014 for a non-PR create, that's the branch you passed in `startingRef`; for a `prUrl` create, that's the PR's head branch. The branch the agent pushed shows up in the agent's `git.branches[]`.\n\n`autoCreatePR` boolean (optional)\n\nWhether Cursor should open a pull request when the run completes.\n\n`skipReviewerRequest` boolean (optional)\n\nWhether to skip requesting the user as a reviewer when Cursor opens a PR. Only applies when `autoCreatePR` is `true`.\n\n`envVars` object (optional)\n\nSession-scoped environment variables for the cloud agent. Values are encrypted at rest, injected into the agent's shell, and deleted with the agent. Maximum 50 entries; names up to 255 bytes (can't start with `CURSOR_`), values up to 4096 bytes. Cannot be combined with a client-supplied `agentId`.\n\nOn self-hosted targets, `envVars` reach only pool workers that run with `--sync-dashboard-secrets` while a team admin has **Secret sync** on. `machine` targets and other pool workers run without them. See [Environments on Self-Hosted Machines](https://cursor.com/docs/cloud-agent/self-hosted.md#environments-on-self-hosted-machines).\n\n**Beta:** `envVars` is rolling out. If it isn't enabled for your account yet, the field is silently ignored on create rather than failing the request \u2014 verify the values are present by inspecting the agent shell on a first run before relying on them in production.\n\n`mcpServers` array (optional)\n\nInline MCP server definitions available to the agent. Maximum 50 servers. Remote servers support `headers` or OAuth `auth`; stdio servers run inside the cloud VM and can receive `env`. Server names must be unique.\n\n`mcpServers[0].name` string (required)\n\nThe MCP server name exposed to the agent.\n\n`mcpServers[0].type` string (optional)\n\nTransport type: `http`, `sse`, or `stdio`. Defaults to `http` for remote servers with `url`, and `stdio` for servers with `command`.\n\n`mcpServers[0].url` string (required for remote MCP)\n\nHTTP or HTTPS URL for a remote MCP server. URLs with username or password are not allowed.\n\n`mcpServers[0].command` string (required for stdio MCP)\n\nCommand to start a stdio MCP server inside the cloud agent VM. Use `args` and `env` for arguments and runtime secrets.\n\n`customSubagents` array (optional)\n\nDefine custom subagents the main agent can delegate to during the run. Maximum 20 subagents. Each entry requires `name`, `description`, and `prompt`, plus an optional `model` (model ID string, `ModelSelection` object, or `\"inherit\"`). Names must be unique and cannot collide with built-ins (`explore`, `debug`, `shell`, `computerUse`, etc.).\n\n`mode` string (optional, default: agent)\n\nInitial conversation mode for the agent's first run. `plan` explores and drafts a plan before coding ([Plan mode](https://cursor.com/help/ai-features/plan-mode.md)); `agent` implements changes directly.\n\n`agentId` string (optional)\n\nClient-supplied agent identifier in the form `bc-<uuid>`. Useful for idempotent create flows \u2014 re-POSTing the same `agentId` returns `409 agent_id_conflict` rather than creating a duplicate. Cannot be combined with `envVars`; omit `agentId` so the server mints one when you need session secrets.\n\n```bash\ncurl --request POST \\\n  --url https://api.cursor.com/v1/agents \\\n  -u YOUR_API_KEY: \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n    \"prompt\": {\n      \"text\": \"Add a README with setup instructions\"\n    },\n    \"model\": {\n      \"id\": \"composer-2\",\n      \"params\": [\n        { \"id\": \"fast\", \"value\": \"true\" }\n      ]\n    },\n    \"repos\": [\n      {\n        \"url\": \"https://github.com/your-org/your-repo\",\n        \"startingRef\": \"main\"\n      }\n    ],\n    \"mcpServers\": [\n      {\n        \"name\": \"linear\",\n        \"type\": \"http\",\n        \"url\": \"https://mcp.linear.app/sse\",\n        \"headers\": {\n          \"Authorization\": \"Bearer YOUR_LINEAR_API_KEY\"\n        }\n      },\n      {\n        \"name\": \"github\",\n        \"type\": \"stdio\",\n        \"command\": \"npx\",\n        \"args\": [\"-y\", \"@modelcontextprotocol/server-github\"],\n        \"env\": {\n          \"GITHUB_TOKEN\": \"YOUR_GITHUB_TOKEN\"\n        }\n      }\n    ],\n    \"autoCreatePR\": true\n  }'\n```\n\nSelf-hosted GitLab repository:\n\n```bash\ncurl --request POST \\\n  --url https://api.cursor.com/v1/agents \\\n  -u YOUR_API_KEY: \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n    \"prompt\": {\n      \"text\": \"Add a README with setup instructions\"\n    },\n    \"repos\": [\n      {\n        \"url\": \"https://gitlab.example.com/your-group/your-repo\",\n        \"startingRef\": \"main\"\n      }\n    ]\n  }'\n```\n\nWorker pool (including any-repo):\n\n```bash\ncurl --request POST \\\n  --url https://api.cursor.com/v1/agents \\\n  -u YOUR_API_KEY: \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n    \"prompt\": {\n      \"text\": \"Clone the payments service and add a health check\"\n    },\n    \"env\": {\n      \"type\": \"pool\",\n      \"name\": \"sandbox\"\n    }\n  }'\n```\n\nAny-repo pool with several repos:\n\n```bash\ncurl --request POST \\\n  --url https://api.cursor.com/v1/agents \\\n  -u YOUR_API_KEY: \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n    \"prompt\": {\n      \"text\": \"Update the API client and the web app together\"\n    },\n    \"env\": {\n      \"type\": \"pool\",\n      \"name\": \"my-pool\"\n    },\n    \"repos\": [\n      {\n        \"url\": \"https://github.com/your-org/your-api\",\n        \"startingRef\": \"main\"\n      },\n      {\n        \"url\": \"https://github.com/your-org/your-web-app\",\n        \"startingRef\": \"main\"\n      }\n    ]\n  }'\n```\n\n**Response:**\n\n```json\n{\n  \"agent\": {\n    \"id\": \"bc-00000000-0000-0000-0000-000000000001\",\n    \"name\": \"Add README with setup instructions\",\n    \"status\": \"ACTIVE\",\n    \"env\": {\n      \"type\": \"cloud\"\n    },\n    \"repos\": [\n      {\n        \"url\": \"https://github.com/your-org/your-repo\",\n        \"startingRef\": \"main\"\n      }\n    ],\n    \"workOnCurrentBranch\": false,\n    \"autoCreatePR\": true,\n    \"url\": \"https://cursor.com/agents/bc-00000000-0000-0000-0000-000000000001\",\n    \"createdAt\": \"2026-04-13T18:30:00.000Z\",\n    \"updatedAt\": \"2026-04-13T18:30:00.000Z\",\n    \"latestRunId\": \"run-00000000-0000-0000-0000-000000000001\"\n  },\n  \"run\": {\n    \"id\": \"run-00000000-0000-0000-0000-000000000001\",\n    \"agentId\": \"bc-00000000-0000-0000-0000-000000000001\",\n    \"status\": \"CREATING\",\n    \"createdAt\": \"2026-04-13T18:30:00.000Z\",\n    \"updatedAt\": \"2026-04-13T18:30:00.000Z\"\n  }\n}\n```\n",
+      "classification": "normative",
+      "evidence_note": "Official documented contract. Embedded sample identities, prices, vendors, prompts and sample payload values are illustrative unless surrounding prose explicitly fixes them. Conditional branch remains in scope. No behavior executed.",
+      "target_host_contract": "Request Body",
+      "status": "proposal-unverified"
+    }
+  },
+  {
+    "prior_proposal_file": "parity/research/cursor-host/services/proposals.json",
+    "edge": {
+      "id": "cursor.services.docs_cloud-agent_api_endpoints.420",
+      "from": "cursor.services.docs_cloud-agent_api_endpoints",
+      "to": "cursor.host.services.docs_cloud-agent_api_endpoints.request-body",
+      "source_file": "parity/research/cursor-host/services/retrievals/docs_cloud-agent_api_endpoints.md",
+      "locator": "#### Request Body",
+      "line_span": [
+        420,
+        474
+      ],
+      "source_sha256": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+      "verbatim_quote": "#### Request Body\n\n`prompt` object (required)\n\nThe follow-up prompt, including optional images.\n\n`prompt.text` string (required)\n\nThe follow-up instruction text.\n\n`prompt.images` array (optional)\n\nImage inputs for the follow-up. Each entry must include either `data` (base64-encoded bytes with a required `mimeType`) or `url`. Maximum 5 images, 15 MB each. Supported MIME types: `image/png`, `image/jpeg`, `image/gif`, `image/webp`.\n\n`mcpServers` array (optional)\n\nInline MCP server definitions for this follow-up run. When provided, these replace any create-time inline MCP servers for this run. Omit to keep the agent's current MCP configuration.\n\n`mode` string (optional)\n\nConversation mode override for this follow-up run: `agent` or `plan`. Omit to keep the conversation's current mode from prior runs.\n\n```bash\ncurl --request POST \\\n  --url https://api.cursor.com/v1/agents/bc-00000000-0000-0000-0000-000000000001/runs \\\n  -u YOUR_API_KEY: \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n    \"prompt\": {\n      \"text\": \"Also add troubleshooting steps\"\n    },\n    \"mcpServers\": [\n      {\n        \"name\": \"docs\",\n        \"type\": \"http\",\n        \"url\": \"https://example.com/mcp\"\n      }\n    ]\n  }'\n```\n\n**Response:**\n\n```json\n{\n  \"run\": {\n    \"id\": \"run-00000000-0000-0000-0000-000000000002\",\n    \"agentId\": \"bc-00000000-0000-0000-0000-000000000001\",\n    \"status\": \"CREATING\",\n    \"createdAt\": \"2026-04-13T18:50:00.000Z\",\n    \"updatedAt\": \"2026-04-13T18:50:00.000Z\"\n  }\n}\n```\n",
+      "classification": "normative",
+      "evidence_note": "Official documented contract. Embedded sample identities, prices, vendors, prompts and sample payload values are illustrative unless surrounding prose explicitly fixes them. Conditional branch remains in scope. No behavior executed.",
+      "target_host_contract": "Request Body",
+      "status": "proposal-unverified"
+    }
+  }
+]

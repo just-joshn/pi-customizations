@@ -1,0 +1,114 @@
+{
+  "schema": 1,
+  "pairId": "figure-it-out-playbook-first-1",
+  "scenarioRef": "cmd-figure-it-out-playbook-first",
+  "journeyFamily": "journey-family-05-playbook-complete-journeys",
+  "requirementIds": [
+    "PSTACK-CMD-FIGURE-IT-OUT-PLAYBOOK-FIRST-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "/figure-it-out multi-part note-store migration (persist notes.json, ISO timestamps in format, cli loads file) plus side-specific done.txt path",
+  "steps": [
+    { "send": "/figure-it-out this is a multi-part note-store migration I will review after stepping away. ..." },
+    { "send": "\r" },
+    { "settle": true },
+    { "cancel": true }
+  ],
+  "cursor": {
+    "attemptId": "38afcd44-b9f2-4ba3-ad91-f345d71bdd73",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/figure-it-out/cursor/38afcd44-b9f2-4ba3-ad91-f345d71bdd73",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "observations": {
+      "figureItOutSkill": true,
+      "firstPlaybookAt": "2026-10-08T19:14:06.421Z",
+      "firstProductAt": "2026-10-08T19:14:35.506Z",
+      "playbookPaths": ["decisions.tsv"],
+      "productPaths": ["src/store.js", "src/format.js", "src/cli.js", "notes.json"],
+      "structuredPlaybook": true,
+      "ordering": "playbook_before_product",
+      "playbookBeforeProduct": true,
+      "playbookArtifactNote": "First on-disk artifact was decisions.tsv (show-me-your-work trail) with phase rows and a falsifiable done predicate; no separate PLAYBOOK.md. Product edits began ~29s later.",
+      "doneMarkerWritten": true
+    }
+  },
+  "pi": {
+    "attemptId": "a45d9cf4-4cea-4974-a9ad-7d56195c5259",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/figure-it-out/pi/a45d9cf4-4cea-4974-a9ad-7d56195c5259",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-figure-it-out-fixture-app--/2026-10-08T19-16-45-542Z_01a11cf2-5365-7111-986b-9e4cb7041da1.jsonl",
+    "observations": {
+      "figureItOutSkill": true,
+      "firstPlaybookAt": null,
+      "firstProductAt": "2026-10-08T19:17:03.955Z",
+      "playbookPaths": [],
+      "productPaths": ["notes.json", "src/cli.js", "src/format.js", "src/store.js"],
+      "structuredPlaybook": false,
+      "ordering": "product_before_playbook",
+      "playbookBeforeProduct": false,
+      "sessionToolOrder": [
+        "src/store.js",
+        "src/format.js",
+        "src/cli.js",
+        "notes.json (via verify.mjs)",
+        "DECISIONS.md",
+        "fixture-out/pi/done.txt"
+      ],
+      "phaseTodosStillPendingAtEnd": true,
+      "doneMarkerWritten": true
+    }
+  },
+  "deltas": [
+    {
+      "topic": "playbook before product code",
+      "cursor": "decisions.tsv with phase framing and falsifiable done predicate appeared at 19:14:06Z; first product edit src/store.js at 19:14:35Z.",
+      "pi": "Single bash call wrote product files first, then DECISIONS.md. FS poll saw product with no prior playbook path. Phase A-E todos still pending on the settled screen.",
+      "reconciled": false
+    },
+    {
+      "topic": "playbook artifact shape",
+      "cursor": "Used show-me-your-work decisions.tsv as the early auditable artifact (phases + done predicate in TSV rows). No separate PLAYBOOK.md in fixture-snapshot.",
+      "pi": "Claimed DECISIONS.md trail after product edits in the same bash script. No on-disk playbook before product.",
+      "reconciled": false
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "Auto",
+      "pi": "claude-sonnet-5-5 • medium (claude-subscription)",
+      "reconciled": false
+    },
+    {
+      "topic": "slash residual",
+      "cursor": "Keeps /figure-it-out visible with the full prompt.",
+      "pi": "Shows [skill] figure-it-out; residual prompt starts with this is a multi-part note-store migration...",
+      "reconciled": true
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-figure-it-out-playbook-first.mjs --cursor-only then --pi-only",
+    "workerPlaybook": "parity/evidence/figure-it-out/PLAYBOOK.md",
+    "decisionTrail": "parity/evidence/figure-it-out/.audit/u-journey-family-05-fio.tsv",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "packagePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack",
+    "markerRoot": "parity/evidence/figure-it-out/fixture-out/{cursor,pi}/"
+  }
+}

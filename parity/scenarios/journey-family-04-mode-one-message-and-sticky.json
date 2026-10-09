@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "kind": "journey-family-stub",
+  "id": "journey-family-04-mode-one-message-and-sticky",
+  "family": 4,
+  "familyTitle": "Activate pstack for one message and persistently; continue, interrupt, opt out, verify routing",
+  "contractRef": "parity/contract.md#8-verify-through-the-users-controls",
+  "status": "partial",
+  "requirementIds": [
+    "PSTACK-MODE-ONE-MESSAGE-001",
+    "PSTACK-MODE-STICKY-001"
+  ],
+  "fixtureNeeds": [
+    "No persistent mode at start",
+    "Slash menu /poteto-mode selection with plain Enter vs sticky activation",
+    "Two-turn follow-up to observe routing after one-message vs sticky"
+  ],
+  "evidencePaths": [
+    "parity/evidence/mode-one-message/pair-mode-one-message-1.json",
+    "parity/briefs/reports/u-mode-one-message-report.md"
+  ],
+  "openMismatches": [
+    "MODE-PLAIN-ENTER-STICKY"
+  ],
+  "coverageNotes": "Cursor+Pi pair exists for plain-enter one-message. Open mismatch MODE-PLAIN-ENTER-STICKY. Sticky activation, interrupt, and opt-out not paired. Not paired status.",
+  "nextAction": "Fix Pi one-message vs sticky activation, then recapture mode-one-message and mode-sticky pairs until MODE-PLAIN-ENTER-STICKY closes."
+}

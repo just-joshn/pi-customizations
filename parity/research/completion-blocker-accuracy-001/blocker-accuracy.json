@@ -1,0 +1,211 @@
+{
+  "unit": "u-completion-blocker-accuracy-001",
+  "evaluatedAt": "2026-10-09T09:03:20.288Z",
+  "verdict": "BLOCKED",
+  "blockerCount": 13,
+  "verifiedPassPaired": 94,
+  "requirementCount": 98,
+  "executedJourneyCount": 95,
+  "openMismatchIds": [
+    "BENNY-TRIAGE-VALID-CONFIG-ENV",
+    "MAKE-BOT-UI-KEY-SERVER-HOST",
+    "SETUP-BENNY-THREAD-SAFETY-ENV"
+  ],
+  "creationBoundaryEnvStatus": "closed-env-resolved",
+  "consoleLocked": "Yes",
+  "codesMatchedCheckCompletion": true,
+  "staleFalseOpens": [],
+  "blockers": [
+    {
+      "n": 1,
+      "code": "SOURCE_LOCK_INCOMPLETE",
+      "locator": "status",
+      "stillValid": true,
+      "ledgerFact": "source-lock.status=incomplete",
+      "nextEvidence": "Coordinator finalize after G1+G2+live-int unresolvedReference close",
+      "grantIds": [
+        "G1",
+        "G2",
+        "G11"
+      ]
+    },
+    {
+      "n": 2,
+      "code": "SOURCE_CLOSURE_INCOMPLETE",
+      "locator": "cursorPlugins.completeDependencyClosure",
+      "stillValid": true,
+      "ledgerFact": "completeDependencyClosure=false",
+      "nextEvidence": "Same as source lock; closure flag flips only after unresolved edges+reference clear",
+      "grantIds": [
+        "G1",
+        "G2",
+        "G11"
+      ]
+    },
+    {
+      "n": 3,
+      "code": "DEPENDENCY_REFERENCE_UNRESOLVED",
+      "locator": "unresolvedReferences[0]",
+      "stillValid": true,
+      "ledgerFact": "unresolvedReferences.length=1; live-int b=115",
+      "nextEvidence": "Pay remaining live-int class-b via G4–G11 then coordinator narrow/close reference",
+      "grantIds": [
+        "G4",
+        "G5",
+        "G6",
+        "G7",
+        "G8",
+        "G9",
+        "G10",
+        "G11"
+      ]
+    },
+    {
+      "n": 4,
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "locator": "edges[0]",
+      "stillValid": true,
+      "ledgerFact": "cursor-cli-host→cursor-self-hosted-computer-use status=unresolved",
+      "nextEvidence": "Cloud MacRemoteComputerUseExecutor attempt IDs (local Helper already paid)",
+      "grantIds": [
+        "G1"
+      ]
+    },
+    {
+      "n": 5,
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "locator": "edges[1]",
+      "stillValid": true,
+      "ledgerFact": "cursor-cli-host→cursor-enterprise-integration-policy status=unresolved",
+      "nextEvidence": "Enterprise org + read-only policy observation attempt IDs",
+      "grantIds": [
+        "G2"
+      ]
+    },
+    {
+      "n": 6,
+      "code": "ACCEPTANCE_DEFINITIONS_UNFROZEN",
+      "locator": "acceptanceDefinitionsFrozen",
+      "stillValid": true,
+      "ledgerFact": "acceptanceDefinitionsFrozen=false",
+      "nextEvidence": "Independent owner + external custody + freeze auth (no freeze from this audit)",
+      "grantIds": [
+        "G3"
+      ]
+    },
+    {
+      "n": 7,
+      "code": "REQUIREMENT_UNVERIFIED",
+      "locator": "requirements[25].status",
+      "reqId": "PSTACK-CMD-BENNY-TRIAGE-THREAD-ONLY-001",
+      "stillValid": true,
+      "ledgerFact": "status=unverified",
+      "nextEvidence": "Valid-config Cursor+Pi pair after Benny/Slack grants; fail-closed half already paired",
+      "grantIds": [
+        "G4",
+        "G5",
+        "G6",
+        "G7",
+        "G8"
+      ]
+    },
+    {
+      "n": 8,
+      "code": "REQUIREMENT_UNVERIFIED",
+      "locator": "requirements[31].status",
+      "reqId": "PSTACK-CMD-MAKE-BOT-UI-KEY-SERVER-001",
+      "stillValid": true,
+      "ledgerFact": "status=unverified",
+      "nextEvidence": "Unlock→Discard Untitled→Generate + 0600 store + probe 200 linked to Pi e75f8e08",
+      "grantIds": [
+        "G10"
+      ]
+    },
+    {
+      "n": 9,
+      "code": "REQUIREMENT_UNVERIFIED",
+      "locator": "requirements[61].status",
+      "reqId": "PSTACK-SETUP-BENNY-CREATION-BOUNDARY-001",
+      "stillValid": true,
+      "ledgerFact": "status=unverified; ENV mismatch closed-env-resolved; Option A keep-unverified",
+      "nextEvidence": "Pi Automations editor exists OR owner Option B permanent Pi-incapable; Cursor chrome already paid",
+      "grantIds": [
+        "G9"
+      ]
+    },
+    {
+      "n": 10,
+      "code": "REQUIREMENT_UNVERIFIED",
+      "locator": "requirements[62].status",
+      "reqId": "PSTACK-SETUP-BENNY-THREAD-SAFETY-001",
+      "stillValid": true,
+      "ledgerFact": "status=unverified",
+      "nextEvidence": "Automations Save witness + seven-check posts after G4–G8; do not Activate before seven pass",
+      "grantIds": [
+        "G4",
+        "G5",
+        "G6",
+        "G7",
+        "G8",
+        "G9"
+      ]
+    },
+    {
+      "n": 11,
+      "code": "BEHAVIOR_MISMATCH_OPEN",
+      "locator": "items[19]",
+      "mismatchId": "BENNY-TRIAGE-VALID-CONFIG-ENV",
+      "stillValid": true,
+      "ledgerFact": "status=open",
+      "nextEvidence": "Same path as req[25] valid-config pair",
+      "grantIds": [
+        "G4",
+        "G5",
+        "G6",
+        "G7",
+        "G8"
+      ]
+    },
+    {
+      "n": 12,
+      "code": "BEHAVIOR_MISMATCH_OPEN",
+      "locator": "items[21]",
+      "mismatchId": "MAKE-BOT-UI-KEY-SERVER-HOST",
+      "stillValid": true,
+      "ledgerFact": "status=open; IOConsoleLocked=Yes",
+      "nextEvidence": "Same path as req[31] G10",
+      "grantIds": [
+        "G10"
+      ]
+    },
+    {
+      "n": 13,
+      "code": "BEHAVIOR_MISMATCH_OPEN",
+      "locator": "items[22]",
+      "mismatchId": "SETUP-BENNY-THREAD-SAFETY-ENV",
+      "stillValid": true,
+      "ledgerFact": "status=open",
+      "nextEvidence": "Same path as req[62]",
+      "grantIds": [
+        "G4",
+        "G5",
+        "G6",
+        "G7",
+        "G8",
+        "G9"
+      ]
+    }
+  ],
+  "orderedNextGrants": [
+    "G10",
+    "G4-G8",
+    "G9-remaining",
+    "G1",
+    "G2",
+    "G11",
+    "G3"
+  ],
+  "ledgersEdited": false,
+  "freezeClaimed": false,
+  "fabricatedLiveEvidence": false
+}

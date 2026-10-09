@@ -1,0 +1,1267 @@
+{
+  "schemaVersion": 1,
+  "status": "source-reading-only",
+  "originalCursorDocsCount": 16,
+  "originalCursorDocsNewlineCount": 4851,
+  "coordinatorPersonalReadScope": "Parent contract and ledgers, llms index, selected plugin host seeds, services partition. Sixteen old Cursor docs fully read through two delegated partitions, not personally reread by coordinator.",
+  "receipts": [
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/cli_changelog.md",
+      "partition": "cli",
+      "sha256": "914a066ed45875f71edec09bbb219e3d38825c83d28ebcd07bad7497936833e3",
+      "totalLines": 438,
+      "readRanges": [
+        [
+          1,
+          430
+        ],
+        [
+          431,
+          439
+        ]
+      ],
+      "coveredLines": 438,
+      "reading": "full",
+      "observer": "delegated-how-explorer",
+      "receipt_artifact": "parity/research/cursor-host/cli/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/cli_installation.md",
+      "partition": "cli",
+      "sha256": "50435bbdfe5f3640484df508440b1c6274d8c57f85c2f91ac78ee15caa5a1d3c",
+      "totalLines": 67,
+      "readRanges": [
+        [
+          1,
+          67
+        ]
+      ],
+      "coveredLines": 67,
+      "reading": "full",
+      "observer": "delegated-how-explorer",
+      "receipt_artifact": "parity/research/cursor-host/cli/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/cli_overview.md",
+      "partition": "cli",
+      "sha256": "c56ae1d766654ca892b2cfb513a2f7f5ef0082f107d225fb4319fa9f20109e85",
+      "totalLines": 98,
+      "readRanges": [
+        [
+          1,
+          98
+        ]
+      ],
+      "coveredLines": 98,
+      "reading": "full",
+      "observer": "delegated-how-explorer",
+      "receipt_artifact": "parity/research/cursor-host/cli/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/cli_reference_authentication.md",
+      "partition": "cli",
+      "sha256": "c578539ee1ae3d574a75937230b22cea360f28e17da37529ddfceeedd04d2a1e",
+      "totalLines": 71,
+      "readRanges": [
+        [
+          1,
+          71
+        ]
+      ],
+      "coveredLines": 71,
+      "reading": "full",
+      "observer": "delegated-how-explorer",
+      "receipt_artifact": "parity/research/cursor-host/cli/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/cli_reference_configuration.md",
+      "partition": "cli",
+      "sha256": "aab79ccc8949c23f30c45e0928ea80cefb5ee4ee6ff1723a3864ac61851f2a87",
+      "totalLines": 166,
+      "readRanges": [
+        [
+          1,
+          166
+        ]
+      ],
+      "coveredLines": 166,
+      "reading": "full",
+      "observer": "delegated-how-explorer",
+      "receipt_artifact": "parity/research/cursor-host/cli/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/cli_reference_parameters.md",
+      "partition": "cli",
+      "sha256": "b50b48d66f4f420a8d1d4a6c3087aa74d3fa37f2c5363933ac30754ef10a8c78",
+      "totalLines": 153,
+      "readRanges": [
+        [
+          1,
+          153
+        ]
+      ],
+      "coveredLines": 153,
+      "reading": "full",
+      "observer": "delegated-how-explorer",
+      "receipt_artifact": "parity/research/cursor-host/cli/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/cli_reference_permissions.md",
+      "partition": "cli",
+      "sha256": "9f8264f5d8136496f008e0949cdad81760b8fa7784e3d6a2a04757c13c960f15",
+      "totalLines": 116,
+      "readRanges": [
+        [
+          1,
+          116
+        ]
+      ],
+      "coveredLines": 116,
+      "reading": "full",
+      "observer": "delegated-how-explorer",
+      "receipt_artifact": "parity/research/cursor-host/cli/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/cli_reference_slash-commands.md",
+      "partition": "cli",
+      "sha256": "a39f8c0086b6ca6e2bfde6c3595142987cdef4489ad0c0e213510bb746947111",
+      "totalLines": 47,
+      "readRanges": [
+        [
+          1,
+          47
+        ]
+      ],
+      "coveredLines": 47,
+      "reading": "full",
+      "observer": "delegated-how-explorer",
+      "receipt_artifact": "parity/research/cursor-host/cli/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/cli_using.md",
+      "partition": "cli",
+      "sha256": "b070cb1f882dd8e8b9ab7434ff6f96fe1f181c4907ee242773ae6bbbedb47b0b",
+      "totalLines": 122,
+      "readRanges": [
+        [
+          1,
+          122
+        ]
+      ],
+      "coveredLines": 122,
+      "reading": "full",
+      "observer": "delegated-how-explorer",
+      "receipt_artifact": "parity/research/cursor-host/cli/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "parity/research/cursor-host/cli/retrieved/acp.md",
+      "partition": "cli",
+      "sha256": "65f46c603203646915b98f3ab52db1f0d670c221b46521a2b4e71d70d3c9181b",
+      "totalLines": 525,
+      "readRanges": [
+        [
+          1,
+          525
+        ]
+      ],
+      "coveredLines": 525,
+      "reading": "full",
+      "observer": "delegated-how-explorer",
+      "receipt_artifact": "parity/research/cursor-host/cli/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "parity/research/cursor-host/cli/retrieved/headless.md",
+      "partition": "cli",
+      "sha256": "d767966f4e86012bce9e358c80c8a8e056d4ad0c8e73d74fd036d5acdf32a7af",
+      "totalLines": 231,
+      "readRanges": [
+        [
+          1,
+          231
+        ]
+      ],
+      "coveredLines": 231,
+      "reading": "full",
+      "observer": "delegated-how-explorer",
+      "receipt_artifact": "parity/research/cursor-host/cli/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "parity/research/cursor-host/cli/retrieved/index.md",
+      "partition": "cli",
+      "sha256": "ae0e4e261867db518252e75fdc1d30f354867b6a83996332460bf49505e69ca0",
+      "totalLines": 486,
+      "readRanges": [
+        [
+          1,
+          486
+        ]
+      ],
+      "coveredLines": 486,
+      "reading": "full",
+      "observer": "delegated-how-explorer",
+      "receipt_artifact": "parity/research/cursor-host/cli/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "parity/research/cursor-host/cli/retrieved/pool.md",
+      "partition": "cli",
+      "sha256": "b67e7f5ed22ce48d371e451c5c457d6630357b33d3d5e32ce1c9f6423b7bc41f",
+      "totalLines": 901,
+      "readRanges": [
+        [
+          1,
+          705
+        ],
+        [
+          706,
+          901
+        ]
+      ],
+      "coveredLines": 901,
+      "reading": "full",
+      "observer": "delegated-how-explorer",
+      "receipt_artifact": "parity/research/cursor-host/cli/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "parity/research/cursor-host/cli/retrieved/reference_output-format.md",
+      "partition": "cli",
+      "sha256": "add17086b1b46485b73e24e995a5f69f16bcdb0f5f9f94f5f86cadb506063d69",
+      "totalLines": 245,
+      "readRanges": [
+        [
+          1,
+          245
+        ]
+      ],
+      "coveredLines": 245,
+      "reading": "full",
+      "observer": "delegated-how-explorer",
+      "receipt_artifact": "parity/research/cursor-host/cli/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "parity/research/cursor-host/cli/retrieved/reference_shell-mode.md",
+      "partition": "cli",
+      "sha256": "4f98eb063d1914a3100f2c7e6bab3a449877d33da375eb3c05edc3a61e78afb1",
+      "totalLines": 10,
+      "readRanges": [
+        [
+          1,
+          10
+        ]
+      ],
+      "coveredLines": 10,
+      "reading": "full",
+      "observer": "delegated-how-explorer",
+      "receipt_artifact": "parity/research/cursor-host/cli/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "parity/research/cursor-host/cli/retrieved/reference_terminal-setup.md",
+      "partition": "cli",
+      "sha256": "487cf0bfef34196aa4a090b2d718413b93f96ae64dcf8aa7e7a8d7645b03aa86",
+      "totalLines": 269,
+      "readRanges": [
+        [
+          1,
+          269
+        ]
+      ],
+      "coveredLines": 269,
+      "reading": "full",
+      "observer": "delegated-how-explorer",
+      "receipt_artifact": "parity/research/cursor-host/cli/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "parity/research/cursor-host/cli/retrieved/self-hosted-overview.md",
+      "partition": "cli",
+      "sha256": "4f98eb063d1914a3100f2c7e6bab3a449877d33da375eb3c05edc3a61e78afb1",
+      "totalLines": 10,
+      "readRanges": [
+        [
+          1,
+          10
+        ]
+      ],
+      "coveredLines": 10,
+      "reading": "full",
+      "observer": "delegated-how-explorer",
+      "receipt_artifact": "parity/research/cursor-host/cli/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "parity/research/cursor-host/cli/retrieved/shell-mode.md",
+      "partition": "cli",
+      "sha256": "7acca7788419524ddc8f677930401a10d3413a760f830b33d5bc42c9353bc0c7",
+      "totalLines": 70,
+      "readRanges": [
+        [
+          1,
+          70
+        ]
+      ],
+      "coveredLines": 70,
+      "reading": "full",
+      "observer": "delegated-how-explorer",
+      "receipt_artifact": "parity/research/cursor-host/cli/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/contract.md",
+      "partition": "cli",
+      "sha256": "ffb66225c10486e861d79f60415138fd79cc2fa8e6794825b2124998924c4f6f",
+      "totalLines": 436,
+      "readRanges": [
+        [
+          1,
+          387
+        ],
+        [
+          388,
+          437
+        ]
+      ],
+      "coveredLines": 436,
+      "reading": "full",
+      "observer": "delegated-how-explorer",
+      "receipt_artifact": "parity/research/cursor-host/cli/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/progress.md",
+      "partition": "cli",
+      "sha256": "d0a22a6c07a4b1fcbaba22134ad9089b47d9fab9e647f80185cea6dfb794a3c7",
+      "totalLines": 78,
+      "readRanges": [
+        [
+          1,
+          78
+        ]
+      ],
+      "coveredLines": 78,
+      "reading": "full",
+      "observer": "delegated-how-explorer",
+      "receipt_artifact": "parity/research/cursor-host/cli/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/source-lock.json",
+      "partition": "cli",
+      "sha256": "3f5b0d1eaa76d2102c0b55c346a8c3d525a066e06defbb1e6afdbd86ef989f74",
+      "totalLines": 71,
+      "readRanges": [
+        [
+          1,
+          71
+        ]
+      ],
+      "coveredLines": 71,
+      "reading": "full",
+      "observer": "delegated-how-explorer",
+      "receipt_artifact": "parity/research/cursor-host/cli/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/contract.md",
+      "partition": "customization",
+      "sha256": "ffb66225c10486e861d79f60415138fd79cc2fa8e6794825b2124998924c4f6f",
+      "totalLines": 436,
+      "readRanges": [
+        [
+          1,
+          387
+        ],
+        [
+          388,
+          437
+        ]
+      ],
+      "coveredLines": 436,
+      "reading": "full",
+      "observer": "delegated-how-explorer",
+      "receipt_artifact": "parity/research/cursor-host/customization/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reviews/source-discovery.md",
+      "partition": "customization",
+      "sha256": "15fb483b39f281d330b6566476c434afbcc333459c27b1ea66686a94b781478b",
+      "totalLines": 241,
+      "readRanges": [
+        [
+          1,
+          241
+        ]
+      ],
+      "coveredLines": 241,
+      "reading": "full",
+      "observer": "delegated-how-explorer",
+      "receipt_artifact": "parity/research/cursor-host/customization/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/customize-cursor.md",
+      "partition": "customization",
+      "sha256": "9ae0878d97465512ad29459f5406538ec7b427dfbaa39e1cc95d3deb447f363e",
+      "totalLines": 74,
+      "readRanges": [
+        [
+          1,
+          74
+        ]
+      ],
+      "coveredLines": 74,
+      "reading": "full",
+      "observer": "delegated-how-explorer",
+      "receipt_artifact": "parity/research/cursor-host/customization/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/plugins.md",
+      "partition": "customization",
+      "sha256": "cf4ca6bb6ab24ba3f933a4e711881612060a50c013311279b58120aa6403693b",
+      "totalLines": 364,
+      "readRanges": [
+        [
+          1,
+          364
+        ]
+      ],
+      "coveredLines": 364,
+      "reading": "full",
+      "observer": "delegated-how-explorer",
+      "receipt_artifact": "parity/research/cursor-host/customization/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/skills.md",
+      "partition": "customization",
+      "sha256": "5ccb25304f16e82a7f58c0241a0a16a072adb33f7697e43c5704c46738e002ac",
+      "totalLines": 344,
+      "readRanges": [
+        [
+          1,
+          344
+        ]
+      ],
+      "coveredLines": 344,
+      "reading": "full",
+      "observer": "delegated-how-explorer",
+      "receipt_artifact": "parity/research/cursor-host/customization/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/subagents.md",
+      "partition": "customization",
+      "sha256": "e1be8a37fe4244e970469fbe5e69555d1c56b6503fc0b1e662f68373157a65c8",
+      "totalLines": 492,
+      "readRanges": [
+        [
+          1,
+          492
+        ]
+      ],
+      "coveredLines": 492,
+      "reading": "full",
+      "observer": "delegated-how-explorer",
+      "receipt_artifact": "parity/research/cursor-host/customization/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/rules.md",
+      "partition": "customization",
+      "sha256": "884c67ca161142c2f3f0e4ef66a732dd48119cb08bd0dc2ff73e693721546bc8",
+      "totalLines": 399,
+      "readRanges": [
+        [
+          1,
+          399
+        ]
+      ],
+      "coveredLines": 399,
+      "reading": "full",
+      "observer": "delegated-how-explorer",
+      "receipt_artifact": "parity/research/cursor-host/customization/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/hooks.md",
+      "partition": "customization",
+      "sha256": "7294a2d63b19d79a5283c948afe174cba8b06a7585563d34a2c41b90f5df0d39",
+      "totalLines": 1490,
+      "readRanges": [
+        [
+          1,
+          400
+        ],
+        [
+          401,
+          800
+        ],
+        [
+          801,
+          1200
+        ],
+        [
+          1201,
+          1490
+        ]
+      ],
+      "coveredLines": 1490,
+      "reading": "full",
+      "observer": "delegated-how-explorer",
+      "receipt_artifact": "parity/research/cursor-host/customization/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/mcp.md",
+      "partition": "customization",
+      "sha256": "8f6b54387a93616c82e2087ac5f2198c150832406c4c280880a7350e610c5e7e",
+      "totalLines": 410,
+      "readRanges": [
+        [
+          1,
+          410
+        ]
+      ],
+      "coveredLines": 410,
+      "reading": "full",
+      "observer": "delegated-how-explorer",
+      "receipt_artifact": "parity/research/cursor-host/customization/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "parity/research/cursor-host/customization/sources/plugin-reference.md",
+      "partition": "customization",
+      "sha256": "5d087ad7c3ae1d48ea3f28f69a6cc67d8a2410e06908e1669ff3f20b2eb5c0ad",
+      "totalLines": 527,
+      "readRanges": [
+        [
+          1,
+          400
+        ],
+        [
+          401,
+          528
+        ]
+      ],
+      "coveredLines": 527,
+      "reading": "full",
+      "observer": "delegated-how-explorer",
+      "receipt_artifact": "parity/research/cursor-host/customization/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "parity/research/cursor-host/customization/sources/prompting.md",
+      "partition": "customization",
+      "sha256": "438f77bf7295d28002c81ce0658134ce7debe6dfa76bae926058b918ed378410",
+      "totalLines": 71,
+      "readRanges": [
+        [
+          1,
+          71
+        ]
+      ],
+      "coveredLines": 71,
+      "reading": "full",
+      "observer": "delegated-how-explorer",
+      "receipt_artifact": "parity/research/cursor-host/customization/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "parity/research/cursor-host/customization/sources/third-party-hooks.md",
+      "partition": "customization",
+      "sha256": "c2d2e67fd529f5d14feaaab22b3662f9eac2d21a4c54846f3e28fca6d63292c6",
+      "totalLines": 278,
+      "readRanges": [
+        [
+          1,
+          278
+        ]
+      ],
+      "coveredLines": 278,
+      "reading": "full",
+      "observer": "delegated-how-explorer",
+      "receipt_artifact": "parity/research/cursor-host/customization/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "parity/research/cursor-host/customization/sources/mcp-install-links.md",
+      "partition": "customization",
+      "sha256": "426de167d81dae9474ded2f6a2a8156070641ecd32e041130284eae56e4742af",
+      "totalLines": 65,
+      "readRanges": [
+        [
+          1,
+          65
+        ]
+      ],
+      "coveredLines": 65,
+      "reading": "full",
+      "observer": "delegated-how-explorer",
+      "receipt_artifact": "parity/research/cursor-host/customization/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "parity/research/cursor-host/customization/sources/mcp-extension-api.md",
+      "partition": "customization",
+      "sha256": "4f98eb063d1914a3100f2c7e6bab3a449877d33da375eb3c05edc3a61e78afb1",
+      "totalLines": 10,
+      "readRanges": [
+        [
+          1,
+          10
+        ]
+      ],
+      "coveredLines": 10,
+      "reading": "full",
+      "observer": "delegated-how-explorer",
+      "receipt_artifact": "parity/research/cursor-host/customization/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "parity/research/cursor-host/customization/sources/run-modes.md",
+      "partition": "customization",
+      "sha256": "7373592c3e2e6f57a6acce95ace7979226568e7191b1059ae96c46425639d561",
+      "totalLines": 390,
+      "readRanges": [],
+      "coveredLines": 0,
+      "reading": "unread",
+      "observer": "delegated-how-explorer",
+      "receipt_artifact": "parity/research/cursor-host/customization/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "parity/research/cursor-host/services/retrievals/docs-static_cloud-agents-openapi.yaml",
+      "partition": "services",
+      "sha256": "664e695207e9f72dd7dd296d60b576e68575f8e71ce18e6263a554850c072570",
+      "totalLines": 2994,
+      "readRanges": [],
+      "coveredLines": 0,
+      "reading": "unread",
+      "observer": "coordinator",
+      "receipt_artifact": "parity/research/cursor-host/services/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "parity/research/cursor-host/services/retrievals/docs_agent_security_run-modes.md",
+      "partition": "services",
+      "sha256": "7373592c3e2e6f57a6acce95ace7979226568e7191b1059ae96c46425639d561",
+      "totalLines": 390,
+      "readRanges": [
+        [
+          1,
+          390
+        ]
+      ],
+      "coveredLines": 390,
+      "reading": "full",
+      "observer": "coordinator",
+      "receipt_artifact": "parity/research/cursor-host/services/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "parity/research/cursor-host/services/retrievals/docs_agent_tools_browser.md",
+      "partition": "services",
+      "sha256": "bdd6f305af999c703e11598552d6e05b882513e0ec78475dc312900f38dbe2b6",
+      "totalLines": 199,
+      "readRanges": [
+        [
+          1,
+          199
+        ]
+      ],
+      "coveredLines": 199,
+      "reading": "full",
+      "observer": "coordinator",
+      "receipt_artifact": "parity/research/cursor-host/services/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "parity/research/cursor-host/services/retrievals/docs_cloud-agent_api_endpoints.md",
+      "partition": "services",
+      "sha256": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+      "totalLines": 3011,
+      "readRanges": [
+        [
+          1,
+          800
+        ],
+        [
+          2880,
+          3012
+        ]
+      ],
+      "coveredLines": 932,
+      "reading": "partial",
+      "observer": "coordinator",
+      "receipt_artifact": "parity/research/cursor-host/services/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "parity/research/cursor-host/services/retrievals/docs_cloud-agent_api_webhooks.md",
+      "partition": "services",
+      "sha256": "ac1de6fe77d750240651d849f26974af43c2ce378cf4f73afc1eb369b049d6d1",
+      "totalLines": 88,
+      "readRanges": [
+        [
+          1,
+          88
+        ]
+      ],
+      "coveredLines": 88,
+      "reading": "full",
+      "observer": "coordinator",
+      "receipt_artifact": "parity/research/cursor-host/services/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "parity/research/cursor-host/services/retrievals/docs_cloud-agent_automations.md",
+      "partition": "services",
+      "sha256": "3190fac04bb8ffd01b4921acc32a55e3589a919a46aa1d7e84c03fc638ffcf88",
+      "totalLines": 297,
+      "readRanges": [
+        [
+          1,
+          297
+        ]
+      ],
+      "coveredLines": 297,
+      "reading": "full",
+      "observer": "coordinator",
+      "receipt_artifact": "parity/research/cursor-host/services/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "parity/research/cursor-host/services/retrievals/docs_cloud-agent_capabilities.md",
+      "partition": "services",
+      "sha256": "42885b553c13ff35527334cc837d106fabcc06fd72c43a46538d4f55953a0512",
+      "totalLines": 185,
+      "readRanges": [
+        [
+          1,
+          185
+        ]
+      ],
+      "coveredLines": 185,
+      "reading": "full",
+      "observer": "coordinator",
+      "receipt_artifact": "parity/research/cursor-host/services/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "parity/research/cursor-host/services/retrievals/docs_cloud-agent_metadata.md",
+      "partition": "services",
+      "sha256": "c3aa314c702e8b6e34347856c034eeb88aa60c719ea5f5ba928b366d9f5158bf",
+      "totalLines": 217,
+      "readRanges": [
+        [
+          1,
+          217
+        ]
+      ],
+      "coveredLines": 217,
+      "reading": "full",
+      "observer": "coordinator",
+      "receipt_artifact": "parity/research/cursor-host/services/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "parity/research/cursor-host/services/retrievals/docs_grok-bot_security.md",
+      "partition": "services",
+      "sha256": "d1736bc1dbfc19b149c005c3555573a9351e78cff3b5cbd5a51f3ea24566226d",
+      "totalLines": 149,
+      "readRanges": [
+        [
+          1,
+          149
+        ]
+      ],
+      "coveredLines": 149,
+      "reading": "full",
+      "observer": "coordinator",
+      "receipt_artifact": "parity/research/cursor-host/services/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "parity/research/cursor-host/services/retrievals/docs_grok-bot_settings.md",
+      "partition": "services",
+      "sha256": "637fdcdf6744493bee31bd26f7119c962a345e83430bac03d5834955131f783f",
+      "totalLines": 79,
+      "readRanges": [
+        [
+          1,
+          79
+        ]
+      ],
+      "coveredLines": 79,
+      "reading": "full",
+      "observer": "coordinator",
+      "receipt_artifact": "parity/research/cursor-host/services/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "parity/research/cursor-host/services/retrievals/docs_grok-bot_work.md",
+      "partition": "services",
+      "sha256": "b5e8bcd38244d78120d078d550ec2b276933d3993d1d54564e35bdf36c025d70",
+      "totalLines": 203,
+      "readRanges": [
+        [
+          1,
+          203
+        ]
+      ],
+      "coveredLines": 203,
+      "reading": "full",
+      "observer": "coordinator",
+      "receipt_artifact": "parity/research/cursor-host/services/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "parity/research/cursor-host/services/retrievals/docs_integrations_linear.md",
+      "partition": "services",
+      "sha256": "7dbb3617f056d268af6ca9c2931fe41e490706a6825535ed537d3eef7008e33c",
+      "totalLines": 135,
+      "readRanges": [
+        [
+          1,
+          135
+        ]
+      ],
+      "coveredLines": 135,
+      "reading": "full",
+      "observer": "coordinator",
+      "receipt_artifact": "parity/research/cursor-host/services/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "parity/research/cursor-host/services/retrievals/docs_integrations_notion.md",
+      "partition": "services",
+      "sha256": "04018a44c8ce31d1af27f5c445a8d2f5d0103ef0e51692163fff959868d5f701",
+      "totalLines": 110,
+      "readRanges": [
+        [
+          1,
+          110
+        ]
+      ],
+      "coveredLines": 110,
+      "reading": "full",
+      "observer": "coordinator",
+      "receipt_artifact": "parity/research/cursor-host/services/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "parity/research/cursor-host/services/retrievals/docs_integrations_slack.md",
+      "partition": "services",
+      "sha256": "c00d78a024279036104eb7d86f70c2985367117b28bc01db5de42d35c3b16573",
+      "totalLines": 351,
+      "readRanges": [
+        [
+          1,
+          351
+        ]
+      ],
+      "coveredLines": 351,
+      "reading": "full",
+      "observer": "coordinator",
+      "receipt_artifact": "parity/research/cursor-host/services/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "parity/research/cursor-host/services/retrievals/docs_models-and-pricing.md",
+      "partition": "services",
+      "sha256": "bb6ceef2705dfbe0b2b1e716a83c7fecb26e3ddeb4e441eda35c7bfc0bb2a8fb",
+      "totalLines": 177,
+      "readRanges": [
+        [
+          1,
+          177
+        ]
+      ],
+      "coveredLines": 177,
+      "reading": "full",
+      "observer": "coordinator",
+      "receipt_artifact": "parity/research/cursor-host/services/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "parity/research/cursor-host/services/retrievals/docs_reference_sandbox.md",
+      "partition": "services",
+      "sha256": "4cc935fb60a41ff947218159b90dc472fe433e021292b8410156fcacc4612b61",
+      "totalLines": 169,
+      "readRanges": [
+        [
+          1,
+          169
+        ]
+      ],
+      "coveredLines": 169,
+      "reading": "full",
+      "observer": "coordinator",
+      "receipt_artifact": "parity/research/cursor-host/services/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "parity/research/cursor-host/services/retrievals/help_ai-features_automations.md",
+      "partition": "services",
+      "sha256": "1a929a2de6b32a586314a9e1d91c018a5780f2c952673958dc34139a3242942d",
+      "totalLines": 119,
+      "readRanges": [
+        [
+          1,
+          119
+        ]
+      ],
+      "coveredLines": 119,
+      "reading": "full",
+      "observer": "coordinator",
+      "receipt_artifact": "parity/research/cursor-host/services/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "parity/research/cursor-host/services/retrievals/help_ai-features_shared-transcripts.md",
+      "partition": "services",
+      "sha256": "33c4cdfe78922d1e1e4098068d3b9d92bc4d2b0d772cc4eacfba77d8620bd84a",
+      "totalLines": 51,
+      "readRanges": [
+        [
+          1,
+          51
+        ]
+      ],
+      "coveredLines": 51,
+      "reading": "full",
+      "observer": "coordinator",
+      "receipt_artifact": "parity/research/cursor-host/services/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "parity/research/cursor-host/services/retrievals/help_grok-bot_connect-plugins.md",
+      "partition": "services",
+      "sha256": "a6ea5b48ec0c2083d5f4c74de0318cf4862caa0095fb8b4281fd50eb71311cda",
+      "totalLines": 100,
+      "readRanges": [
+        [
+          1,
+          100
+        ]
+      ],
+      "coveredLines": 100,
+      "reading": "full",
+      "observer": "coordinator",
+      "receipt_artifact": "parity/research/cursor-host/services/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "parity/research/cursor-host/services/retrievals/help_grok-bot_routines.md",
+      "partition": "services",
+      "sha256": "5bca6548fb08af3de1403b2a93433333e3ffeb7572fa0619728bf70af2e9c745",
+      "totalLines": 104,
+      "readRanges": [
+        [
+          1,
+          104
+        ]
+      ],
+      "coveredLines": 104,
+      "reading": "full",
+      "observer": "coordinator",
+      "receipt_artifact": "parity/research/cursor-host/services/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "parity/research/cursor-host/services/retrievals/help_grok-bot_secrets.md",
+      "partition": "services",
+      "sha256": "c035f367bb4dc062597ec7a9bd5e3b0e0f79c3fb13ae46d8b8ee6161cfdb4844",
+      "totalLines": 53,
+      "readRanges": [
+        [
+          1,
+          53
+        ]
+      ],
+      "coveredLines": 53,
+      "reading": "full",
+      "observer": "coordinator",
+      "receipt_artifact": "parity/research/cursor-host/services/read-receipts.json",
+      "provenance_note": "Reading coverage only. Local retrieval timestamps are not independently authenticated. Original job start applies only to original fetched Cursor docs, not other parent inputs."
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/contract.md",
+      "preserved_copy": "parity/research/cursor-host/parent-inputs/contract.md",
+      "sha256": "ffb66225c10486e861d79f60415138fd79cc2fa8e6794825b2124998924c4f6f",
+      "readRanges": [
+        [
+          1,
+          220
+        ],
+        [
+          221,
+          436
+        ]
+      ],
+      "totalLines": 436,
+      "reader": "coordinator",
+      "reading": "full",
+      "retrievalTime": null,
+      "provenance": "Parent snapshot. Original network per-file timestamps not observed. Copy time not a retrieval time."
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/progress.md",
+      "preserved_copy": "parity/research/cursor-host/parent-inputs/progress.md",
+      "sha256": "d0a22a6c07a4b1fcbaba22134ad9089b47d9fab9e647f80185cea6dfb794a3c7",
+      "readRanges": [
+        [
+          1,
+          78
+        ]
+      ],
+      "totalLines": 78,
+      "reader": "coordinator",
+      "reading": "full",
+      "retrievalTime": null,
+      "provenance": "Parent snapshot. Original network per-file timestamps not observed. Copy time not a retrieval time."
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/source-lock.json",
+      "preserved_copy": "parity/research/cursor-host/parent-inputs/source-lock.json",
+      "sha256": "3f5b0d1eaa76d2102c0b55c346a8c3d525a066e06defbb1e6afdbd86ef989f74",
+      "readRanges": [
+        [
+          1,
+          71
+        ]
+      ],
+      "totalLines": 71,
+      "reader": "coordinator",
+      "reading": "full",
+      "retrievalTime": null,
+      "provenance": "Parent snapshot. Original network per-file timestamps not observed. Copy time not a retrieval time."
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/dependencies.json",
+      "preserved_copy": "parity/research/cursor-host/parent-inputs/dependencies.json",
+      "sha256": "72525f7b8821c11e3d2bb772bb80ba3a2cdb9b85413363153bf9b876a1ff8cbc",
+      "readRanges": [
+        [
+          1,
+          85
+        ]
+      ],
+      "totalLines": 85,
+      "reader": "coordinator",
+      "reading": "full",
+      "retrievalTime": null,
+      "provenance": "Parent snapshot. Original network per-file timestamps not observed. Copy time not a retrieval time."
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reviews/source-discovery.md",
+      "preserved_copy": "parity/research/cursor-host/parent-inputs/reviews/source-discovery.md",
+      "sha256": "15fb483b39f281d330b6566476c434afbcc333459c27b1ea66686a94b781478b",
+      "readRanges": [
+        [
+          1,
+          241
+        ]
+      ],
+      "totalLines": 241,
+      "reader": "coordinator",
+      "reading": "full",
+      "retrievalTime": null,
+      "provenance": "Parent snapshot. Original network per-file timestamps not observed. Copy time not a retrieval time."
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-llms.txt",
+      "preserved_copy": "parity/research/cursor-host/parent-inputs/reference/cursor-llms.txt",
+      "sha256": "ae0e4e261867db518252e75fdc1d30f354867b6a83996332460bf49505e69ca0",
+      "readRanges": [
+        [
+          1,
+          486
+        ]
+      ],
+      "totalLines": 486,
+      "reader": "coordinator",
+      "reading": "full",
+      "retrievalTime": null,
+      "provenance": "Parent snapshot. Original network per-file timestamps not observed. Copy time not a retrieval time."
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/README.md",
+      "preserved_copy": "parity/research/cursor-host/parent-inputs/reference/cursor-plugins/pstack/README.md",
+      "sha256": "7f39feae81103e18b567e1fa5075cba86425cf4697a01be66a7422ef93c2c855",
+      "readRanges": [
+        [
+          1,
+          210
+        ],
+        [
+          211,
+          267
+        ]
+      ],
+      "totalLines": 267,
+      "reader": "coordinator",
+      "reading": "full",
+      "retrievalTime": null,
+      "provenance": "Parent snapshot. Original network per-file timestamps not observed. Copy time not a retrieval time."
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/setup-pstack/SKILL.md",
+      "preserved_copy": "parity/research/cursor-host/parent-inputs/reference/cursor-plugins/pstack/skills/setup-pstack/SKILL.md",
+      "sha256": "d61b47256a18155a81c8e5ef95e3cc6569ce8c18317c35c4dd9c8015cf68cb59",
+      "readRanges": [
+        [
+          1,
+          74
+        ]
+      ],
+      "totalLines": 74,
+      "reader": "coordinator",
+      "reading": "full",
+      "retrievalTime": null,
+      "provenance": "Parent snapshot. Original network per-file timestamps not observed. Copy time not a retrieval time."
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/make-bot-ui/SKILL.md",
+      "preserved_copy": "parity/research/cursor-host/parent-inputs/reference/cursor-plugins/pstack/skills/make-bot-ui/SKILL.md",
+      "sha256": "3624c8ef16cf2e48deb2a4049e72c6962a9431c8d6c6af90e7bd7ea0375224ec",
+      "readRanges": [
+        [
+          1,
+          115
+        ]
+      ],
+      "totalLines": 115,
+      "reader": "coordinator",
+      "reading": "full",
+      "retrievalTime": null,
+      "provenance": "Parent snapshot. Original network per-file timestamps not observed. Copy time not a retrieval time."
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/recall/SKILL.md",
+      "preserved_copy": "parity/research/cursor-host/parent-inputs/reference/cursor-plugins/pstack/skills/recall/SKILL.md",
+      "sha256": "d265b0e5b6dc5b89c0407f3387d24462c988e1990a37d5359735137908128c5a",
+      "readRanges": [
+        [
+          1,
+          35
+        ]
+      ],
+      "totalLines": 35,
+      "reader": "coordinator",
+      "reading": "full",
+      "retrievalTime": null,
+      "provenance": "Parent snapshot. Original network per-file timestamps not observed. Copy time not a retrieval time."
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/playbooks/autonomous-run.md",
+      "preserved_copy": "parity/research/cursor-host/parent-inputs/reference/cursor-plugins/pstack/skills/poteto-mode/playbooks/autonomous-run.md",
+      "sha256": "15e54ad3ac92565613980772d8708de6e19cc4690bfd4bb3fb8836522407377b",
+      "readRanges": [
+        [
+          1,
+          13
+        ]
+      ],
+      "totalLines": 13,
+      "reader": "coordinator",
+      "reading": "full",
+      "retrievalTime": null,
+      "provenance": "Parent snapshot. Original network per-file timestamps not observed. Copy time not a retrieval time."
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/playbooks/babysit.md",
+      "preserved_copy": "parity/research/cursor-host/parent-inputs/reference/cursor-plugins/pstack/skills/poteto-mode/playbooks/babysit.md",
+      "sha256": "a0346c37c2313f36a863b80f66ee7b98059c2242adf74fc7b3e48abdb9ec6f5a",
+      "readRanges": [
+        [
+          1,
+          27
+        ]
+      ],
+      "totalLines": 27,
+      "reader": "coordinator",
+      "reading": "full",
+      "retrievalTime": null,
+      "provenance": "Parent snapshot. Original network per-file timestamps not observed. Copy time not a retrieval time."
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/playbooks/orchestrate.md",
+      "preserved_copy": "parity/research/cursor-host/parent-inputs/reference/cursor-plugins/pstack/skills/poteto-mode/playbooks/orchestrate.md",
+      "sha256": "d42b4375f1bd4ce23da0b575a198571a2117df7eea10c3c9fc6d92ae1053f7be",
+      "readRanges": [
+        [
+          1,
+          111
+        ]
+      ],
+      "totalLines": 111,
+      "reader": "coordinator",
+      "reading": "full",
+      "retrievalTime": null,
+      "provenance": "Parent snapshot. Original network per-file timestamps not observed. Copy time not a retrieval time."
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/figure-it-out/SKILL.md",
+      "preserved_copy": "parity/research/cursor-host/parent-inputs/reference/cursor-plugins/pstack/skills/figure-it-out/SKILL.md",
+      "sha256": "0eb9485f0e7d84fee56b5d0f0af0faf4635e3ca87c8cba3970c01293b76ecc19",
+      "readRanges": [
+        [
+          1,
+          53
+        ]
+      ],
+      "totalLines": 53,
+      "reader": "coordinator",
+      "reading": "full",
+      "retrievalTime": null,
+      "provenance": "Parent snapshot. Original network per-file timestamps not observed. Copy time not a retrieval time."
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/automations/benny/skills/setup-benny/SKILL.md",
+      "preserved_copy": "parity/research/cursor-host/parent-inputs/reference/cursor-plugins/pstack/automations/benny/skills/setup-benny/SKILL.md",
+      "sha256": "5a3cbe63360c9f6373b6cb6c79a1eaf7e0eba181bfaa1577e2e6431af3407282",
+      "readRanges": [
+        [
+          1,
+          266
+        ]
+      ],
+      "totalLines": 266,
+      "reader": "coordinator",
+      "reading": "full",
+      "retrievalTime": null,
+      "provenance": "Parent snapshot. Original network per-file timestamps not observed. Copy time not a retrieval time."
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/SKILL.md",
+      "preserved_copy": "parity/research/cursor-host/parent-inputs/reference/cursor-plugins/pstack/skills/poteto-mode/SKILL.md",
+      "sha256": "31cd02290360ce63564ef22b74d69fc6d90e62181d05a644cbed8f6c47cc9412",
+      "readRanges": [
+        [
+          1,
+          147
+        ]
+      ],
+      "totalLines": 147,
+      "reader": "coordinator",
+      "reading": "full",
+      "retrievalTime": null
+    }
+  ]
+}

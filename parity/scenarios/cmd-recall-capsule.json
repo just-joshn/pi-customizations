@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "cmd-recall-capsule",
+  "status": "executed-pass-paired",
+  "requirements": [
+    "PSTACK-CMD-RECALL-CAPSULE-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/recall/SKILL.md#recall output contract capsule, threads, problems, next move",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Seeded seed/transcripts + seed/shared-record for hello-cli recall; no pre-supplied capsule.",
+    "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Invoke recall with a topic or recent-work ask.. The reply follows the output contract: capsule (at most 5 bullets), tagged threads, problems (at most 5), and a single concrete next move."
+    }
+  ],
+  "execution": {
+    "referenceRun": "25c1bcca-e7ad-41b3-80dd-1fbac71066ec",
+    "candidateRun": "ed0f279b-00a6-4934-8142-5859899cf832",
+    "pairId": "recall-capsule-1",
+    "pairPath": "parity/evidence/recall/pair-recall-capsule-1.json",
+    "verdict": "pass-paired",
+    "closedAt": "2026-10-08T20:55:00Z"
+  }
+}

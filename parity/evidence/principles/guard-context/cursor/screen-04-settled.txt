@@ -1,0 +1,39 @@
+  scans corpus/ with a Set, writes sorted {"markers":[...]} (8 tokens ALPHA..HOTEL), and leaves verify as the
+  oracle. Operators and CI get a rerunnable lever. Maintainers inherit one script next to verify.mjs, not a src/
+  library.
+
+  Choice. Arena base was candidate-2. Grafted candidate-1’s extract-time /MARKER-[A-Z0-9]+/ filter. Rejected the
+  exportable src/inventory.mjs shape. No second caller.
+
+  Throughput checkpoint. Blocking: inventory then verify before done.txt. Independent streams: n/a, one writer.
+  Shared state: only out/summary.json, single writer. Decomposition: one worker.
+
+  Principles that changed a choice (leaf SKILL.md read this session).
+  • Guard the Context Window. Dump bodies stayed off this thread. Inventory ran in a script and delegate.
+  • Build the Lever. Discovery is scripts/inventory.mjs, not a hand-copied list.
+  • Laziness Protocol. Kept the one-file script. Dropped the module export surface.
+  • Model the Domain. Set then sorted markers[], not ad hoc flags.
+  • Prove It Works. Parent re-ran verify and read evidence/verify-out.txt before done.txt.
+  • Separate Before Serializing Shared State. Arena candidates wrote under .arena/candidate-*.
+  • Exhaust the Design Space. Two whole-shape sketches before fill-in.
+  • Sequence Work into Verifiable Units. Design → inventory → verify → done line.
+
+  Playbook steps.
+  1. how — done
+  2. architect — done
+  3. throughput checkpoint — done
+  4. delegate implement — done
+  5. verify matching surface — done
+  6. rebase/commits — skip: user forbade commits
+  7. interrogate — skip: design not contested
+  8. Opening a PR — skip: fixture evidence task, not a PR
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 24.8% · 6 files edited                                                                         Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/principles/guard-context/fixture-app · 
+  refactor/pi-pstack-parity-again

@@ -1,0 +1,40 @@
+    ✓ auto (project)                                                                                                   │
+~/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh/.pi/skills/get-pr-comments/SKILL.md                  │
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/get-pr-comments/SKILL.md (skipped)             │
+  "loop-on-ci" collision:                                                                                              │
+    ✓ auto (project) ~/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh/.pi/skills/loop-on-ci/SKILL.md  ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/loop-on-ci/SKILL.md (skipped)                  ┃
+  "make-pr-easy-to-review" collision:                                                                                  ┃
+    ✓ auto (project)                                                                                                   ┃
+~/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh/.pi/skills/make-pr-easy-to-review/SKILL.md           ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/make-pr-easy-to-review/SKILL.md (skipped)      ┃
+  "new-branch-and-pr" collision:                                                                                       ┃
+    ✓ auto (project)                                                                                                   ┃
+~/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh/.pi/skills/new-branch-and-pr/SKILL.md                ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/new-branch-and-pr/SKILL.md (skipped)           ┃
+  "pr-review-canvas" collision:                                                                                        ┃
+    ✓ auto (project)                                                                                                   ┃
+~/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh/.pi/skills/pr-review-canvas/SKILL.md                 ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/pr-review-canvas/SKILL.md (skipped)            ┃
+  "review-and-ship" collision:                                                                                         ┃
+    ✓ auto (project)                                                                                                   ┃
+~/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh/.pi/skills/review-and-ship/SKILL.md                  ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/review-and-ship/SKILL.md (skipped)             ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+/loop-on-ci Do not ask questions. Follow the loop-on-ci skill. Active PR is                                             
+https://github.com/just-joshn/team-kit-gh-fixture/pull/10. Use gh pr checks as source of truth. If failed, fix and      
+push; if pending, watch. Loop until green or STATUS=env-blocked with measured blocker. Write loop notes to              
+/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/loop-on-ci/ci-loop-note 
+s.md including marker FIXTURE_CI_LOOP. Then write exactly one line to                                                   
+/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/loop-on-ci/done.txt as  
+STATUS=verified|not-verified|inconclusive|env-blocked reason=<short phrase> and stop. Artifacts stay under              
+/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/loop-on-ci. Do not      
+edit parity ledgers. Do not force-push. Do not fabricate CI.                                                            
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh (fixture/fail-ci-pi-mv0eub1z)
+$0.000 (sub) 0.0%/1.0M (auto)                                           (claude-subscription) claude-sonnet-5-5 • medium

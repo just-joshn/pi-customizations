@@ -1,0 +1,23 @@
+{
+  "scenario": "prin-guard-context",
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "mergedSummary": [
+    {
+      "side": "cursor",
+      "attemptId": "6910fcce-9e65-4d40-830e-fcf478d32991",
+      "contractHeld": true,
+      "leafSkillRead": true,
+      "subagentRouted": true,
+      "keptVerifyOk": true
+    },
+    {
+      "side": "pi",
+      "attemptId": "b5f36281-63a5-4572-8efc-4af4f27a7627",
+      "contractHeld": true,
+      "leafSkillRead": true,
+      "subagentRouted": true,
+      "keptVerifyOk": true
+    }
+  ],
+  "note": "cursor from --both; pi from --pi-only after oracle tighten"
+}

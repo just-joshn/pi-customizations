@@ -1,0 +1,27 @@
+$ vitest run --coverage
+
+ RUN  v5.0.2 /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity
+      Coverage enabled with v8
+
+
+ Test Files  1 passed (1)
+      Tests  70 passed (70)
+   Start at  21:27:55
+   Duration  390ms (tests 86%, transform 8%, import 3%, worker 3%)
+
+[34m % [39m[2mCoverage report from [22m[33mv8[39m
+-------------------|---------|----------|---------|---------|-------------------
+File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+-------------------|---------|----------|---------|---------|-------------------
+All files          |   94.19 |    92.77 |     100 |   94.49 |                   
+ ...-preflight.mjs |      60 |    81.81 |     100 |   55.55 | 18,29-31          
+ ...ight-files.mjs |    90.9 |    89.74 |     100 |   93.93 | 30-31             
+ preflight.mjs     |      99 |    94.61 |     100 |     100 | ...9,60,73-75,105 
+-------------------|---------|----------|---------|---------|-------------------
+
+=============================== Coverage summary ===============================
+Statements   : 94.19% ( 146/155 )
+Branches     : 92.77% ( 167/180 )
+Functions    : 100% ( 62/62 )
+Lines        : 94.49% ( 103/109 )
+================================================================================

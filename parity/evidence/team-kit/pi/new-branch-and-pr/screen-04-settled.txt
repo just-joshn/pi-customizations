@@ -1,0 +1,40 @@
+ README.md mentioning pi.                                                                                              │
+                                                                                                                       │
+ Test notes: docs-only change; no tests needed." 2>&1|tail -1 (timeout 90s)                                            │
+                                                                                                                       │
+ ... (1 earlier lines, ctrl+o to expand)                                                                               │
+  * branch            main       -> FETCH_HEAD                                                                         │
+ branch 'fixture/new-branch-pi-mv0dnast' set up to track 'origin/main'.                                                │
+  * [new branch]      HEAD -> fixture/new-branch-pi-mv0dnast                                                           │
+ branch 'fixture/new-branch-pi-mv0dnast' set up to track 'origin/fixture/new-branch-pi-mv0dnast'.                      │
+ https://github.com/just-joshn/team-kit-gh-fixture/pull/3                                                              │
+                                                                                                                       │
+ Took 3.9s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+                                                                                                                       │
+ $                                                                                                                     │
+ d=/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/new-branch-and-pr;  │
+ mkdir -p $d; echo https://github.com/just-joshn/team-kit-gh-fixture/pull/3 > $d/pr-url.txt; echo "STATUS=verified     │
+ reason=PR created and pushed" > $d/done.txt (timeout 10s)                                                             │
+                                                                                                                       │
+ (no output)                                                                                                           │
+                                                                                                                       ┃
+ Took 0.0s                                                                                                             ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ Branch fixture/new-branch-pi-mv0dnast is pushed and PR #3 is open into main:                                          ┃
+ https://github.com/just-joshn/team-kit-gh-fixture/pull/3                                                              ┃
+                                                                                                                       ┃
+ I branched from the freshly fetched origin/main. The only change is one line appended to README.md mentioning pi, in  ┃
+ a single commit, with a docs-only test note in the PR body. I left the untracked .pi/, owner.txt, pr-meta.json and    ┃
+ pr-url.txt in the fixture repo out of the commit. I did not force-push or touch any ledgers.                          ┃
+                                                                                                                       ┃
+ I wrote the PR URL alone to pr-url.txt and STATUS=verified reason=PR created and pushed to done.txt, both under the   ┃
+ evidence directory you named.                                                                                         ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh (fixture/new-branch-pi-mv0dnast)
+↑10 ↓954 R85k W18k CH99.2% $0.099 (sub) 2.6%/1.0M (auto)                (claude-subscription) claude-sonnet-5-5 • medium

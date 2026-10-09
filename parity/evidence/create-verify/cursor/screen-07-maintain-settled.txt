@@ -1,0 +1,39 @@
+
+  Running one maintain pass on verify-hello-cli: locate → index hygiene → source wave → live pass → outcome.
+
+    Read, globbed 2 files, 1 glob
+    Used verify-hello-cli
+    Read .cursor/skills/verify-hello-cli/features/README.md
+    Globbed "**/*" in .cursor/skills/verify-hello-cli/features
+
+    Explored available MCP tools cursor · Task
+
+    1 agent completed
+    Source wave hello-print
+    ✓ Done
+
+  Source wave reports no drift. Running the live pass next.
+
+  $ set -e
+    ROOT="/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app" 226ms
+    … 24 input + 6 output lines hidden · ctrl+o to expand
+    -rw-r--r-- 1 josh-desktop staff 16 Oct  8 13:12 hello-stdout.txt
+    LIVE-PASS-OK
+
+  $ mkdir -p /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-out/cursor
+    && printf '%s\n' 'OUTCOME=clean' > /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-
+    verify/fixture-out/cursor/maintain-outcome.txt && cat /Users/josh-desktop/src/personal/pi-pstack-parity-again/pari
+    ty/evidence/create-verify/fixture-out/cursor/maintain-outcome.txt 206ms
+    OUTCOME=clean
+
+  clean — index matched hello-print.md; source wave found no drift; live drive printed HELLO-FAMILY-13 with exit 0;
+  no skill edits.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 13.5% · 3 files edited                                                                         Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app · refactor/pi-pstack-parity-again

@@ -1,0 +1,122 @@
+{
+  "score": {
+    "frontmatterOk": true,
+    "leafSkillRead": true,
+    "usedChrome": true,
+    "modelAutoInvoke": false,
+    "v1Deleted": true,
+    "callersConverged": true,
+    "pricingPresent": true,
+    "dualPath": false,
+    "convergeWithoutDualPath": true,
+    "converged": true,
+    "keptVerifyOk": true,
+    "productOk": true,
+    "verifiedDone": true,
+    "contractHeld": true,
+    "screen": {
+      "potetoMode": false,
+      "leafChrome": false,
+      "hostAttached": false,
+      "verifyMention": true,
+      "working": false
+    },
+    "pty": {
+      "potetoMode": true,
+      "leafChrome": false,
+      "hostAttached": true,
+      "verifyMention": true,
+      "working": true
+    }
+  },
+  "firstProductAt": "2026-10-09T01:15:58.495Z",
+  "firstVerifyAt": "2026-10-09T01:15:58.495Z",
+  "firstV1DeleteAt": "2026-10-09T01:15:58.495Z",
+  "firstCallerAt": "2026-10-09T01:16:02.119Z",
+  "firstPricingAt": "2026-10-09T01:15:58.495Z",
+  "productPaths": [
+    "src/pricing.js",
+    "deleted:src/pricingV1.js",
+    "format:src/pricing.js",
+    "src/cart.js",
+    "src/checkout.js",
+    "caller:src/cart.js",
+    "caller:src/checkout.js"
+  ],
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/outcome-oriented/fixture-out/pi/done.txt",
+    "line": "verified=yes"
+  },
+  "verifyOut": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/outcome-oriented/fixture-app/evidence/verify-out.txt",
+    "line": "OUTCOME-OK cart=\"cart:5\" checkout=\"pay:5\" files=cart.js,checkout.js,pricing.js",
+    "ok": true
+  },
+  "oracle": {
+    "cartOk": true,
+    "checkoutOk": true,
+    "v1Deleted": true,
+    "pricingPresent": true,
+    "callersConverged": true,
+    "legacySymbol": false,
+    "dualPath": false,
+    "productOk": true,
+    "srcFiles": [
+      "cart.js",
+      "checkout.js",
+      "pricing.js"
+    ]
+  },
+  "productOk": true,
+  "frontmatter": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-outcome-oriented-execution/SKILL.md",
+    "ok": true,
+    "name": "principle-outcome-oriented-execution",
+    "disableModelInvocation": true
+  },
+  "session": {
+    "sessionPath": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-principles-outcome-oriented-fixture-app--/2026-10-09T01-15-38-505Z_01a11e3a-e489-71b0-9e6b-2a0e3d17cbd9.jsonl",
+    "hostAttached": false,
+    "leafSkillRead": true,
+    "leafSkillReadAt": "2026-10-09T01:15:44.999Z",
+    "ranVerifyScript": true,
+    "firstV1DeleteAt": null,
+    "firstCallerAt": null,
+    "firstPricingAt": null,
+    "converged": false,
+    "toolOrder": [
+      "bash(verify.mjs)",
+      "read(outcome-leaf)",
+      "blob-mention(outcome-leaf)",
+      "bash(verify.mjs)",
+      "read",
+      "read",
+      "read",
+      "read",
+      "read",
+      "read(verify.mjs)",
+      "read",
+      "TodoWrite(verify.mjs)",
+      "bash(verify.mjs)",
+      "bash(verify.mjs)"
+    ]
+  },
+  "transcript": null,
+  "pollSamples": 45,
+  "screenFinal": {
+    "potetoMode": false,
+    "leafChrome": false,
+    "hostAttached": false,
+    "verifyMention": true,
+    "working": false
+  },
+  "pty": {
+    "potetoMode": true,
+    "leafChrome": false,
+    "hostAttached": true,
+    "verifyMention": true,
+    "working": true
+  }
+}

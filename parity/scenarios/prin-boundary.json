@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "prin-boundary",
+  "status": "pass-paired",
+  "requirements": [
+    "PSTACK-PRIN-BOUNDARY-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/principle-boundary-discipline/SKILL.md#Boundary Discipline frontmatter trigger and disable-model-invocation",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file. Preconditions: Locked pstack poteto-mode and principle-boundary-discipline skill loaded.; Task involves CLI/config/network/API boundary wiring.",
+    "digest": null
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Add or change validation around an external input path.. The agent Reads the leaf skill, places validation at the boundary, and keeps business logic free of re-validation of already-narrowed types."
+    }
+  ],
+  "execution": {
+    "pairId": "prin-boundary-1",
+    "verdict": "pass",
+    "pair": "parity/evidence/principles/boundary/pair-prin-boundary-1.json",
+    "attempts": {
+      "cursor": "f9bbb2d6-e5b4-47e2-b4f0-91b03291f4b9",
+      "pi": "d8c69f86-0236-4851-a2c0-1a911175877e"
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "probeId": "plugin-dir-user-prefer-2026-10-09",
+  "shellTaskId": "152398",
+  "commandSummary": "cursor-agent --trust --plugin-dir <reference/pstack> --print --mode ask in empty project with .cursor/settings.json plugins.pstack.enabled",
+  "result": {
+    "how": {"path": "/Users/josh-desktop/.claude/skills/how/SKILL.md", "class": "USER"},
+    "why": {"path": "/Users/josh-desktop/.claude/skills/why/SKILL.md", "class": "USER"},
+    "tdd": {"path": "/Users/josh-desktop/.claude/skills/tdd/SKILL.md", "class": "USER"},
+    "unslop": {"path": "/Users/josh-desktop/.claude/skills/unslop/SKILL.md", "class": "USER"},
+    "principle-prove-it-works": {"path": "/Users/josh-desktop/.claude/skills/principle-prove-it-works/SKILL.md", "class": "USER"}
+  },
+  "observation": "None of the five resolved under --plugin-dir or the probe project; all USER (~/.claude/skills).",
+  "implicationFor": "PSTACK-SETUP-BENNY-PROJECT-SKILLS-001",
+  "exitCode": 0
+}

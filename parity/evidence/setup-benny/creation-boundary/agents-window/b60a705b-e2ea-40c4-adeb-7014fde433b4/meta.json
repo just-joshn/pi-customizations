@@ -1,0 +1,27 @@
+{
+  "attemptId": "b60a705b-e2ea-40c4-adeb-7014fde433b4",
+  "mode": "automate-handoff-v2-agents-window-skill-run",
+  "unit": "u-automations-new-url-001",
+  "automateHandoffWitnessed": true,
+  "editorChromeWitnessed": true,
+  "draftName": "parity-witness-draft",
+  "saved": false,
+  "activated": false,
+  "slack": false,
+  "bennyEnable": false,
+  "screens": {
+    "agentDrafting": "screen-07-poll-4.png",
+    "editorChrome": "screen-07-poll-5.png",
+    "editorChromeRepeat": "screen-08-final.png",
+    "agentHandoffConfirm": "screen-09-editor-clean.png"
+  },
+  "agentSaid": "Automations editor is open with this draft. Stopped before Save or Activate.",
+  "didNot": [
+    "press Save",
+    "Activate",
+    "Slack",
+    "Benny enable",
+    "ledger edits"
+  ],
+  "evidenceDir": "parity/evidence/setup-benny/creation-boundary/agents-window/b60a705b-e2ea-40c4-adeb-7014fde433b4"
+}

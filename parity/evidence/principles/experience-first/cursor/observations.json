@@ -1,0 +1,125 @@
+{
+  "score": {
+    "frontmatterOk": true,
+    "leafSkillRead": true,
+    "usedChrome": true,
+    "modelAutoInvoke": false,
+    "keptVerifyOk": true,
+    "experienceOverConvenience": true,
+    "dualImpact": true,
+    "kitchenSink": false,
+    "productOk": true,
+    "verifiedDone": true,
+    "contractHeld": true,
+    "screen": {
+      "potetoMode": false,
+      "leafChrome": false,
+      "hostAttached": false,
+      "verifyMention": true,
+      "working": false
+    },
+    "pty": {
+      "potetoMode": true,
+      "leafChrome": false,
+      "hostAttached": true,
+      "verifyMention": true,
+      "working": true
+    }
+  },
+  "firstProductAt": "2026-10-09T01:18:59.235Z",
+  "firstVerifyAt": "2026-10-09T01:19:04.051Z",
+  "firstImpactAt": "2026-10-09T01:19:01.243Z",
+  "productPaths": [
+    "src/status.js",
+    "IMPACT.md"
+  ],
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/experience-first/fixture-out/cursor/done.txt",
+    "line": "verified=yes"
+  },
+  "verifyOut": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/experience-first/fixture-app/evidence/verify-out.txt",
+    "line": "EXPERIENCE-OK default=human json=yes impact=dual files=status.js",
+    "ok": true
+  },
+  "oracle": {
+    "human": "Status: ok\nReady: yes\nNext: deploy review\nQueue: 3",
+    "machine": "{\"ok\":true,\"queue\":3,\"next\":\"deploy review\"}",
+    "experienceOverConvenience": true,
+    "dualImpact": true,
+    "kitchenSink": false,
+    "productOk": true,
+    "srcFiles": [
+      "status.js"
+    ],
+    "impactPresent": true
+  },
+  "productOk": true,
+  "frontmatter": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/principle-experience-first/SKILL.md",
+    "ok": true,
+    "name": "principle-experience-first",
+    "disableModelInvocation": true
+  },
+  "session": null,
+  "transcript": {
+    "path": "/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/agent-transcripts/ead89d81-a64e-4062-ad2f-b8e8876147cd/ead89d81-a64e-4062-ad2f-b8e8876147cd.jsonl",
+    "leafSkillRead": true,
+    "leafSkillReadAt": "2026-10-09T01:19:29.813Z",
+    "ranVerifyScript": true,
+    "toolOrder": [
+      "GetDynamicTools",
+      "Read",
+      "Read(experience-first-leaf)",
+      "Glob",
+      "blob-mention(experience-first-leaf)",
+      "CallDynamicTool",
+      "Read",
+      "Read(verify.mjs)",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "GetDynamicTools",
+      "CallDynamicTool(verify.mjs)",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "CallDynamicTool",
+      "Read",
+      "Read",
+      "Write",
+      "Write",
+      "Write",
+      "Shell(verify.mjs)",
+      "CallDynamicTool",
+      "Shell",
+      "CallDynamicTool"
+    ],
+    "mtimeMs": 1791508756305.7637
+  },
+  "pollSamples": 73,
+  "screenFinal": {
+    "potetoMode": false,
+    "leafChrome": false,
+    "hostAttached": false,
+    "verifyMention": true,
+    "working": false
+  },
+  "pty": {
+    "potetoMode": true,
+    "leafChrome": false,
+    "hostAttached": true,
+    "verifyMention": true,
+    "working": true
+  }
+}

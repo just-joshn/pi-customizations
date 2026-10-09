@@ -1,0 +1,36 @@
+ Took 0.0s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ The command exited 0. Output:                                                                                         │
+                                                                                                                       │
+ ```                                                                                                                   │
+   Usage: watch-pr [options]                                                                                           │
+                                                                                                                       │
+   Options:                                                                                                            │
+     --owner <owner>             GitHub repository owner                                                               │
+     --repo <repo>               GitHub repository name                                                                │
+     --pr <number>               pull request number                                                                   │
+     --stack                     watch the connected open stack (default: false)                                       │
+     --queued-stack              watch the captured stack until all PRs merge                                          │
+                                 (default: false)                                                                      │
+     --stack-prs <n,...>         frozen bottom-to-top queue (queued mode only)                                         │
+     --interval <seconds>        poll interval (default: 60)                                                           ┃
+     --sweep-interval <seconds>  whole-stack sweep interval (default: 300)                                             ┃
+     --timeout <seconds>         deadline; 0 disables it (default: 0)                                                  ┃
+     --max-query-errors <count>  consecutive query-error budget (default: 5)                                           ┃
+     --status-only               print one status table and exit 0 (default: false)                                    ┃
+     --allow-draft               do not treat a draft as a merge gate (default:                                        ┃
+                                 false)                                                                                ┃
+     --pretty                    render human text instead of JSON (default: false)                                    ┃
+     -h, --help                  display help for command                                                              ┃
+ ```                                                                                                                   ┃
+                                                                                                                       ┃
+ I wrote EXIT=0 to                                                                                                     ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/consumer/fixture-out/pi/watch-pr-help-done.tx ┃
+ t.                                                                                                                    ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts (main)
+↑8 ↓675 R58k W17k CH99.4% $0.087 (sub) 2.6%/1.0M (auto)                 (claude-subscription) claude-sonnet-5-5 • medium

@@ -1,0 +1,13 @@
+{
+  "expectedRoleCount": 17,
+  "rolesListedAnyForm": 17,
+  "rolesListedWithModel": 17,
+  "rolesMissing": [],
+  "acceptOrChangePrompt": true,
+  "acceptPrompt": true,
+  "changePrompt": true,
+  "summaryOnly": false,
+  "askQuestion": true,
+  "writeCardOnSameScreen": false,
+  "everyRoleShownWithModel": true
+}

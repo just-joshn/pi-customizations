@@ -1,0 +1,3 @@
+Using Developer ID-signed CLI next to this install: /Users/josh-desktop/.local/share/cursor-agent/versions/2026.10.01-e373342/cursor-agent-worker-sea
+04:16:50.776 WARN  Canvas SDK source missing; skipping canvas diagnostics ctx=worker-mode/exec_daemon.setup.create_resource_provider
+04:16:51.451 WARN  macOS desktop sharing is not ready. Run `cursor-agent worker debug` and grant the reported permissions before connecting a viewer. ctx=worker-mode meta={warnings: ["Screen Recording is not granted to Cursor Agent Helper.", "Accessibility is not granted to Cursor Agent Helper."]}

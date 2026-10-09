@@ -1,0 +1,9 @@
+{
+  "ruleDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "sides": {
+    "pi": {
+      "writtenDigest": "sha256:9146cd9fe687813f13618724c14da1ced71a72151a9be4ae6ae166ae23218aaa",
+      "attemptDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-prepair/pi/1e448f41-07cb-4335-8a96-aa6312d6d125"
+    }
+  }
+}

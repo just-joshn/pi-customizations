@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "kind": "journey-family-stub",
+  "id": "journey-family-02-rerun-setup-role-config",
+  "family": 2,
+  "familyTitle": "Re-run setup, change role configuration, preserve unrelated settings, verify models in real work",
+  "contractRef": "parity/contract.md#8-verify-through-the-users-controls",
+  "status": "paired",
+  "requirementIds": [
+    "PSTACK-SETUP-RERUN-PRESERVE-001",
+    "PSTACK-SETUP-GUIDE-RERUN-KEEP-001",
+    "PSTACK-SETUP-ROLE-CONFIRM-001",
+    "PSTACK-SETUP-BUDGET-APPLY-001",
+    "PSTACK-SETUP-NEW-SESSION-APPLIES-001",
+    "PSTACK-SETUP-PANEL-LIST-FANOUT-001",
+    "PSTACK-SETUP-CONFIRM-WRITTEN-001",
+    "PSTACK-SETUP-WRITE-RULE-001",
+    "PSTACK-CMD-SETUP-WRITE-RULE-001"
+  ],
+  "fixtureNeeds": [
+    "Pre-existing models.mdc with mixed role values",
+    "Unrelated Pi/user settings that must remain byte-stable",
+    "Live work turn after reconfiguration to observe routing"
+  ],
+  "evidencePaths": [
+    "parity/evidence/setup-rerun/pair-setup-rerun-mutate-role-1.json"
+  ],
+  "openMismatches": [],
+  "coverageNotes": "Rerun preserve/guide/write-rule/confirm/new-session closed on setup-rerun-mutate-role-1. ROLE-CONFIRM/BUDGET-APPLY/PANEL-LIST still open (oracles not fully covered).",
+  "nextAction": "None for core mutate-one-role scope; expand later for panel-list fan-out and budget-apply cells."
+}

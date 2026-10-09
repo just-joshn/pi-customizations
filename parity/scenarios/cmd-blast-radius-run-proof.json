@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "id": "cmd-blast-radius-run-proof",
+  "status": "paired",
+  "requirements": [
+    "PSTACK-CMD-BLAST-RADIUS-RUN-PROOF-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/blast-radius/SKILL.md#blast-radius refuses writeup-only safety claims; prefers run proof",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Change under review; no prior blast-radius proof artifacts required. Preconditions: Candidate change or diff in scope.",
+    "digest": null
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Invoke blast-radius and produce the safety-dependent facts.. The reply does not stop at a persuasive writeup; each critical safety fact is pushed as far down the certainty list as cheap, with step 4 (run a script or test against real code) as the usual target."
+    }
+  ],
+  "execution": {
+    "pairId": "blast-radius-run-proof-1",
+    "verdict": "pass",
+    "pair": "parity/evidence/blast-radius/pair-blast-radius-run-proof-1.json",
+    "attempts": {
+      "cursor": "10de693f-5087-438e-bd91-5cd266fc75e3",
+      "pi": "25fbb44d-c4bd-40ea-a4e5-c46f62166074"
+    }
+  },
+  "requirementIds": [
+    "PSTACK-CMD-BLAST-RADIUS-RUN-PROOF-001"
+  ]
+}

@@ -8,7 +8,18 @@ import { API } from 'typescript/unstable/sync';
 const artifacts = new Set(['node_modules', '.git', 'dist', 'build', 'coverage']);
 const sourcePattern = /\.(?:ts|tsx|mts|cts)$/;
 const configPattern = /^tsconfig(?:\.[^.]+)?\.json$/;
-const preservedRoots = ['extensions/pi-pstack/upstream/', 'extensions/pi-pstack/upstream-team-kit/', 'extensions/pi-pstack/skills/', 'extensions/pi-caveman/vendor/'];
+const preservedRoots = [
+  'extensions/pi-pstack/upstream/',
+  'extensions/pi-pstack/upstream-team-kit/',
+  'extensions/pi-pstack/skills/',
+  'extensions/pi-caveman/vendor/',
+  'parity/reference/',
+  'parity/fixtures/',
+  'parity/evidence/',
+  'parity/private/',
+  'parity/artifacts/',
+  'parity/research/',
+];
 const helperConfig = 'extensions/pi-pstack/test/helpers/tsconfig.json';
 // biome-ignore lint/security/noSecrets: Public TypeScript option names are not credentials.
 const helperExceptions = new Set(['noPropertyAccessFromIndexSignature', 'erasableSyntaxOnly', 'noUncheckedIndexedAccess']);

@@ -1,0 +1,36 @@
+                                                                                                                       │
+ Which model should bug-fix use? These are the options:                                                                │
+ - inherit-parent or auto                                                                                              │
+ - an exact provider/id from the detected list, such as claude-subscription/claude-opus-5-5 or openai/gpt-5.5          │
+                                                                                                                       │
+ Earlier you picked inherit-parent in a dialog, but this message repeats the unavailable slug. I won't assume which    │
+ you want. Everything else stays as you specified: budget small (medium), feature, refactoring as inherit-parent,      │
+ perf-issue as auto. I'm declining the verification-skill offer.                                                       │
+                                                                                                                       │
+                                                                                                                       │
+ Keep budget small — medium reasoning. Keep "feature, refactoring" as inherit-parent. Keep "perf-issue" as auto. Set   │
+ only "bug-fix" to the real slug parity-unavailable-model-zzz. Then accept and write if validation allows. If          │
+ parity-unavailable-model-zzz is not in the detected set, stop the write and ask again. Do not invent detected models. │
+ Decline any verification skill offer.                                                                                 ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+ ┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+ │ Clarifying Questions                                                                                               │
+ │                                                                                                                    │
+ │ Question 1 of 1                                                                                                    │
+ │                                                                                                                    │
+ │ 1. parity-unavailable-model-zzz is still not an available model, so nothing was written. Choose a valid value for  │
+ │ bug-fix:                                                                                                           │
+ │                                                                                                                    │
+ │   › [ ] inherit-parent                                                                                             │
+ │     [ ] auto                                                                                                       │
+ │     [ ] claude-subscription/claude-opus-5-5                                                                        │
+ │     [ ] openai/gpt-5.5                                                                                             │
+ │     [ ] Abort, leave rule unchanged                                                                                │
+ │     [ ] Other: (type to answer)                                                                                    │
+ │                                                                                                                    │
+ │ ↑/↓ option · ←/→ question · Space select · Enter next/submit · Esc to skip                                         │
+ └────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run (refactor/pi-pstack-parity-again)
+↑20 ↓1.4k R152k W23k CH98.7% $0.136 (sub) 3.1%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium

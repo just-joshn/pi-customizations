@@ -1,0 +1,145 @@
+{
+  "schema": 1,
+  "pairId": "setup-benny-project-skills-1",
+  "scenarioRef": "setup-benny-project-skills",
+  "journeyFamily": "journey-family-09-timers-subscriptions-ci-wakes",
+  "requirementIds": [
+    "PSTACK-SETUP-BENNY-PROJECT-SKILLS-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "Follow FOR_AGENTS.md / setup-benny; project settings already enable pstack; fresh agent project-scoped resolve check for how, why, tdd, unslop, and six principle-*; no user/session counts; write resolve-manifest.json; STATUS= marker; no live automation",
+  "settingsSeedDigest": "94c1129b23653daaaae3b8d6ca446fff46970545303fd6fd2901cd08af4178f6",
+  "steps": [
+    { "send": "Help set up Benny... project-scoped skill resolve check... STATUS=..." },
+    { "send": "\r" },
+    { "settle": true },
+    { "cancel": true }
+  ],
+  "cursor": {
+    "attemptId": "59fc7130-bd2d-4edc-8ee0-f491ed12128a",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/project-skills/cursor/59fc7130-bd2d-4edc-8ee0-f491ed12128a",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "launchNote": "argv was cursor-agent --trust with no --plugin-dir (session plugin load excluded by design)",
+    "observations": {
+      "outcome": "stop_explain",
+      "contractHeld": true,
+      "productBeforeDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e",
+      "productAfterDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e",
+      "productUnchanged": true,
+      "doneMarkerWritten": true,
+      "doneLine": "STATUS=stop-explain reason=skills only resolve from user scope, not project pstack",
+      "settingsEnabledTrue": true,
+      "usedPluginDir": false,
+      "manifestSkillCount": 10,
+      "allProject": false,
+      "anyUserOrSession": true,
+      "independentScopes": {
+        "how": "user",
+        "why": "user",
+        "tdd": "user",
+        "unslop": "user",
+        "principle-separate-before-serializing-shared-state": "user",
+        "principle-minimize-reader-load": "user",
+        "principle-guard-the-context-window": "user",
+        "principle-sequence-verifiable-units": "user",
+        "principle-fix-root-causes": "user",
+        "principle-prove-it-works": "user"
+      },
+      "automationCreated": false
+    }
+  },
+  "pi": {
+    "attemptId": "29b59723-b273-423c-a63a-524b3040157d",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/project-skills/pi/29b59723-b273-423c-a63a-524b3040157d",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-setup-benny-project-skills-fixture-app--/2026-10-09T00-51-51-374Z_01a11e25-1dce-706e-9c8a-0a65b6dc3af5.jsonl",
+    "observations": {
+      "outcome": "stop_explain",
+      "contractHeld": true,
+      "productBeforeDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e",
+      "productAfterDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e",
+      "productUnchanged": true,
+      "doneMarkerWritten": true,
+      "doneLine": "STATUS=stop-explain reason=no project-scoped pi package; pstack only via user-level settings",
+      "settingsEnabledTrue": true,
+      "usedPluginDir": false,
+      "manifestSkillCount": 10,
+      "allProject": false,
+      "anyUserOrSession": false,
+      "independentScopes": {
+        "how": "package",
+        "why": "package",
+        "tdd": "package",
+        "unslop": "package",
+        "principle-separate-before-serializing-shared-state": "package",
+        "principle-minimize-reader-load": "package",
+        "principle-guard-the-context-window": "package",
+        "principle-sequence-verifiable-units": "package",
+        "principle-fix-root-causes": "package",
+        "principle-prove-it-works": "package"
+      },
+      "automationCreated": false,
+      "forAgentsRead": true,
+      "setupBennyRead": true,
+      "manifestWrite": true,
+      "sessionToolOrder": [
+        "bash(FOR_AGENTS.md)",
+        "bash(setup-benny/SKILL.md)",
+        "bash(resolve-manifest.json)"
+      ]
+    }
+  },
+  "deltas": [
+    {
+      "topic": "project-scoped resolve vs stop/explain",
+      "cursor": "Honest stop-explain. All ten skills independently classified user under ~/.claude/skills. No --plugin-dir. Project settings had plugins.pstack.enabled true. STATUS=stop-explain.",
+      "pi": "Honest stop-explain. All ten skills independently classified package under extensions/pi-pstack/skills (not fixture .pi/skills). No project .pi/settings.json packages entry. STATUS=stop-explain.",
+      "reconciled": true
+    },
+    {
+      "topic": "forbidden user/session success",
+      "cursor": "Did not claim resolve-ok on user-scoped paths.",
+      "pi": "Did not claim resolve-ok on package/user paths without project install.",
+      "reconciled": true
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "Auto",
+      "pi": "claude-sonnet-5-5 • medium (claude-subscription)",
+      "reconciled": false
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-setup-benny-project-skills.mjs --cursor-only then --pi-only",
+    "workerPlaybook": "parity/evidence/setup-benny/PLAYBOOK-project-skills.md",
+    "decisionTrail": "parity/evidence/setup-benny/.audit/u-journey-setup-benny-project-skills.tsv",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "heldOutFixture": "parity/evidence/setup-benny/project-skills/fixture-app",
+    "markerRoot": "parity/evidence/setup-benny/project-skills/fixture-out/{cursor,pi}/",
+    "evidenceRoot": "parity/evidence/setup-benny/project-skills/",
+    "scorerNote": "resolve_ok = all ten skills independently project under fixture with no --plugin-dir; stop_explain also contractHeld when setup honestly refuses non-project scope",
+    "siblingClaim": "none; other SETUP-BENNY-* ids not claimed",
+    "independentVerify": "re-imported analyzeManifest on each side resolve-manifest.json after classifier package-path fix; cursor all user; pi all package; both outcomes stop_explain contractHeld",
+    "journeyFamilyNote": "Paired under journey-family-09 to match settings-enable sibling wire; Benny peers also appear in family-11. Coordinator may re-home."
+  }
+}

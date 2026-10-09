@@ -1,0 +1,85 @@
+{
+  "score": {
+    "frontmatterOk": true,
+    "leafSkillRead": false,
+    "usedChrome": false,
+    "modelAutoInvoke": false,
+    "keptVerifyOk": true,
+    "ranCheck": true,
+    "directArtifactVerify": true,
+    "productFixed": true,
+    "verifiedDone": true,
+    "contractHeld": false,
+    "screen": {
+      "potetoMode": false,
+      "leafChrome": false,
+      "hostAttached": false,
+      "verifyMention": true,
+      "working": false
+    },
+    "pty": {
+      "potetoMode": true,
+      "leafChrome": false,
+      "hostAttached": false,
+      "verifyMention": true,
+      "working": true
+    }
+  },
+  "firstProductAt": "2026-10-09T00:13:32.171Z",
+  "firstVerifyAt": "2026-10-09T00:13:29.368Z",
+  "productPaths": [
+    "src/add.js"
+  ],
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/fixture-out/pi/done.txt",
+    "line": "verified=yes"
+  },
+  "verifyOut": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/fixture-app/evidence/verify-out.txt",
+    "line": "ADD-OK value=5",
+    "ok": true
+  },
+  "productFixed": true,
+  "frontmatter": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-prove-it-works/SKILL.md",
+    "ok": true,
+    "name": "principle-prove-it-works",
+    "disableModelInvocation": true
+  },
+  "session": {
+    "sessionPath": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-principles-fixture-app--/2026-10-09T00-13-16-650Z_01a11e01-cbea-77be-ad34-6aa12067233e.jsonl",
+    "hostAttached": false,
+    "leafSkillRead": false,
+    "leafSkillReadAt": null,
+    "ranVerifyScript": true,
+    "ranNodeCheck": false,
+    "toolOrder": [
+      "read",
+      "bash(verify.mjs)",
+      "TodoWrite",
+      "bash(verify.mjs)",
+      "edit",
+      "bash(verify.mjs)",
+      "bash"
+    ]
+  },
+  "transcript": null,
+  "pollSamples": 43,
+  "screenFinal": {
+    "potetoMode": false,
+    "leafChrome": true,
+    "hostAttached": false,
+    "verifyMention": true,
+    "working": false
+  },
+  "pty": {
+    "potetoMode": true,
+    "leafChrome": true,
+    "hostAttached": false,
+    "verifyMention": true,
+    "working": true
+  },
+  "oracleNote": "Tightened leafChrome to path-shaped only; session had no leaf SKILL.md Read."
+}

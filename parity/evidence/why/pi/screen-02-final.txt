@@ -1,0 +1,36 @@
+ Why this session's rule is all inherit-parent                                                                         │
+ It is a parity fixture, not a default. The reference environment already had a small (medium) rule with all 17 roles  │
+ set to inherit-parent. parity/progress.md:280 says "Cursor had an existing all-inherit-parent rule, Pi had none." The │
+ Pi side was then made to write the same rule.                                                                         │
+                                                                                                                       │
+ Inferred (hedged)                                                                                                     │
+ The forces appear to be:                                                                                              │
+ - Letting Auto users avoid pinning a model.                                                                           │
+ - Letting users whose providers lack the default slugs still pass setup. This is my inference from the validation     │
+   rule and the 72-model list the investigator saw, and no document states it.                                         │
+ - Parity with upstream, in the Pi port.                                                                               │
+                                                                                                                       │
+ Unknown                                                                                                               │
+ - Why upstream picked the name, or why it also accepts auto as a synonym.                                             │
+ - Whether the rationale changed between 0.15.5 and 0.15.9. Those versions weren't diffed.                             │
+ - PRs #34–#45 and review comments weren't read.                                                                       │
+ - Who wrote the reference environment's all-inherit-parent rule, and why.                                             │
+                                                                                                                       │
+ Sources consulted                                                                                                     │
+ - Source control: Searched. One investigator covered git and gh.                                                      │
+ - Issue tracker, long-form docs, team chat, observability, error tracking, analytics: Not searched. No matching MCP   │
+   is available in this environment, so this is a gap, not a choice.                                                   │
+ - Unverified citation: The synthesizer couldn't find docs/parity/clauses/s3.json, so that citation isn't confirmed.   │
+                                                                                                                       │
+ If you're changing this                                                                                               │
+ - Preserve: Alias values bypass the slug check, and inherit-parent and auto both leave Task model unset. Alias        │
+   entries still count toward panel fan-out.                                                                           │
+ - Avoid: Treating the all-inherit-parent fixture as the intended default.                                             ┃
+ - Risk: Aliases can remove model-family diversity in panels. parity/reviews/source-discovery.md:187 flags this for    ┃
+   arena runners.                                                                                                      ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run (refactor/pi-pstack-parity-again)
+↑40 ↓20k R589k W127k CH88.5% $0.831 (sub) 5.4%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium

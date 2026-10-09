@@ -1,0 +1,75 @@
+{
+  "teachSkill": true,
+  "howSkill": true,
+  "whySkill": true,
+  "spawnSignal": true,
+  "how": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/teach/fixture-out/pi/how.md",
+    "text": "# How: src/clamp.js\n\n`clamp(n, lo, hi)` bounds a value to the inclusive interval [lo, hi] (src/clamp.js:1-6).\n\n1. If n < lo, return lo.\n2. Else if n > hi, return hi.\n3. Else return n unchanged.\n\nDetails:\n- Bounds are inclusive. Values equal to a bound pass through.\n- lo === hi always returns that bound.\n- lo > hi is not validated. Values below lo return lo, values above hi return hi, values in between return lo (the lower check wins).\n- NaN fails both comparisons and is returned unchanged.\n- No coercion or type validation. JS comparison rules apply.\n\nWhere things live: README.md:3-4 (intent), src/clamp.js:1-2 (doc comment), src/clamp.js:3-7 (implementation).\n",
+    "mtimeMs": 1791495631224.0752
+  },
+  "why": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/teach/fixture-out/pi/why.md",
+    "text": "# Why: bound checks live in clamp.js\n\n- Confirmed: src/clamp.js doc comment says callers use the helper \"once instead of repeating min/max at every site.\"\n- Confirmed: README.md says clamp owns the bound checks so \"call sites stay thin.\"\n- Inferred: centralizing gives callers one uniform operation and removes repeated min/max logic. Benefits like testability or future consistency are not evidenced.\n- Unknown: no history. git log --follow returned nothing and git blame failed (files not in HEAD). When and why the decision was made is not recoverable.\n- Unknown: the fixture has no call sites, so actual usage cannot be checked.\n- Not searched (narrowed scope): issue trackers, docs beyond README, chat, observability, error tracking, analytics.\n",
+    "mtimeMs": 1791495631229.5945
+  },
+  "teach": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/teach/fixture-out/pi/teach.md",
+    "text": "`clamp(n, lo, hi)` forces a number into the range from `lo` to `hi`, both ends included. If `n` is below `lo` you get `lo`. If it is above `hi` you get `hi`. Otherwise you get `n` back.\n\nIt is three comparisons in `src/clamp.js`. The lower check runs first, then the upper, then it falls through to `n`. Values exactly on a bound come back unchanged, and `lo === hi` always returns that one value.\n\nIt does no validation, so a few inputs behave in ways you might not expect. `NaN` fails both comparisons and comes back as `NaN`. If you pass `lo > hi`, a value between them returns `lo`, because the lower check wins. Types are not checked either, so JavaScript's normal comparison rules decide the result.\n\nOn why the checks live here: the source says so directly. The doc comment says callers use the helper \"once instead of repeating min/max at every site\", and the README says it keeps call sites thin. So the stated reason is to avoid duplicating the bound logic. The likely upside is that every caller gets the same behavior, and that is my inference. Nothing in the repo shows testability or future consistency as a goal.\n\nI could not find out when or why the decision was made. There is no git history for the file, and the fixture has no call sites, so I can't tell how widely it is used. The reason above is the author's stated intent only.\n\nI can go further on the edge cases, or on how a caller would guard against `NaN` or reversed bounds.\n",
+    "mtimeMs": 1791495631234.5964
+  },
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/teach/fixture-out/pi/done.txt",
+    "line": "teach=yes how=yes why=yes order=how-why-before-teach"
+  },
+  "ordering": {
+    "howPresent": true,
+    "whyPresent": true,
+    "teachPresent": true,
+    "groundingPresent": true,
+    "howInHow": true,
+    "whyInWhy": true,
+    "teachLooksLikeTeach": true,
+    "howIdx": 13683,
+    "whyIdx": 13923,
+    "teachIdx": 6464,
+    "sessionToolOrderOk": false,
+    "toolOrder": [
+      "bash",
+      "read(how/skill.md)",
+      "read(why/skill.md)",
+      "task",
+      "task",
+      "read_agent",
+      "read_agent",
+      "bash"
+    ],
+    "order": "how-why-before-teach",
+    "orderOk": true,
+    "howOrWhyInvoked": true,
+    "mtimeOrder": "grounding-mtime-before-teach"
+  },
+  "productUnchanged": true,
+  "beforeProduct": "sha256:cebd582de9b2c7a8c4a915bcbcc4ef2d7295f25ed18e043b102a3b8a58c96f8a",
+  "afterProduct": "sha256:cebd582de9b2c7a8c4a915bcbcc4ef2d7295f25ed18e043b102a3b8a58c96f8a",
+  "session": {
+    "sessionPath": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-teach-fixture-app--/2026-10-08T21-39-37-964Z_01a11d75-216c-77a0-935e-75baf7b3b062.jsonl",
+    "teachSkill": true,
+    "howSkill": true,
+    "whySkill": true,
+    "toolOrder": [
+      "bash",
+      "read(how/SKILL.md)",
+      "read(why/SKILL.md)",
+      "task",
+      "task",
+      "read_agent",
+      "read_agent",
+      "bash"
+    ]
+  }
+}

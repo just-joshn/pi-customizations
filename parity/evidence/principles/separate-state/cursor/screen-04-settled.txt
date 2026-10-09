@@ -1,0 +1,39 @@
+
+  Broken. runIndexer and runMetrics both read-modify-wrote state/state.json. One write overwrote the other.
+
+  Root cause. Independent facts shared one mutable file. That is shared mutation, not two owners.
+
+  Fix. Indexer owns state/indexer.json. Metrics owns state/metrics.json. report() reads both and returns { 
+  lastIndexed, lastMetrics }.
+
+  Verified.
+
+  SEPARATE-FAIL reason=still-shared indexer=["state/state.json"] metrics=["state/state.json"]
+
+  SEPARATE-OK separated=yes indexer=state/indexer.json metrics=state/metrics.json lastIndexed=idx-5
+  lastMetrics=met-5
+
+  evidence/verify-out.txt matches. fixture-out/cursor/done.txt is verified=yes.
+
+  Principles. Separate Before Serializing Shared State chose owned files over a lock. Fix Root Causes rejected a
+  sleep or comment workaround. Laziness Protocol kept the diff to src/workers.js. Model the Domain treated each
+  worker’s fact as its own document and merge as a read-side concern. Prove It Works and Sequence Verifiable Units
+  required the red verify.mjs run before the green one.
+
+  Playbook steps.
+  1. done
+  2. done
+  3. done
+  4. done
+  5. skip: fixture cwd only, no commit requested
+  6. skip: user said write done.txt then stop
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 16.3% · 1 file edited                                                                          Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/principles/separate-state/fixture-app · 
+  refactor/pi-pstack-parity-again

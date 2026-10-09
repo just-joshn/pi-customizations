@@ -1,0 +1,26 @@
+{
+  "side": "pi",
+  "pathNotes": [
+    "first=\u203a [",
+    "askquestion-budget",
+    "panel2=\u203a [",
+    "panel3=\u203a [",
+    "panel4=\u203a [",
+    "panel5=\u203a [",
+    "panel6=\u203a ["
+  ],
+  "screens": {
+    "budgetNamed": true,
+    "markerRoleLoaded": true,
+    "retiredNamed": true,
+    "droppedLanguage": true,
+    "retiredListed": true,
+    "askQuestion": true,
+    "chatForm": false,
+    "writeCard": false
+  },
+  "loadFromExisting": true,
+  "retiredHandling": "dropped-and-listed",
+  "ruleUnchanged": false,
+  "afterDigest": "sha256:b8f73977ec5959896a0bad18ba625caca2850523abcc654ae6b99cb36b123ed9"
+}

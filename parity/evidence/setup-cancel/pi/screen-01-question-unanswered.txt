@@ -1,0 +1,36 @@
+                                                                                                                       ┃
+ [skill] setup-pstack (ctrl+o to expand)                                                                               ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+ ┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+ │ pstack setup                                                                                                       │
+ │                                                                                                                    │
+ │ Question 1 of 2                                                                                                    │
+ │                                                                                                                    │
+ │ 1. Choose a budget (current: small — medium reasoning; all roles inherit-parent).                                  │
+ │                                                                                                                    │
+ │   › [ ] unlimited — max reasoning                                                                                  │
+ │     [ ] large — xhigh reasoning                                                                                    │
+ │     [ ] medium — high reasoning                                                                                    │
+ │     [ ] small — medium reasoning                                                                                   │
+ │     [ ] Other: (type to answer)                                                                                    │
+ │                                                                                                                    │
+ │ ↑/↓ option · ←/→ question · Space select · Enter next/submit · Esc to skip                                         │
+ └────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run (refactor/pi-pstack-parity-again)
+↑6 ↓351 R32k W18k CH94.6% $0.083 (sub) 2.6%/1.0M (auto)                 (claude-subscription) claude-sonnet-5-5 • medium

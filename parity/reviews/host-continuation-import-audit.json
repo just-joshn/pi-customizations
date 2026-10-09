@@ -1,0 +1,1051 @@
+{
+  "scope": "Independent structural re-verification of imported host-continuation research. Hash, quote-span and receipt-consistency only. Not semantic audit, runtime proof, definition freeze or parity pass.",
+  "import_root": "parity/research/cursor-host-continuation",
+  "method": "Recomputed SHA-256 over preserved bytes; recomputed LF-delimited inclusive spans and compared to verbatim_quote; derived read coverage from receipt ranges. Does not call audit-evidence.py.",
+  "sources": [
+    {
+      "id": "api-v1",
+      "path": "preserved/docs_cloud-agent_api_endpoints.md",
+      "sha256_recorded": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+      "sha256_actual": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+      "hash": "match",
+      "retrieval_hash": "match",
+      "line_count_recorded": 3011,
+      "line_count_actual": 3011,
+      "line_count": "match",
+      "read_status": "read-complete",
+      "unread_ranges_by_receipt": []
+    },
+    {
+      "id": "openapi-v1",
+      "path": "preserved/docs-static_cloud-agents-openapi.yaml",
+      "sha256_recorded": "664e695207e9f72dd7dd296d60b576e68575f8e71ce18e6263a554850c072570",
+      "sha256_actual": "664e695207e9f72dd7dd296d60b576e68575f8e71ce18e6263a554850c072570",
+      "hash": "match",
+      "retrieval_hash": "match",
+      "line_count_recorded": 2994,
+      "line_count_actual": 2994,
+      "line_count": "match",
+      "read_status": "read-complete",
+      "unread_ranges_by_receipt": []
+    },
+    {
+      "id": "capabilities",
+      "path": "preserved/docs_cloud-agent_capabilities.md",
+      "sha256_recorded": "42885b553c13ff35527334cc837d106fabcc06fd72c43a46538d4f55953a0512",
+      "sha256_actual": "42885b553c13ff35527334cc837d106fabcc06fd72c43a46538d4f55953a0512",
+      "hash": "match",
+      "retrieval_hash": "match",
+      "line_count_recorded": 185,
+      "line_count_actual": 185,
+      "line_count": "match",
+      "read_status": "read-complete",
+      "unread_ranges_by_receipt": []
+    },
+    {
+      "id": "mcp",
+      "path": "preserved/snapshot-mcp.md",
+      "sha256_recorded": "8f6b54387a93616c82e2087ac5f2198c150832406c4c280880a7350e610c5e7e",
+      "sha256_actual": "8f6b54387a93616c82e2087ac5f2198c150832406c4c280880a7350e610c5e7e",
+      "hash": "match",
+      "retrieval_hash": "not-recorded",
+      "line_count_recorded": 410,
+      "line_count_actual": 410,
+      "line_count": "match",
+      "read_status": "read-complete",
+      "unread_ranges_by_receipt": []
+    },
+    {
+      "id": "pool",
+      "path": "preserved/pool.md",
+      "sha256_recorded": "b67e7f5ed22ce48d371e451c5c457d6630357b33d3d5e32ce1c9f6423b7bc41f",
+      "sha256_actual": "b67e7f5ed22ce48d371e451c5c457d6630357b33d3d5e32ce1c9f6423b7bc41f",
+      "hash": "match",
+      "retrieval_hash": "match",
+      "line_count_recorded": 901,
+      "line_count_actual": 901,
+      "line_count": "match",
+      "read_status": "read-partial",
+      "unread_ranges_by_receipt": [
+        [
+          1,
+          364
+        ],
+        [
+          410,
+          901
+        ]
+      ]
+    },
+    {
+      "id": "api-overview",
+      "path": "retrievals/api-overview.md",
+      "sha256_recorded": "ed3a3eb7e1f33dd6409f4c2ed283208cb6f952e16ff5ca73ed1ba7896e4fb033",
+      "sha256_actual": "ed3a3eb7e1f33dd6409f4c2ed283208cb6f952e16ff5ca73ed1ba7896e4fb033",
+      "hash": "match",
+      "retrieval_hash": "match",
+      "line_count_recorded": 349,
+      "line_count_actual": 349,
+      "line_count": "match",
+      "read_status": "read-complete",
+      "unread_ranges_by_receipt": []
+    },
+    {
+      "id": "api-v0",
+      "path": "retrievals/api-v0.md",
+      "sha256_recorded": "c753c4ee18e097015309f9d0cfd20f59a28a54bdf54179fa5236e6e2cf0c14b2",
+      "sha256_actual": "c753c4ee18e097015309f9d0cfd20f59a28a54bdf54179fa5236e6e2cf0c14b2",
+      "hash": "match",
+      "retrieval_hash": "match",
+      "line_count_recorded": 722,
+      "line_count_actual": 722,
+      "line_count": "match",
+      "read_status": "read-complete",
+      "unread_ranges_by_receipt": []
+    },
+    {
+      "id": "self-hosted",
+      "path": "retrievals/self-hosted.md",
+      "sha256_recorded": "093350a12e9a87fbb32a331eecd6721461ff593dc260e48e7bb415de43c77e2a",
+      "sha256_actual": "093350a12e9a87fbb32a331eecd6721461ff593dc260e48e7bb415de43c77e2a",
+      "hash": "match",
+      "retrieval_hash": "match",
+      "line_count_recorded": 176,
+      "line_count_actual": 176,
+      "line_count": "match",
+      "read_status": "read-complete",
+      "unread_ranges_by_receipt": []
+    }
+  ],
+  "source_summary": {
+    "hash": {
+      "match": 8
+    },
+    "retrieval_hash": {
+      "match": 7,
+      "not-recorded": 1
+    },
+    "line_count": {
+      "match": 8
+    },
+    "read_status": {
+      "read-complete": 7,
+      "read-partial": 1
+    }
+  },
+  "quote_edges": {
+    "proposal_edges": [
+      {
+        "edge_id": "evidence-general-mcp-transports",
+        "source": "preserved/snapshot-mcp.md",
+        "line_span": [
+          19,
+          25
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-cloud-mcp-personal-team-entry",
+        "source": "preserved/docs_cloud-agent_capabilities.md",
+        "line_span": [
+          27,
+          35
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-cloud-mcp-sse-prohibition",
+        "source": "preserved/docs_cloud-agent_capabilities.md",
+        "line_span": [
+          37,
+          39
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-cloud-mcp-sensitive-redaction",
+        "source": "preserved/docs_cloud-agent_capabilities.md",
+        "line_span": [
+          41,
+          46
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-cloud-http-backend",
+        "source": "preserved/docs_cloud-agent_capabilities.md",
+        "line_span": [
+          49,
+          49
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-cloud-stdio-vm",
+        "source": "preserved/docs_cloud-agent_capabilities.md",
+        "line_span": [
+          50,
+          52
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-api-beta",
+        "source": "preserved/docs_cloud-agent_api_endpoints.md",
+        "line_span": [
+          3,
+          6
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-api-mcp-inline",
+        "source": "preserved/docs_cloud-agent_api_endpoints.md",
+        "line_span": [
+          115,
+          117
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-api-mcp-type-defaults",
+        "source": "preserved/docs_cloud-agent_api_endpoints.md",
+        "line_span": [
+          123,
+          125
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-api-mcp-remote-url",
+        "source": "preserved/docs_cloud-agent_api_endpoints.md",
+        "line_span": [
+          127,
+          129
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-api-mcp-stdio-command",
+        "source": "preserved/docs_cloud-agent_api_endpoints.md",
+        "line_span": [
+          131,
+          133
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-api-inline-followup",
+        "source": "preserved/docs_cloud-agent_api_endpoints.md",
+        "line_span": [
+          434,
+          436
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-schema-stdio",
+        "source": "preserved/docs-static_cloud-agents-openapi.yaml",
+        "line_span": [
+          176,
+          210
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-schema-remote",
+        "source": "preserved/docs-static_cloud-agents-openapi.yaml",
+        "line_span": [
+          212,
+          242
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-schema-mcp-oneof",
+        "source": "preserved/docs-static_cloud-agents-openapi.yaml",
+        "line_span": [
+          244,
+          247
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-schema-oauth",
+        "source": "preserved/docs-static_cloud-agents-openapi.yaml",
+        "line_span": [
+          153,
+          174
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-schema-create-mcp",
+        "source": "preserved/docs-static_cloud-agents-openapi.yaml",
+        "line_span": [
+          600,
+          605
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-schema-run-mcp",
+        "source": "preserved/docs-static_cloud-agents-openapi.yaml",
+        "line_span": [
+          639,
+          644
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-pool-mcp-routing",
+        "source": "preserved/pool.md",
+        "line_span": [
+          387,
+          396
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-legacy-v0-mcp",
+        "source": "retrievals/api-v0.md",
+        "line_span": [
+          1,
+          10
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-api-status-idle",
+        "source": "preserved/docs_cloud-agent_api_endpoints.md",
+        "line_span": [
+          365,
+          371
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-schema-agent-status",
+        "source": "preserved/docs-static_cloud-agents-openapi.yaml",
+        "line_span": [
+          267,
+          270
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-schema-custom-model",
+        "source": "preserved/docs-static_cloud-agents-openapi.yaml",
+        "line_span": [
+          507,
+          517
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-artifact-scope",
+        "source": "preserved/docs_cloud-agent_api_endpoints.md",
+        "line_span": [
+          815,
+          825
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-artifact-download-expiry",
+        "source": "preserved/docs_cloud-agent_api_endpoints.md",
+        "line_span": [
+          853,
+          871
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-archive-idempotent",
+        "source": "preserved/docs_cloud-agent_api_endpoints.md",
+        "line_span": [
+          896,
+          898
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-unarchive-idempotent",
+        "source": "preserved/docs_cloud-agent_api_endpoints.md",
+        "line_span": [
+          926,
+          928
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-agent-delete-irreversible",
+        "source": "preserved/docs_cloud-agent_api_endpoints.md",
+        "line_span": [
+          956,
+          956
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-environment-create-conflict",
+        "source": "preserved/docs_cloud-agent_api_endpoints.md",
+        "line_span": [
+          988,
+          990
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-environment-create-repos",
+        "source": "preserved/docs_cloud-agent_api_endpoints.md",
+        "line_span": [
+          1002,
+          1004
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-environment-list-visibility",
+        "source": "preserved/docs_cloud-agent_api_endpoints.md",
+        "line_span": [
+          1070,
+          1072
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-environment-list-pagination",
+        "source": "preserved/docs_cloud-agent_api_endpoints.md",
+        "line_span": [
+          1092,
+          1098
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-environment-update-atomic",
+        "source": "preserved/docs_cloud-agent_api_endpoints.md",
+        "line_span": [
+          1187,
+          1189
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-environment-update-replace",
+        "source": "preserved/docs_cloud-agent_api_endpoints.md",
+        "line_span": [
+          1203,
+          1205
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-environment-delete-irreversible",
+        "source": "preserved/docs_cloud-agent_api_endpoints.md",
+        "line_span": [
+          1226,
+          1226
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-build-status",
+        "source": "preserved/docs_cloud-agent_api_endpoints.md",
+        "line_span": [
+          1442,
+          1444
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-build-draft",
+        "source": "preserved/docs_cloud-agent_api_endpoints.md",
+        "line_span": [
+          1450,
+          1452
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-worker-token-auth",
+        "source": "preserved/docs_cloud-agent_api_endpoints.md",
+        "line_span": [
+          1534,
+          1538
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-secret-values-never-response",
+        "source": "preserved/docs_cloud-agent_api_endpoints.md",
+        "line_span": [
+          1591,
+          1591
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-secret-precedence",
+        "source": "preserved/docs_cloud-agent_api_endpoints.md",
+        "line_span": [
+          1621,
+          1623
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-secret-change-visibility",
+        "source": "preserved/docs_cloud-agent_api_endpoints.md",
+        "line_span": [
+          1625,
+          1626
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-secret-list-null-cursor",
+        "source": "preserved/docs_cloud-agent_api_endpoints.md",
+        "line_span": [
+          1636,
+          1643
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-secret-put-version",
+        "source": "preserved/docs_cloud-agent_api_endpoints.md",
+        "line_span": [
+          1713,
+          1722
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-pool-auth",
+        "source": "preserved/docs_cloud-agent_api_endpoints.md",
+        "line_span": [
+          2073,
+          2077
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-pool-durability",
+        "source": "preserved/docs_cloud-agent_api_endpoints.md",
+        "line_span": [
+          2213,
+          2213
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-pool-register-timeout",
+        "source": "preserved/docs_cloud-agent_api_endpoints.md",
+        "line_span": [
+          2309,
+          2311
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-pool-deregister",
+        "source": "preserved/docs_cloud-agent_api_endpoints.md",
+        "line_span": [
+          2347,
+          2347
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-pending-filter-cursor",
+        "source": "preserved/docs_cloud-agent_api_endpoints.md",
+        "line_span": [
+          2399,
+          2411
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-pending-stream-cursor",
+        "source": "preserved/docs_cloud-agent_api_endpoints.md",
+        "line_span": [
+          2433,
+          2435
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-pending-sse-context",
+        "source": "preserved/docs_cloud-agent_api_endpoints.md",
+        "line_span": [
+          2477,
+          2479
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-pending-resume-precedence",
+        "source": "preserved/docs_cloud-agent_api_endpoints.md",
+        "line_span": [
+          2483,
+          2485
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-pending-expiry",
+        "source": "preserved/docs_cloud-agent_api_endpoints.md",
+        "line_span": [
+          2505,
+          2507
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-pending-best-effort",
+        "source": "preserved/docs_cloud-agent_api_endpoints.md",
+        "line_span": [
+          2509,
+          2513
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-claim-atomic",
+        "source": "preserved/docs_cloud-agent_api_endpoints.md",
+        "line_span": [
+          2553,
+          2555
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-claim-session-token",
+        "source": "preserved/docs_cloud-agent_api_endpoints.md",
+        "line_span": [
+          2569,
+          2571
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-release-using-worker",
+        "source": "preserved/docs_cloud-agent_api_endpoints.md",
+        "line_span": [
+          2704,
+          2706
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-release-no-retry-404",
+        "source": "preserved/docs_cloud-agent_api_endpoints.md",
+        "line_span": [
+          2743,
+          2743
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-fail-claim-race",
+        "source": "preserved/docs_cloud-agent_api_endpoints.md",
+        "line_span": [
+          2751,
+          2759
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-fail-claim-message",
+        "source": "preserved/docs_cloud-agent_api_endpoints.md",
+        "line_span": [
+          2771,
+          2773
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-self-hosted-execution",
+        "source": "retrievals/self-hosted.md",
+        "line_span": [
+          1,
+          3
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "evidence-self-hosted-environment-limits",
+        "source": "retrievals/self-hosted.md",
+        "line_span": [
+          73,
+          87
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      }
+    ],
+    "prior_edges": [
+      {
+        "edge_id": "cursor.services.docs_cloud-agent_capabilities.37",
+        "source": "preserved/docs_cloud-agent_capabilities.md",
+        "line_span": [
+          37,
+          46
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "cursor.customization.hooks.1042",
+        "source": "preserved/snapshot-hooks.md",
+        "line_span": [
+          1042,
+          1084
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "unread-no-receipt-for-source"
+      },
+      {
+        "edge_id": "cursor.customization.hooks.1107",
+        "source": "preserved/snapshot-hooks.md",
+        "line_span": [
+          1107,
+          1129
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "unread-no-receipt-for-source"
+      },
+      {
+        "edge_id": "cursor.customization.mcp.15",
+        "source": "preserved/snapshot-mcp.md",
+        "line_span": [
+          15,
+          25
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "cursor.customization.mcp.54",
+        "source": "preserved/snapshot-mcp.md",
+        "line_span": [
+          54,
+          98
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "cursor.customization.mcp.165",
+        "source": "preserved/snapshot-mcp.md",
+        "line_span": [
+          165,
+          177
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "cursor.customization.mcp.257",
+        "source": "preserved/snapshot-mcp.md",
+        "line_span": [
+          257,
+          265
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "cursor.customization.mcp.391",
+        "source": "preserved/snapshot-mcp.md",
+        "line_span": [
+          391,
+          399
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "cursor.customization.plugin-reference.328",
+        "source": "preserved/plugin-reference.md",
+        "line_span": [
+          328,
+          332
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "unread-no-receipt-for-source"
+      },
+      {
+        "edge_id": "cursor.customization.mcp-install-links.1",
+        "source": "preserved/mcp-install-links.md",
+        "line_span": [
+          1,
+          19
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "unread-no-receipt-for-source"
+      },
+      {
+        "edge_id": "cursor.services.docs_cloud-agent_api_endpoints.35",
+        "source": "preserved/docs_cloud-agent_api_endpoints.md",
+        "line_span": [
+          35,
+          290
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      },
+      {
+        "edge_id": "cursor.services.docs_cloud-agent_api_endpoints.420",
+        "source": "preserved/docs_cloud-agent_api_endpoints.md",
+        "line_span": [
+          420,
+          474
+        ],
+        "source_hash": "match",
+        "quote_span": "match",
+        "read_status": "span-within-receipted-read"
+      }
+    ],
+    "summary": {
+      "source_hash": {
+        "match": 73
+      },
+      "quote_span": {
+        "match": 73
+      },
+      "read_status": {
+        "span-within-receipted-read": 69,
+        "unread-no-receipt-for-source": 4
+      },
+      "proposal_edge_count": 61,
+      "prior_edge_count": 12
+    }
+  },
+  "input_receipts": [
+    {
+      "source": "preserved/parent-contract.md",
+      "hash": "match",
+      "receipt_complete": true
+    },
+    {
+      "source": "preserved/prior-report.md",
+      "hash": "match",
+      "receipt_complete": true
+    },
+    {
+      "source": "preserved/services-report.md",
+      "hash": "match",
+      "receipt_complete": true
+    },
+    {
+      "source": "preserved/source-lock.json",
+      "hash": "match",
+      "receipt_complete": true
+    }
+  ],
+  "transport_scope_conflicts": {
+    "status": "unresolved; no hypothesis selected",
+    "evidence": [
+      {
+        "context": "general-mcp",
+        "pointer": "preserved/snapshot-mcp.md:19-25",
+        "sha256": "8f6b54387a93616c82e2087ac5f2198c150832406c4c280880a7350e610c5e7e",
+        "phrase_checked": "Streamable HTTP",
+        "phrase_present_in_span": true,
+        "span_within_receipted_read": true
+      },
+      {
+        "context": "saved-cloud-mcp",
+        "pointer": "preserved/docs_cloud-agent_capabilities.md:37-39",
+        "sha256": "42885b553c13ff35527334cc837d106fabcc06fd72c43a46538d4f55953a0512",
+        "phrase_checked": "SSE and `mcp-remote` are not supported",
+        "phrase_present_in_span": true,
+        "span_within_receipted_read": true
+      },
+      {
+        "context": "v1-inline-prose",
+        "pointer": "preserved/docs_cloud-agent_api_endpoints.md:123-125",
+        "sha256": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+        "phrase_checked": "`http`, `sse`, or `stdio`",
+        "phrase_present_in_span": true,
+        "span_within_receipted_read": true
+      },
+      {
+        "context": "v1-schema",
+        "pointer": "preserved/docs-static_cloud-agents-openapi.yaml:212-242",
+        "sha256": "664e695207e9f72dd7dd296d60b576e68575f8e71ce18e6263a554850c072570",
+        "phrase_checked": "'sse'",
+        "phrase_present_in_span": true,
+        "span_within_receipted_read": true
+      },
+      {
+        "context": "self-hosted-routing",
+        "pointer": "preserved/pool.md:387-396",
+        "sha256": "b67e7f5ed22ce48d371e451c5c457d6630357b33d3d5e32ce1c9f6423b7bc41f",
+        "phrase_checked": "HTTP / SSE",
+        "phrase_present_in_span": true,
+        "span_within_receipted_read": true
+      },
+      {
+        "context": "legacy-v0",
+        "pointer": "retrievals/api-v0.md:1-10",
+        "sha256": "c753c4ee18e097015309f9d0cfd20f59a28a54bdf54179fa5236e6e2cf0c14b2",
+        "phrase_checked": "not yet supported",
+        "phrase_present_in_span": true,
+        "span_within_receipted_read": true
+      }
+    ],
+    "prior_hook_edges": [
+      "cursor.customization.hooks.1042 preserved/snapshot-hooks.md:[1042, 1084]",
+      "cursor.customization.hooks.1107 preserved/snapshot-hooks.md:[1107, 1129]"
+    ],
+    "hypotheses_pointer": "unresolved-hypotheses.json#transport-scope",
+    "candidate_pointer": "candidate-scenarios.json MCP-01",
+    "additional_conflicts": [
+      {
+        "id": "v1-agent-status",
+        "prose": "preserved/docs_cloud-agent_api_endpoints.md:365-371 (ACTIVE, IDLE, ARCHIVED)",
+        "schema": "preserved/docs-static_cloud-agents-openapi.yaml:267-270 (ACTIVE, ARCHIVED)"
+      },
+      {
+        "id": "subagent-model-oneOf-overlap",
+        "schema": "preserved/docs-static_cloud-agents-openapi.yaml:507-517"
+      }
+    ]
+  }
+}

@@ -1,0 +1,39 @@
+    -name 'renderer.js' -o -name '*.html' -o -name '*.md' \) 2>/dev/null; ls -la "/Users/josh-desktop/.cursor/plugins/
+    cache/cursor-public/pr-review-canvas/ccb5507cec1546dc88135c1139c811e6c59115ba/" 2>/dev/null; find
+    "/Users/josh-desktop/src/personal/pi-pstack-parity-again" -path '*pr-review-canvas*' -type f 2>/dev/null | head
+    -80 951ms
+    … 46 output lines hidden · ctrl+o to expand
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/upstream-team-kit/skills/pr-review-c…
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/upstream-team-kit/skills/pr-review-c…
+
+  The team-kit skill has the HTML assets — reading those next.
+
+    Read 4 files
+    Read ...ursor-team-kit/skills/pr-review-canvas/SKILL.md
+    Read ...-team-kit/skills/pr-review-canvas/template.html
+    Read ...xtensions/pi-pstack/prompts/pr-review-canvas.md
+    Read ...ine/package/package/prompts/pr-review-canvas.md
+
+  Assembling the review HTML from the team-kit skill assets and writing the fixture artifacts.
+
+  $ SKILL_DIR="/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/cursor-team-kit
+    /skills/pr-review-canvas"
+    OUT_DIR="/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/pr-re
+    view-canvas" 792ms
+    … 111 input + 6 output lines hidden · ctrl+o to expand
+    295:    <strong>FIXTURE_CANVAS</strong> — Seed PR that adds a tiny <span class="ic">notes.md</span> placeholder s…
+    310:      <div data-diff="notes_md"></div>
+
+  Wrote review-canvas.html (PR #1 / Fixture PR for team-kit journeys, marker FIXTURE_CANVAS, styles + renderer
+  injected) and done.txt:
+
+  STATUS=verified reason=canvas built with markers
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 15.6%                                                                                          Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh · fixture/pr-comments-seed · #1

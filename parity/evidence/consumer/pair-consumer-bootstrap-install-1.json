@@ -1,0 +1,121 @@
+{
+  "schema": 1,
+  "pairId": "consumer-bootstrap-install-1",
+  "scenarioRef": "consumer:bootstrap-frozen-install",
+  "matrixJourney": {
+    "packageId": "source-tools-bootstrap",
+    "activation": "install",
+    "consumerPath": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bootstrap.ts",
+    "acceptanceJourney": "Paired journey proving frozen bun install --frozen-lockfile and restart after install-key change"
+  },
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "Force install-key mismatch; run bun run orch/orch.ts --help; write EXIT=0 to side-specific done path",
+  "steps": [
+    {
+      "force": "install-key mismatch"
+    },
+    {
+      "send": "bun run orch/orch.ts --help \u2026 EXIT=0 \u2026"
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "settle": true
+    },
+    {
+      "cancel": true
+    },
+    {
+      "restore": "install-key"
+    }
+  ],
+  "cursor": {
+    "attemptId": "86de8b3f-95da-47f3-ac6f-c2575543249f",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/consumer/cursor/86de8b3f-95da-47f3-ac6f-c2575543249f",
+    "screenSettled": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/consumer/cursor/86de8b3f-95da-47f3-ac6f-c2575543249f/screen-03-settled.txt",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "observations": {
+      "afterHelp": {
+        "usageOrch": true,
+        "commandsHeader": true,
+        "cmdInit": true,
+        "cmdUnit": true,
+        "cmdStanding": true,
+        "helpFlag": false,
+        "installMention": false,
+        "working": false
+      },
+      "helpChromeOk": true,
+      "doneMarkerOk": true,
+      "consumerPath": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bootstrap.ts",
+      "consumerSha256": "ccd2ed08fd9da9d0d942e5f2491cfc74bb92d8a08fa51755e0da1ac8de287361",
+      "consumerMatchesLocked": true,
+      "installKeyBeforeForced": "29ea404a008c469c17a2d88c14edd3fe861a3b2e47be92343c132a7c49529121",
+      "installKeyForced": "deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef",
+      "installKeyExpected": "29ea404a008c469c17a2d88c14edd3fe861a3b2e47be92343c132a7c49529121",
+      "installKeyAfter": "29ea404a008c469c17a2d88c14edd3fe861a3b2e47be92343c132a7c49529121",
+      "installKeyRewrittenToExpected": true,
+      "commanderPresentAfter": true,
+      "bootstrapFileOracleOk": true,
+      "journeyClosed": true
+    }
+  },
+  "pi": {
+    "attemptId": "4d9f3f54-35b9-4b22-ab6c-936056420a67",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/consumer/pi/4d9f3f54-35b9-4b22-ab6c-936056420a67",
+    "screenSettled": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/consumer/pi/4d9f3f54-35b9-4b22-ab6c-936056420a67/screen-03-settled.txt",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "observations": {
+      "afterHelp": {
+        "usageOrch": true,
+        "commandsHeader": true,
+        "cmdInit": true,
+        "cmdUnit": true,
+        "cmdStanding": true,
+        "helpFlag": false,
+        "installMention": false,
+        "working": false
+      },
+      "helpChromeOk": true,
+      "doneMarkerOk": true,
+      "consumerPath": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bootstrap.ts",
+      "consumerSha256": "ccd2ed08fd9da9d0d942e5f2491cfc74bb92d8a08fa51755e0da1ac8de287361",
+      "consumerMatchesLocked": true,
+      "installKeyBeforeForced": "29ea404a008c469c17a2d88c14edd3fe861a3b2e47be92343c132a7c49529121",
+      "installKeyForced": "deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef",
+      "installKeyExpected": "29ea404a008c469c17a2d88c14edd3fe861a3b2e47be92343c132a7c49529121",
+      "installKeyAfter": "29ea404a008c469c17a2d88c14edd3fe861a3b2e47be92343c132a7c49529121",
+      "installKeyRewrittenToExpected": true,
+      "commanderPresentAfter": true,
+      "bootstrapFileOracleOk": true,
+      "journeyClosed": true
+    }
+  },
+  "pairClosed": true,
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-consumer-bootstrap-install.mjs --both",
+    "toolsCwd": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "lockedConsumerSha256": "ccd2ed08fd9da9d0d942e5f2491cfc74bb92d8a08fa51755e0da1ac8de287361",
+    "installStdoutNote": "bootstrap.ts writes install stdout only on failure; success path is proven by install-key rewrite + commander presence + post-restart help chrome"
+  },
+  "verdict": "pass",
+  "closedAt": "2026-10-09T02:54:00Z"
+}

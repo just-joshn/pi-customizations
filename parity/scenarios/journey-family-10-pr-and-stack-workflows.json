@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "kind": "journey-family-stub",
+  "id": "journey-family-10-pr-and-stack-workflows",
+  "family": 10,
+  "familyTitle": "PR and stack workflows with failing CI, review findings, conflicts, outdated evidence, approval changes",
+  "contractRef": "parity/contract.md#8-verify-through-the-users-controls",
+  "status": "missing",
+  "requirementIds": [
+    "PSTACK-CMD-BLAST-RADIUS-RUN-PROOF-001",
+    "PSTACK-CMD-MAINTAIN-VERIFY-OUTCOMES-001"
+  ],
+  "fixtureNeeds": [
+    "Controlled git repository with failing CI hooks or mocked checks",
+    "Conflicting branch fixture",
+    "Review-comment and approval-state fixtures"
+  ],
+  "evidencePaths": [],
+  "openMismatches": [],
+  "coverageNotes": "No babysit/shipping Cursor+Pi pairs under parity/evidence.",
+  "nextAction": "Stand up a controlled repo fixture and capture a paired PR-readiness journey with one failing check."
+}

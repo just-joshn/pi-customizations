@@ -1,0 +1,40 @@
+[Skill conflicts]                                                                                                      ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+Help set up Benny for this repository. Follow .upstream/automations/benny/FOR_AGENTS.md so                              
+.upstream/automations/benny/skills/setup-benny/SKILL.md is read (section 3 Fill the required choices). These required   
+values are explicit and confirmed: repository url https://github.com/example-org/fixture-app default branch main;       
+triage Slack user id U012FIXTURETRIAGE; tracker adapter skill issue-tracker-adapter-placeholder; control skill          
+control-target-app; feature map path .cursor/benny/feature-map.md. I do not know the source Slack channel ID yet. It    
+is unknown / TBD. Do not invent a channel ID. Do not treat SOURCE_CHANNEL_ID as a real channel. For model slugs use     
+only ones shown as available in the model picker or supported list. Do not guess a slug. Per setup-benny, fail setup    
+if any required value stays ambiguous. You may write a partial user-owned draft at .cursor/benny/configuration.pi.yaml  
+only if it leaves source_channel_id empty or clearly unset and you still fail closed. Do not create or update a live    
+automation. Do not edit parity ledgers or src/app.js. When you stop, write exactly one line to                          
+/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/required-explicit/fixture-out/pi/do 
+ne.txt as STATUS=fail-closed|proceeded-ambiguous|completed|blocked|other reason=<short phrase> then stop.               
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/required-explicit/fixture-app (refactor/pi-pstack-p...
+$0.000 (sub) 0.0%/1.0M (auto)                                           (claude-subscription) claude-sonnet-5-5 • medium

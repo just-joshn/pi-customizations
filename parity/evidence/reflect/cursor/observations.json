@@ -1,0 +1,50 @@
+{
+  "skillActivated": true,
+  "screenScore": {
+    "reflectSkill": true,
+    "skipped": false,
+    "judgment": false,
+    "tooling": false,
+    "divergent": false,
+    "lensHits": 0,
+    "spawnSignal": true,
+    "synthesizer": true,
+    "multiAgentReview": false,
+    "working": false
+  },
+  "ptyScore": {
+    "reflectSkill": true,
+    "skipped": false,
+    "judgment": true,
+    "tooling": true,
+    "divergent": true,
+    "lensHits": 3,
+    "spawnSignal": true,
+    "synthesizer": true,
+    "multiAgentReview": true,
+    "working": true
+  },
+  "sessionScore": null,
+  "bestScore": {
+    "reflectSkill": true,
+    "skipped": false,
+    "judgment": true,
+    "tooling": true,
+    "divergent": true,
+    "lensHits": 3,
+    "spawnSignal": true,
+    "synthesizer": true,
+    "multiAgentReview": true,
+    "working": true
+  },
+  "multiAgentReview": true,
+  "skipped": false,
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/reflect/fixture-out/cursor/done.txt",
+    "line": "reflect=yes"
+  },
+  "clampDigest": "71c6d46fecc28ecf04479d24693ed0ddcc86de044d9ccb7c87181489f92b8203",
+  "notesDigest": "7633972ee3da4f943201a49fbc19cef4fc2143b1c860e6a235906d41f0504f1f",
+  "session": null
+}

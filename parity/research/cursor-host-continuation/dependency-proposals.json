@@ -1,0 +1,1574 @@
+{
+  "status": "discovery-only",
+  "sources": [
+    {
+      "id": "api-v1",
+      "type": "source-capture",
+      "immutable_hash": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0"
+    },
+    {
+      "id": "openapi-v1",
+      "type": "source-capture",
+      "immutable_hash": "664e695207e9f72dd7dd296d60b576e68575f8e71ce18e6263a554850c072570"
+    },
+    {
+      "id": "capabilities",
+      "type": "source-capture",
+      "immutable_hash": "42885b553c13ff35527334cc837d106fabcc06fd72c43a46538d4f55953a0512"
+    },
+    {
+      "id": "mcp",
+      "type": "source-capture",
+      "immutable_hash": "8f6b54387a93616c82e2087ac5f2198c150832406c4c280880a7350e610c5e7e"
+    },
+    {
+      "id": "pool",
+      "type": "source-capture",
+      "immutable_hash": "b67e7f5ed22ce48d371e451c5c457d6630357b33d3d5e32ce1c9f6423b7bc41f"
+    },
+    {
+      "id": "api-overview",
+      "type": "source-capture",
+      "immutable_hash": "ed3a3eb7e1f33dd6409f4c2ed283208cb6f952e16ff5ca73ed1ba7896e4fb033"
+    },
+    {
+      "id": "api-v0",
+      "type": "source-capture",
+      "immutable_hash": "c753c4ee18e097015309f9d0cfd20f59a28a54bdf54179fa5236e6e2cf0c14b2"
+    },
+    {
+      "id": "self-hosted",
+      "type": "source-capture",
+      "immutable_hash": "093350a12e9a87fbb32a331eecd6721461ff593dc260e48e7bb415de43c77e2a"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "general-mcp-transports",
+      "type": "documented-general-host-contract",
+      "owned_behavior": "General Cursor transport vocabulary. No cloud-wide inference.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "mcp"
+      ]
+    },
+    {
+      "id": "cloud-mcp-personal-team-entry",
+      "type": "documented-entry-path",
+      "owned_behavior": "Personal dropdown, shared team administration, per-user OAuth. UI context does not explicitly limit the subsequent transport prohibition.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "capabilities"
+      ]
+    },
+    {
+      "id": "cloud-mcp-sse-prohibition",
+      "type": "documented-prohibition",
+      "owned_behavior": "Custom cloud MCP prose excludes SSE and mcp-remote. Scope relative to v1 inline and pool configurations unresolved.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "capabilities"
+      ]
+    },
+    {
+      "id": "cloud-mcp-sensitive-redaction",
+      "type": "documented-security-contract",
+      "owned_behavior": "Saved cloud configuration redaction. Do not infer API retrieval of inline credentials.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "capabilities"
+      ]
+    },
+    {
+      "id": "cloud-http-backend",
+      "type": "documented-routing-contract",
+      "owned_behavior": "HTTP configuration is outside cloud VM. No universal inference for all SDK or API paths.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "capabilities"
+      ]
+    },
+    {
+      "id": "cloud-stdio-vm",
+      "type": "documented-routing-contract",
+      "owned_behavior": "Stdio exposes configuration and environment in VM. Launch needed to check operational success.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "capabilities"
+      ]
+    },
+    {
+      "id": "api-beta",
+      "type": "version-applicability",
+      "owned_behavior": "v1 public beta. No released backend revision identified.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "api-v1"
+      ]
+    },
+    {
+      "id": "api-mcp-inline",
+      "type": "documented-conditional-contract",
+      "owned_behavior": "Inline definitions, 50 limit, unique names, headers or OAuth, stdio environment.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "api-v1"
+      ]
+    },
+    {
+      "id": "api-mcp-type-defaults",
+      "type": "documented-conditional-contract",
+      "owned_behavior": "http/sse/stdio and prose-only defaults based on url or command.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "api-v1"
+      ]
+    },
+    {
+      "id": "api-mcp-remote-url",
+      "type": "documented-validation-contract",
+      "owned_behavior": "HTTP/HTTPS, no userinfo. Schema format uri is broader.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "api-v1"
+      ]
+    },
+    {
+      "id": "api-mcp-stdio-command",
+      "type": "documented-routing-contract",
+      "owned_behavior": "Cloud VM wording. Self-hosted applicability needs routing evidence.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "api-v1"
+      ]
+    },
+    {
+      "id": "api-inline-followup",
+      "type": "documented-conditional-contract",
+      "owned_behavior": "Replace create-time inline definitions for this run; omission keeps current configuration. Later-run persistence of a replacement remains a separate question.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "api-v1"
+      ]
+    },
+    {
+      "id": "schema-stdio",
+      "type": "published-schema-constraint",
+      "owned_behavior": "Stdio branch. Required name/command; optional type constrained to stdio; additionalProperties false. args/env not headers/auth.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "openapi-v1"
+      ]
+    },
+    {
+      "id": "schema-remote",
+      "type": "published-schema-constraint",
+      "owned_behavior": "Remote branch. Required name/url; optional type http or sse; additionalProperties false. headers/auth not command/args/env.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "openapi-v1"
+      ]
+    },
+    {
+      "id": "schema-mcp-oneof",
+      "type": "published-schema-constraint",
+      "owned_behavior": "Exactly one branch. Mixed command/url object cannot satisfy either closed branch.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "openapi-v1"
+      ]
+    },
+    {
+      "id": "schema-oauth",
+      "type": "published-schema-constraint",
+      "owned_behavior": "CLIENT_ID required and nonempty; CLIENT_SECRET/scopes optional; no extra auth fields.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "openapi-v1"
+      ]
+    },
+    {
+      "id": "schema-create-mcp",
+      "type": "published-schema-constraint",
+      "owned_behavior": "Create request references MCP union with maxItems 50. Name uniqueness is description, not uniqueItems.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "openapi-v1"
+      ]
+    },
+    {
+      "id": "schema-run-mcp",
+      "type": "published-schema-constraint",
+      "owned_behavior": "Follow-up request references same MCP union.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "openapi-v1"
+      ]
+    },
+    {
+      "id": "pool-mcp-routing",
+      "type": "documented-routing-contract",
+      "owned_behavior": "Self-hosted stdio runs on worker; HTTP/SSE URL runs on backend. This adds a cloud-context SSE claim, not a universal transport reconciliation.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "pool"
+      ]
+    },
+    {
+      "id": "legacy-v0-mcp",
+      "type": "version-scoped-prohibition",
+      "owned_behavior": "Legacy v0 explicitly says MCP not supported. Do not apply to v1.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "api-v0"
+      ]
+    },
+    {
+      "id": "api-status-idle",
+      "type": "documented-lifecycle-contract",
+      "owned_behavior": "ACTIVE/IDLE/ARCHIVED meanings for controllers. Conflicts same-v1 schema.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "api-v1"
+      ]
+    },
+    {
+      "id": "schema-agent-status",
+      "type": "published-schema-constraint",
+      "owned_behavior": "ACTIVE/ARCHIVED only. IDLE absent; no runtime decision.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "openapi-v1"
+      ]
+    },
+    {
+      "id": "schema-custom-model",
+      "type": "schema-overlap-hypothesis",
+      "owned_behavior": "inherit matches both string oneOf branches under standard oneOf semantics. Backend validation not observed.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "openapi-v1"
+      ]
+    },
+    {
+      "id": "artifact-scope",
+      "type": "documented-artifact-contract",
+      "owned_behavior": "Agent scoped, v1 relative paths, v0 absolute paths not accepted.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "api-v1"
+      ]
+    },
+    {
+      "id": "artifact-download-expiry",
+      "type": "documented-artifact-contract",
+      "owned_behavior": "15-minute presigned URL and required relative path under artifacts.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "api-v1"
+      ]
+    },
+    {
+      "id": "archive-idempotent",
+      "type": "documented-lifecycle-contract",
+      "owned_behavior": "Readable archive, no new runs, idempotent archive.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "api-v1"
+      ]
+    },
+    {
+      "id": "unarchive-idempotent",
+      "type": "documented-lifecycle-contract",
+      "owned_behavior": "Unarchive accepts runs and is idempotent.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "api-v1"
+      ]
+    },
+    {
+      "id": "agent-delete-irreversible",
+      "type": "documented-destructive-contract",
+      "owned_behavior": "No deletion authorized or executed.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "api-v1"
+      ]
+    },
+    {
+      "id": "environment-create-conflict",
+      "type": "documented-error-contract",
+      "owned_behavior": "201 create, duplicate owner-name 409 with optional existing environmentId.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "api-v1"
+      ]
+    },
+    {
+      "id": "environment-create-repos",
+      "type": "documented-validation-contract",
+      "owned_behavior": "Max 100, no-repo allowed, inaccessible repo 400 repository_access.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "api-v1"
+      ]
+    },
+    {
+      "id": "environment-list-visibility",
+      "type": "documented-authorization-contract",
+      "owned_behavior": "Team admin/service account and repository-limited visibility differ.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "api-v1"
+      ]
+    },
+    {
+      "id": "environment-list-pagination",
+      "type": "documented-pagination-contract",
+      "owned_behavior": "Short pages, omitted not null cursor, timed checks, mutation during walk.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "api-v1"
+      ]
+    },
+    {
+      "id": "environment-update-atomic",
+      "type": "documented-update-contract",
+      "owned_behavior": "Both changes apply together or neither does, 204 no body, name conflict 409.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "api-v1"
+      ]
+    },
+    {
+      "id": "environment-update-replace",
+      "type": "documented-update-contract",
+      "owned_behavior": "Whole environment configuration replacement, validation_error.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "api-v1"
+      ]
+    },
+    {
+      "id": "environment-delete-irreversible",
+      "type": "documented-destructive-contract",
+      "owned_behavior": "No deletion authorized or executed.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "api-v1"
+      ]
+    },
+    {
+      "id": "build-status",
+      "type": "documented-lifecycle-contract",
+      "owned_behavior": "Build lifecycle states including SKIPPED.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "api-v1"
+      ]
+    },
+    {
+      "id": "build-draft",
+      "type": "documented-activation-contract",
+      "owned_behavior": "Draft build not used until activated.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "api-v1"
+      ]
+    },
+    {
+      "id": "worker-token-auth",
+      "type": "documented-authorization-contract",
+      "owned_behavior": "Service-account key required, tokens cannot mint tokens, one-hour expiry and no self-refresh.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "api-v1"
+      ]
+    },
+    {
+      "id": "secret-values-never-response",
+      "type": "documented-security-contract",
+      "owned_behavior": "Public docs read only, no secret endpoint request executed.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "api-v1"
+      ]
+    },
+    {
+      "id": "secret-precedence",
+      "type": "documented-precedence-contract",
+      "owned_behavior": "Start values then environment then personal then team. Lower levels hidden by name.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "api-v1"
+      ]
+    },
+    {
+      "id": "secret-change-visibility",
+      "type": "documented-consistency-contract",
+      "owned_behavior": "Future agents, newer builds, read-after-write lag. No secret experiment authorized.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "api-v1"
+      ]
+    },
+    {
+      "id": "secret-list-null-cursor",
+      "type": "documented-authorization-pagination-contract",
+      "owned_behavior": "Secret-list pagination differs from environment-list omitted cursor.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "api-v1"
+      ]
+    },
+    {
+      "id": "secret-put-version",
+      "type": "documented-version-update-contract",
+      "owned_behavior": "Specific id, ambiguous names, no second version via PUT, omission preserves scope, build secret restriction.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "api-v1"
+      ]
+    },
+    {
+      "id": "pool-auth",
+      "type": "documented-authorization-contract",
+      "owned_behavior": "private-workers legacy name is current self-hosted contract, requires pool service-account key.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "api-v1"
+      ]
+    },
+    {
+      "id": "pool-durability",
+      "type": "documented-persistence-contract",
+      "owned_behavior": "Pool registration persists at zero workers.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "api-v1"
+      ]
+    },
+    {
+      "id": "pool-register-timeout",
+      "type": "documented-timeout-contract",
+      "owned_behavior": "Offline worker reconnect window, zero immediate reacquire, nonnegative integer.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "api-v1"
+      ]
+    },
+    {
+      "id": "pool-deregister",
+      "type": "documented-authorization-lifecycle-contract",
+      "owned_behavior": "Soft-delete picker entry, connected workers unaffected, owner/admin gate.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "api-v1"
+      ]
+    },
+    {
+      "id": "pending-filter-cursor",
+      "type": "documented-pagination-contract",
+      "owned_behavior": "Page tokens bound to filters, exact pool match.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "api-v1"
+      ]
+    },
+    {
+      "id": "pending-stream-cursor",
+      "type": "documented-stream-contract",
+      "owned_behavior": "Same cursor all pages, expires five minutes from listing.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "api-v1"
+      ]
+    },
+    {
+      "id": "pending-sse-context",
+      "type": "documented-stream-contract",
+      "owned_behavior": "Queue SSE is not MCP SSE. List-then-watch with bound filters.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "api-v1"
+      ]
+    },
+    {
+      "id": "pending-resume-precedence",
+      "type": "documented-stream-contract",
+      "owned_behavior": "Last-Event-ID takes precedence over cursor query.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "api-v1"
+      ]
+    },
+    {
+      "id": "pending-expiry",
+      "type": "documented-stream-contract",
+      "owned_behavior": "Five minutes from list, no extension, 410 requires relist.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "api-v1"
+      ]
+    },
+    {
+      "id": "pending-best-effort",
+      "type": "documented-delivery-contract",
+      "owned_behavior": "Hints not source of truth, rare drops, idempotent apply, no persisted cursors, max four streams.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "api-v1"
+      ]
+    },
+    {
+      "id": "claim-atomic",
+      "type": "documented-concurrency-contract",
+      "owned_behavior": "Claim before start, second live claim rejected.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "api-v1"
+      ]
+    },
+    {
+      "id": "claim-session-token",
+      "type": "documented-authorization-contract",
+      "owned_behavior": "Mint with claim; mint failure leaves request unclaimed.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "api-v1"
+      ]
+    },
+    {
+      "id": "release-using-worker",
+      "type": "documented-lifecycle-contract",
+      "owned_behavior": "Immediate release only no using turn; unknown connection treated connected; active 400 changes nothing.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "api-v1"
+      ]
+    },
+    {
+      "id": "release-no-retry-404",
+      "type": "documented-error-contract",
+      "owned_behavior": "No live claim, do not retry 404.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "api-v1"
+      ]
+    },
+    {
+      "id": "fail-claim-race",
+      "type": "documented-concurrency-contract",
+      "owned_behavior": "Waiting-only fail, discard if connection/claim changes before pickup; user-visible text and Try Again.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "api-v1"
+      ]
+    },
+    {
+      "id": "fail-claim-message",
+      "type": "documented-validation-contract",
+      "owned_behavior": "Trim/control-character filtering, 1-500 resulting characters, other fields rejected.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "api-v1"
+      ]
+    },
+    {
+      "id": "self-hosted-execution",
+      "type": "documented-execution-boundary",
+      "owned_behavior": "Cursor loop/inference versus worker tools. Not independent model worker.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "self-hosted"
+      ]
+    },
+    {
+      "id": "self-hosted-environment-limits",
+      "type": "documented-context-contract",
+      "owned_behavior": "Environment settings and dashboard secrets vary by worker type.",
+      "status": "proposal-unverified",
+      "dependencies": [
+        "self-hosted"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "id": "evidence-general-mcp-transports",
+      "from": "mcp",
+      "to": "general-mcp-transports",
+      "source_file": "preserved/snapshot-mcp.md",
+      "source_sha256": "8f6b54387a93616c82e2087ac5f2198c150832406c4c280880a7350e610c5e7e",
+      "line_span": [
+        19,
+        25
+      ],
+      "verbatim_quote": "Cursor supports three transport methods:\n\n| Transport             | Execution environment | Deployment       | Users          | Input                   | Auth   |\n| :-------------------- | :-------------------- | :--------------- | :------------- | :---------------------- | :----- |\n| **`stdio`**           | Local                 | Cursor manages   | Single user    | shell command           | Manual |\n| **`SSE`**             | Local/Remote          | Deploy as server | Multiple users | URL to an SSE endpoint  | OAuth  |\n| **`Streamable HTTP`** | Local/Remote          | Deploy as server | Multiple users | URL to an HTTP endpoint | OAuth  |",
+      "classification": "documented-general-host-contract",
+      "scope_note": "General Cursor transport vocabulary. No cloud-wide inference.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-cloud-mcp-personal-team-entry",
+      "from": "capabilities",
+      "to": "cloud-mcp-personal-team-entry",
+      "source_file": "preserved/docs_cloud-agent_capabilities.md",
+      "source_sha256": "42885b553c13ff35527334cc837d106fabcc06fd72c43a46538d4f55953a0512",
+      "line_span": [
+        27,
+        35
+      ],
+      "verbatim_quote": "## MCP tools\n\nCloud agents can use [MCP (Model Context Protocol)](https://cursor.com/docs/mcp.md) servers configured for your team. This gives agents access to external tools and data sources like databases, APIs, and third-party services during their runs.\n\nAdd and enable personal MCP servers through the MCP dropdown in [cursor.com/agents](https://cursor.com/agents). Team admins configure shared servers under **Dashboard -> Plugins & MCPs**.\n\nAdmins can link shared Team MCP servers to the [Default team marketplace](https://cursor.com/docs/plugins.md#migrate-existing-team-mcps). Linking keeps the servers available to Cloud Agents and also makes them available for teammates to install and configure in the Agent Window, IDE, and CLI.\n\nCloud agents support OAuth for MCP servers that need it. OAuth is per-user, including for MCP servers shared at the team level.",
+      "classification": "documented-entry-path",
+      "scope_note": "Personal dropdown, shared team administration, per-user OAuth. UI context does not explicitly limit the subsequent transport prohibition.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-cloud-mcp-sse-prohibition",
+      "from": "capabilities",
+      "to": "cloud-mcp-sse-prohibition",
+      "source_file": "preserved/docs_cloud-agent_capabilities.md",
+      "source_sha256": "42885b553c13ff35527334cc837d106fabcc06fd72c43a46538d4f55953a0512",
+      "line_span": [
+        37,
+        39
+      ],
+      "verbatim_quote": "### Custom MCP servers\n\nYou can add custom MCP servers using either **HTTP** or **stdio** transport. SSE and `mcp-remote` are not supported.",
+      "classification": "documented-prohibition",
+      "scope_note": "Custom cloud MCP prose excludes SSE and mcp-remote. Scope relative to v1 inline and pool configurations unresolved.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-cloud-mcp-sensitive-redaction",
+      "from": "capabilities",
+      "to": "cloud-mcp-sensitive-redaction",
+      "source_file": "preserved/docs_cloud-agent_capabilities.md",
+      "source_sha256": "42885b553c13ff35527334cc837d106fabcc06fd72c43a46538d4f55953a0512",
+      "line_span": [
+        41,
+        46
+      ],
+      "verbatim_quote": "MCP configurations are encrypted at rest. Sensitive fields are redacted and cannot be read back by any user after saving:\n\n- **`env`** \u2014 environment variables for stdio servers\n- **`headers`** \u2014 request headers for HTTP servers\n- **`CLIENT_SECRET`** \u2014 OAuth client secret for HTTP servers\n",
+      "classification": "documented-security-contract",
+      "scope_note": "Saved cloud configuration redaction. Do not infer API retrieval of inline credentials.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-cloud-http-backend",
+      "from": "capabilities",
+      "to": "cloud-http-backend",
+      "source_file": "preserved/docs_cloud-agent_capabilities.md",
+      "source_sha256": "42885b553c13ff35527334cc837d106fabcc06fd72c43a46538d4f55953a0512",
+      "line_span": [
+        49,
+        49
+      ],
+      "verbatim_quote": "- **HTTP (recommended)** \u2014 server configurations are never present in the cloud agent's VM environment. The agent does not have access to refresh tokens, headers, or other credentials. Tool calls are proxied through the backend.",
+      "classification": "documented-routing-contract",
+      "scope_note": "HTTP configuration is outside cloud VM. No universal inference for all SDK or API paths.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-cloud-stdio-vm",
+      "from": "capabilities",
+      "to": "cloud-stdio-vm",
+      "source_file": "preserved/docs_cloud-agent_capabilities.md",
+      "source_sha256": "42885b553c13ff35527334cc837d106fabcc06fd72c43a46538d4f55953a0512",
+      "line_span": [
+        50,
+        52
+      ],
+      "verbatim_quote": "- **Stdio** \u2014 servers run inside the cloud agent's VM, so the agent has access to the server's configuration and environment variables. This is similar to how stdio MCPs work in the Cursor IDE.\n\nStdio servers depend on the VM environment to execute. We cannot verify that a stdio server will run successfully until a cloud agent is launched. We recommend using HTTP MCPs when possible, and configuring your [environment setup](https://cursor.com/docs/cloud-agent/setup.md) correctly if you use stdio servers.",
+      "classification": "documented-routing-contract",
+      "scope_note": "Stdio exposes configuration and environment in VM. Launch needed to check operational success.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-api-beta",
+      "from": "api-v1",
+      "to": "api-beta",
+      "source_file": "preserved/docs_cloud-agent_api_endpoints.md",
+      "source_sha256": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+      "line_span": [
+        3,
+        6
+      ],
+      "verbatim_quote": "### Public beta\n\nThe Cloud Agents API v1 is in public beta. APIs may change before general\navailability.",
+      "classification": "version-applicability",
+      "scope_note": "v1 public beta. No released backend revision identified.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-api-mcp-inline",
+      "from": "api-v1",
+      "to": "api-mcp-inline",
+      "source_file": "preserved/docs_cloud-agent_api_endpoints.md",
+      "source_sha256": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+      "line_span": [
+        115,
+        117
+      ],
+      "verbatim_quote": "`mcpServers` array (optional)\n\nInline MCP server definitions available to the agent. Maximum 50 servers. Remote servers support `headers` or OAuth `auth`; stdio servers run inside the cloud VM and can receive `env`. Server names must be unique.",
+      "classification": "documented-conditional-contract",
+      "scope_note": "Inline definitions, 50 limit, unique names, headers or OAuth, stdio environment.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-api-mcp-type-defaults",
+      "from": "api-v1",
+      "to": "api-mcp-type-defaults",
+      "source_file": "preserved/docs_cloud-agent_api_endpoints.md",
+      "source_sha256": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+      "line_span": [
+        123,
+        125
+      ],
+      "verbatim_quote": "`mcpServers[0].type` string (optional)\n\nTransport type: `http`, `sse`, or `stdio`. Defaults to `http` for remote servers with `url`, and `stdio` for servers with `command`.",
+      "classification": "documented-conditional-contract",
+      "scope_note": "http/sse/stdio and prose-only defaults based on url or command.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-api-mcp-remote-url",
+      "from": "api-v1",
+      "to": "api-mcp-remote-url",
+      "source_file": "preserved/docs_cloud-agent_api_endpoints.md",
+      "source_sha256": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+      "line_span": [
+        127,
+        129
+      ],
+      "verbatim_quote": "`mcpServers[0].url` string (required for remote MCP)\n\nHTTP or HTTPS URL for a remote MCP server. URLs with username or password are not allowed.",
+      "classification": "documented-validation-contract",
+      "scope_note": "HTTP/HTTPS, no userinfo. Schema format uri is broader.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-api-mcp-stdio-command",
+      "from": "api-v1",
+      "to": "api-mcp-stdio-command",
+      "source_file": "preserved/docs_cloud-agent_api_endpoints.md",
+      "source_sha256": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+      "line_span": [
+        131,
+        133
+      ],
+      "verbatim_quote": "`mcpServers[0].command` string (required for stdio MCP)\n\nCommand to start a stdio MCP server inside the cloud agent VM. Use `args` and `env` for arguments and runtime secrets.",
+      "classification": "documented-routing-contract",
+      "scope_note": "Cloud VM wording. Self-hosted applicability needs routing evidence.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-api-inline-followup",
+      "from": "api-v1",
+      "to": "api-inline-followup",
+      "source_file": "preserved/docs_cloud-agent_api_endpoints.md",
+      "source_sha256": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+      "line_span": [
+        434,
+        436
+      ],
+      "verbatim_quote": "`mcpServers` array (optional)\n\nInline MCP server definitions for this follow-up run. When provided, these replace any create-time inline MCP servers for this run. Omit to keep the agent's current MCP configuration.",
+      "classification": "documented-conditional-contract",
+      "scope_note": "Replace create-time inline definitions for this run; omission keeps current configuration. Later-run persistence of a replacement remains a separate question.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-schema-stdio",
+      "from": "openapi-v1",
+      "to": "schema-stdio",
+      "source_file": "preserved/docs-static_cloud-agents-openapi.yaml",
+      "source_sha256": "664e695207e9f72dd7dd296d60b576e68575f8e71ce18e6263a554850c072570",
+      "line_span": [
+        176,
+        210
+      ],
+      "verbatim_quote": "    StdioMcpServer:\n      type: object\n      additionalProperties: false\n      required:\n        - name\n        - command\n      properties:\n        name:\n          type: string\n          minLength: 1\n          description: MCP server name exposed to the agent.\n          example: 'github'\n        type:\n          type: string\n          enum: ['stdio']\n          description: Stdio MCP server. Defaults to `stdio` when `command` is provided.\n          example: 'stdio'\n        command:\n          type: string\n          minLength: 1\n          description: Command to start inside the cloud agent VM.\n          example: 'npx'\n        args:\n          type: array\n          description: Command arguments.\n          items:\n            type: string\n          example: ['-y', '@modelcontextprotocol/server-github']\n        env:\n          type: object\n          description: Environment variables passed to the stdio MCP server inside the VM.\n          additionalProperties:\n            type: string\n          example:\n            GITHUB_TOKEN: 'ghp_...'",
+      "classification": "published-schema-constraint",
+      "scope_note": "Stdio branch. Required name/command; optional type constrained to stdio; additionalProperties false. args/env not headers/auth.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-schema-remote",
+      "from": "openapi-v1",
+      "to": "schema-remote",
+      "source_file": "preserved/docs-static_cloud-agents-openapi.yaml",
+      "source_sha256": "664e695207e9f72dd7dd296d60b576e68575f8e71ce18e6263a554850c072570",
+      "line_span": [
+        212,
+        242
+      ],
+      "verbatim_quote": "    RemoteMcpServer:\n      type: object\n      additionalProperties: false\n      required:\n        - name\n        - url\n      properties:\n        name:\n          type: string\n          minLength: 1\n          description: MCP server name exposed to the agent.\n          example: 'linear'\n        type:\n          type: string\n          enum: ['http', 'sse']\n          description: Remote MCP transport. Defaults to `http` when `url` is provided.\n          example: 'http'\n        url:\n          type: string\n          format: uri\n          description: HTTP or HTTPS URL for the remote MCP server. Userinfo in the URL is not allowed.\n          example: 'https://mcp.linear.app/sse'\n        headers:\n          type: object\n          description: Headers Cursor sends with every request to the remote MCP server.\n          additionalProperties:\n            type: string\n          example:\n            Authorization: 'Bearer lin_api_...'\n        auth:\n          $ref: '#/components/schemas/McpAuth'",
+      "classification": "published-schema-constraint",
+      "scope_note": "Remote branch. Required name/url; optional type http or sse; additionalProperties false. headers/auth not command/args/env.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-schema-mcp-oneof",
+      "from": "openapi-v1",
+      "to": "schema-mcp-oneof",
+      "source_file": "preserved/docs-static_cloud-agents-openapi.yaml",
+      "source_sha256": "664e695207e9f72dd7dd296d60b576e68575f8e71ce18e6263a554850c072570",
+      "line_span": [
+        244,
+        247
+      ],
+      "verbatim_quote": "    McpServer:\n      oneOf:\n        - $ref: '#/components/schemas/StdioMcpServer'\n        - $ref: '#/components/schemas/RemoteMcpServer'",
+      "classification": "published-schema-constraint",
+      "scope_note": "Exactly one branch. Mixed command/url object cannot satisfy either closed branch.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-schema-oauth",
+      "from": "openapi-v1",
+      "to": "schema-oauth",
+      "source_file": "preserved/docs-static_cloud-agents-openapi.yaml",
+      "source_sha256": "664e695207e9f72dd7dd296d60b576e68575f8e71ce18e6263a554850c072570",
+      "line_span": [
+        153,
+        174
+      ],
+      "verbatim_quote": "    McpAuth:\n      type: object\n      additionalProperties: false\n      required:\n        - CLIENT_ID\n      properties:\n        CLIENT_ID:\n          type: string\n          minLength: 1\n          description: OAuth client ID for the MCP server.\n          example: 'client-id'\n        CLIENT_SECRET:\n          type: string\n          description: OAuth client secret for the MCP server.\n          example: 'client-secret'\n        scopes:\n          type: array\n          description: OAuth scopes to request for the MCP server.\n          items:\n            type: string\n            minLength: 1\n          example: ['file_content:read']",
+      "classification": "published-schema-constraint",
+      "scope_note": "CLIENT_ID required and nonempty; CLIENT_SECRET/scopes optional; no extra auth fields.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-schema-create-mcp",
+      "from": "openapi-v1",
+      "to": "schema-create-mcp",
+      "source_file": "preserved/docs-static_cloud-agents-openapi.yaml",
+      "source_sha256": "664e695207e9f72dd7dd296d60b576e68575f8e71ce18e6263a554850c072570",
+      "line_span": [
+        600,
+        605
+      ],
+      "verbatim_quote": "        mcpServers:\n          type: array\n          maxItems: 50\n          description: Inline MCP server definitions available to the initial run. Remote servers support `headers` or OAuth `auth`; stdio servers run inside the cloud agent VM and can receive `env`. Server names must be unique.\n          items:\n            $ref: '#/components/schemas/McpServer'",
+      "classification": "published-schema-constraint",
+      "scope_note": "Create request references MCP union with maxItems 50. Name uniqueness is description, not uniqueItems.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-schema-run-mcp",
+      "from": "openapi-v1",
+      "to": "schema-run-mcp",
+      "source_file": "preserved/docs-static_cloud-agents-openapi.yaml",
+      "source_sha256": "664e695207e9f72dd7dd296d60b576e68575f8e71ce18e6263a554850c072570",
+      "line_span": [
+        639,
+        644
+      ],
+      "verbatim_quote": "        mcpServers:\n          type: array\n          maxItems: 50\n          description: Inline MCP server definitions for this follow-up run. When provided, these definitions replace any create-time inline MCP servers for this run.\n          items:\n            $ref: '#/components/schemas/McpServer'",
+      "classification": "published-schema-constraint",
+      "scope_note": "Follow-up request references same MCP union.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-pool-mcp-routing",
+      "from": "pool",
+      "to": "pool-mcp-routing",
+      "source_file": "preserved/pool.md",
+      "source_sha256": "b67e7f5ed22ce48d371e451c5c457d6630357b33d3d5e32ce1c9f6423b7bc41f",
+      "line_span": [
+        387,
+        396
+      ],
+      "verbatim_quote": "## MCP servers\n\nMCP servers on self-hosted workers are routed by transport type:\n\n| Transport        | Runs on        | Use case                                                                                                               |\n| ---------------- | -------------- | ---------------------------------------------------------------------------------------------------------------------- |\n| Command (stdio)  | Worker         | The MCP process starts on the worker and can reach private networks, internal APIs, and services behind your firewall. |\n| HTTP / SSE (url) | Cursor backend | Cursor handles OAuth, session caching, and auth for HTTP-based MCP servers.                                            |\n\nIf your MCP server needs to access private-network endpoints, use the command (stdio) transport. The process runs directly on the worker and shares its network. For HTTP-based MCP servers, Cursor manages the connection from its backend, handling OAuth and session caching.",
+      "classification": "documented-routing-contract",
+      "scope_note": "Self-hosted stdio runs on worker; HTTP/SSE URL runs on backend. This adds a cloud-context SSE claim, not a universal transport reconciliation.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-legacy-v0-mcp",
+      "from": "api-v0",
+      "to": "legacy-v0-mcp",
+      "source_file": "retrievals/api-v0.md",
+      "source_sha256": "c753c4ee18e097015309f9d0cfd20f59a28a54bdf54179fa5236e6e2cf0c14b2",
+      "line_span": [
+        1,
+        10
+      ],
+      "verbatim_quote": "# Cloud Agents API v0 (legacy)\n\nThis page documents the **legacy v0 API**. New integrations should use the current [Cloud Agents API](https://cursor.com/docs/cloud-agent/api/endpoints.md), which reorganizes resources around a durable agent and per-prompt runs. v0 remains available during the migration window.\n\nThe Cloud Agents API lets you programmatically launch and manage cloud agents that work on your repositories.\n\n- The v0 Cloud Agents API uses [Basic Authentication](https://cursor.com/docs/api.md#authentication). Generate a user API key from [Cursor Dashboard \u2192 API Keys](https://cursor.com/dashboard/api), or use a [service account API key](https://cursor.com/docs/account/enterprise/service-accounts.md).\n- For details on authentication methods, rate limits, and best practices, see the [API Overview](https://cursor.com/docs/api.md).\n- View the full [v0 OpenAPI specification](/docs-static/cloud-agents-openapi-v0.yaml) for detailed schemas and examples.\n- MCP (Model Context Protocol) is not yet supported by the Cloud Agents API.",
+      "classification": "version-scoped-prohibition",
+      "scope_note": "Legacy v0 explicitly says MCP not supported. Do not apply to v1.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-api-status-idle",
+      "from": "api-v1",
+      "to": "api-status-idle",
+      "source_file": "preserved/docs_cloud-agent_api_endpoints.md",
+      "source_sha256": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+      "line_span": [
+        365,
+        371
+      ],
+      "verbatim_quote": "`status` string\n\nAgent lifecycle status. Controllers use it to decide whether a machine must stay up:\n\n- `ACTIVE` \u2014 A turn is running, waiting on background work, or about to start. Keep the agent's machine up.\n- `IDLE` \u2014 The last turn finished and follow-ups are accepted. The agent's machine may be [hibernated or snapshotted](https://cursor.com/docs/cloud-agent/self-hosted/pool.md#hibernation). Runs that ended in a recoverable error also report `IDLE`; run-level error detail stays on [Get A Run](https://cursor.com/docs/cloud-agent/api/endpoints.md#get-a-run).\n- `ARCHIVED` \u2014 The agent was archived or expired. Terminal; claims end and workspace state can be deleted.",
+      "classification": "documented-lifecycle-contract",
+      "scope_note": "ACTIVE/IDLE/ARCHIVED meanings for controllers. Conflicts same-v1 schema.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-schema-agent-status",
+      "from": "openapi-v1",
+      "to": "schema-agent-status",
+      "source_file": "preserved/docs-static_cloud-agents-openapi.yaml",
+      "source_sha256": "664e695207e9f72dd7dd296d60b576e68575f8e71ce18e6263a554850c072570",
+      "line_span": [
+        267,
+        270
+      ],
+      "verbatim_quote": "        status:\n          type: string\n          enum: ['ACTIVE', 'ARCHIVED']\n          description: Agent lifecycle state. Execution status lives on runs.",
+      "classification": "published-schema-constraint",
+      "scope_note": "ACTIVE/ARCHIVED only. IDLE absent; no runtime decision.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-schema-custom-model",
+      "from": "openapi-v1",
+      "to": "schema-custom-model",
+      "source_file": "preserved/docs-static_cloud-agents-openapi.yaml",
+      "source_sha256": "664e695207e9f72dd7dd296d60b576e68575f8e71ce18e6263a554850c072570",
+      "line_span": [
+        507,
+        517
+      ],
+      "verbatim_quote": "        model:\n          oneOf:\n            - type: string\n              enum: ['inherit']\n              description: Use the parent agent's model selection.\n            - type: string\n              minLength: 1\n              description: An explicit model ID.\n              example: 'claude-4.6-sonnet-thinking'\n            - $ref: '#/components/schemas/ModelRef'\n",
+      "classification": "schema-overlap-hypothesis",
+      "scope_note": "inherit matches both string oneOf branches under standard oneOf semantics. Backend validation not observed.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-artifact-scope",
+      "from": "api-v1",
+      "to": "artifact-scope",
+      "source_file": "preserved/docs_cloud-agent_api_endpoints.md",
+      "source_sha256": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+      "line_span": [
+        815,
+        825
+      ],
+      "verbatim_quote": "Artifacts are agent-scoped because the workspace persists across runs.\n\n### List Artifacts\n\nGET\n\n`/v1/agents/{id}/artifacts`\n\nList artifacts produced by an agent. Each artifact's `path` is relative to the workspace's `artifacts/` directory.\n\nPass the `path` value returned here directly to [Download An Artifact](https://cursor.com/docs/cloud-agent/api/endpoints.md#download-an-artifact). v1 paths are relative; absolute v0 paths (`/opt/cursor/artifacts/...`) are not accepted.",
+      "classification": "documented-artifact-contract",
+      "scope_note": "Agent scoped, v1 relative paths, v0 absolute paths not accepted.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-artifact-download-expiry",
+      "from": "api-v1",
+      "to": "artifact-download-expiry",
+      "source_file": "preserved/docs_cloud-agent_api_endpoints.md",
+      "source_sha256": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+      "line_span": [
+        853,
+        871
+      ],
+      "verbatim_quote": "### Download An Artifact\n\nGET\n\n`/v1/agents/{id}/artifacts/download`\n\nRetrieve a temporary 15-minute presigned S3 URL for a specific artifact.\n\n#### Path Parameters\n\n`id` string\n\nUnique identifier for the agent.\n\n#### Query Parameters\n\n`path` string\n\nRelative artifact path returned by [List Artifacts](https://cursor.com/docs/cloud-agent/api/endpoints.md#list-artifacts) (for example, `artifacts/screenshot.png`). Must be under `artifacts/`.",
+      "classification": "documented-artifact-contract",
+      "scope_note": "15-minute presigned URL and required relative path under artifacts.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-archive-idempotent",
+      "from": "api-v1",
+      "to": "archive-idempotent",
+      "source_file": "preserved/docs_cloud-agent_api_endpoints.md",
+      "source_sha256": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+      "line_span": [
+        896,
+        898
+      ],
+      "verbatim_quote": "Archive an agent. Archived agents remain readable but cannot accept new runs until unarchived. Use this for reversible \"soft delete\" flows.\n\nArchive is idempotent \u2014 re-archiving an already-archived agent returns `200` with no change. You don't need to check current state before calling.",
+      "classification": "documented-lifecycle-contract",
+      "scope_note": "Readable archive, no new runs, idempotent archive.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-unarchive-idempotent",
+      "from": "api-v1",
+      "to": "unarchive-idempotent",
+      "source_file": "preserved/docs_cloud-agent_api_endpoints.md",
+      "source_sha256": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+      "line_span": [
+        926,
+        928
+      ],
+      "verbatim_quote": "Unarchive an agent so it can accept new runs again.\n\nUnarchive is idempotent \u2014 calling it on an already-active agent returns `200` with no change.",
+      "classification": "documented-lifecycle-contract",
+      "scope_note": "Unarchive accepts runs and is idempotent.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-agent-delete-irreversible",
+      "from": "api-v1",
+      "to": "agent-delete-irreversible",
+      "source_file": "preserved/docs_cloud-agent_api_endpoints.md",
+      "source_sha256": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+      "line_span": [
+        956,
+        956
+      ],
+      "verbatim_quote": "Permanently delete an agent. This action is irreversible. Use [Archive](https://cursor.com/docs/cloud-agent/api/endpoints.md#archive-an-agent) for reversible removal.",
+      "classification": "documented-destructive-contract",
+      "scope_note": "No deletion authorized or executed.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-environment-create-conflict",
+      "from": "api-v1",
+      "to": "environment-create-conflict",
+      "source_file": "preserved/docs_cloud-agent_api_endpoints.md",
+      "source_sha256": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+      "line_span": [
+        988,
+        990
+      ],
+      "verbatim_quote": "Create a saved environment. The response is `201` with the new environment.\n\nIf the owner already has an environment with the same `name`, the request returns `409 environment_name_conflict`. The error can include the existing environment's ID in `environmentId`.",
+      "classification": "documented-error-contract",
+      "scope_note": "201 create, duplicate owner-name 409 with optional existing environmentId.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-environment-create-repos",
+      "from": "api-v1",
+      "to": "environment-create-repos",
+      "source_file": "preserved/docs_cloud-agent_api_endpoints.md",
+      "source_sha256": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+      "line_span": [
+        1002,
+        1004
+      ],
+      "verbatim_quote": "`repos` array (required)\n\nRepositories for the environment. Each entry has a `url` (for example, `https://github.com/your-org/your-repo`). Maximum 100 repositories. Send an empty array for an environment without repositories. A repository Cursor can't reach through your source control integration returns `400 repository_access`.",
+      "classification": "documented-validation-contract",
+      "scope_note": "Max 100, no-repo allowed, inaccessible repo 400 repository_access.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-environment-list-visibility",
+      "from": "api-v1",
+      "to": "environment-list-visibility",
+      "source_file": "preserved/docs_cloud-agent_api_endpoints.md",
+      "source_sha256": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+      "line_span": [
+        1070,
+        1072
+      ],
+      "verbatim_quote": "List the saved environments your API key can access, most recently updated first: your personal environments and your team's environments. Team admins don't see members' personal environments in the list.\n\nTeam admins and service account API keys see every team environment. Other callers see a team environment only when they can access all of its repositories. A service account API key limited to specific repositories, and user-scoped tokens minted with it, only list environments that have repositories, all within that limit. Drafts and deleted environments aren't included.",
+      "classification": "documented-authorization-contract",
+      "scope_note": "Team admin/service account and repository-limited visibility differ.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-environment-list-pagination",
+      "from": "api-v1",
+      "to": "environment-list-pagination",
+      "source_file": "preserved/docs_cloud-agent_api_endpoints.md",
+      "source_sha256": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+      "line_span": [
+        1092,
+        1098
+      ],
+      "verbatim_quote": "Cursor for the next page. Omitted when there are no more pages.\n\nA page can come back with fewer items than `limit`. Keep requesting pages until `nextCursor` is absent. It's **omitted** from the response, not returned as `null`, when there are no more pages.\n\nCallers other than team admins and service account API keys see team environments only after Cursor checks their access to the repositories, and those checks can run out of time. A response can then leave out team environments it hasn't verified yet, or stop before the end of the list. Those environments show up in later requests.\n\nThe list is ordered by last update, so an environment that changes during a walk moves to the front. A later page can then leave it out and repeat another environment.",
+      "classification": "documented-pagination-contract",
+      "scope_note": "Short pages, omitted not null cursor, timed checks, mutation during walk.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-environment-update-atomic",
+      "from": "api-v1",
+      "to": "environment-update-atomic",
+      "source_file": "preserved/docs_cloud-agent_api_endpoints.md",
+      "source_sha256": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+      "line_span": [
+        1187,
+        1189
+      ],
+      "verbatim_quote": "Rename an environment, replace its configuration, or both. A request with both fields applies them together, so either both change or neither does. The response is `204` with no body.\n\nRenaming an environment to a name its owner already uses returns `409 environment_name_conflict`.",
+      "classification": "documented-update-contract",
+      "scope_note": "Both changes apply together or neither does, 204 no body, name conflict 409.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-environment-update-replace",
+      "from": "api-v1",
+      "to": "environment-update-replace",
+      "source_file": "preserved/docs_cloud-agent_api_endpoints.md",
+      "source_sha256": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+      "line_span": [
+        1203,
+        1205
+      ],
+      "verbatim_quote": "`environmentJson` string (optional)\n\nReplacement `environment.json`, as a JSON-encoded string. It replaces the whole configuration and uses the same [schema](https://cursor.com/docs/cloud-agent/setup.md#configuration-in-code-with-environmentjson) as a `.cursor/environment.json` file. An invalid configuration returns `400 validation_error`.",
+      "classification": "documented-update-contract",
+      "scope_note": "Whole environment configuration replacement, validation_error.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-environment-delete-irreversible",
+      "from": "api-v1",
+      "to": "environment-delete-irreversible",
+      "source_file": "preserved/docs_cloud-agent_api_endpoints.md",
+      "source_sha256": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+      "line_span": [
+        1226,
+        1226
+      ],
+      "verbatim_quote": "Permanently delete a saved environment. This action is irreversible.",
+      "classification": "documented-destructive-contract",
+      "scope_note": "No deletion authorized or executed.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-build-status",
+      "from": "api-v1",
+      "to": "build-status",
+      "source_file": "preserved/docs_cloud-agent_api_endpoints.md",
+      "source_sha256": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+      "line_span": [
+        1442,
+        1444
+      ],
+      "verbatim_quote": "`status` string\n\n`IN_PROGRESS`, `SUCCEEDED`, `FAILED`, `CANCELLED`, or `SKIPPED`. A [skipped Build](https://cursor.com/docs/cloud-agent/builds.md#skipped-builds) found nothing to rebuild.",
+      "classification": "documented-lifecycle-contract",
+      "scope_note": "Build lifecycle states including SKIPPED.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-build-draft",
+      "from": "api-v1",
+      "to": "build-draft",
+      "source_file": "preserved/docs_cloud-agent_api_endpoints.md",
+      "source_sha256": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+      "line_span": [
+        1450,
+        1452
+      ],
+      "verbatim_quote": "`draft` boolean\n\n`true` for a draft Build. Agents don't start from a draft Build until it's activated.",
+      "classification": "documented-activation-contract",
+      "scope_note": "Draft build not used until activated.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-worker-token-auth",
+      "from": "api-v1",
+      "to": "worker-token-auth",
+      "source_file": "preserved/docs_cloud-agent_api_endpoints.md",
+      "source_sha256": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+      "line_span": [
+        1534,
+        1538
+      ],
+      "verbatim_quote": "Create a one-hour user-scoped token for a worker to run as an active team member.\n\nRequires an agent-scoped team service account API key. User-scoped tokens can't mint other user-scoped tokens.\n\nThe returned token expires after 1 hour and cannot refresh itself. Mint a new token with the service account API key when you need to refresh a running worker.",
+      "classification": "documented-authorization-contract",
+      "scope_note": "Service-account key required, tokens cannot mint tokens, one-hour expiry and no self-refresh.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-secret-values-never-response",
+      "from": "api-v1",
+      "to": "secret-values-never-response",
+      "source_file": "preserved/docs_cloud-agent_api_endpoints.md",
+      "source_sha256": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+      "line_span": [
+        1591,
+        1591
+      ],
+      "verbatim_quote": "- **Responses never include values.** They list names, types, and repositories.",
+      "classification": "documented-security-contract",
+      "scope_note": "Public docs read only, no secret endpoint request executed.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-secret-precedence",
+      "from": "api-v1",
+      "to": "secret-precedence",
+      "source_file": "preserved/docs_cloud-agent_api_endpoints.md",
+      "source_sha256": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+      "line_span": [
+        1621,
+        1623
+      ],
+      "verbatim_quote": "When one name is set in several places, an agent gets the value from the most specific place: values passed when the agent starts, such as `envVars` on [Create An Agent](https://cursor.com/docs/cloud-agent/api/endpoints.md#create-an-agent), then the environment's secrets, then the user's personal secrets, then the team's secrets. A name set at one level hides that name at every level below it.\n\n#### Changing Secrets",
+      "classification": "documented-precedence-contract",
+      "scope_note": "Start values then environment then personal then team. Lower levels hidden by name.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-secret-change-visibility",
+      "from": "api-v1",
+      "to": "secret-change-visibility",
+      "source_file": "preserved/docs_cloud-agent_api_endpoints.md",
+      "source_sha256": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+      "line_span": [
+        1625,
+        1626
+      ],
+      "verbatim_quote": "- **Changes reach agents that start afterward.** Running agents keep the values they started with. Agents that start from a [Build](https://cursor.com/docs/cloud-agent/builds.md) get the change once a newer Build of their environment finishes.\n- **Reads can lag behind writes.** Right after a change, a request can miss it. Leave a moment between writes to the same name, and pass `?id=` to pick a version.",
+      "classification": "documented-consistency-contract",
+      "scope_note": "Future agents, newer builds, read-after-write lag. No secret experiment authorized.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-secret-list-null-cursor",
+      "from": "api-v1",
+      "to": "secret-list-null-cursor",
+      "source_file": "preserved/docs_cloud-agent_api_endpoints.md",
+      "source_sha256": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+      "line_span": [
+        1636,
+        1643
+      ],
+      "verbatim_quote": "Who can list an environment's secrets:\n\n- **A user API key or user-scoped token** can list its user's personal environments and its team's environments. Any team member can list a team environment's secrets.\n- **A service account API key** can list its team's environments.\n- **An API key limited to certain repositories**, or a user-scoped token it minted, can list only environments that have repositories, all inside its limit.\n- **Everyone else** gets `404 environment_not_found`, including a team admin on a member's personal environment.\n\nThe list isn't paginated yet, so `nextCursor` is always `null`. Follow `nextCursor` until it's `null`, so your client keeps working when pages arrive.",
+      "classification": "documented-authorization-pagination-contract",
+      "scope_note": "Secret-list pagination differs from environment-list omitted cursor.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-secret-put-version",
+      "from": "api-v1",
+      "to": "secret-put-version",
+      "source_file": "preserved/docs_cloud-agent_api_endpoints.md",
+      "source_sha256": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+      "line_span": [
+        1713,
+        1722
+      ],
+      "verbatim_quote": "Which version the request changes:\n\n- **With `?id=`**, it changes the version with that `id`. An `id` that isn't a version of this name in this environment returns `404 secret_not_found`.\n- **Without `?id=`**, a name with no version gets one, and the response is `201`. A name with one version has it changed in place, and the response is `200`. A name with several versions returns `409 secret_name_ambiguous`, listing each version's `id` and `repos`, so you can pass one as `?id=`.\n\nA `PUT` never adds a second version to a name that already has one. To give a name a version for other repositories, use the dashboard.\n\nWhen you omit `type` or `repos`, the version keeps its current one, so rotating a value never changes its type or widens its repositories. Send `repos: []` to give the version every repository. New `repos` that overlap another version of the name return `409 secret_scope_conflict`. An environment holds at most 1,000 secrets, and creating one more returns `409 secret_limit_reached`.\n\nBuild secrets can't be set through the API yet: `type: \"build_secret\"` returns `400 validation_error`, and so does a change to an existing Build Secret. `DELETE` still removes one.",
+      "classification": "documented-version-update-contract",
+      "scope_note": "Specific id, ambiguous names, no second version via PUT, omission preserves scope, build secret restriction.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-pool-auth",
+      "from": "api-v1",
+      "to": "pool-auth",
+      "source_file": "preserved/docs_cloud-agent_api_endpoints.md",
+      "source_sha256": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+      "line_span": [
+        2073,
+        2077
+      ],
+      "verbatim_quote": "Monitor worker utilization and build autoscaling for your pools. Durable pools stay registered after the last worker disconnects, so you can scale to zero and bring capacity back when [pending requests](https://cursor.com/docs/cloud-agent/api/endpoints.md#list-pending-pool-requests) appear.\n\nThe endpoint paths keep the older `private-workers` name; they refer to the same [Self-Hosted Machines workers](https://cursor.com/docs/cloud-agent/self-hosted.md).\n\nAuthenticate with the pool's service account API key via Basic auth or Bearer token. Other API key types are rejected.",
+      "classification": "documented-authorization-contract",
+      "scope_note": "private-workers legacy name is current self-hosted contract, requires pool service-account key.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-pool-durability",
+      "from": "api-v1",
+      "to": "pool-durability",
+      "source_file": "preserved/docs_cloud-agent_api_endpoints.md",
+      "source_sha256": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+      "line_span": [
+        2213,
+        2213
+      ],
+      "verbatim_quote": "List durable pools for the authenticated service account's team. Pools remain registered after the last worker disconnects, so you can monitor scale-to-zero fleets and decide when to provision capacity.",
+      "classification": "documented-persistence-contract",
+      "scope_note": "Pool registration persists at zero workers.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-pool-register-timeout",
+      "from": "api-v1",
+      "to": "pool-register-timeout",
+      "source_file": "preserved/docs_cloud-agent_api_endpoints.md",
+      "source_sha256": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+      "line_span": [
+        2309,
+        2311
+      ],
+      "verbatim_quote": "`workerReadyTimeoutSeconds` integer (optional, default: 0)\n\nSeconds a claimed request waits for an offline worker from this pool to reconnect before the claim expires and the request returns to the queue. Set this when machines [hibernate between turns](https://cursor.com/docs/cloud-agent/self-hosted/pool.md#hibernation) and can be revived. With `0`, follow-ups for an offline worker reacquire from the pool immediately. Must be a non-negative integer.",
+      "classification": "documented-timeout-contract",
+      "scope_note": "Offline worker reconnect window, zero immediate reacquire, nonnegative integer.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-pool-deregister",
+      "from": "api-v1",
+      "to": "pool-deregister",
+      "source_file": "preserved/docs_cloud-agent_api_endpoints.md",
+      "source_sha256": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+      "line_span": [
+        2347,
+        2347
+      ],
+      "verbatim_quote": "Deregister (soft-delete) a durable pool so it no longer appears in pool pickers or [List Pools](https://cursor.com/docs/cloud-agent/api/endpoints.md#list-pools). Workers currently connected to the pool are not affected. Team pools require a team admin; user pools require their owner.",
+      "classification": "documented-authorization-lifecycle-contract",
+      "scope_note": "Soft-delete picker entry, connected workers unaffected, owner/admin gate.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-pending-filter-cursor",
+      "from": "api-v1",
+      "to": "pending-filter-cursor",
+      "source_file": "preserved/docs_cloud-agent_api_endpoints.md",
+      "source_sha256": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+      "line_span": [
+        2399,
+        2411
+      ],
+      "verbatim_quote": "Number of pending requests to return. Default: 50, Max: 100.\n\n`pageToken` string (optional)\n\nPagination cursor from the previous response. Page tokens are bound to the `repository` and `pool` filters that issued them.\n\n`repository` string (optional)\n\nFilter by repository URL. Required for repo-scoped service account API keys. Omit for any-repo pending requests.\n\n`pool` string (optional)\n\nFilter by pool name. Exact, case-sensitive match against the request's `pool` label. Omit to list requests for every pool on the team.",
+      "classification": "documented-pagination-contract",
+      "scope_note": "Page tokens bound to filters, exact pool match.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-pending-stream-cursor",
+      "from": "api-v1",
+      "to": "pending-stream-cursor",
+      "source_file": "preserved/docs_cloud-agent_api_endpoints.md",
+      "source_sha256": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+      "line_span": [
+        2433,
+        2435
+      ],
+      "verbatim_quote": "`streamCursor` string\n\nOpaque resume position for [Watch Pending Pool Requests](https://cursor.com/docs/cloud-agent/api/endpoints.md#watch-pending-pool-requests). Every page of one logical listing repeats the same `streamCursor`; open the watch from it after you finish paginating. It expires five minutes after the list that issued it.",
+      "classification": "documented-stream-contract",
+      "scope_note": "Same cursor all pages, expires five minutes from listing.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-pending-sse-context",
+      "from": "api-v1",
+      "to": "pending-sse-context",
+      "source_file": "preserved/docs_cloud-agent_api_endpoints.md",
+      "source_sha256": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+      "line_span": [
+        2477,
+        2479
+      ],
+      "verbatim_quote": "Stream pending-request lifecycle events over Server-Sent Events (SSE) so controllers can react to queue changes without polling.\n\nThis endpoint requires a service account API key. Controllers list-then-watch: call [List Pending Pool Requests](https://cursor.com/docs/cloud-agent/api/endpoints.md#list-pending-pool-requests) to build your view of the queue, keep the response's `streamCursor`, then open the watch from that exact position. Use the same `repository` and `pool` filters for the list and the watch; cursors are bound to the filters that issued them.",
+      "classification": "documented-stream-contract",
+      "scope_note": "Queue SSE is not MCP SSE. List-then-watch with bound filters.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-pending-resume-precedence",
+      "from": "api-v1",
+      "to": "pending-resume-precedence",
+      "source_file": "preserved/docs_cloud-agent_api_endpoints.md",
+      "source_sha256": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+      "line_span": [
+        2483,
+        2485
+      ],
+      "verbatim_quote": "`cursor` string (required)\n\nThe `streamCursor` from a list response, or the SSE `id:` of the last event you processed. On reconnect, a native `EventSource` resends that id as the `Last-Event-ID` header, which takes precedence over the query parameter.",
+      "classification": "documented-stream-contract",
+      "scope_note": "Last-Event-ID takes precedence over cursor query.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-pending-expiry",
+      "from": "api-v1",
+      "to": "pending-expiry",
+      "source_file": "preserved/docs_cloud-agent_api_endpoints.md",
+      "source_sha256": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+      "line_span": [
+        2505,
+        2507
+      ],
+      "verbatim_quote": "#### Cursor lifetime\n\nEvery cursor in a watch chain expires **five minutes after the list that issued it**. Heartbeats and reconnects do not extend it. When the cursor expires, or the retained event window no longer covers it, the endpoint returns HTTP `410 Gone` with `{\"code\": \"cursor_expired\"}`: re-list and watch from the fresh `streamCursor`. This is routine, not an error path. Re-list proactively on a five-minute timer with jitter instead of riding the `410`, so a fleet of controllers does not synchronize its list calls.",
+      "classification": "documented-stream-contract",
+      "scope_note": "Five minutes from list, no extension, 410 requires relist.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-pending-best-effort",
+      "from": "api-v1",
+      "to": "pending-best-effort",
+      "source_file": "preserved/docs_cloud-agent_api_endpoints.md",
+      "source_sha256": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+      "line_span": [
+        2509,
+        2513
+      ],
+      "verbatim_quote": "#### Delivery guarantees\n\nDelivery is best-effort, and the list is the source of truth. Events are published after each transition commits, with retries, but a rare failure can drop one, and a dropped event is never redelivered. Between re-lists, treat events as low-latency hints: apply them idempotently (upsert `created` and `claimed_offline` requests, remove `claimed` and `expired` requests by `id`) and let the next list correct any drift. A `claimed` event for a request you never saw is a no-op. Claims stay atomic server-side regardless of your local view.\n\nDo not persist cursors. A service account can hold at most four concurrent streams; use one stream per controller and fan out locally.",
+      "classification": "documented-delivery-contract",
+      "scope_note": "Hints not source of truth, rare drops, idempotent apply, no persisted cursors, max four streams.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-claim-atomic",
+      "from": "api-v1",
+      "to": "claim-atomic",
+      "source_file": "preserved/docs_cloud-agent_api_endpoints.md",
+      "source_sha256": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+      "line_span": [
+        2553,
+        2555
+      ],
+      "verbatim_quote": "Reserve a pending pool request for a specific worker before that worker starts. Controllers use this to atomically assign work across replicas: read [pending requests](https://cursor.com/docs/cloud-agent/api/endpoints.md#list-pending-pool-requests), claim one, then start a worker with a stable worker id that matches the claim.\n\nA second claim while a live claim exists is rejected. [Release A Claim](https://cursor.com/docs/cloud-agent/api/endpoints.md#release-a-claim) first, then claim a new `workerId`.",
+      "classification": "documented-concurrency-contract",
+      "scope_note": "Claim before start, second live claim rejected.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-claim-session-token",
+      "from": "api-v1",
+      "to": "claim-session-token",
+      "source_file": "preserved/docs_cloud-agent_api_endpoints.md",
+      "source_sha256": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+      "line_span": [
+        2569,
+        2571
+      ],
+      "verbatim_quote": "`sessionToken` boolean (optional, default: `false`)\n\nAlso mint a [session token](https://cursor.com/docs/cloud-agent/self-hosted/pool.md#session-tokens) for this claim, so the worker can start without the service account key. If the token can't be minted, the claim fails and the request stays unclaimed.",
+      "classification": "documented-authorization-contract",
+      "scope_note": "Mint with claim; mint failure leaves request unclaimed.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-release-using-worker",
+      "from": "api-v1",
+      "to": "release-using-worker",
+      "source_file": "preserved/docs_cloud-agent_api_endpoints.md",
+      "source_sha256": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+      "line_span": [
+        2704,
+        2706
+      ],
+      "verbatim_quote": "When no turn is using the worker, release frees it immediately. Cursor clears the claim and the agent's worker assignment together, returns a waiting follow-up to the pool queue as an unclaimed request, and tells the worker CLI to exit. The agent's next turn runs on another worker. A replacement worker can claim the agent as soon as release returns.\n\nWhile a turn is using the worker, release returns HTTP `400` and changes nothing. A turn is using the worker when the agent's [status](https://cursor.com/docs/cloud-agent/api/endpoints.md#get-an-agent) is `ACTIVE`, the worker is connected, and the claim isn't waiting for a [hibernated](https://cursor.com/docs/cloud-agent/self-hosted/pool.md#hibernation) machine to wake. If Cursor can't read the worker's connection state, it counts the worker as connected. Retry after the turn ends, or [cancel the active run](https://cursor.com/docs/cloud-agent/api/endpoints.md#cancel-a-run) and release again.",
+      "classification": "documented-lifecycle-contract",
+      "scope_note": "Immediate release only no using turn; unknown connection treated connected; active 400 changes nothing.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-release-no-retry-404",
+      "from": "api-v1",
+      "to": "release-no-retry-404",
+      "source_file": "preserved/docs_cloud-agent_api_endpoints.md",
+      "source_sha256": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+      "line_span": [
+        2743,
+        2743
+      ],
+      "verbatim_quote": "HTTP `404` means there is no live claim: already released, expired, or adopted. Do not retry a 404.",
+      "classification": "documented-error-contract",
+      "scope_note": "No live claim, do not retry 404.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-fail-claim-race",
+      "from": "api-v1",
+      "to": "fail-claim-race",
+      "source_file": "preserved/docs_cloud-agent_api_endpoints.md",
+      "source_sha256": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+      "line_span": [
+        2751,
+        2759
+      ],
+      "verbatim_quote": "Report that you can't start the worker you claimed for an agent, for example because your infrastructure is out of quota or is missing a permission. Instead of waiting for a worker that won't connect, the agent's turn ends with your reason as its error the next time it checks for the worker.\n\nThe person who started the agent sees `Your team's self-hosted pool couldn't start a worker for this agent:` followed by your message. When the agent runs from Slack, Cursor posts the same text in the thread with a **Try Again** button.\n\nOnce the turn has ended, Cursor frees the claim. The agent's next turn, including a Try Again, returns to the pool queue as an unclaimed request that any worker can [claim](https://cursor.com/docs/cloud-agent/api/endpoints.md#claim-a-pending-request).\n\nYou can fail a claim only while a turn is waiting on it: the agent's [status](https://cursor.com/docs/cloud-agent/api/endpoints.md#get-an-agent) is `ACTIVE` and the claimed worker isn't connected. Otherwise the endpoint returns HTTP `400` and changes nothing. If Cursor can't read the worker's connection state, it counts the worker as connected. To free a claim when no turn is waiting, use [Release A Claim](https://cursor.com/docs/cloud-agent/api/endpoints.md#release-a-claim).\n\nIf the claimed worker connects, or the claim ends, before the turn picks up your report, Cursor discards the report.",
+      "classification": "documented-concurrency-contract",
+      "scope_note": "Waiting-only fail, discard if connection/claim changes before pickup; user-visible text and Try Again.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-fail-claim-message",
+      "from": "api-v1",
+      "to": "fail-claim-message",
+      "source_file": "preserved/docs_cloud-agent_api_endpoints.md",
+      "source_sha256": "d6aba3b8f36370e7f1882ce84089fdf2f1a04fb37392fa2c3606cd78271080d0",
+      "line_span": [
+        2771,
+        2773
+      ],
+      "verbatim_quote": "`message` string (required)\n\nPlain-text reason shown to the agent's user. Cursor removes control characters other than newlines and tabs and trims surrounding whitespace. The result must be 1 to 500 characters. Other body fields are rejected.",
+      "classification": "documented-validation-contract",
+      "scope_note": "Trim/control-character filtering, 1-500 resulting characters, other fields rejected.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-self-hosted-execution",
+      "from": "self-hosted",
+      "to": "self-hosted-execution",
+      "source_file": "retrievals/self-hosted.md",
+      "source_sha256": "093350a12e9a87fbb32a331eecd6721461ff593dc260e48e7bb415de43c77e2a",
+      "line_span": [
+        1,
+        3
+      ],
+      "verbatim_quote": "# Self-Hosted Machines\n\nSelf-Hosted Machines moves Cloud Agent tool execution to a machine you manage. Your team still uses Cloud Agents through the desktop app, [cursor.com](https://cursor.com/agents), and [mobile](https://cursor.com/docs/cloud-agent/mobile.md). Cursor runs the agent loop, inference, and planning. Your worker performs file edits and terminal commands. It also runs computer-use tools and local MCP servers.",
+      "classification": "documented-execution-boundary",
+      "scope_note": "Cursor loop/inference versus worker tools. Not independent model worker.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    },
+    {
+      "id": "evidence-self-hosted-environment-limits",
+      "from": "self-hosted",
+      "to": "self-hosted-environment-limits",
+      "source_file": "retrievals/self-hosted.md",
+      "source_sha256": "093350a12e9a87fbb32a331eecd6721461ff593dc260e48e7bb415de43c77e2a",
+      "line_span": [
+        73,
+        87
+      ],
+      "verbatim_quote": "A [Cloud Agent environment](https://cursor.com/docs/cloud-agent/setup.md#what-is-a-cloud-agent-environment) is the saved setup a Cursor-hosted agent starts from: repositories, dependencies, secrets, startup commands, and network access. A self-hosted run uses only the environment's repositories. Pool workers that opt in to Secret sync also get team and user secrets. Every other environment setting applies only to Cursor-hosted Cloud Agents, so you set those up on the machine.\n\n**Repositories.** What the worker does with the environment's repositories depends on how you run it:\n\n- An [any-repo pool](https://cursor.com/docs/cloud-agent/self-hosted/pool.md#any-repo-pools) worker started with `--clone-git-repos` checks out every repository at the requested branch or commit.\n- A repo-backed pool worker or a My Machines worker uses the checkouts it already has, without switching branches or cloning. Your [`sessionStart` hook](https://cursor.com/docs/cloud-agent/self-hosted/pool.md#hooks) receives every repository in the request as `repo_urls` and `repos`, so it can clone the ones the worker doesn't have.\n\n**Secrets.** A pool worker started with `--sync-dashboard-secrets` gets secrets as environment variables once a team admin turns on **Secret sync** in the [Cloud Agents dashboard](https://cursor.com/dashboard/cloud-agents#self-hosted):\n\n- Team and user secrets available to the run's repositories. Any-repo pools get only secrets that aren't limited to a repository.\n- `envVars` passed to [Create An Agent](https://cursor.com/docs/cloud-agent/api/endpoints.md#create-an-agent).\n\nEnvironment-scoped secrets and Build Secrets never reach a worker. My Machines workers get no dashboard secrets and use the machine's own credentials.\n\n**Everything else.** Replace each remaining setting with its self-hosted equivalent:",
+      "classification": "documented-context-contract",
+      "scope_note": "Environment settings and dashboard secrets vary by worker type.",
+      "version_applicability": "Preserved official documentation capture only. No verified mapping to locked CLI or backend deployment.",
+      "resolution": "Open for independent semantic audit and reference observation; no Pi binding or acceptance verdict."
+    }
+  ]
+}

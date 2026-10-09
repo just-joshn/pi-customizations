@@ -1,0 +1,63 @@
+{
+  "screenFinal": {
+    "todoTool": false,
+    "checklist": true,
+    "playbookSignals": [
+      "bug_fix",
+      "feature"
+    ],
+    "playbookStepsVisible": true,
+    "todoVisible": true,
+    "potetoMode": false,
+    "working": false
+  },
+  "pty": {
+    "todoVisible": true,
+    "playbookSignals": [
+      "bug_fix",
+      "feature"
+    ],
+    "potetoMode": true
+  },
+  "firstTodoAt": "2026-10-08T20:01:35.638Z",
+  "firstPlaybookTodoAt": "2026-10-08T20:01:42.581Z",
+  "firstProductAt": "2026-10-08T20:01:46.419Z",
+  "productPaths": [
+    "src/inc.js"
+  ],
+  "playbookSignalsSeen": [
+    "bug_fix",
+    "feature"
+  ],
+  "ordering": "todo_before_product",
+  "todoBeforeProduct": true,
+  "playbookTodosBeforeProduct": true,
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/poteto-playbook/fixture-out/pi/done.txt",
+    "line": "bug-fix"
+  },
+  "pollSamples": 28,
+  "session": {
+    "sessionPath": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-poteto-playbook-fixture-app--/2026-10-08T20-01-29-177Z_01a11d1b-4659-775c-9770-7853010944f1.jsonl",
+    "firstTodoWriteAt": "2026-10-08T20:01:42.264Z",
+    "firstProductWriteAt": "2026-10-08T20:01:35.529Z",
+    "firstTodoContents": [
+      "Reproduce it yourself on the matching surface via the control skill (Non-negotiables), even when a debug or instrumentation protocol says to ask the user to reproduce. Ask the user only with a stated, specific reason the control surface cannot reach the target, and only after driving it as far as it goes. If it won't reproduce directly, synthesize the trigger, tighten conditions, or instrument until it fires.",
+      "Binary-search the cause. Form the candidate hypotheses, then rule them out until one survives. (skip: single-file one-line bug, no search needed)",
+      "Plan the fix. If it crosses a function boundary, architect first. Delegate implementation to a subagent using your configured bug-fix model with a specific scope. (skip: one-line fix, no boundary, do directly)",
+      "Verify on the same surface. The original repro now passes. \"Inconclusive\" or wrong-surface is not a pass. Flag it. Unit tests show branch behavior, not bug absence.",
+      "Stage the commits so the failing repro lands before the fix in git history. (skip: no commit requested)",
+      "Run Opening a PR. (skip: fixture, not requested)",
+      "Write one line to fixture-out/pi/done.txt naming the playbook, then stop"
+    ],
+    "toolOrder": [
+      "read",
+      "bash",
+      "TodoWrite",
+      "bash",
+      "bash"
+    ],
+    "playbookStepsInFirstTodos": true
+  }
+}

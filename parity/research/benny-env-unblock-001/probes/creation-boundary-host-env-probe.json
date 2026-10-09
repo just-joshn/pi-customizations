@@ -1,0 +1,43 @@
+{
+  "scenario": "setup-benny-creation-boundary",
+  "requirementId": "PSTACK-SETUP-BENNY-CREATION-BOUNDARY-001",
+  "path": "first-time-automate-editor-handoff",
+  "runnable": false,
+  "verdict": "blocker",
+  "checks": {
+    "cursorAgentBinPresent": true,
+    "cursorAgentHelpExit": 0,
+    "cursorAgentHelpMentionsAutomateSlash": false,
+    "cursorAgentHelpMentionsAutomationsEditor": false,
+    "cursorAgentHelpMentionsAgentsWindow": false,
+    "cursorAgentHelpMentionsUpdateState": false,
+    "cursorAgentHelpMentionsWebhookRoutine": false,
+    "cursorAgentBundleAutomateSkillMdCount": 0,
+    "cursorAgentBundleAutomateMdCount": 0,
+    "docsRetrievalPresent": true,
+    "docsSayAgentsWindowOrCursorAutomationsUrl": true,
+    "docsSayAutomateSkillPath": true,
+    "setupBennyCreationBoundaryPresent": true,
+    "piAutomateMePresent": true,
+    "piBuiltInAutomateSkillPresent": false,
+    "automationsEditorUiAvailableInCursorAgentPty": false,
+    "automationsEditorUiAvailableInPiPty": false
+  },
+  "missing": [
+    "cursor-agent --help does not mention /automate",
+    "cursor-agent --help does not mention Automations editor",
+    "no automate/SKILL.md found under locked cursor-agent 2026.10.01-e373342 bundle",
+    "Pi package has no skills/automate (only automate-me); no Automations editor handoff API",
+    "Automations editor UI is not available inside cursor-agent PTY harness",
+    "Automations editor UI is not available inside Pi PTY harness",
+    "Cursor docs place creation at Agents Window / cursor.com/automations / local /automate, none of which the PTY harness can drive to editor save"
+  ],
+  "evidenceNotes": {
+    "cursorHelpDigest": "sha256:f24c61730cd143a43652bedd2520b180e13ceb66805b6a20cd98ddaa90a40790",
+    "cursorHelpSnippet": "Usage: agent [options] [command] [prompt...]\n\nStart the Cursor Agent\n\nArguments:\n  prompt                       Initial prompt for the agent\n\nOptions:\n  -v, --version                Output the version number\n  --api-key <key>              API key for authentication (can also use\n                               CURSOR_API_KEY env var)\n  -H, --header <header>        Add custom header to agent requests (format:\n                               'Name: Value', can be used multiple times)\n  -e, --endpoint <url>         Target API endpoint URL (can also use\n                               CURSOR_API_ENDPOINT env var) (default:\n                               \"https://api2.cursor.sh\", env:\n                               CURSOR_API_ENDPOINT)\n  -p, --print                  Print responses to console (for scripts or\n                               non-interactive use). Has access to all tools,\n                               including write and shell. (default: false)\n  --output-format <format>     Output format (only works with --print): text |\n                               json | stream-json (default: \"text\")\n  --stream-partial-output      Stream partial output as individual text deltas\n         ",
+    "automateSkillHits": [],
+    "docsRetrievalRel": "parity/research/cursor-host/services/retrievals/docs_cloud-agent_automations.md",
+    "setupBennyLocator": "## 7. Prepare the live automations / ### Creation boundary"
+  },
+  "skillAcceptanceNote": "setup-benny creation boundary requires finishing new automations only through the built-in automate skill reviewed Automations editor handoff, with no direct automation backend, draft-field browser URL, or Cursor protocol deep link, and no enablement before thread-safety after editor save. cursor-agent PTY and Pi PTY cannot open that editor surface."
+}

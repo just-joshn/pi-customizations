@@ -1,0 +1,52 @@
+{
+  "unit": "u-make-bot-auth-header-probe-001",
+  "setStatusResolved": false,
+  "canCloseMismatch": false,
+  "mismatchId": "MAKE-BOT-UI-KEY-SERVER-HOST",
+  "requirementId": "PSTACK-CMD-MAKE-BOT-UI-KEY-SERVER-001",
+  "verdict": "honest_blocker_auth_header_unreachable",
+  "cursorOutcome": "host_blocked",
+  "piOutcomeUnchanged": "key_server_ok",
+  "primaryAttemptIds": {
+    "priorWebhookHandoffWithGenerateVisible": "c345b7ed-5c24-424c-86c3-55211b7bf0c8",
+    "handoffMultiYesPrefillBroken": "beb9d748-5985-4d4c-a2ee-ca1224fe9a84",
+    "saveOnBrokenNewAutomation": "b0e3b61a-977f-41e4-8fda-8a29c77b34a3",
+    "ocrOpenExistingDraftMiss": "93b7d145-bdb3-47bc-b545-fd618ea50e52",
+    "earlierListClickMiss": "5b9388e6-59e2-46cd-947d-2d31c8c2cf2c",
+    "earlierWrongEditorHandoff": "475ab346-80a0-4d73-8ae1-d2b8042ee66f",
+    "piKeyServerOk": "e75f8e08-0d8c-4d55-ad3f-6946c405bbaf"
+  },
+  "findings": {
+    "generateAuthHeaderPreviouslyWitnessed": true,
+    "generateAuthHeaderClickedThisUnit": false,
+    "keyStoredServerSide": false,
+    "probeHttp200": false,
+    "productTextSaidUrlAuthAfterSave": true,
+    "liveEditorShowedPrefillParseError": true,
+    "liveEditorWasUntitledNewAutomation": true,
+    "automationsListDraftRowsNotAxAddressable": true,
+    "activityFeedDraftRowsClickableButDoNotOpenEditor": true,
+    "cursorDroppedToZeroWindowsMidRun": true,
+    "handoffNeedsSecondYesForOpenEditor": true,
+    "savePressedOnBrokenUntitledDraft": true,
+    "activatedByHarness": false,
+    "updateStateUsedOrInvented": false,
+    "senderKeyInChatBrowserOrEvidence": false
+  },
+  "blocker": [
+    "Current /automate webhook handoff opens Automations > New Automation Untitled with OCR error: Could not parse automation prefill from URL. No webhook URL and no Generate auth header on that surface.",
+    "Product chat text in this session said webhook URL and auth appear only after Save. Save on the broken Untitled draft did not materialize Generate auth header or api2 webhook URL.",
+    "Automations list draft names are visible in OCR/list chrome but not as AX controls. AXButton rows titled parity-webhook-witness live in the activity feed and do not open the webhook editor.",
+    "Prior c345b7ed remains the only measured Generate auth header witness. This unit could not re-enter that control to store a server-only key or probe HTTP 200."
+  ],
+  "mergeRecommendation": "Do not close MAKE-BOT-UI-KEY-SERVER-HOST. Keep Pi e75f8e08. Record Cursor still unpaid for auth-header + server store + probe. Next unblock needs a working webhook editor open (fixed prefill handoff or operator-assisted open of parity-webhook-witness) then Save if required, Generate auth header, 0600 server store, probe. Ledgers untouched by this unit.",
+  "ledgersEdited": false,
+  "secretStore": {
+    "dir": "/Users/josh-desktop/.local/share/pi-pstack-parity/make-bot-auth-header-probe-001",
+    "keysWrittenThisUnit": false
+  },
+  "leverExtensions": [
+    "parity/scripts/capture-automations-desktop-agents-window.py (Window>Cursor Agents focus; multi-yes readiness)",
+    "parity/research/make-bot-auth-header-probe-001/probe-auth-header.py"
+  ]
+}

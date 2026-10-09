@@ -1,0 +1,39 @@
+    (a1b2c3d4-e5f6-7890-abcd-ef1234567890).
+  • An earlier prove wrapper shipped and was reverted as PR #41 after flaky exit 0 with empty stdout
+    (b2c3d4e5-f6a7-8901-bcde-f12345678901, seed/shared-record/pr-notes.md).
+  • Draft PR #42 re-adds Launch prove with a stdout assertion for HELLO-FAMILY-13; branch remains
+    feature/hello-cli (seed/shared-record/pr-notes.md).
+  • Users still see prove marked done without HELLO-FAMILY-13 in CI, and the maintain offer never ran after
+    generate-then-reuse (seed/shared-record/user-reports.md).
+
+  Threads
+
+  • [reverted #41] Prove wrapper that exited 0 with empty stdout (b2c3d4e5-f6a7-8901-bcde-f12345678901,
+    seed/shared-record/pr-notes.md).
+  • [open PR #42] Draft Launch prove with stdout assertion for HELLO-FAMILY-13 (seed/shared-record/pr-notes.md).
+  • [in flight feature/hello-cli] Skill generated; prove/maintain not run; evidence empty
+    (a1b2c3d4-e5f6-7890-abcd-ef1234567890).
+  • [planned, not started] Maintain offer after generate-then-reuse (seed/shared-record/user-reports.md).
+
+  Problems
+
+  • Prove reports green while stdout lacks HELLO-FAMILY-13 (b2c3d4e5-f6a7-8901-bcde-f12345678901,
+    seed/shared-record/user-reports.md).
+  • Reverted #41: flaky exit 0 with empty stdout (seed/shared-record/pr-notes.md).
+  • CI marked prove done without printing HELLO-FAMILY-13 (seed/shared-record/user-reports.md).
+  • Maintain offer never ran after the generate-then-reuse pair (seed/shared-record/user-reports.md).
+  • evidence/hello-print is empty because prove was skipped (a1b2c3d4-e5f6-7890-abcd-ef1234567890).
+
+  Next move
+
+  Land or exercise PR #42's Launch prove against hello.sh with a hard stdout check for HELLO-FAMILY-13, then fill
+  evidence/hello-print.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 11.3% · 2 files edited                                                                         Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/recall/fixture-app · refactor/pi-pstack-parity-again

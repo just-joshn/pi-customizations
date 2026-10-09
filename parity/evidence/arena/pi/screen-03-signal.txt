@@ -1,0 +1,40 @@
+[Skill conflicts]                                                                                                      ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ [skill] arena (ctrl+o to expand)                                                                                      ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ N=2 bake off two structurally distinct pure JS implementations of parseQuery(qs) that returns Record<string,          ┃
+ string[]> for URL query strings. Same task prompt for both candidates. Work only inside this fixture cwd. Do not edit ┃
+ ledgers, parity/, or files outside this cwd except the named out paths. Each candidate writes under                   ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/arena/fixture-out/pi/candidates/c1/ and       ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/arena/fixture-out/pi/candidates/c2/           ┃
+ (parseQuery.js plus rationale.md). After both finish, pick a base, graft the strongest pieces from the loser into it, ┃
+ verify the result, write the synthesized module to                                                                    ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/arena/fixture-out/pi/synthesized/parseQuery.j ┃
+ s, and write a synthesis note to                                                                                      ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/arena/fixture-out/pi/synthesis.md that names  ┃
+ the base candidate id, each graft with its source candidate, rejections, and verification. If candidates converge so  ┃
+ no graft is needed, say that explicitly in the note. Then write exactly one line to                                   ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/arena/fixture-out/pi/done.txt as              ┃
+ fanout=yes|no base=yes|no graft=yes|no|none-needed verify=yes|no candidates=N, then stop.                             ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+── ⠦ Working ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/arena/fixture-app (refactor/pi-pstack-parity-again)
+$0.000 (sub) 1.8%/1.0M (auto)                                           (claude-subscription) claude-sonnet-5-5 • medium

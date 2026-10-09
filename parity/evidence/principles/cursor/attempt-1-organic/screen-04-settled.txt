@@ -1,0 +1,39 @@
+    To-do All done
+    ✔ Reproduce it yourself on the matching surface via the control skill
+    ✔ Binary-search the cause. Form hypotheses, rule out until one survives.
+    ✔ Plan the fix. Architect if crossing boundary; delegate implementation.
+    ✔ Verify on the same surface. Original repro now passes.
+    ✔ Write verified=yes|no to fixture-out/cursor/done.txt and stop.
+
+  add(2, 3) returned 4 because src/add.js did a + b - 1. It now returns a + b. done.txt is verified=yes.
+
+  Broken. add(2, 3) returned 4. Measured via node scripts/verify.mjs.
+
+  Root cause. The body subtracted one. Measured in src/add.js.
+
+  Fix. Drop the - 1. One-line change under Laziness Protocol. No architect pass. No function-boundary redesign.
+
+  Verify. Same script, real artifact.
+
+  Failing:
+
+  ADD-FAIL value=4 expected=5
+
+  Passing (evidence/verify-out.txt):
+
+  ADD-OK value=5
+
+  Principles. Fix Root Causes kept the change on the subtract, not a caller patch. Prove It Works used
+  scripts/verify.mjs and the evidence file. Laziness Protocol kept the diff to one expression. Sequence Verifiable
+  Units ordered fail then fix then pass. Commits and Opening a PR skipped per your stop rule.
+
+  Consumer. Callers get 2 + 3 === 5. Maintainer. Re-run node scripts/verify.mjs.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 13.3% · 1 file edited                                                                          Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/principles/fixture-app · refactor/pi-pstack-parity-again

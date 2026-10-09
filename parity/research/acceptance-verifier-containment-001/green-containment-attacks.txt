@@ -1,0 +1,18 @@
+=== GREEN: hardlinked MANIFEST.sha256 ===
+exit=1
+before=45a489ade3929b1766684380cff2ddbb20acfe636c0b33fd2f407d6e7feb28e4
+after=45a489ade3929b1766684380cff2ddbb20acfe636c0b33fd2f407d6e7feb28e4
+canary_changed=no
+FAIL MANIFEST.sha256 has 2 hard links; hash files must be unlinked regular files inside the acceptance root
+
+=== GREEN: symlinked setup-pstack parent ===
+exit=1
+before=69ca4d88122b17d5c84169b8f99c86b70a344ea59a5808c88042fc070f305a57
+after=69ca4d88122b17d5c84169b8f99c86b70a344ea59a5808c88042fc070f305a57
+outside_changed=no
+FAIL setup-pstack/record-hashes.json: path component setup-pstack is a symlink; hash files must stay inside the acceptance root
+
+=== GREEN: final-path symlink still closed ===
+exit=1
+canary_changed=no
+FAIL MANIFEST.sha256 is a symlink; hash files must be regular files inside the acceptance root

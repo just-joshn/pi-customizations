@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "unit": "u-dep-closure-wave-003",
+  "capturedAt": "2026-10-08T19:13:21Z",
+  "packages": [
+    {
+      "id": "npm:commander@14.0.0",
+      "manifestField": "dependencies",
+      "activation": "runtime",
+      "consumers": [
+        {
+          "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/orch/orch.ts",
+          "import": "await import(\"commander\")",
+          "sha256": "f091687df627a0b75fabd54af58945a9cd6c7039ef0622012ac9ed60cd8ec434"
+        },
+        {
+          "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/watch-pr/cli.ts",
+          "import": "from \"commander\"",
+          "sha256": "89c08863089181a232be782c4b2ed90a1552f44aeecb0dcb7aac2c623620e680"
+        }
+      ],
+      "bootstrapGate": "bootstrap.ts requires node_modules/commander/package.json after bun install --frozen-lockfile"
+    },
+    {
+      "id": "npm:bun-types@1.3.14",
+      "manifestField": "devDependencies",
+      "activation": "test/typecheck",
+      "consumers": [
+        {
+          "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/package.json",
+          "locator": "scripts.test / bun-types"
+        }
+      ]
+    },
+    {
+      "id": "npm:typescript@7.0.2",
+      "manifestField": "devDependencies",
+      "activation": "typecheck",
+      "consumers": [
+        {
+          "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/package.json",
+          "locator": "scripts.typecheck = tsc --project watch-pr/tsconfig.json"
+        }
+      ]
+    }
+  ]
+}

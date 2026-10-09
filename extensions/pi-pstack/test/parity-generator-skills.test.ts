@@ -17,7 +17,7 @@ test('generated skill prose has no long dash outside the setup-pstack labels', a
 });
 
 test('setup budget labels retain their source-defined form', async () => {
-  for (const label of ['unlimited — keep max', 'large — xhigh reasoning', 'medium — high reasoning', 'small — medium reasoning']) expect(await read('setup-pstack/SKILL.md')).toContain(label);
+  for (const label of ['unlimited — max reasoning', 'large — xhigh reasoning', 'medium — high reasoning', 'small — medium reasoning']) expect(await read('setup-pstack/SKILL.md')).toContain(label);
 });
 
 test('triage formatting preserves the source ask gate', async () => {

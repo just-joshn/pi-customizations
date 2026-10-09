@@ -1,0 +1,36 @@
+ gpt-5.5-pro","openai/gpt-5.6-luna","openai/gpt-5.6-sol","openai/gpt-5.6-terra","openai/gpt-6-astra","openai/gpt-6-lun │
+ a","openai/gpt-6-sol","openai/gpt-6.1-sol","openai/gpt-daybreak-blue-latest","openai/gpt-daybreak-red-latest","openai │
+ /gpt-realtime-2.1","openai/o1","openai/o1-pro","openai/o3","openai/o3-mini","openai/o3-pro","openai/o4-mini","claude- │
+ subscription/claude-fable-5","claude-subscription/claude-fable-5-1","claude-subscription/claude-haiku-4-5","claude-su │
+ bscription/claude-haiku-4-5-20251001","claude-subscription/claude-haiku-5-5","claude-subscription/claude-opus-4-5","c │
+ laude-subscription/claude-opus-4-5-20251101","claude-subscription/claude-opus-4-6","claude-subscription/claude-opus-4 │
+ -7","claude-subscription/claude-opus-4-8","claude-subscription/claude-opus-5","claude-subscription/claude-opus-5-5"," │
+ claude-subscription/claude-sonnet-4-5","claude-subscription/claude-sonnet-4-5-20250929","claude-subscription/claude-s │
+ onnet-4-6","claude-subscription/claude-sonnet-5","claude-subscription/claude-sonnet-5-5","google-antigravity/gemini-3 │
+ .8-flash","google-antigravity/gemini-3.7-flash","google-antigravity/gemini-3.6-flash","google-antigravity/gemini-3.1- │
+ pro","google-antigravity/claude-opus-5-5","google-antigravity/claude-sonnet-5-5","google-antigravity/gpt-oss-120b"]}  │
+                                                                                                                       │
+                                                                                                                       ┃
+                                                                                                                       ┃
+ AskQuestion questions=[{"id":"budget","prompt":"Current budget is small (medium); all roles are inherit-paren...      ┃
+ [{"id":"budget","answers":["unlimited"],"cancelled":false},{"id":"roles","answers":["accept"],"cancelled":false}]     ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ pstack_setup action="write" budget="unlimited — max reasoning"                                                        ┃
+ Wrote /tmp/pi-ref-agent/pstack/models.mdc with budget unlimited (max).                                                ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ I wrote the rule to /tmp/pi-ref-agent/pstack/models.mdc with the budget set to unlimited (max reasoning). It applies  ┃
+ to new sessions, and you can re-run /setup-pstack to change it.                                                       ┃
+                                                                                                                       ┃
+ All 17 roles stay on inherit-parent, so they run on the parent chat model. The budget only changes real model slugs,  ┃
+ so for now it has no effect on any role. No retired lines needed dropping.                                            ┃
+                                                                                                                       ┃
+ I skipped the optional verification-skill offer.                                                                      ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run (refactor/pi-pstack-parity-again)
+↑10 ↓564 R85k W19k CH99.5% $0.098 (sub) 2.7%/1.0M (auto)                (claude-subscription) claude-sonnet-5-5 • medium

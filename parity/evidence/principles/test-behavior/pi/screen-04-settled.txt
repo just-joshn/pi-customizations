@@ -1,0 +1,40 @@
+                                                                                                                       │
+ $ mkdir -p                                                                                                            │
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/test-behavior/fixture-out/pi &&    │
+ printf 'verified=yes\n' >                                                                                             │
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/test-behavior/fixture-out/pi/done. │
+ txt (timeout 10s)                                                                                                     │
+                                                                                                                       │
+ (no output)                                                                                                           │
+                                                                                                                       │
+ Took 0.0s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ I rewrote test/slugify.test.js. It now calls slugify('Hello, World!') and asserts the literal 'hello-world' with      │
+ assert.equal.                                                                                                         │
+                                                                                                                       │
+ node scripts/verify.mjs printed TEST-OK input="Hello, World!" expected=hello-world. The output is saved in            │
+ evidence/verify-out.txt. I also wrote verified=yes to fixture-out/pi/done.txt.                                        │
+                                                                                                                       │
+ Principles applied.                                                                                                   │
+ - principle-test-behavior-not-implementation: The old test only checked that slugify didn't throw, so it would pass   │
+   even if slugify returned undefined. I replaced it with a concrete input and a literal expected output.              ┃
+ - principle-prove-it-works: I ran the real verify script and kept its output as an artifact, instead of assuming the  ┃
+   new test was right.                                                                                                 ┃
+                                                                                                                       ┃
+ I used the Refactoring playbook for the todo list and skipped most of its steps, since this was a single-test change. ┃
+
+... 1 earlier
+[-] 2. Name the structure the code is missing per **principle-model-the-domain**. (skip: no structure change) (cancel...
+[-] 3. Name the target shape. (skip: single test file) (cancelled)
+[-] 4. Subtract before you add. (skip: nothing to subtract) (cancelled)
+[-] 5. Move in small behavior-preserving steps, each keeping the pin green. (skip: one edit) (cancelled)
+[>] 6. Prove behavior is unchanged on the real artifact, not "it compiles" (**principle-prove-it-works**). Run verify...
+[-] 7. Confirm the change is worth keeping. (skip: trivial) (cancelled)
+[-] 8. Rebase into small ordered commits. Run **Opening a PR**. (skip: no commit requested) (cancelled)
+[>] Rewrite test/slugify.test.js with literal assertion; verify; write done.txt (in_progress)
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/principles/test-behavior/fixture-app (refactor/pi-pstack-parity...
+↑16 ↓2.1k R227k W31k CH99.5% $0.190 (sub) 3.9%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium

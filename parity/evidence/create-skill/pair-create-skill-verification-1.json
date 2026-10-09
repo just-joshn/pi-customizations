@@ -1,0 +1,90 @@
+{
+  "schema": 1,
+  "pairId": "create-skill-verification-1",
+  "scenarioRef": "create-skill:phase-4-verification",
+  "journeyFamily": "cursor-create-skill",
+  "phaseTarget": "create-skill-verification",
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "capturedAt": "2026-10-09T02:34:23.863Z",
+  "steps": [
+    {
+      "wait": "ready screen with seeded Phase 3 SKILL.md"
+    },
+    {
+      "send": "/create-skill Phase 4 Verification checks"
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "send": "run the create-skill probe"
+    },
+    {
+      "wait": "verify.md + marker applied + STATUS=verified"
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "2583528f-dc6d-4a1a-a518-e835dba21866",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/verification/cursor/2583528f-dc6d-4a1a-a518-e835dba21866",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "artifactPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-out/verification/cursor/verify.md",
+    "artifactSha256": "sha256:90a7ff106f9589bde8b5901fc5546da4821d1a8ce65176ac3d839cf0d6640ed7",
+    "observations": {
+      "artifactOk": true,
+      "createPath": true,
+      "envBlocked": false,
+      "doneStatus": "verified",
+      "applied": true,
+      "phaseClosed": true,
+      "honestBlocker": false
+    }
+  },
+  "pi": {
+    "attemptId": "88066a9a-edc8-4dc9-bb4a-3b567c4e87a4",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/verification/pi/88066a9a-edc8-4dc9-bb4a-3b567c4e87a4",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "artifactPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-out/verification/pi/verify.md",
+    "artifactSha256": "sha256:92fae05d62e2c159d76e1dc7a0d05ff5dc4505a75d101b6d37e12f576be21150",
+    "observations": {
+      "artifactOk": true,
+      "createPath": true,
+      "envBlocked": false,
+      "doneStatus": "verified",
+      "applied": true,
+      "phaseClosed": true,
+      "honestBlocker": false
+    }
+  },
+  "phaseClosure": {
+    "create-skill-discovery": "see_other_pair",
+    "create-skill-design": "see_other_pair",
+    "create-skill-implementation": "prior_pair_create-skill-impl-1",
+    "create-skill-verification": "closed_by_this_pair"
+  },
+  "note": "Phase evidence lives under evidence/create-skill/<phase>/{cursor,pi}/. Phase 3 Implementation pair create-skill-impl-1 is unchanged.",
+  "verdict": "pass",
+  "requirementIds": []
+}

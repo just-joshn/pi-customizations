@@ -1,0 +1,83 @@
+{
+  "arenaSkill": true,
+  "fanoutChrome": true,
+  "baseChrome": true,
+  "graftChrome": true,
+  "candidateDirs": [
+    {
+      "name": "c1",
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/arena/fixture-out/pi/candidates/c1",
+      "hasCode": true,
+      "hasRationale": true
+    },
+    {
+      "name": "c2",
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/arena/fixture-out/pi/candidates/c2",
+      "hasCode": true,
+      "hasRationale": true
+    }
+  ],
+  "synthesis": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/arena/fixture-out/pi/synthesis.md",
+    "text": "# Synthesis: parseQuery\n\nBase: c1 (split/map/reduce). Candidates: 2, both completed, no dropouts.\n\nWhy c1: ~30 lines, smaller API, trivially extensible; c2 is ~90 lines of hand-rolled UTF-8 validation. Both met every basic requirement (leading ?, empty pairs, first '=', '+' then percent order, null-prototype result, non-string input).\n\nCross-judge: not run (skipped; parent scored the rubric directly). Rubric: basic parsing, decoding order, malformed tolerance (never throw), partial-validity decoding, prototype safety, size/maintainability.\n\nGraft:\n- From c2: behavior of decoding valid escapes adjacent to invalid ones (e.g. `%41%E0%A4` -> `A%E0%A4`; c1 left the entire run literal). Ported not as a hand-written decoder but as a piecewise `decodeRun` (try 1-4 escapes with decodeURIComponent) inside c1's structure.\n\nRejected:\n- c2's single-pass scanner and manual UTF-8 code-point assembly: same behavior, far more code.\n- c2 per-case branching; c1 regex/URLSearchParams ideas untouched.\n\nVerification: node script compared synthesized vs c2 and c1 on 12 inputs (mixed query, partial-valid runs, overlong/surrogate bytes, truncated sequences, empty/null/'?'/'&&', `__proto__`). Synthesized matched c2 on all 12; differs from c1 only on the 3 partial-run cases (intended). Result has null prototype, `__proto__` is an ordinary key. No test suite was added.\n",
+    "mtimeMs": 1791495113962.0784
+  },
+  "synthesized": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/arena/fixture-out/pi/synthesized/parseQuery.js",
+    "text": "const PERCENT_RUN = /(?:%[0-9A-Fa-f]{2})+/g;\n\n// Decode a run of %XX escapes piecewise so one invalid sequence\n// does not leave neighbouring valid sequences encoded.\nfunction decodeRun(run) {\n  let out = '';\n  let i = 0;\n  while (i < run.length) {\n    let decoded = null;\n    for (let n = 1; n <= 4 && i + n * 3 <= run.length; n++) {\n      try {\n        decoded = [decodeURIComponent(run.slice(i, i + n * 3)), n];\n        break;\n      } catch {\n        // try a longer sequence\n      }\n    }\n    if (decoded) {\n      out += decoded[0];\n      i += decoded[1] * 3;\n    } else {\n      out += run.slice(i, i + 3);\n      i += 3;\n    }\n  }\n  return out;\n}\n\nfunction decode(text) {\n  return text.replace(/\\+/g, ' ').replace(PERCENT_RUN, decodeRun);\n}\n\nfunction toEntry(pair) {\n  const i = pair.indexOf('=');\n  return i === -1\n    ? [decode(pair), '']\n    : [decode(pair.slice(0, i)), decode(pair.slice(i + 1))];\n}\n\nexport function parseQuery(qs) {\n  if (typeof qs !== 'string' || qs === '') return Object.create(null);\n  const body = qs.startsWith('?') ? qs.slice(1) : qs;\n  return body\n    .split('&')\n    .filter((pair) => pair !== '')\n    .map(toEntry)\n    .reduce((acc, [key, value]) => {\n      (acc[key] ??= []).push(value);\n      return acc;\n    }, Object.create(null));\n}\n",
+    "mtimeMs": 1791495105283.834
+  },
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/arena/fixture-out/pi/done.txt",
+    "line": "fanout=yes base=yes graft=yes verify=yes candidates=2"
+  },
+  "scoring": {
+    "arenaSkill": true,
+    "candidateCountOnDisk": 2,
+    "taskCount": 2,
+    "fanout": true,
+    "base": true,
+    "graft": "yes",
+    "verify": true,
+    "contractOk": true,
+    "doneParsed": {
+      "raw": "fanout=yes base=yes graft=yes verify=yes candidates=2",
+      "fanout": "yes",
+      "base": "yes",
+      "graft": "yes",
+      "verify": "yes",
+      "candidates": "2"
+    },
+    "toolOrder": [
+      "todowrite",
+      "bash",
+      "bash",
+      "task",
+      "task",
+      "read_agent",
+      "read_agent",
+      "bash",
+      "bash",
+      "bash"
+    ]
+  },
+  "session": {
+    "sessionPath": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-arena-fixture-app--/2026-10-08T21-30-31-827Z_01a11d6c-cc13-7011-bddf-7af7d40014df.jsonl",
+    "arenaSkillInjected": true,
+    "toolOrder": [
+      "TodoWrite",
+      "bash",
+      "bash",
+      "task",
+      "task",
+      "read_agent",
+      "read_agent",
+      "bash",
+      "bash",
+      "bash"
+    ]
+  }
+}

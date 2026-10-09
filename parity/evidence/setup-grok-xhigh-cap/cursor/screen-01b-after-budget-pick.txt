@@ -1,0 +1,35 @@
+  ├──────────────────────────────────────────┼───────────────────────────────────────┤
+  │ how explainer                            │ claude-opus-5-5-medium                │
+  ├──────────────────────────────────────────┼───────────────────────────────────────┤
+  │ why investigators                        │ grok-4.7-high                         │
+  ├──────────────────────────────────────────┼───────────────────────────────────────┤
+  │ why synthesizer                          │ claude-opus-5-5-medium                │
+  ├──────────────────────────────────────────┼───────────────────────────────────────┤
+  │ reflect tooling                          │ grok-4.7-high                         │
+  ├──────────────────────────────────────────┼───────────────────────────────────────┤
+  │ reflect judgment, divergent, synthesizer │ claude-opus-5-5-medium                │
+  ├──────────────────────────────────────────┼───────────────────────────────────────┤
+  │ arena runners                            │ claude-opus-5-5-medium, grok-4.7-high │
+  ├──────────────────────────────────────────┼───────────────────────────────────────┤
+  │ arena cross-judge pool                   │ claude-opus-5-5-medium, grok-4.7-high │
+  ├──────────────────────────────────────────┼───────────────────────────────────────┤
+  │ swarm workers                            │ grok-4.7-high                         │
+  ├──────────────────────────────────────────┼───────────────────────────────────────┤
+  │ architect runners                        │ claude-opus-5-5-medium, grok-4.7-high │
+  ├──────────────────────────────────────────┼───────────────────────────────────────┤
+  │ interrogate reviewers                    │ claude-opus-5-5-medium, grok-4.7-high │
+  └──────────────────────────────────────────┴───────────────────────────────────────┘
+
+  Dropped retired roles: none.
+
+  Accept as-is, or name roles to change? Options for any role: the detected slugs above, plus inherit-parent and
+  auto.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 12.5%                                                                                          Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run · refactor/pi-pstack-parity-again

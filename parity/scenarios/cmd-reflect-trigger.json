@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "cmd-reflect-trigger",
+  "status": "executed-pass-paired",
+  "requirements": [
+    "PSTACK-CMD-REFLECT-TRIGGER-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/reflect/SKILL.md## When to invoke",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Two-turn clamp/NOTES substantive work then /reflect multi-agent review.",
+    "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Type /reflect after a substantive session.. Reflect invokes and mines the active transcript for durable learnings routed into concrete skill edits."
+    },
+    {
+      "kind": "observe",
+      "expect": "Type /reflect on a trivial off-topic chat.. Reflect is skipped."
+    }
+  ],
+  "execution": {
+    "referenceRun": "1ad53d5a-d80b-462e-94da-a55a17bffae7",
+    "candidateRun": "09278a2c-bebe-4d95-b358-439cdc456fe5",
+    "pairId": "reflect-trigger-1",
+    "pairPath": "parity/evidence/reflect/pair-reflect-trigger-1.json",
+    "verdict": "pass-paired",
+    "closedAt": "2026-10-08T21:34:00Z",
+    "note": "Action 1 (substantive invoke) only; action 2 trivial skip not in this pair."
+  }
+}

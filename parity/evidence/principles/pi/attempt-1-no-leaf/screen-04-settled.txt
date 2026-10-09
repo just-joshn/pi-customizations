@@ -1,0 +1,40 @@
+                                                                                                                       │
+ What was broken. src/add.js returned a + b - 1, so add(2, 3) gave 4. Anyone calling add got a result one too low.     │
+                                                                                                                       │
+ Fix. I removed the - 1, so it now returns a + b. It's a one-line change, so I didn't delegate it or run the architect │
+ step.                                                                                                                 │
+                                                                                                                       │
+ Verification. I ran scripts/verify.mjs, which calls the real add, before and after the change. It also writes         │
+ evidence/verify-out.txt.                                                                                              │
+                                                                                                                       │
+ Before the fix:                                                                                                       │
+                                                                                                                       │
+ ```                                                                                                                   │
+   ADD-FAIL value=4 expected=5                                                                                         │
+ ```                                                                                                                   │
+                                                                                                                       │
+ After the fix, the script exited 0:                                                                                   │
+                                                                                                                       │
+ ```                                                                                                                   │
+   ADD-OK value=5                                                                                                      │
+ ```                                                                                                                   │
+                                                                                                                       │
+ Principles.                                                                                                           ┃
+ - Fix Root Causes. I reproduced the failure first and traced it to the - 1.                                           ┃
+ - Prove It Works. I checked against the real artifact, not just a read of the code.                                   ┃
+ - Laziness Protocol. I made only the one-line change, with no extra guards.                                           ┃
+                                                                                                                       ┃
+ I skipped the commit staging and the PR step, since you didn't ask for either.                                        ┃
+
+[>] Reproduce it yourself on the matching surface via the control skill (Non-negotiables), even when a debug or instr...
+[ ] Binary-search the cause. Form the candidate hypotheses, then rule them out until one survives. (pending)
+[ ] Plan the fix. If it crosses a function boundary, architect first. Delegate implementation to a subagent using you...
+[ ] Verify on the same surface. The original repro now passes. "Inconclusive" or wrong-surface is not a pass. Flag it...
+[ ] Stage the commits so the failing repro lands before the fix in git history. (skip: fixture cwd, no commits reques...
+[ ] Run Opening a PR. (skip: fixture, no PR requested) (pending)
+[ ] Write verified=yes|no to done.txt (pending)
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/principles/fixture-app (refactor/pi-pstack-parity-again)
+↑12 ↓1.8k R144k W27k CH99.3% $0.156 (sub) 3.6%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium

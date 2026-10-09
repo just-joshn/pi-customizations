@@ -1,0 +1,17 @@
+{
+  "signatureAuthenticated": true,
+  "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U",
+  "keyExpires": null,
+  "keysSource": "https://registry.npmjs.org/-/npm/v1/keys",
+  "keysLocalPath": "parity/research/dep-commander-closure-001/npm-v1-keys.json",
+  "message": "commander@14.0.0:sha512-2uM9rYjPvyq39NwLRqaiLtWHyDC1FvryJDa2ATTVims5YAS4PupsEQsDvP14FqhFr0P49CYDugi59xaxJlTXRA==",
+  "integrityMatchedTarball": true,
+  "tarballSha256": "eaef3a697e7173c7347ca4c1e60dd2bc1d38214d2aaecce89d70881a51d7fde7",
+  "opensslReturncode": 0,
+  "opensslStdout": "Verified OK",
+  "opensslStderr": "",
+  "method": "openssl dgst -sha256 -verify against npm v1 ECDSA P-256 key matching registry keyid",
+  "didNotInventSignature": true,
+  "registrySignaturePresent": true,
+  "attestationsPresentInRegistrySnapshot": false
+}

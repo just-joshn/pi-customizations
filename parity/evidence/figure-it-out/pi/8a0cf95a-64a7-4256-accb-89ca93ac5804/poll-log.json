@@ -1,0 +1,850 @@
+[
+  {
+    "ts": "2026-10-08T19:27:17.106Z",
+    "playbook": [
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T19:27:17.607Z",
+    "playbook": [
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T19:27:18.109Z",
+    "playbook": [
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T19:27:18.610Z",
+    "playbook": [
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T19:27:19.112Z",
+    "playbook": [
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T19:27:19.614Z",
+    "playbook": [
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T19:27:20.115Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T19:27:20.616Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T19:27:21.118Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T19:27:21.619Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T19:27:22.121Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T19:27:22.624Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T19:27:23.125Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T19:27:23.627Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T19:27:24.128Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T19:27:24.629Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T19:27:25.131Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T19:27:25.633Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T19:27:26.135Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T19:27:26.637Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T19:27:27.138Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T19:27:27.640Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T19:27:28.143Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T19:27:28.644Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T19:27:29.146Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T19:27:29.648Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T19:27:30.151Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T19:27:30.652Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/cli.js",
+      "src/format.js",
+      "src/store.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:27:31.154Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/cli.js",
+      "src/format.js",
+      "src/store.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:27:31.655Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/cli.js",
+      "src/format.js",
+      "src/store.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:27:32.156Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/cli.js",
+      "src/format.js",
+      "src/store.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:27:32.658Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/cli.js",
+      "src/format.js",
+      "src/store.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:27:33.159Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": [
+      "notes.json",
+      "src/cli.js",
+      "src/format.js",
+      "src/store.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:27:33.660Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": [
+      "notes.json",
+      "src/cli.js",
+      "src/format.js",
+      "src/store.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:27:34.162Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": [
+      "notes.json",
+      "src/cli.js",
+      "src/format.js",
+      "src/store.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:27:34.664Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": [
+      "notes.json",
+      "src/cli.js",
+      "src/format.js",
+      "src/store.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:27:35.165Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": [
+      "notes.json",
+      "src/cli.js",
+      "src/format.js",
+      "src/store.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:27:35.666Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": [
+      "notes.json",
+      "src/cli.js",
+      "src/format.js",
+      "src/store.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:27:36.167Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": [
+      "notes.json",
+      "src/cli.js",
+      "src/format.js",
+      "src/store.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:27:36.669Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": [
+      "notes.json",
+      "src/cli.js",
+      "src/format.js",
+      "src/store.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:27:37.169Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": [
+      "notes.json",
+      "src/cli.js",
+      "src/format.js",
+      "src/store.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:27:37.670Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": [
+      "notes.json",
+      "src/cli.js",
+      "src/format.js",
+      "src/store.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:27:38.173Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": [
+      "notes.json",
+      "src/cli.js",
+      "src/format.js",
+      "src/store.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:27:38.676Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": [
+      "notes.json",
+      "src/cli.js",
+      "src/format.js",
+      "src/store.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:27:39.177Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": [
+      "notes.json",
+      "src/cli.js",
+      "src/format.js",
+      "src/store.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:27:39.678Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": [
+      "notes.json",
+      "src/cli.js",
+      "src/format.js",
+      "src/store.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:27:40.180Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": [
+      "notes.json",
+      "src/cli.js",
+      "src/format.js",
+      "src/store.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:27:40.681Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": [
+      "notes.json",
+      "src/cli.js",
+      "src/format.js",
+      "src/store.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:27:41.182Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": [
+      "notes.json",
+      "src/cli.js",
+      "src/format.js",
+      "src/store.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:27:41.684Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": [
+      "notes.json",
+      "src/cli.js",
+      "src/format.js",
+      "src/store.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:27:42.186Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": [
+      "notes.json",
+      "src/cli.js",
+      "src/format.js",
+      "src/store.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:27:42.687Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": [
+      "notes.json",
+      "src/cli.js",
+      "src/format.js",
+      "src/store.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:27:43.189Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": [
+      "notes.json",
+      "src/cli.js",
+      "src/format.js",
+      "src/store.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:27:43.690Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": [
+      "notes.json",
+      "src/cli.js",
+      "src/format.js",
+      "src/store.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:27:44.192Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": [
+      "notes.json",
+      "src/cli.js",
+      "src/format.js",
+      "src/store.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:27:44.693Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": [
+      "notes.json",
+      "src/cli.js",
+      "src/format.js",
+      "src/store.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:27:45.194Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": [
+      "notes.json",
+      "src/cli.js",
+      "src/format.js",
+      "src/store.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:27:45.696Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": [
+      "notes.json",
+      "src/cli.js",
+      "src/format.js",
+      "src/store.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:27:46.198Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": [
+      "notes.json",
+      "src/cli.js",
+      "src/format.js",
+      "src/store.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:27:46.698Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": [
+      "notes.json",
+      "src/cli.js",
+      "src/format.js",
+      "src/store.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:27:47.199Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": [
+      "notes.json",
+      "src/cli.js",
+      "src/format.js",
+      "src/store.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:27:47.700Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": [
+      "notes.json",
+      "src/cli.js",
+      "src/format.js",
+      "src/store.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:27:48.200Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": [
+      "notes.json",
+      "src/cli.js",
+      "src/format.js",
+      "src/store.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:27:48.701Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": [
+      "notes.json",
+      "src/cli.js",
+      "src/format.js",
+      "src/store.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:27:49.203Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": [
+      "notes.json",
+      "src/cli.js",
+      "src/format.js",
+      "src/store.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:27:49.704Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": [
+      "notes.json",
+      "src/cli.js",
+      "src/format.js",
+      "src/store.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:27:50.206Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": [
+      "notes.json",
+      "src/cli.js",
+      "src/format.js",
+      "src/store.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:27:50.708Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": [
+      "notes.json",
+      "src/cli.js",
+      "src/format.js",
+      "src/store.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:27:51.210Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": [
+      "notes.json",
+      "src/cli.js",
+      "src/format.js",
+      "src/store.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:27:51.711Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": [
+      "notes.json",
+      "src/cli.js",
+      "src/format.js",
+      "src/store.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:27:52.211Z",
+    "playbook": [
+      ".audit/baseline.txt",
+      "PLAYBOOK.md",
+      "decisions.tsv"
+    ],
+    "product": [
+      "notes.json",
+      "src/cli.js",
+      "src/format.js",
+      "src/store.js"
+    ]
+  }
+]

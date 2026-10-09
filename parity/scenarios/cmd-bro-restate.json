@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "cmd-bro-restate",
+  "status": "executed-pass-paired",
+  "requirements": [
+    "PSTACK-CMD-BRO-RESTATE-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/bro/SKILL.md#bro restates the last message without jargon",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Jargon-dense Node event-loop explain then /bro plain restatement with residual-safe markers.",
+    "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Invoke /bro.. The agent restates its last message more simply and concisely in plain human language, without jargon."
+    }
+  ],
+  "execution": {
+    "referenceRun": "7ee333ca-e68a-4ddf-a8dd-447d0299b524",
+    "candidateRun": "245dd8fa-b145-4258-9c81-cdc0101caf61",
+    "pairId": "bro-restate-1",
+    "pairPath": "parity/evidence/bro/pair-bro-restate-1.json",
+    "verdict": "pass-paired",
+    "closedAt": "2026-10-08T21:38:00Z",
+    "note": "Both restate_plain; productFilesTouched empty; brief wording vs requirement (last-message) noted in pair deltas."
+  }
+}

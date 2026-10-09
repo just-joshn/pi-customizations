@@ -1,0 +1,5 @@
+ts	phase	decision	why	evidence	result
+2026-10-08T17:25:47Z	start	slice-setup-001 research run started	figure-it-out playbook for requirement-slice promotion under owned path only	parity/briefs/u-req-slice-setup.md	open
+2026-10-08T17:28:12Z	frame	done predicate: >=12 proposals with recomputed hashes, evidence map or unverified, uncovered inventory listed	brief acceptance plus prove-it-works on real artifacts	parity/briefs/u-req-slice-setup.md	framed
+2026-10-08T17:28:12Z	execute	promoted 15 atomic proposals; skipped restating MODEL-DISCOVERY and BUDGET-LABELS	openWork asked to separate rerun validate write confirm cancel; ledger rows already closed must not shrink	parity/research/requirement-slices/slice-setup-001/proposals.json	written
+2026-10-08T17:28:12Z	verify	recomputed all file and span hashes via verify_proposals.py	prove against real locked bytes not agent self-report	parity/research/requirement-slices/slice-setup-001/verify-output.json	hashOk true, proposalCount 15

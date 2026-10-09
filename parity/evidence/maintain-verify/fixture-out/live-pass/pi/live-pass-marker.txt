@@ -1,0 +1,15 @@
+LIVE_PASS_RAN=yes
+SOURCE_LOOKED_CLEAN=yes
+COORDINATOR_OWNED_DRIVING=yes
+FEATURES_EXERCISED=1
+DOCTOR_BEFORE_DRIVE=yes
+EVIDENCE_SURVIVES_CLEANUP=yes
+NO_LEFTOVER_RESIDUE=yes
+DOCTOR_DRIFT_RETRY=na
+VERIFIED_UNREACHABLE=na
+HARNESS_REDRIVE=na
+FINAL_TEARDOWN=yes
+EVIDENCE_REMAINS=yes
+EVIDENCE_PATH=/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app-live-pass/.pi/evidence/verify-hello-cli
+OUTCOME=clean
+BLOCKER=none

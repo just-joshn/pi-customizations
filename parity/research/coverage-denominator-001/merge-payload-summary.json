@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "sliceId": "coverage-denominator-001",
+  "coordinatorApply": true,
+  "workerDidNotEditLedgers": true,
+  "coverageDenominatorComplete": true,
+  "matrixPath": "parity/research/coverage-denominator-001/disposition-matrix.json",
+  "matrixSha256": "30eb94995baa329dddbb186e143cb92c508bbda9dfc1289c9e12dca86e93e661",
+  "dispositionContentSha256": "3182ab27542fd0e26bb6aae3d30c1bd95466c5c0485dc5beb70e9788bd282852",
+  "inventoryItemCount": 193,
+  "matrixItemCount": 193,
+  "unresolvedCount": 0,
+  "counts": {
+    "mapped": 59,
+    "deferred": 114,
+    "out-of-scope": 20
+  },
+  "requirementsJsonPatch": {
+    "coverageDenominatorComplete": true,
+    "note": "Set true only after applying inventoryPatches so every inventory item disposition.status is not unassigned. Matrix hash pins the decision set."
+  },
+  "inventoryJsonPatch": {
+    "status": "dispositions-assigned",
+    "note": "Replace each items[].disposition from inventoryPatches keyed by path+sha256."
+  },
+  "inventoryPatchesCount": 193,
+  "inventoryPatchesPath": "parity/research/coverage-denominator-001/merge-payload.json#inventoryPatches"
+}

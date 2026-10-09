@@ -1,0 +1,8 @@
+ts	decision	evidence	notes
+2026-10-09T07:04Z	open Chrome to cursor.com/automations	01-permissions.json; 02-desktop-share-status.json; 03-worker-debug.txt; screen-01-after-nav.png	Ready=yes before; signed-in Pro+ list host reached
+2026-10-09T07:05Z	element_index click New Automation 96 and 67	screen-02-idx-*.png; meta.json clickLog	clickOk true; screens stayed on list; buttons lack AXPress
+2026-10-09T07:05Z	xy click header and empty-state CTAs	screen-03-xy-*.png	still list; No Automations Yet remains
+2026-10-09T07:05Z	Tab/Return/Space without Escape	screen-06-after-return.png; screen-09-final.png	navigated to /automations/runs Run History; not editor
+2026-10-09T07:07Z	double-click + AXShowMenu + scroll-then-click	screen-11 through screen-13	still list; AXShowMenu reported Performed action with no editor
+2026-10-09T07:07Z	Cursor Simple Browser open-URL attempt	screen-14 through screen-16	palette/URL drive did not yield editor; captures stayed on Chrome list host
+2026-10-09T07:08Z	verdict editorChromeWitnessed=no keep-open	NO_EDITOR_MARKERS scan; 37-verify-*.json	Ready after=yes; no save/enable/Slack/mint/ledger edits

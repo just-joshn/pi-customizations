@@ -1,0 +1,155 @@
+{
+  "schema": 1,
+  "pairId": "prin-guard-context-1",
+  "scenarioRef": "prin-guard-context",
+  "journeyFamily": "journey-family-principles",
+  "requirementIds": [
+    "PSTACK-PRIN-GUARD-CONTEXT-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "/poteto-mode Inventory every MARKER-* token under corpus/ into out/summary.json as {\"markers\":[\"...\"]} sorted alphabetically, then make node scripts/verify.mjs print GUARD-OK. The dump tree is large (~40 dumps). Route the bulk corpus scan to a child Task/worker and keep only the compact marker summary in the main thread; do not paste dump bodies into chat. For any poteto-mode principle you apply before declaring done, read that principle's leaf SKILL.md in full first (not only the poteto-mode Principles index). Work only inside this fixture cwd. Do not edit ledgers, parity/, or files outside this cwd except the named done path. When GUARD-OK is on disk, write exactly one line to .../guard-context/fixture-out/<side>/done.txt as verified=yes|no, then stop.",
+  "steps": [
+    {
+      "wait": "ready screen (Tip: on Cursor; Pi chat ready without Trust dialog)"
+    },
+    {
+      "send": "/poteto-mode inventory MARKER-* from corpus/ into out/summary.json via child Task; GUARD-OK; leaf SKILL.md; write verified=yes|no"
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "wait": "on-disk evidence/verify-out.txt with GUARD-OK"
+    },
+    {
+      "wait": "done marker verified=yes"
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "6910fcce-9e65-4d40-830e-fcf478d32991",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/guard-context/cursor/6910fcce-9e65-4d40-830e-fcf478d32991",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "transcript": "/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/agent-transcripts/b1d3842f-6395-4894-85d2-a43a586bc4c2/b1d3842f-6395-4894-85d2-a43a586bc4c2.jsonl",
+    "proofCopyPath": "parity/evidence/principles/guard-context/fixture-out/cursor/evidence/verify-out.txt",
+    "observations": {
+      "potetoMode": true,
+      "leafSkillRead": true,
+      "leafSkillPath": "~/.claude/skills/principle-guard-the-context-window/SKILL.md",
+      "subagentRouted": true,
+      "subagentEvidence": "CallDynamicTool namespace=cursor toolName=Task (multiple, including poteto-agent inventory lever)",
+      "summaryOk": true,
+      "keptVerifyOk": true,
+      "verifyLine": "GUARD-OK markers=8",
+      "productOk": true,
+      "verifiedDone": true,
+      "modelAutoInvoke": false,
+      "contractHeld": true,
+      "ranVerifyScript": true,
+      "modelChrome": "unobserved on ready/settled screen dumps",
+      "oracleNote": "Leaf Read + CallDynamicTool Task bulk routing + GUARD-OK markers=8."
+    }
+  },
+  "pi": {
+    "attemptId": "b5f36281-63a5-4572-8efc-4af4f27a7627",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/guard-context/pi/b5f36281-63a5-4572-8efc-4af4f27a7627",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-principles-guard-context-fixture-app--/2026-10-09T01-41-18-387Z_01a11e52-63b3-7571-85fe-1a6b4b791a9b.jsonl",
+    "proofCopyPath": "parity/evidence/principles/guard-context/fixture-out/pi/evidence/verify-out.txt",
+    "observations": {
+      "potetoMode": true,
+      "leafSkillRead": true,
+      "leafSkillPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-guard-the-context-window/SKILL.md",
+      "subagentRouted": true,
+      "childSession": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-principles-guard-context-fixture-app--/01a11e52-63b3-7571-85fe-1a6b4b791a9b/subagents/agent-a292c095-acec-4c6a-b953-551e48b736e1.jsonl",
+      "toolOrder": [
+        "read",
+        "read(guard-leaf)",
+        "bash(verify.mjs)",
+        "blob-mention(guard-leaf)",
+        "TodoWrite",
+        "bash(verify.mjs)",
+        "task(subagent:general-purpose)",
+        "bash(verify.mjs)",
+        "bash"
+      ],
+      "keptVerifyOk": true,
+      "verifyLine": "GUARD-OK markers=8",
+      "verifiedDone": true,
+      "modelAutoInvoke": false,
+      "contractHeld": true,
+      "ranVerifyScript": true,
+      "modelChrome": "(claude-subscription) claude-sonnet-5-5 \u2022 medium",
+      "oracleNote": "Pi re-run after oracle tighten: real task(subagent:general-purpose) + child session; leaf Read; GUARD contract held."
+    }
+  },
+  "deltas": [
+    {
+      "topic": "leaf skill path",
+      "cursor": "Read ~/.claude/skills/principle-guard-the-context-window/SKILL.md",
+      "pi": "Read extensions/pi-pstack/skills/principle-guard-the-context-window/SKILL.md",
+      "reconciled": true
+    },
+    {
+      "topic": "subagent routing mechanism",
+      "cursor": "CallDynamicTool Task (poteto-agent / generalPurpose arena helpers)",
+      "pi": "task general-purpose + subagents/*.jsonl",
+      "reconciled": true
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "unobserved on screen dumps",
+      "pi": "claude-sonnet-5-5 medium via claude-subscription",
+      "reconciled": false
+    },
+    {
+      "topic": "guard-context outcome",
+      "cursor": "contractHeld. Leaf Read + Task routing + GUARD-OK.",
+      "pi": "contractHeld. Leaf Read + Task routing + GUARD-OK.",
+      "reconciled": true
+    },
+    {
+      "topic": "pi subagent evidence",
+      "cursor": "6910fcce-9e65-4d40-830e-fcf478d32991 unchanged",
+      "pi": "bd5cb492 \u2192 b5f36281 with child session + task(subagent:general-purpose)",
+      "reconciled": true
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-prin-guard-context.mjs --both then --pi-only (oracle tighten)",
+    "capturedAt": "2026-10-09T01:42:43Z",
+    "brief": "parity/briefs/u-journey-prin-guard-context.md",
+    "cursorAttemptFrom": "capture-both.log first side",
+    "piAttemptFrom": "capture-pi.log after catalog-chrome false-positive fix",
+    "piRerun": {
+      "shellTaskId": "218104",
+      "reason": "Prior Pi attempt bd5cb492-a2b8-4650-ac59-173e2038bf90 from --both had catalog-chrome false-positive subagentRouted; re-ran --pi-only with tightened oracle.",
+      "replacedAttemptId": "bd5cb492-a2b8-4650-ac59-173e2038bf90",
+      "newAttemptId": "b5f36281-63a5-4572-8efc-4af4f27a7627",
+      "capturedAt": "2026-10-09T01:41:55Z",
+      "cursorUnchanged": "6910fcce-9e65-4d40-830e-fcf478d32991"
+    }
+  }
+}

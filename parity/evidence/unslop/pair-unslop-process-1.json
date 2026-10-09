@@ -1,0 +1,129 @@
+{
+  "schema": 1,
+  "pairId": "unslop-process-1",
+  "scenarioRef": "cmd-unslop-process",
+  "journeyFamily": "journey-family-05-playbook-complete-journeys",
+  "requirementIds": [
+    "PSTACK-CMD-UNSLOP-PROCESS-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "/unslop rewrite draft.md in place cutting AI tells plus side-specific done.txt path",
+  "steps": [
+    { "send": "/unslop rewrite draft.md in place to cut AI tells ..." },
+    { "send": "\r" },
+    { "settle": true },
+    { "cancel": true }
+  ],
+  "cursor": {
+    "attemptId": "f365bb05-6976-45a4-a821-24fd7294247f",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/unslop/cursor/f365bb05-6976-45a4-a821-24fd7294247f",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "observations": {
+      "unslopSkill": true,
+      "skillSource": "slash /unslop via plugin-dir pstack skill (prompt retained on screen)",
+      "firstRewriteAt": "2026-10-08T21:27:18.677Z",
+      "beforeDigest": "9d01463560a0502141ae4245a048bd0ce9cc8a33695a515c176c1a07ba788d36",
+      "afterProseDigest": "7496339f0b9034f4de8b9cd6a6700ee15a7225a4269d3107a253d64a1ae7ccf8",
+      "rewritten": true,
+      "beforeTellCount": 31,
+      "afterTellCount": 0,
+      "tellDelta": 31,
+      "outcome": "rewrite_applied",
+      "unslopProcessApplied": true,
+      "beforePath": "parity/evidence/unslop/cursor/draft-before.md",
+      "afterPath": "parity/evidence/unslop/cursor/draft-after.md",
+      "doneMarkerWritten": true,
+      "doneLine": "draft.md unslop rewrite applied"
+    }
+  },
+  "pi": {
+    "attemptId": "17fc084a-37e9-44c4-bf62-9149cf6cc9ba",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/unslop/pi/17fc084a-37e9-44c4-bf62-9149cf6cc9ba",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-unslop-fixture-app--/2026-10-08T21-27-38-247Z_01a11d6a-2607-7043-bac8-459a541cb505.jsonl",
+    "observations": {
+      "unslopSkill": true,
+      "skillSource": "extensions/pi-pstack/skills/unslop/SKILL.md (session user message skill block; screen shows [skill] unslop)",
+      "firstRewriteAt": "2026-10-08T21:27:45.631Z",
+      "beforeDigest": "9d01463560a0502141ae4245a048bd0ce9cc8a33695a515c176c1a07ba788d36",
+      "afterProseDigest": "ca69f2ee5f124546dd44e98121fc4a3cf98f014af1d34dff6007652a80f05c80",
+      "rewritten": true,
+      "beforeTellCount": 31,
+      "afterTellCount": 0,
+      "tellDelta": 31,
+      "outcome": "rewrite_applied",
+      "unslopProcessApplied": true,
+      "beforePath": "parity/evidence/unslop/pi/draft-before.md",
+      "afterPath": "parity/evidence/unslop/pi/draft-after.md",
+      "doneMarkerWritten": true,
+      "doneLine": "draft.md: unslop rewrite applied"
+    }
+  },
+  "deltas": [
+    {
+      "topic": "skill activation",
+      "cursor": "PTY keeps /unslop with the full prompt; working spinner then rewrite lands.",
+      "pi": "Screen shows [skill] unslop; session injects package SKILL.md at extensions/pi-pstack/skills/unslop/SKILL.md.",
+      "reconciled": true
+    },
+    {
+      "topic": "unslop rewrite on disk",
+      "cursor": "draft.md digest changed 9d014635… to 7496339f…. Pattern scan 31 tells to 0. FS poll firstRewriteAt 21:27:18Z. done.txt written.",
+      "pi": "draft.md digest changed 9d014635… to ca69f2ee…. Pattern scan 31 tells to 0. FS poll firstRewriteAt 21:27:45Z. done.txt written.",
+      "reconciled": true
+    },
+    {
+      "topic": "rewritten wording",
+      "cursor": "Plain notes-helper README. Search shows matches that matter. Folders and short titles tip.",
+      "pi": "Plain notes-helper README. Search ranks matches. Folders and short titles tip. Slightly different sentences than Cursor.",
+      "reconciled": true
+    },
+    {
+      "topic": "done.txt phrasing",
+      "cursor": "draft.md unslop rewrite applied",
+      "pi": "draft.md: unslop rewrite applied",
+      "reconciled": true
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "Auto",
+      "pi": "claude-sonnet-5-5 • medium (claude-subscription)",
+      "reconciled": false
+    },
+    {
+      "topic": "slash residual",
+      "cursor": "Keeps /unslop visible with the full prompt.",
+      "pi": "Shows [skill] unslop; residual prompt starts with rewrite draft.md...",
+      "reconciled": true
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-unslop-process.mjs --cursor-only then --pi-only",
+    "workerPlaybook": "parity/evidence/unslop/PLAYBOOK.md",
+    "decisionTrail": "parity/evidence/unslop/.audit/u-journey-cmd-unslop.tsv",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "packagePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack",
+    "markerRoot": "parity/evidence/unslop/fixture-out/{cursor,pi}/",
+    "heldOutFixture": "parity/evidence/unslop/fixture-app (sloppy draft.md)"
+  }
+}

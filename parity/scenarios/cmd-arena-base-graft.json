@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "cmd-arena-base-graft",
+  "status": "executed-pass-paired",
+  "requirements": [
+    "PSTACK-CMD-ARENA-BASE-GRAFT-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/arena/SKILL.md#frontmatter description and Arena opening paragraph",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "N=2 parseQuery bakeoff requiring base pick, graft, and verify.",
+    "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Invoke /arena on one shared task prompt.. N parallel candidates run the same task; the parent picks a base and grafts strongest parts of losers into it, then verifies the synthesized result."
+    }
+  ],
+  "execution": {
+    "referenceRun": "c29a2b1d-9134-40bf-927f-68411fdb5772",
+    "candidateRun": "e4631b87-3d59-4e77-b3ff-05f7b0a740a3",
+    "pairId": "arena-base-graft-1",
+    "pairPath": "parity/evidence/arena/pair-arena-base-graft-1.json",
+    "verdict": "pass-paired",
+    "closedAt": "2026-10-08T21:33:00Z",
+    "note": "Opposite base picks and Pi cross-judge skip recorded as deltas."
+  }
+}

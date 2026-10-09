@@ -1,0 +1,5 @@
+ts	phase	decision	why	evidence	result
+2026-10-08T21:15:29Z	start	first run on this log	new log, nothing earlier	decisions.tsv	open
+2026-10-08T21:15:29Z	phase1	changed greet() to return hello	asked to replace hi with hello	src/greet.js:2	done
+2026-10-08T21:15:29Z	phase2	added farewell() returning bye	asked for a farewell helper	src/greet.js:5	done
+2026-10-08T21:15:37Z	phase1	actually changed greet() to hello now; the earlier phase1 row was wrong because the sed failed	first sed errored on BSD syntax, file still said hi	src/greet.js:2	done, supersedes earlier phase1 row

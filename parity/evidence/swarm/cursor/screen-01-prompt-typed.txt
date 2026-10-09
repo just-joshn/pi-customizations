@@ -1,0 +1,19 @@
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Try Cursor Grok 4.6 via /model, frontier intelligence at a fraction of the cost.
+
+
+
+                                                                                                                       
+  → /swarm N=2 partition. Worker A must write exactly the single line WORKER-A to                                      
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/swarm/fixture-out/cursor/a.txt and         
+    nothing else. Worker B must write exactly the single line WORKER-B to                                              
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/swarm/fixture-out/cursor/b.txt and         
+    nothing else. Neither worker may write the other's path. Parent drains both, then returns one rolled-up            
+    PASS/ISSUES/BLOCKED report listing both absolute paths. Do not edit ledgers or product code.                       
+                                                                                                                       
+
+  Auto                                                                                                  Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run · refactor/pi-pstack-parity-again

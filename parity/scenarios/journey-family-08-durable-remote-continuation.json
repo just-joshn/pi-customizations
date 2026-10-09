@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "kind": "journey-family-stub",
+  "id": "journey-family-08-durable-remote-continuation",
+  "family": 8,
+  "familyTitle": "Durable work continues after terminal close / client disconnect; reconnect, inspect, cancel without orphans",
+  "contractRef": "parity/contract.md#8-verify-through-the-users-controls",
+  "status": "missing",
+  "requirementIds": [],
+  "fixtureNeeds": [
+    "Host that continues work after client disconnect (Cursor reference behavior)",
+    "Fresh client reconnect path on Pi candidate",
+    "Progress inspection and cancel that reaps workers"
+  ],
+  "evidencePaths": [
+    "parity/evidence/cursor-host-continuation-structural.json",
+    "parity/evidence/cursor-host-continuation-negative.json"
+  ],
+  "openMismatches": [],
+  "coverageNotes": "Cursor host-continuation research/structural probes only. No linked Cursor+Pi pair. Requirement IDs not yet in ledger for this family.",
+  "nextAction": "Import host-continuation proposals into requirements, then capture a paired disconnect/reconnect/cancel journey."
+}

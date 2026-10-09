@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "setup-create-verify-prove",
+  "status": "executed-pass-paired",
+  "requirements": [
+    "PSTACK-SETUP-CREATE-VERIFY-PROVE-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/create-verification-skill/SKILL.md### 4. Prove the generated skill before handing it over",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "hello-cli fixture generate-then-live-prove",
+    "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "After generating verify-<app> skill and feature map.. Runs launch, doctor, drive of one mapped feature, evidence capture, and cleanup end to end once. After cleanup, evidence still exists at the named location. Failures are fixed and cleanup runs after every failed iteration. A skill never executed remains a draft, not a deliverable."
+    }
+  ],
+  "execution": {
+    "referenceRun": "e5599015-5bb9-4aac-b1cd-ee11fe31bf05",
+    "candidateRun": "20d8304d-3d04-4913-b6b1-a67cf292c6e4",
+    "pairId": "create-verify-prove-1",
+    "pairPath": "parity/evidence/create-verify/pair-create-verify-prove-1.json",
+    "verdict": "pass-paired",
+    "closedAt": "2026-10-08T20:07:00Z"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "kind": "journey-family-stub",
+  "id": "journey-family-12-control-surface-dependencies",
+  "family": 12,
+  "familyTitle": "Operate terminal, browser, UI, trace, and artifact control dependencies; open outputs and finish consumer task",
+  "contractRef": "parity/contract.md#8-verify-through-the-users-controls",
+  "status": "missing",
+  "requirementIds": [
+    "PSTACK-CMD-MAKE-BOT-UI-KEY-SERVER-001",
+    "PSTACK-CMD-CREATE-VERIFY-SKILL-001"
+  ],
+  "fixtureNeeds": [
+    "Real PTY for terminal controls",
+    "Browser/CDP or computer-use surface where reference requires it",
+    "Trace/artifact outputs the user must open"
+  ],
+  "evidencePaths": [],
+  "openMismatches": [],
+  "coverageNotes": "Recorder and probe artifacts are not complete user-control family pairs.",
+  "nextAction": "Map each control skill to a consumer task and capture the first terminal-control pair end to end."
+}

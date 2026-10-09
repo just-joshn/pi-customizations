@@ -1,0 +1,108 @@
+{
+  "schema": 1,
+  "pairId": "consumer-bun-test-1",
+  "scenarioRef": "consumer:bun-test-bun-types",
+  "matrixJourney": {
+    "packageId": "npm:bun-types@1.3.14",
+    "activation": "test",
+    "consumerPath": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/package.json",
+    "acceptanceJourney": "Paired journey proving bun test orch watch-pr under locked bun-types",
+    "alsoCloses": {
+      "packageId": "npm:bun-types@1.3.14",
+      "activation": "test/typecheck",
+      "reason": "package.json scripts.test is exactly \"bun test orch watch-pr\"; not a distinct command from the test activation row"
+    }
+  },
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "In this cwd, run exactly: bun run test; write EXIT=0 to side-specific done path",
+  "steps": [
+    {
+      "send": "bun run test \u2026 EXIT=0 \u2026"
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "settle": true
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "607e4ca2-6c4c-466c-9af5-e930f9b84fb8",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/consumer/cursor/607e4ca2-6c4c-466c-9af5-e930f9b84fb8",
+    "screenSettled": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/consumer/cursor/607e4ca2-6c4c-466c-9af5-e930f9b84fb8/screen-03-settled.txt",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "observations": {
+      "afterBunTest": {
+        "bunRunTest": true,
+        "passCount": 52,
+        "failCount": 0,
+        "fiftyTwoPass": true,
+        "zeroFail": true,
+        "ranAcrossFiles": true,
+        "working": false
+      },
+      "bunTestChromeOk": true,
+      "doneMarkerOk": true,
+      "consumerPath": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/package.json",
+      "consumerSha256": "d1f815091209d49763775cc188e8e06ff32d5fec648bffd2272bc25a165e87c3",
+      "consumerMatchesLocked": true,
+      "bunTypesVersion": "1.3.14",
+      "bunTypesMatchesLocked": true,
+      "journeyClosed": true
+    }
+  },
+  "pi": {
+    "attemptId": "81a09133-81b4-46e9-8266-0c0617aab431",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/consumer/pi/81a09133-81b4-46e9-8266-0c0617aab431",
+    "screenSettled": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/consumer/pi/81a09133-81b4-46e9-8266-0c0617aab431/screen-03-settled.txt",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "observations": {
+      "afterBunTest": {
+        "bunRunTest": true,
+        "passCount": 52,
+        "failCount": 0,
+        "fiftyTwoPass": true,
+        "zeroFail": true,
+        "ranAcrossFiles": true,
+        "working": false
+      },
+      "bunTestChromeOk": true,
+      "doneMarkerOk": true,
+      "consumerPath": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/package.json",
+      "consumerSha256": "d1f815091209d49763775cc188e8e06ff32d5fec648bffd2272bc25a165e87c3",
+      "consumerMatchesLocked": true,
+      "bunTypesVersion": "1.3.14",
+      "bunTypesMatchesLocked": true,
+      "journeyClosed": true
+    }
+  },
+  "pairClosed": true,
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-consumer-bun-test.mjs --both",
+    "toolsCwd": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "lockedConsumerSha256": "d1f815091209d49763775cc188e8e06ff32d5fec648bffd2272bc25a165e87c3",
+    "lockedBunTypesVersion": "1.3.14"
+  },
+  "verdict": "pass",
+  "closedAt": "2026-10-09T02:52:00Z"
+}

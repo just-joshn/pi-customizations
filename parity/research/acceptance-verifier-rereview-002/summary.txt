@@ -1,0 +1,4 @@
+selftest_exit=0
+green_harness_exit=0
+clean_verify_exit=0
+manifest_pin=de2d01434531e7cad6a6f138975db44145e1d97753f27450e4dd56d26409898a

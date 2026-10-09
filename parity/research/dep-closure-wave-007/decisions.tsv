@@ -1,0 +1,9 @@
+timestamp	decision	evidence	note
+2026-10-09T00:52:24Z	bun_pin_unresolved	parity/research/dep-closure-wave-007/bun/official-capture.json	no pin files; host mise latest not a pin
+2026-10-09T00:52:24Z	typescript_deep_still_open	parity/research/dep-closure-wave-007/npm/typescript-deep-semantics-disposition.json	catalog re-verified; consumer typecheck recorded; no compiler oracle
+2026-10-09T00:52:24Z	host_edges_environment_bound	parity/research/dep-closure-wave-007/host-edge-disposition.json	docs re-hashed; runtime not exercised
+2026-10-09T00:52:24Z	create_skill_journey_matrix	parity/research/dep-closure-wave-007/create-skill/journey-matrix.json	matrix complete; paired journeys open
+2026-10-09T00:52:24Z	recursive_extraction_complete	parity/research/dep-closure-wave-007/recursive/extraction.json	extraction complete; runtime audit open
+2026-10-09T00:52:24Z	live_integrations_inventoried	parity/research/dep-closure-wave-007/live/integrations-inventory.json	inventory complete; live exercise open
+2026-10-09T00:52:24Z	consumer_journey_matrix	parity/research/dep-closure-wave-007/consumer/journey-matrix.json	matrix+local smokes; paired acceptance open
+2026-10-09T00:52:24Z	completeDependencyClosure_false	parity/research/dep-closure-wave-007/merge-proposal.json	no fabricated closure

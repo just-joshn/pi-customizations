@@ -1,0 +1,124 @@
+{
+  "score": {
+    "frontmatterOk": true,
+    "leafSkillRead": true,
+    "usedChrome": true,
+    "modelAutoInvoke": false,
+    "ranVerifyScript": true,
+    "convergeOk": true,
+    "convergentFix": true,
+    "stillIncrementsRun": false,
+    "productOk": true,
+    "verifiedDone": true,
+    "contractHeld": true,
+    "screen": {
+      "potetoMode": false,
+      "leafChrome": false,
+      "hostAttached": false,
+      "failMention": true,
+      "verifyMention": true,
+      "crashMention": true,
+      "working": false
+    },
+    "pty": {
+      "potetoMode": true,
+      "leafChrome": false,
+      "hostAttached": true,
+      "failMention": true,
+      "verifyMention": true,
+      "crashMention": true,
+      "working": true
+    }
+  },
+  "firstProductAt": "2026-10-09T01:05:08.264Z",
+  "firstVerifyAt": "2026-10-09T01:04:21.750Z",
+  "productPaths": [
+    "src/apply.js"
+  ],
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/idempotent/fixture-out/cursor/done.txt",
+    "line": "verified=yes"
+  },
+  "verifyOut": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/idempotent/fixture-app/evidence/verify-out.txt",
+    "line": "APPLY-OK converge=yes digest=4937429a2af37562d35881f93fb984223786dde868d71f2aab621b5980487659",
+    "ok": true
+  },
+  "productOk": true,
+  "productAnalysis": {
+    "stillIncrementsRun": false,
+    "fixedToken": true,
+    "writesFinal": true,
+    "keepsCrashHook": true,
+    "convergent": true
+  },
+  "frontmatter": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/principle-make-operations-idempotent/SKILL.md",
+    "ok": true,
+    "name": "principle-make-operations-idempotent",
+    "disableModelInvocation": true
+  },
+  "session": null,
+  "transcript": {
+    "path": "/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/agent-transcripts/281d4a7e-0759-477c-b2b8-cea56b81dafc/281d4a7e-0759-477c-b2b8-cea56b81dafc.jsonl",
+    "leafSkillRead": true,
+    "leafSkillReadAt": "2026-10-09T01:05:41.166Z",
+    "ranVerifyScript": true,
+    "firstVerifyAt": "2026-10-09T01:05:41.166Z",
+    "firstProductWriteAt": "2026-10-09T01:05:41.166Z",
+    "ranCrashProof": false,
+    "toolOrder": [
+      "GetDynamicTools",
+      "Read",
+      "Read",
+      "Read(idempotent-leaf)",
+      "GetDynamicTools",
+      "blob-mention(idempotent-leaf)",
+      "CallDynamicTool(verify.mjs)",
+      "Glob",
+      "Read",
+      "Read",
+      "Read(verify.mjs)",
+      "Read",
+      "Read",
+      "Read",
+      "Shell(verify.mjs)",
+      "Read",
+      "Read",
+      "CallDynamicTool(verify.mjs)",
+      "Read",
+      "Read",
+      "CallDynamicTool",
+      "Read",
+      "StrReplace(product)",
+      "StrReplace(product)",
+      "Shell(verify.mjs)",
+      "Shell",
+      "Read",
+      "CallDynamicTool"
+    ],
+    "failMention": true,
+    "mtimeMs": 1791507924613.6216
+  },
+  "pollSamples": 194,
+  "screenFinal": {
+    "potetoMode": false,
+    "leafChrome": false,
+    "hostAttached": false,
+    "failMention": true,
+    "verifyMention": true,
+    "crashMention": true,
+    "working": false
+  },
+  "pty": {
+    "potetoMode": true,
+    "leafChrome": false,
+    "hostAttached": true,
+    "failMention": true,
+    "verifyMention": true,
+    "crashMention": true,
+    "working": true
+  }
+}

@@ -1,0 +1,199 @@
+[
+  {
+    "ts": "2026-10-08T19:34:37.357Z",
+    "test": [
+      "test/clamp.test.js"
+    ],
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T19:34:37.859Z",
+    "test": [
+      "test/clamp.test.js"
+    ],
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T19:34:38.362Z",
+    "test": [
+      "test/clamp.test.js"
+    ],
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T19:34:38.866Z",
+    "test": [
+      "test/clamp.test.js"
+    ],
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T19:34:39.369Z",
+    "test": [
+      "test/clamp.test.js"
+    ],
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T19:34:39.873Z",
+    "test": [
+      "test/clamp.test.js"
+    ],
+    "product": [
+      "src/clamp.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:34:40.375Z",
+    "test": [
+      "test/clamp.test.js"
+    ],
+    "product": [
+      "src/clamp.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:34:40.877Z",
+    "test": [
+      "test/clamp.test.js"
+    ],
+    "product": [
+      "src/clamp.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:34:41.379Z",
+    "test": [
+      "test/clamp.test.js"
+    ],
+    "product": [
+      "src/clamp.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:34:41.883Z",
+    "test": [
+      "test/clamp.test.js"
+    ],
+    "product": [
+      "src/clamp.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:34:42.385Z",
+    "test": [
+      "test/clamp.test.js"
+    ],
+    "product": [
+      "src/clamp.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:34:42.889Z",
+    "test": [
+      "test/clamp.test.js"
+    ],
+    "product": [
+      "src/clamp.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:34:43.390Z",
+    "test": [
+      "test/clamp.test.js"
+    ],
+    "product": [
+      "src/clamp.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:34:43.892Z",
+    "test": [
+      "test/clamp.test.js"
+    ],
+    "product": [
+      "src/clamp.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:34:44.396Z",
+    "test": [
+      "test/clamp.test.js"
+    ],
+    "product": [
+      "src/clamp.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:34:44.898Z",
+    "test": [
+      "test/clamp.test.js"
+    ],
+    "product": [
+      "src/clamp.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:34:45.401Z",
+    "test": [
+      "test/clamp.test.js"
+    ],
+    "product": [
+      "src/clamp.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:34:45.902Z",
+    "test": [
+      "test/clamp.test.js"
+    ],
+    "product": [
+      "src/clamp.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:34:46.406Z",
+    "test": [
+      "test/clamp.test.js"
+    ],
+    "product": [
+      "src/clamp.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:34:46.909Z",
+    "test": [
+      "test/clamp.test.js"
+    ],
+    "product": [
+      "src/clamp.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:34:47.412Z",
+    "test": [
+      "test/clamp.test.js"
+    ],
+    "product": [
+      "src/clamp.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:34:47.915Z",
+    "test": [
+      "test/clamp.test.js"
+    ],
+    "product": [
+      "src/clamp.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T19:34:48.418Z",
+    "test": [
+      "test/clamp.test.js"
+    ],
+    "product": [
+      "src/clamp.js"
+    ]
+  }
+]

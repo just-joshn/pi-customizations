@@ -1,0 +1,40 @@
+     p="$P/"+n+"/SKILL.md"                                                                                             │
+     ok=os.path.exists(p)                                                                                              │
+     s.append({"name":n,"path":p if ok else None,"scope":"package" if ok else "missing","notes":"from user-level       │
+ ~/.pi/agent/settings.json package pi-pstack; no project .pi/settings.json or .pi/skills; not project-scoped" if ok    │
+ else "not found"})                                                                                                    │
+ json.dump({"skills":s},open("$D/resolve-manifest.json","w"),indent=2)                                                 │
+ EOF                                                                                                                   │
+ echo "STATUS=stop-explain reason=no project-scoped pi package; pstack only via user-level settings" > $D/done.txt     │
+ cat $D/resolve-manifest.json | head -20 (timeout 20s)                                                                 │
+                                                                                                                       │
+ ... (18 earlier lines, ctrl+o to expand)                                                                              │
+       "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md",     │
+       "scope": "package",                                                                                             │
+       "notes": "from user-level ~/.pi/agent/settings.json package pi-pstack; no project .pi/settings.json or          │
+ .pi/skills; not project-scoped"                                                                                       │
+     },                                                                                                                │
+                                                                                                                       │
+ Took 0.0s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ The project-scoped resolve check failed, so I stopped. None of the ten skills resolve from project scope in Pi.       │
+                                                                                                                       │
+ - Pi project config: There is no .pi/settings.json and no .pi/skills in this repository. Only .cursor/settings.json   │
+   enables pstack, and Pi doesn't read it.                                                                             ┃
+ - Where the skills come from: pstack is loaded from the user-level ~/.pi/agent/settings.json packages list. All ten   ┃
+   skill files exist under extensions/pi-pstack/skills/, but that path is outside this repository, so I recorded them  ┃
+   as package rather than project.                                                                                     ┃
+ - Setup step: I read .upstream/automations/benny/FOR_AGENTS.md and setup-benny/SKILL.md. Its rule is to stop and      ┃
+   explain when project-scoped install is unavailable, so I didn't create or update any automation.                    ┃
+ - Outputs written: resolve-manifest.json and done.txt are in the fixture-out/pi directory.                            ┃
+ - done.txt line: STATUS=stop-explain reason=no project-scoped pi package; pstack only via user-level settings.        ┃
+                                                                                                                       ┃
+ To get a pass, add a project .pi/settings.json that lists the pstack package. Then rerun the check from a fresh       ┃
+ agent.                                                                                                                ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/project-skills/fixture-app (refactor/pi-pstack-pari...
+↑10 ↓1.4k R93k W24k CH96.6% $0.129 (sub) 3.3%/1.0M (auto)               (claude-subscription) claude-sonnet-5-5 • medium

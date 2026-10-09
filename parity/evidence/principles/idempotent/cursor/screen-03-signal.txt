@@ -1,0 +1,23 @@
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Type ? in the prompt bar to show in-app hints.
+
+                                                                                                                       
+  [Pasted text #1 +1 lines]                                                                                            
+                                                                                                                       
+
+  I'll follow poteto-mode: read its skill first, then fix apply() so a crash mid-run still converges on re-run.
+
+    Explored available MCP tools cursor · Task
+
+ ⠰⠳ Exploring  1.77k tokens
+
+                                                                                                                       
+  → Add a follow-up                                                                                     ctrl+c to stop 
+                                                                                                                       
+
+  Auto                                                                                                  Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/principles/idempotent/fixture-app · 
+  refactor/pi-pstack-parity-again

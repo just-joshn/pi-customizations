@@ -1,0 +1,22 @@
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Use /plan to iterate on an implementation plan before code changes.
+
+                                                                                                                       
+  /unslop rewrite draft.md in place to cut AI tells. Scan for the listed unslop patterns and rewrite the prose.        
+  Preserve meaning and intended tone. Keep it a short notes-helper README. Work only inside this fixture cwd. Do       
+  not edit ledgers, parity/, or files outside this cwd. When finished, write exactly one line to                       
+  /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/unslop/fixture-out/cursor/done.txt           
+  naming draft.md and that unslop rewrite applied, then stop.                                                          
+                                                                                                                       
+
+ ⠀⠞ Working
+
+                                                                                                                       
+  → Add a follow-up                                                                                     ctrl+c to stop 
+                                                                                                                       
+
+  Auto                                                                                                  Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/unslop/fixture-app · refactor/pi-pstack-parity-again

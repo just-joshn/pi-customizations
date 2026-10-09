@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "cmd-architect-ground-how",
+  "status": "executed-pass-paired",
+  "requirements": [
+    "PSTACK-CMD-ARCHITECT-GROUND-HOW-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/architect/SKILL.md## Phase A: Ground the problem",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Non-greenfield module graph for /architect Phase A how grounding before sketch.",
+    "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Invoke /architect for a change that touches existing subsystems.. Phase A runs the how skill over relevant subsystems and produces the traced mental model before sketching."
+    }
+  ],
+  "execution": {
+    "referenceRun": "284b1831-6051-4b83-92b4-44a4b72609bf",
+    "candidateRun": "ab355606-e9f0-48e7-9508-08a6952de959",
+    "pairId": "architect-ground-how-1",
+    "pairPath": "parity/evidence/architect/pair-architect-ground-how-1.json",
+    "verdict": "pass-paired",
+    "closedAt": "2026-10-08T21:23:00Z",
+    "note": "how-before-sketch both hosts; Pi inline how vs Cursor explorer/arena spawn recorded as delta."
+  }
+}

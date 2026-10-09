@@ -3,8 +3,18 @@ description: "Invoke the bundled principle-experience-first workflow."
 argument-hint: "[task]"
 ---
 
-Read principle-experience-first/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.
-Follow those instructions, resolving references and supporting scripts relative to that skill directory.
-If the pstack host contract is unavailable, report that the package extension must be enabled to locate this bundled skill. Do not invent a path.
+# Experience first
+
+When implementation convenience conflicts with user delight, choose delight.
+
+- Every feature, control, and option must be justified
+- Ship less, ship better (polished experience with three features beats rough one with ten)
+- Prototype before committing (design decisions are cheaper in throwaway HTML than production code)
+- Get the details right (transitions, alignment, spacing, feedback, error states)
+- Tighten the core loop (every feature should serve the central workflow or get out of the way)
+
+The user is whoever consumes the work. For a UI that is the end user. For a library or an internal API it is the colleague who imports it. The engineer who maintains the code next is a user too. Weigh their experience the same way, and explain impact from their perspective.
+
+Foundations should serve the experience. [Foundational thinking](../principle-foundational-thinking/SKILL.md) governs the *sequence* of work. This principle governs the *target*.
 
 $ARGUMENTS

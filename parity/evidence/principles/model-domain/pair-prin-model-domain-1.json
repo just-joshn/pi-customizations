@@ -1,0 +1,130 @@
+{
+  "schema": 1,
+  "pairId": "prin-model-domain-1",
+  "scenarioRef": "prin-model-domain",
+  "journeyFamily": "journey-family-principles",
+  "requirementIds": [
+    "PSTACK-PRIN-MODEL-DOMAIN-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "/poteto-mode Tickets in src/ticket.js use isDraft and isOpen. Add hold and release so a held ticket labels HELD, close rejects while held, and release returns to open. node scripts/verify.mjs should print DOMAIN-OK. Prefer a clear lifecycle model over another flag that must stay in sync with the existing booleans. For any poteto-mode principle you apply before declaring done, read that principle's leaf SKILL.md in full first (not only the poteto-mode Principles index). Work only inside this fixture cwd. Do not edit ledgers, parity/, or files outside this cwd except the named done path. When the change is verified against the real artifact, write exactly one line to .../model-domain/fixture-out/<side>/done.txt as verified=yes|no, then stop.",
+  "steps": [
+    {
+      "wait": "ready screen (Tip: on Cursor; Pi chat ready without Trust dialog)"
+    },
+    {
+      "send": "/poteto-mode add hold/release lifecycle; prefer clear model over synced flag; leaf SKILL.md for applied principles; DOMAIN-OK; write verified=yes|no"
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "wait": "on-disk evidence/verify-out.txt with DOMAIN-OK"
+    },
+    {
+      "wait": "done marker verified=yes"
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "5b46963a-1d66-4053-a9c8-4f4e8037ae9d",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/model-domain/cursor/5b46963a-1d66-4053-a9c8-4f4e8037ae9d",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "transcript": "/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/agent-transcripts/a8bc32f6-6f14-48ee-82d6-d91f1e9e0d79/a8bc32f6-6f14-48ee-82d6-d91f1e9e0d79.jsonl",
+    "proofCopyPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/model-domain/fixture-out/cursor/evidence/verify-out.txt",
+    "observations": {
+      "potetoMode": true,
+      "leafSkillRead": true,
+      "leafSkillPath": "/Users/josh-desktop/.claude/skills/principle-model-the-domain/SKILL.md",
+      "structuredDomain": true,
+      "scatteredOnly": false,
+      "keptVerifyOk": true,
+      "verifyLine": "DOMAIN-OK hold=held-label close-held=rejected release=open",
+      "productOk": true,
+      "verifiedDone": true,
+      "modelAutoInvoke": false,
+      "contractHeld": true,
+      "ranVerifyScript": true,
+      "modelChrome": "Auto",
+      "oracleNote": "Transcript Read of principle-model-the-domain/SKILL.md. Replaced isDraft/isOpen with status discriminant (draft|open|held|closed). DOMAIN-OK. No isHeld boolean."
+    }
+  },
+  "pi": {
+    "attemptId": "3ac75dad-b288-4b1e-b104-2b234865575b",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/model-domain/pi/3ac75dad-b288-4b1e-b104-2b234865575b",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-principles-model-domain-fixture-app--/2026-10-09T00-55-00-562Z_01a11e28-00d2-77fc-bfe4-1723e521fc3e.jsonl",
+    "proofCopyPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/model-domain/fixture-out/pi/evidence/verify-out.txt",
+    "observations": {
+      "potetoMode": true,
+      "leafSkillRead": true,
+      "leafSkillPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-model-the-domain/SKILL.md",
+      "structuredDomain": true,
+      "scatteredOnly": false,
+      "keptVerifyOk": true,
+      "verifyLine": "DOMAIN-OK hold=held-label close-held=rejected release=open",
+      "productOk": true,
+      "verifiedDone": true,
+      "modelAutoInvoke": false,
+      "contractHeld": true,
+      "ranVerifyScript": true,
+      "modelChrome": "(claude-subscription) claude-sonnet-5-5 • medium",
+      "oracleNote": "Session read of principle-model-the-domain/SKILL.md. TRANSITIONS table plus status field; export const hold/release. Live score initially missed const form; re-scored from fixture-after. DOMAIN-OK. No isHeld boolean."
+    }
+  },
+  "deltas": [
+    {
+      "topic": "leaf skill path",
+      "cursor": "Read ~/.claude/skills/principle-model-the-domain/SKILL.md",
+      "pi": "Read extensions/pi-pstack/skills/principle-model-the-domain/SKILL.md",
+      "reconciled": true
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "Auto",
+      "pi": "claude-sonnet-5-5 medium via claude-subscription",
+      "reconciled": false
+    },
+    {
+      "topic": "domain encoding shape",
+      "cursor": "status discriminant with per-transition guards (function hold/release)",
+      "pi": "status field plus TRANSITIONS registry (const hold/release)",
+      "reconciled": true
+    },
+    {
+      "topic": "model-domain outcome",
+      "cursor": "contractHeld. Leaf Read + structuredDomain + DOMAIN-OK. No scatteredOnly.",
+      "pi": "contractHeld after const-export rescore. Leaf Read + structuredDomain (TRANSITIONS) + DOMAIN-OK. No scatteredOnly.",
+      "reconciled": true
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-prin-model-domain.mjs --both",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "fixtureApp": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/model-domain/fixture-app",
+    "decisionLog": "parity/evidence/principles/model-domain/.audit/u-journey-prin-model-domain.tsv",
+    "notes": "PSTACK-PRIN-MODEL-DOMAIN-001. Dedicated model-domain/ fixture. Hold/release tempts synced isHeld. Ledgers untouched. disable-model-invocation true on package leaf copies; modelAutoInvoke false on both. Pi observations re-scored once for export const hold detection; PTY artifacts unchanged."
+  }
+}

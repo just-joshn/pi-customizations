@@ -1,0 +1,19 @@
+{
+  "unit": "u-dep-pi-tarball-sig-001",
+  "package": "@earendil-works/pi-coding-agent@1.1.0",
+  "signatureAuthenticated": true,
+  "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U",
+  "integrityMatchedTarball": true,
+  "integrityMatchedSourceLock": true,
+  "tarballSha256": "09cd8a0a43dbb1d81a67346b09400b439ce71d818caba4e963ea958846a1aed4",
+  "registryIntegrity": "sha512-SeEi/4hdcHNgA9UWlefZl7ZZpm3dzi2OoxNjDHsBJ9o298LNOtbL4DGKgitlEj6uCTccvtw6f2hlCkTPVJ2RXg==",
+  "opensslReturncode": 0,
+  "opensslStdout": "Verified OK",
+  "opensslStderr": "",
+  "keysSource": "https://registry.npmjs.org/-/npm/v1/keys",
+  "didNotInventSignature": true,
+  "registryRetrievalStart": "2026-10-09T09:22:07Z",
+  "registryRetrievalEnd": "2026-10-09T09:22:07Z",
+  "tarballPath": "parity/reference/npm/pi-coding-agent-1.1.0/package.tgz",
+  "registryPath": "parity/reference/npm/pi-coding-agent-1.1.0/registry.json"
+}

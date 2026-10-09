@@ -12,7 +12,7 @@ const Todo = Type.Object({
     description: 'Current execution status: pending, in_progress, completed, or cancelled',
   }),
 });
-const State = Type.Object({ enabled: Type.Boolean(), todos: Type.Array(Todo), verificationOffered: Type.Optional(Type.Boolean()) });
+const State = Type.Object({ enabled: Type.Boolean(), todos: Type.Array(Todo) });
 type State = Static<typeof State>;
 
 const collapsedTodos = 8;

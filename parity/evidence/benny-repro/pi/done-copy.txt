@@ -1,0 +1,1 @@
+STATUS=fail-closed reason=config missing control adapter, feature map, and Slack actions

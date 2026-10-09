@@ -9,24 +9,23 @@ import { registerContext, registerStatus } from './context.ts';
 import { registerGoal } from './goal.ts';
 import { hostInstructions } from './host.ts';
 import { hostVersionNotice } from './host-version.ts';
+import { registerFigureItOutPlaybookGate } from './figure-it-out-playbook-gate.ts';
+import { registerHowSpawnGate } from './how-spawn-gate.ts';
 import { FIRST_ACTION_RULE_TYPE, firstActionRule, usesAnthropicMessages } from './mode-rule.ts';
 import { readModelRule } from './models.ts';
+import { registerPotetoPlaybookTodoGate } from './poteto-playbook-todo-gate.ts';
 import { registerQuestions } from './questions.ts';
+import { registerAutomations } from './automations.ts';
 import { registerRoutines } from './routines.ts';
 import { registerSetupTool } from './setup-tool.ts';
 import { registerShells } from './shells.ts';
 import { createState, registerStateTools } from './state.ts';
+import { loadAllSkills } from './skills-map.ts';
 import { registerTimers } from './timers.ts';
+import { registerWhySpawnGate } from './why-spawn-gate.ts';
 import { registerWorkers } from './workers.ts';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
-
-async function loadSkill(name: string) {
-  const path = join(root, 'skills', name, 'SKILL.md');
-  const { frontmatter, body } = parseFrontmatter<Record<string, unknown>>(await readFile(path, 'utf8'));
-  if (typeof frontmatter['description'] !== 'string') throw new Error(`Missing description in ${path}`);
-  return { path, body, description: frontmatter['description'] };
-}
 
 async function testedHostVersion() {
   const manifest = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'));
@@ -45,23 +44,22 @@ async function loadModeSource() {
 }
 
 export default async function pstack(pi: ExtensionAPI) {
-  const [[mode, setup], { reminder, badge }, catalog, testedVersion] = await Promise.all([
-    Promise.all(['poteto-mode', 'setup-pstack'].map(loadSkill)),
+  const environment = process.env['PI_PSTACK_WORKER_OWNER'] ? 'cloud' : 'local';
+  const [skills, { reminder, badge }, catalog, testedVersion] = await Promise.all([
+    loadAllSkills(root, environment),
     loadModeSource(),
-    skillCatalog(root, process.env['PI_PSTACK_WORKER_OWNER'] ? 'cloud' : 'local'),
+    skillCatalog(root, environment),
     testedHostVersion(),
   ]);
-  if (!mode || !setup) throw new Error('Missing pstack resource. Run bun run generate.');
-  const skills = new Map([
-    ['poteto-mode', mode],
-    ['setup-pstack', setup],
-  ]);
+  const mode = skills.get('poteto-mode');
+  if (!mode) throw new Error('Missing pstack resource. Run bun run generate.');
+  const commandSkills = new Map([...skills].filter(([name]) => name === 'poteto-mode' || name === 'setup-pstack'));
   const playbooksDir = join(dirname(mode.path), 'playbooks');
   const rule = firstActionRule({ playbooksDir, playbooks: await listPlaybooks(playbooksDir) });
   const store = createState(pi, badge);
-  registerCommands(pi, skills, store);
+  registerCommands(pi, commandSkills, store);
   registerNativeInput(pi, skills, store);
-  registerSetupTool(pi, store);
+  registerSetupTool(pi);
   const notice = hostVersionNotice(VERSION, testedVersion);
   pi.on('session_start', (_event, ctx) => {
     store.restore(ctx);
@@ -83,8 +81,13 @@ export default async function pstack(pi: ExtensionAPI) {
   registerContext(pi);
   registerStatus(pi, store);
   registerWorkers(pi);
+  registerHowSpawnGate(pi);
+  registerWhySpawnGate(pi);
+  registerFigureItOutPlaybookGate(pi);
+  registerPotetoPlaybookTodoGate(pi, store);
   registerShells(pi);
   registerGoal(pi);
   registerTimers(pi);
   registerRoutines(pi);
+  registerAutomations(pi);
 }

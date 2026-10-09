@@ -1,0 +1,3 @@
+User packages:
+  ../../fixtures/candidate-baseline/package/package
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/fixtures/candidate-baseline/package/package

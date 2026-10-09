@@ -1,0 +1,39 @@
+    -rw-r--r-- 1 josh-desktop staff   9 Oct  8 11:33 a.txt
+    -rw-r--r-- 1 josh-desktop staff   9 Oct  8 11:33 b.txt
+
+    To-do Working on 2 to-dos • 2 done
+    ✔ Frame: N=2 partition write a.txt / b.txt
+    ✔ Fan out Worker A and Worker B
+    ◐ Drain both workers and verify files
+    ○ Return rolled-up PASS/ISSUES/BLOCKED report
+
+    To-do All done
+    ✔ Frame: N=2 partition write a.txt / b.txt
+    ✔ Fan out Worker A and Worker B
+    ✔ Drain both workers and verify files
+    ✔ Return rolled-up PASS/ISSUES/BLOCKED report
+
+  Swarm report: PASS
+
+  ┌──────┬──────┬──────────────────────────────────────────────────────────────────────────────────┬───────────────┐
+  │ Work │ Stat │ Path                                                                             │ Evidence      │
+  │ er   │ us   │                                                                                  │               │
+  ├──────┼──────┼──────────────────────────────────────────────────────────────────────────────────┼───────────────┤
+  │ A    │ PASS │ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/swarm/fi │ content       │
+  │      │      │ xture-out/cursor/a.txt                                                           │ WORKER-A\n    │
+  ├──────┼──────┼──────────────────────────────────────────────────────────────────────────────────┼───────────────┤
+  │ B    │ PASS │ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/swarm/fi │ content       │
+  │      │      │ xture-out/cursor/b.txt                                                           │ WORKER-B\n    │
+  └──────┴──────┴──────────────────────────────────────────────────────────────────────────────────┴───────────────┘
+
+  Issues: none
+  Gaps/dropouts: none
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 11%                                                                                            Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run · refactor/pi-pstack-parity-again

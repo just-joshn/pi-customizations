@@ -1,0 +1,121 @@
+{
+  "schema": 1,
+  "pairId": "benchmark-checklist-evidence-1",
+  "scenarioRef": "cmd-benchmark-checklist-evidence",
+  "journeyFamily": "journey-cmd-benchmark-checklist-evidence",
+  "requirementIds": [
+    "PSTACK-CMD-BENCHMARK-CHECKLIST-EVIDENCE-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "/benchmark-checklist quick ballpark one run; claim.md + measure.mjs; check Q4 and Q7; write checklist-report.md and done.txt with q4/q7/oneRun/evidence",
+  "steps": [
+    {
+      "send": "/benchmark-checklist I need a quick ballpark only. One run is enough. Claim draft is claim.md. Measurement script is measure.mjs. ..."
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "settle": true
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "fef1b56c-e1bd-4f8c-83d1-dca9487c6b44",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/benchmark/cursor/fef1b56c-e1bd-4f8c-83d1-dca9487c6b44",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "observations": {
+      "benchmarkChecklistSkill": true,
+      "contractHeld": true,
+      "q4": true,
+      "q7": true,
+      "oneRun": true,
+      "runEvidence": true,
+      "doneLine": "q4=yes q7=yes oneRun=yes evidence=parity/evidence/benchmark/fixture-app/run-evidence.json",
+      "reportPath": "parity/evidence/benchmark/fixture-out/cursor/checklist-report.md",
+      "runEvidenceSnapshot": "parity/evidence/benchmark/fixture-out/cursor/run-evidence.json",
+      "verdictShape": "inconclusive for draft ~25% claim; cites errorCount=0 and workHappened=true from one run",
+      "measureDigest": "sha256:fc3f9b614ec397fe5444395bb26b1d74d57326a349b2aaaac437e36e2f56d866",
+      "claimDigest": "sha256:508628fb557465868cbee0b13dc3c6af00e5ce3922efbabc9422d1ada95ebf54",
+      "scorerNote": "Authoritative proof is checklist-report.md + done.txt + run-evidence.json. Settled screen scrolled past skill chrome; PTY stream still shows /benchmark-checklist."
+    }
+  },
+  "pi": {
+    "attemptId": "f35d81bd-a200-44fb-a673-039bdf1192ae",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/benchmark/pi/f35d81bd-a200-44fb-a673-039bdf1192ae",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-benchmark-fixture-app--/2026-10-09T00-01-34-290Z_01a11df7-1452-75f6-9df9-01bb828fb477.jsonl",
+    "observations": {
+      "benchmarkChecklistSkill": true,
+      "contractHeld": true,
+      "q4": true,
+      "q7": true,
+      "oneRun": true,
+      "runEvidence": true,
+      "doneLine": "q4=yes q7=yes oneRun=yes evidence=run-evidence.json slowMs=18.53 fastMs=0.228",
+      "reportPath": "parity/evidence/benchmark/fixture-out/pi/checklist-report.md",
+      "runEvidenceSnapshot": "parity/evidence/benchmark/fixture-out/pi/run-evidence.json",
+      "verdictShape": "ballpark ONE run; rejects draft 25% wording; Q4 errorCount=0; Q7 timed work verified",
+      "measureDigest": "sha256:fc3f9b614ec397fe5444395bb26b1d74d57326a349b2aaaac437e36e2f56d866",
+      "claimDigest": "sha256:508628fb557465868cbee0b13dc3c6af00e5ce3922efbabc9422d1ada95ebf54",
+      "scorerNote": "Session + markers. Settled screen restates Q4/Q7 and one-run caveats; skill chrome may scroll off."
+    }
+  },
+  "deltas": [
+    {
+      "topic": "one-run ballpark Q4/Q7 with run evidence",
+      "cursor": "checklist-report.md answers Q4/Q7 from run-evidence.json; labels one run; rejects shipping ~25% from this run.",
+      "pi": "Same contract on checklist-report.md and done.txt; also flags deterministic input vs claim wording.",
+      "reconciled": true
+    },
+    {
+      "topic": "skill chrome on settled screen",
+      "cursor": "screenFinal.benchmarkChecklist false after scroll; PTY stream true.",
+      "pi": "screenFinal.benchmarkChecklist false after scroll; PTY stream true; settled prose still carries Q4/Q7.",
+      "reconciled": true
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "Auto / parent chat chrome on PTY.",
+      "pi": "claude-sonnet-5-5 • medium (claude-subscription).",
+      "reconciled": false
+    },
+    {
+      "topic": "report shape",
+      "cursor": "Numbered Question 4 / Question 7 sections plus Evidence list with full JSON fields.",
+      "pi": "Compact bullet Q4/Q7 plus caveats and suggested claim rewrite.",
+      "reconciled": true
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-benchmark-checklist.mjs --cursor-only then --pi-only",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "packagePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack",
+    "markerRoot": "parity/evidence/benchmark/fixture-out/{cursor,pi}/",
+    "heldOutFixture": "parity/evidence/benchmark/fixture-app (claim.md + measure.mjs + README.md)",
+    "auditTrail": "parity/evidence/benchmark/.audit/u-journey-cmd-benchmark.tsv",
+    "playbook": "parity/evidence/benchmark/PLAYBOOK.md"
+  }
+}

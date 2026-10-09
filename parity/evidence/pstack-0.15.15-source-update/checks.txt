@@ -1,0 +1,3 @@
+Verified 164 normalized pstack source files against ccb5507cec1546dc88135c1139c811e6c59115ba.
+Verified 193 upstream files and 215 generated resources.
+Verified installed Pi CLI package loading, RPC commands, status, mode off, and orderly shutdown without model calls.

@@ -1,0 +1,39 @@
+  as an I/O completion that becomes a macrotask in a later poll/pending phase—microtasks never run on the thread
+  pool, only on the main loop after the completion callback is scheduled.
+
+                                                                                                                       
+  /bro Restate your last message in plain human language with no jargon. Do not continue any prior task and do         
+  not create product code. Work only inside this fixture cwd for marker files. Write the plain restatement to          
+  /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/bro/fixture-out/cursor/restate.md.           
+  Then write exactly one line to                                                                                       
+  /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/bro/fixture-out/cursor/done.txt as           
+  bro=yes|no|fail, then stop.                                                                                          
+                                                                                                                       
+
+  Restating the last message in plain language and writing the marker files.
+
+  $ mkdir -p /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/bro/fixture-out/cursor && printf
+    '%s\n' "Node runs one waiting job at a time from a series of queues. After each job, it finishes all pending
+    Promise callbacks before moving on. Slow work like reading files runs on background workers; when they finish,
+    their results wait in line on the main loop. Promise callbacks never run on those workers—only on the main loop
+    after a finished job gets its turn." >
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/bro/fixture-out/cursor/restate.md &&
+    printf '%s\n' 'bro=yes' >
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/bro/fixture-out/cursor/done.txt && cat
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/bro/fixture-out/cursor/restate.md && echo
+    '---' && cat
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/bro/fixture-out/cursor/done.txt 925ms
+    … 1 output lines hidden · ctrl+o to expand
+    ---
+    bro=yes
+
+  Wrote restate.md and done.txt (bro=yes).
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 8.9%                                                                                           Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/bro/fixture-app · refactor/pi-pstack-parity-again

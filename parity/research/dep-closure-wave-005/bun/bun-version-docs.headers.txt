@@ -1,0 +1,33 @@
+HTTP/2 308 
+date: Thu, 08 Oct 2026 22:22:41 GMT
+content-type: text/plain
+cache-control: public, max-age=0, must-revalidate
+location: /guides/install/bun-version
+refresh: 0;url=/guides/install/bun-version
+server: cloudflare
+strict-transport-security: max-age=63072000
+x-vercel-id: pdx1::qtpg4-1791498161037-adfa1efacced
+cf-cache-status: DYNAMIC
+report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=YlQXpp4ipUrUGLplr%2FuPzm5k5ZU87VuKbgQEQlotvSceL0SGhSmX5nTJ60qeLqnaZLA24g2J8oiGcrOzIiNvB7jB81clLyHAytpXdXeOB44NS65PZq9Pq17Uxr%2FZtdw8zbWJPFA%3D"}]}
+nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+cf-ray: a4788bb26826ac0d-PDX
+
+HTTP/2 404 
+date: Thu, 08 Oct 2026 22:22:41 GMT
+content-type: text/html; charset=utf-8
+access-control-allow-origin: *
+age: 0
+cache-control: public, max-age=0, must-revalidate
+content-disposition: inline; filename="404"
+nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+etag: W/"10c700b1b839d0a17eea6b9d78510384"
+last-modified: Thu, 08 Oct 2026 22:22:41 GMT
+server: cloudflare
+strict-transport-security: max-age=63072000
+x-vercel-cache: MISS
+x-vercel-id: pdx1::5n9lc-1791498161085-9c15bb783216
+cf-cache-status: DYNAMIC
+vary: accept-encoding
+report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=JAC%2BPlfmP8WyOTuW4YF%2F2G%2B0AOo3qtP34G%2F3DCn6mKbIzsw0kZuiDcxdfsZTZPxo1IejeP0W7mgHIiUiLxmQnUibBAJMGtlm6lcczDclTfeE%2BLC7zmMGNxAznBqWUmFH5Pbj%2FtA%3D"}]}
+cf-ray: a4788bb2a89cac0d-PDX
+

@@ -1,0 +1,39 @@
+    … 9 output lines hidden · ctrl+o to expand
+    test    pass    5s  https://github.com/just-joshn/team-kit-gh-fixture/actions/runs/37879743409/job/113656441454 
+    test    pass    6s  https://github.com/just-joshn/team-kit-gh-fixture/actions/runs/37879746840/job/113656452977 
+
+  $ gh pr checks 9 --repo just-joshn/team-kit-gh-fixture --json name,bucket,state,workflow,link && gh pr view 9 --repo
+    just-joshn/team-kit-gh-fixture --json url,statusCheckRollup,headRefOid 1.8s
+    [{"bucket":"pass","link":"https://github.com/just-joshn/team-kit-gh-fixture/actions/runs/37879746840/job/11365645…
+    {"headRefOid":"0602b4efcdc26c1d212ed256902991220abc76c7","statusCheckRollup":[{"__typename":"CheckRun","completed…
+
+  All checks green. Writing the required artifacts.
+
+  $ mkdir -p
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/loop-on-ci &&
+    cat > /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/loop-on-
+    ci/ci-loop-notes.md <<'EOF'
+    # CI loop notes — PR #9 236ms
+    … 32 input + 33 output lines hidden · ctrl+o to expand
+    STATUS=verified reason=all PR checks green
+    1 /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/loop-on-ci/…
+
+    To-do All done
+    ✔ Diagnose failing PR #9 CI checks
+    ✔ Fix failure, push, re-check until green
+    ✔ Write ci-loop-notes.md + done.txt artifacts
+
+  CI is green on https://github.com/just-joshn/team-kit-gh-fixture/pull/9.
+
+  Failure was hello.js VALUE: 0 vs test requiring 7. Fixed in 0602b4e, pushed, both test checks SUCCESS.
+
+  Artifacts: ci-loop-notes.md (includes FIXTURE_CI_LOOP) and done.txt → STATUS=verified reason=all PR checks green.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 10.8% · 1 file edited                                                                          Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh · fixture/fail-ci-cursor-mv0esgmh · #9

@@ -1,0 +1,26 @@
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Type ? in the prompt bar to show in-app hints.
+
+                                                                                                                       
+  [Pasted text #1 +1 lines]                                                                                            
+                                                                                                                       
+
+  I'll run only Pass step 0 (locate) of the maintain-verification-skill flow: read the skill, confirm the expected
+  target, write the one-line locate artifact, then stop.
+
+    Reading, globbing 1 file, 2 globs
+    Using verify-hello-cli
+    Globbed "**/maintain-verification*/**/*" in ...osh-desktop/src/personal/pi-pstack-parity-again
+    Globbed "**/maintain*verif*/SKILL.md" in /Users/josh-desktop/.claude/skills
+
+ ⠰⠳ Globbing  188 tokens
+
+                                                                                                                       
+  → Add a follow-up                                                                                     ctrl+c to stop 
+                                                                                                                       
+
+  Auto                                                                                                  Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app · refactor/pi-pstack-parity-again

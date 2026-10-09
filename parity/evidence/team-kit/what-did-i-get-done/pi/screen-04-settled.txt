@@ -1,0 +1,40 @@
+  alpha.txt | 1 +                                                                                                      │
+  1 file changed, 1 insertion(+)                                                                                       │
+                                                                                                                       │
+ Took 0.1s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+                                                                                                                       │
+ $                                                                                                                     │
+ d=/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/what-did-i-get-done │
+ ; mkdir -p $d                                                                                                         │
+ cat > $d/summary.md <<'E'                                                                                             │
+ # Status update: 2026-10-01 to 2026-10-08                                                                             │
+                                                                                                                       │
+ Shipped 2 commits (worker@example.com, merges excluded):                                                              │
+ - 2026-10-07: ALPHA feature added (alpha.txt).                                                                        │
+ - 2026-10-08: BETA polish added (beta.txt).                                                                           │
+ E                                                                                                                     │
+ echo "STATUS=verified reason=summary written from 2 authored commits" > $d/done.txt (timeout 10s)                     ┃
+                                                                                                                       ┃
+ (no output)                                                                                                           ┃
+                                                                                                                       ┃
+ Took 0.0s                                                                                                             ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ I wrote the status update and the status line. The window is 2026-10-01 to 2026-10-08, based on today being           ┃
+ 2026-10-08. I ran git log once for worker@example.com, with merges excluded, and it returned two commits:             ┃
+                                                                                                                       ┃
+ - 2026-10-07: the ALPHA feature, which adds alpha.txt.                                                                ┃
+ - 2026-10-08: BETA polish, which adds beta.txt.                                                                       ┃
+                                                                                                                       ┃
+ summary.md includes the date range and mentions ALPHA. done.txt contains STATUS=verified reason=summary written from  ┃
+ 2 authored commits. Both files are in                                                                                 ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/what-did-i-get-done.  ┃
+ I didn't edit any parity ledgers.                                                                                     ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/what-did-i-get-done (main)
+↑8 ↓743 R59k W18k CH98.9% $0.091 (sub) 2.6%/1.0M (auto)                 (claude-subscription) claude-sonnet-5-5 • medium

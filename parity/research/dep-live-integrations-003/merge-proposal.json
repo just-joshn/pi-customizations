@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "unit": "u-dep-live-integrations-003",
+  "status": "merged",
+  "createdAt": "2026-10-09T11:00:16Z",
+  "targets": {
+    "dependenciesJson": "parity/dependencies.json",
+    "progressMd": "parity/progress.md",
+    "sourceLockJson": "parity/source-lock.json"
+  },
+  "canCloseLiveIntegrationsUnresolvedReference": false,
+  "canNarrowLiveIntegrationsUnresolvedReference": true,
+  "closeRationale": "Cannot close: b_environment_bound remains 115 (make-bot Generate, Benny/Slack, thread-safety live, third-party, CU cloud, enterprise).",
+  "narrowRationale": "Refresh stale 002 text that claimed Pi Automations absent / creation unverified. Creation-boundary now verified-pass-paired. Do not move webhook Generate rows without post-unlock evidence. Do not set completeDependencyClosure true.",
+  "behavioralExerciseClaim": false,
+  "inventorySha256": "63ef7f8f4c35e3918556e787f22eb308666e5e8d0b444b41584524ce13b867d4",
+  "counts": {
+    "a_custody_complete": 275,
+    "b_environment_bound": 115,
+    "c_already_evidenced": 26
+  },
+  "reasonCounts": {
+    "inventory_or_doc_custody_without_live_exercise": 275,
+    "third_party_live_install_needs_operator_grant": 39,
+    "models_pricing_paired_via_setup_grok_xhigh_cap": 22,
+    "webhook_create_witnessed_generate_auth_unpaid": 9,
+    "automations_editor_save_or_activate_needs_operator_grant": 3,
+    "live_slack_needs_operator_grant": 44,
+    "automations_editor_create_handoff_evidenced": 4,
+    "webhook_routine_or_secret_live_needs_operator_grant": 20
+  },
+  "attemptIds": {
+    "url_editor": "f6e29fb7-5878-4c8c-841e-1538b39d1cf7",
+    "automate_handoff": "b60a705b-e2ea-40c4-adeb-7014fde433b4",
+    "webhook_create": "c345b7ed-5c24-424c-86c3-55211b7bf0c8",
+    "benny_editor_title": "475ab346-80a0-4d73-8ae1-d2b8042ee66f",
+    "benny_list": "e11d7225-4c8a-4c09-8f30-273e941a52d2",
+    "benny_title_reverify": "2c525e93-3392-4253-81ef-dd965fde2e7d",
+    "pi_creation_blocked_prior": "f4c7eec5-6ac5-4431-b4b1-23c7e267dc96",
+    "pi_creation_paired": "4d40a1d5-ea54-4ce2-922b-bf82e78b6577",
+    "enterprise_observe_002": "2026-10-09T10:54:00Z-state.vscdb"
+  },
+  "proposedUnresolvedReferenceText": "Live integrations live-exercise remains open after u-dep-live-integrations-003 disposition at parity/research/dep-live-integrations-003/dispositions.json (inventory sha256 63ef7f8f4c35e3918556e787f22eb308666e5e8d0b444b41584524ce13b867d4; a_custody_complete=275, b_environment_bound=115, c_already_evidenced=26). Progress since 002: PSTACK-SETUP-BENNY-CREATION-BOUNDARY-001 verified-pass-paired (Pi 4d40a1d5 + Cursor e11d7225/475ab346); Pi host /automate + AutomationRecordThreadSafety/Enable(local)/Disable; setup-benny adapter on /automate; enterprise observe-002 still pro_plus/no-team. Still unpaid: make-bot Generate/key/probe (G10 console lock); Benny triage valid-config (Slack G4\u2013G8); thread-safety seven live checks; third-party installs; CU cloud attempt IDs (G1); enterprise policy witness (G2). No fabricated Slack posts or Generate auth. completeDependencyClosure stays false.",
+  "ledgerEdits": {
+    "dependencies.unresolvedReferences": [
+      "Live integrations live-exercise remains open after u-dep-live-integrations-003 disposition at parity/research/dep-live-integrations-003/dispositions.json (inventory sha256 63ef7f8f4c35e3918556e787f22eb308666e5e8d0b444b41584524ce13b867d4; a_custody_complete=275, b_environment_bound=115, c_already_evidenced=26). Progress since 002: PSTACK-SETUP-BENNY-CREATION-BOUNDARY-001 verified-pass-paired (Pi 4d40a1d5 + Cursor e11d7225/475ab346); Pi host /automate + AutomationRecordThreadSafety/Enable(local)/Disable; setup-benny adapter on /automate; enterprise observe-002 still pro_plus/no-team. Still unpaid: make-bot Generate/key/probe (G10 console lock); Benny triage valid-config (Slack G4\u2013G8); thread-safety seven live checks; third-party installs; CU cloud attempt IDs (G1); enterprise policy witness (G2). No fabricated Slack posts or Generate auth. completeDependencyClosure stays false."
+    ],
+    "dependencies.liveIntegrations003Note": "u-dep-live-integrations-003: note refresh only; counts unchanged a=275 b=115 c=26; canCloseUnresolvedReference=false.",
+    "sourceLock.completeDependencyClosure": false
+  },
+  "evidence": [
+    "parity/research/dep-live-integrations-003/dispositions.json",
+    "parity/research/dep-live-integrations-003/summary.json",
+    "parity/briefs/reports/u-dep-live-integrations-003-report.md",
+    "parity/evidence/setup-benny/pair-setup-benny-creation-boundary-1.json",
+    "parity/briefs/reports/u-journey-setup-benny-creation-pi-002-report.md",
+    "parity/briefs/reports/u-pi-setup-benny-adapter-automate-001-report.md",
+    "parity/briefs/reports/u-dep-enterprise-observe-002-report.md"
+  ],
+  "mergedAt": "2026-10-09T11:00:33Z"
+}

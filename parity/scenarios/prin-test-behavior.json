@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "prin-test-behavior",
+  "status": "paired",
+  "requirements": [
+    "PSTACK-PRIN-TEST-BEHAVIOR-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/principle-test-behavior-not-implementation/SKILL.md#Test Behavior Not Implementation frontmatter trigger and disable-model-invocation",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file. Preconditions: Locked pstack poteto-mode and principle-test-behavior-not-implementation skill loaded.; A test is being written or retained.",
+    "digest": null
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Add or keep a unit test.. The agent Reads the leaf skill; the test calls the subject with a concrete input and asserts a literal observable result, and would fail if imported functions returned undefined."
+    }
+  ],
+  "execution": {
+    "pairId": "prin-test-behavior-1",
+    "verdict": "pass",
+    "pair": "parity/evidence/principles/test-behavior/pair-prin-test-behavior-1.json",
+    "attempts": {
+      "cursor": "b70c73d6-63a5-4255-b8a3-62f3217e5704",
+      "pi": "753e87d4-b2c8-4c0e-8fd4-1ca3bacbcbac"
+    }
+  }
+}

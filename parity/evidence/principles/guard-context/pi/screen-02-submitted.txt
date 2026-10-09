@@ -1,0 +1,40 @@
+[Skill conflicts]                                                                                                      ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ [skill] poteto-mode (ctrl+o to expand)                                                                                ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ Inventory every MARKER-* token under corpus/ into out/summary.json as {"markers":["..."]} sorted alphabetically, then ┃
+ make node scripts/verify.mjs print GUARD-OK. The dump tree is large (~40 dumps). Route the bulk corpus scan to a      ┃
+ child Task/worker and keep only the compact marker summary in the main thread; do not paste dump bodies into chat.    ┃
+ For any poteto-mode principle you apply before declaring done, read that principle's leaf SKILL.md in full first (not ┃
+ only the poteto-mode Principles index). Work only inside this fixture cwd. Do not edit ledgers, parity/, or files     ┃
+ outside this cwd except the named done path. When GUARD-OK is on disk, write exactly one line to                      ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/guard-context/fixture-out/pi/done. ┃
+ txt as verified=yes|no, then stop.                                                                                    ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+── ⠼ Working ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/principles/guard-context/fixture-app (refactor/pi-pstack-parity...
+$0.000 (sub) 2.1%/1.0M (auto)                                           (claude-subscription) claude-sonnet-5-5 • medium

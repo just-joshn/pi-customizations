@@ -1,0 +1,39 @@
+  for this fixture.
+
+  ┌────────────────────────────────────────────┬──────────────────────────────────┐
+  │ Alternative                                │ Verdict                          │
+  ├────────────────────────────────────────────┼──────────────────────────────────┤
+  │ Optional currency beside numeric price     │ Rejected (bolt-on; fails verify) │
+  ├────────────────────────────────────────────┼──────────────────────────────────┤
+  │ Opaque brand + closed registry             │ Rejected (fixture overkill)      │
+  ├────────────────────────────────────────────┼──────────────────────────────────┤
+  │ Lean { amount, currency } + boundary parse │ Shipped                          │
+  └────────────────────────────────────────────┴──────────────────────────────────┘
+
+  Throughput checkpoint. Blocking design first. Independent streams n/a (shared shape). Shared mutable state n/a.
+  One owner.
+
+  Principles applied (leaf SKILL.md read this session). Redesign from First Principles made currency core, not
+  bolted. Model the Domain / Foundational Thinking chose the Price object first. Exhaust the Design Space ran two
+  arena sketches. Laziness Protocol cut registry/brand ceremony. Boundary Discipline validates only in parsePrice.
+  Prove It Works ran verify and read evidence/verify-out.txt.
+
+  Playbook steps.
+  1. how over the affected subsystem. done
+  2. architect for parallel design exploration. done
+  3. Throughput checkpoint (four items). done
+  4. Delegate code-writing. done (owned diff after arena; poteto-agent backgrounds)
+  5. Verify on the matching surface. done
+  6. Rebase into small, ordered commits. skip: no commit requested; exit gate is done.txt
+  7. interrogate if contested. skip: cross-judge and parent agreed
+  8. Opening a PR. skip: fixture-only; done.txt is the exit gate
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 23.1% · 9 files edited                                                                         Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/principles/redesign-first/fixture-app · 
+  refactor/pi-pstack-parity-again

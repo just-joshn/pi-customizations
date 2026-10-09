@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "id": "setup-load-state",
+  "status": "executed-pass-paired",
+  "requirements": [
+    "PSTACK-SETUP-LOAD-STATE-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/setup-pstack/SKILL.md#### 2. Load current state",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Documented preconditions satisfied; behavior not yet paired. Preconditions: Rule file may be absent or present.",
+    "digest": "sha256:e8dcb7b71c421dd7ceae42b69f478396223d15ffe12257cb963fe7bba4e8f0a2"
+  },
+  "actions": [
+    {
+      "kind": "type",
+      "literal": "/setup-pstack",
+      "expect": "Existing rule budget and role values become the current choices when the file exists; otherwise skill defaults are used. Retired role lines such as how critics are dropped and listed later."
+    }
+  ],
+  "execution": {
+    "referenceRun": "b4bac448-d442-4c34-9eec-b73895bd063b",
+    "candidateRun": "3f46cd66-2f53-40f1-bbcc-2c7de7828615",
+    "pairId": "setup-load-state-retired-1",
+    "pairPath": "parity/evidence/setup-load-state/pair-setup-load-state-retired-1.json",
+    "verdict": "pass-paired",
+    "closedAt": "2026-10-08T22:17:30Z",
+    "note": "Closed SETUP-LOAD-STATE-CURSOR via isolated Cursor recapture."
+  }
+}

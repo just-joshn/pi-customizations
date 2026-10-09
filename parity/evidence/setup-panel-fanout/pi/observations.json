@@ -1,0 +1,79 @@
+{
+  "arenaSkill": true,
+  "fanoutChrome": true,
+  "candidateDirs": [
+    {
+      "name": "c1",
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-panel-fanout/fixture-out/pi/candidates/c1",
+      "hasCode": true,
+      "hasRationale": true
+    },
+    {
+      "name": "c2",
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-panel-fanout/fixture-out/pi/candidates/c2",
+      "hasCode": true,
+      "hasRationale": true
+    },
+    {
+      "name": "c3",
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-panel-fanout/fixture-out/pi/candidates/c3",
+      "hasCode": true,
+      "hasRationale": true
+    }
+  ],
+  "note": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-panel-fanout/fixture-out/pi/fanout-note.md",
+    "text": "# Fanout note\nArena runners list read from pstack-models.mdc: `arena runners: inherit-parent, inherit-parent, inherit-parent`\nList length: 3\nRunners spawned: 3 (model omitted, parent model; duplicate aliases not collapsed)\nCandidates: c1 (Math.min/max), c2 (branches + validation), c3 (median via sort)\n"
+  },
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-panel-fanout/fixture-out/pi/done.txt",
+    "line": "listLength=3 spawnCount=3 panelDriven=yes"
+  },
+  "scoring": {
+    "expectedListLength": 3,
+    "panelListLength": 3,
+    "panelEntries": [
+      "inherit-parent",
+      "inherit-parent",
+      "inherit-parent"
+    ],
+    "candidateCountOnDisk": 3,
+    "taskCount": 3,
+    "spawnCount": 3,
+    "nThreeChrome": true,
+    "panelMention": true,
+    "panelDriven": true,
+    "lengthMatches": true,
+    "contractOk": true,
+    "doneParsed": {
+      "raw": "listLength=3 spawnCount=3 panelDriven=yes",
+      "listLength": "3",
+      "spawnCount": "3",
+      "panelDriven": "yes"
+    },
+    "toolOrder": [
+      "TodoWrite",
+      "task",
+      "task",
+      "task",
+      "read_agent",
+      "read_agent",
+      "bash"
+    ]
+  },
+  "session": {
+    "sessionPath": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-setup-panel-fanout-fixture-app--/2026-10-08T21-47-59-599Z_01a11d7c-c8ef-76f8-891b-5bb4dec702ec.jsonl",
+    "arenaSkillInjected": true,
+    "toolOrder": [
+      "TodoWrite",
+      "task",
+      "task",
+      "task",
+      "read_agent",
+      "read_agent",
+      "bash"
+    ]
+  }
+}

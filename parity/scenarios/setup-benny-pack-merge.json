@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "id": "setup-benny-pack-merge",
+  "status": "paired",
+  "requirements": [
+    "PSTACK-SETUP-BENNY-PACK-MERGE-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/automations/benny/skills/setup-benny/SKILL.md### 1. Copy the pack, merge rules",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Documented preconditions satisfied; behavior not yet paired. Preconditions: Source pack directory containing FOR_AGENTS.md is identified.",
+    "digest": null
+  },
+  "actions": [
+    {
+      "kind": "type",
+      "literal": "/setup-benny",
+      "expect": "Entire source pack merges into <target>/.cursor/automations/benny/ creating the destination when absent, copying every source file to the same relative path, preserving destination-only files, never overwriting user-owned configuration or feature or routing maps outside the destination, merging source-managed conflicts without discarding local edits or stopping when ownership is ambiguous, and verifying required pack files exist afterward."
+    }
+  ],
+  "execution": {
+    "pairId": "setup-benny-pack-merge-1",
+    "verdict": "pass",
+    "pair": "parity/evidence/setup-benny/pair-setup-benny-pack-merge-1.json",
+    "attempts": {
+      "cursor": "d9e476af-9b22-46f2-90fd-1d42cc2e068b",
+      "pi": "fe70b3f6-7866-4469-bc4e-fa045d67f52d"
+    }
+  }
+}

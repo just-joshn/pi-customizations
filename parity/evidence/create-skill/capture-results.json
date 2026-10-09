@@ -1,0 +1,21 @@
+{
+  "scenario": "create-skill:phase-3-implementation",
+  "pairPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/pair-create-skill-impl-1.json",
+  "reread": {
+    "cursor": {
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-out/cursor/SKILL.md",
+      "nameOk": true,
+      "hasMarker": true,
+      "byteLength": 332
+    },
+    "pi": {
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-out/pi/SKILL.md",
+      "nameOk": true,
+      "hasMarker": true,
+      "byteLength": 450,
+      "livePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-app/.pi/skills/parity-create-skill-probe/SKILL.md"
+    }
+  },
+  "cursorAttemptId": "67eb4a01-244d-4d1a-a27d-5b09b30d426e",
+  "piAttemptId": "f4c14017-4188-461c-9fa0-076e7995059d"
+}

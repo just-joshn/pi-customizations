@@ -1,0 +1,34 @@
+    ▎    9 + - `hello-quiet` writes nothing to stderr.
+    ▎   10 + 
+    ▎   11 + ## How to get to it (user POV)
+    ▎   12 + 
+    ▎   13  … truncated (18 more lines) · ctrl+r to review
+
+  Skill files on disk:
+
+  • /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app/.cursor/skil
+    ls/verify-hello-cli/SKILL.md
+  • /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app/.cursor/skil
+    ls/verify-hello-cli/features/README.md
+  • /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app/.cursor/skil
+    ls/verify-hello-cli/features/hello-print.md
+
+                                                                                                                       
+  Second turn reuse. Discover the verify-hello-cli skill you just generated at                                         
+  /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app/.cursor/skil       
+  ls/verify-hello-cli/SKILL.md. Do not regenerate it. Read its Launch or Doctor section, then write exactly one        
+  line to                                                                                                              
+  /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-out/cursor/reuse       
+  .txt:                                                                                                                
+  REUSED=/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app/.curs       
+  or/skills/verify-hello-cli/SKILL.md. Stop after that write.                                                          
+                                                                                                                       
+
+ ⠠⠛ Working
+
+                                                                                                                       
+  → Add a follow-up                                                                                     ctrl+c to stop 
+                                                                                                                       
+
+  Auto · 11.2% · 3 files edited                                                                         Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app · refactor/pi-pstack-parity-again

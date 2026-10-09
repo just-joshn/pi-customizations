@@ -1,0 +1,40 @@
+ {"name":"benny-triage","description":"Triage top-level Slack messages in the fixture channel into tracker issues      │
+ (triage only; no repro).","instructions":"On each top-level message in the configured Slack channel                   │
+ (C-FIXTURE-TEST-CHANNEL), triage it using .cursor/benny/configuration.yaml, .cursor/benny/feature-map.md and          │
+ .cursor/benny/routing.md. Classify the report, identify the likely feature area, and propose or file a tracker issue  │
+ via the configured adapter skill. Do not reproduce bugs. Do not post to Slack during                                  │
+ creation.","trigger":{"type":"slack.top_level","channelId":"C-FIXTURE-TEST-CHANNEL"},"tools":["Bash","Read"],"operati │
+ onalPath":".cursor/benny","revision":"534365502137afcdceee0f09bb0cf65e3705348b63593b9c7d50f2f5e7f41816","directory":" │
+ /tmp/pi-ref-agent/pstack-automations/946c9b94f763e49e1ae7ec0b014b4a5dabd683ccdb321a630fb4e2c4299a6f75/f8967a6f-7cd2-4 │
+ ef1-a75a-eae224403fb4","kind":"disabled","automationId":"f8967a6f-7cd2-4ef1-a75a-eae224403fb4"}                       │
+                                                                                                                       │
+                                                                                                                       │
+ ┌──────────────┬────────────────────────────────────────┬────────────┬─────────────────┬──────────┐                   │
+ │ name         │ trigger                                │ tools      │ revision        │ kind     │                   │
+ ├──────────────┼────────────────────────────────────────┼────────────┼─────────────────┼──────────┤                   │
+ │ benny-triage │ slack.top_level C-FIXTURE-TEST-CHANNEL │ Bash, Read │ 53436550…f41816 │ disabled │                   ┃
+ └──────────────┴────────────────────────────────────────┴────────────┴─────────────────┴──────────┘                   ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ AutomationOpenEditor automationId="f8967a6f-7cd2-4ef1-a75a-eae224403fb4"                                              ┃
+                                                                                                                       ┃
+
+ ┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+ │ benny-triage                                                                                                       │
+ │ State: Inactive                                                                                                    │
+ │                                                                                                                    │
+ │   Description: Triage top-level Slack messages in the fixture channel into tracker issues (triage only; no repro). │
+ │   Instructions: On each top-level message in the configured Slack channel (C-FIXTURE-TEST-CHANNEL), triage it      │
+ │                 using .cursor/benny/configuration.yaml, .cursor/benny/feature-map.md and .cursor/benny/routing.md. │
+ │                 Classify the report, identify the likely feature area, and propose or file a tracker issue via the │
+ │                 configured adapter skill. Do not reproduce bugs. Do not post to Slack during creation.             │
+ │   Trigger: {"type":"slack.top_level","channelId":"C-FIXTURE-TEST-CHANNEL"}                                         │
+ │   Tools: Bash, Read                                                                                                │
+ │ › Action: Save (keeps Inactive / disabled)                                                                         │
+ │   Action: Cancel                                                                                                   │
+ │                                                                                                                    │
+ │ ↑/↓ field · Enter edit/save · Esc cancel                                                                           │
+ │ chrome:pi-automations-editor-v1                                                                                    │
+ └────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+~/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/creation-boundary/fixture-app (refactor/pi-pstack-p...
+↑8 ↓815 R63k W19k CH96.9% $0.098 (sub) 2.9%/1.0M (auto)                 (claude-subscription) claude-sonnet-5-5 • medium

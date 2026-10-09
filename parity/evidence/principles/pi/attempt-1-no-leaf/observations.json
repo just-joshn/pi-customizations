@@ -1,0 +1,84 @@
+{
+  "score": {
+    "frontmatterOk": true,
+    "leafSkillRead": false,
+    "usedChrome": false,
+    "modelAutoInvoke": false,
+    "keptVerifyOk": true,
+    "ranCheck": true,
+    "directArtifactVerify": true,
+    "productFixed": true,
+    "verifiedDone": true,
+    "contractHeld": false,
+    "screen": {
+      "potetoMode": false,
+      "leafChrome": false,
+      "hostAttached": false,
+      "verifyMention": true,
+      "working": false
+    },
+    "pty": {
+      "potetoMode": true,
+      "leafChrome": false,
+      "hostAttached": false,
+      "verifyMention": true,
+      "working": true
+    }
+  },
+  "firstProductAt": "2026-10-09T00:12:00.554Z",
+  "firstVerifyAt": "2026-10-09T00:11:58.147Z",
+  "productPaths": [
+    "src/add.js"
+  ],
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/fixture-out/pi/done.txt",
+    "line": "verified=yes"
+  },
+  "verifyOut": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/fixture-app/evidence/verify-out.txt",
+    "line": "ADD-OK value=5",
+    "ok": true
+  },
+  "productFixed": true,
+  "frontmatter": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-prove-it-works/SKILL.md",
+    "ok": true,
+    "name": "principle-prove-it-works",
+    "disableModelInvocation": true
+  },
+  "session": {
+    "sessionPath": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-principles-fixture-app--/2026-10-09T00-11-48-817Z_01a11e00-74d1-7540-820c-041faef55989.jsonl",
+    "hostAttached": false,
+    "leafSkillRead": false,
+    "leafSkillReadAt": null,
+    "ranVerifyScript": true,
+    "ranNodeCheck": false,
+    "toolOrder": [
+      "read",
+      "bash(verify.mjs)",
+      "TodoWrite",
+      "bash(verify.mjs)",
+      "edit",
+      "bash(verify.mjs)",
+      "bash"
+    ]
+  },
+  "transcript": null,
+  "pollSamples": 40,
+  "screenFinal": {
+    "potetoMode": false,
+    "leafChrome": false,
+    "hostAttached": false,
+    "verifyMention": true,
+    "working": false
+  },
+  "pty": {
+    "potetoMode": true,
+    "leafChrome": false,
+    "hostAttached": false,
+    "verifyMention": true,
+    "working": true
+  }
+}

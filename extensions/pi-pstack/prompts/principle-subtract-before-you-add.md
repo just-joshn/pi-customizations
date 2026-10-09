@@ -3,8 +3,20 @@ description: "Invoke the bundled principle-subtract-before-you-add workflow."
 argument-hint: "[task]"
 ---
 
-Read principle-subtract-before-you-add/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.
-Follow those instructions, resolving references and supporting scripts relative to that skill directory.
-If the pstack host contract is unavailable, report that the package extension must be enabled to locate this bundled skill. Do not invent a path.
+# Subtract before you add
+
+When evolving a system, remove complexity first, then build.
+
+**Why:** Adding to a complex system compounds complexity. Removing first leaves less code, reveals the essential structure, and usually makes the next design obvious. Default to subtraction.
+
+Make simplification a continual investment. Leave the design slightly simpler and more capable behind the same or smaller surface than you found it.
+
+**The pattern:**
+- Sequence removal before construction
+- Cut before you polish (get to the minimum before investing in quality)
+- Design for observed usage, not speculative edge cases
+- No speculative validators, parsers, or guards beyond what the spec demands
+- Simplify prompts (remove redundant instructions, excessive templates)
+- When a reference has no novel content, delete it rather than leaving a stub
 
 $ARGUMENTS

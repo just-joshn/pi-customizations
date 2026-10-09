@@ -1,0 +1,36 @@
+ roles already have real medium-effort values including xai/grok-4.7:medium and claude-subscription/claude-*:medium,   │
+ plus bug-fix: auto and how explorer: inherit-parent. Apply effort mapping only: every Claude real value becomes       │
+ provider/id:max; every xai/grok real value becomes provider/id:xhigh (never :max). Panel list entries included. Pass  │
+ those remapped values as roleOverrides on pstack_setup write. The write tool does not remap for you. Do not replace   │
+ real model values with inherit-parent or auto. Keep bug-fix as auto and how explorer as inherit-parent exactly. If    │
+ any Grok slug is unavailable / not in availableModels, report that and stop. Do not drop Grok from the table to force │
+ a write. Accept that remapped table and write the rule. Do not stop to ask which option. Decline any verification     │
+ skill offer.                                                                                                          │
+                                                                                                                       │
+                                                                                                                       │
+ Thinking...                                                                                                           │
+                                                                                                                       │
+ I stopped before writing anything. xai/grok-4.7 isn't in the detected models, so the rule is unchanged.               │
+                                                                                                                       │
+ The detected list has no xai/* entries at all. Your instructions say to report this and stop if a Grok slug is        │
+ unavailable, and not to drop Grok from the table to force a write. The Claude slug                                    │
+ claude-subscription/claude-opus-5-5 is available.                                                                     │
+                                                                                                                       │
+ The remapped table you asked for (unlimited, budget line unlimited (max)) would have been:                            ┃
+ - Claude roles: claude-subscription/claude-opus-5-5:max                                                               ┃
+ - Grok roles: xai/grok-4.7:xhigh                                                                                      ┃
+ - Unchanged: bug-fix: auto and how explorer: inherit-parent                                                           ┃
+ - Panel lists: each entry is remapped the same way.                                                                   ┃
+                                                                                                                       ┃
+ Tell me how to proceed:                                                                                               ┃
+ - Make an xai model available and re-run.                                                                             ┃
+ - Swap Grok for a detected model, such as another Claude or OpenAI slug.                                              ┃
+ - Set the Grok roles to inherit-parent or auto.                                                                       ┃
+                                                                                                                       ┃
+ I also skipped the verification-skill offer, as you said.                                                             ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run (refactor/pi-pstack-parity-again)
+↑10 ↓1.4k R94k W22k CH96.3% $0.123 (sub) 3.1%/1.0M (auto)               (claude-subscription) claude-sonnet-5-5 • medium

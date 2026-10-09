@@ -1,0 +1,139 @@
+{
+  "schema": 1,
+  "pairId": "teach-how-why-1",
+  "scenarioRef": "cmd-teach-how-why",
+  "journeyFamily": "journey-cmd-teach-how-why",
+  "requirementIds": [
+    "PSTACK-CMD-TEACH-HOW-WHY-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "/teach how src/clamp.js works and why bound checks live in the helper; run how and why as real skill invocations; write how.md then why.md then teach.md then done.txt; no product edits",
+  "steps": [
+    {
+      "send": "/teach me how src/clamp.js works and why bound checks live in this helper rather than at every call site. ..."
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "settle": true
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "738b745d-a4e0-464e-809a-928d12529074",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/teach/cursor/738b745d-a4e0-464e-809a-928d12529074",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "observations": {
+      "teachSkill": true,
+      "howSkill": true,
+      "whySkill": true,
+      "howPath": "parity/evidence/teach/fixture-out/cursor/how.md",
+      "whyPath": "parity/evidence/teach/fixture-out/cursor/why.md",
+      "teachPath": "parity/evidence/teach/fixture-out/cursor/teach.md",
+      "doneLine": "teach=yes how=yes why=yes order=how-why-before-teach",
+      "orderOk": true,
+      "order": "how-why-before-teach",
+      "mtimeOrder": "grounding-mtime-before-teach",
+      "howShape": "Overview / Key Concepts / How It Works / Where Things Live / Gotchas",
+      "whyShape": "Sources Consulted + Confidence Summary with Direct/Inferred hedges",
+      "productUnchanged": true,
+      "productDigest": "sha256:cebd582de9b2c7a8c4a915bcbcc4ef2d7295f25ed18e043b102a3b8a58c96f8a",
+      "scorerNote": "Authoritative order is how.md/why.md mtimes before teach.md plus content shapes. Harness howSkill/whySkill also fire on /how.md and /why.md path tokens in the prompt; do not treat those chrome flags alone as skill-load proof."
+    }
+  },
+  "pi": {
+    "attemptId": "9056a9b3-2f90-4015-b907-8895a599ae3a",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/teach/pi/9056a9b3-2f90-4015-b907-8895a599ae3a",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-teach-fixture-app--/2026-10-08T21-39-37-964Z_01a11d75-216c-77a0-935e-75baf7b3b062.jsonl",
+    "observations": {
+      "teachSkill": true,
+      "howSkill": true,
+      "whySkill": true,
+      "howPath": "parity/evidence/teach/fixture-out/pi/how.md",
+      "whyPath": "parity/evidence/teach/fixture-out/pi/why.md",
+      "teachPath": "parity/evidence/teach/fixture-out/pi/teach.md",
+      "doneLine": "teach=yes how=yes why=yes order=how-why-before-teach",
+      "orderOk": true,
+      "order": "how-why-before-teach",
+      "mtimeOrder": "grounding-mtime-before-teach",
+      "sessionToolOrder": [
+        "bash",
+        "read(how/SKILL.md)",
+        "read(why/SKILL.md)",
+        "task",
+        "task",
+        "read_agent",
+        "read_agent",
+        "bash"
+      ],
+      "skillInjection": "session user message embeds <skill name=\"teach\"> from extensions/pi-pstack/skills/teach/SKILL.md; residual prompt keeps how/why ask",
+      "productUnchanged": true,
+      "productDigest": "sha256:cebd582de9b2c7a8c4a915bcbcc4ef2d7295f25ed18e043b102a3b8a58c96f8a",
+      "scorerNote": "Session shows teach inject, then parallel read of how/SKILL.md and why/SKILL.md, then two task agents, then final bash write of markers. mtime how <= why <= teach."
+    }
+  },
+  "deltas": [
+    {
+      "topic": "how/why grounding before teach",
+      "cursor": "how.md then why.md then teach.md by mtime; how shape Key Concepts/How It Works; why shape Sources Consulted/Confidence Summary; done order=how-why-before-teach.",
+      "pi": "session reads how+why skills then task x2 then marker write; same three artifacts and done line; mtime grounding before teach.",
+      "reconciled": true
+    },
+    {
+      "topic": "how/why invocation mechanism",
+      "cursor": "Artifact shapes prove how/why-style investigation; PTY lacked Used how/Used why chrome strings on this run.",
+      "pi": "Explicit read(how/SKILL.md)+read(why/SKILL.md) and parallel explore tasks named how-clamp/why-clamp.",
+      "reconciled": true
+    },
+    {
+      "topic": "harness skill chrome flags",
+      "cursor": "howSkill/whySkill true partly from /how.md and /why.md path tokens in the typed prompt.",
+      "pi": "Same path-token risk for flags; session toolOrder is the stronger host proof.",
+      "reconciled": true
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "Auto / parent chat chrome on PTY.",
+      "pi": "claude-sonnet-5-5 • medium (claude-subscription).",
+      "reconciled": false
+    },
+    {
+      "topic": "diagram medium",
+      "cursor": "Settled screen shows ASCII/mermaid-style clamp flow diagrams in the teach explanation.",
+      "pi": "Plain prose explanation without diagram series on settled screen.",
+      "reconciled": true
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-teach-how-why.mjs --cursor-only then --pi-only",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "packagePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack",
+    "markerRoot": "parity/evidence/teach/fixture-out/{cursor,pi}/",
+    "heldOutFixture": "parity/evidence/teach/fixture-app (src/clamp.js + README.md)",
+    "auditTrail": "parity/evidence/teach/.audit/u-journey-cmd-teach.tsv"
+  }
+}

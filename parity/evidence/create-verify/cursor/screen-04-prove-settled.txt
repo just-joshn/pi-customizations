@@ -1,0 +1,39 @@
+    ▎    8 + - Exit status 0 with empty stderr.
+    ▎    9 + 
+    ▎   10 + ## How to get to it (user POV)
+    ▎   11 + 
+    ▎   12 + From the repo root, a user runs `./hello.sh`. It takes no arguments.
+    ▎   13  … truncated (9 more lines) · ctrl+r to review
+
+  Running the live prove: launch → doctor → drive → evidence check → cleanup → confirm evidence survives.
+
+  $ set -e
+    # Launch 282ms
+    … 32 input + 22 output lines hidden · ctrl+o to expand
+    0
+    0 .cursor/skills/verify-hello-cli/evidence/hello-stderr.txt
+
+  Prove passed: ./hello.sh printed HELLO-FAMILY-13, exit 0; evidence survived cleanup.
+
+  For keeping the feature map honest as the app changes, use /maintain-verification-skill.
+
+  Skill
+  • /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app/.cursor/skil
+    ls/verify-hello-cli/SKILL.md
+
+  Surviving evidence
+  • /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app/.cursor/skil
+    ls/verify-hello-cli/evidence/hello-stdout.txt
+  • /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app/.cursor/skil
+    ls/verify-hello-cli/evidence/hello-stderr.txt
+  • /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app/.cursor/skil
+    ls/verify-hello-cli/evidence/hello-exit-code.txt
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 11.2% · 3 files edited                                                                         Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app · refactor/pi-pstack-parity-again

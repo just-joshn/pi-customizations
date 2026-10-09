@@ -1,0 +1,39 @@
+    ▎   12 + EVIDENCE_REMAINS=yes
+    ▎   13  … truncated (3 more lines) · ctrl+r to review
+
+  The result is clean: the live pass ran and passed. I didn't edit the skill, and there's no branch or PR.
+  /maintain-verification-skill wasn't installed in this session, so I followed its definition from the cached pstack
+  plugin.
+
+  How each step went:
+  • Index hygiene: the feature map lists exactly one file, hello-print.md, and that is the only file there.
+    Nothing to fix.
+  • Source check: one read-only subagent read the one feature from source. It didn't run anything. It found no
+    drift between the skill, the feature file, hello.sh and README.md. The app is a two-line script, so the map
+    isn't missing any features.
+  • Live pass: I ran all the commands myself in a fresh, isolated shell, and ran the skill's doctor check before
+    the drive. It printed #!/bin/sh and doctor-ok. Then I drove the one feature (hello print, so 1 of 1
+    exercised). Output matched exactly:
+    • stdout.txt is the 16 bytes HELLO-FAMILY-13\n.
+    • stderr.txt is empty.
+    • exit-code.txt contains 0.
+  • Cleanup and teardown: I listed the directory's files before and after. The only new files were the three
+    evidence files at .cursor/evidence/verify-hello-cli/. No hello.sh process was left running, and I deleted my
+    scratch files in /tmp. The evidence files were still in place after teardown.
+  • Not applicable: doctor never failed, so no drift fix or retry was needed. The feature was reachable, so
+    nothing is marked unreachable. I made no harness fixes, so nothing needed a re-drive.
+
+  hello.sh, README.md, the parity ledgers and pstack-models.mdc were not touched.
+
+  The marker file is at parity/evidence/maintain-verify/fixture-out/live-pass/cursor/live-pass-marker.txt, with
+  OUTCOME=clean and BLOCKER=none.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Claude Opus 5.5 300K Medium · 16.8% · 1 file edited                                                   Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app-live-pass · 
+  refactor/pi-pstack-parity-again

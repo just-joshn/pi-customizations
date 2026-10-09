@@ -1,0 +1,39 @@
+  ├───────────────────────────────────────┼─────────────────────────────────────────────┼──────────────────────────┤
+  │ After writing the asked files, the    │ Front-load description triggers for         │ tune description:        │
+  │ agent self-reported done and treated  │ post-edit proof: re-read or diff the real   │ /Users/josh-desktop/.cla │
+  │ “stop and wait” as skipping an        │ files before declaring done, including when │ ude/skills/principle-pro │
+  │ artifact check.                       │ the user said stop-and-wait.                │ ve-it-works/SKILL.md     │
+  └───────────────────────────────────────┴─────────────────────────────────────────────┴──────────────────────────┘
+
+  Rejected
+
+  • Principle: Do not load a reflect skill written for a different host’s transcript root and delegation tool.
+  • Reason: duplicate
+
+  • Principle: Path-shaped coincidences are not invocations — do not preload reflect because the cwd sits under a
+    similarly named tree.
+  • Reason: already-covered
+
+  • Principle: Paired code and normative doc edits can “pass” while teaching opposite lessons if nobody checks
+    them together.
+  • Reason: decision-changing
+
+  Backlog
+
+  • Pattern: Cursor sessions surface both ~/.claude/skills/reflect and ~/.codex/skills/reflect, so agents Read the
+    Claude Code body on ordinary coding turns before /reflect.
+  • What was hit: First clamp turn opened the Claude copy with no user reflect request; later /reflect recovered
+    onto the Codex/Cursor copy.
+  • Suggested mechanism: Host-scope skill discovery or a required frontmatter host: / install filter so the wrong
+    tree never appears in the catalog.
+
+  No skill edits applied. Wrote parity/evidence/reflect/fixture-out/cursor/done.txt → reflect=yes.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 19.5% · 2 files edited                                                                         Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/reflect/fixture-app · refactor/pi-pstack-parity-again

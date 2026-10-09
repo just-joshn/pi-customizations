@@ -1,0 +1,122 @@
+{
+  "schema": 1,
+  "pairId": "reflect-trigger-1",
+  "scenarioRef": "cmd-reflect-trigger",
+  "journeyFamily": "journey-family-06-multiworker-designs-reviews",
+  "requirementIds": [
+    "PSTACK-CMD-REFLECT-TRIGGER-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "turn1 clamp+NOTES boundary note; turn2 /reflect three-lens reviewers + synthesizer; present Accepted/Rejected/Backlog; write reflect=yes|skipped|fail to fixture-out/<side>/done.txt; no skill apply",
+  "steps": [
+    { "send": "substantive clamp + NOTES.md edit in fixture cwd" },
+    { "send": "\r" },
+    { "settle": true },
+    { "send": "/reflect ... three reviewers + synthesizer; present lists; done.txt marker" },
+    { "send": "\r" },
+    { "settle": true },
+    { "cancel": true }
+  ],
+  "cursor": {
+    "attemptId": "1ad53d5a-d80b-462e-94da-a55a17bffae7",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/reflect/cursor/1ad53d5a-d80b-462e-94da-a55a17bffae7",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "observations": {
+      "reflectSkill": true,
+      "skillSource": "slash /reflect via plugin-dir pstack skill",
+      "multiAgentReview": true,
+      "skippedReflect": false,
+      "doneLine": "reflect=yes",
+      "ptyLensHits": 3,
+      "ptyJudgment": true,
+      "ptyTooling": true,
+      "ptyDivergent": true,
+      "ptySpawnSignal": true,
+      "ptySynthesizer": true,
+      "settledScreenShowsRejectedBacklog": true,
+      "signalScreenShowsAcceptedRejectedBacklog": true,
+      "scorerNote": "Settled screen keeps Rejected/Backlog; Accepted and lens names live in earlier PTY/signal screens"
+    }
+  },
+  "pi": {
+    "attemptId": "09278a2c-bebe-4d95-b358-439cdc456fe5",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/reflect/pi/09278a2c-bebe-4d95-b358-439cdc456fe5",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-reflect-fixture-app--/2026-10-08T21-31-04-372Z_01a11d6d-4b34-7337-8586-0bd48da0856b.jsonl",
+    "observations": {
+      "reflectSkill": true,
+      "skillSource": "session injects extensions/pi-pstack/skills/reflect/SKILL.md",
+      "multiAgentReview": true,
+      "skippedReflect": false,
+      "doneLine": "reflect=yes",
+      "sessionTaskCount": 4,
+      "sessionToolOrder": ["bash", "bash", "bash", "bash", "task", "task", "task", "read_agent", "read_agent", "read_agent", "task", "bash"],
+      "sessionLensHits": 3,
+      "sessionSynthesizer": true,
+      "settledScreenShowsRejectedBacklog": true,
+      "settledScreenShowsReflectToolingAgent": true,
+      "scorerNote": "Harness skipped=true was a false positive from Rejected/Backlog prose about the skill skip rule; done.txt and task x3 + synthesizer task prove reflect ran"
+    }
+  },
+  "deltas": [
+    {
+      "topic": "reflect trigger + three-lens multi-agent review",
+      "cursor": "done reflect=yes; PTY lensHits 3 (judgment/tooling/divergent); synthesizer Accepted/Rejected/Backlog on settled screen.",
+      "pi": "done reflect=yes; session toolOrder has three task then three read_agent then synthesizer task; settled screen names reflect-tooling agent and Accepted/Rejected/Backlog.",
+      "reconciled": true
+    },
+    {
+      "topic": "transcript location",
+      "cursor": "Cursor reflect skill uses workspace agent-transcripts (or digest fallback).",
+      "pi": "Pi skill looks under ~/.claude/projects or session digest; this run still fanned out on session material.",
+      "reconciled": true
+    },
+    {
+      "topic": "harness skipped flag",
+      "cursor": "skipped=false matches done.txt.",
+      "pi": "raw observations.skipped true from prose about skip rules; authoritative done line is reflect=yes.",
+      "reconciled": true
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "Auto / parent chat chrome on PTY.",
+      "pi": "claude-sonnet-5-5 • medium (claude-subscription).",
+      "reconciled": false
+    },
+    {
+      "topic": "NOTES.md wording",
+      "cursor": "notesDigest 7633972ee3da4f943201a49fbc19cef4fc2143b1c860e6a235906d41f0504f1f",
+      "pi": "notesDigest 49c8e61bb87c822c80c665ca03c65829a2eaaf69c82f043fff0dc353ec063528",
+      "reconciled": true
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-reflect-trigger.mjs --cursor-only then --pi-only",
+    "workerPlaybook": "parity/evidence/reflect/PLAYBOOK.md",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "packagePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack",
+    "markerRoot": "parity/evidence/reflect/fixture-out/{cursor,pi}/",
+    "heldOutFixture": "parity/evidence/reflect/fixture-app (src/clamp.js + NOTES.md)",
+    "auditTrail": "parity/evidence/reflect/.audit/u-journey-cmd-reflect.tsv"
+  }
+}

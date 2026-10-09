@@ -1,0 +1,109 @@
+{
+  "score": {
+    "frontmatterOk": true,
+    "leafSkillRead": true,
+    "usedChrome": true,
+    "modelAutoInvoke": false,
+    "deadWeightGone": true,
+    "capabilityAdded": true,
+    "removedBeforeAdd": true,
+    "speculativeKept": false,
+    "keptVerifyOk": true,
+    "productOk": true,
+    "verifiedDone": true,
+    "contractHeld": true,
+    "screen": {
+      "potetoMode": false,
+      "leafChrome": false,
+      "hostAttached": false,
+      "verifyMention": true,
+      "working": false
+    },
+    "pty": {
+      "potetoMode": true,
+      "leafChrome": false,
+      "hostAttached": true,
+      "verifyMention": true,
+      "working": true
+    }
+  },
+  "firstProductAt": "2026-10-09T00:55:24.503Z",
+  "firstVerifyAt": "2026-10-09T00:55:24.503Z",
+  "firstDeletedAt": "2026-10-09T00:55:24.503Z",
+  "firstCapabilityAt": "2026-10-09T00:55:24.503Z",
+  "productPaths": [
+    "src/greet.js",
+    "deleted:src/legacyValidate.js",
+    "deleted:src/stubRefs.js",
+    "capability:src/greet.js"
+  ],
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/subtract-first/fixture-out/pi/done.txt",
+    "line": "verified=yes"
+  },
+  "verifyOut": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/subtract-first/fixture-app/evidence/verify-out.txt",
+    "line": "SUBTRACT-OK plain=\"hello, world\" shout=\"HELLO, WORLD\" files=core.js,greet.js",
+    "ok": true
+  },
+  "oracle": {
+    "plainOk": true,
+    "shoutOk": true,
+    "legacyGone": true,
+    "stubGone": true,
+    "deadWeightGone": true,
+    "capabilityAdded": true,
+    "speculativeKept": false,
+    "productOk": true,
+    "srcFiles": [
+      "core.js",
+      "greet.js"
+    ]
+  },
+  "productOk": true,
+  "frontmatter": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-subtract-before-you-add/SKILL.md",
+    "ok": true,
+    "name": "principle-subtract-before-you-add",
+    "disableModelInvocation": true
+  },
+  "session": {
+    "sessionPath": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-principles-subtract-first-fixture-app--/2026-10-09T00-55-09-171Z_01a11e28-2273-738a-a464-2e0c0d26095c.jsonl",
+    "hostAttached": false,
+    "leafSkillRead": true,
+    "leafSkillReadAt": "2026-10-09T00:55:14.650Z",
+    "ranVerifyScript": true,
+    "firstDeadDeleteAt": null,
+    "firstCapabilityWriteAt": null,
+    "removedBeforeAdd": false,
+    "toolOrder": [
+      "bash(verify.mjs)",
+      "read",
+      "read(subtract-leaf)",
+      "blob-mention(subtract-leaf)",
+      "TodoWrite(verify.mjs)",
+      "bash(verify.mjs)",
+      "bash",
+      "bash(verify.mjs)",
+      "bash"
+    ]
+  },
+  "transcript": null,
+  "pollSamples": 32,
+  "screenFinal": {
+    "potetoMode": false,
+    "leafChrome": false,
+    "hostAttached": false,
+    "verifyMention": true,
+    "working": false
+  },
+  "pty": {
+    "potetoMode": true,
+    "leafChrome": false,
+    "hostAttached": true,
+    "verifyMention": true,
+    "working": true
+  }
+}

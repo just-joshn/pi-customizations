@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "cmd-automate-me-existing-skill",
+  "status": "executed-pass-paired",
+  "requirements": [
+    "PSTACK-CMD-AUTOMATE-ME-EXISTING-SKILL-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/automate-me/SKILL.md#automate-me step 0 checks for an existing personal -mode skill",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Seeded parity-fixture-mode skill under host skill root; explicit update prompt.",
+    "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Invoke automate-me at the start of the flow.. The skill searches for an existing matching -mode skill and, if found without an explicit update request, confirms update-versus-fresh intent before drafting."
+    }
+  ],
+  "execution": {
+    "referenceRun": "3064817a-7f0e-4b58-a466-99ed71b4f99c",
+    "candidateRun": "cf572eb4-8f89-4044-b2aa-7cd5507c41eb",
+    "pairId": "automate-me-existing-skill-1",
+    "pairPath": "parity/evidence/automate-me/pair-automate-me-existing-skill-1.json",
+    "verdict": "pass-paired",
+    "closedAt": "2026-10-08T21:10:00Z",
+    "note": "Explicit-update refresh in place only; AskQuestion confirm branch not in this pair."
+  }
+}

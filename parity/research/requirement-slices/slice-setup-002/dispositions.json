@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "sliceId": "slice-setup-002",
+  "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "leftoverPathsFromSliceSetup001": [
+    "pstack/automations/benny/skills/setup-benny/SKILL.md",
+    "pstack/skills/create-verification-skill/SKILL.md",
+    "pstack/skills/create-verification-skill/references/feature-map-example/README.md",
+    "pstack/skills/create-verification-skill/references/feature-map-example/create-note.md",
+    "pstack/skills/create-verification-skill/references/feature-map-example/search.md",
+    "pstack/skills/maintain-verification-skill/SKILL.md"
+  ],
+  "dispositions": [
+    {
+      "path": "pstack/skills/create-verification-skill/references/feature-map-example/README.md",
+      "disposition": "non-requirement-example-asset",
+      "reason": "Illustrative Notes app feature-map index. Shape contract for real maps is required by PSTACK-SETUP-CREATE-VERIFY-FEATURE-MAP-001 against create-verification-skill/SKILL.md, not by this example tree.",
+      "fileSha256": "cb7bd782cf89968a4ba3d58a5151db837430db92d19a6f52a906973b77b516ba",
+      "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba"
+    },
+    {
+      "path": "pstack/skills/create-verification-skill/references/feature-map-example/create-note.md",
+      "disposition": "non-requirement-example-asset",
+      "reason": "Sample feature recipe for a fictional Notes app. Not a shipped product surface; example asset only.",
+      "fileSha256": "644a44c74f35d38c2feb7cd05a0121fdebbb623e8dc376c185b565a581d1ccf7",
+      "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba"
+    },
+    {
+      "path": "pstack/skills/create-verification-skill/references/feature-map-example/search.md",
+      "disposition": "non-requirement-example-asset",
+      "reason": "Sample feature recipe for a fictional Notes app. Not a shipped product surface; example asset only.",
+      "fileSha256": "6e87b9e7f2791a7776ba1bb83f371cd285c306c67f19d245cc4dd6ca3015c823",
+      "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba"
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+
+  $ node scripts/verify.mjs > evidence/verify-stdout.txt 2>&1; echo "exit=$?"; cat evidence/verify-stdout.txt; echo
+    '---'; printf 'verified=yes\n' > /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principle
+    s/test-behavior/fixture-out/cursor/done.txt && cat /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/
+    evidence/principles/test-behavior/fixture-out/cursor/done.txt; echo '---'; ls evidence; cat test/slugify.test.js
+    387ms
+    … 21 output lines hidden · ctrl+o to expand
+      assert.strictEqual(slugify('Hello, World!'), 'hello-world');
+    });
+
+  The test now calls slugify('Hello, World!') and asserts the literal 'hello-world'. node scripts/verify.mjs prints
+  TEST-OK, and the done file says verified=yes.
+
+  Before the change, the verify run reported TEST-FAIL because the old test only checked that the call did not
+  throw.
+
+  Principle applied: Test Behavior, Not Implementation. The old doesNotThrow test would still pass if slugify
+  returned undefined. The new assertion fails for any output other than hello-world.
+
+  Principle read in full: Prove It Works. I verified by running the real script and reading its output, not by
+  inferring from a compile or a proxy.
+
+  Files changed in this fixture:
+  • test/slugify.test.js: rewritten as described above.
+  • evidence/verify-out.txt: the one-line verify result, written by the script.
+  • evidence/verify-stdout.txt: the full run log.
+
+  Outside the cwd, I wrote only the named done path,
+  parity/evidence/principles/test-behavior/fixture-out/cursor/done.txt, which contains verified=yes.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Claude Haiku 5.5 300K High · 16.2% · 1 file edited                                                    Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/principles/test-behavior/fixture-app · 
+  refactor/pi-pstack-parity-again

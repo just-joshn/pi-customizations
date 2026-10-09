@@ -1,0 +1,10 @@
+{
+  "attemptId": "a215b764-ed5b-4693-aa0f-9064de3643f6",
+  "mode": "new-automation-rel-coords",
+  "evidenceDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/creation-boundary/agents-window/a215b764-ed5b-4693-aa0f-9064de3643f6",
+  "didNot": [
+    "save",
+    "enable Benny",
+    "Slack"
+  ]
+}

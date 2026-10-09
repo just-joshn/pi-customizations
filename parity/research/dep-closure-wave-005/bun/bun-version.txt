@@ -1,0 +1,2 @@
+1.4.2
+/Users/josh-desktop/.local/share/mise/installs/bun/latest/bin/bun

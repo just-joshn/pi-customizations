@@ -1,0 +1,33 @@
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Use /debug to instrument and debug complex problems.
+
+                                                                                                                       
+  /setup-pstack                                                                                                        
+                                                                                                                       
+
+    Read …op/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/setup-pstack/SKILL.md
+
+  Running the setup-pstack skill. First, let me load the current rule state.
+
+    Read /Users/josh-desktop/.cursor/rules/pstack-models.mdc
+
+  Found your existing rule: budget small, and every role is inherit-parent (everything runs on the parent chat
+  model). Step 3a — pick a budget:
+
+ ┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+ │ Clarifying Questions                                                                                               │
+ │                                                                                                                    │
+ │ Question 1 of 1                                                                                                    │
+ │                                                                                                                    │
+ │ 1. What reasoning budget should pstack target? Your current rule records `small — medium reasoning`.               │
+ │                                                                                                                    │
+ │   › [ ] unlimited — max reasoning                                                                                  │
+ │     [ ] large — xhigh reasoning                                                                                    │
+ │     [ ] medium — high reasoning                                                                                    │
+ │     [ ] small — medium reasoning (current)                                                                         │
+ │     [ ] Other: (type to answer)                                                                                    │
+ │                                                                                                                    │
+ │ ↑/↓ option · ←/→ question · Space select · Enter next/submit · Esc to skip                                         │
+ └────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘

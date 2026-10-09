@@ -1,0 +1,16 @@
+{
+  "attemptId": "c325e399-50f8-4b96-8132-f4eabe04c4b8",
+  "mode": "benny-new-automation-ax-click",
+  "evidenceDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/creation-boundary/agents-window/c325e399-50f8-4b96-8132-f4eabe04c4b8",
+  "clickedIndex": "171",
+  "allIndices": [
+    "171"
+  ],
+  "didNot": [
+    "save automation",
+    "enable Benny",
+    "Slack",
+    "fabricate editor save"
+  ],
+  "intent": "witness Automations editor chrome after New Automation; cancel without save"
+}

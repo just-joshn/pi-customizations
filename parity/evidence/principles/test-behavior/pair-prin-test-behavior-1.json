@@ -1,0 +1,137 @@
+{
+  "schema": 1,
+  "pairId": "prin-test-behavior-1",
+  "scenarioRef": "prin-test-behavior",
+  "journeyFamily": "journey-family-principles",
+  "requirementIds": [
+    "PSTACK-PRIN-TEST-BEHAVIOR-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "/poteto-mode The unit test in test/slugify.test.js is too weak. Rewrite it so it calls slugify with the concrete input \"Hello, World!\" and asserts the literal result hello-world. node scripts/verify.mjs must print TEST-OK. Keep the verify output under evidence/. For any poteto-mode principle you apply before declaring done, read that principle's leaf SKILL.md in full first (not only the poteto-mode Principles index). Work only inside this fixture cwd. Do not edit ledgers, parity/, or files outside this cwd except the named done path. When verify passes, write exactly one line to <side done path> as verified=yes|no, then stop.",
+  "steps": [
+    {
+      "wait": "ready screen (Tip: on Cursor; Pi chat ready without Trust dialog)"
+    },
+    {
+      "send": "/poteto-mode rewrite weak slugify unit test to concrete input + literal assert; leaf SKILL.md for applied principles; TEST-OK; write verified=yes|no"
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "wait": "on-disk evidence/verify-out.txt with TEST-OK"
+    },
+    {
+      "wait": "behavior-shaped test/slugify.test.js kept"
+    },
+    {
+      "wait": "done marker verified=yes"
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "b70c73d6-63a5-4255-b8a3-62f3217e5704",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/test-behavior/cursor/b70c73d6-63a5-4255-b8a3-62f3217e5704",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "transcript": "/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/agent-transcripts/64f28010-ad07-4cc2-b6ca-1e655b25ba79/64f28010-ad07-4cc2-b6ca-1e655b25ba79.jsonl",
+    "proofCopyPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/test-behavior/fixture-out/cursor/evidence/verify-out.txt",
+    "testCopyPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/test-behavior/fixture-out/cursor/test/slugify.test.js",
+    "observations": {
+      "potetoMode": true,
+      "leafSkillRead": true,
+      "leafSkillPath": "/Users/josh-desktop/.claude/skills/principle-test-behavior-not-implementation/SKILL.md",
+      "behaviorTestOk": true,
+      "callsSubject": true,
+      "literalAssert": true,
+      "weakOnly": false,
+      "keptVerifyOk": true,
+      "verifyLine": "TEST-OK input=\"Hello, World!\" expected=hello-world",
+      "productOk": true,
+      "verifiedDone": true,
+      "modelAutoInvoke": false,
+      "contractHeld": true,
+      "ranVerifyScript": true,
+      "modelChrome": "Claude Haiku 5.5 300K High"
+    }
+  },
+  "pi": {
+    "attemptId": "753e87d4-b2c8-4c0e-8fd4-1ca3bacbcbac",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/test-behavior/pi/753e87d4-b2c8-4c0e-8fd4-1ca3bacbcbac",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-principles-test-behavior-fixture-app--/2026-10-09T00-41-41-351Z_01a11e1b-cee7-73d7-8df2-cc72fe1a5328.jsonl",
+    "proofCopyPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/test-behavior/fixture-out/pi/evidence/verify-out.txt",
+    "testCopyPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/test-behavior/fixture-out/pi/test/slugify.test.js",
+    "observations": {
+      "potetoMode": true,
+      "leafSkillRead": true,
+      "leafSkillPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-test-behavior-not-implementation/SKILL.md",
+      "behaviorTestOk": true,
+      "callsSubject": true,
+      "literalAssert": true,
+      "weakOnly": false,
+      "keptVerifyOk": true,
+      "verifyLine": "TEST-OK input=\"Hello, World!\" expected=hello-world",
+      "productOk": true,
+      "verifiedDone": true,
+      "modelAutoInvoke": false,
+      "contractHeld": true,
+      "ranVerifyScript": true,
+      "modelChrome": "(claude-subscription) claude-sonnet-5-5 • medium"
+    }
+  },
+  "deltas": [
+    {
+      "topic": "leaf skill path",
+      "cursor": "Read ~/.claude/skills/principle-test-behavior-not-implementation/SKILL.md",
+      "pi": "Read extensions/pi-pstack/skills/principle-test-behavior-not-implementation/SKILL.md",
+      "reconciled": true
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "Claude Haiku 5.5 300K High",
+      "pi": "claude-sonnet-5-5 medium via claude-subscription",
+      "reconciled": false
+    },
+    {
+      "topic": "assert API",
+      "cursor": "assert.strictEqual(slugify('Hello, World!'), 'hello-world')",
+      "pi": "assert.equal(slugify('Hello, World!'), 'hello-world')",
+      "reconciled": true
+    },
+    {
+      "topic": "test-behavior outcome",
+      "cursor": "contractHeld. Leaf Read + TEST-OK + behavior-shaped test.",
+      "pi": "contractHeld. Leaf Read + TEST-OK + behavior-shaped test.",
+      "reconciled": true
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-prin-test-behavior.mjs --both",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "fixtureApp": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/test-behavior/fixture-app",
+    "decisionLog": "parity/evidence/principles/test-behavior/.audit/u-journey-prin-test-behavior.tsv",
+    "notes": "PSTACK-PRIN-TEST-BEHAVIOR-001. Dedicated test-behavior/ fixture. Ledgers untouched. disable-model-invocation true on package leaf copies; modelAutoInvoke false on both."
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "ox": 0,
+  "oy": 0,
+  "discardBoxes": [
+    {
+      "width": 50.30202102661136,
+      "height": 15.120212554931634,
+      "y": 435.43989369552884,
+      "text": "Discard",
+      "x": 497.8489893902297
+    }
+  ],
+  "before": {
+    "unsaved": false,
+    "untitled": true,
+    "prefill": false,
+    "draft": false
+  },
+  "click": {
+    "stdout": "property list item Cursor of application process Cursor\n",
+    "stderr": "",
+    "code": 0
+  },
+  "after": {
+    "unsaved": false,
+    "untitled": true,
+    "prefill": false,
+    "draft": false,
+    "head": [
+      "Automations > New Automation",
+      "V New Chat",
+      "\u2022 Search",
+      "\u2022 Automations",
+      "Customize,",
+      "Projects",
+      "+ New Project|",
+      "Pinned",
+      "\u2022 /make-bot-ui|",
+      "Repositories",
+      "G No Repo",
+      "\u2022 Cursor automation setup",
+      "\u2022 Cursor automation setup",
+      "Cursor automation setup",
+      "Cursor automation setup,"
+    ]
+  }
+}

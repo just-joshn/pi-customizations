@@ -1,0 +1,40 @@
+   [ ] Trivial probe: reply with a fixed confirmation when invoked                                                     │
+   [ ] Summarize repo layout/conventions                                                                               │
+   [ ] Something else                                                                                                  │
+                                                                                                                       │
+ 2. Where should it live?                                                                                              │
+   [ ] Project (.pi/skills/)                                                                                           │
+   [ ] Personal (~/.pi/agent/skills/)                                                                                  │
+                                                                                                                       │
+ 3. When should it apply?                                                                                              │
+   [ ] Only when named explicitly                                                                                      │
+   [ ] Auto-invoke from context                                                                                        │
+                                                                                                                       ┃
+ 4. Output format / constraints?                                                                                       ┃
+   [ ] Short plain-text output, SKILL.md only, no scripts                                                              ┃
+   [ ] Include scripts                                                                                                 ┃
+                                                                                                                       ┃
+ 5. Existing patterns to follow?                                                                                       ┃
+   [ ] None; use Pi skill defaults                                                                                     ┃
+   [ ] Mirror existing repo skills                                                                                     ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ Merging constraints and patterns.                                                                                     ┃
+                                                                                                                       ┃
+
+ ┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+ │ create-skill discovery                                                                                             │
+ │                                                                                                                    │
+ │ Question 1 of 4                                                                                                    │
+ │                                                                                                                    │
+ │ 1. What should the probe skill do?                                                                                 │
+ │                                                                                                                    │
+ │   › [ ] Trivial probe: reply with a fixed confirmation when invoked                                                │
+ │     [ ] Summarize repo layout/conventions                                                                          │
+ │     [ ] Something else                                                                                             │
+ │     [ ] Other: (type to answer)                                                                                    │
+ │                                                                                                                    │
+ │ ↑/↓ option · ←/→ question · Space select · Enter next/submit · Esc to skip                                         │
+ └────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+~/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-app (refactor/pi-pstack-parity-again)
+↑8 ↓1.1k R60k W20k CH95.8% $0.102 (sub) 2.8%/1.0M (auto)                (claude-subscription) claude-sonnet-5-5 • medium

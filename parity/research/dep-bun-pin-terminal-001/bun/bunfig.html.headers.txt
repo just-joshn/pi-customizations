@@ -1,0 +1,22 @@
+HTTP 200
+final-url: https://bun.com/docs/runtime/bunfig
+Date: Fri, 09 Oct 2026 02:05:31 GMT
+Content-Type: text/html; charset=utf-8
+Transfer-Encoding: chunked
+Connection: close
+access-control-allow-origin: *
+Age: 7192
+Cache-Control: public, max-age=0, must-revalidate
+content-disposition: inline; filename="bunfig"
+Nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+Report-To: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=ktIi%2FXLHFDly9UhdwSAKd4T%2FUCgxEspAF5Mln9g8YqRVbbv26wdl31YBj5FQY5RXCJrDywNJkdFCFknRNthx6YMdl9Bh0oAXeBbCWGtJbg6%2BFrqNha0dLH%2FhIr8sUGCACnJe4aY%3D"}]}
+last-modified: Fri, 09 Oct 2026 00:05:38 GMT
+Server: cloudflare
+strict-transport-security: max-age=63072000
+x-vercel-cache: HIT
+x-vercel-id: pdx1::c6rld-1791511531792-472c3425c0fc
+cf-cache-status: DYNAMIC
+vary: accept-encoding
+Server-Timing: cfCacheStatus;desc="DYNAMIC"
+Server-Timing: cfEdge;dur=4,cfOrigin;dur=17
+CF-RAY: a479d221ab6231df-PDX

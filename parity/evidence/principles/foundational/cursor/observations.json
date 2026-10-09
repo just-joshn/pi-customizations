@@ -1,0 +1,132 @@
+{
+  "score": {
+    "frontmatterOk": true,
+    "leafSkillRead": true,
+    "usedChrome": true,
+    "modelAutoInvoke": false,
+    "shapeBeforeLogic": true,
+    "namedShapeArtifact": true,
+    "keptVerifyOk": true,
+    "productOk": true,
+    "verifiedDone": true,
+    "contractHeld": true,
+    "screen": {
+      "potetoMode": false,
+      "leafChrome": false,
+      "hostAttached": false,
+      "shapeMention": true,
+      "verifyMention": true,
+      "working": false
+    },
+    "pty": {
+      "potetoMode": true,
+      "leafChrome": false,
+      "hostAttached": true,
+      "shapeMention": true,
+      "verifyMention": true,
+      "working": true
+    }
+  },
+  "firstShapeAt": "2026-10-09T00:50:48.464Z",
+  "firstBoardAt": "2026-10-09T00:50:50.071Z",
+  "firstVerifyAt": "2026-10-09T00:51:04.912Z",
+  "shapePaths": [
+    "src/types.js"
+  ],
+  "boardPaths": [
+    "src/board.js"
+  ],
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/foundational/fixture-out/cursor/done.txt",
+    "line": "verified=yes"
+  },
+  "verifyOut": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/foundational/fixture-app/evidence/verify-out.txt",
+    "line": "BOARD-OK jobs=2",
+    "ok": true
+  },
+  "productOk": true,
+  "productAnalysis": {
+    "hasShapeModule": true,
+    "shapeExportsJob": true,
+    "boardImportsShape": true,
+    "boardStillStub": false,
+    "notesShape": false,
+    "namedShapeArtifact": true
+  },
+  "frontmatter": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/principle-foundational-thinking/SKILL.md",
+    "ok": true,
+    "name": "principle-foundational-thinking",
+    "disableModelInvocation": true
+  },
+  "session": null,
+  "transcript": {
+    "path": "/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/agent-transcripts/2268cdea-df05-4ac4-837e-321faba2ff58/2268cdea-df05-4ac4-837e-321faba2ff58.jsonl",
+    "leafSkillRead": true,
+    "leafSkillReadAt": "2026-10-09T00:51:27.764Z",
+    "firstShapeWriteAt": null,
+    "firstBoardWriteAt": null,
+    "shapeBeforeLogic": false,
+    "ranVerifyScript": true,
+    "toolOrder": [
+      "GetDynamicTools",
+      "Read",
+      "Glob",
+      "Read",
+      "Read(found-leaf)",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "blob-mention(found-leaf)",
+      "CallDynamicTool(verify.mjs)",
+      "Read(verify.mjs)",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "GetDynamicTools",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "CallDynamicTool(verify.mjs)",
+      "CallDynamicTool",
+      "Read",
+      "Read",
+      "Read",
+      "CallDynamicTool(verify.mjs)",
+      "Read",
+      "Read",
+      "Shell(verify.mjs)",
+      "CallDynamicTool",
+      "Shell",
+      "CallDynamicTool"
+    ],
+    "mtimeMs": 1791507072029.0337
+  },
+  "pollSamples": 94,
+  "screenFinal": {
+    "potetoMode": false,
+    "leafChrome": false,
+    "hostAttached": false,
+    "shapeMention": true,
+    "verifyMention": true,
+    "working": false
+  },
+  "pty": {
+    "potetoMode": true,
+    "leafChrome": false,
+    "hostAttached": true,
+    "shapeMention": true,
+    "verifyMention": true,
+    "working": true
+  }
+}

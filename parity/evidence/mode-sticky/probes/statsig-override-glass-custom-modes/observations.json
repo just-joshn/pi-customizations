@@ -1,0 +1,111 @@
+{
+  "label": "statsig-override-glass-custom-modes",
+  "menu": {
+    "tipReady": true,
+    "slashMenuOpen": true,
+    "composerHasPoteto": true,
+    "modeFooterHint": false,
+    "customModeChrome": false,
+    "usedSkill": false
+  },
+  "metaEnterProbes": [
+    {
+      "sequence": "esc-cr",
+      "hex": "1b0d",
+      "screen": "02-meta-enter-0-esc-cr",
+      "tipReady": true,
+      "slashMenuOpen": true,
+      "composerHasPoteto": true,
+      "modeFooterHint": false,
+      "customModeChrome": false,
+      "usedSkill": false
+    },
+    {
+      "sequence": "esc-lf",
+      "hex": "1b0a",
+      "screen": "02-meta-enter-1-esc-lf",
+      "tipReady": true,
+      "slashMenuOpen": true,
+      "composerHasPoteto": true,
+      "modeFooterHint": false,
+      "customModeChrome": false,
+      "usedSkill": false
+    },
+    {
+      "sequence": "csi-13-3",
+      "hex": "1b5b31333b337e",
+      "screen": "02-meta-enter-2-csi-13-3",
+      "tipReady": true,
+      "slashMenuOpen": true,
+      "composerHasPoteto": true,
+      "modeFooterHint": false,
+      "customModeChrome": false,
+      "usedSkill": false
+    },
+    {
+      "sequence": "csi-13-3-bare",
+      "hex": "5b31333b337e",
+      "screen": "02-meta-enter-3-csi-13-3-bare",
+      "tipReady": true,
+      "slashMenuOpen": true,
+      "composerHasPoteto": true,
+      "modeFooterHint": false,
+      "customModeChrome": false,
+      "usedSkill": false
+    },
+    {
+      "sequence": "csi-27-3-13",
+      "hex": "1b5b32373b333b31337e",
+      "screen": "02-meta-enter-4-csi-27-3-13",
+      "tipReady": true,
+      "slashMenuOpen": true,
+      "composerHasPoteto": true,
+      "modeFooterHint": false,
+      "customModeChrome": false,
+      "usedSkill": false
+    },
+    {
+      "sequence": "csi-27-3-13-bare",
+      "hex": "5b32373b333b31337e",
+      "screen": "02-meta-enter-5-csi-27-3-13-bare",
+      "tipReady": true,
+      "slashMenuOpen": true,
+      "composerHasPoteto": true,
+      "modeFooterHint": false,
+      "customModeChrome": false,
+      "usedSkill": false
+    },
+    {
+      "sequence": "csi-13-3u",
+      "hex": "1b5b31333b3375",
+      "screen": "02-meta-enter-6-csi-13-3u",
+      "tipReady": true,
+      "slashMenuOpen": true,
+      "composerHasPoteto": true,
+      "modeFooterHint": false,
+      "customModeChrome": false,
+      "usedSkill": false
+    },
+    {
+      "sequence": "csi-13-3u-bare",
+      "hex": "5b31333b3375",
+      "screen": "02-meta-enter-7-csi-13-3u-bare",
+      "tipReady": true,
+      "slashMenuOpen": true,
+      "composerHasPoteto": true,
+      "modeFooterHint": false,
+      "customModeChrome": false,
+      "usedSkill": false
+    }
+  ],
+  "customModeReached": false,
+  "final": {
+    "tipReady": true,
+    "slashMenuOpen": true,
+    "composerHasPoteto": true,
+    "modeFooterHint": false,
+    "customModeChrome": false,
+    "usedSkill": false
+  },
+  "note": "No Custom Mode chrome after all Meta+Enter sequences recognized by cursor-agent."
+}

@@ -1,0 +1,34 @@
+    AskQuestion Clarifying Questions (1)
+    1. Accept this rule (unlimited budget, all roles inherit-parent)?
+      [x] Accept as-is (Recommended)
+      [ ] Change specific roles
+
+  Writing the rule:
+
+    Edited pstack-models.mdc +1 -1
+
+    ▎  ---
+    ▎  # pstack model configuration. One line per role. Delete a line to fall back to the skill default.
+    ▎  # `inherit-parent` or `auto` as a value: the role runs on the parent chat model (omit Task `model`). Alias
+    ▎  entries  ...
+    ▎- # budget: small (medium)
+    ▎+ # budget: unlimited (max)
+    ▎  feature, refactoring: inherit-parent
+    ▎  bug-fix: inherit-parent
+    ▎  perf-issue: inherit-parent
+
+  Done. ~/.cursor/rules/pstack-models.mdc now records budget unlimited (max) with all 17 roles on inherit-parent, so
+  every pstack role runs on your parent chat model at max reasoning effort. The rule applies to new sessions — this
+  one keeps its old snapshot. Re-running /setup-pstack updates it anytime.
+
+  Skipping the verification-skill offer — this repo already has a harness
+  (extensions/pi-pstack/scripts/verify-cli.mjs, verify-journeys.mjs, and friends).
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  GLM 5.3 Flash Max · 10.7% · 1 file edited                                                             Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run · refactor/pi-pstack-parity-again

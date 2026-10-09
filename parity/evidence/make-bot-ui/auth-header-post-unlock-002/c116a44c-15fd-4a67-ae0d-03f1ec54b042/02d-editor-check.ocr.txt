@@ -1,0 +1,46 @@
+V New Chat
+Q Search
+• Automations
+e° Customize
+Projects
++ New Project
+Pinned
+• /make-bot-ui
+8h
+Repositories
+G No Repo
+• Cursor automation setup
+Cursor automation setup
+• Cursor automation setup
+• Cursor automation setup
+• Automation setup instruction
+• /make-bot-ui
+• /automate
+• /automate
+• Sticky mode activation
+• /poteto-mode
+7h
+7h
+7h
+7h
+8h
+8h
+8h
+8h
+9h
+10h
+Gettina Started
+3/3 O
+* Connect Slack
+Joshua Humphrev
+IDE > ... •
+Start from scratch v • Cloud v
+Plan, Build, / for skills, @ for context
+Grok 4.7 High v
+Plan New Idea © Tab
+Build from a design Turn a frame into working Ul in this repo
+Deploy my prototype Put it on a live link anyone can open
+Start with a plan Align on implementation before writing code
+X Debug an issue Find root causes and fix tricky bugs
+Import your Claude Code conversations
+Sync your chats and continue them in Cursor

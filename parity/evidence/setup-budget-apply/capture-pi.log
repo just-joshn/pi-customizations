@@ -1,0 +1,46 @@
+file:///Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/scripts/journey-helpers.mjs:24
+  throw new Error(`Screen did not show "${needle}" within ${timeoutMs}ms. Last screen:\n${lines.join('\n')}`);
+        ^
+
+Error: Screen did not show "Edited pstack-models.mdc" within 360000ms. Last screen:
+ The write tool does not remap for you. Do not replace real model values with inherit-parent or auto. Keep bug-fix as  │
+ auto and how explorer as inherit-parent exactly. Use only models returned by pstack_setup state availableModels.      │
+ Accept that remapped table and write the rule. Decline any verification skill offer.                                  │
+                                                                                                                       │
+                                                                                                                       │
+ Thinking...                                                                                                           │
+                                                                                                                       │
+                                                                                                                       │
+ Thinking...                                                                                                           │
+                                                                                                                       │
+ I haven't written anything. The current state doesn't match what you described, so I stopped.                         │
+                                                                                                                       │
+ - What you described: a rule with real model values at medium effort, plus bug-fix: auto and how explorer:            │
+   inherit-parent.                                                                                                     │
+ - What the state call returns now: every role is inherit-parent, with the budget still small (medium). There are no   │
+   real values to remap to :xhigh.                                                                                     │
+ - What the first state call returned: the medium-effort table, with Grok 4.7 (xai/grok-4.7) and Claude Opus 5.5       │
+   values. xai/grok-4.7 is not in availableModels, so my earlier write attempt was rejected for that reason.           │
+                                                                                                                       │
+ You also said to use only available models and to keep real values rather than replacing them with aliases. Those two │
+ instructions conflict for the Grok roles. Opus 5.5 (claude-subscription/claude-opus-5-5:xhigh) is available, so its   │
+ roles would write fine.                                                                                               ┃
+                                                                                                                       ┃
+ I need you to choose one of these:                                                                                    ┃
+ 1. Write Opus roles at :xhigh, keep bug-fix: auto and how explorer: inherit-parent, and set the Grok roles to         ┃
+    inherit-parent.                                                                                                    ┃
+ 2. Replace Grok with an available model that you name, such as openai/gpt-5.5:xhigh, in all Grok roles and panels.    ┃
+ 3. Leave every role as it is now (inherit-parent) and only change the budget label to large (xhigh).                  ┃
+                                                                                                                       ┃
+ I'll skip the verification-skill offer as you asked.                                                                  ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run (refactor/pi-pstack-parity-again)
+↑14 ↓2.1k R125k W25k CH95.4% $0.146 (sub) 3.4%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium
+    at waitScreen (file:///Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/scripts/journey-helpers.mjs:24:9)
+    at async runSide (file:///Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/scripts/capture-setup-budget-apply.mjs:295:5)
+    at async file:///Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/scripts/capture-setup-budget-apply.mjs:356:18
+
+Node.js v24.21.0

@@ -1,0 +1,40 @@
+[Skill conflicts]                                                                                                      ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ Help set up Benny for this repository. Follow .upstream/automations/benny/FOR_AGENTS.md so                            ┃
+ .upstream/automations/benny/skills/setup-benny/SKILL.md is read. Pack destination may already exist under             ┃
+ .cursor/automations/benny. Treat copy as done if verified. Focus on enabling pstack in project settings per           ┃
+ setup-benny: edit .cursor/settings.json so plugins.pstack.enabled is true. The file already exists as JSONC. Preserve ┃
+ unrelated top-level settings, other plugin entries, and comments. If plugins.pstack already exists, change only       ┃
+ enabled. Validate the file after editing. Do not create or update a live automation. Do not edit parity ledgers or    ┃
+ src/app.js. When the settings edit is done (or you stop), write exactly one line to                                   ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/settings-enable/fixture-out/pi/do ┃
+ ne.txt as STATUS=settings-ok|settings-mismatch|no-settings-write|blocked|other reason=<short phrase> then stop.       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ $ ...                                                                                                                 ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+── ⠼ Working ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/settings-enable/fixture-app (refactor/pi-pstack-par...
+$0.000 (sub) 1.6%/1.0M (auto)                                           (claude-subscription) claude-sonnet-5-5 • medium

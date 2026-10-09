@@ -1,0 +1,42 @@
+{
+  "attemptId": "372ec24f-7684-4553-b8f0-5019b4e4f1fa",
+  "mode": "automate-handoff",
+  "method": "agent-helper MCP keyboard/click drive of Cursor Agents Window",
+  "evidenceDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/creation-boundary/agents-window/372ec24f-7684-4553-b8f0-5019b4e4f1fa",
+  "probe": "automate-handoff",
+  "profile": "benny-triage",
+  "draftName": "benny-triage",
+  "slashMenuShowedAutomate": true,
+  "automateHandoffWitnessed": true,
+  "editorChromeWitnessed": true,
+  "draftNameWitnessed": true,
+  "saved": false,
+  "activated": false,
+  "slack": false,
+  "pollLog": [
+    {
+      "poll": 0,
+      "editorChromeByAx": true,
+      "hasInactive": false,
+      "hasAddTrigger": false,
+      "hasAgentInstructions": false,
+      "draftNameSeen": true
+    }
+  ],
+  "pathsTried": [
+    "cmd+shift+p Open Agents Window",
+    "cmd+n New Chat",
+    "/automate + Tab skill chip",
+    "send benny-triage no-Save prompt",
+    "poll AX for Automations editor chrome + draft name",
+    "yes replies if draft/readiness asked"
+  ],
+  "didNot": [
+    "press Save",
+    "toggle Inactive/Activate",
+    "enable Benny",
+    "post to Slack",
+    "edit ledgers",
+    "mint Cloud Agent"
+  ]
+}

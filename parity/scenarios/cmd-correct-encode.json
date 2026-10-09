@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "cmd-correct-encode",
+  "status": "executed-pass-paired",
+  "requirements": [
+    "PSTACK-CMD-CORRECT-ENCODE-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/correct/SKILL.md#frontmatter and Correct opening paragraph",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Recent commits, reviews, or agent instruction files available to mine. Preconditions: correct skill attached.; At least one mistake class has happened twice.",
+    "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Invoke /correct for a recurring agent mistake.. Agent encodes the mistake at the highest working level (architecture, then types/lint, then test, docs last) so the next agent cannot repeat it, and proves the check fails on a real past mistake."
+    }
+  ],
+  "execution": {
+    "referenceRun": "e05d5254-aa98-4533-b9e7-be0a6092eb3a",
+    "candidateRun": "694910a7-666d-48cf-96ee-312a10d94927",
+    "pairId": "correct-encode-1",
+    "pairPath": "parity/evidence/correct/pair-correct-encode-1.json",
+    "verdict": "pass-paired",
+    "closedAt": "2026-10-08T21:51:00Z",
+    "note": "lint encoding + fail-on-past-mistake both hosts; architecture not demonstrated."
+  }
+}

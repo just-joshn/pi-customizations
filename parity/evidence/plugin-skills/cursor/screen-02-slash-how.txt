@@ -1,0 +1,22 @@
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Use /skills to give Cursor specialized knowledge for tasks.
+
+
+
+                                                                                                                       
+  → /how                                                                                                               
+                                                                                                                       
+
+   → /how                      Use for "how does X work", code walkthroughs before changing something, and placement…
+     /show-thinking            Toggle thinking block display (currently disabled)
+     /show-me-your-work        Keep a reviewable decision trail for long-running or unattended work: a TSV log with…
+     /plan [prompt]            Create a plan or show existing plan with options
+     /logs                     Show the current debug log file path (copies to clipboard)
+     /about                    Show CLI version, system, and account info (copies to clipboard)
+     /help [command]           Show help (/help [cmd])
+     /usage                    Show plan and on-demand usage
+     /context                  Show context usage breakdown
+     ↓ more below

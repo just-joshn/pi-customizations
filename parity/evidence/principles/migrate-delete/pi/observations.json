@@ -1,0 +1,117 @@
+{
+  "score": {
+    "frontmatterOk": true,
+    "leafSkillRead": true,
+    "usedChrome": true,
+    "modelAutoInvoke": false,
+    "legacyDeleted": true,
+    "callersMigrated": true,
+    "formatPresent": true,
+    "compatShim": false,
+    "sameWave": true,
+    "keptVerifyOk": true,
+    "productOk": true,
+    "verifiedDone": true,
+    "contractHeld": true,
+    "screen": {
+      "potetoMode": false,
+      "leafChrome": false,
+      "hostAttached": false,
+      "verifyMention": true,
+      "working": false
+    },
+    "pty": {
+      "potetoMode": true,
+      "leafChrome": false,
+      "hostAttached": true,
+      "verifyMention": true,
+      "working": true
+    }
+  },
+  "firstProductAt": "2026-10-09T00:56:33.405Z",
+  "firstVerifyAt": "2026-10-09T00:56:33.405Z",
+  "firstDeletedAt": "2026-10-09T00:56:33.405Z",
+  "firstCallerAt": "2026-10-09T00:56:33.405Z",
+  "firstFormatAt": "2026-10-09T00:56:33.405Z",
+  "productPaths": [
+    "src/greet.js",
+    "src/banner.js",
+    "src/format.js",
+    "deleted:src/legacyFormat.js",
+    "caller:src/greet.js",
+    "caller:src/banner.js",
+    "format:src/format.js"
+  ],
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/migrate-delete/fixture-out/pi/done.txt",
+    "line": "verified=yes"
+  },
+  "verifyOut": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/migrate-delete/fixture-app/evidence/verify-out.txt",
+    "line": "MIGRATE-OK greet=\"hello, WORLD\" banner=\"BANNER:TEAM\" files=banner.js,format.js,greet.js",
+    "ok": true
+  },
+  "oracle": {
+    "greetOk": true,
+    "bannerOk": true,
+    "legacyDeleted": true,
+    "formatPresent": true,
+    "callersMigrated": true,
+    "legacySymbol": false,
+    "compatShim": false,
+    "productOk": true,
+    "srcFiles": [
+      "banner.js",
+      "format.js",
+      "greet.js"
+    ]
+  },
+  "productOk": true,
+  "frontmatter": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-migrate-callers-then-delete-legacy-apis/SKILL.md",
+    "ok": true,
+    "name": "principle-migrate-callers-then-delete-legacy-apis",
+    "disableModelInvocation": true
+  },
+  "session": {
+    "sessionPath": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-principles-migrate-delete-fixture-app--/2026-10-09T00-56-16-067Z_01a11e29-27c2-72f2-96b6-6ac013638b79.jsonl",
+    "hostAttached": false,
+    "leafSkillRead": true,
+    "leafSkillReadAt": "2026-10-09T00:56:21.207Z",
+    "ranVerifyScript": true,
+    "firstLegacyDeleteAt": null,
+    "firstCallerMigrateAt": null,
+    "firstFormatWriteAt": null,
+    "sameWave": false,
+    "toolOrder": [
+      "bash(verify.mjs)",
+      "read(migrate-leaf)",
+      "blob-mention(migrate-leaf)",
+      "bash(verify.mjs)",
+      "read",
+      "read",
+      "TodoWrite",
+      "bash(verify.mjs)",
+      "bash(verify.mjs)",
+      "bash"
+    ]
+  },
+  "transcript": null,
+  "pollSamples": 33,
+  "screenFinal": {
+    "potetoMode": false,
+    "leafChrome": false,
+    "hostAttached": false,
+    "verifyMention": true,
+    "working": false
+  },
+  "pty": {
+    "potetoMode": true,
+    "leafChrome": false,
+    "hostAttached": true,
+    "verifyMention": true,
+    "working": true
+  }
+}

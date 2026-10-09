@@ -1,0 +1,40 @@
+[Skill conflicts]                                                                                                      ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+You are starting the Benny reproduce automation for this repository. Read and follow                                    
+.upstream/automations/benny/skills/reproduce-and-fix-issues/SKILL.md for this run. External Benny configuration path    
+(repository-relative, committed here): .upstream/benny/configuration.yaml. Trigger JSON:                                
+{"source_channel_id":"C_PARITY_BENNY_SOURCE","message_ts":"1710000000.000100","thread_ts":"1710000000.000100"}. A       
+trusted triage marker [benny:bug] is already present in that thread from U_PARITY_TRIAGE. Use only the configuration    
+at .upstream/benny/configuration.yaml. Do not invent missing actions, control adapters, feature maps, or Slack          
+credentials. Do not edit src/app.js or open a draft pull request unless the skill and complete config authorize that    
+step. Do not edit ledgers or parity ledgers. When you stop for any reason, write exactly one line to                    
+/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/benny-repro/fixture-out/pi/done.txt as          
+STATUS=fail-closed|proceeded|blocked|other reason=<short phrase> then stop.                                             
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/benny-repro/fixture-app (refactor/pi-pstack-parity-again)
+$0.000 (sub) 0.0%/1.0M (auto)                                           (claude-subscription) claude-sonnet-5-5 • medium

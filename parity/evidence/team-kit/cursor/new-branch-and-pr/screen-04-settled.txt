@@ -1,0 +1,39 @@
+
+  Creating the branch from latest main and opening the PR.
+
+  $ git status && git fetch origin main && git checkout main && git pull origin main && git checkout -b
+    fixture/new-branch-cursor-mv0dmpif && ls -la && test -f README.md && cat README.md || echo "NO_README" 1.8s
+    … 33 output lines hidden · ctrl+o to expand
+    Disposable GitHub fixture for cursor-team-kit journey pairs.
+    Safe to delete.
+
+  $ printf '\nMentioned by cursor new-branch-and-pr fixture.\n' >> README.md && git add README.md && git commit -m
+    "$(cat <<'EOF'
+    Document cursor fixture mention in README. 3.6s
+    … 12 input + 18 output lines hidden · ctrl+o to expand
+    Warning: 4 uncommitted changes
+    https://github.com/just-joshn/team-kit-gh-fixture/pull/2
+
+  Writing the evidence artifacts.
+
+  $ mkdir -p /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/new-b
+    ranch-and-pr && printf '%s\n' 'https://github.com/just-joshn/team-kit-gh-fixture/pull/2' > /Users/josh-desktop/src
+    /personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/new-branch-and-pr/pr-url.txt &&
+    printf '%s\n' 'STATUS=verified reason=pr opened successfully' > /Users/josh-desktop/src/personal/pi-pstack-parity-
+    again/parity/evidence/team-kit/fixture-out/cursor/new-branch-and-pr/done.txt && cat /Users/josh-desktop/src/person
+    al/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/new-branch-and-pr/pr-url.txt && cat
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/new-branch-and
+    -pr/done.txt 258ms
+    https://github.com/just-joshn/team-kit-gh-fixture/pull/2
+    STATUS=verified reason=pr opened successfully
+
+  https://github.com/just-joshn/team-kit-gh-fixture/pull/2
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 8%                                                                                             Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh · fixture/new-branch-cursor-mv0dmpif · #2

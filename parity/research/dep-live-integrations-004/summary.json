@@ -1,0 +1,34 @@
+{
+  "unit": "u-dep-live-integrations-004",
+  "createdAt": "2026-10-09T15:57:54Z",
+  "inventorySha256": "63ef7f8f4c35e3918556e787f22eb308666e5e8d0b444b41584524ce13b867d4",
+  "counts": {
+    "a_custody_complete": 275,
+    "b_environment_bound": 106,
+    "c_already_evidenced": 35
+  },
+  "reasonCounts": {
+    "inventory_or_doc_custody_without_live_exercise": 275,
+    "third_party_live_install_needs_operator_grant": 39,
+    "models_pricing_paired_via_setup_grok_xhigh_cap": 22,
+    "webhook_generate_key_probe_evidenced": 9,
+    "automations_editor_save_or_activate_needs_operator_grant": 3,
+    "live_slack_needs_operator_grant": 44,
+    "automations_editor_create_handoff_evidenced": 4,
+    "webhook_routine_or_secret_live_needs_operator_grant": 20
+  },
+  "priorCounts": {
+    "a_custody_complete": 275,
+    "b_environment_bound": 115,
+    "c_already_evidenced": 26
+  },
+  "canCloseUnresolvedReference": false,
+  "narrowedReferenceText": "Live integrations live-exercise remains open after u-dep-live-integrations-004 disposition at parity/research/dep-live-integrations-004/dispositions.json (inventory sha256 63ef7f8f4c35e3918556e787f22eb308666e5e8d0b444b41584524ce13b867d4; a_custody_complete=275, b_environment_bound=106, c_already_evidenced=35). Progress since 003: make-bot Generate/key/probe paid (55f42e27). Still unpaid: Benny triage valid-config (Slack G4\u2013G8); thread-safety seven live checks; third-party installs; CU cloud attempt IDs (G1); enterprise policy witness (G2). No fabricated Slack posts. completeDependencyClosure stays false.",
+  "delta": {
+    "a": 0,
+    "b": -9,
+    "c": 9,
+    "reclassifiedRows": 9
+  },
+  "makeBotAttemptId": "55f42e27-ee7e-4d6b-8f12-5b35824addff"
+}

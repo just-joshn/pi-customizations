@@ -1,0 +1,36 @@
+                                                                                                                       │
+                                                                                                                       │
+ Thinking...                                                                                                           │
+                                                                                                                       │
+ Yes. In the active rule at /tmp/pi-ref-agent/pstack/store/... (the Pi path is /tmp/pi-ref-agent/pstack/models.mdc),   │
+ every role line is set to inherit-parent. The roles are:                                                              │
+                                                                                                                       │
+ - feature, refactoring                                                                                                │
+ - bug-fix                                                                                                             ┃
+ - perf-issue                                                                                                          ┃
+ - hillclimb                                                                                                           ┃
+ - judgment and prose                                                                                                  ┃
+ - hardest tasks                                                                                                       ┃
+ - how explorer, how explainer                                                                                         ┃
+ - why investigators, why synthesizer                                                                                  ┃
+ - reflect tooling                                                                                                     ┃
+ - reflect judgment, divergent, synthesizer                                                                            ┃
+ - arena runners, arena cross-judge pool                                                                               ┃
+ - swarm workers                                                                                                       ┃
+ - architect runners                                                                                                   ┃
+ - interrogate reviewers                                                                                               ┃
+                                                                                                                       ┃
+ The header comment says a value of inherit-parent or auto makes the role run on the parent chat model, so the Task    ┃
+ model is left unset. The budget is recorded as small (medium).                                                        ┃
+                                                                                                                       ┃
+ In practice, the why investigators and synthesizer will inherit the parent model. The skill's defaults                ┃
+ (grok-4.7-xhigh-fast and claude-opus-5-5-xhigh) won't be used.                                                        ┃
+                                                                                                                       ┃
+ I answered from the rule text already in context and didn't run the full why investigation. This is a plain factual   ┃
+ lookup, not a question about the history or motivation behind code.                                                   ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run (refactor/pi-pstack-parity-again)
+↑4 ↓497 R7.7k W20k CH28.0% $0.086 (sub) 2.8%/1.0M (auto)                (claude-subscription) claude-sonnet-5-5 • medium

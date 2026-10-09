@@ -1,0 +1,110 @@
+[
+  {
+    "ts": "2026-10-09T00:07:50.253Z",
+    "configWriteChrome": true,
+    "secretInAssistant": true,
+    "envOnlyClaim": true,
+    "fixtureSecretVisible": true,
+    "working": true,
+    "doneExists": true,
+    "doneStatus": "secret-ok",
+    "configExists": true,
+    "productDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e"
+  },
+  {
+    "ts": "2026-10-09T00:07:51.192Z",
+    "configWriteChrome": true,
+    "secretInAssistant": true,
+    "envOnlyClaim": true,
+    "fixtureSecretVisible": true,
+    "working": true,
+    "doneExists": true,
+    "doneStatus": "secret-ok",
+    "configExists": true,
+    "productDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e"
+  },
+  {
+    "ts": "2026-10-09T00:07:52.152Z",
+    "configWriteChrome": true,
+    "secretInAssistant": true,
+    "envOnlyClaim": true,
+    "fixtureSecretVisible": true,
+    "working": false,
+    "doneExists": true,
+    "doneStatus": "secret-ok",
+    "configExists": true,
+    "productDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e"
+  },
+  {
+    "ts": "2026-10-09T00:07:53.117Z",
+    "configWriteChrome": true,
+    "secretInAssistant": true,
+    "envOnlyClaim": true,
+    "fixtureSecretVisible": true,
+    "working": false,
+    "doneExists": true,
+    "doneStatus": "secret-ok",
+    "configExists": true,
+    "productDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e"
+  },
+  {
+    "ts": "2026-10-09T00:07:54.078Z",
+    "configWriteChrome": true,
+    "secretInAssistant": true,
+    "envOnlyClaim": true,
+    "fixtureSecretVisible": true,
+    "working": false,
+    "doneExists": true,
+    "doneStatus": "secret-ok",
+    "configExists": true,
+    "productDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e"
+  },
+  {
+    "ts": "2026-10-09T00:07:55.037Z",
+    "configWriteChrome": true,
+    "secretInAssistant": true,
+    "envOnlyClaim": true,
+    "fixtureSecretVisible": true,
+    "working": false,
+    "doneExists": true,
+    "doneStatus": "secret-ok",
+    "configExists": true,
+    "productDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e"
+  },
+  {
+    "ts": "2026-10-09T00:07:56.000Z",
+    "configWriteChrome": true,
+    "secretInAssistant": true,
+    "envOnlyClaim": true,
+    "fixtureSecretVisible": true,
+    "working": false,
+    "doneExists": true,
+    "doneStatus": "secret-ok",
+    "configExists": true,
+    "productDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e"
+  },
+  {
+    "ts": "2026-10-09T00:07:56.959Z",
+    "configWriteChrome": true,
+    "secretInAssistant": true,
+    "envOnlyClaim": true,
+    "fixtureSecretVisible": true,
+    "working": false,
+    "doneExists": true,
+    "doneStatus": "secret-ok",
+    "configExists": true,
+    "productDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e"
+  },
+  {
+    "ts": "2026-10-09T00:07:57.919Z",
+    "configWriteChrome": true,
+    "secretInAssistant": true,
+    "envOnlyClaim": true,
+    "fixtureSecretVisible": true,
+    "working": false,
+    "doneExists": true,
+    "doneStatus": "secret-ok",
+    "configExists": true,
+    "productDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e"
+  }
+]

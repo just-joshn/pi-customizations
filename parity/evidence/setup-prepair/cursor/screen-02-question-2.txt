@@ -1,0 +1,31 @@
+  The rule already exists — current state: budget small (medium), all 17 roles on inherit-parent (parent chat
+  model). No retired roles to drop.
+
+  Detected models this session can pass to a Task subagent:
+
+  • claude-fable-5-1-thinking-high
+  • claude-opus-5-5-medium
+  • claude-sonnet-5-5-medium
+  • composer-2.5-fast
+  • cursor-grok-4.6-high-fast
+  • gemini-3.8-flash-high
+  • gpt-5.6-sol-medium
+  • grok-4.7-high
+  • muse-spark-1.3-high
+
+  Since every role is an alias (inherit-parent), a budget change only rewrites the budget line — no role values
+  move.
+
+ ┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+ │ Clarifying Questions                                                                                               │
+ │                                                                                                                    │
+ │ Question 2 of 2                                                                                                    │
+ │                                                                                                                    │
+ │ 2. All roles currently run on the parent chat model (inherit-parent). Accept as-is, or change specific roles?      │
+ │                                                                                                                    │
+ │   › [ ] Accept as-is (Recommended) — all roles stay on the parent chat model                                       │
+ │     [ ] Point all roles at one detected model (I'll ask which)                                                     │
+ │     [ ] Other: (type to answer)                                                                                    │
+ │                                                                                                                    │
+ │ ↑/↓ option · ←/→ question · Space select · Enter next/submit · Esc to skip                                         │
+ └────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘

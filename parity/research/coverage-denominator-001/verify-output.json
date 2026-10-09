@@ -1,0 +1,14 @@
+{
+  "ok": true,
+  "inventoryItemCount": 193,
+  "matrixItemCount": 193,
+  "counts": {
+    "mapped": 59,
+    "deferred": 114,
+    "out-of-scope": 20
+  },
+  "unresolvedCount": 0,
+  "coverageDenominatorCompleteRecommended": true,
+  "matrixSha256": "30eb94995baa329dddbb186e143cb92c508bbda9dfc1289c9e12dca86e93e661",
+  "errors": []
+}

@@ -1,0 +1,120 @@
+{
+  "schema": 1,
+  "pairId": "make-bot-ui-key-server-1",
+  "scenarioRef": "cmd-make-bot-ui-key-server",
+  "journeyFamily": "journey-family-11-benny-and-automations",
+  "requirementIds": [
+    "PSTACK-CMD-MAKE-BOT-UI-KEY-SERVER-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "single turn /make-bot-ui to build a local page and webhook wiring; keep sender key server-side; STATUS= line; stop honestly if update_state or RoutinePrepare missing",
+  "steps": [
+    { "send": "/make-bot-ui build a small local page ... Keep the sender key on the server only ... STATUS= line" },
+    { "send": "\r" },
+    { "settle": true },
+    { "operator": "pi-complete: hidden terminal secret init via routine-secret.mjs; follow-up enable+probe; Yes confirm" },
+    { "cancel": true }
+  ],
+  "cursor": {
+    "attemptId": "bb50ed1b-29ac-4961-bb0a-5c2ffd9834b2",
+    "desktopAttempts": {
+      "slashMakeBotUi": "ecac27a8-740d-494b-bc1f-93f36d27f80f",
+      "paletteRoutinesUpdateState": "1e5149f4-d4b5-4377-8587-ec2ed0e0db49",
+      "automateHandoffWebhook": "c345b7ed-5c24-424c-86c3-55211b7bf0c8",
+      "triggerPickerExhaustive": "8ff6b213-1dbf-4d47-8cec-6671d5ec9cc7"
+    },
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/make-bot-ui/cursor/bb50ed1b-29ac-4961-bb0a-5c2ffd9834b2",
+    "desktopDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/make-bot-ui/agents-window",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "observations": {
+      "outcome": "host_blocked",
+      "desktopOutcome": "webhook_automations_path_proven_key_server_incomplete",
+      "contractHeld": false,
+      "engaged": true,
+      "keyInChat": false,
+      "keyLeak": false,
+      "hostBlocked": true,
+      "doneMarkerWritten": true,
+      "doneLine": "STATUS=host-blocked reason=missing update_state/RoutinePrepare",
+      "generatedCount": 0,
+      "browserLeakFiles": [],
+      "ptyEvents": 177,
+      "note": "PTY still host_blocked (bb50ed1b). Desktop u-make-bot-automations-editor-001: /automate webhook handoff c345b7ed opened editor with Webhook triggered + api2 URL + Generate auth header (Save/Activate not pressed; no key in evidence). update_state/secret-request still absent (1e5149f4). Cursor key_server_ok unpaid."
+    }
+  },
+  "pi": {
+    "attemptId": "e75f8e08-0d8c-4d55-ad3f-6946c405bbaf",
+    "priorIncompleteAttemptId": "8721faf4-89e1-4bc5-8abd-105870b4923d",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/make-bot-ui/pi/e75f8e08-0d8c-4d55-ad3f-6946c405bbaf",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-make-bot-ui-fixture-app--/2026-10-09T04-12-08-117Z_01a11edc-7a35-7273-a710-75c3c66e5ab2.jsonl",
+    "observations": {
+      "outcome": "key_server_ok",
+      "automatedOutcomeBeforeManualRescore": "key_leaked",
+      "manualRescore": "parity/evidence/make-bot-ui/pi/e75f8e08-0d8c-4d55-ad3f-6946c405bbaf/manual-rescore.json",
+      "contractHeld": true,
+      "engaged": true,
+      "keyInChat": false,
+      "keyLeak": false,
+      "keyBoundaryOnArtifacts": true,
+      "hostBlocked": false,
+      "routinePrepareCalled": true,
+      "routineEnableCalled": true,
+      "routineId": "c2d101c6-5fc9-4386-b581-b75f63c7a859",
+      "secretPath": "initializer routine-secret.mjs (operator terminal PTY, echo off)",
+      "secretInitOk": true,
+      "secretHidden": true,
+      "secretExposedInPty": false,
+      "confirmPresses": 1,
+      "followUpSent": true,
+      "doneMarkerWritten": true,
+      "doneLine": "STATUS=key-server-ok reason=probe HTTP 200 via server relay, ignored in routine transcript; key stayed server-side",
+      "generated": ["server.mjs"],
+      "browserLeakFiles": [],
+      "sessionToolOrder": ["read", "bash", "RoutinePrepare(RoutinePrepare)", "bash", "bash", "bash", "RoutineEnable(RoutineEnable)", "bash", "bash", "bash"],
+      "keyInToolArgs": false,
+      "probeMention": true,
+      "note": "Pi completed RoutinePrepare, operator-terminal secret init (hidden, not exposed), RoutineEnable with one Yes confirm, and a harmless probe with HTTP 200. Sender key never placed in browser, chat, skill text, or tool-arg values. Key scrubbed from routine secrets after capture."
+    }
+  },
+  "comparison": {
+    "sharedPromptShape": true,
+    "identicalFixtureDigest": true,
+    "bothRealPty": true,
+    "pairedVerdict": "env_blocker",
+    "requirementVerified": false,
+    "piProgressPastPriorIncomplete": true,
+    "summary": "Pi half remains key_server_ok (e75f8e08). Cursor PTY still host_blocked. Desktop Agents Window shows /make-bot-ui skill and Automations list but no proven update_state / webhook / secret-request. Pair cannot close. No fabricated Cursor webhook success. No live sender key retained."
+  },
+  "meta": {
+    "capturedWith": "parity/scripts/capture-make-bot-ui-key-server.mjs --cursor-only (prior) then --pi-complete; desktop follow-up parity/scripts/capture-automations-desktop-agents-window.py (u-automations-desktop-001)",
+    "probe": "parity/evidence/make-bot-ui/host-env-probe.json",
+    "blocker": "parity/evidence/make-bot-ui/blocker-make-bot-ui-key-server-1.json",
+    "playbook": "parity/evidence/make-bot-ui/PLAYBOOK.md",
+    "secretsPolicy": "redactSecrets applied to evidence copies; operator key born in child PTY only; scrubbed after capture; no live sender key values retained",
+    "piCompleteReport": "parity/briefs/reports/u-journey-cmd-make-bot-pi-complete-001-report.md",
+    "desktopReport": "parity/briefs/reports/u-automations-desktop-001-report.md",
+    "desktopDecisionTrail": "parity/research/automations-desktop-001/decisions.tsv",
+    "piAttemptKept": "e75f8e08-0d8c-4d55-ad3f-6946c405bbaf"
+  }
+}

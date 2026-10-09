@@ -1,0 +1,36 @@
+                                                                                                                       │
+ - **Budget line:** `# budget: small (medium)`. It is syntactically a comment and is ignored by the generic role       │
+ parser.                                                                                                               │
+ - **Role lines:** For example, `bug-fix: inherit-parent` or `arena runners: ...`. These are parsed and consumed by    │
+ skills/prompts to select Task models and panel fan-out.                                                               │
+ ... (87 more lines, ctrl+o to expand)                                                                                 │
+                                                                                                                       │
+                                                                                                                       │
+ No. The # budget: small (medium) line doesn't change runtime agent behavior. It's a comment that records the choice   │
+ made during setup. All paths below are under extensions/pi-pstack/.                                                   │
+                                                                                                                       │
+ - Setup writes and reads it. src/setup-tool.ts:13-18 maps the budget labels to thinking levels, so small maps to      │
+   medium. Line 55-59 writes the comment. Lines 93-104 read it back so setup can show the current choice.              │
+ - The runtime parser skips it. readModelRule() in src/models.ts:41-68 ignores comments, and only the role lines are   │
+   used.                                                                                                               │
+ - Role lines do change behavior. resolveModel() (src/models.ts:72-104) uses them to pick a Task model. Examples are   │
+   arena runners, swarm workers and bug-fix. A model value can carry a :high-style suffix, and that suffix sets the    ┃
+   effort level.                                                                                                       ┃
+ - The budget helper is never called. applyBudget() (src/models.ts:106-119) would turn a budget into a reasoning       ┃
+   level, but nothing calls it.                                                                                        ┃
+ - The rule text is only shown to the agent. src/index.ts:67 injects the rule into the prompt. No code turns the       ┃
+   budget line into a setting.                                                                                         ┃
+                                                                                                                       ┃
+ What this means for your file. Every role is inherit-parent, so each role runs on the parent chat model at the        ┃
+ parent's effort level. The small (medium) budget has no effect.                                                       ┃
+                                                                                                                       ┃
+ Docs and code disagree. skills/setup-pstack/SKILL.md:27-29 says picking small rewrites model IDs to medium-effort     ┃
+ variants. The current writeAction() (src/setup-tool.ts:110-123) passes role values through unchanged and only writes  ┃
+ the comment. To get a real effect today, put the effort in the role values yourself, for example bug-fix:             ┃
+ <model>:medium.                                                                                                       ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run (refactor/pi-pstack-parity-again)
+↑43k ↓3.4k R118k W20k CH90.3% $0.118 (sub) 2.9%/1.0M (auto)             (claude-subscription) claude-sonnet-5-5 • medium

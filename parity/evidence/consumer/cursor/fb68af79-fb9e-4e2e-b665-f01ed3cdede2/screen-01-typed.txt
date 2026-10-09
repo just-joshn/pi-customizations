@@ -1,0 +1,17 @@
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Use /config to customize Cursor settings and behavior.
+
+
+
+                                                                                                                       
+  → In this cwd, run exactly: bun run watch-pr/watch-pr --help Do not edit files. Do not install packages. Do not      
+    change the store. After the command exits 0, paste the Usage line and the Options list, then write exactly one     
+    line EXIT=0 to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/consumer/fixture-out/curso  
+    r/watch-pr-help-done.txt and stop.                                                                                 
+                                                                                                                       
+
+  Auto                                                                                                  Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts · main · #330

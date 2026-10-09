@@ -1,0 +1,85 @@
+< >
+V New Chat
+Search
+• Automations
+Bº Customize
+Projects
++ New Project
+Pinned
+• /make-bot-ui
+Repositories
+A No Repo
+• Parity webhook witness
+• Cursor automation setup
+Cursor automation setup
+Cursor automation setup
+Cursor automation setup
+Automation setup instruction
+/make-bot-ui
+/automate
+/automate
+Sticky mode activation
+/poteto-mode
+8h
+C7
+• 14m
+7h
+7h
+8h
+8h
+8h
+8h
+8h
+8h
+10h
+Getting Started
+* Connect Slack
+Joshua Humphrev
+3/3 O
+IDE 7
+Automations
+Automate repetitive tasks with always-on agents and configure Cursor's built-in agents for your team.
+From Cursor
+New Automation
+• cursor
+Bot) left a comment
+Risk: low. Assigning 2 reviewers based on recent ownership of
+auth/session. ts and prior review history on this surface.
+7 Open in Web
+Sent by Cursor Approval Agent: Reviewer Assignment
+• cursor assigned & mayag
+R rheap) just now
+Ship better code, faster
+Review Code with Bugbot
+Catch bugs and auto-fix before they ship.
+Scan and Triage Security Vulnerabilities
+Security checks on every change.
+Route PR Reviews and Auto-Approve
+Assign reviewers and approve PRs.
+Get Started →
+Mine
+Team
+Name
+Untitled
+Untitled
+benny-triage
+parity-webhook-witness
+Untitled
+benny-triage
+All Runs A
+Search...
+Created By
+Joshua Humphrey 7h
+Joshua Humphrey 7h
+Joshua Humphrey 7h
+Joshua Humphrey 8h
+Joshua Humphrey 8h
+Joshua Humphrey 8h
+Status
+× Inactive
+× Inactive
+× Inactive
+× Inactive
+× Inactive
+× Inactive
+Tools

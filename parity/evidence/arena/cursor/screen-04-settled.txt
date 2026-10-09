@@ -1,0 +1,39 @@
+    ▎        accumulation. Cro ...
+    ▎    5 + 
+    ▎    6 + ## Grafts
+    ▎    7 + | Graft | Source | Why |
+    ▎    8 + | --- | --- | --- |
+    ▎    9 + | Shrinking `%HH` walk (`decodeComponentSafe` / `isHex`) in place of regex whole-run fallback | **c1** 
+    ▎        | Recovers v ...
+    ▎   10 + | `typeof qs !== "string"` → empty body (no `String(qs)` coercion) | **c1** | Matches nullish/empty/`?`
+    ▎        → `{}` cont ...
+    ▎   11 + 
+    ▎   12 + ## Rejections
+    ▎   13  … truncated (13 more lines) · ctrl+r to review
+
+    Edited done.txt +1
+
+    ▎    1 + fanout=yes base=yes graft=yes verify=yes candidates=2
+
+    To-do All done
+    ✔ Phase A: Frame — artifact, rubric, runners, output paths
+    ✔ Phase B: Fan out N=2 candidates with same prompt
+    ✔ Phase C: Cross-judge candidates against rubric
+    ✔ Phase D: Pick base candidate c2
+    ✔ Phase E: Graft c1 decode + strict typeof into c2
+    ✔ Phase F: Verify synthesized result + write done.txt
+
+  Arena complete.
+
+  • Base: c2 (agreed with Arena cross-judge parseQuery (3f2d22fb-b638-4790-9336-4965d1f8cec1))
+  • Grafts from c1: shrinking %HH safe decoder; reject non-strings instead of String(qs)
+  • Verified (17 checks); wrote synthesized/parseQuery.js, synthesis.md, and done.txt
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 15.2% · 7 files edited                                                                         Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/arena/fixture-app · refactor/pi-pstack-parity-again

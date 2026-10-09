@@ -56,13 +56,13 @@ test('architect delivers the new ownership and single-path design flags', async 
 });
 
 test('package and provenance identify the delivered upstream release', async () => {
-  expect(JSON.parse(await text('package.json')).version).toBe('0.15.9-pi.1');
-  expect(JSON.parse(await text('upstream/plugin-metadata/plugin.json')).version).toBe('0.15.9');
+  expect(JSON.parse(await text('package.json')).version).toBe('0.15.15-pi.1');
+  expect(JSON.parse(await text('upstream/plugin-metadata/plugin.json')).version).toBe('0.15.15');
   expect(JSON.parse(await text('docs/provenance.json')).pstack).toMatchObject({
     commit: expect.stringMatching(/^[a-f0-9]{40}$/),
-    version: '0.15.9',
+    version: '0.15.15',
   });
-  expect(await text('README.md')).toContain('ports pstack 0.15.9');
-  expect(await text('../../README.md')).toContain('pstack 0.15.9 workflow plugin');
-  expect(await text('CHANGELOG.md')).toContain('## 0.15.9-pi.1');
+  expect(await text('README.md')).toContain('ports pstack 0.15.15');
+  expect(await text('../../README.md')).toContain('pstack 0.15.15 workflow plugin');
+  expect(await text('CHANGELOG.md')).toContain('## 0.15.15-pi.1');
 });

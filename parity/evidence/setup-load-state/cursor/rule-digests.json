@@ -1,0 +1,38 @@
+[
+  {
+    "at": "2026-10-08T22:16:53.441Z",
+    "label": "planted",
+    "path": "/Users/josh-desktop/.cursor/rules/pstack-models.mdc",
+    "digest": "sha256:e8dcb7b71c421dd7ceae42b69f478396223d15ffe12257cb963fe7bba4e8f0a2"
+  },
+  {
+    "at": "2026-10-08T22:16:55.805Z",
+    "label": "00-ready",
+    "path": "/Users/josh-desktop/.cursor/rules/pstack-models.mdc",
+    "digest": "sha256:e8dcb7b71c421dd7ceae42b69f478396223d15ffe12257cb963fe7bba4e8f0a2"
+  },
+  {
+    "at": "2026-10-08T22:17:06.108Z",
+    "label": "01-budget",
+    "path": "/Users/josh-desktop/.cursor/rules/pstack-models.mdc",
+    "digest": "sha256:e8dcb7b71c421dd7ceae42b69f478396223d15ffe12257cb963fe7bba4e8f0a2"
+  },
+  {
+    "at": "2026-10-08T22:17:06.407Z",
+    "label": "02-after-chatform",
+    "path": "/Users/josh-desktop/.cursor/rules/pstack-models.mdc",
+    "digest": "sha256:e8dcb7b71c421dd7ceae42b69f478396223d15ffe12257cb963fe7bba4e8f0a2"
+  },
+  {
+    "at": "2026-10-08T22:17:11.234Z",
+    "label": "07-pre-cancel",
+    "path": "/Users/josh-desktop/.cursor/rules/pstack-models.mdc",
+    "digest": "sha256:e8dcb7b71c421dd7ceae42b69f478396223d15ffe12257cb963fe7bba4e8f0a2"
+  },
+  {
+    "at": "2026-10-08T22:17:13.560Z",
+    "label": "rule-after",
+    "path": "/Users/josh-desktop/.cursor/rules/pstack-models.mdc",
+    "digest": "sha256:e8dcb7b71c421dd7ceae42b69f478396223d15ffe12257cb963fe7bba4e8f0a2"
+  }
+]

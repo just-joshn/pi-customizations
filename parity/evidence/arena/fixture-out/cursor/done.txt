@@ -1,0 +1,1 @@
+fanout=yes base=yes graft=yes verify=yes candidates=2

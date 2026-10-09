@@ -1,0 +1,78 @@
+{
+  "ts": "2026-10-09T06:36:13.088051Z",
+  "cursorApiKeyEnv": false,
+  "cursorApiKeyLen": 0,
+  "hasKeychainAccessToken": true,
+  "keychainAccessTokenLen": 413,
+  "tokenPrefixClass": "jwt-like",
+  "attempts": [
+    {
+      "url": "https://api.cursor.com/v0/agents?limit=5",
+      "method": "GET",
+      "authVariant": "bearer",
+      "status": 401,
+      "bodyPreview": "{\"code\":\"error\",\"message\":\"Invalid User API Key\"}"
+    },
+    {
+      "url": "https://api.cursor.com/v0/agents",
+      "method": "POST",
+      "authVariant": "bearer",
+      "skipped": true,
+      "reason": "no-spend: refuse POST create without owner grant"
+    },
+    {
+      "url": "https://api.cursor.com/v0/agents?limit=5",
+      "method": "GET",
+      "authVariant": "basic",
+      "status": 401,
+      "bodyPreview": "{\"code\":\"error\",\"message\":\"Invalid User API Key\"}"
+    },
+    {
+      "url": "https://api.cursor.com/v0/agents",
+      "method": "POST",
+      "authVariant": "basic",
+      "skipped": true,
+      "reason": "no-spend: refuse POST create without owner grant"
+    },
+    {
+      "url": "https://api.cursor.com/v0/agents?limit=1",
+      "method": "GET",
+      "authVariant": "none",
+      "status": 401,
+      "bodyPreview": "{\"code\":\"error\",\"message\":\"Invalid User API Key\"}"
+    }
+  ],
+  "nonSpendNotes": [
+    "Local live-001 evidence retained; local Helper MCP does not yield cloud attempt IDs.",
+    "GET /v0/agents is non-spend list; requires User API Key.",
+    "POST /v0/agents skipped (would create paid cloud agent)."
+  ],
+  "apiKeyFileCandidates": [
+    {
+      "path": "/Users/josh-desktop/.cursor/api-key",
+      "exists": false
+    },
+    {
+      "path": "/Users/josh-desktop/.config/cursor/api-key",
+      "exists": false
+    },
+    {
+      "path": "/Users/josh-desktop/.cursor/auth.json",
+      "exists": false
+    },
+    {
+      "path": "/Users/josh-desktop/.cursor/cli-config.json",
+      "exists": true
+    },
+    {
+      "path": "/Users/josh-desktop/.zshrc",
+      "exists": true,
+      "mentionsCursorApiKey": false
+    },
+    {
+      "path": "/Users/josh-desktop/.zprofile",
+      "exists": true,
+      "mentionsCursorApiKey": false
+    }
+  ]
+}

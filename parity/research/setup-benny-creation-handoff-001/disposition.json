@@ -1,0 +1,37 @@
+{
+  "unit": "u-journey-setup-benny-creation-handoff-001",
+  "requirementId": "PSTACK-SETUP-BENNY-CREATION-BOUNDARY-001",
+  "mergeRecommendation": {
+    "verify": false,
+    "reason": "Cursor half partial (Benny-named Inactive draft via /automate). Pi half still no Automations editor. Paired verify not earned."
+  },
+  "cursorAttempts": {
+    "falsePositive": "372ec24f-7684-4553-b8f0-5019b4e4f1fa",
+    "untitledEditorChrome": "62051488-83b6-4e50-b50b-1175df5d506b",
+    "wrongDraftNameHandoff": "aa48ff47-b7e1-4f0d-9a3a-70a23a95ca96",
+    "primaryBennyTriage": "e11d7225-4c8a-4c09-8f30-273e941a52d2",
+    "listOpenMiss": "e49fe741-2634-4f95-999c-32ab5643da9b"
+  },
+  "priorWitnessNonBenny": "b60a705b-e2ea-40c4-adeb-7014fde433b4",
+  "pi": {
+    "attemptId": "cd378e36-ef2e-4810-ae5d-74a5169f204c",
+    "status": "keep prior env note",
+    "probe": "parity/evidence/setup-benny/creation-boundary/host-env-probe.json",
+    "automationsEditorUiAvailableInPiPty": false
+  },
+  "saveActivatePolicy": {
+    "preferStopBeforeSave": true,
+    "savePressed": false,
+    "activatePressed": false,
+    "saveRequiredToProveFinish": false,
+    "note": "Inactive drafts appear in Automations Mine list after /automate handoff without pressing Save in this unit."
+  },
+  "forbiddenHeld": {
+    "noLedgerEdits": true,
+    "noActivate": true,
+    "noSlackPosts": true,
+    "noFurtherSubagents": true
+  },
+  "lever": "parity/scripts/capture-automations-desktop-agents-window.py automate-handoff [benny-triage|benny-reproduce]",
+  "report": "parity/briefs/reports/u-journey-setup-benny-creation-handoff-001-report.md"
+}

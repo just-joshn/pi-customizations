@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "fixtureNote": "Stub inventory of already-created live Benny automations. Update in Automations editor; do not recreate via /automate.",
+  "automations": [
+    {
+      "name": "benny-triage",
+      "id": "auto_fixture_triage_001",
+      "enabled": false,
+      "role": "triage"
+    },
+    {
+      "name": "benny-reproduce",
+      "id": "auto_fixture_repro_001",
+      "enabled": false,
+      "role": "reproduce"
+    }
+  ]
+}

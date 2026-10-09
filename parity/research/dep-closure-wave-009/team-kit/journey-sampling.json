@@ -1,0 +1,477 @@
+{
+  "capturedAt": "2026-10-09T01:52:19Z",
+  "unit": "u-dep-closure-wave-009",
+  "priorWave008Custody": "parity/research/dep-closure-wave-008/team-kit/custody-disposition.json",
+  "priorWave008CustodySha256": "e4357246247a2334a53ecdc79d6dd8f83741fab3c79564078278c0f22cd69e53",
+  "edge": {
+    "from": "cursor-pstack",
+    "to": "cursor-team-kit"
+  },
+  "edgeAlreadyResolvedByWave008": true,
+  "lockedRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "manifestPath": "parity/reference/cursor-plugins/cursor-team-kit/.cursor-plugin/plugin.json",
+  "manifestSha256": "9c8622d0577205959b6469a5454cbe2787ad3c6412439759328e92dc0115584d",
+  "manifestVersion": "1.2.0",
+  "trackedFileCount": 29,
+  "lockMatchCount": 29,
+  "lockMismatchCount": 0,
+  "lockMismatches": [],
+  "custodyStatus": "verified",
+  "namedSkillCount": 18,
+  "namedSkills": [
+    "check-compiler-errors",
+    "control-cli",
+    "control-ui",
+    "deslop",
+    "fix-ci",
+    "fix-merge-conflicts",
+    "get-pr-comments",
+    "loop-on-ci",
+    "make-pr-easy-to-review",
+    "new-branch-and-pr",
+    "pr-review-canvas",
+    "review-and-ship",
+    "run-smoke-tests",
+    "thermo-nuclear-code-quality-review",
+    "verify-this",
+    "weekly-review",
+    "what-did-i-get-done",
+    "workflow-from-chats"
+  ],
+  "skillInventory": [
+    {
+      "skillId": "check-compiler-errors",
+      "skillMdPath": "parity/reference/cursor-plugins/cursor-team-kit/skills/check-compiler-errors/SKILL.md",
+      "skillMdSha256": "1ad76beccd581fc285199334709e0a37cdc2f76e5d0d33c90e1dc21905518004",
+      "skillMdByteLength": 535,
+      "pairedJourneyStatus": "not_run"
+    },
+    {
+      "skillId": "control-cli",
+      "skillMdPath": "parity/reference/cursor-plugins/cursor-team-kit/skills/control-cli/SKILL.md",
+      "skillMdSha256": "13ac93e595bbda2000849bdb815d5f2ca03f7c2ca63788c8335f9212b9b422a2",
+      "skillMdByteLength": 4333,
+      "pairedJourneyStatus": "not_run"
+    },
+    {
+      "skillId": "control-ui",
+      "skillMdPath": "parity/reference/cursor-plugins/cursor-team-kit/skills/control-ui/SKILL.md",
+      "skillMdSha256": "410cae25bdb1e5d2323b126abc5047b0213be7fdb0195710213fa8de8a751871",
+      "skillMdByteLength": 4802,
+      "pairedJourneyStatus": "not_run"
+    },
+    {
+      "skillId": "deslop",
+      "skillMdPath": "parity/reference/cursor-plugins/cursor-team-kit/skills/deslop/SKILL.md",
+      "skillMdSha256": "2f7b7def74af7ed11f5b44b4d32f0f91fca8c5d1f92bf2171e8d12fd33a0f810",
+      "skillMdByteLength": 719,
+      "pairedJourneyStatus": "not_run"
+    },
+    {
+      "skillId": "fix-ci",
+      "skillMdPath": "parity/reference/cursor-plugins/cursor-team-kit/skills/fix-ci/SKILL.md",
+      "skillMdSha256": "925f8c3e11de8bcc0cd015ec907f4d00b12cde6714246554ed3a52e096536522",
+      "skillMdByteLength": 901,
+      "pairedJourneyStatus": "not_run"
+    },
+    {
+      "skillId": "fix-merge-conflicts",
+      "skillMdPath": "parity/reference/cursor-plugins/cursor-team-kit/skills/fix-merge-conflicts/SKILL.md",
+      "skillMdSha256": "738b251281b30fd33e3892d0679cf94249e9c9e29e1bed40bcdde4a6aca98a76",
+      "skillMdByteLength": 988,
+      "pairedJourneyStatus": "not_run"
+    },
+    {
+      "skillId": "get-pr-comments",
+      "skillMdPath": "parity/reference/cursor-plugins/cursor-team-kit/skills/get-pr-comments/SKILL.md",
+      "skillMdSha256": "8bf292736cab922276feb4d8377edc2fc4102a7beb62bcd1f3f5cf72a79b16cc",
+      "skillMdByteLength": 529,
+      "pairedJourneyStatus": "not_run"
+    },
+    {
+      "skillId": "loop-on-ci",
+      "skillMdPath": "parity/reference/cursor-plugins/cursor-team-kit/skills/loop-on-ci/SKILL.md",
+      "skillMdSha256": "66b85dbd2bc3700386283539292a55438652bbe227271fd90b73b74525b9b9de",
+      "skillMdByteLength": 1611,
+      "pairedJourneyStatus": "not_run"
+    },
+    {
+      "skillId": "make-pr-easy-to-review",
+      "skillMdPath": "parity/reference/cursor-plugins/cursor-team-kit/skills/make-pr-easy-to-review/SKILL.md",
+      "skillMdSha256": "e8da0d4a85b7c04823698f539251617389f827fd9137100ef7eaea5dcc992fe7",
+      "skillMdByteLength": 2275,
+      "pairedJourneyStatus": "not_run"
+    },
+    {
+      "skillId": "new-branch-and-pr",
+      "skillMdPath": "parity/reference/cursor-plugins/cursor-team-kit/skills/new-branch-and-pr/SKILL.md",
+      "skillMdSha256": "4e8f502fcf48553949387a9a7f58b21349e0ff87c24bf8ff5c0013e9da6819fd",
+      "skillMdByteLength": 665,
+      "pairedJourneyStatus": "not_run"
+    },
+    {
+      "skillId": "pr-review-canvas",
+      "skillMdPath": "parity/reference/cursor-plugins/cursor-team-kit/skills/pr-review-canvas/SKILL.md",
+      "skillMdSha256": "88a07a2459197acba3c5e06b7d695e35ad618a998442b72d05cdba4efc117ac6",
+      "skillMdByteLength": 9088,
+      "pairedJourneyStatus": "not_run"
+    },
+    {
+      "skillId": "review-and-ship",
+      "skillMdPath": "parity/reference/cursor-plugins/cursor-team-kit/skills/review-and-ship/SKILL.md",
+      "skillMdSha256": "5c8e88c91e726e024c824d2b02be6bfc7ad81ac5e67c104ef2b66840715373c1",
+      "skillMdByteLength": 1398,
+      "pairedJourneyStatus": "not_run"
+    },
+    {
+      "skillId": "run-smoke-tests",
+      "skillMdPath": "parity/reference/cursor-plugins/cursor-team-kit/skills/run-smoke-tests/SKILL.md",
+      "skillMdSha256": "848c9f34af50f8a0edecbdc239707b694f5f9ac497c61b5907f2bf0caa1372fb",
+      "skillMdByteLength": 967,
+      "pairedJourneyStatus": "not_run"
+    },
+    {
+      "skillId": "thermo-nuclear-code-quality-review",
+      "skillMdPath": "parity/reference/cursor-plugins/cursor-team-kit/skills/thermo-nuclear-code-quality-review/SKILL.md",
+      "skillMdSha256": "7faca08b51b643b2ddd0836f92af15574444024685dcc1e677dbbb39ae8c9e8f",
+      "skillMdByteLength": 12437,
+      "pairedJourneyStatus": "not_run"
+    },
+    {
+      "skillId": "verify-this",
+      "skillMdPath": "parity/reference/cursor-plugins/cursor-team-kit/skills/verify-this/SKILL.md",
+      "skillMdSha256": "c1c7b27c1133085bd3409c601ea12b6e6f61b4b23debcd52bc248fc01907e7de",
+      "skillMdByteLength": 2805,
+      "pairedJourneyStatus": "closed"
+    },
+    {
+      "skillId": "weekly-review",
+      "skillMdPath": "parity/reference/cursor-plugins/cursor-team-kit/skills/weekly-review/SKILL.md",
+      "skillMdSha256": "b56a2c283916b4551aeb322398ab99a19b4b5d7678ffd7f9c9f3df9fa05f4712",
+      "skillMdByteLength": 902,
+      "pairedJourneyStatus": "not_run"
+    },
+    {
+      "skillId": "what-did-i-get-done",
+      "skillMdPath": "parity/reference/cursor-plugins/cursor-team-kit/skills/what-did-i-get-done/SKILL.md",
+      "skillMdSha256": "479813c9abaacb5b6b0531f1de7dc5eb2f3bd9673707a992d1073335836e82f8",
+      "skillMdByteLength": 1012,
+      "pairedJourneyStatus": "not_run"
+    },
+    {
+      "skillId": "workflow-from-chats",
+      "skillMdPath": "parity/reference/cursor-plugins/cursor-team-kit/skills/workflow-from-chats/SKILL.md",
+      "skillMdSha256": "b568176390165921c5e351cc73b553e3e997f92c9f85dfb1c5a220c943fbaa16",
+      "skillMdByteLength": 2685,
+      "pairedJourneyStatus": "not_run"
+    }
+  ],
+  "journeySampleSize": 5,
+  "journeySample": [
+    {
+      "skillId": "verify-this",
+      "skillMdPath": "parity/reference/cursor-plugins/cursor-team-kit/skills/verify-this/SKILL.md",
+      "skillMdSha256": "c1c7b27c1133085bd3409c601ea12b6e6f61b4b23debcd52bc248fc01907e7de",
+      "skillMdByteLength": 2805,
+      "sampleRole": "wave-009 journey-sample seed",
+      "requiredEvidence": "Paired Cursor+Pi user journey exercising team-kit skill `verify-this` against the locked distribution digest",
+      "pairedJourneyStatus": "closed",
+      "pairedAttemptIds": [
+        "abb96d2b-c7d7-4012-9f4d-956e4e605743",
+        "8f04dd82-a425-474f-95dc-b1a005c43169"
+      ],
+      "evidenceHits": [],
+      "pair": "parity/evidence/team-kit/pair-team-kit-verify-this-1.json",
+      "closedAt": "2026-10-09T02:55:00Z"
+    },
+    {
+      "skillId": "deslop",
+      "skillMdPath": "parity/reference/cursor-plugins/cursor-team-kit/skills/deslop/SKILL.md",
+      "skillMdSha256": "2f7b7def74af7ed11f5b44b4d32f0f91fca8c5d1f92bf2171e8d12fd33a0f810",
+      "skillMdByteLength": 719,
+      "sampleRole": "wave-009 journey-sample seed",
+      "requiredEvidence": "Paired Cursor+Pi user journey exercising team-kit skill `deslop` against the locked distribution digest",
+      "pairedJourneyStatus": "closed",
+      "pairedAttemptIds": [
+        "92e79e5f-df73-40f1-be36-52840ea161ea",
+        "c973eadd-a5cc-4893-8344-c25382e7ac82"
+      ],
+      "evidenceHits": [],
+      "pair": "parity/evidence/team-kit/pair-team-kit-deslop-1.json"
+    },
+    {
+      "skillId": "fix-ci",
+      "skillMdPath": "parity/reference/cursor-plugins/cursor-team-kit/skills/fix-ci/SKILL.md",
+      "skillMdSha256": "925f8c3e11de8bcc0cd015ec907f4d00b12cde6714246554ed3a52e096536522",
+      "skillMdByteLength": 901,
+      "sampleRole": "wave-009 journey-sample seed",
+      "requiredEvidence": "Paired Cursor+Pi user journey exercising team-kit skill `fix-ci` against the locked distribution digest",
+      "pairedJourneyStatus": "not_run",
+      "pairedAttemptIds": [],
+      "evidenceHits": []
+    },
+    {
+      "skillId": "review-and-ship",
+      "skillMdPath": "parity/reference/cursor-plugins/cursor-team-kit/skills/review-and-ship/SKILL.md",
+      "skillMdSha256": "5c8e88c91e726e024c824d2b02be6bfc7ad81ac5e67c104ef2b66840715373c1",
+      "skillMdByteLength": 1398,
+      "sampleRole": "wave-009 journey-sample seed",
+      "requiredEvidence": "Paired Cursor+Pi user journey exercising team-kit skill `review-and-ship` against the locked distribution digest",
+      "pairedJourneyStatus": "not_run",
+      "pairedAttemptIds": [],
+      "evidenceHits": [
+        {
+          "path": "parity/evidence/commands/pair-commands-help-cancel-1.json",
+          "sha256": "eac90286b1efd6dac9d7d5b72c37fb65a60965d94de64ed6554db44af956c3ed",
+          "byteLength": 5490,
+          "attemptIds": [
+            "d20bff6f-9012-4d81-a1dc-cccd7202c4b8",
+            "e6909603-6d1f-4828-a1f2-d9f2d6d0be4c"
+          ]
+        },
+        {
+          "path": "parity/evidence/commands/pair-commands-help-recommend-1.json",
+          "sha256": "9b89603c864886ef6b5f83be0aa475d8a784caa156a3737c94ea41b2ae2ddbec",
+          "byteLength": 6124,
+          "attemptIds": [
+            "cc0e3b4c-3d78-416d-98d5-e71ed57d12d9",
+            "91fa6578-cce4-4b5a-abc2-9fe1e90f2b42"
+          ]
+        }
+      ]
+    },
+    {
+      "skillId": "control-cli",
+      "skillMdPath": "parity/reference/cursor-plugins/cursor-team-kit/skills/control-cli/SKILL.md",
+      "skillMdSha256": "13ac93e595bbda2000849bdb815d5f2ca03f7c2ca63788c8335f9212b9b422a2",
+      "skillMdByteLength": 4333,
+      "sampleRole": "wave-009 journey-sample seed",
+      "requiredEvidence": "Paired Cursor+Pi user journey exercising team-kit skill `control-cli` against the locked distribution digest",
+      "pairedJourneyStatus": "closed",
+      "pairedAttemptIds": [
+        "14ac16a2-0283-4f81-8e7b-cb866008fba3",
+        "e22543b5-d681-4c9f-98b8-9078d7bf0ccf"
+      ],
+      "evidenceHits": [],
+      "pair": "parity/evidence/team-kit/pair-team-kit-control-cli-1.json"
+    }
+  ],
+  "journeysStillOpenCount": 10,
+  "liveInstall": {
+    "pstackCachePresent": true,
+    "teamKitCachePresent": false,
+    "teamKitAnywhereUnderPluginsCache": false
+  },
+  "journeyAuditStatus": "partial",
+  "disposition": "Wave-009 re-verifies team-kit custody (already resolved in wave-008) and samples 5 of 18 named skills with SKILL.md path+hash. No paired Cursor+Pi journeys were run. Sample evidence search found no closing attempt IDs for the sampled skills.",
+  "blockerForJourneyClosure": "Paired Cursor+Pi user journeys across the full team-kit skill set remain required. Sampling inventories acceptance seeds. It does not close the ref.",
+  "priorCustodyNote": "Locked distribution custody for cursor-team-kit@1.2.0 at revision ccb5507cec1546dc88135c1139c811e6c59115ba re-verified (29/29 files match parity/reference/distribution-sha256.txt). pstack README install contract quoted. Source readingComplete already true. Per-skill paired Cursor+Pi journeys for the full team-kit skill set remain open as a separate unresolvedReference (same pattern as create-skill edge vs journey ref).",
+  "files": [
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/.cursor-plugin/plugin.json",
+      "sha256": "9c8622d0577205959b6469a5454cbe2787ad3c6412439759328e92dc0115584d",
+      "byteLength": 899,
+      "lockSha256": "9c8622d0577205959b6469a5454cbe2787ad3c6412439759328e92dc0115584d",
+      "matchesDistributionSha256": true
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/LICENSE",
+      "sha256": "702f5f331b56aff0e33d8c7826df5202559f894145eb70355c6477b55b5bb8a0",
+      "byteLength": 1063,
+      "lockSha256": "702f5f331b56aff0e33d8c7826df5202559f894145eb70355c6477b55b5bb8a0",
+      "matchesDistributionSha256": true
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/README.md",
+      "sha256": "6f0e34073ee503824eb5baf52a52119cffe330f2685477ea8d303e881ecd1679",
+      "byteLength": 2526,
+      "lockSha256": "6f0e34073ee503824eb5baf52a52119cffe330f2685477ea8d303e881ecd1679",
+      "matchesDistributionSha256": true
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/agents/ci-watcher.md",
+      "sha256": "8bc93b9ced5588f0ece54ce52690e9682ac49a7fd64be7124379b0e2e128556e",
+      "byteLength": 984,
+      "lockSha256": "8bc93b9ced5588f0ece54ce52690e9682ac49a7fd64be7124379b0e2e128556e",
+      "matchesDistributionSha256": true
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/agents/thermo-nuclear-code-quality-review.md",
+      "sha256": "4d15c05be503f9fdb795a292807334558e7619ffc2fd75ddbc9e97e0d6312234",
+      "byteLength": 1874,
+      "lockSha256": "4d15c05be503f9fdb795a292807334558e7619ffc2fd75ddbc9e97e0d6312234",
+      "matchesDistributionSha256": true
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/assets/avatar.png",
+      "sha256": "13127219825cd53eff1f09686798f2dd7f5e00d0a7093e74d2619e72d5a44c26",
+      "byteLength": 59641,
+      "lockSha256": "13127219825cd53eff1f09686798f2dd7f5e00d0a7093e74d2619e72d5a44c26",
+      "matchesDistributionSha256": true
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/rules/no-inline-imports.mdc",
+      "sha256": "91bb4412f2775b386ddf6af0d235fbe8160907f6104c76928470fdf51be69edd",
+      "byteLength": 314,
+      "lockSha256": "91bb4412f2775b386ddf6af0d235fbe8160907f6104c76928470fdf51be69edd",
+      "matchesDistributionSha256": true
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/rules/typescript-exhaustive-switch.mdc",
+      "sha256": "58214625757c38b73fc3e66a715ea4b2ae609f6b3e285edc4393c5144430a8f4",
+      "byteLength": 297,
+      "lockSha256": "58214625757c38b73fc3e66a715ea4b2ae609f6b3e285edc4393c5144430a8f4",
+      "matchesDistributionSha256": true
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/skills/check-compiler-errors/SKILL.md",
+      "sha256": "1ad76beccd581fc285199334709e0a37cdc2f76e5d0d33c90e1dc21905518004",
+      "byteLength": 535,
+      "lockSha256": "1ad76beccd581fc285199334709e0a37cdc2f76e5d0d33c90e1dc21905518004",
+      "matchesDistributionSha256": true
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/skills/control-cli/SKILL.md",
+      "sha256": "13ac93e595bbda2000849bdb815d5f2ca03f7c2ca63788c8335f9212b9b422a2",
+      "byteLength": 4333,
+      "lockSha256": "13ac93e595bbda2000849bdb815d5f2ca03f7c2ca63788c8335f9212b9b422a2",
+      "matchesDistributionSha256": true
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/skills/control-ui/SKILL.md",
+      "sha256": "410cae25bdb1e5d2323b126abc5047b0213be7fdb0195710213fa8de8a751871",
+      "byteLength": 4802,
+      "lockSha256": "410cae25bdb1e5d2323b126abc5047b0213be7fdb0195710213fa8de8a751871",
+      "matchesDistributionSha256": true
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/skills/deslop/SKILL.md",
+      "sha256": "2f7b7def74af7ed11f5b44b4d32f0f91fca8c5d1f92bf2171e8d12fd33a0f810",
+      "byteLength": 719,
+      "lockSha256": "2f7b7def74af7ed11f5b44b4d32f0f91fca8c5d1f92bf2171e8d12fd33a0f810",
+      "matchesDistributionSha256": true
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/skills/fix-ci/SKILL.md",
+      "sha256": "925f8c3e11de8bcc0cd015ec907f4d00b12cde6714246554ed3a52e096536522",
+      "byteLength": 901,
+      "lockSha256": "925f8c3e11de8bcc0cd015ec907f4d00b12cde6714246554ed3a52e096536522",
+      "matchesDistributionSha256": true
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/skills/fix-merge-conflicts/SKILL.md",
+      "sha256": "738b251281b30fd33e3892d0679cf94249e9c9e29e1bed40bcdde4a6aca98a76",
+      "byteLength": 988,
+      "lockSha256": "738b251281b30fd33e3892d0679cf94249e9c9e29e1bed40bcdde4a6aca98a76",
+      "matchesDistributionSha256": true
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/skills/get-pr-comments/SKILL.md",
+      "sha256": "8bf292736cab922276feb4d8377edc2fc4102a7beb62bcd1f3f5cf72a79b16cc",
+      "byteLength": 529,
+      "lockSha256": "8bf292736cab922276feb4d8377edc2fc4102a7beb62bcd1f3f5cf72a79b16cc",
+      "matchesDistributionSha256": true
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/skills/loop-on-ci/SKILL.md",
+      "sha256": "66b85dbd2bc3700386283539292a55438652bbe227271fd90b73b74525b9b9de",
+      "byteLength": 1611,
+      "lockSha256": "66b85dbd2bc3700386283539292a55438652bbe227271fd90b73b74525b9b9de",
+      "matchesDistributionSha256": true
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/skills/make-pr-easy-to-review/SKILL.md",
+      "sha256": "e8da0d4a85b7c04823698f539251617389f827fd9137100ef7eaea5dcc992fe7",
+      "byteLength": 2275,
+      "lockSha256": "e8da0d4a85b7c04823698f539251617389f827fd9137100ef7eaea5dcc992fe7",
+      "matchesDistributionSha256": true
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/skills/new-branch-and-pr/SKILL.md",
+      "sha256": "4e8f502fcf48553949387a9a7f58b21349e0ff87c24bf8ff5c0013e9da6819fd",
+      "byteLength": 665,
+      "lockSha256": "4e8f502fcf48553949387a9a7f58b21349e0ff87c24bf8ff5c0013e9da6819fd",
+      "matchesDistributionSha256": true
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/skills/pr-review-canvas/SKILL.md",
+      "sha256": "88a07a2459197acba3c5e06b7d695e35ad618a998442b72d05cdba4efc117ac6",
+      "byteLength": 9088,
+      "lockSha256": "88a07a2459197acba3c5e06b7d695e35ad618a998442b72d05cdba4efc117ac6",
+      "matchesDistributionSha256": true
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/skills/pr-review-canvas/renderer.js",
+      "sha256": "d78d36a46b0aeae755e2edd9b712970fd181183bb1c320d10caa8d9f776695c6",
+      "byteLength": 6762,
+      "lockSha256": "d78d36a46b0aeae755e2edd9b712970fd181183bb1c320d10caa8d9f776695c6",
+      "matchesDistributionSha256": true
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/skills/pr-review-canvas/styles.css",
+      "sha256": "3c3ff002dd3bfe7f4fdbda521fce05e336c4a7922f4bd4d848f6566a961ceb19",
+      "byteLength": 5788,
+      "lockSha256": "3c3ff002dd3bfe7f4fdbda521fce05e336c4a7922f4bd4d848f6566a961ceb19",
+      "matchesDistributionSha256": true
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/skills/pr-review-canvas/template.html",
+      "sha256": "cb56bc764384856da4733d1c999521c3e1b20d65ed80605630b74da448abe756",
+      "byteLength": 513,
+      "lockSha256": "cb56bc764384856da4733d1c999521c3e1b20d65ed80605630b74da448abe756",
+      "matchesDistributionSha256": true
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/skills/review-and-ship/SKILL.md",
+      "sha256": "5c8e88c91e726e024c824d2b02be6bfc7ad81ac5e67c104ef2b66840715373c1",
+      "byteLength": 1398,
+      "lockSha256": "5c8e88c91e726e024c824d2b02be6bfc7ad81ac5e67c104ef2b66840715373c1",
+      "matchesDistributionSha256": true
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/skills/run-smoke-tests/SKILL.md",
+      "sha256": "848c9f34af50f8a0edecbdc239707b694f5f9ac497c61b5907f2bf0caa1372fb",
+      "byteLength": 967,
+      "lockSha256": "848c9f34af50f8a0edecbdc239707b694f5f9ac497c61b5907f2bf0caa1372fb",
+      "matchesDistributionSha256": true
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/skills/thermo-nuclear-code-quality-review/SKILL.md",
+      "sha256": "7faca08b51b643b2ddd0836f92af15574444024685dcc1e677dbbb39ae8c9e8f",
+      "byteLength": 12437,
+      "lockSha256": "7faca08b51b643b2ddd0836f92af15574444024685dcc1e677dbbb39ae8c9e8f",
+      "matchesDistributionSha256": true
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/skills/verify-this/SKILL.md",
+      "sha256": "c1c7b27c1133085bd3409c601ea12b6e6f61b4b23debcd52bc248fc01907e7de",
+      "byteLength": 2805,
+      "lockSha256": "c1c7b27c1133085bd3409c601ea12b6e6f61b4b23debcd52bc248fc01907e7de",
+      "matchesDistributionSha256": true
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/skills/weekly-review/SKILL.md",
+      "sha256": "b56a2c283916b4551aeb322398ab99a19b4b5d7678ffd7f9c9f3df9fa05f4712",
+      "byteLength": 902,
+      "lockSha256": "b56a2c283916b4551aeb322398ab99a19b4b5d7678ffd7f9c9f3df9fa05f4712",
+      "matchesDistributionSha256": true
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/skills/what-did-i-get-done/SKILL.md",
+      "sha256": "479813c9abaacb5b6b0531f1de7dc5eb2f3bd9673707a992d1073335836e82f8",
+      "byteLength": 1012,
+      "lockSha256": "479813c9abaacb5b6b0531f1de7dc5eb2f3bd9673707a992d1073335836e82f8",
+      "matchesDistributionSha256": true
+    },
+    {
+      "path": "parity/reference/cursor-plugins/cursor-team-kit/skills/workflow-from-chats/SKILL.md",
+      "sha256": "b568176390165921c5e351cc73b553e3e997f92c9f85dfb1c5a220c943fbaa16",
+      "byteLength": 2685,
+      "lockSha256": "b568176390165921c5e351cc73b553e3e997f92c9f85dfb1c5a220c943fbaa16",
+      "matchesDistributionSha256": true
+    }
+  ],
+  "pairedClosedCount": 8,
+  "uDepTeamKitJourneys001": "parity/research/dep-closure-wave-009/team-kit/journey-progress-u-dep-team-kit-journeys-001.json",
+  "journeyProgressPath": "parity/research/dep-closure-wave-009/team-kit/journey-progress.json"
+}

@@ -1,0 +1,40 @@
+ E                                                                                                                     │
+ node scripts/verify.mjs && echo "verified=yes" >                                                                      │
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/boundary/fixture-out/pi/done.txt   │
+ (timeout 20s)                                                                                                         │
+                                                                                                                       │
+ BOUNDARY-OK value="hello, WORLD"                                                                                      │
+                                                                                                                       │
+ Took 0.1s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ node scripts/verify.mjs now prints BOUNDARY-OK value="hello, WORLD". I wrote verified=yes to done.txt.                │
+                                                                                                                       │
+ What was broken. loadConfig returned the raw wire object. formatGreeting re-checked displayName and then failed with  │
+ missing domain name, because nothing ever set a name field.                                                           │
+                                                                                                                       │
+ Root cause. The config boundary did no validation or mapping. Business logic was compensating for that.               │
+                                                                                                                       │
+ Fix. I took approach 2 from NOTES.md.                                                                                 │
+ - src/load-config.js: loadConfig now checks that displayName is a non-empty string. It throws invalid displayName if  │
+   not. It returns { name: displayName.trim() }.                                                                       │
+ - src/core.js: formatGreeting now only formats the greeting. All guards are gone.                                     │
+                                                                                                                       ┃
+ Principle applied. Boundary discipline (principle-boundary-discipline, read in full this session) changed where the   ┃
+ validation lives. It moved to the boundary, and the wire shape is mapped to a domain type there.                      ┃
+                                                                                                                       ┃
+ Verification. I reproduced the failure first with the original BOUNDARY-FAIL … missing domain name output. After the  ┃
+ fix, the same script passes, so verification was on the same surface as the repro. I wrote no separate test, made no  ┃
+ commit and opened no PR, since the task didn't ask for them.                                                          ┃
+
+[>] Reproduce it yourself on the matching surface via the control skill (Non-negotiables), even when a debug or instr...
+[ ] Binary-search the cause. Form the candidate hypotheses, then rule them out until one survives. (pending)
+[ ] Plan the fix. If it crosses a function boundary, architect first. Delegate implementation to a subagent using you...
+[ ] Verify on the same surface. The original repro now passes. (pending)
+[ ] Stage the commits so the failing repro lands before the fix. (skip: no commit requested) (pending)
+[ ] Run Opening a PR. (skip: fixture, not requested) (pending)
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/principles/boundary/fixture-app (refactor/pi-pstack-parity-again)
+↑12 ↓1.7k R147k W29k CH98.9% $0.163 (sub) 3.8%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium

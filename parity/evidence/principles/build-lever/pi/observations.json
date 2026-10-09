@@ -1,0 +1,99 @@
+{
+  "score": {
+    "frontmatterOk": true,
+    "leafSkillRead": true,
+    "usedChrome": true,
+    "modelAutoInvoke": false,
+    "keptVerifyOk": true,
+    "leverPresent": true,
+    "leverArtifacts": [
+      "scripts/rewrite-prefix.mjs"
+    ],
+    "productFixed": true,
+    "verifiedDone": true,
+    "contractHeld": true,
+    "screen": {
+      "potetoMode": false,
+      "leafChrome": false,
+      "hostAttached": false,
+      "verifyMention": true,
+      "leverMention": true,
+      "working": false
+    },
+    "pty": {
+      "potetoMode": true,
+      "leafChrome": false,
+      "hostAttached": true,
+      "verifyMention": true,
+      "leverMention": true,
+      "working": true
+    }
+  },
+  "firstProductAt": "2026-10-09T00:33:37.677Z",
+  "firstVerifyAt": "2026-10-09T00:33:37.677Z",
+  "firstLeverAt": "2026-10-09T00:33:37.677Z",
+  "productPaths": [
+    "src/alpha.js",
+    "src/beta.js",
+    "src/gamma.js"
+  ],
+  "leverArtifacts": [
+    "scripts/rewrite-prefix.mjs"
+  ],
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/build-lever/fixture-out/pi/done.txt",
+    "line": "verified=yes"
+  },
+  "verifyOut": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/build-lever/fixture-app/evidence/verify-out.txt",
+    "line": "PREFIX-OK units=3",
+    "ok": true
+  },
+  "productFixed": true,
+  "frontmatter": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-build-the-lever/SKILL.md",
+    "ok": true,
+    "name": "principle-build-the-lever",
+    "disableModelInvocation": true
+  },
+  "session": {
+    "sessionPath": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-principles-build-lever-fixture-app--/2026-10-09T00-33-20-300Z_01a11e14-29ac-768b-8b7d-51faf2e1ced4.jsonl",
+    "hostAttached": false,
+    "leafSkillRead": true,
+    "leafSkillReadAt": "2026-10-09T00:33:25.097Z",
+    "ranVerifyScript": true,
+    "wroteLever": false,
+    "toolOrder": [
+      "bash(verify.mjs)",
+      "read(lever-leaf)",
+      "read",
+      "blob-mention(lever-leaf)",
+      "read",
+      "bash(verify.mjs)",
+      "TodoWrite",
+      "bash(verify.mjs)",
+      "bash(verify.mjs)",
+      "bash"
+    ]
+  },
+  "transcript": null,
+  "pollSamples": 35,
+  "screenFinal": {
+    "potetoMode": false,
+    "leafChrome": false,
+    "hostAttached": false,
+    "verifyMention": true,
+    "leverMention": true,
+    "working": false
+  },
+  "pty": {
+    "potetoMode": true,
+    "leafChrome": false,
+    "hostAttached": true,
+    "verifyMention": true,
+    "leverMention": true,
+    "working": true
+  }
+}

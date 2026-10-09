@@ -1,0 +1,91 @@
+{
+  "unit": "u-dep-closure-wave-004",
+  "createdAt": "2026-10-08T21:46:04Z",
+  "results": [
+    {
+      "id": "bun.lock",
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock",
+      "sha256": "667d9cf7222e9aae3fa42a4be383e657784216e9df115da02227fbc5ac7bbe46",
+      "ok": true
+    },
+    {
+      "id": "package.json",
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/package.json",
+      "sha256": "d1f815091209d49763775cc188e8e06ff32d5fec648bffd2272bc25a165e87c3",
+      "ok": true
+    },
+    {
+      "id": "bootstrap.ts",
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bootstrap.ts",
+      "sha256": "ccd2ed08fd9da9d0d942e5f2491cfc74bb92d8a08fa51755e0da1ac8de287361",
+      "ok": true
+    },
+    {
+      "id": "platform-matrix.json",
+      "path": "parity/research/dep-closure-wave-004/platform-matrix.json",
+      "sha256": "2542e07fb4690e256dd5c7dfb9a8d59de155962cab9e7a40fca45e360ef72dc4",
+      "ok": true
+    },
+    {
+      "id": "registry-custody.json",
+      "path": "parity/research/dep-closure-wave-004/registry-custody.json",
+      "sha256": "dba7f5a1e1e26c4265840b05b78687ae37b1abf8ce04f5491ceb8ddc5e822d5a",
+      "ok": true
+    },
+    {
+      "id": "typescript-contract-surface.json",
+      "path": "parity/research/dep-closure-wave-004/npm/typescript-contract-surface.json",
+      "sha256": "53484fd897b898221d9b643d438f4b0ed5afdfe60ab909ca46f66149bfd59f60",
+      "ok": true
+    },
+    {
+      "id": "bun-official-capture.json",
+      "path": "parity/research/dep-closure-wave-004/bun/official-capture.json",
+      "sha256": "758c2af03fa1ccec3b846cecf96de23b06911ebb82b2dc3cb2f175315109e0b2",
+      "ok": true
+    },
+    {
+      "id": "bun-version.txt",
+      "path": "parity/research/dep-closure-wave-004/bun/bun-version.txt",
+      "sha256": "b99b4c7cdf236f59bc9f65d963deaecae3b16a7dad87939cacb9057f7664daee",
+      "ok": true
+    },
+    {
+      "id": "bun-install.html",
+      "path": "parity/research/dep-closure-wave-004/bun/install.html",
+      "sha256": "b893d34cdf3a1ce7c5cf649eee0f08a1d168f6a52e73977af764c8ee08b7d525",
+      "ok": true
+    },
+    {
+      "id": "bun-lockfile.html",
+      "path": "parity/research/dep-closure-wave-004/bun/lockfile.html",
+      "sha256": "e16a0321c03bc7a6122fe14a918faff052058aeff9158f1f48118388696d274a",
+      "ok": true
+    },
+    {
+      "id": "bun-nodejs-compat.html",
+      "path": "parity/research/dep-closure-wave-004/bun/nodejs-compat.html",
+      "sha256": "5ee498723663e81c9be95b25e3396d991276c8b1388a6a798f68b446e5833b27",
+      "ok": true
+    },
+    {
+      "id": "computer-use.md",
+      "path": "parity/research/continuation/computer-use.md",
+      "sha256": "a9ceb020282d7c61ad99ccd13de0c8831dd57499ac32af31b5f4afc9e9e186d0",
+      "ok": true
+    },
+    {
+      "id": "model-management.md",
+      "path": "parity/research/continuation/model-management.md",
+      "sha256": "2606b4bd74d43bd579c59945506ab691cd49de8da3386556e265c854f6c9d205",
+      "ok": true
+    },
+    {
+      "id": "host-edge-disposition.json",
+      "path": "parity/research/dep-closure-wave-004/host-edge-disposition.json",
+      "sha256": "f90cfaf1c5308d81976c6eb6785463c251bc0de45915cd3f25de1becfcc87a46",
+      "ok": true
+    }
+  ],
+  "status": "VERIFIED"
+}

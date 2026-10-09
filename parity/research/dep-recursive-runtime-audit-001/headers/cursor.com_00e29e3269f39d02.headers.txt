@@ -1,0 +1,22 @@
+HTTP 200
+Accept-Ranges: bytes
+Access-Control-Allow-Origin: *
+Age: 16066
+Cache-Control: public, max-age=0, must-revalidate
+Content-Disposition: inline
+Content-Length: 502740
+Content-Type: text/html; charset=utf-8
+Date: Fri, 09 Oct 2026 02:07:30 GMT
+Etag: "7622661de17a31896768abf21ff10d5c"
+Link: </llms.txt>; rel="describedby"; type="text/plain"; title="llms.txt", </docs/sitemap.xml>; rel="sitemap"; type="application/xml"
+Server: Vercel
+Set-Cookie: generaltranslation.locale-routing-enabled=true; Path=/
+Strict-Transport-Security: max-age=63072000
+Vary: rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch
+X-Generaltranslation-Locale: en-US
+X-Matched-Path: /en-US/docs/skills
+X-Nextjs-Prerender: 1
+X-Nextjs-Stale-Time: 300
+X-Vercel-Cache: HIT
+X-Vercel-Id: pdx1::lmtnq-1791511650835-59bb958a6eb0
+Connection: close

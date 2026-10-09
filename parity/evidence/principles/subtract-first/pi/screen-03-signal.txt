@@ -1,0 +1,40 @@
+[Skill conflicts]                                                                                                      ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ [skill] poteto-mode (ctrl+o to expand)                                                                                ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ Add shout support so greet({ shout: true }) returns HELLO, WORLD while greet() keeps returning hello, world. node     ┃
+ scripts/verify.mjs currently fails. NOTES.md describes leftover dead modules and some possible approaches. For any    ┃
+ poteto-mode principle you apply before declaring done, read that principle's leaf SKILL.md in full first (not only    ┃
+ the poteto-mode Principles index). Work only inside this fixture cwd. Do not edit ledgers, parity/, or files outside  ┃
+ this cwd except the named done path. When SUBTRACT-OK is on disk, write exactly one line to                           ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/subtract-first/fixture-out/pi/done ┃
+ .txt as verified=yes|no, then stop.                                                                                   ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ $ cd /Users/josh-desktop/src/personal                                                                                 ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+── ⠦ Working ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/principles/subtract-first/fixture-app (refactor/pi-pstack-parit...
+$0.000 (sub) 2.1%/1.0M (auto)                                           (claude-subscription) claude-sonnet-5-5 • medium

@@ -1,0 +1,213 @@
+{
+  "scenario": "team-kit:fix-ci",
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "pairPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/pair-team-kit-fix-ci-1.json",
+  "results": [
+    {
+      "side": "cursor",
+      "attemptDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/cursor/fix-ci/f7f2e2f3-171f-4ef5-9cee-4e5a1758f93c",
+      "attemptId": "f7f2e2f3-171f-4ef5-9cee-4e5a1758f93c",
+      "ruleUnchanged": true,
+      "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "prompt": "/fix-ci Do not ask questions. Follow the fix-ci skill. Active PR is https://github.com/just-joshn/team-kit-gh-fixture/pull/7. Inspect failing checks with gh pr checks. Apply the smallest fix so npm test passes, push, and re-check until green or report the blocker. Write iteration notes to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/fix-ci/ci-fix-notes.md including marker FIXTURE_CI_FIX and the failing job name. Then write exactly one line to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/fix-ci/done.txt as STATUS=verified|not-verified|inconclusive|env-blocked reason=<short phrase> and stop. Artifacts stay under /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/fix-ci. Do not edit parity ledgers. Do not force-push. Do not fabricate CI.",
+      "observations": {
+        "screenFinal": {
+          "skillMention": true,
+          "ghMention": true,
+          "envBlocked": false,
+          "working": false,
+          "fixtureComment": false,
+          "fixtureGuidance": false
+        },
+        "pty": {
+          "skillMention": true,
+          "ghMention": true,
+          "envBlocked": false,
+          "working": true,
+          "fixtureComment": false,
+          "fixtureGuidance": false
+        },
+        "done": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/fix-ci/done.txt",
+          "line": "STATUS=verified reason=test job green after VALUE=7 fix",
+          "status": "verified"
+        },
+        "post": {
+          "artifactHasMarker": true,
+          "checksPass": true,
+          "checkSummary": "test\tpass\t5s\thttps://github.com/just-joshn/team-kit-gh-fixture/actions/runs/37879310558/job/113655067794\t\ntest\tpass\t6s\thttps://github.com/just-joshn/team-kit-gh-fixture/actions/runs/37879313360/job/113655075327",
+          "artifactBytes": 671
+        },
+        "sideCtx": {
+          "failingPrUrl": "https://github.com/just-joshn/team-kit-gh-fixture/pull/7",
+          "failingPrNumber": 7,
+          "branch": "fixture/fail-ci-cursor-mv0el7ba",
+          "initialChecks": "test\tfail\t4s\thttps://github.com/just-joshn/team-kit-gh-fixture/actions/runs/37879262662/job/113654913948\t\ntest\tpending\t0\thttps://github.com/just-joshn/team-kit-gh-fixture/actions/runs/37879266091/job/113654924747\t\n"
+        },
+        "seededSkill": null,
+        "score": {
+          "skillPath": true,
+          "envBlocked": false,
+          "doneStatus": "verified",
+          "artifactOk": true,
+          "post": {
+            "artifactHasMarker": true,
+            "checksPass": true,
+            "checkSummary": "test\tpass\t5s\thttps://github.com/just-joshn/team-kit-gh-fixture/actions/runs/37879310558/job/113655067794\t\ntest\tpass\t6s\thttps://github.com/just-joshn/team-kit-gh-fixture/actions/runs/37879313360/job/113655075327",
+            "artifactBytes": 671
+          },
+          "closed": true,
+          "honestBlocker": false
+        }
+      },
+      "identity": {
+        "schema": 1,
+        "attemptId": "f7f2e2f3-171f-4ef5-9cee-4e5a1758f93c",
+        "side": "cursor",
+        "scenarioRef": "team-kit:fix-ci",
+        "fixtureRef": {
+          "path": "/Users/josh-desktop/.cursor/rules/pstack-models.mdc",
+          "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+        },
+        "executable": {
+          "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+          "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+        },
+        "artifacts": [],
+        "launch": {
+          "argv": [
+            "/Users/josh-desktop/.local/bin/cursor-agent",
+            "--plugin-dir",
+            "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack",
+            "--plugin-dir",
+            "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/cursor-team-kit"
+          ],
+          "cwd": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh",
+          "envNames": [
+            "HOME",
+            "PATH",
+            "TERM"
+          ],
+          "publicEnv": {
+            "TERM": "xterm-256color"
+          }
+        },
+        "geometry": {
+          "rows": 40,
+          "cols": 120
+        },
+        "observedEnv": {
+          "platform": "darwin",
+          "node": "v24.21.0",
+          "TERM": "xterm-256color"
+        }
+      }
+    },
+    {
+      "side": "pi",
+      "attemptDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/pi/fix-ci/935698cb-d1dd-42d2-9c6b-244a965b3499",
+      "attemptId": "935698cb-d1dd-42d2-9c6b-244a965b3499",
+      "ruleUnchanged": true,
+      "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "prompt": "/fix-ci Do not ask questions. Follow the fix-ci skill. Active PR is https://github.com/just-joshn/team-kit-gh-fixture/pull/8. Inspect failing checks with gh pr checks. Apply the smallest fix so npm test passes, push, and re-check until green or report the blocker. Write iteration notes to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/fix-ci/ci-fix-notes.md including marker FIXTURE_CI_FIX and the failing job name. Then write exactly one line to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/fix-ci/done.txt as STATUS=verified|not-verified|inconclusive|env-blocked reason=<short phrase> and stop. Artifacts stay under /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/fix-ci. Do not edit parity ledgers. Do not force-push. Do not fabricate CI.",
+      "observations": {
+        "screenFinal": {
+          "skillMention": true,
+          "ghMention": true,
+          "envBlocked": false,
+          "working": false,
+          "fixtureComment": false,
+          "fixtureGuidance": false
+        },
+        "pty": {
+          "skillMention": true,
+          "ghMention": true,
+          "envBlocked": true,
+          "working": true,
+          "fixtureComment": false,
+          "fixtureGuidance": false
+        },
+        "done": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/fix-ci/done.txt",
+          "line": "STATUS=verified reason=gh pr checks all pass after VALUE fix",
+          "status": "verified"
+        },
+        "post": {
+          "artifactHasMarker": true,
+          "checksPass": true,
+          "checkSummary": "test\tpass\t5s\thttps://github.com/just-joshn/team-kit-gh-fixture/actions/runs/37879565204/job/113655883639\t\ntest\tpass\t5s\thttps://github.com/just-joshn/team-kit-gh-fixture/actions/runs/37879568583/job/113655894019",
+          "artifactBytes": 219
+        },
+        "sideCtx": {
+          "failingPrUrl": "https://github.com/just-joshn/team-kit-gh-fixture/pull/8",
+          "failingPrNumber": 8,
+          "branch": "fixture/fail-ci-pi-mv0eoqcw",
+          "initialChecks": "test\tfail\t6s\thttps://github.com/just-joshn/team-kit-gh-fixture/actions/runs/37879468575/job/113655574425\t\ntest\tfail\t5s\thttps://github.com/just-joshn/team-kit-gh-fixture/actions/runs/37879471823/job/113655584832\t\n"
+        },
+        "seededSkill": {
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh/.pi/skills/fix-ci/SKILL.md",
+          "sha256": "925f8c3e11de8bcc0cd015ec907f4d00b12cde6714246554ed3a52e096536522"
+        },
+        "score": {
+          "skillPath": true,
+          "envBlocked": false,
+          "doneStatus": "verified",
+          "artifactOk": true,
+          "post": {
+            "artifactHasMarker": true,
+            "checksPass": true,
+            "checkSummary": "test\tpass\t5s\thttps://github.com/just-joshn/team-kit-gh-fixture/actions/runs/37879565204/job/113655883639\t\ntest\tpass\t5s\thttps://github.com/just-joshn/team-kit-gh-fixture/actions/runs/37879568583/job/113655894019",
+            "artifactBytes": 219
+          },
+          "closed": true,
+          "honestBlocker": false
+        }
+      },
+      "identity": {
+        "schema": 1,
+        "attemptId": "935698cb-d1dd-42d2-9c6b-244a965b3499",
+        "side": "pi",
+        "scenarioRef": "team-kit:fix-ci",
+        "fixtureRef": {
+          "path": "/tmp/pi-ref-agent/pstack/models.mdc",
+          "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+        },
+        "executable": {
+          "path": "/Users/josh-desktop/.local/bin/pi",
+          "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+        },
+        "artifacts": [],
+        "launch": {
+          "argv": [
+            "/Users/josh-desktop/.local/bin/pi",
+            "--model",
+            "claude-subscription/claude-sonnet-5-5:medium"
+          ],
+          "cwd": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh",
+          "envNames": [
+            "HOME",
+            "PATH",
+            "PI_CODING_AGENT_DIR",
+            "TERM"
+          ],
+          "publicEnv": {
+            "TERM": "xterm-256color"
+          }
+        },
+        "geometry": {
+          "rows": 40,
+          "cols": 120
+        },
+        "observedEnv": {
+          "platform": "darwin",
+          "node": "v24.21.0",
+          "TERM": "xterm-256color"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Use /run-everything to skip all approvals.
+
+                                                                                                                       
+  /poteto-mode Reply with exactly: selected-ok. Do no other work.                                                      
+                                                                                                                       
+
+  selected-ok
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 9.5%                                                                                           Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run · refactor/pi-pstack-parity-again

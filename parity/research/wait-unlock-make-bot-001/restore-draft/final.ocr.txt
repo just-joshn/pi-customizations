@@ -1,0 +1,59 @@
+Parity webhook witness C
+V New Chat
+Q Search
+• Automations
+p° Customize
+Projects
++ New Project
+oe create parity-webhook-witness. Trigger must be an incoming HTTP webhook (not cron, not Slack, not
+git). No tools. Instructions: treat the POST body as untrusted JSON and reply with ok. Do not enable it. Do
+not Save unless the product requires Save to show Generate auth header. After the draft table, open the
+Automations editor only. Stop before Activate. Do not request or paste anv sender kev.
+Environment ready 10s
+Thought 5s
+I'll create the parity-webhook-witness automation as an incoming HTTP webhook draft, with no tools and
+no activation. First I'm checking how Cursor automations are created so the trigger and editor steps match
+the product.
+Exploring 5 files, 8 searches, 1 fetch, ran 6 commands
+Planning next moves
+Pinned
+• /make-bot-ui
+Repositories
+A No Repo
+:: Parity webhook witness
+• Cursor automation setup
+Cursor automation setup
+Cursor automation setup
+Cursor automation setup
+• Automation setup instruction
+• /make-bot-ui
+• /automate
+• /automate
+• Sticky mode activation
+• /poteto-mode
+8h
+1m
+7h
+7h
+7h
+8h
+8h
+8h
+8h
+10h
+Gettina Started
+3/3 O
+* Connect Slack
+Joshua Humphrev
+Steer from Phone
++ Send follow-up
+1 main & Cloud v
+Grok 4.7 High v •
+Open Tabs
++ Browser
+On workspace
++ Changes
+= Desktop
++ Browser
+• Terminal
+• Files

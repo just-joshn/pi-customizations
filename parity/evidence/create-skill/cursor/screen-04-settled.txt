@@ -1,0 +1,39 @@
+
+    ▎    1 + ---
+    ▎    2 + name: parity-create-skill-probe
+    ▎    3 + description: >-
+    ▎    4 +   Echoes the create-skill probe marker when the user runs the create-skill
+    ▎    5 +   probe or invokes parity-create-skill-probe.
+    ▎    6 + ---
+    ▎    7 + 
+    ▎    8 + # Parity Create-Skill Probe
+    ▎    9 + 
+    ▎   10 + When the user says to run the create-skill probe, reply with exactly this marker on its own line:
+    ▎   11 + 
+    ▎   12 + CREATE-SKILL-PROBE-MARKER
+
+  $ test -f "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-app/.cursor/
+    skills/parity-create-skill-probe/SKILL.md" && printf '%s\n' 'STATUS=wrote' >
+    "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-out/cursor/done.txt"
+    && cat
+    "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-out/cursor/done.txt"
+    && wc -l "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-app/.curso
+    r/skills/parity-create-skill-probe/SKILL.md" 204ms
+    STATUS=wrote
+    12 /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-app/.cursor/skill…
+
+    To-do All done
+    ✔ Write .cursor/skills/parity-create-skill-probe/SKILL.md
+    ✔ Write STATUS line to fixture-out/cursor/done.txt
+
+  Wrote .cursor/skills/parity-create-skill-probe/SKILL.md (12 lines) and fixture-out/cursor/done.txt with
+  STATUS=wrote.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 11.2% · 1 file edited                                                                          Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-app · refactor/pi-pstack-parity-again

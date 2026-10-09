@@ -1,0 +1,54 @@
+
+ RUN  v5.0.2 /Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack
+
+[leak-report] run directory /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pv-84o4Nm
+[leak-report] no leftover entries
+[leak-report] run directory /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pv-Lce99L
+[leak-report] no leftover entries
+[leak-report] run directory /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pv-DwomvD
+[leak-report] no leftover entries
+[leak-report] run directory /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pv-D8mxiR
+[leak-report] no leftover entries
+[leak-report] run directory /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pv-R2tdtL
+[leak-report] no leftover entries
+[leak-report] run directory /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pv-DIyDHo
+[leak-report] no leftover entries
+[leak-report] run directory /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pv-Ij42GX
+[leak-report] no leftover entries
+[leak-report] run directory /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pv-0HiWSa
+[leak-report] no leftover entries
+[leak-report] run directory /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pv-rPUkAV
+[leak-report] no leftover entries
+[leak-report] run directory /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pv-SwiTz4
+[leak-report] no leftover entries
+[leak-report] run directory /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pv-0KdoRW
+[leak-report] no leftover entries
+[leak-report] run directory /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pv-psfO00
+[leak-report] no leftover entries
+[leak-report] run directory /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pv-oo1Z35
+[leak-report] no leftover entries
+[leak-report] run directory /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pv-MBQuUC
+[leak-report] no leftover entries
+[leak-report] run directory /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pv-kIWDvH
+[leak-report] no leftover entries
+[leak-report] run directory /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pv-VvDC6g
+[leak-report] no leftover entries
+Upstream coverage includes 1 imported helper files.
+example.ts
+lines: 7/10 (70.00%)
+Upstream coverage includes 1 imported helper files.
+example.ts
+lines: 8/10 (80.00%)
+functions: 7/10 (70.00%)
+Upstream coverage includes 1 imported helper files.
+example.ts
+lines: 8/10 (80.00%)
+functions: 8/10 (80.00%)
+[leak-report] run directory /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pv-kalAeK
+[leak-report] no leftover entries
+
+ Test Files  212 passed (212)
+      Tests  2213 passed | 1 skipped (2214)
+   Start at  00:08:34
+   Duration  61.68s (tests 86%, import 13%, transform 1%)
+

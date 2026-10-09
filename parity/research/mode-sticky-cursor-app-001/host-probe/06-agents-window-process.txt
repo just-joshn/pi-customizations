@@ -1,0 +1,4 @@
+agentsWindowProc=false
+cursorMainProc=false
+foregroundHasCursor=false
+note: process presence is not Custom Mode chrome; display/CDP/computer-use required to drive slash → Use as Mode

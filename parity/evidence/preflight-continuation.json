@@ -1,0 +1,1945 @@
+{
+  "kind": "preflight",
+  "verdict": "BLOCKED",
+  "blockers": [
+    {
+      "code": "SOURCE_LOCK_INCOMPLETE",
+      "file": "source-lock.json",
+      "locator": "status",
+      "contractLocator": "contract.md §2",
+      "message": "The source lock is not finalized."
+    },
+    {
+      "code": "SOURCE_CLOSURE_INCOMPLETE",
+      "file": "source-lock.json",
+      "locator": "cursorPlugins.completeDependencyClosure",
+      "contractLocator": "contract.md §2",
+      "message": "Complete dependency source closure remains required."
+    },
+    {
+      "code": "REFERENCE_CONFIGURATION_MISSING",
+      "file": "source-lock.json",
+      "locator": "cursorCli.referenceConfigurationCaptured",
+      "contractLocator": "contract.md §2",
+      "message": "Working reference configuration has not been captured."
+    },
+    {
+      "code": "DEPENDENCY_AUDIT_MISSING",
+      "file": "dependencies.json",
+      "locator": "closureAudited",
+      "contractLocator": "contract.md §3",
+      "message": "Independent recursive closure audit remains required."
+    },
+    {
+      "code": "DEPENDENCY_REFERENCE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "unresolvedReferences[0]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency reference is unresolved."
+    },
+    {
+      "code": "DEPENDENCY_REFERENCE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "unresolvedReferences[1]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency reference is unresolved."
+    },
+    {
+      "code": "DEPENDENCY_REFERENCE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "unresolvedReferences[2]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency reference is unresolved."
+    },
+    {
+      "code": "DEPENDENCY_REFERENCE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "unresolvedReferences[3]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency reference is unresolved."
+    },
+    {
+      "code": "DEPENDENCY_REFERENCE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "unresolvedReferences[4]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency reference is unresolved."
+    },
+    {
+      "code": "DEPENDENCY_REFERENCE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "unresolvedReferences[5]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency reference is unresolved."
+    },
+    {
+      "code": "DEPENDENCY_REFERENCE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "unresolvedReferences[6]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency reference is unresolved."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[4]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[5]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[8]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[9]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[10]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[11]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[12]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[13]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[14]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[15]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[16]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[17]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[18]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[19]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[20]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[21]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[22]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[23]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[24]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[25]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[26]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[27]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[28]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[29]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[30]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[32]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[33]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[0]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[1]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[2]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[3]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[4]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[5]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[6]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[7]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[8]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[9]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[10]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[11]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[12]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[13]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[14]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[15]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[16]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[17]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[18]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[19]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[20]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[21]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[22]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[23]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[24]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[25]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[26]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[27]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[28]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[29]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[30]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[31]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[32]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[33]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "ACCEPTANCE_DEFINITIONS_UNFROZEN",
+      "file": "requirements.json",
+      "locator": "acceptanceDefinitionsFrozen",
+      "contractLocator": "contract.md §4",
+      "message": "Independent acceptance definitions are not frozen."
+    },
+    {
+      "code": "COVERAGE_DENOMINATOR_INCOMPLETE",
+      "file": "requirements.json",
+      "locator": "coverageDenominatorComplete",
+      "contractLocator": "contract.md §9",
+      "message": "Full requirement-by-configuration denominator is incomplete."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[0]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[1]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[2]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[3]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[4]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[5]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[6]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[7]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[8]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[9]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[10]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[11]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[12]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[13]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[14]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[15]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[16]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[17]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[18]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[19]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[20]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[21]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[22]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[23]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[24]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[25]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[26]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[27]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[28]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[29]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[30]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[31]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[32]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[33]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[34]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[35]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[36]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[37]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[38]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[39]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[40]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[41]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[42]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[43]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[44]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[45]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[46]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[47]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[48]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[49]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[50]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[51]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[52]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[53]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[54]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[55]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[56]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[57]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[58]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[59]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[60]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[61]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[62]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[63]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[64]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[65]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[66]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[67]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[68]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[69]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[70]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[71]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[72]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[73]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[74]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[75]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[76]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[77]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[78]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[79]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[80]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[81]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[82]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[83]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[84]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[85]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[86]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[87]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[88]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[89]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[90]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[91]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[92]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[93]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[94]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[95]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[96]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[97]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[98]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[99]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[100]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[101]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[102]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[103]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[104]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[105]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[106]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[107]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[108]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[109]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[110]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[111]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[112]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[113]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[114]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[115]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[116]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[117]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[118]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[119]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[120]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[121]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[122]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[123]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[124]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[125]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[126]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[127]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[128]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[129]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[130]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[131]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[132]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[133]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[134]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[135]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[136]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[137]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[138]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[139]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[140]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[141]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[142]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[143]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[144]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[145]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[146]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[147]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[148]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[149]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[150]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[151]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[152]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[153]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[154]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[155]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[156]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[157]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[158]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[159]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[160]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[161]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[162]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[163]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[164]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[165]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[166]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[167]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[168]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[169]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[170]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[171]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[172]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[173]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[174]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[175]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[176]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[177]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[178]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[179]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[180]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[181]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[182]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[183]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[184]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[185]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[186]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[187]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[188]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[189]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[190]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[191]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "SOURCE_DISPOSITION_MISSING",
+      "file": "inventory.json",
+      "locator": "items[192]",
+      "contractLocator": "contract.md §4",
+      "message": "Source item has no reviewed disposition."
+    },
+    {
+      "code": "ARTIFACT_MISSING",
+      "file": "scenarios/mode-one-message.json",
+      "locator": "",
+      "contractLocator": "contract.md §9",
+      "message": "Required artifact is missing."
+    },
+    {
+      "code": "ARTIFACT_MISSING",
+      "file": "scenarios/mode-sticky.json",
+      "locator": "",
+      "contractLocator": "contract.md §9",
+      "message": "Required artifact is missing."
+    },
+    {
+      "code": "ARTIFACT_MISSING",
+      "file": "scenarios/setup-model-discovery.json",
+      "locator": "",
+      "contractLocator": "contract.md §9",
+      "message": "Required artifact is missing."
+    },
+    {
+      "code": "SCENARIO_FIXTURE_UNPINNED",
+      "file": "scenarios/setup-budget-labels.json",
+      "locator": "fixture.digest",
+      "contractLocator": "contract.md §9",
+      "message": "Scenario fixture digest is missing."
+    },
+    {
+      "code": "SCENARIO_ORACLE_UNFROZEN",
+      "file": "scenarios/setup-budget-labels.json",
+      "locator": "comparison.oracleFrozen",
+      "contractLocator": "contract.md §9",
+      "message": "Scenario comparison definitions are not frozen."
+    },
+    {
+      "code": "SCENARIO_PAIR_MISSING",
+      "file": "scenarios/setup-budget-labels.json",
+      "locator": "execution.pairId",
+      "contractLocator": "contract.md §9",
+      "message": "No executed reference-and-candidate pair is linked."
+    },
+    {
+      "code": "ACCOUNT_OWNER_PREREQUISITE_OPEN",
+      "file": "configurations.json",
+      "locator": "accountOwnerPrerequisites[0]",
+      "contractLocator": "contract.md §9",
+      "message": "Account-owner prerequisite remains open."
+    },
+    {
+      "code": "BEHAVIOR_MISMATCH_OPEN",
+      "file": "mismatches.json",
+      "locator": "items[0]",
+      "contractLocator": "contract.md §9",
+      "message": "Behavioral mismatch remains unresolved."
+    },
+    {
+      "code": "ACCEPTANCE_AUTHORITY_UNAVAILABLE",
+      "file": "contract.md",
+      "locator": "§4",
+      "contractLocator": "contract.md §4",
+      "message": "External independently protected acceptance authority has not been established."
+    },
+    {
+      "code": "PAIRED_ACCEPTANCE_VERIFIER_UNIMPLEMENTED",
+      "file": "contract.md",
+      "locator": "§8 and §9",
+      "contractLocator": "contract.md §9",
+      "message": "The authenticated paired user-journey acceptance verifier is not implemented. This preflight cannot certify parity."
+    }
+  ]
+}

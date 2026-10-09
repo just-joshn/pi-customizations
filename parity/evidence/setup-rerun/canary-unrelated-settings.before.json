@@ -1,0 +1,5 @@
+{
+  "purpose": "byte-stable unrelated settings canary for journey-family-02",
+  "note": "setup-pstack must not rewrite this file",
+  "nonce": "setup-rerun-canary-v1"
+}

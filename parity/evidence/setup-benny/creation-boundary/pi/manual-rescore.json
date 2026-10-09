@@ -1,0 +1,10 @@
+{
+  "attemptId": "cd378e36-ef2e-4810-ae5d-74a5169f204c",
+  "automatedOutcome": "boundary_violated",
+  "manualOutcome": "env_blocked",
+  "contractHeld": false,
+  "whyAutomatedWrong": "pty.backendTool matched RoutinePrepare text from the Pi system tool registry dump in events.jsonl, plus nearby create language. Session tool_calls were only bash (read setup-benny / write done marker). No RoutinePrepare, update_state, cursor://, or live automation write.",
+  "doneLine": "STATUS=env-blocked reason=no built-in /automate skill or Automations editor in this CLI host",
+  "sessionToolCalls": ["bash", "bash"],
+  "liveAutomationCreated": []
+}

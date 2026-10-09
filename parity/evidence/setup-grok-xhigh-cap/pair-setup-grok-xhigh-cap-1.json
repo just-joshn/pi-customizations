@@ -1,0 +1,119 @@
+{
+  "schema": 1,
+  "pairId": "setup-grok-xhigh-cap-1",
+  "scenarioRef": "setup-pstack:grok-xhigh-cap-unlimited",
+  "scenarioId": "setup-grok-xhigh-cap",
+  "requirementIds": [
+    "PSTACK-SETUP-GROK-XHIGH-CAP-001"
+  ],
+  "targetBudget": "unlimited",
+  "steps": [
+    {
+      "send": "/setup-pstack"
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "send": "<instruction: choose unlimited, remap Grok to xhigh and non-Grok to max, keep auto and inherit-parent>",
+      "note": "Cursor used chat-form two-step (budget number then remapped-table instruction). Pi used Space on unlimited then AskQuestion Other on role-confirm with a Pi-native remap instruction."
+    },
+    {
+      "wait": "budget unlimited (max) with Grok real slugs at xhigh"
+    }
+  ],
+  "cursor": {
+    "attemptId": "faeae5d9-c831-4b7b-9f47-abad3ed21433",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-grok-xhigh-cap/cursor/faeae5d9-c831-4b7b-9f47-abad3ed21433",
+    "path": "chatform-two-step",
+    "fixturePath": "parity/evidence/setup-grok-xhigh-cap/fixture-cursor.mdc",
+    "fixtureDigest": "sha256:c839b86ed7605f6fa4fb70efc10a5fa573f687c809229a8b4fd0687535c29bf7",
+    "afterDigest": "sha256:81d8f8a6a6c730b190773c3eefe209e78bc4c20d8fbe18e0a2a2d7a5216180e7",
+    "score": {
+      "budgetBefore": "small (medium)",
+      "budgetAfter": "unlimited (max)",
+      "grokPresent": true,
+      "grokCappedCount": 10,
+      "grokTotal": 10,
+      "nonGrokMaxCount": 9,
+      "nonGrokTotal": 9,
+      "aliasesPreserved": true,
+      "pass": true
+    },
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    }
+  },
+  "pi": {
+    "attemptId": "94c9aab6-b015-44b7-8815-5cf6849f8025",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-grok-xhigh-cap/pi/5bafa9a0-d6f2-4bb3-b38f-66012dc305b1",
+    "path": "askquestion-unlimited-then-other",
+    "fixturePath": "parity/evidence/setup-grok-xhigh-cap/fixture-pi.mdc",
+    "fixtureDigest": "sha256:b8f73977ec5959896a0bad18ba625caca2850523abcc654ae6b99cb36b123ed9",
+    "afterDigest": "sha256:4a3705be59028be11c36cb66435ed53d91453d91ea09bc3ac81a8d4a2d7cb202",
+    "errorCode": "GROK_UNAVAILABLE",
+    "score": {
+      "budgetOk": true,
+      "grokCappedCount": 10,
+      "grokTotal": 10,
+      "nonGrokMaxCount": 9,
+      "nonGrokTotal": 9,
+      "aliasesPreserved": true,
+      "pass": true
+    },
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "attemptDir": "parity/evidence/setup-grok-xhigh-cap/pi/94c9aab6-b015-44b7-8815-5cf6849f8025",
+    "pass": true,
+    "wrote": true,
+    "note": "Recapture after importing existing ~/.grok OAuth into /tmp/pi-ref-agent xai; pi auth check ready; 10/10 Grok\u2192xhigh, 9/9 Claude\u2192max, aliases preserved."
+  },
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-setup-grok-xhigh-cap.mjs --pi-only --pi-fixture=mixed (Cursor reused faeae5d9)",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "lockedFixtureRestored": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "failedAttempts": {
+      "cursor": [
+        "f3a370da-5650-4fd8-a06d-9f1185c6b88b",
+        "fa446220-8d97-493d-a7ad-3043099919e0"
+      ],
+      "pi": [
+        "5a21ed3f-e8c0-4744-8e1d-bd73287f8f0a",
+        "8e82b1c5-2256-4efa-80b6-952f648e62dc",
+        "449127cb-1763-4893-9812-c70ce3b7defd",
+        "4564da87-5ea1-4380-9211-3ec91b86bd3a",
+        "c91e2ff6-2346-4d2c-93e7-932867963283"
+      ]
+    },
+    "piRecaptureAt": "2026-10-09T02:00:00Z",
+    "piAttemptId": "94c9aab6-b015-44b7-8815-5cf6849f8025",
+    "authUnblock": "Imported existing Grok CLI OAuth (same xAI client id) into Pi reference agent auth.json; refreshed via pi auth check.",
+    "cursorAttemptId": "faeae5d9-c831-4b7b-9f47-abad3ed21433"
+  },
+  "hostDeltas": [
+    "Cursor fixture uses effort-in-slug tokens including grok-4.7-*-fast. Pi mixed fixture uses xai/grok-4.7:effort plus claude-subscription Claude models.",
+    "Cursor under unlimited remapped every Grok real slug to grok-4.7-xhigh-fast (10/10) and every Claude real slug to claude-opus-5-5-max (9/9). No grok-*-max was written. Aliases auto and inherit-parent preserved.",
+    "Pi attempt 5bafa9a0 selected unlimited then role-confirm Other with remap instruction. Agent stopped without writing: xai/grok-4.7 is not in detected/availableModels. Rule after matched the mixed fixture digest. Screens in the attempt dir record the unavailable stop.",
+    "Pi /tmp/pi-ref-agent auth.json has no xai credential (providers: deepseek, google-antigravity, openai, claude-subscription). models-store.json lists xai/grok-4.7 but auth gates detection.",
+    "Did not drop Grok from the Pi fixture to fake a pass.",
+    "Cursor unlimited selector still shows unlimited \u2014 keep max on some hosts (known label mismatch). Instruction accepted that option and wrote # budget: unlimited (max)."
+  ],
+  "verdict": "pass",
+  "honestMismatch": false
+}

@@ -1,0 +1,87 @@
+{
+  "score": {
+    "frontmatterOk": true,
+    "leafSkillRead": true,
+    "usedChrome": true,
+    "modelAutoInvoke": false,
+    "keptVerifyOk": true,
+    "ranCheck": true,
+    "directArtifactVerify": true,
+    "productFixed": true,
+    "verifiedDone": true,
+    "contractHeld": true,
+    "screen": {
+      "potetoMode": false,
+      "leafChrome": false,
+      "hostAttached": false,
+      "verifyMention": true,
+      "working": false
+    },
+    "pty": {
+      "potetoMode": true,
+      "leafChrome": false,
+      "hostAttached": true,
+      "verifyMention": true,
+      "working": true
+    }
+  },
+  "firstProductAt": "2026-10-09T00:14:28.758Z",
+  "firstVerifyAt": "2026-10-09T00:14:23.543Z",
+  "productPaths": [
+    "src/add.js"
+  ],
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/fixture-out/pi/done.txt",
+    "line": "verified=yes"
+  },
+  "verifyOut": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/fixture-app/evidence/verify-out.txt",
+    "line": "ADD-OK value=5",
+    "ok": true
+  },
+  "productFixed": true,
+  "frontmatter": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-prove-it-works/SKILL.md",
+    "ok": true,
+    "name": "principle-prove-it-works",
+    "disableModelInvocation": true
+  },
+  "session": {
+    "sessionPath": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-principles-fixture-app--/2026-10-09T00-14-08-811Z_01a11e02-97ab-721f-8f91-013f7f2cfe53.jsonl",
+    "hostAttached": false,
+    "leafSkillRead": true,
+    "leafSkillReadAt": "2026-10-09T00:14:19.887Z",
+    "ranVerifyScript": true,
+    "ranNodeCheck": false,
+    "toolOrder": [
+      "read",
+      "bash(verify.mjs)",
+      "TodoWrite",
+      "read(prove-leaf)",
+      "read",
+      "bash(verify.mjs)",
+      "blob-mention(prove-leaf)",
+      "bash(verify.mjs)",
+      "edit",
+      "bash(verify.mjs)"
+    ]
+  },
+  "transcript": null,
+  "pollSamples": 44,
+  "screenFinal": {
+    "potetoMode": false,
+    "leafChrome": false,
+    "hostAttached": false,
+    "verifyMention": true,
+    "working": false
+  },
+  "pty": {
+    "potetoMode": true,
+    "leafChrome": false,
+    "hostAttached": true,
+    "verifyMention": true,
+    "working": true
+  }
+}

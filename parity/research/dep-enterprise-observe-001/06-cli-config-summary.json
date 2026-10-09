@@ -1,0 +1,197 @@
+{
+  "exists": true,
+  "topLevelKeys": [
+    "approvalMode",
+    "attribution",
+    "authInfo",
+    "autoAcceptWebSearch",
+    "autoReviewAvailabilityCache",
+    "display",
+    "editor",
+    "exploreSubagentModel",
+    "hasChangedDefaultModel",
+    "hints",
+    "model",
+    "modelParameters",
+    "modelSelectionHistory",
+    "modelSlashCommands",
+    "network",
+    "notifications",
+    "permissions",
+    "privacyCache",
+    "rewind",
+    "runEverythingSettingsPromptStreak",
+    "sandbox",
+    "selectedModel",
+    "serverConfigCache",
+    "showSandboxIntro",
+    "steering",
+    "subagentModels",
+    "version"
+  ],
+  "redacted": {
+    "permissions": {
+      "allow": [
+        "Shell(ls)"
+      ],
+      "deny": []
+    },
+    "version": 1,
+    "editor": {
+      "vimMode": false
+    },
+    "display": {
+      "showLineNumbers": true,
+      "showThinkingBlocks": false,
+      "showStatusIndicators": true,
+      "showStatusLineRunningTime": true,
+      "mode": "zen"
+    },
+    "notifications": true,
+    "hints": false,
+    "modelSlashCommands": true,
+    "steering": true,
+    "rewind": true,
+    "model": {
+      "modelId": "default",
+      "displayModelId": "auto",
+      "displayName": "Auto",
+      "displayNameShort": "Auto",
+      "aliases": [
+        "auto"
+      ],
+      "maxMode": false
+    },
+    "hasChangedDefaultModel": true,
+    "modelParameters": {
+      "default": [],
+      "gpt-5.6-luna": [
+        {
+          "id": "context",
+          "value": "272k"
+        },
+        {
+          "id": "reasoning",
+          "value": "none"
+        },
+        {
+          "id": "fast",
+          "value": "false"
+        }
+      ],
+      "claude-opus-5-5": [
+        {
+          "id": "context",
+          "value": "300k"
+        },
+        {
+          "id": "effort",
+          "value": "medium"
+        },
+        {
+          "id": "fast",
+          "value": "false"
+        }
+      ],
+      "claude-sonnet-5-5": [
+        {
+          "id": "context",
+          "value": "300k"
+        },
+        {
+          "id": "reasoning_effort",
+          "value": "medium"
+        }
+      ],
+      "grok-4.7": [
+        {
+          "id": "context",
+          "value": "256k"
+        },
+        {
+          "id": "reasoning_effort",
+          "value": "high"
+        },
+        {
+          "id": "fast",
+          "value": "false"
+        }
+      ],
+      "glm-5p3-flash": [
+        {
+          "id": "reasoning",
+          "value": "max"
+        }
+      ],
+      "claude-haiku-5-5": [
+        {
+          "id": "thinking",
+          "value": "true"
+        },
+        {
+          "id": "context",
+          "value": "300k"
+        },
+        {
+          "id": "reasoning_effort",
+          "value": "high"
+        }
+      ]
+    },
+    "selectedModel": {
+      "modelId": "default",
+      "parameters": []
+    },
+    "modelSelectionHistory": [
+      "default",
+      "claude-haiku-5-5",
+      "claude-opus-5-5",
+      "glm-5p3-flash",
+      "grok-4.7",
+      "claude-sonnet-5-5",
+      "gpt-5.6-luna"
+    ],
+    "exploreSubagentModel": "inherit",
+    "subagentModels": {
+      "explore": "inherit"
+    },
+    "privacyCache": {
+      "ghostMode": true,
+      "privacyMode": 2,
+      "updatedAt": 1791527911733
+    },
+    "autoReviewAvailabilityCache": {
+      "backendUrl": "https://api2.cursor.sh",
+      "authCacheKey": "<redacted>",
+      "available": true,
+      "updatedAt": 1791440598160
+    },
+    "serverConfigCache": {
+      "backendUrl": "https://api2.cursor.sh",
+      "authCacheKey": "<redacted>",
+      "agentUrlConfig": {
+        "agentUrl": "https://agentn.global.api5.cursor.sh",
+        "agentnUrl": "https://agentn.global.api5.cursor.sh"
+      },
+      "cliSandboxDefaultEnabled": false,
+      "serverHttp2Config": 0,
+      "updatedAt": 1791527557330
+    },
+    "authInfo": "<redacted>",
+    "network": {
+      "useHttp1ForAgent": false
+    },
+    "approvalMode": "unrestricted",
+    "autoAcceptWebSearch": true,
+    "sandbox": {
+      "mode": "disabled",
+      "networkAccess": "user_config_with_defaults"
+    },
+    "showSandboxIntro": false,
+    "runEverythingSettingsPromptStreak": 0,
+    "attribution": {
+      "attributeCommitsToAgent": false,
+      "attributePRsToAgent": false
+    }
+  }
+}

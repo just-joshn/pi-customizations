@@ -1,0 +1,43 @@
+{
+  "screenFinal": {
+    "skillMention": false,
+    "ghMention": true,
+    "envBlocked": false,
+    "working": false,
+    "fixtureComment": false,
+    "fixtureGuidance": true
+  },
+  "pty": {
+    "skillMention": true,
+    "ghMention": true,
+    "envBlocked": false,
+    "working": true,
+    "fixtureComment": false,
+    "fixtureGuidance": true
+  },
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/make-pr-easy-to-review/done.txt",
+    "line": "STATUS=verified reason=PR body and notes updated",
+    "status": "verified"
+  },
+  "post": {
+    "artifactHasMarker": true,
+    "prBodyHasMarker": true,
+    "artifactBytes": 875
+  },
+  "seededSkill": null,
+  "score": {
+    "skillPath": true,
+    "envBlocked": false,
+    "doneStatus": "verified",
+    "artifactOk": true,
+    "post": {
+      "artifactHasMarker": true,
+      "prBodyHasMarker": true,
+      "artifactBytes": 875
+    },
+    "closed": true,
+    "honestBlocker": false
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "cmd-disable-model-invocation",
+  "status": "executed-pass-paired",
+  "requirements": [
+    "PSTACK-CMD-DISABLE-MODEL-INVOCATION-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/how/SKILL.md#YAML frontmatter disable-model-invocation on how",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "store.js/api.js layering ask without slash /how; residual-safe answer.md markers.",
+    "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Continue a turn where the model might want architectural help.. The how skill is not model-auto-invoked because disable-model-invocation is true; only explicit user or handoff entry points attach it."
+    }
+  ],
+  "execution": {
+    "referenceRun": "d5cca07e-5927-437f-863c-92d0471f95b7",
+    "candidateRun": "2b4fc338-046f-4572-8a7a-b6ce9a8b56ad",
+    "pairId": "disable-model-invocation-1",
+    "pairPath": "parity/evidence/disable-model/pair-disable-model-invocation-1.json",
+    "verdict": "pass-paired",
+    "closedAt": "2026-10-08T21:46:00Z",
+    "note": "howHostAttached false both hosts; Pi no skill inject/catalog/read of how."
+  }
+}

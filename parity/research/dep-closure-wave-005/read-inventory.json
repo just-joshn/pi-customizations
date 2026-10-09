@@ -1,0 +1,140 @@
+{
+  "unit": "u-dep-closure-wave-005",
+  "createdAt": "2026-10-08T22:23:29Z",
+  "sourceCount": 19,
+  "allSources": [
+    {
+      "id": "parity__research__dep-closure-wave-005__bun__official-capture.json",
+      "path": "parity/research/dep-closure-wave-005/bun/official-capture.json",
+      "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/dep-closure-wave-005/bun/official-capture.json",
+      "sha256": "1015d861f1fe9fcfd0b67e5ff937a10aefe4a5b0af342984658b4a48da1ef09a",
+      "byteLength": 2951
+    },
+    {
+      "id": "parity__research__dep-closure-wave-005__bun__bun-version.txt",
+      "path": "parity/research/dep-closure-wave-005/bun/bun-version.txt",
+      "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/dep-closure-wave-005/bun/bun-version.txt",
+      "sha256": "8175ac22d3a200ea0c6b04e240ba440308532413d1c9f38b5603471128ce9747",
+      "byteLength": 72
+    },
+    {
+      "id": "parity__research__dep-closure-wave-005__bun__install.html",
+      "path": "parity/research/dep-closure-wave-005/bun/install.html",
+      "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/dep-closure-wave-005/bun/install.html",
+      "sha256": "b893d34cdf3a1ce7c5cf649eee0f08a1d168f6a52e73977af764c8ee08b7d525",
+      "byteLength": 192431
+    },
+    {
+      "id": "parity__research__dep-closure-wave-005__bun__lockfile.html",
+      "path": "parity/research/dep-closure-wave-005/bun/lockfile.html",
+      "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/dep-closure-wave-005/bun/lockfile.html",
+      "sha256": "e16a0321c03bc7a6122fe14a918faff052058aeff9158f1f48118388696d274a",
+      "byteLength": 66717
+    },
+    {
+      "id": "parity__research__dep-closure-wave-005__bun__nodejs-compat.html",
+      "path": "parity/research/dep-closure-wave-005/bun/nodejs-compat.html",
+      "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/dep-closure-wave-005/bun/nodejs-compat.html",
+      "sha256": "5ee498723663e81c9be95b25e3396d991276c8b1388a6a798f68b446e5833b27",
+      "byteLength": 293288
+    },
+    {
+      "id": "parity__research__dep-closure-wave-005__bun__package-manager.html",
+      "path": "parity/research/dep-closure-wave-005/bun/package-manager.html",
+      "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/dep-closure-wave-005/bun/package-manager.html",
+      "sha256": "635fc83e99951f5c4c30a1e5127c89f9cd32c83778c76fca5df6a47f8925c3ed",
+      "byteLength": 312036
+    },
+    {
+      "id": "parity__research__dep-closure-wave-005__bun__bun-version-docs.html",
+      "path": "parity/research/dep-closure-wave-005/bun/bun-version-docs.html",
+      "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/dep-closure-wave-005/bun/bun-version-docs.html",
+      "sha256": "af4d26627ff4d134ac9949969d4ba47a025a9abcd4ca65067ed35af34099411e",
+      "byteLength": 28371
+    },
+    {
+      "id": "parity__research__dep-closure-wave-005__npm__typescript-body-audit.json",
+      "path": "parity/research/dep-closure-wave-005/npm/typescript-body-audit.json",
+      "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/dep-closure-wave-005/npm/typescript-body-audit.json",
+      "sha256": "b8f1a9706c1991cac99336de4c945a4839bcf654df793b9d00c8f745ac587791",
+      "byteLength": 260016
+    },
+    {
+      "id": "parity__research__dep-closure-wave-005__host-edge-disposition.json",
+      "path": "parity/research/dep-closure-wave-005/host-edge-disposition.json",
+      "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/dep-closure-wave-005/host-edge-disposition.json",
+      "sha256": "02e027ecc31ddd1a4e26ab47321bac56c33bf07225ecd16aa30eef72955473c6",
+      "byteLength": 2638
+    },
+    {
+      "id": "parity__research__dep-closure-wave-005__nodes__bun-pin.md",
+      "path": "parity/research/dep-closure-wave-005/nodes/bun-pin.md",
+      "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/dep-closure-wave-005/nodes/bun-pin.md",
+      "sha256": "57207ff9cd3f648032c2335f88a586aa67124a263a94e14becaef4d0681d6e9d",
+      "byteLength": 571
+    },
+    {
+      "id": "parity__research__dep-closure-wave-005__nodes__typescript-body-audit.md",
+      "path": "parity/research/dep-closure-wave-005/nodes/typescript-body-audit.md",
+      "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/dep-closure-wave-005/nodes/typescript-body-audit.md",
+      "sha256": "8811540c92452fd14a7de923d47ed2f9db21eae1ac0b6346786f3699cf601ebd",
+      "byteLength": 806
+    },
+    {
+      "id": "parity__research__dep-closure-wave-005__nodes__host-edge-disposition.md",
+      "path": "parity/research/dep-closure-wave-005/nodes/host-edge-disposition.md",
+      "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/dep-closure-wave-005/nodes/host-edge-disposition.md",
+      "sha256": "bbf021971ad7c478780c029027ec5efe96cc78003be3dc1a138db85ed8db975d",
+      "byteLength": 1060
+    },
+    {
+      "id": "parity__research__dep-closure-wave-005__merge-proposal.json",
+      "path": "parity/research/dep-closure-wave-005/merge-proposal.json",
+      "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/dep-closure-wave-005/merge-proposal.json",
+      "sha256": "103774edd4396f1218b007c960acec21b70040d87b590fd509ec6cffb68963f0",
+      "byteLength": 10217
+    },
+    {
+      "id": "parity__research__dep-closure-wave-005__decisions.tsv",
+      "path": "parity/research/dep-closure-wave-005/decisions.tsv",
+      "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/dep-closure-wave-005/decisions.tsv",
+      "sha256": "38aa866c018bb5860e21bbafa4a56fc96b364f66e45f1eceb4016a8a96d2bd2e",
+      "byteLength": 604
+    },
+    {
+      "id": "parity__research__continuation__computer-use.md",
+      "path": "parity/research/continuation/computer-use.md",
+      "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/continuation/computer-use.md",
+      "sha256": "a9ceb020282d7c61ad99ccd13de0c8831dd57499ac32af31b5f4afc9e9e186d0",
+      "byteLength": 15653
+    },
+    {
+      "id": "parity__research__continuation__model-management.md",
+      "path": "parity/research/continuation/model-management.md",
+      "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/continuation/model-management.md",
+      "sha256": "2606b4bd74d43bd579c59945506ab691cd49de8da3386556e265c854f6c9d205",
+      "byteLength": 12119
+    },
+    {
+      "id": "parity__research__dep-closure-wave-002__npm__typescript@7.0.2__file-inventory.json",
+      "path": "parity/research/dep-closure-wave-002/npm/typescript@7.0.2/file-inventory.json",
+      "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/dep-closure-wave-002/npm/typescript@7.0.2/file-inventory.json",
+      "sha256": "5dd0187cdbf0533f7cd6049bf66d40339c14b6a7c96f72a5743a3412475d036b",
+      "byteLength": 70198
+    },
+    {
+      "id": "parity__reference__cursor-plugins__pstack__skills__poteto-mode__scripts__package.json",
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/package.json",
+      "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/package.json",
+      "sha256": "d1f815091209d49763775cc188e8e06ff32d5fec648bffd2272bc25a165e87c3",
+      "byteLength": 352
+    },
+    {
+      "id": "parity__reference__cursor-plugins__pstack__skills__poteto-mode__scripts__bun.lock",
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock",
+      "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock",
+      "sha256": "667d9cf7222e9aae3fa42a4be383e657784216e9df115da02227fbc5ac7bbe46",
+      "byteLength": 6679
+    }
+  ]
+}

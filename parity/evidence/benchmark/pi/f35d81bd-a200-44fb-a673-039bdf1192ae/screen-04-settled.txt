@@ -1,0 +1,40 @@
+ - Caveats: input is a deterministic pattern ((i*17+3)%9973), not random, as the claim says. Sides ran in a fixed      │
+ order (slow, then fast) with the sides not alternated. Fast ran second, so it may benefit from JIT warmup of shared   │
+ code, but the gap is far larger than that. Load average ~2.2. Q1-Q3, Q5, Q6 skipped per the ballpark scope (the run   │
+ does not look wrong; the O(n^2) vs O(n log n) gap is consistent with the numbers, but the limiter was not profiled).  │
+ - Suggested claim wording: "sortFast is far faster than sortSlow (~18.5 ms vs ~0.23 ms) on 5000 ints in one run."     │
+ Drop the 25% figure.                                                                                                  │
+ E                                                                                                                     │
+ echo "q4=yes q7=yes oneRun=yes evidence=run-evidence.json slowMs=18.53 fastMs=0.228" > $D/done.txt (timeout 10s)      │
+                                                                                                                       │
+ (no output)                                                                                                           │
+                                                                                                                       │
+ Took 0.0s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ I ran measure.mjs once and wrote the checklist answers and the done.txt line to the marker dir. The one run doesn't   │
+ support the draft claim of about 25% faster. sortFast took 0.228 ms against 18.53 ms for sortSlow, which is about     │
+ 98.8% less time (roughly 81x).                                                                                        │
+                                                                                                                       │
+ - Q4, errors: none. The error count is 0, both outputs are sorted and both have length 5000.                          │
+ - Q7, did it happen: yes. Both sorts ran inside the timed region, and the outputs were checked after timing.          │
+ - Caveats:                                                                                                            │
+     - The input is a deterministic pattern, not random as the claim says.                                             ┃
+     - sortSlow ran first and sortFast second, with no alternation.                                                    ┃
+     - Load average was about 2.2.                                                                                     ┃
+ - Skipped: Q1–Q3, Q5 and Q6, per the ballpark scope. The limiter was not profiled.                                    ┃
+                                                                                                                       ┃
+ The report suggests dropping the 25% figure and saying sortFast is far faster (about 18.5 ms vs 0.23 ms on 5000 ints  ┃
+ in one run).                                                                                                          ┃
+                                                                                                                       ┃
+ Files are in /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/benchmark/fixture-out/pi:        ┃
+ - checklist-report.md                                                                                                 ┃
+ - done.txt                                                                                                            ┃
+                                                                                                                       ┃
+ measure.mjs also wrote run-evidence.json in the fixture cwd.                                                          ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/benchmark/fixture-app (refactor/pi-pstack-parity-again)
+↑10 ↓1.4k R90k W20k CH97.4% $0.113 (sub) 2.9%/1.0M (auto)               (claude-subscription) claude-sonnet-5-5 • medium

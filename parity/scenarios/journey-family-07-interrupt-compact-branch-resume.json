@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "kind": "journey-family-stub",
+  "id": "journey-family-07-interrupt-compact-branch-resume",
+  "family": 7,
+  "familyTitle": "Interrupt running task, new direction, compact context, branch session, restart Pi, resume objective",
+  "contractRef": "parity/contract.md#8-verify-through-the-users-controls",
+  "status": "partial",
+  "requirementIds": [
+    "PSTACK-CMD-SHOW-ME-YOUR-WORK-TSV-001",
+    "PSTACK-CMD-FIGURE-IT-OUT-PLAYBOOK-FIRST-001"
+  ],
+  "fixtureNeeds": [
+    "Long-running task that can be interrupted mid-flight",
+    "Context compaction trigger",
+    "Session branch and Pi restart with continuation artifact"
+  ],
+  "evidencePaths": [
+    "parity/evidence/continuation-preflight-tests.txt",
+    "parity/evidence/preflight-continuation.json",
+    "parity/evidence/interrupt/pair-interrupt-redirect-1.json"
+  ],
+  "openMismatches": [],
+  "coverageNotes": "Interrupt\u2192redirect Escape slice paired (interrupt-redirect-1). Compact context, branch session, and Pi restart resume still missing. Stub requirementIds are placeholders and were not verified by this pair.",
+  "nextAction": "Capture compact and restart-resume slices; optionally add a dedicated interrupt requirement row."
+}

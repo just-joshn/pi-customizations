@@ -1,0 +1,35 @@
+  │ arena cross-judge pool                   │ inherit-parent │
+  ├──────────────────────────────────────────┼────────────────┤
+  │ swarm workers                            │ inherit-parent │
+  ├──────────────────────────────────────────┼────────────────┤
+  │ architect runners                        │ inherit-parent │
+  ├──────────────────────────────────────────┼────────────────┤
+  │ interrogate reviewers                    │ inherit-parent │
+  └──────────────────────────────────────────┴────────────────┘
+
+  Dropped lines: none
+
+  Accept as-is, or name roles to change? Options per role: any detected slug, inherit-parent, or auto. For panel
+  roles (arena runners, architect runners, interrogate reviewers, arena cross-judge pool) you can pass a comma list
+  — list length sets fan-out.
+
+                                                                                                                       
+  small — medium reasoningAccept as-is. Keep every role inherit-parent. Write the rule. Decline verification           
+  skill.                                                                                                               
+                                                                                                                       
+
+  Writing the rule with budget small (medium) and every role as inherit-parent.
+
+    Edited pstack-models.mdc
+
+  Wrote ~/.cursor/rules/pstack-models.mdc with budget small (medium) and every role inherit-parent. It applies to
+  new sessions; re-run /setup-pstack anytime to update it.
+
+
+
+                                                                                                                       
+  → small — medium reasoningAccept as-is. Keep every role inherit-parent. Write the rule. Decline verification skill.  
+                                                                                                                       
+
+  Auto · 12.6% · 1 file edited                                                                          Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run · refactor/pi-pstack-parity-again

@@ -1,0 +1,16 @@
+{
+  "afterHelp": {
+    "usageWatchPr": true,
+    "optionsHeader": true,
+    "optOwner": true,
+    "optPr": true,
+    "helpFlag": true,
+    "working": false
+  },
+  "helpChromeOk": true,
+  "doneMarkerOk": true,
+  "consumerPath": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/watch-pr/cli.ts",
+  "consumerSha256": "89c08863089181a232be782c4b2ed90a1552f44aeecb0dcb7aac2c623620e680",
+  "consumerMatchesLocked": true,
+  "journeyClosed": true
+}

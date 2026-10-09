@@ -1,0 +1,102 @@
+{
+  "score": {
+    "frontmatterOk": true,
+    "leafSkillRead": true,
+    "usedChrome": true,
+    "modelAutoInvoke": false,
+    "keptVerifyOk": true,
+    "experienceOverConvenience": true,
+    "dualImpact": true,
+    "kitchenSink": false,
+    "productOk": true,
+    "verifiedDone": true,
+    "contractHeld": true,
+    "screen": {
+      "potetoMode": false,
+      "leafChrome": false,
+      "hostAttached": false,
+      "verifyMention": true,
+      "working": false
+    },
+    "pty": {
+      "potetoMode": true,
+      "leafChrome": false,
+      "hostAttached": true,
+      "verifyMention": true,
+      "working": true
+    }
+  },
+  "firstProductAt": "2026-10-09T01:19:48.056Z",
+  "firstVerifyAt": "2026-10-09T01:19:48.056Z",
+  "firstImpactAt": "2026-10-09T01:19:48.056Z",
+  "productPaths": [
+    "src/status.js",
+    "IMPACT.md"
+  ],
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/experience-first/fixture-out/pi/done.txt",
+    "line": "verified=yes"
+  },
+  "verifyOut": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/experience-first/fixture-app/evidence/verify-out.txt",
+    "line": "EXPERIENCE-OK default=human json=yes impact=dual files=status.js",
+    "ok": true
+  },
+  "oracle": {
+    "human": "Status: healthy\nReady: yes\nNext: deploy review\nQueue: 3 items waiting",
+    "machine": "{\"ok\":true,\"queue\":3,\"next\":\"deploy review\"}",
+    "experienceOverConvenience": true,
+    "dualImpact": true,
+    "kitchenSink": false,
+    "productOk": true,
+    "srcFiles": [
+      "status.js"
+    ],
+    "impactPresent": true
+  },
+  "productOk": true,
+  "frontmatter": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-experience-first/SKILL.md",
+    "ok": true,
+    "name": "principle-experience-first",
+    "disableModelInvocation": true
+  },
+  "session": {
+    "sessionPath": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-principles-experience-first-fixture-app--/2026-10-09T01-19-30-101Z_01a11e3e-6d35-7677-a29e-9321a14d0f76.jsonl",
+    "hostAttached": false,
+    "leafSkillRead": true,
+    "leafSkillReadAt": "2026-10-09T01:19:34.479Z",
+    "ranVerifyScript": true,
+    "toolOrder": [
+      "bash(experience-first-leaf)",
+      "blob-mention(experience-first-leaf)",
+      "read",
+      "read(experience-first-leaf)",
+      "read",
+      "read(verify.mjs)",
+      "read",
+      "blob-mention(experience-first-leaf)",
+      "TodoWrite",
+      "bash(verify.mjs)",
+      "bash"
+    ]
+  },
+  "transcript": null,
+  "pollSamples": 39,
+  "screenFinal": {
+    "potetoMode": false,
+    "leafChrome": false,
+    "hostAttached": false,
+    "verifyMention": true,
+    "working": false
+  },
+  "pty": {
+    "potetoMode": true,
+    "leafChrome": false,
+    "hostAttached": true,
+    "verifyMention": true,
+    "working": true
+  }
+}

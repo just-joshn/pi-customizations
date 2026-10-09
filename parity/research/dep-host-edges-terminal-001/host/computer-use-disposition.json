@@ -1,0 +1,38 @@
+{
+  "capturedAt": "2026-10-09T03:39:39Z",
+  "unit": "u-dep-host-edges-terminal-001",
+  "edge": {
+    "from": "cursor-cli-host",
+    "to": "cursor-self-hosted-computer-use"
+  },
+  "currentStatus": "unresolved",
+  "recommendStatus": "unresolved",
+  "resolvedHonest": false,
+  "disposition": "environment-bound",
+  "absentInSourceApplicable": false,
+  "absentInSourceWhyNot": "Contract is present in public docs (computer-use.md). Runtime helper identity, privacy grants, Linux display packages, and desktop-sharing transport remain required. Empty mdfind is a missing install, not an absent contract.",
+  "doc": {
+    "path": "parity/research/continuation/computer-use.md",
+    "sha256": "a9ceb020282d7c61ad99ccd13de0c8831dd57499ac32af31b5f4afc9e9e186d0",
+    "byteLength": 15653,
+    "matchesLedgerDocSha256": true,
+    "ledgerDocSha256": "a9ceb020282d7c61ad99ccd13de0c8831dd57499ac32af31b5f4afc9e9e186d0"
+  },
+  "helperProbePath": "parity/research/dep-host-edges-terminal-001/probes/helper-mdfind.json",
+  "priorEvidence": [
+    "parity/research/continuation/computer-use.md",
+    "parity/research/dep-closure-wave-009/host/host-edge-disposition.json",
+    "parity/research/dep-closure-wave-009/nodes/host-edge-disposition.md",
+    "parity/research/dep-closure-wave-008/host/host-edge-disposition.json"
+  ],
+  "whyNotResolved": "Docs custody alone does not satisfy the edge contract. No live Computer Use exercise was run. No attempt ID exists. Helper bundle not installed (mdfind empty; ~/.cursor/cursor-computer-use missing). Preference 4 forbids inventing a resolution that lowers the bar.",
+  "operatorGrantToClose": [
+    "Install or allow first-run download of Cursor Computer Use helper (bundle co.anysphere.cursor-computer-use / Team ID DCNK4UB866).",
+    "Grant macOS Accessibility and Screen Recording to that helper.",
+    "On Linux workers, install required X11/desktop packages and configure display.",
+    "Run agent worker --computer-use start (and Linux --share-desktop if in scope) with recorded attempt IDs showing activation and sharing controls.",
+    "Publish path+hash evidence and only then set edge.status to resolved."
+  ],
+  "liveExerciseAttempted": false,
+  "liveExerciseAttemptIds": []
+}

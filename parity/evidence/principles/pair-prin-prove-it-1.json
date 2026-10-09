@@ -1,0 +1,136 @@
+{
+  "schema": 1,
+  "pairId": "prin-prove-it-1",
+  "scenarioRef": "prin-prove-it",
+  "journeyFamily": "journey-family-principles",
+  "requirementIds": [
+    "PSTACK-PRIN-PROVE-IT-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "/poteto-mode fix the off-by-one in src/add.js so that add(2, 3) returns 5 (it currently returns 4). Prefer a small check you can re-run and keep its output under evidence/ (scripts/verify.mjs already writes evidence/verify-out.txt). For any poteto-mode principle you apply before declaring done, read that principle's leaf SKILL.md in full first (not only the poteto-mode Principles index). Work only inside this fixture cwd. Do not edit ledgers, parity/, or files outside this cwd except the named done path. When the fix is verified against the real artifact, write exactly one line to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/fixture-out/cursor/done.txt as verified=yes|no, then stop.",
+  "steps": [
+    {
+      "wait": "ready screen (Tip: on Cursor; Pi chat ready without Trust dialog)"
+    },
+    {
+      "send": "/poteto-mode fix off-by-one in src/add.js; read leaf SKILL.md for applied principles; verify via scripts/verify.mjs; write verified=yes|no"
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "wait": "on-disk evidence/verify-out.txt with ADD-OK value=5"
+    },
+    {
+      "wait": "done marker verified=yes"
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "9f605907-9633-4897-8357-c174bf170c65",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/cursor/9f605907-9633-4897-8357-c174bf170c65",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "transcript": "/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/agent-transcripts/6231a104-00c2-49b8-ae30-77b058f5fff5/6231a104-00c2-49b8-ae30-77b058f5fff5.jsonl",
+    "proofCopyPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/fixture-out/cursor/evidence/verify-out.txt",
+    "observations": {
+      "potetoMode": true,
+      "leafSkillRead": true,
+      "leafSkillPath": "/Users/josh-desktop/.claude/skills/principle-prove-it-works/SKILL.md",
+      "directArtifactVerify": true,
+      "keptVerifyOk": true,
+      "verifyLine": "ADD-OK value=5",
+      "productFixed": true,
+      "verifiedDone": true,
+      "modelAutoInvoke": false,
+      "contractHeld": true,
+      "ranVerifyScript": true,
+      "modelChrome": "Auto"
+    }
+  },
+  "pi": {
+    "attemptId": "4af22cca-9d26-4592-81e2-058a9d96f4fc",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/pi/4af22cca-9d26-4592-81e2-058a9d96f4fc",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-principles-fixture-app--/2026-10-09T00-14-08-811Z_01a11e02-97ab-721f-8f91-013f7f2cfe53.jsonl",
+    "proofCopyPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/fixture-out/pi/evidence/verify-out.txt",
+    "observations": {
+      "potetoMode": true,
+      "leafSkillRead": true,
+      "leafSkillPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-prove-it-works/SKILL.md",
+      "directArtifactVerify": true,
+      "keptVerifyOk": true,
+      "verifyLine": "ADD-OK value=5",
+      "productFixed": true,
+      "verifiedDone": true,
+      "modelAutoInvoke": false,
+      "contractHeld": true,
+      "ranVerifyScript": true,
+      "modelChrome": "(claude-subscription) claude-sonnet-5-5 • medium",
+      "priorAttempts": [
+        {
+          "attemptId": "2e3e230a-97bc-4d34-bc12-c595072734f9",
+          "outcome": "verified artifact; no leaf SKILL.md Read"
+        },
+        {
+          "attemptId": "14b8c419-d700-4669-bb09-41fe04cc7876",
+          "outcome": "chrome false positive; no leaf SKILL.md Read"
+        }
+      ]
+    }
+  },
+  "deltas": [
+    {
+      "topic": "leaf skill path",
+      "cursor": "Read ~/.claude/skills/principle-prove-it-works/SKILL.md",
+      "pi": "Read extensions/pi-pstack/skills/principle-prove-it-works/SKILL.md",
+      "reconciled": true
+    },
+    {
+      "topic": "prompt convergence",
+      "cursor": "Matched nudged prompt (leaf SKILL.md for applied principles). Earlier organic Cursor attempt 51e14eed also passed without that line.",
+      "pi": "Needed leaf-read nudge after two organic misses that verified via scripts/verify.mjs but never opened the leaf.",
+      "reconciled": true
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "Auto",
+      "pi": "claude-sonnet-5-5 medium via claude-subscription",
+      "reconciled": false
+    },
+    {
+      "topic": "prove-it outcome",
+      "cursor": "contractHeld. Leaf Read + ADD-OK evidence kept.",
+      "pi": "contractHeld. Leaf Read + ADD-OK evidence kept.",
+      "reconciled": true
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-prin-prove-it.mjs --cursor-only then --pi-only (Pi attempt 3; Cursor rematch)",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "fixtureApp": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/fixture-app",
+    "decisionLog": "parity/evidence/principles/.audit/u-journey-prin-prove-it.tsv",
+    "notes": "PSTACK-PRIN-PROVE-IT-001. Adjacent principle ids not claimed. Ledgers untouched. disable-model-invocation true on leaf; modelAutoInvoke false on both."
+  }
+}

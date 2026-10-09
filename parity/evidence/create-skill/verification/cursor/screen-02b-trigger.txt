@@ -1,0 +1,39 @@
+    -rw-r--r-- 1 josh-desktop staff 332 Oct  8 19:33 SKILL.md
+
+    Grepped "\[([^\]]+)\]\(([^)]+)\)" in .cursor/skills/parity-create-skill-probe/SKILL.md
+    Found 0 matches 
+
+  Writing Phase 4 check results to verify.md, then waiting for the exact next-message trigger.
+
+    Edited verify.md +20
+
+    ▎    1 + # Phase 4 Verification — parity-create-skill-probe
+    ▎    2 + 
+    ▎    3 + Skill path: `.cursor/skills/parity-create-skill-probe/SKILL.md`
+    ▎    4 + 
+    ▎    5 + ## Checks
+    ▎    6 + 
+    ▎    7 + | Check | Result | Notes |
+    ▎    8 + |-------|--------|-------|
+    ▎    9 + | SKILL.md under 500 lines | PASS | 12 lines |
+    ▎   10 + | Description has trigger terms | PASS | Includes "create-skill probe", "parity-create-skill-probe", 
+    ▎        and when-to-us ...
+    ▎   11 + | Terminology consistent | PASS | Uses "create-skill probe" / "marker" consistently; no conflicting 
+    ▎        aliases |
+    ▎   12 + | File refs one level deep | PASS | No supporting-file links in SKILL.md (N/A; nothing nested) |
+    ▎   13   truncated (8 more lines) · ctrl+r to review
+
+  Phase 4 structural checks are done and written to
+  parity/evidence/create-skill/fixture-out/verification/cursor/verify.md. All four passed; the skill was not
+  rewritten.
+
+  Waiting for your next message that says exactly: run the create-skill probe
+
+
+
+                                                                                                                       
+  → run the create-skill probe                                                                                         
+                                                                                                                       
+
+  Auto · 10.4% · 1 file edited                                                                          Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-app · refactor/pi-pstack-parity-again

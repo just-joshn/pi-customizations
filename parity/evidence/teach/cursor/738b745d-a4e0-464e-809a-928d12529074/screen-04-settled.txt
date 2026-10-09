@@ -1,0 +1,39 @@
+               │             │         │     yes
+               └─────no─────►│ n > hi? ├──────┘
+                             │         │
+                             ◇─────────◇
+  ctrl+o to show source
+
+  ┌───┐   ◇─────────◇        ┌─────────┐     ┌────┐
+  │   │   │         │        │         │     │    │
+  │ n ├──►│ n < lo? │ ├─yes─►│    lo   │  yes│ hi │
+  │   │   │         │        │         │  │  │    │
+  └───┘   ◇────┬────◇        └─────────┘  │  └────┘
+               │                  ┌───────┘
+               │             ◇─────────◇     ┌────┐
+               │             │    ┴    │     │    │
+               └─────no─────►│ n > hi? ├─no─►│ n  │
+                             │         │     │    │
+                             ◇─────────◇     └────┘
+  ctrl+o to show source
+
+  The bound checks live in the helper so call sites stay thin. The file comment and README both say that directly:
+  callers use this once instead of repeating min/max at every site. Confidence on that claimed intent is high
+  because those texts state it outright. Confidence that this came from an organic refactor of duplicated call sites
+  is low. The fixture is untracked, has no git or PR trail, and has no callers in this tree. It is framed as
+  held-out /teach grounding material. Treat the documented design reason as authoritative. Treat deeper product
+  history as unknown.
+
+  Two things to watch: if someone passes lo > hi, the early returns get weird, and NaN falls through because NaN
+  comparisons are false in JS.
+
+  Say if you want to walk a concrete call with numbers, or dig into the empty git trail further.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 15.3% · 4 files edited                                                                         Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/teach/fixture-app · refactor/pi-pstack-parity-again

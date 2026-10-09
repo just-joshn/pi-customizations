@@ -1,0 +1,39 @@
+{
+  "ok": true,
+  "emptyCount": 91,
+  "proposed": 91,
+  "written": 91,
+  "reused": 0,
+  "spotCheck": [
+    {
+      "id": "cmd-plugin-skills-register",
+      "pairId": null,
+      "verdict": "unverified",
+      "status": "draft-awaiting-pair"
+    },
+    {
+      "id": "setup-create-verify-interview",
+      "pairId": null,
+      "verdict": "unverified",
+      "status": "draft-awaiting-pair"
+    },
+    {
+      "id": "cmd-comment-sicko-first-output",
+      "pairId": null,
+      "verdict": "unverified",
+      "status": "draft-awaiting-pair"
+    },
+    {
+      "id": "cmd-why-motivation",
+      "pairId": null,
+      "verdict": "unverified",
+      "status": "draft-awaiting-pair"
+    },
+    {
+      "id": "cmd-make-bot-ui-key-server",
+      "pairId": null,
+      "verdict": "unverified",
+      "status": "draft-awaiting-pair"
+    }
+  ]
+}

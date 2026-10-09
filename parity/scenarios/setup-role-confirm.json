@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "setup-role-confirm",
+  "status": "executed-pass-paired",
+  "requirements": [
+    "PSTACK-SETUP-ROLE-CONFIRM-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/setup-pstack/SKILL.md#### 3. Budget, map, and confirm, subsection (c)",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Documented preconditions satisfied; behavior not yet paired. Preconditions: Working role table built.",
+    "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "After budget apply, before validate/write.. Every role is shown with its model. Real slugs missing from the detected set are marked as needing a choice. Dropped retired lines from step 2 are listed. User is asked to accept as-is or change specific roles via AskQuestion (preferred) with detected models plus inherit-parent and auto."
+    }
+  ],
+  "execution": {
+    "referenceRun": "b72b2ad5-c36a-4219-81ba-04954cb9888c",
+    "candidateRun": "f9259bfa-d306-4b5b-8ea4-c4d0de00b6fb",
+    "pairId": "setup-role-confirm-1",
+    "pairPath": "parity/evidence/setup-role-confirm/pair-setup-role-confirm-1.json",
+    "verdict": "pass-paired",
+    "closedAt": "2026-10-08T22:13:30Z",
+    "note": "Closed SETUP-ROLE-CONFIRM-LISTING; Pi f9259bfa lists 17/17."
+  }
+}

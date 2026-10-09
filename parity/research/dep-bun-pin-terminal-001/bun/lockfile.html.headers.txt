@@ -1,0 +1,22 @@
+HTTP 200
+final-url: https://bun.com/docs/pm/lockfile
+Date: Fri, 09 Oct 2026 02:05:31 GMT
+Content-Type: text/html; charset=utf-8
+Transfer-Encoding: chunked
+Connection: close
+access-control-allow-origin: *
+Age: 13371
+Cache-Control: public, max-age=0, must-revalidate
+content-disposition: inline; filename="lockfile"
+Nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+Report-To: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=A2z7ludVjbM8ZKNshWZal8DBhFo4DFrnS4dBCagg7DsUAbPBQx9g2qFowYd3OFbXktZjIV1xCivld%2FW0p1dKQa6H4HoLrhalwIMDTC0KjJky1hsAa3QrNCk%2B5O4MdOaUmjfa1pk%3D"}]}
+last-modified: Thu, 08 Oct 2026 22:22:40 GMT
+Server: cloudflare
+strict-transport-security: max-age=63072000
+x-vercel-cache: HIT
+x-vercel-id: pdx1::qrhmd-1791511531709-c8a86bec4713
+cf-cache-status: DYNAMIC
+vary: accept-encoding
+Server-Timing: cfCacheStatus;desc="DYNAMIC"
+Server-Timing: cfEdge;dur=16,cfOrigin;dur=34
+CF-RAY: a479d2210b46afe8-PDX

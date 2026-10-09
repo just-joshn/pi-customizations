@@ -1,0 +1,105 @@
+{
+  "skillActivated": true,
+  "jargonHitsTurn1": [
+    "event loop",
+    "microtask",
+    "libuv",
+    "thread pool",
+    "epoll",
+    "kqueue",
+    "macrotask",
+    "tick",
+    "phase"
+  ],
+  "jargonDensePrior": true,
+  "screenScore": {
+    "broSkill": true,
+    "plainHints": true,
+    "jargonHits": [],
+    "jargonCount": 0,
+    "continuedPrior": true,
+    "restated": true,
+    "doneYes": true,
+    "doneNo": false,
+    "doneFail": false,
+    "outcome": "continued_prior_task",
+    "working": false
+  },
+  "ptyScore": {
+    "broSkill": true,
+    "plainHints": true,
+    "jargonHits": [],
+    "jargonCount": 0,
+    "continuedPrior": false,
+    "restated": true,
+    "doneYes": true,
+    "doneNo": false,
+    "doneFail": false,
+    "outcome": "restate_plain",
+    "working": true
+  },
+  "sessionScore": {
+    "broSkill": false,
+    "plainHints": true,
+    "jargonHits": [],
+    "jargonCount": 0,
+    "continuedPrior": false,
+    "restated": true,
+    "doneYes": true,
+    "doneNo": false,
+    "doneFail": false,
+    "outcome": "restate_plain",
+    "working": false
+  },
+  "fileScore": {
+    "broSkill": false,
+    "plainHints": true,
+    "jargonHits": [],
+    "jargonCount": 0,
+    "continuedPrior": false,
+    "restated": true,
+    "doneYes": true,
+    "doneNo": false,
+    "doneFail": false,
+    "outcome": "restate_plain",
+    "working": false
+  },
+  "bestScore": {
+    "broSkill": false,
+    "plainHints": true,
+    "jargonHits": [],
+    "jargonCount": 0,
+    "continuedPrior": false,
+    "restated": true,
+    "doneYes": true,
+    "doneNo": false,
+    "doneFail": false,
+    "outcome": "restate_plain",
+    "working": false
+  },
+  "outcome": "restate_plain",
+  "restatedPlain": true,
+  "continuedPriorTask": false,
+  "productFilesTouched": [],
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/bro/fixture-out/pi/done.txt",
+    "line": "bro=yes"
+  },
+  "restate": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/bro/fixture-out/pi/restate.md",
+    "digest": "e2885f359ba60312bb20c9487bb0f3d4a08e757eca64fd996ced13d6840ad636",
+    "preview": "Node runs your code one piece at a time, in a loop. Each time around, it checks for things that are due: timers that have gone off, finished file or network work, and tasks you asked to run \"right after this\".\n\nSmall follow-up steps from promises (what happens after an `await` finishes) get priority. As soon as the current piece of code ends, Node runs all of those before it moves on to anything e"
+  },
+  "session": {
+    "sessionPath": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-bro-fixture-app--/2026-10-08T21-36-56-665Z_01a11d72-ab59-7385-a63d-7e2f6b9e5ec5.jsonl",
+    "skillInjected": true,
+    "promptInjected": true,
+    "toolOrder": [
+      "write",
+      "write"
+    ],
+    "assistantCount": 6
+  }
+}

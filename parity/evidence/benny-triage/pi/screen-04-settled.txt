@@ -1,0 +1,40 @@
+                                                                                                                       │
+                                                                                                                       │
+ [skill] triage-issue-reports:1-300 (ctrl+o to expand)                                                                 │
+                                                                                                                       │
+                                                                                                                       │
+                                                                                                                       │
+ read .upstream/benny/configuration.yaml:1-300                                                                         │
+                                                                                                                       │
+                                                                                                                       │
+ Config is incomplete (no Slack actions, tracker adapter, routing map). Fail closed.                                   │
+                                                                                                                       │
+                                                                                                                       ┃
+ $ mkdir -p /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/benny-triage/fixture-out/pi &&     ┃
+ echo "STATUS=fail-closed reason=incomplete config: no slack actions, tracker adapter ops, or routing map" >           ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/benny-triage/fixture-out/pi/done.txt (timeout ┃
+ 10s)                                                                                                                  ┃
+                                                                                                                       ┃
+ (no output)                                                                                                           ┃
+                                                                                                                       ┃
+ Took 0.0s                                                                                                             ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ I failed closed. The config at .upstream/benny/configuration.yaml is incomplete, so I made no Slack posts, no tracker ┃
+ writes and no repro run.                                                                                              ┃
+                                                                                                                       ┃
+ The config has no Slack read or post actions, no tracker adapter operations and no routing.map_path. It also sets     ┃
+ operations_channel_id to an empty string. The skill says to stop without posting or writing when the config is        ┃
+ incomplete. I didn't edit src/app.js or any ledgers.                                                                  ┃
+                                                                                                                       ┃
+ I wrote this line to fixture-out/pi/done.txt:                                                                         ┃
+ STATUS=fail-closed reason=incomplete config: no slack actions, tracker adapter ops, or routing map                    ┃
+                                                                                                                       ┃
+ I wrote reason= rather than the literal reason=<short phrase> pattern from your template. It's the same field, so     ┃
+ check it against whatever reads that file.                                                                            ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/benny-triage/fixture-app (refactor/pi-pstack-parity-again)
+↑8 ↓742 R62k W21k CH99.1% $0.104 (sub) 2.9%/1.0M (auto)                 (claude-subscription) claude-sonnet-5-5 • medium

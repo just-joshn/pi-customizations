@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "attemptId": "3ebef40f-cdb9-4553-9c98-3ce555ecd32f",
+  "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-fixtures-first-run--/2026-10-08T17-06-17-197Z_01a11c7a-dfed-752a-b0bb-b07c0411dab0.jsonl",
+  "subagent": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-fixtures-first-run--/01a11c7a-dfed-752a-b0bb-b07c0411dab0/subagents/agent-8c89a803-0904-43ec-9f92-cf36b1bb64c5.jsonl",
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "ruleUnchanged": true,
+  "observations": {
+    "gateBlockedRead": true,
+    "blockReason": "The how skill is active. Spawn one readonly Task (subagent_type generalPurpose, how explainer role) before direct exploration or the final answer (Step 2b / Step 2a).",
+    "parentTaskBeforeAnswer": true,
+    "taskToolCallName": "task",
+    "taskArguments": {
+      "agent_type": "general-purpose",
+      "name": "how-explainer",
+      "description": "Explain budget line behavior",
+      "mode": "sync",
+      "promptStartsWith": "READONLY task:"
+    },
+    "strictGateShape": {
+      "subagent_type_generalPurpose": false,
+      "readonly_true": false,
+      "note": "Live call used Cursor-shaped agent_type/general-purpose and READONLY prompt text, not Pi TaskParameters subagent_type+readonly. Gate still blocked read first; Task then ran and a subagent transcript exists."
+    },
+    "elapsedMs": 55511,
+    "runningSubagentChrome": false
+  },
+  "methodA": "partial-pass-pi-only",
+  "next": "Widen explainerTaskStarted to accept the observed live Task shape (or coerce model args). Recapture linked Cursor+Pi pair before closing HOW-WORKFLOW-EXPLAINER-STEP."
+}

@@ -1,0 +1,40 @@
+ E                                                                                                                     │
+ printf '%s\nexit code: 1\n' 'cd parity/evidence/correct/fixture-app && node scripts/check-store-boundary.js           │
+ history/past-mistake-1.js' > $O/proof.txt                                                                             │
+ echo correct=yes > $O/done.txt; cat AGENTS.md (timeout 20s)                                                           │
+                                                                                                                       │
+ ... (7 earlier lines, ctrl+o to expand)                                                                               │
+                                                                                                                       │
+ | Rule | Enforced by |                                                                                                │
+ | --- | --- |                                                                                                         │
+ | Feature modules never import `src/db.js`; use `src/store.js` | `npm run lint` (scripts/check-store-boundary.js),    │
+ run by `npm test` and CI |                                                                                            │
+                                                                                                                       │
+ Took 0.0s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ I added a lint check that rejects any import of db.js outside src/store.js, and it fails on history/past-mistake-1.js │
+  with exit code 1. npm test passes (3 tests). I didn't commit anything. I didn't add a CI config, but CI can run npm  │
+ test, which includes the lint.                                                                                        │
+                                                                                                                       │
+ - Mistake class: feature code importing src/db.js instead of using src/store.js. It happened twice: 2026-09-12        │
+   (history/past-mistake-1.js) and 2026-10-01 (history/past-mistake-2.js), both recorded in CORRECTIONS.md.            │
+ - Level picked: lint. The check is scripts/check-store-boundary.js. It scans src/ by default, or the files you pass   │
+   it. Its error names src/store.js as the module to use.                                                              │
+ - Why not architecture: plain Node relative imports can't make db.js private without a bundler or restructuring the   │
+   project. Neither seemed warranted for this fixture.                                                                 │
+ - Test: test/store-boundary.test.js checks that src/ is clean and that both past-mistake files are rejected.          │
+ - Wiring: npm run lint runs the check, and npm test runs it first.                                                    │
+ - Docs: AGENTS.md no longer says the rule is docs-only. It now has a rule table pairing the rule with npm run lint.   ┃
+                                                                                                                       ┃
+ Proof command: node scripts/check-store-boundary.js history/past-mistake-1.js (from the fixture directory). Its       ┃
+ output was history/past-mistake-1.js: imports db.js directly. Use getUser/etc. from src/store.js (add a function      ┃
+ there if missing).                                                                                                    ┃
+                                                                                                                       ┃
+ I wrote encoding.md, proof.txt and done.txt (correct=yes) to fixture-out/pi/.                                         ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/correct/fixture-app (refactor/pi-pstack-parity-again)
+↑10 ↓2.5k R89k W21k CH97.9% $0.127 (sub) 3.0%/1.0M (auto)               (claude-subscription) claude-sonnet-5-5 • medium

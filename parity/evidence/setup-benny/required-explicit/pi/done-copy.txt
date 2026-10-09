@@ -1,0 +1,1 @@
+STATUS=fail-closed reason=source channel id unknown and model slugs unconfirmed

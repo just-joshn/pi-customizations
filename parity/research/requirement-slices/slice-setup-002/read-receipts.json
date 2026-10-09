@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "sliceId": "slice-setup-002",
+  "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "reads": [
+    {
+      "path": "parity/reference/cursor-plugins/pstack/automations/benny/skills/setup-benny/SKILL.md",
+      "inventoryPath": "pstack/automations/benny/skills/setup-benny/SKILL.md",
+      "range": "1-266",
+      "fileSha256": "5a3cbe63360c9f6373b6cb6c79a1eaf7e0eba181bfaa1577e2e6431af3407282",
+      "matchesInventory": true
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/create-verification-skill/SKILL.md",
+      "inventoryPath": "pstack/skills/create-verification-skill/SKILL.md",
+      "range": "1-44",
+      "fileSha256": "644f2551403c1bca01a2855b34611b6e7be0ce0dc5b204514c376c0f6a6e6ac4",
+      "matchesInventory": true
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/create-verification-skill/references/feature-map-example/README.md",
+      "inventoryPath": "pstack/skills/create-verification-skill/references/feature-map-example/README.md",
+      "range": "1-47",
+      "fileSha256": "cb7bd782cf89968a4ba3d58a5151db837430db92d19a6f52a906973b77b516ba",
+      "matchesInventory": true,
+      "note": "Disposed as non-requirement example asset."
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/create-verification-skill/references/feature-map-example/create-note.md",
+      "inventoryPath": "pstack/skills/create-verification-skill/references/feature-map-example/create-note.md",
+      "range": "1-39",
+      "fileSha256": "644a44c74f35d38c2feb7cd05a0121fdebbb623e8dc376c185b565a581d1ccf7",
+      "matchesInventory": true,
+      "note": "Disposed as non-requirement example asset."
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/create-verification-skill/references/feature-map-example/search.md",
+      "inventoryPath": "pstack/skills/create-verification-skill/references/feature-map-example/search.md",
+      "range": "1-45",
+      "fileSha256": "6e87b9e7f2791a7776ba1bb83f371cd285c306c67f19d245cc4dd6ca3015c823",
+      "matchesInventory": true,
+      "note": "Disposed as non-requirement example asset."
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/maintain-verification-skill/SKILL.md",
+      "inventoryPath": "pstack/skills/maintain-verification-skill/SKILL.md",
+      "range": "1-39",
+      "fileSha256": "515c0eaa054b3f6be1b1fb06f2c2f173c80fddb58bbcac57576f89c479bc68e8",
+      "matchesInventory": true
+    },
+    {
+      "path": "parity/research/requirement-slices/slice-setup-001/report.md",
+      "note": "Read only for leftover list. Did not edit slice-setup-001."
+    },
+    {
+      "path": "parity/research/requirement-slices/slice-setup-001/verify-output.json",
+      "note": "Read only for uncoveredSetupInventory."
+    },
+    {
+      "path": "parity/inventory.json",
+      "note": "Confirmed leftover paths and digests match locked reference."
+    }
+  ]
+}

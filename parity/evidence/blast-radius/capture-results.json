@@ -1,0 +1,57 @@
+{
+  "scenario": "cmd-blast-radius-run-proof",
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "results": [
+    {
+      "side": "pi",
+      "attemptDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/blast-radius/pi/25fbb44d-c4bd-40ea-a4e5-c46f62166074",
+      "attemptId": "25fbb44d-c4bd-40ea-a4e5-c46f62166074",
+      "ruleUnchanged": true,
+      "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "prompt": "/blast-radius review the candidate change in CHANGE.diff for this fixture. Find the one fact the change is safe because of, or prove it is unsafe. For each critical safety fact, push certainty as far down the list as is cheap (1 said-so, 2 pointed at line, 3 walked bad case, 4 ran a script or test against real code, 5 reproduced in running app). Step 4 is the usual target. Do not hand back only a narrative writeup with no certainty level. If you stop cheaper than step 4, name the cheaper stop explicitly. Work only inside this fixture cwd. Do not edit ledgers or parity ledgers. When finished, write exactly one line to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/blast-radius/fixture-out/pi/done.txt as PROOF=step5|step4|step3|step2|step1|cheaper-stop|writeup-only certainty=<n-or-label> fact=<short phrase> then stop.",
+      "observations": {
+        "done": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/blast-radius/fixture-out/pi/done.txt",
+          "line": "PROOF=step4 certainty=4 fact=sessionStore.retainLive relies on isExpired(ttl:0)=false for immortal sessions; change purges them (UNSAFE)",
+          "proof": "step4",
+          "certainty": "4",
+          "fact": "sessionStore.retainLive relies on isExpired(ttl:0)=false for immortal sessions; change purges them (UNSAFE)"
+        },
+        "proofArtifacts": [],
+        "outcome": "run_proof",
+        "contractHeld": true,
+        "engaged": true,
+        "runEvidence": true,
+        "certaintyStated": true,
+        "screen": {
+          "ranCode": true,
+          "certaintyNamed": true,
+          "writeupOnlySmell": false,
+          "skillChrome": true,
+          "working": false
+        },
+        "pty": {
+          "ranCode": true,
+          "certaintyNamed": true,
+          "writeupOnlySmell": false,
+          "skillChrome": true,
+          "working": true
+        },
+        "session": {
+          "sessionPath": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-blast-radius-fixture-app--/2026-10-09T00-02-07-208Z_01a11df7-94e8-74d7-ac8b-a11d5660280a.jsonl",
+          "skillRead": true,
+          "ranCodeTools": true,
+          "toolOrder": [
+            "bash",
+            "bash",
+            "bash(run-code)"
+          ]
+        },
+        "pollSamples": 28,
+        "scorerNote": "run_proof requires engagement plus step4/step5 (or observed code run) with certainty; cheaper_stop requires named cheaper stop + certainty; writeup_only is a contract miss"
+      }
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+$ vitest run
+
+ RUN  v5.0.2 /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity
+
+
+ Test Files  1 passed (1)
+      Tests  37 passed (37)
+   Start at  20:48:45
+   Duration  273ms (tests 84%, transform 10%, import 5%, worker 1%)
+

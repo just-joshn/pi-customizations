@@ -1,0 +1,11 @@
+{
+"surface":"Command-line program: hello.sh prints one line to stdout. No UI, server, or TUI.",
+"run":"./hello.sh from the repo root; POSIX sh, no dependencies, no build, no ports or env vars. Prints HELLO-FAMILY-13 and exits 0.",
+"drive":"Invoke ./hello.sh directly in a subshell and capture stdout, stderr and exit code. No PTY needed since it takes no input.",
+"observe":"stdout text (exactly HELLO-FAMILY-13 plus newline), empty stderr, exit code 0. No files, network or logs are produced.",
+"isolate":"Stateless and read-only, so any number of instances can run side by side; nothing shared to corrupt.",
+"evidencePaths":["README.md","hello.sh"],
+"askedUser":false,
+"askedUserAbout":[],
+"baseBuildsOrReported":true
+}

@@ -1,0 +1,7 @@
+bun install v1.4.2 (744846f84)
+
++ @biomejs/biome@2.5.14
++ @types/node@22.20.4
++ typescript@7.0.2
+
+187 packages installed [571.00ms]

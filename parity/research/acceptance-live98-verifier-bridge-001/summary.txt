@@ -1,0 +1,13 @@
+unit: u-acceptance-live98-verifier-bridge-001
+bridged_tool_digest: 5a33e1d4138283fe5d474cef5ccca575847e66e61f4a0c655ab6372106711aa7
+tool_byte_identical_to_owner: yes
+supporting_verifier_rereview_required: no
+live98_definitions_digest: e576101783702498af089397c1fea80b8b688fd303a3ec78f8df5e6e66a1afe5
+live98_configurations_digest: 9eea368548c2d990e426c6a8466a0a8d03e98bd8436e639eaefa6d838a8d8a4e
+oracle_digests_unchanged: yes
+selftest: passed (scoped to historical ACC-SETUP 43/92 fixture + live-98 digest gates)
+authorization_on_fixture_verify: NONE
+freeze: not performed
+owner_named: no
+live98_structural_verify: blocked (defs.sources / defs.evidence absent; probe exits 1)
+ledger_edits: none by this unit

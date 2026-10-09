@@ -3,8 +3,20 @@ description: "Invoke the bundled principle-foundational-thinking workflow."
 argument-hint: "[task]"
 ---
 
-Read principle-foundational-thinking/SKILL.md in full under the bundled pstack skills directory identified by the pstack host contract.
-Follow those instructions, resolving references and supporting scripts relative to that skill directory.
-If the pstack host contract is unavailable, report that the package extension must be enabled to locate this bundled skill. Do not invent a path.
+# Foundational thinking
+
+**Structural decisions** protect option value. **Code-level decisions** protect simplicity.
+
+**Data structures first.** Get the data shape right before writing logic. Define core types early, trace every access pattern, and choose structures that match the dominant paths.
+
+At code level, DRY the structure, not every line. Types and data models should converge. Three similar statements still beat a premature abstraction. Prefer explicit over clever. Test behavior and edge cases, not line counts.
+
+**Concurrency corollary.** Before sharing state between actors, ask "what happens if another actor modifies this concurrently?" If not "nothing", isolate.
+
+**Scaffold first.** If something helps every later phase, do it first. Ask "does every subsequent phase benefit from this existing?" CI, linting, test infrastructure, and shared types are scaffold. Sequence for option value: setup before features, tests before fixes. Keep commits small and single-purpose.
+
+Each increment should land a coherent abstraction or deepen one that exists. Do not spread a new capability across callers as special-case coordination.
+
+Subtraction comes before scaffolding. Remove dead code first, then lay foundations.
 
 $ARGUMENTS

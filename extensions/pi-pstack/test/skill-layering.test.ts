@@ -6,8 +6,9 @@ import { expect, test } from 'vitest';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const router = 'poteto-mode';
+const help = 'poteto-help';
 const workflow = new Set(['how', 'why', 'arena', 'architect', 'interrogate', 'swarm', 'reflect', 'figure-it-out', 'recall', 'teach', 'blast-radius', 'thermo-nuclear-code-quality-review']);
-const layerOf = (name: string) => (name === router ? 3 : name.startsWith('principle-') ? 0 : workflow.has(name) ? 2 : 1);
+const layerOf = (name: string) => (name === help ? 4 : name === router ? 3 : name.startsWith('principle-') ? 0 : workflow.has(name) ? 2 : 1);
 
 /**
  * The reference document names four layering exceptions and calls them small and deliberate. The rest come from the

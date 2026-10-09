@@ -1,0 +1,18 @@
+{
+  "attemptId": "b97de0ab-588b-45ff-81c0-8d4629cd789c",
+  "profile": "ready4-bounds-copy",
+  "cursorOutcome": "host_blocked",
+  "keyStoredServerSide": false,
+  "probe": null,
+  "blocker": "auth_key_not_materialized_for_server_store",
+  "clickXy": [
+    915,
+    325
+  ],
+  "secretStore": {
+    "dir": "/Users/josh-desktop/.local/share/pi-pstack-parity/make-bot-auth-header-post-unlock-002",
+    "fileName": "b97de0ab-588b-45ff-81c0-8d4629cd789c.json",
+    "mode": null,
+    "present": false
+  }
+}

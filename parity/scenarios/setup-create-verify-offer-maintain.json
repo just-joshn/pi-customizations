@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "setup-create-verify-offer-maintain",
+  "status": "executed-pass-paired",
+  "requirements": [
+    "PSTACK-SETUP-CREATE-VERIFY-OFFER-MAINTAIN-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/create-verification-skill/SKILL.md### 5. Offer the maintenance loop",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Documented preconditions satisfied; behavior not yet paired. Preconditions: Generated skill exists.",
+    "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "After a generated verification skill is proven.. Points the user at /maintain-verification-skill. Suggests a cadence only if the user asks."
+    }
+  ],
+  "execution": {
+    "pairId": "create-verify-maintain-1",
+    "verdict": "pass-paired"
+  }
+}

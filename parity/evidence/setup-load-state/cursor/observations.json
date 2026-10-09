@@ -1,0 +1,63 @@
+{
+  "side": "cursor",
+  "pathNotes": [
+    "first=Pick a budget:",
+    "chatform-budget",
+    "afterChat=how critics"
+  ],
+  "screens": {
+    "budgetNamed": true,
+    "markerRoleLoaded": true,
+    "retiredNamed": true,
+    "droppedLanguage": true,
+    "retiredListed": true,
+    "askQuestion": false,
+    "chatForm": true,
+    "writeCard": false
+  },
+  "loadFromExisting": true,
+  "retiredHandling": "dropped-and-listed",
+  "ruleUnchanged": true,
+  "afterDigest": "sha256:e8dcb7b71c421dd7ceae42b69f478396223d15ffe12257cb963fe7bba4e8f0a2",
+  "fixtureDigest": "sha256:e8dcb7b71c421dd7ceae42b69f478396223d15ffe12257cb963fe7bba4e8f0a2",
+  "fixtureHeldThroughScreens": true,
+  "midRunLocked": false,
+  "digests": [
+    {
+      "at": "2026-10-08T22:16:53.441Z",
+      "label": "planted",
+      "path": "/Users/josh-desktop/.cursor/rules/pstack-models.mdc",
+      "digest": "sha256:e8dcb7b71c421dd7ceae42b69f478396223d15ffe12257cb963fe7bba4e8f0a2"
+    },
+    {
+      "at": "2026-10-08T22:16:55.805Z",
+      "label": "00-ready",
+      "path": "/Users/josh-desktop/.cursor/rules/pstack-models.mdc",
+      "digest": "sha256:e8dcb7b71c421dd7ceae42b69f478396223d15ffe12257cb963fe7bba4e8f0a2"
+    },
+    {
+      "at": "2026-10-08T22:17:06.108Z",
+      "label": "01-budget",
+      "path": "/Users/josh-desktop/.cursor/rules/pstack-models.mdc",
+      "digest": "sha256:e8dcb7b71c421dd7ceae42b69f478396223d15ffe12257cb963fe7bba4e8f0a2"
+    },
+    {
+      "at": "2026-10-08T22:17:06.407Z",
+      "label": "02-after-chatform",
+      "path": "/Users/josh-desktop/.cursor/rules/pstack-models.mdc",
+      "digest": "sha256:e8dcb7b71c421dd7ceae42b69f478396223d15ffe12257cb963fe7bba4e8f0a2"
+    },
+    {
+      "at": "2026-10-08T22:17:11.234Z",
+      "label": "07-pre-cancel",
+      "path": "/Users/josh-desktop/.cursor/rules/pstack-models.mdc",
+      "digest": "sha256:e8dcb7b71c421dd7ceae42b69f478396223d15ffe12257cb963fe7bba4e8f0a2"
+    },
+    {
+      "at": "2026-10-08T22:17:13.560Z",
+      "label": "rule-after",
+      "path": "/Users/josh-desktop/.cursor/rules/pstack-models.mdc",
+      "digest": "sha256:e8dcb7b71c421dd7ceae42b69f478396223d15ffe12257cb963fe7bba4e8f0a2"
+    }
+  ]
+}

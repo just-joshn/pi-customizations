@@ -1,0 +1,39 @@
+
+  $ printf 'poteto-agent\n' >
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/poteto-agent/fixture-out/cursor/done.txt
+    && cat -A
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/poteto-agent/fixture-out/cursor/done.txt
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/poteto-agent/fixture-out/cursor/marker.txt
+    495ms
+    poteto-agent$
+    HELLO$
+
+    To-do All done
+    ✔ Start: load poteto-mode and Principles (already loaded this session)
+    ✔ Phase A: Frame definition of done, scope, rigor
+    ✔ Phase B: Design the workflow
+    ✔ Phase E: Verify and hand back
+    ✔ Spawn exactly one fresh poteto-agent to write HELLO to fixture-out/cursor/marker.txt
+    ✔ After child finishes, write agent type line to fixture-out/cursor/done.txt; stop
+
+  Write marker HELLO (472f69d3-26bc-4362-a9d9-154807fc1704) wrote marker.txt (HELLO). Parent wrote done.txt 
+  (poteto-agent).
+
+  Playbook steps.
+  1. Start / poteto-mode load — done
+  2. Phase A Frame — done
+  3. Phase B Design — done
+  4. Phase C Run the loop — skip: single mechanical write, no hypothesis loop
+  5. Phase D Audit trail — skip: fixture forbids edits outside the named outputs
+  6. Phase E Verify — done
+  7. Spawn one poteto-agent for marker — done
+  8. Parent writes done.txt — done
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 14%                                                                                            Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/poteto-agent/fixture-app · refactor/pi-pstack-parity-again

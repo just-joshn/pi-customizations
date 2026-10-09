@@ -1,0 +1,74 @@
+{
+  "unit": "u-dep-team-kit-journeys-002",
+  "capturedAt": "2026-10-09T03:10:00Z",
+  "priorClosed": ["verify-this"],
+  "newlyClosedThisUnit": [
+    "check-compiler-errors",
+    "fix-merge-conflicts",
+    "deslop",
+    "control-cli",
+    "what-did-i-get-done",
+    "weekly-review",
+    "thermo-nuclear-code-quality-review"
+  ],
+  "newlyClosedCount": 7,
+  "onDiskPassPairsTotal": 11,
+  "skillsPairedCountDenom": 18,
+  "createSkillStyleFullClosureReady": false,
+  "unresolvedReferenceAction": "keep_open",
+  "pairs": {
+    "check-compiler-errors": {
+      "pair": "parity/evidence/team-kit/pair-team-kit-check-compiler-errors-1.json",
+      "cursor": "01a2a361-675e-4d74-afe2-0e5182e73fcd",
+      "pi": "fac4fff2-cab0-49fd-82f8-3bb8ae86adcc",
+      "skillMdSha256": "1ad76beccd581fc285199334709e0a37cdc2f76e5d0d33c90e1dc21905518004"
+    },
+    "fix-merge-conflicts": {
+      "pair": "parity/evidence/team-kit/pair-team-kit-fix-merge-conflicts-1.json",
+      "cursor": "408a751a-3ca8-4940-aaf7-db30cf44a072",
+      "pi": "14acfee1-a81a-4502-bdb0-e54210f061c7",
+      "skillMdSha256": "738b251281b30fd33e3892d0679cf94249e9c9e29e1bed40bcdde4a6aca98a76"
+    },
+    "deslop": {
+      "pair": "parity/evidence/team-kit/pair-team-kit-deslop-1.json",
+      "cursor": "92e79e5f-df73-40f1-be36-52840ea161ea",
+      "pi": "c973eadd-a5cc-4893-8344-c25382e7ac82",
+      "skillMdSha256": "2f7b7def74af7ed11f5b44b4d32f0f91fca8c5d1f92bf2171e8d12fd33a0f810"
+    },
+    "control-cli": {
+      "pair": "parity/evidence/team-kit/pair-team-kit-control-cli-1.json",
+      "cursor": "14ac16a2-0283-4f81-8e7b-cb866008fba3",
+      "pi": "e22543b5-d681-4c9f-98b8-9078d7bf0ccf",
+      "skillMdSha256": "13ac93e595bbda2000849bdb815d5f2ca03f7c2ca63788c8335f9212b9b422a2"
+    },
+    "what-did-i-get-done": {
+      "pair": "parity/evidence/team-kit/pair-team-kit-what-did-i-get-done-1.json",
+      "cursor": "693fb3db-8e81-4107-8653-7512c032efe5",
+      "pi": "ae92f0cb-5421-4182-bdd4-575c3110ba71",
+      "skillMdSha256": "479813c9abaacb5b6b0531f1de7dc5eb2f3bd9673707a992d1073335836e82f8"
+    },
+    "weekly-review": {
+      "pair": "parity/evidence/team-kit/pair-team-kit-weekly-review-1.json",
+      "cursor": "94f72e17-1ed4-4379-8a22-0f73dd5729cd",
+      "pi": "46e6a5ce-97a4-4b43-b447-7b073b891107",
+      "skillMdSha256": "b56a2c283916b4551aeb322398ab99a19b4b5d7678ffd7f9c9f3df9fa05f4712"
+    },
+    "thermo-nuclear-code-quality-review": {
+      "pair": "parity/evidence/team-kit/pair-team-kit-thermo-nuclear-code-quality-review-1.json",
+      "cursor": "1d776764-5bc4-43ac-b586-2a95b7592fe5",
+      "pi": "dc7ee54f-c0e0-474f-bd7f-c690ef0ef5ce",
+      "skillMdSha256": "7faca08b51b643b2ddd0836f92af15574444024685dcc1e677dbbb39ae8c9e8f"
+    }
+  },
+  "stillOpen": [
+    "control-ui",
+    "fix-ci",
+    "loop-on-ci",
+    "pr-review-canvas",
+    "review-and-ship",
+    "run-smoke-tests",
+    "workflow-from-chats"
+  ],
+  "parallelUnitNote": "u-dep-team-kit-journeys-003 closed get-pr-comments, make-pr-easy-to-review, new-branch-and-pr in parallel. Those three are counted in onDiskPassPairsTotal but not in newlyClosedThisUnit.",
+  "lever": "parity/scripts/capture-team-kit-local-skill.mjs"
+}

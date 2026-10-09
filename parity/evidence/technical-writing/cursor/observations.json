@@ -1,0 +1,52 @@
+{
+  "screenFinal": {
+    "technicalWritingSkill": true,
+    "diataxisMention": true,
+    "modes": [
+      "how-to",
+      "reference",
+      "diataxis-named"
+    ],
+    "working": false
+  },
+  "firstDocsAt": "2026-10-08T19:42:34.948Z",
+  "firstProductAt": null,
+  "docsPaths": [
+    "README.md",
+    "docs/reference.md"
+  ],
+  "productPaths": [],
+  "docsScore": {
+    "bodies": [
+      {
+        "path": "README.md",
+        "modes": [
+          "reference"
+        ],
+        "bytes": 583
+      },
+      {
+        "path": "docs/reference.md",
+        "modes": [
+          "reference"
+        ],
+        "bytes": 929
+      }
+    ],
+    "modes": [
+      "reference"
+    ],
+    "layered": true,
+    "hasHowTo": false,
+    "hasReference": true
+  },
+  "outcome": "structured_docs",
+  "structuredDocs": true,
+  "technicalWritingSkill": true,
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/technical-writing/fixture-out/cursor/done.txt",
+    "line": "README.md (how-to), docs/reference.md (reference)"
+  },
+  "pollSamples": 45
+}

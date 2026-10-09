@@ -1,0 +1,397 @@
+{
+  "scenario": "prin-exhaust-design",
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "frontmatter": {
+    "cursor": {
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/principle-exhaust-the-design-space/SKILL.md",
+      "ok": true,
+      "name": "principle-exhaust-the-design-space",
+      "disableModelInvocation": true
+    },
+    "pi": {
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-exhaust-the-design-space/SKILL.md",
+      "ok": true,
+      "name": "principle-exhaust-the-design-space",
+      "disableModelInvocation": true
+    }
+  },
+  "results": [
+    {
+      "side": "cursor",
+      "attemptDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/exhaust-design/cursor/c51f3304-680f-49c6-8b30-e387a5bbae7c",
+      "attemptId": "c51f3304-680f-49c6-8b30-e387a5bbae7c",
+      "ruleUnchanged": true,
+      "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "prompt": "/poteto-mode This fixture needs a next-action picker for incomplete relay jobs. There is no prior picker, menu, hotkey, or filter pattern in this repo. Ship pickNext(jobs) in src/picker.js so node scripts/verify.mjs prints EXHAUST-OK. Before committing one design, leave 2-3 competing sketches under prototypes/ (each with a distinct APPROACH: line) and a short DECISION.md that compares them and names the chosen approach with CHOSEN: <id>. A second flavor of the same shape does not count as a second approach. Keep verify output under evidence/. For any poteto-mode principle you apply before declaring done, read that principle's leaf SKILL.md in full first (not only the poteto-mode Principles index). Work only inside this fixture cwd. Do not edit ledgers, parity/, or files outside this cwd except the named done path. When EXHAUST-OK is on disk, write exactly one line to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/exhaust-design/fixture-out/cursor/done.txt as verified=yes|no, then stop.",
+      "observations": {
+        "score": {
+          "frontmatterOk": true,
+          "leafSkillRead": true,
+          "usedChrome": true,
+          "modelAutoInvoke": false,
+          "ranVerifyScript": true,
+          "exhaustOk": true,
+          "productOk": true,
+          "prototypesPresent": true,
+          "prototypesBeforeProduct": true,
+          "decisionExists": true,
+          "verifiedDone": true,
+          "contractHeld": true,
+          "screen": {
+            "potetoMode": false,
+            "leafChrome": false,
+            "hostAttached": false,
+            "verifyMention": true,
+            "protoMention": true,
+            "working": false
+          },
+          "pty": {
+            "potetoMode": true,
+            "leafChrome": false,
+            "hostAttached": true,
+            "verifyMention": true,
+            "protoMention": true,
+            "working": true
+          }
+        },
+        "firstProductAt": "2026-10-09T01:18:16.378Z",
+        "firstVerifyAt": "2026-10-09T01:18:19.197Z",
+        "firstProtoAt": "2026-10-09T01:17:40.997Z",
+        "firstDecisionAt": "2026-10-09T01:18:15.174Z",
+        "productPaths": [
+          "src/picker.js"
+        ],
+        "prototypeArtifacts": [
+          "prototypes/stalest-first.mjs",
+          "prototypes/menu-index.mjs",
+          "prototypes/title-scan.mjs",
+          "prototypes/switcher.mjs"
+        ],
+        "prototypeAnalysis": {
+          "count": 3,
+          "approaches": [
+            {
+              "rel": "prototypes/menu-index.mjs",
+              "id": "menu-index"
+            },
+            {
+              "rel": "prototypes/stalest-first.mjs",
+              "id": "stalest-first"
+            },
+            {
+              "rel": "prototypes/title-scan.mjs",
+              "id": "title-scan"
+            }
+          ],
+          "distinctApproaches": 3,
+          "okCount": true,
+          "okDistinct": true
+        },
+        "done": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/exhaust-design/fixture-out/cursor/done.txt",
+          "line": "verified=yes"
+        },
+        "verifyOut": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/exhaust-design/fixture-app/evidence/verify-out.txt",
+          "line": "EXHAUST-OK prototypes=3 chosen=stalest-first",
+          "ok": true
+        },
+        "productOk": true,
+        "decisionExists": true,
+        "frontmatter": {
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/principle-exhaust-the-design-space/SKILL.md",
+          "ok": true,
+          "name": "principle-exhaust-the-design-space",
+          "disableModelInvocation": true
+        },
+        "session": null,
+        "transcript": {
+          "path": "/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/agent-transcripts/04192c2d-dc41-4c2e-840c-42afd6038163/04192c2d-dc41-4c2e-840c-42afd6038163.jsonl",
+          "leafSkillRead": true,
+          "leafSkillReadAt": "2026-10-09T01:18:45.449Z",
+          "ranVerifyScript": true,
+          "firstVerifyAt": "2026-10-09T01:18:45.449Z",
+          "firstProtoWriteAt": "2026-10-09T01:18:45.449Z",
+          "firstProductWriteAt": "2026-10-09T01:18:45.450Z",
+          "wroteDecision": true,
+          "toolOrder": [
+            "Read",
+            "GetDynamicTools",
+            "Glob",
+            "Read",
+            "GetDynamicTools",
+            "Read",
+            "Read",
+            "Read(verify.mjs)",
+            "Read",
+            "Read",
+            "CallDynamicTool",
+            "Read(exhaust-leaf)",
+            "Read",
+            "blob-mention(exhaust-leaf)",
+            "CallDynamicTool",
+            "Write(prototype)",
+            "Write(prototype)",
+            "Write(prototype)",
+            "Write(prototype)",
+            "Shell",
+            "Read",
+            "Read",
+            "Read",
+            "Read",
+            "Write(prototype)",
+            "Write(prototype)",
+            "Write(prototype)",
+            "Shell",
+            "Read",
+            "Read",
+            "Read",
+            "Write(decision)",
+            "Write(product)",
+            "Shell(verify.mjs)",
+            "Shell",
+            "CallDynamicTool"
+          ],
+          "mtimeMs": 1791508709202.9329
+        },
+        "pollSamples": 156,
+        "screenFinal": {
+          "potetoMode": false,
+          "leafChrome": false,
+          "hostAttached": false,
+          "verifyMention": true,
+          "protoMention": true,
+          "working": false
+        },
+        "pty": {
+          "potetoMode": true,
+          "leafChrome": false,
+          "hostAttached": true,
+          "verifyMention": true,
+          "protoMention": true,
+          "working": true
+        }
+      },
+      "identity": {
+        "schema": 1,
+        "attemptId": "c51f3304-680f-49c6-8b30-e387a5bbae7c",
+        "side": "cursor",
+        "scenarioRef": "prin-exhaust-design",
+        "fixtureRef": {
+          "path": "/Users/josh-desktop/.cursor/rules/pstack-models.mdc",
+          "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+        },
+        "executable": {
+          "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+          "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+        },
+        "artifacts": [],
+        "launch": {
+          "argv": [
+            "/Users/josh-desktop/.local/bin/cursor-agent",
+            "--plugin-dir",
+            "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack",
+            "--plugin-dir",
+            "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/cursor-team-kit"
+          ],
+          "cwd": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/exhaust-design/fixture-app",
+          "envNames": [
+            "HOME",
+            "PATH",
+            "TERM"
+          ],
+          "publicEnv": {
+            "TERM": "xterm-256color"
+          }
+        },
+        "geometry": {
+          "rows": 40,
+          "cols": 120
+        },
+        "observedEnv": {
+          "platform": "darwin",
+          "node": "v24.21.0",
+          "TERM": "xterm-256color"
+        }
+      }
+    },
+    {
+      "side": "pi",
+      "attemptDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/exhaust-design/pi/b0270896-62fc-40a8-8f26-c29164b1976a",
+      "attemptId": "b0270896-62fc-40a8-8f26-c29164b1976a",
+      "ruleUnchanged": true,
+      "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "prompt": "/poteto-mode This fixture needs a next-action picker for incomplete relay jobs. There is no prior picker, menu, hotkey, or filter pattern in this repo. Ship pickNext(jobs) in src/picker.js so node scripts/verify.mjs prints EXHAUST-OK. Before committing one design, leave 2-3 competing sketches under prototypes/ (each with a distinct APPROACH: line) and a short DECISION.md that compares them and names the chosen approach with CHOSEN: <id>. A second flavor of the same shape does not count as a second approach. Keep verify output under evidence/. For any poteto-mode principle you apply before declaring done, read that principle's leaf SKILL.md in full first (not only the poteto-mode Principles index). Work only inside this fixture cwd. Do not edit ledgers, parity/, or files outside this cwd except the named done path. When EXHAUST-OK is on disk, write exactly one line to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/exhaust-design/fixture-out/pi/done.txt as verified=yes|no, then stop.",
+      "observations": {
+        "score": {
+          "frontmatterOk": true,
+          "leafSkillRead": true,
+          "usedChrome": true,
+          "modelAutoInvoke": false,
+          "ranVerifyScript": true,
+          "exhaustOk": true,
+          "productOk": true,
+          "prototypesPresent": true,
+          "prototypesBeforeProduct": true,
+          "decisionExists": true,
+          "verifiedDone": true,
+          "contractHeld": true,
+          "screen": {
+            "potetoMode": false,
+            "leafChrome": false,
+            "hostAttached": false,
+            "verifyMention": true,
+            "protoMention": true,
+            "working": false
+          },
+          "pty": {
+            "potetoMode": true,
+            "leafChrome": false,
+            "hostAttached": true,
+            "verifyMention": true,
+            "protoMention": true,
+            "working": true
+          }
+        },
+        "firstProductAt": "2026-10-09T01:19:13.612Z",
+        "firstVerifyAt": "2026-10-09T01:19:13.612Z",
+        "firstProtoAt": "2026-10-09T01:19:13.612Z",
+        "firstDecisionAt": "2026-10-09T01:19:13.612Z",
+        "productPaths": [
+          "src/picker.js"
+        ],
+        "prototypeArtifacts": [
+          "prototypes/rule-table.js",
+          "prototypes/single-pass-reduce.js",
+          "prototypes/sort-oldest.js"
+        ],
+        "prototypeAnalysis": {
+          "count": 3,
+          "approaches": [
+            {
+              "rel": "prototypes/rule-table.js",
+              "id": "rule-table"
+            },
+            {
+              "rel": "prototypes/single-pass-reduce.js",
+              "id": "single-pass-reduce"
+            },
+            {
+              "rel": "prototypes/sort-oldest.js",
+              "id": "sort-oldest"
+            }
+          ],
+          "distinctApproaches": 3,
+          "okCount": true,
+          "okDistinct": true
+        },
+        "done": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/exhaust-design/fixture-out/pi/done.txt",
+          "line": "verified=yes"
+        },
+        "verifyOut": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/exhaust-design/fixture-app/evidence/verify-out.txt",
+          "line": "EXHAUST-OK prototypes=3 chosen=rule-table",
+          "ok": true
+        },
+        "productOk": true,
+        "decisionExists": true,
+        "frontmatter": {
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/principle-exhaust-the-design-space/SKILL.md",
+          "ok": true,
+          "name": "principle-exhaust-the-design-space",
+          "disableModelInvocation": true
+        },
+        "session": {
+          "sessionPath": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-principles-exhaust-design-fixture-app--/2026-10-09T01-18-45-743Z_01a11e3d-bfee-7088-bfca-95de224e6078.jsonl",
+          "hostAttached": false,
+          "leafSkillRead": true,
+          "leafSkillReadAt": "2026-10-09T01:18:50.630Z",
+          "ranVerifyScript": true,
+          "firstVerifyAt": "2026-10-09T01:18:50.630Z",
+          "firstProtoWriteAt": null,
+          "firstProductWriteAt": null,
+          "wroteDecision": false,
+          "toolOrder": [
+            "bash(verify.mjs)",
+            "read(exhaust-leaf)",
+            "blob-mention(exhaust-leaf)",
+            "bash(verify.mjs)",
+            "read",
+            "read(verify.mjs)",
+            "read(verify.mjs)",
+            "bash",
+            "TodoWrite(verify.mjs)",
+            "bash(verify.mjs)",
+            "bash(verify.mjs)"
+          ]
+        },
+        "transcript": null,
+        "pollSamples": 47,
+        "screenFinal": {
+          "potetoMode": false,
+          "leafChrome": false,
+          "hostAttached": false,
+          "verifyMention": true,
+          "protoMention": true,
+          "working": false
+        },
+        "pty": {
+          "potetoMode": true,
+          "leafChrome": false,
+          "hostAttached": true,
+          "verifyMention": true,
+          "protoMention": true,
+          "working": true
+        }
+      },
+      "identity": {
+        "schema": 1,
+        "attemptId": "b0270896-62fc-40a8-8f26-c29164b1976a",
+        "side": "pi",
+        "scenarioRef": "prin-exhaust-design",
+        "fixtureRef": {
+          "path": "/tmp/pi-ref-agent/pstack/models.mdc",
+          "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+        },
+        "executable": {
+          "path": "/Users/josh-desktop/.local/bin/pi",
+          "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+        },
+        "artifacts": [],
+        "launch": {
+          "argv": [
+            "/Users/josh-desktop/.local/bin/pi",
+            "--model",
+            "claude-subscription/claude-sonnet-5-5:medium"
+          ],
+          "cwd": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/exhaust-design/fixture-app",
+          "envNames": [
+            "HOME",
+            "PATH",
+            "PI_CODING_AGENT_DIR",
+            "TERM"
+          ],
+          "publicEnv": {
+            "TERM": "xterm-256color"
+          }
+        },
+        "geometry": {
+          "rows": 40,
+          "cols": 120
+        },
+        "observedEnv": {
+          "platform": "darwin",
+          "node": "v24.21.0",
+          "TERM": "xterm-256color"
+        }
+      }
+    }
+  ]
+}

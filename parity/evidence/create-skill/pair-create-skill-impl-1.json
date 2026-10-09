@@ -1,0 +1,102 @@
+{
+  "schema": 1,
+  "pairId": "create-skill-impl-1",
+  "scenarioRef": "create-skill:phase-3-implementation",
+  "journeyFamily": "cursor-create-skill",
+  "phaseTarget": "create-skill-implementation",
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "capturedAt": "2026-10-09T02:02:18.729Z",
+  "steps": [
+    {
+      "wait": "ready screen (Tip: on Cursor; Pi chat ready without Trust dialog)"
+    },
+    {
+      "send": "/create-skill ... write parity-create-skill-probe SKILL.md with CREATE-SKILL-PROBE-MARKER"
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "wait": "on-disk SKILL.md with name + marker, or STATUS=env-blocked"
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "67eb4a01-244d-4d1a-a27d-5b09b30d426e",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/cursor/67eb4a01-244d-4d1a-a27d-5b09b30d426e",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "skillPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-app/.cursor/skills/parity-create-skill-probe/SKILL.md",
+    "durableSkillPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-out/cursor/SKILL.md",
+    "skillSha256": "sha256:c5a3793642d9c279bbf69b4f068944f676b9dc7d03dbea17b19102b94557b309",
+    "observations": {
+      "wroteOk": true,
+      "createPath": true,
+      "envBlocked": false,
+      "doneStatus": "wrote",
+      "phase3Closed": true,
+      "honestBlocker": false
+    }
+  },
+  "pi": {
+    "attemptId": "f4c14017-4188-461c-9fa0-076e7995059d",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/pi/f4c14017-4188-461c-9fa0-076e7995059d",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "skillPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-app/.pi/skills/parity-create-skill-probe/SKILL.md",
+    "durableSkillPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-out/pi/SKILL.md",
+    "skillSha256": "sha256:2ea35e992d7a32834b19e7c70e3c631fe60fb22cf41414a54a6dbebe6e9c7995",
+    "observations": {
+      "wroteOk": true,
+      "createPath": true,
+      "envBlocked": false,
+      "doneStatus": "wrote",
+      "phase3Closed": true,
+      "honestBlocker": false
+    }
+  },
+  "rereadAfterCapture": {
+    "cursor": {
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-out/cursor/SKILL.md",
+      "nameOk": true,
+      "hasMarker": true,
+      "byteLength": 332
+    },
+    "pi": {
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-out/pi/SKILL.md",
+      "nameOk": true,
+      "hasMarker": true,
+      "byteLength": 450,
+      "livePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-app/.pi/skills/parity-create-skill-probe/SKILL.md"
+    }
+  },
+  "phaseClosure": {
+    "create-skill-discovery": "open",
+    "create-skill-design": "open",
+    "create-skill-implementation": "closed_by_this_pair",
+    "create-skill-verification": "open"
+  },
+  "note": "Sequential --cursor-only then --pi-only captures. Pi cleanGenerated wiped Cursor live .cursor/skills tree; durable proof is fixture-out/<side>/SKILL.md. Family-13 create-verify pairs do not close this journey.",
+  "verdict": "pass",
+  "requirementIds": []
+}

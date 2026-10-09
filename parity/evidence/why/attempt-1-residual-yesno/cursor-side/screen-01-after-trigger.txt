@@ -1,0 +1,22 @@
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Use /config to customize Cursor settings and behavior.
+
+                                                                                                                       
+  /why does pstack models.mdc use inherit-parent for role model lines?                                                 
+                                                                                                                       
+
+  I'll follow the /why skill and dig into why models.mdc uses inherit-parent on role model lines.
+
+    Used why
+
+ ⠘⠤ Reading  2.67k tokens
+
+                                                                                                                       
+  → Add a follow-up                                                                                     ctrl+c to stop 
+                                                                                                                       
+
+  Auto · 8.2%                                                                                           Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run · refactor/pi-pstack-parity-again

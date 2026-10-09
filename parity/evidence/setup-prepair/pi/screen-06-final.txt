@@ -1,0 +1,36 @@
+ verify skill does not establish project coverage.                                                                     │
+ If there is no such project capability, offer once: "want a project-local verification skill, so agents can drive the │
+ app the way a user does and prove changes work? I can generate one with /create-verification-skill."                  │
+ Wait for the user to accept before invoking                                                                           │
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/create-verification-skill/SKILL.m │
+ d. If a harness exists or the user declines, finish setup without creating one.                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ $ cd /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/fixtures/first-run && ls -la && find . -path      ┃
+ ./node_modules -prune -o \( -ipname '*verif*' -o -iname 'SKILL.md' -o -iname '*playwright*' -o -iname '*cypress*' -o  ┃
+ -iname '*harness*' \) -print | head; ls .pi .claude .agents 2>/dev/null; cat package.json 2>/dev/null | head -30      ┃
+ (timeout 20s)                                                                                                         ┃
+                                                                                                                       ┃
+ total 0                                                                                                               ┃
+ drwxr-xr-x 2 josh-desktop staff  64 Oct  7 20:10 .                                                                    ┃
+ drwxr-xr-x 9 josh-desktop staff 288 Oct  7 23:06 ..                                                                   ┃
+ find: unknown predicate `-ipname'                                                                                     ┃
+                                                                                                                       ┃
+ Took 0.0s                                                                                                             ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ No                                                                                                                    ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ Thinking...                                                                                                           ┃
+                                                                                                                       ┃
+ Understood. I won't create a verification skill. The project directory is empty, so it has no existing verification   ┃
+ skill or harness. Setup is finished. You can run /create-verification-skill later if you change your mind.            ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run (refactor/pi-pstack-parity-again)
+↑8 ↓352 R22k W23k CH98.5% $0.098 (sub) 2.3%/1.0M (auto)                 (claude-subscription) claude-sonnet-5-5 • medium

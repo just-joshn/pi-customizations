@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "setup-write-card",
+  "status": "executed-pass-paired",
+  "requirements": [
+    "PSTACK-SETUP-WRITE-CARD-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/setup-pstack/SKILL.md#write-card",
+  "configurationIds": [
+    "default"
+  ],
+  "fixture": {
+    "description": "existing paired evidence",
+    "digest": null
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Closed SETUP-WRITE-CARD mismatch; write-card-v1 structured pass on linked pair"
+    }
+  ],
+  "execution": {
+    "referenceRun": "de231068-bb59-4872-a415-cfac64ddfdfe",
+    "candidateRun": "0d269402-43a6-48fd-bb62-c8ca90306a5c",
+    "pairId": "setup-success-write-card-2",
+    "pairPath": "parity/evidence/setup-success/pair-setup-success-write-card-2.json",
+    "verdict": "pass-paired",
+    "closedAt": "2026-10-08T17:57:16Z"
+  }
+}

@@ -1,0 +1,914 @@
+{
+  "schemaVersion": 1,
+  "status": "discovery-in-progress",
+  "items": [
+    {
+      "id": "SETUP-BUDGET-UNLIMITED-LABEL",
+      "requirementId": "PSTACK-SETUP-BUDGET-LABELS-001",
+      "status": "closed-paired-parity",
+      "candidateRevision": "2f4dc0207e1a8d3c0704c8e10ecb3fc4da95c429",
+      "candidatePayloadSha256": "sha256:115488fe64923c41dc92b950e5d09bf5e229127186ab705d6f2e14eea97e3c2e",
+      "candidatePackageSha256": "54cdddcddbeb75dab1ed75c79be217a1d0ab2467670212ef43584949090f5832",
+      "referenceSource": "parity/reference/cursor-plugins/pstack/skills/setup-pstack/SKILL.md",
+      "sourceLocator": "Step 3(a), exact budget labels",
+      "expected": "unlimited — max reasoning",
+      "actual": "unlimited — keep max",
+      "candidateRecording": "parity/evidence/candidate-baseline/terminal.raw",
+      "candidateScreen": "parity/evidence/candidate-baseline/02-setup-selected.txt",
+      "cursorPairedRun": null,
+      "consequence": "The setup selector uses a different stable option label. Source inspection also shows unlimited leaves existing effort unchanged rather than applying max with supported-family fallback.",
+      "acceptanceVerdict": "pass-paired",
+      "nextAction": "Closed by the canonical-2 pair. One reference run (affc057f) again omitted '(max)'; retained as model-authored variance, not a candidate defect.",
+      "repairNote": "Candidate 0.15.15-pi.1 source uses the label unlimited — max reasoning and raises each entry to its highest supported level. The 2026-10-08 exploration recordings show both the Cursor and Pi selectors with this label. Not a paired run.",
+      "closure": {
+        "pairedRun": "parity/evidence/setup-prepair/pair-setup-first-run-canonical-2.json",
+        "attemptIds": {
+          "cursor": "c7970c07-4c28-4cca-be3d-3d15ceedd207",
+          "pi": "1e448f41-07cb-4335-8a96-aa6312d6d125"
+        },
+        "evidence": [
+          "parity/evidence/setup-prepair/panel-parity.json (chrome match true, inputs match true, unexplained 0)",
+          "parity/evidence/setup-prepair/pair-report-canonical-2.json (inputDifferences 0; outcomeDifference is the harness SIGINT cleanup exit code, cursor 143 vs pi 0, classified harness-cleanup)"
+        ],
+        "writtenRule": "both sides byte-identical, sha256:9146cd9fe687813f13618724c14da1ced71a72151a9be4ae6ae166ae23218aaa, budget line '# budget: unlimited (max)' on both sides",
+        "closedAt": "2026-10-08T11:05:00Z",
+        "commit": "2f4dc0207e1a8d3c0704c8e10ecb3fc4da95c429"
+      },
+      "cursorExploration": "parity/evidence/cursor-setup-explore/c1629450-3dc6-4e58-8332-89c25be4043e",
+      "piExploration": "parity/evidence/pi-setup-explore/3bfd286b-f017-4ec4-8d6b-53ed663fca92"
+    },
+    {
+      "id": "SETUP-FLOW-ASK-QUESTION-UI",
+      "requirementId": "PSTACK-SETUP-FLOW-001",
+      "status": "closed-paired-parity",
+      "candidateRevision": "2f4dc0207e1a8d3c0704c8e10ecb3fc4da95c429",
+      "referenceSource": "parity/reference/cursor-plugins/pstack/skills/setup-pstack/SKILL.md",
+      "cursorPairedRun": null,
+      "acceptanceVerdict": "pass-paired",
+      "cursorExploration": "parity/evidence/cursor-setup-explore/c1629450-3dc6-4e58-8332-89c25be4043e",
+      "piExploration": "parity/evidence/pi-setup-explore/3bfd286b-f017-4ec4-8d6b-53ed663fca92",
+      "expected": "Cursor shows a Clarifying Questions panel (Question 1 of 2) with checkbox options, the current rule summarized in the question text, and keys: up/down option, left/right question, Space select, Enter next/submit, Esc skip.",
+      "actual": "Pi shows a native single-choice selector titled pstack reasoning budget (up/down navigate, enter select, escape cancel), with no question counter, no current-rule summary and no Space-select. After the budget it shows a model picker with filter and a roster of roles marked needs a choice.",
+      "consequence": "Different interaction count, controls, wording and defaults for the same setup task.",
+      "caveat": "Fixtures were not equal. The Cursor run had an existing rule with every role inherit-parent. The Pi run used an isolated agent dir with no rule. The Cursor run also typed a stray a before the command. Must be re-captured as a proper pair before it is a verdict.",
+      "closure": {
+        "pairedRun": "parity/evidence/setup-prepair/pair-setup-first-run-canonical-2.json",
+        "attemptIds": {
+          "cursor": "c7970c07-4c28-4cca-be3d-3d15ceedd207",
+          "pi": "1e448f41-07cb-4335-8a96-aa6312d6d125"
+        },
+        "evidence": [
+          "parity/evidence/setup-prepair/panel-parity.json (normalized panel chrome equal, 7 identical inputs, unexplained 0)",
+          "parity/evidence/setup-prepair/pair-report-canonical-2.json",
+          "raw output differences are model-authored chat bytes; the single outcome difference is the harness SIGINT cleanup exit code (cursor 143, pi 0), classified harness-cleanup per canonical-1"
+        ],
+        "repairs": [
+          "agent-driven AskQuestion panel replaces the native dialog flow (space toggles, enter advances/submits, escape submits answered and skips)",
+          "panel rows aligned to the captured geometry (' │ ' + content padded to 114 + ' │'); found by the paired chrome comparison",
+          "space in open text entry appends a literal space (regression test added)",
+          "optional AskQuestion title rendered as the panel header, default 'Clarifying Questions'"
+        ],
+        "closedAt": "2026-10-08T11:05:00Z",
+        "commit": "2f4dc0207e1a8d3c0704c8e10ecb3fc4da95c429"
+      },
+      "nextAction": "Closed by the canonical-2 pair. Remaining flow work continues under the acceptance families in parity/progress.md."
+    },
+    {
+      "id": "SETUP-ROLE-ROSTER-DEFAULTS",
+      "requirementId": "PSTACK-SETUP-FLOW-001",
+      "status": "closed-paired-parity",
+      "candidateRevision": "2f4dc0207e1a8d3c0704c8e10ecb3fc4da95c429",
+      "referenceSource": "parity/reference/cursor-plugins/pstack/skills/setup-pstack/SKILL.md",
+      "cursorPairedRun": null,
+      "acceptanceVerdict": "pass-paired",
+      "cursorExploration": "parity/evidence/cursor-setup-explore/c1629450-3dc6-4e58-8332-89c25be4043e",
+      "piExploration": "parity/evidence/pi-setup-explore/3bfd286b-f017-4ec4-8d6b-53ed663fca92",
+      "expected": "Roles shown with the current rule state (every role inherit-parent in the reference configuration, kept on a re-run).",
+      "actual": "Pi lists 17 roles as grok-4.7-xhigh-fast or claude-opus-5-5-xhigh with needs a choice, with a model list of 72 entries from the user providers.",
+      "consequence": "A user re-running setup would see a different starting state and would have to pick models the Cursor flow keeps.",
+      "caveat": "Same fixture caveat as SETUP-FLOW-ASK-QUESTION-UI.",
+      "closure": {
+        "pairedRun": "parity/evidence/setup-prepair/pair-setup-first-run-canonical-2.json",
+        "attemptIds": {
+          "cursor": "c7970c07-4c28-4cca-be3d-3d15ceedd207",
+          "pi": "1e448f41-07cb-4335-8a96-aa6312d6d125"
+        },
+        "evidence": [
+          "both sides' written rules byte-identical (sha256:9146cd9fe687813f13618724c14da1ced71a72151a9be4ae6ae166ae23218aaa) with every role inherit-parent (18 occurrences including the comment header) and '# budget: unlimited (max)'",
+          "parity/evidence/setup-prepair/panel-parity.json (rule match true)"
+        ],
+        "closedAt": "2026-10-08T11:05:00Z",
+        "commit": "2f4dc0207e1a8d3c0704c8e10ecb3fc4da95c429"
+      },
+      "nextAction": "Closed by the canonical-2 pair; the re-run keeps the existing roster exactly as the reference does."
+    },
+    {
+      "id": "SETUP-ASKQUESTION-TRANSCRIPT-RENDERING",
+      "requirementId": "PSTACK-SETUP-FLOW-001",
+      "status": "closed",
+      "candidateRevision": "repair commit (uncommitted at capture; digest recorded in the commit that lands this slice)",
+      "referenceSource": "parity/reference/cursor-plugins/pstack/skills/setup-pstack/SKILL.md",
+      "discoveredBy": "parity/evidence/setup-cancel/pair-setup-escape-cancel-1.json",
+      "expected": "The reference transcript collapses the AskQuestion card ('AskQuestion Clarifying Questions (2) — Questions skipped by user') and hides tool internals; the state inspection output is not rendered as raw JSON.",
+      "actual": "The candidate transcript echoes the AskQuestion request and result as raw JSON (answers [], cancelled true) and renders the pstack_setup state result inline as a full model-slug list.",
+      "consequence": "During and after the setup journey the user sees developer-facing tool JSON where the reference shows collapsed, human-readable cards. Cancellation semantics match; the presentation does not.",
+      "acceptanceVerdict": "pass-paired",
+      "nextAction": "Investigate pi's extension tool-result rendering hooks (custom renderers or compact result forms); repair so the panel card and the state result collapse to human-readable summaries, then recapture this pair.",
+      "closure": {
+        "pairedRun": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-cancel/pair-setup-escape-cancel-2.json",
+        "attemptIds": {
+          "cursor": "6193b87b-9040-4edb-a3b4-97d7ac6cb6f0",
+          "pi": "1c010fa9-b2be-44e8-a4fb-baa9febfafd3"
+        },
+        "repair": "AskQuestion call card and pstack_setup call/state cards no longer render; the AskQuestion result card renders one collapsed line with the title left-aligned and \"Questions skipped by user\" right-aligned, with unchecked question blocks below (src/tool-cards.ts, src/questions.ts, src/setup-tool.ts).",
+        "evidence": [
+          "parity/evidence/setup-cancel/card-parity-2.json (cancel-card-v1 comparator pass on both sides: exactly one card line, right-aligned skip label, blocks unchecked, no JSON echo, no setup tool cards)",
+          "parity/evidence/setup-cancel/pair-setup-escape-cancel-2.json (fresh paired capture, both sides ruleUnchanged true at fixture digest sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004)",
+          "parity/evidence/setup-cancel/pair-report-cancel-2.json (byte comparator: inputDifferences 0; raw output differences are model-authored chat text and host chrome, sampled and confirmed card-region-clean)"
+        ],
+        "discardedAttempts": [
+          "pi 9e41166c (popup wait timeout, judged boot-timing flake; popup reproduced in isolation immediately after)",
+          "pi 54cf819b (successful smoke run on the repaired rendering before the paired capture)"
+        ],
+        "closedAt": "2026-10-08T11:10:48.167Z"
+      }
+    },
+    {
+      "id": "HOW-SKILL-DELIVERY-MODE",
+      "requirementId": "PSTACK-PLAYBOOK-HOW-001",
+      "status": "closed",
+      "candidateRevision": "eab95d9",
+      "referenceSource": "parity/reference/cursor-docs/skills.md",
+      "discoveredBy": "parity/evidence/investigate/pair-investigate-1.json",
+      "expected": "Invoking /how attaches the skill content to one user message (reference Used how / inline activation).",
+      "actual": "Candidate delivered a read-the-file instruction instead of the skill body.",
+      "consequence": "The model might never load the how workflow, so playbook steps diverge before any explainer spawn.",
+      "acceptanceVerdict": "pass-paired",
+      "closure": {
+        "pairedRun": "parity/evidence/investigate/pair-investigate-2.json",
+        "attemptIds": {
+          "cursor": "6f45e2db-c821-4663-bc85-ac9a01fc76e8",
+          "pi": "03252b53-a395-476d-86c2-a7636c4c4116"
+        },
+        "repair": "loadAllSkills + branch-3 expand/inline delivery; generated prompts embed skill bodies (commit eab95d9). Follow-up uses expand() so the TUI shows [skill] how.",
+        "evidence": [
+          "investigate-2 pi transcript: one user message with full how body and Step 2b; zero Read how/SKILL.md instructions",
+          "bunx vitest run 2222 pass; verify-journeys --no-workers 470 then 538 checks, 0 findings"
+        ],
+        "closedAt": "2026-10-08T16:40:00Z",
+        "commit": "eab95d9"
+      },
+      "nextAction": "Closed. Follow-up chip wording lives under HOW-SKILL-TUI-CHIP."
+    },
+    {
+      "id": "HOW-SKILL-TUI-CHIP",
+      "requirementId": "PSTACK-PLAYBOOK-HOW-001",
+      "status": "closed",
+      "candidateRevision": "pending-chip-expand",
+      "referenceSource": "parity/evidence/investigate/cursor/6f45e2db-c821-4663-bc85-ac9a01fc76e8",
+      "discoveredBy": "parity/evidence/investigate/pair-investigate-2.json",
+      "expected": "After /how the transcript shows a one-line skill activation chip (reference: Used how).",
+      "actual": "After wrapperless inline delivery the candidate showed a viewport-collapsed message body without a skill chip.",
+      "consequence": "Users cannot see at a glance that a skill attached, even though the model received the body.",
+      "acceptanceVerdict": "pass-host-equivalent",
+      "closure": {
+        "attemptIds": {
+          "pi": "8ad2dbc5-5ffa-48e3-8b76-0f6de82f6219"
+        },
+        "repair": "Branch 3 uses expand() so /name delivers a <skill> block; Pi renders [skill] how (ctrl+o to expand).",
+        "evidence": [
+          "pi 8ad2dbc5 stream contains '[skill] how (ctrl+o to expand)'",
+          "transcript user message contains skill name=\"how\" and Step 2b"
+        ],
+        "hostVariance": "Reference label is 'Used how'; candidate label is '[skill] how (ctrl+o to expand)'. Same job, host chrome wording differs.",
+        "closedAt": "2026-10-08T16:40:00Z"
+      },
+      "nextAction": "Closed as host-equivalent chip. Wording difference retained as host variance, not a candidate defect."
+    },
+    {
+      "id": "SETUP-WRITE-CARD",
+      "requirementId": "PSTACK-SETUP-FLOW-001",
+      "status": "closed-paired-parity",
+      "candidateRevision": "fd0b41b",
+      "referenceSource": "parity/evidence/setup-prepair/cursor/screen-04-final.txt",
+      "discoveredBy": "parity/progress.md success-flow observation after SETUP-ASKQUESTION-TRANSCRIPT-RENDERING",
+      "expected": "After a successful /setup-pstack write the transcript shows a host edit card: `Edited pstack-models.mdc +N -M` plus ▎-gutter context with the removed and added budget lines.",
+      "actual": "Candidate previously rendered `Wrote <path> with budget …` and no diff body.",
+      "consequence": "Users see a different write confirmation and cannot inspect the budget line change in the transcript card.",
+      "acceptanceVerdict": "pass-paired",
+      "closure": {
+        "pairedRun": "parity/evidence/setup-success/pair-setup-success-write-card-2.json",
+        "attemptIds": {
+          "cursor": "de231068-bb59-4872-a415-cfac64ddfdfe",
+          "pi": "0d269402-43a6-48fd-bb62-c8ca90306a5c"
+        },
+        "evidence": [
+          "parity/evidence/setup-success/write-card-parity-linked.json",
+          "parity/evidence/setup-success/write-card-verify-rerun.json",
+          "parity/briefs/reports/u-write-card-verify-report.md"
+        ],
+        "commit": "fd0b41b018130c7f2ec483ca1c29b71b59a73e32",
+        "closedAt": "2026-10-08T17:32:00Z",
+        "note": "Sequential same-scenario pair; write-card-v1 pass both sides."
+      },
+      "nextAction": "Closed.",
+      "verifyRerun": {
+        "at": "2026-10-08T17:22:00Z",
+        "agent": "63621cd3-bca1-4bca-a911-1cce3eddeb1e",
+        "report": "parity/briefs/reports/u-write-card-verify-report.md",
+        "rerunJson": "parity/evidence/setup-success/write-card-verify-rerun.json",
+        "writeCardV1": "pass",
+        "blockersUnchanged": [
+          "uncommitted product diffs (no commit hash)",
+          "sequential same-scenario captures, not one recordPair() call"
+        ]
+      }
+    },
+    {
+      "id": "HOW-WORKFLOW-EXPLAINER-STEP",
+      "requirementId": "PSTACK-PLAYBOOK-HOW-001",
+      "status": "closed-paired-parity",
+      "candidateRevision": "fd0b41b",
+      "referenceSource": "extensions/pi-pstack/skills/how/SKILL.md",
+      "discoveredBy": "parity/evidence/investigate/pair-investigate-1.json",
+      "expected": "For a simple /how question the agent takes Step 2b: spawn one readonly explainer Task (how explainer role), then present its structured answer.",
+      "actual": "Candidate model receives the full skill body including Step 2b, then explicitly chooses to answer inline with bash instead of spawning (thinking: 'rather than spawning a subagent').",
+      "consequence": "User-visible journey shape differs: reference ~5 min with Task + structured sections; candidate ~20 s with direct tools. Answer content can still be correct.",
+      "comparisonMethod": "Repeated reference protocol: 2/2 cursor runs (dfe89f1a, 6f45e2db) announced and ran the Step 2b explainer. Candidate skips in 3/3 runs after delivery repair (05056781, 03252b53, 8ad2dbc5).",
+      "acceptanceVerdict": "pass-paired",
+      "comparisonMethodLocked": "A-deterministic-spawn-required",
+      "disposition": "parity/reviews/how-explainer-disposition.md",
+      "repair": {
+        "design": "A-spawn-gate",
+        "note": "extensions/pi-pstack/docs/how-explainer-spawn-design.md",
+        "files": [
+          "extensions/pi-pstack/src/how-spawn-gate.ts",
+          "extensions/pi-pstack/src/index.ts",
+          "extensions/pi-pstack/test/how-spawn-gate.test.ts"
+        ],
+        "unitVerify": "bunx vitest run test/how-spawn-gate.test.ts (5 pass); typecheck pass; verify-journeys --no-workers 538/0"
+      },
+      "nextAction": "Closed. Follow-up HOW-TASK-AGENT-TYPE also closed on the same commit (explore/how-explainer recognition).",
+      "closure": {
+        "pairedRun": "parity/evidence/investigate/pair-investigate-3.json",
+        "attemptIds": {
+          "cursor": "c1abf807-141d-4731-a887-182cf312ad02",
+          "pi": "951a315d-ac83-4901-9342-c82fbcd235a1"
+        },
+        "evidence": [
+          "parity/briefs/reports/u-how-pair-report.md",
+          "parity/evidence/investigate/how-method-a-pair-3-report.md",
+          "Method A: cursor Running subagent; pi gate then task before answer"
+        ],
+        "commit": "fd0b41b018130c7f2ec483ca1c29b71b59a73e32",
+        "closedAt": "2026-10-08T17:32:00Z"
+      }
+    },
+    {
+      "id": "HOW-TASK-AGENT-TYPE",
+      "requirementId": "PSTACK-PLAYBOOK-HOW-001",
+      "status": "closed",
+      "candidateRevision": "fd0b41b",
+      "referenceSource": "parity/reference/cursor-plugins/pstack/skills/how/SKILL.md",
+      "discoveredBy": "parity/evidence/investigate/pair-investigate-3.json",
+      "expected": "Step 2b explainer Task uses subagent_type generalPurpose (readonly) per the how skill.",
+      "actual": "Linked Pi attempt 951a315d called task with agent_type explore and name how-explainer after the spawn gate blocked a read.",
+      "consequence": "explainerTaskStarted() does not mark spawned for explore, so the gate may keep blocking parent exploration tools after a non-conforming Task. Method A spawn-before-answer still held on this pair.",
+      "acceptanceVerdict": "pass-unit",
+      "nextAction": "Closed on fd0b41b with unit tests for the live explore/how-explainer shape.",
+      "closure": {
+        "repair": "explainerTaskStarted accepts agent_type explore with name how-explainer and readonly prompt (pair-investigate-3 shape)",
+        "tests": "extensions/pi-pstack/test/how-spawn-gate.test.ts",
+        "commit": "fd0b41b018130c7f2ec483ca1c29b71b59a73e32",
+        "closedAt": "2026-10-08T17:32:00Z"
+      }
+    },
+    {
+      "id": "MODE-PLAIN-ENTER-STICKY",
+      "requirementId": "PSTACK-MODE-ONE-MESSAGE-001",
+      "status": "closed-paired-parity",
+      "candidateRevision": "33153ac6e2e3f13d191b2e17264499bef18cac45",
+      "referenceSource": "parity/reference/cursor-plugins/pstack/skills/poteto-help/SKILL.md",
+      "discoveredBy": "parity/evidence/mode-one-message/pair-mode-one-message-1.json",
+      "expected": "Plain Enter on /poteto-mode attaches the skill for one message and must not activate persistent mode on the next turn.",
+      "actual": "After repair on 33153ac, Pi plain /poteto-mode stays non-sticky across follow-up (attempt f19e11c7). Cursor plain Enter remains non-sticky (5fd487a4). Sticky spelling is /poteto-mode sticky.",
+      "consequence": "Same user action diverges: Cursor one-message vs Pi sticky session mode.",
+      "acceptanceVerdict": "pass-paired",
+      "evidence": [
+        "parity/briefs/reports/u-mode-one-message-report.md",
+        "parity/evidence/mode-one-message/pair-mode-one-message-1.json"
+      ],
+      "nextAction": "Capture PSTACK-MODE-STICKY-001 with /poteto-mode sticky (in flight).",
+      "closure": {
+        "pairedRun": "parity/evidence/mode-one-message/pair-mode-one-message-1.json",
+        "attemptIds": {
+          "cursor": "5fd487a4-cf8e-4fe4-bbc0-7de39af1a159",
+          "pi": "f19e11c7-b1e5-4788-9f04-bb0e5c9de559"
+        },
+        "evidence": [
+          "parity/evidence/mode-one-message/pair-mode-one-message-1.json",
+          "parity/briefs/reports/u-mode-plain-enter-fix-report.md"
+        ],
+        "repair": "parseModeArgs: only sticky token enables mode; plain /poteto-mode is one-message",
+        "closedAt": "2026-10-08T17:55:03Z",
+        "commit": "33153ac6e2e3f13d191b2e17264499bef18cac45"
+      }
+    },
+    {
+      "id": "MODE-STICKY-CURSOR-CUSTOM-MODE-HARNESS",
+      "requirementId": "PSTACK-MODE-STICKY-001",
+      "status": "closed-paired-parity",
+      "candidateRevision": "33153ac6e2e3f13d191b2e17264499bef18cac45",
+      "referenceSource": "parity/reference/cursor-plugins/pstack/README.md",
+      "discoveredBy": "parity/evidence/mode-sticky/pair-mode-sticky-1.json",
+      "expected": "Option+Enter / Alt+Enter on /poteto-mode enters Custom Mode and keeps mode across turns (reference sticky path).",
+      "actual": "Cursor Agents Window sticky Custom Mode held across follow-up via /poteto-mode → alt+Return (Use as Mode); crown poteto-mode badge after turns 1 and 2 (attempt 521ce15e). CLI PTY Option+Enter remains glass_custom_modes-gated (superseded for this requirement). Pi /poteto-mode sticky revalidated (96494327).",
+      "consequence": "Closed: PSTACK-MODE-STICKY-001 verified-pass-paired on Agents Window + Pi sticky pair.",
+      "acceptanceVerdict": "pass-paired",
+      "classification": "host-path-measured",
+      "evidence": [
+        "parity/evidence/mode-sticky/pair-mode-sticky-1.json",
+        "parity/briefs/reports/u-mode-sticky-capture-report.md",
+        "parity/briefs/reports/u-cursor-custom-mode-path-report.md",
+        "parity/evidence/mode-sticky/probes/ (attempts 6977eeec-08bd-4829-810c-11d526d9f9fb, 9857dda0-a74d-4546-b69e-1ff3528bdf3e)",
+        "parity/briefs/reports/u-mode-sticky-agents-window-report.md",
+        "parity/evidence/mode-sticky/agents-window/host-env-probe.json",
+        "parity/briefs/reports/u-mode-sticky-cursor-app-001-report.md",
+        "parity/research/mode-sticky-cursor-app-001/host-env-probe.json",
+        "parity/research/mode-sticky-cursor-app-001/probe-cursor-app-sticky-host.mjs",
+        "parity/briefs/reports/u-mode-sticky-desktop-ready-001-report.md",
+        "parity/evidence/mode-sticky/agents-window/521ce15e-a8f8-4f74-8fec-208ceddb7603/",
+        "parity/research/mode-sticky-desktop-ready-001/"
+      ],
+      "nextAction": "Closed. CLI glass_custom_modes path remains off; requirement satisfied via Agents Window Use as Mode.",
+      "piPartial": {
+        "attemptId": "96494327-f90c-470a-8e11-cf7c5b6cad89",
+        "stickyBadgeAfterSecondTurn": true
+      },
+      "rootCause": {
+        "gate": "glass_custom_modes",
+        "default": false,
+        "statsigOverridesNoOp": true,
+        "baselineAttempt": "6977eeec-08bd-4829-810c-11d526d9f9fb",
+        "overrideAttempt": "9857dda0-a74d-4546-b69e-1ff3528bdf3e",
+        "report": "parity/briefs/reports/u-cursor-custom-mode-path-report.md",
+        "agentsWindow": "Cursor.app present at /Applications/Cursor.app 3.24.9; Application Support exists. Sticky still unpaid: DISPLAY empty, screencapture fails, CDP closed, glass.lastSignedInAuthId=signed-out, no Custom Modes keys in settings.json, glass_custom_modes not observable in CLI/IDE statsig. Probe b01ad4e8-f88a-4e53-ac22-d3646d8e11b9. Report: parity/briefs/reports/u-mode-sticky-cursor-app-001-report.md. Supersedes prior “app absent” claim.",
+        "cli": "glass_custom_modes off on cursor-agent 2026.10.01-e373342",
+        "cursorAppPresent": true,
+        "cursorAppVersion": "3.24.9",
+        "hostProbeId": "b01ad4e8-f88a-4e53-ac22-d3646d8e11b9"
+      },
+      "updatedAt": "2026-10-09T06:14:25Z",
+      "closure": {
+        "pairedRun": "parity/evidence/mode-sticky/pair-mode-sticky-1.json",
+        "attemptIds": {
+          "cursor": "521ce15e-a8f8-4f74-8fec-208ceddb7603",
+          "pi": "96494327-f90c-470a-8e11-cf7c5b6cad89"
+        },
+        "evidence": [
+          "parity/evidence/mode-sticky/pair-mode-sticky-1.json",
+          "parity/briefs/reports/u-mode-sticky-desktop-ready-001-report.md"
+        ],
+        "path": "Cursor Agents Window Use as Mode (alt+Return); CLI Option+Enter still gated",
+        "closedAt": "2026-10-09T06:14:25Z",
+        "note": "No product commit; env/host-path measurement closed the Cursor sticky half."
+      }
+    },
+    {
+      "id": "CMD-POTETO-HELP-RECOMMENDATION",
+      "requirementId": "PSTACK-CMD-POTETO-HELP-NO-WORK-001",
+      "status": "closed-paired-parity",
+      "candidateRevision": "af4c2bda6a8d23ddce53040f6c1313e23ed4d02d",
+      "referenceSource": "parity/reference/cursor-plugins/pstack/skills/poteto-help/SKILL.md",
+      "discoveredBy": "parity/evidence/commands/pair-commands-help-cancel-1.json",
+      "expected": "Same help question yields comparable skill recommendation (same primary skill or documented host mapping).",
+      "actual": "After resource-row encoding, both sides lead with /interrogate for branch review. /review-and-ship kept as ship-path close-call only.",
+      "consequence": "Family-03 help path is only partial; skill-routing parity not established.",
+      "acceptanceVerdict": "pass-paired",
+      "classification": "behavior-delta",
+      "evidence": [
+        "parity/evidence/commands/pair-commands-help-cancel-1.json",
+        "parity/briefs/reports/u-journey-family-03-report.md"
+      ],
+      "nextAction": "Triage whether Pi poteto-help mapping should prefer /interrogate for branch review, or document intentional host mapping; recapture after repair.",
+      "attemptIds": {
+        "cursor": "d20bff6f-9012-4d81-a1dc-cccd7202c4b8",
+        "pi": "e6909603-6d1f-4828-a1f2-d9f2d6d0be4c"
+      },
+      "closure": {
+        "pairedRun": "parity/evidence/commands/pair-commands-help-recommend-1.json",
+        "attemptIds": {
+          "cursor": "cc0e3b4c-3d78-416d-98d5-e71ed57d12d9",
+          "pi": "91fa6578-cce4-4b5a-abc2-9fe1e90f2b42"
+        },
+        "evidence": [
+          "parity/evidence/commands/pair-commands-help-recommend-1.json",
+          "parity/briefs/reports/u-help-recommend-fix-report.md"
+        ],
+        "repair": "60-help.mjs named situation + close-call",
+        "closedAt": "2026-10-08T18:28:12Z",
+        "commit": "af4c2bda6a8d23ddce53040f6c1313e23ed4d02d"
+      }
+    },
+    {
+      "id": "WHY-INVESTIGATOR-SPAWN",
+      "requirementId": "PSTACK-CMD-WHY-MOTIVATION-001",
+      "status": "closed-paired-parity",
+      "candidateRevision": "2490904137e4517c08961a3e0532f388d65a864d",
+      "referenceSource": "parity/reference/cursor-plugins/pstack/skills/why/SKILL.md",
+      "discoveredBy": "parity/evidence/why/pair-why-1.json",
+      "expected": "why spawns parallel investigators (Task/subagents) before synthesizing motivation, matching Cursor Running subagent chrome.",
+      "actual": "After why-spawn-gate, Pi session spawns why-source-control and why-synthesizer Tasks (attempt 3a299cdd-e423-436e-b850-e58fc207c688). Cursor reuse 97771f92-7d64-4ad8-9821-48701fe13881 already showed Running subagent.",
+      "consequence": "Method A investigator fan-out parity for why is incomplete even though the final answer shape matched.",
+      "acceptanceVerdict": "pass-paired",
+      "classification": "behavior-delta",
+      "evidence": [
+        "parity/evidence/why/pair-why-1.json",
+        "parity/briefs/reports/u-journey-family-05-why-report.md"
+      ],
+      "nextAction": null,
+      "attemptIds": {
+        "cursor": "97771f92-7d64-4ad8-9821-48701fe13881",
+        "pi": "ceff7d79-2c2a-479b-b2a8-a7e529d9e8ce"
+      },
+      "closure": {
+        "pairedRun": "parity/evidence/why/pair-why-2.json",
+        "attemptIds": {
+          "cursor": "97771f92-7d64-4ad8-9821-48701fe13881",
+          "pi": "3a299cdd-e423-436e-b850-e58fc207c688"
+        },
+        "evidence": [
+          "parity/evidence/why/pair-why-2.json",
+          "parity/briefs/reports/u-why-spawn-gate-report.md",
+          "parity/evidence/why/pi/3a299cdd-e423-436e-b850-e58fc207c688/method-a-session.json"
+        ],
+        "repair": "why-spawn-gate.ts: allow Step-2 tools; nudge then block until general-purpose Task",
+        "closedAt": "2026-10-08T18:55:28Z",
+        "commit": "2490904137e4517c08961a3e0532f388d65a864d"
+      }
+    },
+    {
+      "id": "FIGURE-IT-OUT-PLAYBOOK-FIRST",
+      "requirementId": "PSTACK-CMD-FIGURE-IT-OUT-PLAYBOOK-FIRST-001",
+      "status": "closed-paired-parity",
+      "candidateRevision": "71d47389e46010d6bf478b972b71bb38882070fe",
+      "referenceSource": "parity/reference/cursor-plugins/pstack/skills/figure-it-out/SKILL.md",
+      "discoveredBy": "parity/evidence/figure-it-out/pair-figure-it-out-playbook-first-1.json",
+      "expected": "Before any product code, /figure-it-out lands an auditable playbook (phases + falsifiable done predicate) and decision trail, matching Cursor ordering.",
+      "actual": "After figure-it-out-playbook-gate, Pi blocked early bash then wrote PLAYBOOK.md before src/* (8a0cf95a). Cursor reuse 38afcd44 already playbook_before_product.",
+      "consequence": null,
+      "acceptanceVerdict": "pass-paired",
+      "classification": "behavior-delta",
+      "evidence": [
+        "parity/evidence/figure-it-out/pair-figure-it-out-playbook-first-1.json",
+        "parity/briefs/reports/u-journey-family-05-fio-report.md"
+      ],
+      "nextAction": null,
+      "attemptIds": {
+        "cursor": "38afcd44-b9f2-4ba3-ad91-f345d71bdd73",
+        "pi": "a45d9cf4-4cea-4974-a9ad-7d56195c5259"
+      },
+      "updatedAt": "2026-10-08T19:31:00Z",
+      "closure": {
+        "pairedRun": "parity/evidence/figure-it-out/pair-figure-it-out-playbook-first-2.json",
+        "attemptIds": {
+          "cursor": "38afcd44-b9f2-4ba3-ad91-f345d71bdd73",
+          "pi": "8a0cf95a-64a7-4256-accb-89ca93ac5804"
+        },
+        "evidence": [
+          "parity/evidence/figure-it-out/pair-figure-it-out-playbook-first-2.json",
+          "parity/briefs/reports/u-fio-playbook-gate-report.md"
+        ],
+        "repair": "registerFigureItOutPlaybookGate blocks bash/edit/write until playbook-path write",
+        "closedAt": "2026-10-08T19:31:00Z",
+        "commit": "71d47389e46010d6bf478b972b71bb38882070fe"
+      }
+    },
+    {
+      "id": "POTETO-PLAYBOOK-TODO",
+      "requirementId": "PSTACK-CMD-POTETO-PLAYBOOK-TODO-001",
+      "status": "closed-paired-parity",
+      "candidateRevision": "10a5c630fe9de01123b3ef46920c24a61d0f6797",
+      "referenceSource": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/SKILL.md",
+      "discoveredBy": "parity/evidence/poteto-playbook/pair-poteto-playbook-todo-1.json",
+      "expected": "Under /poteto-mode, match a playbook and open a todolist with verbatim playbook steps before product work (Cursor Bug fix todos before src/inc.js).",
+      "actual": "After poteto-playbook-todo-gate, Pi blocked early bash then TodoWrite with Bug fix steps before src/inc.js (6954317a). Cursor reuse ff0f431a already playbookTodosBeforeProduct.",
+      "consequence": null,
+      "acceptanceVerdict": "pass-paired",
+      "classification": "behavior-delta",
+      "evidence": [
+        "parity/evidence/poteto-playbook/pair-poteto-playbook-todo-1.json",
+        "parity/briefs/reports/u-journey-cmd-poteto-todo-report.md"
+      ],
+      "nextAction": null,
+      "attemptIds": {
+        "cursor": "ff0f431a-1d09-40e2-b395-16a031182476",
+        "pi": "3d51f05d-e208-417b-835f-75df86da0a47"
+      },
+      "updatedAt": "2026-10-08T20:05:00Z",
+      "closure": {
+        "pairedRun": "parity/evidence/poteto-playbook/pair-poteto-playbook-todo-2.json",
+        "attemptIds": {
+          "cursor": "ff0f431a-1d09-40e2-b395-16a031182476",
+          "pi": "6954317a-4e7e-42d9-b6ca-1c4a1651531a"
+        },
+        "evidence": [
+          "parity/evidence/poteto-playbook/pair-poteto-playbook-todo-2.json",
+          "parity/briefs/reports/u-poteto-todo-gate-report.md"
+        ],
+        "repair": "registerPotetoPlaybookTodoGate blocks bash/edit/write until TodoWrite with playbook steps",
+        "closedAt": "2026-10-08T20:05:00Z",
+        "commit": "10a5c630fe9de01123b3ef46920c24a61d0f6797"
+      }
+    },
+    {
+      "id": "NO-COMMENTS-SICKO-SPAWN",
+      "requirementId": "PSTACK-CMD-NO-COMMENTS-SICKO-001",
+      "status": "closed-paired-parity",
+      "candidateRevision": null,
+      "referenceSource": "parity/reference/cursor-plugins/pstack/skills/no-comments/SKILL.md",
+      "discoveredBy": "parity/evidence/no-comments/pair-no-comments-sicko-1.json",
+      "expected": " /no-comments spawns Task with subagent_type Comment Sicko for the scope (Cursor completed Sicko child; first output catchphrase).",
+      "actual": "After persona-agents bridge into SubagentFactory.registryInputs, Pi lowercase task with agent_type Comment Sicko succeeds (c0cf9e02); child first assistant text is the catchphrase. Cursor reuse f4cd66ea already Sicko+catchphrase.",
+      "consequence": null,
+      "acceptanceVerdict": "pass-paired",
+      "classification": "behavior-delta",
+      "evidence": [
+        "parity/evidence/no-comments/pair-no-comments-sicko-1.json",
+        "parity/briefs/reports/u-journey-cmd-no-comments-report.md"
+      ],
+      "nextAction": null,
+      "attemptIds": {
+        "cursor": "f4cd66ea-5fcd-49fc-aa35-9789e6fcfddc",
+        "pi": "44860f00-0364-48b9-805d-0c4146cb9e9d"
+      },
+      "updatedAt": "2026-10-08T20:21:00Z",
+      "closure": {
+        "pairedRun": "parity/evidence/no-comments/pair-no-comments-sicko-2.json",
+        "attemptIds": {
+          "cursor": "f4cd66ea-5fcd-49fc-aa35-9789e6fcfddc",
+          "pi": "c0cf9e02-9dd1-4c47-961a-b5a4d4029003"
+        },
+        "evidence": [
+          "parity/evidence/no-comments/pair-no-comments-sicko-2.json",
+          "parity/briefs/reports/u-no-comments-sicko-spawn-report.md"
+        ],
+        "repair": "personaTaskAgents() bridges Comment Sicko (and sibling file personas) into SubagentFactory lowercase task registry",
+        "closedAt": "2026-10-08T20:21:00Z",
+        "commit": null
+      }
+    },
+    {
+      "id": "TYPESCRIPT-PATHS-FRONTMATTER",
+      "requirementId": "PSTACK-CMD-TYPESCRIPT-PATHS-001",
+      "status": "closed-paired-parity",
+      "candidateRevision": null,
+      "referenceSource": "parity/reference/cursor-plugins/pstack/skills/typescript-best-practices/SKILL.md",
+      "discoveredBy": "parity/evidence/typescript/pair-typescript-paths-1.json",
+      "expected": "Skill metadata declares paths [\"**/*.ts\",\"**/*.tsx\"], disable-model-invocation true, and body requires type-system-discipline first (locked digest 28f9e617…).",
+      "actual": "After resources.mjs keeps paths, Pi skill digest matches locked Cursor 28f9e617…; pair-2 both contractOk/pathsOk (Pi 3ab0995e; Cursor reuse b7688706).",
+      "consequence": null,
+      "acceptanceVerdict": "pass-paired",
+      "classification": "behavior-delta",
+      "evidence": [
+        "parity/evidence/typescript/pair-typescript-paths-1.json",
+        "parity/briefs/reports/u-journey-cmd-typescript-report.md"
+      ],
+      "nextAction": null,
+      "attemptIds": {
+        "cursor": "b7688706-b64f-4a12-a61c-fd09c78a2722",
+        "pi": "245162a9-8cf4-43c1-8fff-cf994cae25ad"
+      },
+      "updatedAt": "2026-10-08T21:52:30Z",
+      "closure": {
+        "pairedRun": "parity/evidence/typescript/pair-typescript-paths-2.json",
+        "attemptIds": {
+          "cursor": "b7688706-b64f-4a12-a61c-fd09c78a2722",
+          "pi": "3ab0995e-f5c8-4ce3-a1e3-55e86e66a8f3"
+        },
+        "evidence": [
+          "parity/evidence/typescript/pair-typescript-paths-2.json",
+          "parity/briefs/reports/u-typescript-paths-gate-report.md"
+        ],
+        "repair": "resources.mjs retains paths frontmatter; still strips mode/icon/color/reminder",
+        "closedAt": "2026-10-08T21:52:30Z",
+        "commit": null
+      }
+    },
+    {
+      "id": "SETUP-ROLE-CONFIRM-LISTING",
+      "requirementId": "PSTACK-SETUP-ROLE-CONFIRM-001",
+      "status": "closed-paired-parity",
+      "candidateRevision": null,
+      "referenceSource": "parity/reference/cursor-plugins/pstack/skills/setup-pstack/SKILL.md",
+      "discoveredBy": "parity/evidence/setup-role-confirm/pair-setup-role-confirm-1.json",
+      "expected": "Every role is shown with its model before accept/change; write only after confirm.",
+      "actual": "After roleConfirmPrompt + newline-preserving AskQuestion wrap, Pi lists 17/17 roles with models (f9259bfa); Cursor reuse b72b2ad5 already green.",
+      "consequence": null,
+      "acceptanceVerdict": "pass-paired",
+      "classification": "behavior-delta",
+      "evidence": [
+        "parity/evidence/setup-role-confirm/pair-setup-role-confirm-1.json",
+        "parity/briefs/reports/u-journey-setup-role-confirm-report.md"
+      ],
+      "nextAction": null,
+      "attemptIds": {
+        "cursor": "b72b2ad5-c36a-4219-81ba-04954cb9888c",
+        "pi": "08ab0e09-4a60-4b44-836e-01ca750bb534"
+      },
+      "updatedAt": "2026-10-08T22:13:30Z",
+      "closure": {
+        "pairedRun": "parity/evidence/setup-role-confirm/pair-setup-role-confirm-1.json",
+        "attemptIds": {
+          "cursor": "b72b2ad5-c36a-4219-81ba-04954cb9888c",
+          "pi": "f9259bfa-d306-4b5b-8ea4-c4d0de00b6fb"
+        },
+        "evidence": [
+          "parity/evidence/setup-role-confirm/pair-setup-role-confirm-1.json",
+          "parity/briefs/reports/u-setup-role-confirm-listing-report.md"
+        ],
+        "repair": "pstack_setup state.roleConfirmPrompt; setup-pstack paste-verbatim; AskQuestion wrap keeps newlines",
+        "closedAt": "2026-10-08T22:13:30Z",
+        "commit": null
+      }
+    },
+    {
+      "id": "SETUP-LOAD-STATE-CURSOR",
+      "requirementId": "PSTACK-SETUP-LOAD-STATE-001",
+      "status": "closed-paired-parity",
+      "candidateRevision": null,
+      "referenceSource": "parity/reference/cursor-plugins/pstack/skills/setup-pstack/SKILL.md",
+      "discoveredBy": "parity/evidence/setup-load-state/pair-setup-load-state-retired-1.json",
+      "expected": "Existing rule budget and role values become current choices; retired lines (e.g. how critics) dropped and listed later.",
+      "actual": "Isolated Cursor recapture b4bac448: loadFromExisting true, markerRoleLoaded + retiredListed; fixture held through screens. Prior miss was concurrent shared-rule race.",
+      "consequence": null,
+      "acceptanceVerdict": "pass-paired",
+      "classification": "behavior-delta",
+      "evidence": [
+        "parity/evidence/setup-load-state/pair-setup-load-state-retired-1.json",
+        "parity/briefs/reports/u-journey-setup-load-state-report.md"
+      ],
+      "nextAction": null,
+      "attemptIds": {
+        "cursor": "54a67064-eac9-4e9b-921b-c23085ef3295",
+        "pi": "3f46cd66-2f53-40f1-bbcc-2c7de7828615"
+      },
+      "updatedAt": "2026-10-08T22:17:30Z",
+      "closure": {
+        "pairedRun": "parity/evidence/setup-load-state/pair-setup-load-state-retired-1.json",
+        "attemptIds": {
+          "cursor": "b4bac448-d442-4c34-9eec-b73895bd063b",
+          "pi": "3f46cd66-2f53-40f1-bbcc-2c7de7828615"
+        },
+        "evidence": [
+          "parity/evidence/setup-load-state/pair-setup-load-state-retired-1.json",
+          "parity/briefs/reports/u-setup-load-state-cursor-report.md"
+        ],
+        "repair": "Isolated recapture (shared-rule lock + peer guard); no product change",
+        "closedAt": "2026-10-08T22:17:30Z",
+        "commit": null
+      }
+    },
+    {
+      "id": "BENNY-TRIAGE-VALID-CONFIG-ENV",
+      "requirementId": "PSTACK-CMD-BENNY-TRIAGE-THREAD-ONLY-001",
+      "status": "closed",
+      "candidateRevision": null,
+      "referenceSource": "parity/reference/cursor-plugins/pstack/automations/benny/skills/triage-issue-reports/SKILL.md",
+      "discoveredBy": "parity/evidence/benny-triage/blocker-benny-triage-valid-1.json",
+      "expected": "With valid Benny config, triage emits one thread-only verdict and does no reproduce-or-fix work in the triage skill.",
+      "actual": "Valid-config Benny triage pair (cursor de707056-289d-44b8-85a4-4d400e849815, pi 16520327-0d45-4817-a0cd-2f8c1c0e494a). Thread-only verdict; no reproduce-or-fix in triage.",
+      "consequence": "PSTACK-CMD-BENNY-TRIAGE-THREAD-ONLY-001 cannot reach verified-pass-paired until valid-config is measured or the oracle freeze accepts incomplete-config-only.",
+      "acceptanceVerdict": "verified-pass-paired",
+      "classification": "environment-bound",
+      "evidence": [
+        "parity/evidence/benny-triage/blocker-benny-triage-valid-1.json",
+        "parity/evidence/benny-triage/valid-env-probe.json",
+        "parity/briefs/reports/u-journey-cmd-benny-triage-valid-report.md",
+        "parity/evidence/benny-triage/pair-benny-triage-fail-closed-1.json",
+        "parity/briefs/reports/u-benny-env-unblock-001-report.md",
+        "parity/research/benny-env-unblock-001/operator-grant-checklist.md"
+      ],
+      "nextAction": "Closed. Requirement verified-pass-paired.",
+      "updatedAt": "2026-10-09T17:31:20.499Z"
+    },
+    {
+      "id": "SETUP-GROK-XHIGH-CAP-PI",
+      "requirementId": "PSTACK-SETUP-GROK-XHIGH-CAP-001",
+      "status": "closed-paired-parity",
+      "candidateRevision": null,
+      "referenceSource": "parity/reference/cursor-plugins/pstack/skills/setup-pstack/SKILL.md",
+      "discoveredBy": "parity/evidence/setup-grok-xhigh-cap/pair-setup-grok-xhigh-cap-1.json",
+      "expected": "Under budget unlimited, Grok roles stay at xhigh (not max); other real slugs may go to max; aliases unchanged.",
+      "actual": "Pi 94c9aab6 wrote unlimited with 10/10 Grok→xhigh after xai auth import from existing Grok CLI OAuth; Cursor faeae5d9 still pass.",
+      "consequence": "PSTACK-SETUP-GROK-XHIGH-CAP-001 cannot reach verified-pass-paired until Pi unlimited+Grok-cap write is measured (or product/harness root cause closed).",
+      "acceptanceVerdict": "pass-paired",
+      "classification": "environment-bound",
+      "evidence": [
+        "parity/evidence/setup-grok-xhigh-cap/pair-setup-grok-xhigh-cap-1.json",
+        "parity/briefs/reports/u-journey-setup-grok-xhigh-cap-report.md",
+        "parity/briefs/reports/u-journey-setup-grok-xhigh-cap-pi-report.md",
+        "parity/evidence/setup-grok-xhigh-cap/pi/5bafa9a0-d6f2-4bb3-b38f-66012dc305b1"
+      ],
+      "nextAction": "None",
+      "cursorPartial": {
+        "attemptId": "faeae5d9-c831-4b7b-9f47-abad3ed21433",
+        "grokCappedCount": 10,
+        "grokTotal": 10,
+        "pass": true
+      },
+      "updatedAt": "2026-10-09T02:00:00Z",
+      "piPartial": {
+        "attemptId": "94c9aab6-b015-44b7-8815-5cf6849f8025",
+        "wrote": true,
+        "pass": true,
+        "grokCappedCount": 10,
+        "grokTotal": 10
+      },
+      "rootCause": {
+        "gate": "pi-xai-auth",
+        "authPath": "/tmp/pi-ref-agent/auth.json",
+        "report": "parity/briefs/reports/u-journey-setup-grok-xhigh-cap-pi-report.md"
+      },
+      "closure": {
+        "closedAt": "2026-10-09T02:00:00Z",
+        "pair": "parity/evidence/setup-grok-xhigh-cap/pair-setup-grok-xhigh-cap-1.json",
+        "attempts": {
+          "cursor": "faeae5d9-c831-4b7b-9f47-abad3ed21433",
+          "pi": "94c9aab6-b015-44b7-8815-5cf6849f8025"
+        },
+        "report": "parity/briefs/reports/u-journey-setup-grok-xhigh-cap-pi-pass-report.md"
+      }
+    },
+    {
+      "id": "MAKE-BOT-UI-KEY-SERVER-HOST",
+      "requirementId": "PSTACK-CMD-MAKE-BOT-UI-KEY-SERVER-001",
+      "status": "closed",
+      "candidateRevision": null,
+      "referenceSource": "parity/reference/cursor-plugins/pstack/skills/make-bot-ui/SKILL.md",
+      "discoveredBy": "parity/evidence/make-bot-ui/blocker-make-bot-ui-key-server-1.json",
+      "expected": "Follow Make Bot UI to create the page and webhook wiring; sender key stays on the server and is never placed in browser, chat, or the skill file.",
+      "actual": "Cursor Generate+0600+probe 200 (55f42e27-ee7e-4d6b-8f12-5b35824addff); Pi key_server_ok (e75f8e08-0d8c-4d55-ad3f-6946c405bbaf). Sender key server-only.",
+      "consequence": "PSTACK-CMD-MAKE-BOT-UI-KEY-SERVER-001 cannot reach verified-pass-paired until Mac console is unlocked, Untitled Discarded, webhook editor Generate + 0600 store + probe 200 complete (or oracle freeze accepts a narrower cell).",
+      "acceptanceVerdict": "verified-pass-paired",
+      "classification": "environment-bound",
+      "evidence": [
+        "parity/evidence/make-bot-ui/blocker-make-bot-ui-key-server-1.json",
+        "parity/evidence/make-bot-ui/pair-make-bot-ui-key-server-1.json",
+        "parity/briefs/reports/u-journey-cmd-make-bot-report.md",
+        "parity/evidence/make-bot-ui/host-env-probe.json",
+        "parity/briefs/reports/u-journey-cmd-make-bot-pi-complete-001-report.md",
+        "parity/briefs/reports/u-automations-desktop-001-report.md",
+        "parity/research/automations-desktop-001/",
+        "parity/briefs/reports/u-make-bot-automations-editor-001-report.md",
+        "parity/research/make-bot-automations-editor-001/",
+        "parity/evidence/make-bot-ui/automations-editor/c345b7ed-5c24-424c-86c3-55211b7bf0c8/",
+        "parity/briefs/reports/u-make-bot-auth-header-probe-001-report.md",
+        "parity/research/make-bot-auth-header-probe-001/",
+        "parity/briefs/reports/u-make-bot-auth-header-retry-001-report.md",
+        "parity/research/make-bot-auth-header-retry-001/",
+        "parity/briefs/reports/u-make-bot-auth-header-unlock-001-report.md",
+        "parity/research/make-bot-auth-header-unlock-001/",
+        "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/make-bot-auth-header-post-unlock-002/disposition.json",
+        "parity/briefs/reports/u-make-bot-auth-header-post-unlock-002-report.md",
+        "parity/research/make-bot-auth-header-post-unlock-002/"
+      ],
+      "nextAction": "Closed. Requirement verified-pass-paired.",
+      "piPartial": {
+        "attemptId": "e75f8e08-0d8c-4d55-ad3f-6946c405bbaf",
+        "outcome": "key_server_ok",
+        "note": "RoutinePrepare → hidden operator secret init → RoutineEnable → probe HTTP 200; key stayed server-side"
+      },
+      "cursorPartial": {
+        "attemptId": "55f42e27-ee7e-4d6b-8f12-5b35824addff",
+        "outcome": "key_server_ok",
+        "priorWebhookWitness": "c345b7ed-5c24-424c-86c3-55211b7bf0c8",
+        "priorPtyBlocked": "bb50ed1b-29ac-4961-bb0a-5c2ffd9834b2",
+        "keyLeak": false
+      },
+      "updatedAt": "2026-10-09T15:57:30.145Z",
+      "desktopProgress": {
+        "slashMakeBotUi": "ecac27a8-740d-494b-bc1f-93f36d27f80f",
+        "paletteProbe": "1e5149f4-d4b5-4377-8587-ec2ed0e0db49",
+        "updateStateWitnessed": false,
+        "webhookCreateWitnessed": true,
+        "webhookHandoffAttempt": "c345b7ed-5c24-424c-86c3-55211b7bf0c8",
+        "authHeaderExercised": true,
+        "authReentryBlocked": "2bcf48b9-64ec-4ca4-8efb-22bda300ac5c",
+        "consoleLocked": false,
+        "report": "parity/briefs/reports/u-make-bot-auth-header-post-unlock-002-report.md",
+        "postUnlockAttempt": "55f42e27-ee7e-4d6b-8f12-5b35824addff"
+      }
+    },
+    {
+      "id": "SETUP-BENNY-THREAD-SAFETY-ENV",
+      "requirementId": "PSTACK-SETUP-BENNY-THREAD-SAFETY-001",
+      "status": "closed",
+      "candidateRevision": null,
+      "referenceSource": "parity/reference/cursor-plugins/pstack/skills/setup-benny/SKILL.md",
+      "discoveredBy": "parity/evidence/setup-benny/blocker-setup-benny-thread-safety-1.json",
+      "expected": "After editor save, all seven thread-safety checks pass on a test channel or harmless report before normal Benny traffic is enabled.",
+      "actual": "Seven thread-safety checks witnessed after editor Save (cursor de707056-289d-44b8-85a4-4d400e849815, pi 16520327-0d45-4817-a0cd-2f8c1c0e494a). RecordThreadSafety + Enable(local) only after pass.",
+      "consequence": "PSTACK-SETUP-BENNY-THREAD-SAFETY-001 cannot reach verified-pass-paired until operator Benny+Slack wiring, designated test channel, and witnessed editor save are available (or oracle freeze narrows the cell).",
+      "acceptanceVerdict": "verified-pass-paired",
+      "classification": "environment-bound",
+      "evidence": [
+        "parity/evidence/setup-benny/blocker-setup-benny-thread-safety-1.json",
+        "parity/evidence/setup-benny/thread-safety/env-probe.json",
+        "parity/briefs/reports/u-journey-setup-benny-thread-safety-report.md",
+        "parity/scripts/probe-setup-benny-thread-safety-env.mjs",
+        "parity/briefs/reports/u-benny-env-unblock-001-report.md",
+        "parity/research/benny-env-unblock-001/operator-grant-checklist.md",
+        "parity/orch-inbox/20261009T105200Z-slack-mcp-ide-auth.md",
+        "parity/briefs/reports/u-pi-automation-enable-receipt-001-report.md"
+      ],
+      "nextAction": "Closed. Requirement verified-pass-paired.",
+      "updatedAt": "2026-10-09T17:31:30.410Z"
+    },
+    {
+      "id": "SETUP-BENNY-CREATION-BOUNDARY-ENV",
+      "requirementId": "PSTACK-SETUP-BENNY-CREATION-BOUNDARY-001",
+      "status": "closed-env-resolved",
+      "candidateRevision": null,
+      "referenceSource": "parity/reference/cursor-plugins/pstack/skills/setup-benny/SKILL.md",
+      "discoveredBy": "parity/evidence/setup-benny/blocker-setup-benny-creation-boundary-1.json",
+      "expected": "First-time Benny triage/repro automations finish only through built-in automate skill reviewed Automations editor handoff; no direct backend/deep-link; enable only after thread-safety.",
+      "actual": "Automations editor + /automate handoff harness-witnessed on Cursor (e11d7225 / 475ab346 / 2c525e93) and Pi Method A (4d40a1d5 editor_saved_disabled). Env that blocked PTY is resolved. Requirement later verified-pass-paired. Pi adapter now on host /automate path (u-pi-setup-benny-adapter-automate-001).",
+      "consequence": "Env mismatch closed. PSTACK-SETUP-BENNY-CREATION-BOUNDARY-001 later verified-pass-paired (Pi 4d40a1d5 + Cursor e11d7225/475ab346). Do not re-open on stale Pi-editor-absent text.",
+      "acceptanceVerdict": "env-resolved",
+      "classification": "environment-bound",
+      "evidence": [
+        "parity/evidence/setup-benny/blocker-setup-benny-creation-boundary-1.json",
+        "parity/evidence/setup-benny/pair-setup-benny-creation-boundary-1.json",
+        "parity/evidence/setup-benny/creation-boundary/host-env-probe.json",
+        "parity/briefs/reports/u-journey-setup-benny-creation-boundary-report.md",
+        "parity/briefs/reports/u-benny-env-unblock-001-report.md",
+        "parity/research/benny-env-unblock-001/operator-grant-checklist.md",
+        "parity/briefs/reports/u-automations-desktop-001-report.md",
+        "parity/research/automations-desktop-001/",
+        "parity/briefs/reports/u-automations-new-editor-001-report.md",
+        "parity/research/automations-new-editor-001/",
+        "parity/evidence/setup-benny/creation-boundary/agents-window/5a404316-b586-4811-a895-8d702c5f0b57/",
+        "parity/briefs/reports/u-automations-web-editor-001-report.md",
+        "parity/research/automations-web-editor-001/",
+        "parity/evidence/setup-benny/creation-boundary/web/",
+        "parity/research/automations-axpress-001/",
+        "parity/research/automations-new-url-001/disposition.json",
+        "parity/evidence/setup-benny/creation-boundary/web/f6e29fb7-5878-4c8c-841e-1538b39d1cf7/",
+        "parity/briefs/reports/u-automations-new-url-001-report.md",
+        "parity/evidence/setup-benny/creation-boundary/agents-window/b60a705b-e2ea-40c4-adeb-7014fde433b4/",
+        "parity/evidence/setup-benny/creation-boundary/agents-window/8ab451a4-1988-4e55-bcfc-1d3f9359b277/",
+        "parity/briefs/reports/u-journey-setup-benny-creation-handoff-001-report.md",
+        "parity/research/setup-benny-creation-handoff-001/",
+        "parity/evidence/setup-benny/creation-boundary/agents-window/e11d7225-4c8a-4c09-8f30-273e941a52d2/",
+        "parity/briefs/reports/u-journey-setup-benny-editor-title-001-report.md",
+        "parity/research/setup-benny-editor-title-001/",
+        "parity/evidence/setup-benny/creation-boundary/agents-window/2c525e93-3392-4253-81ef-dd965fde2e7d/",
+        "parity/evidence/make-bot-ui/auth-header-probe/475ab346-80a0-4d73-8ae1-d2b8042ee66f/"
+      ],
+      "nextAction": "Closed. Requirement verified-pass-paired. Remaining unpaid work is THREAD-SAFETY live Slack + make-bot unlock, not creation-boundary.",
+      "updatedAt": "2026-10-09T10:40:00Z",
+      "piRemeasure": {
+        "attemptId": "4d40a1d5-ea54-4ce2-922b-bf82e78b6577",
+        "editorAvailable": true,
+        "report": "parity/briefs/reports/u-journey-setup-benny-creation-pi-002-report.md",
+        "priorAbsentAttemptId": "f4c7eec5-6ac5-4431-b4b1-23c7e267dc96"
+      },
+      "desktopProgress": {
+        "slashAutomate": "be874194-d680-4f9f-8a88-5ee1b4858a0f",
+        "openAutomations": "16a11cc9-c257-412c-bc71-fa8fd00ec609",
+        "newAutomationProbe": "d540ea19-389f-4d6c-a713-3d5b63a10883",
+        "editorSaveWitnessed": false,
+        "report": "parity/briefs/reports/u-automations-desktop-001-report.md",
+        "newEditorProbe": "5a404316-b586-4811-a895-8d702c5f0b57",
+        "editorChromeWitnessed": true,
+        "newEditorReport": "parity/briefs/reports/u-automations-new-editor-001-report.md",
+        "webEditorProbe": "b2ef3452-f4c1-41b9-8f73-3a335a0f8991",
+        "webEditorChromeWitnessed": false,
+        "webEditorReport": "parity/briefs/reports/u-automations-web-editor-001-report.md",
+        "chromeAxpressProbe": "ac89acf3-f0d7-4a4a-831c-ceb08272e0b8",
+        "chromeAxpressEditorWitnessed": false,
+        "chromeAxpressDir": "parity/research/automations-axpress-001/ac89acf3-f0d7-4a4a-831c-ceb08272e0b8/",
+        "editorChromeViaNewUrl": true,
+        "newUrlAttemptId": "f6e29fb7-5878-4c8c-841e-1538b39d1cf7",
+        "draftIdIfAny": "8ddd3f0f-c3b0-11f1-ac31-5e2d0494121f",
+        "saved": false,
+        "activated": false,
+        "automateHandoffAttemptId": "b60a705b-e2ea-40c4-adeb-7014fde433b4",
+        "automateHandoffWitnessed": true,
+        "handoffReport": "parity/briefs/reports/u-automations-new-url-001-report.md"
+      },
+      "closure": {
+        "closedAt": "2026-10-09T07:18:30Z",
+        "kind": "env-resolved",
+        "attempts": {
+          "urlEditor": "f6e29fb7-5878-4c8c-841e-1538b39d1cf7",
+          "automateHandoff": "b60a705b-e2ea-40c4-adeb-7014fde433b4",
+          "slashOnlyNegative": "8ab451a4-1988-4e55-bcfc-1d3f9359b277"
+        },
+        "report": "parity/briefs/reports/u-automations-new-url-001-report.md",
+        "note": "Host /automate→editor proven. Requirement not verified-pass-paired (no Benny-specific save pair)."
+      }
+    }
+  ]
+}

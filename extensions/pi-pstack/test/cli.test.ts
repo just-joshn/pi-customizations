@@ -46,7 +46,7 @@ test(
 test(
   'the shipped resource checker verifies both source inventories and generated resources',
   () => {
-    expect(run('resources.mjs')).toBe('Verified 190 upstream files and 211 generated resources.\n');
+    expect(run('resources.mjs')).toBe('Verified 193 upstream files and 215 generated resources.\n');
   },
   verificationDeadlineMs,
 );
@@ -59,7 +59,7 @@ test(
     expect(output).toMatch(/watch-pr\/render.ts/);
     const linesCoverage = Number(output.match(/lines: \d+\/\d+ \(([\d.]+)%\)/)?.[1]);
     expect(linesCoverage).toBeGreaterThanOrEqual(80);
-    expect(run('resources.mjs')).toBe('Verified 190 upstream files and 211 generated resources.\n');
+    expect(run('resources.mjs')).toBe('Verified 193 upstream files and 215 generated resources.\n');
   },
   verificationDeadlineMs,
 );

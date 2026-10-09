@@ -22,7 +22,7 @@ test('an Anthropic model in poteto mode is told to read the playbook and open a 
   const f = await fixture({ extensionOnly: true, api: 'anthropic-messages' });
   try {
     const { session } = await f.open();
-    await prompt(session, '/poteto-mode Add a flag to the CLI.');
+    await prompt(session, '/poteto-mode sticky Add a flag to the CLI.');
     const rule = ruleIn(lastRequest(f.requests));
     expect(rule).toContain(`in ${playbooks}`);
     expect(rule).toContain('feature.md');
@@ -38,7 +38,7 @@ test('a later prompt in the same poteto session carries the rule again', async (
   const f = await fixture({ extensionOnly: true, api: 'anthropic-messages' });
   try {
     const { session } = await f.open();
-    await prompt(session, '/poteto-mode Start.');
+    await prompt(session, '/poteto-mode sticky Start.');
     await prompt(session, 'Now fix the failing test.');
     const rules = userTexts(lastRequest(f.requests)).filter((text) => text.includes(RULE_MARKER));
     expect(rules).toHaveLength(2);
@@ -51,7 +51,7 @@ test('a model from another API family gets no rule in poteto mode', async () => 
   const f = await fixture({ extensionOnly: true });
   try {
     const { session } = await f.open();
-    await prompt(session, '/poteto-mode Add a flag to the CLI.');
+    await prompt(session, '/poteto-mode sticky Add a flag to the CLI.');
     expect(userTexts(lastRequest(f.requests)).join('\n')).toContain('Add a flag to the CLI.');
     expect(ruleIn(lastRequest(f.requests))).toBeUndefined();
   } finally {
@@ -63,7 +63,7 @@ test('an Anthropic model gets no rule once poteto mode is off', async () => {
   const f = await fixture({ extensionOnly: true, api: 'anthropic-messages' });
   try {
     const { session } = await f.open();
-    await prompt(session, '/poteto-mode Start.');
+    await prompt(session, '/poteto-mode sticky Start.');
     await prompt(session, '/poteto-mode off', { startsRun: false });
     await prompt(session, 'A casual question.');
     const request = lastRequest(f.requests);

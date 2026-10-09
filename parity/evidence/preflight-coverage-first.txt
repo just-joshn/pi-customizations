@@ -1,0 +1,29 @@
+$ vitest run --coverage
+
+ RUN  v5.0.2 /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity
+      Coverage enabled with v8
+
+
+ Test Files  1 passed (1)
+      Tests  37 passed (37)
+   Start at  20:49:30
+   Duration  305ms (tests 82%, transform 9%, import 4%, worker 4%)
+
+[34m % [39m[2mCoverage report from [22m[33mv8[39m
+-------------------|---------|----------|---------|---------|-------------------
+File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+-------------------|---------|----------|---------|---------|-------------------
+All files          |   85.06 |    79.09 |   96.66 |   86.79 |                   
+ ...-preflight.mjs |       0 |        0 |       0 |       0 | 4-21              
+ ...ight-files.mjs |   88.63 |    87.17 |     100 |    90.9 | 19,30-31          
+ preflight.mjs     |   92.92 |     80.3 |   98.03 |   98.41 | 45                
+-------------------|---------|----------|---------|---------|-------------------
+
+=============================== Coverage summary ===============================
+Statements   : 85.06% ( 131/154 )
+Branches     : 79.09% ( 140/177 )
+Functions    : 96.66% ( 58/60 )
+Lines        : 86.79% ( 92/106 )
+================================================================================
+ERROR: Coverage for branches (79.09%) does not meet global threshold (80%)
+error: script "test:coverage" exited with code 1

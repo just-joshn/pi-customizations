@@ -1,0 +1,845 @@
+{
+  "schemaVersion": 1,
+  "unit": "u-dep-closure-wave-001",
+  "createdAt": "2026-10-08T17:59:53Z",
+  "lockPath": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock",
+  "lockSha256": "667d9cf7222e9aae3fa42a4be383e657784216e9df115da02227fbc5ac7bbe46",
+  "nodes": [
+    {
+      "nodeId": "cursor-cli-host",
+      "previouslyIncomplete": true,
+      "sourcesRead": [
+        {
+          "path": "parity/research/cursor-host/cli/parent-snapshots/cli_overview.md",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/cursor-host/cli/parent-snapshots/cli_overview.md",
+          "sha256": "c56ae1d766654ca892b2cfb513a2f7f5ef0082f107d225fb4319fa9f20109e85",
+          "byteLength": 3341,
+          "quotes": [
+            {
+              "locator": "lines 1-6 (non-empty)",
+              "text": "# Cursor CLI\nCursor CLI lets you interact with AI agents directly from your terminal to write, review, and modify code. Whether you prefer an interactive terminal interface or print automation for scripts and CI pipelines, the CLI provides powerful coding assistance right where you work.\n## Getting started\n```bash\n# Install (macOS, Linux, WSL)\ncurl https://cursor.com/install -fsS | bash"
+            }
+          ]
+        },
+        {
+          "path": "parity/research/cursor-host/cli/parent-snapshots/cli_using.md",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/cursor-host/cli/parent-snapshots/cli_using.md",
+          "sha256": "b070cb1f882dd8e8b9ab7434ff6f96fe1f181c4907ee242773ae6bbbedb47b0b",
+          "byteLength": 5771,
+          "quotes": [
+            {
+              "locator": "lines 1-6 (non-empty)",
+              "text": "# Using Agent in CLI\n## Modes\nThe CLI supports the same [modes](https://cursor.com/docs/agent/overview.md) as the editor. Switch modes using slash commands or the `--mode` flag.\n### Plan mode\nUse Plan mode to design your approach before coding. The agent asks clarifying questions to refine your plan.\n- Press Shift+Tab to rotate to Plan mode"
+            }
+          ]
+        },
+        {
+          "path": "parity/research/cursor-host/cli/parent-snapshots/cli_reference_configuration.md",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/cursor-host/cli/parent-snapshots/cli_reference_configuration.md",
+          "sha256": "aab79ccc8949c23f30c45e0928ea80cefb5ee4ee6ff1723a3864ac61851f2a87",
+          "byteLength": 7756,
+          "quotes": [
+            {
+              "locator": "lines 1-6 (non-empty)",
+              "text": "# Configuration\nConfigure the Agent CLI using the `cli-config.json` file.\n## File location\n| Type    | Platform    | Path                                       |\n| :------ | :---------- | :----------------------------------------- |\n| Global  | macOS/Linux | `~/.cursor/cli-config.json`                |"
+            }
+          ]
+        },
+        {
+          "path": "parity/research/cursor-host/cli/parent-snapshots/cli_reference_permissions.md",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/cursor-host/cli/parent-snapshots/cli_reference_permissions.md",
+          "sha256": "9f8264f5d8136496f008e0949cdad81760b8fa7784e3d6a2a04757c13c960f15",
+          "byteLength": 4430,
+          "quotes": [
+            {
+              "locator": "lines 1-6 (non-empty)",
+              "text": "# Permissions\nConfigure what the agent is allowed to do using permission tokens in your CLI configuration. Permissions are set in `~/.cursor/cli-config.json` (global) or `<project>/.cursor/cli.json` (project-specific).\n## Permission types\n### Shell commands\n**Format:** `Shell(commandBase)`\nControls access to shell commands. The `commandBase` is the first token in the command line. Supports glob patterns and an optional `command:args` syntax for finer control."
+            }
+          ]
+        },
+        {
+          "path": "parity/research/cursor-host/cli/parent-snapshots/cli_reference_parameters.md",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/cursor-host/cli/parent-snapshots/cli_reference_parameters.md",
+          "sha256": "b50b48d66f4f420a8d1d4a6c3087aa74d3fa37f2c5363933ac30754ef10a8c78",
+          "byteLength": 16113,
+          "quotes": [
+            {
+              "locator": "lines 1-6 (non-empty)",
+              "text": "# Parameters\n## Global options\nGlobal options can be used with any command:\n| Option                     | Description                                                                                                          |\n| -------------------------- | -------------------------------------------------------------------------------------------------------------------- |\n| `-v, --version`            | Output the version number                                                                                            |"
+            }
+          ]
+        },
+        {
+          "path": "parity/research/cursor-host/cli/parent-snapshots/cli_reference_slash-commands.md",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/cursor-host/cli/parent-snapshots/cli_reference_slash-commands.md",
+          "sha256": "a39f8c0086b6ca6e2bfde6c3595142987cdef4489ad0c0e213510bb746947111",
+          "byteLength": 6309,
+          "quotes": [
+            {
+              "locator": "lines 1-6 (non-empty)",
+              "text": "# Slash commands\n| Command                                | Description                                                                                                            |\n| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |\n| `/model [filter]`                      | Select a model. Press `Tab` to edit.                                                                                   |\n| `/run-everything [on\\|off\\|status]`    | Toggle Run Everything or show its status. `/auto-run` is an alias.                                                     |\n| `/plan [prompt]`                       | Switch to Plan mode, show the current plan, or submit a prompt in Plan mode         "
+            }
+          ]
+        },
+        {
+          "path": "parity/reference/cursor-docs/skills.md",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/skills.md",
+          "sha256": "5ccb25304f16e82a7f58c0241a0a16a072adb33f7697e43c5704c46738e002ac",
+          "byteLength": 17995,
+          "quotes": [
+            {
+              "locator": "lines 1-6 (non-empty)",
+              "text": "# Agent Skills\nAgent Skills is an open standard for extending AI agents with specialized capabilities. Skills package domain-specific knowledge and workflows that agents can use to perform specific tasks.\n## What are skills?\nA skill is a portable, version-controlled package that teaches agents how to perform domain-specific tasks. Skills can include scripts, templates, and references that agents may act on using their tools.\n### Portable\nSkills work across any agent that supports the Agent Skills standard."
+            }
+          ]
+        }
+      ],
+      "disposition": "Public CLI contract docs for overview, using, configuration, permissions, parameters, slash-commands, and skills were re-hashed and quoted. Host ownedBehavior is covered at docs level. dependenciesEnumerated remains false; live integrations and closed-source tool schemas remain open.",
+      "proposeReadingComplete": true,
+      "proposeDependenciesEnumerated": false
+    },
+    {
+      "nodeId": "cursor-create-skill",
+      "previouslyIncomplete": true,
+      "sourcesRead": [
+        {
+          "path": "parity/research/dep-closure-wave-001/nodes/cursor-create-skill/SKILL.md",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/dep-closure-wave-001/nodes/cursor-create-skill/SKILL.md",
+          "sha256": "255a3d3be7bac8984a13279f754f091a1de6f72c82bdf73e6b3c868e77e7ee82",
+          "byteLength": 15034,
+          "quotes": [
+            {
+              "locator": "frontmatter lines 1-8",
+              "text": "---\nname: create-skill\ndescription: >-\n  Create Cursor Agent Skills. Use when authoring a new skill or asking about\n  SKILL.md structure.\n---\n# Creating Skills in Cursor\n"
+            },
+            {
+              "locator": "lines 20-35",
+              "text": "6. **Existing patterns**: Are there existing examples or conventions to follow?\n\n### Verbatim text from the user\n\nIf the user includes exact wording to use in the skill, respect it and use it **verbatim** in `SKILL.md` (same words, same order). Do not paraphrase, soften, or expand their copy, and do not add unrequested headings or commentary around it.\n\n### Inferring from Context\n\nIf you have previous conversation context, infer the skill from what was discussed. You can create skills based on workflows, patterns, or domain knowledge that emerged in the conversation.\n\n### Gathering Additional Information\n\nIf you need clarification, use the AskQuestion tool when available:\n\n```\nExample AskQuestion usage:"
+            }
+          ]
+        },
+        {
+          "path": "parity/reference/cursor-docs/skills.md",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-docs/skills.md",
+          "sha256": "5ccb25304f16e82a7f58c0241a0a16a072adb33f7697e43c5704c46738e002ac",
+          "byteLength": 17995,
+          "quotes": [
+            {
+              "locator": "built-in table create-skill row",
+              "text": "| `/create-skill`           | Creates Agent Skills, including their structure and `SKILL.md` files.                                |"
+            }
+          ]
+        }
+      ],
+      "exactResourceObserved": "/Users/josh-desktop/.cursor/skills-cursor/create-skill/SKILL.md",
+      "copiedTo": "parity/research/dep-closure-wave-001/nodes/cursor-create-skill/SKILL.md",
+      "disposition": "Exact local distributed resource found at ~/.cursor/skills-cursor/create-skill/SKILL.md for CLI 2026.10.01-e373342 working install. Full SKILL.md body read and copied into owned research path. Subordinate workflows inside the skill body are recorded; no independent audit of every nested instruction against live journeys.",
+      "proposeReadingComplete": true,
+      "proposeDependenciesEnumerated": false,
+      "proposeSourceExactResource": "parity/research/dep-closure-wave-001/nodes/cursor-create-skill/SKILL.md"
+    },
+    {
+      "nodeId": "source-bun-runtime",
+      "previouslyIncomplete": true,
+      "sourcesRead": [
+        {
+          "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/watch-pr/watch-pr",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/watch-pr/watch-pr",
+          "sha256": "d955603be6cc0e8b8ffcec722f635192b2261410b1f2929abea94480e47eb5d4",
+          "byteLength": 211,
+          "quotes": [
+            {
+              "locator": "lines 1-6",
+              "text": "#!/usr/bin/env bun\nimport { ensureDependenciesInstalled } from \"../bootstrap.ts\";\n\nensureDependenciesInstalled();\nconst { main } = await import(\"./cli.ts\");\nprocess.exitCode = await main(process.argv.slice(2));"
+            }
+          ]
+        },
+        {
+          "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bootstrap.ts",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bootstrap.ts",
+          "sha256": "ccd2ed08fd9da9d0d942e5f2491cfc74bb92d8a08fa51755e0da1ac8de287361",
+          "byteLength": 1737,
+          "quotes": [
+            {
+              "locator": "Bun.spawnSync install lines 35-45",
+              "text": "  const result = Bun.spawnSync(\n    [process.execPath, \"install\", \"--frozen-lockfile\"],\n    { cwd: scriptsDirectory }\n  );\n  if (result.exitCode !== 0) {\n    process.stdout.write(result.stdout);\n    process.stderr.write(result.stderr);\n    throw new Error(\n      `bun install --frozen-lockfile exited with status ${result.exitCode}`\n    );\n  }"
+            },
+            {
+              "locator": "Bun.spawnSync restart lines 54-61",
+              "text": "  const restarted = Bun.spawnSync([process.execPath, ...process.argv.slice(1)], {\n    cwd: process.cwd(),\n    env: process.env,\n    stdin: \"inherit\",\n    stdout: \"inherit\",\n    stderr: \"inherit\",\n  });\n  process.exit(restarted.exitCode ?? 1);"
+            }
+          ]
+        }
+      ],
+      "disposition": "Source declaration of Bun shebang and Bun.spawnSync install/restart contracts read. Official Bun runtime package contracts, version pin, and Node-builtin compatibility proof remain open.",
+      "proposeReadingComplete": true,
+      "proposeDependenciesEnumerated": false,
+      "proposeSourceSha256": "d955603be6cc0e8b8ffcec722f635192b2261410b1f2929abea94480e47eb5d4"
+    },
+    {
+      "nodeId": "npm:typescript@7.0.2",
+      "previouslyIncomplete": true,
+      "sourcesRead": [
+        {
+          "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock",
+          "sha256": "667d9cf7222e9aae3fa42a4be383e657784216e9df115da02227fbc5ac7bbe46",
+          "byteLength": 6679,
+          "quotes": [
+            {
+              "locator": "packages[\"typescript\"]",
+              "text": "    \"typescript\": [\"typescript@7.0.2\", \"\", { \"optionalDependencies\": { \"@typescript/typescript-aix-ppc64\": \"7.0.2\", \"@typescript/typescript-darwin-arm64\": \"7.0.2\", \"@typescript/typescript-darwin-x64\": \"7.0.2\", \"@typescript/typescript-freebsd-arm64\": \"7.0.2\", \"@typescript/typescript-freebsd-x64\": \"7.0.2\", \"@typescript/typescript-linux-arm\": \"7.0.2\", \"@typescript/typescript-linux-arm64\": \"7.0.2\", \"@typescript/typescript-linux-loong64\": \"7.0.2\", \"@typescript/typescript-linux-mips64el\": \"7.0.2\", \"@t"
+            },
+            {
+              "locator": "packages[\"bun-types\"]",
+              "text": "    \"bun-types\": [\"bun-types@1.3.14\", \"\", { \"dependencies\": { \"@types/node\": \"*\" } }, \"sha512-4N0ig0fEomHt5R0KCFWjovxow98rIoRwKolrYdCcknNwMekCXRnWEUvgu5soYV8QXtVsrUD8B95MBOZGPvr6KQ==\"],"
+            },
+            {
+              "locator": "packages[\"@types/node\"]",
+              "text": "    \"@types/node\": [\"@types/node@26.1.2\", \"\", { \"dependencies\": { \"undici-types\": \"~8.3.0\" } }, \"sha512-Vu4a5UFA9rIIFJ7rB/Vaafh9lrCQszopTCx6KjFboXTGQbPNasehVR5TEiithSDGyd1DEiUByggTZsg8jukeIg==\"],"
+            },
+            {
+              "locator": "packages[\"undici-types\"]",
+              "text": "    \"undici-types\": [\"undici-types@8.3.0\", \"\", {}, \"sha512-j375ScV60dom+YkPFIfTLcOiPxkN/buHz5GobjLhixFuANaNs3C9l4GmrWqejgXWJ7BbJcFYpTEUkS1Ge8bpZQ==\"],"
+            }
+          ]
+        },
+        {
+          "path": "parity/research/dep-closure-wave-001/npm/typescript@7.0.2/registry.json",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/dep-closure-wave-001/npm/typescript@7.0.2/registry.json",
+          "sha256": "28a8ef314c6bbc3fddb831088f80eb2fcac6351cb618c8ac029f7229f587b8aa",
+          "byteLength": 4833,
+          "quotes": [
+            {
+              "locator": "dist.integrity + name/version",
+              "text": "{\n  \"name\": \"typescript\",\n  \"version\": \"7.0.2\",\n  \"integrity\": \"sha512-8FYau96o3NKOhbjKi/qNvG/W5jhzxkbdm5sj9AbZ/5T5sWqn3hJgLfGx27sRKZWTvyzCP8dLRBTf5tBTSRVUNA==\",\n  \"tarball\": \"https://registry.npmjs.org/typescript/-/typescript-7.0.2.tgz\"\n}"
+            }
+          ]
+        },
+        {
+          "path": "parity/research/dep-closure-wave-001/npm/typescript@7.0.2/package.json",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/dep-closure-wave-001/npm/typescript@7.0.2/package.json",
+          "sha256": "3722b30210616a13a3213ded11575ba6b2dbab10c32a5ef67afca8513e27017e",
+          "byteLength": 3087,
+          "quotes": [
+            {
+              "locator": "name/version/optionalDependencies|dependencies",
+              "text": "{\n  \"name\": \"typescript\",\n  \"version\": \"7.0.2\",\n  \"dependencies\": null,\n  \"optionalDependencies\": {\n    \"@typescript/typescript-win32-x64\": \"7.0.2\",\n    \"@typescript/typescript-win32-arm64\": \"7.0.2\",\n    \"@typescript/typescript-linux-x64\": \"7.0.2\",\n    \"@typescript/typescript-linux-arm\": \"7.0.2\",\n    \"@typescript/typescript-linux-arm64\": \"7.0.2\",\n    \"@typescript/typescript-darwin-x64\": \"7.0.2\",\n    \"@typescript/typescript-darwin-arm64\": \"7.0.2\",\n    \"@typescript/typescript-aix-ppc64\": \"7.0.2\",\n    \"@typescript/typescript-freebsd-arm64\": \"7.0.2\",\n    \"@typescript/typescript-freebsd-x64\": \"7.0.2\",\n    \"@typescript/typescript-linux-loong64\": \"7.0.2\",\n    \"@typescript/typescript-linux-mips64el\": \"7.0.2\",\n    \"@typescript/typescript-linux-ppc64\": \"7.0.2\",\n    \"@typescript/typescript-linux-riscv64\": \"7.0.2\",\n    \"@typescript/typescript-linux-s390x\": \"7.0.2\",\n    \"@typescript/typescript-netbsd-arm64\": \"7.0.2\",\n    \"@typescript/typescript-netbsd-x64\": \"7.0.2\",\n    \"@typescript/typescript-openbsd-arm64\": \"7.0.2\",\n    \"@typescript/typescript-openbsd-x64\": \"7.0.2\",\n    \"@typescript/typescript-sunos-x64\": \"7.0.2\"\n  },\n  \"os\": null,\n  \"cpu\": null\n}"
+            }
+          ]
+        }
+      ],
+      "npmRetrieval": {
+        "retrievalPath": "parity/research/dep-closure-wave-001/npm/typescript@7.0.2/retrieval.json",
+        "registrySha256": "28a8ef314c6bbc3fddb831088f80eb2fcac6351cb618c8ac029f7229f587b8aa",
+        "tarballSha256": "da2513f4b95176d6dde8b51aab7afe8a927656c9d277369793f77f7e59371c08",
+        "integrity": "sha512-8FYau96o3NKOhbjKi/qNvG/W5jhzxkbdm5sj9AbZ/5T5sWqn3hJgLfGx27sRKZWTvyzCP8dLRBTf5tBTSRVUNA==",
+        "integrityMatchesLedger": true,
+        "fileInventoryPath": null,
+        "fullTreeReadingComplete": false
+      },
+      "disposition": "Lock optionalDependencies enumerated against registry/package.json. Tarball retrieved and package.json hashed. Full distribution tree not read; readingComplete stays false.",
+      "proposeReadingComplete": false,
+      "proposeDependenciesEnumerated": true
+    },
+    {
+      "nodeId": "npm:bun-types@1.3.14",
+      "previouslyIncomplete": true,
+      "sourcesRead": [
+        {
+          "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock",
+          "sha256": "667d9cf7222e9aae3fa42a4be383e657784216e9df115da02227fbc5ac7bbe46",
+          "byteLength": 6679,
+          "quotes": [
+            {
+              "locator": "packages[\"typescript\"]",
+              "text": "    \"typescript\": [\"typescript@7.0.2\", \"\", { \"optionalDependencies\": { \"@typescript/typescript-aix-ppc64\": \"7.0.2\", \"@typescript/typescript-darwin-arm64\": \"7.0.2\", \"@typescript/typescript-darwin-x64\": \"7.0.2\", \"@typescript/typescript-freebsd-arm64\": \"7.0.2\", \"@typescript/typescript-freebsd-x64\": \"7.0.2\", \"@typescript/typescript-linux-arm\": \"7.0.2\", \"@typescript/typescript-linux-arm64\": \"7.0.2\", \"@typescript/typescript-linux-loong64\": \"7.0.2\", \"@typescript/typescript-linux-mips64el\": \"7.0.2\", \"@t"
+            },
+            {
+              "locator": "packages[\"bun-types\"]",
+              "text": "    \"bun-types\": [\"bun-types@1.3.14\", \"\", { \"dependencies\": { \"@types/node\": \"*\" } }, \"sha512-4N0ig0fEomHt5R0KCFWjovxow98rIoRwKolrYdCcknNwMekCXRnWEUvgu5soYV8QXtVsrUD8B95MBOZGPvr6KQ==\"],"
+            },
+            {
+              "locator": "packages[\"@types/node\"]",
+              "text": "    \"@types/node\": [\"@types/node@26.1.2\", \"\", { \"dependencies\": { \"undici-types\": \"~8.3.0\" } }, \"sha512-Vu4a5UFA9rIIFJ7rB/Vaafh9lrCQszopTCx6KjFboXTGQbPNasehVR5TEiithSDGyd1DEiUByggTZsg8jukeIg==\"],"
+            },
+            {
+              "locator": "packages[\"undici-types\"]",
+              "text": "    \"undici-types\": [\"undici-types@8.3.0\", \"\", {}, \"sha512-j375ScV60dom+YkPFIfTLcOiPxkN/buHz5GobjLhixFuANaNs3C9l4GmrWqejgXWJ7BbJcFYpTEUkS1Ge8bpZQ==\"],"
+            }
+          ]
+        },
+        {
+          "path": "parity/research/dep-closure-wave-001/npm/bun-types@1.3.14/registry.json",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/dep-closure-wave-001/npm/bun-types@1.3.14/registry.json",
+          "sha256": "3baf9d74262e53e49e44ce17be2a6dd38ae8d56fb5725fc249abdd93dd53d4a6",
+          "byteLength": 1570,
+          "quotes": [
+            {
+              "locator": "dist.integrity + name/version",
+              "text": "{\n  \"name\": \"bun-types\",\n  \"version\": \"1.3.14\",\n  \"integrity\": \"sha512-4N0ig0fEomHt5R0KCFWjovxow98rIoRwKolrYdCcknNwMekCXRnWEUvgu5soYV8QXtVsrUD8B95MBOZGPvr6KQ==\",\n  \"tarball\": \"https://registry.npmjs.org/bun-types/-/bun-types-1.3.14.tgz\"\n}"
+            }
+          ]
+        },
+        {
+          "path": "parity/research/dep-closure-wave-001/npm/bun-types@1.3.14/unpacked/package/package.json",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/dep-closure-wave-001/npm/bun-types@1.3.14/unpacked/package/package.json",
+          "sha256": "01e8dc24f53869ebf700a038510de8061a8325d10a85406711184e4b9fc76f43",
+          "byteLength": 808,
+          "quotes": [
+            {
+              "locator": "name/version/optionalDependencies|dependencies",
+              "text": "{\n  \"name\": \"bun-types\",\n  \"version\": \"1.3.14\",\n  \"dependencies\": {\n    \"@types/node\": \"*\"\n  },\n  \"optionalDependencies\": null,\n  \"os\": null,\n  \"cpu\": null\n}"
+            }
+          ]
+        }
+      ],
+      "npmRetrieval": {
+        "retrievalPath": "parity/research/dep-closure-wave-001/npm/bun-types@1.3.14/retrieval.json",
+        "registrySha256": "3baf9d74262e53e49e44ce17be2a6dd38ae8d56fb5725fc249abdd93dd53d4a6",
+        "tarballSha256": "b76b59387d4f8f09d7b87ad68cfd0b771cede232d177f24d8fc90d7ae3edf42a",
+        "integrity": "sha512-4N0ig0fEomHt5R0KCFWjovxow98rIoRwKolrYdCcknNwMekCXRnWEUvgu5soYV8QXtVsrUD8B95MBOZGPvr6KQ==",
+        "integrityMatchesLedger": true,
+        "fileInventoryPath": "parity/research/dep-closure-wave-001/npm/bun-types@1.3.14/file-inventory.json",
+        "fullTreeReadingComplete": null
+      },
+      "disposition": "Lock entry, registry metadata, tarball, package.json, and file inventory completed for this types package.",
+      "proposeReadingComplete": true,
+      "proposeDependenciesEnumerated": true
+    },
+    {
+      "nodeId": "npm:@types/node@26.1.2",
+      "previouslyIncomplete": true,
+      "sourcesRead": [
+        {
+          "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock",
+          "sha256": "667d9cf7222e9aae3fa42a4be383e657784216e9df115da02227fbc5ac7bbe46",
+          "byteLength": 6679,
+          "quotes": [
+            {
+              "locator": "packages[\"typescript\"]",
+              "text": "    \"typescript\": [\"typescript@7.0.2\", \"\", { \"optionalDependencies\": { \"@typescript/typescript-aix-ppc64\": \"7.0.2\", \"@typescript/typescript-darwin-arm64\": \"7.0.2\", \"@typescript/typescript-darwin-x64\": \"7.0.2\", \"@typescript/typescript-freebsd-arm64\": \"7.0.2\", \"@typescript/typescript-freebsd-x64\": \"7.0.2\", \"@typescript/typescript-linux-arm\": \"7.0.2\", \"@typescript/typescript-linux-arm64\": \"7.0.2\", \"@typescript/typescript-linux-loong64\": \"7.0.2\", \"@typescript/typescript-linux-mips64el\": \"7.0.2\", \"@t"
+            },
+            {
+              "locator": "packages[\"bun-types\"]",
+              "text": "    \"bun-types\": [\"bun-types@1.3.14\", \"\", { \"dependencies\": { \"@types/node\": \"*\" } }, \"sha512-4N0ig0fEomHt5R0KCFWjovxow98rIoRwKolrYdCcknNwMekCXRnWEUvgu5soYV8QXtVsrUD8B95MBOZGPvr6KQ==\"],"
+            },
+            {
+              "locator": "packages[\"@types/node\"]",
+              "text": "    \"@types/node\": [\"@types/node@26.1.2\", \"\", { \"dependencies\": { \"undici-types\": \"~8.3.0\" } }, \"sha512-Vu4a5UFA9rIIFJ7rB/Vaafh9lrCQszopTCx6KjFboXTGQbPNasehVR5TEiithSDGyd1DEiUByggTZsg8jukeIg==\"],"
+            },
+            {
+              "locator": "packages[\"undici-types\"]",
+              "text": "    \"undici-types\": [\"undici-types@8.3.0\", \"\", {}, \"sha512-j375ScV60dom+YkPFIfTLcOiPxkN/buHz5GobjLhixFuANaNs3C9l4GmrWqejgXWJ7BbJcFYpTEUkS1Ge8bpZQ==\"],"
+            }
+          ]
+        },
+        {
+          "path": "parity/research/dep-closure-wave-001/npm/@types__node@26.1.2/registry.json",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/dep-closure-wave-001/npm/@types__node@26.1.2/registry.json",
+          "sha256": "30c6e6cbdeb8818a617a96f44a2a1a9178e6f179a5d1fe60bd20e1a55ec1c68d",
+          "byteLength": 3785,
+          "quotes": [
+            {
+              "locator": "dist.integrity + name/version",
+              "text": "{\n  \"name\": \"@types/node\",\n  \"version\": \"26.1.2\",\n  \"integrity\": \"sha512-Vu4a5UFA9rIIFJ7rB/Vaafh9lrCQszopTCx6KjFboXTGQbPNasehVR5TEiithSDGyd1DEiUByggTZsg8jukeIg==\",\n  \"tarball\": \"https://registry.npmjs.org/@types/node/-/node-26.1.2.tgz\"\n}"
+            }
+          ]
+        }
+      ],
+      "npmRetrieval": {
+        "retrievalPath": "parity/research/dep-closure-wave-001/npm/@types__node@26.1.2/retrieval.json",
+        "registrySha256": "30c6e6cbdeb8818a617a96f44a2a1a9178e6f179a5d1fe60bd20e1a55ec1c68d",
+        "tarballSha256": "aa11a3486ab89d7caaf599fe36aead7879a1e5f409296b6ac0f86dc735fc033a",
+        "integrity": "sha512-Vu4a5UFA9rIIFJ7rB/Vaafh9lrCQszopTCx6KjFboXTGQbPNasehVR5TEiithSDGyd1DEiUByggTZsg8jukeIg==",
+        "integrityMatchesLedger": true,
+        "fileInventoryPath": "parity/research/dep-closure-wave-001/npm/@types__node@26.1.2/file-inventory.json",
+        "fullTreeReadingComplete": null
+      },
+      "disposition": "Lock entry, registry metadata, tarball, package.json, and file inventory completed for this types package.",
+      "proposeReadingComplete": true,
+      "proposeDependenciesEnumerated": true
+    },
+    {
+      "nodeId": "npm:undici-types@8.3.0",
+      "previouslyIncomplete": true,
+      "sourcesRead": [
+        {
+          "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock",
+          "sha256": "667d9cf7222e9aae3fa42a4be383e657784216e9df115da02227fbc5ac7bbe46",
+          "byteLength": 6679,
+          "quotes": [
+            {
+              "locator": "packages[\"typescript\"]",
+              "text": "    \"typescript\": [\"typescript@7.0.2\", \"\", { \"optionalDependencies\": { \"@typescript/typescript-aix-ppc64\": \"7.0.2\", \"@typescript/typescript-darwin-arm64\": \"7.0.2\", \"@typescript/typescript-darwin-x64\": \"7.0.2\", \"@typescript/typescript-freebsd-arm64\": \"7.0.2\", \"@typescript/typescript-freebsd-x64\": \"7.0.2\", \"@typescript/typescript-linux-arm\": \"7.0.2\", \"@typescript/typescript-linux-arm64\": \"7.0.2\", \"@typescript/typescript-linux-loong64\": \"7.0.2\", \"@typescript/typescript-linux-mips64el\": \"7.0.2\", \"@t"
+            },
+            {
+              "locator": "packages[\"bun-types\"]",
+              "text": "    \"bun-types\": [\"bun-types@1.3.14\", \"\", { \"dependencies\": { \"@types/node\": \"*\" } }, \"sha512-4N0ig0fEomHt5R0KCFWjovxow98rIoRwKolrYdCcknNwMekCXRnWEUvgu5soYV8QXtVsrUD8B95MBOZGPvr6KQ==\"],"
+            },
+            {
+              "locator": "packages[\"@types/node\"]",
+              "text": "    \"@types/node\": [\"@types/node@26.1.2\", \"\", { \"dependencies\": { \"undici-types\": \"~8.3.0\" } }, \"sha512-Vu4a5UFA9rIIFJ7rB/Vaafh9lrCQszopTCx6KjFboXTGQbPNasehVR5TEiithSDGyd1DEiUByggTZsg8jukeIg==\"],"
+            },
+            {
+              "locator": "packages[\"undici-types\"]",
+              "text": "    \"undici-types\": [\"undici-types@8.3.0\", \"\", {}, \"sha512-j375ScV60dom+YkPFIfTLcOiPxkN/buHz5GobjLhixFuANaNs3C9l4GmrWqejgXWJ7BbJcFYpTEUkS1Ge8bpZQ==\"],"
+            }
+          ]
+        },
+        {
+          "path": "parity/research/dep-closure-wave-001/npm/undici-types@8.3.0/registry.json",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/dep-closure-wave-001/npm/undici-types@8.3.0/registry.json",
+          "sha256": "24da5de4e991c76c94872bf31bf4f9c461f75e3410936480bea2307cc795e7a1",
+          "byteLength": 1999,
+          "quotes": [
+            {
+              "locator": "dist.integrity + name/version",
+              "text": "{\n  \"name\": \"undici-types\",\n  \"version\": \"8.3.0\",\n  \"integrity\": \"sha512-j375ScV60dom+YkPFIfTLcOiPxkN/buHz5GobjLhixFuANaNs3C9l4GmrWqejgXWJ7BbJcFYpTEUkS1Ge8bpZQ==\",\n  \"tarball\": \"https://registry.npmjs.org/undici-types/-/undici-types-8.3.0.tgz\"\n}"
+            }
+          ]
+        },
+        {
+          "path": "parity/research/dep-closure-wave-001/npm/undici-types@8.3.0/unpacked/package/package.json",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/dep-closure-wave-001/npm/undici-types@8.3.0/unpacked/package/package.json",
+          "sha256": "fe5de6d50b3e426af5bbe08b9d83b6b3c5106d639ec28e5b90c79bfb1d7cddab",
+          "byteLength": 1192,
+          "quotes": [
+            {
+              "locator": "name/version/optionalDependencies|dependencies",
+              "text": "{\n  \"name\": \"undici-types\",\n  \"version\": \"8.3.0\",\n  \"dependencies\": null,\n  \"optionalDependencies\": null,\n  \"os\": null,\n  \"cpu\": null\n}"
+            }
+          ]
+        }
+      ],
+      "npmRetrieval": {
+        "retrievalPath": "parity/research/dep-closure-wave-001/npm/undici-types@8.3.0/retrieval.json",
+        "registrySha256": "24da5de4e991c76c94872bf31bf4f9c461f75e3410936480bea2307cc795e7a1",
+        "tarballSha256": "07a721cb2cd0dd798c24757de34d14e8b640ff8fddef85d662e00b392562a1f2",
+        "integrity": "sha512-j375ScV60dom+YkPFIfTLcOiPxkN/buHz5GobjLhixFuANaNs3C9l4GmrWqejgXWJ7BbJcFYpTEUkS1Ge8bpZQ==",
+        "integrityMatchesLedger": true,
+        "fileInventoryPath": "parity/research/dep-closure-wave-001/npm/undici-types@8.3.0/file-inventory.json",
+        "fullTreeReadingComplete": null
+      },
+      "disposition": "Lock entry, registry metadata, tarball, package.json, and file inventory completed for this types package.",
+      "proposeReadingComplete": true,
+      "proposeDependenciesEnumerated": true
+    },
+    {
+      "nodeId": "npm:@typescript/typescript-darwin-arm64@7.0.2",
+      "previouslyIncomplete": true,
+      "sourcesRead": [
+        {
+          "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock",
+          "sha256": "667d9cf7222e9aae3fa42a4be383e657784216e9df115da02227fbc5ac7bbe46",
+          "byteLength": 6679,
+          "quotes": [
+            {
+              "locator": "packages[\"typescript\"]",
+              "text": "    \"typescript\": [\"typescript@7.0.2\", \"\", { \"optionalDependencies\": { \"@typescript/typescript-aix-ppc64\": \"7.0.2\", \"@typescript/typescript-darwin-arm64\": \"7.0.2\", \"@typescript/typescript-darwin-x64\": \"7.0.2\", \"@typescript/typescript-freebsd-arm64\": \"7.0.2\", \"@typescript/typescript-freebsd-x64\": \"7.0.2\", \"@typescript/typescript-linux-arm\": \"7.0.2\", \"@typescript/typescript-linux-arm64\": \"7.0.2\", \"@typescript/typescript-linux-loong64\": \"7.0.2\", \"@typescript/typescript-linux-mips64el\": \"7.0.2\", \"@t"
+            },
+            {
+              "locator": "packages[\"bun-types\"]",
+              "text": "    \"bun-types\": [\"bun-types@1.3.14\", \"\", { \"dependencies\": { \"@types/node\": \"*\" } }, \"sha512-4N0ig0fEomHt5R0KCFWjovxow98rIoRwKolrYdCcknNwMekCXRnWEUvgu5soYV8QXtVsrUD8B95MBOZGPvr6KQ==\"],"
+            },
+            {
+              "locator": "packages[\"@types/node\"]",
+              "text": "    \"@types/node\": [\"@types/node@26.1.2\", \"\", { \"dependencies\": { \"undici-types\": \"~8.3.0\" } }, \"sha512-Vu4a5UFA9rIIFJ7rB/Vaafh9lrCQszopTCx6KjFboXTGQbPNasehVR5TEiithSDGyd1DEiUByggTZsg8jukeIg==\"],"
+            },
+            {
+              "locator": "packages[\"undici-types\"]",
+              "text": "    \"undici-types\": [\"undici-types@8.3.0\", \"\", {}, \"sha512-j375ScV60dom+YkPFIfTLcOiPxkN/buHz5GobjLhixFuANaNs3C9l4GmrWqejgXWJ7BbJcFYpTEUkS1Ge8bpZQ==\"],"
+            }
+          ]
+        },
+        {
+          "path": "parity/research/dep-closure-wave-001/npm/@typescript__typescript-darwin-arm64@7.0.2/registry.json",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/dep-closure-wave-001/npm/@typescript__typescript-darwin-arm64@7.0.2/registry.json",
+          "sha256": "29dc735549bace6b2d713ddfa523458c87ad9fbd5ba5a5b96f3eaa7f3423ae21",
+          "byteLength": 2421,
+          "quotes": [
+            {
+              "locator": "dist.integrity + name/version",
+              "text": "{\n  \"name\": \"@typescript/typescript-darwin-arm64\",\n  \"version\": \"7.0.2\",\n  \"integrity\": \"sha512-gowzar9MwS/aRWp6f3a4KUqzRjAZjOsmGNCM6LcTgXum+dBfgsBVMN+AgvOCCbguXyick6LJhpBszxMebJ8syA==\",\n  \"tarball\": \"https://registry.npmjs.org/@typescript/typescript-darwin-arm64/-/typescript-darwin-arm64-7.0.2.tgz\"\n}"
+            }
+          ]
+        },
+        {
+          "path": "parity/research/dep-closure-wave-001/npm/@typescript__typescript-darwin-arm64@7.0.2/unpacked/package/package.json",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/dep-closure-wave-001/npm/@typescript__typescript-darwin-arm64@7.0.2/unpacked/package/package.json",
+          "sha256": "e88558e22e3db6c4da920e15a60eb2bbea801732b94aedb67e972be2a7f485b8",
+          "byteLength": 1048,
+          "quotes": [
+            {
+              "locator": "name/version/optionalDependencies|dependencies",
+              "text": "{\n  \"name\": \"@typescript/typescript-darwin-arm64\",\n  \"version\": \"7.0.2\",\n  \"dependencies\": null,\n  \"optionalDependencies\": null,\n  \"os\": [\n    \"darwin\"\n  ],\n  \"cpu\": [\n    \"arm64\"\n  ]\n}"
+            }
+          ]
+        }
+      ],
+      "npmRetrieval": {
+        "retrievalPath": "parity/research/dep-closure-wave-001/npm/@typescript__typescript-darwin-arm64@7.0.2/retrieval.json",
+        "registrySha256": "29dc735549bace6b2d713ddfa523458c87ad9fbd5ba5a5b96f3eaa7f3423ae21",
+        "tarballSha256": "902e2fe1cf0799198ef902c6b8c310a450fef629a6baba41d45641ef75c04ebd",
+        "integrity": "sha512-gowzar9MwS/aRWp6f3a4KUqzRjAZjOsmGNCM6LcTgXum+dBfgsBVMN+AgvOCCbguXyick6LJhpBszxMebJ8syA==",
+        "integrityMatchesLedger": true,
+        "fileInventoryPath": "parity/research/dep-closure-wave-001/npm/@typescript__typescript-darwin-arm64@7.0.2/file-inventory.json",
+        "fullTreeReadingComplete": null
+      },
+      "disposition": "Lock entry, registry metadata, tarball, and package.json read. No further npm dependencies. Platform os/cpu constraints recorded. Native binary contents inventoried at file-hash level where unpacked.",
+      "proposeReadingComplete": true,
+      "proposeDependenciesEnumerated": true
+    },
+    {
+      "nodeId": "npm:@typescript/typescript-darwin-x64@7.0.2",
+      "previouslyIncomplete": true,
+      "sourcesRead": [
+        {
+          "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock",
+          "sha256": "667d9cf7222e9aae3fa42a4be383e657784216e9df115da02227fbc5ac7bbe46",
+          "byteLength": 6679,
+          "quotes": [
+            {
+              "locator": "packages[\"typescript\"]",
+              "text": "    \"typescript\": [\"typescript@7.0.2\", \"\", { \"optionalDependencies\": { \"@typescript/typescript-aix-ppc64\": \"7.0.2\", \"@typescript/typescript-darwin-arm64\": \"7.0.2\", \"@typescript/typescript-darwin-x64\": \"7.0.2\", \"@typescript/typescript-freebsd-arm64\": \"7.0.2\", \"@typescript/typescript-freebsd-x64\": \"7.0.2\", \"@typescript/typescript-linux-arm\": \"7.0.2\", \"@typescript/typescript-linux-arm64\": \"7.0.2\", \"@typescript/typescript-linux-loong64\": \"7.0.2\", \"@typescript/typescript-linux-mips64el\": \"7.0.2\", \"@t"
+            },
+            {
+              "locator": "packages[\"bun-types\"]",
+              "text": "    \"bun-types\": [\"bun-types@1.3.14\", \"\", { \"dependencies\": { \"@types/node\": \"*\" } }, \"sha512-4N0ig0fEomHt5R0KCFWjovxow98rIoRwKolrYdCcknNwMekCXRnWEUvgu5soYV8QXtVsrUD8B95MBOZGPvr6KQ==\"],"
+            },
+            {
+              "locator": "packages[\"@types/node\"]",
+              "text": "    \"@types/node\": [\"@types/node@26.1.2\", \"\", { \"dependencies\": { \"undici-types\": \"~8.3.0\" } }, \"sha512-Vu4a5UFA9rIIFJ7rB/Vaafh9lrCQszopTCx6KjFboXTGQbPNasehVR5TEiithSDGyd1DEiUByggTZsg8jukeIg==\"],"
+            },
+            {
+              "locator": "packages[\"undici-types\"]",
+              "text": "    \"undici-types\": [\"undici-types@8.3.0\", \"\", {}, \"sha512-j375ScV60dom+YkPFIfTLcOiPxkN/buHz5GobjLhixFuANaNs3C9l4GmrWqejgXWJ7BbJcFYpTEUkS1Ge8bpZQ==\"],"
+            }
+          ]
+        },
+        {
+          "path": "parity/research/dep-closure-wave-001/npm/@typescript__typescript-darwin-x64@7.0.2/registry.json",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/dep-closure-wave-001/npm/@typescript__typescript-darwin-x64@7.0.2/registry.json",
+          "sha256": "83967f3eb050df05f614960d2094e9b7e9c7eca7d3ddef88e2bd29fff9803651",
+          "byteLength": 2403,
+          "quotes": [
+            {
+              "locator": "dist.integrity + name/version",
+              "text": "{\n  \"name\": \"@typescript/typescript-darwin-x64\",\n  \"version\": \"7.0.2\",\n  \"integrity\": \"sha512-SZ9xZInqApNlNGc9s0W1VSsktYSOe9cFqNOIqmN1Gs8SmkjKZYFt017G4VwPxASInODuAdbTW7sXiFUf893RgA==\",\n  \"tarball\": \"https://registry.npmjs.org/@typescript/typescript-darwin-x64/-/typescript-darwin-x64-7.0.2.tgz\"\n}"
+            }
+          ]
+        },
+        {
+          "path": "parity/research/dep-closure-wave-001/npm/@typescript__typescript-darwin-x64@7.0.2/unpacked/package/package.json",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/dep-closure-wave-001/npm/@typescript__typescript-darwin-x64@7.0.2/unpacked/package/package.json",
+          "sha256": "fb2abc0b67bb0f4e51867175eda95e87cdc464b253d405e2be55bc92a100a35d",
+          "byteLength": 1044,
+          "quotes": [
+            {
+              "locator": "name/version/optionalDependencies|dependencies",
+              "text": "{\n  \"name\": \"@typescript/typescript-darwin-x64\",\n  \"version\": \"7.0.2\",\n  \"dependencies\": null,\n  \"optionalDependencies\": null,\n  \"os\": [\n    \"darwin\"\n  ],\n  \"cpu\": [\n    \"x64\"\n  ]\n}"
+            }
+          ]
+        }
+      ],
+      "npmRetrieval": {
+        "retrievalPath": "parity/research/dep-closure-wave-001/npm/@typescript__typescript-darwin-x64@7.0.2/retrieval.json",
+        "registrySha256": "83967f3eb050df05f614960d2094e9b7e9c7eca7d3ddef88e2bd29fff9803651",
+        "tarballSha256": "eba158cb54050f723d5ff781438f33de5640054440bb4f2bd170cfe9bc2eb551",
+        "integrity": "sha512-SZ9xZInqApNlNGc9s0W1VSsktYSOe9cFqNOIqmN1Gs8SmkjKZYFt017G4VwPxASInODuAdbTW7sXiFUf893RgA==",
+        "integrityMatchesLedger": true,
+        "fileInventoryPath": "parity/research/dep-closure-wave-001/npm/@typescript__typescript-darwin-x64@7.0.2/file-inventory.json",
+        "fullTreeReadingComplete": null
+      },
+      "disposition": "Lock entry, registry metadata, tarball, and package.json read. No further npm dependencies. Platform os/cpu constraints recorded. Native binary contents inventoried at file-hash level where unpacked.",
+      "proposeReadingComplete": true,
+      "proposeDependenciesEnumerated": true
+    },
+    {
+      "nodeId": "npm:@typescript/typescript-linux-x64@7.0.2",
+      "previouslyIncomplete": true,
+      "sourcesRead": [
+        {
+          "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock",
+          "sha256": "667d9cf7222e9aae3fa42a4be383e657784216e9df115da02227fbc5ac7bbe46",
+          "byteLength": 6679,
+          "quotes": [
+            {
+              "locator": "packages[\"typescript\"]",
+              "text": "    \"typescript\": [\"typescript@7.0.2\", \"\", { \"optionalDependencies\": { \"@typescript/typescript-aix-ppc64\": \"7.0.2\", \"@typescript/typescript-darwin-arm64\": \"7.0.2\", \"@typescript/typescript-darwin-x64\": \"7.0.2\", \"@typescript/typescript-freebsd-arm64\": \"7.0.2\", \"@typescript/typescript-freebsd-x64\": \"7.0.2\", \"@typescript/typescript-linux-arm\": \"7.0.2\", \"@typescript/typescript-linux-arm64\": \"7.0.2\", \"@typescript/typescript-linux-loong64\": \"7.0.2\", \"@typescript/typescript-linux-mips64el\": \"7.0.2\", \"@t"
+            },
+            {
+              "locator": "packages[\"bun-types\"]",
+              "text": "    \"bun-types\": [\"bun-types@1.3.14\", \"\", { \"dependencies\": { \"@types/node\": \"*\" } }, \"sha512-4N0ig0fEomHt5R0KCFWjovxow98rIoRwKolrYdCcknNwMekCXRnWEUvgu5soYV8QXtVsrUD8B95MBOZGPvr6KQ==\"],"
+            },
+            {
+              "locator": "packages[\"@types/node\"]",
+              "text": "    \"@types/node\": [\"@types/node@26.1.2\", \"\", { \"dependencies\": { \"undici-types\": \"~8.3.0\" } }, \"sha512-Vu4a5UFA9rIIFJ7rB/Vaafh9lrCQszopTCx6KjFboXTGQbPNasehVR5TEiithSDGyd1DEiUByggTZsg8jukeIg==\"],"
+            },
+            {
+              "locator": "packages[\"undici-types\"]",
+              "text": "    \"undici-types\": [\"undici-types@8.3.0\", \"\", {}, \"sha512-j375ScV60dom+YkPFIfTLcOiPxkN/buHz5GobjLhixFuANaNs3C9l4GmrWqejgXWJ7BbJcFYpTEUkS1Ge8bpZQ==\"],"
+            }
+          ]
+        },
+        {
+          "path": "parity/research/dep-closure-wave-001/npm/@typescript__typescript-linux-x64@7.0.2/registry.json",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/dep-closure-wave-001/npm/@typescript__typescript-linux-x64@7.0.2/registry.json",
+          "sha256": "754a96664c15d55e0c7ccba0d9fbe811311a4cb1c0235ae9b6aab062a281a788",
+          "byteLength": 2397,
+          "quotes": [
+            {
+              "locator": "dist.integrity + name/version",
+              "text": "{\n  \"name\": \"@typescript/typescript-linux-x64\",\n  \"version\": \"7.0.2\",\n  \"integrity\": \"sha512-EYdf2cNg7rgCWJnxCdJ+F3V39O8ihb37eHAu1LK8oAFizgTQbPOK7zHHXbPt8rX24COqODXeI3sIf0fCXG7H/A==\",\n  \"tarball\": \"https://registry.npmjs.org/@typescript/typescript-linux-x64/-/typescript-linux-x64-7.0.2.tgz\"\n}"
+            }
+          ]
+        },
+        {
+          "path": "parity/research/dep-closure-wave-001/npm/@typescript__typescript-linux-x64@7.0.2/unpacked/package/package.json",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/dep-closure-wave-001/npm/@typescript__typescript-linux-x64@7.0.2/unpacked/package/package.json",
+          "sha256": "d229521d1ab1d09e60eeb887c8be8e9454a1ea184fe801dcbfa276da3c569cf7",
+          "byteLength": 1042,
+          "quotes": [
+            {
+              "locator": "name/version/optionalDependencies|dependencies",
+              "text": "{\n  \"name\": \"@typescript/typescript-linux-x64\",\n  \"version\": \"7.0.2\",\n  \"dependencies\": null,\n  \"optionalDependencies\": null,\n  \"os\": [\n    \"linux\"\n  ],\n  \"cpu\": [\n    \"x64\"\n  ]\n}"
+            }
+          ]
+        }
+      ],
+      "npmRetrieval": {
+        "retrievalPath": "parity/research/dep-closure-wave-001/npm/@typescript__typescript-linux-x64@7.0.2/retrieval.json",
+        "registrySha256": "754a96664c15d55e0c7ccba0d9fbe811311a4cb1c0235ae9b6aab062a281a788",
+        "tarballSha256": "7ecad6f67377e831856367ab062ef394f21506a611405bf8ac0ff039348637d3",
+        "integrity": "sha512-EYdf2cNg7rgCWJnxCdJ+F3V39O8ihb37eHAu1LK8oAFizgTQbPOK7zHHXbPt8rX24COqODXeI3sIf0fCXG7H/A==",
+        "integrityMatchesLedger": true,
+        "fileInventoryPath": "parity/research/dep-closure-wave-001/npm/@typescript__typescript-linux-x64@7.0.2/file-inventory.json",
+        "fullTreeReadingComplete": null
+      },
+      "disposition": "Lock entry, registry metadata, tarball, and package.json read. No further npm dependencies. Platform os/cpu constraints recorded. Native binary contents inventoried at file-hash level where unpacked.",
+      "proposeReadingComplete": true,
+      "proposeDependenciesEnumerated": true
+    },
+    {
+      "nodeId": "npm:@typescript/typescript-linux-arm64@7.0.2",
+      "previouslyIncomplete": true,
+      "sourcesRead": [
+        {
+          "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock",
+          "sha256": "667d9cf7222e9aae3fa42a4be383e657784216e9df115da02227fbc5ac7bbe46",
+          "byteLength": 6679,
+          "quotes": [
+            {
+              "locator": "packages[\"typescript\"]",
+              "text": "    \"typescript\": [\"typescript@7.0.2\", \"\", { \"optionalDependencies\": { \"@typescript/typescript-aix-ppc64\": \"7.0.2\", \"@typescript/typescript-darwin-arm64\": \"7.0.2\", \"@typescript/typescript-darwin-x64\": \"7.0.2\", \"@typescript/typescript-freebsd-arm64\": \"7.0.2\", \"@typescript/typescript-freebsd-x64\": \"7.0.2\", \"@typescript/typescript-linux-arm\": \"7.0.2\", \"@typescript/typescript-linux-arm64\": \"7.0.2\", \"@typescript/typescript-linux-loong64\": \"7.0.2\", \"@typescript/typescript-linux-mips64el\": \"7.0.2\", \"@t"
+            },
+            {
+              "locator": "packages[\"bun-types\"]",
+              "text": "    \"bun-types\": [\"bun-types@1.3.14\", \"\", { \"dependencies\": { \"@types/node\": \"*\" } }, \"sha512-4N0ig0fEomHt5R0KCFWjovxow98rIoRwKolrYdCcknNwMekCXRnWEUvgu5soYV8QXtVsrUD8B95MBOZGPvr6KQ==\"],"
+            },
+            {
+              "locator": "packages[\"@types/node\"]",
+              "text": "    \"@types/node\": [\"@types/node@26.1.2\", \"\", { \"dependencies\": { \"undici-types\": \"~8.3.0\" } }, \"sha512-Vu4a5UFA9rIIFJ7rB/Vaafh9lrCQszopTCx6KjFboXTGQbPNasehVR5TEiithSDGyd1DEiUByggTZsg8jukeIg==\"],"
+            },
+            {
+              "locator": "packages[\"undici-types\"]",
+              "text": "    \"undici-types\": [\"undici-types@8.3.0\", \"\", {}, \"sha512-j375ScV60dom+YkPFIfTLcOiPxkN/buHz5GobjLhixFuANaNs3C9l4GmrWqejgXWJ7BbJcFYpTEUkS1Ge8bpZQ==\"],"
+            }
+          ]
+        },
+        {
+          "path": "parity/research/dep-closure-wave-001/npm/@typescript__typescript-linux-arm64@7.0.2/registry.json",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/dep-closure-wave-001/npm/@typescript__typescript-linux-arm64@7.0.2/registry.json",
+          "sha256": "3fd1c9156024dc84024753ad8ecae7e724a35eeb02d00d37458d344784b45b1c",
+          "byteLength": 2412,
+          "quotes": [
+            {
+              "locator": "dist.integrity + name/version",
+              "text": "{\n  \"name\": \"@typescript/typescript-linux-arm64\",\n  \"version\": \"7.0.2\",\n  \"integrity\": \"sha512-Qh4eU4/y3yDjnfjjyPYihMj5/ODIlmt+Bzu17OI+fiSRDW57QmU5SiN63exPRNJPKUzcc1INa1NXdrJ+MqHjUQ==\",\n  \"tarball\": \"https://registry.npmjs.org/@typescript/typescript-linux-arm64/-/typescript-linux-arm64-7.0.2.tgz\"\n}"
+            }
+          ]
+        },
+        {
+          "path": "parity/research/dep-closure-wave-001/npm/@typescript__typescript-linux-arm64@7.0.2/unpacked/package/package.json",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/dep-closure-wave-001/npm/@typescript__typescript-linux-arm64@7.0.2/unpacked/package/package.json",
+          "sha256": "8499cbdbf634133898672771f24f474b39ffe693be7012b818f70e3f7c7b424d",
+          "byteLength": 1046,
+          "quotes": [
+            {
+              "locator": "name/version/optionalDependencies|dependencies",
+              "text": "{\n  \"name\": \"@typescript/typescript-linux-arm64\",\n  \"version\": \"7.0.2\",\n  \"dependencies\": null,\n  \"optionalDependencies\": null,\n  \"os\": [\n    \"linux\"\n  ],\n  \"cpu\": [\n    \"arm64\"\n  ]\n}"
+            }
+          ]
+        }
+      ],
+      "npmRetrieval": {
+        "retrievalPath": "parity/research/dep-closure-wave-001/npm/@typescript__typescript-linux-arm64@7.0.2/retrieval.json",
+        "registrySha256": "3fd1c9156024dc84024753ad8ecae7e724a35eeb02d00d37458d344784b45b1c",
+        "tarballSha256": "c83d931ac9dd7549cde6e71246aa9d6a9812843023df3e277fe3b5dcf41dd0ea",
+        "integrity": "sha512-Qh4eU4/y3yDjnfjjyPYihMj5/ODIlmt+Bzu17OI+fiSRDW57QmU5SiN63exPRNJPKUzcc1INa1NXdrJ+MqHjUQ==",
+        "integrityMatchesLedger": true,
+        "fileInventoryPath": "parity/research/dep-closure-wave-001/npm/@typescript__typescript-linux-arm64@7.0.2/file-inventory.json",
+        "fullTreeReadingComplete": null
+      },
+      "disposition": "Lock entry, registry metadata, tarball, and package.json read. No further npm dependencies. Platform os/cpu constraints recorded. Native binary contents inventoried at file-hash level where unpacked.",
+      "proposeReadingComplete": true,
+      "proposeDependenciesEnumerated": true
+    },
+    {
+      "nodeId": "npm:@typescript/typescript-win32-x64@7.0.2",
+      "previouslyIncomplete": true,
+      "sourcesRead": [
+        {
+          "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock",
+          "sha256": "667d9cf7222e9aae3fa42a4be383e657784216e9df115da02227fbc5ac7bbe46",
+          "byteLength": 6679,
+          "quotes": [
+            {
+              "locator": "packages[\"typescript\"]",
+              "text": "    \"typescript\": [\"typescript@7.0.2\", \"\", { \"optionalDependencies\": { \"@typescript/typescript-aix-ppc64\": \"7.0.2\", \"@typescript/typescript-darwin-arm64\": \"7.0.2\", \"@typescript/typescript-darwin-x64\": \"7.0.2\", \"@typescript/typescript-freebsd-arm64\": \"7.0.2\", \"@typescript/typescript-freebsd-x64\": \"7.0.2\", \"@typescript/typescript-linux-arm\": \"7.0.2\", \"@typescript/typescript-linux-arm64\": \"7.0.2\", \"@typescript/typescript-linux-loong64\": \"7.0.2\", \"@typescript/typescript-linux-mips64el\": \"7.0.2\", \"@t"
+            },
+            {
+              "locator": "packages[\"bun-types\"]",
+              "text": "    \"bun-types\": [\"bun-types@1.3.14\", \"\", { \"dependencies\": { \"@types/node\": \"*\" } }, \"sha512-4N0ig0fEomHt5R0KCFWjovxow98rIoRwKolrYdCcknNwMekCXRnWEUvgu5soYV8QXtVsrUD8B95MBOZGPvr6KQ==\"],"
+            },
+            {
+              "locator": "packages[\"@types/node\"]",
+              "text": "    \"@types/node\": [\"@types/node@26.1.2\", \"\", { \"dependencies\": { \"undici-types\": \"~8.3.0\" } }, \"sha512-Vu4a5UFA9rIIFJ7rB/Vaafh9lrCQszopTCx6KjFboXTGQbPNasehVR5TEiithSDGyd1DEiUByggTZsg8jukeIg==\"],"
+            },
+            {
+              "locator": "packages[\"undici-types\"]",
+              "text": "    \"undici-types\": [\"undici-types@8.3.0\", \"\", {}, \"sha512-j375ScV60dom+YkPFIfTLcOiPxkN/buHz5GobjLhixFuANaNs3C9l4GmrWqejgXWJ7BbJcFYpTEUkS1Ge8bpZQ==\"],"
+            }
+          ]
+        },
+        {
+          "path": "parity/research/dep-closure-wave-001/npm/@typescript__typescript-win32-x64@7.0.2/registry.json",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/dep-closure-wave-001/npm/@typescript__typescript-win32-x64@7.0.2/registry.json",
+          "sha256": "55cd9d76319ab3ba552fd43fcba11e579fac14c5e232146917cf59fc69914a28",
+          "byteLength": 2396,
+          "quotes": [
+            {
+              "locator": "dist.integrity + name/version",
+              "text": "{\n  \"name\": \"@typescript/typescript-win32-x64\",\n  \"version\": \"7.0.2\",\n  \"integrity\": \"sha512-0BQ3HkAHHlKLSp1qRvf3SUhGpGsDuhB/jgFw75guyqbxJqEaS0Cw/VFO8i2nHglJUzQCRtMMR/IBAKE3ETMC4g==\",\n  \"tarball\": \"https://registry.npmjs.org/@typescript/typescript-win32-x64/-/typescript-win32-x64-7.0.2.tgz\"\n}"
+            }
+          ]
+        },
+        {
+          "path": "parity/research/dep-closure-wave-001/npm/@typescript__typescript-win32-x64@7.0.2/unpacked/package/package.json",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/dep-closure-wave-001/npm/@typescript__typescript-win32-x64@7.0.2/unpacked/package/package.json",
+          "sha256": "6d8ec7623880a902bb225c53571112e2bbf0273412b2c534070b1193d2be0f6b",
+          "byteLength": 1042,
+          "quotes": [
+            {
+              "locator": "name/version/optionalDependencies|dependencies",
+              "text": "{\n  \"name\": \"@typescript/typescript-win32-x64\",\n  \"version\": \"7.0.2\",\n  \"dependencies\": null,\n  \"optionalDependencies\": null,\n  \"os\": [\n    \"win32\"\n  ],\n  \"cpu\": [\n    \"x64\"\n  ]\n}"
+            }
+          ]
+        }
+      ],
+      "npmRetrieval": {
+        "retrievalPath": "parity/research/dep-closure-wave-001/npm/@typescript__typescript-win32-x64@7.0.2/retrieval.json",
+        "registrySha256": "55cd9d76319ab3ba552fd43fcba11e579fac14c5e232146917cf59fc69914a28",
+        "tarballSha256": "61fc4e141d2bc687db580e71bbfa63b9c209f0310645d82ca1b457eb3a24fd19",
+        "integrity": "sha512-0BQ3HkAHHlKLSp1qRvf3SUhGpGsDuhB/jgFw75guyqbxJqEaS0Cw/VFO8i2nHglJUzQCRtMMR/IBAKE3ETMC4g==",
+        "integrityMatchesLedger": true,
+        "fileInventoryPath": "parity/research/dep-closure-wave-001/npm/@typescript__typescript-win32-x64@7.0.2/file-inventory.json",
+        "fullTreeReadingComplete": null
+      },
+      "disposition": "Lock entry, registry metadata, tarball, and package.json read. No further npm dependencies. Platform os/cpu constraints recorded. Native binary contents inventoried at file-hash level where unpacked.",
+      "proposeReadingComplete": true,
+      "proposeDependenciesEnumerated": true
+    },
+    {
+      "nodeId": "npm:@typescript/typescript-win32-arm64@7.0.2",
+      "previouslyIncomplete": true,
+      "sourcesRead": [
+        {
+          "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock",
+          "sha256": "667d9cf7222e9aae3fa42a4be383e657784216e9df115da02227fbc5ac7bbe46",
+          "byteLength": 6679,
+          "quotes": [
+            {
+              "locator": "packages[\"typescript\"]",
+              "text": "    \"typescript\": [\"typescript@7.0.2\", \"\", { \"optionalDependencies\": { \"@typescript/typescript-aix-ppc64\": \"7.0.2\", \"@typescript/typescript-darwin-arm64\": \"7.0.2\", \"@typescript/typescript-darwin-x64\": \"7.0.2\", \"@typescript/typescript-freebsd-arm64\": \"7.0.2\", \"@typescript/typescript-freebsd-x64\": \"7.0.2\", \"@typescript/typescript-linux-arm\": \"7.0.2\", \"@typescript/typescript-linux-arm64\": \"7.0.2\", \"@typescript/typescript-linux-loong64\": \"7.0.2\", \"@typescript/typescript-linux-mips64el\": \"7.0.2\", \"@t"
+            },
+            {
+              "locator": "packages[\"bun-types\"]",
+              "text": "    \"bun-types\": [\"bun-types@1.3.14\", \"\", { \"dependencies\": { \"@types/node\": \"*\" } }, \"sha512-4N0ig0fEomHt5R0KCFWjovxow98rIoRwKolrYdCcknNwMekCXRnWEUvgu5soYV8QXtVsrUD8B95MBOZGPvr6KQ==\"],"
+            },
+            {
+              "locator": "packages[\"@types/node\"]",
+              "text": "    \"@types/node\": [\"@types/node@26.1.2\", \"\", { \"dependencies\": { \"undici-types\": \"~8.3.0\" } }, \"sha512-Vu4a5UFA9rIIFJ7rB/Vaafh9lrCQszopTCx6KjFboXTGQbPNasehVR5TEiithSDGyd1DEiUByggTZsg8jukeIg==\"],"
+            },
+            {
+              "locator": "packages[\"undici-types\"]",
+              "text": "    \"undici-types\": [\"undici-types@8.3.0\", \"\", {}, \"sha512-j375ScV60dom+YkPFIfTLcOiPxkN/buHz5GobjLhixFuANaNs3C9l4GmrWqejgXWJ7BbJcFYpTEUkS1Ge8bpZQ==\"],"
+            }
+          ]
+        },
+        {
+          "path": "parity/research/dep-closure-wave-001/npm/@typescript__typescript-win32-arm64@7.0.2/registry.json",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/dep-closure-wave-001/npm/@typescript__typescript-win32-arm64@7.0.2/registry.json",
+          "sha256": "aefca014db296c2636b8fee27b018ee2d8639abe282ac42d3bc8b222fd8b17d5",
+          "byteLength": 2412,
+          "quotes": [
+            {
+              "locator": "dist.integrity + name/version",
+              "text": "{\n  \"name\": \"@typescript/typescript-win32-arm64\",\n  \"version\": \"7.0.2\",\n  \"integrity\": \"sha512-Gyl1Vy6OsWesLzmq+EP0Fb7b4Nid5232AvcA2SFcdYreldpNtYFFofPjnt62y9hQy7VTaZp65ICJjuAQRaVcIQ==\",\n  \"tarball\": \"https://registry.npmjs.org/@typescript/typescript-win32-arm64/-/typescript-win32-arm64-7.0.2.tgz\"\n}"
+            }
+          ]
+        },
+        {
+          "path": "parity/research/dep-closure-wave-001/npm/@typescript__typescript-win32-arm64@7.0.2/unpacked/package/package.json",
+          "absolutePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/dep-closure-wave-001/npm/@typescript__typescript-win32-arm64@7.0.2/unpacked/package/package.json",
+          "sha256": "227fe5f68cc1c131ef45ee9dbc9509fc5f8b1e895fe9209e66c4d771903950b3",
+          "byteLength": 1046,
+          "quotes": [
+            {
+              "locator": "name/version/optionalDependencies|dependencies",
+              "text": "{\n  \"name\": \"@typescript/typescript-win32-arm64\",\n  \"version\": \"7.0.2\",\n  \"dependencies\": null,\n  \"optionalDependencies\": null,\n  \"os\": [\n    \"win32\"\n  ],\n  \"cpu\": [\n    \"arm64\"\n  ]\n}"
+            }
+          ]
+        }
+      ],
+      "npmRetrieval": {
+        "retrievalPath": "parity/research/dep-closure-wave-001/npm/@typescript__typescript-win32-arm64@7.0.2/retrieval.json",
+        "registrySha256": "aefca014db296c2636b8fee27b018ee2d8639abe282ac42d3bc8b222fd8b17d5",
+        "tarballSha256": "0a73534e6ee50cdbb2a29ac48657ca0ad13cf0f424cf63808e4df7baeb87b8be",
+        "integrity": "sha512-Gyl1Vy6OsWesLzmq+EP0Fb7b4Nid5232AvcA2SFcdYreldpNtYFFofPjnt62y9hQy7VTaZp65ICJjuAQRaVcIQ==",
+        "integrityMatchesLedger": true,
+        "fileInventoryPath": "parity/research/dep-closure-wave-001/npm/@typescript__typescript-win32-arm64@7.0.2/file-inventory.json",
+        "fullTreeReadingComplete": null
+      },
+      "disposition": "Lock entry, registry metadata, tarball, and package.json read. No further npm dependencies. Platform os/cpu constraints recorded. Native binary contents inventoried at file-hash level where unpacked.",
+      "proposeReadingComplete": true,
+      "proposeDependenciesEnumerated": true
+    }
+  ],
+  "referenceConfiguration": {
+    "capturedAt": "2026-10-08T17:59:53Z",
+    "cliVersionObserved": "2026.10.01-e373342",
+    "configPath": "/Users/josh-desktop/.cursor/cli-config.json",
+    "configSha256Raw": "8171ec8bbb542eaffea655db1109e6c04084e53d0a9baf67411849d7471ad394",
+    "redactedSnapshot": "parity/research/dep-closure-wave-001/refcfg/cli-config.redacted.json",
+    "redactedSnapshotSha256": "61319819c350eb745e811dddee1e1e2c4277f92b2ccbb8fa405fb40e8b9a3c5a",
+    "aboutCapture": "parity/research/dep-closure-wave-001/refcfg/cursor-agent-about.txt",
+    "aboutSha256": "b517ac25f102714cddda5dc18b5b4ecd8f1549735ce7e83b57b69010ad38dc26",
+    "statusCapture": "parity/research/dep-closure-wave-001/refcfg/cursor-agent-status.txt",
+    "statusSha256": "e38b70f1fc10b7adfeafbb16eb7e5c3c55dcaf29060768d3fa57a64242686f78",
+    "docsContractPath": "parity/research/cursor-host/cli/parent-snapshots/cli_reference_configuration.md",
+    "docsContractSha256": "aab79ccc8949c23f30c45e0928ea80cefb5ee4ee6ff1723a3864ac61851f2a87",
+    "note": "Working-env snapshot of global cli-config.json with secrets redacted. This is one observed configuration case, not the full reference matrix of every integration in a working state."
+  },
+  "nodeCount": 13,
+  "previouslyIncompleteCount": 13
+}

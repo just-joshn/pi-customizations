@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "unit": "u-dep-typescript-deep-001",
+  "status": "proposal",
+  "createdAt": "2026-10-09T02:43:33Z",
+  "verdict": "still-open-with-merge-note",
+  "mergePayloadReady": true,
+  "deepCompilerSemanticsStatus": "still_open",
+  "targets": {
+    "dependenciesJson": "parity/dependencies.json"
+  },
+  "completeDependencyClosure": false,
+  "completeDependencyClosureNote": "Must remain false. Deep typescript semantics stay open.",
+  "resolvedReferenceCount": 0,
+  "resolvedEdgeCount": 0,
+  "removeUnresolvedReference": false,
+  "dependencies": {
+    "nodeMutations": [
+      {
+        "id": "npm:typescript@7.0.2",
+        "appendReadingEvidence": [
+          "parity/research/dep-typescript-deep-001/disposition.json",
+          "parity/research/dep-typescript-deep-001/merge-payload.json"
+        ],
+        "set": {
+          "waveDeep001Disposition": "u-dep-typescript-deep-001 honesty terminal. Re-verified wave-009 disposition sha256 and all 136 internal file hashes (catalogHashDriftCount=0). Consumer typecheck and tsc --version still exit 0. npm tarball has no compiler tests. Prior minimal emit oracle is not closure. deepCompilerSemanticsStatus remains still_open.",
+          "deepCompilerSemanticsStatus": "still_open"
+        },
+        "evidence": [
+          "parity/research/dep-typescript-deep-001/disposition.json"
+        ]
+      }
+    ],
+    "unresolvedReferences": {
+      "removeIfPresent": [],
+      "keepAndRefresh": [
+        {
+          "matchContains": "npm:typescript@7.0.2 deep compiler-behavior semantics",
+          "prior": "npm:typescript@7.0.2 deep compiler-behavior semantics remain open after wave-009 honesty disposition at parity/research/dep-closure-wave-009/npm/typescript-deep-semantics-disposition.json (structuralBodyAuditComplete=true; catalogHashDriftCount=0; consumer typecheck exit=0; honesty records that catalog re-verify and typecheck are not deep-semantics proof; no compiler-test oracle).",
+          "replacement": "npm:typescript@7.0.2 deep compiler-behavior semantics remain open after u-dep-typescript-deep-001 at parity/research/dep-typescript-deep-001/disposition.json (sha256 54a2b55db5eb26545476cf15af7f1f7bbb3d45f8907e0f501d16adf7b4e5c7f9; catalogHashDriftCount=0; consumer typecheck exit=0; npm package ships no compiler tests; prior minimal emit oracle dep-typescript-oracle-001 is not closure; blocker: need pinned compiler-test oracle with path+hash evidence covering 136 internal_module_surface contracts)."
+        }
+      ],
+      "add": [],
+      "note": "Do NOT remove the typescript deep compiler-behavior unresolvedReference. Only refresh the evidence pointer and sharper blocker text. Do not set completeDependencyClosure true."
+    }
+  },
+  "dispositionSha256": "54a2b55db5eb26545476cf15af7f1f7bbb3d45f8907e0f501d16adf7b4e5c7f9",
+  "fullProposal": "parity/research/dep-typescript-deep-001/merge-payload.json"
+}

@@ -1,0 +1,105 @@
+{
+  "schema": 1,
+  "pairId": "setup-rerun-mutate-role-1",
+  "scenarioRef": "setup-pstack:rerun-mutate-one-role",
+  "family": "journey-family-02-rerun-setup-role-config",
+  "requirementIds": [
+    "PSTACK-SETUP-RERUN-PRESERVE-001",
+    "PSTACK-SETUP-GUIDE-RERUN-KEEP-001",
+    "PSTACK-SETUP-ROLE-CONFIRM-001",
+    "PSTACK-SETUP-BUDGET-APPLY-001",
+    "PSTACK-SETUP-NEW-SESSION-APPLIES-001",
+    "PSTACK-SETUP-PANEL-LIST-FANOUT-001"
+  ],
+  "fixtureDigest": "sha256:5f7e90885d37c4b9b7e2027755436f435f8fba765f74c3c92373bb30d0bc9d9b",
+  "fixturePath": "parity/evidence/setup-rerun/fixture-mixed.mdc",
+  "afterDigest": "sha256:e53304ff0b95d65445b40d1c131f047efeda60d7399dc4b3fdc37293d90d5e32",
+  "mutateRole": "feature, refactoring",
+  "mutateFrom": "inherit-parent",
+  "mutateTo": "auto",
+  "keepRole": "bug-fix",
+  "keepValue": "auto",
+  "followup": "Reply with exactly one line that starts with MODEL-ID-CHECK and then your model identifier. Do no other work.",
+  "steps": [
+    { "send": "/setup-pstack" },
+    { "send": "\r" },
+    { "send": "\r" },
+    {
+      "send": "<budget keep small + mutate feature, refactoring to auto + keep bug-fix auto>",
+      "note": "Cursor used chat-form free text; Pi used AskQuestion Other with the same instruction"
+    },
+    { "wait": "Edited pstack-models.mdc" },
+    { "send": "<followup MODEL-ID-CHECK>" },
+    { "send": "\r" },
+    { "cancel": true }
+  ],
+  "cursor": {
+    "attemptId": "428e113d-8047-473a-aea6-3b632f080322",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-rerun/cursor/428e113d-8047-473a-aea6-3b632f080322",
+    "path": "chatform",
+    "afterDigest": "sha256:e53304ff0b95d65445b40d1c131f047efeda60d7399dc4b3fdc37293d90d5e32",
+    "roleMutation": {
+      "changed": [{ "role": "feature, refactoring", "from": "inherit-parent", "to": "auto" }],
+      "unchangedCount": 16,
+      "keepRolePreserved": true,
+      "mutateRoleApplied": true,
+      "budgetBefore": "small (medium)",
+      "budgetAfter": "small (medium)"
+    },
+    "unrelated": {
+      "canaryUnchanged": true,
+      "piSettingsUnchanged": true
+    },
+    "modelIdentity": {
+      "followupLine": "MODEL-ID-CHECK Auto",
+      "statusChrome": "Auto"
+    },
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    }
+  },
+  "pi": {
+    "attemptId": "6769d1c3-6f00-4528-85c5-7a251f30aeff",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-rerun/pi/6769d1c3-6f00-4528-85c5-7a251f30aeff",
+    "path": "askquestion-wrote",
+    "afterDigest": "sha256:e53304ff0b95d65445b40d1c131f047efeda60d7399dc4b3fdc37293d90d5e32",
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-fixtures-first-run--/2026-10-08T17-58-43-660Z_01a11caa-e2cc-73eb-b274-93af92658a73.jsonl",
+    "roleMutation": {
+      "changed": [{ "role": "feature, refactoring", "from": "inherit-parent", "to": "auto" }],
+      "unchangedCount": 16,
+      "keepRolePreserved": true,
+      "mutateRoleApplied": true,
+      "budgetBefore": "small (medium)",
+      "budgetAfter": "small (medium)"
+    },
+    "unrelated": {
+      "canaryUnchanged": true,
+      "piSettingsUnchanged": true
+    },
+    "modelIdentity": {
+      "followupLine": "MODEL-ID-CHECK I don't know my exact model identifier. I'm Claude, and nothing in my context states the specific model ID.",
+      "statusChrome": "(claude-subscription) claude-sonnet-5-5 • medium"
+    },
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    }
+  },
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-setup-rerun.mjs --cursor-only then --pi-only",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "lockedFixtureRestored": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "canary": "parity/evidence/setup-rerun/canary-unrelated-settings.json"
+  }
+}

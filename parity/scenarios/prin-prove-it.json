@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "prin-prove-it",
+  "status": "paired",
+  "requirements": [
+    "PSTACK-PRIN-PROVE-IT-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/principle-prove-it-works/SKILL.md#Prove It Works frontmatter trigger and disable-model-invocation",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file. Preconditions: Locked pstack poteto-mode and principle-prove-it-works skill loaded.; A task output exists that is about to be declared done.",
+    "digest": null
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Declare a task complete.. The agent Reads the leaf skill and verifies against the real artifact (run, read actual value, or inspect diff), preferably via a deterministic rerunnable script whose output is kept."
+    }
+  ],
+  "execution": {
+    "pairId": "prin-prove-it-1",
+    "verdict": "pass",
+    "pair": "parity/evidence/principles/pair-prin-prove-it-1.json",
+    "attempts": {
+      "cursor": "9f605907-9633-4897-8357-c174bf170c65",
+      "pi": "4af22cca-9d26-4592-81e2-058a9d96f4fc"
+    }
+  }
+}

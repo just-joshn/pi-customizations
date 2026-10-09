@@ -1,0 +1,114 @@
+{
+  "unit": "u-completion-blocker-accuracy-002",
+  "evaluatedAt": "2026-10-09T11:01:56Z",
+  "blockerCount": 12,
+  "staleFalseOpens": 0,
+  "allStillValid": true,
+  "changesSince001": [
+    "creation-boundary now verified-pass-paired (no longer among unverified reqs)",
+    "blocker count 13\u219212",
+    "live-int-003 note refresh; unresolvedReference text updated",
+    "enterprise observe-002 still keep-open"
+  ],
+  "orderedNextGrants": [
+    "G10",
+    "G4-G8",
+    "G1",
+    "G2",
+    "G3"
+  ],
+  "rows": [
+    {
+      "code": "SOURCE_LOCK_INCOMPLETE",
+      "stillValid": true,
+      "proof": "source-lock.json status=incomplete; openWork still lists 6 items including independent freeze",
+      "nextEvidence": "G3 freeze + completeDependencyClosure true after G10/G4\u2013G8/G1/G2",
+      "grant": "G3(+closure)"
+    },
+    {
+      "code": "SOURCE_CLOSURE_INCOMPLETE",
+      "stillValid": true,
+      "proof": "cursorPlugins.completeDependencyClosure=false; note cites CU cloud G1, enterprise G2, live-int make-bot/Benny/thread-safety",
+      "nextEvidence": "Resolve host edges + live-int unresolvedReference (b\u21920)",
+      "grant": "G1+G2+G10+G4\u2013G8"
+    },
+    {
+      "code": "DEPENDENCY_REFERENCE_UNRESOLVED",
+      "stillValid": true,
+      "proof": "unresolvedReferences[0] live-int-003 text; canCloseUnresolvedReference=false; b=115",
+      "nextEvidence": "Post-unlock make-bot Generate + Slack Benny/thread-safety live; then live-int reclass to b=0",
+      "grant": "G10 then G4\u2013G8"
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "edge": "cursor-cli-host\u2192cursor-self-hosted-computer-use",
+      "stillValid": true,
+      "proof": "Local CU live paid; cloud attempt IDs unpaid; CURSOR_API_KEY unset (claim-002)",
+      "nextEvidence": "Export User API Key; list-only then spend-granted create attempt IDs",
+      "grant": "G1"
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "edge": "cursor-cli-host\u2192cursor-enterprise-integration-policy",
+      "stillValid": true,
+      "proof": "observe-001+002: pro_plus/no-team; empty admin allowlists; no Enterprise Providers/Groups witness",
+      "nextEvidence": "Enterprise org observation authorization",
+      "grant": "G2"
+    },
+    {
+      "code": "ACCEPTANCE_DEFINITIONS_UNFROZEN",
+      "stillValid": true,
+      "proof": "requirements.acceptanceDefinitionsFrozen=false; custody pack digests PASS but owner/external custody/auth unpaid",
+      "nextEvidence": "Independent owner + external custody + freeze authorization",
+      "grant": "G3"
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "requirementId": "PSTACK-CMD-BENNY-TRIAGE-THREAD-ONLY-001",
+      "stillValid": true,
+      "proof": "status=unverified; mismatch BENNY-TRIAGE-VALID-CONFIG-ENV open",
+      "nextEvidence": "Valid Benny+Slack wiring + one authorized test-thread reply pair",
+      "grant": "G4\u2013G8"
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "requirementId": "PSTACK-CMD-MAKE-BOT-UI-KEY-SERVER-001",
+      "stillValid": true,
+      "proof": "status=unverified; Pi half key_server_ok e75f8e08; Cursor Generate unpaid under IOConsoleLocked",
+      "nextEvidence": "Unlock \u2192 Discard Untitled \u2192 Generate \u2192 0600 \u2192 probe 200 (post-unlock-002)",
+      "grant": "G10"
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "requirementId": "PSTACK-SETUP-BENNY-THREAD-SAFETY-001",
+      "stillValid": true,
+      "proof": "status=unverified; AutomationRecordThreadSafety landed locally; seven live Slack checks unpaid",
+      "nextEvidence": "Editor Save witness + seven checks + RecordThreadSafety + Enable(local)",
+      "grant": "G4\u2013G8 (+Save)"
+    },
+    {
+      "code": "BEHAVIOR_MISMATCH_OPEN",
+      "mismatchId": "BENNY-TRIAGE-VALID-CONFIG-ENV",
+      "stillValid": true,
+      "proof": "mismatches.items status=open",
+      "nextEvidence": "Same as Benny triage requirement",
+      "grant": "G4\u2013G8"
+    },
+    {
+      "code": "BEHAVIOR_MISMATCH_OPEN",
+      "mismatchId": "MAKE-BOT-UI-KEY-SERVER-HOST",
+      "stillValid": true,
+      "proof": "mismatches.items status=open; console lock",
+      "nextEvidence": "Same as make-bot requirement / G10",
+      "grant": "G10"
+    },
+    {
+      "code": "BEHAVIOR_MISMATCH_OPEN",
+      "mismatchId": "SETUP-BENNY-THREAD-SAFETY-ENV",
+      "stillValid": true,
+      "proof": "mismatches.items status=open",
+      "nextEvidence": "Same as thread-safety requirement",
+      "grant": "G4\u2013G8 (+Save)"
+    }
+  ]
+}

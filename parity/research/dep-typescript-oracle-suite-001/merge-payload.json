@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "unit": "u-dep-typescript-oracle-suite-001",
+  "status": "proposal",
+  "createdAt": "2026-10-09T03:03:05Z",
+  "verdict": "closed-with-oracle",
+  "mergePayloadReady": true,
+  "deepCompilerSemanticsStatus": "closed_with_oracle",
+  "targets": {
+    "dependenciesJson": "parity/dependencies.json"
+  },
+  "completeDependencyClosure": false,
+  "completeDependencyClosureNote": "Other unresolvedReferences may remain. Only typescript deep-semantics line is addressed by this payload.",
+  "resolvedReferenceCount": 1,
+  "resolvedEdgeCount": 0,
+  "removeUnresolvedReference": true,
+  "dependencies": {
+    "nodeMutations": [
+      {
+        "id": "npm:typescript@7.0.2",
+        "appendReadingEvidence": [
+          "parity/research/dep-typescript-oracle-suite-001/disposition.json",
+          "parity/research/dep-typescript-oracle-suite-001/merge-payload.json",
+          "parity/research/dep-typescript-oracle-suite-001/built-vs-published-136.json",
+          "parity/briefs/reports/u-dep-typescript-oracle-suite-001-report.md"
+        ],
+        "set": {
+          "deepCompilerSemanticsStatus": "closed_with_oracle",
+          "waveOracleSuite001Disposition": "u-dep-typescript-oracle-suite-001 closed-with-oracle. Pinned microsoft/typescript-go@2bd066d87f5bafd315be9f40889d0a60b9e58e0b (= npm gitHead). hereby test:api 459/459 pass exit 0. Built dist matches published catalog 136/136 (disposition sha256 5317bef7fe3e6425fdc4ce6d144b8034496941823aa36764998ecae67e920876)."
+        },
+        "evidence": [
+          "parity/research/dep-typescript-oracle-suite-001/disposition.json"
+        ]
+      }
+    ],
+    "unresolvedReferences": {
+      "removeIfPresent": [
+        {
+          "matchContains": "npm:typescript@7.0.2 deep compiler-behavior semantics",
+          "reason": "Pinned typescript-go test:api oracle with 136/136 built==published path+hash evidence."
+        }
+      ],
+      "keepAndRefresh": [],
+      "add": [],
+      "note": "Remove the typescript deep compiler-behavior unresolvedReference."
+    }
+  },
+  "dispositionSha256": "5317bef7fe3e6425fdc4ce6d144b8034496941823aa36764998ecae67e920876",
+  "fullProposal": "parity/research/dep-typescript-oracle-suite-001/merge-payload.json"
+}

@@ -1,0 +1,140 @@
+{
+  "schema": 1,
+  "pairId": "arena-base-graft-1",
+  "scenarioRef": "cmd-arena-base-graft",
+  "journeyFamily": "journey-cmd-arena-base-graft",
+  "requirementIds": [
+    "PSTACK-CMD-ARENA-BASE-GRAFT-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "/arena N=2 bake off two structurally distinct parseQuery(qs) → Record<string, string[]>; write c1/c2 under out, then synthesized + synthesis.md naming base+grafts+verify, then done.txt",
+  "steps": [
+    {
+      "send": "/arena N=2 bake off two structurally distinct pure JS implementations of parseQuery(qs) ..."
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "settle": true
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "c29a2b1d-9134-40bf-927f-68411fdb5772",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/arena/cursor/c29a2b1d-9134-40bf-927f-68411fdb5772",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "observations": {
+      "arenaSkill": true,
+      "fanout": true,
+      "base": true,
+      "graft": "yes",
+      "verify": true,
+      "contractOk": true,
+      "candidateCountOnDisk": 2,
+      "doneLine": "fanout=yes base=yes graft=yes verify=yes candidates=2",
+      "baseId": "c2",
+      "graftSources": ["c1"],
+      "crossJudge": "ran (parseQuery 3f2d22fb-b638-4790-9336-4965d1f8cec1); parent agreed",
+      "fanoutPath": "settled screen Phase B Fan out N=2; c1+c2 dirs with parseQuery.js+rationale.md",
+      "basePath": "settled screen Phase D Pick base candidate c2; synthesis.md Base c2",
+      "graftPath": "settled screen Phase E Graft c1 decode + strict typeof into c2; synthesis Grafts table",
+      "verifyPath": "synthesis Verification Node ESM assertions all passed",
+      "scorerNote": "durable candidates + synthesis Base/Grafts + done line; settled screen phases B–E"
+    }
+  },
+  "pi": {
+    "attemptId": "e4631b87-3d59-4e77-b3ff-05f7b0a740a3",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/arena/pi/e4631b87-3d59-4e77-b3ff-05f7b0a740a3",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-arena-fixture-app--/2026-10-08T21-30-31-827Z_01a11d6c-cc13-7011-bddf-7af7d40014df.jsonl",
+    "observations": {
+      "arenaSkill": true,
+      "fanout": true,
+      "base": true,
+      "graft": "yes",
+      "verify": true,
+      "contractOk": true,
+      "candidateCountOnDisk": 2,
+      "taskCount": 2,
+      "doneLine": "fanout=yes base=yes graft=yes verify=yes candidates=2",
+      "baseId": "c1",
+      "graftSources": ["c2"],
+      "crossJudge": "skipped; parent scored rubric directly (stated in synthesis.md)",
+      "sessionToolOrder": [
+        "TodoWrite",
+        "bash",
+        "bash",
+        "task",
+        "task",
+        "read_agent",
+        "read_agent",
+        "bash",
+        "bash",
+        "bash"
+      ],
+      "fanoutPath": "session two task tools then read_agent×2; c1+c2 on disk",
+      "basePath": "synthesis Base: c1; settled screen names base c1",
+      "graftPath": "synthesis Graft from c2 decodeRun behavior; settled screen Graft line",
+      "verifyPath": "synthesis Verification 12-input node compare vs c1/c2",
+      "scorerNote": "session task×2 proves fan-out; synthesis names base+graft+verify; done line matches"
+    }
+  },
+  "deltas": [
+    {
+      "topic": "fan-out then base then graft then verify",
+      "cursor": "contractOk true; Phase B–E on settled screen; base c2 graft from c1",
+      "pi": "contractOk true; task×2 in session; base c1 graft from c2",
+      "reconciled": true
+    },
+    {
+      "topic": "which candidate became base",
+      "cursor": "base c2 (helper pipeline; cross-judge 29 vs 28)",
+      "pi": "base c1 (smaller split/map/reduce; ~30 vs ~90 lines)",
+      "reconciled": false
+    },
+    {
+      "topic": "cross-judge spawn",
+      "cursor": "Arena cross-judge agent ran; parent agreed",
+      "pi": "cross-judge skipped; parent scored alone",
+      "reconciled": false
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "Auto / host default",
+      "pi": "claude-sonnet-5-5 · medium (claude-subscription)",
+      "reconciled": false
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-arena-base-graft.mjs --cursor-only then --pi-only",
+    "workerPlaybook": "parity/evidence/arena/PLAYBOOK.md",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "packagePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack",
+    "markerRoot": "parity/evidence/arena/fixture-out/{cursor,pi}/",
+    "heldOutFixture": "parity/evidence/arena/fixture-app (parse-query bakeoff)",
+    "auditTrail": "parity/evidence/arena/.audit/u-journey-cmd-arena.tsv"
+  }
+}

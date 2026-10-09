@@ -1,0 +1,16 @@
+{
+  "attemptId": "16a11cc9-c257-412c-bc71-fa8fd00ec609",
+  "mode": "open-automations-palette",
+  "evidenceDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/creation-boundary/agents-window/16a11cc9-c257-412c-bc71-fa8fd00ec609",
+  "pathsTried": [
+    "cmd+n",
+    "cmd+shift+p Open Automations + Return",
+    "sidebar clicks"
+  ],
+  "didNot": [
+    "enable Benny",
+    "editor save claim",
+    "Slack",
+    "Cloud Agent"
+  ]
+}

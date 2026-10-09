@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "kind": "source-reading-structural-check",
+  "recordedAt": "2026-10-08T06:03:51.665Z",
+  "packageFileCount": 14,
+  "consumerCount": 2,
+  "failures": [],
+  "authorization": "NONE",
+  "closureAudited": false,
+  "runtimeExecuted": false
+}

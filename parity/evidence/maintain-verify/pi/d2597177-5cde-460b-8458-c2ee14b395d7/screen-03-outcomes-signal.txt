@@ -1,0 +1,40 @@
+[Skill conflicts]                                                                                                      ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ Run /maintain-verification-skill now against the existing verify-hello-cli skill at                                   ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app/.pi/skills/verify ┃
+ -hello-cli/SKILL.md. Complete one full maintain pass for this tiny hello-cli (one feature already mapped). Only edit  ┃
+ that skill directory. Never edit product code (hello.sh, README.md). Never edit parity/ ledgers or                    ┃
+ ~/.cursor/rules/pstack-models.mdc. End with exactly one named outcome among clean, changed, or blocked. Definitions:  ┃
+ clean means full source and live coverage, nothing to ship, no branch or PR. changed means one PR of proven           ┃
+ corrections. blocked means coverage unfinished or a proven fix cannot ship safely, with the blocker stated. Prefer    ┃
+ clean when the seeded skill already matches ./hello.sh and live coverage passes. If clean or blocked: do not create a ┃
+ branch and do not open a PR. If changed: open exactly one PR of proven skill-dir corrections and no product-code      ┃
+ edits. Write exactly these lines to                                                                                   ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-out/pi/maintain-outco ┃
+ me.txt and stop:                                                                                                      ┃
+ OUTCOME=<clean|changed|blocked>                                                                                       ┃
+ PR=<none|url-or-path>                                                                                                 ┃
+ BLOCKER=<none|short reason>                                                                                           ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ [skill] maintain-verification-skill:1-200 (ctrl+o to expand)                                                          ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ $ cd /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app; find        ┃
+ .pi/skills -type f; cat .pi/skills/verify-hello-cli/SKILL.md; cat hello.sh; ./hello.sh;                               ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+── ⠦ Working ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app (refactor/pi-pstack-parity-again)
+$0.000 (sub) 1.6%/1.0M (auto)                                           (claude-subscription) claude-sonnet-5-5 • medium

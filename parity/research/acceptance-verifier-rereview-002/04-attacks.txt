@@ -1,0 +1,20 @@
+owner_tree_digest_before=261dbf0ce95731360750cab476c415425515b28590976fcc1a995c79482fb020
+ROW A-symlinked-parent-write | exit=1 | FAIL setup-pstack/record-hashes.json: path component setup-pstack is a symlink; hash files must stay inside the acceptance root
+   canary_unchanged=yes
+ROW A2-symlinked-parent-verify | exit=1 | FAIL setup-pstack/record-hashes.json: path component setup-pstack is a symlink; hash files must stay inside the acceptance root
+ROW B-hardlink-manifest | exit=1 | FAIL MANIFEST.sha256 has 2 hard links; hash files must be unlinked regular files inside the acceptance root
+   canary_unchanged=yes
+ROW B2-hardlink-record-hashes | exit=1 | FAIL setup-pstack/record-hashes.json has 2 hard links; hash files must be unlinked regular files inside the acceptance root
+   canary_unchanged=yes
+ROW C-final-symlink-manifest | exit=1 | FAIL MANIFEST.sha256 is a symlink; hash files must be regular files inside the acceptance root
+   canary_unchanged=yes
+ROW C2-final-symlink-record-hashes | exit=1 | FAIL setup-pstack/record-hashes.json is a symlink; hash files must be regular files inside the acceptance root
+   canary_unchanged=yes
+ROW C3-dangling-symlink-manifest | exit=1 | FAIL MANIFEST.sha256 is a symlink; hash files must be regular files inside the acceptance root
+   outside_file_created=no
+ROW D-dir-symlink-traversal-write | exit=1 | symlink at /var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/tmp.bI2k1cr8wF/D/review; acceptance tree traversal must not follow symlinks
+   canary_unchanged=yes manifest_unchanged=yes
+ROW D2-dir-symlink-traversal-verify | exit=1 | symlink at /var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/tmp.bI2k1cr8wF/D/review; acceptance tree traversal must not follow symlinks
+ROW E-symlinked-root-verify | exit=0 | {"kind":"acceptance-structural-check","structural":"PASS","authorization":"NONE","scope":"DRAFT integrity only. Not review, freezing, custody, evidence truth or acceptance.","partition":{"status":"DRAFT","definitions":43
+ROW F-clean-pinned | exit=0 | {"kind":"acceptance-structural-check","structural":"PASS","authorization":"NONE","scope":"DRAFT integrity only. Not review, freezing, custody, evidence truth or acceptance.","partition":{"status":"DRAFT","definitions":43
+owner_tree_digest_after=261dbf0ce95731360750cab476c415425515b28590976fcc1a995c79482fb020

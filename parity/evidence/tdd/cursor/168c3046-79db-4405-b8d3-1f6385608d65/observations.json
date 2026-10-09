@@ -1,0 +1,26 @@
+{
+  "screenFinal": {
+    "tddSkill": true,
+    "redSignal": true,
+    "greenSignal": false,
+    "skipImpractical": false,
+    "working": false
+  },
+  "firstTestAt": "2026-10-08T19:32:32.749Z",
+  "firstProductAt": "2026-10-08T19:33:02.379Z",
+  "testPaths": [
+    "test/clamp.test.js"
+  ],
+  "productPaths": [
+    "src/clamp.js"
+  ],
+  "ordering": "test_before_product",
+  "testBeforeProduct": true,
+  "redBeforeGreen": true,
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/tdd/fixture-out/cursor/done.txt",
+    "line": "test/clamp.test.js: AssertionError 10 !== 5"
+  },
+  "pollSamples": 210
+}

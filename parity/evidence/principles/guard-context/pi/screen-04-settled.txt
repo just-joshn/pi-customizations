@@ -1,0 +1,40 @@
+                                                                                                                       │
+ ["MARKER-ALPHA", "MARKER-BRAVO", "MARKER-CHARLIE", "MARKER-DELTA", "MARKER-ECHO", "MARKER-FOXTROT", "MARKER-GOLF",    │
+ "MARKER-HOTEL"]                                                                                                       │
+                                                                                                                       │
+                                                                                                                       │
+                                                                                                                       │
+ $ node scripts/verify.mjs; echo $? (timeout 20s)                                                                      │
+                                                                                                                       │
+ GUARD-OK markers=8                                                                                                    │
+ 0                                                                                                                     │
+                                                                                                                       │
+ Took 0.1s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+                                                                                                                       │
+ $ echo "verified=yes" >                                                                                               │
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/guard-context/fixture-out/pi/done. │
+ txt (timeout 10s)                                                                                                     │
+                                                                                                                       │
+ (no output)                                                                                                           │
+                                                                                                                       │
+ Took 0.0s                                                                                                             │
+                                                                                                                       ┃
+                                                                                                                       ┃
+ node scripts/verify.mjs now prints GUARD-OK markers=8, and I wrote verified=yes to fixture-out/pi/done.txt.           ┃
+                                                                                                                       ┃
+ out/summary.json lists eight markers, alphabetically: ALPHA, BRAVO, CHARLIE, DELTA, ECHO, FOXTROT, GOLF, HOTEL (each  ┃
+ with the MARKER- prefix).                                                                                             ┃
+                                                                                                                       ┃
+ Guard the Context Window (read in full) is the only principle I applied. It sent the scan of the 40 dumps to a child  ┃
+ Task, so the main thread only received the count and the sorted list.                                                 ┃
+                                                                                                                       ┃
+ I skipped the other Feature playbook steps (how, architect, the throughput checkpoint, commits and PR) because this   ┃
+ was a single scan with no PR requested.                                                                               ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/principles/guard-context/fixture-app (refactor/pi-pstack-parity...
+↑20 ↓2.0k R211k W40k CH99.6% $0.223 (sub) 3.7%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium

@@ -1,0 +1,40 @@
+~/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh/.pi/skills/get-pr-comments/SKILL.md                  │
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/get-pr-comments/SKILL.md (skipped)             │
+  "make-pr-easy-to-review" collision:                                                                                  │
+    ✓ auto (project)                                                                                                   ┃
+~/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh/.pi/skills/make-pr-easy-to-review/SKILL.md           ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/make-pr-easy-to-review/SKILL.md (skipped)      ┃
+  "new-branch-and-pr" collision:                                                                                       ┃
+    ✓ auto (project)                                                                                                   ┃
+~/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh/.pi/skills/new-branch-and-pr/SKILL.md                ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/new-branch-and-pr/SKILL.md (skipped)           ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ [skill] new-branch-and-pr (ctrl+o to expand)                                                                          ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ Do not ask questions. Follow the new-branch-and-pr skill. From this fixture repo, create branch                       ┃
+ fixture/new-branch-pi-mv0dnast from latest main, make a tiny focused change (append one line to README.md mentioning  ┃
+ pi), commit, push, and open a PR into main. Write the new PR URL alone to                                             ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/new-branch-and-pr/pr- ┃
+ url.txt. Then write exactly one line to                                                                               ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/new-branch-and-pr/don ┃
+ e.txt as STATUS=verified|not-verified|inconclusive|env-blocked reason=<short phrase> and stop. Artifacts stay under   ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/new-branch-and-pr. Do ┃
+ not edit parity ledgers. Do not force-push.                                                                           ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ $ cd /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh && git status --short |      ┃
+ head; git remote -v; git branch --show-current; g                                                                     ┃
+                                                                                                                       ┃
+
+── ⠼ Working ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/fixtures/team-kit-gh (main)
+$0.000 (sub) 1.6%/1.0M (auto)                                           (claude-subscription) claude-sonnet-5-5 • medium

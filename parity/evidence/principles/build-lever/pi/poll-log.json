@@ -1,0 +1,492 @@
+[
+  {
+    "ts": "2026-10-09T00:33:37.677Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "lever": [
+      "scripts/rewrite-prefix.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:33:38.078Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "lever": [
+      "scripts/rewrite-prefix.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:33:38.479Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "lever": [
+      "scripts/rewrite-prefix.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:33:38.880Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "lever": [
+      "scripts/rewrite-prefix.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:33:39.282Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "lever": [
+      "scripts/rewrite-prefix.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:33:39.684Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "lever": [
+      "scripts/rewrite-prefix.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:33:40.086Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "lever": [
+      "scripts/rewrite-prefix.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:33:40.488Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "lever": [
+      "scripts/rewrite-prefix.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:33:40.890Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "lever": [
+      "scripts/rewrite-prefix.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:33:41.290Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "lever": [
+      "scripts/rewrite-prefix.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:33:41.691Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "lever": [
+      "scripts/rewrite-prefix.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:33:42.095Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "lever": [
+      "scripts/rewrite-prefix.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:33:42.496Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "lever": [
+      "scripts/rewrite-prefix.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:33:42.898Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "lever": [
+      "scripts/rewrite-prefix.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:33:43.300Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "lever": [
+      "scripts/rewrite-prefix.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:33:43.702Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "lever": [
+      "scripts/rewrite-prefix.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:33:44.106Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "lever": [
+      "scripts/rewrite-prefix.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:33:44.508Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "lever": [
+      "scripts/rewrite-prefix.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:33:44.908Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "lever": [
+      "scripts/rewrite-prefix.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:33:45.311Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "lever": [
+      "scripts/rewrite-prefix.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:33:45.713Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "lever": [
+      "scripts/rewrite-prefix.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:33:46.114Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "lever": [
+      "scripts/rewrite-prefix.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:33:46.516Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "lever": [
+      "scripts/rewrite-prefix.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:33:46.920Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "lever": [
+      "scripts/rewrite-prefix.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:33:47.323Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "lever": [
+      "scripts/rewrite-prefix.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:33:47.724Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "lever": [
+      "scripts/rewrite-prefix.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:33:48.125Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "lever": [
+      "scripts/rewrite-prefix.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:33:48.528Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "lever": [
+      "scripts/rewrite-prefix.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:33:48.928Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "lever": [
+      "scripts/rewrite-prefix.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:33:49.329Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "lever": [
+      "scripts/rewrite-prefix.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:33:49.730Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "lever": [
+      "scripts/rewrite-prefix.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:33:50.132Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "lever": [
+      "scripts/rewrite-prefix.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:33:50.534Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "lever": [
+      "scripts/rewrite-prefix.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:33:50.935Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "lever": [
+      "scripts/rewrite-prefix.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T00:33:51.337Z",
+    "product": [
+      "src/alpha.js",
+      "src/beta.js",
+      "src/gamma.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "lever": [
+      "scripts/rewrite-prefix.mjs"
+    ]
+  }
+]

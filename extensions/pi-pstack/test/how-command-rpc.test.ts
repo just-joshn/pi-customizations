@@ -7,7 +7,7 @@ import { fixture, packageRoot } from './session-fixture.ts';
 import { expectDefined } from './support/expect-defined.ts';
 
 test.each([
-  { input: '/how inspect the fixture without executing agents', resource: '--prompt-template', path: 'prompts/how.md', expected: ['Read how/SKILL.md in full', 'resolving references and supporting scripts'] },
+  { input: '/how inspect the fixture without executing agents', resource: '--prompt-template', path: 'prompts/how.md', expected: ['<skill name=', 'Step 2b. Direct Explain', 'When in doubt, take the simple path.', 'Do not substantially rewrite it.'] },
   {
     input: '/skill:how inspect the fixture without executing agents',
     resource: '--skill',

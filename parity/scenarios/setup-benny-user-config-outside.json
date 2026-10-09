@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "setup-benny-user-config-outside",
+  "status": "paired",
+  "requirements": [
+    "PSTACK-SETUP-BENNY-USER-CONFIG-OUTSIDE-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/automations/benny/skills/setup-benny/SKILL.md### 2. Adapt the configuration, user-owned copies",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Documented preconditions satisfied; behavior not yet paired. Preconditions: Example templates exist under the copied pack.",
+    "digest": null
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Adapting Benny configuration and feature map after pack copy.. User-owned configuration, feature map, and routing map copies live outside .cursor/automations/benny/. Copied example files are not edited. Pack refreshes may update source-managed files after conflict review but never touch the user-owned copies."
+    }
+  ],
+  "execution": {
+    "pairId": "setup-benny-user-config-outside-1",
+    "verdict": "pass",
+    "pair": "parity/evidence/setup-benny/pair-setup-benny-user-config-outside-1.json",
+    "attempts": {
+      "cursor": "4ee10a59-d826-4875-8667-515f596d7cb7",
+      "pi": "5d95d377-27f7-4914-88f0-9ab4ab010516"
+    }
+  }
+}

@@ -1,0 +1,155 @@
+{
+  "schema": 1,
+  "pairId": "create-verify-helpers-1",
+  "scenarioRef": "create-verify:generate-then-reuse",
+  "journeyFamily": "journey-family-13-generated-resources-reuse",
+  "requirementIds": [
+    "PSTACK-SETUP-CREATE-VERIFY-GENERATE-001",
+    "PSTACK-CMD-CREATE-VERIFY-SKILL-001",
+    "PSTACK-SETUP-CREATE-VERIFY-FEATURE-MAP-001"
+  ],
+  "supersedesPairId": "create-verify-reuse-1",
+  "supersedesReason": "Prior pair left GENERATE unverified because Pi SKILL.md omitted ## Helpers. Do not reuse create-verify-reuse-1 as GENERATE proof.",
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptTemplateCreate": "/create-verification-skill for this tiny hello-cli only. Interview from README.md and hello.sh in the cwd. Write <host-skill-root>/verify-hello-cli/SKILL.md with YAML frontmatter name: verify-hello-cli and a real description. Fill Launch, Doctor, Drive, Evidence, Cleanup, and Helpers as ## headings from ./hello.sh (prints HELLO-FAMILY-13). Helpers may be the single word None if no helper scripts ship. Every section body must be real text with no TODO or placeholder wording. Cleanup must not kill by process name and must not delete named proof artifacts. Seed features/README.md plus one feature file for the hello print. Skip the live prove-the-skill step and skip the maintain offer. When the skill files are on disk, list their absolute paths and stop.",
+  "promptTemplateReuse": "Second turn reuse. Discover verify-hello-cli at <skill-abs>. Do not regenerate. Read Launch or Doctor, write exactly REUSED=<skill-abs> to <reuse-path>. Stop.",
+  "steps": [
+    {
+      "wait": "ready screen (Tip: on Cursor; Pi chat ready without Trust dialog)"
+    },
+    {
+      "send": "/create-verification-skill ... constrained generate including ## Helpers ..."
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "wait": "on-disk SKILL.md with name: verify-hello-cli and ## Launch through ## Helpers"
+    },
+    {
+      "send": "Second turn reuse. Discover ... write REUSED=..."
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "wait": "on-disk reuse.txt with REUSED=<skill-abs>"
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "66b7eaf6-e605-4446-8b68-cb18f6d64d8d",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/cursor/66b7eaf6-e605-4446-8b68-cb18f6d64d8d",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "skillPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app/.cursor/skills/verify-hello-cli/SKILL.md",
+    "reusePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-out/cursor/reuse.txt",
+    "observations": {
+      "createVerifyInvoked": true,
+      "skillCreated": true,
+      "skillNameOk": true,
+      "skillHasDescription": true,
+      "skillHasLaunch": true,
+      "skillHasHelpers": true,
+      "sectionsOk": true,
+      "hasTodoPlaceholder": false,
+      "featureMapSeeded": true,
+      "cleanupDoesNotKillByProcessName": true,
+      "cleanupDoesNotDeleteNamedProofArtifacts": true,
+      "liveProveSkippedAsInstructed": true,
+      "secondTurnReuseOk": true,
+      "reuseLine": "REUSED=/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app/.cursor/skills/verify-hello-cli/SKILL.md",
+      "reuseChrome": "Used verify-hello-cli",
+      "modelChrome": "Auto"
+    }
+  },
+  "pi": {
+    "attemptId": "530af8b2-6322-44f6-848f-d9b62d85323b",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/pi/530af8b2-6322-44f6-848f-d9b62d85323b",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-create-verify-fixture-app--/2026-10-08T19-24-22-743Z_01a11cf9-4d57-7066-852a-23119561a972.jsonl",
+    "skillPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app/.pi/skills/verify-hello-cli/SKILL.md",
+    "reusePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-out/pi/reuse.txt",
+    "abandonedAttemptId": "55aa1e66-2cba-4f6d-a46a-14cc87858a25",
+    "abandonedReason": "First Pi attempt hung after Trust dialog ate the create prompt; capture script then gained ensurePiTrust + waitPiChatReady and was re-run.",
+    "observations": {
+      "createVerifyInvoked": true,
+      "skillCreated": true,
+      "skillNameOk": true,
+      "skillHasDescription": true,
+      "skillHasLaunch": true,
+      "skillHasHelpers": true,
+      "sectionsOk": true,
+      "hasTodoPlaceholder": false,
+      "featureMapSeeded": true,
+      "cleanupDoesNotKillByProcessName": true,
+      "cleanupDoesNotDeleteNamedProofArtifacts": true,
+      "liveProveSkippedAsInstructed": true,
+      "secondTurnReuseOk": true,
+      "reuseLine": "REUSED=/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app/.pi/skills/verify-hello-cli/SKILL.md",
+      "reuseChrome": "[skill] verify-hello-cli:1-30",
+      "modelChrome": "(claude-subscription) claude-sonnet-5-5 • medium"
+    }
+  },
+  "deltas": [
+    {
+      "topic": "generated skill root",
+      "cursor": "Writes under .cursor/skills/verify-hello-cli/.",
+      "pi": "Writes under .pi/skills/verify-hello-cli/.",
+      "reconciled": false
+    },
+    {
+      "topic": "Helpers section present",
+      "cursor": "## Helpers with body None.",
+      "pi": "## Helpers with body None.",
+      "reconciled": true
+    },
+    {
+      "topic": "evidence path in skill body",
+      "cursor": "Cleanup protects artifacts/hello/ proof files.",
+      "pi": "Cleanup protects .pi/evidence/verify-hello-cli/ proof files.",
+      "reconciled": false
+    },
+    {
+      "topic": "reuse discovery chrome",
+      "cursor": "Settled reuse screen showed Used verify-hello-cli.",
+      "pi": "Settled reuse screen showed [skill] verify-hello-cli:1-30 then REUSED= write.",
+      "reconciled": false
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "Status chrome Auto.",
+      "pi": "Status chrome claude-sonnet-5-5 medium via claude-subscription.",
+      "reconciled": false
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-create-verify-reuse.mjs --cursor-only then --pi-only (after Helpers prompt + Pi trust ready wait)",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "fixtureApp": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app",
+    "packagePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack",
+    "decisionLog": "parity/evidence/create-verify/.audit/u-create-verify-generate-helpers.tsv",
+    "notes": "GENERATE recapture for PSTACK-SETUP-CREATE-VERIFY-GENERATE-001. Live prove and maintain offer intentionally skipped per prompt. Prior pair create-verify-reuse-1 is not GENERATE proof."
+  }
+}

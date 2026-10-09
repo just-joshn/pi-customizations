@@ -1,0 +1,800 @@
+[
+  {
+    "ts": "2026-10-08T21:44:01.848Z",
+    "potetoAgent": true,
+    "taskSpawn": false,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:44:02.261Z",
+    "potetoAgent": true,
+    "taskSpawn": false,
+    "skillReadChrome": false,
+    "generalPurpose": true
+  },
+  {
+    "ts": "2026-10-08T21:44:02.677Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": true
+  },
+  {
+    "ts": "2026-10-08T21:44:03.100Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": true
+  },
+  {
+    "ts": "2026-10-08T21:44:03.528Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": true
+  },
+  {
+    "ts": "2026-10-08T21:44:03.965Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": true
+  },
+  {
+    "ts": "2026-10-08T21:44:04.406Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": true
+  },
+  {
+    "ts": "2026-10-08T21:44:04.850Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": true
+  },
+  {
+    "ts": "2026-10-08T21:44:05.297Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": true
+  },
+  {
+    "ts": "2026-10-08T21:44:05.754Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": true
+  },
+  {
+    "ts": "2026-10-08T21:44:06.214Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": true
+  },
+  {
+    "ts": "2026-10-08T21:44:06.676Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": true
+  },
+  {
+    "ts": "2026-10-08T21:44:07.148Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": true
+  },
+  {
+    "ts": "2026-10-08T21:44:07.639Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": true
+  },
+  {
+    "ts": "2026-10-08T21:44:08.132Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": true
+  },
+  {
+    "ts": "2026-10-08T21:44:08.632Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": true
+  },
+  {
+    "ts": "2026-10-08T21:44:09.141Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": true
+  },
+  {
+    "ts": "2026-10-08T21:44:09.658Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": true
+  },
+  {
+    "ts": "2026-10-08T21:44:10.192Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": true
+  },
+  {
+    "ts": "2026-10-08T21:44:10.720Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": true
+  },
+  {
+    "ts": "2026-10-08T21:44:11.255Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": true
+  },
+  {
+    "ts": "2026-10-08T21:44:11.788Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": true
+  },
+  {
+    "ts": "2026-10-08T21:44:12.338Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": true
+  },
+  {
+    "ts": "2026-10-08T21:44:12.890Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": true
+  },
+  {
+    "ts": "2026-10-08T21:44:13.456Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": true
+  },
+  {
+    "ts": "2026-10-08T21:44:14.027Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": true
+  },
+  {
+    "ts": "2026-10-08T21:44:14.607Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": true
+  },
+  {
+    "ts": "2026-10-08T21:44:15.194Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": true
+  },
+  {
+    "ts": "2026-10-08T21:44:15.789Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": true
+  },
+  {
+    "ts": "2026-10-08T21:44:16.389Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": true
+  },
+  {
+    "ts": "2026-10-08T21:44:17.001Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": true
+  },
+  {
+    "ts": "2026-10-08T21:44:17.622Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": true
+  },
+  {
+    "ts": "2026-10-08T21:44:18.252Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": true
+  },
+  {
+    "ts": "2026-10-08T21:44:18.895Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": true
+  },
+  {
+    "ts": "2026-10-08T21:44:19.542Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": true
+  },
+  {
+    "ts": "2026-10-08T21:44:20.201Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": true
+  },
+  {
+    "ts": "2026-10-08T21:44:20.864Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": true
+  },
+  {
+    "ts": "2026-10-08T21:44:21.537Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": true
+  },
+  {
+    "ts": "2026-10-08T21:44:22.219Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": true
+  },
+  {
+    "ts": "2026-10-08T21:44:22.920Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": true
+  },
+  {
+    "ts": "2026-10-08T21:44:23.629Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": true
+  },
+  {
+    "ts": "2026-10-08T21:44:24.344Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": true
+  },
+  {
+    "ts": "2026-10-08T21:44:25.069Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": true
+  },
+  {
+    "ts": "2026-10-08T21:44:25.813Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": true
+  },
+  {
+    "ts": "2026-10-08T21:44:26.554Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": true
+  },
+  {
+    "ts": "2026-10-08T21:44:27.308Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": true
+  },
+  {
+    "ts": "2026-10-08T21:44:28.086Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": true
+  },
+  {
+    "ts": "2026-10-08T21:44:28.868Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": true
+  },
+  {
+    "ts": "2026-10-08T21:44:29.663Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": true
+  },
+  {
+    "ts": "2026-10-08T21:44:30.474Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": true
+  },
+  {
+    "ts": "2026-10-08T21:44:31.309Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": true
+  },
+  {
+    "ts": "2026-10-08T21:44:32.147Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:44:32.994Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:44:33.843Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:44:34.709Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:44:35.587Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:44:36.481Z",
+    "potetoAgent": true,
+    "taskSpawn": false,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:44:37.386Z",
+    "potetoAgent": true,
+    "taskSpawn": false,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:44:38.308Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:44:39.241Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:44:40.200Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:44:41.156Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:44:42.121Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:44:43.088Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:44:44.051Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:44:45.016Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:44:45.979Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:44:46.941Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:44:47.896Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:44:48.862Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:44:49.814Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:44:50.773Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:44:51.738Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:44:52.699Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:44:53.661Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:44:54.621Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:44:55.583Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:44:56.541Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:44:57.504Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:44:58.462Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:44:59.416Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:45:00.377Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:45:01.344Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:45:02.308Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:45:03.271Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:45:04.230Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:45:05.192Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:45:06.152Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:45:07.112Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:45:08.083Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:45:09.052Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:45:10.016Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:45:10.990Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:45:11.954Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:45:12.936Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:45:13.906Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:45:14.876Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:45:15.853Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:45:16.833Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:45:17.804Z",
+    "potetoAgent": true,
+    "taskSpawn": false,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:45:18.787Z",
+    "potetoAgent": true,
+    "taskSpawn": false,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:45:19.783Z",
+    "potetoAgent": true,
+    "taskSpawn": false,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:45:20.784Z",
+    "potetoAgent": true,
+    "taskSpawn": true,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:45:21.811Z",
+    "potetoAgent": true,
+    "taskSpawn": false,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:45:22.849Z",
+    "potetoAgent": true,
+    "taskSpawn": false,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:45:23.908Z",
+    "potetoAgent": true,
+    "taskSpawn": false,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:45:24.982Z",
+    "potetoAgent": true,
+    "taskSpawn": false,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:45:26.083Z",
+    "potetoAgent": true,
+    "taskSpawn": false,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:45:27.201Z",
+    "potetoAgent": true,
+    "taskSpawn": false,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:45:28.331Z",
+    "potetoAgent": true,
+    "taskSpawn": false,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:45:29.426Z",
+    "potetoAgent": true,
+    "taskSpawn": false,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:45:30.554Z",
+    "potetoAgent": true,
+    "taskSpawn": false,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:45:31.656Z",
+    "potetoAgent": true,
+    "taskSpawn": false,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  },
+  {
+    "ts": "2026-10-08T21:45:32.746Z",
+    "potetoAgent": true,
+    "taskSpawn": false,
+    "skillReadChrome": false,
+    "generalPurpose": false
+  }
+]

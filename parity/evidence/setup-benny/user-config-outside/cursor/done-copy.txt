@@ -1,0 +1,1 @@
+STATUS=adapt-mismatch reason=fixture has no user-facing features for feature map

@@ -1,0 +1,11 @@
+{
+  "attemptId": "ecac27a8-740d-494b-bc1f-93f36d27f80f",
+  "mode": "makebot-slash-and-new-automation",
+  "evidenceDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/make-bot-ui/agents-window/ecac27a8-740d-494b-bc1f-93f36d27f80f",
+  "didNot": [
+    "fabricate key",
+    "Slack",
+    "Cloud Agent",
+    "Benny enable"
+  ]
+}

@@ -1,0 +1,124 @@
+{
+  "score": {
+    "frontmatterOk": true,
+    "leafSkillRead": true,
+    "usedChrome": true,
+    "modelAutoInvoke": false,
+    "keptVerifyOk": true,
+    "mechanismPresent": true,
+    "mechanismArtifacts": [
+      "scripts/check-allow-debug.mjs"
+    ],
+    "productFixed": true,
+    "noSecondProse": true,
+    "verifiedDone": true,
+    "contractHeld": true,
+    "screen": {
+      "potetoMode": false,
+      "leafChrome": false,
+      "hostAttached": false,
+      "verifyMention": true,
+      "mechanismMention": true,
+      "working": false
+    },
+    "pty": {
+      "potetoMode": true,
+      "leafChrome": false,
+      "hostAttached": true,
+      "verifyMention": true,
+      "mechanismMention": true,
+      "working": true
+    }
+  },
+  "firstProductAt": "2026-10-09T01:04:55.051Z",
+  "firstVerifyAt": "2026-10-09T01:05:06.691Z",
+  "firstMechanismAt": "2026-10-09T01:04:58.661Z",
+  "productPaths": [
+    "src/config.js"
+  ],
+  "mechanismArtifacts": [
+    "scripts/check-allow-debug.mjs"
+  ],
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/encode-structure/fixture-out/cursor/done.txt",
+    "line": "verified=yes"
+  },
+  "verifyOut": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/encode-structure/fixture-app/evidence/verify-out.txt",
+    "line": "ENCODE-OK",
+    "ok": true
+  },
+  "productFixed": true,
+  "prose": {
+    "ok": true,
+    "hits": [
+      "NOTES.md"
+    ]
+  },
+  "frontmatter": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/principle-encode-lessons-in-structure/SKILL.md",
+    "ok": true,
+    "name": "principle-encode-lessons-in-structure",
+    "disableModelInvocation": true
+  },
+  "session": null,
+  "transcript": {
+    "path": "/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/agent-transcripts/9d7f4ff3-1a2e-401c-9690-1690796f8904/9d7f4ff3-1a2e-401c-9690-1690796f8904.jsonl",
+    "leafSkillRead": true,
+    "leafSkillReadAt": "2026-10-09T01:06:05.693Z",
+    "ranVerifyScript": true,
+    "wroteMechanism": false,
+    "toolOrder": [
+      "GetDynamicTools",
+      "Read(lever-leaf)",
+      "Read",
+      "Glob",
+      "blob-mention(lever-leaf)",
+      "CallDynamicTool(verify.mjs)",
+      "Read(verify.mjs)",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "Read",
+      "GetDynamicTools",
+      "Read",
+      "CallDynamicTool",
+      "CallDynamicTool(verify.mjs)",
+      "Read",
+      "Read",
+      "Shell(verify.mjs)",
+      "Shell",
+      "CallDynamicTool"
+    ],
+    "mtimeMs": 1791507942916.4902
+  },
+  "pollSamples": 170,
+  "screenFinal": {
+    "potetoMode": false,
+    "leafChrome": false,
+    "hostAttached": false,
+    "verifyMention": true,
+    "mechanismMention": true,
+    "working": false
+  },
+  "pty": {
+    "potetoMode": true,
+    "leafChrome": false,
+    "hostAttached": true,
+    "verifyMention": true,
+    "mechanismMention": true,
+    "working": true
+  }
+}

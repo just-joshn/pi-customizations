@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "setup-rerun-preserve",
+  "status": "executed-pass-paired",
+  "requirements": [
+    "PSTACK-SETUP-RERUN-PRESERVE-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/setup-pstack/SKILL.md#### 3. Budget, map, and confirm, subsection (b) re-run keep",
+  "configurationIds": [
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "mixed-role rerun fixture",
+    "digest": "sha256:5f7e90885d37c4b9b7e2027755436f435f8fba765f74c3c92373bb30d0bc9d9b"
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Re-run /setup-pstack after prior role edits by family, list, or alias.. Roles previously changed by family, list, or alias remain those values while the new budget effort mapping is applied to real slugs."
+    }
+  ],
+  "execution": {
+    "referenceRun": "428e113d-8047-473a-aea6-3b632f080322",
+    "candidateRun": "6769d1c3-6f00-4528-85c5-7a251f30aeff",
+    "pairId": "setup-rerun-mutate-role-1",
+    "pairPath": "parity/evidence/setup-rerun/pair-setup-rerun-mutate-role-1.json",
+    "verdict": "pass-paired",
+    "closedAt": "2026-10-08T18:00:59Z"
+  }
+}

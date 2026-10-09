@@ -1,0 +1,39 @@
+    ▎    2 + FEATURES=2
+    ▎    3 + CONCURRENT_CHILDREN=yes
+    ▎    4 + FIELDS=summary,entrypoints,drift,recipe
+    ▎    5 + CHILDREN_DROVE=no
+    ▎    6 + CHILDREN_EDITED=no
+
+  $ cd /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app-source-wave
+    && find . -type f | sort && ls -la .cursor/evidence 2>&1 | head -2 195ms
+    … 5 output lines hidden · ctrl+o to expand
+    ./hello.sh
+    ls: cannot access '.cursor/evidence': No such file or directory
+
+  I ran passes 0–2 of the maintain pass on verify-hello-cli and stopped after the source wave. Neither child found
+  any drift between the feature files, SKILL.md, and hello.sh.
+
+  • Locate: verify-hello-cli was the only candidate skill, so there was nothing to choose between.
+  • Index hygiene: the feature map README lists exactly hello-print.md and exit-zero.md, and those are the only
+    files next to it. Nothing was missing, extra, duplicated or dead, so I edited nothing.
+  • Source wave: I launched two read-only explore subagents at the same time, one per feature file. Each returned
+    all four fields: summary, source entry points, drift, and a live-verification recipe. Both said none for drift.
+    Both pointed out the same small wording gap: the feature files say "under the skill Evidence path," but the
+    directory .cursor/evidence/verify-hello-cli/ only appears in the skill's Drive section.
+
+  The children's returns are saved verbatim in fixture-out/source-wave/cursor/children/hello-print.md and
+  exit-zero.md. The six requested lines are in fixture-out/source-wave/cursor/source-wave.txt.
+
+  The fixture still contains only its original six files. No .cursor/evidence directory exists, which confirms
+  nothing ran the app, and hello.sh and README.md are untouched. I didn't touch the ledgers or pstack-models.mdc,
+  ran no live pass, and opened no PR.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Claude Opus 5.5 300K Medium · 16.7% · 3 files edited                                                  Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/maintain-verify/fixture-app-source-wave · 
+  refactor/pi-pstack-parity-again

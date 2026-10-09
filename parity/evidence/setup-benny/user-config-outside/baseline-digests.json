@@ -1,0 +1,6 @@
+{
+  ".cursor/automations/benny/templates/configuration.example.yaml": "sha256:0df2a312685ba1371d7b6f9be73d0ec73baa777cdcf052f52530040eaa0af191",
+  ".cursor/automations/benny/skills/reproduce-and-fix-issues/references/feature-map.example.md": "sha256:9572deb073c21cffadbdf14eb599052e8823cf05fd1d0f7cbd32c5c62215017f",
+  ".cursor/automations/benny/skills/triage-issue-reports/references/routing.example.md": "sha256:67406ae5bbc0c90e3b062f425017b0948b270645ee338b6c28cfc9fc211f1532",
+  "src/app.js": "sha256:e798010fc8c298534ad1b05a51dadab9fb1077129eecee920ce524af012c583e"
+}

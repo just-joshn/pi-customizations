@@ -1,0 +1,39 @@
+
+    Edited hello-print.md +30
+
+    ▎    1 + # Hello print
+    ▎    2 + 
+    ▎    3 + Running the CLI prints the greeting `HELLO-FAMILY-13` and exits successfully.
+    ▎    4 + 
+    ▎    5 + ## Sub-features
+    ▎    6 + 
+    ▎    7 + - `hello-stdout` prints exactly `HELLO-FAMILY-13` and a newline to stdout.
+    ▎    8 + - `hello-exit` exits with code 0.
+    ▎    9 + - `hello-quiet` writes nothing to stderr.
+    ▎   10 + 
+    ▎   11 + ## How to get to it (user POV)
+    ▎   12 + 
+    ▎   13  … truncated (18 more lines) · ctrl+r to review
+
+  Skill files on disk:
+
+  • /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app/.cursor/skil
+    ls/verify-hello-cli/SKILL.md
+  • /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app/.cursor/skil
+    ls/verify-hello-cli/features/README.md
+  • /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app/.cursor/skil
+    ls/verify-hello-cli/features/hello-print.md
+
+
+
+                                                                                                                       
+  → verify-hello-cli/SKILL.md. Do not regenerate it. Read its Launch or Doctor section, then write exactly one line    
+    to                                                                                                                 
+    /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-out/cursor/reuse.tx  
+    t:                                                                                                                 
+    REUSED=/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app/.cursor/  
+    skills/verify-hello-cli/SKILL.md. Stop after that write.                                                           
+                                                                                                                       
+
+  Auto · 11.2% · 3 files edited                                                                         Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app · refactor/pi-pstack-parity-again

@@ -1,0 +1,7 @@
+{
+  "unit": "ms",
+  "workload": "parse 10k synthetic records",
+  "baseline_ms": [412, 408, 415, 410, 421],
+  "optimized_ms": [88, 84, 91, 86, 89],
+  "notes": "Mean ratio of means is about 4.8x. Optimized path still single-threaded."
+}

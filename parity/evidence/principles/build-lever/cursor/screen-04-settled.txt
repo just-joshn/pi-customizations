@@ -1,0 +1,39 @@
+
+  What changed for a reviewer. One new script, scripts/rewrite-prefix.mjs, does the rename. It finds the export 
+  const TAG = '...' line in each src/*.js and sets it to APP_ plus the file stem. If a file has no TAG line, it
+  stops with an error. It only writes files that change. To recheck everything, run node scripts/rewrite-prefix.mjs 
+  && node scripts/verify.mjs.
+
+  Evidence. Before the change, verify failed on all three files with LEGACY_* values. The first codemod run rewrote
+  3 files. A second run reported all 3 unchanged, so it is safe to rerun. I also read the three source files back
+  directly and saw APP_alpha, APP_beta and APP_gamma.
+
+  Left alone. Line 3 of README.md still says each module "still uses the old LEGACY_ prefix". That prose is now out
+  of date. I didn't touch it because you asked for module rewrites only. It's a one-line edit if you want it.
+
+  Principles applied.
+  • Build the Lever. I wrote a rerunnable codemod instead of editing three files by hand. I made it rerun cleanly
+    and fail loudly on a missing TAG.
+  • Prove It Works. I counted verification only from the real check (verify.mjs, plus reading the files back), not
+    from the codemod's own log.
+
+  Playbook steps.
+  1. done. scripts/verify.mjs was already the pin, and it failed before the change.
+  2. skip: these are three one-line constant files with nothing missing in their structure.
+  3. skip: the shape stays the same, one exported constant per module.
+  4. skip: there was no dead code to remove.
+  5. done. The codemod did the edit in one pass with no shims, and rg LEGACY_ found no leftover uses in code. I
+     didn't hand it to a subagent because the script was the whole edit.
+  6. done. Verify gave PREFIX-OK units=3, and the files read back correctly.
+  7. done. Each file still has one line. The script is the one new thing a reviewer reads.
+  8. skip: you asked me to stop after writing done.txt, so no commits and no PR.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Claude Opus 5.5 300K Medium · 17.6% · 1 file edited                                                   Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/principles/build-lever/fixture-app · 
+  refactor/pi-pstack-parity-again

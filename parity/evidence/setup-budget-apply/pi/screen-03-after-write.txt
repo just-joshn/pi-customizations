@@ -1,0 +1,36 @@
+ ▎+ architect runners: claude-subscription/claude-opus-5-5:max, claude-subscription/claude-sonnet-5-5:max              │
+ ▎+ interrogate reviewers: claude-subscription/claude-opus-5-5:max, claude-subscription/claude-sonnet-5-5:max          │
+ ▎                                                                                                                     │
+                                                                                                                       │
+                                                                                                                       │
+                                                                                                                       │
+ Call pstack_setup action state (or read $PI_CODING_AGENT_DIR/pstack/models.mdc) before answering. Do not invent the   │
+ current table. Budget choice: unlimited — max reasoning. If the selector shows unlimited — keep max, that is the      │
+ unlimited option. Choose it and still write budget unlimited (max) with remapped real slugs. The current rule already │
+ has real model values at medium effort plus bug-fix: auto and how explorer: inherit-parent. Apply effort mapping      │
+ only: every real value becomes provider/id:max (panel list entries included). Pass those remapped values as           │
+ roleOverrides on pstack_setup write. The write tool does not remap for you. Do not replace real model values with     │
+ inherit-parent or auto. Keep bug-fix as auto and how explorer as inherit-parent exactly. The fixture uses only        │
+ claude-subscription Claude models already in availableModels. Remap those to :max and write. Do not stop to ask which │
+ option. Accept that remapped table and write the rule. Decline any verification skill offer.                          │
+                                                                                                                       │
+                                                                                                                       │
+ Thinking...                                                                                                           │
+                                                                                                                       │
+                                                                                                                       │
+ The pstack model rule is written with budget unlimited (max). It applies to new sessions, and you can re-run          │
+ /setup-pstack to change it. I re-read it with the state action afterwards, and it matches what you specified.         ┃
+                                                                                                                       ┃
+ - Real models: every real model is remapped to :max, including each entry in the panel lists. Examples are            ┃
+   claude-subscription/claude-sonnet-5-5:max and claude-subscription/claude-opus-5-5:max.                              ┃
+ - Kept as they were: bug-fix: auto and how explorer: inherit-parent.                                                  ┃
+ - Retired roles: none were dropped.                                                                                   ┃
+                                                                                                                       ┃
+ Each model slug I wrote is in the detected list. I skipped the role-confirm prompt because you said to accept the     ┃
+ remapped table. I also declined the verification-skill offer, as you asked.                                           ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run (refactor/pi-pstack-parity-again)
+↑14 ↓1.4k R126k W25k CH93.1% $0.141 (sub) 3.4%/1.0M (auto)              (claude-subscription) claude-sonnet-5-5 • medium

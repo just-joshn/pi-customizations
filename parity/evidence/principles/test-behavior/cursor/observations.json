@@ -1,0 +1,101 @@
+{
+  "score": {
+    "frontmatterOk": true,
+    "leafSkillRead": true,
+    "usedChrome": true,
+    "modelAutoInvoke": false,
+    "keptVerifyOk": true,
+    "behaviorTestOk": true,
+    "productOk": true,
+    "verifiedDone": true,
+    "ranVerifyScript": true,
+    "contractHeld": true,
+    "screen": {
+      "potetoMode": false,
+      "leafChrome": false,
+      "hostAttached": false,
+      "askPhrase": false,
+      "irreversibleMention": false,
+      "verifyMention": true,
+      "working": false
+    },
+    "pty": {
+      "potetoMode": true,
+      "leafChrome": false,
+      "hostAttached": true,
+      "askPhrase": false,
+      "irreversibleMention": false,
+      "verifyMention": true,
+      "working": true
+    }
+  },
+  "firstProductAt": "2026-10-09T00:41:25.767Z",
+  "firstVerifyAt": "2026-10-09T00:41:22.961Z",
+  "productPaths": [
+    "test/slugify.test.js"
+  ],
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/test-behavior/fixture-out/cursor/done.txt",
+    "line": "verified=yes"
+  },
+  "verifyOut": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/principles/test-behavior/fixture-app/evidence/verify-out.txt",
+    "line": "TEST-OK input=\"Hello, World!\" expected=hello-world",
+    "ok": true
+  },
+  "behaviorTest": {
+    "callsSubject": true,
+    "literalAssert": true,
+    "weakOnly": false,
+    "ok": true
+  },
+  "productOk": true,
+  "frontmatter": {
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/principle-test-behavior-not-implementation/SKILL.md",
+    "ok": true,
+    "name": "principle-test-behavior-not-implementation",
+    "disableModelInvocation": true
+  },
+  "session": null,
+  "transcript": {
+    "path": "/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/agent-transcripts/64f28010-ad07-4cc2-b6ca-1e655b25ba79/64f28010-ad07-4cc2-b6ca-1e655b25ba79.jsonl",
+    "leafSkillRead": true,
+    "leafSkillReadAt": "2026-10-09T00:41:41.060Z",
+    "ranVerifyScript": true,
+    "askTool": false,
+    "irreversibleTool": false,
+    "toolOrder": [
+      "Shell",
+      "Read(test-behavior-leaf)",
+      "blob-mention(test-behavior-leaf)",
+      "Read",
+      "Shell(verify.mjs)",
+      "Write",
+      "Shell(verify.mjs)",
+      "Shell(verify.mjs)"
+    ],
+    "askPhrase": true,
+    "mtimeMs": 1791506493849.6636
+  },
+  "pollSamples": 44,
+  "screenFinal": {
+    "potetoMode": false,
+    "leafChrome": false,
+    "hostAttached": false,
+    "askPhrase": false,
+    "irreversibleMention": false,
+    "verifyMention": true,
+    "working": false
+  },
+  "pty": {
+    "potetoMode": true,
+    "leafChrome": false,
+    "hostAttached": true,
+    "askPhrase": false,
+    "irreversibleMention": false,
+    "verifyMention": true,
+    "working": true
+  }
+}

@@ -1,0 +1,39 @@
+    ▎   11 + ## Preference profile
+    ▎   12 + 
+    ▎   13  … truncated (16 more lines) · ctrl+r to review
+
+    Edited extracted-preferences.md +14
+
+    ▎    1 + # Extracted preferences (rule draft)
+    ▎    2 + 
+    ▎    3 + FIXTURE_PREF
+    ▎    4 + 
+    ▎    5 + ## Shipping
+    ▎    6 + 
+    ▎    7 + - Prefer short, focused commits.
+    ▎    8 + - Always follow test-before-PR: run tests before opening a pull request.
+    ▎    9 + - Never force-push.
+    ▎   10 + 
+    ▎   11 + ## Capture
+    ▎   12 + 
+    ▎   13  … truncated (2 more lines) · ctrl+r to review
+
+    Edited done.txt +1
+
+    ▎    1 + STATUS=verified reason=prefs encoded from synthetic parent-alpha
+
+  Done. Artifacts under fixture-out/cursor/workflow-from-chats:
+
+  • summary.md — synthesis (FIXTURE_PREF, test-before-PR)
+  • extracted-preferences.md — rule draft (FIXTURE_PREF, test-before-PR)
+  • done.txt — STATUS=verified reason=prefs encoded from synthetic parent-alpha
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 9.5% · 3 files edited                                                                          Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/workflow-from-chats · 
+  refactor/pi-pstack-parity-again

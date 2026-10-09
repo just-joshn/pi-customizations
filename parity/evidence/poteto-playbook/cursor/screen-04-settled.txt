@@ -1,0 +1,39 @@
+      step-3 architect/interrogate fan-out.
+    ✔ Plan the fix. If it crosses a function boundary, `architect` first. Delegate implementation to a subagent 
+      using your configured bug-fix model (default `sonnet`) with a specific scope.
+    ✔ Verify on the same surface. The original repro now passes. "Inconclusive" or wrong-surface is not a pass. 
+      Flag it. Unit tests show branch behavior, not bug absence.
+    ✔ Write exactly one line to fixture-out/cursor/done.txt naming the playbook matched, then stop.
+
+  inc(3) returned 3 because the body returned n unchanged. It now returns n + 1.
+
+  Failing repro.
+
+  {"input":3,"output":3,"expected":4}
+
+  Passing repro.
+
+  {"input":3,"output":4,"expected":4,"pass":true}
+
+  done.txt names Bug fix.
+
+  Principles. Laziness Protocol kept the change to one expression. Fix Root Causes targeted the identity return.
+  Prove It Works re-ran the same node import check after the edit.
+
+  Playbook steps.
+  1. done
+  2. done (mechanism confirmed by source plus failing inc(3); skipped how/why seeding, skip: one-line identity
+     return already pinned)
+  3. done (architect skip: no cross-boundary design; fix delegated to poteto-agent)
+  4. done
+  5. skip: operator forbade work outside the fixture cwd and did not request a commit
+  6. skip: operator said write done.txt then stop
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 14.1% · 1 file edited                                                                          Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/poteto-playbook/fixture-app · refactor/pi-pstack-parity-again

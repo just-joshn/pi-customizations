@@ -1,0 +1,96 @@
+{
+  "schema": 1,
+  "pairId": "consumer-typecheck-1",
+  "scenarioRef": "consumer:typecheck-typescript",
+  "matrixJourney": {
+    "packageId": "npm:typescript@7.0.2",
+    "activation": "typecheck",
+    "consumerPath": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/package.json",
+    "acceptanceJourney": "Paired Cursor+Pi journey exercising npm:typescript@7.0.2 via parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/package.json"
+  },
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "In this cwd, run exactly: bun run typecheck; write EXIT=0 to side-specific done path",
+  "steps": [
+    {
+      "send": "bun run typecheck \u2026 EXIT=0 \u2026"
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "settle": true
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "7aecba32-e4a1-49a3-b9cd-63e418d531ac",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/consumer/cursor/7aecba32-e4a1-49a3-b9cd-63e418d531ac",
+    "screenSettled": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/consumer/cursor/7aecba32-e4a1-49a3-b9cd-63e418d531ac/screen-03-settled.txt",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "observations": {
+      "afterTypecheck": {
+        "typecheckCmd": true,
+        "tscProject": true,
+        "noEmit": true,
+        "strict": true,
+        "tsError": false,
+        "working": false
+      },
+      "typecheckChromeOk": true,
+      "doneMarkerOk": true,
+      "consumerPath": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/package.json",
+      "consumerSha256": "d1f815091209d49763775cc188e8e06ff32d5fec648bffd2272bc25a165e87c3",
+      "consumerMatchesLocked": true,
+      "journeyClosed": true
+    }
+  },
+  "pi": {
+    "attemptId": "08917c07-ed54-41ac-86df-6586133d009d",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/consumer/pi/08917c07-ed54-41ac-86df-6586133d009d",
+    "screenSettled": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/consumer/pi/08917c07-ed54-41ac-86df-6586133d009d/screen-03-settled.txt",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "observations": {
+      "afterTypecheck": {
+        "typecheckCmd": true,
+        "tscProject": true,
+        "noEmit": true,
+        "strict": true,
+        "tsError": false,
+        "working": false
+      },
+      "typecheckChromeOk": true,
+      "doneMarkerOk": true,
+      "consumerPath": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/package.json",
+      "consumerSha256": "d1f815091209d49763775cc188e8e06ff32d5fec648bffd2272bc25a165e87c3",
+      "consumerMatchesLocked": true,
+      "journeyClosed": true
+    }
+  },
+  "pairClosed": true,
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-consumer-typecheck.mjs --both",
+    "toolsCwd": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "lockedConsumerSha256": "d1f815091209d49763775cc188e8e06ff32d5fec648bffd2272bc25a165e87c3"
+  },
+  "verdict": "pass",
+  "closedAt": "2026-10-09T02:18:00Z"
+}

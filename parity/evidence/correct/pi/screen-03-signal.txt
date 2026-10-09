@@ -1,0 +1,40 @@
+[Skill conflicts]                                                                                                      ┃
+  "tdd" collision:                                                                                                     ┃
+    ✓ auto (user) ~/.agents/skills/tdd/SKILL.md                                                                        ┃
+    ✗ ~/src/personal/pi-pstack-parity-again/extensions/pi-pstack/skills/tdd/SKILL.md (skipped)                         ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ [skill] correct (ctrl+o to expand)                                                                                    ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ agents keep importing src/db.js from feature modules instead of using src/store.js. Mine CORRECTIONS.md and history/  ┃
+ in this fixture cwd. The docs-only note in AGENTS.md is not enough. Encode the mistake at the highest working level   ┃
+ that works (architecture, then types or lint, then a test, docs last). Prove the new check fails on the real past     ┃
+ mistake at history/past-mistake-1.js. Work only inside this fixture cwd for product changes. Write a short summary of ┃
+ the level you picked and the proof command to                                                                         ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/correct/fixture-out/pi/encoding.md. Write the ┃
+ exact proof command and its non-zero exit code to                                                                     ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/correct/fixture-out/pi/proof.txt. Then write  ┃
+ exactly one line to                                                                                                   ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/correct/fixture-out/pi/done.txt as            ┃
+ correct=yes|no|fail, then stop.                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ $ cd /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/correct/fixture-app; ls -la; cat         ┃
+ CORRECTIONS.md package.json; ls history src test                                                                      ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+
+── ⠦ Working ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/correct/fixture-app (refactor/pi-pstack-parity-again)
+$0.000 (sub) 1.7%/1.0M (auto)                                           (claude-subscription) claude-sonnet-5-5 • medium

@@ -1,0 +1,122 @@
+{
+  "schema": 1,
+  "pairId": "benny-triage-fail-closed-1",
+  "scenarioRef": "cmd-benny-triage-thread-only",
+  "journeyFamily": "journey-family-11-benny-and-automations",
+  "requirementIds": [
+    "PSTACK-CMD-BENNY-TRIAGE-THREAD-ONLY-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "Start Benny triage-issue-reports against incomplete .upstream/benny/configuration.yaml with synthetic Slack trigger; write STATUS= line to host-specific fixture-out done.txt",
+  "steps": [
+    { "send": "Read and follow .upstream/automations/benny/skills/triage-issue-reports/SKILL.md ... incomplete config at .upstream/benny/configuration.yaml ..." },
+    { "send": "\r" },
+    { "settle": true },
+    { "cancel": true }
+  ],
+  "cursor": {
+    "attemptId": "876cbcf4-ea8d-4276-9e9b-f0ec2a7da379",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/benny-triage/cursor/876cbcf4-ea8d-4276-9e9b-f0ec2a7da379",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "observations": {
+      "outcome": "fail_closed",
+      "contractHeld": true,
+      "productBeforeDigest": "6d25aaa55e6743a689353d831d7062b3f8f829802ec810ddee67a0d1b55041fc",
+      "productAfterDigest": "6d25aaa55e6743a689353d831d7062b3f8f829802ec810ddee67a0d1b55041fc",
+      "productUnchanged": true,
+      "doneMarkerWritten": true,
+      "doneLine": "STATUS=fail-closed reason=incomplete Benny config",
+      "slackPostAttempt": false,
+      "trackerWriteAttempt": false,
+      "reproduceFixAttempt": false,
+      "skillChrome": true,
+      "filesRead": [
+        ".upstream/automations/benny/skills/triage-issue-reports/SKILL.md",
+        ".upstream/benny/configuration.yaml"
+      ]
+    }
+  },
+  "pi": {
+    "attemptId": "5e2be54e-ec04-4238-a2d0-2fd622e87cc0",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/benny-triage/pi/5e2be54e-ec04-4238-a2d0-2fd622e87cc0",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-benny-triage-fixture-app--/2026-10-08T22-55-07-470Z_01a11dba-3ece-7248-af32-033a069467a9.jsonl",
+    "observations": {
+      "outcome": "fail_closed",
+      "contractHeld": true,
+      "productBeforeDigest": "6d25aaa55e6743a689353d831d7062b3f8f829802ec810ddee67a0d1b55041fc",
+      "productAfterDigest": "6d25aaa55e6743a689353d831d7062b3f8f829802ec810ddee67a0d1b55041fc",
+      "productUnchanged": true,
+      "doneMarkerWritten": true,
+      "doneLine": "STATUS=fail-closed reason=incomplete config: no slack actions, tracker adapter ops, or routing map",
+      "slackPostAttempt": false,
+      "trackerWriteAttempt": false,
+      "reproduceFixAttempt": false,
+      "skillRead": true,
+      "sessionToolOrder": [
+        "read(triage-issue-reports/SKILL.md)",
+        "read",
+        "bash"
+      ]
+    }
+  },
+  "deltas": [
+    {
+      "topic": "fail-closed on incomplete Benny config",
+      "cursor": "STATUS=fail-closed reason=incomplete Benny config. Settled screen states no Slack reads/posts, tracker writes, or reproduce-and-fix. src/app.js digest unchanged.",
+      "pi": "STATUS=fail-closed reason=incomplete config: no slack actions, tracker adapter ops, or routing map. Session tools are skill/config reads + done write only. src/app.js digest unchanged.",
+      "reconciled": true
+    },
+    {
+      "topic": "skill engagement path",
+      "cursor": "Read tool on triage-issue-reports/SKILL.md and configuration.yaml.",
+      "pi": "read tool on triage-issue-reports/SKILL.md then configuration.yaml, then bash for done marker.",
+      "reconciled": true
+    },
+    {
+      "topic": "exact fail-closed reason string",
+      "cursor": "incomplete Benny config",
+      "pi": "incomplete config: no slack actions, tracker adapter ops, or routing map",
+      "reconciled": true
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "Auto",
+      "pi": "claude-sonnet-5-5 • medium (claude-subscription)",
+      "reconciled": false
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-benny-triage-fail-closed.mjs (paired run producing cursor 876cbcf4 and pi 5e2be54e)",
+    "workerPlaybook": "parity/evidence/benny-triage/PLAYBOOK.md",
+    "decisionTrail": "parity/evidence/benny-triage/.audit/u-journey-cmd-benny-triage.tsv",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "heldOutFixture": "parity/evidence/benny-triage/fixture-app (Benny pack + incomplete .upstream/benny/configuration.yaml)",
+    "markerRoot": "parity/evidence/benny-triage/fixture-out/{cursor,pi}/",
+    "preflightNote": "Restored ~/.cursor/rules/pstack-models.mdc to locked digest sha256:2b6b4668…6004 from /tmp/pi-ref-agent/pstack/models.mdc before Pi after Cursor drift. Observer rescored once to ignore prompt-echoed 'start reproduce-and-fix-issues' and negated reproduce phrasing.",
+    "earlierAttemptsKept": [
+      "cursor/73825615-10bf-458b-9163-ded9bfe45f9c",
+      "pi/7ffda35d-5a31-4d22-b737-ec58c6d5d041"
+    ]
+  }
+}

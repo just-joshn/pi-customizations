@@ -1,0 +1,325 @@
+{
+  "scenario": "setup-benny-user-config-outside",
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "results": [
+    {
+      "side": "cursor",
+      "attemptId": "4ee10a59-d826-4875-8667-515f596d7cb7",
+      "attemptDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/user-config-outside/cursor/4ee10a59-d826-4875-8667-515f596d7cb7",
+      "ruleUnchanged": true,
+      "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "prompt": "Help set up Benny for this repository by completing the adapt-configuration step only. Follow .upstream/automations/benny/FOR_AGENTS.md so .upstream/automations/benny/skills/setup-benny/SKILL.md is read (section 2, adapt the configuration). Pack copy under .cursor/automations/benny is already done; treat pack merge as complete. Create user-owned copies of configuration, feature map, and routing map outside .cursor/automations/benny. Preferred location is .cursor/benny/ (configuration.yaml, feature-map.md, routing.md). Adapt from the copied examples under the pack; use only fixture-safe public placeholders (no real secrets). Do not edit the copied example files. Pack refreshes may update source-managed pack files but must never touch user-owned copies. Do not create or update a live automation. Do not edit parity ledgers or src/app.js. When the adapt step is done (or you stop), write exactly one line to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/user-config-outside/fixture-out/cursor/done.txt as STATUS=adapt-ok|adapt-mismatch|no-adapt|blocked|other reason=<short phrase> then stop.",
+      "observations": {
+        "forAgentsRel": ".upstream/automations/benny/FOR_AGENTS.md",
+        "setupSkillRel": ".upstream/automations/benny/skills/setup-benny/SKILL.md",
+        "productRel": "src/app.js",
+        "before": {
+          "exampleDigests": {
+            ".cursor/automations/benny/templates/configuration.example.yaml": "sha256:0df2a312685ba1371d7b6f9be73d0ec73baa777cdcf052f52530040eaa0af191",
+            ".cursor/automations/benny/skills/reproduce-and-fix-issues/references/feature-map.example.md": "sha256:9572deb073c21cffadbdf14eb599052e8823cf05fd1d0f7cbd32c5c62215017f",
+            ".cursor/automations/benny/skills/triage-issue-reports/references/routing.example.md": "sha256:67406ae5bbc0c90e3b062f425017b0948b270645ee338b6c28cfc9fc211f1532"
+          },
+          "exampleMarkersPresent": {
+            ".cursor/automations/benny/templates/configuration.example.yaml": true,
+            ".cursor/automations/benny/skills/reproduce-and-fix-issues/references/feature-map.example.md": true,
+            ".cursor/automations/benny/skills/triage-issue-reports/references/routing.example.md": true
+          },
+          "userOwned": [],
+          "byBase": {
+            "configuration.yaml": [],
+            "feature-map.md": [],
+            "routing.md": []
+          },
+          "preferred": {
+            "configuration.yaml": {
+              "rel": ".cursor/benny/configuration.yaml",
+              "exists": false,
+              "digest": null,
+              "text": null
+            },
+            "feature-map.md": {
+              "rel": ".cursor/benny/feature-map.md",
+              "exists": false,
+              "digest": null,
+              "text": null
+            },
+            "routing.md": {
+              "rel": ".cursor/benny/routing.md",
+              "exists": false,
+              "digest": null,
+              "text": null
+            }
+          },
+          "insidePackUserNamed": [],
+          "productDigest": "sha256:e798010fc8c298534ad1b05a51dadab9fb1077129eecee920ce524af012c583e"
+        },
+        "after": {
+          "exampleDigests": {
+            ".cursor/automations/benny/templates/configuration.example.yaml": "sha256:0df2a312685ba1371d7b6f9be73d0ec73baa777cdcf052f52530040eaa0af191",
+            ".cursor/automations/benny/skills/reproduce-and-fix-issues/references/feature-map.example.md": "sha256:9572deb073c21cffadbdf14eb599052e8823cf05fd1d0f7cbd32c5c62215017f",
+            ".cursor/automations/benny/skills/triage-issue-reports/references/routing.example.md": "sha256:67406ae5bbc0c90e3b062f425017b0948b270645ee338b6c28cfc9fc211f1532"
+          },
+          "exampleMarkersPresent": {
+            ".cursor/automations/benny/templates/configuration.example.yaml": true,
+            ".cursor/automations/benny/skills/reproduce-and-fix-issues/references/feature-map.example.md": true,
+            ".cursor/automations/benny/skills/triage-issue-reports/references/routing.example.md": true
+          },
+          "userOwned": [
+            {
+              "rel": ".cursor/benny/configuration.yaml",
+              "abs": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/user-config-outside/fixture-app/.cursor/benny/configuration.yaml",
+              "digest": "sha256:0228c2bbf0b8aaa3178d1e6e953771b4a234564a10d50f15e248b49a483ef3ae",
+              "text": "# USER-CONFIG-OUTSIDE-EXAMPLE-CONFIG-MARKER\n# User-owned copy adapted from templates/configuration.example.yaml.\n# Fixture-safe public placeholders only. No secrets belong in this file.\n# Replace every *-placeholder value before enabling either automation.\nschema_version: 1\n\nautomations:\n  triage_name: \"benny-triage\"\n  reproduce_name: \"benny-reproduce\"\n\nslack:\n  source_channel_id: \"SOURCE_CHANNEL_ID\"\n  operations_channel_id: \"\"\n  triage_identity_user_id: \"TRIAGE_IDENTITY_USER_ID\"\n  read_action: \"configured-slack-read-action\"\n  thread_post_action: \"configured-slack-thread-post-action\"\n  file_download_action: \"configured-slack-file-download-action\"\n  operations_edit_action: \"configured-slack-edit-action\"\n  prefer_cursor_actions: true\n  optional_bot_token_env: \"BENNY_SLACK_BOT_TOKEN\"\n  allow_source_root_posts: false\n  allow_worker_slack_writes: false\n\nrepository:\n  url: \"https://github.com/example-org/example-repo\"\n  default_branch: \"main\"\n  pull_request_action: \"configured-draft-pull-request-action\"\n  pull_request_url_format: \"https://github.com/{owner}/{repo}/pull/{number}\"\n  draft_only: true\n\ntracker:\n  type: \"linear\"\n  adapter_skill_name: \"issue-tracker-adapter-placeholder\"\n  team: \"team-placeholder\"\n  project: \"project-placeholder\"\n  labels:\n    bug: \"bug-label-placeholder\"\n    performance: \"performance-label-placeholder\"\n    intake: \"intake-label-placeholder\"\n    needs_repro: \"needs-repro-label-placeholder\"\n  status: \"intake-status-placeholder\"\n  source_link_title: \"Slack report\"\n  require_compensation_action: true\n\nrouting:\n  map_path: \".cursor/benny/routing.md\"\n  owner_pings_default: false\n  allow_feature_owner_ping: false\n  allow_confirmed_regression_author_ping: false\n\ncontrol:\n  skill_name: \"control-target-app\"\n  feature_map_path: \".cursor/benny/feature-map.md\"\n  environment: \"safe-test-environment-placeholder\"\n  artifact_directory: \"/tmp/benny-artifacts\"\n  artifact_retention_hours: 24\n\nverdict_markers:\n  bug: \"[benny:bug]\"\n  performance: \"[benny:performance]\"\n  other: \"[benny:other]\"\n  tracker_attribute: \"tracker\"\n\nstatus_emoji:\n  seen: \"👀\"\n  reproducing: \"🔎\"\n  reproduced: \"✅\"\n  could_not_reproduce: \"⚪\"\n  blocked: \"⛔\"\n  fixing: \"🛠️\"\n  fix_failed: \"❌\"\n  pull_request_opened: \"🔗\"\n\nbudgets:\n  poll_seconds: 45\n  verdict_wait_minutes: 45\n  triage_follow_up_minutes: 10\n  triage_total_minutes: 30\n  repro_minutes: 60\n  rejection_window_minutes: 10\n  fix_minutes: 90\n  operations_follow_up_minutes: 45\n\nmodels:\n  triage: \"choose-an-available-public-model-slug\"\n  reproduce: \"choose-an-available-public-model-slug\"\n  code: \"choose-an-available-public-model-slug\"\n  media_review: \"choose-an-available-public-model-slug\"\n"
+            },
+            {
+              "rel": ".cursor/benny/feature-map.md",
+              "abs": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/user-config-outside/fixture-app/.cursor/benny/feature-map.md",
+              "digest": "sha256:84af8b4e7228701caf9ef5d4bffb3523b6188402bfde6c23d66def383fdd929c",
+              "text": "<!-- USER-CONFIG-OUTSIDE-EXAMPLE-FEATURE-MAP-MARKER -->\n# Feature map\n\nUser-owned copy adapted from `feature-map.example.md`. Keep this map at the user point of view.\n\n## Scope of this fixture\n\nThis fixture app (`src/app.js`) exposes a single pure function, `greet()`, and has no user-facing screens, controls, or states. No feature sections are defined here because there is no user-visible feature for Benny to reproduce through the real UI.\n\nAdd one `###` section per user-facing feature, following the per-feature template in `feature-map.example.md`, before enabling the repro automation. Until then the control-adapter setup check must fail closed.\n\n## Features\n\nNone defined.\n\n## Completeness checklist\n\n- Every reproducible user-facing feature has a section. Not satisfied: no user-facing features in this fixture.\n- Every section names a user path, adapter actions, and reset. Not applicable yet.\n"
+            },
+            {
+              "rel": ".cursor/benny/routing.md",
+              "abs": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/user-config-outside/fixture-app/.cursor/benny/routing.md",
+              "digest": "sha256:625f9ef810a103afa4528daa759096d66616e3b943ddf07f49dcfe7e01f07dbd",
+              "text": "# Routing map\n\nUser-owned copy adapted from `routing.example.md`. No reroute destinations are configured for this fixture, so triage must not guess a destination or owner.\n\n```yaml\nroutes: []\n\nfallback:\n  destination: \"\"\n  owners: []\n  allow_feature_owner_ping: false\n\nping_policy:\n  default: \"off\"\n  allow: []\n  deny:\n    - \"broad-on-call-group\"\n    - \"unverified-owner\"\n```\n\n## Rules\n\n- Leave `fallback.destination` empty unless one team accepts all unmatched reports.\n- Add a route only with stable product areas, code paths, or error signatures.\n- Keep feature-owner pings off until the target team agrees to them.\n"
+            }
+          ],
+          "byBase": {
+            "configuration.yaml": [
+              {
+                "rel": ".cursor/benny/configuration.yaml",
+                "abs": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/user-config-outside/fixture-app/.cursor/benny/configuration.yaml",
+                "digest": "sha256:0228c2bbf0b8aaa3178d1e6e953771b4a234564a10d50f15e248b49a483ef3ae",
+                "text": "# USER-CONFIG-OUTSIDE-EXAMPLE-CONFIG-MARKER\n# User-owned copy adapted from templates/configuration.example.yaml.\n# Fixture-safe public placeholders only. No secrets belong in this file.\n# Replace every *-placeholder value before enabling either automation.\nschema_version: 1\n\nautomations:\n  triage_name: \"benny-triage\"\n  reproduce_name: \"benny-reproduce\"\n\nslack:\n  source_channel_id: \"SOURCE_CHANNEL_ID\"\n  operations_channel_id: \"\"\n  triage_identity_user_id: \"TRIAGE_IDENTITY_USER_ID\"\n  read_action: \"configured-slack-read-action\"\n  thread_post_action: \"configured-slack-thread-post-action\"\n  file_download_action: \"configured-slack-file-download-action\"\n  operations_edit_action: \"configured-slack-edit-action\"\n  prefer_cursor_actions: true\n  optional_bot_token_env: \"BENNY_SLACK_BOT_TOKEN\"\n  allow_source_root_posts: false\n  allow_worker_slack_writes: false\n\nrepository:\n  url: \"https://github.com/example-org/example-repo\"\n  default_branch: \"main\"\n  pull_request_action: \"configured-draft-pull-request-action\"\n  pull_request_url_format: \"https://github.com/{owner}/{repo}/pull/{number}\"\n  draft_only: true\n\ntracker:\n  type: \"linear\"\n  adapter_skill_name: \"issue-tracker-adapter-placeholder\"\n  team: \"team-placeholder\"\n  project: \"project-placeholder\"\n  labels:\n    bug: \"bug-label-placeholder\"\n    performance: \"performance-label-placeholder\"\n    intake: \"intake-label-placeholder\"\n    needs_repro: \"needs-repro-label-placeholder\"\n  status: \"intake-status-placeholder\"\n  source_link_title: \"Slack report\"\n  require_compensation_action: true\n\nrouting:\n  map_path: \".cursor/benny/routing.md\"\n  owner_pings_default: false\n  allow_feature_owner_ping: false\n  allow_confirmed_regression_author_ping: false\n\ncontrol:\n  skill_name: \"control-target-app\"\n  feature_map_path: \".cursor/benny/feature-map.md\"\n  environment: \"safe-test-environment-placeholder\"\n  artifact_directory: \"/tmp/benny-artifacts\"\n  artifact_retention_hours: 24\n\nverdict_markers:\n  bug: \"[benny:bug]\"\n  performance: \"[benny:performance]\"\n  other: \"[benny:other]\"\n  tracker_attribute: \"tracker\"\n\nstatus_emoji:\n  seen: \"👀\"\n  reproducing: \"🔎\"\n  reproduced: \"✅\"\n  could_not_reproduce: \"⚪\"\n  blocked: \"⛔\"\n  fixing: \"🛠️\"\n  fix_failed: \"❌\"\n  pull_request_opened: \"🔗\"\n\nbudgets:\n  poll_seconds: 45\n  verdict_wait_minutes: 45\n  triage_follow_up_minutes: 10\n  triage_total_minutes: 30\n  repro_minutes: 60\n  rejection_window_minutes: 10\n  fix_minutes: 90\n  operations_follow_up_minutes: 45\n\nmodels:\n  triage: \"choose-an-available-public-model-slug\"\n  reproduce: \"choose-an-available-public-model-slug\"\n  code: \"choose-an-available-public-model-slug\"\n  media_review: \"choose-an-available-public-model-slug\"\n"
+              }
+            ],
+            "feature-map.md": [
+              {
+                "rel": ".cursor/benny/feature-map.md",
+                "abs": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/user-config-outside/fixture-app/.cursor/benny/feature-map.md",
+                "digest": "sha256:84af8b4e7228701caf9ef5d4bffb3523b6188402bfde6c23d66def383fdd929c",
+                "text": "<!-- USER-CONFIG-OUTSIDE-EXAMPLE-FEATURE-MAP-MARKER -->\n# Feature map\n\nUser-owned copy adapted from `feature-map.example.md`. Keep this map at the user point of view.\n\n## Scope of this fixture\n\nThis fixture app (`src/app.js`) exposes a single pure function, `greet()`, and has no user-facing screens, controls, or states. No feature sections are defined here because there is no user-visible feature for Benny to reproduce through the real UI.\n\nAdd one `###` section per user-facing feature, following the per-feature template in `feature-map.example.md`, before enabling the repro automation. Until then the control-adapter setup check must fail closed.\n\n## Features\n\nNone defined.\n\n## Completeness checklist\n\n- Every reproducible user-facing feature has a section. Not satisfied: no user-facing features in this fixture.\n- Every section names a user path, adapter actions, and reset. Not applicable yet.\n"
+              }
+            ],
+            "routing.md": [
+              {
+                "rel": ".cursor/benny/routing.md",
+                "abs": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/user-config-outside/fixture-app/.cursor/benny/routing.md",
+                "digest": "sha256:625f9ef810a103afa4528daa759096d66616e3b943ddf07f49dcfe7e01f07dbd",
+                "text": "# Routing map\n\nUser-owned copy adapted from `routing.example.md`. No reroute destinations are configured for this fixture, so triage must not guess a destination or owner.\n\n```yaml\nroutes: []\n\nfallback:\n  destination: \"\"\n  owners: []\n  allow_feature_owner_ping: false\n\nping_policy:\n  default: \"off\"\n  allow: []\n  deny:\n    - \"broad-on-call-group\"\n    - \"unverified-owner\"\n```\n\n## Rules\n\n- Leave `fallback.destination` empty unless one team accepts all unmatched reports.\n- Add a route only with stable product areas, code paths, or error signatures.\n- Keep feature-owner pings off until the target team agrees to them.\n"
+              }
+            ]
+          },
+          "preferred": {
+            "configuration.yaml": {
+              "rel": ".cursor/benny/configuration.yaml",
+              "exists": true,
+              "digest": "sha256:0228c2bbf0b8aaa3178d1e6e953771b4a234564a10d50f15e248b49a483ef3ae",
+              "text": "# USER-CONFIG-OUTSIDE-EXAMPLE-CONFIG-MARKER\n# User-owned copy adapted from templates/configuration.example.yaml.\n# Fixture-safe public placeholders only. No secrets belong in this file.\n# Replace every *-placeholder value before enabling either automation.\nschema_version: 1\n\nautomations:\n  triage_name: \"benny-triage\"\n  reproduce_name: \"benny-reproduce\"\n\nslack:\n  source_channel_id: \"SOURCE_CHANNEL_ID\"\n  operations_channel_id: \"\"\n  triage_identity_user_id: \"TRIAGE_IDENTITY_USER_ID\"\n  read_action: \"configured-slack-read-action\"\n  thread_post_action: \"configured-slack-thread-post-action\"\n  file_download_action: \"configured-slack-file-download-action\"\n  operations_edit_action: \"configured-slack-edit-action\"\n  prefer_cursor_actions: true\n  optional_bot_token_env: \"BENNY_SLACK_BOT_TOKEN\"\n  allow_source_root_posts: false\n  allow_worker_slack_writes: false\n\nrepository:\n  url: \"https://github.com/example-org/example-repo\"\n  default_branch: \"main\"\n  pull_request_action: \"configured-draft-pull-request-action\"\n  pull_request_url_format: \"https://github.com/{owner}/{repo}/pull/{number}\"\n  draft_only: true\n\ntracker:\n  type: \"linear\"\n  adapter_skill_name: \"issue-tracker-adapter-placeholder\"\n  team: \"team-placeholder\"\n  project: \"project-placeholder\"\n  labels:\n    bug: \"bug-label-placeholder\"\n    performance: \"performance-label-placeholder\"\n    intake: \"intake-label-placeholder\"\n    needs_repro: \"needs-repro-label-placeholder\"\n  status: \"intake-status-placeholder\"\n  source_link_title: \"Slack report\"\n  require_compensation_action: true\n\nrouting:\n  map_path: \".cursor/benny/routing.md\"\n  owner_pings_default: false\n  allow_feature_owner_ping: false\n  allow_confirmed_regression_author_ping: false\n\ncontrol:\n  skill_name: \"control-target-app\"\n  feature_map_path: \".cursor/benny/feature-map.md\"\n  environment: \"safe-test-environment-placeholder\"\n  artifact_directory: \"/tmp/benny-artifacts\"\n  artifact_retention_hours: 24\n\nverdict_markers:\n  bug: \"[benny:bug]\"\n  performance: \"[benny:performance]\"\n  other: \"[benny:other]\"\n  tracker_attribute: \"tracker\"\n\nstatus_emoji:\n  seen: \"👀\"\n  reproducing: \"🔎\"\n  reproduced: \"✅\"\n  could_not_reproduce: \"⚪\"\n  blocked: \"⛔\"\n  fixing: \"🛠️\"\n  fix_failed: \"❌\"\n  pull_request_opened: \"🔗\"\n\nbudgets:\n  poll_seconds: 45\n  verdict_wait_minutes: 45\n  triage_follow_up_minutes: 10\n  triage_total_minutes: 30\n  repro_minutes: 60\n  rejection_window_minutes: 10\n  fix_minutes: 90\n  operations_follow_up_minutes: 45\n\nmodels:\n  triage: \"choose-an-available-public-model-slug\"\n  reproduce: \"choose-an-available-public-model-slug\"\n  code: \"choose-an-available-public-model-slug\"\n  media_review: \"choose-an-available-public-model-slug\"\n"
+            },
+            "feature-map.md": {
+              "rel": ".cursor/benny/feature-map.md",
+              "exists": true,
+              "digest": "sha256:84af8b4e7228701caf9ef5d4bffb3523b6188402bfde6c23d66def383fdd929c",
+              "text": "<!-- USER-CONFIG-OUTSIDE-EXAMPLE-FEATURE-MAP-MARKER -->\n# Feature map\n\nUser-owned copy adapted from `feature-map.example.md`. Keep this map at the user point of view.\n\n## Scope of this fixture\n\nThis fixture app (`src/app.js`) exposes a single pure function, `greet()`, and has no user-facing screens, controls, or states. No feature sections are defined here because there is no user-visible feature for Benny to reproduce through the real UI.\n\nAdd one `###` section per user-facing feature, following the per-feature template in `feature-map.example.md`, before enabling the repro automation. Until then the control-adapter setup check must fail closed.\n\n## Features\n\nNone defined.\n\n## Completeness checklist\n\n- Every reproducible user-facing feature has a section. Not satisfied: no user-facing features in this fixture.\n- Every section names a user path, adapter actions, and reset. Not applicable yet.\n"
+            },
+            "routing.md": {
+              "rel": ".cursor/benny/routing.md",
+              "exists": true,
+              "digest": "sha256:625f9ef810a103afa4528daa759096d66616e3b943ddf07f49dcfe7e01f07dbd",
+              "text": "# Routing map\n\nUser-owned copy adapted from `routing.example.md`. No reroute destinations are configured for this fixture, so triage must not guess a destination or owner.\n\n```yaml\nroutes: []\n\nfallback:\n  destination: \"\"\n  owners: []\n  allow_feature_owner_ping: false\n\nping_policy:\n  default: \"off\"\n  allow: []\n  deny:\n    - \"broad-on-call-group\"\n    - \"unverified-owner\"\n```\n\n## Rules\n\n- Leave `fallback.destination` empty unless one team accepts all unmatched reports.\n- Add a route only with stable product areas, code paths, or error signatures.\n- Keep feature-owner pings off until the target team agrees to them.\n"
+            }
+          },
+          "insidePackUserNamed": [],
+          "productDigest": "sha256:e798010fc8c298534ad1b05a51dadab9fb1077129eecee920ce524af012c583e"
+        },
+        "done": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/user-config-outside/fixture-out/cursor/done.txt",
+          "line": "STATUS=adapt-mismatch reason=fixture has no user-facing features for feature map",
+          "status": "adapt-mismatch"
+        },
+        "outcome": "adapt_ok",
+        "contractHeld": true,
+        "score": {
+          "productUnchanged": true,
+          "examplesUntouched": true,
+          "eachBaseOutside": true,
+          "preferredAllPresent": true,
+          "noUserNamedInsidePack": true,
+          "outsidePlacementOk": true,
+          "adaptChrome": true
+        },
+        "session": null,
+        "pollSamples": 25,
+        "scorerNote": "adapt_ok requires each of configuration.yaml, feature-map.md, routing.md outside .cursor/automations/benny/, no same-named non-example files inside the pack, example digests unchanged, and product unchanged"
+      }
+    },
+    {
+      "side": "pi",
+      "attemptId": "5d95d377-27f7-4914-88f0-9ab4ab010516",
+      "attemptDir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/user-config-outside/pi/5d95d377-27f7-4914-88f0-9ab4ab010516",
+      "ruleUnchanged": true,
+      "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+      "prompt": "Help set up Benny for this repository by completing the adapt-configuration step only. Follow .upstream/automations/benny/FOR_AGENTS.md so .upstream/automations/benny/skills/setup-benny/SKILL.md is read (section 2, adapt the configuration). Pack copy under .cursor/automations/benny is already done; treat pack merge as complete. Create user-owned copies of configuration, feature map, and routing map outside .cursor/automations/benny. Preferred location is .cursor/benny/ (configuration.yaml, feature-map.md, routing.md). Adapt from the copied examples under the pack; use only fixture-safe public placeholders (no real secrets). Do not edit the copied example files. Pack refreshes may update source-managed pack files but must never touch user-owned copies. Do not create or update a live automation. Do not edit parity ledgers or src/app.js. When the adapt step is done (or you stop), write exactly one line to /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/user-config-outside/fixture-out/pi/done.txt as STATUS=adapt-ok|adapt-mismatch|no-adapt|blocked|other reason=<short phrase> then stop.",
+      "observations": {
+        "forAgentsRel": ".upstream/automations/benny/FOR_AGENTS.md",
+        "setupSkillRel": ".upstream/automations/benny/skills/setup-benny/SKILL.md",
+        "productRel": "src/app.js",
+        "before": {
+          "exampleDigests": {
+            ".cursor/automations/benny/templates/configuration.example.yaml": "sha256:0df2a312685ba1371d7b6f9be73d0ec73baa777cdcf052f52530040eaa0af191",
+            ".cursor/automations/benny/skills/reproduce-and-fix-issues/references/feature-map.example.md": "sha256:9572deb073c21cffadbdf14eb599052e8823cf05fd1d0f7cbd32c5c62215017f",
+            ".cursor/automations/benny/skills/triage-issue-reports/references/routing.example.md": "sha256:67406ae5bbc0c90e3b062f425017b0948b270645ee338b6c28cfc9fc211f1532"
+          },
+          "exampleMarkersPresent": {
+            ".cursor/automations/benny/templates/configuration.example.yaml": true,
+            ".cursor/automations/benny/skills/reproduce-and-fix-issues/references/feature-map.example.md": true,
+            ".cursor/automations/benny/skills/triage-issue-reports/references/routing.example.md": true
+          },
+          "userOwned": [],
+          "byBase": {
+            "configuration.yaml": [],
+            "feature-map.md": [],
+            "routing.md": []
+          },
+          "preferred": {
+            "configuration.yaml": {
+              "rel": ".cursor/benny/configuration.yaml",
+              "exists": false,
+              "digest": null,
+              "text": null
+            },
+            "feature-map.md": {
+              "rel": ".cursor/benny/feature-map.md",
+              "exists": false,
+              "digest": null,
+              "text": null
+            },
+            "routing.md": {
+              "rel": ".cursor/benny/routing.md",
+              "exists": false,
+              "digest": null,
+              "text": null
+            }
+          },
+          "insidePackUserNamed": [],
+          "productDigest": "sha256:e798010fc8c298534ad1b05a51dadab9fb1077129eecee920ce524af012c583e"
+        },
+        "after": {
+          "exampleDigests": {
+            ".cursor/automations/benny/templates/configuration.example.yaml": "sha256:0df2a312685ba1371d7b6f9be73d0ec73baa777cdcf052f52530040eaa0af191",
+            ".cursor/automations/benny/skills/reproduce-and-fix-issues/references/feature-map.example.md": "sha256:9572deb073c21cffadbdf14eb599052e8823cf05fd1d0f7cbd32c5c62215017f",
+            ".cursor/automations/benny/skills/triage-issue-reports/references/routing.example.md": "sha256:67406ae5bbc0c90e3b062f425017b0948b270645ee338b6c28cfc9fc211f1532"
+          },
+          "exampleMarkersPresent": {
+            ".cursor/automations/benny/templates/configuration.example.yaml": true,
+            ".cursor/automations/benny/skills/reproduce-and-fix-issues/references/feature-map.example.md": true,
+            ".cursor/automations/benny/skills/triage-issue-reports/references/routing.example.md": true
+          },
+          "userOwned": [
+            {
+              "rel": ".cursor/benny/configuration.yaml",
+              "abs": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/user-config-outside/fixture-app/.cursor/benny/configuration.yaml",
+              "digest": "sha256:c9d5018a4ddeff76724ad65aff487442bce88fce2fab8f55cc91030de070db60",
+              "text": "# User-owned Benny configuration (secret-free, fixture placeholders). Not part of the pack.\nschema_version: 1\n\nautomations:\n  triage_name: \"benny-triage\"\n  reproduce_name: \"benny-reproduce\"\n\nslack:\n  source_channel_id: \"C0FIXTURE001\"\n  operations_channel_id: \"\"\n  triage_identity_user_id: \"U0FIXTURE001\"\n  read_action: \"configured-slack-read-action\"\n  thread_post_action: \"configured-slack-thread-post-action\"\n  file_download_action: \"configured-slack-file-download-action\"\n  operations_edit_action: \"configured-slack-edit-action\"\n  prefer_cursor_actions: true\n  optional_bot_token_env: \"BENNY_SLACK_BOT_TOKEN\"\n  allow_source_root_posts: false\n  allow_worker_slack_writes: false\n\nrepository:\n  url: \"https://github.com/fixture-org/fixture-app\"\n  default_branch: \"main\"\n  pull_request_action: \"configured-draft-pull-request-action\"\n  pull_request_url_format: \"https://github.com/{owner}/{repo}/pull/{number}\"\n  draft_only: true\n\ntracker:\n  type: \"linear\"\n  adapter_skill_name: \"issue-tracker-adapter-placeholder\"\n  team: \"team-placeholder\"\n  project: \"project-placeholder\"\n  labels:\n    bug: \"bug-label-placeholder\"\n    performance: \"performance-label-placeholder\"\n    intake: \"intake-label-placeholder\"\n    needs_repro: \"needs-repro-label-placeholder\"\n  status: \"intake-status-placeholder\"\n  source_link_title: \"Slack report\"\n  require_compensation_action: true\n\nrouting:\n  map_path: \".cursor/benny/routing.md\"\n  owner_pings_default: false\n  allow_feature_owner_ping: false\n  allow_confirmed_regression_author_ping: false\n\ncontrol:\n  skill_name: \"control-target-app\"\n  feature_map_path: \".cursor/benny/feature-map.md\"\n  environment: \"safe-test-environment-placeholder\"\n  artifact_directory: \"/tmp/benny-artifacts\"\n  artifact_retention_hours: 24\n\nverdict_markers:\n  bug: \"[benny:bug]\"\n  performance: \"[benny:performance]\"\n  other: \"[benny:other]\"\n  tracker_attribute: \"tracker\"\n\nstatus_emoji:\n  seen: \"👀\"\n  reproducing: \"🔎\"\n  reproduced: \"✅\"\n  could_not_reproduce: \"⚪\"\n  blocked: \"⛔\"\n  fixing: \"🛠️\"\n  fix_failed: \"❌\"\n  pull_request_opened: \"🔗\"\n\nbudgets:\n  poll_seconds: 45\n  verdict_wait_minutes: 45\n  triage_follow_up_minutes: 10\n  triage_total_minutes: 30\n  repro_minutes: 60\n  rejection_window_minutes: 10\n  fix_minutes: 90\n  operations_follow_up_minutes: 45\n\nmodels:\n  triage: \"choose-an-available-public-model-slug\"\n  reproduce: \"choose-an-available-public-model-slug\"\n  code: \"choose-an-available-public-model-slug\"\n  media_review: \"choose-an-available-public-model-slug\""
+            },
+            {
+              "rel": ".cursor/benny/feature-map.md",
+              "abs": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/user-config-outside/fixture-app/.cursor/benny/feature-map.md",
+              "digest": "sha256:39ec769d2376617ae776422daa6b7a5032a7dede63d4a991f878991ecfb3ddae",
+              "text": "<!-- User-owned Benny feature map (fixture). Not part of the pack. -->\n# Feature-map example\n\nMap every user-facing feature Benny may reproduce. Read the relevant section before driving the app. Keep this map at the user point of view. Discover internals and current code paths at runtime instead of freezing them here.\n\nCopy this file outside `.cursor/automations/benny/`, for example to `.cursor/benny/feature-map.md`, and set `control.feature_map_path` to the copy. Pack refreshes must not overwrite it.\n\n## Per-feature template\n\n### `<feature name>`\n\n`<one-line user-visible purpose>`\n\n#### How a user gets there\n\n- Click path: `<screen> -> <menu, tab, or panel> -> <control>`\n- Keyboard shortcut: `<shortcut or none>`\n\n#### How the control adapter drives it\n\n- `<adapter action>` with `<inputs>` should `<visible result>`.\n- Reset: `<how the adapter returns to a fresh state>`.\n\n#### Stable selectors\n\n- `<role and accessible name>`\n- `<ARIA relationship>`\n- `<data-component or purpose-named data attribute>`\n\nNever use generated CSS or StyleX classes, dynamic hashes, child indexes, or brittle DOM position.\n\n#### States to exercise\n\n- Default, hover, focus-visible, active, disabled\n- Loading, empty, error\n- Selected, open, expanded\n- `<relevant feature-specific variants>`\n\nMark states that do not apply.\n\n#### Preconditions and setup\n\n- Auth: `<account state>`\n- Data: `<fixture>`\n- Permissions: `<role>`\n- Flags: `<flag or none>`\n- Services: `<required availability>`\n\n#### Evidence and cross-check\n\n- Screenshot: `<app identity, feature, and discriminating state>`\n- Video: `<entry path, interaction, and final state>`\n- Cross-check: `<read-only state or value that confirms the UI>`\n\n#### Gotchas\n\n- `<known dead end or wrong surface>`\n- `<safe environment translation>`\n\n## Fictional example\n\nThese features belong to a fictional task app. They are examples, not required Benny features.\n\n### Sign in\n\nLets a user enter the task app.\n\n#### How a user gets there\n\n- Open the app and choose `Sign in`. No shortcut.\n\n#### How the control adapter drives it\n\n- `open_app`, `click Sign in`, `fill credentials`, and `click Continue` should open the item list.\n- Reset by signing out and clearing the disposable session.\n\n#### Stable selectors\n\n- Button `Sign in`, textboxes `Email` and `Password`, `data-component=\"sign-in-form\"`\n\n#### States to exercise\n\n- Default, focus-visible, submitting, disabled, loading, error\n\n#### Preconditions and setup\n\n- Disposable account and available authentication service\n\n#### Evidence and cross-check\n\n- Record landing page through item list. Check read-only session state.\n\n#### Gotchas\n\n- A marketing page is the wrong surface. A missing auth service is a block.\n\n### Item list and detail\n\nLets a user browse items and open one.\n\n#### How a user gets there\n\n- Open the `Items` tab, then choose a row.\n\n#### How the control adapter drives it\n\n- `select_tab Items` and `click <fixture item>` should open its detail.\n- Reset by closing the detail and clearing selection.\n\n#### Stable selectors\n\n- Tab and list named `Items`, fixture-named row, `data-component=\"item-detail\"`\n\n#### States to exercise\n\n- Loading, empty, error, selected, open, expanded\n\n#### Preconditions and setup\n\n- Named fixture items, read permission, available item service\n\n#### Evidence and cross-check\n\n- Show selection and matching detail title. Check selected-item ID.\n\n#### Gotchas\n\n- Search results may look similar but use a different path.\n\n### Item editor\n\nLets a user create or edit an item.\n\n#### How a user gets there\n\n- Choose `Edit` from detail or `New item` from the list.\n\n#### How the control adapter drives it\n\n- `click Edit`, `fill <field>`, and `click Save` should update detail.\n- Reset by restoring the fixture.\n\n#### Stable selectors\n\n- Buttons `Edit`, `New item`, `Save`, form `Item editor`, label-linked fields\n\n#### States to exercise\n\n- Default, focus-visible, dirty, validating, disabled, saving, error, success\n\n#### Preconditions and setup\n\n- Editable fixture, write permission, available save service\n\n#### Evidence and cross-check\n\n- Show field change through updated detail. Check the stored item value read-only.\n\n#### Gotchas\n\n- Do not inject form state. A read-only detail field is not the editor.\n\n### Settings\n\nLets a user change personal preferences.\n\n#### How a user gets there\n\n- Open the profile menu, then choose `Settings`.\n\n#### How the control adapter drives it\n\n- `open_menu Profile`, `click Settings`, and `toggle <preference>` should update the control.\n- Reset by restoring the starting preference.\n\n#### Stable selectors\n\n- Button `Profile`, menu item `Settings`, region `Settings`, purpose-named preference attribute\n\n#### States to exercise\n\n- Closed, open, selected, focus-visible, disabled, loading, error\n\n#### Preconditions and setup\n\n- Signed-in test account, known preferences, available preference service\n\n#### Evidence and cross-check\n\n- Show the menu path and final control state. Check the preference value read-only.\n\n#### Gotchas\n\n- Operating-system settings are a different surface.\n\n## Completeness checklist\n\n- Every reproducible user-facing feature has a section.\n- Every section names a user path, adapter actions, and reset.\n- Selectors use roles, names, ARIA, stable component markers, or purpose-named attributes.\n- No selector uses generated classes or DOM position.\n- Relevant interaction, loading, empty, error, selected, and expanded states are covered.\n- Auth, fixtures, permissions, flags, and services are explicit.\n- Screenshot, video, and underlying cross-check requirements are explicit.\n- Wrong surfaces, dead ends, and safe environment translations are listed.\n- Implementation details remain runtime discoveries."
+            },
+            {
+              "rel": ".cursor/benny/routing.md",
+              "abs": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/user-config-outside/fixture-app/.cursor/benny/routing.md",
+              "digest": "sha256:28d98cd22100de7504f756a276245c4d699ff02f6267c7ada6fec19d7cd6719a",
+              "text": "<!-- User-owned Benny routing map (fixture placeholders). Not part of the pack. -->\n# Routing map example\n\nCopy this file outside `.cursor/automations/benny/`, for example to `.cursor/benny/routing.md`, and replace every placeholder. Point `routing.map_path` at the copy. Pack refreshes must not overwrite it.\n\nThe triage skill treats this as data. A route needs evidence from the report or cause trace. A keyword match alone is not enough.\n\n```yaml\nroutes:\n  - name: \"billing-example\"\n    match:\n      product_areas:\n        - \"billing-area-placeholder\"\n      code_paths:\n        - \"billing-code-path-placeholder\"\n      error_signatures:\n        - \"billing-error-placeholder\"\n    destination:\n      slack_channel: \"billing-channel-placeholder\"\n      tracker_team: \"billing-team-placeholder\"\n    owners:\n      - \"billing-owner-placeholder\"\n    allow_feature_owner_ping: false\n\n  - name: \"desktop-example\"\n    match:\n      product_areas:\n        - \"desktop-area-placeholder\"\n      code_paths:\n        - \"desktop-code-path-placeholder\"\n      error_signatures:\n        - \"desktop-error-placeholder\"\n    destination:\n      slack_channel: \"desktop-channel-placeholder\"\n      tracker_team: \"desktop-team-placeholder\"\n    owners:\n      - \"desktop-owner-placeholder\"\n    allow_feature_owner_ping: false\n\nfallback:\n  destination: \"\"\n  owners: []\n  allow_feature_owner_ping: false\n\nping_policy:\n  default: \"off\"\n  allow:\n    - \"configured-feature-owner\"\n    - \"confirmed-regression-author\"\n  deny:\n    - \"broad-on-call-group\"\n    - \"unverified-owner\"\n```\n\n## Rules\n\n- Leave `fallback.destination` empty unless one team accepts all unmatched reports.\n- Use stable product areas, code paths, and error signatures.\n- Do not include private data in a public copy.\n- Do not paste raw user or channel IDs into an example that will be published.\n- Keep feature-owner pings off until the target team agrees to them.\n- A reroute tells the reporter where to go. The automation never cross-posts."
+            }
+          ],
+          "byBase": {
+            "configuration.yaml": [
+              {
+                "rel": ".cursor/benny/configuration.yaml",
+                "abs": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/user-config-outside/fixture-app/.cursor/benny/configuration.yaml",
+                "digest": "sha256:c9d5018a4ddeff76724ad65aff487442bce88fce2fab8f55cc91030de070db60",
+                "text": "# User-owned Benny configuration (secret-free, fixture placeholders). Not part of the pack.\nschema_version: 1\n\nautomations:\n  triage_name: \"benny-triage\"\n  reproduce_name: \"benny-reproduce\"\n\nslack:\n  source_channel_id: \"C0FIXTURE001\"\n  operations_channel_id: \"\"\n  triage_identity_user_id: \"U0FIXTURE001\"\n  read_action: \"configured-slack-read-action\"\n  thread_post_action: \"configured-slack-thread-post-action\"\n  file_download_action: \"configured-slack-file-download-action\"\n  operations_edit_action: \"configured-slack-edit-action\"\n  prefer_cursor_actions: true\n  optional_bot_token_env: \"BENNY_SLACK_BOT_TOKEN\"\n  allow_source_root_posts: false\n  allow_worker_slack_writes: false\n\nrepository:\n  url: \"https://github.com/fixture-org/fixture-app\"\n  default_branch: \"main\"\n  pull_request_action: \"configured-draft-pull-request-action\"\n  pull_request_url_format: \"https://github.com/{owner}/{repo}/pull/{number}\"\n  draft_only: true\n\ntracker:\n  type: \"linear\"\n  adapter_skill_name: \"issue-tracker-adapter-placeholder\"\n  team: \"team-placeholder\"\n  project: \"project-placeholder\"\n  labels:\n    bug: \"bug-label-placeholder\"\n    performance: \"performance-label-placeholder\"\n    intake: \"intake-label-placeholder\"\n    needs_repro: \"needs-repro-label-placeholder\"\n  status: \"intake-status-placeholder\"\n  source_link_title: \"Slack report\"\n  require_compensation_action: true\n\nrouting:\n  map_path: \".cursor/benny/routing.md\"\n  owner_pings_default: false\n  allow_feature_owner_ping: false\n  allow_confirmed_regression_author_ping: false\n\ncontrol:\n  skill_name: \"control-target-app\"\n  feature_map_path: \".cursor/benny/feature-map.md\"\n  environment: \"safe-test-environment-placeholder\"\n  artifact_directory: \"/tmp/benny-artifacts\"\n  artifact_retention_hours: 24\n\nverdict_markers:\n  bug: \"[benny:bug]\"\n  performance: \"[benny:performance]\"\n  other: \"[benny:other]\"\n  tracker_attribute: \"tracker\"\n\nstatus_emoji:\n  seen: \"👀\"\n  reproducing: \"🔎\"\n  reproduced: \"✅\"\n  could_not_reproduce: \"⚪\"\n  blocked: \"⛔\"\n  fixing: \"🛠️\"\n  fix_failed: \"❌\"\n  pull_request_opened: \"🔗\"\n\nbudgets:\n  poll_seconds: 45\n  verdict_wait_minutes: 45\n  triage_follow_up_minutes: 10\n  triage_total_minutes: 30\n  repro_minutes: 60\n  rejection_window_minutes: 10\n  fix_minutes: 90\n  operations_follow_up_minutes: 45\n\nmodels:\n  triage: \"choose-an-available-public-model-slug\"\n  reproduce: \"choose-an-available-public-model-slug\"\n  code: \"choose-an-available-public-model-slug\"\n  media_review: \"choose-an-available-public-model-slug\""
+              }
+            ],
+            "feature-map.md": [
+              {
+                "rel": ".cursor/benny/feature-map.md",
+                "abs": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/user-config-outside/fixture-app/.cursor/benny/feature-map.md",
+                "digest": "sha256:39ec769d2376617ae776422daa6b7a5032a7dede63d4a991f878991ecfb3ddae",
+                "text": "<!-- User-owned Benny feature map (fixture). Not part of the pack. -->\n# Feature-map example\n\nMap every user-facing feature Benny may reproduce. Read the relevant section before driving the app. Keep this map at the user point of view. Discover internals and current code paths at runtime instead of freezing them here.\n\nCopy this file outside `.cursor/automations/benny/`, for example to `.cursor/benny/feature-map.md`, and set `control.feature_map_path` to the copy. Pack refreshes must not overwrite it.\n\n## Per-feature template\n\n### `<feature name>`\n\n`<one-line user-visible purpose>`\n\n#### How a user gets there\n\n- Click path: `<screen> -> <menu, tab, or panel> -> <control>`\n- Keyboard shortcut: `<shortcut or none>`\n\n#### How the control adapter drives it\n\n- `<adapter action>` with `<inputs>` should `<visible result>`.\n- Reset: `<how the adapter returns to a fresh state>`.\n\n#### Stable selectors\n\n- `<role and accessible name>`\n- `<ARIA relationship>`\n- `<data-component or purpose-named data attribute>`\n\nNever use generated CSS or StyleX classes, dynamic hashes, child indexes, or brittle DOM position.\n\n#### States to exercise\n\n- Default, hover, focus-visible, active, disabled\n- Loading, empty, error\n- Selected, open, expanded\n- `<relevant feature-specific variants>`\n\nMark states that do not apply.\n\n#### Preconditions and setup\n\n- Auth: `<account state>`\n- Data: `<fixture>`\n- Permissions: `<role>`\n- Flags: `<flag or none>`\n- Services: `<required availability>`\n\n#### Evidence and cross-check\n\n- Screenshot: `<app identity, feature, and discriminating state>`\n- Video: `<entry path, interaction, and final state>`\n- Cross-check: `<read-only state or value that confirms the UI>`\n\n#### Gotchas\n\n- `<known dead end or wrong surface>`\n- `<safe environment translation>`\n\n## Fictional example\n\nThese features belong to a fictional task app. They are examples, not required Benny features.\n\n### Sign in\n\nLets a user enter the task app.\n\n#### How a user gets there\n\n- Open the app and choose `Sign in`. No shortcut.\n\n#### How the control adapter drives it\n\n- `open_app`, `click Sign in`, `fill credentials`, and `click Continue` should open the item list.\n- Reset by signing out and clearing the disposable session.\n\n#### Stable selectors\n\n- Button `Sign in`, textboxes `Email` and `Password`, `data-component=\"sign-in-form\"`\n\n#### States to exercise\n\n- Default, focus-visible, submitting, disabled, loading, error\n\n#### Preconditions and setup\n\n- Disposable account and available authentication service\n\n#### Evidence and cross-check\n\n- Record landing page through item list. Check read-only session state.\n\n#### Gotchas\n\n- A marketing page is the wrong surface. A missing auth service is a block.\n\n### Item list and detail\n\nLets a user browse items and open one.\n\n#### How a user gets there\n\n- Open the `Items` tab, then choose a row.\n\n#### How the control adapter drives it\n\n- `select_tab Items` and `click <fixture item>` should open its detail.\n- Reset by closing the detail and clearing selection.\n\n#### Stable selectors\n\n- Tab and list named `Items`, fixture-named row, `data-component=\"item-detail\"`\n\n#### States to exercise\n\n- Loading, empty, error, selected, open, expanded\n\n#### Preconditions and setup\n\n- Named fixture items, read permission, available item service\n\n#### Evidence and cross-check\n\n- Show selection and matching detail title. Check selected-item ID.\n\n#### Gotchas\n\n- Search results may look similar but use a different path.\n\n### Item editor\n\nLets a user create or edit an item.\n\n#### How a user gets there\n\n- Choose `Edit` from detail or `New item` from the list.\n\n#### How the control adapter drives it\n\n- `click Edit`, `fill <field>`, and `click Save` should update detail.\n- Reset by restoring the fixture.\n\n#### Stable selectors\n\n- Buttons `Edit`, `New item`, `Save`, form `Item editor`, label-linked fields\n\n#### States to exercise\n\n- Default, focus-visible, dirty, validating, disabled, saving, error, success\n\n#### Preconditions and setup\n\n- Editable fixture, write permission, available save service\n\n#### Evidence and cross-check\n\n- Show field change through updated detail. Check the stored item value read-only.\n\n#### Gotchas\n\n- Do not inject form state. A read-only detail field is not the editor.\n\n### Settings\n\nLets a user change personal preferences.\n\n#### How a user gets there\n\n- Open the profile menu, then choose `Settings`.\n\n#### How the control adapter drives it\n\n- `open_menu Profile`, `click Settings`, and `toggle <preference>` should update the control.\n- Reset by restoring the starting preference.\n\n#### Stable selectors\n\n- Button `Profile`, menu item `Settings`, region `Settings`, purpose-named preference attribute\n\n#### States to exercise\n\n- Closed, open, selected, focus-visible, disabled, loading, error\n\n#### Preconditions and setup\n\n- Signed-in test account, known preferences, available preference service\n\n#### Evidence and cross-check\n\n- Show the menu path and final control state. Check the preference value read-only.\n\n#### Gotchas\n\n- Operating-system settings are a different surface.\n\n## Completeness checklist\n\n- Every reproducible user-facing feature has a section.\n- Every section names a user path, adapter actions, and reset.\n- Selectors use roles, names, ARIA, stable component markers, or purpose-named attributes.\n- No selector uses generated classes or DOM position.\n- Relevant interaction, loading, empty, error, selected, and expanded states are covered.\n- Auth, fixtures, permissions, flags, and services are explicit.\n- Screenshot, video, and underlying cross-check requirements are explicit.\n- Wrong surfaces, dead ends, and safe environment translations are listed.\n- Implementation details remain runtime discoveries."
+              }
+            ],
+            "routing.md": [
+              {
+                "rel": ".cursor/benny/routing.md",
+                "abs": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/user-config-outside/fixture-app/.cursor/benny/routing.md",
+                "digest": "sha256:28d98cd22100de7504f756a276245c4d699ff02f6267c7ada6fec19d7cd6719a",
+                "text": "<!-- User-owned Benny routing map (fixture placeholders). Not part of the pack. -->\n# Routing map example\n\nCopy this file outside `.cursor/automations/benny/`, for example to `.cursor/benny/routing.md`, and replace every placeholder. Point `routing.map_path` at the copy. Pack refreshes must not overwrite it.\n\nThe triage skill treats this as data. A route needs evidence from the report or cause trace. A keyword match alone is not enough.\n\n```yaml\nroutes:\n  - name: \"billing-example\"\n    match:\n      product_areas:\n        - \"billing-area-placeholder\"\n      code_paths:\n        - \"billing-code-path-placeholder\"\n      error_signatures:\n        - \"billing-error-placeholder\"\n    destination:\n      slack_channel: \"billing-channel-placeholder\"\n      tracker_team: \"billing-team-placeholder\"\n    owners:\n      - \"billing-owner-placeholder\"\n    allow_feature_owner_ping: false\n\n  - name: \"desktop-example\"\n    match:\n      product_areas:\n        - \"desktop-area-placeholder\"\n      code_paths:\n        - \"desktop-code-path-placeholder\"\n      error_signatures:\n        - \"desktop-error-placeholder\"\n    destination:\n      slack_channel: \"desktop-channel-placeholder\"\n      tracker_team: \"desktop-team-placeholder\"\n    owners:\n      - \"desktop-owner-placeholder\"\n    allow_feature_owner_ping: false\n\nfallback:\n  destination: \"\"\n  owners: []\n  allow_feature_owner_ping: false\n\nping_policy:\n  default: \"off\"\n  allow:\n    - \"configured-feature-owner\"\n    - \"confirmed-regression-author\"\n  deny:\n    - \"broad-on-call-group\"\n    - \"unverified-owner\"\n```\n\n## Rules\n\n- Leave `fallback.destination` empty unless one team accepts all unmatched reports.\n- Use stable product areas, code paths, and error signatures.\n- Do not include private data in a public copy.\n- Do not paste raw user or channel IDs into an example that will be published.\n- Keep feature-owner pings off until the target team agrees to them.\n- A reroute tells the reporter where to go. The automation never cross-posts."
+              }
+            ]
+          },
+          "preferred": {
+            "configuration.yaml": {
+              "rel": ".cursor/benny/configuration.yaml",
+              "exists": true,
+              "digest": "sha256:c9d5018a4ddeff76724ad65aff487442bce88fce2fab8f55cc91030de070db60",
+              "text": "# User-owned Benny configuration (secret-free, fixture placeholders). Not part of the pack.\nschema_version: 1\n\nautomations:\n  triage_name: \"benny-triage\"\n  reproduce_name: \"benny-reproduce\"\n\nslack:\n  source_channel_id: \"C0FIXTURE001\"\n  operations_channel_id: \"\"\n  triage_identity_user_id: \"U0FIXTURE001\"\n  read_action: \"configured-slack-read-action\"\n  thread_post_action: \"configured-slack-thread-post-action\"\n  file_download_action: \"configured-slack-file-download-action\"\n  operations_edit_action: \"configured-slack-edit-action\"\n  prefer_cursor_actions: true\n  optional_bot_token_env: \"BENNY_SLACK_BOT_TOKEN\"\n  allow_source_root_posts: false\n  allow_worker_slack_writes: false\n\nrepository:\n  url: \"https://github.com/fixture-org/fixture-app\"\n  default_branch: \"main\"\n  pull_request_action: \"configured-draft-pull-request-action\"\n  pull_request_url_format: \"https://github.com/{owner}/{repo}/pull/{number}\"\n  draft_only: true\n\ntracker:\n  type: \"linear\"\n  adapter_skill_name: \"issue-tracker-adapter-placeholder\"\n  team: \"team-placeholder\"\n  project: \"project-placeholder\"\n  labels:\n    bug: \"bug-label-placeholder\"\n    performance: \"performance-label-placeholder\"\n    intake: \"intake-label-placeholder\"\n    needs_repro: \"needs-repro-label-placeholder\"\n  status: \"intake-status-placeholder\"\n  source_link_title: \"Slack report\"\n  require_compensation_action: true\n\nrouting:\n  map_path: \".cursor/benny/routing.md\"\n  owner_pings_default: false\n  allow_feature_owner_ping: false\n  allow_confirmed_regression_author_ping: false\n\ncontrol:\n  skill_name: \"control-target-app\"\n  feature_map_path: \".cursor/benny/feature-map.md\"\n  environment: \"safe-test-environment-placeholder\"\n  artifact_directory: \"/tmp/benny-artifacts\"\n  artifact_retention_hours: 24\n\nverdict_markers:\n  bug: \"[benny:bug]\"\n  performance: \"[benny:performance]\"\n  other: \"[benny:other]\"\n  tracker_attribute: \"tracker\"\n\nstatus_emoji:\n  seen: \"👀\"\n  reproducing: \"🔎\"\n  reproduced: \"✅\"\n  could_not_reproduce: \"⚪\"\n  blocked: \"⛔\"\n  fixing: \"🛠️\"\n  fix_failed: \"❌\"\n  pull_request_opened: \"🔗\"\n\nbudgets:\n  poll_seconds: 45\n  verdict_wait_minutes: 45\n  triage_follow_up_minutes: 10\n  triage_total_minutes: 30\n  repro_minutes: 60\n  rejection_window_minutes: 10\n  fix_minutes: 90\n  operations_follow_up_minutes: 45\n\nmodels:\n  triage: \"choose-an-available-public-model-slug\"\n  reproduce: \"choose-an-available-public-model-slug\"\n  code: \"choose-an-available-public-model-slug\"\n  media_review: \"choose-an-available-public-model-slug\""
+            },
+            "feature-map.md": {
+              "rel": ".cursor/benny/feature-map.md",
+              "exists": true,
+              "digest": "sha256:39ec769d2376617ae776422daa6b7a5032a7dede63d4a991f878991ecfb3ddae",
+              "text": "<!-- User-owned Benny feature map (fixture). Not part of the pack. -->\n# Feature-map example\n\nMap every user-facing feature Benny may reproduce. Read the relevant section before driving the app. Keep this map at the user point of view. Discover internals and current code paths at runtime instead of freezing them here.\n\nCopy this file outside `.cursor/automations/benny/`, for example to `.cursor/benny/feature-map.md`, and set `control.feature_map_path` to the copy. Pack refreshes must not overwrite it.\n\n## Per-feature template\n\n### `<feature name>`\n\n`<one-line user-visible purpose>`\n\n#### How a user gets there\n\n- Click path: `<screen> -> <menu, tab, or panel> -> <control>`\n- Keyboard shortcut: `<shortcut or none>`\n\n#### How the control adapter drives it\n\n- `<adapter action>` with `<inputs>` should `<visible result>`.\n- Reset: `<how the adapter returns to a fresh state>`.\n\n#### Stable selectors\n\n- `<role and accessible name>`\n- `<ARIA relationship>`\n- `<data-component or purpose-named data attribute>`\n\nNever use generated CSS or StyleX classes, dynamic hashes, child indexes, or brittle DOM position.\n\n#### States to exercise\n\n- Default, hover, focus-visible, active, disabled\n- Loading, empty, error\n- Selected, open, expanded\n- `<relevant feature-specific variants>`\n\nMark states that do not apply.\n\n#### Preconditions and setup\n\n- Auth: `<account state>`\n- Data: `<fixture>`\n- Permissions: `<role>`\n- Flags: `<flag or none>`\n- Services: `<required availability>`\n\n#### Evidence and cross-check\n\n- Screenshot: `<app identity, feature, and discriminating state>`\n- Video: `<entry path, interaction, and final state>`\n- Cross-check: `<read-only state or value that confirms the UI>`\n\n#### Gotchas\n\n- `<known dead end or wrong surface>`\n- `<safe environment translation>`\n\n## Fictional example\n\nThese features belong to a fictional task app. They are examples, not required Benny features.\n\n### Sign in\n\nLets a user enter the task app.\n\n#### How a user gets there\n\n- Open the app and choose `Sign in`. No shortcut.\n\n#### How the control adapter drives it\n\n- `open_app`, `click Sign in`, `fill credentials`, and `click Continue` should open the item list.\n- Reset by signing out and clearing the disposable session.\n\n#### Stable selectors\n\n- Button `Sign in`, textboxes `Email` and `Password`, `data-component=\"sign-in-form\"`\n\n#### States to exercise\n\n- Default, focus-visible, submitting, disabled, loading, error\n\n#### Preconditions and setup\n\n- Disposable account and available authentication service\n\n#### Evidence and cross-check\n\n- Record landing page through item list. Check read-only session state.\n\n#### Gotchas\n\n- A marketing page is the wrong surface. A missing auth service is a block.\n\n### Item list and detail\n\nLets a user browse items and open one.\n\n#### How a user gets there\n\n- Open the `Items` tab, then choose a row.\n\n#### How the control adapter drives it\n\n- `select_tab Items` and `click <fixture item>` should open its detail.\n- Reset by closing the detail and clearing selection.\n\n#### Stable selectors\n\n- Tab and list named `Items`, fixture-named row, `data-component=\"item-detail\"`\n\n#### States to exercise\n\n- Loading, empty, error, selected, open, expanded\n\n#### Preconditions and setup\n\n- Named fixture items, read permission, available item service\n\n#### Evidence and cross-check\n\n- Show selection and matching detail title. Check selected-item ID.\n\n#### Gotchas\n\n- Search results may look similar but use a different path.\n\n### Item editor\n\nLets a user create or edit an item.\n\n#### How a user gets there\n\n- Choose `Edit` from detail or `New item` from the list.\n\n#### How the control adapter drives it\n\n- `click Edit`, `fill <field>`, and `click Save` should update detail.\n- Reset by restoring the fixture.\n\n#### Stable selectors\n\n- Buttons `Edit`, `New item`, `Save`, form `Item editor`, label-linked fields\n\n#### States to exercise\n\n- Default, focus-visible, dirty, validating, disabled, saving, error, success\n\n#### Preconditions and setup\n\n- Editable fixture, write permission, available save service\n\n#### Evidence and cross-check\n\n- Show field change through updated detail. Check the stored item value read-only.\n\n#### Gotchas\n\n- Do not inject form state. A read-only detail field is not the editor.\n\n### Settings\n\nLets a user change personal preferences.\n\n#### How a user gets there\n\n- Open the profile menu, then choose `Settings`.\n\n#### How the control adapter drives it\n\n- `open_menu Profile`, `click Settings`, and `toggle <preference>` should update the control.\n- Reset by restoring the starting preference.\n\n#### Stable selectors\n\n- Button `Profile`, menu item `Settings`, region `Settings`, purpose-named preference attribute\n\n#### States to exercise\n\n- Closed, open, selected, focus-visible, disabled, loading, error\n\n#### Preconditions and setup\n\n- Signed-in test account, known preferences, available preference service\n\n#### Evidence and cross-check\n\n- Show the menu path and final control state. Check the preference value read-only.\n\n#### Gotchas\n\n- Operating-system settings are a different surface.\n\n## Completeness checklist\n\n- Every reproducible user-facing feature has a section.\n- Every section names a user path, adapter actions, and reset.\n- Selectors use roles, names, ARIA, stable component markers, or purpose-named attributes.\n- No selector uses generated classes or DOM position.\n- Relevant interaction, loading, empty, error, selected, and expanded states are covered.\n- Auth, fixtures, permissions, flags, and services are explicit.\n- Screenshot, video, and underlying cross-check requirements are explicit.\n- Wrong surfaces, dead ends, and safe environment translations are listed.\n- Implementation details remain runtime discoveries."
+            },
+            "routing.md": {
+              "rel": ".cursor/benny/routing.md",
+              "exists": true,
+              "digest": "sha256:28d98cd22100de7504f756a276245c4d699ff02f6267c7ada6fec19d7cd6719a",
+              "text": "<!-- User-owned Benny routing map (fixture placeholders). Not part of the pack. -->\n# Routing map example\n\nCopy this file outside `.cursor/automations/benny/`, for example to `.cursor/benny/routing.md`, and replace every placeholder. Point `routing.map_path` at the copy. Pack refreshes must not overwrite it.\n\nThe triage skill treats this as data. A route needs evidence from the report or cause trace. A keyword match alone is not enough.\n\n```yaml\nroutes:\n  - name: \"billing-example\"\n    match:\n      product_areas:\n        - \"billing-area-placeholder\"\n      code_paths:\n        - \"billing-code-path-placeholder\"\n      error_signatures:\n        - \"billing-error-placeholder\"\n    destination:\n      slack_channel: \"billing-channel-placeholder\"\n      tracker_team: \"billing-team-placeholder\"\n    owners:\n      - \"billing-owner-placeholder\"\n    allow_feature_owner_ping: false\n\n  - name: \"desktop-example\"\n    match:\n      product_areas:\n        - \"desktop-area-placeholder\"\n      code_paths:\n        - \"desktop-code-path-placeholder\"\n      error_signatures:\n        - \"desktop-error-placeholder\"\n    destination:\n      slack_channel: \"desktop-channel-placeholder\"\n      tracker_team: \"desktop-team-placeholder\"\n    owners:\n      - \"desktop-owner-placeholder\"\n    allow_feature_owner_ping: false\n\nfallback:\n  destination: \"\"\n  owners: []\n  allow_feature_owner_ping: false\n\nping_policy:\n  default: \"off\"\n  allow:\n    - \"configured-feature-owner\"\n    - \"confirmed-regression-author\"\n  deny:\n    - \"broad-on-call-group\"\n    - \"unverified-owner\"\n```\n\n## Rules\n\n- Leave `fallback.destination` empty unless one team accepts all unmatched reports.\n- Use stable product areas, code paths, and error signatures.\n- Do not include private data in a public copy.\n- Do not paste raw user or channel IDs into an example that will be published.\n- Keep feature-owner pings off until the target team agrees to them.\n- A reroute tells the reporter where to go. The automation never cross-posts."
+            }
+          },
+          "insidePackUserNamed": [],
+          "productDigest": "sha256:e798010fc8c298534ad1b05a51dadab9fb1077129eecee920ce524af012c583e"
+        },
+        "done": {
+          "exists": true,
+          "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/user-config-outside/fixture-out/pi/done.txt",
+          "line": "STATUS=adapt-ok reason=user-owned copies created in .cursor/benny",
+          "status": "adapt-ok"
+        },
+        "outcome": "adapt_ok",
+        "contractHeld": true,
+        "score": {
+          "productUnchanged": true,
+          "examplesUntouched": true,
+          "eachBaseOutside": true,
+          "preferredAllPresent": true,
+          "noUserNamedInsidePack": true,
+          "outsidePlacementOk": true,
+          "adaptChrome": true
+        },
+        "session": {
+          "sessionPath": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-setup-benny-user-config-outside-fixture-app--/2026-10-09T00-41-29-819Z_01a11e1b-a1db-706e-8133-635d46ca62f6.jsonl",
+          "forAgentsRead": true,
+          "setupBennyRead": true,
+          "userWrite": true,
+          "exampleEdit": false,
+          "toolOrder": [
+            "bash(setup-benny/SKILL.md)",
+            "bash",
+            "bash(user-owned)"
+          ]
+        },
+        "pollSamples": 25,
+        "scorerNote": "adapt_ok requires each of configuration.yaml, feature-map.md, routing.md outside .cursor/automations/benny/, no same-named non-example files inside the pack, example digests unchanged, and product unchanged"
+      }
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "side": "pi",
+  "path": "askquestion-unlimited-then-other",
+  "attemptId": "5bafa9a0-d6f2-4bb3-b38f-66012dc305b1",
+  "targetBudget": "unlimited",
+  "grokCap": true,
+  "errorCode": "GROK_UNAVAILABLE",
+  "screens": {
+    "ready": "screen-00-ready.txt",
+    "budgetQuestion": "screen-01-question.txt",
+    "afterUnlimited": "screen-01b-after-unlimited.txt",
+    "roleConfirm": "screen-01c-role-or-next.txt",
+    "afterRoleOther": "screen-01d-after-role-other.txt",
+    "panelAfterInstruction": "screen-03-panel.txt",
+    "timeout": "screen-02-timeout.txt"
+  },
+  "productMessage": "I stopped before writing anything. xai/grok-4.7 isn't in the detected models, so the rule is unchanged. The detected list has no xai/* entries at all.",
+  "authProviders": ["deepseek", "google-antigravity", "openai", "claude-subscription"],
+  "xaiAuthPresent": false,
+  "score": {
+    "budgetBefore": "small (medium)",
+    "budgetAfter": "small (medium)",
+    "budgetOk": false,
+    "grokPresent": true,
+    "grokCappedCount": 0,
+    "grokTotal": 10,
+    "nonGrokMaxCount": 0,
+    "nonGrokTotal": 9,
+    "aliasesPreserved": true,
+    "pass": false,
+    "failures": [
+      {
+        "reason": "grok-unavailable-no-write",
+        "detail": "Pi refused to write because xai/grok-4.7 is not in detected/availableModels without xai auth"
+      },
+      {
+        "reason": "budget-not-target",
+        "budgetAfter": "small (medium)",
+        "expectedPrefix": "unlimited ("
+      }
+    ]
+  }
+}

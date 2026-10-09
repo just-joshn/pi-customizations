@@ -1,0 +1,25 @@
+{
+  "proposalCount": 21,
+  "dispositionCount": 3,
+  "hashOk": true,
+  "failures": [],
+  "coveredByProposal": [
+    "pstack/automations/benny/skills/setup-benny/SKILL.md",
+    "pstack/skills/create-verification-skill/SKILL.md",
+    "pstack/skills/maintain-verification-skill/SKILL.md"
+  ],
+  "coveredByDisposition": [
+    "pstack/skills/create-verification-skill/references/feature-map-example/README.md",
+    "pstack/skills/create-verification-skill/references/feature-map-example/create-note.md",
+    "pstack/skills/create-verification-skill/references/feature-map-example/search.md"
+  ],
+  "leftoverPaths": [
+    "pstack/automations/benny/skills/setup-benny/SKILL.md",
+    "pstack/skills/create-verification-skill/SKILL.md",
+    "pstack/skills/create-verification-skill/references/feature-map-example/README.md",
+    "pstack/skills/create-verification-skill/references/feature-map-example/create-note.md",
+    "pstack/skills/create-verification-skill/references/feature-map-example/search.md",
+    "pstack/skills/maintain-verification-skill/SKILL.md"
+  ],
+  "uncoveredLeftovers": []
+}

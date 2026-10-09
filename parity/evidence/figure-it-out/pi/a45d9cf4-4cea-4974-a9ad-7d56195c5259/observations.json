@@ -1,0 +1,43 @@
+{
+  "screenFinal": {
+    "figureItOutSkill": true,
+    "playbookMention": true,
+    "productMention": true,
+    "working": false
+  },
+  "firstPlaybookAt": null,
+  "firstProductAt": "2026-10-08T19:17:03.955Z",
+  "playbookPaths": [],
+  "productPaths": [
+    "notes.json",
+    "src/cli.js",
+    "src/format.js",
+    "src/store.js"
+  ],
+  "playbookDetails": [],
+  "structuredPlaybook": false,
+  "ordering": "product_before_playbook",
+  "playbookBeforeProduct": false,
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/figure-it-out/fixture-out/pi/done.txt",
+    "line": "Done predicate: 'node verify.mjs' (baseline FAIL) now exits 0 - first CLI run creates notes.json with alpha/beta, every output line matches '- <ISO-8601 ms Z timestamp> <text>', and a second run prints identical output."
+  },
+  "pollSamples": 32,
+  "sessionToolOrder": {
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-figure-it-out-fixture-app--/2026-10-08T19-16-45-542Z_01a11cf2-5365-7111-986b-9e4cb7041da1.jsonl",
+    "sessionId": "01a11cf2-5365-7111-986b-9e4cb7041da1",
+    "singleBashWroteInOrder": [
+      "src/store.js",
+      "src/format.js",
+      "src/cli.js",
+      "notes.json(via verify)",
+      "DECISIONS.md",
+      "fixture-out/pi/done.txt"
+    ],
+    "playbookFileBeforeProduct": false,
+    "decisionsMdAfterProductInSameBash": true,
+    "phaseTodosStillPendingAtEnd": true,
+    "orderingRefined": "product_before_playbook"
+  }
+}

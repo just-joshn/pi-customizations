@@ -1,0 +1,25 @@
+{
+  "at": "2026-10-09T14:41:47.291Z",
+  "census": {
+    "ioregLocked": false,
+    "winCount": 1,
+    "loginWins": 0,
+    "seStatus": 0,
+    "lwStatus": 0,
+    "seTimedOut": false,
+    "lwTimedOut": false,
+    "seCursorReady": true,
+    "helperReady": true,
+    "helper": {
+      "accessibility": true,
+      "consoleUidMatch": true,
+      "guiSession": true,
+      "ready": true,
+      "screenLocked": false,
+      "screenRecording": true
+    },
+    "ready": true
+  },
+  "nextBrief": "parity/briefs/u-make-bot-auth-header-post-unlock-002.md",
+  "probePath": "parity/research/make-bot-auth-header-post-unlock-002/probe-auth-header.py"
+}

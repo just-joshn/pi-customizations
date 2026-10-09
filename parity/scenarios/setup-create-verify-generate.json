@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "setup-create-verify-generate",
+  "status": "executed-pass-paired",
+  "requirements": [
+    "PSTACK-SETUP-CREATE-VERIFY-GENERATE-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/create-verification-skill/SKILL.md### 2. Generate the skill",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "hello-cli fixture generate-then-reuse with Helpers required",
+    "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "After the repo interview succeeds.. Writes .cursor/skills/verify-<app>/SKILL.md with YAML frontmatter name and description, plus Launch, Doctor, Drive, Evidence, Cleanup, and Helpers sections grounded in interview findings with no placeholders. Helpers shipped by the skill are executable and their invocation appears in the skill body. Cleanup never kills by process name and never deletes named proof artifacts."
+    }
+  ],
+  "execution": {
+    "referenceRun": "66b7eaf6-e605-4446-8b68-cb18f6d64d8d",
+    "candidateRun": "530af8b2-6322-44f6-848f-d9b62d85323b",
+    "pairId": "create-verify-helpers-1",
+    "pairPath": "parity/evidence/create-verify/pair-create-verify-helpers-1.json",
+    "verdict": "pass-paired",
+    "closedAt": "2026-10-08T19:27:00Z"
+  }
+}

@@ -1,0 +1,10 @@
+ts	phase	decision	why	evidence	result
+2026-10-09T06:56:00Z	start	start u-automations-new-editor-001	witness Automations editor chrome after New Automation; no save/enable	parity/briefs/u-automations-new-editor-001.md	predicate open
+2026-10-09T06:56:30Z	ready	helper Ready rechecked before drive	prove-it-works	01-permissions.json;02-desktop-share-status.json;03-worker-debug.txt	Ready=yes
+2026-10-09T06:58:00Z	lever	extend capture script with neweditor mode + element_index	build-the-lever; prefer fresh get_app_state then element_index	parity/scripts/capture-automations-desktop-agents-window.py	mode neweditor
+2026-10-09T06:58:40Z	false-pos	c4f3d7c8 editorChromeWitnessed true was wrong	Discard/Draft markers are chat chrome; Escape after Open Automations dismissed list	agents-window/c4f3d7c8…	discarded
+2026-10-09T06:59:30Z	bugfix	AX walker must descend window key	get_app_state root is {app,window}; children-only miss New Automation	e5eaace1… then f24f4aa6…	finder fixed
+2026-10-09T07:00:20Z	probe	element_index 171 and 197 clickOk but stay on list	screens still show Mine empty + New Automation CTAs	f24f4aa6… screen-04-click-*	editor no
+2026-10-09T07:01:30Z	exhaustive	element_index + frame xy + double-click + Tab/Return/Space all fail	screens oracle; no editor markers in any AX	5a404316…	editorChromeWitnessed no
+2026-10-09T07:02:00Z	ready	helper Ready rechecked after drive	prove-it-works	37-verify-*.json;37-verify-worker-debug.txt	Ready=yes
+2026-10-09T07:02:30Z	merge	recommend keep SETUP-BENNY-CREATION-BOUNDARY-ENV open	editor chrome unpaid under scripted AX/keyboard/click; list still reachable	briefs/reports/u-automations-new-editor-001-report.md	keep-open

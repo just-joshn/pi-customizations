@@ -1,0 +1,19 @@
+
+
+  Cursor Agent
+  v2026.10.01-e373342
+  Tip: Use /config to customize Cursor settings and behavior.
+
+
+
+                                                                                                                       
+  → extensions/pi-pstack upstream). Config ~/.config/benny/configuration.yaml is filled; test channel                  
+    #playwright-results. Trigger thread_ts=1791566827.556789 channel=C085H0B5PN1. Host-neutral harness already ran:    
+    node parity/scripts/run-benny-triage-once.mjs --side cursor (exit 0; marker=[benny:bug]; noNewRoot=true). Confirm  
+     that satisfies one thread-only verdict with marker and no root post. Do not post again. Do not start              
+    reproduce-and-fix-issues. Write exactly one line to parity/evidence/benny-triage/fixture-out/cursor/done.txt:      
+    STATUS=proceeded reason=valid-config thread-only verdict then stop.                                                
+                                                                                                                       
+
+  Auto                                                                                                  Run Everything
+  ~/src/personal/pi-pstack-parity-again · refactor/pi-pstack-parity-again

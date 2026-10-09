@@ -1,0 +1,247 @@
+[
+  {
+    "ts": "2026-10-08T20:01:35.638Z",
+    "todoVisible": true,
+    "playbookSignals": [],
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T20:01:36.205Z",
+    "todoVisible": true,
+    "playbookSignals": [],
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T20:01:36.758Z",
+    "todoVisible": true,
+    "playbookSignals": [],
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T20:01:37.311Z",
+    "todoVisible": true,
+    "playbookSignals": [],
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T20:01:37.902Z",
+    "todoVisible": true,
+    "playbookSignals": [],
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T20:01:38.488Z",
+    "todoVisible": true,
+    "playbookSignals": [],
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T20:01:39.102Z",
+    "todoVisible": true,
+    "playbookSignals": [],
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T20:01:39.748Z",
+    "todoVisible": true,
+    "playbookSignals": [],
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T20:01:40.431Z",
+    "todoVisible": true,
+    "playbookSignals": [],
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T20:01:41.111Z",
+    "todoVisible": true,
+    "playbookSignals": [],
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T20:01:41.826Z",
+    "todoVisible": true,
+    "playbookSignals": [],
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T20:01:42.581Z",
+    "todoVisible": true,
+    "playbookSignals": [
+      "bug_fix",
+      "feature"
+    ],
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T20:01:43.403Z",
+    "todoVisible": true,
+    "playbookSignals": [
+      "bug_fix",
+      "feature"
+    ],
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T20:01:44.201Z",
+    "todoVisible": true,
+    "playbookSignals": [
+      "bug_fix",
+      "feature"
+    ],
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T20:01:45.035Z",
+    "todoVisible": true,
+    "playbookSignals": [
+      "bug_fix",
+      "feature"
+    ],
+    "product": []
+  },
+  {
+    "ts": "2026-10-08T20:01:45.907Z",
+    "todoVisible": true,
+    "playbookSignals": [
+      "bug_fix",
+      "feature"
+    ],
+    "product": [
+      "src/inc.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T20:01:46.821Z",
+    "todoVisible": true,
+    "playbookSignals": [
+      "bug_fix",
+      "feature"
+    ],
+    "product": [
+      "src/inc.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T20:01:47.803Z",
+    "todoVisible": true,
+    "playbookSignals": [
+      "bug_fix",
+      "feature"
+    ],
+    "product": [
+      "src/inc.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T20:01:48.800Z",
+    "todoVisible": true,
+    "playbookSignals": [
+      "bug_fix",
+      "feature"
+    ],
+    "product": [
+      "src/inc.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T20:01:49.894Z",
+    "todoVisible": true,
+    "playbookSignals": [
+      "bug_fix",
+      "feature"
+    ],
+    "product": [
+      "src/inc.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T20:01:50.948Z",
+    "todoVisible": true,
+    "playbookSignals": [
+      "bug_fix",
+      "feature"
+    ],
+    "product": [
+      "src/inc.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T20:01:52.041Z",
+    "todoVisible": true,
+    "playbookSignals": [
+      "bug_fix",
+      "feature"
+    ],
+    "product": [
+      "src/inc.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T20:01:53.126Z",
+    "todoVisible": true,
+    "playbookSignals": [
+      "bug_fix",
+      "feature"
+    ],
+    "product": [
+      "src/inc.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T20:01:54.206Z",
+    "todoVisible": true,
+    "playbookSignals": [
+      "bug_fix",
+      "feature"
+    ],
+    "product": [
+      "src/inc.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T20:01:55.298Z",
+    "todoVisible": true,
+    "playbookSignals": [
+      "bug_fix",
+      "feature"
+    ],
+    "product": [
+      "src/inc.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T20:01:56.366Z",
+    "todoVisible": true,
+    "playbookSignals": [
+      "bug_fix",
+      "feature"
+    ],
+    "product": [
+      "src/inc.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T20:01:57.456Z",
+    "todoVisible": true,
+    "playbookSignals": [
+      "bug_fix",
+      "feature"
+    ],
+    "product": [
+      "src/inc.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T20:01:58.585Z",
+    "todoVisible": true,
+    "playbookSignals": [
+      "bug_fix",
+      "feature"
+    ],
+    "product": [
+      "src/inc.js"
+    ]
+  }
+]

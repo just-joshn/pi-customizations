@@ -1,0 +1,16 @@
+{
+  "afterTypecheck": {
+    "typecheckCmd": true,
+    "tscProject": true,
+    "noEmit": true,
+    "strict": true,
+    "tsError": false,
+    "working": false
+  },
+  "typecheckChromeOk": true,
+  "doneMarkerOk": true,
+  "consumerPath": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/package.json",
+  "consumerSha256": "d1f815091209d49763775cc188e8e06ff32d5fec648bffd2272bc25a165e87c3",
+  "consumerMatchesLocked": true,
+  "journeyClosed": true
+}

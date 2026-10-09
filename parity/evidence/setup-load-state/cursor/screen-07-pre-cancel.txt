@@ -1,0 +1,35 @@
+  Pick a budget:
+
+  1. unlimited — keep max
+  2. large — xhigh reasoning
+  3. medium — high reasoning
+  4. small — medium reasoning
+
+                                                                                                                       
+  small — medium reasoning                                                                                             
+                                                                                                                       
+
+  Budget small — medium reasoning applied. Aliases stay as-is; no real slugs to downgrade.
+
+  ┌──────────────────────┬────────────────┐
+  │ Role                 │ Model          │
+  ├──────────────────────┼────────────────┤
+  │ feature, refactoring │ inherit-parent │
+  ├──────────────────────┼────────────────┤
+  │ bug-fix              │ auto           │
+  ├──────────────────────┼────────────────┤
+  │ perf-issue           │ inherit-parent │
+  ├──────────────────────┼────────────────┤
+  │ hillclimb            │ inherit-parent │
+  ├──────────────────────┼────────────────┤
+  │ judgment and prose   │ inherit-parent │
+  └──────────────────────┴────────────────┘
+
+ ⠘⠤ Working  181 tokens
+
+                                                                                                                       
+  → small — medium reasoning                                                                                           
+                                                                                                                       
+
+  Auto · 9.6%                                                                                           Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/fixtures/first-run · refactor/pi-pstack-parity-again

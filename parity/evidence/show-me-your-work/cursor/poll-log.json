@@ -1,0 +1,1180 @@
+[
+  {
+    "ts": "2026-10-08T21:14:21.029Z",
+    "trail": [],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:21.432Z",
+    "trail": [],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:21.833Z",
+    "trail": [],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:22.234Z",
+    "trail": [],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:22.634Z",
+    "trail": [],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:23.036Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:23.437Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:23.838Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:24.239Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:24.640Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:25.042Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:25.444Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:25.847Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:26.249Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:26.649Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:27.051Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:27.453Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:27.852Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:28.254Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:28.656Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:29.057Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:29.458Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:29.858Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:30.260Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:30.662Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:31.063Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:31.465Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:31.866Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:32.268Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:32.671Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:33.072Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:33.475Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:33.878Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:34.279Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:34.681Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:35.082Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:35.485Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:35.887Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:36.287Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:36.689Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:37.091Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:37.493Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:37.895Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:38.298Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:38.700Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:39.103Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:39.505Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:39.908Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:40.310Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:40.712Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:41.114Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:41.515Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:41.917Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:42.318Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:42.720Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:43.122Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:43.525Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:43.926Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:44.326Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:44.729Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:45.129Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:45.531Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:45.934Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:46.336Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:46.736Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:47.139Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:47.541Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:47.943Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:48.344Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:48.746Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:49.148Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:49.549Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:49.953Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:50.356Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:50.756Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:51.158Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:51.560Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:51.960Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:52.361Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:52.763Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:53.166Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:53.566Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:53.968Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:54.370Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:54.771Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:55.171Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:55.572Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:55.973Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:56.374Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:56.774Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:57.177Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:57.579Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:57.980Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:58.380Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:58.782Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:59.184Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:59.585Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:14:59.988Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:15:00.389Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:15:00.790Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:15:01.191Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:15:01.592Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:15:01.993Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:15:02.394Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:15:02.794Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:15:03.196Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:15:03.599Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:15:03.998Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:15:04.398Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:15:04.799Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:15:05.201Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:15:05.602Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:15:06.004Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:15:06.404Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:15:06.805Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:15:07.206Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:15:07.606Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:15:08.008Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:15:08.410Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:15:08.811Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:15:09.213Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:15:09.615Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:15:10.016Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:15:10.419Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:15:10.820Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:15:11.220Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:15:11.621Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:15:12.023Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:15:12.424Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:15:12.825Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:15:13.226Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  },
+  {
+    "ts": "2026-10-08T21:15:13.626Z",
+    "trail": [
+      "decisions.tsv"
+    ],
+    "product": [
+      "src/greet.js"
+    ]
+  }
+]

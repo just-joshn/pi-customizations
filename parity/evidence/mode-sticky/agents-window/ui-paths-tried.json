@@ -1,0 +1,52 @@
+{
+  "probeId": "3c169585-3597-479e-94c9-590891dc8e1f",
+  "capturedAt": "2026-10-09T01:57:06.492Z",
+  "uiPathsTried": [
+    {
+      "path": "Desktop Cursor.app → Agents Window → slash → Use as Mode",
+      "tried": true,
+      "reachable": false,
+      "reason": "No Cursor.app on host; mdfind empty; /Applications has no Cursor entry",
+      "customModeChrome": false
+    },
+    {
+      "path": "Desktop Cursor Settings → Custom Modes toggle",
+      "tried": true,
+      "reachable": false,
+      "reason": "No Application Support/Cursor User/settings.json; cli-config has no Custom Mode keys",
+      "customModeChrome": false
+    },
+    {
+      "path": "cursor shim open IDE / Agents Window",
+      "tried": true,
+      "reachable": false,
+      "reason": "Error: No Cursor IDE installation found. Use 'cursor agent' or 'agent' to run the agent.",
+      "customModeChrome": false
+    },
+    {
+      "path": "CDP attach to running Cursor Electron (remote-debugging-port)",
+      "tried": true,
+      "reachable": false,
+      "reason": "No open CDP on 9222,9223,9229,9230; no Cursor process in foreground list",
+      "customModeChrome": false
+    },
+    {
+      "path": "Computer-use / desktop screenshot drive of Agents Window",
+      "tried": true,
+      "reachable": false,
+      "reason": "No computer-use MCP tools in this session; screencapture cannot create image from display",
+      "customModeChrome": false
+    },
+    {
+      "path": "cursor-agent PTY Meta+Enter / Use as Mode (prior exhaustive-negative, not re-run as Agents Window)",
+      "tried": false,
+      "reachable": true,
+      "reason": "Out of scope for this unit (CLI glass_custom_modes already negative: attempts 6977eeec, 9857dda0)",
+      "customModeChrome": false,
+      "priorAttempts": [
+        "6977eeec-08bd-4829-810c-11d526d9f9fb",
+        "9857dda0-a74d-4546-b69e-1ff3528bdf3e"
+      ]
+    }
+  ]
+}

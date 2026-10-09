@@ -1,0 +1,503 @@
+{
+  "capturedAt": "2026-10-09T00:07:30Z",
+  "skillPath": "parity/research/dep-closure-wave-001/nodes/cursor-create-skill/SKILL.md",
+  "skillSha256": "255a3d3be7bac8984a13279f754f091a1de6f72c82bdf73e6b3c868e77e7ee82",
+  "skillByteLength": 15034,
+  "liveInstallPath": "/Users/josh-desktop/.cursor/skills-cursor/create-skill/SKILL.md",
+  "liveInstallSha256": "255a3d3be7bac8984a13279f754f091a1de6f72c82bdf73e6b3c868e77e7ee82",
+  "captureMatchesLiveInstall": true,
+  "headingCount": 75,
+  "headings": [
+    {
+      "level": 1,
+      "title": "Creating Skills in Cursor",
+      "offset": 142
+    },
+    {
+      "level": 2,
+      "title": "Before You Begin: Gather Requirements",
+      "offset": 466
+    },
+    {
+      "level": 3,
+      "title": "Verbatim text from the user",
+      "offset": 1149
+    },
+    {
+      "level": 3,
+      "title": "Inferring from Context",
+      "offset": 1424
+    },
+    {
+      "level": 3,
+      "title": "Gathering Additional Information",
+      "offset": 1643
+    },
+    {
+      "level": 2,
+      "title": "Skill File Structure",
+      "offset": 2075
+    },
+    {
+      "level": 3,
+      "title": "Directory Layout",
+      "offset": 2100
+    },
+    {
+      "level": 3,
+      "title": "Storage Locations",
+      "offset": 2473
+    },
+    {
+      "level": 3,
+      "title": "SKILL.md Structure",
+      "offset": 3499
+    },
+    {
+      "level": 1,
+      "title": "Your Skill Name",
+      "offset": 3752
+    },
+    {
+      "level": 2,
+      "title": "Instructions",
+      "offset": 3771
+    },
+    {
+      "level": 2,
+      "title": "Examples",
+      "offset": 3832
+    },
+    {
+      "level": 3,
+      "title": "Required Metadata Fields",
+      "offset": 4046
+    },
+    {
+      "level": 2,
+      "title": "Writing Effective Descriptions",
+      "offset": 4343
+    },
+    {
+      "level": 3,
+      "title": "Description Best Practices",
+      "offset": 4486
+    },
+    {
+      "level": 3,
+      "title": "Description Examples",
+      "offset": 5182
+    },
+    {
+      "level": 1,
+      "title": "PDF Processing",
+      "offset": 5216
+    },
+    {
+      "level": 1,
+      "title": "Excel Analysis",
+      "offset": 5411
+    },
+    {
+      "level": 1,
+      "title": "Git Commit Helper",
+      "offset": 5584
+    },
+    {
+      "level": 1,
+      "title": "Code Review",
+      "offset": 5764
+    },
+    {
+      "level": 2,
+      "title": "Core Authoring Principles",
+      "offset": 5970
+    },
+    {
+      "level": 3,
+      "title": "1. Concise is Key",
+      "offset": 6000
+    },
+    {
+      "level": 2,
+      "title": "Extract PDF text",
+      "offset": 6446
+    },
+    {
+      "level": 2,
+      "title": "Extract PDF text",
+      "offset": 6659
+    },
+    {
+      "level": 3,
+      "title": "2. Keep SKILL.md Under 500 Lines",
+      "offset": 6991
+    },
+    {
+      "level": 3,
+      "title": "3. Progressive Disclosure",
+      "offset": 7146
+    },
+    {
+      "level": 1,
+      "title": "PDF Processing",
+      "offset": 7314
+    },
+    {
+      "level": 2,
+      "title": "Quick start",
+      "offset": 7332
+    },
+    {
+      "level": 2,
+      "title": "Additional resources",
+      "offset": 7378
+    },
+    {
+      "level": 3,
+      "title": "4. Set Appropriate Degrees of Freedom",
+      "offset": 7661
+    },
+    {
+      "level": 2,
+      "title": "Common Patterns",
+      "offset": 8143
+    },
+    {
+      "level": 3,
+      "title": "Template Pattern",
+      "offset": 8163
+    },
+    {
+      "level": 2,
+      "title": "Report structure",
+      "offset": 8231
+    },
+    {
+      "level": 1,
+      "title": "[Analysis Title]",
+      "offset": 8287
+    },
+    {
+      "level": 2,
+      "title": "Executive summary",
+      "offset": 8307
+    },
+    {
+      "level": 2,
+      "title": "Key findings",
+      "offset": 8370
+    },
+    {
+      "level": 2,
+      "title": "Recommendations",
+      "offset": 8453
+    },
+    {
+      "level": 3,
+      "title": "Examples Pattern",
+      "offset": 8560
+    },
+    {
+      "level": 2,
+      "title": "Commit message format",
+      "offset": 8655
+    },
+    {
+      "level": 3,
+      "title": "Workflow Pattern",
+      "offset": 9079
+    },
+    {
+      "level": 2,
+      "title": "Form filling workflow",
+      "offset": 9173
+    },
+    {
+      "level": 3,
+      "title": "Conditional Workflow Pattern",
+      "offset": 9511
+    },
+    {
+      "level": 2,
+      "title": "Document modification workflow",
+      "offset": 9589
+    },
+    {
+      "level": 3,
+      "title": "Feedback Loop Pattern",
+      "offset": 9885
+    },
+    {
+      "level": 2,
+      "title": "Document editing process",
+      "offset": 9981
+    },
+    {
+      "level": 2,
+      "title": "Utility Scripts",
+      "offset": 10250
+    },
+    {
+      "level": 2,
+      "title": "Utility scripts",
+      "offset": 10475
+    },
+    {
+      "level": 1,
+      "title": "Returns: \"OK\" or lists conflicts",
+      "offset": 10707
+    },
+    {
+      "level": 2,
+      "title": "Anti-Patterns to Avoid",
+      "offset": 10862
+    },
+    {
+      "level": 3,
+      "title": "1. Windows-Style Paths",
+      "offset": 10889
+    },
+    {
+      "level": 3,
+      "title": "2. Too Many Options",
+      "offset": 10977
+    },
+    {
+      "level": 1,
+      "title": "Bad - confusing",
+      "offset": 11013
+    },
+    {
+      "level": 1,
+      "title": "Good - provide a default with escape hatch",
+      "offset": 11086
+    },
+    {
+      "level": 3,
+      "title": "3. Time-Sensitive Information",
+      "offset": 11246
+    },
+    {
+      "level": 1,
+      "title": "Bad - will become outdated",
+      "offset": 11292
+    },
+    {
+      "level": 1,
+      "title": "Good - use an \"old patterns\" section",
+      "offset": 11382
+    },
+    {
+      "level": 2,
+      "title": "Current method",
+      "offset": 11421
+    },
+    {
+      "level": 2,
+      "title": "Old patterns (deprecated)",
+      "offset": 11465
+    },
+    {
+      "level": 3,
+      "title": "4. Inconsistent Terminology",
+      "offset": 11557
+    },
+    {
+      "level": 3,
+      "title": "5. Vague Skill Names",
+      "offset": 11751
+    },
+    {
+      "level": 2,
+      "title": "Skill Creation Workflow",
+      "offset": 11874
+    },
+    {
+      "level": 3,
+      "title": "Phase 1: Discovery",
+      "offset": 11960
+    },
+    {
+      "level": 3,
+      "title": "Phase 2: Design",
+      "offset": 12326
+    },
+    {
+      "level": 3,
+      "title": "Phase 3: Implementation",
+      "offset": 12543
+    },
+    {
+      "level": 3,
+      "title": "Phase 4: Verification",
+      "offset": 12732
+    },
+    {
+      "level": 2,
+      "title": "Complete Example",
+      "offset": 13022
+    },
+    {
+      "level": 1,
+      "title": "Code Review",
+      "offset": 13437
+    },
+    {
+      "level": 2,
+      "title": "Quick Start",
+      "offset": 13452
+    },
+    {
+      "level": 2,
+      "title": "Review Checklist",
+      "offset": 13645
+    },
+    {
+      "level": 2,
+      "title": "Providing Feedback",
+      "offset": 13939
+    },
+    {
+      "level": 2,
+      "title": "Additional Resources",
+      "offset": 14105
+    },
+    {
+      "level": 2,
+      "title": "Summary Checklist",
+      "offset": 14260
+    },
+    {
+      "level": 3,
+      "title": "Core Quality",
+      "offset": 14318
+    },
+    {
+      "level": 3,
+      "title": "Structure",
+      "offset": 14586
+    },
+    {
+      "level": 3,
+      "title": "If Including Scripts",
+      "offset": 14759
+    }
+  ],
+  "subordinateWorkflowSections": [
+    {
+      "level": 2,
+      "title": "Before You Begin: Gather Requirements",
+      "offset": 466
+    },
+    {
+      "level": 3,
+      "title": "Template Pattern",
+      "offset": 8163
+    },
+    {
+      "level": 3,
+      "title": "Examples Pattern",
+      "offset": 8560
+    },
+    {
+      "level": 3,
+      "title": "Workflow Pattern",
+      "offset": 9079
+    },
+    {
+      "level": 3,
+      "title": "Conditional Workflow Pattern",
+      "offset": 9511
+    },
+    {
+      "level": 3,
+      "title": "Feedback Loop Pattern",
+      "offset": 9885
+    },
+    {
+      "level": 2,
+      "title": "Skill Creation Workflow",
+      "offset": 11874
+    },
+    {
+      "level": 3,
+      "title": "Phase 1: Discovery",
+      "offset": 11960
+    },
+    {
+      "level": 3,
+      "title": "Phase 2: Design",
+      "offset": 12326
+    },
+    {
+      "level": 3,
+      "title": "Phase 3: Implementation",
+      "offset": 12543
+    },
+    {
+      "level": 3,
+      "title": "Phase 4: Verification",
+      "offset": 12732
+    },
+    {
+      "level": 2,
+      "title": "Summary Checklist",
+      "offset": 14260
+    }
+  ],
+  "subordinateWorkflowSectionCount": 12,
+  "markdownLinks": [
+    {
+      "text": "reference.md",
+      "target": "reference.md"
+    },
+    {
+      "text": "examples.md",
+      "target": "examples.md"
+    },
+    {
+      "text": "STANDARDS.md",
+      "target": "STANDARDS.md"
+    },
+    {
+      "text": "examples.md",
+      "target": "examples.md"
+    }
+  ],
+  "checklistItemCount": 25,
+  "checklistItems": [
+    "Step 1: Analyze the form",
+    "Step 2: Create field mapping",
+    "Step 3: Validate mapping",
+    "Step 4: Fill the form",
+    "Step 5: Verify output",
+    "Logic is correct and handles edge cases",
+    "No security vulnerabilities (SQL injection, XSS, etc.)",
+    "Code follows project style conventions",
+    "Functions are appropriately sized and focused",
+    "Error handling is comprehensive",
+    "Tests cover the changes",
+    "Description is specific and includes key terms",
+    "Description includes both WHAT and WHEN",
+    "Written in third person",
+    "SKILL.md body is under 500 lines",
+    "Consistent terminology throughout",
+    "Examples are concrete, not abstract",
+    "File references are one level deep",
+    "Progressive disclosure used appropriately",
+    "Workflows have clear steps",
+    "No time-sensitive information",
+    "Scripts solve problems rather than punt",
+    "Required packages are documented",
+    "Error handling is explicit and helpful",
+    "No Windows-style paths"
+  ],
+  "supportingFilesInInstallDir": [
+    "SKILL.md"
+  ],
+  "subordinateWorkflowInventoryStatus": "complete",
+  "journeyAuditStatus": "open",
+  "disposition": "Wave-006 inventoried subordinate workflow/phase/pattern sections, checklist items, and markdown links from the captured SKILL.md. Capture hash still matches live ~/.cursor/skills-cursor/create-skill/SKILL.md. No paired Cursor+Pi journey exercised the skill-creation workflow.",
+  "blockerForJourneyClosure": "Paired Cursor+Pi user journeys that author a skill via /create-skill (or equivalent) and verify discovery/application remain required."
+}

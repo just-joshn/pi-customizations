@@ -1,0 +1,85 @@
+=== selftest ===
+SELFTEST FAIL unmodified copy is structurally consistent DRAFT with no authorization: verifier rejected
+    FAIL acceptance manifest does not match current files
+SELFTEST FAIL unmodified copy matches its external pin: verifier rejected
+    FAIL acceptance manifest does not match current files
+ok forged freeze rehash is refused
+ok forged freeze rehash leaves recorded hashes
+ok forged freeze rehash leaves the manifest
+ok forged freeze verify is refused
+ok same-family reviewers and an existing failure capture cited as a run are refused
+ok distinct-family reviewers still lack an authenticated transition
+ok distinct non-implementer families raise no family finding
+ok dropped forbidden effects cannot be reblessed
+ok refused rebless leaves recorded hashes
+ok deleted definition cannot be reblessed
+ok removed configuration value cannot be reblessed
+ok unreviewed denominator claim cannot be reblessed
+ok edited implementation-owner identity cannot be reblessed
+ok declared authority is not authentication
+ok new DRAFT record carrying review claims is refused
+ok a new DRAFT record is appended and recorded
+ok hand-edited hash ledger evades the local check and stays unauthorized
+ok external pin catches a hand-reblessed dropped obligation
+ok external pin catches a reblessed governance edit
+ok weakened exact label excerpt
+ok wrong source locator
+ok unknown configuration
+ok tampered reference evidence
+ok unrecorded governance edit
+ok symlinked MANIFEST.sha256 is refused on write
+ok symlinked MANIFEST.sha256 leaves the external file untouched
+ok symlinked setup-pstack/record-hashes.json is refused on write
+ok symlinked setup-pstack/record-hashes.json leaves the external file untouched
+ok hardlinked MANIFEST.sha256 is refused on write
+ok hardlinked MANIFEST.sha256 leaves the external file untouched
+ok hardlinked setup-pstack/record-hashes.json is refused on write
+ok hardlinked setup-pstack/record-hashes.json leaves the external file untouched
+ok symlinked setup-pstack parent is refused on write
+ok symlinked setup-pstack parent leaves the outside file untouched
+ok trailing newline on record-hashes fails the pinned digest
+ok non-integer source locator is refused
+ok trailing --expect-manifest-sha256 without a value is refused
+ok empty --expect-manifest-sha256 value is refused
+ok malformed --expect-manifest-sha256 value is refused
+selftest failed: 2
+selftest_exit=1
+
+=== focused regressions ===
+ok ledger-byte-drift rejected (exit 1)
+  FAIL setup-pstack/record-hashes.json bytes do not match the canonical recorded hashes
+  FAIL acceptance manifest does not match current files
+ledger-byte-drift_exit=0
+
+ok invalid-locator rejected (exit 1)
+  FAIL ACC-SETUP-BADLOC has invalid locator not-a-line; positive ordered integer locators only
+invalid-locator_exit=0
+
+ok missing-pin-value rejected (exit 1)
+  --expect-manifest-sha256 requires a sha256 hex digest
+ok empty-pin-value rejected (exit 1)
+  --expect-manifest-sha256 requires a sha256 hex digest
+ok malformed-pin-value rejected (exit 1)
+  --expect-manifest-sha256 value is not a sha256 hex digest: not-a-hash
+missing-pin-arg_exit=0
+
+ok hardlinked-output rejected (exit 1), canary unchanged
+  FAIL MANIFEST.sha256 has 2 hard links; hash files must be unlinked regular files inside the acceptance root
+hardlinked-output_exit=0
+
+ok symlinked-output-parent rejected (exit 1), outside unchanged
+  FAIL setup-pstack/record-hashes.json: path component setup-pstack is a symlink; hash files must stay inside the acceptance root
+symlinked-output-parent_exit=0
+
+=== clean pinned verify ===
+current_manifest_digest=10bd005eeed47dec258b5ffc2fd61c2b6bad751092d28f6b4abe64170883627c
+clean_exit=1
+FAIL acceptance manifest does not match current files
+
+=== digests ===
+5a33e1d4138283fe5d474cef5ccca575847e66e61f4a0c655ab6372106711aa7  /private/tmp/pi-pstack-parity-acceptance-owner/parity/acceptance/tools/verify-acceptance.mjs
+3bd5d296a589b7c355d9e70cbd48a78a01e26267e8279d967f0eb50a10ec3b9a  /private/tmp/pi-pstack-parity-acceptance-owner/parity/acceptance/tools/selftest.sh
+e4e84566a31803388d70e977f7a2bf4e7d53afe0c931543f877328e860805cb4  /private/tmp/pi-pstack-parity-acceptance-owner/parity/acceptance/setup-pstack/definitions.json
+3755a29140cdbf700f01eadd5e268b3abc459152c619bd0037bfe70cc355a80f  /private/tmp/pi-pstack-parity-acceptance-owner/parity/acceptance/setup-pstack/configurations.json
+4a218e21d7a6264daa45552fa39abdcd4c67337f145a79e191d136375a668238  /private/tmp/pi-pstack-parity-acceptance-owner/parity/acceptance/setup-pstack/record-hashes.json
+10bd005eeed47dec258b5ffc2fd61c2b6bad751092d28f6b4abe64170883627c  /private/tmp/pi-pstack-parity-acceptance-owner/parity/acceptance/MANIFEST.sha256

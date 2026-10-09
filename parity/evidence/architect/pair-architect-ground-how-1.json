@@ -1,0 +1,126 @@
+{
+  "schema": 1,
+  "pairId": "architect-ground-how-1",
+  "scenarioRef": "cmd-architect-ground-how",
+  "journeyFamily": "journey-cmd-architect-ground-how",
+  "requirementIds": [
+    "PSTACK-CMD-ARCHITECT-GROUND-HOW-001"
+  ],
+  "fixtureDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+  "promptSharedShape": "/architect design soft-delete across existing store/api/cli; Phase A how grounding then sketch only; write grounding.md then sketch.md then done.txt; no product implement",
+  "steps": [
+    {
+      "send": "/architect design soft-delete for tickets across the existing store, api, and cli. ..."
+    },
+    {
+      "send": "\r"
+    },
+    {
+      "settle": true
+    },
+    {
+      "cancel": true
+    }
+  ],
+  "cursor": {
+    "attemptId": "284b1831-6051-4b83-92b4-44a4b72609bf",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/architect/cursor/284b1831-6051-4b83-92b4-44a4b72609bf",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/cursor-agent",
+      "digest": "sha256:2ccc9a8e167797641448b5e5c936f006ba137a2555f117f38c5eb76a5238a233"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "observations": {
+      "architectSkill": true,
+      "howSkill": true,
+      "groundingPath": "parity/evidence/architect/fixture-out/cursor/grounding.md",
+      "sketchPath": "parity/evidence/architect/fixture-out/cursor/sketch.md",
+      "doneLine": "grounded=yes sketch=yes order=how-before-sketch",
+      "orderOk": true,
+      "order": "how-before-sketch",
+      "mtimeOrder": "grounding-mtime-before-sketch",
+      "howPath": "spawned how explorers + explainer synthesis (grounding.md header)",
+      "arenaPath": "Arena Frame + Fan out 3 candidates on settled screen",
+      "productUnchanged": true,
+      "scorerNote": "ordering from grounding/sketch artifacts + mtime; settled screen confirms Arena after grounding write"
+    }
+  },
+  "pi": {
+    "attemptId": "ab355606-e9f0-48e7-9508-08a6952de959",
+    "dir": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/architect/pi/ab355606-e9f0-48e7-9508-08a6952de959",
+    "ruleUnchanged": true,
+    "afterDigest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004",
+    "executable": {
+      "path": "/Users/josh-desktop/.local/bin/pi",
+      "digest": "sha256:99142ef3d4cd5ce154cc568c6e915930632808dd7010666e514551c1430ffd3d"
+    },
+    "observedEnv": {
+      "platform": "darwin",
+      "node": "v24.21.0",
+      "TERM": "xterm-256color"
+    },
+    "session": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-architect-fixture-app--/2026-10-08T21-21-16-167Z_01a11d64-5186-7618-9b9e-2ad270a55445.jsonl",
+    "observations": {
+      "architectSkill": true,
+      "howSkill": true,
+      "groundingPath": "parity/evidence/architect/fixture-out/pi/grounding.md",
+      "sketchPath": "parity/evidence/architect/fixture-out/pi/sketch.md",
+      "doneLine": "grounded=yes sketch=yes order=how-before-sketch",
+      "orderOk": true,
+      "order": "how-before-sketch",
+      "mtimeOrder": "grounding-mtime-before-sketch",
+      "sessionToolOrder": [
+        "TodoWrite",
+        "read(how/SKILL.md)",
+        "bash(list)",
+        "bash(readme)",
+        "bash(write grounding+sketch+done)"
+      ],
+      "howPath": "read how skill then traced 3 files inline; no how Task spawn",
+      "arenaPath": "skipped arena skill; candidates designed inline (stated on screen and in sketch.md)",
+      "productUnchanged": true,
+      "scorerNote": "session shows TodoWrite Ground before Sketch; read how/SKILL.md before the write bash; grounding mtime slightly before sketch in same heredoc"
+    }
+  },
+  "deltas": [
+    {
+      "topic": "how grounding precedes sketch",
+      "cursor": "grounding.md then sketch.md; orderOk true; how explorers named in grounding header",
+      "pi": "session read how skill then wrote grounding before/with sketch; orderOk true",
+      "reconciled": true
+    },
+    {
+      "topic": "how execution shape",
+      "cursor": "spawned how explorers + explainer synthesis",
+      "pi": "simple-path inline trace; no how subagents (62-line fixture)",
+      "reconciled": false
+    },
+    {
+      "topic": "arena / Phase B fan-out",
+      "cursor": "Arena Frame + 3 candidate sketches on settled screen",
+      "pi": "arena skill not run; candidates written inline",
+      "reconciled": false
+    },
+    {
+      "topic": "model identity chrome",
+      "cursor": "Auto",
+      "pi": "claude-sonnet-5-5 \u2022 medium (claude-subscription)",
+      "reconciled": false
+    }
+  ],
+  "provenance": {
+    "capturedWith": "parity/scripts/capture-architect-ground-how.mjs --cursor-only then --pi-only",
+    "workerPlaybook": "parity/evidence/architect/PLAYBOOK.md",
+    "piAgentDir": "/tmp/pi-ref-agent",
+    "packagePath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/extensions/pi-pstack",
+    "markerRoot": "parity/evidence/architect/fixture-out/{cursor,pi}/",
+    "heldOutFixture": "parity/evidence/architect/fixture-app (src/store.js + api.js + cli.js)",
+    "auditTrail": "parity/evidence/architect/.audit/u-journey-cmd-architect.tsv"
+  }
+}

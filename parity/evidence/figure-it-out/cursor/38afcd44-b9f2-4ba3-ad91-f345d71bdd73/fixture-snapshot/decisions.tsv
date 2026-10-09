@@ -1,0 +1,9 @@
+ts	phase	decision	why	evidence	result
+2026-10-08T19:14:06Z	frame	falsifiable done: notes.json holds seed notes; formatNote lines match ISO stamp; cli loads file then prints one stamped line per seed note	human steps away so predicate must be checkable without trust	README.md; baseline node src/cli.js -> '- alpha' / '- beta'	framed
+2026-10-08T19:14:06Z	frame	rigor medium; skip architect and fan-out; three file units plus harness	shape already concrete and reversible; more gates than try-harder	src/{store,format,cli}.js	designed
+2026-10-08T19:14:21Z	harness	wrote verify.mjs that deletes notes.json, runs cli twice, checks ISO lines and seed texts	build the check before product edits so old vs new is explicit	verify.mjs	baseline red expected
+2026-10-08T19:15:05Z	store	createStore loads or seeds notes.json as {text,createdAt} and writes on seed/add	persist domain notes on disk so reloads share one file	src/store.js; notes.json	VERIFIED via verify.mjs PASS
+2026-10-08T19:15:05Z	format	formatNote prefixes each line with note.createdAt ISO timestamp	requested display contract; stamp comes from stored createdAt for stable reruns	src/format.js	VERIFIED via verify.mjs ISO regex
+2026-10-08T19:15:05Z	cli	cli createStore then list before print so persisted notes drive output	keep public print loop; load path is createStore + list	src/cli.js	VERIFIED via verify.mjs two-run equality
+2026-10-08T19:15:05Z	verify	full predicate green on real node cli and notes.json	prove against artifacts not self-report	verify.mjs PASS; notes.json; node src/cli.js	VERIFIED
+2026-10-08T19:15:38Z	audit	cross-model review flagged batched unit logs and loose format string branch; predicate still green via verify.mjs	trail must record what verification actually proved	reviewer agent c6ff4b6e; decisions.tsv	Attention flags recorded

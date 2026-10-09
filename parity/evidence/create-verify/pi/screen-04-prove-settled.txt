@@ -1,0 +1,40 @@
+                                                                                                                       │
+ ... (6 earlier lines, ctrl+o to expand)                                                                               │
+ -rw-r--r-- 1 josh-desktop staff  0 Oct  8 13:14 stderr.txt                                                            │
+ -rw-r--r-- 1 josh-desktop staff 16 Oct  8 13:14 stdout.txt                                                            │
+ ./hello.sh                                                                                                            │
+ 0                                                                                                                     │
+ HELLO-FAMILY-13                                                                                                       │
+                                                                                                                       │
+ Took 0.1s                                                                                                             │
+                                                                                                                       │
+                                                                                                                       │
+ I wrote the skill and feature map, then ran the prove step once end to end. Launch, doctor, drive and cleanup all     │
+ ran. Stdout was exactly HELLO-FAMILY-13, stderr was empty and the exit code was 0. Cleanup had no processes to stop.  │
+ The evidence files were still on disk afterward.                                                                      │
+                                                                                                                       │
+ To keep the feature map honest as the app changes, use /maintain-verification-skill. I have not run it.               │
+                                                                                                                       │
+ Skill and feature map                                                                                                 │
+ - /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app/.pi/skills/verify │
+   -hello-cli/SKILL.md                                                                                                 │
+ - /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app/.pi/skills/verify │
+   -hello-cli/features/README.md                                                                                       │
+ - /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app/.pi/skills/verify │
+   -hello-cli/features/hello-print.md                                                                                  │
+                                                                                                                       │
+ Surviving evidence                                                                                                    │
+ - /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app/.pi/skills/verify │
+   -hello-cli/evidence/hello-print/command.txt                                                                         │
+ - /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app/.pi/skills/verify │
+   -hello-cli/evidence/hello-print/stdout.txt                                                                          ┃
+ - /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app/.pi/skills/verify ┃
+   -hello-cli/evidence/hello-print/stderr.txt                                                                          ┃
+ - /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app/.pi/skills/verify ┃
+   -hello-cli/evidence/hello-print/exit-code.txt                                                                       ┃
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/create-verify/fixture-app (refactor/pi-pstack-parity-again)
+↑10 ↓3.0k R90k W24k CH92.9% $0.142 (sub) 3.2%/1.0M (auto)               (claude-subscription) claude-sonnet-5-5 • medium

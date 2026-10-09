@@ -1,0 +1,40 @@
+                                                                                                                       │
+ [skill] workflow-from-chats (ctrl+o to expand)                                                                        │
+                                                                                                                       │
+                                                                                                                       │
+                                                                                                                       │
+ Do not ask questions. Follow the workflow-from-chats skill. Treat                                                     │
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/workflow-from-chats/syn │
+ thetic-chats as the parent transcript corpus for this fixture (do not invent other chats). Extract durable            │
+ preferences. Write the synthesis to                                                                                   ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/workflow-from-chats/s ┃
+ ummary.md and a reusable rule draft to                                                                                ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/workflow-from-chats/e ┃
+ xtracted-preferences.md. Both must include the exact marker FIXTURE_PREF and mention test-before-PR. Then write       ┃
+ exactly one line to                                                                                                   ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/workflow-from-chats/d ┃
+ one.txt as STATUS=verified|not-verified|inconclusive|env-blocked reason=<short phrase> and stop. Artifacts stay under ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/pi/workflow-from-chats.  ┃
+ Do not edit parity ledgers. Do not expose secrets.                                                                    ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+                                                                                                                       ┃
+ $ cd                                                                                                                  ┃
+ /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/workflow-from-chats/syn ┃
+ thetic-chats && ls -la && head -c 6000 * (timeout 20s)                                                                ┃
+                                                                                                                       ┃
+ ... (7 earlier lines, ctrl+o to expand)                                                                               ┃
+                                                                                                                       ┃
+ ==> parent-alpha.jsonl <==                                                                                            ┃
+ {"role":"user","text":"I prefer short commits. Always run tests before opening a PR. Never force-push."}              ┃
+ {"role":"assistant","text":"Understood. I will keep commits small and test before PRs."}                              ┃
+ {"role":"user","text":"Stop summarizing chats. FIXTURE_PREF: encode the test-before-PR rule."}                        ┃
+                                                                                                                       ┃
+ Took 0.0s                                                                                                             ┃
+                                                                                                                       ┃
+
+── ⠧ Working ───────────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                                        
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+~/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-apps/workflow-from-chats (refactor/pi-pstack-p...
+↑4 ↓148 R8.2k W18k CH31.3% $0.075 (sub) 2.6%/1.0M (auto)                (claude-subscription) claude-sonnet-5-5 • medium

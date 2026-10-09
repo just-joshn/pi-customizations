@@ -1,0 +1,1966 @@
+[
+  {
+    "ts": "2026-10-09T01:04:55.051Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [],
+    "mechanism": []
+  },
+  {
+    "ts": "2026-10-09T01:04:55.451Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [],
+    "mechanism": []
+  },
+  {
+    "ts": "2026-10-09T01:04:55.853Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [],
+    "mechanism": []
+  },
+  {
+    "ts": "2026-10-09T01:04:56.253Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [],
+    "mechanism": []
+  },
+  {
+    "ts": "2026-10-09T01:04:56.654Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [],
+    "mechanism": []
+  },
+  {
+    "ts": "2026-10-09T01:04:57.056Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [],
+    "mechanism": []
+  },
+  {
+    "ts": "2026-10-09T01:04:57.457Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [],
+    "mechanism": []
+  },
+  {
+    "ts": "2026-10-09T01:04:57.858Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [],
+    "mechanism": []
+  },
+  {
+    "ts": "2026-10-09T01:04:58.259Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [],
+    "mechanism": []
+  },
+  {
+    "ts": "2026-10-09T01:04:58.661Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:04:59.061Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:04:59.462Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:04:59.862Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:00.263Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:00.664Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:01.066Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:01.466Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:01.868Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:02.270Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:02.673Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:03.073Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:03.474Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:03.876Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:04.277Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:04.684Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:05.086Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:05.487Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:05.889Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:06.291Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:06.691Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:07.093Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:07.495Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:07.896Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:08.298Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:08.699Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:09.100Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:09.500Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:09.901Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:10.308Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:10.708Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:11.108Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:11.509Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:11.910Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:12.312Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:12.714Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:13.116Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:13.517Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:13.918Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:14.318Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:14.720Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:15.122Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:15.524Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:15.926Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:16.326Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:16.728Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:17.129Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:17.530Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:17.931Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:18.333Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:18.734Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:19.135Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:19.536Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:19.936Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:20.337Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:20.737Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:21.139Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:21.549Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:21.951Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:22.352Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:22.752Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:23.154Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:23.554Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:23.955Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:24.357Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:24.759Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:25.159Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:25.559Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:25.959Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:26.359Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:26.760Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:27.162Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:27.563Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:27.963Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:28.363Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:28.763Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:29.165Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:29.567Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:29.968Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:30.369Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:30.770Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:31.171Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:31.572Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:31.973Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:32.374Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:32.775Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:33.177Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:33.577Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:33.978Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:34.379Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:34.779Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:35.181Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:35.583Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:35.985Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:36.385Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:36.785Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:37.187Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:37.587Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:37.989Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:38.389Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:38.790Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:39.192Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:39.593Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:39.994Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:40.395Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:40.797Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:41.198Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:41.601Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:42.003Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:42.404Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:42.804Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:43.206Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:43.607Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:44.008Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:44.408Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:44.810Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:45.212Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:45.613Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:46.014Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:46.416Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:46.817Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:47.217Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:47.618Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:48.020Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:48.421Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:48.821Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:49.222Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:49.622Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:50.023Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:50.424Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:50.825Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:51.227Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:51.630Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:52.031Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:52.431Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:52.831Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:53.233Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:53.634Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:54.034Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:54.435Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:54.836Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:55.237Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:55.638Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:56.039Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:56.439Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:56.841Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:57.242Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:57.643Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:58.043Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:58.445Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:58.845Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:59.246Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:05:59.649Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:06:00.051Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:06:00.453Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:06:00.854Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:06:01.254Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:06:01.657Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:06:02.058Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:06:02.459Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  },
+  {
+    "ts": "2026-10-09T01:06:02.861Z",
+    "product": [
+      "src/config.js"
+    ],
+    "verify": [
+      "evidence/verify-out.txt"
+    ],
+    "mechanism": [
+      "scripts/check-allow-debug.mjs"
+    ]
+  }
+]

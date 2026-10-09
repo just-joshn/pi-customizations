@@ -1,0 +1,27 @@
+=== date ===
+2026-10-09T01:57:06.492Z
+=== probeId ===
+3c169585-3597-479e-94c9-590891dc8e1f
+=== mdfind Cursor.app ===
+(empty)
+=== ls Applications (cursorish) ===
+(none)
+=== cursor shim ===
+Error: No Cursor IDE installation found. Use 'cursor agent' or 'agent' to run the agent.
+Or, install Cursor at https://cursor.com/download
+Command failed: /Users/josh-desktop/.local/bin/cursor --help
+Error: No Cursor IDE installation found. Use 'cursor agent' or 'agent' to run the agent.
+Or, install Cursor at https://cursor.com/download
+=== Application Support Cursor ===
+exists=false
+=== computer-use / browser MCP in this Cursor agent session ===
+GetDynamicTools pattern computer|screenshot|browser returned matches: [] (measured by parent unit)
+=== CDP ports ===
+closed 9222
+closed 9223
+closed 9229
+closed 9230
+=== screencapture ===
+could not create image from display
+Command failed: screencapture -x /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/mode-sticky/agents-window/host-probe/02-desktop.png
+could not create image from display

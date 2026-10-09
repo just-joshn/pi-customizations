@@ -1,0 +1,26 @@
+{
+  "scenario": "cmd-benny-triage-thread-only",
+  "path": "valid-config-thread-only-verdict",
+  "runnable": false,
+  "verdict": "blocker",
+  "checks": {
+    "skillPresent": true,
+    "exampleConfigPresent": true,
+    "userBennyConfigPresent": false,
+    "bennySlackBotTokenEnv": false,
+    "slackBotTokenEnv": false,
+    "configuredSlackActionsResolvableInHarness": false,
+    "slackMcpInteractiveAuthAvailableInThisAgent": false,
+    "liveSlackPostAllowedWithoutOwnerGate": false
+  },
+  "missing": [
+    "no ~/.config/benny/configuration.yaml",
+    "no BENNY_SLACK_BOT_TOKEN or SLACK_BOT_TOKEN in environment",
+    "configured Slack read/post actions are example placeholders, not harness-resolvable tools",
+    "Slack MCP interactive auth unavailable in this agent environment",
+    "standing prefs forbid customer messages without explicit account-owner action (live Slack verdict post)"
+  ],
+  "skillAcceptanceNote": "triage-issue-reports requires freezing real Slack source coordinates, reading the source thread, and posting exactly one thread reply via configured Slack actions. File-backed stubs are not part of the skill contract. Filling configuration.example.yaml placeholders without operator Slack actions and credentials would fabricate a pass.",
+  "priorNegativePair": "parity/evidence/benny-triage/pair-benny-triage-fail-closed-1.json",
+  "wrote": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/benny-triage/valid-env-probe.json"
+}

@@ -1,0 +1,56 @@
+{
+  "screenFinal": {
+    "skillMention": true,
+    "envBlocked": false,
+    "working": false
+  },
+  "pty": {
+    "skillMention": true,
+    "envBlocked": false,
+    "working": true
+  },
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/workflow-from-chats/done.txt",
+    "line": "STATUS=verified reason=prefs encoded from synthetic parent-alpha",
+    "status": "verified"
+  },
+  "summaryExists": true,
+  "seededSkill": null,
+  "oracle": {
+    "summaryExists": true,
+    "ruleExists": true,
+    "markerOk": true,
+    "testPref": true,
+    "done": {
+      "exists": true,
+      "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/workflow-from-chats/done.txt",
+      "line": "STATUS=verified reason=prefs encoded from synthetic parent-alpha",
+      "status": "verified"
+    },
+    "closed": true,
+    "honestBlocker": false
+  },
+  "score": {
+    "skillPath": true,
+    "envBlocked": false,
+    "doneStatus": "verified",
+    "oracleClosed": true,
+    "closed": true,
+    "honestBlocker": false,
+    "oracle": {
+      "summaryExists": true,
+      "ruleExists": true,
+      "markerOk": true,
+      "testPref": true,
+      "done": {
+        "exists": true,
+        "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/team-kit/fixture-out/cursor/workflow-from-chats/done.txt",
+        "line": "STATUS=verified reason=prefs encoded from synthetic parent-alpha",
+        "status": "verified"
+      },
+      "closed": true,
+      "honestBlocker": false
+    }
+  }
+}

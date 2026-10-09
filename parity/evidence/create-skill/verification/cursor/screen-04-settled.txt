@@ -1,0 +1,39 @@
+    ▎    7 + | Check | Result | Notes |
+    ▎    8 + |-------|--------|-------|
+    ▎    9 + | SKILL.md under 500 lines | PASS | 12 lines |
+    ▎   10 + | Description has trigger terms | PASS | Includes "create-skill probe", "parity-create-skill-probe", 
+    ▎        and when-to-us ...
+    ▎   11 + | Terminology consistent | PASS | Uses "create-skill probe" / "marker" consistently; no conflicting 
+    ▎        aliases |
+    ▎   12 + | File refs one level deep | PASS | No supporting-file links in SKILL.md (N/A; nothing nested) |
+    ▎   13   truncated (8 more lines) · ctrl+r to review
+
+  Phase 4 structural checks are done and written to
+  parity/evidence/create-skill/fixture-out/verification/cursor/verify.md. All four passed; the skill was not
+  rewritten.
+
+  Waiting for your next message that says exactly: run the create-skill probe
+
+                                                                                                                       
+  run the create-skill probe                                                                                           
+                                                                                                                       
+
+  Applying the probe skill and finishing the verification artifacts.
+
+  $ printf '\nAPPLIED=CREATE-SKILL-PROBE-MARKER\n' >> "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/
+    evidence/create-skill/fixture-out/verification/cursor/verify.md" && printf 'STATUS=verified
+    reason=probe-applied\n' > "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fi
+    xture-out/verification/cursor/done.txt" 208ms
+
+    Used parity-create-skill-probe
+
+  CREATE-SKILL-PROBE-MARKER
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 10.6% · 1 file edited                                                                          Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/create-skill/fixture-app · refactor/pi-pstack-parity-again

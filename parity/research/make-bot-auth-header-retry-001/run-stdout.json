@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/make-bot-auth-header-retry-001/probe-auth-header.py", line 1163, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/make-bot-auth-header-retry-001/probe-auth-header.py", line 970, in main
+    handoff = run_webhook_handoff(h, adir)
+  File "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/make-bot-auth-header-retry-001/probe-auth-header.py", line 559, in run_webhook_handoff
+    h.shot_redacted(adir / f"h03-poll-{i}.png", allow_raw=True)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/make-bot-auth-header-retry-001/probe-auth-header.py", line 107, in shot_redacted
+    raise RuntimeError(f"no screenshot for {dest}")
+RuntimeError: no screenshot for /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/make-bot-ui/auth-header-retry/cfb6dd2b-fced-47e0-a71f-948502bc0e96/h03-poll-27.png

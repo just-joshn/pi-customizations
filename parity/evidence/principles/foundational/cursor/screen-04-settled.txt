@@ -1,0 +1,39 @@
+  • src/board.js keeps a Map of jobs plus a pending id queue for enqueue / claim / complete / snapshot
+
+  Choices.
+
+  ┌─────────────────────────────┬──────────────────────────────────────────────────────────────────────────────────┐
+  │ Approach                    │ Why                                                                              │
+  ├─────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────┤
+  │ Map + pending id queue      │ Claim is shift. Exclusivity is structural. Status stays pending until complete,  │
+  │ (chosen)                    │ which matches verify.                                                            │
+  ├─────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────┤
+  │ Flat array + scan for       │ Rejected. After claim, status is still pending, so a second claimer could take   │
+  │ status === 'pending'        │ the same job unless a hidden flag appears.                                       │
+  └─────────────────────────────┴──────────────────────────────────────────────────────────────────────────────────┘
+
+  Throughput checkpoint.
+  • Blocking first. Types before board logic.
+  • Independent workstreams. n/a. One shared board module.
+  • Shared mutable state. One board is the invariant. Single-threaded shift serializes claim.
+  • Smallest safe decomposition. One worker. Two files.
+
+  Principles applied. Foundational Thinking put the job shape in types.js first. Model the Domain chose Map + queue
+  over status scanning. Separate Before Serializing Shared State kept one shared board (real invariant) and
+  serialized claim via the queue. Laziness Protocol kept the surface to four functions. Prove It Works and Test
+  Behavior, Not Implementation ran node scripts/verify.mjs to the real BOARD-OK line. Never Block on the Human
+  picked the queue design without asking. Sequence Verifiable Units ordered types → board → verify → done.txt.
+  Exhaust the Design Space compared the two shapes above. Type System Discipline and Boundary Discipline kept status
+  as a two-value union and the factory as the create path.
+
+  Open decisions. None. Commits and PR skipped. Fixture-only cwd constraint.
+
+
+
+                                                                                                                       
+  → Add a follow-up                                                                                                    
+                                                                                                                       
+
+  Auto · 18.9% · 2 files edited                                                                         Run Everything
+  ~/src/personal/pi-pstack-parity-again/parity/evidence/principles/foundational/fixture-app · 
+  refactor/pi-pstack-parity-again
