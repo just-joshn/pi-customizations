@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "status": "DRAFT",
+  "owner": null,
+  "purpose": "Configuration axes for acceptance definitions regenerated from the live requirements ledger. Each definition names a matrix over these axes. Axes a definition does not name are pinned to the baseline value. Regeneration does not establish external custody or freeze authority.",
+  "baseline": {
+    "ledger": "ledger.default"
+  },
+  "axes": {
+    "ledger": {
+      "ledger.default": {
+        "description": "Official skill defaults with no pstack role override rule.",
+        "ledgerStatus": "required-unverified",
+        "platforms": []
+      },
+      "ledger.installed-user": {
+        "description": "Established user configuration observed at execution start.",
+        "ledgerStatus": "partially-captured-unverified",
+        "platform": "darwin-arm64"
+      },
+      "ledger.windows": {
+        "description": "Supported Windows mode keyboard behavior explicitly named by the official pstack README.",
+        "ledgerStatus": "required-unverified",
+        "environment": null
+      }
+    }
+  },
+  "openAxes": [
+    "Supported reference platforms from the official Cursor CLI contract.",
+    "Matched paired environments for every ledger configuration cell.",
+    "Account-owner prerequisites that still block some reference journeys."
+  ],
+  "ledgerMatrixRef": "parity/configurations.json"
+}
