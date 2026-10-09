@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "id": "setup-maintain-verify-outcomes",
+  "status": "paired",
+  "requirements": [
+    "PSTACK-SETUP-MAINTAIN-VERIFY-OUTCOMES-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/maintain-verification-skill/SKILL.md### Outcomes",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Documented preconditions satisfied; behavior not yet paired. Preconditions: A target verification skill was located.",
+    "digest": null
+  },
+  "actions": [
+    {
+      "kind": "type",
+      "literal": "/maintain-verification-skill",
+      "expect": "Run ends in exactly one named outcome: clean (full source and live coverage, nothing to ship, no branch or PR), changed (one PR of proven corrections), or blocked (coverage unfinished or proven fix cannot ship safely, with the blocker stated)."
+    }
+  ],
+  "execution": {
+    "pairId": "maintain-verify-outcomes-1",
+    "verdict": "pass",
+    "pair": "parity/evidence/maintain-verify/pair-maintain-verify-outcomes-1.json",
+    "attempts": {
+      "cursor": "c3f0f75c-eb59-4cfc-b4e1-9495dc84e4e7",
+      "pi": "d2597177-5cde-460b-8458-c2ee14b395d7"
+    },
+    "note": "Both OUTCOME=clean PR=none with live coverage; no PR opened. Matches SETUP clean + SHIP clean/no-PR. changed+PR and blocked unpaid; SOURCE-WAVE/LIVE-PASS not claimed."
+  }
+}

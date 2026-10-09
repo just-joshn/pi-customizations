@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "prin-migrate-delete",
+  "status": "pass-paired",
+  "requirements": [
+    "PSTACK-PRIN-MIGRATE-DELETE-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/principle-migrate-callers-then-delete-legacy-apis/SKILL.md#Migrate Callers Then Delete Legacy APIs frontmatter trigger and disable-model-invocation",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file. Preconditions: Locked pstack poteto-mode and principle-migrate-callers-then-delete-legacy-apis skill loaded.; No external users require the old API compatibility.",
+    "digest": null
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Introduce a replacement internal API.. The agent Reads the leaf skill, migrates callers, and deletes the old API in the same wave without leaving a permanent compatibility layer."
+    }
+  ],
+  "execution": {
+    "pairId": "prin-migrate-delete-1",
+    "verdict": "pass",
+    "pair": "parity/evidence/principles/migrate-delete/pair-prin-migrate-delete-1.json",
+    "attempts": {
+      "cursor": "358649f2-255f-4700-9f7f-443f53f771eb",
+      "pi": "00a3375f-c96c-4f68-bb47-8cd357376365"
+    }
+  }
+}

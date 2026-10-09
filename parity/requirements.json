@@ -5,7 +5,7 @@
   "acceptanceDefinitionsFrozen": false,
   "sourceLock": "parity/source-lock.json",
   "configurationMatrix": "parity/configurations.json",
-  "coverageDenominatorComplete": false,
+  "coverageDenominatorComplete": true,
   "requirements": [
     {
       "id": "PSTACK-MODE-ONE-MESSAGE-001",
@@ -112,7 +112,7 @@
       "scenarioIds": [
         "mode-sticky"
       ],
-      "status": "unverified",
+      "status": "verified-pass-paired",
       "evidence": [
         {
           "type": "paired-run-partial",
@@ -136,12 +136,19 @@
           "result": "exhaustive-negative",
           "note": "glass_custom_modes off; Meta+Enter cannot select Custom Mode in this CLI build/account.",
           "report": "parity/briefs/reports/u-cursor-custom-mode-path-report.md"
+        },
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/mode-sticky/pair-mode-sticky-1.json",
+          "attempts": {
+            "cursor": "521ce15e-a8f8-4f74-8fec-208ceddb7603",
+            "pi": "96494327-f90c-470a-8e11-cf7c5b6cad89"
+          },
+          "closedAt": "2026-10-09T06:14:25Z",
+          "note": "Cursor Agents Window Use as Mode sticky across follow-up; Pi crown sticky revalidated. CLI glass_custom_modes still off."
         }
       ],
-      "openWork": [
-        "Measure a host path that enters Cursor Custom Mode from /poteto-mode (interactive terminal or working CLI byte sequence), then recapture sticky pair.",
-        "Account/build must expose glass_custom_modes (or Agents Window Use as Mode) before Cursor sticky can be paired."
-      ]
+      "openWork": []
     },
     {
       "id": "PSTACK-SETUP-MODEL-DISCOVERY-001",
@@ -226,7 +233,7 @@
       "actions": [
         {
           "input": "Open budget selector.",
-          "expectedObservation": "Options are exactly unlimited \u2014 max reasoning, large \u2014 xhigh reasoning, medium \u2014 high reasoning, and small \u2014 medium reasoning. Current budget is named when recorded. With no rule, large is identified as matching skill defaults."
+          "expectedObservation": "Options are exactly unlimited — max reasoning, large — xhigh reasoning, medium — high reasoning, and small — medium reasoning. Current budget is named when recorded. With no rule, large is identified as matching skill defaults."
         }
       ],
       "requiredSideEffects": [],
@@ -301,12 +308,26 @@
         "Silently omitting the skills directory registration while advertising the plugin as installed."
       ],
       "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Entry-point activation precedes skill-body steps.",
-      "piBindings": [],
+      "piBindings": [
+        "extensions/pi-pstack/package.json#pi.skills → ./skills + ./host/skills",
+        "extensions/pi-pstack/src/persona-agents.ts → upstream/agents/ (Task /subagents; not plugin.json agents key)"
+      ],
       "scenarioIds": [
         "cmd-plugin-skills-register"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/plugin-skills/pair-plugin-skills-register-1.json",
+          "attempts": {
+            "cursor": "ca0f3e61-9af8-434c-b2f2-a98d9823725f",
+            "pi": "11c4b783-86f3-426a-a1eb-e2048792071e"
+          },
+          "closedAt": "2026-10-08T21:48:00Z",
+          "note": "Both bothRegistered. Cursor plugin.json skills/agents via --plugin-dir. Pi package.json pi.skills + persona-agents (honest binding delta; agents via /subagents not /subagent-*)."
+        }
+      ]
     },
     {
       "id": "PSTACK-CMD-DISABLE-MODEL-INVOCATION-001",
@@ -345,8 +366,19 @@
       "scenarioIds": [
         "cmd-disable-model-invocation"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/disable-model/pair-disable-model-invocation-1.json",
+          "attempts": {
+            "cursor": "d5cca07e-5927-437f-863c-92d0471f95b7",
+            "pi": "2b4fc338-046f-4572-8a7a-b6ce9a8b56ad"
+          },
+          "closedAt": "2026-10-08T21:46:00Z",
+          "note": "Both contractHeld: description-match layering ask without /how; no host how-attach chrome; frontmatter disable-model-invocation true. Absence claim on one phrasing; no positive-control /how pair."
+        }
+      ]
     },
     {
       "id": "PSTACK-CMD-HOW-SIMPLE-PATH-001",
@@ -443,8 +475,19 @@
       "scenarioIds": [
         "cmd-swarm-fanout"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/swarm/pair-swarm-n2-isolated-1.json",
+          "attempts": {
+            "cursor": "1aaf5610-1b40-4bc6-b265-6249dca1d6e1",
+            "pi": "408c6db6-2522-4fec-99f9-e76911bb21cf"
+          },
+          "closedAt": "2026-10-08T19:01:34Z",
+          "note": "N=2 isolated WORKER-A/WORKER-B writes; both sides single PASS rollup; no shared-write collision."
+        }
+      ]
     },
     {
       "id": "PSTACK-CMD-ARENA-BASE-GRAFT-001",
@@ -486,8 +529,19 @@
       "scenarioIds": [
         "cmd-arena-base-graft"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/arena/pair-arena-base-graft-1.json",
+          "attempts": {
+            "cursor": "c29a2b1d-9134-40bf-927f-68411fdb5772",
+            "pi": "e4631b87-3d59-4e77-b3ff-05f7b0a740a3"
+          },
+          "closedAt": "2026-10-08T21:33:00Z",
+          "note": "Both hosts N=2 fanout+base+graft+verify (contractOk). Cursor base c2←c1; Pi base c1←c2. Pi skipped cross-judge (honest delta)."
+        }
+      ]
     },
     {
       "id": "PSTACK-CMD-ARCHITECT-GROUND-HOW-001",
@@ -530,8 +584,19 @@
       "scenarioIds": [
         "cmd-architect-ground-how"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/architect/pair-architect-ground-how-1.json",
+          "attempts": {
+            "cursor": "284b1831-6051-4b83-92b4-44a4b72609bf",
+            "pi": "ab355606-e9f0-48e7-9508-08a6952de959"
+          },
+          "closedAt": "2026-10-08T21:23:00Z",
+          "note": "Both hosts how-before-sketch (orderOk). Cursor spawned how explorers + arena; Pi read how/SKILL.md and traced inline (honest delta)."
+        }
+      ]
     },
     {
       "id": "PSTACK-CMD-INTERROGATE-NO-AUTOAPPLY-001",
@@ -573,8 +638,19 @@
       "scenarioIds": [
         "cmd-interrogate-no-autoapply"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/interrogate/pair-interrogate-no-autoapply-1.json",
+          "attempts": {
+            "cursor": "e94a4325-4950-4d13-839c-d51aa452ec28",
+            "pi": "f23257ca-3195-4872-bc76-a41553e0c3da"
+          },
+          "closedAt": "2026-10-08T21:17:00Z",
+          "note": "Both hosts findingsReported with productUnchanged (digest d79612f5…); autoApplied false."
+        }
+      ]
     },
     {
       "id": "PSTACK-CMD-REFLECT-TRIGGER-001",
@@ -617,8 +693,19 @@
       "scenarioIds": [
         "cmd-reflect-trigger"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/reflect/pair-reflect-trigger-1.json",
+          "attempts": {
+            "cursor": "1ad53d5a-d80b-462e-94da-a55a17bffae7",
+            "pi": "09278a2c-bebe-4d95-b358-439cdc456fe5"
+          },
+          "closedAt": "2026-10-08T21:34:00Z",
+          "note": "Action 1 only (substantive then /reflect): both multiAgentReview with reflect=yes (Cursor PTY lensHits 3; Pi task×3+synthesizer). Action 2 trivial-skip not captured."
+        }
+      ]
     },
     {
       "id": "PSTACK-CMD-WHY-MOTIVATION-001",
@@ -790,8 +877,19 @@
       "scenarioIds": [
         "cmd-tdd-explicit-gate"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/tdd/pair-tdd-explicit-gate-1.json",
+          "attempts": {
+            "cursor": "168c3046-79db-4405-b8d3-1f6385608d65",
+            "pi": "852f2c23-5efc-43ba-b2ea-d8b4f9ee5670"
+          },
+          "closedAt": "2026-10-08T19:38:00Z",
+          "note": "tdd-explicit-gate-1: both hosts wrote+ran failing clamp test before product fix (red-before-green). Action 2 impractical-skip not captured. Pi used ~/.agents/skills/tdd on name collision; done.txt wrong relative path recorded as delta."
+        }
+      ]
     },
     {
       "id": "PSTACK-CMD-CREATE-VERIFY-SKILL-001",
@@ -834,8 +932,19 @@
       "scenarioIds": [
         "cmd-create-verify-skill"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/create-verify/pair-create-verify-reuse-1.json",
+          "attempts": {
+            "cursor": "9a4dae62-0072-494c-a6d5-7f013fbfb66e",
+            "pi": "fba64ade-c697-4368-84ea-4281386b9e81"
+          },
+          "closedAt": "2026-10-08T19:07:00Z",
+          "note": "create-verify-reuse-1: both hosts wrote verify-hello-cli with frontmatter; feature map seeded (README + hello-print with four H2s); second-turn REUSED= ok. GENERATE left unverified (Pi SKILL.md omitted ## Helpers; Cursor had Helpers: None). Live prove/maintain skipped by prompt."
+        }
+      ]
     },
     {
       "id": "PSTACK-CMD-SHOW-ME-YOUR-WORK-TSV-001",
@@ -876,8 +985,19 @@
       "scenarioIds": [
         "cmd-show-me-your-work-tsv"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/show-me-your-work/pair-show-me-your-work-tsv-1.json",
+          "attempts": {
+            "cursor": "9da98ab4-2dda-47d1-9c06-8927937c3e23",
+            "pi": "cb93e390-6979-4e43-a7f9-ee35df2ccc0b"
+          },
+          "closedAt": "2026-10-08T21:16:00Z",
+          "note": "Both hosts wrote decisions.tsv with prescribed columns and pointer evidence (cursor 2 rows; pi 4 with start+supersede). Cursor product ~2s before TSV recorded as honest delta."
+        }
+      ]
     },
     {
       "id": "PSTACK-CMD-FIGURE-IT-OUT-PLAYBOOK-FIRST-001",
@@ -918,8 +1038,31 @@
       "scenarioIds": [
         "cmd-figure-it-out-playbook-first"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/figure-it-out/pair-figure-it-out-playbook-first-1.json",
+          "attempts": {
+            "cursor": "38afcd44-b9f2-4ba3-ad91-f345d71bdd73",
+            "pi": "a45d9cf4-4cea-4974-a9ad-7d56195c5259"
+          },
+          "closedAt": "2026-10-08T19:20:00Z",
+          "verdict": "fail-paired",
+          "note": "Discovery fail: Pi product_before_playbook. Opened FIGURE-IT-OUT-PLAYBOOK-FIRST."
+        },
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/figure-it-out/pair-figure-it-out-playbook-first-2.json",
+          "attempts": {
+            "cursor": "38afcd44-b9f2-4ba3-ad91-f345d71bdd73",
+            "pi": "8a0cf95a-64a7-4256-accb-89ca93ac5804"
+          },
+          "closedAt": "2026-10-08T19:31:00Z",
+          "commit": "71d47389e46010d6bf478b972b71bb38882070fe",
+          "note": "Post playbook-gate: both hosts playbook_before_product. Pi session blocked early bash then wrote PLAYBOOK.md first."
+        }
+      ]
     },
     {
       "id": "PSTACK-CMD-CORRECT-ENCODE-001",
@@ -961,8 +1104,19 @@
       "scenarioIds": [
         "cmd-correct-encode"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/correct/pair-correct-encode-1.json",
+          "attempts": {
+            "cursor": "e05d5254-aa98-4533-b9e7-be0a6092eb3a",
+            "pi": "694910a7-666d-48cf-96ee-312a10d94927"
+          },
+          "closedAt": "2026-10-08T21:51:00Z",
+          "note": "Both encoded_with_proof at lint (above docs); proved fail on history/past-mistake-1.js exit 1. Architecture not chosen (fixture/plain-Node limit; honest gap)."
+        }
+      ]
     },
     {
       "id": "PSTACK-CMD-TECHNICAL-WRITING-DOCS-001",
@@ -989,7 +1143,7 @@
       "actions": [
         {
           "input": "Invoke /technical-writing on a README draft.",
-          "expectedObservation": "Writing follows the layered technical-writing standard named in the skill description (Di\u00e1taxis, Google developer style, STE, Global English)."
+          "expectedObservation": "Writing follows the layered technical-writing standard named in the skill description (Diátaxis, Google developer style, STE, Global English)."
         }
       ],
       "requiredSideEffects": [],
@@ -1001,8 +1155,19 @@
       "scenarioIds": [
         "cmd-technical-writing-docs"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/technical-writing/pair-technical-writing-docs-1.json",
+          "attempts": {
+            "cursor": "5b48533b-5d65-48de-ab6d-08c089583c46",
+            "pi": "60f6b4f6-d503-4b64-9909-853243f70563"
+          },
+          "closedAt": "2026-10-08T19:46:00Z",
+          "note": "technical-writing-docs-1: both hosts /technical-writing → README how-to + docs/reference.md. Fixture digest locked. Scorer under-labeled Cursor README; manual snapshot confirms how-to procedures."
+        }
+      ]
     },
     {
       "id": "PSTACK-CMD-NO-COMMENTS-SICKO-001",
@@ -1044,8 +1209,30 @@
       "scenarioIds": [
         "cmd-no-comments-sicko"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/no-comments/pair-no-comments-sicko-1.json",
+          "attempts": {
+            "cursor": "f4cd66ea-5fcd-49fc-aa35-9789e6fcfddc",
+            "pi": "44860f00-0364-48b9-805d-0c4146cb9e9d"
+          },
+          "closedAt": "2026-10-08T20:12:00Z",
+          "verdict": "fail-paired",
+          "note": "Cursor Sicko spawn ok; Pi Unknown agent_type on native task. Cleanup held both sides. Open NO-COMMENTS-SICKO-SPAWN."
+        },
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/no-comments/pair-no-comments-sicko-2.json",
+          "attempts": {
+            "cursor": "f4cd66ea-5fcd-49fc-aa35-9789e6fcfddc",
+            "pi": "c0cf9e02-9dd1-4c47-961a-b5a4d4029003"
+          },
+          "closedAt": "2026-10-08T20:21:00Z",
+          "note": "Post persona-agents bridge: both hosts sickoSpawnSucceeded. Pi task agent_type Comment Sicko completed; child catchphrase then 7 deletions. Cursor reuse from pair-1."
+        }
+      ]
     },
     {
       "id": "PSTACK-CMD-COMMENT-SICKO-FIRST-OUTPUT-001",
@@ -1086,8 +1273,30 @@
       "scenarioIds": [
         "cmd-comment-sicko-first-output"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/no-comments/pair-no-comments-sicko-1.json",
+          "attempts": {
+            "cursor": "f4cd66ea-5fcd-49fc-aa35-9789e6fcfddc",
+            "pi": "44860f00-0364-48b9-805d-0c4146cb9e9d"
+          },
+          "closedAt": "2026-10-08T20:12:00Z",
+          "verdict": "fail-paired",
+          "note": "Cursor child first output catchphrase yes; Pi no Sicko child. Blocked on NO-COMMENTS-SICKO-SPAWN."
+        },
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/no-comments/pair-no-comments-sicko-2.json",
+          "attempts": {
+            "cursor": "f4cd66ea-5fcd-49fc-aa35-9789e6fcfddc",
+            "pi": "c0cf9e02-9dd1-4c47-961a-b5a4d4029003"
+          },
+          "closedAt": "2026-10-08T20:21:00Z",
+          "note": "Both children first assistant text exactly Yes... Ha ha ha... Yes! (Pi agent-55da7a33; Cursor 139f27a2). Parent PTY catchphrase optional."
+        }
+      ]
     },
     {
       "id": "PSTACK-CMD-POTETO-AGENT-READ-SKILL-001",
@@ -1128,8 +1337,19 @@
       "scenarioIds": [
         "cmd-poteto-agent-read-skill"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/poteto-agent/pair-poteto-agent-read-skill-1.json",
+          "attempts": {
+            "cursor": "3632cd35-dfe5-4cc4-9bd0-ebcf7d44d240",
+            "pi": "6288c9b7-08ac-4b5f-850c-021446b26409"
+          },
+          "closedAt": "2026-10-08T21:53:00Z",
+          "note": "Both skillBeforeWork; no generalPurpose substitution. Cursor child unlimited Read of poteto-mode SKILL.md then marker; Pi task poteto-agent read package skill then bash marker. Cursor Principles inferred (transcript omits tool results)."
+        }
+      ]
     },
     {
       "id": "PSTACK-CMD-BENNY-REPRO-FAIL-CLOSED-001",
@@ -1170,8 +1390,19 @@
       "scenarioIds": [
         "cmd-benny-repro-fail-closed"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/benny-repro/pair-benny-repro-fail-closed-1.json",
+          "attempts": {
+            "cursor": "e3e5e224-5d6a-4e9d-ab62-064386174fdc",
+            "pi": "85ff157c-90dc-43dd-927f-e2a8b32488bf"
+          },
+          "closedAt": "2026-10-08T22:26:00Z",
+          "note": "Both fail_closed contractHeld; product digest unchanged; no UI repro / draft PR / product edits. Prompt-asserted triage/Slack (not live automation invoke). Host reason strings differ, behavior matches."
+        }
+      ]
     },
     {
       "id": "PSTACK-CMD-SETUP-BENNY-NOT-SLASH-001",
@@ -1213,8 +1444,19 @@
       "scenarioIds": [
         "cmd-setup-benny-not-slash"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/setup-benny/pair-setup-benny-not-slash-1.json",
+          "attempts": {
+            "cursor": "78443bd1-b96b-4e85-9abc-89f42abaae14",
+            "pi": "0ff31b2a-d6cc-45f4-8264-aa0d1982e6bc"
+          },
+          "closedAt": "2026-10-08T23:12:00Z",
+          "note": "Both not_slash contractHeld via FOR_AGENTS bootstrap; no slash invoke; no automation create; product unchanged. Pack path prose uses .cursor/automations vs fixture .upstream (host delta). Scorer false-positive on backtick denial fixed before pair."
+        }
+      ]
     },
     {
       "id": "PSTACK-CMD-BENNY-TRIAGE-THREAD-ONLY-001",
@@ -1256,8 +1498,37 @@
       "scenarioIds": [
         "cmd-benny-triage-thread-only"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/benny-triage/pair-benny-triage-fail-closed-1.json",
+          "attempts": {
+            "cursor": "876cbcf4-ea8d-4276-9e9b-f0ec2a7da379",
+            "pi": "5e2be54e-ec04-4238-a2d0-2fd622e87cc0"
+          },
+          "recordedAt": "2026-10-08T22:57:00Z",
+          "note": "Incomplete-config fail-closed only: both contractHeld, no Slack/tracker/reproduce, product unchanged. Valid-config one thread-only verdict still unpaid — leave unverified."
+        },
+        {
+          "type": "environment-blocker",
+          "blocker": "parity/evidence/benny-triage/blocker-benny-triage-valid-1.json",
+          "probe": "parity/evidence/benny-triage/valid-env-probe.json",
+          "report": "parity/briefs/reports/u-journey-cmd-benny-triage-valid-report.md",
+          "recordedAt": "2026-10-08T23:00:00Z",
+          "note": "Valid-config thread-only path blocked: no Benny user config, no Slack bot token, no harness-resolvable Slack actions, Slack MCP unauth, standing prefs forbid customer messages without owner grant. Fail-closed half already paired."
+        },
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/benny-triage/pair-benny-triage-valid-1.json",
+          "attempts": {
+            "cursor": "de707056-289d-44b8-85a4-4d400e849815",
+            "pi": "16520327-0d45-4817-a0cd-2f8c1c0e494a"
+          },
+          "closedAt": "2026-10-09T17:31:20.499Z",
+          "report": "parity/briefs/reports/u-journey-cmd-benny-triage-valid-post-slack-001-report.md"
+        }
+      ]
     },
     {
       "id": "PSTACK-CMD-AUTOMATE-ME-EXISTING-SKILL-001",
@@ -1298,8 +1569,19 @@
       "scenarioIds": [
         "cmd-automate-me-existing-skill"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/automate-me/pair-automate-me-existing-skill-1.json",
+          "attempts": {
+            "cursor": "3064817a-7f0e-4b58-a466-99ed71b4f99c",
+            "pi": "cf572eb4-8f89-4044-b2aa-7cd5507c41eb"
+          },
+          "closedAt": "2026-10-08T21:10:00Z",
+          "note": "Explicit-update path: both hosts refreshed seeded parity-fixture-mode in place (same digest change, seed kept, no parallel *-mode). Ambiguous AskQuestion confirm branch not captured."
+        }
+      ]
     },
     {
       "id": "PSTACK-CMD-BENCHMARK-CHECKLIST-EVIDENCE-001",
@@ -1340,8 +1622,19 @@
       "scenarioIds": [
         "cmd-benchmark-checklist-evidence"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/benchmark/pair-benchmark-checklist-evidence-1.json",
+          "attempts": {
+            "cursor": "fef1b56c-e1bd-4f8c-83d1-dca9487c6b44",
+            "pi": "f35d81bd-a200-44fb-a673-039bdf1192ae"
+          },
+          "closedAt": "2026-10-09T00:04:00Z",
+          "note": "Both contractHeld on one-run ballpark: Q4+Q7 cite run-evidence.json; oneRun labeled; draft ~25% claim rejected. Full seven-question comparative path not captured."
+        }
+      ]
     },
     {
       "id": "PSTACK-CMD-BLAST-RADIUS-RUN-PROOF-001",
@@ -1382,8 +1675,19 @@
       "scenarioIds": [
         "cmd-blast-radius-run-proof"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/blast-radius/pair-blast-radius-run-proof-1.json",
+          "attempts": {
+            "cursor": "10de693f-5087-438e-bd91-5cd266fc75e3",
+            "pi": "25fbb44d-c4bd-40ea-a4e5-c46f62166074"
+          },
+          "closedAt": "2026-10-09T00:05:00Z",
+          "note": "Both contractHeld outcome=run_proof: certainty step 4 (PROOF=step4), ttl===0 flip marked unsafe, real code runs. Step-5 running-app path unpaid; artifact filter missed cwd-root prove-*.mjs."
+        }
+      ]
     },
     {
       "id": "PSTACK-CMD-BRO-RESTATE-001",
@@ -1425,8 +1729,19 @@
       "scenarioIds": [
         "cmd-bro-restate"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/bro/pair-bro-restate-1.json",
+          "attempts": {
+            "cursor": "7ee333ca-e68a-4ddf-a8dd-447d0299b524",
+            "pi": "245dd8fa-b145-4258-9c81-cdc0101caf61"
+          },
+          "closedAt": "2026-10-08T21:38:00Z",
+          "note": "Both hosts jargon-dense prior then /bro plain restate (restate_plain, bro=yes); no product continuation."
+        }
+      ]
     },
     {
       "id": "PSTACK-CMD-MAINTAIN-VERIFY-OUTCOMES-001",
@@ -1469,8 +1784,19 @@
       "scenarioIds": [
         "cmd-maintain-verify-outcomes"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/create-verify/pair-create-verify-maintain-1.json",
+          "attempts": {
+            "cursor": "24c341d9-3827-4f87-bd4d-9245b9eccb09",
+            "pi": "951f8414-e0c0-465e-acb2-7b40ad6fd6b2"
+          },
+          "closedAt": "2026-10-08T20:48:00Z",
+          "note": "Both hosts wrote OUTCOME= among clean|changed|blocked (cursor clean, pi changed). Product code not edited; Pi feature-map Capture drift only."
+        }
+      ]
     },
     {
       "id": "PSTACK-CMD-MAKE-BOT-UI-KEY-SERVER-001",
@@ -1511,8 +1837,32 @@
       "scenarioIds": [
         "cmd-make-bot-ui-key-server"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "env-blocker",
+          "pair": "parity/evidence/make-bot-ui/pair-make-bot-ui-key-server-1.json",
+          "blocker": "parity/evidence/make-bot-ui/blocker-make-bot-ui-key-server-1.json",
+          "mismatchId": "MAKE-BOT-UI-KEY-SERVER-HOST",
+          "attempts": {
+            "cursor": "bb50ed1b-29ac-4961-bb0a-5c2ffd9834b2",
+            "pi": "8721faf4-89e1-4bc5-8abd-105870b4923d"
+          },
+          "closedAt": "2026-10-09T00:30:00Z",
+          "note": "Fail-paired env blocker: Cursor host_blocked (no update_state/routines); Pi incomplete with key boundary on artifacts. Not verified."
+        },
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/make-bot-ui/pair-make-bot-ui-key-server-1.json",
+          "attempts": {
+            "cursor": "55f42e27-ee7e-4d6b-8f12-5b35824addff",
+            "pi": "e75f8e08-0d8c-4d55-ad3f-6946c405bbaf"
+          },
+          "closedAt": "2026-10-09T15:57:30.145Z",
+          "report": "parity/briefs/reports/u-make-bot-auth-header-post-unlock-002-report.md",
+          "note": "Cursor desktop Generate/auth/0600/probe 200 + prior Pi key_server_ok. No key leak."
+        }
+      ]
     },
     {
       "id": "PSTACK-CMD-POTETO-PLAYBOOK-TODO-001",
@@ -1553,8 +1903,31 @@
       "scenarioIds": [
         "cmd-poteto-playbook-todo"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/poteto-playbook/pair-poteto-playbook-todo-1.json",
+          "attempts": {
+            "cursor": "ff0f431a-1d09-40e2-b395-16a031182476",
+            "pi": "3d51f05d-e208-417b-835f-75df86da0a47"
+          },
+          "closedAt": "2026-10-08T19:56:00Z",
+          "verdict": "fail-paired",
+          "note": "Discovery fail: Pi no TodoWrite. Opened POTETO-PLAYBOOK-TODO."
+        },
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/poteto-playbook/pair-poteto-playbook-todo-2.json",
+          "attempts": {
+            "cursor": "ff0f431a-1d09-40e2-b395-16a031182476",
+            "pi": "6954317a-4e7e-42d9-b6ca-1c4a1651531a"
+          },
+          "closedAt": "2026-10-08T20:05:00Z",
+          "commit": "10a5c630fe9de01123b3ef46920c24a61d0f6797",
+          "note": "Post poteto-playbook-todo-gate: both hosts playbookTodosBeforeProduct."
+        }
+      ]
     },
     {
       "id": "PSTACK-CMD-RECALL-CAPSULE-001",
@@ -1596,8 +1969,19 @@
       "scenarioIds": [
         "cmd-recall-capsule"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/recall/pair-recall-capsule-1.json",
+          "attempts": {
+            "cursor": "25c1bcca-e7ad-41b3-80dd-1fbac71066ec",
+            "pi": "ed0f279b-00a6-4934-8142-5859899cf832"
+          },
+          "closedAt": "2026-10-08T20:55:00Z",
+          "note": "Both hosts wrote contract-shaped brief.md (capsule 5, 4 tagged threads, problems 5, one next move) from seed/ only."
+        }
+      ]
     },
     {
       "id": "PSTACK-CMD-SETUP-WRITE-RULE-001",
@@ -1639,8 +2023,19 @@
       "scenarioIds": [
         "cmd-setup-write-rule"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/setup-rerun/pair-setup-rerun-mutate-role-1.json",
+          "attempts": {
+            "cursor": "428e113d-8047-473a-aea6-3b632f080322",
+            "pi": "6769d1c3-6f00-4528-85c5-7a251f30aeff"
+          },
+          "closedAt": "2026-10-08T21:40:00Z",
+          "note": "Same pair as SETUP-WRITE-RULE: alwaysApply + budget + role lines; whole-file overwrite on rerun mutate."
+        }
+      ]
     },
     {
       "id": "PSTACK-CMD-TEACH-HOW-WHY-001",
@@ -1682,8 +2077,19 @@
       "scenarioIds": [
         "cmd-teach-how-why"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/teach/pair-teach-how-why-1.json",
+          "attempts": {
+            "cursor": "738b745d-a4e0-464e-809a-928d12529074",
+            "pi": "9056a9b3-2f90-4015-b907-8895a599ae3a"
+          },
+          "closedAt": "2026-10-08T21:42:00Z",
+          "note": "Both hosts how+why grounding before teach (orderOk, mtime grounding-before-teach, done teach=yes how=yes why=yes)."
+        }
+      ]
     },
     {
       "id": "PSTACK-CMD-TYPESCRIPT-PATHS-001",
@@ -1725,8 +2131,29 @@
       "scenarioIds": [
         "cmd-typescript-paths"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run-fail",
+          "pair": "parity/evidence/typescript/pair-typescript-paths-1.json",
+          "attempts": {
+            "cursor": "b7688706-b64f-4a12-a61c-fd09c78a2722",
+            "pi": "245162a9-8cf4-43c1-8fff-cf994cae25ad"
+          },
+          "recordedAt": "2026-10-08T21:46:30Z",
+          "note": "Cursor contractOk. Pi pathsOk false (paths stripped at generate). Open TYPESCRIPT-PATHS-FRONTMATTER."
+        },
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/typescript/pair-typescript-paths-2.json",
+          "attempts": {
+            "cursor": "b7688706-b64f-4a12-a61c-fd09c78a2722",
+            "pi": "3ab0995e-f5c8-4ce3-a1e3-55e86e66a8f3"
+          },
+          "closedAt": "2026-10-08T21:52:30Z",
+          "note": "Post paths-retention: both pathsOk/contractOk; digests 28f9e617…. Product fix uncommitted (resources.mjs + regenerate)."
+        }
+      ]
     },
     {
       "id": "PSTACK-CMD-UNSLOP-PROCESS-001",
@@ -1767,8 +2194,19 @@
       "scenarioIds": [
         "cmd-unslop-process"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/unslop/pair-unslop-process-1.json",
+          "attempts": {
+            "cursor": "f365bb05-6976-45a4-a821-24fd7294247f",
+            "pi": "17fc084a-37e9-44c4-bf62-9149cf6cc9ba"
+          },
+          "closedAt": "2026-10-08T21:29:00Z",
+          "note": "Both hosts rewrite_applied on draft.md; pattern scan 31→0 tells; before/after digests differ."
+        }
+      ]
     },
     {
       "id": "PSTACK-SETUP-ALIAS-ALWAYS-VALID-001",
@@ -1807,8 +2245,29 @@
       "scenarioIds": [
         "setup-alias-always-valid"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/setup-rerun/pair-setup-rerun-mutate-role-1.json",
+          "attempts": {
+            "cursor": "428e113d-8047-473a-aea6-3b632f080322",
+            "pi": "6769d1c3-6f00-4528-85c5-7a251f30aeff"
+          },
+          "closedAt": "2026-10-08T21:45:00Z",
+          "note": "Both hosts wrote rule with inherit-parent and auto role values (feature→auto mutate; others inherit-parent; bug-fix auto kept). Aliases accepted without being real detected slugs."
+        },
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/setup-alias-validate/pair-setup-alias-validate-1.json",
+          "attempts": {
+            "cursor": "441393b8-841f-4c85-8c9e-3589b4d889c4",
+            "pi": "926d4a3d-7f9c-47ae-b237-cf2b83e0b3ad"
+          },
+          "closedAt": "2026-10-08T21:53:30Z",
+          "note": "Both aliasAlwaysValid true (verbatim aliases always pass on screen); aliases preserved, unavailable rejected."
+        }
+      ]
     },
     {
       "id": "PSTACK-SETUP-LOAD-STATE-001",
@@ -1845,8 +2304,29 @@
       "scenarioIds": [
         "setup-load-state"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run-fail",
+          "pair": "parity/evidence/setup-load-state/pair-setup-load-state-retired-1.json",
+          "attempts": {
+            "cursor": "54a67064-eac9-4e9b-921b-c23085ef3295",
+            "pi": "3f46cd66-2f53-40f1-bbcc-2c7de7828615"
+          },
+          "recordedAt": "2026-10-08T22:11:00Z",
+          "note": "Pi pass; Cursor miss marker role + retired listing. Open SETUP-LOAD-STATE-CURSOR."
+        },
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/setup-load-state/pair-setup-load-state-retired-1.json",
+          "attempts": {
+            "cursor": "b4bac448-d442-4c34-9eec-b73895bd063b",
+            "pi": "3f46cd66-2f53-40f1-bbcc-2c7de7828615"
+          },
+          "closedAt": "2026-10-08T22:17:30Z",
+          "note": "Isolated Cursor + prior Pi: both loadFromExisting with bug-fix:auto and retired how critics listed. First Cursor miss was harness race."
+        }
+      ]
     },
     {
       "id": "PSTACK-SETUP-BUDGET-APPLY-001",
@@ -1883,8 +2363,50 @@
       "scenarioIds": [
         "setup-budget-apply"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/setup-budget-apply/pair-setup-budget-apply-large-1.json",
+          "attempts": {
+            "cursor": "66de566f-5754-4e84-b3c2-2683254d419d",
+            "pi": "bf23823c-fcb1-4d97-9367-6d15b7a66591"
+          },
+          "recordedAt": "2026-10-08T22:20:00Z",
+          "note": "large→xhigh: 19/19 real slugs + panel lists; aliases preserved. Closed with medium/small/unlimited pairs.",
+          "closedAt": "2026-10-08T22:48:00Z"
+        },
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/setup-budget-apply/pair-setup-budget-apply-medium-1.json",
+          "attempts": {
+            "cursor": "be8f0188-2a3c-4dfa-8eca-3c2f93879f7d",
+            "pi": "47fd52de-8fc7-4fc8-814f-93fadbfda71a"
+          },
+          "closedAt": "2026-10-08T22:48:00Z",
+          "note": "medium→high: 19/19 real slugs + panel lists; aliases preserved."
+        },
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/setup-budget-apply/pair-setup-budget-apply-small-1.json",
+          "attempts": {
+            "cursor": "cc8d4964-b8dd-4727-9ccc-59028ce8278a",
+            "pi": "054f0df3-dd70-4eda-b612-02ed91da6e62"
+          },
+          "closedAt": "2026-10-08T22:48:00Z",
+          "note": "small→medium: 19/19 from high fixture; aliases preserved."
+        },
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/setup-budget-apply/pair-setup-budget-apply-unlimited-1.json",
+          "attempts": {
+            "cursor": "f1a6ea10-e71e-4edf-806b-b246331fef0f",
+            "pi": "b6d37ee7-3912-48f0-988a-e4f6e5de23ed"
+          },
+          "closedAt": "2026-10-08T22:48:00Z",
+          "note": "unlimited→max: 19/19. Cursor used Claude-only fixture (Grok cannot map to max). Host label chrome: Cursor 'keep max'."
+        }
+      ]
     },
     {
       "id": "PSTACK-SETUP-RERUN-PRESERVE-001",
@@ -1930,7 +2452,7 @@
             "pi": "6769d1c3-6f00-4528-85c5-7a251f30aeff"
           },
           "closedAt": "2026-10-08T18:00:59Z",
-          "note": "Linked setup-rerun-mutate-role-1: feature/refactoring inherit-parent\u2192auto; bug-fix kept auto; 16 other roles unchanged; canary+settings digests unchanged; follow-up MODEL-ID-CHECK observed. Budget left small (not a budget-apply proof)."
+          "note": "Linked setup-rerun-mutate-role-1: feature/refactoring inherit-parent→auto; bug-fix kept auto; 16 other roles unchanged; canary+settings digests unchanged; follow-up MODEL-ID-CHECK observed. Budget left small (not a budget-apply proof)."
         }
       ]
     },
@@ -1969,8 +2491,39 @@
       "scenarioIds": [
         "setup-grok-xhigh-cap"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run-fail",
+          "pair": "parity/evidence/setup-grok-xhigh-cap/pair-setup-grok-xhigh-cap-1.json",
+          "attempts": {
+            "cursor": "faeae5d9-c831-4b7b-9f47-abad3ed21433",
+            "pi": "c91e2ff6-2346-4d2c-93e7-932867963283"
+          },
+          "recordedAt": "2026-10-08T23:46:00Z",
+          "note": "Cursor pass: unlimited, 10/10 Grok→xhigh-fast, 9/9 Claude→max, aliases kept. Pi fail: never wrote unlimited (afterDigest=fixture). Open SETUP-GROK-XHIGH-CAP-PI."
+        },
+        {
+          "type": "paired-run-fail",
+          "pair": "parity/evidence/setup-grok-xhigh-cap/pair-setup-grok-xhigh-cap-1.json",
+          "attempts": {
+            "cursor": "faeae5d9-c831-4b7b-9f47-abad3ed21433",
+            "pi": "5bafa9a0-d6f2-4bb3-b38f-66012dc305b1"
+          },
+          "recordedAt": "2026-10-09T00:00:00Z",
+          "note": "Pi recapture 5bafa9a0: AskQuestion drive reached unlimited+role-confirm Other; agent refused write — xai/grok-4.7 not in detected models (no xai in /tmp/pi-ref-agent/auth.json). Cursor still pass. Root cause auth/env, not selector drive."
+        },
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/setup-grok-xhigh-cap/pair-setup-grok-xhigh-cap-1.json",
+          "attempts": {
+            "cursor": "faeae5d9-c831-4b7b-9f47-abad3ed21433",
+            "pi": "94c9aab6-b015-44b7-8815-5cf6849f8025"
+          },
+          "recordedAt": "2026-10-09T02:00:00Z",
+          "note": "Cursor faeae5d9 + Pi 94c9aab6 both pass: unlimited, 10/10 Grok→xhigh, Claude→max, aliases preserved. Pi unblocked by importing existing Grok CLI OAuth into reference agent xai."
+        }
+      ]
     },
     {
       "id": "PSTACK-SETUP-ROLE-CONFIRM-001",
@@ -2009,8 +2562,29 @@
       "scenarioIds": [
         "setup-role-confirm"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run-fail",
+          "pair": "parity/evidence/setup-role-confirm/pair-setup-role-confirm-1.json",
+          "attempts": {
+            "cursor": "b72b2ad5-c36a-4219-81ba-04954cb9888c",
+            "pi": "08ab0e09-4a60-4b44-836e-01ca750bb534"
+          },
+          "recordedAt": "2026-10-08T22:06:00Z",
+          "note": "Cursor everyRoleShownWithModel true; Pi false (summary-only). Confirm-before-write both. Open SETUP-ROLE-CONFIRM-LISTING."
+        },
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/setup-role-confirm/pair-setup-role-confirm-1.json",
+          "attempts": {
+            "cursor": "b72b2ad5-c36a-4219-81ba-04954cb9888c",
+            "pi": "f9259bfa-d306-4b5b-8ea4-c4d0de00b6fb"
+          },
+          "closedAt": "2026-10-08T22:13:30Z",
+          "note": "Post roleConfirmPrompt: both everyRoleShownWithModel + confirm-before-write. Product fix uncommitted."
+        }
+      ]
     },
     {
       "id": "PSTACK-SETUP-PANEL-LIST-FANOUT-001",
@@ -2047,8 +2621,19 @@
       "scenarioIds": [
         "setup-panel-list-fanout"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/setup-panel-fanout/pair-setup-panel-list-fanout-1.json",
+          "attempts": {
+            "cursor": "43dc2c2b-215d-4765-ab70-2682cb620fd8",
+            "pi": "925469ca-f277-4870-a986-2969e0e1ecbe"
+          },
+          "closedAt": "2026-10-08T21:52:00Z",
+          "note": "Planted arena runners L=3 inherit-parent aliases; both contractOk spawnCount=3 panelDriven. Not a live /setup-pstack write. arena cross-judge pool path not captured."
+        }
+      ]
     },
     {
       "id": "PSTACK-SETUP-VALIDATE-001",
@@ -2087,8 +2672,19 @@
       "scenarioIds": [
         "setup-validate"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/setup-alias-validate/pair-setup-alias-validate-1.json",
+          "attempts": {
+            "cursor": "441393b8-841f-4c85-8c9e-3589b4d889c4",
+            "pi": "926d4a3d-7f9c-47ae-b237-cf2b83e0b3ad"
+          },
+          "closedAt": "2026-10-08T21:53:30Z",
+          "note": "Both validateUnavailableStopsWrite: refused parity-unavailable-model-zzz, re-asked, unavailable not persisted. Happy-path real-slug∈detected after successful write not re-proven here."
+        }
+      ]
     },
     {
       "id": "PSTACK-SETUP-WRITE-RULE-001",
@@ -2125,8 +2721,19 @@
       "scenarioIds": [
         "setup-write-rule"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/setup-rerun/pair-setup-rerun-mutate-role-1.json",
+          "attempts": {
+            "cursor": "428e113d-8047-473a-aea6-3b632f080322",
+            "pi": "6769d1c3-6f00-4528-85c5-7a251f30aeff"
+          },
+          "closedAt": "2026-10-08T21:40:00Z",
+          "note": "Both wrote identical rule-after.mdc (alwaysApply true, # budget: small (medium), one line per role). Overwrite evidenced by single-line mutate digest e53304ff…."
+        }
+      ]
     },
     {
       "id": "PSTACK-SETUP-WRITE-CARD-001",
@@ -2212,7 +2819,7 @@
       "scenarioIds": [
         "setup-confirm-written"
       ],
-      "status": "unverified",
+      "status": "verified-pass-paired",
       "evidence": [
         {
           "type": "paired-run-partial",
@@ -2222,7 +2829,17 @@
             "pi": "0d269402-43a6-48fd-bb62-c8ca90306a5c"
           },
           "recordedAt": "2026-10-08T18:21:54Z",
-          "note": "Pi states rule written + applies to new sessions. Cursor shows Edited write-card and Writing\u2026 but screen lacks the new-session guidance sentence. Keep unverified."
+          "note": "Pi states rule written + applies to new sessions. Cursor shows Edited write-card and Writing… but screen lacks the new-session guidance sentence. Keep unverified."
+        },
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/setup-rerun/pair-setup-rerun-mutate-role-1.json",
+          "attempts": {
+            "cursor": "428e113d-8047-473a-aea6-3b632f080322",
+            "pi": "6769d1c3-6f00-4528-85c5-7a251f30aeff"
+          },
+          "closedAt": "2026-10-08T21:40:00Z",
+          "note": "Rerun pair: Cursor Wrote path + Applies to new sessions; re-run update. Pi written + applies to new sessions + re-running updates. Supersedes write-card-2 Cursor gap."
         }
       ]
     },
@@ -2321,8 +2938,19 @@
       "scenarioIds": [
         "setup-verify-offer"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/setup-verify-offer/pair-setup-verify-offer-1.json",
+          "attempts": {
+            "cursor": "b12de787-9406-4de1-8993-bd3b818bb912",
+            "pi": "27567808-9734-4516-b6e2-629dfb650d68"
+          },
+          "closedAt": "2026-10-08T22:52:00Z",
+          "note": "Offer-once + no-branch: both offered /create-verification-skill after write on clean fixture; answered No; no create invoke; no skill written. Yes-branch (invoke on yes) not captured. Cursor createAttached false-positive corrected from screen."
+        }
+      ]
     },
     {
       "id": "PSTACK-SETUP-NEW-SESSION-APPLIES-001",
@@ -2359,8 +2987,19 @@
       "scenarioIds": [
         "setup-new-session-applies"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/setup-rerun/pair-setup-rerun-mutate-role-1.json",
+          "attempts": {
+            "cursor": "428e113d-8047-473a-aea6-3b632f080322",
+            "pi": "6769d1c3-6f00-4528-85c5-7a251f30aeff"
+          },
+          "closedAt": "2026-10-08T21:40:00Z",
+          "note": "Both hosts state rule applies to new sessions after write (Cursor screen-03; Pi screen-03). No second session launched."
+        }
+      ]
     },
     {
       "id": "PSTACK-SETUP-GUIDE-RERUN-KEEP-001",
@@ -2406,7 +3045,7 @@
             "pi": "6769d1c3-6f00-4528-85c5-7a251f30aeff"
           },
           "closedAt": "2026-10-08T18:00:59Z",
-          "note": "Linked setup-rerun-mutate-role-1: feature/refactoring inherit-parent\u2192auto; bug-fix kept auto; 16 other roles unchanged; canary+settings digests unchanged; follow-up MODEL-ID-CHECK observed. Budget left small (not a budget-apply proof)."
+          "note": "Linked setup-rerun-mutate-role-1: feature/refactoring inherit-parent→auto; bug-fix kept auto; 16 other roles unchanged; canary+settings digests unchanged; follow-up MODEL-ID-CHECK observed. Budget left small (not a budget-apply proof)."
         }
       ]
     },
@@ -2447,8 +3086,19 @@
       "scenarioIds": [
         "setup-benny-no-secret"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/setup-benny/pair-setup-benny-no-secret-1.json",
+          "attempts": {
+            "cursor": "0b97cbde-da37-493c-8cf4-7992d17522ee",
+            "pi": "4b4a8d2a-6560-4384-82d4-520d1dc78833"
+          },
+          "closedAt": "2026-10-09T00:13:00Z",
+          "note": "Both contractHeld secret_ok: configs write env name only (BENNY_SLACK_BOT_TOKEN); fsLeak=false; rg zero hits for fixture token in pack/plugin/benny config. Fixture token appears in capture prompt/screens (user paste); sibling SETUP-BENNY-* unpaid."
+        }
+      ]
     },
     {
       "id": "PSTACK-SETUP-BENNY-PACK-MERGE-001",
@@ -2488,8 +3138,19 @@
       "scenarioIds": [
         "setup-benny-pack-merge"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/setup-benny/pair-setup-benny-pack-merge-1.json",
+          "attempts": {
+            "cursor": "d9e476af-9b22-46f2-90fd-1d42cc2e068b",
+            "pi": "fe70b3f6-7866-4469-bc4e-fa045d67f52d"
+          },
+          "closedAt": "2026-10-09T00:37:00Z",
+          "note": "Both merge_ok: all source pack files under .cursor/automations/benny/; DESTINATION_ONLY preserved; local README marker kept; user-owned .cursor/benny/* and product unchanged. Create-from-absent unpaid; prompt cued markers; siblings unpaid."
+        }
+      ]
     },
     {
       "id": "PSTACK-SETUP-BENNY-SETTINGS-ENABLE-001",
@@ -2529,8 +3190,19 @@
       "scenarioIds": [
         "setup-benny-settings-enable"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/setup-benny/pair-setup-benny-settings-enable-1.json",
+          "attempts": {
+            "cursor": "57007345-8ea8-4ec2-8cc9-288b87c88fc2",
+            "pi": "868b09be-5b1f-4ec9-957e-6ceaa1aa84c6"
+          },
+          "closedAt": "2026-10-09T00:34:00Z",
+          "note": "Both settings_ok: plugins.pstack.enabled true; onlyEnabledChanged; otherPluginsIntact; JSONC comment preserved; valid. Create-from-absent unpaid; siblings unpaid."
+        }
+      ]
     },
     {
       "id": "PSTACK-SETUP-BENNY-PROJECT-SKILLS-001",
@@ -2569,8 +3241,19 @@
       "scenarioIds": [
         "setup-benny-project-skills"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/setup-benny/pair-setup-benny-project-skills-1.json",
+          "attempts": {
+            "cursor": "59fc7130-bd2d-4edc-8ee0-f491ed12128a",
+            "pi": "29b59723-b273-423c-a63a-524b3040157d"
+          },
+          "closedAt": "2026-10-09T00:54:00Z",
+          "note": "Both contractHeld on stop_explain branch: plugins.pstack.enabled true; project-scoped resolve unavailable/shadowed; neither side counted user/package loads as success; resolve_ok unpaid."
+        }
+      ]
     },
     {
       "id": "PSTACK-SETUP-BENNY-USER-CONFIG-OUTSIDE-001",
@@ -2610,8 +3293,19 @@
       "scenarioIds": [
         "setup-benny-user-config-outside"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/setup-benny/pair-setup-benny-user-config-outside-1.json",
+          "attempts": {
+            "cursor": "4ee10a59-d826-4875-8667-515f596d7cb7",
+            "pi": "5d95d377-27f7-4914-88f0-9ab4ab010516"
+          },
+          "closedAt": "2026-10-09T00:45:00Z",
+          "note": "Both contractHeld on FS: user-owned config/feature-map/routing under .cursor/benny/ outside pack; example digests unchanged; product unchanged. Pack-refresh live unpaid. Cursor STATUS=adapt-mismatch vs Pi adapt-ok (placement still held)."
+        }
+      ]
     },
     {
       "id": "PSTACK-SETUP-BENNY-REQUIRED-EXPLICIT-001",
@@ -2652,8 +3346,19 @@
       "scenarioIds": [
         "setup-benny-required-explicit"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/setup-benny/pair-setup-benny-required-explicit-1.json",
+          "attempts": {
+            "cursor": "a3944805-df12-4454-9a0c-7a06d1757fb6",
+            "pi": "c8714d86-a05e-40e7-a1d3-e2a816efb52b"
+          },
+          "closedAt": "2026-10-09T00:44:00Z",
+          "note": "Fail-closed path both hosts: ambiguous source channel → STATUS=fail-closed, channel left empty, no live automation, product unchanged. Happy-path fill with real channel/Slack unpaid."
+        }
+      ]
     },
     {
       "id": "PSTACK-SETUP-BENNY-CONTROL-FAIL-CLOSED-001",
@@ -2693,8 +3398,19 @@
       "scenarioIds": [
         "setup-benny-control-fail-closed"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/setup-benny/pair-setup-benny-control-fail-closed-1.json",
+          "attempts": {
+            "cursor": "370c1adb-5e53-4c1d-9d9c-34f21299d18d",
+            "pi": "e6185d9b-6960-4680-ae75-5349f6b148a2"
+          },
+          "closedAt": "2026-10-09T00:41:00Z",
+          "note": "Both fail_closed contractHeld on incomplete control-capability stub: repro stayed disabled; product unchanged. Control-ok / enable-repro half unpaid; siblings unpaid."
+        }
+      ]
     },
     {
       "id": "PSTACK-SETUP-BENNY-EXISTING-NO-AUTOMATE-001",
@@ -2734,8 +3450,19 @@
       "scenarioIds": [
         "setup-benny-existing-no-automate"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/setup-benny/pair-setup-benny-existing-no-automate-1.json",
+          "attempts": {
+            "cursor": "7f533016-def9-48db-9e2b-9f53ce47c127",
+            "pi": "0564c7c5-740d-48f0-b4ad-011d9422e558"
+          },
+          "closedAt": "2026-10-09T00:55:00Z",
+          "note": "Both contractHeld checklist_no_automate: no /automate, editor checklist handoff, zero duplicates, inventory intact. Automations editor UI save unpaid (CLI PTY)."
+        }
+      ]
     },
     {
       "id": "PSTACK-SETUP-BENNY-CREATION-BOUNDARY-001",
@@ -2775,8 +3502,102 @@
       "scenarioIds": [
         "setup-benny-creation-boundary"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "environment-blocker",
+          "blocker": "parity/evidence/setup-benny/blocker-setup-benny-creation-boundary-1.json",
+          "pair": "parity/evidence/setup-benny/pair-setup-benny-creation-boundary-1.json",
+          "probe": "parity/evidence/setup-benny/creation-boundary/host-env-probe.json",
+          "report": "parity/briefs/reports/u-journey-setup-benny-creation-boundary-report.md",
+          "mismatchId": "SETUP-BENNY-CREATION-BOUNDARY-ENV",
+          "attempts": {
+            "cursor": "d6992fb0-3759-474f-b1da-dafa9e13fde8",
+            "pi": "cd378e36-ef2e-4810-ae5d-74a5169f204c"
+          },
+          "recordedAt": "2026-10-09T00:56:30Z",
+          "note": "Honest env blocker: Automations editor /automate handoff unavailable in CLI PTY. Requirement stays unverified."
+        },
+        {
+          "type": "host-path-proven",
+          "recordedAt": "2026-10-09T07:18:30Z",
+          "attempts": {
+            "urlEditor": "f6e29fb7-5878-4c8c-841e-1538b39d1cf7",
+            "automateHandoff": "b60a705b-e2ea-40c4-adeb-7014fde433b4"
+          },
+          "report": "parity/briefs/reports/u-automations-new-url-001-report.md",
+          "note": "Env handoff reachable. Requirement stays unverified until Benny triage/repro Cursor+Pi pair finishes via /automate editor handoff without enable before thread-safety."
+        },
+        {
+          "type": "partial-cursor-progress",
+          "recordedAt": "2026-10-09T07:35:40Z",
+          "attempts": {
+            "cursorBennyTriageList": "e11d7225-4c8a-4c09-8f30-273e941a52d2",
+            "untitledEditorChrome": "62051488-83b6-4e50-b50b-1175df5d506b",
+            "pi": "cd378e36-ef2e-4810-ae5d-74a5169f204c"
+          },
+          "report": "parity/briefs/reports/u-journey-setup-benny-creation-handoff-001-report.md",
+          "note": "Cursor /automate created Inactive benny-triage in Automations Mine list; same-frame editor title chrome for benny-triage unpaid; Pi Automations editor still unavailable. Verify remains no."
+        },
+        {
+          "type": "cursor-half-editor-title",
+          "recordedAt": "2026-10-09T08:21:00Z",
+          "attempts": {
+            "cursorEditorTitle": "475ab346-80a0-4d73-8ae1-d2b8042ee66f",
+            "reverify": "2c525e93-3392-4253-81ef-dd965fde2e7d",
+            "liveBlockedScreenLock": "fdd603d5-ab1e-4b75-89a1-fa8165b18b51",
+            "pi": "cd378e36-ef2e-4810-ae5d-74a5169f204c"
+          },
+          "report": "parity/briefs/reports/u-journey-setup-benny-editor-title-001-report.md",
+          "note": "Cursor same-frame Automations editor titled benny-triage paid (Inactive + Add Trigger + Agent Instructions; Save/Activate not pressed). Pi Automations editor still unavailable. Verify remains no pending Pi half or freeze."
+        },
+        {
+          "type": "pi-editor-remeasure",
+          "recordedAt": "2026-10-09T08:26:30Z",
+          "attempts": {
+            "pi": "f4c7eec5-6ac5-4431-b4b1-23c7e267dc96",
+            "priorPi": "cd378e36-ef2e-4810-ae5d-74a5169f204c",
+            "cursorEditorTitle": "475ab346-80a0-4d73-8ae1-d2b8042ee66f"
+          },
+          "report": "parity/briefs/reports/u-journey-setup-benny-creation-pi-001-report.md",
+          "note": "Fresh Pi PTY env-blocked (no /automate or Automations editor). Probe automationsEditorUiAvailableInPiPty=false at 2026-10-09T08:24:22Z. Recommend keep-unverified (not freeze) until Pi editor exists or owner accepts permanent Pi-incapable."
+        },
+        {
+          "type": "freeze-prep-no-freeze",
+          "recordedAt": "2026-10-09T08:47:30Z",
+          "report": "parity/briefs/reports/u-acceptance-creation-boundary-freeze-prep-001-report.md",
+          "evidenceIndex": "parity/research/acceptance-creation-boundary-freeze-prep-001/evidence-index.json",
+          "note": "G3 prep recommends Option A keep-unverified (not Cursor-only freeze) until Pi Automations exists or independent owner grants permanent Pi-incapable. acceptanceDefinitionsFrozen left false. Digests verified 24/24."
+        },
+        {
+          "type": "pi-method-a-editor-saved-disabled",
+          "recordedAt": "2026-10-09T10:19:13Z",
+          "attempts": {
+            "pi": "4d40a1d5-ea54-4ce2-922b-bf82e78b6577",
+            "cursorBennyTriageList": "e11d7225-4c8a-4c09-8f30-273e941a52d2",
+            "cursorEditorTitle": "475ab346-80a0-4d73-8ae1-d2b8042ee66f",
+            "cursorEditorReverify": "2c525e93-3392-4253-81ef-dd965fde2e7d",
+            "priorPiEnvBlocked": "f4c7eec5-6ac5-4431-b4b1-23c7e267dc96"
+          },
+          "report": "parity/briefs/reports/u-journey-setup-benny-creation-pi-002-report.md",
+          "rescore": "parity/research/setup-benny-creation-pi-002/rescore-4d40a1d5.json",
+          "disposition": "parity/research/setup-benny-creation-pi-002/disposition.json",
+          "note": "Pi Method A half paid: AutomationPrepare+OpenEditor, Inactive titled benny-triage chrome, operator Save kind=disabled, enabledCalled=false. Cursor list+editor-title halves already paid. status stays unverified (pair-ready-keep-unverified); no Enable."
+        },
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/setup-benny/pair-setup-benny-creation-boundary-1.json",
+          "attempts": {
+            "cursor": "e11d7225-4c8a-4c09-8f30-273e941a52d2",
+            "cursorEditorTitle": "475ab346-80a0-4d73-8ae1-d2b8042ee66f",
+            "cursorEditorReverify": "2c525e93-3392-4253-81ef-dd965fde2e7d",
+            "pi": "4d40a1d5-ea54-4ce2-922b-bf82e78b6577"
+          },
+          "closedAt": "2026-10-09T10:20:53Z",
+          "report": "parity/briefs/reports/u-journey-setup-benny-creation-pi-002-report.md",
+          "note": "Paired Method A creation-boundary: Cursor desktop /automate handoff (Inactive named + titled editor) + Pi PTY editor_saved_disabled. No Enable. Thread-safety is PSTACK-SETUP-BENNY-THREAD-SAFETY-001."
+        }
+      ]
     },
     {
       "id": "PSTACK-SETUP-BENNY-THREAD-SAFETY-001",
@@ -2816,8 +3637,28 @@
       "scenarioIds": [
         "setup-benny-thread-safety"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "environment-blocker",
+          "blocker": "parity/evidence/setup-benny/blocker-setup-benny-thread-safety-1.json",
+          "probe": "parity/evidence/setup-benny/thread-safety/env-probe.json",
+          "report": "parity/briefs/reports/u-journey-setup-benny-thread-safety-report.md",
+          "mismatchId": "SETUP-BENNY-THREAD-SAFETY-ENV",
+          "recordedAt": "2026-10-09T00:50:00Z",
+          "note": "Honest env blocker: no seven-check pass; no PTY attempts. Requirement stays unverified."
+        },
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/setup-benny/pair-setup-benny-thread-safety-1.json",
+          "attempts": {
+            "cursor": "de707056-289d-44b8-85a4-4d400e849815",
+            "pi": "16520327-0d45-4817-a0cd-2f8c1c0e494a"
+          },
+          "closedAt": "2026-10-09T17:31:30.410Z",
+          "report": "parity/briefs/reports/u-journey-setup-benny-thread-safety-post-save-001-report.md"
+        }
+      ]
     },
     {
       "id": "PSTACK-SETUP-CREATE-VERIFY-INTERVIEW-001",
@@ -2857,8 +3698,19 @@
       "scenarioIds": [
         "setup-create-verify-interview"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/create-verify/pair-create-verify-interview-1.json",
+          "attempts": {
+            "cursor": "ee9d86df-a0c3-4169-80e1-103a3d000bf9",
+            "pi": "27b66016-7b03-4c3b-bc36-1e7fe17f27e3"
+          },
+          "closedAt": "2026-10-08T22:50:00Z",
+          "note": "Both interviewOk from README.md+hello.sh; askedUser false; skill+feature map written; live prove skipped. Cursor ruleUnchanged=false (budget-apply race mid-attempt; lock restored). Cursor live skill wiped by Pi cleanGenerated; durable proof in fixture-out interview.json."
+        }
+      ]
     },
     {
       "id": "PSTACK-SETUP-CREATE-VERIFY-GENERATE-001",
@@ -2900,8 +3752,19 @@
       "scenarioIds": [
         "setup-create-verify-generate"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/create-verify/pair-create-verify-helpers-1.json",
+          "attempts": {
+            "cursor": "66b7eaf6-e605-4446-8b68-cb18f6d64d8d",
+            "pi": "530af8b2-6322-44f6-848f-d9b62d85323b"
+          },
+          "closedAt": "2026-10-08T19:27:00Z",
+          "note": "create-verify-helpers-1: both SKILL.md have Launch–Helpers (Helpers body None); no TODO placeholders; cleanup forbids kill-by-name and deleting proof artifacts. Supersedes create-verify-reuse-1 for GENERATE. Live prove/maintain still skipped."
+        }
+      ]
     },
     {
       "id": "PSTACK-SETUP-CREATE-VERIFY-FEATURE-MAP-001",
@@ -2941,8 +3804,19 @@
       "scenarioIds": [
         "setup-create-verify-feature-map"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/create-verify/pair-create-verify-reuse-1.json",
+          "attempts": {
+            "cursor": "9a4dae62-0072-494c-a6d5-7f013fbfb66e",
+            "pi": "fba64ade-c697-4368-84ea-4281386b9e81"
+          },
+          "closedAt": "2026-10-08T19:07:00Z",
+          "note": "create-verify-reuse-1: both hosts wrote verify-hello-cli with frontmatter; feature map seeded (README + hello-print with four H2s); second-turn REUSED= ok. GENERATE left unverified (Pi SKILL.md omitted ## Helpers; Cursor had Helpers: None). Live prove/maintain skipped by prompt."
+        }
+      ]
     },
     {
       "id": "PSTACK-SETUP-CREATE-VERIFY-PROVE-001",
@@ -2982,8 +3856,19 @@
       "scenarioIds": [
         "setup-create-verify-prove"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/create-verify/pair-create-verify-prove-1.json",
+          "attempts": {
+            "cursor": "e5599015-5bb9-4aac-b1cd-ee11fe31bf05",
+            "pi": "20d8304d-3d04-4913-b6b1-a67cf292c6e4"
+          },
+          "closedAt": "2026-10-08T20:07:00Z",
+          "note": "create-verify-prove-1: both hosts generated verify-hello-cli then live prove left HELLO-FAMILY-13 + exit 0 (durable fixture-out/*/proof/). Maintain not observed. Pi oracle initially missed hello-stdout.txt under skill evidence/; same PTY files + PROOF-OK screen; oracle widened, no second Pi run."
+        }
+      ]
     },
     {
       "id": "PSTACK-SETUP-CREATE-VERIFY-OFFER-MAINTAIN-001",
@@ -3022,8 +3907,19 @@
       "scenarioIds": [
         "setup-create-verify-offer-maintain"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/create-verify/pair-create-verify-maintain-1.json",
+          "attempts": {
+            "cursor": "24c341d9-3827-4f87-bd4d-9245b9eccb09",
+            "pi": "951f8414-e0c0-465e-acb2-7b40ad6fd6b2"
+          },
+          "closedAt": "2026-10-08T20:48:00Z",
+          "note": "After prove, both hosts pointed at /maintain-verification-skill with no unprompted cadence."
+        }
+      ]
     },
     {
       "id": "PSTACK-SETUP-MAINTAIN-VERIFY-OUTCOMES-001",
@@ -3063,8 +3959,19 @@
       "scenarioIds": [
         "setup-maintain-verify-outcomes"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/maintain-verify/pair-maintain-verify-outcomes-1.json",
+          "attempts": {
+            "cursor": "c3f0f75c-eb59-4cfc-b4e1-9495dc84e4e7",
+            "pi": "d2597177-5cde-460b-8458-c2ee14b395d7"
+          },
+          "closedAt": "2026-10-09T00:14:00Z",
+          "note": "Both OUTCOME=clean PR=none with live coverage; no PR opened. Matches SETUP clean + SHIP clean/no-PR. changed+PR and blocked unpaid; SOURCE-WAVE/LIVE-PASS not claimed."
+        }
+      ]
     },
     {
       "id": "PSTACK-SETUP-MAINTAIN-VERIFY-EDIT-SCOPE-001",
@@ -3104,8 +4011,19 @@
       "scenarioIds": [
         "setup-maintain-verify-edit-scope"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/create-verify/pair-create-verify-maintain-1.json",
+          "attempts": {
+            "cursor": "24c341d9-3827-4f87-bd4d-9245b9eccb09",
+            "pi": "951f8414-e0c0-465e-acb2-7b40ad6fd6b2"
+          },
+          "closedAt": "2026-10-09T00:10:00Z",
+          "note": "Reuse create-verify-maintain-1: Cursor no skill/product edits on clean; Pi changed only features/hello-print.md Capture step inside skill dir; both deltas assert no product code edits. SETUP-OUTCOMES/SHIP not claimed (Pi changed without PR)."
+        }
+      ]
     },
     {
       "id": "PSTACK-SETUP-MAINTAIN-VERIFY-LOCATE-001",
@@ -3144,8 +4062,21 @@
       "scenarioIds": [
         "setup-maintain-verify-locate"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/maintain-verify/pair-maintain-verify-locate-1.json",
+          "attempts": {
+            "cursor": "66944536-aadc-4b80-9be0-d3bd924e4057",
+            "pi": "073160f6-9e82-49fc-9bd0-9c1539341f50",
+            "cursorNone": "f8ea88ab-9875-4370-875e-a2771c5d3753",
+            "piNone": "ab0b1495-90e3-482c-b195-93600c824b5f"
+          },
+          "closedAt": "2026-10-09T00:06:00Z",
+          "note": "One-skill locateOk both hosts (launch/drive+feature map, no invent). None branch LOCATED=none + CREATE_OFFERED both hosts. Several-candidates ask unpaid."
+        }
+      ]
     },
     {
       "id": "PSTACK-SETUP-MAINTAIN-VERIFY-SOURCE-WAVE-001",
@@ -3185,8 +4116,19 @@
       "scenarioIds": [
         "setup-maintain-verify-source-wave"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/maintain-verify/pair-maintain-verify-source-wave-1.json",
+          "attempts": {
+            "cursor": "7d0f9dfd-9f01-4199-b783-64ac80d7552f",
+            "pi": "e3203616-b69f-4113-a036-8e664cfaca64"
+          },
+          "closedAt": "2026-10-09T00:39:00Z",
+          "note": "Both sourceWavePassCandidate: SOURCE_WAVE=done, two child reports with summary/entrypoints/drift/recipe, concurrent claimed, childrenDroveNo/EditedNo. Pi two subagent.started 111ms apart; Cursor PTY Task chrome. Prompt cued marker contract."
+        }
+      ]
     },
     {
       "id": "PSTACK-SETUP-MAINTAIN-VERIFY-LIVE-PASS-001",
@@ -3226,8 +4168,19 @@
       "scenarioIds": [
         "setup-maintain-verify-live-pass"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/maintain-verify/pair-maintain-verify-live-pass-1.json",
+          "attempts": {
+            "cursor": "311766cd-245f-4bfb-8ade-d9235193c6a9",
+            "pi": "2f0c388b-c4fc-4763-9cab-0f0aa377ae69"
+          },
+          "closedAt": "2026-10-09T00:35:00Z",
+          "note": "Clean-path live-pass both hosts: LIVE_PASS_RAN, doctor-before-drive, evidence-survives-cleanup, no residue, final teardown, OUTCOME=clean. Doctor-drift retry / verified-unreachable / harness redrive unpaid (na). Cursor evidence wiped post-settle by Pi seedSkills on shared fixture (fixed in lever). SOURCE-WAVE not claimed."
+        }
+      ]
     },
     {
       "id": "PSTACK-SETUP-MAINTAIN-VERIFY-SHIP-001",
@@ -3268,8 +4221,19 @@
       "scenarioIds": [
         "setup-maintain-verify-ship"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/maintain-verify/pair-maintain-verify-outcomes-1.json",
+          "attempts": {
+            "cursor": "c3f0f75c-eb59-4cfc-b4e1-9495dc84e4e7",
+            "pi": "d2597177-5cde-460b-8458-c2ee14b395d7"
+          },
+          "closedAt": "2026-10-09T00:14:00Z",
+          "note": "Both OUTCOME=clean PR=none with live coverage; no PR opened. Matches SETUP clean + SHIP clean/no-PR. changed+PR and blocked unpaid; SOURCE-WAVE/LIVE-PASS not claimed."
+        }
+      ]
     },
     {
       "id": "PSTACK-PRIN-ATTACK-PREMISE-001",
@@ -3314,8 +4278,19 @@
       "scenarioIds": [
         "prin-attack-premise"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/principles/attack-premise/pair-prin-attack-premise-1.json",
+          "attempts": {
+            "cursor": "57e687cf-f41b-46bc-a084-493c3a40fc61",
+            "pi": "4f10f963-4a6b-4535-a836-9a6971c045a9"
+          },
+          "closedAt": "2026-10-09T01:03:30Z",
+          "note": "Both contractHeld: leaf Read, premise + rerunnable census, PREMISE-OK; no compensatory capacity/buffer patch."
+        }
+      ]
     },
     {
       "id": "PSTACK-PRIN-BOUNDARY-001",
@@ -3360,8 +4335,19 @@
       "scenarioIds": [
         "prin-boundary"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/principles/boundary/pair-prin-boundary-1.json",
+          "attempts": {
+            "cursor": "f9bbb2d6-e5b4-47e2-b4f0-91b03291f4b9",
+            "pi": "d8c69f86-0236-4851-a2c0-1a911175877e"
+          },
+          "closedAt": "2026-10-09T00:57:00Z",
+          "note": "Both contractHeld: leaf Read, validation at boundary, business logic free of re-validation of narrowed types."
+        }
+      ]
     },
     {
       "id": "PSTACK-PRIN-BUILD-LEVER-001",
@@ -3406,8 +4392,19 @@
       "scenarioIds": [
         "prin-build-lever"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/principles/build-lever/pair-prin-build-lever-1.json",
+          "attempts": {
+            "cursor": "ae01feb5-b373-4d64-9b2d-8d5b0b67c080",
+            "pi": "889c66cf-151f-48ba-9a4d-d80f1201fa80"
+          },
+          "closedAt": "2026-10-09T00:36:00Z",
+          "note": "Both contractHeld: leaf Read, scripts/rewrite-prefix.mjs lever, PREFIX-OK units=3 kept; worker re-ran durable levers against restored baseline. Leaf-read+script nudge in prompt; adjacent principles unpaid."
+        }
+      ]
     },
     {
       "id": "PSTACK-PRIN-ENCODE-STRUCTURE-001",
@@ -3452,8 +4449,19 @@
       "scenarioIds": [
         "prin-encode-structure"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/principles/encode-structure/pair-prin-encode-structure-1.json",
+          "attempts": {
+            "cursor": "28d00da4-064a-466a-ae71-2d1f249fb6cd",
+            "pi": "fa41db21-da46-4503-b8dc-35d69586e835"
+          },
+          "closedAt": "2026-10-09T01:07:00Z",
+          "note": "Both contractHeld: leaf Read, lasting check (not second prose), product fix, ENCODE-OK."
+        }
+      ]
     },
     {
       "id": "PSTACK-PRIN-EXHAUST-DESIGN-001",
@@ -3499,8 +4507,19 @@
       "scenarioIds": [
         "prin-exhaust-design"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/principles/exhaust-design/pair-prin-exhaust-design-1.json",
+          "attempts": {
+            "cursor": "c51f3304-680f-49c6-8b30-e387a5bbae7c",
+            "pi": "b0270896-62fc-40a8-8f26-c29164b1976a"
+          },
+          "closedAt": "2026-10-09T01:20:00Z",
+          "note": "Both contractHeld: leaf Read, 3 distinct prototypes + DECISION.md, EXHAUST-OK."
+        }
+      ]
     },
     {
       "id": "PSTACK-PRIN-EXPERIENCE-FIRST-001",
@@ -3545,8 +4564,19 @@
       "scenarioIds": [
         "prin-experience-first"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/principles/experience-first/pair-prin-experience-first-1.json",
+          "attempts": {
+            "cursor": "c4dcc551-833e-46ee-bffc-651864b86bf7",
+            "pi": "624b7baf-b01d-424d-9dac-3b9c39828a79"
+          },
+          "closedAt": "2026-10-09T01:21:30Z",
+          "note": "Both contractHeld: leaf Read; human Status/Ready/Next/Queue default over JSON dump; IMPACT.md Consumer+Maintainer; EXPERIENCE-OK."
+        }
+      ]
     },
     {
       "id": "PSTACK-PRIN-EXPLAIN-NUMBER-001",
@@ -3591,8 +4621,19 @@
       "scenarioIds": [
         "prin-explain-number"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/principles/explain-number/pair-prin-explain-number-1.json",
+          "attempts": {
+            "cursor": "0adb3d89-a142-4c2a-9487-4209954140ef",
+            "pi": "029fedbc-568d-499e-ba31-1da197a2d866"
+          },
+          "closedAt": "2026-10-09T01:23:30Z",
+          "note": "Both contractHeld: leaf Read, named limiter + run count/spread in report."
+        }
+      ]
     },
     {
       "id": "PSTACK-PRIN-FIX-ROOT-001",
@@ -3637,8 +4678,19 @@
       "scenarioIds": [
         "prin-fix-root"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/principles/fix-root/pair-prin-fix-root-1.json",
+          "attempts": {
+            "cursor": "5d36f6ca-23fd-462c-8e35-7666ddf387de",
+            "pi": "dffb963b-d1b4-42a4-bca0-e36b02bef0f3"
+          },
+          "closedAt": "2026-10-09T00:48:00Z",
+          "note": "Both contractHeld: leaf Read, reproduce via verify.mjs before edit, fixed displayNam→displayName (not sole nil guard), GREET-OK kept, verified=yes."
+        }
+      ]
     },
     {
       "id": "PSTACK-PRIN-FOUNDATIONAL-001",
@@ -3683,8 +4735,19 @@
       "scenarioIds": [
         "prin-foundational"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/principles/foundational/pair-prin-foundational-1.json",
+          "attempts": {
+            "cursor": "65219cb4-d58b-4567-b7bb-0300966d0a31",
+            "pi": "d553905a-8e0a-47c6-ab11-bdb96fe53f60"
+          },
+          "closedAt": "2026-10-09T00:52:30Z",
+          "note": "Both contractHeld: leaf Read, types.js before board.js, BOARD-OK jobs=2, verified=yes."
+        }
+      ]
     },
     {
       "id": "PSTACK-PRIN-GUARD-CONTEXT-001",
@@ -3729,8 +4792,20 @@
       "scenarioIds": [
         "prin-guard-context"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/principles/guard-context/pair-prin-guard-context-1.json",
+          "attempts": {
+            "cursor": "6910fcce-9e65-4d40-830e-fcf478d32991",
+            "pi": "b5f36281-63a5-4572-8efc-4af4f27a7627"
+          },
+          "closedAt": "2026-10-09T01:30:00Z",
+          "note": "Both contractHeld: leaf Read, subagentRouted (Pi re-run b5f36281 with real child session after oracle tighten), summary kept.",
+          "piRerunAt": "2026-10-09T01:42:30Z"
+        }
+      ]
     },
     {
       "id": "PSTACK-PRIN-LAZINESS-001",
@@ -3774,8 +4849,19 @@
       "scenarioIds": [
         "prin-laziness"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/principles/laziness/pair-prin-laziness-1.json",
+          "attempts": {
+            "cursor": "f3a6669a-3e76-4ae3-9f8e-50ce94f2fc2a",
+            "pi": "7e4c208d-60c8-4529-9849-1e70eed051fa"
+          },
+          "closedAt": "2026-10-09T00:43:00Z",
+          "note": "Both contractHeld: leaf Read, deleted FormatPipeline layer, FLAT-OK path=delete, no strategies/ layer. Leaf-read nudge in prompt; NOTES.md names registry temptation."
+        }
+      ]
     },
     {
       "id": "PSTACK-PRIN-IDEMPOTENT-001",
@@ -3820,8 +4906,19 @@
       "scenarioIds": [
         "prin-idempotent"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/principles/idempotent/pair-prin-idempotent-1.json",
+          "attempts": {
+            "cursor": "fef5e774-50d6-4214-9d76-6228f155b229",
+            "pi": "4e21a4e0-18c1-42e8-b286-6779858d9fe1"
+          },
+          "closedAt": "2026-10-09T01:09:00Z",
+          "note": "Both contractHeld: leaf Read, mid-crash then re-run converge APPLY-OK converge=yes (same final digest)."
+        }
+      ]
     },
     {
       "id": "PSTACK-PRIN-MIGRATE-DELETE-001",
@@ -3866,8 +4963,19 @@
       "scenarioIds": [
         "prin-migrate-delete"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/principles/migrate-delete/pair-prin-migrate-delete-1.json",
+          "attempts": {
+            "cursor": "358649f2-255f-4700-9f7f-443f53f771eb",
+            "pi": "00a3375f-c96c-4f68-bb47-8cd357376365"
+          },
+          "closedAt": "2026-10-09T00:58:00Z",
+          "note": "Both contractHeld: leaf Read, formatName added, callers migrated, legacyFormat.js deleted same wave, no shim, MIGRATE-OK."
+        }
+      ]
     },
     {
       "id": "PSTACK-PRIN-MINIMIZE-READER-001",
@@ -3911,8 +5019,19 @@
       "scenarioIds": [
         "prin-minimize-reader"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/principles/minimize-reader/pair-prin-minimize-reader-1.json",
+          "attempts": {
+            "cursor": "a0563963-92bc-4f7d-b63d-37051663e79b",
+            "pi": "f698e8a7-1dbd-46cb-96d2-7ecaabbebaeb"
+          },
+          "closedAt": "2026-10-09T00:55:30Z",
+          "note": "Both contractHeld: leaf Read, collapsed greeting-loader/fetch/resolve, TRACE-OK path=collapse, no added facade layer."
+        }
+      ]
     },
     {
       "id": "PSTACK-PRIN-MODEL-DOMAIN-001",
@@ -3957,8 +5076,19 @@
       "scenarioIds": [
         "prin-model-domain"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/principles/model-domain/pair-prin-model-domain-1.json",
+          "attempts": {
+            "cursor": "5b46963a-1d66-4053-a9c8-4f4e8037ae9d",
+            "pi": "3ac75dad-b288-4b1e-b104-2b234865575b"
+          },
+          "closedAt": "2026-10-09T00:57:00Z",
+          "note": "Both contractHeld: leaf Read, structured domain encoding (status/registry/transitions), not scattered synced boolean; DOMAIN-OK."
+        }
+      ]
     },
     {
       "id": "PSTACK-PRIN-NEVER-BLOCK-001",
@@ -4004,8 +5134,19 @@
       "scenarioIds": [
         "prin-never-block"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/principles/never-block/pair-prin-never-block-1.json",
+          "attempts": {
+            "cursor": "c38eb9b1-9ac3-4d16-a43d-009c3c9d7eb8",
+            "pi": "d0a66bac-7951-4adb-a7d5-95b46f0d4e15"
+          },
+          "closedAt": "2026-10-09T00:38:00Z",
+          "note": "Both contractHeld: leaf Read, no AskQuestion/permission tool, GREET-OK format=plain choice=plain, verified=yes. Irreversible confirmation unpaid. Scorer tightened to tool-ask authority after prose false positive."
+        }
+      ]
     },
     {
       "id": "PSTACK-PRIN-OUTCOME-ORIENTED-001",
@@ -4050,8 +5191,19 @@
       "scenarioIds": [
         "prin-outcome-oriented"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/principles/outcome-oriented/pair-prin-outcome-oriented-1.json",
+          "attempts": {
+            "cursor": "342ef99a-aa7a-41b2-9cea-1fad66a4e714",
+            "pi": "df45bc1d-780c-410a-9475-a41c2bde9e1e"
+          },
+          "closedAt": "2026-10-09T01:18:00Z",
+          "note": "Both contractHeld: leaf Read, converged on priceFor with pricingV1 gone, OUTCOME-OK, convergeWithoutDualPath."
+        }
+      ]
     },
     {
       "id": "PSTACK-PRIN-PROVE-IT-001",
@@ -4096,8 +5248,19 @@
       "scenarioIds": [
         "prin-prove-it"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/principles/pair-prin-prove-it-1.json",
+          "attempts": {
+            "cursor": "9f605907-9633-4897-8357-c174bf170c65",
+            "pi": "4af22cca-9d26-4592-81e2-058a9d96f4fc"
+          },
+          "closedAt": "2026-10-09T00:17:00Z",
+          "note": "Both contractHeld: leaf SKILL.md Read, scripts/verify.mjs kept ADD-OK value=5, modelAutoInvoke false. Matched leaf-read nudge after Pi organic misses; adjacent principles unpaid."
+        }
+      ]
     },
     {
       "id": "PSTACK-PRIN-REDESIGN-FIRST-001",
@@ -4142,8 +5305,19 @@
       "scenarioIds": [
         "prin-redesign-first"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/principles/redesign-first/pair-prin-redesign-first-1.json",
+          "attempts": {
+            "cursor": "dcb80bb4-cf3a-4a78-a9b1-df6f0a0aa370",
+            "pi": "e297cc00-bdd7-4b7b-a489-e7a267dc328a"
+          },
+          "closedAt": "2026-10-09T01:41:30Z",
+          "note": "Both contractHeld: leaf Read, foundational Price+currency redesign, docs propagated, bare rejected, REDESIGN-OK."
+        }
+      ]
     },
     {
       "id": "PSTACK-PRIN-SEPARATE-STATE-001",
@@ -4189,8 +5363,19 @@
       "scenarioIds": [
         "prin-separate-state"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/principles/separate-state/pair-prin-separate-state-1.json",
+          "attempts": {
+            "cursor": "f8041da0-089d-4161-b775-e5fb91c488e3",
+            "pi": "3b9d8593-e469-4816-a7e2-751bf90e51bf"
+          },
+          "closedAt": "2026-10-09T01:33:30Z",
+          "note": "Both contractHeld: leaf Read, share-elimination via owned JSON files per worker, SEPARATE-OK separated=yes."
+        }
+      ]
     },
     {
       "id": "PSTACK-PRIN-SEQUENCE-UNITS-001",
@@ -4235,8 +5420,19 @@
       "scenarioIds": [
         "prin-sequence-units"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/principles/sequence-units/pair-prin-sequence-units-1.json",
+          "attempts": {
+            "cursor": "a25ac05b-fb4c-4d6c-a195-2a2e13a0b2cf",
+            "pi": "1b0ebd6e-1254-4932-9f79-5765a701c913"
+          },
+          "closedAt": "2026-10-09T00:46:00Z",
+          "note": "Both contractHeld: leaf Read, progressive verify-log + UNIT-OK, SEQUENCE-OK units=3, verified=yes. Prompt steered one-module-at-a-time; stacked failing-test-then-fix commits unpaid."
+        }
+      ]
     },
     {
       "id": "PSTACK-PRIN-SUBTRACT-FIRST-001",
@@ -4281,8 +5477,19 @@
       "scenarioIds": [
         "prin-subtract-first"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/principles/subtract-first/pair-prin-subtract-first-1.json",
+          "attempts": {
+            "cursor": "8ff2e73a-52d1-4d2c-a601-bed33a6bec3d",
+            "pi": "949c5a02-da60-4b0d-8838-d6ccf3b7914a"
+          },
+          "closedAt": "2026-10-09T01:02:30Z",
+          "note": "Both contractHeld: leaf Read, deleted dead weight first (legacyValidate/stubRefs), then shout add on simpler greet; SUBTRACT-OK."
+        }
+      ]
     },
     {
       "id": "PSTACK-PRIN-TEST-BEHAVIOR-001",
@@ -4327,8 +5534,19 @@
       "scenarioIds": [
         "prin-test-behavior"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/principles/test-behavior/pair-prin-test-behavior-1.json",
+          "attempts": {
+            "cursor": "b70c73d6-63a5-4255-b8a3-62f3217e5704",
+            "pi": "753e87d4-b2c8-4c0e-8fd4-1ca3bacbcbac"
+          },
+          "closedAt": "2026-10-09T00:47:00Z",
+          "note": "Both contractHeld: leaf Read, rewrote doesNotThrow to slugify('Hello, World!') + literal hello-world assert, TEST-OK kept, verified=yes. Prompt named concrete input/expected; undefined-stub is harness shape check."
+        }
+      ]
     },
     {
       "id": "PSTACK-PRIN-TYPE-DISCIPLINE-001",
@@ -4373,8 +5591,19 @@
       "scenarioIds": [
         "prin-type-discipline"
       ],
-      "status": "unverified",
-      "evidence": []
+      "status": "verified-pass-paired",
+      "evidence": [
+        {
+          "type": "paired-run",
+          "pair": "parity/evidence/principles/type-discipline/pair-prin-type-discipline-1.json",
+          "attempts": {
+            "cursor": "33d927a2-8d1d-471f-8d0b-f6284c67b21b",
+            "pi": "9cae5688-2cb4-4719-8c5f-fa1c908a983e"
+          },
+          "closedAt": "2026-10-09T00:52:30Z",
+          "note": "Both contractHeld after oracle accepts status|kind discriminant: leaf Read, illegal states unrepresentable (no sole cast bag), TYPE-OK, verified=yes."
+        }
+      ]
     }
   ],
   "openWork": [

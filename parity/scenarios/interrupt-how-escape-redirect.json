@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "id": "interrupt-how-escape-redirect",
+  "status": "executed-pass-paired",
+  "requirements": [],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "parity/contract.md#8 interrupt/redirect",
+  "configurationIds": [
+    "default"
+  ],
+  "fixture": {
+    "description": "mid-flight how Escape then redirect",
+    "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Escape cancels mid-flight how; cancelled marker absent"
+    },
+    {
+      "kind": "observe",
+      "expect": "Redirect turn writes REDIRECT-OK and answers REDIRECT-OK 56"
+    }
+  ],
+  "execution": {
+    "referenceRun": "aa52982b-074e-4c64-954b-c7a968c1fc5f",
+    "candidateRun": "9138c152-0a7c-4e63-9ff5-c0250bb936d3",
+    "pairId": "interrupt-redirect-1",
+    "pairPath": "parity/evidence/interrupt/pair-interrupt-redirect-1.json",
+    "verdict": "pass-paired",
+    "closedAt": "2026-10-08T19:05:44Z",
+    "caveat": "Does not prove compact/branch/restart resume. Stub requirementIds SHOW-ME/FIGURE-IT-OUT not claimed."
+  },
+  "honestDeltas": [
+    "Cursor restores cancelled how into composer; redirect typing appends",
+    "Pi Operation aborted then clean next turn"
+  ]
+}

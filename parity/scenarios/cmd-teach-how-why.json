@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "cmd-teach-how-why",
+  "status": "executed-pass-paired",
+  "requirements": [
+    "PSTACK-CMD-TEACH-HOW-WHY-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/teach/SKILL.md#teach runs how and why then weaves one explanation",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Tiny clamp.js fixture; /teach with how+why grounding markers.",
+    "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Invoke teach on the named subject.. Teach orients, runs how and why as real skill invocations (in parallel when both are needed), and blends them into one plain explanation without changing the subject code."
+    }
+  ],
+  "execution": {
+    "referenceRun": "738b745d-a4e0-464e-809a-928d12529074",
+    "candidateRun": "9056a9b3-2f90-4015-b907-8895a599ae3a",
+    "pairId": "teach-how-why-1",
+    "pairPath": "parity/evidence/teach/pair-teach-how-why-1.json",
+    "verdict": "pass-paired",
+    "closedAt": "2026-10-08T21:42:00Z",
+    "note": "orderOk both sides; Pi session read how/why SKILL.md then task\u00d72 before teach write."
+  }
+}

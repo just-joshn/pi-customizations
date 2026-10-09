@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "cmd-benny-repro-fail-closed",
+  "status": "paired",
+  "requirements": [
+    "PSTACK-CMD-BENNY-REPRO-FAIL-CLOSED-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md#reproduce-and-fix-issues fail-closed when config or adapter missing",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Trusted triage marker may or may not be present; repro skill entry begins. Preconditions: Benny automation pack present; external config intentionally incomplete or missing required actions, control adapter, or completed feature map.",
+    "digest": null
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Start the repro skill with missing required Benny configuration pieces.. The skill fails closed and does not attempt UI repro, product edits, or a draft PR."
+    }
+  ],
+  "execution": {
+    "pairId": "benny-repro-fail-closed-1",
+    "verdict": "pass",
+    "pair": "parity/evidence/benny-repro/pair-benny-repro-fail-closed-1.json",
+    "attempts": {
+      "cursor": "e3e5e224-5d6a-4e9d-ab62-064386174fdc",
+      "pi": "85ff157c-90dc-43dd-927f-e2a8b32488bf"
+    }
+  }
+}

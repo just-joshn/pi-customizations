@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "cmd-swarm-fanout",
+  "status": "executed-pass-paired",
+  "requirements": [
+    "PSTACK-CMD-SWARM-FANOUT-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/swarm/SKILL.md#frontmatter description and opening Swarm paragraph",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "swarm n2 isolated writes",
+    "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Invoke /swarm with a partitionable brief.. Parent frames, fans out N parallel workers, drains them, and returns one aggregated report."
+    }
+  ],
+  "execution": {
+    "referenceRun": "1aaf5610-1b40-4bc6-b265-6249dca1d6e1",
+    "candidateRun": "408c6db6-2522-4fec-99f9-e76911bb21cf",
+    "pairId": "swarm-n2-isolated-1",
+    "pairPath": "parity/evidence/swarm/pair-swarm-n2-isolated-1.json",
+    "verdict": "pass-paired",
+    "closedAt": "2026-10-08T19:01:34Z"
+  }
+}

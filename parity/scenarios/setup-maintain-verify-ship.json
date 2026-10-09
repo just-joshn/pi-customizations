@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "id": "setup-maintain-verify-ship",
+  "status": "paired",
+  "requirements": [
+    "PSTACK-SETUP-MAINTAIN-VERIFY-SHIP-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/maintain-verification-skill/SKILL.md### Pass, step 6 Ship or stop",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Documented preconditions satisfied; behavior not yet paired. Preconditions: Triage classified drift, harness gaps, and product gaps.",
+    "digest": null
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "End of a changed or non-changed maintain run.. changed ships one PR of proven corrections after re-reading every changed file. clean or blocked ships no PR and reports outcome and coverage. Run notes stay in scratch and are not committed."
+    }
+  ],
+  "execution": {
+    "pairId": "maintain-verify-outcomes-1",
+    "verdict": "pass",
+    "pair": "parity/evidence/maintain-verify/pair-maintain-verify-outcomes-1.json",
+    "attempts": {
+      "cursor": "c3f0f75c-eb59-4cfc-b4e1-9495dc84e4e7",
+      "pi": "d2597177-5cde-460b-8458-c2ee14b395d7"
+    },
+    "note": "clean/no-PR branch; changed+PR unpaid"
+  }
+}

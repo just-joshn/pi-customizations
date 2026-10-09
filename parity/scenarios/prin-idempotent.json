@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "prin-idempotent",
+  "status": "pass-paired",
+  "requirements": [
+    "PSTACK-PRIN-IDEMPOTENT-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/principle-make-operations-idempotent/SKILL.md#Make Operations Idempotent frontmatter trigger and disable-model-invocation",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file. Preconditions: Locked pstack poteto-mode and principle-make-operations-idempotent skill loaded.; A state-mutating command or lifecycle step is being designed.",
+    "digest": null
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Implement a lifecycle command that may crash mid-run.. The agent Reads the leaf skill and the operation converges to the same end state on re-run after partial prior execution."
+    }
+  ],
+  "execution": {
+    "pairId": "prin-idempotent-1",
+    "verdict": "pass",
+    "pair": "parity/evidence/principles/idempotent/pair-prin-idempotent-1.json",
+    "attempts": {
+      "cursor": "fef5e774-50d6-4214-9d76-6228f155b229",
+      "pi": "4e21a4e0-18c1-42e8-b286-6779858d9fe1"
+    }
+  }
+}

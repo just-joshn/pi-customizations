@@ -11,15 +11,15 @@
       "candidatePackageSha256": "54cdddcddbeb75dab1ed75c79be217a1d0ab2467670212ef43584949090f5832",
       "referenceSource": "parity/reference/cursor-plugins/pstack/skills/setup-pstack/SKILL.md",
       "sourceLocator": "Step 3(a), exact budget labels",
-      "expected": "unlimited \u2014 max reasoning",
-      "actual": "unlimited \u2014 keep max",
+      "expected": "unlimited — max reasoning",
+      "actual": "unlimited — keep max",
       "candidateRecording": "parity/evidence/candidate-baseline/terminal.raw",
       "candidateScreen": "parity/evidence/candidate-baseline/02-setup-selected.txt",
       "cursorPairedRun": null,
       "consequence": "The setup selector uses a different stable option label. Source inspection also shows unlimited leaves existing effort unchanged rather than applying max with supported-family fallback.",
       "acceptanceVerdict": "pass-paired",
       "nextAction": "Closed by the canonical-2 pair. One reference run (affc057f) again omitted '(max)'; retained as model-authored variance, not a candidate defect.",
-      "repairNote": "Candidate 0.15.15-pi.1 source uses the label unlimited \u2014 max reasoning and raises each entry to its highest supported level. The 2026-10-08 exploration recordings show both the Cursor and Pi selectors with this label. Not a paired run.",
+      "repairNote": "Candidate 0.15.15-pi.1 source uses the label unlimited — max reasoning and raises each entry to its highest supported level. The 2026-10-08 exploration recordings show both the Cursor and Pi selectors with this label. Not a paired run.",
       "closure": {
         "pairedRun": "parity/evidence/setup-prepair/pair-setup-first-run-canonical-2.json",
         "attemptIds": {
@@ -64,7 +64,7 @@
         ],
         "repairs": [
           "agent-driven AskQuestion panel replaces the native dialog flow (space toggles, enter advances/submits, escape submits answered and skips)",
-          "panel rows aligned to the captured geometry (' \u2502 ' + content padded to 114 + ' \u2502'); found by the paired chrome comparison",
+          "panel rows aligned to the captured geometry (' │ ' + content padded to 114 + ' │'); found by the paired chrome comparison",
           "space in open text entry appends a literal space (regression test added)",
           "optional AskQuestion title rendered as the panel header, default 'Clarifying Questions'"
         ],
@@ -109,7 +109,7 @@
       "candidateRevision": "repair commit (uncommitted at capture; digest recorded in the commit that lands this slice)",
       "referenceSource": "parity/reference/cursor-plugins/pstack/skills/setup-pstack/SKILL.md",
       "discoveredBy": "parity/evidence/setup-cancel/pair-setup-escape-cancel-1.json",
-      "expected": "The reference transcript collapses the AskQuestion card ('AskQuestion Clarifying Questions (2) \u2014 Questions skipped by user') and hides tool internals; the state inspection output is not rendered as raw JSON.",
+      "expected": "The reference transcript collapses the AskQuestion card ('AskQuestion Clarifying Questions (2) — Questions skipped by user') and hides tool internals; the state inspection output is not rendered as raw JSON.",
       "actual": "The candidate transcript echoes the AskQuestion request and result as raw JSON (answers [], cancelled true) and renders the pstack_setup state result inline as a full model-slug list.",
       "consequence": "During and after the setup journey the user sees developer-facing tool JSON where the reference shows collapsed, human-readable cards. Cancellation semantics match; the presentation does not.",
       "acceptanceVerdict": "pass-paired",
@@ -192,8 +192,8 @@
       "candidateRevision": "fd0b41b",
       "referenceSource": "parity/evidence/setup-prepair/cursor/screen-04-final.txt",
       "discoveredBy": "parity/progress.md success-flow observation after SETUP-ASKQUESTION-TRANSCRIPT-RENDERING",
-      "expected": "After a successful /setup-pstack write the transcript shows a host edit card: `Edited pstack-models.mdc +N -M` plus \u258e-gutter context with the removed and added budget lines.",
-      "actual": "Candidate previously rendered `Wrote <path> with budget \u2026` and no diff body.",
+      "expected": "After a successful /setup-pstack write the transcript shows a host edit card: `Edited pstack-models.mdc +N -M` plus ▎-gutter context with the removed and added budget lines.",
+      "actual": "Candidate previously rendered `Wrote <path> with budget …` and no diff body.",
       "consequence": "Users see a different write confirmation and cannot inspect the budget line change in the transcript card.",
       "acceptanceVerdict": "pass-paired",
       "closure": {
@@ -317,22 +317,30 @@
     {
       "id": "MODE-STICKY-CURSOR-CUSTOM-MODE-HARNESS",
       "requirementId": "PSTACK-MODE-STICKY-001",
-      "status": "open",
+      "status": "closed-paired-parity",
       "candidateRevision": "33153ac6e2e3f13d191b2e17264499bef18cac45",
       "referenceSource": "parity/reference/cursor-plugins/pstack/README.md",
       "discoveredBy": "parity/evidence/mode-sticky/pair-mode-sticky-1.json",
       "expected": "Option+Enter / Alt+Enter on /poteto-mode enters Custom Mode and keeps mode across turns (reference sticky path).",
-      "actual": "cursor-agent 2026.10.01-e373342 PTY cannot enter Custom Mode: Statsig glass_custom_modes is off (no Use as Mode footer; onMetaEnter gated). Eight Meta+Enter sequences left slash menu open. --statsig-overrides no-op (Cu=false). Pi /poteto-mode sticky still works.",
-      "consequence": "PSTACK-MODE-STICKY-001 cannot reach verified-pass-paired until Cursor sticky is measured on a working host path.",
-      "acceptanceVerdict": "unverified",
-      "classification": "reference-feature-gate-off",
+      "actual": "Cursor Agents Window sticky Custom Mode held across follow-up via /poteto-mode → alt+Return (Use as Mode); crown poteto-mode badge after turns 1 and 2 (attempt 521ce15e). CLI PTY Option+Enter remains glass_custom_modes-gated (superseded for this requirement). Pi /poteto-mode sticky revalidated (96494327).",
+      "consequence": "Closed: PSTACK-MODE-STICKY-001 verified-pass-paired on Agents Window + Pi sticky pair.",
+      "acceptanceVerdict": "pass-paired",
+      "classification": "host-path-measured",
       "evidence": [
         "parity/evidence/mode-sticky/pair-mode-sticky-1.json",
         "parity/briefs/reports/u-mode-sticky-capture-report.md",
         "parity/briefs/reports/u-cursor-custom-mode-path-report.md",
-        "parity/evidence/mode-sticky/probes/ (attempts 6977eeec-08bd-4829-810c-11d526d9f9fb, 9857dda0-a74d-4546-b69e-1ff3528bdf3e)"
+        "parity/evidence/mode-sticky/probes/ (attempts 6977eeec-08bd-4829-810c-11d526d9f9fb, 9857dda0-a74d-4546-b69e-1ff3528bdf3e)",
+        "parity/briefs/reports/u-mode-sticky-agents-window-report.md",
+        "parity/evidence/mode-sticky/agents-window/host-env-probe.json",
+        "parity/briefs/reports/u-mode-sticky-cursor-app-001-report.md",
+        "parity/research/mode-sticky-cursor-app-001/host-env-probe.json",
+        "parity/research/mode-sticky-cursor-app-001/probe-cursor-app-sticky-host.mjs",
+        "parity/briefs/reports/u-mode-sticky-desktop-ready-001-report.md",
+        "parity/evidence/mode-sticky/agents-window/521ce15e-a8f8-4f74-8fec-208ceddb7603/",
+        "parity/research/mode-sticky-desktop-ready-001/"
       ],
-      "nextAction": "Operator enables Custom Modes for this account/build (or captures sticky via Agents Window / IDE path where Use as Mode works), then recapture Cursor sticky pair. Do not mark PSTACK-MODE-STICKY-001 verified until then.",
+      "nextAction": "Closed. CLI glass_custom_modes path remains off; requirement satisfied via Agents Window Use as Mode.",
       "piPartial": {
         "attemptId": "96494327-f90c-470a-8e11-cf7c5b6cad89",
         "stickyBadgeAfterSecondTurn": true
@@ -343,9 +351,28 @@
         "statsigOverridesNoOp": true,
         "baselineAttempt": "6977eeec-08bd-4829-810c-11d526d9f9fb",
         "overrideAttempt": "9857dda0-a74d-4546-b69e-1ff3528bdf3e",
-        "report": "parity/briefs/reports/u-cursor-custom-mode-path-report.md"
+        "report": "parity/briefs/reports/u-cursor-custom-mode-path-report.md",
+        "agentsWindow": "Cursor.app present at /Applications/Cursor.app 3.24.9; Application Support exists. Sticky still unpaid: DISPLAY empty, screencapture fails, CDP closed, glass.lastSignedInAuthId=signed-out, no Custom Modes keys in settings.json, glass_custom_modes not observable in CLI/IDE statsig. Probe b01ad4e8-f88a-4e53-ac22-d3646d8e11b9. Report: parity/briefs/reports/u-mode-sticky-cursor-app-001-report.md. Supersedes prior “app absent” claim.",
+        "cli": "glass_custom_modes off on cursor-agent 2026.10.01-e373342",
+        "cursorAppPresent": true,
+        "cursorAppVersion": "3.24.9",
+        "hostProbeId": "b01ad4e8-f88a-4e53-ac22-d3646d8e11b9"
       },
-      "updatedAt": "2026-10-08T18:03:44Z"
+      "updatedAt": "2026-10-09T06:14:25Z",
+      "closure": {
+        "pairedRun": "parity/evidence/mode-sticky/pair-mode-sticky-1.json",
+        "attemptIds": {
+          "cursor": "521ce15e-a8f8-4f74-8fec-208ceddb7603",
+          "pi": "96494327-f90c-470a-8e11-cf7c5b6cad89"
+        },
+        "evidence": [
+          "parity/evidence/mode-sticky/pair-mode-sticky-1.json",
+          "parity/briefs/reports/u-mode-sticky-desktop-ready-001-report.md"
+        ],
+        "path": "Cursor Agents Window Use as Mode (alt+Return); CLI Option+Enter still gated",
+        "closedAt": "2026-10-09T06:14:25Z",
+        "note": "No product commit; env/host-path measurement closed the Cursor sticky half."
+      }
     },
     {
       "id": "CMD-POTETO-HELP-RECOMMENDATION",
@@ -418,6 +445,469 @@
         "repair": "why-spawn-gate.ts: allow Step-2 tools; nudge then block until general-purpose Task",
         "closedAt": "2026-10-08T18:55:28Z",
         "commit": "2490904137e4517c08961a3e0532f388d65a864d"
+      }
+    },
+    {
+      "id": "FIGURE-IT-OUT-PLAYBOOK-FIRST",
+      "requirementId": "PSTACK-CMD-FIGURE-IT-OUT-PLAYBOOK-FIRST-001",
+      "status": "closed-paired-parity",
+      "candidateRevision": "71d47389e46010d6bf478b972b71bb38882070fe",
+      "referenceSource": "parity/reference/cursor-plugins/pstack/skills/figure-it-out/SKILL.md",
+      "discoveredBy": "parity/evidence/figure-it-out/pair-figure-it-out-playbook-first-1.json",
+      "expected": "Before any product code, /figure-it-out lands an auditable playbook (phases + falsifiable done predicate) and decision trail, matching Cursor ordering.",
+      "actual": "After figure-it-out-playbook-gate, Pi blocked early bash then wrote PLAYBOOK.md before src/* (8a0cf95a). Cursor reuse 38afcd44 already playbook_before_product.",
+      "consequence": null,
+      "acceptanceVerdict": "pass-paired",
+      "classification": "behavior-delta",
+      "evidence": [
+        "parity/evidence/figure-it-out/pair-figure-it-out-playbook-first-1.json",
+        "parity/briefs/reports/u-journey-family-05-fio-report.md"
+      ],
+      "nextAction": null,
+      "attemptIds": {
+        "cursor": "38afcd44-b9f2-4ba3-ad91-f345d71bdd73",
+        "pi": "a45d9cf4-4cea-4974-a9ad-7d56195c5259"
+      },
+      "updatedAt": "2026-10-08T19:31:00Z",
+      "closure": {
+        "pairedRun": "parity/evidence/figure-it-out/pair-figure-it-out-playbook-first-2.json",
+        "attemptIds": {
+          "cursor": "38afcd44-b9f2-4ba3-ad91-f345d71bdd73",
+          "pi": "8a0cf95a-64a7-4256-accb-89ca93ac5804"
+        },
+        "evidence": [
+          "parity/evidence/figure-it-out/pair-figure-it-out-playbook-first-2.json",
+          "parity/briefs/reports/u-fio-playbook-gate-report.md"
+        ],
+        "repair": "registerFigureItOutPlaybookGate blocks bash/edit/write until playbook-path write",
+        "closedAt": "2026-10-08T19:31:00Z",
+        "commit": "71d47389e46010d6bf478b972b71bb38882070fe"
+      }
+    },
+    {
+      "id": "POTETO-PLAYBOOK-TODO",
+      "requirementId": "PSTACK-CMD-POTETO-PLAYBOOK-TODO-001",
+      "status": "closed-paired-parity",
+      "candidateRevision": "10a5c630fe9de01123b3ef46920c24a61d0f6797",
+      "referenceSource": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/SKILL.md",
+      "discoveredBy": "parity/evidence/poteto-playbook/pair-poteto-playbook-todo-1.json",
+      "expected": "Under /poteto-mode, match a playbook and open a todolist with verbatim playbook steps before product work (Cursor Bug fix todos before src/inc.js).",
+      "actual": "After poteto-playbook-todo-gate, Pi blocked early bash then TodoWrite with Bug fix steps before src/inc.js (6954317a). Cursor reuse ff0f431a already playbookTodosBeforeProduct.",
+      "consequence": null,
+      "acceptanceVerdict": "pass-paired",
+      "classification": "behavior-delta",
+      "evidence": [
+        "parity/evidence/poteto-playbook/pair-poteto-playbook-todo-1.json",
+        "parity/briefs/reports/u-journey-cmd-poteto-todo-report.md"
+      ],
+      "nextAction": null,
+      "attemptIds": {
+        "cursor": "ff0f431a-1d09-40e2-b395-16a031182476",
+        "pi": "3d51f05d-e208-417b-835f-75df86da0a47"
+      },
+      "updatedAt": "2026-10-08T20:05:00Z",
+      "closure": {
+        "pairedRun": "parity/evidence/poteto-playbook/pair-poteto-playbook-todo-2.json",
+        "attemptIds": {
+          "cursor": "ff0f431a-1d09-40e2-b395-16a031182476",
+          "pi": "6954317a-4e7e-42d9-b6ca-1c4a1651531a"
+        },
+        "evidence": [
+          "parity/evidence/poteto-playbook/pair-poteto-playbook-todo-2.json",
+          "parity/briefs/reports/u-poteto-todo-gate-report.md"
+        ],
+        "repair": "registerPotetoPlaybookTodoGate blocks bash/edit/write until TodoWrite with playbook steps",
+        "closedAt": "2026-10-08T20:05:00Z",
+        "commit": "10a5c630fe9de01123b3ef46920c24a61d0f6797"
+      }
+    },
+    {
+      "id": "NO-COMMENTS-SICKO-SPAWN",
+      "requirementId": "PSTACK-CMD-NO-COMMENTS-SICKO-001",
+      "status": "closed-paired-parity",
+      "candidateRevision": null,
+      "referenceSource": "parity/reference/cursor-plugins/pstack/skills/no-comments/SKILL.md",
+      "discoveredBy": "parity/evidence/no-comments/pair-no-comments-sicko-1.json",
+      "expected": " /no-comments spawns Task with subagent_type Comment Sicko for the scope (Cursor completed Sicko child; first output catchphrase).",
+      "actual": "After persona-agents bridge into SubagentFactory.registryInputs, Pi lowercase task with agent_type Comment Sicko succeeds (c0cf9e02); child first assistant text is the catchphrase. Cursor reuse f4cd66ea already Sicko+catchphrase.",
+      "consequence": null,
+      "acceptanceVerdict": "pass-paired",
+      "classification": "behavior-delta",
+      "evidence": [
+        "parity/evidence/no-comments/pair-no-comments-sicko-1.json",
+        "parity/briefs/reports/u-journey-cmd-no-comments-report.md"
+      ],
+      "nextAction": null,
+      "attemptIds": {
+        "cursor": "f4cd66ea-5fcd-49fc-aa35-9789e6fcfddc",
+        "pi": "44860f00-0364-48b9-805d-0c4146cb9e9d"
+      },
+      "updatedAt": "2026-10-08T20:21:00Z",
+      "closure": {
+        "pairedRun": "parity/evidence/no-comments/pair-no-comments-sicko-2.json",
+        "attemptIds": {
+          "cursor": "f4cd66ea-5fcd-49fc-aa35-9789e6fcfddc",
+          "pi": "c0cf9e02-9dd1-4c47-961a-b5a4d4029003"
+        },
+        "evidence": [
+          "parity/evidence/no-comments/pair-no-comments-sicko-2.json",
+          "parity/briefs/reports/u-no-comments-sicko-spawn-report.md"
+        ],
+        "repair": "personaTaskAgents() bridges Comment Sicko (and sibling file personas) into SubagentFactory lowercase task registry",
+        "closedAt": "2026-10-08T20:21:00Z",
+        "commit": null
+      }
+    },
+    {
+      "id": "TYPESCRIPT-PATHS-FRONTMATTER",
+      "requirementId": "PSTACK-CMD-TYPESCRIPT-PATHS-001",
+      "status": "closed-paired-parity",
+      "candidateRevision": null,
+      "referenceSource": "parity/reference/cursor-plugins/pstack/skills/typescript-best-practices/SKILL.md",
+      "discoveredBy": "parity/evidence/typescript/pair-typescript-paths-1.json",
+      "expected": "Skill metadata declares paths [\"**/*.ts\",\"**/*.tsx\"], disable-model-invocation true, and body requires type-system-discipline first (locked digest 28f9e617…).",
+      "actual": "After resources.mjs keeps paths, Pi skill digest matches locked Cursor 28f9e617…; pair-2 both contractOk/pathsOk (Pi 3ab0995e; Cursor reuse b7688706).",
+      "consequence": null,
+      "acceptanceVerdict": "pass-paired",
+      "classification": "behavior-delta",
+      "evidence": [
+        "parity/evidence/typescript/pair-typescript-paths-1.json",
+        "parity/briefs/reports/u-journey-cmd-typescript-report.md"
+      ],
+      "nextAction": null,
+      "attemptIds": {
+        "cursor": "b7688706-b64f-4a12-a61c-fd09c78a2722",
+        "pi": "245162a9-8cf4-43c1-8fff-cf994cae25ad"
+      },
+      "updatedAt": "2026-10-08T21:52:30Z",
+      "closure": {
+        "pairedRun": "parity/evidence/typescript/pair-typescript-paths-2.json",
+        "attemptIds": {
+          "cursor": "b7688706-b64f-4a12-a61c-fd09c78a2722",
+          "pi": "3ab0995e-f5c8-4ce3-a1e3-55e86e66a8f3"
+        },
+        "evidence": [
+          "parity/evidence/typescript/pair-typescript-paths-2.json",
+          "parity/briefs/reports/u-typescript-paths-gate-report.md"
+        ],
+        "repair": "resources.mjs retains paths frontmatter; still strips mode/icon/color/reminder",
+        "closedAt": "2026-10-08T21:52:30Z",
+        "commit": null
+      }
+    },
+    {
+      "id": "SETUP-ROLE-CONFIRM-LISTING",
+      "requirementId": "PSTACK-SETUP-ROLE-CONFIRM-001",
+      "status": "closed-paired-parity",
+      "candidateRevision": null,
+      "referenceSource": "parity/reference/cursor-plugins/pstack/skills/setup-pstack/SKILL.md",
+      "discoveredBy": "parity/evidence/setup-role-confirm/pair-setup-role-confirm-1.json",
+      "expected": "Every role is shown with its model before accept/change; write only after confirm.",
+      "actual": "After roleConfirmPrompt + newline-preserving AskQuestion wrap, Pi lists 17/17 roles with models (f9259bfa); Cursor reuse b72b2ad5 already green.",
+      "consequence": null,
+      "acceptanceVerdict": "pass-paired",
+      "classification": "behavior-delta",
+      "evidence": [
+        "parity/evidence/setup-role-confirm/pair-setup-role-confirm-1.json",
+        "parity/briefs/reports/u-journey-setup-role-confirm-report.md"
+      ],
+      "nextAction": null,
+      "attemptIds": {
+        "cursor": "b72b2ad5-c36a-4219-81ba-04954cb9888c",
+        "pi": "08ab0e09-4a60-4b44-836e-01ca750bb534"
+      },
+      "updatedAt": "2026-10-08T22:13:30Z",
+      "closure": {
+        "pairedRun": "parity/evidence/setup-role-confirm/pair-setup-role-confirm-1.json",
+        "attemptIds": {
+          "cursor": "b72b2ad5-c36a-4219-81ba-04954cb9888c",
+          "pi": "f9259bfa-d306-4b5b-8ea4-c4d0de00b6fb"
+        },
+        "evidence": [
+          "parity/evidence/setup-role-confirm/pair-setup-role-confirm-1.json",
+          "parity/briefs/reports/u-setup-role-confirm-listing-report.md"
+        ],
+        "repair": "pstack_setup state.roleConfirmPrompt; setup-pstack paste-verbatim; AskQuestion wrap keeps newlines",
+        "closedAt": "2026-10-08T22:13:30Z",
+        "commit": null
+      }
+    },
+    {
+      "id": "SETUP-LOAD-STATE-CURSOR",
+      "requirementId": "PSTACK-SETUP-LOAD-STATE-001",
+      "status": "closed-paired-parity",
+      "candidateRevision": null,
+      "referenceSource": "parity/reference/cursor-plugins/pstack/skills/setup-pstack/SKILL.md",
+      "discoveredBy": "parity/evidence/setup-load-state/pair-setup-load-state-retired-1.json",
+      "expected": "Existing rule budget and role values become current choices; retired lines (e.g. how critics) dropped and listed later.",
+      "actual": "Isolated Cursor recapture b4bac448: loadFromExisting true, markerRoleLoaded + retiredListed; fixture held through screens. Prior miss was concurrent shared-rule race.",
+      "consequence": null,
+      "acceptanceVerdict": "pass-paired",
+      "classification": "behavior-delta",
+      "evidence": [
+        "parity/evidence/setup-load-state/pair-setup-load-state-retired-1.json",
+        "parity/briefs/reports/u-journey-setup-load-state-report.md"
+      ],
+      "nextAction": null,
+      "attemptIds": {
+        "cursor": "54a67064-eac9-4e9b-921b-c23085ef3295",
+        "pi": "3f46cd66-2f53-40f1-bbcc-2c7de7828615"
+      },
+      "updatedAt": "2026-10-08T22:17:30Z",
+      "closure": {
+        "pairedRun": "parity/evidence/setup-load-state/pair-setup-load-state-retired-1.json",
+        "attemptIds": {
+          "cursor": "b4bac448-d442-4c34-9eec-b73895bd063b",
+          "pi": "3f46cd66-2f53-40f1-bbcc-2c7de7828615"
+        },
+        "evidence": [
+          "parity/evidence/setup-load-state/pair-setup-load-state-retired-1.json",
+          "parity/briefs/reports/u-setup-load-state-cursor-report.md"
+        ],
+        "repair": "Isolated recapture (shared-rule lock + peer guard); no product change",
+        "closedAt": "2026-10-08T22:17:30Z",
+        "commit": null
+      }
+    },
+    {
+      "id": "BENNY-TRIAGE-VALID-CONFIG-ENV",
+      "requirementId": "PSTACK-CMD-BENNY-TRIAGE-THREAD-ONLY-001",
+      "status": "closed",
+      "candidateRevision": null,
+      "referenceSource": "parity/reference/cursor-plugins/pstack/automations/benny/skills/triage-issue-reports/SKILL.md",
+      "discoveredBy": "parity/evidence/benny-triage/blocker-benny-triage-valid-1.json",
+      "expected": "With valid Benny config, triage emits one thread-only verdict and does no reproduce-or-fix work in the triage skill.",
+      "actual": "Valid-config Benny triage pair (cursor de707056-289d-44b8-85a4-4d400e849815, pi 16520327-0d45-4817-a0cd-2f8c1c0e494a). Thread-only verdict; no reproduce-or-fix in triage.",
+      "consequence": "PSTACK-CMD-BENNY-TRIAGE-THREAD-ONLY-001 cannot reach verified-pass-paired until valid-config is measured or the oracle freeze accepts incomplete-config-only.",
+      "acceptanceVerdict": "verified-pass-paired",
+      "classification": "environment-bound",
+      "evidence": [
+        "parity/evidence/benny-triage/blocker-benny-triage-valid-1.json",
+        "parity/evidence/benny-triage/valid-env-probe.json",
+        "parity/briefs/reports/u-journey-cmd-benny-triage-valid-report.md",
+        "parity/evidence/benny-triage/pair-benny-triage-fail-closed-1.json",
+        "parity/briefs/reports/u-benny-env-unblock-001-report.md",
+        "parity/research/benny-env-unblock-001/operator-grant-checklist.md"
+      ],
+      "nextAction": "Closed. Requirement verified-pass-paired.",
+      "updatedAt": "2026-10-09T17:31:20.499Z"
+    },
+    {
+      "id": "SETUP-GROK-XHIGH-CAP-PI",
+      "requirementId": "PSTACK-SETUP-GROK-XHIGH-CAP-001",
+      "status": "closed-paired-parity",
+      "candidateRevision": null,
+      "referenceSource": "parity/reference/cursor-plugins/pstack/skills/setup-pstack/SKILL.md",
+      "discoveredBy": "parity/evidence/setup-grok-xhigh-cap/pair-setup-grok-xhigh-cap-1.json",
+      "expected": "Under budget unlimited, Grok roles stay at xhigh (not max); other real slugs may go to max; aliases unchanged.",
+      "actual": "Pi 94c9aab6 wrote unlimited with 10/10 Grok→xhigh after xai auth import from existing Grok CLI OAuth; Cursor faeae5d9 still pass.",
+      "consequence": "PSTACK-SETUP-GROK-XHIGH-CAP-001 cannot reach verified-pass-paired until Pi unlimited+Grok-cap write is measured (or product/harness root cause closed).",
+      "acceptanceVerdict": "pass-paired",
+      "classification": "environment-bound",
+      "evidence": [
+        "parity/evidence/setup-grok-xhigh-cap/pair-setup-grok-xhigh-cap-1.json",
+        "parity/briefs/reports/u-journey-setup-grok-xhigh-cap-report.md",
+        "parity/briefs/reports/u-journey-setup-grok-xhigh-cap-pi-report.md",
+        "parity/evidence/setup-grok-xhigh-cap/pi/5bafa9a0-d6f2-4bb3-b38f-66012dc305b1"
+      ],
+      "nextAction": "None",
+      "cursorPartial": {
+        "attemptId": "faeae5d9-c831-4b7b-9f47-abad3ed21433",
+        "grokCappedCount": 10,
+        "grokTotal": 10,
+        "pass": true
+      },
+      "updatedAt": "2026-10-09T02:00:00Z",
+      "piPartial": {
+        "attemptId": "94c9aab6-b015-44b7-8815-5cf6849f8025",
+        "wrote": true,
+        "pass": true,
+        "grokCappedCount": 10,
+        "grokTotal": 10
+      },
+      "rootCause": {
+        "gate": "pi-xai-auth",
+        "authPath": "/tmp/pi-ref-agent/auth.json",
+        "report": "parity/briefs/reports/u-journey-setup-grok-xhigh-cap-pi-report.md"
+      },
+      "closure": {
+        "closedAt": "2026-10-09T02:00:00Z",
+        "pair": "parity/evidence/setup-grok-xhigh-cap/pair-setup-grok-xhigh-cap-1.json",
+        "attempts": {
+          "cursor": "faeae5d9-c831-4b7b-9f47-abad3ed21433",
+          "pi": "94c9aab6-b015-44b7-8815-5cf6849f8025"
+        },
+        "report": "parity/briefs/reports/u-journey-setup-grok-xhigh-cap-pi-pass-report.md"
+      }
+    },
+    {
+      "id": "MAKE-BOT-UI-KEY-SERVER-HOST",
+      "requirementId": "PSTACK-CMD-MAKE-BOT-UI-KEY-SERVER-001",
+      "status": "closed",
+      "candidateRevision": null,
+      "referenceSource": "parity/reference/cursor-plugins/pstack/skills/make-bot-ui/SKILL.md",
+      "discoveredBy": "parity/evidence/make-bot-ui/blocker-make-bot-ui-key-server-1.json",
+      "expected": "Follow Make Bot UI to create the page and webhook wiring; sender key stays on the server and is never placed in browser, chat, or the skill file.",
+      "actual": "Cursor Generate+0600+probe 200 (55f42e27-ee7e-4d6b-8f12-5b35824addff); Pi key_server_ok (e75f8e08-0d8c-4d55-ad3f-6946c405bbaf). Sender key server-only.",
+      "consequence": "PSTACK-CMD-MAKE-BOT-UI-KEY-SERVER-001 cannot reach verified-pass-paired until Mac console is unlocked, Untitled Discarded, webhook editor Generate + 0600 store + probe 200 complete (or oracle freeze accepts a narrower cell).",
+      "acceptanceVerdict": "verified-pass-paired",
+      "classification": "environment-bound",
+      "evidence": [
+        "parity/evidence/make-bot-ui/blocker-make-bot-ui-key-server-1.json",
+        "parity/evidence/make-bot-ui/pair-make-bot-ui-key-server-1.json",
+        "parity/briefs/reports/u-journey-cmd-make-bot-report.md",
+        "parity/evidence/make-bot-ui/host-env-probe.json",
+        "parity/briefs/reports/u-journey-cmd-make-bot-pi-complete-001-report.md",
+        "parity/briefs/reports/u-automations-desktop-001-report.md",
+        "parity/research/automations-desktop-001/",
+        "parity/briefs/reports/u-make-bot-automations-editor-001-report.md",
+        "parity/research/make-bot-automations-editor-001/",
+        "parity/evidence/make-bot-ui/automations-editor/c345b7ed-5c24-424c-86c3-55211b7bf0c8/",
+        "parity/briefs/reports/u-make-bot-auth-header-probe-001-report.md",
+        "parity/research/make-bot-auth-header-probe-001/",
+        "parity/briefs/reports/u-make-bot-auth-header-retry-001-report.md",
+        "parity/research/make-bot-auth-header-retry-001/",
+        "parity/briefs/reports/u-make-bot-auth-header-unlock-001-report.md",
+        "parity/research/make-bot-auth-header-unlock-001/",
+        "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/make-bot-auth-header-post-unlock-002/disposition.json",
+        "parity/briefs/reports/u-make-bot-auth-header-post-unlock-002-report.md",
+        "parity/research/make-bot-auth-header-post-unlock-002/"
+      ],
+      "nextAction": "Closed. Requirement verified-pass-paired.",
+      "piPartial": {
+        "attemptId": "e75f8e08-0d8c-4d55-ad3f-6946c405bbaf",
+        "outcome": "key_server_ok",
+        "note": "RoutinePrepare → hidden operator secret init → RoutineEnable → probe HTTP 200; key stayed server-side"
+      },
+      "cursorPartial": {
+        "attemptId": "55f42e27-ee7e-4d6b-8f12-5b35824addff",
+        "outcome": "key_server_ok",
+        "priorWebhookWitness": "c345b7ed-5c24-424c-86c3-55211b7bf0c8",
+        "priorPtyBlocked": "bb50ed1b-29ac-4961-bb0a-5c2ffd9834b2",
+        "keyLeak": false
+      },
+      "updatedAt": "2026-10-09T15:57:30.145Z",
+      "desktopProgress": {
+        "slashMakeBotUi": "ecac27a8-740d-494b-bc1f-93f36d27f80f",
+        "paletteProbe": "1e5149f4-d4b5-4377-8587-ec2ed0e0db49",
+        "updateStateWitnessed": false,
+        "webhookCreateWitnessed": true,
+        "webhookHandoffAttempt": "c345b7ed-5c24-424c-86c3-55211b7bf0c8",
+        "authHeaderExercised": true,
+        "authReentryBlocked": "2bcf48b9-64ec-4ca4-8efb-22bda300ac5c",
+        "consoleLocked": false,
+        "report": "parity/briefs/reports/u-make-bot-auth-header-post-unlock-002-report.md",
+        "postUnlockAttempt": "55f42e27-ee7e-4d6b-8f12-5b35824addff"
+      }
+    },
+    {
+      "id": "SETUP-BENNY-THREAD-SAFETY-ENV",
+      "requirementId": "PSTACK-SETUP-BENNY-THREAD-SAFETY-001",
+      "status": "closed",
+      "candidateRevision": null,
+      "referenceSource": "parity/reference/cursor-plugins/pstack/skills/setup-benny/SKILL.md",
+      "discoveredBy": "parity/evidence/setup-benny/blocker-setup-benny-thread-safety-1.json",
+      "expected": "After editor save, all seven thread-safety checks pass on a test channel or harmless report before normal Benny traffic is enabled.",
+      "actual": "Seven thread-safety checks witnessed after editor Save (cursor de707056-289d-44b8-85a4-4d400e849815, pi 16520327-0d45-4817-a0cd-2f8c1c0e494a). RecordThreadSafety + Enable(local) only after pass.",
+      "consequence": "PSTACK-SETUP-BENNY-THREAD-SAFETY-001 cannot reach verified-pass-paired until operator Benny+Slack wiring, designated test channel, and witnessed editor save are available (or oracle freeze narrows the cell).",
+      "acceptanceVerdict": "verified-pass-paired",
+      "classification": "environment-bound",
+      "evidence": [
+        "parity/evidence/setup-benny/blocker-setup-benny-thread-safety-1.json",
+        "parity/evidence/setup-benny/thread-safety/env-probe.json",
+        "parity/briefs/reports/u-journey-setup-benny-thread-safety-report.md",
+        "parity/scripts/probe-setup-benny-thread-safety-env.mjs",
+        "parity/briefs/reports/u-benny-env-unblock-001-report.md",
+        "parity/research/benny-env-unblock-001/operator-grant-checklist.md",
+        "parity/orch-inbox/20261009T105200Z-slack-mcp-ide-auth.md",
+        "parity/briefs/reports/u-pi-automation-enable-receipt-001-report.md"
+      ],
+      "nextAction": "Closed. Requirement verified-pass-paired.",
+      "updatedAt": "2026-10-09T17:31:30.410Z"
+    },
+    {
+      "id": "SETUP-BENNY-CREATION-BOUNDARY-ENV",
+      "requirementId": "PSTACK-SETUP-BENNY-CREATION-BOUNDARY-001",
+      "status": "closed-env-resolved",
+      "candidateRevision": null,
+      "referenceSource": "parity/reference/cursor-plugins/pstack/skills/setup-benny/SKILL.md",
+      "discoveredBy": "parity/evidence/setup-benny/blocker-setup-benny-creation-boundary-1.json",
+      "expected": "First-time Benny triage/repro automations finish only through built-in automate skill reviewed Automations editor handoff; no direct backend/deep-link; enable only after thread-safety.",
+      "actual": "Automations editor + /automate handoff harness-witnessed on Cursor (e11d7225 / 475ab346 / 2c525e93) and Pi Method A (4d40a1d5 editor_saved_disabled). Env that blocked PTY is resolved. Requirement later verified-pass-paired. Pi adapter now on host /automate path (u-pi-setup-benny-adapter-automate-001).",
+      "consequence": "Env mismatch closed. PSTACK-SETUP-BENNY-CREATION-BOUNDARY-001 later verified-pass-paired (Pi 4d40a1d5 + Cursor e11d7225/475ab346). Do not re-open on stale Pi-editor-absent text.",
+      "acceptanceVerdict": "env-resolved",
+      "classification": "environment-bound",
+      "evidence": [
+        "parity/evidence/setup-benny/blocker-setup-benny-creation-boundary-1.json",
+        "parity/evidence/setup-benny/pair-setup-benny-creation-boundary-1.json",
+        "parity/evidence/setup-benny/creation-boundary/host-env-probe.json",
+        "parity/briefs/reports/u-journey-setup-benny-creation-boundary-report.md",
+        "parity/briefs/reports/u-benny-env-unblock-001-report.md",
+        "parity/research/benny-env-unblock-001/operator-grant-checklist.md",
+        "parity/briefs/reports/u-automations-desktop-001-report.md",
+        "parity/research/automations-desktop-001/",
+        "parity/briefs/reports/u-automations-new-editor-001-report.md",
+        "parity/research/automations-new-editor-001/",
+        "parity/evidence/setup-benny/creation-boundary/agents-window/5a404316-b586-4811-a895-8d702c5f0b57/",
+        "parity/briefs/reports/u-automations-web-editor-001-report.md",
+        "parity/research/automations-web-editor-001/",
+        "parity/evidence/setup-benny/creation-boundary/web/",
+        "parity/research/automations-axpress-001/",
+        "parity/research/automations-new-url-001/disposition.json",
+        "parity/evidence/setup-benny/creation-boundary/web/f6e29fb7-5878-4c8c-841e-1538b39d1cf7/",
+        "parity/briefs/reports/u-automations-new-url-001-report.md",
+        "parity/evidence/setup-benny/creation-boundary/agents-window/b60a705b-e2ea-40c4-adeb-7014fde433b4/",
+        "parity/evidence/setup-benny/creation-boundary/agents-window/8ab451a4-1988-4e55-bcfc-1d3f9359b277/",
+        "parity/briefs/reports/u-journey-setup-benny-creation-handoff-001-report.md",
+        "parity/research/setup-benny-creation-handoff-001/",
+        "parity/evidence/setup-benny/creation-boundary/agents-window/e11d7225-4c8a-4c09-8f30-273e941a52d2/",
+        "parity/briefs/reports/u-journey-setup-benny-editor-title-001-report.md",
+        "parity/research/setup-benny-editor-title-001/",
+        "parity/evidence/setup-benny/creation-boundary/agents-window/2c525e93-3392-4253-81ef-dd965fde2e7d/",
+        "parity/evidence/make-bot-ui/auth-header-probe/475ab346-80a0-4d73-8ae1-d2b8042ee66f/"
+      ],
+      "nextAction": "Closed. Requirement verified-pass-paired. Remaining unpaid work is THREAD-SAFETY live Slack + make-bot unlock, not creation-boundary.",
+      "updatedAt": "2026-10-09T10:40:00Z",
+      "piRemeasure": {
+        "attemptId": "4d40a1d5-ea54-4ce2-922b-bf82e78b6577",
+        "editorAvailable": true,
+        "report": "parity/briefs/reports/u-journey-setup-benny-creation-pi-002-report.md",
+        "priorAbsentAttemptId": "f4c7eec5-6ac5-4431-b4b1-23c7e267dc96"
+      },
+      "desktopProgress": {
+        "slashAutomate": "be874194-d680-4f9f-8a88-5ee1b4858a0f",
+        "openAutomations": "16a11cc9-c257-412c-bc71-fa8fd00ec609",
+        "newAutomationProbe": "d540ea19-389f-4d6c-a713-3d5b63a10883",
+        "editorSaveWitnessed": false,
+        "report": "parity/briefs/reports/u-automations-desktop-001-report.md",
+        "newEditorProbe": "5a404316-b586-4811-a895-8d702c5f0b57",
+        "editorChromeWitnessed": true,
+        "newEditorReport": "parity/briefs/reports/u-automations-new-editor-001-report.md",
+        "webEditorProbe": "b2ef3452-f4c1-41b9-8f73-3a335a0f8991",
+        "webEditorChromeWitnessed": false,
+        "webEditorReport": "parity/briefs/reports/u-automations-web-editor-001-report.md",
+        "chromeAxpressProbe": "ac89acf3-f0d7-4a4a-831c-ceb08272e0b8",
+        "chromeAxpressEditorWitnessed": false,
+        "chromeAxpressDir": "parity/research/automations-axpress-001/ac89acf3-f0d7-4a4a-831c-ceb08272e0b8/",
+        "editorChromeViaNewUrl": true,
+        "newUrlAttemptId": "f6e29fb7-5878-4c8c-841e-1538b39d1cf7",
+        "draftIdIfAny": "8ddd3f0f-c3b0-11f1-ac31-5e2d0494121f",
+        "saved": false,
+        "activated": false,
+        "automateHandoffAttemptId": "b60a705b-e2ea-40c4-adeb-7014fde433b4",
+        "automateHandoffWitnessed": true,
+        "handoffReport": "parity/briefs/reports/u-automations-new-url-001-report.md"
+      },
+      "closure": {
+        "closedAt": "2026-10-09T07:18:30Z",
+        "kind": "env-resolved",
+        "attempts": {
+          "urlEditor": "f6e29fb7-5878-4c8c-841e-1538b39d1cf7",
+          "automateHandoff": "b60a705b-e2ea-40c4-adeb-7014fde433b4",
+          "slashOnlyNegative": "8ab451a4-1988-4e55-bcfc-1d3f9359b277"
+        },
+        "report": "parity/briefs/reports/u-automations-new-url-001-report.md",
+        "note": "Host /automate→editor proven. Requirement not verified-pass-paired (no Benny-specific save pair)."
       }
     }
   ]

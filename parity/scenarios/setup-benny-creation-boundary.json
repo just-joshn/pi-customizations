@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "id": "setup-benny-creation-boundary",
+  "status": "pass-paired",
+  "requirements": [
+    "PSTACK-SETUP-BENNY-CREATION-BOUNDARY-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/automations/benny/skills/setup-benny/SKILL.md### 7. Prepare the live automations, creation boundary",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Documented preconditions satisfied; behavior not yet paired. Preconditions: User explicitly asked to create automations.",
+    "digest": null
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "First-time creation of Benny triage or repro automations.. New automations finish only through the built-in automate skill reviewed Automations editor handoff. No direct automation backend service or tool call, no browser URL carrying draft fields, and no Cursor protocol deep link. Neither automation is enabled until the thread-safety test passes after editor save."
+    }
+  ],
+  "execution": {
+    "pairId": "setup-benny-creation-boundary-1",
+    "verdict": "pass",
+    "pair": "parity/evidence/setup-benny/pair-setup-benny-creation-boundary-1.json",
+    "attempts": {
+      "cursor": "e11d7225-4c8a-4c09-8f30-273e941a52d2",
+      "cursorEditorTitle": "475ab346-80a0-4d73-8ae1-d2b8042ee66f",
+      "pi": "4d40a1d5-ea54-4ce2-922b-bf82e78b6577"
+    },
+    "closedAt": "2026-10-09T10:20:53Z",
+    "note": "Paired Method A. Cursor /automate Inactive benny-triage + editor title; Pi Prepare\u2192OpenEditor\u2192Save disabled. No enable. Thread-safety separate."
+  }
+}

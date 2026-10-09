@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "setup-maintain-verify-source-wave",
+  "status": "paired",
+  "requirements": [
+    "PSTACK-SETUP-MAINTAIN-VERIFY-SOURCE-WAVE-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/maintain-verification-skill/SKILL.md### Pass, step 2 Source wave",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Documented preconditions satisfied; behavior not yet paired. Preconditions: Feature map has one or more feature files.",
+    "digest": null
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "After index hygiene in /maintain-verification-skill.. One read-only subagent per feature file runs concurrently. Each returns feature summary, source entry points, likely drift or none, and one live-verification recipe. Children never drive the app and never edit files."
+    }
+  ],
+  "execution": {
+    "pairId": "maintain-verify-source-wave-1",
+    "verdict": "pass",
+    "pair": "parity/evidence/maintain-verify/pair-maintain-verify-source-wave-1.json",
+    "attempts": {
+      "cursor": "7d0f9dfd-9f01-4199-b783-64ac80d7552f",
+      "pi": "e3203616-b69f-4113-a036-8e664cfaca64"
+    }
+  }
+}

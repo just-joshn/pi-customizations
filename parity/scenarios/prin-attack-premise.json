@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "prin-attack-premise",
+  "status": "pass-paired",
+  "requirements": [
+    "PSTACK-PRIN-ATTACK-PREMISE-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/principle-attack-the-premise/SKILL.md#Attack the Premise frontmatter trigger and disable-model-invocation",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file. Preconditions: Locked pstack poteto-mode and principle-attack-the-premise skill loaded.; At least two prior fixes sharing one premise failed the same gate.",
+    "digest": null
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Continue debugging after the second shared-premise failure.. Before the next fix, the agent Reads the leaf principle-attack-the-premise/SKILL.md and produces a written premise plus a rerunnable census script artifact."
+    }
+  ],
+  "execution": {
+    "pairId": "prin-attack-premise-1",
+    "verdict": "pass",
+    "pair": "parity/evidence/principles/attack-premise/pair-prin-attack-premise-1.json",
+    "attempts": {
+      "cursor": "57e687cf-f41b-46bc-a084-493c3a40fc61",
+      "pi": "4f10f963-4a6b-4535-a836-9a6971c045a9"
+    }
+  }
+}

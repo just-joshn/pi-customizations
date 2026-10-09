@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "kind": "journey-family-stub",
+  "id": "journey-family-15-faults-and-recovery",
+  "family": 15,
+  "familyTitle": "Denied permissions, expired auth, unavailable models, timeouts, network loss, malformed input, tool errors, worker crashes, cancel races, duplicate events",
+  "contractRef": "parity/contract.md#8-verify-through-the-users-controls",
+  "status": "missing",
+  "requirementIds": [
+    "PSTACK-SETUP-BENNY-CONTROL-FAIL-CLOSED-001",
+    "PSTACK-CMD-BENNY-REPRO-FAIL-CLOSED-001",
+    "PSTACK-SETUP-VALIDATE-001"
+  ],
+  "fixtureNeeds": [
+    "Injectable auth expiry and model unavailability",
+    "Network fault injection",
+    "Worker crash and duplicate-event injectors",
+    "Baseline of forbidden side effects to assert absence"
+  ],
+  "evidencePaths": [],
+  "openMismatches": [],
+  "coverageNotes": "No fault-injection Cursor+Pi pairs.",
+  "nextAction": "Pick one high-value fault (unavailable model during setup) and capture a paired recovery journey first."
+}

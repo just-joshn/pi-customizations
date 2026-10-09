@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "setup-maintain-verify-live-pass",
+  "status": "paired",
+  "requirements": [
+    "PSTACK-SETUP-MAINTAIN-VERIFY-LIVE-PASS-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/maintain-verification-skill/SKILL.md### Pass, step 4 Live pass",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Documented preconditions satisfied; behavior not yet paired. Preconditions: Source wave returned a recipe per feature.",
+    "digest": null
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "After reconcile in /maintain-verification-skill.. Live pass runs even when source looks clean. Coordinator owns all driving per the verification skill launch model. Every feature is exercised at least once while holding doctor-before-drive, evidence-survives-cleanup, and no leftover residue invariants. Doctor failure from skill drift is fixed under edit scope and retried once before blocked. verified-unreachable requires concrete prerequisite and attempted route. Harness fixes are re-driven live before ship. Final teardown follows the last drive; evidence remains."
+    }
+  ],
+  "execution": {
+    "pairId": "maintain-verify-live-pass-1",
+    "verdict": "pass",
+    "pair": "parity/evidence/maintain-verify/pair-maintain-verify-live-pass-1.json",
+    "attempts": {
+      "cursor": "311766cd-245f-4bfb-8ade-d9235193c6a9",
+      "pi": "2f0c388b-c4fc-4763-9cab-0f0aa377ae69"
+    }
+  }
+}

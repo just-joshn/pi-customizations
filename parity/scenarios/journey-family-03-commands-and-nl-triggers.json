@@ -20,7 +20,8 @@
   ],
   "evidencePaths": [
     "parity/evidence/setup-cancel/pair-setup-escape-cancel-2.json",
-    "parity/evidence/commands/pair-commands-help-cancel-1.json"
+    "parity/evidence/commands/pair-commands-help-cancel-1.json",
+    "parity/evidence/plugin-skills/pair-plugin-skills-register-1.json"
   ],
   "openMismatches": [],
   "coverageNotes": "Only setup Escape cancel is paired. Family-wide command matrix has no pairs. Linked cancel evidence is supporting, not family coverage, so status stays missing.",

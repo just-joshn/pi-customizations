@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "prin-laziness",
+  "status": "paired",
+  "requirements": [
+    "PSTACK-PRIN-LAZINESS-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/principle-laziness-protocol/SKILL.md#Laziness Protocol frontmatter trigger and disable-model-invocation",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file. Preconditions: Locked pstack poteto-mode and principle-laziness-protocol skill loaded.; A refactor or abstraction temptation is active.",
+    "digest": null
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Refactor or add a layer to solve a problem.. The agent Reads the leaf skill and prefers deletion or the smallest change that solves the problem over new abstraction layers."
+    }
+  ],
+  "execution": {
+    "pairId": "prin-laziness-1",
+    "verdict": "pass",
+    "pair": "parity/evidence/principles/laziness/pair-prin-laziness-1.json",
+    "attempts": {
+      "cursor": "f3a6669a-3e76-4ae3-9f8e-50ce94f2fc2a",
+      "pi": "7e4c208d-60c8-4529-9849-1e70eed051fa"
+    }
+  }
+}

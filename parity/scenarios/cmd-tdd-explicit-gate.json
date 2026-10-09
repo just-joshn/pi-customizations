@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "cmd-tdd-explicit-gate",
+  "status": "executed-pass-paired",
+  "requirements": [
+    "PSTACK-CMD-TDD-EXPLICIT-GATE-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/tdd/SKILL.md#frontmatter description and impractical-test skip paragraph",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "clamp upper-bound bug fixture for red-before-green",
+    "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Ask for a regression test before the fix on a cheap unit path.. A focused failing test is written and run before production code changes."
+    },
+    {
+      "kind": "observe",
+      "expect": "Face a bug whose only test path is expensive integration-heavy harness work and TDD was not requested.. tdd is skipped; closest useful verification is used instead."
+    }
+  ],
+  "execution": {
+    "referenceRun": "168c3046-79db-4405-b8d3-1f6385608d65",
+    "candidateRun": "852f2c23-5efc-43ba-b2ea-d8b4f9ee5670",
+    "pairId": "tdd-explicit-gate-1",
+    "pairPath": "parity/evidence/tdd/pair-tdd-explicit-gate-1.json",
+    "verdict": "pass-paired",
+    "closedAt": "2026-10-08T19:38:00Z",
+    "note": "Action 1 (cheap unit red-first) only; action 2 skip path not in this pair."
+  }
+}

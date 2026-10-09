@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "id": "setup-benny-existing-no-automate",
+  "status": "pass-paired",
+  "requirements": [
+    "PSTACK-SETUP-BENNY-EXISTING-NO-AUTOMATE-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/automations/benny/skills/setup-benny/SKILL.md### 7. Prepare the live automations, existing automations",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Documented preconditions satisfied; behavior not yet paired. Preconditions: Triage and or repro automations already exist.",
+    "digest": null
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "User wants to update existing Benny automations rather than create new ones.. Built-in automate skill is not used to search for, inspect, or update existing automations. User receives an editor checklist and updates each automation in its Automations editor without creating replacements or duplicates."
+    }
+  ],
+  "execution": {
+    "pairId": "setup-benny-existing-no-automate-1",
+    "verdict": "pass",
+    "pair": "parity/evidence/setup-benny/pair-setup-benny-existing-no-automate-1.json",
+    "attempts": {
+      "cursor": "7f533016-def9-48db-9e2b-9f53ce47c127",
+      "pi": "0564c7c5-740d-48f0-b4ad-011d9422e558"
+    },
+    "path": "checklist-no-automate"
+  }
+}

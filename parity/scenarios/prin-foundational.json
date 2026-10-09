@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "prin-foundational",
+  "status": "pass-paired",
+  "requirements": [
+    "PSTACK-PRIN-FOUNDATIONAL-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/principle-foundational-thinking/SKILL.md#Foundational Thinking frontmatter trigger and disable-model-invocation",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file. Preconditions: Locked pstack poteto-mode and principle-foundational-thinking skill loaded.; New logic or concurrency sharing is about to be written.",
+    "digest": null
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Start implementing a feature that needs new core types or shared concurrent state.. The agent Reads the leaf skill and names the data shape or scaffold sequencing before feature logic lands."
+    }
+  ],
+  "execution": {
+    "pairId": "prin-foundational-1",
+    "verdict": "pass",
+    "pair": "parity/evidence/principles/foundational/pair-prin-foundational-1.json",
+    "attempts": {
+      "cursor": "65219cb4-d58b-4567-b7bb-0300966d0a31",
+      "pi": "d553905a-8e0a-47c6-ab11-bdb96fe53f60"
+    }
+  }
+}

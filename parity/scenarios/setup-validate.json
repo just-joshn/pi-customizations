@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "setup-validate",
+  "status": "executed-pass-paired",
+  "requirements": [
+    "PSTACK-SETUP-VALIDATE-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/setup-pstack/SKILL.md#### 4. Validate",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Documented preconditions satisfied; behavior not yet paired. Preconditions: Detected model set known.",
+    "digest": "sha256:19b21aeb5e1e75fac7b425a67ea35817e7d1dd027adbd88be6ec43ccc1b1dd5f"
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "User accepts role table after confirmation.. Every real slug to be written is in the detected set. inherit-parent and auto always pass. An unavailable real slug stops the write and re-asks."
+    }
+  ],
+  "execution": {
+    "referenceRun": "441393b8-841f-4c85-8c9e-3589b4d889c4",
+    "candidateRun": "926d4a3d-7f9c-47ae-b237-cf2b83e0b3ad",
+    "pairId": "setup-alias-validate-1",
+    "pairPath": "parity/evidence/setup-alias-validate/pair-setup-alias-validate-1.json",
+    "verdict": "pass-paired",
+    "closedAt": "2026-10-08T21:53:30Z",
+    "note": "Unavailable slug stop-and-reask both hosts; no write card."
+  }
+}

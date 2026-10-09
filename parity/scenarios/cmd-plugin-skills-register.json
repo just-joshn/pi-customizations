@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "cmd-plugin-skills-register",
+  "status": "executed-pass-paired",
+  "requirements": [
+    "PSTACK-CMD-PLUGIN-SKILLS-REGISTER-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/.cursor-plugin/plugin.json#JSON keys skills and agents",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Host has no prior in-memory skill registry for this plugin instance. Preconditions: Locked pstack 0.15.15 plugin package available to the host.",
+    "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Load the plugin manifest.. Host registers skills from \"./skills/\" and agents from \"./agents/\" as declared by the manifest."
+    }
+  ],
+  "execution": {
+    "referenceRun": "ca0f3e61-9af8-434c-b2f2-a98d9823725f",
+    "candidateRun": "11c4b783-86f3-426a-a1eb-e2048792071e",
+    "pairId": "plugin-skills-register-1",
+    "pairPath": "parity/evidence/plugin-skills/pair-plugin-skills-register-1.json",
+    "verdict": "pass-paired",
+    "closedAt": "2026-10-08T21:48:00Z",
+    "note": "pass-with-pi-binding-delta; skills+agents registered both hosts."
+  }
+}

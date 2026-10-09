@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "id": "setup-verify-offer",
+  "status": "paired",
+  "requirements": [
+    "PSTACK-SETUP-VERIFY-OFFER-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/setup-pstack/SKILL.md#### 7. Offer a verification skill (optional)",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Documented preconditions satisfied; behavior not yet paired. Preconditions: Write and confirm completed.",
+    "digest": null
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "After confirm, when project has neither verify-* skill nor existing harness.. Offers once to generate a project-local verification skill via /create-verification-skill. On yes, invokes that skill. On no, continues without pushing."
+    }
+  ],
+  "execution": {
+    "pairId": "setup-verify-offer-1",
+    "verdict": "pass",
+    "pair": "parity/evidence/setup-verify-offer/pair-setup-verify-offer-1.json",
+    "attempts": {
+      "cursor": "b12de787-9406-4de1-8993-bd3b818bb912",
+      "pi": "27567808-9734-4516-b6e2-629dfb650d68"
+    },
+    "branchPaired": "no",
+    "branchNotPaired": "yes"
+  }
+}

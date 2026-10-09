@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "id": "setup-maintain-verify-locate",
+  "status": "paired",
+  "requirements": [
+    "PSTACK-SETUP-MAINTAIN-VERIFY-LOCATE-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/maintain-verification-skill/SKILL.md### Pass, step 0 Locate the target",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Documented preconditions satisfied; behavior not yet paired. Preconditions: Project may have zero or several verify-* skills.",
+    "digest": null
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Starting /maintain-verification-skill.. Finds the project-local verification skill with launch/drive sections and a feature map. Several candidates prompts which one. None stops and points at /create-verification-skill instead of inventing a target."
+    }
+  ],
+  "execution": {
+    "pairId": "maintain-verify-locate-1",
+    "verdict": "pass",
+    "pair": "parity/evidence/maintain-verify/pair-maintain-verify-locate-1.json",
+    "attempts": {
+      "cursor": "66944536-aadc-4b80-9be0-d3bd924e4057",
+      "pi": "073160f6-9e82-49fc-9bd0-9c1539341f50",
+      "cursorNone": "f8ea88ab-9875-4370-875e-a2771c5d3753",
+      "piNone": "ab0b1495-90e3-482c-b195-93600c824b5f"
+    }
+  },
+  "requirementIds": [
+    "PSTACK-SETUP-MAINTAIN-VERIFY-LOCATE-001"
+  ]
+}

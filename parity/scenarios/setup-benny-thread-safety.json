@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "id": "setup-benny-thread-safety",
+  "status": "blocker-paired",
+  "requirements": [
+    "PSTACK-SETUP-BENNY-THREAD-SAFETY-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/automations/benny/skills/setup-benny/SKILL.md### 8. Test thread safety",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Documented preconditions satisfied; behavior not yet paired. Preconditions: settings.json, pack, and secret-free config are committed on the automation checkout branch; live prompts point at committed operational files.",
+    "digest": null
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "After editor save, before enabling normal Benny traffic.. All seven checks pass on a test channel or harmless report: triage stores root thread_ts and posts exactly one verdict reply with one configured marker; repro accepts the marker only from the configured triage identity and keeps immutable source coordinates; no source-channel root message; delegated workers cannot use Slack write actions; missing coordinates, deleted parent, or failed preflight produces no post and no tracker issue. Normal traffic enables only after all seven pass. Any prior commit or prompt-path check failure stops enablement."
+    }
+  ],
+  "execution": {
+    "pairId": "setup-benny-thread-safety-1",
+    "verdict": "blocker",
+    "pair": "parity/evidence/setup-benny/pair-setup-benny-thread-safety-1.json",
+    "blocker": "parity/evidence/setup-benny/blocker-setup-benny-thread-safety-1.json",
+    "attempts": {
+      "cursor": null,
+      "pi": null
+    },
+    "note": "Env blocker; no PTY. Requirement stays unverified."
+  }
+}

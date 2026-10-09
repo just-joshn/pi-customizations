@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "cmd-poteto-agent-read-skill",
+  "status": "executed-pass-paired",
+  "requirements": [
+    "PSTACK-CMD-POTETO-AGENT-READ-SKILL-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/agents/poteto-agent.md#poteto-agent frontmatter and body require reading poteto-mode SKILL.md",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "New task requiring poteto-mode style; no prior poteto-agent resume grant. Preconditions: Locked pstack poteto-mode skill and poteto-agent definition loaded.",
+    "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Launch Task with subagent_type poteto-agent.. The agent reads poteto-mode SKILL.md in full before other work, including the Principles index, and does not substitute generalPurpose for that read."
+    }
+  ],
+  "execution": {
+    "referenceRun": "3632cd35-dfe5-4cc4-9bd0-ebcf7d44d240",
+    "candidateRun": "6288c9b7-08ac-4b5f-850c-021446b26409",
+    "pairId": "poteto-agent-read-skill-1",
+    "pairPath": "parity/evidence/poteto-agent/pair-poteto-agent-read-skill-1.json",
+    "verdict": "pass-paired",
+    "closedAt": "2026-10-08T21:53:00Z",
+    "note": "skill_before_work both hosts; path delta user-global vs package."
+  }
+}

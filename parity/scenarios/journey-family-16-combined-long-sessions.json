@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "kind": "journey-family-stub",
+  "id": "journey-family-16-combined-long-sessions",
+  "family": 16,
+  "familyTitle": "Combine workflows in longer sessions; state leaks, stale modes, duplicate side effects, config drift, resource growth",
+  "contractRef": "parity/contract.md#8-verify-through-the-users-controls",
+  "status": "missing",
+  "requirementIds": [
+    "PSTACK-MODE-ONE-MESSAGE-001",
+    "PSTACK-MODE-STICKY-001",
+    "PSTACK-SETUP-RERUN-PRESERVE-001",
+    "PSTACK-PLAYBOOK-HOW-001"
+  ],
+  "fixtureNeeds": [
+    "Long session harness with resource sampling",
+    "Sequence that mixes mode, setup, and a playbook",
+    "Assertions for mode chrome, config digests, and duplicate writes"
+  ],
+  "evidencePaths": [],
+  "openMismatches": [
+    "MODE-PLAIN-ENTER-STICKY"
+  ],
+  "coverageNotes": "Depends on families 1/4/5 being healthier. No combined long-session pair yet. Open mode mismatch blocks honest long-session pairing.",
+  "nextAction": "After mode sticky/one-message closes, capture a multi-workflow session pair with config digest and mode-state checks between stages."
+}

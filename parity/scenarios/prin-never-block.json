@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "prin-never-block",
+  "status": "paired",
+  "requirements": [
+    "PSTACK-PRIN-NEVER-BLOCK-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/principle-never-block-on-the-human/SKILL.md#Never Block on the Human frontmatter trigger and disable-model-invocation",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file. Preconditions: Locked pstack poteto-mode and principle-never-block-on-the-human skill loaded.; The contemplated action is reversible.",
+    "digest": null
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Face a reversible implementation choice mid-task.. The agent Reads the leaf skill, proceeds without asking permission, and presents the result; irreversible actions still require confirmation."
+    }
+  ],
+  "execution": {
+    "pairId": "prin-never-block-1",
+    "verdict": "pass",
+    "pair": "parity/evidence/principles/never-block/pair-prin-never-block-1.json",
+    "attempts": {
+      "cursor": "c38eb9b1-9ac3-4d16-a43d-009c3c9d7eb8",
+      "pi": "d0a66bac-7951-4adb-a7d5-95b46f0d4e15"
+    }
+  }
+}

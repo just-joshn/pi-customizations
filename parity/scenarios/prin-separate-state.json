@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "prin-separate-state",
+  "status": "pass-paired",
+  "requirements": [
+    "PSTACK-PRIN-SEPARATE-STATE-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/principle-separate-before-serializing-shared-state/SKILL.md#Separate Before Serializing Shared State frontmatter trigger and disable-model-invocation",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file. Preconditions: Locked pstack poteto-mode and principle-separate-before-serializing-shared-state skill loaded.; Two or more concurrent writers are in scope.",
+    "digest": null
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Design work where two workers produce results.. The agent Reads the leaf skill and gives each actor an owned write target, merging only at the read/reporting boundary, unless one shared writer is a real invariant."
+    }
+  ],
+  "execution": {
+    "pairId": "prin-separate-state-1",
+    "verdict": "pass",
+    "pair": "parity/evidence/principles/separate-state/pair-prin-separate-state-1.json",
+    "attempts": {
+      "cursor": "f8041da0-089d-4161-b775-e5fb91c488e3",
+      "pi": "3b9d8593-e469-4816-a7e2-751bf90e51bf"
+    }
+  }
+}

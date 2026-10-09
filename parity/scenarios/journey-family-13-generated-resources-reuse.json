@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "kind": "journey-family-stub",
+  "id": "journey-family-13-generated-resources-reuse",
+  "family": 13,
+  "familyTitle": "Recall, reports, canvases, diagrams, skill creation, workflow extraction; discovery and reuse afterward",
+  "contractRef": "parity/contract.md#8-verify-through-the-users-controls",
+  "status": "paired",
+  "requirementIds": [
+    "PSTACK-CMD-RECALL-CAPSULE-001",
+    "PSTACK-CMD-AUTOMATE-ME-EXISTING-SKILL-001",
+    "PSTACK-CMD-CREATE-VERIFY-SKILL-001",
+    "PSTACK-SETUP-CREATE-VERIFY-GENERATE-001"
+  ],
+  "fixtureNeeds": [
+    "Prior recall/report artifacts to rediscover",
+    "Skill-creation writable path",
+    "Second-session reuse check"
+  ],
+  "evidencePaths": [
+    "parity/evidence/create-verify/pair-create-verify-reuse-1.json",
+    "parity/evidence/create-verify/pair-create-verify-helpers-1.json",
+    "parity/evidence/create-verify/pair-create-verify-prove-1.json",
+    "parity/evidence/create-verify/pair-create-verify-maintain-1.json",
+    "parity/evidence/recall/pair-recall-capsule-1.json",
+    "parity/evidence/automate-me/pair-automate-me-existing-skill-1.json"
+  ],
+  "openMismatches": [],
+  "coverageNotes": "create-verify generate\u2192maintain, recall-capsule, and automate-me existing-skill paired. Listed family requirementIds verified (automate-me via explicit-update path).",
+  "nextAction": "Optional: capture ambiguous AskQuestion update-vs-fresh branch; otherwise expand to canvases/diagrams inventory."
+}

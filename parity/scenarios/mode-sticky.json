@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "mode-sticky",
-  "status": "draft-awaiting-pair",
+  "status": "pass-paired",
   "requirements": [
     "PSTACK-MODE-STICKY-001"
   ],
@@ -26,12 +26,13 @@
     }
   ],
   "execution": {
-    "referenceRun": null,
-    "candidateRun": null,
-    "pairId": null,
-    "verdict": "unverified"
+    "referenceRun": "521ce15e-a8f8-4f74-8fec-208ceddb7603",
+    "candidateRun": "96494327-f90c-470a-8e11-cf7c5b6cad89",
+    "pairId": "mode-sticky-1",
+    "pairPath": "parity/evidence/mode-sticky/pair-mode-sticky-1.json",
+    "verdict": "pass-paired",
+    "updatedAt": "2026-10-09T06:14:25Z",
+    "notes": "Cursor Agents Window sticky Custom Mode (alt+Return) + Pi /poteto-mode sticky; both hold across follow-up."
   },
-  "openWork": [
-    "u-mode-sticky-capture in flight"
-  ]
+  "openWork": []
 }

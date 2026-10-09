@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "id": "prin-guard-context",
+  "status": "pass-paired",
+  "requirements": [
+    "PSTACK-PRIN-GUARD-CONTEXT-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/principle-guard-the-context-window/SKILL.md#Guard the Context Window frontmatter trigger and disable-model-invocation",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file. Preconditions: Locked pstack poteto-mode and principle-guard-the-context-window skill loaded.; Bulk payload or fan-out would otherwise land in the main thread.",
+    "digest": null
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Handle a large document or verbose tool dump mid-session.. The agent Reads the leaf skill and routes bulk to a subagent while keeping a summary in the main thread."
+    }
+  ],
+  "execution": {
+    "pairId": "prin-guard-context-1",
+    "verdict": "pass",
+    "pair": "parity/evidence/principles/guard-context/pair-prin-guard-context-1.json",
+    "attempts": {
+      "cursor": "6910fcce-9e65-4d40-830e-fcf478d32991",
+      "pi": "b5f36281-63a5-4572-8efc-4af4f27a7627"
+    },
+    "piRerun": {
+      "from": "bd5cb492-a2b8-4650-ac59-173e2038bf90",
+      "to": "b5f36281-63a5-4572-8efc-4af4f27a7627",
+      "shellTaskId": "218104"
+    }
+  }
+}

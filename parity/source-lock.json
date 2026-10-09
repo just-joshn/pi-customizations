@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "status": "incomplete",
   "executionStartedAt": "2026-10-08T03:05:58.308Z",
-  "lastObservedAt": "2026-10-08T06:31:33Z",
+  "lastObservedAt": "2026-10-09T17:33:20.950Z",
   "cursorPlugins": {
     "repository": "https://github.com/cursor/plugins",
     "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
@@ -24,7 +24,27 @@
     "inventorySha256": "d4c5cda5fa994f654782af04b027741c1e5ec061bfc0229b827fe511b36a7568",
     "fileHashes": "parity/reference/distribution-sha256.txt",
     "fileHashesSha256": "ea5304a45d311b7bde624e7108fa6563cb8217a3bdd6e855e853367ffd040d6b",
-    "completeDependencyClosure": false
+    "completeDependencyClosure": false,
+    "completeDependencyClosureNote": "Leave false. Open: cursor-cli-host→computer-use (local live yes, cloud attempt IDs unpaid G1 (claim-002: CURSOR_API_KEY still unset)), cursor-cli-host→enterprise (observe-002 still Pro+/no-team; empty admin allowlists; G2 unpaid), live-integrations unresolvedReference (003: a=275 b=115 c=26; creation-boundary verified; make-bot Generate unpaid G10; Benny Slack G4–G8; thread-safety live unpaid). Closed since prior note: PSTACK-SETUP-BENNY-CREATION-BOUNDARY-001 verified-pass-paired (2026-10-09T10:24:02Z); Pi AutomationRecordThreadSafety + AutomationEnable (local status after receipt+confirm; no Slack ingress). Earlier closures retained: Bun pin absent-in-source, typescript oracle, team-kit 18/18, create-skill/consumer, recursive runtime, commander+Pi tarball sig, MODE-STICKY desktop. live-int-004: make-bot Generate paid (55f42e27); b=106. live-int-005: Benny Slack paid (de707056/16520327); b=62 (G11+webhook+automations+G1+G2 remain).",
+    "wave008MergedAt": "2026-10-09T01:19:30Z",
+    "wave008Note": "Historical. Superseded by completeDependencyClosureNote after later waves.",
+    "wave009MergedAt": "2026-10-09T02:05:00Z",
+    "wave009Note": "Historical. Superseded by completeDependencyClosureNote after later waves.",
+    "bunPinTerminalMergedAt": "2026-10-09T02:16:00Z",
+    "bunPinStatus": "absent-in-source",
+    "modeStickyDesktopReady001MergedAt": "2026-10-09T06:14:25Z",
+    "modeStickyDesktopReady001Note": "persistent-mode edge resolved via Agents Window Use as Mode; CLI glass_custom_modes still off. completeDependencyClosure remains false.",
+    "liveIntegrations002MergedAt": "2026-10-09T08:43:30Z",
+    "commanderClosure001MergedAt": "2026-10-09T09:15:15Z",
+    "commanderClosure001Note": "commander@14.0.0 closureAudited+signatureAuthenticated via u-dep-commander-closure-001. completeDependencyClosure stays false; live-integrations + host edges remain.",
+    "piTarballSig001MergedAt": "2026-10-09T09:22:36Z",
+    "piTarballSig001Note": "Pi @earendil-works/pi-coding-agent@1.1.0 npm ECDSA signature authenticated (openssl Verified OK). completeDependencyClosure stays false; live-integrations + host edges remain.",
+    "commanderTarballTimes001MergedAt": "2026-10-09T09:24:45Z",
+    "commanderTarballTimes001Note": "commander@14.0.0 tarballExactRetrievalTimesRecorded=true via hash-matched refetch; completeDependencyClosure stays false.",
+    "creationBoundaryVerified001MergedAt": "2026-10-09T10:24:02Z",
+    "creationBoundaryVerified001Note": "PSTACK-SETUP-BENNY-CREATION-BOUNDARY-001 verified-pass-paired; completeDependencyClosure stays false.",
+    "threadSafetyReceiptTool001MergedAt": "2026-10-09T10:24:02Z",
+    "threadSafetyReceiptTool001Note": "AutomationRecordThreadSafety + AutomationEnable (local status after receipt+confirm) + AutomationDisable landed; SETUP-BENNY-THREAD-SAFETY-ENV still open on live Slack seven-checks."
   },
   "pi": {
     "repository": "https://github.com/earendil-works/pi",
@@ -38,7 +58,15 @@
     "registryIntegrity": "sha512-SeEi/4hdcHNgA9UWlefZl7ZZpm3dzi2OoxNjDHsBJ9o298LNOtbL4DGKgitlEj6uCTccvtw6f2hlCkTPVJ2RXg==",
     "tarballIntegrityVerified": true,
     "tarballIntegrityEvidence": "parity/evidence/environment/pi-tarball-sha512-base64.txt",
-    "installedVersionObserved": "1.1.0"
+    "installedVersionObserved": "1.1.0",
+    "signatureAuthenticated": true,
+    "signatureAuthenticatedAt": "2026-10-09T09:22:36Z",
+    "signatureAuthEvidence": "parity/research/dep-pi-tarball-sig-001/signature-auth.json",
+    "registrySnapshot": "parity/reference/npm/pi-coding-agent-1.1.0/registry.json",
+    "tarballReference": "parity/reference/npm/pi-coding-agent-1.1.0/package.tgz",
+    "tarballSha256": "09cd8a0a43dbb1d81a67346b09400b439ce71d818caba4e963ea958846a1aed4",
+    "registryRetrievalStartedAt": "2026-10-09T09:22:07Z",
+    "registryRetrievalEndedAt": "2026-10-09T09:22:07Z"
   },
   "cursorCli": {
     "versionBeforeUpdate": "2026.09.28-64d2043",
@@ -53,11 +81,17 @@
     "overviewUrl": "https://cursor.com/docs/cli/overview",
     "overviewSnapshot": "parity/reference/cursor-cli-overview.html",
     "overviewSha256": "984529dcf39054c2b1b8e5bb68fc138c30b576419715902dabc5a664616edb70",
-    "referenceConfigurationCaptured": false
+    "referenceConfigurationCaptured": true,
+    "referenceConfigurationArtifact": "parity/research/dep-closure-wave-001/refcfg/cli-config.redacted.json",
+    "referenceConfigurationWorkingEnv": "parity/research/dep-closure-wave-001/refcfg/working-env-snapshot.json",
+    "referenceConfigurationCaveat": "Sets the boolean for a captured working-env snapshot only. Does not claim the full multi-integration reference configuration matrix from contract.md is complete."
   },
   "implementationBaseline": {
     "revision": "78dd5a04279436ebf6dde44853bacdab88ca9ae0",
     "packagePath": "extensions/pi-pstack",
+    "packageDigest": "sha512-4k21Tcx0vWhqSfQ4arJX96cIgQSp3cVwAGJ5+IL4exoBDquGgW2GNU6zB3CGR2a51UXDHnuloWkWfUzFLI0MVA==",
+    "packageDigestMeasuredAt": "2026-10-09T10:49:30Z",
+    "packageDigestMethod": "npm pack --dry-run --json integrity for pi-pstack@0.15.15-pi.1 (includes host/automate + pstack_automations Enable/Disable)",
     "acceptedParityEvidence": false
   },
   "openWork": [
@@ -84,12 +118,18 @@
       "registryIntegrity": "sha512-2uM9rYjPvyq39NwLRqaiLtWHyDC1FvryJDa2ATTVims5YAS4PupsEQsDvP14FqhFr0P49CYDugi59xaxJlTXRA==",
       "tarballIntegrityVerified": true,
       "integrityRecordedAt": "2026-10-08T05:34:25.751Z",
-      "tarballExactRetrievalTimesRecorded": false,
-      "signatureAuthenticated": false,
+      "tarballExactRetrievalTimesRecorded": true,
+      "signatureAuthenticated": true,
       "licenseDeclared": "MIT",
       "sourceReadingComplete": true,
-      "closureAudited": false,
-      "readingEvidence": "parity/research/npm/commander-14.0.0/read-inventory.json"
+      "closureAudited": true,
+      "readingEvidence": "parity/research/npm/commander-14.0.0/read-inventory.json",
+      "closureAuditedAt": "2026-10-09T09:15:15Z",
+      "closureAuditEvidence": "parity/research/dep-commander-closure-001/audit.md",
+      "signatureAuthEvidence": "parity/research/dep-commander-closure-001/signature-auth.json",
+      "tarballRetrievalStartedAt": "2026-10-09T09:24:31Z",
+      "tarballRetrievalEndedAt": "2026-10-09T09:24:31Z",
+      "tarballRetrievalEvidence": "parity/reference/npm/commander-14.0.0/tarball-refetch-receipt.json"
     }
   ]
 }

@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "prin-fix-root",
+  "status": "paired",
+  "requirements": [
+    "PSTACK-PRIN-FIX-ROOT-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/principle-fix-root-causes/SKILL.md#Fix Root Causes frontmatter trigger and disable-model-invocation",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file. Preconditions: Locked pstack poteto-mode and principle-fix-root-causes skill loaded.; A defect or crash is under investigation.",
+    "digest": null
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Debug a failing symptom such as a nil crash.. The agent Reads the leaf skill, reproduces first, and does not ship a nil-check guard as the sole fix without a root-cause change."
+    }
+  ],
+  "execution": {
+    "pairId": "prin-fix-root-1",
+    "verdict": "pass",
+    "pair": "parity/evidence/principles/fix-root/pair-prin-fix-root-1.json",
+    "attempts": {
+      "cursor": "5d36f6ca-23fd-462c-8e35-7666ddf387de",
+      "pi": "dffb963b-d1b4-42a4-bca0-e36b02bef0f3"
+    }
+  }
+}

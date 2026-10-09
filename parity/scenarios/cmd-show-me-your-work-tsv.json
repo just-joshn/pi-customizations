@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "cmd-show-me-your-work-tsv",
+  "status": "executed-pass-paired",
+  "requirements": [
+    "PSTACK-CMD-SHOW-ME-YOUR-WORK-TSV-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/show-me-your-work/SKILL.md#frontmatter through The format intro",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Tiny multi-phase greet/farewell fixture forcing decisions.tsv appends.",
+    "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Invoke /show-me-your-work during a multi-phase run.. A single TSV decision log is kept with one row per decision; evidence cells are pointers, not prose; local by default."
+    }
+  ],
+  "execution": {
+    "referenceRun": "9da98ab4-2dda-47d1-9c06-8927937c3e23",
+    "candidateRun": "cb93e390-6979-4e43-a7f9-ee35df2ccc0b",
+    "pairId": "show-me-your-work-tsv-1",
+    "pairPath": "parity/evidence/show-me-your-work/pair-show-me-your-work-tsv-1.json",
+    "verdict": "pass-paired",
+    "closedAt": "2026-10-08T21:16:00Z"
+  }
+}

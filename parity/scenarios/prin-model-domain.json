@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "prin-model-domain",
+  "status": "pass-paired",
+  "requirements": [
+    "PSTACK-PRIN-MODEL-DOMAIN-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/principle-model-the-domain/SKILL.md#Model the Domain frontmatter trigger and disable-model-invocation",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file. Preconditions: Locked pstack poteto-mode and principle-model-the-domain skill loaded.; New stateful or branching logic is required.",
+    "digest": null
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Add a feature that would otherwise extend an if/else chain or add a second synced boolean.. The agent Reads the leaf skill and encodes the domain in a structure (state machine, typed model, registry, reducer, or similar) instead of another scattered branch."
+    }
+  ],
+  "execution": {
+    "pairId": "prin-model-domain-1",
+    "verdict": "pass",
+    "pair": "parity/evidence/principles/model-domain/pair-prin-model-domain-1.json",
+    "attempts": {
+      "cursor": "5b46963a-1d66-4053-a9c8-4f4e8037ae9d",
+      "pi": "3ac75dad-b288-4b1e-b104-2b234865575b"
+    }
+  }
+}

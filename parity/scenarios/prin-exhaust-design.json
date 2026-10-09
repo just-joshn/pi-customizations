@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "prin-exhaust-design",
+  "status": "pass-paired",
+  "requirements": [
+    "PSTACK-PRIN-EXHAUST-DESIGN-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/principle-exhaust-the-design-space/SKILL.md#Exhaust the Design Space frontmatter trigger and disable-model-invocation",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file. Preconditions: Locked pstack poteto-mode and principle-exhaust-the-design-space skill loaded.; Decision has no established precedent in the repo.",
+    "digest": null
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Choose among novel design alternatives before implementation.. The agent Reads the leaf skill and produces 2-3 competing prototypes or sketches before committing to one."
+    }
+  ],
+  "execution": {
+    "pairId": "prin-exhaust-design-1",
+    "verdict": "pass",
+    "pair": "parity/evidence/principles/exhaust-design/pair-prin-exhaust-design-1.json",
+    "attempts": {
+      "cursor": "c51f3304-680f-49c6-8b30-e387a5bbae7c",
+      "pi": "b0270896-62fc-40a8-8f26-c29164b1976a"
+    }
+  }
+}

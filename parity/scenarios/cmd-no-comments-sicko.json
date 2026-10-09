@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "cmd-no-comments-sicko",
+  "status": "executed-fail-paired",
+  "requirements": [
+    "PSTACK-CMD-NO-COMMENTS-SICKO-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/no-comments/SKILL.md#frontmatter through Steps item 1 Comment Sicko spawn",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "greet.js with AI-slop comments for /no-comments Sicko spawn",
+    "digest": "sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004"
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Invoke /no-comments on the current diff.. Agent spawns Task with subagent_type Comment Sicko for the scope, then acts on accepted findings per the skill steps."
+    }
+  ],
+  "execution": {
+    "referenceRun": "f4cd66ea-5fcd-49fc-aa35-9789e6fcfddc",
+    "candidateRun": "44860f00-0364-48b9-805d-0c4146cb9e9d",
+    "pairId": "no-comments-sicko-1",
+    "pairPath": "parity/evidence/no-comments/pair-no-comments-sicko-1.json",
+    "verdict": "fail-paired",
+    "closedAt": "2026-10-08T20:12:00Z",
+    "note": "Pi native task rejected Comment Sicko; open NO-COMMENTS-SICKO-SPAWN"
+  }
+}

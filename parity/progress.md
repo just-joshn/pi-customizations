@@ -742,3 +742,893 @@ Closed CMD-POTETO-HELP-RECOMMENDATION on af4c2bd + pair-commands-help-recommend-
 
 [Add why investigator spawn gate](933f6aa5-9dfe-49b7-a0a2-03b6c603dd6f) pass. Commit . Closed WHY-INVESTIGATOR-SPAWN on pair-why-2 (pi 3a299cdd-e423-436e-b850-e58fc207c688). Open mismatches now: MODE-STICKY harness only.
 
+## Continuation checkpoint — 2026-10-08T19:01:34Z (journey-family-06 drain)
+
+[Capture swarm journey family 06](3b3c5f69-4195-48a5-81e4-7ed58f805d1d) pass. Pair `swarm-n2-isolated-1` (cursor 1aaf5610-1b40-4bc6-b265-6249dca1d6e1, pi 408c6db6-2522-4fec-99f9-e76911bb21cf). Verified PSTACK-CMD-SWARM-FANOUT-001. Family-06 stub → paired.
+
+## Continuation checkpoint — 2026-10-08T19:04:57Z (dep-audit-001 merge)
+
+[Independent dependency closure audit](5d2f2dbe-7dc3-4eba-8455-9b567e6ee301) AUDITED_INCOMPLETE. Set `closureAudited: true` with evidence `parity/research/dep-audit-001/audit.md`. Kept completeDependencyClosure false; 8 unresolved edges and 11 unresolved references remain.
+
+## Continuation checkpoint — 2026-10-08T19:05:44Z (journey-family-07 drain)
+
+[Capture interrupt-resume journey 07](39736cba-4450-4188-bcd8-377406f673a7) pass for interrupt→redirect slice. Pair `interrupt-redirect-1` (cursor aa52982b-074e-4c64-954b-c7a968c1fc5f, pi 9138c152-0a7c-4e63-9ff5-c0250bb936d3). Family-07 → partial. Did not verify stub placeholder ids SHOW-ME-YOUR-WORK / FIGURE-IT-OUT. Compact/branch/restart still open.
+
+## Continuation checkpoint — 2026-10-08T19:07:00Z (journey-family-13 drain)
+
+[Capture create-verify reuse journey 13](00756e9a-3607-4fa4-90fe-f39921ba35c2) pass for generate-then-reuse slice. Pair `create-verify-reuse-1` (cursor 9a4dae62-0072-494c-a6d5-7f013fbfb66e, pi fba64ade-c697-4368-84ea-4281386b9e81). Verified PSTACK-CMD-CREATE-VERIFY-SKILL-001 and PSTACK-SETUP-CREATE-VERIFY-FEATURE-MAP-001. Left GENERATE unverified (Pi omitted ## Helpers). Family-13 → partial. Prove/maintain/recall still open.
+
+## Continuation checkpoint — 2026-10-08T19:09:30Z (refill after family-13)
+
+In-flight emptied after family-13 drain. Spawned create-verify-generate-helpers, journey-family-05-fio, dep-closure-wave-003. Verified count 13/98. Completion still BLOCKED (~192).
+
+## Continuation checkpoint — 2026-10-08T19:13:21Z (dep-closure-wave-003 merge)
+
+[Dep closure wave 003](52b332fb-3fe6-4540-9116-50b22164736b) complete. Merged 4 tools-chain edge resolutions (bootstrap→manifest→commander→bun) + node readingEvidence. Left completeDependencyClosure false; host computer-use/enterprise unresolved; Bun pin open. Hash verify VERIFIED.
+
+## Continuation checkpoint — 2026-10-08T19:20:00Z (journey-family-05-fio drain)
+
+[Capture figure-it-out pair](651c302c-ff90-4eec-81ae-40758826db0e) capture pass / requirement fail-paired. Pair `figure-it-out-playbook-first-1` (cursor 38afcd44-b9f2-4ba3-ad91-f345d71bdd73, pi a45d9cf4-4cea-4974-a9ad-7d56195c5259). Opened FIGURE-IT-OUT-PLAYBOOK-FIRST. Left PSTACK-CMD-FIGURE-IT-OUT-PLAYBOOK-FIRST-001 unverified. Spawning fio-playbook-gate repair.
+
+## Continuation checkpoint — 2026-10-08T19:27:00Z (create-verify GENERATE helpers)
+
+[Recapture create-verify Helpers](0d346743-df82-46bf-b8a1-bcd95f652575) VERIFIED. Pair `create-verify-helpers-1` (cursor 66b7eaf6-e605-4446-8b68-cb18f6d64d8d, pi 530af8b2-6322-44f6-848f-d9b62d85323b). Closed PSTACK-SETUP-CREATE-VERIFY-GENERATE-001. Family-13 remains partial (prove/maintain/recall open).
+
+## Continuation checkpoint — 2026-10-08T19:27:30Z (refill after GENERATE)
+
+In-flight: fio-playbook-gate. Spawned journey-cmd-tdd and create-verify-prove. Verified 14/98. Completion still BLOCKED.
+
+## Continuation checkpoint — 2026-10-08T19:31:00Z (fio-playbook-gate closed)
+
+[Fix fio playbook-first gate](20ed5ded-78d0-4133-990e-72034803dc2c) pass. Commit `71d47389e46010d6bf478b972b71bb38882070fe`. Pair `figure-it-out-playbook-first-2` (cursor 38afcd44-b9f2-4ba3-ad91-f345d71bdd73, pi 8a0cf95a-64a7-4256-accb-89ca93ac5804). Closed FIGURE-IT-OUT-PLAYBOOK-FIRST. Verified PSTACK-CMD-FIGURE-IT-OUT-PLAYBOOK-FIRST-001. Open mismatches now: MODE-STICKY harness only.
+
+## Continuation checkpoint — 2026-10-08T19:38:00Z (tdd-explicit-gate drain)
+
+[Capture TDD explicit-gate pair](e33f29d8-4afb-4ce8-a039-0ea911f7baf4) pass. Pair `tdd-explicit-gate-1` (cursor 168c3046-79db-4405-b8d3-1f6385608d65, pi 852f2c23-5efc-43ba-b2ea-d8b4f9ee5670). Verified PSTACK-CMD-TDD-EXPLICIT-GATE-001 on red-before-green only (skip path not captured).
+
+## Continuation checkpoint — 2026-10-08T19:46:00Z (technical-writing drain)
+
+[Capture technical-writing pair](09f58b73-e492-481a-893d-e4a6d0aded8f) pass. Pair `technical-writing-docs-1` (cursor 5b48533b-5d65-48de-ab6d-08c089583c46, pi 60f6b4f6-d503-4b64-9909-853243f70563). Verified PSTACK-CMD-TECHNICAL-WRITING-DOCS-001.
+
+## Continuation checkpoint — 2026-10-08T19:56:00Z (poteto-playbook-todo drain)
+
+[Capture poteto-playbook-todo pair](d6eaca37-b282-4c74-8605-b3c122cfb8ef) partial / fail-paired. Pair `poteto-playbook-todo-1` (cursor ff0f431a-1d09-40e2-b395-16a031182476, pi 3d51f05d-e208-417b-835f-75df86da0a47). Opened POTETO-PLAYBOOK-TODO. Left PSTACK-CMD-POTETO-PLAYBOOK-TODO-001 unverified. Spawning poteto-todo-gate repair.
+
+## Continuation checkpoint — 2026-10-08T20:05:00Z (poteto-todo-gate closed)
+
+[Fix poteto-mode todo gate](2136adcd-32a2-481e-af9d-702580f774c1) pass. Commit landed. Pair `poteto-playbook-todo-2` (cursor ff0f431a-1d09-40e2-b395-16a031182476, pi 6954317a-4e7e-42d9-b6ca-1c4a1651531a). Closed POTETO-PLAYBOOK-TODO. Verified PSTACK-CMD-POTETO-PLAYBOOK-TODO-001. Open mismatches now: MODE-STICKY harness only. Full suite still has unrelated failures (poteto-help Cursor noun, cli journeys, canvas-browser).
+
+## Continuation checkpoint — 2026-10-08T20:07:00Z (create-verify prove drain)
+
+[Capture create-verify prove pair](139b29c9-582f-412f-b292-e1316b42b085) VERIFIED. Pair `create-verify-prove-1` (cursor e5599015-5bb9-4aac-b1cd-ee11fe31bf05, pi 20d8304d-3d04-4913-b6b1-a67cf292c6e4). Closed PSTACK-SETUP-CREATE-VERIFY-PROVE-001. Maintain not claimed. Family-13 remains partial.
+
+## Continuation checkpoint — 2026-10-08T20:12:00Z (no-comments drain)
+
+[Capture no-comments Sicko pair](b2ee9bae-ead0-4650-b190-c0d70c3141a1) partial / fail-paired. Pair `no-comments-sicko-1` (cursor f4cd66ea-5fcd-49fc-aa35-9789e6fcfddc, pi 44860f00-0364-48b9-805d-0c4146cb9e9d). Opened NO-COMMENTS-SICKO-SPAWN. Left NO-COMMENTS-SICKO and COMMENT-SICKO-FIRST-OUTPUT unverified. Spawning sicko-spawn-gate repair.
+
+
+## Continuation checkpoint — 2026-10-08T20:21:00Z (no-comments Sicko closed)
+
+Pi recapture `c0cf9e02-9dd1-4c47-961a-b5a4d4029003` after persona-agents bridge: `sickoSpawnSucceeded`, child first assistant text catchphrase, cleanup 7→0. Pair `no-comments-sicko-2` (cursor reuse `f4cd66ea-5fcd-49fc-aa35-9789e6fcfddc`). Closed NO-COMMENTS-SICKO-SPAWN. Verified PSTACK-CMD-NO-COMMENTS-SICKO-001 and PSTACK-CMD-COMMENT-SICKO-FIRST-OUTPUT-001 (21/98). Product fix still uncommitted (`persona-agents.ts` + factory wire). Open mismatches: MODE-STICKY harness only.
+
+## Continuation checkpoint — 2026-10-08T20:48:00Z (create-verify maintain drain)
+
+[Capture create-verify maintain pair](52b6c8f2-ae76-4a99-9843-4f1cbcbb93a0) VERIFIED. Pair `create-verify-maintain-1` (cursor 24c341d9-3827-4f87-bd4d-9245b9eccb09, pi 951f8414-e0c0-465e-acb2-7b40ad6fd6b2). Offer held both hosts; outcomes clean vs changed (honest). Verified PSTACK-SETUP-CREATE-VERIFY-OFFER-MAINTAIN-001 and PSTACK-CMD-MAINTAIN-VERIFY-OUTCOMES-001 (23/98). Left SETUP-MAINTAIN-* step reqs and recall unverified. Open mismatches: MODE-STICKY harness only.
+
+## Continuation checkpoint — 2026-10-08T20:55:00Z (recall capsule drain)
+
+[Capture recall capsule pair](8d558622-4d35-46fe-b552-ebd526e2d6bf) VERIFIED. Pair `recall-capsule-1` (cursor 25c1bcca-e7ad-41b3-80dd-1fbac71066ec, pi ed0f279b-00a6-4934-8142-5859899cf832). Contract held both hosts on brief.md. Verified PSTACK-CMD-RECALL-CAPSULE-001 (24/98). Automate-me still in flight. Open mismatches: MODE-STICKY harness only.
+
+## Continuation checkpoint — 2026-10-08T21:10:00Z (automate-me drain)
+
+[Capture automate-me pair](1e09260d-448c-42a1-8769-8d628f5eeea3) VERIFIED. Pair `automate-me-existing-skill-1` (cursor 3064817a-7f0e-4b58-a466-99ed71b4f99c, pi cf572eb4-8f89-4044-b2aa-7cd5507c41eb). Both refreshed parity-fixture-mode in place; hung trust attempt discarded. Verified PSTACK-CMD-AUTOMATE-ME-EXISTING-SKILL-001 on explicit-update path (25/98). Family-13 requirementIds closed. Open mismatches: MODE-STICKY harness only.
+
+## Continuation checkpoint — 2026-10-08T21:16:00Z (show-me-your-work drain)
+
+[Capture show-me-your-work pair](74446064-6558-4601-bd84-2d56b431d862) VERIFIED. Pair `show-me-your-work-tsv-1` (cursor 9da98ab4-2dda-47d1-9c06-8927937c3e23, pi cb93e390-6979-4e43-a7f9-ee35df2ccc0b). Both wrote decisions.tsv with prescribed columns. Verified PSTACK-CMD-SHOW-ME-YOUR-WORK-TSV-001 (26/98). Interrogate + architect still in flight. Open mismatches: MODE-STICKY harness only.
+
+## Continuation checkpoint — 2026-10-08T21:17:00Z (interrogate drain)
+
+[Capture interrogate pair](2d4aadbe-581d-4ab3-bab7-5774d133ed84) VERIFIED. Pair `interrogate-no-autoapply-1` (cursor e94a4325-4950-4d13-839c-d51aa452ec28, pi f23257ca-3195-4872-bc76-a41553e0c3da). Findings yes; product digest unchanged both hosts. Verified PSTACK-CMD-INTERROGATE-NO-AUTOAPPLY-001 (27/98). Architect still in flight. Open mismatches: MODE-STICKY harness only.
+
+## Continuation checkpoint — 2026-10-08T21:23:00Z (architect drain)
+
+[Capture architect how-ground pair](8fb4790d-694d-43ff-9dee-9ea0c721221a) VERIFIED. Pair `architect-ground-how-1` (cursor 284b1831-6051-4b83-92b4-44a4b72609bf, pi ab355606-e9f0-48e7-9508-08a6952de959). how-before-sketch both hosts. Verified PSTACK-CMD-ARCHITECT-GROUND-HOW-001 (28/98). Spawning arena/reflect/unslop. Open mismatches: MODE-STICKY harness only.
+
+## Continuation checkpoint — 2026-10-08T21:29:00Z (unslop drain)
+
+[Capture unslop process pair](9c2ebe91-1504-4875-82ef-cfc1cee5715b) VERIFIED. Pair `unslop-process-1` (cursor f365bb05-6976-45a4-a821-24fd7294247f, pi 17fc084a-37e9-44c4-bf62-9149cf6cc9ba). Both rewrite_applied; tells 31→0. Verified PSTACK-CMD-UNSLOP-PROCESS-001 (29/98). Arena + reflect still in flight. Open mismatches: MODE-STICKY harness only.
+
+## Continuation checkpoint — 2026-10-08T21:33:00Z (arena drain)
+
+[Capture arena base-graft pair](f381c2eb-c628-4551-b689-7c87d51b66cd) VERIFIED. Pair `arena-base-graft-1` (cursor c29a2b1d-9134-40bf-927f-68411fdb5772, pi e4631b87-3d59-4e77-b3ff-05f7b0a740a3). Both contractOk fanout+base+graft+verify. Verified PSTACK-CMD-ARENA-BASE-GRAFT-001 (30/98). Reflect pair still owed. Open mismatches: MODE-STICKY harness only.
+
+## Continuation checkpoint — 2026-10-08T21:34:00Z (reflect drain)
+
+[Capture reflect trigger pair](238ef71b-0157-4e49-8159-b165f83dbaa1) VERIFIED. Pair `reflect-trigger-1` (cursor 1ad53d5a-d80b-462e-94da-a55a17bffae7, pi 09278a2c-bebe-4d95-b358-439cdc456fe5). Both multiAgentReview + reflect=yes. Verified PSTACK-CMD-REFLECT-TRIGGER-001 on substantive path only (31/98). Bro + teach still in flight. Open mismatches: MODE-STICKY harness only.
+
+## Continuation checkpoint — 2026-10-08T21:38:00Z (bro restate drain)
+
+[Capture bro restate pair](62af3442-01e3-4694-915c-a16917bb3bb3) VERIFIED. Pair `bro-restate-1` (cursor 7ee333ca-e68a-4ddf-a8dd-447d0299b524, pi 245dd8fa-b145-4258-9c81-cdc0101caf61). Both restate_plain + bro=yes; no product continuation. Verified PSTACK-CMD-BRO-RESTATE-001 (32/98). Teach still in flight. Open mismatches: MODE-STICKY harness only.
+
+## Continuation checkpoint — 2026-10-08T21:40:00Z (setup-rerun ledger catch-up)
+
+Wired existing pair `setup-rerun-mutate-role-1` (cursor 428e113d-8047-473a-aea6-3b632f080322, pi 6769d1c3-6f00-4528-85c5-7a251f30aeff) into PSTACK-SETUP-WRITE-RULE-001, PSTACK-CMD-SETUP-WRITE-RULE-001, PSTACK-SETUP-CONFIRM-WRITTEN-001, PSTACK-SETUP-NEW-SESSION-APPLIES-001 (36/98). Did not claim ROLE-CONFIRM / BUDGET-APPLY / PANEL-LIST. Teach + correct + poteto-agent + typescript + disable-model + plugin-skills in flight. Open mismatches: MODE-STICKY harness only.
+
+## Continuation checkpoint — 2026-10-08T21:42:00Z (teach how-why drain)
+
+[Capture teach how-why pair](fc2937d2-8a16-417d-b0ef-0564e25e3216) VERIFIED. Pair `teach-how-why-1` (cursor 738b745d-a4e0-464e-809a-928d12529074, pi 9056a9b3-2f90-4015-b907-8895a599ae3a). Both orderOk how-why-before-teach. Verified PSTACK-CMD-TEACH-HOW-WHY-001 (37/98). Correct/poteto-agent/typescript/disable-model/plugin-skills still in flight. Open mismatches: MODE-STICKY harness only.
+
+## Continuation checkpoint — 2026-10-08T21:45:00Z (alias + refill)
+
+Verified PSTACK-SETUP-ALIAS-ALWAYS-VALID-001 on existing `setup-rerun-mutate-role-1` (38/98). Spawned role-confirm, budget-apply, panel-fanout, load-state, alias-validate (validate negative still owed), dep-closure-wave-004. CMD captures still in flight. Open mismatches: MODE-STICKY harness only.
+
+## Continuation checkpoint — 2026-10-08T21:46:00Z (disable-model drain)
+
+[Capture disable-model pair](4f68f9ba-368e-4401-b5ea-ee1b909fa2ae) VERIFIED. Pair `disable-model-invocation-1` (cursor d5cca07e-5927-437f-863c-92d0471f95b7, pi 2b4fc338-046f-4572-8a7a-b6ce9a8b56ad). Both contractHeld; no how auto-attach. Verified PSTACK-CMD-DISABLE-MODEL-INVOCATION-001 (39/98). Open mismatches: MODE-STICKY harness only.
+
+## Continuation checkpoint — 2026-10-08T21:46:30Z (typescript paths drain)
+
+[Capture typescript paths pair](527b99ee-1a9a-430e-87e6-8bb8512455eb) capture pass / requirement fail-paired. Pair `typescript-paths-1` (cursor b7688706-b64f-4a12-a61c-fd09c78a2722, pi 245162a9-8cf4-43c1-8fff-cf994cae25ad). Opened TYPESCRIPT-PATHS-FRONTMATTER. Left PSTACK-CMD-TYPESCRIPT-PATHS-001 unverified. Spawning typescript-paths-gate repair.
+
+## Continuation checkpoint — 2026-10-08T21:47:00Z (dep-closure-wave-004 merge)
+
+[Dep closure wave-004](5c9351f5-8b9f-425d-8d91-80156f4d2434) merged. Resolved 3 tools-lock refs (platform matrix, registry custody, runtime prerequisites). Kept Bun pin, host computer-use/enterprise edges, journey edges, typescript body semantics open. `completeDependencyClosure` remains false. Open mismatches: MODE-STICKY + TYPESCRIPT-PATHS-FRONTMATTER.
+
+## Continuation checkpoint — 2026-10-08T21:48:00Z (plugin-skills drain)
+
+[Capture plugin-skills register pair](4cbd9cf8-e810-4516-a87a-7eb6ef849b26) VERIFIED. Pair `plugin-skills-register-1` (cursor ca0f3e61-9af8-434c-b2f2-a98d9823725f, pi 11c4b783-86f3-426a-a1eb-e2048792071e). Both bothRegistered; Pi binding delta recorded in piBindings. Verified PSTACK-CMD-PLUGIN-SKILLS-REGISTER-001 (40/98). Open mismatches: MODE-STICKY + TYPESCRIPT-PATHS-FRONTMATTER.
+
+## Continuation checkpoint — 2026-10-08T21:51:00Z (correct encode drain)
+
+[Capture correct encode pair](15e53f33-91d5-4347-9237-3e740f4b525f) VERIFIED. Pair `correct-encode-1` (cursor e05d5254-aa98-4533-b9e7-be0a6092eb3a, pi 694910a7-666d-48cf-96ee-312a10d94927). Both encoded_with_proof at lint + fail-on-past-mistake. Verified PSTACK-CMD-CORRECT-ENCODE-001 (41/98). Open mismatches: MODE-STICKY + TYPESCRIPT-PATHS-FRONTMATTER.
+
+## Continuation checkpoint — 2026-10-08T21:52:00Z (setup panel-fanout drain)
+
+[Capture setup panel-fanout pair](85d63132-cf29-4230-902f-abee86456260) VERIFIED. Pair `setup-panel-list-fanout-1` (cursor 43dc2c2b-215d-4765-ab70-2682cb620fd8, pi 925469ca-f277-4870-a986-2969e0e1ecbe). L=3 → spawnCount=3 both hosts. Verified PSTACK-SETUP-PANEL-LIST-FANOUT-001 (42/98). Open mismatches: MODE-STICKY + TYPESCRIPT-PATHS-FRONTMATTER.
+
+## Continuation checkpoint — 2026-10-08T21:52:30Z (typescript-paths-gate closed)
+
+[Fix typescript paths frontmatter](dbed4cb2-1472-4478-b221-7a33bc93a2db) pass. Pair `typescript-paths-2` (cursor reuse b7688706-b64f-4a12-a61c-fd09c78a2722, pi 3ab0995e-f5c8-4ce3-a1e3-55e86e66a8f3). Closed TYPESCRIPT-PATHS-FRONTMATTER. Verified PSTACK-CMD-TYPESCRIPT-PATHS-001 (43/98). Product fix still uncommitted (`resources.mjs` + regenerate). Open mismatches: MODE-STICKY harness only.
+
+## Continuation checkpoint — 2026-10-08T21:53:00Z (poteto-agent read-skill drain)
+
+[Capture poteto-agent read pair](6d20e745-c982-41fd-ac47-1b5a55814b95) VERIFIED. Pair `poteto-agent-read-skill-1` (cursor 3632cd35-dfe5-4cc4-9bd0-ebcf7d44d240, pi 6288c9b7-08ac-4b5f-850c-021446b26409). Both skillBeforeWork; no generalPurpose. Verified PSTACK-CMD-POTETO-AGENT-READ-SKILL-001 (44/98). Open mismatches: MODE-STICKY harness only.
+
+## Continuation checkpoint — 2026-10-08T21:53:30Z (setup alias-validate drain)
+
+[Capture setup alias-validate pair](8523e36f-c5f9-4e23-a911-0d0652b88d4b) VERIFIED. Pair `setup-alias-validate-1` (cursor 441393b8-841f-4c85-8c9e-3589b4d889c4, pi 926d4a3d-7f9c-47ae-b237-cf2b83e0b3ad). Closed PSTACK-SETUP-VALIDATE-001; reinforced ALIAS. Verified count 45/98. Open mismatches: MODE-STICKY harness only.
+
+## Continuation checkpoint — 2026-10-08T22:06:00Z (setup role-confirm drain)
+
+[Capture setup role-confirm pair](6b969777-1821-4185-aae9-fa6f4cf67c8c) capture pass / requirement fail-paired. Pair `setup-role-confirm-1` (cursor b72b2ad5-c36a-4219-81ba-04954cb9888c, pi 08ab0e09-4a60-4b44-836e-01ca750bb534). Opened SETUP-ROLE-CONFIRM-LISTING. Left PSTACK-SETUP-ROLE-CONFIRM-001 unverified. Spawning role-confirm-listing repair.
+
+## Continuation checkpoint — 2026-10-08T22:11:00Z (setup load-state drain)
+
+[Capture setup load-state pair](0ddb0642-d536-42d3-b90b-3eee6ba3eef8) capture pass / requirement fail-paired. Pair `setup-load-state-retired-1` (cursor 54a67064-eac9-4e9b-921b-c23085ef3295, pi 3f46cd66-2f53-40f1-bbcc-2c7de7828615). Opened SETUP-LOAD-STATE-CURSOR. Left PSTACK-SETUP-LOAD-STATE-001 unverified. Spawning isolated Cursor recapture.
+
+## Continuation checkpoint — 2026-10-08T22:13:30Z (role-confirm-listing closed)
+
+[Fix setup role-confirm listing](5ef0e2b1-cfc8-4a5b-ac10-6ae69039a04b) pass. Pair `setup-role-confirm-1` updated (cursor reuse b72b2ad5-c36a-4219-81ba-04954cb9888c, pi f9259bfa-d306-4b5b-8ea4-c4d0de00b6fb). Closed SETUP-ROLE-CONFIRM-LISTING. Verified PSTACK-SETUP-ROLE-CONFIRM-001 (46/98). Product fix uncommitted. Open mismatches: MODE-STICKY + SETUP-LOAD-STATE-CURSOR.
+
+## Continuation checkpoint — 2026-10-08T22:17:30Z (setup load-state Cursor isolated)
+
+[Recapture Cursor load-state](d4c5a8c0-de2b-4c8c-80eb-1786ce438447) pass under isolation. Cursor `b4bac448-d442-4c34-9eec-b73895bd063b` + Pi reuse `3f46cd66-2f53-40f1-bbcc-2c7de7828615`. Closed SETUP-LOAD-STATE-CURSOR. Verified PSTACK-SETUP-LOAD-STATE-001 (47/98). Open mismatches: MODE-STICKY harness only.
+
+
+## Continuation checkpoint — 2026-10-08T22:20:00Z (setup budget-apply large drain)
+
+[Capture setup budget-apply pair](eefa18be-7aae-4fed-908e-4c98e2a43328) capture pass / requirement still unverified. Pair `setup-budget-apply-large-1` (cursor 66de566f-5754-4e84-b3c2-2683254d419d, pi bf23823c-fcb1-4d97-9367-6d15b7a66591). Proved large→xhigh 19/19 + aliases; declined overclaim for unlimited/medium/small. Recorded evidence; spawning remaining budget labels. Verified still 47/98. Open mismatches: MODE-STICKY harness only.
+
+
+## Continuation checkpoint — 2026-10-08T22:22:00Z (budget-apply large drain + refill)
+
+[Capture setup budget-apply pair](eefa18be-7aae-4fed-908e-4c98e2a43328) large→xhigh pass-paired; declined overclaim (expectedObservation lists four budgets). Evidence recorded; status stays unverified. Spawned remaining labels [Capture remaining budget labels](1e709840-0846-4262-b0bc-8759b178ad88), verify-offer [Capture setup verify-offer pair](04cedf7c-83f1-4f6b-b30f-8f7a0e1eb2fb), benny-repro [Capture Benny repro fail-closed](25717e60-3a2b-4145-803f-7f6977215f5a). Also [Dep closure wave-005 research](fe4df7a5-b3a6-4771-954d-1dd5f1f0ae66), [Capture create-verify interview](5f5f3ca3-0aa9-4edd-887e-71fc40d40592). Verified still 47/98. Open mismatches: MODE-STICKY harness only (operator Custom Modes gate).
+
+
+## Continuation checkpoint — 2026-10-08T22:25:00Z (dep-closure wave-005 merge)
+
+[Dep closure wave-005 research](fe4df7a5-b3a6-4771-954d-1dd5f1f0ae66) merged. Removed 4 completed wave-004 npm/tree status strings; refreshed Bun/typescript/host unresolved lines. Typescript structural body audit 416/416 recorded; deep compiler semantics still open. `completeDependencyClosure` remains false. Unresolved refs 11→7. Open mismatches: MODE-STICKY harness only.
+
+
+## Continuation checkpoint — 2026-10-08T22:26:00Z (benny repro fail-closed drain)
+
+[Capture Benny repro fail-closed](25717e60-3a2b-4145-803f-7f6977215f5a) VERIFIED. Pair `benny-repro-fail-closed-1` (cursor e3e5e224-5d6a-4e9d-ab62-064386174fdc, pi 85ff157c-90dc-43dd-927f-e2a8b32488bf). Both fail-closed; no UI/PR/product edits. Verified PSTACK-CMD-BENNY-REPRO-FAIL-CLOSED-001 (48/98). Open mismatches: MODE-STICKY harness only.
+
+
+## Continuation checkpoint — 2026-10-08T22:48:00Z (budget-apply remaining drain)
+
+[Capture remaining budget labels](1e709840-0846-4262-b0bc-8759b178ad88) VERIFIED. Pairs medium (`be8f0188`/`47fd52de`), small (`cc8d4964`/`054f0df3`), unlimited (`f1a6ea10`/`b6d37ee7`) plus prior large. Closed PSTACK-SETUP-BUDGET-APPLY-001 (49/98). Open mismatches: MODE-STICKY harness only.
+
+
+## Continuation checkpoint — 2026-10-08T22:50:00Z (create-verify interview drain)
+
+[Capture create-verify interview](5f5f3ca3-0aa9-4edd-887e-71fc40d40592) VERIFIED. Pair `create-verify-interview-1` (cursor ee9d86df-a0c3-4169-80e1-103a3d000bf9, pi 27b66016-7b03-4c3b-bc36-1e7fe17f27e3). Both interviewed from repo files without asking user. Verified PSTACK-SETUP-CREATE-VERIFY-INTERVIEW-001 (50/98). Open mismatches: MODE-STICKY harness only.
+
+
+## Continuation checkpoint — 2026-10-08T22:52:00Z (setup verify-offer drain)
+
+[Capture setup verify-offer pair](04cedf7c-83f1-4f6b-b30f-8f7a0e1eb2fb) VERIFIED on no-branch. Pair `setup-verify-offer-1` (cursor b12de787-9406-4de1-8993-bd3b818bb912, pi 27567808-9734-4516-b6e2-629dfb650d68). Offer-once + decline without push both hosts. Yes-branch not captured. Verified PSTACK-SETUP-VERIFY-OFFER-001 (51/98). Open mismatches: MODE-STICKY harness only.
+
+
+## Continuation checkpoint — 2026-10-08T22:52:30Z (verify-offer refill)
+
+Spawned [Capture setup Grok xhigh cap](f86aa67a-e834-42ef-b270-c3e51eb68fbe), [Capture Benny triage thread-only](6aa484cc-e996-4bf2-95e4-de6a55a7e2c9), [Capture setup Benny not-slash](7b00026f-8def-467d-b926-df0afb380da2). Verified 51/98.
+
+
+## Continuation checkpoint — 2026-10-08T22:57:00Z (benny triage fail-closed drain)
+
+[Capture Benny triage thread-only](6aa484cc-e996-4bf2-95e4-de6a55a7e2c9) capture pass / requirement still unverified. Pair `benny-triage-fail-closed-1` (cursor 876cbcf4-ea8d-4276-9e9b-f0ec2a7da379, pi 5e2be54e-ec04-4238-a2d0-2fd622e87cc0). Incomplete-config fail-closed both hosts; declined overclaim (valid-config thread-only unpaid). Spawning valid-config pair. Verified still 51/98. Open mismatches: MODE-STICKY harness only.
+
+
+## Continuation checkpoint — 2026-10-08T23:00:00Z (benny triage valid-config blocker)
+
+[Capture Benny triage valid-config](ced038e3-6818-40e0-bb09-c89f7be88940) blocker. No attempts. Opened BENNY-TRIAGE-VALID-CONFIG-ENV. PSTACK-CMD-BENNY-TRIAGE-THREAD-ONLY-001 stays unverified (fail-closed half paired). Verified still 51/98. Open mismatches: MODE-STICKY + BENNY-TRIAGE-VALID-CONFIG-ENV.
+
+
+## Continuation checkpoint — 2026-10-08T23:12:00Z (setup-benny not-slash drain)
+
+[Capture setup Benny not-slash](7b00026f-8def-467d-b926-df0afb380da2) VERIFIED. Pair `setup-benny-not-slash-1` (cursor 78443bd1-b96b-4e85-9abc-89f42abaae14, pi 0ff31b2a-d6cc-45f4-8264-aa0d1982e6bc). Both FOR_AGENTS path, not slash, no automation. Verified PSTACK-CMD-SETUP-BENNY-NOT-SLASH-001 (52/98). Open mismatches: MODE-STICKY + BENNY-TRIAGE-VALID-CONFIG-ENV.
+
+
+## Continuation checkpoint — 2026-10-08T23:46:00Z (setup grok-xhigh-cap drain)
+
+[Capture setup Grok xhigh cap](f86aa67a-e834-42ef-b270-c3e51eb68fbe) capture fail-paired. Pair `setup-grok-xhigh-cap-1` (cursor faeae5d9-c831-4b7b-9f47-abad3ed21433 pass, pi c91e2ff6-2346-4d2c-93e7-932867963283 fail). Opened SETUP-GROK-XHIGH-CAP-PI. Left PSTACK-SETUP-GROK-XHIGH-CAP-001 unverified. Spawning Pi recapture. Verified still 52/98. Open mismatches: MODE-STICKY + BENNY-TRIAGE-VALID-CONFIG-ENV + SETUP-GROK-XHIGH-CAP-PI.
+
+
+## Continuation checkpoint — 2026-10-09T00:00:00Z (grok-xhigh-cap Pi recapture)
+
+[Recapture Pi Grok xhigh cap](0631007e-1a03-419d-beb8-e1ea3a798bd4) honest fail. Pi `5bafa9a0-d6f2-4bb3-b38f-66012dc305b1`: unlimited selected; write refused — `xai/grok-4.7` not in detected models (no xai auth). Updated SETUP-GROK-XHIGH-CAP-PI to environment-bound. PSTACK-SETUP-GROK-XHIGH-CAP-001 stays unverified. Verified still 52/98. Open mismatches: MODE-STICKY + BENNY-TRIAGE-VALID-CONFIG-ENV + SETUP-GROK-XHIGH-CAP-PI.
+
+
+Spawned refill [Capture benchmark checklist pair](58a8ac8d-abe5-4b8b-ac23-6ce2c74edef0), [Capture blast-radius run-proof pair](7ebc1ee4-389c-42b8-af67-629530cc9990), [Capture maintain-verify locate pair](4e0c3e0a-3467-453d-a157-52379d1b3f1e).
+
+## Continuation checkpoint — 2026-10-09T00:04:00Z (benchmark checklist drain)
+
+[Capture benchmark checklist pair](58a8ac8d-abe5-4b8b-ac23-6ce2c74edef0) VERIFIED. Pair `benchmark-checklist-evidence-1` (cursor fef1b56c-e1bd-4f8c-83d1-dca9487c6b44, pi f35d81bd-a200-44fb-a673-039bdf1192ae). One-run Q4/Q7 + evidence both hosts. Verified PSTACK-CMD-BENCHMARK-CHECKLIST-EVIDENCE-001 (53/98). Open mismatches: MODE-STICKY + BENNY-TRIAGE-VALID-CONFIG-ENV + SETUP-GROK-XHIGH-CAP-PI.
+
+
+## Continuation checkpoint — 2026-10-09T00:05:00Z (blast-radius drain)
+
+[Capture blast-radius run-proof pair](7ebc1ee4-389c-42b8-af67-629530cc9990) VERIFIED. Pair `blast-radius-run-proof-1` (cursor 10de693f-5087-438e-bd91-5cd266fc75e3, pi 25fbb44d-c4bd-40ea-a4e5-c46f62166074). Step-4 run-proof both hosts. Verified PSTACK-CMD-BLAST-RADIUS-RUN-PROOF-001 (54/98). Open mismatches: MODE-STICKY + BENNY-TRIAGE-VALID-CONFIG-ENV + SETUP-GROK-XHIGH-CAP-PI.
+
+
+## Continuation checkpoint — 2026-10-09T00:06:00Z (maintain-verify locate drain)
+
+[Capture maintain-verify locate pair](4e0c3e0a-3467-453d-a157-52379d1b3f1e) VERIFIED. Pair `maintain-verify-locate-1` (cursor 66944536-aadc-4b80-9be0-d3bd924e4057, pi 073160f6-9e82-49fc-9bd0-9c1539341f50; none f8ea88ab-9875-4370-875e-a2771c5d3753/ab0b1495-90e3-482c-b195-93600c824b5f). One+none locate held; several-candidates unpaid. Verified PSTACK-SETUP-MAINTAIN-VERIFY-LOCATE-001 (55/98). Open mismatches: MODE-STICKY + BENNY-TRIAGE-VALID-CONFIG-ENV + SETUP-GROK-XHIGH-CAP-PI.
+
+
+## Continuation checkpoint — 2026-10-09T00:10:00Z (maintain edit-scope reuse)
+
+Wired PSTACK-SETUP-MAINTAIN-VERIFY-EDIT-SCOPE-001 from existing `create-verify-maintain-1` pair (cursor 24c341d9-3827-4f87-bd4d-9245b9eccb09, pi 951f8414-e0c0-465e-acb2-7b40ad6fd6b2). Skill-dir-only edits; product untouched. SETUP-OUTCOMES/SHIP left open (changed-without-PR on Pi). Verified 56/98.
+
+
+## Continuation checkpoint — 2026-10-09T00:12:00Z (dep-closure wave-006 merge)
+
+[Dep closure wave-006 research](46638766-5110-423d-bc63-8c33ac89dfc9) merged. Narrowed create-skill subordinate+journey ref to journey-only; refreshed Bun/typescript/host unresolved lines with wave-006 evidence. `completeDependencyClosure` remains false. Unresolved refs still 7. Open mismatches: MODE-STICKY + BENNY-TRIAGE-VALID-CONFIG-ENV + SETUP-GROK-XHIGH-CAP-PI.
+
+
+## Continuation checkpoint — 2026-10-09T00:13:00Z (setup-benny no-secret drain)
+
+[Capture setup-benny no-secret pair](fd0b738c-e3e3-475b-a767-469a30f62a5a) VERIFIED. Pair `setup-benny-no-secret-1` (cursor 0b97cbde-da37-493c-8cf4-7992d17522ee, pi 4b4a8d2a-6560-4384-82d4-520d1dc78833). Env-name-only config; FS scan clean. Verified PSTACK-SETUP-BENNY-NO-SECRET-001 (57/98). Open mismatches: MODE-STICKY + BENNY-TRIAGE-VALID-CONFIG-ENV + SETUP-GROK-XHIGH-CAP-PI.
+
+
+## Continuation checkpoint — 2026-10-09T00:14:00Z (maintain-verify outcomes drain)
+
+[Capture maintain-verify outcomes pair](d9769499-a544-488c-a402-826c7a8b2bfb) VERIFIED. Pair `maintain-verify-outcomes-1` (cursor c3f0f75c-eb59-4cfc-b4e1-9495dc84e4e7, pi d2597177-5cde-460b-8458-c2ee14b395d7). Both clean/PR=none. Verified PSTACK-SETUP-MAINTAIN-VERIFY-OUTCOMES-001 and PSTACK-SETUP-MAINTAIN-VERIFY-SHIP-001 (59/98). Open mismatches: MODE-STICKY + BENNY-TRIAGE-VALID-CONFIG-ENV + SETUP-GROK-XHIGH-CAP-PI.
+
+
+## Continuation checkpoint — 2026-10-09T00:17:00Z (prin-prove-it drain)
+
+[Capture prin-prove-it pair](de734f88-0a4f-4a53-9785-4542c7529760) VERIFIED. Pair `prin-prove-it-1` (cursor 9f605907-9633-4897-8357-c174bf170c65, pi 4af22cca-9d26-4592-81e2-058a9d96f4fc). Leaf Read + kept verify artifact both hosts. Verified PSTACK-PRIN-PROVE-IT-001 (60/98). Open mismatches: MODE-STICKY + BENNY-TRIAGE-VALID-CONFIG-ENV + SETUP-GROK-XHIGH-CAP-PI.
+
+
+## Continuation checkpoint — 2026-10-09T00:30:00Z (make-bot key-server drain)
+
+[Capture make-bot key-server pair](24168198-249b-45d8-bbf1-19eee3f6bc35) BLOCKED (env). Pair `make-bot-ui-key-server-1` (cursor bb50ed1b-29ac-4961-bb0a-5c2ffd9834b2 host_blocked, pi 8721faf4-89e1-4bc5-8abd-105870b4923d incomplete/key-boundary). Opened mismatch MAKE-BOT-UI-KEY-SERVER-HOST. Requirement stays unverified. Verified still 60/98. Open mismatches: MODE-STICKY-CURSOR-CUSTOM-MODE-HARNESS, BENNY-TRIAGE-VALID-CONFIG-ENV, SETUP-GROK-XHIGH-CAP-PI, MAKE-BOT-UI-KEY-SERVER-HOST.
+
+
+## Continuation checkpoint — 2026-10-09T00:34:00Z (setup-benny settings-enable drain)
+
+[Capture setup-benny settings-enable pair](d7af0d64-fe0d-4a38-b38f-4b530a4c477a) VERIFIED. Pair `setup-benny-settings-enable-1` (cursor 57007345-8ea8-4ec2-8cc9-288b87c88fc2, pi 868b09be-5b1f-4ec9-957e-6ceaa1aa84c6). Enable+preserve JSONC path both hosts. Verified PSTACK-SETUP-BENNY-SETTINGS-ENABLE-001 (61/98). Open mismatches: MODE-STICKY + BENNY-TRIAGE-VALID-CONFIG-ENV + SETUP-GROK-XHIGH-CAP-PI + MAKE-BOT-UI-KEY-SERVER-HOST.
+
+
+## Continuation checkpoint — 2026-10-09T00:35:00Z (maintain-verify live-pass drain)
+
+[Capture maintain live-pass pair](a5174400-7ee8-4b92-8842-e20387eef399) VERIFIED. Pair `maintain-verify-live-pass-1` (cursor 311766cd-245f-4bfb-8ade-d9235193c6a9, pi 2f0c388b-c4fc-4763-9cab-0f0aa377ae69). Clean-path live-pass both hosts. Verified PSTACK-SETUP-MAINTAIN-VERIFY-LIVE-PASS-001 (62/98). Open mismatches: MODE-STICKY + BENNY-TRIAGE-VALID-CONFIG-ENV + SETUP-GROK-XHIGH-CAP-PI + MAKE-BOT-UI-KEY-SERVER-HOST.
+
+
+## Continuation checkpoint — 2026-10-09T00:36:00Z (prin-build-lever drain)
+
+[Capture prin-build-lever pair](7258e9fd-3f94-4812-aea7-a03da560ba49) VERIFIED. Pair `prin-build-lever-1` (cursor ae01feb5-b373-4d64-9b2d-8d5b0b67c080, pi 889c66cf-151f-48ba-9a4d-d80f1201fa80). Leaf Read + rerunnable lever both hosts. Verified PSTACK-PRIN-BUILD-LEVER-001 (63/98). Open mismatches: MODE-STICKY + BENNY-TRIAGE-VALID-CONFIG-ENV + SETUP-GROK-XHIGH-CAP-PI + MAKE-BOT-UI-KEY-SERVER-HOST.
+
+
+## Continuation checkpoint — 2026-10-09T00:37:00Z (setup-benny pack-merge drain)
+
+[Capture setup-benny pack-merge pair](0997c08f-bc95-428e-a77f-0cc274a1649d) VERIFIED. Pair `setup-benny-pack-merge-1` (cursor d9e476af-9b22-46f2-90fd-1d42cc2e068b, pi fe70b3f6-7866-4469-bc4e-fa045d67f52d). merge_ok both hosts. Verified PSTACK-SETUP-BENNY-PACK-MERGE-001 (64/98). Open mismatches: MODE-STICKY + BENNY-TRIAGE-VALID-CONFIG-ENV + SETUP-GROK-XHIGH-CAP-PI + MAKE-BOT-UI-KEY-SERVER-HOST.
+
+
+## Continuation checkpoint — 2026-10-09T00:38:00Z (prin-never-block drain)
+
+[Capture prin-never-block pair](32afcca0-7c1c-4b0c-97ba-b2e59fa1def2) VERIFIED. Pair `prin-never-block-1` (cursor c38eb9b1-9ac3-4d16-a43d-009c3c9d7eb8, pi d0a66bac-7951-4adb-a7d5-95b46f0d4e15). Leaf Read + proceed without ask both hosts. Verified PSTACK-PRIN-NEVER-BLOCK-001 (65/98). Open mismatches: MODE-STICKY + BENNY-TRIAGE-VALID-CONFIG-ENV + SETUP-GROK-XHIGH-CAP-PI + MAKE-BOT-UI-KEY-SERVER-HOST.
+
+
+## Continuation checkpoint — 2026-10-09T00:39:00Z (maintain-verify source-wave drain)
+
+[Capture maintain source-wave pair](a5fa3c57-f9d2-4333-886d-abdb7a63c976) VERIFIED. Pair `maintain-verify-source-wave-1` (cursor 7d0f9dfd-9f01-4199-b783-64ac80d7552f, pi e3203616-b69f-4113-a036-8e664cfaca64). Concurrent read-only children both hosts. Verified PSTACK-SETUP-MAINTAIN-VERIFY-SOURCE-WAVE-001 (66/98). Open mismatches: MODE-STICKY + BENNY-TRIAGE-VALID-CONFIG-ENV + SETUP-GROK-XHIGH-CAP-PI + MAKE-BOT-UI-KEY-SERVER-HOST.
+
+
+## Continuation checkpoint — 2026-10-09T00:41:00Z (setup-benny control-fail-closed drain)
+
+[Capture benny control-fail-closed](d86a71da-13bc-497d-89c7-0f1e079c29ef) VERIFIED. Pair `setup-benny-control-fail-closed-1` (cursor 370c1adb-5e53-4c1d-9d9c-34f21299d18d, pi e6185d9b-6960-4680-ae75-5349f6b148a2). Missing-capability fail-closed both hosts. Verified PSTACK-SETUP-BENNY-CONTROL-FAIL-CLOSED-001 (67/98). Open mismatches: MODE-STICKY + BENNY-TRIAGE-VALID-CONFIG-ENV + SETUP-GROK-XHIGH-CAP-PI + MAKE-BOT-UI-KEY-SERVER-HOST.
+
+
+## Continuation checkpoint — 2026-10-09T00:43:00Z (prin-laziness drain)
+
+[Capture prin-laziness](ddcd30d1-1160-4608-bb15-cb9edea2cbbb) VERIFIED. Pair `prin-laziness-1` (cursor f3a6669a-3e76-4ae3-9f8e-50ce94f2fc2a, pi 7e4c208d-60c8-4529-9849-1e70eed051fa). Deletion-over-layer both hosts. Verified PSTACK-PRIN-LAZINESS-001 (68/98). Open mismatches: MODE-STICKY + BENNY-TRIAGE-VALID-CONFIG-ENV + SETUP-GROK-XHIGH-CAP-PI + MAKE-BOT-UI-KEY-SERVER-HOST.
+
+
+## Continuation checkpoint — 2026-10-09T00:44:00Z (setup-benny required-explicit drain)
+
+[Capture benny required-explicit](09865fab-e77f-4521-8427-ca56bbbfa55b) VERIFIED. Pair `setup-benny-required-explicit-1` (cursor a3944805-df12-4454-9a0c-7a06d1757fb6, pi c8714d86-a05e-40e7-a1d3-e2a816efb52b). Ambiguous-channel fail-closed both hosts. Verified PSTACK-SETUP-BENNY-REQUIRED-EXPLICIT-001 (69/98). Open mismatches: MODE-STICKY + BENNY-TRIAGE-VALID-CONFIG-ENV + SETUP-GROK-XHIGH-CAP-PI + MAKE-BOT-UI-KEY-SERVER-HOST.
+
+
+## Continuation checkpoint — 2026-10-09T00:45:00Z (setup-benny user-config-outside drain)
+
+[Capture benny user-config-outside](dcbacc97-4238-40b3-8dc9-eeb18b39aeef) VERIFIED. Pair `setup-benny-user-config-outside-1` (cursor 4ee10a59-d826-4875-8667-515f596d7cb7, pi 5d95d377-27f7-4914-88f0-9ab4ab010516). Outside-pack placement both hosts. Verified PSTACK-SETUP-BENNY-USER-CONFIG-OUTSIDE-001 (70/98). Open mismatches: MODE-STICKY + BENNY-TRIAGE-VALID-CONFIG-ENV + SETUP-GROK-XHIGH-CAP-PI + MAKE-BOT-UI-KEY-SERVER-HOST.
+
+
+## Continuation checkpoint — 2026-10-09T00:46:00Z (prin-sequence-units drain)
+
+[Capture prin-sequence-units](7f5df851-ddd0-4392-b2ba-9bc578b08af0) VERIFIED. Pair `prin-sequence-units-1` (cursor a25ac05b-fb4c-4d6c-a195-2a2e13a0b2cf, pi 1b0ebd6e-1254-4932-9f79-5765a701c913). Progressive per-unit verify both hosts. Verified PSTACK-PRIN-SEQUENCE-UNITS-001 (71/98). Open mismatches: MODE-STICKY + BENNY-TRIAGE-VALID-CONFIG-ENV + SETUP-GROK-XHIGH-CAP-PI + MAKE-BOT-UI-KEY-SERVER-HOST.
+
+
+## Continuation checkpoint — 2026-10-09T00:47:00Z (prin-test-behavior drain)
+
+[Capture prin-test-behavior](2d5bd9c6-d473-46d0-be3e-02a38ff89116) VERIFIED. Pair `prin-test-behavior-1` (cursor b70c73d6-63a5-4255-b8a3-62f3217e5704, pi 753e87d4-b2c8-4c0e-8fd4-1ca3bacbcbac). Behavior-shaped test both hosts. Verified PSTACK-PRIN-TEST-BEHAVIOR-001 (72/98). Open mismatches: MODE-STICKY + BENNY-TRIAGE-VALID-CONFIG-ENV + SETUP-GROK-XHIGH-CAP-PI + MAKE-BOT-UI-KEY-SERVER-HOST.
+
+
+## Continuation checkpoint — 2026-10-09T00:48:00Z (prin-fix-root drain)
+
+[Capture prin-fix-root](b4cd3fda-42d8-4711-b3ed-b94f42da7c3f) VERIFIED. Pair `prin-fix-root-1` (cursor 5d36f6ca-23fd-462c-8e35-7666ddf387de, pi dffb963b-d1b4-42a4-bca0-e36b02bef0f3). Reproduce-then-root-fix both hosts. Verified PSTACK-PRIN-FIX-ROOT-001 (73/98). Open mismatches: MODE-STICKY + BENNY-TRIAGE-VALID-CONFIG-ENV + SETUP-GROK-XHIGH-CAP-PI + MAKE-BOT-UI-KEY-SERVER-HOST.
+### 2026-10-08 checkpoint (benny thread-safety blocker)
+
+[Capture benny thread-safety](6167e436-b8c8-4f85-b3c7-52358f6e0261) blocker. No attempts. Opened SETUP-BENNY-THREAD-SAFETY-ENV. PSTACK-SETUP-BENNY-THREAD-SAFETY-001 stays unverified. Verified still 73/98. Open mismatches: MODE-STICKY + BENNY-TRIAGE-VALID-CONFIG-ENV + SETUP-GROK-XHIGH-CAP-PI + MAKE-BOT-UI-KEY-SERVER-HOST + SETUP-BENNY-THREAD-SAFETY-ENV.
+### 2026-10-08 checkpoint (coverage denominator assigned)
+
+[Coverage denominator package](1759043d-daf9-458e-9694-c497a8ec19dc) merged. Applied 193 inventory dispositions (59 mapped, 114 deferred, 20 out-of-scope). Matrix sha256 `30eb94995baa329dddbb186e143cb92c508bbda9dfc1289c9e12dca86e93e661`. Set inventory status dispositions-assigned and requirements.coverageDenominatorComplete true. Verified still 73/98. Goal still unmet (completion BLOCKED on remaining gates).
+### 2026-10-08 checkpoint (prin foundational + type-discipline)
+
+[Capture prin-foundational](a064fedf-c5ef-4f2f-97ca-33a23cedb2eb) VERIFIED. Pair `prin-foundational-1` (cursor 65219cb4-d58b-4567-b7bb-0300966d0a31, pi d553905a-8e0a-47c6-ab11-bdb96fe53f60). Verified PSTACK-PRIN-FOUNDATIONAL-001. [Capture prin-type-discipline](4717d27d-3f17-4db6-9064-e02f9da1b8b0) VERIFIED. Pair `prin-type-discipline-1` (cursor 33d927a2-8d1d-471f-8d0b-f6284c67b21b, pi 9cae5688-2cb4-4719-8c5f-fa1c908a983e). Verified PSTACK-PRIN-TYPE-DISCIPLINE-001 (75/98). Open mismatches unchanged (5).
+### 2026-10-08 checkpoint (benny project-skills stop-explain)
+
+[Capture benny project-skills](58360d44-25ff-40c6-855a-4dacb56349f2) VERIFIED on stop-explain. Pair `setup-benny-project-skills-1` (cursor 59fc7130-bd2d-4edc-8ee0-f491ed12128a, pi 29b59723-b273-423c-a63a-524b3040157d). Verified PSTACK-SETUP-BENNY-PROJECT-SKILLS-001 (76/98). resolve_ok unpaid. Open mismatches unchanged (5).
+### 2026-10-08 checkpoint (dep closure wave-007)
+
+[Dep closure wave-007 research](73a27141-0cd9-4df7-bfef-0a40bb4dfe67) merged. Narrowed live/recursive/consumer refs to path+hash inventories; refreshed Bun/typescript/host/create-skill lines. `completeDependencyClosure` remains false. Unresolved refs still 7. Open mismatches unchanged (5). Verified still 76/98.
+### 2026-10-08 checkpoint (benny existing-no-automate)
+
+[Capture benny existing-no-automate](226c65fe-fe08-452a-8a5c-e1f0959ed4c5) VERIFIED. Pair `setup-benny-existing-no-automate-1` (cursor 7f533016-def9-48db-9e2b-9f53ce47c127, pi 0564c7c5-740d-48f0-b4ad-011d9422e558). Verified PSTACK-SETUP-BENNY-EXISTING-NO-AUTOMATE-001 (77/98). Editor UI save unpaid. Open mismatches unchanged (5).
+### 2026-10-08 checkpoint (prin-minimize-reader)
+
+[Capture prin-minimize-reader](8e7c87a2-96f3-464a-980b-917b02474c07) VERIFIED. Pair `prin-minimize-reader-1` (cursor a0563963-92bc-4f7d-b63d-37051663e79b, pi f698e8a7-1dbd-46cb-96d2-7ecaabbebaeb). Verified PSTACK-PRIN-MINIMIZE-READER-001 (78/98). Open mismatches unchanged (5).
+### 2026-10-08 checkpoint (benny creation-boundary blocker)
+
+[Capture benny creation-boundary](5c1094ca-7e48-4a69-9a26-185b524f1d75) blocker. Attempts cursor d6992fb0-3759-474f-b1da-dafa9e13fde8 / pi cd378e36-ef2e-4810-ae5d-74a5169f204c. Opened SETUP-BENNY-CREATION-BOUNDARY-ENV. PSTACK-SETUP-BENNY-CREATION-BOUNDARY-001 stays unverified. Verified still 78/98. Open mismatches now 6.
+### 2026-10-08 checkpoint (prin-boundary + model-domain)
+
+[Capture prin-boundary](db057c65-4cfd-4312-ac6d-e1217854d2e0) VERIFIED. Pair `prin-boundary-1` (cursor f9bbb2d6-e5b4-47e2-b4f0-91b03291f4b9, pi d8c69f86-0236-4851-a2c0-1a911175877e). [Capture prin-model-domain](c9096135-0649-421e-8f77-831adcf0793c) VERIFIED. Pair `prin-model-domain-1` (cursor 5b46963a-1d66-4053-a9c8-4f4e8037ae9d, pi 3ac75dad-b288-4b1e-b104-2b234865575b). Verified count 80/98. Open mismatches unchanged (6).
+### 2026-10-08 checkpoint (prin-migrate-delete)
+
+[Capture prin-migrate-delete](4c4066eb-67ce-4cf4-af5f-d4db3315db21) VERIFIED. Pair `prin-migrate-delete-1` (cursor 358649f2-255f-4700-9f7f-443f53f771eb, pi 00a3375f-c96c-4f68-bb47-8cd357376365). Verified PSTACK-PRIN-MIGRATE-DELETE-001 (81/98). Open mismatches unchanged (6).
+### 2026-10-08 checkpoint (prin-subtract-first)
+
+[Capture prin-subtract-first](4c36d0e8-76c4-415b-9904-15ada2867550) VERIFIED. Pair `prin-subtract-first-1` (cursor 8ff2e73a-52d1-4d2c-a601-bed33a6bec3d, pi 949c5a02-da60-4b0d-8838-d6ccf3b7914a). Verified PSTACK-PRIN-SUBTRACT-FIRST-001 (82/98). Open mismatches unchanged (6).
+### 2026-10-08 checkpoint (prin-attack-premise)
+
+[Capture prin-attack-premise](017588ca-b1d6-4089-b698-08ec293c8542) VERIFIED. Pair `prin-attack-premise-1` (cursor 57e687cf-f41b-46bc-a084-493c3a40fc61, pi 4f10f963-4a6b-4535-a836-9a6971c045a9). Verified PSTACK-PRIN-ATTACK-PREMISE-001 (83/98). Open mismatches unchanged (6).
+### 2026-10-08 checkpoint (prin-encode-structure)
+
+Shell capture `935041` VERIFIED. Pair `prin-encode-structure-1` (cursor 28d00da4-064a-466a-ae71-2d1f249fb6cd, pi fa41db21-da46-4503-b8dc-35d69586e835). Verified PSTACK-PRIN-ENCODE-STRUCTURE-001 (84/98). Open mismatches unchanged (6).
+### 2026-10-08 checkpoint (prin-idempotent)
+
+[Capture prin-idempotent](a60c843a-4a24-4dd9-894a-aad8cb736f72) VERIFIED. Pair `prin-idempotent-1` (cursor fef5e774-50d6-4214-9d76-6228f155b229, pi 4e21a4e0-18c1-42e8-b286-6779858d9fe1). Verified PSTACK-PRIN-IDEMPOTENT-001 (85/98). Open mismatches unchanged (6).
+### 2026-10-08 checkpoint (cmd-comment-sicko-first-output scenario link)
+
+Linked scenario `cmd-comment-sicko-first-output` to existing verified pair `parity/evidence/no-comments/pair-no-comments-sicko-2.json` (cursor f4cd66ea-5fcd-49fc-aa35-9789e6fcfddc, pi c0cf9e02-9dd1-4c47-961a-b5a4d4029003). Requirements already verified-pass-paired; clears SCENARIO_PAIR_MISSING only.
+### 2026-10-08 checkpoint (prin-outcome-oriented)
+
+[Capture prin-outcome-oriented](10e45fda-10f9-47d5-90b9-10633abbc463) VERIFIED. Pair `prin-outcome-oriented-1` (cursor 342ef99a-aa7a-41b2-9cea-1fad66a4e714, pi df45bc1d-780c-410a-9475-a41c2bde9e1e). Verified PSTACK-PRIN-OUTCOME-ORIENTED-001 (86/98). Open mismatches unchanged (6).
+### 2026-10-08 checkpoint (dep-closure-wave-008)
+
+[Dep closure wave-008](29d5960e-1c13-4a61-bcfa-3f0041a1474c) MERGED. Resolved edge cursor-pstack→cursor-team-kit (29/29 custody). 0 refs closed; unresolvedReferences refreshed to 8 (+team-kit journeys, +cli-host persistent-mode). completeDependencyClosure remains false. Report: parity/briefs/reports/u-dep-closure-wave-008-report.md.
+### 2026-10-08 checkpoint (prin-exhaust-design)
+
+Shell capture `275528` VERIFIED. Pair `prin-exhaust-design-1` (cursor c51f3304-680f-49c6-8b30-e387a5bbae7c, pi b0270896-62fc-40a8-8f26-c29164b1976a). Verified PSTACK-PRIN-EXHAUST-DESIGN-001 (87/98). Open mismatches unchanged (6).
+### 2026-10-08 checkpoint (prin-experience-first)
+
+[Capture prin-experience-first](b71a8d07-1d75-4378-a93a-a6ac9a6b44fc) VERIFIED. Pair `prin-experience-first-1` (cursor c4dcc551-833e-46ee-bffc-651864b86bf7, pi 624b7baf-b01d-424d-9dac-3b9c39828a79). Verified PSTACK-PRIN-EXPERIENCE-FIRST-001 (88/98). Open mismatches unchanged (6).
+### 2026-10-08 checkpoint (prin-explain-number)
+
+Shell capture `576861` VERIFIED. Pair `prin-explain-number-1` (cursor 0adb3d89-a142-4c2a-9487-4209954140ef, pi 029fedbc-568d-499e-ba31-1da197a2d866). Verified PSTACK-PRIN-EXPLAIN-NUMBER-001 (89/98). Open mismatches unchanged (6).
+### 2026-10-08 checkpoint (prin-guard-context)
+
+Shell capture `218103` VERIFIED. Pair `prin-guard-context-1` (cursor 6910fcce-9e65-4d40-830e-fcf478d32991, pi bd5cb492-a2b8-4650-ac59-173e2038bf90). Verified PSTACK-PRIN-GUARD-CONTEXT-001 (90/98). Open mismatches unchanged (6).
+### 2026-10-08 checkpoint (prin-separate-state)
+
+[Capture prin-separate-state](e31b9e64-39b9-4788-944d-64ad6508430f) VERIFIED. Pair `prin-separate-state-1` (cursor f8041da0-089d-4161-b775-e5fb91c488e3, pi 3b9d8593-e469-4816-a7e2-751bf90e51bf). Verified PSTACK-PRIN-SEPARATE-STATE-001 (91/98). Open mismatches unchanged (6).
+### 2026-10-08 checkpoint (prin-redesign-first)
+
+Shell capture `815802` VERIFIED. Pair `prin-redesign-first-1` (cursor dcb80bb4-cf3a-4a78-a9b1-df6f0a0aa370, pi e297cc00-bdd7-4b7b-a489-e7a267dc328a). Verified PSTACK-PRIN-REDESIGN-FIRST-001 (92/98). Last principle closed. Remaining unpaid: PSTACK-MODE-STICKY-001, PSTACK-CMD-BENNY-TRIAGE-THREAD-ONLY-001, PSTACK-CMD-MAKE-BOT-UI-KEY-SERVER-001, PSTACK-SETUP-GROK-XHIGH-CAP-001, PSTACK-SETUP-BENNY-CREATION-BOUNDARY-001, PSTACK-SETUP-BENNY-THREAD-SAFETY-001. Open mismatches unchanged (6).
+### 2026-10-08 checkpoint (prin-guard-context pi-rerun)
+
+Shell `218104` Pi-only re-run replaced Pi `b5f36281-63a5-4572-8efc-4af4f27a7627` → `b5f36281-63a5-4572-8efc-4af4f27a7627` (real child subagent). Cursor `6910fcce-9e65-4d40-830e-fcf478d32991` kept.
+### 2026-10-08 checkpoint (benny blocker scenario links)
+
+Linked `setup-benny-creation-boundary` pairId to env-blocker pair (cursor d6992fb0, pi cd378e36). Linked `setup-benny-thread-safety` to honest blocker pair with null attempts (probe-only). Requirements remain unverified; clears SCENARIO_PAIR_MISSING only.
+
+### 2026-10-08 checkpoint (grok-xhigh-cap pass)
+
+Imported existing Grok CLI OAuth into `/tmp/pi-ref-agent` xai; `pi auth check` ready. Pi recapture `94c9aab6-b015-44b7-8815-5cf6849f8025` pass (10/10 Grok→xhigh). Closed SETUP-GROK-XHIGH-CAP-PI; verified PSTACK-SETUP-GROK-XHIGH-CAP-001 with Cursor `faeae5d9-c831-4b7b-9f47-abad3ed21433`. Verified 93/98.
+
+### 2026-10-08 checkpoint (dep-closure-wave-009)
+
+[Dep closure wave-009](efb09b16-ddba-4345-b20d-8f6a6b6ea6f3) MERGED. 0 edges / 0 refs closed. unresolvedReferences refreshed to 9 (wave-009 evidence pointers). completeDependencyClosure remains false. Report: parity/briefs/reports/u-dep-closure-wave-009-report.md.
+
+### 2026-10-08 checkpoint (journey-family-13)
+
+Family-13 create-verify reuse pair already on disk (cursor 9a4dae62, pi fba64ade). Requirements CREATE-VERIFY-SKILL / GENERATE / FEATURE-MAP already verified-pass-paired. Scenario journey-family-13 status paired. Orch unit can mark done.
+
+### 2026-10-08 checkpoint (cursor-desktop-install)
+
+Installed `/Applications/Cursor.app` via `brew install --cask cursor` (3.24.9) to unblock Agents Window. Headless/agent session still cannot create `~/Library/Application Support/Cursor` or screencapture; CDP did not bind. Sticky/Automations remain operator/display-bound. Agents Window report: exhaustive-negative host-blocked (updated host now has binary).
+
+### 2026-10-08 checkpoint (create-skill phase-3)
+
+Create-skill Phase 3 Implementation pair `create-skill-impl-1` pass (cursor 67eb4a01, pi f4c14017). Discovery/Design/Verification still open — create-skill unresolvedReference remains. Follow-up brief `u-dep-create-skill-phases-rest-001` in flight.
+
+### 2026-10-08 checkpoint (acceptance-definitions-regen)
+
+[Regen acceptance definition bytes](f78c1ee1-52a9-44c0-95ab-10d50915a72c) published live-98 projection at `parity/acceptance/setup-pstack/`. definitions sha256 `e576101783702498af089397c1fea80b8b688fd303a3ec78f8df5e6e66a1afe5`, configurations sha256 `9eea368548c2d990e426c6a8466a0a8d03e98bd8436e639eaefa6d838a8d8a4e` (98/98 IDs). Owner null; `acceptanceDefinitionsFrozen` remains false; external custody still FAIL. Does not authorize freeze. Report: `parity/briefs/reports/u-acceptance-definitions-regen-001-report.md`.
+
+### 2026-10-08 checkpoint (consumer-orch-help)
+
+[Consumer paired journeys](9389a92a-2b3d-4b3c-9499-0abdd3171b2b) closed 1/6 matrix row (`npm:commander@14.0.0` via orch --help). Pair `consumer-orch-help-1` (cursor 076e12b0, pi 18ec805b). Consumer unresolvedReference remains (5 open). Report: `parity/briefs/reports/u-dep-consumer-journeys-001-report.md`.
+
+### 2026-10-08 checkpoint (bun-pin-absent-in-source)
+
+[Bun pin terminal disposition](df9651bd-5196-49e9-9d0a-99707fd3613d) MERGED. Closed Bun unresolvedReference as `absent-in-source` (no engines/packageManager/.bun-version under tools). unresolvedReferences 9→8. completeDependencyClosure remains false.
+
+### 2026-10-08 checkpoint (consumer-typecheck)
+
+Consumer typecheck PTY capture succeeded. Pair `consumer-typecheck-1` (cursor 7aecba32-e4a1-49a3-b9cd-63e418d531ac, pi 08917c07-ed54-41ac-86df-6586133d009d). Matrix now 2/6 closed. Consumer unresolvedReference remains.
+
+### 2026-10-08 checkpoint (recursive-runtime-audit)
+
+[Recursive runtime audit](1e6b5548-aa8f-4f3a-8ea8-40489455ad47) MERGED. Closed recursive unresolvedReference (176 refs: 12 fetched+hashed, 164 classified-non-fetchable, 0 blocked). Live integrations / Automations-Slack exercise unchanged. unresolvedReferences 8→7. completeDependencyClosure remains false.
+
+### 2026-10-08 checkpoint (consumer-watch-pr-help)
+
+Consumer watch-pr --help PTY capture succeeded. Pair `consumer-watch-pr-help-1` (cursor fb68af79-fb9e-4e2e-b665-f01ed3cdede2, pi bbb6f903-9a40-46a1-9f97-50d5ed85512e). Matrix now 3/6 closed.
+
+### 2026-10-08 checkpoint (consumer-journeys-002)
+
+[Consumer journeys wave 002](b11a5beb-3016-47d2-940b-ee22132c83a8) closed typecheck + watch-pr-help (already merged from capture shells). Matrix 3/6. Report: `parity/briefs/reports/u-dep-consumer-journeys-002-report.md`.
+
+### 2026-10-08 checkpoint (create-skill-all-phases)
+
+[Create-skill remaining phases](e2fd943e-b624-4876-ba1d-b371503de3e6) MERGED. Discovery/Design/Verification pairs pass; Implementation already closed. Removed create-skill unresolvedReference. unresolvedReferences 7→6. completeDependencyClosure remains false.
+### 2026-10-08 checkpoint (family-13 orch done)
+
+Marked orch unit `u-journey-family-13` done (create-verify reuse pair already verified; requirements CREATE-VERIFY-* already verified-pass-paired).
+
+### 2026-10-08 checkpoint (dep-ref-dedup-host-edges)
+
+Deduped unresolvedReferences that restated open host/persistent-mode edges (removed 2). Edges remain unresolved/unverified. unresolvedReferences 6→4. completeDependencyClosure remains false.
+
+### 2026-10-08 checkpoint (typescript-deep-001)
+
+[TypeScript deep-semantics disposition](cbf45de3-90cd-49c4-9c01-c20cc63f8c35) MERGED as still-open (evidence pointer refresh only; no ref removed). catalogHashDriftCount=0; no compiler-test oracle. completeDependencyClosure remains false.
+
+### 2026-10-08 checkpoint (consumer-bun-test)
+
+Consumer bun-test PTY capture succeeded. Pair `consumer-bun-test-1` (cursor 607e4ca2-6c4c-466c-9af5-e930f9b84fb8, pi 81a09133-81b4-46e9-8266-0c0617aab431). Matrix now 5/6 closed.
+
+### 2026-10-08 checkpoint (consumer-matrix-complete)
+
+Consumer bootstrap-install PTY capture succeeded. Pair `consumer-bootstrap-install-1` (cursor 86de8b3f-95da-47f3-ac6f-c2575543249f, pi 4d9f3f54-35b9-4b22-ab6c-936056420a67). All 6/6 consumer matrix rows closed; removed consumer unresolvedReference. unresolvedReferences 4→3. completeDependencyClosure remains false.
+
+### 2026-10-08 checkpoint (team-kit-verify-this)
+
+[Team-kit skill journeys](7da52da8-b162-47c9-bc25-65edffa08f9a) closed verify-this (1/18). Pair cursor abb96d2b-c7d7-4012-9f4d-956e4e605743, pi 8f04dd82-a425-474f-95dc-b1a005c43169. team-kit unresolvedReference remains. Report: `parity/briefs/reports/u-dep-team-kit-journeys-001-report.md`.
+
+### 2026-10-08 checkpoint (live-integrations-narrow)
+
+[Live integrations disposition](e286e7e2-b6ef-45f1-a03e-a0bea8ee8607) MERGED as narrow-only (cannot close). 416 items: a=275, b=119, c=22. unresolvedReference text refreshed; still open on Benny/Slack/Automations/make-bot/third-party. completeDependencyClosure remains false.
+### 2026-10-08 checkpoint (consumer-journeys-003)
+
+[Consumer journeys wave 003](c01c0853-c475-415d-be87-49ae1b4aed49) confirmed 6/6 (bun-test + bootstrap already merged from capture shells). Consumer unresolvedReference already removed. Report: `parity/briefs/reports/u-dep-consumer-journeys-003-report.md`.
+
+### 2026-10-08 checkpoint (team-kit-journeys-003)
+
+[Team-kit GitHub-bound journeys](3db3cbdc-b412-4de0-bc7e-fd828b758edb) + wave-002 local pairs on disk: **8/18** closed. New GH skills: get-pr-comments, make-pr-easy-to-review, new-branch-and-pr. Fixture https://github.com/just-joshn/team-kit-gh-fixture/pull/1. team-kit unresolvedReference remains. Remaining: control-ui, fix-ci, loop-on-ci, pr-review-canvas, review-and-ship, run-smoke-tests, thermo-nuclear-code-quality-review, weekly-review, what-did-i-get-done, workflow-from-chats.
+
+### 2026-10-08 checkpoint (typescript-oracle-suite)
+
+[TypeScript compiler-test oracle](7ec72e80-e6be-4cbc-9ed8-2fc16f1e2056) MERGED closed-with-oracle. Pin microsoft/typescript-go@2bd066d; test:api 459/459; 136/136 dist hashes match published. Removed typescript deep-semantics unresolvedReference. unresolvedReferences 3→2. completeDependencyClosure remains false.
+### 2026-10-08 checkpoint (team-kit-weekly-review)
+
+weekly-review pair pass (cursor 94f72e17, pi 46e6a5ce). Team-kit now **10/18**. Remaining: control-ui, fix-ci, loop-on-ci, pr-review-canvas, review-and-ship, run-smoke-tests, thermo-nuclear-code-quality-review, workflow-from-chats.
+### 2026-10-08 checkpoint (team-kit-journeys-002)
+
+[Team-kit journeys wave 002](94d7cab2-34bc-49ea-b06c-0bf0102f5885) merged. On-disk pass pairs **11/18**. Remaining: control-ui, fix-ci, loop-on-ci, pr-review-canvas, review-and-ship, run-smoke-tests, workflow-from-chats.
+
+### 2026-10-08 checkpoint (team-kit-journeys-004)
+
+[Team-kit journeys wave 004](583ba8d9-ed39-4e87-808d-b2a70a66f1ab) MERGED. **18/18** named cursor-team-kit skills have on-disk Cursor+Pi pass pairs (`verdict: pass` + `skillClosure: closed_by_this_pair`). Newly closed this wave: control-ui, fix-ci, loop-on-ci, pr-review-canvas, review-and-ship, run-smoke-tests, thermo-nuclear-code-quality-review, weekly-review, what-did-i-get-done, workflow-from-chats. fix-ci/loop-on-ci used real failing then green fixture CI (PRs 7–10). team-kit unresolvedReference removed. completeDependencyClosure remains false (live-integrations ref + host edges). Report: `parity/briefs/reports/u-dep-team-kit-journeys-004-report.md`.
+
+### 2026-10-08 checkpoint (host-edges-terminal-001)
+
+[Host edges terminal disposition](7ebdb72e-2289-47b2-ae0d-017cb8f7b354) MERGED as keep-open. Verdict `none-honestly-resolvable`. No edge status changes. Computer Use helper still absent; Enterprise live observation still missing; persistent-mode still exhaustive-negative (`glass_custom_modes` off). Merge payload explicit none. completeDependencyClosure remains false. Report: `parity/briefs/reports/u-dep-host-edges-terminal-001-report.md`.
+
+### 2026-10-08 checkpoint (mode-sticky-cursor-app-001)
+
+[Sticky Cursor.app re-probe](479e24ee-c3b2-4685-8f56-08296a344172) MERGED as env-blocked. Cursor.app present (/Applications/Cursor.app 3.24.9); prior “app absent” obsolete. Sticky Custom Mode still unreachable (DISPLAY empty, screencapture fail, CDP closed, IDE signed-out, glass_custom_modes not observable). No Cursor success attempt ID. MODE-STICKY-CURSOR-CUSTOM-MODE-HARNESS stays open. Report: `parity/briefs/reports/u-mode-sticky-cursor-app-001-report.md`.
+
+### 2026-10-08 checkpoint (acceptance-freeze-prep-002)
+
+[Acceptance freeze re-prep](944b8387-fdc1-4bae-be2d-4f26ed764300) MERGED as BLOCKED. Live-98 DRAFT digests present and match (`e5761017…` / `9eea3685…`); coverage denominator complete. Custody 4 pass / 4 fail (independent owner, external custody, freeze authorization, supporting verifier). Do not set `acceptanceDefinitionsFrozen`. Gate remains parked for operator external custody. Report: `parity/briefs/reports/u-acceptance-freeze-prep-002-report.md`.
+
+### 2026-10-08 checkpoint (orch-inbox-refresh-20261009T0346)
+
+Orch inbox refreshed (`inbox/20261009T034630Z-completion-still-blocked.md`). Status: family-13 marked done; open gates enumerated (custody, glass_custom_modes, benny×2, make-bot). Acceptance verifier repair spawned against `/private/tmp/pi-pstack-parity-acceptance-owner`. Goal still unmet at 93/98 BLOCKED.
+
+### 2026-10-08 checkpoint (acceptance-verifier-repair-001)
+
+[Acceptance verifier repair](891d157c-cdc2-4ac4-8f27-9ab814c180a5) MERGED in owner worktree `/private/tmp/pi-pstack-parity-acceptance-owner`. All four triage defects closed (symlink already fixed; ledger byte pin, invalid locator, missing pin arg fixed). Oracle defs/configs unchanged (`e4e84566…` / `3755a291…`). Tool `26c51417…`. Authorization NONE. Do not flip supporting-verifier-safe or freeze until independent re-review. Report: `parity/briefs/reports/u-acceptance-verifier-repair-001-report.md`.
+
+### 2026-10-08 checkpoint (acceptance-verifier-rereview-001)
+
+[Independent verifier re-review](3b263aad-a606-47c2-9d8e-7f6f5b8b61f6) MERGED: supporting-verifier-safe stays FAIL. Defects 2–4 CLOSED; defect 1 STILL-OPEN (symlinked `setup-pstack` parent and hardlinked `MANIFEST.sha256` still write outside root with exit 0). Replay: `parity/research/acceptance-verifier-rereview-001/replay.sh`. Report: `parity/briefs/reports/u-acceptance-verifier-rereview-001-report.md`.
+
+### 2026-10-08 checkpoint (acceptance-verifier-containment-001)
+
+[Verifier containment repair](47d06b0e-7a24-4834-a64f-c128daf15afa) MERGED in owner worktree. Symlinked output parents + hardlinked outputs refused before write; `listFiles` no longer follows dir symlinks. Tool `5a33e1d4…1aa7`. Oracle defs/configs unchanged. Authorization NONE. Do not flip supporting-verifier-safe until independent re-review of this digest. Report: `parity/briefs/reports/u-acceptance-verifier-containment-001-report.md`.
+
+### 2026-10-08 checkpoint (acceptance-verifier-rereview-002)
+
+[Verifier custody re-check](2e9d8a07-9ad9-4e55-9b75-114edb626006) MERGED. Flip **yes** for `supporting-verifier-safe-for-custody` (write confinement only) at tool digest `5a33e1d4…1aa7`. freeze-prep-002 now **5 pass / 3 fail**. Still BLOCKED: independent owner, external custody, authorization. Do not set `acceptanceDefinitionsFrozen`. Report: `parity/briefs/reports/u-acceptance-verifier-rereview-002-report.md`.
+
+### 2026-10-08 checkpoint (computer-use-probe-001)
+
+Computer Use helper downloaded via `cursor-agent worker --computer-use start` to `~/.cursor/cursor-computer-use/Cursor Computer Use.app`. Worker still Ready=no (Accessibility/Screen Recording grants + GUI session required). Edge `cursor-cli-host→cursor-self-hosted-computer-use` stays unresolved. Disposition: `parity/research/dep-computer-use-probe-001/disposition.json`.
+
+### 2026-10-08 checkpoint (acceptance-live98-verifier-bridge-001)
+
+[Live-98 verifier bridge](14899e27-c6c9-4ff9-a07f-950e9f63d992) MERGED. Byte-identical confinement-safe verifier landed at `parity/acceptance/tools/` (digest `5a33e1d4…1aa7`). Live-98 oracles unchanged (`e5761017…` / `9eea3685…`). Scoped selftest passed via historical ACC-SETUP fixture. No re-review required for identical digest. Live-98 structural verify still needs schema-aware packaging (follow-on). No freeze. Report: `parity/briefs/reports/u-acceptance-live98-verifier-bridge-001-report.md`.
+
+### 2026-10-08 checkpoint (make-bot-pi-complete-001)
+
+[Pi make-bot complete-half](76187639-8263-435c-91ff-65f9ca94a2f7) MERGED. Pi attempt `e75f8e08-0d8c-4d55-ad3f-6946c405bbaf` reached `key_server_ok` (prepare → hidden secret init → enable → probe HTTP 200). Cursor remains `host_blocked` (`bb50ed1b`). MAKE-BOT-UI-KEY-SERVER-HOST stays open. Report: `parity/briefs/reports/u-journey-cmd-make-bot-pi-complete-001-report.md`.
+
+### 2026-10-08 checkpoint (computer-use-exercise-001)
+
+Computer Use app Ready=yes; Cursor Agent Helper installed (`0.1.0-2d0725c`). Desktop share still Ready=no — Accessibility=no, Screen Recording=no (GUI session yes). AppleScript assistive access denied. No live exercise attempt ID. Edge stays unresolved. Orch gate `computer-use-tcc-grants` opened. Disposition: `parity/research/dep-computer-use-exercise-001/disposition.json`.
+
+### 2026-10-08 checkpoint (acceptance-live98-schema-001)
+
+[Live-98 schema verify](ddc47d5c-dacc-414f-a0c2-78a7df7fc72a) MERGED. Project-then-verify adapter: structural PASS over live-98 (98 defs), `authorization: NONE`. Oracles unchanged; reviewed tool digest unchanged (`5a33e1d4…`). No freeze. Report: `parity/briefs/reports/u-acceptance-live98-schema-001-report.md`.
+
+### 2026-10-08 checkpoint (benny-env-unblock-001)
+
+[Benny Slack env alternatives](9a37770f-5467-428b-a93f-7a8d3fc2bf74) MERGED as keep-open. All three Benny env probes still not runnable (no benny config, no bot token, Slack MCP needsAuth, Automations editor host gap). Checklist: `parity/research/benny-env-unblock-001/operator-grant-checklist.md`. Report: `parity/briefs/reports/u-benny-env-unblock-001-report.md`.
+
+### 2026-10-08 checkpoint (computer-use-tcc-wrong-apps-001)
+
+Post-Ghostty-restart probe: Computer use Ready=yes; desktop share still Ready=no. Worker warnings: Accessibility/Screen Recording **not** granted to Cursor Agent Helper; Computer Use needs grants on **Cursor Computer Use** (not Terminal/Cursor/Agent Helper alone). Disposition: `parity/research/dep-computer-use-exercise-001/disposition-after-restart.json`.
+
+### 2026-10-08 checkpoint (computer-use-live-001)
+
+[Computer Use live exercise](6fef9d68-23fa-4f73-860d-30bb12f0f5c4) MERGED. Local live control proven via Agent Helper MCP (TextEdit marker + before/after screens). Desktop share Ready=yes. Cloud claim attempt IDs unavailable (API 401). Edge `cursor-cli-host→cursor-self-hosted-computer-use` stays unresolved. Report: `parity/briefs/reports/u-dep-computer-use-live-001-report.md`.
+
+### 2026-10-09 checkpoint (mode-sticky-desktop-ready-001)
+
+[Sticky Agents Window capture](6d99a963-4fb0-42ba-b002-89e433aaafbf) MERGED pass-paired. Cursor attempt `521ce15e-a8f8-4f74-8fec-208ceddb7603` (Agents Window `/poteto-mode` → `alt+Return` Use as Mode; crown held across follow-up). Pi `96494327-f90c-470a-8e11-cf7c5b6cad89` revalidated. Closed `MODE-STICKY-CURSOR-CUSTOM-MODE-HARNESS`. Verified `PSTACK-MODE-STICKY-001` (**94/98**). Resolved `cursor-pstack→cursor-cli-host` persistent-mode edge (CLI `glass_custom_modes` still off; requirement satisfied via Agents Window). Open mismatches now: Benny×3 + make-bot. Report: `parity/briefs/reports/u-mode-sticky-desktop-ready-001-report.md`.
+
+2026-10-09T06:34:57Z
+
+### 2026-10-09 checkpoint (source-lock notes + desktop Automations spawn)
+
+Refreshed `source-lock.json` completeDependencyClosureNote (still false). Sticky MODE closed earlier (94/98). Spawning desktop Automations unit (Benny creation-boundary + make-bot Cursor) and CU cloud-claim probe. Slack/Benny tokens still absent; Slack MCP needsAuth.
+
+### 2026-10-09 checkpoint (journey sticky spelling + poteto-help nouns)
+
+Fixed no-workers mode/resume journeys to use `/poteto-mode sticky` after plain-enter one-message semantics. Removed Reference `Cursor` nouns from poteto-help generated rows. `verify-journeys --no-workers` 538/0. Targeted vitest green. Desktop Automations + CU cloud-claim + operator-gates agents still in flight.
+
+### 2026-10-09 checkpoint (cu-cloud-claim + operator-gates)
+
+[CU cloud claim probe](b0c85d5d-2bae-40b6-a31c-eb6436ff3371) MERGED keep-open. Ready=yes; `CURSOR_API_KEY` unset; session JWT → 401; attempt IDs none; `setStatusResolved=false`. Edge stays unresolved. Report: `parity/briefs/reports/u-dep-cu-cloud-claim-001-report.md`.
+
+[Operator remaining gates](ff23af59-f4bc-44c6-8807-6fe8a3a306e9) MERGED as checklist only (11 grants G1–G11). No ledger flips. Report: `parity/briefs/reports/u-operator-remaining-gates-001-report.md`. Automations desktop unit still in flight.
+
+### 2026-10-09 checkpoint (automations-desktop-001)
+
+[Automations desktop path](ec6f694d-7761-4f5a-b788-222aa431441a) MERGED keep-open. Desktop Ready. Agents Window `/automate` + Open Automations list (`be874194` / `16a11cc9`); New Automation editor unpaid. `/make-bot-ui` chrome (`ecac27a8`) without `update_state`/Routines (`1e5149f4`). Pi make-bot half kept `e75f8e08`. Both mismatches stay open. Report: `parity/briefs/reports/u-automations-desktop-001-report.md`.
+
+### 2026-10-09 checkpoint (vitest green after sticky journeys)
+
+Full `bunx vitest run` in `extensions/pi-pstack`: **218 passed** / 2256 tests (1 skipped). Spawning New Automation editor-only probe and enterprise observe units.
+
+### 2026-10-09 checkpoint (enterprise-observe-001)
+
+[Enterprise policy observe](a2b8f9da-4aa6-4059-9dab-522c5554176f) MERGED keep-open. Live Pro+ / `no-team`; no Model Providers or Groups policy witnessable. Edge stays unresolved (G2 unpaid). Report: `parity/briefs/reports/u-dep-enterprise-observe-001-report.md`. New Automation editor probe still in flight.
+
+### 2026-10-09 checkpoint (automations-new-editor-001)
+
+[New Automation editor probe](3725a7a0-10d6-4f20-8192-37c597349b7e) MERGED keep-open. Attempt `5a404316`. Ready=yes. element_index/xy/keyboard paths stayed on Automations list; no draft editor chrome. SETUP-BENNY-CREATION-BOUNDARY-ENV stays open (operator manual New Automation click + save still unpaid). Report: `parity/briefs/reports/u-automations-new-editor-001-report.md`.
+
+### 2026-10-09 checkpoint (web automations + custody pack spawn)
+
+Agents Window New Automation exhaustive-negative (`5a404316`). Slack MCP `mcp_auth` unavailable outside Cursor desktop IDE (G6). Spawning web Automations editor probe and acceptance custody pack (no freeze / no invented owner).
+
+### 2026-10-09 checkpoint (acceptance-custody-pack-001)
+
+[Acceptance custody pack](df6aa59b-54f2-49be-8d4b-cc50b9f603e2) MERGED as operator handoff only. Digests match live-98 (`e5761017…` / `9eea3685…`). `verify-custody-pack.sh` PASS on pack / FAIL on mutate. Did **not** set `acceptanceDefinitionsFrozen` or invent an owner. G3 still unpaid. Pack: `parity/research/acceptance-custody-pack-001/`. Web Automations editor unit still in flight.
+
+### 2026-10-09 checkpoint (automations-web-editor-001)
+
+[Web Automations editor path](40bb1fd1-ff33-4cf2-9593-9edd5cae8e6f) MERGED keep-open. Attempt `b2ef3452`. Authenticated `cursor.com/automations` list reached; New Automation scripted entry failed (no AXPress). Same shape as Agents Window `5a404316`. SETUP-BENNY-CREATION-BOUNDARY-ENV stays open. Report: `parity/briefs/reports/u-automations-web-editor-001-report.md`.
+
+### 2026-10-09 checkpoint (operator unblock required)
+
+Chrome Automations New Automation helper drive (`ac89acf3`) also stayed on list. Agents Window + web + Chrome scripted paths are exhausted for editor chrome. Package green (218/2256 vitest; pack dry-run). Completion remains **BLOCKED** on operator grants G1–G11. Inbox: `parity/orch-inbox/20261009T070900Z-operator-unblock-required.md`.
+
+### 2026-10-09 checkpoint (automations /new URL editor)
+
+Direct URL `https://cursor.com/automations/new` opens Automations editor chrome (attempt `f6e29fb7`, Untitled/Inactive, Save not pressed). New Automation *button* paths remain exhaustive-negative. SETUP-BENNY-CREATION-BOUNDARY-ENV stays open until `/automate` handoff is proven; editor host is no longer unreachable.
+
+### 2026-10-09 checkpoint (creation-boundary env closed)
+
+[Automate skill editor handoff](cc426b51-c6f6-4637-a4b4-cc211bbb496c) MERGED. Closed `SETUP-BENNY-CREATION-BOUNDARY-ENV` as **closed-env-resolved** (handoff `b60a705b`, URL editor `f6e29fb7`). `PSTACK-SETUP-BENNY-CREATION-BOUNDARY-001` stays **unverified** until Benny-specific paired finish. Discard Inactive drafts if unwanted. Open mismatches now: Benny triage, make-bot, thread-safety.
+
+### 2026-10-09 checkpoint (make-bot automations editor)
+
+[Make-bot Automations editor](f81256ee-cc23-4fc9-a164-288b1f87452f) MERGED keep-open. Webhook create via `/automate` (`c345b7ed`): Incoming HTTP webhook + editor URL + Generate auth header; Save/Activate not pressed; leak scan clean. Cursor `key_server_ok` still unpaid (auth header + server store + probe). Pi half kept `e75f8e08`. MAKE-BOT-UI-KEY-SERVER-HOST stays open. Report: `parity/briefs/reports/u-make-bot-automations-editor-001-report.md`.
+
+### 2026-10-09 checkpoint (benny creation handoff)
+
+[Benny creation handoff](9bf34595-7bc2-4631-85e3-1bce8d754689) MERGED keep-unverified. Cursor `/automate` produced Inactive `benny-triage` in Mine list (`e11d7225`); same-frame editor title chrome unpaid; Pi editor still blocked (`cd378e36`). `PSTACK-SETUP-BENNY-CREATION-BOUNDARY-001` stays unverified. Discard Inactive drafts if unwanted. Report: `parity/briefs/reports/u-journey-setup-benny-creation-handoff-001-report.md`.
+
+### 2026-10-09 checkpoint (make-bot auth header probe)
+
+[Make-bot auth header probe](3c6da6b5-ddfd-467e-bb02-4ea7e9e87cbd) MERGED keep-open. Cursor `host_blocked`: live `/automate` webhook handoff prefill-parse error (`beb9d748`); Save did not materialize Generate (`b0e3b61a`); no key store/probe. Prior Generate-visible witness `c345b7ed` kept. Pi `e75f8e08` kept. MAKE-BOT-UI-KEY-SERVER-HOST stays open. Report: `parity/briefs/reports/u-make-bot-auth-header-probe-001-report.md`.
+
+### 2026-10-09 checkpoint (post-restart)
+
+Operator inbox refreshed (`parity/orch-inbox/20261009T075500Z-operator-unblock-required.md`): G9 narrowed (editor reachable). Spawned make-bot auth-header retry after TCC restart. Still 94/98; open mismatches: triage, make-bot, thread-safety.
+
+### 2026-10-09 checkpoint (make-bot auth retry)
+
+[Make-bot auth retry](25e58430-c87b-4a99-bea8-4937394bb72f) MERGED keep-open. Post-TCC still Untitled prefill-blocked (`67bfeab7` / `cfb6dd2b`); `parity-webhook-witness` absent from list OCR; helper xy frontmost failures. Operator human discard/open still required. Pi `e75f8e08` kept. Report: `parity/briefs/reports/u-make-bot-auth-header-retry-001-report.md`.
+
+### 2026-10-09 checkpoint (benny editor title)
+
+[Benny editor title](9beeec57-402b-4b6b-93b8-ad210359e834) MERGED keep-unverified. Cursor same-frame `benny-triage` editor paid (`475ab346` / re-verify `2c525e93`). Live reopen blocked by screen lock (`fdd603d5`). Pi still editor-blocked (`cd378e36`). `PSTACK-SETUP-BENNY-CREATION-BOUNDARY-001` stays unverified. Report: `parity/briefs/reports/u-journey-setup-benny-editor-title-001-report.md`.
+
+### 2026-10-09 checkpoint (benny creation Pi remeasure)
+
+[Pi creation-boundary Automations](4c1f5192-80f9-4cf7-a8fc-084e257b78f1) MERGED keep-unverified. Fresh Pi `f4c7eec5` env-blocked; probe `automationsEditorUiAvailableInPiPty=false`. Cursor half kept paid. Prefer keep-unverified over freeze. Report: `parity/briefs/reports/u-journey-setup-benny-creation-pi-001-report.md`.
+
+### 2026-10-09 checkpoint (make-bot auth unlock)
+
+[Make-bot auth post-unlock](ee1ee4d5-be97-4faa-b440-c5a0a9d4637f) MERGED keep-open. Console still locked (`IOConsoleLocked=Yes`); clicks hit loginwindow (`2bcf48b9`). Untitled + Unsaved modal uncleared. No Generate. Pi `e75f8e08` kept. Report: `parity/briefs/reports/u-make-bot-auth-header-unlock-001-report.md`.
+
+### 2026-10-09 checkpoint (console still locked)
+
+Re-measured `IOConsoleLocked=Yes` / `CGSSessionScreenIsLocked=Yes`. Desktop Automations (make-bot Generate) remains blocked. Inbox: `parity/orch-inbox/20261009T083700Z-console-unlock-required.md`. Re-ran `check-completion.mjs` to refresh gate after creation-boundary ENV close.
+
+### 2026-10-09 checkpoint (live-integrations-002)
+
+[Live-integrations disposition refresh](7c5aa322-9d0b-4d3b-a825-45afee87f099) MERGED narrow. Counts a=275 / b=115 / c=26. Creation-boundary ENV dropped from live blockers. unresolvedReference kept; completeDependencyClosure false. Report: `parity/briefs/reports/u-dep-live-integrations-002-report.md`.
+
+### 2026-10-09 checkpoint (creation-boundary freeze prep)
+
+[Creation-boundary freeze prep](a1880e24-0b5d-484e-8e76-29aea07e61b6) MERGED as proposal only. **Option A keep-unverified** (not Cursor-only freeze). Digests 24/24 PASS. `acceptanceDefinitionsFrozen` stays false. Report: `parity/briefs/reports/u-acceptance-creation-boundary-freeze-prep-001-report.md`. Console still `IOConsoleLocked=Yes`.
+
+### 2026-10-09 checkpoint (operator gates refresh 002)
+
+[Operator gates refresh](edf4f2c6-00eb-4706-bd65-a09413b6278a) MERGED as presence checklist. 13 blockers / 3 open mismatches / live-int b=115. Top actions: G10 unlock→Discard→Generate; G4–G8 Benny/Slack; G9 Save witness. Inbox: `parity/orch-inbox/20261009T085000Z-operator-gates-refresh-002.md`. Wait-unlock lever still polling (`IOConsoleLocked=Yes`).
+
+### 2026-10-09 checkpoint (wait-unlock active)
+
+Console still `IOConsoleLocked=Yes`. Wait-unlock lever PID polling (~3m+). Package slice vitest green (resources+skills-parity). Operator G10 remains top desktop unblock. Do not kill wait lever with a terminal restart until unlock completes or timeout.
+
+### 2026-10-09 checkpoint (CU blocker text)
+
+Aligned `cursor-self-hosted-computer-use` edge `blocker` string with local-live paid / cloud attempt IDs unpaid. Status remains unresolved. Wait-unlock lever still polling (`IOConsoleLocked=Yes`).
+
+### 2026-10-09 checkpoint (journeys green while locked)
+
+`verify-journeys.mjs --no-workers` exit 0 while console still locked. Wait-unlock lever alive. Desktop make-bot / Benny Slack paths still operator-gated (G10 unlock; G4–G8).
+
+### 2026-10-09 checkpoint (completion blocker accuracy)
+
+[Completion blocker accuracy audit](139a8c68-f90f-4348-8c2b-c7a187ce8bc0) MERGED. **No stale false-opens** among 13 blockers. Ordered next grants: G10 unlock→Generate, G4–G8 Benny/Slack, G9 Save, G1/G2, G11, G3. Report: `parity/briefs/reports/u-completion-blocker-accuracy-001-report.md`. Console still locked; wait-unlock alive.
+
+
+### 2026-10-09 checkpoint (commander closure)
+
+[Commander closure audit](93d0778a-25cd-485d-8d57-f4a6923a7b9e) MERGED. `npm:commander@14.0.0` `closureAudited=true` and `signatureAuthenticated=true` (openssl Verified OK against npm v1 keys). Hash verify VERIFIED (14 files + tarball + consumers). Third-party runtime deps: 0. `completeDependencyClosure` stays false; source-lock `status` stays incomplete; live-integrations + host edges unchanged. Report: `parity/briefs/reports/u-dep-commander-closure-001-report.md`.
+
+
+### 2026-10-09 checkpoint (wait open-Cursor + commander resolution)
+
+Wait-unlock lever restarted: after Login clears with zero Cursor windows, script runs `open -a Cursor` (≤1/20s). Staged follow-up brief `u-dep-live-integrations-003`. Finished commander node `resolution=resolved` / `piResolution=not-applicable-cursor-tools-subtree-only`. Still 13 blockers / 94/98; console locked.
+
+
+### 2026-10-09 checkpoint (auto probe on unlock)
+
+Wait-unlock lever now (1) opens Cursor after Login clears with zero windows and (2) runs `parity/research/make-bot-auth-header-post-unlock-002/probe-auth-header.py` by default when ready. Probe fails closed if console not ready. Still 94/98 / 13 blockers until unlock.
+
+
+### 2026-10-09 checkpoint (Pi tarball signature)
+
+Coordinator merged `u-dep-pi-tarball-sig-001`. Pi `@earendil-works/pi-coding-agent@1.1.0` `signatureAuthenticated=true` (openssl Verified OK; integrity matches lock). source-lock `status` stays incomplete; `completeDependencyClosure` false. Wait-unlock still polling.
+
+
+### 2026-10-09 checkpoint (commander tarball retrieval times)
+
+Recorded exact commander@14.0.0 tarball retrieval interval via hash-matched refetch (`tarballExactRetrievalTimesRecorded=true`). source-lock status remains incomplete; wait-unlock still polling.
+
+
+### 2026-10-09 checkpoint (Pi automate handoff design)
+
+[Pi automate handoff design](d34a23ed-4dd1-4620-b7dc-d5935e052200) MERGED as design-only. **Option B**: local `AutomationDraft` + `/automate` + TUI editor save disabled. Persistence `pstack-automations/{ownerHash}/{id}/`. Webhook `Routine*` stays separate. Requirement stays unverified (freeze-prep A). Next: `u-pi-automate-draft-scaffold-001`. Wait-unlock still polling.
+
+
+### 2026-10-09 checkpoint (Pi automate draft scaffold)
+
+[Pi automate draft scaffold](80739b7a-4010-45ec-9ca6-c435b3b0b4b7) MERGED. Shipped `AutomationDraft` store + tools + `skills/automate/SKILL.md`. Tests 13/13. `piBuiltInAutomateSkillPresent=true`. `automationsEditorUiAvailableInPiPty` stays false (editor stub only). **Do not verify** `PSTACK-SETUP-BENNY-CREATION-BOUNDARY-001`. Wait-unlock still polling for G10 make-bot.
+
+
+### 2026-10-09 checkpoint (Pi Automations editor chrome)
+
+[Pi Automations editor chrome](20c3bc03-8b89-4d0b-9061-8895381b366b) MERGED. Real `ctx.ui.custom` Inactive editor (name/instructions/trigger/tools; Save without enable). Probe `automationsEditorUiAvailableInPiPty=true` (skill already true). Tests 15/15. **Do not verify** `PSTACK-SETUP-BENNY-CREATION-BOUNDARY-001` until paired Cursor+Pi journey. Wait-unlock still polling for G10 make-bot.
+
+### 2026-10-09 checkpoint (Pi creation-boundary Method A)
+
+[Pi creation-boundary Method A](327378c5-685d-4634-9d05-2d0d28afa5ad) MERGED keep-unverified. Attempt `4d40a1d5` outcome `editor_saved_disabled` (Prepare→OpenEditor→Inactive Save; enabledCalled=false). Cursor halves remain paid (`e11d7225` / `475ab346` / `2c525e93`). Pair refreshed to `pair-ready-keep-unverified`. **Do not verify** `PSTACK-SETUP-BENNY-CREATION-BOUNDARY-001` yet. Report: `parity/briefs/reports/u-journey-setup-benny-creation-pi-002-report.md`. Wait-unlock still polling for G10 make-bot.
+
+### 2026-10-09 checkpoint (creation-boundary verified)
+
+Verified `PSTACK-SETUP-BENNY-CREATION-BOUNDARY-001` as **verified-pass-paired** (95/98). Pair `setup-benny-creation-boundary-1`: Cursor `e11d7225`/`475ab346`/`2c525e93` + Pi `4d40a1d5` (`editor_saved_disabled`). No Enable. Open unpaid: Benny triage valid-config, make-bot auth header, thread-safety. Wait-unlock still polling for G10.
+
+### 2026-10-09 checkpoint (thread-safety receipt tool)
+
+Shipped `AutomationRecordThreadSafety` (writes `thread-safety.json` only when all seven checks are true). ~~Enable remains refuse-closed even with a receipt (runtime not implemented).~~ Superseded by u-pi-automation-enable-receipt-001 (local Enable after receipt+confirm; no Slack ingress). **Do not verify** `PSTACK-SETUP-BENNY-THREAD-SAFETY-001` until live Slack seven-checks. Wait-unlock still polling for G10 make-bot.
+
+### 2026-10-09 checkpoint (source-lock refresh + receipt probe)
+
+Host probe: `automationsEditorUiAvailableInPiPty=true`, `piThreadSafetyReceiptToolPresent=true`. Source-lock `completeDependencyClosure` stays false (CU cloud G1, enterprise G2, live-int/Slack/make-bot). npm pack dry-run ok. Journeys no-workers exit 0. Slack MCP auth requires Cursor desktop IDE (blocked while console locked). Wait-unlock still polling.
+
+### 2026-10-09 checkpoint (automate host skill + census)
+
+Moved Pi-authored `/automate` to `host/skills/automate` + `host/prompts/automate.md` (fixes resources unexpected-file). Census now **73 skills, 71 prompt templates**. Journeys no-workers 541/541. Wait-unlock still locked.
+
+### 2026-10-09 checkpoint (setup-benny Pi adapter → /automate)
+
+[u-pi-setup-benny-adapter-automate-001](parity/briefs/reports/u-pi-setup-benny-adapter-automate-001-report.md) MERGED. Host adapter routes Slack Benny creation through `/automate` + AutomationPrepare/OpenEditor; refuses webhook Routine* finish. Probe `piSetupBennyAdapterUsesAutomatePath=true`. Catalog+structure+full suite green (220/2275). Design gap 6 closed. Open mismatches still 3 (triage/make-bot/thread-safety). Wait-unlock still `IOConsoleLocked=Yes`. Verified still 95/98. completeDependencyClosure false.
+
+### 2026-10-09 checkpoint (AutomationEnable after receipt)
+
+[u-pi-automation-enable-receipt-001](parity/briefs/reports/u-pi-automation-enable-receipt-001-report.md) MERGED. AutomationEnable marks local status.json enabled after thread-safety receipt + ui.confirm; no Slack ingress. Design gap 5 Enable gate closed; live Slack seven-checks still unpaid. Wait-unlock still IOConsoleLocked. Verified 95/98.
+
+### 2026-10-09 checkpoint (AutomationDisable)
+
+[u-pi-automation-disable-001](parity/briefs/reports/u-pi-automation-disable-001-report.md) MERGED. Local status clear via AutomationDisable. Source-lock note refreshed (Enable after receipt). Wait-unlock still IOConsoleLocked. Verified 95/98.
+
+### 2026-10-09 checkpoint (automation metadata + help)
+
+Native tool metadata now lists RecordThreadSafety + Disable (exact namespace census). CHANGELOG/README name host `/automate`. poteto-help table includes `/automate` creation row. Wait-unlock restarted with 2h window (still IOConsoleLocked). Verified 95/98.
+
+### 2026-10-09 checkpoint (candidate packageDigest refresh)
+
+Measured `npm pack --dry-run --json` integrity for `pi-pstack@0.15.15-pi.1` → `sha512-4k21Tcx0…FLI0MVA==`. Wrote `implementationBaseline.packageDigest` and regenerated `completion.json` (still BLOCKED, 12 blockers, 95/98 verified). Wait-unlock 2h window still `IOConsoleLocked=Yes`.
+
+### 2026-10-09 checkpoint (thread-safety probe + Slack MCP)
+
+Thread-safety env probe: `piThreadSafetyLocalToolsPresent=true`. Slack MCP `needsAuth` / IDE-only (cannot auth from agent). Orch inbox tip for post-unlock Slack MCP. SETUP-BENNY-THREAD-SAFETY-ENV actual narrowed. Wait-unlock 2h still locked. Verified 95/98.
+
+### 2026-10-09 checkpoint (CU claim-002)
+
+Re-probed cloud claim: `CURSOR_API_KEY` still unset in harness; no attempt IDs. Report `u-dep-cu-cloud-claim-002`. Operator runbook refreshed (`20261009T105300Z-operator-runbook-current.md`). Wait-unlock still locked. Verified 95/98.
+
+### 2026-10-09 checkpoint (enterprise observe-002)
+
+Fresh `state.vscdb` read: `stripeMembershipType=pro_plus`, `no-team` plugin keys, empty admin allowlists. Edge stays unresolved (G2). Report `u-dep-enterprise-observe-002`. Wait-unlock still locked. Verified 95/98.
+
+### 2026-10-09 checkpoint (still locked; offline hygiene)
+
+`packageDigest` remeasured — match. Automations unit tests 20/20. Source-lock + enterprise edge blocker cite observe-002. `completion.json` regenerated BLOCKED (12). Wait-unlock still `ready=false`. Open mismatches still 3. Verified 95/98. **Not yet** for terminal restart.
+
+### 2026-10-09 checkpoint (live-int-003)
+
+Merged note-only disposition refresh. Inventory sha256 match. Counts still a=275 / b=115 / c=26. Stale “Pi Automations absent” / creation-unverified text corrected after verified-pass-paired creation-boundary. Make-bot Generate rows stay unpaid under console lock. `canCloseUnresolvedReference=false`. Wait-unlock still polling. **Not yet** for terminal restart.
+
+### 2026-10-09 checkpoint (blocker accuracy-002)
+
+Re-audited 12 completion blockers after live-int-003 + creation-boundary verified. **All still valid**; zero stale false-opens. Custody pack digests re-PASS. Wait-unlock still locked (~108m remaining in 2h window). **Not yet** for terminal restart.
+
+### 2026-10-09 checkpoint (post-unlock merge armed)
+
+Refreshed creation-boundary / thread-safety / make-bot host probes (Pi editor+adapter+receipt tools still true; Slack/Benny/Generate still unpaid). Added fail-closed `parity/scripts/merge-make-bot-post-unlock.mjs` and wired it into wait-unlock after probe exit 0. Dry-run correctly refuses without disposition. Console still locked. **Not yet** for terminal restart.
+
+### 2026-10-09 checkpoint (wait durable)
+
+Prior nohup wait died with the shell session. Restarted wait-unlock as Cursor background shell (node 95293) with probe+merge armed for 2h. Staged live-int-004 brief for post-Generate reclass. Cascade inbox refreshed. Merge helper dry-run accepts synthetic key_server_ok and refuses keyLeak. Console still locked. **Not yet** for terminal restart.
+
+### 2026-10-09 checkpoint (live-int-004 armed)
+
+Staged fail-closed `dep-live-integrations-004/refresh_dispositions.py` (refuses without make-bot key_server_ok). Wait-unlock rearmed with probe → merge → live-int-004 cascade. Console still locked. **Not yet** for terminal restart.
+
+### 2026-10-09 checkpoint (offline gap hunt)
+
+u-offline-gap-hunt-001: **no honest offline lever remains**. All 12 completion blockers map to operator grants (G10 make-bot unlock, G4–G8 Slack/Benny, G1 CU, G2 enterprise, G3 freeze, G11 third-party). Wait-unlock cascade still armed (probe→merge→live-int-004). Console still locked. **Not yet** for terminal restart.
+
+### 2026-10-09 checkpoint (full unlock cascade)
+
+Wait rearmed with probe → make-bot merge → live-int-004 refresh → live-int-004 ledger merge (all fail-closed). Offline gap hunt still holds: no offline lever moves completion. Console still locked. **Not yet** for terminal restart.
+
+### 2026-10-09 checkpoint (post-unlock settle)
+
+Wait cascade now settles Cursor forward + re-checks census before probe (avoids loginwindow click theft from unlock-001). Benny triage fail-closed merge stub staged for post-Slack. Console still locked. **Not yet** for terminal restart.
+
+### 2026-10-09 checkpoint (thread-safety merge stub)
+
+Staged fail-closed `merge-thread-safety-post-save.mjs` (refuses without disposition). Cascade docs list auto unlock path + manual Slack/Benny/thread-safety merges. Wait still locked. **Not yet** for terminal restart.
+
+### 2026-10-09 checkpoint (unlock inbox watcher)
+
+Side watcher writes `UNLOCKED-make-bot-cascade-NOW.md` + cascade artifact notes without restarting wait. Operator unlock card posted. Wait still locked (~119m remaining). **Not yet** for terminal restart.
+
+### 2026-10-09T14:00:30Z checkpoint (session pickup + census fix)
+
+Picked up existing repo at **95/98** verified, completion **BLOCKED/12**. Not a greenfield rewrite.
+
+Measured: official pstack still 0.15.15 at cursor/plugins `ccb5507…`; installed Pi `1.1.0`; Cursor IDE `3.24.9`. Console briefly unlocked then re-locked (`IOConsoleLocked=Yes`). System Events `Cursor` AXWindow count stays **0** while helper screenshots the real IDE (`helper-cursor-2.png`).
+
+Harness: wait-unlock + make-bot probe census now accept `cursor-agent-helper desktop-share-status` when AXWindow is 0. Wait re-armed 2h → probe → merge → live-int-004.
+
+Install: `~/.pi/agent/settings.json` packages now load `pi-pstack-parity-again/extensions/pi-pstack` (`0.15.15-pi.1`). Smoke `/pstack-status` returned status table under Pi.
+
+Open mismatches still 3 (triage / make-bot / thread-safety). Slack MCP still `needsAuth`. Source-lock `completeDependencyClosure=false`. Acceptance definitions still unfrozen (G3).
+
+### Exact next executable action
+
+Operator unlocks Mac and leaves session unlocked so armed wait can run Generate cascade. In parallel after unlock signal, authenticate Slack MCP in desktop IDE. Independent source-lock refresh subagent `bd970fc8` may still be running; merge its report without editing ledgers until audited.
+
+### 2026-10-09T15:04:03Z checkpoint (unlock fired; make-bot still blocked)
+
+Wait exit 3. Probe `3941ef77` then retry `7b5e854b` both `host_blocked` / `untitled_new_automation_without_generate`. Console stays unlocked. Keyboard Tab×2+Space clears Unsaved Changes; SE/OCR Discard is a false positive (patched to verify + keyboard fallback). Automations list OCR never shows `parity-webhook-witness`. Merge not run. Operator card `orch-inbox/20261009T1504Z-operator-unlock-card.md`. Verified still 95/98.
+
+## 2026-10-09T15:58Z make-bot Cursor key_server_ok
+
+Cursor attempt `55f42e27-ee7e-4d6b-8f12-5b35824addff`: Copy auth header via CGEvent, 0600 store, enable + pi-pstack repo, probe HTTP 200. Closed MAKE-BOT-UI-KEY-SERVER-HOST; PSTACK-CMD-MAKE-BOT-UI-KEY-SERVER-001 verified-pass-paired with Pi e75f8e08. Report: parity/briefs/reports/u-make-bot-auth-header-post-unlock-002-report.md. Remaining unpaid reqs: Benny triage + thread-safety. Completion still BLOCKED on source-lock/deps/acceptance freeze + those two.
+
+## 2026-10-09T16:28Z Benny Slack still needsAuth
+
+Operator replied ready; Slack CLI auth present; Cursor `plugin-slack-slack` in this agent session still `needsAuth` (mcp_auth only). Honest disposition `parity/research/benny-triage-valid-post-slack-001/disposition.json`. Report: `parity/briefs/reports/u-journey-cmd-benny-triage-valid-post-slack-001-report.md`. No ledger edits. Waiting on Settings → Tools & MCP Connect Slack + Benny config/token/test-thread grant.
+
+## 2026-10-09T17:01Z Benny grants wizard staged
+
+Last unpaid behavioral reqs still Benny triage + thread-safety (env). Staged `parity/scripts/wizard-benny-valid-grants.sh` to collect bot token, test channel/identity, owner grant, and write `~/.config/benny/*`. Probe updated to recognize filled config + grant flag. No ledger close (would fabricate). Operator runs wizard then ready for paired capture.
+
+## 2026-10-09T17:31Z Benny behavioral closeout — 98/98 requirements
+
+Valid-config triage + thread-safety seven-checks closed on `#playwright-results`. Attempts cursor `de707056` / pi `16520327`. All requirements `verified-pass-paired`; open mismatches empty. Completion gate still BLOCKED on source-lock/closure, CU+enterprise dependency edges, and acceptance freeze (governance — not day-to-day prompt parity).
+
+## 2026-10-09T17:33Z live-int-005 + Benny behavioral ledger closed
+
+- Requirements **98/98** `verified-pass-paired`; open mismatches empty.
+- Thread-safety merge + live-int-005: 44 Slack rows → evidenced on `#playwright-results` (de707056 / 16520327). Live-int b=62 remain (G11 third-party, webhook routine/secret, Automations save/activate).
+- Completion still BLOCKED: source-lock incomplete, completeDependencyClosure false, 1 unresolvedReference (live-int), edges[0] CU cloud (G1), edges[1] enterprise (G2), acceptanceDefinitionsFrozen false.

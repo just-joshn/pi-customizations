@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "prin-outcome-oriented",
+  "status": "pass-paired",
+  "requirements": [
+    "PSTACK-PRIN-OUTCOME-ORIENTED-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/principle-outcome-oriented-execution/SKILL.md#Outcome-Oriented Execution frontmatter trigger and disable-model-invocation",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file. Preconditions: Locked pstack poteto-mode and principle-outcome-oriented-execution skill loaded.; A planned rewrite or migration with phase boundaries is active.",
+    "digest": null
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Execute a multi-phase migration.. The agent Reads the leaf skill, converges on the target architecture, and does not preserve throwaway compatibility layers as long-lived dual paths."
+    }
+  ],
+  "execution": {
+    "pairId": "prin-outcome-oriented-1",
+    "verdict": "pass",
+    "pair": "parity/evidence/principles/outcome-oriented/pair-prin-outcome-oriented-1.json",
+    "attempts": {
+      "cursor": "342ef99a-aa7a-41b2-9cea-1fad66a4e714",
+      "pi": "df45bc1d-780c-410a-9475-a41c2bde9e1e"
+    }
+  }
+}

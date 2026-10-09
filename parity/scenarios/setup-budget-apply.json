@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "id": "setup-budget-apply",
+  "status": "paired",
+  "requirements": [
+    "PSTACK-SETUP-BUDGET-APPLY-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/setup-pstack/SKILL.md#### 3. Budget, map, and confirm, subsection (b) effort mapping",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Documented preconditions satisfied; behavior not yet paired. Preconditions: Budget labels contract available (PSTACK-SETUP-BUDGET-LABELS-001).",
+    "digest": null
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Budget choice after discovery and load.. unlimited, large, medium, and small set every real slug effort token to max, xhigh, high, or medium respectively, including panel list entries. inherit-parent and auto are unchanged."
+    }
+  ],
+  "execution": {
+    "pairId": "setup-budget-apply-all-labels",
+    "verdict": "pass",
+    "pairs": {
+      "large": "parity/evidence/setup-budget-apply/pair-setup-budget-apply-large-1.json",
+      "medium": "parity/evidence/setup-budget-apply/pair-setup-budget-apply-medium-1.json",
+      "small": "parity/evidence/setup-budget-apply/pair-setup-budget-apply-small-1.json",
+      "unlimited": "parity/evidence/setup-budget-apply/pair-setup-budget-apply-unlimited-1.json"
+    },
+    "note": "All four budgets pass-paired; aliases preserved; panel lists mapped."
+  }
+}

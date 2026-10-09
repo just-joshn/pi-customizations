@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "kind": "journey-family-stub",
+  "id": "journey-family-11-benny-and-automations",
+  "family": 11,
+  "familyTitle": "Install and trigger Benny and every discovered automation; dedupe, trusted routing, repro, existing-fix, artifacts",
+  "contractRef": "parity/contract.md#8-verify-through-the-users-controls",
+  "status": "missing",
+  "requirementIds": [
+    "PSTACK-CMD-BENNY-REPRO-FAIL-CLOSED-001",
+    "PSTACK-CMD-BENNY-TRIAGE-THREAD-ONLY-001",
+    "PSTACK-CMD-SETUP-BENNY-NOT-SLASH-001",
+    "PSTACK-SETUP-BENNY-CONTROL-FAIL-CLOSED-001",
+    "PSTACK-SETUP-BENNY-CREATION-BOUNDARY-001",
+    "PSTACK-SETUP-BENNY-EXISTING-NO-AUTOMATE-001",
+    "PSTACK-SETUP-BENNY-NO-SECRET-001",
+    "PSTACK-SETUP-BENNY-REQUIRED-EXPLICIT-001",
+    "PSTACK-SETUP-BENNY-THREAD-SAFETY-001"
+  ],
+  "fixtureNeeds": [
+    "Benny-capable environment with trusted routing config",
+    "Duplicate event injection",
+    "Existing-fix thread fixture",
+    "Secret-bearing settings that must not leak"
+  ],
+  "evidencePaths": [],
+  "openMismatches": [],
+  "coverageNotes": "Many Benny requirements in research inventory; zero paired journeys.",
+  "nextAction": "Capture a paired Benny install+trigger journey with dedupe and fail-closed secret checks."
+}

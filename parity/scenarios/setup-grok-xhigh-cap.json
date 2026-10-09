@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "id": "setup-grok-xhigh-cap",
+  "status": "pass-paired",
+  "requirements": [
+    "PSTACK-SETUP-GROK-XHIGH-CAP-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/setup-pstack/SKILL.md#### 3. Budget, map, and confirm, subsection (b) Grok xhigh cap",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Documented preconditions satisfied; behavior not yet paired. Preconditions: Detected set includes a Grok family slug.",
+    "digest": null
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Budget unlimited when a role uses a Grok slug.. Under unlimited, Grok roles stay at xhigh (including grok-*-xhigh-fast) rather than max."
+    }
+  ],
+  "execution": {
+    "pairId": "setup-grok-xhigh-cap-1",
+    "verdict": "pass",
+    "pair": "parity/evidence/setup-grok-xhigh-cap/pair-setup-grok-xhigh-cap-1.json",
+    "attempts": {
+      "cursor": "faeae5d9-c831-4b7b-9f47-abad3ed21433",
+      "pi": "94c9aab6-b015-44b7-8815-5cf6849f8025"
+    },
+    "note": "Both sides pass after Pi xai auth import from existing Grok CLI OAuth."
+  }
+}

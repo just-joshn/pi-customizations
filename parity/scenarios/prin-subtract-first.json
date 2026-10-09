@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "prin-subtract-first",
+  "status": "pass-paired",
+  "requirements": [
+    "PSTACK-PRIN-SUBTRACT-FIRST-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/principle-subtract-before-you-add/SKILL.md#Subtract Before You Add frontmatter trigger and disable-model-invocation",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file. Preconditions: Locked pstack poteto-mode and principle-subtract-before-you-add skill loaded.; Dead code, redundant validators, or stub references exist in scope.",
+    "digest": null
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Evolve a system by adding a capability.. The agent Reads the leaf skill and removes dead weight first, then builds on the simpler base."
+    }
+  ],
+  "execution": {
+    "pairId": "prin-subtract-first-1",
+    "verdict": "pass",
+    "pair": "parity/evidence/principles/subtract-first/pair-prin-subtract-first-1.json",
+    "attempts": {
+      "cursor": "8ff2e73a-52d1-4d2c-a601-bed33a6bec3d",
+      "pi": "949c5a02-da60-4b0d-8838-d6ccf3b7914a"
+    }
+  }
+}

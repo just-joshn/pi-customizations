@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "setup-benny-control-fail-closed",
+  "status": "paired",
+  "requirements": [
+    "PSTACK-SETUP-BENNY-CONTROL-FAIL-CLOSED-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/automations/benny/skills/setup-benny/SKILL.md### 6. Verify the control adapter, fail closed",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Documented preconditions satisfied; behavior not yet paired. Preconditions: Named control skill and completed feature map exist.",
+    "digest": null
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Before enabling the Benny repro automation.. Named control skill is confirmed able to bring up the app, navigate every mapped feature through the real UI, exercise mapped states, inspect without forcing results, capture screenshots, start and stop recording, and clean up. If any capability is missing, the repro automation stays disabled."
+    }
+  ],
+  "execution": {
+    "pairId": "setup-benny-control-fail-closed-1",
+    "verdict": "pass",
+    "pair": "parity/evidence/setup-benny/pair-setup-benny-control-fail-closed-1.json",
+    "attempts": {
+      "cursor": "370c1adb-5e53-4c1d-9d9c-34f21299d18d",
+      "pi": "e6185d9b-6960-4680-ae75-5349f6b148a2"
+    }
+  }
+}

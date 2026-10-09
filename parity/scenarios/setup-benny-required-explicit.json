@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "setup-benny-required-explicit",
+  "status": "paired",
+  "requirements": [
+    "PSTACK-SETUP-BENNY-REQUIRED-EXPLICIT-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/automations/benny/skills/setup-benny/SKILL.md### 3. Fill the required choices, fail on ambiguity",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Documented preconditions satisfied; behavior not yet paired. Preconditions: Model picker or supported model list is available for slug checks.",
+    "digest": null
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Filling Benny required configuration choices.. Only available model slugs are used. Source channel, triage identity, repository, tracker adapter, control skill, and feature map are explicit. Setup fails if any required value stays ambiguous."
+    }
+  ],
+  "execution": {
+    "pairId": "setup-benny-required-explicit-1",
+    "verdict": "pass",
+    "pair": "parity/evidence/setup-benny/pair-setup-benny-required-explicit-1.json",
+    "attempts": {
+      "cursor": "a3944805-df12-4454-9a0c-7a06d1757fb6",
+      "pi": "c8714d86-a05e-40e7-a1d3-e2a816efb52b"
+    }
+  }
+}

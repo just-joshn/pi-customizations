@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "status": "discovery-in-progress",
   "sourceLock": "parity/source-lock.json",
-  "closureAudited": false,
+  "closureAudited": true,
   "nodes": [
     {
       "id": "cursor-self-hosted-computer-use",
@@ -18,7 +18,33 @@
       "readingComplete": true,
       "dependenciesEnumerated": false,
       "resolution": "open",
-      "piResolution": "Native computer-control helper, Linux desktop services, sharing transport and permission journeys remain required. Current docs applicability to the locked CLI is unverified."
+      "piResolution": "Native computer-control helper, Linux desktop services, sharing transport and permission journeys remain required. Current docs applicability to the locked CLI is unverified.",
+      "readingEvidence": [
+        "parity/research/dep-closure-wave-007/host-edge-disposition.json",
+        "parity/research/dep-closure-wave-007/nodes/host-edge-disposition.md",
+        "parity/research/dep-closure-wave-005/host-edge-disposition.json",
+        "parity/research/dep-closure-wave-005/nodes/host-edge-disposition.md",
+        "parity/research/dep-closure-wave-006/host-edge-disposition.json",
+        "parity/research/dep-closure-wave-006/nodes/host-edge-disposition.md",
+        "parity/research/dep-closure-wave-008/host/host-edge-disposition.json",
+        "parity/research/dep-closure-wave-008/nodes/host-edge-disposition.md",
+        "parity/research/dep-closure-wave-009/host/host-edge-disposition.json",
+        "parity/research/dep-closure-wave-009/nodes/host-edge-disposition.md"
+      ],
+      "wave005Evidence": [
+        "parity/research/dep-closure-wave-005/host-edge-disposition.json"
+      ],
+      "wave005Disposition": "Environment-bound. Public-doc contracts re-hashed; runtime helper/desktop services not exercised.",
+      "lastWaveDisposition": "Environment-bound. Public-doc contracts re-hashed; runtime helper/desktop services not exercised.",
+      "wave007Evidence": [
+        "parity/research/dep-closure-wave-007/host-edge-disposition.json"
+      ],
+      "wave007Disposition": "Environment-bound. Public-doc contracts re-hashed; runtime helper/desktop services not exercised.",
+      "evidence": [
+        "parity/research/dep-closure-wave-008/host/host-edge-disposition.json"
+      ],
+      "wave008Disposition": "Environment-bound. Doc re-hashed; helper bundle not found via mdfind.",
+      "wave009Disposition": "Environment-bound. Doc re-hashed; no new helper evidence."
     },
     {
       "id": "cursor-enterprise-integration-policy",
@@ -34,7 +60,33 @@
       "readingComplete": true,
       "dependenciesEnumerated": false,
       "resolution": "open",
-      "piResolution": "Enterprise/IDE/CLI applicability, linked policy contracts and live integration configurations remain unresolved; no broad allowlist or authorization changes are permitted."
+      "piResolution": "Enterprise/IDE/CLI applicability, linked policy contracts and live integration configurations remain unresolved; no broad allowlist or authorization changes are permitted.",
+      "readingEvidence": [
+        "parity/research/dep-closure-wave-007/host-edge-disposition.json",
+        "parity/research/dep-closure-wave-007/nodes/host-edge-disposition.md",
+        "parity/research/dep-closure-wave-005/host-edge-disposition.json",
+        "parity/research/dep-closure-wave-005/nodes/host-edge-disposition.md",
+        "parity/research/dep-closure-wave-006/host-edge-disposition.json",
+        "parity/research/dep-closure-wave-006/nodes/host-edge-disposition.md",
+        "parity/research/dep-closure-wave-008/host/host-edge-disposition.json",
+        "parity/research/dep-closure-wave-008/nodes/host-edge-disposition.md",
+        "parity/research/dep-closure-wave-009/host/host-edge-disposition.json",
+        "parity/research/dep-closure-wave-009/nodes/host-edge-disposition.md"
+      ],
+      "wave005Evidence": [
+        "parity/research/dep-closure-wave-005/host-edge-disposition.json"
+      ],
+      "wave005Disposition": "Environment-bound. Public-doc contracts re-hashed; live team/org policy enforcement not observed.",
+      "lastWaveDisposition": "Environment-bound. Public-doc contracts re-hashed; live team/org policy enforcement not observed.",
+      "wave007Evidence": [
+        "parity/research/dep-closure-wave-007/host-edge-disposition.json"
+      ],
+      "wave007Disposition": "Environment-bound. Public-doc contracts re-hashed; live team/org policy enforcement not observed.",
+      "evidence": [
+        "parity/research/dep-closure-wave-008/host/host-edge-disposition.json"
+      ],
+      "wave008Disposition": "Environment-bound. Doc re-hashed; live policy not observed.",
+      "wave009Disposition": "Environment-bound. Doc re-hashed; live policy not observed."
     },
     {
       "id": "cursor-pstack",
@@ -54,11 +106,31 @@
       "fileHashes": "parity/reference/distribution-sha256.txt",
       "readingComplete": true,
       "readingEvidence": [
+        "parity/research/dep-closure-wave-007/recursive/extraction.json",
+        "parity/research/dep-closure-wave-007/nodes/recursive-extraction.md",
         "parity/reviews/source-discovery.md",
         "parity/reviews/source-read-calls.jsonl",
-        "parity/reviews/source-read-results.jsonl"
+        "parity/reviews/source-read-results.jsonl",
+        "parity/research/dep-closure-wave-008/team-kit/custody-disposition.json",
+        "parity/research/dep-closure-wave-008/cli-host/persistent-mode-disposition.json",
+        "parity/research/dep-closure-wave-009/team-kit/journey-sampling.json",
+        "parity/research/dep-closure-wave-009/cli-host/persistent-mode-disposition.json",
+        "parity/research/dep-closure-wave-009/consumer/journey-refresh.json",
+        "parity/research/dep-recursive-runtime-audit-001/audit.json"
       ],
-      "readingNote": "183 tracked text files have delegated read receipts without error or truncation. The parent additionally inspected both licenses and eight image assets. This is source inspection, not verified behavioral closure."
+      "readingNote": "183 tracked text files have delegated read receipts without error or truncation. The parent additionally inspected both licenses and eight image assets. This is source inspection, not verified behavioral closure.",
+      "wave007Evidence": [
+        "parity/research/dep-closure-wave-007/recursive/extraction.json"
+      ],
+      "wave007Disposition": "Wave-007 extracted absolute URLs and relative-escape markdown links from every readable text file in the locked distribution inventory (185 files). Extraction is complete with path+hash custody of source files. Live/runtime audit of extracted external targets remains open.",
+      "lastWaveDisposition": "Wave-007 extracted absolute URLs and relative-escape markdown links from every readable text file in the locked distribution inventory (185 files). Extraction is complete with path+hash custody of source files. Live/runtime audit of extracted external targets remains open.",
+      "evidence": [
+        "parity/research/dep-closure-wave-008/team-kit/custody-disposition.json",
+        "parity/research/dep-closure-wave-008/cli-host/persistent-mode-disposition.json"
+      ],
+      "wave008Disposition": "Wave-008 resolves team-kit install custody edge and records environment-bound persistent-mode blocker for cli-host.",
+      "wave009Disposition": "Wave-009 samples team-kit journeys, refreshes consumer paired journey matrix, and keeps cli-host persistent-mode environment-bound.",
+      "waveRecursiveAudit": "Recursive extracted external targets audited for HTTP custody (fetch+hash where safe; localhost/template/example/placeholder/relative-escape classified). No Automations/Slack/editor behavioral exercise."
     },
     {
       "id": "cursor-team-kit",
@@ -75,9 +147,46 @@
       "readingEvidence": [
         "parity/reviews/source-discovery.md",
         "parity/reviews/source-read-calls.jsonl",
-        "parity/reviews/source-read-results.jsonl"
+        "parity/reviews/source-read-results.jsonl",
+        "parity/research/dep-closure-wave-008/team-kit/custody-disposition.json",
+        "parity/research/dep-closure-wave-008/nodes/team-kit-custody.md",
+        "parity/reference/distribution-sha256.txt",
+        "parity/research/dep-closure-wave-009/team-kit/journey-sampling.json",
+        "parity/research/dep-closure-wave-009/nodes/team-kit-journey-sampling.md",
+        "parity/evidence/team-kit/pair-team-kit-verify-this-1.json",
+        "parity/briefs/reports/u-dep-team-kit-journeys-001-report.md",
+        "parity/research/dep-closure-wave-009/team-kit/journey-progress-u-dep-team-kit-journeys-001.json",
+        "parity/research/dep-closure-wave-009/team-kit/journey-progress.json",
+        "parity/briefs/reports/u-dep-team-kit-journeys-003-report.md",
+        "parity/briefs/reports/u-dep-team-kit-journeys-002-report.md",
+        "parity/evidence/team-kit/pair-team-kit-check-compiler-errors-1.json",
+        "parity/evidence/team-kit/pair-team-kit-control-cli-1.json",
+        "parity/evidence/team-kit/pair-team-kit-deslop-1.json",
+        "parity/evidence/team-kit/pair-team-kit-fix-merge-conflicts-1.json",
+        "parity/evidence/team-kit/pair-team-kit-get-pr-comments-1.json",
+        "parity/evidence/team-kit/pair-team-kit-make-pr-easy-to-review-1.json",
+        "parity/evidence/team-kit/pair-team-kit-new-branch-and-pr-1.json",
+        "parity/briefs/reports/u-dep-team-kit-journeys-004-report.md",
+        "parity/research/dep-closure-wave-009/team-kit/journey-progress-u-dep-team-kit-journeys-004.json",
+        "parity/evidence/team-kit/pair-team-kit-control-ui-1.json",
+        "parity/evidence/team-kit/pair-team-kit-fix-ci-1.json",
+        "parity/evidence/team-kit/pair-team-kit-loop-on-ci-1.json",
+        "parity/evidence/team-kit/pair-team-kit-pr-review-canvas-1.json",
+        "parity/evidence/team-kit/pair-team-kit-review-and-ship-1.json",
+        "parity/evidence/team-kit/pair-team-kit-run-smoke-tests-1.json",
+        "parity/evidence/team-kit/pair-team-kit-thermo-nuclear-code-quality-review-1.json",
+        "parity/evidence/team-kit/pair-team-kit-weekly-review-1.json",
+        "parity/evidence/team-kit/pair-team-kit-what-did-i-get-done-1.json",
+        "parity/evidence/team-kit/pair-team-kit-workflow-from-chats-1.json"
       ],
-      "readingNote": "Delegated receipts cover 27 tracked text files. The parent directly inspected the license and avatar. Recursive external closure remains open."
+      "readingNote": "Delegated receipts cover 27 tracked text files. The parent directly inspected the license and avatar. Recursive external closure remains open.",
+      "evidence": [
+        "parity/research/dep-closure-wave-008/team-kit/custody-disposition.json"
+      ],
+      "wave008Disposition": "Locked distribution custody for cursor-team-kit@1.2.0 at revision ccb5507cec1546dc88135c1139c811e6c59115ba re-verified (29/29 files match parity/reference/distribution-sha256.txt). pstack README install contract quoted. Source readingComplete already true. Per-skill paired Cursor+Pi journeys for the full team-kit skill set remain open as a separate unresolvedReference (same pattern as create-skill edge vs journey ref).",
+      "wave009Disposition": "Wave-009 re-verifies team-kit custody (already resolved in wave-008) and samples 5 of 18 named skills with SKILL.md path+hash. No paired Cursor+Pi journeys were run. Sample evidence search found no closing attempt IDs for the sampled skills.",
+      "journeyAuditStatus": "closed-18-of-18",
+      "wave004Disposition": "u-dep-team-kit-journeys-004 closed remaining 10 skills with real Cursor+Pi PTY pairs. On-disk pass pairs 18/18. fix-ci/loop-on-ci used real failing then green fixture CI. unresolvedReference removed."
     },
     {
       "id": "cursor-cli-host",
@@ -88,22 +197,84 @@
         "lock": "parity/source-lock.json"
       },
       "ownedBehavior": "Reference host discovery, mode selection, tools, workers, permissions and lifecycle contracts.",
-      "dependencies": ["cursor-self-hosted-computer-use", "cursor-enterprise-integration-policy"],
+      "dependencies": [
+        "cursor-self-hosted-computer-use",
+        "cursor-enterprise-integration-policy"
+      ],
       "dependenciesEnumerated": false,
-      "readingComplete": false
+      "readingComplete": true,
+      "readingEvidence": [
+        "parity/research/dep-closure-wave-007/live/integrations-inventory.json",
+        "parity/research/dep-closure-wave-007/nodes/live-integrations.md",
+        "parity/research/dep-closure-wave-001/read-inventory.json",
+        "parity/research/dep-closure-wave-001/nodes/cursor-cli-host.md",
+        "parity/research/dep-closure-wave-008/cli-host/persistent-mode-disposition.json",
+        "parity/research/dep-closure-wave-008/host/host-edge-disposition.json",
+        "parity/research/dep-closure-wave-008/nodes/cli-host-persistent-mode.md",
+        "parity/research/dep-closure-wave-009/cli-host/persistent-mode-disposition.json",
+        "parity/research/dep-closure-wave-009/host/host-edge-disposition.json",
+        "parity/research/dep-closure-wave-009/nodes/cli-host-persistent-mode.md",
+        "parity/research/dep-live-integrations-001/dispositions.json",
+        "parity/research/dep-live-integrations-001/summary.json"
+      ],
+      "wave001Disposition": "Public CLI contract docs for overview, using, configuration, permissions, parameters, slash-commands, and skills were re-hashed and quoted. Host ownedBehavior is covered at docs level. dependenciesEnumerated remains false; live integrations and closed-source tool schemas remain open.",
+      "wave007Evidence": [
+        "parity/research/dep-closure-wave-007/live/integrations-inventory.json"
+      ],
+      "wave007Disposition": "Wave-007 inventories required live integrations, cloud/automation/MCP/model contracts from the linked-document queue, services proposals, and CLI parent snapshots, with path+hash on snapshot sources. Live exercise of those integrations and the automation editor remains open.",
+      "lastWaveDisposition": "Wave-007 inventories required live integrations, cloud/automation/MCP/model contracts from the linked-document queue, services proposals, and CLI parent snapshots, with path+hash on snapshot sources. Live exercise of those integrations and the automation editor remains open.",
+      "evidence": [
+        "parity/research/dep-closure-wave-008/cli-host/persistent-mode-disposition.json",
+        "parity/research/dep-closure-wave-008/host/host-edge-disposition.json",
+        "parity/research/dep-live-integrations-002/dispositions.json",
+        "parity/research/dep-live-integrations-002/summary.json",
+        "parity/briefs/reports/u-dep-live-integrations-002-report.md"
+      ],
+      "wave008Disposition": "Wave-008 binds persistent-mode edge to measured Custom Mode harness failure and re-states computer-use/enterprise as environment-bound.",
+      "wave009Disposition": "Wave-009 re-states persistent-mode and host edges as environment-bound. No new success evidence.",
+      "liveIntegrationsDisposition": "narrowed-u-dep-live-integrations-001"
     },
     {
       "id": "cursor-create-skill",
       "type": "host-built-in",
       "source": {
         "version": "2026.10.01-e373342",
-        "exactResource": null
+        "exactResource": "parity/research/dep-closure-wave-001/nodes/cursor-create-skill/SKILL.md"
       },
       "ownedBehavior": "Skill creation and its complete subordinate workflows.",
       "dependencies": [],
       "resolution": "open",
       "dependenciesEnumerated": false,
-      "readingComplete": false
+      "readingComplete": true,
+      "readingEvidence": [
+        "parity/research/dep-closure-wave-007/create-skill/journey-matrix.json",
+        "parity/research/dep-closure-wave-007/nodes/create-skill-journey-matrix.md",
+        "parity/research/dep-closure-wave-006/create-skill/subordinate-audit.json",
+        "parity/research/dep-closure-wave-001/nodes/cursor-create-skill/SKILL.md",
+        "parity/research/dep-closure-wave-001/read-inventory.json",
+        "parity/research/dep-closure-wave-001/nodes/cursor-create-skill.md",
+        "parity/research/dep-closure-wave-006/nodes/create-skill-subordinate-audit.md",
+        "parity/research/dep-closure-wave-008/create-skill/journey-audit.json",
+        "parity/research/dep-closure-wave-009/create-skill/journey-audit.json",
+        "parity/evidence/create-skill/pair-create-skill-discovery-1.json",
+        "parity/evidence/create-skill/pair-create-skill-design-1.json",
+        "parity/evidence/create-skill/pair-create-skill-impl-1.json",
+        "parity/evidence/create-skill/pair-create-skill-verification-1.json",
+        "parity/briefs/reports/u-dep-create-skill-phases-rest-001-report.md"
+      ],
+      "wave001Disposition": "Exact local distributed resource found at ~/.cursor/skills-cursor/create-skill/SKILL.md for CLI 2026.10.01-e373342 working install. Full SKILL.md body read and copied into owned research path. Subordinate workflows inside the skill body are recorded; no independent audit of every nested instruction against live journeys.",
+      "lastWaveDisposition": "Wave-007 derives a four-phase paired-journey acceptance matrix from the captured create-skill SKILL.md and re-checks capture vs live install hash. Subordinate inventory from wave-006 stands. No paired Cursor+Pi journey was run.",
+      "wave007Evidence": [
+        "parity/research/dep-closure-wave-007/create-skill/journey-matrix.json"
+      ],
+      "wave007Disposition": "Wave-007 derives a four-phase paired-journey acceptance matrix from the captured create-skill SKILL.md and re-checks capture vs live install hash. Subordinate inventory from wave-006 stands. No paired Cursor+Pi journey was run.",
+      "evidence": [
+        "parity/research/dep-closure-wave-008/create-skill/journey-audit.json"
+      ],
+      "wave008Disposition": "Wave-008 re-checks create-skill capture vs live install hash and retains the wave-007 four-phase journey matrix. No paired Cursor+Pi journey was run.",
+      "wave009Disposition": "Wave-009 paired journey audit re-checks create-skill capture vs live install hash (match=True), re-parses 4 phase headers and 25 checklist items, and searches parity/evidence for create-skill pairs (hitCount=0). No closing paired Cursor+Pi journeys were found or run.",
+      "journeyAuditStatus": "closed-four-phases",
+      "createSkillPhasesClosedAt": "2026-10-09T02:40:00Z"
     },
     {
       "id": "source-tools-bootstrap",
@@ -118,9 +289,16 @@
         "source-tools-manifest",
         "source-bun-runtime"
       ],
-      "dependenciesEnumerated": false,
+      "dependenciesEnumerated": true,
       "readingComplete": true,
-      "resolution": "open"
+      "resolution": "open",
+      "readingEvidence": [
+        "parity/research/dep-closure-wave-003/read-inventory.json",
+        "parity/research/dep-closure-wave-003/nodes/source-tools-bootstrap.md",
+        "parity/evidence/consumer/pair-consumer-bootstrap-install-1.json",
+        "parity/research/dep-closure-wave-009/consumer/journey-refresh.json"
+      ],
+      "wave003Disposition": "Install-key over package.json+bun.lock and commander presence gate establish enumerated deps source-tools-manifest and source-bun-runtime."
     },
     {
       "id": "source-tools-manifest",
@@ -136,9 +314,37 @@
         "npm:bun-types@1.3.14",
         "npm:typescript@7.0.2"
       ],
-      "dependenciesEnumerated": false,
+      "dependenciesEnumerated": true,
       "readingComplete": true,
-      "resolution": "open"
+      "resolution": "open",
+      "readingEvidence": [
+        "parity/research/dep-closure-wave-007/consumer/journey-matrix.json",
+        "parity/research/dep-closure-wave-007/nodes/consumer-journey-matrix.md",
+        "parity/research/dep-closure-wave-003/consumer-binding.json",
+        "parity/research/dep-closure-wave-003/read-inventory.json",
+        "parity/research/dep-closure-wave-003/nodes/source-tools-manifest.md",
+        "parity/research/dep-closure-wave-004/read-inventory.json",
+        "parity/research/dep-closure-wave-004/platform-matrix.json",
+        "parity/research/dep-closure-wave-004/registry-custody.json",
+        "parity/research/dep-closure-wave-009/consumer/journey-refresh.json",
+        "parity/evidence/consumer/pair-consumer-bootstrap-install-1.json"
+      ],
+      "wave003Disposition": "Manifest and lock enumerate commander runtime plus bun-types/typescript typecheck deps. Consumer binding recorded.",
+      "wave004Evidence": [
+        "parity/research/dep-closure-wave-004/platform-matrix.json",
+        "parity/research/dep-closure-wave-004/registry-custody.json"
+      ],
+      "wave004Disposition": "All bun.lock platform-conditional branches audited, including literal cpu/os none. Every lock package has prior registry/tarball custody evidence with matching integrity.",
+      "wave007Evidence": [
+        "parity/research/dep-closure-wave-007/consumer/journey-matrix.json"
+      ],
+      "wave007Disposition": "Wave-007 expands wave-003 consumer binding into an explicit acceptance journey matrix with consumer path+hash where files exist, and records local orch --help plus typecheck smokes. Broader paired Cursor+Pi acceptance journeys remain open.",
+      "lastWaveDisposition": "Wave-007 expands wave-003 consumer binding into an explicit acceptance journey matrix with consumer path+hash where files exist, and records local orch --help plus typecheck smokes. Broader paired Cursor+Pi acceptance journeys remain open.",
+      "evidence": [
+        "parity/research/dep-closure-wave-007/consumer/journey-matrix.json"
+      ],
+      "wave008Disposition": "Wave-007 consumer journey matrix (6 journeys; local smokes exit 0) stands. Wave-008 re-hashes it. Paired Cursor+Pi acceptance journeys remain open.",
+      "wave009Disposition": "Wave-009 refreshes the six-row consumer journey matrix with consumer path+hash re-checks and local smokes (orch --help exit=0, typecheck exit=0, bun test exit=0). Local smokes are not paired Cursor+Pi acceptance journeys. All six paired journeys remain not_run."
     },
     {
       "id": "source-bun-runtime",
@@ -146,13 +352,63 @@
       "source": {
         "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
         "path": "pstack/skills/poteto-mode/scripts/watch-pr/watch-pr",
-        "locator": "line 1 and bootstrap.ts Bun.spawnSync"
+        "locator": "line 1 and bootstrap.ts Bun.spawnSync",
+        "sha256": "d955603be6cc0e8b8ffcec722f635192b2261410b1f2929abea94480e47eb5d4"
       },
       "ownedBehavior": "Bun interpreter, Node-compatible builtins, package installation and subprocess execution.",
       "dependencies": [],
-      "dependenciesEnumerated": false,
-      "readingComplete": false,
-      "resolution": "open"
+      "dependenciesEnumerated": true,
+      "readingComplete": true,
+      "resolution": "open",
+      "readingEvidence": [
+        "parity/research/dep-closure-wave-007/read-inventory.json",
+        "parity/research/dep-closure-wave-007/bun/official-capture.json",
+        "parity/research/dep-closure-wave-007/nodes/bun-pin.md",
+        "parity/research/dep-closure-wave-003/read-inventory.json",
+        "parity/research/dep-closure-wave-003/bun/official-capture.json",
+        "parity/research/dep-closure-wave-003/nodes/source-bun-runtime.md",
+        "parity/research/dep-closure-wave-003/bun/commander-smoke.txt",
+        "parity/research/dep-closure-wave-004/read-inventory.json",
+        "parity/research/dep-closure-wave-004/bun/official-capture.json",
+        "parity/research/dep-closure-wave-004/nodes/bun-pin.md",
+        "parity/research/dep-closure-wave-004/nodes/runtime-prerequisites.md",
+        "parity/research/dep-closure-wave-005/read-inventory.json",
+        "parity/research/dep-closure-wave-005/bun/official-capture.json",
+        "parity/research/dep-closure-wave-005/nodes/bun-pin.md",
+        "parity/research/dep-closure-wave-006/read-inventory.json",
+        "parity/research/dep-closure-wave-006/bun/official-capture.json",
+        "parity/research/dep-closure-wave-006/nodes/bun-pin.md",
+        "parity/research/dep-closure-wave-008/bun/official-capture.json",
+        "parity/research/dep-closure-wave-008/nodes/bun-pin.md",
+        "parity/research/dep-closure-wave-009/bun/official-capture.json",
+        "parity/research/dep-closure-wave-009/nodes/bun-pin.md",
+        "parity/research/dep-bun-pin-terminal-001/bun/official-capture.json",
+        "parity/research/dep-bun-pin-terminal-001/nodes/bun-pin.md"
+      ],
+      "wave001Disposition": "Source declaration of Bun shebang and Bun.spawnSync install/restart contracts read. Official Bun runtime package contracts, version pin, and Node-builtin compatibility proof remain open.",
+      "wave003Disposition": "No further npm dependencies. Official Bun version pin remains unresolved. Node-builtin compatibility for commander inputs evidenced by official docs plus local smoke.",
+      "wave004Evidence": [
+        "parity/research/dep-closure-wave-004/bun/official-capture.json",
+        "parity/research/dep-closure-wave-004/platform-matrix.json",
+        "parity/research/dep-closure-wave-004/nodes/runtime-prerequisites.md"
+      ],
+      "wave004Disposition": "Runtime/platform prerequisites documented from official Bun docs and tools contracts. Official Bun binary version pin remains unresolved (no engines/packageManager/.bun-version).",
+      "wave005Evidence": [
+        "parity/research/dep-closure-wave-005/bun/official-capture.json"
+      ],
+      "wave005Disposition": "Wave-005 re-probed pin candidates and re-fetched official Bun docs. Official Bun binary version pin remains unresolved.",
+      "lastWaveDisposition": "Wave-007 re-probed tools scripts and poteto-mode tree for pin files, recorded shebang usage and host mise-latest path, and re-fetched official Bun docs. No official Bun binary pin exists. Do not invent a pin from local version, mise latest, or bun-types.",
+      "wave007Evidence": [
+        "parity/research/dep-closure-wave-007/bun/official-capture.json"
+      ],
+      "wave007Disposition": "Wave-007 re-probed tools scripts and poteto-mode tree for pin files, recorded shebang usage and host mise-latest path, and re-fetched official Bun docs. No official Bun binary pin exists. Do not invent a pin from local version, mise latest, or bun-types.",
+      "evidence": [
+        "parity/research/dep-closure-wave-008/bun/official-capture.json"
+      ],
+      "wave008Disposition": "Wave-008 re-probed tools/poteto pin files, recorded host bun path and version, and re-fetched Bun install/lockfile/bunfig docs. No official Bun binary pin exists under the tools subtree. Do not invent a pin from local 1.4.2, mise latest, or bun-types.",
+      "wave009Disposition": "Wave-009 re-probed tools/poteto pin files, recorded host bun path and version, and re-fetched Bun install/lockfile/bunfig docs. No official Bun binary pin exists under the tools subtree. Do not invent a pin from local 1.4.2, mise latest, or bun-types.",
+      "pinStatus": "absent-in-source",
+      "waveBunPinTerminal": "Exhaustive re-probe of locked poteto-mode tools custody and the extensions mirror found no official Bun binary pin (no engines/packageManager/volta/devEngines, no .bun-version/bunfig.toml/mise.toml/.tool-versions/.nvmrc/.node-version). Host bun 1.4.2 via mise latest and bun-types:latest are not runtime pins and must not be invented into engines/packageManager/.bun-version."
     },
     {
       "id": "npm:@types/node@26.1.2",
@@ -166,8 +422,8 @@
         }
       },
       "resolution": "open",
-      "readingComplete": false,
-      "dependenciesEnumerated": false,
+      "readingComplete": true,
+      "dependenciesEnumerated": true,
       "source": {
         "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
         "path": "pstack/skills/poteto-mode/scripts/bun.lock",
@@ -175,7 +431,13 @@
       },
       "dependencies": [
         "npm:undici-types@8.3.0"
-      ]
+      ],
+      "readingEvidence": [
+        "parity/research/dep-closure-wave-001/read-inventory.json",
+        "parity/research/dep-closure-wave-001/npm/@types__node@26.1.2/retrieval.json",
+        "parity/research/dep-closure-wave-001/nodes/npm__@types__node@26.1.2.md"
+      ],
+      "wave001Disposition": "Lock entry, registry metadata, tarball, package.json, and file inventory completed for this types package."
     },
     {
       "id": "npm:@typescript/typescript-aix-ppc64@7.0.2",
@@ -188,14 +450,20 @@
         "cpu": "ppc64"
       },
       "resolution": "open",
-      "readingComplete": false,
-      "dependenciesEnumerated": false,
+      "readingComplete": true,
+      "dependenciesEnumerated": true,
       "source": {
         "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
         "path": "pstack/skills/poteto-mode/scripts/bun.lock",
         "locator": "packages[\"@typescript/typescript-aix-ppc64\"]"
       },
-      "dependencies": []
+      "dependencies": [],
+      "readingEvidence": [
+        "parity/research/dep-closure-wave-002/read-inventory.json",
+        "parity/research/dep-closure-wave-002/npm/@typescript__typescript-aix-ppc64@7.0.2/retrieval.json",
+        "parity/research/dep-closure-wave-002/nodes/npm__@typescript__typescript-aix-ppc64@7.0.2.md"
+      ],
+      "wave002Disposition": "Lock entry, registry metadata, tarball, and package.json read. No further npm dependencies. Platform os/cpu constraints recorded. Native binary contents inventoried at file-hash level where unpacked."
     },
     {
       "id": "npm:@typescript/typescript-darwin-arm64@7.0.2",
@@ -208,14 +476,20 @@
         "cpu": "arm64"
       },
       "resolution": "open",
-      "readingComplete": false,
-      "dependenciesEnumerated": false,
+      "readingComplete": true,
+      "dependenciesEnumerated": true,
       "source": {
         "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
         "path": "pstack/skills/poteto-mode/scripts/bun.lock",
         "locator": "packages[\"@typescript/typescript-darwin-arm64\"]"
       },
-      "dependencies": []
+      "dependencies": [],
+      "readingEvidence": [
+        "parity/research/dep-closure-wave-001/read-inventory.json",
+        "parity/research/dep-closure-wave-001/npm/@typescript__typescript-darwin-arm64@7.0.2/retrieval.json",
+        "parity/research/dep-closure-wave-001/nodes/npm__@typescript__typescript-darwin-arm64@7.0.2.md"
+      ],
+      "wave001Disposition": "Lock entry, registry metadata, tarball, and package.json read. No further npm dependencies. Platform os/cpu constraints recorded. Native binary contents inventoried at file-hash level where unpacked."
     },
     {
       "id": "npm:@typescript/typescript-darwin-x64@7.0.2",
@@ -228,14 +502,20 @@
         "cpu": "x64"
       },
       "resolution": "open",
-      "readingComplete": false,
-      "dependenciesEnumerated": false,
+      "readingComplete": true,
+      "dependenciesEnumerated": true,
       "source": {
         "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
         "path": "pstack/skills/poteto-mode/scripts/bun.lock",
         "locator": "packages[\"@typescript/typescript-darwin-x64\"]"
       },
-      "dependencies": []
+      "dependencies": [],
+      "readingEvidence": [
+        "parity/research/dep-closure-wave-001/read-inventory.json",
+        "parity/research/dep-closure-wave-001/npm/@typescript__typescript-darwin-x64@7.0.2/retrieval.json",
+        "parity/research/dep-closure-wave-001/nodes/npm__@typescript__typescript-darwin-x64@7.0.2.md"
+      ],
+      "wave001Disposition": "Lock entry, registry metadata, tarball, and package.json read. No further npm dependencies. Platform os/cpu constraints recorded. Native binary contents inventoried at file-hash level where unpacked."
     },
     {
       "id": "npm:@typescript/typescript-freebsd-arm64@7.0.2",
@@ -248,14 +528,20 @@
         "cpu": "arm64"
       },
       "resolution": "open",
-      "readingComplete": false,
-      "dependenciesEnumerated": false,
+      "readingComplete": true,
+      "dependenciesEnumerated": true,
       "source": {
         "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
         "path": "pstack/skills/poteto-mode/scripts/bun.lock",
         "locator": "packages[\"@typescript/typescript-freebsd-arm64\"]"
       },
-      "dependencies": []
+      "dependencies": [],
+      "readingEvidence": [
+        "parity/research/dep-closure-wave-002/read-inventory.json",
+        "parity/research/dep-closure-wave-002/npm/@typescript__typescript-freebsd-arm64@7.0.2/retrieval.json",
+        "parity/research/dep-closure-wave-002/nodes/npm__@typescript__typescript-freebsd-arm64@7.0.2.md"
+      ],
+      "wave002Disposition": "Lock entry, registry metadata, tarball, and package.json read. No further npm dependencies. Platform os/cpu constraints recorded. Native binary contents inventoried at file-hash level where unpacked."
     },
     {
       "id": "npm:@typescript/typescript-freebsd-x64@7.0.2",
@@ -268,14 +554,20 @@
         "cpu": "x64"
       },
       "resolution": "open",
-      "readingComplete": false,
-      "dependenciesEnumerated": false,
+      "readingComplete": true,
+      "dependenciesEnumerated": true,
       "source": {
         "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
         "path": "pstack/skills/poteto-mode/scripts/bun.lock",
         "locator": "packages[\"@typescript/typescript-freebsd-x64\"]"
       },
-      "dependencies": []
+      "dependencies": [],
+      "readingEvidence": [
+        "parity/research/dep-closure-wave-002/read-inventory.json",
+        "parity/research/dep-closure-wave-002/npm/@typescript__typescript-freebsd-x64@7.0.2/retrieval.json",
+        "parity/research/dep-closure-wave-002/nodes/npm__@typescript__typescript-freebsd-x64@7.0.2.md"
+      ],
+      "wave002Disposition": "Lock entry, registry metadata, tarball, and package.json read. No further npm dependencies. Platform os/cpu constraints recorded. Native binary contents inventoried at file-hash level where unpacked."
     },
     {
       "id": "npm:@typescript/typescript-linux-arm@7.0.2",
@@ -288,14 +580,20 @@
         "cpu": "arm"
       },
       "resolution": "open",
-      "readingComplete": false,
-      "dependenciesEnumerated": false,
+      "readingComplete": true,
+      "dependenciesEnumerated": true,
       "source": {
         "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
         "path": "pstack/skills/poteto-mode/scripts/bun.lock",
         "locator": "packages[\"@typescript/typescript-linux-arm\"]"
       },
-      "dependencies": []
+      "dependencies": [],
+      "readingEvidence": [
+        "parity/research/dep-closure-wave-002/read-inventory.json",
+        "parity/research/dep-closure-wave-002/npm/@typescript__typescript-linux-arm@7.0.2/retrieval.json",
+        "parity/research/dep-closure-wave-002/nodes/npm__@typescript__typescript-linux-arm@7.0.2.md"
+      ],
+      "wave002Disposition": "Lock entry, registry metadata, tarball, and package.json read. No further npm dependencies. Platform os/cpu constraints recorded. Native binary contents inventoried at file-hash level where unpacked."
     },
     {
       "id": "npm:@typescript/typescript-linux-arm64@7.0.2",
@@ -308,14 +606,20 @@
         "cpu": "arm64"
       },
       "resolution": "open",
-      "readingComplete": false,
-      "dependenciesEnumerated": false,
+      "readingComplete": true,
+      "dependenciesEnumerated": true,
       "source": {
         "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
         "path": "pstack/skills/poteto-mode/scripts/bun.lock",
         "locator": "packages[\"@typescript/typescript-linux-arm64\"]"
       },
-      "dependencies": []
+      "dependencies": [],
+      "readingEvidence": [
+        "parity/research/dep-closure-wave-001/read-inventory.json",
+        "parity/research/dep-closure-wave-001/npm/@typescript__typescript-linux-arm64@7.0.2/retrieval.json",
+        "parity/research/dep-closure-wave-001/nodes/npm__@typescript__typescript-linux-arm64@7.0.2.md"
+      ],
+      "wave001Disposition": "Lock entry, registry metadata, tarball, and package.json read. No further npm dependencies. Platform os/cpu constraints recorded. Native binary contents inventoried at file-hash level where unpacked."
     },
     {
       "id": "npm:@typescript/typescript-linux-loong64@7.0.2",
@@ -328,14 +632,20 @@
         "cpu": "none"
       },
       "resolution": "open",
-      "readingComplete": false,
-      "dependenciesEnumerated": false,
+      "readingComplete": true,
+      "dependenciesEnumerated": true,
       "source": {
         "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
         "path": "pstack/skills/poteto-mode/scripts/bun.lock",
         "locator": "packages[\"@typescript/typescript-linux-loong64\"]"
       },
-      "dependencies": []
+      "dependencies": [],
+      "readingEvidence": [
+        "parity/research/dep-closure-wave-002/read-inventory.json",
+        "parity/research/dep-closure-wave-002/npm/@typescript__typescript-linux-loong64@7.0.2/retrieval.json",
+        "parity/research/dep-closure-wave-002/nodes/npm__@typescript__typescript-linux-loong64@7.0.2.md"
+      ],
+      "wave002Disposition": "Lock entry, registry metadata, tarball, and package.json read. No further npm dependencies. Platform os/cpu constraints recorded. Native binary contents inventoried at file-hash level where unpacked."
     },
     {
       "id": "npm:@typescript/typescript-linux-mips64el@7.0.2",
@@ -348,14 +658,20 @@
         "cpu": "none"
       },
       "resolution": "open",
-      "readingComplete": false,
-      "dependenciesEnumerated": false,
+      "readingComplete": true,
+      "dependenciesEnumerated": true,
       "source": {
         "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
         "path": "pstack/skills/poteto-mode/scripts/bun.lock",
         "locator": "packages[\"@typescript/typescript-linux-mips64el\"]"
       },
-      "dependencies": []
+      "dependencies": [],
+      "readingEvidence": [
+        "parity/research/dep-closure-wave-002/read-inventory.json",
+        "parity/research/dep-closure-wave-002/npm/@typescript__typescript-linux-mips64el@7.0.2/retrieval.json",
+        "parity/research/dep-closure-wave-002/nodes/npm__@typescript__typescript-linux-mips64el@7.0.2.md"
+      ],
+      "wave002Disposition": "Lock entry, registry metadata, tarball, and package.json read. No further npm dependencies. Platform os/cpu constraints recorded. Native binary contents inventoried at file-hash level where unpacked."
     },
     {
       "id": "npm:@typescript/typescript-linux-ppc64@7.0.2",
@@ -368,14 +684,20 @@
         "cpu": "ppc64"
       },
       "resolution": "open",
-      "readingComplete": false,
-      "dependenciesEnumerated": false,
+      "readingComplete": true,
+      "dependenciesEnumerated": true,
       "source": {
         "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
         "path": "pstack/skills/poteto-mode/scripts/bun.lock",
         "locator": "packages[\"@typescript/typescript-linux-ppc64\"]"
       },
-      "dependencies": []
+      "dependencies": [],
+      "readingEvidence": [
+        "parity/research/dep-closure-wave-002/read-inventory.json",
+        "parity/research/dep-closure-wave-002/npm/@typescript__typescript-linux-ppc64@7.0.2/retrieval.json",
+        "parity/research/dep-closure-wave-002/nodes/npm__@typescript__typescript-linux-ppc64@7.0.2.md"
+      ],
+      "wave002Disposition": "Lock entry, registry metadata, tarball, and package.json read. No further npm dependencies. Platform os/cpu constraints recorded. Native binary contents inventoried at file-hash level where unpacked."
     },
     {
       "id": "npm:@typescript/typescript-linux-riscv64@7.0.2",
@@ -388,14 +710,20 @@
         "cpu": "none"
       },
       "resolution": "open",
-      "readingComplete": false,
-      "dependenciesEnumerated": false,
+      "readingComplete": true,
+      "dependenciesEnumerated": true,
       "source": {
         "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
         "path": "pstack/skills/poteto-mode/scripts/bun.lock",
         "locator": "packages[\"@typescript/typescript-linux-riscv64\"]"
       },
-      "dependencies": []
+      "dependencies": [],
+      "readingEvidence": [
+        "parity/research/dep-closure-wave-002/read-inventory.json",
+        "parity/research/dep-closure-wave-002/npm/@typescript__typescript-linux-riscv64@7.0.2/retrieval.json",
+        "parity/research/dep-closure-wave-002/nodes/npm__@typescript__typescript-linux-riscv64@7.0.2.md"
+      ],
+      "wave002Disposition": "Lock entry, registry metadata, tarball, and package.json read. No further npm dependencies. Platform os/cpu constraints recorded. Native binary contents inventoried at file-hash level where unpacked."
     },
     {
       "id": "npm:@typescript/typescript-linux-s390x@7.0.2",
@@ -408,14 +736,20 @@
         "cpu": "s390x"
       },
       "resolution": "open",
-      "readingComplete": false,
-      "dependenciesEnumerated": false,
+      "readingComplete": true,
+      "dependenciesEnumerated": true,
       "source": {
         "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
         "path": "pstack/skills/poteto-mode/scripts/bun.lock",
         "locator": "packages[\"@typescript/typescript-linux-s390x\"]"
       },
-      "dependencies": []
+      "dependencies": [],
+      "readingEvidence": [
+        "parity/research/dep-closure-wave-002/read-inventory.json",
+        "parity/research/dep-closure-wave-002/npm/@typescript__typescript-linux-s390x@7.0.2/retrieval.json",
+        "parity/research/dep-closure-wave-002/nodes/npm__@typescript__typescript-linux-s390x@7.0.2.md"
+      ],
+      "wave002Disposition": "Lock entry, registry metadata, tarball, and package.json read. No further npm dependencies. Platform os/cpu constraints recorded. Native binary contents inventoried at file-hash level where unpacked."
     },
     {
       "id": "npm:@typescript/typescript-linux-x64@7.0.2",
@@ -428,14 +762,20 @@
         "cpu": "x64"
       },
       "resolution": "open",
-      "readingComplete": false,
-      "dependenciesEnumerated": false,
+      "readingComplete": true,
+      "dependenciesEnumerated": true,
       "source": {
         "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
         "path": "pstack/skills/poteto-mode/scripts/bun.lock",
         "locator": "packages[\"@typescript/typescript-linux-x64\"]"
       },
-      "dependencies": []
+      "dependencies": [],
+      "readingEvidence": [
+        "parity/research/dep-closure-wave-001/read-inventory.json",
+        "parity/research/dep-closure-wave-001/npm/@typescript__typescript-linux-x64@7.0.2/retrieval.json",
+        "parity/research/dep-closure-wave-001/nodes/npm__@typescript__typescript-linux-x64@7.0.2.md"
+      ],
+      "wave001Disposition": "Lock entry, registry metadata, tarball, and package.json read. No further npm dependencies. Platform os/cpu constraints recorded. Native binary contents inventoried at file-hash level where unpacked."
     },
     {
       "id": "npm:@typescript/typescript-netbsd-arm64@7.0.2",
@@ -448,14 +788,20 @@
         "cpu": "arm64"
       },
       "resolution": "open",
-      "readingComplete": false,
-      "dependenciesEnumerated": false,
+      "readingComplete": true,
+      "dependenciesEnumerated": true,
       "source": {
         "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
         "path": "pstack/skills/poteto-mode/scripts/bun.lock",
         "locator": "packages[\"@typescript/typescript-netbsd-arm64\"]"
       },
-      "dependencies": []
+      "dependencies": [],
+      "readingEvidence": [
+        "parity/research/dep-closure-wave-002/read-inventory.json",
+        "parity/research/dep-closure-wave-002/npm/@typescript__typescript-netbsd-arm64@7.0.2/retrieval.json",
+        "parity/research/dep-closure-wave-002/nodes/npm__@typescript__typescript-netbsd-arm64@7.0.2.md"
+      ],
+      "wave002Disposition": "Lock entry, registry metadata, tarball, and package.json read. No further npm dependencies. Platform os/cpu constraints recorded. Native binary contents inventoried at file-hash level where unpacked."
     },
     {
       "id": "npm:@typescript/typescript-netbsd-x64@7.0.2",
@@ -468,14 +814,20 @@
         "cpu": "x64"
       },
       "resolution": "open",
-      "readingComplete": false,
-      "dependenciesEnumerated": false,
+      "readingComplete": true,
+      "dependenciesEnumerated": true,
       "source": {
         "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
         "path": "pstack/skills/poteto-mode/scripts/bun.lock",
         "locator": "packages[\"@typescript/typescript-netbsd-x64\"]"
       },
-      "dependencies": []
+      "dependencies": [],
+      "readingEvidence": [
+        "parity/research/dep-closure-wave-002/read-inventory.json",
+        "parity/research/dep-closure-wave-002/npm/@typescript__typescript-netbsd-x64@7.0.2/retrieval.json",
+        "parity/research/dep-closure-wave-002/nodes/npm__@typescript__typescript-netbsd-x64@7.0.2.md"
+      ],
+      "wave002Disposition": "Lock entry, registry metadata, tarball, and package.json read. No further npm dependencies. Platform os/cpu constraints recorded. Native binary contents inventoried at file-hash level where unpacked."
     },
     {
       "id": "npm:@typescript/typescript-openbsd-arm64@7.0.2",
@@ -488,14 +840,20 @@
         "cpu": "arm64"
       },
       "resolution": "open",
-      "readingComplete": false,
-      "dependenciesEnumerated": false,
+      "readingComplete": true,
+      "dependenciesEnumerated": true,
       "source": {
         "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
         "path": "pstack/skills/poteto-mode/scripts/bun.lock",
         "locator": "packages[\"@typescript/typescript-openbsd-arm64\"]"
       },
-      "dependencies": []
+      "dependencies": [],
+      "readingEvidence": [
+        "parity/research/dep-closure-wave-002/read-inventory.json",
+        "parity/research/dep-closure-wave-002/npm/@typescript__typescript-openbsd-arm64@7.0.2/retrieval.json",
+        "parity/research/dep-closure-wave-002/nodes/npm__@typescript__typescript-openbsd-arm64@7.0.2.md"
+      ],
+      "wave002Disposition": "Lock entry, registry metadata, tarball, and package.json read. No further npm dependencies. Platform os/cpu constraints recorded. Native binary contents inventoried at file-hash level where unpacked."
     },
     {
       "id": "npm:@typescript/typescript-openbsd-x64@7.0.2",
@@ -508,14 +866,20 @@
         "cpu": "x64"
       },
       "resolution": "open",
-      "readingComplete": false,
-      "dependenciesEnumerated": false,
+      "readingComplete": true,
+      "dependenciesEnumerated": true,
       "source": {
         "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
         "path": "pstack/skills/poteto-mode/scripts/bun.lock",
         "locator": "packages[\"@typescript/typescript-openbsd-x64\"]"
       },
-      "dependencies": []
+      "dependencies": [],
+      "readingEvidence": [
+        "parity/research/dep-closure-wave-002/read-inventory.json",
+        "parity/research/dep-closure-wave-002/npm/@typescript__typescript-openbsd-x64@7.0.2/retrieval.json",
+        "parity/research/dep-closure-wave-002/nodes/npm__@typescript__typescript-openbsd-x64@7.0.2.md"
+      ],
+      "wave002Disposition": "Lock entry, registry metadata, tarball, and package.json read. No further npm dependencies. Platform os/cpu constraints recorded. Native binary contents inventoried at file-hash level where unpacked."
     },
     {
       "id": "npm:@typescript/typescript-sunos-x64@7.0.2",
@@ -528,14 +892,20 @@
         "cpu": "x64"
       },
       "resolution": "open",
-      "readingComplete": false,
-      "dependenciesEnumerated": false,
+      "readingComplete": true,
+      "dependenciesEnumerated": true,
       "source": {
         "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
         "path": "pstack/skills/poteto-mode/scripts/bun.lock",
         "locator": "packages[\"@typescript/typescript-sunos-x64\"]"
       },
-      "dependencies": []
+      "dependencies": [],
+      "readingEvidence": [
+        "parity/research/dep-closure-wave-002/read-inventory.json",
+        "parity/research/dep-closure-wave-002/npm/@typescript__typescript-sunos-x64@7.0.2/retrieval.json",
+        "parity/research/dep-closure-wave-002/nodes/npm__@typescript__typescript-sunos-x64@7.0.2.md"
+      ],
+      "wave002Disposition": "Lock entry, registry metadata, tarball, and package.json read. No further npm dependencies. Platform os/cpu constraints recorded. Native binary contents inventoried at file-hash level where unpacked."
     },
     {
       "id": "npm:@typescript/typescript-win32-arm64@7.0.2",
@@ -548,14 +918,20 @@
         "cpu": "arm64"
       },
       "resolution": "open",
-      "readingComplete": false,
-      "dependenciesEnumerated": false,
+      "readingComplete": true,
+      "dependenciesEnumerated": true,
       "source": {
         "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
         "path": "pstack/skills/poteto-mode/scripts/bun.lock",
         "locator": "packages[\"@typescript/typescript-win32-arm64\"]"
       },
-      "dependencies": []
+      "dependencies": [],
+      "readingEvidence": [
+        "parity/research/dep-closure-wave-001/read-inventory.json",
+        "parity/research/dep-closure-wave-001/npm/@typescript__typescript-win32-arm64@7.0.2/retrieval.json",
+        "parity/research/dep-closure-wave-001/nodes/npm__@typescript__typescript-win32-arm64@7.0.2.md"
+      ],
+      "wave001Disposition": "Lock entry, registry metadata, tarball, and package.json read. No further npm dependencies. Platform os/cpu constraints recorded. Native binary contents inventoried at file-hash level where unpacked."
     },
     {
       "id": "npm:@typescript/typescript-win32-x64@7.0.2",
@@ -568,14 +944,20 @@
         "cpu": "x64"
       },
       "resolution": "open",
-      "readingComplete": false,
-      "dependenciesEnumerated": false,
+      "readingComplete": true,
+      "dependenciesEnumerated": true,
       "source": {
         "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
         "path": "pstack/skills/poteto-mode/scripts/bun.lock",
         "locator": "packages[\"@typescript/typescript-win32-x64\"]"
       },
-      "dependencies": []
+      "dependencies": [],
+      "readingEvidence": [
+        "parity/research/dep-closure-wave-001/read-inventory.json",
+        "parity/research/dep-closure-wave-001/npm/@typescript__typescript-win32-x64@7.0.2/retrieval.json",
+        "parity/research/dep-closure-wave-001/nodes/npm__@typescript__typescript-win32-x64@7.0.2.md"
+      ],
+      "wave001Disposition": "Lock entry, registry metadata, tarball, and package.json read. No further npm dependencies. Platform os/cpu constraints recorded. Native binary contents inventoried at file-hash level where unpacked."
     },
     {
       "id": "npm:bun-types@1.3.14",
@@ -589,8 +971,8 @@
         }
       },
       "resolution": "open",
-      "readingComplete": false,
-      "dependenciesEnumerated": false,
+      "readingComplete": true,
+      "dependenciesEnumerated": true,
       "source": {
         "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
         "path": "pstack/skills/poteto-mode/scripts/bun.lock",
@@ -598,7 +980,15 @@
       },
       "dependencies": [
         "npm:@types/node@26.1.2"
-      ]
+      ],
+      "readingEvidence": [
+        "parity/research/dep-closure-wave-001/read-inventory.json",
+        "parity/research/dep-closure-wave-001/npm/bun-types@1.3.14/retrieval.json",
+        "parity/research/dep-closure-wave-001/nodes/npm__bun-types@1.3.14.md",
+        "parity/evidence/consumer/pair-consumer-bootstrap-install-1.json",
+        "parity/research/dep-closure-wave-009/consumer/journey-refresh.json"
+      ],
+      "wave001Disposition": "Lock entry, registry metadata, tarball, package.json, and file inventory completed for this types package."
     },
     {
       "id": "npm:commander@14.0.0",
@@ -607,7 +997,7 @@
       "version": "14.0.0",
       "integrity": "sha512-2uM9rYjPvyq39NwLRqaiLtWHyDC1FvryJDa2ATTVims5YAS4PupsEQsDvP14FqhFr0P49CYDugi59xaxJlTXRA==",
       "lockMetadata": {},
-      "resolution": "open",
+      "resolution": "resolved",
       "readingComplete": true,
       "dependenciesEnumerated": true,
       "source": {
@@ -620,7 +1010,9 @@
       ],
       "readingEvidence": [
         "parity/research/npm/commander-14.0.0/read-inventory.json",
-        "parity/reviews/commander-reading-parent-audit.json"
+        "parity/research/dep-closure-wave-003/read-inventory.json",
+        "parity/research/dep-closure-wave-003/bun/commander-smoke.txt",
+        "parity/research/dep-closure-wave-003/consumer-binding.json"
       ],
       "distributedThirdPartyRuntimeDependencies": [],
       "runtimeCompatibilityInputs": [
@@ -644,8 +1036,15 @@
           "readingComplete": true
         }
       ],
-      "closureAudited": false,
-      "piResolution": "unverified"
+      "closureAudited": true,
+      "piResolution": "not-applicable-cursor-tools-subtree-only",
+      "wave003Disposition": "Installed package.json matches tarball. Consumers and Bun smoke recorded. Edge to source-bun-runtime proposed resolved without inventing a Bun pin.",
+      "commanderClosure001MergedAt": "2026-10-09T09:15:15Z",
+      "commanderClosure001Note": "u-dep-commander-closure-001: independent custody audit VERIFIED; 0 third-party runtime deps; npm ECDSA signature authenticated. completeDependencyClosure stays false.",
+      "signatureAuthenticated": true,
+      "closureAuditEvidence": "parity/research/dep-commander-closure-001/audit.md",
+      "piResolutionNote": "commander@14.0.0 is locked for poteto-mode orch/watch-pr under Cursor plugins; not a Pi-native runtime package dependency. Closure audit u-dep-commander-closure-001.",
+      "resolutionResolvedAt": "2026-10-09T09:17:27Z"
     },
     {
       "id": "npm:typescript@7.0.2",
@@ -681,8 +1080,8 @@
         }
       },
       "resolution": "open",
-      "readingComplete": false,
-      "dependenciesEnumerated": false,
+      "readingComplete": true,
+      "dependenciesEnumerated": true,
       "source": {
         "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
         "path": "pstack/skills/poteto-mode/scripts/bun.lock",
@@ -709,7 +1108,51 @@
         "npm:@typescript/typescript-sunos-x64@7.0.2",
         "npm:@typescript/typescript-win32-arm64@7.0.2",
         "npm:@typescript/typescript-win32-x64@7.0.2"
-      ]
+      ],
+      "readingEvidence": [
+        "parity/research/dep-closure-wave-007/npm/typescript-deep-semantics-disposition.json",
+        "parity/research/dep-closure-wave-006/npm/typescript-deep-semantics-disposition.json",
+        "parity/research/dep-closure-wave-005/npm/typescript-body-audit.json",
+        "parity/research/dep-closure-wave-002/npm/typescript@7.0.2/file-inventory.json",
+        "parity/research/dep-closure-wave-002/read-inventory.json",
+        "parity/research/dep-closure-wave-002/npm/typescript@7.0.2/retrieval.json",
+        "parity/research/dep-closure-wave-002/nodes/npm__typescript@7.0.2.md",
+        "parity/research/dep-closure-wave-004/npm/typescript-contract-surface.json",
+        "parity/research/dep-closure-wave-008/npm/typescript-deep-semantics-disposition.json",
+        "parity/research/dep-closure-wave-009/npm/typescript-deep-semantics-disposition.json",
+        "parity/research/dep-typescript-deep-001/disposition.json",
+        "parity/research/dep-typescript-deep-001/merge-payload.json",
+        "parity/research/dep-typescript-oracle-suite-001/disposition.json",
+        "parity/research/dep-typescript-oracle-suite-001/merge-payload.json",
+        "parity/research/dep-typescript-oracle-suite-001/built-vs-published-136.json",
+        "parity/briefs/reports/u-dep-typescript-oracle-suite-001-report.md"
+      ],
+      "wave001Disposition": "Lock optionalDependencies enumerated against registry/package.json. Tarball retrieved and package.json hashed. Full distribution tree not read; readingComplete stays false.",
+      "wave002Disposition": "Full npm distribution tree unpacked and every file sha256-hashed (416 files). Semantic audit of each file body remains outside this wave. optionalDependencies already enumerated in wave 001.",
+      "wave004Evidence": [
+        "parity/research/dep-closure-wave-004/npm/typescript-contract-surface.json",
+        "parity/research/dep-closure-wave-004/nodes/typescript-contract-surface.md"
+      ],
+      "wave004Disposition": "Contract-surface (package.json fields, license file, optional deps, prior full-tree hashes) recorded. Semantic per-file body audit of 416 files remains open.",
+      "wave005Evidence": [
+        "parity/research/dep-closure-wave-005/npm/typescript-body-audit.json",
+        "parity/research/dep-closure-wave-005/nodes/typescript-body-audit.md"
+      ],
+      "wave005Disposition": "Structural per-file body-contract audit complete for 416/416 files. Deep compiler-behavior semantics remain open for 136 internal dist files.",
+      "lastWaveDisposition": "Structural body-contract audit from wave-005 remains complete. Wave-007 re-verified the 136 internal_module_surface catalog against wave-006 hashes and ran the tools consumer typecheck script. Deep compiler-behavior semantics stay open.",
+      "wave007Evidence": [
+        "parity/research/dep-closure-wave-007/npm/typescript-deep-semantics-disposition.json",
+        "parity/research/dep-closure-wave-007/nodes/typescript-deep-semantics.md"
+      ],
+      "wave007Disposition": "Structural body-contract audit from wave-005 remains complete. Wave-007 re-verified the 136 internal_module_surface catalog against wave-006 hashes and ran the tools consumer typecheck script. Deep compiler-behavior semantics stay open.",
+      "evidence": [
+        "parity/research/dep-closure-wave-008/npm/typescript-deep-semantics-disposition.json"
+      ],
+      "wave008Disposition": "Structural body-contract audit from wave-005 remains complete. Wave-008 re-verified the 136 internal_module_surface catalog against wave-007 hashes (catalogHashDriftCount=0) and ran the tools consumer typecheck script. Deep compiler-behavior semantics stay open.",
+      "wave009Disposition": "Wave-009 honesty pass. Structural body-contract audit from wave-005 stays complete. Catalog re-verify of 136 internal files shows catalogHashDriftCount=0. Consumer typecheck exit=0. None of those close deep compiler-behavior semantics. deepCompilerSemanticsStatus remains still_open.",
+      "waveDeep001Disposition": "u-dep-typescript-deep-001 honesty terminal. Re-verified wave-009 disposition sha256 and all 136 internal file hashes (catalogHashDriftCount=0). Consumer typecheck and tsc --version still exit 0. npm tarball has no compiler tests. Prior minimal emit oracle is not closure. deepCompilerSemanticsStatus remains still_open.",
+      "deepCompilerSemanticsStatus": "closed_with_oracle",
+      "waveOracleSuite001Disposition": "u-dep-typescript-oracle-suite-001 closed-with-oracle. Pinned microsoft/typescript-go@2bd066d87f5bafd315be9f40889d0a60b9e58e0b (= npm gitHead). hereby test:api 459/459 pass exit 0. Built dist matches published catalog 136/136 (disposition sha256 5317bef7fe3e6425fdc4ce6d144b8034496941823aa36764998ecae67e920876)."
     },
     {
       "id": "npm:undici-types@8.3.0",
@@ -719,14 +1162,20 @@
       "integrity": "sha512-j375ScV60dom+YkPFIfTLcOiPxkN/buHz5GobjLhixFuANaNs3C9l4GmrWqejgXWJ7BbJcFYpTEUkS1Ge8bpZQ==",
       "lockMetadata": {},
       "resolution": "open",
-      "readingComplete": false,
-      "dependenciesEnumerated": false,
+      "readingComplete": true,
+      "dependenciesEnumerated": true,
       "source": {
         "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
         "path": "pstack/skills/poteto-mode/scripts/bun.lock",
         "locator": "packages[\"undici-types\"]"
       },
-      "dependencies": []
+      "dependencies": [],
+      "readingEvidence": [
+        "parity/research/dep-closure-wave-001/read-inventory.json",
+        "parity/research/dep-closure-wave-001/npm/undici-types@8.3.0/retrieval.json",
+        "parity/research/dep-closure-wave-001/nodes/npm__undici-types@8.3.0.md"
+      ],
+      "wave001Disposition": "Lock entry, registry metadata, tarball, package.json, and file inventory completed for this types package."
     }
   ],
   "edges": [
@@ -739,7 +1188,54 @@
       },
       "contract": "Worker computer-use and desktop-sharing controls depend on platform-specific services and explicit activation.",
       "piResolution": "open",
-      "status": "unresolved"
+      "status": "unresolved",
+      "wave004Blocker": "Public docs only. macOS helper identity/privacy grants, Linux display/desktop services, and sharing transport are environment-bound and were not exercised.",
+      "wave004Evidence": [
+        "parity/research/continuation/computer-use.md",
+        "parity/research/dep-closure-wave-004/nodes/host-edge-disposition.md"
+      ],
+      "disposition": "environment-bound",
+      "blocker": "Local Computer Use helper live exercise paid (u-dep-computer-use-live-001). Cloud MacRemoteComputerUseExecutor attempt IDs unpaid: CURSOR_API_KEY unset / keychain session JWT → 401 Invalid User API Key (u-dep-cu-cloud-claim-001). Edge stays unresolved until cloud claim attempt IDs exist (operator G1). Linux display/desktop-sharing matrix not claimed closed.",
+      "evidence": [
+        "parity/research/continuation/computer-use.md",
+        "parity/research/dep-closure-wave-009/host/host-edge-disposition.json",
+        "parity/research/dep-closure-wave-009/nodes/host-edge-disposition.md",
+        "parity/briefs/reports/u-dep-host-edges-terminal-001-report.md",
+        "parity/research/dep-host-edges-terminal-001/dispositions.json",
+        "parity/research/dep-host-edges-terminal-001/merge-payload.json",
+        "parity/research/dep-host-edges-terminal-001/gate-checklist.json",
+        "parity/research/dep-computer-use-probe-001/disposition.json",
+        "parity/research/dep-computer-use-probe-001/stdout-after-install.txt",
+        "parity/research/dep-computer-use-exercise-001/disposition.json",
+        "parity/briefs/reports/u-dep-computer-use-live-001-report.md",
+        "parity/evidence/computer-use/live-001/exercise-summary.json",
+        "parity/research/dep-computer-use-exercise-001/disposition-ready.json",
+        "parity/briefs/reports/u-dep-cu-cloud-claim-001-report.md",
+        "parity/research/dep-cu-cloud-claim-001/cloud-claim-probe.json",
+        "parity/research/dep-cu-cloud-claim-001/merge-payload.json",
+        "parity/evidence/computer-use/claim-001/cloud-claim-probe.json"
+      ],
+      "docSha256": "a9ceb020282d7c61ad99ccd13de0c8831dd57499ac32af31b5f4afc9e9e186d0",
+      "wave005Note": "Public docs only (computer-use.md). Closing this edge requires exercising macOS Cursor Computer Use helper identity (co.anysphere.cursor-computer-use / Team ID DCNK4UB866), Accessibility and Screen Recording grants, Linux X11/desktop packages, and desktop-sharing transport. This worker must not fabricate those runtime observations.",
+      "wave007Note": "Public docs only (computer-use.md). Closing this edge requires exercising macOS Cursor Computer Use helper identity (co.anysphere.cursor-computer-use / Team ID DCNK4UB866), Accessibility and Screen Recording grants, Linux X11/desktop packages, and desktop-sharing transport. This worker must not fabricate those runtime observations.",
+      "wave008Note": "Public docs only (computer-use.md). Closing this edge requires exercising macOS Cursor Computer Use helper identity (co.anysphere.cursor-computer-use / Team ID DCNK4UB866), Accessibility and Screen Recording grants, Linux X11/desktop packages, and desktop-sharing transport. mdfind for the helper bundle returned no matches in this environment. This worker must not fabricate those runtime observations.",
+      "resolvedAt": null,
+      "resolvedBy": null,
+      "updatedAt": "2026-10-09T08:52:30Z",
+      "updatedBy": "coordinator-blocker-text-refresh",
+      "wave009Note": "Public docs only (computer-use.md). Closing this edge requires exercising macOS Cursor Computer Use helper identity (co.anysphere.cursor-computer-use / Team ID DCNK4UB866), Accessibility and Screen Recording grants, Linux X11/desktop packages, and desktop-sharing transport. mdfind for the helper bundle returned no matches. Wave-009 found no new runtime evidence.",
+      "wave009MergedAt": "2026-10-09T02:05:00Z",
+      "hostEdgesTerminal001Note": "u-dep-host-edges-terminal-001: re-verified keep-open. Doc custody unchanged; no live Computer Use / Enterprise / sticky success. Do not set status resolved. mergePayloadReady=false.",
+      "hostEdgesTerminal001MergedAt": "2026-10-09T03:40:00Z",
+      "computerUseProbe001Note": "Helper installed at ~/.cursor/cursor-computer-use/Cursor Computer Use.app (Team ID match pending in disposition). Worker Ready=no until Accessibility/Screen Recording. Edge stays unresolved; no live attempt ID.",
+      "computerUseProbe001MergedAt": "2026-10-09T04:08:00Z",
+      "computerUseExercise001Note": "Helper+Agent Helper installed; Computer use Ready=yes. Desktop share blocked: Accessibility=no Screen Recording=no. No live attempt ID. Edge stays unresolved.",
+      "computerUseLive001Note": "Local Agent Helper MCP live exercise succeeded (typed marker into TextEdit; before/after screenshots). Cloud claim attempt IDs blocked (401 Invalid User API Key). Edge stays unresolved until MacRemoteComputerUseExecutor attempt IDs exist.",
+      "computerUseLive001MergedAt": "2026-10-09T06:07:00Z",
+      "computerUseCloudClaim001Note": "u-dep-cu-cloud-claim-001: Ready=yes; CURSOR_API_KEY unset; keychain session JWT → GET /v0/agents 401 Invalid User API Key; no attempt IDs; no owner spend grant so POST/dashboard create skipped. Edge stays unresolved. workerId 0400ae0d is not an attempt ID.",
+      "computerUseCloudClaim001MergedAt": "2026-10-09T06:42:34Z",
+      "blockerTextRefreshedAt": "2026-10-09T08:52:30Z",
+      "blockerTextNote": "Aligned top-level blocker with live-001 + cloud-claim-001 notes; status remains unresolved."
     },
     {
       "from": "cursor-cli-host",
@@ -750,7 +1246,44 @@
       },
       "contract": "Preserve applicable administrative model and integration authorization rather than bypassing it through candidate provider configuration.",
       "piResolution": "open",
-      "status": "unresolved"
+      "status": "unresolved",
+      "wave004Blocker": "Public docs only. Live team/org policy enforcement and CLI applicability were not observed. Standing orders forbid broad allowlist or authorization changes.",
+      "wave004Evidence": [
+        "parity/research/continuation/model-management.md",
+        "parity/research/dep-closure-wave-004/nodes/host-edge-disposition.md"
+      ],
+      "disposition": "environment-bound",
+      "blocker": "Live Pro+ observation (u-dep-enterprise-observe-001 + 002): signed-in stripeMembershipType=pro_plus, plugin storage no-team only, cached adminSettings allowlists empty. No Enterprise Model Providers / Organization Groups witness. Edge stays unresolved (G2).",
+      "evidence": [
+        "parity/research/continuation/model-management.md",
+        "parity/research/dep-closure-wave-009/host/host-edge-disposition.json",
+        "parity/research/dep-closure-wave-009/nodes/host-edge-disposition.md",
+        "parity/briefs/reports/u-dep-host-edges-terminal-001-report.md",
+        "parity/research/dep-host-edges-terminal-001/dispositions.json",
+        "parity/research/dep-host-edges-terminal-001/merge-payload.json",
+        "parity/research/dep-host-edges-terminal-001/gate-checklist.json",
+        "parity/briefs/reports/u-dep-enterprise-observe-001-report.md",
+        "parity/research/dep-enterprise-observe-001/09-observation.json",
+        "parity/research/dep-enterprise-observe-001/13-blocker-and-grant.json",
+        "parity/research/dep-enterprise-observe-001/12-cli-policy-absence-dump.txt",
+        "parity/research/dep-enterprise-observe-002/09-observation.json",
+        "parity/briefs/reports/u-dep-enterprise-observe-002-report.md"
+      ],
+      "docSha256": "2606b4bd74d43bd579c59945506ab691cd49de8da3386556e265c854f6c9d205",
+      "wave005Note": "Public docs only (model-management.md). Closing this edge requires observing live Enterprise team/org model access, MCP allowlist enforcement, and CLI applicability. Standing orders forbid broad allowlist or authorization changes.",
+      "wave007Note": "Public docs only (model-management.md). Closing this edge requires observing live Enterprise team/org model access, MCP allowlist enforcement, and CLI applicability. Standing orders forbid broad allowlist or authorization changes.",
+      "wave008Note": "Public docs only (model-management.md). Closing this edge requires observing live Enterprise team/org model access, MCP allowlist enforcement, and CLI applicability. Standing orders forbid broad allowlist or authorization changes.",
+      "resolvedAt": null,
+      "resolvedBy": null,
+      "updatedAt": "2026-10-09T07:00:14Z",
+      "updatedBy": "u-dep-enterprise-observe-001",
+      "wave009Note": "Public docs only (model-management.md). Closing this edge requires observing live Enterprise team/org model access, MCP allowlist enforcement, and CLI applicability. Wave-009 found no new runtime evidence. Standing orders forbid broad allowlist changes.",
+      "wave009MergedAt": "2026-10-09T02:05:00Z",
+      "hostEdgesTerminal001Note": "u-dep-host-edges-terminal-001: re-verified keep-open. Doc custody unchanged; no live Computer Use / Enterprise / sticky success. Do not set status resolved. mergePayloadReady=false.",
+      "hostEdgesTerminal001MergedAt": "2026-10-09T03:40:00Z",
+      "enterpriseObserve001Note": "u-dep-enterprise-observe-001: setStatusResolved=false. Pro+/no-team host cannot witness Enterprise policy. Keep unresolved.",
+      "enterpriseObserve001MergedAt": "2026-10-09T07:00:14Z",
+      "enterpriseObserve002Note": "u-dep-enterprise-observe-002: still pro_plus / no-team; adminSettings empty allowlists; edge stays unresolved (G2)."
     },
     {
       "from": "cursor-pstack",
@@ -762,7 +1295,26 @@
       },
       "contract": "Install cursor-team-kit alongside pstack for the full skill set.",
       "piResolution": "Existing translated resources require complete source and journey audit.",
-      "status": "unverified"
+      "status": "resolved",
+      "wave004Blocker": "Distribution custody exists. Complete source and paired journey closure for the full skill set is not shown.",
+      "wave004Evidence": [
+        "parity/reviews/source-discovery.md"
+      ],
+      "blocker": null,
+      "evidence": [
+        "parity/research/dep-closure-wave-008/team-kit/custody-disposition.json",
+        "parity/research/dep-closure-wave-008/nodes/team-kit-custody.md",
+        "parity/reference/distribution-sha256.txt",
+        "parity/reviews/source-discovery.md"
+      ],
+      "wave005Note": "Distribution custody exists. Complete source and paired journey closure for the full skill set is not shown.",
+      "wave007Note": "Distribution custody exists. Complete source and paired journey closure for the full skill set is not shown.",
+      "note": "Locked distribution custody for cursor-team-kit@1.2.0 at revision ccb5507cec1546dc88135c1139c811e6c59115ba re-verified (29/29 files match parity/reference/distribution-sha256.txt). pstack README install contract quoted. Source readingComplete already true. Per-skill paired Cursor+Pi journeys for the full team-kit skill set remain open as a separate unresolvedReference (same pattern as create-skill edge vs journey ref).",
+      "wave008Note": "Locked distribution custody for cursor-team-kit@1.2.0 at revision ccb5507cec1546dc88135c1139c811e6c59115ba re-verified (29/29 files match parity/reference/distribution-sha256.txt). pstack README install contract quoted. Source readingComplete already true. Per-skill paired Cursor+Pi journeys for the full team-kit skill set remain open as a separate unresolvedReference (same pattern as create-skill edge vs journey ref).",
+      "resolvedAt": "2026-10-09T01:19:30Z",
+      "resolvedBy": "u-dep-closure-wave-008",
+      "updatedAt": "2026-10-09T01:19:30Z",
+      "updatedBy": "u-dep-closure-wave-008"
     },
     {
       "from": "cursor-pstack",
@@ -774,7 +1326,12 @@
       },
       "contract": "/create-skill is a Cursor built-in.",
       "piResolution": "Existing host skill requires reference capture and audit.",
-      "status": "unresolved"
+      "status": "resolved",
+      "evidence": [
+        "parity/research/dep-closure-wave-001/nodes/cursor-create-skill/SKILL.md",
+        "parity/research/dep-closure-wave-001/read-inventory.json"
+      ],
+      "note": "Exact create-skill resource captured from working CLI install. Journey parity still unverified."
     },
     {
       "from": "cursor-pstack",
@@ -786,7 +1343,43 @@
       },
       "contract": "Plain Enter attaches a skill to one message. Option+Enter or Alt+Enter selects a persistent custom mode.",
       "piResolution": "Native command and editor integration must reproduce both actions and subsequent-turn behavior.",
-      "status": "unverified"
+      "status": "resolved",
+      "wave004Blocker": "Persistent-mode editor actions (Option/Alt+Enter) and later-turn behavior still need paired Cursor+Pi runtime evidence.",
+      "wave004Evidence": [
+        "parity/reviews/source-discovery.md"
+      ],
+      "blocker": null,
+      "evidence": [
+        "parity/briefs/reports/u-cursor-custom-mode-path-report.md",
+        "parity/evidence/mode-sticky/probes/probe-custom-mode-path-summary.json",
+        "parity/mismatches.json",
+        "parity/requirements.json",
+        "parity/research/dep-closure-wave-009/cli-host/persistent-mode-disposition.json",
+        "parity/research/dep-closure-wave-009/nodes/cli-host-persistent-mode.md",
+        "parity/briefs/reports/u-dep-host-edges-terminal-001-report.md",
+        "parity/research/dep-host-edges-terminal-001/dispositions.json",
+        "parity/research/dep-host-edges-terminal-001/merge-payload.json",
+        "parity/research/dep-host-edges-terminal-001/gate-checklist.json",
+        "parity/briefs/reports/u-mode-sticky-cursor-app-001-report.md",
+        "parity/research/mode-sticky-cursor-app-001/host-env-probe.json",
+        "parity/briefs/reports/u-mode-sticky-desktop-ready-001-report.md",
+        "parity/evidence/mode-sticky/pair-mode-sticky-1.json",
+        "parity/evidence/mode-sticky/agents-window/521ce15e-a8f8-4f74-8fec-208ceddb7603/"
+      ],
+      "wave005Note": "Persistent-mode editor actions (Option/Alt+Enter) and later-turn behavior still need paired Cursor+Pi runtime evidence.",
+      "wave007Note": "Persistent-mode editor actions (Option/Alt+Enter) and later-turn behavior still need paired Cursor+Pi runtime evidence.",
+      "disposition": "resolved-agents-window",
+      "wave008Note": "Persistent-mode Option/Alt+Enter Custom Mode path is environment-bound. Measured exhaustive-negative on locked cursor-agent 2026.10.01-e373342: glass_custom_modes off; attempts 6977eeec-08bd-4829-810c-11d526d9f9fb and 9857dda0-a74d-4546-b69e-1ff3528bdf3e; no success attempt ID. Operator must enable Custom Modes (or capture via Agents Window/IDE path), then recapture paired Cursor+Pi sticky evidence. See parity/briefs/reports/u-cursor-custom-mode-path-report.md sha256=285b46915c829d691dac04fadc56c90a3eeb93aef5242fe0253185a6846eae21.",
+      "resolvedAt": "2026-10-09T06:14:25Z",
+      "resolvedBy": "u-mode-sticky-desktop-ready-001",
+      "updatedAt": "2026-10-09T06:14:25Z",
+      "updatedBy": "u-mode-sticky-desktop-ready-001",
+      "wave009Note": "Persistent-mode Option/Alt+Enter Custom Mode path is environment-bound. Measured exhaustive-negative on locked cursor-agent 2026.10.01-e373342: glass_custom_modes off; attempts 6977eeec-08bd-4829-810c-11d526d9f9fb and 9857dda0-a74d-4546-b69e-1ff3528bdf3e; no success attempt ID. No new success evidence in wave-009. Operator must enable Custom Modes (or capture via Agents Window/IDE path), then recapture paired Cursor+Pi sticky evidence.",
+      "wave009MergedAt": "2026-10-09T02:05:00Z",
+      "hostEdgesTerminal001Note": "u-dep-host-edges-terminal-001: re-verified keep-open. Doc custody unchanged; no live Computer Use / Enterprise / sticky success. Do not set status resolved. mergePayloadReady=false.",
+      "hostEdgesTerminal001MergedAt": "2026-10-09T03:40:00Z",
+      "modeStickyCursorApp001Note": "Cursor.app present but sticky still env-blocked; edge stays unverified.",
+      "modeStickyDesktopReady001Note": "Agents Window sticky Custom Mode pass-paired (cursor 521ce15e, pi 96494327). CLI glass_custom_modes still off; requirement and edge closed on Agents Window Use as Mode path."
     },
     {
       "from": "cursor-pstack",
@@ -798,7 +1391,14 @@
       },
       "contract": "Launcher installs frozen dependencies before dynamically importing CLI.",
       "piResolution": "Native equivalent and installed lifecycle still unverified.",
-      "status": "unresolved"
+      "status": "resolved",
+      "evidence": [
+        "parity/research/dep-closure-wave-003/read-inventory.json",
+        "parity/research/dep-closure-wave-003/nodes/cursor-pstack__source-tools-bootstrap.md"
+      ],
+      "note": "watch-pr and orch.ts call ensureDependenciesInstalled before CLI import. Pi installed-lifecycle parity still unverified.",
+      "resolvedAt": "2026-10-08T19:13:21Z",
+      "resolvedBy": "u-dep-closure-wave-003"
     },
     {
       "from": "source-tools-bootstrap",
@@ -809,7 +1409,14 @@
         "locator": "ensureDependenciesInstalled"
       },
       "contract": "Required source runtime or build/test dependency; activation scope remains to be audited.",
-      "status": "unresolved"
+      "status": "resolved",
+      "evidence": [
+        "parity/research/dep-closure-wave-003/read-inventory.json",
+        "parity/research/dep-closure-wave-003/nodes/source-tools-bootstrap.md"
+      ],
+      "note": "bootstrap.ts hashes package.json and bun.lock as the install key and runs bun install --frozen-lockfile in the scripts directory.",
+      "resolvedAt": "2026-10-08T19:13:21Z",
+      "resolvedBy": "u-dep-closure-wave-003"
     },
     {
       "from": "source-tools-bootstrap",
@@ -820,7 +1427,11 @@
         "locator": "ensureDependenciesInstalled"
       },
       "contract": "Required source runtime or build/test dependency; activation scope remains to be audited.",
-      "status": "unresolved"
+      "status": "resolved",
+      "evidence": [
+        "parity/research/dep-closure-wave-001/read-inventory.json"
+      ],
+      "note": "bootstrap.ts Bun.spawnSync and watch-pr shebang establish the edge. Bun runtime version pin and compatibility remain open."
     },
     {
       "from": "source-tools-manifest",
@@ -831,7 +1442,15 @@
         "locator": "dependencies/devDependencies"
       },
       "contract": "Required source runtime or build/test dependency; activation scope remains to be audited.",
-      "status": "unresolved"
+      "status": "resolved",
+      "evidence": [
+        "parity/research/dep-closure-wave-003/read-inventory.json",
+        "parity/research/dep-closure-wave-003/consumer-binding.json",
+        "parity/reference/npm/commander-14.0.0/package.tgz"
+      ],
+      "note": "Manifest dependencies.commander=14.0.0; bun.lock integrity matches captured tarball; bootstrap gates on commander/package.json.",
+      "resolvedAt": "2026-10-08T19:13:21Z",
+      "resolvedBy": "u-dep-closure-wave-003"
     },
     {
       "from": "source-tools-manifest",
@@ -842,7 +1461,12 @@
         "locator": "dependencies/devDependencies"
       },
       "contract": "Required source runtime or build/test dependency; activation scope remains to be audited.",
-      "status": "unresolved"
+      "status": "resolved",
+      "evidence": [
+        "parity/research/dep-closure-wave-001/read-inventory.json",
+        "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/package.json"
+      ],
+      "note": "Manifest declares package; lock resolves version; registry integrity captured. Consumer/journey verification still open."
     },
     {
       "from": "source-tools-manifest",
@@ -853,249 +1477,362 @@
         "locator": "dependencies/devDependencies"
       },
       "contract": "Required source runtime or build/test dependency; activation scope remains to be audited.",
-      "status": "unresolved"
+      "status": "resolved",
+      "evidence": [
+        "parity/research/dep-closure-wave-001/read-inventory.json",
+        "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/package.json"
+      ],
+      "note": "Manifest declares package; lock resolves version; registry integrity captured. Consumer/journey verification still open."
     },
     {
       "from": "npm:@types/node@26.1.2",
       "to": "npm:undici-types@8.3.0",
-      "status": "unresolved",
+      "status": "resolved",
       "foundAt": {
         "file": "pstack/skills/poteto-mode/scripts/bun.lock",
         "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
         "locator": "packages[\"@types/node\"]"
       },
-      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived."
+      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived.",
+      "evidence": [
+        "parity/research/dep-closure-wave-001/read-inventory.json"
+      ],
+      "note": "Lock and @types/node package.json agree on undici-types."
     },
     {
       "from": "npm:bun-types@1.3.14",
       "to": "npm:@types/node@26.1.2",
-      "status": "unresolved",
+      "status": "resolved",
       "foundAt": {
         "file": "pstack/skills/poteto-mode/scripts/bun.lock",
         "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
         "locator": "packages[\"bun-types\"]"
       },
-      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived."
+      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived.",
+      "evidence": [
+        "parity/research/dep-closure-wave-001/read-inventory.json"
+      ],
+      "note": "Lock and both package.json dependency fields agree."
     },
     {
       "from": "npm:typescript@7.0.2",
       "to": "npm:@typescript/typescript-aix-ppc64@7.0.2",
-      "status": "unresolved",
+      "status": "resolved",
       "foundAt": {
         "file": "pstack/skills/poteto-mode/scripts/bun.lock",
         "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
         "locator": "packages[\"typescript\"]"
       },
-      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived."
+      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived.",
+      "evidence": [
+        "parity/research/dep-closure-wave-002/read-inventory.json",
+        "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock"
+      ],
+      "note": "Lock and registry agree on optional platform package; package metadata and file inventory read. Runtime activation on target os/cpu still unverified."
     },
     {
       "from": "npm:typescript@7.0.2",
       "to": "npm:@typescript/typescript-darwin-arm64@7.0.2",
-      "status": "unresolved",
+      "status": "resolved",
       "foundAt": {
         "file": "pstack/skills/poteto-mode/scripts/bun.lock",
         "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
         "locator": "packages[\"typescript\"]"
       },
-      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived."
+      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived.",
+      "evidence": [
+        "parity/research/dep-closure-wave-001/read-inventory.json",
+        "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock"
+      ],
+      "note": "Lock and registry agree on optional platform package; package metadata read. Runtime activation on target os/cpu still unverified."
     },
     {
       "from": "npm:typescript@7.0.2",
       "to": "npm:@typescript/typescript-darwin-x64@7.0.2",
-      "status": "unresolved",
+      "status": "resolved",
       "foundAt": {
         "file": "pstack/skills/poteto-mode/scripts/bun.lock",
         "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
         "locator": "packages[\"typescript\"]"
       },
-      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived."
+      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived.",
+      "evidence": [
+        "parity/research/dep-closure-wave-001/read-inventory.json",
+        "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock"
+      ],
+      "note": "Lock and registry agree on optional platform package; package metadata read. Runtime activation on target os/cpu still unverified."
     },
     {
       "from": "npm:typescript@7.0.2",
       "to": "npm:@typescript/typescript-freebsd-arm64@7.0.2",
-      "status": "unresolved",
+      "status": "resolved",
       "foundAt": {
         "file": "pstack/skills/poteto-mode/scripts/bun.lock",
         "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
         "locator": "packages[\"typescript\"]"
       },
-      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived."
+      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived.",
+      "evidence": [
+        "parity/research/dep-closure-wave-002/read-inventory.json",
+        "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock"
+      ],
+      "note": "Lock and registry agree on optional platform package; package metadata and file inventory read. Runtime activation on target os/cpu still unverified."
     },
     {
       "from": "npm:typescript@7.0.2",
       "to": "npm:@typescript/typescript-freebsd-x64@7.0.2",
-      "status": "unresolved",
+      "status": "resolved",
       "foundAt": {
         "file": "pstack/skills/poteto-mode/scripts/bun.lock",
         "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
         "locator": "packages[\"typescript\"]"
       },
-      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived."
+      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived.",
+      "evidence": [
+        "parity/research/dep-closure-wave-002/read-inventory.json",
+        "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock"
+      ],
+      "note": "Lock and registry agree on optional platform package; package metadata and file inventory read. Runtime activation on target os/cpu still unverified."
     },
     {
       "from": "npm:typescript@7.0.2",
       "to": "npm:@typescript/typescript-linux-arm@7.0.2",
-      "status": "unresolved",
+      "status": "resolved",
       "foundAt": {
         "file": "pstack/skills/poteto-mode/scripts/bun.lock",
         "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
         "locator": "packages[\"typescript\"]"
       },
-      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived."
+      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived.",
+      "evidence": [
+        "parity/research/dep-closure-wave-002/read-inventory.json",
+        "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock"
+      ],
+      "note": "Lock and registry agree on optional platform package; package metadata and file inventory read. Runtime activation on target os/cpu still unverified."
     },
     {
       "from": "npm:typescript@7.0.2",
       "to": "npm:@typescript/typescript-linux-arm64@7.0.2",
-      "status": "unresolved",
+      "status": "resolved",
       "foundAt": {
         "file": "pstack/skills/poteto-mode/scripts/bun.lock",
         "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
         "locator": "packages[\"typescript\"]"
       },
-      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived."
+      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived.",
+      "evidence": [
+        "parity/research/dep-closure-wave-001/read-inventory.json",
+        "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock"
+      ],
+      "note": "Lock and registry agree on optional platform package; package metadata read. Runtime activation on target os/cpu still unverified."
     },
     {
       "from": "npm:typescript@7.0.2",
       "to": "npm:@typescript/typescript-linux-loong64@7.0.2",
-      "status": "unresolved",
+      "status": "resolved",
       "foundAt": {
         "file": "pstack/skills/poteto-mode/scripts/bun.lock",
         "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
         "locator": "packages[\"typescript\"]"
       },
-      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived."
+      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived.",
+      "evidence": [
+        "parity/research/dep-closure-wave-002/read-inventory.json",
+        "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock"
+      ],
+      "note": "Lock and registry agree on optional platform package; package metadata and file inventory read. Runtime activation on target os/cpu still unverified."
     },
     {
       "from": "npm:typescript@7.0.2",
       "to": "npm:@typescript/typescript-linux-mips64el@7.0.2",
-      "status": "unresolved",
+      "status": "resolved",
       "foundAt": {
         "file": "pstack/skills/poteto-mode/scripts/bun.lock",
         "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
         "locator": "packages[\"typescript\"]"
       },
-      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived."
+      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived.",
+      "evidence": [
+        "parity/research/dep-closure-wave-002/read-inventory.json",
+        "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock"
+      ],
+      "note": "Lock and registry agree on optional platform package; package metadata and file inventory read. Runtime activation on target os/cpu still unverified."
     },
     {
       "from": "npm:typescript@7.0.2",
       "to": "npm:@typescript/typescript-linux-ppc64@7.0.2",
-      "status": "unresolved",
+      "status": "resolved",
       "foundAt": {
         "file": "pstack/skills/poteto-mode/scripts/bun.lock",
         "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
         "locator": "packages[\"typescript\"]"
       },
-      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived."
+      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived.",
+      "evidence": [
+        "parity/research/dep-closure-wave-002/read-inventory.json",
+        "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock"
+      ],
+      "note": "Lock and registry agree on optional platform package; package metadata and file inventory read. Runtime activation on target os/cpu still unverified."
     },
     {
       "from": "npm:typescript@7.0.2",
       "to": "npm:@typescript/typescript-linux-riscv64@7.0.2",
-      "status": "unresolved",
+      "status": "resolved",
       "foundAt": {
         "file": "pstack/skills/poteto-mode/scripts/bun.lock",
         "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
         "locator": "packages[\"typescript\"]"
       },
-      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived."
+      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived.",
+      "evidence": [
+        "parity/research/dep-closure-wave-002/read-inventory.json",
+        "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock"
+      ],
+      "note": "Lock and registry agree on optional platform package; package metadata and file inventory read. Runtime activation on target os/cpu still unverified."
     },
     {
       "from": "npm:typescript@7.0.2",
       "to": "npm:@typescript/typescript-linux-s390x@7.0.2",
-      "status": "unresolved",
+      "status": "resolved",
       "foundAt": {
         "file": "pstack/skills/poteto-mode/scripts/bun.lock",
         "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
         "locator": "packages[\"typescript\"]"
       },
-      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived."
+      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived.",
+      "evidence": [
+        "parity/research/dep-closure-wave-002/read-inventory.json",
+        "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock"
+      ],
+      "note": "Lock and registry agree on optional platform package; package metadata and file inventory read. Runtime activation on target os/cpu still unverified."
     },
     {
       "from": "npm:typescript@7.0.2",
       "to": "npm:@typescript/typescript-linux-x64@7.0.2",
-      "status": "unresolved",
+      "status": "resolved",
       "foundAt": {
         "file": "pstack/skills/poteto-mode/scripts/bun.lock",
         "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
         "locator": "packages[\"typescript\"]"
       },
-      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived."
+      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived.",
+      "evidence": [
+        "parity/research/dep-closure-wave-001/read-inventory.json",
+        "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock"
+      ],
+      "note": "Lock and registry agree on optional platform package; package metadata read. Runtime activation on target os/cpu still unverified."
     },
     {
       "from": "npm:typescript@7.0.2",
       "to": "npm:@typescript/typescript-netbsd-arm64@7.0.2",
-      "status": "unresolved",
+      "status": "resolved",
       "foundAt": {
         "file": "pstack/skills/poteto-mode/scripts/bun.lock",
         "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
         "locator": "packages[\"typescript\"]"
       },
-      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived."
+      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived.",
+      "evidence": [
+        "parity/research/dep-closure-wave-002/read-inventory.json",
+        "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock"
+      ],
+      "note": "Lock and registry agree on optional platform package; package metadata and file inventory read. Runtime activation on target os/cpu still unverified."
     },
     {
       "from": "npm:typescript@7.0.2",
       "to": "npm:@typescript/typescript-netbsd-x64@7.0.2",
-      "status": "unresolved",
+      "status": "resolved",
       "foundAt": {
         "file": "pstack/skills/poteto-mode/scripts/bun.lock",
         "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
         "locator": "packages[\"typescript\"]"
       },
-      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived."
+      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived.",
+      "evidence": [
+        "parity/research/dep-closure-wave-002/read-inventory.json",
+        "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock"
+      ],
+      "note": "Lock and registry agree on optional platform package; package metadata and file inventory read. Runtime activation on target os/cpu still unverified."
     },
     {
       "from": "npm:typescript@7.0.2",
       "to": "npm:@typescript/typescript-openbsd-arm64@7.0.2",
-      "status": "unresolved",
+      "status": "resolved",
       "foundAt": {
         "file": "pstack/skills/poteto-mode/scripts/bun.lock",
         "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
         "locator": "packages[\"typescript\"]"
       },
-      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived."
+      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived.",
+      "evidence": [
+        "parity/research/dep-closure-wave-002/read-inventory.json",
+        "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock"
+      ],
+      "note": "Lock and registry agree on optional platform package; package metadata and file inventory read. Runtime activation on target os/cpu still unverified."
     },
     {
       "from": "npm:typescript@7.0.2",
       "to": "npm:@typescript/typescript-openbsd-x64@7.0.2",
-      "status": "unresolved",
+      "status": "resolved",
       "foundAt": {
         "file": "pstack/skills/poteto-mode/scripts/bun.lock",
         "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
         "locator": "packages[\"typescript\"]"
       },
-      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived."
+      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived.",
+      "evidence": [
+        "parity/research/dep-closure-wave-002/read-inventory.json",
+        "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock"
+      ],
+      "note": "Lock and registry agree on optional platform package; package metadata and file inventory read. Runtime activation on target os/cpu still unverified."
     },
     {
       "from": "npm:typescript@7.0.2",
       "to": "npm:@typescript/typescript-sunos-x64@7.0.2",
-      "status": "unresolved",
+      "status": "resolved",
       "foundAt": {
         "file": "pstack/skills/poteto-mode/scripts/bun.lock",
         "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
         "locator": "packages[\"typescript\"]"
       },
-      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived."
+      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived.",
+      "evidence": [
+        "parity/research/dep-closure-wave-002/read-inventory.json",
+        "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock"
+      ],
+      "note": "Lock and registry agree on optional platform package; package metadata and file inventory read. Runtime activation on target os/cpu still unverified."
     },
     {
       "from": "npm:typescript@7.0.2",
       "to": "npm:@typescript/typescript-win32-arm64@7.0.2",
-      "status": "unresolved",
+      "status": "resolved",
       "foundAt": {
         "file": "pstack/skills/poteto-mode/scripts/bun.lock",
         "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
         "locator": "packages[\"typescript\"]"
       },
-      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived."
+      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived.",
+      "evidence": [
+        "parity/research/dep-closure-wave-001/read-inventory.json",
+        "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock"
+      ],
+      "note": "Lock and registry agree on optional platform package; package metadata read. Runtime activation on target os/cpu still unverified."
     },
     {
       "from": "npm:typescript@7.0.2",
       "to": "npm:@typescript/typescript-win32-x64@7.0.2",
-      "status": "unresolved",
+      "status": "resolved",
       "foundAt": {
         "file": "pstack/skills/poteto-mode/scripts/bun.lock",
         "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
         "locator": "packages[\"typescript\"]"
       },
-      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived."
+      "contract": "Locked package dependency. Optional platform conditions retained in lockMetadata, not waived.",
+      "evidence": [
+        "parity/research/dep-closure-wave-001/read-inventory.json",
+        "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock"
+      ],
+      "note": "Lock and registry agree on optional platform package; package metadata read. Runtime activation on target os/cpu still unverified."
     },
     {
       "from": "npm:commander@14.0.0",
@@ -1105,17 +1842,19 @@
         "locator": "lines 1-11; source orch.ts Bun shebang"
       },
       "contract": "Source helpers use Bun; Commander requires Node-compatible builtin APIs. Compatibility is not established by the Node >=20 engine declaration.",
-      "status": "unresolved"
+      "status": "resolved",
+      "evidence": [
+        "parity/research/dep-closure-wave-003/read-inventory.json",
+        "parity/research/dep-closure-wave-003/bun/official-capture.json",
+        "parity/research/dep-closure-wave-003/bun/commander-smoke.txt"
+      ],
+      "note": "Consumers run under Bun shebang; official Node.js compatibility docs cover required builtins; local bun 1.4.2 smoke and orch help test pass. Exact Bun version pin remains unresolved as a separate reference.",
+      "resolvedAt": "2026-10-08T19:13:21Z",
+      "resolvedBy": "u-dep-closure-wave-003"
     }
   ],
   "unresolvedReferences": [
-    "Cursor built-in create-skill exact distributed resource and subordinate contracts.",
-    "Required live integrations, cloud services, automation editor, models and supporting tools.",
-    "Recursive references in inspected sources still require complete extraction and audit.",
-    "Fetch exact registry metadata and tarballs, verify integrity and licenses, inspect relevant contracts and transitive dependencies.",
-    "Determine runtime/platform prerequisites from official Bun and package contracts.",
-    "Audit all platform-conditional branches, including literal cpu/os none entries in this lock.",
-    "Bind each package to runtime versus test/typecheck consumers before acceptance."
+    "Live integrations live-exercise remains open after u-dep-live-integrations-005 disposition at parity/research/dep-live-integrations-005/dispositions.json (inventory sha256 63ef7f8f4c35e3918556e787f22eb308666e5e8d0b444b41584524ce13b867d4; a_custody_complete=275, b_environment_bound=62, c_already_evidenced=79). Progress since 004: Benny triage+thread-safety paid on #playwright-results (cursor de707056, pi 16520327); 44 Slack rows → c_already_evidenced. Still unpaid: third-party installs (G11); webhook routine/secret live; Automations save/activate; CU cloud attempt IDs (G1); enterprise policy witness (G2). No fabricated Slack posts. completeDependencyClosure stays false."
   ],
   "openReadingOwners": [
     {
@@ -1139,5 +1878,80 @@
   "discoveryFragments": [
     "parity/research/source-tools/locked-packages.json",
     "parity/research/cursor-host/dependency-proposals.json"
-  ]
+  ],
+  "closureAuditEvidence": "parity/research/dep-audit-001/audit.md",
+  "closureAuditVerdict": "AUDITED_INCOMPLETE",
+  "closureAuditedAt": "2026-10-08T19:04:57Z",
+  "auditFindings": [
+    {
+      "code": "DEPENDENCY_GRAPH_ASYMMETRY",
+      "edge": {
+        "from": "cursor-pstack",
+        "to": "source-tools-bootstrap"
+      },
+      "note": "The edge exists, but cursor-pstack.dependencies does not declare source-tools-bootstrap. Keep the edge and reconcile the node declaration in a later coordinator-owned ledger change.",
+      "recordedAt": "2026-10-08T19:04:57Z",
+      "source": "parity/research/dep-audit-001/merge-proposal.json"
+    }
+  ],
+  "completeDependencyClosure": false,
+  "lastClosureWave": {
+    "unit": "u-dep-typescript-oracle-suite-001",
+    "mergedAt": "2026-10-09T03:10:00Z",
+    "report": "parity/briefs/reports/u-dep-typescript-oracle-suite-001-report.md",
+    "proposal": "parity/research/dep-typescript-oracle-suite-001/merge-payload.json",
+    "resolvedReferenceCount": 1,
+    "unresolvedTargetCount": 2
+  },
+  "wave008MergedAt": "2026-10-09T01:19:30Z",
+  "wave008Note": "Resolved cursor-pstack→cursor-team-kit for locked distribution install custody (29/29 path+hash). Journey audit moved to unresolvedReferences.",
+  "wave009MergedAt": "2026-10-09T02:05:00Z",
+  "wave009Note": "Do not claim completeDependencyClosure. Bun pin, host computer-use/enterprise edges, cli-host persistent-mode edge, typescript deep compiler-behavior semantics, create-skill/team-kit/consumer paired journeys, and live/runtime follow-ups remain open.",
+  "bunPinTerminalMergedAt": "2026-10-09T02:16:00Z",
+  "bunPinTerminalNote": "Closed Bun pin unresolvedReference as absent-in-source (u-dep-bun-pin-terminal-001). completeDependencyClosure stays false.",
+  "recursiveRuntimeAuditMergedAt": "2026-10-09T02:20:00Z",
+  "recursiveRuntimeAuditNote": "All 176 extracted refs have an honest disposition (fetched+hashed or classified-non-fetchable; blocked=0). HTTP custody audit of extracted targets is complete. Remove the recursive runtime-audit unresolvedReference. Do not claim Automations/Slack/editor behavioral exercise; that stays under the live-integrations unresolvedReference.",
+  "createSkillJourneyMergedAt": "2026-10-09T02:40:00Z",
+  "createSkillJourneyNote": "All four create-skill phases paired (discovery/design/impl/verification). unresolvedReference removed. completeDependencyClosure stays false.",
+  "refDedupHostEdgesMergedAt": "2026-10-09T02:45:00Z",
+  "refDedupHostEdgesNote": "Removed unresolvedReference lines that solely restated open/unverified dependency edges (computer-use, enterprise, persistent-mode). Edges remain DEPENDENCY_EDGE_UNRESOLVED; not claiming those edges resolved.",
+  "typescriptDeep001MergedAt": "2026-10-09T02:50:00Z",
+  "typescriptDeep001Note": "Refreshed typescript deep-semantics evidence pointers only; reference remains open.",
+  "consumerMatrixClosedAt": "2026-10-09T02:54:00Z",
+  "consumerMatrixNote": "All 6 consumer paired journeys closed; unresolvedReference removed. completeDependencyClosure stays false.",
+  "liveIntegrations001MergedAt": "2026-10-09T02:56:00Z",
+  "liveIntegrations001Note": "Honest per-item split published. Most inventory rows are doc/proposal custody without a live-exercise claim. Keep the unresolvedReference but replace the vague 416-item open line with the narrowed text and attach dispositions.json. Do not set completeDependencyClosure true. Do not fabricate Slack/Automations/webhook live evidence.",
+  "typescriptOracleSuiteMergedAt": "2026-10-09T03:10:00Z",
+  "typescriptOracleSuiteNote": "u-dep-typescript-oracle-suite-001 closed-with-oracle. Pinned microsoft/typescript-go@2bd066d87f5bafd315be9f40889d0a60b9e58e0b (= npm gitHead). hereby test:api 459/459 pass exit 0. Built dist matches published catalog 136/136 (disposition sha256 5317bef7fe3e6425fdc4ce6d144b8034496941823aa36764998ecae67e920876).",
+  "teamKitJourneys004MergedAt": "2026-10-09T03:40:00Z",
+  "teamKitJourneys004Note": "u-dep-team-kit-journeys-004 closed remaining 10 team-kit skills; 18/18 on-disk pass pairs. unresolvedReference removed. completeDependencyClosure stays false (live-integrations ref + open host edges remain).",
+  "hostEdgesTerminal001MergedAt": "2026-10-09T03:40:00Z",
+  "hostEdgesTerminal001Note": "u-dep-host-edges-terminal-001 keep-open for all three host edges. No status mutations. completeDependencyClosure stays false.",
+  "liveIntegrationsNoteRefreshedAt": "2026-10-09T10:22:41Z",
+  "liveIntegrations002MergedAt": "2026-10-09T08:43:30Z",
+  "liveIntegrations002Note": "u-dep-live-integrations-002: narrowed env-bound 119→115, evidenced 22→26; creation-boundary ENV dropped from live blockers; unresolvedReference kept; completeDependencyClosure stays false.",
+  "liveIntegrationsCreationBoundaryNote": "PSTACK-SETUP-BENNY-CREATION-BOUNDARY-001 verified-pass-paired; SETUP-BENNY-CREATION-BOUNDARY-ENV already closed-env-resolved.",
+  "liveIntegrations003Note": "u-dep-live-integrations-003: note refresh only; counts unchanged a=275 b=115 c=26; creation-boundary verified + Pi Automations present; make-bot Generate still unpaid (console lock); canCloseUnresolvedReference=false; completeDependencyClosure stays false.",
+  "evidence": [
+    "parity/research/dep-live-integrations-003/dispositions.json",
+    "parity/research/dep-live-integrations-003/summary.json",
+    "parity/briefs/reports/u-dep-live-integrations-003-report.md",
+    "parity/research/dep-live-integrations-004/dispositions.json",
+    "parity/research/dep-live-integrations-004/summary.json",
+    "parity/briefs/reports/u-dep-live-integrations-004-report.md",
+    "parity/research/make-bot-auth-header-post-unlock-002/disposition.json",
+    "parity/briefs/reports/u-make-bot-auth-header-post-unlock-002-report.md",
+    "parity/evidence/make-bot-ui/auth-header-post-unlock-002/55f42e27-ee7e-4d6b-8f12-5b35824addff/",
+    "parity/research/dep-live-integrations-005/dispositions.json",
+    "parity/research/dep-live-integrations-005/summary.json",
+    "parity/briefs/reports/u-dep-live-integrations-005-report.md",
+    "parity/evidence/benny-triage/pair-benny-triage-valid-1.json",
+    "parity/evidence/setup-benny/pair-setup-benny-thread-safety-1.json",
+    "parity/research/setup-benny-thread-safety-post-save-001/disposition.json",
+    "parity/briefs/reports/u-journey-cmd-benny-triage-valid-post-slack-001-report.md",
+    "parity/briefs/reports/u-journey-setup-benny-thread-safety-post-save-001-report.md"
+  ],
+  "liveIntegrations004Note": "u-dep-live-integrations-004: make-bot Generate paid (55f42e27-ee7e-4d6b-8f12-5b35824addff); counts a=275 b=106 c=35; canClose=false; completeDependencyClosure stays false.",
+  "liveIntegrations005Note": "u-dep-live-integrations-005: Benny Slack triage+thread-safety paid (cursor de707056-289d-44b8-85a4-4d400e849815, pi 16520327-0d45-4817-a0cd-2f8c1c0e494a); counts a=275 b=62 c=79; canClose=false; completeDependencyClosure stays false.",
+  "liveIntegrations005MergedAt": "2026-10-09T17:33:20.950Z"
 }

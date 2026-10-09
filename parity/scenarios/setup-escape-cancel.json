@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "setup-escape-cancel",
+  "status": "executed-pass-paired",
+  "requirements": [
+    "PSTACK-SETUP-CANCEL-NO-WRITE-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/skills/setup-pstack/SKILL.md#cancel",
+  "configurationIds": [
+    "default"
+  ],
+  "fixture": {
+    "description": "existing paired evidence",
+    "digest": null
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "Closed SETUP-ASKQUESTION-TRANSCRIPT-RENDERING / cancel path; Escape leaves rule unwritten"
+    }
+  ],
+  "execution": {
+    "referenceRun": "6193b87b-9040-4edb-a3b4-97d7ac6cb6f0",
+    "candidateRun": "1c010fa9-b2be-44e8-a4fb-baa9febfafd3",
+    "pairId": "setup-escape-cancel-2",
+    "pairPath": "parity/evidence/setup-cancel/pair-setup-escape-cancel-2.json",
+    "verdict": "pass-paired",
+    "closedAt": "2026-10-08T17:57:16Z"
+  }
+}

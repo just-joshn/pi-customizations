@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "setup-benny-settings-enable",
+  "status": "paired",
+  "requirements": [
+    "PSTACK-SETUP-BENNY-SETTINGS-ENABLE-001"
+  ],
+  "referenceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "source": "pstack/automations/benny/skills/setup-benny/SKILL.md### 1. Copy the pack, enable pstack in settings.json",
+  "configurationIds": [
+    "default",
+    "installed-user"
+  ],
+  "fixture": {
+    "description": "Documented preconditions satisfied; behavior not yet paired. Preconditions: Target repository may lack .cursor/settings.json.",
+    "digest": null
+  },
+  "actions": [
+    {
+      "kind": "observe",
+      "expect": "After pack copy during Benny setup.. Target .cursor/settings.json exists with plugins.pstack.enabled true. Unrelated top-level settings and other plugin entries stay intact. When plugins.pstack already exists, only enabled changes. JSONC comments and syntax are preserved when the file uses JSONC. The file validates after edit."
+    }
+  ],
+  "execution": {
+    "pairId": "setup-benny-settings-enable-1",
+    "verdict": "pass",
+    "pair": "parity/evidence/setup-benny/pair-setup-benny-settings-enable-1.json",
+    "attempts": {
+      "cursor": "57007345-8ea8-4ec2-8cc9-288b87c88fc2",
+      "pi": "868b09be-5b1f-4ec9-957e-6ceaa1aa84c6"
+    }
+  }
+}
