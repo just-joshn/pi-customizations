@@ -1,0 +1,45 @@
+{
+  "unit": "u-dep-computer-use-live-001",
+  "capturedAt": "2026-10-09T06:06:30Z",
+  "workerId": "0400ae0d-aa5c-4949-a4b8-88e40cd9611a",
+  "workerSelectionUrl": "https://cursor.com/agents#workerId=0400ae0d-aa5c-4949-a4b8-88e40cd9611a",
+  "helper": {
+    "bundle": "co.anysphere.cursor.agent-helper",
+    "path": "/Users/josh-desktop/.cursor/agent-helper/Cursor Agent Helper.app/Contents/MacOS/cursor-agent-helper",
+    "version": "0.1.0-2d0725c"
+  },
+  "computerUseApp": {
+    "bundle": "co.anysphere.cursor-computer-use",
+    "teamId": "DCNK4UB866",
+    "path": "/Users/josh-desktop/.cursor/cursor-computer-use/Cursor Computer Use.app",
+    "readyAtWorkerStart": true
+  },
+  "permissionsAfterExercise": {
+    "accessibility": true,
+    "screenRecording": true,
+    "desktopShareViewAndControlReady": true
+  },
+  "liveExercise": {
+    "yes": true,
+    "path": "cursor-agent-helper spawn-disclaimed mcp",
+    "script": "parity/research/dep-computer-use-exercise-001/exercise-helper-mcp.mjs",
+    "app": "TextEdit",
+    "marker": "CU_LIVE_001_177e3351",
+    "beforeScreenshot": "parity/evidence/computer-use/live-001/before-0.png",
+    "afterScreenshot": "parity/evidence/computer-use/live-001/after-0.png",
+    "beforeSha256": "08484b31bb87d71cf6a9437e77b71d425e8c6c82b2812f3c81383c205895f11e",
+    "afterSha256": "c7e19cb8bb3951c74f288d807c5e152d006e942096a6d1db35c357ad79669fa7",
+    "typedProof": "AXTextArea value contains CU_LIVE_001_177e3351",
+    "screenshotBytesDiffer": true,
+    "summary": "parity/evidence/computer-use/live-001/exercise-summary.json"
+  },
+  "attemptIds": [],
+  "cloudAgentClaim": {
+    "attempted": true,
+    "success": false,
+    "blocker": "CURSOR_API_KEY unset; keychain cursor-access-token rejected by https://api.cursor.com/v0/agents as Invalid User API Key (HTTP 401). Dashboard create not used (standing preference: no spending without account-owner action).",
+    "probe": "parity/research/dep-computer-use-exercise-001/cloud-claim-probe.json"
+  },
+  "workerStartEvidence": "parity/research/dep-computer-use-exercise-001/stdout-live-001-worker-start.txt",
+  "note": "Local Agent Helper MCP proves screenshot+type under Accessibility/Screen Recording. Docs' claimed cloud-agent computer-use path (MacRemoteComputerUseExecutor / attempt IDs in agents chat) was not exercised. Do not set edge resolved."
+}

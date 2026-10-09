@@ -1,0 +1,71 @@
+{
+  "evaluatedAt": "2026-10-09T09:03:20.288Z",
+  "verdict": "BLOCKED",
+  "codes": [
+    {
+      "code": "SOURCE_LOCK_INCOMPLETE",
+      "locator": "status",
+      "message": "The source lock is not finalized."
+    },
+    {
+      "code": "SOURCE_CLOSURE_INCOMPLETE",
+      "locator": "cursorPlugins.completeDependencyClosure",
+      "message": "Complete dependency source closure remains required."
+    },
+    {
+      "code": "DEPENDENCY_REFERENCE_UNRESOLVED",
+      "locator": "unresolvedReferences[0]",
+      "message": "Dependency reference is unresolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "locator": "edges[0]",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "locator": "edges[1]",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "ACCEPTANCE_DEFINITIONS_UNFROZEN",
+      "locator": "acceptanceDefinitionsFrozen",
+      "message": "Independent acceptance definitions are not frozen."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "locator": "requirements[25].status",
+      "message": "Requirement PSTACK-CMD-BENNY-TRIAGE-THREAD-ONLY-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "locator": "requirements[31].status",
+      "message": "Requirement PSTACK-CMD-MAKE-BOT-UI-KEY-SERVER-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "locator": "requirements[61].status",
+      "message": "Requirement PSTACK-SETUP-BENNY-CREATION-BOUNDARY-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "locator": "requirements[62].status",
+      "message": "Requirement PSTACK-SETUP-BENNY-THREAD-SAFETY-001 is not verified-pass-paired."
+    },
+    {
+      "code": "BEHAVIOR_MISMATCH_OPEN",
+      "locator": "items[19]",
+      "message": "Behavioral mismatch BENNY-TRIAGE-VALID-CONFIG-ENV remains unresolved."
+    },
+    {
+      "code": "BEHAVIOR_MISMATCH_OPEN",
+      "locator": "items[21]",
+      "message": "Behavioral mismatch MAKE-BOT-UI-KEY-SERVER-HOST remains unresolved."
+    },
+    {
+      "code": "BEHAVIOR_MISMATCH_OPEN",
+      "locator": "items[22]",
+      "message": "Behavioral mismatch SETUP-BENNY-THREAD-SAFETY-ENV remains unresolved."
+    }
+  ]
+}

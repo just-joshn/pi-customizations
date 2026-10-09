@@ -1,0 +1,18 @@
+=== parity/acceptance/review/regressions/hardlinked-output.sh ===
+ok hardlinked-output rejected (exit 1), canary unchanged
+  FAIL MANIFEST.sha256 has 2 hard links; hash files must be unlinked regular files inside the acceptance root
+=== parity/acceptance/review/regressions/invalid-locator.sh ===
+ok invalid-locator rejected (exit 1)
+  FAIL ACC-SETUP-BADLOC has invalid locator not-a-line; positive ordered integer locators only
+=== parity/acceptance/review/regressions/ledger-byte-drift.sh ===
+ok ledger-byte-drift rejected (exit 1)
+  FAIL setup-pstack/record-hashes.json bytes do not match the canonical recorded hashes
+=== parity/acceptance/review/regressions/missing-pin-arg.sh ===
+  --expect-manifest-sha256 requires a sha256 hex digest
+ok empty-pin-value rejected (exit 1)
+  --expect-manifest-sha256 requires a sha256 hex digest
+ok malformed-pin-value rejected (exit 1)
+  --expect-manifest-sha256 value is not a sha256 hex digest: not-a-hash
+=== parity/acceptance/review/regressions/symlinked-output-parent.sh ===
+ok symlinked-output-parent rejected (exit 1), outside unchanged
+  FAIL setup-pstack/record-hashes.json: path component setup-pstack is a symlink; hash files must stay inside the acceptance root

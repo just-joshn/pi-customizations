@@ -1,0 +1,31 @@
+ney-cmo-Denny-triage-val10-post-s lack-001.mo
+y-setup-benny-thread-safety-post-save-001.md
+/ Slack token/env or other MCP slack is available
+lack|SLACK' | sed 's/=.*/=REDACTED/' || true Interrupted • 238ms
+es hidden • ctrl+o to expand
+atus
+>&1 | head -40 Interrupted • 1.1s
+es hidden • ctrl+o to expand
+rojects/-Users-josh-desktop-src-personal-pi-pstack-parity-again/pstack/orchestrate/pi-pstack-parity/preferences.md
+_able MCP tools pattern slack|benny
+r/projects/Users-josh-desktop/mcp-auth.json
+mcps/plugin-slack-slack/SERVER_METADATA.json
+CP OAuth / status files; Benny example config
+ursor" -path '*slack*' -name '*.json' 2>/dev/null | head -40 Interrupted • 981ms
+es hidden • ctrl+o to expand
+k MCP tool availability across projects
+errupted • 2.9s
+es hidden • ctrl+o to expand
+rojects/Users-josh-desktop-src-personal-pi-pstack-parity-again/mcps/plugin-slack-slack/STATUS.md
+-desktop/src/personal/pi-pstack-parity-again
+earch/benny-triage-valid-post-slack-001/mcp-auth-ui Interrupted • 1.7s
+es hidden ' ctri+o to expand
+CP settings for Slack, and advancing non-Slack completion blockers in parallel.
+i-desktop/src/personal/pi-pstack-parity-again
+3.2s
+nes hidden • ctrl+o to expand
+able MCP tools plugin-slack-slack
+-dep-cu*/**/*" in src/personal/pi-pstack-parity-again/parity
+acceptance-freeze*/**/*" in src/personal/pi-pstack-parity-again/parity
+k tokens
+ctri+c

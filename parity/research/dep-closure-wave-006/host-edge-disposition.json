@@ -1,0 +1,59 @@
+{
+  "capturedAt": "2026-10-09T00:07:30Z",
+  "dispositionClass": "environment-bound",
+  "edges": [
+    {
+      "from": "cursor-cli-host",
+      "to": "cursor-self-hosted-computer-use",
+      "keepStatus": "unresolved",
+      "disposition": "environment-bound",
+      "evidence": [
+        "parity/research/continuation/computer-use.md",
+        "parity/research/dep-closure-wave-006/nodes/host-edge-disposition.md"
+      ],
+      "docSha256": "a9ceb020282d7c61ad99ccd13de0c8831dd57499ac32af31b5f4afc9e9e186d0",
+      "docByteLength": 15653,
+      "blocker": "Public docs only (computer-use.md). Closing this edge requires exercising macOS Cursor Computer Use helper identity (co.anysphere.cursor-computer-use / Team ID DCNK4UB866), Accessibility and Screen Recording grants, Linux X11/desktop packages, and desktop-sharing transport. This worker must not fabricate those runtime observations.",
+      "docContractsExtracted": [
+        "Explicit opt-in via agent worker --computer-use",
+        "macOS helper Cursor Computer Use with Accessibility + Screen Recording",
+        "Linux X11 display and desktop packages",
+        "Desktop sharing Linux-only via --share-desktop"
+      ]
+    },
+    {
+      "from": "cursor-cli-host",
+      "to": "cursor-enterprise-integration-policy",
+      "keepStatus": "unresolved",
+      "disposition": "environment-bound",
+      "evidence": [
+        "parity/research/continuation/model-management.md",
+        "parity/research/dep-closure-wave-006/nodes/host-edge-disposition.md"
+      ],
+      "docSha256": "2606b4bd74d43bd579c59945506ab691cd49de8da3386556e265c854f6c9d205",
+      "docByteLength": 12119,
+      "blocker": "Public docs only (model-management.md). Closing this edge requires observing live Enterprise team/org model access, MCP allowlist enforcement, and CLI applicability. Standing orders forbid broad allowlist or authorization changes.",
+      "docContractsExtracted": [
+        "Enterprise model access via Team Settings and Organization Groups",
+        "Most-permissive union of team and group model allowlists",
+        "MCP allowlist / trust management",
+        "BYOK controls on Team Settings only"
+      ]
+    }
+  ],
+  "journeyEdgesUnchanged": [
+    {
+      "from": "cursor-pstack",
+      "to": "cursor-team-kit",
+      "keepStatus": "unverified",
+      "blocker": "Distribution custody exists. Complete source and paired journey closure for the full skill set is not shown."
+    },
+    {
+      "from": "cursor-pstack",
+      "to": "cursor-cli-host",
+      "keepStatus": "unverified",
+      "blocker": "Persistent-mode editor actions (Option/Alt+Enter) and later-turn behavior still need paired Cursor+Pi runtime evidence."
+    }
+  ],
+  "note": "Wave-006 re-hashed public continuation docs. Hashes unchanged from wave-005. Edges remain environment-bound unresolved."
+}

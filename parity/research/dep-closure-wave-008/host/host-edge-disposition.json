@@ -1,0 +1,37 @@
+{
+  "capturedAt": "2026-10-09T01:17:40Z",
+  "unit": "u-dep-closure-wave-008",
+  "edges": [
+    {
+      "from": "cursor-cli-host",
+      "to": "cursor-self-hosted-computer-use",
+      "keepStatus": "unresolved",
+      "disposition": "environment-bound",
+      "docPath": "parity/research/continuation/computer-use.md",
+      "docSha256": "a9ceb020282d7c61ad99ccd13de0c8831dd57499ac32af31b5f4afc9e9e186d0",
+      "docByteLength": 15653,
+      "docShaUnchangedFromWave007": true,
+      "helperBundleProbe": {
+        "command": [
+          "mdfind",
+          "kMDItemCFBundleIdentifier == \"co.anysphere.cursor-computer-use\""
+        ],
+        "exitCode": 0,
+        "stdout": "",
+        "matchesFound": false
+      },
+      "blocker": "Public docs only (computer-use.md). Closing this edge requires exercising macOS Cursor Computer Use helper identity (co.anysphere.cursor-computer-use / Team ID DCNK4UB866), Accessibility and Screen Recording grants, Linux X11/desktop packages, and desktop-sharing transport. mdfind for the helper bundle returned no matches in this environment. This worker must not fabricate those runtime observations."
+    },
+    {
+      "from": "cursor-cli-host",
+      "to": "cursor-enterprise-integration-policy",
+      "keepStatus": "unresolved",
+      "disposition": "environment-bound",
+      "docPath": "parity/research/continuation/model-management.md",
+      "docSha256": "2606b4bd74d43bd579c59945506ab691cd49de8da3386556e265c854f6c9d205",
+      "docByteLength": 12119,
+      "docShaUnchangedFromWave007": true,
+      "blocker": "Public docs only (model-management.md). Closing this edge requires observing live Enterprise team/org model access, MCP allowlist enforcement, and CLI applicability. Standing orders forbid broad allowlist or authorization changes."
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "at": "2026-10-09T16:26Z",
+  "CURSOR_API_KEY": "unset",
+  "slackMcpNamespace": "needsAuth",
+  "commands": [
+    {
+      "cmd": [
+        "cursor-agent",
+        "--version"
+      ],
+      "code": 0,
+      "out": "2026.10.01-e373342\n"
+    },
+    {
+      "cmd": [
+        "cursor",
+        "--version"
+      ],
+      "code": 0,
+      "out": "3.24.9\ncd6d2a1f2e56e9841f0ed9c7c24542087b4e69b0\narm64\n"
+    }
+  ]
+}

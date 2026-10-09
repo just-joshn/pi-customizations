@@ -1,0 +1,12 @@
+=== cursor --version ===
+3.24.9
+cd6d2a1f2e56e9841f0ed9c7c24542087b4e69b0
+arm64
+=== cursor-agent --version ===
+2026.10.01-e373342
+=== which cursor-agent ===
+/Users/josh-desktop/.local/bin/cursor-agent
+=== pi --version ===
+1.1.0
+=== agent --version (note: may be grok) ===
+grok 1.0.46 (2765805b9442) [stable]

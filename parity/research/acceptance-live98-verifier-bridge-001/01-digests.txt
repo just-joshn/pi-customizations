@@ -1,0 +1,8 @@
+bridged_tool=5a33e1d4138283fe5d474cef5ccca575847e66e61f4a0c655ab6372106711aa7  /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/acceptance/tools/verify-acceptance.mjs
+expected_tool=5a33e1d4138283fe5d474cef5ccca575847e66e61f4a0c655ab6372106711aa7
+live98_definitions=e576101783702498af089397c1fea80b8b688fd303a3ec78f8df5e6e66a1afe5  /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/acceptance/setup-pstack/definitions.json
+live98_configurations=9eea368548c2d990e426c6a8466a0a8d03e98bd8436e639eaefa6d838a8d8a4e  /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/acceptance/setup-pstack/configurations.json
+fixture_definitions=e4e84566a31803388d70e977f7a2bf4e7d53afe0c931543f877328e860805cb4  /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/acceptance-live98-verifier-bridge-001/acc-fixture/setup-pstack/definitions.json
+fixture_configurations=3755a29140cdbf700f01eadd5e268b3abc459152c619bd0037bfe70cc355a80f  /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/acceptance-live98-verifier-bridge-001/acc-fixture/setup-pstack/configurations.json
+selftest_script=ee684f3f83bde0677e6b9c24feaf63c538f94e5c32c1465aa8879ed705cdd189  /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/acceptance/tools/selftest.sh
+tool_byte_identical_to_owner=yes

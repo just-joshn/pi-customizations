@@ -1,0 +1,130 @@
+{
+  "schemaVersion": 1,
+  "unit": "u-acceptance-freeze-prep-002",
+  "decision": "BLOCKED",
+  "checkedAt": "2026-10-09T03:43:40Z",
+  "checkoutRevision": "10a5c630fe9de01123b3ef46920c24a61d0f6797",
+  "supersedes": {
+    "unit": "u-acceptance-freeze-prep-001",
+    "reason": "Prep-001 reported definition and configuration bytes absent. Regen-001 restored live-98 DRAFT bytes under parity/acceptance/setup-pstack/. Prep-001 candidate digests (43-def historical partition) are obsolete for freeze readiness."
+  },
+  "candidate": {
+    "status": "DRAFT",
+    "owner": null,
+    "frozen": false,
+    "definitionBytesPath": "parity/acceptance/setup-pstack/definitions.json",
+    "configurationBytesPath": "parity/acceptance/setup-pstack/configurations.json",
+    "measuredDefinitionSha256": "e576101783702498af089397c1fea80b8b688fd303a3ec78f8df5e6e66a1afe5",
+    "measuredConfigurationSha256": "9eea368548c2d990e426c6a8466a0a8d03e98bd8436e639eaefa6d838a8d8a4e",
+    "definitionCount": 98,
+    "configurationAxisValueCount": 3,
+    "denominatorComplete": true,
+    "regeneratedBy": "u-acceptance-definitions-regen-001"
+  },
+  "custodyChecklist": [
+    {
+      "id": "measured-definition-digest-matches-candidate",
+      "pass": true,
+      "evidence": [
+        "shasum -a 256 parity/acceptance/setup-pstack/definitions.json",
+        "parity/briefs/reports/u-acceptance-definitions-regen-001-report.md"
+      ]
+    },
+    {
+      "id": "measured-configuration-digest-matches-candidate",
+      "pass": true,
+      "evidence": [
+        "shasum -a 256 parity/acceptance/setup-pstack/configurations.json",
+        "parity/briefs/reports/u-acceptance-definitions-regen-001-report.md"
+      ]
+    },
+    {
+      "id": "exact-candidate-bytes-present-in-checkout",
+      "pass": true,
+      "evidence": [
+        "parity/acceptance/setup-pstack/definitions.json exists (271194 bytes)",
+        "parity/acceptance/setup-pstack/configurations.json exists (1378 bytes)"
+      ]
+    },
+    {
+      "id": "independent-owner-named",
+      "pass": false,
+      "evidence": [
+        "parity/requirements.json acceptanceDefinitionOwner is null",
+        "parity/configurations.json acceptanceDefinitionOwner is null",
+        "parity/acceptance/setup-pstack/definitions.json owner is null",
+        "parity/acceptance/setup-pstack/configurations.json owner is null",
+        "This unit must not invent an owner or name the implementation parent"
+      ]
+    },
+    {
+      "id": "external-custody-established",
+      "pass": false,
+      "evidence": [
+        "parity/reviews/acceptance-custody-triage.md: same-user checkout is not an external custody boundary",
+        "parity/evidence/acceptance-repair-structural.json openBlockers includes NO_EXTERNAL_CUSTODY",
+        "No external custodian pin recorded for the live-98 digests"
+      ]
+    },
+    {
+      "id": "authorization-granted",
+      "pass": false,
+      "evidence": [
+        "parity/evidence/acceptance-repair-structural.json authorization NONE",
+        "Live acceptanceDefinitionsFrozen remains false",
+        "Candidate definitions.json frozen remains false"
+      ]
+    },
+    {
+      "id": "coverage-denominator-complete",
+      "pass": true,
+      "evidence": [
+        "parity/requirements.json coverageDenominatorComplete is true",
+        "parity/acceptance/setup-pstack/definitions.json denominatorComplete is true",
+        "Live requirement IDs match definition requirementId set (98/98)"
+      ]
+    },
+    {
+      "id": "supporting-verifier-safe-for-custody",
+      "pass": true,
+      "evidence": [
+        "parity/briefs/reports/u-acceptance-verifier-rereview-002-report.md",
+        "parity/research/acceptance-verifier-rereview-002/",
+        "Owner-worktree tool digest 5a33e1d4138283fe5d474cef5ccca575847e66e61f4a0c655ab6372106711aa7",
+        "Write confinement only; authorization remains NONE; external custody still FAIL",
+        "parity/acceptance/tools/verify-acceptance.mjs",
+        "parity/briefs/reports/u-acceptance-live98-verifier-bridge-001-report.md",
+        "parity/briefs/reports/u-acceptance-live98-schema-001-report.md",
+        "parity/research/acceptance-live98-schema-001/live98-structural-verify.json",
+        "parity/research/acceptance-live98-schema-001/summary.txt"
+      ],
+      "scope": "write-confinement-of-write-hashes",
+      "updatedAt": "2026-10-09T04:05:00Z",
+      "bridgedMainRepoToolDigest": "5a33e1d4138283fe5d474cef5ccca575847e66e61f4a0c655ab6372106711aa7",
+      "bridgedAt": "2026-10-09T04:12:00Z"
+    }
+  ],
+  "passCount": 5,
+  "failCount": 3,
+  "mergeRecommendation": "supporting-verifier-safe-for-custody PASS (write confinement only, after independent rereview-002). Coordinator must NOT set acceptanceDefinitionsFrozen true: independent owner, external custody, and freeze authorization still fail. Keep DRAFT.",
+  "evidenceSha256": {
+    "parity/acceptance/setup-pstack/definitions.json": "e576101783702498af089397c1fea80b8b688fd303a3ec78f8df5e6e66a1afe5",
+    "parity/acceptance/setup-pstack/configurations.json": "9eea368548c2d990e426c6a8466a0a8d03e98bd8436e639eaefa6d838a8d8a4e",
+    "parity/briefs/reports/u-acceptance-definitions-regen-001-report.md": "07b2d96cf8cfcdc5e2c4a8e7d8a69b580ab9feda070e93bbb6f2ec4b5ff436c8",
+    "parity/reviews/acceptance-custody-triage.md": "f948794b1155b34e91e464690ed62e5eae1d552d54d952c486e7cdb85094c06a",
+    "parity/reviews/acceptance-repair-independent-triage.md": "a2cff789b9682af57f2f50a49f54fcf44a9d83446cef38ba6707630956715e24",
+    "parity/reviews/acceptance-symlink-parent-reproduction.md": "7fd895d2983b0165954e157f3b04c6c015d10d282cc14b2aee0dd6e4596f6b57",
+    "parity/evidence/acceptance-repair-structural.json": "f4116350c970c66055c30b154ba72d93654c376434b4312c4feffcb731405d18",
+    "parity/briefs/reports/u-acceptance-verifier-rereview-002-report.md": "9bd236dc50e0117c0c9551de804e107912c914268953cffbb00cc71c64be68a0",
+    "parity/briefs/reports/u-acceptance-verifier-containment-001-report.md": "13082fc8c36e6ac9e2549270fea4cdf9a5da88a9ac64b9f3a6baf8fcd3feb03e"
+  },
+  "supportingVerifierSafeFlippedAt": "2026-10-09T04:05:00Z",
+  "supportingVerifierSafeFlippedBy": "u-acceptance-verifier-rereview-002",
+  "supportingVerifierToolDigest": "5a33e1d4138283fe5d474cef5ccca575847e66e61f4a0c655ab6372106711aa7",
+  "bridgedMainRepoVerifierNote": "Main-repo parity/acceptance/tools/verify-acceptance.mjs is byte-identical to independently reviewed owner digest; rereview-002 flip still applies.",
+  "live98Schema001Note": "u-acceptance-live98-schema-001: project-then-verify adapter passes structural check over live-98 with authorization NONE; oracles unchanged; reviewed tool digest unchanged. Still does not establish owner/custody/auth.",
+  "live98Schema001MergedAt": "2026-10-09T04:22:00Z",
+  "custodyPack001MergedAt": "2026-10-09T07:06:00Z",
+  "custodyPack001Note": "u-acceptance-custody-pack-001 published operator handoff archive at parity/research/acceptance-custody-pack-001/. Digests unchanged. Does not satisfy external-custody or owner or authorization. Keep BLOCKED.",
+  "custodyPack001Report": "parity/briefs/reports/u-acceptance-custody-pack-001-report.md"
+}

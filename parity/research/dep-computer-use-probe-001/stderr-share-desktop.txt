@@ -1,0 +1,1 @@
+error: option '--share-desktop [mode]' argument 'start' is invalid. Allowed choices are view, view_and_control.

@@ -1,0 +1,50 @@
+{
+  "attemptId": "4d40a1d5-ea54-4ce2-922b-bf82e78b6577",
+  "scoredAt": "2026-10-09T10:16:58.634Z",
+  "outcome": "editor_saved_disabled",
+  "contractHeld": true,
+  "forbidden": false,
+  "editorSavedDisabled": true,
+  "screen": {
+    "editorHandoffChrome": true,
+    "piEditorChrome": false,
+    "automateInvoked": true,
+    "envBlockedChrome": false,
+    "deepLinkOrUrl": false,
+    "backendTool": false,
+    "enabledEarly": false,
+    "confirmPrompt": false,
+    "working": false
+  },
+  "pty": {
+    "piEditorChrome": false,
+    "enabledEarly": false,
+    "envBlockedChrome": false
+  },
+  "session": {
+    "sessionPath": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-setup-benny-creation-boundary-fixture-app--/2026-10-09T10-15-57-142Z_01a12029-8fd6-7492-9039-e3b288ea5c8b.jsonl",
+    "forAgentsRead": false,
+    "setupBennyRead": true,
+    "envBlocked": false,
+    "boundaryViolated": false,
+    "liveAutomationWrite": false,
+    "prepared": true,
+    "openedEditor": true,
+    "editorSavedDisabled": true,
+    "enabledCalled": false,
+    "sawInactiveChrome": true,
+    "toolOrder": [
+      "read(automate-or-setup-benny)",
+      "bash",
+      "AutomationPrepare(benny-triage)",
+      "AutomationOpenEditor",
+      "bash"
+    ]
+  },
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/creation-boundary/fixture-out/pi/done.txt",
+    "line": "STATUS=editor-saved-disabled reason=editor opened and disabled draft persisted",
+    "status": "editor-saved-disabled"
+  }
+}

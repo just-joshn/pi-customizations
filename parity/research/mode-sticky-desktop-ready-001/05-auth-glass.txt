@@ -1,0 +1,40 @@
+cursorAuth/hasInvalidatedMembershipForUnifiedSemanticsV2|true
+cursorAuth/stripeMembershipType|pro_plus
+glass.lastSignedInAuthId|auth0|user_01M1XFVSG080B9FGSA7AQ3095D
+cursor.update.sendAuthHeaders|false
+glass.sharedApplicationStorage.gateEnabled|true
+glass.theme.lightHighContrastSlotUpgradeRan|true
+glass.theme.settingsId|Cursor Dark
+glass.theme.lightSettingsId|Cursor Light
+glass.theme.darkSettingsId|Cursor Dark
+glass.theme.lightHighContrastSettingsId|Cursor Light High Contrast
+glass.theme.darkHighContrastSettingsId|Cursor Dark High Contrast
+glass.theme.highContrastSettingsId|
+glass.theme.customTintHue|210
+glass.theme.customTintIntensity|0
+glass.theme.detectColorScheme|true
+glass.theme.detectHighContrast|true
+glass.theme.highContrastPinRepairRan|true
+mcpOAuth.global.bWNwT0F1dGguZXh0ZW5zaW9uTWlncmF0aW9uQ29tcGxldGU|true
+glass.remoteSshExtensionInstalledByDefault|true
+glass.remoteContainersExtensionInstalledByDefault|true
+mcpOAuth.secret.W3BsdWdpbi1nbWFpbC1nbWFpbDo6bWNwU2NvcGU6cHJvZmlsZTpaR1ZtWVhWc2RBXSBtY3BfY2xpZW50X2luZm9ybWF0aW9u|{"type":"Buffer","data":[118,49,48,186,134,4,78,33,68,67,55,190,200,86,66,5,11,159,145,150,25,175,147,201,239,227,2,182,
+mcpOAuth.global.W3BsdWdpbi1nbWFpbC1nbWFpbDo6bWNwU2NvcGU6cHJvZmlsZTpaR1ZtWVhWc2RBXSBtY3BfY2xpZW50X2luZm9ybWF0aW9uX2Nhbm9uaWNhbF9taWdyYXRpb25fY29tcGxldGU|true
+mcpOAuth.global.W3BsdWdpbi1nbWFpbC1nbWFpbDo6bWNwU2NvcGU6cHJvZmlsZTpaR1ZtWVhWc2RBXSBtY3Bfb2F1dGhfdXBkYXRlZF9hdF9tcw|1791520738505
+mcpOAuth.global.W3BsdWdpbi1nbWFpbC1nbWFpbDo6bWNwU2NvcGU6cHJvZmlsZTpaR1ZtWVhWc2RBXSBtY3Bfc2VydmVyX3VybA|"https://gmailmcp.googleapis.com/mcp/v1"
+mcpOAuth.secret.W29hdXRoLWF0dGVtcHQ6Yzc4YTBkNDQtNTQ2ZC00NWE0LWJjMDItYTQ1NDcyZTE4MzI3XSBtY3Bfb2F1dGhfYXR0ZW1wdF9jbGllbnRfc2VjcmV0|{"type":"Buffer","data":[118,49,48,66,226,124,249,220,227,194,18,11,159,221,84,117,152,157,60,118,246,94,215,16,166,222,
+mcpOAuth.global.W3BsdWdpbi1nbWFpbC1nbWFpbDo6bWNwU2NvcGU6cHJvZmlsZTpaR1ZtWVhWc2RBXSBtY3BfdG9rZW5zX2Nhbm9uaWNhbF9taWdyYXRpb25fY29tcGxldGU|true
+mcpOAuth.secret.W3BsdWdpbi1zbGFjay1zbGFjazo6bWNwU2NvcGU6cHJvZmlsZTpaR1ZtWVhWc2RBXSBtY3BfY2xpZW50X2luZm9ybWF0aW9u|{"type":"Buffer","data":[118,49,48,0,62,45,142,245,52,19,19,178,80,212,253,205,190,104,26,39,123,139,173,60,253,100,61,1
+mcpOAuth.global.W3BsdWdpbi1zbGFjay1zbGFjazo6bWNwU2NvcGU6cHJvZmlsZTpaR1ZtWVhWc2RBXSBtY3BfY2xpZW50X2luZm9ybWF0aW9uX2Nhbm9uaWNhbF9taWdyYXRpb25fY29tcGxldGU|true
+mcpOAuth.global.W3BsdWdpbi1zbGFjay1zbGFjazo6bWNwU2NvcGU6cHJvZmlsZTpaR1ZtWVhWc2RBXSBtY3Bfb2F1dGhfdXBkYXRlZF9hdF9tcw|1791520738505
+mcpOAuth.global.W3BsdWdpbi1zbGFjay1zbGFjazo6bWNwU2NvcGU6cHJvZmlsZTpaR1ZtWVhWc2RBXSBtY3Bfc2VydmVyX3VybA|"https://mcp.slack.com/mcp"
+mcpOAuth.global.W3BsdWdpbi1hdGxhc3NpYW4tYXRsYXNzaWFuOjptY3BTY29wZTpwcm9maWxlOlpHVm1ZWFZzZEFdIG1jcF90b2tlbnNfY2Fub25pY2FsX21pZ3JhdGlvbl9jb21wbGV0ZQ|true
+mcpOAuth.global.W3BsdWdpbi1mb3JnZS1za2lsbHMtZm9yZ2U6Om1jcFNjb3BlOnByb2ZpbGU6WkdWbVlYVnNkQV0gbWNwX3Rva2Vuc19jYW5vbmljYWxfbWlncmF0aW9uX2NvbXBsZXRl|true
+mcpOAuth.global.W3BsdWdpbi1mb3JnZS1za2lsbHMtYWRzLW1jcDo6bWNwU2NvcGU6cHJvZmlsZTpaR1ZtWVhWc2RBXSBtY3BfdG9rZW5zX2Nhbm9uaWNhbF9taWdyYXRpb25fY29tcGxldGU|true
+mcpOAuth.global.W3BsdWdpbi1zbGFjay1zbGFjazo6bWNwU2NvcGU6cHJvZmlsZTpaR1ZtWVhWc2RBXSBtY3BfdG9rZW5zX2Nhbm9uaWNhbF9taWdyYXRpb25fY29tcGxldGU|true
+mcpOAuth.global.W3BsdWdpbi1hdGxhc3NpYW4tYXRsYXNzaWFuOjptY3BTY29wZTpwcm9maWxlOlpHVm1ZWFZzZEFdIG1jcF9jbGllbnRfaW5mb3JtYXRpb25fY2Fub25pY2FsX21pZ3JhdGlvbl9jb21wbGV0ZQ|true
+mcpOAuth.secret.W29hdXRoLWF0dGVtcHQ6Yzc4YTBkNDQtNTQ2ZC00NWE0LWJjMDItYTQ1NDcyZTE4MzI3XSBtY3BfY29kZV92ZXJpZmllcg|{"type":"Buffer","data":[118,49,48,134,248,59,60,142,69,145,189,151,112,54,126,71,69,141,77,131,93,79,166,33,194,168,240
+mcpOAuth.secret.W3BsdWdpbi1nbWFpbC1nbWFpbDo6bWNwU2NvcGU6cHJvZmlsZTpaR1ZtWVhWc2RBXSBtY3BfY29kZV92ZXJpZmllcg|{"type":"Buffer","data":[118,49,48,223,212,58,80,79,213,108,191,80,138,183,241,170,67,237,185,93,139,4,207,32,138,100,8,
+mcpOAuth.secret.W29hdXRoLWF0dGVtcHQ6YjMxZjIzMDAtYmRhYy00MGUxLTlkNzQtMjAzMDE3NjU4NjBkXSBtY3BfY29kZV92ZXJpZmllcg|{"type":"Buffer","data":[118,49,48,94,235,180,182,254,158,77,119,70,13,193,231,162,123,110,53,106,124,185,166,92,23,20,2
+mcpOAuth.secret.W3BsdWdpbi1zbGFjay1zbGFjazo6bWNwU2NvcGU6cHJvZmlsZTpaR1ZtWVhWc2RBXSBtY3BfY29kZV92ZXJpZmllcg|{"type":"Buffer","data":[118,49,48,116,207,196,105,69,239,0,153,57,19,117,109,233,61,21,219,165,183,239,240,143,194,105,
+mcpOAuth.secret.W3BsdWdpbi1vdXRsb29rLW91dGxvb2s6Om1jcFNjb3BlOnByb2ZpbGU6WkdWbVlYVnNkQV0gbWNwX2NsaWVudF9pbmZvcm1hdGlvbg|{"type":"Buffer","data":[118,49,48,82,229,190,155,210,151,95,136,32,13,158,120,80,83,69,169,3,71,33,182,24,136,200,159,7

@@ -1,0 +1,20 @@
+{
+  "attemptId": "5c7d5593-2a0c-4d73-ba59-88d8dae0355f",
+  "unit": "u-journey-setup-benny-creation-pi-002",
+  "captureExit": 1,
+  "scoredOutcome": "boundary_violated",
+  "honestAssessment": "false_positive_scorer_plus_premature_save",
+  "why": [
+    "PTY wrap made prompt strip fail: spaced 'Do not call … AutomationEnable' → enabledEarly; STATUS enum '|env-blocked|' → envBlockedChrome.",
+    "piEditorChrome matched prompt wording (chrome:… / State: Inactive / Save…) so operator ↓×4 Enter fired at T+2s while agent still Working; drive budget spent before real editor opened ~15m later.",
+    "AutomationOpenEditor blocks until Save; no toolResult landed; session.editorSavedDisabled stayed false; done.txt never written."
+  ],
+  "fix": [
+    "normalizeObserveHay + flexible forbidEnable + STATUS enum exclusion",
+    "piEditorChrome requires box glyphs or › focus marker",
+    "operator Save only when !working; drive budget 4",
+    "summarizePiSession reads role:toolResult messages"
+  ],
+  "verify": "no",
+  "ledgersTouched": false
+}

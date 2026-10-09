@@ -1,0 +1,210 @@
+[
+  {
+    "index": 59,
+    "id": "https://cursor.com/docs/cloud-agent/api/webhooks.md",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "webhook_create_witnessed_generate_auth_unpaid"
+    },
+    "to": {
+      "class": "b_environment_bound",
+      "reason": "webhook_create_witnessed_generate_auth_unpaid"
+    },
+    "noteOnly": true
+  },
+  {
+    "index": 75,
+    "id": "https://cursor.com/docs/cloud-agent/automations.md#share",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "automations_editor_save_or_activate_needs_operator_grant"
+    },
+    "to": {
+      "class": "b_environment_bound",
+      "reason": "automations_editor_save_or_activate_needs_operator_grant"
+    },
+    "noteOnly": true
+  },
+  {
+    "index": 83,
+    "id": "https://cursor.com/help/ai-features/automations.md",
+    "from": {
+      "class": "c_already_evidenced",
+      "reason": "automations_editor_create_handoff_evidenced"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "automations_editor_create_handoff_evidenced"
+    },
+    "noteOnly": true
+  },
+  {
+    "index": 149,
+    "id": "https://cursor.com/docs/cloud-agent/automations.md#source-control-triggers",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "automations_editor_save_or_activate_needs_operator_grant"
+    },
+    "to": {
+      "class": "b_environment_bound",
+      "reason": "automations_editor_save_or_activate_needs_operator_grant"
+    },
+    "noteOnly": true
+  },
+  {
+    "index": 150,
+    "id": "https://cursor.com/docs/cloud-agent/automations.md#billing",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "automations_editor_save_or_activate_needs_operator_grant"
+    },
+    "to": {
+      "class": "b_environment_bound",
+      "reason": "automations_editor_save_or_activate_needs_operator_grant"
+    },
+    "noteOnly": true
+  },
+  {
+    "index": 152,
+    "id": "https://cursor.com/docs/cloud-agent/automations.md",
+    "from": {
+      "class": "c_already_evidenced",
+      "reason": "automations_editor_create_handoff_evidenced"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "automations_editor_create_handoff_evidenced"
+    },
+    "noteOnly": true
+  },
+  {
+    "index": 220,
+    "id": "cursor.services.docs_cloud-agent_api_webhooks",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "webhook_create_witnessed_generate_auth_unpaid"
+    },
+    "to": {
+      "class": "b_environment_bound",
+      "reason": "webhook_create_witnessed_generate_auth_unpaid"
+    },
+    "noteOnly": true
+  },
+  {
+    "index": 221,
+    "id": "cursor.host.services.docs_cloud-agent_api_webhooks.webhooks",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "webhook_create_witnessed_generate_auth_unpaid"
+    },
+    "to": {
+      "class": "b_environment_bound",
+      "reason": "webhook_create_witnessed_generate_auth_unpaid"
+    },
+    "noteOnly": true
+  },
+  {
+    "index": 222,
+    "id": "cursor.host.services.docs_cloud-agent_api_webhooks.webhook-verification",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "webhook_create_witnessed_generate_auth_unpaid"
+    },
+    "to": {
+      "class": "b_environment_bound",
+      "reason": "webhook_create_witnessed_generate_auth_unpaid"
+    },
+    "noteOnly": true
+  },
+  {
+    "index": 223,
+    "id": "cursor.host.services.docs_cloud-agent_api_webhooks.headers",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "webhook_create_witnessed_generate_auth_unpaid"
+    },
+    "to": {
+      "class": "b_environment_bound",
+      "reason": "webhook_create_witnessed_generate_auth_unpaid"
+    },
+    "noteOnly": true
+  },
+  {
+    "index": 224,
+    "id": "cursor.host.services.docs_cloud-agent_api_webhooks.signature-verification",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "webhook_create_witnessed_generate_auth_unpaid"
+    },
+    "to": {
+      "class": "b_environment_bound",
+      "reason": "webhook_create_witnessed_generate_auth_unpaid"
+    },
+    "noteOnly": true
+  },
+  {
+    "index": 225,
+    "id": "cursor.host.services.docs_cloud-agent_api_webhooks.payload-format",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "webhook_create_witnessed_generate_auth_unpaid"
+    },
+    "to": {
+      "class": "b_environment_bound",
+      "reason": "webhook_create_witnessed_generate_auth_unpaid"
+    },
+    "noteOnly": true
+  },
+  {
+    "index": 226,
+    "id": "cursor.host.services.docs_cloud-agent_api_webhooks.best-practices",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "webhook_create_witnessed_generate_auth_unpaid"
+    },
+    "to": {
+      "class": "b_environment_bound",
+      "reason": "webhook_create_witnessed_generate_auth_unpaid"
+    },
+    "noteOnly": true
+  },
+  {
+    "index": 229,
+    "id": "cursor.host.services.docs_cloud-agent_automations.getting-started",
+    "from": {
+      "class": "c_already_evidenced",
+      "reason": "automations_editor_create_handoff_evidenced"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "automations_editor_create_handoff_evidenced"
+    },
+    "noteOnly": true
+  },
+  {
+    "index": 238,
+    "id": "cursor.host.services.docs_cloud-agent_automations.webhook-triggers",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "webhook_create_witnessed_generate_auth_unpaid"
+    },
+    "to": {
+      "class": "b_environment_bound",
+      "reason": "webhook_create_witnessed_generate_auth_unpaid"
+    },
+    "noteOnly": true
+  },
+  {
+    "index": 391,
+    "id": "cursor.host.services.help_ai-features_automations.how-do-i-create-an-automation",
+    "from": {
+      "class": "c_already_evidenced",
+      "reason": "automations_editor_create_handoff_evidenced"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "automations_editor_create_handoff_evidenced"
+    },
+    "noteOnly": true
+  }
+]

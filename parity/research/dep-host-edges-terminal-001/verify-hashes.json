@@ -1,0 +1,40 @@
+{
+  "capturedAt": "2026-10-09T03:39:39Z",
+  "unit": "u-dep-host-edges-terminal-001",
+  "docHashes": {
+    "computer-use": {
+      "path": "parity/research/continuation/computer-use.md",
+      "sha256": "a9ceb020282d7c61ad99ccd13de0c8831dd57499ac32af31b5f4afc9e9e186d0",
+      "byteLength": 15653,
+      "matchesLedgerDocSha256": true,
+      "ledgerDocSha256": "a9ceb020282d7c61ad99ccd13de0c8831dd57499ac32af31b5f4afc9e9e186d0"
+    },
+    "model-management": {
+      "path": "parity/research/continuation/model-management.md",
+      "sha256": "2606b4bd74d43bd579c59945506ab691cd49de8da3386556e265c854f6c9d205",
+      "byteLength": 12119,
+      "matchesLedgerDocSha256": true,
+      "ledgerDocSha256": "2606b4bd74d43bd579c59945506ab691cd49de8da3386556e265c854f6c9d205"
+    }
+  },
+  "evidenceHashes": {
+    "u-cursor-custom-mode-path-report.md": {
+      "path": "parity/briefs/reports/u-cursor-custom-mode-path-report.md",
+      "sha256": "285b46915c829d691dac04fadc56c90a3eeb93aef5242fe0253185a6846eae21"
+    },
+    "probe-custom-mode-path-summary.json": {
+      "path": "parity/evidence/mode-sticky/probes/probe-custom-mode-path-summary.json",
+      "sha256": "85e3fd494484dad4415fdb588f97f5a2d7eaee334333c1ac1910174b641676bc"
+    },
+    "wave009-host-edge-disposition.json": {
+      "path": "parity/research/dep-closure-wave-009/host/host-edge-disposition.json",
+      "sha256": "1a99058ef3d09480184da9428f07e1edf8fe04f966ae6dcb87d81b2758243e5c"
+    },
+    "wave009-persistent-mode-disposition.json": {
+      "path": "parity/research/dep-closure-wave-009/cli-host/persistent-mode-disposition.json",
+      "sha256": "02f012df70352a8f79e5ba8c1b8355e4a8003359542d057492a59191852abd1f"
+    }
+  },
+  "helperProbeSha256": "cae4444cc499afea9e807590656eb2a972ee62d835f1787f94e14008ee6b9b48",
+  "cursorAgentVersion": "2026.10.01-e373342"
+}

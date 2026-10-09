@@ -1,0 +1,28 @@
+{
+  "ts": "2026-10-09T10:54:59Z",
+  "unit": "u-dep-enterprise-observe-002",
+  "db": "/Users/josh-desktop/Library/Application Support/Cursor/User/globalStorage/state.vscdb",
+  "keysFound": [
+    "adminSettings.cached",
+    "adminSettings.cachedAuthId",
+    "cursorAuth/stripeMembershipAuthId",
+    "cursorAuth/stripeMembershipType"
+  ],
+  "safe": {
+    "cursorAuth/stripeMembershipType": "pro_plus",
+    "adminSettings.cached": {
+      "allowedModels": [],
+      "blockedModels": [],
+      "byokDisabled": false,
+      "networkAllowlistLen": 0,
+      "keyCount": 23
+    },
+    "adminSettings.cachedAuthId": "auth0|user_01M1XFVSG080B9FGSA7AQ3095D",
+    "cursorAuth/stripeMembershipAuthId": "<present len=37>"
+  },
+  "noTeamKeyCount": 2,
+  "noTeamKeySamples": [
+    "cursor.plugins.installedIds.no-team|file:///Users/josh-desktop/src/personal/pi-customizations",
+    "cursor.plugins.installedIds.no-team|no-workspace"
+  ]
+}

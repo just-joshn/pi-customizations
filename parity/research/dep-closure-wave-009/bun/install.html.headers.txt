@@ -1,0 +1,21 @@
+HTTP 200
+Date: Fri, 09 Oct 2026 01:52:19 GMT
+Content-Type: text/html; charset=utf-8
+Transfer-Encoding: chunked
+Connection: close
+access-control-allow-origin: *
+Age: 12580
+Cache-Control: public, max-age=0, must-revalidate
+content-disposition: inline; filename="installation"
+Nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+Report-To: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=QC%2FH1JrO4OzWG9YfGq4%2Be1xzOlu9RfpuYf69c7lbbRUx2d%2FCruVZLZ%2B6MvF8ry842msQtRdC3TY%2FRwC51Ym5hFOUXBxhmGukuxg0h6eq28rlyU4do9v1jtTWcpNV6omEmH4Lnyw%3D"}]}
+last-modified: Thu, 08 Oct 2026 22:22:39 GMT
+Server: cloudflare
+strict-transport-security: max-age=63072000
+x-vercel-cache: HIT
+x-vercel-id: pdx1::ldz28-1791510739924-23cb7bf8897e
+cf-cache-status: DYNAMIC
+vary: accept-encoding
+Server-Timing: cfCacheStatus;desc="DYNAMIC"
+Server-Timing: cfEdge;dur=15,cfOrigin;dur=87
+CF-RAY: a479becc4a5c758f-PDX

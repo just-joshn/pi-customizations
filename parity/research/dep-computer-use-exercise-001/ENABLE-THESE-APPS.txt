@@ -1,0 +1,18 @@
+Worker still reports:
+  Screen Recording is not granted to Cursor Agent Helper
+  Accessibility is not granted to Cursor Agent Helper
+  (Computer Use needs Accessibility + Screen Recording on Cursor Computer Use)
+
+In System Settings → Privacy & Security, enable BOTH toggles for EACH app:
+
+1. Cursor Computer Use
+   ~/.cursor/cursor-computer-use/Cursor Computer Use.app
+   bundle: co.anysphere.cursor-computer-use
+
+2. Cursor Agent Helper
+   ~/.cursor/agent-helper/Cursor Agent Helper.app
+   bundle: co.anysphere.cursor.agent-helper
+
+"Device control / data access" for Ghostty/Terminal/Cursor alone is not enough.
+
+After toggling: quit those two apps (or Restart now only when coordinator says so), then ping.

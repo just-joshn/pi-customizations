@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "unit": "u-dep-live-integrations-004",
+  "status": "merged",
+  "createdAt": "2026-10-09T15:57:54Z",
+  "canCloseLiveIntegrationsUnresolvedReference": false,
+  "canNarrowLiveIntegrationsUnresolvedReference": true,
+  "proposedUnresolvedReferenceText": "Live integrations live-exercise remains open after u-dep-live-integrations-004 disposition at parity/research/dep-live-integrations-004/dispositions.json (inventory sha256 63ef7f8f4c35e3918556e787f22eb308666e5e8d0b444b41584524ce13b867d4; a_custody_complete=275, b_environment_bound=106, c_already_evidenced=35). Progress since 003: make-bot Generate/key/probe paid (55f42e27). Still unpaid: Benny triage valid-config (Slack G4–G8); thread-safety seven live checks; third-party installs; CU cloud attempt IDs (G1); enterprise policy witness (G2). No fabricated Slack posts. completeDependencyClosure stays false.",
+  "counts": {
+    "a_custody_complete": 275,
+    "b_environment_bound": 106,
+    "c_already_evidenced": 35
+  },
+  "makeBotAttemptId": "55f42e27-ee7e-4d6b-8f12-5b35824addff",
+  "evidence": [
+    "parity/research/dep-live-integrations-004/dispositions.json",
+    "parity/research/dep-live-integrations-004/summary.json",
+    "parity/briefs/reports/u-dep-live-integrations-004-report.md",
+    "parity/research/make-bot-auth-header-post-unlock-002/disposition.json",
+    "parity/briefs/reports/u-make-bot-auth-header-post-unlock-002-report.md",
+    "parity/evidence/make-bot-ui/auth-header-post-unlock-002/55f42e27-ee7e-4d6b-8f12-5b35824addff/"
+  ],
+  "mergedAt": "2026-10-09T15:58:14.678Z"
+}

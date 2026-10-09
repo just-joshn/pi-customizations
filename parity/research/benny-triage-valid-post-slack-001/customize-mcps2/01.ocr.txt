@@ -1,0 +1,69 @@
+< >
+V New Chat
+Search
+• Automations
+B° Customize
+Projects
++ New Project
+Pinned
+• /make-bot-ui
+Repositories
+A No Repo
+• Parity webhook witness
+Cursor automation setup
+Cursor automation setup
+Cursor automation setup
+Cursor automation setup
+Automation setup instruction
+/make-bot-ui
+• automate
+automate
+Sticky mode activation
+/poteto-mode
+9h
+1h
+8h
+8h
+9h
+9h
+9h
+9h
+9h
+9h
+10h
+11h
+Joshua Humphrey
+IDE 7
+Q Search Plugins, Skills, MCPs...
+Browse Marketplace
+• Joshua Humphrey v
+Plugins
+MCPs
+Skills
+Subagents
+Rules
+Commands
+Needs Attention 1
+gmail
+Plugin
+Needs Authentication in Local
+Authenticate
+Connected 8
+ads-mcp
+Plugin
+16 tools enabled
+atlassian
+Plugin
+21 tools enabled
+forge
+Plugin
+14 tools enabled
+github
+Plugin
+49 tools, 4 resources enabled
+Origin
+User
+31 tools enabled
+Show 3 more v
+New MCP Server
+Add a Custom MCP Server

@@ -1,0 +1,9 @@
+ts	phase	decision	why	evidence	result
+2026-10-09T02:54:59Z	start	u-dep-typescript-oracle-suite-001 start	figure-it-out unit under orch preferences; no ledger edits; no further subagents	parity/briefs/u-dep-typescript-oracle-suite-001.md	open
+2026-10-09T02:54:59Z	frame	done predicate is pinned compiler-test oracle with path+hash for 136 internals or measured impossibility	honesty from deep-001 says catalog/typecheck cannot close	parity/research/dep-typescript-deep-001/disposition.json	framed
+2026-10-09T02:54:59Z	frame	pin source at package.json gitHead 2bd066d87f5bafd315be9f40889d0a60b9e58e0b	same commit as published typescript@7.0.2	parity/research/dep-closure-wave-002/npm/typescript@7.0.2/retrieval.json	pin chosen
+2026-10-09T03:01:43Z	pin	semantic pin is microsoft/typescript-go@2bd066d not microsoft/TypeScript tag v7.0.2	npm package.json gitHead resolves only on typescript-go; TypeScript tag archive package.json version is 6.0.0	parity/research/dep-typescript-oracle-suite-001/go-fetch/tarball-sha256.txt	pin chosen
+2026-10-09T03:01:43Z	harness	ran hereby test:api at pin; 459 pass after fetching mapCode.ts for astnav	bounded suite for dist/ast enums internal surface	parity/research/dep-typescript-oracle-suite-001/runs/test-api-with-astnav.log	459 pass exit 0
+2026-10-09T03:01:43Z	verify	built dist matches published catalog for all 136 files	byte identity ties suite to locked npm package	parity/research/dep-typescript-oracle-suite-001/built-vs-published-136.json	136/136 match
+2026-10-09T03:03:46Z	verify	double-run probe stable on closed-with-oracle and 136/136	prove-it-works against real artifacts	parity/research/dep-typescript-oracle-suite-001/verify-hashes.json	VERIFIED closed-with-oracle
+2026-10-09T03:03:46Z	handback	merge may remove typescript unresolvedReference; ledgers untouched	acceptance met	parity/briefs/reports/u-dep-typescript-oracle-suite-001-report.md	done

@@ -1,0 +1,12 @@
+{
+  "attemptId": "247f5d9d-4ea6-4f8a-ade6-c1f09c495f74",
+  "unit": "u-journey-setup-benny-creation-pi-002",
+  "captureExit": 1,
+  "scoredOutcome": "boundary_violated",
+  "honestAssessment": "false_positive_scorer",
+  "why": "PTY hay matched bare AutomationEnable from prompt forbid text ('Do not call AutomationEnable') and bare PTY token for envBlockedChrome. Screen evidence showed Inactive chrome:pi-automations-editor-v1 for benny-triage; session prepared+openedEditor; enabledCalled=false.",
+  "fix": "capture-setup-benny-creation-boundary.mjs enabledEarly/envBlockedChrome tightened; re-run pending",
+  "screenEvidence": "parity/evidence/setup-benny/creation-boundary/pi/screen-04-settled.txt",
+  "verify": "no",
+  "ledgersTouched": false
+}

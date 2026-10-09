@@ -1,0 +1,80 @@
+SELFTEST FAIL unmodified copy is structurally consistent DRAFT with no authorization: expected summary {"kind":"acceptance-structural-check","structural":"PASS","authorization":"NONE","scope":"DRAFT integrity only. Not review, freezing, custody, evidence truth or acceptance.","partition":{"status":"DRAFT","definitions":43,"configurationCells":92,"denominatorComplete":false},"externalPin":"absent","openBlockers":["NO_AUTHENTICATED_TRANSITION_AUTHORITY","NO_REFERENCE_RUN_REGISTRY","NO_EXTERNAL_CUSTODY","DENOMINATOR_INCOMPLETE","FINAL_ACCEPTANCE_GATE_ABSENT","EXTERNAL_PIN_ABSENT"]}
+    {"status":"DRAFT","definitions":43,"configurationCells":92,"denominatorComplete":false,"manifestSha256":"fea3e9148d3e77c0a3b7b7a10805cab1cb9d8c6cf0fc3c30a11976bcddc233e7"}
+SELFTEST FAIL unmodified copy matches its external pin: verifier rejected
+    file:///private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/tmp.jLCQqV7r0Y/acc/tools/verify-acceptance.mjs:22
+    		else throw new Error(`unknown argument ${flag}`);
+    		           ^
+    
+    Error: unknown argument --expect-manifest-sha256
+        at parseArgs (file:///private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/tmp.jLCQqV7r0Y/acc/tools/verify-acceptance.mjs:22:14)
+        at main (file:///private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/tmp.jLCQqV7r0Y/acc/tools/verify-acceptance.mjs:130:15)
+        at file:///private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/tmp.jLCQqV7r0Y/acc/tools/verify-acceptance.mjs:171:1
+        at ModuleJob.run (node:internal/modules/esm/module_job:561:25)
+        at async node:internal/modules/esm/loader:647:26
+        at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+    
+    Node.js v24.21.0
+SELFTEST FAIL forged freeze rehash is refused: verifier accepted a faulted copy
+    {"status":"FROZEN","definitions":43,"configurationCells":92,"denominatorComplete":false,"manifestSha256":"8dc7476133a88d7e4a9b4e7a610857c8050aaf1cd5cc7cd5e01f47edd3034e99"}
+SELFTEST FAIL forged freeze rehash leaves recorded hashes: setup-pstack/record-hashes.json was rewritten
+SELFTEST FAIL forged freeze rehash leaves the manifest: MANIFEST.sha256 was rewritten
+SELFTEST FAIL forged freeze verify is refused: verifier accepted a faulted copy
+    {"status":"FROZEN","definitions":43,"configurationCells":92,"denominatorComplete":false,"manifestSha256":"8dc7476133a88d7e4a9b4e7a610857c8050aaf1cd5cc7cd5e01f47edd3034e99"}
+SELFTEST FAIL same-family reviewers and an existing failure capture cited as a run are refused: expected 'ACC-SETUP-091 reviewers share model family anthropic'
+    FAIL ACC-SETUP-091 is REVIEWED without reviewer, model family and successful reference runs
+SELFTEST FAIL distinct-family reviewers still lack an authenticated transition: expected 'ACC-SETUP-091 declares REVIEWED with review metadata but no authenticated review or freeze transition exists'
+    FAIL ACC-SETUP-091 is REVIEWED without reviewer, model family and successful reference runs
+ok distinct non-implementer families raise no family finding
+SELFTEST FAIL dropped forbidden effects cannot be reblessed: verifier accepted a faulted copy
+    {"status":"DRAFT","definitions":43,"configurationCells":92,"denominatorComplete":false,"manifestSha256":"feedd50e909a7f0a7d2c5cf8fd1a75bdc31504938d77a889d7c2e3a384b8def3"}
+SELFTEST FAIL refused rebless leaves recorded hashes: setup-pstack/record-hashes.json was rewritten
+SELFTEST FAIL deleted definition cannot be reblessed: verifier accepted a faulted copy
+    {"status":"DRAFT","definitions":42,"configurationCells":91,"denominatorComplete":false,"manifestSha256":"5cd04efde9fc4ec786377dee64a3373bf230062d4aa059bbf7da6ea35a9c6700"}
+SELFTEST FAIL removed configuration value cannot be reblessed: verifier accepted a faulted copy
+    {"status":"DRAFT","definitions":43,"configurationCells":92,"denominatorComplete":false,"manifestSha256":"8032e51523c4ef367b45ffe5b4e705cf42856a969318bded9876afa5446aaeab"}
+SELFTEST FAIL unreviewed denominator claim cannot be reblessed: verifier accepted a faulted copy
+    {"status":"DRAFT","definitions":43,"configurationCells":92,"denominatorComplete":true,"manifestSha256":"465e314a1e73552eb2149b37ab578c96e462a4cfa6e5ff4a779b194c47a4b8c1"}
+SELFTEST FAIL edited implementation-owner identity cannot be reblessed: verifier accepted a faulted copy
+    {"status":"DRAFT","definitions":43,"configurationCells":92,"denominatorComplete":false,"manifestSha256":"bd743940eafb1773026be3bfd4ca5edc42c30bcb03434eef9d17d83326124adb"}
+SELFTEST FAIL declared authority is not authentication: verifier accepted a faulted copy
+    {"status":"DRAFT","definitions":43,"configurationCells":92,"denominatorComplete":false,"manifestSha256":"e4ce1eb9171bf42aab764677d1755e536b0bed0e95040b7cbd568ce058d48f97"}
+SELFTEST FAIL new DRAFT record carrying review claims is refused: verifier accepted a faulted copy
+    {"status":"DRAFT","definitions":44,"configurationCells":94,"denominatorComplete":false,"manifestSha256":"ec718a098f8065cc27d69f6a4eec50114208690c2d803422a5c5ea71e4dec104"}
+SELFTEST FAIL a new DRAFT record is appended and recorded: expected summary {"kind":"acceptance-structural-check","structural":"PASS","authorization":"NONE","scope":"DRAFT integrity only. Not review, freezing, custody, evidence truth or acceptance.","partition":{"status":"DRAFT","definitions":44,"configurationCells":94,"denominatorComplete":false},"externalPin":"absent","openBlockers":["NO_AUTHENTICATED_TRANSITION_AUTHORITY","NO_REFERENCE_RUN_REGISTRY","NO_EXTERNAL_CUSTODY","DENOMINATOR_INCOMPLETE","FINAL_ACCEPTANCE_GATE_ABSENT","EXTERNAL_PIN_ABSENT"]}
+    {"status":"DRAFT","definitions":44,"configurationCells":94,"denominatorComplete":false,"manifestSha256":"5b27a00eed9e1f1f02b28c758ac3381d5d0322953a79e4ee06fef6e1906fe674"}
+SELFTEST FAIL hand-edited hash ledger evades the local check and stays unauthorized: expected summary {"kind":"acceptance-structural-check","structural":"PASS","authorization":"NONE","scope":"DRAFT integrity only. Not review, freezing, custody, evidence truth or acceptance.","partition":{"status":"DRAFT","definitions":43,"configurationCells":92,"denominatorComplete":false},"externalPin":"absent","openBlockers":["NO_AUTHENTICATED_TRANSITION_AUTHORITY","NO_REFERENCE_RUN_REGISTRY","NO_EXTERNAL_CUSTODY","DENOMINATOR_INCOMPLETE","FINAL_ACCEPTANCE_GATE_ABSENT","EXTERNAL_PIN_ABSENT"]}
+    {"status":"DRAFT","definitions":43,"configurationCells":92,"denominatorComplete":false,"manifestSha256":"feedd50e909a7f0a7d2c5cf8fd1a75bdc31504938d77a889d7c2e3a384b8def3"}
+SELFTEST FAIL external pin catches a hand-reblessed dropped obligation: expected 'differs from externally pinned fea3e9148d3e77c0a3b7b7a10805cab1cb9d8c6cf0fc3c30a11976bcddc233e7'
+    file:///private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/tmp.jLCQqV7r0Y/acc/tools/verify-acceptance.mjs:22
+    		else throw new Error(`unknown argument ${flag}`);
+    		           ^
+    
+    Error: unknown argument --expect-manifest-sha256
+        at parseArgs (file:///private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/tmp.jLCQqV7r0Y/acc/tools/verify-acceptance.mjs:22:14)
+        at main (file:///private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/tmp.jLCQqV7r0Y/acc/tools/verify-acceptance.mjs:130:15)
+        at file:///private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/tmp.jLCQqV7r0Y/acc/tools/verify-acceptance.mjs:171:1
+        at ModuleJob.run (node:internal/modules/esm/module_job:561:25)
+        at async node:internal/modules/esm/loader:647:26
+        at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+    
+    Node.js v24.21.0
+SELFTEST FAIL external pin catches a reblessed governance edit: expected 'differs from externally pinned fea3e9148d3e77c0a3b7b7a10805cab1cb9d8c6cf0fc3c30a11976bcddc233e7'
+    file:///private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/tmp.jLCQqV7r0Y/acc/tools/verify-acceptance.mjs:22
+    		else throw new Error(`unknown argument ${flag}`);
+    		           ^
+    
+    Error: unknown argument --expect-manifest-sha256
+        at parseArgs (file:///private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/tmp.jLCQqV7r0Y/acc/tools/verify-acceptance.mjs:22:14)
+        at main (file:///private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/tmp.jLCQqV7r0Y/acc/tools/verify-acceptance.mjs:130:15)
+        at file:///private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/tmp.jLCQqV7r0Y/acc/tools/verify-acceptance.mjs:171:1
+        at ModuleJob.run (node:internal/modules/esm/module_job:561:25)
+        at async node:internal/modules/esm/loader:647:26
+        at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+    
+    Node.js v24.21.0
+ok weakened exact label excerpt
+ok wrong source locator
+ok unknown configuration
+ok tampered reference evidence
+ok unrecorded governance edit
+selftest failed: 20

@@ -1,0 +1,21 @@
+{
+  "brief": "u-pi-automate-handoff-design-001",
+  "requirementId": "PSTACK-SETUP-BENNY-CREATION-BOUNDARY-001",
+  "designVerdict": "Option B local AutomationDraft + TUI editor handoff",
+  "verify": "no",
+  "verifyWhy": "Design only. No Pi editor journey. Requirement stays unverified under freeze-prep Option A.",
+  "persistencePath": "join(getAgentDir(), 'pstack-automations', ownerHash, automationId)",
+  "spike": "skipped-design-only",
+  "spikeWhy": "Editor chrome is the unpaid half; a types-only spike would not move the probe flag.",
+  "ledgersTouched": false,
+  "creationBoundaryMarkedVerified": false,
+  "nextUnitBrief": "parity/research/pi-automate-handoff-design-001/next-unit-brief.md",
+  "report": "parity/briefs/reports/u-pi-automate-handoff-design-001-report.md",
+  "crossCheck": {
+    "expectedObservation": "finish only through built-in automate reviewed Automations editor handoff; no enable before thread-safety after editor save",
+    "forbiddenSideEffectsHeldInDesign": [
+      "no direct automation backend",
+      "no draft-field browser URL or protocol deep link finish"
+    ]
+  }
+}

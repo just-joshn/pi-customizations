@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "sliceId": "slice-setup-001",
+  "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "reads": [
+    {
+      "path": "parity/reference/cursor-plugins/pstack/skills/setup-pstack/SKILL.md",
+      "inventoryPath": "pstack/skills/setup-pstack/SKILL.md",
+      "range": "1-74",
+      "fileSha256": "d61b47256a18155a81c8e5ef95e3cc6569ce8c18317c35c4dd9c8015cf68cb59",
+      "matchesInventory": true
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/docs/guide/01-setup.md",
+      "inventoryPath": "pstack/docs/guide/01-setup.md",
+      "range": "1-62",
+      "fileSha256": "86d0330f245d16254a2069955f993c15d96cf29cd1a73690a0164074b7ac1190",
+      "matchesInventory": true
+    },
+    {
+      "path": "parity/reference/cursor-plugins/pstack/automations/benny/skills/setup-benny/SKILL.md",
+      "inventoryPath": "pstack/automations/benny/skills/setup-benny/SKILL.md",
+      "range": "1-40",
+      "note": "Identified as out-of-slice product surface; no proposals promoted.",
+      "fileSha256": "5a3cbe63360c9f6373b6cb6c79a1eaf7e0eba181bfaa1577e2e6431af3407282",
+      "matchesInventory": true
+    },
+    {
+      "path": "parity/requirements.json",
+      "range": "PSTACK-SETUP-* rows",
+      "note": "Read only. Did not edit. MODEL-DISCOVERY and BUDGET-LABELS already verified-pass-paired."
+    },
+    {
+      "path": "parity/mismatches.json",
+      "range": "SETUP-* rows",
+      "note": "Read only. SETUP-WRITE-CARD still pass-structured-pending-commit."
+    },
+    {
+      "path": "parity/evidence/setup-prepair/",
+      "note": "Mapped to load, confirm, validate, write, budget-apply."
+    },
+    {
+      "path": "parity/evidence/setup-cancel/",
+      "note": "Mapped to cancel/no-write."
+    },
+    {
+      "path": "parity/evidence/setup-success/",
+      "note": "Mapped to write, write-card, rerun preserve."
+    },
+    {
+      "path": "parity/designs/setup-parity-panel.md",
+      "range": "1-89",
+      "note": "Context for AskQuestion flow and step-7 mention; not used as locked source for hashes."
+    },
+    {
+      "path": "parity/inventory.json",
+      "note": "Setup-topic inventory paths enumerated for coverage gap list."
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "attemptId": "9184dd42-012c-450c-9b28-e6beb7dc8c96",
+  "log": [
+    {
+      "click": "center",
+      "xy": [
+        889,
+        403
+      ],
+      "ok": true
+    },
+    {
+      "after": "center",
+      "markers": {
+        "webhook": false,
+        "schedule": false,
+        "cron": false,
+        "slack": false,
+        "github": false,
+        "linear": false,
+        "secret": false,
+        "every": false,
+        "timer": false,
+        "email": false,
+        "inspect": false,
+        "view page source": false
+      },
+      "interesting": [
+        "Add Trigger",
+        "Triggers"
+      ]
+    },
+    {
+      "typedWebhook": true,
+      "webhookInAx": false
+    },
+    {
+      "toolsXy": [
+        889,
+        790
+      ],
+      "ok": true
+    },
+    {
+      "toolsMarkers": {
+        "secret": false,
+        "credential": false,
+        "mcp": true,
+        "webhook": false,
+        "memory": true,
+        "browser": false,
+        "shell": false
+      },
+      "interesting": [
+        "Tools"
+      ]
+    }
+  ],
+  "webhookSeenAny": false,
+  "scheduleSeenAny": false,
+  "secretSeenAny": false,
+  "savePressed": false,
+  "activatePressed": false,
+  "updateStateInvented": false,
+  "evidenceDir": "parity/evidence/make-bot-ui/automations-editor/9184dd42-012c-450c-9b28-e6beb7dc8c96"
+}

@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "unit": "u-dep-pi-tarball-sig-001",
+  "status": "merged",
+  "mergedAt": "2026-10-09T09:22:36Z",
+  "verdict": "close-signature-only",
+  "preserve": {
+    "source-lock.status": "incomplete",
+    "completeDependencyClosure": false
+  }
+}

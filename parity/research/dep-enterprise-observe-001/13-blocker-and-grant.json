@@ -1,0 +1,17 @@
+{
+  "id": "G2-ENTERPRISE-POLICY-OBSERVE",
+  "source": [
+    "parity/research/dep-host-edges-terminal-001/host/enterprise-disposition.json",
+    "parity/briefs/reports/u-operator-remaining-gates-001-report.md",
+    "parity/research/operator-remaining-gates-001/grant-checklist.json"
+  ],
+  "operatorGrantExact": [
+    "Provide an Enterprise team/org account with observable Model Providers / Groups model-access settings.",
+    "Authorize a read-only policy observation journey (no worker-initiated allowlist widening unless account owner explicitly grants it).",
+    "Measure MCP policy precedence and CLI applicability with attempt IDs.",
+    "Publish evidence and only then set edge.status to resolved."
+  ],
+  "operatorGrantShort": "G2. Provide Enterprise team/org with observable Model Providers / Groups settings. Authorize read-only policy observation (MCP precedence + CLI applicability). No worker-initiated allowlist widen unless you explicitly grant it.",
+  "setStatusResolved": false,
+  "blocker": "Signed-in Pro+ host cannot witness Enterprise team/org Model Providers or Organization Groups policy."
+}

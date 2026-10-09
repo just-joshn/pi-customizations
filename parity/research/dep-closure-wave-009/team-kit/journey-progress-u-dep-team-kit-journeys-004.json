@@ -1,0 +1,144 @@
+{
+  "updatedAt": "2026-10-09T03:35:11Z",
+  "namedSkillCount": 18,
+  "closedCount": 18,
+  "closedSkills": [
+    "check-compiler-errors",
+    "control-cli",
+    "control-ui",
+    "deslop",
+    "fix-ci",
+    "fix-merge-conflicts",
+    "get-pr-comments",
+    "loop-on-ci",
+    "make-pr-easy-to-review",
+    "new-branch-and-pr",
+    "pr-review-canvas",
+    "review-and-ship",
+    "run-smoke-tests",
+    "thermo-nuclear-code-quality-review",
+    "verify-this",
+    "weekly-review",
+    "what-did-i-get-done",
+    "workflow-from-chats"
+  ],
+  "remainingSkills": [],
+  "pairs": [
+    {
+      "skillId": "check-compiler-errors",
+      "pair": "parity/evidence/team-kit/pair-team-kit-check-compiler-errors-1.json",
+      "cursor": "01a2a361-675e-4d74-afe2-0e5182e73fcd",
+      "pi": "fac4fff2-cab0-49fd-82f8-3bb8ae86adcc"
+    },
+    {
+      "skillId": "control-cli",
+      "pair": "parity/evidence/team-kit/pair-team-kit-control-cli-1.json",
+      "cursor": "14ac16a2-0283-4f81-8e7b-cb866008fba3",
+      "pi": "e22543b5-d681-4c9f-98b8-9078d7bf0ccf"
+    },
+    {
+      "skillId": "control-ui",
+      "pair": "parity/evidence/team-kit/pair-team-kit-control-ui-1.json",
+      "cursor": "9cc3e39e-0182-430a-8502-25009cc06a97",
+      "pi": "b352ba61-3b49-4330-ab64-ac84ea39cfed"
+    },
+    {
+      "skillId": "deslop",
+      "pair": "parity/evidence/team-kit/pair-team-kit-deslop-1.json",
+      "cursor": "92e79e5f-df73-40f1-be36-52840ea161ea",
+      "pi": "c973eadd-a5cc-4893-8344-c25382e7ac82"
+    },
+    {
+      "skillId": "fix-ci",
+      "pair": "parity/evidence/team-kit/pair-team-kit-fix-ci-1.json",
+      "cursor": "f7f2e2f3-171f-4ef5-9cee-4e5a1758f93c",
+      "pi": "935698cb-d1dd-42d2-9c6b-244a965b3499"
+    },
+    {
+      "skillId": "fix-merge-conflicts",
+      "pair": "parity/evidence/team-kit/pair-team-kit-fix-merge-conflicts-1.json",
+      "cursor": "408a751a-3ca8-4940-aaf7-db30cf44a072",
+      "pi": "14acfee1-a81a-4502-bdb0-e54210f061c7"
+    },
+    {
+      "skillId": "get-pr-comments",
+      "pair": "parity/evidence/team-kit/pair-team-kit-get-pr-comments-1.json",
+      "cursor": "89df0ce6-4afb-4b32-93b0-7c2c83af2380",
+      "pi": "d63d2dfc-99a3-4732-831b-38dca83525c5"
+    },
+    {
+      "skillId": "loop-on-ci",
+      "pair": "parity/evidence/team-kit/pair-team-kit-loop-on-ci-1.json",
+      "cursor": "f89e901a-5e19-4f8f-8d7f-4a29ffc7ebd1",
+      "pi": "b15c65d9-fe43-4e41-bc29-65721338baeb"
+    },
+    {
+      "skillId": "make-pr-easy-to-review",
+      "pair": "parity/evidence/team-kit/pair-team-kit-make-pr-easy-to-review-1.json",
+      "cursor": "d4ab0577-1834-4685-a643-fbeac6ba42f3",
+      "pi": "5239e674-1014-402c-a492-7a508b454454"
+    },
+    {
+      "skillId": "new-branch-and-pr",
+      "pair": "parity/evidence/team-kit/pair-team-kit-new-branch-and-pr-1.json",
+      "cursor": "6337794e-d2c9-4a4e-b0ef-25551e3013bc",
+      "pi": "f76fbd4b-0e21-4bca-931c-b3fca1fb6088"
+    },
+    {
+      "skillId": "pr-review-canvas",
+      "pair": "parity/evidence/team-kit/pair-team-kit-pr-review-canvas-1.json",
+      "cursor": "455bb465-4125-4418-bf60-989d8d9cd516",
+      "pi": "13548ad0-1d4c-4716-8898-dba4287fd37e"
+    },
+    {
+      "skillId": "review-and-ship",
+      "pair": "parity/evidence/team-kit/pair-team-kit-review-and-ship-1.json",
+      "cursor": "c2cfa27a-0cbb-490e-b69f-a08ed7cd8693",
+      "pi": "39499099-9f3e-4685-b7ed-b3bbaac00702"
+    },
+    {
+      "skillId": "run-smoke-tests",
+      "pair": "parity/evidence/team-kit/pair-team-kit-run-smoke-tests-1.json",
+      "cursor": "1d179140-436e-4a7d-80de-17219368c747",
+      "pi": "c6fb2d29-e5f2-43b8-a646-0eca5e6aac61"
+    },
+    {
+      "skillId": "thermo-nuclear-code-quality-review",
+      "pair": "parity/evidence/team-kit/pair-team-kit-thermo-nuclear-code-quality-review-1.json",
+      "cursor": "1d776764-5bc4-43ac-b586-2a95b7592fe5",
+      "pi": "dc7ee54f-c0e0-474f-bd7f-c690ef0ef5ce"
+    },
+    {
+      "skillId": "verify-this",
+      "pair": "parity/evidence/team-kit/pair-team-kit-verify-this-1.json",
+      "cursor": "abb96d2b-c7d7-4012-9f4d-956e4e605743",
+      "pi": "8f04dd82-a425-474f-95dc-b1a005c43169"
+    },
+    {
+      "skillId": "weekly-review",
+      "pair": "parity/evidence/team-kit/pair-team-kit-weekly-review-1.json",
+      "cursor": "94f72e17-1ed4-4379-8a22-0f73dd5729cd",
+      "pi": "46e6a5ce-97a4-4b43-b447-7b073b891107"
+    },
+    {
+      "skillId": "what-did-i-get-done",
+      "pair": "parity/evidence/team-kit/pair-team-kit-what-did-i-get-done-1.json",
+      "cursor": "693fb3db-8e81-4107-8653-7512c032efe5",
+      "pi": "ae92f0cb-5421-4182-bdd4-575c3110ba71"
+    },
+    {
+      "skillId": "workflow-from-chats",
+      "pair": "parity/evidence/team-kit/pair-team-kit-workflow-from-chats-1.json",
+      "cursor": "bb7ebe78-d734-4624-8170-ac22f99a59cc",
+      "pi": "3dd29e6b-1e1a-4214-be65-f6d2dd587d7d"
+    }
+  ],
+  "fixturePrUrl": "https://github.com/just-joshn/team-kit-gh-fixture/pull/1",
+  "fullClosureReady": true,
+  "waves": [
+    "u-dep-team-kit-journeys-001",
+    "u-dep-team-kit-journeys-002",
+    "u-dep-team-kit-journeys-003",
+    "u-dep-team-kit-journeys-004"
+  ]
+}

@@ -1,0 +1,365 @@
+{
+  "schemaVersion": 1,
+  "sliceId": "slice-commands-001",
+  "sourceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "receipts": [
+    {
+      "path": "pstack/.cursor-plugin/plugin.json",
+      "fullFileSha256": "7bc736c60985805f70465e044e5adc7028663f72a73deea7fa3e95e52d70dc8e",
+      "inventorySha256": "7bc736c60985805f70465e044e5adc7028663f72a73deea7fa3e95e52d70dc8e",
+      "inventoryMatch": true,
+      "linesRead": {
+        "start": 29,
+        "end": 30
+      },
+      "quoteSha256": "05fef112c52265011c6b45446ba9cbe313f60231f346957e064d90eb404f658d",
+      "proposalIds": [
+        "PSTACK-CMD-PLUGIN-SKILLS-REGISTER-001"
+      ]
+    },
+    {
+      "path": "pstack/skills/how/SKILL.md",
+      "fullFileSha256": "7e0d902484a90eba73dcf518bff478dc5b962b456d23c3d0a188c2ce36b236d8",
+      "inventorySha256": "7e0d902484a90eba73dcf518bff478dc5b962b456d23c3d0a188c2ce36b236d8",
+      "inventoryMatch": true,
+      "linesRead": {
+        "start": 1,
+        "end": 5
+      },
+      "quoteSha256": "ed1e7ca7342766e62e5a9e48e0eed72074e7bb8d7db3027141d544e25400e050",
+      "proposalIds": [
+        "PSTACK-CMD-DISABLE-MODEL-INVOCATION-001"
+      ]
+    },
+    {
+      "path": "pstack/skills/how/SKILL.md",
+      "fullFileSha256": "7e0d902484a90eba73dcf518bff478dc5b962b456d23c3d0a188c2ce36b236d8",
+      "inventorySha256": "7e0d902484a90eba73dcf518bff478dc5b962b456d23c3d0a188c2ce36b236d8",
+      "inventoryMatch": true,
+      "linesRead": {
+        "start": 13,
+        "end": 20
+      },
+      "quoteSha256": "58f8ebc1716249c80f5832a5ca6f3f759feb285bc004e06bf30c072f3f68eb9c",
+      "proposalIds": [
+        "PSTACK-CMD-HOW-SIMPLE-PATH-001"
+      ]
+    },
+    {
+      "path": "pstack/skills/swarm/SKILL.md",
+      "fullFileSha256": "bdcee4168e22428036e93d7cdeec3f391dbc4132f927f6db2540328c22db0273",
+      "inventorySha256": "bdcee4168e22428036e93d7cdeec3f391dbc4132f927f6db2540328c22db0273",
+      "inventoryMatch": true,
+      "linesRead": {
+        "start": 1,
+        "end": 9
+      },
+      "quoteSha256": "2b3d69081f9f14d3faee4b126ad3463523d95e47683a2f1f9397eb3dcc275dbc",
+      "proposalIds": [
+        "PSTACK-CMD-SWARM-FANOUT-001"
+      ]
+    },
+    {
+      "path": "pstack/skills/arena/SKILL.md",
+      "fullFileSha256": "6e17736b5228b661569c3af054f8302c55cf9bf1649447652d53705cce38bed6",
+      "inventorySha256": "6e17736b5228b661569c3af054f8302c55cf9bf1649447652d53705cce38bed6",
+      "inventoryMatch": true,
+      "linesRead": {
+        "start": 1,
+        "end": 9
+      },
+      "quoteSha256": "2e659e343d89a6001fa50b918097451131219a1cc55763717da851499af36354",
+      "proposalIds": [
+        "PSTACK-CMD-ARENA-BASE-GRAFT-001"
+      ]
+    },
+    {
+      "path": "pstack/skills/architect/SKILL.md",
+      "fullFileSha256": "922238947195f2fb825e90688bb6cfa520b81a35a7bee12223c73a6cf96ae64b",
+      "inventorySha256": "922238947195f2fb825e90688bb6cfa520b81a35a7bee12223c73a6cf96ae64b",
+      "inventoryMatch": true,
+      "linesRead": {
+        "start": 21,
+        "end": 27
+      },
+      "quoteSha256": "ae34af0e8c5386e77808462247cbc7a204a6b8322e31708329b44e0e34dfca53",
+      "proposalIds": [
+        "PSTACK-CMD-ARCHITECT-GROUND-HOW-001"
+      ]
+    },
+    {
+      "path": "pstack/skills/interrogate/SKILL.md",
+      "fullFileSha256": "2f7e570ec23791ed2e485a09c98ed0597c46035e2050b351b84d3dc760ddd71f",
+      "inventorySha256": "2f7e570ec23791ed2e485a09c98ed0597c46035e2050b351b84d3dc760ddd71f",
+      "inventoryMatch": true,
+      "linesRead": {
+        "start": 7,
+        "end": 11
+      },
+      "quoteSha256": "94f0f79bfdc0f845dc8ec3fb48f1c1001eadb04a6c80c7ce87006e7a62c242f9",
+      "proposalIds": [
+        "PSTACK-CMD-INTERROGATE-NO-AUTOAPPLY-001"
+      ]
+    },
+    {
+      "path": "pstack/skills/reflect/SKILL.md",
+      "fullFileSha256": "31b8fb866ebe084e7fb7f16dc0ea46ab84ffdc838d54f948edc78556f301a497",
+      "inventorySha256": "31b8fb866ebe084e7fb7f16dc0ea46ab84ffdc838d54f948edc78556f301a497",
+      "inventoryMatch": true,
+      "linesRead": {
+        "start": 11,
+        "end": 13
+      },
+      "quoteSha256": "fd93151167ca9f45b7275fb3d4578809257f86107090f6cd41592e6fba2a8a2d",
+      "proposalIds": [
+        "PSTACK-CMD-REFLECT-TRIGGER-001"
+      ]
+    },
+    {
+      "path": "pstack/skills/why/SKILL.md",
+      "fullFileSha256": "442215bf70e491d4d31bd200c197f2ec447445df38e074c40880fc4bf30a1f9e",
+      "inventorySha256": "442215bf70e491d4d31bd200c197f2ec447445df38e074c40880fc4bf30a1f9e",
+      "inventoryMatch": true,
+      "linesRead": {
+        "start": 7,
+        "end": 11
+      },
+      "quoteSha256": "72e6359a90d2a98d06325c1e7e4bc5a75623289d069d4feb6f429a8d8634b403",
+      "proposalIds": [
+        "PSTACK-CMD-WHY-MOTIVATION-001"
+      ]
+    },
+    {
+      "path": "pstack/skills/poteto-help/SKILL.md",
+      "fullFileSha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e",
+      "inventorySha256": "ea71bcb15c023a5d9cc70686e4812144687ffe03bf80d85cc480af3e0b181d1e",
+      "inventoryMatch": true,
+      "linesRead": {
+        "start": 1,
+        "end": 11
+      },
+      "quoteSha256": "55ab02d388b403b675646272d8ecf6d371b64c28609f2447d4d1450159ef0591",
+      "proposalIds": [
+        "PSTACK-CMD-POTETO-HELP-NO-WORK-001"
+      ]
+    },
+    {
+      "path": "pstack/skills/tdd/SKILL.md",
+      "fullFileSha256": "eeb868e2dfebee528d730a67d7b17498fac4bb85dec2e38bc5c5176aca4d5d2f",
+      "inventorySha256": "eeb868e2dfebee528d730a67d7b17498fac4bb85dec2e38bc5c5176aca4d5d2f",
+      "inventoryMatch": true,
+      "linesRead": {
+        "start": 1,
+        "end": 11
+      },
+      "quoteSha256": "aa815fbc280aed8916e56a1d6e958ada251e27f59700074740732cc269db6b5a",
+      "proposalIds": [
+        "PSTACK-CMD-TDD-EXPLICIT-GATE-001"
+      ]
+    },
+    {
+      "path": "pstack/skills/create-verification-skill/SKILL.md",
+      "fullFileSha256": "644f2551403c1bca01a2855b34611b6e7be0ce0dc5b204514c376c0f6a6e6ac4",
+      "inventorySha256": "644f2551403c1bca01a2855b34611b6e7be0ce0dc5b204514c376c0f6a6e6ac4",
+      "inventoryMatch": true,
+      "linesRead": {
+        "start": 1,
+        "end": 9
+      },
+      "quoteSha256": "7f1eb7bd6a8e045b7b09272035e70217f3868ad24a626b23b1ff368232ef112c",
+      "proposalIds": [
+        "PSTACK-CMD-CREATE-VERIFY-SKILL-001"
+      ]
+    },
+    {
+      "path": "pstack/skills/show-me-your-work/SKILL.md",
+      "fullFileSha256": "bcff5f7f9fd23f92c12b251f9cd6b947e9485e1055cfacb6fdd9cae0789d7550",
+      "inventorySha256": "bcff5f7f9fd23f92c12b251f9cd6b947e9485e1055cfacb6fdd9cae0789d7550",
+      "inventoryMatch": true,
+      "linesRead": {
+        "start": 1,
+        "end": 14
+      },
+      "quoteSha256": "b3c0d77a4644d4b7653b6ae0c5644f9a59082dfcdb59fa422536f75c567f6d54",
+      "proposalIds": [
+        "PSTACK-CMD-SHOW-ME-YOUR-WORK-TSV-001"
+      ]
+    },
+    {
+      "path": "pstack/skills/figure-it-out/SKILL.md",
+      "fullFileSha256": "0eb9485f0e7d84fee56b5d0f0af0faf4635e3ca87c8cba3970c01293b76ecc19",
+      "inventorySha256": "0eb9485f0e7d84fee56b5d0f0af0faf4635e3ca87c8cba3970c01293b76ecc19",
+      "inventoryMatch": true,
+      "linesRead": {
+        "start": 1,
+        "end": 9
+      },
+      "quoteSha256": "b001927b3a6b5843af358e1db2cd03429aecd828611e9089c91ac38af1585c9a",
+      "proposalIds": [
+        "PSTACK-CMD-FIGURE-IT-OUT-PLAYBOOK-FIRST-001"
+      ]
+    },
+    {
+      "path": "pstack/skills/correct/SKILL.md",
+      "fullFileSha256": "bf482bacc972b3f124a4af8bf9364b4b3e280cb5845e44c326ea4f4565e5c904",
+      "inventorySha256": "bf482bacc972b3f124a4af8bf9364b4b3e280cb5845e44c326ea4f4565e5c904",
+      "inventoryMatch": true,
+      "linesRead": {
+        "start": 1,
+        "end": 9
+      },
+      "quoteSha256": "45a2f1aac8a271f0b248db3c0e860af93ffc7655798c6f486015e45cd01fde7d",
+      "proposalIds": [
+        "PSTACK-CMD-CORRECT-ENCODE-001"
+      ]
+    },
+    {
+      "path": "pstack/skills/technical-writing/SKILL.md",
+      "fullFileSha256": "f5c512ffeec70bc4e0dee50f7bb4c26742e1be77967a6e8b15d1921e1c209ceb",
+      "inventorySha256": "f5c512ffeec70bc4e0dee50f7bb4c26742e1be77967a6e8b15d1921e1c209ceb",
+      "inventoryMatch": true,
+      "linesRead": {
+        "start": 1,
+        "end": 5
+      },
+      "quoteSha256": "501a825d7d70318eb66f63c81dbd081d9ec090df65b45f8c07f296289dbc8982",
+      "proposalIds": [
+        "PSTACK-CMD-TECHNICAL-WRITING-DOCS-001"
+      ]
+    },
+    {
+      "path": "pstack/skills/no-comments/SKILL.md",
+      "fullFileSha256": "5c5b0882297d704c3a9720c52b7a793c68b013eaf717989f0945624efdfe2b05",
+      "inventorySha256": "5c5b0882297d704c3a9720c52b7a793c68b013eaf717989f0945624efdfe2b05",
+      "inventoryMatch": true,
+      "linesRead": {
+        "start": 1,
+        "end": 20
+      },
+      "quoteSha256": "ee8d1a45423b1c8b90feebaa09fcff8bec4fda80ee05c039f7d583892bb942ef",
+      "proposalIds": [
+        "PSTACK-CMD-NO-COMMENTS-SICKO-001"
+      ]
+    }
+  ],
+  "topicInventoryPaths": [
+    "pstack/.cursor-plugin/plugin.json",
+    "pstack/agents/comment-sicko.md",
+    "pstack/agents/poteto-agent.md",
+    "pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md",
+    "pstack/automations/benny/skills/setup-benny/SKILL.md",
+    "pstack/automations/benny/skills/triage-issue-reports/SKILL.md",
+    "pstack/skills/architect/SKILL.md",
+    "pstack/skills/arena/SKILL.md",
+    "pstack/skills/automate-me/SKILL.md",
+    "pstack/skills/benchmark-checklist/SKILL.md",
+    "pstack/skills/blast-radius/SKILL.md",
+    "pstack/skills/bro/SKILL.md",
+    "pstack/skills/correct/SKILL.md",
+    "pstack/skills/create-verification-skill/SKILL.md",
+    "pstack/skills/figure-it-out/SKILL.md",
+    "pstack/skills/how/SKILL.md",
+    "pstack/skills/interrogate/SKILL.md",
+    "pstack/skills/maintain-verification-skill/SKILL.md",
+    "pstack/skills/make-bot-ui/SKILL.md",
+    "pstack/skills/no-comments/SKILL.md",
+    "pstack/skills/poteto-help/SKILL.md",
+    "pstack/skills/poteto-mode/SKILL.md",
+    "pstack/skills/principle-attack-the-premise/SKILL.md",
+    "pstack/skills/principle-boundary-discipline/SKILL.md",
+    "pstack/skills/principle-build-the-lever/SKILL.md",
+    "pstack/skills/principle-encode-lessons-in-structure/SKILL.md",
+    "pstack/skills/principle-exhaust-the-design-space/SKILL.md",
+    "pstack/skills/principle-experience-first/SKILL.md",
+    "pstack/skills/principle-explain-the-number/SKILL.md",
+    "pstack/skills/principle-fix-root-causes/SKILL.md",
+    "pstack/skills/principle-foundational-thinking/SKILL.md",
+    "pstack/skills/principle-guard-the-context-window/SKILL.md",
+    "pstack/skills/principle-laziness-protocol/SKILL.md",
+    "pstack/skills/principle-make-operations-idempotent/SKILL.md",
+    "pstack/skills/principle-migrate-callers-then-delete-legacy-apis/SKILL.md",
+    "pstack/skills/principle-minimize-reader-load/SKILL.md",
+    "pstack/skills/principle-model-the-domain/SKILL.md",
+    "pstack/skills/principle-never-block-on-the-human/SKILL.md",
+    "pstack/skills/principle-outcome-oriented-execution/SKILL.md",
+    "pstack/skills/principle-prove-it-works/SKILL.md",
+    "pstack/skills/principle-redesign-from-first-principles/SKILL.md",
+    "pstack/skills/principle-separate-before-serializing-shared-state/SKILL.md",
+    "pstack/skills/principle-sequence-verifiable-units/SKILL.md",
+    "pstack/skills/principle-subtract-before-you-add/SKILL.md",
+    "pstack/skills/principle-test-behavior-not-implementation/SKILL.md",
+    "pstack/skills/principle-type-system-discipline/SKILL.md",
+    "pstack/skills/recall/SKILL.md",
+    "pstack/skills/reflect/SKILL.md",
+    "pstack/skills/setup-pstack/SKILL.md",
+    "pstack/skills/show-me-your-work/SKILL.md",
+    "pstack/skills/swarm/SKILL.md",
+    "pstack/skills/tdd/SKILL.md",
+    "pstack/skills/teach/SKILL.md",
+    "pstack/skills/technical-writing/SKILL.md",
+    "pstack/skills/typescript-best-practices/SKILL.md",
+    "pstack/skills/unslop/SKILL.md",
+    "pstack/skills/why/SKILL.md"
+  ],
+  "coveredPaths": [
+    "pstack/.cursor-plugin/plugin.json",
+    "pstack/skills/architect/SKILL.md",
+    "pstack/skills/arena/SKILL.md",
+    "pstack/skills/correct/SKILL.md",
+    "pstack/skills/create-verification-skill/SKILL.md",
+    "pstack/skills/figure-it-out/SKILL.md",
+    "pstack/skills/how/SKILL.md",
+    "pstack/skills/interrogate/SKILL.md",
+    "pstack/skills/no-comments/SKILL.md",
+    "pstack/skills/poteto-help/SKILL.md",
+    "pstack/skills/reflect/SKILL.md",
+    "pstack/skills/show-me-your-work/SKILL.md",
+    "pstack/skills/swarm/SKILL.md",
+    "pstack/skills/tdd/SKILL.md",
+    "pstack/skills/technical-writing/SKILL.md",
+    "pstack/skills/why/SKILL.md"
+  ],
+  "leftoverPaths": [
+    "pstack/agents/comment-sicko.md",
+    "pstack/agents/poteto-agent.md",
+    "pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md",
+    "pstack/automations/benny/skills/setup-benny/SKILL.md",
+    "pstack/automations/benny/skills/triage-issue-reports/SKILL.md",
+    "pstack/skills/automate-me/SKILL.md",
+    "pstack/skills/benchmark-checklist/SKILL.md",
+    "pstack/skills/blast-radius/SKILL.md",
+    "pstack/skills/bro/SKILL.md",
+    "pstack/skills/maintain-verification-skill/SKILL.md",
+    "pstack/skills/make-bot-ui/SKILL.md",
+    "pstack/skills/poteto-mode/SKILL.md",
+    "pstack/skills/principle-attack-the-premise/SKILL.md",
+    "pstack/skills/principle-boundary-discipline/SKILL.md",
+    "pstack/skills/principle-build-the-lever/SKILL.md",
+    "pstack/skills/principle-encode-lessons-in-structure/SKILL.md",
+    "pstack/skills/principle-exhaust-the-design-space/SKILL.md",
+    "pstack/skills/principle-experience-first/SKILL.md",
+    "pstack/skills/principle-explain-the-number/SKILL.md",
+    "pstack/skills/principle-fix-root-causes/SKILL.md",
+    "pstack/skills/principle-foundational-thinking/SKILL.md",
+    "pstack/skills/principle-guard-the-context-window/SKILL.md",
+    "pstack/skills/principle-laziness-protocol/SKILL.md",
+    "pstack/skills/principle-make-operations-idempotent/SKILL.md",
+    "pstack/skills/principle-migrate-callers-then-delete-legacy-apis/SKILL.md",
+    "pstack/skills/principle-minimize-reader-load/SKILL.md",
+    "pstack/skills/principle-model-the-domain/SKILL.md",
+    "pstack/skills/principle-never-block-on-the-human/SKILL.md",
+    "pstack/skills/principle-outcome-oriented-execution/SKILL.md",
+    "pstack/skills/principle-prove-it-works/SKILL.md",
+    "pstack/skills/principle-redesign-from-first-principles/SKILL.md",
+    "pstack/skills/principle-separate-before-serializing-shared-state/SKILL.md",
+    "pstack/skills/principle-sequence-verifiable-units/SKILL.md",
+    "pstack/skills/principle-subtract-before-you-add/SKILL.md",
+    "pstack/skills/principle-test-behavior-not-implementation/SKILL.md",
+    "pstack/skills/principle-type-system-discipline/SKILL.md",
+    "pstack/skills/recall/SKILL.md",
+    "pstack/skills/setup-pstack/SKILL.md",
+    "pstack/skills/teach/SKILL.md",
+    "pstack/skills/typescript-best-practices/SKILL.md",
+    "pstack/skills/unslop/SKILL.md"
+  ]
+}

@@ -1,0 +1,234 @@
+[
+  {
+    "index": 59,
+    "id": "https://cursor.com/docs/cloud-agent/api/webhooks.md",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "webhook_routine_or_secret_live_needs_operator_grant"
+    },
+    "to": {
+      "class": "b_environment_bound",
+      "reason": "webhook_create_witnessed_generate_auth_unpaid"
+    },
+    "blockerMismatchIds": [
+      "MAKE-BOT-UI-KEY-SERVER-HOST"
+    ]
+  },
+  {
+    "index": 75,
+    "id": "https://cursor.com/docs/cloud-agent/automations.md#share",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "automations_editor_runtime_needs_operator_grant"
+    },
+    "to": {
+      "class": "b_environment_bound",
+      "reason": "automations_editor_save_or_activate_needs_operator_grant"
+    },
+    "blockerMismatchIds": [
+      "SETUP-BENNY-THREAD-SAFETY-ENV"
+    ]
+  },
+  {
+    "index": 83,
+    "id": "https://cursor.com/help/ai-features/automations.md",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "automations_editor_runtime_needs_operator_grant"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "automations_editor_create_handoff_evidenced"
+    },
+    "blockerMismatchIds": []
+  },
+  {
+    "index": 149,
+    "id": "https://cursor.com/docs/cloud-agent/automations.md#source-control-triggers",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "automations_editor_runtime_needs_operator_grant"
+    },
+    "to": {
+      "class": "b_environment_bound",
+      "reason": "automations_editor_save_or_activate_needs_operator_grant"
+    },
+    "blockerMismatchIds": [
+      "SETUP-BENNY-THREAD-SAFETY-ENV"
+    ]
+  },
+  {
+    "index": 150,
+    "id": "https://cursor.com/docs/cloud-agent/automations.md#billing",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "automations_editor_runtime_needs_operator_grant"
+    },
+    "to": {
+      "class": "b_environment_bound",
+      "reason": "automations_editor_save_or_activate_needs_operator_grant"
+    },
+    "blockerMismatchIds": [
+      "SETUP-BENNY-THREAD-SAFETY-ENV"
+    ]
+  },
+  {
+    "index": 152,
+    "id": "https://cursor.com/docs/cloud-agent/automations.md",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "automations_editor_runtime_needs_operator_grant"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "automations_editor_create_handoff_evidenced"
+    },
+    "blockerMismatchIds": []
+  },
+  {
+    "index": 220,
+    "id": "cursor.services.docs_cloud-agent_api_webhooks",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "webhook_routine_or_secret_live_needs_operator_grant"
+    },
+    "to": {
+      "class": "b_environment_bound",
+      "reason": "webhook_create_witnessed_generate_auth_unpaid"
+    },
+    "blockerMismatchIds": [
+      "MAKE-BOT-UI-KEY-SERVER-HOST"
+    ]
+  },
+  {
+    "index": 221,
+    "id": "cursor.host.services.docs_cloud-agent_api_webhooks.webhooks",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "webhook_routine_or_secret_live_needs_operator_grant"
+    },
+    "to": {
+      "class": "b_environment_bound",
+      "reason": "webhook_create_witnessed_generate_auth_unpaid"
+    },
+    "blockerMismatchIds": [
+      "MAKE-BOT-UI-KEY-SERVER-HOST"
+    ]
+  },
+  {
+    "index": 222,
+    "id": "cursor.host.services.docs_cloud-agent_api_webhooks.webhook-verification",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "webhook_routine_or_secret_live_needs_operator_grant"
+    },
+    "to": {
+      "class": "b_environment_bound",
+      "reason": "webhook_create_witnessed_generate_auth_unpaid"
+    },
+    "blockerMismatchIds": [
+      "MAKE-BOT-UI-KEY-SERVER-HOST"
+    ]
+  },
+  {
+    "index": 223,
+    "id": "cursor.host.services.docs_cloud-agent_api_webhooks.headers",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "webhook_routine_or_secret_live_needs_operator_grant"
+    },
+    "to": {
+      "class": "b_environment_bound",
+      "reason": "webhook_create_witnessed_generate_auth_unpaid"
+    },
+    "blockerMismatchIds": [
+      "MAKE-BOT-UI-KEY-SERVER-HOST"
+    ]
+  },
+  {
+    "index": 224,
+    "id": "cursor.host.services.docs_cloud-agent_api_webhooks.signature-verification",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "webhook_routine_or_secret_live_needs_operator_grant"
+    },
+    "to": {
+      "class": "b_environment_bound",
+      "reason": "webhook_create_witnessed_generate_auth_unpaid"
+    },
+    "blockerMismatchIds": [
+      "MAKE-BOT-UI-KEY-SERVER-HOST"
+    ]
+  },
+  {
+    "index": 225,
+    "id": "cursor.host.services.docs_cloud-agent_api_webhooks.payload-format",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "webhook_routine_or_secret_live_needs_operator_grant"
+    },
+    "to": {
+      "class": "b_environment_bound",
+      "reason": "webhook_create_witnessed_generate_auth_unpaid"
+    },
+    "blockerMismatchIds": [
+      "MAKE-BOT-UI-KEY-SERVER-HOST"
+    ]
+  },
+  {
+    "index": 226,
+    "id": "cursor.host.services.docs_cloud-agent_api_webhooks.best-practices",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "webhook_routine_or_secret_live_needs_operator_grant"
+    },
+    "to": {
+      "class": "b_environment_bound",
+      "reason": "webhook_create_witnessed_generate_auth_unpaid"
+    },
+    "blockerMismatchIds": [
+      "MAKE-BOT-UI-KEY-SERVER-HOST"
+    ]
+  },
+  {
+    "index": 229,
+    "id": "cursor.host.services.docs_cloud-agent_automations.getting-started",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "automations_editor_runtime_needs_operator_grant"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "automations_editor_create_handoff_evidenced"
+    },
+    "blockerMismatchIds": []
+  },
+  {
+    "index": 238,
+    "id": "cursor.host.services.docs_cloud-agent_automations.webhook-triggers",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "webhook_routine_or_secret_live_needs_operator_grant"
+    },
+    "to": {
+      "class": "b_environment_bound",
+      "reason": "webhook_create_witnessed_generate_auth_unpaid"
+    },
+    "blockerMismatchIds": [
+      "MAKE-BOT-UI-KEY-SERVER-HOST"
+    ]
+  },
+  {
+    "index": 391,
+    "id": "cursor.host.services.help_ai-features_automations.how-do-i-create-an-automation",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "automations_editor_runtime_needs_operator_grant"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "automations_editor_create_handoff_evidenced"
+    },
+    "blockerMismatchIds": []
+  }
+]

@@ -1,0 +1,69 @@
+=== selftest after manifest regen ===
+ok unmodified copy is structurally consistent DRAFT with no authorization
+ok unmodified copy matches its external pin
+ok forged freeze rehash is refused
+ok forged freeze rehash leaves recorded hashes
+ok forged freeze rehash leaves the manifest
+ok forged freeze verify is refused
+ok same-family reviewers and an existing failure capture cited as a run are refused
+ok distinct-family reviewers still lack an authenticated transition
+ok distinct non-implementer families raise no family finding
+ok dropped forbidden effects cannot be reblessed
+ok refused rebless leaves recorded hashes
+ok deleted definition cannot be reblessed
+ok removed configuration value cannot be reblessed
+ok unreviewed denominator claim cannot be reblessed
+ok edited implementation-owner identity cannot be reblessed
+ok declared authority is not authentication
+ok new DRAFT record carrying review claims is refused
+ok a new DRAFT record is appended and recorded
+ok hand-edited hash ledger evades the local check and stays unauthorized
+ok external pin catches a hand-reblessed dropped obligation
+ok external pin catches a reblessed governance edit
+ok weakened exact label excerpt
+ok wrong source locator
+ok unknown configuration
+ok tampered reference evidence
+ok unrecorded governance edit
+ok symlinked MANIFEST.sha256 is refused on write
+ok symlinked MANIFEST.sha256 leaves the external file untouched
+ok symlinked setup-pstack/record-hashes.json is refused on write
+ok symlinked setup-pstack/record-hashes.json leaves the external file untouched
+ok hardlinked MANIFEST.sha256 is refused on write
+ok hardlinked MANIFEST.sha256 leaves the external file untouched
+ok hardlinked setup-pstack/record-hashes.json is refused on write
+ok hardlinked setup-pstack/record-hashes.json leaves the external file untouched
+ok symlinked setup-pstack parent is refused on write
+ok symlinked setup-pstack parent leaves the outside file untouched
+ok trailing newline on record-hashes fails the pinned digest
+ok non-integer source locator is refused
+ok trailing --expect-manifest-sha256 without a value is refused
+ok empty --expect-manifest-sha256 value is refused
+ok malformed --expect-manifest-sha256 value is refused
+selftest passed
+selftest_exit=0
+
+=== clean pinned verify ===
+clean_exit=0
+{"kind":"acceptance-structural-check","structural":"PASS","authorization":"NONE","scope":"DRAFT integrity only. Not review, freezing, custody, evidence truth or acceptance.","partition":{"status":"DRAFT","definitions":43,"configurationCells":92,"denominatorComplete":false},"externalPin":"matched","openBlockers":["NO_AUTHENTICATED_TRANSITION_AUTHORITY","NO_REFERENCE_RUN_REGISTRY","NO_EXTERNAL_CUSTODY","DENOMINATOR_INCOMPLETE","FINAL_ACCEPTANCE_GATE_ABSENT"],"digests":{"definitions":"e4e84566a31803388d70e977f7a2bf4e7d53afe0c931543f877328e860805cb4","recordHashes":"4a218e21d7a6264daa45552fa39abdcd4c67337f145a79e191d136375a668238","manifest":"de2d01434531e7cad6a6f138975db44145e1d97753f27450e4dd56d26409898a"}}
+
+=== containment regressions ===
+ok hardlinked-output rejected (exit 1), canary unchanged
+  FAIL MANIFEST.sha256 has 2 hard links; hash files must be unlinked regular files inside the acceptance root
+hardlinked-output_exit=0
+ok symlinked-output-parent rejected (exit 1), outside unchanged
+  FAIL setup-pstack/record-hashes.json: path component setup-pstack is a symlink; hash files must stay inside the acceptance root
+symlinked-output-parent_exit=0
+ok ledger-byte-drift rejected (exit 1)
+  FAIL setup-pstack/record-hashes.json bytes do not match the canonical recorded hashes
+ledger-byte-drift_exit=0
+ok invalid-locator rejected (exit 1)
+  FAIL ACC-SETUP-BADLOC has invalid locator not-a-line; positive ordered integer locators only
+invalid-locator_exit=0
+ok missing-pin-value rejected (exit 1)
+  --expect-manifest-sha256 requires a sha256 hex digest
+ok empty-pin-value rejected (exit 1)
+  --expect-manifest-sha256 requires a sha256 hex digest
+ok malformed-pin-value rejected (exit 1)
+  --expect-manifest-sha256 value is not a sha256 hex digest: not-a-hash
+missing-pin-arg_exit=0

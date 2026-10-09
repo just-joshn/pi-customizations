@@ -1,0 +1,31 @@
+{
+  "attemptId": "55f42e27-ee7e-4d6b-8f12-5b35824addff",
+  "profile": "ready4-cgevent-copy",
+  "unit": "u-make-bot-auth-header-post-unlock-002",
+  "cursorOutcome": "probe_failed",
+  "generateAuthHeaderClicked": true,
+  "generateLabel": "Copy auth header",
+  "keyStoredServerSide": true,
+  "probe": {
+    "ok": false,
+    "httpStatus": 401,
+    "attempts": [
+      {
+        "httpStatus": 400,
+        "variant": null
+      },
+      {
+        "httpStatus": 401,
+        "variant": null
+      }
+    ]
+  },
+  "blocker": "probe_http_401",
+  "clickPolicy": "cgevent_hid_at_ax_frame_center",
+  "secretStore": {
+    "dir": "/Users/josh-desktop/.local/share/pi-pstack-parity/make-bot-auth-header-post-unlock-002",
+    "fileName": "55f42e27-ee7e-4d6b-8f12-5b35824addff.json",
+    "mode": "0o600",
+    "present": true
+  }
+}

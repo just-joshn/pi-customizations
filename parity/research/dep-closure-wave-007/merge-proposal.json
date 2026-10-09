@@ -1,0 +1,214 @@
+{
+  "schemaVersion": 1,
+  "unit": "u-dep-closure-wave-007",
+  "status": "proposal",
+  "createdAt": "2026-10-09T00:52:24Z",
+  "targets": {
+    "dependenciesJson": "parity/dependencies.json",
+    "sourceLockJson": "parity/source-lock.json"
+  },
+  "closureAudited": true,
+  "closureAuditedNote": "Leave closureAudited true. Prior independent audit remains the audit evidence. This wave does not re-audit.",
+  "completeDependencyClosure": false,
+  "completeDependencyClosureNote": "Do not claim completeDependencyClosure. Bun version pin, host computer-use/enterprise edges, journey edges, typescript deep compiler-behavior semantics, create-skill journeys, and live/runtime follow-ups on inventoried integrations and extracted recursive refs remain open.",
+  "resolvedReferenceCount": 3,
+  "unresolvedTargetCount": 7,
+  "resolvedReferenceNote": "Closed vague keep-open buckets for recursive extraction, live-integration inventory, and consumer journey matrix by publishing path+hash evidence artifacts. Replaced each with a narrower still-open runtime/journey line.",
+  "dependencies": {
+    "nodeMutations": [
+      {
+        "id": "source-bun-runtime",
+        "set": {
+          "readingEvidence": [
+            "parity/research/dep-closure-wave-007/read-inventory.json",
+            "parity/research/dep-closure-wave-007/bun/official-capture.json",
+            "parity/research/dep-closure-wave-007/nodes/bun-pin.md"
+          ]
+        },
+        "evidence": [
+          "parity/research/dep-closure-wave-007/bun/official-capture.json"
+        ],
+        "disposition": "Wave-007 re-probed tools scripts and poteto-mode tree for pin files, recorded shebang usage and host mise-latest path, and re-fetched official Bun docs. No official Bun binary pin exists. Do not invent a pin from local version, mise latest, or bun-types."
+      },
+      {
+        "id": "npm:typescript@7.0.2",
+        "set": {
+          "readingEvidence": [
+            "parity/research/dep-closure-wave-007/npm/typescript-deep-semantics-disposition.json",
+            "parity/research/dep-closure-wave-006/npm/typescript-deep-semantics-disposition.json",
+            "parity/research/dep-closure-wave-005/npm/typescript-body-audit.json",
+            "parity/research/dep-closure-wave-002/npm/typescript@7.0.2/file-inventory.json"
+          ]
+        },
+        "evidence": [
+          "parity/research/dep-closure-wave-007/npm/typescript-deep-semantics-disposition.json",
+          "parity/research/dep-closure-wave-007/nodes/typescript-deep-semantics.md"
+        ],
+        "disposition": "Structural body-contract audit from wave-005 remains complete. Wave-007 re-verified the 136 internal_module_surface catalog against wave-006 hashes and ran the tools consumer typecheck script. Deep compiler-behavior semantics stay open."
+      },
+      {
+        "id": "cursor-self-hosted-computer-use",
+        "set": {
+          "readingEvidence": [
+            "parity/research/dep-closure-wave-007/host-edge-disposition.json",
+            "parity/research/dep-closure-wave-007/nodes/host-edge-disposition.md"
+          ]
+        },
+        "evidence": [
+          "parity/research/dep-closure-wave-007/host-edge-disposition.json"
+        ],
+        "disposition": "Environment-bound. Public-doc contracts re-hashed; runtime helper/desktop services not exercised."
+      },
+      {
+        "id": "cursor-enterprise-integration-policy",
+        "set": {
+          "readingEvidence": [
+            "parity/research/dep-closure-wave-007/host-edge-disposition.json",
+            "parity/research/dep-closure-wave-007/nodes/host-edge-disposition.md"
+          ]
+        },
+        "evidence": [
+          "parity/research/dep-closure-wave-007/host-edge-disposition.json"
+        ],
+        "disposition": "Environment-bound. Public-doc contracts re-hashed; live team/org policy enforcement not observed."
+      },
+      {
+        "id": "cursor-create-skill",
+        "set": {
+          "readingEvidence": [
+            "parity/research/dep-closure-wave-007/create-skill/journey-matrix.json",
+            "parity/research/dep-closure-wave-007/nodes/create-skill-journey-matrix.md",
+            "parity/research/dep-closure-wave-006/create-skill/subordinate-audit.json",
+            "parity/research/dep-closure-wave-001/nodes/cursor-create-skill/SKILL.md"
+          ]
+        },
+        "evidence": [
+          "parity/research/dep-closure-wave-007/create-skill/journey-matrix.json"
+        ],
+        "disposition": "Wave-007 derives a four-phase paired-journey acceptance matrix from the captured create-skill SKILL.md and re-checks capture vs live install hash. Subordinate inventory from wave-006 stands. No paired Cursor+Pi journey was run."
+      },
+      {
+        "id": "cursor-cli-host",
+        "set": {
+          "readingEvidence": [
+            "parity/research/dep-closure-wave-007/live/integrations-inventory.json",
+            "parity/research/dep-closure-wave-007/nodes/live-integrations.md"
+          ]
+        },
+        "evidence": [
+          "parity/research/dep-closure-wave-007/live/integrations-inventory.json"
+        ],
+        "disposition": "Wave-007 inventories required live integrations, cloud/automation/MCP/model contracts from the linked-document queue, services proposals, and CLI parent snapshots, with path+hash on snapshot sources. Live exercise of those integrations and the automation editor remains open."
+      },
+      {
+        "id": "cursor-pstack",
+        "set": {
+          "readingEvidence": [
+            "parity/research/dep-closure-wave-007/recursive/extraction.json",
+            "parity/research/dep-closure-wave-007/nodes/recursive-extraction.md"
+          ]
+        },
+        "evidence": [
+          "parity/research/dep-closure-wave-007/recursive/extraction.json"
+        ],
+        "disposition": "Wave-007 extracted absolute URLs and relative-escape markdown links from every readable text file in the locked distribution inventory (185 files). Extraction is complete with path+hash custody of source files. Live/runtime audit of extracted external targets remains open."
+      },
+      {
+        "id": "source-tools-manifest",
+        "set": {
+          "readingEvidence": [
+            "parity/research/dep-closure-wave-007/consumer/journey-matrix.json",
+            "parity/research/dep-closure-wave-007/nodes/consumer-journey-matrix.md",
+            "parity/research/dep-closure-wave-003/consumer-binding.json"
+          ]
+        },
+        "evidence": [
+          "parity/research/dep-closure-wave-007/consumer/journey-matrix.json"
+        ],
+        "disposition": "Wave-007 expands wave-003 consumer binding into an explicit acceptance journey matrix with consumer path+hash where files exist, and records local orch --help plus typecheck smokes. Broader paired Cursor+Pi acceptance journeys remain open."
+      }
+    ],
+    "edgeMutations": [],
+    "honestUnresolvedEdges": [
+      {
+        "from": "cursor-cli-host",
+        "to": "cursor-self-hosted-computer-use",
+        "keepStatus": "unresolved",
+        "disposition": "environment-bound",
+        "evidence": [
+          "parity/research/continuation/computer-use.md",
+          "parity/research/dep-closure-wave-007/nodes/host-edge-disposition.md"
+        ],
+        "docSha256": "a9ceb020282d7c61ad99ccd13de0c8831dd57499ac32af31b5f4afc9e9e186d0",
+        "docByteLength": 15653,
+        "blocker": "Public docs only (computer-use.md). Closing this edge requires exercising macOS Cursor Computer Use helper identity (co.anysphere.cursor-computer-use / Team ID DCNK4UB866), Accessibility and Screen Recording grants, Linux X11/desktop packages, and desktop-sharing transport. This worker must not fabricate those runtime observations.",
+        "docContractsExtracted": [
+          "Explicit opt-in via agent worker --computer-use",
+          "macOS helper Cursor Computer Use with Accessibility + Screen Recording",
+          "Linux X11 display and desktop packages",
+          "Desktop sharing Linux-only via --share-desktop"
+        ]
+      },
+      {
+        "from": "cursor-cli-host",
+        "to": "cursor-enterprise-integration-policy",
+        "keepStatus": "unresolved",
+        "disposition": "environment-bound",
+        "evidence": [
+          "parity/research/continuation/model-management.md",
+          "parity/research/dep-closure-wave-007/nodes/host-edge-disposition.md"
+        ],
+        "docSha256": "2606b4bd74d43bd579c59945506ab691cd49de8da3386556e265c854f6c9d205",
+        "docByteLength": 12119,
+        "blocker": "Public docs only (model-management.md). Closing this edge requires observing live Enterprise team/org model access, MCP allowlist enforcement, and CLI applicability. Standing orders forbid broad allowlist or authorization changes.",
+        "docContractsExtracted": [
+          "Enterprise model access via Team Settings and Organization Groups",
+          "Most-permissive union of team and group model allowlists",
+          "MCP allowlist / trust management",
+          "BYOK controls on Team Settings only"
+        ]
+      },
+      {
+        "from": "cursor-pstack",
+        "to": "cursor-team-kit",
+        "keepStatus": "unverified",
+        "blocker": "Distribution custody exists. Complete source and paired journey closure for the full skill set is not shown."
+      },
+      {
+        "from": "cursor-pstack",
+        "to": "cursor-cli-host",
+        "keepStatus": "unverified",
+        "blocker": "Persistent-mode editor actions (Option/Alt+Enter) and later-turn behavior still need paired Cursor+Pi runtime evidence."
+      }
+    ],
+    "unresolvedReferences": {
+      "removeIfPresent": [
+        "Official Bun runtime version pin under source-bun-runtime remains unresolved after wave-006 capture at parity/research/dep-closure-wave-006/bun/official-capture.json (local 1.4.2 only; no engines/packageManager/volta/.bun-version/bunfig/mise/.tool-versions under tools; host mise bun/latest and bun-types lock resolve are not runtime pins).",
+        "npm:typescript@7.0.2 deep compiler-behavior semantics remain open after wave-006 disposition at parity/research/dep-closure-wave-006/npm/typescript-deep-semantics-disposition.json (136 internal dist files cataloged with path+hash; structural body audit from wave-005 stands; no compiler-test oracle).",
+        "cursor-cli-host edges to computer-use and enterprise policy remain unresolved after wave-006 environment-bound disposition at parity/research/dep-closure-wave-006/host-edge-disposition.json; runtime services were not exercised.",
+        "cursor-create-skill journey audit remains open after subordinate workflow inventory at parity/research/dep-closure-wave-006/create-skill/subordinate-audit.json (SKILL.md sha256 255a3d3be7bac8984a13279f754f091a1de6f72c82bdf73e6b3c868e77e7ee82; 12 workflow/phase sections; paired journeys not run).",
+        "Required live integrations, cloud services, automation editor, models and supporting tools.",
+        "Recursive references in inspected sources still require complete extraction and audit.",
+        "Tools package consumer binding recorded at parity/research/dep-closure-wave-003/consumer-binding.json (commander runtime; bun-types/typescript test/typecheck). Broader acceptance journeys remain open."
+      ],
+      "add": [
+        "Official Bun runtime version pin under source-bun-runtime remains unresolved after wave-007 capture at parity/research/dep-closure-wave-007/bun/official-capture.json (local 1.4.2 only; no engines/packageManager/volta/.bun-version/bunfig/mise/.tool-versions under tools; host mise bun/latest and bun-types lock resolve are not runtime pins).",
+        "npm:typescript@7.0.2 deep compiler-behavior semantics remain open after wave-007 disposition at parity/research/dep-closure-wave-007/npm/typescript-deep-semantics-disposition.json (136 internal dist files re-verified path+hash; catalogHashDriftCount=0; consumer typecheck exit=0; no compiler-test oracle for internals).",
+        "cursor-cli-host edges to computer-use and enterprise policy remain unresolved after wave-007 environment-bound disposition at parity/research/dep-closure-wave-007/host-edge-disposition.json; runtime services were not exercised.",
+        "cursor-create-skill journey audit remains open after wave-007 journey matrix at parity/research/dep-closure-wave-007/create-skill/journey-matrix.json (SKILL.md sha256 255a3d3be7bac8984a13279f754f091a1de6f72c82bdf73e6b3c868e77e7ee82; 4 phase sections; paired journeys not run).",
+        "Inventoried live integrations, cloud services, automation/MCP/model contracts at parity/research/dep-closure-wave-007/live/integrations-inventory.json (416 proposal/queue items; 9 CLI snapshot hits; working-env snapshot hashed). Live exercise and automation-editor runtime remain open.",
+        "Recursive references extracted from locked distribution inventory at parity/research/dep-closure-wave-007/recursive/extraction.json (185 text files scanned; 176 unique refs; extractionStatus=complete). Live/runtime audit of extracted external targets remains open.",
+        "Tools package consumer acceptance journey matrix recorded at parity/research/dep-closure-wave-007/consumer/journey-matrix.json (6 journeys; local smokes recorded; paired Cursor+Pi acceptance journeys remain open)."
+      ],
+      "keep": [],
+      "note": "Replace wave-006 Bun/typescript/host/create-skill lines with wave-007 evidence. Resolve vague live/recursive/consumer keep-open strings into inventoried/extracted matrix artifacts plus narrower runtime/journey blockers."
+    }
+  },
+  "sourceLock": {
+    "cursorPlugins.completeDependencyClosure": {
+      "set": false,
+      "note": "Must remain false until Bun pin, host edges, journeys, deep typescript semantics, and live/runtime follow-ups close with evidence."
+    }
+  },
+  "fullProposal": "parity/research/dep-closure-wave-007/merge-proposal.json"
+}

@@ -1,0 +1,23 @@
+I Q
++
+Ask Gemini
+• LLM USAGE
+D AAI
+cursor.com/slack?data=
+eyJhbGciOiJSUz|1NilsInR5cCI6|kpХVC|s|mtpZCI6|mJnLWFnZW50LXNsYWNrLXYxIn0.eyJ0eХBIljoiUOxBQ0tfTEIOSyls|m…
+D AI
+All Bookmarks
+Link Slack Account
+Confirm the details below to link this Slack account to your Cursor
+account
+Team Domain
+Name
+Cursor Account
+https://acreconnect.slack.com/
+Josh
+josh.rg.humphrey@proton.me
+This Slack account will be able to perform actions on your
+behalf. Only grant access if this is your Slack workspace and
+you recognize the team domain above.
+Cancel
+Link Account

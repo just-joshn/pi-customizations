@@ -1,0 +1,167 @@
+{
+  "status": "VERIFIED",
+  "mismatchCount": 0,
+  "inventorySha256": "19bfb53788883180ca7fd295b1b0c7261da478ed9b0971423cf2791906b90653",
+  "inventoryPath": "parity/research/npm/commander-14.0.0/read-inventory.json",
+  "tarballSha256": "eaef3a697e7173c7347ca4c1e60dd2bc1d38214d2aaecce89d70881a51d7fde7",
+  "fileCount": 14,
+  "consumerCount": 2,
+  "rows": [
+    {
+      "kind": "tarball",
+      "path": "parity/reference/npm/commander-14.0.0/package.tgz",
+      "expected": "eaef3a697e7173c7347ca4c1e60dd2bc1d38214d2aaecce89d70881a51d7fde7",
+      "actual": "eaef3a697e7173c7347ca4c1e60dd2bc1d38214d2aaecce89d70881a51d7fde7",
+      "ok": true
+    },
+    {
+      "kind": "package-file",
+      "path": "parity/reference/npm/commander-14.0.0/unpacked/package/LICENSE",
+      "inventoryPath": "LICENSE",
+      "expected": "04512a63dce4d2d506ad612dc0bd7681ccf6e3655f7b6eaef7dfac8323d1ec0b",
+      "actual": "04512a63dce4d2d506ad612dc0bd7681ccf6e3655f7b6eaef7dfac8323d1ec0b",
+      "ok": true
+    },
+    {
+      "kind": "package-file",
+      "path": "parity/reference/npm/commander-14.0.0/unpacked/package/index.js",
+      "inventoryPath": "index.js",
+      "expected": "a1bb4f6511f3801f961ab3efe5b735e6f248dd52c3937b260fc6c0d85d1896b3",
+      "actual": "a1bb4f6511f3801f961ab3efe5b735e6f248dd52c3937b260fc6c0d85d1896b3",
+      "ok": true
+    },
+    {
+      "kind": "package-file",
+      "path": "parity/reference/npm/commander-14.0.0/unpacked/package/esm.mjs",
+      "inventoryPath": "esm.mjs",
+      "expected": "19331de9ae2588143e74effe5a3072b67faf6c4ed4a00725399c6de477a86971",
+      "actual": "19331de9ae2588143e74effe5a3072b67faf6c4ed4a00725399c6de477a86971",
+      "ok": true
+    },
+    {
+      "kind": "package-file",
+      "path": "parity/reference/npm/commander-14.0.0/unpacked/package/package.json",
+      "inventoryPath": "package.json",
+      "expected": "bbf7734a336e0d67c20e5326fc9e32c1f4d4e5d6272dea41705cb5e69066da1a",
+      "actual": "bbf7734a336e0d67c20e5326fc9e32c1f4d4e5d6272dea41705cb5e69066da1a",
+      "ok": true
+    },
+    {
+      "kind": "package-file",
+      "path": "parity/reference/npm/commander-14.0.0/unpacked/package/package-support.json",
+      "inventoryPath": "package-support.json",
+      "expected": "b07a441d1dbc88588a2e7f219d43a5ea9b7c429a44f119caa49229da86bb0063",
+      "actual": "b07a441d1dbc88588a2e7f219d43a5ea9b7c429a44f119caa49229da86bb0063",
+      "ok": true
+    },
+    {
+      "kind": "package-file",
+      "path": "parity/reference/npm/commander-14.0.0/unpacked/package/Readme.md",
+      "inventoryPath": "Readme.md",
+      "expected": "4eb19f8b3b15c7ef6d7acc57b310ac8e48f51df0c25a5b3df2527137d84cfe4d",
+      "actual": "4eb19f8b3b15c7ef6d7acc57b310ac8e48f51df0c25a5b3df2527137d84cfe4d",
+      "ok": true
+    },
+    {
+      "kind": "package-file",
+      "path": "parity/reference/npm/commander-14.0.0/unpacked/package/lib/argument.js",
+      "inventoryPath": "lib/argument.js",
+      "expected": "4248cfb984f6213a152d030b7f6f425ff7c3c892875bd45e941a74a4272db096",
+      "actual": "4248cfb984f6213a152d030b7f6f425ff7c3c892875bd45e941a74a4272db096",
+      "ok": true
+    },
+    {
+      "kind": "package-file",
+      "path": "parity/reference/npm/commander-14.0.0/unpacked/package/lib/command.js",
+      "inventoryPath": "lib/command.js",
+      "expected": "05db069897abde1e033fb185b2b12e685b4c80e0173f59d121d37d4737b99f17",
+      "actual": "05db069897abde1e033fb185b2b12e685b4c80e0173f59d121d37d4737b99f17",
+      "ok": true
+    },
+    {
+      "kind": "package-file",
+      "path": "parity/reference/npm/commander-14.0.0/unpacked/package/lib/error.js",
+      "inventoryPath": "lib/error.js",
+      "expected": "013d254f21524dc912aa61a53394d5ebb97e722be1c683f7bd2313c14597d521",
+      "actual": "013d254f21524dc912aa61a53394d5ebb97e722be1c683f7bd2313c14597d521",
+      "ok": true
+    },
+    {
+      "kind": "package-file",
+      "path": "parity/reference/npm/commander-14.0.0/unpacked/package/lib/help.js",
+      "inventoryPath": "lib/help.js",
+      "expected": "7d5757c053964023d45d82a4d4de01dadf32a2055f15d8ab58166914f035b9ea",
+      "actual": "7d5757c053964023d45d82a4d4de01dadf32a2055f15d8ab58166914f035b9ea",
+      "ok": true
+    },
+    {
+      "kind": "package-file",
+      "path": "parity/reference/npm/commander-14.0.0/unpacked/package/lib/option.js",
+      "inventoryPath": "lib/option.js",
+      "expected": "406e191c306f7b0cc63c7f8a9b1217879c4372b5353580228a8c263a881194ed",
+      "actual": "406e191c306f7b0cc63c7f8a9b1217879c4372b5353580228a8c263a881194ed",
+      "ok": true
+    },
+    {
+      "kind": "package-file",
+      "path": "parity/reference/npm/commander-14.0.0/unpacked/package/lib/suggestSimilar.js",
+      "inventoryPath": "lib/suggestSimilar.js",
+      "expected": "6a3a368ace1abd1cc6b551ae10bcbae18eda3fed0fb0cfd60c7960c6663dad58",
+      "actual": "6a3a368ace1abd1cc6b551ae10bcbae18eda3fed0fb0cfd60c7960c6663dad58",
+      "ok": true
+    },
+    {
+      "kind": "package-file",
+      "path": "parity/reference/npm/commander-14.0.0/unpacked/package/typings/index.d.ts",
+      "inventoryPath": "typings/index.d.ts",
+      "expected": "1a2ae3df505891912038749a39e434643cf1f91a578475ae049f36e35c870c58",
+      "actual": "1a2ae3df505891912038749a39e434643cf1f91a578475ae049f36e35c870c58",
+      "ok": true
+    },
+    {
+      "kind": "package-file",
+      "path": "parity/reference/npm/commander-14.0.0/unpacked/package/typings/esm.d.mts",
+      "inventoryPath": "typings/esm.d.mts",
+      "expected": "b124c0624b15412ace7d54644ade38d7a69db7e25488a1a4d2a8df6e11696538",
+      "actual": "b124c0624b15412ace7d54644ade38d7a69db7e25488a1a4d2a8df6e11696538",
+      "ok": true
+    },
+    {
+      "kind": "consumer",
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/orch/orch.ts",
+      "inventoryPath": "pstack/skills/poteto-mode/scripts/orch/orch.ts",
+      "expected": "f091687df627a0b75fabd54af58945a9cd6c7039ef0622012ac9ed60cd8ec434",
+      "actual": "f091687df627a0b75fabd54af58945a9cd6c7039ef0622012ac9ed60cd8ec434",
+      "ok": true
+    },
+    {
+      "kind": "consumer",
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/watch-pr/cli.ts",
+      "inventoryPath": "pstack/skills/poteto-mode/scripts/watch-pr/cli.ts",
+      "expected": "89c08863089181a232be782c4b2ed90a1552f44aeecb0dcb7aac2c623620e680",
+      "actual": "89c08863089181a232be782c4b2ed90a1552f44aeecb0dcb7aac2c623620e680",
+      "ok": true
+    },
+    {
+      "kind": "metadata",
+      "path": "parity/reference/npm/commander-14.0.0/registry.json",
+      "expected": "2ac5deb9965482a387cc77a616fc75d6a619cfa7dd96f6da857f3e5f2614cd38",
+      "actual": "2ac5deb9965482a387cc77a616fc75d6a619cfa7dd96f6da857f3e5f2614cd38",
+      "ok": true
+    },
+    {
+      "kind": "metadata",
+      "path": "parity/reference/npm/commander-14.0.0/integrity.json",
+      "expected": "d6231c485a0904f3ee9887c8f5c55ef4b42d2a6e561e37f09890d34125f183e3",
+      "actual": "d6231c485a0904f3ee9887c8f5c55ef4b42d2a6e561e37f09890d34125f183e3",
+      "ok": true
+    },
+    {
+      "kind": "metadata",
+      "path": "parity/reference/npm/commander-14.0.0/file-inventory.txt",
+      "expected": "b708c8291d7dd12a06550641b4641aedb12981594b5ff067697fcfa515c4d38d",
+      "actual": "b708c8291d7dd12a06550641b4641aedb12981594b5ff067697fcfa515c4d38d",
+      "ok": true
+    }
+  ]
+}

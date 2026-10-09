@@ -1,0 +1,32 @@
+{
+  "hasToken": true,
+  "tokenLen": 413,
+  "attempts": [
+    {
+      "url": "https://api.cursor.com/v0/agents",
+      "authVariant": 0,
+      "status": 401,
+      "bodyPreview": "{\"code\":\"error\",\"message\":\"Invalid User API Key\"}"
+    },
+    {
+      "url": "https://api.cursor.com/v0/agents",
+      "authVariant": 1,
+      "status": 401,
+      "bodyPreview": "{\"code\":\"error\",\"message\":\"Invalid User API Key\"}"
+    },
+    {
+      "url": "https://api.cursor.com/v0/agents?limit=5",
+      "authVariant": 0,
+      "method": "GET",
+      "status": 401,
+      "bodyPreview": "{\"code\":\"error\",\"message\":\"Invalid User API Key\"}"
+    },
+    {
+      "url": "https://api.cursor.com/v0/agents?limit=5",
+      "authVariant": 1,
+      "method": "GET",
+      "status": 401,
+      "bodyPreview": "{\"code\":\"error\",\"message\":\"Invalid User API Key\"}"
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "raw": 16,
+  "excludingLeverSource": [
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/make-bot-auth-header-unlock-001/disposition.json",
+      "kind": "long-token",
+      "len": 83
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/make-bot-auth-header-unlock-001/decisions.tsv",
+      "kind": "long-token",
+      "len": 65
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/make-bot-auth-header-unlock-001/decisions.tsv",
+      "kind": "long-token",
+      "len": 95
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/make-bot-auth-header-unlock-001/decisions.tsv",
+      "kind": "long-token",
+      "len": 67
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/make-bot-auth-header-unlock-001/__pycache__/probe-auth-header.cpython-314.pyc",
+      "kind": "auth-header-shape",
+      "span": "Bearer REDACTED)\u0001\ufffd\u0005flags\u2026"
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/make-bot-auth-header-unlock-001/__pycache__/probe-auth-header.cpython-314.pyc",
+      "kind": "auth-header-shape",
+      "span": "X-Automation-Key:\\s*\\S+)\u2026"
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/make-bot-auth-header-unlock-001/__pycache__/probe-auth-header.cpython-314.pyc",
+      "kind": "auth-header-shape",
+      "span": "X-Automation-Key: \ufffd\u0004curl\u2026"
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/make-bot-auth-header-unlock-001/__pycache__/probe-auth-header.cpython-314.pyc",
+      "kind": "auth-header-shape",
+      "span": "bearer r*\u0002\u0000\u0000z\u000fAuthorizat\u2026"
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/make-bot-auth-header-unlock-001/__pycache__/probe-auth-header.cpython-314.pyc",
+      "kind": "long-token",
+      "len": 65
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/make-bot-auth-header-unlock-001/__pycache__/probe-auth-header.cpython-314.pyc",
+      "kind": "long-token",
+      "len": 121
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/make-bot-auth-header-unlock-001/__pycache__/probe-auth-header.cpython-314.pyc",
+      "kind": "long-token",
+      "len": 54
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/make-bot-ui/auth-header-unlock/2bcf48b9-64ec-4ca4-8efb-22bda300ac5c/disposition.json",
+      "kind": "long-token",
+      "len": 97
+    },
+    {
+      "file": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/make-bot-ui/auth-header-unlock/2bcf48b9-64ec-4ca4-8efb-22bda300ac5c/disposition.json",
+      "kind": "long-token",
+      "len": 83
+    }
+  ]
+}

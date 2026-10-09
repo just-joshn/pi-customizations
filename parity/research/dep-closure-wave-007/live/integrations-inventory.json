@@ -1,0 +1,2935 @@
+{
+  "capturedAt": "2026-10-09T00:52:24Z",
+  "inventoryStatus": "complete",
+  "liveExerciseStatus": "open",
+  "itemCount": 416,
+  "cliSnapshotHits": [
+    {
+      "path": "parity/research/cursor-host/cli/parent-snapshots/cli_changelog.md",
+      "sha256": "914a066ed45875f71edec09bbb219e3d38825c83d28ebcd07bad7497936833e3",
+      "tags": [
+        "mcp",
+        "model",
+        "cloud",
+        "integration",
+        "editor",
+        "shell"
+      ],
+      "byteLength": 51299
+    },
+    {
+      "path": "parity/research/cursor-host/cli/parent-snapshots/cli_installation.md",
+      "sha256": "50435bbdfe5f3640484df508440b1c6274d8c57f85c2f91ac78ee15caa5a1d3c",
+      "tags": [
+        "shell"
+      ],
+      "byteLength": 1017
+    },
+    {
+      "path": "parity/research/cursor-host/cli/parent-snapshots/cli_overview.md",
+      "sha256": "c56ae1d766654ca892b2cfb513a2f7f5ef0082f107d225fb4319fa9f20109e85",
+      "tags": [
+        "automation",
+        "model",
+        "cloud",
+        "editor",
+        "shell"
+      ],
+      "byteLength": 3341
+    },
+    {
+      "path": "parity/research/cursor-host/cli/parent-snapshots/cli_reference_authentication.md",
+      "sha256": "c578539ee1ae3d574a75937230b22cea360f28e17da37529ddfceeedd04d2a1e",
+      "tags": [
+        "automation"
+      ],
+      "byteLength": 1652
+    },
+    {
+      "path": "parity/research/cursor-host/cli/parent-snapshots/cli_reference_configuration.md",
+      "sha256": "aab79ccc8949c23f30c45e0928ea80cefb5ee4ee6ff1723a3864ac61851f2a87",
+      "tags": [
+        "model",
+        "editor",
+        "shell"
+      ],
+      "byteLength": 7756
+    },
+    {
+      "path": "parity/research/cursor-host/cli/parent-snapshots/cli_reference_parameters.md",
+      "sha256": "b50b48d66f4f420a8d1d4a6c3087aa74d3fa37f2c5363933ac30754ef10a8c78",
+      "tags": [
+        "mcp",
+        "model",
+        "cloud",
+        "integration",
+        "shell"
+      ],
+      "byteLength": 16113
+    },
+    {
+      "path": "parity/research/cursor-host/cli/parent-snapshots/cli_reference_permissions.md",
+      "sha256": "9f8264f5d8136496f008e0949cdad81760b8fa7784e3d6a2a04757c13c960f15",
+      "tags": [
+        "mcp",
+        "model",
+        "shell"
+      ],
+      "byteLength": 4430
+    },
+    {
+      "path": "parity/research/cursor-host/cli/parent-snapshots/cli_reference_slash-commands.md",
+      "sha256": "a39f8c0086b6ca6e2bfde6c3595142987cdef4489ad0c0e213510bb746947111",
+      "tags": [
+        "mcp",
+        "model",
+        "shell"
+      ],
+      "byteLength": 6309
+    },
+    {
+      "path": "parity/research/cursor-host/cli/parent-snapshots/cli_using.md",
+      "sha256": "b070cb1f882dd8e8b9ab7434ff6f96fe1f181c4907ee242773ae6bbbedb47b0b",
+      "tags": [
+        "mcp",
+        "model",
+        "cloud",
+        "integration",
+        "editor",
+        "shell"
+      ],
+      "byteLength": 5771
+    }
+  ],
+  "cliSnapshotHitCount": 9,
+  "workingEnvSnapshot": {
+    "path": "parity/research/dep-closure-wave-001/refcfg/working-env-snapshot.json",
+    "sha256": "bfe76a75c8df5ae2705cbc7145590e1ea2fcccac04013804b86f5c8a9301edf0",
+    "byteLength": 1172,
+    "note": "Working-env snapshot exists from wave-001. Does not prove the full multi-integration reference configuration matrix."
+  },
+  "linkedQueuePath": "parity/research/cursor-host/linked-document-queue.json",
+  "servicesProposalsPath": "parity/research/cursor-host/services/proposals.json",
+  "disposition": "Wave-007 inventories required live integrations, cloud/automation/MCP/model contracts from the linked-document queue, services proposals, and CLI parent snapshots, with path+hash on snapshot sources. Live exercise of those integrations and the automation editor remains open.",
+  "blockerForLiveExercise": "Inventoried integrations require authorized live configuration and paired runtime journeys. Standing orders forbid fabricating liveness or broad authorization changes.",
+  "items": [
+    {
+      "source": "linked-document-queue",
+      "id": "next-api-schema",
+      "status": "retrieved-unread-or-partial",
+      "url": "https://cursor.com/docs/cloud-agent/api/endpoints.md",
+      "path": null,
+      "note": null
+    },
+    {
+      "source": "linked-document-queue",
+      "id": null,
+      "status": "source-read-behavior-unresolved",
+      "url": null,
+      "path": null,
+      "note": null
+    },
+    {
+      "source": "linked-document-queue",
+      "id": null,
+      "status": "queued-unresolved",
+      "url": null,
+      "path": null,
+      "note": null
+    },
+    {
+      "source": "linked-document-queue",
+      "id": null,
+      "status": "retrieved-unread-or-partial",
+      "url": null,
+      "path": null,
+      "note": null
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "goal-loop-builtin-contract",
+      "status": "queued-unresolved",
+      "url": null,
+      "path": null,
+      "note": null
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "working-services",
+      "status": "queued-unresolved",
+      "url": null,
+      "path": null,
+      "note": null
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "source-conflicts",
+      "status": "queued-unresolved",
+      "url": null,
+      "path": null,
+      "note": null
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://agent-plugins.org",
+      "status": "queued-unresolved",
+      "url": "https://agent-plugins.org",
+      "path": null,
+      "note": null
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://github.com/agentplugins/agent-plugins-spec",
+      "status": "queued-unresolved",
+      "url": "https://github.com/agentplugins/agent-plugins-spec",
+      "path": null,
+      "note": null
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/enterprise/organization-groups.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/enterprise/organization-groups.md",
+      "path": null,
+      "note": null
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/account/teams/scim.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/account/teams/scim.md",
+      "path": null,
+      "note": null
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/integrations/github.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/integrations/github.md",
+      "path": null,
+      "note": null
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://agent-plugins.org/plugin-authors",
+      "status": "queued-unresolved",
+      "url": "https://agent-plugins.org/plugin-authors",
+      "path": null,
+      "note": null
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/cloud-agent/self-hosted/pool.md",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/docs/cloud-agent/self-hosted/pool.md",
+      "path": null,
+      "note": null
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/cloud-agent.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/cloud-agent.md",
+      "path": null,
+      "note": null
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://agentskills.io",
+      "status": "queued-unresolved",
+      "url": "https://agentskills.io",
+      "path": null,
+      "note": null
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/cloud-agent/self-hosted/choose-runtime.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/cloud-agent/self-hosted/choose-runtime.md",
+      "path": null,
+      "note": null
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/models-and-pricing.md",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/docs/models-and-pricing.md",
+      "path": null,
+      "note": null
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/sdk/typescript.md#model-parameters",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/sdk/typescript.md#model-parameters",
+      "path": null,
+      "note": null
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/models-and-pricing.md#other-models",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/docs/models-and-pricing.md#other-models",
+      "path": null,
+      "note": null
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/models-and-pricing.md#cursor-token-rate",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/docs/models-and-pricing.md#cursor-token-rate",
+      "path": null,
+      "note": null
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/enterprise/model-and-integration-management.md#model-access-control",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/enterprise/model-and-integration-management.md#model-access-control",
+      "path": null,
+      "note": null
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/configuration/worktrees.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/configuration/worktrees.md",
+      "path": null,
+      "note": null
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/agent/agents-window.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/agent/agents-window.md",
+      "path": null,
+      "note": null
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/cloud-agent/setup.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/cloud-agent/setup.md",
+      "path": null,
+      "note": null
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/cloud-agent/capabilities.md#mcp-tools",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/docs/cloud-agent/capabilities.md#mcp-tools",
+      "path": null,
+      "note": null
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/enterprise.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/enterprise.md",
+      "path": null,
+      "note": null
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/cloud-agent/self-hosted.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/cloud-agent/self-hosted.md",
+      "path": null,
+      "note": null
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/cloud-agent/self-hosted/pool.md#hooks",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/docs/cloud-agent/self-hosted/pool.md#hooks",
+      "path": null,
+      "note": null
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://modelcontextprotocol.io/introduction",
+      "status": "queued-unresolved",
+      "url": "https://modelcontextprotocol.io/introduction",
+      "path": null,
+      "note": null
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://modelcontextprotocol.io/extensions/apps/overview",
+      "status": "queued-unresolved",
+      "url": "https://modelcontextprotocol.io/extensions/apps/overview",
+      "path": null,
+      "note": null
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/agent/plan-mode.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/agent/plan-mode.md",
+      "path": null,
+      "note": null
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/agent/security/run-modes.md#run-mode",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/docs/agent/security/run-modes.md#run-mode",
+      "path": null,
+      "note": null
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/integrations/xcode.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/integrations/xcode.md",
+      "path": null,
+      "note": null
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://agent-plugins.org/plugin-authors/manifest",
+      "status": "queued-unresolved",
+      "url": "https://agent-plugins.org/plugin-authors/manifest",
+      "path": null,
+      "note": null
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://agent-plugins.org/plugin-authors/mcp-servers",
+      "status": "queued-unresolved",
+      "url": "https://agent-plugins.org/plugin-authors/mcp-servers",
+      "path": null,
+      "note": null
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://agent-plugins.org/schemas",
+      "status": "queued-unresolved",
+      "url": "https://agent-plugins.org/schemas",
+      "path": null,
+      "note": null
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/get-started/quickstart",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/get-started/quickstart",
+      "path": null,
+      "note": null
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/agent/overview",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/agent/overview",
+      "path": null,
+      "note": null
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/api",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/api",
+      "path": null,
+      "note": null
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/mcp/extension-api.md",
+      "status": "missing-located-public-document",
+      "url": "https://cursor.com/docs/mcp/extension-api.md",
+      "path": null,
+      "note": null
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/agent/security/run-modes.md",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/docs/agent/security/run-modes.md",
+      "path": null,
+      "note": null
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs-static/cloud-agents-openapi.yaml",
+      "status": "retrieved-unread-or-partial",
+      "url": "https://cursor.com/docs-static/cloud-agents-openapi.yaml",
+      "path": null,
+      "note": null
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/models/claude-4-5-haiku.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/models/claude-4-5-haiku.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/reference/sandbox.md",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/docs/reference/sandbox.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/cli/overview.md",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/docs/cli/overview.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/cli/reference/configuration.md",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/docs/cli/reference/configuration.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/cli/reference/permissions.md",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/docs/cli/reference/permissions.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/enterprise/organization-groups.md#auto-run-and-smart-auto",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/enterprise/organization-groups.md#auto-run-and-smart-auto",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/agent/security/run-modes.md#team-read-policy",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/docs/agent/security/run-modes.md#team-read-policy",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/agent/security/run-modes.md#auto-review-model-requirements",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/docs/agent/security/run-modes.md#auto-review-model-requirements",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/agent/security/run-modes.md#read-access",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/docs/agent/security/run-modes.md#read-access",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/agent/security.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/agent/security.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/help/ai-features/browser.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/help/ai-features/browser.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/cloud-agent/api/endpoints.md#environments",
+      "status": "retrieved-unread-or-partial",
+      "url": "https://cursor.com/docs/cloud-agent/api/endpoints.md#environments",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/api.md#authentication",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/api.md#authentication",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/account/enterprise/service-accounts.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/account/enterprise/service-accounts.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/api.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/api.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/cloud-agent/api/v0.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/cloud-agent/api/v0.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/cloud-agent/api/webhooks.md",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/docs/cloud-agent/api/webhooks.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/help/ai-features/cloud-agents.md#what-are-the-attachment-limits-for-cloud-agents-on-the-web",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/help/ai-features/cloud-agents.md#what-are-the-attachment-limits-for-cloud-agents-on-the-web",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/cloud-agent/self-hosted/pool.md#any-repo-pools",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/docs/cloud-agent/self-hosted/pool.md#any-repo-pools",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/cloud-agent/self-hosted.md#environments-on-self-hosted-machines",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/cloud-agent/self-hosted.md#environments-on-self-hosted-machines",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/help/ai-features/plan-mode.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/help/ai-features/plan-mode.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/cloud-agent/api/endpoints.md#get-a-run",
+      "status": "retrieved-unread-or-partial",
+      "url": "https://cursor.com/docs/cloud-agent/api/endpoints.md#get-a-run",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/cloud-agent/self-hosted/pool.md#hibernation",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/docs/cloud-agent/self-hosted/pool.md#hibernation",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/sdk/typescript.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/sdk/typescript.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/account/teams/admin-api.md#get-usage-events-data",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/account/teams/admin-api.md#get-usage-events-data",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/cloud-agent/api/endpoints.md#create-an-agent",
+      "status": "retrieved-unread-or-partial",
+      "url": "https://cursor.com/docs/cloud-agent/api/endpoints.md#create-an-agent",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/sdk/typescript.md#modelselection",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/sdk/typescript.md#modelselection",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/cloud-agent/api/endpoints.md",
+      "status": "retrieved-unread-or-partial",
+      "url": "https://cursor.com/docs/cloud-agent/api/endpoints.md",
+      "path": null,
+      "note": null
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/bugbot.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/bugbot.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/security-agents.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/security-agents.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/approval-agents.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/approval-agents.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/models-and-pricing.md#model-pricing",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/docs/models-and-pricing.md#model-pricing",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/cloud-agent/automations.md#share",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/docs/cloud-agent/automations.md#share",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/integrations/slack.md",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/docs/integrations/slack.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/integrations/linear.md",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/docs/integrations/linear.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/cloud-agent/capabilities.md",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/docs/cloud-agent/capabilities.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/mcp.md",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/docs/mcp.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/skills.md",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/docs/skills.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/integrations/gitlab.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/integrations/gitlab.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/integrations/microsoft-teams.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/integrations/microsoft-teams.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/help/ai-features/automations.md",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/help/ai-features/automations.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/cloud-agent/self-hosted/computer-use.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/cloud-agent/self-hosted/computer-use.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/plugins.md#migrate-existing-team-mcps",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/docs/plugins.md#migrate-existing-team-mcps",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/account/teams/dashboard.md#integrations",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/account/teams/dashboard.md#integrations",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/cloud-agent/builds.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/cloud-agent/builds.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/skills.md#built-in-cursor-skills",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/docs/skills.md#built-in-cursor-skills",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/cloud-agent/identity.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/cloud-agent/identity.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/cloud-agent/metadata.md",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/docs/cloud-agent/metadata.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/cloud-agent/metadata",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/cloud-agent/metadata",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/sdk/typescript.md#agent-metadata",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/sdk/typescript.md#agent-metadata",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/cloud-agent/metadata.md#rate-limits-and-errors",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/docs/cloud-agent/metadata.md#rate-limits-and-errors",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/cloud-agent/settings.md#team-follow-ups",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/cloud-agent/settings.md#team-follow-ups",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/cloud-agent/security-network.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/cloud-agent/security-network.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/hooks.md",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/docs/hooks.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/grok-bot/teams.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/grok-bot/teams.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/grok-bot/security-faq.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/grok-bot/security-faq.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/grok-bot/teams.md#admin-controls",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/grok-bot/teams.md#admin-controls",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/grok-bot/proxies.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/grok-bot/proxies.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/grok-bot/private-networks.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/grok-bot/private-networks.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/grok-bot/teams.md#group-settings",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/grok-bot/teams.md#group-settings",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/grok-bot/identity.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/grok-bot/identity.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/help/grok-bot/secrets.md",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/help/grok-bot/secrets.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/grok-bot/computers.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/grok-bot/computers.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/enterprise/opentelemetry-export.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/enterprise/opentelemetry-export.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/help/grok-bot/computer-recovery.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/help/grok-bot/computer-recovery.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/enterprise/privacy-and-data-governance.md#data-residency",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/enterprise/privacy-and-data-governance.md#data-residency",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/help/grok-bot/models.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/help/grok-bot/models.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/grok-bot/teams.md#execution-on-local-computer",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/grok-bot/teams.md#execution-on-local-computer",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/enterprise/privacy-and-data-governance.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/enterprise/privacy-and-data-governance.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/help/grok-bot/routines.md#how-do-schedules-and-time-zones-work",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/help/grok-bot/routines.md#how-do-schedules-and-time-zones-work",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/grok-bot/security.md#approvals-and-auto-review",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/docs/grok-bot/security.md#approvals-and-auto-review",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/help/grok-bot/connect-plugins.md",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/help/grok-bot/connect-plugins.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/help/grok-bot/plans.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/help/grok-bot/plans.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/grok-bot/work.md#update-recover-or-reset",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/docs/grok-bot/work.md#update-recover-or-reset",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/help/grok-bot/edit-bot.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/help/grok-bot/edit-bot.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/help/grok-bot/get-help.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/help/grok-bot/get-help.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/grok-bot/work.md",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/docs/grok-bot/work.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/grok-bot/security.md",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/docs/grok-bot/security.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/help/grok-bot/delete-account.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/help/grok-bot/delete-account.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/grok-bot/work.md#bots",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/docs/grok-bot/work.md#bots",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/grok-bot/work.md#messaging-and-collaboration",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/docs/grok-bot/work.md#messaging-and-collaboration",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/grok-bot/work.md#the-computer-and-apps",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/docs/grok-bot/work.md#the-computer-and-apps",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/grok-bot/work.md#skills-and-routines",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/docs/grok-bot/work.md#skills-and-routines",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/grok-bot/use-cases.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/grok-bot/use-cases.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/help/grok-bot/team-bots.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/help/grok-bot/team-bots.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/grok-bot/work.md#take-over-for-sensitive-steps",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/docs/grok-bot/work.md#take-over-for-sensitive-steps",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/grok-bot/teams.md#how-users-are-isolated",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/grok-bot/teams.md#how-users-are-isolated",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/grok-bot/security.md#network-policy",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/docs/grok-bot/security.md#network-policy",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/grok-bot/security.md#local-execution",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/docs/grok-bot/security.md#local-execution",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/help/grok-bot/routines.md",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/help/grok-bot/routines.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/grok-bot/get-started.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/grok-bot/get-started.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/grok-bot/settings.md",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/docs/grok-bot/settings.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/integrations/slack.md#team-default-pool",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/docs/integrations/slack.md#team-default-pool",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/integrations/slack.md#channel-default-pool",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/docs/integrations/slack.md#channel-default-pool",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/cloud-agent/self-hosted/my-machines.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/cloud-agent/self-hosted/my-machines.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/cloud-agent/self-hosted/pool.md#triggering-pool-agents",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/docs/cloud-agent/self-hosted/pool.md#triggering-pool-agents",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/cloud-agent/setup.md#multi-repo-environments",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/cloud-agent/setup.md#multi-repo-environments",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/integrations/slack.md#channel-settings",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/docs/integrations/slack.md#channel-settings",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/integrations/slack.md#how-routing-works",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/docs/integrations/slack.md#how-routing-works",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/cloud-agent/self-hosted/pool.md#manage-pools",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/docs/cloud-agent/self-hosted/pool.md#manage-pools",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/cursor-router.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/cursor-router.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/cloud-agent/mobile.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/cloud-agent/mobile.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/account/teams/pricing.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/account/teams/pricing.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/help/ai-features/max-mode.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/help/ai-features/max-mode.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/agent/security/run-modes.md#sandboxing",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/docs/agent/security/run-modes.md#sandboxing",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/agent/security/run-modes.md#environment-variables",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/docs/agent/security/run-modes.md#environment-variables",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/cloud-agent/automations.md#source-control-triggers",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/docs/cloud-agent/automations.md#source-control-triggers",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/cloud-agent/automations.md#billing",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/docs/cloud-agent/automations.md#billing",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/help/ai-features/cloud-agents.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/help/ai-features/cloud-agents.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/cloud-agent/automations.md",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/docs/cloud-agent/automations.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/help/grok-bot/routines.md#how-do-slack-triggers-work",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/help/grok-bot/routines.md#how-do-slack-triggers-work",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/help/grok-bot/how-to.md#how-do-i-add-a-second-account-for-the-same-plugin",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/help/grok-bot/how-to.md#how-do-i-add-a-second-account-for-the-same-plugin",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/help/grok-bot/how-to.md#how-do-i-reconnect-a-plugin",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/help/grok-bot/how-to.md#how-do-i-reconnect-a-plugin",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/help/grok-bot/sign-in.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/help/grok-bot/sign-in.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/help/grok-bot/how-to.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/help/grok-bot/how-to.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/help/grok-bot/connect-plugins.md#what-can-a-plugin-do",
+      "status": "source-read-behavior-unresolved",
+      "url": "https://cursor.com/help/grok-bot/connect-plugins.md#what-can-a-plugin-do",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/help/grok-bot/mobile.md",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/help/grok-bot/mobile.md",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "linked-document-queue",
+      "id": "https://cursor.com/docs/grok-bot/teams.md#team-secrets",
+      "status": "queued-unresolved",
+      "url": "https://cursor.com/docs/grok-bot/teams.md#team-secrets",
+      "path": null,
+      "note": "Link discovery is not proof of runtime dependency or normative requirement."
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.services.docs-static_cloud-agents-openapi",
+      "ownedBehavior": "",
+      "path": "parity/research/cursor-host/services/retrievals/docs-static_cloud-agents-openapi.yaml"
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_agent_security_run-modes.docker-and-container-automation",
+      "ownedBehavior": "Docker and container automation",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_agent_security_run-modes.cloud-agents-do-not-use-run-modes",
+      "ownedBehavior": "Cloud Agents do not use Run Modes",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.services.docs_agent_tools_browser",
+      "ownedBehavior": "",
+      "path": "parity/research/cursor-host/services/retrievals/docs_agent_tools_browser.md"
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_agent_tools_browser.browser",
+      "ownedBehavior": "Browser",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_agent_tools_browser.native-integration",
+      "ownedBehavior": "Native integration",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_agent_tools_browser.browser-capabilities",
+      "ownedBehavior": "Browser capabilities",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_agent_tools_browser.navigate",
+      "ownedBehavior": "Navigate",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_agent_tools_browser.click",
+      "ownedBehavior": "Click",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_agent_tools_browser.type",
+      "ownedBehavior": "Type",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_agent_tools_browser.scroll",
+      "ownedBehavior": "Scroll",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_agent_tools_browser.screenshot",
+      "ownedBehavior": "Screenshot",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_agent_tools_browser.console-output",
+      "ownedBehavior": "Console Output",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_agent_tools_browser.network-traffic",
+      "ownedBehavior": "Network Traffic",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_agent_tools_browser.session-persistence",
+      "ownedBehavior": "Session persistence",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_agent_tools_browser.use-cases",
+      "ownedBehavior": "Use cases",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_agent_tools_browser.web-development-workflow",
+      "ownedBehavior": "Web development workflow",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_agent_tools_browser.accessibility-improvements",
+      "ownedBehavior": "Accessibility improvements",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_agent_tools_browser.automated-testing",
+      "ownedBehavior": "Automated testing",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_agent_tools_browser.design-to-code",
+      "ownedBehavior": "Design to code",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_agent_tools_browser.adjusting-ui-design-from-screenshots",
+      "ownedBehavior": "Adjusting UI design from screenshots",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_agent_tools_browser.security",
+      "ownedBehavior": "Security",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_agent_tools_browser.authentication-and-isolation",
+      "ownedBehavior": "Authentication and isolation",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_agent_tools_browser.tool-approval",
+      "ownedBehavior": "Tool approval",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_agent_tools_browser.allow-and-block-lists",
+      "ownedBehavior": "Allow and block lists",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_agent_tools_browser.browser-context",
+      "ownedBehavior": "Browser context",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_agent_tools_browser.recommended-models",
+      "ownedBehavior": "Recommended models",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_agent_tools_browser.enterprise-usage",
+      "ownedBehavior": "Enterprise usage",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_agent_tools_browser.enabling-browser-for-enterprise",
+      "ownedBehavior": "Enabling browser for enterprise",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_agent_tools_browser.origin-allowlist",
+      "ownedBehavior": "Origin allowlist",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_agent_tools_browser.configuration",
+      "ownedBehavior": "Configuration",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_agent_tools_browser.behavior",
+      "ownedBehavior": "Behavior",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_agent_tools_browser.edge-cases",
+      "ownedBehavior": "Edge cases",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_agent_tools_browser.related",
+      "ownedBehavior": "Related",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.services.docs_cloud-agent_api_endpoints",
+      "ownedBehavior": "",
+      "path": "parity/research/cursor-host/services/retrievals/docs_cloud-agent_api_endpoints.md"
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_api_endpoints.cloud-agents-api",
+      "ownedBehavior": "Cloud Agents API",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_api_endpoints.public-beta",
+      "ownedBehavior": "Public beta",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_api_endpoints.migrating-from-v0",
+      "ownedBehavior": "Migrating from v0?",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_api_endpoints.endpoints",
+      "ownedBehavior": "Endpoints",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_api_endpoints.create-an-agent",
+      "ownedBehavior": "Create An Agent",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_api_endpoints.request-body",
+      "ownedBehavior": "Request Body",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_api_endpoints.list-agents",
+      "ownedBehavior": "List Agents",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_api_endpoints.query-parameters",
+      "ownedBehavior": "Query Parameters",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_api_endpoints.get-an-agent",
+      "ownedBehavior": "Get An Agent",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_api_endpoints.path-parameters",
+      "ownedBehavior": "Path Parameters",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_api_endpoints.response-fields",
+      "ownedBehavior": "Response Fields",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_api_endpoints.create-a-run",
+      "ownedBehavior": "Create A Run",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_api_endpoints.list-runs",
+      "ownedBehavior": "List Runs",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_api_endpoints.get-a-run",
+      "ownedBehavior": "Get A Run",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_api_endpoints.stream-a-run",
+      "ownedBehavior": "Stream A Run",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_api_endpoints.event-types",
+      "ownedBehavior": "Event types",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_api_endpoints.tool-call-payloads",
+      "ownedBehavior": "Tool call payloads",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_api_endpoints.resuming-a-stream",
+      "ownedBehavior": "Resuming a stream",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_api_endpoints.retention",
+      "ownedBehavior": "Retention",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_api_endpoints.cancel-a-run",
+      "ownedBehavior": "Cancel A Run",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_api_endpoints.get-agent-usage",
+      "ownedBehavior": "Get Agent Usage",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_api_endpoints.all-runs-on-the-agent",
+      "ownedBehavior": "All runs on the agent",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_api_endpoints.list-models",
+      "ownedBehavior": "List Models",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_api_endpoints.list-github-repositories",
+      "ownedBehavior": "List GitHub Repositories",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.services.docs_cloud-agent_api_webhooks",
+      "ownedBehavior": "",
+      "path": "parity/research/cursor-host/services/retrievals/docs_cloud-agent_api_webhooks.md"
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_api_webhooks.webhooks",
+      "ownedBehavior": "Webhooks",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_api_webhooks.webhook-verification",
+      "ownedBehavior": "Webhook verification",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_api_webhooks.headers",
+      "ownedBehavior": "Headers",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_api_webhooks.signature-verification",
+      "ownedBehavior": "Signature verification",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_api_webhooks.payload-format",
+      "ownedBehavior": "Payload format",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_api_webhooks.best-practices",
+      "ownedBehavior": "Best practices",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.services.docs_cloud-agent_automations",
+      "ownedBehavior": "",
+      "path": "parity/research/cursor-host/services/retrievals/docs_cloud-agent_automations.md"
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_automations.automations",
+      "ownedBehavior": "Automations",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_automations.getting-started",
+      "ownedBehavior": "Getting started",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_automations.billing",
+      "ownedBehavior": "Billing",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_automations.triggers",
+      "ownedBehavior": "Triggers",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_automations.scheduled-triggers",
+      "ownedBehavior": "Scheduled triggers",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_automations.source-control-triggers",
+      "ownedBehavior": "Source control triggers",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_automations.github-triggers",
+      "ownedBehavior": "GitHub triggers",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_automations.gitlab-triggers",
+      "ownedBehavior": "GitLab triggers",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_automations.bitbucket-triggers",
+      "ownedBehavior": "Bitbucket triggers",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_automations.slack-triggers",
+      "ownedBehavior": "Slack triggers",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_automations.webhook-triggers",
+      "ownedBehavior": "Webhook triggers",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_automations.linear-triggers",
+      "ownedBehavior": "Linear triggers",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_automations.sentry-triggers",
+      "ownedBehavior": "Sentry triggers",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_automations.pagerduty-triggers",
+      "ownedBehavior": "PagerDuty triggers",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_automations.tools",
+      "ownedBehavior": "Tools",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_automations.pull-request-creation",
+      "ownedBehavior": "Pull request creation",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_automations.comment-on-pull-request",
+      "ownedBehavior": "Comment on pull request",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_automations.request-reviewers",
+      "ownedBehavior": "Request reviewers",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_automations.send-to-slack",
+      "ownedBehavior": "Send to Slack",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_automations.read-slack-channels",
+      "ownedBehavior": "Read Slack channels",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_automations.mcp-server",
+      "ownedBehavior": "MCP server",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_automations.memories",
+      "ownedBehavior": "Memories",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_automations.computer-use",
+      "ownedBehavior": "Computer use",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_automations.automation-settings",
+      "ownedBehavior": "Automation settings",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_automations.model",
+      "ownedBehavior": "Model",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_automations.repositories",
+      "ownedBehavior": "Repositories",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_automations.single-repo-automations",
+      "ownedBehavior": "Single-repo automations",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_automations.multi-repo-automations",
+      "ownedBehavior": "Multi-repo automations",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_automations.share",
+      "ownedBehavior": "Share",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_automations.run-as",
+      "ownedBehavior": "Run as",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_automations.access",
+      "ownedBehavior": "Access",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_automations.service-accounts-for-automations",
+      "ownedBehavior": "Service accounts for automations",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_automations.identity",
+      "ownedBehavior": "Identity",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_automations.writing-prompts",
+      "ownedBehavior": "Writing prompts",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_automations.related",
+      "ownedBehavior": "Related",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.services.docs_cloud-agent_capabilities",
+      "ownedBehavior": "",
+      "path": "parity/research/cursor-host/services/retrievals/docs_cloud-agent_capabilities.md"
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_capabilities.capabilities",
+      "ownedBehavior": "Capabilities",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_capabilities.computer-use",
+      "ownedBehavior": "Computer use",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_capabilities.demos-and-artifacts",
+      "ownedBehavior": "Demos and Artifacts",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_capabilities.artifacts-in-github",
+      "ownedBehavior": "Artifacts in GitHub",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_capabilities.remote-desktop-control",
+      "ownedBehavior": "Remote desktop control",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_capabilities.mcp-tools",
+      "ownedBehavior": "MCP tools",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_capabilities.custom-mcp-servers",
+      "ownedBehavior": "Custom MCP servers",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_capabilities.http-vs-stdio",
+      "ownedBehavior": "HTTP vs stdio",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_capabilities.cursor-cloud-mcp",
+      "ownedBehavior": "Cursor Cloud MCP",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_capabilities.access-and-permissions",
+      "ownedBehavior": "Access and permissions",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_capabilities.what-you-can-inspect",
+      "ownedBehavior": "What you can inspect",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_capabilities.tools",
+      "ownedBehavior": "Tools",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_capabilities.subscriptions",
+      "ownedBehavior": "Subscriptions",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_capabilities.how-subscriptions-work",
+      "ownedBehavior": "How subscriptions work",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_capabilities.github-ci-subscriptions",
+      "ownedBehavior": "GitHub CI subscriptions",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_capabilities.fixing-ci-failures",
+      "ownedBehavior": "Fixing CI Failures",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_capabilities.oidc-identity-tokens",
+      "ownedBehavior": "OIDC identity tokens",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_capabilities.agent-metadata",
+      "ownedBehavior": "Agent metadata",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.services.docs_cloud-agent_metadata",
+      "ownedBehavior": "",
+      "path": "parity/research/cursor-host/services/retrievals/docs_cloud-agent_metadata.md"
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_metadata.agent-metadata",
+      "ownedBehavior": "Agent metadata",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_metadata.preview",
+      "ownedBehavior": "Preview",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_metadata.read-a-value",
+      "ownedBehavior": "Read a value",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_metadata.request",
+      "ownedBehavior": "Request",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_metadata.response",
+      "ownedBehavior": "Response",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_metadata.when-keys-appear",
+      "ownedBehavior": "When keys appear",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_metadata.keys",
+      "ownedBehavior": "Keys",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_metadata.agent",
+      "ownedBehavior": "`agent/`",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_metadata.owner",
+      "ownedBehavior": "`owner/`",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_metadata.turn",
+      "ownedBehavior": "`turn/`",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_metadata.workspace",
+      "ownedBehavior": "`workspace/`",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_metadata.who-can-read-metadata",
+      "ownedBehavior": "Who can read metadata",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_metadata.rate-limits-and-errors",
+      "ownedBehavior": "Rate limits and errors",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_metadata.examples",
+      "ownedBehavior": "Examples",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_cloud-agent_metadata.related-pages",
+      "ownedBehavior": "Related pages",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_grok-bot_security.models-and-data",
+      "ownedBehavior": "Models and data",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_grok-bot_work.skills-and-routines",
+      "ownedBehavior": "Skills and routines",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_grok-bot_work.create-a-routine",
+      "ownedBehavior": "Create a routine",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_grok-bot_work.test-and-manage-routines",
+      "ownedBehavior": "Test and manage routines",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.services.docs_integrations_linear",
+      "ownedBehavior": "",
+      "path": "parity/research/cursor-host/services/retrievals/docs_integrations_linear.md"
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_linear.linear",
+      "ownedBehavior": "Linear",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_linear.get-started",
+      "ownedBehavior": "Get started",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_linear.installation",
+      "ownedBehavior": "Installation",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_linear.account-linking",
+      "ownedBehavior": "Account linking",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_linear.how-to-use",
+      "ownedBehavior": "How to use",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_linear.delegating-issues",
+      "ownedBehavior": "Delegating issues",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_linear.mentioning-cursor",
+      "ownedBehavior": "Mentioning Cursor",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_linear.workflow",
+      "ownedBehavior": "Workflow",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_linear.follow-up-instructions",
+      "ownedBehavior": "Follow-up instructions",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_linear.configuration",
+      "ownedBehavior": "Configuration",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_linear.configuration-options",
+      "ownedBehavior": "Configuration options",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_linear.repository-selection",
+      "ownedBehavior": "Repository selection",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_linear.setting-up-repository-labels",
+      "ownedBehavior": "Setting up repository labels",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_linear.advanced-features",
+      "ownedBehavior": "Advanced features",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_linear.triage-rules-advanced",
+      "ownedBehavior": "Triage rules (Advanced)",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_linear.getting-help",
+      "ownedBehavior": "Getting help",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_linear.feedback",
+      "ownedBehavior": "Feedback",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.services.docs_integrations_notion",
+      "ownedBehavior": "",
+      "path": "parity/research/cursor-host/services/retrievals/docs_integrations_notion.md"
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_notion.notion",
+      "ownedBehavior": "Notion",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_notion.get-started",
+      "ownedBehavior": "Get started",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_notion.requirements",
+      "ownedBehavior": "Requirements",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_notion.installation",
+      "ownedBehavior": "Installation",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_notion.permissions",
+      "ownedBehavior": "Permissions",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_notion.how-to-use",
+      "ownedBehavior": "How to use",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_notion.mention-the-agent",
+      "ownedBehavior": "Mention the agent",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_notion.assign-a-task",
+      "ownedBehavior": "Assign a task",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_notion.troubleshooting",
+      "ownedBehavior": "Troubleshooting",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_notion.the-agent-can-t-access-a-page-or-database",
+      "ownedBehavior": "The agent can't access a page or database",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_notion.github-connection-fails-or-the-agent-can-t-push",
+      "ownedBehavior": "GitHub connection fails or the agent can't push",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_notion.the-agent-didn-t-fire-when-i-mentioned-it",
+      "ownedBehavior": "The agent didn't fire when I @mentioned it",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_notion.faq",
+      "ownedBehavior": "FAQ",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_notion.how-does-billing-work",
+      "ownedBehavior": "How does billing work?",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_notion.where-can-i-view-cursor-activity",
+      "ownedBehavior": "Where can I view Cursor activity?",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_notion.do-cursor-runs-kicked-off-from-notion-respect-zero-data-retention-zdr",
+      "ownedBehavior": "Do Cursor runs kicked off from Notion respect zero data retention (ZDR)?",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.services.docs_integrations_slack",
+      "ownedBehavior": "",
+      "path": "parity/research/cursor-host/services/retrievals/docs_integrations_slack.md"
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_slack.slack",
+      "ownedBehavior": "Slack",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_slack.get-started",
+      "ownedBehavior": "Get started",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_slack.installation",
+      "ownedBehavior": "Installation",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_slack.how-to-use",
+      "ownedBehavior": "How to use",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_slack.commands",
+      "ownedBehavior": "Commands",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_slack.options",
+      "ownedBehavior": "Options",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_slack.syntax-formats",
+      "ownedBehavior": "Syntax formats",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_slack.option-precedence",
+      "ownedBehavior": "Option precedence",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_slack.using-thread-context",
+      "ownedBehavior": "Using thread context",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_slack.when-to-use-force-commands",
+      "ownedBehavior": "When to use force commands",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_slack.status-updates-handoff",
+      "ownedBehavior": "Status updates & handoff",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_slack.managing-agents",
+      "ownedBehavior": "Managing agents",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_slack.configuration",
+      "ownedBehavior": "Configuration",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_slack.settings",
+      "ownedBehavior": "Settings",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_slack.default-model",
+      "ownedBehavior": "Default Model",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_slack.repository-selection",
+      "ownedBehavior": "Repository Selection",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_slack.base-branch",
+      "ownedBehavior": "Base Branch",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_slack.channel-settings",
+      "ownedBehavior": "Channel Settings",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_slack.routing-rules",
+      "ownedBehavior": "Routing Rules",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_slack.setting-up-routing-rules",
+      "ownedBehavior": "Setting up routing rules",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_slack.example-rules",
+      "ownedBehavior": "Example rules",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_slack.how-routing-works",
+      "ownedBehavior": "How routing works",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_slack.team-default-pool",
+      "ownedBehavior": "Team default pool",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_slack.channel-default-pool",
+      "ownedBehavior": "Channel default pool",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_slack.how-cursor-picks-where-a-mention-runs",
+      "ownedBehavior": "How Cursor picks where a mention runs",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_slack.repositories-and-default-pools",
+      "ownedBehavior": "Repositories and default pools",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_slack.privacy",
+      "ownedBehavior": "Privacy",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_slack.display-agent-summary",
+      "ownedBehavior": "Display Agent Summary",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_slack.display-agent-summary-in-external-channels",
+      "ownedBehavior": "Display Agent Summary in External Channels",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_slack.permissions",
+      "ownedBehavior": "Permissions",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_slack.disclaimer",
+      "ownedBehavior": "Disclaimer",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_integrations_slack.privacy-policy",
+      "ownedBehavior": "Privacy Policy",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.services.docs_models-and-pricing",
+      "ownedBehavior": "",
+      "path": "parity/research/cursor-host/services/retrievals/docs_models-and-pricing.md"
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_models-and-pricing.models-pricing",
+      "ownedBehavior": "Models & Pricing",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_models-and-pricing.usage-pools",
+      "ownedBehavior": "Usage pools",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_models-and-pricing.cursor-models",
+      "ownedBehavior": "Cursor Models",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_models-and-pricing.other-models",
+      "ownedBehavior": "Other Models",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_models-and-pricing.model-pricing",
+      "ownedBehavior": "Model pricing",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_models-and-pricing.plans",
+      "ownedBehavior": "Plans",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_models-and-pricing.start-india-only",
+      "ownedBehavior": "Start (India only)",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_models-and-pricing.how-much-usage-do-i-need",
+      "ownedBehavior": "How much usage do I need?",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_models-and-pricing.what-happens-when-i-reach-my-limit",
+      "ownedBehavior": "What happens when I reach my limit?",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_models-and-pricing.teams",
+      "ownedBehavior": "Teams",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_models-and-pricing.cursor-token-rate",
+      "ownedBehavior": "Cursor Token Rate",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_models-and-pricing.auto-modes",
+      "ownedBehavior": "Auto modes",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_models-and-pricing.legacy-request-based-pricing",
+      "ownedBehavior": "Legacy request-based pricing",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_models-and-pricing.max-mode",
+      "ownedBehavior": "Max Mode",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_models-and-pricing.faq",
+      "ownedBehavior": "FAQ",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_models-and-pricing.where-are-models-hosted",
+      "ownedBehavior": "Where are models hosted?",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.docs_models-and-pricing.where-can-i-find-pricing-terms",
+      "ownedBehavior": "Where can I find pricing terms?",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.services.help_ai-features_automations",
+      "ownedBehavior": "",
+      "path": "parity/research/cursor-host/services/retrievals/help_ai-features_automations.md"
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.help_ai-features_automations.automations",
+      "ownedBehavior": "Automations",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.help_ai-features_automations.what-can-automations-do",
+      "ownedBehavior": "What can Automations do?",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.help_ai-features_automations.how-do-i-create-an-automation",
+      "ownedBehavior": "How do I create an automation?",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.help_ai-features_automations.can-i-create-automations-without-connecting-a-repository",
+      "ownedBehavior": "Can I create automations without connecting a repository?",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.help_ai-features_automations.which-triggers-are-available",
+      "ownedBehavior": "Which triggers are available?",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.help_ai-features_automations.which-tools-can-automations-use",
+      "ownedBehavior": "Which tools can automations use?",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.help_ai-features_automations.how-are-automations-billed",
+      "ownedBehavior": "How are automations billed?",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.help_ai-features_automations.how-do-i-control-who-can-see-my-automation",
+      "ownedBehavior": "How do I control who can see my automation?",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.help_ai-features_automations.how-do-i-write-a-good-automation-prompt",
+      "ownedBehavior": "How do I write a good automation prompt?",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.help_ai-features_automations.related",
+      "ownedBehavior": "Related",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.services.help_grok-bot_routines",
+      "ownedBehavior": "",
+      "path": "parity/research/cursor-host/services/retrievals/help_grok-bot_routines.md"
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.help_grok-bot_routines.routines",
+      "ownedBehavior": "Routines",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.help_grok-bot_routines.how-do-i-set-up-or-change-a-routine",
+      "ownedBehavior": "How do I set up or change a routine?",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.help_grok-bot_routines.where-do-i-see-a-bot-s-routines",
+      "ownedBehavior": "Where do I see a Bot's routines?",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.help_grok-bot_routines.how-do-schedules-and-time-zones-work",
+      "ownedBehavior": "How do schedules and time zones work?",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.help_grok-bot_routines.how-do-i-test-a-routine",
+      "ownedBehavior": "How do I test a routine?",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.help_grok-bot_routines.what-should-i-change-if-usage-drops-quickly",
+      "ownedBehavior": "What should I change if usage drops quickly?",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.help_grok-bot_routines.how-do-slack-triggers-work",
+      "ownedBehavior": "How do Slack triggers work?",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.help_grok-bot_routines.where-do-the-webhook-url-and-key-live-and-what-does-a-200-mean",
+      "ownedBehavior": "Where do the webhook URL and key live, and what does a 200 mean?",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.help_grok-bot_routines.why-hasn-t-my-routine-run",
+      "ownedBehavior": "Why hasn't my routine run?",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.help_grok-bot_routines.related",
+      "ownedBehavior": "Related",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.services.help_grok-bot_secrets",
+      "ownedBehavior": "",
+      "path": "parity/research/cursor-host/services/retrievals/help_grok-bot_secrets.md"
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.help_grok-bot_secrets.store-secrets-securely",
+      "ownedBehavior": "Store secrets securely",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.help_grok-bot_secrets.how-should-i-add-an-api-key-or-secret",
+      "ownedBehavior": "How should I add an API key or secret?",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.help_grok-bot_secrets.why-can-t-i-see-the-secret-value",
+      "ownedBehavior": "Why can't I see the secret value?",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.help_grok-bot_secrets.did-update-delete-my-secrets",
+      "ownedBehavior": "Did Update delete my secrets?",
+      "path": null
+    },
+    {
+      "source": "services-proposals",
+      "id": "cursor.host.services.help_grok-bot_secrets.related",
+      "ownedBehavior": "Related",
+      "path": null
+    }
+  ]
+}

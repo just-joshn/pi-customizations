@@ -1,0 +1,13 @@
+adminSettings.cached
+adminSettings.cachedAuthId
+cursor.plugins.installedIds.no-team|file:///Users/josh-desktop/src/personal/pi-customizations
+cursor.plugins.installedIds.no-team|no-workspace
+cursorAuth/accessToken
+cursorAuth/cachedEmail
+cursorAuth/cachedScopedProfile
+cursorAuth/cachedSignUpType
+cursorAuth/hasInvalidatedMembershipForUnifiedSemanticsV2
+cursorAuth/refreshToken
+cursorAuth/stripeMembershipAuthId
+cursorAuth/stripeMembershipType
+cursorAuth/stripeSubscriptionStatus

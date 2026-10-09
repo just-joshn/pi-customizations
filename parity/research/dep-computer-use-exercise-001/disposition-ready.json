@@ -1,0 +1,23 @@
+{
+  "capturedAt": "2026-10-09T05:59:54.923Z",
+  "computerUse": {
+    "ready": true,
+    "macApp": true
+  },
+  "desktopShare": {
+    "supported": true,
+    "ready": true,
+    "screenRecording": true,
+    "accessibility": true,
+    "guiSession": true,
+    "consoleUidMatch": true,
+    "screenLocked": false
+  },
+  "agentHelperCheckPermissions": {
+    "accessibility": true,
+    "screenRecording": true
+  },
+  "osascriptCursorWindowCount": 0,
+  "evidence": "parity/research/dep-computer-use-exercise-001/stdout-after-helper-grants.txt",
+  "note": "TCC unblocked via cursor-agent-helper request-permissions / spawn-disclaimed. Worker Desktop share Ready=yes. Proceed to sticky + live CU exercise. No terminal restart required."
+}

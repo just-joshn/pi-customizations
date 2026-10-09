@@ -1,0 +1,26 @@
+{
+  "edges": [
+    {
+      "from": "cursor-cli-host",
+      "to": "cursor-self-hosted-computer-use",
+      "keepStatus": "unresolved",
+      "evidence": [
+        "parity/research/continuation/computer-use.md",
+        "parity/research/dep-closure-wave-004/nodes/host-edge-disposition.md"
+      ],
+      "blocker": "Public docs only. macOS helper identity/privacy grants, Linux display/desktop services, and sharing transport are environment-bound and were not exercised.",
+      "docSha256": "a9ceb020282d7c61ad99ccd13de0c8831dd57499ac32af31b5f4afc9e9e186d0"
+    },
+    {
+      "from": "cursor-cli-host",
+      "to": "cursor-enterprise-integration-policy",
+      "keepStatus": "unresolved",
+      "evidence": [
+        "parity/research/continuation/model-management.md",
+        "parity/research/dep-closure-wave-004/nodes/host-edge-disposition.md"
+      ],
+      "blocker": "Public docs only. Live team/org policy enforcement and CLI applicability were not observed. Standing orders forbid broad allowlist or authorization changes.",
+      "docSha256": "2606b4bd74d43bd579c59945506ab691cd49de8da3386556e265c854f6c9d205"
+    }
+  ]
+}

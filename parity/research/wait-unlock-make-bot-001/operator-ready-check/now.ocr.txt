@@ -1,0 +1,116 @@
+pi-customizations
++ 0 0 8
+Agents Window 7
+• PI-CUSTOMIZATIONS
+.github
+_pi
+docs
+extensions
+node_modules
+scripts
+us check-agents-compliance...
+us check-agents-compliance...
+JS
+check-bun-toolchain.mjs
+JS
+check-bun-toolchain.selft...
+check-pi-mechanisms.mjs
+Js check-typescript-policy.mjs
+check-typescript-policy.se...
+Js format-write.mjs
+us format-write.selftest.mjs
+us migrate-index-signature-a...
+us migrate-index-signature-a...
+Js skip-directories.mjs
+Js sync-typescript-policy.mjs
+Js typescript-policy.mjs
+us typescript-policy.selftest....
+Js typescript-source.mjs
+us typescript-source.selftest.....
+Js verify-fresh-install.mjs
+skills
+= .coveragerc
+•gitattributes
+.gitignore
+AGENTS.md
+› OUTLINE
+› TIMELINE
+¿ main e
+us check-agents-compliance.mjs
+scripts
+check-agents-compliance.mjs › ...
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217
+218
+219
+220
+221
+pi-customizations
+•OAO
+function checkConsole(node, path, report) {
+if (!ts.isCallExpression(node) || !ts.isPropertyAccessExpression(node.expression)) return;
+if (! ['log', 'debug'l.includes (node.expression.name.text)) return;
+const receiver = node.expression.expression;
+if (!ts.isIdentifier(receiver) || receiver.text !== 'console') return;
+const inScript = path.startsWith('scripts/') || path.includes('/scripts/');
+report(inScript ? 'note' : 'violation', 'console-log', node, 'console.$(node.expression.name.text} in ${inScript ? 'a CLI script, so con'
+function enclosingScopeLine(scopes, line) {
+let best;
+for (const scope
+scopes) {
+if (line <
+scope.start || line > scope.end) continue;
+if (!best || scope.end - scope.start ‹ best.end - best.start) best = scope;
+return best?.start;
+function analyzeTypeScript(text, path) {
+return withTypeScriptSource(text, path, (source) => analyzeTypeScriptSource(source, text, path));
+function
+analyzeTypeScriptSource(source, text, path) f
+const
+found, report } = createReporter (source, path);
+const lineCount = text.split('\n').length;
+if (lineCount > limits.file) report('violation', 'file-length', undefined, '${lineCount} lines, over the ${limits.file} line maximum");
+else if (lineCount >
+limits.typicalFile) report('note', 'file-length', undefined, '${lineCount} lines, over the ${limits.typicalFile} lir
+const loops = [];
+scopes = Il;
+line0f = (node) => source.getLineAndCharacterOfPosition(node.getStart(source)) .line + 1;
+visit = (node) => {
+if (ts.isFunctionLikeDeclaration(node) && node.body) {
+scopes.push({ start: line0f(node), end: source.getLineAndCharacterofPosition(node.getEnd()). line + 1 });
+checkFunctionShape(source, node, report);
+checkParameterMutation(source, node, report);
+Cursor Tab
+Ln 1, Col 1 Spaces: 2 UTF-8 LF 1) JavaScript → Tab Stats: 0/0 (0%)
+Agent Stats: 0/0 (0%) *- No commit scored

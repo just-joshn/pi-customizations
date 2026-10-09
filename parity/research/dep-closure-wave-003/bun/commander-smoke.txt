@@ -1,0 +1,14 @@
+capturedAt=2026-10-08T19:11:55Z
+bunVersion=1.4.2
+{"commander":"14.0.0","engines":{"node":">=20"}}
+{"smokeOk":true,"flag":true}
+bun test v1.4.2 (744846f84)
+
+orch/orch.test.ts:
+(pass) orch CLI > prints commander help and rejects invalid parsing with exit 1 [50.29ms]
+
+ 1 pass
+ 13 filtered out
+ 0 fail
+ 9 expect() calls
+Ran 1 test across 1 file. [58.00ms]

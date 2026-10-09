@@ -1,0 +1,645 @@
+{
+  "capturedAt": "2026-10-09T02:05:00Z",
+  "unit": "u-dep-bun-pin-terminal-001",
+  "verdict": "absent-in-source",
+  "pinStatus": "absent-in-source",
+  "localBunVersionCapture": "parity/research/dep-bun-pin-terminal-001/bun/bun-version.txt",
+  "localBunVersionSha256": "b99b4c7cdf236f59bc9f65d963deaecae3b16a7dad87939cacb9057f7664daee",
+  "localBunStdout": "1.4.2",
+  "whichBun": "/Users/josh-desktop/.local/share/mise/installs/bun/latest/bin/bun",
+  "hostWhichBunIsMiseLatest": true,
+  "docs": [
+    {
+      "label": "install",
+      "url": "https://bun.com/docs/installation",
+      "finalUrl": "https://bun.com/docs/installation",
+      "path": "parity/research/dep-bun-pin-terminal-001/bun/install.html",
+      "sha256": "afc8a8be3c99d25d81683fb7259315b9421eaae5804cbf5adae5672661099150",
+      "byteLength": 192792,
+      "headersPath": "parity/research/dep-bun-pin-terminal-001/bun/install.html.headers.txt",
+      "status": "fetched",
+      "httpStatus": 200,
+      "reason": null
+    },
+    {
+      "label": "lockfile",
+      "url": "https://bun.com/docs/pm/lockfile",
+      "finalUrl": "https://bun.com/docs/pm/lockfile",
+      "path": "parity/research/dep-bun-pin-terminal-001/bun/lockfile.html",
+      "sha256": "974285c98875e1b7503be3ef87def5c0fb2b2bcb5530c0414b8c96afa524e782",
+      "byteLength": 67078,
+      "headersPath": "parity/research/dep-bun-pin-terminal-001/bun/lockfile.html.headers.txt",
+      "status": "fetched",
+      "httpStatus": 200,
+      "reason": null
+    },
+    {
+      "label": "bunfig",
+      "url": "https://bun.com/docs/runtime/bunfig",
+      "finalUrl": "https://bun.com/docs/runtime/bunfig",
+      "path": "parity/research/dep-bun-pin-terminal-001/bun/bunfig.html",
+      "sha256": "2c87a330c846626889f139deecdbfad570dd9c38599a75ff07a9d6557a36a873",
+      "byteLength": 437450,
+      "headersPath": "parity/research/dep-bun-pin-terminal-001/bun/bunfig.html.headers.txt",
+      "status": "fetched",
+      "httpStatus": 200,
+      "reason": null
+    },
+    {
+      "label": "bun-version-docs-legacy",
+      "note": "Legacy guide URL still expected 404.",
+      "url": "https://bun.com/docs/guides/install/bun-version",
+      "finalUrl": "https://bun.com/docs/guides/install/bun-version",
+      "path": "parity/research/dep-bun-pin-terminal-001/bun/bun-version-docs.html",
+      "sha256": "cf0111d694ba188746577d2122ade94277088357ff4ccf6a2074cffd1e2f2098",
+      "byteLength": 28732,
+      "headersPath": "parity/research/dep-bun-pin-terminal-001/bun/bun-version-docs.headers.txt",
+      "status": "http_error",
+      "httpStatus": 404,
+      "reason": "Not Found"
+    }
+  ],
+  "packageJson": {
+    "reference": {
+      "exists": true,
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/package.json",
+      "sha256": "d1f815091209d49763775cc188e8e06ff32d5fec648bffd2272bc25a165e87c3",
+      "engines": null,
+      "packageManager": null,
+      "volta": null,
+      "devEngines": null,
+      "devDependencies": {
+        "bun-types": "latest",
+        "typescript": "latest"
+      }
+    },
+    "extensionsMirror": {
+      "exists": true,
+      "path": "extensions/pi-pstack/skills/poteto-mode/scripts/package.json",
+      "sha256": "06e28d290b1941eb2c6582e213e65923c86b29b0fdd8722fee3d5b4e1a6d1189",
+      "engines": null,
+      "packageManager": null,
+      "volta": null,
+      "devEngines": null,
+      "devDependencies": {
+        "bun-types": "latest",
+        "typescript": "latest"
+      }
+    }
+  },
+  "pinCandidatesChecked": {
+    "package.json.engines": null,
+    "package.json.packageManager": null,
+    "package.json.volta": null,
+    "package.json.devEngines": null,
+    "pinFilesFound": [],
+    "pinFileProbe": [
+      {
+        "candidate": ".bun-version",
+        "base": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts",
+        "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/.bun-version",
+        "exists": false,
+        "sha256": null
+      },
+      {
+        "candidate": "bunfig.toml",
+        "base": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts",
+        "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bunfig.toml",
+        "exists": false,
+        "sha256": null
+      },
+      {
+        "candidate": "mise.toml",
+        "base": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts",
+        "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/mise.toml",
+        "exists": false,
+        "sha256": null
+      },
+      {
+        "candidate": ".tool-versions",
+        "base": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts",
+        "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/.tool-versions",
+        "exists": false,
+        "sha256": null
+      },
+      {
+        "candidate": ".nvmrc",
+        "base": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts",
+        "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/.nvmrc",
+        "exists": false,
+        "sha256": null
+      },
+      {
+        "candidate": ".node-version",
+        "base": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts",
+        "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/.node-version",
+        "exists": false,
+        "sha256": null
+      },
+      {
+        "candidate": ".asdf-versions",
+        "base": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts",
+        "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/.asdf-versions",
+        "exists": false,
+        "sha256": null
+      },
+      {
+        "candidate": "asdf.toml",
+        "base": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts",
+        "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/asdf.toml",
+        "exists": false,
+        "sha256": null
+      },
+      {
+        "candidate": ".bun-version",
+        "base": "parity/reference/cursor-plugins/pstack/skills/poteto-mode",
+        "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/.bun-version",
+        "exists": false,
+        "sha256": null
+      },
+      {
+        "candidate": "bunfig.toml",
+        "base": "parity/reference/cursor-plugins/pstack/skills/poteto-mode",
+        "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/bunfig.toml",
+        "exists": false,
+        "sha256": null
+      },
+      {
+        "candidate": "mise.toml",
+        "base": "parity/reference/cursor-plugins/pstack/skills/poteto-mode",
+        "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/mise.toml",
+        "exists": false,
+        "sha256": null
+      },
+      {
+        "candidate": ".tool-versions",
+        "base": "parity/reference/cursor-plugins/pstack/skills/poteto-mode",
+        "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/.tool-versions",
+        "exists": false,
+        "sha256": null
+      },
+      {
+        "candidate": ".nvmrc",
+        "base": "parity/reference/cursor-plugins/pstack/skills/poteto-mode",
+        "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/.nvmrc",
+        "exists": false,
+        "sha256": null
+      },
+      {
+        "candidate": ".node-version",
+        "base": "parity/reference/cursor-plugins/pstack/skills/poteto-mode",
+        "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/.node-version",
+        "exists": false,
+        "sha256": null
+      },
+      {
+        "candidate": ".asdf-versions",
+        "base": "parity/reference/cursor-plugins/pstack/skills/poteto-mode",
+        "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/.asdf-versions",
+        "exists": false,
+        "sha256": null
+      },
+      {
+        "candidate": "asdf.toml",
+        "base": "parity/reference/cursor-plugins/pstack/skills/poteto-mode",
+        "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/asdf.toml",
+        "exists": false,
+        "sha256": null
+      },
+      {
+        "candidate": ".bun-version",
+        "base": "extensions/pi-pstack/skills/poteto-mode/scripts",
+        "path": "extensions/pi-pstack/skills/poteto-mode/scripts/.bun-version",
+        "exists": false,
+        "sha256": null
+      },
+      {
+        "candidate": "bunfig.toml",
+        "base": "extensions/pi-pstack/skills/poteto-mode/scripts",
+        "path": "extensions/pi-pstack/skills/poteto-mode/scripts/bunfig.toml",
+        "exists": false,
+        "sha256": null
+      },
+      {
+        "candidate": "mise.toml",
+        "base": "extensions/pi-pstack/skills/poteto-mode/scripts",
+        "path": "extensions/pi-pstack/skills/poteto-mode/scripts/mise.toml",
+        "exists": false,
+        "sha256": null
+      },
+      {
+        "candidate": ".tool-versions",
+        "base": "extensions/pi-pstack/skills/poteto-mode/scripts",
+        "path": "extensions/pi-pstack/skills/poteto-mode/scripts/.tool-versions",
+        "exists": false,
+        "sha256": null
+      },
+      {
+        "candidate": ".nvmrc",
+        "base": "extensions/pi-pstack/skills/poteto-mode/scripts",
+        "path": "extensions/pi-pstack/skills/poteto-mode/scripts/.nvmrc",
+        "exists": false,
+        "sha256": null
+      },
+      {
+        "candidate": ".node-version",
+        "base": "extensions/pi-pstack/skills/poteto-mode/scripts",
+        "path": "extensions/pi-pstack/skills/poteto-mode/scripts/.node-version",
+        "exists": false,
+        "sha256": null
+      },
+      {
+        "candidate": ".asdf-versions",
+        "base": "extensions/pi-pstack/skills/poteto-mode/scripts",
+        "path": "extensions/pi-pstack/skills/poteto-mode/scripts/.asdf-versions",
+        "exists": false,
+        "sha256": null
+      },
+      {
+        "candidate": "asdf.toml",
+        "base": "extensions/pi-pstack/skills/poteto-mode/scripts",
+        "path": "extensions/pi-pstack/skills/poteto-mode/scripts/asdf.toml",
+        "exists": false,
+        "sha256": null
+      },
+      {
+        "candidate": ".bun-version",
+        "base": "extensions/pi-pstack/skills/poteto-mode",
+        "path": "extensions/pi-pstack/skills/poteto-mode/.bun-version",
+        "exists": false,
+        "sha256": null
+      },
+      {
+        "candidate": "bunfig.toml",
+        "base": "extensions/pi-pstack/skills/poteto-mode",
+        "path": "extensions/pi-pstack/skills/poteto-mode/bunfig.toml",
+        "exists": false,
+        "sha256": null
+      },
+      {
+        "candidate": "mise.toml",
+        "base": "extensions/pi-pstack/skills/poteto-mode",
+        "path": "extensions/pi-pstack/skills/poteto-mode/mise.toml",
+        "exists": false,
+        "sha256": null
+      },
+      {
+        "candidate": ".tool-versions",
+        "base": "extensions/pi-pstack/skills/poteto-mode",
+        "path": "extensions/pi-pstack/skills/poteto-mode/.tool-versions",
+        "exists": false,
+        "sha256": null
+      },
+      {
+        "candidate": ".nvmrc",
+        "base": "extensions/pi-pstack/skills/poteto-mode",
+        "path": "extensions/pi-pstack/skills/poteto-mode/.nvmrc",
+        "exists": false,
+        "sha256": null
+      },
+      {
+        "candidate": ".node-version",
+        "base": "extensions/pi-pstack/skills/poteto-mode",
+        "path": "extensions/pi-pstack/skills/poteto-mode/.node-version",
+        "exists": false,
+        "sha256": null
+      },
+      {
+        "candidate": ".asdf-versions",
+        "base": "extensions/pi-pstack/skills/poteto-mode",
+        "path": "extensions/pi-pstack/skills/poteto-mode/.asdf-versions",
+        "exists": false,
+        "sha256": null
+      },
+      {
+        "candidate": "asdf.toml",
+        "base": "extensions/pi-pstack/skills/poteto-mode",
+        "path": "extensions/pi-pstack/skills/poteto-mode/asdf.toml",
+        "exists": false,
+        "sha256": null
+      }
+    ],
+    "shebangEnvBunFiles": [
+      {
+        "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/watch-pr/watch-pr",
+        "firstLine": "#!/usr/bin/env bun",
+        "sha256": "d955603be6cc0e8b8ffcec722f635192b2261410b1f2929abea94480e47eb5d4"
+      },
+      {
+        "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/orch/orch.ts",
+        "firstLine": "#!/usr/bin/env bun",
+        "sha256": "f091687df627a0b75fabd54af58945a9cd6c7039ef0622012ac9ed60cd8ec434"
+      },
+      {
+        "path": "extensions/pi-pstack/skills/poteto-mode/scripts/watch-pr/watch-pr",
+        "firstLine": "#!/usr/bin/env bun",
+        "sha256": "d955603be6cc0e8b8ffcec722f635192b2261410b1f2929abea94480e47eb5d4"
+      },
+      {
+        "path": "extensions/pi-pstack/skills/poteto-mode/scripts/orch/orch.ts",
+        "firstLine": "#!/usr/bin/env bun",
+        "sha256": "f091687df627a0b75fabd54af58945a9cd6c7039ef0622012ac9ed60cd8ec434"
+      }
+    ],
+    "locks": {
+      "lockCandidates": [
+        {
+          "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock",
+          "exists": true,
+          "sha256": "667d9cf7222e9aae3fa42a4be383e657784216e9df115da02227fbc5ac7bbe46",
+          "byteLength": 6679,
+          "containsBunTypes": true,
+          "containsEnginesBun": false,
+          "note": "Lockfile presence does not declare a Bun binary version pin."
+        },
+        {
+          "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lockb",
+          "exists": false
+        },
+        {
+          "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/package-lock.json",
+          "exists": false
+        },
+        {
+          "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/yarn.lock",
+          "exists": false
+        },
+        {
+          "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/pnpm-lock.yaml",
+          "exists": false
+        }
+      ]
+    }
+  },
+  "exhaustiveCandidateList": [
+    {
+      "kind": "package.json.engines",
+      "custody": "reference-tools",
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/package.json",
+      "value": null,
+      "present": false,
+      "packageJsonSha256": "d1f815091209d49763775cc188e8e06ff32d5fec648bffd2272bc25a165e87c3"
+    },
+    {
+      "kind": "package.json.packageManager",
+      "custody": "reference-tools",
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/package.json",
+      "value": null,
+      "present": false,
+      "packageJsonSha256": "d1f815091209d49763775cc188e8e06ff32d5fec648bffd2272bc25a165e87c3"
+    },
+    {
+      "kind": "package.json.volta",
+      "custody": "reference-tools",
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/package.json",
+      "value": null,
+      "present": false,
+      "packageJsonSha256": "d1f815091209d49763775cc188e8e06ff32d5fec648bffd2272bc25a165e87c3"
+    },
+    {
+      "kind": "package.json.devEngines",
+      "custody": "reference-tools",
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/package.json",
+      "value": null,
+      "present": false,
+      "packageJsonSha256": "d1f815091209d49763775cc188e8e06ff32d5fec648bffd2272bc25a165e87c3"
+    },
+    {
+      "kind": "pin-file",
+      "name": ".bun-version",
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/.bun-version",
+      "exists": false,
+      "sha256": null
+    },
+    {
+      "kind": "pin-file",
+      "name": "bunfig.toml",
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bunfig.toml",
+      "exists": false,
+      "sha256": null
+    },
+    {
+      "kind": "pin-file",
+      "name": "mise.toml",
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/mise.toml",
+      "exists": false,
+      "sha256": null
+    },
+    {
+      "kind": "pin-file",
+      "name": ".tool-versions",
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/.tool-versions",
+      "exists": false,
+      "sha256": null
+    },
+    {
+      "kind": "pin-file",
+      "name": ".nvmrc",
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/.nvmrc",
+      "exists": false,
+      "sha256": null
+    },
+    {
+      "kind": "pin-file",
+      "name": ".node-version",
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/.node-version",
+      "exists": false,
+      "sha256": null
+    },
+    {
+      "kind": "pin-file",
+      "name": ".asdf-versions",
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/.asdf-versions",
+      "exists": false,
+      "sha256": null
+    },
+    {
+      "kind": "pin-file",
+      "name": "asdf.toml",
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/asdf.toml",
+      "exists": false,
+      "sha256": null
+    },
+    {
+      "kind": "pin-file",
+      "name": ".bun-version",
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/.bun-version",
+      "exists": false,
+      "sha256": null
+    },
+    {
+      "kind": "pin-file",
+      "name": "bunfig.toml",
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/bunfig.toml",
+      "exists": false,
+      "sha256": null
+    },
+    {
+      "kind": "pin-file",
+      "name": "mise.toml",
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/mise.toml",
+      "exists": false,
+      "sha256": null
+    },
+    {
+      "kind": "pin-file",
+      "name": ".tool-versions",
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/.tool-versions",
+      "exists": false,
+      "sha256": null
+    },
+    {
+      "kind": "pin-file",
+      "name": ".nvmrc",
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/.nvmrc",
+      "exists": false,
+      "sha256": null
+    },
+    {
+      "kind": "pin-file",
+      "name": ".node-version",
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/.node-version",
+      "exists": false,
+      "sha256": null
+    },
+    {
+      "kind": "pin-file",
+      "name": ".asdf-versions",
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/.asdf-versions",
+      "exists": false,
+      "sha256": null
+    },
+    {
+      "kind": "pin-file",
+      "name": "asdf.toml",
+      "path": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/asdf.toml",
+      "exists": false,
+      "sha256": null
+    },
+    {
+      "kind": "pin-file",
+      "name": ".bun-version",
+      "path": "extensions/pi-pstack/skills/poteto-mode/scripts/.bun-version",
+      "exists": false,
+      "sha256": null
+    },
+    {
+      "kind": "pin-file",
+      "name": "bunfig.toml",
+      "path": "extensions/pi-pstack/skills/poteto-mode/scripts/bunfig.toml",
+      "exists": false,
+      "sha256": null
+    },
+    {
+      "kind": "pin-file",
+      "name": "mise.toml",
+      "path": "extensions/pi-pstack/skills/poteto-mode/scripts/mise.toml",
+      "exists": false,
+      "sha256": null
+    },
+    {
+      "kind": "pin-file",
+      "name": ".tool-versions",
+      "path": "extensions/pi-pstack/skills/poteto-mode/scripts/.tool-versions",
+      "exists": false,
+      "sha256": null
+    },
+    {
+      "kind": "pin-file",
+      "name": ".nvmrc",
+      "path": "extensions/pi-pstack/skills/poteto-mode/scripts/.nvmrc",
+      "exists": false,
+      "sha256": null
+    },
+    {
+      "kind": "pin-file",
+      "name": ".node-version",
+      "path": "extensions/pi-pstack/skills/poteto-mode/scripts/.node-version",
+      "exists": false,
+      "sha256": null
+    },
+    {
+      "kind": "pin-file",
+      "name": ".asdf-versions",
+      "path": "extensions/pi-pstack/skills/poteto-mode/scripts/.asdf-versions",
+      "exists": false,
+      "sha256": null
+    },
+    {
+      "kind": "pin-file",
+      "name": "asdf.toml",
+      "path": "extensions/pi-pstack/skills/poteto-mode/scripts/asdf.toml",
+      "exists": false,
+      "sha256": null
+    },
+    {
+      "kind": "pin-file",
+      "name": ".bun-version",
+      "path": "extensions/pi-pstack/skills/poteto-mode/.bun-version",
+      "exists": false,
+      "sha256": null
+    },
+    {
+      "kind": "pin-file",
+      "name": "bunfig.toml",
+      "path": "extensions/pi-pstack/skills/poteto-mode/bunfig.toml",
+      "exists": false,
+      "sha256": null
+    },
+    {
+      "kind": "pin-file",
+      "name": "mise.toml",
+      "path": "extensions/pi-pstack/skills/poteto-mode/mise.toml",
+      "exists": false,
+      "sha256": null
+    },
+    {
+      "kind": "pin-file",
+      "name": ".tool-versions",
+      "path": "extensions/pi-pstack/skills/poteto-mode/.tool-versions",
+      "exists": false,
+      "sha256": null
+    },
+    {
+      "kind": "pin-file",
+      "name": ".nvmrc",
+      "path": "extensions/pi-pstack/skills/poteto-mode/.nvmrc",
+      "exists": false,
+      "sha256": null
+    },
+    {
+      "kind": "pin-file",
+      "name": ".node-version",
+      "path": "extensions/pi-pstack/skills/poteto-mode/.node-version",
+      "exists": false,
+      "sha256": null
+    },
+    {
+      "kind": "pin-file",
+      "name": ".asdf-versions",
+      "path": "extensions/pi-pstack/skills/poteto-mode/.asdf-versions",
+      "exists": false,
+      "sha256": null
+    },
+    {
+      "kind": "pin-file",
+      "name": "asdf.toml",
+      "path": "extensions/pi-pstack/skills/poteto-mode/asdf.toml",
+      "exists": false,
+      "sha256": null
+    }
+  ],
+  "nonPinsExplicit": {
+    "hostBunVersion": "1.4.2",
+    "hostBunPath": "/Users/josh-desktop/.local/share/mise/installs/bun/latest/bin/bun",
+    "hostMiseLatest": true,
+    "bunTypesDevDependency": "latest",
+    "statement": "Host bun 1.4.2 / mise latest / bun-types are not pins. They must not be written into engines, packageManager, or .bun-version."
+  },
+  "disposition": "Exhaustive re-probe of locked poteto-mode tools custody and the extensions mirror found no official Bun binary pin (no engines/packageManager/volta/devEngines, no .bun-version/bunfig.toml/mise.toml/.tool-versions/.nvmrc/.node-version). Host bun 1.4.2 via mise latest and bun-types:latest are not runtime pins and must not be invented into engines/packageManager/.bun-version.",
+  "closureCriteria": [
+    "Exact Bun binary version declared in tools subtree via engines.bun, packageManager, volta, .bun-version, bunfig, or equivalent lock binding",
+    "Declaration must be in source custody under poteto-mode/scripts or a documented official pin path for this package"
+  ],
+  "terminalNote": "When no declaration exists in source, the honest terminal status is absent-in-source, not an invented version string."
+}

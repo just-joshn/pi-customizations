@@ -1,0 +1,17 @@
+HTTP 200
+Date: Fri, 09 Oct 2026 02:07:31 GMT
+Content-Type: text/plain; charset=utf-8
+Content-Length: 20309
+Connection: close
+Server: nginx/1.30.3
+Accept-Ranges: bytes
+Cache-Control: public, max-age=0, must-revalidate
+Content-Security-Policy-Report-Only: default-src 'self' wwwv2.tailscale.com;	script-src 'self' wwwv2.tailscale.com bat.bing.com cdn.rudderlabs.com www.google-analytics.com www.googletagmanager.com www.google.com js.hs-scripts.com js.hs-banner.com js.hubspot.com js.hs-analytics.com *.hsforms.net unpkg.com snap.licdn.com www.redditstatic.com https://bwa.marketplace.awsstatic.com widget.kapa.ai https://*.optimizely.com;	connect-src 'self' wwwv2.tailscale.com login.tailscale.com bat.bing.com analytics.google.com www.google-analytics.com cdn.sanity.io unpkg.com *.rudderstack.com *.hubspot.com www.redditstatic.com pixel-config.reddit.com px.ads.linkedin.com https://medley.prod.irtysh.dubai.aws.dev proxy.kapa.ai kapa-widget-proxy-la7dkmplpq-uc.a.run.app metrics.kapa.ai https://*.optimizely.com wss://*.optimizely.com;	img-src 'self' wwwv2.tailscale.com cdn.sanity.io lh3.googleusercontent.com www.google-analytics.com *.hsforms.com alb.reddit.com px.ads.linkedin.com bat.bing.com track.hubspot.com https://cdn.optimizely.com;	style-src https://*.optimizely.com 'unsafe-inline';	font-src 'self' https://*.optimizely.com;	frame-ancestors 'none';	form-action 'self' wwwv2.tailscale.com;	base-uri 'self' wwwv2.tailscale.com;	block-all-mixed-content;	object-src 'self' wwwv2.tailscale.com;	report-to csp-endpoint;	report-uri https://login.tailscale.com/csp-report;
+Reporting-Endpoints: csp-endpoint="https://login.tailscale.com/csp-report"
+Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+Via: 1.1 a235f5b7b15b9c8025af96fb0081dd58.cloudfront.net (CloudFront)
+X-Cache: Miss from cloudfront
+X-Content-Type-Options: nosniff
+X-Robots-Tag: index, follow
+X-Vercel-Cache: MISS
+X-Vercel-Id: pdx1::fk85g-1791511651226-a7f3006fa40d

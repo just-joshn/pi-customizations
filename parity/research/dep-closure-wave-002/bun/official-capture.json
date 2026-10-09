@@ -1,0 +1,23 @@
+{
+  "capturedAt": "2026-10-08T18:24:07Z",
+  "localBunVersionCapture": "parity/research/dep-closure-wave-002/bun/bun-version.txt",
+  "localBunVersionSha256": "58a0e274c3bb2de2eed6486d2aa0e1f477095cf3b9b7d11067efa9be82986604",
+  "localBunStdout": "1.4.2",
+  "docs": [
+    {
+      "label": "install",
+      "url": "https://bun.com/docs/installation",
+      "path": "parity/research/dep-closure-wave-002/bun/install.html",
+      "sha256": "afc8a8be3c99d25d81683fb7259315b9421eaae5804cbf5adae5672661099150",
+      "byteLength": 192792,
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "label": "cli",
+      "url": "https://bun.com/docs/cli/bun",
+      "error": "HTTP Error 404: Not Found"
+    }
+  ],
+  "pinStatus": "unresolved",
+  "note": "Local bun --version and official docs were captured. No package.json or lockfile in the tools subtree pins an exact Bun runtime version for source-bun-runtime. Keep official pin unresolved."
+}

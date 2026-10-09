@@ -1,0 +1,179 @@
+Cursor
+File
+V New Chat
+Q Search
+• Automations
+B° Customize
+Projects
++ New Project
+Pinned
+• /make-bot-ui
+Repositories
+A No Repo
+Parity webhook w
+Cursor automatio
+Cursor automatio
+Cursor automatio
+Cursor automatio
+Automation setup
+/make-bot-ui|
+/automate
+/automate
+Sticky mode activ
+/poteto-mode
+Gettina Started
+#: Connec
+Joshua Humphr
+Edit
+Selection
+View
+Go Run
+Terminal
+Window
+Help
+Q Search or enter website name
+pi-customizations
+• • 804 81 Fri Oct 9 8:29 AM
++
+Agents Window 7
+PI-CUSTOMIZATIONS
+› ‚github
+› docs
+extensions
+node_modules
+scripts
+JS
+check-agents-compliance...
+JS
+check-agents-compliance...
+JS
+check-bun-toolchain.mis
+JS
+check-bun-toolchain.selft...
+JS
+check-pi-mechanisms.mis
+JS
+check-typescript-policy.mjs
+JS
+check-typescript-policy.se...
+JS
+format-write.mjs
+us format-write.selftest.mis
+JS
+migrate-index-signature-a...
+migrate-index-signature-a...
+JS
+skip-directories.mis
+sync-typescript-policy.mis
+JS
+typescript-policy.mis
+typescript-policy.selftest....
+typescript-source.mis
+JS
+typescript-source.selftest...
+JS
+verify-fresh-install.mis
+skills
+.coveragerc
+.gitattributes
+.gitignore
+AGENTS.md
+› OUTLINE
+› TIMELINE
+19 main • pi-customizations
+us check-agents-compliance.mjs X
+scripts ›
+us check-agents-compliance.mjs ›
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+1961
+197
+198
+199|
+2001
+201
+202
+203
+204
+205
+2061
+207
+208
+209
+2101
+211|
+2121
+213
+214
+215
+216
+217
+2181
+219
+220
+221|
+@O O
+function checkConsole(node, path, report) {
+if (!ts.isCallExpression(node) || !ts.isPropertyAccessExpression(node.expression)) return;
+if (! ['log', 'debug'l.includes (node.expression.name.text)) return;
+const receiver = node.expression.expression;
+if (!ts.isIdentifier(receiver) || receiver.text != 'console') return;
+const inScript = path.startsWith('scripts/') || path.includes('/scripts/');
+report (inScript ?
+'note'
+: 'violation', 'console-log', node,
+'console.${node.expression.name.text} in ${inScript ? 'a CLI script, so cont
+function enclosingScopeLine(scopes, line) f
+let best;
+for (const scope of scopes) {
+if
+(line ‹ scope.start || line > scope.end) continue;
+if (!best || scope.end - scope.start < best.end - best.start) best = scope;
+return best?.start;
+function analyzeTypeScript (text, path) f
+return withTypeScriptSource(text, path, (source) => analyzeTypeScriptSource(source, text, path));
+function analyzeTypeScriptSource(source, text, path) {
+const { found, report } = createReporter(source, path);
+const lineCount = text.split ('\n'). length;
+if (lineCount > limits.file) report('violation',
+'file-length', undefined,
+'{lineCount} lines, over the ${limits.file} line maximum');
+else if (lineCount > limits.typicalFile) report ('note'
+'file-length', undefined,
+'${lineCount} lines, over the ${limits.typicalFile} lir
+const loops
+= U:
+const
+scopes = [:
+const Lin-me
+etLineAndCharacterOfPosition(node.getStart(source)). line + 1;
+const vis
+Disable globally
+if (ts.
+scope
+Disable for avascript
+check
+Model
+auto (default) V
+check
+(node) && node.body) f
+›de), end: source.getLineAndCharacterOfPosition(node.getEnd()).line + 1 });
+de, report);
+node, report);
+Snooze O
+Cursor Ta
+Ln 1. Col 1
+Spaces: 2 UTF-8 LE () JavaScript
+one website
+* Tab Stats: 0/0 (0%) 5 Agent Stats: 0/0 (0%)
+-o- No commit scored
+Edit

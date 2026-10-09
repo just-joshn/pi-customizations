@@ -1,0 +1,64 @@
+{
+  "capturedAt": "2026-10-08T22:23:29Z",
+  "localBunVersionCapture": "parity/research/dep-closure-wave-005/bun/bun-version.txt",
+  "localBunVersionSha256": "8175ac22d3a200ea0c6b04e240ba440308532413d1c9f38b5603471128ce9747",
+  "localBunStdout": "1.4.2",
+  "docs": [
+    {
+      "label": "install",
+      "url": "https://bun.com/docs/installation",
+      "path": "parity/research/dep-closure-wave-005/bun/install.html",
+      "sha256": "b893d34cdf3a1ce7c5cf649eee0f08a1d168f6a52e73977af764c8ee08b7d525",
+      "byteLength": 192431,
+      "headersPath": "parity/research/dep-closure-wave-005/bun/install.headers.txt"
+    },
+    {
+      "label": "lockfile",
+      "url": "https://bun.com/docs/install/lockfile",
+      "path": "parity/research/dep-closure-wave-005/bun/lockfile.html",
+      "sha256": "e16a0321c03bc7a6122fe14a918faff052058aeff9158f1f48118388696d274a",
+      "byteLength": 66717,
+      "headersPath": "parity/research/dep-closure-wave-005/bun/lockfile.headers.txt"
+    },
+    {
+      "label": "nodejs-compat",
+      "url": "https://bun.com/docs/runtime/nodejs-compat",
+      "path": "parity/research/dep-closure-wave-005/bun/nodejs-compat.html",
+      "sha256": "5ee498723663e81c9be95b25e3396d991276c8b1388a6a798f68b446e5833b27",
+      "byteLength": 293288,
+      "headersPath": "parity/research/dep-closure-wave-005/bun/nodejs-compat.headers.txt"
+    },
+    {
+      "label": "package-manager",
+      "url": "https://bun.com/docs/cli/bun-install",
+      "path": "parity/research/dep-closure-wave-005/bun/package-manager.html",
+      "sha256": "635fc83e99951f5c4c30a1e5127c89f9cd32c83778c76fca5df6a47f8925c3ed",
+      "byteLength": 312036,
+      "headersPath": "parity/research/dep-closure-wave-005/bun/package-manager.headers.txt"
+    },
+    {
+      "label": "bun-version-docs",
+      "url": "https://bun.com/docs/guides/install/bun-version",
+      "path": "parity/research/dep-closure-wave-005/bun/bun-version-docs.html",
+      "sha256": "af4d26627ff4d134ac9949969d4ba47a025a9abcd4ca65067ed35af34099411e",
+      "byteLength": 28371,
+      "headersPath": "parity/research/dep-closure-wave-005/bun/bun-version-docs.headers.txt"
+    }
+  ],
+  "pinCandidatesChecked": {
+    "package.json.engines": null,
+    "package.json.packageManager": null,
+    "package.json.volta": null,
+    "dotBunVersionFile": false,
+    "bunfigToml": false,
+    "bunLockPinsBunBinary": false
+  },
+  "manifestDevDependencies": {
+    "bun-types": "latest",
+    "typescript": "latest"
+  },
+  "lockBunTypesResolved": "bun-types",
+  "typesVersusRuntimeNote": "Lock resolves bun-types; local bun --version is 1.4.2. bun-types is not an official Bun runtime pin.",
+  "pinStatus": "unresolved",
+  "note": "Wave-005 re-probed tools scripts for engines/packageManager/volta/.bun-version/bunfig.toml and re-fetched official Bun docs including the bun-version guide. No official Bun binary pin exists in the tools subtree. Do not invent a pin from local version or bun-types."
+}

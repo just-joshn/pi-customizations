@@ -1,0 +1,1 @@
+@earendil-works/pi-coding-agent@1.1.0:sha512-SeEi/4hdcHNgA9UWlefZl7ZZpm3dzi2OoxNjDHsBJ9o298LNOtbL4DGKgitlEj6uCTccvtw6f2hlCkTPVJ2RXg==

@@ -1,0 +1,33 @@
+{
+  "capturedAt": "2026-10-09T01:47:01Z",
+  "piRefAgentAuthPath": "/tmp/pi-ref-agent/auth.json",
+  "authProvidersPresent": [
+    "claude-subscription",
+    "deepseek",
+    "google-antigravity",
+    "openai"
+  ],
+  "xaiInAuth": false,
+  "modelsStoreTopKeys": [
+    "anthropic",
+    "deepseek",
+    "google-antigravity",
+    "openai",
+    "openai-codex",
+    "xai",
+    "zai"
+  ],
+  "modelsStoreHasXaiKey": true,
+  "modelsStoreGrokIdsSample": [
+    "grok-4.3",
+    "grok-4.5",
+    "grok-4.6",
+    "grok-4.7"
+  ],
+  "cursorAgentModeHelpSnippet": "--mode <mode>                Start in the given execution mode. plan:                                read-only/planning (analyze, propose plans, no                                edits). ask: Q&A style for explanations and                                questions (read-only). (ch",
+  "cursorModeChoices": [
+    "plan",
+    "ask"
+  ],
+  "note": "Provider names only. No secret values copied."
+}

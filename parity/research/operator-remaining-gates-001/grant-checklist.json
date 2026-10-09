@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "unit": "u-operator-remaining-gates-001",
+  "capturedAt": "2026-10-09T06:40:00Z",
+  "completionEvaluatedAt": "2026-10-09T06:34:09.122Z",
+  "verdict": "BLOCKED",
+  "blockerCount": 14,
+  "droppedFromUnpaid": [
+    {
+      "id": "MODE-STICKY-CURSOR-CUSTOM-MODE-HARNESS",
+      "reason": "closed-paired-parity via Agents Window Use as Mode; sticky already closed; not an unpaid grant"
+    },
+    {
+      "id": "SETUP-GROK-XHIGH-CAP-PI",
+      "reason": "closed-paired-parity; not in current completion blockers"
+    }
+  ],
+  "remainingOperatorGrantCount": 11,
+  "grants": [
+    {
+      "id": "G1-CU-CLOUD-CLAIM",
+      "clearsBlockers": ["DEPENDENCY_EDGE_UNRESOLVED:edges[0]", "SOURCE_LOCK_INCOMPLETE", "SOURCE_CLOSURE_INCOMPLETE"]
+    },
+    {
+      "id": "G2-ENTERPRISE-POLICY-OBSERVE",
+      "clearsBlockers": ["DEPENDENCY_EDGE_UNRESOLVED:edges[1]", "SOURCE_LOCK_INCOMPLETE", "SOURCE_CLOSURE_INCOMPLETE"]
+    },
+    {
+      "id": "G3-ACCEPTANCE-FREEZE-CUSTODY",
+      "clearsBlockers": ["ACCEPTANCE_DEFINITIONS_UNFROZEN"]
+    },
+    {
+      "id": "G4-BENNY-CONFIG-YAML",
+      "clearsBlockers": ["BENNY-TRIAGE-VALID-CONFIG-ENV", "SETUP-BENNY-THREAD-SAFETY-ENV", "DEPENDENCY_REFERENCE_UNRESOLVED"]
+    },
+    {
+      "id": "G5-BENNY-BOT-TOKEN-ENV",
+      "clearsBlockers": ["BENNY-TRIAGE-VALID-CONFIG-ENV", "SETUP-BENNY-THREAD-SAFETY-ENV", "DEPENDENCY_REFERENCE_UNRESOLVED"]
+    },
+    {
+      "id": "G6-SLACK-MCP-IDE-AUTH",
+      "clearsBlockers": ["BENNY-TRIAGE-VALID-CONFIG-ENV", "SETUP-BENNY-THREAD-SAFETY-ENV", "DEPENDENCY_REFERENCE_UNRESOLVED"]
+    },
+    {
+      "id": "G7-TEST-CHANNEL-LIVE-POST-GRANTS",
+      "clearsBlockers": ["BENNY-TRIAGE-VALID-CONFIG-ENV", "SETUP-BENNY-THREAD-SAFETY-ENV", "DEPENDENCY_REFERENCE_UNRESOLVED"]
+    },
+    {
+      "id": "G8-HARNESS-RESOLVABLE-SLACK-ACTIONS",
+      "clearsBlockers": ["BENNY-TRIAGE-VALID-CONFIG-ENV", "SETUP-BENNY-THREAD-SAFETY-ENV", "DEPENDENCY_REFERENCE_UNRESOLVED"]
+    },
+    {
+      "id": "G9-AUTOMATIONS-EDITOR-HOST",
+      "clearsBlockers": ["SETUP-BENNY-CREATION-BOUNDARY-ENV", "SETUP-BENNY-THREAD-SAFETY-ENV", "DEPENDENCY_REFERENCE_UNRESOLVED"]
+    },
+    {
+      "id": "G10-MAKE-BOT-CURSOR-WEBHOOK-HOST",
+      "clearsBlockers": ["MAKE-BOT-UI-KEY-SERVER-HOST", "DEPENDENCY_REFERENCE_UNRESOLVED"]
+    },
+    {
+      "id": "G11-THIRD-PARTY-LIVE-INSTALLS",
+      "clearsBlockers": ["DEPENDENCY_REFERENCE_UNRESOLVED", "SOURCE_LOCK_INCOMPLETE", "SOURCE_CLOSURE_INCOMPLETE"]
+    }
+  ],
+  "sources": [
+    "parity/completion.json",
+    "parity/mismatches.json",
+    "parity/briefs/reports/u-operator-env-gates-001-report.md",
+    "parity/research/benny-env-unblock-001/operator-grant-checklist.md",
+    "parity/briefs/reports/u-dep-computer-use-live-001-report.md",
+    "parity/research/acceptance-freeze-prep-002/freeze-prep.json",
+    "parity/briefs/reports/u-dep-live-integrations-001-report.md",
+    "parity/research/dep-host-edges-terminal-001/host/enterprise-disposition.json"
+  ],
+  "fabricatedGrants": false,
+  "secretsIncluded": false,
+  "freezeClaimed": false,
+  "ledgersEdited": false
+}

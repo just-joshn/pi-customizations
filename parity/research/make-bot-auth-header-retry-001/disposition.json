@@ -1,0 +1,69 @@
+{
+  "attemptId": "67bfeab7-7da4-41fa-b086-34203c4ee7e9",
+  "draftName": "parity-webhook-witness",
+  "profile": "auth-header-retry",
+  "unit": "u-make-bot-auth-header-retry-001",
+  "savedByHarness": false,
+  "activatedByHarness": false,
+  "generateAuthHeaderClicked": false,
+  "keyStoredServerSide": false,
+  "secretMode": null,
+  "webhookUrlHost": null,
+  "probe": null,
+  "cursorOutcome": "host_blocked",
+  "blocker": "prefill_parse_error_blocks_webhook_editor",
+  "updateStateUsed": false,
+  "senderKeyInChatOrEvidence": false,
+  "priorWitnessGenerateVisible": "c345b7ed-5c24-424c-86c3-55211b7bf0c8",
+  "priorBlockedReentry": "beb9d748-5985-4d4c-a2ee-ca1224fe9a84",
+  "evidenceDir": "parity/evidence/make-bot-ui/auth-header-retry/67bfeab7-7da4-41fa-b086-34203c4ee7e9",
+  "listNavigation": {
+    "listLikely": false,
+    "sidebarClick": {
+      "clicked": true,
+      "needle": "Automations",
+      "xy": [
+        191,
+        216
+      ]
+    },
+    "seesDraft": false,
+    "seesUntitled": true,
+    "seesPrefillError": true
+  },
+  "draftRowClick": {
+    "draftHits": 0,
+    "clicked": false,
+    "ocrHits": 0,
+    "ocrSeesDraft": false,
+    "ocrPrefillError": true,
+    "ocrUntitled": true
+  },
+  "listOpenSawPrefillError": true,
+  "listOpenSawUntitled": true,
+  "editorOpen": false,
+  "fallbackHandoff": true,
+  "handoff": {
+    "promptSent": true,
+    "editorWitnessed": false,
+    "yesSentCount": 3,
+    "prefillParseErrorSeen": true,
+    "untitledSeen": true,
+    "anyEditorChrome": false,
+    "draftNameInFinal": false
+  },
+  "handoffPrefillParseError": true,
+  "handoffUntitled": true,
+  "attemptIds": {
+    "attempt1_crash": "cfb6dd2b-fced-47e0-a71f-948502bc0e96",
+    "attempt2_blocker": "67bfeab7-7da4-41fa-b086-34203c4ee7e9",
+    "priorGenerateVisible": "c345b7ed-5c24-424c-86c3-55211b7bf0c8",
+    "priorBlockedReentry": "beb9d748-5985-4d4c-a2ee-ca1224fe9a84",
+    "piKeyServerOk": "e75f8e08-0d8c-4d55-ad3f-6946c405bbaf"
+  },
+  "helperXyClicksBrokenPostTcc": true,
+  "parityWebhookWitnessVisibleInListOcr": false,
+  "untitledStillStuckAfterRestart": true,
+  "setStatusResolved": false,
+  "canCloseMismatch": false
+}

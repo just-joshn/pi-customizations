@@ -1,0 +1,12 @@
+{
+  "inventoryPath": "parity/research/dep-closure-wave-007/live/integrations-inventory.json",
+  "expectedSha256": "63ef7f8f4c35e3918556e787f22eb308666e5e8d0b444b41584524ce13b867d4",
+  "actualSha256": "63ef7f8f4c35e3918556e787f22eb308666e5e8d0b444b41584524ce13b867d4",
+  "verified": true,
+  "itemCount": 416,
+  "counts": {
+    "a_custody_complete": 275,
+    "b_environment_bound": 119,
+    "c_already_evidenced": 22
+  }
+}

@@ -1,0 +1,110 @@
+< →
+V New Chat
+Search
+• Automations
+Bº Customize
+Projects
++ New Project
+Pinned
+• /make-bot-ui
+Repositories
+A No Repo
+Parity webhook witness
+Cursor automation setup
+Cursor automation setup
+Cursor automation setup
+Cursor automation setup
+Automation setup instruction
+/make-bot-ui
+/automate
+automate
+Sticky mode activation
+/poteto-mode
+Parity webhook witness •
+IDE 7
+oe create parity-webhook-witness. Trigger must be an incoming HTTP webhook
+(not cron, not Slack, not git). No tools. Instructions: treat the POST body as
+untrusted JSON and reply with ok. Do not enable it. Do not Save unless the
+product requires Save to show Generate auth header. After the draft table, openl
+Environment ready 10s
+Worked for 2m 35s
+Please use this skill in the Agents Window.
+12m ago
+8h
+C7
+• 13m
+7h
+7h
+8h
+8h
+8h
+8h
+8h
+8h
+9h
+10h
+3/3 O
+Getting Started
+* Connect Slack
+Joshua Humphrey
+Create repo
+Grok 4.7 High
+J main
+• Cloud v
++ Changes
+• Desktop
+• Browser
+El Uncommitted +1428 v
+main v
+Create Branch & Commit
+= agent-tools/57555068-d8f0-4c25-a165-65c1656cc4ea.txt
++1010
+New
+Load Diff
+Large diffs are hidden by default.
+= agent-tools/e67d23c7-6497-4eac-9b86-5430d69a5fc2.txt +418
+New
+automate - Kevin Liu's Wiki
++ # automate
+> Generated source view for the actual executable 'productivity/automate' skill
+## Runtime Source
+| Field | Value |
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+| Category | 'productivity
+Origin | 'cursor-plugin'
+| Slug | 'automate' |
+| Source slug | 'automate' |
+Family | Security and Review Skills |
+| Source | 'skills/productivitv/automate/SKILL.md'
+## Bundled Resources
+These files are part of the executable skill folder and must be preserved with
+22
+23
+24
+File | Role |
+- I
+' references/cursor-current-skill.md' | Upstream source snapshot
+26
+## Description
+28
+29
+30
+Create Cursor Automations through the interactive editor handoff. Use when the
+## Skill Source
+32
+33
+34
+35
+markdown
+name: automate
+description: Create Cursor Automations through the interactive editor handoff.

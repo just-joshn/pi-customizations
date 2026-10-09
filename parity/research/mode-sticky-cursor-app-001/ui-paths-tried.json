@@ -1,0 +1,60 @@
+{
+  "probeId": "b01ad4e8-f88a-4e53-ac22-d3646d8e11b9",
+  "capturedAt": "2026-10-09T03:42:01.047Z",
+  "uiPathsTried": [
+    {
+      "path": "Desktop Cursor.app present at /Applications/Cursor.app",
+      "tried": true,
+      "reachable": true,
+      "reason": "present version=3.24.9 bundleId=com.todesktop.230313mzl4w4u92",
+      "customModeChrome": false
+    },
+    {
+      "path": "Desktop Cursor.app → Agents Window → slash → Use as Mode",
+      "tried": true,
+      "reachable": false,
+      "reason": "Agents Window helper process may be live, but DISPLAY empty, screencapture fails, CDP closed, computer-use MCP absent; cannot prove or drive Use as Mode chrome",
+      "customModeChrome": false,
+      "agentsWindowProcessObserved": false
+    },
+    {
+      "path": "Desktop Cursor Settings → Custom Modes toggle",
+      "tried": true,
+      "reachable": true,
+      "reason": "settings.json exists (44 bytes) but needles customMode/useAsMode/glass_custom_modes all false; content={\n    \"window.autoDetectColorScheme\": true\n}",
+      "customModeChrome": false
+    },
+    {
+      "path": "cursor shim finds IDE",
+      "tried": true,
+      "reachable": true,
+      "reason": "cursor --help identifies Cursor 3.24.9",
+      "customModeChrome": false
+    },
+    {
+      "path": "CDP attach to Cursor Electron",
+      "tried": true,
+      "reachable": false,
+      "reason": "ports {\"9222\":false,\"9223\":false,\"9229\":false,\"9230\":false,\"9333\":false}",
+      "customModeChrome": false
+    },
+    {
+      "path": "Computer-use / desktop screenshot drive",
+      "tried": true,
+      "reachable": false,
+      "reason": "GetDynamicTools pattern computer|screenshot|browser|cdp|playwright returned matches: [] (measured this unit); screencapture: could not create image from display\nCommand failed: screencapture -x /Users/josh-desktop/src/personal/pi-pstack-parity-a",
+      "customModeChrome": false
+    },
+    {
+      "path": "CLI glass_custom_modes / PTY Meta+Enter (prior exhaustive-negative)",
+      "tried": false,
+      "reachable": true,
+      "reason": "Not re-run as sticky success path; prior attempts 6977eeec / 9857dda0 remain; binary default glass_custom_modes false; live statsig-cache lacks gate string",
+      "customModeChrome": false,
+      "priorAttempts": [
+        "6977eeec-08bd-4829-810c-11d526d9f9fb",
+        "9857dda0-a74d-4546-b69e-1ff3528bdf3e"
+      ]
+    }
+  ]
+}

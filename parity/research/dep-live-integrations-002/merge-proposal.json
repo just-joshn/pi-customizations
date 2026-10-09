@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 1,
+  "unit": "u-dep-live-integrations-002",
+  "status": "proposal",
+  "createdAt": "2026-10-09T08:43:11Z",
+  "targets": {
+    "dependenciesJson": "parity/dependencies.json",
+    "progressMd": "parity/progress.md"
+  },
+  "canCloseLiveIntegrationsUnresolvedReference": false,
+  "canNarrowLiveIntegrationsUnresolvedReference": true,
+  "closeRationale": "Cannot close: environment-bound live surfaces remain unpaid (Benny/Slack, make-bot Generate/auth, third-party, CU cloud, enterprise).",
+  "narrowRationale": "Refresh after Automations create/open + webhook create progress. Remove SETUP-BENNY-CREATION-BOUNDARY-ENV from live-integrations blockers. Keep unresolvedReference. Do not set completeDependencyClosure true. Do not fabricate Slack/Generate/auth.",
+  "behavioralExerciseClaim": false,
+  "inventorySha256": "63ef7f8f4c35e3918556e787f22eb308666e5e8d0b444b41584524ce13b867d4",
+  "counts": {
+    "a_custody_complete": 275,
+    "b_environment_bound": 115,
+    "c_already_evidenced": 26
+  },
+  "reasonCounts": {
+    "inventory_or_doc_custody_without_live_exercise": 275,
+    "third_party_live_install_needs_operator_grant": 39,
+    "models_pricing_paired_via_setup_grok_xhigh_cap": 22,
+    "webhook_create_witnessed_generate_auth_unpaid": 9,
+    "automations_editor_save_or_activate_needs_operator_grant": 3,
+    "live_slack_needs_operator_grant": 44,
+    "automations_editor_create_handoff_evidenced": 4,
+    "webhook_routine_or_secret_live_needs_operator_grant": 20
+  },
+  "attemptIds": {
+    "url_editor": "f6e29fb7-5878-4c8c-841e-1538b39d1cf7",
+    "automate_handoff": "b60a705b-e2ea-40c4-adeb-7014fde433b4",
+    "webhook_create": "c345b7ed-5c24-424c-86c3-55211b7bf0c8",
+    "benny_editor_title": "475ab346-80a0-4d73-8ae1-d2b8042ee66f",
+    "benny_list": "e11d7225-4c8a-4c09-8f30-273e941a52d2",
+    "benny_title_reverify": "2c525e93-3392-4253-81ef-dd965fde2e7d",
+    "pi_creation_blocked": "f4c7eec5-6ac5-4431-b4b1-23c7e267dc96"
+  },
+  "evidence": [
+    "parity/research/dep-live-integrations-002/dispositions.json",
+    "parity/research/dep-live-integrations-002/summary.json",
+    "parity/briefs/reports/u-dep-live-integrations-002-report.md",
+    "parity/evidence/setup-benny/creation-boundary/web/f6e29fb7-5878-4c8c-841e-1538b39d1cf7/",
+    "parity/evidence/setup-benny/creation-boundary/agents-window/b60a705b-e2ea-40c4-adeb-7014fde433b4/",
+    "parity/evidence/make-bot-ui/automations-editor/c345b7ed-5c24-424c-86c3-55211b7bf0c8/",
+    "parity/evidence/make-bot-ui/auth-header-probe/475ab346-80a0-4d73-8ae1-d2b8042ee66f/",
+    "parity/evidence/setup-benny/creation-boundary/pi/f4c7eec5-6ac5-4431-b4b1-23c7e267dc96/"
+  ],
+  "proposedUnresolvedReferenceText": "Live integrations live-exercise remains open after u-dep-live-integrations-002 disposition at parity/research/dep-live-integrations-002/dispositions.json (inventory sha256 63ef7f8f4c35e3918556e787f22eb308666e5e8d0b444b41584524ce13b867d4; a_custody_complete=275, b_environment_bound=115, c_already_evidenced=26). Progress: Automations editor create/open paid (url f6e29fb7, /automate b60a705b, Benny Inactive+title e11d7225/475ab346); SETUP-BENNY-CREATION-BOUNDARY-ENV closed-env-resolved; webhook create witnessed (c345b7ed). Still unpaid: Benny/Slack valid-config + thread-safety; make-bot Generate auth + key store + probe; third-party live installs (Linear/Notion/GitHub/GitLab/Teams); CU cloud helper live exercise; enterprise policy observation. Pi Automations editor absent (f4c7eec5). No fabricated Slack posts, Generate auth, or invented update_state. completeDependencyClosure stays false.",
+  "keepOpenBlockers": [
+    {
+      "id": "BENNY-TRIAGE-VALID-CONFIG-ENV",
+      "note": "Valid Benny+Slack config and one granted test-thread reply unpaid."
+    },
+    {
+      "id": "SETUP-BENNY-THREAD-SAFETY-ENV",
+      "note": "Automations editor Save/Activate + Slack seven-checks unpaid."
+    },
+    {
+      "id": "MAKE-BOT-UI-KEY-SERVER-HOST",
+      "note": "Webhook create witnessed (c345b7ed); Generate auth + 0600 key store + probe unpaid (console locked)."
+    },
+    {
+      "id": "third-party-live-installs",
+      "note": "Linear/Notion/GitHub/GitLab/Teams live installs not exercised."
+    },
+    {
+      "id": "cursor-self-hosted-computer-use",
+      "note": "CU cloud helper live exercise unpaid (host edge)."
+    },
+    {
+      "id": "cursor-enterprise-integration-policy",
+      "note": "Enterprise Model Providers / Groups policy observation unpaid (host edge)."
+    }
+  ],
+  "closedEnvResolvedNotInBlockers": [
+    {
+      "id": "SETUP-BENNY-CREATION-BOUNDARY-ENV",
+      "status": "closed-env-resolved",
+      "note": "Removed from blockerMismatchIds. Requirement stays unverified (Pi f4c7eec5)."
+    }
+  ],
+  "ledgerEdits": {
+    "apply": false,
+    "note": "Worker must not edit ledgers. Coordinator applies if accepted.",
+    "unresolvedReferences": {
+      "action": "replace-matching",
+      "matchContains": "Live integrations live-exercise",
+      "newText": "Live integrations live-exercise remains open after u-dep-live-integrations-002 disposition at parity/research/dep-live-integrations-002/dispositions.json (inventory sha256 63ef7f8f4c35e3918556e787f22eb308666e5e8d0b444b41584524ce13b867d4; a_custody_complete=275, b_environment_bound=115, c_already_evidenced=26). Progress: Automations editor create/open paid (url f6e29fb7, /automate b60a705b, Benny Inactive+title e11d7225/475ab346); SETUP-BENNY-CREATION-BOUNDARY-ENV closed-env-resolved; webhook create witnessed (c345b7ed). Still unpaid: Benny/Slack valid-config + thread-safety; make-bot Generate auth + key store + probe; third-party live installs (Linear/Notion/GitHub/GitLab/Teams); CU cloud helper live exercise; enterprise policy observation. Pi Automations editor absent (f4c7eec5). No fabricated Slack posts, Generate auth, or invented update_state. completeDependencyClosure stays false."
+    },
+    "completeDependencyClosure": false,
+    "nodeEvidenceAppend": {
+      "node": "cursor-cli-host",
+      "paths": [
+        "parity/research/dep-live-integrations-002/dispositions.json",
+        "parity/research/dep-live-integrations-002/summary.json"
+      ]
+    }
+  }
+}

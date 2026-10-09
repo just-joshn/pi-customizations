@@ -1,0 +1,24 @@
+{
+  "attemptId": "cfb6dd2b-fced-47e0-a71f-948502bc0e96",
+  "unit": "u-make-bot-auth-header-retry-001",
+  "profile": "auth-header-retry",
+  "cursorOutcome": "host_blocked",
+  "blocker": "unsaved_changes_modal_blocked_list_and_handoff_then_screenshot_gap",
+  "listOpenSawPrefillError": true,
+  "listOpenSawUntitled": true,
+  "generateAuthHeaderClicked": false,
+  "keyStoredServerSide": false,
+  "savedByHarness": false,
+  "activatedByHarness": false,
+  "updateStateUsed": false,
+  "senderKeyInChatOrEvidence": false,
+  "crash": "no screenshot at h03-poll-27 after prefill-stuck Untitled through poll 26",
+  "priorWitnessGenerateVisible": "c345b7ed-5c24-424c-86c3-55211b7bf0c8",
+  "priorBlockedReentry": "beb9d748-5985-4d4c-a2ee-ca1224fe9a84",
+  "evidenceDir": "parity/evidence/make-bot-ui/auth-header-retry/cfb6dd2b-fced-47e0-a71f-948502bc0e96",
+  "notes": [
+    "OCR showed Automations > New Automation Untitled with prefill parse error and Unsaved Changes modal (Discard/Save).",
+    "AX Discard clicks did not clear the modal; parity-webhook-witness never appeared in list OCR.",
+    "Handoff polls 0-26 remained on the same Untitled/prefill surface."
+  ]
+}

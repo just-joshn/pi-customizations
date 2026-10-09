@@ -1,0 +1,7 @@
+ts	phase	decision	why	evidence	result
+2026-10-08T19:13:21Z	start	u-dep-closure-wave-003 start	focus bootstrap→manifest→commander→bun; document host blockers	parity/briefs/u-dep-closure-wave-003.md	open
+2026-10-08T19:13:21Z	frame	done when chain edges resolved or blocked, merge payload published, hashes VERIFIED, completeDependencyClosure false	falsifiable ACCEPTANCE	parity/briefs/u-dep-closure-wave-003.md	framed
+2026-10-08T19:13:21Z	design	resolve 4 tools-chain edges; keep 4 host/journey edges honest-unresolved	prior wave standard for declaration edges; new Bun compat+smoke for commander	parity/research/dep-closure-wave-001/merge-proposal.json	designed
+2026-10-08T19:13:21Z	harness	build_wave.py + verify_inventory_shasum.py	prove hashes against real files	parity/research/dep-closure-wave-003/verify-hashes.json	VERIFIED
+2026-10-08T19:13:21Z	edges	propose resolve 4 edges; keep computer-use enterprise team-kit cli-host open	evidence only	parity/research/dep-closure-wave-003/merge-proposal.json	4 resolve 4 blocked
+2026-10-08T19:13:21Z	refs	narrow Bun pin/compat and consumer-binding lines; do not claim completeDependencyClosure	standing orders forbid fabrication	parity/research/dep-closure-wave-003/merge-proposal.json	completeDependencyClosure false

@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "unit": "u-dep-audit-001",
+  "status": "merged",
+  "auditVerdict": "AUDITED_INCOMPLETE",
+  "target": "parity/dependencies.json",
+  "set": {
+    "closureAudited": true
+  },
+  "evidence": "parity/research/dep-audit-001/audit.md",
+  "basis": {
+    "independentAuditCompleted": true,
+    "wave001HashVerification": "VERIFIED",
+    "wave002HashVerification": "VERIFIED",
+    "directSampleCount": 10,
+    "directSampleVerification": "VERIFIED",
+    "auditPath": "parity/research/dep-audit-001/audit.md",
+    "sampleManifest": "parity/research/dep-audit-001/sample-sha256.txt"
+  },
+  "preserve": {
+    "parity/dependencies.json.unresolvedReferences": 11,
+    "parity/dependencies.json.unresolvedOrUnverifiedEdges": 8,
+    "parity/source-lock.json.status": "incomplete",
+    "parity/source-lock.json.cursorPlugins.completeDependencyClosure": false
+  },
+  "finding": {
+    "code": "DEPENDENCY_GRAPH_ASYMMETRY",
+    "edge": {
+      "from": "cursor-pstack",
+      "to": "source-tools-bootstrap"
+    },
+    "note": "The edge exists, but cursor-pstack.dependencies does not declare source-tools-bootstrap. Keep the edge and reconcile the node declaration in a later coordinator-owned ledger change."
+  },
+  "meaning": "closureAudited records completion of the independent audit. It does not claim complete dependency closure. Separate source-closure, unresolved-reference, and unresolved-edge gates remain blocked.",
+  "doNotEditInThisUnit": [
+    "parity/dependencies.json",
+    "parity/source-lock.json",
+    "parity/requirements.json",
+    "parity/mismatches.json",
+    "parity/progress.md"
+  ],
+  "mergedAt": "2026-10-08T19:04:57Z"
+}

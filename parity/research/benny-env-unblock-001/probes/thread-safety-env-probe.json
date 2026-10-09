@@ -1,0 +1,69 @@
+{
+  "scenario": "setup-benny-thread-safety",
+  "path": "seven-check-after-editor-save",
+  "requirementIds": [
+    "PSTACK-SETUP-BENNY-THREAD-SAFETY-001"
+  ],
+  "runnable": false,
+  "verdict": "blocker",
+  "checks": {
+    "setupBennySkillPresent": true,
+    "userBennyConfigPresent": false,
+    "bennySlackBotTokenEnv": false,
+    "slackBotTokenEnv": false,
+    "slackCliOnPath": true,
+    "slackCliDoctorTokenValid": true,
+    "slackApiAuthTestOk": false,
+    "automationsEditorAvailableInPtyHarness": false,
+    "cursorAgentHelpMentionsAutomationsEditor": false,
+    "slackMcpInteractiveAuthAvailableInThisAgent": false,
+    "configuredSlackActionsResolvableInHarness": false,
+    "liveSlackSevenCheckPostAllowedWithoutOwnerGate": false,
+    "designatedTestChannelConfigured": false
+  },
+  "missing": [
+    "no ~/.config/benny/configuration.yaml",
+    "no BENNY_SLACK_BOT_TOKEN or SLACK_BOT_TOKEN in environment",
+    "Automations editor / editor-save handoff unavailable in cursor-agent/pi PTY harness",
+    "Slack MCP interactive auth unavailable in this agent environment",
+    "slack api auth.test not_authed; no harness-usable Slack API session for a test channel",
+    "configured Slack read/post actions are placeholders, not harness-resolvable Cursor/Reference tools",
+    "no operator-designated Benny test channel / harmless-report fixture wired for seven checks",
+    "standing prefs forbid customer messages without explicit account-owner action (seven-check posts and enablement)"
+  ],
+  "attemptedSteps": [
+    {
+      "step": "Read setup-benny §8 and scenario setup-benny-thread-safety.json",
+      "result": "skill present; seven checks require live triage/repro on test channel after editor save"
+    },
+    {
+      "step": "Check ~/.config/benny/configuration.yaml",
+      "result": "absent"
+    },
+    {
+      "step": "Check BENNY_SLACK_BOT_TOKEN / SLACK_BOT_TOKEN env",
+      "result": "neither token env set"
+    },
+    {
+      "step": "Inspect cursor-agent --help for Automations editor / update_state / RoutinePrepare",
+      "result": "not mentioned; Automations editor unavailable in PTY harness"
+    },
+    {
+      "step": "Call plugin-slack-slack mcp_auth",
+      "result": "failed: Interactive MCP authentication is only available in the Cursor desktop IDE"
+    },
+    {
+      "step": "Run slack doctor",
+      "result": "CLI workspace credentials report Token status Valid (app-dev auth), not Benny bot wiring"
+    },
+    {
+      "step": "Run slack api auth.test (read-only)",
+      "result": "not_authed (CLI doctor credentials do not authorize slack api without bot/user token env or app project)"
+    },
+    {
+      "step": "Refuse live seven-check posts / enabling normal Benny traffic",
+      "result": "blocked by missing Automations editor path, missing Benny config/actions, and standing owner-gate on live Slack posts"
+    }
+  ],
+  "skillAcceptanceNote": "setup-benny §8 requires a real test channel or harmless report after Automations editor save, then all seven live checks before enabling normal Benny traffic. Fabricating check passes, stubbing Slack posts, or claiming an editor save in PTY would violate standing prefs and the capture brief."
+}

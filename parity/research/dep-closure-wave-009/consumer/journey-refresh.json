@@ -1,0 +1,156 @@
+{
+  "capturedAt": "2026-10-09T01:52:19Z",
+  "unit": "u-dep-closure-wave-009",
+  "priorMatrix": "parity/research/dep-closure-wave-007/consumer/journey-matrix.json",
+  "priorMatrixSha256": "0d007527cd8d70f9888776cdd5135151b8db34167af26f5820cae939fc743ed3",
+  "journeyCount": 6,
+  "journeys": [
+    {
+      "packageId": "npm:commander@14.0.0",
+      "activation": "runtime",
+      "consumerPath": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/orch/orch.ts",
+      "consumerSha256": "f091687df627a0b75fabd54af58945a9cd6c7039ef0622012ac9ed60cd8ec434",
+      "importOrLocator": "await import(\"commander\")",
+      "acceptanceJourney": "Paired Cursor+Pi journey exercising npm:commander@14.0.0 via parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/orch/orch.ts",
+      "pairedJourneyStatus": "closed",
+      "consumerSha256Refresh": "f091687df627a0b75fabd54af58945a9cd6c7039ef0622012ac9ed60cd8ec434",
+      "consumerByteLength": 15511,
+      "consumerHashMatchesPrior": true,
+      "evidenceHits": [],
+      "pair": "parity/evidence/consumer/pair-consumer-orch-help-1.json",
+      "attempts": {
+        "cursor": "076e12b0-fbfa-4ce8-be13-bc846be2c7cb",
+        "pi": "18ec805b-5b5c-4fbe-ae62-a3894eefedde"
+      },
+      "closedAt": "2026-10-09T02:15:00Z"
+    },
+    {
+      "packageId": "npm:commander@14.0.0",
+      "activation": "runtime",
+      "consumerPath": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/watch-pr/cli.ts",
+      "consumerSha256": "89c08863089181a232be782c4b2ed90a1552f44aeecb0dcb7aac2c623620e680",
+      "importOrLocator": "from \"commander\"",
+      "acceptanceJourney": "Paired Cursor+Pi journey exercising npm:commander@14.0.0 via parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/watch-pr/cli.ts",
+      "pairedJourneyStatus": "closed",
+      "consumerSha256Refresh": "89c08863089181a232be782c4b2ed90a1552f44aeecb0dcb7aac2c623620e680",
+      "consumerByteLength": 6983,
+      "consumerHashMatchesPrior": true,
+      "evidenceHits": [],
+      "pair": "parity/evidence/consumer/pair-consumer-watch-pr-help-1.json",
+      "attempts": {
+        "cursor": "fb68af79-fb9e-4e2e-b665-f01ed3cdede2",
+        "pi": "bbb6f903-9a40-46a1-9f97-50d5ed85512e"
+      },
+      "closedAt": "2026-10-09T02:11:01Z"
+    },
+    {
+      "packageId": "npm:bun-types@1.3.14",
+      "activation": "test/typecheck",
+      "consumerPath": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/package.json",
+      "consumerSha256": "d1f815091209d49763775cc188e8e06ff32d5fec648bffd2272bc25a165e87c3",
+      "importOrLocator": "scripts.test / bun-types",
+      "acceptanceJourney": "Paired Cursor+Pi journey exercising npm:bun-types@1.3.14 via parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/package.json",
+      "pairedJourneyStatus": "closed",
+      "consumerSha256Refresh": "d1f815091209d49763775cc188e8e06ff32d5fec648bffd2272bc25a165e87c3",
+      "consumerByteLength": 352,
+      "consumerHashMatchesPrior": true,
+      "evidenceHits": [],
+      "pair": "parity/evidence/consumer/pair-consumer-bun-test-1.json",
+      "attempts": {
+        "cursor": "607e4ca2-6c4c-466c-9af5-e930f9b84fb8",
+        "pi": "81a09133-81b4-46e9-8266-0c0617aab431"
+      },
+      "closedAt": "2026-10-09T02:46:53Z",
+      "closedByNote": "Not a distinct command from activation=test. package.json scripts.test is exactly bun test orch watch-pr; closed by the same pair-consumer-bun-test-1 pair."
+    },
+    {
+      "packageId": "npm:typescript@7.0.2",
+      "activation": "typecheck",
+      "consumerPath": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/package.json",
+      "consumerSha256": "d1f815091209d49763775cc188e8e06ff32d5fec648bffd2272bc25a165e87c3",
+      "importOrLocator": "scripts.typecheck = tsc --project watch-pr/tsconfig.json",
+      "acceptanceJourney": "Paired Cursor+Pi journey exercising npm:typescript@7.0.2 via parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/package.json",
+      "pairedJourneyStatus": "closed",
+      "consumerSha256Refresh": "d1f815091209d49763775cc188e8e06ff32d5fec648bffd2272bc25a165e87c3",
+      "consumerByteLength": 352,
+      "consumerHashMatchesPrior": true,
+      "evidenceHits": [],
+      "pair": "parity/evidence/consumer/pair-consumer-typecheck-1.json",
+      "attempts": {
+        "cursor": "7aecba32-e4a1-49a3-b9cd-63e418d531ac",
+        "pi": "08917c07-ed54-41ac-86df-6586133d009d"
+      },
+      "closedAt": "2026-10-09T02:08:21Z"
+    },
+    {
+      "packageId": "source-tools-bootstrap",
+      "activation": "install",
+      "acceptanceJourney": "Paired journey proving frozen bun install --frozen-lockfile and restart after install-key change",
+      "pairedJourneyStatus": "closed",
+      "evidenceHits": [],
+      "pair": "parity/evidence/consumer/pair-consumer-bootstrap-install-1.json",
+      "attempts": {
+        "cursor": "86de8b3f-95da-47f3-ac6f-c2575543249f",
+        "pi": "4d9f3f54-35b9-4b22-ab6c-936056420a67"
+      },
+      "closedAt": "2026-10-09T02:47:58Z",
+      "consumerPath": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bootstrap.ts",
+      "consumerSha256": "ccd2ed08fd9da9d0d942e5f2491cfc74bb92d8a08fa51755e0da1ac8de287361"
+    },
+    {
+      "packageId": "npm:bun-types@1.3.14",
+      "activation": "test",
+      "acceptanceJourney": "Paired journey proving bun test orch watch-pr under locked bun-types",
+      "pairedJourneyStatus": "closed",
+      "evidenceHits": [],
+      "pair": "parity/evidence/consumer/pair-consumer-bun-test-1.json",
+      "attempts": {
+        "cursor": "607e4ca2-6c4c-466c-9af5-e930f9b84fb8",
+        "pi": "81a09133-81b4-46e9-8266-0c0617aab431"
+      },
+      "closedAt": "2026-10-09T02:46:53Z",
+      "closedByNote": "bun run test under locked bun-types 1.3.14; same pair also closes the non-distinct test/typecheck row"
+    }
+  ],
+  "journeysStillOpenCount": 0,
+  "localSmokes": [
+    {
+      "id": "orch-help",
+      "command": [
+        "bun",
+        "run",
+        "orch/orch.ts",
+        "--help"
+      ],
+      "exitCode": 0,
+      "stdoutTail": "alse)\n  -h, --help     display help for command\n\nCommands:\n  init           initialize the store\n  unit           manage work units\n  ledger         manage verification records\n  inbox          manage agent pointers\n  gate           manage decision gates\n  frontier       manage the Graphite stack frontier\n  status         render status.md and print a summary\n  standing       manage standing orders"
+    },
+    {
+      "id": "tools-typecheck",
+      "command": [
+        "bun",
+        "run",
+        "typecheck"
+      ],
+      "exitCode": 0,
+      "stderrTail": "$ tsc --project watch-pr/tsconfig.json --noEmit --strict"
+    },
+    {
+      "id": "bun-test-orch-watch-pr",
+      "command": [
+        "bun",
+        "test",
+        "orch",
+        "watch-pr"
+      ],
+      "exitCode": 0,
+      "stdoutTail": "bun test v1.4.2 (744846f84)",
+      "stderrTail": "ame verdict only [0.10ms]\n(pass) main > returns EX_USAGE 64 and writes usage errors only to stderr [0.07ms]\n(pass) main > bypasses the queue machine for queued-stack status-only [0.28ms]\n(pass) main > returns exit 4 for a hidden GitHub-side CI refusal [0.15ms]\n(pass) main > shows help without touching the reader [1.42ms]\n\n 52 pass\n 0 fail\n 206 expect() calls\nRan 52 tests across 4 files. [911.00ms]",
+      "note": "Local bun test under locked bun-types. Not a paired Cursor+Pi acceptance journey."
+    }
+  ],
+  "pairedAcceptanceStatus": "complete",
+  "disposition": "Wave-009 consumer matrix: 6/6 paired journeys closed (orch --help, watch-pr --help, typecheck, bun-test covering both bun-types rows, bootstrap frozen install). unresolvedReference for this consumer family is ready to remove once the coordinator merges.",
+  "blockerForPairedAcceptance": null,
+  "waveConsumerPairNote": "u-dep-consumer-journeys-003 closed remaining 3/3 open rows (bun-types test + non-distinct test/typecheck via one pair; source-tools-bootstrap install); total closed 6/6"
+}

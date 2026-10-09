@@ -1,0 +1,19 @@
+{
+  "unit": "u-mode-sticky-desktop-ready-001",
+  "capturedAt": "2026-10-09T06:10:00Z",
+  "desktopShareReady": true,
+  "computerUseReady": true,
+  "stickyReached": true,
+  "cursorAttemptId": "521ce15e-a8f8-4f74-8fec-208ceddb7603",
+  "piAttemptId": "96494327-f90c-470a-8e11-cf7c5b6cad89",
+  "pairPath": "parity/evidence/mode-sticky/pair-mode-sticky-1.json",
+  "pairStatus": "pass-paired",
+  "mergeRecommendation": {
+    "canCloseMismatch": true,
+    "targets": [
+      "MODE-STICKY-CURSOR-CUSTOM-MODE-HARNESS",
+      "PSTACK-MODE-STICKY-001"
+    ],
+    "note": "Cursor Agents Window sticky Custom Mode measured; Pi crown sticky half revalidated. Coordinator merges ledgers."
+  }
+}

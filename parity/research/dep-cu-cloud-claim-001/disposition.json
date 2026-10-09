@@ -1,0 +1,45 @@
+{
+  "unit": "u-dep-cu-cloud-claim-001",
+  "ts": "2026-10-09T06:36:13Z",
+  "verdict": "ready-yes-attempt-ids-no",
+  "setStatusResolved": false,
+  "attemptIds": [],
+  "workerId": "0400ae0d-aa5c-4949-a4b8-88e40cd9611a",
+  "readyRecheck": {
+    "accessibility": true,
+    "screenRecording": true,
+    "desktopShare": {
+      "mode": "view_and_control",
+      "ready": true,
+      "guiSession": true,
+      "consoleUidMatch": true,
+      "screenLocked": false
+    }
+  },
+  "localLiveEvidence": {
+    "path": "parity/evidence/computer-use/live-001/",
+    "marker": "CU_LIVE_001_177e3351",
+    "status": "retained-as-real"
+  },
+  "cloudClaim": {
+    "cursorApiKeyEnv": false,
+    "keychainAccessTokenPresent": true,
+    "keychainAccessTokenLen": 413,
+    "tokenPrefixClass": "jwt-like",
+    "apiCursorComListAgents": {
+      "auth": ["bearer", "basic"],
+      "status": 401,
+      "message": "Invalid User API Key"
+    },
+    "postCreate": "skipped-no-owner-spend-grant",
+    "probe": "parity/research/dep-cu-cloud-claim-001/cloud-claim-probe.json"
+  },
+  "nonSpendPathsTried": [
+    "GET https://api.cursor.com/v0/agents?limit=5 with keychain session token (Bearer and Basic)",
+    "Search local worker logs and ~/.cursor for existing bc_* / claim attempt IDs",
+    "Confirm workerId registration and worker-server process liveness",
+    "Scan orch inbox/gates for pre-existing account-owner spend or API-key grant"
+  ],
+  "blocker": "No User API Key on machine. Session token is not accepted by Cloud Agents API v0. Paid dashboard create refused without owner grant. Edge stays unresolved until claim attempt IDs exist.",
+  "note": "workerId is not an attempt ID. Local Helper MCP live-001 proves desktop control only."
+}

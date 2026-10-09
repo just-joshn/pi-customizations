@@ -1,0 +1,5 @@
+DISPLAY=<unset>
+screencapture.ok=false
+screencapture.out=could not create image from display
+Command failed: screencapture -x /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/mode-sticky-cursor-app-001/host-probe/02-desktop.png
+could not create image from display

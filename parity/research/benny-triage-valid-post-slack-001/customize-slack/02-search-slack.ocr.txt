@@ -1,0 +1,82 @@
+V New Chat
+Search
+• Automations
+Bº Customize
+Projects
++ New Project
+Pinned
+• /make-bot-ui
+Repositories
+A No Repo
+Parity webhook witness
+Cursor automation setup
+Cursor automation setup
+Cursor automation setup
+Cursor automation setup
+Automation setup instruction
+/make-bot-ui
+/automate
+/automate
+Sticky mode activation
+/poteto-mode
+9h
+C7
+1h
+8h
+sh
+9h
+9h
+9h
+9h
+9h
+9h
+10h
+11h
+Getting Started
+* Connect Slack
+Joshua Humphrev
+3/3 0
+IDE 7
+Q Search Plugins, Skills, MCPs….
+Joshua Humphrey
+Browse Marketplace
+Plugins
+MCPs
+Skills
+Subagents
+Rules
+Commands
+Needs Attention 1
+gmail Plugin
+Authenticate
+Slack
+All
+Projects
+Agents
+Files
+Actions
+Settings
+Agents
+Cursor automation setup
+Home
+trigger (do not attach Slack; do not post to Slack). No tools. Instructions must say: read...
+8h
+Cursor automation setup
+Home 9h
+trigger (do not attach Slack; do not post to Slack). No tools. Instructions must say: read...
+Cursor automation setup
+Home 9h
+trigger (do not attach Slack; do not post to Slack). No tools. Instructions must say: read...
+Cursor automation setup
+webhook (not cron, not Slack, not git). No tools. Instructions: treat the POST body as u...
+Home
+8h
+Parity webhook witness O
+webhook (not cron, not Slack, not git). No tools. Instructions: treat the POST body ...
+workspace
+1h
+Skills
+• slack-api
+@ slack-cli
+slack-docs
+1 Select Open 1 or 21 Change Filter

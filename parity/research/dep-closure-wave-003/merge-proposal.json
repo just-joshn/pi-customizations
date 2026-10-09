@@ -1,0 +1,223 @@
+{
+  "schemaVersion": 1,
+  "unit": "u-dep-closure-wave-003",
+  "status": "merged",
+  "createdAt": "2026-10-08T19:13:21Z",
+  "targets": {
+    "dependenciesJson": "parity/dependencies.json",
+    "sourceLockJson": "parity/source-lock.json"
+  },
+  "closureAudited": true,
+  "closureAuditedNote": "Leave closureAudited true. Prior independent audit remains the audit evidence. This wave does not re-audit.",
+  "completeDependencyClosure": false,
+  "completeDependencyClosureNote": "Do not claim completeDependencyClosure. Host computer-use/enterprise edges, unverified journey edges, and Bun version pin remain open.",
+  "dependencies": {
+    "nodeMutations": [
+      {
+        "id": "source-tools-bootstrap",
+        "set": {
+          "dependenciesEnumerated": true,
+          "readingEvidence": [
+            "parity/research/dep-closure-wave-003/read-inventory.json",
+            "parity/research/dep-closure-wave-003/nodes/source-tools-bootstrap.md"
+          ]
+        },
+        "evidence": [
+          "parity/research/dep-closure-wave-003/read-inventory.json",
+          "parity/research/dep-closure-wave-003/nodes/source-tools-bootstrap.md"
+        ],
+        "disposition": "Install-key over package.json+bun.lock and commander presence gate establish enumerated deps source-tools-manifest and source-bun-runtime."
+      },
+      {
+        "id": "source-tools-manifest",
+        "set": {
+          "dependenciesEnumerated": true,
+          "readingEvidence": [
+            "parity/research/dep-closure-wave-003/read-inventory.json",
+            "parity/research/dep-closure-wave-003/consumer-binding.json",
+            "parity/research/dep-closure-wave-003/nodes/source-tools-manifest.md"
+          ]
+        },
+        "evidence": [
+          "parity/research/dep-closure-wave-003/read-inventory.json",
+          "parity/research/dep-closure-wave-003/consumer-binding.json"
+        ],
+        "disposition": "Manifest and lock enumerate commander runtime plus bun-types/typescript typecheck deps. Consumer binding recorded."
+      },
+      {
+        "id": "source-bun-runtime",
+        "set": {
+          "dependenciesEnumerated": true,
+          "readingEvidence": [
+            "parity/research/dep-closure-wave-003/read-inventory.json",
+            "parity/research/dep-closure-wave-003/bun/official-capture.json",
+            "parity/research/dep-closure-wave-003/nodes/source-bun-runtime.md"
+          ]
+        },
+        "evidence": [
+          "parity/research/dep-closure-wave-003/read-inventory.json",
+          "parity/research/dep-closure-wave-003/bun/official-capture.json",
+          "parity/research/dep-closure-wave-003/bun/commander-smoke.txt"
+        ],
+        "disposition": "No further npm dependencies. Official Bun version pin remains unresolved. Node-builtin compatibility for commander inputs evidenced by official docs plus local smoke."
+      },
+      {
+        "id": "npm:commander@14.0.0",
+        "set": {
+          "readingEvidence": [
+            "parity/research/npm/commander-14.0.0/read-inventory.json",
+            "parity/research/dep-closure-wave-003/read-inventory.json",
+            "parity/research/dep-closure-wave-003/bun/commander-smoke.txt"
+          ]
+        },
+        "evidence": [
+          "parity/research/dep-closure-wave-003/read-inventory.json",
+          "parity/research/dep-closure-wave-003/bun/commander-smoke.txt",
+          "parity/research/dep-closure-wave-003/consumer-binding.json"
+        ],
+        "disposition": "Installed package.json matches tarball. Consumers and Bun smoke recorded. Edge to source-bun-runtime proposed resolved without inventing a Bun pin."
+      }
+    ],
+    "edgeMutations": [
+      {
+        "from": "cursor-pstack",
+        "to": "source-tools-bootstrap",
+        "set": {
+          "status": "resolved"
+        },
+        "evidence": [
+          "parity/research/dep-closure-wave-003/read-inventory.json",
+          "parity/research/dep-closure-wave-003/nodes/cursor-pstack__source-tools-bootstrap.md"
+        ],
+        "note": "watch-pr and orch.ts call ensureDependenciesInstalled before CLI import. Pi installed-lifecycle parity still unverified."
+      },
+      {
+        "from": "source-tools-bootstrap",
+        "to": "source-tools-manifest",
+        "set": {
+          "status": "resolved"
+        },
+        "evidence": [
+          "parity/research/dep-closure-wave-003/read-inventory.json",
+          "parity/research/dep-closure-wave-003/nodes/source-tools-bootstrap.md"
+        ],
+        "note": "bootstrap.ts hashes package.json and bun.lock as the install key and runs bun install --frozen-lockfile in the scripts directory."
+      },
+      {
+        "from": "source-tools-manifest",
+        "to": "npm:commander@14.0.0",
+        "set": {
+          "status": "resolved"
+        },
+        "evidence": [
+          "parity/research/dep-closure-wave-003/read-inventory.json",
+          "parity/research/dep-closure-wave-003/consumer-binding.json",
+          "parity/reference/npm/commander-14.0.0/package.tgz"
+        ],
+        "note": "Manifest dependencies.commander=14.0.0; bun.lock integrity matches captured tarball; bootstrap gates on commander/package.json."
+      },
+      {
+        "from": "npm:commander@14.0.0",
+        "to": "source-bun-runtime",
+        "set": {
+          "status": "resolved"
+        },
+        "evidence": [
+          "parity/research/dep-closure-wave-003/read-inventory.json",
+          "parity/research/dep-closure-wave-003/bun/official-capture.json",
+          "parity/research/dep-closure-wave-003/bun/commander-smoke.txt"
+        ],
+        "note": "Consumers run under Bun shebang; official Node.js compatibility docs cover required builtins; local bun 1.4.2 smoke and orch help test pass. Exact Bun version pin remains unresolved as a separate reference."
+      }
+    ],
+    "honestUnresolvedEdges": [
+      {
+        "from": "cursor-cli-host",
+        "to": "cursor-self-hosted-computer-use",
+        "keepStatus": "unresolved",
+        "evidence": [
+          "parity/research/continuation/computer-use.md",
+          "parity/research/dep-closure-wave-003/nodes/host-edge-disposition__computer-use-enterprise.md"
+        ],
+        "blocker": "Public docs only. macOS helper identity/privacy grants, Linux display/desktop services, and sharing transport are environment-bound and were not exercised."
+      },
+      {
+        "from": "cursor-cli-host",
+        "to": "cursor-enterprise-integration-policy",
+        "keepStatus": "unresolved",
+        "evidence": [
+          "parity/research/continuation/model-management.md",
+          "parity/research/dep-closure-wave-003/nodes/host-edge-disposition__computer-use-enterprise.md"
+        ],
+        "blocker": "Public docs only. Live team/org policy enforcement and CLI applicability were not observed. Standing orders forbid broad allowlist or authorization changes."
+      },
+      {
+        "from": "cursor-pstack",
+        "to": "cursor-team-kit",
+        "keepStatus": "unverified",
+        "evidence": [
+          "parity/reviews/source-discovery.md"
+        ],
+        "blocker": "Distribution custody exists. Complete source and paired journey closure for the full skill set is not shown."
+      },
+      {
+        "from": "cursor-pstack",
+        "to": "cursor-cli-host",
+        "keepStatus": "unverified",
+        "evidence": [
+          "parity/reviews/source-discovery.md"
+        ],
+        "blocker": "Persistent-mode editor actions (Option/Alt+Enter) and later-turn behavior still need paired Cursor+Pi runtime evidence."
+      }
+    ],
+    "unresolvedReferences": {
+      "removeIfPresent": [
+        "Bind each package to runtime versus test/typecheck consumers before acceptance.",
+        "Official Bun runtime version pin and Node-builtin compatibility under source-bun-runtime remain unresolved.",
+        "Official Bun runtime version pin under source-bun-runtime remains unresolved after capture at parity/research/dep-closure-wave-002/bun/official-capture.json."
+      ],
+      "add": [
+        "Official Bun runtime version pin under source-bun-runtime remains unresolved after wave-003 capture at parity/research/dep-closure-wave-003/bun/official-capture.json (local 1.4.2 only; no tools lock pin).",
+        "Tools package consumer binding recorded at parity/research/dep-closure-wave-003/consumer-binding.json (commander runtime; bun-types/typescript test/typecheck). Broader acceptance journeys remain open.",
+        "cursor-cli-host edges to computer-use and enterprise policy remain unresolved after wave-003 public-doc re-hash; runtime services closed or environment-bound.",
+        "Node-builtin compatibility for commander runtimeCompatibilityInputs evidenced under local bun 1.4.2 and official Bun nodejs-compat docs at parity/research/dep-closure-wave-003/bun/; not a substitute for an official Bun version pin."
+      ],
+      "keep": [
+        "Required live integrations, cloud services, automation editor, models and supporting tools.",
+        "Recursive references in inspected sources still require complete extraction and audit.",
+        "Fetch exact registry metadata and tarballs, verify integrity and licenses, inspect relevant contracts and transitive dependencies.",
+        "Determine runtime/platform prerequisites from official Bun and package contracts.",
+        "Audit all platform-conditional branches, including literal cpu/os none entries in this lock.",
+        "cursor-create-skill subordinate workflows and journey audit remain open after SKILL.md capture at parity/research/dep-closure-wave-001/nodes/cursor-create-skill/SKILL.md.",
+        "npm:typescript@7.0.2 full tree file hashes captured at parity/research/dep-closure-wave-002/npm/typescript@7.0.2/file-inventory.json; semantic per-file contract audit still open."
+      ],
+      "note": "Resolve tools-chain graph edges and consumer binding. Keep Bun pin, host environment-bound edges, and journey items open."
+    }
+  },
+  "sourceLock": {
+    "cursorPlugins.completeDependencyClosure": {
+      "set": false,
+      "note": "Leave false. Four host/journey edges and Bun pin remain open."
+    }
+  },
+  "remainingGaps": [
+    "cursor-cli-host → computer-use and enterprise-policy stay unresolved (environment-bound).",
+    "cursor-pstack → cursor-team-kit and cursor-cli-host stay unverified (journey evidence).",
+    "Official Bun version pin under source-bun-runtime stays unresolved.",
+    "typescript semantic per-file audit still open.",
+    "completeDependencyClosure must stay false."
+  ],
+  "doNotEdit": [
+    "parity/dependencies.json",
+    "parity/source-lock.json",
+    "parity/requirements.json",
+    "parity/mismatches.json",
+    "parity/progress.md"
+  ],
+  "inventoryDigest": {
+    "path": "parity/research/dep-closure-wave-003/read-inventory.json",
+    "sourceCount": 14,
+    "bunCapture": "5ee498723663e81c9be95b25e3396d991276c8b1388a6a798f68b446e5833b27"
+  },
+  "mergedAt": "2026-10-08T19:13:21Z"
+}

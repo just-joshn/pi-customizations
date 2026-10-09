@@ -1,0 +1,173 @@
+{
+  "brief": "u-acceptance-creation-boundary-freeze-prep-001",
+  "requirementId": "PSTACK-SETUP-BENNY-CREATION-BOUNDARY-001",
+  "measuredAt": "2026-10-09T08:45:00Z",
+  "hashTool": "shasum -a 256",
+  "attempts": {
+    "cursorList": {
+      "id": "e11d7225-4c8a-4c09-8f30-273e941a52d2",
+      "role": "Cursor Mine list. Inactive benny-triage present.",
+      "paid": true,
+      "dir": "parity/evidence/setup-benny/creation-boundary/agents-window/e11d7225-4c8a-4c09-8f30-273e941a52d2/"
+    },
+    "cursorEditorTitle": {
+      "id": "475ab346-80a0-4d73-8ae1-d2b8042ee66f",
+      "role": "Cursor same-frame Automations editor titled benny-triage (collateral make-bot path).",
+      "paid": true,
+      "dir": "parity/evidence/make-bot-ui/auth-header-probe/475ab346-80a0-4d73-8ae1-d2b8042ee66f/"
+    },
+    "cursorEditorTitleReverify": {
+      "id": "2c525e93-3392-4253-81ef-dd965fde2e7d",
+      "role": "OCR/AX re-verify of 475ab346 h04-final frame. editorTitleWitnessed=true.",
+      "paid": true,
+      "dir": "parity/evidence/setup-benny/creation-boundary/agents-window/2c525e93-3392-4253-81ef-dd965fde2e7d/"
+    },
+    "piFresh": {
+      "id": "f4c7eec5-6ac5-4431-b4b1-23c7e267dc96",
+      "role": "Fresh Pi PTY. STATUS=env-blocked. No Automations editor.",
+      "paid": false,
+      "dir": "parity/evidence/setup-benny/creation-boundary/pi/f4c7eec5-6ac5-4431-b4b1-23c7e267dc96/"
+    },
+    "piHistorical": {
+      "id": "cd378e36-ef2e-4810-ae5d-74a5169f204c",
+      "role": "Prior Pi env note. Superseded for freshness by f4c7eec5.",
+      "paid": false
+    }
+  },
+  "env": {
+    "SETUP-BENNY-CREATION-BOUNDARY-ENV": "closed-env-resolved",
+    "automationsEditorUiAvailableInPiPty": false,
+    "probePath": "parity/evidence/setup-benny/creation-boundary/host-env-probe.json",
+    "probeProbedAt": "2026-10-09T08:24:22.570Z"
+  },
+  "custodyPack": {
+    "path": "parity/research/acceptance-custody-pack-001/",
+    "definitionsSha256": "e576101783702498af089397c1fea80b8b688fd303a3ec78f8df5e6e66a1afe5",
+    "configurationsSha256": "9eea368548c2d990e426c6a8466a0a8d03e98bd8436e639eaefa6d838a8d8a4e",
+    "note": "Pack is operator handoff only. Does not authorize freeze. G3 still unpaid."
+  },
+  "artifacts": [
+    {
+      "path": "parity/evidence/setup-benny/creation-boundary/host-env-probe.json",
+      "sha256": "08b8b4439c783c789a1a5e4c0b2e5067897adb047fb1faa1074270821e744b4c",
+      "attemptRefs": ["f4c7eec5"]
+    },
+    {
+      "path": "parity/evidence/setup-benny/creation-boundary/agents-window/e11d7225-4c8a-4c09-8f30-273e941a52d2/meta.json",
+      "sha256": "bc2ece4440d6a65a2555bef5365c99d643a2ad7dd0a1f2072d6d630baabe022b",
+      "attemptRefs": ["e11d7225"]
+    },
+    {
+      "path": "parity/evidence/setup-benny/creation-boundary/agents-window/e11d7225-4c8a-4c09-8f30-273e941a52d2/screen-07-poll-28.png.ocr.txt",
+      "sha256": "7c016ac21bdcb85542dd6499ddc42a22ab86e69d6dc01a809db829cdfb8af719",
+      "attemptRefs": ["e11d7225"]
+    },
+    {
+      "path": "parity/evidence/setup-benny/creation-boundary/agents-window/e11d7225-4c8a-4c09-8f30-273e941a52d2/screen-08-final.png.ocr.txt",
+      "sha256": "b795c06ae51c23b308c411df05dc4fda4b098f0f80d553327cf34454161a2d31",
+      "attemptRefs": ["e11d7225"]
+    },
+    {
+      "path": "parity/evidence/make-bot-ui/auth-header-probe/475ab346-80a0-4d73-8ae1-d2b8042ee66f/disposition.json",
+      "sha256": "c1276b4ceb7b0c92d1c369865dfd7ef928013b8fe4eea8dc381dbd27910487b5",
+      "attemptRefs": ["475ab346"]
+    },
+    {
+      "path": "parity/evidence/make-bot-ui/auth-header-probe/475ab346-80a0-4d73-8ae1-d2b8042ee66f/h04-final.png",
+      "sha256": "864c7278677031ef9dba2958b8825f5dfceca2a47ec07ad0fcefc98c44728c0b",
+      "attemptRefs": ["475ab346", "2c525e93"]
+    },
+    {
+      "path": "parity/evidence/make-bot-ui/auth-header-probe/475ab346-80a0-4d73-8ae1-d2b8042ee66f/h04-final.png.ocr-recheck.txt",
+      "sha256": "909c33249ba1dec8ad7909ef9fca0a772c2eb33b9a4dd3d6d9f50b1c5149904a",
+      "attemptRefs": ["475ab346"]
+    },
+    {
+      "path": "parity/evidence/setup-benny/creation-boundary/agents-window/2c525e93-3392-4253-81ef-dd965fde2e7d/editor-title-oracle.json",
+      "sha256": "0aaa1f0ab5bba5afdbb9dd9530aa7393a36a46471eb3c9572015ffd785dde2b3",
+      "attemptRefs": ["2c525e93", "475ab346"]
+    },
+    {
+      "path": "parity/evidence/setup-benny/creation-boundary/agents-window/2c525e93-3392-4253-81ef-dd965fde2e7d/disposition.json",
+      "sha256": "c1276b4ceb7b0c92d1c369865dfd7ef928013b8fe4eea8dc381dbd27910487b5",
+      "attemptRefs": ["2c525e93"],
+      "note": "Copy of 475ab346 disposition under re-verify dir (same digest)."
+    },
+    {
+      "path": "parity/evidence/setup-benny/creation-boundary/agents-window/2c525e93-3392-4253-81ef-dd965fde2e7d/h04-final.png",
+      "sha256": "864c7278677031ef9dba2958b8825f5dfceca2a47ec07ad0fcefc98c44728c0b",
+      "attemptRefs": ["2c525e93", "475ab346"],
+      "note": "Byte-identical to 475ab346 h04-final.png."
+    },
+    {
+      "path": "parity/evidence/setup-benny/creation-boundary/agents-window/2c525e93-3392-4253-81ef-dd965fde2e7d/h04-final.png.ocr.txt",
+      "sha256": "909c33249ba1dec8ad7909ef9fca0a772c2eb33b9a4dd3d6d9f50b1c5149904a",
+      "attemptRefs": ["2c525e93"]
+    },
+    {
+      "path": "parity/evidence/setup-benny/creation-boundary/pi/f4c7eec5-6ac5-4431-b4b1-23c7e267dc96/identity.json",
+      "sha256": "4b54646e6f8beaa1f288c4e1d18557a748d08e7f89cc40036c2b41e621cb997b",
+      "attemptRefs": ["f4c7eec5"]
+    },
+    {
+      "path": "parity/evidence/setup-benny/creation-boundary/pi/f4c7eec5-6ac5-4431-b4b1-23c7e267dc96/events.jsonl",
+      "sha256": "74534b0cb48f952c86c3258ea22489e76d268d6bb50cba26cb0f77bd866bee33",
+      "attemptRefs": ["f4c7eec5"]
+    },
+    {
+      "path": "parity/evidence/setup-benny/creation-boundary/pi/done-copy.txt",
+      "sha256": "c33f6c14219b9d271ffa276be38bdf9d3daf1a57baf115d45ebe9a12727a86b1",
+      "attemptRefs": ["f4c7eec5"]
+    },
+    {
+      "path": "parity/evidence/setup-benny/creation-boundary/pi/screen-04-settled.txt",
+      "sha256": "23ba7e785a7f9cd4cdc466315397031c1de9d8d23437f001b9d3d74ae66bce38",
+      "attemptRefs": ["f4c7eec5"]
+    },
+    {
+      "path": "parity/evidence/setup-benny/creation-boundary/pi/observations.json",
+      "sha256": "e2e1f2d3995b4ad9396cb383419f09d3eddc8633d6527b2d9307dc921c8fec6e",
+      "attemptRefs": ["f4c7eec5"]
+    },
+    {
+      "path": "parity/research/setup-benny-creation-pi-001/disposition.json",
+      "sha256": "e6d7b9afe76c11d21847b438f97b6d8687aaf1f8958caf1f517bfc13c0826289",
+      "attemptRefs": ["f4c7eec5", "e11d7225", "475ab346", "2c525e93"]
+    },
+    {
+      "path": "parity/research/setup-benny-editor-title-001/disposition.json",
+      "sha256": "447dae47e0b7b518af27ba3fc65bd12e994c005907c924e10d47063da864e61a",
+      "attemptRefs": ["475ab346", "2c525e93", "e11d7225"]
+    },
+    {
+      "path": "parity/research/acceptance-custody-pack-001/pack/definitions.json",
+      "sha256": "e576101783702498af089397c1fea80b8b688fd303a3ec78f8df5e6e66a1afe5",
+      "attemptRefs": []
+    },
+    {
+      "path": "parity/research/acceptance-custody-pack-001/pack/configurations.json",
+      "sha256": "9eea368548c2d990e426c6a8466a0a8d03e98bd8436e639eaefa6d838a8d8a4e",
+      "attemptRefs": []
+    },
+    {
+      "path": "parity/research/acceptance-custody-pack-001/pack/MANIFEST.sha256",
+      "sha256": "0167b5d26e9dbff66da504112de84d551fdf83c828388787322124a035f2472a",
+      "attemptRefs": []
+    },
+    {
+      "path": "parity/briefs/reports/u-journey-setup-benny-creation-pi-001-report.md",
+      "sha256": "cf87fefb749619dfb0267670dcff93582569f3b8561db31c31edc98575d39d97",
+      "attemptRefs": ["f4c7eec5"]
+    },
+    {
+      "path": "parity/briefs/reports/u-journey-setup-benny-editor-title-001-report.md",
+      "sha256": "d674ac72230ecb8e524d663700e4e3bae5bb3a32124b924f6d63c952e0fa2ab9",
+      "attemptRefs": ["475ab346", "2c525e93"]
+    },
+    {
+      "path": "parity/briefs/reports/u-journey-setup-benny-creation-handoff-001-report.md",
+      "sha256": "1779fdae9f6f5133e53841e2d0787e025a89a2761edd6834dfaf85f3b866ebb4",
+      "attemptRefs": ["e11d7225"]
+    }
+  ]
+}

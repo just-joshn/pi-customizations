@@ -1,0 +1,492 @@
+===== 27-slash-poteto.png =====
+New Chat
+Search
+Automations
+n° Customize
+Projects
++ New Project
+Pinned
+• /poteto-mode
+1h
+Repositories
+Poteto Mode
+User skill
+poteto's agent style for concise, detailed
+responses, deliberate subagents,
+unslopped prose, simple code, and verified
+work. Use for poteto, /poteto-mode, or
+requests to work in this style.
+Getting Started
+3/3 O
+* Connect Slack
+Joshua Humphrey
+IDE A -.. •
+Start from scratch v • This Mac v
+/poteto-mode
+Auto v
+poteto-mode
+poteto's agent style for concise, detailed responses, delib... Te to Use as Mode
+poteto-mode
+poteto's agent style for concise, detailed responses, deliberate subagents, u...
+poteto-agent Routing target for /poteto-mode and any request for poteto's style. Continue...
+poteto-help ...ough pstack setup, /poteto-mode, and picking the skill, playbook, or principl...
+Start with a plan Align on implementation before writing code
+Debug an issue Find root causes and fix tricky bugs
+Import your Claude Code conversations
+Sync your chats and continue them in Cursor
+
+===== 28-after-alt-Return.png =====
+V New Chat
+Search
+Automations
+B° Customize
+Projects
++ New Project
+Pinned
+• /poteto-mode
+Repositories
+Getting Started
+* Connect Slack
+Joshua Humphrey
+1h
+3/3 O
+IDE A -.. •
+Start from scratch v • This Mac v
+Plan, Build, / for skills, @ for context
+* poteto-mode X
+Auto v
+Plan New Idea © Tab
+Build from a design Turn a frame into working Ul in this repo
+Deploy my prototype Put it on a live link anyone can open
+Start with a plan Align on implementation before writing code
+Debug an issue Find root causes and fix tricky bugs
+Import your Claude Code conversations
+Sync your chats and continue them in Cursor
+
+===== 30-first-task-typed.png =====
+V New Chat
+Search
+Automations
+Customize
+Projects
++ New Project
+Pinned
+• /poteto-mode
+Repositories
+Getting Started
+* Connect Slack
+Joshua Humphrey
+1h
+3/3 O
+IDE A ••• •
+Start from scratch v • This Mac v
+Reply with exactly the three words: sticky mode on. Do no other work.
+* poteto-mode X
+Auto v
+Plan New Idea © Tab
+Build from a design Turn a frame into working Ul in this repo
+Deploy my prototype Put it on a live link anyone can open
+Start with a plan Align on implementation before writing code
+Debug an issue Find root causes and fix tricky bugs
+Import your Claude Code conversations
+Sync your chats and continue them in Cursor
+
+===== 32-after-first-turn.png =====
+Sticky mode activation E
+IDE A •• •
+V New Chat
+• Search
+Automations
+B° Customize
+Reply with exactly the three words: sticky mode on. Do no other work.
+Thought 1s
+sticky mode on
+On Home
++ Browser
+• Terminal
+• Files
+Projects
++ New Project
+Pinned
+• /poteto-mode
+1h
+Repositories
+G No Repo
+Sticky mode activation
+1m
+Getting Started
+3/3 O
+* Connect Slack
+Joshua Humphrey
+* poteto-mode *
+• This Mac v
+Send follow-up
+Auto - 9
+
+===== 33-followup-typed.png =====
+Sticky mode activation E
+IDE A •• •
+V New Chat
+• Search
+Automations
+B° Customize
+Reply with exactly the three words: sticky mode on. Do no other work.
+On Home
++ Browser
+• Terminal
+• Files
+Thought 1s
+sticky mode on
+• • Y 1m ago
+Projects
++ New Project
+Pinned
+• /poteto-mode
+1h
+Repositories
++ No Repo
+Sticky mode activation
+1m
+Getting Started
+3/3 O
+* Connect Slack
+Joshua Humphrey
+* poteto-mode x
+• This Mac v
+Reply with exactly the digit 7. Do no other work.t
+Auto v •
+
+===== 35-final.png =====
+Sticky mode activation E
+IDE A •• •
+V New Chat
+Search
+Automations
+B° Customize
+Reply with exactly the three words: sticky mode on. Do no other work.
+sticky mode on
+O Y
+On Home
++ Browser
+• Terminal
+• Files
+Projects
++ New Project
+Reply with exactly the digit 7. Do no other work.t
+Thought briefly
+Pinned
+• /poteto-mode
+1h
+7
+& & D Y Just now
+Repositories
+& No Repo
+Sticky mode activation
+1m
+Getting Started
+3/3 O
+* Connect Slack
+Joshua Humphrey
+* poteto-mode x
+• This Mac v
+Send follow-up
+Auto v
+
+===== 31-wait-10.png =====
+pi-customizations
++ 0 0 8
+Agents Window 7
+• PI-CUSTOMIZATIONS
+.github
+_pi
+› docs
+extensions
+node_modules
+scripts
+us check-agents-compliance...
+us check-agents-compliance...
+check-bun-toolchain.mjs
+JS
+check-bun-toolchain.selft...
+check-pi-mechanisms.mjs
+Js check-typescript-policy.mjs
+check-typescript-policy.se...
+Js format-write.mjs
+us format-write.selftest.mjs
+us migrate-index-signature-a...
+us migrate-index-signature-a...
+Js skip-directories.mjs
+JS sync-typescript-policy.mjs
+Js typescript-policy.mjs
+us typescript-policy.selftest....
+Js typescript-source.mjs
+us typescript-source.selftest.....
+Js verify-fresh-install.mjs
+skills
+= .coveragerc
+•gitattributes
+.gitignore
+AGENTS.md
+› OUTLINE
+› TIMELINE
+& main €
+us check-agents-compliance.mjs
+scripts
+check-agents-compliance.mjs › ...
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217
+218
+219
+220
+221
+pi-customizations
+•OAO
+function checkConsole(node, path, report) {
+if (!ts.isCallExpression(node) || !ts.isPropertyAccessExpression(node.expression)) return;
+if (! ['log', 'debug'l.includes (node.expression name.text)) return;
+const receiver = node.expression.expression;
+if (!ts.isIdentifier(receiver) || receiver.text !== 'console') return;
+const inScript = path.startsWith('scripts/') || path.includes('/scripts/');
+report(inScript ? 'note' : 'violation', 'console-log', node, 'console.$(node.expression.name.text} in ${inScript ? 'a CLI script, so con'
+function enclosingScopeLine(scopes, line) {
+let best;
+for (const scope
+scopes) {
+if (line <
+scope.start || line > scope.end) continue;
+if (!best || scope.end - scope.start ‹ best.end - best.start) best = scope;
+return best?. start;
+function analyzeTypeScript(text, path) {
+return withTypeScriptSource(text, path, (source) => analyzeTypeScriptSource(source, text, path));
+function
+analyzeTypeScriptSource(source, text, path) f
+const
+{ found, report } = createReporter (source, path);
+const lineCount = text.split('\n').length;
+if (lineCount > limits.file) report('violation', 'file-length', undefined, '${lineCount} lines, over the ${limits.file} line maximum");
+else if (lineCount >
+limits.typicalFile) report('note', 'file-length', undefined, '${lineCount} lines, over the ${limits.typicalFile} lir
+const loops = [];
+scopes = [] ;
+const line0f = (node) => source.getLineAndCharacterofPosition(node.getStart(source)) .line + 1;
+const visit = (node) => {
+if (ts.isFunctionLikeDeclaration(node) && node.body) {
+scopes.push({ start: line0f(node), end: source.getLineAndCharacterofPosition(node.getEnd()). line + 1 });
+checkFunctionShape(source, node, report);
+checkParameterMutation(source, node, report);
+Cursor Tab
+Ln 1, Col 1 Spaces: 2 UTF-8 LF 1) JavaScript → Tab Stats: 0/0 (0%)
+Agent Stats: 0/0 (0%) *- No commit scored
+
+===== 34-follow-wait-08.png =====
+pi-customizations
++ 0 0 8
+Agents Window 7
+• PI-CUSTOMIZATIONS
+.github
+_pi
+› docs
+extensions
+node_modules
+scripts
+us check-agents-compliance...
+us check-agents-compliance...
+check-bun-toolchain.mjs
+JS
+check-bun-toolchain.selft...
+check-pi-mechanisms.mjs
+Js check-typescript-policy.mjs
+check-typescript-policy.se...
+Js format-write.mjs
+us format-write.selftest.mjs
+us migrate-index-signature-a...
+us migrate-index-signature-a...
+Js skip-directories.mjs
+JS sync-typescript-policy.mjs
+Js typescript-policy.mjs
+us typescript-policy.selftest....
+Js typescript-source.mjs
+us typescript-source.selftest.....
+Js verify-fresh-install.mjs
+skills
+= .coveragerc
+•gitattributes
+.gitignore
+AGENTS.md
+› OUTLINE
+› TIMELINE
+& main €
+us check-agents-compliance.mjs
+scripts
+check-agents-compliance.mjs › ...
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217
+218
+219
+220
+221
+pi-customizations
+•OAO
+function checkConsole(node, path, report) {
+if (!ts.isCallExpression(node) || !ts.isPropertyAccessExpression(node.expression)) return;
+if (! ['log', 'debug'l.includes (node.expression.name.text)) return;
+const receiver = node.expression.expression;
+if (!ts.isIdentifier(receiver) || receiver.text !== 'console') return;
+const inScript = path.startsWith('scripts/') || path.includes('/scripts/');
+report(inScript ? 'note' : 'violation', 'console-log', node, 'console.$(node.expression.name.text} in ${inScript ? 'a CLI script, so con'
+function enclosingScopeLine(scopes, line) {
+let best;
+for (const scope
+scopes) {
+if (line <
+scope.start || line > scope.end) continue;
+if (!best || scope.end - scope.start ‹ best.end - best.start) best = scope;
+return best?. start;
+function analyzeTypeScript(text, path) {
+return withTypeScriptSource(text, path, (source) => analyzeTypeScriptSource(source, text, path));
+function
+analyzeTypeScriptSource(source, text, path) f
+const
+{ found, report } = createReporter (source, path);
+const lineCount = text.split('\n').length;
+if (lineCount > limits.file) report('violation', 'file-length', undefined, '${lineCount} lines, over the ${limits.file} line maximum");
+else if (lineCount >
+limits.typicalFile) report('note', 'file-length', undefined, '${lineCount} lines, over the ${limits.typicalFile} lir
+const loops = [];
+scopes = [] ;
+const line0f = (node) => source.getLineAndCharacterofPosition(node.getStart(source)) .line + 1;
+const visit = (node) => {
+if (ts.isFunctionLikeDeclaration(node) && node.body) {
+scopes.push({ start: line0f(node), end: source.getLineAndCharacterofPosition(node.getEnd()). line + 1 });
+checkFunctionShape(source, node, report);
+checkParameterMutation(source, node, report);
+Cursor Tab
+Ln 1, Col 1 Spaces: 2 UTF-8 LF 1) JavaScript → Tab Stats: 0/0 (0%)
+Agent Stats: 0/0 (0%) *- No commit scored
+
+===== 36-now.png =====
+Cursor
+File
+Edit
+View
+Window
+Help
+804
+81
+Thu Oct 8 11:10 PM
+V New Chat
+Search
+Automations
+B° Customize
+Projects
++ New Project
+Pinned
+• /poteto-mode
+Repositories
+A No Repo
+Sticky mode activation
+Sticky mode activation A
+Reply with exactly the three words: sticky mode on. Do no other work.
+sticky mode on
+O Y
+Reply with exactly the digit 7. Do no other work.t
+Thought briefly
+IDE A
+Screenshot
+-O...5 AM.jpg
+On Home
+I Browser
+- Terminal
+• Files
+reenshot
+0...2 AM.jpg
+reenshot
+con +0...29 PM.jpg
+7
+1h
+C+
+1m
+reenshot
+0...39 PM.jpg
+reenshot
+O...51 PM.jpg
+reenshot
+O...51 PM.jpg
+Getting Started
+3/3 0
+L Connect Slack
+Joshua Humphrey
+× | main • pi-customizations
+reenshot
+0...59 PM.jpg
+• poteto-mode × Send follow-up
+Auto v
+• This Mac v
+Cursor Tab Ln 1, Col 1 Spaces: 2 UTF-8 LF (} JavaScript → Tab Stats: 0/0 (0%)
+= Agent Stats: 0/0 (0%)
+reenshot
+-o- No commit scored
+_co-0...28 PM.jpg
+

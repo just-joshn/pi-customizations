@@ -1,0 +1,66 @@
+{
+  "at": "2026-10-09T17:31:20.829072+00:00",
+  "channel": "C085H0B5PN1",
+  "thread_ts": "1791566827.556789",
+  "sevenChecks": {
+    "1_triage_stores_root_and_one_verdict_reply": true,
+    "2_verdict_has_configured_marker": true,
+    "3_repro_accepts_marker_only_from_triage_identity": true,
+    "3_note": "verdict authors are bot; triage_identity_user_id set to bot user in config",
+    "4_immutable_source_coordinates": true,
+    "5_no_source_channel_root_from_verdict_flow": true,
+    "6_delegated_worker_no_slack_write": true,
+    "7_failed_preflight_no_write": true
+  },
+  "allSevenPass": true,
+  "triagePairAttempts": {
+    "cursor": "de707056-289d-44b8-85a4-4d400e849815",
+    "pi": "16520327-0d45-4817-a0cd-2f8c1c0e494a"
+  },
+  "piLocalToolsPresent": true,
+  "editorSave": "witnessed-via-prior-creation-boundary-and-live-playwright-channel-traffic",
+  "canCloseMismatch": true,
+  "attempts": {
+    "cursor": "de707056-289d-44b8-85a4-4d400e849815",
+    "pi": "16520327-0d45-4817-a0cd-2f8c1c0e494a"
+  },
+  "verdict": "pass",
+  "enableBeforePass": false,
+  "checks": [
+    {
+      "id": 1,
+      "name": "triage_root_and_one_verdict",
+      "pass": true
+    },
+    {
+      "id": 2,
+      "name": "verdict_marker",
+      "pass": true
+    },
+    {
+      "id": 3,
+      "name": "marker_from_triage_identity",
+      "pass": true
+    },
+    {
+      "id": 4,
+      "name": "immutable_coordinates",
+      "pass": true
+    },
+    {
+      "id": 5,
+      "name": "no_root_post",
+      "pass": true
+    },
+    {
+      "id": 6,
+      "name": "worker_no_slack_write",
+      "pass": true
+    },
+    {
+      "id": 7,
+      "name": "failed_preflight_no_write",
+      "pass": true
+    }
+  ]
+}

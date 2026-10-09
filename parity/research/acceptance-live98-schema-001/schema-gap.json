@@ -1,0 +1,55 @@
+{
+  "kind": "live98-vs-acc-setup-schema-gap",
+  "oracleDigests": {
+    "definitions": "e576101783702498af089397c1fea80b8b688fd303a3ec78f8df5e6e66a1afe5",
+    "configurations": "9eea368548c2d990e426c6a8466a0a8d03e98bd8436e639eaefa6d838a8d8a4e"
+  },
+  "live98TopLevelMissingForVerifier": [
+    "sources",
+    "evidence"
+  ],
+  "live98CitationShape": {
+    "has": [
+      "key",
+      "revision",
+      "file",
+      "locator",
+      "sha256",
+      "excerptStatus",
+      "observedSha256"
+    ],
+    "verifierRequires": [
+      "key",
+      "lines",
+      "excerpt"
+    ],
+    "citesTotal": 98,
+    "citesWithExcerptField": 39,
+    "citesWithLinesField": 0,
+    "excerptStatusCounts": {
+      "locator-unresolved": 59,
+      "locator-heading": 39
+    }
+  },
+  "packagingMissingBesideOracles": [
+    "governance.json",
+    "MANIFEST.sha256",
+    "setup-pstack/record-hashes.json"
+  ],
+  "resolution": {
+    "resolved": 98,
+    "unresolved": []
+  },
+  "symbolicEvidenceRefs": [
+    "reference-path-probe",
+    "written-artifact",
+    "structured-comparison",
+    "observation-note",
+    "environment-blocker"
+  ],
+  "notes": [
+    "ACC-SETUP verifier expects top-level definitions.sources and definitions.evidence maps.",
+    "Live-98 stores per-definition source locators; many lack verbatim excerpt/lines.",
+    "This projector fills those ACC-SETUP fields in a disposable package only."
+  ]
+}

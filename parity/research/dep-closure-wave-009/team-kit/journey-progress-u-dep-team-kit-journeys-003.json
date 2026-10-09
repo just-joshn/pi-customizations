@@ -1,0 +1,86 @@
+{
+  "unit": "u-dep-team-kit-journeys-003",
+  "capturedAt": "2026-10-09T03:20:00Z",
+  "priorProgress": "parity/research/dep-closure-wave-009/team-kit/journey-progress-u-dep-team-kit-journeys-001.json",
+  "lockedRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "namedSkillCount": 18,
+  "fixtureRepo": "https://github.com/just-joshn/team-kit-gh-fixture",
+  "fixturePrUrl": "https://github.com/just-joshn/team-kit-gh-fixture/pull/1",
+  "newlyClosedByThisUnit": [
+    {
+      "skillId": "get-pr-comments",
+      "skillMdPath": "parity/reference/cursor-plugins/cursor-team-kit/skills/get-pr-comments/SKILL.md",
+      "skillMdSha256": "8bf292736cab922276feb4d8377edc2fc4102a7beb62bcd1f3f5cf72a79b16cc",
+      "pairId": "team-kit-get-pr-comments-1",
+      "pairPath": "parity/evidence/team-kit/pair-team-kit-get-pr-comments-1.json",
+      "cursorAttemptId": "89df0ce6-4afb-4b32-93b0-7c2c83af2380",
+      "piAttemptId": "d63d2dfc-99a3-4732-831b-38dca83525c5",
+      "verdict": "pass",
+      "pairedJourneyStatus": "closed_by_pair"
+    },
+    {
+      "skillId": "make-pr-easy-to-review",
+      "skillMdPath": "parity/reference/cursor-plugins/cursor-team-kit/skills/make-pr-easy-to-review/SKILL.md",
+      "skillMdSha256": "e8da0d4a85b7c04823698f539251617389f827fd9137100ef7eaea5dcc992fe7",
+      "pairId": "team-kit-make-pr-easy-to-review-1",
+      "pairPath": "parity/evidence/team-kit/pair-team-kit-make-pr-easy-to-review-1.json",
+      "cursorAttemptId": "d4ab0577-1834-4685-a643-fbeac6ba42f3",
+      "piAttemptId": "5239e674-1014-402c-a492-7a508b454454",
+      "verdict": "pass",
+      "pairedJourneyStatus": "closed_by_pair"
+    },
+    {
+      "skillId": "new-branch-and-pr",
+      "skillMdPath": "parity/reference/cursor-plugins/cursor-team-kit/skills/new-branch-and-pr/SKILL.md",
+      "skillMdSha256": "4e8f502fcf48553949387a9a7f58b21349e0ff87c24bf8ff5c0013e9da6819fd",
+      "pairId": "team-kit-new-branch-and-pr-1",
+      "pairPath": "parity/evidence/team-kit/pair-team-kit-new-branch-and-pr-1.json",
+      "cursorAttemptId": "6337794e-d2c9-4a4e-b0ef-25551e3013bc",
+      "piAttemptId": "f76fbd4b-0e21-4bca-931c-b3fca1fb6088",
+      "verdict": "pass",
+      "pairedJourneyStatus": "closed_by_pair",
+      "cursorOpenedPr": "https://github.com/just-joshn/team-kit-gh-fixture/pull/2",
+      "piOpenedPr": "https://github.com/just-joshn/team-kit-gh-fixture/pull/3"
+    }
+  ],
+  "onDiskClosedPairsPass": [
+    "verify-this",
+    "check-compiler-errors",
+    "deslop",
+    "fix-merge-conflicts",
+    "get-pr-comments",
+    "make-pr-easy-to-review",
+    "new-branch-and-pr"
+  ],
+  "skillsPairedCountFromDisk": 7,
+  "createSkillStyleFullClosureReady": false,
+  "remainingOpenNamedSkills": [
+    "control-cli",
+    "control-ui",
+    "fix-ci",
+    "loop-on-ci",
+    "pr-review-canvas",
+    "review-and-ship",
+    "run-smoke-tests",
+    "thermo-nuclear-code-quality-review",
+    "weekly-review",
+    "what-did-i-get-done",
+    "workflow-from-chats"
+  ],
+  "ciNote": "Fixture PR #1 checks measured pass via gh pr checks. No CI green was fabricated. fix-ci and loop-on-ci were not closed this unit because no failing-check fixture iteration was run.",
+  "mergePayload": {
+    "unresolvedReferenceAction": "keep_open",
+    "reason": "7 of 18 named team-kit skills have closing Cursor+Pi pairs on disk. create-skill-style full closure requires every named skill to have a pair or honest non-applicable disposition.",
+    "skillsPairedCount": 7,
+    "createSkillStyleFullClosureReady": false,
+    "evidenceToAttach": [
+      "parity/evidence/team-kit/pair-team-kit-get-pr-comments-1.json",
+      "parity/evidence/team-kit/pair-team-kit-make-pr-easy-to-review-1.json",
+      "parity/evidence/team-kit/pair-team-kit-new-branch-and-pr-1.json",
+      "parity/scripts/capture-team-kit-gh-skill.mjs",
+      "parity/briefs/reports/u-dep-team-kit-journeys-003-report.md",
+      "parity/research/dep-closure-wave-009/team-kit/journey-progress-u-dep-team-kit-journeys-003.json"
+    ],
+    "suggestedWaveNote": "u-dep-team-kit-journeys-003 closed get-pr-comments, make-pr-easy-to-review, and new-branch-and-pr via real PTY pairs against disposable just-joshn/team-kit-gh-fixture PR #1. On-disk pass pairs total 7/18 (includes wave-001 verify-this and wave-002 local pairs). Keep unresolvedReference open."
+  }
+}

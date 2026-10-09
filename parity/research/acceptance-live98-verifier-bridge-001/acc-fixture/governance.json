@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "implementationOwner": {
+    "id": "implementation-owner",
+    "provider": "openai",
+    "model": "gpt-6.1-sol",
+    "family": "openai",
+    "basis": "Reported in the acceptance-owner brief. Not observed or authenticated by the acceptance owner."
+  }
+}

@@ -1,0 +1,129 @@
+pi-customizations
++
+Agents Window 7
+us check-agents-compliance.mjs
+scripts
+check-agents-compliance.mjs › ...
+PI-CUSTOMIZATIONS
+› .github
+_pil
+docs
+extensions
+node_modules
+scripts
+us check-agents-compliance...
+us check-agents-compliance...
+check-bun-toolchain.mjs
+check-bun-toolchain.selft...
+check-pi-mechanisms.mjs
+check-typescript-policy.mjs
+JS
+check-typescript-policy.se...
+format-write.mjs
+Js format-write.selftest.mjs
+us migrate-index-signature-a...
+Js migrate-index-signature-a...
+JS
+skip-directories.mjs
+js sync-typescript-policy.mjs
+us typescript-policy.mjs
+JS
+typescript-policy.selftest....
+typescript-source.mjs
+us typescript-source.selftest....
+us verify-fresh-install.mjs
+skills
+E .coveragerc
+gitattributes
+.gitignore
+* AGENTS.md
+› OUTLINE
+› TIMELINE
+> | main •
+pi-customizations
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217
+218
+219
+220
+221
+ЗОДО
+function checkConsole(node, path, report) {
+if (!ts. isCallExpression(node) || !ts.isPropertyAccessExpression(node.expression)) return;
+if (! ['log', 'debug'l.includes (node.expression.name.text)) return;
+const receiver = node.expression.expression;
+if (!ts.isIdentifier(receiver) || receiver.text !== 'console') return;
+const inScript = path.startsWith('scripts/') || path.includes('/scripts/');
+report (inScript ?
+'note' : 'violation', 'console-log', node, 'console.${node.expression.name.text} in ${inScript ? "a CLI script, so cont
+function enclosingScopeLine(scopes, line) f
+let best;
+for (const scope of scopes) f
+if (line ‹ scope.start || line > scope.end) continue;
+if (!best || scope.end - scope.start < best.end - best.start) best = scope;
+return best?.start;
+function analyzeTypeScript (text, path) f
+return withTypeScriptSource(text, path, (source) => analyzeTypeScriptSource(source, text, path));
+function analyzeTypeScriptSource(source, text, path) {
+const
+found, report } = createReporter (source, path);
+const
+lineCount = text.split ('\n').length;
+if (lineCount > limits.file) report('violation',
+'file-length', undefined, '${lineCount} lines,
+over the ${limits.file} line maximum');
+else if (lineCount > limits.typicalFile) report('note'
+'file-length', undefined,
+'${lineCount} lines, over the ${limits.typicalFile} lir
+const loops = [];
+const
+scopes = [];
+const lin-ne
+etLineAndCharacterOfPosition(node.getStart (source)). line + 1;
+const vis
+Disable globally
+if
+(ts.
+Disable for javascript
+scope
+check
+Model
+auto (default) v
+check
+(node) && node.body) {
+›de), end: source.getLineAndCharacterOfPosition(node.getEnd()). line + 1 });
+le, report) ;
+node, report);
+Snooze O
+Cursor
+Ln 1, Col 1 Spaces: 2 UTF-8 LF () JavaScript → Tab Stats: 0/0 (0%) 5 Agent Stats: 0/0 (0%) •- No commit scored

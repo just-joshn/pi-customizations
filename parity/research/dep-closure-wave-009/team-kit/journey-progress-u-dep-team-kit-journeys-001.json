@@ -1,0 +1,113 @@
+{
+  "unit": "u-dep-team-kit-journeys-001",
+  "capturedAt": "2026-10-09T02:45:00Z",
+  "priorSampling": "parity/research/dep-closure-wave-009/team-kit/journey-sampling.json",
+  "lockedRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "namedSkillCount": 18,
+  "skillsPairedCount": 1,
+  "createSkillStyleFullClosureReady": false,
+  "closedSkills": [
+    {
+      "skillId": "verify-this",
+      "skillMdPath": "parity/reference/cursor-plugins/cursor-team-kit/skills/verify-this/SKILL.md",
+      "skillMdSha256": "c1c7b27c1133085bd3409c601ea12b6e6f61b4b23debcd52bc248fc01907e7de",
+      "pairId": "team-kit-verify-this-1",
+      "pairPath": "parity/evidence/team-kit/pair-team-kit-verify-this-1.json",
+      "cursorAttemptId": "abb96d2b-c7d7-4012-9f4d-956e4e605743",
+      "piAttemptId": "8f04dd82-a425-474f-95dc-b1a005c43169",
+      "verdict": "pass",
+      "pairedJourneyStatus": "closed_by_pair"
+    }
+  ],
+  "sampleStatus": [
+    {
+      "skillId": "verify-this",
+      "pairedJourneyStatus": "closed_by_pair",
+      "pairPath": "parity/evidence/team-kit/pair-team-kit-verify-this-1.json"
+    },
+    {
+      "skillId": "deslop",
+      "pairedJourneyStatus": "not_run",
+      "nextLever": "parity/scripts/capture-team-kit-deslop.mjs (not written this unit)",
+      "requiredEvidence": "Paired Cursor+Pi journey that removes seeded AI slop from a fixture file while keeping behavior"
+    },
+    {
+      "skillId": "fix-ci",
+      "pairedJourneyStatus": "not_run",
+      "blockerClass": "needs_live_or_fixture_pr_checks",
+      "requiredEvidence": "Paired journey that inspects failing gh pr checks and applies a focused fix against a real or fixture PR"
+    },
+    {
+      "skillId": "review-and-ship",
+      "pairedJourneyStatus": "not_run",
+      "blockerClass": "needs_git_commit_and_pr_surface",
+      "requiredEvidence": "Paired journey that reviews, tests, commits, and opens/updates a PR; worker briefs forbid ledger commits so this needs a fixture repo + coordinator-owned git surface"
+    },
+    {
+      "skillId": "control-cli",
+      "pairedJourneyStatus": "not_run",
+      "nextLever": "parity/scripts/capture-team-kit-control-cli.mjs (not written this unit)",
+      "requiredEvidence": "Paired journey that builds or adapts a local PTY/tmux harness and drives a tiny interactive CLI to a screen oracle"
+    }
+  ],
+  "remainingNamedSkills": [
+    "check-compiler-errors",
+    "control-ui",
+    "deslop",
+    "fix-ci",
+    "fix-merge-conflicts",
+    "get-pr-comments",
+    "loop-on-ci",
+    "make-pr-easy-to-review",
+    "new-branch-and-pr",
+    "pr-review-canvas",
+    "review-and-ship",
+    "run-smoke-tests",
+    "thermo-nuclear-code-quality-review",
+    "weekly-review",
+    "what-did-i-get-done",
+    "workflow-from-chats",
+    "control-cli"
+  ],
+  "exhaustivePlan": {
+    "localRunnableNext": [
+      "deslop",
+      "control-cli",
+      "check-compiler-errors",
+      "fix-merge-conflicts",
+      "thermo-nuclear-code-quality-review",
+      "what-did-i-get-done",
+      "weekly-review"
+    ],
+    "ghOrCiBound": [
+      "fix-ci",
+      "loop-on-ci",
+      "get-pr-comments",
+      "make-pr-easy-to-review",
+      "new-branch-and-pr",
+      "pr-review-canvas",
+      "review-and-ship"
+    ],
+    "browserOrHeavyHarness": [
+      "control-ui",
+      "run-smoke-tests"
+    ],
+    "chatHistoryBound": [
+      "workflow-from-chats"
+    ],
+    "honestyRule": "Do not invent pairs or classify non-applicable without a measured blocker. Preferences forbid scope reduction for platform differences."
+  },
+  "mergePayload": {
+    "unresolvedReferenceAction": "keep_open",
+    "reason": "Only 1 of 18 named team-kit skills has a closing Cursor+Pi pair. create-skill-style full closure requires every named skill to have a pair or an honest classified-non-applicable disposition. No N/A dispositions were claimed this unit.",
+    "skillsPairedCount": 1,
+    "createSkillStyleFullClosureReady": false,
+    "evidenceToAttach": [
+      "parity/evidence/team-kit/pair-team-kit-verify-this-1.json",
+      "parity/scripts/capture-team-kit-verify-this.mjs",
+      "parity/briefs/reports/u-dep-team-kit-journeys-001-report.md",
+      "parity/research/dep-closure-wave-009/team-kit/journey-progress-u-dep-team-kit-journeys-001.json"
+    ],
+    "suggestedWaveNote": "u-dep-team-kit-journeys-001 closed verify-this via real PTY pair (cursor abb96d2b, pi 8f04dd82). 17 of 18 team-kit skill journeys remain open. Do not remove the full skill-set unresolvedReference."
+  }
+}

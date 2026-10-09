@@ -1,0 +1,22 @@
++
+Ask Gemini
+→ LLM USAGE
+→ AAI
+cursor.com/slack-connected
+D AI
+• All Bookmarks
+Back to Agents
+Finish Setting Up Cloud Agents
+Your Slack workspace is now configured to use Cloud Agents! Just a few more steps to get started.
+Connect Slack
+Connect GitHub or GitLab
+Select your default repository
+Link Account
+Manage app installations and permissions
+• Manage Connections
+Connect GitLab
+Default Repository
+Used when none is specified
+Loading... v
+Start Using Cloud Agents
+View All Settings

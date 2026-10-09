@@ -1,0 +1,6 @@
+ts	phase	decision	why	evidence	result
+2026-10-09T06:38:16Z	start	start automations-desktop-001 capture	autonomous-run predicate: both mismatches closed or honestly blocked with screens; report published; ledgers untouched	parity/briefs/u-automations-desktop-001.md	predicate open
+2026-10-09T06:38:16Z	ready	helper permissions and desktop-share Ready rechecked	prove-it-works before drive	parity/research/automations-desktop-001/01-permissions.json;02-desktop-share-status.json	Ready=yes
+2026-10-09T06:51:01Z	capture	Benny: Agents Window /automate slash + Open Automations list reached	desktop host path beyond PTY; no editor save or Benny enable	parity/evidence/setup-benny/creation-boundary/agents-window/be874194…;16a11cc9…	host list ok; editor save unpaid
+2026-10-09T06:51:01Z	capture	Make-bot: /make-bot-ui slash present; Routines/update_state palette empty	webhook host APIs still unproven; keep Pi e75f8e08	parity/evidence/make-bot-ui/agents-window/ecac27a8…;1e5149f4…	Cursor half still host_blocked
+2026-10-09T06:51:01Z	merge	recommend keep both mismatches open	Automations list and skills visible but no editor save or update_state success	parity/briefs/reports/u-automations-desktop-001-report.md	merge no for both Cursor halves

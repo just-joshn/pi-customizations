@@ -1,0 +1,20 @@
+{
+  "brief": "u-journey-setup-benny-creation-pi-002",
+  "requirementId": "PSTACK-SETUP-BENNY-CREATION-BOUNDARY-001",
+  "verify": "no",
+  "verifyWhy": "Pi Method A half paid as editor_saved_disabled on attempt 4d40a1d5 (AutomationPrepare+OpenEditor, Inactive titled benny-triage chrome, Save disabled, no Enable). Cursor half already paid (e11d7225 list + 475ab346/2c525e93 editor title). Requirement verify requires coordinator merge of the paired journey into ledgers; this unit does not mark verified.",
+  "piAttemptId": "4d40a1d5-ea54-4ce2-922b-bf82e78b6577",
+  "outcome": "editor_saved_disabled",
+  "mergeRecommendation": "pair-ready-keep-unverified",
+  "cursorHalfPaid": [
+    "e11d7225-4c8a-4c09-8f30-273e941a52d2",
+    "475ab346-80a0-4d73-8ae1-d2b8042ee66f",
+    "2c525e93-3392-4253-81ef-dd965fde2e7d"
+  ],
+  "priorPiEnvBlocked": "f4c7eec5-6ac5-4431-b4b1-23c7e267dc96",
+  "ledgersTouched": true,
+  "enableCalled": false,
+  "slackUsed": false,
+  "mergedAt": "2026-10-09T10:19:13Z",
+  "mergeNote": "Coordinator recorded Pi Method A evidence + pair refresh; requirement status remains unverified."
+}

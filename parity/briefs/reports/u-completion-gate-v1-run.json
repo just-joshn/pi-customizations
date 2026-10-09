@@ -1,0 +1,1593 @@
+{
+  "kind": "completion",
+  "gateVersion": 1,
+  "verdict": "BLOCKED",
+  "blockers": [
+    {
+      "code": "SOURCE_LOCK_INCOMPLETE",
+      "file": "source-lock.json",
+      "locator": "status",
+      "contractLocator": "contract.md §2",
+      "message": "The source lock is not finalized."
+    },
+    {
+      "code": "SOURCE_CLOSURE_INCOMPLETE",
+      "file": "source-lock.json",
+      "locator": "cursorPlugins.completeDependencyClosure",
+      "contractLocator": "contract.md §2",
+      "message": "Complete dependency source closure remains required."
+    },
+    {
+      "code": "REFERENCE_CONFIGURATION_MISSING",
+      "file": "source-lock.json",
+      "locator": "cursorCli.referenceConfigurationCaptured",
+      "contractLocator": "contract.md §2",
+      "message": "Working reference configuration has not been captured."
+    },
+    {
+      "code": "DEPENDENCY_AUDIT_MISSING",
+      "file": "dependencies.json",
+      "locator": "closureAudited",
+      "contractLocator": "contract.md §3",
+      "message": "Independent recursive closure audit remains required."
+    },
+    {
+      "code": "DEPENDENCY_REFERENCE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "unresolvedReferences[0]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency reference is unresolved."
+    },
+    {
+      "code": "DEPENDENCY_REFERENCE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "unresolvedReferences[1]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency reference is unresolved."
+    },
+    {
+      "code": "DEPENDENCY_REFERENCE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "unresolvedReferences[2]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency reference is unresolved."
+    },
+    {
+      "code": "DEPENDENCY_REFERENCE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "unresolvedReferences[3]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency reference is unresolved."
+    },
+    {
+      "code": "DEPENDENCY_REFERENCE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "unresolvedReferences[4]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency reference is unresolved."
+    },
+    {
+      "code": "DEPENDENCY_REFERENCE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "unresolvedReferences[5]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency reference is unresolved."
+    },
+    {
+      "code": "DEPENDENCY_REFERENCE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "unresolvedReferences[6]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency reference is unresolved."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[4]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[5]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[8]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[9]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[10]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[11]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[12]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[13]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[14]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[15]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[16]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[17]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[18]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[19]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[20]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[21]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[22]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[23]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[24]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[25]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[26]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[27]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[28]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[29]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[30]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[32]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "SOURCE_READING_INCOMPLETE",
+      "file": "dependencies.json",
+      "locator": "nodes[33]",
+      "contractLocator": "contract.md §3",
+      "message": "Required source reading remains incomplete."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[0]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[1]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[2]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[3]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[4]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[5]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[6]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[7]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[8]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[9]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[10]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[11]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[12]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[13]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[14]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[15]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[16]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[17]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[18]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[19]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[20]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[21]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[22]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[23]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[24]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[25]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[26]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[27]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[28]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[29]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[30]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[31]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[32]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "DEPENDENCY_EDGE_UNRESOLVED",
+      "file": "dependencies.json",
+      "locator": "edges[33]",
+      "contractLocator": "contract.md §3",
+      "message": "Dependency edge has not been resolved."
+    },
+    {
+      "code": "ACCEPTANCE_DEFINITIONS_UNFROZEN",
+      "file": "requirements.json",
+      "locator": "acceptanceDefinitionsFrozen",
+      "contractLocator": "contract.md §4",
+      "message": "Independent acceptance definitions are not frozen."
+    },
+    {
+      "code": "COVERAGE_DENOMINATOR_INCOMPLETE",
+      "file": "requirements.json",
+      "locator": "coverageDenominatorComplete",
+      "contractLocator": "contract.md §4",
+      "message": "Full requirement-by-configuration denominator is incomplete."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[0].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-MODE-ONE-MESSAGE-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[1].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-MODE-STICKY-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[4].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-CMD-PLUGIN-SKILLS-REGISTER-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[5].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-CMD-DISABLE-MODEL-INVOCATION-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[6].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-CMD-HOW-SIMPLE-PATH-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[7].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-CMD-SWARM-FANOUT-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[8].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-CMD-ARENA-BASE-GRAFT-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[9].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-CMD-ARCHITECT-GROUND-HOW-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[10].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-CMD-INTERROGATE-NO-AUTOAPPLY-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[11].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-CMD-REFLECT-TRIGGER-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[12].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-CMD-WHY-MOTIVATION-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[13].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-CMD-POTETO-HELP-NO-WORK-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[14].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-CMD-TDD-EXPLICIT-GATE-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[15].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-CMD-CREATE-VERIFY-SKILL-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[16].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-CMD-SHOW-ME-YOUR-WORK-TSV-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[17].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-CMD-FIGURE-IT-OUT-PLAYBOOK-FIRST-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[18].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-CMD-CORRECT-ENCODE-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[19].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-CMD-TECHNICAL-WRITING-DOCS-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[20].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-CMD-NO-COMMENTS-SICKO-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[21].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-CMD-COMMENT-SICKO-FIRST-OUTPUT-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[22].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-CMD-POTETO-AGENT-READ-SKILL-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[23].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-CMD-BENNY-REPRO-FAIL-CLOSED-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[24].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-CMD-SETUP-BENNY-NOT-SLASH-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[25].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-CMD-BENNY-TRIAGE-THREAD-ONLY-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[26].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-CMD-AUTOMATE-ME-EXISTING-SKILL-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[27].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-CMD-BENCHMARK-CHECKLIST-EVIDENCE-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[28].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-CMD-BLAST-RADIUS-RUN-PROOF-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[29].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-CMD-BRO-RESTATE-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[30].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-CMD-MAINTAIN-VERIFY-OUTCOMES-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[31].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-CMD-MAKE-BOT-UI-KEY-SERVER-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[32].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-CMD-POTETO-PLAYBOOK-TODO-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[33].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-CMD-RECALL-CAPSULE-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[34].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-CMD-SETUP-WRITE-RULE-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[35].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-CMD-TEACH-HOW-WHY-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[36].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-CMD-TYPESCRIPT-PATHS-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[37].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-CMD-UNSLOP-PROCESS-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[38].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-SETUP-ALIAS-ALWAYS-VALID-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[39].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-SETUP-LOAD-STATE-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[40].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-SETUP-BUDGET-APPLY-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[41].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-SETUP-RERUN-PRESERVE-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[42].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-SETUP-GROK-XHIGH-CAP-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[43].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-SETUP-ROLE-CONFIRM-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[44].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-SETUP-PANEL-LIST-FANOUT-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[45].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-SETUP-VALIDATE-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[46].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-SETUP-WRITE-RULE-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[47].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-SETUP-WRITE-CARD-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[48].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-SETUP-CONFIRM-WRITTEN-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[49].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-SETUP-CANCEL-NO-WRITE-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[50].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-SETUP-VERIFY-OFFER-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[51].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-SETUP-NEW-SESSION-APPLIES-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[52].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-SETUP-GUIDE-RERUN-KEEP-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[53].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-SETUP-BENNY-NO-SECRET-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[54].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-SETUP-BENNY-PACK-MERGE-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[55].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-SETUP-BENNY-SETTINGS-ENABLE-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[56].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-SETUP-BENNY-PROJECT-SKILLS-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[57].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-SETUP-BENNY-USER-CONFIG-OUTSIDE-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[58].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-SETUP-BENNY-REQUIRED-EXPLICIT-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[59].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-SETUP-BENNY-CONTROL-FAIL-CLOSED-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[60].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-SETUP-BENNY-EXISTING-NO-AUTOMATE-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[61].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-SETUP-BENNY-CREATION-BOUNDARY-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[62].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-SETUP-BENNY-THREAD-SAFETY-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[63].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-SETUP-CREATE-VERIFY-INTERVIEW-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[64].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-SETUP-CREATE-VERIFY-GENERATE-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[65].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-SETUP-CREATE-VERIFY-FEATURE-MAP-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[66].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-SETUP-CREATE-VERIFY-PROVE-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[67].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-SETUP-CREATE-VERIFY-OFFER-MAINTAIN-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[68].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-SETUP-MAINTAIN-VERIFY-OUTCOMES-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[69].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-SETUP-MAINTAIN-VERIFY-EDIT-SCOPE-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[70].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-SETUP-MAINTAIN-VERIFY-LOCATE-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[71].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-SETUP-MAINTAIN-VERIFY-SOURCE-WAVE-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[72].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-SETUP-MAINTAIN-VERIFY-LIVE-PASS-001 is not verified-pass-paired."
+    },
+    {
+      "code": "REQUIREMENT_UNVERIFIED",
+      "file": "requirements.json",
+      "locator": "requirements[73].status",
+      "contractLocator": "contract.md §9",
+      "message": "Requirement PSTACK-SETUP-MAINTAIN-VERIFY-SHIP-001 is not verified-pass-paired."
+    },
+    {
+      "code": "ARTIFACT_MISSING",
+      "file": "scenarios/mode-one-message.json",
+      "locator": "",
+      "contractLocator": "contract.md §9",
+      "message": "Required artifact is missing."
+    },
+    {
+      "code": "ARTIFACT_MISSING",
+      "file": "scenarios/mode-sticky.json",
+      "locator": "",
+      "contractLocator": "contract.md §9",
+      "message": "Required artifact is missing."
+    },
+    {
+      "code": "ARTIFACT_MISSING",
+      "file": "scenarios/setup-model-discovery.json",
+      "locator": "",
+      "contractLocator": "contract.md §9",
+      "message": "Required artifact is missing."
+    },
+    {
+      "code": "SCENARIO_PAIR_MISSING",
+      "file": "scenarios/setup-budget-labels.json",
+      "locator": "execution.pairId",
+      "contractLocator": "contract.md §8",
+      "message": "No executed reference-and-candidate pair is linked."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[4].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[5].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[6].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[7].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[8].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[9].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[10].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[11].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[12].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[13].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[14].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[15].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[16].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[17].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[18].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[19].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[20].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[21].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[22].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[23].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[24].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[25].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[26].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[27].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[28].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[29].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[30].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[31].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[32].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[33].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[34].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[35].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[36].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[37].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[38].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[39].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[40].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[41].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[42].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[43].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[44].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[45].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[46].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[47].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[48].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[49].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[50].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[51].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[52].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[53].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[54].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[55].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[56].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[57].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[58].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[59].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[60].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[61].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[62].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[63].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[64].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[65].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[66].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[67].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[68].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[69].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[70].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[71].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[72].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "REQUIREMENT_SCENARIOS_EMPTY",
+      "file": "requirements.json",
+      "locator": "requirements[73].scenarioIds",
+      "contractLocator": "contract.md §8",
+      "message": "Requirement has no user-journey scenarios."
+    },
+    {
+      "code": "BEHAVIOR_MISMATCH_OPEN",
+      "file": "mismatches.json",
+      "locator": "items[9]",
+      "contractLocator": "contract.md §9",
+      "message": "Behavioral mismatch MODE-PLAIN-ENTER-STICKY remains unresolved."
+    }
+  ],
+  "cursorReference": {
+    "pluginsRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+    "cliVersion": "2026.10.01-e373342"
+  },
+  "piVersion": "1.1.0",
+  "sourceRevisions": {
+    "cursorPlugins": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+    "pi": "abe508e1b89912adde45528136c3221eb69acdd7",
+    "implementationBaseline": "78dd5a04279436ebf6dde44853bacdab88ca9ae0"
+  },
+  "candidateRevision": "78dd5a04279436ebf6dde44853bacdab88ca9ae0",
+  "packageDigest": "sha512-SeEi/4hdcHNgA9UWlefZl7ZZpm3dzi2OoxNjDHsBJ9o298LNOtbL4DGKgitlEj6uCTccvtw6f2hlCkTPVJ2RXg==",
+  "deploymentManifestDigest": "0882671bcc81811716c34b43d96539ff63824e9f15695e8fe58b579559f3ea53",
+  "acceptanceDefinitionHashes": {
+    "frozen": false,
+    "owner": null
+  },
+  "configurationMatrix": "configurations.json",
+  "requirementCount": 74,
+  "executedJourneyCount": 2,
+  "evidenceIndex": [
+    {
+      "requirementId": "PSTACK-SETUP-MODEL-DISCOVERY-001",
+      "pair": "parity/evidence/setup-prepair/pair-setup-first-run-canonical-2.json",
+      "attempts": {
+        "cursor": "c7970c07-4c28-4cca-be3d-3d15ceedd207",
+        "pi": "1e448f41-07cb-4335-8a96-aa6312d6d125"
+      }
+    },
+    {
+      "requirementId": "PSTACK-SETUP-BUDGET-LABELS-001",
+      "pair": "parity/evidence/setup-prepair/pair-setup-first-run-canonical-2.json",
+      "attempts": {
+        "cursor": "c7970c07-4c28-4cca-be3d-3d15ceedd207",
+        "pi": "1e448f41-07cb-4335-8a96-aa6312d6d125"
+      }
+    }
+  ],
+  "evaluatedAt": "2026-10-08T17:49:14.618Z"
+}

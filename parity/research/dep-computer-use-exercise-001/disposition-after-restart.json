@@ -1,0 +1,43 @@
+{
+  "capturedAt": "2026-10-09T05:36:34.728Z",
+  "ghosttyRestartObserved": true,
+  "lastLoginHint": "Thu Oct 8 22:33:37 on ttys000",
+  "computerUseReady": true,
+  "desktopShareReady": false,
+  "workerWarnings": [
+    "Screen Recording is not granted to Cursor Agent Helper",
+    "Accessibility is not granted to Cursor Agent Helper",
+    "Grant Accessibility and Screen Recording to Cursor Computer Use (not Terminal, not Cursor, not Agent Helper) for --computer-use"
+  ],
+  "requiredGrants": [
+    {
+      "app": "Cursor Computer Use",
+      "bundle": "co.anysphere.cursor-computer-use",
+      "path": "/Users/josh-desktop/.cursor/cursor-computer-use/Cursor Computer Use.app",
+      "needs": [
+        "Accessibility",
+        "Screen Recording"
+      ],
+      "for": "computer-use edge + Agents Window drive"
+    },
+    {
+      "app": "Cursor Agent Helper",
+      "bundle": "co.anysphere.cursor.agent-helper",
+      "path": "/Users/josh-desktop/.cursor/agent-helper/Cursor Agent Helper.app",
+      "needs": [
+        "Accessibility",
+        "Screen Recording"
+      ],
+      "for": "--share-desktop Ready=yes"
+    }
+  ],
+  "notSufficient": [
+    "Terminal",
+    "Ghostty",
+    "Cursor.app alone",
+    "restart without grants on the two apps above"
+  ],
+  "osascriptAssistiveAccess": false,
+  "screencaptureWorks": true,
+  "nextOperatorStep": "In System Settings → Privacy & Security, enable Accessibility AND Screen Recording for both Cursor Computer Use and Cursor Agent Helper. Then quit/reopen those two apps (terminal restart alone is insufficient). Ping coordinator when done — do not restart mid-agent-work."
+}

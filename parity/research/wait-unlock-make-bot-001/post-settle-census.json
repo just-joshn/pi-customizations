@@ -1,0 +1,21 @@
+{
+  "ioregLocked": false,
+  "winCount": 1,
+  "loginWins": 0,
+  "seStatus": 0,
+  "lwStatus": 0,
+  "seTimedOut": false,
+  "lwTimedOut": false,
+  "seCursorReady": true,
+  "helperReady": true,
+  "helper": {
+    "accessibility": true,
+    "consoleUidMatch": true,
+    "guiSession": true,
+    "ready": true,
+    "screenLocked": false,
+    "screenRecording": true
+  },
+  "ready": true,
+  "at": "2026-10-09T14:41:52.650Z"
+}

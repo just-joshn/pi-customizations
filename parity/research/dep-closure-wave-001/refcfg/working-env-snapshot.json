@@ -1,0 +1,15 @@
+{
+  "capturedAt": "2026-10-08T17:59:53Z",
+  "cliVersionObserved": "2026.10.01-e373342",
+  "configPath": "/Users/josh-desktop/.cursor/cli-config.json",
+  "configSha256Raw": "8171ec8bbb542eaffea655db1109e6c04084e53d0a9baf67411849d7471ad394",
+  "redactedSnapshot": "parity/research/dep-closure-wave-001/refcfg/cli-config.redacted.json",
+  "redactedSnapshotSha256": "61319819c350eb745e811dddee1e1e2c4277f92b2ccbb8fa405fb40e8b9a3c5a",
+  "aboutCapture": "parity/research/dep-closure-wave-001/refcfg/cursor-agent-about.txt",
+  "aboutSha256": "b517ac25f102714cddda5dc18b5b4ecd8f1549735ce7e83b57b69010ad38dc26",
+  "statusCapture": "parity/research/dep-closure-wave-001/refcfg/cursor-agent-status.txt",
+  "statusSha256": "e38b70f1fc10b7adfeafbb16eb7e5c3c55dcaf29060768d3fa57a64242686f78",
+  "docsContractPath": "parity/research/cursor-host/cli/parent-snapshots/cli_reference_configuration.md",
+  "docsContractSha256": "aab79ccc8949c23f30c45e0928ea80cefb5ee4ee6ff1723a3864ac61851f2a87",
+  "note": "Working-env snapshot of global cli-config.json with secrets redacted. This is one observed configuration case, not the full reference matrix of every integration in a working state."
+}

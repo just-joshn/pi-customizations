@@ -1,0 +1,245 @@
+{
+  "schemaVersion": 1,
+  "sliceId": "slice-commands-002",
+  "sourceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "receipts": [
+    {
+      "path": "pstack/agents/comment-sicko.md",
+      "fullFileSha256": "c0fd0383008da45fc78cfac17b9007d62c42f87ad1c8d5c2fb658b1fd01f7c82",
+      "inventorySha256": "c0fd0383008da45fc78cfac17b9007d62c42f87ad1c8d5c2fb658b1fd01f7c82",
+      "inventoryMatch": true,
+      "linesRead": {
+        "start": 8,
+        "end": 10
+      },
+      "quoteSha256": "a08d071a2c49b477cc7484e9f68099a7fb0e6c0b5b15a50d2541229bece19abf",
+      "proposalIds": [
+        "PSTACK-CMD-COMMENT-SICKO-FIRST-OUTPUT-001"
+      ]
+    },
+    {
+      "path": "pstack/agents/poteto-agent.md",
+      "fullFileSha256": "abe41c169ecbfe65641f1725f4188d568e046c0dec7fd2dc271abb594c299201",
+      "inventorySha256": "abe41c169ecbfe65641f1725f4188d568e046c0dec7fd2dc271abb594c299201",
+      "inventoryMatch": true,
+      "linesRead": {
+        "start": 1,
+        "end": 9
+      },
+      "quoteSha256": "abe41c169ecbfe65641f1725f4188d568e046c0dec7fd2dc271abb594c299201",
+      "proposalIds": [
+        "PSTACK-CMD-POTETO-AGENT-READ-SKILL-001"
+      ]
+    },
+    {
+      "path": "pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md",
+      "fullFileSha256": "1363cc07343fe86aab42853b1bd4563288cbcbdf12f1c265b3b3b1afa25c09cb",
+      "inventorySha256": "1363cc07343fe86aab42853b1bd4563288cbcbdf12f1c265b3b3b1afa25c09cb",
+      "inventoryMatch": true,
+      "linesRead": {
+        "start": 1,
+        "end": 11
+      },
+      "quoteSha256": "5788c8974092c74dbe5a027eb6c11bda2071565163d212d2fa634d2acbf9cefa",
+      "proposalIds": [
+        "PSTACK-CMD-BENNY-REPRO-FAIL-CLOSED-001"
+      ]
+    },
+    {
+      "path": "pstack/automations/benny/skills/setup-benny/SKILL.md",
+      "fullFileSha256": "5a3cbe63360c9f6373b6cb6c79a1eaf7e0eba181bfaa1577e2e6431af3407282",
+      "inventorySha256": "5a3cbe63360c9f6373b6cb6c79a1eaf7e0eba181bfaa1577e2e6431af3407282",
+      "inventoryMatch": true,
+      "linesRead": {
+        "start": 7,
+        "end": 15
+      },
+      "quoteSha256": "f3b118dbf2940197bbd9dd300feb6be480f045ccd3e5764192d71d24bf635509",
+      "proposalIds": [
+        "PSTACK-CMD-SETUP-BENNY-NOT-SLASH-001"
+      ]
+    },
+    {
+      "path": "pstack/automations/benny/skills/triage-issue-reports/SKILL.md",
+      "fullFileSha256": "216a758b8711e64d19a55e6032c496527daac6364d010611040f3c04ef1a448f",
+      "inventorySha256": "216a758b8711e64d19a55e6032c496527daac6364d010611040f3c04ef1a448f",
+      "inventoryMatch": true,
+      "linesRead": {
+        "start": 1,
+        "end": 11
+      },
+      "quoteSha256": "fdd5547be45f4f2ecfc12239dc7a82a16c7b16aaa8e84ee2601618a2451e2aec",
+      "proposalIds": [
+        "PSTACK-CMD-BENNY-TRIAGE-THREAD-ONLY-001"
+      ]
+    },
+    {
+      "path": "pstack/skills/automate-me/SKILL.md",
+      "fullFileSha256": "1510979b0b71b54284427a19c09918f8b1fdfc168f9b7f9e30098793a5ec88ef",
+      "inventorySha256": "1510979b0b71b54284427a19c09918f8b1fdfc168f9b7f9e30098793a5ec88ef",
+      "inventoryMatch": true,
+      "linesRead": {
+        "start": 1,
+        "end": 17
+      },
+      "quoteSha256": "59fe53d5f6edcf6e06794e4dc5472d53ff2368dcda4c4eb382060e6a01f75d31",
+      "proposalIds": [
+        "PSTACK-CMD-AUTOMATE-ME-EXISTING-SKILL-001"
+      ]
+    },
+    {
+      "path": "pstack/skills/benchmark-checklist/SKILL.md",
+      "fullFileSha256": "6a767e788a60428fa14e645ee10fe2e49896e514ff654f668b1d824deb9038e8",
+      "inventorySha256": "6a767e788a60428fa14e645ee10fe2e49896e514ff654f668b1d824deb9038e8",
+      "inventoryMatch": true,
+      "linesRead": {
+        "start": 1,
+        "end": 11
+      },
+      "quoteSha256": "0735d257afa0939cc978e1b461d366059a9b6d2277c39babbab25d575710248d",
+      "proposalIds": [
+        "PSTACK-CMD-BENCHMARK-CHECKLIST-EVIDENCE-001"
+      ]
+    },
+    {
+      "path": "pstack/skills/blast-radius/SKILL.md",
+      "fullFileSha256": "2e10745b97f5862323dcda3b29ca60d56b5c3c98e37020085d26b48efbe0a436",
+      "inventorySha256": "2e10745b97f5862323dcda3b29ca60d56b5c3c98e37020085d26b48efbe0a436",
+      "inventoryMatch": true,
+      "linesRead": {
+        "start": 15,
+        "end": 29
+      },
+      "quoteSha256": "944d22fc56a0809739720f6f55a0c392e79a8a9ec00c7a5e04472e75a057a1e1",
+      "proposalIds": [
+        "PSTACK-CMD-BLAST-RADIUS-RUN-PROOF-001"
+      ]
+    },
+    {
+      "path": "pstack/skills/bro/SKILL.md",
+      "fullFileSha256": "aa329d0ceeeecb6822a7174ad76bb07a7826a3c52ceb6a588dec4138815084bb",
+      "inventorySha256": "aa329d0ceeeecb6822a7174ad76bb07a7826a3c52ceb6a588dec4138815084bb",
+      "inventoryMatch": true,
+      "linesRead": {
+        "start": 1,
+        "end": 7
+      },
+      "quoteSha256": "aa329d0ceeeecb6822a7174ad76bb07a7826a3c52ceb6a588dec4138815084bb",
+      "proposalIds": [
+        "PSTACK-CMD-BRO-RESTATE-001"
+      ]
+    },
+    {
+      "path": "pstack/skills/maintain-verification-skill/SKILL.md",
+      "fullFileSha256": "515c0eaa054b3f6be1b1fb06f2c2f173c80fddb58bbcac57576f89c479bc68e8",
+      "inventorySha256": "515c0eaa054b3f6be1b1fb06f2c2f173c80fddb58bbcac57576f89c479bc68e8",
+      "inventoryMatch": true,
+      "linesRead": {
+        "start": 1,
+        "end": 17
+      },
+      "quoteSha256": "f385d58a2361d3c6a9be2d4cdba019fc0c8d60061e09e8d1983f68b423f1e3f8",
+      "proposalIds": [
+        "PSTACK-CMD-MAINTAIN-VERIFY-OUTCOMES-001"
+      ]
+    },
+    {
+      "path": "pstack/skills/make-bot-ui/SKILL.md",
+      "fullFileSha256": "3624c8ef16cf2e48deb2a4049e72c6962a9431c8d6c6af90e7bd7ea0375224ec",
+      "inventorySha256": "3624c8ef16cf2e48deb2a4049e72c6962a9431c8d6c6af90e7bd7ea0375224ec",
+      "inventoryMatch": true,
+      "linesRead": {
+        "start": 1,
+        "end": 11
+      },
+      "quoteSha256": "242aca4e23a6110013f95dd7ca5c50dfc134909c5e9e814caf2f307c6c10c3a5",
+      "proposalIds": [
+        "PSTACK-CMD-MAKE-BOT-UI-KEY-SERVER-001"
+      ]
+    },
+    {
+      "path": "pstack/skills/poteto-mode/SKILL.md",
+      "fullFileSha256": "31cd02290360ce63564ef22b74d69fc6d90e62181d05a644cbed8f6c47cc9412",
+      "inventorySha256": "31cd02290360ce63564ef22b74d69fc6d90e62181d05a644cbed8f6c47cc9412",
+      "inventoryMatch": true,
+      "linesRead": {
+        "start": 119,
+        "end": 121
+      },
+      "quoteSha256": "d332a937e629581aec8e255c398f7abe1199034be4a75fb1657323380f19bdf1",
+      "proposalIds": [
+        "PSTACK-CMD-POTETO-PLAYBOOK-TODO-001"
+      ]
+    },
+    {
+      "path": "pstack/skills/recall/SKILL.md",
+      "fullFileSha256": "d265b0e5b6dc5b89c0407f3387d24462c988e1990a37d5359735137908128c5a",
+      "inventorySha256": "d265b0e5b6dc5b89c0407f3387d24462c988e1990a37d5359735137908128c5a",
+      "inventoryMatch": true,
+      "linesRead": {
+        "start": 24,
+        "end": 31
+      },
+      "quoteSha256": "195070f860c79092b713f14f58368714f640215dc51df9a236c69389e2ab3702",
+      "proposalIds": [
+        "PSTACK-CMD-RECALL-CAPSULE-001"
+      ]
+    },
+    {
+      "path": "pstack/skills/setup-pstack/SKILL.md",
+      "fullFileSha256": "d61b47256a18155a81c8e5ef95e3cc6569ce8c18317c35c4dd9c8015cf68cb59",
+      "inventorySha256": "d61b47256a18155a81c8e5ef95e3cc6569ce8c18317c35c4dd9c8015cf68cb59",
+      "inventoryMatch": true,
+      "linesRead": {
+        "start": 37,
+        "end": 39
+      },
+      "quoteSha256": "933fbb00b21068fc0f24724598db243bbb211a05370a1634949fb147e4de331e",
+      "proposalIds": [
+        "PSTACK-CMD-SETUP-WRITE-RULE-001"
+      ]
+    },
+    {
+      "path": "pstack/skills/teach/SKILL.md",
+      "fullFileSha256": "bd286e5a6290673be2cd28aef7af2ec7f1fb138e6bce156ea657368c7e7fc8a4",
+      "inventorySha256": "bd286e5a6290673be2cd28aef7af2ec7f1fb138e6bce156ea657368c7e7fc8a4",
+      "inventoryMatch": true,
+      "linesRead": {
+        "start": 1,
+        "end": 11
+      },
+      "quoteSha256": "db798e6927335d43eae8dedafb1706853afff9f7889e04a1dba681b83076ee43",
+      "proposalIds": [
+        "PSTACK-CMD-TEACH-HOW-WHY-001"
+      ]
+    },
+    {
+      "path": "pstack/skills/typescript-best-practices/SKILL.md",
+      "fullFileSha256": "28f9e61710e205f6f3c5476f333483cff0e988f6a5b639e2faad536344b40c5e",
+      "inventorySha256": "28f9e61710e205f6f3c5476f333483cff0e988f6a5b639e2faad536344b40c5e",
+      "inventoryMatch": true,
+      "linesRead": {
+        "start": 1,
+        "end": 10
+      },
+      "quoteSha256": "990a27e635d2bf4958cda9e6b8e13a3ab426133c1ff7b2e658cf599743a7731d",
+      "proposalIds": [
+        "PSTACK-CMD-TYPESCRIPT-PATHS-001"
+      ]
+    },
+    {
+      "path": "pstack/skills/unslop/SKILL.md",
+      "fullFileSha256": "195411d320b5b328f9f642baf59757ed19aaf0931c0838740e0aca273d538dc1",
+      "inventorySha256": "195411d320b5b328f9f642baf59757ed19aaf0931c0838740e0aca273d538dc1",
+      "inventoryMatch": true,
+      "linesRead": {
+        "start": 1,
+        "end": 14
+      },
+      "quoteSha256": "f774f3fd143aaa1ad1a6701f7b81b7641dfb0bf764386b1573f56482fc32f784",
+      "proposalIds": [
+        "PSTACK-CMD-UNSLOP-PROCESS-001"
+      ]
+    }
+  ]
+}

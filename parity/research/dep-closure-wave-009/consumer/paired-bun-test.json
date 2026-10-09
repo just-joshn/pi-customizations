@@ -1,0 +1,14 @@
+{
+  "unit": "u-dep-consumer-journeys-003",
+  "pair": "parity/evidence/consumer/pair-consumer-bun-test-1.json",
+  "attempts": {
+    "cursor": "607e4ca2-6c4c-466c-9af5-e930f9b84fb8",
+    "pi": "81a09133-81b4-46e9-8266-0c0617aab431"
+  },
+  "packageId": "npm:bun-types@1.3.14",
+  "activationsClosed": ["test", "test/typecheck"],
+  "consumerPath": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/package.json",
+  "status": "closed",
+  "recordedAt": "2026-10-09T02:46:53Z",
+  "note": "scripts.test is bun test orch watch-pr; test/typecheck is not a distinct command"
+}

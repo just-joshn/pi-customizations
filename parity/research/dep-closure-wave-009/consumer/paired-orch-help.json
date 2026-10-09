@@ -1,0 +1,12 @@
+{
+  "unit": "u-dep-consumer-journeys-001",
+  "pair": "parity/evidence/consumer/pair-consumer-orch-help-1.json",
+  "attempts": {
+    "cursor": "076e12b0-fbfa-4ce8-be13-bc846be2c7cb",
+    "pi": "18ec805b-5b5c-4fbe-ae62-a3894eefedde"
+  },
+  "packageId": "npm:commander@14.0.0",
+  "consumerPath": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/orch/orch.ts",
+  "status": "closed",
+  "recordedAt": "2026-10-09T02:15:00Z"
+}

@@ -1,0 +1,8 @@
+{
+  "unit": "u-dep-typescript-oracle-001",
+  "deepCompilerSemanticsStatus": "still_open",
+  "note": "Minimal emit oracle for enums/namespaces under typescript@7.0.2. Not a substitute for full compiler-test suite. Does not close unresolvedReference.",
+  "tscExit": 1,
+  "emitFileCount": 0,
+  "emitHashesPath": "parity/research/dep-typescript-oracle-001/emit-hashes.json"
+}

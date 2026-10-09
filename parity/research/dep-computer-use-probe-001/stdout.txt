@@ -1,0 +1,108 @@
+======
+DEBUG LOGS
+Connection
+  Endpoint          https://api2.cursor.sh
+  Ghost mode        on (privacy)
+
+Auth
+  Method            login
+
+Identity
+  Email             josh.rg.humphrey@proton.me
+  User ID           422798837
+  Team ID           none
+
+Worker
+  ID                unknown
+  Name              MacBook-Pro
+  Mode              multi-use
+  Workspace         /Users/josh-desktop/src/personal/pi-pstack-parity-again
+  Data dir          /Users/josh-desktop/.local/share/cursor-agent
+  Labels            repo=just-joshn/pi-customizations
+
+Computer use
+  Ready             no
+  Mac app           no
+
+Desktop share (macOS session)
+  Supported         no
+  Mode              view
+  Ready             no
+  Helper            unknown  unknown
+  Helper path       unknown
+  Helper pid        none
+  Screen recording  unknown
+  Accessibility     unknown
+  GUI session       unknown
+  Console UID match unknown
+  Screen locked     unknown
+  Frame source      sck
+  Input             none
+  Socket            /Users/josh-desktop/.local/share/cursor-agent/desktop/rfb.sock
+
+Visibility
+  Non-privacy       0 workers
+  Privacy           same as non-privacy
+
+Warnings
+  - Cursor Computer Use is not installed at ~/.cursor/cursor-computer-use/. Worker start downloads it from downloads.cursor.com; Cursor.app is not required. After install, grant Accessibility and Screen Recording to Cursor Computer Use (not Terminal, not Cursor, not Agent Helper). Worker start will not advertise computer-use support until the app is present.
+  - Cursor Agent Helper is not installed. Start the worker with --share-desktop to install it.
+
+======
+Starting worker...
+Tip: use --verbose for more logs, and --debug for extra debug information
+04:07:08.051 INFO  Starting in worker mode ctx=worker-mode meta={bridgeUrl: "https://api2.cursor.sh"}
+04:07:08.058 INFO  Derived repo label from git origin ctx=worker-mode meta={repo: "just-joshn/pi-customizations"}
+04:07:08.309 INFO  Fetching user privacy mode... ctx=worker-mode
+04:07:08.575 INFO  User ghost mode ctx=worker-mode meta={ghostMode: true, bridgeType: "privacy"}
+04:07:08.576 INFO  Using user data directory ctx=worker-mode meta={dataDir: "/Users/josh-desktop/.local/share/cursor-agent"}
+04:07:08.679 INFO  Acquired worker daemon lock ctx=worker-mode meta={lockPath: "/Users/josh-desktop/.local/share/cursor-agent/worker.lock"}
+04:07:08.679 INFO  Checking Cursor Computer Use readiness manifest (release pinned in this build): https://downloads.cursor.com/computer-use-sidecar/releases/explicit/3.20.0-pre.7/aef70f206ecfa960fdc027893b7f9b362a3c44d4.json ctx=worker-mode
+04:07:09.028 INFO  Downloading Cursor Computer Use 0.0.13 from https://downloads.cursor.com/computer-use-sidecar/artifacts/sha256/55a8e7df13c96d9d66a1198871088b18d08a31711f2da86827866e2a93b4d5fe/Cursor-Computer-Use-0.0.13-universal.zip ctx=worker-mode
+04:07:09.334 INFO  Installed Cursor Computer Use 0.0.13 ctx=worker-mode
+04:07:09.334 INFO  Computer use enabled (--computer-use): claimed cloud agents can drive this machine's desktop (screenshot, click, type). This Mac uses the login GUI session through Cursor Computer Use. Grant Accessibility and Screen Recording to Cursor Computer Use (not Terminal, not Cursor, not Agent Helper). Cursor.app is not required. ctx=worker-mode
+04:07:09.334 INFO  Starting exec-daemon in bridge mode... ctx=worker-mode
+04:07:09.335 INFO  Starting exec-daemon ctx=worker-mode meta={logLevel: undefined, workspacePath: "/Users/josh-desktop/src/personal/pi-pstack-parity-again", projectDir: "/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again", browserEnabled: false, cursorSelfControlEnabled: false, mcpConfigSummary: {hasMcpConfig: false, serverNames: [], stdioServerCount: 0, httpServerCount: 0}, cloudRulesEnabled: false, computerUseEnabled: true, secretRedactionEnabled: true, recordScreenEnabled: false, orbitOperationReportingEnabled: false, chromeExecutablePath: undefined}
+04:07:09.336 INFO  Resolved exec-daemon workspaces ctx=worker-mode meta={workspacePath: "/Users/josh-desktop/src/personal/pi-pstack-parity-again", workspacePaths: ["/Users/josh-desktop/src/personal/pi-pstack-parity-again"]}
+04:07:09.336 INFO  Logs directory created/verified: /Users/josh-desktop/.local/share/cursor-agent/logs ctx=worker-mode
+04:07:09.346 INFO  Constructor: scheduling initial write
+04:07:09.349 INFO  fetchAndWrite: lease returned 0 tools across 0 clients
+04:07:09.350 INFO  CursorPluginsAgentSkillsService load completed ctx=worker-mode meta={durationMs: 5, ruleCount: 0, skillCount: 0}
+04:07:09.361 INFO  computer_use_startup_config ctx=worker-mode/exec_daemon.setup.init_computer_use meta={computerUseEnabled: true, lazyComputerUseInit: true, computerUseApiWidth: undefined, computerUseApiHeight: undefined, recordScreenEnabled: false, recordScreenDisplayOption: undefined, resolvedDisplay: ":1", displayEnv: undefined, hasXdpyinfo: false, xdpyinfoPath: undefined}
+04:07:09.361 INFO  Computer use enabled - MacRemoteComputerUseExecutor registered ctx=worker-mode/exec_daemon.setup.init_computer_use meta={display: ":1"}
+04:07:09.361 INFO  computer_use_init_result ctx=worker-mode/exec_daemon.setup.init_computer_use meta={outcome: "registered_lazy", display: ":1", executor: "mac_remote"}
+04:07:09.361 INFO  loading resource provider ctx=worker-mode meta={computerUseEnabled: true, computerUseRunning: true, desktopLeaseEnforce: false}
+04:07:09.366 INFO  resource provider loaded ctx=worker-mode/exec_daemon.setup.create_resource_provider meta={hooksConfig: {errors: [], configDirs: {}}}
+04:07:09.366 INFO  Exec-daemon loaded hook executor ctx=worker-mode/exec_daemon.setup.create_resource_provider meta={hasUserHooks: false, hasProjectHooks: false}
+04:07:09.367 INFO  Exec-daemon loaded resources ctx=worker-mode/exec_daemon.setup.create_resource_provider meta={resourceCount: 33}
+04:07:09.367 INFO  Starting in bridge mode ctx=worker-mode meta={bridgeUrl: "https://api2direct.cursor.sh", originalBridgeUrl: "https://api2.cursor.sh", hostHeader: "api2.cursor.sh", primaryWorkspacePath: "/Users/josh-desktop/src/personal/pi-pstack-parity-again", workspacePaths: ["/Users/josh-desktop/src/personal/pi-pstack-parity-again"], ghostMode: true, labels: [{key: "repo", value: "just-joshn/pi-customizations"}]}
+04:07:09.397 INFO  Generated initial worker ID ctx=worker-mode meta={workerId: "0400ae0d-aa5c-4949-a4b8-88e40cd9611a"}
+04:07:09.399 INFO  Worker registration arguments ctx=worker-mode meta={bridgeUrl: "https://api2direct.cursor.sh", hostHeader: "api2.cursor.sh", headers: {hasAuthorizationHeader: true, x-working-directory: "/Users/josh-desktop/src/personal/pi-pstack-parity-again", x-worker-id: "0400ae0d-aa5c-4949-a4b8-88e40cd9611a", x-worker-display-name-utf8: "MacBook-Pro%23%2FUsers%2Fjosh-desktop%2Fsrc%2Fpersonal%2Fpi-pstack-parity-again", x-ghost-mode: "true", x-worker-hostname: "MacBook-Pro", x-worker-local-ips: "192.168.1.184,2601:1c2:4700:a965:14fa:f46e:4877:ee03,2601:1c2:4700:a965:15fa:2a23:44dc:687a,2601:1c2:4700:a965:1891:3375:2821:acc6,2601:1c2:4700:a965::eaa,2607:fb91:79f2:76e2:4cef:8946:ffb7:62df,fda2:...", x-cursor-client-os: "darwin", x-cursor-client-arch: "arm64", x-repository-url: "https://just-joshn@github.com/just-joshn/pi-customizations.git", x-worker-labels: [{key: "repo", value: "just-joshn/pi-customizations"}], x-shared-assignment-allowed: "true", x-computer-use-enabled: "true", x-desktop-share-enabled: "false", x-desktop-control-enabled: "false", x-cursor-server-enabled: "false"}}
+04:07:09.400 INFO  Removing pushed git and gh credentials ctx=worker-mode
+04:07:09.434 INFO  Finished removing pushed git and gh credentials ctx=worker-mode meta={removedRewrites: 0}
+04:07:09.434 INFO  Starting bridge connection attempt ctx=worker-mode meta={retryCount: 0}
+04:07:09.434 INFO  Session state before connect ctx=worker-mode meta={state: "closed"}
+04:07:09.434 DEBUG Setting host header for ALB routing ctx=worker-mode meta={hostHeader: "api2.cursor.sh"}
+04:07:09.435 INFO  Session state after connect ctx=worker-mode meta={state: "connecting"}
+04:07:09.435 INFO  Starting to iterate over stream frames ctx=worker-mode
+04:07:09.435 INFO  cursor.com/agents#workerId=0400ae0d-aa5c-4949-a4b8-88e40cd9611a ctx=worker-mode
+04:07:09.435 INFO  Private worker started ctx=worker-mode meta={workerId: "0400ae0d-aa5c-4949-a4b8-88e40cd9611a", workerSelectionUrl: "https://cursor.com/agents#workerId=0400ae0d-aa5c-4949-a4b8-88e40cd9611a"}
+
+Worker is now running
+Name: MacBook-Pro
+Directory: /Users/josh-desktop/src/personal/pi-pstack-parity-again
+
+Run agents: https://cursor.com/agents#workerId=0400ae0d-aa5c-4949-a4b8-88e40cd9611a
+Setup automations for this machine: https://cursor.com/automations/new#workerId=0400ae0d-aa5c-4949-a4b8-88e40cd9611a
+04:07:09.678 INFO  AgentSkillsCursorRulesService load completed ctx=worker-mode meta={durationMs: 333, ruleCount: 168, skillCount: 168, servedFromCache: false}
+04:07:09.680 INFO  LocalCursorRulesService load completed ctx=worker-mode meta={durationMs: 338, ruleCount: 9}
+04:07:09.698 DEBUG Received frame ctx=worker-mode meta={frameCount: 1}
+04:07:39.697 DEBUG Received frame ctx=worker-mode meta={frameCount: 2}
+Stopping worker
+04:07:48.767 INFO  Received shutdown signal, stopping bridge client... ctx=worker-mode
+04:07:48.767 INFO  Stopping bridge client ctx=worker-mode
+04:07:48.768 INFO  Removing pushed git and gh credentials ctx=worker-mode
+04:07:48.770 INFO  Stream aborted due to session close ctx=worker-mode
+04:07:48.770 INFO  Bridge client stopped by request ctx=worker-mode
+04:07:48.791 INFO  Finished removing pushed git and gh credentials ctx=worker-mode meta={removedRewrites: 0}
+04:07:48.792 INFO  Released worker daemon lock ctx=worker-mode meta={lockPath: "/Users/josh-desktop/.local/share/cursor-agent/worker.lock"}

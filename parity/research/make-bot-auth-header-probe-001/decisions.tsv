@@ -1,0 +1,8 @@
+ts	phase	decision	why	evidence	result
+2026-10-09T07:32:03Z	start	auth-header probe run start	brief u-make-bot-auth-header-probe-001; exit = Generate auth + 0600 store + probe 200 or honest blocker	parity/briefs/u-make-bot-auth-header-probe-001.md	predicate open
+2026-10-09T07:33:05Z	lever	wrote probe-auth-header.py	smallest rerunnable path for generate+0600 store+probe without printing keys	parity/research/make-bot-auth-header-probe-001/probe-auth-header.py	predicate open
+2026-10-09T07:33:52Z	iterate	list-row click missed editor; prefer AXButton + Agents Window + handoff fallback	OCR showed IDE focus; button 257 is the draft row with AXPress	attempt 5b9388e6 disposition	predicate open
+2026-10-09T07:37:51Z	iterate	list AX only shows activity-feed draft rows; Automations panel drafts not AX-addressable	use proven /automate webhook-witness handoff with Window>Cursor Agents focus	capture-automations-desktop-agents-window.py activate_cursor patch	predicate open
+2026-10-09T07:43:18Z	iterate	handoff needs 2nd yes for open-editor; product says URL/auth after Save	patched capture harness yes_sent_count<3	e0675dab poll-8 OCR	predicate open
+2026-10-09T07:54:07Z	iterate	Save/Generate unpaid; handoff opens Untitled with prefill parse error	product text said URL/auth only after Save; live editor is New Automation without webhook URL or Generate	b0e3b61a OCR; beb9d748 handoff; c345b7ed prior Generate witness	predicate unmet; honest blocker
+2026-10-09T07:54:07Z	stop	stop with host_blocked report; canCloseMismatch no	editor control path broken this session; no key leaked; Pi e75f8e08 kept	parity/briefs/reports/u-make-bot-auth-header-probe-001-report.md	predicate unmet

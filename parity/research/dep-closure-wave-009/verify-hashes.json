@@ -1,0 +1,235 @@
+{
+  "capturedAt": "2026-10-09T01:52:19Z",
+  "status": "VERIFIED",
+  "mismatchCount": 0,
+  "rows": [
+    {
+      "id": "w9-000-journey-sampling.json",
+      "path": "parity/research/dep-closure-wave-009/team-kit/journey-sampling.json",
+      "ok": true,
+      "sha256": "33c43ef0d3398482d0b3e2a20d033b0b3d235080e6d6b0c8aa458d6ca67578fb"
+    },
+    {
+      "id": "w9-001-persistent-mode-disposition.json",
+      "path": "parity/research/dep-closure-wave-009/cli-host/persistent-mode-disposition.json",
+      "ok": true,
+      "sha256": "02f012df70352a8f79e5ba8c1b8355e4a8003359542d057492a59191852abd1f"
+    },
+    {
+      "id": "w9-002-host-edge-disposition.json",
+      "path": "parity/research/dep-closure-wave-009/host/host-edge-disposition.json",
+      "ok": true,
+      "sha256": "1a99058ef3d09480184da9428f07e1edf8fe04f966ae6dcb87d81b2758243e5c"
+    },
+    {
+      "id": "w9-003-official-capture.json",
+      "path": "parity/research/dep-closure-wave-009/bun/official-capture.json",
+      "ok": true,
+      "sha256": "2300751be276b3ccc6bc7dc61d6c19f25308c5e698bfe7eac01b3360d5ebf2a0"
+    },
+    {
+      "id": "w9-004-bun-version.txt",
+      "path": "parity/research/dep-closure-wave-009/bun/bun-version.txt",
+      "ok": true,
+      "sha256": "b99b4c7cdf236f59bc9f65d963deaecae3b16a7dad87939cacb9057f7664daee"
+    },
+    {
+      "id": "w9-005-typescript-deep-semantics-disposition.json",
+      "path": "parity/research/dep-closure-wave-009/npm/typescript-deep-semantics-disposition.json",
+      "ok": true,
+      "sha256": "a3ac9a4f564b3f698dccfdf2dce74f9ec729c3e517bf60dbbc9f9fc579730bb2"
+    },
+    {
+      "id": "w9-006-journey-audit.json",
+      "path": "parity/research/dep-closure-wave-009/create-skill/journey-audit.json",
+      "ok": true,
+      "sha256": "b5e16d53f60110602f3d25d5504468d3ae542863da69f052583f0cafb7a5717f"
+    },
+    {
+      "id": "w9-007-journey-refresh.json",
+      "path": "parity/research/dep-closure-wave-009/consumer/journey-refresh.json",
+      "ok": true,
+      "sha256": "646f7d997a89709738b38ff8ca44fe1b046682e7fefbc22f5ea7b9f836d9cff6"
+    },
+    {
+      "id": "w9-008-integrations-carryforward.json",
+      "path": "parity/research/dep-closure-wave-009/live/integrations-carryforward.json",
+      "ok": true,
+      "sha256": "0fbadf86baa3a60e24d3fc8cd24092ab9aa53e5f1775e824b694d06a195099d7"
+    },
+    {
+      "id": "w9-009-extraction-carryforward.json",
+      "path": "parity/research/dep-closure-wave-009/recursive/extraction-carryforward.json",
+      "ok": true,
+      "sha256": "9b7d8767c713d89b3753c2bc34e79c0dcb0663427f2d7cb6df630e739cac3580"
+    },
+    {
+      "id": "w9-010-merge-proposal.json",
+      "path": "parity/research/dep-closure-wave-009/merge-proposal.json",
+      "ok": true,
+      "sha256": "f153041f9572e08f4f1a5cc0798d8710de74c2b948e1bf4b61f4f287dcce5149"
+    },
+    {
+      "id": "w9-011-decisions.tsv",
+      "path": "parity/research/dep-closure-wave-009/decisions.tsv",
+      "ok": true,
+      "sha256": "d1185e814361f3085c730880d13e1eb3f90b2acc207343f7b0dba0fbc34774c4"
+    },
+    {
+      "id": "w9-012-team-kit-journey-sampling.md",
+      "path": "parity/research/dep-closure-wave-009/nodes/team-kit-journey-sampling.md",
+      "ok": true,
+      "sha256": "01a4018acb8a07aa9c3fc511e3869ad4c70a2fb4535f2a685bfe837e2a5cc5ab"
+    },
+    {
+      "id": "w9-013-cli-host-persistent-mode.md",
+      "path": "parity/research/dep-closure-wave-009/nodes/cli-host-persistent-mode.md",
+      "ok": true,
+      "sha256": "2241c64ef49c5c3481caaff9138e47f69fd2ca33d29cdeb13ac3f79db78b7fe5"
+    },
+    {
+      "id": "w9-014-host-edge-disposition.md",
+      "path": "parity/research/dep-closure-wave-009/nodes/host-edge-disposition.md",
+      "ok": true,
+      "sha256": "8fee604a25938c7d85a47b324d5b9f68c429b172ab7e5279a3e52903153cc003"
+    },
+    {
+      "id": "w9-015-bun-pin.md",
+      "path": "parity/research/dep-closure-wave-009/nodes/bun-pin.md",
+      "ok": true,
+      "sha256": "1d436c29fac7f9c9daf354865b4b2ad06e80e7fd07c4533bbaceb3f83db672bf"
+    },
+    {
+      "id": "w9-016-typescript-deep-semantics.md",
+      "path": "parity/research/dep-closure-wave-009/nodes/typescript-deep-semantics.md",
+      "ok": true,
+      "sha256": "f9caeedc598db56dc7fa84f37d3b773c98aecbc5d3bf4bdfe5c6973b5603dc64"
+    },
+    {
+      "id": "w9-017-create-skill-journey-audit.md",
+      "path": "parity/research/dep-closure-wave-009/nodes/create-skill-journey-audit.md",
+      "ok": true,
+      "sha256": "09cfcaedba3f0f779dbe3291e7baeeefcf867a2d41d7f431968595068f151354"
+    },
+    {
+      "id": "w9-018-live-integrations.md",
+      "path": "parity/research/dep-closure-wave-009/nodes/live-integrations.md",
+      "ok": true,
+      "sha256": "27474bb7274d3aed19b202ce98051f34e082ee7a691b11d75f745f894efdf1b2"
+    },
+    {
+      "id": "w9-019-recursive-extraction.md",
+      "path": "parity/research/dep-closure-wave-009/nodes/recursive-extraction.md",
+      "ok": true,
+      "sha256": "0dc8b9c5d919f67e933bfa22e3d0c177b0c799715c91024ece67e53c72666be2"
+    },
+    {
+      "id": "w9-020-consumer-journey-matrix.md",
+      "path": "parity/research/dep-closure-wave-009/nodes/consumer-journey-matrix.md",
+      "ok": true,
+      "sha256": "a96edcd1623d0ef4f4be70fae287b821a58d76147332b4df0d1f29236cbd5c76"
+    },
+    {
+      "id": "w9-021-computer-use.md",
+      "path": "parity/research/continuation/computer-use.md",
+      "ok": true,
+      "sha256": "a9ceb020282d7c61ad99ccd13de0c8831dd57499ac32af31b5f4afc9e9e186d0"
+    },
+    {
+      "id": "w9-022-model-management.md",
+      "path": "parity/research/continuation/model-management.md",
+      "ok": true,
+      "sha256": "2606b4bd74d43bd579c59945506ab691cd49de8da3386556e265c854f6c9d205"
+    },
+    {
+      "id": "w9-023-u-cursor-custom-mode-path-report.md",
+      "path": "parity/briefs/reports/u-cursor-custom-mode-path-report.md",
+      "ok": true,
+      "sha256": "285b46915c829d691dac04fadc56c90a3eeb93aef5242fe0253185a6846eae21"
+    },
+    {
+      "id": "w9-024-probe-custom-mode-path-summary.json",
+      "path": "parity/evidence/mode-sticky/probes/probe-custom-mode-path-summary.json",
+      "ok": true,
+      "sha256": "85e3fd494484dad4415fdb588f97f5a2d7eaee334333c1ac1910174b641676bc"
+    },
+    {
+      "id": "w9-025-distribution-sha256.txt",
+      "path": "parity/reference/distribution-sha256.txt",
+      "ok": true,
+      "sha256": "ea5304a45d311b7bde624e7108fa6563cb8217a3bdd6e855e853367ffd040d6b"
+    },
+    {
+      "id": "w9-026-SKILL.md",
+      "path": "parity/research/dep-closure-wave-001/nodes/cursor-create-skill/SKILL.md",
+      "ok": true,
+      "sha256": "255a3d3be7bac8984a13279f754f091a1de6f72c82bdf73e6b3c868e77e7ee82"
+    },
+    {
+      "id": "w9-027-README.md",
+      "path": "parity/reference/cursor-plugins/pstack/README.md",
+      "ok": true,
+      "sha256": "7f39feae81103e18b567e1fa5075cba86425cf4697a01be66a7422ef93c2c855"
+    },
+    {
+      "id": "w9-028-integrations-inventory.json",
+      "path": "parity/research/dep-closure-wave-007/live/integrations-inventory.json",
+      "ok": true,
+      "sha256": "63ef7f8f4c35e3918556e787f22eb308666e5e8d0b444b41584524ce13b867d4"
+    },
+    {
+      "id": "w9-029-extraction.json",
+      "path": "parity/research/dep-closure-wave-007/recursive/extraction.json",
+      "ok": true,
+      "sha256": "eb531640c75896c1443fd0f8c12f5a82b79c3500d6cbbe9425611222621ca323"
+    },
+    {
+      "id": "w9-030-journey-matrix.json",
+      "path": "parity/research/dep-closure-wave-007/consumer/journey-matrix.json",
+      "ok": true,
+      "sha256": "0d007527cd8d70f9888776cdd5135151b8db34167af26f5820cae939fc743ed3"
+    },
+    {
+      "id": "w9-031-journey-matrix.json",
+      "path": "parity/research/dep-closure-wave-007/create-skill/journey-matrix.json",
+      "ok": true,
+      "sha256": "ff7e8a0f0069db28f2623db9403e06dbd4e19063e99300a5715e52f5fffa9ac7"
+    },
+    {
+      "id": "w9-032-typescript-deep-semantics-disposition.json",
+      "path": "parity/research/dep-closure-wave-007/npm/typescript-deep-semantics-disposition.json",
+      "ok": true,
+      "sha256": "a76644158408fb8cfdbdc8812045ee1713391c90b8f7cdf36473ab47326f1acd"
+    },
+    {
+      "id": "w9-033-custody-disposition.json",
+      "path": "parity/research/dep-closure-wave-008/team-kit/custody-disposition.json",
+      "ok": true,
+      "sha256": "e4357246247a2334a53ecdc79d6dd8f83741fab3c79564078278c0f22cd69e53"
+    },
+    {
+      "id": "w9-034-lockfile.html",
+      "path": "parity/research/dep-closure-wave-009/bun/lockfile.html",
+      "ok": true,
+      "sha256": "974285c98875e1b7503be3ef87def5c0fb2b2bcb5530c0414b8c96afa524e782"
+    },
+    {
+      "id": "w9-035-install.html",
+      "path": "parity/research/dep-closure-wave-009/bun/install.html",
+      "ok": true,
+      "sha256": "afc8a8be3c99d25d81683fb7259315b9421eaae5804cbf5adae5672661099150"
+    },
+    {
+      "id": "w9-036-bunfig.html",
+      "path": "parity/research/dep-closure-wave-009/bun/bunfig.html",
+      "ok": true,
+      "sha256": "2c87a330c846626889f139deecdbfad570dd9c38599a75ff07a9d6557a36a873"
+    },
+    {
+      "id": "w9-037-bun-version-docs.html",
+      "path": "parity/research/dep-closure-wave-009/bun/bun-version-docs.html",
+      "ok": true,
+      "sha256": "cf0111d694ba188746577d2122ade94277088357ff4ccf6a2074cffd1e2f2098"
+    }
+  ]
+}

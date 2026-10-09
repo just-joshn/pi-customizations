@@ -1,0 +1,7 @@
+adminSettings.cachedAuthId|auth0|user_01M1XFVSG080B9FGSA7AQ3095D
+cursorAuth/cachedEmail|<redacted>
+cursorAuth/cachedSignUpType|Auth_0
+cursorAuth/hasInvalidatedMembershipForUnifiedSemanticsV2|true
+cursorAuth/stripeMembershipType|pro_plus
+cursorAuth/stripeSubscriptionStatus|active
+glass.lastSignedInAuthId|auth0|user_01M1XFVSG080B9FGSA7AQ3095D

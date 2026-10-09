@@ -1,0 +1,38 @@
+{
+  "capturedAt": "2026-10-09T01:52:19Z",
+  "unit": "u-dep-closure-wave-009",
+  "edge": {
+    "from": "cursor-pstack",
+    "to": "cursor-cli-host"
+  },
+  "keepStatus": "unverified",
+  "disposition": "environment-bound",
+  "newEvidenceFound": false,
+  "cursorAgentVersion": {
+    "command": [
+      "cursor-agent",
+      "--version"
+    ],
+    "exitCode": 0,
+    "stdout": "2026.10.01-e373342",
+    "expectedLock": "2026.10.01-e373342",
+    "matchesLock": true
+  },
+  "customModeProbe": {
+    "reportPath": "parity/briefs/reports/u-cursor-custom-mode-path-report.md",
+    "reportSha256": "285b46915c829d691dac04fadc56c90a3eeb93aef5242fe0253185a6846eae21",
+    "summaryPath": "parity/evidence/mode-sticky/probes/probe-custom-mode-path-summary.json",
+    "summarySha256": "85e3fd494484dad4415fdb588f97f5a2d7eaee334333c1ac1910174b641676bc",
+    "baselineAttemptId": "6977eeec-08bd-4829-810c-11d526d9f9fb",
+    "statsigOverrideAttemptId": "9857dda0-a74d-4546-b69e-1ff3528bdf3e",
+    "successAttemptId": null,
+    "summarySchema": 1
+  },
+  "blocker": "Persistent-mode Option/Alt+Enter Custom Mode path is environment-bound. Measured exhaustive-negative on locked cursor-agent 2026.10.01-e373342: glass_custom_modes off; attempts 6977eeec-08bd-4829-810c-11d526d9f9fb and 9857dda0-a74d-4546-b69e-1ff3528bdf3e; no success attempt ID. No new success evidence in wave-009. Operator must enable Custom Modes (or capture via Agents Window/IDE path), then recapture paired Cursor+Pi sticky evidence.",
+  "evidence": [
+    "parity/briefs/reports/u-cursor-custom-mode-path-report.md",
+    "parity/evidence/mode-sticky/probes/probe-custom-mode-path-summary.json",
+    "parity/mismatches.json",
+    "parity/requirements.json"
+  ]
+}

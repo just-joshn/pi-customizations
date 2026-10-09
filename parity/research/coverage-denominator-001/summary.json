@@ -1,0 +1,15 @@
+{
+  "matrixPath": "parity/research/coverage-denominator-001/disposition-matrix.json",
+  "mergePayloadPath": "parity/research/coverage-denominator-001/merge-payload.json",
+  "matrixSha256": "30eb94995baa329dddbb186e143cb92c508bbda9dfc1289c9e12dca86e93e661",
+  "dispositionContentSha256": "3182ab27542fd0e26bb6aae3d30c1bd95466c5c0485dc5beb70e9788bd282852",
+  "inventoryItemCount": 193,
+  "matrixItemCount": 193,
+  "unresolvedCount": 0,
+  "counts": {
+    "mapped": 59,
+    "deferred": 114,
+    "out-of-scope": 20
+  },
+  "coverageDenominatorCompleteRecommended": true
+}

@@ -1,0 +1,1 @@
+Error: Synthetic mouse clicks require the app to be frontmost. Use a single left click with element_index when the element supports AXPress, or bring the app to the foreground first.

@@ -1,0 +1,10 @@
+a9ceb020282d7c61ad99ccd13de0c8831dd57499ac32af31b5f4afc9e9e186d0  parity/research/continuation/computer-use.md
+2606b4bd74d43bd579c59945506ab691cd49de8da3386556e265c854f6c9d205  parity/research/continuation/model-management.md
+255a3d3be7bac8984a13279f754f091a1de6f72c82bdf73e6b3c868e77e7ee82  parity/research/dep-closure-wave-001/nodes/cursor-create-skill/SKILL.md
+667d9cf7222e9aae3fa42a4be383e657784216e9df115da02227fbc5ac7bbe46  parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bun.lock
+01e8dc24f53869ebf700a038510de8061a8325d10a85406711184e4b9fc76f43  parity/research/dep-closure-wave-001/npm/bun-types@1.3.14/unpacked/package/package.json
+da2513f4b95176d6dde8b51aab7afe8a927656c9d277369793f77f7e59371c08  parity/research/dep-closure-wave-002/npm/typescript@7.0.2/package.tgz
+5dd0187cdbf0533f7cd6049bf66d40339c14b6a7c96f72a5743a3412475d036b  parity/research/dep-closure-wave-002/npm/typescript@7.0.2/file-inventory.json
+76417b186c70821385ffc3aef778b9449b3e81fa81cb2414f911477753a5570f  parity/research/dep-closure-wave-002/npm/@typescript__typescript-aix-ppc64@7.0.2/unpacked/package/package.json
+2211227f0a514ac4b853b8e93b7b6acb8f3a6e5606275911e752be8c16b7a50c  parity/research/dep-closure-wave-002/bun/official-capture.json
+eaef3a697e7173c7347ca4c1e60dd2bc1d38214d2aaecce89d70881a51d7fde7  parity/reference/npm/commander-14.0.0/package.tgz

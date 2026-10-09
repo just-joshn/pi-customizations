@@ -1,0 +1,10 @@
+{
+  "capturedAt": "2026-10-09T05:54:26.034Z",
+  "computerUseReady": true,
+  "desktopShareReady": false,
+  "screenRecording": false,
+  "accessibility": false,
+  "screencaptureWorks": false,
+  "osascriptAssistiveAccess": false,
+  "note": "Device-control grant / terminal restart did not flip Agent Helper or Computer Use Accessibility/Screen Recording. Operator must toggle those two apps explicitly."
+}

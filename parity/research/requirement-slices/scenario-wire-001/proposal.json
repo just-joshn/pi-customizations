@@ -1,0 +1,487 @@
+{
+  "schemaVersion": 1,
+  "id": "scenario-wire-001",
+  "kind": "requirement-scenario-wire-proposal",
+  "status": "merged",
+  "forbidden": [
+    "Do not invent pair verdicts.",
+    "Coordinator merges into parity/requirements.json; worker must not edit it."
+  ],
+  "counts": {
+    "proposed": 91,
+    "written": 91,
+    "reused": 0,
+    "emptyRequirementsAtGeneration": 91
+  },
+  "mappings": [
+    {
+      "requirementId": "PSTACK-CMD-PLUGIN-SKILLS-REGISTER-001",
+      "scenarioId": "cmd-plugin-skills-register",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-CMD-DISABLE-MODEL-INVOCATION-001",
+      "scenarioId": "cmd-disable-model-invocation",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-CMD-SWARM-FANOUT-001",
+      "scenarioId": "cmd-swarm-fanout",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-CMD-ARENA-BASE-GRAFT-001",
+      "scenarioId": "cmd-arena-base-graft",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-CMD-ARCHITECT-GROUND-HOW-001",
+      "scenarioId": "cmd-architect-ground-how",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-CMD-INTERROGATE-NO-AUTOAPPLY-001",
+      "scenarioId": "cmd-interrogate-no-autoapply",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-CMD-REFLECT-TRIGGER-001",
+      "scenarioId": "cmd-reflect-trigger",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-CMD-WHY-MOTIVATION-001",
+      "scenarioId": "cmd-why-motivation",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-CMD-POTETO-HELP-NO-WORK-001",
+      "scenarioId": "cmd-poteto-help-no-work",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-CMD-TDD-EXPLICIT-GATE-001",
+      "scenarioId": "cmd-tdd-explicit-gate",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-CMD-CREATE-VERIFY-SKILL-001",
+      "scenarioId": "cmd-create-verify-skill",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-CMD-SHOW-ME-YOUR-WORK-TSV-001",
+      "scenarioId": "cmd-show-me-your-work-tsv",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-CMD-FIGURE-IT-OUT-PLAYBOOK-FIRST-001",
+      "scenarioId": "cmd-figure-it-out-playbook-first",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-CMD-CORRECT-ENCODE-001",
+      "scenarioId": "cmd-correct-encode",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-CMD-TECHNICAL-WRITING-DOCS-001",
+      "scenarioId": "cmd-technical-writing-docs",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-CMD-NO-COMMENTS-SICKO-001",
+      "scenarioId": "cmd-no-comments-sicko",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-CMD-COMMENT-SICKO-FIRST-OUTPUT-001",
+      "scenarioId": "cmd-comment-sicko-first-output",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-CMD-POTETO-AGENT-READ-SKILL-001",
+      "scenarioId": "cmd-poteto-agent-read-skill",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-CMD-BENNY-REPRO-FAIL-CLOSED-001",
+      "scenarioId": "cmd-benny-repro-fail-closed",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-CMD-SETUP-BENNY-NOT-SLASH-001",
+      "scenarioId": "cmd-setup-benny-not-slash",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-CMD-BENNY-TRIAGE-THREAD-ONLY-001",
+      "scenarioId": "cmd-benny-triage-thread-only",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-CMD-AUTOMATE-ME-EXISTING-SKILL-001",
+      "scenarioId": "cmd-automate-me-existing-skill",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-CMD-BENCHMARK-CHECKLIST-EVIDENCE-001",
+      "scenarioId": "cmd-benchmark-checklist-evidence",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-CMD-BLAST-RADIUS-RUN-PROOF-001",
+      "scenarioId": "cmd-blast-radius-run-proof",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-CMD-BRO-RESTATE-001",
+      "scenarioId": "cmd-bro-restate",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-CMD-MAINTAIN-VERIFY-OUTCOMES-001",
+      "scenarioId": "cmd-maintain-verify-outcomes",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-CMD-MAKE-BOT-UI-KEY-SERVER-001",
+      "scenarioId": "cmd-make-bot-ui-key-server",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-CMD-POTETO-PLAYBOOK-TODO-001",
+      "scenarioId": "cmd-poteto-playbook-todo",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-CMD-RECALL-CAPSULE-001",
+      "scenarioId": "cmd-recall-capsule",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-CMD-SETUP-WRITE-RULE-001",
+      "scenarioId": "cmd-setup-write-rule",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-CMD-TEACH-HOW-WHY-001",
+      "scenarioId": "cmd-teach-how-why",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-CMD-TYPESCRIPT-PATHS-001",
+      "scenarioId": "cmd-typescript-paths",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-CMD-UNSLOP-PROCESS-001",
+      "scenarioId": "cmd-unslop-process",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-SETUP-ALIAS-ALWAYS-VALID-001",
+      "scenarioId": "setup-alias-always-valid",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-SETUP-LOAD-STATE-001",
+      "scenarioId": "setup-load-state",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-SETUP-BUDGET-APPLY-001",
+      "scenarioId": "setup-budget-apply",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-SETUP-RERUN-PRESERVE-001",
+      "scenarioId": "setup-rerun-preserve",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-SETUP-GROK-XHIGH-CAP-001",
+      "scenarioId": "setup-grok-xhigh-cap",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-SETUP-ROLE-CONFIRM-001",
+      "scenarioId": "setup-role-confirm",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-SETUP-PANEL-LIST-FANOUT-001",
+      "scenarioId": "setup-panel-list-fanout",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-SETUP-VALIDATE-001",
+      "scenarioId": "setup-validate",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-SETUP-WRITE-RULE-001",
+      "scenarioId": "setup-write-rule",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-SETUP-CONFIRM-WRITTEN-001",
+      "scenarioId": "setup-confirm-written",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-SETUP-VERIFY-OFFER-001",
+      "scenarioId": "setup-verify-offer",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-SETUP-NEW-SESSION-APPLIES-001",
+      "scenarioId": "setup-new-session-applies",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-SETUP-GUIDE-RERUN-KEEP-001",
+      "scenarioId": "setup-guide-rerun-keep",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-SETUP-BENNY-NO-SECRET-001",
+      "scenarioId": "setup-benny-no-secret",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-SETUP-BENNY-PACK-MERGE-001",
+      "scenarioId": "setup-benny-pack-merge",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-SETUP-BENNY-SETTINGS-ENABLE-001",
+      "scenarioId": "setup-benny-settings-enable",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-SETUP-BENNY-PROJECT-SKILLS-001",
+      "scenarioId": "setup-benny-project-skills",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-SETUP-BENNY-USER-CONFIG-OUTSIDE-001",
+      "scenarioId": "setup-benny-user-config-outside",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-SETUP-BENNY-REQUIRED-EXPLICIT-001",
+      "scenarioId": "setup-benny-required-explicit",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-SETUP-BENNY-CONTROL-FAIL-CLOSED-001",
+      "scenarioId": "setup-benny-control-fail-closed",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-SETUP-BENNY-EXISTING-NO-AUTOMATE-001",
+      "scenarioId": "setup-benny-existing-no-automate",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-SETUP-BENNY-CREATION-BOUNDARY-001",
+      "scenarioId": "setup-benny-creation-boundary",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-SETUP-BENNY-THREAD-SAFETY-001",
+      "scenarioId": "setup-benny-thread-safety",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-SETUP-CREATE-VERIFY-INTERVIEW-001",
+      "scenarioId": "setup-create-verify-interview",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-SETUP-CREATE-VERIFY-GENERATE-001",
+      "scenarioId": "setup-create-verify-generate",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-SETUP-CREATE-VERIFY-FEATURE-MAP-001",
+      "scenarioId": "setup-create-verify-feature-map",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-SETUP-CREATE-VERIFY-PROVE-001",
+      "scenarioId": "setup-create-verify-prove",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-SETUP-CREATE-VERIFY-OFFER-MAINTAIN-001",
+      "scenarioId": "setup-create-verify-offer-maintain",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-SETUP-MAINTAIN-VERIFY-OUTCOMES-001",
+      "scenarioId": "setup-maintain-verify-outcomes",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-SETUP-MAINTAIN-VERIFY-EDIT-SCOPE-001",
+      "scenarioId": "setup-maintain-verify-edit-scope",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-SETUP-MAINTAIN-VERIFY-LOCATE-001",
+      "scenarioId": "setup-maintain-verify-locate",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-SETUP-MAINTAIN-VERIFY-SOURCE-WAVE-001",
+      "scenarioId": "setup-maintain-verify-source-wave",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-SETUP-MAINTAIN-VERIFY-LIVE-PASS-001",
+      "scenarioId": "setup-maintain-verify-live-pass",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-SETUP-MAINTAIN-VERIFY-SHIP-001",
+      "scenarioId": "setup-maintain-verify-ship",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-PRIN-ATTACK-PREMISE-001",
+      "scenarioId": "prin-attack-premise",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-PRIN-BOUNDARY-001",
+      "scenarioId": "prin-boundary",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-PRIN-BUILD-LEVER-001",
+      "scenarioId": "prin-build-lever",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-PRIN-ENCODE-STRUCTURE-001",
+      "scenarioId": "prin-encode-structure",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-PRIN-EXHAUST-DESIGN-001",
+      "scenarioId": "prin-exhaust-design",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-PRIN-EXPERIENCE-FIRST-001",
+      "scenarioId": "prin-experience-first",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-PRIN-EXPLAIN-NUMBER-001",
+      "scenarioId": "prin-explain-number",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-PRIN-FIX-ROOT-001",
+      "scenarioId": "prin-fix-root",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-PRIN-FOUNDATIONAL-001",
+      "scenarioId": "prin-foundational",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-PRIN-GUARD-CONTEXT-001",
+      "scenarioId": "prin-guard-context",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-PRIN-LAZINESS-001",
+      "scenarioId": "prin-laziness",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-PRIN-IDEMPOTENT-001",
+      "scenarioId": "prin-idempotent",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-PRIN-MIGRATE-DELETE-001",
+      "scenarioId": "prin-migrate-delete",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-PRIN-MINIMIZE-READER-001",
+      "scenarioId": "prin-minimize-reader",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-PRIN-MODEL-DOMAIN-001",
+      "scenarioId": "prin-model-domain",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-PRIN-NEVER-BLOCK-001",
+      "scenarioId": "prin-never-block",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-PRIN-OUTCOME-ORIENTED-001",
+      "scenarioId": "prin-outcome-oriented",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-PRIN-PROVE-IT-001",
+      "scenarioId": "prin-prove-it",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-PRIN-REDESIGN-FIRST-001",
+      "scenarioId": "prin-redesign-first",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-PRIN-SEPARATE-STATE-001",
+      "scenarioId": "prin-separate-state",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-PRIN-SEQUENCE-UNITS-001",
+      "scenarioId": "prin-sequence-units",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-PRIN-SUBTRACT-FIRST-001",
+      "scenarioId": "prin-subtract-first",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-PRIN-TEST-BEHAVIOR-001",
+      "scenarioId": "prin-test-behavior",
+      "action": "written"
+    },
+    {
+      "requirementId": "PSTACK-PRIN-TYPE-DISCIPLINE-001",
+      "scenarioId": "prin-type-discipline",
+      "action": "written"
+    }
+  ],
+  "mergeInstructions": {
+    "forEachMapping": "Append mapping.scenarioId to requirements[id==requirementId].scenarioIds if absent.",
+    "doNotChange": [
+      "execution verdicts on existing paired scenarios",
+      "mismatches.json",
+      "progress.md"
+    ]
+  },
+  "mergedAt": "2026-10-08T17:58:17Z",
+  "mergeResult": {
+    "merged": 91,
+    "alreadyPresent": 0,
+    "emptyScenarioIdsRemaining": 0
+  }
+}

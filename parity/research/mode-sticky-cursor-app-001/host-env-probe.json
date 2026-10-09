@@ -1,0 +1,137 @@
+{
+  "schema": 1,
+  "scenario": "mode-sticky-cursor-app-001",
+  "requirementId": "PSTACK-MODE-STICKY-001",
+  "mismatchId": "MODE-STICKY-CURSOR-CUSTOM-MODE-HARNESS",
+  "path": "cursor-app-agents-window-reprobe",
+  "probeId": "b01ad4e8-f88a-4e53-ac22-d3646d8e11b9",
+  "capturedAt": "2026-10-09T03:42:01.047Z",
+  "runnable": false,
+  "verdict": "exhaustive-negative-env-blocked",
+  "customModeStickyReached": false,
+  "cursorAttemptId": null,
+  "cursorApp": {
+    "path": "/Applications/Cursor.app",
+    "present": true,
+    "contentsPresent": true,
+    "binaryPresent": true,
+    "version": "3.24.9",
+    "bundleId": "com.todesktop.230313mzl4w4u92"
+  },
+  "checks": {
+    "cursorAppPresent": true,
+    "contentsPresent": true,
+    "binaryPresent": true,
+    "cursorAppVersion": "3.24.9",
+    "cursorBundleId": "com.todesktop.230313mzl4w4u92",
+    "cursorApplicationSupportPresent": true,
+    "cursorSettingsPresent": true,
+    "settingsCustomModesTogglePresent": false,
+    "settingsUseAsModePresent": false,
+    "foregroundCursorProcess": false,
+    "cursorMainProcess": false,
+    "agentsWindowProcess": false,
+    "cdpAnyOpen": false,
+    "cdpPorts": {
+      "9222": false,
+      "9223": false,
+      "9229": false,
+      "9230": false,
+      "9333": false
+    },
+    "displaySet": false,
+    "screencaptureOk": false,
+    "cursorShimFindsIde": true,
+    "cursorAgentVersion": "2026.10.01-e373342",
+    "statsigCacheGlassCustomModesString": false,
+    "ideBootstrapGlassCustomModesString": false,
+    "glassSignedOut": true,
+    "computerUseMcpInSession": false,
+    "agentsWindowUiDriveable": false,
+    "customModeStickyReached": false
+  },
+  "blockers": [
+    "DISPLAY empty / screencapture cannot create image from display",
+    "no Cursor Electron CDP debug port open",
+    "no computer-use / screenshot MCP tools in this session",
+    "User/settings.json has no Custom Modes toggle keys",
+    "glass_custom_modes string absent from CLI statsig-cache and IDE statsig bootstrap",
+    "Cursor IDE glass.lastSignedInAuthId is signed-out",
+    "Agents Window slash → Use as Mode not driveable without display/CDP/computer-use",
+    "Custom Mode sticky not reached (no success attempt ID)"
+  ],
+  "uiPathsTried": [
+    {
+      "path": "Desktop Cursor.app present at /Applications/Cursor.app",
+      "tried": true,
+      "reachable": true,
+      "reason": "present version=3.24.9 bundleId=com.todesktop.230313mzl4w4u92",
+      "customModeChrome": false
+    },
+    {
+      "path": "Desktop Cursor.app → Agents Window → slash → Use as Mode",
+      "tried": true,
+      "reachable": false,
+      "reason": "Agents Window helper process may be live, but DISPLAY empty, screencapture fails, CDP closed, computer-use MCP absent; cannot prove or drive Use as Mode chrome",
+      "customModeChrome": false,
+      "agentsWindowProcessObserved": false
+    },
+    {
+      "path": "Desktop Cursor Settings → Custom Modes toggle",
+      "tried": true,
+      "reachable": true,
+      "reason": "settings.json exists (44 bytes) but needles customMode/useAsMode/glass_custom_modes all false; content={\n    \"window.autoDetectColorScheme\": true\n}",
+      "customModeChrome": false
+    },
+    {
+      "path": "cursor shim finds IDE",
+      "tried": true,
+      "reachable": true,
+      "reason": "cursor --help identifies Cursor 3.24.9",
+      "customModeChrome": false
+    },
+    {
+      "path": "CDP attach to Cursor Electron",
+      "tried": true,
+      "reachable": false,
+      "reason": "ports {\"9222\":false,\"9223\":false,\"9229\":false,\"9230\":false,\"9333\":false}",
+      "customModeChrome": false
+    },
+    {
+      "path": "Computer-use / desktop screenshot drive",
+      "tried": true,
+      "reachable": false,
+      "reason": "GetDynamicTools pattern computer|screenshot|browser|cdp|playwright returned matches: [] (measured this unit); screencapture: could not create image from display\nCommand failed: screencapture -x /Users/josh-desktop/src/personal/pi-pstack-parity-a",
+      "customModeChrome": false
+    },
+    {
+      "path": "CLI glass_custom_modes / PTY Meta+Enter (prior exhaustive-negative)",
+      "tried": false,
+      "reachable": true,
+      "reason": "Not re-run as sticky success path; prior attempts 6977eeec / 9857dda0 remain; binary default glass_custom_modes false; live statsig-cache lacks gate string",
+      "customModeChrome": false,
+      "priorAttempts": [
+        "6977eeec-08bd-4829-810c-11d526d9f9fb",
+        "9857dda0-a74d-4546-b69e-1ff3528bdf3e"
+      ]
+    }
+  ],
+  "glassSqlite": {
+    "exists": true,
+    "glassLastSignedInAuthId": "signed-out",
+    "glassSharedApplicationStorageGateEnabled": "true",
+    "stripeMembershipType": "free",
+    "statsigBootstrapLen": 809934,
+    "glass_custom_modes_string_in_bootstrap": false,
+    "customModes_string_in_bootstrap": false
+  },
+  "evidenceNotes": {
+    "hostProbeDir": "parity/research/mode-sticky-cursor-app-001/host-probe",
+    "priorAgentsWindowReport": "parity/briefs/reports/u-mode-sticky-agents-window-report.md",
+    "priorCliNegativeReport": "parity/briefs/reports/u-cursor-custom-mode-path-report.md",
+    "piStickyAttemptId": "96494327-f90c-470a-8e11-cf7c5b6cad89",
+    "pairLeftUnchanged": "parity/evidence/mode-sticky/pair-mode-sticky-1.json",
+    "cursorShimDigest": "sha256:7d69663641c9e86048f0fc0a0e28c5d5329047a5b1916792cf82b8a9e9a4e115"
+  },
+  "mergeRecommendation": "Do not close MODE-STICKY-CURSOR-CUSTOM-MODE-HARNESS / PSTACK-MODE-STICKY-001 Cursor half. Cursor.app is present, but sticky Custom Mode remains unreachable on this host (no display capture, no CDP, no computer-use MCP, signed-out IDE, no Custom Modes settings chrome, glass_custom_modes still not observed on). Keep Pi half 96494327 linked."
+}

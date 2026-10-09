@@ -1,0 +1,10 @@
+{
+  "verdict": "pass",
+  "canCloseMismatch": true,
+  "attempts": {
+    "cursor": "de707056-289d-44b8-85a4-4d400e849815",
+    "pi": "16520327-0d45-4817-a0cd-2f8c1c0e494a"
+  },
+  "fabricatedSlack": false,
+  "pair": "parity/evidence/benny-triage/pair-benny-triage-valid-1.json"
+}

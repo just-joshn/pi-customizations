@@ -1,0 +1,1724 @@
+{
+  "schemaVersion": 1,
+  "sliceId": "slice-principles-001",
+  "kind": "requirement-proposals",
+  "status": "draft-not-merged",
+  "sourceRevision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "sourceLockNote": "Official pstack 0.15.15 @ ccb5507 under parity/reference/cursor-plugins/pstack/",
+  "topic": "leftover principle-* SKILL.md inventory paths from slice-commands-002",
+  "topicInventoryDefinition": "Leftover uncovered paths listed in parity/research/requirement-slices/slice-commands-002/report.md",
+  "priorLeftoverInventoryCount": 24,
+  "coveredInventoryCount": 24,
+  "leftoverInventoryCount": 0,
+  "proposalCount": 24,
+  "dispositionCount": 0,
+  "excludedExistingRequirements": [],
+  "deferredToLaterSlice": [],
+  "configurationMatrixRef": "parity/configurations.json",
+  "domainModel": {
+    "record": "RequirementProposal",
+    "organizingStructure": "typed proposal records keyed by principle activation contract (frontmatter trigger + disable-model-invocation) plus leaf-load observation",
+    "invariants": [
+      "status never verified in this slice",
+      "every quote recomputes to quoteSha256",
+      "fullFileSha256 matches inventoryItemSha256",
+      "configurationCells reference parity/configurations.json ids",
+      "every leftover principle path from slice-commands-002 is covered by exactly one proposal",
+      "quoted frontmatter includes disable-model-invocation: true"
+    ]
+  },
+  "proposals": [
+    {
+      "id": "PSTACK-PRIN-ATTACK-PREMISE-001",
+      "status": "draft-proposal",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/principle-attack-the-premise/SKILL.md",
+        "locator": "Attack the Premise frontmatter trigger and disable-model-invocation",
+        "lineStart": 1,
+        "lineEnd": 5,
+        "fullFileSha256": "c87bd7536f772f8a403ad8155535ee17a1bbec9a353156693eb3bb1520c87ae3",
+        "quoteSha256": "f02270c72c5b9450657ccab360c345eee3b95a46924ad46491ef93db8f48c33f",
+        "quote": "---\nname: principle-attack-the-premise\ndescription: \"Apply when two or more fixes that share one premise have failed the same gate. Take a census of which actors hold the imbalance before the next fix, then question the premise instead of writing another fix that assumes it.\"\ndisable-model-invocation: true\n---\n"
+      },
+      "inventoryPath": "pstack/skills/principle-attack-the-premise/SKILL.md",
+      "inventoryItemSha256": "c87bd7536f772f8a403ad8155535ee17a1bbec9a353156693eb3bb1520c87ae3",
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host",
+        "poteto-mode"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Under poteto-mode, after two or more fixes that share one premise have failed the same gate, the agent applies principle-attack-the-premise.",
+      "preconditions": [
+        "Locked pstack poteto-mode and principle-attack-the-premise skill loaded.",
+        "At least two prior fixes sharing one premise failed the same gate."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "configurationCells": [
+        {
+          "id": "default",
+          "role": "required-unverified-matrix-cell"
+        },
+        {
+          "id": "installed-user",
+          "role": "required-unverified-matrix-cell"
+        }
+      ],
+      "startingState": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file.",
+      "actions": [
+        {
+          "input": "Continue debugging after the second shared-premise failure.",
+          "expectedObservation": "Before the next fix, the agent Reads the leaf principle-attack-the-premise/SKILL.md and produces a written premise plus a rerunnable census script artifact."
+        }
+      ],
+      "expectedObservations": [
+        "The agent Reads pstack/skills/principle-attack-the-premise/SKILL.md before claiming the principle.",
+        "A written premise sentence and a rerunnable census exist before the next fix starts.",
+        "Host does not model-auto-invoke the skill (disable-model-invocation remains true in the locked file)."
+      ],
+      "requiredSideEffects": [
+        "Leaf skill Read appears in the transcript tool trace.",
+        "Premise and census artifacts exist before further fix commits."
+      ],
+      "forbiddenSideEffects": [
+        "Starting another fix that still assumes the unwritten premise.",
+        "Model-auto-invocation of the principle skill as a slash command."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "unresolved": [
+        "Exact census script shape is judgmental beyond 'rerunnable'.",
+        "Paired Cursor+Pi observation of leaf-load timing is unverified."
+      ],
+      "evidence": [],
+      "notes": "Principle skill leftover from slice-commands-002. Activation contract quotes frontmatter (Apply-when description + disable-model-invocation). Proposal only. Not merged into parity/requirements.json. Status must not be verified."
+    },
+    {
+      "id": "PSTACK-PRIN-BOUNDARY-001",
+      "status": "draft-proposal",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/principle-boundary-discipline/SKILL.md",
+        "locator": "Boundary Discipline frontmatter trigger and disable-model-invocation",
+        "lineStart": 1,
+        "lineEnd": 5,
+        "fullFileSha256": "62ac2862c2caa22dd14531f51c9c6bb445ceb198ca98a687e25b4d47c1f10a28",
+        "quoteSha256": "de59b2c5f9dcb766a5289af21a40c8b9b73702b4a7c57d5d37fc2085b812dda5",
+        "quote": "---\nname: principle-boundary-discipline\ndescription: \"Apply when wiring validation, error handling, or framework adapters. Concentrate guards at system boundaries (CLI, config, network, external APIs); trust internal types and keep business logic in pure functions.\"\ndisable-model-invocation: true\n---\n"
+      },
+      "inventoryPath": "pstack/skills/principle-boundary-discipline/SKILL.md",
+      "inventoryItemSha256": "62ac2862c2caa22dd14531f51c9c6bb445ceb198ca98a687e25b4d47c1f10a28",
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host",
+        "poteto-mode"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Under poteto-mode, when wiring validation, error handling, or framework adapters, the agent applies principle-boundary-discipline.",
+      "preconditions": [
+        "Locked pstack poteto-mode and principle-boundary-discipline skill loaded.",
+        "Task involves CLI/config/network/API boundary wiring."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "configurationCells": [
+        {
+          "id": "default",
+          "role": "required-unverified-matrix-cell"
+        },
+        {
+          "id": "installed-user",
+          "role": "required-unverified-matrix-cell"
+        }
+      ],
+      "startingState": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file.",
+      "actions": [
+        {
+          "input": "Add or change validation around an external input path.",
+          "expectedObservation": "The agent Reads the leaf skill, places validation at the boundary, and keeps business logic free of re-validation of already-narrowed types."
+        }
+      ],
+      "expectedObservations": [
+        "The agent Reads pstack/skills/principle-boundary-discipline/SKILL.md before applying it.",
+        "New validation is at a named boundary (CLI, config, network, or external API), not deep in pure business logic.",
+        "disable-model-invocation remains true in the locked file."
+      ],
+      "requiredSideEffects": [
+        "Leaf skill Read in transcript.",
+        "Boundary parse or validate step present for the new external input."
+      ],
+      "forbiddenSideEffects": [
+        "Re-validating already typed internal values mid-call-chain as the primary fix.",
+        "Model-auto-invocation of the principle skill."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "unresolved": [
+        "Judgment of what counts as a system boundary needs paired review.",
+        "Exact error-return shape is language-specific."
+      ],
+      "evidence": [],
+      "notes": "Principle skill leftover from slice-commands-002. Activation contract quotes frontmatter (Apply-when description + disable-model-invocation). Proposal only. Not merged into parity/requirements.json. Status must not be verified."
+    },
+    {
+      "id": "PSTACK-PRIN-BUILD-LEVER-001",
+      "status": "draft-proposal",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/principle-build-the-lever/SKILL.md",
+        "locator": "Build the Lever frontmatter trigger and disable-model-invocation",
+        "lineStart": 1,
+        "lineEnd": 5,
+        "fullFileSha256": "458b269eab8e95a1573276955312f7d2a13ae8599879a9efc748248f6bc34b56",
+        "quoteSha256": "dd2d4515cd11ec8c9ac8f9e254432c1b377bd431fcf7bfa26cd2fd99285a1b1c",
+        "quote": "---\nname: principle-build-the-lever\ndescription: \"Apply to any non-trivial work, not just bulk work: edits, migrations, analyses, checks. Build the tool that does it or proves it (codemod, script, generator, or a skill your subagents follow) instead of working by hand. The tool is the artifact a reviewer can rerun.\"\ndisable-model-invocation: true\n---\n"
+      },
+      "inventoryPath": "pstack/skills/principle-build-the-lever/SKILL.md",
+      "inventoryItemSha256": "458b269eab8e95a1573276955312f7d2a13ae8599879a9efc748248f6bc34b56",
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host",
+        "poteto-mode"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Under poteto-mode, on non-trivial work (edits, migrations, analyses, checks), the agent applies principle-build-the-lever.",
+      "preconditions": [
+        "Locked pstack poteto-mode and principle-build-the-lever skill loaded.",
+        "Task is non-trivial (not a couple of obvious glanceable edits)."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "configurationCells": [
+        {
+          "id": "default",
+          "role": "required-unverified-matrix-cell"
+        },
+        {
+          "id": "installed-user",
+          "role": "required-unverified-matrix-cell"
+        }
+      ],
+      "startingState": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file.",
+      "actions": [
+        {
+          "input": "Perform non-trivial multi-unit work while citing Build the Lever.",
+          "expectedObservation": "The agent Reads the leaf skill and the diff includes a codemod, script, generator, or delegate skill that a reviewer can rerun."
+        }
+      ],
+      "expectedObservations": [
+        "The agent Reads pstack/skills/principle-build-the-lever/SKILL.md before citing the principle.",
+        "A rerunnable lever file exists in the owned output (codemod, script, generator, or delegate skill).",
+        "disable-model-invocation remains true in the locked file."
+      ],
+      "requiredSideEffects": [
+        "Leaf skill Read in transcript.",
+        "Lever artifact path present in the work product."
+      ],
+      "forbiddenSideEffects": [
+        "Citing Build the Lever with no lever file in the diff.",
+        "Model-auto-invocation of the principle skill."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "unresolved": [
+        "Triviality threshold is judgmental.",
+        "Whether a one-off check script always must be committed is unresolved."
+      ],
+      "evidence": [],
+      "notes": "Principle skill leftover from slice-commands-002. Activation contract quotes frontmatter (Apply-when description + disable-model-invocation). Proposal only. Not merged into parity/requirements.json. Status must not be verified."
+    },
+    {
+      "id": "PSTACK-PRIN-ENCODE-STRUCTURE-001",
+      "status": "draft-proposal",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/principle-encode-lessons-in-structure/SKILL.md",
+        "locator": "Encode Lessons in Structure frontmatter trigger and disable-model-invocation",
+        "lineStart": 1,
+        "lineEnd": 5,
+        "fullFileSha256": "77044c83a9ac6df78fc643887ea5f1f11f082adaf14b717c060cdaed03cce863",
+        "quoteSha256": "20abf594abc0b6e86ea67abfc78bfce0d0e9252147bf090b6b94e3ea8fff4ad5",
+        "quote": "---\nname: principle-encode-lessons-in-structure\ndescription: \"Apply when you catch yourself writing the same instruction a second time, or notice a recurring correction. Encode the rule as a lint, metadata flag, runtime check, or script instead of more text.\"\ndisable-model-invocation: true\n---\n"
+      },
+      "inventoryPath": "pstack/skills/principle-encode-lessons-in-structure/SKILL.md",
+      "inventoryItemSha256": "77044c83a9ac6df78fc643887ea5f1f11f082adaf14b717c060cdaed03cce863",
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host",
+        "poteto-mode"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Under poteto-mode, when the agent would write the same instruction a second time or notices a recurring correction, it applies principle-encode-lessons-in-structure.",
+      "preconditions": [
+        "Locked pstack poteto-mode and principle-encode-lessons-in-structure skill loaded.",
+        "A prior textual instruction or human correction already exists for the same rule."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "configurationCells": [
+        {
+          "id": "default",
+          "role": "required-unverified-matrix-cell"
+        },
+        {
+          "id": "installed-user",
+          "role": "required-unverified-matrix-cell"
+        }
+      ],
+      "startingState": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file.",
+      "actions": [
+        {
+          "input": "Encounter the same rule that was previously written as prose instruction.",
+          "expectedObservation": "The agent Reads the leaf skill and encodes a lint, metadata flag, runtime check, or script instead of adding another prose copy."
+        }
+      ],
+      "expectedObservations": [
+        "The agent Reads pstack/skills/principle-encode-lessons-in-structure/SKILL.md before applying it.",
+        "The second occurrence becomes a mechanism (lint, flag, check, or script), not duplicated instruction text.",
+        "disable-model-invocation remains true in the locked file."
+      ],
+      "requiredSideEffects": [
+        "Leaf skill Read in transcript.",
+        "Structural mechanism artifact or CI rule added."
+      ],
+      "forbiddenSideEffects": [
+        "Pasting a second copy of the same instruction as the only fix.",
+        "Model-auto-invocation of the principle skill."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "unresolved": [
+        "Judgment cases that cannot be encoded remain open.",
+        "Strength ordering of mechanisms needs scenario coverage."
+      ],
+      "evidence": [],
+      "notes": "Principle skill leftover from slice-commands-002. Activation contract quotes frontmatter (Apply-when description + disable-model-invocation). Proposal only. Not merged into parity/requirements.json. Status must not be verified."
+    },
+    {
+      "id": "PSTACK-PRIN-EXHAUST-DESIGN-001",
+      "status": "draft-proposal",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/principle-exhaust-the-design-space/SKILL.md",
+        "locator": "Exhaust the Design Space frontmatter trigger and disable-model-invocation",
+        "lineStart": 1,
+        "lineEnd": 5,
+        "fullFileSha256": "8583310d7297b7823d75494faa57b003564d436807febecdecbd8321abe5cf6e",
+        "quoteSha256": "37c058f46265a6427020b21c9ec5f51904193359cf15fd71f39fe52f1bdad259",
+        "quote": "---\nname: principle-exhaust-the-design-space\ndescription: \"Apply when facing a novel UI interaction or architectural decision with no precedent in the codebase. Build 2-3 competing prototypes and compare side by side before committing.\"\ndisable-model-invocation: true\n---\n"
+      },
+      "inventoryPath": "pstack/skills/principle-exhaust-the-design-space/SKILL.md",
+      "inventoryItemSha256": "8583310d7297b7823d75494faa57b003564d436807febecdecbd8321abe5cf6e",
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host",
+        "poteto-mode"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Under poteto-mode, facing a novel UI interaction or architectural decision with no codebase precedent, the agent applies principle-exhaust-the-design-space.",
+      "preconditions": [
+        "Locked pstack poteto-mode and principle-exhaust-the-design-space skill loaded.",
+        "Decision has no established precedent in the repo."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "configurationCells": [
+        {
+          "id": "default",
+          "role": "required-unverified-matrix-cell"
+        },
+        {
+          "id": "installed-user",
+          "role": "required-unverified-matrix-cell"
+        }
+      ],
+      "startingState": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file.",
+      "actions": [
+        {
+          "input": "Choose among novel design alternatives before implementation.",
+          "expectedObservation": "The agent Reads the leaf skill and produces 2-3 competing prototypes or sketches before committing to one."
+        }
+      ],
+      "expectedObservations": [
+        "The agent Reads pstack/skills/principle-exhaust-the-design-space/SKILL.md before applying it.",
+        "At least two distinct prototype or sketch artifacts exist before the chosen design lands.",
+        "disable-model-invocation remains true in the locked file."
+      ],
+      "requiredSideEffects": [
+        "Leaf skill Read in transcript.",
+        "Two or three prototype artifacts recorded."
+      ],
+      "forbiddenSideEffects": [
+        "Committing the first novel design with no alternate sketch.",
+        "Counting a second flavor of the same shape as a second prototype.",
+        "Model-auto-invocation of the principle skill."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "unresolved": [
+        "What counts as sufficiently distinct prototypes needs paired judgment.",
+        "Prototype playbook handoff timing is unresolved."
+      ],
+      "evidence": [],
+      "notes": "Principle skill leftover from slice-commands-002. Activation contract quotes frontmatter (Apply-when description + disable-model-invocation). Proposal only. Not merged into parity/requirements.json. Status must not be verified."
+    },
+    {
+      "id": "PSTACK-PRIN-EXPERIENCE-FIRST-001",
+      "status": "draft-proposal",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/principle-experience-first/SKILL.md",
+        "locator": "Experience First frontmatter trigger and disable-model-invocation",
+        "lineStart": 1,
+        "lineEnd": 5,
+        "fullFileSha256": "58903529d733b1c1a7c9ccf127d45ef3c7d0d9f0b81164a4dc6b80efe6f2912b",
+        "quoteSha256": "3b9023e14e2b5402d1277c928cf1166ef4f60942c9436a78f51c7b39aebaae2d",
+        "quote": "---\nname: principle-experience-first\ndescription: \"Apply when product, UX, or feature-scope tradeoffs come up. Choose user delight over implementation convenience; ship fewer polished features over more rough ones.\"\ndisable-model-invocation: true\n---\n"
+      },
+      "inventoryPath": "pstack/skills/principle-experience-first/SKILL.md",
+      "inventoryItemSha256": "58903529d733b1c1a7c9ccf127d45ef3c7d0d9f0b81164a4dc6b80efe6f2912b",
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host",
+        "poteto-mode"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Under poteto-mode, when product, UX, or feature-scope tradeoffs arise, the agent applies principle-experience-first.",
+      "preconditions": [
+        "Locked pstack poteto-mode and principle-experience-first skill loaded.",
+        "A tradeoff exists between user delight and implementation convenience."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "configurationCells": [
+        {
+          "id": "default",
+          "role": "required-unverified-matrix-cell"
+        },
+        {
+          "id": "installed-user",
+          "role": "required-unverified-matrix-cell"
+        }
+      ],
+      "startingState": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file.",
+      "actions": [
+        {
+          "input": "Decide feature scope when a convenient implementation would degrade user experience.",
+          "expectedObservation": "The agent Reads the leaf skill and the chosen option favors consumer or maintainer experience over implementation convenience, with impact stated for both."
+        }
+      ],
+      "expectedObservations": [
+        "The agent Reads pstack/skills/principle-experience-first/SKILL.md before applying it.",
+        "The decision names consumer and maintainer impact and does not pick implementation convenience when it conflicts with delight.",
+        "disable-model-invocation remains true in the locked file."
+      ],
+      "requiredSideEffects": [
+        "Leaf skill Read in transcript.",
+        "Decision rationale names user impact."
+      ],
+      "forbiddenSideEffects": [
+        "Choosing the convenient internal design while acknowledging worse UX without course correction.",
+        "Model-auto-invocation of the principle skill."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "unresolved": [
+        "Delight is not a numeric oracle; paired human review remains required.",
+        "Library-vs-end-user weighting is unresolved."
+      ],
+      "evidence": [],
+      "notes": "Principle skill leftover from slice-commands-002. Activation contract quotes frontmatter (Apply-when description + disable-model-invocation). Proposal only. Not merged into parity/requirements.json. Status must not be verified."
+    },
+    {
+      "id": "PSTACK-PRIN-EXPLAIN-NUMBER-001",
+      "status": "draft-proposal",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/principle-explain-the-number/SKILL.md",
+        "locator": "Explain the Number frontmatter trigger and disable-model-invocation",
+        "lineStart": 1,
+        "lineEnd": 5,
+        "fullFileSha256": "5aac99e7ce0bb1b37e2579acf4fe88c32a1456d9d46afd4a57cfe1df9092e89c",
+        "quoteSha256": "ce2695ecd7ad7180b49c77d7d74e8d5f9fc66f97abd56b7578dc7ab2b2cfec61",
+        "quote": "---\nname: principle-explain-the-number\ndescription: \"Apply before you trust, report, or act on a number you measured: a speedup, a regression, a throughput, a latency, or an eval result. Find what limits it, and rule out that it measured something other than the work you think.\"\ndisable-model-invocation: true\n---\n"
+      },
+      "inventoryPath": "pstack/skills/principle-explain-the-number/SKILL.md",
+      "inventoryItemSha256": "5aac99e7ce0bb1b37e2579acf4fe88c32a1456d9d46afd4a57cfe1df9092e89c",
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host",
+        "poteto-mode"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Under poteto-mode, before trusting, reporting, or acting on a measured number (speedup, regression, throughput, latency, or eval result), the agent applies principle-explain-the-number.",
+      "preconditions": [
+        "Locked pstack poteto-mode and principle-explain-the-number skill loaded.",
+        "A measured numeric result is about to be trusted or reported."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "configurationCells": [
+        {
+          "id": "default",
+          "role": "required-unverified-matrix-cell"
+        },
+        {
+          "id": "installed-user",
+          "role": "required-unverified-matrix-cell"
+        }
+      ],
+      "startingState": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file.",
+      "actions": [
+        {
+          "input": "Report a measured speedup or eval delta.",
+          "expectedObservation": "The agent Reads the leaf skill and the report includes a named limiter plus run count and spread (or linked artifact), not the bare number alone."
+        }
+      ],
+      "expectedObservations": [
+        "The agent Reads pstack/skills/principle-explain-the-number/SKILL.md before treating the number as decisive.",
+        "Evidence with the number includes run count, spread, and a named limiter from profile or counters.",
+        "disable-model-invocation remains true in the locked file."
+      ],
+      "requiredSideEffects": [
+        "Leaf skill Read in transcript.",
+        "Limiter and trial metadata attached to the numeric claim."
+      ],
+      "forbiddenSideEffects": [
+        "Acting on a bare number with no limiter or trial evidence.",
+        "Model-auto-invocation of the principle skill."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "unresolved": [
+        "benchmark-checklist pairing for perf numbers needs a separate requirement.",
+        "Eval-specific trial rules need scenario coverage."
+      ],
+      "evidence": [],
+      "notes": "Principle skill leftover from slice-commands-002. Activation contract quotes frontmatter (Apply-when description + disable-model-invocation). Proposal only. Not merged into parity/requirements.json. Status must not be verified."
+    },
+    {
+      "id": "PSTACK-PRIN-FIX-ROOT-001",
+      "status": "draft-proposal",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/principle-fix-root-causes/SKILL.md",
+        "locator": "Fix Root Causes frontmatter trigger and disable-model-invocation",
+        "lineStart": 1,
+        "lineEnd": 5,
+        "fullFileSha256": "ba4cd38da1dcc8fe5432feb64457cba95594736a9b21b2ebf8f8c52aee068707",
+        "quoteSha256": "3c8171f2171857d570ab0ccf6e293529d9ea2b093ada5f505cde08941114e448",
+        "quote": "---\nname: principle-fix-root-causes\ndescription: \"Apply when debugging. Trace each symptom to its root cause and fix it there; reproduce first, ask why until you reach it, resist nil-check guards that silence crashes.\"\ndisable-model-invocation: true\n---\n"
+      },
+      "inventoryPath": "pstack/skills/principle-fix-root-causes/SKILL.md",
+      "inventoryItemSha256": "ba4cd38da1dcc8fe5432feb64457cba95594736a9b21b2ebf8f8c52aee068707",
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host",
+        "poteto-mode"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Under poteto-mode, when debugging, the agent applies principle-fix-root-causes.",
+      "preconditions": [
+        "Locked pstack poteto-mode and principle-fix-root-causes skill loaded.",
+        "A defect or crash is under investigation."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "configurationCells": [
+        {
+          "id": "default",
+          "role": "required-unverified-matrix-cell"
+        },
+        {
+          "id": "installed-user",
+          "role": "required-unverified-matrix-cell"
+        }
+      ],
+      "startingState": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file.",
+      "actions": [
+        {
+          "input": "Debug a failing symptom such as a nil crash.",
+          "expectedObservation": "The agent Reads the leaf skill, reproduces first, and does not ship a nil-check guard as the sole fix without a root-cause change."
+        }
+      ],
+      "expectedObservations": [
+        "The agent Reads pstack/skills/principle-fix-root-causes/SKILL.md before applying it.",
+        "A reproduction precedes the fix.",
+        "The shipped change addresses the root cause rather than only silencing the symptom.",
+        "disable-model-invocation remains true in the locked file."
+      ],
+      "requiredSideEffects": [
+        "Leaf skill Read in transcript.",
+        "Reproduction evidence before fix."
+      ],
+      "forbiddenSideEffects": [
+        "Nil-check or similar guard as the only change that silences a crash.",
+        "Model-auto-invocation of the principle skill."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "unresolved": [
+        "Root-cause sufficiency judgment needs paired review.",
+        "Restart/state-file path needs separate scenarios."
+      ],
+      "evidence": [],
+      "notes": "Principle skill leftover from slice-commands-002. Activation contract quotes frontmatter (Apply-when description + disable-model-invocation). Proposal only. Not merged into parity/requirements.json. Status must not be verified."
+    },
+    {
+      "id": "PSTACK-PRIN-FOUNDATIONAL-001",
+      "status": "draft-proposal",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/principle-foundational-thinking/SKILL.md",
+        "locator": "Foundational Thinking frontmatter trigger and disable-model-invocation",
+        "lineStart": 1,
+        "lineEnd": 5,
+        "fullFileSha256": "864b827e8199d946ce58beca0f89c4ed4099ed6e426fb698a3aaa45de2a9eea2",
+        "quoteSha256": "9ad53a09fa92b3b0dbf027a5bf39a9eb183526929f0f4ade5ad3b57377f01c00",
+        "quote": "---\nname: principle-foundational-thinking\ndescription: \"Apply before writing logic: choosing core types and data structures, sequencing scaffold-vs-feature work, asking what concurrent actors share. Get the data structures right so downstream code becomes obvious.\"\ndisable-model-invocation: true\n---\n"
+      },
+      "inventoryPath": "pstack/skills/principle-foundational-thinking/SKILL.md",
+      "inventoryItemSha256": "864b827e8199d946ce58beca0f89c4ed4099ed6e426fb698a3aaa45de2a9eea2",
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host",
+        "poteto-mode"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Under poteto-mode, before writing logic (core types, scaffold-vs-feature sequencing, concurrent shared state), the agent applies principle-foundational-thinking.",
+      "preconditions": [
+        "Locked pstack poteto-mode and principle-foundational-thinking skill loaded.",
+        "New logic or concurrency sharing is about to be written."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "configurationCells": [
+        {
+          "id": "default",
+          "role": "required-unverified-matrix-cell"
+        },
+        {
+          "id": "installed-user",
+          "role": "required-unverified-matrix-cell"
+        }
+      ],
+      "startingState": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file.",
+      "actions": [
+        {
+          "input": "Start implementing a feature that needs new core types or shared concurrent state.",
+          "expectedObservation": "The agent Reads the leaf skill and names the data shape or scaffold sequencing before feature logic lands."
+        }
+      ],
+      "expectedObservations": [
+        "The agent Reads pstack/skills/principle-foundational-thinking/SKILL.md before writing the new logic.",
+        "Core types or scaffold steps are declared before feature branches proliferate.",
+        "disable-model-invocation remains true in the locked file."
+      ],
+      "requiredSideEffects": [
+        "Leaf skill Read in transcript.",
+        "Named data shape or scaffold plan precedes feature commits."
+      ],
+      "forbiddenSideEffects": [
+        "Jumping straight to feature branches with no stated data shape when foundational thinking was cited.",
+        "Model-auto-invocation of the principle skill."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "unresolved": [
+        "How much type design must appear in the transcript vs the diff is unresolved.",
+        "Interaction with architect skill handoff needs pairing."
+      ],
+      "evidence": [],
+      "notes": "Principle skill leftover from slice-commands-002. Activation contract quotes frontmatter (Apply-when description + disable-model-invocation). Proposal only. Not merged into parity/requirements.json. Status must not be verified."
+    },
+    {
+      "id": "PSTACK-PRIN-GUARD-CONTEXT-001",
+      "status": "draft-proposal",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/principle-guard-the-context-window/SKILL.md",
+        "locator": "Guard the Context Window frontmatter trigger and disable-model-invocation",
+        "lineStart": 1,
+        "lineEnd": 5,
+        "fullFileSha256": "d2cef147862576e3d709b7afc149d85196245e8338b9c7eef337c95fba412b3e",
+        "quoteSha256": "77fdf76ec2a85006872fb5416b6d6ddd71d6e0da28b8463b9dfed4c2e951f712",
+        "quote": "---\nname: principle-guard-the-context-window\ndescription: \"Apply when context is filling up: large outputs, long files, repeated reads, fan-out planning. Route bulk to subagents; keep summaries in the main thread, not raw payloads.\"\ndisable-model-invocation: true\n---\n"
+      },
+      "inventoryPath": "pstack/skills/principle-guard-the-context-window/SKILL.md",
+      "inventoryItemSha256": "d2cef147862576e3d709b7afc149d85196245e8338b9c7eef337c95fba412b3e",
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host",
+        "poteto-mode"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Under poteto-mode, when context is filling (large outputs, long files, repeated reads, fan-out planning), the agent applies principle-guard-the-context-window.",
+      "preconditions": [
+        "Locked pstack poteto-mode and principle-guard-the-context-window skill loaded.",
+        "Bulk payload or fan-out would otherwise land in the main thread."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "configurationCells": [
+        {
+          "id": "default",
+          "role": "required-unverified-matrix-cell"
+        },
+        {
+          "id": "installed-user",
+          "role": "required-unverified-matrix-cell"
+        }
+      ],
+      "startingState": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file.",
+      "actions": [
+        {
+          "input": "Handle a large document or verbose tool dump mid-session.",
+          "expectedObservation": "The agent Reads the leaf skill and routes bulk to a subagent while keeping a summary in the main thread."
+        }
+      ],
+      "expectedObservations": [
+        "The agent Reads pstack/skills/principle-guard-the-context-window/SKILL.md before applying it.",
+        "Bulk raw payload is not retained as the main-thread working set; a summary remains instead.",
+        "disable-model-invocation remains true in the locked file."
+      ],
+      "requiredSideEffects": [
+        "Leaf skill Read in transcript.",
+        "Subagent or external artifact absorbs the bulk payload."
+      ],
+      "forbiddenSideEffects": [
+        "Inlining the full large payload into the main conversation when the principle was cited.",
+        "Model-auto-invocation of the principle skill."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "unresolved": [
+        "Numeric context-fill threshold is host-specific.",
+        "Summary fidelity criteria need paired judgment."
+      ],
+      "evidence": [],
+      "notes": "Principle skill leftover from slice-commands-002. Activation contract quotes frontmatter (Apply-when description + disable-model-invocation). Proposal only. Not merged into parity/requirements.json. Status must not be verified."
+    },
+    {
+      "id": "PSTACK-PRIN-LAZINESS-001",
+      "status": "draft-proposal",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/principle-laziness-protocol/SKILL.md",
+        "locator": "Laziness Protocol frontmatter trigger and disable-model-invocation",
+        "lineStart": 1,
+        "lineEnd": 5,
+        "fullFileSha256": "9006579e9e3f33955d17569733db688ae65f22577dc3b21803d219a5a8445aff",
+        "quoteSha256": "5ea2999615098cef1536552b92846adb11a89cfdadc4ac734cf9fd3d41f2c794",
+        "quote": "---\nname: principle-laziness-protocol\ndescription: \"Apply when refactoring, evaluating diff size, or tempted to add abstractions, layers, or signal threading. Bias toward deletion and the smallest change that solves the problem.\"\ndisable-model-invocation: true\n---\n"
+      },
+      "inventoryPath": "pstack/skills/principle-laziness-protocol/SKILL.md",
+      "inventoryItemSha256": "9006579e9e3f33955d17569733db688ae65f22577dc3b21803d219a5a8445aff",
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host",
+        "poteto-mode"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Under poteto-mode, when refactoring, evaluating diff size, or tempted to add abstractions, layers, or signal threading, the agent applies principle-laziness-protocol.",
+      "preconditions": [
+        "Locked pstack poteto-mode and principle-laziness-protocol skill loaded.",
+        "A refactor or abstraction temptation is active."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "configurationCells": [
+        {
+          "id": "default",
+          "role": "required-unverified-matrix-cell"
+        },
+        {
+          "id": "installed-user",
+          "role": "required-unverified-matrix-cell"
+        }
+      ],
+      "startingState": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file.",
+      "actions": [
+        {
+          "input": "Refactor or add a layer to solve a problem.",
+          "expectedObservation": "The agent Reads the leaf skill and prefers deletion or the smallest change that solves the problem over new abstraction layers."
+        }
+      ],
+      "expectedObservations": [
+        "The agent Reads pstack/skills/principle-laziness-protocol/SKILL.md before applying it.",
+        "The landed change is the smallest deletion-biased fix that solves the stated problem.",
+        "disable-model-invocation remains true in the locked file."
+      ],
+      "requiredSideEffects": [
+        "Leaf skill Read in transcript."
+      ],
+      "forbiddenSideEffects": [
+        "Adding speculative layers or signal threading when a smaller deletion would solve it.",
+        "Model-auto-invocation of the principle skill."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "unresolved": [
+        "Smallest-change judgment needs paired review.",
+        "3-file flatten rule is qualitative."
+      ],
+      "evidence": [],
+      "notes": "Principle skill leftover from slice-commands-002. Activation contract quotes frontmatter (Apply-when description + disable-model-invocation). Proposal only. Not merged into parity/requirements.json. Status must not be verified."
+    },
+    {
+      "id": "PSTACK-PRIN-IDEMPOTENT-001",
+      "status": "draft-proposal",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/principle-make-operations-idempotent/SKILL.md",
+        "locator": "Make Operations Idempotent frontmatter trigger and disable-model-invocation",
+        "lineStart": 1,
+        "lineEnd": 5,
+        "fullFileSha256": "540738217c3da7bf513b9886924ad6a2bc77e58be867f5bd2e1831c74bf2ce70",
+        "quoteSha256": "0c1fbda16f8ebb0c9a7de37ab90b815864f1e6edb24679750cb6200b6e0a8442",
+        "quote": "---\nname: principle-make-operations-idempotent\ndescription: \"Apply when designing commands, lifecycle steps, or processing loops that run amid crashes, restarts, and retries. Converge to the same end state regardless of partial prior runs.\"\ndisable-model-invocation: true\n---\n"
+      },
+      "inventoryPath": "pstack/skills/principle-make-operations-idempotent/SKILL.md",
+      "inventoryItemSha256": "540738217c3da7bf513b9886924ad6a2bc77e58be867f5bd2e1831c74bf2ce70",
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host",
+        "poteto-mode"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Under poteto-mode, when designing commands, lifecycle steps, or processing loops that run amid crashes and retries, the agent applies principle-make-operations-idempotent.",
+      "preconditions": [
+        "Locked pstack poteto-mode and principle-make-operations-idempotent skill loaded.",
+        "A state-mutating command or lifecycle step is being designed."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "configurationCells": [
+        {
+          "id": "default",
+          "role": "required-unverified-matrix-cell"
+        },
+        {
+          "id": "installed-user",
+          "role": "required-unverified-matrix-cell"
+        }
+      ],
+      "startingState": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file.",
+      "actions": [
+        {
+          "input": "Implement a lifecycle command that may crash mid-run.",
+          "expectedObservation": "The agent Reads the leaf skill and the operation converges to the same end state on re-run after partial prior execution."
+        }
+      ],
+      "expectedObservations": [
+        "The agent Reads pstack/skills/principle-make-operations-idempotent/SKILL.md before applying it.",
+        "Re-running the operation after a simulated mid-crash converges to the same end state.",
+        "disable-model-invocation remains true in the locked file."
+      ],
+      "requiredSideEffects": [
+        "Leaf skill Read in transcript.",
+        "Re-run after partial state reaches the same end state."
+      ],
+      "forbiddenSideEffects": [
+        "End state that depends on leftover partial state without reconciliation.",
+        "Model-auto-invocation of the principle skill."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "unresolved": [
+        "Crash-injection harness details are scenario-specific.",
+        "Lockfile PID heuristics vary by platform."
+      ],
+      "evidence": [],
+      "notes": "Principle skill leftover from slice-commands-002. Activation contract quotes frontmatter (Apply-when description + disable-model-invocation). Proposal only. Not merged into parity/requirements.json. Status must not be verified."
+    },
+    {
+      "id": "PSTACK-PRIN-MIGRATE-DELETE-001",
+      "status": "draft-proposal",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/principle-migrate-callers-then-delete-legacy-apis/SKILL.md",
+        "locator": "Migrate Callers Then Delete Legacy APIs frontmatter trigger and disable-model-invocation",
+        "lineStart": 1,
+        "lineEnd": 5,
+        "fullFileSha256": "09978915a4a11990cf0a9a02d9c08cc59e0b7a04c5c24b83aa560fbe4146f75b",
+        "quoteSha256": "205a0b0d3b8f434e42def660fa2a86d4aa6e5a1fec72783a36868fae821d7a19",
+        "quote": "---\nname: principle-migrate-callers-then-delete-legacy-apis\ndescription: \"Apply when introducing a new internal API while old callers still exist. Migrate callers and delete the old API in the same wave instead of preserving compatibility layers.\"\ndisable-model-invocation: true\n---\n"
+      },
+      "inventoryPath": "pstack/skills/principle-migrate-callers-then-delete-legacy-apis/SKILL.md",
+      "inventoryItemSha256": "09978915a4a11990cf0a9a02d9c08cc59e0b7a04c5c24b83aa560fbe4146f75b",
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host",
+        "poteto-mode"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Under poteto-mode, when introducing a new internal API while old callers still exist, the agent applies principle-migrate-callers-then-delete-legacy-apis.",
+      "preconditions": [
+        "Locked pstack poteto-mode and principle-migrate-callers-then-delete-legacy-apis skill loaded.",
+        "No external users require the old API compatibility."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "configurationCells": [
+        {
+          "id": "default",
+          "role": "required-unverified-matrix-cell"
+        },
+        {
+          "id": "installed-user",
+          "role": "required-unverified-matrix-cell"
+        }
+      ],
+      "startingState": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file.",
+      "actions": [
+        {
+          "input": "Introduce a replacement internal API.",
+          "expectedObservation": "The agent Reads the leaf skill, migrates callers, and deletes the old API in the same wave without leaving a permanent compatibility layer."
+        }
+      ],
+      "expectedObservations": [
+        "The agent Reads pstack/skills/principle-migrate-callers-then-delete-legacy-apis/SKILL.md before applying it.",
+        "After the wave, callers use only the new API and the old API path is deleted.",
+        "disable-model-invocation remains true in the locked file."
+      ],
+      "requiredSideEffects": [
+        "Leaf skill Read in transcript.",
+        "Legacy API deleted in the same delivery wave as caller migration."
+      ],
+      "forbiddenSideEffects": [
+        "Shipping the new API while leaving all old callers on the legacy path indefinitely.",
+        "Model-auto-invocation of the principle skill."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "unresolved": [
+        "External compatibility exceptions need explicit product gates.",
+        "Time-boxed adapter allowance criteria are unresolved."
+      ],
+      "evidence": [],
+      "notes": "Principle skill leftover from slice-commands-002. Activation contract quotes frontmatter (Apply-when description + disable-model-invocation). Proposal only. Not merged into parity/requirements.json. Status must not be verified."
+    },
+    {
+      "id": "PSTACK-PRIN-MINIMIZE-READER-001",
+      "status": "draft-proposal",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/principle-minimize-reader-load/SKILL.md",
+        "locator": "Minimize Reader Load frontmatter trigger and disable-model-invocation",
+        "lineStart": 1,
+        "lineEnd": 5,
+        "fullFileSha256": "42551c5dc74cd578163c148da552db3ff67d29b78600ef216bfd311fb828fe69",
+        "quoteSha256": "8925da20070b3a82b1951e070b4fc6cf592d7a3a99e466cfc322e804450abbdf",
+        "quote": "---\nname: principle-minimize-reader-load\ndescription: \"Apply when reviewing or shaping code that's hard to trace. Count layers between question and answer, and hidden state in the reader's head; collapse one-caller wrappers and shrink mutable scope.\"\ndisable-model-invocation: true\n---\n"
+      },
+      "inventoryPath": "pstack/skills/principle-minimize-reader-load/SKILL.md",
+      "inventoryItemSha256": "42551c5dc74cd578163c148da552db3ff67d29b78600ef216bfd311fb828fe69",
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host",
+        "poteto-mode"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Under poteto-mode, when reviewing or shaping hard-to-trace code, the agent applies principle-minimize-reader-load.",
+      "preconditions": [
+        "Locked pstack poteto-mode and principle-minimize-reader-load skill loaded.",
+        "Code under change has excess layers or hidden mutable state."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "configurationCells": [
+        {
+          "id": "default",
+          "role": "required-unverified-matrix-cell"
+        },
+        {
+          "id": "installed-user",
+          "role": "required-unverified-matrix-cell"
+        }
+      ],
+      "startingState": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file.",
+      "actions": [
+        {
+          "input": "Refactor a one-caller wrapper stack or shrink mutable scope.",
+          "expectedObservation": "The agent Reads the leaf skill and collapses pass-through layers or shrinks mutable scope so origin and mutators are easier to answer."
+        }
+      ],
+      "expectedObservations": [
+        "The agent Reads pstack/skills/principle-minimize-reader-load/SKILL.md before applying it.",
+        "One-caller wrappers or pass-through layers in scope are collapsed, or mutable scope shrinks.",
+        "disable-model-invocation remains true in the locked file."
+      ],
+      "requiredSideEffects": [
+        "Leaf skill Read in transcript."
+      ],
+      "forbiddenSideEffects": [
+        "Adding a pass-through layer that does not change abstraction while citing the principle.",
+        "Model-auto-invocation of the principle skill."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "unresolved": [
+        "30-second reader test is qualitative.",
+        "Layer-count measurement method is unresolved."
+      ],
+      "evidence": [],
+      "notes": "Principle skill leftover from slice-commands-002. Activation contract quotes frontmatter (Apply-when description + disable-model-invocation). Proposal only. Not merged into parity/requirements.json. Status must not be verified."
+    },
+    {
+      "id": "PSTACK-PRIN-MODEL-DOMAIN-001",
+      "status": "draft-proposal",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/principle-model-the-domain/SKILL.md",
+        "locator": "Model the Domain frontmatter trigger and disable-model-invocation",
+        "lineStart": 1,
+        "lineEnd": 5,
+        "fullFileSha256": "bbadbb9a723fac3f76e782ae45665eb94058ec10993e4bae36d4dc6b0e4eac07",
+        "quoteSha256": "41aec0440936c1777f061848396dd2bc3ed7a50b781b183e0fadcbd6b3fc3cb6",
+        "quote": "---\nname: principle-model-the-domain\ndescription: \"Apply when writing stateful logic, or when code branches a lot or repeats a shape assumption across files. Encode the domain in a structure instead of scattered conditionals.\"\ndisable-model-invocation: true\n---\n"
+      },
+      "inventoryPath": "pstack/skills/principle-model-the-domain/SKILL.md",
+      "inventoryItemSha256": "bbadbb9a723fac3f76e782ae45665eb94058ec10993e4bae36d4dc6b0e4eac07",
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host",
+        "poteto-mode"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Under poteto-mode, when writing stateful logic or code that branches a lot or repeats a shape assumption across files, the agent applies principle-model-the-domain.",
+      "preconditions": [
+        "Locked pstack poteto-mode and principle-model-the-domain skill loaded.",
+        "New stateful or branching logic is required."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "configurationCells": [
+        {
+          "id": "default",
+          "role": "required-unverified-matrix-cell"
+        },
+        {
+          "id": "installed-user",
+          "role": "required-unverified-matrix-cell"
+        }
+      ],
+      "startingState": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file.",
+      "actions": [
+        {
+          "input": "Add a feature that would otherwise extend an if/else chain or add a second synced boolean.",
+          "expectedObservation": "The agent Reads the leaf skill and encodes the domain in a structure (state machine, typed model, registry, reducer, or similar) instead of another scattered branch."
+        }
+      ],
+      "expectedObservations": [
+        "The agent Reads pstack/skills/principle-model-the-domain/SKILL.md before applying it.",
+        "The change introduces or extends a domain structure rather than only lengthening a scattered conditional.",
+        "disable-model-invocation remains true in the locked file."
+      ],
+      "requiredSideEffects": [
+        "Leaf skill Read in transcript.",
+        "Domain structure visible in the diff."
+      ],
+      "forbiddenSideEffects": [
+        "Growing an existing if/else by one branch as the only modeling step when the principle was cited.",
+        "Model-auto-invocation of the principle skill."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "unresolved": [
+        "When boring code is preferred over a new structure is judgmental.",
+        "Architect skill interaction needs pairing."
+      ],
+      "evidence": [],
+      "notes": "Principle skill leftover from slice-commands-002. Activation contract quotes frontmatter (Apply-when description + disable-model-invocation). Proposal only. Not merged into parity/requirements.json. Status must not be verified."
+    },
+    {
+      "id": "PSTACK-PRIN-NEVER-BLOCK-001",
+      "status": "draft-proposal",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/principle-never-block-on-the-human/SKILL.md",
+        "locator": "Never Block on the Human frontmatter trigger and disable-model-invocation",
+        "lineStart": 1,
+        "lineEnd": 5,
+        "fullFileSha256": "f2764bb9338cbfc788c903cf4b9cd0a5f4042d3a04dd6d59cbd525d9beaadd0a",
+        "quoteSha256": "0d824055c395d476b774ec5109ffa7220554a2155b1a3c4e82a1d5eff8566d2e",
+        "quote": "---\nname: principle-never-block-on-the-human\ndescription: \"Apply when tempted to ask 'should I do X?' on reversible work. Proceed, present the result, let the human course-correct after the fact; reserve confirmation for irreversible actions.\"\ndisable-model-invocation: true\n---\n"
+      },
+      "inventoryPath": "pstack/skills/principle-never-block-on-the-human/SKILL.md",
+      "inventoryItemSha256": "f2764bb9338cbfc788c903cf4b9cd0a5f4042d3a04dd6d59cbd525d9beaadd0a",
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host",
+        "poteto-mode"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Under poteto-mode, when tempted to ask 'should I do X?' on reversible work, the agent applies principle-never-block-on-the-human.",
+      "preconditions": [
+        "Locked pstack poteto-mode and principle-never-block-on-the-human skill loaded.",
+        "The contemplated action is reversible."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "configurationCells": [
+        {
+          "id": "default",
+          "role": "required-unverified-matrix-cell"
+        },
+        {
+          "id": "installed-user",
+          "role": "required-unverified-matrix-cell"
+        }
+      ],
+      "startingState": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file.",
+      "actions": [
+        {
+          "input": "Face a reversible implementation choice mid-task.",
+          "expectedObservation": "The agent Reads the leaf skill, proceeds without asking permission, and presents the result; irreversible actions still require confirmation."
+        }
+      ],
+      "expectedObservations": [
+        "The agent Reads pstack/skills/principle-never-block-on-the-human/SKILL.md before applying it.",
+        "Reversible work proceeds without a blocking 'should I do X?' pause.",
+        "Irreversible actions (force-push, delete production data, send external messages) still require confirmation.",
+        "disable-model-invocation remains true in the locked file."
+      ],
+      "requiredSideEffects": [
+        "Leaf skill Read in transcript.",
+        "Reversible work product delivered without a permission question."
+      ],
+      "forbiddenSideEffects": [
+        "Blocking the human for reversible code edits.",
+        "Skipping confirmation for irreversible actions.",
+        "Model-auto-invocation of the principle skill."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "unresolved": [
+        "Host AskUserQuestion UX differs across Cursor and Pi.",
+        "Product-direction vs execution boundary needs scenarios."
+      ],
+      "evidence": [],
+      "notes": "Principle skill leftover from slice-commands-002. Activation contract quotes frontmatter (Apply-when description + disable-model-invocation). Proposal only. Not merged into parity/requirements.json. Status must not be verified."
+    },
+    {
+      "id": "PSTACK-PRIN-OUTCOME-ORIENTED-001",
+      "status": "draft-proposal",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/principle-outcome-oriented-execution/SKILL.md",
+        "locator": "Outcome-Oriented Execution frontmatter trigger and disable-model-invocation",
+        "lineStart": 1,
+        "lineEnd": 5,
+        "fullFileSha256": "10eb91633aa570355ba4bb37088fcade2b22e498df7a58edc749e65bc5a78e2d",
+        "quoteSha256": "f0f805dbf25a2f76380abb01f862d71e70b965ea1636f1067089543bf2861fd4",
+        "quote": "---\nname: principle-outcome-oriented-execution\ndescription: \"Apply during planned rewrites and migrations with explicit phase boundaries. Converge on the target architecture; don't preserve smooth intermediate states with throwaway compatibility code.\"\ndisable-model-invocation: true\n---\n"
+      },
+      "inventoryPath": "pstack/skills/principle-outcome-oriented-execution/SKILL.md",
+      "inventoryItemSha256": "10eb91633aa570355ba4bb37088fcade2b22e498df7a58edc749e65bc5a78e2d",
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host",
+        "poteto-mode"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Under poteto-mode, during planned rewrites and migrations with explicit phase boundaries, the agent applies principle-outcome-oriented-execution.",
+      "preconditions": [
+        "Locked pstack poteto-mode and principle-outcome-oriented-execution skill loaded.",
+        "A planned rewrite or migration with phase boundaries is active."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "configurationCells": [
+        {
+          "id": "default",
+          "role": "required-unverified-matrix-cell"
+        },
+        {
+          "id": "installed-user",
+          "role": "required-unverified-matrix-cell"
+        }
+      ],
+      "startingState": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file.",
+      "actions": [
+        {
+          "input": "Execute a multi-phase migration.",
+          "expectedObservation": "The agent Reads the leaf skill, converges on the target architecture, and does not preserve throwaway compatibility layers as long-lived dual paths."
+        }
+      ],
+      "expectedObservations": [
+        "The agent Reads pstack/skills/principle-outcome-oriented-execution/SKILL.md before applying it.",
+        "Phase boundaries declare where temporary breakage is acceptable.",
+        "Plan completion includes full static and runtime verification.",
+        "disable-model-invocation remains true in the locked file."
+      ],
+      "requiredSideEffects": [
+        "Leaf skill Read in transcript.",
+        "Verification at plan completion."
+      ],
+      "forbiddenSideEffects": [
+        "Keeping permanent throwaway compatibility code to smooth every intermediate state.",
+        "Model-auto-invocation of the principle skill."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "unresolved": [
+        "Acceptable intermediate breakage scope is plan-specific.",
+        "Full verification suite identity is project-specific."
+      ],
+      "evidence": [],
+      "notes": "Principle skill leftover from slice-commands-002. Activation contract quotes frontmatter (Apply-when description + disable-model-invocation). Proposal only. Not merged into parity/requirements.json. Status must not be verified."
+    },
+    {
+      "id": "PSTACK-PRIN-PROVE-IT-001",
+      "status": "draft-proposal",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/principle-prove-it-works/SKILL.md",
+        "locator": "Prove It Works frontmatter trigger and disable-model-invocation",
+        "lineStart": 1,
+        "lineEnd": 5,
+        "fullFileSha256": "ec79a15025bac8d33d62011c54f3b612733fd2a024e623b531b3637aa75070e2",
+        "quoteSha256": "33e797587aeac9fc9a9b4816252c38eb408b211951e3b90c7387619b9aeffabf",
+        "quote": "---\nname: principle-prove-it-works\ndescription: \"Apply after completing a task, before declaring done. Verify against the real artifact (run the feature, read the actual value, inspect the diff), not a proxy, self-report, or 'it compiles.'\"\ndisable-model-invocation: true\n---\n"
+      },
+      "inventoryPath": "pstack/skills/principle-prove-it-works/SKILL.md",
+      "inventoryItemSha256": "ec79a15025bac8d33d62011c54f3b612733fd2a024e623b531b3637aa75070e2",
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host",
+        "poteto-mode"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Under poteto-mode, after completing a task and before declaring done, the agent applies principle-prove-it-works.",
+      "preconditions": [
+        "Locked pstack poteto-mode and principle-prove-it-works skill loaded.",
+        "A task output exists that is about to be declared done."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "configurationCells": [
+        {
+          "id": "default",
+          "role": "required-unverified-matrix-cell"
+        },
+        {
+          "id": "installed-user",
+          "role": "required-unverified-matrix-cell"
+        }
+      ],
+      "startingState": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file.",
+      "actions": [
+        {
+          "input": "Declare a task complete.",
+          "expectedObservation": "The agent Reads the leaf skill and verifies against the real artifact (run, read actual value, or inspect diff), preferably via a deterministic rerunnable script whose output is kept."
+        }
+      ],
+      "expectedObservations": [
+        "The agent Reads pstack/skills/principle-prove-it-works/SKILL.md before declaring done.",
+        "Verification checks the real artifact, not only compile success or self-report.",
+        "When scripted, the check script and its output are available for a reviewer to rerun.",
+        "disable-model-invocation remains true in the locked file."
+      ],
+      "requiredSideEffects": [
+        "Leaf skill Read in transcript.",
+        "Direct verification evidence of the real artifact."
+      ],
+      "forbiddenSideEffects": [
+        "Declaring done from proxies alone (mtimes, freshness, self-report, compile-only).",
+        "Model-auto-invocation of the principle skill."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "unresolved": [
+        "When show-me-your-work commit of the artifact is required remains stake-dependent.",
+        "Host differences in capturing script output need pairing."
+      ],
+      "evidence": [],
+      "notes": "Principle skill leftover from slice-commands-002. Activation contract quotes frontmatter (Apply-when description + disable-model-invocation). Proposal only. Not merged into parity/requirements.json. Status must not be verified."
+    },
+    {
+      "id": "PSTACK-PRIN-REDESIGN-FIRST-001",
+      "status": "draft-proposal",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/principle-redesign-from-first-principles/SKILL.md",
+        "locator": "Redesign From First Principles frontmatter trigger and disable-model-invocation",
+        "lineStart": 1,
+        "lineEnd": 5,
+        "fullFileSha256": "a1c7fd0a96b40e12a74bceb0e6bb20a9666dd844dcabfb624acb27da23b929fe",
+        "quoteSha256": "87a52055e6ccac7c5fba17d1e5b3cb1d602c5473c41e8a1c7773b3d97e6e62a2",
+        "quote": "---\nname: principle-redesign-from-first-principles\ndescription: \"Apply when integrating a new requirement into an existing design. Redesign as if the requirement had been a foundational assumption from day one, instead of bolting it on.\"\ndisable-model-invocation: true\n---\n"
+      },
+      "inventoryPath": "pstack/skills/principle-redesign-from-first-principles/SKILL.md",
+      "inventoryItemSha256": "a1c7fd0a96b40e12a74bceb0e6bb20a9666dd844dcabfb624acb27da23b929fe",
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host",
+        "poteto-mode"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Under poteto-mode, when integrating a new requirement into an existing design, the agent applies principle-redesign-from-first-principles.",
+      "preconditions": [
+        "Locked pstack poteto-mode and principle-redesign-from-first-principles skill loaded.",
+        "A new requirement must integrate into existing design."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "configurationCells": [
+        {
+          "id": "default",
+          "role": "required-unverified-matrix-cell"
+        },
+        {
+          "id": "installed-user",
+          "role": "required-unverified-matrix-cell"
+        }
+      ],
+      "startingState": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file.",
+      "actions": [
+        {
+          "input": "Integrate a new requirement into an established module.",
+          "expectedObservation": "The agent Reads the leaf skill and redesigns as if the requirement were foundational, propagating through types, docs, and references rather than bolting a side path."
+        }
+      ],
+      "expectedObservations": [
+        "The agent Reads pstack/skills/principle-redesign-from-first-principles/SKILL.md before applying it.",
+        "Affected types and references are updated coherently rather than only adding a bolt-on branch.",
+        "disable-model-invocation remains true in the locked file."
+      ],
+      "requiredSideEffects": [
+        "Leaf skill Read in transcript.",
+        "Propagated updates across affected references in scope."
+      ],
+      "forbiddenSideEffects": [
+        "Bolt-on side path that leaves the old design assumptions intact when the principle was cited.",
+        "Model-auto-invocation of the principle skill."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "unresolved": [
+        "Incremental delivery of a full redesign needs phase planning.",
+        "Distinct from attack-the-premise; pairing scenarios needed."
+      ],
+      "evidence": [],
+      "notes": "Principle skill leftover from slice-commands-002. Activation contract quotes frontmatter (Apply-when description + disable-model-invocation). Proposal only. Not merged into parity/requirements.json. Status must not be verified."
+    },
+    {
+      "id": "PSTACK-PRIN-SEPARATE-STATE-001",
+      "status": "draft-proposal",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/principle-separate-before-serializing-shared-state/SKILL.md",
+        "locator": "Separate Before Serializing Shared State frontmatter trigger and disable-model-invocation",
+        "lineStart": 1,
+        "lineEnd": 5,
+        "fullFileSha256": "05294b40448e927c5da1c7b6f5c6b9fed3744637e3833d2d948b9154a9dd00bb",
+        "quoteSha256": "fd5f2e6f34f26b69822ba875ca64587de11495554ae684764775656557adbfb5",
+        "quote": "---\nname: principle-separate-before-serializing-shared-state\ndescription: \"Apply when concurrent actors might write to the same file, branch, key, or state object. Eliminate the sharing first; serialize structurally only when one shared writer is a real invariant.\"\ndisable-model-invocation: true\n---\n"
+      },
+      "inventoryPath": "pstack/skills/principle-separate-before-serializing-shared-state/SKILL.md",
+      "inventoryItemSha256": "05294b40448e927c5da1c7b6f5c6b9fed3744637e3833d2d948b9154a9dd00bb",
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host",
+        "poteto-mode"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Under poteto-mode, when concurrent actors might write the same file, branch, key, or state object, the agent applies principle-separate-before-serializing-shared-state.",
+      "preconditions": [
+        "Locked pstack poteto-mode and principle-separate-before-serializing-shared-state skill loaded.",
+        "Two or more concurrent writers are in scope."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "configurationCells": [
+        {
+          "id": "default",
+          "role": "required-unverified-matrix-cell"
+        },
+        {
+          "id": "installed-user",
+          "role": "required-unverified-matrix-cell"
+        }
+      ],
+      "startingState": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file.",
+      "actions": [
+        {
+          "input": "Design work where two workers produce results.",
+          "expectedObservation": "The agent Reads the leaf skill and gives each actor an owned write target, merging only at the read/reporting boundary, unless one shared writer is a real invariant."
+        }
+      ],
+      "expectedObservations": [
+        "The agent Reads pstack/skills/principle-separate-before-serializing-shared-state/SKILL.md before applying it.",
+        "Workers write distinct owned paths or keys; shared mutation is eliminated by default.",
+        "disable-model-invocation remains true in the locked file."
+      ],
+      "requiredSideEffects": [
+        "Leaf skill Read in transcript.",
+        "Per-actor owned write targets when sharing is not an invariant."
+      ],
+      "forbiddenSideEffects": [
+        "Two workers mutating the same state.json fields without structural serialization.",
+        "Relying on prose conventions alone as concurrency control.",
+        "Model-auto-invocation of the principle skill."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "unresolved": [
+        "When one shared writer is a real invariant needs design judgment.",
+        "Orchestrator one-writer-per-path standing order pairing is external to this skill file."
+      ],
+      "evidence": [],
+      "notes": "Principle skill leftover from slice-commands-002. Activation contract quotes frontmatter (Apply-when description + disable-model-invocation). Proposal only. Not merged into parity/requirements.json. Status must not be verified."
+    },
+    {
+      "id": "PSTACK-PRIN-SEQUENCE-UNITS-001",
+      "status": "draft-proposal",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/principle-sequence-verifiable-units/SKILL.md",
+        "locator": "Sequence verifiable units frontmatter trigger and disable-model-invocation",
+        "lineStart": 1,
+        "lineEnd": 5,
+        "fullFileSha256": "2ccbbacc56ace5afdfb8670cef19d7bd009fb2a0033b9a741cbdf2b6baf72187",
+        "quoteSha256": "f6511cdec871985e03083c9f13be62596b4c84fa3ad978775301811e7005fef0",
+        "quote": "---\nname: principle-sequence-verifiable-units\ndescription: \"Apply to multi-step work (sweeps, migrations, runs of similar edits) and to how you stack commits and PRs. Break work into small units that each end in a verifiable state, check each before the next, and order delivery so the sequence proves itself to a reviewer.\"\ndisable-model-invocation: true\n---\n"
+      },
+      "inventoryPath": "pstack/skills/principle-sequence-verifiable-units/SKILL.md",
+      "inventoryItemSha256": "2ccbbacc56ace5afdfb8670cef19d7bd009fb2a0033b9a741cbdf2b6baf72187",
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host",
+        "poteto-mode"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Under poteto-mode, for multi-step sweeps, migrations, or similar edits and for stacking commits/PRs, the agent applies principle-sequence-verifiable-units.",
+      "preconditions": [
+        "Locked pstack poteto-mode and principle-sequence-verifiable-units skill loaded.",
+        "Work has multiple similar units or stacked delivery."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "configurationCells": [
+        {
+          "id": "default",
+          "role": "required-unverified-matrix-cell"
+        },
+        {
+          "id": "installed-user",
+          "role": "required-unverified-matrix-cell"
+        }
+      ],
+      "startingState": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file.",
+      "actions": [
+        {
+          "input": "Run a multi-unit migration or stack commits for a fix.",
+          "expectedObservation": "The agent Reads the leaf skill, verifies each unit before the next, and orders delivery so a reviewer sees a proving sequence (for example failing test then fix)."
+        }
+      ],
+      "expectedObservations": [
+        "The agent Reads pstack/skills/principle-sequence-verifiable-units/SKILL.md before applying it.",
+        "Each unit ends in a checked state before the next unit starts.",
+        "Delivery order proves the work (canonical failing-test-then-fix when applicable).",
+        "disable-model-invocation remains true in the locked file."
+      ],
+      "requiredSideEffects": [
+        "Leaf skill Read in transcript.",
+        "Per-unit verification evidence."
+      ],
+      "forbiddenSideEffects": [
+        "Batching all units then verifying once at the end when the principle was cited.",
+        "Model-auto-invocation of the principle skill."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "unresolved": [
+        "Unit size judgment is project-specific.",
+        "Complementarity with prove-it-works and build-the-lever needs paired journeys."
+      ],
+      "evidence": [],
+      "notes": "Principle skill leftover from slice-commands-002. Activation contract quotes frontmatter (Apply-when description + disable-model-invocation). Proposal only. Not merged into parity/requirements.json. Status must not be verified."
+    },
+    {
+      "id": "PSTACK-PRIN-SUBTRACT-FIRST-001",
+      "status": "draft-proposal",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/principle-subtract-before-you-add/SKILL.md",
+        "locator": "Subtract Before You Add frontmatter trigger and disable-model-invocation",
+        "lineStart": 1,
+        "lineEnd": 5,
+        "fullFileSha256": "a983a50e732c1ed315eba7aaf47a61329e31c4794eb1ab9d25d9945265b31e03",
+        "quoteSha256": "7ae5e0c353d27e9946b5260afd950e3420e0daf0c57c9e956c83c6174c0d20f0",
+        "quote": "---\nname: principle-subtract-before-you-add\ndescription: \"Apply when sequencing an addition, refactor, or rewrite. Remove dead code, redundant validators, and stub references first, then build on the simpler base.\"\ndisable-model-invocation: true\n---\n"
+      },
+      "inventoryPath": "pstack/skills/principle-subtract-before-you-add/SKILL.md",
+      "inventoryItemSha256": "a983a50e732c1ed315eba7aaf47a61329e31c4794eb1ab9d25d9945265b31e03",
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host",
+        "poteto-mode"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Under poteto-mode, when sequencing an addition, refactor, or rewrite, the agent applies principle-subtract-before-you-add.",
+      "preconditions": [
+        "Locked pstack poteto-mode and principle-subtract-before-you-add skill loaded.",
+        "Dead code, redundant validators, or stub references exist in scope."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "configurationCells": [
+        {
+          "id": "default",
+          "role": "required-unverified-matrix-cell"
+        },
+        {
+          "id": "installed-user",
+          "role": "required-unverified-matrix-cell"
+        }
+      ],
+      "startingState": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file.",
+      "actions": [
+        {
+          "input": "Evolve a system by adding a capability.",
+          "expectedObservation": "The agent Reads the leaf skill and removes dead weight first, then builds on the simpler base."
+        }
+      ],
+      "expectedObservations": [
+        "The agent Reads pstack/skills/principle-subtract-before-you-add/SKILL.md before applying it.",
+        "Removals of dead code or stubs precede the additive construction in the delivery sequence.",
+        "disable-model-invocation remains true in the locked file."
+      ],
+      "requiredSideEffects": [
+        "Leaf skill Read in transcript.",
+        "Deletion commits or hunks before additive construction when both are required."
+      ],
+      "forbiddenSideEffects": [
+        "Adding speculative validators beyond the spec while leaving dead stubs in place.",
+        "Model-auto-invocation of the principle skill."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "unresolved": [
+        "What counts as dead vs temporarily unused needs judgment.",
+        "Prompt-simplification criteria are qualitative."
+      ],
+      "evidence": [],
+      "notes": "Principle skill leftover from slice-commands-002. Activation contract quotes frontmatter (Apply-when description + disable-model-invocation). Proposal only. Not merged into parity/requirements.json. Status must not be verified."
+    },
+    {
+      "id": "PSTACK-PRIN-TEST-BEHAVIOR-001",
+      "status": "draft-proposal",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/principle-test-behavior-not-implementation/SKILL.md",
+        "locator": "Test Behavior Not Implementation frontmatter trigger and disable-model-invocation",
+        "lineStart": 1,
+        "lineEnd": 5,
+        "fullFileSha256": "87e40efe4e486f7ea639d2ed1fc0abe6c93b8fd0e89a81218086909d2470a52e",
+        "quoteSha256": "e6cba7d034d79516108bf60678caaa931bf9772d186827509e3de4cb67a64b8c",
+        "quote": "---\nname: principle-test-behavior-not-implementation\ndescription: \"Apply when you write, change, or keep a test. Call the code the way its users do and assert the result they observe against a literal expected value. If the test would still pass when every imported function returns undefined, rewrite the assertion or delete the test.\"\ndisable-model-invocation: true\n---\n"
+      },
+      "inventoryPath": "pstack/skills/principle-test-behavior-not-implementation/SKILL.md",
+      "inventoryItemSha256": "87e40efe4e486f7ea639d2ed1fc0abe6c93b8fd0e89a81218086909d2470a52e",
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host",
+        "poteto-mode"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Under poteto-mode, when writing, changing, or keeping a test, the agent applies principle-test-behavior-not-implementation.",
+      "preconditions": [
+        "Locked pstack poteto-mode and principle-test-behavior-not-implementation skill loaded.",
+        "A test is being written or retained."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "configurationCells": [
+        {
+          "id": "default",
+          "role": "required-unverified-matrix-cell"
+        },
+        {
+          "id": "installed-user",
+          "role": "required-unverified-matrix-cell"
+        }
+      ],
+      "startingState": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file.",
+      "actions": [
+        {
+          "input": "Add or keep a unit test.",
+          "expectedObservation": "The agent Reads the leaf skill; the test calls the subject with a concrete input and asserts a literal observable result, and would fail if imported functions returned undefined."
+        }
+      ],
+      "expectedObservations": [
+        "The agent Reads pstack/skills/principle-test-behavior-not-implementation/SKILL.md before applying it.",
+        "Kept tests assert literal observed results from calling the subject, not only mocks/constants/self-reference.",
+        "disable-model-invocation remains true in the locked file."
+      ],
+      "requiredSideEffects": [
+        "Leaf skill Read in transcript.",
+        "Subject invoked inside the test body with a concrete assertion."
+      ],
+      "forbiddenSideEffects": [
+        "Keeping a test that still passes if every imported function returns undefined.",
+        "Model-auto-invocation of the principle skill."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "unresolved": [
+        "Allowed relation/table and *.test-d.ts exceptions need scenario tags.",
+        "Mock payload assertion patterns vary by framework."
+      ],
+      "evidence": [],
+      "notes": "Principle skill leftover from slice-commands-002. Activation contract quotes frontmatter (Apply-when description + disable-model-invocation). Proposal only. Not merged into parity/requirements.json. Status must not be verified."
+    },
+    {
+      "id": "PSTACK-PRIN-TYPE-DISCIPLINE-001",
+      "status": "draft-proposal",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/principle-type-system-discipline/SKILL.md",
+        "locator": "Type System Discipline frontmatter trigger and disable-model-invocation",
+        "lineStart": 1,
+        "lineEnd": 5,
+        "fullFileSha256": "c83da8031ffb4c86410030d3e261f659598fca2b7d8158fd9dc269d70a3a025e",
+        "quoteSha256": "9ff02904b78815b44b4f9e67e25b02aa4ad24ad112e25b1af0c54bb78bcf432c",
+        "quote": "---\nname: principle-type-system-discipline\ndescription: \"Apply when designing types, reviewing a function signature, or writing code in any statically-typed language. Make illegal states unrepresentable, brand semantic primitives, parse external data at boundaries, refuse to lie to the compiler, exhaust variants, derive from authoritative schemas.\"\ndisable-model-invocation: true\n---\n"
+      },
+      "inventoryPath": "pstack/skills/principle-type-system-discipline/SKILL.md",
+      "inventoryItemSha256": "c83da8031ffb4c86410030d3e261f659598fca2b7d8158fd9dc269d70a3a025e",
+      "dependencies": [
+        "cursor-pstack",
+        "cursor-cli-host",
+        "poteto-mode"
+      ],
+      "implementationOwner": "implementation-parent",
+      "trigger": "Under poteto-mode, when designing types, reviewing a function signature, or writing code in a statically typed language, the agent applies principle-type-system-discipline.",
+      "preconditions": [
+        "Locked pstack poteto-mode and principle-type-system-discipline skill loaded.",
+        "Typed-language design or signature work is in scope."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "configurationCells": [
+        {
+          "id": "default",
+          "role": "required-unverified-matrix-cell"
+        },
+        {
+          "id": "installed-user",
+          "role": "required-unverified-matrix-cell"
+        }
+      ],
+      "startingState": "Fresh poteto-mode session with locked principle skill available and disable-model-invocation true on the leaf file.",
+      "actions": [
+        {
+          "input": "Introduce or change domain types for a feature.",
+          "expectedObservation": "The agent Reads the leaf skill and makes illegal states unrepresentable (or brands/parses at boundaries) rather than relying on casts and bag-of-optionals."
+        }
+      ],
+      "expectedObservations": [
+        "The agent Reads pstack/skills/principle-type-system-discipline/SKILL.md before applying it.",
+        "New domain states use sum types, brands, or boundary parsing rather than contradictory optional-field bags or unexplained casts.",
+        "disable-model-invocation remains true in the locked file."
+      ],
+      "requiredSideEffects": [
+        "Leaf skill Read in transcript.",
+        "Typed model change reflecting unrepresentable illegal states or branded primitives where applicable."
+      ],
+      "forbiddenSideEffects": [
+        "Introducing `as`/`any`/assertNotNull as the primary modeling step when the principle was cited.",
+        "Model-auto-invocation of the principle skill."
+      ],
+      "orderingTimingConcurrencyCancellationPersistence": "DRAFT; not frozen. Principle leaf load precedes claimed application. Host must not model-auto-invoke.",
+      "piBindings": [],
+      "scenarioIds": [],
+      "unresolved": [
+        "Language-specific exhaustiveness idioms need per-language scenarios.",
+        "Boundary-discipline pairing for parse placement is separate."
+      ],
+      "evidence": [],
+      "notes": "Principle skill leftover from slice-commands-002. Activation contract quotes frontmatter (Apply-when description + disable-model-invocation). Proposal only. Not merged into parity/requirements.json. Status must not be verified."
+    }
+  ],
+  "hashVerification": {
+    "method": "sha256 of locked file bytes and of exact line-range quote including newlines",
+    "script": "parity/research/requirement-slices/slice-principles-001/verify-hashes.py",
+    "inventoryRef": "parity/inventory.json",
+    "referenceRoot": "parity/reference/cursor-plugins/"
+  }
+}

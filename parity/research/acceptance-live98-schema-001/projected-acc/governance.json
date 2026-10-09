@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "implementationOwner": {
+    "id": "live98-schema-adapter-packaging-stub",
+    "family": "none",
+    "basis": "Packaging stub required by verify-acceptance.mjs governance checks. Not an acceptance owner, custody holder, freeze authority, or authenticated identity."
+  }
+}

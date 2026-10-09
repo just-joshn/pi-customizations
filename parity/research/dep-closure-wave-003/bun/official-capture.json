@@ -1,0 +1,23 @@
+{
+  "capturedAt": "2026-10-08T19:13:21Z",
+  "localBunVersionCapture": "parity/research/dep-closure-wave-003/bun/bun-version.txt",
+  "localBunVersionSha256": "b99b4c7cdf236f59bc9f65d963deaecae3b16a7dad87939cacb9057f7664daee",
+  "localBunStdout": "1.4.2",
+  "docs": [
+    {
+      "label": "nodejs-compat",
+      "url": "https://bun.com/docs/runtime/nodejs-compat",
+      "path": "parity/research/dep-closure-wave-003/bun/nodejs-compat.html",
+      "sha256": "5ee498723663e81c9be95b25e3396d991276c8b1388a6a798f68b446e5833b27",
+      "byteLength": 293288,
+      "contentType": "text/html; charset=utf-8"
+    }
+  ],
+  "commanderSmoke": {
+    "path": "parity/research/dep-closure-wave-003/bun/commander-smoke.txt",
+    "sha256": "24a93bea5ae40d1246fe748e4caf5da4784cd39d5f176edd8f15498dd28a3a65",
+    "result": "smokeOk true; orch commander help test pass under local bun"
+  },
+  "pinStatus": "unresolved",
+  "note": "Official Bun Node.js compatibility docs and local bun 1.4.2 smoke were captured. No package.json or lockfile in the tools subtree pins an exact Bun runtime version. Keep official pin unresolved while resolving the commander\u2192bun graph edge on source + runtime evidence."
+}

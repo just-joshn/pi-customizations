@@ -1,0 +1,11 @@
+{
+  "unit": "u-dep-live-integrations-004",
+  "verifiedAt": "2026-10-09T15:57:54Z",
+  "expectedSha256": "63ef7f8f4c35e3918556e787f22eb308666e5e8d0b444b41584524ce13b867d4",
+  "actualSha256": "63ef7f8f4c35e3918556e787f22eb308666e5e8d0b444b41584524ce13b867d4",
+  "inventorySha256Match": true,
+  "makeBotOutcome": "key_server_ok",
+  "reclassifiedRows": 9,
+  "canCloseUnresolvedReference": false,
+  "fabricatedLiveEvidence": false
+}

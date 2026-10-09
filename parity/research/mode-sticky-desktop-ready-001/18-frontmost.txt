@@ -1,0 +1,7 @@
+frontmost=Cursor pid=81918
+Cursor exists=true
+Cursor frontmost=true
+Cursor visible=true
+windows=0
+role=AXApplication
+

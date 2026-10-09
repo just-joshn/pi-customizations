@@ -1,0 +1,86 @@
+< >
+V New Chat
+Search
+• Automations
+Bº Customize
+Projects
++ New Project
+Pinned
+• /make-bot-ui
+Repositories
+A No Repo
+• Parity webhook witness
+• Cursor automation setup
+Cursor automation setup
+Cursor automation setup
+Cursor automation setup
+Automation setup instruction
+/make-bot-ui
+/automate
+/automate
+Sticky mode activation
+/poteto-mode
+8h
+C‡
+• 15m
+7h
+7h
+8h
+8h
+8h
+8h
+8h
+8h
+10h
+Getting Started
+* Connect Slack
+Joshua Humphrev
+3/3 O
+IDE 7
+Automations
+Automate repetitive tasks with always-on agents and configure Cursor's built-in agents for your team.
+From Cursor
+New Automation
+• Cursor Bot
+Scanning your changes..
+Built-in Checks
+General Security
+Al & Agent Trust Boundaries
+Filesystem & Resource Access
+Privacy & Data Handling
+API & RPC Privilege
+Config & Template Injection
+Ship better code, faster
+Review Code with Bugbot
+Catch bugs and auto-fix before they ship.
+Scan and Triage Security Vulnerabilities
+Security checks on every change.
+Route PR Reviews and Auto-Approve
+Assign reviewers and approve PRs.
+Get Started →
+Mine
+Team
+Name
+Untitled
+Untitled
+benny-triage
+parity-webhook-witness
+Untitled
+benny-triage
+All Runs 7
+Search...
+Tools
+Created By
+Joshua Humphrey 7h
+Joshua Humphrey 7h
+Joshua Humphrey 7h
+Joshua Humphrey 8h
+Joshua Humphrey 8h
+Joshua Humphrey 8h
+Status
+× Inactive
+× Inactive
+× Inactive
+× Inactive
+× Inactive
+× Inactive

@@ -1,0 +1,33 @@
+{
+  "attemptId": "ac89acf3-f0d7-4a4a-831c-ceb08272e0b8",
+  "indices": [
+    "67",
+    "96"
+  ],
+  "results": [
+    {
+      "idx": "67",
+      "click": true
+    },
+    {
+      "idx": "96",
+      "click": true
+    },
+    {
+      "xy": [
+        1180,
+        160
+      ],
+      "ok": true
+    },
+    {
+      "xy": [
+        900,
+        620
+      ],
+      "ok": true
+    }
+  ],
+  "editorMarkersFound": [],
+  "app": "Google Chrome"
+}

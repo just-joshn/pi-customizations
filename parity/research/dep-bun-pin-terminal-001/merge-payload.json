@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "unit": "u-dep-bun-pin-terminal-001",
+  "status": "proposal",
+  "createdAt": "2026-10-09T02:05:00Z",
+  "verdict": "absent-in-source",
+  "mergePayloadReady": true,
+  "targets": {
+    "dependenciesJson": "parity/dependencies.json",
+    "sourceLockJson": "parity/source-lock.json"
+  },
+  "completeDependencyClosure": false,
+  "completeDependencyClosureNote": "Must remain false. Closing Bun pin as absent-in-source does not close host edges, persistent-mode, typescript deep semantics, or journey/live refs.",
+  "resolvedReferenceCount": 1,
+  "resolvedEdgeCount": 0,
+  "dependencies": {
+    "nodeMutations": [
+      {
+        "id": "source-bun-runtime",
+        "set": {
+          "readingEvidence": [
+            "parity/research/dep-bun-pin-terminal-001/bun/official-capture.json",
+            "parity/research/dep-bun-pin-terminal-001/nodes/bun-pin.md"
+          ],
+          "pinStatus": "absent-in-source"
+        },
+        "evidence": [
+          "parity/research/dep-bun-pin-terminal-001/bun/official-capture.json"
+        ],
+        "disposition": "Exhaustive re-probe of locked poteto-mode tools custody and the extensions mirror found no official Bun binary pin (no engines/packageManager/volta/devEngines, no .bun-version/bunfig.toml/mise.toml/.tool-versions/.nvmrc/.node-version). Host bun 1.4.2 via mise latest and bun-types:latest are not runtime pins and must not be invented into engines/packageManager/.bun-version."
+      }
+    ],
+    "unresolvedReferences": {
+      "removeIfPresent": [
+        "Official Bun runtime version pin under source-bun-runtime remains unresolved after wave-009 capture at parity/research/dep-closure-wave-009/bun/official-capture.json (local 1.4.2 only; no engines/packageManager/volta/.bun-version/bunfig/mise/.tool-versions under tools; host mise bun/latest and bun-types lock resolve are not runtime pins)."
+      ],
+      "add": [],
+      "keep": [],
+      "closedAs": {
+        "prior": "Official Bun runtime version pin under source-bun-runtime remains unresolved after wave-009 capture at parity/research/dep-closure-wave-009/bun/official-capture.json (local 1.4.2 only; no engines/packageManager/volta/.bun-version/bunfig/mise/.tool-versions under tools; host mise bun/latest and bun-types lock resolve are not runtime pins).",
+        "status": "absent-in-source",
+        "replacementNote": "Official Bun runtime version pin under source-bun-runtime closed as absent-in-source by u-dep-bun-pin-terminal-001 at parity/research/dep-bun-pin-terminal-001/bun/official-capture.json (sha256 7d9c41e3c5519fe6b8473a119f427b7ac444235189cf7762e9ad7c4f5a2c9f97; no engines/packageManager/volta/devEngines/.bun-version/bunfig/mise/.tool-versions under poteto-mode tools; host bun 1.4.2 / mise latest / bun-types are not pins)."
+      },
+      "note": "Remove the wave-009 Bun pin unresolvedReference. Do not invent a version pin. Do not add a replacement unresolved Bun pin line."
+    }
+  },
+  "sourceLock": {
+    "cursorPlugins.completeDependencyClosure": {
+      "set": false,
+      "note": "Remains false after Bun absent-in-source close; other blockers remain."
+    }
+  },
+  "fullProposal": "parity/research/dep-bun-pin-terminal-001/merge-payload.json"
+}

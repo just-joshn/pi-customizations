@@ -1,0 +1,639 @@
+{
+  "schemaVersion": 1,
+  "sliceId": "slice-setup-002",
+  "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+  "package": "pstack@0.15.15",
+  "note": "Draft proposals for leftover setup-topic inventory from slice-setup-001: Benny setup plus create/maintain verification skills. Feature-map-example paths are dispositions, not proposals. status is never verified.",
+  "proposals": [
+    {
+      "id": "PSTACK-SETUP-BENNY-NO-SECRET-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/automations/benny/skills/setup-benny/SKILL.md",
+        "locator": "## Set up Benny, secrets boundary",
+        "lineStart": 15,
+        "lineEnd": 15,
+        "fileSha256": "5a3cbe63360c9f6373b6cb6c79a1eaf7e0eba181bfaa1577e2e6431af3407282",
+        "spanSha256": "785b80b8713e4763df8983367be5eaea5229f2b6f63cd2fa7e40ec38a7b9c7f3"
+      },
+      "trigger": "Any Benny setup or configuration write.",
+      "preconditions": [
+        "User may supply Slack tokens or other secrets."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "expectedObservation": "Secret values never appear in plugin files, prompts, or committed configuration.",
+      "status": "proposal-unverified",
+      "evidenceMapping": {
+        "kind": "unverified",
+        "note": "No paired Cursor+Pi journey captured for this skill surface yet."
+      },
+      "forbiddenSideEffects": [
+        "Writing secrets into YAML, SKILL.md, templates, or pack files under the repo."
+      ]
+    },
+    {
+      "id": "PSTACK-SETUP-BENNY-PACK-MERGE-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/automations/benny/skills/setup-benny/SKILL.md",
+        "locator": "## 1. Copy the pack, merge rules",
+        "lineStart": 23,
+        "lineEnd": 30,
+        "fileSha256": "5a3cbe63360c9f6373b6cb6c79a1eaf7e0eba181bfaa1577e2e6431af3407282",
+        "spanSha256": "2a7775b168256df95ed80a5e8835510d00ee7f6ebe6c0df34973cb77edd8a51b"
+      },
+      "trigger": "/setup-benny or FOR_AGENTS.md bootstrap copy into a target repository.",
+      "preconditions": [
+        "Source pack directory containing FOR_AGENTS.md is identified."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "expectedObservation": "Entire source pack merges into <target>/.cursor/automations/benny/ creating the destination when absent, copying every source file to the same relative path, preserving destination-only files, never overwriting user-owned configuration or feature or routing maps outside the destination, merging source-managed conflicts without discarding local edits or stopping when ownership is ambiguous, and verifying required pack files exist afterward.",
+      "status": "proposal-unverified",
+      "evidenceMapping": {
+        "kind": "unverified",
+        "note": "No paired Cursor+Pi journey captured for this skill surface yet."
+      },
+      "forbiddenSideEffects": [
+        "Deleting unrelated destination files during install or refresh.",
+        "Overwriting user-owned config or maps outside the destination."
+      ]
+    },
+    {
+      "id": "PSTACK-SETUP-BENNY-SETTINGS-ENABLE-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/automations/benny/skills/setup-benny/SKILL.md",
+        "locator": "## 1. Copy the pack, enable pstack in settings.json",
+        "lineStart": 34,
+        "lineEnd": 46,
+        "fileSha256": "5a3cbe63360c9f6373b6cb6c79a1eaf7e0eba181bfaa1577e2e6431af3407282",
+        "spanSha256": "26cd75931297fb5dac3e7f152156ee0ae783fb8ed801d2fd5ede15006d5a155a"
+      },
+      "trigger": "After pack copy during Benny setup.",
+      "preconditions": [
+        "Target repository may lack .cursor/settings.json."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "expectedObservation": "Target .cursor/settings.json exists with plugins.pstack.enabled true. Unrelated top-level settings and other plugin entries stay intact. When plugins.pstack already exists, only enabled changes. JSONC comments and syntax are preserved when the file uses JSONC. The file validates after edit.",
+      "status": "proposal-unverified",
+      "evidenceMapping": {
+        "kind": "unverified",
+        "note": "No paired Cursor+Pi journey captured for this skill surface yet."
+      },
+      "forbiddenSideEffects": [
+        "Replacing the whole settings file.",
+        "Removing unrelated plugin entries."
+      ]
+    },
+    {
+      "id": "PSTACK-SETUP-BENNY-PROJECT-SKILLS-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/automations/benny/skills/setup-benny/SKILL.md",
+        "locator": "## 1. Copy the pack, project-scoped skill resolve check",
+        "lineStart": 48,
+        "lineEnd": 63,
+        "fileSha256": "5a3cbe63360c9f6373b6cb6c79a1eaf7e0eba181bfaa1577e2e6431af3407282",
+        "spanSha256": "f9e54bb931af3dc42ae20038a75417263cedbbb8efa7b81857b0a55279cfe693"
+      },
+      "trigger": "After enabling pstack in the target project settings.",
+      "preconditions": [
+        "Target project can be reloaded or a fresh agent started there."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "expectedObservation": "A fresh agent rooted in the target repository resolves how, why, tdd, unslop, and the listed principle-* skills from project-scoped pstack. Session-loaded or user-scoped plugin loads do not count. Setup stops with an explanation if project-scoped install is unavailable or any listed skill fails to resolve.",
+      "status": "proposal-unverified",
+      "evidenceMapping": {
+        "kind": "unverified",
+        "note": "No paired Cursor+Pi journey captured for this skill surface yet."
+      },
+      "forbiddenSideEffects": [
+        "Treating a user-scoped or current-session skill load as success."
+      ]
+    },
+    {
+      "id": "PSTACK-SETUP-BENNY-USER-CONFIG-OUTSIDE-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/automations/benny/skills/setup-benny/SKILL.md",
+        "locator": "## 2. Adapt the configuration, user-owned copies",
+        "lineStart": 78,
+        "lineEnd": 88,
+        "fileSha256": "5a3cbe63360c9f6373b6cb6c79a1eaf7e0eba181bfaa1577e2e6431af3407282",
+        "spanSha256": "e556f4c7576d2c3c5ded635ab1274b13f6298a9f136709455ce71b978974bdff"
+      },
+      "trigger": "Adapting Benny configuration and feature map after pack copy.",
+      "preconditions": [
+        "Example templates exist under the copied pack."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "expectedObservation": "User-owned configuration, feature map, and routing map copies live outside .cursor/automations/benny/. Copied example files are not edited. Pack refreshes may update source-managed files after conflict review but never touch the user-owned copies.",
+      "status": "proposal-unverified",
+      "evidenceMapping": {
+        "kind": "unverified",
+        "note": "No paired Cursor+Pi journey captured for this skill surface yet."
+      },
+      "forbiddenSideEffects": [
+        "Editing copied examples in place.",
+        "Writing user-owned maps inside the pack destination."
+      ]
+    },
+    {
+      "id": "PSTACK-SETUP-BENNY-REQUIRED-EXPLICIT-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/automations/benny/skills/setup-benny/SKILL.md",
+        "locator": "## 3. Fill the required choices, fail on ambiguity",
+        "lineStart": 112,
+        "lineEnd": 114,
+        "fileSha256": "5a3cbe63360c9f6373b6cb6c79a1eaf7e0eba181bfaa1577e2e6431af3407282",
+        "spanSha256": "b892b3546bf973af446388d010776b48dee4163329e021e49017e41ecf4055c5"
+      },
+      "trigger": "Filling Benny required configuration choices.",
+      "preconditions": [
+        "Model picker or supported model list is available for slug checks."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "expectedObservation": "Only available model slugs are used. Source channel, triage identity, repository, tracker adapter, control skill, and feature map are explicit. Setup fails if any required value stays ambiguous.",
+      "status": "proposal-unverified",
+      "evidenceMapping": {
+        "kind": "unverified",
+        "note": "No paired Cursor+Pi journey captured for this skill surface yet."
+      },
+      "forbiddenSideEffects": [
+        "Guessing a model slug.",
+        "Carrying a private default slug.",
+        "Proceeding with an ambiguous required value."
+      ]
+    },
+    {
+      "id": "PSTACK-SETUP-BENNY-CONTROL-FAIL-CLOSED-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/automations/benny/skills/setup-benny/SKILL.md",
+        "locator": "## 6. Verify the control adapter, fail closed",
+        "lineStart": 151,
+        "lineEnd": 165,
+        "fileSha256": "5a3cbe63360c9f6373b6cb6c79a1eaf7e0eba181bfaa1577e2e6431af3407282",
+        "spanSha256": "47f936b8dd8b91a3fee35cb7ae80d320f0aba3162daad190717585ba7a4a0c7e"
+      },
+      "trigger": "Before enabling the Benny repro automation.",
+      "preconditions": [
+        "Named control skill and completed feature map exist."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "expectedObservation": "Named control skill is confirmed able to bring up the app, navigate every mapped feature through the real UI, exercise mapped states, inspect without forcing results, capture screenshots, start and stop recording, and clean up. If any capability is missing, the repro automation stays disabled.",
+      "status": "proposal-unverified",
+      "evidenceMapping": {
+        "kind": "unverified",
+        "note": "No paired Cursor+Pi journey captured for this skill surface yet."
+      },
+      "forbiddenSideEffects": [
+        "Enabling repro while a listed control capability is missing.",
+        "Claiming a reproduction that was not performed."
+      ]
+    },
+    {
+      "id": "PSTACK-SETUP-BENNY-EXISTING-NO-AUTOMATE-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/automations/benny/skills/setup-benny/SKILL.md",
+        "locator": "## 7. Prepare the live automations, existing automations",
+        "lineStart": 216,
+        "lineEnd": 218,
+        "fileSha256": "5a3cbe63360c9f6373b6cb6c79a1eaf7e0eba181bfaa1577e2e6431af3407282",
+        "spanSha256": "d1a5393c20847dc80c09f096d4542176716b45f06d4b5588b210d60bf1aa8f37"
+      },
+      "trigger": "User wants to update existing Benny automations rather than create new ones.",
+      "preconditions": [
+        "Triage and or repro automations already exist."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "expectedObservation": "Built-in automate skill is not used to search for, inspect, or update existing automations. User receives an editor checklist and updates each automation in its Automations editor without creating replacements or duplicates.",
+      "status": "proposal-unverified",
+      "evidenceMapping": {
+        "kind": "unverified",
+        "note": "No paired Cursor+Pi journey captured for this skill surface yet."
+      },
+      "forbiddenSideEffects": [
+        "Using /automate to mutate existing automations.",
+        "Creating duplicate replacement automations for an update path."
+      ]
+    },
+    {
+      "id": "PSTACK-SETUP-BENNY-CREATION-BOUNDARY-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/automations/benny/skills/setup-benny/SKILL.md",
+        "locator": "## 7. Prepare the live automations, creation boundary",
+        "lineStart": 244,
+        "lineEnd": 246,
+        "fileSha256": "5a3cbe63360c9f6373b6cb6c79a1eaf7e0eba181bfaa1577e2e6431af3407282",
+        "spanSha256": "207b73079be4fec2181ccdfa730981b7c6b5878916c7f7acea4e5762d903075e"
+      },
+      "trigger": "First-time creation of Benny triage or repro automations.",
+      "preconditions": [
+        "User explicitly asked to create automations."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "expectedObservation": "New automations finish only through the built-in automate skill reviewed Automations editor handoff. No direct automation backend service or tool call, no browser URL carrying draft fields, and no Cursor protocol deep link. Neither automation is enabled until the thread-safety test passes after editor save.",
+      "status": "proposal-unverified",
+      "evidenceMapping": {
+        "kind": "unverified",
+        "note": "No paired Cursor+Pi journey captured for this skill surface yet."
+      },
+      "forbiddenSideEffects": [
+        "Calling a direct automation backend.",
+        "Opening a draft-field browser URL or protocol deep link to finish creation."
+      ]
+    },
+    {
+      "id": "PSTACK-SETUP-BENNY-THREAD-SAFETY-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/automations/benny/skills/setup-benny/SKILL.md",
+        "locator": "## 8. Test thread safety",
+        "lineStart": 250,
+        "lineEnd": 266,
+        "fileSha256": "5a3cbe63360c9f6373b6cb6c79a1eaf7e0eba181bfaa1577e2e6431af3407282",
+        "spanSha256": "86bdb2734960cfc555d4fbec63aef6b91d7dada21df26c8b0720adfd22f2f0b8"
+      },
+      "trigger": "After editor save, before enabling normal Benny traffic.",
+      "preconditions": [
+        "settings.json, pack, and secret-free config are committed on the automation checkout branch; live prompts point at committed operational files."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "expectedObservation": "All seven checks pass on a test channel or harmless report: triage stores root thread_ts and posts exactly one verdict reply with one configured marker; repro accepts the marker only from the configured triage identity and keeps immutable source coordinates; no source-channel root message; delegated workers cannot use Slack write actions; missing coordinates, deleted parent, or failed preflight produces no post and no tracker issue. Normal traffic enables only after all seven pass. Any prior commit or prompt-path check failure stops enablement.",
+      "status": "proposal-unverified",
+      "evidenceMapping": {
+        "kind": "unverified",
+        "note": "No paired Cursor+Pi journey captured for this skill surface yet."
+      },
+      "forbiddenSideEffects": [
+        "Enabling normal traffic with any of the seven checks failing.",
+        "Enabling when pack or referenced config is not committed."
+      ]
+    },
+    {
+      "id": "PSTACK-SETUP-CREATE-VERIFY-INTERVIEW-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/create-verification-skill/SKILL.md",
+        "locator": "## 1. Interview the repo, not the user",
+        "lineStart": 12,
+        "lineEnd": 21,
+        "fileSha256": "644f2551403c1bca01a2855b34611b6e7be0ce0dc5b204514c376c0f6a6e6ac4",
+        "spanSha256": "628cd9031be9829fe17cab5da105d8c6ed220a78ccafef45d23fff9de7755c72"
+      },
+      "trigger": "/create-verification-skill on a repository.",
+      "preconditions": [
+        "Repository checkout is available."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "expectedObservation": "Surface, run, drive, observe, and isolate answers come from the codebase first. The user is asked only what cannot be observed. If the checkout does not build or start, that is fixed or reported precisely before generating. Generated skills may create irrelevant missing assets only as marked verification scaffolding removed in cleanup.",
+      "status": "proposal-unverified",
+      "evidenceMapping": {
+        "kind": "unverified",
+        "note": "No paired Cursor+Pi journey captured for this skill surface yet."
+      },
+      "forbiddenSideEffects": [
+        "Interviewing the user for facts observable from the repo.",
+        "Generating against a broken base without reporting the break."
+      ]
+    },
+    {
+      "id": "PSTACK-SETUP-CREATE-VERIFY-GENERATE-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/create-verification-skill/SKILL.md",
+        "locator": "## 2. Generate the skill",
+        "lineStart": 23,
+        "lineEnd": 32,
+        "fileSha256": "644f2551403c1bca01a2855b34611b6e7be0ce0dc5b204514c376c0f6a6e6ac4",
+        "spanSha256": "54b23e76c398a902a76ce2e6fcc896ec570fae10b49b5db217a8b8b15d4a8fec"
+      },
+      "trigger": "After the repo interview succeeds.",
+      "preconditions": [
+        "Primary surface and run command are known."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "expectedObservation": "Writes .cursor/skills/verify-<app>/SKILL.md with YAML frontmatter name and description, plus Launch, Doctor, Drive, Evidence, Cleanup, and Helpers sections grounded in interview findings with no placeholders. Helpers shipped by the skill are executable and their invocation appears in the skill body. Cleanup never kills by process name and never deletes named proof artifacts.",
+      "status": "proposal-unverified",
+      "evidenceMapping": {
+        "kind": "unverified",
+        "note": "No paired Cursor+Pi journey captured for this skill surface yet."
+      },
+      "forbiddenSideEffects": [
+        "Leaving placeholder text in generated sections.",
+        "Omitting YAML frontmatter.",
+        "Killing processes by name during cleanup.",
+        "Deleting proof artifacts in cleanup."
+      ]
+    },
+    {
+      "id": "PSTACK-SETUP-CREATE-VERIFY-FEATURE-MAP-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/create-verification-skill/SKILL.md",
+        "locator": "## 3. Seed the feature map",
+        "lineStart": 34,
+        "lineEnd": 36,
+        "fileSha256": "644f2551403c1bca01a2855b34611b6e7be0ce0dc5b204514c376c0f6a6e6ac4",
+        "spanSha256": "dfc72c27c63e035649aa020d2d7b3d00e9847bd4609ed299c0aa226d5744e676"
+      },
+      "trigger": "When generating a project-local verification skill.",
+      "preconditions": [
+        "User-facing features can be identified from routes, commands, menus, or docs."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "expectedObservation": "Creates features/README.md plus one file per identified user-facing feature (top 3-5 to start) following references/feature-map-example/ shape. Each feature file answers what the feature is, how to reach it, how to drive it with the harness, and what observable end state proves it, using the four H2s Sub-features, How to get to it (user POV), Driving it with <harness>, and Gotchas.",
+      "status": "proposal-unverified",
+      "evidenceMapping": {
+        "kind": "unverified",
+        "note": "No paired Cursor+Pi journey captured for this skill surface yet."
+      },
+      "forbiddenSideEffects": [
+        "Omitting the four required H2s.",
+        "Freezing implementation details as the map content instead of user POV paths."
+      ]
+    },
+    {
+      "id": "PSTACK-SETUP-CREATE-VERIFY-PROVE-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/create-verification-skill/SKILL.md",
+        "locator": "## 4. Prove the generated skill before handing it over",
+        "lineStart": 38,
+        "lineEnd": 40,
+        "fileSha256": "644f2551403c1bca01a2855b34611b6e7be0ce0dc5b204514c376c0f6a6e6ac4",
+        "spanSha256": "3f6f4f24327fc627bf9f967ca02cd22b872b87b6c47fde44d91a0808c5b31097"
+      },
+      "trigger": "After generating verify-<app> skill and feature map.",
+      "preconditions": [
+        "Generated skill and at least one mapped feature exist."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "expectedObservation": "Runs launch, doctor, drive of one mapped feature, evidence capture, and cleanup end to end once. After cleanup, evidence still exists at the named location. Failures are fixed and cleanup runs after every failed iteration. A skill never executed remains a draft, not a deliverable.",
+      "status": "proposal-unverified",
+      "evidenceMapping": {
+        "kind": "unverified",
+        "note": "No paired Cursor+Pi journey captured for this skill surface yet."
+      },
+      "forbiddenSideEffects": [
+        "Handing over a never-executed generated skill.",
+        "Cleanup that removes proof artifacts."
+      ]
+    },
+    {
+      "id": "PSTACK-SETUP-CREATE-VERIFY-OFFER-MAINTAIN-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/create-verification-skill/SKILL.md",
+        "locator": "## 5. Offer the maintenance loop",
+        "lineStart": 42,
+        "lineEnd": 44,
+        "fileSha256": "644f2551403c1bca01a2855b34611b6e7be0ce0dc5b204514c376c0f6a6e6ac4",
+        "spanSha256": "190e0cec3cbedbbf4b5fe2892e92a2bff022bbfe1f17676b8fcdb9b79c099e9f"
+      },
+      "trigger": "After a generated verification skill is proven.",
+      "preconditions": [
+        "Generated skill exists."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "expectedObservation": "Points the user at /maintain-verification-skill. Suggests a cadence only if the user asks.",
+      "status": "proposal-unverified",
+      "evidenceMapping": {
+        "kind": "unverified",
+        "note": "No paired Cursor+Pi journey captured for this skill surface yet."
+      },
+      "forbiddenSideEffects": [
+        "Inventing a maintenance cadence unprompted as a hard requirement."
+      ]
+    },
+    {
+      "id": "PSTACK-SETUP-MAINTAIN-VERIFY-OUTCOMES-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/maintain-verification-skill/SKILL.md",
+        "locator": "## Outcomes",
+        "lineStart": 11,
+        "lineEnd": 17,
+        "fileSha256": "515c0eaa054b3f6be1b1fb06f2c2f173c80fddb58bbcac57576f89c479bc68e8",
+        "spanSha256": "d2e6210d8f4d299e83fe3bb60eca885556d946d3b736d3aeb423f38911513e26"
+      },
+      "trigger": "/maintain-verification-skill run completion.",
+      "preconditions": [
+        "A target verification skill was located."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "expectedObservation": "Run ends in exactly one named outcome: clean (full source and live coverage, nothing to ship, no branch or PR), changed (one PR of proven corrections), or blocked (coverage unfinished or proven fix cannot ship safely, with the blocker stated).",
+      "status": "proposal-unverified",
+      "evidenceMapping": {
+        "kind": "unverified",
+        "note": "No paired Cursor+Pi journey captured for this skill surface yet."
+      },
+      "forbiddenSideEffects": [
+        "Shipping without naming the outcome.",
+        "Opening a PR on a clean run."
+      ]
+    },
+    {
+      "id": "PSTACK-SETUP-MAINTAIN-VERIFY-EDIT-SCOPE-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/maintain-verification-skill/SKILL.md",
+        "locator": "## Edit scope",
+        "lineStart": 19,
+        "lineEnd": 21,
+        "fileSha256": "515c0eaa054b3f6be1b1fb06f2c2f173c80fddb58bbcac57576f89c479bc68e8",
+        "spanSha256": "73df1c30201e25533b5b5cb8dd39c7ba4a1fb8c7a9dee681e3ea1f358ee7ad35"
+      },
+      "trigger": "Any edit during /maintain-verification-skill.",
+      "preconditions": [
+        "Target verification skill directory exists."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "expectedObservation": "Edits stay inside the verification skill directory (SKILL.md, features/, harness scripts it owns). Product code is never edited. Map-vs-app mismatch is either doc drift fixed in the map or a product regression reported without papering over it in docs.",
+      "status": "proposal-unverified",
+      "evidenceMapping": {
+        "kind": "unverified",
+        "note": "No paired Cursor+Pi journey captured for this skill surface yet."
+      },
+      "forbiddenSideEffects": [
+        "Editing product code during a maintain run.",
+        "Changing the map to hide a product regression."
+      ]
+    },
+    {
+      "id": "PSTACK-SETUP-MAINTAIN-VERIFY-LOCATE-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/maintain-verification-skill/SKILL.md",
+        "locator": "## Pass, step 0 Locate the target",
+        "lineStart": 25,
+        "lineEnd": 25,
+        "fileSha256": "515c0eaa054b3f6be1b1fb06f2c2f173c80fddb58bbcac57576f89c479bc68e8",
+        "spanSha256": "78f89f40867acf4cef9bb4f64beb03a70a7195dff6fd6038d70b498bc73b631e"
+      },
+      "trigger": "Starting /maintain-verification-skill.",
+      "preconditions": [
+        "Project may have zero or several verify-* skills."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "expectedObservation": "Finds the project-local verification skill with launch/drive sections and a feature map. Several candidates prompts which one. None stops and points at /create-verification-skill instead of inventing a target.",
+      "status": "proposal-unverified",
+      "evidenceMapping": {
+        "kind": "unverified",
+        "note": "No paired Cursor+Pi journey captured for this skill surface yet."
+      },
+      "forbiddenSideEffects": [
+        "Inventing a verification skill target when none exists."
+      ]
+    },
+    {
+      "id": "PSTACK-SETUP-MAINTAIN-VERIFY-SOURCE-WAVE-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/maintain-verification-skill/SKILL.md",
+        "locator": "## Pass, step 2 Source wave",
+        "lineStart": 29,
+        "lineEnd": 29,
+        "fileSha256": "515c0eaa054b3f6be1b1fb06f2c2f173c80fddb58bbcac57576f89c479bc68e8",
+        "spanSha256": "ecbcdd9ffccd628138d0ef918bb3b3f4ed9cad373e127aca5cc3c26bcd013dc6"
+      },
+      "trigger": "After index hygiene in /maintain-verification-skill.",
+      "preconditions": [
+        "Feature map has one or more feature files."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "expectedObservation": "One read-only subagent per feature file runs concurrently. Each returns feature summary, source entry points, likely drift or none, and one live-verification recipe. Children never drive the app and never edit files.",
+      "status": "proposal-unverified",
+      "evidenceMapping": {
+        "kind": "unverified",
+        "note": "No paired Cursor+Pi journey captured for this skill surface yet."
+      },
+      "forbiddenSideEffects": [
+        "Child agents driving the app.",
+        "Child agents editing files."
+      ]
+    },
+    {
+      "id": "PSTACK-SETUP-MAINTAIN-VERIFY-LIVE-PASS-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/maintain-verification-skill/SKILL.md",
+        "locator": "## Pass, step 4 Live pass",
+        "lineStart": 33,
+        "lineEnd": 33,
+        "fileSha256": "515c0eaa054b3f6be1b1fb06f2c2f173c80fddb58bbcac57576f89c479bc68e8",
+        "spanSha256": "8c7f20e79ad3cb9ac7c3ca639a267e49d67861a77bdce3724ae0cdefc667daa2"
+      },
+      "trigger": "After reconcile in /maintain-verification-skill.",
+      "preconditions": [
+        "Source wave returned a recipe per feature."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "expectedObservation": "Live pass runs even when source looks clean. Coordinator owns all driving per the verification skill launch model. Every feature is exercised at least once while holding doctor-before-drive, evidence-survives-cleanup, and no leftover residue invariants. Doctor failure from skill drift is fixed under edit scope and retried once before blocked. verified-unreachable requires concrete prerequisite and attempted route. Harness fixes are re-driven live before ship. Final teardown follows the last drive; evidence remains.",
+      "status": "proposal-unverified",
+      "evidenceMapping": {
+        "kind": "unverified",
+        "note": "No paired Cursor+Pi journey captured for this skill surface yet."
+      },
+      "forbiddenSideEffects": [
+        "Skipping the live pass when source looks clean.",
+        "Calling verified-unreachable without a concrete prerequisite and attempted route."
+      ]
+    },
+    {
+      "id": "PSTACK-SETUP-MAINTAIN-VERIFY-SHIP-001",
+      "source": {
+        "revision": "ccb5507cec1546dc88135c1139c811e6c59115ba",
+        "file": "pstack/skills/maintain-verification-skill/SKILL.md",
+        "locator": "## Pass, step 6 Ship or stop",
+        "lineStart": 37,
+        "lineEnd": 37,
+        "fileSha256": "515c0eaa054b3f6be1b1fb06f2c2f173c80fddb58bbcac57576f89c479bc68e8",
+        "spanSha256": "353c13f2865f980a6751014bdd7dfccfb051a25ca423adec65a500432c494bcf"
+      },
+      "trigger": "End of a changed or non-changed maintain run.",
+      "preconditions": [
+        "Triage classified drift, harness gaps, and product gaps."
+      ],
+      "configurationIds": [
+        "default",
+        "installed-user"
+      ],
+      "expectedObservation": "changed ships one PR of proven corrections after re-reading every changed file. clean or blocked ships no PR and reports outcome and coverage. Run notes stay in scratch and are not committed.",
+      "status": "proposal-unverified",
+      "evidenceMapping": {
+        "kind": "unverified",
+        "note": "No paired Cursor+Pi journey captured for this skill surface yet."
+      },
+      "forbiddenSideEffects": [
+        "Multiple PRs from one maintain run.",
+        "Committing scratch run notes.",
+        "Opening a PR on clean or blocked."
+      ]
+    }
+  ]
+}

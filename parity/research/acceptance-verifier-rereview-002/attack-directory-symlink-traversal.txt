@@ -1,0 +1,1 @@
+symlink at /var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/tmp.i1MgsnYH5H/traversal/traversal-link; acceptance tree traversal must not follow symlinks

@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "unit": "u-dep-live-integrations-001",
+  "status": "proposal",
+  "createdAt": "2026-10-09T02:48:01Z",
+  "targets": {
+    "dependenciesJson": "parity/dependencies.json",
+    "progressMd": "parity/progress.md"
+  },
+  "canCloseLiveIntegrationsUnresolvedReference": false,
+  "canNarrowLiveIntegrationsUnresolvedReference": true,
+  "closeRationale": "Cannot close: environment-bound live surfaces remain unpaid.",
+  "narrowRationale": "Honest per-item split published. Most inventory rows are doc/proposal custody without a live-exercise claim. Keep the unresolvedReference but replace the vague 416-item open line with the narrowed text and attach dispositions.json. Do not set completeDependencyClosure true. Do not fabricate Slack/Automations/webhook live evidence.",
+  "behavioralExerciseClaim": false,
+  "inventorySha256": "63ef7f8f4c35e3918556e787f22eb308666e5e8d0b444b41584524ce13b867d4",
+  "counts": {
+    "a_custody_complete": 275,
+    "b_environment_bound": 119,
+    "c_already_evidenced": 22
+  },
+  "evidence": [
+    "parity/research/dep-live-integrations-001/dispositions.json",
+    "parity/research/dep-live-integrations-001/summary.json",
+    "parity/briefs/reports/u-dep-live-integrations-001-report.md"
+  ],
+  "proposedUnresolvedReferenceText": "Live integrations live-exercise remains open after u-dep-live-integrations-001 disposition at parity/research/dep-live-integrations-001/dispositions.json (inventory sha256 63ef7f8f4c35e3918556e787f22eb308666e5e8d0b444b41584524ce13b867d4; a_custody_complete=275, b_environment_bound=119, c_already_evidenced=22). Operator-grant blockers: Benny/Slack valid-config + thread-safety, Automations editor create/save, make-bot/webhook routines+secrets, and third-party live installs (Linear/Notion/GitHub/GitLab/Teams). No fabricated Slack posts, Automations editor saves, or webhook routines.",
+  "keepOpenBlockers": [
+    {
+      "id": "BENNY-TRIAGE-VALID-CONFIG-ENV",
+      "note": "Valid Benny+Slack config and one granted test-thread reply unpaid."
+    },
+    {
+      "id": "SETUP-BENNY-THREAD-SAFETY-ENV",
+      "note": "Automations editor save + Slack seven-checks unpaid."
+    },
+    {
+      "id": "SETUP-BENNY-CREATION-BOUNDARY-ENV",
+      "note": "/automate Automations editor handoff unpaid."
+    },
+    {
+      "id": "MAKE-BOT-UI-KEY-SERVER-HOST",
+      "note": "Webhook routine create + secret-request path unpaid on Cursor host."
+    },
+    {
+      "id": "third-party-live-installs",
+      "note": "Linear/Notion/GitHub/GitLab/Teams live installs not exercised."
+    }
+  ],
+  "ledgerEdits": {
+    "apply": false,
+    "note": "Worker must not edit ledgers. Coordinator applies if accepted.",
+    "unresolvedReferences": {
+      "action": "replace-matching",
+      "matchContains": "integrations-inventory.json",
+      "newText": "Live integrations live-exercise remains open after u-dep-live-integrations-001 disposition at parity/research/dep-live-integrations-001/dispositions.json (inventory sha256 63ef7f8f4c35e3918556e787f22eb308666e5e8d0b444b41584524ce13b867d4; a_custody_complete=275, b_environment_bound=119, c_already_evidenced=22). Operator-grant blockers: Benny/Slack valid-config + thread-safety, Automations editor create/save, make-bot/webhook routines+secrets, and third-party live installs (Linear/Notion/GitHub/GitLab/Teams). No fabricated Slack posts, Automations editor saves, or webhook routines."
+    },
+    "completeDependencyClosure": false,
+    "nodeEvidenceAppend": {
+      "node": "cursor-cli-host",
+      "paths": [
+        "parity/research/dep-live-integrations-001/dispositions.json",
+        "parity/research/dep-live-integrations-001/summary.json"
+      ]
+    }
+  }
+}

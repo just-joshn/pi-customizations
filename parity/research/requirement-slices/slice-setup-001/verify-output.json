@@ -1,0 +1,27 @@
+{
+  "proposalCount": 15,
+  "hashOk": true,
+  "failures": [],
+  "coveredSourceFiles": [
+    "pstack/docs/guide/01-setup.md",
+    "pstack/skills/setup-pstack/SKILL.md"
+  ],
+  "setupInventoryItems": [
+    "pstack/automations/benny/skills/setup-benny/SKILL.md",
+    "pstack/docs/guide/01-setup.md",
+    "pstack/skills/create-verification-skill/SKILL.md",
+    "pstack/skills/create-verification-skill/references/feature-map-example/README.md",
+    "pstack/skills/create-verification-skill/references/feature-map-example/create-note.md",
+    "pstack/skills/create-verification-skill/references/feature-map-example/search.md",
+    "pstack/skills/maintain-verification-skill/SKILL.md",
+    "pstack/skills/setup-pstack/SKILL.md"
+  ],
+  "uncoveredSetupInventory": [
+    "pstack/automations/benny/skills/setup-benny/SKILL.md",
+    "pstack/skills/create-verification-skill/SKILL.md",
+    "pstack/skills/create-verification-skill/references/feature-map-example/README.md",
+    "pstack/skills/create-verification-skill/references/feature-map-example/create-note.md",
+    "pstack/skills/create-verification-skill/references/feature-map-example/search.md",
+    "pstack/skills/maintain-verification-skill/SKILL.md"
+  ]
+}

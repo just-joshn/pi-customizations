@@ -1,0 +1,74 @@
+pi-pstack-parity-again
+tness
+1 setu
+1 setu
+1 setu
+1 setu
+instr
+ą
+• PI-PSTACK-P...
+› audit
+•github
+docs
+extensions
+node_modules
+parity
+scripts
+skills
+.coveragerc
+gitattributes
+•gitignore
+AGENTS.md
+{} biome.json
+1} bun.lock
+LICENSE
+Makefile
+package.json
+README.md
+tsconfig.json
+M
+M
+M
+ation
+Cursor Settings
+General
+Cursor Account
+Manage your account and billing
+Preferences
+Editor Settings
+Configure font, formatting, minimap and more
+Keyboard Shortcuts
+Configure keyboard shortcuts
+e
+Plugins, MCPs, Skills, and Rules have moved
+to Customize
+We've introduced a new home for all the
+ways to customize Cursor.
+Dismiss
+Import Settings from VS Code
+Import settings, extensions, and keybindings from VS Code
+Reset "Don't Ask Again" Dialogs
+See warnings and tips that you've hidden
+Layout
+Open Customize →
+Open D
+Open
+Open
+Import
+Show
+Slacl
+The git repository ati/Users/josh-
+desktop/src/personal/pi-pstack-parity-
+againi has too many active changes, only a
+subset of Git features will be enabled.
+Source: Git
+Don't Show Again
+OK
+v Layout
+between Agent and Editor default layouts
+Agents Window
++ O
+• New Agent X
+Plan, Build, / for skills, @ for context
+∞o Agent v
+Auto v

@@ -1,0 +1,35 @@
+cursor-agent status:
+✓ Logged in as ***@***
+
+membership probe:
+adminSettings.cachedAuthId|auth0|user_01M1XFVSG080B9FGSA7AQ3095D
+cursorAuth/cachedEmail|<redacted>
+cursorAuth/cachedSignUpType|Auth_0
+cursorAuth/hasInvalidatedMembershipForUnifiedSemanticsV2|true
+cursorAuth/stripeMembershipType|pro_plus
+cursorAuth/stripeSubscriptionStatus|active
+glass.lastSignedInAuthId|auth0|user_01M1XFVSG080B9FGSA7AQ3095D
+
+plugin team keys:
+cursor.plugins.installedIds.no-team|file:///Users/josh-desktop/src/personal/pi-customizations
+cursor.plugins.installedIds.no-team|no-workspace
+
+adminSettings allowedModels/blockedModels (from 09-observation):
+allowedModels []
+blockedModels []
+byokDisabled False
+
+worker help enterprise gate (excerpt):
+5:(no Enterprise plan needed); with --pool it joins a team Self-Hosted Pool
+6:(Enterprise plan + service account API key).
+37:                                    time. Requires a Cursor Enterprise plan and
+202:    with Cloud Agents; no Enterprise plan or service account is needed. Sign in
+209:    time. Requires a Cursor Enterprise plan and a team service account API key;
+
+settings.json:
+{
+    "window.autoDetectColorScheme": true
+}
+
+verdict:
+No Enterprise team/org Model Providers or Organization Groups policy is witnessable on this signed-in Pro+ host.

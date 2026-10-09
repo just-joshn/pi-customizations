@@ -1,0 +1,6 @@
+timestamp	decision	evidence	note
+2026-10-09T00:07:30Z	bun_pin_unresolved	parity/research/dep-closure-wave-006/bun/official-capture.json	no pin files; host mise latest not a pin
+2026-10-09T00:07:30Z	typescript_deep_still_open	parity/research/dep-closure-wave-006/npm/typescript-deep-semantics-disposition.json	136 internals cataloged; no compiler oracle
+2026-10-09T00:07:30Z	host_edges_environment_bound	parity/research/dep-closure-wave-006/host-edge-disposition.json	doc hashes unchanged; runtime not exercised
+2026-10-09T00:07:30Z	create_skill_subordinates_inventoried	parity/research/dep-closure-wave-006/create-skill/subordinate-audit.json	journey audit remains open
+2026-10-09T00:07:30Z	completeDependencyClosure_false	parity/research/dep-closure-wave-006/merge-proposal.json	no fabricated closure

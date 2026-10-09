@@ -1,0 +1,26 @@
+SCREEN: /Applications listing (Cursor.app re-probe)
+capturedAt: 2026-10-09T03:42:01.047Z
+cursorish_entries: Cursor.app
+Cursor.app_present: true
+Custom Mode chrome on this screen: absent (listing only)
+--- Application names ---
+Android Studio.app
+Bruno.app
+CuaDriver.app
+Cursor.app
+Desktop Plus.app
+Ghostty.app
+GIMP.app
+Google Chrome.app
+Lapce.app
+Maccy.app
+Microsoft Outlook.app
+Microsoft Teams.app
+OrbStack.app
+ProtonVPN.app
+Rectangle.app
+Safari.app
+Slack.app
+Utilities
+Visual Studio Code.app
+zoom.us.app

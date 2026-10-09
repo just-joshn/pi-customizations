@@ -1,0 +1,530 @@
+[
+  {
+    "index": 76,
+    "id": "https://cursor.com/docs/integrations/slack.md",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "live_slack_needs_operator_grant"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "slack_benny_triage_thread_safety_evidenced"
+    }
+  },
+  {
+    "index": 82,
+    "id": "https://cursor.com/docs/integrations/microsoft-teams.md",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "live_slack_needs_operator_grant"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "slack_benny_triage_thread_safety_evidenced"
+    }
+  },
+  {
+    "index": 135,
+    "id": "https://cursor.com/docs/integrations/slack.md#team-default-pool",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "live_slack_needs_operator_grant"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "slack_benny_triage_thread_safety_evidenced"
+    }
+  },
+  {
+    "index": 136,
+    "id": "https://cursor.com/docs/integrations/slack.md#channel-default-pool",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "live_slack_needs_operator_grant"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "slack_benny_triage_thread_safety_evidenced"
+    }
+  },
+  {
+    "index": 140,
+    "id": "https://cursor.com/docs/integrations/slack.md#channel-settings",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "live_slack_needs_operator_grant"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "slack_benny_triage_thread_safety_evidenced"
+    }
+  },
+  {
+    "index": 141,
+    "id": "https://cursor.com/docs/integrations/slack.md#how-routing-works",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "live_slack_needs_operator_grant"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "slack_benny_triage_thread_safety_evidenced"
+    }
+  },
+  {
+    "index": 153,
+    "id": "https://cursor.com/help/grok-bot/routines.md#how-do-slack-triggers-work",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "live_slack_needs_operator_grant"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "slack_benny_triage_thread_safety_evidenced"
+    }
+  },
+  {
+    "index": 237,
+    "id": "cursor.host.services.docs_cloud-agent_automations.slack-triggers",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "live_slack_needs_operator_grant"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "slack_benny_triage_thread_safety_evidenced"
+    }
+  },
+  {
+    "index": 246,
+    "id": "cursor.host.services.docs_cloud-agent_automations.send-to-slack",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "live_slack_needs_operator_grant"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "slack_benny_triage_thread_safety_evidenced"
+    }
+  },
+  {
+    "index": 247,
+    "id": "cursor.host.services.docs_cloud-agent_automations.read-slack-channels",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "live_slack_needs_operator_grant"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "slack_benny_triage_thread_safety_evidenced"
+    }
+  },
+  {
+    "index": 337,
+    "id": "cursor.services.docs_integrations_slack",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "live_slack_needs_operator_grant"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "slack_benny_triage_thread_safety_evidenced"
+    }
+  },
+  {
+    "index": 338,
+    "id": "cursor.host.services.docs_integrations_slack.slack",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "live_slack_needs_operator_grant"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "slack_benny_triage_thread_safety_evidenced"
+    }
+  },
+  {
+    "index": 339,
+    "id": "cursor.host.services.docs_integrations_slack.get-started",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "live_slack_needs_operator_grant"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "slack_benny_triage_thread_safety_evidenced"
+    }
+  },
+  {
+    "index": 340,
+    "id": "cursor.host.services.docs_integrations_slack.installation",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "live_slack_needs_operator_grant"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "slack_benny_triage_thread_safety_evidenced"
+    }
+  },
+  {
+    "index": 341,
+    "id": "cursor.host.services.docs_integrations_slack.how-to-use",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "live_slack_needs_operator_grant"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "slack_benny_triage_thread_safety_evidenced"
+    }
+  },
+  {
+    "index": 342,
+    "id": "cursor.host.services.docs_integrations_slack.commands",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "live_slack_needs_operator_grant"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "slack_benny_triage_thread_safety_evidenced"
+    }
+  },
+  {
+    "index": 343,
+    "id": "cursor.host.services.docs_integrations_slack.options",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "live_slack_needs_operator_grant"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "slack_benny_triage_thread_safety_evidenced"
+    }
+  },
+  {
+    "index": 344,
+    "id": "cursor.host.services.docs_integrations_slack.syntax-formats",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "live_slack_needs_operator_grant"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "slack_benny_triage_thread_safety_evidenced"
+    }
+  },
+  {
+    "index": 345,
+    "id": "cursor.host.services.docs_integrations_slack.option-precedence",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "live_slack_needs_operator_grant"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "slack_benny_triage_thread_safety_evidenced"
+    }
+  },
+  {
+    "index": 346,
+    "id": "cursor.host.services.docs_integrations_slack.using-thread-context",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "live_slack_needs_operator_grant"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "slack_benny_triage_thread_safety_evidenced"
+    }
+  },
+  {
+    "index": 347,
+    "id": "cursor.host.services.docs_integrations_slack.when-to-use-force-commands",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "live_slack_needs_operator_grant"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "slack_benny_triage_thread_safety_evidenced"
+    }
+  },
+  {
+    "index": 348,
+    "id": "cursor.host.services.docs_integrations_slack.status-updates-handoff",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "live_slack_needs_operator_grant"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "slack_benny_triage_thread_safety_evidenced"
+    }
+  },
+  {
+    "index": 349,
+    "id": "cursor.host.services.docs_integrations_slack.managing-agents",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "live_slack_needs_operator_grant"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "slack_benny_triage_thread_safety_evidenced"
+    }
+  },
+  {
+    "index": 350,
+    "id": "cursor.host.services.docs_integrations_slack.configuration",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "live_slack_needs_operator_grant"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "slack_benny_triage_thread_safety_evidenced"
+    }
+  },
+  {
+    "index": 351,
+    "id": "cursor.host.services.docs_integrations_slack.settings",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "live_slack_needs_operator_grant"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "slack_benny_triage_thread_safety_evidenced"
+    }
+  },
+  {
+    "index": 352,
+    "id": "cursor.host.services.docs_integrations_slack.default-model",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "live_slack_needs_operator_grant"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "slack_benny_triage_thread_safety_evidenced"
+    }
+  },
+  {
+    "index": 353,
+    "id": "cursor.host.services.docs_integrations_slack.repository-selection",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "live_slack_needs_operator_grant"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "slack_benny_triage_thread_safety_evidenced"
+    }
+  },
+  {
+    "index": 354,
+    "id": "cursor.host.services.docs_integrations_slack.base-branch",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "live_slack_needs_operator_grant"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "slack_benny_triage_thread_safety_evidenced"
+    }
+  },
+  {
+    "index": 355,
+    "id": "cursor.host.services.docs_integrations_slack.channel-settings",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "live_slack_needs_operator_grant"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "slack_benny_triage_thread_safety_evidenced"
+    }
+  },
+  {
+    "index": 356,
+    "id": "cursor.host.services.docs_integrations_slack.routing-rules",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "live_slack_needs_operator_grant"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "slack_benny_triage_thread_safety_evidenced"
+    }
+  },
+  {
+    "index": 357,
+    "id": "cursor.host.services.docs_integrations_slack.setting-up-routing-rules",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "live_slack_needs_operator_grant"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "slack_benny_triage_thread_safety_evidenced"
+    }
+  },
+  {
+    "index": 358,
+    "id": "cursor.host.services.docs_integrations_slack.example-rules",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "live_slack_needs_operator_grant"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "slack_benny_triage_thread_safety_evidenced"
+    }
+  },
+  {
+    "index": 359,
+    "id": "cursor.host.services.docs_integrations_slack.how-routing-works",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "live_slack_needs_operator_grant"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "slack_benny_triage_thread_safety_evidenced"
+    }
+  },
+  {
+    "index": 360,
+    "id": "cursor.host.services.docs_integrations_slack.team-default-pool",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "live_slack_needs_operator_grant"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "slack_benny_triage_thread_safety_evidenced"
+    }
+  },
+  {
+    "index": 361,
+    "id": "cursor.host.services.docs_integrations_slack.channel-default-pool",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "live_slack_needs_operator_grant"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "slack_benny_triage_thread_safety_evidenced"
+    }
+  },
+  {
+    "index": 362,
+    "id": "cursor.host.services.docs_integrations_slack.how-cursor-picks-where-a-mention-runs",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "live_slack_needs_operator_grant"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "slack_benny_triage_thread_safety_evidenced"
+    }
+  },
+  {
+    "index": 363,
+    "id": "cursor.host.services.docs_integrations_slack.repositories-and-default-pools",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "live_slack_needs_operator_grant"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "slack_benny_triage_thread_safety_evidenced"
+    }
+  },
+  {
+    "index": 364,
+    "id": "cursor.host.services.docs_integrations_slack.privacy",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "live_slack_needs_operator_grant"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "slack_benny_triage_thread_safety_evidenced"
+    }
+  },
+  {
+    "index": 365,
+    "id": "cursor.host.services.docs_integrations_slack.display-agent-summary",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "live_slack_needs_operator_grant"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "slack_benny_triage_thread_safety_evidenced"
+    }
+  },
+  {
+    "index": 366,
+    "id": "cursor.host.services.docs_integrations_slack.display-agent-summary-in-external-channels",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "live_slack_needs_operator_grant"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "slack_benny_triage_thread_safety_evidenced"
+    }
+  },
+  {
+    "index": 367,
+    "id": "cursor.host.services.docs_integrations_slack.permissions",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "live_slack_needs_operator_grant"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "slack_benny_triage_thread_safety_evidenced"
+    }
+  },
+  {
+    "index": 368,
+    "id": "cursor.host.services.docs_integrations_slack.disclaimer",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "live_slack_needs_operator_grant"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "slack_benny_triage_thread_safety_evidenced"
+    }
+  },
+  {
+    "index": 369,
+    "id": "cursor.host.services.docs_integrations_slack.privacy-policy",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "live_slack_needs_operator_grant"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "slack_benny_triage_thread_safety_evidenced"
+    }
+  },
+  {
+    "index": 406,
+    "id": "cursor.host.services.help_grok-bot_routines.how-do-slack-triggers-work",
+    "from": {
+      "class": "b_environment_bound",
+      "reason": "live_slack_needs_operator_grant"
+    },
+    "to": {
+      "class": "c_already_evidenced",
+      "reason": "slack_benny_triage_thread_safety_evidenced"
+    }
+  }
+]

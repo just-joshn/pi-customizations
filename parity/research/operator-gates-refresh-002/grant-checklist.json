@@ -1,0 +1,203 @@
+{
+  "schemaVersion": 1,
+  "unit": "u-operator-gates-refresh-002",
+  "priorUnit": "u-operator-remaining-gates-001",
+  "capturedAt": "2026-10-09T08:49:41Z",
+  "completionEvaluatedAt": "2026-10-09T08:43:42.654Z",
+  "verdict": "BLOCKED",
+  "blockerCount": 13,
+  "verifiedPassPaired": 94,
+  "requirementCount": 98,
+  "openMismatchIds": [
+    "BENNY-TRIAGE-VALID-CONFIG-ENV",
+    "MAKE-BOT-UI-KEY-SERVER-HOST",
+    "SETUP-BENNY-THREAD-SAFETY-ENV"
+  ],
+  "deltasFrom001": [
+    "blockers 14→13 (SETUP-BENNY-CREATION-BOUNDARY-ENV closed-env-resolved; BEHAVIOR_MISMATCH_OPEN for that id dropped)",
+    "open mismatches 4→3",
+    "live-integrations class b 119→115 (a=275 / b=115 / c=26)",
+    "G9 Cursor Automations create/open paid; Save/Activate and Pi editor unpaid",
+    "G10 narrowed to unlock→Discard Untitled→Generate (webhook create already c345b7ed)",
+    "creation-boundary freeze-prep Option A keep-unverified (proposal only; no freeze)"
+  ],
+  "measuredHost": {
+    "IOConsoleLocked": "Yes",
+    "CGSSessionScreenIsLocked": "Yes",
+    "makeBotWebhookCreateWitnessed": "c345b7ed-5c24-424c-86c3-55211b7bf0c8",
+    "makeBotAuthReentryBlocked": "2bcf48b9-64ec-4ca4-8efb-22bda300ac5c",
+    "makeBotPiPartial": "e75f8e08-0d8c-4d55-ad3f-6946c405bbaf",
+    "creationBoundaryCursorPaid": [
+      "e11d7225-4c8a-4c09-8f30-273e941a52d2",
+      "475ab346-80a0-4d73-8ae1-d2b8042ee66f",
+      "2c525e93-3392-4253-81ef-dd965fde2e7d"
+    ],
+    "creationBoundaryPiUnpaid": "f4c7eec5-6ac5-4431-b4b1-23c7e267dc96",
+    "freezePrepCreationBoundary": "Option A keep-unverified",
+    "liveIntegrationsClasses": { "a": 275, "b": 115, "c": 26 }
+  },
+  "remainingOperatorGrantCount": 11,
+  "grants": [
+    {
+      "id": "G1",
+      "name": "CU-CLOUD-CLAIM",
+      "operatorAction": "Mint User API Key or authorize one dashboard cloud-agent claim with computer-use screenshot/click; publish attempt ID.",
+      "clearsBlockers": [
+        "DEPENDENCY_EDGE_UNRESOLVED:edges[0]",
+        "SOURCE_LOCK_INCOMPLETE",
+        "SOURCE_CLOSURE_INCOMPLETE"
+      ],
+      "attemptIds": {
+        "localHelperLive": "CU_LIVE_001_177e3351",
+        "cloudAttemptIds": null
+      }
+    },
+    {
+      "id": "G2",
+      "name": "ENTERPRISE-POLICY-OBSERVE",
+      "operatorAction": "Provide Enterprise team/org; authorize read-only Model Providers / Groups policy observation. No worker allowlist widen.",
+      "clearsBlockers": [
+        "DEPENDENCY_EDGE_UNRESOLVED:edges[1]",
+        "SOURCE_LOCK_INCOMPLETE",
+        "SOURCE_CLOSURE_INCOMPLETE"
+      ]
+    },
+    {
+      "id": "G3",
+      "name": "ACCEPTANCE-FREEZE-CUSTODY",
+      "operatorAction": "Name independent owner ≠ implementation parent; place definition+configuration bytes in external immutable custody; authorize freeze. Creation-boundary cell stays Option A keep-unverified unless owner separately grants Option B.",
+      "clearsBlockers": ["ACCEPTANCE_DEFINITIONS_UNFROZEN"],
+      "note": "Does not by itself close PSTACK-SETUP-BENNY-CREATION-BOUNDARY-001 under Option A."
+    },
+    {
+      "id": "G4",
+      "name": "BENNY-CONFIG-YAML",
+      "operatorAction": "Create ~/.config/benny/configuration.yaml (secret-free; env names only).",
+      "clearsBlockers": [
+        "REQUIREMENT_UNVERIFIED:PSTACK-CMD-BENNY-TRIAGE-THREAD-ONLY-001",
+        "REQUIREMENT_UNVERIFIED:PSTACK-SETUP-BENNY-THREAD-SAFETY-001",
+        "BEHAVIOR_MISMATCH_OPEN:BENNY-TRIAGE-VALID-CONFIG-ENV",
+        "BEHAVIOR_MISMATCH_OPEN:SETUP-BENNY-THREAD-SAFETY-ENV",
+        "DEPENDENCY_REFERENCE_UNRESOLVED"
+      ]
+    },
+    {
+      "id": "G5",
+      "name": "BENNY-BOT-TOKEN-ENV",
+      "operatorAction": "Export BENNY_SLACK_BOT_TOKEN or SLACK_BOT_TOKEN into agent-visible env (presence only in evidence).",
+      "clearsBlockers": [
+        "REQUIREMENT_UNVERIFIED:PSTACK-CMD-BENNY-TRIAGE-THREAD-ONLY-001",
+        "REQUIREMENT_UNVERIFIED:PSTACK-SETUP-BENNY-THREAD-SAFETY-001",
+        "BEHAVIOR_MISMATCH_OPEN:BENNY-TRIAGE-VALID-CONFIG-ENV",
+        "BEHAVIOR_MISMATCH_OPEN:SETUP-BENNY-THREAD-SAFETY-ENV",
+        "DEPENDENCY_REFERENCE_UNRESOLVED"
+      ]
+    },
+    {
+      "id": "G6",
+      "name": "SLACK-MCP-IDE-AUTH",
+      "operatorAction": "Complete plugin-slack-slack interactive auth in Cursor desktop IDE until tools are not needsAuth.",
+      "clearsBlockers": [
+        "REQUIREMENT_UNVERIFIED:PSTACK-CMD-BENNY-TRIAGE-THREAD-ONLY-001",
+        "REQUIREMENT_UNVERIFIED:PSTACK-SETUP-BENNY-THREAD-SAFETY-001",
+        "BEHAVIOR_MISMATCH_OPEN:BENNY-TRIAGE-VALID-CONFIG-ENV",
+        "BEHAVIOR_MISMATCH_OPEN:SETUP-BENNY-THREAD-SAFETY-ENV",
+        "DEPENDENCY_REFERENCE_UNRESOLVED"
+      ]
+    },
+    {
+      "id": "G7",
+      "name": "TEST-CHANNEL-LIVE-POST-GRANTS",
+      "operatorAction": "Name designated test channel; grant one triage reply plus seven thread-safety posts. No customer traffic.",
+      "clearsBlockers": [
+        "REQUIREMENT_UNVERIFIED:PSTACK-CMD-BENNY-TRIAGE-THREAD-ONLY-001",
+        "REQUIREMENT_UNVERIFIED:PSTACK-SETUP-BENNY-THREAD-SAFETY-001",
+        "BEHAVIOR_MISMATCH_OPEN:BENNY-TRIAGE-VALID-CONFIG-ENV",
+        "BEHAVIOR_MISMATCH_OPEN:SETUP-BENNY-THREAD-SAFETY-ENV",
+        "DEPENDENCY_REFERENCE_UNRESOLVED"
+      ]
+    },
+    {
+      "id": "G8",
+      "name": "HARNESS-RESOLVABLE-SLACK-ACTIONS",
+      "operatorAction": "Wire Slack action names in Benny YAML to harness-callable tools.",
+      "clearsBlockers": [
+        "REQUIREMENT_UNVERIFIED:PSTACK-CMD-BENNY-TRIAGE-THREAD-ONLY-001",
+        "REQUIREMENT_UNVERIFIED:PSTACK-SETUP-BENNY-THREAD-SAFETY-001",
+        "BEHAVIOR_MISMATCH_OPEN:BENNY-TRIAGE-VALID-CONFIG-ENV",
+        "BEHAVIOR_MISMATCH_OPEN:SETUP-BENNY-THREAD-SAFETY-ENV",
+        "DEPENDENCY_REFERENCE_UNRESOLVED"
+      ]
+    },
+    {
+      "id": "G9",
+      "name": "AUTOMATIONS-EDITOR-SAVE-AND-PI",
+      "operatorAction": "Cursor create/open already paid. Remaining: witness Automations editor Save (not Activate until thread-safety ready) for THREAD-SAFETY; Pi Automations editor still required for CREATION-BOUNDARY pair under Option A.",
+      "clearsBlockers": [
+        "REQUIREMENT_UNVERIFIED:PSTACK-SETUP-BENNY-THREAD-SAFETY-001",
+        "REQUIREMENT_UNVERIFIED:PSTACK-SETUP-BENNY-CREATION-BOUNDARY-001",
+        "BEHAVIOR_MISMATCH_OPEN:SETUP-BENNY-THREAD-SAFETY-ENV",
+        "DEPENDENCY_REFERENCE_UNRESOLVED"
+      ],
+      "cursorPaidAttempts": [
+        "f6e29fb7-5878-4c8c-841e-1538b39d1cf7",
+        "b60a705b-e2ea-40c4-adeb-7014fde433b4",
+        "e11d7225-4c8a-4c09-8f30-273e941a52d2",
+        "475ab346-80a0-4d73-8ae1-d2b8042ee66f",
+        "2c525e93-3392-4253-81ef-dd965fde2e7d"
+      ],
+      "piUnpaidAttempt": "f4c7eec5-6ac5-4431-b4b1-23c7e267dc96",
+      "envMismatchStatus": "closed-env-resolved"
+    },
+    {
+      "id": "G10",
+      "name": "MAKE-BOT-UNLOCK-DISCARD-GENERATE",
+      "operatorAction": "1) Unlock Mac until IOConsoleLocked=No. 2) Restart Cursor agent terminal. 3) Discard stuck Untitled (do not Save). 4) Open webhook draft → Generate auth header (or leave open and tell coordinator). Coordinator then recaptures Generate + 0600 store + probe 200 against Pi e75f8e08.",
+      "clearsBlockers": [
+        "REQUIREMENT_UNVERIFIED:PSTACK-CMD-MAKE-BOT-UI-KEY-SERVER-001",
+        "BEHAVIOR_MISMATCH_OPEN:MAKE-BOT-UI-KEY-SERVER-HOST",
+        "DEPENDENCY_REFERENCE_UNRESOLVED"
+      ],
+      "attemptIds": {
+        "webhookCreate": "c345b7ed-5c24-424c-86c3-55211b7bf0c8",
+        "authReentryBlocked": "2bcf48b9-64ec-4ca4-8efb-22bda300ac5c",
+        "piKeyServerOk": "e75f8e08-0d8c-4d55-ad3f-6946c405bbaf",
+        "priorPtyBlocked": "bb50ed1b-29ac-4961-bb0a-5c2ffd9834b2"
+      }
+    },
+    {
+      "id": "G11",
+      "name": "THIRD-PARTY-LIVE-INSTALLS",
+      "operatorAction": "Live-install Linear / Notion / GitHub / GitLab / Teams as needed for live-integrations remainder (39 class-b rows).",
+      "clearsBlockers": [
+        "DEPENDENCY_REFERENCE_UNRESOLVED",
+        "SOURCE_LOCK_INCOMPLETE",
+        "SOURCE_CLOSURE_INCOMPLETE"
+      ]
+    }
+  ],
+  "top3ByUnblockImpact": [
+    {
+      "rank": 1,
+      "grant": "G10",
+      "action": "Unlock console → Discard Untitled → Generate",
+      "why": "Only grant with paid webhook create and a single-session recapture path; clears MAKE-BOT requirement+mismatch and webhook Generate class-b rows while console is the hard stop."
+    },
+    {
+      "rank": 2,
+      "grant": "G4-G8",
+      "action": "Benny config + bot token env + Slack MCP auth + test channel posts + harness-resolvable actions",
+      "why": "Shared foundation for BENNY-TRIAGE and THREAD-SAFETY (4 completion blockers) plus ~44 live-int Slack class-b rows."
+    },
+    {
+      "rank": 3,
+      "grant": "G9-remaining",
+      "action": "Witness Automations editor Save (then seven-check posts under G7); keep creation-boundary Option A",
+      "why": "After G4-G8, Save witness is the missing host step for THREAD-SAFETY; Pi editor remains unpaid under Option A and does not clear via freeze from this unit."
+    }
+  ],
+  "fabricatedGrants": false,
+  "secretsIncluded": false,
+  "freezeClaimed": false,
+  "ledgersEdited": false
+}

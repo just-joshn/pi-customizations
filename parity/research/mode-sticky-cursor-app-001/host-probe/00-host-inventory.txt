@@ -1,0 +1,30 @@
+=== date ===
+2026-10-09T03:42:01.047Z
+=== probeId ===
+b01ad4e8-f88a-4e53-ac22-d3646d8e11b9
+=== Cursor.app ===
+path=/Applications/Cursor.app
+present=true
+contents=true
+binary=true
+version=3.24.9
+bundleId=com.todesktop.230313mzl4w4u92
+=== mdfind ===
+/Applications/Cursor.app
+=== DISPLAY ===
+<unset>
+=== screencapture ===
+could not create image from display
+Command failed: screencapture -x /Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/mode-sticky-cursor-app-001/host-probe/02-desktop.png
+could not create image from display
+=== CDP ports ===
+closed 9222
+closed 9223
+closed 9229
+closed 9230
+closed 9333
+=== processes ===
+cursorMainProc=false
+agentsWindowProc=false
+=== computer-use ===
+GetDynamicTools pattern computer|screenshot|browser|cdp|playwright returned matches: [] (measured this unit)

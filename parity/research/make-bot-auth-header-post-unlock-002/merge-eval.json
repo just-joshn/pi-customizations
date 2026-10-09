@@ -1,0 +1,12 @@
+{
+  "at": "2026-10-09T15:57:30.142Z",
+  "dispositionPath": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/research/make-bot-auth-header-post-unlock-002/disposition.json",
+  "unlockedFlagPresent": true,
+  "dryRun": false,
+  "check": {
+    "ok": true,
+    "reasons": [],
+    "attemptId": "55f42e27-ee7e-4d6b-8f12-5b35824addff",
+    "outcome": "key_server_ok"
+  }
+}

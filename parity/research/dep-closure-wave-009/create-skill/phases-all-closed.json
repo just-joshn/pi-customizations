@@ -1,0 +1,28 @@
+{
+  "unit": "u-dep-create-skill-phases-rest-001",
+  "status": "closed",
+  "closedAt": "2026-10-09T02:40:00Z",
+  "phases": {
+    "discovery": {
+      "cursor": "e613176e-20b1-419a-bbf0-cd8c26464099",
+      "pi": "515a8594-4d64-4f15-b958-09804abf72d8",
+      "pair": "parity/evidence/create-skill/pair-create-skill-discovery-1.json"
+    },
+    "design": {
+      "cursor": "e302cfd0-4a92-42a8-a549-0d2718e49269",
+      "pi": "b5f9fc5f-38b9-422c-a3b9-531679961496",
+      "pair": "parity/evidence/create-skill/pair-create-skill-design-1.json"
+    },
+    "impl": {
+      "cursor": "67eb4a01-244d-4d1a-a27d-5b09b30d426e",
+      "pi": "f4c14017-4188-461c-9fa0-076e7995059d",
+      "pair": "parity/evidence/create-skill/pair-create-skill-impl-1.json"
+    },
+    "verification": {
+      "cursor": "2583528f-dc6d-4a1a-a518-e835dba21866",
+      "pi": "88066a9a-edc8-4dc9-bb4a-3b567c4e87a4",
+      "pair": "parity/evidence/create-skill/pair-create-skill-verification-1.json"
+    }
+  },
+  "report": "parity/briefs/reports/u-dep-create-skill-phases-rest-001-report.md"
+}

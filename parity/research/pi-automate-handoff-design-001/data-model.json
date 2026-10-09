@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "brief": "u-pi-automate-handoff-design-001",
+  "requirementId": "PSTACK-SETUP-BENNY-CREATION-BOUNDARY-001",
+  "typeName": "AutomationDraft",
+  "persistenceRoot": "join(getAgentDir(), 'pstack-automations', ownerHash)",
+  "ownerHash": "sha256(`${ctx.cwd}\\0${sessionId}`).digest('hex')",
+  "perDraftDirectory": "join(root, automationId)",
+  "directoryMode": "0700",
+  "files": {
+    "definition.json": "immutable revisioned draft body",
+    "status.json": "optional runtime status; absent means disabled",
+    "thread-safety.json": "optional receipt written only after seven checks pass"
+  },
+  "fields": {
+    "automationId": "uuid v4 directory basename",
+    "name": "string 1..80 (e.g. benny-triage)",
+    "description": "string 0..500",
+    "instructions": "string 1..16000 natural-language live prompt; references committed operational paths, does not embed pack bodies",
+    "operationalPath": "optional repo-relative path string when automate confirms the file is committed",
+    "trigger": {
+      "type": "discriminated union",
+      "variants": [
+        {
+          "type": "slack.top_level",
+          "channelId": "string",
+          "notes": "Benny first-time create path"
+        },
+        {
+          "type": "webhook",
+          "fields": "string[]",
+          "port": "number 0..65535",
+          "notes": "Reuse shape from RoutineSchema for make-bot continuity; separate store from pstack-routines until a later migrate unit"
+        }
+      ]
+    },
+    "tools": "string[] capability labels (slack.thread.read, slack.thread.reply, tracker, repo, pr.create, controlAdapter)",
+    "kind": "literal disabled on prepare and on editor save",
+    "revision": "sha256 of canonical JSON without automationId/kind"
+  },
+  "disabledUntilThreadSafety": {
+    "rule": "AutomationEnable refuses unless thread-safety.json records all seven checks for this revision",
+    "enableTool": "model-only + ctx.ui.confirm + ctx.hasUI (mirror RoutineEnable)",
+    "creationBoundary": "first-time finish path stops at editor save with kind=disabled"
+  },
+  "nonGoals": [
+    "no Cursor Automations backend calls",
+    "no draft-field browser URL finish",
+    "no protocol deep-link finish",
+    "no Slack posts during creation",
+    "no enable before thread-safety",
+    "automate-me remains unrelated personal-mode skill"
+  ]
+}

@@ -1,0 +1,33 @@
+HTTP/2 308 
+date: Thu, 08 Oct 2026 19:11:38 GMT
+content-type: text/plain
+cache-control: public, max-age=0, must-revalidate
+location: /docs/runtime/nodejs-compat
+refresh: 0;url=/docs/runtime/nodejs-compat
+server: cloudflare
+strict-transport-security: max-age=63072000
+x-vercel-id: pdx1::r2p9m-1791486698875-e735cfcb4441
+cf-cache-status: DYNAMIC
+report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=5rx6bFe9qA0MRLlRIpX88Y%2B0ISE%2BREILit2MidsiNEzIVQM325v4xLZuy3%2Flx4KAfheaZ6Qpb7HNVbXxcGCq8Gx6WuvQM8xidiFTFLC3CCm7mqDysQ2B18iUBF%2BvV89McLJh8Ic%3D"}]}
+nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+cf-ray: a47773dbdd04c62a-PDX
+
+HTTP/2 200 
+date: Thu, 08 Oct 2026 19:11:38 GMT
+content-type: text/html; charset=utf-8
+access-control-allow-origin: *
+age: 130599
+cache-control: public, max-age=0, must-revalidate
+content-disposition: inline; filename="nodejs-compat"
+nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+etag: W/"0b08ff9a07943569cb72a285d1da71cd"
+last-modified: Wed, 07 Oct 2026 06:54:59 GMT
+server: cloudflare
+strict-transport-security: max-age=63072000
+x-vercel-cache: HIT
+x-vercel-id: pdx1::7rhtf-1791486698917-022f16bb1d84
+cf-cache-status: DYNAMIC
+vary: accept-encoding
+report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=xU0Rukc9vXe8w70r6rfXUshphUOBY3nIdpYDAa6UXExNTGFmwz%2FM%2Fxx9IOf9ve3haIzBVRvwZ0LoqV%2BNFIWtjqoQHYZZte%2F6fMz9%2Bts9kjuXEZM8hst6CUvyx3bS6AtPVWbWIlc%3D"}]}
+cf-ray: a47773dc1dbdc62a-PDX
+

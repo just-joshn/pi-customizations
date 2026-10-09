@@ -1,0 +1,40 @@
+{
+  "capturedAt": "2026-10-09T03:39:39Z",
+  "unit": "u-dep-host-edges-terminal-001",
+  "completionGate": {
+    "script": "parity/scripts/completion.mjs",
+    "rule": "edge.status !== 'resolved' emits DEPENDENCY_EDGE_UNRESOLVED",
+    "note": "status unverified and unresolved both fail the gate. Only resolved clears it."
+  },
+  "checklist": [
+    {
+      "id": "edge-computer-use",
+      "edge": "cursor-cli-host -> cursor-self-hosted-computer-use",
+      "currentStatus": "unresolved",
+      "honestResolved": false,
+      "blocksGate": true,
+      "closeWhen": "Live Computer Use helper exercise with attempt IDs proving activation and required platform grants."
+    },
+    {
+      "id": "edge-enterprise",
+      "edge": "cursor-cli-host -> cursor-enterprise-integration-policy",
+      "currentStatus": "unresolved",
+      "honestResolved": false,
+      "blocksGate": true,
+      "closeWhen": "Live Enterprise model/MCP/CLI policy observation with attempt IDs under an authorized account."
+    },
+    {
+      "id": "edge-persistent-mode",
+      "edge": "cursor-pstack -> cursor-cli-host",
+      "currentStatus": "unverified",
+      "honestResolved": false,
+      "blocksGate": true,
+      "closeWhen": "Success sticky Custom Mode attempt ID after glass_custom_modes on (or equivalent Agents Window path)."
+    }
+  ],
+  "doNot": [
+    "Do not set any of these edges to resolved solely to clear DEPENDENCY_EDGE_UNRESOLVED.",
+    "Do not treat doc custody or exhaustive-negative probes as resolution.",
+    "Do not apply Bun absent-in-source to present contracts."
+  ]
+}

@@ -1,0 +1,165 @@
+{
+  "schemaVersion": 1,
+  "unit": "u-dep-closure-wave-004",
+  "status": "proposal",
+  "createdAt": "2026-10-08T21:46:04Z",
+  "targets": {
+    "dependenciesJson": "parity/dependencies.json",
+    "sourceLockJson": "parity/source-lock.json"
+  },
+  "closureAudited": true,
+  "closureAuditedNote": "Leave closureAudited true. Prior independent audit remains the audit evidence. This wave does not re-audit.",
+  "completeDependencyClosure": false,
+  "completeDependencyClosureNote": "Do not claim completeDependencyClosure. Bun version pin, host computer-use/enterprise edges, journey edges, typescript per-file body semantics, and broader recursive/live integrations remain open.",
+  "dependencies": {
+    "nodeMutations": [
+      {
+        "id": "source-bun-runtime",
+        "set": {
+          "readingEvidence": [
+            "parity/research/dep-closure-wave-004/read-inventory.json",
+            "parity/research/dep-closure-wave-004/bun/official-capture.json",
+            "parity/research/dep-closure-wave-004/nodes/bun-pin.md",
+            "parity/research/dep-closure-wave-004/nodes/runtime-prerequisites.md"
+          ]
+        },
+        "evidence": [
+          "parity/research/dep-closure-wave-004/bun/official-capture.json",
+          "parity/research/dep-closure-wave-004/platform-matrix.json",
+          "parity/research/dep-closure-wave-004/nodes/runtime-prerequisites.md"
+        ],
+        "disposition": "Runtime/platform prerequisites documented from official Bun docs and tools contracts. Official Bun binary version pin remains unresolved (no engines/packageManager/.bun-version)."
+      },
+      {
+        "id": "source-tools-manifest",
+        "set": {
+          "readingEvidence": [
+            "parity/research/dep-closure-wave-004/read-inventory.json",
+            "parity/research/dep-closure-wave-004/platform-matrix.json",
+            "parity/research/dep-closure-wave-004/registry-custody.json"
+          ]
+        },
+        "evidence": [
+          "parity/research/dep-closure-wave-004/platform-matrix.json",
+          "parity/research/dep-closure-wave-004/registry-custody.json"
+        ],
+        "disposition": "All bun.lock platform-conditional branches audited, including literal cpu/os none. Every lock package has prior registry/tarball custody evidence with matching integrity."
+      },
+      {
+        "id": "npm:typescript@7.0.2",
+        "set": {
+          "readingEvidence": [
+            "parity/research/dep-closure-wave-004/npm/typescript-contract-surface.json",
+            "parity/research/dep-closure-wave-002/npm/typescript@7.0.2/file-inventory.json"
+          ]
+        },
+        "evidence": [
+          "parity/research/dep-closure-wave-004/npm/typescript-contract-surface.json",
+          "parity/research/dep-closure-wave-004/nodes/typescript-contract-surface.md"
+        ],
+        "disposition": "Contract-surface (package.json fields, license file, optional deps, prior full-tree hashes) recorded. Semantic per-file body audit of 416 files remains open."
+      }
+    ],
+    "edgeMutations": [],
+    "honestUnresolvedEdges": [
+      {
+        "from": "cursor-cli-host",
+        "to": "cursor-self-hosted-computer-use",
+        "keepStatus": "unresolved",
+        "evidence": [
+          "parity/research/continuation/computer-use.md",
+          "parity/research/dep-closure-wave-004/nodes/host-edge-disposition.md"
+        ],
+        "blocker": "Public docs only. macOS helper identity/privacy grants, Linux display/desktop services, and sharing transport are environment-bound and were not exercised.",
+        "docSha256": "a9ceb020282d7c61ad99ccd13de0c8831dd57499ac32af31b5f4afc9e9e186d0"
+      },
+      {
+        "from": "cursor-cli-host",
+        "to": "cursor-enterprise-integration-policy",
+        "keepStatus": "unresolved",
+        "evidence": [
+          "parity/research/continuation/model-management.md",
+          "parity/research/dep-closure-wave-004/nodes/host-edge-disposition.md"
+        ],
+        "blocker": "Public docs only. Live team/org policy enforcement and CLI applicability were not observed. Standing orders forbid broad allowlist or authorization changes.",
+        "docSha256": "2606b4bd74d43bd579c59945506ab691cd49de8da3386556e265c854f6c9d205"
+      },
+      {
+        "from": "cursor-pstack",
+        "to": "cursor-team-kit",
+        "keepStatus": "unverified",
+        "evidence": [
+          "parity/reviews/source-discovery.md"
+        ],
+        "blocker": "Distribution custody exists. Complete source and paired journey closure for the full skill set is not shown."
+      },
+      {
+        "from": "cursor-pstack",
+        "to": "cursor-cli-host",
+        "keepStatus": "unverified",
+        "evidence": [
+          "parity/reviews/source-discovery.md"
+        ],
+        "blocker": "Persistent-mode editor actions (Option/Alt+Enter) and later-turn behavior still need paired Cursor+Pi runtime evidence."
+      }
+    ],
+    "unresolvedReferences": {
+      "removeIfPresent": [
+        "Audit all platform-conditional branches, including literal cpu/os none entries in this lock.",
+        "Fetch exact registry metadata and tarballs, verify integrity and licenses, inspect relevant contracts and transitive dependencies.",
+        "Determine runtime/platform prerequisites from official Bun and package contracts.",
+        "Official Bun runtime version pin under source-bun-runtime remains unresolved after wave-003 capture at parity/research/dep-closure-wave-003/bun/official-capture.json (local 1.4.2 only; no tools lock pin).",
+        "npm:typescript@7.0.2 full tree file hashes captured at parity/research/dep-closure-wave-002/npm/typescript@7.0.2/file-inventory.json; semantic per-file contract audit still open.",
+        "cursor-cli-host edges to computer-use and enterprise policy remain unresolved after public-doc re-hash; runtime services closed or environment-bound.",
+        "cursor-cli-host edges to computer-use and enterprise policy remain unresolved after wave-003 public-doc re-hash; runtime services closed or environment-bound.",
+        "Node-builtin compatibility for commander runtimeCompatibilityInputs evidenced under local bun 1.4.2 and official Bun nodejs-compat docs at parity/research/dep-closure-wave-003/bun/; not a substitute for an official Bun version pin."
+      ],
+      "add": [
+        "Official Bun runtime version pin under source-bun-runtime remains unresolved after wave-004 capture at parity/research/dep-closure-wave-004/bun/official-capture.json (local 1.4.2 only; no engines/packageManager/.bun-version; bun-types lock resolve bun-types@1.3.14 is not a runtime pin).",
+        "Tools bun.lock platform-conditional branches audited at parity/research/dep-closure-wave-004/platform-matrix.json (cpu none=['@typescript/typescript-linux-loong64', '@typescript/typescript-linux-mips64el', '@typescript/typescript-linux-riscv64']; os none=['@typescript/typescript-netbsd-arm64', '@typescript/typescript-netbsd-x64']).",
+        "Tools bun.lock registry/tarball custody verified for all 25 packages at parity/research/dep-closure-wave-004/registry-custody.json (integrity match to prior retrievals; registry signature authentication still not performed).",
+        "Runtime/platform prerequisites for tools scripts recorded at parity/research/dep-closure-wave-004/nodes/runtime-prerequisites.md; official Bun binary pin still required for source-bun-runtime closure.",
+        "npm:typescript@7.0.2 contract-surface recorded at parity/research/dep-closure-wave-004/npm/typescript-contract-surface.json; semantic per-file body audit of inventoried files still open.",
+        "cursor-cli-host edges to computer-use and enterprise policy remain unresolved after wave-004 public-doc re-hash; runtime services closed or environment-bound (parity/research/dep-closure-wave-004/host-edge-disposition.json).",
+        "Node-builtin compatibility for commander evidenced under local bun 1.4.2 and official docs at parity/research/dep-closure-wave-004/bun; not a substitute for an official Bun version pin."
+      ],
+      "keep": [
+        "Required live integrations, cloud services, automation editor, models and supporting tools.",
+        "Recursive references in inspected sources still require complete extraction and audit.",
+        "cursor-create-skill subordinate workflows and journey audit remain open after SKILL.md capture at parity/research/dep-closure-wave-001/nodes/cursor-create-skill/SKILL.md.",
+        "Tools package consumer binding recorded at parity/research/dep-closure-wave-003/consumer-binding.json (commander runtime; bun-types/typescript test/typecheck). Broader acceptance journeys remain open."
+      ],
+      "note": "Close tools-lock platform-matrix, registry custody, and runtime prerequisite refs with path+hash evidence. Keep Bun pin, host environment-bound edges, typescript body semantics, and journey items open."
+    }
+  },
+  "sourceLock": {
+    "cursorPlugins.completeDependencyClosure": {
+      "set": false,
+      "note": "Leave false. Bun pin, four host/journey edges, and typescript body semantics remain open."
+    }
+  },
+  "remainingGaps": [
+    "Official Bun version pin under source-bun-runtime stays unresolved.",
+    "cursor-cli-host \u2192 computer-use and enterprise-policy stay unresolved (environment-bound).",
+    "cursor-pstack \u2192 cursor-team-kit and cursor-cli-host stay unverified (journey evidence).",
+    "typescript semantic per-file body audit still open.",
+    "completeDependencyClosure must stay false."
+  ],
+  "doNotEdit": [
+    "parity/dependencies.json",
+    "parity/source-lock.json",
+    "parity/requirements.json",
+    "parity/mismatches.json",
+    "parity/progress.md"
+  ],
+  "inventoryDigest": {
+    "path": "parity/research/dep-closure-wave-004/read-inventory.json",
+    "sourceCount": 14,
+    "verifyStatus": "VERIFIED",
+    "registryCustodyOk": true,
+    "bunPinStatus": "unresolved"
+  },
+  "resolvedReferenceCount": 3,
+  "unresolvedTargetCount": 7,
+  "countsNote": "resolvedReferenceCount counts refs this wave can clear (platform matrix, registry custody for tools lock, runtime/platform prerequisites). unresolvedTargetCount counts Bun pin, typescript body semantics, two host unresolved edges, two journey unverified edges, plus live/recursive keep-open buckets treated as still blocking completeDependencyClosure."
+}

@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "unit": "u-dep-host-edges-terminal-001",
+  "status": "proposal",
+  "createdAt": "2026-10-09T03:39:39Z",
+  "verdict": "none-honestly-resolvable",
+  "mergePayloadReady": false,
+  "resolvedEdgeCount": 0,
+  "targets": {
+    "dependenciesJson": "parity/dependencies.json",
+    "sourceLockJson": "parity/source-lock.json"
+  },
+  "edgeMutations": [],
+  "edgeMutationsNote": "No edge status changes. Coordinator must keep all three edges open/unverified.",
+  "completeDependencyClosure": false,
+  "completeDependencyClosureNote": "Must remain false. Host edges and persistent-mode remain open.",
+  "recommendation": "Publish keep-open dispositions only. Do not merge status: resolved for any of these three edges.",
+  "artifacts": {
+    "dispositions": "parity/research/dep-host-edges-terminal-001/dispositions.json",
+    "gateChecklist": "parity/research/dep-host-edges-terminal-001/gate-checklist.json",
+    "report": "parity/briefs/reports/u-dep-host-edges-terminal-001-report.md"
+  }
+}

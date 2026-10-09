@@ -1,0 +1,12 @@
+{
+  "unit": "u-dep-closure-wave-008",
+  "capturedAt": "2026-10-09T01:17:40Z",
+  "teamKitCustodyStatus": "verified",
+  "proposedResolvedEdges": 1,
+  "newlyResolvableEdges": 1,
+  "newlyResolvableRefs": 0,
+  "completeDependencyClosure": false,
+  "verifyStatus": "VERIFIED",
+  "mergeProposal": "parity/research/dep-closure-wave-008/merge-proposal.json",
+  "unresolvedTargetCount": 8
+}

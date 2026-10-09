@@ -1,0 +1,36 @@
+{
+  "capturedAt": "2026-10-09T03:39:39Z",
+  "unit": "u-dep-host-edges-terminal-001",
+  "edge": {
+    "from": "cursor-cli-host",
+    "to": "cursor-enterprise-integration-policy"
+  },
+  "currentStatus": "unresolved",
+  "recommendStatus": "unresolved",
+  "resolvedHonest": false,
+  "disposition": "environment-bound",
+  "absentInSourceApplicable": false,
+  "absentInSourceWhyNot": "Contract is present in public docs (model-management.md). Live Enterprise team/org model access, MCP allowlist enforcement, and CLI applicability remain required.",
+  "doc": {
+    "path": "parity/research/continuation/model-management.md",
+    "sha256": "2606b4bd74d43bd579c59945506ab691cd49de8da3386556e265c854f6c9d205",
+    "byteLength": 12119,
+    "matchesLedgerDocSha256": true,
+    "ledgerDocSha256": "2606b4bd74d43bd579c59945506ab691cd49de8da3386556e265c854f6c9d205"
+  },
+  "priorEvidence": [
+    "parity/research/continuation/model-management.md",
+    "parity/research/dep-closure-wave-009/host/host-edge-disposition.json",
+    "parity/research/dep-closure-wave-009/nodes/host-edge-disposition.md",
+    "parity/research/dep-closure-wave-008/host/host-edge-disposition.json"
+  ],
+  "whyNotResolved": "Docs custody alone does not satisfy the edge contract. No live Enterprise policy observation was run. No attempt ID exists. Standing orders forbid broad allowlist or authorization changes by workers.",
+  "operatorGrantToClose": [
+    "Provide an Enterprise team/org account with observable Model Providers / Groups model-access settings.",
+    "Authorize a read-only policy observation journey (no worker-initiated allowlist widening unless account owner explicitly grants it).",
+    "Measure MCP policy precedence and CLI applicability with attempt IDs.",
+    "Publish evidence and only then set edge.status to resolved."
+  ],
+  "liveExerciseAttempted": false,
+  "liveExerciseAttemptIds": []
+}

@@ -1,0 +1,16 @@
+{
+  "unit": "u-dep-closure-wave-009",
+  "capturedAt": "2026-10-09T01:52:19Z",
+  "teamKitCustodyStatus": "verified",
+  "teamKitJourneySampleSize": 5,
+  "proposedResolvedEdges": 0,
+  "newlyResolvableEdges": 0,
+  "newlyResolvableRefs": 0,
+  "completeDependencyClosure": false,
+  "verifyStatus": "VERIFIED",
+  "mergeProposal": "parity/research/dep-closure-wave-009/merge-proposal.json",
+  "unresolvedTargetCount": 9,
+  "createSkillEvidenceHits": 0,
+  "typescriptHonestStatus": "deep_compiler_semantics_still_open",
+  "bunPinStatus": "unresolved"
+}

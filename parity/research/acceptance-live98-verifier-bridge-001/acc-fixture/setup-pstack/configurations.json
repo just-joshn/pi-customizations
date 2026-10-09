@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "status": "DRAFT",
+  "owner": "independent-acceptance-owner",
+  "purpose": "Configuration axes for the /setup-pstack acceptance partition. Each definition names a matrix over these axes. Axes a definition does not name are pinned to the baseline value. The per-definition denominator is the cartesian product of its named axis values.",
+  "baseline": {
+    "rule": "rule.none",
+    "catalog": "catalog.full-ladder",
+    "budget": "budget.large",
+    "project": "project.no-verification",
+    "parent": "parent.auto",
+    "surface": "surface.interactive-tui",
+    "usage": "usage.available",
+    "platform": "platform.darwin-arm64",
+    "answer": "answer.accept-as-is"
+  },
+  "axes": {
+    "rule": {
+      "rule.none": { "description": "No pstack role rule exists at the host role-rule location." },
+      "rule.default-shape": { "description": "Rule equals the step 5 shape block of the locked setup SKILL.md byte for byte.", "fixture": "source:setup lines 42-65" },
+      "rule.installed-user": { "description": "Rule equals the captured Cursor user rule snapshot. Budget small (medium), aliases in four code roles and swarm, a gpt-5.6-sol family in reflect tooling and three-entry panels.", "fixture": "evidence:cursor-user-rule" },
+      "rule.retired-line": { "description": "rule.default-shape plus the extra line `how critics: claude-opus-5-5-xhigh` placed after `how explainer`.", "fixture": "derived from source:setup lines 18 and 42-65" },
+      "rule.missing-lines": { "description": "rule.default-shape with the `swarm workers` and `hillclimb` lines deleted.", "fixture": "derived from source:setup lines 42-65" },
+      "rule.no-budget-line": { "description": "rule.default-shape with the `# budget: large (xhigh)` line deleted.", "fixture": "derived from source:setup lines 42-65" }
+    },
+    "catalog": {
+      "catalog.full-ladder": { "description": "Detected subagent model set contains claude-opus-5-5 at max, xhigh, high, medium and low, and grok-4.7 at xhigh, high, medium and low with the trailing fast token. No grok-4.7 max slug exists, matching the source statement that Grok tops out at xhigh.", "detected": ["claude-opus-5-5-max", "claude-opus-5-5-xhigh", "claude-opus-5-5-high", "claude-opus-5-5-medium", "claude-opus-5-5-low", "grok-4.7-xhigh-fast", "grok-4.7-high-fast", "grok-4.7-medium-fast", "grok-4.7-low-fast"] },
+      "catalog.installed-user-families": { "description": "catalog.full-ladder plus gpt-5.6-sol at max, xhigh, high, medium and low. Needed to evaluate rule.installed-user.", "detected": ["claude-opus-5-5-max", "claude-opus-5-5-xhigh", "claude-opus-5-5-high", "claude-opus-5-5-medium", "claude-opus-5-5-low", "grok-4.7-xhigh-fast", "grok-4.7-high-fast", "grok-4.7-medium-fast", "grok-4.7-low-fast", "gpt-5.6-sol-max", "gpt-5.6-sol-xhigh", "gpt-5.6-sol-high", "gpt-5.6-sol-medium", "gpt-5.6-sol-low"] },
+      "catalog.no-grok": { "description": "Only claude-opus-5-5 at all five efforts. Every grok default has no same-family detected slug.", "detected": ["claude-opus-5-5-max", "claude-opus-5-5-xhigh", "claude-opus-5-5-high", "claude-opus-5-5-medium", "claude-opus-5-5-low"] },
+      "catalog.high-only": { "description": "Only claude-opus-5-5-xhigh and grok-4.7-xhigh-fast. A medium or small budget has no same-family slug at or below the target.", "detected": ["claude-opus-5-5-xhigh", "grok-4.7-xhigh-fast"] },
+      "catalog.empty": { "description": "Detection finds no slug.", "detected": [] }
+    },
+    "budget": {
+      "budget.unlimited": { "label": "unlimited — max reasoning", "effort": "max" },
+      "budget.large": { "label": "large — xhigh reasoning", "effort": "xhigh" },
+      "budget.medium": { "label": "medium — high reasoning", "effort": "high" },
+      "budget.small": { "label": "small — medium reasoning", "effort": "medium" }
+    },
+    "project": {
+      "project.no-verification": { "description": "Workspace has no verify-* skill and no app-driving harness." },
+      "project.verify-skill": { "description": "Workspace has a project skill directory named verify-<app>." },
+      "project.harness": { "description": "Workspace has an existing app-driving harness and no verify-* skill. The exact recognition criteria are unobserved and stay open." }
+    },
+    "parent": {
+      "parent.auto": { "description": "Parent chat model is Auto, as in the captured Cursor first run." },
+      "parent.explicit": { "description": "Parent chat model is one explicitly selected detected model." }
+    },
+    "surface": {
+      "surface.interactive-tui": { "description": "Interactive terminal session with structured question support." },
+      "surface.no-structured-question": { "description": "A session where the structured question tool is unavailable, so the source fallback to free text applies. Reference surface identity is unobserved." }
+    },
+    "usage": {
+      "usage.available": { "description": "Model-backed agent turns are permitted." },
+      "usage.included-exhausted": { "description": "Reference account returns limitType included_usage on submission.", "evidence": "evidence:cursor-04" }
+    },
+    "platform": {
+      "platform.darwin-arm64": { "description": "Observed reference and candidate platform." },
+      "platform.linux": { "description": "Supported-platform status for the Cursor CLI reference is unverified and stays open." },
+      "platform.windows": { "description": "Named by the README only for the mode keybinding. Setup behavior on Windows is unobserved and stays open." }
+    },
+    "answer": {
+      "answer.accept-as-is": { "description": "User accepts the shown role table without changes." },
+      "answer.change-role-alias": { "description": "User sets `judgment and prose` to `auto`." },
+      "answer.change-panel-length": { "description": "User sets `interrogate reviewers` to three detected entries plus `inherit-parent`." },
+      "answer.change-undetected": { "description": "User sets `bug-fix` to a real-looking slug outside the detected set, then supplies a detected slug when asked again." },
+      "answer.cancel": { "description": "User cancels at the first structured question." },
+      "answer.offer-yes": { "description": "User accepts as-is, then answers yes to the verification-skill offer." },
+      "answer.offer-no": { "description": "User accepts as-is, then answers no to the verification-skill offer." }
+    },
+    "utterance": {
+      "configure pstack models": { "description": "Quoted trigger phrase from the setup skill description." },
+      "pstack budget": { "description": "Quoted trigger phrase from the setup skill description." },
+      "change pstack's model choices": { "description": "Paraphrase of the unquoted trigger clause in the setup skill description. Held-out wording belongs to the independent verifier." }
+    }
+  },
+  "openAxes": [
+    "Supported reference platforms from the official Cursor CLI contract.",
+    "Cursor CLI approval and auto-run settings that govern writing outside the workspace.",
+    "Headless, print and RPC surfaces and their structured-question availability in both hosts.",
+    "Malformed rule content, unreadable rule file and a role rule present at a project location.",
+    "Slugs without a ladder effort token and families that share a prefix."
+  ]
+}

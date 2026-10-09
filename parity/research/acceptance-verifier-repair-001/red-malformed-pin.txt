@@ -1,0 +1,2 @@
+FAIL manifest sha256 ccc6b2a0c8e61c7dec01af5a255dbe7eaca36706ab3e749e03cb41f414feb6c5 differs from externally pinned not-a-hash
+exit=1

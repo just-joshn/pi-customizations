@@ -1,0 +1,53 @@
+{
+  "capturedAt": "2026-10-09T03:39:39Z",
+  "unit": "u-dep-host-edges-terminal-001",
+  "edge": {
+    "from": "cursor-pstack",
+    "to": "cursor-cli-host"
+  },
+  "currentStatus": "unverified",
+  "recommendStatus": "unverified",
+  "resolvedHonest": false,
+  "disposition": "environment-bound",
+  "absentInSourceApplicable": false,
+  "absentInSourceWhyNot": "Product docs define Option/Alt+Enter Custom Mode sticky path. Measured exhaustive-negative proves the gate is off on locked cursor-agent, not that the contract is absent from source.",
+  "cursorAgentVersion": {
+    "command": [
+      "cursor-agent",
+      "--version"
+    ],
+    "exitCode": 0,
+    "stdout": "2026.10.01-e373342\n",
+    "stderr": "",
+    "expectedLock": "2026.10.01-e373342",
+    "matchesLock": true
+  },
+  "customModeProbe": {
+    "reportPath": "parity/briefs/reports/u-cursor-custom-mode-path-report.md",
+    "reportSha256": "285b46915c829d691dac04fadc56c90a3eeb93aef5242fe0253185a6846eae21",
+    "summaryPath": "parity/evidence/mode-sticky/probes/probe-custom-mode-path-summary.json",
+    "summarySha256": "85e3fd494484dad4415fdb588f97f5a2d7eaee334333c1ac1910174b641676bc",
+    "baselineAttemptId": "6977eeec-08bd-4829-810c-11d526d9f9fb",
+    "statsigOverrideAttemptId": "9857dda0-a74d-4546-b69e-1ff3528bdf3e",
+    "successAttemptId": null,
+    "gate": "glass_custom_modes",
+    "gateObserved": "off"
+  },
+  "priorEvidence": [
+    "parity/briefs/reports/u-cursor-custom-mode-path-report.md",
+    "parity/evidence/mode-sticky/probes/probe-custom-mode-path-summary.json",
+    "parity/research/dep-closure-wave-009/cli-host/persistent-mode-disposition.json",
+    "parity/research/dep-closure-wave-009/nodes/cli-host-persistent-mode.md",
+    "parity/mismatches.json",
+    "parity/requirements.json"
+  ],
+  "whyNotResolved": "completion.mjs requires edge.status === resolved. Current status is unverified. Success sticky attempt ID is null. glass_custom_modes remains off on locked cursor-agent 2026.10.01-e373342. Prefer Preference 4: keep the unsatisfied sticky requirement active. Do not promote exhaustive-negative to resolved.",
+  "operatorGrantToClose": [
+    "Enable Custom Modes for the reference account so glass_custom_modes is on (slash footer option+enter to use as mode visible), or ship/use a cursor-agent build where the gate defaults on.",
+    "Recapture paired Cursor+Pi sticky evidence with a success attempt ID for Option/Alt+Enter Custom Mode on /poteto-mode.",
+    "Alternatively capture via Agents Window / IDE Use as Mode path with the same paired success IDs if CLI stays gated.",
+    "Only then set edge.status to resolved."
+  ],
+  "newLiveExerciseAttempted": false,
+  "newLiveExerciseAttemptIds": []
+}

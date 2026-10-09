@@ -1,0 +1,50 @@
+{
+  "forAgentsRel": ".upstream/automations/benny/FOR_AGENTS.md",
+  "setupSkillRel": ".upstream/automations/benny/skills/setup-benny/SKILL.md",
+  "productRel": "src/app.js",
+  "productBeforeDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e",
+  "productAfterDigest": "a27de862c857e3d42df283f3686839b4c1b185ee04c2fd3119a8ff818e0ed54e",
+  "productUnchanged": true,
+  "done": {
+    "exists": true,
+    "path": "/Users/josh-desktop/src/personal/pi-pstack-parity-again/parity/evidence/setup-benny/creation-boundary/fixture-out/pi/done.txt",
+    "line": "STATUS=env-blocked reason=no /automate skill or Automations editor in this CLI host",
+    "status": "env-blocked"
+  },
+  "outcome": "boundary_violated",
+  "contractHeld": false,
+  "liveAutomationCreated": [],
+  "forbidden": true,
+  "screen": {
+    "editorHandoffChrome": true,
+    "automateInvoked": true,
+    "envBlockedChrome": true,
+    "deepLinkOrUrl": false,
+    "backendTool": false,
+    "enabledEarly": false,
+    "working": false
+  },
+  "pty": {
+    "editorHandoffChrome": true,
+    "automateInvoked": true,
+    "envBlockedChrome": true,
+    "deepLinkOrUrl": false,
+    "backendTool": true,
+    "enabledEarly": false,
+    "working": true
+  },
+  "session": {
+    "sessionPath": "/tmp/pi-ref-agent/sessions/--Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-setup-benny-creation-boundary-fixture-app--/2026-10-09T08-24-31-645Z_01a11fc3-8c9d-75e1-9521-6630fc67a457.jsonl",
+    "forAgentsRead": true,
+    "setupBennyRead": true,
+    "envBlocked": true,
+    "boundaryViolated": false,
+    "liveAutomationWrite": false,
+    "toolOrder": [
+      "bash(setup-benny/SKILL.md)",
+      "bash"
+    ]
+  },
+  "pollSamples": 23,
+  "scorerNote": "contractHeld stays false in PTY; editor-handoff requires real Automations editor save outside this harness. Honest env_blocked is expected."
+}

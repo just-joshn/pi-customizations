@@ -1,0 +1,29 @@
+{
+  "brief": "u-pi-automate-editor-chrome-001",
+  "requirementId": "PSTACK-SETUP-BENNY-CREATION-BOUNDARY-001",
+  "status": "implemented-keep-unverified",
+  "verifyClaim": false,
+  "verifyWhy": "Real Pi Automations editor chrome shipped via ctx.ui.custom. Probe automationsEditorUiAvailableInPiPty flipped true on honest detection. Paired Cursor+Pi creation-boundary journey was not run. Ledgers untouched. Requirement stays unverified.",
+  "shipped": {
+    "editorModule": "extensions/pi-pstack/src/automations-editor.ts",
+    "chromeMarker": "pi-automations-editor-v1",
+    "toolsWire": "extensions/pi-pstack/src/automations.ts AutomationOpenEditor",
+    "tests": [
+      "extensions/pi-pstack/test/automations-editor.test.ts",
+      "extensions/pi-pstack/test/automations.test.ts"
+    ],
+    "skill": "extensions/pi-pstack/skills/automate/SKILL.md"
+  },
+  "probe": {
+    "automationsEditorUiAvailableInPiPty": true,
+    "piBuiltInAutomateSkillPresent": true,
+    "detection": "component export AUTOMATIONS_EDITOR_CHROME + render/reduce + ui.custom wire (no ui.editor) + skill path + editor test proof"
+  },
+  "forbiddenHeld": [
+    "no ledger edits",
+    "no creation-boundary verify claim",
+    "no Slack",
+    "no draft enable",
+    "no Cursor Automations backend"
+  ]
+}

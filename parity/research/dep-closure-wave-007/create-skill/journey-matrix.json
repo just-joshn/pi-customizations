@@ -1,0 +1,64 @@
+{
+  "capturedAt": "2026-10-09T00:52:24Z",
+  "skillPath": "parity/research/dep-closure-wave-001/nodes/cursor-create-skill/SKILL.md",
+  "skillSha256": "255a3d3be7bac8984a13279f754f091a1de6f72c82bdf73e6b3c868e77e7ee82",
+  "skillByteLength": 15034,
+  "liveInstallPath": "/Users/josh-desktop/.cursor/skills-cursor/create-skill/SKILL.md",
+  "liveInstallSha256": "255a3d3be7bac8984a13279f754f091a1de6f72c82bdf73e6b3c868e77e7ee82",
+  "captureMatchesLiveInstall": true,
+  "phaseSections": [
+    {
+      "level": 3,
+      "title": "Phase 1: Discovery",
+      "offset": 11960
+    },
+    {
+      "level": 3,
+      "title": "Phase 2: Design",
+      "offset": 12326
+    },
+    {
+      "level": 3,
+      "title": "Phase 3: Implementation",
+      "offset": 12543
+    },
+    {
+      "level": 3,
+      "title": "Phase 4: Verification",
+      "offset": 12732
+    }
+  ],
+  "phaseSectionCount": 4,
+  "checklistItemCount": 25,
+  "priorSubordinateAudit": "parity/research/dep-closure-wave-006/create-skill/subordinate-audit.json",
+  "journeyMatrix": [
+    {
+      "id": "create-skill-discovery",
+      "title": "Phase 1 Discovery paired journey",
+      "requiredEvidence": "Cursor+Pi pair that gathers skill requirements per Phase 1",
+      "status": "not_run"
+    },
+    {
+      "id": "create-skill-design",
+      "title": "Phase 2 Design paired journey",
+      "requiredEvidence": "Cursor+Pi pair that produces skill design artifacts per Phase 2",
+      "status": "not_run"
+    },
+    {
+      "id": "create-skill-implementation",
+      "title": "Phase 3 Implementation paired journey",
+      "requiredEvidence": "Cursor+Pi pair that writes SKILL.md via /create-skill or equivalent",
+      "status": "not_run"
+    },
+    {
+      "id": "create-skill-verification",
+      "title": "Phase 4 Verification paired journey",
+      "requiredEvidence": "Cursor+Pi pair that verifies discovery and application of the authored skill",
+      "status": "not_run"
+    }
+  ],
+  "journeyAuditStatus": "open",
+  "journeyMatrixStatus": "complete",
+  "disposition": "Wave-007 derives a four-phase paired-journey acceptance matrix from the captured create-skill SKILL.md and re-checks capture vs live install hash. Subordinate inventory from wave-006 stands. No paired Cursor+Pi journey was run.",
+  "blockerForJourneyClosure": "Paired Cursor+Pi user journeys across Discovery, Design, Implementation, and Verification remain required."
+}

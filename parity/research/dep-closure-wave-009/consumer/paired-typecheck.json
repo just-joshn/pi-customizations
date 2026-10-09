@@ -1,0 +1,12 @@
+{
+  "unit": "u-dep-consumer-journeys-002",
+  "pair": "parity/evidence/consumer/pair-consumer-typecheck-1.json",
+  "attempts": {
+    "cursor": "7aecba32-e4a1-49a3-b9cd-63e418d531ac",
+    "pi": "08917c07-ed54-41ac-86df-6586133d009d"
+  },
+  "packageId": "npm:typescript@7.0.2",
+  "consumerPath": "parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/package.json",
+  "status": "closed",
+  "recordedAt": "2026-10-09T02:08:21Z"
+}

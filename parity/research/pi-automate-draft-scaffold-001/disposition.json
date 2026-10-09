@@ -1,0 +1,29 @@
+{
+  "brief": "u-pi-automate-draft-scaffold-001",
+  "requirementId": "PSTACK-SETUP-BENNY-CREATION-BOUNDARY-001",
+  "status": "scaffold-landed-unverified",
+  "verifyClaim": false,
+  "ledgersEdited": false,
+  "forbiddenSideEffectsHeld": {
+    "noCursorAutomationsBackend": true,
+    "noSlackPosts": true,
+    "noDraftFieldUrlOrDeepLink": true,
+    "noEnableBeforeThreadSafety": true,
+    "noRoutineEnableReuseForBenny": true
+  },
+  "artifacts": {
+    "domain": "extensions/pi-pstack/scripts/automation-domain.mjs",
+    "client": "extensions/pi-pstack/scripts/automation-client.mjs",
+    "tools": "extensions/pi-pstack/src/automations.ts",
+    "skill": "extensions/pi-pstack/skills/automate/SKILL.md",
+    "tests": "extensions/pi-pstack/test/automations.test.ts",
+    "probe": "parity/scripts/probe-setup-benny-creation-boundary-host.mjs"
+  },
+  "probe": {
+    "piBuiltInAutomateSkillPresent": true,
+    "automationsEditorUiAvailableInPiPty": false,
+    "note": "Skill path exists so the host probe skill flag flips true. Editor PTY flag stays false until real in-PTY Automations chrome lands."
+  },
+  "testCommand": "cd extensions/pi-pstack && bun run test test/automations.test.ts test/native-tool-metadata.test.ts",
+  "testResult": "13 passed"
+}

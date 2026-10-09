@@ -1,0 +1,3 @@
+ok ledger-byte-drift rejected (exit 1)
+  FAIL setup-pstack/record-hashes.json bytes do not match the canonical recorded hashes
+exit=0

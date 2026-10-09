@@ -1,0 +1,6 @@
+e4e84566a31803388d70e977f7a2bf4e7d53afe0c931543f877328e860805cb4  /private/tmp/pi-pstack-parity-acceptance-owner/parity/acceptance/setup-pstack/definitions.json
+3755a29140cdbf700f01eadd5e268b3abc459152c619bd0037bfe70cc355a80f  /private/tmp/pi-pstack-parity-acceptance-owner/parity/acceptance/setup-pstack/configurations.json
+4a218e21d7a6264daa45552fa39abdcd4c67337f145a79e191d136375a668238  /private/tmp/pi-pstack-parity-acceptance-owner/parity/acceptance/setup-pstack/record-hashes.json
+26c5141784cba4130962a7817821e5b03d6522982dec73b6309a173c19770599  /private/tmp/pi-pstack-parity-acceptance-owner/parity/acceptance/tools/verify-acceptance.mjs
+85814217abf06cd330f11b1e095481967cc557807da7eb975742a2d30bb065b1  /private/tmp/pi-pstack-parity-acceptance-owner/parity/acceptance/tools/selftest.sh
+10bd005eeed47dec258b5ffc2fd61c2b6bad751092d28f6b4abe64170883627c  /private/tmp/pi-pstack-parity-acceptance-owner/parity/acceptance/MANIFEST.sha256

@@ -1,0 +1,5 @@
+ts	decision	detail	evidence
+2026-10-09T08:24:22Z	probe	host-env probe runnable=false; automationsEditorUiAvailableInPiPty=false; piBuiltInAutomateSkillPresent=false	parity/evidence/setup-benny/creation-boundary/host-env-probe.json
+2026-10-09T08:24:31Z	pi-capture	--pi-only attempt f4c7eec5; STATUS=env-blocked; no editor chrome on screens	parity/evidence/setup-benny/creation-boundary/pi/f4c7eec5-6ac5-4431-b4b1-23c7e267dc96/
+2026-10-09T08:25:00Z	hybrid-reject	Pi+Cursor-desktop hybrid not claimed; standing rule 7 forbids Cursor as Pi implementation backend	preferences.md rule 7
+2026-10-09T08:25:10Z	handback	verify=no; recommend keep-unverified for Pi half (not freeze); ledgers untouched by this unit	parity/briefs/reports/u-journey-setup-benny-creation-pi-001-report.md

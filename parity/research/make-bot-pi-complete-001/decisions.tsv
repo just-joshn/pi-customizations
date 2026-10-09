@@ -1,0 +1,9 @@
+ts	phase	decision	why	evidence	result
+2026-10-09T04:09:07Z	start	start pi-complete unit for make-bot key-server	advance Pi past incomplete RoutinePrepare-only; Cursor stays host_blocked unless real path	unit PSTACK-CMD-MAKE-BOT-UI-KEY-SERVER-001	open
+2026-10-09T04:09:07Z	frame	exit predicate: new Pi attempt past incomplete OR honest blocker; Cursor host_blocked reaffirmed; pair+report; no secrets; mismatch cannot close until Cursor host path	prove-it-works on real PTY artifacts	parity/briefs/reports/u-journey-cmd-make-bot-pi-complete-001-report.md	framed
+2026-10-09T04:11:55Z	harness	extended capture with --pi-complete operator secret init + confirm drive; self-test green	build the lever for operator path instead of hand-driving PTY	parity/scripts/capture-make-bot-ui-key-server.mjs --self-test	tests green
+2026-10-09T04:12:09Z	capture	started --pi-complete PTY run	operator secret init + RoutineEnable confirm + probe after RoutinePrepare	parity/evidence/make-bot-ui/capture-pi-complete.log	running
+2026-10-09T04:15:37Z	capture	Pi e75f8e08 key_server_ok after secret init Enable probe	operator path completed; scorer false positive rescored	parity/evidence/make-bot-ui/pi/e75f8e08-0d8c-4d55-ad3f-6946c405bbaf	key_server_ok
+2026-10-09T04:15:37Z	cursor	reaffirmed Cursor host_blocked bb50ed1b	help and host probe still lack update_state; no fabricated webhook	parity/evidence/make-bot-ui/host-env-probe.json	host_blocked
+2026-10-09T04:15:37Z	publish	updated pair blocker report; mismatch cannot close	Pi complete is not enough while Cursor env-bound	parity/briefs/reports/u-journey-cmd-make-bot-pi-complete-001-report.md	env_blocker
+2026-10-09T04:15:37Z	verify	leak scan clean on published artifacts; done markers present	prove-it-works on files not self-report	parity/evidence/make-bot-ui/pi/done-copy.txt	leaks=[]

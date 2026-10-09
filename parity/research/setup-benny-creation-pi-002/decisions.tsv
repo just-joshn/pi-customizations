@@ -1,0 +1,4 @@
+ts	decision	rationale
+2026-10-09T10:16Z	adapt harness for Pi Method A	Prefer existing capture script; add Pi prompt, editor Save drive, editor_saved_disabled score.
+2026-10-09T10:16Z	rescore enabledEarly false positive	Assistant text "I did not call AutomationEnable" matched bare AutomationEnable; extend forbidEnable.
+2026-10-09T10:17Z	merge rec pair-ready-keep-unverified	Pi half editor_saved_disabled; do not verify requirement until coordinator pairs Cursor half.

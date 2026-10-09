@@ -1,0 +1,5 @@
+ts	phase	decision	why	evidence	result
+2026-10-09T06:05:49Z	start	u-dep-computer-use-live-001 start	figure-it-out live CU evidence unit	parity/briefs/reports/u-dep-computer-use-live-001-report.md	open
+2026-10-09T06:05:49Z	verify	helper permissions and desktop-share ready true	acceptance VERIFY	parity/research/dep-computer-use-exercise-001/permissions-after-exercise.json	VERIFIED
+2026-10-09T06:05:49Z	exercise	typed marker into TextEdit via Agent Helper MCP with before/after screenshots	prove live desktop control without fabricating cloud claim	parity/evidence/computer-use/live-001/exercise-summary.json	liveExercise=true marker=CU_LIVE_001_177e3351
+2026-10-09T06:05:49Z	cloud-claim	did not set edge resolved; cloud agent API 401 without User API Key	resolved requires live exercise with attempt IDs; spending gate on dashboard create	parity/research/dep-computer-use-exercise-001/cloud-claim-probe.json	canSetResolved=false

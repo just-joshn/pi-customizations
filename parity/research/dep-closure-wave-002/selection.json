@@ -1,0 +1,21 @@
+{
+  "selectedNodeIds": [
+    "npm:@typescript/typescript-aix-ppc64@7.0.2",
+    "npm:@typescript/typescript-freebsd-arm64@7.0.2",
+    "npm:@typescript/typescript-freebsd-x64@7.0.2",
+    "npm:@typescript/typescript-linux-arm@7.0.2",
+    "npm:@typescript/typescript-linux-loong64@7.0.2",
+    "npm:@typescript/typescript-linux-mips64el@7.0.2",
+    "npm:@typescript/typescript-linux-ppc64@7.0.2",
+    "npm:@typescript/typescript-linux-riscv64@7.0.2",
+    "npm:@typescript/typescript-linux-s390x@7.0.2",
+    "npm:@typescript/typescript-netbsd-arm64@7.0.2",
+    "npm:@typescript/typescript-netbsd-x64@7.0.2",
+    "npm:@typescript/typescript-openbsd-arm64@7.0.2",
+    "npm:@typescript/typescript-openbsd-x64@7.0.2",
+    "npm:@typescript/typescript-sunos-x64@7.0.2",
+    "npm:typescript@7.0.2"
+  ],
+  "incompleteCountBefore": 15,
+  "selectionRationale": "All remaining incomplete @typescript/* platform packages plus typescript@7.0.2 full-tree file-hash inventory. Host computer-use/enterprise and Bun official pin get honest unresolved dispositions."
+}

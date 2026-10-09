@@ -1,0 +1,122 @@
+# Cursor plugin / MCP slack presence
+captured_at_utc=2026-10-09T04:23:43Z
+/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-customizations-cursor-cli/mcp-auth.json
+/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-team-kit-fixture-apps-weekly-review/mcp-auth.json
+/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-team-kit-fixture-apps-fix-merge-conflicts/mcp-auth.json
+/Users/josh-desktop/.cursor/projects/private-tmp-cursor-probe/mcp-auth.json
+/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-team-kit-fixture-apps-deslop/mcp-auth.json
+/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-reference-cursor-plugins/mcp-auth.json
+/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-aai-frontend-rantizo-aam/mcp-auth.json
+/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-user-perspective-testing-extensions/mcp-auth.json
+/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-fixtures-team-kit-gh/mcp-auth.json
+/Users/josh-desktop/.cursor/projects/var-folders-11-m-kwnqr97632l-cjt0mhytvh0000gn-T-50f80987-6b5c-4aee-a88b-573d6f896230/mcps
+/Users/josh-desktop/.cursor/projects/var-folders-11-m-kwnqr97632l-cjt0mhytvh0000gn-T-50f80987-6b5c-4aee-a88b-573d6f896230/mcps/plugin-outlook-calendar-outlook-calendar/tools/mcp_auth.json
+/Users/josh-desktop/.cursor/projects/var-folders-11-m-kwnqr97632l-cjt0mhytvh0000gn-T-50f80987-6b5c-4aee-a88b-573d6f896230/mcps/plugin-gmail-gmail/tools/mcp_auth.json
+/Users/josh-desktop/.cursor/projects/var-folders-11-m-kwnqr97632l-cjt0mhytvh0000gn-T-50f80987-6b5c-4aee-a88b-573d6f896230/mcps/plugin-outlook-outlook/tools/mcp_auth.json
+/Users/josh-desktop/.cursor/projects/var-folders-11-m-kwnqr97632l-cjt0mhytvh0000gn-T-50f80987-6b5c-4aee-a88b-573d6f896230/mcps/plugin-slack-slack
+/Users/josh-desktop/.cursor/projects/var-folders-11-m-kwnqr97632l-cjt0mhytvh0000gn-T-50f80987-6b5c-4aee-a88b-573d6f896230/mcps/plugin-slack-slack/tools/mcp_auth.json
+/Users/josh-desktop/.cursor/projects/var-folders-11-m-kwnqr97632l-cjt0mhytvh0000gn-T-50f80987-6b5c-4aee-a88b-573d6f896230/mcps/plugin-forge-skills-ads-mcp
+/Users/josh-desktop/.cursor/projects/var-folders-11-m-kwnqr97632l-cjt0mhytvh0000gn-T-50f80987-6b5c-4aee-a88b-573d6f896230/mcps/plugin-atlassian-atlassian/tools/mcp_auth.json
+/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-team-kit-fixture-apps-thermo-nuclear-code-quality-review/mcp-auth.json
+/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-team-kit-fixture-apps-what-did-i-get-done/mcp-auth.json
+/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/mcp-auth.json
+/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/mcps
+/Users/josh-desktop/.cursor/projects/empty-window/mcps
+/Users/josh-desktop/.cursor/projects/empty-window/mcps/plugin-outlook-calendar-outlook-calendar/tools/mcp_auth.json
+/Users/josh-desktop/.cursor/projects/empty-window/mcps/plugin-gmail-gmail/tools/mcp_auth.json
+/Users/josh-desktop/.cursor/projects/empty-window/mcps/plugin-outlook-outlook/tools/mcp_auth.json
+/Users/josh-desktop/.cursor/projects/empty-window/mcps/plugin-slack-slack
+/Users/josh-desktop/.cursor/projects/empty-window/mcps/plugin-slack-slack/tools/mcp_auth.json
+/Users/josh-desktop/.cursor/projects/empty-window/mcps/cursor-subscriptions/tools/subscribe_slack_channel.json
+/Users/josh-desktop/.cursor/projects/empty-window/mcps/cursor-subscriptions/tools/subscribe_slack_thread.json
+/Users/josh-desktop/.cursor/projects/empty-window/mcps/cursor-subscriptions/tools/subscribe_slack_new_channels.json
+/Users/josh-desktop/.cursor/projects/empty-window/mcps/plugin-forge-skills-ads-mcp
+/Users/josh-desktop/.cursor/projects/empty-window/mcps/plugin-atlassian-atlassian/tools/mcp_auth.json
+/Users/josh-desktop/.cursor/projects/private-tmp-pstack-project-skills-probe/mcp-auth.json
+/Users/josh-desktop/.cursor/projects/private-tmp-cc-ref/mcp-auth.json
+/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-customizations/mcp-auth.json
+/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-customizations/mcps
+/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-customizations/mcps/plugin-outlook-calendar-outlook-calendar/tools/mcp_auth.json
+/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-customizations/mcps/plugin-gmail-gmail/tools/mcp_auth.json
+/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-customizations/mcps/plugin-outlook-outlook/tools/mcp_auth.json
+/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-customizations/mcps/plugin-slack-slack
+/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-customizations/mcps/plugin-slack-slack/tools/mcp_auth.json
+/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-customizations/mcps/plugin-forge-skills-ads-mcp
+/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-customizations/mcps/plugin-atlassian-atlassian/tools/mcp_auth.json
+/Users/josh-desktop/.cursor/projects/private-tmp-pstack-project-skills-probe3/mcp-auth.json
+/Users/josh-desktop/Library/Application Support/Cursor/User/globalStorage/mcp-oauth-attempts
+/Users/josh-desktop/Library/Application Support/Cursor/logs/20261008T211659/mcp-server-cursor-origin.log
+/Users/josh-desktop/Library/Application Support/Cursor/logs/20261008T211659/mcpprocess.log
+/Users/josh-desktop/Library/Application Support/Cursor/logs/20261008T211659/mcp-server-plugin-atlassian-atlassian.log
+/Users/josh-desktop/Library/Application Support/Cursor/logs/20261008T211659/mcp-server-plugin-outlook-outlook.log
+/Users/josh-desktop/Library/Application Support/Cursor/logs/20261008T211659/window2/mcp-server-plugin-github-github.workbench.log
+/Users/josh-desktop/Library/Application Support/Cursor/logs/20261008T211659/window2/workbench.mcp.files.log
+/Users/josh-desktop/Library/Application Support/Cursor/logs/20261008T211659/window2/workbench.mcp.oauth.log
+/Users/josh-desktop/Library/Application Support/Cursor/logs/20261008T211659/window2/mcp-server-plugin-forge-skills-forge.workbench.log
+/Users/josh-desktop/Library/Application Support/Cursor/logs/20261008T211659/window2/mcp-server-cursor-ide-browser.workbench.log
+/Users/josh-desktop/Library/Application Support/Cursor/logs/20261008T211659/window2/mcp-server-plugin-outlook-calendar-outlook-calendar.workbench.log
+/Users/josh-desktop/Library/Application Support/Cursor/logs/20261008T211659/window2/mcp-server-plugin-atlassian-atlassian.workbench.log
+/Users/josh-desktop/Library/Application Support/Cursor/logs/20261008T211659/window2/mcp-server-cursor-origin.workbench.log
+/Users/josh-desktop/Library/Application Support/Cursor/logs/20261008T211659/window2/mcp-server-plugin-gmail-gmail.workbench.log
+/Users/josh-desktop/Library/Application Support/Cursor/logs/20261008T211659/window2/workbench.mcp.allowlist.log
+/Users/josh-desktop/Library/Application Support/Cursor/logs/20261008T211659/window2/mcp-server-plugin-slack-slack.workbench.log
+/Users/josh-desktop/Library/Application Support/Cursor/logs/20261008T211659/window2/exthost/anysphere.cursor-mcp
+/Users/josh-desktop/Library/Application Support/Cursor/logs/20261008T211659/window2/exthost/anysphere.cursor-mcp/MCP snapshot-push.log
+/Users/josh-desktop/Library/Application Support/Cursor/logs/20261008T211659/window2/exthost/anysphere.cursor-mcp/MCP Logs.log
+/Users/josh-desktop/Library/Application Support/Cursor/logs/20261008T211659/window2/exthost/anysphere.cursor-agent-exec/Mcp FileSystem Writer.log
+/Users/josh-desktop/Library/Application Support/Cursor/logs/20261008T211659/window2/mcp-server-plugin-forge-skills-ads-mcp.workbench.log
+/Users/josh-desktop/Library/Application Support/Cursor/logs/20261008T211659/window2/mcp-server-plugin-outlook-outlook.workbench.log
+/Users/josh-desktop/Library/Application Support/Cursor/logs/20261008T211659/mcp-server-plugin-outlook-calendar-outlook-calendar.log
+/Users/josh-desktop/Library/Application Support/Cursor/logs/20261008T211659/mcp-server-plugin-forge-skills-forge.log
+/Users/josh-desktop/Library/Application Support/Cursor/logs/20261008T211659/mcp-server-plugin-github-github.log
+/Users/josh-desktop/Library/Application Support/Cursor/logs/20261008T211659/mcp-server-plugin-slack-slack.log
+/Users/josh-desktop/Library/Application Support/Cursor/logs/20261008T211659/mcp-server-plugin-forge-skills-ads-mcp.log
+/Users/josh-desktop/Library/Application Support/Cursor/logs/20261008T211659/mcp-server-plugin-gmail-gmail.log
+/Users/josh-desktop/Library/Application Support/Cursor/logs/20261008T211659/window1_wb0/mcp-server-plugin-github-github.workbench.log
+/Users/josh-desktop/Library/Application Support/Cursor/logs/20261008T211659/window1_wb0/mcp-server-cursor-subscriptions.workbench.log
+/Users/josh-desktop/Library/Application Support/Cursor/logs/20261008T211659/window1_wb0/workbench.mcp.files.log
+/Users/josh-desktop/Library/Application Support/Cursor/logs/20261008T211659/window1_wb0/workbench.mcp.oauth.log
+/Users/josh-desktop/Library/Application Support/Cursor/logs/20261008T211659/window1_wb0/mcp-server-cursor-app-control.workbench.log
+/Users/josh-desktop/Library/Application Support/Cursor/logs/20261008T211659/window1_wb0/mcp-server-plugin-forge-skills-forge.workbench.log
+/Users/josh-desktop/Library/Application Support/Cursor/logs/20261008T211659/window1_wb0/mcp-server-cursor-ide-browser.workbench.log
+/Users/josh-desktop/Library/Application Support/Cursor/logs/20261008T211659/window1_wb0/mcp-server-plugin-outlook-calendar-outlook-calendar.workbench.log
+
+## mcp.json-like files under .cursor
+/Users/josh-desktop/.cursor/plugins/cache/cursor-public/outlook-calendar/ccb5507cec1546dc88135c1139c811e6c59115ba/mcp.json
+/Users/josh-desktop/.cursor/plugins/cache/cursor-public/github/ccb5507cec1546dc88135c1139c811e6c59115ba/mcp.json
+/Users/josh-desktop/.cursor/plugins/cache/cursor-public/atlassian/9de1ab435251042efbb6839a1ca748eacecf4727/mcp.json
+/Users/josh-desktop/.cursor/plugins/cache/cursor-public/forge-skills/4f04ae02879435f23808a4798da28f75d3ab74c3/mcp.json
+/Users/josh-desktop/.cursor/plugins/cache/cursor-public/gmail/ccb5507cec1546dc88135c1139c811e6c59115ba/mcp.json
+/Users/josh-desktop/.cursor/plugins/cache/cursor-public/outlook/ccb5507cec1546dc88135c1139c811e6c59115ba/mcp.json
+/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-customizations-cursor-cli/mcp-auth.json
+/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-team-kit-fixture-apps-weekly-review/mcp-auth.json
+/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-team-kit-fixture-apps-fix-merge-conflicts/mcp-auth.json
+/Users/josh-desktop/.cursor/projects/private-tmp-cursor-probe/mcp-auth.json
+/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-team-kit-fixture-apps-deslop/mcp-auth.json
+/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-reference-cursor-plugins/mcp-auth.json
+/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-aai-frontend-rantizo-aam/mcp-auth.json
+/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-user-perspective-testing-extensions/mcp-auth.json
+/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-fixtures-team-kit-gh/mcp-auth.json
+/Users/josh-desktop/.cursor/projects/var-folders-11-m-kwnqr97632l-cjt0mhytvh0000gn-T-50f80987-6b5c-4aee-a88b-573d6f896230/mcps/plugin-outlook-calendar-outlook-calendar/tools/mcp_auth.json
+/Users/josh-desktop/.cursor/projects/var-folders-11-m-kwnqr97632l-cjt0mhytvh0000gn-T-50f80987-6b5c-4aee-a88b-573d6f896230/mcps/plugin-gmail-gmail/tools/mcp_auth.json
+/Users/josh-desktop/.cursor/projects/var-folders-11-m-kwnqr97632l-cjt0mhytvh0000gn-T-50f80987-6b5c-4aee-a88b-573d6f896230/mcps/plugin-outlook-outlook/tools/mcp_auth.json
+/Users/josh-desktop/.cursor/projects/var-folders-11-m-kwnqr97632l-cjt0mhytvh0000gn-T-50f80987-6b5c-4aee-a88b-573d6f896230/mcps/plugin-slack-slack/tools/mcp_auth.json
+/Users/josh-desktop/.cursor/projects/var-folders-11-m-kwnqr97632l-cjt0mhytvh0000gn-T-50f80987-6b5c-4aee-a88b-573d6f896230/mcps/plugin-atlassian-atlassian/tools/mcp_auth.json
+/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-team-kit-fixture-apps-thermo-nuclear-code-quality-review/mcp-auth.json
+/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again-parity-evidence-team-kit-fixture-apps-what-did-i-get-done/mcp-auth.json
+/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-pstack-parity-again/mcp-auth.json
+/Users/josh-desktop/.cursor/projects/empty-window/mcps/plugin-outlook-calendar-outlook-calendar/tools/mcp_auth.json
+/Users/josh-desktop/.cursor/projects/empty-window/mcps/plugin-gmail-gmail/tools/mcp_auth.json
+/Users/josh-desktop/.cursor/projects/empty-window/mcps/plugin-outlook-outlook/tools/mcp_auth.json
+/Users/josh-desktop/.cursor/projects/empty-window/mcps/plugin-slack-slack/tools/mcp_auth.json
+/Users/josh-desktop/.cursor/projects/empty-window/mcps/plugin-atlassian-atlassian/tools/mcp_auth.json
+/Users/josh-desktop/.cursor/projects/private-tmp-pstack-project-skills-probe/mcp-auth.json
+/Users/josh-desktop/.cursor/projects/private-tmp-cc-ref/mcp-auth.json
+/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-customizations/mcp-auth.json
+/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-customizations/mcps/plugin-outlook-calendar-outlook-calendar/tools/mcp_auth.json
+/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-customizations/mcps/plugin-gmail-gmail/tools/mcp_auth.json
+/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-customizations/mcps/plugin-outlook-outlook/tools/mcp_auth.json
+/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-customizations/mcps/plugin-slack-slack/tools/mcp_auth.json
+/Users/josh-desktop/.cursor/projects/Users-josh-desktop-src-personal-pi-customizations/mcps/plugin-atlassian-atlassian/tools/mcp_auth.json
+/Users/josh-desktop/.cursor/projects/private-tmp-pstack-project-skills-probe3/mcp-auth.json
+/Users/josh-desktop/Library/Application Support/Cursor/User/globalStorage/mcp-oauth-attempts

@@ -1,0 +1,9 @@
+capturedAt	decision	evidence
+2026-10-09T01:52:19Z	no new edges; keep team-kit resolved from wave-008; sample journeys	parity/research/dep-closure-wave-009/team-kit/journey-sampling.json
+2026-10-09T01:52:19Z	keep cursor-pstack→cursor-cli-host unverified environment-bound	parity/research/dep-closure-wave-009/cli-host/persistent-mode-disposition.json
+2026-10-09T01:52:19Z	keep host computer-use/enterprise unresolved environment-bound	parity/research/dep-closure-wave-009/host/host-edge-disposition.json
+2026-10-09T01:52:19Z	bun pin still unresolved	parity/research/dep-closure-wave-009/bun/official-capture.json
+2026-10-09T01:52:19Z	typescript deep semantics honesty still open drift=0	parity/research/dep-closure-wave-009/npm/typescript-deep-semantics-disposition.json
+2026-10-09T01:52:19Z	create-skill paired journeys still open	parity/research/dep-closure-wave-009/create-skill/journey-audit.json
+2026-10-09T01:52:19Z	consumer paired journeys still open	parity/research/dep-closure-wave-009/consumer/journey-refresh.json
+2026-10-09T01:52:19Z	completeDependencyClosure remains false	parity/research/dep-closure-wave-009/merge-proposal.json
