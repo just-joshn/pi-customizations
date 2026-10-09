@@ -4,3 +4,20 @@ artifacts/
 fixtures/
 private/
 coverage/
+
+# Regenerable dependency fetch trees (hashes live in dispositions)
+**/src-fetch/
+**/go-fetch/
+research/**/npm/
+
+# Capture screenshots / video (pair JSON + dispositions + screen txt suffice)
+**/*.png
+**/*.jpg
+**/*.jpeg
+**/*.webp
+**/*.webm
+**/*.mp4
+
+# Nested checkouts / fixture gitdirs (not part of this repo)
+research/source-lock-refresh-*/cursor-plugins/
+evidence/**/.git/
