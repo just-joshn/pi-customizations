@@ -1,8 +1,3 @@
-"""Oracle operations for CPython's difflib, the standard-library module Aider calls.
-
-The reference is the difflib of the Python that runs Aider, not Aider itself.
-"""
-
 import difflib
 
 from . import op
@@ -11,7 +6,6 @@ NAMED_JUNK = {"IS_LINE_JUNK": difflib.IS_LINE_JUNK, "IS_CHARACTER_JUNK": difflib
 
 
 def junk_of(spec):
-    """None, the name of a difflib junk function, or a list of the elements that are junk."""
     if spec is None:
         return None
     if isinstance(spec, str):

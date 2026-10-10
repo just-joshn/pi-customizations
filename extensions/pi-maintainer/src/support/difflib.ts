@@ -72,7 +72,6 @@ export function getCloseMatches(word: string, possibilities: Iterable<string>, {
     .map(({ x }) => x);
 }
 
-/** CPython's `_format_range_unified`: `start,length`, with `length` omitted when it is 1. */
 function formatRangeUnified(start: number, stop: number): string {
   const beginning = start + 1;
   const length = stop - start;
@@ -80,7 +79,6 @@ function formatRangeUnified(start: number, stop: number): string {
   return `${length ? beginning : beginning - 1},${length}`;
 }
 
-/** The prefix each opcode puts on its lines from `a` and from `b`; `null` prints none of that side. */
 const UNIFIED_PREFIXES: Readonly<Record<OpcodeTag, readonly [a: string | null, b: string | null]>> = {
   equal: [' ', null],
   replace: ['-', '+'],
@@ -167,7 +165,6 @@ function findSynchPair(cruncher: SequenceMatcher<string>, a: readonly string[], 
   return bestRatio < cutoff ? identical : best;
 }
 
-/** The `?` hint character each opcode puts under the a-line and under the b-line. */
 const HINTS: Readonly<Record<OpcodeTag, readonly [a: string, b: string]>> = {
   replace: ['^', '^'],
   delete: ['-', ''],

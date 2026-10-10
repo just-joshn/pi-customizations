@@ -4,7 +4,6 @@
  * blocks and ratios, so the algorithm is reproduced, not approximated.
  */
 
-/** Element types whose JavaScript `===` and `Map` key equality agree with Python's `==` and hashing. */
 export type Hashable = string | number;
 
 /** CPython's `isjunk`: true for an element the matcher must not synchronize on. */
@@ -42,13 +41,11 @@ const calculateRatio = (matches: number, length: number): number => (length ? (2
 
 const isGroup = (codes: readonly Opcode[]): codes is OpcodeGroup => codes.length > 0;
 
-/** The last `n` elements of an unchanged run, the context shown before a change. */
 function contextBefore(code: Opcode, n: number): Opcode {
   const [tag, i1, i2, j1, j2] = code;
   return tag === 'equal' ? [tag, Math.max(i1, i2 - n), i2, Math.max(j1, j2 - n), j2] : code;
 }
 
-/** The first `n` elements of an unchanged run, the context shown after a change. */
 function contextAfter(code: Opcode, n: number): Opcode {
   const [tag, i1, i2, j1, j2] = code;
   return tag === 'equal' ? [tag, i1, Math.min(i2, i1 + n), j1, Math.min(j2, j1 + n)] : code;
@@ -63,7 +60,6 @@ function changeTag(i: number, ai: number, j: number, bj: number): OpcodeTag | nu
 
 const compareMatches = (left: Match, right: Match): number => left.a - right.a || left.b - right.b || left.size - right.size;
 
-/** Merges blocks that touch in both sequences, so adjacent blocks never describe adjacent equal runs. */
 function collapseAdjacent(blocks: readonly Match[]): Match[] {
   const nonAdjacent: Match[] = [];
   let [i1, j1, k1] = [0, 0, 0];
@@ -90,7 +86,6 @@ export class SequenceMatcher<T extends Hashable> {
   readonly #autojunk: boolean;
   #a: readonly T[] = [];
   #b: readonly T[] = [];
-  // `T | undefined` keys let findLongestMatch look up indexed reads, which TypeScript types as possibly undefined.
   #b2j: ReadonlyMap<T | undefined, readonly number[]> = new Map();
   #bjunk: ReadonlySet<T | undefined> = new Set();
   #fullbcount: ReadonlyMap<T, number> | null = null;
