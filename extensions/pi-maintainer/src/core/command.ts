@@ -11,7 +11,7 @@ export interface CommandEnv {
   readonly save: (snapshot: Snapshot) => void;
   readonly tree: WorkingTree;
   readonly git: GitPolicy;
-  /** Aider's `auto_commits` default True until the Git SAR owns the setting. */
+  /** Resolved `--auto-commits` from the git SAR. */
   readonly autoCommits: boolean;
   readonly supportsImages: boolean;
   readonly sendUserMessage: (text: string) => Promise<void>;

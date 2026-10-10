@@ -2434,10 +2434,20 @@
         "aider/coders/base_coder.py:2202-2204"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "Host.exec"
+      ],
+      "src": [
+        "src/git/feature.ts",
+        "src/git/policy.ts",
+        "src/git/options.ts",
+        "src/index.ts",
+        "src/core/exchange.ts"
+      ],
+      "tests": [
+        "test/git/authorize-bind.test.ts::gitignored paths are skipped with the Aider skip warning"
+      ]
     },
     {
       "id": "git.authorize.stage-new-file",
@@ -2447,10 +2457,20 @@
         "aider/coders/base_coder.py:2193-2196,2219-2220,2233-2234"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "Host.exec"
+      ],
+      "src": [
+        "src/git/feature.ts",
+        "src/git/policy.ts",
+        "src/git/options.ts",
+        "src/index.ts"
+      ],
+      "tests": [
+        "test/git/authorize-bind.test.ts::an untracked approved path is staged when automatic commits are on",
+        "test/git/authorize-bind.test.ts::stageNewFile is a no-op when automatic commits are off"
+      ]
     },
     {
       "id": "git.dirty.checkpoint-before-edit",
@@ -2460,10 +2480,20 @@
         "aider/coders/base_coder.py:2175-2189,2291,2411-2424"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "Host.exec"
+      ],
+      "src": [
+        "src/git/feature.ts",
+        "src/git/policy.ts",
+        "src/git/options.ts",
+        "src/index.ts",
+        "src/core/exchange.ts"
+      ],
+      "tests": [
+        "test/git/dirty-bind.test.ts::dirty paths are announced and checkpointed before edits when dirty commits are on"
+      ]
     },
     {
       "id": "git.dirty.off-without-auto-commits",
@@ -2473,10 +2503,19 @@
         "aider/coders/base_coder.py:409-413"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "Host.exec"
+      ],
+      "src": [
+        "src/git/options.ts",
+        "src/git/policy.ts",
+        "src/git/feature.ts"
+      ],
+      "tests": [
+        "test/git/dirty-bind.test.ts::turning automatic commits off also turns dirty commits off",
+        "test/git/dirty-bind.test.ts::dirtyCommit is disabled when automatic commits forced dirty commits off"
+      ]
     },
     {
       "id": "git.commit.stage-whole-files",
@@ -2486,10 +2525,20 @@
         "aider/repo.py:280-315"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "Host.exec"
+      ],
+      "src": [
+        "src/git/feature.ts",
+        "src/git/policy.ts",
+        "src/git/options.ts",
+        "src/index.ts",
+        "src/git/cli.ts"
+      ],
+      "tests": [
+        "test/git/commit-bind.test.ts::a commit stages and commits the whole content of named files"
+      ]
     },
     {
       "id": "git.commit.message-context",
@@ -2499,10 +2548,21 @@
         "aider/repo.py:326-373"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "Host.exec"
+      ],
+      "src": [
+        "src/git/feature.ts",
+        "src/git/policy.ts",
+        "src/git/options.ts",
+        "src/index.ts",
+        "src/git/commit-message.ts"
+      ],
+      "tests": [
+        "test/git/commit-bind.test.ts::commit message generation sends the commit diff and the chat context",
+        "test/git/commit-bind.test.ts::buildCommitMessageRequest places context above the diffs block"
+      ]
     },
     {
       "id": "git.mentions.add-and-reflect",
@@ -2538,10 +2598,20 @@
         "aider/commands.py:560-613"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "Host.exec"
+      ],
+      "src": [
+        "src/git/feature.ts",
+        "src/git/policy.ts",
+        "src/git/options.ts",
+        "src/index.ts"
+      ],
+      "tests": [
+        "test/git/undo-bind.test.ts::undo refuses without a repository, on the first commit, and when HEAD is not a session commit",
+        "test/git/undo-bind.test.ts::undo refuses when a changed file is dirty after the session commit"
+      ]
     },
     {
       "id": "git.undo.restore-and-reset",
@@ -2551,10 +2621,19 @@
         "aider/commands.py:615-645"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "Host.exec"
+      ],
+      "src": [
+        "src/git/feature.ts",
+        "src/git/policy.ts",
+        "src/git/options.ts",
+        "src/index.ts"
+      ],
+      "tests": [
+        "test/git/undo-bind.test.ts::undo checks out files from the parent, soft-resets, and reports Removed"
+      ]
     },
     {
       "id": "lint.followup.commit-before-validation",
@@ -3360,10 +3439,21 @@
         "aider/coders/base_coder.py:2153-2167"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "Host.exec"
+      ],
+      "src": [
+        "src/git/feature.ts",
+        "src/git/policy.ts",
+        "src/git/options.ts",
+        "src/index.ts",
+        "src/git/cli.ts"
+      ],
+      "tests": [
+        "test/git/inventory-bind.test.ts::tracked inventory merges committed blobs and index entries without unstaged untracked files",
+        "test/git/inventory-bind.test.ts::aiderignore excludes matching tracked paths from inventory"
+      ]
     },
     {
       "id": "map.context.seed-and-fallback",

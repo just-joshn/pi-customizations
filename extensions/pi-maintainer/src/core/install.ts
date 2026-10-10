@@ -11,6 +11,7 @@ import { packagedDefaultEditFormat } from '../edit/packaged-default-format.ts';
 import { textFromAssistantContent } from '../edit/reasoning.ts';
 import { admitInitialEditable, readMessageFile } from '../edit/startup-input.ts';
 import { createPorts, type EditFormatName, isEditFormatName, type Ports, type SarFeature } from '../feature.ts';
+import { gitOptions } from '../git/options.ts';
 import { formatSettings } from '../settings/format-settings.ts';
 import { loadSettings } from '../settings/load.ts';
 import { settingsOptions } from '../settings/options.ts';
@@ -182,6 +183,7 @@ class MaintainerRuntime {
   #ports: Ports | null = null;
   #environment: Readonly<Record<string, string | undefined>> = {};
   #yes: boolean | null = null;
+  #autoCommits = true;
   readonly host: ReturnType<typeof createHost>;
   readonly #pi: ExtensionAPI;
   readonly #features: readonly SarFeature[];
@@ -227,7 +229,7 @@ class MaintainerRuntime {
       save: (snapshot: Parameters<ExchangeController['save']>[0]) => controller.save(snapshot),
       tree: ports.edit.tree,
       git: ports.git,
-      autoCommits: true,
+      autoCommits: this.#autoCommits,
       supportsImages: model?.input.includes('image') ?? true,
       sendUserMessage: async (text: string) => {
         this.#pi.sendUserMessage(text);
@@ -288,6 +290,7 @@ class MaintainerRuntime {
     const ports = portsWithModelFormatPolicy(createPorts(this.#features, { settings: loaded.settings, cwd: ctx.cwd, host: this.host }), loaded.settings, formatPolicy);
     this.#ports = ports;
     this.#yes = ports.edit.yesAlways;
+    this.#autoCommits = loaded.settings.value(gitOptions.autoCommits);
     const restored = restore(ctx.sessionManager.getBranch());
     const snapshot =
       restored.snapshot ??

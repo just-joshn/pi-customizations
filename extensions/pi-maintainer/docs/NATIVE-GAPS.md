@@ -166,3 +166,14 @@ The flag adapters share the following gate answers. The table above identifies t
 6. **Authoritative Pi state.** Session lifecycle, prompt queue, and model context stay with Pi. The watcher only holds pending changed paths and monitor handles.
 7. **Verification.** `test/core/watch-bind.test.ts` ports Aider `test_watch` units and proves filter and lifecycle contracts for the five verified watch rows. `edit.watch.requests` has empty `pi` / `src` / `tests` and remains open after this re-check. No newly expressible subset closed without a TreeContext or host-watch API.
 8. **Delete when.** Pi exposes a public workspace file-watch API with cancellation, plus a documented way to interrupt idle prompt input; delete the monitor adapter when those land. Delete the requests gap when a Pi-native or approved parser provides TreeContext-equivalent slices and the request path can be verified against them.
+
+## Git repository operations
+
+1. **Behavior.** Aider's `GitRepo` inventories tracked files, checks gitignore, stages new edit targets, dirty-checkpoints before apply, auto-commits whole files with model-authored messages, and undoes session commits (`aider/repo.py`, `aider/commands.py` `raw_cmd_undo`).
+2. **Mechanism evaluated.** Pi `Host.exec` / `pi.exec` for subprocesses; SessionManager for session facts; no public Git or VCS API in `@earendil-works/pi-coding-agent` 1.1.0 package exports or `.d.ts`.
+3. **Why it cannot.** Pi owns no repository index, ignore rules, commit attribution, or soft-reset undo. Extensions cannot call a native `git` port.
+4. **Why not omit.** The git SAR port (`GitPolicy`) is required for edit authorization, inventory, dirty checkpoints, auto-commits, and `/undo`. Without a CLI adapter those rows stay permanently disabled.
+5. **Adapter.** `src/git/` implements `GitPolicy` by running `git` through `Host.exec`, with attribution env overlays via the existing `isolatedExec` adapter (Command environment gap). Session commit hashes stay in the port instance for `/undo` preconditions. Commit-message model calls are injectable; the default falls back to a short message when no generator is wired.
+6. **Authoritative Pi state.** Session transcript, model routing, and permissions stay with Pi. Working-tree bytes stay with `WorkingTree`. Git object database stays with the user's repository.
+7. **Verification.** `test/git/*-bind.test.ts` covers inventory, authorize, dirty, commit, and undo rows against real temp repositories. Gate claimed FAIL for closed policy ids is 0.
+8. **Delete when.** Pi exposes a public repository API covering tracked inventory, ignore checks, staged adds, commits with env attribution, and soft undo, or the maintainer drops Git parity.
