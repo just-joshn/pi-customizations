@@ -25,3 +25,12 @@ export function renderRankedMap(entries: readonly RankedEntry[], chatRelFnames: 
   }
   return renderFilenameMap(names);
 }
+
+/**
+ * Structural map excerpt for one file. Source lines pass through with no secret redaction;
+ * truncation matches Aider's 100-character line cap (`aider/repomap.py:781-782`).
+ */
+export function formatMapExcerpt(relFname: string, sourceLines: readonly string[]): string {
+  const body = sourceLines.map((line) => line.slice(0, 100)).join('\n');
+  return truncateMapLines(`\n${relFname}:\n${body}\n`);
+}

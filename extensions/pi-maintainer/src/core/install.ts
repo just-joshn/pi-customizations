@@ -18,7 +18,9 @@ import { loadSettings } from '../settings/load.ts';
 import { settingsOptions } from '../settings/options.ts';
 import { flagRegistrations } from '../settings/sources.ts';
 import type { AnyOptionSpec, ResolvedSettings } from '../settings/spec.ts';
-import { restore, type Snapshot } from './branch.ts';
+import { mapOptions } from '../map/options.ts';
+import { runShowRepoMap } from '../map/show-repo-map.ts';
+import { chatFilesOf, restore, type Snapshot } from './branch.ts';
 import { absRootPath, findCommonRoot } from './chat-files.ts';
 import { type CompletedReply, type DialogueFact, ExchangeController } from './exchange.ts';
 import { journaledTree } from './mutations.ts';
@@ -231,6 +233,7 @@ class MaintainerRuntime {
       save: (snapshot: Parameters<ExchangeController['save']>[0]) => controller.save(snapshot),
       tree: ports.edit.tree,
       git: ports.git,
+      map: ports.map,
       autoCommits: this.#autoCommits,
       supportsImages: model?.input.includes('image') ?? true,
       sendUserMessage: async (text: string) => {
@@ -340,6 +343,17 @@ class MaintainerRuntime {
     this.#pi.setActiveTools([]);
     const router = ctx.modelRegistry.find(BRANDING.routerProvider, BRANDING.routerId);
     if (!router || !(await this.#pi.setModel(router))) throw new Error('Maintainer router cannot be selected');
+    if (specs.includes(mapOptions.showRepoMap) && loaded.settings.value(mapOptions.showRepoMap)) {
+      const shown = await runShowRepoMap({
+        enabled: true,
+        root: this.#controller.snapshot.root,
+        files: chatFilesOf(this.#controller.snapshot),
+        git: ports.git,
+        map: ports.map,
+        output: (text) => this.host.output(text),
+      });
+      if (shown.kind === 'exit') return;
+    }
     if (!restored.snapshot && ports.edit.messageFile) {
       const messagePath = absRootPath(ctx.cwd, ports.edit.messageFile);
       const text = await readMessageFile(messagePath, ports.edit.tree, this.host);

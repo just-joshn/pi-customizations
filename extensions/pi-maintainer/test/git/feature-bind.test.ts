@@ -23,5 +23,5 @@ test('gitFeature installs beside edit and exposes a real GitPolicy when a repo e
 test('installMaintainer wiring lists gitFeature after editFeature', async () => {
   const source = await import('node:fs/promises').then((fs) => fs.readFile(new URL('../../src/index.ts', import.meta.url), 'utf8'));
   expect(source).toContain('gitFeature');
-  expect(source).toContain('installMaintainer(pi, [editFeature, gitFeature])');
+  expect(source).toContain('installMaintainer(pi, [editFeature, gitFeature, mapFeature])');
 });

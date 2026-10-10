@@ -5821,10 +5821,18 @@
         "aider/commands.py:472-478"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.registerCommand"
+      ],
+      "src": [
+        "src/map/commands.ts",
+        "src/map/feature.ts",
+        "src/core/repo-map.ts"
+      ],
+      "tests": [
+        "test/map/commands-bind.test.ts::/map builds the repository map through the coder wrapper and prints the resulting map text"
+      ]
     },
     {
       "id": "map.commands.map-refresh",
@@ -5834,10 +5842,18 @@
         "aider/commands.py:1418-1430"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.registerCommand"
+      ],
+      "src": [
+        "src/map/commands.ts",
+        "src/map/feature.ts",
+        "src/core/repo-map.ts"
+      ],
+      "tests": [
+        "test/map/commands-bind.test.ts::/map-refresh forces the first wrapper mapping attempt and reports success without printing the map"
+      ]
     },
     {
       "id": "map.commands.tokens-report",
@@ -5848,10 +5864,17 @@
         "aider/coders/base_coder.py:789-800"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.registerCommand"
+      ],
+      "src": [
+        "src/map/tokens-map.ts",
+        "src/edit/commands.ts"
+      ],
+      "tests": [
+        "test/map/commands-bind.test.ts::/tokens calls RepoMap directly with editable files as chat, omitting repository read-only partitioning, mention hints, and global fallbacks"
+      ]
     },
     {
       "id": "map.commands.show-repo-map",
@@ -5861,10 +5884,19 @@
         "aider/main.py:1046-1053"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.registerFlag",
+        "pi.on('session_start')"
+      ],
+      "src": [
+        "src/map/show-repo-map.ts",
+        "src/map/options.ts",
+        "src/core/install.ts"
+      ],
+      "tests": [
+        "test/map/commands-bind.test.ts::--show-repo-map builds the map through the coder wrapper, prints it, and exits"
+      ]
     },
     {
       "id": "map.config.map-mul",
@@ -5875,10 +5907,18 @@
         "aider/repomap.py:47-58,119-132"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.registerFlag"
+      ],
+      "src": [
+        "src/map/options.ts",
+        "src/map/budget.ts",
+        "src/map/feature.ts"
+      ],
+      "tests": [
+        "test/map/commands-bind.test.ts::the map no-files multiplier option configures how far an empty-chat map budget may expand subject to known context capacity minus 4096 tokens"
+      ]
     },
     {
       "id": "map.query.asset-selection",
@@ -6057,10 +6097,16 @@
         "aider/coders/base_coder.py:750-761"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('context_with_system')"
+      ],
+      "src": [
+        "src/map/render.ts"
+      ],
+      "tests": [
+        "test/map/commands-bind.test.ts::rendered map text can include filenames plus source excerpts with literals, comments, and configuration values, without secret redaction"
+      ]
     }
   ]
 }

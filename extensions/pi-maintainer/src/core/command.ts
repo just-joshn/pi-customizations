@@ -1,6 +1,6 @@
 import type { PhysicalModelRef } from '../edit/model-switch.ts';
 import type { WorkingTree } from '../edit/working-tree.ts';
-import type { EditFormatName, GitPolicy } from '../feature.ts';
+import type { EditFormatName, GitPolicy, RepositoryContext } from '../feature.ts';
 import type { Snapshot } from './branch.ts';
 import type { Host } from './host.ts';
 
@@ -11,6 +11,7 @@ export interface CommandEnv {
   readonly save: (snapshot: Snapshot) => void;
   readonly tree: WorkingTree;
   readonly git: GitPolicy;
+  readonly map: RepositoryContext;
   /** Resolved `--auto-commits` from the git SAR. */
   readonly autoCommits: boolean;
   readonly supportsImages: boolean;

@@ -1,4 +1,4 @@
-import { floatOption, intOption, stringOption } from '../settings/spec.ts';
+import { booleanOption, floatOption, intOption, stringOption } from '../settings/spec.ts';
 
 /** The map SAR's options from `aider/args.py`, with Aider's defaults and help text. */
 export const mapOptions = {
@@ -17,8 +17,16 @@ export const mapOptions = {
   }),
   mapMultiplierNoFiles: floatOption({
     name: 'map-multiplier-no-files',
+    aliases: ['map-mul'],
     defaultValue: 2,
     help: 'Multiplier for map tokens when no files are specified (default: 2)',
+    sar: 'map',
+  }),
+  showRepoMap: booleanOption({
+    name: 'show-repo-map',
+    defaultValue: false,
+    negatable: false,
+    help: 'Print the repo map and exit (debug)',
     sar: 'map',
   }),
 } as const;

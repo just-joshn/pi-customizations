@@ -1,9 +1,11 @@
 import { readFile, writeFile } from 'node:fs/promises';
 
+import { estimateTokens } from '@earendil-works/pi-coding-agent';
 import { chatFilesOf } from '../core/branch.ts';
-import { addableRelativeFiles, getRelFname, inchatRelativeFiles, readText } from '../core/chat-files.ts';
+import { absRootPath, addableRelativeFiles, allRelativeFiles, getRelFname, inchatRelativeFiles, readText } from '../core/chat-files.ts';
 import type { CommandEnv, CommandSpec } from '../core/command.ts';
 import { type EditFormatName, isEditFormatName } from '../feature.ts';
+import { formatRepositoryMapTokenLine, tokensRepoMapContent } from '../map/tokens-map.ts';
 import { transferModeSelection } from './factory.ts';
 import { fileTokenRows, formatFileTokenLines } from './file-token-listing.ts';
 import { editFormatAfterModelSwitch, rolesAfterEditorModelSwitch, rolesAfterMainModelSwitch } from './model-switch.ts';
@@ -268,10 +270,29 @@ export const editCommands: readonly CommandSpec[] = [
         readOnly.push({ relative: getRelFname(env.snapshot.root, path), content: await readText(path, env.tree, env.host) });
       }
       const rows = fileTokenRows({ editable, readOnly });
+      const inventoryRel = await allRelativeFiles(env.snapshot.root, chatFilesOf(env.snapshot), env.git);
+      const inventoryAbs = inventoryRel.map((path) => absRootPath(env.snapshot.root, path));
+      const repoContent = await tokensRepoMapContent({
+        editable: new Set(env.snapshot.files.editable),
+        allAbsFiles: inventoryAbs,
+        map: env.map,
+      });
+      const mapRow =
+        repoContent === null
+          ? null
+          : {
+              tokens: estimateTokens({ role: 'user', content: repoContent, timestamp: 0 }),
+              label: 'repository map',
+              tip: 'use --map-tokens to resize',
+            };
       const physical = env.snapshot.physicalModel;
       const modelLabel = physical ? `${physical.provider}/${physical.id}` : 'the current model';
       env.host.output(`Approximate context window usage for ${modelLabel}, in tokens:`);
       env.host.output('');
+      if (mapRow) {
+        const labelWidth = Math.max(mapRow.label.length, ...rows.map((row) => row.label.length), 1);
+        env.host.output(formatRepositoryMapTokenLine({ tokens: mapRow.tokens, labelWidth }));
+      }
       for (const line of formatFileTokenLines(rows)) env.host.output(line);
     },
   },

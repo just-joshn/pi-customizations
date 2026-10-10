@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
 
 import type { Feature, RepositoryContext } from '../feature.ts';
+import { mapCommands } from './commands.ts';
 import { createRepositoryContext, type MapRefresh } from './context.ts';
 import { mapOptionList, mapOptions } from './options.ts';
 
@@ -13,7 +14,7 @@ function asRefresh(value: string | null): MapRefresh {
 export const mapFeature: Feature<RepositoryContext> & { readonly name: 'map' } = {
   name: 'map',
   options: mapOptionList,
-  commands: [],
+  commands: mapCommands,
   create({ settings, cwd, gitRoot }) {
     const root = gitRoot ?? cwd;
     const mapTokens = settings.value(mapOptions.mapTokens);

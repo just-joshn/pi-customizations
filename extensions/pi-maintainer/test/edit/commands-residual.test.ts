@@ -4,7 +4,7 @@ import type { CommandEnv } from '../../src/core/command.ts';
 import { editCommands } from '../../src/edit/commands.ts';
 import { estimateFencedFileTokens, fileTokenRows, formatFileTokenLines } from '../../src/edit/file-token-listing.ts';
 import { editFormatAfterModelSwitch, rolesAfterEditorModelSwitch, rolesAfterMainModelSwitch } from '../../src/edit/model-switch.ts';
-import type { EditFormatName } from '../../src/feature.ts';
+import { disabledGitPolicy, disabledRepositoryContext, type EditFormatName } from '../../src/feature.ts';
 
 function baseSnapshot(overrides: Partial<Snapshot> = {}): Snapshot {
   return {
@@ -193,6 +193,8 @@ test('/tokens lists selected editable and read-only files with estimates and a d
   });
   const wired = {
     ...env,
+    git: disabledGitPolicy,
+    map: disabledRepositoryContext,
     host: {
       output: (text: string) => outputs.push(text),
       warning() {},
