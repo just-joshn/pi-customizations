@@ -4,15 +4,17 @@ import type { ContextWithSystemEvent, ExtensionAPI, ExtensionContext, ModelRoute
 import { Text } from '@earendil-works/pi-tui';
 import { BRANDING } from '../branding.ts';
 import { selectEditFormat } from '../edit/factory.ts';
+import { defaultEditorFormat } from '../edit/modes.ts';
+import { promptPolicyFromModelFormat, resolveModelFormatPolicyForRef, type ModelFormatPolicy } from '../edit/model-format-policy.ts';
 import { editOptions } from '../edit/options.ts';
 import { textFromAssistantContent } from '../edit/reasoning.ts';
 import { admitInitialEditable, readMessageFile } from '../edit/startup-input.ts';
-import { createPorts, type Ports, type SarFeature } from '../feature.ts';
+import { type EditFormatName, createPorts, isEditFormatName, type Ports, type SarFeature } from '../feature.ts';
 import { formatSettings } from '../settings/format-settings.ts';
 import { loadSettings } from '../settings/load.ts';
 import { settingsOptions } from '../settings/options.ts';
 import { flagRegistrations } from '../settings/sources.ts';
-import type { AnyOptionSpec } from '../settings/spec.ts';
+import type { AnyOptionSpec, ResolvedSettings } from '../settings/spec.ts';
 import { restore, type Snapshot } from './branch.ts';
 import { absRootPath, findCommonRoot } from './chat-files.ts';
 import { type CompletedReply, type DialogueFact, ExchangeController } from './exchange.ts';
@@ -65,7 +67,25 @@ function resolveEditorModel(ctx: ExtensionContext, name: string | null, main: { 
   return null;
 }
 
-async function initialSnapshot(ports: Ports, cwd: string, append: (data: unknown) => void, host: ReturnType<typeof createHost>, allowCreation: boolean, owner: string): Promise<Snapshot> {
+function modelFormatPolicyForContext(ctx: ExtensionContext): ModelFormatPolicy {
+  if (ctx.model && ctx.model.api !== 'pi-virtual') return resolveModelFormatPolicyForRef({ provider: ctx.model.provider, id: ctx.model.id });
+  return resolveModelFormatPolicyForRef({ provider: '', id: '' });
+}
+
+function portsWithModelFormatPolicy(ports: Ports, settings: ResolvedSettings, policy: ModelFormatPolicy): Ports {
+  const requestedEditor = settings.value(editOptions.editorEditFormat);
+  const fromSettings = requestedEditor !== null && isEditFormatName(requestedEditor) ? (requestedEditor as EditFormatName) : null;
+  const fromModel = policy.editorEditFormat;
+  return {
+    ...ports,
+    edit: {
+      ...ports.edit,
+      editorEditFormat: defaultEditorFormat(fromSettings ?? fromModel),
+    },
+  };
+}
+
+async function initialSnapshot(ports: Ports, cwd: string, append: (data: unknown) => void, host: ReturnType<typeof createHost>, allowCreation: boolean, owner: string, modelDefault: EditFormatName): Promise<Snapshot> {
   const tree = journaledTree(ports.edit.tree, owner, append, () => {});
   const editable = await admitInitialEditable(ports.edit.initialFiles.editable, { cwd, tree, host, allowCreation });
   const root = ports.git.repoRoot() ?? findCommonRoot(editable, cwd);
@@ -79,7 +99,7 @@ async function initialSnapshot(ports: Ports, cwd: string, append: (data: unknown
     schema: 1,
     kind: 'snapshot',
     root,
-    mode: ports.edit.requestedFormat ?? selectEditFormat(ports.edit.formats, null, { modelDefault: 'whole' }).name,
+    mode: selectEditFormat(ports.edit.formats, ports.edit.requestedFormat, { modelDefault }).name,
     phase: { kind: 'main' },
     files: { editable: [...new Set(editable)], readOnly: [...new Set(readOnly)] },
     originalReadOnly: [...new Set(readOnly)],
@@ -255,17 +275,18 @@ class MaintainerRuntime {
         }),
       );
     }
-    const ports = createPorts(this.#features, { settings: loaded.settings, cwd: ctx.cwd, host: this.host });
+    const formatPolicy = modelFormatPolicyForContext(ctx);
+    const ports = portsWithModelFormatPolicy(createPorts(this.#features, { settings: loaded.settings, cwd: ctx.cwd, host: this.host }), loaded.settings, formatPolicy);
     this.#ports = ports;
     this.#yes = ports.edit.yesAlways;
     const restored = restore(ctx.sessionManager.getBranch());
-    const snapshot = restored.snapshot ?? (await initialSnapshot(ports, ctx.cwd, (data) => this.append(data), this.host, !restored.pendingOperations.length && !restored.invalidRecords.length, ctx.sessionManager.getLeafId() ?? 'startup'));
+    const snapshot = restored.snapshot ?? (await initialSnapshot(ports, ctx.cwd, (data) => this.append(data), this.host, !restored.pendingOperations.length && !restored.invalidRecords.length, ctx.sessionManager.getLeafId() ?? 'startup', formatPolicy.editFormat));
     this.#controller = new ExchangeController(snapshot, {
       ports,
       host: this.host,
       source: this.#options.promptSource ?? missingPromptSource,
       append: (data) => this.append(data),
-      policy: this.#options.promptPolicy,
+      policy: this.#options.promptPolicy ?? promptPolicyFromModelFormat(formatPolicy),
       suggestShellCommands: loaded.settings.value(editOptions.suggestShellCommands),
       resolveEditorModel: (name, main) => resolveEditorModel(ctx, name, main),
     });

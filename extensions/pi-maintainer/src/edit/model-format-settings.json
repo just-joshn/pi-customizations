@@ -1,0 +1,1718 @@
+[
+  {
+    "name": "gpt-3.5-turbo",
+    "reminder": "sys"
+  },
+  {
+    "name": "gpt-3.5-turbo-0125",
+    "reminder": "sys"
+  },
+  {
+    "name": "gpt-3.5-turbo-1106",
+    "reminder": "sys"
+  },
+  {
+    "name": "gpt-3.5-turbo-0613",
+    "reminder": "sys"
+  },
+  {
+    "name": "gpt-3.5-turbo-16k-0613",
+    "reminder": "sys"
+  },
+  {
+    "name": "gpt-4-turbo-2024-04-09",
+    "edit_format": "udiff",
+    "reminder": "sys"
+  },
+  {
+    "name": "gpt-4-turbo",
+    "edit_format": "udiff",
+    "reminder": "sys"
+  },
+  {
+    "name": "openai/gpt-4o",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true,
+    "reminder": "sys"
+  },
+  {
+    "name": "openai/gpt-4o-2024-08-06",
+    "edit_format": "diff",
+    "examples_as_sys_msg": true,
+    "reminder": "sys"
+  },
+  {
+    "name": "gpt-4o-2024-08-06",
+    "edit_format": "diff",
+    "examples_as_sys_msg": true,
+    "reminder": "sys"
+  },
+  {
+    "name": "gpt-4o-2024-11-20",
+    "edit_format": "diff",
+    "examples_as_sys_msg": true,
+    "reminder": "sys"
+  },
+  {
+    "name": "openai/gpt-4o-2024-11-20",
+    "edit_format": "diff",
+    "examples_as_sys_msg": true,
+    "reminder": "sys"
+  },
+  {
+    "name": "gpt-4o",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true,
+    "reminder": "sys"
+  },
+  {
+    "name": "gpt-4o-mini",
+    "reminder": "sys"
+  },
+  {
+    "name": "openai/gpt-4o-mini",
+    "reminder": "sys"
+  },
+  {
+    "name": "gpt-4-0125-preview",
+    "edit_format": "udiff",
+    "examples_as_sys_msg": true,
+    "reminder": "sys"
+  },
+  {
+    "name": "gpt-4-1106-preview",
+    "edit_format": "udiff",
+    "reminder": "sys"
+  },
+  {
+    "name": "gpt-4-vision-preview",
+    "edit_format": "diff",
+    "reminder": "sys"
+  },
+  {
+    "name": "gpt-4-0314",
+    "edit_format": "diff",
+    "examples_as_sys_msg": true,
+    "reminder": "sys"
+  },
+  {
+    "name": "gpt-4-0613",
+    "edit_format": "diff",
+    "reminder": "sys"
+  },
+  {
+    "name": "gpt-4-32k-0613",
+    "edit_format": "diff",
+    "reminder": "sys"
+  },
+  {
+    "name": "claude-3-opus-20240229",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openrouter/anthropic/claude-3-opus",
+    "edit_format": "diff"
+  },
+  {
+    "name": "claude-3-5-sonnet-20240620",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "anthropic/claude-3-5-sonnet-20240620",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "anthropic/claude-3-5-sonnet-20241022",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "anthropic/claude-3-7-sonnet-20250219",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "anthropic/claude-3-7-sonnet-latest",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "claude-3-7-sonnet-20250219",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "claude-3-7-sonnet-latest",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "bedrock/anthropic.claude-3-7-sonnet-20250219-v1:0",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "bedrock/us.anthropic.claude-3-7-sonnet-20250219-v1:0",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "bedrock_converse/anthropic.claude-3-7-sonnet-20250219-v1:0",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "bedrock_converse/us.anthropic.claude-3-7-sonnet-20250219-v1:0",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "vertex_ai/claude-3-7-sonnet@20250219",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "vertex_ai/claude-3-7-sonnet@20250219",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "openrouter/anthropic/claude-3.7-sonnet",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "openrouter/anthropic/claude-3.7-sonnet:beta",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "bedrock/anthropic.claude-3-5-sonnet-20241022-v2:0",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "anthropic/claude-3-5-sonnet-latest",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "claude-3-5-sonnet-20241022",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "anthropic/claude-3-haiku-20240307",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "anthropic/claude-3-5-haiku-20241022",
+    "edit_format": "diff"
+  },
+  {
+    "name": "bedrock/anthropic.claude-3-5-haiku-20241022-v1:0",
+    "edit_format": "diff"
+  },
+  {
+    "name": "claude-3-5-haiku-20241022",
+    "edit_format": "diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "vertex_ai/claude-3-5-haiku@20241022",
+    "edit_format": "diff"
+  },
+  {
+    "name": "claude-3-haiku-20240307",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "openrouter/anthropic/claude-3.5-sonnet",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "openrouter/anthropic/claude-3.5-sonnet:beta",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "vertex_ai/claude-3-5-sonnet@20240620",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "vertex_ai/claude-3-5-sonnet-v2@20241022",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "vertex_ai/claude-3-opus@20240229",
+    "edit_format": "diff"
+  },
+  {
+    "name": "groq/llama3-70b-8192",
+    "edit_format": "diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "openrouter/meta-llama/llama-3-70b-instruct",
+    "edit_format": "diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "gemini/gemini-1.5-pro-002",
+    "edit_format": "diff"
+  },
+  {
+    "name": "gemini/gemini-1.5-pro",
+    "edit_format": "diff-fenced"
+  },
+  {
+    "name": "gemini/gemini-1.5-pro-latest",
+    "edit_format": "diff-fenced"
+  },
+  {
+    "name": "gemini/gemini-exp-1206",
+    "edit_format": "diff"
+  },
+  {
+    "name": "gemini/gemini-2.0-flash-exp",
+    "edit_format": "diff"
+  },
+  {
+    "name": "gemini/gemini-2.0-flash",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openrouter/deepseek/deepseek-r1",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "openrouter/deepseek/deepseek-r1:free",
+    "edit_format": "diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "openrouter/deepseek/deepseek-chat-v3-0324:free",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "deepseek/deepseek-reasoner",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "deepseek/deepseek-chat",
+    "edit_format": "diff",
+    "examples_as_sys_msg": true,
+    "reminder": "sys"
+  },
+  {
+    "name": "openrouter/deepseek/deepseek-chat:free",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "deepseek/deepseek-coder",
+    "edit_format": "diff",
+    "examples_as_sys_msg": true,
+    "reminder": "sys"
+  },
+  {
+    "name": "deepseek-chat",
+    "edit_format": "diff",
+    "examples_as_sys_msg": true,
+    "reminder": "sys"
+  },
+  {
+    "name": "deepseek-coder",
+    "edit_format": "diff",
+    "examples_as_sys_msg": true,
+    "reminder": "sys"
+  },
+  {
+    "name": "openrouter/deepseek/deepseek-coder",
+    "edit_format": "diff",
+    "examples_as_sys_msg": true,
+    "reminder": "sys"
+  },
+  {
+    "name": "openrouter/deepseek/deepseek-chat",
+    "edit_format": "diff",
+    "examples_as_sys_msg": true,
+    "reminder": "sys"
+  },
+  {
+    "name": "openrouter/deepseek/deepseek-chat-v3-0324",
+    "edit_format": "diff",
+    "examples_as_sys_msg": true,
+    "reminder": "sys"
+  },
+  {
+    "name": "openrouter/openai/gpt-4o",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true,
+    "reminder": "sys"
+  },
+  {
+    "name": "openai/o1-mini",
+    "editor_edit_format": "editor-diff"
+  },
+  {
+    "name": "azure/o1-mini",
+    "editor_edit_format": "editor-diff"
+  },
+  {
+    "name": "o1-mini",
+    "editor_edit_format": "editor-diff"
+  },
+  {
+    "name": "openai/o1-preview",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff"
+  },
+  {
+    "name": "azure/o1-preview",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff"
+  },
+  {
+    "name": "azure/o1",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff"
+  },
+  {
+    "name": "o1-preview",
+    "edit_format": "architect",
+    "editor_edit_format": "editor-diff"
+  },
+  {
+    "name": "openrouter/openai/o1-mini",
+    "editor_edit_format": "editor-diff"
+  },
+  {
+    "name": "openrouter/openai/o1-preview",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff"
+  },
+  {
+    "name": "openrouter/openai/o1",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff"
+  },
+  {
+    "name": "openai/o1",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff"
+  },
+  {
+    "name": "o1",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff"
+  },
+  {
+    "name": "openrouter/qwen/qwen-2.5-coder-32b-instruct",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff"
+  },
+  {
+    "name": "openrouter/deepseek/deepseek-r1-distill-llama-70b",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "openrouter/moonshotai/kimi-k2",
+    "edit_format": "diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "fireworks_ai/accounts/fireworks/models/deepseek-r1",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff"
+  },
+  {
+    "name": "fireworks_ai/accounts/fireworks/models/deepseek-v3",
+    "edit_format": "diff",
+    "examples_as_sys_msg": true,
+    "reminder": "sys"
+  },
+  {
+    "name": "fireworks_ai/accounts/fireworks/models/deepseek-v3-0324",
+    "edit_format": "diff",
+    "examples_as_sys_msg": true,
+    "reminder": "sys"
+  },
+  {
+    "name": "openai/o3-mini",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff"
+  },
+  {
+    "name": "o3-mini",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff"
+  },
+  {
+    "name": "openrouter/openai/o3-mini",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff"
+  },
+  {
+    "name": "openrouter/openai/o3-mini-high",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff"
+  },
+  {
+    "name": "azure/o3-mini",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff"
+  },
+  {
+    "name": "gpt-4.5-preview",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true,
+    "reminder": "sys"
+  },
+  {
+    "name": "openai/gpt-4.5-preview",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true,
+    "reminder": "sys"
+  },
+  {
+    "name": "fireworks_ai/accounts/fireworks/models/qwq-32b",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true,
+    "reminder": "user"
+  },
+  {
+    "name": "groq/qwen-qwq-32b",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff"
+  },
+  {
+    "name": "cohere_chat/command-a-03-2025",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "openrouter/cohere/command-a-03-2025",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "gemini/gemini-2.5-pro-preview-03-25",
+    "edit_format": "diff-fenced"
+  },
+  {
+    "name": "gemini/gemini-2.5-pro-exp-03-25",
+    "edit_format": "diff-fenced"
+  },
+  {
+    "name": "openrouter/google/gemini-2.5-pro-exp-03-25",
+    "edit_format": "diff-fenced"
+  },
+  {
+    "name": "vertex_ai/gemini-2.5-pro-exp-03-25",
+    "edit_format": "diff-fenced"
+  },
+  {
+    "name": "vertex_ai/gemini-2.5-pro-preview-03-25",
+    "edit_format": "diff-fenced"
+  },
+  {
+    "name": "openrouter/openrouter/quasar-alpha",
+    "edit_format": "diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "openrouter/x-ai/grok-3-beta",
+    "edit_format": "diff"
+  },
+  {
+    "name": "xai/grok-3-beta",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openrouter/x-ai/grok-3-mini-beta",
+    "edit_format": "whole"
+  },
+  {
+    "name": "openai/o4-mini",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "openrouter/openai/o4-mini",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "azure/o4-mini",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "xai/grok-4",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openrouter/x-ai/grok-4",
+    "edit_format": "diff"
+  },
+  {
+    "name": "xai/grok-3-mini-beta",
+    "edit_format": "whole"
+  },
+  {
+    "name": "openrouter/x-ai/grok-3-fast-beta",
+    "edit_format": "diff"
+  },
+  {
+    "name": "xai/grok-3-fast-beta",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openrouter/x-ai/grok-3-mini-fast-beta",
+    "edit_format": "whole"
+  },
+  {
+    "name": "xai/grok-3-mini-fast-beta",
+    "edit_format": "whole"
+  },
+  {
+    "name": "openrouter/openrouter/optimus-alpha",
+    "edit_format": "diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "gpt-4.1",
+    "edit_format": "diff",
+    "examples_as_sys_msg": false,
+    "reminder": "sys"
+  },
+  {
+    "name": "openai/gpt-4.1",
+    "edit_format": "diff",
+    "examples_as_sys_msg": false,
+    "reminder": "sys"
+  },
+  {
+    "name": "azure/gpt-4.1",
+    "edit_format": "diff",
+    "examples_as_sys_msg": false,
+    "reminder": "sys"
+  },
+  {
+    "name": "openrouter/openai/gpt-4.1",
+    "edit_format": "diff",
+    "examples_as_sys_msg": false,
+    "reminder": "sys"
+  },
+  {
+    "name": "gpt-4.1-mini",
+    "edit_format": "diff",
+    "examples_as_sys_msg": false,
+    "reminder": "sys"
+  },
+  {
+    "name": "openai/gpt-4.1-mini",
+    "edit_format": "diff",
+    "examples_as_sys_msg": false,
+    "reminder": "sys"
+  },
+  {
+    "name": "azure/gpt-4.1-mini",
+    "edit_format": "diff",
+    "examples_as_sys_msg": false,
+    "reminder": "sys"
+  },
+  {
+    "name": "openrouter/openai/gpt-4.1-mini",
+    "edit_format": "diff",
+    "examples_as_sys_msg": false,
+    "reminder": "sys"
+  },
+  {
+    "name": "o3",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "o3-pro",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "openai/o4-mini",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "openrouter/openai/o4-mini",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "azure/o4-mini",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "openai/o3",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "openai/o3-pro",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "openai/o4-mini",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "openrouter/openai/o4-mini",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "azure/o4-mini",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "openrouter/openai/o3",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "openrouter/openai/o3-pro",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "openai/o4-mini",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "openrouter/openai/o4-mini",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "azure/o4-mini",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "azure/o3",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "azure/o3-pro",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "openai/o4-mini",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "openrouter/openai/o4-mini",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "azure/o4-mini",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "o4-mini",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "gemini/gemini-2.5-flash-preview-04-17",
+    "edit_format": "diff"
+  },
+  {
+    "name": "gemini-2.5-flash-preview-04-17",
+    "edit_format": "diff"
+  },
+  {
+    "name": "vertex_ai/gemini-2.5-flash-preview-04-17",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openrouter/google/gemini-2.5-pro-preview-03-25",
+    "edit_format": "diff-fenced"
+  },
+  {
+    "name": "gemini/gemini-2.5-pro-preview-05-06",
+    "edit_format": "diff-fenced"
+  },
+  {
+    "name": "gemini/gemini-2.5-pro-preview-06-05",
+    "edit_format": "diff-fenced"
+  },
+  {
+    "name": "gemini/gemini-2.5-flash",
+    "edit_format": "diff-fenced"
+  },
+  {
+    "name": "gemini/gemini-2.5-flash-preview-09-2025",
+    "edit_format": "diff-fenced"
+  },
+  {
+    "name": "gemini-2.5-flash-preview-09-2025",
+    "edit_format": "diff-fenced"
+  },
+  {
+    "name": "gemini/gemini-2.5-flash-lite",
+    "edit_format": "diff-fenced"
+  },
+  {
+    "name": "gemini-2.5-flash-lite",
+    "edit_format": "diff-fenced"
+  },
+  {
+    "name": "gemini/gemini-2.5-flash-lite-preview-09-2025",
+    "edit_format": "diff-fenced"
+  },
+  {
+    "name": "gemini-2.5-flash-lite-preview-09-2025",
+    "edit_format": "diff-fenced"
+  },
+  {
+    "name": "gemini/gemini-flash-latest",
+    "edit_format": "diff-fenced"
+  },
+  {
+    "name": "gemini-flash-latest",
+    "edit_format": "diff-fenced"
+  },
+  {
+    "name": "gemini/gemini-2.5-pro",
+    "edit_format": "diff-fenced"
+  },
+  {
+    "name": "gemini/gemini-2.5-flash-lite-preview-06-17",
+    "edit_format": "diff-fenced"
+  },
+  {
+    "name": "vertex_ai/gemini-2.5-pro-preview-05-06",
+    "edit_format": "diff-fenced"
+  },
+  {
+    "name": "vertex_ai/gemini-2.5-pro-preview-06-05",
+    "edit_format": "diff-fenced"
+  },
+  {
+    "name": "vertex_ai/gemini-2.5-pro",
+    "edit_format": "diff-fenced"
+  },
+  {
+    "name": "vertex_ai/gemini-2.5-flash",
+    "edit_format": "diff-fenced"
+  },
+  {
+    "name": "openrouter/google/gemini-2.5-pro-preview-05-06",
+    "edit_format": "diff-fenced"
+  },
+  {
+    "name": "openrouter/google/gemini-2.5-pro-preview-06-05",
+    "edit_format": "diff-fenced"
+  },
+  {
+    "name": "openrouter/google/gemini-2.5-pro",
+    "edit_format": "diff-fenced"
+  },
+  {
+    "name": "openrouter/google/gemini-2.5-flash",
+    "edit_format": "diff-fenced"
+  },
+  {
+    "name": "gemini/gemini-3-pro-preview",
+    "edit_format": "diff-fenced"
+  },
+  {
+    "name": "vertex_ai/gemini-3-pro-preview",
+    "edit_format": "diff-fenced"
+  },
+  {
+    "name": "openrouter/google/gemini-3-pro-preview",
+    "edit_format": "diff-fenced"
+  },
+  {
+    "name": "gemini/gemini-3-flash-preview",
+    "edit_format": "diff-fenced"
+  },
+  {
+    "name": "vertex_ai/gemini-3-flash-preview",
+    "edit_format": "diff-fenced"
+  },
+  {
+    "name": "openrouter/google/gemini-3-flash-preview",
+    "edit_format": "diff-fenced"
+  },
+  {
+    "name": "claude-sonnet-4-20250514",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": false
+  },
+  {
+    "name": "anthropic/claude-sonnet-4-20250514",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": false
+  },
+  {
+    "name": "bedrock/anthropic.claude-sonnet-4-20250514-v1:0",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": false
+  },
+  {
+    "name": "bedrock/us.anthropic.claude-sonnet-4-20250514-v1:0",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": false
+  },
+  {
+    "name": "bedrock/global.anthropic.claude-sonnet-4-5-20250929-v1:0",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": false
+  },
+  {
+    "name": "bedrock_converse/anthropic.claude-sonnet-4-20250514-v1:0",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": false
+  },
+  {
+    "name": "bedrock_converse/us.anthropic.claude-sonnet-4-20250514-v1:0",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": false
+  },
+  {
+    "name": "vertex_ai/claude-sonnet-4@20250514",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": false
+  },
+  {
+    "name": "vertex_ai/claude-sonnet-4@20250514",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": false
+  },
+  {
+    "name": "openrouter/anthropic/claude-sonnet-4",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": false
+  },
+  {
+    "name": "anthropic.claude-sonnet-4-20250514-v1:0",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": false
+  },
+  {
+    "name": "bedrock_converse/eu.anthropic.claude-sonnet-4-20250514-v1:0",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": false
+  },
+  {
+    "name": "eu.anthropic.claude-sonnet-4-20250514-v1:0",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": false
+  },
+  {
+    "name": "us.anthropic.claude-sonnet-4-20250514-v1:0",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": false
+  },
+  {
+    "name": "claude-opus-4-20250514",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": false
+  },
+  {
+    "name": "anthropic/claude-opus-4-20250514",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": false
+  },
+  {
+    "name": "anthropic.claude-opus-4-20250514-v1:0",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": false
+  },
+  {
+    "name": "bedrock_converse/anthropic.claude-opus-4-20250514-v1:0",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": false
+  },
+  {
+    "name": "bedrock_converse/us.anthropic.claude-opus-4-20250514-v1:0",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": false
+  },
+  {
+    "name": "claude-sonnet-4-6",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": false
+  },
+  {
+    "name": "claude-opus-4-7",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": false
+  },
+  {
+    "name": "claude-opus-4-6",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": false
+  },
+  {
+    "name": "claude-sonnet-4-5-20250929",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": false
+  },
+  {
+    "name": "claude-sonnet-4-5",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": false
+  },
+  {
+    "name": "claude-haiku-4-5-20251001",
+    "edit_format": "diff",
+    "examples_as_sys_msg": false
+  },
+  {
+    "name": "claude-haiku-4-5",
+    "edit_format": "diff",
+    "examples_as_sys_msg": false
+  },
+  {
+    "name": "bedrock/anthropic.claude-opus-4-6-v1",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": false
+  },
+  {
+    "name": "bedrock/anthropic.claude-opus-4-7-v1",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": false
+  },
+  {
+    "name": "bedrock/anthropic.claude-sonnet-4-5-20250929-v1:0",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": false
+  },
+  {
+    "name": "bedrock/anthropic.claude-haiku-4-5-20251001-v1:0",
+    "edit_format": "diff",
+    "examples_as_sys_msg": false
+  },
+  {
+    "name": "vertex_ai/claude-opus-4-6",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": false
+  },
+  {
+    "name": "vertex_ai/claude-opus-4-7",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": false
+  },
+  {
+    "name": "vertex_ai/claude-sonnet-4-5@20250929",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": false
+  },
+  {
+    "name": "vertex_ai/claude-haiku-4-5@20251001",
+    "edit_format": "diff",
+    "examples_as_sys_msg": false
+  },
+  {
+    "name": "bedrock_converse/eu.anthropic.claude-opus-4-20250514-v1:0",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": false
+  },
+  {
+    "name": "eu.anthropic.claude-opus-4-20250514-v1:0",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": false
+  },
+  {
+    "name": "us.anthropic.claude-opus-4-20250514-v1:0",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": false
+  },
+  {
+    "name": "vertex_ai/claude-opus-4@20250514",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": false
+  },
+  {
+    "name": "vertex_ai/claude-opus-4@20250514",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": false
+  },
+  {
+    "name": "vertex_ai/gemini-2.5-flash-preview-05-20",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openrouter/anthropic/claude-opus-4",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": false
+  },
+  {
+    "name": "openrouter/anthropic/claude-opus-4.6",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": false
+  },
+  {
+    "name": "openrouter/anthropic/claude-opus-4.7",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": false
+  },
+  {
+    "name": "openrouter/anthropic/claude-sonnet-4.5",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": false
+  },
+  {
+    "name": "openrouter/anthropic/claude-haiku-4.5",
+    "edit_format": "diff",
+    "examples_as_sys_msg": false
+  },
+  {
+    "name": "gpt-5",
+    "edit_format": "diff"
+  },
+  {
+    "name": "gpt-5-pro",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "gpt-5-2025-08-07",
+    "edit_format": "diff"
+  },
+  {
+    "name": "gpt-5.1",
+    "edit_format": "diff"
+  },
+  {
+    "name": "gpt-5.1-2025-11-13",
+    "edit_format": "diff"
+  },
+  {
+    "name": "gpt-5.2-pro",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "gpt-5.2",
+    "edit_format": "diff"
+  },
+  {
+    "name": "gpt-5.2-2025-12-11",
+    "edit_format": "diff"
+  },
+  {
+    "name": "gpt-5-mini",
+    "edit_format": "diff"
+  },
+  {
+    "name": "gpt-5-mini-2025-08-07",
+    "edit_format": "diff"
+  },
+  {
+    "name": "gpt-5-nano",
+    "edit_format": "diff"
+  },
+  {
+    "name": "gpt-5-nano-2025-08-07",
+    "edit_format": "diff"
+  },
+  {
+    "name": "gpt-5-chat",
+    "edit_format": "diff"
+  },
+  {
+    "name": "gpt-5-chat-latest",
+    "edit_format": "diff"
+  },
+  {
+    "name": "gpt-5.1-chat",
+    "edit_format": "diff"
+  },
+  {
+    "name": "gpt-5.1-chat-latest",
+    "edit_format": "diff"
+  },
+  {
+    "name": "gpt-5.2-chat-latest",
+    "edit_format": "diff"
+  },
+  {
+    "name": "gpt-5.3",
+    "edit_format": "diff"
+  },
+  {
+    "name": "gpt-5.3-pro",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "gpt-5.3-chat-latest",
+    "edit_format": "diff"
+  },
+  {
+    "name": "gpt-5.4",
+    "edit_format": "diff"
+  },
+  {
+    "name": "gpt-5.4-pro",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "gpt-5.4-chat-latest",
+    "edit_format": "diff"
+  },
+  {
+    "name": "gpt-5.5",
+    "edit_format": "diff"
+  },
+  {
+    "name": "gpt-5.5-pro",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "gpt-5.5-chat-latest",
+    "edit_format": "diff"
+  },
+  {
+    "name": "gpt-5-codex",
+    "edit_format": "diff"
+  },
+  {
+    "name": "gpt-5.1-codex",
+    "edit_format": "diff"
+  },
+  {
+    "name": "azure/gpt-5",
+    "edit_format": "diff"
+  },
+  {
+    "name": "azure/gpt-5-pro",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "azure/gpt-5-2025-08-07",
+    "edit_format": "diff"
+  },
+  {
+    "name": "azure/gpt-5.1",
+    "edit_format": "diff"
+  },
+  {
+    "name": "azure/gpt-5.1-2025-11-13",
+    "edit_format": "diff"
+  },
+  {
+    "name": "azure/gpt-5.2",
+    "edit_format": "diff"
+  },
+  {
+    "name": "azure/gpt-5.2-2025-12-11",
+    "edit_format": "diff"
+  },
+  {
+    "name": "azure/gpt-5-mini",
+    "edit_format": "diff"
+  },
+  {
+    "name": "azure/gpt-5-mini-2025-08-07",
+    "edit_format": "diff"
+  },
+  {
+    "name": "azure/gpt-5-nano",
+    "edit_format": "diff"
+  },
+  {
+    "name": "azure/gpt-5-nano-2025-08-07",
+    "edit_format": "diff"
+  },
+  {
+    "name": "azure/gpt-5-chat",
+    "edit_format": "diff"
+  },
+  {
+    "name": "azure/gpt-5-chat-latest",
+    "edit_format": "diff"
+  },
+  {
+    "name": "azure/gpt-5.1-chat",
+    "edit_format": "diff"
+  },
+  {
+    "name": "azure/gpt-5.1-chat-latest",
+    "edit_format": "diff"
+  },
+  {
+    "name": "azure/gpt-5.2-chat-latest",
+    "edit_format": "diff"
+  },
+  {
+    "name": "azure/gpt-5.3",
+    "edit_format": "diff"
+  },
+  {
+    "name": "azure/gpt-5.3-pro",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "azure/gpt-5.3-chat-latest",
+    "edit_format": "diff"
+  },
+  {
+    "name": "azure/gpt-5.4",
+    "edit_format": "diff"
+  },
+  {
+    "name": "azure/gpt-5.4-pro",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "azure/gpt-5.4-chat-latest",
+    "edit_format": "diff"
+  },
+  {
+    "name": "azure/gpt-5.5",
+    "edit_format": "diff"
+  },
+  {
+    "name": "azure/gpt-5.5-pro",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "azure/gpt-5.5-chat-latest",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openai/gpt-5",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openai/gpt-5-pro",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "openai/gpt-5-2025-08-07",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openai/gpt-5.1",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openai/gpt-5.1-2025-11-13",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openai/gpt-5.2-pro",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "openai/gpt-5.2",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openai/gpt-5.2-2025-12-11",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openai/gpt-5-mini",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openai/gpt-5-mini-2025-08-07",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openai/gpt-5-nano",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openai/gpt-5-nano-2025-08-07",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openai/gpt-5-chat",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openai/gpt-5-chat-latest",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openai/gpt-5.1-chat",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openai/gpt-5.1-chat-latest",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openai/gpt-5.2-chat-latest",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openai/gpt-5.3",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openai/gpt-5.3-pro",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "openai/gpt-5.3-chat-latest",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openai/gpt-5.4",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openai/gpt-5.4-pro",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "openai/gpt-5.4-chat-latest",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openai/gpt-5.5",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openai/gpt-5.5-pro",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "openai/gpt-5.5-chat-latest",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openrouter/openai/gpt-5",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openrouter/openai/gpt-5-pro",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "openrouter/openai/gpt-5-2025-08-07",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openrouter/openai/gpt-5.1",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openrouter/openai/gpt-5.1-2025-11-13",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openrouter/openai/gpt-5.2-pro",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "openrouter/openai/gpt-5.2",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openrouter/openai/gpt-5.2-2025-12-11",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openrouter/openai/gpt-5-mini",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openrouter/openai/gpt-5-mini-2025-08-07",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openrouter/openai/gpt-5-nano",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openrouter/openai/gpt-5-nano-2025-08-07",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openrouter/openai/gpt-5-chat",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openrouter/openai/gpt-5-chat-latest",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openrouter/openai/gpt-5.1-chat",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openrouter/openai/gpt-5.1-chat-latest",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openrouter/openai/gpt-5.2-chat-latest",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openrouter/openai/gpt-5.3",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openrouter/openai/gpt-5.3-pro",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "openrouter/openai/gpt-5.3-chat-latest",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openrouter/openai/gpt-5.4",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openrouter/openai/gpt-5.4-pro",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "openrouter/openai/gpt-5.4-chat-latest",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openrouter/openai/gpt-5.5",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openrouter/openai/gpt-5.5-pro",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "openrouter/openai/gpt-5.5-chat-latest",
+    "edit_format": "diff"
+  },
+  {
+    "name": "gpt-4.1-nano",
+    "edit_format": "diff",
+    "examples_as_sys_msg": false,
+    "reminder": "sys"
+  },
+  {
+    "name": "openai/gpt-4.1-nano",
+    "edit_format": "diff",
+    "examples_as_sys_msg": false,
+    "reminder": "sys"
+  },
+  {
+    "name": "o1-pro",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "openai/o1-pro",
+    "edit_format": "diff",
+    "editor_edit_format": "editor-diff",
+    "examples_as_sys_msg": true
+  },
+  {
+    "name": "gpt-5.2-codex",
+    "edit_format": "diff"
+  },
+  {
+    "name": "gpt-5.3-codex",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openai/gpt-5.2-codex",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openai/gpt-5.3-codex",
+    "edit_format": "diff"
+  },
+  {
+    "name": "gpt-5.1-codex-mini",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openai/gpt-5.1-codex-mini",
+    "edit_format": "diff"
+  },
+  {
+    "name": "gpt-5.1-codex-max",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openai/gpt-5.1-codex-max",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openrouter/openai/gpt-5.2-codex",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openrouter/openai/gpt-5.3-codex",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openrouter/openai/gpt-5.1-codex-mini",
+    "edit_format": "diff"
+  },
+  {
+    "name": "openrouter/openai/gpt-5.1-codex-max",
+    "edit_format": "diff"
+  }
+]

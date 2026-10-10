@@ -3538,10 +3538,25 @@
         "aider/models.py:140-177,385-606"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('session_start')",
+        "ctx.model (physical model id for policy resolution)"
+      ],
+      "src": [
+        "src/edit/model-format-policy.ts",
+        "src/edit/model-format-settings.json",
+        "src/core/install.ts"
+      ],
+      "tests": [
+        "test/edit/model-format-policy-bind.test.ts::unrecognized model names default to whole-file editing",
+        "test/edit/model-format-policy-bind.test.ts::packaged gpt-3.5-turbo keeps whole format and sys reminder",
+        "test/edit/model-format-policy-bind.test.ts::packaged gpt-4o selects diff, editor-diff, examples, and sys reminder",
+        "test/edit/model-format-policy-bind.test.ts::generic name heuristics select documented format fields",
+        "test/edit/model-format-policy-bind.test.ts::selectEditFormat uses the model policy as modelDefault when request is unset",
+        "test/edit/model-format-policy-bind.test.ts::explicit edit format outranks the model default",
+        "test/edit/model-format-policy-bind.test.ts::prompt and editor policy map from the resolved model format"
+      ]
     },
     {
       "id": "edit.settings.precedence",
