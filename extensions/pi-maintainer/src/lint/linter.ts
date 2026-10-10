@@ -9,6 +9,14 @@ export interface LintResult {
   readonly lines: readonly number[];
 }
 
+/** Honest per-file lint outcome. Aider's falsy return collapsed these into one signal. */
+export type LintFileOutcome =
+  | { readonly kind: 'clean' }
+  | { readonly kind: 'unsupported' }
+  | { readonly kind: 'unreadable'; readonly reason: string }
+  | { readonly kind: 'unavailable'; readonly reason: string }
+  | { readonly kind: 'failed'; readonly report: string };
+
 export interface LinterOptions {
   readonly host: Host;
   readonly root: string;
@@ -43,6 +51,18 @@ export function resolveLintCommand(
   return lintCmds.get(lang) ?? null;
 }
 
+/**
+ * Aider `Linter.get_rel_fname`: when root is set, return a relative string; when root is null,
+ * return the incoming path value unchanged so a pathlib.Path can pass through.
+ */
+export function relativeLintName(fname: string, root: string | null): string;
+export function relativeLintName<T>(fname: T, root: string | null): T | string;
+export function relativeLintName(fname: unknown, root: string | null): unknown {
+  if (root == null) return fname;
+  const asString = typeof fname === 'string' ? fname : String(fname);
+  return relative(root, asString) || asString;
+}
+
 /** One-based line sets keyed by matched filename (`aider/linter.py:find_filenames_and_linenums`). */
 export function findFilenamesAndLinenums(text: string, fnames: readonly string[]): Map<string, Set<number>> {
   if (!fnames.length) return new Map();
@@ -68,7 +88,7 @@ function errorsToLintResult(relFname: string, errors: string): LintResult | null
   return { text: errors, lines: linenums };
 }
 
-async function runCmd(host: Host, root: string, cmd: string, relFname: string, signal?: AbortSignal): Promise<LintResult | null> {
+async function runCmd(host: Host, root: string, cmd: string, relFname: string, signal?: AbortSignal): Promise<LintResult | null | { unavailable: string }> {
   const full = `${cmd} ${shellQuote(relFname)}`;
   try {
     const { code, output } = await runShellCommand(host, full, root, signal);
@@ -76,8 +96,9 @@ async function runCmd(host: Host, root: string, cmd: string, relFname: string, s
     const res = `## Running: ${full}\n\n${output}`;
     return errorsToLintResult(relFname, res);
   } catch (error) {
-    host.error(`Unable to execute lint command: ${error instanceof Error ? error.message : String(error)}`);
-    return null;
+    const reason = error instanceof Error ? error.message : String(error);
+    host.error(`Unable to execute lint command: ${reason}`);
+    return { unavailable: reason };
   }
 }
 
@@ -94,27 +115,34 @@ function renderLineMarkers(relFname: string, code: string, zeroBasedLines: reado
   return out;
 }
 
+/** Lint report text for callers that only need the model-facing string. */
+export function lintReportText(outcome: LintFileOutcome): string | null {
+  return outcome.kind === 'failed' ? outcome.report : null;
+}
+
 /** Lint one file through configured Host.exec commands (`aider/linter.py` cmd path). */
-export async function lintFile(fname: string, options: LinterOptions, signal?: AbortSignal): Promise<string | null> {
+export async function lintFile(fname: string, options: LinterOptions, signal?: AbortSignal): Promise<LintFileOutcome> {
   signal?.throwIfAborted();
-  const relFname = relative(options.root, fname) || fname;
+  const relFname = relativeLintName(fname, options.root);
   let code: string;
   try {
     code = await readFile(fname, { encoding: (options.encoding ?? 'utf-8') as BufferEncoding });
   } catch (error) {
-    options.host.error(`Unable to read ${fname}: ${error instanceof Error ? error.message : String(error)}`);
-    return null;
+    const reason = error instanceof Error ? error.message : String(error);
+    options.host.error(`Unable to read ${fname}: ${reason}`);
+    return { kind: 'unreadable', reason };
   }
 
   const cmd = resolveLintCommand(fname, options.lintCmds, options.explicitCmd);
-  if (!cmd) return null;
+  if (!cmd) return { kind: 'unsupported' };
 
   const lintres = await runCmd(options.host, options.root, cmd, relFname, signal);
-  if (!lintres) return null;
+  if (lintres && 'unavailable' in lintres) return { kind: 'unavailable', reason: lintres.unavailable };
+  if (!lintres) return { kind: 'clean' };
 
   let res = '# Fix any errors below, if possible.\n\n';
   res += lintres.text;
   res += '\n';
   res += renderLineMarkers(relFname, code, lintres.lines);
-  return res;
+  return { kind: 'failed', report: res };
 }

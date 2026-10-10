@@ -30,24 +30,42 @@ export function createValidation(options: CreateValidationOptions): Validation {
       if (!autoLint) return { kind: 'not-run' };
       signal?.throwIfAborted();
       let report = '';
+      let sawClean = false;
+      let sawUnsupported = false;
+      let unavailableReason: string | null = null;
       for (const path of paths) {
         if (!path) continue;
         signal?.throwIfAborted();
-        const errors = await lintFile(
+        const outcome = await lintFile(
           absPath(root, path),
           { host, root, lintCmds, ...(options.encoding !== undefined ? { encoding: options.encoding } : {}) },
           signal,
         );
-        if (errors) {
-          report += '\n';
-          report += errors;
-          report += '\n';
+        switch (outcome.kind) {
+          case 'failed':
+            report += '\n';
+            report += outcome.report;
+            report += '\n';
+            break;
+          case 'clean':
+            sawClean = true;
+            break;
+          case 'unsupported':
+            sawUnsupported = true;
+            break;
+          case 'unreadable':
+          case 'unavailable':
+            unavailableReason = outcome.reason;
+            break;
         }
       }
       if (report) {
         host.warning(report);
         return { kind: 'failed', report };
       }
+      if (unavailableReason) return { kind: 'unavailable', reason: unavailableReason };
+      if (sawClean) return { kind: 'passed' };
+      if (sawUnsupported) return { kind: 'not-run' };
       return { kind: 'passed' };
     },
 

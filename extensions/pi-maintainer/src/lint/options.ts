@@ -34,6 +34,13 @@ export const lintOptions = {
     help: 'Enable/disable automatic testing after changes (default: False)',
     sar: 'lint',
   }),
+  test: booleanOption({
+    name: 'test',
+    defaultValue: false,
+    negatable: false,
+    help: 'Run tests, fix problems found and then exit',
+    sar: 'lint',
+  }),
 } as const;
 
 export const lintOptionList = Object.values(lintOptions);

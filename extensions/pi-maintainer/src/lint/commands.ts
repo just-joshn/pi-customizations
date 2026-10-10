@@ -2,10 +2,11 @@ import { chatFilesOf } from '../core/branch.ts';
 import { absRootPath, inchatRelativeFiles } from '../core/chat-files.ts';
 import type { CommandEnv, CommandSpec } from '../core/command.ts';
 import { parseQuotedFilenames } from '../edit/quoted-filenames.ts';
-import { lintFile } from './linter.ts';
+import { lintFile, lintReportText } from './linter.ts';
 import { listDirtyRelativeFiles, selectLintRelativeFiles } from './select-files.ts';
 
-async function runLint(args: string, env: CommandEnv): Promise<void> {
+/** Explicit `/lint` and startup `--lint` file workflow (`aider/commands.py:cmd_lint` selection + lint). */
+export async function runExplicitLintWorkflow(args: string, env: CommandEnv): Promise<void> {
   if (env.git.repoRoot() === null) {
     env.host.error('No git repository found.');
     return;
@@ -22,7 +23,7 @@ async function runLint(args: string, env: CommandEnv): Promise<void> {
   for (const rel of selected) {
     const abs = absRootPath(root, rel);
     try {
-      const errors = await lintFile(abs, { host: env.host, root, lintCmds: env.lintCmds });
+      const errors = lintReportText(await lintFile(abs, { host: env.host, root, lintCmds: env.lintCmds }));
       if (errors) env.host.output(errors);
     } catch (error) {
       env.host.error(`Unable to lint ${abs}`);
@@ -47,7 +48,7 @@ export const lintCommands: readonly CommandSpec[] = [
   {
     name: 'lint',
     description: 'Lint and fix in-chat files or all dirty files if none in chat',
-    run: runLint,
+    run: runExplicitLintWorkflow,
   },
   {
     name: 'test',

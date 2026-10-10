@@ -13,7 +13,9 @@ import { admitInitialEditable, readMessageFile } from '../edit/startup-input.ts'
 import { createPorts, type EditFormatName, isEditFormatName, type Ports, type SarFeature } from '../feature.ts';
 import { gitOptions } from '../git/options.ts';
 import { prepareGitRepository } from '../git/startup.ts';
+import { runExplicitLintWorkflow } from '../lint/commands.ts';
 import { lintOptions } from '../lint/options.ts';
+import { runLintTestOneshot } from '../lint/oneshot.ts';
 import { parseLintCmds } from '../lint/parse-lint-cmds.ts';
 import { formatSettings } from '../settings/format-settings.ts';
 import { loadSettings } from '../settings/load.ts';
@@ -363,6 +365,31 @@ class MaintainerRuntime {
         output: (text) => this.host.output(text),
       });
       if (shown.kind === 'exit') return;
+    }
+    const oneshotLint = specs.includes(lintOptions.lint) && loaded.settings.value(lintOptions.lint);
+    const oneshotTest = specs.includes(lintOptions.test) && loaded.settings.value(lintOptions.test);
+    if (oneshotLint || oneshotTest) {
+      const oneshot = await runLintTestOneshot({
+        lint: oneshotLint,
+        test: oneshotTest,
+        testCmd: this.#testCmd,
+        runLintWorkflow: async () => {
+          await runExplicitLintWorkflow('', this.commandEnv());
+        },
+        runTestCommand: async (command) => {
+          const outcome = await ports.lint.runTestCommand(command);
+          return {
+            childFailed: outcome.kind === 'failed',
+            repairText: outcome.kind === 'failed' ? outcome.report : null,
+          };
+        },
+        error: (message) => this.host.error(message),
+        placeholder: null,
+      });
+      if (oneshot.kind === 'exit') {
+        process.exitCode = oneshot.status;
+        return;
+      }
     }
     if (!restored.snapshot && ports.edit.applyFile) {
       const applyPath = absRootPath(ctx.cwd, ports.edit.applyFile);

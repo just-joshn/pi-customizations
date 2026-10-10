@@ -69,13 +69,13 @@ test('without explicit override, filename recognition precedes the global comman
   ]);
 
   const py = await lintFile(join(root, 'sample.py'), { host, root, lintCmds });
-  expect(py).toBeNull();
+  expect(py).toEqual({ kind: 'clean' });
   expect(runs.some((run) => run.includes('ok-lint') && run.includes('sample.py'))).toBe(true);
   expect(runs.some((run) => run.includes('lang-python'))).toBe(false);
 
   runs.length = 0;
   const skipped = await lintFile(join(root, 'notes.xyz'), { host, root, lintCmds });
-  expect(skipped).toBeNull();
+  expect(skipped).toEqual({ kind: 'unsupported' });
   expect(runs).toEqual([]);
 });
 
@@ -86,7 +86,7 @@ test('language-specific command is used when no global command is configured', a
   const host = recordingHost(runs);
   const lintCmds = new Map<string | null, string>([['python', 'ok-lint']]);
 
-  expect(await lintFile(join(root, 'sample.py'), { host, root, lintCmds })).toBeNull();
+  expect(await lintFile(join(root, 'sample.py'), { host, root, lintCmds })).toEqual({ kind: 'clean' });
   expect(runs.some((run) => run.includes('ok-lint') && run.includes(shellQuote('sample.py')))).toBe(true);
 });
 
@@ -97,7 +97,7 @@ test('unknown extensions produce no lint report under automatic and global-comma
   const host = recordingHost(runs);
   const lintCmds = new Map<string | null, string>([[null, 'fail-lint']]);
 
-  expect(await lintFile(join(root, 'readme.md'), { host, root, lintCmds })).toBeNull();
+  expect(await lintFile(join(root, 'readme.md'), { host, root, lintCmds })).toEqual({ kind: 'unsupported' });
   expect(runs).toEqual([]);
 });
 
@@ -108,7 +108,7 @@ test('custom lint appends one oslex-quoted relative path and discards exit-zero 
   const host = recordingHost(runs);
   const lintCmds = new Map<string | null, string>([['python', 'ok-lint --strict']]);
 
-  expect(await lintFile(join(root, 'sample.py'), { host, root, lintCmds })).toBeNull();
+  expect(await lintFile(join(root, 'sample.py'), { host, root, lintCmds })).toEqual({ kind: 'clean' });
   const shell = runs[0] ?? '';
   expect(shell).toContain(`ok-lint --strict ${shellQuote('sample.py')}`);
   expect(shell).not.toContain('should be discarded');
@@ -121,14 +121,15 @@ test('nonzero custom lint output becomes diagnostic context with extracted lines
   const host = recordingHost(runs);
   const lintCmds = new Map<string | null, string>([['python', 'fail-lint']]);
 
-  const report = await lintFile(join(root, 'sample.py'), { host, root, lintCmds });
-  expect(report).toContain('# Fix any errors below, if possible.');
-  expect(report).toContain('## Running: fail-lint');
-  expect(report).toContain('sample.py:2: error');
-  expect(report).toContain('## See relevant line below marked with █.');
-  expect(report).toContain('2█b');
+  const outcome = await lintFile(join(root, 'sample.py'), { host, root, lintCmds });
+  expect(outcome.kind).toBe('failed');
+  if (outcome.kind !== 'failed') return;
+  expect(outcome.report).toContain('# Fix any errors below, if possible.');
+  expect(outcome.report).toContain('## Running: fail-lint');
+  expect(outcome.report).toContain('sample.py:2: error');
+  expect(outcome.report).toContain('## See relevant line below marked with █.');
+  expect(outcome.report).toContain('2█b');
 });
-
 test('find_filenames_and_linenums extracts one-based line sets with word-boundary filename matches', () => {
   const text = 'ignore sample.pyx:9\nsample.py:2: err\nsample.py:4: other\nother.py:3: skip\n';
   const found = findFilenamesAndLinenums(text, ['sample.py']);
@@ -143,16 +144,18 @@ test('explicit lint command bypasses unknown-file skipping and can still fail', 
   const host = recordingHost(runs);
   const lintCmds = new Map<string | null, string>();
 
-  const report = await lintFile(join(root, 'notes.xyz'), {
+  const outcome = await lintFile(join(root, 'notes.xyz'), {
     host,
     root,
     lintCmds,
     explicitCmd: 'unknown-bin',
   });
   expect(runs.some((run) => run.includes('unknown-bin') && run.includes(shellQuote('notes.xyz')))).toBe(true);
-  expect(report).toContain('# Fix any errors below, if possible.');
-  expect(report).toContain('## Running: unknown-bin');
-  expect(report).toContain('unknown-bin: not found');
+  expect(outcome.kind).toBe('failed');
+  if (outcome.kind !== 'failed') return;
+  expect(outcome.report).toContain('# Fix any errors below, if possible.');
+  expect(outcome.report).toContain('## Running: unknown-bin');
+  expect(outcome.report).toContain('unknown-bin: not found');
 });
 
 test('--lint is a boolean one-shot flag and language checkers use --lint-cmd', () => {

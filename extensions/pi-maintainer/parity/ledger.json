@@ -6213,10 +6213,24 @@
         "aider/args.py:526-565"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.registerFlag",
+        "pi.on('session_start')",
+        "Host.exec"
+      ],
+      "src": [
+        "src/lint/oneshot.ts",
+        "src/lint/options.ts",
+        "src/lint/commands.ts",
+        "src/lint/feature.ts",
+        "src/core/install.ts"
+      ],
+      "tests": [
+        "test/lint/oneshot-bind.test.ts::--lint and --test are boolean oneshot startup flags; --test-cmd remains the command string",
+        "test/lint/oneshot-bind.test.ts::startup --test without --test-cmd exits 1 before running tests",
+        "test/lint/oneshot-bind.test.ts::startup --lint runs the lint workflow then exits 0 before optional commit"
+      ]
     },
     {
       "id": "lint.dispatch.precedence",
@@ -6486,10 +6500,22 @@
         "aider/main.py:1053-1073,1272-1274"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.registerFlag",
+        "pi.on('session_start')",
+        "Host.exec"
+      ],
+      "src": [
+        "src/lint/oneshot.ts",
+        "src/lint/options.ts",
+        "src/lint/commands.ts",
+        "src/lint/feature.ts",
+        "src/core/install.ts"
+      ],
+      "tests": [
+        "test/lint/oneshot-bind.test.ts::startup --test ignores repair feedback for model fixing unless placeholder is set; child failure is not process exit status"
+      ]
     },
     {
       "id": "lint.apply.bypasses-validation",
@@ -6545,10 +6571,18 @@
         "aider/commands.py:993-1054"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "Host.exec"
+      ],
+      "src": [
+        "src/lint/linter.ts",
+        "src/lint/validation.ts",
+        "src/lint/feature.ts"
+      ],
+      "tests": [
+        "test/lint/oneshot-bind.test.ts::lint and test CheckOutcome kinds distinguish clean, unsupported, unreadable, unavailable, and missing command"
+      ]
     },
     {
       "id": "lint.fail.explicit-unknown-command",
@@ -6578,10 +6612,16 @@
         "aider/linter.py:21-80,80-116"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "Host.exec"
+      ],
+      "src": [
+        "src/lint/linter.ts"
+      ],
+      "tests": [
+        "test/lint/oneshot-bind.test.ts::relativeLintName with null root preserves the incoming path object (Aider get_rel_fname quirk)"
+      ]
     },
     {
       "id": "lint.fail.stale-diagnostics",
@@ -6591,10 +6631,16 @@
         "aider/linter.py:80-166"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "Host.exec"
+      ],
+      "src": [
+        "src/lint/linter.ts"
+      ],
+      "tests": [
+        "test/lint/oneshot-bind.test.ts::custom lint command that rewrites the file leaves repair markers on initially read bytes"
+      ]
     },
     {
       "id": "lint.security.shell-trust",

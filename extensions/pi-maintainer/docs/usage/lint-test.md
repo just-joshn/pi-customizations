@@ -12,4 +12,6 @@ Disable automatic post-edit lint with `--no-auto-lint`.
 
 ## Testing
 
+`--test` is a boolean one-shot flag. It requires `--test-cmd` (otherwise the process exits with status 1). A failing child test command does not become the process exit status.
+
 Configure the test command with `--test-cmd` and enable automatic tests with `--auto-test`.
