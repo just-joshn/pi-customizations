@@ -23,8 +23,8 @@ export const isImageFile = (fileName: string): boolean => IMAGE_EXTENSIONS.some(
  * Uses the host's `path.basename` so POSIX keeps literal backslashes and Windows splits on them.
  * Pass another basename (such as `path.win32.basename`) only in tests that emulate a foreign host.
  */
-export function imageMimeType(filePath: string, basename: (value: string) => string = nativeBasename): string | null {
-  const name = basename(filePath);
+export function imageMimeType(filePath: string, basename: ((value: string) => string) | undefined = nativeBasename): string | null {
+  const name = (basename ?? nativeBasename)(filePath);
   const dot = name.lastIndexOf('.');
   if (dot <= 0 || !/[^.]+/.test(name.slice(0, dot))) return null;
   return MIME_TYPES.get(name.slice(dot).toLowerCase()) ?? null;

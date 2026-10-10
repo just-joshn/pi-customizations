@@ -67,6 +67,8 @@ export interface ChatChunksInput extends PromptContext {
   readonly readOnlyFiles: readonly ContextFile[];
   readonly chatFiles: readonly ContextFile[];
   readonly cur: readonly TextMessage[];
+  /** Basename used for image MIME (defaults to the host `path.basename`). Tests pass `path.win32.basename`. */
+  readonly pathBasename?: (filePath: string) => string;
 }
 
 /** Aider's `ChatChunks`. */
@@ -218,8 +220,8 @@ function getFilesContent(files: readonly ContextFile[], fence: Fence): string {
     .join('');
 }
 
-function imageParts(file: ContextFile, supportsImages: boolean, supportsPdfs: boolean): readonly ContentPart[] {
-  const mimeType = isImageFile(file.relPath) ? imageMimeType(file.relPath) : null;
+function imageParts(file: ContextFile, supportsImages: boolean, supportsPdfs: boolean, pathBasename: ((filePath: string) => string) | undefined): readonly ContentPart[] {
+  const mimeType = isImageFile(file.relPath) ? imageMimeType(file.relPath, pathBasename) : null;
   if (mimeType === null) return [];
   const url = `data:${mimeType};base64,${file.content}`;
   if (mimeType.startsWith('image/') && supportsImages) {
@@ -237,11 +239,11 @@ function imageParts(file: ContextFile, supportsImages: boolean, supportsPdfs: bo
   return [];
 }
 
-function getImagesMessage(files: readonly ContextFile[], model: PromptModel): ImageMessage | null {
+function getImagesMessage(files: readonly ContextFile[], model: PromptModel, pathBasename: ((filePath: string) => string) | undefined): ImageMessage | null {
   const supportsImages = model.supportsVision;
   const supportsPdfs = model.supportsPdfInput || Boolean(model.maxPdfSizeMb) || model.name.includes('claude-3-5-sonnet-20241022');
   if (!(supportsImages || supportsPdfs)) return null;
-  const content = files.flatMap((file) => imageParts(file, supportsImages, supportsPdfs));
+  const content = files.flatMap((file) => imageParts(file, supportsImages, supportsPdfs, pathBasename));
   return content.length > 0 ? { role: 'user', content } : null;
 }
 
@@ -261,7 +263,7 @@ function getReadonlyFilesMessages(input: ChatChunksInput): readonly ChatMessage[
         { role: 'assistant', content: 'Ok, I will use these files as references.' },
       ]
     : [];
-  const images = getImagesMessage(input.readOnlyFiles, input.model);
+  const images = getImagesMessage(input.readOnlyFiles, input.model, input.pathBasename);
   return images ? [...text, images, { role: 'assistant', content: 'Ok, I will use these images as references.' }] : text;
 }
 
@@ -280,7 +282,7 @@ function getChatFilesMessages(input: ChatChunksInput): readonly ChatMessage[] {
         { role: 'assistant', content: reply },
       ]
     : [];
-  const images = getImagesMessage(input.chatFiles, input.model);
+  const images = getImagesMessage(input.chatFiles, input.model, input.pathBasename);
   return images ? [...text, images, { role: 'assistant', content: 'Ok.' }] : text;
 }
 
@@ -296,8 +298,7 @@ function placeReminder(input: ChatChunksInput, chunks: ChatChunks): ChatChunks {
   const reminderMessage: readonly TextMessage[] = prompts.systemReminder ? [{ role: 'system', content: reminder }] : [];
   const messagesTokens = model.tokenCount(allMessages(chunks));
   const reminderTokens = model.tokenCount(reminderMessage);
-  const curTokens = model.tokenCount(chunks.cur);
-  const totalTokens = messagesTokens !== null && reminderTokens !== null && curTokens !== null ? messagesTokens + reminderTokens + curTokens : 0;
+  const totalTokens = messagesTokens !== null && reminderTokens !== null ? messagesTokens + reminderTokens : 0;
   const maxInputTokens = model.maxInputTokens || 0;
   if (maxInputTokens && (totalTokens >= maxInputTokens || !prompts.systemReminder)) return chunks;
   if (model.reminder === 'sys') return { ...chunks, reminder: reminderMessage };

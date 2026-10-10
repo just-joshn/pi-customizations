@@ -1793,10 +1793,16 @@
         "aider/coders/base_coder.py:1226-1290"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('context_with_system')"
+      ],
+      "src": [
+        "src/edit/prompts/format.ts"
+      ],
+      "tests": [
+        "test/edit/prompts.test.ts::all_messages follows system, examples, read-only, repo, done, chat files, current, reminder"
+      ]
     },
     {
       "id": "edit.prompt.examples-placement",
@@ -1806,10 +1812,16 @@
         "aider/coders/base_coder.py:1233-1260"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('context_with_system')"
+      ],
+      "src": [
+        "src/edit/prompts/format.ts"
+      ],
+      "tests": [
+        "test/edit/prompts.test.ts::examples as system text use the Example conversations heading, otherwise messages plus codebase reset"
+      ]
     },
     {
       "id": "edit.prompt.reminder-placement",
@@ -1819,10 +1831,16 @@
         "aider/coders/base_coder.py:1261-1262,1284-1330"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('context_with_system')"
+      ],
+      "src": [
+        "src/edit/prompts/format.ts"
+      ],
+      "tests": [
+        "test/edit/prompts.test.ts::sys reminder is a final system message and user reminder appends to the last user turn when budget allows"
+      ]
     },
     {
       "id": "edit.prompt.context-limit-confirm",
@@ -1845,10 +1863,17 @@
         "aider/coders/base_coder.py:776-781,804-857"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('context_with_system')"
+      ],
+      "src": [
+        "src/edit/prompts/format.ts",
+        "src/support/image-files.ts"
+      ],
+      "tests": [
+        "test/edit/prompts.test.ts::vision models send image and PDF data URLs with Image file or PDF file labels"
+      ]
     },
     {
       "id": "edit.reasoning.strip-before-edits",
@@ -2870,10 +2895,16 @@
         "aider/coders/chat_chunks.py:16-28"
       ],
       "kind": "fix",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": [],
+      "status": "verified",
+      "pi": [
+        "pi.on('context_with_system')"
+      ],
+      "src": [
+        "src/edit/prompts/format.ts"
+      ],
+      "tests": [
+        "test/edit/prompts.test.ts::reminder admission counts each assembled message once against the input budget"
+      ],
       "fix": {
         "defect": "format_chat_chunks counts all_messages and then adds cur token count again, although all_messages already includes cur, suppressing reminders near the limit.",
         "intent": "The comment Add the reminder prompt if we still have room to include it at aider/coders/base_coder.py:1314-1319 states the budget intent; aider/coders/chat_chunks.py:16-28 defines the assembled message sequence.",
@@ -3499,10 +3530,16 @@
         "aider/coders/base_coder.py:1139-1141,1181-1222"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('context_with_system')"
+      ],
+      "src": [
+        "src/edit/prompts/format.ts"
+      ],
+      "tests": [
+        "test/edit/prompts.test.ts::a resolved chat language appears in platform info and as a Reply in instruction"
+      ]
     },
     {
       "id": "edit.mentions.extract-paths",
@@ -4079,10 +4116,18 @@
         "aider/utils.py:80-93"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('context_with_system')"
+      ],
+      "src": [
+        "src/edit/prompts/format.ts",
+        "src/support/image-files.ts"
+      ],
+      "tests": [
+        "test/edit/prompts.test.ts::Windows nested dot-only paths produce no image message while ordinary image and PDF paths do",
+        "test/edit/prompts.test.ts::Windows path rules drop MIME for nested dot-only image names"
+      ]
     }
   ]
 }
