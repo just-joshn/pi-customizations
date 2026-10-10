@@ -1,11 +1,14 @@
 #!/usr/bin/env node
 import { spawnSync } from 'node:child_process';
-// The parity gate. Fails unless every census unit is covered and every row is well formed.
+// The parity gate. Fails unless every unit in scope is covered, every row is well formed, and every
+// shared-module Aider test has exactly one owning SAR.
+// A SAR's slice is its document units (<sar>/...), its evidence units (ev-<sar>/...), and the Aider
+// test units it owns through sources.json testModuleOwners or test-owners.json.
 // Usage:
 //   node scripts/check-parity.mjs                         ledger and coverage against the full census
-//   node scripts/check-parity.mjs --feature edit          also require every edit row verified with passing tests
+//   node scripts/check-parity.mjs --feature edit          coverage of the edit slice, every edit row verified with passing tests
 //   node scripts/check-parity.mjs --report r.json ...     reuse a vitest JSON report instead of running vitest
-//   node scripts/check-parity.mjs --final                 require every row verified
+//   node scripts/check-parity.mjs --final                 coverage of the full census, every row verified
 //   node scripts/check-parity.mjs --fragment f.json --units edit,ev-edit,aider-test/test_editblock
 //                                                         validate one mapping fragment against a census slice
 import { createHash } from 'node:crypto';
@@ -17,7 +20,10 @@ import { fileURLToPath } from 'node:url';
 import { census, sourcesDir } from './census.mjs';
 
 const packageRoot = resolve(fileURLToPath(new URL('..', import.meta.url)));
-const sources = JSON.parse(readFileSync(join(packageRoot, 'parity/sources.json'), 'utf8'));
+const readJson = (path) => JSON.parse(readFileSync(join(packageRoot, path), 'utf8'));
+const sources = readJson('parity/sources.json');
+const testOwners = readJson('parity/test-owners.json');
+const moduleOwners = sources.testModuleOwners ?? {};
 const argv = process.argv.slice(2);
 const option = (name) => {
   const index = argv.indexOf(name);
@@ -33,6 +39,25 @@ const SOURCE_REF = /^[\w./-]+\.(py|scm|yml|yaml|toml|txt|md|json):\d+(?:-\d+)?(?
 
 const failures = [];
 const fail = (message) => failures.push(message);
+
+function sliceOf(unit) {
+  const [group = '', module = ''] = unit.id.split('/');
+  if (group !== 'aider-test') return group.replace(/^ev-/, '');
+  return Object.hasOwn(moduleOwners, module) ? moduleOwners[module] : testOwners[unit.id];
+}
+
+function checkOwners(units) {
+  for (const [module, owner] of Object.entries(moduleOwners)) {
+    if (!sources.aider.testModules.includes(module)) fail(`testModuleOwners: ${module} is not a pinned test module`);
+    if (!FEATURES.includes(owner)) fail(`testModuleOwners: ${module} names unknown SAR ${owner}`);
+  }
+  const shared = new Set(units.filter((unit) => unit.kind === 'aider-test' && !Object.hasOwn(moduleOwners, unit.id.split('/')[1])).map((unit) => unit.id));
+  for (const id of shared) if (!Object.hasOwn(testOwners, id)) fail(`unit ${id} has no owner in test-owners.json`);
+  for (const [id, owner] of Object.entries(testOwners)) {
+    if (!shared.has(id)) fail(`test-owners.json: ${id} is not a shared-module test unit in the census`);
+    if (!FEATURES.includes(owner)) fail(`test-owners.json: ${id} names unknown SAR ${owner}`);
+  }
+}
 
 function checkRow(row) {
   const where = `row ${row?.id ?? '(no id)'}`;
@@ -50,27 +75,30 @@ function checkRow(row) {
   for (const key of ['pi', 'src', 'tests']) if (!Array.isArray(row?.[key])) fail(`${where}: ${key} must be an array`);
 }
 
-function checkCoverage(units, coverage, rowIds) {
-  const unitIds = new Set(units.map((unit) => unit.id));
-  for (const unit of units) {
-    const entry = coverage[unit.id];
-    if (entry === undefined) {
-      fail(`unit ${unit.id} is not covered`);
-      continue;
-    }
-    const hasRows = Array.isArray(entry.rows);
-    const hasNonclaim = typeof entry.nonclaim === 'string';
-    if (hasRows === hasNonclaim) fail(`unit ${unit.id}: exactly one of rows or nonclaim`);
-    if (hasRows) {
-      if (entry.rows.length === 0) fail(`unit ${unit.id}: rows is empty`);
-      for (const id of entry.rows) if (!rowIds.has(id)) fail(`unit ${unit.id}: unknown row ${id}`);
-    }
-    if (hasNonclaim) {
-      if (!NONCLAIMS.has(entry.nonclaim)) fail(`unit ${unit.id}: unknown nonclaim ${entry.nonclaim}`);
-      if (typeof entry.note !== 'string' || entry.note.length < 4) fail(`unit ${unit.id}: nonclaim needs a note`);
-    }
+function checkEntry(id, entry, rowIds) {
+  const hasRows = Array.isArray(entry?.rows);
+  const hasNonclaim = typeof entry?.nonclaim === 'string';
+  if (hasRows === hasNonclaim) fail(`unit ${id}: exactly one of rows or nonclaim`);
+  if (hasRows) {
+    if (entry.rows.length === 0) fail(`unit ${id}: rows is empty`);
+    for (const row of entry.rows) if (!rowIds.has(row)) fail(`unit ${id}: unknown row ${row}`);
   }
-  return unitIds;
+  if (hasNonclaim) {
+    if (!NONCLAIMS.has(entry.nonclaim)) fail(`unit ${id}: unknown nonclaim ${entry.nonclaim}`);
+    if (typeof entry.note !== 'string' || entry.note.length < 4) fail(`unit ${id}: nonclaim needs a note`);
+  }
+}
+
+function checkCoverage(units, coverage, rowIds, where) {
+  const unitIds = new Set(units.map((unit) => unit.id));
+  for (const [id, entry] of Object.entries(coverage)) {
+    if (unitIds.has(id)) checkEntry(id, entry, rowIds);
+    else fail(`coverage key ${id} is not a ${where}`);
+  }
+}
+
+function requireCovered(units, coverage) {
+  for (const unit of units) if (!Object.hasOwn(coverage, unit.id)) fail(`unit ${unit.id} is not covered`);
 }
 
 function vitestReport() {
@@ -130,8 +158,17 @@ function checkSourcePins() {
   }
 }
 
+function sliceProgress(feature, units, coverage, rows) {
+  const slice = units.filter((unit) => sliceOf(unit) === feature);
+  const covered = slice.filter((unit) => Object.hasOwn(coverage, unit.id)).length;
+  const owned = rows.filter((row) => row.feature === feature);
+  const verified = owned.filter((row) => row.status === 'verified').length;
+  return `${feature}: slice ${slice.length} units, ${covered} covered, ${slice.length - covered} uncovered, ${owned.length} rows, ${verified} verified\n`;
+}
+
 const units = census();
 checkSourcePins();
+checkOwners(units);
 const fragmentPath = option('--fragment');
 if (fragmentPath) {
   const prefixes = (option('--units') ?? '').split(',').filter(Boolean);
@@ -141,32 +178,34 @@ if (fragmentPath) {
   rows.forEach(checkRow);
   const rowIds = new Set(rows.map((row) => row.id));
   if (rowIds.size !== rows.length) fail('fragment has duplicate row ids');
-  const covered = checkCoverage(slice, fragment.coverage ?? {}, rowIds);
-  for (const id of Object.keys(fragment.coverage ?? {})) if (!covered.has(id)) fail(`coverage key ${id} is not a unit in this slice`);
+  checkCoverage(slice, fragment.coverage ?? {}, rowIds, 'unit in this slice');
+  requireCovered(slice, fragment.coverage ?? {});
   const used = new Set(Object.values(fragment.coverage ?? {}).flatMap((entry) => entry.rows ?? []));
   for (const row of rows) if (!used.has(row.id)) fail(`row ${row.id} is not referenced by any unit`);
   process.stdout.write(`fragment: ${slice.length} units, ${rows.length} rows\n`);
 } else {
-  const ledger = JSON.parse(readFileSync(join(packageRoot, 'parity/ledger.json'), 'utf8'));
-  const coverage = JSON.parse(readFileSync(join(packageRoot, 'parity/coverage.json'), 'utf8'));
+  const ledger = readJson('parity/ledger.json');
+  const coverage = readJson('parity/coverage.json');
   ledger.rows.forEach(checkRow);
   const rowIds = new Set(ledger.rows.map((row) => row.id));
   if (rowIds.size !== ledger.rows.length) fail('ledger has duplicate row ids');
-  const covered = checkCoverage(units, coverage, rowIds);
-  for (const id of Object.keys(coverage)) if (!covered.has(id)) fail(`coverage key ${id} is not a census unit`);
+  checkCoverage(units, coverage, rowIds, 'census unit');
   const used = new Set(Object.values(coverage).flatMap((entry) => entry.rows ?? []));
   for (const row of ledger.rows) if (!used.has(row.id)) fail(`row ${row.id} is not referenced by any unit`);
   const feature = option('--feature');
   if (feature !== undefined && !FEATURES.includes(feature)) fail(`--feature must be one of ${FEATURES.join(', ')}`);
-  const scope = argv.includes('--final') ? () => true : feature ? (row) => row.feature === feature : null;
+  const final = argv.includes('--final');
+  const required = feature && !final ? units.filter((unit) => sliceOf(unit) === feature) : units;
+  requireCovered(required, coverage);
+  const scope = final ? () => true : feature ? (row) => row.feature === feature : null;
   if (scope) {
     const results = vitestReport();
     checkVerified(ledger.rows, scope, results);
-    checkTags(units, coverage, ledger.rows, scope, results);
+    checkTags(required, coverage, ledger.rows, scope, results);
   }
-  const counts = Object.fromEntries(FEATURES.map((f) => [f, ledger.rows.filter((row) => row.feature === f).length]));
+  for (const name of FEATURES) process.stdout.write(sliceProgress(name, units, coverage, ledger.rows));
   const verified = ledger.rows.filter((row) => row.status === 'verified').length;
-  process.stdout.write(`ledger: ${units.length} units, ${ledger.rows.length} rows ${JSON.stringify(counts)}, ${verified} verified\n`);
+  process.stdout.write(`ledger: ${units.length} units, ${ledger.rows.length} rows, ${verified} verified\n`);
 }
 
 if (failures.length > 0) {

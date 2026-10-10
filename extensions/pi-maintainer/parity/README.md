@@ -2,11 +2,20 @@
 
 pi-maintainer targets behavioral parity with Aider at commit `5dc9490bb35f9729ef2c95d00a19ccd30c26339c` through Pi mechanisms. This directory defines the evidence required to establish parity. The ledger and coverage map are not yet complete.
 
-The coverage gate requires every census unit to map to a ledger row or a justified non-claim. `--feature <name>` also requires passing tests and implementation references for that feature's rows. `--final` applies those verification checks to every row.
+The coverage gate requires every census unit to map to a ledger row or a justified non-claim. Each SAR is gated on its own slice of the census, so one SAR can pass before the next one starts.
+
+| Command | Units that must be covered | Rows that must be verified |
+| --- | --- | --- |
+| `node scripts/check-parity.mjs` | every census unit | none |
+| `node scripts/check-parity.mjs --feature <sar>` | the units in the slice of `<sar>` | every row whose `feature` is `<sar>` |
+| `node scripts/check-parity.mjs --final` | every census unit | every row |
+
+Every run prints one progress line per SAR: slice size, covered units, uncovered units, rows, and verified rows. Every run, including `--fragment`, fails when a shared-module test unit has no owner, when an owner is not a SAR, or when `test-owners.json` names a unit that is not a shared-module test in the census.
 
 ## Files
 
-- `sources.json` pins the four reconstruction documents by SHA-256, their evidence directories, the Aider checkout, and the Aider test modules the evidence ran.
+- `sources.json` pins the four reconstruction documents by SHA-256, their evidence directories, the Aider checkout, and the Aider test modules the evidence ran. Its `testModuleOwners` maps each single-purpose test module to the SAR that owns all of its tests.
+- `test-owners.json` maps each test unit of the shared modules `test_coder`, `test_commands`, `test_main`, and `test_models` to one SAR.
 - `ledger.json` holds the rows. A row is one observable Aider behavior contract.
 - `coverage.json` maps every census unit to rows or to a non-claim.
 - `../scripts/census.mjs` enumerates the units. Run `node scripts/census.mjs` for counts and `--json` for the full list.
@@ -19,6 +28,19 @@ The census is mechanical, so nothing in the sources can be skipped silently.
 - Document units are each paragraph, list item, table row, code block, and mermaid block of the four documents. Their ids look like `git/6-dirty-checkpoints-precede-assistant-writes/p2`. The middle part is the slug of the nearest heading. The letter is the unit kind (`p` paragraph, `i` list item, `r` table row, `c` code, `m` mermaid, `q` quote) and the number counts units inside that heading.
 - Evidence units are recorded probe cases from the evidence directories, such as `ev-git/probe/inventory-semantics`.
 - Aider test units are test functions in the pinned modules, such as `aider-test/test_editblock/TestUtils.test_replace_multiple_matches`.
+
+## Slices and ownership
+
+The slices of the four SARs partition the census. The slice of a SAR holds:
+
+- its document units, `<sar>/...`
+- its evidence units, `ev-<sar>/...`
+- every test unit of a module that `testModuleOwners` assigns to it
+- every shared-module test unit that `test-owners.json` assigns to it
+
+An Aider test belongs to the SAR whose behavior it asserts. A test that needs code from two SARs belongs to the later one in the build order edit, git, map, lint, because it can pass only once that SAR exists. A test of behavior outside the four features still has an owner: the SAR whose slice records it as a non-claim.
+
+`--feature <sar>` requires a `meta.aider` or `meta.evidence` tag for each test or evidence unit in the slice that maps to a row of that SAR. A slice unit that maps only to rows of other SARs is checked by `--final`, which requires the tag for every test or evidence unit that maps to any row.
 
 ## Rows
 
