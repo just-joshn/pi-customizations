@@ -3511,10 +3511,22 @@
         "aider/repomap.py:29,325-364"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('context_with_system')",
+        "pi.registerFlag"
+      ],
+      "src": [
+        "src/map/tag.ts",
+        "src/map/extract.ts",
+        "src/map/query-runtime.ts",
+        "src/map/query-assets.ts",
+        "src/map/queries/tree-sitter-language-pack/python-tags.scm",
+        "src/map/queries/tree-sitter-languages/julia-tags.scm"
+      ],
+      "tests": [
+        "test/map/tags-bind.test.ts::repository tags carry relative and absolute paths, kind, name, and zero-based or minus-one lines"
+      ]
     },
     {
       "id": "map.tags.extract",
@@ -3524,10 +3536,23 @@
         "aider/repomap.py:279-336"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('context_with_system')",
+        "pi.registerFlag"
+      ],
+      "src": [
+        "src/map/tag.ts",
+        "src/map/extract.ts",
+        "src/map/query-runtime.ts",
+        "src/map/query-assets.ts",
+        "src/map/queries/tree-sitter-language-pack/python-tags.scm",
+        "src/map/queries/tree-sitter-languages/julia-tags.scm"
+      ],
+      "tests": [
+        "test/map/tags-bind.test.ts::unsupported language, unavailable parser or query, and empty input yield no semantic tags",
+        "test/map/tags-bind.test.ts::repository tags carry relative and absolute paths, kind, name, and zero-based or minus-one lines"
+      ]
     },
     {
       "id": "map.tags.lexical-fallback",
@@ -3537,10 +3562,22 @@
         "aider/repomap.py:338-364"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('context_with_system')",
+        "pi.registerFlag"
+      ],
+      "src": [
+        "src/map/tag.ts",
+        "src/map/extract.ts",
+        "src/map/query-runtime.ts",
+        "src/map/query-assets.ts",
+        "src/map/queries/tree-sitter-language-pack/python-tags.scm",
+        "src/map/queries/tree-sitter-languages/julia-tags.scm"
+      ],
+      "tests": [
+        "test/map/tags-bind.test.ts::when definitions exist without references, name tokens supply reference tags at line minus one"
+      ]
     },
     {
       "id": "map.tags.python-query",
@@ -3550,10 +3587,22 @@
         "aider/queries/tree-sitter-language-pack/python-tags.scm:1-14"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('context_with_system')",
+        "pi.registerFlag"
+      ],
+      "src": [
+        "src/map/tag.ts",
+        "src/map/extract.ts",
+        "src/map/query-runtime.ts",
+        "src/map/query-assets.ts",
+        "src/map/queries/tree-sitter-language-pack/python-tags.scm",
+        "src/map/queries/tree-sitter-languages/julia-tags.scm"
+      ],
+      "tests": [
+        "test/map/tags-bind.test.ts::Python query assets identify constants, classes, functions, and attribute call names"
+      ]
     },
     {
       "id": "map.rank.lexical-graph",
@@ -3690,10 +3739,22 @@
         "aider/repomap.py:301-336"
       ],
       "kind": "fix",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": [],
+      "status": "verified",
+      "pi": [
+        "pi.on('context_with_system')",
+        "pi.registerFlag"
+      ],
+      "src": [
+        "src/map/tag.ts",
+        "src/map/extract.ts",
+        "src/map/query-runtime.ts",
+        "src/map/query-assets.ts",
+        "src/map/queries/tree-sitter-language-pack/python-tags.scm",
+        "src/map/queries/tree-sitter-languages/julia-tags.scm"
+      ],
+      "tests": [
+        "test/map/tags-bind.test.ts::a parser capture contributes each returned node once rather than appending the final node again"
+      ],
       "fix": {
         "defect": "The capture loop appends every node and then appends its last node again; the language-pack branch emits the expanded list and can bias reference weights.",
         "intent": "The Run the tags queries comment at aider/repomap.py:301-302 identifies the parser output as the source of tags; :318-336 turns each capture into a tag, and :451-458 indexes those captures. No separate synthetic duplicate capture is intended.",
@@ -5652,10 +5713,22 @@
         "aider/repomap.py:805-829"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('context_with_system')",
+        "pi.registerFlag"
+      ],
+      "src": [
+        "src/map/tag.ts",
+        "src/map/extract.ts",
+        "src/map/query-runtime.ts",
+        "src/map/query-assets.ts",
+        "src/map/queries/tree-sitter-language-pack/python-tags.scm",
+        "src/map/queries/tree-sitter-languages/julia-tags.scm"
+      ],
+      "tests": [
+        "test/map/tags-bind.test.ts::query selection prefers language-pack tags assets then tree-sitter-languages; missing yields none"
+      ]
     },
     {
       "id": "map.query.julia-compat",
@@ -5666,10 +5739,22 @@
         "aider/queries/tree-sitter-language-pack/julia-tags.scm:1-40"
       ],
       "kind": "fix",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": [],
+      "status": "verified",
+      "pi": [
+        "pi.on('context_with_system')",
+        "pi.registerFlag"
+      ],
+      "src": [
+        "src/map/tag.ts",
+        "src/map/extract.ts",
+        "src/map/query-runtime.ts",
+        "src/map/query-assets.ts",
+        "src/map/queries/tree-sitter-language-pack/python-tags.scm",
+        "src/map/queries/tree-sitter-languages/julia-tags.scm"
+      ],
+      "tests": [
+        "test/map/tags-bind.test.ts::Julia mapping degrades without an uncaught query error when the tags query is incompatible"
+      ],
       "fix": {
         "defect": "Query construction and execution sit outside the parser-acquisition catch, so an incompatible Julia tags query raises QueryError during get_repo_map instead of degrading to no tags or filename-only output.",
         "intent": "Parser-acquisition failures already skip a file with a printed message at aider/repomap.py:284-295; unknown languages and missing query assets yield no tags at :279-337. Julia should follow that degradation path rather than aborting the map.",
@@ -5725,10 +5810,23 @@
         "aider/models.py:155"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('context_with_system')",
+        "pi.registerFlag"
+      ],
+      "src": [
+        "src/map/tag.ts",
+        "src/map/extract.ts",
+        "src/map/query-runtime.ts",
+        "src/map/query-assets.ts",
+        "src/map/queries/tree-sitter-language-pack/python-tags.scm",
+        "src/map/queries/tree-sitter-languages/julia-tags.scm"
+      ],
+      "tests": [
+        "test/map/tags-bind.test.ts::an install with zero query assets cannot emit definition or reference tags",
+        "test/map/tags-bind.test.ts::unsupported language, unavailable parser or query, and empty input yield no semantic tags"
+      ]
     },
     {
       "id": "map.security.source-disclosure",
