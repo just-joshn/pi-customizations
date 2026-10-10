@@ -1,6 +1,6 @@
 import type { ExtensionFactory } from '@earendil-works/pi-coding-agent';
 import { installMaintainer, type MaintainerOptions } from '../../src/core/install.ts';
-import type { PromptSource } from '../../src/core/prompts.ts';
+import { defaultPromptPolicy, type PromptSource } from '../../src/core/prompts.ts';
 import { editFeature } from '../../src/edit/feature.ts';
 
 export const testPrompts: PromptSource = {
@@ -21,7 +21,13 @@ export const testPrompts: PromptSource = {
 export const maintainerExtension =
   (options: MaintainerOptions = {}): ExtensionFactory =>
   (pi) =>
-    installMaintainer(pi, [editFeature], { promptSource: testPrompts, home: () => '/nonexistent-maintainer-home', processEnvironment: () => ({}), ...options });
+    installMaintainer(pi, [editFeature], {
+      promptSource: testPrompts,
+      promptPolicy: defaultPromptPolicy,
+      home: () => '/nonexistent-maintainer-home',
+      processEnvironment: () => ({}),
+      ...options,
+    });
 
 export const textOf = (message: { content: unknown }): string =>
   typeof message.content === 'string' ? message.content : Array.isArray(message.content) ? message.content.map((block) => (block.type === 'text' ? block.text : '')).join('') : '';

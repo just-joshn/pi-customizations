@@ -3,7 +3,7 @@ import { homedir } from 'node:os';
 import type { ContextWithSystemEvent, ExtensionAPI, ExtensionContext, ModelRouteRequest, SessionBoundaryDraft, TurnEndEvent } from '@earendil-works/pi-coding-agent';
 import { Text } from '@earendil-works/pi-tui';
 import { BRANDING } from '../branding.ts';
-import { selectEditFormat } from '../edit/factory.ts';
+import { selectEditFormat, UnknownEditFormat } from '../edit/factory.ts';
 import { type ModelFormatPolicy, promptPolicyFromModelFormat, resolveModelFormatPolicyForRef } from '../edit/model-format-policy.ts';
 import { defaultEditorFormat } from '../edit/modes.ts';
 import { editOptions } from '../edit/options.ts';
@@ -95,6 +95,16 @@ function portsWithModelFormatPolicy(ports: Ports, settings: ResolvedSettings, po
   };
 }
 
+/** Resolve startup mode; keep a valid EditFormatName even when its protocol is not registered yet. */
+function resolveStartupMode(ports: Ports, modelDefault: EditFormatName): EditFormatName {
+  try {
+    return selectEditFormat(ports.edit.formats, ports.edit.requestedFormat, { modelDefault }).name;
+  } catch (error) {
+    if (error instanceof UnknownEditFormat && isEditFormatName(error.editFormat)) return error.editFormat;
+    throw error;
+  }
+}
+
 async function initialSnapshot(ports: Ports, cwd: string, append: (data: unknown) => void, host: ReturnType<typeof createHost>, allowCreation: boolean, owner: string, modelDefault: EditFormatName): Promise<Snapshot> {
   const tree = journaledTree(ports.edit.tree, owner, append, () => {});
   const editable = await admitInitialEditable(ports.edit.initialFiles.editable, { cwd, tree, host, allowCreation });
@@ -109,7 +119,7 @@ async function initialSnapshot(ports: Ports, cwd: string, append: (data: unknown
     schema: 1,
     kind: 'snapshot',
     root,
-    mode: selectEditFormat(ports.edit.formats, ports.edit.requestedFormat, { modelDefault }).name,
+    mode: resolveStartupMode(ports, modelDefault),
     phase: { kind: 'main' },
     files: { editable: [...new Set(editable)], readOnly: [...new Set(readOnly)] },
     originalReadOnly: [...new Set(readOnly)],
