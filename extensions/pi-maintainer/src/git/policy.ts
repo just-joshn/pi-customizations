@@ -85,12 +85,18 @@ export function createGitPolicy(options: CreateGitPolicyOptions): GitPolicy {
       dirtyCommit: async () => ({ kind: 'disabled' }),
       autoCommit: async () => ({ kind: 'disabled' }),
       undo: async () => ({ kind: 'disabled' }),
+      getDiffs: async () => '',
+      diffCommits: async () => '',
+      commitDirty: async () => ({ kind: 'disabled' }),
+      noteMessageCheckpoint: async () => {},
+      diffForDisplay: async () => ({ kind: 'disabled' }),
     };
   }
   const root: string = discovered;
 
   const run = options.run ?? createGitRun(host, root);
   const normalize = (path: string) => normalizeRepoPath(root, path);
+  const messageHeads: string[] = [];
 
   async function git(args: readonly string[], signal?: AbortSignal, env?: Readonly<Record<string, string>>) {
     return run(args, { ...(signal ? { signal } : {}), ...(env ? { env } : {}) });
@@ -139,19 +145,42 @@ export function createGitPolicy(options: CreateGitPolicyOptions): GitPolicy {
     return status.code === 0 && status.stdout.trim().length > 0;
   }
 
-  async function diffsFor(fnames: readonly string[], signal?: AbortSignal): Promise<string> {
+  /** Attached branch with at least one commit. Detached HEAD and unborn branches are false. */
+  async function branchHasCommits(signal?: AbortSignal): Promise<boolean> {
+    const symbolic = await git(['symbolic-ref', '-q', 'HEAD'], signal);
+    if (symbolic.code !== 0) return false;
+    const head = await git(['rev-parse', '--verify', 'HEAD'], signal);
+    return head.code === 0;
+  }
+
+  async function diffsFor(fnames: readonly string[] = [], signal?: AbortSignal): Promise<string> {
     let diffs = '';
     for (const fname of fnames) {
       if (!(await pathInRepo(fname, signal))) diffs += `Added ${fname}\n`;
     }
     const named = fnames.map(normalize);
-    const head = await git(['rev-parse', '--verify', 'HEAD'], signal);
-    const args = head.code === 0 ? (['diff', 'HEAD', '--', ...named] as const) : (['diff', '--', ...named] as const);
-    const diff = await git(args, signal);
-    if (diff.code === 0) diffs += diff.stdout;
+    if (await branchHasCommits(signal)) {
+      const diff = await git(['diff', 'HEAD', '--', ...named], signal);
+      if (diff.code === 0) diffs += diff.stdout;
+      else host.error(`Unable to diff: ${diff.stderr.trim() || diff.stdout.trim()}`);
+      return diffs;
+    }
     const cached = await git(['diff', '--cached', '--', ...named], signal);
     if (cached.code === 0) diffs += cached.stdout;
+    else host.error(`Unable to diff: ${cached.stderr.trim() || cached.stdout.trim()}`);
+    const wd = await git(['diff', '--', ...named], signal);
+    if (wd.code === 0) diffs += wd.stdout;
+    else host.error(`Unable to diff: ${wd.stderr.trim() || wd.stdout.trim()}`);
     return diffs;
+  }
+
+  async function diffCommits(fromCommit: string, toCommit: string, signal?: AbortSignal): Promise<string> {
+    const diff = await git(['diff', '--color=never', fromCommit, toCommit], signal);
+    if (diff.code !== 0) {
+      host.error(`Unable to diff: ${diff.stderr.trim() || diff.stdout.trim()}`);
+      return '';
+    }
+    return diff.stdout;
   }
 
   async function resolveCommitMessage(fnames: readonly string[], context: string | null, signal?: AbortSignal): Promise<string> {
@@ -167,11 +196,25 @@ export function createGitPolicy(options: CreateGitPolicyOptions): GitPolicy {
     return context?.trim() ? normalizeCommitMessage(context.split('\n')[0] ?? context).slice(0, 72) || 'Update files' : 'Update files';
   }
 
-  async function commitFiles(fnames: readonly string[], context: string | null, aiderEdits: boolean, signal?: AbortSignal): Promise<CommitResult> {
+  async function commitFiles(
+    fnames: readonly string[] | null,
+    context: string | null,
+    aiderEdits: boolean,
+    signal?: AbortSignal,
+    forcedMessage?: string,
+  ): Promise<CommitResult> {
     if (!autoCommits && aiderEdits) return { kind: 'disabled' };
-    const diffs = await diffsFor(fnames, signal);
+    const named = fnames ?? [];
+    if (fnames === null) {
+      const status = await git(['status', '--porcelain'], signal);
+      if (!status.stdout.trim()) return { kind: 'unchanged' };
+    }
+    const diffs = await diffsFor(named, signal);
     if (!diffs.trim()) return { kind: 'unchanged' };
-    let message = await resolveCommitMessage(fnames, context, signal);
+    let message =
+      forcedMessage !== undefined
+        ? normalizeCommitMessage(forcedMessage) || '(no commit message provided)'
+        : await resolveCommitMessage(named, context, signal);
     const attributeAuthor = options.settings.attributeAuthor;
     const attributeCommitter = options.settings.attributeCommitter;
     const attributeCoAuthoredBy = options.settings.attributeCoAuthoredBy;
@@ -187,10 +230,12 @@ export function createGitPolicy(options: CreateGitPolicyOptions): GitPolicy {
     }
     const useAuthor = aiderEdits && effectiveAuthor && (!attributeCoAuthoredBy || authorExplicit);
     const useCommitter = effectiveCommitter && (!(aiderEdits && attributeCoAuthoredBy) || committerExplicit);
-    for (const fname of fnames) {
-      const abs = resolve(root, fname);
-      const added = await git(['add', '--', abs], signal);
-      if (added.code !== 0) host.error(`Unable to add ${fname}: ${added.stderr.trim() || added.stdout.trim()}`);
+    if (fnames !== null) {
+      for (const fname of fnames) {
+        const abs = resolve(root, fname);
+        const added = await git(['add', '--', abs], signal);
+        if (added.code !== 0) host.error(`Unable to add ${fname}: ${added.stderr.trim() || added.stdout.trim()}`);
+      }
     }
     const name = await git(['config', '--get', 'user.name'], signal);
     const baseName = name.stdout.trim() || 'User';
@@ -200,7 +245,8 @@ export function createGitPolicy(options: CreateGitPolicyOptions): GitPolicy {
     if (useAuthor) env['GIT_AUTHOR_NAME'] = attributed;
     const commitArgs = ['commit', '-m', full];
     if (!options.settings.gitCommitVerify) commitArgs.push('--no-verify');
-    commitArgs.push('--', ...fnames.map((fname) => resolve(root, fname)));
+    if (fnames === null) commitArgs.push('-a');
+    else commitArgs.push('--', ...fnames.map((fname) => resolve(root, fname)));
     const committed = await git(commitArgs, signal, Object.keys(env).length ? env : undefined);
     if (committed.code !== 0) {
       const error = committed.stderr.trim() || committed.stdout.trim() || 'commit failed';
@@ -251,6 +297,36 @@ export function createGitPolicy(options: CreateGitPolicyOptions): GitPolicy {
       const fnames = [...paths].filter((path): path is string => path !== null);
       if (fnames.length === 0) return { kind: 'unchanged' };
       return commitFiles(fnames, contextText(context), true, signal);
+    },
+    getDiffs: async (fnames = [], signal) => diffsFor(fnames, signal),
+    diffCommits: async (fromCommit, toCommit, signal) => diffCommits(fromCommit, toCommit, signal),
+    commitDirty: async (message, signal) => {
+      const result = message?.trim()
+        ? await commitFiles(null, null, false, signal, message)
+        : await commitFiles(null, null, false, signal);
+      if (result.kind === 'unchanged') host.warning('No more changes to commit.');
+      return result;
+    },
+    noteMessageCheckpoint: async (sha, signal) => {
+      if (sha) {
+        messageHeads.push(sha);
+        return;
+      }
+      const head = await git(['rev-parse', 'HEAD'], signal);
+      if (head.code === 0) messageHeads.push(head.stdout.trim());
+    },
+    diffForDisplay: async (signal) => {
+      const head = await git(['rev-parse', 'HEAD'], signal);
+      if (head.code !== 0) {
+        return { kind: 'error', message: 'Unable to get current commit. The repository might be empty.' };
+      }
+      const currentHead = head.stdout.trim();
+      const baseline = messageHeads.length < 2 ? `${currentHead}^` : (messageHeads[messageHeads.length - 2] ?? `${currentHead}^`);
+      if (!baseline || baseline === currentHead) {
+        return { kind: 'warning', message: 'No changes to display since the last message.' };
+      }
+      const text = await diffCommits(baseline, 'HEAD', signal);
+      return { kind: 'diff', baseline, text };
     },
     undo: async (signal) => {
       const head = await git(['rev-parse', 'HEAD'], signal);

@@ -1,5 +1,6 @@
 import type { Feature, GitPolicy } from '../feature.ts';
 import type { ResolvedSettings } from '../settings/spec.ts';
+import { gitCommands } from './commands.ts';
 import { gitOptionList, gitOptions } from './options.ts';
 import { createGitPolicy, type GitPolicySettings } from './policy.ts';
 
@@ -24,7 +25,7 @@ function settingsFromEnv(settings: ResolvedSettings): GitPolicySettings {
 export const gitFeature: Feature<GitPolicy> & { readonly name: 'git' } = {
   name: 'git',
   options: gitOptionList,
-  commands: [],
+  commands: gitCommands,
   create({ settings, host, cwd, gitRoot }) {
     return createGitPolicy({
       host,
@@ -35,5 +36,6 @@ export const gitFeature: Feature<GitPolicy> & { readonly name: 'git' } = {
   },
 };
 
+export { gitCommands } from './commands.ts';
 export { effectiveDirtyCommits, gitOptions, gitOptionList } from './options.ts';
 export { createGitPolicy, resolveAiderIgnorePath } from './policy.ts';

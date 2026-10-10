@@ -164,6 +164,13 @@ export type UndoResult =
   | { readonly kind: 'removed'; readonly hash: string; readonly message: string; readonly nowAt?: { readonly hash: string; readonly message: string } }
   | { readonly kind: 'failed'; readonly error: string };
 
+/** Outcome of `/diff` baseline selection (`aider/commands.py` `raw_cmd_diff`). */
+export type DiffDisplayResult =
+  | { readonly kind: 'disabled' }
+  | { readonly kind: 'error'; readonly message: string }
+  | { readonly kind: 'warning'; readonly message: string }
+  | { readonly kind: 'diff'; readonly baseline: string; readonly text: string };
+
 /** The Git parts of the coder hub (`aider/repo.py` and the Git calls in `base_coder.py`). */
 export interface GitPolicy {
   /** `repo.root`, or null when there is no repository. */
@@ -186,6 +193,16 @@ export interface GitPolicy {
   autoCommit(paths: ReadonlySet<string | null>, context: CommitContext, signal?: AbortSignal): Promise<CommitResult>;
   /** `/undo` restoration. Edit only dispatches; Git owns checkout and soft-reset. */
   undo(signal?: AbortSignal): Promise<UndoResult>;
+  /** `GitRepo.get_diffs`: filesystem-vs-HEAD for attached branches; cached+wd for detached/unborn. */
+  getDiffs(fnames?: readonly string[], signal?: AbortSignal): Promise<string>;
+  /** `GitRepo.diff_commits`. */
+  diffCommits(fromCommit: string, toCommit: string, signal?: AbortSignal): Promise<string>;
+  /** `/commit`: commit all dirty changes (`git commit -a`) with an optional message. */
+  commitDirty(message: string | null, signal?: AbortSignal): Promise<CommitResult>;
+  /** Record HEAD (or an explicit sha) before a user message for `/diff` baselines. */
+  noteMessageCheckpoint(sha?: string, signal?: AbortSignal): Promise<void>;
+  /** `/diff` baseline selection and patch text. */
+  diffForDisplay(signal?: AbortSignal): Promise<DiffDisplayResult>;
 }
 
 /** One attempt at `Coder.get_repo_map` → `RepoMap.get_repo_map`. Absolute paths for file sets. */
@@ -230,6 +247,11 @@ export const disabledGitPolicy: GitPolicy = {
   dirtyCommit: async () => ({ kind: 'disabled' }),
   autoCommit: async () => ({ kind: 'disabled' }),
   undo: async () => ({ kind: 'disabled' }),
+  getDiffs: async () => '',
+  diffCommits: async () => '',
+  commitDirty: async () => ({ kind: 'disabled' }),
+  noteMessageCheckpoint: async () => {},
+  diffForDisplay: async () => ({ kind: 'disabled' }),
 };
 
 export const disabledRepositoryContext: RepositoryContext = { repoMap: async () => null };
