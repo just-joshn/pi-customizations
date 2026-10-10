@@ -168,15 +168,20 @@ function checkVerified(rows, scope, results) {
 }
 
 function checkTags(units, coverage, rows, scope, results) {
-  const scoped = new Set(rows.filter(scope).map((row) => row.id));
   const passed = results.filter((result) => result.status === 'passed');
-  const ported = new Set(passed.flatMap((result) => result.meta.aider ?? []));
-  const replayed = new Set(passed.flatMap((result) => result.meta.evidence ?? []));
+  const proofs = new Map(rows.filter(scope).map((row) => [row.id, { feature: row.feature, results: row.tests.flatMap((test) => matchingResults(passed, test)) }]));
   for (const unit of units) {
-    const entry = coverage[unit.id];
-    if (!entry?.rows?.some((id) => scoped.has(id))) continue;
-    if (unit.kind === 'aider-test' && !ported.has(unit.id.slice('aider-test/'.length))) fail(`unit ${unit.id}: no passing test ports it (meta.aider)`);
-    if (unit.kind === 'evidence' && !replayed.has(unit.id)) fail(`unit ${unit.id}: no passing test replays it (meta.evidence)`);
+    const tag = unit.kind === 'aider-test' ? 'aider' : unit.kind === 'evidence' ? 'evidence' : null;
+    if (!tag) continue;
+    const owner = sliceOf(unit);
+    const mapped = (coverage[unit.id]?.rows ?? []).flatMap((id) => {
+      const proof = proofs.get(id);
+      return proof?.feature === owner ? [proof] : [];
+    });
+    if (mapped.length === 0) continue;
+    const id = tag === 'aider' ? unit.id.slice('aider-test/'.length) : unit.id;
+    const bound = mapped.some((proof) => proof.results.some((result) => Array.isArray(result.meta[tag]) && result.meta[tag].includes(id)));
+    if (!bound) fail(`unit ${unit.id}: no passing referenced ${owner} contract test ${tag === 'aider' ? 'ports' : 'replays'} it (meta.${tag})`);
   }
 }
 

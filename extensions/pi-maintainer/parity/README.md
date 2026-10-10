@@ -48,7 +48,9 @@ For a document that crosses a port boundary, coverage includes both the edit-sid
 
 This split does not change shared-test ownership. A test that actually needs two SARs belongs to the later one. Its census unit moves with its owner, not with whichever document mentions it.
 
-`--feature <sar>` requires a `meta.aider` or `meta.evidence` tag for each claimed test or evidence unit in its slice. `--final` requires those tags for every claimed test and evidence unit. A tag alone does not prove behavior. Ported tests assert literal outcomes through the public contract.
+`--feature <sar>` requires a `meta.aider` or `meta.evidence` tag for each claimed test or evidence unit in its slice. The passing tagged assertion must match a `tests` selector of one of that unit's mapped rows belonging to its owner. Metadata on an unreferenced test or a later integration row does not discharge the local contract. Any one mapped owner row can supply the tag, including through an explicit wildcard selector.
+
+`--final` requires those tags for every claimed test and evidence unit and keeps the same owner-row binding. A later-owned shared test binds to its later owner's rows. A tag alone does not prove behavior. Ported tests assert literal outcomes through the public contract.
 
 The shared-test audit reads all 212 pinned test bodies. Their owners are edit 152, git 47, map 9, and lint 4. Temporary Git setup alone does not make a test Git-owned. Assertions about repository inventory, tracked promotion, dirty state, or Git options do. The outside-root add test and the two dotenv-overlay tests operate on an option or supplied-root boundary without needing Git behavior. Four mention tests mock repository inventory and assert only edit-side path selection. All seven tests are edit-owned.
 
