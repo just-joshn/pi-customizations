@@ -1,0 +1,1225 @@
+[
+  {
+    "id": "sequence-matcher/identical-strings",
+    "op": "difflib.sequence_matcher",
+    "args": {
+      "a": "abcd",
+      "b": "abcd"
+    }
+  },
+  {
+    "id": "sequence-matcher/identical-lines",
+    "op": "difflib.sequence_matcher",
+    "args": {
+      "a": ["one\n", "two\n"],
+      "b": ["one\n", "two\n"]
+    }
+  },
+  {
+    "id": "sequence-matcher/both-empty",
+    "op": "difflib.sequence_matcher",
+    "args": {
+      "a": "",
+      "b": ""
+    }
+  },
+  {
+    "id": "sequence-matcher/empty-a",
+    "op": "difflib.sequence_matcher",
+    "args": {
+      "a": "",
+      "b": "abc"
+    }
+  },
+  {
+    "id": "sequence-matcher/empty-b-lines",
+    "op": "difflib.sequence_matcher",
+    "args": {
+      "a": ["x\n"],
+      "b": []
+    }
+  },
+  {
+    "id": "sequence-matcher/single-element-equal",
+    "op": "difflib.sequence_matcher",
+    "args": {
+      "a": ["x"],
+      "b": ["x"]
+    }
+  },
+  {
+    "id": "sequence-matcher/single-element-replace",
+    "op": "difflib.sequence_matcher",
+    "args": {
+      "a": ["x"],
+      "b": ["y"]
+    }
+  },
+  {
+    "id": "sequence-matcher/docstring-volatile-blank-junk",
+    "op": "difflib.sequence_matcher",
+    "args": {
+      "isjunk": [" "],
+      "a": "private Thread currentThread;",
+      "b": "private volatile Thread currentThread;"
+    }
+  },
+  {
+    "id": "sequence-matcher/docstring-every-tag",
+    "op": "difflib.sequence_matcher",
+    "args": {
+      "a": "qabxcd",
+      "b": "abycdf"
+    }
+  },
+  {
+    "id": "sequence-matcher/docstring-abxcd",
+    "op": "difflib.sequence_matcher",
+    "args": {
+      "a": "abxcd",
+      "b": "abcd"
+    }
+  },
+  {
+    "id": "sequence-matcher/ratio-bounds-differ",
+    "op": "difflib.sequence_matcher",
+    "args": {
+      "a": "abcd",
+      "b": "bcde"
+    }
+  },
+  {
+    "id": "sequence-matcher/quick-ratio-ignores-order",
+    "op": "difflib.sequence_matcher",
+    "args": {
+      "a": "abc",
+      "b": "cba"
+    }
+  },
+  {
+    "id": "sequence-matcher/longest-tie-earliest-in-a",
+    "op": "difflib.sequence_matcher",
+    "args": {
+      "a": "abXab",
+      "b": "ab"
+    }
+  },
+  {
+    "id": "sequence-matcher/longest-tie-earliest-in-b",
+    "op": "difflib.sequence_matcher",
+    "args": {
+      "a": "ab",
+      "b": "abab"
+    }
+  },
+  {
+    "id": "sequence-matcher/longest-docstring-full-range",
+    "op": "difflib.sequence_matcher",
+    "args": {
+      "a": " abcd",
+      "b": "abcd abcd",
+      "longest": [0, 5, 0, 9]
+    }
+  },
+  {
+    "id": "sequence-matcher/longest-docstring-blank-junk",
+    "op": "difflib.sequence_matcher",
+    "args": {
+      "isjunk": [" "],
+      "a": " abcd",
+      "b": "abcd abcd",
+      "longest": [0, 5, 0, 9]
+    }
+  },
+  {
+    "id": "sequence-matcher/longest-no-match",
+    "op": "difflib.sequence_matcher",
+    "args": {
+      "a": "ab",
+      "b": "c",
+      "longest": [0, 2, 0, 1]
+    }
+  },
+  {
+    "id": "sequence-matcher/longest-subrange-skips-and-breaks",
+    "op": "difflib.sequence_matcher",
+    "args": {
+      "a": "xab",
+      "b": "abxabxab",
+      "longest": [0, 3, 2, 6]
+    }
+  },
+  {
+    "id": "sequence-matcher/longest-empty-subrange",
+    "op": "difflib.sequence_matcher",
+    "args": {
+      "a": "abc",
+      "b": "abc",
+      "longest": [1, 1, 0, 3]
+    }
+  },
+  {
+    "id": "sequence-matcher/junk-extends-both-sides",
+    "op": "difflib.sequence_matcher",
+    "args": {
+      "isjunk": [" "],
+      "a": "x a b y",
+      "b": "z a b w"
+    }
+  },
+  {
+    "id": "sequence-matcher/adjacent-blocks-collapse",
+    "op": "difflib.sequence_matcher",
+    "args": {
+      "isjunk": [" "],
+      "a": "a b",
+      "b": "a b"
+    }
+  },
+  {
+    "id": "sequence-matcher/isjunk-blank-lines",
+    "op": "difflib.sequence_matcher",
+    "args": {
+      "isjunk": ["\n"],
+      "a": ["a\n", "\n", "b\n", "\n"],
+      "b": ["\n", "a\n", "\n", "c\n"]
+    }
+  },
+  {
+    "id": "sequence-matcher/autojunk-popular-element-dropped",
+    "op": "difflib.sequence_matcher",
+    "args": {
+      "a": "P",
+      "b": "aPbcdefghijklmnopqrstuvwxyzabcdefghijklmnPopqrstuvwxyzabcdefghijklmnopqrstuvwxyzaPbcdefghijklmnopqrstuvwxyzabcdefghijklmnPopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmn"
+    }
+  },
+  {
+    "id": "sequence-matcher/autojunk-at-threshold-kept",
+    "op": "difflib.sequence_matcher",
+    "args": {
+      "a": "P",
+      "b": "aPbcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxPyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuPvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmno"
+    }
+  },
+  {
+    "id": "sequence-matcher/autojunk-below-200-kept",
+    "op": "difflib.sequence_matcher",
+    "args": {
+      "a": "P",
+      "b": "aPbcdefghijklmnopqrstuvwxyzabcdefghijklmnPopqrstuvwxyzabcdefghijklmnopqrstuvwxyzaPbcdefghijklmnopqrstuvwxyzabcdefghijklmnPopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklm"
+    }
+  },
+  {
+    "id": "sequence-matcher/autojunk-disabled-kept",
+    "op": "difflib.sequence_matcher",
+    "args": {
+      "a": "P",
+      "b": "aPbcdefghijklmnopqrstuvwxyzabcdefghijklmnPopqrstuvwxyzabcdefghijklmnopqrstuvwxyzaPbcdefghijklmnopqrstuvwxyzabcdefghijklmnPopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmn",
+      "autojunk": false
+    }
+  },
+  {
+    "id": "sequence-matcher/autojunk-threshold-grows-kept",
+    "op": "difflib.sequence_matcher",
+    "args": {
+      "a": "P",
+      "b": "aPbcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghPijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnoPpqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvPwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghij"
+    }
+  },
+  {
+    "id": "sequence-matcher/autojunk-threshold-grows-dropped",
+    "op": "difflib.sequence_matcher",
+    "args": {
+      "a": "P",
+      "b": "aPbcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxPyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuPvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrPstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnoPpqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghi"
+    }
+  },
+  {
+    "id": "sequence-matcher/autojunk-popular-extended-over",
+    "op": "difflib.sequence_matcher",
+    "args": {
+      "a": "QPPPR",
+      "b": "QPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPR"
+    }
+  },
+  {
+    "id": "sequence-matcher/isjunk-before-popularity",
+    "op": "difflib.sequence_matcher",
+    "args": {
+      "isjunk": ["P"],
+      "a": "xPPy",
+      "b": "xPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPy"
+    }
+  },
+  {
+    "id": "sequence-matcher/astral-code-points",
+    "op": "difflib.sequence_matcher",
+    "args": {
+      "a": "a😀b",
+      "b": "a😀c"
+    }
+  },
+  {
+    "id": "sequence-matcher/astral-lines",
+    "op": "difflib.sequence_matcher",
+    "args": {
+      "a": ["😀\n", "b\n"],
+      "b": ["😀\n", "c\n"]
+    }
+  },
+  {
+    "id": "sequence-matcher/crlf-lines",
+    "op": "difflib.sequence_matcher",
+    "args": {
+      "a": ["a\r\n", "b\r\n", "c\r\n"],
+      "b": ["a\r\n", "b\n", "c\r\n"]
+    }
+  },
+  {
+    "id": "sequence-matcher/no-trailing-newline",
+    "op": "difflib.sequence_matcher",
+    "args": {
+      "a": ["a\n", "b"],
+      "b": ["a\n", "b\n"]
+    }
+  },
+  {
+    "id": "sequence-matcher/integers",
+    "op": "difflib.sequence_matcher",
+    "args": {
+      "a": [1, 2, 3, 4, 5],
+      "b": [1, 3, 4, 6, 5]
+    }
+  },
+  {
+    "id": "sequence-matcher/grouped-n-zero",
+    "op": "difflib.sequence_matcher",
+    "args": {
+      "a": ["1\n", "2\n", "3\n", "4\n", "5\n", "6\n", "7\n", "8\n", "9\n", "10\n", "11\n", "12\n", "13\n", "14\n", "15\n", "16\n", "17\n", "18\n", "19\n", "20\n"],
+      "b": ["1\n", "2\n", "3\n", "4\n", "5\n", "6\n", "7\n", "eight\n", "9\n", "10\n", "11\n", "12\n", "13\n", "14\n", "15\n", "16\n", "17\n", "18\n", "19\n", "20\n"],
+      "n": 0
+    }
+  },
+  {
+    "id": "sequence-matcher/grouped-n-one",
+    "op": "difflib.sequence_matcher",
+    "args": {
+      "a": ["1\n", "2\n", "3\n", "4\n", "5\n", "6\n", "7\n", "8\n", "9\n", "10\n", "11\n", "12\n", "13\n", "14\n", "15\n", "16\n", "17\n", "18\n", "19\n", "20\n"],
+      "b": ["1\n", "2\n", "3\n", "4\n", "5\n", "6\n", "7\n", "eight\n", "9\n", "10\n", "11\n", "12\n", "13\n", "14\n", "15\n", "16\n", "17\n", "18\n", "19\n", "20\n"],
+      "n": 1
+    }
+  },
+  {
+    "id": "sequence-matcher/grouped-gap-of-2n-stays-one-group",
+    "op": "difflib.sequence_matcher",
+    "args": {
+      "a": ["1\n", "2\n", "3\n", "4\n", "5\n", "6\n", "7\n", "8\n", "9\n", "10\n", "11\n", "12\n", "13\n", "14\n", "15\n", "16\n", "17\n", "18\n", "19\n", "20\n"],
+      "b": ["1\n", "2\n", "3\n", "4\n", "5\n", "six\n", "7\n", "8\n", "9\n", "10\n", "11\n", "12\n", "thirteen\n", "14\n", "15\n", "16\n", "17\n", "18\n", "19\n", "20\n"],
+      "n": 3
+    }
+  },
+  {
+    "id": "sequence-matcher/grouped-gap-over-2n-splits",
+    "op": "difflib.sequence_matcher",
+    "args": {
+      "a": ["1\n", "2\n", "3\n", "4\n", "5\n", "6\n", "7\n", "8\n", "9\n", "10\n", "11\n", "12\n", "13\n", "14\n", "15\n", "16\n", "17\n", "18\n", "19\n", "20\n"],
+      "b": ["1\n", "2\n", "3\n", "4\n", "5\n", "six\n", "7\n", "8\n", "9\n", "10\n", "11\n", "12\n", "13\n", "fourteen\n", "15\n", "16\n", "17\n", "18\n", "19\n", "20\n"],
+      "n": 3
+    }
+  },
+  {
+    "id": "sequence-matcher/grouped-n-zero-splits-every-change",
+    "op": "difflib.sequence_matcher",
+    "args": {
+      "a": ["1\n", "2\n", "3\n", "4\n", "5\n", "6\n", "7\n", "8\n", "9\n", "10\n", "11\n", "12\n", "13\n", "14\n", "15\n", "16\n", "17\n", "18\n", "19\n", "20\n"],
+      "b": ["1\n", "2\n", "3\n", "4\n", "5\n", "six\n", "7\n", "8\n", "9\n", "10\n", "11\n", "12\n", "thirteen\n", "14\n", "15\n", "16\n", "17\n", "18\n", "19\n", "20\n"],
+      "n": 0
+    }
+  },
+  {
+    "id": "sequence-matcher/grouped-n-covers-everything",
+    "op": "difflib.sequence_matcher",
+    "args": {
+      "a": ["1\n", "2\n", "3\n", "4\n", "5\n", "6\n", "7\n", "8\n", "9\n", "10\n", "11\n", "12\n", "13\n", "14\n", "15\n", "16\n", "17\n", "18\n", "19\n", "20\n"],
+      "b": ["1\n", "2\n", "3\n", "4\n", "5\n", "six\n", "7\n", "8\n", "9\n", "10\n", "11\n", "12\n", "13\n", "fourteen\n", "15\n", "16\n", "17\n", "18\n", "19\n", "20\n"],
+      "n": 100
+    }
+  },
+  {
+    "id": "sequence-matcher/grouped-n-negative",
+    "op": "difflib.sequence_matcher",
+    "args": {
+      "a": ["1\n", "2\n", "3\n", "4\n", "5\n", "6\n", "7\n", "8\n", "9\n", "10\n", "11\n", "12\n", "13\n", "14\n", "15\n", "16\n", "17\n", "18\n", "19\n", "20\n"],
+      "b": ["1\n", "2\n", "3\n", "4\n", "5\n", "6\n", "7\n", "eight\n", "9\n", "10\n", "11\n", "12\n", "13\n", "14\n", "15\n", "16\n", "17\n", "18\n", "19\n", "20\n"],
+      "n": -1
+    }
+  },
+  {
+    "id": "sequence-matcher/grouped-identical-yields-nothing",
+    "op": "difflib.sequence_matcher",
+    "args": {
+      "a": ["1\n", "2\n", "3\n", "4\n", "5\n", "6\n", "7\n", "8\n", "9\n", "10\n", "11\n", "12\n", "13\n", "14\n", "15\n", "16\n", "17\n", "18\n", "19\n", "20\n"],
+      "b": ["1\n", "2\n", "3\n", "4\n", "5\n", "6\n", "7\n", "8\n", "9\n", "10\n", "11\n", "12\n", "13\n", "14\n", "15\n", "16\n", "17\n", "18\n", "19\n", "20\n"],
+      "n": 3
+    }
+  },
+  {
+    "id": "sequence-matcher/grouped-changes-at-both-edges",
+    "op": "difflib.sequence_matcher",
+    "args": {
+      "a": ["1\n", "2\n", "3\n", "4\n", "5\n", "6\n", "7\n", "8\n", "9\n", "10\n", "11\n", "12\n", "13\n", "14\n", "15\n", "16\n", "17\n", "18\n", "19\n", "20\n"],
+      "b": ["one\n", "2\n", "3\n", "4\n", "5\n", "6\n", "7\n", "8\n", "9\n", "10\n", "11\n", "12\n", "13\n", "14\n", "15\n", "16\n", "17\n", "18\n", "19\n", "twenty\n"],
+      "n": 3
+    }
+  },
+  {
+    "id": "sequence-matcher/grouped-only-a-change",
+    "op": "difflib.sequence_matcher",
+    "args": {
+      "a": "x",
+      "b": "y",
+      "n": 3
+    }
+  },
+  {
+    "id": "sequence-matcher/grouped-docstring-three-hunks",
+    "op": "difflib.sequence_matcher",
+    "args": {
+      "a": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39"],
+      "b": ["1", "2", "3", "4", "5", "6", "7", "8", "i", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20x", "21", "22", "28", "29", "30", "31", "32", "33", "34", "35y", "36", "37", "38", "39"]
+    }
+  },
+  {
+    "id": "get-close-matches/docstring-appel",
+    "op": "difflib.get_close_matches",
+    "args": {
+      "word": "appel",
+      "possibilities": ["ape", "apple", "peach", "puppy"]
+    }
+  },
+  {
+    "id": "get-close-matches/aider-misspelled-filename",
+    "op": "difflib.get_close_matches",
+    "args": {
+      "word": "src/mian.py",
+      "possibilities": ["src/main.py", "src/maint.py", "src/min.py", "README.md"],
+      "n": 1,
+      "cutoff": 0.8
+    }
+  },
+  {
+    "id": "get-close-matches/aider-misspelled-model",
+    "op": "difflib.get_close_matches",
+    "args": {
+      "word": "gpt-4o-mni",
+      "possibilities": ["gpt-4o", "gpt-4o-mini", "gpt-4", "gpt-4o-mini-2024-07-18", "o1-mini", "claude-3-5-sonnet"],
+      "n": 3,
+      "cutoff": 0.8
+    }
+  },
+  {
+    "id": "get-close-matches/cutoff-exactly-at-ratio",
+    "op": "difflib.get_close_matches",
+    "args": {
+      "word": "ab",
+      "possibilities": ["abc"],
+      "cutoff": 0.8
+    }
+  },
+  {
+    "id": "get-close-matches/cutoff-one-ulp-above-ratio",
+    "op": "difflib.get_close_matches",
+    "args": {
+      "word": "ab",
+      "possibilities": ["abc"],
+      "cutoff": 0.8000000000000002
+    }
+  },
+  {
+    "id": "get-close-matches/cutoff-exactly-at-repeating-ratio",
+    "op": "difflib.get_close_matches",
+    "args": {
+      "word": "abc",
+      "possibilities": ["abcd", "abce"],
+      "cutoff": 0.8571428571428571
+    }
+  },
+  {
+    "id": "get-close-matches/n-limits-results",
+    "op": "difflib.get_close_matches",
+    "args": {
+      "word": "abcd",
+      "possibilities": ["abcd", "abce", "abc", "abcf", "bcd"],
+      "n": 2
+    }
+  },
+  {
+    "id": "get-close-matches/n-one-keeps-best",
+    "op": "difflib.get_close_matches",
+    "args": {
+      "word": "abcd",
+      "possibilities": ["abce", "abcd", "abc"],
+      "n": 1
+    }
+  },
+  {
+    "id": "get-close-matches/ties-order-by-string-descending",
+    "op": "difflib.get_close_matches",
+    "args": {
+      "word": "ab",
+      "possibilities": ["abx", "abz", "abw", "aby"]
+    }
+  },
+  {
+    "id": "get-close-matches/ties-order-by-code-point",
+    "op": "difflib.get_close_matches",
+    "args": {
+      "word": "a",
+      "possibilities": ["a｡", "a𐀀", "a"]
+    }
+  },
+  {
+    "id": "get-close-matches/duplicates-kept",
+    "op": "difflib.get_close_matches",
+    "args": {
+      "word": "abc",
+      "possibilities": ["abd", "abc", "abd"]
+    }
+  },
+  {
+    "id": "get-close-matches/no-possibilities",
+    "op": "difflib.get_close_matches",
+    "args": {
+      "word": "abc",
+      "possibilities": []
+    }
+  },
+  {
+    "id": "get-close-matches/empty-word",
+    "op": "difflib.get_close_matches",
+    "args": {
+      "word": "",
+      "possibilities": ["", "a"]
+    }
+  },
+  {
+    "id": "get-close-matches/cutoff-zero-keeps-all",
+    "op": "difflib.get_close_matches",
+    "args": {
+      "word": "abc",
+      "possibilities": ["xyz", "abc", "ab"],
+      "cutoff": 0.0
+    }
+  },
+  {
+    "id": "get-close-matches/cutoff-one-keeps-exact",
+    "op": "difflib.get_close_matches",
+    "args": {
+      "word": "abc",
+      "possibilities": ["abd", "abc"],
+      "cutoff": 1.0
+    }
+  },
+  {
+    "id": "get-close-matches/astral-ratio",
+    "op": "difflib.get_close_matches",
+    "args": {
+      "word": "😀a",
+      "possibilities": ["😀b", "xa", "😀a"],
+      "cutoff": 0.5
+    }
+  },
+  {
+    "id": "get-close-matches/long-possibility-filtered",
+    "op": "difflib.get_close_matches",
+    "args": {
+      "word": "abc",
+      "possibilities": ["abczzzzzzzzzzzzzzzzzzzzzzzzzzzzzz", "abd"],
+      "cutoff": 0.6
+    }
+  },
+  {
+    "id": "get-close-matches/n-zero-error",
+    "op": "difflib.get_close_matches",
+    "args": {
+      "word": "a",
+      "possibilities": ["a"],
+      "n": 0
+    }
+  },
+  {
+    "id": "get-close-matches/n-negative-error",
+    "op": "difflib.get_close_matches",
+    "args": {
+      "word": "a",
+      "possibilities": ["a"],
+      "n": -1
+    }
+  },
+  {
+    "id": "get-close-matches/n-checked-before-cutoff",
+    "op": "difflib.get_close_matches",
+    "args": {
+      "word": "a",
+      "possibilities": ["a"],
+      "n": 0,
+      "cutoff": 2.0
+    }
+  },
+  {
+    "id": "get-close-matches/cutoff-above-one-error",
+    "op": "difflib.get_close_matches",
+    "args": {
+      "word": "a",
+      "possibilities": ["a"],
+      "cutoff": 1.5
+    }
+  },
+  {
+    "id": "get-close-matches/cutoff-negative-error",
+    "op": "difflib.get_close_matches",
+    "args": {
+      "word": "a",
+      "possibilities": ["a"],
+      "cutoff": -0.25
+    }
+  },
+  {
+    "id": "get-close-matches/cutoff-integral-float-error",
+    "op": "difflib.get_close_matches",
+    "args": {
+      "word": "a",
+      "possibilities": ["a"],
+      "cutoff": 2.0
+    }
+  },
+  {
+    "id": "get-close-matches/cutoff-large-exponent-error",
+    "op": "difflib.get_close_matches",
+    "args": {
+      "word": "a",
+      "possibilities": ["a"],
+      "cutoff": 1e16
+    }
+  },
+  {
+    "id": "get-close-matches/cutoff-small-exponent-error",
+    "op": "difflib.get_close_matches",
+    "args": {
+      "word": "a",
+      "possibilities": ["a"],
+      "cutoff": -1e-5
+    }
+  },
+  {
+    "id": "get-close-matches/cutoff-fixed-notation-error",
+    "op": "difflib.get_close_matches",
+    "args": {
+      "word": "a",
+      "possibilities": ["a"],
+      "cutoff": -0.0001
+    }
+  },
+  {
+    "id": "unified-diff/identical",
+    "op": "difflib.unified_diff",
+    "args": {
+      "a": ["a\n", "b\n"],
+      "b": ["a\n", "b\n"]
+    }
+  },
+  {
+    "id": "unified-diff/both-empty",
+    "op": "difflib.unified_diff",
+    "args": {
+      "a": [],
+      "b": []
+    }
+  },
+  {
+    "id": "unified-diff/both-empty-n-zero",
+    "op": "difflib.unified_diff",
+    "args": {
+      "a": [],
+      "b": [],
+      "n": 0
+    }
+  },
+  {
+    "id": "unified-diff/insert-into-empty",
+    "op": "difflib.unified_diff",
+    "args": {
+      "a": [],
+      "b": ["a\n", "b\n"]
+    }
+  },
+  {
+    "id": "unified-diff/delete-everything",
+    "op": "difflib.unified_diff",
+    "args": {
+      "a": ["a\n"],
+      "b": []
+    }
+  },
+  {
+    "id": "unified-diff/single-line-change",
+    "op": "difflib.unified_diff",
+    "args": {
+      "a": ["a\n"],
+      "b": ["b\n"]
+    }
+  },
+  {
+    "id": "unified-diff/headers-with-dates",
+    "op": "difflib.unified_diff",
+    "args": {
+      "a": ["one", "two", "three", "four"],
+      "b": ["zero", "one", "tree", "four"],
+      "fromfile": "Original",
+      "tofile": "Current",
+      "fromfiledate": "2005-01-26 23:30:50",
+      "tofiledate": "2010-04-02 10:20:52",
+      "lineterm": ""
+    }
+  },
+  {
+    "id": "unified-diff/headers-without-dates",
+    "op": "difflib.unified_diff",
+    "args": {
+      "a": ["x = 1\n", "y = 2\n"],
+      "b": ["x = 1\n", "y = 3\n"],
+      "fromfile": "before",
+      "tofile": "after"
+    }
+  },
+  {
+    "id": "unified-diff/header-date-on-one-side",
+    "op": "difflib.unified_diff",
+    "args": {
+      "a": ["a\n"],
+      "b": ["b\n"],
+      "fromfile": "a.txt",
+      "tofile": "b.txt",
+      "tofiledate": "2024-01-01"
+    }
+  },
+  {
+    "id": "unified-diff/lineterm-empty",
+    "op": "difflib.unified_diff",
+    "args": {
+      "a": ["a", "b", "c"],
+      "b": ["a", "x", "c"],
+      "lineterm": ""
+    }
+  },
+  {
+    "id": "unified-diff/no-trailing-newline",
+    "op": "difflib.unified_diff",
+    "args": {
+      "a": ["a\n", "b"],
+      "b": ["a\n", "b\n"]
+    }
+  },
+  {
+    "id": "unified-diff/crlf-lines",
+    "op": "difflib.unified_diff",
+    "args": {
+      "a": ["a\r\n", "b\r\n", "c\r\n"],
+      "b": ["a\r\n", "B\r\n", "c\r\n"]
+    }
+  },
+  {
+    "id": "unified-diff/astral-lines",
+    "op": "difflib.unified_diff",
+    "args": {
+      "a": ["😀\n", "b\n"],
+      "b": ["😀\n", "😁\n"]
+    }
+  },
+  {
+    "id": "unified-diff/n-zero-insert",
+    "op": "difflib.unified_diff",
+    "args": {
+      "a": ["a\n", "b\n"],
+      "b": ["a\n", "x\n", "b\n"],
+      "n": 0
+    }
+  },
+  {
+    "id": "unified-diff/n-zero-replace",
+    "op": "difflib.unified_diff",
+    "args": {
+      "a": ["1\n", "2\n", "3\n", "4\n", "5\n", "6\n", "7\n", "8\n", "9\n", "10\n", "11\n", "12\n", "13\n", "14\n", "15\n", "16\n", "17\n", "18\n", "19\n", "20\n"],
+      "b": ["1\n", "2\n", "3\n", "4\n", "5\n", "6\n", "7\n", "eight\n", "9\n", "10\n", "11\n", "12\n", "13\n", "14\n", "15\n", "16\n", "17\n", "18\n", "19\n", "20\n"],
+      "n": 0
+    }
+  },
+  {
+    "id": "unified-diff/aider-diffs-context-five",
+    "op": "difflib.unified_diff",
+    "args": {
+      "a": ["1\n", "2\n", "3\n", "4\n", "5\n", "6\n", "7\n", "8\n", "9\n", "10\n", "11\n", "12\n", "13\n", "14\n", "15\n", "16\n", "17\n", "18\n", "19\n", "20\n"],
+      "b": ["1\n", "2\n", "3\n", "4\n", "5\n", "six\n", "7\n", "8\n", "9\n", "10\n", "11\n", "12\n", "13\n", "fourteen\n", "15\n", "16\n", "17\n", "18\n", "19\n", "20\n"],
+      "n": 5
+    }
+  },
+  {
+    "id": "unified-diff/aider-udiff-whole-hunk",
+    "op": "difflib.unified_diff",
+    "args": {
+      "a": ["1\n", "2\n", "3\n", "4\n", "5\n", "6\n"],
+      "b": ["1\n", "two\n", "3\n", "4\n", "five\n", "6\n", "7\n"],
+      "n": 7
+    }
+  },
+  {
+    "id": "unified-diff/hunks-split-past-2n",
+    "op": "difflib.unified_diff",
+    "args": {
+      "a": ["1\n", "2\n", "3\n", "4\n", "5\n", "6\n", "7\n", "8\n", "9\n", "10\n", "11\n", "12\n", "13\n", "14\n", "15\n", "16\n", "17\n", "18\n", "19\n", "20\n"],
+      "b": ["1\n", "2\n", "3\n", "4\n", "5\n", "six\n", "7\n", "8\n", "9\n", "10\n", "11\n", "12\n", "13\n", "fourteen\n", "15\n", "16\n", "17\n", "18\n", "19\n", "20\n"],
+      "n": 3
+    }
+  },
+  {
+    "id": "unified-diff/hunks-merged-at-2n",
+    "op": "difflib.unified_diff",
+    "args": {
+      "a": ["1\n", "2\n", "3\n", "4\n", "5\n", "6\n", "7\n", "8\n", "9\n", "10\n", "11\n", "12\n", "13\n", "14\n", "15\n", "16\n", "17\n", "18\n", "19\n", "20\n"],
+      "b": ["1\n", "2\n", "3\n", "4\n", "5\n", "six\n", "7\n", "8\n", "9\n", "10\n", "11\n", "12\n", "thirteen\n", "14\n", "15\n", "16\n", "17\n", "18\n", "19\n", "20\n"],
+      "n": 3
+    }
+  },
+  {
+    "id": "unified-diff/changes-at-both-edges",
+    "op": "difflib.unified_diff",
+    "args": {
+      "a": ["1\n", "2\n", "3\n", "4\n", "5\n", "6\n", "7\n", "8\n", "9\n", "10\n", "11\n", "12\n", "13\n", "14\n", "15\n", "16\n", "17\n", "18\n", "19\n", "20\n"],
+      "b": ["one\n", "2\n", "3\n", "4\n", "5\n", "6\n", "7\n", "8\n", "9\n", "10\n", "11\n", "12\n", "13\n", "14\n", "15\n", "16\n", "17\n", "18\n", "19\n", "twenty\n"],
+      "n": 3
+    }
+  },
+  {
+    "id": "unified-diff/n-negative",
+    "op": "difflib.unified_diff",
+    "args": {
+      "a": ["1\n", "2\n", "3\n", "4\n", "5\n", "6\n", "7\n", "8\n", "9\n", "10\n", "11\n", "12\n", "13\n", "14\n", "15\n", "16\n", "17\n", "18\n", "19\n", "20\n"],
+      "b": ["1\n", "2\n", "3\n", "4\n", "5\n", "6\n", "7\n", "eight\n", "9\n", "10\n", "11\n", "12\n", "13\n", "14\n", "15\n", "16\n", "17\n", "18\n", "19\n", "20\n"],
+      "n": -1
+    }
+  },
+  {
+    "id": "unified-diff/autojunk-blank-lines-popular",
+    "op": "difflib.unified_diff",
+    "args": {
+      "a": [
+        "l0\n",
+        "\n",
+        "l2\n",
+        "l3\n",
+        "l4\n",
+        "l5\n",
+        "l6\n",
+        "\n",
+        "l8\n",
+        "}\n",
+        "l10\n",
+        "l11\n",
+        "\n",
+        "\n",
+        "l14\n",
+        "}\n",
+        "\n",
+        "\n",
+        "l18\n",
+        "l19\n",
+        "l20\n",
+        "\n",
+        "}\n",
+        "l23\n",
+        "\n",
+        "\n",
+        "l26\n",
+        "l27\n",
+        "l28\n",
+        "l29\n",
+        "\n",
+        "l31\n",
+        "l32\n",
+        "\n",
+        "l34\n",
+        "l35\n",
+        "l36\n",
+        "l37\n",
+        "l38\n",
+        "\n",
+        "l40\n",
+        "l41\n",
+        "}\n",
+        "\n",
+        "\n",
+        "l45\n",
+        "}\n",
+        "l47\n",
+        "l48\n",
+        "l49\n",
+        "}\n",
+        "l51\n",
+        "l52\n",
+        "l53\n",
+        "}\n",
+        "l55\n",
+        "}\n",
+        "l57\n",
+        "l58\n",
+        "\n",
+        "}\n",
+        "}\n",
+        "l62\n",
+        "l63\n",
+        "l64\n",
+        "l65\n",
+        "l66\n",
+        "l67\n",
+        "l68\n",
+        "\n",
+        "l70\n",
+        "\n",
+        "\n",
+        "l73\n",
+        "l74\n",
+        "}\n",
+        "\n",
+        "l77\n",
+        "l78\n",
+        "l79\n",
+        "\n",
+        "l81\n",
+        "l82\n",
+        "\n",
+        "l84\n",
+        "l85\n",
+        "l86\n",
+        "l87\n",
+        "l88\n",
+        "\n",
+        "l90\n",
+        "\n",
+        "l92\n",
+        "l93\n",
+        "}\n",
+        "\n",
+        "}\n",
+        "}\n",
+        "l98\n",
+        "l99\n",
+        "l100\n",
+        "l101\n",
+        "l102\n",
+        "\n",
+        "l104\n",
+        "}\n",
+        "l106\n",
+        "\n",
+        "l108\n",
+        "l109\n",
+        "\n",
+        "l111\n",
+        "\n",
+        "}\n",
+        "\n",
+        "\n",
+        "l116\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "l121\n",
+        "\n",
+        "\n",
+        "\n",
+        "l125\n",
+        "\n",
+        "l127\n",
+        "l128\n",
+        "l129\n",
+        "l130\n",
+        "\n",
+        "}\n",
+        "\n",
+        "}\n",
+        "\n",
+        "\n",
+        "l137\n",
+        "l138\n",
+        "\n",
+        "l140\n",
+        "\n",
+        "\n",
+        "l143\n",
+        "l144\n",
+        "\n",
+        "l146\n",
+        "}\n",
+        "l148\n",
+        "l149\n",
+        "l150\n",
+        "}\n",
+        "}\n",
+        "\n",
+        "l154\n",
+        "\n",
+        "\n",
+        "}\n",
+        "l158\n",
+        "\n",
+        "}\n",
+        "\n",
+        "l162\n",
+        "}\n",
+        "\n",
+        "\n",
+        "\n",
+        "l167\n",
+        "l168\n",
+        "l169\n",
+        "}\n",
+        "\n",
+        "\n",
+        "l173\n",
+        "l174\n",
+        "\n",
+        "l176\n",
+        "l177\n",
+        "l178\n",
+        "\n",
+        "l180\n",
+        "\n",
+        "l182\n",
+        "l183\n",
+        "\n",
+        "l185\n",
+        "l186\n",
+        "l187\n",
+        "}\n",
+        "l189\n",
+        "\n",
+        "l191\n",
+        "l192\n",
+        "l193\n",
+        "l194\n",
+        "\n",
+        "}\n",
+        "\n",
+        "l198\n",
+        "l199\n",
+        "\n"
+      ],
+      "b": [
+        "l0\n",
+        "\n",
+        "l2\n",
+        "l3\n",
+        "l4\n",
+        "l5\n",
+        "l6\n",
+        "\n",
+        "l8\n",
+        "}\n",
+        "l10\n",
+        "l11\n",
+        "\n",
+        "\n",
+        "l14\n",
+        "}\n",
+        "\n",
+        "\n",
+        "l18\n",
+        "l19\n",
+        "l20\n",
+        "\n",
+        "}\n",
+        "l23\n",
+        "\n",
+        "\n",
+        "l26\n",
+        "l27\n",
+        "l28\n",
+        "l29\n",
+        "\n",
+        "l31\n",
+        "l32\n",
+        "\n",
+        "l34\n",
+        "l35\n",
+        "l36\n",
+        "l37\n",
+        "l38\n",
+        "\n",
+        "l40\n",
+        "l41\n",
+        "}\n",
+        "\n",
+        "\n",
+        "l45\n",
+        "}\n",
+        "l47\n",
+        "l48\n",
+        "l49\n",
+        "}\n",
+        "l51\n",
+        "l52\n",
+        "l53\n",
+        "}\n",
+        "l55\n",
+        "}\n",
+        "l57\n",
+        "l58\n",
+        "\n",
+        "}\n",
+        "}\n",
+        "l62\n",
+        "l63\n",
+        "l64\n",
+        "l65\n",
+        "l66\n",
+        "l67\n",
+        "l68\n",
+        "\n",
+        "l70\n",
+        "\n",
+        "\n",
+        "l73\n",
+        "l74\n",
+        "}\n",
+        "\n",
+        "\n",
+        "\n",
+        "l77\n",
+        "l78\n",
+        "l79\n",
+        "\n",
+        "l81\n",
+        "l82\n",
+        "\n",
+        "l84\n",
+        "l85\n",
+        "l86\n",
+        "l87\n",
+        "l88\n",
+        "\n",
+        "l90\n",
+        "\n",
+        "l92\n",
+        "l93\n",
+        "}\n",
+        "\n",
+        "}\n",
+        "}\n",
+        "l98\n",
+        "l99\n",
+        "l100\n",
+        "l101\n",
+        "l102\n",
+        "\n",
+        "l104\n",
+        "}\n",
+        "l106\n",
+        "\n",
+        "l108\n",
+        "l109\n",
+        "\n",
+        "l111\n",
+        "\n",
+        "}\n",
+        "\n",
+        "\n",
+        "l116\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "l121\n",
+        "\n",
+        "\n",
+        "\n",
+        "l125\n",
+        "\n",
+        "l127\n",
+        "l128\n",
+        "l129\n",
+        "l130\n",
+        "\n",
+        "}\n",
+        "\n",
+        "}\n",
+        "\n",
+        "\n",
+        "l137\n",
+        "l138\n",
+        "\n",
+        "l140\n",
+        "\n",
+        "\n",
+        "l143\n",
+        "l144\n",
+        "\n",
+        "l146\n",
+        "}\n",
+        "l148\n",
+        "l149\n",
+        "l150\n",
+        "}\n",
+        "}\n",
+        "\n",
+        "l154\n",
+        "\n",
+        "\n",
+        "}\n",
+        "l158\n",
+        "\n",
+        "}\n",
+        "\n",
+        "l162\n",
+        "}\n",
+        "\n",
+        "\n",
+        "\n",
+        "l167\n",
+        "l168\n",
+        "l169\n",
+        "}\n",
+        "\n",
+        "\n",
+        "l173\n",
+        "l174\n",
+        "\n",
+        "l176\n",
+        "l177\n",
+        "l178\n",
+        "\n",
+        "l180\n",
+        "\n",
+        "l182\n",
+        "l183\n",
+        "\n",
+        "l185\n",
+        "l186\n",
+        "l187\n",
+        "}\n",
+        "l189\n",
+        "\n",
+        "l191\n",
+        "l192\n",
+        "l193\n",
+        "l194\n",
+        "\n",
+        "}\n",
+        "\n",
+        "l198\n",
+        "l199\n",
+        "\n"
+      ]
+    }
+  }
+]
