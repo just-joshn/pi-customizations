@@ -158,7 +158,7 @@
     "note": "Pi compaction summarizes older history and keeps a recent tail, so pi-maintainer runs no history summarizer"
   },
   "edit/history-images-and-prompt-caching/p3": {
-    "rows": ["edit.prompt.images"]
+    "rows": ["edit.prompt.images", "edit.prompt.image-mime-dotfiles"]
   },
   "edit/history-images-and-prompt-caching/p4": {
     "nonclaim": "pi-owned",
@@ -1781,7 +1781,7 @@
     "note": "Pi owns physical-model selection precedence across configured providers."
   },
   "aider-test/test_main/TestMain.test_chat_language_spanish": {
-    "rows": ["edit.prompt.reply-language"]
+    "rows": ["edit.prompt.reply-language", "edit.settings.chat-language-propagation"]
   },
   "aider-test/test_main/TestMain.test_reasoning_effort_option": {
     "nonclaim": "pi-owned",

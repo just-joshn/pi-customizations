@@ -87,6 +87,14 @@ Every feature and final gate runs the package's real Vitest suite. Any nonzero s
 - A `fix` specifies the intended behavior instead of the source defect. Preserved parity rows still describe unrelated source semantics. For example, dry-run fixes suppress persistence while retaining ordinary patch deletion and move behavior. Empty-result fixes retain each format's matching policy while treating an empty successful result as success. The cumulative-preflight fix retains SEARCH/REPLACE matching but predicts targets using earlier blocks' virtual results.
 - `pi`, `src`, and `tests` are filled during implementation. `pi` names Pi mechanisms such as `pi.on('turn_end')`. `src` lists package files. `tests` lists `<test file>::<test title>`.
 
+## Prompt and settings proof obligations
+
+`edit.settings.chat-language-propagation` covers the startup option reaching the controller and its platform context. The pinned `tests/basic/test_main.py:1135-1144` passes `--chat-language Spanish --exit --yes` through `main` before inspecting `coder.get_platform_info()`. Its Pi counterpart must exercise the real flag/settings adapter and assert Spanish in the resulting platform context. Direct calls to `getUserLanguage` and `getPlatformInfo` prove formatting, not propagation. Such calls do not satisfy `test_main/TestMain.test_chat_language_spanish`, even when they carry that metadata. Dropping the language option between settings and controller construction must make the propagation test fail.
+
+`edit.prompt.reply-language`, `edit.prompt.language-precedence`, and `edit.prompt.normalize-language` remain separate formatter contracts. No prompt row becomes verified merely because a passing test has a matching tag.
+
+`edit.prompt.image-mime-dotfiles` requires a Windows nested-dotfile regression through image-context assembly. Under Windows native path rules, `dir\nested\.png`, `C:\dir\nested\.png`, and `dir\nested\..png` have no MIME type and produce no image message. Ordinary PNG and PDF paths still produce their literal MIME data URLs when the model supports them. A POSIX-only basename test does not establish Windows behavior.
+
 ## Patch application obligations
 
 The patch follow-up rows remain open. Raw algorithm parity and fresh goldens do not prove application integration or the intent-backed fixes.

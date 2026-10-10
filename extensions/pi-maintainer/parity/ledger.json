@@ -2455,6 +2455,28 @@
         "intent": "aider/args.py:512 promises Perform a dry run without modifying files, and aider/io.py:487-489 suppresses persistence in dry-run. The same intent applies to patch_coder.py:575,589,622-627 filesystem mutations through actual patch application.",
         "behavior": "Parsed DELETE, MOVE, and nested ADD actions applied in dry-run leave source and destination contents, file existence, and parent-directory existence unchanged."
       }
+    },
+    {
+      "id": "edit.settings.chat-language-propagation",
+      "feature": "edit",
+      "behavior": "An explicit chat-language option supplied at startup survives settings resolution and controller construction and appears as the requested language in platform context.",
+      "aider": ["aider/args.py:747-752", "aider/main.py:975-1002", "aider/coders/base_coder.py:332-346,1094-1141", "tests/basic/test_main.py:1135-1144"],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "edit.prompt.image-mime-dotfiles",
+      "feature": "edit",
+      "behavior": "Under Windows native path rules, nested dot-only filenames such as dir\\nested\\.png have no MIME type and are excluded from image context, while ordinary image.png files retain image/png MIME context.",
+      "aider": ["aider/coders/base_coder.py:818-857", "aider/utils.py:80-93"],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
     }
   ]
 }
