@@ -50,6 +50,8 @@ const observationSchema = Type.Object({
   error: Type.Union([Type.String(), Type.Null()]),
 });
 const replySchema = Type.Object({ schema: Type.Literal(1), kind: Type.Literal('reply-finished'), reply: Type.String() });
+const noticeSchema = Type.Object({ schema: Type.Literal(1), kind: Type.Literal('notice'), level: Type.Enum(['info', 'warning', 'error']), text: Type.String() });
+const settledSchema = Type.Object({ schema: Type.Literal(1), kind: Type.Literal('settled'), outcome: Type.Enum(['idle', 'interrupted']) });
 
 export interface Restored {
   readonly snapshot: Snapshot | null;
@@ -70,10 +72,16 @@ export function restore(branch: readonly SessionEntry[]): Restored {
     if (entry.type !== 'custom' || entry.customType !== BRANDING.stateEntry) continue;
     const data: unknown = entry.data;
     if (Value.Check(snapshotSchema, data)) snapshot = Value.Parse(snapshotSchema, data);
-    else if (Value.Check(operationSchema, data)) intents.set(operationKey(data), data);
-    else if (Value.Check(observationSchema, data)) observed.add(operationKey(data));
-    else if (Value.Check(replySchema, data)) finished.add(data.reply);
-    else if (!(typeof data === 'object' && data !== null && 'kind' in data && (data.kind === 'settled' || data.kind === 'notice'))) invalid.push(entry.id);
+    else if (Value.Check(operationSchema, data)) {
+      const key = operationKey(data);
+      if (intents.has(key)) invalid.push(entry.id);
+      intents.set(key, data);
+    } else if (Value.Check(observationSchema, data)) {
+      const key = operationKey(data);
+      if (!intents.has(key) || observed.has(key)) invalid.push(entry.id);
+      observed.add(key);
+    } else if (Value.Check(replySchema, data)) finished.add(data.reply);
+    else if (!Value.Check(noticeSchema, data) && !Value.Check(settledSchema, data)) invalid.push(entry.id);
   }
   return { snapshot, finishedReplies: finished, pendingOperations: [...intents].filter(([key]) => !observed.has(key)).map(([, intent]) => intent), invalidRecords: invalid };
 }

@@ -4,7 +4,9 @@
 
 The first E6 milestone uses a real in-process Pi SDK session. `test/core/exchange.pi.test.ts` drives `AgentSession.prompt()` through a scripted registered provider and waits for `agent_settled`. It checks provider-visible file contents, actual edited disk bytes, zero tools, operation receipts, and malformed-response feedback in the next request.
 
-`src/core/install.ts` is the only registration boundary. `installMaintainer(pi, features, options)` accepts the symmetric feature list. Until E7 prompt formatting is integrated, callers must supply `options.promptSource`. The default factory fails explicitly at request projection without that source. Literal test prompts establish lifecycle behavior, not prompt parity.
+`src/core/install.ts` is the only registration boundary. `installMaintainer(pi, features, options)` accepts the symmetric feature list. Until E7 prompt formatting is integrated, callers must supply `options.promptSource`. The default factory aborts at request projection without that source. A source failure aborts through native `ctx.abort()` rather than relying on an exception from a transform hook. Pi otherwise reports that exception and continues with the incoming context. Literal test prompts establish lifecycle behavior, not prompt parity.
+
+`test/core/lifecycle.pi.test.ts` verifies the three-reflection budget, a fresh canonical user reset, suppressed continuation reconciliation, native cancellation, tool refusal, reload, persistent reopen, branch navigation, and refusal of an unresolved operation. `test/core/context.pi.test.ts` verifies actual provider message order, prior boundary entries, prior context transformations, fresh reads, and native compaction. `test/core/branch.test.ts` rejects duplicate receipt identities, orphan observations, and unknown schema versions.
 
 ## Format integration
 

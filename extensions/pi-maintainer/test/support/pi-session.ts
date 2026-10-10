@@ -82,7 +82,7 @@ export async function piSessionFixture(options: { readonly extension: ExtensionF
     await rm(root, { recursive: true, force: true });
   });
   const open = async (manager = SessionManager.create(cwd, join(root, 'sessions'))) => {
-    const settingsManager = SettingsManager.inMemory({ compaction: { enabled: false }, retry: { enabled: false }, cacheWarming: 'off' });
+    const settingsManager = SettingsManager.inMemory({ compaction: { enabled: false, keepRecentTokens: 0 }, retry: { enabled: false }, cacheWarming: 'off' });
     const loader = new DefaultResourceLoader({
       cwd,
       agentDir,

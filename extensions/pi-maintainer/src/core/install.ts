@@ -1,7 +1,7 @@
 import { homedir } from 'node:os';
 import { resolve } from 'node:path';
 
-import type { ExtensionAPI, ExtensionContext, ModelRouteRequest, SessionBoundaryDraft, TurnEndEvent } from '@earendil-works/pi-coding-agent';
+import type { ContextWithSystemEvent, ExtensionAPI, ExtensionContext, ModelRouteRequest, SessionBoundaryDraft, TurnEndEvent } from '@earendil-works/pi-coding-agent';
 import { Text } from '@earendil-works/pi-tui';
 import { BRANDING } from '../branding.ts';
 import { editOptions } from '../edit/options.ts';
@@ -103,13 +103,7 @@ export function installMaintainer(pi: ExtensionAPI, features: readonly SarFeatur
     const promptOptions = event.systemPromptOptions;
     promptOptions.customPrompt = 'Maintainer reply-text editing. No model tools.';
   });
-  pi.on('context_with_system', async (event, ctx) => {
-    const controller = runtime.current(ctx);
-    const physical = controller.snapshot.physicalModel;
-    const model = physical ? ctx.modelRegistry.find(physical.provider, physical.id) : undefined;
-    const result = await controller.projectRequest({ messages: event.messages, projection: ctx.sessionManager.buildSessionProjection().entries, supportsImages: model?.input.includes('image') ?? false });
-    return { messages: result.messages };
-  });
+  pi.on('context_with_system', (event, ctx) => runtime.project(event, ctx));
   pi.on('turn_end', (event, ctx) => runtime.complete(event, ctx));
   pi.on('agent_before_settle', (event, ctx) => {
     runtime.current(ctx).reconcile(event.outcome === 'aborted');
@@ -208,6 +202,7 @@ class MaintainerRuntime {
   async route(request: ModelRouteRequest, ctx: ExtensionContext) {
     const controller = this.current(ctx);
     request.signal?.throwIfAborted();
+    if (request.reason === 'continuation' && controller.snapshot.lifecycle.kind === 'interrupted') throw new Error('Maintainer exchange is interrupted');
     const restored = restore(ctx.sessionManager.getBranch());
     if (restored.pendingOperations.length || restored.invalidRecords.length) throw new Error('Unresolved maintainer operation receipts');
     if (this.#pi.getActiveTools().length) throw new Error('Another extension reactivated tools in maintainer mode');
@@ -220,6 +215,21 @@ class MaintainerRuntime {
       controller.bindUser(users, { provider: model.provider, id: model.id });
     }
     return { model, thinkingLevel: request.failed?.thinkingLevel ?? request.previous?.thinkingLevel ?? request.thinkingLevel };
+  }
+  async project(event: ContextWithSystemEvent, ctx: ExtensionContext) {
+    try {
+      const controller = this.current(ctx);
+      const physical = controller.snapshot.physicalModel;
+      const model = physical ? ctx.modelRegistry.find(physical.provider, physical.id) : undefined;
+      const result = await controller.projectRequest({ messages: event.messages, projection: ctx.sessionManager.buildSessionProjection().entries, supportsImages: model?.input.includes('image') ?? false });
+      return { messages: result.messages };
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error);
+      this.host.error(reason);
+      this.#controller?.interrupt(reason);
+      ctx.abort();
+      return undefined;
+    }
   }
   async complete(event: TurnEndEvent, ctx: ExtensionContext) {
     const controller = this.current(ctx);

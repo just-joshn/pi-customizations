@@ -206,7 +206,7 @@ export class ExchangeController {
   }
   interrupt(reason: string): void {
     const lifecycle = this.#state.lifecycle;
-    if (lifecycle.kind === 'idle') return;
+    if (lifecycle.kind !== 'active') return;
     this.save({ ...this.#state, lifecycle: { kind: 'interrupted', userEntries: lifecycle.userEntries, reflectionsSent: lifecycle.reflectionsSent, preparedTargets: lifecycle.preparedTargets, writtenPaths: lifecycle.writtenPaths, reason } });
   }
   reconcile(aborted: boolean): void {
