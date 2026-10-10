@@ -6545,5 +6545,3310 @@
       "git.startup.sanity-check",
       "git.repo.open-single-root"
     ]
+  },
+  "map/overview/p1": {
+    "rows": [
+      "map.files.tracked-universe",
+      "map.files.partition-chat-other",
+      "map.tags.extract",
+      "map.rank.lexical-graph",
+      "map.budget.sampled-prefix",
+      "map.render.structural-context"
+    ]
+  },
+  "map/overview/p2": {
+    "rows": [
+      "map.files.tracked-universe",
+      "map.files.partition-chat-other",
+      "map.tags.extract",
+      "map.rank.lexical-graph",
+      "map.budget.sampled-prefix",
+      "map.render.structural-context"
+    ]
+  },
+  "map/overview/i3": {
+    "rows": [
+      "map.files.tracked-universe",
+      "map.files.partition-chat-other",
+      "map.tags.extract",
+      "map.rank.lexical-graph",
+      "map.budget.sampled-prefix",
+      "map.render.structural-context"
+    ]
+  },
+  "map/overview/i4": {
+    "rows": [
+      "map.files.tracked-universe",
+      "map.files.partition-chat-other",
+      "map.tags.extract",
+      "map.rank.lexical-graph",
+      "map.budget.sampled-prefix",
+      "map.render.structural-context"
+    ]
+  },
+  "map/overview/p5": {
+    "rows": [
+      "map.files.tracked-universe",
+      "map.files.partition-chat-other",
+      "map.tags.extract",
+      "map.rank.lexical-graph",
+      "map.budget.sampled-prefix",
+      "map.render.structural-context"
+    ]
+  },
+  "map/overview/p6": {
+    "nonclaim": "provenance",
+    "note": "pinned checkout commit identity"
+  },
+  "map/overview/c7": {
+    "nonclaim": "provenance",
+    "note": "pinned checkout commit hash"
+  },
+  "map/overview/p8": {
+    "nonclaim": "evidence",
+    "note": "runtime success scope for checkout probes"
+  },
+  "map/overview/i9": {
+    "rows": [
+      "map.query.julia-compat"
+    ]
+  },
+  "map/overview/i10": {
+    "rows": [
+      "map.deps.query-runtime"
+    ]
+  },
+  "map/overview/p11": {
+    "nonclaim": "meta",
+    "note": "tests do not establish the incomplete installed distribution"
+  },
+  "map/evidence-classes/p1": {
+    "nonclaim": "meta",
+    "note": "evidence class taxonomy for reading the reconstruction"
+  },
+  "map/evidence-classes/r2": {
+    "nonclaim": "meta",
+    "note": "evidence class taxonomy for reading the reconstruction"
+  },
+  "map/evidence-classes/r3": {
+    "nonclaim": "meta",
+    "note": "evidence class taxonomy for reading the reconstruction"
+  },
+  "map/evidence-classes/r4": {
+    "nonclaim": "meta",
+    "note": "evidence class taxonomy for reading the reconstruction"
+  },
+  "map/evidence-classes/r5": {
+    "nonclaim": "meta",
+    "note": "evidence class taxonomy for reading the reconstruction"
+  },
+  "map/evidence-classes/p6": {
+    "nonclaim": "meta",
+    "note": "evidence class taxonomy for reading the reconstruction"
+  },
+  "map/evidence-classes/p7": {
+    "nonclaim": "meta",
+    "note": "evidence class taxonomy for reading the reconstruction"
+  },
+  "map/evidence-classes/p8": {
+    "nonclaim": "meta",
+    "note": "evidence class taxonomy for reading the reconstruction"
+  },
+  "map/checkout-implementation-versus-installed-distribution/p1": {
+    "nonclaim": "provenance",
+    "note": "checkout versus installed distribution identity and import origin"
+  },
+  "map/checkout-implementation-versus-installed-distribution/p2": {
+    "nonclaim": "provenance",
+    "note": "checkout versus installed distribution identity and import origin"
+  },
+  "map/checkout-implementation-versus-installed-distribution/c3": {
+    "nonclaim": "provenance",
+    "note": "checkout versus installed distribution identity and import origin"
+  },
+  "map/checkout-implementation-versus-installed-distribution/p4": {
+    "nonclaim": "provenance",
+    "note": "checkout versus installed distribution identity and import origin"
+  },
+  "map/checkout-implementation-versus-installed-distribution/p5": {
+    "nonclaim": "provenance",
+    "note": "checkout versus installed distribution identity and import origin"
+  },
+  "map/checkout-implementation-versus-installed-distribution/c6": {
+    "nonclaim": "provenance",
+    "note": "checkout versus installed distribution identity and import origin"
+  },
+  "map/checkout-implementation-versus-installed-distribution/p7": {
+    "rows": [
+      "map.deps.query-runtime"
+    ]
+  },
+  "map/checkout-implementation-versus-installed-distribution/p8": {
+    "nonclaim": "meta",
+    "note": "packaging root-cause not established beyond incomplete install observation"
+  },
+  "map/reconstruction-boundary/p1": {
+    "nonclaim": "meta",
+    "note": "stated reconstruction scope and non-claims"
+  },
+  "map/reconstruction-boundary/p2": {
+    "nonclaim": "evidence",
+    "note": "pointer to archived source manifest"
+  },
+  "map/reconstruction-boundary/p3": {
+    "nonclaim": "meta",
+    "note": "lead-in to reconstruction non-claim list"
+  },
+  "map/reconstruction-boundary/i4": {
+    "nonclaim": "meta",
+    "note": "excludes native grammar decompilation"
+  },
+  "map/reconstruction-boundary/i5": {
+    "nonclaim": "meta",
+    "note": "excludes complete semantic language support claims"
+  },
+  "map/reconstruction-boundary/i6": {
+    "rows": [
+      "map.deps.query-runtime"
+    ]
+  },
+  "map/reconstruction-boundary/i7": {
+    "nonclaim": "meta",
+    "note": "excludes model-answer quality evaluation"
+  },
+  "map/reconstruction-boundary/i8": {
+    "nonclaim": "meta",
+    "note": "excludes repository-scale performance benchmarks"
+  },
+  "map/reconstruction-boundary/i9": {
+    "nonclaim": "meta",
+    "note": "excludes transitive dependency verification"
+  },
+  "map/reconstruction-boundary/i10": {
+    "nonclaim": "meta",
+    "note": "excludes product fixes in the reconstruction"
+  },
+  "map/reconstruction-boundary/p11": {
+    "nonclaim": "meta",
+    "note": "no product changes in the reconstruction"
+  },
+  "map/file-sets/p1": {
+    "rows": [
+      "map.files.tracked-universe",
+      "map.files.partition-chat-other",
+      "map.hints.mention-extraction"
+    ]
+  },
+  "map/file-sets/i2": {
+    "rows": [
+      "map.files.tracked-universe",
+      "map.files.partition-chat-other",
+      "map.hints.mention-extraction"
+    ]
+  },
+  "map/file-sets/i3": {
+    "rows": [
+      "map.files.tracked-universe",
+      "map.files.partition-chat-other",
+      "map.hints.mention-extraction"
+    ]
+  },
+  "map/file-sets/i4": {
+    "rows": [
+      "map.files.tracked-universe",
+      "map.files.partition-chat-other",
+      "map.hints.mention-extraction"
+    ]
+  },
+  "map/file-sets/i5": {
+    "rows": [
+      "map.files.tracked-universe",
+      "map.files.partition-chat-other",
+      "map.hints.mention-extraction"
+    ]
+  },
+  "map/file-sets/p6": {
+    "rows": [
+      "map.files.tracked-universe",
+      "map.files.partition-chat-other",
+      "map.hints.mention-extraction"
+    ]
+  },
+  "map/tags-and-symbol-name-matching/p1": {
+    "rows": [
+      "map.tags.coordinates",
+      "map.tags.extract",
+      "map.tags.lexical-fallback",
+      "map.tags.python-query"
+    ]
+  },
+  "map/tags-and-symbol-name-matching/c2": {
+    "rows": [
+      "map.tags.coordinates",
+      "map.tags.extract",
+      "map.tags.lexical-fallback",
+      "map.tags.python-query"
+    ]
+  },
+  "map/tags-and-symbol-name-matching/p3": {
+    "rows": [
+      "map.tags.coordinates",
+      "map.tags.extract",
+      "map.tags.lexical-fallback",
+      "map.tags.python-query"
+    ]
+  },
+  "map/file-rank-versus-definition-rank/p1": {
+    "rows": [
+      "map.rank.lexical-graph",
+      "map.rank.definition-scores"
+    ]
+  },
+  "map/file-rank-versus-definition-rank/p2": {
+    "rows": [
+      "map.rank.lexical-graph",
+      "map.rank.definition-scores"
+    ]
+  },
+  "map/selected-entries-versus-rendered-text/p1": {
+    "rows": [
+      "map.budget.sampled-prefix",
+      "map.render.structural-context"
+    ]
+  },
+  "map/selected-entries-versus-rendered-text/p2": {
+    "rows": [
+      "map.budget.sampled-prefix",
+      "map.render.structural-context"
+    ]
+  },
+  "map/refresh-versus-invalidation/p1": {
+    "rows": [
+      "map.cache.rendered-policy",
+      "map.cache.tags-mtime"
+    ]
+  },
+  "map/refresh-versus-invalidation/p2": {
+    "rows": [
+      "map.cache.rendered-policy",
+      "map.cache.tags-mtime"
+    ]
+  },
+  "map/component-diagram/m1": {
+    "rows": [
+      "map.files.tracked-universe",
+      "map.files.partition-chat-other",
+      "map.tags.extract",
+      "map.rank.lexical-graph",
+      "map.budget.sampled-prefix",
+      "map.render.structural-context"
+    ]
+  },
+  "map/component-diagram/p2": {
+    "rows": [
+      "map.files.tracked-universe",
+      "map.files.partition-chat-other",
+      "map.tags.extract",
+      "map.rank.lexical-graph",
+      "map.budget.sampled-prefix",
+      "map.render.structural-context"
+    ]
+  },
+  "map/component-diagram/p3": {
+    "rows": [
+      "map.files.tracked-universe",
+      "map.files.partition-chat-other",
+      "map.tags.extract",
+      "map.rank.lexical-graph",
+      "map.budget.sampled-prefix",
+      "map.render.structural-context"
+    ]
+  },
+  "map/normal-request-sequence/m1": {
+    "rows": [
+      "map.context.seed-and-fallback",
+      "map.hints.mention-extraction",
+      "map.render.prompt-insertion"
+    ]
+  },
+  "map/normal-request-sequence/p2": {
+    "rows": [
+      "map.context.seed-and-fallback",
+      "map.hints.mention-extraction",
+      "map.render.prompt-insertion"
+    ]
+  },
+  "map/1-configuration-and-map-construction/p1": {
+    "rows": [
+      "map.budget.model-default",
+      "map.budget.explicit-enable",
+      "map.model.mapping-policy"
+    ]
+  },
+  "map/1-configuration-and-map-construction/p2": {
+    "rows": [
+      "map.budget.model-default",
+      "map.budget.explicit-enable",
+      "map.model.mapping-policy"
+    ]
+  },
+  "map/1-configuration-and-map-construction/p3": {
+    "rows": [
+      "map.budget.model-default",
+      "map.budget.explicit-enable",
+      "map.model.mapping-policy"
+    ]
+  },
+  "map/2-git-derived-file-selection/p1": {
+    "rows": [
+      "map.files.tracked-universe"
+    ]
+  },
+  "map/2-git-derived-file-selection/p2": {
+    "rows": [
+      "map.files.tracked-universe"
+    ]
+  },
+  "map/2-git-derived-file-selection/i3": {
+    "rows": [
+      "map.files.tracked-universe"
+    ]
+  },
+  "map/2-git-derived-file-selection/i4": {
+    "rows": [
+      "map.files.tracked-universe"
+    ]
+  },
+  "map/2-git-derived-file-selection/i5": {
+    "rows": [
+      "map.files.tracked-universe"
+    ]
+  },
+  "map/2-git-derived-file-selection/i6": {
+    "rows": [
+      "map.files.tracked-universe"
+    ]
+  },
+  "map/2-git-derived-file-selection/i7": {
+    "rows": [
+      "map.files.tracked-universe"
+    ]
+  },
+  "map/2-git-derived-file-selection/p8": {
+    "rows": [
+      "map.files.tracked-universe"
+    ]
+  },
+  "map/2-git-derived-file-selection/p9": {
+    "rows": [
+      "map.files.tracked-universe"
+    ]
+  },
+  "map/2-git-derived-file-selection/p10": {
+    "rows": [
+      "map.files.tracked-universe"
+    ]
+  },
+  "map/3-partitioning-and-mention-hints/p1": {
+    "rows": [
+      "map.files.partition-chat-other",
+      "map.hints.mention-extraction",
+      "map.context.seed-and-fallback"
+    ]
+  },
+  "map/3-partitioning-and-mention-hints/c2": {
+    "rows": [
+      "map.files.partition-chat-other",
+      "map.hints.mention-extraction",
+      "map.context.seed-and-fallback"
+    ]
+  },
+  "map/3-partitioning-and-mention-hints/p3": {
+    "rows": [
+      "map.files.partition-chat-other",
+      "map.hints.mention-extraction",
+      "map.context.seed-and-fallback"
+    ]
+  },
+  "map/3-partitioning-and-mention-hints/p4": {
+    "rows": [
+      "map.files.partition-chat-other",
+      "map.hints.mention-extraction",
+      "map.context.seed-and-fallback"
+    ]
+  },
+  "map/3-partitioning-and-mention-hints/p5": {
+    "rows": [
+      "map.files.partition-chat-other",
+      "map.hints.mention-extraction",
+      "map.context.seed-and-fallback"
+    ]
+  },
+  "map/4-tag-extraction/p1": {
+    "rows": [
+      "map.tags.extract",
+      "map.tags.coordinates",
+      "map.tags.lexical-fallback",
+      "map.cache.tags-mtime"
+    ]
+  },
+  "map/4-tag-extraction/p2": {
+    "rows": [
+      "map.tags.extract",
+      "map.tags.coordinates",
+      "map.tags.lexical-fallback",
+      "map.cache.tags-mtime"
+    ]
+  },
+  "map/4-tag-extraction/i3": {
+    "rows": [
+      "map.tags.extract",
+      "map.tags.coordinates",
+      "map.tags.lexical-fallback",
+      "map.cache.tags-mtime"
+    ]
+  },
+  "map/4-tag-extraction/i4": {
+    "rows": [
+      "map.tags.extract",
+      "map.tags.coordinates",
+      "map.tags.lexical-fallback",
+      "map.cache.tags-mtime"
+    ]
+  },
+  "map/4-tag-extraction/i5": {
+    "rows": [
+      "map.tags.extract",
+      "map.tags.coordinates",
+      "map.tags.lexical-fallback",
+      "map.cache.tags-mtime"
+    ]
+  },
+  "map/4-tag-extraction/i6": {
+    "rows": [
+      "map.tags.extract",
+      "map.tags.coordinates",
+      "map.tags.lexical-fallback",
+      "map.cache.tags-mtime"
+    ]
+  },
+  "map/4-tag-extraction/i7": {
+    "rows": [
+      "map.tags.extract",
+      "map.tags.coordinates",
+      "map.tags.lexical-fallback",
+      "map.cache.tags-mtime"
+    ]
+  },
+  "map/4-tag-extraction/i8": {
+    "rows": [
+      "map.tags.extract",
+      "map.tags.coordinates",
+      "map.tags.lexical-fallback",
+      "map.cache.tags-mtime"
+    ]
+  },
+  "map/4-tag-extraction/i9": {
+    "rows": [
+      "map.tags.extract",
+      "map.tags.coordinates",
+      "map.tags.lexical-fallback",
+      "map.cache.tags-mtime"
+    ]
+  },
+  "map/4-tag-extraction/p10": {
+    "rows": [
+      "map.tags.extract",
+      "map.tags.coordinates",
+      "map.tags.lexical-fallback",
+      "map.cache.tags-mtime"
+    ]
+  },
+  "map/4-tag-extraction/p11": {
+    "rows": [
+      "map.tags.extract",
+      "map.tags.coordinates",
+      "map.tags.lexical-fallback",
+      "map.cache.tags-mtime"
+    ]
+  },
+  "map/4-tag-extraction/p12": {
+    "rows": [
+      "map.tags.extract",
+      "map.tags.coordinates",
+      "map.tags.lexical-fallback",
+      "map.cache.tags-mtime"
+    ]
+  },
+  "map/4-tag-extraction/p13": {
+    "rows": [
+      "map.tags.extract",
+      "map.tags.coordinates",
+      "map.tags.lexical-fallback",
+      "map.cache.tags-mtime"
+    ]
+  },
+  "map/5-capture-multiplicity/p1": {
+    "rows": [
+      "map.tags.no-duplicate-final-capture",
+      "map.tags.extract"
+    ]
+  },
+  "map/5-capture-multiplicity/c2": {
+    "rows": [
+      "map.tags.no-duplicate-final-capture",
+      "map.tags.extract"
+    ]
+  },
+  "map/5-capture-multiplicity/p3": {
+    "rows": [
+      "map.tags.no-duplicate-final-capture",
+      "map.tags.extract"
+    ]
+  },
+  "map/5-capture-multiplicity/p4": {
+    "rows": [
+      "map.tags.no-duplicate-final-capture",
+      "map.tags.extract"
+    ]
+  },
+  "map/5-capture-multiplicity/p5": {
+    "rows": [
+      "map.tags.no-duplicate-final-capture",
+      "map.tags.extract"
+    ]
+  },
+  "map/6-graph-construction/p1": {
+    "rows": [
+      "map.rank.lexical-graph",
+      "map.rank.weights",
+      "map.rank.personalization"
+    ]
+  },
+  "map/6-graph-construction/p2": {
+    "rows": [
+      "map.rank.lexical-graph",
+      "map.rank.weights",
+      "map.rank.personalization"
+    ]
+  },
+  "map/6-graph-construction/i3": {
+    "rows": [
+      "map.rank.lexical-graph",
+      "map.rank.weights",
+      "map.rank.personalization"
+    ]
+  },
+  "map/6-graph-construction/i4": {
+    "rows": [
+      "map.rank.lexical-graph",
+      "map.rank.weights",
+      "map.rank.personalization"
+    ]
+  },
+  "map/6-graph-construction/i5": {
+    "rows": [
+      "map.rank.lexical-graph",
+      "map.rank.weights",
+      "map.rank.personalization"
+    ]
+  },
+  "map/6-graph-construction/i6": {
+    "rows": [
+      "map.rank.lexical-graph",
+      "map.rank.weights",
+      "map.rank.personalization"
+    ]
+  },
+  "map/6-graph-construction/i7": {
+    "rows": [
+      "map.rank.lexical-graph",
+      "map.rank.weights",
+      "map.rank.personalization"
+    ]
+  },
+  "map/6-graph-construction/i8": {
+    "rows": [
+      "map.rank.lexical-graph",
+      "map.rank.weights",
+      "map.rank.personalization"
+    ]
+  },
+  "map/6-graph-construction/p9": {
+    "rows": [
+      "map.rank.lexical-graph",
+      "map.rank.weights",
+      "map.rank.personalization"
+    ]
+  },
+  "map/7-ranking-and-prefix-selection/p1": {
+    "rows": [
+      "map.rank.lexical-graph",
+      "map.rank.definition-scores",
+      "map.files.important-basenames",
+      "map.budget.sampled-prefix"
+    ]
+  },
+  "map/7-ranking-and-prefix-selection/p2": {
+    "rows": [
+      "map.rank.lexical-graph",
+      "map.rank.definition-scores",
+      "map.files.important-basenames",
+      "map.budget.sampled-prefix"
+    ]
+  },
+  "map/7-ranking-and-prefix-selection/p3": {
+    "rows": [
+      "map.rank.lexical-graph",
+      "map.rank.definition-scores",
+      "map.files.important-basenames",
+      "map.budget.sampled-prefix"
+    ]
+  },
+  "map/8-rendering-and-prompt-insertion/p1": {
+    "rows": [
+      "map.render.structural-context",
+      "map.render.prompt-insertion",
+      "map.files.partition-chat-other"
+    ]
+  },
+  "map/8-rendering-and-prompt-insertion/p2": {
+    "rows": [
+      "map.render.structural-context",
+      "map.render.prompt-insertion",
+      "map.files.partition-chat-other"
+    ]
+  },
+  "map/8-rendering-and-prompt-insertion/p3": {
+    "rows": [
+      "map.render.structural-context",
+      "map.render.prompt-insertion",
+      "map.files.partition-chat-other"
+    ]
+  },
+  "map/8-rendering-and-prompt-insertion/p4": {
+    "rows": [
+      "map.render.structural-context",
+      "map.render.prompt-insertion",
+      "map.files.partition-chat-other"
+    ]
+  },
+  "map/8-rendering-and-prompt-insertion/c5": {
+    "rows": [
+      "map.render.structural-context",
+      "map.render.prompt-insertion",
+      "map.files.partition-chat-other"
+    ]
+  },
+  "map/8-rendering-and-prompt-insertion/p6": {
+    "rows": [
+      "map.render.structural-context",
+      "map.render.prompt-insertion",
+      "map.files.partition-chat-other"
+    ]
+  },
+  "map/data-structures/r1": {
+    "rows": [
+      "map.tags.coordinates",
+      "map.rank.lexical-graph",
+      "map.cache.tags-mtime",
+      "map.cache.rendered-policy"
+    ]
+  },
+  "map/data-structures/r2": {
+    "rows": [
+      "map.tags.coordinates",
+      "map.rank.lexical-graph",
+      "map.cache.tags-mtime",
+      "map.cache.rendered-policy"
+    ]
+  },
+  "map/data-structures/r3": {
+    "rows": [
+      "map.tags.coordinates",
+      "map.rank.lexical-graph",
+      "map.cache.tags-mtime",
+      "map.cache.rendered-policy"
+    ]
+  },
+  "map/data-structures/r4": {
+    "rows": [
+      "map.tags.coordinates",
+      "map.rank.lexical-graph",
+      "map.cache.tags-mtime",
+      "map.cache.rendered-policy"
+    ]
+  },
+  "map/data-structures/r5": {
+    "rows": [
+      "map.tags.coordinates",
+      "map.rank.lexical-graph",
+      "map.cache.tags-mtime",
+      "map.cache.rendered-policy"
+    ]
+  },
+  "map/data-structures/r6": {
+    "rows": [
+      "map.tags.coordinates",
+      "map.rank.lexical-graph",
+      "map.cache.tags-mtime",
+      "map.cache.rendered-policy"
+    ]
+  },
+  "map/data-structures/r7": {
+    "rows": [
+      "map.tags.coordinates",
+      "map.rank.lexical-graph",
+      "map.cache.tags-mtime",
+      "map.cache.rendered-policy"
+    ]
+  },
+  "map/data-structures/r8": {
+    "rows": [
+      "map.tags.coordinates",
+      "map.rank.lexical-graph",
+      "map.cache.tags-mtime",
+      "map.cache.rendered-policy"
+    ]
+  },
+  "map/data-structures/r9": {
+    "rows": [
+      "map.tags.coordinates",
+      "map.rank.lexical-graph",
+      "map.cache.tags-mtime",
+      "map.cache.rendered-policy"
+    ]
+  },
+  "map/data-structures/r10": {
+    "rows": [
+      "map.tags.coordinates",
+      "map.rank.lexical-graph",
+      "map.cache.tags-mtime",
+      "map.cache.rendered-policy"
+    ]
+  },
+  "map/data-structures/r11": {
+    "rows": [
+      "map.tags.coordinates",
+      "map.rank.lexical-graph",
+      "map.cache.tags-mtime",
+      "map.cache.rendered-policy"
+    ]
+  },
+  "map/data-structures/p12": {
+    "rows": [
+      "map.tags.coordinates",
+      "map.rank.lexical-graph",
+      "map.cache.tags-mtime",
+      "map.cache.rendered-policy"
+    ]
+  },
+  "map/personalization/p1": {
+    "rows": [
+      "map.rank.personalization",
+      "map.rank.lexical-graph"
+    ]
+  },
+  "map/personalization/i2": {
+    "rows": [
+      "map.rank.personalization",
+      "map.rank.lexical-graph"
+    ]
+  },
+  "map/personalization/i3": {
+    "rows": [
+      "map.rank.personalization",
+      "map.rank.lexical-graph"
+    ]
+  },
+  "map/personalization/i4": {
+    "rows": [
+      "map.rank.personalization",
+      "map.rank.lexical-graph"
+    ]
+  },
+  "map/personalization/p5": {
+    "rows": [
+      "map.rank.personalization",
+      "map.rank.lexical-graph"
+    ]
+  },
+  "map/personalization/p6": {
+    "rows": [
+      "map.rank.personalization",
+      "map.rank.lexical-graph"
+    ]
+  },
+  "map/edge-weighting/p1": {
+    "rows": [
+      "map.rank.weights",
+      "map.rank.lexical-graph"
+    ]
+  },
+  "map/edge-weighting/p2": {
+    "rows": [
+      "map.rank.weights",
+      "map.rank.lexical-graph"
+    ]
+  },
+  "map/edge-weighting/p3": {
+    "rows": [
+      "map.rank.weights",
+      "map.rank.lexical-graph"
+    ]
+  },
+  "map/edge-weighting/p4": {
+    "rows": [
+      "map.rank.weights",
+      "map.rank.lexical-graph"
+    ]
+  },
+  "map/edge-weighting/p5": {
+    "rows": [
+      "map.rank.weights",
+      "map.rank.lexical-graph"
+    ]
+  },
+  "map/edge-weighting/p6": {
+    "rows": [
+      "map.rank.weights",
+      "map.rank.lexical-graph"
+    ]
+  },
+  "map/edge-weighting/p7": {
+    "rows": [
+      "map.rank.weights",
+      "map.rank.lexical-graph"
+    ]
+  },
+  "map/edge-weighting/p8": {
+    "rows": [
+      "map.rank.weights",
+      "map.rank.lexical-graph"
+    ]
+  },
+  "map/pagerank/p1": {
+    "rows": [
+      "map.rank.lexical-graph",
+      "map.rank.personalization"
+    ]
+  },
+  "map/pagerank/r2": {
+    "rows": [
+      "map.rank.lexical-graph",
+      "map.rank.personalization"
+    ]
+  },
+  "map/pagerank/r3": {
+    "rows": [
+      "map.rank.lexical-graph",
+      "map.rank.personalization"
+    ]
+  },
+  "map/pagerank/r4": {
+    "rows": [
+      "map.rank.lexical-graph",
+      "map.rank.personalization"
+    ]
+  },
+  "map/pagerank/r5": {
+    "rows": [
+      "map.rank.lexical-graph",
+      "map.rank.personalization"
+    ]
+  },
+  "map/pagerank/r6": {
+    "rows": [
+      "map.rank.lexical-graph",
+      "map.rank.personalization"
+    ]
+  },
+  "map/pagerank/r7": {
+    "rows": [
+      "map.rank.lexical-graph",
+      "map.rank.personalization"
+    ]
+  },
+  "map/pagerank/r8": {
+    "rows": [
+      "map.rank.lexical-graph",
+      "map.rank.personalization"
+    ]
+  },
+  "map/pagerank/p9": {
+    "rows": [
+      "map.rank.lexical-graph",
+      "map.rank.personalization"
+    ]
+  },
+  "map/pagerank/p10": {
+    "rows": [
+      "map.rank.lexical-graph",
+      "map.rank.personalization"
+    ]
+  },
+  "map/pagerank/i11": {
+    "rows": [
+      "map.rank.lexical-graph",
+      "map.rank.personalization"
+    ]
+  },
+  "map/pagerank/i12": {
+    "rows": [
+      "map.rank.lexical-graph",
+      "map.rank.personalization"
+    ]
+  },
+  "map/pagerank/i13": {
+    "rows": [
+      "map.rank.lexical-graph",
+      "map.rank.personalization"
+    ]
+  },
+  "map/pagerank/i14": {
+    "rows": [
+      "map.rank.lexical-graph",
+      "map.rank.personalization"
+    ]
+  },
+  "map/pagerank/i15": {
+    "rows": [
+      "map.rank.lexical-graph",
+      "map.rank.personalization"
+    ]
+  },
+  "map/pagerank/i16": {
+    "rows": [
+      "map.rank.lexical-graph",
+      "map.rank.personalization"
+    ]
+  },
+  "map/pagerank/p17": {
+    "rows": [
+      "map.rank.lexical-graph",
+      "map.rank.personalization"
+    ]
+  },
+  "map/pagerank/p18": {
+    "rows": [
+      "map.rank.lexical-graph",
+      "map.rank.personalization"
+    ]
+  },
+  "map/pagerank/p19": {
+    "rows": [
+      "map.rank.lexical-graph",
+      "map.rank.personalization"
+    ]
+  },
+  "map/pagerank/p20": {
+    "rows": [
+      "map.rank.lexical-graph",
+      "map.rank.personalization"
+    ]
+  },
+  "map/pagerank/p21": {
+    "rows": [
+      "map.rank.lexical-graph",
+      "map.rank.personalization"
+    ]
+  },
+  "map/definition-scores/p1": {
+    "rows": [
+      "map.rank.definition-scores",
+      "map.rank.lexical-graph"
+    ]
+  },
+  "map/definition-scores/p2": {
+    "rows": [
+      "map.rank.definition-scores",
+      "map.rank.lexical-graph"
+    ]
+  },
+  "map/definition-scores/p3": {
+    "rows": [
+      "map.rank.definition-scores",
+      "map.rank.lexical-graph"
+    ]
+  },
+  "map/definition-scores/p4": {
+    "rows": [
+      "map.rank.definition-scores",
+      "map.rank.lexical-graph"
+    ]
+  },
+  "map/definition-scores/p5": {
+    "rows": [
+      "map.rank.definition-scores",
+      "map.rank.lexical-graph"
+    ]
+  },
+  "map/token-budget-and-measurement/p1": {
+    "rows": [
+      "map.budget.sampled-prefix",
+      "map.budget.no-files",
+      "map.budget.model-default"
+    ]
+  },
+  "map/token-budget-and-measurement/p2": {
+    "rows": [
+      "map.budget.sampled-prefix",
+      "map.budget.no-files",
+      "map.budget.model-default"
+    ]
+  },
+  "map/token-budget-and-measurement/p3": {
+    "rows": [
+      "map.budget.sampled-prefix",
+      "map.budget.no-files",
+      "map.budget.model-default"
+    ]
+  },
+  "map/token-budget-and-measurement/p4": {
+    "rows": [
+      "map.budget.sampled-prefix",
+      "map.budget.no-files",
+      "map.budget.model-default"
+    ]
+  },
+  "map/token-budget-and-measurement/p5": {
+    "rows": [
+      "map.budget.sampled-prefix",
+      "map.budget.no-files",
+      "map.budget.model-default"
+    ]
+  },
+  "map/token-budget-and-measurement/p6": {
+    "rows": [
+      "map.budget.sampled-prefix",
+      "map.budget.no-files",
+      "map.budget.model-default"
+    ]
+  },
+  "map/token-budget-and-measurement/p7": {
+    "rows": [
+      "map.budget.sampled-prefix",
+      "map.budget.no-files",
+      "map.budget.model-default"
+    ]
+  },
+  "map/token-budget-and-measurement/r8": {
+    "rows": [
+      "map.budget.sampled-prefix",
+      "map.budget.no-files",
+      "map.budget.model-default"
+    ]
+  },
+  "map/token-budget-and-measurement/p9": {
+    "rows": [
+      "map.budget.sampled-prefix",
+      "map.budget.no-files",
+      "map.budget.model-default"
+    ]
+  },
+  "map/token-budget-and-measurement/p10": {
+    "rows": [
+      "map.budget.sampled-prefix",
+      "map.budget.no-files",
+      "map.budget.model-default"
+    ]
+  },
+  "map/token-budget-and-measurement/p11": {
+    "rows": [
+      "map.budget.sampled-prefix",
+      "map.budget.no-files",
+      "map.budget.model-default"
+    ]
+  },
+  "map/token-budget-and-measurement/p12": {
+    "rows": [
+      "map.budget.sampled-prefix",
+      "map.budget.no-files",
+      "map.budget.model-default"
+    ]
+  },
+  "map/token-budget-and-measurement/p13": {
+    "rows": [
+      "map.budget.sampled-prefix",
+      "map.budget.no-files",
+      "map.budget.model-default"
+    ]
+  },
+  "map/configuration-and-default-matrix/r1": {
+    "rows": [
+      "map.budget.model-default",
+      "map.budget.explicit-enable",
+      "map.budget.no-files",
+      "map.config.map-mul",
+      "map.model.mapping-policy",
+      "map.cache.rendered-policy"
+    ]
+  },
+  "map/configuration-and-default-matrix/r2": {
+    "rows": [
+      "map.budget.model-default",
+      "map.budget.explicit-enable",
+      "map.budget.no-files",
+      "map.config.map-mul",
+      "map.model.mapping-policy",
+      "map.cache.rendered-policy"
+    ]
+  },
+  "map/configuration-and-default-matrix/r3": {
+    "rows": [
+      "map.budget.model-default",
+      "map.budget.explicit-enable",
+      "map.budget.no-files",
+      "map.config.map-mul",
+      "map.model.mapping-policy",
+      "map.cache.rendered-policy"
+    ]
+  },
+  "map/configuration-and-default-matrix/r4": {
+    "rows": [
+      "map.budget.model-default",
+      "map.budget.explicit-enable",
+      "map.budget.no-files",
+      "map.config.map-mul",
+      "map.model.mapping-policy",
+      "map.cache.rendered-policy"
+    ]
+  },
+  "map/configuration-and-default-matrix/r5": {
+    "rows": [
+      "map.budget.model-default",
+      "map.budget.explicit-enable",
+      "map.budget.no-files",
+      "map.config.map-mul",
+      "map.model.mapping-policy",
+      "map.cache.rendered-policy"
+    ]
+  },
+  "map/configuration-and-default-matrix/r6": {
+    "rows": [
+      "map.budget.model-default",
+      "map.budget.explicit-enable",
+      "map.budget.no-files",
+      "map.config.map-mul",
+      "map.model.mapping-policy",
+      "map.cache.rendered-policy"
+    ]
+  },
+  "map/configuration-and-default-matrix/r7": {
+    "rows": [
+      "map.budget.model-default",
+      "map.budget.explicit-enable",
+      "map.budget.no-files",
+      "map.config.map-mul",
+      "map.model.mapping-policy",
+      "map.cache.rendered-policy"
+    ]
+  },
+  "map/configuration-and-default-matrix/r8": {
+    "rows": [
+      "map.budget.model-default",
+      "map.budget.explicit-enable",
+      "map.budget.no-files",
+      "map.config.map-mul",
+      "map.model.mapping-policy",
+      "map.cache.rendered-policy"
+    ]
+  },
+  "map/configuration-and-default-matrix/r9": {
+    "rows": [
+      "map.budget.model-default",
+      "map.budget.explicit-enable",
+      "map.budget.no-files",
+      "map.config.map-mul",
+      "map.model.mapping-policy",
+      "map.cache.rendered-policy"
+    ]
+  },
+  "map/configuration-and-default-matrix/r10": {
+    "rows": [
+      "map.budget.model-default",
+      "map.budget.explicit-enable",
+      "map.budget.no-files",
+      "map.config.map-mul",
+      "map.model.mapping-policy",
+      "map.cache.rendered-policy"
+    ]
+  },
+  "map/configuration-and-default-matrix/p11": {
+    "rows": [
+      "map.budget.model-default",
+      "map.budget.explicit-enable",
+      "map.budget.no-files",
+      "map.config.map-mul",
+      "map.model.mapping-policy",
+      "map.cache.rendered-policy"
+    ]
+  },
+  "map/configuration-and-default-matrix/p12": {
+    "rows": [
+      "map.budget.model-default",
+      "map.budget.explicit-enable",
+      "map.budget.no-files",
+      "map.config.map-mul",
+      "map.model.mapping-policy",
+      "map.cache.rendered-policy"
+    ]
+  },
+  "map/cache-invalidation-matrix/r1": {
+    "rows": [
+      "map.cache.rendered-policy",
+      "map.cache.tags-mtime"
+    ]
+  },
+  "map/cache-invalidation-matrix/r2": {
+    "rows": [
+      "map.cache.rendered-policy",
+      "map.cache.tags-mtime"
+    ]
+  },
+  "map/cache-invalidation-matrix/r3": {
+    "rows": [
+      "map.cache.rendered-policy",
+      "map.cache.tags-mtime"
+    ]
+  },
+  "map/cache-invalidation-matrix/r4": {
+    "rows": [
+      "map.cache.rendered-policy",
+      "map.cache.tags-mtime"
+    ]
+  },
+  "map/cache-invalidation-matrix/r5": {
+    "rows": [
+      "map.cache.rendered-policy",
+      "map.cache.tags-mtime"
+    ]
+  },
+  "map/cache-invalidation-matrix/r6": {
+    "rows": [
+      "map.cache.rendered-policy",
+      "map.cache.tags-mtime"
+    ]
+  },
+  "map/cache-invalidation-matrix/r7": {
+    "rows": [
+      "map.cache.rendered-policy",
+      "map.cache.tags-mtime"
+    ]
+  },
+  "map/cache-invalidation-matrix/r8": {
+    "rows": [
+      "map.cache.rendered-policy",
+      "map.cache.tags-mtime"
+    ]
+  },
+  "map/cache-invalidation-matrix/r9": {
+    "rows": [
+      "map.cache.rendered-policy",
+      "map.cache.tags-mtime"
+    ]
+  },
+  "map/cache-invalidation-matrix/p10": {
+    "rows": [
+      "map.cache.rendered-policy",
+      "map.cache.tags-mtime"
+    ]
+  },
+  "map/cache-invalidation-matrix/p11": {
+    "rows": [
+      "map.cache.rendered-policy",
+      "map.cache.tags-mtime"
+    ]
+  },
+  "map/cache-invalidation-matrix/p12": {
+    "rows": [
+      "map.cache.rendered-policy",
+      "map.cache.tags-mtime"
+    ]
+  },
+  "map/cache-invalidation-matrix/p13": {
+    "rows": [
+      "map.cache.rendered-policy",
+      "map.cache.tags-mtime"
+    ]
+  },
+  "map/cache-invalidation-matrix/p14": {
+    "rows": [
+      "map.cache.rendered-policy",
+      "map.cache.tags-mtime"
+    ]
+  },
+  "map/cache-invalidation-matrix/p15": {
+    "rows": [
+      "map.cache.rendered-policy",
+      "map.cache.tags-mtime"
+    ]
+  },
+  "map/observed-environment/p1": {
+    "nonclaim": "evidence",
+    "note": "recorded dependency versions in the verification environment"
+  },
+  "map/observed-environment/r2": {
+    "nonclaim": "evidence",
+    "note": "recorded dependency versions in the verification environment"
+  },
+  "map/observed-environment/r3": {
+    "nonclaim": "evidence",
+    "note": "recorded dependency versions in the verification environment"
+  },
+  "map/observed-environment/r4": {
+    "nonclaim": "evidence",
+    "note": "recorded dependency versions in the verification environment"
+  },
+  "map/observed-environment/r5": {
+    "nonclaim": "evidence",
+    "note": "recorded dependency versions in the verification environment"
+  },
+  "map/observed-environment/r6": {
+    "nonclaim": "evidence",
+    "note": "recorded dependency versions in the verification environment"
+  },
+  "map/observed-environment/r7": {
+    "nonclaim": "evidence",
+    "note": "recorded dependency versions in the verification environment"
+  },
+  "map/observed-environment/r8": {
+    "nonclaim": "evidence",
+    "note": "recorded dependency versions in the verification environment"
+  },
+  "map/observed-environment/r9": {
+    "nonclaim": "evidence",
+    "note": "recorded dependency versions in the verification environment"
+  },
+  "map/observed-environment/r10": {
+    "nonclaim": "evidence",
+    "note": "recorded dependency versions in the verification environment"
+  },
+  "map/observed-environment/r11": {
+    "nonclaim": "evidence",
+    "note": "recorded dependency versions in the verification environment"
+  },
+  "map/observed-environment/r12": {
+    "nonclaim": "evidence",
+    "note": "recorded dependency versions in the verification environment"
+  },
+  "map/observed-environment/r13": {
+    "nonclaim": "evidence",
+    "note": "recorded dependency versions in the verification environment"
+  },
+  "map/observed-environment/r14": {
+    "nonclaim": "evidence",
+    "note": "recorded dependency versions in the verification environment"
+  },
+  "map/observed-environment/r15": {
+    "nonclaim": "evidence",
+    "note": "recorded dependency versions in the verification environment"
+  },
+  "map/observed-environment/r16": {
+    "nonclaim": "evidence",
+    "note": "recorded dependency versions in the verification environment"
+  },
+  "map/observed-environment/r17": {
+    "nonclaim": "evidence",
+    "note": "recorded dependency versions in the verification environment"
+  },
+  "map/observed-environment/r18": {
+    "nonclaim": "evidence",
+    "note": "recorded dependency versions in the verification environment"
+  },
+  "map/observed-environment/p19": {
+    "nonclaim": "evidence",
+    "note": "recorded dependency versions in the verification environment"
+  },
+  "map/observed-environment/p20": {
+    "nonclaim": "evidence",
+    "note": "recorded dependency versions in the verification environment"
+  },
+  "map/observed-environment/i21": {
+    "nonclaim": "evidence",
+    "note": "recorded dependency versions in the verification environment"
+  },
+  "map/observed-environment/i22": {
+    "nonclaim": "evidence",
+    "note": "recorded dependency versions in the verification environment"
+  },
+  "map/observed-environment/p23": {
+    "nonclaim": "evidence",
+    "note": "recorded dependency versions in the verification environment"
+  },
+  "map/direct-dependency-mechanisms/p1": {
+    "rows": [
+      "map.tags.extract",
+      "map.query.asset-selection",
+      "map.rank.lexical-graph",
+      "map.deps.query-runtime"
+    ]
+  },
+  "map/direct-dependency-mechanisms/p2": {
+    "rows": [
+      "map.tags.extract",
+      "map.query.asset-selection",
+      "map.rank.lexical-graph",
+      "map.deps.query-runtime"
+    ]
+  },
+  "map/direct-dependency-mechanisms/p3": {
+    "rows": [
+      "map.tags.extract",
+      "map.query.asset-selection",
+      "map.rank.lexical-graph",
+      "map.deps.query-runtime"
+    ]
+  },
+  "map/direct-dependency-mechanisms/i4": {
+    "rows": [
+      "map.tags.extract",
+      "map.query.asset-selection",
+      "map.rank.lexical-graph",
+      "map.deps.query-runtime"
+    ]
+  },
+  "map/direct-dependency-mechanisms/i5": {
+    "rows": [
+      "map.tags.extract",
+      "map.query.asset-selection",
+      "map.rank.lexical-graph",
+      "map.deps.query-runtime"
+    ]
+  },
+  "map/direct-dependency-mechanisms/i6": {
+    "rows": [
+      "map.tags.extract",
+      "map.query.asset-selection",
+      "map.rank.lexical-graph",
+      "map.deps.query-runtime"
+    ]
+  },
+  "map/direct-dependency-mechanisms/p7": {
+    "rows": [
+      "map.tags.extract",
+      "map.query.asset-selection",
+      "map.rank.lexical-graph",
+      "map.deps.query-runtime"
+    ]
+  },
+  "map/direct-dependency-mechanisms/p8": {
+    "rows": [
+      "map.tags.extract",
+      "map.query.asset-selection",
+      "map.rank.lexical-graph",
+      "map.deps.query-runtime"
+    ]
+  },
+  "map/direct-dependency-mechanisms/p9": {
+    "rows": [
+      "map.tags.extract",
+      "map.query.asset-selection",
+      "map.rank.lexical-graph",
+      "map.deps.query-runtime"
+    ]
+  },
+  "map/direct-dependency-mechanisms/p10": {
+    "rows": [
+      "map.tags.extract",
+      "map.query.asset-selection",
+      "map.rank.lexical-graph",
+      "map.deps.query-runtime"
+    ]
+  },
+  "map/direct-dependency-mechanisms/p11": {
+    "rows": [
+      "map.tags.extract",
+      "map.query.asset-selection",
+      "map.rank.lexical-graph",
+      "map.deps.query-runtime"
+    ]
+  },
+  "map/broader-dependency-closure/p1": {
+    "nonclaim": "evidence",
+    "note": "declared dependency closure metadata beyond mapping runtime"
+  },
+  "map/broader-dependency-closure/i2": {
+    "nonclaim": "evidence",
+    "note": "declared dependency closure metadata beyond mapping runtime"
+  },
+  "map/broader-dependency-closure/i3": {
+    "nonclaim": "evidence",
+    "note": "declared dependency closure metadata beyond mapping runtime"
+  },
+  "map/broader-dependency-closure/i4": {
+    "nonclaim": "evidence",
+    "note": "declared dependency closure metadata beyond mapping runtime"
+  },
+  "map/broader-dependency-closure/i5": {
+    "nonclaim": "evidence",
+    "note": "declared dependency closure metadata beyond mapping runtime"
+  },
+  "map/broader-dependency-closure/i6": {
+    "nonclaim": "evidence",
+    "note": "declared dependency closure metadata beyond mapping runtime"
+  },
+  "map/broader-dependency-closure/i7": {
+    "nonclaim": "evidence",
+    "note": "declared dependency closure metadata beyond mapping runtime"
+  },
+  "map/broader-dependency-closure/p8": {
+    "nonclaim": "evidence",
+    "note": "declared dependency closure metadata beyond mapping runtime"
+  },
+  "map/language-support-distinctions/p1": {
+    "nonclaim": "meta",
+    "note": "language-support stage taxonomy lead-in"
+  },
+  "map/language-support-distinctions/r2": {
+    "rows": [
+      "map.tags.extract",
+      "map.query.asset-selection",
+      "map.tags.python-query",
+      "map.tags.lexical-fallback",
+      "map.query.julia-compat"
+    ]
+  },
+  "map/language-support-distinctions/r3": {
+    "rows": [
+      "map.tags.extract",
+      "map.query.asset-selection",
+      "map.tags.python-query",
+      "map.tags.lexical-fallback",
+      "map.query.julia-compat"
+    ]
+  },
+  "map/language-support-distinctions/r4": {
+    "rows": [
+      "map.tags.extract",
+      "map.query.asset-selection",
+      "map.tags.python-query",
+      "map.tags.lexical-fallback",
+      "map.query.julia-compat"
+    ]
+  },
+  "map/language-support-distinctions/r5": {
+    "rows": [
+      "map.tags.extract",
+      "map.query.asset-selection",
+      "map.tags.python-query",
+      "map.tags.lexical-fallback",
+      "map.query.julia-compat"
+    ]
+  },
+  "map/language-support-distinctions/r6": {
+    "rows": [
+      "map.tags.extract",
+      "map.query.asset-selection",
+      "map.tags.python-query",
+      "map.tags.lexical-fallback",
+      "map.query.julia-compat"
+    ]
+  },
+  "map/language-support-distinctions/r7": {
+    "rows": [
+      "map.tags.extract",
+      "map.query.asset-selection",
+      "map.tags.python-query",
+      "map.tags.lexical-fallback",
+      "map.query.julia-compat"
+    ]
+  },
+  "map/language-support-distinctions/r8": {
+    "nonclaim": "meta",
+    "note": "model-quality evaluation is outside map runtime contracts"
+  },
+  "map/language-support-distinctions/p9": {
+    "nonclaim": "evidence",
+    "note": "pointer to installed language inventory artifact"
+  },
+  "map/language-support-distinctions/p10": {
+    "nonclaim": "meta",
+    "note": "lead-in to inventory count table"
+  },
+  "map/language-support-distinctions/r11": {
+    "nonclaim": "evidence",
+    "note": "installed language inventory counts from evidence artifacts"
+  },
+  "map/language-support-distinctions/r12": {
+    "nonclaim": "evidence",
+    "note": "installed language inventory counts from evidence artifacts"
+  },
+  "map/language-support-distinctions/r13": {
+    "nonclaim": "evidence",
+    "note": "installed language inventory counts from evidence artifacts"
+  },
+  "map/language-support-distinctions/r14": {
+    "nonclaim": "evidence",
+    "note": "installed language inventory counts from evidence artifacts"
+  },
+  "map/language-support-distinctions/r15": {
+    "nonclaim": "evidence",
+    "note": "installed language inventory counts from evidence artifacts"
+  },
+  "map/language-support-distinctions/p16": {
+    "nonclaim": "evidence",
+    "note": "pointer to query-result and probe-source artifacts"
+  },
+  "map/language-support-distinctions/p17": {
+    "rows": [
+      "map.tags.extract",
+      "map.query.asset-selection",
+      "map.tags.python-query",
+      "map.tags.lexical-fallback",
+      "map.query.julia-compat"
+    ]
+  },
+  "map/language-support-distinctions/p18": {
+    "rows": [
+      "map.tags.extract",
+      "map.query.asset-selection",
+      "map.tags.python-query",
+      "map.tags.lexical-fallback",
+      "map.query.julia-compat"
+    ]
+  },
+  "map/language-support-distinctions/i19": {
+    "rows": [
+      "map.tags.python-query",
+      "map.query.asset-selection"
+    ]
+  },
+  "map/language-support-distinctions/i20": {
+    "rows": [
+      "map.tags.lexical-fallback",
+      "map.query.asset-selection"
+    ]
+  },
+  "map/language-support-distinctions/i21": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "map/language-support-distinctions/p22": {
+    "rows": [
+      "map.tags.extract",
+      "map.query.asset-selection",
+      "map.tags.python-query",
+      "map.tags.lexical-fallback",
+      "map.query.julia-compat"
+    ]
+  },
+  "map/language-support-distinctions/p23": {
+    "nonclaim": "evidence",
+    "note": "query probe proves compile compatibility on minimal input only"
+  },
+  "map/language-support-distinctions/p24": {
+    "rows": [
+      "map.query.julia-compat"
+    ]
+  },
+  "map/language-support-distinctions/c25": {
+    "rows": [
+      "map.query.julia-compat"
+    ]
+  },
+  "map/language-support-distinctions/p26": {
+    "rows": [
+      "map.query.julia-compat"
+    ]
+  },
+  "map/language-support-distinctions/c27": {
+    "rows": [
+      "map.query.julia-compat"
+    ]
+  },
+  "map/language-support-distinctions/p28": {
+    "rows": [
+      "map.query.julia-compat"
+    ]
+  },
+  "map/language-support-distinctions/p29": {
+    "nonclaim": "meta",
+    "note": "generated language docs mark support by query-file existence"
+  },
+  "map/language-support-distinctions/p30": {
+    "nonclaim": "out-of-scope",
+    "note": "asset-download script reproducibility is outside map runtime contracts"
+  },
+  "map/commands-and-lifecycle-boundaries/r1": {
+    "rows": [
+      "map.commands.map-print",
+      "map.commands.map-refresh",
+      "map.commands.tokens-report",
+      "map.commands.show-repo-map",
+      "map.architect.disable-editor-map",
+      "map.context.seed-and-fallback",
+      "map.context.expand-refresh-map"
+    ]
+  },
+  "map/commands-and-lifecycle-boundaries/r2": {
+    "rows": [
+      "map.commands.map-print",
+      "map.commands.map-refresh",
+      "map.commands.tokens-report",
+      "map.commands.show-repo-map",
+      "map.architect.disable-editor-map",
+      "map.context.seed-and-fallback",
+      "map.context.expand-refresh-map"
+    ]
+  },
+  "map/commands-and-lifecycle-boundaries/r3": {
+    "rows": [
+      "map.commands.map-print",
+      "map.commands.map-refresh",
+      "map.commands.tokens-report",
+      "map.commands.show-repo-map",
+      "map.architect.disable-editor-map",
+      "map.context.seed-and-fallback",
+      "map.context.expand-refresh-map"
+    ]
+  },
+  "map/commands-and-lifecycle-boundaries/r4": {
+    "rows": [
+      "map.commands.map-print",
+      "map.commands.map-refresh",
+      "map.commands.tokens-report",
+      "map.commands.show-repo-map",
+      "map.architect.disable-editor-map",
+      "map.context.seed-and-fallback",
+      "map.context.expand-refresh-map"
+    ]
+  },
+  "map/commands-and-lifecycle-boundaries/r5": {
+    "rows": [
+      "map.commands.map-print",
+      "map.commands.map-refresh",
+      "map.commands.tokens-report",
+      "map.commands.show-repo-map",
+      "map.architect.disable-editor-map",
+      "map.context.seed-and-fallback",
+      "map.context.expand-refresh-map"
+    ]
+  },
+  "map/commands-and-lifecycle-boundaries/r6": {
+    "rows": [
+      "map.commands.map-print",
+      "map.commands.map-refresh",
+      "map.commands.tokens-report",
+      "map.commands.show-repo-map",
+      "map.architect.disable-editor-map",
+      "map.context.seed-and-fallback",
+      "map.context.expand-refresh-map"
+    ]
+  },
+  "map/commands-and-lifecycle-boundaries/r7": {
+    "rows": [
+      "map.commands.map-print",
+      "map.commands.map-refresh",
+      "map.commands.tokens-report",
+      "map.commands.show-repo-map",
+      "map.architect.disable-editor-map",
+      "map.context.seed-and-fallback",
+      "map.context.expand-refresh-map"
+    ]
+  },
+  "map/commands-and-lifecycle-boundaries/r8": {
+    "rows": [
+      "map.commands.map-print",
+      "map.commands.map-refresh",
+      "map.commands.tokens-report",
+      "map.commands.show-repo-map",
+      "map.architect.disable-editor-map",
+      "map.context.seed-and-fallback",
+      "map.context.expand-refresh-map"
+    ]
+  },
+  "map/commands-and-lifecycle-boundaries/p9": {
+    "rows": [
+      "map.commands.map-print",
+      "map.commands.map-refresh",
+      "map.commands.tokens-report",
+      "map.commands.show-repo-map",
+      "map.architect.disable-editor-map",
+      "map.context.seed-and-fallback",
+      "map.context.expand-refresh-map"
+    ]
+  },
+  "map/commands-and-lifecycle-boundaries/p10": {
+    "rows": [
+      "map.commands.map-print",
+      "map.commands.map-refresh",
+      "map.commands.tokens-report",
+      "map.commands.show-repo-map",
+      "map.architect.disable-editor-map",
+      "map.context.seed-and-fallback",
+      "map.context.expand-refresh-map"
+    ]
+  },
+  "map/commands-and-lifecycle-boundaries/p11": {
+    "rows": [
+      "map.commands.map-print",
+      "map.commands.map-refresh",
+      "map.commands.tokens-report",
+      "map.commands.show-repo-map",
+      "map.architect.disable-editor-map",
+      "map.context.seed-and-fallback",
+      "map.context.expand-refresh-map"
+    ]
+  },
+  "map/commands-and-lifecycle-boundaries/p12": {
+    "rows": [
+      "map.commands.map-print",
+      "map.commands.map-refresh",
+      "map.commands.tokens-report",
+      "map.commands.show-repo-map",
+      "map.architect.disable-editor-map",
+      "map.context.seed-and-fallback",
+      "map.context.expand-refresh-map"
+    ]
+  },
+  "map/commands-and-lifecycle-boundaries/p13": {
+    "rows": [
+      "map.commands.map-print",
+      "map.commands.map-refresh",
+      "map.commands.tokens-report",
+      "map.commands.show-repo-map",
+      "map.architect.disable-editor-map",
+      "map.context.seed-and-fallback",
+      "map.context.expand-refresh-map"
+    ]
+  },
+  "map/commands-and-lifecycle-boundaries/p14": {
+    "rows": [
+      "map.commands.map-print",
+      "map.commands.map-refresh",
+      "map.commands.tokens-report",
+      "map.commands.show-repo-map",
+      "map.architect.disable-editor-map",
+      "map.context.seed-and-fallback",
+      "map.context.expand-refresh-map"
+    ]
+  },
+  "map/failure-matrix/r1": {
+    "rows": [
+      "map.fail.zero-budget-none",
+      "map.fail.recursion-disables",
+      "map.fail.cache-memory-fallback",
+      "map.query.julia-compat",
+      "map.tags.extract",
+      "map.rank.personalization"
+    ]
+  },
+  "map/failure-matrix/r2": {
+    "rows": [
+      "map.fail.zero-budget-none",
+      "map.fail.recursion-disables",
+      "map.fail.cache-memory-fallback",
+      "map.query.julia-compat",
+      "map.tags.extract",
+      "map.rank.personalization"
+    ]
+  },
+  "map/failure-matrix/r3": {
+    "rows": [
+      "map.fail.zero-budget-none",
+      "map.fail.recursion-disables",
+      "map.fail.cache-memory-fallback",
+      "map.query.julia-compat",
+      "map.tags.extract",
+      "map.rank.personalization"
+    ]
+  },
+  "map/failure-matrix/r4": {
+    "rows": [
+      "map.fail.zero-budget-none",
+      "map.fail.recursion-disables",
+      "map.fail.cache-memory-fallback",
+      "map.query.julia-compat",
+      "map.tags.extract",
+      "map.rank.personalization"
+    ]
+  },
+  "map/failure-matrix/r5": {
+    "rows": [
+      "map.fail.zero-budget-none",
+      "map.fail.recursion-disables",
+      "map.fail.cache-memory-fallback",
+      "map.query.julia-compat",
+      "map.tags.extract",
+      "map.rank.personalization"
+    ]
+  },
+  "map/failure-matrix/r6": {
+    "rows": [
+      "map.fail.zero-budget-none",
+      "map.fail.recursion-disables",
+      "map.fail.cache-memory-fallback",
+      "map.query.julia-compat",
+      "map.tags.extract",
+      "map.rank.personalization"
+    ]
+  },
+  "map/failure-matrix/r7": {
+    "rows": [
+      "map.fail.zero-budget-none",
+      "map.fail.recursion-disables",
+      "map.fail.cache-memory-fallback",
+      "map.query.julia-compat",
+      "map.tags.extract",
+      "map.rank.personalization"
+    ]
+  },
+  "map/failure-matrix/r8": {
+    "rows": [
+      "map.fail.zero-budget-none",
+      "map.fail.recursion-disables",
+      "map.fail.cache-memory-fallback",
+      "map.query.julia-compat",
+      "map.tags.extract",
+      "map.rank.personalization"
+    ]
+  },
+  "map/failure-matrix/r9": {
+    "rows": [
+      "map.fail.zero-budget-none",
+      "map.fail.recursion-disables",
+      "map.fail.cache-memory-fallback",
+      "map.query.julia-compat",
+      "map.tags.extract",
+      "map.rank.personalization"
+    ]
+  },
+  "map/failure-matrix/r10": {
+    "rows": [
+      "map.fail.zero-budget-none",
+      "map.fail.recursion-disables",
+      "map.fail.cache-memory-fallback",
+      "map.query.julia-compat",
+      "map.tags.extract",
+      "map.rank.personalization"
+    ]
+  },
+  "map/failure-matrix/r11": {
+    "rows": [
+      "map.fail.zero-budget-none",
+      "map.fail.recursion-disables",
+      "map.fail.cache-memory-fallback",
+      "map.query.julia-compat",
+      "map.tags.extract",
+      "map.rank.personalization"
+    ]
+  },
+  "map/failure-matrix/r12": {
+    "rows": [
+      "map.fail.zero-budget-none",
+      "map.fail.recursion-disables",
+      "map.fail.cache-memory-fallback",
+      "map.query.julia-compat",
+      "map.tags.extract",
+      "map.rank.personalization"
+    ]
+  },
+  "map/failure-matrix/r13": {
+    "rows": [
+      "map.fail.zero-budget-none",
+      "map.fail.recursion-disables",
+      "map.fail.cache-memory-fallback",
+      "map.query.julia-compat",
+      "map.tags.extract",
+      "map.rank.personalization"
+    ]
+  },
+  "map/failure-matrix/r14": {
+    "rows": [
+      "map.fail.zero-budget-none",
+      "map.fail.recursion-disables",
+      "map.fail.cache-memory-fallback",
+      "map.query.julia-compat",
+      "map.tags.extract",
+      "map.rank.personalization"
+    ]
+  },
+  "map/failure-matrix/r15": {
+    "rows": [
+      "map.fail.zero-budget-none",
+      "map.fail.recursion-disables",
+      "map.fail.cache-memory-fallback",
+      "map.query.julia-compat",
+      "map.tags.extract",
+      "map.rank.personalization"
+    ]
+  },
+  "map/failure-matrix/r16": {
+    "rows": [
+      "map.fail.zero-budget-none",
+      "map.fail.recursion-disables",
+      "map.fail.cache-memory-fallback",
+      "map.query.julia-compat",
+      "map.tags.extract",
+      "map.rank.personalization"
+    ]
+  },
+  "map/failure-matrix/p17": {
+    "rows": [
+      "map.fail.zero-budget-none",
+      "map.fail.recursion-disables",
+      "map.fail.cache-memory-fallback",
+      "map.query.julia-compat",
+      "map.tags.extract",
+      "map.rank.personalization"
+    ]
+  },
+  "map/failure-matrix/p18": {
+    "rows": [
+      "map.fail.zero-budget-none",
+      "map.fail.recursion-disables",
+      "map.fail.cache-memory-fallback",
+      "map.query.julia-compat",
+      "map.tags.extract",
+      "map.rank.personalization"
+    ]
+  },
+  "map/source-disclosure/p1": {
+    "rows": [
+      "map.security.source-disclosure",
+      "map.render.structural-context"
+    ]
+  },
+  "map/source-disclosure/p2": {
+    "rows": [
+      "map.security.source-disclosure",
+      "map.render.structural-context"
+    ]
+  },
+  "map/source-disclosure/p3": {
+    "rows": [
+      "map.security.source-disclosure",
+      "map.render.structural-context"
+    ]
+  },
+  "map/source-disclosure/p4": {
+    "rows": [
+      "map.security.source-disclosure",
+      "map.render.structural-context"
+    ]
+  },
+  "map/local-execution-and-persistence/p1": {
+    "rows": [
+      "map.cache.tags-mtime",
+      "map.deps.query-runtime"
+    ]
+  },
+  "map/local-execution-and-persistence/p2": {
+    "rows": [
+      "map.cache.tags-mtime",
+      "map.deps.query-runtime"
+    ]
+  },
+  "map/concurrency-and-consistency/p1": {
+    "rows": [
+      "map.cache.rendered-policy",
+      "map.cache.tags-mtime"
+    ]
+  },
+  "map/concurrency-and-consistency/p2": {
+    "rows": [
+      "map.cache.rendered-policy",
+      "map.cache.tags-mtime"
+    ]
+  },
+  "map/concurrency-and-consistency/p3": {
+    "rows": [
+      "map.cache.rendered-policy",
+      "map.cache.tags-mtime"
+    ]
+  },
+  "map/feature-probes/p1": {
+    "rows": [
+      "map.tags.extract",
+      "map.tags.python-query",
+      "map.files.partition-chat-other",
+      "map.budget.no-files",
+      "map.cache.rendered-policy"
+    ]
+  },
+  "map/feature-probes/p2": {
+    "rows": [
+      "map.tags.extract",
+      "map.tags.python-query",
+      "map.files.partition-chat-other",
+      "map.budget.no-files",
+      "map.cache.rendered-policy"
+    ]
+  },
+  "map/feature-probes/c3": {
+    "nonclaim": "evidence",
+    "note": "probe command listing"
+  },
+  "map/feature-probes/p4": {
+    "rows": [
+      "map.tags.extract",
+      "map.tags.python-query",
+      "map.files.partition-chat-other",
+      "map.budget.no-files",
+      "map.cache.rendered-policy"
+    ]
+  },
+  "map/feature-probes/p5": {
+    "rows": [
+      "map.tags.extract",
+      "map.tags.python-query",
+      "map.files.partition-chat-other",
+      "map.budget.no-files",
+      "map.cache.rendered-policy"
+    ]
+  },
+  "map/feature-probes/i6": {
+    "rows": [
+      "map.tags.extract",
+      "map.tags.python-query",
+      "map.files.partition-chat-other",
+      "map.budget.no-files",
+      "map.cache.rendered-policy"
+    ]
+  },
+  "map/feature-probes/i7": {
+    "rows": [
+      "map.tags.extract",
+      "map.tags.python-query",
+      "map.files.partition-chat-other",
+      "map.budget.no-files",
+      "map.cache.rendered-policy"
+    ]
+  },
+  "map/feature-probes/i8": {
+    "rows": [
+      "map.tags.extract",
+      "map.tags.python-query",
+      "map.files.partition-chat-other",
+      "map.budget.no-files",
+      "map.cache.rendered-policy"
+    ]
+  },
+  "map/boundary-probes/p1": {
+    "rows": [
+      "map.cache.rendered-policy",
+      "map.hints.mention-extraction",
+      "map.budget.no-files",
+      "map.fail.recursion-disables",
+      "map.fail.cache-memory-fallback"
+    ]
+  },
+  "map/boundary-probes/c2": {
+    "nonclaim": "evidence",
+    "note": "boundary probe command listing"
+  },
+  "map/boundary-probes/p3": {
+    "rows": [
+      "map.cache.rendered-policy",
+      "map.hints.mention-extraction",
+      "map.budget.no-files",
+      "map.fail.recursion-disables",
+      "map.fail.cache-memory-fallback"
+    ]
+  },
+  "map/query-compatibility-and-julia/p1": {
+    "rows": [
+      "map.query.julia-compat",
+      "map.query.asset-selection"
+    ]
+  },
+  "map/query-compatibility-and-julia/p2": {
+    "rows": [
+      "map.query.julia-compat",
+      "map.query.asset-selection"
+    ]
+  },
+  "map/existing-tests/p1": {
+    "nonclaim": "evidence",
+    "note": "recorded existing Aider unittest execution totals"
+  },
+  "map/existing-tests/c2": {
+    "nonclaim": "evidence",
+    "note": "recorded repomap unittest command"
+  },
+  "map/existing-tests/p3": {
+    "nonclaim": "evidence",
+    "note": "recorded existing Aider unittest execution totals"
+  },
+  "map/existing-tests/c4": {
+    "nonclaim": "evidence",
+    "note": "recorded special unittest command"
+  },
+  "map/existing-tests/p5": {
+    "nonclaim": "evidence",
+    "note": "recorded existing Aider unittest execution totals"
+  },
+  "map/existing-tests/p6": {
+    "nonclaim": "evidence",
+    "note": "recorded existing Aider unittest execution totals"
+  },
+  "map/existing-tests/p7": {
+    "nonclaim": "evidence",
+    "note": "recorded existing Aider unittest execution totals"
+  },
+  "map/existing-tests/p8": {
+    "nonclaim": "evidence",
+    "note": "recorded existing Aider unittest execution totals"
+  },
+  "map/existing-tests/p9": {
+    "nonclaim": "evidence",
+    "note": "recorded existing Aider unittest execution totals"
+  },
+  "map/remaining-coverage-gaps/p1": {
+    "nonclaim": "meta",
+    "note": "stated investigation gaps without a new observable contract"
+  },
+  "map/remaining-coverage-gaps/i2": {
+    "nonclaim": "meta",
+    "note": "stated investigation gaps without a new observable contract"
+  },
+  "map/remaining-coverage-gaps/i3": {
+    "nonclaim": "meta",
+    "note": "stated investigation gaps without a new observable contract"
+  },
+  "map/remaining-coverage-gaps/i4": {
+    "nonclaim": "meta",
+    "note": "stated investigation gaps without a new observable contract"
+  },
+  "map/remaining-coverage-gaps/i5": {
+    "nonclaim": "meta",
+    "note": "stated investigation gaps without a new observable contract"
+  },
+  "map/remaining-coverage-gaps/i6": {
+    "nonclaim": "meta",
+    "note": "stated investigation gaps without a new observable contract"
+  },
+  "map/remaining-coverage-gaps/i7": {
+    "nonclaim": "meta",
+    "note": "stated investigation gaps without a new observable contract"
+  },
+  "map/remaining-coverage-gaps/i8": {
+    "nonclaim": "meta",
+    "note": "stated investigation gaps without a new observable contract"
+  },
+  "map/remaining-coverage-gaps/i9": {
+    "nonclaim": "meta",
+    "note": "stated investigation gaps without a new observable contract"
+  },
+  "map/remaining-coverage-gaps/i10": {
+    "nonclaim": "meta",
+    "note": "stated investigation gaps without a new observable contract"
+  },
+  "map/remaining-coverage-gaps/i11": {
+    "nonclaim": "meta",
+    "note": "stated investigation gaps without a new observable contract"
+  },
+  "map/remaining-coverage-gaps/i12": {
+    "nonclaim": "meta",
+    "note": "stated investigation gaps without a new observable contract"
+  },
+  "map/remaining-coverage-gaps/i13": {
+    "nonclaim": "meta",
+    "note": "stated investigation gaps without a new observable contract"
+  },
+  "map/reproduction-and-artifact-verification/p1": {
+    "nonclaim": "evidence",
+    "note": "reproduction commands and artifact verification pointers"
+  },
+  "map/reproduction-and-artifact-verification/c2": {
+    "nonclaim": "evidence",
+    "note": "reproduction command block"
+  },
+  "map/reproduction-and-artifact-verification/p3": {
+    "nonclaim": "evidence",
+    "note": "reproduction commands and artifact verification pointers"
+  },
+  "map/reproduction-and-artifact-verification/p4": {
+    "nonclaim": "evidence",
+    "note": "reproduction commands and artifact verification pointers"
+  },
+  "map/reproduction-and-artifact-verification/c5": {
+    "nonclaim": "evidence",
+    "note": "artifact verification command block"
+  },
+  "map/reproduction-and-artifact-verification/p6": {
+    "nonclaim": "evidence",
+    "note": "reproduction commands and artifact verification pointers"
+  },
+  "map/reproduction-and-artifact-verification/c7": {
+    "nonclaim": "evidence",
+    "note": "hash verification command block"
+  },
+  "map/reproduction-and-artifact-verification/p8": {
+    "nonclaim": "evidence",
+    "note": "reproduction commands and artifact verification pointers"
+  },
+  "map/where-things-live/r1": {
+    "nonclaim": "provenance",
+    "note": "source path registry for map components at the pinned commit"
+  },
+  "map/where-things-live/r2": {
+    "nonclaim": "provenance",
+    "note": "source path registry for map components at the pinned commit"
+  },
+  "map/where-things-live/r3": {
+    "nonclaim": "provenance",
+    "note": "source path registry for map components at the pinned commit"
+  },
+  "map/where-things-live/r4": {
+    "nonclaim": "provenance",
+    "note": "source path registry for map components at the pinned commit"
+  },
+  "map/where-things-live/r5": {
+    "nonclaim": "provenance",
+    "note": "source path registry for map components at the pinned commit"
+  },
+  "map/where-things-live/r6": {
+    "nonclaim": "provenance",
+    "note": "source path registry for map components at the pinned commit"
+  },
+  "map/where-things-live/r7": {
+    "nonclaim": "provenance",
+    "note": "source path registry for map components at the pinned commit"
+  },
+  "map/where-things-live/r8": {
+    "nonclaim": "provenance",
+    "note": "source path registry for map components at the pinned commit"
+  },
+  "map/where-things-live/r9": {
+    "nonclaim": "provenance",
+    "note": "source path registry for map components at the pinned commit"
+  },
+  "map/where-things-live/r10": {
+    "nonclaim": "provenance",
+    "note": "source path registry for map components at the pinned commit"
+  },
+  "map/where-things-live/r11": {
+    "nonclaim": "provenance",
+    "note": "source path registry for map components at the pinned commit"
+  },
+  "map/where-things-live/r12": {
+    "nonclaim": "provenance",
+    "note": "source path registry for map components at the pinned commit"
+  },
+  "map/where-things-live/r13": {
+    "nonclaim": "provenance",
+    "note": "source path registry for map components at the pinned commit"
+  },
+  "map/where-things-live/r14": {
+    "nonclaim": "provenance",
+    "note": "source path registry for map components at the pinned commit"
+  },
+  "map/where-things-live/r15": {
+    "nonclaim": "provenance",
+    "note": "source path registry for map components at the pinned commit"
+  },
+  "map/where-things-live/r16": {
+    "nonclaim": "provenance",
+    "note": "source path registry for map components at the pinned commit"
+  },
+  "map/where-things-live/p17": {
+    "nonclaim": "provenance",
+    "note": "source path registry for map components at the pinned commit"
+  },
+  "map/gotchas/i1": {
+    "rows": [
+      "map.tags.no-duplicate-final-capture",
+      "map.rank.weights",
+      "map.commands.tokens-report",
+      "map.query.julia-compat",
+      "map.files.important-basenames",
+      "map.security.source-disclosure"
+    ]
+  },
+  "map/gotchas/i2": {
+    "rows": [
+      "map.tags.no-duplicate-final-capture",
+      "map.rank.weights",
+      "map.commands.tokens-report",
+      "map.query.julia-compat",
+      "map.files.important-basenames",
+      "map.security.source-disclosure"
+    ]
+  },
+  "map/gotchas/i3": {
+    "rows": [
+      "map.tags.no-duplicate-final-capture",
+      "map.rank.weights",
+      "map.commands.tokens-report",
+      "map.query.julia-compat",
+      "map.files.important-basenames",
+      "map.security.source-disclosure"
+    ]
+  },
+  "map/gotchas/i4": {
+    "rows": [
+      "map.tags.no-duplicate-final-capture",
+      "map.rank.weights",
+      "map.commands.tokens-report",
+      "map.query.julia-compat",
+      "map.files.important-basenames",
+      "map.security.source-disclosure"
+    ]
+  },
+  "map/gotchas/i5": {
+    "rows": [
+      "map.tags.no-duplicate-final-capture",
+      "map.rank.weights",
+      "map.commands.tokens-report",
+      "map.query.julia-compat",
+      "map.files.important-basenames",
+      "map.security.source-disclosure"
+    ]
+  },
+  "map/gotchas/i6": {
+    "rows": [
+      "map.tags.no-duplicate-final-capture",
+      "map.rank.weights",
+      "map.commands.tokens-report",
+      "map.query.julia-compat",
+      "map.files.important-basenames",
+      "map.security.source-disclosure"
+    ]
+  },
+  "map/gotchas/i7": {
+    "rows": [
+      "map.tags.no-duplicate-final-capture",
+      "map.rank.weights",
+      "map.commands.tokens-report",
+      "map.query.julia-compat",
+      "map.files.important-basenames",
+      "map.security.source-disclosure"
+    ]
+  },
+  "map/gotchas/i8": {
+    "rows": [
+      "map.tags.no-duplicate-final-capture",
+      "map.rank.weights",
+      "map.commands.tokens-report",
+      "map.query.julia-compat",
+      "map.files.important-basenames",
+      "map.security.source-disclosure"
+    ]
+  },
+  "map/gotchas/i9": {
+    "rows": [
+      "map.tags.no-duplicate-final-capture",
+      "map.rank.weights",
+      "map.commands.tokens-report",
+      "map.query.julia-compat",
+      "map.files.important-basenames",
+      "map.security.source-disclosure"
+    ]
+  },
+  "map/gotchas/i10": {
+    "rows": [
+      "map.tags.no-duplicate-final-capture",
+      "map.rank.weights",
+      "map.commands.tokens-report",
+      "map.query.julia-compat",
+      "map.files.important-basenames",
+      "map.security.source-disclosure"
+    ]
+  },
+  "map/gotchas/i11": {
+    "rows": [
+      "map.tags.no-duplicate-final-capture",
+      "map.rank.weights",
+      "map.commands.tokens-report",
+      "map.query.julia-compat",
+      "map.files.important-basenames",
+      "map.security.source-disclosure"
+    ]
+  },
+  "map/gotchas/i12": {
+    "rows": [
+      "map.tags.no-duplicate-final-capture",
+      "map.rank.weights",
+      "map.commands.tokens-report",
+      "map.query.julia-compat",
+      "map.files.important-basenames",
+      "map.security.source-disclosure"
+    ]
+  },
+  "map/gotchas/i13": {
+    "rows": [
+      "map.tags.no-duplicate-final-capture",
+      "map.rank.weights",
+      "map.commands.tokens-report",
+      "map.query.julia-compat",
+      "map.files.important-basenames",
+      "map.security.source-disclosure"
+    ]
+  },
+  "map/gotchas/i14": {
+    "rows": [
+      "map.tags.no-duplicate-final-capture",
+      "map.rank.weights",
+      "map.commands.tokens-report",
+      "map.query.julia-compat",
+      "map.files.important-basenames",
+      "map.security.source-disclosure"
+    ]
+  },
+  "map/gotchas/i15": {
+    "rows": [
+      "map.tags.no-duplicate-final-capture",
+      "map.rank.weights",
+      "map.commands.tokens-report",
+      "map.query.julia-compat",
+      "map.files.important-basenames",
+      "map.security.source-disclosure"
+    ]
+  },
+  "map/gotchas/i16": {
+    "rows": [
+      "map.tags.no-duplicate-final-capture",
+      "map.rank.weights",
+      "map.commands.tokens-report",
+      "map.query.julia-compat",
+      "map.files.important-basenames",
+      "map.security.source-disclosure"
+    ]
+  },
+  "map/gotchas/i17": {
+    "rows": [
+      "map.tags.no-duplicate-final-capture",
+      "map.rank.weights",
+      "map.commands.tokens-report",
+      "map.query.julia-compat",
+      "map.files.important-basenames",
+      "map.security.source-disclosure"
+    ]
+  },
+  "map/gotchas/p18": {
+    "rows": [
+      "map.tags.no-duplicate-final-capture",
+      "map.rank.weights",
+      "map.commands.tokens-report",
+      "map.query.julia-compat",
+      "map.files.important-basenames",
+      "map.security.source-disclosure"
+    ]
+  },
+  "map/reconstruction-contract-and-uncertainties/p1": {
+    "nonclaim": "meta",
+    "note": "reconstruction contract statements and open uncertainties"
+  },
+  "map/reconstruction-contract-and-uncertainties/q2": {
+    "nonclaim": "meta",
+    "note": "reconstruction contract statements and open uncertainties"
+  },
+  "map/reconstruction-contract-and-uncertainties/p3": {
+    "nonclaim": "meta",
+    "note": "reconstruction contract statements and open uncertainties"
+  },
+  "map/reconstruction-contract-and-uncertainties/p4": {
+    "nonclaim": "meta",
+    "note": "reconstruction contract statements and open uncertainties"
+  },
+  "map/reconstruction-contract-and-uncertainties/i5": {
+    "nonclaim": "meta",
+    "note": "reconstruction contract statements and open uncertainties"
+  },
+  "map/reconstruction-contract-and-uncertainties/i6": {
+    "nonclaim": "meta",
+    "note": "reconstruction contract statements and open uncertainties"
+  },
+  "map/reconstruction-contract-and-uncertainties/i7": {
+    "nonclaim": "meta",
+    "note": "reconstruction contract statements and open uncertainties"
+  },
+  "map/reconstruction-contract-and-uncertainties/i8": {
+    "nonclaim": "meta",
+    "note": "reconstruction contract statements and open uncertainties"
+  },
+  "map/reconstruction-contract-and-uncertainties/i9": {
+    "nonclaim": "meta",
+    "note": "reconstruction contract statements and open uncertainties"
+  },
+  "map/reconstruction-contract-and-uncertainties/i10": {
+    "nonclaim": "meta",
+    "note": "reconstruction contract statements and open uncertainties"
+  },
+  "map/reconstruction-contract-and-uncertainties/i11": {
+    "nonclaim": "meta",
+    "note": "reconstruction contract statements and open uncertainties"
+  },
+  "map/reconstruction-contract-and-uncertainties/i12": {
+    "nonclaim": "meta",
+    "note": "reconstruction contract statements and open uncertainties"
+  },
+  "map/reconstruction-contract-and-uncertainties/i13": {
+    "nonclaim": "meta",
+    "note": "reconstruction contract statements and open uncertainties"
+  },
+  "map/reconstruction-contract-and-uncertainties/i14": {
+    "nonclaim": "meta",
+    "note": "reconstruction contract statements and open uncertainties"
+  },
+  "map/reconstruction-contract-and-uncertainties/p15": {
+    "nonclaim": "meta",
+    "note": "reconstruction contract statements and open uncertainties"
+  },
+  "ev-map/probe/provider-tags": {
+    "rows": [
+      "map.tags.extract",
+      "map.tags.python-query",
+      "map.tags.no-duplicate-final-capture"
+    ]
+  },
+  "ev-map/probe/map-with-chat-file": {
+    "rows": [
+      "map.files.partition-chat-other",
+      "map.render.structural-context",
+      "map.rank.lexical-graph"
+    ]
+  },
+  "ev-map/probe/global-map": {
+    "rows": [
+      "map.context.seed-and-fallback",
+      "map.budget.no-files"
+    ]
+  },
+  "ev-map/probe/refresh-files-stale-until-forced": {
+    "rows": [
+      "map.cache.rendered-policy"
+    ]
+  },
+  "ev-map/probe/forced-map": {
+    "rows": [
+      "map.cache.rendered-policy",
+      "map.commands.map-refresh"
+    ]
+  },
+  "ev-map/probe/zero-budget-disables-map": {
+    "rows": [
+      "map.fail.zero-budget-none",
+      "map.budget.explicit-enable"
+    ]
+  },
+  "ev-map/query/arduino": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "ev-map/query/bash": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "ev-map/query/c": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "ev-map/query/chatito": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "ev-map/query/clojure": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "ev-map/query/commonlisp": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "ev-map/query/cpp": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "ev-map/query/csharp": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "ev-map/query/d": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "ev-map/query/dart": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "ev-map/query/elisp": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "ev-map/query/elixir": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "ev-map/query/elm": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "ev-map/query/fortran": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "ev-map/query/gleam": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "ev-map/query/go": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "ev-map/query/haskell": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "ev-map/query/hcl": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "ev-map/query/java": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "ev-map/query/javascript": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "ev-map/query/julia": {
+    "rows": [
+      "map.query.julia-compat",
+      "map.query.asset-selection"
+    ]
+  },
+  "ev-map/query/kotlin": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "ev-map/query/lua": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "ev-map/query/matlab": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "ev-map/query/ocaml": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "ev-map/query/ocaml-interface": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "ev-map/query/php": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "ev-map/query/pony": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "ev-map/query/properties": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "ev-map/query/python": {
+    "rows": [
+      "map.tags.python-query",
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "ev-map/query/r": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "ev-map/query/racket": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "ev-map/query/ruby": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "ev-map/query/rust": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "ev-map/query/scala": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "ev-map/query/solidity": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "ev-map/query/swift": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "ev-map/query/typescript": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "ev-map/query/udev": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "ev-map/query/zig": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "ev-map/boundary/manual-reuses-map-even-when-file-list-changes": {
+    "rows": [
+      "map.cache.rendered-policy"
+    ]
+  },
+  "ev-map/boundary/auto-cache-key-includes-identifier-hints": {
+    "rows": [
+      "map.cache.rendered-policy",
+      "map.hints.mention-extraction"
+    ]
+  },
+  "ev-map/boundary/empty-chat-budget-with-6000-context": {
+    "rows": [
+      "map.budget.no-files",
+      "map.config.map-mul"
+    ]
+  },
+  "ev-map/boundary/recursion-error-disables-subsequent-maps": {
+    "rows": [
+      "map.fail.recursion-disables"
+    ]
+  },
+  "ev-map/boundary/sqlite-creation-failure-falls-back-to-memory-and-maps": {
+    "rows": [
+      "map.fail.cache-memory-fallback"
+    ]
+  },
+  "ev-map/julia/get-repo-map": {
+    "rows": [
+      "map.query.julia-compat"
+    ]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_tokens_output": {
+    "rows": [
+      "map.commands.tokens-report"
+    ]
+  },
+  "aider-test/test_main/TestMain.test_yaml_config_file_loading": {
+    "rows": [
+      "map.budget.model-default",
+      "map.config.map-mul"
+    ]
+  },
+  "aider-test/test_main/TestMain.test_map_tokens_option": {
+    "rows": [
+      "map.budget.explicit-enable",
+      "map.fail.zero-budget-none"
+    ]
+  },
+  "aider-test/test_main/TestMain.test_map_tokens_option_with_non_zero_value": {
+    "rows": [
+      "map.budget.explicit-enable",
+      "map.budget.model-default"
+    ]
+  },
+  "aider-test/test_main/TestMain.test_sonnet_and_cache_options": {
+    "rows": [
+      "map.model.mapping-policy"
+    ]
+  },
+  "aider-test/test_main/TestMain.test_map_mul_option": {
+    "rows": [
+      "map.config.map-mul",
+      "map.budget.no-files"
+    ]
+  },
+  "aider-test/test_models/TestModels.test_get_repo_map_tokens": {
+    "rows": [
+      "map.budget.model-default"
+    ]
+  },
+  "aider-test/test_models/TestModels.test_configure_model_settings": {
+    "rows": [
+      "map.model.mapping-policy"
+    ]
+  },
+  "aider-test/test_models/TestModels.test_gpt_5_5_model_settings": {
+    "rows": [
+      "map.model.mapping-policy"
+    ]
+  },
+  "aider-test/test_repomap/TestRepoMap.test_get_repo_map": {
+    "rows": [
+      "map.tags.extract",
+      "map.render.structural-context",
+      "map.rank.lexical-graph"
+    ]
+  },
+  "aider-test/test_repomap/TestRepoMap.test_repo_map_refresh_files": {
+    "rows": [
+      "map.cache.rendered-policy"
+    ]
+  },
+  "aider-test/test_repomap/TestRepoMap.test_repo_map_refresh_auto": {
+    "rows": [
+      "map.cache.rendered-policy"
+    ]
+  },
+  "aider-test/test_repomap/TestRepoMap.test_get_repo_map_with_identifiers": {
+    "rows": [
+      "map.hints.mention-extraction",
+      "map.rank.personalization",
+      "map.rank.weights"
+    ]
+  },
+  "aider-test/test_repomap/MyClass.test_get_repo_map_all_files": {
+    "rows": [
+      "map.budget.no-files",
+      "map.context.seed-and-fallback"
+    ]
+  },
+  "aider-test/test_repomap/MyClass.test_get_repo_map_excludes_added_files": {
+    "rows": [
+      "map.files.partition-chat-other",
+      "map.render.structural-context"
+    ]
+  },
+  "aider-test/test_repomap/TestRepoMapAllLanguages.test_language_c": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "aider-test/test_repomap/TestRepoMapAllLanguages.test_language_cpp": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "aider-test/test_repomap/TestRepoMapAllLanguages.test_language_d": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "aider-test/test_repomap/TestRepoMapAllLanguages.test_language_dart": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "aider-test/test_repomap/TestRepoMapAllLanguages.test_language_elixir": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "aider-test/test_repomap/TestRepoMapAllLanguages.test_language_gleam": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "aider-test/test_repomap/TestRepoMapAllLanguages.test_language_haskell": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "aider-test/test_repomap/TestRepoMapAllLanguages.test_language_java": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "aider-test/test_repomap/TestRepoMapAllLanguages.test_language_javascript": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "aider-test/test_repomap/TestRepoMapAllLanguages.test_language_kotlin": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "aider-test/test_repomap/TestRepoMapAllLanguages.test_language_lua": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "aider-test/test_repomap/TestRepoMapAllLanguages.test_language_php": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "aider-test/test_repomap/TestRepoMapAllLanguages.test_language_python": {
+    "rows": [
+      "map.tags.python-query",
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "aider-test/test_repomap/TestRepoMapAllLanguages.test_language_ruby": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "aider-test/test_repomap/TestRepoMapAllLanguages.test_language_rust": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "aider-test/test_repomap/TestRepoMapAllLanguages.test_language_typescript": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "aider-test/test_repomap/TestRepoMapAllLanguages.test_language_tsx": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "aider-test/test_repomap/TestRepoMapAllLanguages.test_language_zig": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "aider-test/test_repomap/TestRepoMapAllLanguages.test_language_csharp": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "aider-test/test_repomap/TestRepoMapAllLanguages.test_language_elisp": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "aider-test/test_repomap/TestRepoMapAllLanguages.test_language_elm": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "aider-test/test_repomap/TestRepoMapAllLanguages.test_language_go": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "aider-test/test_repomap/TestRepoMapAllLanguages.test_language_hcl": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "aider-test/test_repomap/TestRepoMapAllLanguages.test_language_arduino": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "aider-test/test_repomap/TestRepoMapAllLanguages.test_language_chatito": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "aider-test/test_repomap/TestRepoMapAllLanguages.test_language_clojure": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "aider-test/test_repomap/TestRepoMapAllLanguages.test_language_commonlisp": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "aider-test/test_repomap/TestRepoMapAllLanguages.test_language_pony": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "aider-test/test_repomap/TestRepoMapAllLanguages.test_language_properties": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "aider-test/test_repomap/TestRepoMapAllLanguages.test_language_r": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "aider-test/test_repomap/TestRepoMapAllLanguages.test_language_racket": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "aider-test/test_repomap/TestRepoMapAllLanguages.test_language_solidity": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "aider-test/test_repomap/TestRepoMapAllLanguages.test_language_swift": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "aider-test/test_repomap/TestRepoMapAllLanguages.test_language_udev": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "aider-test/test_repomap/TestRepoMapAllLanguages.test_language_scala": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "aider-test/test_repomap/TestRepoMapAllLanguages.test_language_ocaml": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "aider-test/test_repomap/TestRepoMapAllLanguages.test_language_ocaml_interface": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "aider-test/test_repomap/TestRepoMapAllLanguages.test_language_matlab": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "aider-test/test_repomap/TestRepoMapAllLanguages.test_language_bash": {
+    "rows": [
+      "map.query.asset-selection",
+      "map.tags.extract"
+    ]
+  },
+  "aider-test/test_repomap/TestRepoMapAllLanguages.test_repo_map_sample_code_base": {
+    "rows": [
+      "map.tags.extract",
+      "map.render.structural-context",
+      "map.rank.lexical-graph"
+    ]
+  },
+  "aider-test/test_special/test_is_important": {
+    "rows": [
+      "map.files.important-basenames"
+    ]
+  },
+  "aider-test/test_special/test_filter_important_files": {
+    "rows": [
+      "map.files.important-basenames"
+    ]
+  },
+  "aider-test/test_special/test_is_important_case_sensitivity": {
+    "rows": [
+      "map.files.important-basenames"
+    ]
+  },
+  "aider-test/test_special/test_is_important_with_paths": {
+    "rows": [
+      "map.files.important-basenames"
+    ]
+  },
+  "aider-test/test_special/test_is_important_various_files": {
+    "rows": [
+      "map.files.important-basenames"
+    ]
   }
 }

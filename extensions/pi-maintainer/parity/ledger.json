@@ -5454,6 +5454,269 @@
         "test/git/startup-bind.test.ts::linked worktrees discover and pass sanity through the same Host.exec path",
         "test/git/startup-bind.test.ts::sanityCheckRepo refuses bare, corrupt, and index versions above 2, and accepts detached HEAD"
       ]
+    },
+    {
+      "id": "map.files.tracked-universe",
+      "feature": "map",
+      "behavior": "The map file universe is the sorted, deduplicated Git HEAD-and-index inventory after aiderignore and subtree filtering; untracked paths are excluded and summaries use working-tree text.",
+      "aider": [
+        "aider/repo.py:433-570",
+        "aider/coders/base_coder.py:2153-2167"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "map.files.partition-chat-other",
+      "feature": "map",
+      "behavior": "Normal mapping partitions repository files into chat files (editable plus in-root read-only) and other files, and excludes chat filenames from rendered map text while still using them for ranking.",
+      "aider": [
+        "aider/coders/base_coder.py:719-722",
+        "aider/repomap.py:550-557,748-785"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "map.files.important-basenames",
+      "feature": "map",
+      "behavior": "Important-basename helpers recognize configured root filenames case-insensitively across path forms, and ranking attempts to prepend important filenames absent from the ranked list.",
+      "aider": [
+        "aider/special.py:1-80",
+        "aider/repomap.py:559-574,656-662"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "map.hints.mention-extraction",
+      "feature": "map",
+      "behavior": "Mention hints come from concatenating current messages, splitting identifiers on non-word boundaries, and matching normalized paths, unique punctuated basenames, and lowercased stems of at least five characters, without scanning completed history.",
+      "aider": [
+        "aider/coders/base_coder.py:672-707,1714-1759"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "map.rank.personalization",
+      "feature": "map",
+      "behavior": "PageRank personalization starts from chat membership and filename-path matches scaled by 100 over the scan universe, stores only positive values, and retries without personalization when the normalized sum is zero.",
+      "aider": [
+        "aider/repomap.py:383,422-445,519-531"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "map.rank.definition-scores",
+      "feature": "map",
+      "behavior": "Definition scores sum identifier-specific edge ranks from referencing files, then ranked entries append non-chat definition tags and filename-only leftovers before budget search.",
+      "aider": [
+        "aider/repomap.py:533-574"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "map.render.prompt-insertion",
+      "feature": "map",
+      "behavior": "The coder inserts the prefixed repository map as a user message followed by an assistant acknowledgment that mapped files will not be edited without approval, with optional cache marking after the map chunk.",
+      "aider": [
+        "aider/coders/base_prompts.py:45-49",
+        "aider/coders/base_coder.py:750-761",
+        "aider/coders/chat_chunks.py:16-41"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "map.commands.map-print",
+      "feature": "map",
+      "behavior": "/map builds the repository map through the coder wrapper and prints the resulting map text.",
+      "aider": [
+        "aider/commands.py:472-478"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "map.commands.map-refresh",
+      "feature": "map",
+      "behavior": "/map-refresh forces the first wrapper mapping attempt and reports success without printing the map.",
+      "aider": [
+        "aider/commands.py:1418-1430"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "map.commands.tokens-report",
+      "feature": "map",
+      "behavior": "/tokens calls RepoMap directly with editable files as chat, omitting repository read-only partitioning, mention hints, and global fallbacks, so its token report can differ from the request map.",
+      "aider": [
+        "aider/commands.py:472-478",
+        "aider/coders/base_coder.py:789-800"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "map.commands.show-repo-map",
+      "feature": "map",
+      "behavior": "--show-repo-map builds the map through the coder wrapper, prints it, and exits.",
+      "aider": [
+        "aider/main.py:1046-1053"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "map.config.map-mul",
+      "feature": "map",
+      "behavior": "The map no-files multiplier option configures how far an empty-chat map budget may expand subject to known context capacity minus 4096 tokens.",
+      "aider": [
+        "aider/args.py:400-450",
+        "aider/repomap.py:47-58,119-132"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "map.query.asset-selection",
+      "feature": "map",
+      "behavior": "Query selection prefers tree-sitter-language-pack tags assets, then falls back to tree-sitter-languages assets; missing assets yield no semantic tags for that language.",
+      "aider": [
+        "aider/repomap.py:805-829"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "map.query.julia-compat",
+      "feature": "map",
+      "behavior": "Julia repository mapping degrades without an uncaught query error when the selected Julia tags query is incompatible with the installed grammar.",
+      "aider": [
+        "aider/repomap.py:284-302",
+        "aider/queries/tree-sitter-language-pack/julia-tags.scm:1-40"
+      ],
+      "kind": "fix",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": [],
+      "fix": {
+        "defect": "Query construction and execution sit outside the parser-acquisition catch, so an incompatible Julia tags query raises QueryError during get_repo_map instead of degrading to no tags or filename-only output.",
+        "intent": "Parser-acquisition failures already skip a file with a printed message at aider/repomap.py:284-295; unknown languages and missing query assets yield no tags at :279-337. Julia should follow that degradation path rather than aborting the map.",
+        "behavior": "Julia repository mapping degrades without an uncaught query error when the selected Julia tags query is incompatible with the installed grammar."
+      }
+    },
+    {
+      "id": "map.fail.zero-budget-none",
+      "feature": "map",
+      "behavior": "A nonpositive map token budget returns no map text from RepoMap.",
+      "aider": [
+        "aider/repomap.py:111-146"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "map.fail.recursion-disables",
+      "feature": "map",
+      "behavior": "A RecursionError during map generation is reported and the map budget is set to zero so later maps stay disabled.",
+      "aider": [
+        "aider/repomap.py:111-146",
+        "aider/coders/base_coder.py:713-746"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "map.fail.cache-memory-fallback",
+      "feature": "map",
+      "behavior": "When persistent tag-cache creation fails, mapping recreates the cache or falls back to an in-memory dictionary and continues producing maps.",
+      "aider": [
+        "aider/repomap.py:177-230"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "map.deps.query-runtime",
+      "feature": "map",
+      "behavior": "Semantic repository mapping requires query assets and language parsers available to the running process; an install with zero query assets cannot emit definition or reference tags.",
+      "aider": [
+        "aider/repomap.py:279-337,805-829",
+        "aider/models.py:155"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "map.security.source-disclosure",
+      "feature": "map",
+      "behavior": "Rendered map text can include filenames plus source excerpts with literals, comments, and configuration values, without secret redaction, because the read-only prefix is a model instruction only.",
+      "aider": [
+        "aider/repomap.py:297-337,710-785",
+        "aider/coders/base_coder.py:750-761"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
     }
   ]
 }
