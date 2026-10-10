@@ -1,6 +1,7 @@
 import { type EditContext, type EditFormats, type Feature, isEditFormatName, registerEditFormat } from '../feature.ts';
 import { applyEdits as applyEditBlocks, applyEditsDryRun as applyEditBlocksDryRun, type EditBlock, getEdits as getEditBlocks } from './editblock.ts';
 import { editOptionList, editOptions } from './options.ts';
+import { applyEdits as applyUdiffEdits, applyEditsDryRun as applyUdiffEditsDryRun, getEdits as getUdiffEdits, type UdiffEdit } from './udiff.ts';
 import { applyEdits, getEdits, type WholeFileEdit } from './wholefile.ts';
 import { createWorkingTree, type LineEndings } from './working-tree.ts';
 
@@ -16,11 +17,27 @@ function editBlockContext(context: EditContext) {
   };
 }
 
+function udiffContext(context: EditContext) {
+  return {
+    root: context.root,
+    absFnames: new Set(context.inchatRelativeFiles.map(context.absRootPath)),
+    absRootPath: context.absRootPath,
+    tree: context.tree,
+  };
+}
+
 const editBlockFormat = {
   editIntent: (edit: EditBlock) => ({ kind: 'upsert' as const, path: edit[0] }),
   getEdits: (content: string, context: EditContext) => getEditBlocks(content, editBlockContext(context)).edits,
   applyEditsDryRun: (edits: readonly EditBlock[], context: EditContext) => applyEditBlocksDryRun(edits, editBlockContext(context)),
   applyEdits: (edits: readonly EditBlock[], context: EditContext) => applyEditBlocks(edits, editBlockContext(context)),
+};
+
+const udiffFormat = {
+  editIntent: (edit: UdiffEdit) => (edit[0] === null ? null : { kind: 'upsert' as const, path: edit[0] }),
+  getEdits: (content: string) => getUdiffEdits(content),
+  applyEditsDryRun: (edits: readonly UdiffEdit[]) => applyUdiffEditsDryRun(edits),
+  applyEdits: (edits: readonly UdiffEdit[], context: EditContext) => applyUdiffEdits(edits, udiffContext(context)),
 };
 
 export const wholeFileFormat = registerEditFormat<WholeFileEdit>({
@@ -45,6 +62,19 @@ export const diffFencedFormat = registerEditFormat<EditBlock>({
   ...editBlockFormat,
 });
 
+export const udiffEditFormat = registerEditFormat<UdiffEdit>({
+  name: 'udiff',
+  prompts: 'udiff',
+  ...udiffFormat,
+});
+
+/** Same unified-diff apply path as `udiff`; only the prompts differ. */
+export const udiffSimpleFormat = registerEditFormat<UdiffEdit>({
+  name: 'udiff-simple',
+  prompts: 'udiff-simple',
+  ...udiffFormat,
+});
+
 export const editFeature: Feature<EditFormats> & { readonly name: 'edit' } = {
   name: 'edit',
   options: editOptionList,
@@ -57,6 +87,8 @@ export const editFeature: Feature<EditFormats> & { readonly name: 'edit' } = {
         ['whole', wholeFileFormat],
         ['diff', diffFormat],
         ['diff-fenced', diffFencedFormat],
+        ['udiff', udiffEditFormat],
+        ['udiff-simple', udiffSimpleFormat],
       ]),
       requestedFormat: requested !== null && isEditFormatName(requested) ? requested : null,
       initialFiles: { editable: settings.value(editOptions.file), readOnly: settings.value(editOptions.read) },
