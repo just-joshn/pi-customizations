@@ -1,0 +1,372 @@
+[
+  {
+    "id": "get_edits/empty",
+    "op": "wholefile.get_edits",
+    "args": {
+      "content": ""
+    }
+  },
+  {
+    "id": "get_edits/prose-only",
+    "op": "wholefile.get_edits",
+    "args": {
+      "content": "No changes.\n"
+    }
+  },
+  {
+    "id": "get_edits/explicit",
+    "op": "wholefile.get_edits",
+    "args": {
+      "content": "sample.txt\n```\nUpdated content\n```",
+      "chat_files": ["sample.txt"]
+    }
+  },
+  {
+    "id": "get_edits/outside-chat",
+    "op": "wholefile.get_edits",
+    "args": {
+      "content": "sample.txt\n```\nUpdated content\n```"
+    }
+  },
+  {
+    "id": "get_edits/no-filename",
+    "op": "wholefile.get_edits",
+    "args": {
+      "content": "```python\nprint('hello')\n```"
+    }
+  },
+  {
+    "id": "get_edits/blank-filename-many-files",
+    "op": "wholefile.get_edits",
+    "args": {
+      "content": "\n```\nnew\n```",
+      "chat_files": ["a", "b"]
+    }
+  },
+  {
+    "id": "get_edits/first-line-sole-file",
+    "op": "wholefile.get_edits",
+    "args": {
+      "content": "```python\nnew\n```",
+      "chat_files": ["a"]
+    }
+  },
+  {
+    "id": "get_edits/blank-line-sole-file",
+    "op": "wholefile.get_edits",
+    "args": {
+      "content": "Explanation\n\n```\nnew\n```",
+      "chat_files": ["a"]
+    }
+  },
+  {
+    "id": "get_edits/earlier-quoted",
+    "op": "wholefile.get_edits",
+    "args": {
+      "content": "Here is `a.txt`:\n\n```\nafter a\n```\nAnd `b.txt`!\n\n```\nafter b\n```",
+      "chat_files": ["a.txt", "b.txt"]
+    }
+  },
+  {
+    "id": "get_edits/latest-mention",
+    "op": "wholefile.get_edits",
+    "args": {
+      "content": "`a` `b`.,:;!\n\n```\nx\n```",
+      "chat_files": ["a", "b"]
+    }
+  },
+  {
+    "id": "get_edits/unquoted-not-remembered",
+    "op": "wholefile.get_edits",
+    "args": {
+      "content": "a\n\n```\nx\n```",
+      "chat_files": ["a", "b"]
+    }
+  },
+  {
+    "id": "get_edits/mention-reset-after-close",
+    "op": "wholefile.get_edits",
+    "args": {
+      "content": "`a`\n\n```\nx\n```\n\n```\ny\n```",
+      "chat_files": ["a", "b"]
+    }
+  },
+  {
+    "id": "get_edits/bogus-path",
+    "op": "wholefile.get_edits",
+    "args": {
+      "content": "path/to/sample.txt\n```\nUpdated content\n```",
+      "chat_files": ["sample.txt"]
+    }
+  },
+  {
+    "id": "get_edits/exact-path-kept",
+    "op": "wholefile.get_edits",
+    "args": {
+      "content": "path/a\n```\nx\n```",
+      "chat_files": ["path/a", "a"]
+    }
+  },
+  {
+    "id": "get_edits/basename-not-in-chat",
+    "op": "wholefile.get_edits",
+    "args": {
+      "content": "path/a\n```\nx\n```",
+      "chat_files": ["other/a"]
+    }
+  },
+  {
+    "id": "get_edits/pathlib-trailing-dot",
+    "op": "wholefile.get_edits",
+    "args": {
+      "content": "path/a/./\n```\nx\n```",
+      "chat_files": ["a"]
+    }
+  },
+  {
+    "id": "get_edits/pathlib-parent-kept",
+    "op": "wholefile.get_edits",
+    "args": {
+      "content": "path/a/../\n```\nx\n```",
+      "chat_files": [".."]
+    }
+  },
+  {
+    "id": "get_edits/heading",
+    "op": "wholefile.get_edits",
+    "args": {
+      "content": "### a.txt\n```\nafter a\n```\n### b.txt\n```\nafter b\n```"
+    }
+  },
+  {
+    "id": "get_edits/bold",
+    "op": "wholefile.get_edits",
+    "args": {
+      "content": "**a.txt**\n```\nx\n```"
+    }
+  },
+  {
+    "id": "get_edits/backtick-colon",
+    "op": "wholefile.get_edits",
+    "args": {
+      "content": "`a.txt`:\n```\nx\n```"
+    }
+  },
+  {
+    "id": "get_edits/cleanup-order-quirk",
+    "op": "wholefile.get_edits",
+    "args": {
+      "content": "**a.txt**:\n```\nx\n```"
+    }
+  },
+  {
+    "id": "get_edits/unclosed",
+    "op": "wholefile.get_edits",
+    "args": {
+      "content": "a\n```\nlast line"
+    }
+  },
+  {
+    "id": "get_edits/empty-file",
+    "op": "wholefile.get_edits",
+    "args": {
+      "content": "a\n```\n```"
+    }
+  },
+  {
+    "id": "get_edits/unclosed-empty-file",
+    "op": "wholefile.get_edits",
+    "args": {
+      "content": "a\n```"
+    }
+  },
+  {
+    "id": "get_edits/crlf",
+    "op": "wholefile.get_edits",
+    "args": {
+      "content": "a\r\n```\r\nx\r\ny\r\n```\r\n"
+    }
+  },
+  {
+    "id": "get_edits/unicode-linebreaks",
+    "op": "wholefile.get_edits",
+    "args": {
+      "content": "😀.txt``` \t😀 z\u001c```"
+    }
+  },
+  {
+    "id": "get_edits/python-whitespace",
+    "op": "wholefile.get_edits",
+    "args": {
+      "content": "\u001f`a`\u001f!\n\n```\nx\n```",
+      "chat_files": ["a", "b"]
+    }
+  },
+  {
+    "id": "get_edits/indented-fence-not-recognized",
+    "op": "wholefile.get_edits",
+    "args": {
+      "content": "a\n ```\nx\n ```"
+    }
+  },
+  {
+    "id": "get_edits/fence-prefix-closes",
+    "op": "wholefile.get_edits",
+    "args": {
+      "content": "a\n```python\nx\n````extra\n"
+    }
+  },
+  {
+    "id": "get_edits/closing-fence-opens",
+    "op": "wholefile.get_edits",
+    "args": {
+      "content": "a\n</code>suffix\nx\n<code>suffix",
+      "fence": ["<code>", "</code>"]
+    }
+  },
+  {
+    "id": "get_edits/alternate-contains-backticks",
+    "op": "wholefile.get_edits",
+    "args": {
+      "content": "a\n<source>\n```\nquote\n```\n</source>",
+      "fence": ["<source>", "</source>"]
+    }
+  },
+  {
+    "id": "get_edits/alternate-error-message",
+    "op": "wholefile.get_edits",
+    "args": {
+      "content": "<source>\nx",
+      "fence": ["<source>", "</source>"]
+    }
+  },
+  {
+    "id": "get_edits/first-explicit-wins",
+    "op": "wholefile.get_edits",
+    "args": {
+      "content": "a\n```\nfirst\n```\na\n```\nsecond\n```"
+    }
+  },
+  {
+    "id": "get_edits/block-over-saw-over-chat",
+    "op": "wholefile.get_edits",
+    "args": {
+      "content": "```\nchat\n```\n`a`\n\n```\nsaw\n```\na\n```\nblock\n```",
+      "chat_files": ["a"]
+    }
+  },
+  {
+    "id": "get_edits/saw-over-extra-unnamed",
+    "op": "wholefile.get_edits",
+    "args": {
+      "content": "Here is `a`:\n\n```\nnew\n```\nRun it like this:\n\n```\npython a\n```",
+      "chat_files": ["a"]
+    }
+  },
+  {
+    "id": "get_edits/source-reorders-files",
+    "op": "wholefile.get_edits",
+    "args": {
+      "content": "`a`\n\n```\nafter a\n```\nb\n```\nafter b\n```",
+      "chat_files": ["a", "b"]
+    }
+  },
+  {
+    "id": "get_edits/empty-chat-name-closed",
+    "op": "wholefile.get_edits",
+    "args": {
+      "content": "```\nx\n```",
+      "chat_files": [""]
+    }
+  },
+  {
+    "id": "get_edits/empty-chat-name-unclosed",
+    "op": "wholefile.get_edits",
+    "args": {
+      "content": "```\nx",
+      "chat_files": [""]
+    }
+  },
+  {
+    "id": "apply_edits/overwrite",
+    "op": "wholefile.apply_edits",
+    "args": {
+      "edits": [["a", "block", ["new\n", "end"]]]
+    }
+  },
+  {
+    "id": "apply_edits/empty",
+    "op": "wholefile.apply_edits",
+    "args": {
+      "edits": [["a", "chat", []]]
+    }
+  },
+  {
+    "id": "apply_edits/no-edits",
+    "op": "wholefile.apply_edits",
+    "args": {
+      "edits": []
+    }
+  },
+  {
+    "id": "apply_edits/ordered-duplicates",
+    "op": "wholefile.apply_edits",
+    "args": {
+      "edits": [["a", "saw", ["first"]], ["a", "block", ["last"]]]
+    }
+  },
+  {
+    "id": "apply_edits/path-and-lines",
+    "op": "wholefile.apply_edits",
+    "args": {
+      "edits": [["dir/../😀.txt", "block", ["\t😀\r\n", " ", "no newline"]], ["/absolute.txt", "block", ["x"]]]
+    }
+  },
+  {
+    "id": "get_edits/length-250-ascii",
+    "op": "wholefile.get_edits",
+    "args": {
+      "content": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n```\nx\n```",
+      "chat_files": ["fallback"]
+    }
+  },
+  {
+    "id": "get_edits/length-250-astral",
+    "op": "wholefile.get_edits",
+    "args": {
+      "content": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀\n```\nx\n```",
+      "chat_files": ["fallback"]
+    }
+  },
+  {
+    "id": "get_edits/length-251-ascii",
+    "op": "wholefile.get_edits",
+    "args": {
+      "content": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n```\nx\n```",
+      "chat_files": ["fallback"]
+    }
+  },
+  {
+    "id": "get_edits/length-251-astral",
+    "op": "wholefile.get_edits",
+    "args": {
+      "content": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀\n```\nx\n```",
+      "chat_files": ["fallback"]
+    }
+  },
+  {
+    "id": "get_edits/too-long-no-fallback",
+    "op": "wholefile.get_edits",
+    "args": {
+      "content": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n```\nx\n```"
+    }
+  },
+  {
+    "id": "get_edits/too-long-saw-fallback",
+    "op": "wholefile.get_edits",
+    "args": {
+      "content": "`a`\nzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz\n```\nx\n```",
+      "chat_files": ["a", "b"]
+    }
+  }
+]

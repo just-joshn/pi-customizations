@@ -1,0 +1,179 @@
+{
+  "apply_edits/empty": {
+    "result": [["/project/a", ""]]
+  },
+  "apply_edits/no-edits": {
+    "result": []
+  },
+  "apply_edits/ordered-duplicates": {
+    "result": [["/project/a", "first"], ["/project/a", "last"]]
+  },
+  "apply_edits/overwrite": {
+    "result": [["/project/a", "new\nend"]]
+  },
+  "apply_edits/path-and-lines": {
+    "result": [["/project/😀.txt", "\t😀\r\n no newline"], ["/absolute.txt", "x"]]
+  },
+  "get_edits/alternate-contains-backticks": {
+    "result": [["a", "block", ["```\n", "quote\n", "```\n"]]]
+  },
+  "get_edits/alternate-error-message": {
+    "error": {
+      "message": "No filename provided before <source> in file listing",
+      "type": "ValueError"
+    }
+  },
+  "get_edits/backtick-colon": {
+    "result": [["a.txt", "block", ["x\n"]]]
+  },
+  "get_edits/basename-not-in-chat": {
+    "result": [["path/a", "block", ["x\n"]]]
+  },
+  "get_edits/blank-filename-many-files": {
+    "error": {
+      "message": "No filename provided before ``` in file listing",
+      "type": "ValueError"
+    }
+  },
+  "get_edits/blank-line-sole-file": {
+    "result": [["a", "chat", ["new\n"]]]
+  },
+  "get_edits/block-over-saw-over-chat": {
+    "result": [["a", "block", ["block\n"]]]
+  },
+  "get_edits/bogus-path": {
+    "result": [["sample.txt", "block", ["Updated content\n"]]]
+  },
+  "get_edits/bold": {
+    "result": [["a.txt", "block", ["x\n"]]]
+  },
+  "get_edits/cleanup-order-quirk": {
+    "result": [["a.txt**", "block", ["x\n"]]]
+  },
+  "get_edits/closing-fence-opens": {
+    "result": [["a", "block", ["x\n"]]]
+  },
+  "get_edits/crlf": {
+    "result": [["a", "block", ["x\r\n", "y\r\n"]]]
+  },
+  "get_edits/earlier-quoted": {
+    "result": [["a.txt", "saw", ["after a\n"]], ["b.txt", "saw", ["after b\n"]]]
+  },
+  "get_edits/empty": {
+    "result": []
+  },
+  "get_edits/empty-chat-name-closed": {
+    "result": [["", "chat", ["x\n"]]]
+  },
+  "get_edits/empty-chat-name-unclosed": {
+    "result": []
+  },
+  "get_edits/empty-file": {
+    "result": [["a", "block", []]]
+  },
+  "get_edits/exact-path-kept": {
+    "result": [["path/a", "block", ["x\n"]]]
+  },
+  "get_edits/explicit": {
+    "result": [["sample.txt", "block", ["Updated content\n"]]]
+  },
+  "get_edits/fence-prefix-closes": {
+    "result": [["a", "block", ["x\n"]]]
+  },
+  "get_edits/first-explicit-wins": {
+    "result": [["a", "block", ["first\n"]]]
+  },
+  "get_edits/first-line-sole-file": {
+    "result": [["a", "chat", ["new\n"]]]
+  },
+  "get_edits/heading": {
+    "result": [["a.txt", "block", ["after a\n"]], ["b.txt", "block", ["after b\n"]]]
+  },
+  "get_edits/indented-fence-not-recognized": {
+    "result": []
+  },
+  "get_edits/latest-mention": {
+    "result": [["b", "saw", ["x\n"]]]
+  },
+  "get_edits/length-250-ascii": {
+    "result": [
+      [
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "block",
+        ["x\n"]
+      ]
+    ]
+  },
+  "get_edits/length-250-astral": {
+    "result": [
+      [
+        "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+        "block",
+        ["x\n"]
+      ]
+    ]
+  },
+  "get_edits/length-251-ascii": {
+    "result": [["fallback", "chat", ["x\n"]]]
+  },
+  "get_edits/length-251-astral": {
+    "result": [["fallback", "chat", ["x\n"]]]
+  },
+  "get_edits/mention-reset-after-close": {
+    "error": {
+      "message": "No filename provided before ``` in file listing",
+      "type": "ValueError"
+    }
+  },
+  "get_edits/no-filename": {
+    "error": {
+      "message": "No filename provided before ``` in file listing",
+      "type": "ValueError"
+    }
+  },
+  "get_edits/outside-chat": {
+    "result": [["sample.txt", "block", ["Updated content\n"]]]
+  },
+  "get_edits/pathlib-parent-kept": {
+    "result": [["..", "block", ["x\n"]]]
+  },
+  "get_edits/pathlib-trailing-dot": {
+    "result": [["a", "block", ["x\n"]]]
+  },
+  "get_edits/prose-only": {
+    "result": []
+  },
+  "get_edits/python-whitespace": {
+    "result": [["a", "saw", ["x\n"]]]
+  },
+  "get_edits/saw-over-extra-unnamed": {
+    "result": [["a", "saw", ["new\n"]]]
+  },
+  "get_edits/source-reorders-files": {
+    "result": [["b", "block", ["after b\n"]], ["a", "saw", ["after a\n"]]]
+  },
+  "get_edits/too-long-no-fallback": {
+    "error": {
+      "message": "No filename provided before ``` in file listing",
+      "type": "ValueError"
+    }
+  },
+  "get_edits/too-long-saw-fallback": {
+    "result": [["a", "saw", ["x\n"]]]
+  },
+  "get_edits/unclosed": {
+    "result": [["a", "block", ["last line"]]]
+  },
+  "get_edits/unclosed-empty-file": {
+    "result": [["a", "block", []]]
+  },
+  "get_edits/unicode-linebreaks": {
+    "result": [["😀.txt", "block", ["\t😀 ", "z\u001c"]]]
+  },
+  "get_edits/unquoted-not-remembered": {
+    "error": {
+      "message": "No filename provided before ``` in file listing",
+      "type": "ValueError"
+    }
+  }
+}
