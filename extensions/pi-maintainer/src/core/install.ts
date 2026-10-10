@@ -231,6 +231,7 @@ class MaintainerRuntime {
         }
       }
     }
+    if (request.reason === 'user' || request.reason === 'direct') return { model, thinkingLevel: request.thinkingLevel };
     return { model, thinkingLevel: request.failed?.thinkingLevel ?? request.previous?.thinkingLevel ?? request.thinkingLevel };
   }
   async project(event: ContextWithSystemEvent, ctx: ExtensionContext) {

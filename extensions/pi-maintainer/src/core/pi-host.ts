@@ -1,6 +1,7 @@
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { confirmAsk } from './confirm.ts';
 import type { Host } from './host.ts';
+import { isolatedExec } from './isolated-exec.ts';
 
 export interface HostBinding {
   readonly context: () => ExtensionContext;
@@ -11,7 +12,7 @@ export interface HostBinding {
   readonly notice: (level: 'info' | 'warning' | 'error', text: string) => void;
 }
 
-export function createHost(pi: ExtensionAPI, binding: HostBinding): Host {
+export function createHost(_pi: ExtensionAPI, binding: HostBinding): Host {
   const output = (text: string) => binding.notice('info', text);
   const error = (text: string) => binding.notice('error', text);
   return {
@@ -42,8 +43,7 @@ export function createHost(pi: ExtensionAPI, binding: HostBinding): Host {
     async exec(request) {
       const signal = request.signal ?? binding.context().signal;
       signal?.throwIfAborted();
-      const environment = Object.entries(binding.environment()).flatMap(([name, value]) => (value === undefined ? [] : [`${name}=${value}`]));
-      return pi.exec('env', ['-i', '--', ...environment, request.command, ...request.args], { cwd: request.cwd, ...(signal ? { signal } : {}), ...(request.timeoutMs === undefined ? {} : { timeout: request.timeoutMs }) });
+      return isolatedExec({ ...request, ...(signal ? { signal } : {}) }, binding.environment());
     },
   };
 }

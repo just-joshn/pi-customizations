@@ -1,5 +1,5 @@
 import { constants } from 'node:fs';
-import { access, mkdir, readFile, realpath, unlink, utimes, writeFile } from 'node:fs/promises';
+import { access, lstat, mkdir, readFile, readlink, realpath, unlink, utimes, writeFile } from 'node:fs/promises';
 import { basename, dirname, isAbsolute, join } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 
@@ -98,14 +98,24 @@ function nodeEncoding(encoding: string): BufferEncoding {
   throw new TypeError(`unknown encoding: ${encoding}`);
 }
 
-async function mutationPath(path: string): Promise<string> {
+async function mutationPath(path: string, seen: ReadonlySet<string> = new Set()): Promise<string> {
   const absolute = isAbsolute(path) ? path : `${process.cwd()}/${path}`;
   try {
     return await realpath(absolute);
   } catch (error) {
     if (errorCode(error) !== 'ENOENT' && errorCode(error) !== 'ENOTDIR') throw error;
+    if (!seen.has(absolute)) {
+      try {
+        if ((await lstat(absolute)).isSymbolicLink()) {
+          const link = await readlink(absolute);
+          return mutationPath(isAbsolute(link) ? link : join(dirname(absolute), link), new Set([...seen, absolute]));
+        }
+      } catch {
+        // Path is not a readable symlink. Fall through to the lexical parent.
+      }
+    }
     const parent = dirname(absolute);
-    return parent === absolute ? absolute : join(await mutationPath(parent), basename(absolute));
+    return parent === absolute ? absolute : join(await mutationPath(parent, seen), basename(absolute));
   }
 }
 
@@ -171,7 +181,7 @@ function workingTree(options: WorkingTreeOptions, held: ReadonlySet<string> | nu
     },
     async mutate(paths, operation, operationSignal) {
       if (held !== null) throw new Error('A file mutation transaction cannot be reentered');
-      const keys = [...new Set(await Promise.all(paths.map(mutationPath)))].sort();
+      const keys = [...new Set(await Promise.all(paths.map((path) => mutationPath(path))))].sort();
       return lockPaths(keys, () => operation(workingTree(options, new Set(keys), operationSignal)), operationSignal);
     },
   };

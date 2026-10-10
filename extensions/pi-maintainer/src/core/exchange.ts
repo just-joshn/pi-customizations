@@ -144,7 +144,9 @@ export class ExchangeController {
   }
 
   async recordEdited(prepared: readonly (string | null)[], reply: Extract<CompletedReply, { kind: 'complete' }>, signal?: AbortSignal): Promise<DialogueFact[]> {
-    if (!prepared.length) return [];
+    const lifecycle = this.#state.lifecycle;
+    const written = lifecycle.kind === 'active' ? lifecycle.writtenPaths : [];
+    if (!written.length) return [];
     if (!this.#env.ports.edit.dryRun) await this.#env.ports.git.autoCommit(new Set(prepared), { kind: 'conversation', text: reply.text }, signal);
     this.save({ ...this.#state, historyThrough: reply.id });
     return this.#prompts?.filesContentGptEditsNoRepo ? [{ text: this.#prompts.filesContentGptEditsNoRepo, ack: 'Ok.', purpose: 'saved', reply: reply.id }] : [];

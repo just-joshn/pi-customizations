@@ -114,14 +114,14 @@ The flag adapters share the following gate answers. The table above identifies t
 
 ## Command environment
 
-1. **Behavior.** Maintainer subprocesses receive the locally resolved `.env` environment without changing provider credentials in `process.env`.
+1. **Behavior.** Maintainer subprocesses receive the locally resolved `.env` environment without changing provider credentials in `process.env`, and without placing secret values on the child process argv or in logged command lines.
 2. **Mechanism evaluated.** `pi.exec` with cwd, timeout, and signal.
-3. **Why it cannot.** Pi 1.1.0 `ExecOptions` has no environment field.
-4. **Why not omit.** The architecture requires local dotenv values to reach maintainer commands.
-5. **Adapter.** Host exec invokes `env -i --` with explicit environment assignments and the command argv. It never constructs shell text.
-6. **Authoritative Pi state.** `pi.exec` owns subprocess execution and cancellation. Pi's environment, auth, and provider transport are unchanged.
-7. **Verification.** Host tests check exact environment output and abort propagation. This requires a POSIX `env` executable. No Git, map, lint, shell-suggestion, or Windows command parity is claimed by E6.
-8. **Delete when.** `pi.exec` accepts an explicit command environment.
+3. **Why it cannot.** Pi 1.1.0 `ExecOptions` has no environment field. Passing `NAME=value` through `env -i` puts those values on argv, which process listings and command logs can expose.
+4. **Why not omit.** The architecture requires local dotenv values to reach maintainer commands, and credential material must not appear in argv.
+5. **Adapter.** `src/core/isolated-exec.ts` spawns the command with Node's `env` option, an empty inherited environment except the explicit map, and the same cwd, timeout, and abort behavior as `pi.exec`. It never constructs shell text and never puts assignments on argv.
+6. **Authoritative Pi state.** Pi still owns session lifecycle, auth, and provider transport. This adapter only runs maintainer Host subprocesses. `process.env` is never written.
+7. **Verification.** `test/core/host.pi.test.ts` checks literal environment output and abort propagation. `test/core/core-review.pi.test.ts` proves a synthetic marker reaches the child environment and does not appear in `process.argv`. No Git, map, lint, shell-suggestion, or Windows command parity is claimed by E6.
+8. **Delete when.** `pi.exec` accepts an explicit command environment that stays off argv.
 
 ## Scripted provider test adapter
 
