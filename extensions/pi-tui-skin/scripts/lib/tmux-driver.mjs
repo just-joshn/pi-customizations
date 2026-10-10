@@ -143,7 +143,6 @@ export function cleanup() {
 function seedWorkspace(workspace, scenario) {
   writeFileSync(join(workspace, 'README.md'), '# Reference UI smoke\n\nTUI_SKIN_PLAINTEXT marker line.\n');
   writeFileSync(join(workspace, 'note.txt'), 'alpha\nTUI_SKIN_NOTE\n');
-  // biome-ignore lint/security/noSecrets: fixture content for the unicode scenario, not a secret
   writeFileSync(join(workspace, 'unicode.txt'), 'TUI_SKIN_UNICODE 你好世界 🎉🚀\n第二行：日本語テキスト\n漢字と emoji 🌈 mixed\n');
   mkdirSync(join(workspace, 'nested'), { recursive: true });
   writeFileSync(join(workspace, 'nested', 'child.txt'), 'TUI_SKIN_NESTED\n');

@@ -1,7 +1,6 @@
 import { expect, test } from 'vitest';
-
-import { initialPanelState, panelAnswers, reducePanel, renderPanel, toPanelInput } from '../src/questions-panel.ts';
 import type { PanelQuestion } from '../src/questions-panel.ts';
+import { initialPanelState, panelAnswers, reducePanel, renderPanel, toPanelInput } from '../src/questions-panel.ts';
 
 const budget: PanelQuestion = {
   id: 'budget',
@@ -43,9 +42,7 @@ test('renders the captured Clarifying Questions chrome at 120 columns', () => {
   expect(lines[7]).toBe(` │   › [ ] unlimited — max reasoning${' '.repeat(114 - '  › [ ] unlimited — max reasoning'.length)} │`);
   expect(lines[8]).toContain('│     [ ] large — xhigh reasoning');
   expect(lines[11]).toContain('│     [ ] Other: (type to answer)');
-  expect(lines[13]).toBe(
-    ` │ ↑/↓ option · ←/→ question · Space select · Enter next/submit · Esc to skip${' '.repeat(114 - '↑/↓ option · ←/→ question · Space select · Enter next/submit · Esc to skip'.length)} │`,
-  );
+  expect(lines[13]).toBe(` │ ↑/↓ option · ←/→ question · Space select · Enter next/submit · Esc to skip${' '.repeat(114 - '↑/↓ option · ←/→ question · Space select · Enter next/submit · Esc to skip'.length)} │`);
   expect(lines[14]).toBe(` └${'─'.repeat(116)}┘`);
   expect(lines).toHaveLength(15);
 });

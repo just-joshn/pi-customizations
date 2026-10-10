@@ -1,7 +1,6 @@
 ---
-name: automate
 description: Create a reviewed, disabled Pi automation draft through the Automations editor handoff. Use when the user explicitly asks to create a first-time automation such as benny-triage. Creation only. Does not enable.
-disable-model-invocation: true
+argument-hint: "[automation request]"
 ---
 
 # Create a disabled automation draft

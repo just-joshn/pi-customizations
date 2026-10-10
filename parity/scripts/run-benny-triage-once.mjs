@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { spawnSync } from 'node:child_process';
 /**
  * Host-neutral one-shot Benny triage for the valid-config harness.
  * Posts exactly one thread reply with a configured marker. Never root-posts.
@@ -6,20 +7,15 @@
  * Usage (from repo root, with load-env sourced):
  *   node parity/scripts/run-benny-triage-once.mjs --side cursor|pi
  */
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
-import { join, dirname } from 'node:path';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { spawnSync } from 'node:child_process';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = join(here, '..');
-const side = process.argv.includes('--side')
-  ? process.argv[process.argv.indexOf('--side') + 1]
-  : 'cursor';
-const reports = JSON.parse(
-  readFileSync(join(root, 'research/benny-triage-valid-post-slack-001/test-reports.json'), 'utf8'),
-);
+const side = process.argv.includes('--side') ? process.argv[process.argv.indexOf('--side') + 1] : 'cursor';
+const reports = JSON.parse(readFileSync(join(root, 'research/benny-triage-valid-post-slack-001/test-reports.json'), 'utf8'));
 const report = reports.reports[side];
 if (!report) {
   console.error('missing test report for side', side);
@@ -49,22 +45,12 @@ const text = rootMsg.text || '';
 const isBug = /observed|broken|no-?op|fail|error|does nothing/i.test(text);
 const chosen = isBug ? verdictMarker('bug') : verdictMarker('other');
 
-const verdict =
-  `${chosen} Triage (parity harness): classified from thread evidence only. ` +
-  `No reproduce-or-fix in triage. Source stays this thread.`;
+const verdict = `${chosen} Triage (parity harness): classified from thread evidence only. ` + `No reproduce-or-fix in triage. Source stays this thread.`;
 
-const beforeRoots = spawnSync(
-  process.execPath,
-  [actions, 'root-count', report.channel, String(Number(report.ts) - 1)],
-  { encoding: 'utf8', env: process.env },
-);
+const beforeRoots = spawnSync(process.execPath, [actions, 'root-count', report.channel, String(Number(report.ts) - 1)], { encoding: 'utf8', env: process.env });
 const beforeN = beforeRoots.status === 0 ? JSON.parse(beforeRoots.stdout).rootMessages : null;
 
-const reply = spawnSync(
-  process.execPath,
-  [actions, 'reply', report.channel, report.ts, verdict],
-  { encoding: 'utf8', env: process.env },
-);
+const reply = spawnSync(process.execPath, [actions, 'reply', report.channel, report.ts, verdict], { encoding: 'utf8', env: process.env });
 if (reply.status !== 0) {
   console.error(reply.stderr || reply.stdout);
   process.exit(1);
@@ -77,11 +63,7 @@ const after = spawnSync(process.execPath, [actions, 'read', report.channel, repo
 });
 const afterThread = JSON.parse(after.stdout);
 const replies = (afterThread.messages || []).filter((m) => m.ts !== report.ts);
-const afterRoots = spawnSync(
-  process.execPath,
-  [actions, 'root-count', report.channel, String(Number(report.ts) - 1)],
-  { encoding: 'utf8', env: process.env },
-);
+const afterRoots = spawnSync(process.execPath, [actions, 'root-count', report.channel, String(Number(report.ts) - 1)], { encoding: 'utf8', env: process.env });
 const afterN = afterRoots.status === 0 ? JSON.parse(afterRoots.stdout).rootMessages : null;
 
 const out = {

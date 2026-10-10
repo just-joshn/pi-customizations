@@ -33,9 +33,7 @@ const REFRESH_NEEDLE = 'Prefer one short paragraph';
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 function skillRel(side) {
-  return side === 'cursor'
-    ? join('.cursor', 'skills', HANDLE, 'SKILL.md')
-    : join('.pi', 'skills', HANDLE, 'SKILL.md');
+  return side === 'cursor' ? join('.cursor', 'skills', HANDLE, 'SKILL.md') : join('.pi', 'skills', HANDLE, 'SKILL.md');
 }
 
 function skillAbs(side) {
@@ -230,13 +228,8 @@ async function readDone(side) {
 function observeScreen(lines) {
   const text = lines.join('\n');
   return {
-    automateMeSkill:
-      /\/automate-me\b/i.test(text) ||
-      /\[skill\]\s*automate-me/i.test(text) ||
-      /\bUsed automate-me\b/i.test(text) ||
-      /\bautomate[- ]me\b/i.test(text),
-    existingSkillMention:
-      /parity-fixture-mode|existing skill|update (the )?existing|in place|SKILL\.md/i.test(text),
+    automateMeSkill: /\/automate-me\b/i.test(text) || /\[skill\]\s*automate-me/i.test(text) || /\bUsed automate-me\b/i.test(text) || /\bautomate[- ]me\b/i.test(text),
+    existingSkillMention: /parity-fixture-mode|existing skill|update (the )?existing|in place|SKILL\.md/i.test(text),
     parallelMention: /start fresh|new skill|create a new/i.test(text),
     working: /[\u2800-\u28FF]/.test(text) || /\bWorking\b/.test(text),
   };
@@ -258,13 +251,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -318,10 +305,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
       await sleep(800);
       continue;
     }
-    const chatReady =
-      !/Trust project folder\?/i.test(text) &&
-      (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) &&
-      (/fixture-app|Skill conflicts|parity-fixture|medium/i.test(text));
+    const chatReady = !/Trust project folder\?/i.test(text) && (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) && /fixture-app|Skill conflicts|parity-fixture|medium/i.test(text);
     if (chatReady) return lines;
     await sleep(200);
   }
@@ -339,10 +323,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
   if (side === 'pi') await ensurePiTrust();
   const before = await readSkillState(side);
   await writeFile(join(dir, 'skill-before.md'), before.text ?? '');
-  await writeFile(
-    join(dir, 'skill-before.json'),
-    `${JSON.stringify({ path: before.path, digest: before.digest, hasSeed: before.hasSeed }, null, 2)}\n`,
-  );
+  await writeFile(join(dir, 'skill-before.json'), `${JSON.stringify({ path: before.path, digest: before.digest, hasSeed: before.hasSeed }, null, 2)}\n`);
   await writeFile(backupPath, ruleBytes);
   const rulePath = side === 'cursor' ? referenceRulePath : piRulePath;
   const prompt = amPrompt(side);
@@ -385,12 +366,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        ['automate-me', 'parity-fixture-mode', 'Response style', 'SKILL.md', 'UPDATED='],
-        300_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['automate-me', 'parity-fixture-mode', 'Response style', 'SKILL.md', 'UPDATED='], 300_000);
     } catch {
       // settle may still land artifacts
     }
@@ -463,10 +439,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     };
 
     await writeFile(join(dir, 'skill-after.md'), after.text ?? '');
-    await writeFile(
-      join(dir, 'skill-after.json'),
-      `${JSON.stringify({ path: after.path, digest: after.digest, hasSeed: after.hasSeed, hasRefresh: after.hasRefresh }, null, 2)}\n`,
-    );
+    await writeFile(join(dir, 'skill-after.json'), `${JSON.stringify({ path: after.path, digest: after.digest, hasSeed: after.hasSeed, hasRefresh: after.hasRefresh }, null, 2)}\n`);
 
     const afterRule = await readFile(rulePath, 'utf8');
     const afterDigest = await sha256(rulePath);

@@ -1,13 +1,6 @@
-import { expect, test } from 'vitest';
-
-import {
-  investigatorTaskStarted,
-  registerWhySpawnGate,
-  whySkillPrompt,
-  whySpawnGateMessage,
-  whySpawnUsageBlock,
-} from '../src/why-spawn-gate.ts';
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
+import { expect, test } from 'vitest';
+import { investigatorTaskStarted, registerWhySpawnGate, whySkillPrompt, whySpawnGateMessage, whySpawnUsageBlock } from '../src/why-spawn-gate.ts';
 
 const whyPrompt = `<skill name="why" location="/pkg/skills/why/SKILL.md">\n## Step 3. Spawn Parallel Investigators\n</skill>\n\nwhy what forces led pstack to use inherit-parent?`;
 
@@ -30,9 +23,7 @@ test('whySkillPrompt detects an expanded why skill turn and ignores other skills
 });
 
 test('investigatorTaskStarted accepts generalPurpose Task without requiring readonly', () => {
-  expect(
-    investigatorTaskStarted('Task', { prompt: 'source-control investigator', subagent_type: 'generalPurpose' }),
-  ).toBe(true);
+  expect(investigatorTaskStarted('Task', { prompt: 'source-control investigator', subagent_type: 'generalPurpose' })).toBe(true);
   expect(
     investigatorTaskStarted('Task', {
       prompt: 'source-control investigator',
@@ -81,9 +72,7 @@ test('a why turn allows Step 2 bash before settle, then blocks exploration until
   } as never);
 
   expect(sections['subagent_usage']).toBe(whySpawnUsageBlock);
-  expect(handlers.get('tool_call')?.({ type: 'tool_call', toolCallId: '1', toolName: 'bash', input: { command: 'git log' } } as never)).toBe(
-    undefined,
-  );
+  expect(handlers.get('tool_call')?.({ type: 'tool_call', toolCallId: '1', toolName: 'bash', input: { command: 'git log' } } as never)).toBe(undefined);
 
   const settle = handlers.get('agent_before_settle')?.({ type: 'agent_before_settle', outcome: 'completed' } as never) as {
     continue: boolean;
@@ -110,9 +99,7 @@ test('a why turn allows Step 2 bash before settle, then blocks exploration until
     } as never),
   ).toBe(undefined);
 
-  expect(handlers.get('tool_call')?.({ type: 'tool_call', toolCallId: '5', toolName: 'bash', input: { command: 'git log' } } as never)).toBe(
-    undefined,
-  );
+  expect(handlers.get('tool_call')?.({ type: 'tool_call', toolCallId: '5', toolName: 'bash', input: { command: 'git log' } } as never)).toBe(undefined);
 });
 
 test('a non-why turn does not arm the spawn gate', () => {
@@ -123,9 +110,7 @@ test('a non-why turn does not arm the spawn gate', () => {
     systemPrompt: '',
     systemPromptOptions: { sections: {} },
   } as never);
-  expect(handlers.get('tool_call')?.({ type: 'tool_call', toolCallId: '1', toolName: 'bash', input: { command: 'git log' } } as never)).toBe(
-    undefined,
-  );
+  expect(handlers.get('tool_call')?.({ type: 'tool_call', toolCallId: '1', toolName: 'bash', input: { command: 'git log' } } as never)).toBe(undefined);
 });
 
 test('settling a why turn without an investigator Task continues once with a spawn reminder', () => {
@@ -146,4 +131,65 @@ test('settling a why turn without an investigator Task continues once with a spa
   expect(first.entries[0]?.content).toContain('Step 3');
 
   expect(handlers.get('agent_before_settle')?.({ type: 'agent_before_settle', outcome: 'completed' } as never)).toBe(undefined);
+});
+
+test('spawn gate stays armed across agent_end and a markerless reminder continue until an investigator Task starts', () => {
+  const handlers = harness();
+  handlers.get('before_agent_start')?.({
+    type: 'before_agent_start',
+    prompt: whyPrompt,
+    systemPrompt: '',
+    systemPromptOptions: { sections: {} },
+  } as never);
+
+  handlers.get('agent_end')?.({ type: 'agent_end', messages: [] } as never);
+
+  const settle = handlers.get('agent_before_settle')?.({ type: 'agent_before_settle', outcome: 'completed' } as never) as {
+    continue: boolean;
+  };
+  expect(settle.continue).toBe(true);
+
+  handlers.get('before_agent_start')?.({
+    type: 'before_agent_start',
+    prompt: 'The why skill requires Step 3 investigator Task agents before the final answer.',
+    systemPrompt: '',
+    systemPromptOptions: { sections: {} },
+  } as never);
+
+  expect(handlers.get('tool_call')?.({ type: 'tool_call', toolCallId: '1', toolName: 'bash', input: { command: 'git log' } } as never)).toEqual({
+    block: true,
+    reason: whySpawnGateMessage,
+  });
+
+  expect(
+    handlers.get('tool_call')?.({
+      type: 'tool_call',
+      toolCallId: '2',
+      toolName: 'Task',
+      input: { prompt: 'source-control investigator', subagent_type: 'generalPurpose' },
+    } as never),
+  ).toBe(undefined);
+
+  expect(handlers.get('tool_call')?.({ type: 'tool_call', toolCallId: '3', toolName: 'bash', input: { command: 'git log' } } as never)).toBe(undefined);
+});
+
+test('a later non-why user turn disarms after the skill run settles', () => {
+  const handlers = harness();
+  handlers.get('before_agent_start')?.({
+    type: 'before_agent_start',
+    prompt: whyPrompt,
+    systemPrompt: '',
+    systemPromptOptions: { sections: {} },
+  } as never);
+  handlers.get('agent_before_settle')?.({ type: 'agent_before_settle', outcome: 'completed' } as never);
+  handlers.get('agent_settled')?.({ type: 'agent_settled', aborted: false } as never);
+
+  handlers.get('before_agent_start')?.({
+    type: 'before_agent_start',
+    prompt: 'summarize models.mdc',
+    systemPrompt: '',
+    systemPromptOptions: { sections: {} },
+  } as never);
+
+  expect(handlers.get('tool_call')?.({ type: 'tool_call', toolCallId: '1', toolName: 'bash', input: { command: 'git log' } } as never)).toBe(undefined);
 });

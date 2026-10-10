@@ -23,24 +23,8 @@ const piAgentDir = '/tmp/pi-ref-agent';
 const piRulePath = join(piAgentDir, 'pstack', 'models.mdc');
 const evidenceRoot = join(root, 'evidence', 'principles', 'explain-number');
 const fixtureApp = join(evidenceRoot, 'fixture-app');
-const explainSkillCursor = join(
-  root,
-  'reference',
-  'cursor-plugins',
-  'pstack',
-  'skills',
-  'principle-explain-the-number',
-  'SKILL.md',
-);
-const explainSkillPi = join(
-  root,
-  '..',
-  'extensions',
-  'pi-pstack',
-  'skills',
-  'principle-explain-the-number',
-  'SKILL.md',
-);
+const explainSkillCursor = join(root, 'reference', 'cursor-plugins', 'pstack', 'skills', 'principle-explain-the-number', 'SKILL.md');
+const explainSkillPi = join(root, '..', 'extensions', 'pi-pstack', 'skills', 'principle-explain-the-number', 'SKILL.md');
 const GEOMETRY = { rows: 40, cols: 120 };
 const LOCKED_FIXTURE_DIGEST = 'sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004';
 const SETTLE_MS = 1_500_000;
@@ -50,20 +34,11 @@ const DOC_REL = ['README.md'];
 const VERIFY_OUT_REL = 'evidence/verify-out.txt';
 const REPORT_REL = 'evidence/explain-report.md';
 const VERIFY_SCRIPT_REL = 'scripts/verify.mjs';
-const BASELINE_REL = [
-  ...PRODUCT_REL,
-  ...DOC_REL,
-  'package.json',
-  VERIFY_SCRIPT_REL,
-  'evidence/.gitkeep',
-];
+const BASELINE_REL = [...PRODUCT_REL, ...DOC_REL, 'package.json', VERIFY_SCRIPT_REL, 'evidence/.gitkeep'];
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const stripAnsi = (text) =>
-  text
-    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
-    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
 
 function writeRootFor(side) {
   return join(evidenceRoot, 'fixture-out', side);
@@ -143,23 +118,13 @@ function isExplainSkillPath(p) {
 function observeExplainText(text, { ignorePromptSlice } = {}) {
   let hay = stripAnsi(text || '');
   if (ignorePromptSlice) hay = hay.split(ignorePromptSlice).join(' ');
-  const potetoMode =
-    /\/poteto-mode\b/i.test(hay) ||
-    /\[skill\]\s*poteto-mode/i.test(hay) ||
-    /\bUsed poteto-mode\b/i.test(hay);
+  const potetoMode = /\/poteto-mode\b/i.test(hay) || /\[skill\]\s*poteto-mode/i.test(hay) || /\bUsed poteto-mode\b/i.test(hay);
   const leafChrome = /principle-explain-the-number[/\\]SKILL\.md/i.test(hay);
   const usedLeaf = /\bUsed principle-explain-the-number\b/i.test(hay);
   const skillBracketLeaf = /\[skill\]\s*principle-explain-the-number\b/i.test(hay);
   const hostAttached = Boolean(usedLeaf || skillBracketLeaf);
-  const verifyMention =
-    /scripts\/verify\.mjs/i.test(hay) ||
-    /evidence\/verify-out\.txt/i.test(hay) ||
-    /\bEXPLAIN-OK\b/.test(hay) ||
-    /\bEXPLAIN-FAIL\b/.test(hay);
-  const reportMention =
-    /evidence\/explain-report\.md/i.test(hay) ||
-    /\bnamed limiter\b/i.test(hay) ||
-    /\brun count\b/i.test(hay);
+  const verifyMention = /scripts\/verify\.mjs/i.test(hay) || /evidence\/verify-out\.txt/i.test(hay) || /\bEXPLAIN-OK\b/.test(hay) || /\bEXPLAIN-FAIL\b/.test(hay);
+  const reportMention = /evidence\/explain-report\.md/i.test(hay) || /\bnamed limiter\b/i.test(hay) || /\brun count\b/i.test(hay);
   const working = /[\u2800-\u28FF]/.test(hay) || /\bWorking\b/.test(hay);
   return { potetoMode, leafChrome, hostAttached, verifyMention, reportMention, working };
 }
@@ -213,33 +178,20 @@ function scoreCallsForExplain(calls) {
     const name = String(call.name || '');
     const args = call.args || {};
     const blob = JSON.stringify(args);
-    const path =
-      args.path ||
-      args.file_path ||
-      args.filePath ||
-      args.target_file ||
-      args.file ||
-      null;
-    const isRead =
-      /^(Read|read|read_file|ReadFile|cat|blob-mention)$/i.test(name) ||
-      (name === 'bash' && typeof args.command === 'string' && /\bcat\b/.test(args.command));
+    const path = args.path || args.file_path || args.filePath || args.target_file || args.file || null;
+    const isRead = /^(Read|read|read_file|ReadFile|cat|blob-mention)$/i.test(name) || (name === 'bash' && typeof args.command === 'string' && /\bcat\b/.test(args.command));
     if (isRead && isExplainSkillPath(path || blob)) {
       leafSkillRead = true;
       if (!leafSkillReadAt) leafSkillReadAt = call.ts || new Date().toISOString();
       toolOrder.push(`${name}(explain-leaf)`);
       continue;
     }
-    if (
-      /\bscripts\/verify\.mjs\b/i.test(blob) ||
-      (typeof args.command === 'string' && /verify\.mjs/.test(args.command))
-    ) {
+    if (/\bscripts\/verify\.mjs\b/i.test(blob) || (typeof args.command === 'string' && /verify\.mjs/.test(args.command))) {
       ranVerifyScript = true;
       toolOrder.push(`${name}(verify.mjs)`);
       continue;
     }
-    const writeLike = /^(Write|write|write_file|WriteFile|Edit|StrReplace|search_replace|create_file)$/i.test(
-      name,
-    );
+    const writeLike = /^(Write|write|write_file|WriteFile|Edit|StrReplace|search_replace|create_file)$/i.test(name);
     if (writeLike && path && /explain-report\.md/i.test(String(path))) {
       wroteReport = true;
       toolOrder.push(`${name}(report)`);
@@ -261,39 +213,16 @@ function inspectReport(text) {
     return { exists: false, hasLimiter: false, hasRunCount: false, hasSpread: false, hasNumber: false };
   }
   const hasNumber = /\b(\d+(\.\d+)?x|speedup|ratio|delta)\b/i.test(text);
-  const hasLimiter =
-    /\b(limiter|limited by|bound(?:ed)? by|bottleneck)\b/i.test(text) &&
-    /\b(single[- ]threaded|one CPU core|CPU core|parse loop|src\/parse\.js|lock|disk|network|load generator)\b/i.test(
-      text,
-    );
-  const hasRunCount =
-    /\b(n\s*=\s*\d+|runs?\s*=\s*\d+|\d+\s+runs?|\d+\s+trials?|run count\s*[:=]\s*\d+)\b/i.test(text);
-  const hasSpread =
-    /\b(spread|range|min\b|max\b|±|std(?:dev)?|p50|p95|IQR|variance|from\s+\d+(\.\d+)?\s+to\s+\d+(\.\d+)?)\b/i.test(
-      text,
-    ) || /data\/trials\.json/i.test(text);
+  const hasLimiter = /\b(limiter|limited by|bound(?:ed)? by|bottleneck)\b/i.test(text) && /\b(single[- ]threaded|one CPU core|CPU core|parse loop|src\/parse\.js|lock|disk|network|load generator)\b/i.test(text);
+  const hasRunCount = /\b(n\s*=\s*\d+|runs?\s*=\s*\d+|\d+\s+runs?|\d+\s+trials?|run count\s*[:=]\s*\d+)\b/i.test(text);
+  const hasSpread = /\b(spread|range|min\b|max\b|±|std(?:dev)?|p50|p95|IQR|variance|from\s+\d+(\.\d+)?\s+to\s+\d+(\.\d+)?)\b/i.test(text) || /data\/trials\.json/i.test(text);
   return { exists: true, hasLimiter, hasRunCount, hasSpread, hasNumber };
 }
 
-export function scoreExplainNumber({
-  frontmatter,
-  done,
-  verifyOut,
-  report,
-  screenText,
-  ptyText,
-  sessionScore,
-  transcriptScore,
-  prompt,
-}) {
+export function scoreExplainNumber({ frontmatter, done, verifyOut, report, screenText, ptyText, sessionScore, transcriptScore, prompt }) {
   const screen = observeExplainText(screenText, { ignorePromptSlice: prompt });
   const pty = observeExplainText(ptyText, { ignorePromptSlice: prompt });
-  const leafSkillRead = Boolean(
-    sessionScore?.leafSkillRead ||
-      transcriptScore?.leafSkillRead ||
-      screen.leafChrome ||
-      pty.leafChrome,
-  );
+  const leafSkillRead = Boolean(sessionScore?.leafSkillRead || transcriptScore?.leafSkillRead || screen.leafChrome || pty.leafChrome);
   const usedChrome = Boolean(screen.hostAttached || pty.hostAttached || sessionScore?.hostAttached);
   const modelAutoInvoke = usedChrome && !leafSkillRead;
   const keptVerifyOk = Boolean(verifyOut?.ok);
@@ -301,22 +230,10 @@ export function scoreExplainNumber({
   const namedLimiter = Boolean(reportMeta.hasLimiter);
   const runCountPresent = Boolean(reportMeta.hasRunCount);
   const spreadPresent = Boolean(reportMeta.hasSpread);
-  const reportOk = Boolean(
-    reportMeta.exists &&
-      reportMeta.hasNumber &&
-      namedLimiter &&
-      runCountPresent &&
-      spreadPresent,
-  );
+  const reportOk = Boolean(reportMeta.exists && reportMeta.hasNumber && namedLimiter && runCountPresent && spreadPresent);
   const verifiedDone = /^verified=yes\b/i.test((done?.line || '').trim());
   const frontmatterOk = Boolean(frontmatter?.ok);
-  const contractHeld =
-    frontmatterOk &&
-    leafSkillRead &&
-    reportOk &&
-    keptVerifyOk &&
-    verifiedDone &&
-    !modelAutoInvoke;
+  const contractHeld = frontmatterOk && leafSkillRead && reportOk && keptVerifyOk && verifiedDone && !modelAutoInvoke;
   return {
     frontmatterOk,
     leafSkillRead,
@@ -421,13 +338,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -481,10 +392,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
       await sleep(800);
       continue;
     }
-    const chatReady =
-      !/Trust project folder\?/i.test(text) &&
-      (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) &&
-      (/fixture-app|RESULTS|speedup|README|medium|Skill conflicts|Session TTL|explain-number/i.test(text));
+    const chatReady = !/Trust project folder\?/i.test(text) && (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) && /fixture-app|RESULTS|speedup|README|medium|Skill conflicts|Session TTL|explain-number/i.test(text);
     if (chatReady) return lines;
     await sleep(200);
   }
@@ -521,9 +429,7 @@ async function summarizePiSession(sessionPath) {
   const text = await readFile(sessionPath, 'utf8');
   const calls = extractToolCallsFromJsonl(text);
   const scored = scoreCallsForExplain(calls);
-  const hostAttached =
-    /\bUsed principle-explain-the-number\b/i.test(text) ||
-    /\[skill\]\s*principle-explain-the-number\b/i.test(text);
+  const hostAttached = /\bUsed principle-explain-the-number\b/i.test(text) || /\[skill\]\s*principle-explain-the-number\b/i.test(text);
   return { sessionPath, hostAttached, ...scored };
 }
 
@@ -552,10 +458,7 @@ async function findCursorTranscripts(sinceMs, side) {
         } catch {
           continue;
         }
-        const mentionsThisAttempt =
-          text.includes(doneAbs) ||
-          (text.includes(`explain-number/fixture-out/${side}/done.txt`) &&
-            (text.includes('4.8x') || text.includes('EXPLAIN-OK') || text.includes('explain-report')));
+        const mentionsThisAttempt = text.includes(doneAbs) || (text.includes(`explain-number/fixture-out/${side}/done.txt`) && (text.includes('4.8x') || text.includes('EXPLAIN-OK') || text.includes('explain-report')));
         if (mentionsThisAttempt) hits.push({ path: abs, mtimeMs: st.mtimeMs, size: st.size });
       }
     }
@@ -577,13 +480,8 @@ async function summarizeCursorTranscripts(sinceMs, side) {
       ...scored,
       leafSkillRead: scored.leafSkillRead || leafInBlob,
     };
-    const rank =
-      (merged.leafSkillRead ? 4 : 0) +
-      (merged.wroteReport ? 2 : 0) +
-      (merged.ranVerifyScript ? 1 : 0);
-    const bestRank = best
-      ? (best.leafSkillRead ? 4 : 0) + (best.wroteReport ? 2 : 0) + (best.ranVerifyScript ? 1 : 0)
-      : -1;
+    const rank = (merged.leafSkillRead ? 4 : 0) + (merged.wroteReport ? 2 : 0) + (merged.ranVerifyScript ? 1 : 0);
+    const bestRank = best ? (best.leafSkillRead ? 4 : 0) + (best.wroteReport ? 2 : 0) + (best.ranVerifyScript ? 1 : 0) : -1;
     if (!best || rank > bestRank || (rank === bestRank && hit.mtimeMs > (best.mtimeMs || 0))) {
       best = { ...merged, mtimeMs: hit.mtimeMs };
     }
@@ -657,22 +555,7 @@ async function runSide(side, ruleBytes, ruleDigest, frontmatter) {
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        [
-          'poteto-mode',
-          '4.8x',
-          'verify',
-          'EXPLAIN-OK',
-          'EXPLAIN-FAIL',
-          'principle-explain-the-number',
-          'explain-report',
-          'limiter',
-          'Phase',
-        ],
-        300_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['poteto-mode', '4.8x', 'verify', 'EXPLAIN-OK', 'EXPLAIN-FAIL', 'principle-explain-the-number', 'explain-report', 'limiter', 'Phase'], 300_000);
     } catch {
       // settle may still land artifacts
     }
@@ -825,9 +708,7 @@ async function runSide(side, ruleBytes, ruleDigest, frontmatter) {
 
 async function selfTest() {
   const fm = { ok: true, name: 'principle-explain-the-number', disableModelInvocation: true };
-  const goodReport =
-    'Speedup 4.8x. Limiter: single-threaded parse loop in src/parse.js (one CPU core). ' +
-    'Run count: 5 runs. Spread: baseline 408-421ms, optimized 84-91ms. See data/trials.json.';
+  const goodReport = 'Speedup 4.8x. Limiter: single-threaded parse loop in src/parse.js (one CPU core). ' + 'Run count: 5 runs. Spread: baseline 408-421ms, optimized 84-91ms. See data/trials.json.';
   const pass = scoreExplainNumber({
     frontmatter: fm,
     done: { exists: true, line: 'verified=yes' },
@@ -922,10 +803,7 @@ if (isMain) {
     results.push(result);
     console.log(JSON.stringify(result));
   }
-  await writeFile(
-    join(evidenceRoot, 'capture-results.json'),
-    `${JSON.stringify({ scenario: 'prin-explain-number', fixtureDigest: preDigest, frontmatter, results }, null, 2)}\n`,
-  );
+  await writeFile(join(evidenceRoot, 'capture-results.json'), `${JSON.stringify({ scenario: 'prin-explain-number', fixtureDigest: preDigest, frontmatter, results }, null, 2)}\n`);
   console.log(
     JSON.stringify({
       scenario: 'prin-explain-number',

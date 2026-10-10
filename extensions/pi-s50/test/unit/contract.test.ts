@@ -179,7 +179,6 @@ describe('boundary redaction', () => {
     const state = startRun(
       {
         mode: 'feature',
-        // biome-ignore lint/security/noSecrets: synthetic token assembled at runtime
         objective: `rotate ${['ghp', 'abcdefghijklmnopqrstuvwxyz0123'].join('_')}`,
         repository: '/repo',
         revision: 'r1',

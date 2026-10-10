@@ -1,4 +1,3 @@
-// biome-ignore-all lint/security/noSecrets: fixture markdown, not credentials
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 

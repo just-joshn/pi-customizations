@@ -3,6 +3,8 @@
  * cleanup setter even when one fails, then throws the failures as one error.
  */
 
+import { basename } from 'node:path';
+
 import type { ExtensionContext } from '@earendil-works/pi-coding-agent';
 import type { TUI } from '@earendil-works/pi-tui';
 import type { PresentationStore } from '../state/presentation-store.ts';
@@ -18,6 +20,14 @@ export type UiController = {
 };
 
 type CleanupStep = readonly [name: string, run: (ui: ExtensionContext['ui']) => void];
+
+type PriorChrome = {
+  readonly themeName: string | undefined;
+  readonly title: string;
+};
+
+/** Official Pi APP_TITLE when not white-labeled. Not exported from the public package surface in 1.1.0. */
+const OFFICIAL_APP_TITLE = 'π';
 
 const CLEANUP_STEPS: readonly CleanupStep[] = [
   ['setWidget', (ui) => ui.setWidget(ACTIVITY_WIDGET_KEY, undefined)],
@@ -36,13 +46,47 @@ function describeError(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
+function readPriorTitle(ctx: ExtensionContext): string {
+  const ui = ctx.ui as ExtensionContext['ui'] & { getTitle?: () => string };
+  if (typeof ui.getTitle === 'function') {
+    return ui.getTitle();
+  }
+  // Pi ExtensionUI has no getTitle. Mirror interactive-mode updateTerminalTitle().
+  const cwdBasename = basename(ctx.cwd);
+  const sessionName = ctx.sessionManager.getSessionName();
+  return sessionName === undefined || sessionName.length === 0 ? `${OFFICIAL_APP_TITLE} - ${cwdBasename}` : `${OFFICIAL_APP_TITLE} - ${sessionName} - ${cwdBasename}`;
+}
+
+function capturePriorChrome(ctx: ExtensionContext): PriorChrome {
+  return {
+    themeName: ctx.ui.theme.name,
+    title: readPriorTitle(ctx),
+  };
+}
+
+function restoreSteps(prior: PriorChrome): readonly CleanupStep[] {
+  const steps: CleanupStep[] = [];
+  if (prior.themeName !== undefined) {
+    const themeName = prior.themeName;
+    steps.push([
+      'setTheme',
+      (ui) => {
+        ui.setTheme(themeName);
+      },
+    ]);
+  }
+  steps.push(['setTitle', (ui) => ui.setTitle(prior.title)]);
+  return steps;
+}
+
 /**
  * Restore every surface `install` took over. Every step runs even when an
  * earlier one fails. The failures then leave as one error, which Pi reports as
  * the handler error without stderr output that would corrupt the TUI.
  */
-function uninstallControls(ctx: ExtensionContext): void {
-  const failures = CLEANUP_STEPS.flatMap(([name, run]): CleanupFailure[] => {
+function uninstallControls(ctx: ExtensionContext, prior: PriorChrome | undefined): void {
+  const steps: readonly CleanupStep[] = prior === undefined ? CLEANUP_STEPS : [...CLEANUP_STEPS, ...restoreSteps(prior)];
+  const failures = steps.flatMap(([name, run]): CleanupFailure[] => {
     try {
       run(ctx.ui);
       return [];
@@ -57,11 +101,40 @@ function uninstallControls(ctx: ExtensionContext): void {
   );
 }
 
+function mountChrome(ctx: ExtensionContext, store: PresentationStore, capture: (tui: TUI) => void, onEditorTheme: () => void): string {
+  ctx.ui.setTitle('agent');
+  ctx.ui.setTheme('tui-skin');
+
+  const header = createHeader(ctx);
+  ctx.ui.setHeader((tui, theme) => {
+    capture(tui);
+    return header(tui, theme);
+  });
+
+  const footer = createFooter(ctx, store);
+  ctx.ui.setFooter((tui, theme, footerData) => {
+    capture(tui);
+    return footer(tui, theme, footerData);
+  });
+
+  const editor = createEditorFactory(ctx, store, onEditorTheme);
+  ctx.ui.setEditorComponent((tui, theme, keybindings) => {
+    capture(tui);
+    return editor(tui, theme, keybindings);
+  });
+
+  const indicatorKey = installWorkingIndicator(ctx);
+  installActivityWidget(ctx, store, capture);
+  ctx.ui.setHiddenThinkingLabel('Thinking');
+  return indicatorKey;
+}
+
 export function createUiController(store: PresentationStore): UiController {
   let activeTui: TUI | undefined;
   let unsubscribeStore: (() => void) | undefined;
   let indicatorKey = '';
   let installed = false;
+  let priorChrome: PriorChrome | undefined;
 
   const capture = (tui: TUI): void => {
     activeTui ??= tui;
@@ -71,37 +144,13 @@ export function createUiController(store: PresentationStore): UiController {
     install(ctx) {
       if (ctx.mode !== 'tui' || installed) return;
       installed = true;
-
-      ctx.ui.setTitle('agent');
-      ctx.ui.setTheme('tui-skin');
-
-      const header = createHeader(ctx);
-      ctx.ui.setHeader((tui, theme) => {
-        capture(tui);
-        return header(tui, theme);
-      });
-
-      const footer = createFooter(ctx, store);
-      ctx.ui.setFooter((tui, theme, footerData) => {
-        capture(tui);
-        return footer(tui, theme, footerData);
-      });
-
-      const editor = createEditorFactory(ctx, store, () => {
+      priorChrome = capturePriorChrome(ctx);
+      indicatorKey = mountChrome(ctx, store, capture, () => {
         // The frames carry baked theme colors and this editor paints the band
         // they sit in, so re-derive them from the live theme before every frame.
         if (!installed) return;
         indicatorKey = refreshWorkingIndicator(ctx, indicatorKey);
       });
-      ctx.ui.setEditorComponent((tui, theme, keybindings) => {
-        capture(tui);
-        return editor(tui, theme, keybindings);
-      });
-
-      indicatorKey = installWorkingIndicator(ctx);
-      installActivityWidget(ctx, store, capture);
-      ctx.ui.setHiddenThinkingLabel('Thinking');
-
       unsubscribeStore = store.subscribe(() => {
         activeTui?.requestRender();
       });
@@ -114,7 +163,9 @@ export function createUiController(store: PresentationStore): UiController {
       unsubscribeStore?.();
       unsubscribeStore = undefined;
 
-      uninstallControls(ctx);
+      const prior = priorChrome;
+      priorChrome = undefined;
+      uninstallControls(ctx, prior);
     },
   };
 }

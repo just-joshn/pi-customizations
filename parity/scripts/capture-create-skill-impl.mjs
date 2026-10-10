@@ -33,15 +33,10 @@ const PAIR_ID = 'create-skill-impl-1';
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const stripAnsi = (text) =>
-  text
-    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
-    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
 
 function skillRel(side) {
-  return side === 'cursor'
-    ? join('.cursor', 'skills', SKILL_NAME, 'SKILL.md')
-    : join('.pi', 'skills', SKILL_NAME, 'SKILL.md');
+  return side === 'cursor' ? join('.cursor', 'skills', SKILL_NAME, 'SKILL.md') : join('.pi', 'skills', SKILL_NAME, 'SKILL.md');
 }
 
 function skillAbs(side) {
@@ -63,10 +58,7 @@ function donePath(side) {
 function createPrompt(side) {
   const skillPath = skillRel(side);
   const outDone = donePath(side);
-  const locationHint =
-    side === 'cursor'
-      ? 'project skill under .cursor/skills/ (not ~/.cursor/skills-cursor/)'
-      : 'project skill under .pi/skills/';
+  const locationHint = side === 'cursor' ? 'project skill under .cursor/skills/ (not ~/.cursor/skills-cursor/)' : 'project skill under .pi/skills/';
   return (
     `/create-skill now for a project skill. ` +
     `Do not ask questions. All requirements are here. ` +
@@ -136,15 +128,10 @@ function observeCreate(text, { ignorePromptSlice } = {}) {
   let hay = stripAnsi(text || '');
   if (ignorePromptSlice) hay = hay.split(ignorePromptSlice).join(' ');
   return {
-    createSkillMention:
-      /\b\/create-skill\b/i.test(hay) ||
-      /\bcreate-skill\b/i.test(hay) ||
-      /\[skill\]\s*create-skill\b/i.test(hay),
+    createSkillMention: /\b\/create-skill\b/i.test(hay) || /\bcreate-skill\b/i.test(hay) || /\[skill\]\s*create-skill\b/i.test(hay),
     skillPathMention: new RegExp(SKILL_NAME, 'i').test(hay),
     markerMention: hay.includes(MARKER),
-    envBlocked:
-      /\benv[- ]blocked\b/i.test(hay) ||
-      /\bcannot (run|exercise|invoke).{0,40}create-skill\b/i.test(hay),
+    envBlocked: /\benv[- ]blocked\b/i.test(hay) || /\bcannot (run|exercise|invoke).{0,40}create-skill\b/i.test(hay),
     working: /[\u2800-\u28FF]/.test(hay) || /\bWorking\b/.test(hay),
   };
 }
@@ -173,13 +160,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -233,10 +214,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
       await sleep(800);
       continue;
     }
-    const chatReady =
-      !/Trust project folder\?/i.test(text) &&
-      (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) &&
-      (/fixture-app|create-skill|Skill conflicts|medium/i.test(text));
+    const chatReady = !/Trust project folder\?/i.test(text) && (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) && /fixture-app|create-skill|Skill conflicts|medium/i.test(text);
     if (chatReady) return lines;
     await sleep(200);
   }
@@ -273,8 +251,7 @@ async function persistDurable(side, meta) {
 
 function scoreImpl({ meta, done, screenObs, ptyObs }) {
   const wroteOk = Boolean(meta?.ok);
-  const createPath =
-    Boolean(screenObs?.createSkillMention) || Boolean(ptyObs?.createSkillMention);
+  const createPath = Boolean(screenObs?.createSkillMention) || Boolean(ptyObs?.createSkillMention);
   const envBlocked = done?.status === 'env-blocked' || Boolean(screenObs?.envBlocked);
   return {
     wroteOk,
@@ -315,12 +292,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        ['create-skill', SKILL_NAME, 'SKILL.md', MARKER, 'STATUS=', 'env-blocked'],
-        300_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['create-skill', SKILL_NAME, 'SKILL.md', MARKER, 'STATUS=', 'env-blocked'], 300_000);
     } catch {
       // settle may still land the skill
     }
@@ -452,10 +424,7 @@ async function writePair(results, preDigest) {
     phaseClosure: {
       'create-skill-discovery': 'open',
       'create-skill-design': 'open',
-      'create-skill-implementation':
-        cursor.observations?.score?.phase3Closed && pi.observations?.score?.phase3Closed
-          ? 'closed_by_this_pair'
-          : 'open',
+      'create-skill-implementation': cursor.observations?.score?.phase3Closed && pi.observations?.score?.phase3Closed ? 'closed_by_this_pair' : 'open',
       'create-skill-verification': 'open',
     },
   };
@@ -468,9 +437,7 @@ if (isMain) {
   const preRule = await readFile(referenceRulePath, 'utf8');
   const preDigest = await sha256(referenceRulePath);
   if (preDigest !== LOCKED_FIXTURE_DIGEST) {
-    console.error(
-      `Reference rule digest ${preDigest} does not match the locked fixture ${LOCKED_FIXTURE_DIGEST}`,
-    );
+    console.error(`Reference rule digest ${preDigest} does not match the locked fixture ${LOCKED_FIXTURE_DIGEST}`);
     process.exit(1);
   }
   const sides = only === '--cursor-only' ? ['cursor'] : only === '--pi-only' ? ['pi'] : ['cursor', 'pi'];
@@ -481,10 +448,7 @@ if (isMain) {
     console.log(JSON.stringify(result));
   }
   const pairPath = await writePair(results, preDigest);
-  await writeFile(
-    join(evidenceRoot, 'capture-results.json'),
-    `${JSON.stringify({ scenario: SCENARIO_REF, fixtureDigest: preDigest, pairPath, results }, null, 2)}\n`,
-  );
+  await writeFile(join(evidenceRoot, 'capture-results.json'), `${JSON.stringify({ scenario: SCENARIO_REF, fixtureDigest: preDigest, pairPath, results }, null, 2)}\n`);
   console.log(
     JSON.stringify({
       scenario: SCENARIO_REF,

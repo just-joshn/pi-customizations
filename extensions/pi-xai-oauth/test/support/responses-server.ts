@@ -1,18 +1,25 @@
-import { createServer, type IncomingHttpHeaders } from 'node:http';
+import { createServer, type IncomingHttpHeaders, type ServerResponse } from 'node:http';
 
 export type RecordedRequest = { readonly path: string; readonly headers: IncomingHttpHeaders; readonly body: unknown };
+
+export type Reply = (res: ServerResponse, request: RecordedRequest) => void;
 
 export type ResponsesServer = {
   readonly baseUrl: string;
   readonly requests: readonly RecordedRequest[];
+  respond(reply: Reply): void;
   close(): Promise<void>;
 };
 
-function frame(event: { type: string }): string {
+export function frame(event: { readonly type: string; readonly [key: string]: unknown }): string {
   return `event: ${event.type}\ndata: ${JSON.stringify(event)}\n\n`;
 }
 
 const MESSAGE = { type: 'message', id: 'msg_1', role: 'assistant', status: 'completed', content: [{ type: 'output_text', text: 'OK', annotations: [] }] };
+
+export function responseCreatedFrame(): string {
+  return frame({ type: 'response.created', response: { id: 'resp_1', status: 'in_progress' } });
+}
 
 function okStream(): string {
   return [
@@ -35,15 +42,30 @@ function okStream(): string {
     .join('');
 }
 
-export async function startResponsesServer(): Promise<ResponsesServer> {
+export function okReply(): Reply {
+  return (res) => {
+    res.writeHead(200, { 'content-type': 'text/event-stream' });
+    res.end(okStream());
+  };
+}
+
+export function openStreamReply(head: string): Reply {
+  return (res) => {
+    res.writeHead(200, { 'content-type': 'text/event-stream' });
+    res.write(head);
+  };
+}
+
+export async function startResponsesServer(initial: Reply = okReply()): Promise<ResponsesServer> {
   const requests: RecordedRequest[] = [];
+  const state = { reply: initial };
   const server = createServer((req, res) => {
     const chunks: Buffer[] = [];
     req.on('data', (chunk: Buffer) => chunks.push(chunk));
     req.on('end', () => {
-      requests.push({ path: req.url ?? '', headers: req.headers, body: JSON.parse(Buffer.concat(chunks).toString('utf8')) });
-      res.writeHead(200, { 'content-type': 'text/event-stream' });
-      res.end(okStream());
+      const request = { path: req.url ?? '', headers: req.headers, body: JSON.parse(Buffer.concat(chunks).toString('utf8')) };
+      requests.push(request);
+      state.reply(res, request);
     });
   });
   await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
@@ -53,6 +75,9 @@ export async function startResponsesServer(): Promise<ResponsesServer> {
     baseUrl: `http://127.0.0.1:${address.port}/v1`,
     get requests() {
       return [...requests];
+    },
+    respond(reply) {
+      state.reply = reply;
     },
     close: () =>
       new Promise<void>((resolve) => {

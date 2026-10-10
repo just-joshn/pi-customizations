@@ -73,7 +73,7 @@ export function installFakeBin(rules: readonly FakeRule[]): FakeBin {
 }
 
 export function fakeEnv(bin: FakeBin, extra: Record<string, string> = {}): Record<string, string> {
-  return { PATH: `${bin.dir}:${process.env['PATH'] ?? ''}`, FAKE_BIN_DIR: bin.dir, ...extra };
+  return { PATH: `${bin.dir}:${process.env.PATH ?? ''}`, FAKE_BIN_DIR: bin.dir, ...extra };
 }
 
 export async function withEnv<T>(env: Record<string, string>, body: () => Promise<T>): Promise<T> {

@@ -26,10 +26,7 @@ const SETTLE_MS = 1_500_000;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const stripAnsi = (text) =>
-  text
-    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
-    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
 
 function writeRootFor(side) {
   return join(evidenceRoot, 'fixture-out', side);
@@ -81,27 +78,8 @@ export function scoreOrdering({ groundingText, sketchText, screenText, ptyText, 
     { name: 'session', text: sessionSummary?.assistantJoined || '' },
   ];
 
-  const howPatterns = [
-    /\bPhase A\b/i,
-    /\bhow explainer\b/i,
-    /\bUsed how\b/i,
-    /\[skill\]\s*how\b/i,
-    /\/how\b/,
-    /\bKey Concepts\b/,
-    /\bHow It Works\b/,
-    /\btraced mental model\b/i,
-    /\bGround(?:ing| the problem)\b/i,
-  ];
-  const sketchPatterns = [
-    /\bPhase B\b/i,
-    /\bnot implemented\b/i,
-    /\bdesign (?:package|sketch)\b/i,
-    /\barena\b/i,
-    /\bmodule (?:map|boundary)\b/i,
-    /\bfunction signature/i,
-    /\bSynthesis decision\b/i,
-    /\btypes?(?:\/| and )signatures?\b/i,
-  ];
+  const howPatterns = [/\bPhase A\b/i, /\bhow explainer\b/i, /\bUsed how\b/i, /\[skill\]\s*how\b/i, /\/how\b/, /\bKey Concepts\b/, /\bHow It Works\b/, /\btraced mental model\b/i, /\bGround(?:ing| the problem)\b/i];
+  const sketchPatterns = [/\bPhase B\b/i, /\bnot implemented\b/i, /\bdesign (?:package|sketch)\b/i, /\barena\b/i, /\bmodule (?:map|boundary)\b/i, /\bfunction signature/i, /\bSynthesis decision\b/i, /\btypes?(?:\/| and )signatures?\b/i];
 
   function firstIndex(text, patterns) {
     let best = -1;
@@ -113,8 +91,8 @@ export function scoreOrdering({ groundingText, sketchText, screenText, ptyText, 
   }
 
   const artifactOrder = (() => {
-    const g = Boolean(groundingText && groundingText.trim());
-    const s = Boolean(sketchText && sketchText.trim());
+    const g = Boolean(groundingText?.trim());
+    const s = Boolean(sketchText?.trim());
     if (!g && !s) return 'missing-both';
     if (g && !s) return 'grounding-only';
     if (!g && s) return 'sketch-without-grounding';
@@ -126,19 +104,14 @@ export function scoreOrdering({ groundingText, sketchText, screenText, ptyText, 
   const howIdx = firstIndex(combined, howPatterns);
   const sketchIdx = firstIndex(combined, sketchPatterns);
   const howInGrounding = howPatterns.some((re) => re.test(groundingText || ''));
-  const sketchInSketch = sketchPatterns.some((re) => re.test(sketchText || '')) ||
-    /\b(export )?(function|type|interface|class)\b/.test(sketchText || '') ||
-    /```/.test(sketchText || '');
+  const sketchInSketch = sketchPatterns.some((re) => re.test(sketchText || '')) || /\b(export )?(function|type|interface|class)\b/.test(sketchText || '') || /```/.test(sketchText || '');
 
   const toolOrder = sessionSummary?.toolOrder || [];
   const toolNames = toolOrder.map((t) => String(t).toLowerCase());
-  const howTaskIdx = toolNames.findIndex(
-    (n) => n === 'task' || n.includes('how') || n === 'agent',
-  );
+  const howTaskIdx = toolNames.findIndex((n) => n === 'task' || n.includes('how') || n === 'agent');
   // Prefer read/explore before write of sketch paths when session lists tools.
   const firstWriteIdx = toolNames.findIndex((n) => n === 'write' || n === 'edit' || n === 'create_file');
-  const sessionToolOrderOk =
-    howTaskIdx >= 0 && firstWriteIdx >= 0 ? howTaskIdx < firstWriteIdx : null;
+  const sessionToolOrderOk = howTaskIdx >= 0 && firstWriteIdx >= 0 ? howTaskIdx < firstWriteIdx : null;
 
   let order = 'unknown';
   if (artifactOrder === 'sketch-without-grounding') order = 'sketch-first-or-only';
@@ -148,11 +121,7 @@ export function scoreOrdering({ groundingText, sketchText, screenText, ptyText, 
   else if (sessionToolOrderOk === true) order = 'how-before-sketch';
   else if (sessionToolOrderOk === false) order = 'sketch-before-how';
 
-  const grounded = Boolean(
-    howInGrounding ||
-      howIdx >= 0 ||
-      /Overview|Where Things Live|Gotchas/i.test(groundingText || ''),
-  );
+  const grounded = Boolean(howInGrounding || howIdx >= 0 || /Overview|Where Things Live|Gotchas/i.test(groundingText || ''));
   const sketched = Boolean(sketchInSketch || artifactOrder === 'both-present' || artifactOrder === 'sketch-without-grounding');
 
   return {
@@ -171,15 +140,8 @@ export function scoreOrdering({ groundingText, sketchText, screenText, ptyText, 
 }
 
 function observeSignals(text) {
-  const architectSkill =
-    /\/architect\b/i.test(text) ||
-    /\[skill\]\s*architect/i.test(text) ||
-    /\bUsed architect\b/i.test(text);
-  const howSkill =
-    /\/how\b/i.test(text) ||
-    /\[skill\]\s*how\b/i.test(text) ||
-    /\bUsed how\b/i.test(text) ||
-    /\bhow explainer\b/i.test(text);
+  const architectSkill = /\/architect\b/i.test(text) || /\[skill\]\s*architect/i.test(text) || /\bUsed architect\b/i.test(text);
+  const howSkill = /\/how\b/i.test(text) || /\[skill\]\s*how\b/i.test(text) || /\bUsed how\b/i.test(text) || /\bhow explainer\b/i.test(text);
   const working = /[\u2800-\u28FF]/.test(text) || /\bWorking\b/.test(text);
   return { architectSkill, howSkill, working };
 }
@@ -207,13 +169,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -350,12 +306,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        ['architect', 'how', 'Ground', 'Phase A', 'sketch', 'store.js', 'soft-delete'],
-        300_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['architect', 'how', 'Ground', 'Phase A', 'sketch', 'store.js', 'soft-delete'], 300_000);
     } catch {
       // settle may still land artifacts
     }
@@ -397,12 +348,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
       sessionSummary = await summarizePiSession(await findLatestPiSession());
     }
 
-    const mtimeOrder =
-      grounding.exists && sketch.exists
-        ? grounding.mtimeMs <= sketch.mtimeMs
-          ? 'grounding-mtime-before-sketch'
-          : 'sketch-mtime-before-grounding'
-        : null;
+    const mtimeOrder = grounding.exists && sketch.exists ? (grounding.mtimeMs <= sketch.mtimeMs ? 'grounding-mtime-before-sketch' : 'sketch-mtime-before-grounding') : null;
 
     const ordering = scoreOrdering({
       groundingText: grounding.text,
@@ -434,9 +380,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
       howSkill: Boolean(screenObs.howSkill || ptyObs.howSkill),
       grounding,
       sketch,
-      done: done.exists
-        ? { exists: true, path: done.path, line: (done.text || '').trim() }
-        : { exists: false, path: done.path, line: null },
+      done: done.exists ? { exists: true, path: done.path, line: (done.text || '').trim() } : { exists: false, path: done.path, line: null },
       ordering,
       session: sessionSummary
         ? {

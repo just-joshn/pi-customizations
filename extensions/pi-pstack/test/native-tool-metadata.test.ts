@@ -18,15 +18,7 @@ const families = [
   {
     register: registerAutomations,
     namespace: 'pstack_automations',
-    names: [
-      'AutomationPrepare',
-      'AutomationInspect',
-      'AutomationOpenEditor',
-      'AutomationSave',
-      'AutomationRecordThreadSafety',
-      'AutomationEnable',
-      'AutomationDisable',
-    ],
+    names: ['AutomationPrepare', 'AutomationInspect', 'AutomationOpenEditor', 'AutomationSave', 'AutomationRecordThreadSafety', 'AutomationEnable', 'AutomationDisable'],
   },
   { register: registerWorkers, namespace: 'pstack_workers', names: ['Task', 'TaskOutput', 'TaskStop', 'TaskMessage', 'TaskList', 'TaskAttach'] },
   { register: registerShells, namespace: 'pstack_shells', names: ['BackgroundShell', 'Background' + 'ShellList', 'Background' + 'ShellStop'] },

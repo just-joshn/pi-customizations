@@ -1,11 +1,11 @@
 #!/usr/bin/env node
+import { createHash } from 'node:crypto';
 // cmd-teach-how-why: invoke /teach on a tiny clamp module and score whether
 // how/why skill work precedes the woven teach explanation. Real PTY both sides.
 //
 // Usage: node scripts/capture-teach-how-why.mjs [--cursor-only|--pi-only|--both|--self-test]
 // Evidence root: parity/evidence/teach/
 import { access, mkdir, readdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises';
-import { createHash } from 'node:crypto';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 
@@ -27,10 +27,7 @@ const SETTLE_MS = 1_500_000;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const stripAnsi = (text) =>
-  text
-    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
-    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
 
 function writeRootFor(side) {
   return join(evidenceRoot, 'fixture-out', side);
@@ -78,32 +75,9 @@ async function pathExists(path) {
 }
 
 export function scoreTeachOrdering({ howText, whyText, teachText, screenText, ptyText, sessionSummary }) {
-  const howPatterns = [
-    /\bUsed how\b/i,
-    /\[skill\]\s*how\b/i,
-    /\/how\b/,
-    /\bhow explainer\b/i,
-    /\bKey Concepts\b/,
-    /\bHow It Works\b/,
-    /\btraced mental model\b/i,
-    /\bPhase A\b/i,
-  ];
-  const whyPatterns = [
-    /\bUsed why\b/i,
-    /\[skill\]\s*why\b/i,
-    /\/why\b/,
-    /\bSources Consulted\b/,
-    /\bConfidence Summary\b/,
-    /\bwhat forces\b/i,
-    /\bmotivation\b/i,
-  ];
-  const teachPatterns = [
-    /\bUsed teach\b/i,
-    /\[skill\]\s*teach\b/i,
-    /\/teach\b/,
-    /\bplain explanation\b/i,
-    /\bwoven\b/i,
-  ];
+  const howPatterns = [/\bUsed how\b/i, /\[skill\]\s*how\b/i, /\/how\b/, /\bhow explainer\b/i, /\bKey Concepts\b/, /\bHow It Works\b/, /\btraced mental model\b/i, /\bPhase A\b/i];
+  const whyPatterns = [/\bUsed why\b/i, /\[skill\]\s*why\b/i, /\/why\b/, /\bSources Consulted\b/, /\bConfidence Summary\b/, /\bwhat forces\b/i, /\bmotivation\b/i];
+  const teachPatterns = [/\bUsed teach\b/i, /\[skill\]\s*teach\b/i, /\/teach\b/, /\bplain explanation\b/i, /\bwoven\b/i];
 
   function firstIndex(text, patterns) {
     let best = -1;
@@ -114,38 +88,25 @@ export function scoreTeachOrdering({ howText, whyText, teachText, screenText, pt
     return best;
   }
 
-  const howPresent = Boolean(howText && howText.trim());
-  const whyPresent = Boolean(whyText && whyText.trim());
-  const teachPresent = Boolean(teachText && teachText.trim());
+  const howPresent = Boolean(howText?.trim());
+  const whyPresent = Boolean(whyText?.trim());
+  const teachPresent = Boolean(teachText?.trim());
   const groundingPresent = howPresent || whyPresent;
 
-  const howInHow = howPatterns.some((re) => re.test(howText || '')) ||
-    /\bclamp\b/i.test(howText || '') ||
-    /\bbound/i.test(howText || '');
-  const whyInWhy = whyPatterns.some((re) => re.test(whyText || '')) ||
-    /\bcall site/i.test(whyText || '') ||
-    /\bhelper\b/i.test(whyText || '') ||
-    /\brepeat/i.test(whyText || '');
-  const teachLooksLikeTeach =
-    teachPresent &&
-    (/\bclamp\b/i.test(teachText || '') ||
-      /\bbound/i.test(teachText || '') ||
-      teachPatterns.some((re) => re.test(teachText || '')));
+  const howInHow = howPatterns.some((re) => re.test(howText || '')) || /\bclamp\b/i.test(howText || '') || /\bbound/i.test(howText || '');
+  const whyInWhy = whyPatterns.some((re) => re.test(whyText || '')) || /\bcall site/i.test(whyText || '') || /\bhelper\b/i.test(whyText || '') || /\brepeat/i.test(whyText || '');
+  const teachLooksLikeTeach = teachPresent && (/\bclamp\b/i.test(teachText || '') || /\bbound/i.test(teachText || '') || teachPatterns.some((re) => re.test(teachText || '')));
 
-  const combined = [howText || '', whyText || '', teachText || '', screenText || '', ptyText || '', sessionSummary?.assistantJoined || '']
-    .join('\n\n---\n\n');
+  const combined = [howText || '', whyText || '', teachText || '', screenText || '', ptyText || '', sessionSummary?.assistantJoined || ''].join('\n\n---\n\n');
   const howIdx = firstIndex(combined, howPatterns);
   const whyIdx = firstIndex(combined, whyPatterns);
   const teachIdx = firstIndex(combined, [...teachPatterns, /\bclamp returns\b/i]);
 
   const toolOrder = sessionSummary?.toolOrder || [];
   const toolNames = toolOrder.map((t) => String(t).toLowerCase());
-  const skillReadIdx = toolNames.findIndex(
-    (n) => n.includes('how/skill') || n.includes('why/skill') || n === 'task' || n.includes('how') || n.includes('why'),
-  );
+  const skillReadIdx = toolNames.findIndex((n) => n.includes('how/skill') || n.includes('why/skill') || n === 'task' || n.includes('how') || n.includes('why'));
   const teachWriteIdx = toolNames.findIndex((n) => n === 'write' || n === 'edit' || n === 'create_file' || n === 'bash');
-  const sessionToolOrderOk =
-    skillReadIdx >= 0 && teachWriteIdx >= 0 ? skillReadIdx <= teachWriteIdx : null;
+  const sessionToolOrderOk = skillReadIdx >= 0 && teachWriteIdx >= 0 ? skillReadIdx <= teachWriteIdx : null;
 
   let order = 'unknown';
   if (!groundingPresent && teachPresent) order = 'teach-without-grounding';
@@ -177,27 +138,11 @@ export function scoreTeachOrdering({ howText, whyText, teachText, screenText, pt
 }
 
 function observeSignals(text) {
-  const teachSkill =
-    /\/teach\b/i.test(text) ||
-    /\[skill\]\s*teach/i.test(text) ||
-    /\bUsed teach\b/i.test(text) ||
-    /\bLoaded teach\b/i.test(text);
-  const howSkill =
-    /\/how\b/i.test(text) ||
-    /\[skill\]\s*how\b/i.test(text) ||
-    /\bUsed how\b/i.test(text) ||
-    /\bhow explainer\b/i.test(text);
-  const whySkill =
-    /\/why\b/i.test(text) ||
-    /\[skill\]\s*why\b/i.test(text) ||
-    /\bUsed why\b/i.test(text) ||
-    /\bSources Consulted\b/.test(text);
+  const teachSkill = /\/teach\b/i.test(text) || /\[skill\]\s*teach/i.test(text) || /\bUsed teach\b/i.test(text) || /\bLoaded teach\b/i.test(text);
+  const howSkill = /\/how\b/i.test(text) || /\[skill\]\s*how\b/i.test(text) || /\bUsed how\b/i.test(text) || /\bhow explainer\b/i.test(text);
+  const whySkill = /\/why\b/i.test(text) || /\[skill\]\s*why\b/i.test(text) || /\bUsed why\b/i.test(text) || /\bSources Consulted\b/.test(text);
   const working = /[\u2800-\u28FF]/.test(text) || /\bWorking\b/.test(text);
-  const spawnSignal =
-    /\bTask\b/i.test(text) ||
-    /\bAgent\b/i.test(text) ||
-    /\bsubagent\b/i.test(text) ||
-    /\bRunning\b.*\b(subagent|agent|task)\b/i.test(text);
+  const spawnSignal = /\bTask\b/i.test(text) || /\bAgent\b/i.test(text) || /\bsubagent\b/i.test(text) || /\bRunning\b.*\b(subagent|agent|task)\b/i.test(text);
   return { teachSkill, howSkill, whySkill, working, spawnSignal };
 }
 
@@ -229,13 +174,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -385,12 +324,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        ['teach', 'how', 'why', 'clamp', 'bound', 'Sources', 'Key Concepts'],
-        300_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['teach', 'how', 'why', 'clamp', 'bound', 'Sources', 'Key Concepts'], 300_000);
     } catch {
       // settle may still land artifacts
     }
@@ -436,12 +370,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
 
     const groundMtimes = [how.mtimeMs, why.mtimeMs].filter((n) => typeof n === 'number');
     const latestGround = groundMtimes.length ? Math.max(...groundMtimes) : null;
-    const mtimeOrder =
-      latestGround != null && teach.exists
-        ? latestGround <= teach.mtimeMs
-          ? 'grounding-mtime-before-teach'
-          : 'teach-mtime-before-grounding'
-        : null;
+    const mtimeOrder = latestGround != null && teach.exists ? (latestGround <= teach.mtimeMs ? 'grounding-mtime-before-teach' : 'teach-mtime-before-grounding') : null;
 
     const ordering = scoreTeachOrdering({
       howText: how.text,
@@ -477,9 +406,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
       how,
       why,
       teach,
-      done: done.exists
-        ? { exists: true, path: done.path, line: (done.text || '').trim() }
-        : { exists: false, path: done.path, line: null },
+      done: done.exists ? { exists: true, path: done.path, line: (done.text || '').trim() } : { exists: false, path: done.path, line: null },
       ordering,
       productUnchanged: beforeProduct === afterProduct,
       beforeProduct,

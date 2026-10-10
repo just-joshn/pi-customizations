@@ -34,9 +34,7 @@ export interface ThemeDocument {
 }
 
 export const THEME_NAME = 'one-dark-pro-flat';
-export const UPSTREAM_SHA256 =
-  // biome-ignore lint/security/noSecrets: the pinned upstream hash is published in upstream/SOURCE.md.
-  'e9b4770f83a55891dcd208d7c599f2b0983c07fdcec40301249f50d0e023c656';
+export const UPSTREAM_SHA256 = 'e9b4770f83a55891dcd208d7c599f2b0983c07fdcec40301249f50d0e023c656';
 export const THEME_SCHEMA_URL = 'https://raw.githubusercontent.com/earendil-works/pi/main/packages/coding-agent/src/modes/interactive/theme/theme-schema.json';
 
 const ROLE_KINDS: readonly string[] = ['color', 'alpha', 'scope', 'composite'];

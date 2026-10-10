@@ -32,14 +32,7 @@ const settingsAbs = join(fixtureApp, settingsRel);
 const productRel = join('src', 'app.js');
 const productAbs = join(fixtureApp, productRel);
 const forAgentsRel = join('.upstream', 'automations', 'benny', 'FOR_AGENTS.md');
-const setupSkillRel = join(
-  '.upstream',
-  'automations',
-  'benny',
-  'skills',
-  'setup-benny',
-  'SKILL.md',
-);
+const setupSkillRel = join('.upstream', 'automations', 'benny', 'skills', 'setup-benny', 'SKILL.md');
 const REQUIRED_SKILLS = [
   'how',
   'why',
@@ -60,10 +53,7 @@ const RULE_BACKUP = `${referenceRulePath}.setup-benny-project-skills-backup`;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const stripAnsi = (text) =>
-  text
-    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
-    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
 
 function writeRootFor(side) {
   return join(evidenceRoot, 'fixture-out', side);
@@ -156,12 +146,7 @@ export function classifySkillPath(skillPath, { fixtureRoot = fixtureApp, pluginD
   if (norm.includes('/plugins/cache/') && norm.includes('/pstack/') && norm.includes('/skills/')) {
     return 'package';
   }
-  if (
-    norm.includes('/.claude/skills/') ||
-    norm.includes('/.cursor/skills/') ||
-    norm.includes('/.agents/skills/') ||
-    norm.includes('/.pi/agent/skills/')
-  ) {
+  if (norm.includes('/.claude/skills/') || norm.includes('/.cursor/skills/') || norm.includes('/.agents/skills/') || norm.includes('/.pi/agent/skills/')) {
     return 'user';
   }
   if (norm.startsWith(`${home.split(sep).join('/')}/`)) {
@@ -192,9 +177,7 @@ export function analyzeManifest(manifestValue, opts = {}) {
   });
   const allPresent = skills.every((s) => s.present);
   const allProject = skills.every((s) => s.projectScoped);
-  const anyUserOrSession = skills.some(
-    (s) => s.independentScope === 'user' || s.independentScope === 'session',
-  );
+  const anyUserOrSession = skills.some((s) => s.independentScope === 'user' || s.independentScope === 'session');
   const missing = skills.filter((s) => !s.present || s.independentScope === 'missing').map((s) => s.name);
   return { skills, allPresent, allProject, anyUserOrSession, missing };
 }
@@ -203,41 +186,18 @@ export function observeResolve(text, { ignorePromptSlice } = {}) {
   let hay = stripAnsi(text || '');
   if (ignorePromptSlice) hay = hay.split(ignorePromptSlice).join(' ');
   return {
-    resolveChrome:
-      /\bproject-scoped\b/i.test(hay) ||
-      /\bstop-explain\b/i.test(hay) ||
-      /\bresolve-ok\b/i.test(hay) ||
-      /\.pi\/skills\b/i.test(hay) ||
-      /\buser-scoped\b/i.test(hay) ||
-      /\bSTATUS=stop-explain\b/i.test(hay),
-    stopExplainClaim:
-      /\bSTATUS=stop-explain\b/i.test(hay) ||
-      /\bstop(?:ping)?\b[^\n]{0,80}\bexplain/i.test(hay) ||
-      /\bproject-scoped\b[^\n]{0,80}\bunavailable\b/i.test(hay),
+    resolveChrome: /\bproject-scoped\b/i.test(hay) || /\bstop-explain\b/i.test(hay) || /\bresolve-ok\b/i.test(hay) || /\.pi\/skills\b/i.test(hay) || /\buser-scoped\b/i.test(hay) || /\bSTATUS=stop-explain\b/i.test(hay),
+    stopExplainClaim: /\bSTATUS=stop-explain\b/i.test(hay) || /\bstop(?:ping)?\b[^\n]{0,80}\bexplain/i.test(hay) || /\bproject-scoped\b[^\n]{0,80}\bunavailable\b/i.test(hay),
     resolveOkClaim: /\bSTATUS=resolve-ok\b/i.test(hay) || /\bresolve-ok\b/i.test(hay),
     working: /[\u2800-\u28FF]/.test(hay) || /\bWorking\b/.test(hay),
   };
 }
 
-export function scoreResolve({
-  done,
-  productBeforeDigest,
-  productAfterDigest,
-  screenText,
-  ptyText,
-  prompt,
-  analysis,
-  usedPluginDir,
-}) {
+export function scoreResolve({ done, productBeforeDigest, productAfterDigest, screenText, ptyText, prompt, analysis, usedPluginDir }) {
   const screen = observeResolve(screenText, { ignorePromptSlice: prompt });
   const pty = observeResolve(ptyText, { ignorePromptSlice: prompt });
-  const productUnchanged =
-    Boolean(productBeforeDigest) &&
-    Boolean(productAfterDigest) &&
-    productBeforeDigest === productAfterDigest;
-  const stopExplain =
-    done?.status === 'stop-explain' ||
-    ((screen.stopExplainClaim || pty.stopExplainClaim) && done?.status !== 'resolve-ok');
+  const productUnchanged = Boolean(productBeforeDigest) && Boolean(productAfterDigest) && productBeforeDigest === productAfterDigest;
+  const stopExplain = done?.status === 'stop-explain' || ((screen.stopExplainClaim || pty.stopExplainClaim) && done?.status !== 'resolve-ok');
   const claimedOk = done?.status === 'resolve-ok';
   const trueOk = Boolean(analysis?.allProject) && Boolean(analysis?.allPresent) && !usedPluginDir;
   let outcome = 'inconclusive';
@@ -333,10 +293,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
       await sleep(800);
       continue;
     }
-    const chatReady =
-      !/Trust project folder\?/i.test(text) &&
-      (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) &&
-      (/fixture-app|Benny|benny|medium|Skill conflicts|README|setup|skills|resolve/i.test(text));
+    const chatReady = !/Trust project folder\?/i.test(text) && (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) && /fixture-app|Benny|benny|medium|Skill conflicts|README|setup|skills|resolve/i.test(text);
     if (chatReady) return lines;
     await sleep(200);
   }
@@ -466,9 +423,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     }
     const liveDigest = await sha256(referenceRulePath);
     if (liveDigest !== LOCKED_FIXTURE_DIGEST) {
-      throw new Error(
-        `Aborting ${side}: reference rule digest ${liveDigest} != locked ${LOCKED_FIXTURE_DIGEST}`,
-      );
+      throw new Error(`Aborting ${side}: reference rule digest ${liveDigest} != locked ${LOCKED_FIXTURE_DIGEST}`);
     }
     await writeFile(rulePath, ruleBytes);
     attempt = await startAttempt(side === 'cursor' ? cursorSpec(ruleDigest) : piSpec(ruleDigest));
@@ -507,19 +462,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        [
-          'STATUS=',
-          'resolve-ok',
-          'stop-explain',
-          'resolve-manifest',
-          'project-scoped',
-          'user-scoped',
-        ],
-        600_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['STATUS=', 'resolve-ok', 'stop-explain', 'resolve-manifest', 'project-scoped', 'user-scoped'], 600_000);
     } catch {
       // settle may still land artifacts
     }
@@ -607,8 +550,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
           }
         : null,
       pollSamples: pollLog.length,
-      scorerNote:
-        'resolve_ok requires all ten skills independently classified project under the fixture with no --plugin-dir; stop_explain is also contractHeld when setup honestly refuses user/session/missing scope',
+      scorerNote: 'resolve_ok requires all ten skills independently classified project under the fixture with no --plugin-dir; stop_explain is also contractHeld when setup honestly refuses user/session/missing scope',
     };
 
     const afterRule = await readFile(rulePath, 'utf8');
@@ -727,9 +669,7 @@ if (isMain) {
   const preRule = await readFile(referenceRulePath, 'utf8');
   const preDigest = await sha256(referenceRulePath);
   if (preDigest !== LOCKED_FIXTURE_DIGEST) {
-    console.error(
-      `Reference rule digest ${preDigest} does not match the locked fixture ${LOCKED_FIXTURE_DIGEST}`,
-    );
+    console.error(`Reference rule digest ${preDigest} does not match the locked fixture ${LOCKED_FIXTURE_DIGEST}`);
     process.exit(1);
   }
   if (!(await pathExists(join(fixtureApp, forAgentsRel)))) {
@@ -753,10 +693,7 @@ if (isMain) {
     results.push(result);
     console.log(JSON.stringify(result));
   }
-  await writeFile(
-    join(evidenceRoot, 'capture-results.json'),
-    `${JSON.stringify({ scenario: 'setup-benny-project-skills', fixtureDigest: preDigest, results }, null, 2)}\n`,
-  );
+  await writeFile(join(evidenceRoot, 'capture-results.json'), `${JSON.stringify({ scenario: 'setup-benny-project-skills', fixtureDigest: preDigest, results }, null, 2)}\n`);
   console.log(
     JSON.stringify({
       scenario: 'setup-benny-project-skills',

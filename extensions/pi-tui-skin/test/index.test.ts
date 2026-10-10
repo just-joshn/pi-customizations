@@ -23,7 +23,8 @@ function fakePi() {
 
 function fakeUi() {
   return {
-    theme: { fg: (_color: string, text: string) => text, bold: (text: string) => text },
+    theme: { name: 'dark', fg: (_color: string, text: string) => text, bold: (text: string) => text },
+    getTitle: () => 'π - workspace',
     setTitle: vi.fn(),
     setTheme: vi.fn(),
     setHeader: vi.fn(),
@@ -39,7 +40,16 @@ function fakeUi() {
 
 function sessionContext(mode: 'tui' | 'print', hasUI = mode === 'tui') {
   const ui = { ...fakeUi(), notify: vi.fn() };
-  const ctx = { mode, hasUI, cwd: '/tmp/workspace', ui, thinkingLevel: 'medium', model: undefined, getContextUsage: () => undefined };
+  const ctx = {
+    mode,
+    hasUI,
+    cwd: '/tmp/workspace',
+    ui,
+    thinkingLevel: 'medium',
+    model: undefined,
+    getContextUsage: () => undefined,
+    sessionManager: { getSessionName: () => undefined },
+  };
   return { ctx, ui };
 }
 
@@ -109,6 +119,8 @@ describe('tui-skin extension chrome lifecycle', () => {
     expect(ui.setWorkingMessage).toHaveBeenLastCalledWith();
     expect(ui.setWorkingIndicator).toHaveBeenLastCalledWith();
     expect(ui.setHiddenThinkingLabel).toHaveBeenLastCalledWith();
+    expect(ui.setTheme).toHaveBeenLastCalledWith('dark');
+    expect(ui.setTitle).toHaveBeenLastCalledWith('π - workspace');
   });
 
   test('a second session_start keeps the installed chrome working', () => {

@@ -87,7 +87,6 @@ describe('live PR_READY predicate', () => {
 
 describe('redaction of stored text', () => {
   test('redaction covers finding free text', () => {
-    // biome-ignore lint/security/noSecrets: synthetic test values
     const [evidence, consequence] = [['curl -H', 'Bearer', 'abcdef123456'].join(' '), ['login with', ['password', 'hunter2'].join('=')].join(' ')];
     const state = expectOk(apply(inPhase('VERIFY'), { kind: 'record_finding', finding: { ...FINDING, evidence, consequence } }, fixedClock()));
     expect([state.findings[0]?.evidence, state.findings[0]?.consequence]).toEqual(['curl -H Bearer <REDACTED>', `login with ${'password'}=<REDACTED>`]);

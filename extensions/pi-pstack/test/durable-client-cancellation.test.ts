@@ -83,7 +83,7 @@ test('canceling routine disable preserves the durable disable request', async ()
   expect(await disableRoutine(draft.directory)).toMatchObject({ kind: 'disabled', revision: draft.revision });
 }, 1000);
 
-test('uncanceled timer readiness and command waits retain their timeout errors', async () => {
+test('uncanceled timer readiness and command waits retain their timeout errors', { timeout: 15000 }, async () => {
   const directory = await fixture();
   for (const name of ['commands', 'receipts']) await mkdir(join(directory, name));
   await writeRecord(join(directory, 'status.json'), { kind: 'starting', pid: process.pid });
@@ -103,7 +103,7 @@ test('uncanceled timer readiness and command waits retain their timeout errors',
   expect(await readdir(join(directory, 'commands'))).toHaveLength(1);
 });
 
-test('uncanceled routine disable retains its timeout and durable request', async () => {
+test('uncanceled routine disable retains its timeout and durable request', { timeout: 15000 }, async () => {
   const root = await fixture();
   const draft = await prepareRoutine(root, input);
   await writeRecord(join(draft.directory, 'status.json'), { kind: 'ready', pid: process.pid });

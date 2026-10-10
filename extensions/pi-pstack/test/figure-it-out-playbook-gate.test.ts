@@ -1,14 +1,6 @@
-import { expect, test } from 'vitest';
-
-import {
-  figureItOutPlaybookGateMessage,
-  figureItOutPlaybookUsageBlock,
-  figureItOutSkillPrompt,
-  isPlaybookArtifactPath,
-  playbookWriteStarted,
-  registerFigureItOutPlaybookGate,
-} from '../src/figure-it-out-playbook-gate.ts';
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
+import { expect, test } from 'vitest';
+import { figureItOutPlaybookGateMessage, figureItOutPlaybookUsageBlock, figureItOutSkillPrompt, isPlaybookArtifactPath, playbookWriteStarted, registerFigureItOutPlaybookGate } from '../src/figure-it-out-playbook-gate.ts';
 
 const fioPrompt = `<skill name="figure-it-out" location="/pkg/skills/figure-it-out/SKILL.md">\n# Figure it out\n</skill>\n\nthis is a multi-part note-store migration`;
 

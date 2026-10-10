@@ -146,7 +146,9 @@ async function runCursorJourney(ruleBytes, ruleDigest) {
     attempt.input(Buffer.from('\r'), 'literal_user');
     for (let panel = 2; panel <= 5; panel += 1) {
       await waitGone(attempt, '› [', 60_000).catch(() => {});
-      const next = await waitScreen(attempt, '› [', 45_000).then(() => true).catch(() => false);
+      const next = await waitScreen(attempt, '› [', 45_000)
+        .then(() => true)
+        .catch(() => false);
       if (!next) break;
       await sleep(900);
       await dumpScreen(attempt, dir, `0${panel}-panel`);
@@ -197,7 +199,9 @@ async function runPiJourney(ruleBytes, ruleDigest) {
     attempt.input(Buffer.from('\r'), 'literal_user');
     for (let panel = 2; panel <= 5; panel += 1) {
       await waitGone(attempt, '› [', 60_000).catch(() => {});
-      const next = await waitScreen(attempt, '› [', 45_000).then(() => true).catch(() => false);
+      const next = await waitScreen(attempt, '› [', 45_000)
+        .then(() => true)
+        .catch(() => false);
       if (!next) break;
       await sleep(900);
       await dumpScreen(attempt, dir, `0${panel}-panel`);

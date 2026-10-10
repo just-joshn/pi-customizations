@@ -1,7 +1,8 @@
-import { clampThinkingLevel, getSupportedThinkingLevels } from '@earendil-works/pi-ai';
-import { type ExtensionContext, getAgentDir } from '@earendil-works/pi-coding-agent';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
+
+import { clampThinkingLevel, getSupportedThinkingLevels } from '@earendil-works/pi-ai';
+import { type ExtensionContext, getAgentDir } from '@earendil-works/pi-coding-agent';
 
 type ThinkingLevel = NonNullable<ExtensionContext['thinkingLevel']>;
 type Selection = { model: NonNullable<ExtensionContext['model']>; thinkingLevel: ThinkingLevel };

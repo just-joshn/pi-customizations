@@ -32,14 +32,7 @@ const settingsAbs = join(fixtureApp, settingsRel);
 const productRel = join('src', 'app.js');
 const productAbs = join(fixtureApp, productRel);
 const forAgentsRel = join('.upstream', 'automations', 'benny', 'FOR_AGENTS.md');
-const setupSkillRel = join(
-  '.upstream',
-  'automations',
-  'benny',
-  'skills',
-  'setup-benny',
-  'SKILL.md',
-);
+const setupSkillRel = join('.upstream', 'automations', 'benny', 'skills', 'setup-benny', 'SKILL.md');
 const COMMENT_MARKER = 'fixture-marker: keep-this-comment';
 const GEOMETRY = { rows: 40, cols: 120 };
 const LOCKED_FIXTURE_DIGEST = 'sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004';
@@ -48,10 +41,7 @@ const POLL_MS = 500;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const stripAnsi = (text) =>
-  text
-    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
-    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
 
 function writeRootFor(side) {
   return join(evidenceRoot, 'fixture-out', side);
@@ -95,9 +85,7 @@ async function readDone(side) {
   const path = donePath(side);
   if (!(await pathExists(path))) return { exists: false, path, line: null, status: null };
   const line = (await readFile(path, 'utf8')).trim();
-  const m = line.match(
-    /^STATUS=(settings-ok|settings-mismatch|no-settings-write|blocked|other)\b/i,
-  );
+  const m = line.match(/^STATUS=(settings-ok|settings-mismatch|no-settings-write|blocked|other)\b/i);
   return { exists: true, path, line, status: m ? m[1].toLowerCase() : null };
 }
 
@@ -150,15 +138,10 @@ export function parseSettingsJsonc(text) {
 export function analyzeSettings(beforeText, afterText) {
   const before = parseSettingsJsonc(beforeText);
   const after = parseSettingsJsonc(afterText);
-  const beforePlugins = before.value.plugins && typeof before.value.plugins === 'object'
-    ? before.value.plugins
-    : {};
-  const afterPlugins = after.value.plugins && typeof after.value.plugins === 'object'
-    ? after.value.plugins
-    : {};
+  const beforePlugins = before.value.plugins && typeof before.value.plugins === 'object' ? before.value.plugins : {};
+  const afterPlugins = after.value.plugins && typeof after.value.plugins === 'object' ? after.value.plugins : {};
   const pstack = afterPlugins.pstack;
-  const enabledTrue =
-    Boolean(pstack) && typeof pstack === 'object' && pstack.enabled === true;
+  const enabledTrue = Boolean(pstack) && typeof pstack === 'object' && pstack.enabled === true;
   const unrelatedTopLevel = Object.keys(before.value)
     .filter((k) => k !== 'plugins')
     .every((k) => JSON.stringify(before.value[k]) === JSON.stringify(after.value[k]));
@@ -166,18 +149,13 @@ export function analyzeSettings(beforeText, afterText) {
     .filter((k) => k !== 'pstack')
     .every((k) => JSON.stringify(beforePlugins[k]) === JSON.stringify(afterPlugins[k]));
   const onlyEnabledChanged =
-    beforePlugins.pstack &&
-    typeof beforePlugins.pstack === 'object' &&
-    afterPlugins.pstack &&
-    typeof afterPlugins.pstack === 'object'
+    beforePlugins.pstack && typeof beforePlugins.pstack === 'object' && afterPlugins.pstack && typeof afterPlugins.pstack === 'object'
       ? Object.keys({ ...beforePlugins.pstack, ...afterPlugins.pstack }).every((k) => {
           if (k === 'enabled') return afterPlugins.pstack.enabled === true;
           return JSON.stringify(beforePlugins.pstack[k]) === JSON.stringify(afterPlugins.pstack[k]);
         })
       : enabledTrue;
-  const commentPreserved = beforeText.includes(COMMENT_MARKER)
-    ? afterText.includes(COMMENT_MARKER)
-    : true;
+  const commentPreserved = beforeText.includes(COMMENT_MARKER) ? afterText.includes(COMMENT_MARKER) : true;
   let valid = false;
   try {
     parseSettingsJsonc(afterText);
@@ -202,33 +180,16 @@ export function observeSettings(text, { ignorePromptSlice } = {}) {
   let hay = stripAnsi(text || '');
   if (ignorePromptSlice) hay = hay.split(ignorePromptSlice).join(' ');
   return {
-    settingsChrome:
-      /\.cursor\/settings\.json/i.test(hay) ||
-      /\bplugins\.pstack\b/i.test(hay) ||
-      /\b"enabled"\s*:\s*true\b/i.test(hay) ||
-      /\benabled\b[^\n]{0,40}true/i.test(hay),
+    settingsChrome: /\.cursor\/settings\.json/i.test(hay) || /\bplugins\.pstack\b/i.test(hay) || /\b"enabled"\s*:\s*true\b/i.test(hay) || /\benabled\b[^\n]{0,40}true/i.test(hay),
     settingsOkClaim: /\bsettings-ok\b/i.test(hay) || /\bSTATUS=settings-ok\b/i.test(hay),
     working: /[\u2800-\u28FF]/.test(hay) || /\bWorking\b/.test(hay),
   };
 }
 
-export function scoreSettings({
-  done,
-  productBeforeDigest,
-  productAfterDigest,
-  screenText,
-  ptyText,
-  sessionSummary,
-  prompt,
-  settingsAnalysis,
-  settingsExists,
-}) {
+export function scoreSettings({ done, productBeforeDigest, productAfterDigest, screenText, ptyText, sessionSummary, prompt, settingsAnalysis, settingsExists }) {
   const screen = observeSettings(screenText, { ignorePromptSlice: prompt });
   const pty = observeSettings(ptyText, { ignorePromptSlice: prompt });
-  const productUnchanged =
-    Boolean(productBeforeDigest) &&
-    Boolean(productAfterDigest) &&
-    productBeforeDigest === productAfterDigest;
+  const productUnchanged = Boolean(productBeforeDigest) && Boolean(productAfterDigest) && productBeforeDigest === productAfterDigest;
   const analysisOk =
     Boolean(settingsAnalysis?.enabledTrue) &&
     Boolean(settingsAnalysis?.unrelatedTopLevel) &&
@@ -275,13 +236,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -335,10 +290,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
       await sleep(800);
       continue;
     }
-    const chatReady =
-      !/Trust project folder\?/i.test(text) &&
-      (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) &&
-      (/fixture-app|Benny|benny|medium|Skill conflicts|README|setup|settings/i.test(text));
+    const chatReady = !/Trust project folder\?/i.test(text) && (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) && /fixture-app|Benny|benny|medium|Skill conflicts|README|setup|settings/i.test(text);
     if (chatReady) return lines;
     await sleep(200);
   }
@@ -465,9 +417,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     }
     const liveDigest = await sha256(referenceRulePath);
     if (liveDigest !== LOCKED_FIXTURE_DIGEST) {
-      throw new Error(
-        `Aborting ${side}: reference rule digest ${liveDigest} != locked ${LOCKED_FIXTURE_DIGEST}`,
-      );
+      throw new Error(`Aborting ${side}: reference rule digest ${liveDigest} != locked ${LOCKED_FIXTURE_DIGEST}`);
     }
     await writeFile(rulePath, ruleBytes);
     attempt = await startAttempt(side === 'cursor' ? cursorSpec(ruleDigest) : piSpec(ruleDigest));
@@ -506,19 +456,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        [
-          'STATUS=',
-          'settings.json',
-          'plugins.pstack',
-          '"enabled": true',
-          'settings-ok',
-          'settings-mismatch',
-        ],
-        600_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['STATUS=', 'settings.json', 'plugins.pstack', '"enabled": true', 'settings-ok', 'settings-mismatch'], 600_000);
     } catch {
       // settle may still land artifacts
     }
@@ -621,8 +559,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
           }
         : null,
       pollSamples: pollLog.length,
-      scorerNote:
-        'settings_ok requires plugins.pstack.enabled true, unrelated top-level + other plugins preserved, only enabled changed when pstack existed, JSONC comment marker preserved, file validates, product unchanged',
+      scorerNote: 'settings_ok requires plugins.pstack.enabled true, unrelated top-level + other plugins preserved, only enabled changed when pstack existed, JSONC comment marker preserved, file validates, product unchanged',
     };
 
     const afterRule = await readFile(rulePath, 'utf8');
@@ -737,9 +674,7 @@ if (isMain) {
   const preRule = await readFile(referenceRulePath, 'utf8');
   const preDigest = await sha256(referenceRulePath);
   if (preDigest !== LOCKED_FIXTURE_DIGEST) {
-    console.error(
-      `Reference rule digest ${preDigest} does not match the locked fixture ${LOCKED_FIXTURE_DIGEST}`,
-    );
+    console.error(`Reference rule digest ${preDigest} does not match the locked fixture ${LOCKED_FIXTURE_DIGEST}`);
     process.exit(1);
   }
   if (!(await pathExists(join(fixtureApp, forAgentsRel)))) {
@@ -763,10 +698,7 @@ if (isMain) {
     results.push(result);
     console.log(JSON.stringify(result));
   }
-  await writeFile(
-    join(evidenceRoot, 'capture-results.json'),
-    `${JSON.stringify({ scenario: 'setup-benny-settings-enable', fixtureDigest: preDigest, results }, null, 2)}\n`,
-  );
+  await writeFile(join(evidenceRoot, 'capture-results.json'), `${JSON.stringify({ scenario: 'setup-benny-settings-enable', fixtureDigest: preDigest, results }, null, 2)}\n`);
   console.log(
     JSON.stringify({
       scenario: 'setup-benny-settings-enable',

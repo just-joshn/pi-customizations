@@ -861,7 +861,7 @@ Primary events:
 - `session_start`
 - `session_shutdown`
 - `agent_start`
-- `agent_end`
+- `agent_settled`
 - `tool_execution_start`
 - `tool_execution_update`
 - `tool_execution_end`
@@ -885,7 +885,7 @@ export function registerLifecycle(
     deps.store.setAgentRunning(Date.now());
   });
 
-  pi.on("agent_end", () => {
+  pi.on("agent_settled", () => {
     deps.store.setAgentIdle();
   });
 
@@ -1321,7 +1321,7 @@ Verify stock Pi behavior before adding tool renderers.
 ### Phase 3: presentation state
 
 1. Add `PresentationStore`.
-2. Subscribe to `agent_start` and `agent_end`.
+2. Subscribe to `agent_start` and `agent_settled`.
 3. Subscribe to tool lifecycle events.
 4. Track active tool calls by `toolCallId`.
 5. Track successful explicit `edit` and `write` paths.
@@ -1374,7 +1374,7 @@ Test pure functions for:
 Prove:
 
 - `agent_start` changes idle to running,
-- `agent_end` returns to idle,
+- `agent_settled` returns to idle (`agent_end` must leave the phase running),
 - multiple tool calls can be active simultaneously,
 - finishing one tool does not clear unrelated active tools,
 - failed edits do not increment edited-file count,

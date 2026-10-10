@@ -1,13 +1,6 @@
-import { expect, test } from 'vitest';
-
-import {
-  explainerTaskStarted,
-  howSkillPrompt,
-  howSpawnGateMessage,
-  howSpawnUsageBlock,
-  registerHowSpawnGate,
-} from '../src/how-spawn-gate.ts';
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
+import { expect, test } from 'vitest';
+import { explainerTaskStarted, howSkillPrompt, howSpawnGateMessage, howSpawnUsageBlock, registerHowSpawnGate } from '../src/how-spawn-gate.ts';
 
 const howPrompt = `<skill name="how" location="/pkg/skills/how/SKILL.md">\n## Step 2b. Direct Explain\n</skill>\n\nhow does the budget line change behavior?`;
 
@@ -138,4 +131,66 @@ test('settling a how turn without an explainer Task continues once with a spawn 
   expect(first.entries[0]?.content).toContain('Step 2b');
 
   expect(handlers.get('agent_before_settle')?.({ type: 'agent_before_settle', outcome: 'completed' } as never)).toBe(undefined);
+});
+
+test('spawn gate stays armed across agent_end and a markerless reminder continue until an explainer Task starts', () => {
+  const handlers = harness();
+  handlers.get('before_agent_start')?.({
+    type: 'before_agent_start',
+    prompt: howPrompt,
+    systemPrompt: '',
+    systemPromptOptions: { sections: {} },
+  } as never);
+
+  // Pi emits agent_end before agent_before_settle; the continue turn must still be gated.
+  handlers.get('agent_end')?.({ type: 'agent_end', messages: [] } as never);
+
+  const settle = handlers.get('agent_before_settle')?.({ type: 'agent_before_settle', outcome: 'completed' } as never) as {
+    continue: boolean;
+  };
+  expect(settle.continue).toBe(true);
+
+  handlers.get('before_agent_start')?.({
+    type: 'before_agent_start',
+    prompt: 'The how skill requires Step 2b (or 2a then 3) before the final answer. Spawn one readonly Task now.',
+    systemPrompt: '',
+    systemPromptOptions: { sections: {} },
+  } as never);
+
+  expect(handlers.get('tool_call')?.({ type: 'tool_call', toolCallId: '1', toolName: 'bash', input: { command: 'rg budget' } } as never)).toEqual({
+    block: true,
+    reason: howSpawnGateMessage,
+  });
+
+  expect(
+    handlers.get('tool_call')?.({
+      type: 'tool_call',
+      toolCallId: '2',
+      toolName: 'Task',
+      input: { prompt: 'explain the budget line', subagent_type: 'generalPurpose', readonly: true },
+    } as never),
+  ).toBe(undefined);
+
+  expect(handlers.get('tool_call')?.({ type: 'tool_call', toolCallId: '3', toolName: 'bash', input: { command: 'rg budget' } } as never)).toBe(undefined);
+});
+
+test('a later non-how user turn disarms after the skill run settles', () => {
+  const handlers = harness();
+  handlers.get('before_agent_start')?.({
+    type: 'before_agent_start',
+    prompt: howPrompt,
+    systemPrompt: '',
+    systemPromptOptions: { sections: {} },
+  } as never);
+  handlers.get('agent_before_settle')?.({ type: 'agent_before_settle', outcome: 'completed' } as never);
+  handlers.get('agent_settled')?.({ type: 'agent_settled', aborted: false } as never);
+
+  handlers.get('before_agent_start')?.({
+    type: 'before_agent_start',
+    prompt: 'summarize models.mdc',
+    systemPrompt: '',
+    systemPromptOptions: { sections: {} },
+  } as never);
+
+  expect(handlers.get('tool_call')?.({ type: 'tool_call', toolCallId: '1', toolName: 'bash', input: { command: 'rg budget' } } as never)).toBe(undefined);
 });

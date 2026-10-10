@@ -30,10 +30,7 @@ const PRODUCT_REL = ['src/inc.js'];
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const stripAnsi = (text) =>
-  text
-    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
-    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
 
 function writeRootFor(side) {
   return join(evidenceRoot, 'fixture-out', side);
@@ -169,14 +166,8 @@ function playbookStepSignals(text) {
 }
 
 function observeTodoText(text) {
-  const todoTool =
-    /\bTodoWrite\b/i.test(text) ||
-    /\bTaskCreate\b/i.test(text) ||
-    /\btodolist\b/i.test(text) ||
-    /\bTODO list\b/i.test(text);
-  const checklist =
-    /(?:^|\n)\s*(?:[-*○◐●]|\[\s?[xX ]?\])\s+.+/m.test(text) &&
-    /Phase |Reproduce|playbook|skip:/i.test(text);
+  const todoTool = /\bTodoWrite\b/i.test(text) || /\bTaskCreate\b/i.test(text) || /\btodolist\b/i.test(text) || /\bTODO list\b/i.test(text);
+  const checklist = /(?:^|\n)\s*(?:[-*○◐●]|\[\s?[xX ]?\])\s+.+/m.test(text) && /Phase |Reproduce|playbook|skip:/i.test(text);
   const playbooks = playbookStepSignals(text);
   return {
     todoTool,
@@ -184,11 +175,7 @@ function observeTodoText(text) {
     playbookSignals: playbooks,
     playbookStepsVisible: playbooks.length > 0,
     todoVisible: todoTool || checklist || playbooks.length > 0,
-    potetoMode:
-      /\/poteto-mode\b/i.test(text) ||
-      /\[skill\]\s*poteto-mode/i.test(text) ||
-      /\bUsed poteto-mode\b/i.test(text) ||
-      /\bpoteto-mode\b/i.test(text),
+    potetoMode: /\/poteto-mode\b/i.test(text) || /\[skill\]\s*poteto-mode/i.test(text) || /\bUsed poteto-mode\b/i.test(text) || /\bpoteto-mode\b/i.test(text),
     working: /[\u2800-\u28FF]/.test(text) || /\bWorking\b/.test(text),
   };
 }
@@ -226,13 +213,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -406,12 +387,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        ['poteto-mode', 'TodoWrite', 'Phase', 'Reproduce', 'Bug fix', 'inc.js', 'playbook'],
-        300_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['poteto-mode', 'TodoWrite', 'Phase', 'Reproduce', 'Bug fix', 'inc.js', 'playbook'], 300_000);
     } catch {
       // settle may still land artifacts
     }
@@ -424,11 +400,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
       const obs = observeTodoText(lines.join('\n'));
       const done = await readDone(side);
       const hasProduct = productPaths.size > 0;
-      const enough =
-        done.exists ||
-        (todoSeen && hasProduct) ||
-        (firstPlaybookTodoAt && hasProduct) ||
-        (firstPlaybookTodoAt && !obs.working && Date.now() - Date.parse(firstPlaybookTodoAt) > 180_000);
+      const enough = done.exists || (todoSeen && hasProduct) || (firstPlaybookTodoAt && hasProduct) || (firstPlaybookTodoAt && !obs.working && Date.now() - Date.parse(firstPlaybookTodoAt) > 180_000);
       if (enough && !obs.working) {
         calm += 1;
         if (calm >= 3) break;
@@ -481,10 +453,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     const productList = [...productPaths];
     const ordering = classifyOrdering(firstTodoAt, firstProductAt, todoSeen || ptyObs.todoVisible, productList);
     const screenFinal = observeTodoText((await screenLines(attempt, GEOMETRY)).join('\n'));
-    const playbookTodosBeforeProduct =
-      Boolean(firstPlaybookTodoAt) &&
-      (!firstProductAt || firstPlaybookTodoAt <= firstProductAt) &&
-      (ordering === 'todo_before_product' || ordering === 'todo_only');
+    const playbookTodosBeforeProduct = Boolean(firstPlaybookTodoAt) && (!firstProductAt || firstPlaybookTodoAt <= firstProductAt) && (ordering === 'todo_before_product' || ordering === 'todo_only');
 
     const observations = {
       screenFinal,

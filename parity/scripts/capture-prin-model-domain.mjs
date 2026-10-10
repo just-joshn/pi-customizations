@@ -24,15 +24,7 @@ const piAgentDir = '/tmp/pi-ref-agent';
 const piRulePath = join(piAgentDir, 'pstack', 'models.mdc');
 const evidenceRoot = join(root, 'evidence', 'principles', 'model-domain');
 const fixtureApp = join(evidenceRoot, 'fixture-app');
-const domainSkillCursor = join(
-  root,
-  'reference',
-  'cursor-plugins',
-  'pstack',
-  'skills',
-  'principle-model-the-domain',
-  'SKILL.md',
-);
+const domainSkillCursor = join(root, 'reference', 'cursor-plugins', 'pstack', 'skills', 'principle-model-the-domain', 'SKILL.md');
 const domainSkillPi = join(root, '..', 'extensions', 'pi-pstack', 'skills', 'principle-model-the-domain', 'SKILL.md');
 const GEOMETRY = { rows: 40, cols: 120 };
 const LOCKED_FIXTURE_DIGEST = 'sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004';
@@ -44,10 +36,7 @@ const VERIFY_SCRIPT_REL = 'scripts/verify.mjs';
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const stripAnsi = (text) =>
-  text
-    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
-    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
 
 function writeRootFor(side) {
   return join(evidenceRoot, 'fixture-out', side);
@@ -129,19 +118,12 @@ function isModelDomainSkillPath(p) {
 function observeModelDomainText(text, { ignorePromptSlice } = {}) {
   let hay = stripAnsi(text || '');
   if (ignorePromptSlice) hay = hay.split(ignorePromptSlice).join(' ');
-  const potetoMode =
-    /\/poteto-mode\b/i.test(hay) ||
-    /\[skill\]\s*poteto-mode/i.test(hay) ||
-    /\bUsed poteto-mode\b/i.test(hay);
+  const potetoMode = /\/poteto-mode\b/i.test(hay) || /\[skill\]\s*poteto-mode/i.test(hay) || /\bUsed poteto-mode\b/i.test(hay);
   const leafChrome = /principle-model-the-domain[/\\]SKILL\.md/i.test(hay);
   const usedLeaf = /\bUsed principle-model-the-domain\b/i.test(hay);
   const skillBracketLeaf = /\[skill\]\s*principle-model-the-domain\b/i.test(hay);
   const hostAttached = Boolean(usedLeaf || skillBracketLeaf);
-  const verifyMention =
-    /scripts\/verify\.mjs/i.test(hay) ||
-    /evidence\/verify-out\.txt/i.test(hay) ||
-    /\bDOMAIN-OK\b/.test(hay) ||
-    /\bDOMAIN-FAIL\b/.test(hay);
+  const verifyMention = /scripts\/verify\.mjs/i.test(hay) || /evidence\/verify-out\.txt/i.test(hay) || /\bDOMAIN-OK\b/.test(hay) || /\bDOMAIN-FAIL\b/.test(hay);
   const working = /[\u2800-\u28FF]/.test(hay) || /\bWorking\b/.test(hay);
   return { potetoMode, leafChrome, hostAttached, verifyMention, working };
 }
@@ -186,14 +168,7 @@ function extractToolCallsFromJsonl(text) {
 }
 
 function pathFromArgs(args) {
-  return (
-    args.path ||
-    args.file_path ||
-    args.filePath ||
-    args.target_file ||
-    args.file ||
-    null
-  );
+  return args.path || args.file_path || args.filePath || args.target_file || args.file || null;
 }
 
 function isProductPath(p) {
@@ -225,18 +200,14 @@ function scoreCallsForModelDomain(calls) {
     const args = call.args || {};
     const blob = JSON.stringify(args);
     const path = pathFromArgs(args);
-    const isRead =
-      /^(Read|read|read_file|ReadFile|cat|blob-mention)$/i.test(name) ||
-      (name === 'bash' && typeof args.command === 'string' && /\bcat\b/.test(args.command));
+    const isRead = /^(Read|read|read_file|ReadFile|cat|blob-mention)$/i.test(name) || (name === 'bash' && typeof args.command === 'string' && /\bcat\b/.test(args.command));
     if (isRead && isModelDomainSkillPath(path || blob)) {
       leafSkillRead = true;
       if (!leafSkillReadAt) leafSkillReadAt = call.ts || new Date().toISOString();
       toolOrder.push(`${name}(model-domain-leaf)`);
       continue;
     }
-    const verifyHit =
-      /\bscripts\/verify\.mjs\b/i.test(blob) ||
-      (typeof args.command === 'string' && /verify\.mjs/.test(args.command));
+    const verifyHit = /\bscripts\/verify\.mjs\b/i.test(blob) || (typeof args.command === 'string' && /verify\.mjs/.test(args.command));
     if (verifyHit) {
       ranVerifyScript = true;
       if (!firstVerifyAt) firstVerifyAt = call.ts || new Date().toISOString();
@@ -261,35 +232,21 @@ function scoreCallsForModelDomain(calls) {
 }
 
 function exportsHoldAndRelease(src) {
-  const hold =
-    /\b(?:export\s+)?(?:async\s+)?function\s+hold\b/.test(src) ||
-    /\bexport\s+(?:const|let|var)\s+hold\s*=/.test(src) ||
-    /\bhold\s*=\s*(?:async\s*)?\(/.test(src);
-  const release =
-    /\b(?:export\s+)?(?:async\s+)?function\s+release\b/.test(src) ||
-    /\bexport\s+(?:const|let|var)\s+release\s*=/.test(src) ||
-    /\brelease\s*=\s*(?:async\s*)?\(/.test(src);
+  const hold = /\b(?:export\s+)?(?:async\s+)?function\s+hold\b/.test(src) || /\bexport\s+(?:const|let|var)\s+hold\s*=/.test(src) || /\bhold\s*=\s*(?:async\s*)?\(/.test(src);
+  const release = /\b(?:export\s+)?(?:async\s+)?function\s+release\b/.test(src) || /\bexport\s+(?:const|let|var)\s+release\s*=/.test(src) || /\brelease\s*=\s*(?:async\s*)?\(/.test(src);
   return hold && release;
 }
 
 export function analyzeProductSources(ticketSrc) {
   const src = ticketSrc || '';
   const hasHeldApi = exportsHoldAndRelease(src);
-  const statusLiterals =
-    /['"]draft['"]/.test(src) && /['"]held['"]/.test(src) && (/['"]open['"]/.test(src) || /['"]closed['"]/.test(src));
+  const statusLiterals = /['"]draft['"]/.test(src) && /['"]held['"]/.test(src) && (/['"]open['"]/.test(src) || /['"]closed['"]/.test(src));
   const hasStatusField = /\bstatus\b/.test(src) && statusLiterals;
-  const hasRegistry =
-    /\b(?:STATES|STATUSES|STATUS|LABELS|TRANSITIONS|ALLOWED|MACHINE)\b/.test(src) && /held/i.test(src);
-  const hasLookupTable =
-    /(?:Object\.freeze|new\s+Map)\s*\(/.test(src) && /held/i.test(src) && statusLiterals;
+  const hasRegistry = /\b(?:STATES|STATUSES|STATUS|LABELS|TRANSITIONS|ALLOWED|MACHINE)\b/.test(src) && /held/i.test(src);
+  const hasLookupTable = /(?:Object\.freeze|new\s+Map)\s*\(/.test(src) && /held/i.test(src) && statusLiterals;
   const hasReducer = /\breduc(?:e|er)\b/i.test(src) && /held/i.test(src);
-  const structuredDomain = Boolean(
-    hasHeldApi && (hasStatusField || hasRegistry || hasLookupTable || hasReducer),
-  );
-  const syncedBooleans =
-    /\bisDraft\b/.test(src) &&
-    /\bisOpen\b/.test(src) &&
-    (/\bisHeld\b/.test(src) || (/\bheld\s*:\s*true\b/.test(src) && !hasStatusField));
+  const structuredDomain = Boolean(hasHeldApi && (hasStatusField || hasRegistry || hasLookupTable || hasReducer));
+  const syncedBooleans = /\bisDraft\b/.test(src) && /\bisOpen\b/.test(src) && (/\bisHeld\b/.test(src) || (/\bheld\s*:\s*true\b/.test(src) && !hasStatusField));
   const scatteredOnly = Boolean(hasHeldApi && syncedBooleans && !structuredDomain);
   return {
     hasHeldApi,
@@ -303,45 +260,19 @@ export function analyzeProductSources(ticketSrc) {
   };
 }
 
-export function scoreModelDomain({
-  frontmatter,
-  done,
-  verifyOut,
-  productOk,
-  productAnalysis,
-  screenText,
-  ptyText,
-  sessionScore,
-  transcriptScore,
-  prompt,
-}) {
+export function scoreModelDomain({ frontmatter, done, verifyOut, productOk, productAnalysis, screenText, ptyText, sessionScore, transcriptScore, prompt }) {
   const screen = observeModelDomainText(screenText, { ignorePromptSlice: prompt });
   const pty = observeModelDomainText(ptyText, { ignorePromptSlice: prompt });
-  const leafSkillRead = Boolean(
-    sessionScore?.leafSkillRead ||
-      transcriptScore?.leafSkillRead ||
-      screen.leafChrome ||
-      pty.leafChrome,
-  );
+  const leafSkillRead = Boolean(sessionScore?.leafSkillRead || transcriptScore?.leafSkillRead || screen.leafChrome || pty.leafChrome);
   const usedChrome = Boolean(screen.hostAttached || pty.hostAttached || sessionScore?.hostAttached);
   const modelAutoInvoke = usedChrome && !leafSkillRead;
-  const ranVerifyScript = Boolean(
-    sessionScore?.ranVerifyScript || transcriptScore?.ranVerifyScript || screen.verifyMention || pty.verifyMention,
-  );
+  const ranVerifyScript = Boolean(sessionScore?.ranVerifyScript || transcriptScore?.ranVerifyScript || screen.verifyMention || pty.verifyMention);
   const structuredDomain = Boolean(productAnalysis?.structuredDomain);
   const scatteredOnly = Boolean(productAnalysis?.scatteredOnly);
   const keptVerifyOk = Boolean(verifyOut?.ok);
   const verifiedDone = /^verified=yes\b/i.test((done?.line || '').trim());
   const frontmatterOk = Boolean(frontmatter?.ok);
-  const contractHeld =
-    frontmatterOk &&
-    leafSkillRead &&
-    structuredDomain &&
-    !scatteredOnly &&
-    productOk &&
-    keptVerifyOk &&
-    verifiedDone &&
-    !modelAutoInvoke;
+  const contractHeld = frontmatterOk && leafSkillRead && structuredDomain && !scatteredOnly && productOk && keptVerifyOk && verifiedDone && !modelAutoInvoke;
   return {
     frontmatterOk,
     leafSkillRead,
@@ -369,15 +300,7 @@ async function baselineProduct() {
 
 async function snapshotBaseline() {
   const baselineDir = join(evidenceRoot, 'fixture-baseline');
-  for (const rel of [
-    'src/ticket.js',
-    'README.md',
-    'NOTES.md',
-    'package.json',
-    VERIFY_SCRIPT_REL,
-    'evidence/.gitkeep',
-    'out/.gitkeep',
-  ]) {
+  for (const rel of ['src/ticket.js', 'README.md', 'NOTES.md', 'package.json', VERIFY_SCRIPT_REL, 'evidence/.gitkeep', 'out/.gitkeep']) {
     const src = join(fixtureApp, rel);
     if (!(await pathExists(src))) continue;
     const dst = join(baselineDir, rel);
@@ -388,15 +311,7 @@ async function snapshotBaseline() {
 
 async function restoreProduct() {
   const baselineDir = join(evidenceRoot, 'fixture-baseline');
-  for (const rel of [
-    'src/ticket.js',
-    'README.md',
-    'NOTES.md',
-    'package.json',
-    VERIFY_SCRIPT_REL,
-    'evidence/.gitkeep',
-    'out/.gitkeep',
-  ]) {
+  for (const rel of ['src/ticket.js', 'README.md', 'NOTES.md', 'package.json', VERIFY_SCRIPT_REL, 'evidence/.gitkeep', 'out/.gitkeep']) {
     const src = join(baselineDir, rel);
     const dst = join(fixtureApp, rel);
     if (await pathExists(src)) {
@@ -407,15 +322,7 @@ async function restoreProduct() {
   await rm(join(fixtureApp, VERIFY_OUT_REL), { force: true });
   const files = await walkFiles(fixtureApp);
   for (const rel of files) {
-    if (
-      rel === 'README.md' ||
-      rel === 'NOTES.md' ||
-      rel === 'package.json' ||
-      rel === 'src/ticket.js' ||
-      rel === VERIFY_SCRIPT_REL ||
-      rel === 'evidence/.gitkeep' ||
-      rel === 'out/.gitkeep'
-    ) {
+    if (rel === 'README.md' || rel === 'NOTES.md' || rel === 'package.json' || rel === 'src/ticket.js' || rel === VERIFY_SCRIPT_REL || rel === 'evidence/.gitkeep' || rel === 'out/.gitkeep') {
       continue;
     }
     if (rel.startsWith('evidence/') || rel.startsWith('out/') || rel.endsWith('.tsv') || rel.startsWith('.audit/')) {
@@ -494,13 +401,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -554,10 +455,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
       await sleep(800);
       continue;
     }
-    const chatReady =
-      !/Trust project folder\?/i.test(text) &&
-      (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) &&
-      (/model-domain|ticket|README|medium|Skill conflicts|Session TTL|fixture-app/i.test(text));
+    const chatReady = !/Trust project folder\?/i.test(text) && (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) && /model-domain|ticket|README|medium|Skill conflicts|Session TTL|fixture-app/i.test(text);
     if (chatReady) return lines;
     await sleep(200);
   }
@@ -594,9 +492,7 @@ async function summarizePiSession(sessionPath) {
   const text = await readFile(sessionPath, 'utf8');
   const calls = extractToolCallsFromJsonl(text);
   const scored = scoreCallsForModelDomain(calls);
-  const hostAttached =
-    /\bUsed principle-model-the-domain\b/i.test(text) ||
-    /\[skill\]\s*principle-model-the-domain\b/i.test(text);
+  const hostAttached = /\bUsed principle-model-the-domain\b/i.test(text) || /\[skill\]\s*principle-model-the-domain\b/i.test(text);
   return { sessionPath, hostAttached, ...scored };
 }
 
@@ -625,9 +521,7 @@ async function findCursorTranscripts(sinceMs, side) {
         } catch {
           continue;
         }
-        const mentionsThisAttempt =
-          text.includes(doneAbs) ||
-          (text.includes(`model-domain/fixture-out/${side}/done.txt`) && text.includes('ticket'));
+        const mentionsThisAttempt = text.includes(doneAbs) || (text.includes(`model-domain/fixture-out/${side}/done.txt`) && text.includes('ticket'));
         if (mentionsThisAttempt) hits.push({ path: abs, mtimeMs: st.mtimeMs, size: st.size });
       }
     }
@@ -650,9 +544,7 @@ async function summarizeCursorTranscripts(sinceMs, side) {
       leafSkillRead: scored.leafSkillRead || leafInBlob,
     };
     const rank = (merged.leafSkillRead ? 4 : 0) + (merged.ranVerifyScript ? 2 : 0) + (merged.firstProductWriteAt ? 1 : 0);
-    const bestRank = best
-      ? (best.leafSkillRead ? 4 : 0) + (best.ranVerifyScript ? 2 : 0) + (best.firstProductWriteAt ? 1 : 0)
-      : -1;
+    const bestRank = best ? (best.leafSkillRead ? 4 : 0) + (best.ranVerifyScript ? 2 : 0) + (best.firstProductWriteAt ? 1 : 0) : -1;
     if (!best || rank > bestRank || (rank === bestRank && hit.mtimeMs > (best.mtimeMs || 0))) {
       best = { ...merged, mtimeMs: hit.mtimeMs };
     }
@@ -728,22 +620,7 @@ async function runSide(side, ruleBytes, ruleDigest, frontmatter) {
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        [
-          'poteto-mode',
-          'ticket.js',
-          'verify',
-          'DOMAIN-OK',
-          'DOMAIN-FAIL',
-          'principle-model-the-domain',
-          'Phase',
-          'hold',
-          'HELD',
-        ],
-        300_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['poteto-mode', 'ticket.js', 'verify', 'DOMAIN-OK', 'DOMAIN-FAIL', 'principle-model-the-domain', 'Phase', 'hold', 'HELD'], 300_000);
     } catch {
       // settle may still land artifacts
     }
@@ -856,14 +733,7 @@ async function runSide(side, ruleBytes, ruleDigest, frontmatter) {
 
     const snapDir = join(attempt.dir, 'fixture-snapshot');
     await mkdir(snapDir, { recursive: true });
-    for (const rel of [
-      'src/ticket.js',
-      'README.md',
-      'NOTES.md',
-      'package.json',
-      VERIFY_SCRIPT_REL,
-      VERIFY_OUT_REL,
-    ]) {
+    for (const rel of ['src/ticket.js', 'README.md', 'NOTES.md', 'package.json', VERIFY_SCRIPT_REL, VERIFY_OUT_REL]) {
       const abs = join(fixtureApp, rel);
       if (!(await pathExists(abs))) continue;
       const dest = join(snapDir, rel);
@@ -974,12 +844,7 @@ export function label(t) { return t.status.toUpperCase(); }
     ['noLeaf', noLeaf.contractHeld === false && noLeaf.leafSkillRead === false],
     ['goodAnalysis', goodAnalysis.structuredDomain === true && goodAnalysis.scatteredOnly === false],
     ['scatteredAnalysis', scatteredAnalysis.structuredDomain === false && scatteredAnalysis.scatteredOnly === true],
-    [
-      'constExport',
-      constExportAnalysis.hasHeldApi === true &&
-        constExportAnalysis.hasRegistry === true &&
-        constExportAnalysis.structuredDomain === true,
-    ],
+    ['constExport', constExportAnalysis.hasHeldApi === true && constExportAnalysis.hasRegistry === true && constExportAnalysis.structuredDomain === true],
   ];
   const failed = cases.filter(([, ok]) => !ok);
   console.log(JSON.stringify({ selfTest: failed.length === 0, cases }, null, 2));
@@ -1014,10 +879,7 @@ if (isMain) {
     results.push(result);
     console.log(JSON.stringify(result));
   }
-  await writeFile(
-    join(evidenceRoot, 'capture-results.json'),
-    `${JSON.stringify({ scenario: 'prin-model-domain', fixtureDigest: preDigest, frontmatter, results }, null, 2)}\n`,
-  );
+  await writeFile(join(evidenceRoot, 'capture-results.json'), `${JSON.stringify({ scenario: 'prin-model-domain', fixtureDigest: preDigest, frontmatter, results }, null, 2)}\n`);
   console.log(
     JSON.stringify({
       scenario: 'prin-model-domain',

@@ -27,7 +27,10 @@ export async function loadAllSkills(root: string, environment: 'local' | 'cloud'
 
 async function names(directory: string): Promise<string[]> {
   const entries = await readdir(directory, { withFileTypes: true });
-  return entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name).toSorted();
+  return entries
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name)
+    .toSorted();
 }
 
 async function loadSkill(directory: string) {

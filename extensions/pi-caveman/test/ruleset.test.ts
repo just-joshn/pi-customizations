@@ -16,7 +16,6 @@ afterEach(() => {
 describe('shipped skills', () => {
   test.for([
     { mode: 'caveman', expected: 'Respond terse like smart caveman. All technical substance stay. Only fluff die.' },
-    // biome-ignore lint/security/noSecrets: Classical Chinese thesis line, not a credential
     { mode: 'megacave', expected: '以文言答。技術之實皆存，唯贅言去之。' },
   ] as const)('$mode thesis comes from its SKILL.md', ({ mode, expected }) => {
     expect(thesisLine(mode)).toBe(expected);

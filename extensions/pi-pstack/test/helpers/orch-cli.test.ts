@@ -163,7 +163,7 @@ describe('orch CLI frontier set environment', () => {
     const gt = await installGt(directory, repo, { logShort: stackLog('stack/a'), info: { 'stack/a': 'stack/a\nPR #31 (Needs approvals) change' } });
     const store = await makeDirectory();
     ok(store, 'init');
-    const env = baseEnv({ ORCH_REPO: repo, ORCH_STORE: store, PATH: `${gt}:${process.env['PATH']}` });
+    const env = baseEnv({ ORCH_REPO: repo, ORCH_STORE: store, PATH: `${gt}:${process.env.PATH}` });
     const result = runCli(['frontier', 'set'], { env });
     expect({ code: result.code, stderr: result.stderr }).toEqual({ code: 0, stderr: '' });
     expect(result.stdout).toBe(`generation=1 prs=stack/a#31@${sha}:OPEN lowest-unmerged=31\n`);

@@ -1,28 +1,17 @@
 #!/usr/bin/env node
+import { spawnSync } from 'node:child_process';
 // Probe whether setup-benny §8 seven-check thread-safety can run without
 // fabricating Slack posts, Automations editor saves, or check passes.
 // Usage: node parity/scripts/probe-setup-benny-thread-safety-env.mjs
 import { access, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
-import { spawnSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 
 const isMain = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
 const root = new URL('../', import.meta.url).pathname;
 const evidenceRoot = join(root, 'evidence', 'setup-benny', 'thread-safety');
-const packSkill = join(
-  root,
-  'evidence',
-  'setup-benny',
-  'fixture-app',
-  '.upstream',
-  'automations',
-  'benny',
-  'skills',
-  'setup-benny',
-  'SKILL.md',
-);
+const packSkill = join(root, 'evidence', 'setup-benny', 'fixture-app', '.upstream', 'automations', 'benny', 'skills', 'setup-benny', 'SKILL.md');
 const userBennyConfig = join(homedir(), '.config', 'benny', 'configuration.yaml');
 const piAutomationsTools = join(root, '..', 'extensions', 'pi-pstack', 'src', 'automations.ts');
 const piAutomationsClient = join(root, '..', 'extensions', 'pi-pstack', 'scripts', 'automation-client.mjs');
@@ -92,21 +81,14 @@ async function detectPiThreadSafetyLocalTools() {
 export async function probeSetupBennyThreadSafetyEnv() {
   const cursorHelp = runCapture('cursor-agent', ['--help']);
   const cursorHelpText = `${cursorHelp.stdout}\n${cursorHelp.stderr}`;
-  const cursorMentionsAutomateUi =
-    /\bautomations?\s+editor\b/i.test(cursorHelpText) ||
-    /\bupdate_state\b/i.test(cursorHelpText) ||
-    /\bRoutinePrepare\b/i.test(cursorHelpText);
+  const cursorMentionsAutomateUi = /\bautomations?\s+editor\b/i.test(cursorHelpText) || /\bupdate_state\b/i.test(cursorHelpText) || /\bRoutinePrepare\b/i.test(cursorHelpText);
 
   const slackWhich = runCapture('which', ['slack']);
-  const slackDoctor = slackWhich.ok
-    ? runCapture('slack', ['doctor'])
-    : { ok: false, status: null, stdout: '', stderr: 'slack CLI not on PATH', error: null };
+  const slackDoctor = slackWhich.ok ? runCapture('slack', ['doctor']) : { ok: false, status: null, stdout: '', stderr: 'slack CLI not on PATH', error: null };
   const slackDoctorText = `${slackDoctor.stdout}\n${slackDoctor.stderr}`;
   const slackCliDoctorValid = /Token status:\s*Valid/i.test(slackDoctorText);
 
-  const slackAuthTest = slackWhich.ok
-    ? runCapture('slack', ['api', 'auth.test'])
-    : { ok: false, status: null, stdout: '', stderr: 'slack CLI not on PATH', error: null };
+  const slackAuthTest = slackWhich.ok ? runCapture('slack', ['api', 'auth.test']) : { ok: false, status: null, stdout: '', stderr: 'slack CLI not on PATH', error: null };
   let slackApiAuthed = false;
   try {
     const start = slackAuthTest.stdout.indexOf('{');
@@ -144,9 +126,7 @@ export async function probeSetupBennyThreadSafetyEnv() {
   const attemptedSteps = [
     {
       step: 'Read setup-benny §8 and scenario setup-benny-thread-safety.json',
-      result: checks.setupBennySkillPresent
-        ? 'skill present; seven checks require live triage/repro on test channel after editor save'
-        : 'setup-benny SKILL.md missing from fixture pack',
+      result: checks.setupBennySkillPresent ? 'skill present; seven checks require live triage/repro on test channel after editor save' : 'setup-benny SKILL.md missing from fixture pack',
     },
     {
       step: 'Check ~/.config/benny/configuration.yaml',
@@ -154,44 +134,31 @@ export async function probeSetupBennyThreadSafetyEnv() {
     },
     {
       step: 'Check BENNY_SLACK_BOT_TOKEN / SLACK_BOT_TOKEN env',
-      result:
-        checks.bennySlackBotTokenEnv || checks.slackBotTokenEnv
-          ? 'at least one token env set'
-          : 'neither token env set',
+      result: checks.bennySlackBotTokenEnv || checks.slackBotTokenEnv ? 'at least one token env set' : 'neither token env set',
     },
     {
       step: 'Inspect cursor-agent --help for Automations editor / update_state / RoutinePrepare',
-      result: checks.cursorAgentHelpMentionsAutomationsEditor
-        ? 'mentioned'
-        : 'not mentioned; Automations editor unavailable in PTY harness',
+      result: checks.cursorAgentHelpMentionsAutomationsEditor ? 'mentioned' : 'not mentioned; Automations editor unavailable in PTY harness',
     },
     {
       step: 'Call plugin-slack-slack mcp_auth',
-      result:
-        'failed: Interactive MCP authentication is only available in the Cursor desktop IDE',
+      result: 'failed: Interactive MCP authentication is only available in the Cursor desktop IDE',
     },
     {
       step: 'Run slack doctor',
-      result: checks.slackCliDoctorTokenValid
-        ? 'CLI workspace credentials report Token status Valid (app-dev auth), not Benny bot wiring'
-        : 'slack doctor did not report Valid token status',
+      result: checks.slackCliDoctorTokenValid ? 'CLI workspace credentials report Token status Valid (app-dev auth), not Benny bot wiring' : 'slack doctor did not report Valid token status',
     },
     {
       step: 'Run slack api auth.test (read-only)',
-      result: checks.slackApiAuthTestOk
-        ? 'ok'
-        : 'not_authed (CLI doctor credentials do not authorize slack api without bot/user token env or app project)',
+      result: checks.slackApiAuthTestOk ? 'ok' : 'not_authed (CLI doctor credentials do not authorize slack api without bot/user token env or app project)',
     },
     {
       step: 'Detect Pi AutomationRecordThreadSafety / Enable / Disable',
-      result: checks.piThreadSafetyLocalToolsPresent
-        ? 'present (local status only; no Slack ingress)'
-        : `absent (${piLocal.reasons.join('; ') || 'unknown'})`,
+      result: checks.piThreadSafetyLocalToolsPresent ? 'present (local status only; no Slack ingress)' : `absent (${piLocal.reasons.join('; ') || 'unknown'})`,
     },
     {
       step: 'Refuse live seven-check posts / enabling normal Benny traffic',
-      result:
-        'blocked by missing Cursor Automations editor path in PTY, missing Benny config/actions, Slack MCP IDE auth, and standing owner-gate on live Slack posts',
+      result: 'blocked by missing Cursor Automations editor path in PTY, missing Benny config/actions, Slack MCP IDE auth, and standing owner-gate on live Slack posts',
     },
   ];
 
@@ -205,11 +172,7 @@ export async function probeSetupBennyThreadSafetyEnv() {
     missing.push('Automations editor / editor-save handoff unavailable in cursor-agent PTY harness');
   }
   if (!checks.piThreadSafetyLocalToolsPresent) {
-    missing.push(
-      piLocal.reasons.length
-        ? `Pi local thread-safety tools incomplete (${piLocal.reasons.join('; ')})`
-        : 'Pi local thread-safety tools incomplete',
-    );
+    missing.push(piLocal.reasons.length ? `Pi local thread-safety tools incomplete (${piLocal.reasons.join('; ')})` : 'Pi local thread-safety tools incomplete');
   }
   if (!checks.slackMcpInteractiveAuthAvailableInThisAgent) {
     missing.push('Slack MCP interactive auth unavailable in this agent environment (authenticate in Cursor desktop IDE after unlock)');
@@ -218,17 +181,13 @@ export async function probeSetupBennyThreadSafetyEnv() {
     missing.push('slack api auth.test not_authed; no harness-usable Slack API session for a test channel');
   }
   if (!checks.configuredSlackActionsResolvableInHarness) {
-    missing.push(
-      'configured Slack read/post actions are placeholders, not harness-resolvable Cursor/Reference tools',
-    );
+    missing.push('configured Slack read/post actions are placeholders, not harness-resolvable Cursor/Reference tools');
   }
   if (!checks.designatedTestChannelConfigured) {
     missing.push('no operator-designated Benny test channel / harmless-report fixture wired for seven checks');
   }
   if (!checks.liveSlackSevenCheckPostAllowedWithoutOwnerGate) {
-    missing.push(
-      'standing prefs forbid customer messages without explicit account-owner action (seven-check posts and enablement)',
-    );
+    missing.push('standing prefs forbid customer messages without explicit account-owner action (seven-check posts and enablement)');
   }
 
   const runnable = missing.length === 0;

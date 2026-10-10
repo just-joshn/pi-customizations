@@ -11,7 +11,6 @@ async function agentDir() {
   return root;
 }
 
-// biome-ignore lint/security/noSecrets: the test title trips the entropy heuristic; there is no secret here.
 test('markdownAgentFiles tells a populated directory from a missing one', async () => {
   const root = await agentDir();
   await writeFile(join(root, 'a.md'), 'a');
@@ -21,7 +20,6 @@ test('markdownAgentFiles tells a populated directory from a missing one', async 
   expect(logs).toStrictEqual([]);
 });
 
-// biome-ignore lint/security/noSecrets: the test title trips the entropy heuristic; there is no secret here.
 test('markdownAgentFiles treats a file path as an empty directory', async () => {
   const root = await agentDir();
   const file = join(root, 'plain.md');
@@ -30,7 +28,6 @@ test('markdownAgentFiles treats a file path as an empty directory', async () => 
   expect(markdownAgentFiles(file, [])).toStrictEqual([]);
 });
 
-// biome-ignore lint/security/noSecrets: the test title trips the entropy heuristic; there is no secret here.
 test('markdownAgentFiles collects nested markdown files in sorted order', async () => {
   const root = await agentDir();
   await mkdir(join(root, 'nested', 'deeper'), { recursive: true });
@@ -42,7 +39,6 @@ test('markdownAgentFiles collects nested markdown files in sorted order', async 
   expect(markdownAgentFiles(root, [])).toEqual([join(root, 'a.md'), join(root, 'b.md'), join(root, 'nested', 'c.md'), join(root, 'nested', 'deeper', 'd.md')]);
 });
 
-// biome-ignore lint/security/noSecrets: the test title trips the entropy heuristic; there is no secret here.
 test('markdownAgentFiles skips oversized files with a logged reason', async () => {
   const root = await agentDir();
   const oversized = join(root, 'too-big.md');

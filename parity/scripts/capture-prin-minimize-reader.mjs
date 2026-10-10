@@ -23,54 +23,21 @@ const piAgentDir = '/tmp/pi-ref-agent';
 const piRulePath = join(piAgentDir, 'pstack', 'models.mdc');
 const evidenceRoot = join(root, 'evidence', 'principles', 'minimize-reader');
 const fixtureApp = join(evidenceRoot, 'fixture-app');
-const leafSkillCursor = join(
-  root,
-  'reference',
-  'cursor-plugins',
-  'pstack',
-  'skills',
-  'principle-minimize-reader-load',
-  'SKILL.md',
-);
-const leafSkillPi = join(
-  root,
-  '..',
-  'extensions',
-  'pi-pstack',
-  'skills',
-  'principle-minimize-reader-load',
-  'SKILL.md',
-);
+const leafSkillCursor = join(root, 'reference', 'cursor-plugins', 'pstack', 'skills', 'principle-minimize-reader-load', 'SKILL.md');
+const leafSkillPi = join(root, '..', 'extensions', 'pi-pstack', 'skills', 'principle-minimize-reader-load', 'SKILL.md');
 const GEOMETRY = { rows: 40, cols: 120 };
 const LOCKED_FIXTURE_DIGEST = 'sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004';
 const SETTLE_MS = 1_500_000;
 const POLL_MS = 400;
-const WRAPPER_REL = [
-  'src/greeting-loader.js',
-  'src/greeting-fetch.js',
-  'src/greeting-resolve.js',
-];
+const WRAPPER_REL = ['src/greeting-loader.js', 'src/greeting-fetch.js', 'src/greeting-resolve.js'];
 const PRODUCT_REL = ['src/greet.js', 'src/core.js', ...WRAPPER_REL];
 const VERIFY_OUT_REL = 'evidence/verify-out.txt';
 const VERIFY_SCRIPT_REL = 'scripts/verify.mjs';
-const BASELINE_REL = [
-  'src/greet.js',
-  'src/core.js',
-  ...WRAPPER_REL,
-  'README.md',
-  'NOTES.md',
-  'package.json',
-  VERIFY_SCRIPT_REL,
-  'evidence/.gitkeep',
-  'out/.gitkeep',
-];
+const BASELINE_REL = ['src/greet.js', 'src/core.js', ...WRAPPER_REL, 'README.md', 'NOTES.md', 'package.json', VERIFY_SCRIPT_REL, 'evidence/.gitkeep', 'out/.gitkeep'];
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const stripAnsi = (text) =>
-  text
-    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
-    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
 
 function writeRootFor(side) {
   return join(evidenceRoot, 'fixture-out', side);
@@ -152,19 +119,12 @@ function isMinimizeSkillPath(p) {
 function observeMinimizeText(text, { ignorePromptSlice } = {}) {
   let hay = stripAnsi(text || '');
   if (ignorePromptSlice) hay = hay.split(ignorePromptSlice).join(' ');
-  const potetoMode =
-    /\/poteto-mode\b/i.test(hay) ||
-    /\[skill\]\s*poteto-mode/i.test(hay) ||
-    /\bUsed poteto-mode\b/i.test(hay);
+  const potetoMode = /\/poteto-mode\b/i.test(hay) || /\[skill\]\s*poteto-mode/i.test(hay) || /\bUsed poteto-mode\b/i.test(hay);
   const leafChrome = /principle-minimize-reader-load[/\\]SKILL\.md/i.test(hay);
   const usedLeaf = /\bUsed principle-minimize-reader-load\b/i.test(hay);
   const skillBracketLeaf = /\[skill\]\s*principle-minimize-reader-load\b/i.test(hay);
   const hostAttached = Boolean(usedLeaf || skillBracketLeaf);
-  const verifyMention =
-    /scripts\/verify\.mjs/i.test(hay) ||
-    /evidence\/verify-out\.txt/i.test(hay) ||
-    /\bTRACE-OK\b/.test(hay) ||
-    /\bTRACE-FAIL\b/.test(hay);
+  const verifyMention = /scripts\/verify\.mjs/i.test(hay) || /evidence\/verify-out\.txt/i.test(hay) || /\bTRACE-OK\b/.test(hay) || /\bTRACE-FAIL\b/.test(hay);
   const working = /[\u2800-\u28FF]/.test(hay) || /\bWorking\b/.test(hay);
   return { potetoMode, leafChrome, hostAttached, verifyMention, working };
 }
@@ -209,14 +169,7 @@ function extractToolCallsFromJsonl(text) {
 }
 
 function pathFromArgs(args) {
-  return (
-    args.path ||
-    args.file_path ||
-    args.filePath ||
-    args.target_file ||
-    args.file ||
-    null
-  );
+  return args.path || args.file_path || args.filePath || args.target_file || args.file || null;
 }
 
 function scoreCallsForMinimize(calls) {
@@ -229,19 +182,14 @@ function scoreCallsForMinimize(calls) {
     const args = call.args || {};
     const blob = JSON.stringify(args);
     const path = pathFromArgs(args);
-    const isRead =
-      /^(Read|read|read_file|ReadFile|cat|blob-mention)$/i.test(name) ||
-      (name === 'bash' && typeof args.command === 'string' && /\bcat\b/.test(args.command));
+    const isRead = /^(Read|read|read_file|ReadFile|cat|blob-mention)$/i.test(name) || (name === 'bash' && typeof args.command === 'string' && /\bcat\b/.test(args.command));
     if (isRead && isMinimizeSkillPath(path || blob)) {
       leafSkillRead = true;
       if (!leafSkillReadAt) leafSkillReadAt = call.ts || new Date().toISOString();
       toolOrder.push(`${name}(minimize-reader-leaf)`);
       continue;
     }
-    if (
-      /\bscripts\/verify\.mjs\b/i.test(blob) ||
-      (typeof args.command === 'string' && /verify\.mjs/.test(args.command))
-    ) {
+    if (/\bscripts\/verify\.mjs\b/i.test(blob) || (typeof args.command === 'string' && /verify\.mjs/.test(args.command))) {
       ranVerifyScript = true;
       toolOrder.push(`${name}(verify.mjs)`);
       continue;
@@ -256,27 +204,10 @@ function scoreCallsForMinimize(calls) {
   };
 }
 
-export function scoreMinimizeReader({
-  frontmatter,
-  done,
-  verifyOut,
-  productOk,
-  wrappersCollapsed,
-  addedLayer,
-  screenText,
-  ptyText,
-  sessionScore,
-  transcriptScore,
-  prompt,
-}) {
+export function scoreMinimizeReader({ frontmatter, done, verifyOut, productOk, wrappersCollapsed, addedLayer, screenText, ptyText, sessionScore, transcriptScore, prompt }) {
   const screen = observeMinimizeText(screenText, { ignorePromptSlice: prompt });
   const pty = observeMinimizeText(ptyText, { ignorePromptSlice: prompt });
-  const leafSkillRead = Boolean(
-    sessionScore?.leafSkillRead ||
-      transcriptScore?.leafSkillRead ||
-      screen.leafChrome ||
-      pty.leafChrome,
-  );
+  const leafSkillRead = Boolean(sessionScore?.leafSkillRead || transcriptScore?.leafSkillRead || screen.leafChrome || pty.leafChrome);
   const usedChrome = Boolean(screen.hostAttached || pty.hostAttached || sessionScore?.hostAttached);
   const modelAutoInvoke = usedChrome && !leafSkillRead;
   const keptVerifyOk = Boolean(verifyOut?.ok);
@@ -284,15 +215,7 @@ export function scoreMinimizeReader({
   const frontmatterOk = Boolean(frontmatter?.ok);
   const wrappersCollapsedOk = Boolean(wrappersCollapsed);
   const addedLayerOk = !addedLayer;
-  const contractHeld =
-    frontmatterOk &&
-    leafSkillRead &&
-    productOk &&
-    keptVerifyOk &&
-    wrappersCollapsedOk &&
-    addedLayerOk &&
-    verifiedDone &&
-    !modelAutoInvoke;
+  const contractHeld = frontmatterOk && leafSkillRead && productOk && keptVerifyOk && wrappersCollapsedOk && addedLayerOk && verifiedDone && !modelAutoInvoke;
   return {
     frontmatterOk,
     leafSkillRead,
@@ -344,13 +267,7 @@ async function restoreProduct() {
   const files = await walkFiles(fixtureApp);
   for (const rel of files) {
     if (keep.has(rel)) continue;
-    if (
-      rel.startsWith('src/') ||
-      rel.startsWith('evidence/') ||
-      rel.startsWith('out/') ||
-      rel.endsWith('.tsv') ||
-      rel.startsWith('.audit/')
-    ) {
+    if (rel.startsWith('src/') || rel.startsWith('evidence/') || rel.startsWith('out/') || rel.endsWith('.tsv') || rel.startsWith('.audit/')) {
       await rm(join(fixtureApp, rel), { force: true, recursive: true });
     }
   }
@@ -376,14 +293,10 @@ async function diskOracle() {
   } catch {
     srcFiles = [];
   }
-  const layeredName = srcFiles.some((name) =>
-    /facade|adapter|registry|service|middleware|loader|fetch|resolve|pipeline|strateg/i.test(name),
-  );
+  const layeredName = srcFiles.some((name) => /facade|adapter|registry|service|middleware|loader|fetch|resolve|pipeline|strateg/i.test(name));
   let greetOk = false;
   try {
-    const mod = await import(
-      `${pathToFileURL(join(fixtureApp, 'src', 'greet.js')).href}?t=${Date.now()}`
-    );
+    const mod = await import(`${pathToFileURL(join(fixtureApp, 'src', 'greet.js')).href}?t=${Date.now()}`);
     greetOk = mod.greet() === 'hello, world';
   } catch {
     greetOk = false;
@@ -436,13 +349,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -496,10 +403,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
       await sleep(800);
       continue;
     }
-    const chatReady =
-      !/Trust project folder\?/i.test(text) &&
-      (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) &&
-      (/minimize-reader|greet|README|medium|Skill conflicts|Session TTL|fixture-app/i.test(text));
+    const chatReady = !/Trust project folder\?/i.test(text) && (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) && /minimize-reader|greet|README|medium|Skill conflicts|Session TTL|fixture-app/i.test(text);
     if (chatReady) return lines;
     await sleep(200);
   }
@@ -536,9 +440,7 @@ async function summarizePiSession(sessionPath) {
   const text = await readFile(sessionPath, 'utf8');
   const calls = extractToolCallsFromJsonl(text);
   const scored = scoreCallsForMinimize(calls);
-  const hostAttached =
-    /\bUsed principle-minimize-reader-load\b/i.test(text) ||
-    /\[skill\]\s*principle-minimize-reader-load\b/i.test(text);
+  const hostAttached = /\bUsed principle-minimize-reader-load\b/i.test(text) || /\[skill\]\s*principle-minimize-reader-load\b/i.test(text);
   return { sessionPath, hostAttached, ...scored };
 }
 
@@ -567,10 +469,7 @@ async function findCursorTranscripts(sinceMs, side) {
         } catch {
           continue;
         }
-        const mentionsThisAttempt =
-          text.includes(doneAbs) ||
-          (text.includes(`minimize-reader/fixture-out/${side}/done.txt`) &&
-            text.includes('greet'));
+        const mentionsThisAttempt = text.includes(doneAbs) || (text.includes(`minimize-reader/fixture-out/${side}/done.txt`) && text.includes('greet'));
         if (mentionsThisAttempt) hits.push({ path: abs, mtimeMs: st.mtimeMs, size: st.size });
       }
     }
@@ -593,9 +492,7 @@ async function summarizeCursorTranscripts(sinceMs, side) {
       leafSkillRead: scored.leafSkillRead || leafInBlob,
     };
     const rank = (merged.leafSkillRead ? 4 : 0) + (merged.ranVerifyScript ? 2 : 0);
-    const bestRank = best
-      ? (best.leafSkillRead ? 4 : 0) + (best.ranVerifyScript ? 2 : 0)
-      : -1;
+    const bestRank = best ? (best.leafSkillRead ? 4 : 0) + (best.ranVerifyScript ? 2 : 0) : -1;
     if (!best || rank > bestRank || (rank === bestRank && hit.mtimeMs > (best.mtimeMs || 0))) {
       best = { ...merged, mtimeMs: hit.mtimeMs };
     }
@@ -682,21 +579,7 @@ async function runSide(side, ruleBytes, ruleDigest, frontmatter) {
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        [
-          'poteto-mode',
-          'greet.js',
-          'verify',
-          'TRACE-OK',
-          'TRACE-FAIL',
-          'principle-minimize-reader-load',
-          'greeting-loader',
-          'Phase',
-        ],
-        300_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['poteto-mode', 'greet.js', 'verify', 'TRACE-OK', 'TRACE-FAIL', 'principle-minimize-reader-load', 'greeting-loader', 'Phase'], 300_000);
     } catch {
       // settle may still land artifacts
     }
@@ -805,16 +688,7 @@ async function runSide(side, ruleBytes, ruleDigest, frontmatter) {
 
     const snapDir = join(attempt.dir, 'fixture-snapshot');
     await mkdir(snapDir, { recursive: true });
-    for (const rel of [
-      'src/greet.js',
-      'src/core.js',
-      ...WRAPPER_REL,
-      'README.md',
-      'NOTES.md',
-      'package.json',
-      VERIFY_SCRIPT_REL,
-      VERIFY_OUT_REL,
-    ]) {
+    for (const rel of ['src/greet.js', 'src/core.js', ...WRAPPER_REL, 'README.md', 'NOTES.md', 'package.json', VERIFY_SCRIPT_REL, VERIFY_OUT_REL]) {
       const abs = join(fixtureApp, rel);
       if (!(await pathExists(abs))) continue;
       const dest = join(snapDir, rel);
@@ -831,16 +705,7 @@ async function runSide(side, ruleBytes, ruleDigest, frontmatter) {
       await mkdir(dirname(dest), { recursive: true });
       await writeFile(dest, await readFile(abs));
     }
-    await writeFile(
-      join(afterDir, 'wrappers-absent.txt'),
-      `${JSON.stringify(
-        Object.fromEntries(
-          await Promise.all(
-            WRAPPER_REL.map(async (rel) => [rel, !(await pathExists(join(fixtureApp, rel)))]),
-          ),
-        ),
-      )}\n`,
-    );
+    await writeFile(join(afterDir, 'wrappers-absent.txt'), `${JSON.stringify(Object.fromEntries(await Promise.all(WRAPPER_REL.map(async (rel) => [rel, !(await pathExists(join(fixtureApp, rel)))]))))}\n`);
 
     return {
       side,
@@ -927,17 +792,13 @@ if (isMain) {
   await snapshotBaseline();
   const frontmatter = await readFrontmatterFiles();
   if (!frontmatter.cursor.ok || !frontmatter.pi.ok) {
-    console.error(
-      JSON.stringify({ error: 'minimize-reader frontmatter not ok', frontmatter }, null, 2),
-    );
+    console.error(JSON.stringify({ error: 'minimize-reader frontmatter not ok', frontmatter }, null, 2));
     process.exit(1);
   }
   const preRule = await readFile(referenceRulePath, 'utf8');
   const preDigest = await sha256(referenceRulePath);
   if (preDigest !== LOCKED_FIXTURE_DIGEST) {
-    console.error(
-      `Reference rule digest ${preDigest} does not match the locked fixture ${LOCKED_FIXTURE_DIGEST}`,
-    );
+    console.error(`Reference rule digest ${preDigest} does not match the locked fixture ${LOCKED_FIXTURE_DIGEST}`);
     process.exit(1);
   }
 
@@ -948,10 +809,7 @@ if (isMain) {
     results.push(result);
     console.log(JSON.stringify(result));
   }
-  await writeFile(
-    join(evidenceRoot, 'capture-results.json'),
-    `${JSON.stringify({ scenario: 'prin-minimize-reader', fixtureDigest: preDigest, frontmatter, results }, null, 2)}\n`,
-  );
+  await writeFile(join(evidenceRoot, 'capture-results.json'), `${JSON.stringify({ scenario: 'prin-minimize-reader', fixtureDigest: preDigest, frontmatter, results }, null, 2)}\n`);
   console.log(
     JSON.stringify({
       scenario: 'prin-minimize-reader',

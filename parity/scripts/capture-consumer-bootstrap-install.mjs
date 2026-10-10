@@ -25,17 +25,8 @@ const referenceRulePath = join(homedir(), '.cursor', 'rules', 'pstack-models.mdc
 const piAgentDir = '/tmp/pi-ref-agent';
 const piRulePath = join(piAgentDir, 'pstack', 'models.mdc');
 const evidenceRoot = join(root, 'evidence', 'consumer');
-const toolsCwd = join(
-  root,
-  'reference',
-  'cursor-plugins',
-  'pstack',
-  'skills',
-  'poteto-mode',
-  'scripts',
-);
-const consumerPath =
-  'parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bootstrap.ts';
+const toolsCwd = join(root, 'reference', 'cursor-plugins', 'pstack', 'skills', 'poteto-mode', 'scripts');
+const consumerPath = 'parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/bootstrap.ts';
 const installKeyPath = join(toolsCwd, 'node_modules', '.poteto-mode-tools-install-key');
 const commanderPackagePath = join(toolsCwd, 'node_modules', 'commander', 'package.json');
 const GEOMETRY = { rows: 36, cols: 120 };
@@ -124,13 +115,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: toolsCwd,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -175,10 +160,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
       await sleep(800);
       continue;
     }
-    if (
-      !/Trust project folder\?/i.test(text) &&
-      (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text))
-    ) {
+    if (!/Trust project folder\?/i.test(text) && (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text))) {
       return lines;
     }
     await sleep(200);
@@ -276,17 +258,9 @@ async function runSide(side, ruleBytes, ruleDigest) {
       installKeyRewrittenToExpected: keyRewrittenToExpected,
       commanderPresentAfter: commanderPresent,
       bootstrapFileOracleOk: keyRewrittenToExpected && commanderPresent,
-      journeyClosed:
-        helpChromeOk(settled.observations) &&
-        settled.doneOk &&
-        consumerHex === LOCKED_CONSUMER_DIGEST &&
-        keyRewrittenToExpected &&
-        commanderPresent,
+      journeyClosed: helpChromeOk(settled.observations) && settled.doneOk && consumerHex === LOCKED_CONSUMER_DIGEST && keyRewrittenToExpected && commanderPresent,
     };
-    await writeFile(
-      join(dir, 'observations-bootstrap-install.json'),
-      `${JSON.stringify(observations, null, 2)}\n`,
-    );
+    await writeFile(join(dir, 'observations-bootstrap-install.json'), `${JSON.stringify(observations, null, 2)}\n`);
     return {
       side,
       attemptDir: attempt.dir,
@@ -344,20 +318,11 @@ if (bySide.cursor && bySide.pi) {
       packageId: 'source-tools-bootstrap',
       activation: 'install',
       consumerPath,
-      acceptanceJourney:
-        'Paired journey proving frozen bun install --frozen-lockfile and restart after install-key change',
+      acceptanceJourney: 'Paired journey proving frozen bun install --frozen-lockfile and restart after install-key change',
     },
     fixtureDigest: preDigest,
-    promptSharedShape:
-      'Force install-key mismatch; run bun run orch/orch.ts --help; write EXIT=0 to side-specific done path',
-    steps: [
-      { force: 'install-key mismatch' },
-      { send: 'bun run orch/orch.ts --help … EXIT=0 …' },
-      { send: '\r' },
-      { settle: true },
-      { cancel: true },
-      { restore: 'install-key' },
-    ],
+    promptSharedShape: 'Force install-key mismatch; run bun run orch/orch.ts --help; write EXIT=0 to side-specific done path',
+    steps: [{ force: 'install-key mismatch' }, { send: 'bun run orch/orch.ts --help … EXIT=0 …' }, { send: '\r' }, { settle: true }, { cancel: true }, { restore: 'install-key' }],
     cursor: {
       attemptId: bySide.cursor.attemptId,
       dir: bySide.cursor.attemptDir,
@@ -374,16 +339,13 @@ if (bySide.cursor && bySide.pi) {
       observedEnv: bySide.pi.observedEnv,
       observations: bySide.pi.observations,
     },
-    pairClosed:
-      bySide.cursor.observations.journeyClosed === true &&
-      bySide.pi.observations.journeyClosed === true,
+    pairClosed: bySide.cursor.observations.journeyClosed === true && bySide.pi.observations.journeyClosed === true,
     provenance: {
       capturedWith: `parity/scripts/capture-consumer-bootstrap-install.mjs ${only}`,
       toolsCwd,
       piAgentDir,
       lockedConsumerSha256: LOCKED_CONSUMER_DIGEST,
-      installStdoutNote:
-        'bootstrap.ts writes install stdout only on failure; success path is proven by install-key rewrite + commander presence + post-restart help chrome',
+      installStdoutNote: 'bootstrap.ts writes install stdout only on failure; success path is proven by install-key rewrite + commander presence + post-restart help chrome',
     },
   };
   const pairPath = join(evidenceRoot, 'pair-consumer-bootstrap-install-1.json');

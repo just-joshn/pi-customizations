@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { createHash } from 'node:crypto';
 // Captures PSTACK-SETUP-MAINTAIN-VERIFY-LOCATE-001 (maintain Pass step 0 Locate).
 // Seeds a fixture with zero / one / several verify-* skills, runs
 // /maintain-verification-skill, and stops after locate. Real PTY both sides.
@@ -8,21 +9,15 @@
 //   node scripts/capture-maintain-verify-locate.mjs [--one|--none|--several] [--cursor-only|--pi-only|--both]
 // Evidence root: parity/evidence/maintain-verify/
 import { access, chmod, cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
-import { createHash } from 'node:crypto';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 
-import { sha256 } from '../recorder/files.mjs';
 import { startAttempt } from '../recorder/index.mjs';
 import { dumpScreen, screenLines, waitEither, waitSettled } from './journey-helpers.mjs';
 
 const argvFlags = new Set(process.argv.slice(2));
 const mode = argvFlags.has('--none') ? 'none' : argvFlags.has('--several') ? 'several' : 'one';
-const only = argvFlags.has('--cursor-only')
-  ? '--cursor-only'
-  : argvFlags.has('--pi-only')
-    ? '--pi-only'
-    : '--both';
+const only = argvFlags.has('--cursor-only') ? '--cursor-only' : argvFlags.has('--pi-only') ? '--pi-only' : '--both';
 const root = new URL('../', import.meta.url).pathname;
 const localBin = (name) => join(homedir(), '.local', 'bin', name);
 const piAgentDir = '/tmp/pi-ref-agent';
@@ -33,22 +28,12 @@ const SETTLE_MS = 900_000;
 const SKILL_A = 'verify-hello-cli';
 const SKILL_B = 'verify-hello-alt';
 const SCENARIO_REF = 'setup-maintain-verify-locate';
-const createVerifyPiSkill = join(
-  root,
-  'evidence',
-  'create-verify',
-  'fixture-app',
-  '.pi',
-  'skills',
-  SKILL_A,
-);
+const createVerifyPiSkill = join(root, 'evidence', 'create-verify', 'fixture-app', '.pi', 'skills', SKILL_A);
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 function skillRel(side, name = SKILL_A) {
-  return side === 'cursor'
-    ? join('.cursor', 'skills', name, 'SKILL.md')
-    : join('.pi', 'skills', name, 'SKILL.md');
+  return side === 'cursor' ? join('.cursor', 'skills', name, 'SKILL.md') : join('.pi', 'skills', name, 'SKILL.md');
 }
 
 function skillAbs(side, name = SKILL_A) {
@@ -81,8 +66,7 @@ async function pathExists(path) {
 }
 
 function skillBodyFor(side, name) {
-  const evidenceRootRel =
-    side === 'cursor' ? `.cursor/evidence/${name}` : `.pi/evidence/${name}`;
+  const evidenceRootRel = side === 'cursor' ? `.cursor/evidence/${name}` : `.pi/evidence/${name}`;
   return `---
 name: ${name}
 description: Verify the hello-cli fixture via ./hello.sh (prints HELLO-FAMILY-13). Project-local verification skill with launch/drive and a feature map.
@@ -164,10 +148,7 @@ async function ensureFixtureBase() {
   const readme = join(fixtureApp, 'README.md');
   await writeFile(hello, '#!/bin/sh\necho HELLO-FAMILY-13\n');
   await chmod(hello, 0o755);
-  await writeFile(
-    readme,
-    '# hello-cli\n\nTiny CLI fixture for maintain-verify locate capture.\n\n## Run\n\n```bash\n./hello.sh\n```\n\nPrints `HELLO-FAMILY-13` and exits 0.\n',
-  );
+  await writeFile(readme, '# hello-cli\n\nTiny CLI fixture for maintain-verify locate capture.\n\n## Run\n\n```bash\n./hello.sh\n```\n\nPrints `HELLO-FAMILY-13` and exits 0.\n');
 }
 
 async function seedSkills(side) {
@@ -231,22 +212,14 @@ function locatePrompt(side) {
 function observeLocate(lines, side) {
   const text = lines.join('\n');
   const locatedPathMention = text.includes(skillAbs(side, SKILL_A)) || /verify-hello-cli/i.test(text);
-  const createOffer =
-    /create-verification-skill/i.test(text) || /\/create-verification/i.test(text);
-  const askWhich =
-    /which (one|skill)|several candidates|more than one|pick (a|which)|which verify/i.test(text);
+  const createOffer = /create-verification-skill/i.test(text) || /\/create-verification/i.test(text);
+  const askWhich = /which (one|skill)|several candidates|more than one|pick (a|which)|which verify/i.test(text);
   // Affirmative invent language only. Negations ("didn't invent", "do not invent") stay false.
-  const inventingAffirm =
-    /\binvent(ing)? (a )?target\b|(?:creating|I'll create|I will create) (a )?new verify/i.test(text);
-  const inventingNegated =
-    /did(?:n't| not) (?:create or )?invent|do not invent|without inventing|instead of inventing/i.test(
-      text,
-    );
+  const inventingAffirm = /\binvent(ing)? (a )?target\b|(?:creating|I'll create|I will create) (a )?new verify/i.test(text);
+  const inventingNegated = /did(?:n't| not) (?:create or )?invent|do not invent|without inventing|instead of inventing/i.test(text);
   const inventing = inventingAffirm && !inventingNegated;
   return {
-    maintainInvoked:
-      /maintain-verification-skill|\/maintain-verification/i.test(text) ||
-      /\[skill\]\s*maintain-verification/i.test(text),
+    maintainInvoked: /maintain-verification-skill|\/maintain-verification/i.test(text) || /\[skill\]\s*maintain-verification/i.test(text),
     locatedPathMention,
     createOffer,
     askWhich,
@@ -285,11 +258,9 @@ async function skillLooksValid(side, name = SKILL_A) {
   const path = skillAbs(side, name);
   if (!(await pathExists(path))) return { exists: false, path, ok: false };
   const body = await readFile(path, 'utf8');
-  const hasLaunch = /^##\s+Launch\s*$/mi.test(body);
-  const hasDrive = /^##\s+Drive\s*$/mi.test(body);
-  const featureMap =
-    (await pathExists(join(skillDir(side, name), 'features', 'README.md'))) &&
-    (await pathExists(join(skillDir(side, name), 'features', 'hello-print.md')));
+  const hasLaunch = /^##\s+Launch\s*$/im.test(body);
+  const hasDrive = /^##\s+Drive\s*$/im.test(body);
+  const featureMap = (await pathExists(join(skillDir(side, name), 'features', 'README.md'))) && (await pathExists(join(skillDir(side, name), 'features', 'hello-print.md')));
   return {
     exists: true,
     path,
@@ -316,13 +287,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
   });
@@ -365,10 +330,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
       await sleep(800);
       continue;
     }
-    const chatReady =
-      !/Trust project folder\?/i.test(text) &&
-      (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) &&
-      (/fixture-app|hello-cli|Skill conflicts|medium/i.test(text));
+    const chatReady = !/Trust project folder\?/i.test(text) && (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) && /fixture-app|hello-cli|Skill conflicts|medium/i.test(text);
     if (chatReady) return lines;
     await sleep(200);
   }
@@ -430,20 +392,7 @@ async function runSide(side, fixtureDigest) {
     await dumpScreen(attempt, dir, '02-locate-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        [
-          'maintain-verification',
-          'verify-hello-cli',
-          'Locate',
-          'create-verification',
-          'LOCATED=',
-          'feature map',
-          'which',
-        ],
-        300_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['maintain-verification', 'verify-hello-cli', 'Locate', 'create-verification', 'LOCATED=', 'feature map', 'which'], 300_000);
     } catch {
       // settle may still land the marker
     }
@@ -466,10 +415,8 @@ async function runSide(side, fixtureDigest) {
     observations.skillAfter = mode === 'none' ? null : await skillLooksValid(side, SKILL_A);
     observations.locateOk = Boolean(observations.marker?.ok);
     observations.inventedTarget = Boolean(observations.final?.inventing);
-    observations.createOfferOk =
-      mode !== 'none' ? null : Boolean(observations.final?.createOffer || observations.marker?.createOffered === 'yes');
-    observations.askWhichOk =
-      mode !== 'several' ? null : Boolean(observations.final?.askWhich || observations.marker?.located === 'ask');
+    observations.createOfferOk = mode !== 'none' ? null : Boolean(observations.final?.createOffer || observations.marker?.createOffered === 'yes');
+    observations.askWhichOk = mode !== 'several' ? null : Boolean(observations.final?.askWhich || observations.marker?.located === 'ask');
 
     await writeFile(join(dir, 'observations.json'), `${JSON.stringify(observations, null, 2)}\n`);
     await writeFile(join(dir, 'prompt-locate.txt'), `${prompt}\n`);
@@ -491,9 +438,7 @@ async function runSide(side, fixtureDigest) {
 }
 
 await ensureFixtureBase();
-const fixtureDigest = digestText(
-  `${mode}\n${await readFile(join(fixtureApp, 'hello.sh'), 'utf8')}\n${skillBodyFor('cursor', SKILL_A)}`,
-);
+const fixtureDigest = digestText(`${mode}\n${await readFile(join(fixtureApp, 'hello.sh'), 'utf8')}\n${skillBodyFor('cursor', SKILL_A)}`);
 const sides = only === '--cursor-only' ? ['cursor'] : only === '--pi-only' ? ['pi'] : ['cursor', 'pi'];
 const results = [];
 for (const side of sides) {

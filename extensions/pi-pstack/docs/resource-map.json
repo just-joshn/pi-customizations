@@ -1366,11 +1366,9 @@
   {
     "source": "upstream/skills/typescript-best-practices/SKILL.md",
     "destination": "skills/typescript-best-practices/SKILL.md",
-    "sha256": "28f9e61710e205f6f3c5476f333483cff0e988f6a5b639e2faad536344b40c5e",
+    "sha256": "a40da091ebac92080cf0ed142051d2bef35e56358084511d599f1097c58f5c73",
     "executable": false,
-    "transformations": [
-      "Retain paths metadata for skill-file parity. Pi has no file-path skill trigger, so the host contract still requires reading the skill before editing matching files."
-    ]
+    "transformations": []
   },
   {
     "source": "upstream/skills/typescript-best-practices/SKILL.md",

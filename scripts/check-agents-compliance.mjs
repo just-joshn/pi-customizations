@@ -36,6 +36,8 @@ const root = fileURLToPath(new URL('..', import.meta.url));
 
 const limits = { file: 800, typicalFile: 400, function: 50, nesting: 4 };
 const generatedPrefixes = ['extensions/pi-pstack/skills/', 'extensions/pi-pstack/prompts/'];
+// Parity capture/research trees are gated by verify-parity-audit (OOB). They are full of long runners and intentional empty catches, so they stay out of this portable AGENTS scan.
+const skippedPrefixes = ['parity/'];
 const secretPatterns = [
   [/(?:^|[^A-Za-z0-9])(?:sk|pk|rk)-[A-Za-z0-9_-]{16,}/, 'API key literal'],
   [/gh[pousr]_[A-Za-z0-9]{20,}/, 'GitHub token literal'],
@@ -308,9 +310,12 @@ async function sourceFiles(base = root) {
       const path = join(directory, entry.name);
       const rel = relative(base, path);
       if (entry.isDirectory()) {
-        if (SKIP_DIRECTORIES.has(entry.name) || generatedPrefixes.some((prefix) => `${rel}/`.startsWith(prefix))) continue;
+        if (SKIP_DIRECTORIES.has(entry.name) || generatedPrefixes.some((prefix) => `${rel}/`.startsWith(prefix)) || skippedPrefixes.some((prefix) => `${rel}/`.startsWith(prefix) || rel === prefix.slice(0, -1))) continue;
         pending.push(path);
-      } else if (entry.name.endsWith('.py') || /\.(?:ts|mts|cts|mjs|cjs|js)$/.test(entry.name)) files.push(path);
+      } else if (entry.name.endsWith('.py') || /\.(?:ts|mts|cts|mjs|cjs|js)$/.test(entry.name)) {
+        if (skippedPrefixes.some((prefix) => rel.startsWith(prefix))) continue;
+        files.push(path);
+      }
     }
   }
   return files.toSorted();

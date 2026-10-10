@@ -5,7 +5,7 @@
 //
 // Usage: node parity/scripts/capture-plugin-skills-register.mjs [--cursor-only|--pi-only|--both]
 // Evidence: parity/evidence/plugin-skills/
-import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
+import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 
@@ -36,16 +36,9 @@ const AGENT_NEEDLES = ['/subagent-poteto-agent', '/subagent-comment-sicko'];
 function observeRegistration(lines) {
   const text = lines.join('\n');
   const skillsSeen = SKILL_NEEDLES.filter((n) => text.includes(n));
-  const agentsSeen = [
-    ...AGENT_NEEDLES.filter((n) => text.includes(n)),
-    ...(/poteto-agent/i.test(text) ? ['poteto-agent'] : []),
-    ...(/comment-sicko|Comment Sicko/i.test(text) ? ['comment-sicko'] : []),
-  ];
+  const agentsSeen = [...AGENT_NEEDLES.filter((n) => text.includes(n)), ...(/poteto-agent/i.test(text) ? ['poteto-agent'] : []), ...(/comment-sicko|Comment Sicko/i.test(text) ? ['comment-sicko'] : [])];
   const statusSkillCount = text.match(/(\d+)\s+skills(?:,|\s)/i)?.[1] ?? null;
-  const packageSkillsPath =
-    text.match(/pi-pstack\/skills\/[a-z0-9-]+\/SKILL\.md/i)?.[0] ??
-    text.match(/extensions\/pi-pstack\/skills\//i)?.[0] ??
-    null;
+  const packageSkillsPath = text.match(/pi-pstack\/skills\/[a-z0-9-]+\/SKILL\.md/i)?.[0] ?? text.match(/extensions\/pi-pstack\/skills\//i)?.[0] ?? null;
   const howAsTask = /→\s*how\s+\[task\]/i.test(text) || /^\s*how\s+\[task\]/im.test(text);
   return {
     skillsSeen,
@@ -79,13 +72,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureCwd,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      lockedPlugin,
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', lockedPlugin, '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -130,9 +117,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
       await sleep(800);
       continue;
     }
-    const chatReady =
-      !/Trust project folder\?/i.test(text) &&
-      (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text) || /first-run/i.test(text));
+    const chatReady = !/Trust project folder\?/i.test(text) && (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text) || /first-run/i.test(text));
     if (chatReady) return lines;
     await sleep(200);
   }
@@ -197,16 +182,8 @@ async function runCursor(ruleDigest) {
     observations.slashPoteto = observeRegistration(potetoLines);
 
     const merged = {
-      skillsSeen: [...new Set([
-        ...observations.slashRoot.skillsSeen,
-        ...observations.slashHow.skillsSeen,
-        ...observations.slashPoteto.skillsSeen,
-      ])],
-      agentsSeen: [...new Set([
-        ...observations.slashRoot.agentsSeen,
-        ...observations.slashAgents.agentsSeen,
-        ...observations.slashPoteto.agentsSeen,
-      ])],
+      skillsSeen: [...new Set([...observations.slashRoot.skillsSeen, ...observations.slashHow.skillsSeen, ...observations.slashPoteto.skillsSeen])],
+      agentsSeen: [...new Set([...observations.slashRoot.agentsSeen, ...observations.slashAgents.agentsSeen, ...observations.slashPoteto.agentsSeen])],
     };
     observations.merged = {
       ...merged,
@@ -307,8 +284,7 @@ async function runPi(ruleDigest) {
       agentsSeen: [...new Set([...observations.subagentsList.agentsSeen])],
       howAsTask: observations.slashHow.howAsTask,
       bothRegistered: (skillsFromStatus || skillsFromPackagePath || skillsFromSlash) && agentsFromList,
-      bindingNote:
-        'Pi binds skills via package.json pi.skills (./skills, ./host/skills) and agents via extension persona-agents from upstream/agents/, not via Cursor plugin.json skills/agents keys.',
+      bindingNote: 'Pi binds skills via package.json pi.skills (./skills, ./host/skills) and agents via extension persona-agents from upstream/agents/, not via Cursor plugin.json skills/agents keys.',
     };
 
     await writeFile(join(dir, 'observations.json'), `${JSON.stringify(observations, null, 2)}\n`);

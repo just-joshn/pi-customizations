@@ -76,13 +76,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: join(root, 'fixtures', 'first-run'),
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -208,8 +202,7 @@ async function runCursor(ruleBytes, ruleDigest) {
       observations.afterSecondTurn = observe(await screenLines(attempt, GEOMETRY));
     } else {
       await dumpScreen(attempt, dir, '03-harness-limitation', GEOMETRY);
-      observations.harnessLimitation =
-        'No tested Option+Enter / Alt+Enter byte sequence selected Custom Mode from the slash menu in this PTY harness.';
+      observations.harnessLimitation = 'No tested Option+Enter / Alt+Enter byte sequence selected Custom Mode from the slash menu in this PTY harness.';
     }
 
     const after = await readFile(referenceRulePath, 'utf8');

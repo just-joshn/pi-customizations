@@ -27,8 +27,8 @@ import {
 } from '@earendil-works/pi-ai';
 import { cloudCodeHeaders, openStream, parseApiKey } from './cloudcode.ts';
 import { parseVariant, type Variant } from './models.ts';
-import { convertMessages, convertTools, isThinkingPart, mapStopReasonString, mapToolChoice, retainThoughtSignature } from './pi-ai/google-shared.ts';
 import { sanitizeConvertedTools } from './openapi-parameters.ts';
+import { convertMessages, convertTools, isThinkingPart, mapStopReasonString, mapToolChoice, retainThoughtSignature } from './pi-ai/google-shared.ts';
 import { sanitizeSurrogates } from './pi-ai/sanitize-unicode.ts';
 import { buildBaseOptions } from './pi-ai/simple-options.ts';
 
@@ -98,16 +98,19 @@ function toolResultRole(model: Model<Api>, contents: Content[]): Content[] {
 
 // The CLI names a request agent/<conversation>/<turn start ms>/<turn id>/<step>, where a turn
 // starts at the user's message and each tool round trip adds two steps.
-function requestId(messages: TranscriptContext['messages'], conversation: string): string {
+function requestId(messages: TranscriptContext['messages'], conversation: string, attempt = 0): string {
   const turn = messages.findLastIndex((message) => message.role === 'user');
   const started = messages[turn]?.timestamp ?? Date.now();
   const steps = messages.slice(turn + 1).filter((message) => message.role === 'assistant').length;
-  const hex = createHash('sha256').update(`${conversation}:${started}`).digest('hex');
+  // Empty-stream retries keep the same transcript and session, so attempt salts the turn id.
+  const hex = createHash('sha256')
+    .update(attempt > 0 ? `${conversation}:${started}:${attempt}` : `${conversation}:${started}`)
+    .digest('hex');
   const turnId = `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20, 32)}`;
   return `agent/${conversation}/${started}/${turnId}/${1 + 2 * steps}`;
 }
 
-export function buildRequest(model: Model<Api>, context: TranscriptContext, projectId: string, options: RequestOptions): CloudCodeRequest {
+export function buildRequest(model: Model<Api>, context: TranscriptContext, projectId: string, options: RequestOptions, attempt = 0): CloudCodeRequest {
   const transcript = collapseSystemMessages(context);
   const system = getInitialSystemMessage(transcript.messages);
   const systemText = system ? getSystemMessageText(system) : '';
@@ -131,7 +134,7 @@ export function buildRequest(model: Model<Api>, context: TranscriptContext, proj
   };
   return {
     project: projectId,
-    requestId: requestId(transcript.messages, options.sessionId ?? randomUUID()),
+    requestId: requestId(transcript.messages, options.sessionId ?? randomUUID(), attempt),
     request,
     model: variant.model,
     userAgent: 'antigravity',
@@ -316,16 +319,22 @@ function emptyUsage(): Usage {
   };
 }
 
-async function buildRequestInit(model: Model<Api>, context: TranscriptContext, options: SimpleStreamOptions | undefined, variant: Variant): Promise<RequestInit> {
+async function buildRequestInit(model: Model<Api>, context: TranscriptContext, options: SimpleStreamOptions | undefined, variant: Variant, attempt = 0): Promise<RequestInit> {
   const { token, projectId } = parseApiKey(options?.apiKey);
   const base = buildBaseOptions(model, context, options);
-  const request = buildRequest(model, context, projectId, {
-    variant,
-    ...(base.temperature !== undefined && { temperature: base.temperature }),
-    maxTokens: base.maxTokens ?? model.maxTokens,
-    ...(options?.toolChoice !== undefined && { toolChoice: options.toolChoice }),
-    ...(options?.sessionId !== undefined && { sessionId: options.sessionId }),
-  });
+  const request = buildRequest(
+    model,
+    context,
+    projectId,
+    {
+      variant,
+      ...(base.temperature !== undefined && { temperature: base.temperature }),
+      maxTokens: base.maxTokens ?? model.maxTokens,
+      ...(options?.toolChoice !== undefined && { toolChoice: options.toolChoice }),
+      ...(options?.sessionId !== undefined && { sessionId: options.sessionId }),
+    },
+    attempt,
+  );
   const payload = (await options?.onPayload?.(request, model)) ?? request;
   return {
     method: 'POST',
@@ -349,8 +358,8 @@ async function run(model: Model<Api>, context: TranscriptContext, options: Simpl
   try {
     const { level, variant } = resolveVariant(model, options?.reasoning);
     output.thinkingLevel = level;
-    const init = await buildRequestInit(model, context, options, variant);
     for (let empty = 0; ; empty++) {
+      const init = await buildRequestInit(model, context, options, variant, empty);
       const response = await openStream(endpoint, init, model, options);
       const reducer = createReducer(output, stream);
       await readChunks(response, async (chunk) => {

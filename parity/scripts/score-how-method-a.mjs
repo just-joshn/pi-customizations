@@ -13,14 +13,11 @@ import { outputBytes, readAttempt } from '../recorder/index.mjs';
 const SESSION_CANDIDATES = ['session.jsonl', 'transcript.txt', 'transcript.jsonl', 'session.txt'];
 const METHOD_A_SESSION_POINTER = 'method-a-session.json';
 
-const CURSOR_TASK_TOOL =
-  /(?:cursor · Task|\bCalled Task\b|\bUsing Task\b|MCP tools[^\n]{0,40}\bTask\b)/;
+const CURSOR_TASK_TOOL = /(?:cursor · Task|\bCalled Task\b|\bUsing Task\b|MCP tools[^\n]{0,40}\bTask\b)/;
 const PI_TASK_TOOLCALL = /"type"\s*:\s*"toolCall"[\s\S]{0,200}?"name"\s*:\s*"task"/;
 const PI_TASK_TOOLNAME = /"toolName"\s*:\s*"task"/;
 const PI_SUBAGENT_STARTED = /"type"\s*:\s*"subagent\.started"/;
-const TASK_TOOL = new RegExp(
-  `(?:${CURSOR_TASK_TOOL.source}|${PI_TASK_TOOLCALL.source}|${PI_TASK_TOOLNAME.source}|${PI_SUBAGENT_STARTED.source})`,
-);
+const TASK_TOOL = new RegExp(`(?:${CURSOR_TASK_TOOL.source}|${PI_TASK_TOOLCALL.source}|${PI_TASK_TOOLNAME.source}|${PI_SUBAGENT_STARTED.source})`);
 
 const stripAnsi = (text) =>
   text
@@ -127,10 +124,7 @@ async function discoverPiSession(attemptDir, agentDir) {
 
 async function collectSessionText(attemptDir, { sessionPath = null, agentDir = process.env.PI_CODING_AGENT_DIR } = {}) {
   const chunks = [];
-  const resolved =
-    sessionPath ??
-    (await resolvePointerSession(attemptDir)) ??
-    (await discoverPiSession(attemptDir, agentDir));
+  const resolved = sessionPath ?? (await resolvePointerSession(attemptDir)) ?? (await discoverPiSession(attemptDir, agentDir));
   if (resolved) {
     const text = await readOptionalText(resolved);
     if (text) chunks.push(text);
@@ -146,9 +140,7 @@ export function scorePlaintext(plain, { attemptDir = null, sessionPath = null } 
   const runningSubagent = /Running subagent/.test(plain);
   const taskTool = TASK_TOOL.test(plain);
   const readonlyExplainer = /\bREADONLY\b/.test(plain) || /readonly:\s*true/.test(plain);
-  const gateMatch = plain.match(
-    /(?:Blocked by|block reason|permission denied|rejected by (?:the )?gate)[^\n.]{0,160}/i,
-  );
+  const gateMatch = plain.match(/(?:Blocked by|block reason|permission denied|rejected by (?:the )?gate)[^\n.]{0,160}/i);
   const gateBlockReason = gateMatch ? gateMatch[0].replace(/\s+/g, ' ').trim() : null;
 
   const pass = runningSubagent || taskTool;
@@ -181,9 +173,7 @@ export function scorePlaintext(plain, { attemptDir = null, sessionPath = null } 
 
 export async function scoreAttemptDir(attemptDir, { sessionPath = null, agentDir = process.env.PI_CODING_AGENT_DIR } = {}) {
   if (typeof attemptDir !== 'string' || attemptDir.length === 0) {
-    const error = new Error(
-      'usage: node parity/scripts/score-how-method-a.mjs <attemptDir> [--session <path>]',
-    );
+    const error = new Error('usage: node parity/scripts/score-how-method-a.mjs <attemptDir> [--session <path>]');
     error.code = 'BAD_INPUT';
     throw error;
   }

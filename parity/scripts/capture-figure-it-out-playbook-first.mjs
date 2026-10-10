@@ -165,7 +165,6 @@ async function pollOnce(baseline, side) {
       } else {
         hits.product.push(rel);
       }
-      continue;
     }
     // Agent may write playbook content under unexpected names; ignore done marker root.
   }
@@ -201,13 +200,8 @@ async function readDone(side) {
 function observeScreen(lines) {
   const text = lines.join('\n');
   return {
-    figureItOutSkill:
-      /figure-it-out/i.test(text) ||
-      /\[skill\]\s*figure-it-out/i.test(text) ||
-      /Used figure-it-out/i.test(text),
-    playbookMention: /playbook|done predicate|falsifiable|Phase [A-E0-9]|show-me-your-work|decisions\.tsv/i.test(
-      text,
-    ),
+    figureItOutSkill: /figure-it-out/i.test(text) || /\[skill\]\s*figure-it-out/i.test(text) || /Used figure-it-out/i.test(text),
+    playbookMention: /playbook|done predicate|falsifiable|Phase [A-E0-9]|show-me-your-work|decisions\.tsv/i.test(text),
     productMention: /notes\.json|store\.js|format\.js|cli\.js|persist/i.test(text),
     working: /[\u2800-\u28FF]/.test(text) || /\bWorking\b/.test(text),
   };
@@ -254,13 +248,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -349,12 +337,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        ['figure-it-out', 'playbook', 'Phase', 'done predicate', 'notes.json', 'store.js', 'falsifiable'],
-        300_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['figure-it-out', 'playbook', 'Phase', 'done predicate', 'notes.json', 'store.js', 'falsifiable'], 300_000);
     } catch {
       // settle may still land artifacts
     }
@@ -424,10 +407,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     await writeFile(join(dir, 'observations.json'), `${JSON.stringify(observations, null, 2)}\n`);
     await writeFile(join(dir, 'prompt.txt'), `${prompt}\n`);
     await writeFile(join(dir, 'poll-log.json'), `${JSON.stringify(pollLog, null, 2)}\n`);
-    await writeFile(
-      join(dir, 'baseline-product.json'),
-      `${JSON.stringify(baseline, null, 2)}\n`,
-    );
+    await writeFile(join(dir, 'baseline-product.json'), `${JSON.stringify(baseline, null, 2)}\n`);
 
     // Copy final product/playbook snapshots into attempt dir for the pair.
     const snapDir = join(attempt.dir, 'fixture-snapshot');

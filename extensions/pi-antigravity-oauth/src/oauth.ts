@@ -22,7 +22,6 @@ export const GOOGLE_OAUTH: OAuthEndpoints = {
 
 // The Antigravity CLI's installed-app client. Google treats an installed-app client secret as
 // non-confidential, so this is a public credential, not a leak.
-// biome-ignore lint/security/noSecrets: public installed-app credential, not a confidential secret
 const CLIENT_SECRET = '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';
 const CLIENT_ID = '1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com';
 

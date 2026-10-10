@@ -51,9 +51,7 @@ test('setup bans guessed model slugs and a carried-over private default', async 
 
 test('setup runs unslop on automation names before AutomationPrepare', async () => {
   const text = await setupText();
-  expect(text).toContain(
-    'Run the `unslop` skill on the final automation names, descriptions, and prompt shims before calling `AutomationPrepare`.',
-  );
+  expect(text).toContain('Run the `unslop` skill on the final automation names, descriptions, and prompt shims before calling `AutomationPrepare`.');
   expect(text.indexOf('Run the `unslop` skill')).toBeLessThan(text.indexOf('AutomationPrepare'));
   expect(text).toContain('host `/automate` skill');
   expect(text).not.toMatch(/Call `Routine(?:Prepare|Enable)`/);

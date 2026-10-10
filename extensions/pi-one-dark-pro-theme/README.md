@@ -48,8 +48,7 @@ system appearance.
 bun run build:theme    # rewrite themes/one-dark-pro-flat.json from upstream/
 bun run check:parity   # pinned hash, schema coverage, committed theme, value shapes
 bun run typecheck
-bun run test:coverage  # configured src/**/*.ts denominator is empty for this theme-only package
-bun run test --coverage --coverage.include='parity/**/*.ts' --coverage.thresholds.lines=80 --coverage.thresholds.functions=80 --coverage.thresholds.branches=80 --coverage.thresholds.statements=80
+bun run test:coverage  # V8 coverage over parity/**/*.ts with 80% thresholds
 bun run check:smoke    # launch pi in tmux and assert the theme's escapes reach the screen
 ```
 

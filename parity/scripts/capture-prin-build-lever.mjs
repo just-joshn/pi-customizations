@@ -22,24 +22,8 @@ const piAgentDir = '/tmp/pi-ref-agent';
 const piRulePath = join(piAgentDir, 'pstack', 'models.mdc');
 const evidenceRoot = join(root, 'evidence', 'principles', 'build-lever');
 const fixtureApp = join(evidenceRoot, 'fixture-app');
-const leverSkillCursor = join(
-  root,
-  'reference',
-  'cursor-plugins',
-  'pstack',
-  'skills',
-  'principle-build-the-lever',
-  'SKILL.md',
-);
-const leverSkillPi = join(
-  root,
-  '..',
-  'extensions',
-  'pi-pstack',
-  'skills',
-  'principle-build-the-lever',
-  'SKILL.md',
-);
+const leverSkillCursor = join(root, 'reference', 'cursor-plugins', 'pstack', 'skills', 'principle-build-the-lever', 'SKILL.md');
+const leverSkillPi = join(root, '..', 'extensions', 'pi-pstack', 'skills', 'principle-build-the-lever', 'SKILL.md');
 const GEOMETRY = { rows: 40, cols: 120 };
 const LOCKED_FIXTURE_DIGEST = 'sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004';
 const SETTLE_MS = 1_500_000;
@@ -47,20 +31,11 @@ const POLL_MS = 400;
 const PRODUCT_REL = ['src/alpha.js', 'src/beta.js', 'src/gamma.js'];
 const VERIFY_OUT_REL = 'evidence/verify-out.txt';
 const VERIFY_SCRIPT_REL = 'scripts/verify.mjs';
-const BASELINE_REL = [
-  ...PRODUCT_REL,
-  'README.md',
-  'package.json',
-  VERIFY_SCRIPT_REL,
-  'evidence/.gitkeep',
-];
+const BASELINE_REL = [...PRODUCT_REL, 'README.md', 'package.json', VERIFY_SCRIPT_REL, 'evidence/.gitkeep'];
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const stripAnsi = (text) =>
-  text
-    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
-    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
 
 function writeRootFor(side) {
   return join(evidenceRoot, 'fixture-out', side);
@@ -154,23 +129,13 @@ function isLeverArtifactRel(rel) {
 function observeLeverText(text, { ignorePromptSlice } = {}) {
   let hay = stripAnsi(text || '');
   if (ignorePromptSlice) hay = hay.split(ignorePromptSlice).join(' ');
-  const potetoMode =
-    /\/poteto-mode\b/i.test(hay) ||
-    /\[skill\]\s*poteto-mode/i.test(hay) ||
-    /\bUsed poteto-mode\b/i.test(hay);
+  const potetoMode = /\/poteto-mode\b/i.test(hay) || /\[skill\]\s*poteto-mode/i.test(hay) || /\bUsed poteto-mode\b/i.test(hay);
   const leafChrome = /principle-build-the-lever[/\\]SKILL\.md/i.test(hay);
   const usedLeaf = /\bUsed principle-build-the-lever\b/i.test(hay);
   const skillBracketLeaf = /\[skill\]\s*principle-build-the-lever\b/i.test(hay);
   const hostAttached = Boolean(usedLeaf || skillBracketLeaf);
-  const verifyMention =
-    /scripts\/verify\.mjs/i.test(hay) ||
-    /evidence\/verify-out\.txt/i.test(hay) ||
-    /\bPREFIX-OK\b/.test(hay) ||
-    /\bPREFIX-FAIL\b/.test(hay);
-  const leverMention =
-    /scripts\/(?!verify\.mjs)[\w./-]+/i.test(hay) ||
-    /\bcodemod\b/i.test(hay) ||
-    /\brewrite[-_]?prefix\b/i.test(hay);
+  const verifyMention = /scripts\/verify\.mjs/i.test(hay) || /evidence\/verify-out\.txt/i.test(hay) || /\bPREFIX-OK\b/.test(hay) || /\bPREFIX-FAIL\b/.test(hay);
+  const leverMention = /scripts\/(?!verify\.mjs)[\w./-]+/i.test(hay) || /\bcodemod\b/i.test(hay) || /\brewrite[-_]?prefix\b/i.test(hay);
   const working = /[\u2800-\u28FF]/.test(hay) || /\bWorking\b/.test(hay);
   return { potetoMode, leafChrome, hostAttached, verifyMention, leverMention, working };
 }
@@ -224,43 +189,26 @@ function scoreCallsForLever(calls) {
     const name = String(call.name || '');
     const args = call.args || {};
     const blob = JSON.stringify(args);
-    const path =
-      args.path ||
-      args.file_path ||
-      args.filePath ||
-      args.target_file ||
-      args.file ||
-      null;
-    const isRead =
-      /^(Read|read|read_file|ReadFile|cat|blob-mention)$/i.test(name) ||
-      (name === 'bash' && typeof args.command === 'string' && /\bcat\b/.test(args.command));
+    const path = args.path || args.file_path || args.filePath || args.target_file || args.file || null;
+    const isRead = /^(Read|read|read_file|ReadFile|cat|blob-mention)$/i.test(name) || (name === 'bash' && typeof args.command === 'string' && /\bcat\b/.test(args.command));
     if (isRead && isLeverSkillPath(path || blob)) {
       leafSkillRead = true;
       if (!leafSkillReadAt) leafSkillReadAt = call.ts || new Date().toISOString();
       toolOrder.push(`${name}(lever-leaf)`);
       continue;
     }
-    if (
-      /\bscripts\/verify\.mjs\b/i.test(blob) ||
-      (typeof args.command === 'string' && /verify\.mjs/.test(args.command))
-    ) {
+    if (/\bscripts\/verify\.mjs\b/i.test(blob) || (typeof args.command === 'string' && /verify\.mjs/.test(args.command))) {
       ranVerifyScript = true;
       toolOrder.push(`${name}(verify.mjs)`);
       continue;
     }
-    const writeLike = /^(Write|write|write_file|WriteFile|Edit|StrReplace|search_replace|create_file)$/i.test(
-      name,
-    );
+    const writeLike = /^(Write|write|write_file|WriteFile|Edit|StrReplace|search_replace|create_file)$/i.test(name);
     if (writeLike && path && isLeverArtifactRel(String(path).replace(/^.*?fixture-app\//, ''))) {
       wroteLever = true;
       toolOrder.push(`${name}(lever-file)`);
       continue;
     }
-    if (
-      writeLike &&
-      path &&
-      /scripts\/(?!verify\.mjs)/i.test(String(path))
-    ) {
+    if (writeLike && path && /scripts\/(?!verify\.mjs)/i.test(String(path))) {
       wroteLever = true;
       toolOrder.push(`${name}(lever-file)`);
       continue;
@@ -276,44 +224,17 @@ function scoreCallsForLever(calls) {
   };
 }
 
-export function scoreBuildLever({
-  frontmatter,
-  done,
-  verifyOut,
-  productFixed,
-  leverArtifacts,
-  screenText,
-  ptyText,
-  sessionScore,
-  transcriptScore,
-  prompt,
-}) {
+export function scoreBuildLever({ frontmatter, done, verifyOut, productFixed, leverArtifacts, screenText, ptyText, sessionScore, transcriptScore, prompt }) {
   const screen = observeLeverText(screenText, { ignorePromptSlice: prompt });
   const pty = observeLeverText(ptyText, { ignorePromptSlice: prompt });
-  const leafSkillRead = Boolean(
-    sessionScore?.leafSkillRead ||
-      transcriptScore?.leafSkillRead ||
-      screen.leafChrome ||
-      pty.leafChrome,
-  );
+  const leafSkillRead = Boolean(sessionScore?.leafSkillRead || transcriptScore?.leafSkillRead || screen.leafChrome || pty.leafChrome);
   const usedChrome = Boolean(screen.hostAttached || pty.hostAttached || sessionScore?.hostAttached);
   const modelAutoInvoke = usedChrome && !leafSkillRead;
   const keptVerifyOk = Boolean(verifyOut?.ok);
-  const leverPresent = Boolean(
-    (leverArtifacts && leverArtifacts.length > 0) ||
-      sessionScore?.wroteLever ||
-      transcriptScore?.wroteLever,
-  );
+  const leverPresent = Boolean((leverArtifacts && leverArtifacts.length > 0) || sessionScore?.wroteLever || transcriptScore?.wroteLever);
   const verifiedDone = /^verified=yes\b/i.test((done?.line || '').trim());
   const frontmatterOk = Boolean(frontmatter?.ok);
-  const contractHeld =
-    frontmatterOk &&
-    leafSkillRead &&
-    leverPresent &&
-    productFixed &&
-    keptVerifyOk &&
-    verifiedDone &&
-    !modelAutoInvoke;
+  const contractHeld = frontmatterOk && leafSkillRead && leverPresent && productFixed && keptVerifyOk && verifiedDone && !modelAutoInvoke;
   return {
     frontmatterOk,
     leafSkillRead,
@@ -390,9 +311,7 @@ async function independentProductFixed() {
       gamma: 'APP_gamma',
     };
     for (const stem of Object.keys(expected)) {
-      const mod = await import(
-        `${pathToFileURL(join(fixtureApp, 'src', `${stem}.js`)).href}?t=${Date.now()}`
-      );
+      const mod = await import(`${pathToFileURL(join(fixtureApp, 'src', `${stem}.js`)).href}?t=${Date.now()}`);
       if (mod.TAG !== expected[stem]) return false;
     }
     return true;
@@ -433,13 +352,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -493,10 +406,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
       await sleep(800);
       continue;
     }
-    const chatReady =
-      !/Trust project folder\?/i.test(text) &&
-      (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) &&
-      (/fixture-app|prefix|README|medium|Skill conflicts|Session TTL|build-lever/i.test(text));
+    const chatReady = !/Trust project folder\?/i.test(text) && (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) && /fixture-app|prefix|README|medium|Skill conflicts|Session TTL|build-lever/i.test(text);
     if (chatReady) return lines;
     await sleep(200);
   }
@@ -533,9 +443,7 @@ async function summarizePiSession(sessionPath) {
   const text = await readFile(sessionPath, 'utf8');
   const calls = extractToolCallsFromJsonl(text);
   const scored = scoreCallsForLever(calls);
-  const hostAttached =
-    /\bUsed principle-build-the-lever\b/i.test(text) ||
-    /\[skill\]\s*principle-build-the-lever\b/i.test(text);
+  const hostAttached = /\bUsed principle-build-the-lever\b/i.test(text) || /\[skill\]\s*principle-build-the-lever\b/i.test(text);
   return { sessionPath, hostAttached, ...scored };
 }
 
@@ -564,10 +472,7 @@ async function findCursorTranscripts(sinceMs, side) {
         } catch {
           continue;
         }
-        const mentionsThisAttempt =
-          text.includes(doneAbs) ||
-          (text.includes(`build-lever/fixture-out/${side}/done.txt`) &&
-            (text.includes('LEGACY_') || text.includes('APP_alpha')));
+        const mentionsThisAttempt = text.includes(doneAbs) || (text.includes(`build-lever/fixture-out/${side}/done.txt`) && (text.includes('LEGACY_') || text.includes('APP_alpha')));
         if (mentionsThisAttempt) hits.push({ path: abs, mtimeMs: st.mtimeMs, size: st.size });
       }
     }
@@ -589,13 +494,8 @@ async function summarizeCursorTranscripts(sinceMs, side) {
       ...scored,
       leafSkillRead: scored.leafSkillRead || leafInBlob,
     };
-    const rank =
-      (merged.leafSkillRead ? 4 : 0) +
-      (merged.wroteLever ? 2 : 0) +
-      (merged.ranVerifyScript ? 1 : 0);
-    const bestRank = best
-      ? (best.leafSkillRead ? 4 : 0) + (best.wroteLever ? 2 : 0) + (best.ranVerifyScript ? 1 : 0)
-      : -1;
+    const rank = (merged.leafSkillRead ? 4 : 0) + (merged.wroteLever ? 2 : 0) + (merged.ranVerifyScript ? 1 : 0);
+    const bestRank = best ? (best.leafSkillRead ? 4 : 0) + (best.wroteLever ? 2 : 0) + (best.ranVerifyScript ? 1 : 0) : -1;
     if (!best || rank > bestRank || (rank === bestRank && hit.mtimeMs > (best.mtimeMs || 0))) {
       best = { ...merged, mtimeMs: hit.mtimeMs };
     }
@@ -680,21 +580,7 @@ async function runSide(side, ruleBytes, ruleDigest, frontmatter) {
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        [
-          'poteto-mode',
-          'LEGACY_',
-          'APP_alpha',
-          'verify',
-          'PREFIX-OK',
-          'PREFIX-FAIL',
-          'principle-build-the-lever',
-          'Phase',
-        ],
-        300_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['poteto-mode', 'LEGACY_', 'APP_alpha', 'verify', 'PREFIX-OK', 'PREFIX-FAIL', 'principle-build-the-lever', 'Phase'], 300_000);
     } catch {
       // settle may still land artifacts
     }
@@ -745,9 +631,7 @@ async function runSide(side, ruleBytes, ruleDigest, frontmatter) {
     const done = await readDone(side);
     const verifyOut = await readVerifyOut();
     const productFixed = await independentProductFixed();
-    const leverArtifacts = [...leverPaths].length
-      ? [...leverPaths]
-      : await listLeverArtifacts();
+    const leverArtifacts = [...leverPaths].length ? [...leverPaths] : await listLeverArtifacts();
 
     let sessionScore = null;
     let transcriptScore = null;
@@ -953,10 +837,7 @@ if (isMain) {
     results.push(result);
     console.log(JSON.stringify(result));
   }
-  await writeFile(
-    join(evidenceRoot, 'capture-results.json'),
-    `${JSON.stringify({ scenario: 'prin-build-lever', fixtureDigest: preDigest, frontmatter, results }, null, 2)}\n`,
-  );
+  await writeFile(join(evidenceRoot, 'capture-results.json'), `${JSON.stringify({ scenario: 'prin-build-lever', fixtureDigest: preDigest, frontmatter, results }, null, 2)}\n`);
   console.log(
     JSON.stringify({
       scenario: 'prin-build-lever',

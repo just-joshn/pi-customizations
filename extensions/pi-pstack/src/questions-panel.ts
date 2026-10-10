@@ -65,8 +65,7 @@ const withState = (state: PanelState, patch: Partial<PanelState>): PanelState =>
 
 const withQuestion = (state: PanelState, patch: { index?: number; cursor?: number; selected?: readonly number[]; text?: string | undefined }): PanelState => {
   const index = patch.index ?? state.index;
-  const applyAt = <T>(values: readonly T[], value: T | undefined): readonly T[] =>
-    value === undefined ? values : values.map((current, i) => (i === index ? value : current));
+  const applyAt = <T>(values: readonly T[], value: T | undefined): readonly T[] => (value === undefined ? values : values.map((current, i) => (i === index ? value : current)));
   return withState(state, {
     index,
     cursors: applyAt(state.cursors, patch.cursor),
@@ -173,8 +172,7 @@ const wrapParagraph = (text: string, width: number): string[] => {
   if (current) lines.push(current);
   return lines.length > 0 ? lines : [''];
 };
-const wrap = (text: string, width: number): string[] =>
-  text.split(/\r?\n/).flatMap((paragraph) => (paragraph.length === 0 ? [''] : wrapParagraph(paragraph, width)));
+const wrap = (text: string, width: number): string[] => text.split(/\r?\n/).flatMap((paragraph) => (paragraph.length === 0 ? [''] : wrapParagraph(paragraph, width)));
 
 export function renderPanel(state: PanelState, width: number): string[] {
   const boxWidth = Math.max(20, width - 2);

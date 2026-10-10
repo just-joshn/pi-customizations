@@ -2,8 +2,7 @@ const help = /^skills\/poteto-help\/SKILL\.md$/;
 const install = 'Map Reference plugin installation and Custom Modes to Pi package installation and the sticky session-branch mode.';
 const identity = 'State truthfully that the host is Pi, which supplies the host skills and subagent worker tool the source assumes.';
 const freshRule = 'The model rule is read on every turn in Pi, so a change applies to the next turn.';
-const branchReview =
-  'Route branch-review help questions to /interrogate so team-kit /review-and-ship cannot steal the primary recommendation.';
+const branchReview = 'Route branch-review help questions to /interrogate so team-kit /review-and-ship cannot steal the primary recommendation.';
 
 export default [
   [
@@ -24,12 +23,7 @@ export default [
     'This is the Pi port of pstack. Its skills use the Agent Skills format. The workflow skills, including `/poteto-mode`, `/how`, `/why`, and `/teach`, spawn Pi `Task` workers with per-role models, and this package supplies `/loop` as a host skill.',
     identity,
   ],
-  [
-    help,
-    'and mention once that a Custom Mode keeps it on.',
-    'and mention once that plain `/poteto-mode` covers one message unless they used `/poteto-mode sticky`, which stays on until `/poteto-mode off`.',
-    install,
-  ],
+  [help, 'and mention once that a Custom Mode keeps it on.', 'and mention once that plain `/poteto-mode` covers one message unless they used `/poteto-mode sticky`, which stays on until `/poteto-mode off`.', install],
   [
     help,
     'A named situation, such as "which skill reviews a PR?", goes straight to its section.',
@@ -38,7 +32,7 @@ export default [
   ],
   [
     help,
-    "- Enter on `/poteto-mode` attaches the skill to one message. It fades as the chat moves on.\n- Option+Enter on Mac or Alt+Enter on Windows, or Use as Mode from the skill entry, makes it a Custom Mode. It stays in context every turn until the user exits the mode, and it stays out of casual turns.\n- Reference's docs list Custom Modes in the Agents Window and the CLI. Elsewhere, start each new task with `/poteto-mode`.\n\nLink [Reference's skills docs](https://cursor.com/docs/skills) when this comes up. Mid-chat, \"new task\" makes the mode match a fresh playbook.",
+    '- Enter on `/poteto-mode` attaches the skill to one message. It fades as the chat moves on.\n- Option+Enter on Mac or Alt+Enter on Windows, or Use as Mode from the skill entry, makes it a Custom Mode. It stays in context every turn until the user exits the mode, and it stays out of casual turns.\n- Reference\'s docs list Custom Modes in the Agents Window and the CLI. Elsewhere, start each new task with `/poteto-mode`.\n\nLink [Reference\'s skills docs](https://cursor.com/docs/skills) when this comes up. Mid-chat, "new task" makes the mode match a fresh playbook.',
     '- `/poteto-mode <task>` and `/skill:poteto-mode <task>` attach the skill for one message. They do not leave the crown sticky badge on.\n- `/poteto-mode sticky` and `/poteto-mode sticky <task>` (same with `/skill:poteto-mode sticky`) turn sticky mode on for that session branch. It stays in context every turn until `/poteto-mode off`, and it stays out of casual turns.\n\nMid-chat, "new task" makes sticky mode match a fresh playbook.',
     install,
   ],

@@ -6,6 +6,7 @@ import type { ExtensionAPI, ExtensionContext, ExtensionToolContext } from '@eare
 import { Container } from '@earendil-works/pi-tui';
 import { Type } from 'typebox';
 import { isAlias, modelConfigPath, readModelRule, resolveModel, skillDefaultTable } from './models.ts';
+import { dataResult } from './results.ts';
 import { setupWriteCard } from './tool-cards.ts';
 
 type ThinkingLevel = NonNullable<ExtensionContext['thinkingLevel']>;
@@ -94,18 +95,12 @@ function currentBudget(current: string): string | undefined {
   return current.match(/^# budget: (.+)$/m)?.[1];
 }
 
-const tableRecord = (working: ModelTable): Record<string, string> =>
-  Object.fromEntries([...working].map(([role, values]) => [role, values.join(', ')]));
+const tableRecord = (working: ModelTable): Record<string, string> => Object.fromEntries([...working].map(([role, values]) => [role, values.join(', ')]));
 
 function roleConfirmPrompt(roles: Record<string, string>, dropped: readonly string[]): string {
   const lines = Object.entries(roles).map(([role, value]) => `${role}: ${value}`);
   const droppedBlock = dropped.length === 0 ? 'Dropped retired roles: none.' : `Dropped retired roles:\n${dropped.join('\n')}`;
-  return [
-    'Current roles (one line per role; do not summarize):',
-    ...lines,
-    droppedBlock,
-    'Accept as-is, or change specific roles?',
-  ].join('\n');
+  return ['Current roles (one line per role; do not summarize):', ...lines, droppedBlock, 'Accept as-is, or change specific roles?'].join('\n');
 }
 
 async function stateAction(ctx: ExtensionToolContext) {
@@ -131,10 +126,7 @@ async function writeAction(budget: string, roleOverrides: readonly { role: strin
   let next: ModelTable = working;
   for (const override of roleOverrides ?? []) {
     if (!next.has(override.role)) throw new Error(`Unknown role '${override.role}'. Run the state action for the role list.`);
-    next = new Map([
-      ...next,
-      [override.role, override.value.split(',').map((value) => value.trim())],
-    ]);
+    next = new Map([...next, [override.role, override.value.split(',').map((value) => value.trim())]]);
   }
   for (const [role, values] of next) validateRole(role, values, ctx);
   const text = ruleText(next, budget, target);
@@ -184,8 +176,7 @@ export function registerSetupTool(pi: ExtensionAPI): void {
     },
     async execute(_id, params, _signal, _update, ctx) {
       if (params.action === 'state') {
-        const state = await stateAction(ctx);
-        return { content: [{ type: 'text', text: JSON.stringify(state) }], details: state, structuredContent: state };
+        return dataResult(await stateAction(ctx));
       }
       const written = await writeAction(params.budget ?? '', params.roleOverrides, ctx);
       const summary = `Edited pstack-models.mdc +${written.added} -${written.removed}`;

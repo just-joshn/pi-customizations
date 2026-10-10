@@ -219,12 +219,7 @@ async function readDone(side) {
 function observeScreen(lines) {
   const text = lines.join('\n');
   return {
-    technicalWritingSkill:
-      /\/technical-writing\b/i.test(text) ||
-      /\[skill\]\s*technical-writing/i.test(text) ||
-      /\bUsed technical-writing\b/i.test(text) ||
-      /\btechnical[- ]writing\b/i.test(text) ||
-      /\bDi[aá]taxis\b/i.test(text),
+    technicalWritingSkill: /\/technical-writing\b/i.test(text) || /\[skill\]\s*technical-writing/i.test(text) || /\bUsed technical-writing\b/i.test(text) || /\btechnical[- ]writing\b/i.test(text) || /\bDi[aá]taxis\b/i.test(text),
     diataxisMention: /\bDi[aá]taxis\b/i.test(text),
     modes: diataxisSignals(text),
     working: /[\u2800-\u28FF]/.test(text) || /\bWorking\b/.test(text),
@@ -247,13 +242,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -343,12 +332,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        ['technical-writing', 'Diátaxis', 'Diataxis', 'how-to', 'reference', 'README', 'docs/'],
-        300_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['technical-writing', 'Diátaxis', 'Diataxis', 'how-to', 'reference', 'README', 'docs/'], 300_000);
     } catch {
       // settle may still land artifacts
     }
@@ -420,10 +404,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     await writeFile(join(dir, 'observations.json'), `${JSON.stringify(observations, null, 2)}\n`);
     await writeFile(join(dir, 'prompt.txt'), `${prompt}\n`);
     await writeFile(join(dir, 'poll-log.json'), `${JSON.stringify(pollLog, null, 2)}\n`);
-    await writeFile(
-      join(dir, 'baseline-docs.json'),
-      `${JSON.stringify(docsBaseline, null, 2)}\n`,
-    );
+    await writeFile(join(dir, 'baseline-docs.json'), `${JSON.stringify(docsBaseline, null, 2)}\n`);
 
     const snapDir = join(attempt.dir, 'fixture-snapshot');
     await mkdir(snapDir, { recursive: true });

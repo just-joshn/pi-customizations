@@ -24,24 +24,8 @@ const piAgentDir = '/tmp/pi-ref-agent';
 const piRulePath = join(piAgentDir, 'pstack', 'models.mdc');
 const evidenceRoot = join(root, 'evidence', 'principles', 'migrate-delete');
 const fixtureApp = join(evidenceRoot, 'fixture-app');
-const migSkillCursor = join(
-  root,
-  'reference',
-  'cursor-plugins',
-  'pstack',
-  'skills',
-  'principle-migrate-callers-then-delete-legacy-apis',
-  'SKILL.md',
-);
-const migSkillPi = join(
-  root,
-  '..',
-  'extensions',
-  'pi-pstack',
-  'skills',
-  'principle-migrate-callers-then-delete-legacy-apis',
-  'SKILL.md',
-);
+const migSkillCursor = join(root, 'reference', 'cursor-plugins', 'pstack', 'skills', 'principle-migrate-callers-then-delete-legacy-apis', 'SKILL.md');
+const migSkillPi = join(root, '..', 'extensions', 'pi-pstack', 'skills', 'principle-migrate-callers-then-delete-legacy-apis', 'SKILL.md');
 const GEOMETRY = { rows: 40, cols: 120 };
 const LOCKED_FIXTURE_DIGEST = 'sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004';
 const SETTLE_MS = 1_500_000;
@@ -51,24 +35,11 @@ const LEGACY_REL = 'src/legacyFormat.js';
 const CALLER_REL = ['src/greet.js', 'src/banner.js'];
 const VERIFY_OUT_REL = 'evidence/verify-out.txt';
 const VERIFY_SCRIPT_REL = 'scripts/verify.mjs';
-const BASELINE_REL = [
-  'src/legacyFormat.js',
-  'src/greet.js',
-  'src/banner.js',
-  'README.md',
-  'NOTES.md',
-  'package.json',
-  VERIFY_SCRIPT_REL,
-  'evidence/.gitkeep',
-  'out/.gitkeep',
-];
+const BASELINE_REL = ['src/legacyFormat.js', 'src/greet.js', 'src/banner.js', 'README.md', 'NOTES.md', 'package.json', VERIFY_SCRIPT_REL, 'evidence/.gitkeep', 'out/.gitkeep'];
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const stripAnsi = (text) =>
-  text
-    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
-    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
 
 function writeRootFor(side) {
   return join(evidenceRoot, 'fixture-out', side);
@@ -164,19 +135,12 @@ function isFormatPath(p) {
 function observeMigrateText(text, { ignorePromptSlice } = {}) {
   let hay = stripAnsi(text || '');
   if (ignorePromptSlice) hay = hay.split(ignorePromptSlice).join(' ');
-  const potetoMode =
-    /\/poteto-mode\b/i.test(hay) ||
-    /\[skill\]\s*poteto-mode/i.test(hay) ||
-    /\bUsed poteto-mode\b/i.test(hay);
+  const potetoMode = /\/poteto-mode\b/i.test(hay) || /\[skill\]\s*poteto-mode/i.test(hay) || /\bUsed poteto-mode\b/i.test(hay);
   const leafChrome = /principle-migrate-callers-then-delete-legacy-apis[/\\]SKILL\.md/i.test(hay);
   const usedLeaf = /\bUsed principle-migrate-callers-then-delete-legacy-apis\b/i.test(hay);
   const skillBracketLeaf = /\[skill\]\s*principle-migrate-callers-then-delete-legacy-apis\b/i.test(hay);
   const hostAttached = Boolean(usedLeaf || skillBracketLeaf);
-  const verifyMention =
-    /scripts\/verify\.mjs/i.test(hay) ||
-    /evidence\/verify-out\.txt/i.test(hay) ||
-    /\bMIGRATE-OK\b/.test(hay) ||
-    /\bMIGRATE-FAIL\b/.test(hay);
+  const verifyMention = /scripts\/verify\.mjs/i.test(hay) || /evidence\/verify-out\.txt/i.test(hay) || /\bMIGRATE-OK\b/.test(hay) || /\bMIGRATE-FAIL\b/.test(hay);
   const working = /[\u2800-\u28FF]/.test(hay) || /\bWorking\b/.test(hay);
   return { potetoMode, leafChrome, hostAttached, verifyMention, working };
 }
@@ -225,14 +189,7 @@ function extractToolCallsFromJsonl(text) {
 }
 
 function pathFromArgs(args) {
-  return (
-    args.path ||
-    args.file_path ||
-    args.filePath ||
-    args.target_file ||
-    args.file ||
-    null
-  );
+  return args.path || args.file_path || args.filePath || args.target_file || args.file || null;
 }
 
 function isWriteLike(name, args) {
@@ -268,19 +225,14 @@ function scoreCallsForMigrate(calls) {
     const args = call.args || {};
     const blob = JSON.stringify(args);
     const path = pathFromArgs(args);
-    const isRead =
-      /^(Read|read|read_file|ReadFile|cat|blob-mention)$/i.test(name) ||
-      (name === 'bash' && typeof args.command === 'string' && /\bcat\b/.test(args.command));
+    const isRead = /^(Read|read|read_file|ReadFile|cat|blob-mention)$/i.test(name) || (name === 'bash' && typeof args.command === 'string' && /\bcat\b/.test(args.command));
     if (isRead && isMigrateSkillPath(path || blob)) {
       leafSkillRead = true;
       if (!leafSkillReadAt) leafSkillReadAt = call.ts || new Date().toISOString();
       toolOrder.push(`${name}(migrate-leaf)`);
       continue;
     }
-    if (
-      /\bscripts\/verify\.mjs\b/i.test(blob) ||
-      (typeof args.command === 'string' && /verify\.mjs/.test(args.command))
-    ) {
+    if (/\bscripts\/verify\.mjs\b/i.test(blob) || (typeof args.command === 'string' && /verify\.mjs/.test(args.command))) {
       ranVerifyScript = true;
       toolOrder.push(`${name}(verify.mjs)`);
       continue;
@@ -302,9 +254,7 @@ function scoreCallsForMigrate(calls) {
     }
     if (name) toolOrder.push(name);
   }
-  const sameWave =
-    Boolean(firstLegacyDeleteAt) &&
-    (Boolean(firstCallerMigrateAt) || Boolean(firstFormatWriteAt));
+  const sameWave = Boolean(firstLegacyDeleteAt) && (Boolean(firstCallerMigrateAt) || Boolean(firstFormatWriteAt));
   return {
     leafSkillRead,
     leafSkillReadAt,
@@ -317,48 +267,17 @@ function scoreCallsForMigrate(calls) {
   };
 }
 
-export function scoreMigrateDelete({
-  frontmatter,
-  done,
-  verifyOut,
-  productOk,
-  legacyDeleted,
-  callersMigrated,
-  formatPresent,
-  compatShim,
-  sameWave,
-  screenText,
-  ptyText,
-  sessionScore,
-  transcriptScore,
-  prompt,
-}) {
+export function scoreMigrateDelete({ frontmatter, done, verifyOut, productOk, legacyDeleted, callersMigrated, formatPresent, compatShim, sameWave, screenText, ptyText, sessionScore, transcriptScore, prompt }) {
   const screen = observeMigrateText(screenText, { ignorePromptSlice: prompt });
   const pty = observeMigrateText(ptyText, { ignorePromptSlice: prompt });
-  const leafSkillRead = Boolean(
-    sessionScore?.leafSkillRead ||
-      transcriptScore?.leafSkillRead ||
-      screen.leafChrome ||
-      pty.leafChrome,
-  );
+  const leafSkillRead = Boolean(sessionScore?.leafSkillRead || transcriptScore?.leafSkillRead || screen.leafChrome || pty.leafChrome);
   const usedChrome = Boolean(screen.hostAttached || pty.hostAttached || sessionScore?.hostAttached);
   const modelAutoInvoke = usedChrome && !leafSkillRead;
   const waveOk = Boolean(sameWave || sessionScore?.sameWave || transcriptScore?.sameWave);
   const keptVerifyOk = Boolean(verifyOut?.ok);
   const verifiedDone = /^verified=yes\b/i.test((done?.line || '').trim());
   const frontmatterOk = Boolean(frontmatter?.ok);
-  const contractHeld =
-    frontmatterOk &&
-    leafSkillRead &&
-    Boolean(legacyDeleted) &&
-    Boolean(callersMigrated) &&
-    Boolean(formatPresent) &&
-    !compatShim &&
-    waveOk &&
-    productOk &&
-    keptVerifyOk &&
-    verifiedDone &&
-    !modelAutoInvoke;
+  const contractHeld = frontmatterOk && leafSkillRead && Boolean(legacyDeleted) && Boolean(callersMigrated) && Boolean(formatPresent) && !compatShim && waveOk && productOk && keptVerifyOk && verifiedDone && !modelAutoInvoke;
   return {
     frontmatterOk,
     leafSkillRead,
@@ -415,13 +334,7 @@ async function restoreProduct() {
   const files = await walkFiles(fixtureApp);
   for (const rel of files) {
     if (keep.has(rel)) continue;
-    if (
-      rel.startsWith('src/') ||
-      rel.startsWith('evidence/') ||
-      rel.startsWith('out/') ||
-      rel.endsWith('.tsv') ||
-      rel.startsWith('.audit/')
-    ) {
+    if (rel.startsWith('src/') || rel.startsWith('evidence/') || rel.startsWith('out/') || rel.endsWith('.tsv') || rel.startsWith('.audit/')) {
       await rm(join(fixtureApp, rel), { force: true, recursive: true });
     }
   }
@@ -450,11 +363,7 @@ async function diskOracle() {
     const body = await readFile(join(fixtureApp, 'src', name), 'utf8');
     if (/\bformatNameLegacy\b/.test(body) || /\blegacyFormat\b/.test(body)) legacySymbol = true;
     if (/compat|shim|adapter/i.test(name)) compatShim = true;
-    if (
-      /\bformatNameLegacy\b/.test(body) &&
-      /\bformatName\b/.test(body) &&
-      /export\s+(?:function|const|\{)/.test(body)
-    ) {
+    if (/\bformatNameLegacy\b/.test(body) && /\bformatName\b/.test(body) && /export\s+(?:function|const|\{)/.test(body)) {
       compatShim = true;
     }
     if (CALLER_REL.some((rel) => rel.endsWith(name))) {
@@ -465,20 +374,15 @@ async function diskOracle() {
   let greetOk = false;
   let bannerOk = false;
   try {
-    const greetMod = await import(
-      `${pathToFileURL(join(fixtureApp, 'src', 'greet.js')).href}?t=${Date.now()}`
-    );
-    const bannerMod = await import(
-      `${pathToFileURL(join(fixtureApp, 'src', 'banner.js')).href}?t=${Date.now()}`
-    );
+    const greetMod = await import(`${pathToFileURL(join(fixtureApp, 'src', 'greet.js')).href}?t=${Date.now()}`);
+    const bannerMod = await import(`${pathToFileURL(join(fixtureApp, 'src', 'banner.js')).href}?t=${Date.now()}`);
     greetOk = greetMod.greet() === 'hello, WORLD';
     bannerOk = bannerMod.banner() === 'BANNER:TEAM';
   } catch {
     greetOk = false;
     bannerOk = false;
   }
-  const productOk =
-    greetOk && bannerOk && legacyDeleted && formatPresent && callersMigrated && !legacySymbol && !compatShim;
+  const productOk = greetOk && bannerOk && legacyDeleted && formatPresent && callersMigrated && !legacySymbol && !compatShim;
   return {
     greetOk,
     bannerOk,
@@ -524,13 +428,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -584,10 +482,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
       await sleep(800);
       continue;
     }
-    const chatReady =
-      !/Trust project folder\?/i.test(text) &&
-      (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) &&
-      (/migrate-delete|greet|README|medium|Skill conflicts|Session TTL|fixture-app/i.test(text));
+    const chatReady = !/Trust project folder\?/i.test(text) && (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) && /migrate-delete|greet|README|medium|Skill conflicts|Session TTL|fixture-app/i.test(text);
     if (chatReady) return lines;
     await sleep(200);
   }
@@ -624,9 +519,7 @@ async function summarizePiSession(sessionPath) {
   const text = await readFile(sessionPath, 'utf8');
   const calls = extractToolCallsFromJsonl(text);
   const scored = scoreCallsForMigrate(calls);
-  const hostAttached =
-    /\bUsed principle-migrate-callers-then-delete-legacy-apis\b/i.test(text) ||
-    /\[skill\]\s*principle-migrate-callers-then-delete-legacy-apis\b/i.test(text);
+  const hostAttached = /\bUsed principle-migrate-callers-then-delete-legacy-apis\b/i.test(text) || /\[skill\]\s*principle-migrate-callers-then-delete-legacy-apis\b/i.test(text);
   return { sessionPath, hostAttached, ...scored };
 }
 
@@ -655,9 +548,7 @@ async function findCursorTranscripts(sinceMs, side) {
         } catch {
           continue;
         }
-        const mentionsThisAttempt =
-          text.includes(doneAbs) ||
-          (text.includes(`migrate-delete/fixture-out/${side}/done.txt`) && text.includes('formatName'));
+        const mentionsThisAttempt = text.includes(doneAbs) || (text.includes(`migrate-delete/fixture-out/${side}/done.txt`) && text.includes('formatName'));
         if (mentionsThisAttempt) hits.push({ path: abs, mtimeMs: st.mtimeMs, size: st.size });
       }
     }
@@ -679,13 +570,8 @@ async function summarizeCursorTranscripts(sinceMs, side) {
       ...scored,
       leafSkillRead: scored.leafSkillRead || leafInBlob,
     };
-    const rank =
-      (merged.leafSkillRead ? 4 : 0) +
-      (merged.ranVerifyScript ? 2 : 0) +
-      (merged.sameWave ? 1 : 0);
-    const bestRank = best
-      ? (best.leafSkillRead ? 4 : 0) + (best.ranVerifyScript ? 2 : 0) + (best.sameWave ? 1 : 0)
-      : -1;
+    const rank = (merged.leafSkillRead ? 4 : 0) + (merged.ranVerifyScript ? 2 : 0) + (merged.sameWave ? 1 : 0);
+    const bestRank = best ? (best.leafSkillRead ? 4 : 0) + (best.ranVerifyScript ? 2 : 0) + (best.sameWave ? 1 : 0) : -1;
     if (!best || rank > bestRank || (rank === bestRank && hit.mtimeMs > (best.mtimeMs || 0))) {
       best = { ...merged, mtimeMs: hit.mtimeMs };
     }
@@ -766,13 +652,7 @@ async function runSide(side, ruleBytes, ruleDigest, frontmatter) {
           if (!firstFormatAt) firstFormatAt = snap.now;
         }
         if (snap.hits.verify.length && !firstVerifyAt) firstVerifyAt = snap.now;
-        if (
-          snap.hits.product.length ||
-          snap.hits.verify.length ||
-          snap.hits.deleted.length ||
-          snap.hits.callers.length ||
-          snap.hits.format.length
-        ) {
+        if (snap.hits.product.length || snap.hits.verify.length || snap.hits.deleted.length || snap.hits.callers.length || snap.hits.format.length) {
           pollLog.push({
             ts: snap.now,
             product: snap.hits.product,
@@ -794,24 +674,7 @@ async function runSide(side, ruleBytes, ruleDigest, frontmatter) {
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        [
-          'poteto-mode',
-          'greet.js',
-          'banner.js',
-          'format.js',
-          'verify',
-          'MIGRATE-OK',
-          'MIGRATE-FAIL',
-          'principle-migrate-callers-then-delete-legacy-apis',
-          'legacyFormat',
-          'formatName',
-          'Phase',
-        ],
-        300_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['poteto-mode', 'greet.js', 'banner.js', 'format.js', 'verify', 'MIGRATE-OK', 'MIGRATE-FAIL', 'principle-migrate-callers-then-delete-legacy-apis', 'legacyFormat', 'formatName', 'Phase'], 300_000);
     } catch {
       // settle may still land artifacts
     }
@@ -868,8 +731,7 @@ async function runSide(side, ruleBytes, ruleDigest, frontmatter) {
     const done = await readDone(side);
     const verifyOut = await readVerifyOut();
     const oracle = await diskOracle();
-    const pollSameWave =
-      Boolean(firstDeletedAt) && (Boolean(firstCallerAt) || Boolean(firstFormatAt));
+    const pollSameWave = Boolean(firstDeletedAt) && (Boolean(firstCallerAt) || Boolean(firstFormatAt));
 
     let sessionScore = null;
     let transcriptScore = null;
@@ -935,17 +797,7 @@ async function runSide(side, ruleBytes, ruleDigest, frontmatter) {
 
     const snapDir = join(attempt.dir, 'fixture-snapshot');
     await mkdir(snapDir, { recursive: true });
-    for (const rel of [
-      'src/legacyFormat.js',
-      'src/greet.js',
-      'src/banner.js',
-      'src/format.js',
-      'README.md',
-      'NOTES.md',
-      'package.json',
-      VERIFY_SCRIPT_REL,
-      VERIFY_OUT_REL,
-    ]) {
+    for (const rel of ['src/legacyFormat.js', 'src/greet.js', 'src/banner.js', 'src/format.js', 'README.md', 'NOTES.md', 'package.json', VERIFY_SCRIPT_REL, VERIFY_OUT_REL]) {
       const abs = join(fixtureApp, rel);
       if (!(await pathExists(abs))) continue;
       const dest = join(snapDir, rel);
@@ -1012,8 +864,7 @@ async function selfTest() {
     compatShim: false,
     sameWave: true,
     screenText: 'Read principle-migrate-callers-then-delete-legacy-apis/SKILL.md then MIGRATE-OK',
-    ptyText:
-      'Used principle-migrate-callers-then-delete-legacy-apis\nprinciple-migrate-callers-then-delete-legacy-apis/SKILL.md',
+    ptyText: 'Used principle-migrate-callers-then-delete-legacy-apis\nprinciple-migrate-callers-then-delete-legacy-apis/SKILL.md',
     sessionScore: {
       leafSkillRead: true,
       ranVerifyScript: true,
@@ -1094,10 +945,7 @@ if (isMain) {
     results.push(result);
     console.log(JSON.stringify(result));
   }
-  await writeFile(
-    join(evidenceRoot, 'capture-results.json'),
-    `${JSON.stringify({ scenario: 'prin-migrate-delete', fixtureDigest: preDigest, frontmatter, results }, null, 2)}\n`,
-  );
+  await writeFile(join(evidenceRoot, 'capture-results.json'), `${JSON.stringify({ scenario: 'prin-migrate-delete', fixtureDigest: preDigest, frontmatter, results }, null, 2)}\n`);
   console.log(
     JSON.stringify({
       scenario: 'prin-migrate-delete',

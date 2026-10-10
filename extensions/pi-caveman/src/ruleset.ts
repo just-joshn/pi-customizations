@@ -10,7 +10,6 @@ const SWITCH_LINE = 'Switch: /caveman, /ultracave, /megacave. Off: "stop caveman
 const FALLBACK_THESIS: Readonly<Record<ProseMode, string>> = {
   caveman: 'Respond terse like smart caveman. All technical substance stay. Only fluff die.',
   ultracave: 'Respond terse like smart caveman. All technical substance stay. Only fluff die. Then cut again.',
-  // biome-ignore lint/security/noSecrets: Classical Chinese thesis line, not a credential
   megacave: '以文言答。技術之實皆存，唯贅言去之。',
 };
 

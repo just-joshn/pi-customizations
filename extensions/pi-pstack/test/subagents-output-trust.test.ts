@@ -113,7 +113,6 @@ test('[C69] handback provenance is on by default and follows an explicit off val
 });
 
 test('[C69] indentReport normalizes every supported line separator', () => {
-  // biome-ignore lint/security/noSecrets: line-separator fixture, not a credential
   expect(indentReport('a\r\nb\rc\u2028d\u2029e\u0085f\u000bg\u000ch\rd')).toBe('  a\n  b\n  c\n  d\n  e\n  f\n  g\n  h\n  d');
 });
 

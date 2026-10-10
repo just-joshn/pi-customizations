@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+import { execFileSync, spawn } from 'node:child_process';
+import { createHash } from 'node:crypto';
 // Captures PSTACK-SETUP-VERIFY-OFFER-001: after /setup-pstack confirm+write on a
 // project with neither verify-* skill nor harness, observe the one-time offer to
 // generate via /create-verification-skill. Default answers no (continue without
@@ -9,8 +11,6 @@
 //   node scripts/capture-setup-verify-offer.mjs [--both|--cursor-only|--pi-only] [--no|--yes]
 // Evidence root: parity/evidence/setup-verify-offer/
 import { access, chmod, copyFile, mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
-import { createHash } from 'node:crypto';
-import { execFileSync, spawn } from 'node:child_process';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 
@@ -20,11 +20,7 @@ import { dumpScreen, screenLines, waitEither, waitScreen, waitSettled } from './
 
 const argvFlags = new Set(process.argv.slice(2));
 const branch = argvFlags.has('--yes') ? 'yes' : 'no';
-const only = argvFlags.has('--cursor-only')
-  ? '--cursor-only'
-  : argvFlags.has('--pi-only')
-    ? '--pi-only'
-    : '--both';
+const only = argvFlags.has('--cursor-only') ? '--cursor-only' : argvFlags.has('--pi-only') ? '--pi-only' : '--both';
 const root = new URL('../', import.meta.url).pathname;
 const localBin = (name) => join(homedir(), '.local', 'bin', name);
 const referenceRulePath = join(homedir(), '.cursor', 'rules', 'pstack-models.mdc');
@@ -36,34 +32,13 @@ const fixtureApp = join(evidenceRoot, 'fixture-app');
 const GEOMETRY = { rows: 40, cols: 120 };
 const LOCKED_FIXTURE_DIGEST = 'sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004';
 const WRITE_NEEDLE = 'Edited pstack-models.mdc';
-const OFFER_NEEDLES = [
-  'create-verification-skill',
-  'verification skill',
-  'project-local verification',
-  'verify-*',
-  'want a project-local',
-];
-const BUDGET_NEEDLES = [
-  '› [',
-  'Pick a budget',
-  'Choose a budget',
-  'Reply with a number',
-  'Reply with one of those four',
-  'unlimited — max reasoning',
-  'small — medium reasoning',
-];
-const ROLE_CONFIRM_NEEDLES = [
-  'Accept as-is',
-  'Change specific roles',
-  'accept as-is',
-  'change specific roles',
-  'Current roles',
-  'Roles:',
-];
+const OFFER_NEEDLES = ['create-verification-skill', 'verification skill', 'project-local verification', 'verify-*', 'want a project-local'];
+const BUDGET_NEEDLES = ['› [', 'Pick a budget', 'Choose a budget', 'Reply with a number', 'Reply with one of those four', 'unlimited — max reasoning', 'small — medium reasoning'];
+const ROLE_CONFIRM_NEEDLES = ['Accept as-is', 'Change specific roles', 'accept as-is', 'change specific roles', 'Current roles', 'Roles:'];
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-function digestBytes(bytes) {
+function _digestBytes(bytes) {
   return `sha256:${createHash('sha256').update(bytes).digest('hex')}`;
 }
 
@@ -80,9 +55,9 @@ function peerSetupCaptures() {
       })
       .filter((row) => Number.isFinite(row.pid))
       .filter((row) => row.pid !== process.pid && row.pid !== process.ppid)
-      .filter((row) => !/(^|[\/\s])(zsh|bash|sh)\b/.test(row.command))
+      .filter((row) => !/(^|[/\s])(zsh|bash|sh)\b/.test(row.command))
       .filter((row) => !/\bbuiltin\b/.test(row.command))
-      .filter((row) => /(^|[\/\s])node(\s+|$).*parity\/scripts\/capture-setup-[^\s]*\.mjs\b/.test(row.command));
+      .filter((row) => /(^|[/\s])node(\s+|$).*parity\/scripts\/capture-setup-[^\s]*\.mjs\b/.test(row.command));
   } catch {
     return [];
   }
@@ -160,10 +135,7 @@ async function ensureFixture() {
   }
   await chmod(hello, 0o755).catch(() => {});
   if (!(await pathExists(readme))) {
-    await writeFile(
-      readme,
-      '# hello-cli\n\nTiny CLI fixture for setup-verify-offer capture. No verify-* skill and no harness.\n',
-    );
+    await writeFile(readme, '# hello-cli\n\nTiny CLI fixture for setup-verify-offer capture. No verify-* skill and no harness.\n');
   }
   await rm(join(fixtureApp, '.cursor', 'skills'), { recursive: true, force: true });
   await rm(join(fixtureApp, '.pi', 'skills'), { recursive: true, force: true });
@@ -176,8 +148,7 @@ function observeOffer(lines) {
     /\[skill\]\s*create-verification/i.test(text) ||
     /Running create-verification-skill/i.test(text) ||
     /Invoking \/create-verification-skill/i.test(text) ||
-    (/\/create-verification-skill\b/i.test(text) &&
-      /Writing .*SKILL\.md|## Launch|feature map|verify-[a-z0-9-]+\/SKILL/i.test(text));
+    (/\/create-verification-skill\b/i.test(text) && /Writing .*SKILL\.md|## Launch|feature map|verify-[a-z0-9-]+\/SKILL/i.test(text));
   return {
     writeCard: new RegExp(WRITE_NEEDLE, 'i').test(text),
     askQuestion: /› \[/.test(text) || /Clarifying Questions/i.test(text),
@@ -185,20 +156,14 @@ function observeOffer(lines) {
     offerHit: offerHit ?? null,
     offered: Boolean(offerHit),
     createAttached,
-    declinedLanguage:
-      /skipped (the )?(optional )?(step of )?offering/i.test(text) ||
-      /decline(d)? (any )?verification/i.test(text) ||
-      /without (offering|pushing)/i.test(text),
+    declinedLanguage: /skipped (the )?(optional )?(step of )?offering/i.test(text) || /decline(d)? (any )?verification/i.test(text) || /without (offering|pushing)/i.test(text),
     working: /[\u2800-\u28FF]/.test(text) || /\bWorking\b/.test(text),
   };
 }
 
 function skillPaths(side) {
   return side === 'cursor'
-    ? [
-        join(fixtureApp, '.cursor', 'skills'),
-        join(fixtureApp, '.cursor', 'skills', 'verify-hello-cli', 'SKILL.md'),
-      ]
+    ? [join(fixtureApp, '.cursor', 'skills'), join(fixtureApp, '.cursor', 'skills', 'verify-hello-cli', 'SKILL.md')]
     : [join(fixtureApp, '.pi', 'skills'), join(fixtureApp, '.pi', 'skills', 'verify-hello-cli', 'SKILL.md')];
 }
 
@@ -234,13 +199,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -301,10 +260,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
       await sleep(800);
       continue;
     }
-    const chatReady =
-      !/Trust project folder\?/i.test(text) &&
-      (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) &&
-      (/fixture-app|hello-cli|Skill conflicts|medium/i.test(text));
+    const chatReady = !/Trust project folder\?/i.test(text) && (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) && /fixture-app|hello-cli|Skill conflicts|medium/i.test(text);
     if (chatReady) return lines;
     await sleep(200);
   }
@@ -312,12 +268,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
 }
 
 async function answerBudgetOnly(attempt, dir) {
-  const first = await waitEither(
-    attempt,
-    GEOMETRY,
-    [...BUDGET_NEEDLES, WRITE_NEEDLE, ...ROLE_CONFIRM_NEEDLES],
-    300_000,
-  ).catch(async (error) => {
+  const first = await waitEither(attempt, GEOMETRY, [...BUDGET_NEEDLES, WRITE_NEEDLE, ...ROLE_CONFIRM_NEEDLES], 300_000).catch(async (error) => {
     await dumpScreen(attempt, dir, '01-budget-timeout', GEOMETRY);
     throw error;
   });
@@ -584,12 +535,8 @@ async function runSide(side, lockedBytes, lockedDigest) {
     const finalObs = observations.screens.branchSettled ?? observeOffer(await screenLines(attempt, GEOMETRY));
     observations.createVerifyInvoked = Boolean(finalObs.createAttached || (branch === 'yes' && skillOnDisk));
     observations.skillWritten = skillOnDisk;
-    observations.continuedWithoutPush =
-      branch === 'no' && !observations.createVerifyInvoked && !skillOnDisk;
-    observations.branchOk =
-      branch === 'no'
-        ? observations.offeredOnce && observations.continuedWithoutPush
-        : observations.offeredOnce && observations.createVerifyInvoked;
+    observations.continuedWithoutPush = branch === 'no' && !observations.createVerifyInvoked && !skillOnDisk;
+    observations.branchOk = branch === 'no' ? observations.offeredOnce && observations.continuedWithoutPush : observations.offeredOnce && observations.createVerifyInvoked;
 
     const after = await readFile(rulePath, 'utf8');
     const afterDigest = await sha256(rulePath);
@@ -598,19 +545,7 @@ async function runSide(side, lockedBytes, lockedDigest) {
     observations.afterDigest = afterDigest;
     observations.wroteBytesChanged = after !== lockedBytes;
 
-    for (const name of [
-      '00-ready',
-      '01-budget',
-      '02-role-confirm',
-      '02-role-confirm-or-write',
-      '03-write-card',
-      '03b-after-write',
-      '04-offer',
-      '04-no-offer-skipped',
-      '04-offer-timeout',
-      '05-offer-answered',
-      '06-branch-settled',
-    ]) {
+    for (const name of ['00-ready', '01-budget', '02-role-confirm', '02-role-confirm-or-write', '03-write-card', '03b-after-write', '04-offer', '04-no-offer-skipped', '04-offer-timeout', '05-offer-answered', '06-branch-settled']) {
       try {
         await copyFile(join(dir, `screen-${name}.txt`), join(attempt.dir, `screen-${name}.txt`));
       } catch {

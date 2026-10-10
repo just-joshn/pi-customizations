@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+import { execFileSync, spawn } from 'node:child_process';
+import { createHash } from 'node:crypto';
 // Captures PSTACK-SETUP-LOAD-STATE-001: /setup-pstack against an existing rule that
 // carries distinctive budget/role values plus a retired `how critics` line. Observes
 // whether those values become current choices and whether the retired line is dropped
@@ -7,8 +9,6 @@
 // Usage: node scripts/capture-setup-load-state.mjs [--cursor-only|--pi-only]
 // Evidence root: parity/evidence/setup-load-state/
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
-import { createHash } from 'node:crypto';
-import { execFileSync, spawn } from 'node:child_process';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 
@@ -41,20 +41,22 @@ function digestBytes(bytes) {
 function peerSetupCaptures() {
   try {
     const out = execFileSync('ps', ['-ax', '-o', 'pid=,command='], { encoding: 'utf8' });
-    return out
-      .split('\n')
-      .map((line) => line.trim())
-      .filter(Boolean)
-      .map((line) => {
-        const pid = Number(line.split(/\s+/, 1)[0]);
-        return { pid, command: line.slice(String(pid).length).trim() };
-      })
-      .filter((row) => Number.isFinite(row.pid))
-      .filter((row) => row.pid !== process.pid && row.pid !== process.ppid)
-      // Real node argv only. Ignore shell wrappers that embed the same path in -c text.
-      .filter((row) => !/(^|[\/\s])(zsh|bash|sh)\b/.test(row.command))
-      .filter((row) => !/\bbuiltin\b/.test(row.command))
-      .filter((row) => /(^|[\/\s])node(\s+|$).*parity\/scripts\/capture-setup-[^\s]*\.mjs\b/.test(row.command));
+    return (
+      out
+        .split('\n')
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .map((line) => {
+          const pid = Number(line.split(/\s+/, 1)[0]);
+          return { pid, command: line.slice(String(pid).length).trim() };
+        })
+        .filter((row) => Number.isFinite(row.pid))
+        .filter((row) => row.pid !== process.pid && row.pid !== process.ppid)
+        // Real node argv only. Ignore shell wrappers that embed the same path in -c text.
+        .filter((row) => !/(^|[/\s])(zsh|bash|sh)\b/.test(row.command))
+        .filter((row) => !/\bbuiltin\b/.test(row.command))
+        .filter((row) => /(^|[/\s])node(\s+|$).*parity\/scripts\/capture-setup-[^\s]*\.mjs\b/.test(row.command))
+    );
   } catch {
     return [];
   }
@@ -144,14 +146,8 @@ function agentVisibleText(lines) {
 function observeLoad(lines) {
   const text = agentVisibleText(lines);
   const budgetNamed =
-    text.includes(EXPECTED_BUDGET) ||
-    /small — medium reasoning \(current\)/i.test(text) ||
-    /current (rule )?records[`'"]?\s*small/i.test(text) ||
-    /Current pstack budget is small/i.test(text) ||
-    /budget[:\s]+small/i.test(text);
-  const markerRoleLoaded =
-    new RegExp(`${MARKER_ROLE}[^\\n]{0,40}${MARKER_VALUE}|${MARKER_VALUE}[^\\n]{0,40}${MARKER_ROLE}`, 'i').test(text) ||
-    (/\bbug-fix\b/i.test(text) && /\bauto\b/i.test(text) && /except|currently|role/i.test(text));
+    text.includes(EXPECTED_BUDGET) || /small — medium reasoning \(current\)/i.test(text) || /current (rule )?records[`'"]?\s*small/i.test(text) || /Current pstack budget is small/i.test(text) || /budget[:\s]+small/i.test(text);
+  const markerRoleLoaded = new RegExp(`${MARKER_ROLE}[^\\n]{0,40}${MARKER_VALUE}|${MARKER_VALUE}[^\\n]{0,40}${MARKER_ROLE}`, 'i').test(text) || (/\bbug-fix\b/i.test(text) && /\bauto\b/i.test(text) && /except|currently|role/i.test(text));
   const retiredNamed = /how critics/i.test(text);
   const droppedLanguage = /dropp(?:ed|ing)|retired/i.test(text);
   const retiredListed = retiredNamed && droppedLanguage;
@@ -199,13 +195,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: join(root, 'fixtures', 'first-run'),
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -301,12 +291,7 @@ async function runSide(side, fixtureBytes, fixtureDigest, lockedBytes) {
       pathNotes.push('askquestion-budget');
       for (let panel = 2; panel <= 6; panel += 1) {
         await waitGone(attempt, GEOMETRY, '› [', 90_000).catch(() => {});
-        const next = await waitEither(
-          attempt,
-          GEOMETRY,
-          ['› [', 'Edited pstack-models.mdc', 'how critics', 'dropped', 'Accept', ...chatFormNeedles],
-          180_000,
-        ).catch(() => null);
+        const next = await waitEither(attempt, GEOMETRY, ['› [', 'Edited pstack-models.mdc', 'how critics', 'dropped', 'Accept', ...chatFormNeedles], 180_000).catch(() => null);
         lines = await dumpScreen(attempt, dir, `0${panel}-after-budget`, GEOMETRY);
         combined = mergeObs(combined, observeLoad(lines));
         await snapshotRuleDigest(`0${panel}-after-budget`, rulePath, digests);
@@ -333,12 +318,7 @@ async function runSide(side, fixtureBytes, fixtureDigest, lockedBytes) {
       // Budget-only reply so screen observations cannot pass on our own prompt text.
       attempt.input(Buffer.from('small — medium reasoning'), 'literal_user');
       attempt.input(Buffer.from('\r'), 'literal_user');
-      const after = await waitEither(
-        attempt,
-        GEOMETRY,
-        ['› [', 'Edited pstack-models.mdc', 'how critics', 'dropped', 'Accept', 'bug-fix', 'roles'],
-        360_000,
-      ).catch(() => null);
+      const after = await waitEither(attempt, GEOMETRY, ['› [', 'Edited pstack-models.mdc', 'how critics', 'dropped', 'Accept', 'bug-fix', 'roles'], 360_000).catch(() => null);
       lines = await dumpScreen(attempt, dir, '02-after-chatform', GEOMETRY);
       combined = mergeObs(combined, observeLoad(lines));
       await snapshotRuleDigest('02-after-chatform', rulePath, digests);
@@ -352,7 +332,7 @@ async function runSide(side, fixtureBytes, fixtureDigest, lockedBytes) {
 
     // Collect as much on-screen evidence as we can before cancelling.
     const settleDeadline = Date.now() + 300_000;
-    let dumpIdx = 7;
+    const dumpIdx = 7;
     while (Date.now() < settleDeadline) {
       lines = await screenLines(attempt, GEOMETRY);
       combined = mergeObs(combined, observeLoad(lines));
@@ -377,12 +357,8 @@ async function runSide(side, fixtureBytes, fixtureDigest, lockedBytes) {
 
     const after = await readFile(rulePath, 'utf8');
     const afterDigest = await snapshotRuleDigest('rule-after', rulePath, digests);
-    const fixtureHeldThroughScreens = digests
-      .filter((row) => row.label !== 'rule-after')
-      .every((row) => row.digest === fixtureDigest);
-    const midRunLocked = digests.some(
-      (row) => row.label !== 'rule-after' && row.digest === LOCKED_FIXTURE_DIGEST,
-    );
+    const fixtureHeldThroughScreens = digests.filter((row) => row.label !== 'rule-after').every((row) => row.digest === fixtureDigest);
+    const midRunLocked = digests.some((row) => row.label !== 'rule-after' && row.digest === LOCKED_FIXTURE_DIGEST);
     await writeFile(join(dir, 'rule-before.mdc'), fixtureBytes);
     await writeFile(join(dir, 'rule-after.mdc'), after);
     await writeFile(join(dir, 'rule-digests.json'), `${JSON.stringify(digests, null, 2)}\n`);
@@ -391,13 +367,7 @@ async function runSide(side, fixtureBytes, fixtureDigest, lockedBytes) {
       pathNotes,
       screens: combined,
       loadFromExisting: combined.budgetNamed && combined.markerRoleLoaded,
-      retiredHandling: combined.retiredListed
-        ? 'dropped-and-listed'
-        : combined.retiredNamed
-          ? 'named-without-drop-language'
-          : combined.droppedLanguage
-            ? 'drop-language-without-how-critics'
-            : 'not-observed',
+      retiredHandling: combined.retiredListed ? 'dropped-and-listed' : combined.retiredNamed ? 'named-without-drop-language' : combined.droppedLanguage ? 'drop-language-without-how-critics' : 'not-observed',
       ruleUnchanged: after === fixtureBytes,
       afterDigest,
       fixtureDigest,

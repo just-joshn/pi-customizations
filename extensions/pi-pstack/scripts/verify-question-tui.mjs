@@ -28,23 +28,22 @@ const cases = [
   { name: 'single', mode: 'single', steps: [{ keys: ['Down', 'Space'], expect: '[x] Second choice' }], keys: ['Enter'], answers: ['two'], cancelled: false, width: 120 },
   { name: 'text', mode: 'text', opensText: 'Other: ▏', text: 'terminal answer', keys: ['Enter'], answers: ['terminal answer'], cancelled: false, width: 120 },
   { name: 'cancel', mode: 'single', keys: ['Escape'], answers: [], cancelled: true, width: 120 },
-  { name: 'multiple', mode: 'multiple', steps: [{ keys: ['Space'], expect: '[x] First choice' }, { keys: ['Down', 'Space'], expect: '[x] Second choice' }], keys: ['Enter'], answers: ['one', 'two'], cancelled: false, width: 70 },
+  {
+    name: 'multiple',
+    mode: 'multiple',
+    steps: [
+      { keys: ['Space'], expect: '[x] First choice' },
+      { keys: ['Down', 'Space'], expect: '[x] Second choice' },
+    ],
+    keys: ['Enter'],
+    answers: ['one', 'two'],
+    cancelled: false,
+    width: 70,
+  },
   { name: 'partial-escape', mode: 'multiple', steps: [{ keys: ['Space'], expect: '[x] First choice' }], keys: ['Escape'], answers: ['one'], cancelled: false, width: 70 },
 ];
 try {
-  tmux(
-    'new-session',
-    '-d',
-    '-s',
-    'questions',
-    '-x',
-    '120',
-    '-y',
-    '35',
-    '-c',
-    agent,
-    `env PI_CODING_AGENT_DIR=${quote(agent)} PSTACK_TUI_ANSWERS=${quote(answer)} pi --no-session -e ${quote(join(root, 'test/question-tui-fixture.ts'))}`,
-  );
+  tmux('new-session', '-d', '-s', 'questions', '-x', '120', '-y', '35', '-c', agent, `env PI_CODING_AGENT_DIR=${quote(agent)} PSTACK_TUI_ANSWERS=${quote(answer)} pi --no-session -e ${quote(join(root, 'test/question-tui-fixture.ts'))}`);
   await wait(() => pane().includes('question-tui-fixture.ts') && pane().includes('0.0%/'));
   for (const row of cases) {
     await rm(answer, { force: true });

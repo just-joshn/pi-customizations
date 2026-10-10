@@ -6,7 +6,7 @@ The audit that produced this page is in [subagents-native-audit.md](subagents-na
 
 ## Adapters that fill a gap
 
-Pi version checked: 1.0.2. The audit inspected exported `RpcClient`, `BashOperations`, `ExecOptions`, `SessionManager`, and `AgentSessionRuntime` contracts. Each row says what the public API lacks, the smallest adapter, which state stays Pi's, and when the adapter can go. [Durable host gaps](durable-host-native-gaps.md) records the separate timer, webhook, and detached-root boundaries.
+Pi version checked: 1.1.0 (package pin and installed `@earendil-works/pi-coding-agent`). The audit inspected exported `RpcClient`, `BashOperations`, `ExecOptions`, `SessionManager`, and `AgentSessionRuntime` contracts. Spot-check on 1.1.0 still shows private `RpcClient.send` and `ExecOptions` without stdin or env, so the rows below remain open. Each row says what the public API lacks, the smallest adapter, which state stays Pi's, and when the adapter can go. [Durable host gaps](durable-host-native-gaps.md) records the separate timer, webhook, and detached-root boundaries. Host-provided peers for this package include `@earendil-works/pi-agent-core` with `"*"` alongside `pi-ai`, `pi-coding-agent`, `pi-tui`, and `typebox`.
 
 | Adapter | Required behavior | Pi mechanism evaluated | Why it cannot express the need | Smallest adapter | Pi state that stays authoritative | Verified by | Delete when |
 | --- | --- | --- | --- | --- | --- | --- | --- |

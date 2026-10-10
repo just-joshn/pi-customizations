@@ -16,8 +16,8 @@ The review covered source, tests, probes, captured reference data, the parity ma
 
 The merged targeted suite passes 136 tests in 16 files, including the upstream tool-transition regressions. Typecheck, coverage, shuffled tests, repository-wide tests and typechecks, Biome, agent rules, test conventions, and native-mechanism checks pass.
 
-The four reports in `verification/` record actual Pi `1.0.0` and `1.0.1` runs. They cover print, JSON, RPC, ambient authentication without credential persistence, request identity, session correlation, fork, reload, session replacement, native tools, cancellation, usage, compaction, virtual routing, and explicit header overrides.
+Current host evidence is Pi `1.1.0`, matching the package `devDependencies` pins. `verification/pi-1.1.0-native.json` and `verification/pi-1.1.0-paths.json` cover print, JSON, RPC, ambient authentication without credential persistence, request identity, session correlation, fork, reload, session replacement, native tools, cancellation, usage, compaction, virtual routing, and explicit header overrides. `scripts/prove-context-guard.ts --expect green` also passes on that host. Older `verification/pi-1.0.0-*.json` and `verification/pi-1.0.1-*.json` receipts are historical.
 
-The packaging and disclosure follow-up did not change the original reviewed production source. The subsequent rebase preserves the upstream Pi `1.0.1` pins and request-local tool-transition compatibility fix. The four runtime reports were regenerated against this merged source, including the cached Pi `1.0.0` host. A fresh integration review covers the combined adapter.
+The packaging and disclosure follow-up did not change the original reviewed production source. The request-local tool-transition compatibility fix remains. Runtime reports for the pinned host were regenerated on Pi `1.1.0`.
 
 No complete live authentication or Anthropic inference was performed.

@@ -3,8 +3,7 @@ import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 const howSkillMarker = /<skill\s+name="how"(?:\s|>)/;
 const blockedTools = new Set(['bash', 'powershell', 'read', 'grep', 'find', 'ls', 'edit', 'write']);
 
-export const howSpawnGateMessage =
-  'The how skill is active. Spawn one readonly Task (subagent_type generalPurpose, how explainer role) before direct exploration or the final answer (Step 2b / Step 2a).';
+export const howSpawnGateMessage = 'The how skill is active. Spawn one readonly Task (subagent_type generalPurpose, how explainer role) before direct exploration or the final answer (Step 2b / Step 2a).';
 
 export const howSpawnUsageBlock = `<subagent_usage>
 The how skill is active for this turn. Ignore "default to doing the work yourself" and the five-or-fewer direct-tool heuristic.
@@ -31,32 +30,38 @@ export function explainerTaskStarted(toolName: string, input: Record<string, unk
   return kind === 'explore' && input['name'] === 'how-explainer';
 }
 
+type Gate = { kind: 'idle' } | { kind: 'armed'; spawned: boolean; nudged: boolean; continuePending: boolean };
+
 export function registerHowSpawnGate(pi: ExtensionAPI): void {
-  let armed = false;
-  let spawned = false;
-  let nudged = false;
+  let gate: Gate = { kind: 'idle' };
 
   pi.on('before_agent_start', (event) => {
-    armed = howSkillPrompt(event.prompt);
-    spawned = false;
-    nudged = false;
-    if (!armed) return;
-    event.systemPromptOptions.sections['subagent_usage'] = howSpawnUsageBlock;
+    if (howSkillPrompt(event.prompt)) {
+      gate = { kind: 'armed', spawned: false, nudged: false, continuePending: false };
+      event.systemPromptOptions.sections['subagent_usage'] = howSpawnUsageBlock;
+      return;
+    }
+    if (gate.kind === 'armed' && !gate.spawned && gate.continuePending) {
+      gate = { ...gate, continuePending: false };
+      event.systemPromptOptions.sections['subagent_usage'] = howSpawnUsageBlock;
+      return;
+    }
+    gate = { kind: 'idle' };
   });
 
   pi.on('tool_call', (event) => {
-    if (!armed) return;
+    if (gate.kind !== 'armed') return;
     if (explainerTaskStarted(event.toolName, event.input as Record<string, unknown>)) {
-      spawned = true;
+      gate = { ...gate, spawned: true };
       return;
     }
-    if (spawned || !blockedTools.has(event.toolName)) return;
+    if (gate.spawned || !blockedTools.has(event.toolName)) return;
     return { block: true, reason: howSpawnGateMessage };
   });
 
   pi.on('agent_before_settle', (event) => {
-    if (!armed || spawned || nudged || event.outcome !== 'completed') return;
-    nudged = true;
+    if (gate.kind !== 'armed' || gate.spawned || gate.nudged || event.outcome !== 'completed') return;
+    gate = { kind: 'armed', spawned: false, nudged: true, continuePending: true };
     return {
       entries: [{ type: 'custom_message', customType: 'pstack-how-spawn', display: true, content: spawnReminder }],
       continue: true,
@@ -64,8 +69,11 @@ export function registerHowSpawnGate(pi: ExtensionAPI): void {
   });
 
   pi.on('agent_end', () => {
-    armed = false;
-    spawned = false;
-    nudged = false;
+    if (gate.kind === 'armed' && !gate.spawned) return;
+    gate = { kind: 'idle' };
+  });
+
+  pi.on('agent_settled', () => {
+    gate = { kind: 'idle' };
   });
 }

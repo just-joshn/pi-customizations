@@ -23,10 +23,7 @@ function loadAgent(name: string, file: string): AgentDefinition {
   const path = join(root, file);
   const text = readFileSync(path, 'utf8');
   const { frontmatter, body } = parseFrontmatter<Record<string, unknown>>(text);
-  const description =
-    typeof frontmatter['description'] === 'string' && frontmatter['description'].trim()
-      ? frontmatter['description'].trim()
-      : name;
+  const description = typeof frontmatter['description'] === 'string' && frontmatter['description'].trim() ? frontmatter['description'].trim() : name;
   return {
     name,
     displayName: name,

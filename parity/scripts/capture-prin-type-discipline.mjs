@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { spawnSync } from 'node:child_process';
 // prin-type-discipline: /poteto-mode redesign of a bag-of-optionals ticket model with a cast.
 // Observe leaf Read of principle-type-system-discipline, illegal states unrepresentable
 // (or brands/parses at boundaries), not casts and bag-of-optionals. Real PTY both sides.
@@ -7,7 +8,6 @@
 // Usage: node scripts/capture-prin-type-discipline.mjs [--cursor-only|--pi-only|--both|--self-test]
 import { createHash } from 'node:crypto';
 import { access, mkdir, readdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises';
-import { spawnSync } from 'node:child_process';
 import { homedir } from 'node:os';
 import { dirname, join, relative } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -24,24 +24,8 @@ const piAgentDir = '/tmp/pi-ref-agent';
 const piRulePath = join(piAgentDir, 'pstack', 'models.mdc');
 const evidenceRoot = join(root, 'evidence', 'principles', 'type-discipline');
 const fixtureApp = join(evidenceRoot, 'fixture-app');
-const typeSkillCursor = join(
-  root,
-  'reference',
-  'cursor-plugins',
-  'pstack',
-  'skills',
-  'principle-type-system-discipline',
-  'SKILL.md',
-);
-const typeSkillPi = join(
-  root,
-  '..',
-  'extensions',
-  'pi-pstack',
-  'skills',
-  'principle-type-system-discipline',
-  'SKILL.md',
-);
+const typeSkillCursor = join(root, 'reference', 'cursor-plugins', 'pstack', 'skills', 'principle-type-system-discipline', 'SKILL.md');
+const typeSkillPi = join(root, '..', 'extensions', 'pi-pstack', 'skills', 'principle-type-system-discipline', 'SKILL.md');
 const GEOMETRY = { rows: 40, cols: 120 };
 const LOCKED_FIXTURE_DIGEST = 'sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004';
 const SETTLE_MS = 1_500_000;
@@ -52,10 +36,7 @@ const VERIFY_SCRIPT_REL = 'scripts/verify.mjs';
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const stripAnsi = (text) =>
-  text
-    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
-    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
 
 function writeRootFor(side) {
   return join(evidenceRoot, 'fixture-out', side);
@@ -138,24 +119,13 @@ function isTypeDisciplineSkillPath(p) {
 function observeTypeDisciplineText(text, { ignorePromptSlice } = {}) {
   let hay = stripAnsi(text || '');
   if (ignorePromptSlice) hay = hay.split(ignorePromptSlice).join(' ');
-  const potetoMode =
-    /\/poteto-mode\b/i.test(hay) ||
-    /\[skill\]\s*poteto-mode/i.test(hay) ||
-    /\bUsed poteto-mode\b/i.test(hay);
+  const potetoMode = /\/poteto-mode\b/i.test(hay) || /\[skill\]\s*poteto-mode/i.test(hay) || /\bUsed poteto-mode\b/i.test(hay);
   const leafChrome = /principle-type-system-discipline[/\\]SKILL\.md/i.test(hay);
   const usedLeaf = /\bUsed principle-type-system-discipline\b/i.test(hay);
   const skillBracketLeaf = /\[skill\]\s*principle-type-system-discipline\b/i.test(hay);
   const hostAttached = Boolean(usedLeaf || skillBracketLeaf);
-  const failMention =
-    /\bTYPE-FAIL\b/.test(hay) ||
-    /Cannot read properties of undefined/i.test(hay) ||
-    /reading 'slice'/i.test(hay) ||
-    /\bTypeError\b/i.test(hay);
-  const verifyMention =
-    /scripts\/verify\.mjs/i.test(hay) ||
-    /evidence\/verify-out\.txt/i.test(hay) ||
-    /\bTYPE-OK\b/.test(hay) ||
-    /\bTYPE-FAIL\b/.test(hay);
+  const failMention = /\bTYPE-FAIL\b/.test(hay) || /Cannot read properties of undefined/i.test(hay) || /reading 'slice'/i.test(hay) || /\bTypeError\b/i.test(hay);
+  const verifyMention = /scripts\/verify\.mjs/i.test(hay) || /evidence\/verify-out\.txt/i.test(hay) || /\bTYPE-OK\b/.test(hay) || /\bTYPE-FAIL\b/.test(hay);
   const working = /[\u2800-\u28FF]/.test(hay) || /\bWorking\b/.test(hay);
   return { potetoMode, leafChrome, hostAttached, failMention, verifyMention, working };
 }
@@ -200,14 +170,7 @@ function extractToolCallsFromJsonl(text) {
 }
 
 function pathFromArgs(args) {
-  return (
-    args.path ||
-    args.file_path ||
-    args.filePath ||
-    args.target_file ||
-    args.file ||
-    null
-  );
+  return args.path || args.file_path || args.filePath || args.target_file || args.file || null;
 }
 
 function isProductPath(p) {
@@ -240,18 +203,14 @@ function scoreCallsForTypeDiscipline(calls) {
     const args = call.args || {};
     const blob = JSON.stringify(args);
     const path = pathFromArgs(args);
-    const isRead =
-      /^(Read|read|read_file|ReadFile|cat|blob-mention)$/i.test(name) ||
-      (name === 'bash' && typeof args.command === 'string' && /\bcat\b/.test(args.command));
+    const isRead = /^(Read|read|read_file|ReadFile|cat|blob-mention)$/i.test(name) || (name === 'bash' && typeof args.command === 'string' && /\bcat\b/.test(args.command));
     if (isRead && isTypeDisciplineSkillPath(path || blob)) {
       leafSkillRead = true;
       if (!leafSkillReadAt) leafSkillReadAt = call.ts || new Date().toISOString();
       toolOrder.push(`${name}(type-discipline-leaf)`);
       continue;
     }
-    const verifyHit =
-      /\bscripts\/verify\.mjs\b/i.test(blob) ||
-      (typeof args.command === 'string' && /verify\.mjs/.test(args.command));
+    const verifyHit = /\bscripts\/verify\.mjs\b/i.test(blob) || (typeof args.command === 'string' && /verify\.mjs/.test(args.command));
     if (verifyHit) {
       ranVerifyScript = true;
       if (!firstVerifyAt) firstVerifyAt = call.ts || new Date().toISOString();
@@ -283,21 +242,14 @@ function scoreCallsForTypeDiscipline(calls) {
 
 export function analyzeProductSources(src) {
   const text = src || '';
-  const stillBagOptional =
-    /completed\s*:\s*boolean/.test(text) && /completedAt\s*\?/.test(text);
-  const hasKindUnion =
-    /kind\s*:\s*['"]open['"]/.test(text) && /kind\s*:\s*['"]done['"]/.test(text);
-  const hasStatusUnion =
-    /status\s*:\s*['"]open['"]/.test(text) && /status\s*:\s*['"]done['"]/.test(text);
+  const stillBagOptional = /completed\s*:\s*boolean/.test(text) && /completedAt\s*\?/.test(text);
+  const hasKindUnion = /kind\s*:\s*['"]open['"]/.test(text) && /kind\s*:\s*['"]done['"]/.test(text);
+  const hasStatusUnion = /status\s*:\s*['"]open['"]/.test(text) && /status\s*:\s*['"]done['"]/.test(text);
   const hasDiscriminatedUnion = hasKindUnion || hasStatusUnion;
-  const derivedTimestamp =
-    /completedAt\s*:\s*string\s*\|\s*null/.test(text) && !/completed\s*:\s*boolean/.test(text);
-  const hasParseBoundary =
-    /\bparseTicket\b/.test(text) || /\bparse\w*Ticket\b/.test(text) || /\bfromRaw\b/.test(text);
+  const derivedTimestamp = /completedAt\s*:\s*string\s*\|\s*null/.test(text) && !/completed\s*:\s*boolean/.test(text);
+  const hasParseBoundary = /\bparseTicket\b/.test(text) || /\bparse\w*Ticket\b/.test(text) || /\bfromRaw\b/.test(text);
   const primaryCast = /\bas\s+string\b/.test(text) && stillBagOptional;
-  const illegalUnrepresentable = Boolean(
-    hasDiscriminatedUnion || derivedTimestamp || (hasParseBoundary && !stillBagOptional),
-  );
+  const illegalUnrepresentable = Boolean(hasDiscriminatedUnion || derivedTimestamp || (hasParseBoundary && !stillBagOptional));
   const soleCastBag = stillBagOptional && !illegalUnrepresentable;
   return {
     stillBagOptional,
@@ -312,45 +264,19 @@ export function analyzeProductSources(src) {
   };
 }
 
-export function scoreTypeDiscipline({
-  frontmatter,
-  done,
-  verifyOut,
-  productOk,
-  productAnalysis,
-  screenText,
-  ptyText,
-  sessionScore,
-  transcriptScore,
-  prompt,
-}) {
+export function scoreTypeDiscipline({ frontmatter, done, verifyOut, productOk, productAnalysis, screenText, ptyText, sessionScore, transcriptScore, prompt }) {
   const screen = observeTypeDisciplineText(screenText, { ignorePromptSlice: prompt });
   const pty = observeTypeDisciplineText(ptyText, { ignorePromptSlice: prompt });
-  const leafSkillRead = Boolean(
-    sessionScore?.leafSkillRead ||
-      transcriptScore?.leafSkillRead ||
-      screen.leafChrome ||
-      pty.leafChrome,
-  );
+  const leafSkillRead = Boolean(sessionScore?.leafSkillRead || transcriptScore?.leafSkillRead || screen.leafChrome || pty.leafChrome);
   const usedChrome = Boolean(screen.hostAttached || pty.hostAttached || sessionScore?.hostAttached);
   const modelAutoInvoke = usedChrome && !leafSkillRead;
-  const ranVerifyScript = Boolean(
-    sessionScore?.ranVerifyScript || transcriptScore?.ranVerifyScript || screen.verifyMention || pty.verifyMention,
-  );
+  const ranVerifyScript = Boolean(sessionScore?.ranVerifyScript || transcriptScore?.ranVerifyScript || screen.verifyMention || pty.verifyMention);
   const illegalUnrepresentable = Boolean(productAnalysis?.illegalUnrepresentable);
   const soleCastBag = Boolean(productAnalysis?.soleCastBag);
   const keptVerifyOk = Boolean(verifyOut?.ok);
   const verifiedDone = /^verified=yes\b/i.test((done?.line || '').trim());
   const frontmatterOk = Boolean(frontmatter?.ok);
-  const contractHeld =
-    frontmatterOk &&
-    leafSkillRead &&
-    illegalUnrepresentable &&
-    !soleCastBag &&
-    productOk &&
-    keptVerifyOk &&
-    verifiedDone &&
-    !modelAutoInvoke;
+  const contractHeld = frontmatterOk && leafSkillRead && illegalUnrepresentable && !soleCastBag && productOk && keptVerifyOk && verifiedDone && !modelAutoInvoke;
   return {
     frontmatterOk,
     leafSkillRead,
@@ -378,15 +304,7 @@ async function baselineProduct() {
 
 async function snapshotBaseline() {
   const baselineDir = join(evidenceRoot, 'fixture-baseline');
-  for (const rel of [
-    'src/ticket.ts',
-    'README.md',
-    'NOTES.md',
-    'package.json',
-    VERIFY_SCRIPT_REL,
-    'evidence/.gitkeep',
-    'out/.gitkeep',
-  ]) {
+  for (const rel of ['src/ticket.ts', 'README.md', 'NOTES.md', 'package.json', VERIFY_SCRIPT_REL, 'evidence/.gitkeep', 'out/.gitkeep']) {
     const src = join(fixtureApp, rel);
     if (!(await pathExists(src))) continue;
     const dst = join(baselineDir, rel);
@@ -397,15 +315,7 @@ async function snapshotBaseline() {
 
 async function restoreProduct() {
   const baselineDir = join(evidenceRoot, 'fixture-baseline');
-  for (const rel of [
-    'src/ticket.ts',
-    'README.md',
-    'NOTES.md',
-    'package.json',
-    VERIFY_SCRIPT_REL,
-    'evidence/.gitkeep',
-    'out/.gitkeep',
-  ]) {
+  for (const rel of ['src/ticket.ts', 'README.md', 'NOTES.md', 'package.json', VERIFY_SCRIPT_REL, 'evidence/.gitkeep', 'out/.gitkeep']) {
     const src = join(baselineDir, rel);
     const dst = join(fixtureApp, rel);
     if (await pathExists(src)) {
@@ -416,15 +326,7 @@ async function restoreProduct() {
   await rm(join(fixtureApp, VERIFY_OUT_REL), { force: true });
   const files = await walkFiles(fixtureApp);
   for (const rel of files) {
-    if (
-      rel === 'README.md' ||
-      rel === 'NOTES.md' ||
-      rel === 'package.json' ||
-      rel === 'src/ticket.ts' ||
-      rel === VERIFY_SCRIPT_REL ||
-      rel === 'evidence/.gitkeep' ||
-      rel === 'out/.gitkeep'
-    ) {
+    if (rel === 'README.md' || rel === 'NOTES.md' || rel === 'package.json' || rel === 'src/ticket.ts' || rel === VERIFY_SCRIPT_REL || rel === 'evidence/.gitkeep' || rel === 'out/.gitkeep') {
       continue;
     }
     if (rel.startsWith('evidence/') || rel.startsWith('out/') || rel.endsWith('.tsv') || rel.startsWith('.audit/')) {
@@ -486,13 +388,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -546,10 +442,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
       await sleep(800);
       continue;
     }
-    const chatReady =
-      !/Trust project folder\?/i.test(text) &&
-      (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) &&
-      (/type-discipline|ticket|README|medium|Skill conflicts|Session TTL|fixture-app/i.test(text));
+    const chatReady = !/Trust project folder\?/i.test(text) && (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) && /type-discipline|ticket|README|medium|Skill conflicts|Session TTL|fixture-app/i.test(text);
     if (chatReady) return lines;
     await sleep(200);
   }
@@ -586,13 +479,8 @@ async function summarizePiSession(sessionPath) {
   const text = await readFile(sessionPath, 'utf8');
   const calls = extractToolCallsFromJsonl(text);
   const scored = scoreCallsForTypeDiscipline(calls);
-  const hostAttached =
-    /\bUsed principle-type-system-discipline\b/i.test(text) ||
-    /\[skill\]\s*principle-type-system-discipline\b/i.test(text);
-  const failMention =
-    /\bTYPE-FAIL\b/.test(text) ||
-    /Cannot read properties of undefined/i.test(text) ||
-    /reading 'slice'/i.test(text);
+  const hostAttached = /\bUsed principle-type-system-discipline\b/i.test(text) || /\[skill\]\s*principle-type-system-discipline\b/i.test(text);
+  const failMention = /\bTYPE-FAIL\b/.test(text) || /Cannot read properties of undefined/i.test(text) || /reading 'slice'/i.test(text);
   return { sessionPath, hostAttached, failMention, ...scored };
 }
 
@@ -621,9 +509,7 @@ async function findCursorTranscripts(sinceMs, side) {
         } catch {
           continue;
         }
-        const mentionsThisAttempt =
-          text.includes(doneAbs) ||
-          (text.includes(`type-discipline/fixture-out/${side}/done.txt`) && text.includes('ticket'));
+        const mentionsThisAttempt = text.includes(doneAbs) || (text.includes(`type-discipline/fixture-out/${side}/done.txt`) && text.includes('ticket'));
         if (mentionsThisAttempt) hits.push({ path: abs, mtimeMs: st.mtimeMs, size: st.size });
       }
     }
@@ -640,25 +526,15 @@ async function summarizeCursorTranscripts(sinceMs, side) {
     const text = await readFile(hit.path, 'utf8');
     const scored = scoreCallsForTypeDiscipline(extractToolCallsFromJsonl(text));
     const leafInBlob = /principle-type-system-discipline[/\\]SKILL\.md/i.test(text);
-    const failMention =
-      /\bTYPE-FAIL\b/.test(text) ||
-      /Cannot read properties of undefined/i.test(text) ||
-      /reading 'slice'/i.test(text);
+    const failMention = /\bTYPE-FAIL\b/.test(text) || /Cannot read properties of undefined/i.test(text) || /reading 'slice'/i.test(text);
     const merged = {
       path: hit.path,
       ...scored,
       leafSkillRead: scored.leafSkillRead || leafInBlob,
       failMention,
     };
-    const rank =
-      (merged.leafSkillRead ? 4 : 0) +
-      (merged.ranVerifyScript ? 2 : 0) +
-      (merged.sawFailBeforeWrite ? 1 : 0);
-    const bestRank = best
-      ? (best.leafSkillRead ? 4 : 0) +
-        (best.ranVerifyScript ? 2 : 0) +
-        (best.sawFailBeforeWrite ? 1 : 0)
-      : -1;
+    const rank = (merged.leafSkillRead ? 4 : 0) + (merged.ranVerifyScript ? 2 : 0) + (merged.sawFailBeforeWrite ? 1 : 0);
+    const bestRank = best ? (best.leafSkillRead ? 4 : 0) + (best.ranVerifyScript ? 2 : 0) + (best.sawFailBeforeWrite ? 1 : 0) : -1;
     if (!best || rank > bestRank || (rank === bestRank && hit.mtimeMs > (best.mtimeMs || 0))) {
       best = { ...merged, mtimeMs: hit.mtimeMs };
     }
@@ -734,21 +610,7 @@ async function runSide(side, ruleBytes, ruleDigest, frontmatter) {
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        [
-          'poteto-mode',
-          'ticket.ts',
-          'verify',
-          'TYPE-OK',
-          'TYPE-FAIL',
-          'principle-type-system-discipline',
-          'Phase',
-          'completedAt',
-        ],
-        300_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['poteto-mode', 'ticket.ts', 'verify', 'TYPE-OK', 'TYPE-FAIL', 'principle-type-system-discipline', 'Phase', 'completedAt'], 300_000);
     } catch {
       // settle may still land artifacts
     }
@@ -862,14 +724,7 @@ async function runSide(side, ruleBytes, ruleDigest, frontmatter) {
 
     const snapDir = join(attempt.dir, 'fixture-snapshot');
     await mkdir(snapDir, { recursive: true });
-    for (const rel of [
-      'src/ticket.ts',
-      'README.md',
-      'NOTES.md',
-      'package.json',
-      VERIFY_SCRIPT_REL,
-      VERIFY_OUT_REL,
-    ]) {
+    for (const rel of ['src/ticket.ts', 'README.md', 'NOTES.md', 'package.json', VERIFY_SCRIPT_REL, VERIFY_OUT_REL]) {
       const abs = join(fixtureApp, rel);
       if (!(await pathExists(abs))) continue;
       const dest = join(snapDir, rel);
@@ -1009,10 +864,7 @@ if (isMain) {
     results.push(result);
     console.log(JSON.stringify(result));
   }
-  await writeFile(
-    join(evidenceRoot, 'capture-results.json'),
-    `${JSON.stringify({ scenario: 'prin-type-discipline', fixtureDigest: preDigest, frontmatter, results }, null, 2)}\n`,
-  );
+  await writeFile(join(evidenceRoot, 'capture-results.json'), `${JSON.stringify({ scenario: 'prin-type-discipline', fixtureDigest: preDigest, frontmatter, results }, null, 2)}\n`);
   console.log(
     JSON.stringify({
       scenario: 'prin-type-discipline',

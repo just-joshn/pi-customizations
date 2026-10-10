@@ -3,24 +3,24 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { type ExtensionAPI, parseFrontmatter, VERSION } from '@earendil-works/pi-coding-agent';
+import { registerAutomations } from './automations.ts';
 import { skillCatalog } from './catalog.ts';
 import { registerCommands, registerNativeInput } from './commands.ts';
 import { registerContext, registerStatus } from './context.ts';
+import { registerFigureItOutPlaybookGate } from './figure-it-out-playbook-gate.ts';
 import { registerGoal } from './goal.ts';
 import { hostInstructions } from './host.ts';
 import { hostVersionNotice } from './host-version.ts';
-import { registerFigureItOutPlaybookGate } from './figure-it-out-playbook-gate.ts';
 import { registerHowSpawnGate } from './how-spawn-gate.ts';
 import { FIRST_ACTION_RULE_TYPE, firstActionRule, usesAnthropicMessages } from './mode-rule.ts';
 import { readModelRule } from './models.ts';
 import { registerPotetoPlaybookTodoGate } from './poteto-playbook-todo-gate.ts';
 import { registerQuestions } from './questions.ts';
-import { registerAutomations } from './automations.ts';
 import { registerRoutines } from './routines.ts';
 import { registerSetupTool } from './setup-tool.ts';
 import { registerShells } from './shells.ts';
-import { createState, registerStateTools } from './state.ts';
 import { loadAllSkills } from './skills-map.ts';
+import { createState, registerStateTools } from './state.ts';
 import { registerTimers } from './timers.ts';
 import { registerWhySpawnGate } from './why-spawn-gate.ts';
 import { registerWorkers } from './workers.ts';
@@ -45,12 +45,7 @@ async function loadModeSource() {
 
 export default async function pstack(pi: ExtensionAPI) {
   const environment = process.env['PI_PSTACK_WORKER_OWNER'] ? 'cloud' : 'local';
-  const [skills, { reminder, badge }, catalog, testedVersion] = await Promise.all([
-    loadAllSkills(root, environment),
-    loadModeSource(),
-    skillCatalog(root, environment),
-    testedHostVersion(),
-  ]);
+  const [skills, { reminder, badge }, catalog, testedVersion] = await Promise.all([loadAllSkills(root, environment), loadModeSource(), skillCatalog(root, environment), testedHostVersion()]);
   const mode = skills.get('poteto-mode');
   if (!mode) throw new Error('Missing pstack resource. Run bun run generate.');
   const commandSkills = new Map([...skills].filter(([name]) => name === 'poteto-mode' || name === 'setup-pstack'));

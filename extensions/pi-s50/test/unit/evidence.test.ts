@@ -97,14 +97,10 @@ describe('secret redaction', () => {
   test.for([
     ['Authorization: Bearer abc.def', 'Authorization: <REDACTED>'],
     ['token Bearer abcdef123456', 'token Bearer <REDACTED>'],
-    // biome-ignore lint/security/noSecrets: synthetic test value
     [`key ${['sk', 'abcdefghijklmnop1234'].join('-')}`, 'key <REDACTED>'],
-    // biome-ignore lint/security/noSecrets: synthetic test value
     [`gh ${['ghp', 'abcdefghijklmnopqrstuvwxyz0123'].join('_')}`, 'gh <REDACTED>'],
     ['slack xoxb-1234-abcd', 'slack <REDACTED>'],
-    // biome-ignore lint/security/noSecrets: synthetic test value
     [`aws ${'AKIA'}${'ABCDEFGHIJKLMNOP'}`, 'aws <REDACTED>'],
-    // biome-ignore lint/security/noSecrets: synthetic test value
     ['db password=hunter2 ok', 'db password=<REDACTED> ok'],
     ['jwt eyJhbGciOi.eyJzdWIiOi.c2lnbmF0dXJl', 'jwt <REDACTED>'],
     [['BEGIN', 'END'].map((edge) => `-----${edge} RSA ${'PRIVATE'} KEY-----`).join('\nMIIE\n'), '<REDACTED>'],

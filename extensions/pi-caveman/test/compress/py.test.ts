@@ -1,4 +1,3 @@
-// biome-ignore-all lint/security/noSecrets: Python repr and whitespace fixtures, not credentials
 import { expect, test } from 'vitest';
 import { countOccurrences, pyCompare, pyLen, pyRepr, pySetRepr, pySorted, pySplitlines, pySplitlinesKeepends, pyStem, pyStrip, pySuffix, replaceFirst } from '../../src/compress/py.ts';
 

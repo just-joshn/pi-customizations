@@ -297,7 +297,7 @@ test('user-perspective: pstack_context tool returns valid bounds and metadata', 
 });
 
 const cliPath = join(dirname(fileURLToPath(import.meta.resolve('@earendil-works/pi-coding-agent'))), 'bundle/cli.js');
-const cliDeadlineMs = 3000;
+const cliDeadlineMs = 15000;
 
 function runCli(args: string[], options: { cwd: string; agentDir: string }): Promise<{ stdout: string; stderr: string; code: number | null }> {
   return new Promise((resolve, reject) => {

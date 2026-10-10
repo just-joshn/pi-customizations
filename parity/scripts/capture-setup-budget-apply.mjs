@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { createHash } from 'node:crypto';
 // Captures setup-budget-apply: re-run /setup-pstack on a mixed real-slug fixture,
 // choose a target budget, and score effort-token mapping vs aliases. Real PTY both sides.
 // Restores the locked reference rule after each side.
@@ -9,7 +10,6 @@
 //                                               [--cursor-only|--pi-only|--both]
 // Evidence root: parity/evidence/setup-budget-apply/
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
-import { createHash } from 'node:crypto';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 
@@ -35,9 +35,7 @@ function parseCli(argv) {
     else if (arg.startsWith('--budget=')) budget = arg.slice('--budget='.length);
     else if (arg.startsWith('--effort=')) effortOverride = arg.slice('--effort='.length);
     else if (arg === '--help' || arg === '-h') {
-      console.log(
-        'Usage: capture-setup-budget-apply.mjs [--budget=large|medium|small|unlimited] [--effort=xhigh|high|medium|max] [--cursor-only|--pi-only|--both]',
-      );
+      console.log('Usage: capture-setup-budget-apply.mjs [--budget=large|medium|small|unlimited] [--effort=xhigh|high|medium|max] [--cursor-only|--pi-only|--both]');
       process.exit(0);
     } else {
       console.error(`Unknown argument: ${arg}`);
@@ -85,9 +83,7 @@ const instructionFor = (side) =>
       ? 'Read ~/.cursor/rules/pstack-models.mdc from disk before answering. Do not invent the current table.'
       : 'Call pstack_setup action state (or read $PI_CODING_AGENT_DIR/pstack/models.mdc) before answering. Do not invent the current table.',
     `Budget choice: ${TARGET_META.choice}.`,
-    TARGET_BUDGET === 'unlimited'
-      ? 'If the selector shows unlimited — keep max, that is the unlimited option. Choose it and still write budget unlimited (max) with remapped real slugs.'
-      : null,
+    TARGET_BUDGET === 'unlimited' ? 'If the selector shows unlimited — keep max, that is the unlimited option. Choose it and still write budget unlimited (max) with remapped real slugs.' : null,
     TARGET_META.fixtureKind === 'high'
       ? 'The current rule already has real model values at high effort plus bug-fix: auto and how explorer: inherit-parent.'
       : 'The current rule already has real model values at medium effort plus bug-fix: auto and how explorer: inherit-parent.',
@@ -138,7 +134,10 @@ function effortToken(value) {
 }
 
 function splitEntries(value) {
-  return value.split(',').map((part) => part.trim()).filter(Boolean);
+  return value
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean);
 }
 
 function scoreBudgetApply(beforeText, afterText) {
@@ -227,13 +226,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: join(root, 'fixtures', 'first-run'),
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -267,11 +260,7 @@ async function restoreLocked(lockedBytes) {
 async function answerBudgetApply(attempt, dir, side) {
   const instruction = instructionFor(side);
   // Prefer Reply / AskQuestion needles. "Pick a budget:" paints mid-stream while Working.
-  const chatFormNeedles = [
-    'Reply with a number',
-    'Reply with one of those four labels',
-    'Reply with one of those labels',
-  ];
+  const chatFormNeedles = ['Reply with a number', 'Reply with one of those four labels', 'Reply with one of those labels'];
   const first = await waitEither(attempt, GEOMETRY, ['› [', 'Edited pstack-models.mdc', ...chatFormNeedles], 300_000);
   // Wait out the spinner so the free-text reply is accepted.
   const settleDeadline = Date.now() + 90_000;
@@ -301,12 +290,7 @@ async function answerBudgetApply(attempt, dir, side) {
     attempt.input(Buffer.from('\r'), 'literal_user');
     await sleep(800);
     for (let panel = 2; panel <= 6; panel += 1) {
-      const wrote = await waitEither(
-        attempt,
-        GEOMETRY,
-        ['Edited pstack-models.mdc', '› [', ...chatFormNeedles],
-        120_000,
-      ).catch(() => null);
+      const wrote = await waitEither(attempt, GEOMETRY, ['Edited pstack-models.mdc', '› [', ...chatFormNeedles], 120_000).catch(() => null);
       await dumpScreen(attempt, dir, `0${panel}-panel`, GEOMETRY);
       if (wrote === 'Edited pstack-models.mdc') return { path: 'askquestion-wrote' };
       if (wrote === '› [') {
@@ -396,9 +380,7 @@ async function runSide(side, fixtureBytes, fixtureDigest, lockedBytes) {
     await sleep(2_000);
     await dumpScreen(attempt, dir, '03-after-write', GEOMETRY);
 
-    const offer = await waitEither(attempt, GEOMETRY, ['verification skill', 'verification-skill', 'Add a follow-up', '›'], 60_000).catch(
-      () => null,
-    );
+    const offer = await waitEither(attempt, GEOMETRY, ['verification skill', 'verification-skill', 'Add a follow-up', '›'], 60_000).catch(() => null);
     if (offer && /verification/i.test(offer)) {
       attempt.input(Buffer.from('No\r'), 'literal_user');
       await sleep(1000);

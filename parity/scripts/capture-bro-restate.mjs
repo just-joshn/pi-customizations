@@ -1,11 +1,11 @@
 #!/usr/bin/env node
+import { createHash } from 'node:crypto';
 // cmd-bro-restate: jargon-heavy assistant reply, then /bro plain restatement.
 // Real PTY both sides via the recorder. Screens + Pi session are the oracle.
 //
 // Usage: node scripts/capture-bro-restate.mjs [--cursor-only|--pi-only|--both]
 // Evidence root: parity/evidence/bro/
 import { access, mkdir, readdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises';
-import { createHash } from 'node:crypto';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 
@@ -26,26 +26,11 @@ const GEOMETRY = { rows: 40, cols: 120 };
 const LOCKED_FIXTURE_DIGEST = 'sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004';
 const SETTLE_MS = 1_200_000;
 
-const JARGON_TERMS = [
-  'event loop',
-  'microtask',
-  'libuv',
-  'thread pool',
-  'epoll',
-  'kqueue',
-  'macrotask',
-  'callback queue',
-  'tick',
-  'I/O completion',
-  'phase',
-];
+const JARGON_TERMS = ['event loop', 'microtask', 'libuv', 'thread pool', 'epoll', 'kqueue', 'macrotask', 'callback queue', 'tick', 'I/O completion', 'phase'];
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const stripAnsi = (text) =>
-  text
-    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
-    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
 
 function writeRootFor(side) {
   return join(evidenceRoot, 'fixture-out', side);
@@ -102,30 +87,17 @@ function scoreBro(text, { restateText = '', doneLine = null } = {}) {
   const normalized = stripAnsi(text || '');
   const restateNorm = stripAnsi(restateText || '');
   const broSkill =
-    /\/bro\b/i.test(normalized) ||
-    /\[skill\]\s*bro/i.test(normalized) ||
-    /\bUsed bro\b/i.test(normalized) ||
-    /\bLoaded bro\b/i.test(normalized) ||
-    /\bskill:\s*bro\b/i.test(normalized) ||
-    /Restate your last message/i.test(normalized);
+    /\/bro\b/i.test(normalized) || /\[skill\]\s*bro/i.test(normalized) || /\bUsed bro\b/i.test(normalized) || /\bLoaded bro\b/i.test(normalized) || /\bskill:\s*bro\b/i.test(normalized) || /Restate your last message/i.test(normalized);
   const plainHints =
-    /\b(in plain words|simply put|plain english|plain language|in short|basically)\b/i.test(
-      normalized + '\n' + restateNorm,
-    ) ||
+    /\b(in plain words|simply put|plain english|plain language|in short|basically)\b/i.test(normalized + '\n' + restateNorm) ||
     /\b(the runtime|node waits|promises run|background workers)\b/i.test(restateNorm) ||
     (restateNorm.length > 40 && countJargon(restateNorm).length <= 2);
   const jargonHits = countJargon(restateNorm || normalized);
-  const continuedPrior =
-    /\b(implement|src\/|package\.json|refactor|write (the )?code|create a (file|module))\b/i.test(
-      normalized + '\n' + restateNorm,
-    ) && !/do not create|do not continue|do not edit/i.test(normalized);
+  const continuedPrior = /\b(implement|src\/|package\.json|refactor|write (the )?code|create a (file|module))\b/i.test(normalized + '\n' + restateNorm) && !/do not create|do not continue|do not edit/i.test(normalized);
   const doneYes = /^bro=yes$/i.test(doneLine || '');
   const doneNo = /^bro=no$/i.test(doneLine || '');
   const doneFail = /^bro=fail$/i.test(doneLine || '');
-  const restated =
-    (restateNorm.trim().length > 40 && plainHints) ||
-    (doneYes && restateNorm.trim().length > 20) ||
-    (broSkill && plainHints && jargonHits.length <= 3);
+  const restated = (restateNorm.trim().length > 40 && plainHints) || (doneYes && restateNorm.trim().length > 20) || (broSkill && plainHints && jargonHits.length <= 3);
   let outcome = 'neither';
   if (continuedPrior && restated) outcome = 'continued_prior_task';
   else if (restated && jargonHits.length > 4) outcome = 'restate_still_jargon';
@@ -178,13 +150,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -247,10 +213,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
       await sleep(800);
       continue;
     }
-    const chatReady =
-      !/Trust project folder\?/i.test(text) &&
-      (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) &&
-      (/fixture-app|hello-notes|bro|medium|Skill conflicts|README/i.test(text) || /notes/i.test(text));
+    const chatReady = !/Trust project folder\?/i.test(text) && (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) && (/fixture-app|hello-notes|bro|medium|Skill conflicts|README/i.test(text) || /notes/i.test(text));
     if (chatReady) return lines;
     await sleep(200);
   }
@@ -309,11 +272,7 @@ async function summarizePiSession(sessionPath) {
       if (part.type === 'toolCall' || part.type === 'tool_use') {
         toolOrder.push(part.name || part.toolName || '');
       }
-      if (
-        part.type === 'text' &&
-        typeof part.text === 'string' &&
-        (msg.role === 'assistant' || o.type === 'message')
-      ) {
+      if (part.type === 'text' && typeof part.text === 'string' && (msg.role === 'assistant' || o.type === 'message')) {
         assistantTexts.push(part.text);
       }
     }
@@ -381,12 +340,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     await dumpScreen(attempt, dir, '02-submitted-jargon', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        ['event loop', 'microtask', 'libuv', 'thread pool', 'macrotask', 'Node'],
-        600_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['event loop', 'microtask', 'libuv', 'thread pool', 'macrotask', 'Node'], 600_000);
     } catch {
       // continue to settle
     }
@@ -409,12 +363,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     await dumpScreen(attempt, dir, '05-submitted-bro', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        ['bro', 'plain', 'restate', 'simply', 'jargon', 'bro=', 'restate.md'],
-        900_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['bro', 'plain', 'restate', 'simply', 'jargon', 'bro=', 'restate.md'], 900_000);
     } catch {
       // settle may still land artifacts
     }
@@ -447,25 +396,11 @@ async function runSide(side, ruleBytes, ruleDigest) {
           doneLine: done.line,
         })
       : null;
-    const fileScore = restate.exists
-      ? scoreBro(restate.text, { restateText: restate.text, doneLine: done.line })
-      : null;
+    const fileScore = restate.exists ? scoreBro(restate.text, { restateText: restate.text, doneLine: done.line }) : null;
     const candidates = [fileScore, sessionScore, screenScore, ptyScore].filter(Boolean);
-    const bestScore =
-      candidates.sort(
-        (a, b) =>
-          Number(b.outcome === 'restate_plain') - Number(a.outcome === 'restate_plain') ||
-          Number(b.restated) - Number(a.restated) ||
-          a.jargonCount - b.jargonCount,
-      )[0] || screenScore;
+    const bestScore = candidates.sort((a, b) => Number(b.outcome === 'restate_plain') - Number(a.outcome === 'restate_plain') || Number(b.restated) - Number(a.restated) || a.jargonCount - b.jargonCount)[0] || screenScore;
 
-    const skillActivated = Boolean(
-      screenScore.broSkill ||
-        ptyScore.broSkill ||
-        sessionSummary?.skillInjected ||
-        sessionSummary?.promptInjected ||
-        /\/bro\b/i.test(turn2),
-    );
+    const skillActivated = Boolean(screenScore.broSkill || ptyScore.broSkill || sessionSummary?.skillInjected || sessionSummary?.promptInjected || /\/bro\b/i.test(turn2));
 
     const productFilesTouched = [];
     for (const rel of ['src', 'NOTES.md', 'package.json', 'clamp.js']) {
@@ -489,9 +424,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
       restate: {
         exists: restate.exists,
         path: restate.path,
-        digest: restate.exists
-          ? createHash('sha256').update(restate.text).digest('hex')
-          : null,
+        digest: restate.exists ? createHash('sha256').update(restate.text).digest('hex') : null,
         preview: (restate.text || '').slice(0, 400),
       },
       session: sessionSummary

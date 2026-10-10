@@ -6,9 +6,9 @@ import { join } from 'node:path';
 import { type ExtensionAPI, type ExtensionToolContext, SessionManager } from '@earendil-works/pi-coding-agent';
 import { Check } from 'typebox/value';
 import { expect, onTestFinished, test, vi } from 'vitest';
-import { AUTOMATIONS_EDITOR_CHROME } from '../src/automations-editor.ts';
-import { registerAutomations } from '../src/automations.ts';
 import { AutomationPrepareOutput, AutomationSaveOutput } from '../src/automation-output-schemas.ts';
+import { registerAutomations } from '../src/automations.ts';
+import { AUTOMATIONS_EDITOR_CHROME } from '../src/automations-editor.ts';
 import { model } from './session-fixture.ts';
 
 const bennyDraft = {
@@ -107,9 +107,7 @@ test('save and inspect keep benny-triage disabled without ingress', async () => 
     revision: string;
     directory: string;
   };
-  const saved = (
-    await f.invoke('AutomationSave', { ...bennyDraft, automationId: prepared.automationId, revision: prepared.revision })
-  ).details as { kind: string; revision: string; automationId: string; directory: string };
+  const saved = (await f.invoke('AutomationSave', { ...bennyDraft, automationId: prepared.automationId, revision: prepared.revision })).details as { kind: string; revision: string; automationId: string; directory: string };
   expect(Check(AutomationSaveOutput, saved)).toBe(true);
   expect(saved).toMatchObject({ kind: 'disabled', automationId: prepared.automationId, revision: prepared.revision });
   expect(existsSync(join(saved.directory, 'status.json'))).toBe(false);
@@ -331,7 +329,5 @@ test('OpenEditor outside TUI fails closed', async () => {
 test('Save rejects a stale revision', async () => {
   const f = await fixture();
   const draft = (await f.invoke('AutomationPrepare', bennyDraft)).details as { automationId: string; revision: string };
-  await expect(
-    f.invoke('AutomationSave', { ...bennyDraft, automationId: draft.automationId, revision: 'a'.repeat(64) }),
-  ).rejects.toThrow('revision');
+  await expect(f.invoke('AutomationSave', { ...bennyDraft, automationId: draft.automationId, revision: 'a'.repeat(64) })).rejects.toThrow('revision');
 });

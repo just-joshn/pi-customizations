@@ -44,11 +44,7 @@ function swarmPrompt(side) {
 function observeSwarm(lines) {
   const text = lines.join('\n');
   return {
-    swarmSkill:
-      /Used swarm/i.test(text) ||
-      /\[skill\]\s*swarm/i.test(text) ||
-      /skill:\s*swarm/i.test(text) ||
-      (/\/swarm\b/i.test(text) && /Fan out|Frame|Aggregate/i.test(text)),
+    swarmSkill: /Used swarm/i.test(text) || /\[skill\]\s*swarm/i.test(text) || /skill:\s*swarm/i.test(text) || (/\/swarm\b/i.test(text) && /Fan out|Frame|Aggregate/i.test(text)),
     fanOutStarted:
       /\bFan out\b/i.test(text) ||
       /\bN\s*=\s*2\b/i.test(text) ||
@@ -57,13 +53,8 @@ function observeSwarm(lines) {
       /\bAgent\b.*\b(running|started|background)/i.test(text) ||
       /\bsubagent\b/i.test(text) ||
       /\bTask\b.*\b(running|started|background)/i.test(text),
-    isolationMention:
-      /WORKER-A|WORKER-B|a\.txt|b\.txt|isolated|own (writable )?path|worktree/i.test(text),
-    rollupReport:
-      /\bPASS\b|\bISSUES\b|\bBLOCKED\b/i.test(text) ||
-      /\brolled[- ]?up\b/i.test(text) ||
-      /\baggregat/i.test(text) ||
-      /\bone report\b/i.test(text),
+    isolationMention: /WORKER-A|WORKER-B|a\.txt|b\.txt|isolated|own (writable )?path|worktree/i.test(text),
+    rollupReport: /\bPASS\b|\bISSUES\b|\bBLOCKED\b/i.test(text) || /\brolled[- ]?up\b/i.test(text) || /\baggregat/i.test(text) || /\bone report\b/i.test(text),
     working: /[\u2800-\u28FF]/.test(text) || /\bWorking\b/.test(text),
   };
 }
@@ -82,8 +73,7 @@ async function readWorkerFiles(side) {
     result.b = null;
   }
   result.isolatedOk = result.a === 'WORKER-A' && result.b === 'WORKER-B';
-  result.collision =
-    (result.a !== null && result.a !== 'WORKER-A') || (result.b !== null && result.b !== 'WORKER-B');
+  result.collision = (result.a !== null && result.a !== 'WORKER-A') || (result.b !== null && result.b !== 'WORKER-B');
   return result;
 }
 
@@ -103,13 +93,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: join(root, 'fixtures', 'first-run'),
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -188,24 +172,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     await dumpScreen(attempt, dir, '02-prompt-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        [
-          'swarm',
-          'Swarm',
-          'Fan out',
-          'Frame',
-          'WORKER-A',
-          'WORKER-B',
-          'Task',
-          'Agent',
-          'worker',
-          'PASS',
-          'ISSUES',
-        ],
-        300_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['swarm', 'Swarm', 'Fan out', 'Frame', 'WORKER-A', 'WORKER-B', 'Task', 'Agent', 'worker', 'PASS', 'ISSUES'], 300_000);
     } catch {
       // keep going; final settle may still land evidence
     }

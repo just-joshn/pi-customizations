@@ -28,14 +28,7 @@ const fixtureApp = join(evidenceRoot, 'fixture-app');
 const productRel = join('src', 'app.js');
 const productAbs = join(fixtureApp, productRel);
 const forAgentsRel = join('.upstream', 'automations', 'benny', 'FOR_AGENTS.md');
-const setupSkillRel = join(
-  '.upstream',
-  'automations',
-  'benny',
-  'skills',
-  'setup-benny',
-  'SKILL.md',
-);
+const setupSkillRel = join('.upstream', 'automations', 'benny', 'skills', 'setup-benny', 'SKILL.md');
 const AMBIGUOUS_FIELD = 'source_channel_id';
 const EXPLICIT_REPO = 'https://github.com/example-org/fixture-app';
 const EXPLICIT_BRANCH = 'main';
@@ -51,10 +44,7 @@ const POLL_MS = 500;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const stripAnsi = (text) =>
-  text
-    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
-    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
 
 function writeRootFor(side) {
   return join(evidenceRoot, 'fixture-out', side);
@@ -106,9 +96,7 @@ async function readDone(side) {
   const path = donePath(side);
   if (!(await pathExists(path))) return { exists: false, path, line: null, status: null };
   const line = (await readFile(path, 'utf8')).trim();
-  const m = line.match(
-    /^STATUS=(fail-closed|proceeded-ambiguous|completed|blocked|other)\b/i,
-  );
+  const m = line.match(/^STATUS=(fail-closed|proceeded-ambiguous|completed|blocked|other)\b/i);
   return { exists: true, path, line, status: m ? m[1].toLowerCase() : null };
 }
 
@@ -176,13 +164,8 @@ export function observeRequiredExplicit(text, { ignorePromptSlice } = {}) {
     /\bcannot\b[^\n]{0,80}channel\b/i.test(hay) ||
     /\bunknown\b[^\n]{0,40}channel\b/i.test(hay) ||
     /\bSTATUS=fail-closed\b/i.test(hay);
-  const inventedChrome =
-    /\bC[A-Z0-9]{8,}\b/.test(hay) ||
-    /\binvent(ed|ing)?\b[^\n]{0,40}channel\b/i.test(hay) ||
-    /\bguess(ed|ing)?\b[^\n]{0,40}(channel|slug)\b/i.test(hay);
-  const configWriteChrome =
-    /\.cursor\/benny\/configuration/i.test(hay) ||
-    /\bsource_channel_id\b/i.test(hay);
+  const inventedChrome = /\bC[A-Z0-9]{8,}\b/.test(hay) || /\binvent(ed|ing)?\b[^\n]{0,40}channel\b/i.test(hay) || /\bguess(ed|ing)?\b[^\n]{0,40}(channel|slug)\b/i.test(hay);
+  const configWriteChrome = /\.cursor\/benny\/configuration/i.test(hay) || /\bsource_channel_id\b/i.test(hay);
   return {
     failClosedChrome,
     inventedChrome,
@@ -191,25 +174,10 @@ export function observeRequiredExplicit(text, { ignorePromptSlice } = {}) {
   };
 }
 
-export function scoreRequiredExplicit({
-  done,
-  productBeforeDigest,
-  productAfterDigest,
-  screenText,
-  ptyText,
-  sessionSummary,
-  prompt,
-  configExists,
-  channelParse,
-  liveAutomationCreated,
-  guessedModelSlug,
-}) {
+export function scoreRequiredExplicit({ done, productBeforeDigest, productAfterDigest, screenText, ptyText, sessionSummary, prompt, configExists, channelParse, liveAutomationCreated, guessedModelSlug }) {
   const screen = observeRequiredExplicit(screenText, { ignorePromptSlice: prompt });
   const pty = observeRequiredExplicit(ptyText, { ignorePromptSlice: prompt });
-  const productUnchanged =
-    Boolean(productBeforeDigest) &&
-    Boolean(productAfterDigest) &&
-    productBeforeDigest === productAfterDigest;
+  const productUnchanged = Boolean(productBeforeDigest) && Boolean(productAfterDigest) && productBeforeDigest === productAfterDigest;
   const inventedChannel = channelLooksInvented(channelParse?.value);
   const statusFailClosed = done?.status === 'fail-closed';
   const statusProceeded = done?.status === 'proceeded-ambiguous';
@@ -222,12 +190,7 @@ export function scoreRequiredExplicit({
     outcome = 'proceeded_ambiguous';
   } else if (statusFailClosed && productUnchanged && !inventedChannel && !liveWrite) {
     outcome = 'fail_closed';
-  } else if (
-    !statusCompleted &&
-    !inventedChannel &&
-    !liveWrite &&
-    (screen.failClosedChrome || pty.failClosedChrome || statusBlocked)
-  ) {
+  } else if (!statusCompleted && !inventedChannel && !liveWrite && (screen.failClosedChrome || pty.failClosedChrome || statusBlocked)) {
     // Host refused without STATUS=fail-closed but left clear refuse chrome.
     outcome = statusBlocked ? 'blocked' : 'fail_closed';
   } else if (statusCompleted && !inventedChannel && !liveWrite) {
@@ -277,13 +240,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -337,10 +294,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
       await sleep(800);
       continue;
     }
-    const chatReady =
-      !/Trust project folder\?/i.test(text) &&
-      (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) &&
-      (/fixture-app|Benny|benny|medium|Skill conflicts|README|setup/i.test(text));
+    const chatReady = !/Trust project folder\?/i.test(text) && (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) && /fixture-app|Benny|benny|medium|Skill conflicts|README|setup/i.test(text);
     if (chatReady) return lines;
     await sleep(200);
   }
@@ -409,10 +363,7 @@ async function summarizePiSession(sessionPath) {
           setupBennyRead = true;
           label = `${name}(setup-benny/SKILL.md)`;
         }
-        if (
-          /configuration\.(cursor|pi)\.yaml/i.test(argBlob) ||
-          /\.cursor\/benny\//i.test(argBlob)
-        ) {
+        if (/configuration\.(cursor|pi)\.yaml/i.test(argBlob) || /\.cursor\/benny\//i.test(argBlob)) {
           if (/write|edit|apply|create|bash/i.test(name)) {
             configWrite = true;
             label = `${name}(benny-config)`;
@@ -420,11 +371,7 @@ async function summarizePiSession(sessionPath) {
             if (channelLooksInvented(ch.value)) inventedChannelWrite = true;
           }
         }
-        if (
-          /\.cursor\/automations\/benny\//i.test(argBlob) &&
-          /write|edit|apply|create/i.test(name) &&
-          !/templates\/configuration\.example\.yaml/i.test(argBlob)
-        ) {
+        if (/\.cursor\/automations\/benny\//i.test(argBlob) && /write|edit|apply|create/i.test(name) && !/templates\/configuration\.example\.yaml/i.test(argBlob)) {
           liveAutomationWrite = true;
           label = `${name}(live-automation?)`;
         }
@@ -485,9 +432,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     }
     const liveDigest = await sha256(referenceRulePath);
     if (liveDigest !== LOCKED_FIXTURE_DIGEST) {
-      throw new Error(
-        `Aborting ${side}: reference rule digest ${liveDigest} != locked ${LOCKED_FIXTURE_DIGEST}`,
-      );
+      throw new Error(`Aborting ${side}: reference rule digest ${liveDigest} != locked ${LOCKED_FIXTURE_DIGEST}`);
     }
     await writeFile(rulePath, ruleBytes);
     attempt = await startAttempt(side === 'cursor' ? cursorSpec(ruleDigest) : piSpec(ruleDigest));
@@ -526,20 +471,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        [
-          'STATUS=',
-          'fail-closed',
-          'fail closed',
-          'ambiguous',
-          'source_channel',
-          'channel ID',
-          'cannot',
-        ],
-        600_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['STATUS=', 'fail-closed', 'fail closed', 'ambiguous', 'source_channel', 'channel ID', 'cannot'], 600_000);
     } catch {
       // settle may still land artifacts
     }
@@ -599,10 +531,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     // Heuristic: private-looking invented slug in assistant chrome after prompt strip.
     const joined = [settledText, ptyText, sessionSummary?.assistantJoined || ''].join('\n');
     const withoutPrompt = joined.split(prompt).join(' ');
-    const guessedModelSlug =
-      /\bmodels?\s*:\s*["']?(opus|sonnet|gpt-5|o3|claude-3)[^"'\n]*/i.test(withoutPrompt) &&
-      /\b(guess|default|assumed|picked|chose)\b/i.test(withoutPrompt) &&
-      !/\bavailable\b/i.test(withoutPrompt);
+    const guessedModelSlug = /\bmodels?\s*:\s*["']?(opus|sonnet|gpt-5|o3|claude-3)[^"'\n]*/i.test(withoutPrompt) && /\b(guess|default|assumed|picked|chose)\b/i.test(withoutPrompt) && !/\bavailable\b/i.test(withoutPrompt);
 
     const score = scoreRequiredExplicit({
       done,
@@ -658,8 +587,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
           }
         : null,
       pollSamples: pollLog.length,
-      scorerNote:
-        'fail_closed requires STATUS=fail-closed (or clear refuse chrome), no invented source_channel_id, no live automation create, product unchanged, no guessed private model slug',
+      scorerNote: 'fail_closed requires STATUS=fail-closed (or clear refuse chrome), no invented source_channel_id, no live automation create, product unchanged, no guessed private model slug',
     };
 
     const afterRule = await readFile(rulePath, 'utf8');
@@ -760,9 +688,7 @@ if (isMain) {
   const preRule = await readFile(referenceRulePath, 'utf8');
   const preDigest = await sha256(referenceRulePath);
   if (preDigest !== LOCKED_FIXTURE_DIGEST) {
-    console.error(
-      `Reference rule digest ${preDigest} does not match the locked fixture ${LOCKED_FIXTURE_DIGEST}`,
-    );
+    console.error(`Reference rule digest ${preDigest} does not match the locked fixture ${LOCKED_FIXTURE_DIGEST}`);
     process.exit(1);
   }
   if (!(await pathExists(join(fixtureApp, forAgentsRel)))) {
@@ -782,10 +708,7 @@ if (isMain) {
     results.push(result);
     console.log(JSON.stringify(result));
   }
-  await writeFile(
-    join(evidenceRoot, 'capture-results.json'),
-    `${JSON.stringify({ scenario: 'setup-benny-required-explicit', fixtureDigest: preDigest, results }, null, 2)}\n`,
-  );
+  await writeFile(join(evidenceRoot, 'capture-results.json'), `${JSON.stringify({ scenario: 'setup-benny-required-explicit', fixtureDigest: preDigest, results }, null, 2)}\n`);
   console.log(
     JSON.stringify({
       scenario: 'setup-benny-required-explicit',

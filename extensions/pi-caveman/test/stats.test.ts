@@ -1,4 +1,3 @@
-// biome-ignore-all lint/security/noSecrets: test labels, not credentials
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';

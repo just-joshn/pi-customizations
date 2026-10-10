@@ -175,13 +175,48 @@ function assistantBackgroundCalls(context: Context): PlannedCall[] {
   return [];
 }
 
+const setupInheritRoles = [
+  'feature, refactoring',
+  'bug-fix',
+  'perf-issue',
+  'hillclimb',
+  'judgment and prose',
+  'hardest tasks',
+  'how explorer',
+  'how explainer',
+  'why investigators',
+  'why synthesizer',
+  'reflect tooling',
+  'reflect judgment, divergent, synthesizer',
+  'arena runners',
+  'arena cross-judge pool',
+  'swarm workers',
+  'architect runners',
+  'interrogate reviewers',
+] as const;
+
+function setupWriteCall(): PlannedCall {
+  return {
+    name: 'pstack_setup',
+    arguments: {
+      action: 'write',
+      budget: 'unlimited — max reasoning',
+      roleOverrides: setupInheritRoles.map((role) => ({ role, value: 'inherit-parent' })),
+    },
+  };
+}
+
 function setupCalls(context: Context): PlannedCall[] {
-  const lastUser = context.messages.map((message, index) => (message.role === 'user' ? index : -1)).filter((index) => index >= 0).at(-1) ?? -1;
+  const lastUser =
+    context.messages
+      .map((message, index) => (message.role === 'user' ? index : -1))
+      .filter((index) => index >= 0)
+      .at(-1) ?? -1;
   const results = toolResults(context).filter((message) => context.messages.indexOf(message) > lastUser);
   const written = results.some((message) => message.toolName === 'pstack_setup' && JSON.stringify(message).includes('"written":true'));
   if (written) return [];
   if (!results.some((message) => message.toolName === 'pstack_setup')) return [{ name: 'pstack_setup', arguments: { action: 'state' } }];
-    if (!results.some((message) => message.toolName === 'AskQuestion'))
+  if (!results.some((message) => message.toolName === 'AskQuestion')) {
     return [
       {
         name: 'AskQuestion',
@@ -193,34 +228,8 @@ function setupCalls(context: Context): PlannedCall[] {
         },
       },
     ];
-  return [
-    {
-      name: 'pstack_setup',
-      arguments: {
-        action: 'write',
-        budget: 'unlimited — max reasoning',
-        roleOverrides: [
-          'feature, refactoring',
-          'bug-fix',
-          'perf-issue',
-          'hillclimb',
-          'judgment and prose',
-          'hardest tasks',
-          'how explorer',
-          'how explainer',
-          'why investigators',
-          'why synthesizer',
-          'reflect tooling',
-          'reflect judgment, divergent, synthesizer',
-          'arena runners',
-          'arena cross-judge pool',
-          'swarm workers',
-          'architect runners',
-          'interrogate reviewers',
-        ].map((role) => ({ role, value: 'inherit-parent' })),
-      },
-    },
-  ];
+  }
+  return [setupWriteCall()];
 }
 
 function dispatch(requested: string, context: Context): { calls: PlannedCall[] | undefined; sequenced: boolean } {

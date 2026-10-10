@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+import { execFile } from 'node:child_process';
+import { createHash } from 'node:crypto';
 // Captures PSTACK-SETUP-MAINTAIN-VERIFY-SOURCE-WAVE-001.
 // Dedicated fixture cwd (fixture-app-source-wave) so outcomes/live-pass workers
 // do not race the shared fixture-app. Seeds two feature files so concurrent
@@ -8,23 +10,17 @@
 // Usage:
 //   node scripts/capture-maintain-verify-source-wave.mjs [--cursor-only|--pi-only|--both]
 // Evidence root: parity/evidence/maintain-verify/
-import { access, chmod, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
-import { createHash } from 'node:crypto';
-import { execFile } from 'node:child_process';
-import { promisify } from 'node:util';
+import { access, chmod, mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
+import { promisify } from 'node:util';
 
 import { startAttempt } from '../recorder/index.mjs';
 import { dumpScreen, screenLines, waitEither, waitSettled } from './journey-helpers.mjs';
 
 const execFileAsync = promisify(execFile);
 const argvFlags = new Set(process.argv.slice(2));
-const only = argvFlags.has('--cursor-only')
-  ? '--cursor-only'
-  : argvFlags.has('--pi-only')
-    ? '--pi-only'
-    : '--both';
+const only = argvFlags.has('--cursor-only') ? '--cursor-only' : argvFlags.has('--pi-only') ? '--pi-only' : '--both';
 const root = new URL('../', import.meta.url).pathname;
 const localBin = (name) => join(homedir(), '.local', 'bin', name);
 const piAgentDir = '/tmp/pi-ref-agent';
@@ -39,9 +35,7 @@ const FEATURE_FILES = ['hello-print.md', 'exit-zero.md'];
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 function skillRel(side) {
-  return side === 'cursor'
-    ? join('.cursor', 'skills', SKILL_NAME, 'SKILL.md')
-    : join('.pi', 'skills', SKILL_NAME, 'SKILL.md');
+  return side === 'cursor' ? join('.cursor', 'skills', SKILL_NAME, 'SKILL.md') : join('.pi', 'skills', SKILL_NAME, 'SKILL.md');
 }
 
 function skillAbs(side) {
@@ -78,8 +72,7 @@ async function pathExists(path) {
 }
 
 function skillBodyFor(side) {
-  const evidenceRootRel =
-    side === 'cursor' ? `.cursor/evidence/${SKILL_NAME}` : `.pi/evidence/${SKILL_NAME}`;
+  const evidenceRootRel = side === 'cursor' ? `.cursor/evidence/${SKILL_NAME}` : `.pi/evidence/${SKILL_NAME}`;
   return `---
 name: ${SKILL_NAME}
 description: Verify the hello-cli fixture via ./hello.sh (prints HELLO-FAMILY-13). Project-local verification skill with launch/drive and a feature map.
@@ -165,10 +158,7 @@ async function ensureFixtureBase() {
   const readme = join(fixtureApp, 'README.md');
   await writeFile(hello, '#!/bin/sh\necho HELLO-FAMILY-13\n');
   await chmod(hello, 0o755);
-  await writeFile(
-    readme,
-    '# hello-cli\n\nTiny CLI fixture for maintain-verify source-wave capture.\n\n## Run\n\n```bash\n./hello.sh\n```\n\nPrints `HELLO-FAMILY-13` and exits 0.\n',
-  );
+  await writeFile(readme, '# hello-cli\n\nTiny CLI fixture for maintain-verify source-wave capture.\n\n## Run\n\n```bash\n./hello.sh\n```\n\nPrints `HELLO-FAMILY-13` and exits 0.\n');
 }
 
 async function seedSkills(side) {
@@ -216,16 +206,11 @@ function sourceWavePrompt(side) {
 
 function observeSourceWave(lines) {
   const text = lines.join('\n');
-  const taskHits = (text.match(/\b(?:Running subagent|Called Task|Using Task|cursor · Task|subagent)\b/gi) ?? [])
-    .length;
+  const taskHits = (text.match(/\b(?:Running subagent|Called Task|Using Task|cursor · Task|subagent)\b/gi) ?? []).length;
   return {
-    maintainInvoked:
-      /maintain-verification-skill|\/maintain-verification/i.test(text) ||
-      /\[skill\]\s*maintain-verification/i.test(text),
+    maintainInvoked: /maintain-verification-skill|\/maintain-verification/i.test(text) || /\[skill\]\s*maintain-verification/i.test(text),
     sourceWaveMention: /source wave|Source wave/i.test(text),
-    concurrentMention: /concurrent|in parallel|simultaneously|two (?:read-only )?subagents|both children/i.test(
-      text,
-    ),
+    concurrentMention: /concurrent|in parallel|simultaneously|two (?:read-only )?subagents|both children/i.test(text),
     taskOrSubagentMention: taskHits > 0,
     taskHitCount: taskHits,
     skippedSubagent: /did not launch a subagent|skipped.*subagent|no subagent/i.test(text),
@@ -340,13 +325,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
   });
@@ -389,10 +368,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
       await sleep(800);
       continue;
     }
-    const chatReady =
-      !/Trust project folder\?/i.test(text) &&
-      (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) &&
-      (/fixture-app-source-wave|hello-cli|Skill conflicts|medium/i.test(text));
+    const chatReady = !/Trust project folder\?/i.test(text) && (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) && /fixture-app-source-wave|hello-cli|Skill conflicts|medium/i.test(text);
     if (chatReady) return lines;
     await sleep(200);
   }
@@ -455,22 +431,7 @@ async function runSide(side, fixtureDigest) {
     await dumpScreen(attempt, dir, '02-source-wave-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        [
-          'maintain-verification',
-          'verify-hello-cli',
-          'SOURCE_WAVE=',
-          'source wave',
-          'Source wave',
-          'Running subagent',
-          'Task',
-          'hello-print',
-          'exit-zero',
-        ],
-        300_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['maintain-verification', 'verify-hello-cli', 'SOURCE_WAVE=', 'source wave', 'Source wave', 'Running subagent', 'Task', 'hello-print', 'exit-zero'], 300_000);
     } catch {
       // settle may still land the marker
     }
@@ -493,28 +454,14 @@ async function runSide(side, fixtureDigest) {
     observations.children = await readChildOutputs(side);
     observations.childrenListed = await listChildrenOnDisk(side);
     observations.gitAfter = await gitSnapshot('after');
-    observations.maintainRan = Boolean(
-      observations.final?.maintainInvoked || observations.marker?.values?.SOURCE_WAVE === 'done',
-    );
+    observations.maintainRan = Boolean(observations.final?.maintainInvoked || observations.marker?.values?.SOURCE_WAVE === 'done');
     observations.markerOk = Boolean(observations.marker?.ok);
-    observations.bothChildrenOnDisk = FEATURE_FILES.every(
-      (name) => observations.children?.[name]?.exists,
-    );
-    observations.bothChildrenFieldsOk = FEATURE_FILES.every(
-      (name) => observations.children?.[name]?.fieldsOk,
-    );
-    observations.concurrentClaimed = /^yes$/i.test(
-      observations.marker?.values?.CONCURRENT_CHILDREN ?? '',
-    );
+    observations.bothChildrenOnDisk = FEATURE_FILES.every((name) => observations.children?.[name]?.exists);
+    observations.bothChildrenFieldsOk = FEATURE_FILES.every((name) => observations.children?.[name]?.fieldsOk);
+    observations.concurrentClaimed = /^yes$/i.test(observations.marker?.values?.CONCURRENT_CHILDREN ?? '');
     observations.childrenDroveNo = /^no$/i.test(observations.marker?.values?.CHILDREN_DROVE ?? '');
-    observations.childrenEditedNo = /^no$/i.test(
-      observations.marker?.values?.CHILDREN_EDITED ?? '',
-    );
-    observations.sourceWavePassCandidate =
-      observations.markerOk &&
-      observations.bothChildrenOnDisk &&
-      observations.bothChildrenFieldsOk &&
-      !observations.final?.skippedSubagent;
+    observations.childrenEditedNo = /^no$/i.test(observations.marker?.values?.CHILDREN_EDITED ?? '');
+    observations.sourceWavePassCandidate = observations.markerOk && observations.bothChildrenOnDisk && observations.bothChildrenFieldsOk && !observations.final?.skippedSubagent;
 
     await writeFile(join(dir, 'observations.json'), `${JSON.stringify(observations, null, 2)}\n`);
     await writeFile(join(dir, 'prompt-source-wave.txt'), `${prompt}\n`);
@@ -535,9 +482,7 @@ async function runSide(side, fixtureDigest) {
 }
 
 await ensureFixtureBase();
-const fixtureDigest = digestText(
-  `${SCENARIO_REF}\n${FEATURE_FILES.join(',')}\n${await readFile(join(fixtureApp, 'hello.sh'), 'utf8')}\n${skillBodyFor('cursor')}`,
-);
+const fixtureDigest = digestText(`${SCENARIO_REF}\n${FEATURE_FILES.join(',')}\n${await readFile(join(fixtureApp, 'hello.sh'), 'utf8')}\n${skillBodyFor('cursor')}`);
 const sides = only === '--cursor-only' ? ['cursor'] : only === '--pi-only' ? ['pi'] : ['cursor', 'pi'];
 const results = [];
 for (const side of sides) {

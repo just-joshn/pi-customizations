@@ -1,5 +1,4 @@
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
-
 import type { StateStore } from './state.ts';
 
 const potetoModeSkillMarker = /<skill\s+name="poteto-mode"(?:\s|>)/;
@@ -14,8 +13,7 @@ const playbookStepPatterns: ReadonlyArray<RegExp> = [
   /\bRED\b|\bGREEN\b|failing regression|red before green/i,
 ];
 
-export const potetoPlaybookTodoGateMessage =
-  'Poteto mode is active. Open a TodoWrite whose first items are the matched playbook steps copied in verbatim before any product edit, write, or bash mutation.';
+export const potetoPlaybookTodoGateMessage = 'Poteto mode is active. Open a TodoWrite whose first items are the matched playbook steps copied in verbatim before any product edit, write, or bash mutation.';
 
 export const potetoPlaybookTodoUsageBlock = `<pstack_poteto_playbook_todos>
 Poteto mode is active for this turn. The deliverable before any product code is a TodoWrite of the matched playbook steps.
@@ -25,8 +23,7 @@ Poteto mode is active for this turn. The deliverable before any product code is 
 Readonly read/grep/find/ls are allowed before the todolist lands. Do not batch product mutation into bash before TodoWrite.
 </pstack_poteto_playbook_todos>`;
 
-const playbookTodoReminder =
-  'Poteto mode requires a TodoWrite of the matched playbook steps before product work. Call TodoWrite with those steps now. Do not edit src/ or run mutating bash until that list exists.';
+const playbookTodoReminder = 'Poteto mode requires a TodoWrite of the matched playbook steps before product work. Call TodoWrite with those steps now. Do not edit src/ or run mutating bash until that list exists.';
 
 export function potetoModeSkillPrompt(prompt: string): boolean {
   return potetoModeSkillMarker.test(prompt);

@@ -1,12 +1,10 @@
-import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import fs, { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { syncBuiltinESMExports } from 'node:module';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 
-import fs from 'node:fs/promises';
-import { syncBuiltinESMExports } from 'node:module';
-
 import { anthropicProvider } from '@earendil-works/pi-ai/providers/anthropic';
-import type { ExtensionAPI, ExtensionToolContext } from '@earendil-works/pi-coding-agent';
+import { DEFAULT_MAX_BYTES, type ExtensionAPI, type ExtensionToolContext } from '@earendil-works/pi-coding-agent';
 import { expect, test, vi } from 'vitest';
 import { modelConfigPath, roleNames, skillDefaultTable } from '../src/models.ts';
 import { registerSetupTool } from '../src/setup-tool.ts';
@@ -82,7 +80,8 @@ test('the state action reports the rule path, current budget, working roles, dro
       roleConfirmPrompt,
     });
     expect(state.structuredContent).toEqual(state.details);
-    expect(JSON.parse(state.content[0]?.text ?? '{}')).toEqual(state.details);
+    expect(state.content[0]?.text).toBe(JSON.stringify(state.details));
+    expect(Buffer.byteLength(state.content[0]?.text ?? '')).toBeLessThanOrEqual(DEFAULT_MAX_BYTES);
     for (const [role, value] of Object.entries(roles)) {
       expect(roleConfirmPrompt).toContain(`${role}: ${value}`);
     }
@@ -192,7 +191,7 @@ test('two thousand retired lines stay ordered in the state report', async () => 
     await seedRule(`${retired.join('\n')}\n`);
     const definition = toolDefinition();
     const state = await ruleResult(definition, { action: 'state' }, toolContext());
-    expect(state.details["dropped"]).toEqual(retired);
+    expect(state.details['dropped']).toEqual(retired);
   } finally {
     await f.close();
   }

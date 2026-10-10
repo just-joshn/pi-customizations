@@ -15,7 +15,8 @@ const FOREIGN_COMMAND_LINE = /^(?:npm|npx|yarn|pnpm)(?:\s|$)/;
 const FOREIGN_LAUNCH = /\b(?:execFileSync|execFile|execSync|exec|spawnSync|spawn)\s*\(\s*['"](?:npm|npx|yarn|pnpm)['"]/;
 const SKIP_SEGMENTS = new Set([...SKIP_DIRECTORIES, 'skills']);
 // Generated from the pinned snapshots, where the checker rejects any edit.
-const SKIP_PREFIXES = ['extensions/pi-pstack/prompts'];
+// Parity capture/evidence trees deliberately record foreign package managers from other hosts.
+const SKIP_PREFIXES = ['extensions/pi-pstack/prompts', 'parity'];
 // Dated records keep the commands a past run actually executed.
 const RECORD_FILES = new Set(['extensions/pi-pstack/docs/team-kit-runtime-review.md']);
 // A detector's own fixtures have to contain what it detects.

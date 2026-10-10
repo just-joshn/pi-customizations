@@ -1,4 +1,4 @@
-import type { ExtensionCommandContext, ExtensionContext, ExtensionToolContext, RegisteredCommand, ToolDefinition } from '@earendil-works/pi-coding-agent';
+import type { ExtensionCommandContext, ExtensionContext, ExtensionToolContext, MessageRenderer, RegisteredCommand, ToolDefinition } from '@earendil-works/pi-coding-agent';
 import s50 from '../../src/index.ts';
 
 type Pi = Parameters<typeof s50>[0];
@@ -14,6 +14,7 @@ export type FakePi = {
   readonly command: Omit<RegisteredCommand, 'name' | 'sourceInfo'>;
   readonly sent: readonly Sent[];
   readonly handlers: ReadonlyMap<string, readonly Handler[]>;
+  readonly renderer: (customType: string) => MessageRenderer | undefined;
 };
 
 export function loadFakePi(options: { readonly skills?: readonly { readonly name: string; readonly path: string }[]; readonly tools?: readonly string[] } = {}): FakePi {
@@ -21,6 +22,7 @@ export function loadFakePi(options: { readonly skills?: readonly { readonly name
   let command: Omit<RegisteredCommand, 'name' | 'sourceInfo'> | undefined;
   const sent: Sent[] = [];
   const handlers = new Map<string, Handler[]>();
+  const renderers = new Map<string, MessageRenderer>();
   const sourceInfo = { path: '', source: 'test', scope: 'temporary', origin: 'top-level' } as const;
   const pi = {
     registerTool: (definition: ToolDefinition) => {
@@ -28,6 +30,9 @@ export function loadFakePi(options: { readonly skills?: readonly { readonly name
     },
     registerCommand: (_name: string, definition: Omit<RegisteredCommand, 'name' | 'sourceInfo'>) => {
       command = definition;
+    },
+    registerMessageRenderer: (customType: string, renderer: MessageRenderer) => {
+      renderers.set(customType, renderer);
     },
     getCommands: () => (options.skills ?? []).map((skill) => ({ name: `skill:${skill.name}`, source: 'skill', sourceInfo: { ...sourceInfo, path: skill.path } })),
     getAllTools: () => (options.tools ?? []).map((name) => ({ name, description: '', parameters: {}, exposure: 'direct', sourceInfo })),
@@ -42,7 +47,7 @@ export function loadFakePi(options: { readonly skills?: readonly { readonly name
   // The fake implements only the slice of ExtensionAPI that the s50 factory declares in its Pi type; Pi's overloads cannot be restated without a cast.
   s50(pi as unknown as Pi);
   if (tool === undefined || command === undefined) throw new Error('s50 did not register its tool and command');
-  return { tool, command, sent, handlers };
+  return { tool, command, sent, handlers, renderer: (customType) => renderers.get(customType) };
 }
 
 export function fakeUi(answer: boolean): FakeUi {

@@ -23,24 +23,8 @@ const piAgentDir = '/tmp/pi-ref-agent';
 const piRulePath = join(piAgentDir, 'pstack', 'models.mdc');
 const evidenceRoot = join(root, 'evidence', 'principles', 'separate-state');
 const fixtureApp = join(evidenceRoot, 'fixture-app');
-const sepSkillCursor = join(
-  root,
-  'reference',
-  'cursor-plugins',
-  'pstack',
-  'skills',
-  'principle-separate-before-serializing-shared-state',
-  'SKILL.md',
-);
-const sepSkillPi = join(
-  root,
-  '..',
-  'extensions',
-  'pi-pstack',
-  'skills',
-  'principle-separate-before-serializing-shared-state',
-  'SKILL.md',
-);
+const sepSkillCursor = join(root, 'reference', 'cursor-plugins', 'pstack', 'skills', 'principle-separate-before-serializing-shared-state', 'SKILL.md');
+const sepSkillPi = join(root, '..', 'extensions', 'pi-pstack', 'skills', 'principle-separate-before-serializing-shared-state', 'SKILL.md');
 const GEOMETRY = { rows: 40, cols: 120 };
 const LOCKED_FIXTURE_DIGEST = 'sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004';
 const SETTLE_MS = 1_500_000;
@@ -49,23 +33,11 @@ const PRODUCT_REL = ['src/workers.js'];
 const VERIFY_OUT_REL = 'evidence/verify-out.txt';
 const VERIFY_SCRIPT_REL = 'scripts/verify.mjs';
 const RUN_SCRIPT_REL = 'scripts/run-workers.mjs';
-const BASELINE_REL = [
-  ...PRODUCT_REL,
-  'README.md',
-  'NOTES.md',
-  'package.json',
-  VERIFY_SCRIPT_REL,
-  RUN_SCRIPT_REL,
-  'evidence/.gitkeep',
-  'state/.gitkeep',
-];
+const BASELINE_REL = [...PRODUCT_REL, 'README.md', 'NOTES.md', 'package.json', VERIFY_SCRIPT_REL, RUN_SCRIPT_REL, 'evidence/.gitkeep', 'state/.gitkeep'];
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const stripAnsi = (text) =>
-  text
-    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
-    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
 
 function writeRootFor(side) {
   return join(evidenceRoot, 'fixture-out', side);
@@ -147,28 +119,14 @@ function isSepSkillPath(p) {
 function observeSepText(text, { ignorePromptSlice } = {}) {
   let hay = stripAnsi(text || '');
   if (ignorePromptSlice) hay = hay.split(ignorePromptSlice).join(' ');
-  const potetoMode =
-    /\/poteto-mode\b/i.test(hay) ||
-    /\[skill\]\s*poteto-mode/i.test(hay) ||
-    /\bUsed poteto-mode\b/i.test(hay);
+  const potetoMode = /\/poteto-mode\b/i.test(hay) || /\[skill\]\s*poteto-mode/i.test(hay) || /\bUsed poteto-mode\b/i.test(hay);
   const leafChrome = /principle-separate-before-serializing-shared-state[/\\]SKILL\.md/i.test(hay);
   const usedLeaf = /\bUsed principle-separate-before-serializing-shared-state\b/i.test(hay);
   const skillBracketLeaf = /\[skill\]\s*principle-separate-before-serializing-shared-state\b/i.test(hay);
   const hostAttached = Boolean(usedLeaf || skillBracketLeaf);
-  const failMention =
-    /\bSEPARATE-FAIL\b/.test(hay) ||
-    /still-shared/i.test(hay) ||
-    /lost-update/i.test(hay);
-  const verifyMention =
-    /scripts\/verify\.mjs/i.test(hay) ||
-    /evidence\/verify-out\.txt/i.test(hay) ||
-    /\bSEPARATE-OK\b/.test(hay) ||
-    /\bSEPARATE-FAIL\b/.test(hay);
-  const shareMention =
-    /state\/state\.json/i.test(hay) ||
-    /owned write/i.test(hay) ||
-    /SEPARATE-OK/i.test(hay) ||
-    /separated=yes/i.test(hay);
+  const failMention = /\bSEPARATE-FAIL\b/.test(hay) || /still-shared/i.test(hay) || /lost-update/i.test(hay);
+  const verifyMention = /scripts\/verify\.mjs/i.test(hay) || /evidence\/verify-out\.txt/i.test(hay) || /\bSEPARATE-OK\b/.test(hay) || /\bSEPARATE-FAIL\b/.test(hay);
+  const shareMention = /state\/state\.json/i.test(hay) || /owned write/i.test(hay) || /SEPARATE-OK/i.test(hay) || /separated=yes/i.test(hay);
   const working = /[\u2800-\u28FF]/.test(hay) || /\bWorking\b/.test(hay);
   return {
     potetoMode,
@@ -225,14 +183,7 @@ function extractToolCallsFromJsonl(text) {
 }
 
 function pathFromArgs(args) {
-  return (
-    args.path ||
-    args.file_path ||
-    args.filePath ||
-    args.target_file ||
-    args.file ||
-    null
-  );
+  return args.path || args.file_path || args.filePath || args.target_file || args.file || null;
 }
 
 function isProductPath(p) {
@@ -264,29 +215,21 @@ function scoreCallsForSep(calls) {
     const args = call.args || {};
     const blob = JSON.stringify(args);
     const path = pathFromArgs(args);
-    const isRead =
-      /^(Read|read|read_file|ReadFile|cat|blob-mention)$/i.test(name) ||
-      (name === 'bash' && typeof args.command === 'string' && /\bcat\b/.test(args.command));
+    const isRead = /^(Read|read|read_file|ReadFile|cat|blob-mention)$/i.test(name) || (name === 'bash' && typeof args.command === 'string' && /\bcat\b/.test(args.command));
     if (isRead && isSepSkillPath(path || blob)) {
       leafSkillRead = true;
       if (!leafSkillReadAt) leafSkillReadAt = call.ts || new Date().toISOString();
       toolOrder.push(`${name}(separate-state-leaf)`);
       continue;
     }
-    const verifyHit =
-      /\bscripts\/verify\.mjs\b/i.test(blob) ||
-      (typeof args.command === 'string' && /verify\.mjs/.test(args.command));
+    const verifyHit = /\bscripts\/verify\.mjs\b/i.test(blob) || (typeof args.command === 'string' && /verify\.mjs/.test(args.command));
     if (verifyHit) {
       ranVerifyScript = true;
       if (!firstVerifyAt) firstVerifyAt = call.ts || new Date().toISOString();
       toolOrder.push(`${name}(verify.mjs)`);
       continue;
     }
-    const concurrentHit =
-      /Promise\.all/.test(blob) ||
-      /runIndexer/.test(blob) ||
-      /runMetrics/.test(blob) ||
-      (typeof args.command === 'string' && /run-workers\.mjs/.test(args.command));
+    const concurrentHit = /Promise\.all/.test(blob) || /runIndexer/.test(blob) || /runMetrics/.test(blob) || (typeof args.command === 'string' && /run-workers\.mjs/.test(args.command));
     if (concurrentHit) {
       ranConcurrentProof = true;
       toolOrder.push(`${name}(concurrent)`);
@@ -322,60 +265,25 @@ export function analyzeWorkersSource(workersSrc) {
   const indexerFiles = fileRefs(indexerBlock);
   const metricsFiles = fileRefs(metricsBlock);
   const overlap = indexerFiles.filter((f) => metricsFiles.includes(f));
-  const stillShared =
-    overlap.length > 0 ||
-    indexerFiles.includes('state/state.json') ||
-    metricsFiles.includes('state/state.json') ||
-    indexerFiles.length === 0 ||
-    metricsFiles.length === 0;
+  const stillShared = overlap.length > 0 || indexerFiles.includes('state/state.json') || metricsFiles.includes('state/state.json') || indexerFiles.length === 0 || metricsFiles.length === 0;
   const separated = !stillShared && indexerFiles.length >= 1 && metricsFiles.length >= 1;
   const reportMerges = /lastIndexed/.test(reportBlock) && /lastMetrics/.test(reportBlock);
   return { stillShared, separated, reportMerges, indexerFiles, metricsFiles };
 }
 
-export function scoreSeparate({
-  frontmatter,
-  done,
-  verifyOut,
-  productOk,
-  productAnalysis,
-  screenText,
-  ptyText,
-  sessionScore,
-  transcriptScore,
-  prompt,
-}) {
+export function scoreSeparate({ frontmatter, done, verifyOut, productOk, productAnalysis, screenText, ptyText, sessionScore, transcriptScore, prompt }) {
   const screen = observeSepText(screenText, { ignorePromptSlice: prompt });
   const pty = observeSepText(ptyText, { ignorePromptSlice: prompt });
-  const leafSkillRead = Boolean(
-    sessionScore?.leafSkillRead ||
-      transcriptScore?.leafSkillRead ||
-      screen.leafChrome ||
-      pty.leafChrome,
-  );
+  const leafSkillRead = Boolean(sessionScore?.leafSkillRead || transcriptScore?.leafSkillRead || screen.leafChrome || pty.leafChrome);
   const usedChrome = Boolean(screen.hostAttached || pty.hostAttached || sessionScore?.hostAttached);
   const modelAutoInvoke = usedChrome && !leafSkillRead;
-  const ranVerifyScript = Boolean(
-    sessionScore?.ranVerifyScript ||
-      transcriptScore?.ranVerifyScript ||
-      screen.verifyMention ||
-      pty.verifyMention,
-  );
+  const ranVerifyScript = Boolean(sessionScore?.ranVerifyScript || transcriptScore?.ranVerifyScript || screen.verifyMention || pty.verifyMention);
   const separateOk = Boolean(verifyOut?.ok);
   const separatedFix = Boolean(productAnalysis?.separated && productAnalysis?.reportMerges);
   const stillShared = Boolean(productAnalysis?.stillShared);
   const verifiedDone = /^verified=yes\b/i.test((done?.line || '').trim());
   const frontmatterOk = Boolean(frontmatter?.ok);
-  const contractHeld =
-    frontmatterOk &&
-    leafSkillRead &&
-    ranVerifyScript &&
-    separateOk &&
-    separatedFix &&
-    !stillShared &&
-    productOk &&
-    verifiedDone &&
-    !modelAutoInvoke;
+  const contractHeld = frontmatterOk && leafSkillRead && ranVerifyScript && separateOk && separatedFix && !stillShared && productOk && verifiedDone && !modelAutoInvoke;
   return {
     frontmatterOk,
     leafSkillRead,
@@ -494,13 +402,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -554,10 +456,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
       await sleep(800);
       continue;
     }
-    const chatReady =
-      !/Trust project folder\?/i.test(text) &&
-      (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) &&
-      (/separate-state|workers|README|medium|Skill conflicts|Session TTL|fixture-app/i.test(text));
+    const chatReady = !/Trust project folder\?/i.test(text) && (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) && /separate-state|workers|README|medium|Skill conflicts|Session TTL|fixture-app/i.test(text);
     if (chatReady) return lines;
     await sleep(200);
   }
@@ -594,9 +493,7 @@ async function summarizePiSession(sessionPath) {
   const text = await readFile(sessionPath, 'utf8');
   const calls = extractToolCallsFromJsonl(text);
   const scored = scoreCallsForSep(calls);
-  const hostAttached =
-    /\bUsed principle-separate-before-serializing-shared-state\b/i.test(text) ||
-    /\[skill\]\s*principle-separate-before-serializing-shared-state\b/i.test(text);
+  const hostAttached = /\bUsed principle-separate-before-serializing-shared-state\b/i.test(text) || /\[skill\]\s*principle-separate-before-serializing-shared-state\b/i.test(text);
   const failMention = /\bSEPARATE-FAIL\b/.test(text) || /separated=no/i.test(text);
   return { sessionPath, hostAttached, failMention, ...scored };
 }
@@ -626,9 +523,7 @@ async function findCursorTranscripts(sinceMs, side) {
         } catch {
           continue;
         }
-        const mentionsThisAttempt =
-          text.includes(doneAbs) ||
-          (text.includes(`separate-state/fixture-out/${side}/done.txt`) && text.includes('workers'));
+        const mentionsThisAttempt = text.includes(doneAbs) || (text.includes(`separate-state/fixture-out/${side}/done.txt`) && text.includes('workers'));
         if (mentionsThisAttempt) hits.push({ path: abs, mtimeMs: st.mtimeMs, size: st.size });
       }
     }
@@ -652,11 +547,8 @@ async function summarizeCursorTranscripts(sinceMs, side) {
       leafSkillRead: scored.leafSkillRead || leafInBlob,
       failMention,
     };
-    const rank =
-      (merged.leafSkillRead ? 4 : 0) + (merged.ranVerifyScript ? 2 : 0) + (merged.separated ? 0 : 0);
-    const bestRank = best
-      ? (best.leafSkillRead ? 4 : 0) + (best.ranVerifyScript ? 2 : 0)
-      : -1;
+    const rank = (merged.leafSkillRead ? 4 : 0) + (merged.ranVerifyScript ? 2 : 0) + (merged.separated ? 0 : 0);
+    const bestRank = best ? (best.leafSkillRead ? 4 : 0) + (best.ranVerifyScript ? 2 : 0) : -1;
     if (!best || rank > bestRank || (rank === bestRank && hit.mtimeMs > (best.mtimeMs || 0))) {
       best = { ...merged, mtimeMs: hit.mtimeMs };
     }
@@ -732,21 +624,7 @@ async function runSide(side, ruleBytes, ruleDigest, frontmatter) {
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        [
-          'poteto-mode',
-          'workers.js',
-          'verify',
-          'SEPARATE-OK',
-          'SEPARATE-FAIL',
-          'principle-separate-before-serializing-shared-state',
-          'separated',
-          'state/state.json',
-        ],
-        300_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['poteto-mode', 'workers.js', 'verify', 'SEPARATE-OK', 'SEPARATE-FAIL', 'principle-separate-before-serializing-shared-state', 'separated', 'state/state.json'], 300_000);
     } catch {
       // settle may still land artifacts
     }
@@ -856,15 +734,7 @@ async function runSide(side, ruleBytes, ruleDigest, frontmatter) {
 
     const snapDir = join(attempt.dir, 'fixture-snapshot');
     await mkdir(snapDir, { recursive: true });
-    for (const rel of [
-      'src/workers.js',
-      'README.md',
-      'NOTES.md',
-      'package.json',
-      VERIFY_SCRIPT_REL,
-      RUN_SCRIPT_REL,
-      VERIFY_OUT_REL,
-    ]) {
+    for (const rel of ['src/workers.js', 'README.md', 'NOTES.md', 'package.json', VERIFY_SCRIPT_REL, RUN_SCRIPT_REL, VERIFY_OUT_REL]) {
       const abs = join(fixtureApp, rel);
       if (!(await pathExists(abs))) continue;
       const dest = join(snapDir, rel);
@@ -906,28 +776,28 @@ async function runSide(side, ruleBytes, ruleDigest, frontmatter) {
 async function selfTest() {
   const fm = { ok: true, name: 'principle-separate-before-serializing-shared-state', disableModelInvocation: true };
   const goodSrc = [
-    "export async function runIndexer(root, value) {",
+    'export async function runIndexer(root, value) {',
     "  await writeFile(join(root, 'state/indexer-state.json'), JSON.stringify({ lastIndexed: value }));",
-    "}",
-    "export async function runMetrics(root, value) {",
+    '}',
+    'export async function runMetrics(root, value) {',
     "  await writeFile(join(root, 'state/metrics-state.json'), JSON.stringify({ lastMetrics: value }));",
-    "}",
-    "export async function report(root) {",
+    '}',
+    'export async function report(root) {',
     "  const indexer = JSON.parse(await readFile(join(root, 'state/indexer-state.json')));",
     "  const metrics = JSON.parse(await readFile(join(root, 'state/metrics-state.json')));",
-    "  return { lastIndexed: indexer.lastIndexed, lastMetrics: metrics.lastMetrics };",
-    "}",
+    '  return { lastIndexed: indexer.lastIndexed, lastMetrics: metrics.lastMetrics };',
+    '}',
   ].join('\n');
   const badSrc = [
-    "export async function runIndexer(root, value) {",
+    'export async function runIndexer(root, value) {',
     "  await writeFile(join(root, 'state/state.json'), JSON.stringify({ lastIndexed: value }));",
-    "}",
-    "export async function runMetrics(root, value) {",
+    '}',
+    'export async function runMetrics(root, value) {',
     "  await writeFile(join(root, 'state/state.json'), JSON.stringify({ lastMetrics: value }));",
-    "}",
-    "export async function report(root) {",
+    '}',
+    'export async function report(root) {',
     "  return JSON.parse(await readFile(join(root, 'state/state.json')));",
-    "}",
+    '}',
   ].join('\n');
   const good = analyzeWorkersSource(goodSrc);
   const bad = analyzeWorkersSource(badSrc);
@@ -1007,10 +877,7 @@ if (isMain) {
     results.push(result);
     console.log(JSON.stringify(result));
   }
-  await writeFile(
-    join(evidenceRoot, 'capture-results.json'),
-    `${JSON.stringify({ scenario: 'prin-separate-state', fixtureDigest: preDigest, frontmatter, results }, null, 2)}\n`,
-  );
+  await writeFile(join(evidenceRoot, 'capture-results.json'), `${JSON.stringify({ scenario: 'prin-separate-state', fixtureDigest: preDigest, frontmatter, results }, null, 2)}\n`);
   console.log(
     JSON.stringify({
       scenario: 'prin-separate-state',

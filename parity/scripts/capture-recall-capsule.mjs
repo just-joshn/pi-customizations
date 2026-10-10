@@ -24,15 +24,11 @@ const fixtureApp = join(evidenceRoot, 'fixture-app');
 const GEOMETRY = { rows: 40, cols: 120 };
 const LOCKED_FIXTURE_DIGEST = 'sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004';
 const SETTLE_MS = 1_200_000;
-const THREAD_TAG_RE =
-  /^\[(?:merged #\d+|open PR #\d+|in flight [^\]]+|verified, uncommitted|reverted #\d+|planned, not started)\]/;
+const THREAD_TAG_RE = /^\[(?:merged #\d+|open PR #\d+|in flight [^\]]+|verified, uncommitted|reverted #\d+|planned, not started)\]/;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const stripAnsi = (text) =>
-  text
-    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
-    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
 
 function writeRootFor(side) {
   return join(evidenceRoot, 'fixture-out', side);
@@ -89,8 +85,7 @@ function bulletCount(body) {
   return body
     .split('\n')
     .map((l) => l.trim())
-    .filter((l) => /^[-*•]\s+/.test(l) || /^\d+\.\s+/.test(l))
-    .length;
+    .filter((l) => /^[-*•]\s+/.test(l) || /^\d+\.\s+/.test(l)).length;
 }
 
 function threadLines(body) {
@@ -109,26 +104,10 @@ function scoreContract(text) {
   const hasProblemsHeading = /\bProblems?\b/i.test(normalized);
   const hasNextHeading = /\bNext move\b/i.test(normalized);
 
-  const capsuleBody = sectionBody(
-    normalized,
-    /^#{1,3}\s*\**Capsule\**\b.*$/im,
-    /^#{1,3}\s*\**Threads?\**\b/im,
-  );
-  const threadsBody = sectionBody(
-    normalized,
-    /^#{1,3}\s*\**Threads?\**\b.*$/im,
-    /^#{1,3}\s*\**(Problems?|Next move)\**\b/im,
-  );
-  const problemsBody = sectionBody(
-    normalized,
-    /^#{1,3}\s*\**Problems?\**\b.*$/im,
-    /^#{1,3}\s*\**Next move\**\b/im,
-  );
-  const nextBody = sectionBody(
-    normalized,
-    /^#{1,3}\s*\**Next move\**\b.*$/im,
-    /^#{1,3}\s+\S+/m,
-  );
+  const capsuleBody = sectionBody(normalized, /^#{1,3}\s*\**Capsule\**\b.*$/im, /^#{1,3}\s*\**Threads?\**\b/im);
+  const threadsBody = sectionBody(normalized, /^#{1,3}\s*\**Threads?\**\b.*$/im, /^#{1,3}\s*\**(Problems?|Next move)\**\b/im);
+  const problemsBody = sectionBody(normalized, /^#{1,3}\s*\**Problems?\**\b.*$/im, /^#{1,3}\s*\**Next move\**\b/im);
+  const nextBody = sectionBody(normalized, /^#{1,3}\s*\**Next move\**\b.*$/im, /^#{1,3}\s+\S+/m);
 
   const capsuleBullets = bulletCount(capsuleBody);
   const threads = threadLines(threadsBody);
@@ -165,11 +144,7 @@ function scoreContract(text) {
 }
 
 function observeSignals(text) {
-  const recallSkill =
-    /\/recall\b/i.test(text) ||
-    /\[skill\]\s*recall/i.test(text) ||
-    /\bUsed recall\b/i.test(text) ||
-    /\brecall\b/i.test(text);
+  const recallSkill = /\/recall\b/i.test(text) || /\[skill\]\s*recall/i.test(text) || /\bUsed recall\b/i.test(text) || /\brecall\b/i.test(text);
   const working = /[\u2800-\u28FF]/.test(text) || /\bWorking\b/.test(text);
   return { recallSkill, working, contract: scoreContract(text) };
 }
@@ -204,13 +179,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -272,7 +241,7 @@ async function summarizePiSession(sessionPath) {
   const lines = (await readFile(sessionPath, 'utf8')).split('\n').filter(Boolean);
   const toolOrder = [];
   let skillInjected = false;
-  let assistantTexts = [];
+  const assistantTexts = [];
   for (const line of lines) {
     let o;
     try {
@@ -331,12 +300,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        ['recall', 'Capsule', 'Threads', 'Problems', 'Next move', 'seed/'],
-        300_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['recall', 'Capsule', 'Threads', 'Problems', 'Next move', 'seed/'], 300_000);
     } catch {
       // settle may still land artifacts
     }
@@ -379,18 +343,10 @@ async function runSide(side, ruleBytes, ruleDigest) {
     const screenScore = scoreContract(settledText);
     const ptyScore = scoreContract(ptyText);
     const briefScore = brief.exists ? scoreContract(brief.text) : null;
-    const sessionScore =
-      sessionSummary?.assistantJoined ? scoreContract(sessionSummary.assistantJoined) : null;
-    const bestScore =
-      [briefScore, sessionScore, screenScore, ptyScore]
-        .filter(Boolean)
-        .sort((a, b) => Number(b.contractHeld) - Number(a.contractHeld))[0] || screenScore;
+    const sessionScore = sessionSummary?.assistantJoined ? scoreContract(sessionSummary.assistantJoined) : null;
+    const bestScore = [briefScore, sessionScore, screenScore, ptyScore].filter(Boolean).sort((a, b) => Number(b.contractHeld) - Number(a.contractHeld))[0] || screenScore;
 
-    const skillActivated = Boolean(
-      observeSignals(settledText).recallSkill ||
-        observeSignals(ptyText).recallSkill ||
-        sessionSummary?.skillInjected,
-    );
+    const skillActivated = Boolean(observeSignals(settledText).recallSkill || observeSignals(ptyText).recallSkill || sessionSummary?.skillInjected);
 
     const observations = {
       skillActivated,

@@ -29,24 +29,8 @@ const LOCKED_SKILL_DIGEST = '28f9e61710e205f6f3c5476f333483cff0e988f6a5b639e2faa
 const SETTLE_MS = 1_500_000;
 const POLL_MS = 500;
 
-const CURSOR_SKILL = join(
-  root,
-  'reference',
-  'cursor-plugins',
-  'pstack',
-  'skills',
-  'typescript-best-practices',
-  'SKILL.md',
-);
-const PI_PACKAGE_SKILL = join(
-  root,
-  '..',
-  'extensions',
-  'pi-pstack',
-  'skills',
-  'typescript-best-practices',
-  'SKILL.md',
-);
+const CURSOR_SKILL = join(root, 'reference', 'cursor-plugins', 'pstack', 'skills', 'typescript-best-practices', 'SKILL.md');
+const PI_PACKAGE_SKILL = join(root, '..', 'extensions', 'pi-pstack', 'skills', 'typescript-best-practices', 'SKILL.md');
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -117,10 +101,7 @@ function parseFrontmatter(text) {
     if (idx === -1) continue;
     const key = line.slice(0, idx).trim();
     let value = line.slice(idx + 1).trim();
-    if (
-      (value.startsWith('"') && value.endsWith('"')) ||
-      (value.startsWith("'") && value.endsWith("'"))
-    ) {
+    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
       value = value.slice(1, -1);
     }
     fields[key] = value;
@@ -133,8 +114,7 @@ function scoreSkillText(text, digestHex) {
   const pathsField = fields.paths ?? '';
   const hasTsGlob = /\*\*\/\*\.ts/.test(pathsField) || /"\*\*\/\*\.ts"/.test(pathsField);
   const hasTsxGlob = /\*\*\/\*\.tsx/.test(pathsField) || /"\*\*\/\*\.tsx"/.test(pathsField);
-  const disableModelInvocation =
-    String(fields['disable-model-invocation'] ?? '').toLowerCase() === 'true';
+  const disableModelInvocation = String(fields['disable-model-invocation'] ?? '').toLowerCase() === 'true';
   const body = text.replace(/^---[\s\S]*?---\r?\n?/, '').trimStart();
   // Prefer the explicit first body sentence after the H1.
   const afterH1 = body.replace(/^#[^\n]*\r?\n+/, '').trimStart();
@@ -219,11 +199,7 @@ async function readDone(side) {
 function observeScreen(lines) {
   const text = lines.join('\n');
   return {
-    typescriptSkill:
-      /\/typescript-best-practices\b/i.test(text) ||
-      /\[skill\]\s*typescript-best-practices/i.test(text) ||
-      /\bUsed typescript-best-practices\b/i.test(text) ||
-      /\btypescript-best-practices\b/i.test(text),
+    typescriptSkill: /\/typescript-best-practices\b/i.test(text) || /\[skill\]\s*typescript-best-practices/i.test(text) || /\bUsed typescript-best-practices\b/i.test(text) || /\btypescript-best-practices\b/i.test(text),
     typeSystemDisciplineMention: /type-system-discipline/i.test(text),
     working: /[\u2800-\u28FF]/.test(text) || /\bWorking\b/.test(text),
   };
@@ -245,13 +221,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -295,11 +265,7 @@ async function selfTest() {
     },
     {
       name: 'synthetic-no-disable',
-      ok:
-        scoreSkillText(
-          '---\nname: x\npaths: ["**/*.ts", "**/*.tsx"]\ndisable-model-invocation: false\n---\n\n# X\n\nApply the **type-system-discipline** principle skill first.\n',
-          'abc',
-        ).disableModelInvocation === false,
+      ok: scoreSkillText('---\nname: x\npaths: ["**/*.ts", "**/*.tsx"]\ndisable-model-invocation: false\n---\n\n# X\n\nApply the **type-system-discipline** principle skill first.\n', 'abc').disableModelInvocation === false,
     },
   ];
   const failed = cases.filter((c) => !c.ok);
@@ -355,12 +321,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        ['typescript', 'type-system', 'UserId', 'Badge', 'brand', 'id.ts'],
-        300_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['typescript', 'type-system', 'UserId', 'Badge', 'brand', 'id.ts'], 300_000);
     } catch {
       // settle may still land artifacts
     }
@@ -425,10 +386,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     await writeFile(join(dir, 'prompt.txt'), `${prompt}\n`);
     await writeFile(join(dir, 'poll-log.json'), `${JSON.stringify(pollLog, null, 2)}\n`);
     await writeFile(join(dir, 'skill-score.json'), `${JSON.stringify(skillScore, null, 2)}\n`);
-    await writeFile(
-      join(dir, 'baseline-product.json'),
-      `${JSON.stringify(baseline, null, 2)}\n`,
-    );
+    await writeFile(join(dir, 'baseline-product.json'), `${JSON.stringify(baseline, null, 2)}\n`);
 
     const snapDir = join(attempt.dir, 'fixture-snapshot');
     await mkdir(snapDir, { recursive: true });

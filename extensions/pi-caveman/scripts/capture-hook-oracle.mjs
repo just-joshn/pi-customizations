@@ -10,7 +10,7 @@ import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
-const checkout = resolve(process.env['CAVEMAN_CHECKOUT'] ?? '/tmp/caveman');
+const checkout = resolve(process.env.CAVEMAN_CHECKOUT ?? '/tmp/caveman');
 const target = join(root, 'test/upstream/hook-oracle.json');
 
 const SCENARIOS = [
@@ -53,7 +53,7 @@ function hook(script, payload, env) {
 
 function capture({ defaultMode, prompts }) {
   const home = mkdtempSync(join(tmpdir(), 'caveman-oracle-'));
-  const env = { PATH: process.env['PATH'], HOME: home, CLAUDE_CONFIG_DIR: join(home, '.claude'), CAVEMAN_DEFAULT_MODE: defaultMode };
+  const env = { PATH: process.env.PATH, HOME: home, CLAUDE_CONFIG_DIR: join(home, '.claude'), CAVEMAN_DEFAULT_MODE: defaultMode };
   try {
     const session = hook('caveman-activate.js', { session_id: 's1', hook_event_name: 'SessionStart', source: 'startup' }, env);
     const steps = prompts.map((prompt) => ({ prompt, context: hook('caveman-mode-tracker.js', { session_id: 's1', hook_event_name: 'UserPromptSubmit', prompt }, env) }));

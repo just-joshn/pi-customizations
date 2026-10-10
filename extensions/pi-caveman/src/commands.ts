@@ -10,7 +10,6 @@ import { transitionsFromEntries } from './state.ts';
 import { aggregateHistory, appendHistory, attributeByMode, findCompressedPairs, formatHistory, formatShare, formatStats, parseDuration, sessionUsage } from './stats.ts';
 
 const MODE_COMMANDS = [
-  // biome-ignore lint/security/noSecrets: command description, not a credential
   { name: 'caveman', description: 'Caveman voice: answer first, fluff gone, every technical fact kept (/caveman [ultra|wenyan|off|status])' },
   { name: 'ultracave', description: 'Ultracave: caveman at maximum compression (/ultracave [off|status])' },
   { name: 'megacave', description: 'Megacave: caveman in Classical Chinese (文言文), technical terms verbatim (/megacave [off|status])' },

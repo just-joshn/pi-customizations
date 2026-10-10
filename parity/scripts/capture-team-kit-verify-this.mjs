@@ -23,15 +23,7 @@ const piAgentDir = '/tmp/pi-ref-agent';
 const piRulePath = join(piAgentDir, 'pstack', 'models.mdc');
 const evidenceRoot = join(root, 'evidence', 'team-kit');
 const fixtureApp = join(evidenceRoot, 'fixture-app');
-const lockedSkill = join(
-  root,
-  'reference',
-  'cursor-plugins',
-  'cursor-team-kit',
-  'skills',
-  'verify-this',
-  'SKILL.md',
-);
+const lockedSkill = join(root, 'reference', 'cursor-plugins', 'cursor-team-kit', 'skills', 'verify-this', 'SKILL.md');
 const LOCKED_SKILL_SHA256 = 'c1c7b27c1133085bd3409c601ea12b6e6f61b4b23debcd52bc248fc01907e7de';
 const GEOMETRY = { rows: 40, cols: 120 };
 const LOCKED_FIXTURE_DIGEST = 'sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004';
@@ -42,10 +34,7 @@ const CLAIM = 'probe.txt contains the exact line VALUE=7';
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const stripAnsi = (text) =>
-  text
-    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
-    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
 
 function writeRootFor(side) {
   return join(evidenceRoot, 'fixture-out', side);
@@ -109,9 +98,7 @@ async function readVerdict(side) {
     .split(/\r?\n/)
     .map((l) => l.trim())
     .find((l) => l.length > 0);
-  const verdict = /^(VERIFIED|NOT VERIFIED|INCONCLUSIVE)\b/i.test(first || '')
-    ? first.toUpperCase().replace(/\s+/g, ' ')
-    : null;
+  const verdict = /^(VERIFIED|NOT VERIFIED|INCONCLUSIVE)\b/i.test(first || '') ? first.toUpperCase().replace(/\s+/g, ' ') : null;
   return { exists: true, path, verdict, text };
 }
 
@@ -119,10 +106,7 @@ function observeVerify(text, { ignorePromptSlice } = {}) {
   let hay = stripAnsi(text || '');
   if (ignorePromptSlice) hay = hay.split(ignorePromptSlice).join(' ');
   return {
-    skillMention:
-      /\b\/verify-this\b/i.test(hay) ||
-      /\bverify-this\b/i.test(hay) ||
-      /\[skill\]\s*verify-this\b/i.test(hay),
+    skillMention: /\b\/verify-this\b/i.test(hay) || /\bverify-this\b/i.test(hay) || /\[skill\]\s*verify-this\b/i.test(hay),
     verdictMention: /\b(VERIFIED|NOT VERIFIED|INCONCLUSIVE)\b/i.test(hay),
     probeMention: /\bprobe\.txt\b/i.test(hay) || /\bVALUE=7\b/.test(hay),
     envBlocked: /\benv[- ]blocked\b/i.test(hay),
@@ -171,13 +155,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -231,10 +209,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
       await sleep(800);
       continue;
     }
-    const chatReady =
-      !/Trust project folder\?/i.test(text) &&
-      (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) &&
-      (/fixture-app|verify-this|Skill conflicts|medium/i.test(text) || /probe/i.test(text));
+    const chatReady = !/Trust project folder\?/i.test(text) && (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) && (/fixture-app|verify-this|Skill conflicts|medium/i.test(text) || /probe/i.test(text));
     if (chatReady) return lines;
     await sleep(200);
   }
@@ -243,8 +218,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
 
 function scoreVerify({ verdict, done, screenObs, ptyObs }) {
   const verdictOk = verdict?.verdict === 'VERIFIED';
-  const skillPath =
-    Boolean(screenObs?.skillMention) || Boolean(ptyObs?.skillMention);
+  const skillPath = Boolean(screenObs?.skillMention) || Boolean(ptyObs?.skillMention);
   const envBlocked = done?.status === 'env-blocked' || Boolean(screenObs?.envBlocked);
   return {
     verdictOk,
@@ -266,9 +240,7 @@ async function waitVerifySettled(attempt, side, timeoutMs, prompt) {
     const obs = observeVerify(last.join('\n'), { ignorePromptSlice: prompt });
     const verdict = await readVerdict(side);
     const done = await readDone(side);
-    const enough =
-      (verdict.verdict === 'VERIFIED' && (done.status === 'verified' || done.exists)) ||
-      done.status === 'env-blocked';
+    const enough = (verdict.verdict === 'VERIFIED' && (done.status === 'verified' || done.exists)) || done.status === 'env-blocked';
     if (enough && !obs.working) {
       calm += 1;
       if (calm >= 3) return last;
@@ -312,12 +284,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        ['verify-this', 'VERIFIED', 'NOT VERIFIED', 'INCONCLUSIVE', 'STATUS=', 'probe.txt'],
-        300_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['verify-this', 'VERIFIED', 'NOT VERIFIED', 'INCONCLUSIVE', 'STATUS=', 'probe.txt'], 300_000);
     } catch {
       // settle may still land artifacts
     }
@@ -409,8 +376,7 @@ async function writePair(results, preDigest, lockedSkillDigest) {
   if (!bySide.cursor || !bySide.pi) return null;
   const cursor = bySide.cursor;
   const pi = bySide.pi;
-  const bothClosed =
-    Boolean(cursor.observations?.score?.closed) && Boolean(pi.observations?.score?.closed);
+  const bothClosed = Boolean(cursor.observations?.score?.closed) && Boolean(pi.observations?.score?.closed);
   const pair = {
     schema: 1,
     pairId: PAIR_ID,
@@ -454,8 +420,7 @@ async function writePair(results, preDigest, lockedSkillDigest) {
     skillClosure: {
       'verify-this': bothClosed ? 'closed_by_this_pair' : 'open',
     },
-    note:
-      'Cursor loads locked team-kit via --plugin-dir. Pi seeds the same SKILL.md bytes under .pi/skills/verify-this/. Full 18-skill team-kit closure is not claimed by this pair alone.',
+    note: 'Cursor loads locked team-kit via --plugin-dir. Pi seeds the same SKILL.md bytes under .pi/skills/verify-this/. Full 18-skill team-kit closure is not claimed by this pair alone.',
     verdict: bothClosed ? 'pass' : 'fail',
   };
   const pairPath = join(evidenceRoot, `pair-${PAIR_ID}.json`);
@@ -467,9 +432,7 @@ if (isMain) {
   const preRule = await readFile(referenceRulePath, 'utf8');
   const preDigest = await sha256(referenceRulePath);
   if (preDigest !== LOCKED_FIXTURE_DIGEST) {
-    console.error(
-      `Reference rule digest ${preDigest} does not match the locked fixture ${LOCKED_FIXTURE_DIGEST}`,
-    );
+    console.error(`Reference rule digest ${preDigest} does not match the locked fixture ${LOCKED_FIXTURE_DIGEST}`);
     process.exit(1);
   }
   const lockedSkillDigest = (await sha256(lockedSkill)).replace(/^sha256:/, '');
@@ -485,10 +448,7 @@ if (isMain) {
     console.log(JSON.stringify(result));
   }
   const pairPath = await writePair(results, preDigest, lockedSkillDigest);
-  await writeFile(
-    join(evidenceRoot, 'capture-results-verify-this.json'),
-    `${JSON.stringify({ scenario: SCENARIO_REF, fixtureDigest: preDigest, pairPath, results }, null, 2)}\n`,
-  );
+  await writeFile(join(evidenceRoot, 'capture-results-verify-this.json'), `${JSON.stringify({ scenario: SCENARIO_REF, fixtureDigest: preDigest, pairPath, results }, null, 2)}\n`);
   console.log(
     JSON.stringify({
       scenario: SCENARIO_REF,

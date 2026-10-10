@@ -17,6 +17,7 @@
   },
   "files": [
     "src",
+    "docs",
     "README.md"
   ],
   "scripts": {
@@ -24,7 +25,8 @@
     "test:coverage": "vitest run --coverage",
     "typecheck": "tsc -p .",
     "vendor": "node scripts/vendor-pi-ai.mjs",
-    "check:vendor": "node scripts/vendor-pi-ai.mjs --check"
+    "check:vendor": "node scripts/vendor-pi-ai.mjs --check",
+    "check:native-gap": "node scripts/check-native-gap.mjs"
   },
   "peerDependencies": {
     "@earendil-works/pi-ai": "*",

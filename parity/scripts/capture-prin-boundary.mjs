@@ -23,15 +23,7 @@ const piAgentDir = '/tmp/pi-ref-agent';
 const piRulePath = join(piAgentDir, 'pstack', 'models.mdc');
 const evidenceRoot = join(root, 'evidence', 'principles', 'boundary');
 const fixtureApp = join(evidenceRoot, 'fixture-app');
-const boundarySkillCursor = join(
-  root,
-  'reference',
-  'cursor-plugins',
-  'pstack',
-  'skills',
-  'principle-boundary-discipline',
-  'SKILL.md',
-);
+const boundarySkillCursor = join(root, 'reference', 'cursor-plugins', 'pstack', 'skills', 'principle-boundary-discipline', 'SKILL.md');
 const boundarySkillPi = join(root, '..', 'extensions', 'pi-pstack', 'skills', 'principle-boundary-discipline', 'SKILL.md');
 const GEOMETRY = { rows: 40, cols: 120 };
 const LOCKED_FIXTURE_DIGEST = 'sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004';
@@ -40,25 +32,11 @@ const POLL_MS = 400;
 const PRODUCT_REL = ['src/load-config.js', 'src/core.js', 'src/greet.js'];
 const VERIFY_OUT_REL = 'evidence/verify-out.txt';
 const VERIFY_SCRIPT_REL = 'scripts/verify.mjs';
-const BASELINE_REL = [
-  'src/load-config.js',
-  'src/core.js',
-  'src/greet.js',
-  'config/app.json',
-  'README.md',
-  'NOTES.md',
-  'package.json',
-  VERIFY_SCRIPT_REL,
-  'evidence/.gitkeep',
-  'out/.gitkeep',
-];
+const BASELINE_REL = ['src/load-config.js', 'src/core.js', 'src/greet.js', 'config/app.json', 'README.md', 'NOTES.md', 'package.json', VERIFY_SCRIPT_REL, 'evidence/.gitkeep', 'out/.gitkeep'];
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const stripAnsi = (text) =>
-  text
-    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
-    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
 
 function writeRootFor(side) {
   return join(evidenceRoot, 'fixture-out', side);
@@ -138,23 +116,13 @@ function isBoundarySkillPath(p) {
 function observeBoundaryText(text, { ignorePromptSlice } = {}) {
   let hay = stripAnsi(text || '');
   if (ignorePromptSlice) hay = hay.split(ignorePromptSlice).join(' ');
-  const potetoMode =
-    /\/poteto-mode\b/i.test(hay) ||
-    /\[skill\]\s*poteto-mode/i.test(hay) ||
-    /\bUsed poteto-mode\b/i.test(hay);
+  const potetoMode = /\/poteto-mode\b/i.test(hay) || /\[skill\]\s*poteto-mode/i.test(hay) || /\bUsed poteto-mode\b/i.test(hay);
   const leafChrome = /principle-boundary-discipline[/\\]SKILL\.md/i.test(hay);
   const usedLeaf = /\bUsed principle-boundary-discipline\b/i.test(hay);
   const skillBracketLeaf = /\[skill\]\s*principle-boundary-discipline\b/i.test(hay);
   const hostAttached = Boolean(usedLeaf || skillBracketLeaf);
-  const failMention =
-    /\bBOUNDARY-FAIL\b/.test(hay) ||
-    /missing domain name/i.test(hay) ||
-    /invalid displayName/i.test(hay);
-  const verifyMention =
-    /scripts\/verify\.mjs/i.test(hay) ||
-    /evidence\/verify-out\.txt/i.test(hay) ||
-    /\bBOUNDARY-OK\b/.test(hay) ||
-    /\bBOUNDARY-FAIL\b/.test(hay);
+  const failMention = /\bBOUNDARY-FAIL\b/.test(hay) || /missing domain name/i.test(hay) || /invalid displayName/i.test(hay);
+  const verifyMention = /scripts\/verify\.mjs/i.test(hay) || /evidence\/verify-out\.txt/i.test(hay) || /\bBOUNDARY-OK\b/.test(hay) || /\bBOUNDARY-FAIL\b/.test(hay);
   const working = /[\u2800-\u28FF]/.test(hay) || /\bWorking\b/.test(hay);
   return { potetoMode, leafChrome, hostAttached, failMention, verifyMention, working };
 }
@@ -199,14 +167,7 @@ function extractToolCallsFromJsonl(text) {
 }
 
 function pathFromArgs(args) {
-  return (
-    args.path ||
-    args.file_path ||
-    args.filePath ||
-    args.target_file ||
-    args.file ||
-    null
-  );
+  return args.path || args.file_path || args.filePath || args.target_file || args.file || null;
 }
 
 function isProductPath(p) {
@@ -239,18 +200,14 @@ function scoreCallsForBoundary(calls) {
     const args = call.args || {};
     const blob = JSON.stringify(args);
     const path = pathFromArgs(args);
-    const isRead =
-      /^(Read|read|read_file|ReadFile|cat|blob-mention)$/i.test(name) ||
-      (name === 'bash' && typeof args.command === 'string' && /\bcat\b/.test(args.command));
+    const isRead = /^(Read|read|read_file|ReadFile|cat|blob-mention)$/i.test(name) || (name === 'bash' && typeof args.command === 'string' && /\bcat\b/.test(args.command));
     if (isRead && isBoundarySkillPath(path || blob)) {
       leafSkillRead = true;
       if (!leafSkillReadAt) leafSkillReadAt = call.ts || new Date().toISOString();
       toolOrder.push(`${name}(boundary-leaf)`);
       continue;
     }
-    const verifyHit =
-      /\bscripts\/verify\.mjs\b/i.test(blob) ||
-      (typeof args.command === 'string' && /verify\.mjs/.test(args.command));
+    const verifyHit = /\bscripts\/verify\.mjs\b/i.test(blob) || (typeof args.command === 'string' && /verify\.mjs/.test(args.command));
     if (verifyHit) {
       ranVerifyScript = true;
       if (!firstVerifyAt) firstVerifyAt = call.ts || new Date().toISOString();
@@ -281,61 +238,27 @@ function scoreCallsForBoundary(calls) {
 }
 
 export function analyzeBoundarySources(loadSrc, coreSrc) {
-  const boundaryValidated =
-    /\bdisplayName\b/.test(loadSrc || '') &&
-    (/\btypeof\b/.test(loadSrc || '') || /\.trim\s*\(/.test(loadSrc || '') || /\bthrow\b/.test(loadSrc || '')) &&
-    /\bname\s*:/.test(loadSrc || '');
-  const businessRevalidates =
-    /typeof\s+[^\n]*displayName/.test(coreSrc || '') ||
-    /typeof\s+[^\n]*\.name\b/.test(coreSrc || '') ||
-    /invalid displayName/i.test(coreSrc || '') ||
-    /missing domain name/i.test(coreSrc || '');
+  const boundaryValidated = /\bdisplayName\b/.test(loadSrc || '') && (/\btypeof\b/.test(loadSrc || '') || /\.trim\s*\(/.test(loadSrc || '') || /\bthrow\b/.test(loadSrc || '')) && /\bname\s*:/.test(loadSrc || '');
+  const businessRevalidates = /typeof\s+[^\n]*displayName/.test(coreSrc || '') || /typeof\s+[^\n]*\.name\b/.test(coreSrc || '') || /invalid displayName/i.test(coreSrc || '') || /missing domain name/i.test(coreSrc || '');
   const businessUsesDomain = /\.name\b/.test(coreSrc || '') && /toUpperCase/.test(coreSrc || '');
   const midChainOnlyFix = !boundaryValidated && businessUsesDomain && /displayName/.test(coreSrc || '');
   return { boundaryValidated, businessRevalidates, businessUsesDomain, midChainOnlyFix };
 }
 
-export function scoreBoundary({
-  frontmatter,
-  done,
-  verifyOut,
-  productOk,
-  productAnalysis,
-  screenText,
-  ptyText,
-  sessionScore,
-  transcriptScore,
-  prompt,
-}) {
+export function scoreBoundary({ frontmatter, done, verifyOut, productOk, productAnalysis, screenText, ptyText, sessionScore, transcriptScore, prompt }) {
   const screen = observeBoundaryText(screenText, { ignorePromptSlice: prompt });
   const pty = observeBoundaryText(ptyText, { ignorePromptSlice: prompt });
-  const leafSkillRead = Boolean(
-    sessionScore?.leafSkillRead ||
-      transcriptScore?.leafSkillRead ||
-      screen.leafChrome ||
-      pty.leafChrome,
-  );
+  const leafSkillRead = Boolean(sessionScore?.leafSkillRead || transcriptScore?.leafSkillRead || screen.leafChrome || pty.leafChrome);
   const usedChrome = Boolean(screen.hostAttached || pty.hostAttached || sessionScore?.hostAttached);
   const modelAutoInvoke = usedChrome && !leafSkillRead;
-  const ranVerifyScript = Boolean(
-    sessionScore?.ranVerifyScript || transcriptScore?.ranVerifyScript || screen.verifyMention || pty.verifyMention,
-  );
+  const ranVerifyScript = Boolean(sessionScore?.ranVerifyScript || transcriptScore?.ranVerifyScript || screen.verifyMention || pty.verifyMention);
   const boundaryValidated = Boolean(productAnalysis?.boundaryValidated);
   const businessRevalidates = Boolean(productAnalysis?.businessRevalidates);
   const midChainOnlyFix = Boolean(productAnalysis?.midChainOnlyFix);
   const keptVerifyOk = Boolean(verifyOut?.ok);
   const verifiedDone = /^verified=yes\b/i.test((done?.line || '').trim());
   const frontmatterOk = Boolean(frontmatter?.ok);
-  const contractHeld =
-    frontmatterOk &&
-    leafSkillRead &&
-    boundaryValidated &&
-    !businessRevalidates &&
-    !midChainOnlyFix &&
-    productOk &&
-    keptVerifyOk &&
-    verifiedDone &&
-    !modelAutoInvoke;
+  const contractHeld = frontmatterOk && leafSkillRead && boundaryValidated && !businessRevalidates && !midChainOnlyFix && productOk && keptVerifyOk && verifiedDone && !modelAutoInvoke;
   return {
     frontmatterOk,
     leafSkillRead,
@@ -449,13 +372,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -509,10 +426,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
       await sleep(800);
       continue;
     }
-    const chatReady =
-      !/Trust project folder\?/i.test(text) &&
-      (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) &&
-      (/boundary|greet|load-config|README|medium|Skill conflicts|Session TTL|fixture-app/i.test(text));
+    const chatReady = !/Trust project folder\?/i.test(text) && (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) && /boundary|greet|load-config|README|medium|Skill conflicts|Session TTL|fixture-app/i.test(text);
     if (chatReady) return lines;
     await sleep(200);
   }
@@ -549,13 +463,8 @@ async function summarizePiSession(sessionPath) {
   const text = await readFile(sessionPath, 'utf8');
   const calls = extractToolCallsFromJsonl(text);
   const scored = scoreCallsForBoundary(calls);
-  const hostAttached =
-    /\bUsed principle-boundary-discipline\b/i.test(text) ||
-    /\[skill\]\s*principle-boundary-discipline\b/i.test(text);
-  const failMention =
-    /\bBOUNDARY-FAIL\b/.test(text) ||
-    /missing domain name/i.test(text) ||
-    /invalid displayName/i.test(text);
+  const hostAttached = /\bUsed principle-boundary-discipline\b/i.test(text) || /\[skill\]\s*principle-boundary-discipline\b/i.test(text);
+  const failMention = /\bBOUNDARY-FAIL\b/.test(text) || /missing domain name/i.test(text) || /invalid displayName/i.test(text);
   return { sessionPath, hostAttached, failMention, ...scored };
 }
 
@@ -584,9 +493,7 @@ async function findCursorTranscripts(sinceMs, side) {
         } catch {
           continue;
         }
-        const mentionsThisAttempt =
-          text.includes(doneAbs) ||
-          (text.includes(`boundary/fixture-out/${side}/done.txt`) && (text.includes('BOUNDARY') || text.includes('load-config')));
+        const mentionsThisAttempt = text.includes(doneAbs) || (text.includes(`boundary/fixture-out/${side}/done.txt`) && (text.includes('BOUNDARY') || text.includes('load-config')));
         if (mentionsThisAttempt) hits.push({ path: abs, mtimeMs: st.mtimeMs, size: st.size });
       }
     }
@@ -603,25 +510,15 @@ async function summarizeCursorTranscripts(sinceMs, side) {
     const text = await readFile(hit.path, 'utf8');
     const scored = scoreCallsForBoundary(extractToolCallsFromJsonl(text));
     const leafInBlob = /principle-boundary-discipline[/\\]SKILL\.md/i.test(text);
-    const failMention =
-      /\bBOUNDARY-FAIL\b/.test(text) ||
-      /missing domain name/i.test(text) ||
-      /invalid displayName/i.test(text);
+    const failMention = /\bBOUNDARY-FAIL\b/.test(text) || /missing domain name/i.test(text) || /invalid displayName/i.test(text);
     const merged = {
       path: hit.path,
       ...scored,
       leafSkillRead: scored.leafSkillRead || leafInBlob,
       failMention,
     };
-    const rank =
-      (merged.leafSkillRead ? 4 : 0) +
-      (merged.ranVerifyScript ? 2 : 0) +
-      (merged.sawFailBeforeWrite ? 1 : 0);
-    const bestRank = best
-      ? (best.leafSkillRead ? 4 : 0) +
-        (best.ranVerifyScript ? 2 : 0) +
-        (best.sawFailBeforeWrite ? 1 : 0)
-      : -1;
+    const rank = (merged.leafSkillRead ? 4 : 0) + (merged.ranVerifyScript ? 2 : 0) + (merged.sawFailBeforeWrite ? 1 : 0);
+    const bestRank = best ? (best.leafSkillRead ? 4 : 0) + (best.ranVerifyScript ? 2 : 0) + (best.sawFailBeforeWrite ? 1 : 0) : -1;
     if (!best || rank > bestRank || (rank === bestRank && hit.mtimeMs > (best.mtimeMs || 0))) {
       best = { ...merged, mtimeMs: hit.mtimeMs };
     }
@@ -697,22 +594,7 @@ async function runSide(side, ruleBytes, ruleDigest, frontmatter) {
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        [
-          'poteto-mode',
-          'load-config.js',
-          'core.js',
-          'verify',
-          'BOUNDARY-OK',
-          'BOUNDARY-FAIL',
-          'principle-boundary-discipline',
-          'Phase',
-          'displayName',
-        ],
-        300_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['poteto-mode', 'load-config.js', 'core.js', 'verify', 'BOUNDARY-OK', 'BOUNDARY-FAIL', 'principle-boundary-discipline', 'Phase', 'displayName'], 300_000);
     } catch {
       // settle may still land artifacts
     }
@@ -821,17 +703,7 @@ async function runSide(side, ruleBytes, ruleDigest, frontmatter) {
 
     const snapDir = join(attempt.dir, 'fixture-snapshot');
     await mkdir(snapDir, { recursive: true });
-    for (const rel of [
-      'src/load-config.js',
-      'src/core.js',
-      'src/greet.js',
-      'config/app.json',
-      'README.md',
-      'NOTES.md',
-      'package.json',
-      VERIFY_SCRIPT_REL,
-      VERIFY_OUT_REL,
-    ]) {
+    for (const rel of ['src/load-config.js', 'src/core.js', 'src/greet.js', 'config/app.json', 'README.md', 'NOTES.md', 'package.json', VERIFY_SCRIPT_REL, VERIFY_OUT_REL]) {
       const abs = join(fixtureApp, rel);
       if (!(await pathExists(abs))) continue;
       const dest = join(snapDir, rel);
@@ -879,16 +751,9 @@ async function selfTest() {
     '  return { name: raw.displayName.trim() };\n' +
     '}\n';
   const goodCore = 'export function formatGreeting(cfg) { return `hello, ${cfg.name.toUpperCase()}`; }\n';
-  const midChainCore =
-    'export function formatGreeting(cfg) {\n' +
-    '  if (typeof cfg.displayName !== "string") throw new Error("invalid displayName");\n' +
-    '  return `hello, ${cfg.displayName.toUpperCase()}`;\n' +
-    '}\n';
+  const midChainCore = 'export function formatGreeting(cfg) {\n' + '  if (typeof cfg.displayName !== "string") throw new Error("invalid displayName");\n' + '  return `hello, ${cfg.displayName.toUpperCase()}`;\n' + '}\n';
   const goodAnalysis = analyzeBoundarySources(goodLoad, goodCore);
-  const midChain = analyzeBoundarySources(
-    'export function loadConfig(path) { return JSON.parse(readFileSync(path, "utf8")); }\n',
-    midChainCore,
-  );
+  const midChain = analyzeBoundarySources('export function loadConfig(path) { return JSON.parse(readFileSync(path, "utf8")); }\n', midChainCore);
   const pass = scoreBoundary({
     frontmatter: fm,
     done: { exists: true, line: 'verified=yes' },
@@ -970,10 +835,7 @@ if (isMain) {
     results.push(result);
     console.log(JSON.stringify(result));
   }
-  await writeFile(
-    join(evidenceRoot, 'capture-results.json'),
-    `${JSON.stringify({ scenario: 'prin-boundary', fixtureDigest: preDigest, frontmatter, results }, null, 2)}\n`,
-  );
+  await writeFile(join(evidenceRoot, 'capture-results.json'), `${JSON.stringify({ scenario: 'prin-boundary', fixtureDigest: preDigest, frontmatter, results }, null, 2)}\n`);
   console.log(
     JSON.stringify({
       scenario: 'prin-boundary',

@@ -1,4 +1,3 @@
-// biome-ignore-all lint/security/noSecrets: fixture prompts, not credentials
 import { expect, test } from 'vitest';
 import { buildCompressPrompt, buildFixPrompt, firstNonblankLine, isSmallerThanBody, maskCodeBlocks, notSmallerMessage, restoreCodeBlocks, splitFrontmatter, stripLlmWrapper } from '../../src/compress/text.ts';
 

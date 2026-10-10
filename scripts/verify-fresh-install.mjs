@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFileSync, spawn } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { existsSync, lstatSync } from 'node:fs';
 import { copyFile, mkdir, mkdtemp, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
@@ -19,12 +19,25 @@ const providers = [
   { dir: 'extensions/pi-xai-oauth', provider: 'grok-build' },
 ];
 
+function copyableFile(path) {
+  try {
+    const stat = lstatSync(path);
+    // Follow neither broken symlinks nor gitlinks/submodule directories.
+    return stat.isFile();
+  } catch {
+    return false;
+  }
+}
+
 async function exportWorkingTree(target) {
   const listing = execFileSync('git', ['ls-files', '-z', '--cached', '--others', '--exclude-standard'], { cwd: root });
   for (const file of listing.toString().split('\0').filter(Boolean)) {
-    if (!existsSync(join(root, file))) continue;
+    // Fresh-install proves package load from a clean tree. Parity research trees are out of that contract.
+    if (file === 'parity' || file.startsWith('parity/')) continue;
+    const source = join(root, file);
+    if (!copyableFile(source)) continue;
     await mkdir(dirname(join(target, file)), { recursive: true });
-    await copyFile(join(root, file), join(target, file));
+    await copyFile(source, join(target, file));
   }
 }
 

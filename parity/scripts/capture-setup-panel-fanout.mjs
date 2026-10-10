@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { createHash } from 'node:crypto';
 // setup-panel-list-fanout: plant arena runners as three inherit-parent aliases,
 // invoke /arena without an N override, score whether spawn count equals list length.
 // Real PTY both sides. Restores the locked reference rule after each side.
@@ -6,7 +7,6 @@
 // Usage: node scripts/capture-setup-panel-fanout.mjs [--cursor-only|--pi-only|--both|--self-test]
 // Evidence root: parity/evidence/setup-panel-fanout/
 import { access, mkdir, readdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises';
-import { createHash } from 'node:crypto';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 
@@ -31,10 +31,7 @@ const BACKUP_SUFFIX = '.setup-panel-fanout-backup';
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const stripAnsi = (text) =>
-  text
-    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
-    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
 
 function digestBytes(bytes) {
   return `sha256:${createHash('sha256').update(bytes).digest('hex')}`;
@@ -68,7 +65,7 @@ function notePath(side) {
 }
 
 function arenaPrompt(side) {
-  const out = writeRootFor(side);
+  const _out = writeRootFor(side);
   const cands = candidatesRoot(side);
   const note = notePath(side);
   const done = donePath(side);
@@ -138,54 +135,20 @@ function countTaskSpawns(toolOrder) {
   return (toolOrder || []).filter((name) => /^task$/i.test(String(name))).length;
 }
 
-export function scorePanelFanout({
-  expectedListLength,
-  panelList,
-  doneLine,
-  noteText,
-  screenText,
-  ptyText,
-  sessionSummary,
-  candidateDirs,
-}) {
-  const blobs = [noteText || '', screenText || '', ptyText || '', sessionSummary?.assistantJoined || ''].join(
-    '\n\n---\n\n',
-  );
+export function scorePanelFanout({ expectedListLength, panelList, doneLine, noteText, screenText, ptyText, sessionSummary, candidateDirs }) {
+  const blobs = [noteText || '', screenText || '', ptyText || '', sessionSummary?.assistantJoined || ''].join('\n\n---\n\n');
   const candidateCountOnDisk = (candidateDirs || []).filter((c) => c.hasCode || c.hasRationale).length;
   const doneParsed = parseDoneLine(doneLine);
   const taskCount = countTaskSpawns(sessionSummary?.toolOrder);
-  const nThreeChrome =
-    /\bN\s*=\s*3\b/i.test(blobs) ||
-    /\b3\s+candidates?\b/i.test(blobs) ||
-    /\bthree\s+candidates?\b/i.test(blobs) ||
-    /\bFan(?:\s|-)?out\b.*\b3\b/i.test(blobs) ||
-    /\bspawn(?:ed)?\s+(?:three|3)\b/i.test(blobs);
-  const panelMention =
-    /\barena runners\b/i.test(blobs) ||
-    /\bpanel\b/i.test(blobs) ||
-    /\blist length\b/i.test(blobs) ||
-    /\binherit-parent,\s*inherit-parent,\s*inherit-parent\b/i.test(blobs);
+  const nThreeChrome = /\bN\s*=\s*3\b/i.test(blobs) || /\b3\s+candidates?\b/i.test(blobs) || /\bthree\s+candidates?\b/i.test(blobs) || /\bFan(?:\s|-)?out\b.*\b3\b/i.test(blobs) || /\bspawn(?:ed)?\s+(?:three|3)\b/i.test(blobs);
+  const panelMention = /\barena runners\b/i.test(blobs) || /\bpanel\b/i.test(blobs) || /\blist length\b/i.test(blobs) || /\binherit-parent,\s*inherit-parent,\s*inherit-parent\b/i.test(blobs);
   const spawnFromDone = doneParsed.spawnCount ? Number(doneParsed.spawnCount) : null;
-  const spawnCount = Number.isFinite(spawnFromDone)
-    ? spawnFromDone
-    : taskCount > 0
-      ? taskCount
-      : candidateCountOnDisk;
+  const spawnCount = Number.isFinite(spawnFromDone) ? spawnFromDone : taskCount > 0 ? taskCount : candidateCountOnDisk;
   const listLengthObserved = panelList?.length ?? expectedListLength;
-  const lengthMatches =
-    listLengthObserved === expectedListLength &&
-    (spawnCount === expectedListLength ||
-      candidateCountOnDisk === expectedListLength ||
-      (taskCount === expectedListLength && taskCount > 0));
-  const panelDriven =
-    doneParsed.panelDriven === 'yes' ||
-    (panelMention && nThreeChrome) ||
-    (panelMention && lengthMatches);
+  const lengthMatches = listLengthObserved === expectedListLength && (spawnCount === expectedListLength || candidateCountOnDisk === expectedListLength || (taskCount === expectedListLength && taskCount > 0));
+  const panelDriven = doneParsed.panelDriven === 'yes' || (panelMention && nThreeChrome) || (panelMention && lengthMatches);
   const contractOk = Boolean(
-    panelList?.length === expectedListLength &&
-      lengthMatches &&
-      (panelDriven || doneParsed.panelDriven === 'yes') &&
-      (candidateCountOnDisk === expectedListLength || taskCount === expectedListLength || spawnCount === expectedListLength),
+    panelList?.length === expectedListLength && lengthMatches && (panelDriven || doneParsed.panelDriven === 'yes') && (candidateCountOnDisk === expectedListLength || taskCount === expectedListLength || spawnCount === expectedListLength),
   );
   return {
     expectedListLength,
@@ -228,13 +191,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -376,12 +333,7 @@ async function runSide(side, lockedBytes, panelBytes, panelDigest, panelList) {
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        ['arena', 'Fan', 'candidate', 'runners', 'clamp', 'listLength', 'spawnCount'],
-        300_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['arena', 'Fan', 'candidate', 'runners', 'clamp', 'listLength', 'spawnCount'], 300_000);
     } catch {
       // settle may still land artifacts
     }
@@ -395,9 +347,7 @@ async function runSide(side, lockedBytes, panelBytes, panelDigest, panelList) {
       const done = await readOptional(donePath(side));
       const note = await readOptional(notePath(side));
       const cands = await listCandidateDirs(side);
-      const enough =
-        done.exists ||
-        (note.exists && cands.filter((c) => c.hasCode).length >= EXPECTED_LIST_LENGTH);
+      const enough = done.exists || (note.exists && cands.filter((c) => c.hasCode).length >= EXPECTED_LIST_LENGTH);
       if (enough && !obs.working) {
         calm += 1;
         if (calm >= 3) break;
@@ -442,9 +392,7 @@ async function runSide(side, lockedBytes, panelBytes, panelDigest, panelList) {
       fanoutChrome: Boolean(screenObs.fanoutChrome),
       candidateDirs,
       note,
-      done: done.exists
-        ? { exists: true, path: done.path, line: (done.text || '').trim() }
-        : { exists: false, path: done.path, line: null },
+      done: done.exists ? { exists: true, path: done.path, line: (done.text || '').trim() } : { exists: false, path: done.path, line: null },
       scoring,
       session: sessionSummary
         ? {
