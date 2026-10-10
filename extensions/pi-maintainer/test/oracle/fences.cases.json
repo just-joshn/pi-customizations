@@ -1,0 +1,144 @@
+[
+  {
+    "id": "choose_fence/empty",
+    "op": "fences.choose_fence",
+    "args": {}
+  },
+  {
+    "id": "choose_fence/no-collision",
+    "op": "fences.choose_fence",
+    "args": {
+      "contents": ["value = 1\n", ""]
+    }
+  },
+  {
+    "id": "choose_fence/triple-collision",
+    "op": "fences.choose_fence",
+    "args": {
+      "contents": ["```\nquoted\n```\n"]
+    }
+  },
+  {
+    "id": "choose_fence/quadruple-collision",
+    "op": "fences.choose_fence",
+    "args": {
+      "contents": ["````python"]
+    }
+  },
+  {
+    "id": "choose_fence/readonly-collision",
+    "op": "fences.choose_fence",
+    "args": {
+      "contents": ["hello"],
+      "readonly_contents": [null, "````"]
+    }
+  },
+  {
+    "id": "choose_fence/unreadable-readonly",
+    "op": "fences.choose_fence",
+    "args": {
+      "readonly_contents": [null, null]
+    }
+  },
+  {
+    "id": "choose_fence/indentation-not-collision",
+    "op": "fences.choose_fence",
+    "args": {
+      "contents": ["\t```", " ```", "text ```"]
+    }
+  },
+  {
+    "id": "choose_fence/closing-tag-collision",
+    "op": "fences.choose_fence",
+    "args": {
+      "contents": ["````\n</source>extra"]
+    }
+  },
+  {
+    "id": "choose_fence/code-collision",
+    "op": "fences.choose_fence",
+    "args": {
+      "contents": ["````\n<source>\n<code>"]
+    }
+  },
+  {
+    "id": "choose_fence/pre-collision",
+    "op": "fences.choose_fence",
+    "args": {
+      "contents": ["````\n<source>\n<code>\n<pre>"]
+    }
+  },
+  {
+    "id": "choose_fence/codeblock-collision",
+    "op": "fences.choose_fence",
+    "args": {
+      "contents": ["````\n<source>\n<code>\n<pre>\n<codeblock>"]
+    }
+  },
+  {
+    "id": "choose_fence/all-collide",
+    "op": "fences.choose_fence",
+    "args": {
+      "contents": ["````\n<source>\n<code>\n<pre>\n<codeblock>\n<sourcecode>"]
+    }
+  },
+  {
+    "id": "choose_fence/files-separated-by-newline",
+    "op": "fences.choose_fence",
+    "args": {
+      "contents": ["``", "`"]
+    }
+  },
+  {
+    "id": "choose_fence/crlf",
+    "op": "fences.choose_fence",
+    "args": {
+      "contents": ["x\r\n````\r\n<source>\r\n"]
+    }
+  },
+  {
+    "id": "choose_fence/unicode-linebreaks",
+    "op": "fences.choose_fence",
+    "args": {
+      "contents": ["😀```` <source> <code>\u001c<pre>"]
+    }
+  },
+  {
+    "id": "choose_fence/empty-readonly",
+    "op": "fences.choose_fence",
+    "args": {
+      "readonly_contents": [""]
+    }
+  },
+  {
+    "id": "choose_fence/custom-order",
+    "op": "fences.choose_fence",
+    "args": {
+      "contents": ["OPENx"],
+      "fences": [["OPEN", "CLOSE"], ["😀", "END"]]
+    }
+  },
+  {
+    "id": "choose_fence/custom-all-collide",
+    "op": "fences.choose_fence",
+    "args": {
+      "contents": ["CLOSE"],
+      "fences": [["OPEN", "CLOSE"]]
+    }
+  },
+  {
+    "id": "choose_fence/no-strategies",
+    "op": "fences.choose_fence",
+    "args": {
+      "fences": []
+    }
+  },
+  {
+    "id": "choose_fence/empty-token-collides",
+    "op": "fences.choose_fence",
+    "args": {
+      "contents": [""],
+      "fences": [["", "END"]]
+    }
+  }
+]

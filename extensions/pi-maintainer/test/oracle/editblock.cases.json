@@ -1,5 +1,2848 @@
 [
-  { "id": "find-blocks/basic", "op": "editblock.find_original_update_blocks", "args": { "content": "Here's the change:\n\n```text\nfoo.txt\n<<<<<<< SEARCH\nTwo\n=======\nTu\n>>>>>>> REPLACE\n```\n\nHope you like it!\n" } },
-  { "id": "replace/first-match-only", "op": "editblock.replace_most_similar_chunk", "args": { "whole": "a\nb\na\nb\n", "part": "a\n", "replace": "x\n" } },
-  { "id": "similar-lines/did-you-mean", "op": "editblock.find_similar_lines", "args": { "search_lines": "def foo():\n    return 1\n", "content_lines": "def bar():\n    pass\n\ndef foo():\n    return 2\n" } }
+  {
+    "id": "find-blocks/basic",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "Here's the change:\n\n```text\nfoo.txt\n<<<<<<< SEARCH\nTwo\n=======\nTu\n>>>>>>> REPLACE\n```\n\nHope you like it!\n"
+    }
+  },
+  {
+    "id": "replace/first-match-only",
+    "op": "editblock.replace_most_similar_chunk",
+    "args": {
+      "whole": "a\nb\na\nb\n",
+      "part": "a\n",
+      "replace": "x\n"
+    }
+  },
+  {
+    "id": "similar-lines/did-you-mean",
+    "op": "editblock.find_similar_lines",
+    "args": {
+      "search_lines": "def foo():\n    return 1\n",
+      "content_lines": "def bar():\n    pass\n\ndef foo():\n    return 2\n"
+    }
+  },
+  {
+    "id": "find-blocks/test-find-original-update-blocks",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "\nHere's the change:\n\n```text\nfoo.txt\n<<<<<<< SEARCH\nTwo\n=======\nTooooo\n>>>>>>> REPLACE\n```\n\nHope you like it!\n"
+    }
+  },
+  {
+    "id": "find-blocks/test-quote-below-filename",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "\nHere's the change:\n\nfoo.txt\n```text\n<<<<<<< SEARCH\nTwo\n=======\nTooooo\n>>>>>>> REPLACE\n```\n\nHope you like it!\n"
+    }
+  },
+  {
+    "id": "find-blocks/test-unclosed",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "\nHere's the change:\n\n```text\nfoo.txt\n<<<<<<< SEARCH\nTwo\n=======\nTooooo\n\n\noops!\n"
+    }
+  },
+  {
+    "id": "find-blocks/test-missing-filename",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "\nHere's the change:\n\n```text\n<<<<<<< SEARCH\nTwo\n=======\nTooooo\n\n\noops!\n>>>>>>> REPLACE\n"
+    }
+  },
+  {
+    "id": "find-blocks/test-no-final-newline",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "\naider/coder.py\n<<<<<<< SEARCH\n            self.console.print(\"[red]^C again to quit\")\n=======\n            self.io.tool_error(\"^C again to quit\")\n>>>>>>> REPLACE\n\naider/coder.py\n<<<<<<< SEARCH\n            self.io.tool_error(\"Malformed ORIGINAL/UPDATE blocks, retrying...\")\n            self.io.tool_error(err)\n=======\n            self.io.tool_error(\"Malformed ORIGINAL/UPDATE blocks, retrying...\")\n            self.io.tool_error(str(err))\n>>>>>>> REPLACE\n\naider/coder.py\n<<<<<<< SEARCH\n            self.console.print(\"[red]Unable to get commit message from gpt-3.5-turbo. Use /commit to try again.\n\")\n=======\n            self.io.tool_error(\"Unable to get commit message from gpt-3.5-turbo. Use /commit to try again.\")\n>>>>>>> REPLACE\n\naider/coder.py\n<<<<<<< SEARCH\n            self.console.print(\"[red]Skipped commit.\")\n=======\n            self.io.tool_error(\"Skipped commit.\")\n>>>>>>> REPLACE"
+    }
+  },
+  {
+    "id": "find-blocks/test-incomplete-edit-block-missing-filename",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "\nNo problem! Here are the changes to patch `subprocess.check_output` instead of `subprocess.run` in both tests:\n\n```python\ntests/test_repomap.py\n<<<<<<< SEARCH\n    def test_check_for_ctags_failure(self):\n        with patch(\"subprocess.run\") as mock_run:\n            mock_run.side_effect = Exception(\"ctags not found\")\n=======\n    def test_check_for_ctags_failure(self):\n        with patch(\"subprocess.check_output\") as mock_check_output:\n            mock_check_output.side_effect = Exception(\"ctags not found\")\n>>>>>>> REPLACE\n\n<<<<<<< SEARCH\n    def test_check_for_ctags_success(self):\n        with patch(\"subprocess.run\") as mock_run:\n            mock_run.return_value = CompletedProcess(args=[\"ctags\", \"--version\"], returncode=0, stdout='''{\n  \"_type\": \"tag\",\n  \"name\": \"status\",\n  \"path\": \"aider/main.py\",\n  \"pattern\": \"/^    status = main()$/\",\n  \"kind\": \"variable\"\n}''')\n=======\n    def test_check_for_ctags_success(self):\n        with patch(\"subprocess.check_output\") as mock_check_output:\n            mock_check_output.return_value = '''{\n  \"_type\": \"tag\",\n  \"name\": \"status\",\n  \"path\": \"aider/main.py\",\n  \"pattern\": \"/^    status = main()$/\",\n  \"kind\": \"variable\"\n}'''\n>>>>>>> REPLACE\n```\n\nThese changes replace the `subprocess.run` patches with `subprocess.check_output` patches in both `test_check_for_ctags_failure` and `test_check_for_ctags_success` tests.\n"
+    }
+  },
+  {
+    "id": "find-blocks/test-multiple-same-file",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "\nHere's the change:\n\n```text\nfoo.txt\n<<<<<<< SEARCH\none\n=======\ntwo\n>>>>>>> REPLACE\n\n...\n\n<<<<<<< SEARCH\nthree\n=======\nfour\n>>>>>>> REPLACE\n```\n\nHope you like it!\n"
+    }
+  },
+  {
+    "id": "find-blocks/test-deepseek-coder-v2-filename-mangling",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "\nHere's the change:\n\n ```python\nfoo.txt\n```\n```python\n<<<<<<< SEARCH\none\n=======\ntwo\n>>>>>>> REPLACE\n```\n\nHope you like it!\n"
+    }
+  },
+  {
+    "id": "find-blocks/test-new-file-created-in-same-folder",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "\nHere's the change:\n\npath/to/a/file2.txt\n```python\n<<<<<<< SEARCH\n=======\nthree\n>>>>>>> REPLACE\n```\n\nanother change\n\npath/to/a/file1.txt\n```python\n<<<<<<< SEARCH\none\n=======\ntwo\n>>>>>>> REPLACE\n```\n\nHope you like it!\n",
+      "valid_fnames": ["path/to/a/file1.txt"]
+    }
+  },
+  {
+    "id": "find-blocks/test-quad-backticks-with-triples",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "\nHere's the change:\n\nfoo.txt\n```text\n<<<<<<< SEARCH\n=======\nTooooo\n>>>>>>> REPLACE\n```\n\nHope you like it!\n",
+      "fence": ["````", "````"]
+    }
+  },
+  {
+    "id": "find-blocks/test-sh-language-identifier",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "\nHere's a shell script:\n\n```sh\ntest_hello.sh\n<<<<<<< SEARCH\n=======\n#!/bin/bash\n# Check if exactly one argument is provided\nif [ \"$#\" -ne 1 ]; then\n    echo \"Usage: $0 <argument>\" >&2\n    exit 1\nfi\n\n# Echo the first argument\necho \"$1\"\n\nexit 0\n>>>>>>> REPLACE\n```\n"
+    }
+  },
+  {
+    "id": "find-blocks/test-csharp-language-identifier",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "\nHere's a C# code change:\n\n```csharp\nProgram.cs\n<<<<<<< SEARCH\nConsole.WriteLine(\"Hello World!\");\n=======\nConsole.WriteLine(\"Hello, C# World!\");\n>>>>>>> REPLACE\n```\n"
+    }
+  },
+  {
+    "id": "find-blocks/marker-five-chars",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "a.py\n<<<<< SEARCH\nx\n=====\ny\n>>>>> REPLACE\n"
+    }
+  },
+  {
+    "id": "find-blocks/marker-nine-chars",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "a.py\n<<<<<<<<< SEARCH\nx\n=========\ny\n>>>>>>>>> REPLACE\n"
+    }
+  },
+  {
+    "id": "find-blocks/head-four-chars-ignored",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "a.py\n<<<< SEARCH\nx\n=======\ny\n>>>>>>> REPLACE\n"
+    }
+  },
+  {
+    "id": "find-blocks/head-ten-chars-ignored",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "a.py\n<<<<<<<<<< SEARCH\nx\n=======\ny\n>>>>>>> REPLACE\n"
+    }
+  },
+  {
+    "id": "find-blocks/divider-four-chars-is-content",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "a.py\n<<<<<<< SEARCH\nx\n====\n=======\ny\n>>>>>>> REPLACE\n"
+    }
+  },
+  {
+    "id": "find-blocks/divider-ten-chars-is-content",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "a.py\n<<<<<<< SEARCH\nx\n==========\n=======\ny\n>>>>>>> REPLACE\n"
+    }
+  },
+  {
+    "id": "find-blocks/updated-four-chars-is-content",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "a.py\n<<<<<<< SEARCH\nx\n=======\ny\n>>>> REPLACE\n>>>>>>> REPLACE\n"
+    }
+  },
+  {
+    "id": "find-blocks/updated-ten-chars-is-content",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "a.py\n<<<<<<< SEARCH\nx\n=======\ny\n>>>>>>>>>> REPLACE\n>>>>>>> REPLACE\n"
+    }
+  },
+  {
+    "id": "find-blocks/head-with-closing-angle",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "a.py\n<<<<<<< SEARCH>\nx\n=======\ny\n>>>>>>> REPLACE\n"
+    }
+  },
+  {
+    "id": "find-blocks/head-with-two-closing-angles-ignored",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "a.py\n<<<<<<< SEARCH>>\nx\n=======\ny\n>>>>>>> REPLACE\n"
+    }
+  },
+  {
+    "id": "find-blocks/markers-indented-and-trailing-space",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "a.py\n   <<<<<<< SEARCH  \nx\n\t=======\t\ny\n  >>>>>>> REPLACE   \n"
+    }
+  },
+  {
+    "id": "find-blocks/markers-lowercase-ignored",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "a.py\n<<<<<<< search\nx\n=======\ny\n>>>>>>> REPLACE\n"
+    }
+  },
+  {
+    "id": "find-blocks/marker-space-missing-ignored",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "a.py\n<<<<<<<SEARCH\nx\n=======\ny\n>>>>>>> REPLACE\n"
+    }
+  },
+  {
+    "id": "find-blocks/divider-trailing-bom-is-content",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "a.py\n<<<<<<< SEARCH\nx\n=======\ufeff\n=======\ny\n>>>>>>> REPLACE\n"
+    }
+  },
+  {
+    "id": "find-blocks/divider-trailing-unit-separator-strips",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "a.py\n<<<<<<< SEARCH\nx\n=======\u001f\ny\n>>>>>>> REPLACE\n"
+    }
+  },
+  {
+    "id": "find-blocks/divider-ends-replace-section",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "a.py\n<<<<<<< SEARCH\nx\n=======\ny\n=======\nz\n>>>>>>> REPLACE\n"
+    }
+  },
+  {
+    "id": "find-blocks/missing-divider",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "a.py\n<<<<<<< SEARCH\nx\ny\n"
+    }
+  },
+  {
+    "id": "find-blocks/missing-divider-custom-fence",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "a.py\n<<<<<<< SEARCH\nx\n",
+      "fence": ["<source>", "</source>"]
+    }
+  },
+  {
+    "id": "find-blocks/missing-filename-custom-fence",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "\n<<<<<<< SEARCH\nx\n=======\ny\n>>>>>>> REPLACE\n",
+      "fence": ["<source>", "</source>"]
+    }
+  },
+  {
+    "id": "find-blocks/missing-filename-first-line",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "<<<<<<< SEARCH\nx\n=======\ny\n>>>>>>> REPLACE\n"
+    }
+  },
+  {
+    "id": "find-blocks/reuses-previous-filename",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "a.py\n<<<<<<< SEARCH\nx\n=======\ny\n>>>>>>> REPLACE\n\n<<<<<<< SEARCH\nz\n=======\nw\n>>>>>>> REPLACE\n"
+    }
+  },
+  {
+    "id": "find-blocks/prose-line-becomes-filename",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "Change this:\n<<<<<<< SEARCH\nx\n=======\ny\n>>>>>>> REPLACE\n"
+    }
+  },
+  {
+    "id": "find-blocks/empty-search-skips-fuzzy-filename",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "ap.py\n<<<<<<< SEARCH\n=======\nnew\n>>>>>>> REPLACE\n",
+      "valid_fnames": ["app.py"]
+    }
+  },
+  {
+    "id": "find-blocks/nonempty-search-fuzzy-filename",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "ap.py\n<<<<<<< SEARCH\nx\n=======\ny\n>>>>>>> REPLACE\n",
+      "valid_fnames": ["app.py"]
+    }
+  },
+  {
+    "id": "find-blocks/whitespace-search-uses-valid-fnames",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "ap.py\n<<<<<<< SEARCH\n \n=======\ny\n>>>>>>> REPLACE\n",
+      "valid_fnames": ["app.py"]
+    }
+  },
+  {
+    "id": "find-blocks/basename-matches-valid-fname",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "app.py\n<<<<<<< SEARCH\nx\n=======\ny\n>>>>>>> REPLACE\n",
+      "valid_fnames": ["src/app.py"]
+    }
+  },
+  {
+    "id": "find-blocks/filename-in-fence-info",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "```src/app.py\n<<<<<<< SEARCH\nx\n=======\ny\n>>>>>>> REPLACE\n```\n"
+    }
+  },
+  {
+    "id": "find-blocks/filename-three-lines-back",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "app.py\n```\n```python\n<<<<<<< SEARCH\nx\n=======\ny\n>>>>>>> REPLACE\n"
+    }
+  },
+  {
+    "id": "find-blocks/filename-four-lines-back-missing",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "app.py\n```\n```\n```python\n<<<<<<< SEARCH\nx\n=======\ny\n>>>>>>> REPLACE\n"
+    }
+  },
+  {
+    "id": "find-blocks/blank-line-before-head-missing",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "app.py\n\n<<<<<<< SEARCH\nx\n=======\ny\n>>>>>>> REPLACE\n"
+    }
+  },
+  {
+    "id": "find-blocks/markdown-decorated-filename",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "**`app.py`**\n```\n<<<<<<< SEARCH\nx\n=======\ny\n>>>>>>> REPLACE\n```\n"
+    }
+  },
+  {
+    "id": "find-blocks/markdown-decorated-filename-valid",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "**`app.py`**\n```\n<<<<<<< SEARCH\nx\n=======\ny\n>>>>>>> REPLACE\n```\n",
+      "valid_fnames": ["app.py"]
+    }
+  },
+  {
+    "id": "find-blocks/source-tag-fence",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "<source>python\napp.py\n<<<<<<< SEARCH\nx\n=======\ny\n>>>>>>> REPLACE\n</source>\n",
+      "fence": ["<source>", "</source>"]
+    }
+  },
+  {
+    "id": "find-blocks/shell-bash",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "Run:\n\n```bash\nls -la\npwd\n```\n\nDone.\n"
+    }
+  },
+  {
+    "id": "find-blocks/shell-every-language",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "```bash\necho bash\n```\n```sh\necho sh\n```\n```shell\necho shell\n```\n```cmd\necho cmd\n```\n```batch\necho batch\n```\n```powershell\necho powershell\n```\n```ps1\necho ps1\n```\n```zsh\necho zsh\n```\n```fish\necho fish\n```\n```ksh\necho ksh\n```\n```csh\necho csh\n```\n```tcsh\necho tcsh\n```\n"
+    }
+  },
+  {
+    "id": "find-blocks/shell-unclosed",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "```sh\necho hi\necho there\n"
+    }
+  },
+  {
+    "id": "find-blocks/shell-indented-fences",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "  ```bash\nls\n  ```\n"
+    }
+  },
+  {
+    "id": "find-blocks/shell-closes-on-any-backticks",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "```bash\nls\n````\nafter\n"
+    }
+  },
+  {
+    "id": "find-blocks/shell-head-next-line-is-edit",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "```bash\n<<<<<<< SEARCH\nx\n=======\ny\n>>>>>>> REPLACE\n```\n"
+    }
+  },
+  {
+    "id": "find-blocks/shell-head-two-lines-later-is-edit",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "```bash\nscript.sh\n<<<<<<< SEARCH\nx\n=======\ny\n>>>>>>> REPLACE\n```\n"
+    }
+  },
+  {
+    "id": "find-blocks/shell-head-three-lines-later-swallowed",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "```bash\nscript.sh\n\n<<<<<<< SEARCH\nx\n=======\ny\n>>>>>>> REPLACE\n```\n"
+    }
+  },
+  {
+    "id": "find-blocks/shell-csharp-prefix-is-shell",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "```csharp\nConsole.WriteLine(1);\n```\n"
+    }
+  },
+  {
+    "id": "find-blocks/shell-prefix-match",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "```shellscript\necho prefix\n```\n"
+    }
+  },
+  {
+    "id": "find-blocks/shell-not-detected-under-quad",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "````bash\necho quad\n````\n",
+      "fence": ["````", "````"]
+    }
+  },
+  {
+    "id": "find-blocks/shell-and-edit-mixed",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "```bash\nmake test\n```\n\napp.py\n```python\n<<<<<<< SEARCH\nx\n=======\ny\n>>>>>>> REPLACE\n```\n"
+    }
+  },
+  {
+    "id": "find-blocks/shell-empty-block",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "```bash\n```\n"
+    }
+  },
+  {
+    "id": "find-blocks/crlf-reply",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "foo.txt\r\n<<<<<<< SEARCH\r\nTwo\r\n=======\r\nTu\r\n>>>>>>> REPLACE\r\n"
+    }
+  },
+  {
+    "id": "find-blocks/line-separator-reply",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "foo.txt\u2028<<<<<<< SEARCH\u2028Two\u2028=======\u2028Tu\u2028>>>>>>> REPLACE\u2028"
+    }
+  },
+  {
+    "id": "find-blocks/astral-reply",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "\ud83d\ude00.txt\n<<<<<<< SEARCH\n\ud83d\ude00 one\n=======\n\ud83d\ude80 two\n>>>>>>> REPLACE\n"
+    }
+  },
+  {
+    "id": "find-blocks/tabs-reply",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "a.go\n<<<<<<< SEARCH\n\tx := 1\n=======\n\tx := 2\n>>>>>>> REPLACE\n"
+    }
+  },
+  {
+    "id": "find-blocks/no-blocks",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "Just some prose.\nNo edits here.\n"
+    }
+  },
+  {
+    "id": "find-blocks/empty-content",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": ""
+    }
+  },
+  {
+    "id": "find-blocks/search-without-trailing-newline",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "a.py\n<<<<<<< SEARCH\nx\n=======\ny\n>>>>>>> REPLACE"
+    }
+  },
+  {
+    "id": "find-blocks/dots-filename-line-ignored",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "...\n<<<<<<< SEARCH\nx\n=======\ny\n>>>>>>> REPLACE\n"
+    }
+  },
+  {
+    "id": "find-blocks/error-after-good-block",
+    "op": "editblock.find_original_update_blocks",
+    "args": {
+      "content": "a.py\n<<<<<<< SEARCH\nx\n=======\ny\n>>>>>>> REPLACE\nb.py\n<<<<<<< SEARCH\nz\n"
+    }
+  },
+  {
+    "id": "find-filename/test-single-line",
+    "op": "editblock.find_filename",
+    "args": {
+      "lines": ["file1.py", "```"],
+      "valid_fnames": ["file1.py", "file2.py", "dir/file3.py", "\\windows\\__init__.py"]
+    }
+  },
+  {
+    "id": "find-filename/test-in-fence",
+    "op": "editblock.find_filename",
+    "args": {
+      "lines": ["```python", "file3.py", "```"],
+      "valid_fnames": ["file1.py", "file2.py", "dir/file3.py", "\\windows\\__init__.py"]
+    }
+  },
+  {
+    "id": "find-filename/test-no-valid-filename",
+    "op": "editblock.find_filename",
+    "args": {
+      "lines": ["```", "invalid_file.py", "```"],
+      "valid_fnames": ["file1.py", "file2.py", "dir/file3.py", "\\windows\\__init__.py"]
+    }
+  },
+  {
+    "id": "find-filename/test-multiple-fences",
+    "op": "editblock.find_filename",
+    "args": {
+      "lines": ["```python", "file1.py", "```", "```", "file2.py", "```"],
+      "valid_fnames": ["file1.py", "file2.py", "dir/file3.py", "\\windows\\__init__.py"]
+    }
+  },
+  {
+    "id": "find-filename/test-extra-characters",
+    "op": "editblock.find_filename",
+    "args": {
+      "lines": ["# file1.py", "```"],
+      "valid_fnames": ["file1.py", "file2.py", "dir/file3.py", "\\windows\\__init__.py"]
+    }
+  },
+  {
+    "id": "find-filename/test-fuzzy-underscore",
+    "op": "editblock.find_filename",
+    "args": {
+      "lines": ["file1_py", "```"],
+      "valid_fnames": ["file1.py", "file2.py", "dir/file3.py", "\\windows\\__init__.py"]
+    }
+  },
+  {
+    "id": "find-filename/test-fuzzy-windows",
+    "op": "editblock.find_filename",
+    "args": {
+      "lines": ["\\windows__init__.py", "```"],
+      "valid_fnames": ["file1.py", "file2.py", "dir/file3.py", "\\windows\\__init__.py"]
+    }
+  },
+  {
+    "id": "find-filename/valid-none",
+    "op": "editblock.find_filename",
+    "args": {
+      "lines": ["file1.py\n", "```\n"],
+      "valid_fnames": null
+    }
+  },
+  {
+    "id": "find-filename/blank-line-stops-search",
+    "op": "editblock.find_filename",
+    "args": {
+      "lines": ["a.py\n", "\n"],
+      "valid_fnames": ["a.py"]
+    }
+  },
+  {
+    "id": "find-filename/no-lines",
+    "op": "editblock.find_filename",
+    "args": {
+      "lines": [],
+      "valid_fnames": ["a.py"]
+    }
+  },
+  {
+    "id": "find-filename/only-three-lines",
+    "op": "editblock.find_filename",
+    "args": {
+      "lines": ["far.py\n", "```\n", "```\n", "```\n"],
+      "valid_fnames": ["far.py"]
+    }
+  },
+  {
+    "id": "find-filename/exact-before-basename",
+    "op": "editblock.find_filename",
+    "args": {
+      "lines": ["src/app.py\n"],
+      "valid_fnames": ["app.py", "src/app.py"]
+    }
+  },
+  {
+    "id": "find-filename/basename-first-valid-wins",
+    "op": "editblock.find_filename",
+    "args": {
+      "lines": ["app.py\n"],
+      "valid_fnames": ["x/app.py", "y/app.py"]
+    }
+  },
+  {
+    "id": "find-filename/fuzzy-below-cutoff",
+    "op": "editblock.find_filename",
+    "args": {
+      "lines": ["f1.py\n"],
+      "valid_fnames": ["file1.py"]
+    }
+  },
+  {
+    "id": "find-filename/fuzzy-tie-prefers-larger-name",
+    "op": "editblock.find_filename",
+    "args": {
+      "lines": ["ab.py\n"],
+      "valid_fnames": ["ab.pyx", "ab.pyz"]
+    }
+  },
+  {
+    "id": "find-filename/fuzzy-tie-order-independent",
+    "op": "editblock.find_filename",
+    "args": {
+      "lines": ["ab.py\n"],
+      "valid_fnames": ["ab.pyz", "ab.pyx"]
+    }
+  },
+  {
+    "id": "find-filename/extension-preferred",
+    "op": "editblock.find_filename",
+    "args": {
+      "lines": ["bar.py\n", "```\n", "```dir/foo\n"],
+      "valid_fnames": []
+    }
+  },
+  {
+    "id": "find-filename/first-without-extension",
+    "op": "editblock.find_filename",
+    "args": {
+      "lines": ["Makefile\n", "```\n", "```dir/foo\n"],
+      "valid_fnames": []
+    }
+  },
+  {
+    "id": "find-filename/indented-fence-stops",
+    "op": "editblock.find_filename",
+    "args": {
+      "lines": ["a.py\n", " ```python\n"],
+      "valid_fnames": []
+    }
+  },
+  {
+    "id": "find-filename/custom-fence",
+    "op": "editblock.find_filename",
+    "args": {
+      "lines": ["<source>a.py\n"],
+      "valid_fnames": [],
+      "fence": ["<source>", "</source>"]
+    }
+  },
+  {
+    "id": "find-filename/triple-backticks-under-quad",
+    "op": "editblock.find_filename",
+    "args": {
+      "lines": ["x.py\n", "```\n"],
+      "valid_fnames": [],
+      "fence": ["````", "````"]
+    }
+  },
+  {
+    "id": "strip-filename/plain",
+    "op": "editblock.strip_filename",
+    "args": {
+      "filename": "file.py"
+    }
+  },
+  {
+    "id": "strip-filename/surrounding-whitespace",
+    "op": "editblock.strip_filename",
+    "args": {
+      "filename": "  file.py \n"
+    }
+  },
+  {
+    "id": "strip-filename/ellipsis",
+    "op": "editblock.strip_filename",
+    "args": {
+      "filename": "..."
+    }
+  },
+  {
+    "id": "strip-filename/ellipsis-with-whitespace",
+    "op": "editblock.strip_filename",
+    "args": {
+      "filename": "  ...  \n"
+    }
+  },
+  {
+    "id": "strip-filename/fence-language-only",
+    "op": "editblock.strip_filename",
+    "args": {
+      "filename": "```python"
+    }
+  },
+  {
+    "id": "strip-filename/fence-with-path",
+    "op": "editblock.strip_filename",
+    "args": {
+      "filename": "```src/app.py"
+    }
+  },
+  {
+    "id": "strip-filename/fence-with-dir-slash",
+    "op": "editblock.strip_filename",
+    "args": {
+      "filename": "```dir/x"
+    }
+  },
+  {
+    "id": "strip-filename/bare-fence",
+    "op": "editblock.strip_filename",
+    "args": {
+      "filename": "```"
+    }
+  },
+  {
+    "id": "strip-filename/custom-fence-name",
+    "op": "editblock.strip_filename",
+    "args": {
+      "filename": "<source>a.py",
+      "fence": ["<source>", "</source>"]
+    }
+  },
+  {
+    "id": "strip-filename/custom-fence-language",
+    "op": "editblock.strip_filename",
+    "args": {
+      "filename": "<source>python",
+      "fence": ["<source>", "</source>"]
+    }
+  },
+  {
+    "id": "strip-filename/triple-under-quad-fence",
+    "op": "editblock.strip_filename",
+    "args": {
+      "filename": "```x.py",
+      "fence": ["````", "````"]
+    }
+  },
+  {
+    "id": "strip-filename/quad-fence-language",
+    "op": "editblock.strip_filename",
+    "args": {
+      "filename": "````python",
+      "fence": ["````", "````"]
+    }
+  },
+  {
+    "id": "strip-filename/triple-language-under-quad",
+    "op": "editblock.strip_filename",
+    "args": {
+      "filename": "```python",
+      "fence": ["````", "````"]
+    }
+  },
+  {
+    "id": "strip-filename/hash-prefix",
+    "op": "editblock.strip_filename",
+    "args": {
+      "filename": "# file1.py"
+    }
+  },
+  {
+    "id": "strip-filename/colon-suffix",
+    "op": "editblock.strip_filename",
+    "args": {
+      "filename": "file.py:"
+    }
+  },
+  {
+    "id": "strip-filename/backticks",
+    "op": "editblock.strip_filename",
+    "args": {
+      "filename": "`file.py`"
+    }
+  },
+  {
+    "id": "strip-filename/bold",
+    "op": "editblock.strip_filename",
+    "args": {
+      "filename": "**file.py**"
+    }
+  },
+  {
+    "id": "strip-filename/bold-backticks-kept",
+    "op": "editblock.strip_filename",
+    "args": {
+      "filename": "**`file.py`**"
+    }
+  },
+  {
+    "id": "strip-filename/heading-colon",
+    "op": "editblock.strip_filename",
+    "args": {
+      "filename": "### `src/app.py`:"
+    }
+  },
+  {
+    "id": "strip-filename/escaped-underscore-kept",
+    "op": "editblock.strip_filename",
+    "args": {
+      "filename": "my\\_file.py"
+    }
+  },
+  {
+    "id": "strip-filename/empty",
+    "op": "editblock.strip_filename",
+    "args": {
+      "filename": ""
+    }
+  },
+  {
+    "id": "strip-filename/only-decoration",
+    "op": "editblock.strip_filename",
+    "args": {
+      "filename": "`**`"
+    }
+  },
+  {
+    "id": "strip-filename/ideographic-space",
+    "op": "editblock.strip_filename",
+    "args": {
+      "filename": "\u3000file.py\u3000"
+    }
+  },
+  {
+    "id": "strip-filename/bom-kept",
+    "op": "editblock.strip_filename",
+    "args": {
+      "filename": "\ufefffile.py"
+    }
+  },
+  {
+    "id": "get-edits/test-full-edit-reply",
+    "op": "editblock.get_edits",
+    "args": {
+      "content": "\nDo this:\n\nfile.txt\n<<<<<<< SEARCH\ntwo\n=======\nnew\n>>>>>>> REPLACE\n\n",
+      "chat_files": ["file.txt"]
+    }
+  },
+  {
+    "id": "get-edits/test-create-new-file-reply",
+    "op": "editblock.get_edits",
+    "args": {
+      "content": "\nDo this:\n\nnewfile.txt\n<<<<<<< SEARCH\n=======\ncreating a new file\n>>>>>>> REPLACE\n\n",
+      "chat_files": ["file.txt"]
+    }
+  },
+  {
+    "id": "get-edits/shell-commands-extracted",
+    "op": "editblock.get_edits",
+    "args": {
+      "content": "```bash\nmake test\n```\n\napp.py\n```python\n<<<<<<< SEARCH\nx\n=======\ny\n>>>>>>> REPLACE\n```\n\n```sh\nls\n```\n",
+      "chat_files": ["app.py"]
+    }
+  },
+  {
+    "id": "get-edits/shell-only",
+    "op": "editblock.get_edits",
+    "args": {
+      "content": "```bash\npip install -e .\n```\n"
+    }
+  },
+  {
+    "id": "get-edits/chat-basename-remap",
+    "op": "editblock.get_edits",
+    "args": {
+      "content": "app.py\n<<<<<<< SEARCH\nx\n=======\ny\n>>>>>>> REPLACE\n",
+      "chat_files": ["src/app.py"]
+    }
+  },
+  {
+    "id": "get-edits/chat-files-sorted-by-code-point",
+    "op": "editblock.get_edits",
+    "args": {
+      "content": "x.py\n<<<<<<< SEARCH\na\n=======\nb\n>>>>>>> REPLACE\n",
+      "chat_files": ["\ud83d\ude00/x.py", "\ue000/x.py"]
+    }
+  },
+  {
+    "id": "get-edits/chat-files-deduplicated",
+    "op": "editblock.get_edits",
+    "args": {
+      "content": "a.py\n<<<<<<< SEARCH\na\n=======\nb\n>>>>>>> REPLACE\n",
+      "chat_files": ["a.py", "./a.py", "sub/../a.py"]
+    }
+  },
+  {
+    "id": "get-edits/malformed-reply-raises",
+    "op": "editblock.get_edits",
+    "args": {
+      "content": "```bash\nls\n```\na.py\n<<<<<<< SEARCH\nx\n",
+      "chat_files": ["a.py"]
+    }
+  },
+  {
+    "id": "get-edits/fenced-format-example",
+    "op": "editblock.get_edits",
+    "args": {
+      "content": "To make this change we need to modify `mathweb/flask/app.py`:\n\n```python\nmathweb/flask/app.py\n<<<<<<< SEARCH\nfrom flask import Flask\n=======\nimport math\nfrom flask import Flask\n>>>>>>> REPLACE\n```\n",
+      "chat_files": ["mathweb/flask/app.py"]
+    }
+  },
+  {
+    "id": "get-edits/quad-fence",
+    "op": "editblock.get_edits",
+    "args": {
+      "content": "app.py\n````python\n<<<<<<< SEARCH\nx\n=======\ny\n>>>>>>> REPLACE\n````\n",
+      "chat_files": ["app.py"],
+      "fence": ["````", "````"]
+    }
+  },
+  {
+    "id": "get-edits/no-edits",
+    "op": "editblock.get_edits",
+    "args": {
+      "content": "Nothing to change.\n",
+      "chat_files": ["app.py"]
+    }
+  },
+  {
+    "id": "prep/empty",
+    "op": "editblock.prep",
+    "args": {
+      "content": ""
+    }
+  },
+  {
+    "id": "prep/adds-newline",
+    "op": "editblock.prep",
+    "args": {
+      "content": "a"
+    }
+  },
+  {
+    "id": "prep/keeps-newline",
+    "op": "editblock.prep",
+    "args": {
+      "content": "a\nb\n"
+    }
+  },
+  {
+    "id": "prep/crlf-lines",
+    "op": "editblock.prep",
+    "args": {
+      "content": "a\r\nb\r\n"
+    }
+  },
+  {
+    "id": "prep/lone-cr-end",
+    "op": "editblock.prep",
+    "args": {
+      "content": "x\r"
+    }
+  },
+  {
+    "id": "prep/line-separator-end",
+    "op": "editblock.prep",
+    "args": {
+      "content": "x\u2028"
+    }
+  },
+  {
+    "id": "prep/form-feed",
+    "op": "editblock.prep",
+    "args": {
+      "content": "a\fb"
+    }
+  },
+  {
+    "id": "prep/astral",
+    "op": "editblock.prep",
+    "args": {
+      "content": "\ud83d\ude00\nb"
+    }
+  },
+  {
+    "id": "perfect-replace/first-of-two",
+    "op": "editblock.perfect_replace",
+    "args": {
+      "whole_lines": ["a\n", "b\n", "a\n"],
+      "part_lines": ["a\n"],
+      "replace_lines": ["x\n"]
+    }
+  },
+  {
+    "id": "perfect-replace/multi-line",
+    "op": "editblock.perfect_replace",
+    "args": {
+      "whole_lines": ["a\n", "b\n", "c\n", "d\n"],
+      "part_lines": ["b\n", "c\n"],
+      "replace_lines": ["B\n"]
+    }
+  },
+  {
+    "id": "perfect-replace/at-end",
+    "op": "editblock.perfect_replace",
+    "args": {
+      "whole_lines": ["a\n", "b\n"],
+      "part_lines": ["b\n"],
+      "replace_lines": ["z\n", "y\n"]
+    }
+  },
+  {
+    "id": "perfect-replace/no-match",
+    "op": "editblock.perfect_replace",
+    "args": {
+      "whole_lines": ["a\n", "b\n"],
+      "part_lines": ["c\n"],
+      "replace_lines": ["x\n"]
+    }
+  },
+  {
+    "id": "perfect-replace/part-longer-than-whole",
+    "op": "editblock.perfect_replace",
+    "args": {
+      "whole_lines": ["a\n"],
+      "part_lines": ["a\n", "b\n"],
+      "replace_lines": ["x\n"]
+    }
+  },
+  {
+    "id": "perfect-replace/empty-part-prepends",
+    "op": "editblock.perfect_replace",
+    "args": {
+      "whole_lines": ["a\n"],
+      "part_lines": [],
+      "replace_lines": ["b\n"]
+    }
+  },
+  {
+    "id": "perfect-replace/empty-result",
+    "op": "editblock.perfect_replace",
+    "args": {
+      "whole_lines": ["x\n"],
+      "part_lines": ["x\n"],
+      "replace_lines": []
+    }
+  },
+  {
+    "id": "perfect-replace/whitespace-must-match",
+    "op": "editblock.perfect_replace",
+    "args": {
+      "whole_lines": ["  a\n"],
+      "part_lines": ["a\n"],
+      "replace_lines": ["b\n"]
+    }
+  },
+  {
+    "id": "perfect-or-whitespace/perfect-wins",
+    "op": "editblock.perfect_or_whitespace",
+    "args": {
+      "whole_lines": ["a\n", "  a\n"],
+      "part_lines": ["a\n"],
+      "replace_lines": ["b\n"]
+    }
+  },
+  {
+    "id": "perfect-or-whitespace/whitespace-fallback",
+    "op": "editblock.perfect_or_whitespace",
+    "args": {
+      "whole_lines": ["  a\n"],
+      "part_lines": ["a\n"],
+      "replace_lines": ["b\n"]
+    }
+  },
+  {
+    "id": "perfect-or-whitespace/empty-result-is-failure",
+    "op": "editblock.perfect_or_whitespace",
+    "args": {
+      "whole_lines": ["x\n"],
+      "part_lines": ["x\n"],
+      "replace_lines": []
+    }
+  },
+  {
+    "id": "perfect-or-whitespace/no-match",
+    "op": "editblock.perfect_or_whitespace",
+    "args": {
+      "whole_lines": ["a\n"],
+      "part_lines": ["b\n"],
+      "replace_lines": ["c\n"]
+    }
+  },
+  {
+    "id": "match-ws/uniform-indent",
+    "op": "editblock.match_but_for_leading_whitespace",
+    "args": {
+      "whole_lines": ["    a\n", "    b\n"],
+      "part_lines": ["a\n", "b\n"]
+    }
+  },
+  {
+    "id": "match-ws/blank-line-ignored",
+    "op": "editblock.match_but_for_leading_whitespace",
+    "args": {
+      "whole_lines": ["  a\n", "\n", "  b\n"],
+      "part_lines": ["a\n", "\n", "b\n"]
+    }
+  },
+  {
+    "id": "match-ws/varied-offset",
+    "op": "editblock.match_but_for_leading_whitespace",
+    "args": {
+      "whole_lines": ["  a\n", "    b\n"],
+      "part_lines": ["a\n", "b\n"]
+    }
+  },
+  {
+    "id": "match-ws/content-differs",
+    "op": "editblock.match_but_for_leading_whitespace",
+    "args": {
+      "whole_lines": ["  a\n"],
+      "part_lines": ["b\n"]
+    }
+  },
+  {
+    "id": "match-ws/no-offset",
+    "op": "editblock.match_but_for_leading_whitespace",
+    "args": {
+      "whole_lines": ["a\n"],
+      "part_lines": ["a\n"]
+    }
+  },
+  {
+    "id": "match-ws/part-deeper-negative-slice",
+    "op": "editblock.match_but_for_leading_whitespace",
+    "args": {
+      "whole_lines": ["x\n"],
+      "part_lines": [" x\n"]
+    }
+  },
+  {
+    "id": "match-ws/negative-slice-astral",
+    "op": "editblock.match_but_for_leading_whitespace",
+    "args": {
+      "whole_lines": ["ab\ud83d\ude00\n"],
+      "part_lines": ["  ab\ud83d\ude00\n"]
+    }
+  },
+  {
+    "id": "match-ws/all-blank",
+    "op": "editblock.match_but_for_leading_whitespace",
+    "args": {
+      "whole_lines": ["\n", "  \n"],
+      "part_lines": ["\n", "\n"]
+    }
+  },
+  {
+    "id": "match-ws/empty",
+    "op": "editblock.match_but_for_leading_whitespace",
+    "args": {
+      "whole_lines": [],
+      "part_lines": []
+    }
+  },
+  {
+    "id": "match-ws/tab-indent",
+    "op": "editblock.match_but_for_leading_whitespace",
+    "args": {
+      "whole_lines": ["\ta\n"],
+      "part_lines": ["a\n"]
+    }
+  },
+  {
+    "id": "match-ws/no-break-space-indent",
+    "op": "editblock.match_but_for_leading_whitespace",
+    "args": {
+      "whole_lines": ["\u00a0a\n"],
+      "part_lines": ["a\n"]
+    }
+  },
+  {
+    "id": "match-ws/bom-is-not-indent",
+    "op": "editblock.match_but_for_leading_whitespace",
+    "args": {
+      "whole_lines": ["\ufeffa\n"],
+      "part_lines": ["a\n"]
+    }
+  },
+  {
+    "id": "match-ws/unit-separator-is-indent",
+    "op": "editblock.match_but_for_leading_whitespace",
+    "args": {
+      "whole_lines": ["\u001fa\n"],
+      "part_lines": ["a\n"]
+    }
+  },
+  {
+    "id": "missing-ws/outdent-then-reindent",
+    "op": "editblock.replace_part_with_missing_leading_whitespace",
+    "args": {
+      "whole_lines": ["    line1\n", "    line2\n", "    line3\n"],
+      "part_lines": ["line1\n", "line2\n"],
+      "replace_lines": ["new_line1\n", "new_line2\n"]
+    }
+  },
+  {
+    "id": "missing-ws/partial-indent",
+    "op": "editblock.replace_part_with_missing_leading_whitespace",
+    "args": {
+      "whole_lines": ["    line1\n", "    line2\n", "    line3\n"],
+      "part_lines": [" line1\n", " line2\n"],
+      "replace_lines": [" new_line1\n", "     new_line2\n"]
+    }
+  },
+  {
+    "id": "missing-ws/blank-replace-lines-stay",
+    "op": "editblock.replace_part_with_missing_leading_whitespace",
+    "args": {
+      "whole_lines": ["  a\n", "  b\n"],
+      "part_lines": ["a\n", "b\n"],
+      "replace_lines": ["x\n", "\n", "   \n", "y\n"]
+    }
+  },
+  {
+    "id": "missing-ws/no-match",
+    "op": "editblock.replace_part_with_missing_leading_whitespace",
+    "args": {
+      "whole_lines": ["  a\n"],
+      "part_lines": ["b\n"],
+      "replace_lines": ["c\n"]
+    }
+  },
+  {
+    "id": "missing-ws/min-leading-from-replace",
+    "op": "editblock.replace_part_with_missing_leading_whitespace",
+    "args": {
+      "whole_lines": ["  a\n"],
+      "part_lines": ["  a\n"],
+      "replace_lines": ["b\n"]
+    }
+  },
+  {
+    "id": "missing-ws/garbage-prefix",
+    "op": "editblock.replace_part_with_missing_leading_whitespace",
+    "args": {
+      "whole_lines": ["x\n"],
+      "part_lines": [" x\n"],
+      "replace_lines": ["y\n"]
+    }
+  },
+  {
+    "id": "missing-ws/empty-result",
+    "op": "editblock.replace_part_with_missing_leading_whitespace",
+    "args": {
+      "whole_lines": ["  x\n"],
+      "part_lines": ["x\n"],
+      "replace_lines": []
+    }
+  },
+  {
+    "id": "missing-ws/first-match",
+    "op": "editblock.replace_part_with_missing_leading_whitespace",
+    "args": {
+      "whole_lines": ["    a\n", "    b\n", "    a\n"],
+      "part_lines": ["a\n"],
+      "replace_lines": ["c\n"]
+    }
+  },
+  {
+    "id": "missing-ws/empty-part",
+    "op": "editblock.replace_part_with_missing_leading_whitespace",
+    "args": {
+      "whole_lines": ["a\n"],
+      "part_lines": [],
+      "replace_lines": ["b\n"]
+    }
+  },
+  {
+    "id": "missing-ws/all-blank-lines",
+    "op": "editblock.replace_part_with_missing_leading_whitespace",
+    "args": {
+      "whole_lines": ["\n", "a\n"],
+      "part_lines": ["\n"],
+      "replace_lines": ["\n"]
+    }
+  },
+  {
+    "id": "missing-ws/replace-deeper-than-part",
+    "op": "editblock.replace_part_with_missing_leading_whitespace",
+    "args": {
+      "whole_lines": ["\tif x:\n", "\t\treturn 1\n"],
+      "part_lines": ["if x:\n", "\treturn 1\n"],
+      "replace_lines": ["if y:\n", "\treturn 2\n", "\t\tpass\n"]
+    }
+  },
+  {
+    "id": "dots/no-dots",
+    "op": "editblock.try_dotdotdots",
+    "args": {
+      "whole": "a\nb\n",
+      "part": "a\n",
+      "replace": "b\n"
+    }
+  },
+  {
+    "id": "dots/unpaired",
+    "op": "editblock.try_dotdotdots",
+    "args": {
+      "whole": "a\nb\nc\n",
+      "part": "a\n...\nc\n",
+      "replace": "A\nC\n"
+    }
+  },
+  {
+    "id": "dots/unmatched",
+    "op": "editblock.try_dotdotdots",
+    "args": {
+      "whole": "a\nb\nc\n",
+      "part": "a\n...\nc\n",
+      "replace": "A\n  ...\nC\n"
+    }
+  },
+  {
+    "id": "dots/two-pieces",
+    "op": "editblock.try_dotdotdots",
+    "args": {
+      "whole": "a\nb\nc\nd\n",
+      "part": "a\n...\nd\n",
+      "replace": "A\n...\nD\n"
+    }
+  },
+  {
+    "id": "dots/three-pieces",
+    "op": "editblock.try_dotdotdots",
+    "args": {
+      "whole": "a\nb\nc\nd\ne\n",
+      "part": "a\n...\nc\n...\ne\n",
+      "replace": "A\n...\nC\n...\nE\n"
+    }
+  },
+  {
+    "id": "dots/piece-missing",
+    "op": "editblock.try_dotdotdots",
+    "args": {
+      "whole": "a\nb\n",
+      "part": "a\n...\nz\n",
+      "replace": "A\n...\nZ\n"
+    }
+  },
+  {
+    "id": "dots/piece-not-unique",
+    "op": "editblock.try_dotdotdots",
+    "args": {
+      "whole": "a\nb\na\n",
+      "part": "a\n...\nb\n",
+      "replace": "A\n...\nB\n"
+    }
+  },
+  {
+    "id": "dots/empty-part-piece-appends",
+    "op": "editblock.try_dotdotdots",
+    "args": {
+      "whole": "a\nb\n",
+      "part": "...\nb\n",
+      "replace": "new\n...\nB\n"
+    }
+  },
+  {
+    "id": "dots/empty-pieces-skipped",
+    "op": "editblock.try_dotdotdots",
+    "args": {
+      "whole": "a\nb\n",
+      "part": "...\nb\n",
+      "replace": "...\nB\n"
+    }
+  },
+  {
+    "id": "dots/append-adds-missing-newline",
+    "op": "editblock.try_dotdotdots",
+    "args": {
+      "whole": "a",
+      "part": "...\n",
+      "replace": "x\n...\n"
+    }
+  },
+  {
+    "id": "dots/indented-dots",
+    "op": "editblock.try_dotdotdots",
+    "args": {
+      "whole": "a\nb\nc\n",
+      "part": "a\n  ...\nc\n",
+      "replace": "A\n  ...\nC\n"
+    }
+  },
+  {
+    "id": "dots/blank-line-joins-separator",
+    "op": "editblock.try_dotdotdots",
+    "args": {
+      "whole": "a\n\nb\nc\n",
+      "part": "a\n\n...\nc\n",
+      "replace": "A\n\n...\nC\n"
+    }
+  },
+  {
+    "id": "dots/blank-line-mismatch-unmatched",
+    "op": "editblock.try_dotdotdots",
+    "args": {
+      "whole": "a\n\nb\nc\n",
+      "part": "a\n\n...\nc\n",
+      "replace": "A\n...\nC\n"
+    }
+  },
+  {
+    "id": "dots/dots-need-newline",
+    "op": "editblock.try_dotdotdots",
+    "args": {
+      "whole": "a\nb\n",
+      "part": "a\n...",
+      "replace": "A\n..."
+    }
+  },
+  {
+    "id": "dots/carriage-return-is-not-line-start",
+    "op": "editblock.try_dotdotdots",
+    "args": {
+      "whole": "a\rb\nc\n",
+      "part": "a\r...\nc\n",
+      "replace": "a\r...\nC\n"
+    }
+  },
+  {
+    "id": "dots/line-separator-is-not-line-start",
+    "op": "editblock.try_dotdotdots",
+    "args": {
+      "whole": "a\u2028b\nc\n",
+      "part": "a\u2028...\nc\n",
+      "replace": "a\u2028...\nC\n"
+    }
+  },
+  {
+    "id": "dots/ideographic-space-separator",
+    "op": "editblock.try_dotdotdots",
+    "args": {
+      "whole": "a\nb\nc\n",
+      "part": "a\n\u3000...\nc\n",
+      "replace": "A\n\u3000...\nC\n"
+    }
+  },
+  {
+    "id": "dots/bom-is-not-space",
+    "op": "editblock.try_dotdotdots",
+    "args": {
+      "whole": "a\nb\nc\n",
+      "part": "a\n\ufeff...\nc\n",
+      "replace": "A\n\ufeff...\nC\n"
+    }
+  },
+  {
+    "id": "dots/unit-separator-is-space",
+    "op": "editblock.try_dotdotdots",
+    "args": {
+      "whole": "a\nb\nc\n",
+      "part": "a\n\u001f...\nc\n",
+      "replace": "A\n\u001f...\nC\n"
+    }
+  },
+  {
+    "id": "dots/dollar-patterns-literal",
+    "op": "editblock.try_dotdotdots",
+    "args": {
+      "whole": "a\nmid\nb\n",
+      "part": "a\n...\nb\n",
+      "replace": "$&x\n...\n$1$$\n"
+    }
+  },
+  {
+    "id": "dots/evolving-whole-uniqueness",
+    "op": "editblock.try_dotdotdots",
+    "args": {
+      "whole": "q\nr\nq\n",
+      "part": "q\nr\n...\nq\n",
+      "replace": "z\n...\nw\n"
+    }
+  },
+  {
+    "id": "dots/non-overlapping-count",
+    "op": "editblock.try_dotdotdots",
+    "args": {
+      "whole": "a\na\na\n",
+      "part": "a\na\n...\n",
+      "replace": "b\n...\n"
+    }
+  },
+  {
+    "id": "dots/crlf-dots-not-separator",
+    "op": "editblock.try_dotdotdots",
+    "args": {
+      "whole": "a\r\nb\r\nc\r\n",
+      "part": "a\r\n...\r\nc\r\n",
+      "replace": "A\r\n...\r\nC\r\n"
+    }
+  },
+  {
+    "id": "replace/test-missing-varied-leading-whitespace",
+    "op": "editblock.replace_most_similar_chunk",
+    "args": {
+      "whole": "\n    line1\n    line2\n        line3\n    line4\n",
+      "part": "line2\n    line3\n",
+      "replace": "new_line2\n    new_line3\n"
+    }
+  },
+  {
+    "id": "replace/test-missing-leading-whitespace",
+    "op": "editblock.replace_most_similar_chunk",
+    "args": {
+      "whole": "    line1\n    line2\n    line3\n",
+      "part": "line1\nline2\n",
+      "replace": "new_line1\nnew_line2\n"
+    }
+  },
+  {
+    "id": "replace/test-multiple-matches",
+    "op": "editblock.replace_most_similar_chunk",
+    "args": {
+      "whole": "line1\nline2\nline1\nline3\n",
+      "part": "line1\n",
+      "replace": "new_line\n"
+    }
+  },
+  {
+    "id": "replace/test-multiple-matches-missing-whitespace",
+    "op": "editblock.replace_most_similar_chunk",
+    "args": {
+      "whole": "    line1\n    line2\n    line1\n    line3\n",
+      "part": "line1\n",
+      "replace": "new_line\n"
+    }
+  },
+  {
+    "id": "replace/test-just-some-missing-leading-whitespace",
+    "op": "editblock.replace_most_similar_chunk",
+    "args": {
+      "whole": "    line1\n    line2\n    line3\n",
+      "part": " line1\n line2\n",
+      "replace": " new_line1\n     new_line2\n"
+    }
+  },
+  {
+    "id": "replace/test-missing-leading-whitespace-including-blank-line",
+    "op": "editblock.replace_most_similar_chunk",
+    "args": {
+      "whole": "    line1\n    line2\n    line3\n",
+      "part": "\n  line1\n  line2\n",
+      "replace": "  new_line1\n  new_line2\n"
+    }
+  },
+  {
+    "id": "replace/fuzzy-disabled-sample-text",
+    "op": "editblock.replace_most_similar_chunk",
+    "args": {
+      "whole": "This is a sample text.\nAnother line of text.\nYet another line.\n",
+      "part": "This is a sample text\n",
+      "replace": "This is a replaced text.\n"
+    }
+  },
+  {
+    "id": "replace/fuzzy-disabled-near-match",
+    "op": "editblock.replace_most_similar_chunk",
+    "args": {
+      "whole": "This is a sample text.\nAnother line of text.\nYet another line.\n",
+      "part": "This was a sample text.\nAnother line of txt\n",
+      "replace": "This is a replaced text.\nModified line of text.\n"
+    }
+  },
+  {
+    "id": "replace/probe-duplicate-search-first-match",
+    "op": "editblock.replace_most_similar_chunk",
+    "args": {
+      "whole": "x = 1\nx = 1\n",
+      "part": "x = 1\n",
+      "replace": "x = 2\n"
+    }
+  },
+  {
+    "id": "replace/probe-indentation-recovery",
+    "op": "editblock.replace_most_similar_chunk",
+    "args": {
+      "whole": "def f():\n    x = 1\n",
+      "part": "x = 1\n",
+      "replace": "x = 2\n"
+    }
+  },
+  {
+    "id": "replace/probe-fuzzy-content-disabled",
+    "op": "editblock.replace_most_similar_chunk",
+    "args": {
+      "whole": "value = 100\n",
+      "part": "value = 101\n",
+      "replace": "value = 200\n"
+    }
+  },
+  {
+    "id": "replace/probe-newline-normalization",
+    "op": "editblock.replace_most_similar_chunk",
+    "args": {
+      "whole": "x = 1",
+      "part": "x = 1",
+      "replace": "x = 2"
+    }
+  },
+  {
+    "id": "replace/blank-line-retry",
+    "op": "editblock.replace_most_similar_chunk",
+    "args": {
+      "whole": "a\nx\nb\n",
+      "part": "\nx\nb\n",
+      "replace": "y\n"
+    }
+  },
+  {
+    "id": "replace/blank-line-two-lines-no-retry",
+    "op": "editblock.replace_most_similar_chunk",
+    "args": {
+      "whole": "a\nx\nb\n",
+      "part": "\nx\n",
+      "replace": "y\n"
+    }
+  },
+  {
+    "id": "replace/whitespace-only-first-line-retry",
+    "op": "editblock.replace_most_similar_chunk",
+    "args": {
+      "whole": "a\nx\nb\n",
+      "part": "   \nx\nb\n",
+      "replace": "y\n"
+    }
+  },
+  {
+    "id": "replace/dots-success",
+    "op": "editblock.replace_most_similar_chunk",
+    "args": {
+      "whole": "a\nb\nc\n",
+      "part": "a\n...\nc\n",
+      "replace": "A\n...\nC\n"
+    }
+  },
+  {
+    "id": "replace/dots-unpaired-swallowed",
+    "op": "editblock.replace_most_similar_chunk",
+    "args": {
+      "whole": "a\nb\nc\n",
+      "part": "a\n...\nc\n",
+      "replace": "A\nC\n"
+    }
+  },
+  {
+    "id": "replace/dots-unmatched-swallowed",
+    "op": "editblock.replace_most_similar_chunk",
+    "args": {
+      "whole": "a\nb\nc\n",
+      "part": "a\n...\nc\n",
+      "replace": "A\n    ...\nC\n"
+    }
+  },
+  {
+    "id": "replace/dots-not-unique-swallowed",
+    "op": "editblock.replace_most_similar_chunk",
+    "args": {
+      "whole": "a\nb\na\nc\n",
+      "part": "a\n...\nc\n",
+      "replace": "A\n...\nC\n"
+    }
+  },
+  {
+    "id": "replace/dots-missing-swallowed",
+    "op": "editblock.replace_most_similar_chunk",
+    "args": {
+      "whole": "a\nb\nc\n",
+      "part": "a\n...\nz\n",
+      "replace": "A\n...\nZ\n"
+    }
+  },
+  {
+    "id": "replace/dots-whole-without-newline",
+    "op": "editblock.replace_most_similar_chunk",
+    "args": {
+      "whole": "a\nb\nc",
+      "part": "a\n...\nc\n",
+      "replace": "A\n...\nC\n"
+    }
+  },
+  {
+    "id": "replace/delete-all-is-failure",
+    "op": "editblock.replace_most_similar_chunk",
+    "args": {
+      "whole": "x\n",
+      "part": "x\n",
+      "replace": ""
+    }
+  },
+  {
+    "id": "replace/delete-some-lines",
+    "op": "editblock.replace_most_similar_chunk",
+    "args": {
+      "whole": "a\nx\nb\n",
+      "part": "x\n",
+      "replace": ""
+    }
+  },
+  {
+    "id": "replace/empty-part-prepends",
+    "op": "editblock.replace_most_similar_chunk",
+    "args": {
+      "whole": "a\n",
+      "part": "",
+      "replace": "b\n"
+    }
+  },
+  {
+    "id": "replace/empty-whole",
+    "op": "editblock.replace_most_similar_chunk",
+    "args": {
+      "whole": "",
+      "part": "x\n",
+      "replace": "y\n"
+    }
+  },
+  {
+    "id": "replace/crlf-whole-lf-part",
+    "op": "editblock.replace_most_similar_chunk",
+    "args": {
+      "whole": "a\r\nb\r\n",
+      "part": "a\n",
+      "replace": "x\n"
+    }
+  },
+  {
+    "id": "replace/crlf-both",
+    "op": "editblock.replace_most_similar_chunk",
+    "args": {
+      "whole": "a\r\nb\r\n",
+      "part": "a\r\n",
+      "replace": "x\r\n"
+    }
+  },
+  {
+    "id": "replace/tabs-uniform-repair",
+    "op": "editblock.replace_most_similar_chunk",
+    "args": {
+      "whole": "\tif x:\n\t\treturn 1\n",
+      "part": "if x:\n\treturn 1\n",
+      "replace": "if y:\n\treturn 2\n"
+    }
+  },
+  {
+    "id": "replace/astral",
+    "op": "editblock.replace_most_similar_chunk",
+    "args": {
+      "whole": "\ud83d\ude00 = 1\nok\n",
+      "part": "\ud83d\ude00 = 1\n",
+      "replace": "\ud83d\ude80 = 2\n"
+    }
+  },
+  {
+    "id": "replace/whole-without-trailing-newline",
+    "op": "editblock.replace_most_similar_chunk",
+    "args": {
+      "whole": "a\nb",
+      "part": "b\n",
+      "replace": "c\n"
+    }
+  },
+  {
+    "id": "replace/garbage-prefix",
+    "op": "editblock.replace_most_similar_chunk",
+    "args": {
+      "whole": "x\n",
+      "part": " x\n",
+      "replace": "y\n"
+    }
+  },
+  {
+    "id": "replace/ideographic-space-indent",
+    "op": "editblock.replace_most_similar_chunk",
+    "args": {
+      "whole": "\u3000\u3000a\n",
+      "part": "a\n",
+      "replace": "b\n"
+    }
+  },
+  {
+    "id": "replace/varied-indent-not-repaired",
+    "op": "editblock.replace_most_similar_chunk",
+    "args": {
+      "whole": "  a\n    b\n",
+      "part": "a\nb\n",
+      "replace": "c\nd\n"
+    }
+  },
+  {
+    "id": "replace/dollar-in-replace",
+    "op": "editblock.replace_most_similar_chunk",
+    "args": {
+      "whole": "a\nb\n",
+      "part": "a\n",
+      "replace": "$& $1 $$\n"
+    }
+  },
+  {
+    "id": "strip-quoted-wrapping/test-with-filename",
+    "op": "editblock.strip_quoted_wrapping",
+    "args": {
+      "res": "filename.ext\n```\nWe just want this content\nNot the filename and triple quotes\n```",
+      "fname": "filename.ext"
+    }
+  },
+  {
+    "id": "strip-quoted-wrapping/test-no-filename",
+    "op": "editblock.strip_quoted_wrapping",
+    "args": {
+      "res": "```\nWe just want this content\nNot the triple quotes\n```"
+    }
+  },
+  {
+    "id": "strip-quoted-wrapping/test-no-wrapping",
+    "op": "editblock.strip_quoted_wrapping",
+    "args": {
+      "res": "We just want this content\nNot the triple quotes\n"
+    }
+  },
+  {
+    "id": "strip-quoted-wrapping/empty",
+    "op": "editblock.strip_quoted_wrapping",
+    "args": {
+      "res": ""
+    }
+  },
+  {
+    "id": "strip-quoted-wrapping/adds-trailing-newline",
+    "op": "editblock.strip_quoted_wrapping",
+    "args": {
+      "res": "a"
+    }
+  },
+  {
+    "id": "strip-quoted-wrapping/crlf-normalized",
+    "op": "editblock.strip_quoted_wrapping",
+    "args": {
+      "res": "a\r\nb\r\n"
+    }
+  },
+  {
+    "id": "strip-quoted-wrapping/form-feed-becomes-newline",
+    "op": "editblock.strip_quoted_wrapping",
+    "args": {
+      "res": "a\fb\n"
+    }
+  },
+  {
+    "id": "strip-quoted-wrapping/line-separator-becomes-newline",
+    "op": "editblock.strip_quoted_wrapping",
+    "args": {
+      "res": "a\u2028b"
+    }
+  },
+  {
+    "id": "strip-quoted-wrapping/open-fence-only-kept",
+    "op": "editblock.strip_quoted_wrapping",
+    "args": {
+      "res": "```\na\n"
+    }
+  },
+  {
+    "id": "strip-quoted-wrapping/fence-pair-only",
+    "op": "editblock.strip_quoted_wrapping",
+    "args": {
+      "res": "```\n```\n"
+    }
+  },
+  {
+    "id": "strip-quoted-wrapping/single-fence-line",
+    "op": "editblock.strip_quoted_wrapping",
+    "args": {
+      "res": "```\n"
+    }
+  },
+  {
+    "id": "strip-quoted-wrapping/closing-fence-prefix",
+    "op": "editblock.strip_quoted_wrapping",
+    "args": {
+      "res": "```\na\n```bash"
+    }
+  },
+  {
+    "id": "strip-quoted-wrapping/basename-line-dropped",
+    "op": "editblock.strip_quoted_wrapping",
+    "args": {
+      "res": "# a.py\nimport os\n",
+      "fname": "/x/a.py"
+    }
+  },
+  {
+    "id": "strip-quoted-wrapping/single-basename-line-index-error",
+    "op": "editblock.strip_quoted_wrapping",
+    "args": {
+      "res": "# see a.py\n",
+      "fname": "/x/a.py"
+    }
+  },
+  {
+    "id": "strip-quoted-wrapping/basename-from-nested-path",
+    "op": "editblock.strip_quoted_wrapping",
+    "args": {
+      "res": "path/name.txt\ncontent",
+      "fname": "dir/sub/name.txt"
+    }
+  },
+  {
+    "id": "strip-quoted-wrapping/other-basename-kept",
+    "op": "editblock.strip_quoted_wrapping",
+    "args": {
+      "res": "a.py\nx\n",
+      "fname": "b.py"
+    }
+  },
+  {
+    "id": "strip-quoted-wrapping/quad-fence",
+    "op": "editblock.strip_quoted_wrapping",
+    "args": {
+      "res": "````\na\n````",
+      "fence": ["````", "````"]
+    }
+  },
+  {
+    "id": "strip-quoted-wrapping/triple-under-quad-kept",
+    "op": "editblock.strip_quoted_wrapping",
+    "args": {
+      "res": "```\na\n```",
+      "fence": ["````", "````"]
+    }
+  },
+  {
+    "id": "strip-quoted-wrapping/blank-lines-only",
+    "op": "editblock.strip_quoted_wrapping",
+    "args": {
+      "res": "\n\n"
+    }
+  },
+  {
+    "id": "strip-quoted-wrapping/whitespace-only",
+    "op": "editblock.strip_quoted_wrapping",
+    "args": {
+      "res": "   "
+    }
+  },
+  {
+    "id": "do-replace/probe-duplicate-search-first-match",
+    "op": "editblock.do_replace",
+    "args": {
+      "fname": "sample.py",
+      "exists": true,
+      "content": "x = 1\nx = 1\n",
+      "before_text": "x = 1\n",
+      "after_text": "x = 2\n"
+    }
+  },
+  {
+    "id": "do-replace/probe-indentation-recovery",
+    "op": "editblock.do_replace",
+    "args": {
+      "fname": "sample.py",
+      "exists": true,
+      "content": "def f():\n    x = 1\n",
+      "before_text": "x = 1\n",
+      "after_text": "x = 2\n"
+    }
+  },
+  {
+    "id": "do-replace/probe-fuzzy-content-disabled",
+    "op": "editblock.do_replace",
+    "args": {
+      "fname": "sample.py",
+      "exists": true,
+      "content": "value = 100\n",
+      "before_text": "value = 101\n",
+      "after_text": "value = 200\n"
+    }
+  },
+  {
+    "id": "do-replace/probe-empty-search-appends",
+    "op": "editblock.do_replace",
+    "args": {
+      "fname": "sample.py",
+      "exists": true,
+      "content": "x = 1\n",
+      "before_text": "",
+      "after_text": "x = 2\n"
+    }
+  },
+  {
+    "id": "do-replace/probe-newline-normalization",
+    "op": "editblock.do_replace",
+    "args": {
+      "fname": "sample.py",
+      "exists": true,
+      "content": "x = 1",
+      "before_text": "x = 1",
+      "after_text": "x = 2"
+    }
+  },
+  {
+    "id": "do-replace/new-file-created",
+    "op": "editblock.do_replace",
+    "args": {
+      "fname": "new.txt",
+      "exists": false,
+      "content": null,
+      "before_text": "",
+      "after_text": "hello\n"
+    }
+  },
+  {
+    "id": "do-replace/new-file-whitespace-search",
+    "op": "editblock.do_replace",
+    "args": {
+      "fname": "new.txt",
+      "exists": false,
+      "content": null,
+      "before_text": "  \n",
+      "after_text": "x\n"
+    }
+  },
+  {
+    "id": "do-replace/missing-file-nonblank-search",
+    "op": "editblock.do_replace",
+    "args": {
+      "fname": "gone.txt",
+      "exists": false,
+      "content": null,
+      "before_text": "a\n",
+      "after_text": "b\n"
+    }
+  },
+  {
+    "id": "do-replace/unreadable-existing-file",
+    "op": "editblock.do_replace",
+    "args": {
+      "fname": "f.txt",
+      "exists": true,
+      "content": null,
+      "before_text": "a\n",
+      "after_text": "b\n"
+    }
+  },
+  {
+    "id": "do-replace/unreadable-existing-file-blank-search",
+    "op": "editblock.do_replace",
+    "args": {
+      "fname": "f.txt",
+      "exists": true,
+      "content": null,
+      "before_text": "",
+      "after_text": "b\n"
+    }
+  },
+  {
+    "id": "do-replace/append-to-empty-file",
+    "op": "editblock.do_replace",
+    "args": {
+      "fname": "f.txt",
+      "exists": true,
+      "content": "",
+      "before_text": "",
+      "after_text": "x\n"
+    }
+  },
+  {
+    "id": "do-replace/append-without-trailing-newline",
+    "op": "editblock.do_replace",
+    "args": {
+      "fname": "f.txt",
+      "exists": true,
+      "content": "a",
+      "before_text": "",
+      "after_text": "b\n"
+    }
+  },
+  {
+    "id": "do-replace/empty-search-empty-replace",
+    "op": "editblock.do_replace",
+    "args": {
+      "fname": "f.txt",
+      "exists": true,
+      "content": "",
+      "before_text": "",
+      "after_text": ""
+    }
+  },
+  {
+    "id": "do-replace/whitespace-search-appends",
+    "op": "editblock.do_replace",
+    "args": {
+      "fname": "f.txt",
+      "exists": true,
+      "content": "a\n",
+      "before_text": " \n\t\n",
+      "after_text": "z\n"
+    }
+  },
+  {
+    "id": "do-replace/strips-fence-wrapping",
+    "op": "editblock.do_replace",
+    "args": {
+      "fname": "f.txt",
+      "exists": true,
+      "content": "x = 1\n",
+      "before_text": "```\nx = 1\n```",
+      "after_text": "```\nx = 2\n```"
+    }
+  },
+  {
+    "id": "do-replace/strips-filename-and-fence",
+    "op": "editblock.do_replace",
+    "args": {
+      "fname": "f.txt",
+      "exists": true,
+      "content": "x = 1\n",
+      "before_text": "f.txt\n```\nx = 1\n```",
+      "after_text": "f.txt\n```\nx = 2\n```"
+    }
+  },
+  {
+    "id": "do-replace/replace-first-line-basename-dropped",
+    "op": "editblock.do_replace",
+    "args": {
+      "fname": "f.txt",
+      "exists": true,
+      "content": "x = 1\n",
+      "before_text": "x = 1\n",
+      "after_text": "# f.txt\nx = 2\n"
+    }
+  },
+  {
+    "id": "do-replace/basename-line-index-error",
+    "op": "editblock.do_replace",
+    "args": {
+      "fname": "f.txt",
+      "exists": true,
+      "content": "# f.txt\n",
+      "before_text": "# f.txt\n",
+      "after_text": "y\n"
+    }
+  },
+  {
+    "id": "do-replace/fence-pair-search-on-missing-file",
+    "op": "editblock.do_replace",
+    "args": {
+      "fname": "gone.txt",
+      "exists": false,
+      "content": null,
+      "before_text": "```\n```\n",
+      "after_text": "x\n"
+    }
+  },
+  {
+    "id": "do-replace/crlf-search-normalized",
+    "op": "editblock.do_replace",
+    "args": {
+      "fname": "f.txt",
+      "exists": true,
+      "content": "a\nb\n",
+      "before_text": "a\r\n",
+      "after_text": "c\r\n"
+    }
+  },
+  {
+    "id": "do-replace/quad-fence-wrapping",
+    "op": "editblock.do_replace",
+    "args": {
+      "fname": "f.txt",
+      "exists": true,
+      "content": "x\n",
+      "before_text": "````\nx\n````",
+      "after_text": "````\ny\n````",
+      "fence": ["````", "````"]
+    }
+  },
+  {
+    "id": "do-replace/no-match",
+    "op": "editblock.do_replace",
+    "args": {
+      "fname": "f.txt",
+      "exists": true,
+      "content": "a\nb\n",
+      "before_text": "nope\n",
+      "after_text": "x\n"
+    }
+  },
+  {
+    "id": "similar-lines/exact-first-and-last",
+    "op": "editblock.find_similar_lines",
+    "args": {
+      "search_lines": "line 4\nline X\nline 6\n",
+      "content_lines": "line 1\nline 2\nline 3\nline 4\nline 5\nline 6\nline 7\nline 8\nline 9\nline 10\nline 11\nline 12\nline 13\nline 14\nline 15\nline 16\nline 17\nline 18\nline 19\nline 20\n"
+    }
+  },
+  {
+    "id": "similar-lines/context-window",
+    "op": "editblock.find_similar_lines",
+    "args": {
+      "search_lines": "line 4\nline 5\nline 6 changed\n",
+      "content_lines": "line 1\nline 2\nline 3\nline 4\nline 5\nline 6\nline 7\nline 8\nline 9\nline 10\nline 11\nline 12\nline 13\nline 14\nline 15\nline 16\nline 17\nline 18\nline 19\nline 20\n"
+    }
+  },
+  {
+    "id": "similar-lines/context-clamped-start",
+    "op": "editblock.find_similar_lines",
+    "args": {
+      "search_lines": "line 1 changed\nline 2\nline 3\n",
+      "content_lines": "line 1\nline 2\nline 3\nline 4\nline 5\nline 6\nline 7\nline 8\nline 9\nline 10\nline 11\nline 12\nline 13\nline 14\nline 15\nline 16\nline 17\nline 18\nline 19\nline 20\n"
+    }
+  },
+  {
+    "id": "similar-lines/context-clamped-end",
+    "op": "editblock.find_similar_lines",
+    "args": {
+      "search_lines": "line 18\nline 19\nline 20 changed\n",
+      "content_lines": "line 1\nline 2\nline 3\nline 4\nline 5\nline 6\nline 7\nline 8\nline 9\nline 10\nline 11\nline 12\nline 13\nline 14\nline 15\nline 16\nline 17\nline 18\nline 19\nline 20\n"
+    }
+  },
+  {
+    "id": "similar-lines/below-threshold",
+    "op": "editblock.find_similar_lines",
+    "args": {
+      "search_lines": "alpha\nbeta\n",
+      "content_lines": "line 1\nline 2\nline 3\nline 4\nline 5\nline 6\nline 7\nline 8\nline 9\nline 10\nline 11\nline 12\nline 13\nline 14\nline 15\nline 16\nline 17\nline 18\nline 19\nline 20\n"
+    }
+  },
+  {
+    "id": "similar-lines/empty-search-index-error",
+    "op": "editblock.find_similar_lines",
+    "args": {
+      "search_lines": "",
+      "content_lines": "a\nb\n"
+    }
+  },
+  {
+    "id": "similar-lines/empty-search-empty-content-index-error",
+    "op": "editblock.find_similar_lines",
+    "args": {
+      "search_lines": "",
+      "content_lines": ""
+    }
+  },
+  {
+    "id": "similar-lines/content-shorter",
+    "op": "editblock.find_similar_lines",
+    "args": {
+      "search_lines": "a\nb\nc\n",
+      "content_lines": "a\n"
+    }
+  },
+  {
+    "id": "similar-lines/tie-keeps-first",
+    "op": "editblock.find_similar_lines",
+    "args": {
+      "search_lines": "a\nb\nc\n",
+      "content_lines": "a\nb\nx\nf1\nf2\nf3\nf4\nf5\nf6\nf7\nf8\nf9\nf10\na\nb\ny\n"
+    }
+  },
+  {
+    "id": "similar-lines/custom-threshold",
+    "op": "editblock.find_similar_lines",
+    "args": {
+      "search_lines": "line 4\nfoo\nbar\n",
+      "content_lines": "line 1\nline 2\nline 3\nline 4\nline 5\nline 6\nline 7\nline 8\nline 9\nline 10\nline 11\nline 12\nline 13\nline 14\nline 15\nline 16\nline 17\nline 18\nline 19\nline 20\n",
+      "threshold": 0.3
+    }
+  },
+  {
+    "id": "similar-lines/crlf-content",
+    "op": "editblock.find_similar_lines",
+    "args": {
+      "search_lines": "b\nc\n",
+      "content_lines": "a\r\nb\r\nc\r\nd\r\n"
+    }
+  },
+  {
+    "id": "similar-lines/autojunk-large-search",
+    "op": "editblock.find_similar_lines",
+    "args": {
+      "search_lines": "\nrow 1\nrow 2\n\nrow 4\nrow 5\n\nrow 7\nrow 8\n\nrow 10\nrow 11\n\nrow 13\nrow 14\n\nrow 16\nrow 17\n\nrow 19\nrow 20\n\nrow 22\nrow 23\n\nrow 25\nrow 26\n\nrow 28\nrow 29\n\nrow 31\nrow 32\n\nrow 34\nrow 35\n\nrow 37\nrow 38\n\nrow 40\nrow 41\n\nrow 43\nrow 44\n\nrow 46\nrow 47\n\nrow 49\nrow 50\n\nrow 52\nrow 53\n\nrow 55\nrow 56\n\nrow 58\nrow 59\n\nrow 61\nrow 62\n\nrow 64\nrow 65\n\nrow 67\nrow 68\n\nrow 70\nrow 71\n\nrow 73\nrow 74\n\nrow 76\nrow 77\n\nrow 79\nrow 80\n\nrow 82\nrow 83\n\nrow 85\nrow 86\n\nrow 88\nrow 89\n\nrow 91\nrow 92\n\nrow 94\nrow 95\n\nrow 97\nrow 98\n\nrow 100\nrow 101\n\nrow 103\nrow 104\n\nrow 106\nrow 107\n\nrow 109\nrow 110\n\nrow 112\nrow 113\n\nrow 115\nrow 116\n\nrow 118\nrow 119\n\nrow 121\nrow 122\n\nrow 124\nrow 125\n\nrow 127\nrow 128\n\nrow 130\nrow 131\n\nrow 133\nrow 134\n\nrow 136\nrow 137\n\nrow 139\nrow 140\n\nrow 142\nrow 143\n\nrow 145\nrow 146\n\nrow 148\nrow 149\n\nrow 151\nrow 152\n\nrow 154\nrow 155\n\nrow 157\nrow 158\n\nrow 160\nrow 161\n\nrow 163\nrow 164\n\nrow 166\nrow 167\n\nrow 169\nrow 170\n\nrow 172\nrow 173\n\nrow 175\nrow 176\n\nrow 178\nrow 179\n\nrow 181\nrow 182\n\nrow 184\nrow 185\n\nrow 187\nrow 188\n\nrow 190\nrow 191\n\nrow 193\nrow 194\n\nrow 196\nrow 197\n\nrow 199\nrow 200\n\nrow 202\nrow 203\n\nrow 205\nrow 206\n\nrow 208\nrow 209\n\nrow 211\nrow 212\n\nrow 214\nrow 215\n\nrow 217\nrow 218\n\nrow 220\nrow 221\n\nrow 223\nrow 224\n\nrow 226\nrow 227\n\nrow 229\nrow 230\n\nrow 232\nrow 233\n\nrow 235\nrow 236\n\nrow 238\nrow 239\n",
+      "content_lines": "row 5\n\nrow 7\nrow 8\n\nrow 10\nrow 11\n\nrow 13\nrow 14\n\nrow 16\nrow 17\n\nrow 19\nrow 20\n\nrow 22\nrow 23\n\nrow 25\nrow 26\n\nrow 28\nrow 29\n\nrow 31\nrow 32\n\nrow 34\nrow 35\n\nrow 37\nrow 38\n\nrow 40\nrow 41\n\nrow 43\nrow 44\n\nrow 46\nrow 47\n\nrow 49\nrow 50\n\nrow 52\nrow 53\n\nrow 55\nrow 56\n\nrow 58\nrow 59\n\nrow 61\nrow 62\n\nrow 64\nrow 65\n\nrow 67\nrow 68\n\nrow 70\nrow 71\n\nrow 73\nrow 74\n\nrow 76\nrow 77\n\nrow 79\nrow 80\n\nrow 82\nrow 83\n\nrow 85\nrow 86\n\nrow 88\nrow 89\n\nrow 91\nrow 92\n\nrow 94\nrow 95\n\nrow 97\nrow 98\n\nrow 100\nrow 101\n\nrow 103\nrow 104\n\nrow 106\nrow 107\n\nrow 109\nrow 110\n\nrow 112\nrow 113\n\nrow 115\nrow 116\n\nrow 118\nrow 119\n\nrow 121\nrow 122\n\nrow 124\nrow 125\n\nrow 127\nrow 128\n\nrow 130\nrow 131\n\nrow 133\nrow 134\n\nrow 136\nrow 137\n\nrow 139\nrow 140\n\nrow 142\nrow 143\n\nrow 145\nrow 146\n\nrow 148\nrow 149\n\nrow 151\nrow 152\n\nrow 154\nrow 155\n\nrow 157\nrow 158\n\nrow 160\nrow 161\n\nrow 163\nrow 164\n\nrow 166\nrow 167\n\nrow 169\nrow 170\n\nrow 172\nrow 173\n\nrow 175\nrow 176\n\nrow 178\nrow 179\n\nrow 181\nrow 182\n\nrow 184\nrow 185\n\nrow 187\nrow 188\n\nrow 190\nrow 191\n\nrow 193\nrow 194\n\nrow 196\nrow 197\n\nrow 199\nrow 200\n\nrow 202\nrow 203\n\nrow 205\nrow 206\n\nrow 208\nrow 209\n\nrow 211\nrow 212\n\nrow 214\nrow 215\n\nrow 217\nrow 218\n\nrow 220\nrow 221\n\nrow 223\nrow 224\n\nrow 226\nrow 227\n\nrow 229\nrow 230\n\nrow 232\nrow 233\n\nrow 235\nrow 236\n\nrow 238\nrow 239\n\nrow 241\nrow 242\n\nrow 244\nrow 245\n\nrow 247\nrow 248\n\nrow 250\nrow 251\n\nrow 253\nrow 254\n\nrow 256\nrow 257\n\nrow 259\n"
+    }
+  },
+  {
+    "id": "apply-dry-run/test-full-edit",
+    "op": "editblock.apply_edits_dry_run",
+    "args": {
+      "edits": [["file.txt", "two\n", "new\n"]],
+      "files": {
+        "file.txt": "one\ntwo\nthree\n"
+      },
+      "chat_files": ["file.txt"]
+    }
+  },
+  {
+    "id": "apply-dry-run/new-file-passes-through",
+    "op": "editblock.apply_edits_dry_run",
+    "args": {
+      "edits": [["newfile.txt", "", "creating a new file\n"]],
+      "files": {
+        "file.txt": "one\ntwo\nthree\n"
+      },
+      "chat_files": ["file.txt"]
+    }
+  },
+  {
+    "id": "apply-dry-run/cross-file-rewrites-path",
+    "op": "editblock.apply_edits_dry_run",
+    "args": {
+      "edits": [["a.txt", "beta\n", "BETA\n"]],
+      "files": {
+        "a.txt": "alpha\n",
+        "b.txt": "beta\n"
+      },
+      "chat_files": ["a.txt", "b.txt"]
+    }
+  },
+  {
+    "id": "apply-dry-run/failed-block-keeps-path",
+    "op": "editblock.apply_edits_dry_run",
+    "args": {
+      "edits": [["a.txt", "nope\n", "x\n"]],
+      "files": {
+        "a.txt": "alpha\n"
+      },
+      "chat_files": ["a.txt"]
+    }
+  },
+  {
+    "id": "apply-dry-run/not-cumulative",
+    "op": "editblock.apply_edits_dry_run",
+    "args": {
+      "edits": [["a.txt", "one\n", "two\n"], ["a.txt", "two\n", "three\n"]],
+      "files": {
+        "a.txt": "one\n"
+      },
+      "chat_files": ["a.txt"]
+    }
+  },
+  {
+    "id": "apply-dry-run/missing-nominee-falls-back",
+    "op": "editblock.apply_edits_dry_run",
+    "args": {
+      "edits": [["ghost.txt", "beta\n", "BETA\n"]],
+      "files": {
+        "real.txt": "beta\n"
+      },
+      "chat_files": ["real.txt"]
+    }
+  },
+  {
+    "id": "apply-dry-run/fallback-touches-missing-chat-file",
+    "op": "editblock.apply_edits_dry_run",
+    "args": {
+      "edits": [["x.txt", "```\n```\n", "hi\n"]],
+      "files": {},
+      "chat_files": ["gone.txt"]
+    }
+  },
+  {
+    "id": "apply-dry-run/directory-nominee",
+    "op": "editblock.apply_edits_dry_run",
+    "args": {
+      "edits": [["pkg", "a\n", "b\n"]],
+      "files": {
+        "pkg": null,
+        "a.txt": "a\n"
+      },
+      "chat_files": ["a.txt"]
+    }
+  },
+  {
+    "id": "apply-dry-run/first-matching-chat-file-wins",
+    "op": "editblock.apply_edits_dry_run",
+    "args": {
+      "edits": [["none.txt", "same\n", "new\n"]],
+      "files": {
+        "z.txt": "same\n",
+        "y.txt": "same\n"
+      },
+      "chat_files": ["z.txt", "y.txt"]
+    }
+  },
+  {
+    "id": "apply-dry-run/no-edits",
+    "op": "editblock.apply_edits_dry_run",
+    "args": {
+      "edits": [],
+      "files": {
+        "file.txt": "one\ntwo\nthree\n"
+      },
+      "chat_files": ["file.txt"]
+    }
+  },
+  {
+    "id": "apply/test-full-edit",
+    "op": "editblock.apply_edits",
+    "args": {
+      "edits": [["file.txt", "two\n", "new\n"]],
+      "files": {
+        "file.txt": "one\ntwo\nthree\n"
+      },
+      "chat_files": ["file.txt"]
+    }
+  },
+  {
+    "id": "apply/test-create-new-file-with-other-file-in-chat",
+    "op": "editblock.apply_edits",
+    "args": {
+      "edits": [["newfile.txt", "", "creating a new file\n"]],
+      "files": {
+        "file.txt": "one\ntwo\nthree\n",
+        "newfile.txt": ""
+      },
+      "chat_files": ["file.txt", "newfile.txt"]
+    }
+  },
+  {
+    "id": "apply/io-dry-run-leaves-file",
+    "op": "editblock.apply_edits",
+    "args": {
+      "edits": [["file.txt", "two\n", "new\n"]],
+      "files": {
+        "file.txt": "one\ntwo\nthree\n"
+      },
+      "chat_files": ["file.txt"],
+      "io_dry_run": true
+    }
+  },
+  {
+    "id": "apply/io-dry-run-new-file-crashes",
+    "op": "editblock.apply_edits",
+    "args": {
+      "edits": [["newfile.txt", "", "creating a new file\n"]],
+      "files": {
+        "file.txt": "one\ntwo\nthree\n"
+      },
+      "chat_files": ["file.txt", "newfile.txt"],
+      "io_dry_run": true
+    }
+  },
+  {
+    "id": "apply/missing-new-file-crashes",
+    "op": "editblock.apply_edits",
+    "args": {
+      "edits": [["newfile.txt", "", "x\n"]],
+      "files": {},
+      "chat_files": []
+    }
+  },
+  {
+    "id": "apply/missing-file-crashes",
+    "op": "editblock.apply_edits",
+    "args": {
+      "edits": [["gone.txt", "a\n", "b\n"]],
+      "files": {},
+      "chat_files": []
+    }
+  },
+  {
+    "id": "apply/directory-nominee-crashes",
+    "op": "editblock.apply_edits",
+    "args": {
+      "edits": [["pkg", "a\n", "b\n"]],
+      "files": {
+        "pkg": null
+      },
+      "chat_files": ["pkg"]
+    }
+  },
+  {
+    "id": "apply/failure-report-single",
+    "op": "editblock.apply_edits",
+    "args": {
+      "edits": [["big.txt", "line 4\nline 5\nline 6 changed\n", "x\n"]],
+      "files": {
+        "big.txt": "line 1\nline 2\nline 3\nline 4\nline 5\nline 6\nline 7\nline 8\nline 9\nline 10\nline 11\nline 12\nline 13\nline 14\nline 15\nline 16\nline 17\nline 18\nline 19\nline 20\n"
+      },
+      "chat_files": ["big.txt"]
+    }
+  },
+  {
+    "id": "apply/failure-report-exact-lines",
+    "op": "editblock.apply_edits",
+    "args": {
+      "edits": [["big.txt", "line 4\nline X\nline 6\n", "x\n"]],
+      "files": {
+        "big.txt": "line 1\nline 2\nline 3\nline 4\nline 5\nline 6\nline 7\nline 8\nline 9\nline 10\nline 11\nline 12\nline 13\nline 14\nline 15\nline 16\nline 17\nline 18\nline 19\nline 20\n"
+      },
+      "chat_files": ["big.txt"]
+    }
+  },
+  {
+    "id": "apply/failure-report-no-similar-lines",
+    "op": "editblock.apply_edits",
+    "args": {
+      "edits": [["big.txt", "alpha\nbeta\n", "x\n"]],
+      "files": {
+        "big.txt": "line 1\nline 2\nline 3\nline 4\nline 5\nline 6\nline 7\nline 8\nline 9\nline 10\nline 11\nline 12\nline 13\nline 14\nline 15\nline 16\nline 17\nline 18\nline 19\nline 20\n"
+      },
+      "chat_files": ["big.txt"]
+    }
+  },
+  {
+    "id": "apply/failure-report-replace-present",
+    "op": "editblock.apply_edits",
+    "args": {
+      "edits": [["big.txt", "nope\n", "line 7\n"]],
+      "files": {
+        "big.txt": "line 1\nline 2\nline 3\nline 4\nline 5\nline 6\nline 7\nline 8\nline 9\nline 10\nline 11\nline 12\nline 13\nline 14\nline 15\nline 16\nline 17\nline 18\nline 19\nline 20\n"
+      },
+      "chat_files": ["big.txt"]
+    }
+  },
+  {
+    "id": "apply/failure-report-quad-fence",
+    "op": "editblock.apply_edits",
+    "args": {
+      "edits": [["big.txt", "line 4\nline X\nline 6\n", "x\n"]],
+      "files": {
+        "big.txt": "line 1\nline 2\nline 3\nline 4\nline 5\nline 6\nline 7\nline 8\nline 9\nline 10\nline 11\nline 12\nline 13\nline 14\nline 15\nline 16\nline 17\nline 18\nline 19\nline 20\n"
+      },
+      "chat_files": ["big.txt"],
+      "fence": ["````", "````"]
+    }
+  },
+  {
+    "id": "apply/failure-report-plural-with-passed",
+    "op": "editblock.apply_edits",
+    "args": {
+      "edits": [["a.txt", "nope\n", "x\n"], ["a.txt", "alpha\n", "ALPHA\n"], ["b.txt", "nada\n", "y\n"]],
+      "files": {
+        "a.txt": "alpha\n",
+        "b.txt": "beta\n"
+      },
+      "chat_files": ["a.txt", "b.txt"]
+    }
+  },
+  {
+    "id": "apply/failure-report-two-passed",
+    "op": "editblock.apply_edits",
+    "args": {
+      "edits": [["a.txt", "alpha\n", "A\n"], ["b.txt", "beta\n", "B\n"], ["b.txt", "gamma\n", "C\n"]],
+      "files": {
+        "a.txt": "alpha\n",
+        "b.txt": "beta\n"
+      },
+      "chat_files": ["a.txt", "b.txt"]
+    }
+  },
+  {
+    "id": "apply/empty-replace-not-warned",
+    "op": "editblock.apply_edits",
+    "args": {
+      "edits": [["a.txt", "nope\n", ""]],
+      "files": {
+        "a.txt": "alpha\n"
+      },
+      "chat_files": ["a.txt"]
+    }
+  },
+  {
+    "id": "apply/cross-file-fallback-writes-match",
+    "op": "editblock.apply_edits",
+    "args": {
+      "edits": [["a.txt", "beta\n", "BETA\n"]],
+      "files": {
+        "a.txt": "alpha\n",
+        "b.txt": "beta\n"
+      },
+      "chat_files": ["a.txt", "b.txt"]
+    }
+  },
+  {
+    "id": "apply/cross-file-first-match-wins",
+    "op": "editblock.apply_edits",
+    "args": {
+      "edits": [["none.txt", "same\n", "new\n"]],
+      "files": {
+        "z.txt": "same\n",
+        "y.txt": "same\n"
+      },
+      "chat_files": ["z.txt", "y.txt"]
+    }
+  },
+  {
+    "id": "apply/cross-file-fallback-ignores-non-chat",
+    "op": "editblock.apply_edits",
+    "args": {
+      "edits": [["a.txt", "beta\n", "BETA\n"]],
+      "files": {
+        "a.txt": "alpha\n",
+        "b.txt": "beta\n"
+      },
+      "chat_files": ["a.txt"]
+    }
+  },
+  {
+    "id": "apply/empty-append-index-error",
+    "op": "editblock.apply_edits",
+    "args": {
+      "edits": [["e.txt", "", ""]],
+      "files": {
+        "e.txt": ""
+      },
+      "chat_files": ["e.txt"]
+    }
+  },
+  {
+    "id": "apply/delete-whole-content-fails",
+    "op": "editblock.apply_edits",
+    "args": {
+      "edits": [["f.txt", "x\n", ""]],
+      "files": {
+        "f.txt": "x\n"
+      },
+      "chat_files": ["f.txt"]
+    }
+  },
+  {
+    "id": "apply/delete-some-lines",
+    "op": "editblock.apply_edits",
+    "args": {
+      "edits": [["f.txt", "x\n", ""]],
+      "files": {
+        "f.txt": "a\nx\nb\n"
+      },
+      "chat_files": ["f.txt"]
+    }
+  },
+  {
+    "id": "apply/dependent-blocks-cumulative",
+    "op": "editblock.apply_edits",
+    "args": {
+      "edits": [["a.txt", "one\n", "two\n"], ["a.txt", "two\n", "three\n"]],
+      "files": {
+        "a.txt": "one\n"
+      },
+      "chat_files": ["a.txt"]
+    }
+  },
+  {
+    "id": "apply/crlf-file-written-lf",
+    "op": "editblock.apply_edits",
+    "args": {
+      "edits": [["c.txt", "b\n", "B\n"]],
+      "files": {
+        "c.txt": "a\r\nb\r\nc\r\n"
+      },
+      "chat_files": ["c.txt"]
+    }
+  },
+  {
+    "id": "apply/tabs-uniform-repair",
+    "op": "editblock.apply_edits",
+    "args": {
+      "edits": [["m.go", "x := 1\n", "x := 2\n"]],
+      "files": {
+        "m.go": "func f() {\n\tx := 1\n}\n"
+      },
+      "chat_files": ["m.go"]
+    }
+  },
+  {
+    "id": "apply/astral-content",
+    "op": "editblock.apply_edits",
+    "args": {
+      "edits": [["e.txt", "\ud83d\ude00\n", "\ud83d\ude80\n"]],
+      "files": {
+        "e.txt": "a\n\ud83d\ude00\n"
+      },
+      "chat_files": ["e.txt"]
+    }
+  },
+  {
+    "id": "apply/ellipsis-edit",
+    "op": "editblock.apply_edits",
+    "args": {
+      "edits": [["d.py", "def f():\n...\n    return 1\n", "def f():\n...\n    return 2\n"]],
+      "files": {
+        "d.py": "def f():\n    x = 0\n    return 1\n"
+      },
+      "chat_files": ["d.py"]
+    }
+  },
+  {
+    "id": "apply/ellipsis-not-unique-fails",
+    "op": "editblock.apply_edits",
+    "args": {
+      "edits": [["d.py", "a\n...\nc\n", "A\n...\nC\n"]],
+      "files": {
+        "d.py": "a\nb\na\nc\n"
+      },
+      "chat_files": ["d.py"]
+    }
+  },
+  {
+    "id": "apply/blank-line-retry",
+    "op": "editblock.apply_edits",
+    "args": {
+      "edits": [["f.txt", "\nx\nb\n", "y\n"]],
+      "files": {
+        "f.txt": "a\nx\nb\n"
+      },
+      "chat_files": ["f.txt"]
+    }
+  },
+  {
+    "id": "apply/quoted-wrapping-stripped",
+    "op": "editblock.apply_edits",
+    "args": {
+      "edits": [["f.txt", "f.txt\n```\nx = 1\n```", "```\nx = 2\n```"]],
+      "files": {
+        "f.txt": "x = 1\n"
+      },
+      "chat_files": ["f.txt"]
+    }
+  },
+  {
+    "id": "apply/basename-search-line-index-error",
+    "op": "editblock.apply_edits",
+    "args": {
+      "edits": [["f.txt", "# f.txt\n", "y\n"], ["f.txt", "a\n", "b\n"]],
+      "files": {
+        "f.txt": "# f.txt\na\n"
+      },
+      "chat_files": ["f.txt"]
+    }
+  },
+  {
+    "id": "apply/fallback-touch-writes-missing-chat-file",
+    "op": "editblock.apply_edits",
+    "args": {
+      "edits": [["x.txt", "```\n```\n", "hi\n"]],
+      "files": {},
+      "chat_files": ["gone.txt"]
+    }
+  },
+  {
+    "id": "apply/subdirectory-path",
+    "op": "editblock.apply_edits",
+    "args": {
+      "edits": [["src/app.py", "x = 1\n", "x = 2\n"]],
+      "files": {
+        "src/app.py": "x = 1\n"
+      },
+      "chat_files": ["src/app.py"]
+    }
+  },
+  {
+    "id": "apply/append-without-trailing-newline",
+    "op": "editblock.apply_edits",
+    "args": {
+      "edits": [["f.txt", "", "b\n"]],
+      "files": {
+        "f.txt": "a"
+      },
+      "chat_files": ["f.txt"]
+    }
+  },
+  {
+    "id": "apply/whitespace-search-appends",
+    "op": "editblock.apply_edits",
+    "args": {
+      "edits": [["f.txt", "  \n", "b\n"]],
+      "files": {
+        "f.txt": "a\n"
+      },
+      "chat_files": ["f.txt"]
+    }
+  },
+  {
+    "id": "apply/first-match-only",
+    "op": "editblock.apply_edits",
+    "args": {
+      "edits": [["f.txt", "x = 1\n", "x = 2\n"]],
+      "files": {
+        "f.txt": "x = 1\nx = 1\n"
+      },
+      "chat_files": ["f.txt"]
+    }
+  },
+  {
+    "id": "apply/dollar-patterns-literal",
+    "op": "editblock.apply_edits",
+    "args": {
+      "edits": [["f.txt", "a\n", "$& $1 $$\n"]],
+      "files": {
+        "f.txt": "a\n"
+      },
+      "chat_files": ["f.txt"]
+    }
+  },
+  {
+    "id": "apply/no-edits",
+    "op": "editblock.apply_edits",
+    "args": {
+      "edits": [],
+      "files": {
+        "file.txt": "one\ntwo\nthree\n"
+      },
+      "chat_files": ["file.txt"]
+    }
+  },
+  {
+    "id": "apply/not-in-chat-file-edited",
+    "op": "editblock.apply_edits",
+    "args": {
+      "edits": [["other.txt", "o\n", "O\n"]],
+      "files": {
+        "other.txt": "o\n"
+      },
+      "chat_files": []
+    }
+  },
+  {
+    "id": "apply/nominee-unreadable-sibling-matches",
+    "op": "editblock.apply_edits",
+    "args": {
+      "edits": [["pkg", "beta\n", "BETA\n"]],
+      "files": {
+        "pkg": null,
+        "b.txt": "beta\n"
+      },
+      "chat_files": ["pkg", "b.txt"]
+    }
+  }
 ]

@@ -1,0 +1,80 @@
+{
+  "python_tree_sitter": "0.25.2",
+  "python_language_pack": "0.13.0",
+  "web_tree_sitter": "0.25.10",
+  "fixture_count": 57,
+  "languages": [
+    {
+      "language": "cmake",
+      "files": 3,
+      "python_utf8_mismatches": ["err2.cmake"],
+      "python_utf16_mismatches": ["err2.cmake"]
+    },
+    {
+      "language": "cpp",
+      "files": 6,
+      "python_utf8_mismatches": ["err1.cpp"],
+      "python_utf16_mismatches": []
+    },
+    {
+      "language": "csharp",
+      "files": 6,
+      "python_utf8_mismatches": ["tagserr2.cs"],
+      "python_utf16_mismatches": ["tagserr2.cs"]
+    },
+    {
+      "language": "go",
+      "files": 6,
+      "python_utf8_mismatches": ["err1.go"],
+      "python_utf16_mismatches": []
+    },
+    {
+      "language": "meson",
+      "files": 3,
+      "python_utf8_mismatches": ["err1-meson.build"],
+      "python_utf16_mismatches": []
+    },
+    {
+      "language": "nix",
+      "files": 3,
+      "python_utf8_mismatches": ["err2.nix"],
+      "python_utf16_mismatches": []
+    },
+    {
+      "language": "powershell",
+      "files": 3,
+      "python_utf8_mismatches": ["err1.ps1"],
+      "python_utf16_mismatches": []
+    },
+    {
+      "language": "r",
+      "files": 6,
+      "python_utf8_mismatches": ["tagserr1.r"],
+      "python_utf16_mismatches": []
+    },
+    {
+      "language": "ron",
+      "files": 3,
+      "python_utf8_mismatches": ["err1.ron"],
+      "python_utf16_mismatches": []
+    },
+    {
+      "language": "solidity",
+      "files": 6,
+      "python_utf8_mismatches": ["tagserr1.sol"],
+      "python_utf16_mismatches": []
+    },
+    {
+      "language": "swift",
+      "files": 6,
+      "python_utf8_mismatches": ["err1.swift", "ok.swift"],
+      "python_utf16_mismatches": ["err1.swift", "ok.swift"]
+    },
+    {
+      "language": "typescript",
+      "files": 6,
+      "python_utf8_mismatches": ["tagserr1.ts"],
+      "python_utf16_mismatches": []
+    }
+  ]
+}

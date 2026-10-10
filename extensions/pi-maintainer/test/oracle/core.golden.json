@@ -1,0 +1,236 @@
+{
+  "chunks/provider-order": {
+    "result": [
+      ["system", "TEST MAIN\nTEST REMINDER"],
+      ["user", "EXAMPLE USER"],
+      ["assistant", "EXAMPLE ASSISTANT"],
+      ["user", "I switched to a new code base. Please don't consider the above files or try to edit them any longer."],
+      ["assistant", "Ok."],
+      ["user", "READ ONLY\nreference.txt\n```\nreference\n```\n"],
+      ["assistant", "Ok, I will use these files as references."],
+      ["user", "EDITABLE\nedit.txt\n```\neditable\n```\n"],
+      ["assistant", "Ok, any changes I propose will be to those files."],
+      ["user", "CURRENT"],
+      ["system", "TEST REMINDER"]
+    ]
+  },
+  "confirm/all-shared": {
+    "result": {
+      "answers": [true, true],
+      "never": [],
+      "preference": "all"
+    }
+  },
+  "confirm/default-no": {
+    "result": {
+      "answers": [false],
+      "never": [],
+      "preference": null
+    }
+  },
+  "confirm/default-yes": {
+    "result": {
+      "answers": [true],
+      "never": [],
+      "preference": null
+    }
+  },
+  "confirm/eof-source-default": {
+    "result": {
+      "answers": [true],
+      "never": [],
+      "preference": null
+    }
+  },
+  "confirm/explicit-all": {
+    "result": {
+      "answers": [false],
+      "never": [],
+      "preference": "all"
+    }
+  },
+  "confirm/explicit-policy-denied": {
+    "result": {
+      "answers": [false],
+      "never": [],
+      "preference": null
+    }
+  },
+  "confirm/explicit-typed-yes": {
+    "result": {
+      "answers": [true],
+      "never": [],
+      "preference": null
+    }
+  },
+  "confirm/hidden-group": {
+    "result": {
+      "answers": [false],
+      "never": [],
+      "preference": "all"
+    }
+  },
+  "confirm/invalid-reprompt": {
+    "result": {
+      "answers": [false],
+      "never": [],
+      "preference": null
+    }
+  },
+  "confirm/never-before-global": {
+    "result": {
+      "answers": [false],
+      "never": [["Allow?", null]],
+      "preference": null
+    }
+  },
+  "confirm/never-key": {
+    "result": {
+      "answers": [false, false, true],
+      "never": [["Allow?", "a"]],
+      "preference": null
+    }
+  },
+  "confirm/no-policy": {
+    "result": {
+      "answers": [false],
+      "never": [],
+      "preference": null
+    }
+  },
+  "confirm/prefix-case": {
+    "result": {
+      "answers": [true],
+      "never": [],
+      "preference": null
+    }
+  },
+  "confirm/skip-shared": {
+    "result": {
+      "answers": [false, false],
+      "never": [],
+      "preference": "skip"
+    }
+  },
+  "confirm/yes-policy": {
+    "result": {
+      "answers": [true],
+      "never": [],
+      "preference": null
+    }
+  },
+  "current-text/empty": {
+    "result": ""
+  },
+  "current-text/newlines": {
+    "result": "alpha\nbeta\n\n"
+  },
+  "files-content/crlf-unicode-tab": {
+    "result": "\n文😀.py\n<code>\n\t😀\r\n</code>\n"
+  },
+  "files-content/empty": {
+    "result": ""
+  },
+  "files-content/empty-file": {
+    "result": "\nempty.txt\n```\n```\n"
+  },
+  "files-content/images-excluded": {
+    "result": "\nUPPER.PNG\n```\ntext```\n"
+  },
+  "files-content/missing-newline": {
+    "result": "\na.py\n```\nbefore```\n"
+  },
+  "files-content/newline": {
+    "result": "\na.py\n```\nbefore\n```\n"
+  },
+  "files-content/outside-root": {
+    "result": "\n../other/a.py\n```\na```\n\nsub/b.py\n```\nb\n```\n"
+  },
+  "inchat/codepoint-order": {
+    "result": ["文.py", ".py", "😀.py"]
+  },
+  "inchat/duplicate": {
+    "result": ["a", "b"]
+  },
+  "inchat/empty": {
+    "result": []
+  },
+  "mentions/ambiguous-basename": {
+    "result": []
+  },
+  "mentions/backslash-content": {
+    "result": ["a/foo.py"]
+  },
+  "mentions/backslash-file": {
+    "result": ["a\\foo.py"]
+  },
+  "mentions/basename-underscore-dash": {
+    "result": ["dir/a-b", "dir/a_b"]
+  },
+  "mentions/embedded-not-a-word": {
+    "result": []
+  },
+  "mentions/empty": {
+    "result": []
+  },
+  "mentions/exact-path-beats-existing": {
+    "result": ["a/foo.py"]
+  },
+  "mentions/existing-editable-basename": {
+    "result": []
+  },
+  "mentions/existing-readonly-basename": {
+    "result": []
+  },
+  "mentions/ignore-current": {
+    "result": ["a/foo.py"]
+  },
+  "mentions/leading-underscore-strip": {
+    "result": ["file.py"]
+  },
+  "mentions/non-ascii-whitespace": {
+    "result": ["a.py", "b.py", "c.py"]
+  },
+  "mentions/plain-full-path": {
+    "result": ["dir/make"]
+  },
+  "mentions/plain-word": {
+    "result": []
+  },
+  "mentions/quotes-punctuation": {
+    "result": ["a.py", "b.py", "c.py"]
+  },
+  "mentions/unique-basename": {
+    "result": ["dir/foo.py"]
+  },
+  "relative/nested": {
+    "result": "sub/file"
+  },
+  "relative/outside": {
+    "result": "../other/file"
+  },
+  "relative/root": {
+    "result": "."
+  },
+  "root-path/missing-prefix-parent": {
+    "result": "outside/child/target.txt"
+  },
+  "root-path/symlink-missing-prefix": {
+    "result": "outside/new/target.txt"
+  },
+  "root-path/symlink-parent-existing": {
+    "result": "outside/target.txt"
+  },
+  "root-path/symlink-parent-missing": {
+    "result": "outside/target.txt"
+  },
+  "root/one": {
+    "result": "/project/sub"
+  },
+  "root/separate": {
+    "result": "/"
+  },
+  "root/shared": {
+    "result": "/project"
+  }
+}

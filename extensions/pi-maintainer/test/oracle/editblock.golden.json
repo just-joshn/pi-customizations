@@ -1,11 +1,1635 @@
 {
+  "apply-dry-run/cross-file-rewrites-path": {
+    "result": {
+      "errors": [],
+      "files": {
+        "a.txt": "alpha\n",
+        "b.txt": "beta\n"
+      },
+      "outcome": {
+        "result": [["b.txt", "beta\n", "BETA\n"]]
+      }
+    }
+  },
+  "apply-dry-run/directory-nominee": {
+    "result": {
+      "errors": ["<root>/pkg: is a directory"],
+      "files": {
+        "a.txt": "a\n",
+        "pkg": null
+      },
+      "outcome": {
+        "result": [["a.txt", "a\n", "b\n"]]
+      }
+    }
+  },
+  "apply-dry-run/failed-block-keeps-path": {
+    "result": {
+      "errors": [],
+      "files": {
+        "a.txt": "alpha\n"
+      },
+      "outcome": {
+        "result": [["a.txt", "nope\n", "x\n"]]
+      }
+    }
+  },
+  "apply-dry-run/fallback-touches-missing-chat-file": {
+    "result": {
+      "errors": ["<root>/gone.txt: file not found error"],
+      "files": {
+        "gone.txt": ""
+      },
+      "outcome": {
+        "result": [["gone.txt", "```\n```\n", "hi\n"]]
+      }
+    }
+  },
+  "apply-dry-run/first-matching-chat-file-wins": {
+    "result": {
+      "errors": [],
+      "files": {
+        "y.txt": "same\n",
+        "z.txt": "same\n"
+      },
+      "outcome": {
+        "result": [["z.txt", "same\n", "new\n"]]
+      }
+    }
+  },
+  "apply-dry-run/missing-nominee-falls-back": {
+    "result": {
+      "errors": [],
+      "files": {
+        "real.txt": "beta\n"
+      },
+      "outcome": {
+        "result": [["real.txt", "beta\n", "BETA\n"]]
+      }
+    }
+  },
+  "apply-dry-run/new-file-passes-through": {
+    "result": {
+      "errors": [],
+      "files": {
+        "file.txt": "one\ntwo\nthree\n"
+      },
+      "outcome": {
+        "result": [["newfile.txt", "", "creating a new file\n"]]
+      }
+    }
+  },
+  "apply-dry-run/no-edits": {
+    "result": {
+      "errors": [],
+      "files": {
+        "file.txt": "one\ntwo\nthree\n"
+      },
+      "outcome": {
+        "result": []
+      }
+    }
+  },
+  "apply-dry-run/not-cumulative": {
+    "result": {
+      "errors": [],
+      "files": {
+        "a.txt": "one\n"
+      },
+      "outcome": {
+        "result": [["a.txt", "one\n", "two\n"], ["a.txt", "two\n", "three\n"]]
+      }
+    }
+  },
+  "apply-dry-run/test-full-edit": {
+    "result": {
+      "errors": [],
+      "files": {
+        "file.txt": "one\ntwo\nthree\n"
+      },
+      "outcome": {
+        "result": [["file.txt", "two\n", "new\n"]]
+      }
+    }
+  },
+  "apply/append-without-trailing-newline": {
+    "result": {
+      "errors": [],
+      "files": {
+        "f.txt": "ab\n"
+      },
+      "outcome": {
+        "result": null
+      }
+    }
+  },
+  "apply/astral-content": {
+    "result": {
+      "errors": [],
+      "files": {
+        "e.txt": "a\n🚀\n"
+      },
+      "outcome": {
+        "result": null
+      }
+    }
+  },
+  "apply/basename-search-line-index-error": {
+    "result": {
+      "errors": [],
+      "files": {
+        "f.txt": "# f.txt\na\n"
+      },
+      "outcome": {
+        "error": {
+          "message": "list index out of range",
+          "type": "IndexError"
+        }
+      }
+    }
+  },
+  "apply/blank-line-retry": {
+    "result": {
+      "errors": [],
+      "files": {
+        "f.txt": "a\ny\n"
+      },
+      "outcome": {
+        "result": null
+      }
+    }
+  },
+  "apply/crlf-file-written-lf": {
+    "result": {
+      "errors": [],
+      "files": {
+        "c.txt": "a\nB\nc\n"
+      },
+      "outcome": {
+        "result": null
+      }
+    }
+  },
+  "apply/cross-file-fallback-ignores-non-chat": {
+    "result": {
+      "errors": [],
+      "files": {
+        "a.txt": "alpha\n",
+        "b.txt": "beta\n"
+      },
+      "outcome": {
+        "error": {
+          "message": "# 1 SEARCH/REPLACE block failed to match!\n\n## SearchReplaceNoExactMatch: This SEARCH block failed to exactly match lines in a.txt\n<<<<<<< SEARCH\nbeta\n=======\nBETA\n>>>>>>> REPLACE\n\nThe SEARCH section must exactly match an existing block of lines including all white space, comments, indentation, docstrings, etc\n",
+          "type": "ValueError"
+        }
+      }
+    }
+  },
+  "apply/cross-file-fallback-writes-match": {
+    "result": {
+      "errors": [],
+      "files": {
+        "a.txt": "alpha\n",
+        "b.txt": "BETA\n"
+      },
+      "outcome": {
+        "result": null
+      }
+    }
+  },
+  "apply/cross-file-first-match-wins": {
+    "result": {
+      "errors": [],
+      "files": {
+        "y.txt": "same\n",
+        "z.txt": "new\n"
+      },
+      "outcome": {
+        "result": null
+      }
+    }
+  },
+  "apply/delete-some-lines": {
+    "result": {
+      "errors": [],
+      "files": {
+        "f.txt": "a\nb\n"
+      },
+      "outcome": {
+        "result": null
+      }
+    }
+  },
+  "apply/delete-whole-content-fails": {
+    "result": {
+      "errors": [],
+      "files": {
+        "f.txt": "x\n"
+      },
+      "outcome": {
+        "error": {
+          "message": "# 1 SEARCH/REPLACE block failed to match!\n\n## SearchReplaceNoExactMatch: This SEARCH block failed to exactly match lines in f.txt\n<<<<<<< SEARCH\nx\n=======\n>>>>>>> REPLACE\n\nDid you mean to match some of these actual lines from f.txt?\n\n```\nx\n```\n\nThe SEARCH section must exactly match an existing block of lines including all white space, comments, indentation, docstrings, etc\n",
+          "type": "ValueError"
+        }
+      }
+    }
+  },
+  "apply/dependent-blocks-cumulative": {
+    "result": {
+      "errors": [],
+      "files": {
+        "a.txt": "three\n"
+      },
+      "outcome": {
+        "result": null
+      }
+    }
+  },
+  "apply/directory-nominee-crashes": {
+    "result": {
+      "errors": ["<root>/pkg: is a directory", "<root>/pkg: is a directory", "<root>/pkg: is a directory"],
+      "files": {
+        "pkg": null
+      },
+      "outcome": {
+        "error": {
+          "message": "'NoneType' object has no attribute 'splitlines'",
+          "type": "AttributeError"
+        }
+      }
+    }
+  },
+  "apply/dollar-patterns-literal": {
+    "result": {
+      "errors": [],
+      "files": {
+        "f.txt": "$& $1 $$\n"
+      },
+      "outcome": {
+        "result": null
+      }
+    }
+  },
+  "apply/ellipsis-edit": {
+    "result": {
+      "errors": [],
+      "files": {
+        "d.py": "def f():\n    x = 0\n    return 2\n"
+      },
+      "outcome": {
+        "result": null
+      }
+    }
+  },
+  "apply/ellipsis-not-unique-fails": {
+    "result": {
+      "errors": [],
+      "files": {
+        "d.py": "a\nb\na\nc\n"
+      },
+      "outcome": {
+        "error": {
+          "message": "# 1 SEARCH/REPLACE block failed to match!\n\n## SearchReplaceNoExactMatch: This SEARCH block failed to exactly match lines in d.py\n<<<<<<< SEARCH\na\n...\nc\n=======\nA\n...\nC\n>>>>>>> REPLACE\n\nDid you mean to match some of these actual lines from d.py?\n\n```\na\nb\na\nc\n```\n\nThe SEARCH section must exactly match an existing block of lines including all white space, comments, indentation, docstrings, etc\n",
+          "type": "ValueError"
+        }
+      }
+    }
+  },
+  "apply/empty-append-index-error": {
+    "result": {
+      "errors": [],
+      "files": {
+        "e.txt": ""
+      },
+      "outcome": {
+        "error": {
+          "message": "list index out of range",
+          "type": "IndexError"
+        }
+      }
+    }
+  },
+  "apply/empty-replace-not-warned": {
+    "result": {
+      "errors": [],
+      "files": {
+        "a.txt": "alpha\n"
+      },
+      "outcome": {
+        "error": {
+          "message": "# 1 SEARCH/REPLACE block failed to match!\n\n## SearchReplaceNoExactMatch: This SEARCH block failed to exactly match lines in a.txt\n<<<<<<< SEARCH\nnope\n=======\n>>>>>>> REPLACE\n\nThe SEARCH section must exactly match an existing block of lines including all white space, comments, indentation, docstrings, etc\n",
+          "type": "ValueError"
+        }
+      }
+    }
+  },
+  "apply/failure-report-exact-lines": {
+    "result": {
+      "errors": [],
+      "files": {
+        "big.txt": "line 1\nline 2\nline 3\nline 4\nline 5\nline 6\nline 7\nline 8\nline 9\nline 10\nline 11\nline 12\nline 13\nline 14\nline 15\nline 16\nline 17\nline 18\nline 19\nline 20\n"
+      },
+      "outcome": {
+        "error": {
+          "message": "# 1 SEARCH/REPLACE block failed to match!\n\n## SearchReplaceNoExactMatch: This SEARCH block failed to exactly match lines in big.txt\n<<<<<<< SEARCH\nline 4\nline X\nline 6\n=======\nx\n>>>>>>> REPLACE\n\nDid you mean to match some of these actual lines from big.txt?\n\n```\nline 4\nline 5\nline 6\n```\n\nThe SEARCH section must exactly match an existing block of lines including all white space, comments, indentation, docstrings, etc\n",
+          "type": "ValueError"
+        }
+      }
+    }
+  },
+  "apply/failure-report-no-similar-lines": {
+    "result": {
+      "errors": [],
+      "files": {
+        "big.txt": "line 1\nline 2\nline 3\nline 4\nline 5\nline 6\nline 7\nline 8\nline 9\nline 10\nline 11\nline 12\nline 13\nline 14\nline 15\nline 16\nline 17\nline 18\nline 19\nline 20\n"
+      },
+      "outcome": {
+        "error": {
+          "message": "# 1 SEARCH/REPLACE block failed to match!\n\n## SearchReplaceNoExactMatch: This SEARCH block failed to exactly match lines in big.txt\n<<<<<<< SEARCH\nalpha\nbeta\n=======\nx\n>>>>>>> REPLACE\n\nThe SEARCH section must exactly match an existing block of lines including all white space, comments, indentation, docstrings, etc\n",
+          "type": "ValueError"
+        }
+      }
+    }
+  },
+  "apply/failure-report-plural-with-passed": {
+    "result": {
+      "errors": [],
+      "files": {
+        "a.txt": "ALPHA\n",
+        "b.txt": "beta\n"
+      },
+      "outcome": {
+        "error": {
+          "message": "# 2 SEARCH/REPLACE blocks failed to match!\n\n## SearchReplaceNoExactMatch: This SEARCH block failed to exactly match lines in a.txt\n<<<<<<< SEARCH\nnope\n=======\nx\n>>>>>>> REPLACE\n\n\n## SearchReplaceNoExactMatch: This SEARCH block failed to exactly match lines in b.txt\n<<<<<<< SEARCH\nnada\n=======\ny\n>>>>>>> REPLACE\n\nThe SEARCH section must exactly match an existing block of lines including all white space, comments, indentation, docstrings, etc\n\n# The other 1 SEARCH/REPLACE block were applied successfully.\nDon't re-send them.\nJust reply with fixed versions of the blocks above that failed to match.\n",
+          "type": "ValueError"
+        }
+      }
+    }
+  },
+  "apply/failure-report-quad-fence": {
+    "result": {
+      "errors": [],
+      "files": {
+        "big.txt": "line 1\nline 2\nline 3\nline 4\nline 5\nline 6\nline 7\nline 8\nline 9\nline 10\nline 11\nline 12\nline 13\nline 14\nline 15\nline 16\nline 17\nline 18\nline 19\nline 20\n"
+      },
+      "outcome": {
+        "error": {
+          "message": "# 1 SEARCH/REPLACE block failed to match!\n\n## SearchReplaceNoExactMatch: This SEARCH block failed to exactly match lines in big.txt\n<<<<<<< SEARCH\nline 4\nline X\nline 6\n=======\nx\n>>>>>>> REPLACE\n\nDid you mean to match some of these actual lines from big.txt?\n\n````\nline 4\nline 5\nline 6\n````\n\nThe SEARCH section must exactly match an existing block of lines including all white space, comments, indentation, docstrings, etc\n",
+          "type": "ValueError"
+        }
+      }
+    }
+  },
+  "apply/failure-report-replace-present": {
+    "result": {
+      "errors": [],
+      "files": {
+        "big.txt": "line 1\nline 2\nline 3\nline 4\nline 5\nline 6\nline 7\nline 8\nline 9\nline 10\nline 11\nline 12\nline 13\nline 14\nline 15\nline 16\nline 17\nline 18\nline 19\nline 20\n"
+      },
+      "outcome": {
+        "error": {
+          "message": "# 1 SEARCH/REPLACE block failed to match!\n\n## SearchReplaceNoExactMatch: This SEARCH block failed to exactly match lines in big.txt\n<<<<<<< SEARCH\nnope\n=======\nline 7\n>>>>>>> REPLACE\n\nAre you sure you need this SEARCH/REPLACE block?\nThe REPLACE lines are already in big.txt!\n\nThe SEARCH section must exactly match an existing block of lines including all white space, comments, indentation, docstrings, etc\n",
+          "type": "ValueError"
+        }
+      }
+    }
+  },
+  "apply/failure-report-single": {
+    "result": {
+      "errors": [],
+      "files": {
+        "big.txt": "line 1\nline 2\nline 3\nline 4\nline 5\nline 6\nline 7\nline 8\nline 9\nline 10\nline 11\nline 12\nline 13\nline 14\nline 15\nline 16\nline 17\nline 18\nline 19\nline 20\n"
+      },
+      "outcome": {
+        "error": {
+          "message": "# 1 SEARCH/REPLACE block failed to match!\n\n## SearchReplaceNoExactMatch: This SEARCH block failed to exactly match lines in big.txt\n<<<<<<< SEARCH\nline 4\nline 5\nline 6 changed\n=======\nx\n>>>>>>> REPLACE\n\nDid you mean to match some of these actual lines from big.txt?\n\n```\nline 1\nline 2\nline 3\nline 4\nline 5\nline 6\nline 7\nline 8\nline 9\nline 10\n```\n\nThe SEARCH section must exactly match an existing block of lines including all white space, comments, indentation, docstrings, etc\n",
+          "type": "ValueError"
+        }
+      }
+    }
+  },
+  "apply/failure-report-two-passed": {
+    "result": {
+      "errors": [],
+      "files": {
+        "a.txt": "A\n",
+        "b.txt": "B\n"
+      },
+      "outcome": {
+        "error": {
+          "message": "# 1 SEARCH/REPLACE block failed to match!\n\n## SearchReplaceNoExactMatch: This SEARCH block failed to exactly match lines in b.txt\n<<<<<<< SEARCH\ngamma\n=======\nC\n>>>>>>> REPLACE\n\nThe SEARCH section must exactly match an existing block of lines including all white space, comments, indentation, docstrings, etc\n\n# The other 2 SEARCH/REPLACE blocks were applied successfully.\nDon't re-send them.\nJust reply with fixed versions of the block above that failed to match.\n",
+          "type": "ValueError"
+        }
+      }
+    }
+  },
+  "apply/fallback-touch-writes-missing-chat-file": {
+    "result": {
+      "errors": ["<root>/gone.txt: file not found error"],
+      "files": {
+        "gone.txt": "hi\n"
+      },
+      "outcome": {
+        "result": null
+      }
+    }
+  },
+  "apply/first-match-only": {
+    "result": {
+      "errors": [],
+      "files": {
+        "f.txt": "x = 2\nx = 1\n"
+      },
+      "outcome": {
+        "result": null
+      }
+    }
+  },
+  "apply/io-dry-run-leaves-file": {
+    "result": {
+      "errors": [],
+      "files": {
+        "file.txt": "one\ntwo\nthree\n"
+      },
+      "outcome": {
+        "result": null
+      }
+    }
+  },
+  "apply/io-dry-run-new-file-crashes": {
+    "result": {
+      "errors": ["<root>/newfile.txt: file not found error"],
+      "files": {
+        "file.txt": "one\ntwo\nthree\n"
+      },
+      "outcome": {
+        "error": {
+          "message": "'NoneType' object has no attribute 'splitlines'",
+          "type": "AttributeError"
+        }
+      }
+    }
+  },
+  "apply/missing-file-crashes": {
+    "result": {
+      "errors": ["<root>/gone.txt: file not found error"],
+      "files": {},
+      "outcome": {
+        "error": {
+          "message": "'NoneType' object has no attribute 'splitlines'",
+          "type": "AttributeError"
+        }
+      }
+    }
+  },
+  "apply/missing-new-file-crashes": {
+    "result": {
+      "errors": ["<root>/newfile.txt: file not found error"],
+      "files": {},
+      "outcome": {
+        "error": {
+          "message": "'NoneType' object has no attribute 'splitlines'",
+          "type": "AttributeError"
+        }
+      }
+    }
+  },
+  "apply/no-edits": {
+    "result": {
+      "errors": [],
+      "files": {
+        "file.txt": "one\ntwo\nthree\n"
+      },
+      "outcome": {
+        "result": null
+      }
+    }
+  },
+  "apply/nominee-unreadable-sibling-matches": {
+    "result": {
+      "errors": ["<root>/pkg: is a directory", "<root>/pkg: is a directory"],
+      "files": {
+        "b.txt": "BETA\n",
+        "pkg": null
+      },
+      "outcome": {
+        "result": null
+      }
+    }
+  },
+  "apply/not-in-chat-file-edited": {
+    "result": {
+      "errors": [],
+      "files": {
+        "other.txt": "O\n"
+      },
+      "outcome": {
+        "result": null
+      }
+    }
+  },
+  "apply/quoted-wrapping-stripped": {
+    "result": {
+      "errors": [],
+      "files": {
+        "f.txt": "x = 2\n"
+      },
+      "outcome": {
+        "result": null
+      }
+    }
+  },
+  "apply/subdirectory-path": {
+    "result": {
+      "errors": [],
+      "files": {
+        "src": null,
+        "src/app.py": "x = 2\n"
+      },
+      "outcome": {
+        "result": null
+      }
+    }
+  },
+  "apply/tabs-uniform-repair": {
+    "result": {
+      "errors": [],
+      "files": {
+        "m.go": "func f() {\n\tx := 2\n}\n"
+      },
+      "outcome": {
+        "result": null
+      }
+    }
+  },
+  "apply/test-create-new-file-with-other-file-in-chat": {
+    "result": {
+      "errors": [],
+      "files": {
+        "file.txt": "one\ntwo\nthree\n",
+        "newfile.txt": "creating a new file\n"
+      },
+      "outcome": {
+        "result": null
+      }
+    }
+  },
+  "apply/test-full-edit": {
+    "result": {
+      "errors": [],
+      "files": {
+        "file.txt": "one\nnew\nthree\n"
+      },
+      "outcome": {
+        "result": null
+      }
+    }
+  },
+  "apply/whitespace-search-appends": {
+    "result": {
+      "errors": [],
+      "files": {
+        "f.txt": "a\nb\n"
+      },
+      "outcome": {
+        "result": null
+      }
+    }
+  },
+  "do-replace/append-to-empty-file": {
+    "result": {
+      "exists_after": true,
+      "result": "x\n"
+    }
+  },
+  "do-replace/append-without-trailing-newline": {
+    "result": {
+      "exists_after": true,
+      "result": "ab\n"
+    }
+  },
+  "do-replace/basename-line-index-error": {
+    "error": {
+      "message": "list index out of range",
+      "type": "IndexError"
+    }
+  },
+  "do-replace/crlf-search-normalized": {
+    "result": {
+      "exists_after": true,
+      "result": "c\nb\n"
+    }
+  },
+  "do-replace/empty-search-empty-replace": {
+    "result": {
+      "exists_after": true,
+      "result": ""
+    }
+  },
+  "do-replace/fence-pair-search-on-missing-file": {
+    "result": {
+      "exists_after": true,
+      "result": "x\n"
+    }
+  },
+  "do-replace/missing-file-nonblank-search": {
+    "result": {
+      "exists_after": false,
+      "result": null
+    }
+  },
+  "do-replace/new-file-created": {
+    "result": {
+      "exists_after": true,
+      "result": "hello\n"
+    }
+  },
+  "do-replace/new-file-whitespace-search": {
+    "result": {
+      "exists_after": true,
+      "result": "x\n"
+    }
+  },
+  "do-replace/no-match": {
+    "result": {
+      "exists_after": true,
+      "result": null
+    }
+  },
+  "do-replace/probe-duplicate-search-first-match": {
+    "result": {
+      "exists_after": true,
+      "result": "x = 2\nx = 1\n"
+    }
+  },
+  "do-replace/probe-empty-search-appends": {
+    "result": {
+      "exists_after": true,
+      "result": "x = 1\nx = 2\n"
+    }
+  },
+  "do-replace/probe-fuzzy-content-disabled": {
+    "result": {
+      "exists_after": true,
+      "result": null
+    }
+  },
+  "do-replace/probe-indentation-recovery": {
+    "result": {
+      "exists_after": true,
+      "result": "def f():\n    x = 2\n"
+    }
+  },
+  "do-replace/probe-newline-normalization": {
+    "result": {
+      "exists_after": true,
+      "result": "x = 2\n"
+    }
+  },
+  "do-replace/quad-fence-wrapping": {
+    "result": {
+      "exists_after": true,
+      "result": "y\n"
+    }
+  },
+  "do-replace/replace-first-line-basename-dropped": {
+    "result": {
+      "exists_after": true,
+      "result": "x = 2\n"
+    }
+  },
+  "do-replace/strips-fence-wrapping": {
+    "result": {
+      "exists_after": true,
+      "result": "x = 2\n"
+    }
+  },
+  "do-replace/strips-filename-and-fence": {
+    "result": {
+      "exists_after": true,
+      "result": "x = 2\n"
+    }
+  },
+  "do-replace/unreadable-existing-file": {
+    "result": {
+      "exists_after": true,
+      "result": null
+    }
+  },
+  "do-replace/unreadable-existing-file-blank-search": {
+    "result": {
+      "exists_after": true,
+      "result": null
+    }
+  },
+  "do-replace/whitespace-search-appends": {
+    "result": {
+      "exists_after": true,
+      "result": "a\nz\n"
+    }
+  },
+  "dots/append-adds-missing-newline": {
+    "result": "a\nx\n"
+  },
+  "dots/blank-line-joins-separator": {
+    "result": "A\n\nb\nC\n"
+  },
+  "dots/blank-line-mismatch-unmatched": {
+    "error": {
+      "message": "Unmatched ... in SEARCH/REPLACE block",
+      "type": "ValueError"
+    }
+  },
+  "dots/bom-is-not-space": {
+    "result": null
+  },
+  "dots/carriage-return-is-not-line-start": {
+    "result": null
+  },
+  "dots/crlf-dots-not-separator": {
+    "result": null
+  },
+  "dots/dollar-patterns-literal": {
+    "result": "$&x\nmid\n$1$$\n"
+  },
+  "dots/dots-need-newline": {
+    "result": null
+  },
+  "dots/empty-part-piece-appends": {
+    "result": "a\nB\nnew\n"
+  },
+  "dots/empty-pieces-skipped": {
+    "result": "a\nB\n"
+  },
+  "dots/evolving-whole-uniqueness": {
+    "result": "z\nw\n"
+  },
+  "dots/ideographic-space-separator": {
+    "result": "A\nb\nC\n"
+  },
+  "dots/indented-dots": {
+    "result": "A\nb\nC\n"
+  },
+  "dots/line-separator-is-not-line-start": {
+    "result": null
+  },
+  "dots/no-dots": {
+    "result": null
+  },
+  "dots/non-overlapping-count": {
+    "result": "b\na\n"
+  },
+  "dots/piece-missing": {
+    "error": {
+      "message": "",
+      "type": "ValueError"
+    }
+  },
+  "dots/piece-not-unique": {
+    "error": {
+      "message": "",
+      "type": "ValueError"
+    }
+  },
+  "dots/three-pieces": {
+    "result": "A\nb\nC\nd\nE\n"
+  },
+  "dots/two-pieces": {
+    "result": "A\nb\nc\nD\n"
+  },
+  "dots/unit-separator-is-space": {
+    "result": "A\nb\nC\n"
+  },
+  "dots/unmatched": {
+    "error": {
+      "message": "Unmatched ... in SEARCH/REPLACE block",
+      "type": "ValueError"
+    }
+  },
+  "dots/unpaired": {
+    "error": {
+      "message": "Unpaired ... in SEARCH/REPLACE block",
+      "type": "ValueError"
+    }
+  },
+  "find-blocks/astral-reply": {
+    "result": [["😀.txt", "😀 one\n", "🚀 two\n"]]
+  },
+  "find-blocks/basename-matches-valid-fname": {
+    "result": [["src/app.py", "x\n", "y\n"]]
+  },
   "find-blocks/basic": {
     "result": [["foo.txt", "Two\n", "Tu\n"]]
+  },
+  "find-blocks/blank-line-before-head-missing": {
+    "error": {
+      "message": "app.py\n\n<<<<<<< SEARCH\n\n^^^ Bad/missing filename. The filename must be alone on the line before the opening fence ```",
+      "type": "ValueError"
+    }
+  },
+  "find-blocks/crlf-reply": {
+    "result": [["foo.txt", "Two\r\n", "Tu\r\n"]]
+  },
+  "find-blocks/divider-ends-replace-section": {
+    "result": [["a.py", "x\n", "y\n"]]
+  },
+  "find-blocks/divider-four-chars-is-content": {
+    "result": [["a.py", "x\n====\n", "y\n"]]
+  },
+  "find-blocks/divider-ten-chars-is-content": {
+    "result": [["a.py", "x\n==========\n", "y\n"]]
+  },
+  "find-blocks/divider-trailing-bom-is-content": {
+    "result": [["a.py", "x\n=======﻿\n", "y\n"]]
+  },
+  "find-blocks/divider-trailing-unit-separator-strips": {
+    "result": [["a.py", "x\n", "y\n"]]
+  },
+  "find-blocks/dots-filename-line-ignored": {
+    "error": {
+      "message": "...\n<<<<<<< SEARCH\n\n^^^ Bad/missing filename. The filename must be alone on the line before the opening fence ```",
+      "type": "ValueError"
+    }
+  },
+  "find-blocks/empty-content": {
+    "result": []
+  },
+  "find-blocks/empty-search-skips-fuzzy-filename": {
+    "result": [["ap.py", "", "new\n"]]
+  },
+  "find-blocks/error-after-good-block": {
+    "error": {
+      "message": "a.py\n<<<<<<< SEARCH\nx\n=======\ny\n>>>>>>> REPLACE\nb.py\n<<<<<<< SEARCH\nz\n\n^^^ Expected `=======`",
+      "type": "ValueError"
+    }
+  },
+  "find-blocks/filename-four-lines-back-missing": {
+    "error": {
+      "message": "app.py\n```\n```\n```python\n<<<<<<< SEARCH\n\n^^^ Bad/missing filename. The filename must be alone on the line before the opening fence ```",
+      "type": "ValueError"
+    }
+  },
+  "find-blocks/filename-in-fence-info": {
+    "result": [["src/app.py", "x\n", "y\n"]]
+  },
+  "find-blocks/filename-three-lines-back": {
+    "result": [["app.py", "x\n", "y\n"]]
+  },
+  "find-blocks/head-four-chars-ignored": {
+    "result": []
+  },
+  "find-blocks/head-ten-chars-ignored": {
+    "result": []
+  },
+  "find-blocks/head-with-closing-angle": {
+    "result": [["a.py", "x\n", "y\n"]]
+  },
+  "find-blocks/head-with-two-closing-angles-ignored": {
+    "result": []
+  },
+  "find-blocks/line-separator-reply": {
+    "result": [["foo.txt", "Two ", "Tu "]]
+  },
+  "find-blocks/markdown-decorated-filename": {
+    "result": [["`app.py`", "x\n", "y\n"]]
+  },
+  "find-blocks/markdown-decorated-filename-valid": {
+    "result": [["app.py", "x\n", "y\n"]]
+  },
+  "find-blocks/marker-five-chars": {
+    "result": [["a.py", "x\n", "y\n"]]
+  },
+  "find-blocks/marker-nine-chars": {
+    "result": [["a.py", "x\n", "y\n"]]
+  },
+  "find-blocks/marker-space-missing-ignored": {
+    "result": []
+  },
+  "find-blocks/markers-indented-and-trailing-space": {
+    "result": [["a.py", "x\n", "y\n"]]
+  },
+  "find-blocks/markers-lowercase-ignored": {
+    "result": []
+  },
+  "find-blocks/missing-divider": {
+    "error": {
+      "message": "a.py\n<<<<<<< SEARCH\nx\ny\n\n^^^ Expected `=======`",
+      "type": "ValueError"
+    }
+  },
+  "find-blocks/missing-divider-custom-fence": {
+    "error": {
+      "message": "a.py\n<<<<<<< SEARCH\nx\n\n^^^ Expected `=======`",
+      "type": "ValueError"
+    }
+  },
+  "find-blocks/missing-filename-custom-fence": {
+    "error": {
+      "message": "\n<<<<<<< SEARCH\n\n^^^ Bad/missing filename. The filename must be alone on the line before the opening fence <source>",
+      "type": "ValueError"
+    }
+  },
+  "find-blocks/missing-filename-first-line": {
+    "error": {
+      "message": "<<<<<<< SEARCH\n\n^^^ Bad/missing filename. The filename must be alone on the line before the opening fence ```",
+      "type": "ValueError"
+    }
+  },
+  "find-blocks/no-blocks": {
+    "result": []
+  },
+  "find-blocks/nonempty-search-fuzzy-filename": {
+    "result": [["app.py", "x\n", "y\n"]]
+  },
+  "find-blocks/prose-line-becomes-filename": {
+    "result": [["Change this", "x\n", "y\n"]]
+  },
+  "find-blocks/reuses-previous-filename": {
+    "result": [["a.py", "x\n", "y\n"], ["a.py", "z\n", "w\n"]]
+  },
+  "find-blocks/search-without-trailing-newline": {
+    "result": [["a.py", "x\n", "y\n"]]
+  },
+  "find-blocks/shell-and-edit-mixed": {
+    "result": [[null, "make test\n"], ["app.py", "x\n", "y\n"]]
+  },
+  "find-blocks/shell-bash": {
+    "result": [[null, "ls -la\npwd\n"]]
+  },
+  "find-blocks/shell-closes-on-any-backticks": {
+    "result": [[null, "ls\n"]]
+  },
+  "find-blocks/shell-csharp-prefix-is-shell": {
+    "result": [[null, "Console.WriteLine(1);\n"]]
+  },
+  "find-blocks/shell-empty-block": {
+    "result": [[null, ""]]
+  },
+  "find-blocks/shell-every-language": {
+    "result": [
+      [null, "echo bash\n"],
+      [null, "echo sh\n"],
+      [null, "echo shell\n"],
+      [null, "echo cmd\n"],
+      [null, "echo batch\n"],
+      [null, "echo powershell\n"],
+      [null, "echo ps1\n"],
+      [null, "echo zsh\n"],
+      [null, "echo fish\n"],
+      [null, "echo ksh\n"],
+      [null, "echo csh\n"],
+      [null, "echo tcsh\n"]
+    ]
+  },
+  "find-blocks/shell-head-next-line-is-edit": {
+    "error": {
+      "message": "```bash\n<<<<<<< SEARCH\n\n^^^ Bad/missing filename. The filename must be alone on the line before the opening fence ```",
+      "type": "ValueError"
+    }
+  },
+  "find-blocks/shell-head-three-lines-later-swallowed": {
+    "result": [[null, "script.sh\n\n<<<<<<< SEARCH\nx\n=======\ny\n>>>>>>> REPLACE\n"]]
+  },
+  "find-blocks/shell-head-two-lines-later-is-edit": {
+    "result": [["script.sh", "x\n", "y\n"]]
+  },
+  "find-blocks/shell-indented-fences": {
+    "result": [[null, "ls\n"]]
+  },
+  "find-blocks/shell-not-detected-under-quad": {
+    "result": []
+  },
+  "find-blocks/shell-prefix-match": {
+    "result": [[null, "echo prefix\n"]]
+  },
+  "find-blocks/shell-unclosed": {
+    "result": [[null, "echo hi\necho there\n"]]
+  },
+  "find-blocks/source-tag-fence": {
+    "result": [["app.py", "x\n", "y\n"]]
+  },
+  "find-blocks/tabs-reply": {
+    "result": [["a.go", "\tx := 1\n", "\tx := 2\n"]]
+  },
+  "find-blocks/test-csharp-language-identifier": {
+    "result": [["Program.cs", "Console.WriteLine(\"Hello World!\");\n", "Console.WriteLine(\"Hello, C# World!\");\n"]]
+  },
+  "find-blocks/test-deepseek-coder-v2-filename-mangling": {
+    "result": [["foo.txt", "one\n", "two\n"]]
+  },
+  "find-blocks/test-find-original-update-blocks": {
+    "result": [["foo.txt", "Two\n", "Tooooo\n"]]
+  },
+  "find-blocks/test-incomplete-edit-block-missing-filename": {
+    "result": [
+      [
+        "tests/test_repomap.py",
+        "    def test_check_for_ctags_failure(self):\n        with patch(\"subprocess.run\") as mock_run:\n            mock_run.side_effect = Exception(\"ctags not found\")\n",
+        "    def test_check_for_ctags_failure(self):\n        with patch(\"subprocess.check_output\") as mock_check_output:\n            mock_check_output.side_effect = Exception(\"ctags not found\")\n"
+      ],
+      [
+        "tests/test_repomap.py",
+        "    def test_check_for_ctags_success(self):\n        with patch(\"subprocess.run\") as mock_run:\n            mock_run.return_value = CompletedProcess(args=[\"ctags\", \"--version\"], returncode=0, stdout='''{\n  \"_type\": \"tag\",\n  \"name\": \"status\",\n  \"path\": \"aider/main.py\",\n  \"pattern\": \"/^    status = main()$/\",\n  \"kind\": \"variable\"\n}''')\n",
+        "    def test_check_for_ctags_success(self):\n        with patch(\"subprocess.check_output\") as mock_check_output:\n            mock_check_output.return_value = '''{\n  \"_type\": \"tag\",\n  \"name\": \"status\",\n  \"path\": \"aider/main.py\",\n  \"pattern\": \"/^    status = main()$/\",\n  \"kind\": \"variable\"\n}'''\n"
+      ]
+    ]
+  },
+  "find-blocks/test-missing-filename": {
+    "error": {
+      "message": "\nHere's the change:\n\n```text\n<<<<<<< SEARCH\n\n^^^ Bad/missing filename. The filename must be alone on the line before the opening fence ```",
+      "type": "ValueError"
+    }
+  },
+  "find-blocks/test-multiple-same-file": {
+    "result": [["foo.txt", "one\n", "two\n"], ["foo.txt", "three\n", "four\n"]]
+  },
+  "find-blocks/test-new-file-created-in-same-folder": {
+    "result": [["path/to/a/file2.txt", "", "three\n"], ["path/to/a/file1.txt", "one\n", "two\n"]]
+  },
+  "find-blocks/test-no-final-newline": {
+    "result": [
+      ["aider/coder.py", "            self.console.print(\"[red]^C again to quit\")\n", "            self.io.tool_error(\"^C again to quit\")\n"],
+      [
+        "aider/coder.py",
+        "            self.io.tool_error(\"Malformed ORIGINAL/UPDATE blocks, retrying...\")\n            self.io.tool_error(err)\n",
+        "            self.io.tool_error(\"Malformed ORIGINAL/UPDATE blocks, retrying...\")\n            self.io.tool_error(str(err))\n"
+      ],
+      [
+        "aider/coder.py",
+        "            self.console.print(\"[red]Unable to get commit message from gpt-3.5-turbo. Use /commit to try again.\n\")\n",
+        "            self.io.tool_error(\"Unable to get commit message from gpt-3.5-turbo. Use /commit to try again.\")\n"
+      ],
+      ["aider/coder.py", "            self.console.print(\"[red]Skipped commit.\")\n", "            self.io.tool_error(\"Skipped commit.\")\n"]
+    ]
+  },
+  "find-blocks/test-quad-backticks-with-triples": {
+    "result": [["foo.txt", "", "Tooooo\n"]]
+  },
+  "find-blocks/test-quote-below-filename": {
+    "result": [["foo.txt", "Two\n", "Tooooo\n"]]
+  },
+  "find-blocks/test-sh-language-identifier": {
+    "result": [["test_hello.sh", "", "#!/bin/bash\n# Check if exactly one argument is provided\nif [ \"$#\" -ne 1 ]; then\n    echo \"Usage: $0 <argument>\" >&2\n    exit 1\nfi\n\n# Echo the first argument\necho \"$1\"\n\nexit 0\n"]]
+  },
+  "find-blocks/test-unclosed": {
+    "error": {
+      "message": "\nHere's the change:\n\n```text\nfoo.txt\n<<<<<<< SEARCH\nTwo\n=======\nTooooo\n\n\noops!\n\n^^^ Expected `>>>>>>> REPLACE` or `=======`",
+      "type": "ValueError"
+    }
+  },
+  "find-blocks/updated-four-chars-is-content": {
+    "result": [["a.py", "x\n", "y\n>>>> REPLACE\n"]]
+  },
+  "find-blocks/updated-ten-chars-is-content": {
+    "result": [["a.py", "x\n", "y\n>>>>>>>>>> REPLACE\n"]]
+  },
+  "find-blocks/whitespace-search-uses-valid-fnames": {
+    "result": [["app.py", " \n", "y\n"]]
+  },
+  "find-filename/basename-first-valid-wins": {
+    "result": "x/app.py"
+  },
+  "find-filename/blank-line-stops-search": {
+    "result": null
+  },
+  "find-filename/custom-fence": {
+    "result": "a.py"
+  },
+  "find-filename/exact-before-basename": {
+    "result": "src/app.py"
+  },
+  "find-filename/extension-preferred": {
+    "result": "bar.py"
+  },
+  "find-filename/first-without-extension": {
+    "result": "dir/foo"
+  },
+  "find-filename/fuzzy-below-cutoff": {
+    "result": "f1.py"
+  },
+  "find-filename/fuzzy-tie-order-independent": {
+    "result": "ab.pyz"
+  },
+  "find-filename/fuzzy-tie-prefers-larger-name": {
+    "result": "ab.pyz"
+  },
+  "find-filename/indented-fence-stops": {
+    "result": null
+  },
+  "find-filename/no-lines": {
+    "result": null
+  },
+  "find-filename/only-three-lines": {
+    "result": null
+  },
+  "find-filename/test-extra-characters": {
+    "result": "file1.py"
+  },
+  "find-filename/test-fuzzy-underscore": {
+    "result": "file1.py"
+  },
+  "find-filename/test-fuzzy-windows": {
+    "result": "\\windows\\__init__.py"
+  },
+  "find-filename/test-in-fence": {
+    "result": "dir/file3.py"
+  },
+  "find-filename/test-multiple-fences": {
+    "result": "file2.py"
+  },
+  "find-filename/test-no-valid-filename": {
+    "result": "invalid_file.py"
+  },
+  "find-filename/test-single-line": {
+    "result": "file1.py"
+  },
+  "find-filename/triple-backticks-under-quad": {
+    "result": "x.py"
+  },
+  "find-filename/valid-none": {
+    "result": "file1.py"
+  },
+  "get-edits/chat-basename-remap": {
+    "result": {
+      "edits": [["src/app.py", "x\n", "y\n"]],
+      "shell_commands": []
+    }
+  },
+  "get-edits/chat-files-deduplicated": {
+    "result": {
+      "edits": [["a.py", "a\n", "b\n"]],
+      "shell_commands": []
+    }
+  },
+  "get-edits/chat-files-sorted-by-code-point": {
+    "result": {
+      "edits": [["/x.py", "a\n", "b\n"]],
+      "shell_commands": []
+    }
+  },
+  "get-edits/fenced-format-example": {
+    "result": {
+      "edits": [["mathweb/flask/app.py", "from flask import Flask\n", "import math\nfrom flask import Flask\n"]],
+      "shell_commands": []
+    }
+  },
+  "get-edits/malformed-reply-raises": {
+    "error": {
+      "message": "```bash\nls\n```\na.py\n<<<<<<< SEARCH\nx\n\n^^^ Expected `=======`",
+      "type": "ValueError"
+    }
+  },
+  "get-edits/no-edits": {
+    "result": {
+      "edits": [],
+      "shell_commands": []
+    }
+  },
+  "get-edits/quad-fence": {
+    "result": {
+      "edits": [["app.py", "x\n", "y\n"]],
+      "shell_commands": []
+    }
+  },
+  "get-edits/shell-commands-extracted": {
+    "result": {
+      "edits": [["app.py", "x\n", "y\n"]],
+      "shell_commands": ["make test\n", "ls\n"]
+    }
+  },
+  "get-edits/shell-only": {
+    "result": {
+      "edits": [],
+      "shell_commands": ["pip install -e .\n"]
+    }
+  },
+  "get-edits/test-create-new-file-reply": {
+    "result": {
+      "edits": [["newfile.txt", "", "creating a new file\n"]],
+      "shell_commands": []
+    }
+  },
+  "get-edits/test-full-edit-reply": {
+    "result": {
+      "edits": [["file.txt", "two\n", "new\n"]],
+      "shell_commands": []
+    }
+  },
+  "match-ws/all-blank": {
+    "result": null
+  },
+  "match-ws/blank-line-ignored": {
+    "result": "  "
+  },
+  "match-ws/bom-is-not-indent": {
+    "result": null
+  },
+  "match-ws/content-differs": {
+    "result": null
+  },
+  "match-ws/empty": {
+    "result": null
+  },
+  "match-ws/negative-slice-astral": {
+    "result": "ab"
+  },
+  "match-ws/no-break-space-indent": {
+    "result": " "
+  },
+  "match-ws/no-offset": {
+    "result": ""
+  },
+  "match-ws/part-deeper-negative-slice": {
+    "result": "x"
+  },
+  "match-ws/tab-indent": {
+    "result": "\t"
+  },
+  "match-ws/uniform-indent": {
+    "result": "    "
+  },
+  "match-ws/unit-separator-is-indent": {
+    "result": "\u001f"
+  },
+  "match-ws/varied-offset": {
+    "result": null
+  },
+  "missing-ws/all-blank-lines": {
+    "result": null
+  },
+  "missing-ws/blank-replace-lines-stay": {
+    "result": "  x\n\n   \n  y\n"
+  },
+  "missing-ws/empty-part": {
+    "result": null
+  },
+  "missing-ws/empty-result": {
+    "result": ""
+  },
+  "missing-ws/first-match": {
+    "result": "    c\n    b\n    a\n"
+  },
+  "missing-ws/garbage-prefix": {
+    "result": "xy\n"
+  },
+  "missing-ws/min-leading-from-replace": {
+    "result": "b\n"
+  },
+  "missing-ws/no-match": {
+    "result": null
+  },
+  "missing-ws/outdent-then-reindent": {
+    "result": "    new_line1\n    new_line2\n    line3\n"
+  },
+  "missing-ws/partial-indent": {
+    "result": "    new_line1\n        new_line2\n    line3\n"
+  },
+  "missing-ws/replace-deeper-than-part": {
+    "result": "\tif y:\n\t\treturn 2\n\t\t\tpass\n"
+  },
+  "perfect-or-whitespace/empty-result-is-failure": {
+    "result": null
+  },
+  "perfect-or-whitespace/no-match": {
+    "result": null
+  },
+  "perfect-or-whitespace/perfect-wins": {
+    "result": "b\n  a\n"
+  },
+  "perfect-or-whitespace/whitespace-fallback": {
+    "result": "  b\n"
+  },
+  "perfect-replace/at-end": {
+    "result": "a\nz\ny\n"
+  },
+  "perfect-replace/empty-part-prepends": {
+    "result": "b\na\n"
+  },
+  "perfect-replace/empty-result": {
+    "result": ""
+  },
+  "perfect-replace/first-of-two": {
+    "result": "x\nb\na\n"
+  },
+  "perfect-replace/multi-line": {
+    "result": "a\nB\nd\n"
+  },
+  "perfect-replace/no-match": {
+    "result": null
+  },
+  "perfect-replace/part-longer-than-whole": {
+    "result": null
+  },
+  "perfect-replace/whitespace-must-match": {
+    "result": null
+  },
+  "prep/adds-newline": {
+    "result": ["a\n", ["a\n"]]
+  },
+  "prep/astral": {
+    "result": ["😀\nb\n", ["😀\n", "b\n"]]
+  },
+  "prep/crlf-lines": {
+    "result": ["a\r\nb\r\n", ["a\r\n", "b\r\n"]]
+  },
+  "prep/empty": {
+    "result": ["", []]
+  },
+  "prep/form-feed": {
+    "result": ["a\fb\n", ["a\f", "b\n"]]
+  },
+  "prep/keeps-newline": {
+    "result": ["a\nb\n", ["a\n", "b\n"]]
+  },
+  "prep/line-separator-end": {
+    "result": ["x \n", ["x ", "\n"]]
+  },
+  "prep/lone-cr-end": {
+    "result": ["x\r\n", ["x\r\n"]]
+  },
+  "replace/astral": {
+    "result": "🚀 = 2\nok\n"
+  },
+  "replace/blank-line-retry": {
+    "result": "a\ny\n"
+  },
+  "replace/blank-line-two-lines-no-retry": {
+    "result": null
+  },
+  "replace/crlf-both": {
+    "result": "x\r\nb\r\n"
+  },
+  "replace/crlf-whole-lf-part": {
+    "result": null
+  },
+  "replace/delete-all-is-failure": {
+    "result": null
+  },
+  "replace/delete-some-lines": {
+    "result": "a\nb\n"
+  },
+  "replace/dollar-in-replace": {
+    "result": "$& $1 $$\nb\n"
+  },
+  "replace/dots-missing-swallowed": {
+    "result": null
+  },
+  "replace/dots-not-unique-swallowed": {
+    "result": null
+  },
+  "replace/dots-success": {
+    "result": "A\nb\nC\n"
+  },
+  "replace/dots-unmatched-swallowed": {
+    "result": null
+  },
+  "replace/dots-unpaired-swallowed": {
+    "result": null
+  },
+  "replace/dots-whole-without-newline": {
+    "result": "A\nb\nC\n"
+  },
+  "replace/empty-part-prepends": {
+    "result": "b\na\n"
+  },
+  "replace/empty-whole": {
+    "result": null
   },
   "replace/first-match-only": {
     "result": "x\nb\na\nb\n"
   },
+  "replace/fuzzy-disabled-near-match": {
+    "result": null
+  },
+  "replace/fuzzy-disabled-sample-text": {
+    "result": null
+  },
+  "replace/garbage-prefix": {
+    "result": "xy\n"
+  },
+  "replace/ideographic-space-indent": {
+    "result": "　　b\n"
+  },
+  "replace/probe-duplicate-search-first-match": {
+    "result": "x = 2\nx = 1\n"
+  },
+  "replace/probe-fuzzy-content-disabled": {
+    "result": null
+  },
+  "replace/probe-indentation-recovery": {
+    "result": "def f():\n    x = 2\n"
+  },
+  "replace/probe-newline-normalization": {
+    "result": "x = 2\n"
+  },
+  "replace/tabs-uniform-repair": {
+    "result": "\tif y:\n\t\treturn 2\n"
+  },
+  "replace/test-just-some-missing-leading-whitespace": {
+    "result": "    new_line1\n        new_line2\n    line3\n"
+  },
+  "replace/test-missing-leading-whitespace": {
+    "result": "    new_line1\n    new_line2\n    line3\n"
+  },
+  "replace/test-missing-leading-whitespace-including-blank-line": {
+    "result": "    new_line1\n    new_line2\n    line3\n"
+  },
+  "replace/test-missing-varied-leading-whitespace": {
+    "result": "\n    line1\n    new_line2\n        new_line3\n    line4\n"
+  },
+  "replace/test-multiple-matches": {
+    "result": "new_line\nline2\nline1\nline3\n"
+  },
+  "replace/test-multiple-matches-missing-whitespace": {
+    "result": "    new_line\n    line2\n    line1\n    line3\n"
+  },
+  "replace/varied-indent-not-repaired": {
+    "result": null
+  },
+  "replace/whitespace-only-first-line-retry": {
+    "result": "a\ny\n"
+  },
+  "replace/whole-without-trailing-newline": {
+    "result": "a\nc\n"
+  },
+  "similar-lines/autojunk-large-search": {
+    "result": "row 5\n\nrow 7\nrow 8\n\nrow 10\nrow 11\n\nrow 13\nrow 14\n\nrow 16\nrow 17\n\nrow 19\nrow 20\n\nrow 22\nrow 23\n\nrow 25\nrow 26\n\nrow 28\nrow 29\n\nrow 31\nrow 32\n\nrow 34\nrow 35\n\nrow 37\nrow 38\n\nrow 40\nrow 41\n\nrow 43\nrow 44\n\nrow 46\nrow 47\n\nrow 49\nrow 50\n\nrow 52\nrow 53\n\nrow 55\nrow 56\n\nrow 58\nrow 59\n\nrow 61\nrow 62\n\nrow 64\nrow 65\n\nrow 67\nrow 68\n\nrow 70\nrow 71\n\nrow 73\nrow 74\n\nrow 76\nrow 77\n\nrow 79\nrow 80\n\nrow 82\nrow 83\n\nrow 85\nrow 86\n\nrow 88\nrow 89\n\nrow 91\nrow 92\n\nrow 94\nrow 95\n\nrow 97\nrow 98\n\nrow 100\nrow 101\n\nrow 103\nrow 104\n\nrow 106\nrow 107\n\nrow 109\nrow 110\n\nrow 112\nrow 113\n\nrow 115\nrow 116\n\nrow 118\nrow 119\n\nrow 121\nrow 122\n\nrow 124\nrow 125\n\nrow 127\nrow 128\n\nrow 130\nrow 131\n\nrow 133\nrow 134\n\nrow 136\nrow 137\n\nrow 139\nrow 140\n\nrow 142\nrow 143\n\nrow 145\nrow 146\n\nrow 148\nrow 149\n\nrow 151\nrow 152\n\nrow 154\nrow 155\n\nrow 157\nrow 158\n\nrow 160\nrow 161\n\nrow 163\nrow 164\n\nrow 166\nrow 167\n\nrow 169\nrow 170\n\nrow 172\nrow 173\n\nrow 175\nrow 176\n\nrow 178\nrow 179\n\nrow 181\nrow 182\n\nrow 184\nrow 185\n\nrow 187\nrow 188\n\nrow 190\nrow 191\n\nrow 193\nrow 194\n\nrow 196\nrow 197\n\nrow 199\nrow 200\n\nrow 202\nrow 203\n\nrow 205\nrow 206\n\nrow 208\nrow 209\n\nrow 211\nrow 212\n\nrow 214\nrow 215\n\nrow 217\nrow 218\n\nrow 220\nrow 221\n\nrow 223\nrow 224\n\nrow 226\nrow 227\n\nrow 229\nrow 230\n\nrow 232\nrow 233\n\nrow 235\nrow 236\n\nrow 238\nrow 239\n\nrow 241\nrow 242\n\nrow 244\nrow 245\n\nrow 247\nrow 248\n"
+  },
+  "similar-lines/below-threshold": {
+    "result": ""
+  },
+  "similar-lines/content-shorter": {
+    "result": ""
+  },
+  "similar-lines/context-clamped-end": {
+    "result": "line 12\nline 13\nline 14\nline 15\nline 16\nline 17\nline 18\nline 19\nline 20"
+  },
+  "similar-lines/context-clamped-start": {
+    "result": "line 1\nline 2\nline 3\nline 4\nline 5\nline 6\nline 7\nline 8"
+  },
+  "similar-lines/context-window": {
+    "result": "line 1\nline 2\nline 3\nline 4\nline 5\nline 6\nline 7\nline 8\nline 9\nline 10"
+  },
+  "similar-lines/crlf-content": {
+    "result": "b\nc"
+  },
+  "similar-lines/custom-threshold": {
+    "result": "line 1\nline 2\nline 3\nline 4\nline 5\nline 6\nline 7\nline 8\nline 9"
+  },
   "similar-lines/did-you-mean": {
     "result": ""
+  },
+  "similar-lines/empty-search-empty-content-index-error": {
+    "error": {
+      "message": "list index out of range",
+      "type": "IndexError"
+    }
+  },
+  "similar-lines/empty-search-index-error": {
+    "error": {
+      "message": "list index out of range",
+      "type": "IndexError"
+    }
+  },
+  "similar-lines/exact-first-and-last": {
+    "result": "line 4\nline 5\nline 6"
+  },
+  "similar-lines/tie-keeps-first": {
+    "result": "a\nb\nx\nf1\nf2\nf3\nf4\nf5"
+  },
+  "strip-filename/backticks": {
+    "result": "file.py"
+  },
+  "strip-filename/bare-fence": {
+    "result": null
+  },
+  "strip-filename/bold": {
+    "result": "file.py"
+  },
+  "strip-filename/bold-backticks-kept": {
+    "result": "`file.py`"
+  },
+  "strip-filename/bom-kept": {
+    "result": "﻿file.py"
+  },
+  "strip-filename/colon-suffix": {
+    "result": "file.py"
+  },
+  "strip-filename/custom-fence-language": {
+    "result": null
+  },
+  "strip-filename/custom-fence-name": {
+    "result": "a.py"
+  },
+  "strip-filename/ellipsis": {
+    "result": null
+  },
+  "strip-filename/ellipsis-with-whitespace": {
+    "result": null
+  },
+  "strip-filename/empty": {
+    "result": ""
+  },
+  "strip-filename/escaped-underscore-kept": {
+    "result": "my\\_file.py"
+  },
+  "strip-filename/fence-language-only": {
+    "result": null
+  },
+  "strip-filename/fence-with-dir-slash": {
+    "result": "dir/x"
+  },
+  "strip-filename/fence-with-path": {
+    "result": "src/app.py"
+  },
+  "strip-filename/hash-prefix": {
+    "result": "file1.py"
+  },
+  "strip-filename/heading-colon": {
+    "result": "src/app.py"
+  },
+  "strip-filename/ideographic-space": {
+    "result": "file.py"
+  },
+  "strip-filename/only-decoration": {
+    "result": ""
+  },
+  "strip-filename/plain": {
+    "result": "file.py"
+  },
+  "strip-filename/quad-fence-language": {
+    "result": null
+  },
+  "strip-filename/surrounding-whitespace": {
+    "result": "file.py"
+  },
+  "strip-filename/triple-language-under-quad": {
+    "result": null
+  },
+  "strip-filename/triple-under-quad-fence": {
+    "result": "x.py"
+  },
+  "strip-quoted-wrapping/adds-trailing-newline": {
+    "result": "a\n"
+  },
+  "strip-quoted-wrapping/basename-from-nested-path": {
+    "result": "content\n"
+  },
+  "strip-quoted-wrapping/basename-line-dropped": {
+    "result": "import os\n"
+  },
+  "strip-quoted-wrapping/blank-lines-only": {
+    "result": "\n"
+  },
+  "strip-quoted-wrapping/closing-fence-prefix": {
+    "result": "a\n"
+  },
+  "strip-quoted-wrapping/crlf-normalized": {
+    "result": "a\nb\n"
+  },
+  "strip-quoted-wrapping/empty": {
+    "result": ""
+  },
+  "strip-quoted-wrapping/fence-pair-only": {
+    "result": ""
+  },
+  "strip-quoted-wrapping/form-feed-becomes-newline": {
+    "result": "a\nb\n"
+  },
+  "strip-quoted-wrapping/line-separator-becomes-newline": {
+    "result": "a\nb\n"
+  },
+  "strip-quoted-wrapping/open-fence-only-kept": {
+    "result": "```\na\n"
+  },
+  "strip-quoted-wrapping/other-basename-kept": {
+    "result": "a.py\nx\n"
+  },
+  "strip-quoted-wrapping/quad-fence": {
+    "result": "a\n"
+  },
+  "strip-quoted-wrapping/single-basename-line-index-error": {
+    "error": {
+      "message": "list index out of range",
+      "type": "IndexError"
+    }
+  },
+  "strip-quoted-wrapping/single-fence-line": {
+    "result": ""
+  },
+  "strip-quoted-wrapping/test-no-filename": {
+    "result": "We just want this content\nNot the triple quotes\n"
+  },
+  "strip-quoted-wrapping/test-no-wrapping": {
+    "result": "We just want this content\nNot the triple quotes\n"
+  },
+  "strip-quoted-wrapping/test-with-filename": {
+    "result": "We just want this content\nNot the filename and triple quotes\n"
+  },
+  "strip-quoted-wrapping/triple-under-quad-kept": {
+    "result": "```\na\n```\n"
+  },
+  "strip-quoted-wrapping/whitespace-only": {
+    "result": "   \n"
   }
 }

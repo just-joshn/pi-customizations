@@ -17,6 +17,11 @@ export const BRANDING = {
   coAuthorEmail: 'noreply@pi.dev',
   /** Replaces the `AIDER_` environment-variable prefix. */
   envPrefix: 'PI_MAINTAINER_',
+  configFile: '.pi-maintainer.conf.yml',
+  stateEntry: 'pi-maintainer.state',
+  dialogueEntry: 'pi-maintainer.dialogue',
+  routerProvider: 'pi-maintainer',
+  routerId: 'coder',
   /** Replaces the `.aider.tags.cache.v4` directory name. */
   tagsCacheDir: '.pi-maintainer.tags.cache.v4',
 } as const;

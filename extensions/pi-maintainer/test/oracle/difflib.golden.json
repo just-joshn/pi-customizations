@@ -1,0 +1,1764 @@
+{
+  "get-close-matches/aider-misspelled-filename": {
+    "result": ["src/min.py"]
+  },
+  "get-close-matches/aider-misspelled-model": {
+    "result": ["gpt-4o-mini"]
+  },
+  "get-close-matches/astral-ratio": {
+    "result": ["😀a", "😀b", "xa"]
+  },
+  "get-close-matches/cutoff-above-one-error": {
+    "error": {
+      "message": "cutoff must be in [0.0, 1.0]: 1.5",
+      "type": "ValueError"
+    }
+  },
+  "get-close-matches/cutoff-exactly-at-ratio": {
+    "result": ["abc"]
+  },
+  "get-close-matches/cutoff-exactly-at-repeating-ratio": {
+    "result": ["abce", "abcd"]
+  },
+  "get-close-matches/cutoff-fixed-notation-error": {
+    "error": {
+      "message": "cutoff must be in [0.0, 1.0]: -0.0001",
+      "type": "ValueError"
+    }
+  },
+  "get-close-matches/cutoff-integral-float-error": {
+    "error": {
+      "message": "cutoff must be in [0.0, 1.0]: 2.0",
+      "type": "ValueError"
+    }
+  },
+  "get-close-matches/cutoff-large-exponent-error": {
+    "error": {
+      "message": "cutoff must be in [0.0, 1.0]: 1e+16",
+      "type": "ValueError"
+    }
+  },
+  "get-close-matches/cutoff-negative-error": {
+    "error": {
+      "message": "cutoff must be in [0.0, 1.0]: -0.25",
+      "type": "ValueError"
+    }
+  },
+  "get-close-matches/cutoff-one-keeps-exact": {
+    "result": ["abc"]
+  },
+  "get-close-matches/cutoff-one-ulp-above-ratio": {
+    "result": []
+  },
+  "get-close-matches/cutoff-small-exponent-error": {
+    "error": {
+      "message": "cutoff must be in [0.0, 1.0]: -1e-05",
+      "type": "ValueError"
+    }
+  },
+  "get-close-matches/cutoff-zero-keeps-all": {
+    "result": ["abc", "ab", "xyz"]
+  },
+  "get-close-matches/docstring-appel": {
+    "result": ["apple", "ape"]
+  },
+  "get-close-matches/duplicates-kept": {
+    "result": ["abc", "abd", "abd"]
+  },
+  "get-close-matches/empty-word": {
+    "result": [""]
+  },
+  "get-close-matches/long-possibility-filtered": {
+    "result": ["abd"]
+  },
+  "get-close-matches/n-checked-before-cutoff": {
+    "error": {
+      "message": "n must be > 0: 0",
+      "type": "ValueError"
+    }
+  },
+  "get-close-matches/n-limits-results": {
+    "result": ["abcd", "bcd"]
+  },
+  "get-close-matches/n-negative-error": {
+    "error": {
+      "message": "n must be > 0: -1",
+      "type": "ValueError"
+    }
+  },
+  "get-close-matches/n-one-keeps-best": {
+    "result": ["abcd"]
+  },
+  "get-close-matches/n-zero-error": {
+    "error": {
+      "message": "n must be > 0: 0",
+      "type": "ValueError"
+    }
+  },
+  "get-close-matches/no-possibilities": {
+    "result": []
+  },
+  "get-close-matches/ties-order-by-code-point": {
+    "result": ["a𐀀", "a｡", "a"]
+  },
+  "get-close-matches/ties-order-by-string-descending": {
+    "result": ["abz", "aby", "abx"]
+  },
+  "is-character-junk/custom-ws": {
+    "result": true
+  },
+  "is-character-junk/empty": {
+    "result": true
+  },
+  "is-character-junk/letter": {
+    "result": false
+  },
+  "is-character-junk/newline": {
+    "result": false
+  },
+  "is-character-junk/no-break-space": {
+    "result": false
+  },
+  "is-character-junk/space": {
+    "result": true
+  },
+  "is-character-junk/space-tab": {
+    "result": true
+  },
+  "is-character-junk/tab": {
+    "result": true
+  },
+  "is-line-junk/bare-hash": {
+    "result": true
+  },
+  "is-line-junk/byte-order-mark": {
+    "result": false
+  },
+  "is-line-junk/empty": {
+    "result": true
+  },
+  "is-line-junk/hash-among-blanks": {
+    "result": true
+  },
+  "is-line-junk/hash-newline-hash": {
+    "result": false
+  },
+  "is-line-junk/hash-then-text": {
+    "result": false
+  },
+  "is-line-junk/ideographic-space": {
+    "result": true
+  },
+  "is-line-junk/newline": {
+    "result": true
+  },
+  "is-line-junk/next-line-char": {
+    "result": true
+  },
+  "is-line-junk/tab-crlf": {
+    "result": true
+  },
+  "is-line-junk/text": {
+    "result": false
+  },
+  "is-line-junk/two-hashes": {
+    "result": false
+  },
+  "is-line-junk/unicode-blanks": {
+    "result": true
+  },
+  "ndiff/aider-find-last-non-deleted": {
+    "result": ["  def f():\n", "-     return 1\n", "+     return 10\n", "?             +\n", "  \n", "- def g():\n", "?     ^\n", "+ def h():\n", "?     ^\n", "-     return 2\n"]
+  },
+  "ndiff/astral-hint-columns": {
+    "result": ["- a😀b\n", "?   ^\n", "+ a😀c\n", "?   ^\n"]
+  },
+  "ndiff/both-empty": {
+    "result": []
+  },
+  "ndiff/char-junk-blank-default": {
+    "result": ["- private Thread currentThread;\n", "+ private volatile Thread currentThread;\n", "?         +++++++++\n"]
+  },
+  "ndiff/char-junk-none": {
+    "result": ["- private Thread currentThread;\n", "+ private volatile Thread currentThread;\n", "?       +++++++++\n"]
+  },
+  "ndiff/char-junk-spacing-default": {
+    "result": ["- x = 1  # one\n", "?       -\n", "+ x =  1 # one\n", "?     +\n"]
+  },
+  "ndiff/char-junk-spacing-none": {
+    "result": ["- x = 1  # one\n", "?      -\n", "+ x =  1 # one\n", "?     +\n"]
+  },
+  "ndiff/crlf-lines": {
+    "result": ["  one\r\n", "- two\r\n", "?   ^\n", "+ tw0\r\n", "?   ^\n", "  three\r\n"]
+  },
+  "ndiff/crlf-versus-lf": {
+    "result": ["- abc\r\n", "?    -\n", "+ abc\n"]
+  },
+  "ndiff/docstring-one-two-three": {
+    "result": ["- one\n", "?  ^\n", "+ ore\n", "?  ^\n", "- two\n", "- three\n", "?  -\n", "+ tree\n", "+ emu\n"]
+  },
+  "ndiff/docstring-zen": {
+    "result": [
+      "    1. Beautiful is better than ugly.\n",
+      "-   2. Explicit is better than implicit.\n",
+      "-   3. Simple is better than complex.\n",
+      "+   3.   Simple is better than complex.\n",
+      "?     ++\n",
+      "-   4. Complex is better than complicated.\n",
+      "+   4. Complicated is better than complex.\n",
+      "+   5. Flat is better than nested.\n"
+    ]
+  },
+  "ndiff/empty-a": {
+    "result": ["+ a\n", "+ b\n"]
+  },
+  "ndiff/empty-b": {
+    "result": ["- a\n", "- b\n"]
+  },
+  "ndiff/hints-keep-original-tabs": {
+    "result": ["- \tabcDefghiJkl\n", "? \t   ^  ^  ^\n", "+ \tabcdefGhijkl\n", "? \t   ^  ^  ^\n"]
+  },
+  "ndiff/identical": {
+    "result": ["  a\n", "  b\n"]
+  },
+  "ndiff/identical-junk-pair-synchs": {
+    "result": ["- a\n", "+ x\n", "  \n", "- b\n", "+ y\n"]
+  },
+  "ndiff/intraline-replace-hints": {
+    "result": ["- abcDefghiJkl\n", "?    ^  ^  ^\n", "+ abcdefGhijkl\n", "?    ^  ^  ^\n"]
+  },
+  "ndiff/line-junk-explicitly-none": {
+    "result": ["- a\n", "+ x\n", "  \n", "- b\n", "+ y\n"]
+  },
+  "ndiff/long-lines-char-autojunk": {
+    "result": [
+      "-     return render_template('index.html', title=title, items=items, user=current_user, settings=settings, page=page, per_page=per_page, total=total, query=query, filters=filters, sort=sort_order, debug=debug_mode)\n",
+      "?                                                                                                                                                                                        ^^^^^^^^^^^       ^^^^^^^^^\n",
+      "+     return render_template('index.html', title=title, items=items, user=current_user, settings=settings, page=page, per_page=per_page, total=total, query=query, filters=filters, sort=order, debug=False)\n",
+      "?                                                                                                                                                                                        ^^^^^^       ^^^^\n"
+    ]
+  },
+  "ndiff/newline-only-difference": {
+    "result": ["- abc\n", "?    -\n", "+ abc"]
+  },
+  "ndiff/no-trailing-newline": {
+    "result": ["  a\n", "- abcdef", "?      ^\n", "+ abcdeg", "?      ^\n"]
+  },
+  "ndiff/plain-replace-a-shorter-first": {
+    "result": ["- xyz\n", "+ one\n", "+ two\n", "+ three\n"]
+  },
+  "ndiff/plain-replace-b-shorter-first": {
+    "result": ["+ xyz\n", "- one\n", "- two\n", "- three\n"]
+  },
+  "ndiff/plain-replace-equal-sizes": {
+    "result": ["- one\n", "- two\n", "+ xyz\n", "+ qrs\n"]
+  },
+  "ndiff/ratio-between-start-and-cutoff-plain": {
+    "result": ["- abcdefghijXYZ\n", "+ abcdefghiQRS\n"]
+  },
+  "ndiff/ratio-exactly-cutoff-synchs": {
+    "result": ["- abcde12\n", "?      ^^\n", "+ abcde34\n", "?      ^^\n"]
+  },
+  "ndiff/synch-recurses-both-sides": {
+    "result": ["- abcdef1\n", "?       ^\n", "+ abcdef9\n", "?       ^\n", "- MIDDLE-LINE-HERE-1\n", "?                  ^\n", "+ MIDDLE-LINE-HERE-2\n", "?                  ^\n", "- ghijkl2\n", "?       ^\n", "+ ghijkl8\n", "?       ^\n"]
+  },
+  "ndiff/ties-scan-b-before-a": {
+    "result": ["- abcdefX\n", "- qrstuvY\n", "?       ^\n", "+ qrstuvZ\n", "?       ^\n", "+ abcdefW\n"]
+  },
+  "sequence-matcher/adjacent-blocks-collapse": {
+    "result": {
+      "find_longest_match": {
+        "a": 0,
+        "b": 0,
+        "size": 2
+      },
+      "grouped_opcodes": [],
+      "matching_blocks": [
+        {
+          "a": 0,
+          "b": 0,
+          "size": 3
+        },
+        {
+          "a": 3,
+          "b": 3,
+          "size": 0
+        }
+      ],
+      "opcodes": [["equal", 0, 3, 0, 3]],
+      "opcodes_after_grouping": [["equal", 0, 3, 0, 3]],
+      "quick_ratio": 1.0,
+      "ratio": 1.0,
+      "real_quick_ratio": 1.0
+    }
+  },
+  "sequence-matcher/astral-code-points": {
+    "result": {
+      "find_longest_match": {
+        "a": 0,
+        "b": 0,
+        "size": 2
+      },
+      "grouped_opcodes": [[["equal", 0, 2, 0, 2], ["replace", 2, 3, 2, 3]]],
+      "matching_blocks": [
+        {
+          "a": 0,
+          "b": 0,
+          "size": 2
+        },
+        {
+          "a": 3,
+          "b": 3,
+          "size": 0
+        }
+      ],
+      "opcodes": [["equal", 0, 2, 0, 2], ["replace", 2, 3, 2, 3]],
+      "opcodes_after_grouping": [["equal", 0, 2, 0, 2], ["replace", 2, 3, 2, 3]],
+      "quick_ratio": 0.6666666666666666,
+      "ratio": 0.6666666666666666,
+      "real_quick_ratio": 1.0
+    }
+  },
+  "sequence-matcher/astral-lines": {
+    "result": {
+      "find_longest_match": {
+        "a": 0,
+        "b": 0,
+        "size": 1
+      },
+      "grouped_opcodes": [[["equal", 0, 1, 0, 1], ["replace", 1, 2, 1, 2]]],
+      "matching_blocks": [
+        {
+          "a": 0,
+          "b": 0,
+          "size": 1
+        },
+        {
+          "a": 2,
+          "b": 2,
+          "size": 0
+        }
+      ],
+      "opcodes": [["equal", 0, 1, 0, 1], ["replace", 1, 2, 1, 2]],
+      "opcodes_after_grouping": [["equal", 0, 1, 0, 1], ["replace", 1, 2, 1, 2]],
+      "quick_ratio": 0.5,
+      "ratio": 0.5,
+      "real_quick_ratio": 1.0
+    }
+  },
+  "sequence-matcher/autojunk-at-threshold-kept": {
+    "result": {
+      "find_longest_match": {
+        "a": 0,
+        "b": 1,
+        "size": 1
+      },
+      "grouped_opcodes": [[["insert", 0, 0, 0, 1], ["equal", 0, 1, 1, 2], ["insert", 1, 1, 2, 200]]],
+      "matching_blocks": [
+        {
+          "a": 0,
+          "b": 1,
+          "size": 1
+        },
+        {
+          "a": 1,
+          "b": 200,
+          "size": 0
+        }
+      ],
+      "opcodes": [["insert", 0, 0, 0, 1], ["equal", 0, 1, 1, 2], ["insert", 1, 1, 2, 200]],
+      "opcodes_after_grouping": [["insert", 0, 0, 0, 1], ["equal", 0, 1, 1, 2], ["insert", 1, 1, 2, 200]],
+      "quick_ratio": 0.009950248756218905,
+      "ratio": 0.009950248756218905,
+      "real_quick_ratio": 0.009950248756218905
+    }
+  },
+  "sequence-matcher/autojunk-below-200-kept": {
+    "result": {
+      "find_longest_match": {
+        "a": 0,
+        "b": 1,
+        "size": 1
+      },
+      "grouped_opcodes": [[["insert", 0, 0, 0, 1], ["equal", 0, 1, 1, 2], ["insert", 1, 1, 2, 199]]],
+      "matching_blocks": [
+        {
+          "a": 0,
+          "b": 1,
+          "size": 1
+        },
+        {
+          "a": 1,
+          "b": 199,
+          "size": 0
+        }
+      ],
+      "opcodes": [["insert", 0, 0, 0, 1], ["equal", 0, 1, 1, 2], ["insert", 1, 1, 2, 199]],
+      "opcodes_after_grouping": [["insert", 0, 0, 0, 1], ["equal", 0, 1, 1, 2], ["insert", 1, 1, 2, 199]],
+      "quick_ratio": 0.01,
+      "ratio": 0.01,
+      "real_quick_ratio": 0.01
+    }
+  },
+  "sequence-matcher/autojunk-disabled-kept": {
+    "result": {
+      "find_longest_match": {
+        "a": 0,
+        "b": 1,
+        "size": 1
+      },
+      "grouped_opcodes": [[["insert", 0, 0, 0, 1], ["equal", 0, 1, 1, 2], ["insert", 1, 1, 2, 200]]],
+      "matching_blocks": [
+        {
+          "a": 0,
+          "b": 1,
+          "size": 1
+        },
+        {
+          "a": 1,
+          "b": 200,
+          "size": 0
+        }
+      ],
+      "opcodes": [["insert", 0, 0, 0, 1], ["equal", 0, 1, 1, 2], ["insert", 1, 1, 2, 200]],
+      "opcodes_after_grouping": [["insert", 0, 0, 0, 1], ["equal", 0, 1, 1, 2], ["insert", 1, 1, 2, 200]],
+      "quick_ratio": 0.009950248756218905,
+      "ratio": 0.009950248756218905,
+      "real_quick_ratio": 0.009950248756218905
+    }
+  },
+  "sequence-matcher/autojunk-popular-element-dropped": {
+    "result": {
+      "find_longest_match": {
+        "a": 0,
+        "b": 0,
+        "size": 0
+      },
+      "grouped_opcodes": [[["replace", 0, 1, 0, 200]]],
+      "matching_blocks": [
+        {
+          "a": 1,
+          "b": 200,
+          "size": 0
+        }
+      ],
+      "opcodes": [["replace", 0, 1, 0, 200]],
+      "opcodes_after_grouping": [["replace", 0, 1, 0, 200]],
+      "quick_ratio": 0.009950248756218905,
+      "ratio": 0.0,
+      "real_quick_ratio": 0.009950248756218905
+    }
+  },
+  "sequence-matcher/autojunk-popular-extended-over": {
+    "result": {
+      "find_longest_match": {
+        "a": 0,
+        "b": 0,
+        "size": 4
+      },
+      "grouped_opcodes": [[["equal", 1, 4, 1, 4], ["insert", 4, 4, 4, 199], ["equal", 4, 5, 199, 200]]],
+      "matching_blocks": [
+        {
+          "a": 0,
+          "b": 0,
+          "size": 4
+        },
+        {
+          "a": 4,
+          "b": 199,
+          "size": 1
+        },
+        {
+          "a": 5,
+          "b": 200,
+          "size": 0
+        }
+      ],
+      "opcodes": [["equal", 0, 4, 0, 4], ["insert", 4, 4, 4, 199], ["equal", 4, 5, 199, 200]],
+      "opcodes_after_grouping": [["equal", 1, 4, 1, 4], ["insert", 4, 4, 4, 199], ["equal", 4, 5, 199, 200]],
+      "quick_ratio": 0.04878048780487805,
+      "ratio": 0.04878048780487805,
+      "real_quick_ratio": 0.04878048780487805
+    }
+  },
+  "sequence-matcher/autojunk-threshold-grows-dropped": {
+    "result": {
+      "find_longest_match": {
+        "a": 0,
+        "b": 0,
+        "size": 0
+      },
+      "grouped_opcodes": [[["replace", 0, 1, 0, 300]]],
+      "matching_blocks": [
+        {
+          "a": 1,
+          "b": 300,
+          "size": 0
+        }
+      ],
+      "opcodes": [["replace", 0, 1, 0, 300]],
+      "opcodes_after_grouping": [["replace", 0, 1, 0, 300]],
+      "quick_ratio": 0.006644518272425249,
+      "ratio": 0.0,
+      "real_quick_ratio": 0.006644518272425249
+    }
+  },
+  "sequence-matcher/autojunk-threshold-grows-kept": {
+    "result": {
+      "find_longest_match": {
+        "a": 0,
+        "b": 1,
+        "size": 1
+      },
+      "grouped_opcodes": [[["insert", 0, 0, 0, 1], ["equal", 0, 1, 1, 2], ["insert", 1, 1, 2, 300]]],
+      "matching_blocks": [
+        {
+          "a": 0,
+          "b": 1,
+          "size": 1
+        },
+        {
+          "a": 1,
+          "b": 300,
+          "size": 0
+        }
+      ],
+      "opcodes": [["insert", 0, 0, 0, 1], ["equal", 0, 1, 1, 2], ["insert", 1, 1, 2, 300]],
+      "opcodes_after_grouping": [["insert", 0, 0, 0, 1], ["equal", 0, 1, 1, 2], ["insert", 1, 1, 2, 300]],
+      "quick_ratio": 0.006644518272425249,
+      "ratio": 0.006644518272425249,
+      "real_quick_ratio": 0.006644518272425249
+    }
+  },
+  "sequence-matcher/both-empty": {
+    "result": {
+      "find_longest_match": {
+        "a": 0,
+        "b": 0,
+        "size": 0
+      },
+      "grouped_opcodes": [],
+      "matching_blocks": [
+        {
+          "a": 0,
+          "b": 0,
+          "size": 0
+        }
+      ],
+      "opcodes": [],
+      "opcodes_after_grouping": [],
+      "quick_ratio": 1.0,
+      "ratio": 1.0,
+      "real_quick_ratio": 1.0
+    }
+  },
+  "sequence-matcher/crlf-lines": {
+    "result": {
+      "find_longest_match": {
+        "a": 0,
+        "b": 0,
+        "size": 1
+      },
+      "grouped_opcodes": [[["equal", 0, 1, 0, 1], ["replace", 1, 2, 1, 2], ["equal", 2, 3, 2, 3]]],
+      "matching_blocks": [
+        {
+          "a": 0,
+          "b": 0,
+          "size": 1
+        },
+        {
+          "a": 2,
+          "b": 2,
+          "size": 1
+        },
+        {
+          "a": 3,
+          "b": 3,
+          "size": 0
+        }
+      ],
+      "opcodes": [["equal", 0, 1, 0, 1], ["replace", 1, 2, 1, 2], ["equal", 2, 3, 2, 3]],
+      "opcodes_after_grouping": [["equal", 0, 1, 0, 1], ["replace", 1, 2, 1, 2], ["equal", 2, 3, 2, 3]],
+      "quick_ratio": 0.6666666666666666,
+      "ratio": 0.6666666666666666,
+      "real_quick_ratio": 1.0
+    }
+  },
+  "sequence-matcher/docstring-abxcd": {
+    "result": {
+      "find_longest_match": {
+        "a": 0,
+        "b": 0,
+        "size": 2
+      },
+      "grouped_opcodes": [[["equal", 0, 2, 0, 2], ["delete", 2, 3, 2, 2], ["equal", 3, 5, 2, 4]]],
+      "matching_blocks": [
+        {
+          "a": 0,
+          "b": 0,
+          "size": 2
+        },
+        {
+          "a": 3,
+          "b": 2,
+          "size": 2
+        },
+        {
+          "a": 5,
+          "b": 4,
+          "size": 0
+        }
+      ],
+      "opcodes": [["equal", 0, 2, 0, 2], ["delete", 2, 3, 2, 2], ["equal", 3, 5, 2, 4]],
+      "opcodes_after_grouping": [["equal", 0, 2, 0, 2], ["delete", 2, 3, 2, 2], ["equal", 3, 5, 2, 4]],
+      "quick_ratio": 0.8888888888888888,
+      "ratio": 0.8888888888888888,
+      "real_quick_ratio": 0.8888888888888888
+    }
+  },
+  "sequence-matcher/docstring-every-tag": {
+    "result": {
+      "find_longest_match": {
+        "a": 1,
+        "b": 0,
+        "size": 2
+      },
+      "grouped_opcodes": [[["delete", 0, 1, 0, 0], ["equal", 1, 3, 0, 2], ["replace", 3, 4, 2, 3], ["equal", 4, 6, 3, 5], ["insert", 6, 6, 5, 6]]],
+      "matching_blocks": [
+        {
+          "a": 1,
+          "b": 0,
+          "size": 2
+        },
+        {
+          "a": 4,
+          "b": 3,
+          "size": 2
+        },
+        {
+          "a": 6,
+          "b": 6,
+          "size": 0
+        }
+      ],
+      "opcodes": [["delete", 0, 1, 0, 0], ["equal", 1, 3, 0, 2], ["replace", 3, 4, 2, 3], ["equal", 4, 6, 3, 5], ["insert", 6, 6, 5, 6]],
+      "opcodes_after_grouping": [["delete", 0, 1, 0, 0], ["equal", 1, 3, 0, 2], ["replace", 3, 4, 2, 3], ["equal", 4, 6, 3, 5], ["insert", 6, 6, 5, 6]],
+      "quick_ratio": 0.6666666666666666,
+      "ratio": 0.6666666666666666,
+      "real_quick_ratio": 1.0
+    }
+  },
+  "sequence-matcher/docstring-volatile-blank-junk": {
+    "result": {
+      "find_longest_match": {
+        "a": 14,
+        "b": 23,
+        "size": 15
+      },
+      "grouped_opcodes": [[["equal", 5, 8, 5, 8], ["insert", 8, 8, 8, 17], ["equal", 8, 11, 17, 20]]],
+      "matching_blocks": [
+        {
+          "a": 0,
+          "b": 0,
+          "size": 8
+        },
+        {
+          "a": 8,
+          "b": 17,
+          "size": 21
+        },
+        {
+          "a": 29,
+          "b": 38,
+          "size": 0
+        }
+      ],
+      "opcodes": [["equal", 0, 8, 0, 8], ["insert", 8, 8, 8, 17], ["equal", 8, 29, 17, 38]],
+      "opcodes_after_grouping": [["equal", 5, 8, 5, 8], ["insert", 8, 8, 8, 17], ["equal", 8, 11, 17, 20]],
+      "quick_ratio": 0.8656716417910447,
+      "ratio": 0.8656716417910447,
+      "real_quick_ratio": 0.8656716417910447
+    }
+  },
+  "sequence-matcher/empty-a": {
+    "result": {
+      "find_longest_match": {
+        "a": 0,
+        "b": 0,
+        "size": 0
+      },
+      "grouped_opcodes": [[["insert", 0, 0, 0, 3]]],
+      "matching_blocks": [
+        {
+          "a": 0,
+          "b": 3,
+          "size": 0
+        }
+      ],
+      "opcodes": [["insert", 0, 0, 0, 3]],
+      "opcodes_after_grouping": [["insert", 0, 0, 0, 3]],
+      "quick_ratio": 0.0,
+      "ratio": 0.0,
+      "real_quick_ratio": 0.0
+    }
+  },
+  "sequence-matcher/empty-b-lines": {
+    "result": {
+      "find_longest_match": {
+        "a": 0,
+        "b": 0,
+        "size": 0
+      },
+      "grouped_opcodes": [[["delete", 0, 1, 0, 0]]],
+      "matching_blocks": [
+        {
+          "a": 1,
+          "b": 0,
+          "size": 0
+        }
+      ],
+      "opcodes": [["delete", 0, 1, 0, 0]],
+      "opcodes_after_grouping": [["delete", 0, 1, 0, 0]],
+      "quick_ratio": 0.0,
+      "ratio": 0.0,
+      "real_quick_ratio": 0.0
+    }
+  },
+  "sequence-matcher/grouped-changes-at-both-edges": {
+    "result": {
+      "find_longest_match": {
+        "a": 1,
+        "b": 1,
+        "size": 18
+      },
+      "grouped_opcodes": [[["replace", 0, 1, 0, 1], ["equal", 1, 4, 1, 4]], [["equal", 16, 19, 16, 19], ["replace", 19, 20, 19, 20]]],
+      "matching_blocks": [
+        {
+          "a": 1,
+          "b": 1,
+          "size": 18
+        },
+        {
+          "a": 20,
+          "b": 20,
+          "size": 0
+        }
+      ],
+      "opcodes": [["replace", 0, 1, 0, 1], ["equal", 1, 19, 1, 19], ["replace", 19, 20, 19, 20]],
+      "opcodes_after_grouping": [["replace", 0, 1, 0, 1], ["equal", 1, 19, 1, 19], ["replace", 19, 20, 19, 20]],
+      "quick_ratio": 0.9,
+      "ratio": 0.9,
+      "real_quick_ratio": 1.0
+    }
+  },
+  "sequence-matcher/grouped-docstring-three-hunks": {
+    "result": {
+      "find_longest_match": {
+        "a": 8,
+        "b": 9,
+        "size": 11
+      },
+      "grouped_opcodes": [
+        [["equal", 5, 8, 5, 8], ["insert", 8, 8, 8, 9], ["equal", 8, 11, 9, 12]],
+        [["equal", 16, 19, 17, 20], ["replace", 19, 20, 20, 21], ["equal", 20, 22, 21, 23], ["delete", 22, 27, 23, 23], ["equal", 27, 30, 23, 26]],
+        [["equal", 31, 34, 27, 30], ["replace", 34, 35, 30, 31], ["equal", 35, 38, 31, 34]]
+      ],
+      "matching_blocks": [
+        {
+          "a": 0,
+          "b": 0,
+          "size": 8
+        },
+        {
+          "a": 8,
+          "b": 9,
+          "size": 11
+        },
+        {
+          "a": 20,
+          "b": 21,
+          "size": 2
+        },
+        {
+          "a": 27,
+          "b": 23,
+          "size": 7
+        },
+        {
+          "a": 35,
+          "b": 31,
+          "size": 4
+        },
+        {
+          "a": 39,
+          "b": 35,
+          "size": 0
+        }
+      ],
+      "opcodes": [
+        ["equal", 0, 8, 0, 8],
+        ["insert", 8, 8, 8, 9],
+        ["equal", 8, 19, 9, 20],
+        ["replace", 19, 20, 20, 21],
+        ["equal", 20, 22, 21, 23],
+        ["delete", 22, 27, 23, 23],
+        ["equal", 27, 34, 23, 30],
+        ["replace", 34, 35, 30, 31],
+        ["equal", 35, 39, 31, 35]
+      ],
+      "opcodes_after_grouping": [
+        ["equal", 5, 8, 5, 8],
+        ["insert", 8, 8, 8, 9],
+        ["equal", 8, 19, 9, 20],
+        ["replace", 19, 20, 20, 21],
+        ["equal", 20, 22, 21, 23],
+        ["delete", 22, 27, 23, 23],
+        ["equal", 27, 34, 23, 30],
+        ["replace", 34, 35, 30, 31],
+        ["equal", 35, 38, 31, 34]
+      ],
+      "quick_ratio": 0.8648648648648649,
+      "ratio": 0.8648648648648649,
+      "real_quick_ratio": 0.9459459459459459
+    }
+  },
+  "sequence-matcher/grouped-gap-of-2n-stays-one-group": {
+    "result": {
+      "find_longest_match": {
+        "a": 13,
+        "b": 13,
+        "size": 7
+      },
+      "grouped_opcodes": [[["equal", 2, 5, 2, 5], ["replace", 5, 6, 5, 6], ["equal", 6, 12, 6, 12], ["replace", 12, 13, 12, 13], ["equal", 13, 16, 13, 16]]],
+      "matching_blocks": [
+        {
+          "a": 0,
+          "b": 0,
+          "size": 5
+        },
+        {
+          "a": 6,
+          "b": 6,
+          "size": 6
+        },
+        {
+          "a": 13,
+          "b": 13,
+          "size": 7
+        },
+        {
+          "a": 20,
+          "b": 20,
+          "size": 0
+        }
+      ],
+      "opcodes": [["equal", 0, 5, 0, 5], ["replace", 5, 6, 5, 6], ["equal", 6, 12, 6, 12], ["replace", 12, 13, 12, 13], ["equal", 13, 20, 13, 20]],
+      "opcodes_after_grouping": [["equal", 2, 5, 2, 5], ["replace", 5, 6, 5, 6], ["equal", 6, 12, 6, 12], ["replace", 12, 13, 12, 13], ["equal", 13, 16, 13, 16]],
+      "quick_ratio": 0.9,
+      "ratio": 0.9,
+      "real_quick_ratio": 1.0
+    }
+  },
+  "sequence-matcher/grouped-gap-over-2n-splits": {
+    "result": {
+      "find_longest_match": {
+        "a": 6,
+        "b": 6,
+        "size": 7
+      },
+      "grouped_opcodes": [[["equal", 2, 5, 2, 5], ["replace", 5, 6, 5, 6], ["equal", 6, 9, 6, 9]], [["equal", 10, 13, 10, 13], ["replace", 13, 14, 13, 14], ["equal", 14, 17, 14, 17]]],
+      "matching_blocks": [
+        {
+          "a": 0,
+          "b": 0,
+          "size": 5
+        },
+        {
+          "a": 6,
+          "b": 6,
+          "size": 7
+        },
+        {
+          "a": 14,
+          "b": 14,
+          "size": 6
+        },
+        {
+          "a": 20,
+          "b": 20,
+          "size": 0
+        }
+      ],
+      "opcodes": [["equal", 0, 5, 0, 5], ["replace", 5, 6, 5, 6], ["equal", 6, 13, 6, 13], ["replace", 13, 14, 13, 14], ["equal", 14, 20, 14, 20]],
+      "opcodes_after_grouping": [["equal", 2, 5, 2, 5], ["replace", 5, 6, 5, 6], ["equal", 6, 13, 6, 13], ["replace", 13, 14, 13, 14], ["equal", 14, 17, 14, 17]],
+      "quick_ratio": 0.9,
+      "ratio": 0.9,
+      "real_quick_ratio": 1.0
+    }
+  },
+  "sequence-matcher/grouped-identical-yields-nothing": {
+    "result": {
+      "find_longest_match": {
+        "a": 0,
+        "b": 0,
+        "size": 20
+      },
+      "grouped_opcodes": [],
+      "matching_blocks": [
+        {
+          "a": 0,
+          "b": 0,
+          "size": 20
+        },
+        {
+          "a": 20,
+          "b": 20,
+          "size": 0
+        }
+      ],
+      "opcodes": [["equal", 0, 20, 0, 20]],
+      "opcodes_after_grouping": [["equal", 17, 20, 17, 20]],
+      "quick_ratio": 1.0,
+      "ratio": 1.0,
+      "real_quick_ratio": 1.0
+    }
+  },
+  "sequence-matcher/grouped-n-covers-everything": {
+    "result": {
+      "find_longest_match": {
+        "a": 6,
+        "b": 6,
+        "size": 7
+      },
+      "grouped_opcodes": [[["equal", 0, 5, 0, 5], ["replace", 5, 6, 5, 6], ["equal", 6, 13, 6, 13], ["replace", 13, 14, 13, 14], ["equal", 14, 20, 14, 20]]],
+      "matching_blocks": [
+        {
+          "a": 0,
+          "b": 0,
+          "size": 5
+        },
+        {
+          "a": 6,
+          "b": 6,
+          "size": 7
+        },
+        {
+          "a": 14,
+          "b": 14,
+          "size": 6
+        },
+        {
+          "a": 20,
+          "b": 20,
+          "size": 0
+        }
+      ],
+      "opcodes": [["equal", 0, 5, 0, 5], ["replace", 5, 6, 5, 6], ["equal", 6, 13, 6, 13], ["replace", 13, 14, 13, 14], ["equal", 14, 20, 14, 20]],
+      "opcodes_after_grouping": [["equal", 0, 5, 0, 5], ["replace", 5, 6, 5, 6], ["equal", 6, 13, 6, 13], ["replace", 13, 14, 13, 14], ["equal", 14, 20, 14, 20]],
+      "quick_ratio": 0.9,
+      "ratio": 0.9,
+      "real_quick_ratio": 1.0
+    }
+  },
+  "sequence-matcher/grouped-n-negative": {
+    "result": {
+      "find_longest_match": {
+        "a": 8,
+        "b": 8,
+        "size": 12
+      },
+      "grouped_opcodes": [[["equal", 8, 7, 8, 7]], [["equal", 8, 7, 8, 7], ["replace", 7, 8, 7, 8], ["equal", 8, 7, 8, 7]]],
+      "matching_blocks": [
+        {
+          "a": 0,
+          "b": 0,
+          "size": 7
+        },
+        {
+          "a": 8,
+          "b": 8,
+          "size": 12
+        },
+        {
+          "a": 20,
+          "b": 20,
+          "size": 0
+        }
+      ],
+      "opcodes": [["equal", 0, 7, 0, 7], ["replace", 7, 8, 7, 8], ["equal", 8, 20, 8, 20]],
+      "opcodes_after_grouping": [["equal", 8, 7, 8, 7], ["replace", 7, 8, 7, 8], ["equal", 8, 7, 8, 7]],
+      "quick_ratio": 0.95,
+      "ratio": 0.95,
+      "real_quick_ratio": 1.0
+    }
+  },
+  "sequence-matcher/grouped-n-one": {
+    "result": {
+      "find_longest_match": {
+        "a": 8,
+        "b": 8,
+        "size": 12
+      },
+      "grouped_opcodes": [[["equal", 6, 7, 6, 7], ["replace", 7, 8, 7, 8], ["equal", 8, 9, 8, 9]]],
+      "matching_blocks": [
+        {
+          "a": 0,
+          "b": 0,
+          "size": 7
+        },
+        {
+          "a": 8,
+          "b": 8,
+          "size": 12
+        },
+        {
+          "a": 20,
+          "b": 20,
+          "size": 0
+        }
+      ],
+      "opcodes": [["equal", 0, 7, 0, 7], ["replace", 7, 8, 7, 8], ["equal", 8, 20, 8, 20]],
+      "opcodes_after_grouping": [["equal", 6, 7, 6, 7], ["replace", 7, 8, 7, 8], ["equal", 8, 9, 8, 9]],
+      "quick_ratio": 0.95,
+      "ratio": 0.95,
+      "real_quick_ratio": 1.0
+    }
+  },
+  "sequence-matcher/grouped-n-zero": {
+    "result": {
+      "find_longest_match": {
+        "a": 8,
+        "b": 8,
+        "size": 12
+      },
+      "grouped_opcodes": [[["equal", 7, 7, 7, 7], ["replace", 7, 8, 7, 8], ["equal", 8, 8, 8, 8]]],
+      "matching_blocks": [
+        {
+          "a": 0,
+          "b": 0,
+          "size": 7
+        },
+        {
+          "a": 8,
+          "b": 8,
+          "size": 12
+        },
+        {
+          "a": 20,
+          "b": 20,
+          "size": 0
+        }
+      ],
+      "opcodes": [["equal", 0, 7, 0, 7], ["replace", 7, 8, 7, 8], ["equal", 8, 20, 8, 20]],
+      "opcodes_after_grouping": [["equal", 7, 7, 7, 7], ["replace", 7, 8, 7, 8], ["equal", 8, 8, 8, 8]],
+      "quick_ratio": 0.95,
+      "ratio": 0.95,
+      "real_quick_ratio": 1.0
+    }
+  },
+  "sequence-matcher/grouped-n-zero-splits-every-change": {
+    "result": {
+      "find_longest_match": {
+        "a": 13,
+        "b": 13,
+        "size": 7
+      },
+      "grouped_opcodes": [[["equal", 5, 5, 5, 5], ["replace", 5, 6, 5, 6], ["equal", 6, 6, 6, 6]], [["equal", 12, 12, 12, 12], ["replace", 12, 13, 12, 13], ["equal", 13, 13, 13, 13]]],
+      "matching_blocks": [
+        {
+          "a": 0,
+          "b": 0,
+          "size": 5
+        },
+        {
+          "a": 6,
+          "b": 6,
+          "size": 6
+        },
+        {
+          "a": 13,
+          "b": 13,
+          "size": 7
+        },
+        {
+          "a": 20,
+          "b": 20,
+          "size": 0
+        }
+      ],
+      "opcodes": [["equal", 0, 5, 0, 5], ["replace", 5, 6, 5, 6], ["equal", 6, 12, 6, 12], ["replace", 12, 13, 12, 13], ["equal", 13, 20, 13, 20]],
+      "opcodes_after_grouping": [["equal", 5, 5, 5, 5], ["replace", 5, 6, 5, 6], ["equal", 6, 12, 6, 12], ["replace", 12, 13, 12, 13], ["equal", 13, 13, 13, 13]],
+      "quick_ratio": 0.9,
+      "ratio": 0.9,
+      "real_quick_ratio": 1.0
+    }
+  },
+  "sequence-matcher/grouped-only-a-change": {
+    "result": {
+      "find_longest_match": {
+        "a": 0,
+        "b": 0,
+        "size": 0
+      },
+      "grouped_opcodes": [[["replace", 0, 1, 0, 1]]],
+      "matching_blocks": [
+        {
+          "a": 1,
+          "b": 1,
+          "size": 0
+        }
+      ],
+      "opcodes": [["replace", 0, 1, 0, 1]],
+      "opcodes_after_grouping": [["replace", 0, 1, 0, 1]],
+      "quick_ratio": 0.0,
+      "ratio": 0.0,
+      "real_quick_ratio": 1.0
+    }
+  },
+  "sequence-matcher/identical-lines": {
+    "result": {
+      "find_longest_match": {
+        "a": 0,
+        "b": 0,
+        "size": 2
+      },
+      "grouped_opcodes": [],
+      "matching_blocks": [
+        {
+          "a": 0,
+          "b": 0,
+          "size": 2
+        },
+        {
+          "a": 2,
+          "b": 2,
+          "size": 0
+        }
+      ],
+      "opcodes": [["equal", 0, 2, 0, 2]],
+      "opcodes_after_grouping": [["equal", 0, 2, 0, 2]],
+      "quick_ratio": 1.0,
+      "ratio": 1.0,
+      "real_quick_ratio": 1.0
+    }
+  },
+  "sequence-matcher/identical-strings": {
+    "result": {
+      "find_longest_match": {
+        "a": 0,
+        "b": 0,
+        "size": 4
+      },
+      "grouped_opcodes": [],
+      "matching_blocks": [
+        {
+          "a": 0,
+          "b": 0,
+          "size": 4
+        },
+        {
+          "a": 4,
+          "b": 4,
+          "size": 0
+        }
+      ],
+      "opcodes": [["equal", 0, 4, 0, 4]],
+      "opcodes_after_grouping": [["equal", 1, 4, 1, 4]],
+      "quick_ratio": 1.0,
+      "ratio": 1.0,
+      "real_quick_ratio": 1.0
+    }
+  },
+  "sequence-matcher/integers": {
+    "result": {
+      "find_longest_match": {
+        "a": 2,
+        "b": 1,
+        "size": 2
+      },
+      "grouped_opcodes": [[["equal", 0, 1, 0, 1], ["delete", 1, 2, 1, 1], ["equal", 2, 4, 1, 3], ["insert", 4, 4, 3, 4], ["equal", 4, 5, 4, 5]]],
+      "matching_blocks": [
+        {
+          "a": 0,
+          "b": 0,
+          "size": 1
+        },
+        {
+          "a": 2,
+          "b": 1,
+          "size": 2
+        },
+        {
+          "a": 4,
+          "b": 4,
+          "size": 1
+        },
+        {
+          "a": 5,
+          "b": 5,
+          "size": 0
+        }
+      ],
+      "opcodes": [["equal", 0, 1, 0, 1], ["delete", 1, 2, 1, 1], ["equal", 2, 4, 1, 3], ["insert", 4, 4, 3, 4], ["equal", 4, 5, 4, 5]],
+      "opcodes_after_grouping": [["equal", 0, 1, 0, 1], ["delete", 1, 2, 1, 1], ["equal", 2, 4, 1, 3], ["insert", 4, 4, 3, 4], ["equal", 4, 5, 4, 5]],
+      "quick_ratio": 0.8,
+      "ratio": 0.8,
+      "real_quick_ratio": 1.0
+    }
+  },
+  "sequence-matcher/isjunk-before-popularity": {
+    "result": {
+      "find_longest_match": {
+        "a": 0,
+        "b": 0,
+        "size": 3
+      },
+      "grouped_opcodes": [[["equal", 0, 3, 0, 3], ["insert", 3, 3, 3, 201], ["equal", 3, 4, 201, 202]]],
+      "matching_blocks": [
+        {
+          "a": 0,
+          "b": 0,
+          "size": 3
+        },
+        {
+          "a": 3,
+          "b": 201,
+          "size": 1
+        },
+        {
+          "a": 4,
+          "b": 202,
+          "size": 0
+        }
+      ],
+      "opcodes": [["equal", 0, 3, 0, 3], ["insert", 3, 3, 3, 201], ["equal", 3, 4, 201, 202]],
+      "opcodes_after_grouping": [["equal", 0, 3, 0, 3], ["insert", 3, 3, 3, 201], ["equal", 3, 4, 201, 202]],
+      "quick_ratio": 0.038834951456310676,
+      "ratio": 0.038834951456310676,
+      "real_quick_ratio": 0.038834951456310676
+    }
+  },
+  "sequence-matcher/isjunk-blank-lines": {
+    "result": {
+      "find_longest_match": {
+        "a": 0,
+        "b": 1,
+        "size": 2
+      },
+      "grouped_opcodes": [[["insert", 0, 0, 0, 1], ["equal", 0, 2, 1, 3], ["replace", 2, 4, 3, 4]]],
+      "matching_blocks": [
+        {
+          "a": 0,
+          "b": 1,
+          "size": 2
+        },
+        {
+          "a": 4,
+          "b": 4,
+          "size": 0
+        }
+      ],
+      "opcodes": [["insert", 0, 0, 0, 1], ["equal", 0, 2, 1, 3], ["replace", 2, 4, 3, 4]],
+      "opcodes_after_grouping": [["insert", 0, 0, 0, 1], ["equal", 0, 2, 1, 3], ["replace", 2, 4, 3, 4]],
+      "quick_ratio": 0.75,
+      "ratio": 0.5,
+      "real_quick_ratio": 1.0
+    }
+  },
+  "sequence-matcher/isjunk-character-junk-function": {
+    "result": {
+      "find_longest_match": {
+        "a": 0,
+        "b": 0,
+        "size": 1
+      },
+      "grouped_opcodes": [[["equal", 0, 1, 0, 1], ["replace", 1, 2, 1, 2], ["equal", 2, 3, 2, 3], ["replace", 3, 4, 3, 4], ["equal", 4, 5, 4, 5]]],
+      "matching_blocks": [
+        {
+          "a": 0,
+          "b": 0,
+          "size": 1
+        },
+        {
+          "a": 2,
+          "b": 2,
+          "size": 1
+        },
+        {
+          "a": 4,
+          "b": 4,
+          "size": 1
+        },
+        {
+          "a": 5,
+          "b": 5,
+          "size": 0
+        }
+      ],
+      "opcodes": [["equal", 0, 1, 0, 1], ["replace", 1, 2, 1, 2], ["equal", 2, 3, 2, 3], ["replace", 3, 4, 3, 4], ["equal", 4, 5, 4, 5]],
+      "opcodes_after_grouping": [["equal", 0, 1, 0, 1], ["replace", 1, 2, 1, 2], ["equal", 2, 3, 2, 3], ["replace", 3, 4, 3, 4], ["equal", 4, 5, 4, 5]],
+      "quick_ratio": 1.0,
+      "ratio": 0.6,
+      "real_quick_ratio": 1.0
+    }
+  },
+  "sequence-matcher/isjunk-line-junk-function": {
+    "result": {
+      "find_longest_match": {
+        "a": 1,
+        "b": 0,
+        "size": 1
+      },
+      "grouped_opcodes": [[["delete", 0, 1, 0, 0], ["equal", 1, 2, 0, 1], ["replace", 2, 4, 1, 4]]],
+      "matching_blocks": [
+        {
+          "a": 1,
+          "b": 0,
+          "size": 1
+        },
+        {
+          "a": 4,
+          "b": 4,
+          "size": 0
+        }
+      ],
+      "opcodes": [["delete", 0, 1, 0, 0], ["equal", 1, 2, 0, 1], ["replace", 2, 4, 1, 4]],
+      "opcodes_after_grouping": [["delete", 0, 1, 0, 0], ["equal", 1, 2, 0, 1], ["replace", 2, 4, 1, 4]],
+      "quick_ratio": 0.75,
+      "ratio": 0.25,
+      "real_quick_ratio": 1.0
+    }
+  },
+  "sequence-matcher/junk-extends-both-sides": {
+    "result": {
+      "find_longest_match": {
+        "a": 1,
+        "b": 1,
+        "size": 3
+      },
+      "grouped_opcodes": [[["replace", 0, 1, 0, 1], ["equal", 1, 6, 1, 6], ["replace", 6, 7, 6, 7]]],
+      "matching_blocks": [
+        {
+          "a": 1,
+          "b": 1,
+          "size": 5
+        },
+        {
+          "a": 7,
+          "b": 7,
+          "size": 0
+        }
+      ],
+      "opcodes": [["replace", 0, 1, 0, 1], ["equal", 1, 6, 1, 6], ["replace", 6, 7, 6, 7]],
+      "opcodes_after_grouping": [["replace", 0, 1, 0, 1], ["equal", 1, 6, 1, 6], ["replace", 6, 7, 6, 7]],
+      "quick_ratio": 0.7142857142857143,
+      "ratio": 0.7142857142857143,
+      "real_quick_ratio": 1.0
+    }
+  },
+  "sequence-matcher/longest-docstring-blank-junk": {
+    "result": {
+      "find_longest_match": {
+        "a": 1,
+        "b": 0,
+        "size": 4
+      },
+      "grouped_opcodes": [[["delete", 0, 1, 0, 0], ["equal", 1, 5, 0, 4], ["insert", 5, 5, 4, 9]]],
+      "matching_blocks": [
+        {
+          "a": 1,
+          "b": 0,
+          "size": 4
+        },
+        {
+          "a": 5,
+          "b": 9,
+          "size": 0
+        }
+      ],
+      "opcodes": [["delete", 0, 1, 0, 0], ["equal", 1, 5, 0, 4], ["insert", 5, 5, 4, 9]],
+      "opcodes_after_grouping": [["delete", 0, 1, 0, 0], ["equal", 1, 5, 0, 4], ["insert", 5, 5, 4, 9]],
+      "quick_ratio": 0.7142857142857143,
+      "ratio": 0.5714285714285714,
+      "real_quick_ratio": 0.7142857142857143
+    }
+  },
+  "sequence-matcher/longest-docstring-full-range": {
+    "result": {
+      "find_longest_match": {
+        "a": 0,
+        "b": 4,
+        "size": 5
+      },
+      "grouped_opcodes": [[["insert", 0, 0, 0, 4], ["equal", 0, 3, 4, 7]]],
+      "matching_blocks": [
+        {
+          "a": 0,
+          "b": 4,
+          "size": 5
+        },
+        {
+          "a": 5,
+          "b": 9,
+          "size": 0
+        }
+      ],
+      "opcodes": [["insert", 0, 0, 0, 4], ["equal", 0, 5, 4, 9]],
+      "opcodes_after_grouping": [["insert", 0, 0, 0, 4], ["equal", 0, 3, 4, 7]],
+      "quick_ratio": 0.7142857142857143,
+      "ratio": 0.7142857142857143,
+      "real_quick_ratio": 0.7142857142857143
+    }
+  },
+  "sequence-matcher/longest-empty-subrange": {
+    "result": {
+      "find_longest_match": {
+        "a": 1,
+        "b": 0,
+        "size": 0
+      },
+      "grouped_opcodes": [],
+      "matching_blocks": [
+        {
+          "a": 0,
+          "b": 0,
+          "size": 3
+        },
+        {
+          "a": 3,
+          "b": 3,
+          "size": 0
+        }
+      ],
+      "opcodes": [["equal", 0, 3, 0, 3]],
+      "opcodes_after_grouping": [["equal", 0, 3, 0, 3]],
+      "quick_ratio": 1.0,
+      "ratio": 1.0,
+      "real_quick_ratio": 1.0
+    }
+  },
+  "sequence-matcher/longest-no-match": {
+    "result": {
+      "find_longest_match": {
+        "a": 0,
+        "b": 0,
+        "size": 0
+      },
+      "grouped_opcodes": [[["replace", 0, 2, 0, 1]]],
+      "matching_blocks": [
+        {
+          "a": 2,
+          "b": 1,
+          "size": 0
+        }
+      ],
+      "opcodes": [["replace", 0, 2, 0, 1]],
+      "opcodes_after_grouping": [["replace", 0, 2, 0, 1]],
+      "quick_ratio": 0.0,
+      "ratio": 0.0,
+      "real_quick_ratio": 0.6666666666666666
+    }
+  },
+  "sequence-matcher/longest-subrange-skips-and-breaks": {
+    "result": {
+      "find_longest_match": {
+        "a": 0,
+        "b": 2,
+        "size": 3
+      },
+      "grouped_opcodes": [[["insert", 0, 0, 0, 2], ["equal", 0, 3, 2, 5], ["insert", 3, 3, 5, 8]]],
+      "matching_blocks": [
+        {
+          "a": 0,
+          "b": 2,
+          "size": 3
+        },
+        {
+          "a": 3,
+          "b": 8,
+          "size": 0
+        }
+      ],
+      "opcodes": [["insert", 0, 0, 0, 2], ["equal", 0, 3, 2, 5], ["insert", 3, 3, 5, 8]],
+      "opcodes_after_grouping": [["insert", 0, 0, 0, 2], ["equal", 0, 3, 2, 5], ["insert", 3, 3, 5, 8]],
+      "quick_ratio": 0.5454545454545454,
+      "ratio": 0.5454545454545454,
+      "real_quick_ratio": 0.5454545454545454
+    }
+  },
+  "sequence-matcher/longest-tie-earliest-in-a": {
+    "result": {
+      "find_longest_match": {
+        "a": 0,
+        "b": 0,
+        "size": 2
+      },
+      "grouped_opcodes": [[["equal", 0, 2, 0, 2], ["delete", 2, 5, 2, 2]]],
+      "matching_blocks": [
+        {
+          "a": 0,
+          "b": 0,
+          "size": 2
+        },
+        {
+          "a": 5,
+          "b": 2,
+          "size": 0
+        }
+      ],
+      "opcodes": [["equal", 0, 2, 0, 2], ["delete", 2, 5, 2, 2]],
+      "opcodes_after_grouping": [["equal", 0, 2, 0, 2], ["delete", 2, 5, 2, 2]],
+      "quick_ratio": 0.5714285714285714,
+      "ratio": 0.5714285714285714,
+      "real_quick_ratio": 0.5714285714285714
+    }
+  },
+  "sequence-matcher/longest-tie-earliest-in-b": {
+    "result": {
+      "find_longest_match": {
+        "a": 0,
+        "b": 0,
+        "size": 2
+      },
+      "grouped_opcodes": [[["equal", 0, 2, 0, 2], ["insert", 2, 2, 2, 4]]],
+      "matching_blocks": [
+        {
+          "a": 0,
+          "b": 0,
+          "size": 2
+        },
+        {
+          "a": 2,
+          "b": 4,
+          "size": 0
+        }
+      ],
+      "opcodes": [["equal", 0, 2, 0, 2], ["insert", 2, 2, 2, 4]],
+      "opcodes_after_grouping": [["equal", 0, 2, 0, 2], ["insert", 2, 2, 2, 4]],
+      "quick_ratio": 0.6666666666666666,
+      "ratio": 0.6666666666666666,
+      "real_quick_ratio": 0.6666666666666666
+    }
+  },
+  "sequence-matcher/no-trailing-newline": {
+    "result": {
+      "find_longest_match": {
+        "a": 0,
+        "b": 0,
+        "size": 1
+      },
+      "grouped_opcodes": [[["equal", 0, 1, 0, 1], ["replace", 1, 2, 1, 2]]],
+      "matching_blocks": [
+        {
+          "a": 0,
+          "b": 0,
+          "size": 1
+        },
+        {
+          "a": 2,
+          "b": 2,
+          "size": 0
+        }
+      ],
+      "opcodes": [["equal", 0, 1, 0, 1], ["replace", 1, 2, 1, 2]],
+      "opcodes_after_grouping": [["equal", 0, 1, 0, 1], ["replace", 1, 2, 1, 2]],
+      "quick_ratio": 0.5,
+      "ratio": 0.5,
+      "real_quick_ratio": 1.0
+    }
+  },
+  "sequence-matcher/quick-ratio-ignores-order": {
+    "result": {
+      "find_longest_match": {
+        "a": 0,
+        "b": 2,
+        "size": 1
+      },
+      "grouped_opcodes": [[["insert", 0, 0, 0, 2], ["equal", 0, 1, 2, 3], ["delete", 1, 3, 3, 3]]],
+      "matching_blocks": [
+        {
+          "a": 0,
+          "b": 2,
+          "size": 1
+        },
+        {
+          "a": 3,
+          "b": 3,
+          "size": 0
+        }
+      ],
+      "opcodes": [["insert", 0, 0, 0, 2], ["equal", 0, 1, 2, 3], ["delete", 1, 3, 3, 3]],
+      "opcodes_after_grouping": [["insert", 0, 0, 0, 2], ["equal", 0, 1, 2, 3], ["delete", 1, 3, 3, 3]],
+      "quick_ratio": 1.0,
+      "ratio": 0.3333333333333333,
+      "real_quick_ratio": 1.0
+    }
+  },
+  "sequence-matcher/ratio-bounds-differ": {
+    "result": {
+      "find_longest_match": {
+        "a": 1,
+        "b": 0,
+        "size": 3
+      },
+      "grouped_opcodes": [[["delete", 0, 1, 0, 0], ["equal", 1, 4, 0, 3], ["insert", 4, 4, 3, 4]]],
+      "matching_blocks": [
+        {
+          "a": 1,
+          "b": 0,
+          "size": 3
+        },
+        {
+          "a": 4,
+          "b": 4,
+          "size": 0
+        }
+      ],
+      "opcodes": [["delete", 0, 1, 0, 0], ["equal", 1, 4, 0, 3], ["insert", 4, 4, 3, 4]],
+      "opcodes_after_grouping": [["delete", 0, 1, 0, 0], ["equal", 1, 4, 0, 3], ["insert", 4, 4, 3, 4]],
+      "quick_ratio": 0.75,
+      "ratio": 0.75,
+      "real_quick_ratio": 1.0
+    }
+  },
+  "sequence-matcher/single-element-equal": {
+    "result": {
+      "find_longest_match": {
+        "a": 0,
+        "b": 0,
+        "size": 1
+      },
+      "grouped_opcodes": [],
+      "matching_blocks": [
+        {
+          "a": 0,
+          "b": 0,
+          "size": 1
+        },
+        {
+          "a": 1,
+          "b": 1,
+          "size": 0
+        }
+      ],
+      "opcodes": [["equal", 0, 1, 0, 1]],
+      "opcodes_after_grouping": [["equal", 0, 1, 0, 1]],
+      "quick_ratio": 1.0,
+      "ratio": 1.0,
+      "real_quick_ratio": 1.0
+    }
+  },
+  "sequence-matcher/single-element-replace": {
+    "result": {
+      "find_longest_match": {
+        "a": 0,
+        "b": 0,
+        "size": 0
+      },
+      "grouped_opcodes": [[["replace", 0, 1, 0, 1]]],
+      "matching_blocks": [
+        {
+          "a": 1,
+          "b": 1,
+          "size": 0
+        }
+      ],
+      "opcodes": [["replace", 0, 1, 0, 1]],
+      "opcodes_after_grouping": [["replace", 0, 1, 0, 1]],
+      "quick_ratio": 0.0,
+      "ratio": 0.0,
+      "real_quick_ratio": 1.0
+    }
+  },
+  "unified-diff/aider-diffs-context-five": {
+    "result": [
+      "--- \n",
+      "+++ \n",
+      "@@ -1,19 +1,19 @@\n",
+      " 1\n",
+      " 2\n",
+      " 3\n",
+      " 4\n",
+      " 5\n",
+      "-6\n",
+      "+six\n",
+      " 7\n",
+      " 8\n",
+      " 9\n",
+      " 10\n",
+      " 11\n",
+      " 12\n",
+      " 13\n",
+      "-14\n",
+      "+fourteen\n",
+      " 15\n",
+      " 16\n",
+      " 17\n",
+      " 18\n",
+      " 19\n"
+    ]
+  },
+  "unified-diff/aider-udiff-whole-hunk": {
+    "result": ["--- \n", "+++ \n", "@@ -1,6 +1,7 @@\n", " 1\n", "-2\n", "+two\n", " 3\n", " 4\n", "-5\n", "+five\n", " 6\n", "+7\n"]
+  },
+  "unified-diff/astral-lines": {
+    "result": ["--- \n", "+++ \n", "@@ -1,2 +1,2 @@\n", " 😀\n", "-b\n", "+😁\n"]
+  },
+  "unified-diff/autojunk-blank-lines-popular": {
+    "result": ["--- \n", "+++ \n", "@@ -75,6 +75,8 @@\n", " l74\n", " }\n", " \n", "+\n", "+\n", " l77\n", " l78\n", " l79\n"]
+  },
+  "unified-diff/both-empty": {
+    "result": []
+  },
+  "unified-diff/both-empty-n-zero": {
+    "result": []
+  },
+  "unified-diff/changes-at-both-edges": {
+    "result": ["--- \n", "+++ \n", "@@ -1,4 +1,4 @@\n", "-1\n", "+one\n", " 2\n", " 3\n", " 4\n", "@@ -17,4 +17,4 @@\n", " 17\n", " 18\n", " 19\n", "-20\n", "+twenty\n"]
+  },
+  "unified-diff/crlf-lines": {
+    "result": ["--- \n", "+++ \n", "@@ -1,3 +1,3 @@\n", " a\r\n", "-b\r\n", "+B\r\n", " c\r\n"]
+  },
+  "unified-diff/delete-everything": {
+    "result": ["--- \n", "+++ \n", "@@ -1 +0,0 @@\n", "-a\n"]
+  },
+  "unified-diff/header-date-on-one-side": {
+    "result": ["--- a.txt\n", "+++ b.txt\t2024-01-01\n", "@@ -1 +1 @@\n", "-a\n", "+b\n"]
+  },
+  "unified-diff/headers-with-dates": {
+    "result": ["--- Original\t2005-01-26 23:30:50", "+++ Current\t2010-04-02 10:20:52", "@@ -1,4 +1,4 @@", "+zero", " one", "-two", "-three", "+tree", " four"]
+  },
+  "unified-diff/headers-without-dates": {
+    "result": ["--- before\n", "+++ after\n", "@@ -1,2 +1,2 @@\n", " x = 1\n", "-y = 2\n", "+y = 3\n"]
+  },
+  "unified-diff/hunks-merged-at-2n": {
+    "result": ["--- \n", "+++ \n", "@@ -3,14 +3,14 @@\n", " 3\n", " 4\n", " 5\n", "-6\n", "+six\n", " 7\n", " 8\n", " 9\n", " 10\n", " 11\n", " 12\n", "-13\n", "+thirteen\n", " 14\n", " 15\n", " 16\n"]
+  },
+  "unified-diff/hunks-split-past-2n": {
+    "result": ["--- \n", "+++ \n", "@@ -3,7 +3,7 @@\n", " 3\n", " 4\n", " 5\n", "-6\n", "+six\n", " 7\n", " 8\n", " 9\n", "@@ -11,7 +11,7 @@\n", " 11\n", " 12\n", " 13\n", "-14\n", "+fourteen\n", " 15\n", " 16\n", " 17\n"]
+  },
+  "unified-diff/identical": {
+    "result": []
+  },
+  "unified-diff/insert-into-empty": {
+    "result": ["--- \n", "+++ \n", "@@ -0,0 +1,2 @@\n", "+a\n", "+b\n"]
+  },
+  "unified-diff/lineterm-empty": {
+    "result": ["--- ", "+++ ", "@@ -1,3 +1,3 @@", " a", "-b", "+x", " c"]
+  },
+  "unified-diff/n-negative": {
+    "result": ["--- \n", "+++ \n", "@@ -9,-1 +9,-1 @@\n", "@@ -9,-1 +9,-1 @@\n", "-8\n", "+eight\n"]
+  },
+  "unified-diff/n-zero-insert": {
+    "result": ["--- \n", "+++ \n", "@@ -1,0 +2 @@\n", "+x\n"]
+  },
+  "unified-diff/n-zero-replace": {
+    "result": ["--- \n", "+++ \n", "@@ -8 +8 @@\n", "-8\n", "+eight\n"]
+  },
+  "unified-diff/no-trailing-newline": {
+    "result": ["--- \n", "+++ \n", "@@ -1,2 +1,2 @@\n", " a\n", "-b", "+b\n"]
+  },
+  "unified-diff/single-line-change": {
+    "result": ["--- \n", "+++ \n", "@@ -1 +1 @@\n", "-a\n", "+b\n"]
+  }
+}

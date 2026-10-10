@@ -10,6 +10,11 @@ test('operator-chosen Pi names replace Aider names', () => {
     coAuthorName: 'pi',
     coAuthorEmail: 'noreply@pi.dev',
     envPrefix: 'PI_MAINTAINER_',
+    configFile: '.pi-maintainer.conf.yml',
+    stateEntry: 'pi-maintainer.state',
+    dialogueEntry: 'pi-maintainer.dialogue',
+    routerProvider: 'pi-maintainer',
+    routerId: 'coder',
     tagsCacheDir: '.pi-maintainer.tags.cache.v4',
   });
 });
