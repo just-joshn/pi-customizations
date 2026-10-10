@@ -26,6 +26,8 @@ export interface WorkingTree {
   /** Creates missing parent directories and an empty file. False when the OS refuses. */
   touch(path: string): Promise<boolean>;
   remove(path: string): Promise<void>;
+  /** Creates a directory and its missing parents, as `Path.mkdir(parents=True, exist_ok=True)` does. */
+  mkdir(path: string): Promise<void>;
 }
 
 export type LineEndings = 'platform' | 'lf' | 'crlf';
@@ -140,6 +142,9 @@ export function createWorkingTree(options: WorkingTreeOptions): WorkingTree {
     async remove(path) {
       if (dryRun) return;
       await withFileMutationQueue(path, () => unlink(path));
+    },
+    async mkdir(path) {
+      if (!dryRun) await mkdir(path, { recursive: true });
     },
   };
 }
