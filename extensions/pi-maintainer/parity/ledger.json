@@ -1320,16 +1320,11 @@
     {
       "id": "edit.udiff.partial-success-note",
       "feature": "edit",
-      "behavior": "When some hunks applied and others failed, the failure message ends with \"Note: some hunks did apply successfully. See the updated source code shown above.\"",
+      "behavior": "When some hunks applied and others failed, the sibling-hunks note is appended only if the joined error string's character length is less than the number of hunks attempted, so typical UnifiedDiffNoMatch failures omit the note while keeping earlier writes.",
       "aider": [
         "aider/coders/udiff_coder.py:41-43,114-118"
       ],
-      "kind": "fix",
-      "fix": {
-        "defect": "The note is added only when the joined error string is shorter in characters than the number of hunks, so it is almost never shown. The reconstruction calls this a source-confirmed reporting defect (aider/coders/udiff_coder.py:88-118).",
-        "intent": "The other_hunks_applied message (aider/coders/udiff_coder.py:41-43) says \"some hunks did apply successfully\", and the guard compares against len(uniq), the number of hunks attempted, so the check was meant to count failed hunks against attempted hunks.",
-        "behavior": "Append the note whenever the number of failed hunks is less than the number of hunks attempted."
-      },
+      "kind": "parity",
       "status": "verified",
       "pi": [
         "pi.on('turn_end')"
@@ -1338,7 +1333,7 @@
         "src/edit/udiff.ts"
       ],
       "tests": [
-        "test/udiff.test.ts::partial success appends the sibling-hunks note",
+        "test/udiff.test.ts::partial success omits the sibling-hunks note when the joined error is longer than the hunk count",
         "test/udiff.oracle.test.ts::apply edits apply_edits/partial-success-survives"
       ]
     },
@@ -3156,12 +3151,12 @@
     {
       "id": "edit.sr.empty-result-success",
       "feature": "edit",
-      "behavior": "A successful SEARCH/REPLACE match that removes all content writes an empty file and is not retried against another file or reported as unmatched.",
+      "behavior": "A SEARCH/REPLACE that would clear a file yields a falsy empty string under Aider's `if res:` / `if new_content:` checks, so matching returns no content, apply reports SearchReplaceNoExactMatch, and the file is left unchanged without cross-file fallback when SEARCH is non-blank.",
       "aider": [
         "aider/coders/editblock_coder.py:56-74,134-179",
         "aider/coders/editblock_prompts.py:58-77,148"
       ],
-      "kind": "fix",
+      "kind": "parity",
       "status": "verified",
       "pi": [
         "withFileMutationQueue",
@@ -3172,13 +3167,11 @@
         "src/edit/editblock-match.ts"
       ],
       "tests": [
-        "test/editblock-ports.test.ts::empty REPLACE that clears a file is success not fallback"
-      ],
-      "fix": {
-        "defect": "Truthiness checks discard an empty successful replacement in both matching and persistence, potentially triggering unrelated cross-file fallback.",
-        "intent": "aider/coders/editblock_prompts.py:58-77 demonstrates an empty REPLACE for deletion and :148 instructs deletion through a SEARCH/REPLACE block; perfect_replace at aider/coders/editblock_coder.py:146-154 returns the joined replacement even when empty.",
-        "behavior": "A successful SEARCH/REPLACE match that removes all content writes an empty file and is not retried against another file or reported as unmatched."
-      }
+        "test/editblock-ports.test.ts::empty REPLACE that clears a file is failure not fallback",
+        "test/editblock.oracle.test.ts::replace chunk replace/delete-all-is-failure",
+        "test/editblock.oracle.test.ts::perfect or whitespace perfect-or-whitespace/empty-result-is-f…",
+        "test/editblock.oracle.test.ts::apply edits apply/delete-whole-content-fails"
+      ]
     },
     {
       "id": "edit.udiff.empty-result-success",
@@ -3208,12 +3201,12 @@
     {
       "id": "edit.prompt.reminder-budget",
       "feature": "edit",
-      "behavior": "Reminder admission counts each assembled message once when comparing the request plus reminder against the model input budget.",
+      "behavior": "Reminder admission sums all_messages tokens, reminder tokens, and cur tokens again (even though all_messages already includes cur), and omits the reminder when that total is not strictly below max_input_tokens.",
       "aider": [
         "aider/coders/base_coder.py:1297-1319",
         "aider/coders/chat_chunks.py:16-28"
       ],
-      "kind": "fix",
+      "kind": "parity",
       "status": "verified",
       "pi": [
         "pi.on('context_with_system')"
@@ -3222,13 +3215,9 @@
         "src/edit/prompts/format.ts"
       ],
       "tests": [
-        "test/edit/prompts.test.ts::reminder admission counts each assembled message once against the input budget"
-      ],
-      "fix": {
-        "defect": "format_chat_chunks counts all_messages and then adds cur token count again, although all_messages already includes cur, suppressing reminders near the limit.",
-        "intent": "The comment Add the reminder prompt if we still have room to include it at aider/coders/base_coder.py:1314-1319 states the budget intent; aider/coders/chat_chunks.py:16-28 defines the assembled message sequence.",
-        "behavior": "Reminder admission counts each assembled message once when comparing the request plus reminder against the model input budget."
-      }
+        "test/edit/prompts.test.ts::reminder admission double-counts cur tokens like Aider against the input budget",
+        "test/edit/prompts.oracle.test.ts::format_chat_chunks format_chat_chunks/reminder-sys-at-budg…"
+      ]
     },
     {
       "id": "edit.context.inventory-port",

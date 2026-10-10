@@ -16,9 +16,11 @@ export function prep(content: string): [content: string, lines: string[]] {
 }
 
 export function perfectOrWhitespace(wholeLines: readonly string[], partLines: readonly string[], replaceLines: readonly string[]): string | null {
+  // Aider uses `if res:` after each attempt, so an empty join (delete-all) is failure.
   const perfect = perfectReplace(wholeLines, partLines, replaceLines);
-  if (perfect !== null) return perfect;
-  return replacePartWithMissingLeadingWhitespace(wholeLines, partLines, replaceLines);
+  if (perfect) return perfect;
+  const flexible = replacePartWithMissingLeadingWhitespace(wholeLines, partLines, replaceLines);
+  return flexible || null;
 }
 
 export function perfectReplace(wholeLines: readonly string[], partLines: readonly string[], replaceLines: readonly string[]): string | null {
@@ -36,13 +38,14 @@ export function replaceMostSimilarChunk(whole: string, part: string, replace: st
   const [partText, partLines] = prep(part);
   const [replaceText, replaceLines] = prep(replace);
   const res = perfectOrWhitespace(wholeLines, partLines, replaceLines);
-  if (res !== null) return res;
+  if (res) return res;
   if (partLines.length > 2 && !strip(pyIndex(partLines, 0))) {
     const skipBlankLine = perfectOrWhitespace(wholeLines, partLines.slice(1), replaceLines);
-    if (skipBlankLine !== null) return skipBlankLine;
+    if (skipBlankLine) return skipBlankLine;
   }
   try {
-    return tryDotdotdots(wholeText, partText, replaceText);
+    const dots = tryDotdotdots(wholeText, partText, replaceText);
+    return dots || null;
   } catch (error) {
     if (error instanceof ValueError) return null;
     throw error;

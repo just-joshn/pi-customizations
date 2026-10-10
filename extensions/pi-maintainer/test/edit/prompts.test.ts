@@ -198,7 +198,7 @@ test('sys reminder is a final system message and user reminder appends to the la
   expect(user.cur.at(-1)?.content).toContain('edit\n\n# File editing rules:');
 });
 
-test('reminder admission counts each assembled message once against the input budget', () => {
+test('reminder admission double-counts cur tokens like Aider against the input budget', () => {
   const perMessage = 10;
   const model: PromptModel = {
     ...gpt35,
@@ -215,8 +215,10 @@ test('reminder admission counts each assembled message once against the input bu
   };
   const withoutReminder = { ...formatChatChunks({ ...input, model: { ...model, maxInputTokens: 1 } }), reminder: [] };
   const assembled = allMessages(withoutReminder).length;
-  expect(perMessage * assembled + perMessage).toBe(50);
-  expect(formatChatChunks(input).reminder).toHaveLength(1);
+  const cur = withoutReminder.cur.length;
+  // messages + reminder + cur again (Aider base_coder.py:1298-1303)
+  expect(perMessage * assembled + perMessage + perMessage * cur).toBe(60);
+  expect(formatChatChunks(input).reminder).toEqual([]);
 });
 
 test('a resolved chat language appears in platform info and as a Reply in instruction', () => {

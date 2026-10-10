@@ -543,9 +543,10 @@ nope
   expect(await readFile(join(ctx.root, 'file.txt'), 'utf8')).toBe('ALPHA\nbeta\n');
 });
 
-test('empty REPLACE that clears a file is success not fallback', async () => {
+test('empty REPLACE that clears a file is failure not fallback', async () => {
   const ctx = await workspace({ 'keep.py': 'gone\n', 'other.py': 'gone\n' });
-  expect(perfectOrWhitespace(['gone\n'], ['gone\n'], [])).toBe('');
+  expect(perfectOrWhitespace(['gone\n'], ['gone\n'], [])).toBeNull();
+  expect(replaceMostSimilarChunk('gone\n', 'gone\n', '')).toBeNull();
   const reply = `keep.py
 <<<<<<< SEARCH
 gone
@@ -553,8 +554,8 @@ gone
 >>>>>>> REPLACE
 `;
   const { edits } = getEdits(reply, ctx);
-  await applyEdits(edits, ctx);
-  expect(await readFile(join(ctx.root, 'keep.py'), 'utf8')).toBe('');
+  await expect(applyEdits(edits, ctx)).rejects.toThrow(ValueError);
+  expect(await readFile(join(ctx.root, 'keep.py'), 'utf8')).toBe('gone\n');
   expect(await readFile(join(ctx.root, 'other.py'), 'utf8')).toBe('gone\n');
 });
 

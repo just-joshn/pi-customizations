@@ -228,7 +228,7 @@ test('applyEdits keeps earlier writes when a later hunk fails', async () => {
   expect(await readFile(join(root, 'b.txt'), 'utf8')).toBe('keep\n');
 });
 
-test('partial success appends the sibling-hunks note', async () => {
+test('partial success omits the sibling-hunks note when the joined error is longer than the hunk count', async () => {
   const root = await mkdtemp(join(tmpdir(), 'udiff-partial-note-'));
   onTestFinished(() => rm(root, { recursive: true, force: true }));
   await writeFile(join(root, 'a.txt'), 'old\n');
@@ -253,7 +253,7 @@ test('partial success appends the sibling-hunks note', async () => {
     message = error instanceof Error ? error.message : '';
   }
   expect(message).toMatch(/^UnifiedDiffNoMatch:/);
-  expect(message.endsWith('Note: some hunks did apply successfully. See the updated source code shown above.\n\n')).toBe(true);
+  expect(message).not.toContain('Note: some hunks did apply successfully');
   expect(await readFile(join(root, 'a.txt'), 'utf8')).toBe('new\n');
 });
 

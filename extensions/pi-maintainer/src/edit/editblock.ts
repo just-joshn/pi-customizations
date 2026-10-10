@@ -102,7 +102,8 @@ function withVirtualResults(tree: EditBlockContext['tree'], dryRun: boolean): Ed
 async function replaceInChatFiles([, original, updated]: EditBlock, ctx: EditBlockContext): Promise<Resolution | null> {
   for (const fullPath of ctx.absFnames) {
     const newContent = await doReplace(fullPath, await ctx.tree.read(fullPath), original, updated, ctx.fence, ctx.tree);
-    if (newContent !== null) return { path: getRelFname(ctx.root, fullPath), fullPath, newContent };
+    // Aider's `if new_content:` treats "" as no match.
+    if (newContent) return { path: getRelFname(ctx.root, fullPath), fullPath, newContent };
   }
   return null;
 }
@@ -115,7 +116,7 @@ async function resolveEdit(edit: EditBlock, ctx: EditBlockContext): Promise<Reso
   if (await ctx.tree.exists(fullPath)) {
     newContent = await doReplace(fullPath, await ctx.tree.read(fullPath), original, updated, ctx.fence, ctx.tree);
   }
-  if (newContent === null && strip(original)) {
+  if (!newContent && strip(original)) {
     const elsewhere = await replaceInChatFiles(edit, ctx);
     if (elsewhere) return elsewhere;
   }
@@ -136,7 +137,7 @@ async function resolveEdits(edits: readonly EditBlock[], ctx: EditBlockContext, 
   for (const edit of edits) {
     const { path, fullPath, newContent } = await resolveEdit(edit, resolving);
     updatedEdits.push([path, edit[1], edit[2]]);
-    if (newContent !== null) {
+    if (newContent) {
       await resolving.tree.write(fullPath, newContent);
       passed.push(edit);
     } else {

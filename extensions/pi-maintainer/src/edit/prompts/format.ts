@@ -289,11 +289,14 @@ function placeReminder(input: ChatChunksInput, chunks: ChatChunks): ChatChunks {
   const { prompts, model } = input;
   const reminder = fmtSystemPrompt(prompts.systemReminder, input);
   const reminderMessage: readonly TextMessage[] = prompts.systemReminder ? [{ role: 'system', content: reminder }] : [];
+  // Aider adds `cur` again even though `all_messages` already includes it (base_coder.py:1298-1303).
   const messagesTokens = model.tokenCount(allMessages(chunks));
   const reminderTokens = model.tokenCount(reminderMessage);
-  const totalTokens = messagesTokens !== null && reminderTokens !== null ? messagesTokens + reminderTokens : 0;
+  const curTokens = model.tokenCount(chunks.cur);
+  const totalTokens =
+    messagesTokens !== null && reminderTokens !== null && curTokens !== null ? messagesTokens + reminderTokens + curTokens : 0;
   const maxInputTokens = model.maxInputTokens || 0;
-  if (maxInputTokens && (totalTokens >= maxInputTokens || !prompts.systemReminder)) return chunks;
+  if (maxInputTokens && !(totalTokens < maxInputTokens && prompts.systemReminder)) return chunks;
   if (model.reminder === 'sys') return { ...chunks, reminder: reminderMessage };
   const final = chunks.cur.at(-1);
   if (model.reminder !== 'user' || final?.role !== 'user') return chunks;

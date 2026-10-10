@@ -321,7 +321,8 @@ export async function applyEdits(edits: readonly UdiffEdit[], ctx: UdiffContext)
   }
   if (errors.length === 0) return;
   let message = errors.join('\n\n');
-  // Count failed hunks against attempted hunks (Aider compared character length to hunk count).
-  if (errors.length < uniq.length) message += otherHunksApplied;
+  // Aider compares the joined error string's character length to the hunk count
+  // (`len(errors) < len(uniq)` after `errors = "\n\n".join(errors)`), so the note almost never appears.
+  if (message.length < uniq.length) message += otherHunksApplied;
   throw new ValueError(message);
 }
