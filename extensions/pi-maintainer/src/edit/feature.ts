@@ -1,4 +1,5 @@
 import { type EditContext, type EditFormatName, type EditFormats, type Feature, isEditFormatName, registerEditFormat } from '../feature.ts';
+import { editCommands } from './commands.ts';
 import { applyEdits as applyEditBlocks, applyEditsDryRun as applyEditBlocksDryRun, type EditBlock, getEdits as getEditBlocks } from './editblock.ts';
 import { architectFormat, askFormat, contextFormat, defaultEditorFormat, editorDiffFencedFormat, editorDiffFormat, editorWholeFormat } from './modes.ts';
 import { editOptionList, editOptions } from './options.ts';
@@ -99,7 +100,7 @@ export const patchFormat = registerEditFormat<EditResult>({
 export const editFeature: Feature<EditFormats> & { readonly name: 'edit' } = {
   name: 'edit',
   options: editOptionList,
-  commands: [],
+  commands: editCommands,
   create({ settings, host }) {
     const requested = settings.value(editOptions.editFormat);
     const editorEditFormat = settings.value(editOptions.editorEditFormat);

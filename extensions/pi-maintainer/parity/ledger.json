@@ -2324,10 +2324,17 @@
         "aider/commands.py:258-270,759-760,905-906"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.registerCommand"
+      ],
+      "src": [
+        "src/edit/commands.ts",
+        "src/core/install.ts"
+      ],
+      "tests": [
+        "test/edit/commands-complete.test.ts::add argument completions list tracked files that are not already in chat"
+      ]
     },
     {
       "id": "git.authorize.skip-gitignored",
@@ -3558,10 +3565,24 @@
         "aider/commands.py:799-820,846-903"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.registerCommand",
+        "pi.on('agent_settled')",
+        "pi.sendUserMessage",
+        "pi.appendEntry"
+      ],
+      "src": [
+        "src/edit/commands.ts",
+        "src/edit/selection.ts",
+        "src/core/install.ts",
+        "src/core/command.ts"
+      ],
+      "tests": [
+        "test/edit/selection.test.ts::add accepts literal relative and absolute files",
+        "test/edit/selection.test.ts::add expands a quoted filename with spaces",
+        "test/core/commands.pi.test.ts::/add registers an editable file through pi.registerCommand"
+      ]
     },
     {
       "id": "edit.commands.add-glob",
@@ -3571,10 +3592,23 @@
         "aider/commands.py:765-825"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.registerCommand",
+        "pi.on('agent_settled')",
+        "pi.sendUserMessage",
+        "pi.appendEntry"
+      ],
+      "src": [
+        "src/edit/commands.ts",
+        "src/edit/selection.ts",
+        "src/core/install.ts",
+        "src/core/command.ts"
+      ],
+      "tests": [
+        "test/edit/selection.test.ts::add expands a directory glob under the root",
+        "test/edit/selection.test.ts::add refuses wildcard creation when nothing matches"
+      ]
     },
     {
       "id": "edit.commands.create-unmatched",
@@ -3584,10 +3618,23 @@
         "aider/commands.py:827-844"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.registerCommand",
+        "pi.on('agent_settled')",
+        "pi.sendUserMessage",
+        "pi.appendEntry"
+      ],
+      "src": [
+        "src/edit/commands.ts",
+        "src/edit/selection.ts",
+        "src/core/install.ts",
+        "src/core/command.ts"
+      ],
+      "tests": [
+        "test/edit/selection.test.ts::add creates an unmatched non-wildcard path after confirmation",
+        "test/edit/selection.test.ts::add refuses wildcard creation when nothing matches"
+      ]
     },
     {
       "id": "edit.commands.add-root-policy",
@@ -3597,10 +3644,22 @@
         "aider/commands.py:849-857"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.registerCommand",
+        "pi.on('agent_settled')",
+        "pi.sendUserMessage",
+        "pi.appendEntry"
+      ],
+      "src": [
+        "src/edit/commands.ts",
+        "src/edit/selection.ts",
+        "src/core/install.ts",
+        "src/core/command.ts"
+      ],
+      "tests": [
+        "test/edit/selection.test.ts::add refuses a non-image path outside the root when auto-commits are on"
+      ]
     },
     {
       "id": "edit.commands.drop-matches",
@@ -3610,10 +3669,22 @@
         "aider/commands.py:912-965"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.registerCommand",
+        "pi.on('agent_settled')",
+        "pi.sendUserMessage",
+        "pi.appendEntry"
+      ],
+      "src": [
+        "src/edit/commands.ts",
+        "src/edit/selection.ts",
+        "src/core/install.ts",
+        "src/core/command.ts"
+      ],
+      "tests": [
+        "test/edit/selection.test.ts::drop removes matching editable and read-only paths"
+      ]
     },
     {
       "id": "edit.commands.drop-all",
@@ -3624,10 +3695,23 @@
         "aider/coders/base_coder.py:168-185"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.registerCommand",
+        "pi.on('agent_settled')",
+        "pi.sendUserMessage",
+        "pi.appendEntry"
+      ],
+      "src": [
+        "src/edit/commands.ts",
+        "src/edit/selection.ts",
+        "src/core/install.ts",
+        "src/core/command.ts"
+      ],
+      "tests": [
+        "test/edit/selection.test.ts::bare drop keeps originally supplied read-only files",
+        "test/core/commands.pi.test.ts::/drop clears editable files while keeping original read-only files"
+      ]
     },
     {
       "id": "edit.commands.reset",
@@ -3637,10 +3721,22 @@
         "aider/commands.py:411-443"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.registerCommand",
+        "pi.on('agent_settled')",
+        "pi.sendUserMessage",
+        "pi.appendEntry"
+      ],
+      "src": [
+        "src/edit/commands.ts",
+        "src/edit/selection.ts",
+        "src/core/install.ts",
+        "src/core/command.ts"
+      ],
+      "tests": [
+        "test/core/commands.pi.test.ts::/reset drops files and advances historyThrough"
+      ]
     },
     {
       "id": "edit.commands.read-only-paths",
@@ -3650,10 +3746,22 @@
         "aider/commands.py:1328-1376,1399-1416"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.registerCommand",
+        "pi.on('agent_settled')",
+        "pi.sendUserMessage",
+        "pi.appendEntry"
+      ],
+      "src": [
+        "src/edit/commands.ts",
+        "src/edit/selection.ts",
+        "src/core/install.ts",
+        "src/core/command.ts"
+      ],
+      "tests": [
+        "test/edit/selection.test.ts::read-only accepts a literal external path"
+      ]
     },
     {
       "id": "edit.commands.read-only-conversion",
@@ -3663,10 +3771,22 @@
         "aider/commands.py:1328-1337,1378-1397"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.registerCommand",
+        "pi.on('agent_settled')",
+        "pi.sendUserMessage",
+        "pi.appendEntry"
+      ],
+      "src": [
+        "src/edit/commands.ts",
+        "src/edit/selection.ts",
+        "src/core/install.ts",
+        "src/core/command.ts"
+      ],
+      "tests": [
+        "test/edit/selection.test.ts::read-only converts editable files when bare"
+      ]
     },
     {
       "id": "edit.commands.read-only-images",
@@ -3677,10 +3797,22 @@
         "aider/coders/base_coder.py:779-855"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.registerCommand",
+        "pi.on('agent_settled')",
+        "pi.sendUserMessage",
+        "pi.appendEntry"
+      ],
+      "src": [
+        "src/edit/commands.ts",
+        "src/edit/selection.ts",
+        "src/core/install.ts",
+        "src/core/command.ts"
+      ],
+      "tests": [
+        "test/edit/selection.test.ts::read-only refuses images when vision is unsupported"
+      ]
     },
     {
       "id": "edit.commands.save-selection",
@@ -3690,10 +3822,23 @@
         "aider/commands.py:1497-1522"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.registerCommand",
+        "pi.on('agent_settled')",
+        "pi.sendUserMessage",
+        "pi.appendEntry"
+      ],
+      "src": [
+        "src/edit/commands.ts",
+        "src/edit/selection.ts",
+        "src/core/install.ts",
+        "src/core/command.ts"
+      ],
+      "tests": [
+        "test/edit/selection.test.ts::save writes reconstruction commands with relative and absolute paths",
+        "test/core/commands.pi.test.ts::/save and /load reconstruct editable and read-only selections"
+      ]
     },
     {
       "id": "edit.commands.load-selection",
@@ -3703,10 +3848,22 @@
         "aider/commands.py:1465-1492"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.registerCommand",
+        "pi.on('agent_settled')",
+        "pi.sendUserMessage",
+        "pi.appendEntry"
+      ],
+      "src": [
+        "src/edit/commands.ts",
+        "src/edit/selection.ts",
+        "src/core/install.ts",
+        "src/core/command.ts"
+      ],
+      "tests": [
+        "test/core/commands.pi.test.ts::/save and /load reconstruct editable and read-only selections"
+      ]
     },
     {
       "id": "edit.commands.file-token-listing",
@@ -3755,10 +3912,22 @@
         "aider/commands.py:1182-1184,1206-1230"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.registerCommand",
+        "pi.on('agent_settled')",
+        "pi.sendUserMessage",
+        "pi.appendEntry"
+      ],
+      "src": [
+        "src/edit/commands.ts",
+        "src/edit/selection.ts",
+        "src/core/install.ts",
+        "src/core/command.ts"
+      ],
+      "tests": [
+        "test/core/commands.pi.test.ts::/ask with text runs one no-edit exchange then returns to the prior mode"
+      ]
     },
     {
       "id": "edit.settings.environment-pairs",

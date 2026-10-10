@@ -34,6 +34,8 @@ function snapshot(root: string, files: { editable?: string[]; readOnly?: string[
     mode: 'whole',
     phase: { kind: 'main' },
     files: { editable: files.editable ?? [], readOnly: files.readOnly ?? [] },
+    originalReadOnly: [],
+    returnMode: null,
     ignoredMentions: [],
     neverAsk: [],
     lastUserEntry: null,
@@ -68,8 +70,8 @@ async function harness(options: {
       errors.push(text);
     },
     confirm: async (request) => {
-      confirms.push({ question: request.question, ...(request.subject === undefined ? {} : { subject: request.subject }) });
-      return options.confirm?.(request) ?? true;
+      confirms.push({ question: request.question, ...(request.subject ? { subject: request.subject } : {}) });
+      return options.confirm?.({ question: request.question, ...(request.subject ? { subject: request.subject } : {}) }) ?? true;
     },
     select: async () => undefined,
     exec: async () => ({ stdout: '', stderr: '', code: 0, killed: false }),

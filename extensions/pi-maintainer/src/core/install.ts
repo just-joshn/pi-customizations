@@ -95,6 +95,8 @@ async function initialSnapshot(ports: Ports, cwd: string, append: (data: unknown
     mode: ports.edit.requestedFormat ?? 'whole',
     phase: { kind: 'main' },
     files: { editable: [...new Set(editable)], readOnly: [...new Set(readOnly)] },
+    originalReadOnly: [...new Set(readOnly)],
+    returnMode: null,
     ignoredMentions: [],
     neverAsk: [],
     lastUserEntry: null,
@@ -135,7 +137,10 @@ export function installMaintainer(pi: ExtensionAPI, features: readonly SarFeatur
     runtime.current(ctx).reconcile(event.outcome === 'aborted');
   });
   pi.on('agent_settled', (event, ctx) => {
-    runtime.current(ctx).reconcile(event.aborted);
+    const controller = runtime.current(ctx);
+    controller.reconcile(event.aborted);
+    const returning = controller.snapshot.returnMode;
+    if (returning !== null) controller.save({ ...controller.snapshot, mode: returning, returnMode: null });
   });
   pi.on('tool_call', () => ({ block: true, reason: 'Maintainer coders use reply-text edits, not model tools.', terminate: true }));
   pi.on('cache_warming_decision', (_event, ctx) => cacheWarmingDecisionForPhase(restore(ctx.sessionManager.getBranch()).snapshot?.phase.kind));
@@ -143,10 +148,19 @@ export function installMaintainer(pi: ExtensionAPI, features: readonly SarFeatur
     for (const command of feature.commands)
       pi.registerCommand(command.name, {
         description: command.description,
+        ...(command.complete
+          ? {
+              getArgumentCompletions: async (prefix: string) => {
+                if (!runtime.ready) return null;
+                const values = await command.complete?.(prefix, runtime.commandEnv());
+                return (values ?? []).map((value) => ({ value, label: value }));
+              },
+            }
+          : {}),
         handler: async (args, ctx) => {
           runtime.context = ctx;
           if (!ctx.isIdle()) throw new Error('Maintainer commands require an idle session');
-          await command.run(args, { host: runtime.host });
+          await command.run(args, runtime.commandEnv());
         },
       });
 }
@@ -154,6 +168,7 @@ export function installMaintainer(pi: ExtensionAPI, features: readonly SarFeatur
 class MaintainerRuntime {
   context: ExtensionContext | null = null;
   #controller: ExchangeController | null = null;
+  #ports: Ports | null = null;
   #environment: Readonly<Record<string, string | undefined>> = {};
   #yes: boolean | null = null;
   readonly host: ReturnType<typeof createHost>;
@@ -182,6 +197,51 @@ class MaintainerRuntime {
       },
     });
   }
+  get ready(): boolean {
+    return this.#controller !== null && this.#ports !== null;
+  }
+  commandEnv() {
+    const controller = this.#controller;
+    const ports = this.#ports;
+    if (!controller || !ports) throw new Error('Maintainer is not initialized');
+    const ctx = this.context;
+    if (!ctx) throw new Error('Maintainer context is unavailable');
+    const physical = controller.snapshot.physicalModel;
+    const model = physical ? ctx.modelRegistry.find(physical.provider, physical.id) : undefined;
+    return {
+      host: this.host,
+      get snapshot() {
+        return controller.snapshot;
+      },
+      save: (snapshot: Parameters<ExchangeController['save']>[0]) => controller.save(snapshot),
+      tree: ports.edit.tree,
+      git: ports.git,
+      autoCommits: true,
+      supportsImages: model?.input.includes('image') ?? true,
+      sendUserMessage: async (text: string) => {
+        this.#pi.sendUserMessage(text);
+      },
+      setPhysicalModel: async (modelRef: { provider: string; id: string }) => {
+        const found = ctx.modelRegistry.find(modelRef.provider, modelRef.id);
+        if (!found || found.api === 'pi-virtual') return false;
+        controller.save({ ...controller.snapshot, physicalModel: { provider: found.provider, id: found.id } });
+        return true;
+      },
+      findPhysicalModel: (name: string) => {
+        const slash = name.indexOf('/');
+        if (slash > 0) {
+          const found = ctx.modelRegistry.find(name.slice(0, slash), name.slice(slash + 1));
+          if (found && found.api !== 'pi-virtual') return { provider: found.provider, id: found.id };
+          return null;
+        }
+        if (physical) {
+          const same = ctx.modelRegistry.find(physical.provider, name);
+          if (same && same.api !== 'pi-virtual') return { provider: same.provider, id: same.id };
+        }
+        return null;
+      },
+    };
+  }
   append(data: unknown): void {
     this.#pi.appendEntry(BRANDING.stateEntry, data);
   }
@@ -198,6 +258,7 @@ class MaintainerRuntime {
     if (loaded.problems.length) throw new Error('Invalid maintainer settings');
     this.#environment = loaded.environment;
     const ports = createPorts(this.#features, { settings: loaded.settings, cwd: ctx.cwd, host: this.host });
+    this.#ports = ports;
     this.#yes = ports.edit.yesAlways;
     const restored = restore(ctx.sessionManager.getBranch());
     const snapshot = restored.snapshot ?? (await initialSnapshot(ports, ctx.cwd, (data) => this.append(data), this.host, !restored.pendingOperations.length && !restored.invalidRecords.length, ctx.sessionManager.getLeafId() ?? 'startup'));
@@ -281,5 +342,6 @@ class MaintainerRuntime {
   dispose(): void {
     this.context = null;
     this.#controller = null;
+    this.#ports = null;
   }
 }

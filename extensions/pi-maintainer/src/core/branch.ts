@@ -2,7 +2,7 @@ import type { SessionEntry } from '@earendil-works/pi-coding-agent';
 import { type Static, Type } from 'typebox';
 import { Value } from 'typebox/value';
 import { BRANDING } from '../branding.ts';
-import { EDIT_FORMAT_NAMES } from '../feature.ts';
+import { type EditFormatName, EDIT_FORMAT_NAMES } from '../feature.ts';
 
 const strings = Type.Array(Type.String());
 const frame = {
@@ -38,6 +38,10 @@ export const snapshotSchema = Type.Object({
   mode: Type.Enum(EDIT_FORMAT_NAMES),
   phase,
   files: Type.Object({ editable: strings, readOnly: strings }),
+  /** Absolute or root-relative paths from `--read` / settings at session start. Optional for older snapshots. */
+  originalReadOnly: Type.Optional(strings),
+  /** Prior mode to restore after a one-shot `/ask` (or similar) exchange. */
+  returnMode: Type.Optional(Type.Union([Type.Enum(EDIT_FORMAT_NAMES), Type.Null()])),
   ignoredMentions: strings,
   neverAsk: strings,
   lastUserEntry: Type.Union([Type.String(), Type.Null()]),
@@ -46,7 +50,15 @@ export const snapshotSchema = Type.Object({
   lifecycle,
 });
 type Immutable<T> = T extends readonly unknown[] ? ReadonlyArray<Immutable<T[number]>> : T extends object ? { readonly [K in keyof T]: Immutable<T[K]> } : T;
-export type Snapshot = Immutable<Static<typeof snapshotSchema>>;
+type ParsedSnapshot = Immutable<Static<typeof snapshotSchema>>;
+export type Snapshot = Omit<ParsedSnapshot, 'originalReadOnly' | 'returnMode'> & {
+  readonly originalReadOnly: readonly string[];
+  readonly returnMode: EditFormatName | null;
+};
+
+function normalizeSnapshot(data: ParsedSnapshot): Snapshot {
+  return { ...data, originalReadOnly: data.originalReadOnly ?? [], returnMode: data.returnMode ?? null };
+}
 
 const operationSchema = Type.Object({
   schema: Type.Literal(1),
@@ -87,7 +99,7 @@ export function restore(branch: readonly SessionEntry[]): Restored {
   for (const entry of branch) {
     if (entry.type !== 'custom' || entry.customType !== BRANDING.stateEntry) continue;
     const data: unknown = entry.data;
-    if (Value.Check(snapshotSchema, data)) snapshot = Value.Parse(snapshotSchema, data);
+    if (Value.Check(snapshotSchema, data)) snapshot = normalizeSnapshot(Value.Parse(snapshotSchema, data));
     else if (Value.Check(operationSchema, data)) {
       const key = operationKey(data);
       if (intents.has(key)) invalid.push(entry.id);

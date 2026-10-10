@@ -1,3 +1,4 @@
+import type { CommandSpec } from './core/command.ts';
 import type { Host } from './core/host.ts';
 import type { Fence } from './edit/fences.ts';
 import { intentPaths, mutationContext } from './edit/intents.ts';
@@ -5,23 +6,13 @@ import type { Notices, WorkingTree } from './edit/working-tree.ts';
 import type { AnyOptionSpec, ResolvedSettings, SarName } from './settings/spec.ts';
 
 export type { SarName } from './settings/spec.ts';
+export type { CommandEnv, CommandSpec } from './core/command.ts';
 
 /** Everything a SAR's port factory receives. */
 export interface FeatureEnv {
   readonly settings: ResolvedSettings;
   readonly host: Host;
   readonly cwd: string;
-}
-
-export interface CommandEnv {
-  readonly host: Host;
-}
-
-/** One documented slash command. The core registers it with `pi.registerCommand`. */
-export interface CommandSpec {
-  readonly name: string;
-  readonly description: string;
-  readonly run: (args: string, env: CommandEnv) => Promise<void>;
 }
 
 export interface Feature<Port> {
