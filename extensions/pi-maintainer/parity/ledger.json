@@ -214,10 +214,25 @@
         "aider/coders/context_coder.py:11-19"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('context_with_system')",
+        "pi.registerFlag"
+      ],
+      "src": [
+        "src/map/budget.ts",
+        "src/map/context.ts",
+        "src/map/sampled-prefix.ts",
+        "src/map/tags-cache.ts",
+        "src/map/rendered-cache.ts",
+        "src/map/prompt-insertion.ts",
+        "src/map/render.ts",
+        "src/core/repo-map.ts",
+        "src/edit/prompts/format.ts"
+      ],
+      "tests": [
+        "test/map/render-bind.test.ts::context mode forces map refresh, multiplies the map budget by the no-file multiplier, and resets that multiplier to one"
+      ]
     },
     {
       "id": "edit.context.replace-file-selection",
@@ -3498,10 +3513,25 @@
         "aider/coders/base_coder.py:672-747"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('context_with_system')",
+        "pi.registerFlag"
+      ],
+      "src": [
+        "src/map/budget.ts",
+        "src/map/context.ts",
+        "src/map/sampled-prefix.ts",
+        "src/map/tags-cache.ts",
+        "src/map/rendered-cache.ts",
+        "src/map/prompt-insertion.ts",
+        "src/map/render.ts",
+        "src/core/repo-map.ts",
+        "src/edit/prompts/format.ts"
+      ],
+      "tests": [
+        "test/map/render-bind.test.ts::repository mapping uses editable and in-root read-only seeds with conversation hints and retries an empty map with fewer hints or seeds"
+      ]
     },
     {
       "id": "map.tags.coordinates",
@@ -3666,10 +3696,25 @@
         "aider/main.py:964-984"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('context_with_system')",
+        "pi.registerFlag"
+      ],
+      "src": [
+        "src/map/budget.ts",
+        "src/map/context.ts",
+        "src/map/sampled-prefix.ts",
+        "src/map/tags-cache.ts",
+        "src/map/rendered-cache.ts",
+        "src/map/prompt-insertion.ts",
+        "src/map/render.ts",
+        "src/core/repo-map.ts",
+        "src/edit/prompts/format.ts"
+      ],
+      "tests": [
+        "test/map/render-bind.test.ts::default map budget is one eighth of model input capacity clamped to 1024 through 4096"
+      ]
     },
     {
       "id": "map.budget.explicit-enable",
@@ -3679,10 +3724,25 @@
         "aider/coders/base_coder.py:487-508"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('context_with_system')",
+        "pi.registerFlag"
+      ],
+      "src": [
+        "src/map/budget.ts",
+        "src/map/context.ts",
+        "src/map/sampled-prefix.ts",
+        "src/map/tags-cache.ts",
+        "src/map/rendered-cache.ts",
+        "src/map/prompt-insertion.ts",
+        "src/map/render.ts",
+        "src/core/repo-map.ts",
+        "src/edit/prompts/format.ts"
+      ],
+      "tests": [
+        "test/map/render-bind.test.ts::positive explicit map budget enables mapping when model policy would disable it"
+      ]
     },
     {
       "id": "map.budget.sampled-prefix",
@@ -3692,10 +3752,25 @@
         "aider/repomap.py:89-101,663-705"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('context_with_system')",
+        "pi.registerFlag"
+      ],
+      "src": [
+        "src/map/budget.ts",
+        "src/map/context.ts",
+        "src/map/sampled-prefix.ts",
+        "src/map/tags-cache.ts",
+        "src/map/rendered-cache.ts",
+        "src/map/prompt-insertion.ts",
+        "src/map/render.ts",
+        "src/core/repo-map.ts",
+        "src/edit/prompts/format.ts"
+      ],
+      "tests": [
+        "test/map/render-bind.test.ts::map selection uses sampled token estimates and binary search for a ranked prefix within fifteen percent of budget"
+      ]
     },
     {
       "id": "map.budget.no-files",
@@ -3727,10 +3802,25 @@
         "aider/repomap.py:233-264"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('context_with_system')",
+        "pi.registerFlag"
+      ],
+      "src": [
+        "src/map/budget.ts",
+        "src/map/context.ts",
+        "src/map/sampled-prefix.ts",
+        "src/map/tags-cache.ts",
+        "src/map/rendered-cache.ts",
+        "src/map/prompt-insertion.ts",
+        "src/map/render.ts",
+        "src/core/repo-map.ts",
+        "src/edit/prompts/format.ts"
+      ],
+      "tests": [
+        "test/map/render-bind.test.ts::tag cache entries are reused only for the same filename and mtime and are replaced after a miss"
+      ]
     },
     {
       "id": "map.cache.rendered-policy",
@@ -3740,10 +3830,25 @@
         "aider/repomap.py:576-627"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('context_with_system')",
+        "pi.registerFlag"
+      ],
+      "src": [
+        "src/map/budget.ts",
+        "src/map/context.ts",
+        "src/map/sampled-prefix.ts",
+        "src/map/tags-cache.ts",
+        "src/map/rendered-cache.ts",
+        "src/map/prompt-insertion.ts",
+        "src/map/render.ts",
+        "src/core/repo-map.ts",
+        "src/edit/prompts/format.ts"
+      ],
+      "tests": [
+        "test/map/render-bind.test.ts::manual refresh reuses the last map, files refresh reuses file-set and budget keys, always recomputes, and auto reuses hint-sensitive keys when map processing exceeds one second"
+      ]
     },
     {
       "id": "map.tags.no-duplicate-final-capture",
@@ -5688,10 +5793,25 @@
         "aider/coders/chat_chunks.py:16-41"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('context_with_system')",
+        "pi.registerFlag"
+      ],
+      "src": [
+        "src/map/budget.ts",
+        "src/map/context.ts",
+        "src/map/sampled-prefix.ts",
+        "src/map/tags-cache.ts",
+        "src/map/rendered-cache.ts",
+        "src/map/prompt-insertion.ts",
+        "src/map/render.ts",
+        "src/core/repo-map.ts",
+        "src/edit/prompts/format.ts"
+      ],
+      "tests": [
+        "test/map/render-bind.test.ts::the coder inserts the prefixed repository map as a user message followed by an assistant acknowledgment, with optional cache marking after the map chunk"
+      ]
     },
     {
       "id": "map.commands.map-print",
@@ -5824,10 +5944,25 @@
         "aider/repomap.py:111-146"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('context_with_system')",
+        "pi.registerFlag"
+      ],
+      "src": [
+        "src/map/budget.ts",
+        "src/map/context.ts",
+        "src/map/sampled-prefix.ts",
+        "src/map/tags-cache.ts",
+        "src/map/rendered-cache.ts",
+        "src/map/prompt-insertion.ts",
+        "src/map/render.ts",
+        "src/core/repo-map.ts",
+        "src/edit/prompts/format.ts"
+      ],
+      "tests": [
+        "test/map/render-bind.test.ts::a nonpositive map token budget returns no map text from RepoMap"
+      ]
     },
     {
       "id": "map.fail.recursion-disables",
@@ -5838,10 +5973,25 @@
         "aider/coders/base_coder.py:713-746"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('context_with_system')",
+        "pi.registerFlag"
+      ],
+      "src": [
+        "src/map/budget.ts",
+        "src/map/context.ts",
+        "src/map/sampled-prefix.ts",
+        "src/map/tags-cache.ts",
+        "src/map/rendered-cache.ts",
+        "src/map/prompt-insertion.ts",
+        "src/map/render.ts",
+        "src/core/repo-map.ts",
+        "src/edit/prompts/format.ts"
+      ],
+      "tests": [
+        "test/map/render-bind.test.ts::a RecursionError during map generation is reported and the map budget is set to zero so later maps stay disabled"
+      ]
     },
     {
       "id": "map.fail.cache-memory-fallback",
@@ -5851,10 +6001,25 @@
         "aider/repomap.py:177-230"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('context_with_system')",
+        "pi.registerFlag"
+      ],
+      "src": [
+        "src/map/budget.ts",
+        "src/map/context.ts",
+        "src/map/sampled-prefix.ts",
+        "src/map/tags-cache.ts",
+        "src/map/rendered-cache.ts",
+        "src/map/prompt-insertion.ts",
+        "src/map/render.ts",
+        "src/core/repo-map.ts",
+        "src/edit/prompts/format.ts"
+      ],
+      "tests": [
+        "test/map/render-bind.test.ts::when persistent tag-cache creation fails, mapping recreates the cache or falls back to an in-memory dictionary and continues producing maps"
+      ]
     },
     {
       "id": "map.deps.query-runtime",

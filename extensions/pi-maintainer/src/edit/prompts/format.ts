@@ -1,3 +1,4 @@
+import { getRepoMessages } from '../../map/prompt-insertion.ts';
 import { imageMimeType, isImageFile } from '../../support/image-files.ts';
 import { pyFormat } from '../../support/pyformat.ts';
 import { strip } from '../../support/pystr.ts';
@@ -245,14 +246,6 @@ function getImagesMessage(files: readonly ContextFile[], model: PromptModel, pat
   if (!(supportsImages || supportsPdfs)) return null;
   const content = files.flatMap((file) => imageParts(file, supportsImages, supportsPdfs, pathBasename));
   return content.length > 0 ? { role: 'user', content } : null;
-}
-
-function getRepoMessages(repoMap: string | null): readonly TextMessage[] {
-  if (!repoMap) return [];
-  return [
-    { role: 'user', content: repoMap },
-    { role: 'assistant', content: "Ok, I won't try and edit those files without asking first." },
-  ];
 }
 
 function getReadonlyFilesMessages(input: ChatChunksInput): readonly ChatMessage[] {
