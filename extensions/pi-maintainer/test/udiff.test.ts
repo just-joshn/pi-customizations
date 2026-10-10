@@ -3,10 +3,23 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
 import { expect, onTestFinished, test } from 'vitest';
+import { ValueError } from '../src/edit/errors.ts';
 import { udiffEditFormat, udiffSimpleFormat } from '../src/edit/feature.ts';
-import { applyEdits, directlyApplyHunk, findDiffs, getEdits } from '../src/edit/udiff.ts';
+import { allPreprocs } from '../src/edit/search-replace.ts';
+import { applyEdits, applyHunk, directlyApplyHunk, findDiffs, getEdits, hunkToBeforeAfter, makeNewLinesExplicit } from '../src/edit/udiff.ts';
 import { createWorkingTree } from '../src/edit/working-tree.ts';
+import { pyLength, splitlines, strip } from '../src/support/pystr.ts';
 import type { EditContext } from '../src/feature.ts';
+
+const notices = {
+  output() {},
+  warning() {},
+  error() {},
+};
+
+async function udiffTree(root: string) {
+  return createWorkingTree({ notices });
+}
 
 test('parses a single fenced hunk', { meta: { aider: ['test_udiff/TestUnifiedDiffCoder.test_find_diffs_single_hunk'] } }, () => {
   const content = `
@@ -196,13 +209,7 @@ test('applyEdits keeps earlier writes when a later hunk fails', async () => {
   onTestFinished(() => rm(root, { recursive: true, force: true }));
   await writeFile(join(root, 'a.txt'), 'old\n');
   await writeFile(join(root, 'b.txt'), 'keep\n');
-  const tree = createWorkingTree({
-    notices: {
-      output() {},
-      warning() {},
-      error() {},
-    },
-  });
+  const tree = await udiffTree(root);
   await expect(
     applyEdits(
       [
@@ -219,4 +226,60 @@ test('applyEdits keeps earlier writes when a later hunk fails', async () => {
   ).rejects.toThrow(/UnifiedDiffNoMatch/);
   expect(await readFile(join(root, 'a.txt'), 'utf8')).toBe('new\n');
   expect(await readFile(join(root, 'b.txt'), 'utf8')).toBe('keep\n');
+});
+
+test('partial success appends the sibling-hunks note', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'udiff-partial-note-'));
+  onTestFinished(() => rm(root, { recursive: true, force: true }));
+  await writeFile(join(root, 'a.txt'), 'old\n');
+  await writeFile(join(root, 'b.txt'), 'keep\n');
+  const tree = await udiffTree(root);
+  let message = '';
+  try {
+    await applyEdits(
+      [
+        ['a.txt', ['-old\n', '+new\n']],
+        ['b.txt', ['-missing\n', '+x\n']],
+      ],
+      {
+        root,
+        absFnames: new Set(),
+        absRootPath: (path) => resolve(root, path),
+        tree,
+      },
+    );
+  } catch (error) {
+    expect(error).toBeInstanceOf(ValueError);
+    message = error instanceof Error ? error.message : '';
+  }
+  expect(message).toContain('UnifiedDiffNoMatch');
+  expect(message.endsWith('Note: some hunks did apply successfully. See the updated source code shown above.\n\n')).toBe(true);
+  expect(await readFile(join(root, 'a.txt'), 'utf8')).toBe('new\n');
+});
+
+test('rebuilds before text from the file when direct replace fails', () => {
+  const content = 'aaaaaaaaaa\nbbbbbbbbbb\ncccccccccc\ndddddddddd\n';
+  const hunk = ['-aaaaaaaaaa\n', '-bbbbbbbbbb\n', '-cccXcccccc\n', '+AAAAAAAAAA\n', '+BBBBBBBBBB\n', '+CCCCCCCCCC\n', ' dddddddddd\n'];
+  expect(directlyApplyHunk(content, hunk)).toBeUndefined();
+  const rebuilt = makeNewLinesExplicit(content, hunk);
+  expect(rebuilt).not.toEqual(hunk);
+  const [originalBefore] = hunkToBeforeAfter(hunk);
+  const [rebuiltBefore] = hunkToBeforeAfter(rebuilt);
+  expect(pyLength(strip(rebuiltBefore))).toBeGreaterThanOrEqual(10);
+  expect(splitlines(rebuiltBefore, true).length).toBeGreaterThanOrEqual(splitlines(originalBefore, true).length * 0.66);
+  expect(applyHunk(content, hunk)).toBeDefined();
+});
+
+test('keeps the original hunk when repaired before text is too short', () => {
+  const content = 'abcdefghi\n';
+  const hunk = ['-ab\n', '+zz\n'];
+  expect(makeNewLinesExplicit(content, hunk)).toEqual(hunk);
+});
+
+test('udiff refuses a reverse-lines-only match and never enables reverse preprocs', () => {
+  expect(allPreprocs.every(([, , reverse]) => reverse === false)).toBe(true);
+  const content = 'line3\nline2\nline1\n';
+  const hunk = ['-line1\n', '-line2\n', '-line3\n', '+done\n'];
+  expect(directlyApplyHunk(content, hunk)).toBeUndefined();
+  expect(applyHunk(content, hunk)).toBeUndefined();
 });
