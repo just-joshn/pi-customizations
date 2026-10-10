@@ -58,7 +58,7 @@
     "rows": ["edit.sr.no-fuzzy-content"]
   },
   "edit/cross-file-fallback-and-disabled-fuzzy-content/p3": {
-    "rows": ["edit.sr.failure-report", "edit.sr.sequential-writes"]
+    "rows": ["edit.sr.failure-report", "edit.sr.sequential-writes", "edit.sr.empty-result-success"]
   },
   "edit/cross-file-fallback-and-disabled-fuzzy-content/p4": {
     "rows": ["edit.sr.preflight-per-block", "edit.sr.sequential-writes"]
@@ -100,7 +100,7 @@
     "rows": ["edit.udiff.all-occurrences"]
   },
   "edit/repeated-matches-replace-all-occurrences/p3": {
-    "rows": ["edit.udiff.sequential-writes", "edit.udiff.no-match-error", "edit.udiff.partial-success-note"]
+    "rows": ["edit.udiff.sequential-writes", "edit.udiff.no-match-error", "edit.udiff.partial-success-note", "edit.udiff.empty-result-success"]
   },
   "edit/retained-experiments-are-not-active-fallback-strategies/p1": {
     "rows": ["edit.udiff.single-strategy"]
@@ -142,16 +142,16 @@
     "rows": ["edit.dry-run.preserve-files", "edit.patch.add-after-approval"]
   },
   "edit/architect-and-context-modes/p1": {
-    "rows": ["edit.architect.confirm-editor", "edit.architect.editor-selection", "edit.architect.fresh-editor-request", "edit.architect.editor-options", "map.architect.disable-editor-map"]
+    "rows": ["edit.architect.confirm-editor", "edit.architect.editor-selection", "edit.architect.fresh-editor-request", "edit.architect.editor-options", "map.architect.disable-editor-map", "edit.context.map-policy"]
   },
   "edit/architect-and-context-modes/p2": {
     "rows": ["edit.architect.fresh-editor-request", "edit.architect.editor-application", "git.architect.return-editor-commits", "edit.architect.return-editor-cost"]
   },
   "edit/architect-and-context-modes/p3": {
-    "rows": ["map.context.expand-refresh-map", "edit.context.replace-file-selection", "edit.context.bypass-edit-application"]
+    "rows": ["map.context.expand-refresh-map", "edit.context.replace-file-selection", "edit.context.bypass-edit-application", "edit.context.map-policy"]
   },
   "edit/history-images-and-prompt-caching/p1": {
-    "rows": ["edit.prompt.message-order", "edit.prompt.examples-placement", "edit.prompt.reminder-placement", "edit.prompt.context-limit-confirm"]
+    "rows": ["edit.prompt.message-order", "edit.prompt.examples-placement", "edit.prompt.reminder-placement", "edit.prompt.context-limit-confirm", "edit.prompt.reminder-budget"]
   },
   "edit/history-images-and-prompt-caching/p2": {
     "nonclaim": "pi-owned",
@@ -187,7 +187,8 @@
       "edit.authorize.create-failure",
       "edit.authorize.once-per-path",
       "git.authorize.skip-gitignored",
-      "git.authorize.stage-new-file"
+      "git.authorize.stage-new-file",
+      "edit.authorize.repository-policy"
     ]
   },
   "edit/permission-filesystem-and-execution-boundaries/p2": {
@@ -212,7 +213,7 @@
     "rows": ["lint.run.local-shell", "lint.shell.approve-and-run", "edit.confirm.yes-always"]
   },
   "edit/permission-filesystem-and-execution-boundaries/p9": {
-    "rows": ["git.commit.message-context"]
+    "rows": ["git.commit.message-context", "edit.lifecycle.validation-port"]
   },
   "edit/reflections-retries-validation-commits-and-undo/p1": {
     "rows": ["edit.lifecycle.skip-errored-reply"]
@@ -227,13 +228,13 @@
     "rows": ["lint.followup.commit-before-validation", "edit.lifecycle.move-to-history", "lint.followup.order", "lint.followup.reflect-failures", "lint.options.auto-lint-auto-test"]
   },
   "edit/reflections-retries-validation-commits-and-undo/p5": {
-    "rows": ["lint.python.checks", "lint.test.command-output"]
+    "rows": ["lint.python.checks", "lint.test.command-output", "edit.lifecycle.git-port", "edit.lifecycle.validation-port"]
   },
   "edit/reflections-retries-validation-commits-and-undo/p6": {
-    "rows": ["git.dirty.checkpoint-before-edit", "git.dirty.off-without-auto-commits", "git.commit.stage-whole-files"]
+    "rows": ["git.dirty.checkpoint-before-edit", "git.dirty.off-without-auto-commits", "git.commit.stage-whole-files", "edit.lifecycle.git-port"]
   },
   "edit/reflections-retries-validation-commits-and-undo/p7": {
-    "rows": ["git.undo.preconditions", "git.undo.restore-and-reset"]
+    "rows": ["git.undo.preconditions", "git.undo.restore-and-reset", "edit.lifecycle.undo-port"]
   },
   "ev-edit/probe/duplicate-search-first-match": {
     "rows": ["edit.sr.exact-first-match"]
@@ -260,7 +261,7 @@
     "rows": ["edit.patch.context-fuzz"]
   },
   "ev-edit/patch-lifecycle/reported-edited": {
-    "rows": ["edit.patch.add-after-approval"]
+    "rows": ["edit.lifecycle.successful-targets", "edit.patch.add-after-approval"]
   },
   "ev-edit/patch-lifecycle/file-exists": {
     "rows": ["edit.patch.add-after-approval"]
@@ -552,5 +553,865 @@
   "aider-test/test_history/TestChatSummary.test_fallback_to_second_model": {
     "nonclaim": "pi-owned",
     "note": "Pi compaction chooses and retries its summarization model"
+  },
+  "edit/provenance-evidence-methodology-and-scope/p1": {
+    "nonclaim": "provenance",
+    "note": "Reconstruction date, immutable checkout identity, and distribution version."
+  },
+  "edit/provenance-evidence-methodology-and-scope/p2": {
+    "nonclaim": "provenance",
+    "note": "Version fallback and source CLI identity are provenance, not an edit protocol."
+  },
+  "edit/provenance-evidence-methodology-and-scope/p3": {
+    "rows": ["edit.factory.select-format", "edit.lifecycle.apply-order", "edit.context.fresh-files", "edit.authorize.once-per-path"]
+  },
+  "edit/provenance-evidence-methodology-and-scope/p4": {
+    "nonclaim": "meta",
+    "note": "Lead-in naming the four evidence classes."
+  },
+  "edit/provenance-evidence-methodology-and-scope/i5": {
+    "nonclaim": "provenance",
+    "note": "How investigators partitioned and checked source reads."
+  },
+  "edit/provenance-evidence-methodology-and-scope/i6": {
+    "nonclaim": "evidence",
+    "note": "Saved Aider test execution totals, not product verification."
+  },
+  "edit/provenance-evidence-methodology-and-scope/i7": {
+    "nonclaim": "evidence",
+    "note": "Probe and CLI methodology and its lack of live-provider coverage."
+  },
+  "edit/provenance-evidence-methodology-and-scope/i8": {
+    "nonclaim": "evidence",
+    "note": "Installation comparison methodology; its defect is claimed in local-installation-boundary."
+  },
+  "edit/provenance-evidence-methodology-and-scope/p9": {
+    "nonclaim": "provenance",
+    "note": "Citation and evidence-link resolution convention."
+  },
+  "edit/provenance-evidence-methodology-and-scope/p10": {
+    "nonclaim": "meta",
+    "note": "Limits on live-provider, benchmark, and general correctness claims."
+  },
+  "edit/local-installation-boundary/p1": {
+    "rows": ["edit.install.complete-runtime"]
+  },
+  "edit/local-installation-boundary/p2": {
+    "rows": ["edit.install.complete-runtime"]
+  },
+  "edit/local-installation-boundary/p3": {
+    "nonclaim": "evidence",
+    "note": "Checkout execution uses installed dependencies and does not prove standalone packaging."
+  },
+  "edit/overview/p1": {
+    "rows": ["edit.factory.select-format", "edit.authorize.once-per-path", "edit.sr.exact-first-match", "edit.udiff.all-occurrences", "edit.patch.context-fuzz"]
+  },
+  "edit/overview/p2": {
+    "rows": [
+      "edit.context.map-summary",
+      "map.tags.extract",
+      "edit.sr.sequential-writes",
+      "edit.whole.overwrite",
+      "edit.patch.update-reconstruction",
+      "edit.io.nonatomic-overwrite",
+      "edit.lifecycle.git-port",
+      "edit.lifecycle.validation-port",
+      "lint.followup.commit-before-validation"
+    ]
+  },
+  "edit/the-coder-is-the-turn-controller/p1": {
+    "rows": ["edit.lifecycle.reset-turn", "edit.lifecycle.max-reflections", "edit.factory.transfer-selection", "edit.context.fresh-files"]
+  },
+  "edit/the-coder-is-the-turn-controller/p2": {
+    "rows": ["edit.authorize.no-root-containment"]
+  },
+  "edit/edit-records-share-a-path-not-a-common-payload/p1": {
+    "rows": ["edit.authorize.once-per-path"]
+  },
+  "edit/edit-records-share-a-path-not-a-common-payload/r2": {
+    "rows": ["edit.sr.parse-blocks", "edit.sr.exact-first-match"]
+  },
+  "edit/edit-records-share-a-path-not-a-common-payload/r3": {
+    "rows": ["edit.sr.shell-blocks"]
+  },
+  "edit/edit-records-share-a-path-not-a-common-payload/r4": {
+    "rows": ["edit.whole.overwrite", "edit.whole.provenance-priority"]
+  },
+  "edit/edit-records-share-a-path-not-a-common-payload/r5": {
+    "rows": ["edit.udiff.hunks-ignore-coordinates"]
+  },
+  "edit/edit-records-share-a-path-not-a-common-payload/r6": {
+    "rows": ["edit.patch.action-headers", "edit.patch.add-lines", "edit.patch.move"]
+  },
+  "edit/edit-records-share-a-path-not-a-common-payload/p7": {
+    "nonclaim": "evidence",
+    "note": "Source pointers to the edit-record examples immediately above."
+  },
+  "edit/edit-records-share-a-path-not-a-common-payload/p8": {
+    "nonclaim": "meta",
+    "note": "Lead-in to the patch domain shape."
+  },
+  "edit/edit-records-share-a-path-not-a-common-payload/c9": {
+    "rows": ["edit.patch.action-headers", "edit.patch.original-indices", "edit.patch.add-lines", "edit.patch.move", "edit.patch.context-fuzz"]
+  },
+  "edit/edit-records-share-a-path-not-a-common-payload/p10": {
+    "rows": ["edit.patch.original-indices", "edit.patch.move", "edit.patch.context-fuzz"]
+  },
+  "edit/context-has-separate-representations/p1": {
+    "rows": ["edit.prompt.message-order"]
+  },
+  "edit/context-has-separate-representations/p2": {
+    "nonclaim": "meta",
+    "note": "Lead-in naming the tag data shape."
+  },
+  "edit/context-has-separate-representations/c3": {
+    "rows": ["edit.context.map-summary", "map.tags.coordinates"]
+  },
+  "edit/context-has-separate-representations/p4": {
+    "rows": ["edit.context.map-summary", "map.tags.coordinates", "map.tags.lexical-fallback", "map.rank.lexical-graph"]
+  },
+  "edit/permission-matching-and-persistence-are-different-decisions/p1": {
+    "rows": ["edit.authorize.once-per-path", "edit.sr.cross-file-fallback", "edit.sr.no-fuzzy-content", "edit.lifecycle.successful-targets", "edit.lifecycle.git-port", "edit.lifecycle.validation-port"]
+  },
+  "edit/component-relationships/m1": {
+    "rows": [
+      "edit.factory.select-format",
+      "edit.lifecycle.reset-turn",
+      "edit.context.fresh-files",
+      "edit.context.read-only-files",
+      "edit.context.map-request",
+      "edit.context.map-summary",
+      "edit.context.inventory-port",
+      "edit.lifecycle.apply-order",
+      "edit.authorize.once-per-path",
+      "edit.lifecycle.git-port",
+      "edit.lifecycle.validation-port",
+      "edit.watch.requests",
+      "git.inventory.tracked-files",
+      "git.dirty.checkpoint-before-edit",
+      "git.commit.message-context",
+      "map.context.seed-and-fallback",
+      "lint.followup.order"
+    ]
+  },
+  "edit/component-relationships/p2": {
+    "rows": ["edit.factory.select-format", "edit.lifecycle.apply-order", "edit.lifecycle.git-port", "edit.lifecycle.validation-port", "edit.context.map-policy"]
+  },
+  "edit/a-normal-edit-turn/m1": {
+    "rows": [
+      "edit.lifecycle.reset-turn",
+      "edit.lifecycle.preprocess-input",
+      "edit.context.fresh-files",
+      "edit.context.read-only-files",
+      "edit.context.map-request",
+      "edit.reasoning.strip-before-edits",
+      "edit.lifecycle.apply-order",
+      "edit.sr.preflight-per-block",
+      "edit.authorize.once-per-path",
+      "edit.sr.sequential-writes",
+      "edit.lifecycle.git-port",
+      "edit.lifecycle.validation-port",
+      "git.dirty.checkpoint-before-edit",
+      "lint.followup.commit-before-validation",
+      "lint.followup.reflect-failures"
+    ]
+  },
+  "edit/a-normal-edit-turn/p2": {
+    "rows": ["edit.lifecycle.apply-order", "edit.sr.preflight-per-block", "edit.lifecycle.max-reflections"]
+  },
+  "edit/upstream-entry-adapters/p1": {
+    "rows": ["edit.lifecycle.preprocess-input", "edit.factory.transfer-selection"]
+  },
+  "edit/upstream-entry-adapters/p2": {
+    "rows": ["edit.lifecycle.stream-entry", "edit.lifecycle.max-reflections"]
+  },
+  "edit/upstream-entry-adapters/p3": {
+    "rows": ["edit.watch.comments", "edit.watch.requests"]
+  },
+  "edit/upstream-entry-adapters/p4": {
+    "nonclaim": "pi-owned",
+    "note": "Pi owns external-editor prompt entry; this is distinct from the claimed architect editor-model request."
+  },
+  "edit/upstream-entry-adapters/p5": {
+    "rows": ["edit.lifecycle.supplied-reply"]
+  },
+  "edit/format-selection-and-complete-dispatch/p1": {
+    "rows": ["edit.factory.select-format", "edit.context.map-policy", "map.budget.explicit-enable", "edit.model.format-policy"]
+  },
+  "edit/format-selection-and-complete-dispatch/r2": {
+    "rows": ["edit.factory.select-format", "edit.sr.parse-blocks"]
+  },
+  "edit/format-selection-and-complete-dispatch/r3": {
+    "rows": ["edit.factory.select-format", "edit.factory.prompt-variants"]
+  },
+  "edit/format-selection-and-complete-dispatch/r4": {
+    "rows": ["edit.factory.select-format", "edit.whole.overwrite"]
+  },
+  "edit/format-selection-and-complete-dispatch/r5": {
+    "rows": ["edit.factory.select-format", "edit.patch.action-headers"]
+  },
+  "edit/format-selection-and-complete-dispatch/r6": {
+    "rows": ["edit.factory.select-format", "edit.udiff.diff-fences"]
+  },
+  "edit/format-selection-and-complete-dispatch/r7": {
+    "rows": ["edit.factory.select-format", "edit.factory.prompt-variants"]
+  },
+  "edit/format-selection-and-complete-dispatch/r8": {
+    "rows": ["edit.factory.select-format", "edit.factory.prompt-variants"]
+  },
+  "edit/format-selection-and-complete-dispatch/r9": {
+    "rows": ["edit.factory.select-format", "edit.factory.prompt-variants"]
+  },
+  "edit/format-selection-and-complete-dispatch/r10": {
+    "rows": ["edit.factory.select-format", "edit.factory.prompt-variants"]
+  },
+  "edit/format-selection-and-complete-dispatch/r11": {
+    "rows": ["edit.architect.fresh-editor-request"]
+  },
+  "edit/format-selection-and-complete-dispatch/r12": {
+    "rows": ["edit.factory.ask-no-writes"]
+  },
+  "edit/format-selection-and-complete-dispatch/r13": {
+    "nonclaim": "out-of-scope",
+    "note": "Aider documentation help is outside the four SARs; it is not the ask mode."
+  },
+  "edit/format-selection-and-complete-dispatch/r15": {
+    "rows": ["edit.factory.no-legacy-tools"]
+  },
+  "edit/format-selection-and-complete-dispatch/r16": {
+    "rows": ["edit.factory.no-legacy-tools"]
+  },
+  "edit/format-selection-and-complete-dispatch/r17": {
+    "rows": ["edit.factory.no-legacy-tools"]
+  },
+  "edit/format-selection-and-complete-dispatch/r18": {
+    "rows": ["edit.factory.select-format", "edit.factory.ask-no-writes"]
+  },
+  "edit/format-selection-and-complete-dispatch/r19": {
+    "rows": ["edit.factory.select-format"]
+  },
+  "edit/format-selection-and-complete-dispatch/r14": {
+    "rows": ["edit.context.replace-file-selection", "edit.context.bypass-edit-application"]
+  },
+  "edit/format-selection-and-complete-dispatch/p20": {
+    "rows": ["edit.factory.select-format", "edit.factory.prompt-variants"]
+  },
+  "edit/format-selection-and-complete-dispatch/p21": {
+    "rows": ["edit.factory.ask-no-writes", "edit.factory.no-legacy-tools", "edit.context.bypass-edit-application"]
+  },
+  "edit/inventory-and-authoritative-files/p1": {
+    "rows": ["edit.context.inventory-port", "git.inventory.tracked-files"]
+  },
+  "edit/inventory-and-authoritative-files/p2": {
+    "rows": ["edit.context.map-request", "map.context.seed-and-fallback"]
+  },
+  "edit/inventory-and-authoritative-files/p3": {
+    "rows": ["edit.context.fresh-files", "edit.context.read-only-files", "edit.prompt.choose-fence"]
+  },
+  "edit/tree-sitter-tags-and-graph-ranking/p1": {
+    "rows": ["edit.context.map-summary", "map.tags.extract", "map.tags.lexical-fallback"]
+  },
+  "edit/tree-sitter-tags-and-graph-ranking/p2": {
+    "rows": ["edit.context.map-summary", "map.tags.python-query", "map.rank.lexical-graph"]
+  },
+  "edit/tree-sitter-tags-and-graph-ranking/p3": {
+    "rows": ["edit.context.map-request", "edit.context.map-summary", "map.rank.lexical-graph"]
+  },
+  "edit/tree-sitter-tags-and-graph-ranking/p4": {
+    "rows": ["edit.context.map-request", "map.rank.weights"]
+  },
+  "edit/tree-sitter-tags-and-graph-ranking/p5": {
+    "rows": ["edit.context.map-summary", "map.render.structural-context"]
+  },
+  "edit/token-budgets-and-caches/p1": {
+    "rows": ["edit.context.map-policy", "map.budget.model-default", "map.budget.explicit-enable"]
+  },
+  "edit/token-budgets-and-caches/p2": {
+    "rows": ["edit.context.map-policy", "edit.context.map-summary", "map.budget.sampled-prefix", "map.budget.no-files"]
+  },
+  "edit/token-budgets-and-caches/p3": {
+    "rows": ["edit.context.map-policy", "map.budget.no-files"]
+  },
+  "edit/token-budgets-and-caches/p4": {
+    "rows": ["edit.context.map-policy", "edit.context.map-summary", "map.cache.tags-mtime", "map.cache.rendered-policy"]
+  },
+  "edit/dependencies-declared-and-installed-roles/p1": {
+    "nonclaim": "provenance",
+    "note": "Python compatibility, authored and generated manifest provenance; pi-maintainer does not ship a Python environment."
+  },
+  "edit/dependencies-declared-and-installed-roles/p2": {
+    "nonclaim": "evidence",
+    "note": "Version-table methodology and meaning of not measured."
+  },
+  "edit/dependencies-declared-and-installed-roles/r3": {
+    "nonclaim": "pi-owned",
+    "note": "Pi owns provider transport and model metadata; no LiteLLM adapter is recreated."
+  },
+  "edit/dependencies-declared-and-installed-roles/r4": {
+    "rows": ["edit.udiff.repair-before-text", "edit.udiff.single-strategy"]
+  },
+  "edit/dependencies-declared-and-installed-roles/r5": {
+    "rows": ["edit.lifecycle.git-port", "edit.context.inventory-port", "git.inventory.tracked-files", "git.dirty.checkpoint-before-edit", "git.commit.stage-whole-files", "git.undo.restore-and-reset"]
+  },
+  "edit/dependencies-declared-and-installed-roles/r6": {
+    "rows": ["edit.context.map-summary", "edit.watch.requests", "map.tags.extract", "map.render.structural-context"]
+  },
+  "edit/dependencies-declared-and-installed-roles/r7": {
+    "rows": ["edit.context.map-summary", "edit.lifecycle.validation-port", "map.tags.extract", "lint.python.checks"]
+  },
+  "edit/dependencies-declared-and-installed-roles/r8": {
+    "rows": ["edit.context.map-summary", "map.tags.extract"]
+  },
+  "edit/dependencies-declared-and-installed-roles/r9": {
+    "rows": ["edit.context.map-summary", "map.rank.lexical-graph"]
+  },
+  "edit/dependencies-declared-and-installed-roles/r10": {
+    "rows": ["edit.context.map-summary", "map.rank.lexical-graph"]
+  },
+  "edit/dependencies-declared-and-installed-roles/r11": {
+    "rows": ["edit.context.map-summary", "map.rank.lexical-graph"]
+  },
+  "edit/dependencies-declared-and-installed-roles/r12": {
+    "rows": ["edit.context.map-summary", "map.cache.tags-mtime"]
+  },
+  "edit/dependencies-declared-and-installed-roles/r13": {
+    "rows": ["edit.context.map-summary", "map.tags.lexical-fallback"]
+  },
+  "edit/dependencies-declared-and-installed-roles/r14": {
+    "nonclaim": "pi-owned",
+    "note": "Pi supplies native token estimation; no Python tiktoken runtime is shipped."
+  },
+  "edit/dependencies-declared-and-installed-roles/r15": {
+    "nonclaim": "pi-owned",
+    "note": "Pi supplies provider tokenization; no Python tokenizers runtime is shipped."
+  },
+  "edit/dependencies-declared-and-installed-roles/r16": {
+    "rows": ["edit.settings.precedence", "edit.model.format-policy"]
+  },
+  "edit/dependencies-declared-and-installed-roles/r17": {
+    "rows": ["edit.authorize.repository-policy", "edit.context.inventory-port", "git.inventory.tracked-files", "edit.watch.filter"]
+  },
+  "edit/dependencies-declared-and-installed-roles/r18": {
+    "rows": ["edit.prompt.images"]
+  },
+  "edit/dependencies-declared-and-installed-roles/r19": {
+    "rows": ["edit.lifecycle.validation-port", "lint.python.checks"]
+  },
+  "edit/dependencies-declared-and-installed-roles/r20": {
+    "nonclaim": "pi-owned",
+    "note": "Pi owns terminal rendering and themes; the Rich renderer is not ported."
+  },
+  "edit/dependencies-declared-and-installed-roles/r21": {
+    "rows": ["edit.commands.argument-completions"]
+  },
+  "edit/dependencies-declared-and-installed-roles/r22": {
+    "rows": ["edit.settings.precedence"]
+  },
+  "edit/dependencies-declared-and-installed-roles/r23": {
+    "rows": ["edit.watch.comments", "edit.watch.requests", "edit.watch.lifecycle"]
+  },
+  "edit/dependencies-declared-and-installed-roles/r24": {
+    "nonclaim": "provenance",
+    "note": "Distribution-version handling records the investigated installation, not edit matching."
+  },
+  "edit/dependencies-declared-and-installed-roles/r25": {
+    "rows": ["edit.lifecycle.validation-port", "lint.run.local-shell"]
+  },
+  "edit/dependencies-declared-and-installed-roles/r26": {
+    "rows": ["edit.lifecycle.validation-port", "lint.run.local-shell"]
+  },
+  "edit/dependencies-declared-and-installed-roles/r27": {
+    "rows": ["edit.lifecycle.validation-port", "lint.run.local-shell"]
+  },
+  "edit/dependencies-declared-and-installed-roles/r28": {
+    "nonclaim": "out-of-scope",
+    "note": "Optional embeddings-based Aider documentation help is outside all four SARs."
+  },
+  "edit/dependencies-declared-and-installed-roles/r29": {
+    "nonclaim": "out-of-scope",
+    "note": "The Streamlit browser adapter is outside all four SARs."
+  },
+  "edit/dependencies-declared-and-installed-roles/r30": {
+    "nonclaim": "out-of-scope",
+    "note": "Web capture and browser automation are outside all four SARs."
+  },
+  "edit/dependencies-declared-and-installed-roles/r31": {
+    "nonclaim": "out-of-scope",
+    "note": "Aider development and benchmark infrastructure is not a shipped SAR."
+  },
+  "edit/dependencies-declared-and-installed-roles/p32": {
+    "nonclaim": "evidence",
+    "note": "Manifest citation ranges supporting the recorded versions above."
+  },
+  "edit/dependencies-declared-and-installed-roles/p33": {
+    "nonclaim": "evidence",
+    "note": "Pointers to dependency metadata and import-edge inventory with static-analysis limits."
+  },
+  "edit/dependencies-declared-and-installed-roles/p34": {
+    "rows": ["edit.factory.no-legacy-tools", "edit.install.complete-runtime", "edit.settings.precedence", "edit.model.format-policy"]
+  },
+  "edit/dependencies-declared-and-installed-roles/p35": {
+    "rows": ["edit.sr.exact-first-match", "edit.udiff.all-occurrences", "edit.patch.update-reconstruction", "edit.io.write-text"]
+  },
+  "edit/packaged-resources-and-installation-failures/p1": {
+    "rows": ["edit.install.complete-runtime", "edit.model.format-policy", "edit.context.map-summary", "map.tags.extract"]
+  },
+  "edit/packaged-resources-and-installation-failures/p2": {
+    "rows": ["edit.install.complete-runtime"]
+  },
+  "edit/packaged-resources-and-installation-failures/p3": {
+    "nonclaim": "evidence",
+    "note": "Manifest exclusions distinguish optional website assets from the required runtime omissions."
+  },
+  "edit/packaged-resources-and-installation-failures/p4": {
+    "rows": ["edit.install.complete-runtime", "edit.factory.select-format", "edit.context.map-summary", "map.tags.extract"]
+  },
+  "edit/packaged-resources-and-installation-failures/p5": {
+    "nonclaim": "meta",
+    "note": "Checkout success is explicitly not proof of isolated package correctness."
+  },
+  "edit/fresh-local-results/r1": {
+    "nonclaim": "evidence",
+    "note": "Saved Aider test totals and limits; these are not verified ledger rows."
+  },
+  "edit/fresh-local-results/r2": {
+    "nonclaim": "evidence",
+    "note": "Saved Aider test totals and limits; these are not verified ledger rows."
+  },
+  "edit/fresh-local-results/r3": {
+    "nonclaim": "evidence",
+    "note": "Saved Aider test totals and limits; these are not verified ledger rows."
+  },
+  "edit/fresh-local-results/r4": {
+    "nonclaim": "evidence",
+    "note": "Saved Aider test totals and limits; these are not verified ledger rows."
+  },
+  "edit/fresh-local-results/p5": {
+    "nonclaim": "evidence",
+    "note": "Saved Aider test totals and limits; these are not verified ledger rows."
+  },
+  "edit/source-backed-cli-checks/p1": {
+    "rows": ["edit.lifecycle.supplied-reply", "edit.lifecycle.failed-apply-outcome", "edit.patch.add-after-approval", "edit.sr.exact-first-match", "edit.whole.overwrite", "edit.udiff.direct-replace", "edit.patch.update-reconstruction"]
+  },
+  "edit/source-backed-cli-checks/p2": {
+    "nonclaim": "evidence",
+    "note": "Probe command settings and literal-response methodology."
+  },
+  "edit/coverage-interpretation/p1": {
+    "rows": [
+      "edit.sr.filename-selection",
+      "edit.sr.malformed-error",
+      "edit.sr.newline-normalization",
+      "edit.sr.leading-whitespace",
+      "edit.sr.exact-first-match",
+      "edit.sr.new-file-name-unmatched",
+      "edit.sr.shell-blocks",
+      "edit.sr.no-fuzzy-content",
+      "edit.lifecycle.apply-order",
+      "edit.dry-run.preserve-files"
+    ]
+  },
+  "edit/coverage-interpretation/p2": {
+    "rows": ["edit.udiff.diff-fences", "edit.udiff.header-filename", "edit.udiff.hunks-ignore-coordinates", "edit.udiff.later-header"]
+  },
+  "edit/coverage-interpretation/p3": {
+    "rows": [
+      "edit.authorize.create-new-file",
+      "edit.whole.overwrite",
+      "edit.prompt.choose-fence",
+      "edit.whole.fallback-filename",
+      "edit.whole.provenance-priority",
+      "edit.context.map-summary",
+      "edit.context.map-policy",
+      "map.tags.extract",
+      "map.render.structural-context",
+      "map.cache.rendered-policy"
+    ]
+  },
+  "edit/coverage-interpretation/p4": {
+    "rows": ["edit.architect.confirm-editor", "edit.architect.fresh-editor-request"]
+  },
+  "edit/coverage-interpretation/p5": {
+    "rows": [
+      "edit.sr.exact-first-match",
+      "edit.sr.leading-whitespace",
+      "edit.sr.no-fuzzy-content",
+      "edit.sr.empty-search-appends",
+      "edit.sr.newline-normalization",
+      "edit.udiff.all-occurrences",
+      "edit.patch.context-fuzz",
+      "edit.patch.add-after-approval",
+      "edit.dry-run.preserve-files"
+    ]
+  },
+  "edit/benchmark-architecture/p1": {
+    "nonclaim": "out-of-scope",
+    "note": "Aider exercise benchmarking and its external-test loop are outside the four product SARs."
+  },
+  "edit/benchmark-architecture/p2": {
+    "nonclaim": "meta",
+    "note": "No benchmark metrics or reliability guarantees are asserted."
+  },
+  "edit/where-things-live/r1": {
+    "nonclaim": "evidence",
+    "note": "Source navigation pointer in the starting-point index, not an additional behavioral assertion."
+  },
+  "edit/where-things-live/r2": {
+    "nonclaim": "evidence",
+    "note": "Source navigation pointer in the starting-point index, not an additional behavioral assertion."
+  },
+  "edit/where-things-live/r3": {
+    "nonclaim": "evidence",
+    "note": "Source navigation pointer in the starting-point index, not an additional behavioral assertion."
+  },
+  "edit/where-things-live/r4": {
+    "nonclaim": "evidence",
+    "note": "Source navigation pointer in the starting-point index, not an additional behavioral assertion."
+  },
+  "edit/where-things-live/r5": {
+    "nonclaim": "evidence",
+    "note": "Source navigation pointer in the starting-point index, not an additional behavioral assertion."
+  },
+  "edit/where-things-live/r6": {
+    "nonclaim": "evidence",
+    "note": "Source navigation pointer in the starting-point index, not an additional behavioral assertion."
+  },
+  "edit/where-things-live/r7": {
+    "nonclaim": "evidence",
+    "note": "Source navigation pointer in the starting-point index, not an additional behavioral assertion."
+  },
+  "edit/where-things-live/r8": {
+    "nonclaim": "evidence",
+    "note": "Source navigation pointer in the starting-point index, not an additional behavioral assertion."
+  },
+  "edit/where-things-live/r9": {
+    "nonclaim": "evidence",
+    "note": "Source navigation pointer in the starting-point index, not an additional behavioral assertion."
+  },
+  "edit/where-things-live/r10": {
+    "nonclaim": "evidence",
+    "note": "Source navigation pointer in the starting-point index, not an additional behavioral assertion."
+  },
+  "edit/where-things-live/r11": {
+    "nonclaim": "evidence",
+    "note": "Source navigation pointer in the starting-point index, not an additional behavioral assertion."
+  },
+  "edit/where-things-live/r12": {
+    "nonclaim": "evidence",
+    "note": "Source navigation pointer in the starting-point index, not an additional behavioral assertion."
+  },
+  "edit/where-things-live/r13": {
+    "nonclaim": "evidence",
+    "note": "Source navigation pointer in the starting-point index, not an additional behavioral assertion."
+  },
+  "edit/where-things-live/r14": {
+    "nonclaim": "evidence",
+    "note": "Source navigation pointer in the starting-point index, not an additional behavioral assertion."
+  },
+  "edit/where-things-live/r15": {
+    "nonclaim": "evidence",
+    "note": "Source navigation pointer in the starting-point index, not an additional behavioral assertion."
+  },
+  "edit/where-things-live/r16": {
+    "nonclaim": "evidence",
+    "note": "Source navigation pointer in the starting-point index, not an additional behavioral assertion."
+  },
+  "edit/where-things-live/r17": {
+    "nonclaim": "evidence",
+    "note": "Source navigation pointer in the starting-point index, not an additional behavioral assertion."
+  },
+  "edit/where-things-live/r18": {
+    "nonclaim": "evidence",
+    "note": "Source navigation pointer in the starting-point index, not an additional behavioral assertion."
+  },
+  "edit/where-things-live/r19": {
+    "nonclaim": "evidence",
+    "note": "Source navigation pointer in the starting-point index, not an additional behavioral assertion."
+  },
+  "edit/gotchas-and-evidence-status/r1": {
+    "rows": ["edit.sr.exact-first-match", "edit.udiff.all-occurrences"]
+  },
+  "edit/gotchas-and-evidence-status/r2": {
+    "rows": ["edit.sr.cross-file-fallback"]
+  },
+  "edit/gotchas-and-evidence-status/r3": {
+    "rows": ["edit.sr.no-fuzzy-content"]
+  },
+  "edit/gotchas-and-evidence-status/r4": {
+    "rows": ["edit.patch.add-after-approval"]
+  },
+  "edit/gotchas-and-evidence-status/r5": {
+    "rows": ["edit.lifecycle.failed-apply-outcome"]
+  },
+  "edit/gotchas-and-evidence-status/r6": {
+    "rows": ["edit.dry-run.preserve-files"]
+  },
+  "edit/gotchas-and-evidence-status/r7": {
+    "rows": ["edit.patch.authorize-move-destination"]
+  },
+  "edit/gotchas-and-evidence-status/r8": {
+    "rows": ["edit.authorize.read-only-reaches-approval"]
+  },
+  "edit/gotchas-and-evidence-status/r9": {
+    "rows": ["edit.authorize.no-root-containment"]
+  },
+  "edit/gotchas-and-evidence-status/r10": {
+    "rows": ["edit.lifecycle.successful-targets"]
+  },
+  "edit/gotchas-and-evidence-status/r11": {
+    "rows": ["edit.sr.empty-result-success", "edit.udiff.empty-result-success"]
+  },
+  "edit/gotchas-and-evidence-status/r12": {
+    "rows": ["edit.udiff.partial-success-note"]
+  },
+  "edit/gotchas-and-evidence-status/r13": {
+    "rows": ["edit.sr.preflight-per-block"]
+  },
+  "edit/gotchas-and-evidence-status/r14": {
+    "rows": ["edit.lifecycle.git-port", "edit.lifecycle.validation-port", "lint.followup.commit-before-validation"]
+  },
+  "edit/gotchas-and-evidence-status/r15": {
+    "rows": ["edit.install.complete-runtime"]
+  },
+  "edit/gotchas-and-evidence-status/r16": {
+    "rows": ["edit.context.map-summary", "map.tags.no-duplicate-final-capture"]
+  },
+  "edit/gotchas-and-evidence-status/r17": {
+    "rows": ["edit.prompt.reminder-budget"]
+  },
+  "edit/gotchas-and-evidence-status/r18": {
+    "rows": ["edit.lifecycle.skip-errored-reply"]
+  },
+  "edit/gotchas-and-evidence-status/p19": {
+    "rows": ["edit.sr.empty-result-success", "edit.udiff.empty-result-success", "edit.whole.overwrite"]
+  },
+  "edit/gotchas-and-evidence-status/p20": {
+    "rows": ["edit.context.map-summary", "map.tags.no-duplicate-final-capture"]
+  },
+  "edit/gotchas-and-evidence-status/p21": {
+    "rows": ["edit.prompt.reminder-budget"]
+  },
+  "edit/behavioral-compatibility-contracts/p1": {
+    "nonclaim": "meta",
+    "note": "Lead-in to the enumerated behavioral contracts."
+  },
+  "edit/behavioral-compatibility-contracts/i2": {
+    "rows": ["edit.factory.select-format"]
+  },
+  "edit/behavioral-compatibility-contracts/i3": {
+    "rows": ["edit.authorize.once-per-path"]
+  },
+  "edit/behavioral-compatibility-contracts/i4": {
+    "rows": ["edit.sr.exact-first-match", "edit.sr.leading-whitespace", "edit.sr.skip-leading-blank", "edit.sr.ellipsis", "edit.sr.cross-file-fallback"]
+  },
+  "edit/behavioral-compatibility-contracts/i5": {
+    "rows": ["edit.whole.provenance-priority", "edit.whole.overwrite"]
+  },
+  "edit/behavioral-compatibility-contracts/i6": {
+    "rows": ["edit.udiff.hunks-ignore-coordinates", "edit.udiff.normalize-dedupe", "edit.udiff.context-reduction", "edit.udiff.all-occurrences"]
+  },
+  "edit/behavioral-compatibility-contracts/i7": {
+    "rows": ["edit.patch.original-indices", "edit.patch.context-fuzz", "edit.patch.verify-deletions"]
+  },
+  "edit/behavioral-compatibility-contracts/i8": {
+    "rows": ["edit.lifecycle.apply-order", "edit.lifecycle.reflect-application-errors", "edit.lifecycle.validation-port", "edit.sr.sequential-writes", "lint.followup.reflect-failures"]
+  },
+  "edit/behavioral-compatibility-contracts/i9": {
+    "rows": ["edit.context.map-summary", "map.rank.lexical-graph", "map.budget.sampled-prefix"]
+  },
+  "edit/behavioral-compatibility-contracts/p10": {
+    "rows": ["edit.dry-run.preserve-files", "edit.patch.add-after-approval"]
+  },
+  "edit/completeness-limits/p1": {
+    "nonclaim": "meta",
+    "note": "Unproven provider, retrieval, concurrency, malformed-input, and filesystem combinations."
+  },
+  "edit/completeness-limits/p2": {
+    "nonclaim": "meta",
+    "note": "Unresolved intent questions; their observed behavior remains claimed in parity rows."
+  },
+  "edit/completeness-limits/p3": {
+    "nonclaim": "meta",
+    "note": "Proposed experiments and the limits of previously recorded test totals."
+  },
+  "edit/source-inventory/p1": {
+    "nonclaim": "provenance",
+    "note": "Investigation source-read methodology and stated completeness limits."
+  },
+  "edit/source-inventory/p2": {
+    "nonclaim": "provenance",
+    "note": "Investigation source-read methodology and stated completeness limits."
+  },
+  "edit/source-inventory/p3": {
+    "nonclaim": "provenance",
+    "note": "Investigation source-read methodology and stated completeness limits."
+  },
+  "edit/saved-evidence/r1": {
+    "nonclaim": "evidence",
+    "note": "Artifact pointer in the saved-evidence index; probe behaviors are separately claimed as ev-edit units."
+  },
+  "edit/saved-evidence/r2": {
+    "nonclaim": "evidence",
+    "note": "Artifact pointer in the saved-evidence index; probe behaviors are separately claimed as ev-edit units."
+  },
+  "edit/saved-evidence/r3": {
+    "nonclaim": "evidence",
+    "note": "Artifact pointer in the saved-evidence index; probe behaviors are separately claimed as ev-edit units."
+  },
+  "edit/saved-evidence/r4": {
+    "nonclaim": "evidence",
+    "note": "Artifact pointer in the saved-evidence index; probe behaviors are separately claimed as ev-edit units."
+  },
+  "edit/saved-evidence/r5": {
+    "nonclaim": "evidence",
+    "note": "Artifact pointer in the saved-evidence index; probe behaviors are separately claimed as ev-edit units."
+  },
+  "edit/saved-evidence/r6": {
+    "nonclaim": "evidence",
+    "note": "Artifact pointer in the saved-evidence index; probe behaviors are separately claimed as ev-edit units."
+  },
+  "edit/saved-evidence/r7": {
+    "nonclaim": "evidence",
+    "note": "Artifact pointer in the saved-evidence index; probe behaviors are separately claimed as ev-edit units."
+  },
+  "edit/saved-evidence/r8": {
+    "nonclaim": "evidence",
+    "note": "Artifact pointer in the saved-evidence index; probe behaviors are separately claimed as ev-edit units."
+  },
+  "edit/saved-evidence/r9": {
+    "nonclaim": "evidence",
+    "note": "Artifact pointer in the saved-evidence index; probe behaviors are separately claimed as ev-edit units."
+  },
+  "edit/saved-evidence/r10": {
+    "nonclaim": "evidence",
+    "note": "Artifact pointer in the saved-evidence index; probe behaviors are separately claimed as ev-edit units."
+  },
+  "edit/saved-evidence/r11": {
+    "nonclaim": "evidence",
+    "note": "Artifact pointer in the saved-evidence index; probe behaviors are separately claimed as ev-edit units."
+  },
+  "edit/saved-evidence/r12": {
+    "nonclaim": "evidence",
+    "note": "Artifact pointer in the saved-evidence index; probe behaviors are separately claimed as ev-edit units."
+  },
+  "edit/saved-evidence/r13": {
+    "nonclaim": "evidence",
+    "note": "Artifact pointer in the saved-evidence index; probe behaviors are separately claimed as ev-edit units."
+  },
+  "edit/saved-evidence/r14": {
+    "nonclaim": "evidence",
+    "note": "Artifact pointer in the saved-evidence index; probe behaviors are separately claimed as ev-edit units."
+  },
+  "edit/saved-evidence/r15": {
+    "nonclaim": "evidence",
+    "note": "Artifact pointer in the saved-evidence index; probe behaviors are separately claimed as ev-edit units."
+  },
+  "edit/saved-evidence/r16": {
+    "nonclaim": "evidence",
+    "note": "Artifact pointer in the saved-evidence index; probe behaviors are separately claimed as ev-edit units."
+  },
+  "edit/saved-evidence/r17": {
+    "nonclaim": "evidence",
+    "note": "Artifact pointer in the saved-evidence index; probe behaviors are separately claimed as ev-edit units."
+  },
+  "edit/saved-evidence/r18": {
+    "nonclaim": "evidence",
+    "note": "Artifact pointer in the saved-evidence index; probe behaviors are separately claimed as ev-edit units."
+  },
+  "edit/saved-evidence/r19": {
+    "nonclaim": "evidence",
+    "note": "Artifact pointer in the saved-evidence index; probe behaviors are separately claimed as ev-edit units."
+  },
+  "edit/saved-evidence/r20": {
+    "nonclaim": "evidence",
+    "note": "Artifact pointer in the saved-evidence index; probe behaviors are separately claimed as ev-edit units."
+  },
+  "edit/reproducible-inspection-commands/p1": {
+    "nonclaim": "evidence",
+    "note": "Reproduction setup instructions distinguish source shadowing from isolated installation."
+  },
+  "edit/reproducible-inspection-commands/c2": {
+    "nonclaim": "evidence",
+    "note": "Commands to reproduce source identity and helper probes."
+  },
+  "edit/reproducible-inspection-commands/p3": {
+    "rows": ["edit.dry-run.preserve-files"]
+  },
+  "edit/reproducible-inspection-commands/p4": {
+    "nonclaim": "meta",
+    "note": "Lead-in to the representative source-test command."
+  },
+  "edit/reproducible-inspection-commands/c5": {
+    "nonclaim": "evidence",
+    "note": "Representative Aider source-test command, not additional executed evidence."
+  },
+  "edit/reproducible-inspection-commands/p6": {
+    "nonclaim": "evidence",
+    "note": "The saved logs are the authority for the recorded run scope and totals."
+  },
+  "edit/reproducible-inspection-commands/p7": {
+    "nonclaim": "meta",
+    "note": "Lead-in to the installed CLI reproduction command."
+  },
+  "edit/reproducible-inspection-commands/c8": {
+    "nonclaim": "evidence",
+    "note": "Command to reproduce isolated installed CLI startup."
+  },
+  "edit/reproducible-inspection-commands/p9": {
+    "nonclaim": "meta",
+    "note": "Lead-in to distribution metadata inspection."
+  },
+  "edit/reproducible-inspection-commands/c10": {
+    "nonclaim": "evidence",
+    "note": "Distribution version inspection command."
+  },
+  "edit/reproducible-inspection-commands/p11": {
+    "rows": [
+      "edit.factory.select-format",
+      "edit.context.fresh-files",
+      "edit.sr.exact-first-match",
+      "edit.udiff.all-occurrences",
+      "edit.io.nonatomic-overwrite",
+      "edit.authorize.once-per-path",
+      "edit.lifecycle.max-reflections",
+      "edit.dry-run.preserve-files",
+      "edit.install.complete-runtime"
+    ]
+  },
+  "ev-edit/cli-apply/patch-add": {
+    "rows": ["edit.lifecycle.supplied-reply", "edit.patch.add-after-approval", "edit.lifecycle.failed-apply-outcome"]
+  },
+  "ev-edit/cli-apply/diff-update": {
+    "rows": ["edit.sr.exact-first-match", "edit.lifecycle.supplied-reply"]
+  },
+  "ev-edit/cli-apply/whole-update": {
+    "rows": ["edit.whole.overwrite", "edit.lifecycle.supplied-reply"]
+  },
+  "ev-edit/cli-apply/udiff-update": {
+    "rows": ["edit.udiff.direct-replace", "edit.lifecycle.supplied-reply"]
+  },
+  "ev-edit/cli-apply/patch-update": {
+    "rows": ["edit.patch.update-reconstruction", "edit.lifecycle.supplied-reply"]
+  },
+  "aider-test/test_watch/test_gitignore_patterns": {
+    "rows": ["edit.watch.filter"]
+  },
+  "aider-test/test_watch/test_get_roots_to_watch": {
+    "rows": ["edit.watch.roots"]
+  },
+  "aider-test/test_watch/test_handle_changes": {
+    "rows": ["edit.watch.changes"]
+  },
+  "aider-test/test_watch/test_ai_comment_pattern": {
+    "rows": ["edit.watch.comments"]
+  },
+  "aider-test/test_main/TestMain.test_env_file_override": {
+    "rows": ["edit.settings.dotenv-overlay"]
+  },
+  "aider-test/test_main/TestMain.test_load_dotenv_files_override": {
+    "rows": ["edit.settings.dotenv-overlay"]
+  },
+  "aider-test/test_main/TestMain.test_encodings_arg": {
+    "rows": ["edit.settings.encoding"]
   }
 }
