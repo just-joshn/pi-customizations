@@ -4,6 +4,7 @@ import { chatFilesOf } from '../core/branch.ts';
 import { getRelFname, inchatRelativeFiles } from '../core/chat-files.ts';
 import type { CommandEnv, CommandSpec } from '../core/command.ts';
 import { type EditFormatName, isEditFormatName } from '../feature.ts';
+import { transferModeSelection } from './factory.ts';
 import { addFiles, applySelection, dropAll, dropMatches, ModeSwitchError, readOnlyFiles, type SelectionEnv, saveSelectionCommands, selectionFromSnapshot } from './selection.ts';
 
 function selectionEnv(env: CommandEnv): SelectionEnv {
@@ -44,10 +45,10 @@ async function completeDrop(prefix: string, env: CommandEnv): Promise<readonly s
 
 async function runChatMode(args: string, env: CommandEnv, format: EditFormatName): Promise<void> {
   if (!args.trim()) {
-    env.save({ ...env.snapshot, mode: format, returnMode: null });
+    env.save(transferModeSelection(env.snapshot, format));
     return;
   }
-  env.save({ ...env.snapshot, mode: format, returnMode: env.snapshot.mode });
+  env.save(transferModeSelection(env.snapshot, format, { oneShot: true }));
   await env.sendUserMessage(args);
 }
 

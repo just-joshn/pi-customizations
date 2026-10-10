@@ -3,7 +3,9 @@ import { homedir } from 'node:os';
 import type { ContextWithSystemEvent, ExtensionAPI, ExtensionContext, ModelRouteRequest, SessionBoundaryDraft, TurnEndEvent } from '@earendil-works/pi-coding-agent';
 import { Text } from '@earendil-works/pi-tui';
 import { BRANDING } from '../branding.ts';
+import { selectEditFormat } from '../edit/factory.ts';
 import { editOptions } from '../edit/options.ts';
+import { textFromAssistantContent } from '../edit/reasoning.ts';
 import { admitInitialEditable, readMessageFile } from '../edit/startup-input.ts';
 import { createPorts, type Ports, type SarFeature } from '../feature.ts';
 import { formatSettings } from '../settings/format-settings.ts';
@@ -13,7 +15,6 @@ import { flagRegistrations } from '../settings/sources.ts';
 import type { AnyOptionSpec } from '../settings/spec.ts';
 import { restore, type Snapshot } from './branch.ts';
 import { absRootPath, findCommonRoot } from './chat-files.ts';
-import { textFromAssistantContent } from '../edit/reasoning.ts';
 import { type CompletedReply, type DialogueFact, ExchangeController } from './exchange.ts';
 import { journaledTree } from './mutations.ts';
 import { createHost } from './pi-host.ts';
@@ -78,7 +79,7 @@ async function initialSnapshot(ports: Ports, cwd: string, append: (data: unknown
     schema: 1,
     kind: 'snapshot',
     root,
-    mode: ports.edit.requestedFormat ?? 'whole',
+    mode: ports.edit.requestedFormat ?? selectEditFormat(ports.edit.formats, null, { modelDefault: 'whole' }).name,
     phase: { kind: 'main' },
     files: { editable: [...new Set(editable)], readOnly: [...new Set(readOnly)] },
     originalReadOnly: [...new Set(readOnly)],

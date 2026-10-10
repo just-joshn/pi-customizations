@@ -2680,10 +2680,23 @@
         "aider/coders/__init__.py:1-34"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.registerFlag",
+        "pi.registerCommand"
+      ],
+      "src": [
+        "src/edit/factory.ts",
+        "src/edit/feature.ts",
+        "src/core/install.ts"
+      ],
+      "tests": [
+        "test/edit/factory-bind.test.ts::UnknownEditFormat message names the requested format and valid formats",
+        "test/edit/factory-bind.test.ts::selectEditFormat returns the registered protocol for each explicit name",
+        "test/edit/factory-bind.test.ts::code and null resolve to the inherited or model-default format",
+        "test/edit/factory-bind.test.ts::unknown edit format creation fails with the requested name and valid formats",
+        "test/edit/factory-bind.test.ts::invalid --edit-format choice reports the requested name"
+      ]
     },
     {
       "id": "edit.factory.transfer-selection",
@@ -2693,10 +2706,19 @@
         "aider/coders/base_coder.py:148-185"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.registerCommand",
+        "pi.appendEntry"
+      ],
+      "src": [
+        "src/edit/factory.ts",
+        "src/edit/commands.ts"
+      ],
+      "tests": [
+        "test/edit/factory-bind.test.ts::mode transfer preserves editable paths, read-only paths, and declined mentions",
+        "test/edit/factory-bind.test.ts::/ask then /code keep the chat file selection on the active exchange"
+      ]
     },
     {
       "id": "edit.factory.prompt-variants",
@@ -2710,10 +2732,17 @@
         "aider/coders/editor_diff_fenced_coder.py:5-9"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/feature.ts",
+        "src/edit/modes.ts"
+      ],
+      "tests": [
+        "test/edit/factory-bind.test.ts::diff-fenced, udiff-simple, and editor variants share parent apply paths with their own prompts"
+      ]
     },
     {
       "id": "edit.factory.ask-no-writes",
@@ -2749,10 +2778,20 @@
         "aider/coders/single_wholefile_func_coder.py:37-39"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.setActiveTools",
+        "pi.on('tool_call')",
+        "pi.on('before_agent_start')"
+      ],
+      "src": [
+        "src/edit/feature.ts",
+        "src/edit/factory.ts",
+        "src/core/install.ts"
+      ],
+      "tests": [
+        "test/edit/factory-bind.test.ts::active edit modes accept reply-text protocols and omit historical replace_lines tools"
+      ]
     },
     {
       "id": "edit.lifecycle.reset-turn",
