@@ -13,7 +13,7 @@ export function sanitizeOpenApiParameters(schema: unknown): unknown {
     next[key] = sanitizeOpenApiParameters(value);
   }
   if (constValue !== undefined) {
-    next.enum = mergeEnum(next.enum, constValue);
+    next['enum'] = mergeEnum(next['enum'], constValue);
   }
   return next;
 }

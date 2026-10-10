@@ -42,7 +42,7 @@ const SaveParameters = Type.Object(
   {
     ...Identity,
     revision: Type.String({ pattern: '^[a-f0-9]{64}$' }),
-    ...AutomationSchema.properties,
+    ...(AutomationSchema as unknown as { properties: Record<string, unknown> }).properties,
   },
   { additionalProperties: false },
 );
