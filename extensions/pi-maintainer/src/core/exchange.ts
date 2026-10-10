@@ -2,6 +2,7 @@ import { ValueError } from '../edit/errors.ts';
 import { defaultFence, type Fence } from '../edit/fences.ts';
 import { intentPaths } from '../edit/intents.ts';
 import { contextPrompts } from '../edit/prompts/context.ts';
+import { replyTextForEdits } from '../edit/reasoning.ts';
 import type { EditCandidate, EditContext, EditIntent, EditPlan, PathEdit, Ports } from '../feature.ts';
 import { pythonSorted } from '../support/python-sort.ts';
 import { chatFilesOf, type Snapshot } from './branch.ts';
@@ -35,6 +36,8 @@ export interface ExchangeEnv {
   readonly policy?: PromptPolicy | undefined;
   /** Resolve `--editor-model` against the host registry, or null when unavailable. */
   readonly resolveEditorModel?: (name: string | null, main: { provider: string; id: string }) => { provider: string; id: string } | null;
+  /** Aider `reasoning_tag_name`. Undefined falls back to `REASONING_TAG`. */
+  readonly reasoningTag?: string;
 }
 
 const MAX_REFLECTIONS = 3;
@@ -126,6 +129,7 @@ export class ExchangeController {
       return { dialogue: [], continue: false };
     }
     if (this.#state.lifecycle.kind !== 'active') return { dialogue: [], continue: false };
+    reply = { ...reply, text: replyTextForEdits(reply.text, this.#env.reasoningTag) };
     if (this.#state.mode === 'context' || (this.#state.mode === 'architect' && this.#state.phase.kind === 'main')) {
       const modeDecision = this.#state.mode === 'context' ? await this.completeContext(reply, signal) : await this.completeArchitect(reply, signal);
       if (modeDecision !== null) return modeDecision;

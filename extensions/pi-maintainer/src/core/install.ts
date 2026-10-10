@@ -13,6 +13,7 @@ import { flagRegistrations } from '../settings/sources.ts';
 import type { AnyOptionSpec } from '../settings/spec.ts';
 import { restore, type Snapshot } from './branch.ts';
 import { absRootPath, findCommonRoot } from './chat-files.ts';
+import { textFromAssistantContent } from '../edit/reasoning.ts';
 import { type CompletedReply, type DialogueFact, ExchangeController } from './exchange.ts';
 import { journaledTree } from './mutations.ts';
 import { createHost } from './pi-host.ts';
@@ -43,10 +44,7 @@ function completedReply(event: TurnEndEvent): CompletedReply {
   return {
     kind: 'complete',
     id: event.messageEntryId,
-    text: message.content
-      .filter((block) => block.type === 'text')
-      .map((block) => block.text)
-      .join(''),
+    text: textFromAssistantContent(message.content),
   };
 }
 

@@ -1884,10 +1884,22 @@
         "aider/coders/base_coder.py:1521-1522,1986-1992"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')",
+        "ThinkingContent (type: thinking) omitted from reply text"
+      ],
+      "src": [
+        "src/edit/reasoning.ts",
+        "src/core/exchange.ts",
+        "src/core/install.ts"
+      ],
+      "tests": [
+        "test/edit/reasoning-bind.test.ts::removeReasoningContent drops paired tags and text before a stray closing tag",
+        "test/edit/reasoning-bind.test.ts::Pi thinking content blocks are omitted from reply text before edits",
+        "test/edit/reasoning-bind.test.ts::think tags are stripped from the reply before edits apply",
+        "test/edit/reasoning-bind.test.ts::default reply tag strips REASONING_TAG wrappers before edits"
+      ]
     },
     {
       "id": "edit.reasoning.strip-auxiliary-replies",
@@ -1898,10 +1910,16 @@
         "aider/reasoning_tags.py:14-40"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "ctx.modelRegistry (aux call boundary; strip before commit-message consumers)"
+      ],
+      "src": [
+        "src/edit/reasoning.ts"
+      ],
+      "tests": [
+        "test/edit/reasoning-bind.test.ts::auxiliary replies strip the model reasoning tag"
+      ]
     },
     {
       "id": "edit.lifecycle.apply-order",
