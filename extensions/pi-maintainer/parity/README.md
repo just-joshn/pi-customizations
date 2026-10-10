@@ -1,6 +1,6 @@
 # pi-maintainer parity ledger
 
-pi-maintainer targets behavioral parity with Aider at commit `5dc9490bb35f9729ef2c95d00a19ccd30c26339c` through Pi mechanisms. This directory defines the evidence required to establish parity. The ledger and coverage map are not yet complete.
+pi-maintainer targets behavioral parity with Aider at commit `5dc9490bb35f9729ef2c95d00a19ccd30c26339c` through Pi mechanisms. This directory defines the evidence required to establish parity. The edit obligation map is complete. Git, map, and lint coverage remain for their later SARs. All real ledger rows remain open.
 
 The coverage gate requires every census unit to map to a ledger row or a justified non-claim. Coverage records obligations, not completed implementations. A complete edit obligation map can have zero uncovered units while `--feature edit` still fails on open rows.
 
@@ -50,6 +50,8 @@ This split does not change shared-test ownership. A test that actually needs two
 
 `--feature <sar>` requires a `meta.aider` or `meta.evidence` tag for each claimed test or evidence unit in its slice. `--final` requires those tags for every claimed test and evidence unit. A tag alone does not prove behavior. Ported tests assert literal outcomes through the public contract.
 
+The shared-test audit reads all 212 pinned test bodies. Their owners are edit 152, git 47, map 9, and lint 4. Temporary Git setup alone does not make a test Git-owned. Assertions about repository inventory, tracked promotion, dirty state, or Git options do. The outside-root add test and the two dotenv-overlay tests operate on an option or supplied-root boundary without needing Git behavior. Four mention tests mock repository inventory and assert only edit-side path selection. All seven tests are edit-owned.
+
 ## Fresh runner evidence
 
 Every feature and final gate runs the package's real Vitest suite. Any nonzero subprocess status, runner error, missing report, invalid JSON, unsuccessful report, failed suite, or failed assertion fails the gate. Unrelated failures cannot be ignored because a ledger's referenced assertions pass.
@@ -80,6 +82,7 @@ Every feature and final gate runs the package's real Vitest suite. Any nonzero s
 - `aider` lists source coordinates `path:lines` at the pinned commit. Copy them from the documents or read the checkout.
 - `kind` is `parity`, or `fix` for a documented defect or documentation-versus-code mismatch. A `fix` row also carries `"fix": { "defect": "...", "intent": "...", "behavior": "..." }`. `defect` states the documented problem. `intent` cites the evidence of what Aider meant (help text, documentation, a test name, a prompt, a comment). `behavior` states what pi-maintainer does instead, which must be the intended behavior.
 - `status` is `open` until the implementation lands and its tests pass, then `verified`.
+- A `fix` specifies the intended behavior instead of the source defect. Preserved parity rows still describe unrelated source semantics. For example, dry-run fixes suppress persistence while retaining ordinary patch deletion and move behavior. Empty-result fixes retain each format's matching policy while treating an empty successful result as success. The cumulative-preflight fix retains SEARCH/REPLACE matching but predicts targets using earlier blocks' virtual results.
 - `pi`, `src`, and `tests` are filled during implementation. `pi` names Pi mechanisms such as `pi.on('turn_end')`. `src` lists package files. `tests` lists `<test file>::<test title>`.
 
 ## Coverage

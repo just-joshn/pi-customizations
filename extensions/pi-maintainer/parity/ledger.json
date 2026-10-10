@@ -145,8 +145,8 @@
       "kind": "parity",
       "status": "open",
       "pi": [],
-      "src": ["src/edit/working-tree.ts"],
-      "tests": ["test/working-tree-read.oracle.test.ts::reads Aider text *"]
+      "src": [],
+      "tests": []
     },
     {
       "id": "edit.io.write-text",
@@ -155,9 +155,9 @@
       "aider": ["aider/io.py:478-494"],
       "kind": "parity",
       "status": "open",
-      "pi": ["withFileMutationQueue"],
-      "src": ["src/edit/working-tree.ts"],
-      "tests": ["test/working-tree.test.ts::writes configured *", "test/working-tree.test.ts::writes UTF-16LE file bytes"]
+      "pi": [],
+      "src": [],
+      "tests": []
     },
     {
       "id": "edit.io.write-retry-errors",
@@ -166,9 +166,9 @@
       "aider": ["aider/io.py:491-515"],
       "kind": "parity",
       "status": "open",
-      "pi": ["withFileMutationQueue"],
-      "src": ["src/edit/working-tree.ts"],
-      "tests": ["test/working-tree.test.ts::reports a write failure when the parent directory is missing"]
+      "pi": [],
+      "src": [],
+      "tests": []
     },
     {
       "id": "edit.io.nonatomic-overwrite",
@@ -177,8 +177,8 @@
       "aider": ["aider/io.py:491-515", "aider/coders/wholefile_coder.py:124-128"],
       "kind": "parity",
       "status": "open",
-      "pi": ["withFileMutationQueue"],
-      "src": ["src/edit/working-tree.ts"],
+      "pi": [],
+      "src": [],
       "tests": []
     },
     {
@@ -629,7 +629,7 @@
     {
       "id": "edit.udiff.repair-before-text",
       "feature": "edit",
-      "behavior": "When direct replacement fails, the before text is rebuilt from the file through diff-match-patch line diffing, and the rebuilt text is used only if it keeps at least ten non-whitespace characters and two thirds of the original before lines.",
+      "behavior": "When direct replacement fails, the before text is rebuilt from the file through diff-match-patch line diffing, and the rebuilt text is used only if it keeps at least ten non-whitespace characters and 66 percent of the original before lines.",
       "aider": ["aider/coders/udiff_coder.py:158,209-240", "aider/coders/search_replace.py:406-431"],
       "kind": "parity",
       "status": "open",
@@ -2066,6 +2066,352 @@
       "feature": "edit",
       "behavior": "An empty notification changes no watcher state, while nonempty notifications retain distinct changed paths and interrupt waiting input.",
       "aider": ["aider/watch.py:135-143"],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "edit.input.empty-selection",
+      "feature": "edit",
+      "behavior": "A controller can start with an empty editable-file selection and finish a no-message invocation without requiring workspace discovery.",
+      "aider": ["aider/coders/base_coder.py:365-366,409-421,475-476", "aider/main.py:1153-1155"],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "edit.input.initial-files",
+      "feature": "edit",
+      "behavior": "Supplied missing editable files are created and selected, while paths that cannot be created or are not ordinary files are diagnosed and excluded.",
+      "aider": ["aider/coders/base_coder.py:448-473"],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "edit.input.message-file",
+      "feature": "edit",
+      "behavior": "A one-shot message file is read with the configured encoding and enters the ordinary request path as its literal text, with read failures reported to the caller.",
+      "aider": ["aider/main.py:1126-1151"],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "edit.prompt.system-prefix",
+      "feature": "edit",
+      "behavior": "A configured model system-prompt prefix appears before the formatted edit instructions.",
+      "aider": ["aider/coders/base_coder.py:1226-1230"],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "edit.prompt.normalize-language",
+      "feature": "edit",
+      "behavior": "Language names pass through unchanged, locale identifiers become readable language names, empty or C or POSIX values produce no language, and unknown identifiers remain unchanged.",
+      "aider": ["aider/coders/base_coder.py:1048-1092"],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "edit.prompt.language-precedence",
+      "feature": "edit",
+      "behavior": "Reply language comes from an explicit chat-language setting, then system locale, then LANG, LANGUAGE, LC_ALL, or LC_MESSAGES in order with encoding suffixes removed.",
+      "aider": ["aider/coders/base_coder.py:1094-1125"],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "edit.prompt.reply-language",
+      "feature": "edit",
+      "behavior": "The resolved chat language is included in platform context and formatted edit prompts as the requested reply language.",
+      "aider": ["aider/coders/base_coder.py:1139-1141,1181-1222"],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "edit.mentions.extract-paths",
+      "feature": "edit",
+      "behavior": "Mention matching strips terminal sentence punctuation and quote, backtick, asterisk, or underscore characters, normalizes slashes, and by default infers only unique descriptive basenames absent from editable or read-only context.",
+      "aider": ["aider/coders/base_coder.py:1714-1759"],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "edit.mentions.confirm-and-remember",
+      "feature": "edit",
+      "behavior": "New file mentions are offered in sorted order, approved files enter editable context and request another reply, and declined paths are not offered again in that session.",
+      "aider": ["aider/coders/base_coder.py:1761-1781"],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "edit.shell.suggestion-setting",
+      "feature": "edit",
+      "behavior": "Shell suggestions default on, and disabling them suppresses suggestion instructions and dispatch of parsed command blocks to the execution port.",
+      "aider": ["aider/coders/base_coder.py:329,360,1187-1196,2434-2448"],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "edit.shell.forward-blocks",
+      "feature": "edit",
+      "behavior": "SEARCH/REPLACE shell fences are extracted from the reply and passed once per distinct block to the execution port rather than applied as file edits.",
+      "aider": ["aider/coders/editblock_coder.py:21-36", "aider/coders/base_coder.py:2434-2448"],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "edit.commands.add-literal",
+      "feature": "edit",
+      "behavior": "Add accepts quoted, absolute, root-relative, and literal special-character file paths and includes only readable files in editable context.",
+      "aider": ["aider/commands.py:799-820,846-903"],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "edit.commands.add-glob",
+      "feature": "edit",
+      "behavior": "Add expands glob or directory arguments under the root, escapes existing directory metacharacters, and uses the repository port to filter glob results when enabled.",
+      "aider": ["aider/commands.py:765-825"],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "edit.commands.create-unmatched",
+      "feature": "edit",
+      "behavior": "An unmatched non-wildcard add argument asks to create its parent directories and empty file, while wildcard arguments report no match and create nothing.",
+      "aider": ["aider/commands.py:827-844"],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "edit.commands.add-root-policy",
+      "feature": "edit",
+      "behavior": "Add refuses a non-image path outside the root when automatic commits are enabled, even without an active repository.",
+      "aider": ["aider/commands.py:849-857"],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "edit.commands.drop-matches",
+      "feature": "edit",
+      "behavior": "Drop removes matching editable or read-only paths using root-relative globs, path substrings, tilde expansion, or same-file checks without deleting files.",
+      "aider": ["aider/commands.py:912-965"],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "edit.commands.drop-all",
+      "feature": "edit",
+      "behavior": "Bare drop clears editable files and later-added read-only files while retaining originally supplied read-only files, including after a mode clone.",
+      "aider": ["aider/commands.py:417-433,915-923", "aider/coders/base_coder.py:168-185"],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "edit.commands.reset",
+      "feature": "edit",
+      "behavior": "Reset clears maintainer conversation context and the drop-all file selection without deleting working-tree files.",
+      "aider": ["aider/commands.py:411-443"],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "edit.commands.read-only-paths",
+      "feature": "edit",
+      "behavior": "Read-only accepts literal, quoted, tilde-expanded, external, and recursive-glob paths, diagnoses unmatched patterns, and adds matching reference files without editable permission.",
+      "aider": ["aider/commands.py:1328-1376,1399-1416"],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "edit.commands.read-only-conversion",
+      "feature": "edit",
+      "behavior": "Read-only converts selected editable files to reference files and converts all editable files when no argument is supplied.",
+      "aider": ["aider/commands.py:1328-1337,1378-1397"],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "edit.commands.read-only-images",
+      "feature": "edit",
+      "behavior": "Read-only image selection is refused for a model without vision support and otherwise includes the image in labeled reference context.",
+      "aider": ["aider/commands.py:1378-1397", "aider/coders/base_coder.py:779-855"],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "edit.commands.save-selection",
+      "feature": "edit",
+      "behavior": "Save writes reconstruction commands for editable and read-only selections using relative in-root paths and absolute external reference paths in sorted order.",
+      "aider": ["aider/commands.py:1497-1522"],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "edit.commands.load-selection",
+      "feature": "edit",
+      "behavior": "Load executes nonblank noncomment command-file lines in order and diagnoses and skips interactive-only mode-switch commands while continuing the file.",
+      "aider": ["aider/commands.py:1465-1492"],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "edit.commands.file-token-listing",
+      "feature": "edit",
+      "behavior": "Context-usage output lists each selected editable and read-only filename with its native token estimate and a drop hint.",
+      "aider": ["aider/commands.py:484-506,508-551"],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "edit.commands.model-format-switch",
+      "feature": "edit",
+      "behavior": "Switching the main model preserves editor and weak model selections and an explicit edit format, but replaces the old model-default edit format with the new model default.",
+      "aider": ["aider/commands.py:87-112"],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "edit.commands.editor-model-switch",
+      "feature": "edit",
+      "behavior": "Switching the editor model preserves the main and weak model selections for the next mode reconstruction.",
+      "aider": ["aider/commands.py:114-124"],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "edit.commands.one-shot-ask",
+      "feature": "edit",
+      "behavior": "Ask with text runs one no-edit question against transferred context and then returns to the prior edit mode without format-change summarization.",
+      "aider": ["aider/commands.py:1182-1184,1206-1230"],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "edit.settings.environment-pairs",
+      "feature": "edit",
+      "behavior": "Repeatable NAME=value settings trim the name and value, retain internal spaces, and reject missing separators with a failure result in the extension environment overlay.",
+      "aider": ["aider/main.py:589-600"],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "edit.settings.diagnostics",
+      "feature": "edit",
+      "behavior": "Verbose configuration output identifies loaded dotenv files and resolved option values without claiming provider credentials as extension-owned state.",
+      "aider": ["aider/main.py:487-504,674-678,745-751", "aider/format_settings.py:12-26"],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "edit.settings.redact-secrets",
+      "feature": "edit",
+      "behavior": "Configuration diagnostics redact credential values from repeatable provider-key options and environment overlays rather than exposing them in verbose output or command logs.",
+      "aider": ["aider/format_settings.py:1-26", "aider/main.py:589-618,745-751"],
+      "kind": "fix",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": [],
+      "fix": {
+        "defect": "format_settings scrubs only the two legacy provider-key flags, then prints every argument, so repeatable api_key values and credential-bearing set_env values can remain visible.",
+        "intent": "The Replace sensitive information comment and scrub_sensitive_info function at aider/format_settings.py:1-9 establish redaction intent; aider/main.py:745-751 uses that scrubber for verbose settings and command logging.",
+        "behavior": "Configuration diagnostics redact credential values from repeatable provider-key options and environment overlays rather than exposing them in verbose output or command logs."
+      }
+    },
+    {
+      "id": "map.model.mapping-policy",
+      "feature": "map",
+      "behavior": "Repository mapping defaults off unless model policy enables it through packaged settings or generic name and edit-format heuristics.",
+      "aider": ["aider/models.py:128-161,385-606"],
       "kind": "parity",
       "status": "open",
       "pi": [],

@@ -736,7 +736,7 @@
     "rows": ["edit.lifecycle.supplied-reply"]
   },
   "edit/format-selection-and-complete-dispatch/p1": {
-    "rows": ["edit.factory.select-format", "edit.context.map-policy", "map.budget.explicit-enable", "edit.model.format-policy"]
+    "rows": ["edit.factory.select-format", "edit.context.map-policy", "map.budget.explicit-enable", "edit.model.format-policy", "map.model.mapping-policy"]
   },
   "edit/format-selection-and-complete-dispatch/r2": {
     "rows": ["edit.factory.select-format", "edit.sr.parse-blocks"]
@@ -1413,5 +1413,510 @@
   },
   "aider-test/test_main/TestMain.test_encodings_arg": {
     "rows": ["edit.settings.encoding"]
+  },
+  "aider-test/test_coder/TestCoder.test_get_files_content": {
+    "rows": ["edit.context.fresh-files"]
+  },
+  "aider-test/test_coder/TestCoder.test_check_for_file_mentions_with_mocked_confirm": {
+    "rows": ["edit.mentions.confirm-and-remember"]
+  },
+  "aider-test/test_coder/TestCoder.test_get_file_mentions_various_formats": {
+    "rows": ["edit.mentions.extract-paths"]
+  },
+  "aider-test/test_coder/TestCoder.test_get_file_mentions_multiline_backticks": {
+    "rows": ["edit.mentions.extract-paths"]
+  },
+  "aider-test/test_coder/TestCoder.test_get_file_mentions_path_formats": {
+    "rows": ["edit.mentions.extract-paths"]
+  },
+  "aider-test/test_coder/TestCoder.test_run_with_file_deletion": {
+    "rows": ["edit.context.fresh-files"]
+  },
+  "aider-test/test_coder/TestCoder.test_run_with_file_unicode_error": {
+    "rows": ["edit.context.fresh-files", "edit.io.read-text"]
+  },
+  "aider-test/test_coder/TestCoder.test_choose_fence": {
+    "rows": ["edit.prompt.choose-fence"]
+  },
+  "aider-test/test_coder/TestCoder.test_run_with_file_utf_unicode_error": {
+    "rows": ["edit.context.fresh-files", "edit.settings.encoding", "edit.io.read-text"]
+  },
+  "aider-test/test_coder/TestCoder.test_check_for_urls": {
+    "nonclaim": "out-of-scope",
+    "note": "Automatic web scraping and URL capture are outside the four SARs."
+  },
+  "aider-test/test_coder/TestCoder.test_suggest_shell_commands": {
+    "rows": ["edit.sr.shell-blocks", "edit.shell.forward-blocks"]
+  },
+  "aider-test/test_coder/TestCoder.test_no_suggest_shell_commands": {
+    "rows": ["edit.shell.suggestion-setting"]
+  },
+  "aider-test/test_coder/TestCoder.test_detect_urls_enabled": {
+    "nonclaim": "out-of-scope",
+    "note": "URL detection and scraper invocation are outside the four SARs."
+  },
+  "aider-test/test_coder/TestCoder.test_detect_urls_disabled": {
+    "nonclaim": "out-of-scope",
+    "note": "URL capture controls are outside the four SARs."
+  },
+  "aider-test/test_coder/TestCoder.test_unknown_edit_format_exception": {
+    "rows": ["edit.factory.select-format"]
+  },
+  "aider-test/test_coder/TestCoder.test_unknown_edit_format_creation": {
+    "rows": ["edit.factory.select-format"]
+  },
+  "aider-test/test_coder/TestCoder.test_system_prompt_prefix": {
+    "rows": ["edit.prompt.system-prefix"]
+  },
+  "aider-test/test_coder/TestCoder.test_coder_create_with_new_file_oserror": {
+    "rows": ["edit.input.initial-files"]
+  },
+  "aider-test/test_coder/TestCoder.test_show_exhausted_error": {
+    "nonclaim": "pi-owned",
+    "note": "Pi reports model context exhaustion and native input and output token usage."
+  },
+  "aider-test/test_coder/TestCoder.test_keyboard_interrupt_handling": {
+    "rows": ["edit.lifecycle.skip-interrupted-reply"]
+  },
+  "aider-test/test_coder/TestCoder.test_token_limit_error_handling": {
+    "rows": ["edit.lifecycle.skip-truncated-reply"]
+  },
+  "aider-test/test_coder/TestCoder.test_message_sanity_after_partial_response": {
+    "rows": ["edit.lifecycle.skip-interrupted-reply"]
+  },
+  "aider-test/test_coder/TestCoder.test_normalize_language": {
+    "rows": ["edit.prompt.normalize-language"]
+  },
+  "aider-test/test_coder/TestCoder.test_get_user_language": {
+    "rows": ["edit.prompt.language-precedence"]
+  },
+  "aider-test/test_coder/TestCoder.test_architect_coder_auto_accept_true": {
+    "rows": ["edit.architect.confirm-editor", "edit.architect.fresh-editor-request"]
+  },
+  "aider-test/test_coder/TestCoder.test_architect_coder_auto_accept_false_confirmed": {
+    "rows": ["edit.architect.confirm-editor", "edit.architect.fresh-editor-request"]
+  },
+  "aider-test/test_coder/TestCoder.test_architect_coder_auto_accept_false_rejected": {
+    "rows": ["edit.architect.confirm-editor"]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_add": {
+    "rows": ["edit.commands.create-unmatched", "edit.commands.add-literal"]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_copy": {
+    "nonclaim": "out-of-scope",
+    "note": "Copying assistant output to the system clipboard is outside the four SARs."
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_copy_with_cur_messages": {
+    "nonclaim": "out-of-scope",
+    "note": "Clipboard reply selection and empty-history diagnostics are outside the four SARs."
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_copy_pyperclip_exception": {
+    "nonclaim": "out-of-scope",
+    "note": "Clipboard dependency failure is outside the four SARs."
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_add_bad_glob": {
+    "rows": ["edit.commands.add-glob", "edit.commands.create-unmatched"]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_add_with_glob_patterns": {
+    "rows": ["edit.commands.add-glob"]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_add_no_match": {
+    "rows": ["edit.commands.create-unmatched"]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_add_no_match_but_make_it": {
+    "rows": ["edit.commands.create-unmatched", "edit.commands.add-literal"]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_add_drop_directory": {
+    "rows": ["edit.commands.add-glob", "edit.commands.drop-matches"]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_drop_with_glob_patterns": {
+    "rows": ["edit.commands.drop-matches"]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_drop_without_glob": {
+    "rows": ["edit.commands.drop-matches"]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_add_bad_encoding": {
+    "rows": ["edit.commands.add-literal", "edit.io.read-text"]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_tokens": {
+    "rows": ["edit.commands.file-token-listing"]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_add_from_outside_root": {
+    "rows": ["edit.commands.add-root-policy"]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_add_filename_with_special_chars": {
+    "rows": ["edit.commands.add-literal"]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_add_dirname_with_special_chars": {
+    "rows": ["edit.commands.add-glob"]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_add_abs_filename": {
+    "rows": ["edit.commands.add-literal"]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_add_quoted_filename": {
+    "rows": ["edit.commands.add-literal"]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_save_and_load": {
+    "rows": ["edit.commands.save-selection", "edit.commands.load-selection", "edit.commands.reset"]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_save_and_load_with_external_file": {
+    "rows": ["edit.commands.save-selection", "edit.commands.load-selection", "edit.commands.read-only-paths"]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_save_and_load_with_multiple_external_files": {
+    "rows": ["edit.commands.save-selection", "edit.commands.load-selection", "edit.commands.read-only-paths"]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_read_only_with_image_file": {
+    "rows": ["edit.commands.read-only-images", "edit.prompt.images"]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_read_only_with_glob_pattern": {
+    "rows": ["edit.commands.read-only-paths"]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_read_only_with_recursive_glob": {
+    "rows": ["edit.commands.read-only-paths"]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_read_only_with_nonexistent_glob": {
+    "rows": ["edit.commands.read-only-paths"]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_add_unicode_error": {
+    "rows": ["edit.commands.add-literal", "edit.io.read-text"]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_think_tokens": {
+    "nonclaim": "pi-owned",
+    "note": "Pi owns thinking controls and provider reasoning budgets; no Aider extra_params mutation is ported."
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_read_only": {
+    "rows": ["edit.commands.read-only-paths", "edit.commands.drop-matches"]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_read_only_with_external_file": {
+    "rows": ["edit.commands.read-only-paths", "edit.commands.drop-matches"]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_drop_read_only_with_relative_path": {
+    "rows": ["edit.commands.drop-matches"]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_read_only_bulk_conversion": {
+    "rows": ["edit.commands.read-only-conversion"]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_read_only_with_multiple_files": {
+    "rows": ["edit.commands.read-only-paths", "edit.commands.drop-matches"]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_read_only_with_tilde_path": {
+    "rows": ["edit.commands.read-only-paths", "edit.commands.drop-matches"]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_read_only_with_square_brackets": {
+    "rows": ["edit.commands.read-only-paths", "edit.commands.drop-matches"]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_model": {
+    "rows": ["edit.commands.model-format-switch"]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_model_preserves_explicit_edit_format": {
+    "rows": ["edit.commands.model-format-switch"]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_editor_model": {
+    "rows": ["edit.commands.editor-model-switch"]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_model_updates_default_edit_format": {
+    "rows": ["edit.commands.model-format-switch"]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_ask": {
+    "rows": ["edit.commands.one-shot-ask", "edit.factory.ask-no-writes"]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_reset": {
+    "rows": ["edit.commands.reset", "edit.commands.drop-all"]
+  },
+  "aider-test/test_commands/TestCommands.test_reset_with_original_read_only_files": {
+    "rows": ["edit.commands.reset", "edit.commands.drop-all"]
+  },
+  "aider-test/test_commands/TestCommands.test_reset_with_no_original_read_only_files": {
+    "rows": ["edit.commands.reset", "edit.commands.drop-all"]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_reasoning_effort": {
+    "nonclaim": "pi-owned",
+    "note": "Pi owns model thinking and reasoning controls, not a recreated Aider provider-settings command."
+  },
+  "aider-test/test_commands/TestCommands.test_drop_with_original_read_only_files": {
+    "rows": ["edit.commands.drop-all"]
+  },
+  "aider-test/test_commands/TestCommands.test_drop_specific_original_read_only_file": {
+    "rows": ["edit.commands.drop-matches"]
+  },
+  "aider-test/test_commands/TestCommands.test_drop_with_no_original_read_only_files": {
+    "rows": ["edit.commands.drop-all"]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_load_with_switch_coder": {
+    "rows": ["edit.commands.load-selection"]
+  },
+  "aider-test/test_commands/TestCommands.test_reset_after_coder_clone_preserves_original_read_only_files": {
+    "rows": ["edit.commands.reset", "edit.commands.drop-all", "edit.factory.transfer-selection"]
+  },
+  "aider-test/test_commands/TestCommands.test_drop_bare_after_coder_clone_preserves_original_read_only_files": {
+    "rows": ["edit.commands.drop-all", "edit.factory.transfer-selection"]
+  },
+  "aider-test/test_main/TestMain.test_main_with_empty_dir_no_files_on_command": {
+    "rows": ["edit.input.empty-selection"]
+  },
+  "aider-test/test_main/TestMain.test_main_with_emptqy_dir_new_file": {
+    "rows": ["edit.input.initial-files"]
+  },
+  "aider-test/test_main/TestMain.test_message_file_flag": {
+    "rows": ["edit.input.message-file"]
+  },
+  "aider-test/test_main/TestMain.test_main_exit_calls_version_check": {
+    "nonclaim": "out-of-scope",
+    "note": "Aider self-update checks are not an editing, Git, map, or lint feature."
+  },
+  "aider-test/test_main/TestMain.test_main_message_adds_to_input_history": {
+    "nonclaim": "pi-owned",
+    "note": "Pi stores user input history and one-shot prompts through its native input and session mechanisms."
+  },
+  "aider-test/test_main/TestMain.test_yes": {
+    "rows": ["edit.confirm.yes-always"]
+  },
+  "aider-test/test_main/TestMain.test_default_yes": {
+    "rows": ["edit.confirm.answers"]
+  },
+  "aider-test/test_main/TestMain.test_dark_mode_sets_code_theme": {
+    "nonclaim": "pi-owned",
+    "note": "Pi themes own dark terminal and code styling."
+  },
+  "aider-test/test_main/TestMain.test_light_mode_sets_code_theme": {
+    "nonclaim": "pi-owned",
+    "note": "Pi themes own light terminal and code styling."
+  },
+  "aider-test/test_main/TestMain.test_env_file_flag_sets_automatic_variable": {
+    "rows": ["edit.settings.dotenv-overlay", "edit.settings.precedence"]
+  },
+  "aider-test/test_main/TestMain.test_default_env_file_sets_automatic_variable": {
+    "rows": ["edit.settings.dotenv-overlay", "edit.settings.precedence"]
+  },
+  "aider-test/test_main/TestMain.test_verbose_mode_lists_env_vars": {
+    "rows": ["edit.settings.diagnostics", "edit.settings.redact-secrets"]
+  },
+  "aider-test/test_main/TestMain.test_read_option": {
+    "rows": ["edit.commands.read-only-paths"]
+  },
+  "aider-test/test_main/TestMain.test_read_option_with_external_file": {
+    "rows": ["edit.commands.read-only-paths"]
+  },
+  "aider-test/test_main/TestMain.test_model_metadata_file": {
+    "nonclaim": "pi-owned",
+    "note": "Pi model registry owns custom provider metadata and input capacity."
+  },
+  "aider-test/test_main/TestMain.test_sonnet_and_cache_prompts_options": {
+    "nonclaim": "pi-owned",
+    "note": "Pi provider integration supplies supported prompt-cache headers."
+  },
+  "aider-test/test_main/TestMain.test_4o_and_cache_options": {
+    "nonclaim": "pi-owned",
+    "note": "Pi provider integration decides whether cache headers are supported."
+  },
+  "aider-test/test_main/TestMain.test_return_coder": {
+    "rows": ["edit.input.empty-selection", "edit.factory.select-format"]
+  },
+  "aider-test/test_main/TestMain.test_suggest_shell_commands_default": {
+    "rows": ["edit.shell.suggestion-setting"]
+  },
+  "aider-test/test_main/TestMain.test_suggest_shell_commands_disabled": {
+    "rows": ["edit.shell.suggestion-setting"]
+  },
+  "aider-test/test_main/TestMain.test_suggest_shell_commands_enabled": {
+    "rows": ["edit.shell.suggestion-setting"]
+  },
+  "aider-test/test_main/TestMain.test_detect_urls_default": {
+    "nonclaim": "out-of-scope",
+    "note": "Automatic web capture controls are outside the four SARs."
+  },
+  "aider-test/test_main/TestMain.test_detect_urls_disabled": {
+    "nonclaim": "out-of-scope",
+    "note": "Automatic web capture controls are outside the four SARs."
+  },
+  "aider-test/test_main/TestMain.test_detect_urls_enabled": {
+    "nonclaim": "out-of-scope",
+    "note": "Automatic web capture controls are outside the four SARs."
+  },
+  "aider-test/test_main/TestMain.test_accepts_settings_warnings": {
+    "nonclaim": "pi-owned",
+    "note": "Pi providers validate supported reasoning and thinking settings."
+  },
+  "aider-test/test_main/TestMain.test_no_verify_ssl_sets_model_info_manager": {
+    "nonclaim": "pi-owned",
+    "note": "Pi providers own network TLS policy and model metadata transport."
+  },
+  "aider-test/test_main/TestMain.test_pytest_env_vars": {
+    "nonclaim": "out-of-scope",
+    "note": "The Python test runner analytics opt-out checks Aider telemetry, outside all four SARs."
+  },
+  "aider-test/test_main/TestMain.test_set_env_single": {
+    "rows": ["edit.settings.environment-pairs"]
+  },
+  "aider-test/test_main/TestMain.test_set_env_multiple": {
+    "rows": ["edit.settings.environment-pairs"]
+  },
+  "aider-test/test_main/TestMain.test_set_env_with_spaces": {
+    "rows": ["edit.settings.environment-pairs"]
+  },
+  "aider-test/test_main/TestMain.test_set_env_invalid_format": {
+    "rows": ["edit.settings.environment-pairs"]
+  },
+  "aider-test/test_main/TestMain.test_api_key_single": {
+    "nonclaim": "pi-owned",
+    "note": "Pi auth storage and provider configuration own API keys; the extension does not change Pi process credentials."
+  },
+  "aider-test/test_main/TestMain.test_api_key_multiple": {
+    "nonclaim": "pi-owned",
+    "note": "Pi auth storage owns credentials for multiple providers."
+  },
+  "aider-test/test_main/TestMain.test_api_key_invalid_format": {
+    "nonclaim": "pi-owned",
+    "note": "Pi owns provider credential validation and its diagnostics."
+  },
+  "aider-test/test_main/TestMain.test_invalid_edit_format": {
+    "rows": ["edit.factory.select-format"]
+  },
+  "aider-test/test_main/TestMain.test_default_model_selection": {
+    "nonclaim": "pi-owned",
+    "note": "Pi selects physical models from its authenticated registry; the extension does not infer a provider from API-key environment variables."
+  },
+  "aider-test/test_main/TestMain.test_model_precedence": {
+    "nonclaim": "pi-owned",
+    "note": "Pi owns physical-model selection precedence across configured providers."
+  },
+  "aider-test/test_main/TestMain.test_chat_language_spanish": {
+    "rows": ["edit.prompt.reply-language"]
+  },
+  "aider-test/test_main/TestMain.test_reasoning_effort_option": {
+    "nonclaim": "pi-owned",
+    "note": "Pi owns provider reasoning controls."
+  },
+  "aider-test/test_main/TestMain.test_thinking_tokens_option": {
+    "nonclaim": "pi-owned",
+    "note": "Pi owns provider thinking controls and budgets."
+  },
+  "aider-test/test_main/TestMain.test_list_models_includes_metadata_models": {
+    "nonclaim": "pi-owned",
+    "note": "Pi registry owns discovery of custom model metadata."
+  },
+  "aider-test/test_main/TestMain.test_list_models_includes_all_model_sources": {
+    "nonclaim": "pi-owned",
+    "note": "Pi registry owns model listing across configured sources."
+  },
+  "aider-test/test_main/TestMain.test_check_model_accepts_settings_flag": {
+    "nonclaim": "pi-owned",
+    "note": "Pi provider implementation validates supported thinking settings."
+  },
+  "aider-test/test_main/TestMain.test_list_models_with_direct_resource_patch": {
+    "nonclaim": "pi-owned",
+    "note": "Pi registry owns model discovery and provider-settings validation; Aider resource monkeypatching is not recreated."
+  },
+  "aider-test/test_main/TestMain.test_model_accepts_settings_attribute": {
+    "nonclaim": "pi-owned",
+    "note": "Pi provider implementation validates supported thinking and reasoning settings."
+  },
+  "aider-test/test_main/TestMain.test_stream_and_cache_warning": {
+    "nonclaim": "pi-owned",
+    "note": "Pi owns streaming, prompt caching, and cost diagnostics."
+  },
+  "aider-test/test_main/TestMain.test_stream_without_cache_no_warning": {
+    "nonclaim": "pi-owned",
+    "note": "Pi owns streaming and cost diagnostics without caching."
+  },
+  "aider-test/test_main/TestMain.test_cache_without_stream_no_warning": {
+    "nonclaim": "pi-owned",
+    "note": "Pi owns nonstreamed prompt caching and cost diagnostics."
+  },
+  "aider-test/test_models/TestModels.test_get_model_info_nonexistent": {
+    "nonclaim": "pi-owned",
+    "note": "Pi model registry resolves unknown models and metadata."
+  },
+  "aider-test/test_models/TestModels.test_max_context_tokens": {
+    "nonclaim": "pi-owned",
+    "note": "Pi model registry supplies physical-model input capacity."
+  },
+  "aider-test/test_models/TestModels.test_sanity_check_model_all_set": {
+    "nonclaim": "pi-owned",
+    "note": "Pi provider auth validates present credentials."
+  },
+  "aider-test/test_models/TestModels.test_sanity_check_model_not_set": {
+    "nonclaim": "pi-owned",
+    "note": "Pi provider auth diagnoses missing credentials."
+  },
+  "aider-test/test_models/TestModels.test_sanity_check_models_bogus_editor": {
+    "nonclaim": "pi-owned",
+    "note": "Pi model registry validates physical editor model availability."
+  },
+  "aider-test/test_models/TestModels.test_sanity_check_model_calls_check_dependencies": {
+    "nonclaim": "pi-owned",
+    "note": "Pi provider installation and loading own provider dependencies."
+  },
+  "aider-test/test_models/TestModels.test_model_aliases": {
+    "nonclaim": "pi-owned",
+    "note": "Pi model registry owns physical model name resolution."
+  },
+  "aider-test/test_models/TestModels.test_o1_use_temp_false": {
+    "nonclaim": "pi-owned",
+    "note": "Pi providers own temperature support and request parameters."
+  },
+  "aider-test/test_models/TestModels.test_parse_token_value": {
+    "nonclaim": "pi-owned",
+    "note": "Pi owns the representation and validation of native provider thinking budgets."
+  },
+  "aider-test/test_models/TestModels.test_set_thinking_tokens": {
+    "nonclaim": "pi-owned",
+    "note": "Pi owns provider thinking-budget configuration."
+  },
+  "aider-test/test_models/TestModels.test_check_for_dependencies_bedrock": {
+    "nonclaim": "pi-owned",
+    "note": "Pi Bedrock provider installation owns its dependencies; no Python boto3 installer is recreated."
+  },
+  "aider-test/test_models/TestModels.test_check_for_dependencies_vertex_ai": {
+    "nonclaim": "pi-owned",
+    "note": "Pi Vertex provider installation owns its dependencies; no Python Google SDK installer is recreated."
+  },
+  "aider-test/test_models/TestModels.test_check_for_dependencies_other_model": {
+    "nonclaim": "pi-owned",
+    "note": "Pi provider installation owns dependencies for other physical models."
+  },
+  "aider-test/test_models/TestModels.test_aider_extra_model_settings": {
+    "nonclaim": "pi-owned",
+    "note": "Pi custom provider configuration owns request headers and model request parameters."
+  },
+  "aider-test/test_models/TestModels.test_ollama_num_ctx_set_when_missing": {
+    "nonclaim": "pi-owned",
+    "note": "Pi Ollama provider owns request context sizing."
+  },
+  "aider-test/test_models/TestModels.test_ollama_uses_existing_num_ctx": {
+    "nonclaim": "pi-owned",
+    "note": "Pi Ollama provider owns explicitly configured request context sizing."
+  },
+  "aider-test/test_models/TestModels.test_non_ollama_no_num_ctx": {
+    "nonclaim": "pi-owned",
+    "note": "Pi providers own provider-specific request fields."
+  },
+  "aider-test/test_models/TestModels.test_use_temperature_settings": {
+    "nonclaim": "pi-owned",
+    "note": "Pi providers own supported temperature settings."
+  },
+  "aider-test/test_models/TestModels.test_request_timeout_default": {
+    "nonclaim": "pi-owned",
+    "note": "Pi providers own default transport timeouts."
+  },
+  "aider-test/test_models/TestModels.test_request_timeout_from_extra_params": {
+    "nonclaim": "pi-owned",
+    "note": "Pi providers own explicitly configured transport timeouts."
+  },
+  "aider-test/test_models/TestModels.test_use_temperature_in_send_completion": {
+    "nonclaim": "pi-owned",
+    "note": "Pi providers own temperature fields in completion requests."
+  },
+  "aider-test/test_coder/TestCoder.test_check_for_ambiguous_filename_mentions_of_longer_paths": {
+    "rows": ["edit.mentions.extract-paths", "edit.mentions.confirm-and-remember"]
+  },
+  "aider-test/test_coder/TestCoder.test_skip_duplicate_basename_mentions": {
+    "rows": ["edit.mentions.extract-paths"]
+  },
+  "aider-test/test_coder/TestCoder.test_check_for_file_mentions_read_only": {
+    "rows": ["edit.mentions.extract-paths"]
+  },
+  "aider-test/test_coder/TestCoder.test_check_for_subdir_mention": {
+    "rows": ["edit.mentions.extract-paths", "edit.mentions.confirm-and-remember"]
   }
 }
