@@ -28,51 +28,32 @@ async function workspace(initial: Record<string, string> = {}) {
 
 const alwaysExists = { exists: async () => true, touch: async () => {} };
 
-test(
-  'finds filenames by exact basename fuzzy and fence lookback',
-  { meta: { aider: ['test_editblock/TestUtils.test_find_filename'] } },
-  () => {
-    const valid = ['file1.py', 'file2.py', 'dir/file3.py', String.raw`\windows\__init__.py`];
-    expect(findFilename(['file1.py', '```'], fence, valid)).toBe('file1.py');
-    expect(findFilename(['```python', 'file3.py', '```'], fence, valid)).toBe('dir/file3.py');
-    expect(findFilename(['```', 'invalid_file.py', '```'], fence, valid)).toBe('invalid_file.py');
-    expect(findFilename(['```python', 'file1.py', '```', '```', 'file2.py', '```'], fence, valid)).toBe('file2.py');
-    expect(findFilename(['# file1.py', '```'], fence, valid)).toBe('file1.py');
-    expect(findFilename(['file1_py', '```'], fence, valid)).toBe('file1.py');
-    expect(findFilename([String.raw`\windows__init__.py`, '```'], fence, valid)).toBe(String.raw`\windows\__init__.py`);
-  },
-);
+test('finds filenames by exact basename fuzzy and fence lookback', { meta: { aider: ['test_editblock/TestUtils.test_find_filename'] } }, () => {
+  const valid = ['file1.py', 'file2.py', 'dir/file3.py', String.raw`\windows\__init__.py`];
+  expect(findFilename(['file1.py', '```'], fence, valid)).toBe('file1.py');
+  expect(findFilename(['```python', 'file3.py', '```'], fence, valid)).toBe('dir/file3.py');
+  expect(findFilename(['```', 'invalid_file.py', '```'], fence, valid)).toBe('invalid_file.py');
+  expect(findFilename(['```python', 'file1.py', '```', '```', 'file2.py', '```'], fence, valid)).toBe('file2.py');
+  expect(findFilename(['# file1.py', '```'], fence, valid)).toBe('file1.py');
+  expect(findFilename(['file1_py', '```'], fence, valid)).toBe('file1.py');
+  expect(findFilename([String.raw`\windows__init__.py`, '```'], fence, valid)).toBe(String.raw`\windows\__init__.py`);
+});
 
-test(
-  'strips filename and fence wrapping from SEARCH text',
-  { meta: { aider: ['test_editblock/TestUtils.test_strip_quoted_wrapping'] } },
-  () => {
-    const input = 'filename.ext\n```\nWe just want this content\nNot the filename and triple quotes\n```';
-    expect(stripQuotedWrapping(input, 'filename.ext')).toBe('We just want this content\nNot the filename and triple quotes\n');
-  },
-);
+test('strips filename and fence wrapping from SEARCH text', { meta: { aider: ['test_editblock/TestUtils.test_strip_quoted_wrapping'] } }, () => {
+  const input = 'filename.ext\n```\nWe just want this content\nNot the filename and triple quotes\n```';
+  expect(stripQuotedWrapping(input, 'filename.ext')).toBe('We just want this content\nNot the filename and triple quotes\n');
+});
 
-test(
-  'strips fence wrapping without a filename',
-  { meta: { aider: ['test_editblock/TestUtils.test_strip_quoted_wrapping_no_filename'] } },
-  () => {
-    expect(stripQuotedWrapping('```\nWe just want this content\nNot the triple quotes\n```')).toBe('We just want this content\nNot the triple quotes\n');
-  },
-);
+test('strips fence wrapping without a filename', { meta: { aider: ['test_editblock/TestUtils.test_strip_quoted_wrapping_no_filename'] } }, () => {
+  expect(stripQuotedWrapping('```\nWe just want this content\nNot the triple quotes\n```')).toBe('We just want this content\nNot the triple quotes\n');
+});
 
-test(
-  'keeps unwrapped SEARCH text unchanged',
-  { meta: { aider: ['test_editblock/TestUtils.test_strip_quoted_wrapping_no_wrapping'] } },
-  () => {
-    expect(stripQuotedWrapping('We just want this content\nNot the triple quotes\n')).toBe('We just want this content\nNot the triple quotes\n');
-  },
-);
+test('keeps unwrapped SEARCH text unchanged', { meta: { aider: ['test_editblock/TestUtils.test_strip_quoted_wrapping_no_wrapping'] } }, () => {
+  expect(stripQuotedWrapping('We just want this content\nNot the triple quotes\n')).toBe('We just want this content\nNot the triple quotes\n');
+});
 
-test(
-  'parses a fenced SEARCH/REPLACE block',
-  { meta: { aider: ['test_editblock/TestUtils.test_find_original_update_blocks'] } },
-  () => {
-    const edit = `
+test('parses a fenced SEARCH/REPLACE block', { meta: { aider: ['test_editblock/TestUtils.test_find_original_update_blocks'] } }, () => {
+  const edit = `
 Here's the change:
 
 \`\`\`text
@@ -86,15 +67,11 @@ Tooooo
 
 Hope you like it!
 `;
-    expect(findOriginalUpdateBlocks(edit)).toEqual([['foo.txt', 'Two\n', 'Tooooo\n']]);
-  },
-);
+  expect(findOriginalUpdateBlocks(edit)).toEqual([['foo.txt', 'Two\n', 'Tooooo\n']]);
+});
 
-test(
-  'finds filename above the opening fence',
-  { meta: { aider: ['test_editblock/TestUtils.test_find_original_update_blocks_quote_below_filename'] } },
-  () => {
-    const edit = `
+test('finds filename above the opening fence', { meta: { aider: ['test_editblock/TestUtils.test_find_original_update_blocks_quote_below_filename'] } }, () => {
+  const edit = `
 Here's the change:
 
 foo.txt
@@ -108,15 +85,11 @@ Tooooo
 
 Hope you like it!
 `;
-    expect(findOriginalUpdateBlocks(edit)).toEqual([['foo.txt', 'Two\n', 'Tooooo\n']]);
-  },
-);
+  expect(findOriginalUpdateBlocks(edit)).toEqual([['foo.txt', 'Two\n', 'Tooooo\n']]);
+});
 
-test(
-  'rejects an unclosed SEARCH/REPLACE block',
-  { meta: { aider: ['test_editblock/TestUtils.test_find_original_update_blocks_unclosed'] } },
-  () => {
-    const edit = `
+test('rejects an unclosed SEARCH/REPLACE block', { meta: { aider: ['test_editblock/TestUtils.test_find_original_update_blocks_unclosed'] } }, () => {
+  const edit = `
 Here's the change:
 
 \`\`\`text
@@ -129,15 +102,11 @@ Tooooo
 
 oops!
 `;
-    expect(() => findOriginalUpdateBlocks(edit)).toThrow(/Expected `>>>>>>> REPLACE` or `=======`/);
-  },
-);
+  expect(() => findOriginalUpdateBlocks(edit)).toThrow(/Expected `>>>>>>> REPLACE` or `=======`/);
+});
 
-test(
-  'rejects a block with no recoverable filename',
-  { meta: { aider: ['test_editblock/TestUtils.test_find_original_update_blocks_missing_filename'] } },
-  () => {
-    const edit = `
+test('rejects a block with no recoverable filename', { meta: { aider: ['test_editblock/TestUtils.test_find_original_update_blocks_missing_filename'] } }, () => {
+  const edit = `
 Here's the change:
 
 \`\`\`text
@@ -150,15 +119,11 @@ Tooooo
 oops!
 >>>>>>> REPLACE
 `;
-    expect(() => findOriginalUpdateBlocks(edit)).toThrow(/filename/);
-  },
-);
+  expect(() => findOriginalUpdateBlocks(edit)).toThrow(/filename/);
+});
 
-test(
-  'parses blocks when the reply has no final newline',
-  { meta: { aider: ['test_editblock/TestUtils.test_find_original_update_blocks_no_final_newline'] } },
-  () => {
-    const edit = `
+test('parses blocks when the reply has no final newline', { meta: { aider: ['test_editblock/TestUtils.test_find_original_update_blocks_no_final_newline'] } }, () => {
+  const edit = `
 aider/coder.py
 <<<<<<< SEARCH
             self.console.print("[red]^C again to quit")
@@ -188,15 +153,11 @@ aider/coder.py
 =======
             self.io.tool_error("Skipped commit.")
 >>>>>>> REPLACE`;
-    expect(findOriginalUpdateBlocks(edit)).toHaveLength(4);
-  },
-);
+  expect(findOriginalUpdateBlocks(edit)).toHaveLength(4);
+});
 
-test(
-  'reuses the previous filename for an incomplete block',
-  { meta: { aider: ['test_editblock/TestUtils.test_incomplete_edit_block_missing_filename'] } },
-  () => {
-    const edit = `
+test('reuses the previous filename for an incomplete block', { meta: { aider: ['test_editblock/TestUtils.test_incomplete_edit_block_missing_filename'] } }, () => {
+  const edit = `
 No problem! Here are the changes to patch \`subprocess.check_output\` instead of \`subprocess.run\` in both tests:
 
 \`\`\`python
@@ -236,108 +197,76 @@ tests/test_repomap.py
 
 These changes replace the \`subprocess.run\` patches with \`subprocess.check_output\` patches in both \`test_check_for_ctags_failure\` and \`test_check_for_ctags_success\` tests.
 `;
-    const blocks = findOriginalUpdateBlocks(edit);
-    expect(blocks).toHaveLength(2);
-    expect(blocks[0]?.[0]).toBe('tests/test_repomap.py');
-    expect(blocks[1]?.[0]).toBe('tests/test_repomap.py');
-  },
-);
+  const blocks = findOriginalUpdateBlocks(edit);
+  expect(blocks).toHaveLength(2);
+  expect(blocks[0]?.[0]).toBe('tests/test_repomap.py');
+  expect(blocks[1]?.[0]).toBe('tests/test_repomap.py');
+});
 
-test(
-  'repairs varied missing leading whitespace',
-  { meta: { aider: ['test_editblock/TestUtils.test_replace_part_with_missing_varied_leading_whitespace'] } },
-  () => {
-    const whole = `
+test('repairs varied missing leading whitespace', { meta: { aider: ['test_editblock/TestUtils.test_replace_part_with_missing_varied_leading_whitespace'] } }, () => {
+  const whole = `
     line1
     line2
         line3
     line4
 `;
-    expect(replaceMostSimilarChunk(whole, 'line2\n    line3\n', 'new_line2\n    new_line3\n')).toBe(`
+  expect(replaceMostSimilarChunk(whole, 'line2\n    line3\n', 'new_line2\n    new_line3\n')).toBe(`
     line1
     new_line2
         new_line3
     line4
 `);
-  },
-);
+});
 
-test(
-  'repairs uniform missing leading whitespace',
-  { meta: { aider: ['test_editblock/TestUtils.test_replace_part_with_missing_leading_whitespace'] } },
-  () => {
-    expect(replaceMostSimilarChunk('    line1\n    line2\n    line3\n', 'line1\nline2\n', 'new_line1\nnew_line2\n')).toBe('    new_line1\n    new_line2\n    line3\n');
-  },
-);
+test('repairs uniform missing leading whitespace', { meta: { aider: ['test_editblock/TestUtils.test_replace_part_with_missing_leading_whitespace'] } }, () => {
+  expect(replaceMostSimilarChunk('    line1\n    line2\n    line3\n', 'line1\nline2\n', 'new_line1\nnew_line2\n')).toBe('    new_line1\n    new_line2\n    line3\n');
+});
 
-test(
-  'replaces only the first exact match',
-  {
-    meta: {
-      aider: ['test_editblock/TestUtils.test_replace_multiple_matches'],
-      evidence: ['ev-edit/probe/duplicate-search-first-match', 'ev-edit/cli-apply/diff-update'],
-    },
+test('replaces only the first exact match', {
+  meta: {
+    aider: ['test_editblock/TestUtils.test_replace_multiple_matches'],
+    evidence: ['ev-edit/probe/duplicate-search-first-match', 'ev-edit/cli-apply/diff-update'],
   },
-  async () => {
-    expect(replaceMostSimilarChunk('line1\nline2\nline1\nline3\n', 'line1\n', 'new_line\n')).toBe('new_line\nline2\nline1\nline3\n');
-    expect(await doReplace('sample.py', 'x = 1\nx = 1\n', 'x = 1\n', 'x = 2\n', fence, alwaysExists)).toBe('x = 2\nx = 1\n');
-    expect(await doReplace('sample.py', 'value = 100\n', 'value = 100\n', 'value = 200\n', fence, alwaysExists)).toBe('value = 200\n');
-  },
-);
+}, async () => {
+  expect(replaceMostSimilarChunk('line1\nline2\nline1\nline3\n', 'line1\n', 'new_line\n')).toBe('new_line\nline2\nline1\nline3\n');
+  expect(await doReplace('sample.py', 'x = 1\nx = 1\n', 'x = 1\n', 'x = 2\n', fence, alwaysExists)).toBe('x = 2\nx = 1\n');
+  expect(await doReplace('sample.py', 'value = 100\n', 'value = 100\n', 'value = 200\n', fence, alwaysExists)).toBe('value = 200\n');
+});
 
-test(
-  'replaces only the first whitespace-tolerant match',
-  { meta: { aider: ['test_editblock/TestUtils.test_replace_multiple_matches_missing_whitespace'] } },
-  () => {
-    expect(replaceMostSimilarChunk('    line1\n    line2\n    line1\n    line3\n', 'line1\n', 'new_line\n')).toBe('    new_line\n    line2\n    line1\n    line3\n');
-  },
-);
+test('replaces only the first whitespace-tolerant match', { meta: { aider: ['test_editblock/TestUtils.test_replace_multiple_matches_missing_whitespace'] } }, () => {
+  expect(replaceMostSimilarChunk('    line1\n    line2\n    line1\n    line3\n', 'line1\n', 'new_line\n')).toBe('    new_line\n    line2\n    line1\n    line3\n');
+});
 
-test(
-  'repairs partially missing leading whitespace',
-  { meta: { aider: ['test_editblock/TestUtils.test_replace_part_with_just_some_missing_leading_whitespace'] } },
-  () => {
-    expect(replaceMostSimilarChunk('    line1\n    line2\n    line3\n', ' line1\n line2\n', ' new_line1\n     new_line2\n')).toBe('    new_line1\n        new_line2\n    line3\n');
-  },
-);
+test('repairs partially missing leading whitespace', { meta: { aider: ['test_editblock/TestUtils.test_replace_part_with_just_some_missing_leading_whitespace'] } }, () => {
+  expect(replaceMostSimilarChunk('    line1\n    line2\n    line3\n', ' line1\n line2\n', ' new_line1\n     new_line2\n')).toBe('    new_line1\n        new_line2\n    line3\n');
+});
 
-test(
-  'skips a leading blank SEARCH line then matches',
-  {
-    meta: {
-      aider: ['test_editblock/TestUtils.test_replace_part_with_missing_leading_whitespace_including_blank_line'],
-      evidence: ['ev-edit/probe/indentation-recovery'],
-    },
+test('skips a leading blank SEARCH line then matches', {
+  meta: {
+    aider: ['test_editblock/TestUtils.test_replace_part_with_missing_leading_whitespace_including_blank_line'],
+    evidence: ['ev-edit/probe/indentation-recovery'],
   },
-  async () => {
-    expect(replaceMostSimilarChunk('    line1\n    line2\n    line3\n', '\n  line1\n  line2\n', '  new_line1\n  new_line2\n')).toBe('    new_line1\n    new_line2\n    line3\n');
-    expect(await doReplace('sample.py', 'def f():\n    x = 1\n', 'x = 1\n', 'x = 2\n', fence, alwaysExists)).toBe('def f():\n    x = 2\n');
-  },
-);
+}, async () => {
+  expect(replaceMostSimilarChunk('    line1\n    line2\n    line3\n', '\n  line1\n  line2\n', '  new_line1\n  new_line2\n')).toBe('    new_line1\n    new_line2\n    line3\n');
+  expect(await doReplace('sample.py', 'def f():\n    x = 1\n', 'x = 1\n', 'x = 2\n', fence, alwaysExists)).toBe('def f():\n    x = 2\n');
+});
 
-test(
-  'creates a new file without remapping an in-chat neighbor',
-  { meta: { aider: ['test_editblock/TestUtils.test_create_new_file_with_other_file_in_chat'] } },
-  async () => {
-    const ctx = await workspace({ 'file.txt': 'one\ntwo\nthree\n', 'newfile.txt': '' });
-    const reply = `newfile.txt
+test('creates a new file without remapping an in-chat neighbor', { meta: { aider: ['test_editblock/TestUtils.test_create_new_file_with_other_file_in_chat'] } }, async () => {
+  const ctx = await workspace({ 'file.txt': 'one\ntwo\nthree\n', 'newfile.txt': '' });
+  const reply = `newfile.txt
 <<<<<<< SEARCH
 =======
 creating a new file
 >>>>>>> REPLACE
 `;
-    const { edits } = getEdits(reply, ctx);
-    await applyEdits(edits, ctx);
-    expect(await readFile(join(ctx.root, 'file.txt'), 'utf8')).toBe('one\ntwo\nthree\n');
-    expect(await readFile(join(ctx.root, 'newfile.txt'), 'utf8')).toBe('creating a new file\n');
-  },
-);
+  const { edits } = getEdits(reply, ctx);
+  await applyEdits(edits, ctx);
+  expect(await readFile(join(ctx.root, 'file.txt'), 'utf8')).toBe('one\ntwo\nthree\n');
+  expect(await readFile(join(ctx.root, 'newfile.txt'), 'utf8')).toBe('creating a new file\n');
+});
 
-test(
-  'reuses filename across multiple blocks for one file',
-  { meta: { aider: ['test_editblock/TestUtils.test_find_original_update_blocks_mupltiple_same_file'] } },
-  () => {
-    const edit = `
+test('reuses filename across multiple blocks for one file', { meta: { aider: ['test_editblock/TestUtils.test_find_original_update_blocks_mupltiple_same_file'] } }, () => {
+  const edit = `
 Here's the change:
 
 \`\`\`text
@@ -359,18 +288,14 @@ four
 
 Hope you like it!
 `;
-    expect(findOriginalUpdateBlocks(edit)).toEqual([
-      ['foo.txt', 'one\n', 'two\n'],
-      ['foo.txt', 'three\n', 'four\n'],
-    ]);
-  },
-);
+  expect(findOriginalUpdateBlocks(edit)).toEqual([
+    ['foo.txt', 'one\n', 'two\n'],
+    ['foo.txt', 'three\n', 'four\n'],
+  ]);
+});
 
-test(
-  'recovers a filename past a mangled fence pair',
-  { meta: { aider: ['test_editblock/TestUtils.test_deepseek_coder_v2_filename_mangling'] } },
-  () => {
-    const edit = `
+test('recovers a filename past a mangled fence pair', { meta: { aider: ['test_editblock/TestUtils.test_deepseek_coder_v2_filename_mangling'] } }, () => {
+  const edit = `
 Here's the change:
 
  \`\`\`python
@@ -386,15 +311,11 @@ two
 
 Hope you like it!
 `;
-    expect(findOriginalUpdateBlocks(edit)).toEqual([['foo.txt', 'one\n', 'two\n']]);
-  },
-);
+  expect(findOriginalUpdateBlocks(edit)).toEqual([['foo.txt', 'one\n', 'two\n']]);
+});
 
-test(
-  'keeps a new empty-SEARCH filename unmatched to chat files',
-  { meta: { aider: ['test_editblock/TestUtils.test_new_file_created_in_same_folder'] } },
-  () => {
-    const edit = `
+test('keeps a new empty-SEARCH filename unmatched to chat files', { meta: { aider: ['test_editblock/TestUtils.test_new_file_created_in_same_folder'] } }, () => {
+  const edit = `
 Here's the change:
 
 path/to/a/file2.txt
@@ -418,18 +339,14 @@ two
 
 Hope you like it!
 `;
-    expect(findOriginalUpdateBlocks(edit, fence, ['path/to/a/file1.txt'])).toEqual([
-      ['path/to/a/file2.txt', '', 'three\n'],
-      ['path/to/a/file1.txt', 'one\n', 'two\n'],
-    ]);
-  },
-);
+  expect(findOriginalUpdateBlocks(edit, fence, ['path/to/a/file1.txt'])).toEqual([
+    ['path/to/a/file2.txt', '', 'three\n'],
+    ['path/to/a/file1.txt', 'one\n', 'two\n'],
+  ]);
+});
 
-test(
-  'parses under quad backticks when the reply uses triples',
-  { meta: { aider: ['test_editblock/TestUtils.test_find_original_update_blocks_quad_backticks_with_triples_in_LLM_reply'] } },
-  () => {
-    const edit = `
+test('parses under quad backticks when the reply uses triples', { meta: { aider: ['test_editblock/TestUtils.test_find_original_update_blocks_quad_backticks_with_triples_in_LLM_reply'] } }, () => {
+  const edit = `
 Here's the change:
 
 foo.txt
@@ -442,16 +359,12 @@ Tooooo
 
 Hope you like it!
 `;
-    const quad = ['````', '````'] as const;
-    expect(findOriginalUpdateBlocks(edit, quad)).toEqual([['foo.txt', '', 'Tooooo\n']]);
-  },
-);
+  const quad = ['````', '````'] as const;
+  expect(findOriginalUpdateBlocks(edit, quad)).toEqual([['foo.txt', '', 'Tooooo\n']]);
+});
 
-test(
-  'treats a shell fence with SEARCH as an edit not a command',
-  { meta: { aider: ['test_editblock/TestUtils.test_find_original_update_blocks_with_sh_language_identifier'] } },
-  () => {
-    const edit = `
+test('treats a shell fence with SEARCH as an edit not a command', { meta: { aider: ['test_editblock/TestUtils.test_find_original_update_blocks_with_sh_language_identifier'] } }, () => {
+  const edit = `
 Here's a shell script:
 
 \`\`\`sh
@@ -472,20 +385,16 @@ exit 0
 >>>>>>> REPLACE
 \`\`\`
 `;
-    const blocks = findOriginalUpdateBlocks(edit);
-    expect(blocks).toHaveLength(1);
-    expect(blocks[0]?.[0]).toBe('test_hello.sh');
-    expect(blocks[0]?.[1]).toBe('');
-    expect(blocks[0]?.[2]).toContain('#!/bin/bash');
-    expect(blocks[0]?.[2]).toContain('echo "$1"');
-  },
-);
+  const blocks = findOriginalUpdateBlocks(edit);
+  expect(blocks).toHaveLength(1);
+  expect(blocks[0]?.[0]).toBe('test_hello.sh');
+  expect(blocks[0]?.[1]).toBe('');
+  expect(blocks[0]?.[2]).toContain('#!/bin/bash');
+  expect(blocks[0]?.[2]).toContain('echo "$1"');
+});
 
-test(
-  'parses a csharp-fenced SEARCH/REPLACE block',
-  { meta: { aider: ['test_editblock/TestUtils.test_find_original_update_blocks_with_csharp_language_identifier'] } },
-  () => {
-    const edit = `
+test('parses a csharp-fenced SEARCH/REPLACE block', { meta: { aider: ['test_editblock/TestUtils.test_find_original_update_blocks_with_csharp_language_identifier'] } }, () => {
+  const edit = `
 Here's a C# code change:
 
 \`\`\`csharp
@@ -497,33 +406,25 @@ Console.WriteLine("Hello, C# World!");
 >>>>>>> REPLACE
 \`\`\`
 `;
-    expect(findOriginalUpdateBlocks(edit)).toEqual([['Program.cs', 'Console.WriteLine("Hello World!");\n', 'Console.WriteLine("Hello, C# World!");\n']]);
-  },
-);
+  expect(findOriginalUpdateBlocks(edit)).toEqual([['Program.cs', 'Console.WriteLine("Hello World!");\n', 'Console.WriteLine("Hello, C# World!");\n']]);
+});
 
-test(
-  'collects a bare bash fence as a suggested shell command',
-  { meta: { aider: ['test_coder/TestCoder.test_suggest_shell_commands'] } },
-  () => {
-    const reply = `Here's a shell command to run:
+test('collects a bare bash fence as a suggested shell command', { meta: { aider: ['test_coder/TestCoder.test_suggest_shell_commands'] } }, () => {
+  const reply = `Here's a shell command to run:
 
 \`\`\`bash
 echo "Hello, World!"
 \`\`\`
 
 This command will print 'Hello, World!' to the console.`;
-    const { edits, shellCommands } = getEdits(reply, { fence, root: '/tmp', absFnames: new Set() });
-    expect(edits).toEqual([]);
-    expect(shellCommands).toHaveLength(1);
-    expect(shellCommands[0]?.trim()).toBe('echo "Hello, World!"');
-  },
-);
+  const { edits, shellCommands } = getEdits(reply, { fence, root: '/tmp', absFnames: new Set() });
+  expect(edits).toEqual([]);
+  expect(shellCommands).toHaveLength(1);
+  expect(shellCommands[0]?.trim()).toBe('echo "Hello, World!"');
+});
 
-test(
-  'parses markdown sections into edits shell commands and errors',
-  { meta: { aider: ['test_find_or_blocks/TestFindOrBlocks.test_process_markdown'] } },
-  () => {
-    const editsAndShell = `#### Apply the helper change
+test('parses markdown sections into edits shell commands and errors', { meta: { aider: ['test_find_or_blocks/TestFindOrBlocks.test_process_markdown'] } }, () => {
+  const editsAndShell = `#### Apply the helper change
 
 \`\`\`
 helpers.py
@@ -540,12 +441,12 @@ new
 echo hi
 \`\`\`
 `;
-    expect(findOriginalUpdateBlocks(editsAndShell)).toEqual([
-      ['helpers.py', 'old\n', 'new\n'],
-      [null, 'echo hi\n'],
-    ]);
-    expect(() =>
-      findOriginalUpdateBlocks(`#### Broken block
+  expect(findOriginalUpdateBlocks(editsAndShell)).toEqual([
+    ['helpers.py', 'old\n', 'new\n'],
+    [null, 'echo hi\n'],
+  ]);
+  expect(() =>
+    findOriginalUpdateBlocks(`#### Broken block
 
 \`\`\`
 broken.py
@@ -554,9 +455,8 @@ x
 =======
 y
 `),
-    ).toThrow(/Expected `>>>>>>> REPLACE` or `=======`/);
-  },
-);
+  ).toThrow(/Expected `>>>>>>> REPLACE` or `=======`/);
+});
 
 test('accepts SEARCH markers from five to nine characters', async () => {
   expect(findOriginalUpdateBlocks('a.py\n<<<<< SEARCH\nx\n=====\ny\n>>>>> REPLACE\n')).toEqual([['a.py', 'x\n', 'y\n']]);
@@ -577,29 +477,17 @@ ignored
   expect(findOriginalUpdateBlocks(edit)).toEqual([['a.py', 'x\n', 'y\n']]);
 });
 
-test(
-  'appends REPLACE when SEARCH is empty',
-  { meta: { evidence: ['ev-edit/probe/empty-search-appends'] } },
-  async () => {
-    expect(await doReplace('sample.py', 'x = 1\n', '', 'x = 2\n', fence, alwaysExists)).toBe('x = 1\nx = 2\n');
-  },
-);
+test('appends REPLACE when SEARCH is empty', { meta: { evidence: ['ev-edit/probe/empty-search-appends'] } }, async () => {
+  expect(await doReplace('sample.py', 'x = 1\n', '', 'x = 2\n', fence, alwaysExists)).toBe('x = 1\nx = 2\n');
+});
 
-test(
-  'normalizes missing final newlines before matching',
-  { meta: { evidence: ['ev-edit/probe/newline-normalization'] } },
-  async () => {
-    expect(await doReplace('sample.py', 'x = 1', 'x = 1', 'x = 2', fence, alwaysExists)).toBe('x = 2\n');
-  },
-);
+test('normalizes missing final newlines before matching', { meta: { evidence: ['ev-edit/probe/newline-normalization'] } }, async () => {
+  expect(await doReplace('sample.py', 'x = 1', 'x = 1', 'x = 2', fence, alwaysExists)).toBe('x = 2\n');
+});
 
-test(
-  'fails when SEARCH is only similar not exact',
-  { meta: { evidence: ['ev-edit/probe/fuzzy-content-disabled'] } },
-  async () => {
-    expect(await doReplace('sample.py', 'value = 100\n', 'value = 101\n', 'value = 200\n', fence, alwaysExists)).toBeNull();
-  },
-);
+test('fails when SEARCH is only similar not exact', { meta: { evidence: ['ev-edit/probe/fuzzy-content-disabled'] } }, async () => {
+  expect(await doReplace('sample.py', 'value = 100\n', 'value = 101\n', 'value = 200\n', fence, alwaysExists)).toBeNull();
+});
 
 test('applies ellipsis SEARCH pieces in order', () => {
   const whole = 'def f():\n    x = 0\n    return 1\n';
