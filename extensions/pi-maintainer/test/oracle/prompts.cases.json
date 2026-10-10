@@ -1,0 +1,5348 @@
+[
+  {
+    "id": "attributes/CoderPrompts",
+    "op": "prompts.attributes",
+    "args": {
+      "name": "CoderPrompts"
+    }
+  },
+  {
+    "id": "attributes/EditBlockPrompts",
+    "op": "prompts.attributes",
+    "args": {
+      "name": "EditBlockPrompts"
+    }
+  },
+  {
+    "id": "attributes/EditBlockFencedPrompts",
+    "op": "prompts.attributes",
+    "args": {
+      "name": "EditBlockFencedPrompts"
+    }
+  },
+  {
+    "id": "attributes/WholeFilePrompts",
+    "op": "prompts.attributes",
+    "args": {
+      "name": "WholeFilePrompts"
+    }
+  },
+  {
+    "id": "attributes/UnifiedDiffPrompts",
+    "op": "prompts.attributes",
+    "args": {
+      "name": "UnifiedDiffPrompts"
+    }
+  },
+  {
+    "id": "attributes/UnifiedDiffSimplePrompts",
+    "op": "prompts.attributes",
+    "args": {
+      "name": "UnifiedDiffSimplePrompts"
+    }
+  },
+  {
+    "id": "attributes/PatchPrompts",
+    "op": "prompts.attributes",
+    "args": {
+      "name": "PatchPrompts"
+    }
+  },
+  {
+    "id": "attributes/EditorEditBlockPrompts",
+    "op": "prompts.attributes",
+    "args": {
+      "name": "EditorEditBlockPrompts"
+    }
+  },
+  {
+    "id": "attributes/EditorWholeFilePrompts",
+    "op": "prompts.attributes",
+    "args": {
+      "name": "EditorWholeFilePrompts"
+    }
+  },
+  {
+    "id": "attributes/EditorDiffFencedPrompts",
+    "op": "prompts.attributes",
+    "args": {
+      "name": "EditorDiffFencedPrompts"
+    }
+  },
+  {
+    "id": "attributes/ArchitectPrompts",
+    "op": "prompts.attributes",
+    "args": {
+      "name": "ArchitectPrompts"
+    }
+  },
+  {
+    "id": "attributes/AskPrompts",
+    "op": "prompts.attributes",
+    "args": {
+      "name": "AskPrompts"
+    }
+  },
+  {
+    "id": "attributes/ContextPrompts",
+    "op": "prompts.attributes",
+    "args": {
+      "name": "ContextPrompts"
+    }
+  },
+  {
+    "id": "attributes/shell",
+    "op": "prompts.attributes",
+    "args": {
+      "name": "shell"
+    }
+  },
+  {
+    "id": "fmt_system_prompt/EditBlockPrompts/triple-fence-shell",
+    "op": "prompts.fmt_system_prompt",
+    "args": {
+      "prompts": "EditBlockPrompts",
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "lazy": false,
+      "overeager": false,
+      "user_language": null
+    }
+  },
+  {
+    "id": "fmt_system_prompt/EditBlockPrompts/quad-fence-no-shell-lazy-spanish",
+    "op": "prompts.fmt_system_prompt",
+    "args": {
+      "prompts": "EditBlockPrompts",
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "fence": ["````", "````"],
+      "suggest_shell_commands": false,
+      "lazy": true,
+      "overeager": false,
+      "user_language": "Spanish"
+    }
+  },
+  {
+    "id": "fmt_system_prompt/EditBlockPrompts/source-fence-shell-overeager-french",
+    "op": "prompts.fmt_system_prompt",
+    "args": {
+      "prompts": "EditBlockPrompts",
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "fence": ["<source>", "</source>"],
+      "suggest_shell_commands": true,
+      "lazy": false,
+      "overeager": true,
+      "user_language": "French"
+    }
+  },
+  {
+    "id": "fmt_system_prompt/EditBlockPrompts/triple-fence-no-shell-all-reminders",
+    "op": "prompts.fmt_system_prompt",
+    "args": {
+      "prompts": "EditBlockPrompts",
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "fence": ["```", "```"],
+      "suggest_shell_commands": false,
+      "lazy": true,
+      "overeager": true,
+      "user_language": "German"
+    }
+  },
+  {
+    "id": "fmt_system_prompt/EditBlockFencedPrompts/triple-fence-shell",
+    "op": "prompts.fmt_system_prompt",
+    "args": {
+      "prompts": "EditBlockFencedPrompts",
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "lazy": false,
+      "overeager": false,
+      "user_language": null
+    }
+  },
+  {
+    "id": "fmt_system_prompt/EditBlockFencedPrompts/quad-fence-no-shell-lazy-spanish",
+    "op": "prompts.fmt_system_prompt",
+    "args": {
+      "prompts": "EditBlockFencedPrompts",
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "fence": ["````", "````"],
+      "suggest_shell_commands": false,
+      "lazy": true,
+      "overeager": false,
+      "user_language": "Spanish"
+    }
+  },
+  {
+    "id": "fmt_system_prompt/EditBlockFencedPrompts/source-fence-shell-overeager-french",
+    "op": "prompts.fmt_system_prompt",
+    "args": {
+      "prompts": "EditBlockFencedPrompts",
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "fence": ["<source>", "</source>"],
+      "suggest_shell_commands": true,
+      "lazy": false,
+      "overeager": true,
+      "user_language": "French"
+    }
+  },
+  {
+    "id": "fmt_system_prompt/EditBlockFencedPrompts/triple-fence-no-shell-all-reminders",
+    "op": "prompts.fmt_system_prompt",
+    "args": {
+      "prompts": "EditBlockFencedPrompts",
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "fence": ["```", "```"],
+      "suggest_shell_commands": false,
+      "lazy": true,
+      "overeager": true,
+      "user_language": "German"
+    }
+  },
+  {
+    "id": "fmt_system_prompt/WholeFilePrompts/triple-fence-shell",
+    "op": "prompts.fmt_system_prompt",
+    "args": {
+      "prompts": "WholeFilePrompts",
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "lazy": false,
+      "overeager": false,
+      "user_language": null
+    }
+  },
+  {
+    "id": "fmt_system_prompt/WholeFilePrompts/quad-fence-no-shell-lazy-spanish",
+    "op": "prompts.fmt_system_prompt",
+    "args": {
+      "prompts": "WholeFilePrompts",
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "fence": ["````", "````"],
+      "suggest_shell_commands": false,
+      "lazy": true,
+      "overeager": false,
+      "user_language": "Spanish"
+    }
+  },
+  {
+    "id": "fmt_system_prompt/WholeFilePrompts/source-fence-shell-overeager-french",
+    "op": "prompts.fmt_system_prompt",
+    "args": {
+      "prompts": "WholeFilePrompts",
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "fence": ["<source>", "</source>"],
+      "suggest_shell_commands": true,
+      "lazy": false,
+      "overeager": true,
+      "user_language": "French"
+    }
+  },
+  {
+    "id": "fmt_system_prompt/WholeFilePrompts/triple-fence-no-shell-all-reminders",
+    "op": "prompts.fmt_system_prompt",
+    "args": {
+      "prompts": "WholeFilePrompts",
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "fence": ["```", "```"],
+      "suggest_shell_commands": false,
+      "lazy": true,
+      "overeager": true,
+      "user_language": "German"
+    }
+  },
+  {
+    "id": "fmt_system_prompt/UnifiedDiffPrompts/triple-fence-shell",
+    "op": "prompts.fmt_system_prompt",
+    "args": {
+      "prompts": "UnifiedDiffPrompts",
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "lazy": false,
+      "overeager": false,
+      "user_language": null
+    }
+  },
+  {
+    "id": "fmt_system_prompt/UnifiedDiffPrompts/quad-fence-no-shell-lazy-spanish",
+    "op": "prompts.fmt_system_prompt",
+    "args": {
+      "prompts": "UnifiedDiffPrompts",
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "fence": ["````", "````"],
+      "suggest_shell_commands": false,
+      "lazy": true,
+      "overeager": false,
+      "user_language": "Spanish"
+    }
+  },
+  {
+    "id": "fmt_system_prompt/UnifiedDiffPrompts/source-fence-shell-overeager-french",
+    "op": "prompts.fmt_system_prompt",
+    "args": {
+      "prompts": "UnifiedDiffPrompts",
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "fence": ["<source>", "</source>"],
+      "suggest_shell_commands": true,
+      "lazy": false,
+      "overeager": true,
+      "user_language": "French"
+    }
+  },
+  {
+    "id": "fmt_system_prompt/UnifiedDiffPrompts/triple-fence-no-shell-all-reminders",
+    "op": "prompts.fmt_system_prompt",
+    "args": {
+      "prompts": "UnifiedDiffPrompts",
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "fence": ["```", "```"],
+      "suggest_shell_commands": false,
+      "lazy": true,
+      "overeager": true,
+      "user_language": "German"
+    }
+  },
+  {
+    "id": "fmt_system_prompt/UnifiedDiffSimplePrompts/triple-fence-shell",
+    "op": "prompts.fmt_system_prompt",
+    "args": {
+      "prompts": "UnifiedDiffSimplePrompts",
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "lazy": false,
+      "overeager": false,
+      "user_language": null
+    }
+  },
+  {
+    "id": "fmt_system_prompt/UnifiedDiffSimplePrompts/quad-fence-no-shell-lazy-spanish",
+    "op": "prompts.fmt_system_prompt",
+    "args": {
+      "prompts": "UnifiedDiffSimplePrompts",
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "fence": ["````", "````"],
+      "suggest_shell_commands": false,
+      "lazy": true,
+      "overeager": false,
+      "user_language": "Spanish"
+    }
+  },
+  {
+    "id": "fmt_system_prompt/UnifiedDiffSimplePrompts/source-fence-shell-overeager-french",
+    "op": "prompts.fmt_system_prompt",
+    "args": {
+      "prompts": "UnifiedDiffSimplePrompts",
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "fence": ["<source>", "</source>"],
+      "suggest_shell_commands": true,
+      "lazy": false,
+      "overeager": true,
+      "user_language": "French"
+    }
+  },
+  {
+    "id": "fmt_system_prompt/UnifiedDiffSimplePrompts/triple-fence-no-shell-all-reminders",
+    "op": "prompts.fmt_system_prompt",
+    "args": {
+      "prompts": "UnifiedDiffSimplePrompts",
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "fence": ["```", "```"],
+      "suggest_shell_commands": false,
+      "lazy": true,
+      "overeager": true,
+      "user_language": "German"
+    }
+  },
+  {
+    "id": "fmt_system_prompt/PatchPrompts/triple-fence-shell",
+    "op": "prompts.fmt_system_prompt",
+    "args": {
+      "prompts": "PatchPrompts",
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "lazy": false,
+      "overeager": false,
+      "user_language": null
+    }
+  },
+  {
+    "id": "fmt_system_prompt/PatchPrompts/quad-fence-no-shell-lazy-spanish",
+    "op": "prompts.fmt_system_prompt",
+    "args": {
+      "prompts": "PatchPrompts",
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "fence": ["````", "````"],
+      "suggest_shell_commands": false,
+      "lazy": true,
+      "overeager": false,
+      "user_language": "Spanish"
+    }
+  },
+  {
+    "id": "fmt_system_prompt/PatchPrompts/source-fence-shell-overeager-french",
+    "op": "prompts.fmt_system_prompt",
+    "args": {
+      "prompts": "PatchPrompts",
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "fence": ["<source>", "</source>"],
+      "suggest_shell_commands": true,
+      "lazy": false,
+      "overeager": true,
+      "user_language": "French"
+    }
+  },
+  {
+    "id": "fmt_system_prompt/PatchPrompts/triple-fence-no-shell-all-reminders",
+    "op": "prompts.fmt_system_prompt",
+    "args": {
+      "prompts": "PatchPrompts",
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "fence": ["```", "```"],
+      "suggest_shell_commands": false,
+      "lazy": true,
+      "overeager": true,
+      "user_language": "German"
+    }
+  },
+  {
+    "id": "fmt_system_prompt/EditorEditBlockPrompts/triple-fence-shell",
+    "op": "prompts.fmt_system_prompt",
+    "args": {
+      "prompts": "EditorEditBlockPrompts",
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "lazy": false,
+      "overeager": false,
+      "user_language": null
+    }
+  },
+  {
+    "id": "fmt_system_prompt/EditorEditBlockPrompts/quad-fence-no-shell-lazy-spanish",
+    "op": "prompts.fmt_system_prompt",
+    "args": {
+      "prompts": "EditorEditBlockPrompts",
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "fence": ["````", "````"],
+      "suggest_shell_commands": false,
+      "lazy": true,
+      "overeager": false,
+      "user_language": "Spanish"
+    }
+  },
+  {
+    "id": "fmt_system_prompt/EditorEditBlockPrompts/source-fence-shell-overeager-french",
+    "op": "prompts.fmt_system_prompt",
+    "args": {
+      "prompts": "EditorEditBlockPrompts",
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "fence": ["<source>", "</source>"],
+      "suggest_shell_commands": true,
+      "lazy": false,
+      "overeager": true,
+      "user_language": "French"
+    }
+  },
+  {
+    "id": "fmt_system_prompt/EditorEditBlockPrompts/triple-fence-no-shell-all-reminders",
+    "op": "prompts.fmt_system_prompt",
+    "args": {
+      "prompts": "EditorEditBlockPrompts",
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "fence": ["```", "```"],
+      "suggest_shell_commands": false,
+      "lazy": true,
+      "overeager": true,
+      "user_language": "German"
+    }
+  },
+  {
+    "id": "fmt_system_prompt/EditorWholeFilePrompts/triple-fence-shell",
+    "op": "prompts.fmt_system_prompt",
+    "args": {
+      "prompts": "EditorWholeFilePrompts",
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "lazy": false,
+      "overeager": false,
+      "user_language": null
+    }
+  },
+  {
+    "id": "fmt_system_prompt/EditorWholeFilePrompts/quad-fence-no-shell-lazy-spanish",
+    "op": "prompts.fmt_system_prompt",
+    "args": {
+      "prompts": "EditorWholeFilePrompts",
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "fence": ["````", "````"],
+      "suggest_shell_commands": false,
+      "lazy": true,
+      "overeager": false,
+      "user_language": "Spanish"
+    }
+  },
+  {
+    "id": "fmt_system_prompt/EditorWholeFilePrompts/source-fence-shell-overeager-french",
+    "op": "prompts.fmt_system_prompt",
+    "args": {
+      "prompts": "EditorWholeFilePrompts",
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "fence": ["<source>", "</source>"],
+      "suggest_shell_commands": true,
+      "lazy": false,
+      "overeager": true,
+      "user_language": "French"
+    }
+  },
+  {
+    "id": "fmt_system_prompt/EditorWholeFilePrompts/triple-fence-no-shell-all-reminders",
+    "op": "prompts.fmt_system_prompt",
+    "args": {
+      "prompts": "EditorWholeFilePrompts",
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "fence": ["```", "```"],
+      "suggest_shell_commands": false,
+      "lazy": true,
+      "overeager": true,
+      "user_language": "German"
+    }
+  },
+  {
+    "id": "fmt_system_prompt/EditorDiffFencedPrompts/triple-fence-shell",
+    "op": "prompts.fmt_system_prompt",
+    "args": {
+      "prompts": "EditorDiffFencedPrompts",
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "lazy": false,
+      "overeager": false,
+      "user_language": null
+    }
+  },
+  {
+    "id": "fmt_system_prompt/EditorDiffFencedPrompts/quad-fence-no-shell-lazy-spanish",
+    "op": "prompts.fmt_system_prompt",
+    "args": {
+      "prompts": "EditorDiffFencedPrompts",
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "fence": ["````", "````"],
+      "suggest_shell_commands": false,
+      "lazy": true,
+      "overeager": false,
+      "user_language": "Spanish"
+    }
+  },
+  {
+    "id": "fmt_system_prompt/EditorDiffFencedPrompts/source-fence-shell-overeager-french",
+    "op": "prompts.fmt_system_prompt",
+    "args": {
+      "prompts": "EditorDiffFencedPrompts",
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "fence": ["<source>", "</source>"],
+      "suggest_shell_commands": true,
+      "lazy": false,
+      "overeager": true,
+      "user_language": "French"
+    }
+  },
+  {
+    "id": "fmt_system_prompt/EditorDiffFencedPrompts/triple-fence-no-shell-all-reminders",
+    "op": "prompts.fmt_system_prompt",
+    "args": {
+      "prompts": "EditorDiffFencedPrompts",
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "fence": ["```", "```"],
+      "suggest_shell_commands": false,
+      "lazy": true,
+      "overeager": true,
+      "user_language": "German"
+    }
+  },
+  {
+    "id": "fmt_system_prompt/ArchitectPrompts/triple-fence-shell",
+    "op": "prompts.fmt_system_prompt",
+    "args": {
+      "prompts": "ArchitectPrompts",
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "lazy": false,
+      "overeager": false,
+      "user_language": null
+    }
+  },
+  {
+    "id": "fmt_system_prompt/ArchitectPrompts/quad-fence-no-shell-lazy-spanish",
+    "op": "prompts.fmt_system_prompt",
+    "args": {
+      "prompts": "ArchitectPrompts",
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "fence": ["````", "````"],
+      "suggest_shell_commands": false,
+      "lazy": true,
+      "overeager": false,
+      "user_language": "Spanish"
+    }
+  },
+  {
+    "id": "fmt_system_prompt/ArchitectPrompts/source-fence-shell-overeager-french",
+    "op": "prompts.fmt_system_prompt",
+    "args": {
+      "prompts": "ArchitectPrompts",
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "fence": ["<source>", "</source>"],
+      "suggest_shell_commands": true,
+      "lazy": false,
+      "overeager": true,
+      "user_language": "French"
+    }
+  },
+  {
+    "id": "fmt_system_prompt/ArchitectPrompts/triple-fence-no-shell-all-reminders",
+    "op": "prompts.fmt_system_prompt",
+    "args": {
+      "prompts": "ArchitectPrompts",
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "fence": ["```", "```"],
+      "suggest_shell_commands": false,
+      "lazy": true,
+      "overeager": true,
+      "user_language": "German"
+    }
+  },
+  {
+    "id": "fmt_system_prompt/AskPrompts/triple-fence-shell",
+    "op": "prompts.fmt_system_prompt",
+    "args": {
+      "prompts": "AskPrompts",
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "lazy": false,
+      "overeager": false,
+      "user_language": null
+    }
+  },
+  {
+    "id": "fmt_system_prompt/AskPrompts/quad-fence-no-shell-lazy-spanish",
+    "op": "prompts.fmt_system_prompt",
+    "args": {
+      "prompts": "AskPrompts",
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "fence": ["````", "````"],
+      "suggest_shell_commands": false,
+      "lazy": true,
+      "overeager": false,
+      "user_language": "Spanish"
+    }
+  },
+  {
+    "id": "fmt_system_prompt/AskPrompts/source-fence-shell-overeager-french",
+    "op": "prompts.fmt_system_prompt",
+    "args": {
+      "prompts": "AskPrompts",
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "fence": ["<source>", "</source>"],
+      "suggest_shell_commands": true,
+      "lazy": false,
+      "overeager": true,
+      "user_language": "French"
+    }
+  },
+  {
+    "id": "fmt_system_prompt/AskPrompts/triple-fence-no-shell-all-reminders",
+    "op": "prompts.fmt_system_prompt",
+    "args": {
+      "prompts": "AskPrompts",
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "fence": ["```", "```"],
+      "suggest_shell_commands": false,
+      "lazy": true,
+      "overeager": true,
+      "user_language": "German"
+    }
+  },
+  {
+    "id": "fmt_system_prompt/ContextPrompts/triple-fence-shell",
+    "op": "prompts.fmt_system_prompt",
+    "args": {
+      "prompts": "ContextPrompts",
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "lazy": false,
+      "overeager": false,
+      "user_language": null
+    }
+  },
+  {
+    "id": "fmt_system_prompt/ContextPrompts/quad-fence-no-shell-lazy-spanish",
+    "op": "prompts.fmt_system_prompt",
+    "args": {
+      "prompts": "ContextPrompts",
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "fence": ["````", "````"],
+      "suggest_shell_commands": false,
+      "lazy": true,
+      "overeager": false,
+      "user_language": "Spanish"
+    }
+  },
+  {
+    "id": "fmt_system_prompt/ContextPrompts/source-fence-shell-overeager-french",
+    "op": "prompts.fmt_system_prompt",
+    "args": {
+      "prompts": "ContextPrompts",
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "fence": ["<source>", "</source>"],
+      "suggest_shell_commands": true,
+      "lazy": false,
+      "overeager": true,
+      "user_language": "French"
+    }
+  },
+  {
+    "id": "fmt_system_prompt/ContextPrompts/triple-fence-no-shell-all-reminders",
+    "op": "prompts.fmt_system_prompt",
+    "args": {
+      "prompts": "ContextPrompts",
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "fence": ["```", "```"],
+      "suggest_shell_commands": false,
+      "lazy": true,
+      "overeager": true,
+      "user_language": "German"
+    }
+  },
+  {
+    "id": "get_platform_info/posix-minimal",
+    "op": "prompts.get_platform_info",
+    "args": {
+      "platform": "Linux-6.1-x86_64-with-glibc2.36",
+      "os_name": "posix",
+      "env": {
+        "SHELL": "/bin/zsh"
+      },
+      "date": "2026-10-10",
+      "user_language": null,
+      "repo": false,
+      "lint_cmds": null,
+      "auto_lint": true,
+      "test_cmd": null,
+      "auto_test": false
+    }
+  },
+  {
+    "id": "get_platform_info/platform-unavailable",
+    "op": "prompts.get_platform_info",
+    "args": {
+      "platform": null,
+      "os_name": "posix",
+      "env": {
+        "SHELL": "/bin/zsh"
+      },
+      "date": "2026-10-10",
+      "user_language": null,
+      "repo": false,
+      "lint_cmds": null,
+      "auto_lint": true,
+      "test_cmd": null,
+      "auto_test": false
+    }
+  },
+  {
+    "id": "get_platform_info/windows-comspec",
+    "op": "prompts.get_platform_info",
+    "args": {
+      "platform": "Linux-6.1-x86_64-with-glibc2.36",
+      "os_name": "nt",
+      "env": {
+        "COMSPEC": "C:\\Windows\\system32\\cmd.exe",
+        "SHELL": "/bin/bash"
+      },
+      "date": "2026-10-10",
+      "user_language": null,
+      "repo": false,
+      "lint_cmds": null,
+      "auto_lint": true,
+      "test_cmd": null,
+      "auto_test": false
+    }
+  },
+  {
+    "id": "get_platform_info/shell-unset",
+    "op": "prompts.get_platform_info",
+    "args": {
+      "platform": "Linux-6.1-x86_64-with-glibc2.36",
+      "os_name": "posix",
+      "env": {},
+      "date": "2026-10-10",
+      "user_language": null,
+      "repo": false,
+      "lint_cmds": null,
+      "auto_lint": true,
+      "test_cmd": null,
+      "auto_test": false
+    }
+  },
+  {
+    "id": "get_platform_info/shell-empty",
+    "op": "prompts.get_platform_info",
+    "args": {
+      "platform": "Linux-6.1-x86_64-with-glibc2.36",
+      "os_name": "posix",
+      "env": {
+        "SHELL": ""
+      },
+      "date": "2026-10-10",
+      "user_language": null,
+      "repo": false,
+      "lint_cmds": null,
+      "auto_lint": true,
+      "test_cmd": null,
+      "auto_test": false
+    }
+  },
+  {
+    "id": "get_platform_info/language",
+    "op": "prompts.get_platform_info",
+    "args": {
+      "platform": "Linux-6.1-x86_64-with-glibc2.36",
+      "os_name": "posix",
+      "env": {
+        "SHELL": "/bin/zsh"
+      },
+      "date": "2026-10-10",
+      "user_language": "Spanish",
+      "repo": false,
+      "lint_cmds": null,
+      "auto_lint": true,
+      "test_cmd": null,
+      "auto_test": false
+    }
+  },
+  {
+    "id": "get_platform_info/git-repo",
+    "op": "prompts.get_platform_info",
+    "args": {
+      "platform": "Linux-6.1-x86_64-with-glibc2.36",
+      "os_name": "posix",
+      "env": {
+        "SHELL": "/bin/zsh"
+      },
+      "date": "2026-10-10",
+      "user_language": null,
+      "repo": true,
+      "lint_cmds": null,
+      "auto_lint": true,
+      "test_cmd": null,
+      "auto_test": false
+    }
+  },
+  {
+    "id": "get_platform_info/lint-auto",
+    "op": "prompts.get_platform_info",
+    "args": {
+      "platform": "Linux-6.1-x86_64-with-glibc2.36",
+      "os_name": "posix",
+      "env": {
+        "SHELL": "/bin/zsh"
+      },
+      "date": "2026-10-10",
+      "user_language": null,
+      "repo": false,
+      "lint_cmds": [[null, "flake8 --select=E9"], ["python", "ruff check"]],
+      "auto_lint": true,
+      "test_cmd": null,
+      "auto_test": false
+    }
+  },
+  {
+    "id": "get_platform_info/lint-preferred",
+    "op": "prompts.get_platform_info",
+    "args": {
+      "platform": "Linux-6.1-x86_64-with-glibc2.36",
+      "os_name": "posix",
+      "env": {
+        "SHELL": "/bin/zsh"
+      },
+      "date": "2026-10-10",
+      "user_language": null,
+      "repo": false,
+      "lint_cmds": [["javascript", "eslint"], [null, "make lint"]],
+      "auto_lint": false,
+      "test_cmd": null,
+      "auto_test": false
+    }
+  },
+  {
+    "id": "get_platform_info/lint-empty",
+    "op": "prompts.get_platform_info",
+    "args": {
+      "platform": "Linux-6.1-x86_64-with-glibc2.36",
+      "os_name": "posix",
+      "env": {
+        "SHELL": "/bin/zsh"
+      },
+      "date": "2026-10-10",
+      "user_language": null,
+      "repo": false,
+      "lint_cmds": [],
+      "auto_lint": true,
+      "test_cmd": null,
+      "auto_test": false
+    }
+  },
+  {
+    "id": "get_platform_info/test-auto",
+    "op": "prompts.get_platform_info",
+    "args": {
+      "platform": "Linux-6.1-x86_64-with-glibc2.36",
+      "os_name": "posix",
+      "env": {
+        "SHELL": "/bin/zsh"
+      },
+      "date": "2026-10-10",
+      "user_language": null,
+      "repo": false,
+      "lint_cmds": null,
+      "auto_lint": true,
+      "test_cmd": "pytest -q",
+      "auto_test": true
+    }
+  },
+  {
+    "id": "get_platform_info/test-preferred",
+    "op": "prompts.get_platform_info",
+    "args": {
+      "platform": "Linux-6.1-x86_64-with-glibc2.36",
+      "os_name": "posix",
+      "env": {
+        "SHELL": "/bin/zsh"
+      },
+      "date": "2026-10-10",
+      "user_language": null,
+      "repo": false,
+      "lint_cmds": null,
+      "auto_lint": true,
+      "test_cmd": "npm test -- {watch}",
+      "auto_test": false
+    }
+  },
+  {
+    "id": "get_platform_info/test-empty",
+    "op": "prompts.get_platform_info",
+    "args": {
+      "platform": "Linux-6.1-x86_64-with-glibc2.36",
+      "os_name": "posix",
+      "env": {
+        "SHELL": "/bin/zsh"
+      },
+      "date": "2026-10-10",
+      "user_language": null,
+      "repo": false,
+      "lint_cmds": null,
+      "auto_lint": true,
+      "test_cmd": "",
+      "auto_test": true
+    }
+  },
+  {
+    "id": "get_platform_info/single-digit-date",
+    "op": "prompts.get_platform_info",
+    "args": {
+      "platform": "Linux-6.1-x86_64-with-glibc2.36",
+      "os_name": "posix",
+      "env": {
+        "SHELL": "/bin/zsh"
+      },
+      "date": "2026-01-05",
+      "user_language": null,
+      "repo": false,
+      "lint_cmds": null,
+      "auto_lint": true,
+      "test_cmd": null,
+      "auto_test": false
+    }
+  },
+  {
+    "id": "get_platform_info/everything",
+    "op": "prompts.get_platform_info",
+    "args": {
+      "platform": "Linux-6.1-x86_64-with-glibc2.36",
+      "os_name": "posix",
+      "env": {
+        "SHELL": "/bin/zsh"
+      },
+      "date": "2026-10-10",
+      "user_language": "Japanese",
+      "repo": true,
+      "lint_cmds": [["python", "flake8"]],
+      "auto_lint": false,
+      "test_cmd": "pytest",
+      "auto_test": true
+    }
+  },
+  {
+    "id": "get_user_language/chat-language-name",
+    "op": "prompts.get_user_language",
+    "args": {
+      "chat_language": "Spanish",
+      "locale": null,
+      "locale_raises": false,
+      "env": {}
+    }
+  },
+  {
+    "id": "get_user_language/chat-language-code",
+    "op": "prompts.get_user_language",
+    "args": {
+      "chat_language": "fr_CA",
+      "locale": null,
+      "locale_raises": false,
+      "env": {}
+    }
+  },
+  {
+    "id": "get_user_language/chat-language-wins",
+    "op": "prompts.get_user_language",
+    "args": {
+      "chat_language": "it_IT",
+      "locale": "en_US",
+      "locale_raises": false,
+      "env": {
+        "LANG": "de_DE.UTF-8"
+      }
+    }
+  },
+  {
+    "id": "get_user_language/chat-language-c-returns-none",
+    "op": "prompts.get_user_language",
+    "args": {
+      "chat_language": "C",
+      "locale": "en_US",
+      "locale_raises": false,
+      "env": {}
+    }
+  },
+  {
+    "id": "get_user_language/chat-language-empty-skipped",
+    "op": "prompts.get_user_language",
+    "args": {
+      "chat_language": "",
+      "locale": "en_US",
+      "locale_raises": false,
+      "env": {}
+    }
+  },
+  {
+    "id": "get_user_language/locale",
+    "op": "prompts.get_user_language",
+    "args": {
+      "chat_language": null,
+      "locale": "en_GB",
+      "locale_raises": false,
+      "env": {}
+    }
+  },
+  {
+    "id": "get_user_language/locale-c-falls-through",
+    "op": "prompts.get_user_language",
+    "args": {
+      "chat_language": null,
+      "locale": "C",
+      "locale_raises": false,
+      "env": {
+        "LANG": "de_DE.UTF-8"
+      }
+    }
+  },
+  {
+    "id": "get_user_language/locale-raises",
+    "op": "prompts.get_user_language",
+    "args": {
+      "chat_language": null,
+      "locale": null,
+      "locale_raises": true,
+      "env": {
+        "LANG": "es_ES"
+      }
+    }
+  },
+  {
+    "id": "get_user_language/nothing-found",
+    "op": "prompts.get_user_language",
+    "args": {
+      "chat_language": null,
+      "locale": null,
+      "locale_raises": true,
+      "env": {}
+    }
+  },
+  {
+    "id": "get_user_language/locale-none-env-empty",
+    "op": "prompts.get_user_language",
+    "args": {
+      "chat_language": null,
+      "locale": null,
+      "locale_raises": false,
+      "env": {}
+    }
+  },
+  {
+    "id": "get_user_language/env-language",
+    "op": "prompts.get_user_language",
+    "args": {
+      "chat_language": null,
+      "locale": null,
+      "locale_raises": false,
+      "env": {
+        "LANGUAGE": "pt_BR"
+      }
+    }
+  },
+  {
+    "id": "get_user_language/env-lang-before-language",
+    "op": "prompts.get_user_language",
+    "args": {
+      "chat_language": null,
+      "locale": null,
+      "locale_raises": false,
+      "env": {
+        "LANG": "ja_JP.UTF-8",
+        "LANGUAGE": "ko"
+      }
+    }
+  },
+  {
+    "id": "get_user_language/env-c-stops-search",
+    "op": "prompts.get_user_language",
+    "args": {
+      "chat_language": null,
+      "locale": null,
+      "locale_raises": false,
+      "env": {
+        "LANG": "C",
+        "LANGUAGE": "fr"
+      }
+    }
+  },
+  {
+    "id": "get_user_language/env-lc-all",
+    "op": "prompts.get_user_language",
+    "args": {
+      "chat_language": null,
+      "locale": null,
+      "locale_raises": false,
+      "env": {
+        "LC_ALL": "ru_RU.UTF-8"
+      }
+    }
+  },
+  {
+    "id": "get_user_language/env-lc-messages",
+    "op": "prompts.get_user_language",
+    "args": {
+      "chat_language": null,
+      "locale": null,
+      "locale_raises": false,
+      "env": {
+        "LC_MESSAGES": "zh_CN"
+      }
+    }
+  },
+  {
+    "id": "get_user_language/env-encoding-only",
+    "op": "prompts.get_user_language",
+    "args": {
+      "chat_language": null,
+      "locale": null,
+      "locale_raises": false,
+      "env": {
+        "LANG": ".UTF-8",
+        "LANGUAGE": "fr"
+      }
+    }
+  },
+  {
+    "id": "get_user_language/env-unknown-code",
+    "op": "prompts.get_user_language",
+    "args": {
+      "chat_language": null,
+      "locale": null,
+      "locale_raises": false,
+      "env": {
+        "LANG": "xx_YY.UTF-8"
+      }
+    }
+  },
+  {
+    "id": "get_user_language/env-empty-skipped",
+    "op": "prompts.get_user_language",
+    "args": {
+      "chat_language": null,
+      "locale": null,
+      "locale_raises": false,
+      "env": {
+        "LANG": "",
+        "LANGUAGE": "it"
+      }
+    }
+  },
+  {
+    "id": "normalize_language/none",
+    "op": "prompts.normalize_language",
+    "args": {
+      "code": null
+    }
+  },
+  {
+    "id": "normalize_language/empty",
+    "op": "prompts.normalize_language",
+    "args": {
+      "code": ""
+    }
+  },
+  {
+    "id": "normalize_language/c",
+    "op": "prompts.normalize_language",
+    "args": {
+      "code": "C"
+    }
+  },
+  {
+    "id": "normalize_language/c-lower",
+    "op": "prompts.normalize_language",
+    "args": {
+      "code": "c"
+    }
+  },
+  {
+    "id": "normalize_language/posix",
+    "op": "prompts.normalize_language",
+    "args": {
+      "code": "POSIX"
+    }
+  },
+  {
+    "id": "normalize_language/posix-lower",
+    "op": "prompts.normalize_language",
+    "args": {
+      "code": "posix"
+    }
+  },
+  {
+    "id": "normalize_language/posix-long-s-dotless-i",
+    "op": "prompts.normalize_language",
+    "args": {
+      "code": "poſıx"
+    }
+  },
+  {
+    "id": "normalize_language/english-name",
+    "op": "prompts.normalize_language",
+    "args": {
+      "code": "English"
+    }
+  },
+  {
+    "id": "normalize_language/english-lower",
+    "op": "prompts.normalize_language",
+    "args": {
+      "code": "english"
+    }
+  },
+  {
+    "id": "normalize_language/francais",
+    "op": "prompts.normalize_language",
+    "args": {
+      "code": "Français"
+    }
+  },
+  {
+    "id": "normalize_language/circled-capital",
+    "op": "prompts.normalize_language",
+    "args": {
+      "code": "Ⓐbcd"
+    }
+  },
+  {
+    "id": "normalize_language/titlecase-first",
+    "op": "prompts.normalize_language",
+    "args": {
+      "code": "ǅabc"
+    }
+  },
+  {
+    "id": "normalize_language/astral-capital",
+    "op": "prompts.normalize_language",
+    "args": {
+      "code": "𝐀bcd"
+    }
+  },
+  {
+    "id": "normalize_language/en-upper",
+    "op": "prompts.normalize_language",
+    "args": {
+      "code": "EN"
+    }
+  },
+  {
+    "id": "normalize_language/fra-upper",
+    "op": "prompts.normalize_language",
+    "args": {
+      "code": "FRA"
+    }
+  },
+  {
+    "id": "normalize_language/fra-lower",
+    "op": "prompts.normalize_language",
+    "args": {
+      "code": "fra"
+    }
+  },
+  {
+    "id": "normalize_language/de-with-encoding",
+    "op": "prompts.normalize_language",
+    "args": {
+      "code": "de_DE.UTF-8"
+    }
+  },
+  {
+    "id": "normalize_language/zh-hyphen",
+    "op": "prompts.normalize_language",
+    "args": {
+      "code": "zh-CN"
+    }
+  },
+  {
+    "id": "normalize_language/pt-br",
+    "op": "prompts.normalize_language",
+    "args": {
+      "code": "pt_BR"
+    }
+  },
+  {
+    "id": "normalize_language/unknown-code",
+    "op": "prompts.normalize_language",
+    "args": {
+      "code": "unknown_code"
+    }
+  },
+  {
+    "id": "normalize_language/constructor",
+    "op": "prompts.normalize_language",
+    "args": {
+      "code": "constructor"
+    }
+  },
+  {
+    "id": "normalize_language/proto",
+    "op": "prompts.normalize_language",
+    "args": {
+      "code": "__proto__"
+    }
+  },
+  {
+    "id": "normalize_language/zh-hant",
+    "op": "prompts.normalize_language",
+    "args": {
+      "code": "Zh_Hant"
+    }
+  },
+  {
+    "id": "normalize_language/x-klingon",
+    "op": "prompts.normalize_language",
+    "args": {
+      "code": "x-klingon"
+    }
+  },
+  {
+    "id": "normalize_language/space",
+    "op": "prompts.normalize_language",
+    "args": {
+      "code": " "
+    }
+  },
+  {
+    "id": "normalize_language/dotted-capital-i",
+    "op": "prompts.normalize_language",
+    "args": {
+      "code": "İt"
+    }
+  },
+  {
+    "id": "normalize_language/kelvin-sign",
+    "op": "prompts.normalize_language",
+    "args": {
+      "code": "Ko"
+    }
+  },
+  {
+    "id": "normalize_language/en-us",
+    "op": "prompts.normalize_language",
+    "args": {
+      "code": "en_US"
+    }
+  },
+  {
+    "id": "normalize_language/fr-fr",
+    "op": "prompts.normalize_language",
+    "args": {
+      "code": "fr_FR"
+    }
+  },
+  {
+    "id": "normalize_language/es",
+    "op": "prompts.normalize_language",
+    "args": {
+      "code": "es"
+    }
+  },
+  {
+    "id": "normalize_language/ja",
+    "op": "prompts.normalize_language",
+    "args": {
+      "code": "ja"
+    }
+  },
+  {
+    "id": "normalize_language/fr-hyphen",
+    "op": "prompts.normalize_language",
+    "args": {
+      "code": "fr-FR"
+    }
+  },
+  {
+    "id": "normalize_language/ko-kr",
+    "op": "prompts.normalize_language",
+    "args": {
+      "code": "ko_KR"
+    }
+  },
+  {
+    "id": "normalize_language/ru",
+    "op": "prompts.normalize_language",
+    "args": {
+      "code": "ru"
+    }
+  },
+  {
+    "id": "normalize_language/it",
+    "op": "prompts.normalize_language",
+    "args": {
+      "code": "it"
+    }
+  },
+  {
+    "id": "format_chat_chunks/EditBlockPrompts/files-map-history",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "EditBlockPrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [
+        {
+          "role": "user",
+          "content": "Earlier request."
+        },
+        {
+          "role": "assistant",
+          "content": "Earlier reply."
+        }
+      ],
+      "repo_map": "Here are summaries of some files present in my git repository.\n\nsrc/app.py:\n│def main():\n",
+      "read_only_files": [
+        {
+          "path": "docs/conventions.md",
+          "content": "Use tabs.\n"
+        }
+      ],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/EditBlockPrompts/no-files-with-map",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "EditBlockPrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": "Here are summaries of some files present in my git repository.\n\nsrc/app.py:\n│def main():\n",
+      "read_only_files": [],
+      "chat_files": [],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/EditBlockPrompts/no-files-no-map",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "EditBlockPrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/EditBlockPrompts/examples-in-system",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "EditBlockPrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": true,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/EditBlockFencedPrompts/files-map-history",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "EditBlockFencedPrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [
+        {
+          "role": "user",
+          "content": "Earlier request."
+        },
+        {
+          "role": "assistant",
+          "content": "Earlier reply."
+        }
+      ],
+      "repo_map": "Here are summaries of some files present in my git repository.\n\nsrc/app.py:\n│def main():\n",
+      "read_only_files": [
+        {
+          "path": "docs/conventions.md",
+          "content": "Use tabs.\n"
+        }
+      ],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/EditBlockFencedPrompts/no-files-with-map",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "EditBlockFencedPrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": "Here are summaries of some files present in my git repository.\n\nsrc/app.py:\n│def main():\n",
+      "read_only_files": [],
+      "chat_files": [],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/EditBlockFencedPrompts/no-files-no-map",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "EditBlockFencedPrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/EditBlockFencedPrompts/examples-in-system",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "EditBlockFencedPrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": true,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/WholeFilePrompts/files-map-history",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "WholeFilePrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [
+        {
+          "role": "user",
+          "content": "Earlier request."
+        },
+        {
+          "role": "assistant",
+          "content": "Earlier reply."
+        }
+      ],
+      "repo_map": "Here are summaries of some files present in my git repository.\n\nsrc/app.py:\n│def main():\n",
+      "read_only_files": [
+        {
+          "path": "docs/conventions.md",
+          "content": "Use tabs.\n"
+        }
+      ],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/WholeFilePrompts/no-files-with-map",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "WholeFilePrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": "Here are summaries of some files present in my git repository.\n\nsrc/app.py:\n│def main():\n",
+      "read_only_files": [],
+      "chat_files": [],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/WholeFilePrompts/no-files-no-map",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "WholeFilePrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/WholeFilePrompts/examples-in-system",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "WholeFilePrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": true,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/UnifiedDiffPrompts/files-map-history",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "UnifiedDiffPrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [
+        {
+          "role": "user",
+          "content": "Earlier request."
+        },
+        {
+          "role": "assistant",
+          "content": "Earlier reply."
+        }
+      ],
+      "repo_map": "Here are summaries of some files present in my git repository.\n\nsrc/app.py:\n│def main():\n",
+      "read_only_files": [
+        {
+          "path": "docs/conventions.md",
+          "content": "Use tabs.\n"
+        }
+      ],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/UnifiedDiffPrompts/no-files-with-map",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "UnifiedDiffPrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": "Here are summaries of some files present in my git repository.\n\nsrc/app.py:\n│def main():\n",
+      "read_only_files": [],
+      "chat_files": [],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/UnifiedDiffPrompts/no-files-no-map",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "UnifiedDiffPrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/UnifiedDiffPrompts/examples-in-system",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "UnifiedDiffPrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": true,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/UnifiedDiffSimplePrompts/files-map-history",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "UnifiedDiffSimplePrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [
+        {
+          "role": "user",
+          "content": "Earlier request."
+        },
+        {
+          "role": "assistant",
+          "content": "Earlier reply."
+        }
+      ],
+      "repo_map": "Here are summaries of some files present in my git repository.\n\nsrc/app.py:\n│def main():\n",
+      "read_only_files": [
+        {
+          "path": "docs/conventions.md",
+          "content": "Use tabs.\n"
+        }
+      ],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/UnifiedDiffSimplePrompts/no-files-with-map",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "UnifiedDiffSimplePrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": "Here are summaries of some files present in my git repository.\n\nsrc/app.py:\n│def main():\n",
+      "read_only_files": [],
+      "chat_files": [],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/UnifiedDiffSimplePrompts/no-files-no-map",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "UnifiedDiffSimplePrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/UnifiedDiffSimplePrompts/examples-in-system",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "UnifiedDiffSimplePrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": true,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/PatchPrompts/files-map-history",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "PatchPrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [
+        {
+          "role": "user",
+          "content": "Earlier request."
+        },
+        {
+          "role": "assistant",
+          "content": "Earlier reply."
+        }
+      ],
+      "repo_map": "Here are summaries of some files present in my git repository.\n\nsrc/app.py:\n│def main():\n",
+      "read_only_files": [
+        {
+          "path": "docs/conventions.md",
+          "content": "Use tabs.\n"
+        }
+      ],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/PatchPrompts/no-files-with-map",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "PatchPrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": "Here are summaries of some files present in my git repository.\n\nsrc/app.py:\n│def main():\n",
+      "read_only_files": [],
+      "chat_files": [],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/PatchPrompts/no-files-no-map",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "PatchPrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/PatchPrompts/examples-in-system",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "PatchPrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": true,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/EditorEditBlockPrompts/files-map-history",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "EditorEditBlockPrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [
+        {
+          "role": "user",
+          "content": "Earlier request."
+        },
+        {
+          "role": "assistant",
+          "content": "Earlier reply."
+        }
+      ],
+      "repo_map": "Here are summaries of some files present in my git repository.\n\nsrc/app.py:\n│def main():\n",
+      "read_only_files": [
+        {
+          "path": "docs/conventions.md",
+          "content": "Use tabs.\n"
+        }
+      ],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/EditorEditBlockPrompts/no-files-with-map",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "EditorEditBlockPrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": "Here are summaries of some files present in my git repository.\n\nsrc/app.py:\n│def main():\n",
+      "read_only_files": [],
+      "chat_files": [],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/EditorEditBlockPrompts/no-files-no-map",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "EditorEditBlockPrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/EditorEditBlockPrompts/examples-in-system",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "EditorEditBlockPrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": true,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/EditorWholeFilePrompts/files-map-history",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "EditorWholeFilePrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [
+        {
+          "role": "user",
+          "content": "Earlier request."
+        },
+        {
+          "role": "assistant",
+          "content": "Earlier reply."
+        }
+      ],
+      "repo_map": "Here are summaries of some files present in my git repository.\n\nsrc/app.py:\n│def main():\n",
+      "read_only_files": [
+        {
+          "path": "docs/conventions.md",
+          "content": "Use tabs.\n"
+        }
+      ],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/EditorWholeFilePrompts/no-files-with-map",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "EditorWholeFilePrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": "Here are summaries of some files present in my git repository.\n\nsrc/app.py:\n│def main():\n",
+      "read_only_files": [],
+      "chat_files": [],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/EditorWholeFilePrompts/no-files-no-map",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "EditorWholeFilePrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/EditorWholeFilePrompts/examples-in-system",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "EditorWholeFilePrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": true,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/EditorDiffFencedPrompts/files-map-history",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "EditorDiffFencedPrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [
+        {
+          "role": "user",
+          "content": "Earlier request."
+        },
+        {
+          "role": "assistant",
+          "content": "Earlier reply."
+        }
+      ],
+      "repo_map": "Here are summaries of some files present in my git repository.\n\nsrc/app.py:\n│def main():\n",
+      "read_only_files": [
+        {
+          "path": "docs/conventions.md",
+          "content": "Use tabs.\n"
+        }
+      ],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/EditorDiffFencedPrompts/no-files-with-map",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "EditorDiffFencedPrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": "Here are summaries of some files present in my git repository.\n\nsrc/app.py:\n│def main():\n",
+      "read_only_files": [],
+      "chat_files": [],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/EditorDiffFencedPrompts/no-files-no-map",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "EditorDiffFencedPrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/EditorDiffFencedPrompts/examples-in-system",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "EditorDiffFencedPrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": true,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/ArchitectPrompts/files-map-history",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "ArchitectPrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [
+        {
+          "role": "user",
+          "content": "Earlier request."
+        },
+        {
+          "role": "assistant",
+          "content": "Earlier reply."
+        }
+      ],
+      "repo_map": "Here are summaries of some files present in my git repository.\n\nsrc/app.py:\n│def main():\n",
+      "read_only_files": [
+        {
+          "path": "docs/conventions.md",
+          "content": "Use tabs.\n"
+        }
+      ],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/ArchitectPrompts/no-files-with-map",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "ArchitectPrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": "Here are summaries of some files present in my git repository.\n\nsrc/app.py:\n│def main():\n",
+      "read_only_files": [],
+      "chat_files": [],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/ArchitectPrompts/no-files-no-map",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "ArchitectPrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/ArchitectPrompts/examples-in-system",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "ArchitectPrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": true,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/AskPrompts/files-map-history",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "AskPrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [
+        {
+          "role": "user",
+          "content": "Earlier request."
+        },
+        {
+          "role": "assistant",
+          "content": "Earlier reply."
+        }
+      ],
+      "repo_map": "Here are summaries of some files present in my git repository.\n\nsrc/app.py:\n│def main():\n",
+      "read_only_files": [
+        {
+          "path": "docs/conventions.md",
+          "content": "Use tabs.\n"
+        }
+      ],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/AskPrompts/no-files-with-map",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "AskPrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": "Here are summaries of some files present in my git repository.\n\nsrc/app.py:\n│def main():\n",
+      "read_only_files": [],
+      "chat_files": [],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/AskPrompts/no-files-no-map",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "AskPrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/AskPrompts/examples-in-system",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "AskPrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": true,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/ContextPrompts/files-map-history",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "ContextPrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [
+        {
+          "role": "user",
+          "content": "Earlier request."
+        },
+        {
+          "role": "assistant",
+          "content": "Earlier reply."
+        }
+      ],
+      "repo_map": "Here are summaries of some files present in my git repository.\n\nsrc/app.py:\n│def main():\n",
+      "read_only_files": [
+        {
+          "path": "docs/conventions.md",
+          "content": "Use tabs.\n"
+        }
+      ],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/ContextPrompts/no-files-with-map",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "ContextPrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": "Here are summaries of some files present in my git repository.\n\nsrc/app.py:\n│def main():\n",
+      "read_only_files": [],
+      "chat_files": [],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/ContextPrompts/no-files-no-map",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "ContextPrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/ContextPrompts/examples-in-system",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "ContextPrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": true,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/examples-in-system-strips-prefix",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "EditBlockPrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": true,
+        "reminder": "sys",
+        "system_prompt_prefix": "  Prefix line.  ",
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/examples-as-messages-keep-prefix",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "EditBlockPrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": "  Prefix line.  ",
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/empty-examples-in-system-still-strips",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "UnifiedDiffSimplePrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": true,
+        "reminder": "sys",
+        "system_prompt_prefix": "\n Prefix. \n",
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/system-as-user-message",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "UnifiedDiffSimplePrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": false,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/system-as-user-with-examples-in-system",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "EditBlockPrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": true,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": false,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/reminder-sys-under-budget",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "UnifiedDiffSimplePrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": 1000,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/reminder-sys-over-budget",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "UnifiedDiffSimplePrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": 50,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/reminder-sys-at-budget",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "UnifiedDiffSimplePrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": 60,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/reminder-sys-one-token-of-room",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "UnifiedDiffSimplePrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": 61,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/reminder-user-final-user",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "UnifiedDiffSimplePrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "user",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": 1000,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/reminder-user-final-user-with-examples",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "EditBlockPrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "user",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/ask-reminder-formats-empty",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "AskPrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/ask-reminder-with-final-reminders",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "AskPrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": true,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "user",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": "Dutch",
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/reminder-user-over-budget",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "UnifiedDiffSimplePrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "user",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": 50,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/reminder-user-final-assistant",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "UnifiedDiffSimplePrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "user",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Q"
+        },
+        {
+          "role": "assistant",
+          "content": "A"
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/reminder-user-no-current",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "UnifiedDiffSimplePrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "user",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        }
+      ],
+      "cur": []
+    }
+  },
+  {
+    "id": "format_chat_chunks/reminder-sys-no-current",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "UnifiedDiffSimplePrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        }
+      ],
+      "cur": []
+    }
+  },
+  {
+    "id": "format_chat_chunks/reminder-none",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "UnifiedDiffSimplePrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": null,
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/reminder-unknown-token-count",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "UnifiedDiffSimplePrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": 5,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": null
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/reminder-zero-max-tokens",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "UnifiedDiffSimplePrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": 0,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 1000
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/empty-reminder-user-unknown-budget",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "ArchitectPrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "user",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/empty-reminder-user-known-budget",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "ArchitectPrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "user",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": 1000,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/empty-reminder-sys-unknown-budget",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "ArchitectPrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/reminder-user-keeps-history-intact",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "UnifiedDiffSimplePrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "user",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "first"
+        },
+        {
+          "role": "assistant",
+          "content": "reply"
+        },
+        {
+          "role": "user",
+          "content": "second"
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/all-final-reminders-and-language",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "UnifiedDiffSimplePrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": true,
+        "overeager": true,
+        "examples_as_sys_msg": false,
+        "reminder": "user",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": "Portuguese",
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/shell-commands-off",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "UnifiedDiffSimplePrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": false,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/quad-fence-listing",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "UnifiedDiffSimplePrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["````", "````"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [
+        {
+          "path": "README.md",
+          "content": "```sh\nmake\n```\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/source-fence-listing",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "WholeFilePrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["<source>", "</source>"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/file-without-trailing-newline",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "UnifiedDiffSimplePrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [
+        {
+          "path": "b.txt",
+          "content": "also none"
+        }
+      ],
+      "chat_files": [
+        {
+          "path": "a.txt",
+          "content": "no newline"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/empty-file",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "UnifiedDiffSimplePrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [
+        {
+          "path": "empty.py",
+          "content": ""
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/several-files-keep-order",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "UnifiedDiffSimplePrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [
+        {
+          "path": "r2.md",
+          "content": "two\n"
+        },
+        {
+          "path": "r1.md",
+          "content": "one\n"
+        }
+      ],
+      "chat_files": [
+        {
+          "path": "z.py",
+          "content": "z = 1\n"
+        },
+        {
+          "path": "a/b.py",
+          "content": "b = 2\n"
+        },
+        {
+          "path": "m.py",
+          "content": "m = 3\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/unicode-content",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "UnifiedDiffSimplePrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [
+        {
+          "path": "café.py",
+          "content": "s = '😀 naïve'\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/read-only-only",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "UnifiedDiffSimplePrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [
+        {
+          "path": "docs/conventions.md",
+          "content": "Use tabs.\n"
+        }
+      ],
+      "chat_files": [],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/history-and-map",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "UnifiedDiffSimplePrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [
+        {
+          "role": "user",
+          "content": "Earlier request."
+        },
+        {
+          "role": "assistant",
+          "content": "Earlier reply."
+        }
+      ],
+      "repo_map": "Here are summaries of some files present in my git repository.\n\nsrc/app.py:\n│def main():\n",
+      "read_only_files": [],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/images-vision-chat-and-read-only",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "UnifiedDiffSimplePrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": true,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [
+        {
+          "path": "docs/conventions.md",
+          "content": "Use tabs.\n"
+        },
+        {
+          "path": "ro.jpg",
+          "content": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP4//8/AAX+Av6n1qTHAAAAAElFTkSuQmCC"
+        }
+      ],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        },
+        {
+          "path": "img/pic.png",
+          "content": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP4//8/AAX+Av6n1qTHAAAAAElFTkSuQmCC"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/images-only-chat-file",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "UnifiedDiffSimplePrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": true,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [
+        {
+          "path": "img/pic.png",
+          "content": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP4//8/AAX+Av6n1qTHAAAAAElFTkSuQmCC"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/images-only-read-only",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "UnifiedDiffSimplePrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": true,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [
+        {
+          "path": "ro.webp",
+          "content": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP4//8/AAX+Av6n1qTHAAAAAElFTkSuQmCC"
+        }
+      ],
+      "chat_files": [],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/images-without-support",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "UnifiedDiffSimplePrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [
+        {
+          "path": "spec.pdf",
+          "content": "JVBERi0xLjQKMSAwIG9iaiA8PCA+PiBlbmRvYmoKdHJhaWxlciA8PCA+PgolJUVPRgo="
+        }
+      ],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        },
+        {
+          "path": "img/pic.png",
+          "content": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP4//8/AAX+Av6n1qTHAAAAAElFTkSuQmCC"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/pdf-supports-pdf-input",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "UnifiedDiffSimplePrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": true,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [
+        {
+          "path": "spec.pdf",
+          "content": "JVBERi0xLjQKMSAwIG9iaiA8PCA+PiBlbmRvYmoKdHJhaWxlciA8PCA+PgolJUVPRgo="
+        },
+        {
+          "path": "img/pic.png",
+          "content": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP4//8/AAX+Av6n1qTHAAAAAElFTkSuQmCC"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/pdf-max-pdf-size",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "UnifiedDiffSimplePrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": 32,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [
+        {
+          "path": "spec.pdf",
+          "content": "JVBERi0xLjQKMSAwIG9iaiA8PCA+PiBlbmRvYmoKdHJhaWxlciA8PCA+PgolJUVPRgo="
+        }
+      ],
+      "chat_files": [
+        {
+          "path": "src/app.py",
+          "content": "def main():\n    print('hi')\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/pdf-claude-sonnet-name",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "UnifiedDiffSimplePrompts",
+      "model": {
+        "name": "anthropic/claude-3-5-sonnet-20241022",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": false,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [
+        {
+          "path": "spec.pdf",
+          "content": "JVBERi0xLjQKMSAwIG9iaiA8PCA+PiBlbmRvYmoKdHJhaWxlciA8PCA+PgolJUVPRgo="
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/pdf-skipped-for-vision-only",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "UnifiedDiffSimplePrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": true,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [
+        {
+          "path": "spec.pdf",
+          "content": "JVBERi0xLjQKMSAwIG9iaiA8PCA+PiBlbmRvYmoKdHJhaWxlciA8PCA+PgolJUVPRgo="
+        },
+        {
+          "path": "img/pic.png",
+          "content": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP4//8/AAX+Av6n1qTHAAAAAElFTkSuQmCC"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/image-and-pdf-with-both",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "UnifiedDiffSimplePrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": true,
+        "supports_pdf_input": true,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [
+        {
+          "path": "a.gif",
+          "content": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP4//8/AAX+Av6n1qTHAAAAAElFTkSuQmCC"
+        },
+        {
+          "path": "spec.pdf",
+          "content": "JVBERi0xLjQKMSAwIG9iaiA8PCA+PiBlbmRvYmoKdHJhaWxlciA8PCA+PgolJUVPRgo="
+        },
+        {
+          "path": "b.bmp",
+          "content": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP4//8/AAX+Av6n1qTHAAAAAElFTkSuQmCC"
+        },
+        {
+          "path": "c.tiff",
+          "content": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP4//8/AAX+Av6n1qTHAAAAAElFTkSuQmCC"
+        },
+        {
+          "path": "d.jpeg",
+          "content": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP4//8/AAX+Av6n1qTHAAAAAElFTkSuQmCC"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/image-dotfile-has-no-type",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "UnifiedDiffSimplePrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": true,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [
+        {
+          "path": ".png",
+          "content": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP4//8/AAX+Av6n1qTHAAAAAElFTkSuQmCC"
+        },
+        {
+          "path": "x/.a.png",
+          "content": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP4//8/AAX+Av6n1qTHAAAAAElFTkSuQmCC"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "format_chat_chunks/image-uppercase-extension-is-text",
+    "op": "prompts.format_chat_chunks",
+    "args": {
+      "prompts": "UnifiedDiffSimplePrompts",
+      "model": {
+        "name": "gpt-test",
+        "lazy": false,
+        "overeager": false,
+        "examples_as_sys_msg": false,
+        "reminder": "sys",
+        "system_prompt_prefix": null,
+        "use_system_prompt": true,
+        "max_input_tokens": null,
+        "supports_vision": true,
+        "supports_pdf_input": false,
+        "max_pdf_size_mb": null,
+        "tokens_per_message": 10
+      },
+      "fence": ["```", "```"],
+      "suggest_shell_commands": true,
+      "user_language": null,
+      "platform": "- Platform: Linux-6.1-x86_64-with-glibc2.36\n- Shell: SHELL=/bin/bash\n- Current date: 2026-10-10\n- The user prefers this test command: pytest -k '{x}'\n",
+      "done": [],
+      "repo_map": null,
+      "read_only_files": [],
+      "chat_files": [
+        {
+          "path": "SHOT.PNG",
+          "content": "not an image\n"
+        }
+      ],
+      "cur": [
+        {
+          "role": "user",
+          "content": "Add a greeting."
+        }
+      ]
+    }
+  },
+  {
+    "id": "all_messages/every-chunk",
+    "op": "prompts.all_messages",
+    "args": {
+      "counts": {
+        "system": 1,
+        "examples": 2,
+        "done": 2,
+        "repo": 2,
+        "readonly_files": 2,
+        "chat_files": 2,
+        "cur": 1,
+        "reminder": 1
+      }
+    }
+  },
+  {
+    "id": "all_messages/sparse-chunks",
+    "op": "prompts.all_messages",
+    "args": {
+      "counts": {
+        "system": 2,
+        "examples": 0,
+        "done": 1,
+        "repo": 0,
+        "readonly_files": 1,
+        "chat_files": 0,
+        "cur": 0,
+        "reminder": 1
+      }
+    }
+  },
+  {
+    "id": "all_messages/empty",
+    "op": "prompts.all_messages",
+    "args": {
+      "counts": {
+        "system": 0,
+        "examples": 0,
+        "done": 0,
+        "repo": 0,
+        "readonly_files": 0,
+        "chat_files": 0,
+        "cur": 0,
+        "reminder": 0
+      }
+    }
+  }
+]
