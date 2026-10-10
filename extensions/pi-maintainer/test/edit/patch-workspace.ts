@@ -6,6 +6,8 @@ import { onTestFinished } from 'vitest';
 import type { PatchContext } from '../../src/edit/patch.ts';
 import { createWorkingTree, type Notices, type WorkingTree } from '../../src/edit/working-tree.ts';
 
+const sandboxPath = (root: string, path: string): string => resolve(root, path);
+
 export type Notice = readonly [kind: keyof Notices, message: string];
 
 export interface WorkspaceOptions {
@@ -52,16 +54,17 @@ async function snapshot(root: string): Promise<Record<string, string | null>> {
 export async function workspace({ files = {}, dirs = [], dryRun = false, encoding = 'utf-8' }: WorkspaceOptions = {}): Promise<Workspace> {
   const root = await mkdtemp(join(tmpdir(), 'pi-maintainer-patch-'));
   onTestFinished(() => rm(root, { recursive: true, force: true }));
-  for (const dir of dirs) await mkdir(join(root, dir), { recursive: true });
+  for (const dir of dirs) await mkdir(sandboxPath(root, dir), { recursive: true });
   for (const [path, content] of Object.entries(files)) {
-    await mkdir(dirname(join(root, path)), { recursive: true });
-    await writeFile(join(root, path), content);
+    const full = sandboxPath(root, path);
+    await mkdir(dirname(full), { recursive: true });
+    await writeFile(full, content);
   }
   const { io, recorded } = recordingNotices();
   const workingTree = createWorkingTree({ notices: io, dryRun, encoding });
   return {
     root,
-    ctx: { absRootPath: (path) => resolve(root, path), io, tree: workingTree },
+    ctx: { absRootPath: (path) => sandboxPath(root, path), io, tree: workingTree },
     workingTree,
     notices: () => recorded.map(([kind, message]) => [kind, message.replaceAll(root, '<root>')]),
     snapshot: () => snapshot(root),

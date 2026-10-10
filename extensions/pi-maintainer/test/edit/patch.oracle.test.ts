@@ -43,12 +43,13 @@ function portAction(data: Static<typeof action>): PatchAction {
 }
 
 /** Mirrors the oracle's capture: a ValueError becomes data next to the state it left behind. */
-async function attempt<T>(run: () => T | Promise<T>): Promise<readonly [value: T | null, raised: { type: string; message: string } | null]> {
+async function attempt<T>(run: () => T | Promise<T>, root?: string): Promise<readonly [value: T | null, raised: { type: string; message: string } | null]> {
   try {
     return [await run(), null];
   } catch (error) {
-    if (error instanceof ValueError) return [null, { type: error.name, message: error.message }];
-    throw error;
+    if (!(error instanceof ValueError)) throw error;
+    const message = root === undefined ? error.message : error.message.replaceAll(root, '<root>');
+    return [null, { type: error.name, message }];
   }
 }
 
@@ -86,7 +87,7 @@ test.for(oracleCases('patch', 'patch.parse_patch_text', parseArgs))('parsePatchT
 test.for(oracleCases('patch', 'patch.get_edits', Type.Object({ reply: Type.String(), ...project })))('getEdits $id', async ({ args, expected }) => {
   const space = await workspace({ files: args.files, dirs: args.dirs, dryRun: args.dry_run });
   const outcome = await outcomeOf(async () => {
-    const [edits, raised] = await attempt(() => getEdits(args.reply, space.ctx));
+    const [edits, raised] = await attempt(() => getEdits(args.reply, space.ctx), space.root);
     return { edits: edits === null ? null : aiderEdits(edits), raised, notices: space.notices() };
   });
   expect(outcome).toEqual(expected);
@@ -96,7 +97,7 @@ test.for(oracleCases('patch', 'patch.apply_edits', Type.Object({ edits: Type.Arr
   const space = await workspace({ files: args.files, dirs: args.dirs, dryRun: args.dry_run });
   const edits = args.edits.map(([path, data]): EditResult => [path, portAction(data)]);
   const outcome = await outcomeOf(async () => {
-    const [, raised] = await attempt(() => applyEdits(edits, space.ctx));
+    const [, raised] = await attempt(() => applyEdits(edits, space.ctx), space.root);
     return { raised, notices: space.notices(), tree: await space.snapshot() };
   });
   expect(outcome).toEqual(expected);
@@ -105,7 +106,7 @@ test.for(oracleCases('patch', 'patch.apply_edits', Type.Object({ edits: Type.Arr
 test.for(oracleCases('patch', 'patch.apply_reply', Type.Object({ reply: Type.String(), ...project })))('applies reply $id', async ({ args, expected }) => {
   const space = await workspace({ files: args.files, dirs: args.dirs, dryRun: args.dry_run });
   const outcome = await outcomeOf(async () => {
-    const [, raised] = await attempt(async () => applyEdits(applyEditsDryRun(await getEdits(args.reply, space.ctx), space.ctx), space.ctx));
+    const [, raised] = await attempt(async () => applyEdits(applyEditsDryRun(await getEdits(args.reply, space.ctx), space.ctx), space.ctx), space.root);
     return { raised, notices: space.notices(), tree: await space.snapshot() };
   });
   expect(outcome).toEqual(expected);

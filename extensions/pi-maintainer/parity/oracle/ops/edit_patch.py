@@ -64,16 +64,23 @@ def read_tree(case_dir):
     return tree
 
 
+def root_text(case_dir):
+    return str(Path(case_dir).resolve())
+
+
 def anonymized(notices, case_dir):
-    root = str(Path(case_dir).resolve())
+    root = root_text(case_dir)
     return [[kind, message.replace(root, "<root>")] for kind, message in notices]
 
 
-def attempt(run):
+def attempt(run, case_dir=None):
     try:
         return run(), None
     except ValueError as err:
-        return None, {"type": type(err).__name__, "message": str(err)}
+        message = str(err)
+        if case_dir is not None:
+            message = message.replace(root_text(case_dir), "<root>")
+        return None, {"type": type(err).__name__, "message": message}
 
 
 def edit_pairs(edits):
@@ -105,7 +112,7 @@ def identify_files_needed(args, _case_dir):
 def parse_patch_text(args, case_dir):
     notices = []
     coder = patch_coder(case_dir, args, notices)
-    patch, raised = attempt(lambda: coder._parse_patch_text(args["lines"], args["start_index"], args["current_files"]))
+    patch, raised = attempt(lambda: coder._parse_patch_text(args["lines"], args["start_index"], args["current_files"]), case_dir)
     parsed = None if patch is None else {"actions": edit_pairs(patch.actions.items()), "fuzz": patch.fuzz}
     return {"patch": parsed, "raised": raised, "notices": notices}
 
@@ -115,7 +122,7 @@ def get_edits(args, case_dir):
     write_tree(case_dir, args)
     notices = []
     coder = patch_coder(case_dir, args, notices)
-    edits, raised = attempt(lambda: edit_pairs(coder.get_edits()))
+    edits, raised = attempt(lambda: edit_pairs(coder.get_edits()), case_dir)
     return {"edits": edits, "raised": raised, "notices": anonymized(notices, case_dir)}
 
 
@@ -125,7 +132,7 @@ def apply_edits(args, case_dir):
     notices = []
     coder = patch_coder(case_dir, args, notices)
     edits = [(path, patch_action(data)) for path, data in args["edits"]]
-    _, raised = attempt(lambda: coder.apply_edits(edits))
+    _, raised = attempt(lambda: coder.apply_edits(edits), case_dir)
     return {"raised": raised, "notices": anonymized(notices, case_dir), "tree": read_tree(case_dir)}
 
 
@@ -134,5 +141,5 @@ def apply_reply(args, case_dir):
     write_tree(case_dir, args)
     notices = []
     coder = patch_coder(case_dir, args, notices)
-    _, raised = attempt(lambda: coder.apply_edits(coder.apply_edits_dry_run(coder.get_edits())))
+    _, raised = attempt(lambda: coder.apply_edits(coder.apply_edits_dry_run(coder.get_edits())), case_dir)
     return {"raised": raised, "notices": anonymized(notices, case_dir), "tree": read_tree(case_dir)}

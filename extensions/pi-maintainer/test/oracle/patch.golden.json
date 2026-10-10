@@ -49,6 +49,18 @@
       }
     }
   },
+  "apply_edits/add-parent-is-file": {
+    "result": {
+      "notices": [["output", "Adding parent/new.py"]],
+      "raised": {
+        "message": "Error applying action 'ActionType.ADD' to parent/new.py: [Errno 17] File exists: '<root>/parent'",
+        "type": "ValueError"
+      },
+      "tree": {
+        "parent": "regular file\n"
+      }
+    }
+  },
   "apply_edits/add-preserves-carriage-return": {
     "result": {
       "notices": [["output", "Adding n.py"]],

@@ -13,7 +13,15 @@ type UpdateAction = Extract<PatchAction, { type: 'Update' }>;
 const ACTION_TYPE_STR: Readonly<Record<ActionType, string>> = { Add: 'ActionType.ADD', Delete: 'ActionType.DELETE', Update: 'ActionType.UPDATE' };
 
 /** Node's system errors carry an errno, as Python's `OSError` does. */
-const isOSError = (error: unknown): error is Error => error instanceof Error && 'errno' in error && typeof error.errno === 'number';
+const isOSError = (error: unknown): error is NodeJS.ErrnoException => error instanceof Error && 'errno' in error && typeof error.errno === 'number';
+
+/** Supported diagnostic boundary: Python's `[Errno 17] File exists: 'path'`. */
+function osErrorMessage(error: NodeJS.ErrnoException): string {
+  if ((error.code === 'EEXIST' || error.errno === 17 || error.errno === -17) && typeof error.path === 'string') {
+    return `[Errno 17] File exists: '${error.path}'`;
+  }
+  return error.message;
+}
 
 const stripped = (line: string): string => strip(norm(line));
 
@@ -87,7 +95,8 @@ function applyAction(action: PatchAction, fullPath: string, ctx: PatchContext): 
 
 function applyFailure(action: PatchAction, error: unknown): ValueError {
   const actionType = ACTION_TYPE_STR[action.type];
-  if (error instanceof DiffError || isOSError(error)) return new ValueError(`Error applying action '${actionType}' to ${action.path}: ${error.message}`);
+  if (error instanceof DiffError) return new ValueError(`Error applying action '${actionType}' to ${action.path}: ${error.message}`);
+  if (isOSError(error)) return new ValueError(`Error applying action '${actionType}' to ${action.path}: ${osErrorMessage(error)}`);
   return new ValueError(`Unexpected error applying action '${actionType}' to ${action.path}: ${error instanceof Error ? error.message : String(error)}`);
 }
 

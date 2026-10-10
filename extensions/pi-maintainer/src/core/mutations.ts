@@ -26,6 +26,7 @@ export function journaledTree(tree: WorkingTree, reply: string, append: (data: u
     write: (path, content) => perform('write', path, () => target.write(path, content)),
     touch: (path) => perform('touch', path, () => target.touch(path)),
     remove: (path) => perform('remove', path, () => target.remove(path)),
+    mkdir: (path) => target.mkdir(path),
     mutate: (paths, operation, operationSignal) => target.mutate(paths, (locked) => operation(wrap(locked)), operationSignal),
   });
   return wrap(tree);

@@ -13,28 +13,34 @@ export type Section = readonly [contextLines: readonly string[], chunks: readonl
 
 type Mode = 'keep' | 'add' | 'delete';
 
-const CONTEXT_PASSES: readonly (readonly [normalize: (line: string) => string, fuzz: number])[] = [
-  [(line) => line, 0],
-  [(line) => rstrip(line), 1],
-  [(line) => strip(line), 100],
-];
-
 export const norm = (line: string): string => rstrip(line, '\r');
 
 export const sameLines = (left: readonly string[], right: readonly string[]): boolean => left.length === right.length && left.every((line, index) => line === right[index]);
 
-function firstWindow(lines: readonly string[], context: readonly string[], start: number): number {
-  for (let index = start; index < lines.length - context.length + 1; index += 1) {
-    if (sameLines(lines.slice(index, index + context.length), context)) return index;
-  }
-  return -1;
-}
-
 export function findContextCore(lines: readonly string[], context: readonly string[], start: number): ContextMatch {
   if (context.length === 0) return [start, 0];
-  for (const [normalize, fuzz] of CONTEXT_PASSES) {
-    const index = firstWindow(lines.map(normalize), context.map(normalize), start);
-    if (index !== -1) return [index, fuzz];
+  for (let index = start; index < lines.length - context.length + 1; index += 1) {
+    if (sameLines(lines.slice(index, index + context.length), context)) return [index, 0];
+  }
+  const rstripContext = context.map((line) => rstrip(line));
+  for (let index = start; index < lines.length - context.length + 1; index += 1) {
+    if (
+      sameLines(
+        lines.slice(index, index + context.length).map((line) => rstrip(line)),
+        rstripContext,
+      )
+    )
+      return [index, 1];
+  }
+  const stripContext = context.map((line) => strip(line));
+  for (let index = start; index < lines.length - context.length + 1; index += 1) {
+    if (
+      sameLines(
+        lines.slice(index, index + context.length).map((line) => strip(line)),
+        stripContext,
+      )
+    )
+      return [index, 100];
   }
   return [-1, 0];
 }

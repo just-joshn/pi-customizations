@@ -9,7 +9,16 @@ const context: EditContext = {
   root: '/project',
   inchatRelativeFiles: [],
   absRootPath: (path) => `/project/${path}`,
-  tree: { dryRun: false, read: async () => null, write: async () => {}, exists: async () => false, touch: async () => true, remove: async () => {}, mutate: async (_paths, operation) => operation(context.tree) },
+  tree: {
+    dryRun: false,
+    read: async () => null,
+    write: async () => {},
+    exists: async () => false,
+    touch: async () => true,
+    remove: async () => {},
+    mkdir: async () => {},
+    mutate: async (_paths, operation) => operation(context.tree),
+  },
   notices: { output: () => {}, warning: () => {}, error: () => {} },
 };
 

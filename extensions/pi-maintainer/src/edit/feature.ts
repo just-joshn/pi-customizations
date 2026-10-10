@@ -1,8 +1,11 @@
 import { type EditContext, type EditFormats, type Feature, isEditFormatName, registerEditFormat } from '../feature.ts';
 import { applyEdits as applyEditBlocks, applyEditsDryRun as applyEditBlocksDryRun, type EditBlock, getEdits as getEditBlocks } from './editblock.ts';
 import { editOptionList, editOptions } from './options.ts';
+import { applyEdits as applyPatchEdits, applyEditsDryRun as applyPatchEditsDryRun, type EditResult, getEdits as getPatchEdits, type PatchContext, editIntent as patchEditIntent } from './patch.ts';
 import { applyEdits, getEdits, type WholeFileEdit } from './wholefile.ts';
 import { createWorkingTree, type LineEndings } from './working-tree.ts';
+
+export { editIntent as patchEditIntent } from './patch.ts';
 
 const lineEndings = (value: string | null): LineEndings => (value === 'lf' || value === 'crlf' ? value : 'platform');
 
@@ -12,6 +15,14 @@ function editBlockContext(context: EditContext) {
     root: context.root,
     absFnames: new Set(context.inchatRelativeFiles.map(context.absRootPath)),
     absRootPath: context.absRootPath,
+    tree: context.tree,
+  };
+}
+
+function patchContext(context: EditContext): PatchContext {
+  return {
+    absRootPath: context.absRootPath,
+    io: context.notices,
     tree: context.tree,
   };
 }
@@ -45,6 +56,15 @@ export const diffFencedFormat = registerEditFormat<EditBlock>({
   ...editBlockFormat,
 });
 
+export const patchFormat = registerEditFormat<EditResult>({
+  name: 'patch',
+  prompts: 'patch',
+  editIntent: patchEditIntent,
+  getEdits: (content, context) => getPatchEdits(content, patchContext(context)),
+  applyEditsDryRun: (edits, context) => applyPatchEditsDryRun(edits, patchContext(context)),
+  applyEdits: (edits, context) => applyPatchEdits(edits, patchContext(context)),
+});
+
 export const editFeature: Feature<EditFormats> & { readonly name: 'edit' } = {
   name: 'edit',
   options: editOptionList,
@@ -57,6 +77,7 @@ export const editFeature: Feature<EditFormats> & { readonly name: 'edit' } = {
         ['whole', wholeFileFormat],
         ['diff', diffFormat],
         ['diff-fenced', diffFencedFormat],
+        ['patch', patchFormat],
       ]),
       requestedFormat: requested !== null && isEditFormatName(requested) ? requested : null,
       initialFiles: { editable: settings.value(editOptions.file), readOnly: settings.value(editOptions.read) },

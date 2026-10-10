@@ -183,8 +183,8 @@
     "id": "find_context_core/non-bmp",
     "op": "patch.find_context_core",
     "args": {
-      "lines": ["😀 a", "𝒳"],
-      "context": ["𝒳"],
+      "lines": ["\ud83d\ude00 a", "\ud835\udcb3"],
+      "context": ["\ud835\udcb3"],
       "start": 0
     }
   },
@@ -513,7 +513,7 @@
     "id": "peek_next_section/tabs-non-bmp",
     "op": "patch.peek_next_section",
     "args": {
-      "lines": [" \t😀", "-𝒳", "+𝒴"],
+      "lines": [" \t\ud83d\ude00", "-\ud835\udcb3", "+\ud835\udcb4"],
       "index": 0
     }
   },
@@ -1195,7 +1195,7 @@
     "id": "parse_patch_text/add-tabs-non-bmp",
     "op": "patch.parse_patch_text",
     "args": {
-      "lines": ["*** Add File: n.py", "+\t😀", "+𝒳"],
+      "lines": ["*** Add File: n.py", "+\t\ud83d\ude00", "+\ud835\udcb3"],
       "start_index": 0,
       "current_files": {}
     }
@@ -1622,9 +1622,9 @@
     "id": "get_edits/non-bmp",
     "op": "patch.get_edits",
     "args": {
-      "reply": "*** Begin Patch\n*** Update File: u.txt\n 😀\n-𝒳\n+𝒴\n*** End Patch\n",
+      "reply": "*** Begin Patch\n*** Update File: u.txt\n \ud83d\ude00\n-\ud835\udcb3\n+\ud835\udcb4\n*** End Patch\n",
       "files": {
-        "u.txt": "😀\n𝒳\n"
+        "u.txt": "\ud83d\ude00\n\ud835\udcb3\n"
       }
     }
   },
@@ -1752,6 +1752,25 @@
     }
   },
   {
+    "id": "apply_edits/add-parent-is-file",
+    "op": "patch.apply_edits",
+    "args": {
+      "files": {
+        "parent": "regular file\n"
+      },
+      "edits": [
+        [
+          "parent/new.py",
+          {
+            "type": "Add",
+            "path": "parent/new.py",
+            "new_content": "new"
+          }
+        ]
+      ]
+    }
+  },
+  {
     "id": "apply_edits/add-preserves-carriage-return",
     "op": "patch.apply_edits",
     "args": {
@@ -1777,7 +1796,7 @@
           {
             "type": "Add",
             "path": "n.py",
-            "new_content": "\t😀\n𝒳"
+            "new_content": "\t\ud83d\ude00\n\ud835\udcb3"
           }
         ]
       ]
@@ -2315,15 +2334,15 @@
             "chunks": [
               {
                 "orig_index": 1,
-                "del_lines": ["𝒳"],
-                "ins_lines": ["𝒴"]
+                "del_lines": ["\ud835\udcb3"],
+                "ins_lines": ["\ud835\udcb4"]
               }
             ]
           }
         ]
       ],
       "files": {
-        "u.txt": "\t😀\n𝒳\n"
+        "u.txt": "\t\ud83d\ude00\n\ud835\udcb3\n"
       }
     }
   },
@@ -2861,9 +2880,9 @@
     "id": "apply_reply/non-bmp",
     "op": "patch.apply_reply",
     "args": {
-      "reply": "*** Begin Patch\n*** Update File: u.txt\n 😀\n-𝒳\n+𝒴\n*** Add File: v.txt\n+🐍\n*** End Patch\n",
+      "reply": "*** Begin Patch\n*** Update File: u.txt\n \ud83d\ude00\n-\ud835\udcb3\n+\ud835\udcb4\n*** Add File: v.txt\n+\ud83d\udc0d\n*** End Patch\n",
       "files": {
-        "u.txt": "😀\n𝒳\n"
+        "u.txt": "\ud83d\ude00\n\ud835\udcb3\n"
       }
     }
   },

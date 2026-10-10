@@ -1,3 +1,4 @@
+import type { EditIntent } from '../feature.ts';
 import { splitlines, strip } from '../support/pystr.ts';
 import { DiffError, ValueError } from './errors.ts';
 import { parsePatchText } from './patch-parse.ts';
@@ -23,6 +24,22 @@ export type PatchAction =
 
 /** Common preparation authorizes the first element; the action carries the payload. */
 export type EditResult = readonly [path: string, action: PatchAction];
+
+/** Authorization unit for a parsed patch action, including both MOVE endpoints. */
+export function editIntent([, action]: EditResult): EditIntent {
+  switch (action.type) {
+    case 'Add':
+      return { kind: 'add', path: action.path };
+    case 'Delete':
+      return { kind: 'delete', path: action.path };
+    case 'Update':
+      return action.movePath === null ? { kind: 'update', path: action.path } : { kind: 'move', source: action.path, destination: action.movePath };
+    default: {
+      const exhaustive: never = action;
+      return exhaustive;
+    }
+  }
+}
 
 export interface Patch {
   readonly actions: ReadonlyMap<string, PatchAction>;
@@ -75,6 +92,6 @@ export async function getEdits(reply: string, ctx: PatchContext): Promise<EditRe
 }
 
 /** `Coder.apply_edits_dry_run`, which `PatchCoder` does not override. */
-export function applyEditsDryRun(edits: readonly EditResult[], _context: PatchContext): readonly EditResult[] {
-  return edits;
+export function applyEditsDryRun(edits: readonly EditResult[], _context: PatchContext): EditResult[] {
+  return [...edits];
 }
