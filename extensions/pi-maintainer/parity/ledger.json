@@ -192,10 +192,19 @@
         "aider/coders/architect_coder.py:28"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('context_with_system')",
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/core/exchange.ts",
+        "src/core/repo-map.ts"
+      ],
+      "tests": [
+        "test/core/modes.pi.test.ts::architect editor frame keeps file context and disables shell, warming, and format-change summarization",
+        "test/map/scaffold-bind.test.ts::disabled map policy never calls the repository-context port"
+      ]
     },
     {
       "id": "map.context.expand-refresh-map",
@@ -3633,10 +3642,19 @@
         "aider/repomap.py:47-58,119-132"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('context_with_system')",
+        "pi.registerFlag"
+      ],
+      "src": [
+        "src/map/budget.ts",
+        "src/map/context.ts",
+        "src/map/options.ts"
+      ],
+      "tests": [
+        "test/map/scaffold-bind.test.ts::without chat files the configured multiplier expands the map budget subject to context capacity minus 4096"
+      ]
     },
     {
       "id": "map.cache.tags-mtime",
@@ -4573,10 +4591,18 @@
         "aider/models.py:128-161,385-606"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.registerFlag"
+      ],
+      "src": [
+        "src/map/mapping-policy.ts",
+        "src/map/model-map-settings.json",
+        "src/map/feature.ts"
+      ],
+      "tests": [
+        "test/map/scaffold-bind.test.ts::repository mapping defaults off unless packaged settings or heuristics enable it"
+      ]
     },
     {
       "id": "edit.patch.add-parent-file-error",
