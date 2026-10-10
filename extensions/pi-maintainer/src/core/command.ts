@@ -1,5 +1,6 @@
+import type { PhysicalModelRef } from '../edit/model-switch.ts';
 import type { WorkingTree } from '../edit/working-tree.ts';
-import type { GitPolicy } from '../feature.ts';
+import type { EditFormatName, GitPolicy } from '../feature.ts';
 import type { Snapshot } from './branch.ts';
 import type { Host } from './host.ts';
 
@@ -14,8 +15,10 @@ export interface CommandEnv {
   readonly autoCommits: boolean;
   readonly supportsImages: boolean;
   readonly sendUserMessage: (text: string) => Promise<void>;
-  readonly setPhysicalModel: (model: { provider: string; id: string }) => Promise<boolean>;
-  readonly findPhysicalModel: (name: string) => { provider: string; id: string } | null;
+  readonly setPhysicalModel: (model: PhysicalModelRef) => Promise<boolean>;
+  readonly findPhysicalModel: (name: string) => PhysicalModelRef | null;
+  /** Packaged default edit format for a physical model (not unrecognized-name heuristics). */
+  readonly defaultEditFormat: (model: PhysicalModelRef | null) => EditFormatName;
 }
 
 /** One documented slash command. The core registers it with `pi.registerCommand`. */

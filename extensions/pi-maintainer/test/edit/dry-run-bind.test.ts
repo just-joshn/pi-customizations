@@ -40,6 +40,8 @@ function snapshot(root: string): Snapshot {
     lastUserEntry: 'user-1',
     historyThrough: null,
     physicalModel: { provider: 'test', id: 'scripted' },
+    editorModel: null,
+    weakModel: null,
     lifecycle: { kind: 'active', userEntries: ['user-1'], reflectionsSent: 0, preparedTargets: [], writtenPaths: [], waitingFor: null },
   };
 }

@@ -252,8 +252,11 @@ export class ExchangeController {
     }
     const main = this.#state.physicalModel;
     if (main === null) throw new Error('No physical maintainer model is bound');
-    const resolved = this.#env.resolveEditorModel?.(this.#env.ports.edit.editorModel, main);
-    if (this.#env.ports.edit.editorModel && resolved === null) throw new Error(`Editor model ${this.#env.ports.edit.editorModel} is not available`);
+    const editorFromSnapshot = this.#state.editorModel;
+    const resolved = editorFromSnapshot ?? this.#env.resolveEditorModel?.(this.#env.ports.edit.editorModel, main);
+    if (!editorFromSnapshot && this.#env.ports.edit.editorModel && resolved === null) {
+      throw new Error(`Editor model ${this.#env.ports.edit.editorModel} is not available`);
+    }
     const editorModel = resolved ?? main;
     const format = this.#env.ports.edit.editorEditFormat;
     if (!this.#env.ports.edit.formats.has(format)) throw new Error(`Editor format ${format} is not implemented`);

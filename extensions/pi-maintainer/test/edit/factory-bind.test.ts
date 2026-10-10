@@ -60,6 +60,8 @@ function snapshot(root: string, files: Snapshot['files'], ignoredMentions: strin
     lastUserEntry: 'user-1',
     historyThrough: null,
     physicalModel: { provider: 'test', id: 'scripted' },
+    editorModel: null,
+    weakModel: null,
     lifecycle: { kind: 'idle' },
   };
 }

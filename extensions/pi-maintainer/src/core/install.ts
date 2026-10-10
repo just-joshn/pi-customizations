@@ -7,6 +7,7 @@ import { selectEditFormat } from '../edit/factory.ts';
 import { defaultEditorFormat } from '../edit/modes.ts';
 import { promptPolicyFromModelFormat, resolveModelFormatPolicyForRef, type ModelFormatPolicy } from '../edit/model-format-policy.ts';
 import { editOptions } from '../edit/options.ts';
+import { packagedDefaultEditFormat } from '../edit/packaged-default-format.ts';
 import { textFromAssistantContent } from '../edit/reasoning.ts';
 import { admitInitialEditable, readMessageFile } from '../edit/startup-input.ts';
 import { type EditFormatName, createPorts, isEditFormatName, type Ports, type SarFeature } from '../feature.ts';
@@ -109,6 +110,8 @@ async function initialSnapshot(ports: Ports, cwd: string, append: (data: unknown
     lastUserEntry: null,
     historyThrough: null,
     physicalModel: null,
+    editorModel: null,
+    weakModel: null,
     lifecycle: { kind: 'idle' },
   };
 }
@@ -245,8 +248,13 @@ class MaintainerRuntime {
           const same = ctx.modelRegistry.find(physical.provider, name);
           if (same && same.api !== 'pi-virtual') return { provider: same.provider, id: same.id };
         }
+        for (const candidate of ctx.modelRegistry.getAvailable()) {
+          if (candidate.api === 'pi-virtual') continue;
+          if (candidate.id === name) return { provider: candidate.provider, id: candidate.id };
+        }
         return null;
       },
+      defaultEditFormat: packagedDefaultEditFormat,
     };
   }
   append(data: unknown): void {
@@ -291,7 +299,16 @@ class MaintainerRuntime {
       resolveEditorModel: (name, main) => resolveEditorModel(ctx, name, main),
     });
     if (!restored.snapshot) this.#controller.save(snapshot);
-    if (ctx.model?.api !== 'pi-virtual' && ctx.model) this.#controller.save({ ...this.#controller.snapshot, physicalModel: { provider: ctx.model.provider, id: ctx.model.id } });
+    if (ctx.model?.api !== 'pi-virtual' && ctx.model) {
+      const main = { provider: ctx.model.provider, id: ctx.model.id };
+      const editor = resolveEditorModel(ctx, ports.edit.editorModel, main);
+      this.#controller.save({
+        ...this.#controller.snapshot,
+        physicalModel: main,
+        editorModel: ports.edit.editorModel ? editor : this.#controller.snapshot.editorModel,
+        weakModel: this.#controller.snapshot.weakModel,
+      });
+    }
     this.restoreBranch(ctx);
     this.#pi.setActiveTools([]);
     const router = ctx.modelRegistry.find(BRANDING.routerProvider, BRANDING.routerId);

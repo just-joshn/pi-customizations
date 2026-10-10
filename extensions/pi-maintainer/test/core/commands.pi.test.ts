@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { expect, test } from 'vitest';
 import { restore } from '../../src/core/branch.ts';
 import { maintainerExtension } from '../support/maintainer.ts';
-import { piSessionFixture } from '../support/pi-session.ts';
+import { piSessionFixture, scriptedModel } from '../support/pi-session.ts';
 
 test('/add registers an editable file through pi.registerCommand', { meta: { aider: ['test_commands/TestCommands.test_cmd_add'] } }, async () => {
   const f = await piSessionFixture({ extension: maintainerExtension(), config: 'edit-format: whole\nyes-always: true\n' });
@@ -97,5 +97,34 @@ test('/save and /load reconstruct editable and read-only selections', {
   const snapshot = restore(session.sessionManager.getBranch()).snapshot;
   expect(snapshot?.files.editable).toEqual([join(f.cwd, 'a.txt')]);
   expect(snapshot?.files.readOnly).toEqual([join(f.cwd, 'b.txt')]);
+  expect(f.errors).toEqual([]);
+});
+
+test('/model and /editor-model persist role selections for the next reconstruction', {
+  meta: {
+    aider: [
+      'test_commands/TestCommands.test_cmd_model',
+      'test_commands/TestCommands.test_cmd_editor_model',
+      'test_commands/TestCommands.test_cmd_model_preserves_explicit_edit_format',
+    ],
+  },
+}, async () => {
+  const other = { ...scriptedModel, id: 'other-scripted', name: 'Other scripted' };
+  const editor = { ...scriptedModel, id: 'editor-scripted', name: 'Editor scripted' };
+  const f = await piSessionFixture({
+    extension: maintainerExtension(),
+    models: [other, editor],
+    config: 'edit-format: udiff\nyes-always: true\n',
+  });
+  const session = await f.open();
+  await session.prompt('/editor-model editor-scripted');
+  let snapshot = restore(session.sessionManager.getBranch()).snapshot;
+  expect(snapshot?.physicalModel).toEqual({ provider: 'maintainer-test', id: 'scripted' });
+  expect(snapshot?.editorModel).toEqual({ provider: 'maintainer-test', id: 'editor-scripted' });
+  await session.prompt('/model other-scripted');
+  snapshot = restore(session.sessionManager.getBranch()).snapshot;
+  expect(snapshot?.physicalModel).toEqual({ provider: 'maintainer-test', id: 'other-scripted' });
+  expect(snapshot?.editorModel).toEqual({ provider: 'maintainer-test', id: 'editor-scripted' });
+  expect(snapshot?.mode).toBe('udiff');
   expect(f.errors).toEqual([]);
 });

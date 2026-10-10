@@ -47,17 +47,29 @@ export const snapshotSchema = Type.Object({
   lastUserEntry: Type.Union([Type.String(), Type.Null()]),
   historyThrough: Type.Union([Type.String(), Type.Null()]),
   physicalModel: Type.Union([physicalModel, Type.Null()]),
+  /** Editor model for architect reconstruction. Optional for older snapshots. */
+  editorModel: Type.Optional(Type.Union([physicalModel, Type.Null()])),
+  /** Weak model preserved across main/editor switches. Optional for older snapshots. */
+  weakModel: Type.Optional(Type.Union([physicalModel, Type.Null()])),
   lifecycle,
 });
 type Immutable<T> = T extends readonly unknown[] ? ReadonlyArray<Immutable<T[number]>> : T extends object ? { readonly [K in keyof T]: Immutable<T[K]> } : T;
 type ParsedSnapshot = Immutable<Static<typeof snapshotSchema>>;
-export type Snapshot = Omit<ParsedSnapshot, 'originalReadOnly' | 'returnMode'> & {
+export type Snapshot = Omit<ParsedSnapshot, 'originalReadOnly' | 'returnMode' | 'editorModel' | 'weakModel'> & {
   readonly originalReadOnly: readonly string[];
   readonly returnMode: EditFormatName | null;
+  readonly editorModel: Readonly<Static<typeof physicalModel>> | null;
+  readonly weakModel: Readonly<Static<typeof physicalModel>> | null;
 };
 
 function normalizeSnapshot(data: ParsedSnapshot): Snapshot {
-  return { ...data, originalReadOnly: data.originalReadOnly ?? [], returnMode: data.returnMode ?? null };
+  return {
+    ...data,
+    originalReadOnly: data.originalReadOnly ?? [],
+    returnMode: data.returnMode ?? null,
+    editorModel: data.editorModel ?? null,
+    weakModel: data.weakModel ?? null,
+  };
 }
 
 const operationSchema = Type.Object({

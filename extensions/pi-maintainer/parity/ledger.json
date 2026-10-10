@@ -4238,10 +4238,19 @@
         "aider/commands.py:484-506,508-551"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.registerCommand",
+        "estimateTokens"
+      ],
+      "src": [
+        "src/edit/commands.ts",
+        "src/edit/file-token-listing.ts"
+      ],
+      "tests": [
+        "test/edit/commands-residual.test.ts::context-usage file rows list editable and read-only names with estimates and a drop hint",
+        "test/edit/commands-residual.test.ts::/tokens lists selected editable and read-only files with estimates and a drop hint"
+      ]
     },
     {
       "id": "edit.commands.model-format-switch",
@@ -4251,10 +4260,26 @@
         "aider/commands.py:87-112"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.registerCommand",
+        "pi.appendEntry",
+        "ctx.modelRegistry"
+      ],
+      "src": [
+        "src/edit/commands.ts",
+        "src/edit/file-token-listing.ts",
+        "src/edit/model-switch.ts",
+        "src/edit/packaged-default-format.ts",
+        "src/core/branch.ts",
+        "src/core/command.ts",
+        "src/core/install.ts"
+      ],
+      "tests": [
+        "test/edit/commands-residual.test.ts::/model adopts the new packaged default and keeps editor and weak selections",
+        "test/edit/commands-residual.test.ts::/model preserves an explicit edit format across the main model switch",
+        "test/core/commands.pi.test.ts::/model and /editor-model persist role selections for the next reconstruction"
+      ]
     },
     {
       "id": "edit.commands.editor-model-switch",
@@ -4264,10 +4289,25 @@
         "aider/commands.py:114-124"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.registerCommand",
+        "pi.appendEntry",
+        "ctx.modelRegistry"
+      ],
+      "src": [
+        "src/edit/commands.ts",
+        "src/edit/file-token-listing.ts",
+        "src/edit/model-switch.ts",
+        "src/edit/packaged-default-format.ts",
+        "src/core/branch.ts",
+        "src/core/command.ts",
+        "src/core/install.ts"
+      ],
+      "tests": [
+        "test/edit/commands-residual.test.ts::/editor-model preserves main and weak selections on the snapshot",
+        "test/core/commands.pi.test.ts::/model and /editor-model persist role selections for the next reconstruction"
+      ]
     },
     {
       "id": "edit.commands.one-shot-ask",

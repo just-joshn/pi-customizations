@@ -38,11 +38,15 @@ function snapshot(root: string, editable: string[] = []): Snapshot {
     mode: 'whole',
     phase: { kind: 'main' },
     files: { editable, readOnly: [] },
+    originalReadOnly: [],
+    returnMode: null,
     ignoredMentions: [],
     neverAsk: [],
     lastUserEntry: 'user-1',
     historyThrough: null,
     physicalModel: { provider: 'test', id: 'scripted' },
+    editorModel: null,
+    weakModel: null,
     lifecycle: { kind: 'active', userEntries: ['user-1'], reflectionsSent: 0, preparedTargets: [], writtenPaths: [], waitingFor: null },
   };
 }

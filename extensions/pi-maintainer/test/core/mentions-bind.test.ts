@@ -36,6 +36,8 @@ function snapshot(root: string, files: { editable?: string[]; readOnly?: string[
     lastUserEntry: null,
     historyThrough: null,
     physicalModel: null,
+    editorModel: null,
+    weakModel: null,
     lifecycle: { kind: 'idle' },
   };
 }
