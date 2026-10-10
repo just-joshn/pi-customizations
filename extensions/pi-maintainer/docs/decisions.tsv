@@ -1,0 +1,5 @@
+ts	phase	decision	why	evidence	result
+2026-10-10T00:32:59Z	start	began the pi-maintainer run	first run on this log	session 01a12313-9357-70aa-8045-89b1d8ca4c7b	open
+2026-10-10T00:32:59Z	frame	asked the operator four product calls before arming the goal	edit protocol, defect policy, names, and chat-file model change the whole design and no experiment settles them	AskQuestion answers in session transcript	Aider way through Pi mechanisms; fix all defects keeping intent; branding cancelled so Pi names by default
+2026-10-10T00:32:59Z	frame	chose reply-text edits like Aider, applied through Pi hooks	operator said twice it must work how Aider does it, through Pi mechanisms	follow-up AskQuestion edit-transport answer	goal armed
+2026-10-10T00:32:59Z	frame	ordered the work editing, git, repo map, lint and test	Aider's Coder is the hub the other three plug into, so building it first lets each later feature be verified end to end when it lands	Git doc section 5-7, lint doc lifecycle state flow	goal armed

@@ -1,0 +1,46 @@
+{
+  "documentsDir": "/Users/josh-desktop/Documents/FREE",
+  "documents": {
+    "edit": "Aider-Precise-Code-Editing-Software-Architecture-Reconstruction.md",
+    "git": "Aider-Git-Software-Architecture-Reconstruction-2026-10-09.md",
+    "map": "Aider-Repository-Mapping-Software-Architecture-Reconstruction.md",
+    "lint": "Aider-Automated-Linting-and-Testing-Software-Architecture-Reconstruction.md"
+  },
+  "documentSha256": {
+    "edit": "6e731650d139097b21289ca9d5c247847906dfefdd3c0c1fa75f4168ac7966e2",
+    "git": "c36cc1ac1bfc38ce031ff218a83beb77691ab8dcf08255ec2bd3536a7ee7fffc",
+    "map": "19c806a0d7a0db24e6accd29f33bad0a824984d89634d19fbbea94ed5cc7880f",
+    "lint": "0d078505b6b10e70aed10a4e2d9833f24536a2c3683de8c35f2873603b450f30"
+  },
+  "evidenceDirs": {
+    "edit": "Aider-Precise-Code-Editing-Evidence",
+    "git": "aider-git-architecture-evidence-2026-10-09",
+    "map": "aider-repository-map-evidence",
+    "lint": "Aider-Automated-Linting-Testing-Evidence"
+  },
+  "aider": {
+    "checkout": "/Users/josh-desktop/src/experiments/aider",
+    "commit": "5dc9490bb35f9729ef2c95d00a19ccd30c26339c",
+    "python": ".re/build/venv/bin/python",
+    "testModules": [
+      "test_editblock",
+      "test_wholefile",
+      "test_udiff",
+      "test_find_or_blocks",
+      "test_reasoning",
+      "test_coder",
+      "test_commands",
+      "test_main",
+      "test_io",
+      "test_history",
+      "test_models",
+      "test_repo",
+      "test_sanity_check_repo",
+      "test_repomap",
+      "test_special",
+      "test_watch",
+      "test_linter",
+      "test_run_cmd"
+    ]
+  }
+}
