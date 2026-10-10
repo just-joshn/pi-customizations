@@ -2854,10 +2854,18 @@
         "aider/coders/base_coder.py:859-862,924-944"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.registerVirtualModel"
+      ],
+      "src": [
+        "src/core/route-entry.ts",
+        "src/core/install.ts"
+      ],
+      "tests": [
+        "test/core/lifecycle-residual.test.ts::direct route entry skips exchange binding and mention preprocessing",
+        "test/core/lifecycle-residual.test.ts::an unbound idle exchange refuses automatic reflection follow-ups"
+      ]
     },
     {
       "id": "edit.lifecycle.supplied-reply",
@@ -3205,10 +3213,19 @@
         "aider/commands.py:553-645"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.registerCommand"
+      ],
+      "src": [
+        "src/feature.ts",
+        "src/edit/commands.ts",
+        "src/core/command.ts"
+      ],
+      "tests": [
+        "test/core/lifecycle-residual.test.ts::/undo dispatches to the git port and surfaces a disabled refusal",
+        "test/core/lifecycle-residual.test.ts::/undo surfaces a restoration result from the git port without edit-layer restore"
+      ]
     },
     {
       "id": "edit.authorize.repository-policy",

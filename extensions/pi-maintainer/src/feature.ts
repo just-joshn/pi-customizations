@@ -155,6 +155,12 @@ export interface EditFormats {
 export type CommitContext = { readonly kind: 'conversation'; readonly text: string } | { readonly kind: 'linter' };
 export type CommitResult = { readonly kind: 'disabled' } | { readonly kind: 'committed'; readonly hash: string; readonly message: string } | { readonly kind: 'unchanged' } | { readonly kind: 'failed'; readonly error: string };
 export type CheckpointResult = { readonly kind: 'disabled' } | { readonly kind: 'protected' } | { readonly kind: 'unnecessary' } | { readonly kind: 'failed'; readonly error: string };
+/** Outcome of `/undo` on the Git port (`aider/commands.py` `raw_cmd_undo`). */
+export type UndoResult =
+  | { readonly kind: 'disabled' }
+  | { readonly kind: 'refused'; readonly message: string }
+  | { readonly kind: 'removed'; readonly hash: string; readonly message: string; readonly nowAt?: { readonly hash: string; readonly message: string } }
+  | { readonly kind: 'failed'; readonly error: string };
 
 /** The Git parts of the coder hub (`aider/repo.py` and the Git calls in `base_coder.py`). */
 export interface GitPolicy {
@@ -171,6 +177,8 @@ export interface GitPolicy {
   needsDirtyCommit(path: string): Promise<boolean>;
   dirtyCommit(paths: ReadonlySet<string>, signal?: AbortSignal): Promise<CheckpointResult>;
   autoCommit(paths: ReadonlySet<string | null>, context: CommitContext, signal?: AbortSignal): Promise<CommitResult>;
+  /** `/undo` restoration. Edit only dispatches; Git owns checkout and soft-reset. */
+  undo(signal?: AbortSignal): Promise<UndoResult>;
 }
 
 /** One attempt at `Coder.get_repo_map` → `RepoMap.get_repo_map`. Absolute paths for file sets. */
@@ -212,6 +220,7 @@ export const disabledGitPolicy: GitPolicy = {
   needsDirtyCommit: async () => false,
   dirtyCommit: async () => ({ kind: 'disabled' }),
   autoCommit: async () => ({ kind: 'disabled' }),
+  undo: async () => ({ kind: 'disabled' }),
 };
 
 export const disabledRepositoryContext: RepositoryContext = { repoMap: async () => null };

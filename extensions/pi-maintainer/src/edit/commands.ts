@@ -276,4 +276,25 @@ export const editCommands: readonly CommandSpec[] = [
       for (const line of formatFileTokenLines(rows)) env.host.output(line);
     },
   },
+  {
+    name: 'undo',
+    description: 'Undo the last git commit if it was done by maintainer',
+    async run(_args, env) {
+      const result = await env.git.undo();
+      if (result.kind === 'disabled') {
+        env.host.error('No git repository found.');
+        return;
+      }
+      if (result.kind === 'refused') {
+        env.host.error(result.message);
+        return;
+      }
+      if (result.kind === 'failed') {
+        env.host.error(`Unable to complete undo: ${result.error}`);
+        return;
+      }
+      env.host.output(`Removed: ${result.hash} ${result.message}`);
+      if (result.nowAt) env.host.output(`Now at:  ${result.nowAt.hash} ${result.nowAt.message}`);
+    },
+  },
 ];

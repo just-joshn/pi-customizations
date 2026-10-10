@@ -8,7 +8,7 @@ import { restore } from '../../src/core/branch.ts';
 import { cacheWarmingDecisionForPhase, installMaintainer } from '../../src/core/install.ts';
 import { editFeature } from '../../src/edit/feature.ts';
 import { contextPrompts } from '../../src/edit/prompts/context.ts';
-import type { GitPolicy, RepositoryContext } from '../../src/feature.ts';
+import { disabledGitPolicy, type GitPolicy, type RepositoryContext } from '../../src/feature.ts';
 import { maintainerExtension, testPrompts, textOf } from '../support/maintainer.ts';
 import { piSessionFixture, promptAndSettle, scriptedModel } from '../support/pi-session.ts';
 
@@ -26,14 +26,8 @@ test('ask mode answers without writing files', { meta: { aider: ['test_commands/
 
 test('context mode replaces editable files and reflects without applying edits', async () => {
   const tracked: GitPolicy = {
-    repoRoot: () => null,
+    ...disabledGitPolicy,
     trackedFiles: async () => ['alpha.txt', 'beta.txt'],
-    needToAdd: async () => false,
-    isGitIgnored: async () => false,
-    stageNewFile: async () => {},
-    needsDirtyCommit: async () => false,
-    dirtyCommit: async () => ({ kind: 'disabled' }),
-    autoCommit: async () => ({ kind: 'disabled' }),
   };
   const f = await piSessionFixture({
     config: 'edit-format: context\nfile: [alpha.txt]\nyes-always: true\n',

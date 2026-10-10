@@ -4,13 +4,13 @@ import type { ContextWithSystemEvent, ExtensionAPI, ExtensionContext, ModelRoute
 import { Text } from '@earendil-works/pi-tui';
 import { BRANDING } from '../branding.ts';
 import { selectEditFormat } from '../edit/factory.ts';
+import { type ModelFormatPolicy, promptPolicyFromModelFormat, resolveModelFormatPolicyForRef } from '../edit/model-format-policy.ts';
 import { defaultEditorFormat } from '../edit/modes.ts';
-import { promptPolicyFromModelFormat, resolveModelFormatPolicyForRef, type ModelFormatPolicy } from '../edit/model-format-policy.ts';
 import { editOptions } from '../edit/options.ts';
 import { packagedDefaultEditFormat } from '../edit/packaged-default-format.ts';
 import { textFromAssistantContent } from '../edit/reasoning.ts';
 import { admitInitialEditable, readMessageFile } from '../edit/startup-input.ts';
-import { type EditFormatName, createPorts, isEditFormatName, type Ports, type SarFeature } from '../feature.ts';
+import { createPorts, type EditFormatName, isEditFormatName, type Ports, type SarFeature } from '../feature.ts';
 import { formatSettings } from '../settings/format-settings.ts';
 import { loadSettings } from '../settings/load.ts';
 import { settingsOptions } from '../settings/options.ts';
@@ -22,6 +22,7 @@ import { type CompletedReply, type DialogueFact, ExchangeController } from './ex
 import { journaledTree } from './mutations.ts';
 import { createHost } from './pi-host.ts';
 import type { PromptPolicy, PromptSource } from './prompts.ts';
+import { routeEntryActions } from './route-entry.ts';
 
 export interface MaintainerOptions {
   readonly promptSource?: PromptSource;
@@ -288,7 +289,9 @@ class MaintainerRuntime {
     this.#ports = ports;
     this.#yes = ports.edit.yesAlways;
     const restored = restore(ctx.sessionManager.getBranch());
-    const snapshot = restored.snapshot ?? (await initialSnapshot(ports, ctx.cwd, (data) => this.append(data), this.host, !restored.pendingOperations.length && !restored.invalidRecords.length, ctx.sessionManager.getLeafId() ?? 'startup', formatPolicy.editFormat));
+    const snapshot =
+      restored.snapshot ??
+      (await initialSnapshot(ports, ctx.cwd, (data) => this.append(data), this.host, !restored.pendingOperations.length && !restored.invalidRecords.length, ctx.sessionManager.getLeafId() ?? 'startup', formatPolicy.editFormat));
     this.#controller = new ExchangeController(snapshot, {
       ports,
       host: this.host,
@@ -338,11 +341,12 @@ class MaintainerRuntime {
     const reference = controller.snapshot.physicalModel;
     const model = reference ? ctx.modelRegistry.find(reference.provider, reference.id) : undefined;
     if (!model || model.api === 'pi-virtual') throw new Error('Maintainer needs an available physical model');
-    if (request.reason !== 'direct') {
+    const entry = routeEntryActions(request.reason);
+    if (entry.bindExchange && request.reason !== 'direct') {
       const branch = ctx.sessionManager.getBranch();
       const users = branch.filter((entry) => entry.type === 'message' && entry.message.role === 'user').map((entry) => entry.id);
       controller.bindUser(users, { provider: model.provider, id: model.id }, request.reason);
-      if (request.reason === 'user' && controller.snapshot.mode !== 'context') {
+      if (entry.preprocessMentions && controller.snapshot.mode !== 'context') {
         const user = branch.filter((entry) => entry.type === 'message' && entry.message.role === 'user').at(-1);
         if (user?.type === 'message' && user.message.role === 'user') {
           const content =
