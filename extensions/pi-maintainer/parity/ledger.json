@@ -161,10 +161,19 @@
         "aider/coders/architect_coder.py:29-30,47"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "AgentSession.getSessionStats()",
+        "pi.on('turn_end')",
+        "pi.registerVirtualModel"
+      ],
+      "src": [
+        "src/core/exchange.ts",
+        "src/core/install.ts"
+      ],
+      "tests": [
+        "test/core/modes.pi.test.ts::architect editor path starts from architect session cost and returns the accumulated total"
+      ]
     },
     {
       "id": "map.architect.disable-editor-map",

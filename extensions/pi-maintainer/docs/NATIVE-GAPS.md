@@ -134,27 +134,16 @@ The flag adapters share the following gate answers. The table above identifies t
 7. **Verification.** Integration assertions inspect received normalized requests, literal disk contents, persisted branch facts, and `agent_settled`. The stream honors abort and request instrumentation. It adds no network service or background process.
 8. **Delete when.** Pi provides a public deterministic scripted-provider test fixture with these scenarios.
 
-## Architect editor cost counter
-
-1. **Behavior.** Aider copies `total_cost` onto the editor coder and writes the editor's accumulated total back onto the architect (`aider/coders/architect_coder.py:29-30,47`).
-2. **Mechanism evaluated.** Pi assistant message `usage` on each physical model turn; virtual-model routing for the editor request.
-3. **Why it cannot.** Pi already accounts usage on real assistant entries for each physical model. There is no public API to reassign or merge a private running total across nested frames the way Aider's in-process float does.
-4. **Why not omit.** Ledger row `edit.architect.return-editor-cost` documents the Aider behavior. Silently inventing a parallel float would diverge from Pi billing.
-5. **Adapter.** None. Cost remains on the Pi-owned assistant entries for the architect and editor physical models.
-6. **Authoritative Pi state.** Session message usage and provider billing stay with Pi.
-7. **Verification.** Architect SDK tests prove editor routing and application without asserting a copied float. The ledger row stays open until Pi exposes a supported transfer or the operator retires the requirement.
-8. **Delete when.** Pi exposes a documented way to attribute nested-frame cost to a parent exchange, or the ledger row is retired.
-
 ## Architect editor prompt-cache headers
 
 1. **Behavior.** Aider sets `cache_prompts=False` and `num_cache_warming_pings=0` on the editor coder (`aider/coders/architect_coder.py:30-31`).
-2. **Mechanism evaluated.** `cache_warming_decision` (idle warming) and provider request options on the physical model request.
-3. **Why it cannot.** Pi 1.1.0 exposes idle cache-warming decisions, not a general per-request prompt-cache header setter for an in-run editor continuation.
+2. **Mechanism evaluated (Pi 1.1.0, re-checked 2026-10-10).** `cache_warming_decision` for idle warming; `ModelRoute` (model + thinkingLevel only); `SimpleStreamOptions.cacheRetention` (`none` | `short` | `long`); `before_provider_request` / `before_provider_headers` payload and header rewrite; SettingsManager (no cacheRetention setter).
+3. **Why it cannot.** Architect→editor is an in-run virtual-route continuation. `ModelRoute` cannot attach `cacheRetention: "none"`. Settings expose no mid-run cacheRetention control. `before_provider_request` can rewrite an already-built body, but that is a per-API strip of `cache_control` / `prompt_cache_*` fields rather than Pi building a cache-off request. Idle warming stop is expressible; per-request prompt-cache header byte identity is not.
 4. **Why not omit.** Ledger row `edit.architect.editor-options` includes disabling prompt caching and cache warming. File context, shell-off, warming stop, and no format-change summarizer are expressible; prompt-cache header off is not.
-5. **Adapter.** `cache_warming_decision` returns `{ action: 'stop' }` while `snapshot.phase.kind === 'editor'` via `cacheWarmingDecisionForPhase`. No provider cache headers are invented.
+5. **Adapter.** `cache_warming_decision` returns `{ action: 'stop' }` while `snapshot.phase.kind === 'editor'` via `cacheWarmingDecisionForPhase`. No provider cache headers are invented or stripped.
 6. **Authoritative Pi state.** Pi owns warming timers and provider cache policy. Compaction owns summarization; the editor frame adds no format-change summarizer.
-7. **Verification.** `test/core/modes.pi.test.ts` proves editor file context, `suggestShellCommands: false`, mid-editor warming stop, and zero `session_before_compact` / compaction entries on the architect→editor path. Residual for verified status: per-request prompt-cache header byte identity remains unsupported.
-8. **Delete when.** Pi offers a request-local cache-options control that editor frames can set, or the ledger sentence drops the prompt-caching claim.
+7. **Verification.** `test/core/modes.pi.test.ts` proves editor file context, `suggestShellCommands: false`, mid-editor warming stop, and zero `session_before_compact` / compaction entries on the architect→editor path. Residual for verified status: per-request prompt-cache header byte identity remains unsupported. Row stays open.
+8. **Delete when.** Pi offers a request-local `cacheRetention` (or equivalent) on virtual-route continuations that editor frames can set, or the ledger sentence drops the prompt-caching claim.
 
 ## File watcher host attachment
 

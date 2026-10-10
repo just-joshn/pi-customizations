@@ -124,6 +124,48 @@ test('architect editor request routes to the configured editor model', {
   expect(f.errors).toEqual([]);
 });
 
+test('architect editor path starts from architect session cost and returns the accumulated total', async () => {
+  const architectUsage = {
+    input: 10,
+    output: 4,
+    cacheRead: 0,
+    cacheWrite: 0,
+    totalTokens: 14,
+    cost: { input: 0.04, output: 0.02, cacheRead: 0, cacheWrite: 0, total: 0.06 },
+  };
+  const editorUsage = {
+    input: 8,
+    output: 3,
+    cacheRead: 0,
+    cacheWrite: 0,
+    totalTokens: 11,
+    cost: { input: 0.03, output: 0.02, cacheRead: 0, cacheWrite: 0, total: 0.05 },
+  };
+  let session!: AgentSession;
+  const f = await piSessionFixture({
+    extension: maintainerExtension(),
+    config: 'edit-format: architect\nauto-accept-architect: true\neditor-edit-format: editor-whole\nfile: [hello.txt]\nyes-always: true\n',
+  });
+  await writeFile(join(f.cwd, 'hello.txt'), 'before\n');
+  f.replies.push(
+    { text: 'Update hello.txt to say after.', usage: architectUsage },
+    {
+      text: 'hello.txt\n```\nafter\n```\n',
+      usage: editorUsage,
+      wait: async () => {
+        expect(restore(session.sessionManager.getBranch()).snapshot?.phase.kind).toBe('editor');
+        expect(session.getSessionStats().cost).toBeCloseTo(architectUsage.cost.total);
+      },
+    },
+  );
+  session = await f.open();
+  await promptAndSettle(session, 'please edit');
+  expect(await readFile(join(f.cwd, 'hello.txt'), 'utf8')).toBe('after\n');
+  expect(f.requests).toHaveLength(2);
+  expect(session.getSessionStats().cost).toBeCloseTo(architectUsage.cost.total + editorUsage.cost.total);
+  expect(f.errors).toEqual([]);
+});
+
 test('architect editor frame keeps file context and disables shell, warming, and format-change summarization', async () => {
   const promptCalls: Array<{ format: string; suggestShellCommands: boolean }> = [];
   let compactCalls = 0;
