@@ -13,6 +13,8 @@ export interface FeatureEnv {
   readonly settings: ResolvedSettings;
   readonly host: Host;
   readonly cwd: string;
+  /** Pre-validated git root from startup. `null` disables Git. Omitted means discover from `cwd`. */
+  readonly gitRoot?: string | null;
 }
 
 export interface Feature<Port> {

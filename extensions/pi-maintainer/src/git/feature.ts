@@ -25,8 +25,13 @@ export const gitFeature: Feature<GitPolicy> & { readonly name: 'git' } = {
   name: 'git',
   options: gitOptionList,
   commands: [],
-  create({ settings, host, cwd }) {
-    return createGitPolicy({ host, cwd, settings: settingsFromEnv(settings) });
+  create({ settings, host, cwd, gitRoot }) {
+    return createGitPolicy({
+      host,
+      cwd,
+      settings: settingsFromEnv(settings),
+      ...(gitRoot !== undefined ? { repoRoot: gitRoot } : {}),
+    });
   },
 };
 

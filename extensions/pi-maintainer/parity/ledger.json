@@ -4702,10 +4702,22 @@
         "aider/args.py:22-32,272-275,422-432"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "Host.exec",
+        "Host.confirm"
+      ],
+      "src": [
+        "src/git/startup.ts",
+        "src/git/feature.ts",
+        "src/git/policy.ts",
+        "src/git/options.ts",
+        "src/core/install.ts",
+        "src/settings/config-files.ts"
+      ],
+      "tests": [
+        "test/git/startup-bind.test.ts::discoverGitRoot finds the repository from a subdirectory the way findGitRoot does"
+      ]
     },
     {
       "id": "git.startup.setup-repo",
@@ -4715,10 +4727,22 @@
         "aider/main.py:88-129"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "Host.exec",
+        "Host.confirm"
+      ],
+      "src": [
+        "src/git/startup.ts",
+        "src/git/feature.ts",
+        "src/git/policy.ts",
+        "src/git/options.ts",
+        "src/core/install.ts",
+        "src/settings/config-files.ts"
+      ],
+      "tests": [
+        "test/git/startup-bind.test.ts::setupGit offers init outside home, creates ignore patterns without a second confirm, and skips the home directory"
+      ]
     },
     {
       "id": "git.startup.sanity-check",
@@ -4728,10 +4752,22 @@
         "aider/repo.py:62-129"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "Host.exec",
+        "Host.confirm"
+      ],
+      "src": [
+        "src/git/startup.ts",
+        "src/git/feature.ts",
+        "src/git/policy.ts",
+        "src/git/options.ts",
+        "src/core/install.ts",
+        "src/settings/config-files.ts"
+      ],
+      "tests": [
+        "test/git/startup-bind.test.ts::sanityCheckRepo refuses bare, corrupt, and index versions above 2, and accepts detached HEAD"
+      ]
     },
     {
       "id": "git.filter.gitignore",
@@ -5021,10 +5057,22 @@
         "aider/args.py:240-300"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "Host.exec",
+        "Host.confirm"
+      ],
+      "src": [
+        "src/git/startup.ts",
+        "src/git/feature.ts",
+        "src/git/policy.ts",
+        "src/git/options.ts",
+        "src/core/install.ts",
+        "src/settings/config-files.ts"
+      ],
+      "tests": [
+        "test/git/startup-bind.test.ts::checkGitignore offers to append branding and .env patterns when --gitignore is on"
+      ]
     },
     {
       "id": "git.config.aiderignore-path",
@@ -5048,10 +5096,22 @@
         "aider/repo.py:62-129"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "Host.exec",
+        "Host.confirm"
+      ],
+      "src": [
+        "src/git/startup.ts",
+        "src/git/feature.ts",
+        "src/git/policy.ts",
+        "src/git/options.ts",
+        "src/core/install.ts",
+        "src/settings/config-files.ts"
+      ],
+      "tests": [
+        "test/git/startup-bind.test.ts::openSingleRoot returns one root and refuses zero or multiple roots"
+      ]
     },
     {
       "id": "git.repo.unavailable",
@@ -5062,10 +5122,22 @@
         "aider/main.py:512-513"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "Host.exec",
+        "Host.confirm"
+      ],
+      "src": [
+        "src/git/startup.ts",
+        "src/git/feature.ts",
+        "src/git/policy.ts",
+        "src/git/options.ts",
+        "src/core/install.ts",
+        "src/settings/config-files.ts"
+      ],
+      "tests": [
+        "test/git/startup-bind.test.ts::prepareGitRepository disables when git is off or the executable is missing, and opens a ready root otherwise"
+      ]
     },
     {
       "id": "git.dry-run.skips-commits",
@@ -5116,10 +5188,23 @@
         "aider/repo.py:62-129"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "Host.exec",
+        "Host.confirm"
+      ],
+      "src": [
+        "src/git/startup.ts",
+        "src/git/feature.ts",
+        "src/git/policy.ts",
+        "src/git/options.ts",
+        "src/core/install.ts",
+        "src/settings/config-files.ts"
+      ],
+      "tests": [
+        "test/git/startup-bind.test.ts::linked worktrees discover and pass sanity through the same Host.exec path",
+        "test/git/startup-bind.test.ts::sanityCheckRepo refuses bare, corrupt, and index versions above 2, and accepts detached HEAD"
+      ]
     }
   ]
 }

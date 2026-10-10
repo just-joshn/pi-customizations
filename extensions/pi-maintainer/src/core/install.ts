@@ -12,6 +12,7 @@ import { textFromAssistantContent } from '../edit/reasoning.ts';
 import { admitInitialEditable, readMessageFile } from '../edit/startup-input.ts';
 import { createPorts, type EditFormatName, isEditFormatName, type Ports, type SarFeature } from '../feature.ts';
 import { gitOptions } from '../git/options.ts';
+import { prepareGitRepository } from '../git/startup.ts';
 import { formatSettings } from '../settings/format-settings.ts';
 import { loadSettings } from '../settings/load.ts';
 import { settingsOptions } from '../settings/options.ts';
@@ -288,7 +289,26 @@ class MaintainerRuntime {
       );
     }
     const formatPolicy = modelFormatPolicyForContext(ctx);
-    const ports = portsWithModelFormatPolicy(createPorts(this.#features, { settings: loaded.settings, cwd: ctx.cwd, host: this.host }), loaded.settings, formatPolicy);
+    const hasGitFeature = this.#features.some((feature) => feature.name === 'git');
+    const gitPrepared = hasGitFeature
+      ? await prepareGitRepository({
+          host: this.host,
+          cwd: ctx.cwd,
+          home: (this.#options.home ?? homedir)(),
+          gitEnabled: specs.includes(gitOptions.git) ? loaded.settings.value(gitOptions.git) : true,
+          gitignoreOffer: specs.includes(gitOptions.gitignore) ? loaded.settings.value(gitOptions.gitignore) : true,
+        })
+      : null;
+    const ports = portsWithModelFormatPolicy(
+      createPorts(this.#features, {
+        settings: loaded.settings,
+        cwd: ctx.cwd,
+        host: this.host,
+        ...(gitPrepared ? { gitRoot: gitPrepared.kind === 'ready' ? gitPrepared.root : null } : {}),
+      }),
+      loaded.settings,
+      formatPolicy,
+    );
     this.#ports = ports;
     this.#yes = ports.edit.yesAlways;
     this.#autoCommits = specs.includes(gitOptions.autoCommits) ? loaded.settings.value(gitOptions.autoCommits) : true;

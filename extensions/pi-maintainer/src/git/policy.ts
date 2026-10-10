@@ -30,6 +30,10 @@ export interface CreateGitPolicyOptions {
   readonly host: Host;
   readonly cwd: string;
   readonly settings: GitPolicySettings;
+  /**
+   * Pre-validated root from startup. `null` disables the port. When omitted, discover from `cwd`.
+   */
+  readonly repoRoot?: string | null;
   /** Injected commit-message models. When absent, commits use a short fallback message. */
   readonly generateCommitMessage?: (request: { readonly system: string; readonly user: string }) => Promise<string | null>;
   readonly run?: GitRun;
@@ -55,7 +59,7 @@ function contextText(context: CommitContext): string {
 }
 
 export function createGitPolicy(options: CreateGitPolicyOptions): GitPolicy {
-  const discovered = findGitRoot(options.cwd);
+  const discovered = options.repoRoot !== undefined ? options.repoRoot : findGitRoot(options.cwd);
   const host = options.host;
   const autoCommits = options.settings.autoCommits;
   const dirtyCommits = effectiveDirtyCommits(autoCommits, options.settings.dirtyCommits);

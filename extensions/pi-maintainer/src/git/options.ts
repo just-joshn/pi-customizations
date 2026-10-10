@@ -2,6 +2,20 @@ import { booleanOption, stringOption, tristateOption } from '../settings/spec.ts
 
 /** The git SAR's options from `aider/args.py`, with Aider's defaults and help text. */
 export const gitOptions = {
+  git: booleanOption({
+    name: 'git',
+    defaultValue: true,
+    negatable: true,
+    help: 'Enable/disable looking for a git repo (default: True)',
+    sar: 'git',
+  }),
+  gitignore: booleanOption({
+    name: 'gitignore',
+    defaultValue: true,
+    negatable: true,
+    help: 'Enable/disable adding .pi-maintainer* to .gitignore (default: True)',
+    sar: 'git',
+  }),
   autoCommits: booleanOption({
     name: 'auto-commits',
     defaultValue: true,
