@@ -31,17 +31,25 @@ export interface WorkingTree {
   mutate<T>(paths: readonly string[], operation: (tree: WorkingTree) => Promise<T>, signal?: AbortSignal): Promise<T>;
 }
 
-export type LineEndings = 'platform' | 'lf' | 'crlf';
+const LINE_ENDINGS = ['platform', 'lf', 'crlf'] as const;
+
+export type LineEndings = (typeof LINE_ENDINGS)[number];
 
 export interface WorkingTreeOptions {
   readonly notices: Notices;
   readonly encoding?: string;
-  readonly lineEndings?: LineEndings;
+  readonly lineEndings?: string;
   readonly dryRun?: boolean;
 }
 
 const WRITE_ATTEMPTS = 5;
 const FIRST_RETRY_DELAY_MS = 100;
+
+function resolveLineEndings(value: string | undefined): LineEndings {
+  const lineEndings = value ?? 'platform';
+  if (lineEndings === 'platform' || lineEndings === 'lf' || lineEndings === 'crlf') return lineEndings;
+  throw new Error(`Invalid line_endings value: ${lineEndings}. Must be one of: ${LINE_ENDINGS.join(', ')}`);
+}
 
 function lineSeparator(lineEndings: LineEndings): string {
   if (lineEndings === 'lf') return '\n';
@@ -160,7 +168,7 @@ async function readText(path: string, encoding: string, notices: Notices): Promi
 
 function workingTree(options: WorkingTreeOptions, held: ReadonlySet<string> | null, signal?: AbortSignal, dryTouched: Set<string> = new Set()): WorkingTree {
   const encoding = options.encoding ?? 'utf-8';
-  const separator = lineSeparator(options.lineEndings ?? 'platform');
+  const separator = lineSeparator(resolveLineEndings(options.lineEndings));
   const dryRun = options.dryRun ?? false;
   const mutation = async <T>(path: string, operation: () => Promise<T>): Promise<T> => {
     signal?.throwIfAborted();

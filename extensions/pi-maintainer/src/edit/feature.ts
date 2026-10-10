@@ -6,11 +6,9 @@ import { editOptionList, editOptions } from './options.ts';
 import { applyEdits as applyPatchEdits, applyEditsDryRun as applyPatchEditsDryRun, type EditResult, getEdits as getPatchEdits, type PatchContext, editIntent as patchEditIntent } from './patch.ts';
 import { applyEdits as applyUdiffEdits, applyEditsDryRun as applyUdiffEditsDryRun, getEdits as getUdiffEdits, type UdiffEdit } from './udiff.ts';
 import { applyEdits, getEdits, type WholeFileEdit } from './wholefile.ts';
-import { createWorkingTree, type LineEndings } from './working-tree.ts';
+import { createWorkingTree } from './working-tree.ts';
 
 export { editIntent as patchEditIntent } from './patch.ts';
-
-const lineEndings = (value: string | null): LineEndings => (value === 'lf' || value === 'crlf' ? value : 'platform');
 
 function editBlockContext(context: EditContext) {
   return {
@@ -129,7 +127,7 @@ export const editFeature: Feature<EditFormats> & { readonly name: 'edit' } = {
       editorModel: settings.value(editOptions.editorModel),
       editorEditFormat: defaultEditorFormat(editorEditFormat !== null && isEditFormatName(editorEditFormat) ? (editorEditFormat as EditFormatName) : null),
       chatLanguage: settings.value(editOptions.chatLanguage),
-      tree: createWorkingTree({ notices: host, encoding: settings.value(editOptions.encoding) ?? 'utf-8', lineEndings: lineEndings(settings.value(editOptions.lineEndings)), dryRun }),
+      tree: createWorkingTree({ notices: host, encoding: settings.value(editOptions.encoding) ?? 'utf-8', lineEndings: settings.value(editOptions.lineEndings) ?? 'platform', dryRun }),
     };
   },
 };

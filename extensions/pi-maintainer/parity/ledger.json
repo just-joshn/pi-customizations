@@ -2246,10 +2246,24 @@
         "aider/io.py:256,323-331"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "WorkingTree.write"
+      ],
+      "src": [
+        "src/edit/working-tree.ts",
+        "src/edit/feature.ts",
+        "src/edit/options.ts"
+      ],
+      "tests": [
+        "test/edit/io-line-endings-bind.test.ts::settings line-endings=lf writes that newline through the edit working tree",
+        "test/edit/io-line-endings-bind.test.ts::settings line-endings=crlf writes that newline through the edit working tree",
+        "test/edit/io-line-endings-bind.test.ts::settings line-endings=platform writes that newline through the edit working tree",
+        "test/edit/io-line-endings-bind.test.ts::invalid line-endings fails with Aider Invalid line_endings value message",
+        "test/working-tree.test.ts::writes configured LF line endings",
+        "test/working-tree.test.ts::writes configured CRLF line endings",
+        "test/working-tree.test.ts::writes configured platform line endings"
+      ]
     },
     {
       "id": "edit.confirm.answers",
