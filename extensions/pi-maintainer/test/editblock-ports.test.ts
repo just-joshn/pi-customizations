@@ -3,8 +3,8 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
 import { expect, onTestFinished, test } from 'vitest';
-import { applyEdits, doReplace, getEdits, stripQuotedWrapping } from '../src/edit/editblock.ts';
-import { replaceMostSimilarChunk } from '../src/edit/editblock-match.ts';
+import { applyEdits, applyEditsDryRun, doReplace, getEdits, stripQuotedWrapping } from '../src/edit/editblock.ts';
+import { perfectOrWhitespace, replaceMostSimilarChunk } from '../src/edit/editblock-match.ts';
 import { DEFAULT_FENCE, findFilename, findOriginalUpdateBlocks } from '../src/edit/editblock-parse.ts';
 import { ValueError } from '../src/edit/errors.ts';
 import { createWorkingTree } from '../src/edit/working-tree.ts';
@@ -541,4 +541,34 @@ nope
   expect(String(error)).toMatch(/SEARCH\/REPLACE blocks? failed to match/);
   expect(String(error)).toMatch(/Don't re-send them/);
   expect(await readFile(join(ctx.root, 'file.txt'), 'utf8')).toBe('ALPHA\nbeta\n');
+});
+
+test('empty REPLACE that clears a file is success not fallback', async () => {
+  const ctx = await workspace({ 'keep.py': 'gone\n', 'other.py': 'gone\n' });
+  expect(perfectOrWhitespace(['gone\n'], ['gone\n'], [])).toBe('');
+  const reply = `keep.py
+<<<<<<< SEARCH
+gone
+=======
+>>>>>>> REPLACE
+`;
+  const { edits } = getEdits(reply, ctx);
+  await applyEdits(edits, ctx);
+  expect(await readFile(join(ctx.root, 'keep.py'), 'utf8')).toBe('');
+  expect(await readFile(join(ctx.root, 'other.py'), 'utf8')).toBe('gone\n');
+});
+
+test('preflight targets match sequential apply for dependent blocks', async () => {
+  const ctx = await workspace({ 'named.py': 'one\n', 'other.py': 'two\n' });
+  const edits: [string, string, string][] = [
+    ['named.py', 'one\n', 'two\n'],
+    ['named.py', 'two\n', 'three\n'],
+  ];
+  const planned = await applyEditsDryRun(edits, ctx);
+  expect(planned.map(([path]) => path)).toEqual(['named.py', 'named.py']);
+  expect(await readFile(join(ctx.root, 'named.py'), 'utf8')).toBe('one\n');
+  expect(await readFile(join(ctx.root, 'other.py'), 'utf8')).toBe('two\n');
+  await applyEdits(edits, ctx);
+  expect(await readFile(join(ctx.root, 'named.py'), 'utf8')).toBe('three\n');
+  expect(await readFile(join(ctx.root, 'other.py'), 'utf8')).toBe('two\n');
 });
