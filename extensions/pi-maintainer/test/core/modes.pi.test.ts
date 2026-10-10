@@ -181,12 +181,7 @@ test('architect editor frame keeps file context and disables shell, warming, and
   expect(editorTexts).not.toContain('REPO MAP TEXT');
   expect(editorSystem).not.toContain('MAIN SHELL_ON');
   expect(editorTexts).not.toContain('please edit');
-  expect(promptCalls).toEqual(
-    expect.arrayContaining([
-      expect.objectContaining({ format: 'architect', suggestShellCommands: true }),
-      expect.objectContaining({ format: 'editor-whole', suggestShellCommands: false }),
-    ]),
-  );
+  expect(promptCalls).toEqual(expect.arrayContaining([expect.objectContaining({ format: 'architect', suggestShellCommands: true }), expect.objectContaining({ format: 'editor-whole', suggestShellCommands: false })]));
   expect(cacheWarmingDecisionForPhase('main')).toBeUndefined();
   expect(compactCalls).toBe(0);
   expect(session.sessionManager.getBranch().some((entry) => entry.type === 'compaction')).toBe(false);
