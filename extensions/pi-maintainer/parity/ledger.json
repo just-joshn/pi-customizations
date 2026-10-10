@@ -145,8 +145,8 @@
       "kind": "parity",
       "status": "open",
       "pi": [],
-      "src": [],
-      "tests": []
+      "src": ["src/edit/working-tree.ts"],
+      "tests": ["test/working-tree-read.oracle.test.ts::reads Aider text *"]
     },
     {
       "id": "edit.io.write-text",
@@ -155,9 +155,9 @@
       "aider": ["aider/io.py:478-494"],
       "kind": "parity",
       "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "pi": ["withFileMutationQueue"],
+      "src": ["src/edit/working-tree.ts"],
+      "tests": ["test/working-tree.test.ts::writes configured *", "test/working-tree.test.ts::writes UTF-16LE file bytes"]
     },
     {
       "id": "edit.io.write-retry-errors",
@@ -166,9 +166,9 @@
       "aider": ["aider/io.py:491-515"],
       "kind": "parity",
       "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "pi": ["withFileMutationQueue"],
+      "src": ["src/edit/working-tree.ts"],
+      "tests": ["test/working-tree.test.ts::reports a write failure when the parent directory is missing"]
     },
     {
       "id": "edit.io.nonatomic-overwrite",
@@ -177,8 +177,8 @@
       "aider": ["aider/io.py:491-515", "aider/coders/wholefile_coder.py:124-128"],
       "kind": "parity",
       "status": "open",
-      "pi": [],
-      "src": [],
+      "pi": ["withFileMutationQueue"],
+      "src": ["src/edit/working-tree.ts"],
       "tests": []
     },
     {
