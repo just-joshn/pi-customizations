@@ -32,7 +32,7 @@ The first E6 milestone uses a real in-process Pi SDK session. `test/core/exchang
 
 ## Settings integration
 
-`loadSettings(inputs: SettingsInputs): Promise<LoadedSettings>` requires `specs`, `getFlag(name)`, `processEnvironment`, `cwd`, and `home`. `getFlag` returns a boolean, string, or undefined. `LoadedSettings` has `settings`, `problems`, `environment`, `gitRoot`, and `dotenvFiles`. `ResolvedSettings.value<T>(option: OptionSpec<T>): T` returns the typed value. `source(option: AnyOptionSpec): string` returns its origin.
+`loadSettings(inputs: SettingsInputs): Promise<LoadedSettings>` requires `specs`, `getFlag(name)`, `processEnvironment`, `cwd`, and `home`. `getFlag` returns a boolean, string, or undefined. `LoadedSettings` has `settings`, `problems`, `environment`, `gitRoot`, `dotenvFiles`, and `secrets` (credential material from `--set-env` / `--api-key` for diagnostics scrubbing). `ResolvedSettings.value<T>(option: OptionSpec<T>): T` returns the typed value. `source(option: AnyOptionSpec): string` returns its origin.
 
 The runtime consumes this one inherited resolver. CLI wins over the effective prefixed environment, later config files, and defaults. Local dotenv values affect maintainer commands without replacing Pi's process environment or provider credentials. `createPorts(features, env)` instantiates the supplied SAR factories and fills absent Git, map, and lint ports with their explicit disabled implementations. Only edit is supplied by the production factory.
 

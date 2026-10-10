@@ -5,9 +5,11 @@ import { Text } from '@earendil-works/pi-tui';
 import { BRANDING } from '../branding.ts';
 import { editOptions } from '../edit/options.ts';
 import { createPorts, type Ports, type SarFeature } from '../feature.ts';
+import { formatSettings } from '../settings/format-settings.ts';
 import { loadSettings } from '../settings/load.ts';
 import { settingsOptions } from '../settings/options.ts';
 import { flagRegistrations } from '../settings/sources.ts';
+import type { AnyOptionSpec } from '../settings/spec.ts';
 import { restore, type Snapshot } from './branch.ts';
 import { absRootPath, findCommonRoot } from './chat-files.ts';
 import { type CompletedReply, type DialogueFact, ExchangeController } from './exchange.ts';
@@ -257,6 +259,17 @@ class MaintainerRuntime {
     for (const problem of loaded.problems) this.host.error(problem);
     if (loaded.problems.length) throw new Error('Invalid maintainer settings');
     this.#environment = loaded.environment;
+    if (loaded.settings.value(editOptions.verbose)) {
+      this.host.output(
+        formatSettings({
+          dotenvFiles: loaded.dotenvFiles,
+          environment: loaded.environment,
+          environmentPrefix: BRANDING.envPrefix,
+          options: specs.map((spec: AnyOptionSpec) => ({ name: spec.name, value: loaded.settings.value(spec), source: loaded.settings.source(spec) })),
+          secrets: loaded.secrets,
+        }),
+      );
+    }
     const ports = createPorts(this.#features, { settings: loaded.settings, cwd: ctx.cwd, host: this.host });
     this.#ports = ports;
     this.#yes = ports.edit.yesAlways;

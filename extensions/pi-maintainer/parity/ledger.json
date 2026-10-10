@@ -3428,10 +3428,23 @@
         "aider/main.py:466-504"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.registerFlag",
+        "pi.on('session_start')",
+        "pi.getFlag"
+      ],
+      "src": [
+        "src/settings/load.ts",
+        "src/settings/resolve.ts",
+        "src/edit/options.ts"
+      ],
+      "tests": [
+        "test/settings/settings-bind.test.ts::an explicit --env-file dotenv sets PI_MAINTAINER options for resolution",
+        "test/settings/settings-bind.test.ts::the default git-root .env sets PI_MAINTAINER options for resolution",
+        "test/settings/load.test.ts::the --config file outranks the default config files",
+        "test/settings/load.test.ts::an --env-file named in a config file is read last"
+      ]
     },
     {
       "id": "edit.settings.dotenv-overlay",
@@ -3441,10 +3454,24 @@
         "aider/main.py:312-333,361-387,501-504"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.registerFlag",
+        "pi.on('session_start')",
+        "pi.getFlag"
+      ],
+      "src": [
+        "src/settings/load.ts",
+        "src/settings/dotenv.ts",
+        "src/settings/config-files.ts"
+      ],
+      "tests": [
+        "test/settings/settings-bind.test.ts::named --env-file overrides earlier dotenv values in the extension environment",
+        "test/settings/settings-bind.test.ts::oauth then cwd then default git-root env-file override shared keys",
+        "test/settings/settings-bind.test.ts::an explicit --env-file dotenv sets PI_MAINTAINER options for resolution",
+        "test/settings/settings-bind.test.ts::the default git-root .env sets PI_MAINTAINER options for resolution",
+        "test/settings/load.test.ts::.env values feed resolution but never the process environment"
+      ]
     },
     {
       "id": "edit.settings.encoding",
@@ -3455,10 +3482,22 @@
         "aider/io.py:323,453-494"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.registerFlag",
+        "pi.on('session_start')",
+        "pi.getFlag"
+      ],
+      "src": [
+        "src/edit/options.ts",
+        "src/edit/feature.ts",
+        "src/edit/working-tree.ts",
+        "src/settings/load.ts"
+      ],
+      "tests": [
+        "test/settings/settings-bind.test.ts::cli encoding wins and reaches the edit working tree",
+        "test/working-tree.test.ts::reads UTF-16LE bytes when that codec is configured"
+      ]
     },
     {
       "id": "edit.watch.changes",
@@ -4030,10 +4069,23 @@
         "aider/main.py:589-600"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.registerFlag",
+        "pi.on('session_start')",
+        "pi.getFlag"
+      ],
+      "src": [
+        "src/settings/environment-pairs.ts",
+        "src/settings/load.ts",
+        "src/edit/options.ts"
+      ],
+      "tests": [
+        "test/settings/settings-bind.test.ts::a single --set-env pair lands in the extension environment",
+        "test/settings/settings-bind.test.ts::multiple --set-env pairs each apply",
+        "test/settings/settings-bind.test.ts::--set-env keeps internal spaces after trimming ends",
+        "test/settings/settings-bind.test.ts::an invalid --set-env pair reports failure without writing"
+      ]
     },
     {
       "id": "edit.settings.diagnostics",
@@ -4044,10 +4096,20 @@
         "aider/format_settings.py:12-26"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.registerFlag",
+        "pi.on('session_start')",
+        "pi.getFlag"
+      ],
+      "src": [
+        "src/settings/format-settings.ts",
+        "src/core/install.ts",
+        "src/edit/options.ts"
+      ],
+      "tests": [
+        "test/settings/settings-bind.test.ts::verbose diagnostics list dotenv-derived options and redact credential overlays"
+      ]
     },
     {
       "id": "edit.settings.redact-secrets",
@@ -4058,10 +4120,20 @@
         "aider/main.py:589-618,745-751"
       ],
       "kind": "fix",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": [],
+      "status": "verified",
+      "pi": [
+        "pi.registerFlag",
+        "pi.on('session_start')",
+        "pi.getFlag"
+      ],
+      "src": [
+        "src/settings/format-settings.ts",
+        "src/settings/environment-pairs.ts",
+        "src/core/install.ts"
+      ],
+      "tests": [
+        "test/settings/settings-bind.test.ts::verbose diagnostics list dotenv-derived options and redact credential overlays"
+      ],
       "fix": {
         "defect": "format_settings scrubs only the two legacy provider-key flags, then prints every argument, so repeatable api_key values and credential-bearing set_env values can remain visible.",
         "intent": "The Replace sensitive information comment and scrub_sensitive_info function at aider/format_settings.py:1-9 establish redaction intent; aider/main.py:745-751 uses that scrubber for verbose settings and command logging.",
@@ -4158,10 +4230,21 @@
         "tests/basic/test_main.py:1135-1144"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.registerFlag",
+        "pi.on('session_start')",
+        "pi.getFlag"
+      ],
+      "src": [
+        "src/edit/options.ts",
+        "src/edit/feature.ts",
+        "src/edit/prompts/format.ts",
+        "src/settings/load.ts"
+      ],
+      "tests": [
+        "test/settings/settings-bind.test.ts::chat-language from settings reaches platform context through the edit port"
+      ]
     },
     {
       "id": "edit.prompt.image-mime-dotfiles",

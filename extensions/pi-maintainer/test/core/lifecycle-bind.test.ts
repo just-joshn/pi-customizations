@@ -129,6 +129,7 @@ async function harness(
         yesAlways: true,
         autoAcceptArchitect: true,
         editorModel: null,
+        chatLanguage: null,
         editorEditFormat: 'editor-whole',
         tree,
       },

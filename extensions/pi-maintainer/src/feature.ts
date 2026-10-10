@@ -141,6 +141,8 @@ export interface EditFormats {
   readonly editorModel: string | null;
   /** Resolved `--editor-edit-format` (defaults like Aider's editor-prefixed format). */
   readonly editorEditFormat: EditFormatName;
+  /** `--chat-language`, or null to fall back to locale / environment language. */
+  readonly chatLanguage: string | null;
   readonly tree: WorkingTree;
 }
 

@@ -23,6 +23,14 @@ export const editOptions = {
   read: listOption({ name: 'read', help: 'specify a read-only file (can be used multiple times)', sar: 'edit' }),
   apply: stringOption({ name: 'apply', defaultValue: null, help: 'Apply the changes from the given file instead of running the chat (debug)', sar: 'edit' }),
   suggestShellCommands: booleanOption({ name: 'suggest-shell-commands', defaultValue: true, negatable: true, help: 'Enable/disable suggesting shell commands (default: True)', sar: 'edit' }),
+  setEnv: listOption({ name: 'set-env', help: 'Set an environment variable (to control API settings, can be used multiple times)', sar: 'edit' }),
+  apiKey: listOption({
+    name: 'api-key',
+    help: 'Set an API key for a provider (eg: --api-key provider=<key> sets PROVIDER_API_KEY=<key>)',
+    sar: 'edit',
+  }),
+  chatLanguage: stringOption({ name: 'chat-language', defaultValue: null, help: 'Specify the language to use in the chat (default: None, uses system settings)', sar: 'edit' }),
+  verbose: booleanOption({ name: 'verbose', defaultValue: false, negatable: false, help: 'Enable verbose output', sar: 'edit' }),
 } as const;
 
 export const editOptionList = Object.values(editOptions);

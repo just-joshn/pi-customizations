@@ -127,6 +127,7 @@ export const editFeature: Feature<EditFormats> & { readonly name: 'edit' } = {
       autoAcceptArchitect: settings.value(editOptions.autoAcceptArchitect),
       editorModel: settings.value(editOptions.editorModel),
       editorEditFormat: defaultEditorFormat(editorEditFormat !== null && isEditFormatName(editorEditFormat) ? (editorEditFormat as EditFormatName) : null),
+      chatLanguage: settings.value(editOptions.chatLanguage),
       tree: createWorkingTree({ notices: host, encoding: settings.value(editOptions.encoding) ?? 'utf-8', lineEndings: lineEndings(settings.value(editOptions.lineEndings)), dryRun }),
     };
   },

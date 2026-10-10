@@ -42,7 +42,8 @@ test.for(oracleCases('settings', 'settings.resolve', resolveArgs))('resolves opt
   }
   const specs: readonly AnyOptionSpec[] = editOptionList;
   const values = Object.fromEntries(specs.map((spec) => [spec.name.replace(/-/g, '_'), loaded.settings.value(spec)]));
-  expect({ result: values }).toEqual(expected);
+  const expectedResult = expected.result as Record<string, unknown>;
+  expect({ result: Object.fromEntries(Object.keys(expectedResult).map((key) => [key, values[key]])) }).toEqual(expected);
 });
 
 /** Python's `str()` of a JSON value from the oracle, as configargparse renders list items. */

@@ -19,13 +19,13 @@ All citations refer to installed Pi 1.1.0 under `CA` = `@earendil-works/pi-codin
 
 ### `.env` files
 
-1. **Behavior.** Aider loads `.env` from the home directory, the Git root, the working directory, and `--env-file` (default `<git root>/.env`), later files overriding earlier ones and duplicates keeping their last place, with python-dotenv's grammar and `${VAR}` interpolation (`aider/main.py:305-388`). The values feed the second option parse.
+1. **Behavior.** Aider loads `.env` from `~/.aider/oauth-keys.env` (first), the home directory, the Git root, the working directory, and `--env-file` (default `<git root>/.env`), later files overriding earlier ones and duplicates keeping their last place, with python-dotenv's grammar and `${VAR}` interpolation (`aider/main.py:305-388`). The values feed the second option parse. pi-maintainer uses `~/.pi-maintainer/oauth-keys.env` for the oauth slot.
 2. **Mechanism evaluated.** None in Pi. Pi reads provider credentials itself and offers no dotenv loading to extensions.
 3. **Why it cannot.** No Pi API loads `.env` files for an extension.
 4. **Why not omit.** `PI_MAINTAINER_*` variables in a project `.env` are a documented way to configure Aider, and the operator decision in `docs/ARCHITECTURE.md` requires them.
-5. **Adapter.** `src/settings/dotenv.ts` ports python-dotenv's parser and `resolve_variables`. `load.ts` applies the files to a copy of the environment.
+5. **Adapter.** `src/settings/dotenv.ts` ports python-dotenv's parser and `resolve_variables`. `load.ts` applies the files to a copy of the environment, then applies `--set-env` / `--api-key` overlays through `environment-pairs.ts` without writing `process.env`.
 6. **Authoritative Pi state.** Pi's `process.env`. The adapter never writes it, because Aider's `load_dotenv(override=True)` would replace provider credentials that Pi owns. This is a deliberate adaptation: `.env` values reach option resolution and the environment of commands pi-maintainer runs, not Pi.
-7. **Verification.** 22 python-dotenv cases and 5 `generate_search_path_list` cases in `test/settings/settings.oracle.test.ts`; `test/settings/load.test.ts` proves `process.env` is untouched.
+7. **Verification.** 22 python-dotenv cases and 5 `generate_search_path_list` cases in `test/settings/settings.oracle.test.ts`; `test/settings/load.test.ts` and `test/settings/settings-bind.test.ts` prove `process.env` is untouched and overlay order.
 8. **Delete when.** Pi loads project `.env` files for extensions.
 
 ### Flag spellings Pi cannot express
