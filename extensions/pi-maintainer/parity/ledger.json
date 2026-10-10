@@ -6167,10 +6167,18 @@
         "aider/main.py:278-302"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.registerFlag"
+      ],
+      "src": [
+        "src/lint/parse-lint-cmds.ts",
+        "src/lint/options.ts",
+        "src/lint/feature.ts"
+      ],
+      "tests": [
+        "test/lint/dispatch-bind.test.ts::parse_lint_cmds maps language prefixes, unprefixed None, strips, and last key wins"
+      ]
     },
     {
       "id": "lint.options.oneshot-flags",
@@ -6194,10 +6202,21 @@
         "aider/linter.py:21-80"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "Host.exec"
+      ],
+      "src": [
+        "src/lint/linter.ts",
+        "src/lint/parse-lint-cmds.ts",
+        "src/lint/shell.ts",
+        "src/lint/options.ts",
+        "src/lint/feature.ts"
+      ],
+      "tests": [
+        "test/lint/dispatch-bind.test.ts::without explicit override, filename recognition precedes the global command",
+        "test/lint/dispatch-bind.test.ts::language-specific command is used when no global command is configured"
+      ]
     },
     {
       "id": "lint.dispatch.unknown-skip",
@@ -6207,10 +6226,16 @@
         "aider/linter.py:21-80"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "Host.exec"
+      ],
+      "src": [
+        "src/lint/linter.ts"
+      ],
+      "tests": [
+        "test/lint/dispatch-bind.test.ts::unknown extensions produce no lint report under automatic and global-command dispatch"
+      ]
     },
     {
       "id": "lint.tree-sitter.syntax-errors",
@@ -6234,10 +6259,18 @@
         "aider/run_cmd.py:42-86"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "Host.exec"
+      ],
+      "src": [
+        "src/lint/linter.ts",
+        "src/lint/shell.ts"
+      ],
+      "tests": [
+        "test/lint/dispatch-bind.test.ts::custom lint appends one oslex-quoted relative path and discards exit-zero output",
+        "test/lint/dispatch-bind.test.ts::nonzero custom lint output becomes diagnostic context with extracted lines"
+      ]
     },
     {
       "id": "lint.diagnostics.line-extraction",
@@ -6247,10 +6280,14 @@
         "aider/linter.py:171-174,272-285"
       ],
       "kind": "parity",
-      "status": "open",
+      "status": "verified",
       "pi": [],
-      "src": [],
-      "tests": []
+      "src": [
+        "src/lint/linter.ts"
+      ],
+      "tests": [
+        "test/lint/dispatch-bind.test.ts::find_filenames_and_linenums extracts one-based line sets with word-boundary filename matches"
+      ]
     },
     {
       "id": "lint.diagnostics.context-render",
@@ -6417,10 +6454,17 @@
         "aider/linter.py:118-166"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "Host.exec"
+      ],
+      "src": [
+        "src/lint/linter.ts",
+        "src/lint/shell.ts"
+      ],
+      "tests": [
+        "test/lint/dispatch-bind.test.ts::explicit lint command bypasses unknown-file skipping and can still fail"
+      ]
     },
     {
       "id": "lint.fail.root-none-path",
@@ -6471,10 +6515,17 @@
         "aider/args.py:526-565"
       ],
       "kind": "fix",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": [],
+      "status": "verified",
+      "pi": [
+        "pi.registerFlag"
+      ],
+      "src": [
+        "src/lint/options.ts",
+        "docs/usage/lint-test.md"
+      ],
+      "tests": [
+        "test/lint/dispatch-bind.test.ts::--lint is a boolean one-shot flag and language checkers use --lint-cmd"
+      ],
       "fix": {
         "defect": "The usage guide shows --lint \"language: cmd\", but --lint is a boolean one-shot flag and language mappings belong to --lint-cmd.",
         "intent": "args.py declares --lint as store_true and --lint-cmd as the repeatable language-command mapping; the guide should match those flags.",

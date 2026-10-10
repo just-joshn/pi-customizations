@@ -2,6 +2,13 @@ import { booleanOption, listOption, stringOption } from '../settings/spec.ts';
 
 /** The lint SAR's options from `aider/args.py`, with Aider's defaults and help text. */
 export const lintOptions = {
+  lint: booleanOption({
+    name: 'lint',
+    defaultValue: false,
+    negatable: false,
+    help: 'Lint and fix provided files, or dirty files if none provided',
+    sar: 'lint',
+  }),
   lintCmd: listOption({
     name: 'lint-cmd',
     help: 'Specify lint commands to run for different languages, eg: "python: flake8 --select=..." (can be used multiple times)',

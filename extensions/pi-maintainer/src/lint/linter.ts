@@ -14,18 +14,37 @@ export interface LinterOptions {
   readonly root: string;
   readonly lintCmds: ReadonlyMap<string | null, string>;
   readonly encoding?: string;
+  /** Explicit command override; bypasses unknown-extension skip. */
+  readonly explicitCmd?: string;
 }
 
 function langOf(fname: string): string | null {
   const ext = extname(fname).toLowerCase();
   if (ext === '.py') return 'python';
-  if (ext === '.js' || ext === '.mjs' || ext === '.cjs') return 'javascript';
+  if (ext === '.js' || ext === '.mjs' || ext === '.cjs' || ext === '.jsx') return 'javascript';
   if (ext === '.ts' || ext === '.tsx') return 'typescript';
-  if (ext === '.jsx') return 'javascript';
   return null;
 }
 
-function findFilenamesAndLinenums(text: string, fnames: readonly string[]): Map<string, Set<number>> {
+/** Resolve the shell command, or null when auto-dispatch should skip the file. */
+export function resolveLintCommand(
+  fname: string,
+  lintCmds: ReadonlyMap<string | null, string>,
+  explicitCmd?: string,
+): string | null {
+  const trimmed = explicitCmd?.trim() ?? '';
+  if (trimmed) return trimmed;
+
+  const lang = langOf(fname);
+  if (!lang) return null;
+
+  const allCmd = lintCmds.get(null);
+  if (allCmd) return allCmd;
+  return lintCmds.get(lang) ?? null;
+}
+
+/** One-based line sets keyed by matched filename (`aider/linter.py:find_filenames_and_linenums`). */
+export function findFilenamesAndLinenums(text: string, fnames: readonly string[]): Map<string, Set<number>> {
   if (!fnames.length) return new Map();
   const pattern = new RegExp(`\\b(?:${fnames.map((fname) => fname.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')}):\\d+\\b`, 'g');
   const result = new Map<string, Set<number>>();
@@ -62,6 +81,19 @@ async function runCmd(host: Host, root: string, cmd: string, relFname: string, s
   }
 }
 
+/** Mark extracted source lines; TreeContext structural slices stay out of scope. */
+function renderLineMarkers(relFname: string, code: string, zeroBasedLines: readonly number[]): string {
+  if (!zeroBasedLines.length) return '';
+  const marked = zeroBasedLines.length === 1 ? 'line' : 'lines';
+  let out = `## See relevant ${marked} below marked with █.\n\n`;
+  out += `${relFname}:\n`;
+  const lines = code.split(/\r?\n/);
+  for (const line of zeroBasedLines) {
+    if (line >= 0 && line < lines.length) out += `${line + 1}█${lines[line]}\n`;
+  }
+  return out;
+}
+
 /** Lint one file through configured Host.exec commands (`aider/linter.py` cmd path). */
 export async function lintFile(fname: string, options: LinterOptions, signal?: AbortSignal): Promise<string | null> {
   signal?.throwIfAborted();
@@ -74,10 +106,7 @@ export async function lintFile(fname: string, options: LinterOptions, signal?: A
     return null;
   }
 
-  const lang = langOf(fname);
-  const allCmd = options.lintCmds.get(null);
-  const langCmd = lang ? options.lintCmds.get(lang) : undefined;
-  const cmd = allCmd ?? langCmd;
+  const cmd = resolveLintCommand(fname, options.lintCmds, options.explicitCmd);
   if (!cmd) return null;
 
   const lintres = await runCmd(options.host, options.root, cmd, relFname, signal);
@@ -86,14 +115,6 @@ export async function lintFile(fname: string, options: LinterOptions, signal?: A
   let res = '# Fix any errors below, if possible.\n\n';
   res += lintres.text;
   res += '\n';
-  if (lintres.lines.length) {
-    const marked = lintres.lines.length === 1 ? 'line' : 'lines';
-    res += `## See relevant ${marked} below marked with █.\n\n`;
-    res += `${relFname}:\n`;
-    const lines = code.split(/\r?\n/);
-    for (const line of lintres.lines) {
-      if (line >= 0 && line < lines.length) res += `${line + 1}█${lines[line]}\n`;
-    }
-  }
+  res += renderLineMarkers(relFname, code, lintres.lines);
   return res;
 }

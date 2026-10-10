@@ -31,3 +31,4 @@ export const lintFeature: Feature<Validation> & { readonly name: 'lint' } = {
 export { createValidation } from './validation.ts';
 export { lintOptions, lintOptionList } from './options.ts';
 export { parseLintCmds } from './parse-lint-cmds.ts';
+export { findFilenamesAndLinenums, lintFile, resolveLintCommand } from './linter.ts';
