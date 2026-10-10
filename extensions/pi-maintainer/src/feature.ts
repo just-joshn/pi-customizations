@@ -141,6 +141,8 @@ export interface EditFormats {
   readonly initialFiles: InitialFiles;
   /** `--message-file`, or null when unset. */
   readonly messageFile: string | null;
+  /** `--apply`, or null when unset. */
+  readonly applyFile: string | null;
   readonly dryRun: boolean;
   readonly yesAlways: boolean | null;
   /** `--auto-accept-architect` (Aider default True). */

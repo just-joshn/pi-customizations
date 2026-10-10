@@ -53,6 +53,7 @@ test(
           requestedFormat: null,
           initialFiles: { editable: [], readOnly: [] },
           messageFile: null,
+        applyFile: null,
           dryRun: false,
           yesAlways: true,
           autoAcceptArchitect: true,

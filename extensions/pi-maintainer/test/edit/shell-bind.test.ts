@@ -94,6 +94,7 @@ async function harness(options: { readonly suggestShellCommands?: boolean; reado
         requestedFormat: 'diff',
         initialFiles: { editable: [], readOnly: [] },
         messageFile: null,
+        applyFile: null,
         dryRun: false,
         yesAlways: true,
         autoAcceptArchitect: true,

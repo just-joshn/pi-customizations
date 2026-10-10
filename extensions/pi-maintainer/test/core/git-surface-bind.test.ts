@@ -99,6 +99,7 @@ async function exchangeHarness(options: {
         requestedFormat: 'whole',
         initialFiles: { editable: [], readOnly: [] },
         messageFile: null,
+        applyFile: null,
         dryRun: false,
         yesAlways: true,
         autoAcceptArchitect: true,

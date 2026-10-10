@@ -76,6 +76,7 @@ async function harness() {
         requestedFormat: 'diff',
         initialFiles: { editable: [], readOnly: [] },
         messageFile: null,
+        applyFile: null,
         dryRun: true,
         yesAlways: true,
         autoAcceptArchitect: true,

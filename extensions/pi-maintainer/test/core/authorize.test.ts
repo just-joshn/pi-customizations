@@ -99,6 +99,7 @@ async function harness(options: {
         requestedFormat: null,
         initialFiles: { editable: [], readOnly: [] },
         messageFile: null,
+        applyFile: null,
         dryRun: options.dryRun ?? false,
         yesAlways: null,
         autoAcceptArchitect: true,

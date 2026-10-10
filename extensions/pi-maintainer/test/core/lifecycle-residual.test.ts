@@ -96,6 +96,7 @@ test('an unbound idle exchange refuses automatic reflection follow-ups', async (
         requestedFormat: null,
         initialFiles: { editable: [], readOnly: [] },
         messageFile: null,
+        applyFile: null,
         dryRun: false,
         yesAlways: true,
         autoAcceptArchitect: true,

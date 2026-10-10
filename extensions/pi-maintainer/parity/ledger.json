@@ -6334,10 +6334,20 @@
         "aider/coders/base_coder.py:2267-2337,1585-1623"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/lint/validation.ts",
+        "src/lint/feature.ts",
+        "src/core/exchange.ts",
+        "src/core/install.ts"
+      ],
+      "tests": [
+        "test/lint/lifecycle-bind.test.ts::automatic lint selects authorized prepare targets not a git dirty listing",
+        "test/lint/lifecycle-bind.test.ts::dry-run still lints the authorized edit-target set without writing"
+      ]
     },
     {
       "id": "lint.lifecycle.message-reset",
@@ -6347,10 +6357,20 @@
         "aider/coders/base_coder.py:864-945"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.registerVirtualModel",
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/core/exchange.ts",
+        "src/core/install.ts"
+      ],
+      "tests": [
+        "test/lint/lifecycle-bind.test.ts::a new user binding clears edit tracking and the shared reflection budget",
+        "test/core/lifecycle-bind.test.ts::a new user binding clears reflection and edit tracking",
+        "test/core/lifecycle.pi.test.ts::a new canonical user resets an exhausted reflection budget"
+      ]
     },
     {
       "id": "lint.reflection.budget",
@@ -6360,10 +6380,20 @@
         "aider/coders/base_coder.py:1585-1623"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')",
+        "continue"
+      ],
+      "src": [
+        "src/core/exchange.ts",
+        "src/core/install.ts"
+      ],
+      "tests": [
+        "test/lint/lifecycle-bind.test.ts::lint test and malformed reflections share one three-request budget",
+        "test/core/lifecycle.pi.test.ts::exactly three reflections reach provider requests",
+        "test/core/lifecycle-bind.test.ts::a fourth reflection stops with the three-reflection warning"
+      ]
     },
     {
       "id": "lint.commit.post-lint",
@@ -6373,10 +6403,21 @@
         "aider/coders/base_coder.py:1585-1623,2375-2423"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/lint/validation.ts",
+        "src/lint/feature.ts",
+        "src/core/exchange.ts",
+        "src/core/install.ts",
+        "src/git/policy.ts"
+      ],
+      "tests": [
+        "test/lint/lifecycle-bind.test.ts::post-lint commit uses Ran the linter context whether diagnostics were produced",
+        "test/core/lifecycle-bind.test.ts::a failed lint report reflects after confirmation"
+      ]
     },
     {
       "id": "lint.test.callable-no-chat",
@@ -6458,10 +6499,19 @@
         "aider/main.py:975-993"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.registerFlag"
+      ],
+      "src": [
+        "src/edit/options.ts",
+        "src/edit/feature.ts",
+        "src/core/exchange.ts",
+        "src/core/install.ts"
+      ],
+      "tests": [
+        "test/lint/lifecycle-bind.test.ts::applySavedResponse applies edits and bypasses lint shell and test validation"
+      ]
     },
     {
       "id": "lint.coder.ask-architect",
@@ -6471,10 +6521,20 @@
         "aider/coders/base_coder.py:931-945,1585-1623"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/modes.ts",
+        "src/core/exchange.ts",
+        "src/core/install.ts"
+      ],
+      "tests": [
+        "test/lint/lifecycle-bind.test.ts::ask mode produces no edits and skips automatic lint",
+        "test/lint/lifecycle-bind.test.ts::architect editor path still runs lint validation after the editor applies",
+        "test/core/modes.pi.test.ts::ask mode answers without writing files"
+      ]
     },
     {
       "id": "lint.fail.ambiguous-pass",

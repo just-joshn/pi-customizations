@@ -203,12 +203,29 @@ export class ExchangeController {
       if (reflection === null) dialogue.push({ text: 'I made those changes to the files.', ack: 'Ok.', purpose: 'architect-return', reply: reply.id });
     }
     if (reflection !== null) return this.reflect(reflection, reply.id, dialogue);
-    const lintReflection = await this.validateWritten(signal);
+    const lintReflection = await this.validateEditTargets(signal);
     if (lintReflection !== null) return this.reflect(lintReflection, reply.id, dialogue);
     await this.forwardSuggestedShell(shellCommands, signal);
     const testReflection = await this.validateTests(signal);
     if (testReflection !== null) return this.reflect(testReflection, reply.id, dialogue);
     return { dialogue, continue: false };
+  }
+
+  /** Aider `main.py --apply`: only `apply_updates`; no lint, shell, or test validation. */
+  async applySavedResponse(text: string, signal?: AbortSignal): Promise<void> {
+    if (!this.#env.ports.edit.formats.has(this.#state.mode)) throw new Error(`Edit format ${this.#state.mode} is not implemented`);
+    const format = this.#env.ports.edit.formats.get(this.#state.mode);
+    if (!format) throw new Error(`Edit format ${this.#state.mode} is not implemented`);
+    const context = this.editContext('apply', signal);
+    await format.withPlan(
+      text,
+      context,
+      (edits, locked) => this.prepareToEdit(edits, locked),
+      async (plan) => {
+        this.trackPrepared(plan.targets);
+        await this.applyPlan(plan, signal);
+      },
+    );
   }
 
   /** Aider `run_shell_commands`: when suggestions are on, forward each distinct block once. */
@@ -293,28 +310,37 @@ export class ExchangeController {
     return this.#prompts?.filesContentGptEditsNoRepo ? [{ text: this.#prompts.filesContentGptEditsNoRepo, ack: 'Ok.', purpose: 'saved', reply: reply.id }] : [];
   }
 
-  async validateWritten(signal?: AbortSignal): Promise<string | null> {
-    const written = this.writtenRelPaths();
-    if (!written.length) return null;
-    const outcome = await this.#env.ports.lint.lintEdited(new Set(written), signal);
-    if (outcome.kind !== 'failed') return null;
+  /** Lint `preparedTargets` from apply_updates, then auto-commit with "Ran the linter" when lint ran. */
+  async validateEditTargets(signal?: AbortSignal): Promise<string | null> {
+    const targets = this.editTargetRelPaths();
+    if (!targets.length) return null;
+    const outcome = await this.#env.ports.lint.lintEdited(new Set(targets), signal);
+    if (outcome.kind === 'not-run' || outcome.kind === 'disabled') return null;
     if (!this.#env.ports.edit.dryRun) {
-      const result = await this.#env.ports.git.autoCommit(new Set(written), { kind: 'linter' }, signal);
+      const result = await this.#env.ports.git.autoCommit(new Set(targets), { kind: 'linter' }, signal);
       if (result.kind === 'committed') {
         this.save({ ...this.#state, assistantCommits: [...new Set([...this.#state.assistantCommits, result.hash])] });
       }
     }
+    if (outcome.kind !== 'failed') return null;
     if (!(await this.#env.host.confirm({ question: 'Attempt to fix lint errors?' }))) return null;
     return outcome.report;
   }
 
   async validateTests(signal?: AbortSignal): Promise<string | null> {
-    const written = this.writtenRelPaths();
-    if (!written.length) return null;
+    const targets = this.editTargetRelPaths();
+    if (!targets.length) return null;
     const outcome = await this.#env.ports.lint.testEdited(signal);
     if (outcome.kind !== 'failed') return null;
     if (!(await this.#env.host.confirm({ question: 'Attempt to fix test errors?' }))) return null;
     return outcome.report;
+  }
+
+  /** Relative paths from the authorized apply_updates edit-target set. */
+  editTargetRelPaths(): string[] {
+    const lifecycle = this.#state.lifecycle;
+    if (lifecycle.kind !== 'active') return [];
+    return [...lifecycle.preparedTargets];
   }
 
   writtenRelPaths(): string[] {

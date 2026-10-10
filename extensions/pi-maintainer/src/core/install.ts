@@ -364,6 +364,13 @@ class MaintainerRuntime {
       });
       if (shown.kind === 'exit') return;
     }
+    if (!restored.snapshot && ports.edit.applyFile) {
+      const applyPath = absRootPath(ctx.cwd, ports.edit.applyFile);
+      const text = await readMessageFile(applyPath, ports.edit.tree, this.host);
+      if (text === null) throw new Error(`Unable to read apply file ${ports.edit.applyFile}`);
+      await this.#controller.applySavedResponse(text);
+      return;
+    }
     if (!restored.snapshot && ports.edit.messageFile) {
       const messagePath = absRootPath(ctx.cwd, ports.edit.messageFile);
       const text = await readMessageFile(messagePath, ports.edit.tree, this.host);

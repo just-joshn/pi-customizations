@@ -75,6 +75,7 @@ async function harness(options: { readonly reasoningTag?: string } = {}) {
         requestedFormat: 'diff',
         initialFiles: { editable: [], readOnly: [] },
         messageFile: null,
+        applyFile: null,
         dryRun: false,
         yesAlways: true,
         autoAcceptArchitect: true,
