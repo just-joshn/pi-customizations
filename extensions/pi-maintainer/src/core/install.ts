@@ -291,7 +291,7 @@ class MaintainerRuntime {
     const ports = portsWithModelFormatPolicy(createPorts(this.#features, { settings: loaded.settings, cwd: ctx.cwd, host: this.host }), loaded.settings, formatPolicy);
     this.#ports = ports;
     this.#yes = ports.edit.yesAlways;
-    this.#autoCommits = loaded.settings.value(gitOptions.autoCommits);
+    this.#autoCommits = specs.includes(gitOptions.autoCommits) ? loaded.settings.value(gitOptions.autoCommits) : true;
     const restored = restore(ctx.sessionManager.getBranch());
     const snapshot =
       restored.snapshot ??
