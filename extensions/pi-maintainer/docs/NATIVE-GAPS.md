@@ -133,3 +133,25 @@ The flag adapters share the following gate answers. The table above identifies t
 6. **Authoritative Pi state.** AgentSession and SessionManager own requests, persistence, branches, model selection, tools, and settlement.
 7. **Verification.** Integration assertions inspect received normalized requests, literal disk contents, persisted branch facts, and `agent_settled`. The stream honors abort and request instrumentation. It adds no network service or background process.
 8. **Delete when.** Pi provides a public deterministic scripted-provider test fixture with these scenarios.
+
+## Architect editor cost counter
+
+1. **Behavior.** Aider copies `total_cost` onto the editor coder and writes the editor's accumulated total back onto the architect (`aider/coders/architect_coder.py:29-30,47`).
+2. **Mechanism evaluated.** Pi assistant message `usage` on each physical model turn; virtual-model routing for the editor request.
+3. **Why it cannot.** Pi already accounts usage on real assistant entries for each physical model. There is no public API to reassign or merge a private running total across nested frames the way Aider's in-process float does.
+4. **Why not omit.** Ledger row `edit.architect.return-editor-cost` documents the Aider behavior. Silently inventing a parallel float would diverge from Pi billing.
+5. **Adapter.** None. Cost remains on the Pi-owned assistant entries for the architect and editor physical models.
+6. **Authoritative Pi state.** Session message usage and provider billing stay with Pi.
+7. **Verification.** Architect SDK tests prove editor routing and application without asserting a copied float. The ledger row stays open until Pi exposes a supported transfer or the operator retires the requirement.
+8. **Delete when.** Pi exposes a documented way to attribute nested-frame cost to a parent exchange, or the ledger row is retired.
+
+## Architect editor prompt-cache headers
+
+1. **Behavior.** Aider sets `cache_prompts=False` and `num_cache_warming_pings=0` on the editor coder (`aider/coders/architect_coder.py:30-31`).
+2. **Mechanism evaluated.** `cache_warming_decision` (idle warming) and provider request options.
+3. **Why it cannot.** Pi 1.1.0 exposes idle cache-warming decisions, not a general per-request prompt-cache header setter for an in-run editor continuation.
+4. **Why not omit.** Editor options parity includes disabling prompt caching and cache warming.
+5. **Adapter.** `cache_warming_decision` returns `{ action: 'stop' }` while `snapshot.phase.kind === 'editor'`. Exact provider cache-header parity is not claimed.
+6. **Authoritative Pi state.** Pi owns warming timers and provider cache policy.
+7. **Verification.** Hook registration is covered by typecheck against `ExtensionAPI.on("cache_warming_decision")`. Provider header byte identity remains unsupported.
+8. **Delete when.** Pi offers a request-local cache-options control that editor frames can set.

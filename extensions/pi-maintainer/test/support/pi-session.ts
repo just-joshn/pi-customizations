@@ -57,7 +57,15 @@ function scriptedStream(model: Model<string>, context: TranscriptContext, option
   return stream;
 }
 
-export async function piSessionFixture(options: { readonly extension: ExtensionFactory; readonly before?: readonly ExtensionFactory[]; readonly after?: readonly ExtensionFactory[]; readonly config?: string; readonly retry?: boolean }) {
+export async function piSessionFixture(options: {
+  readonly extension: ExtensionFactory;
+  readonly before?: readonly ExtensionFactory[];
+  readonly after?: readonly ExtensionFactory[];
+  readonly config?: string;
+  readonly retry?: boolean;
+  /** Extra physical models on the scripted provider (for editor-model routing). */
+  readonly models?: readonly Model<string>[];
+}) {
   const root = await realpath(await mkdtemp(join(tmpdir(), 'maintainer-sdk-')));
   const cwd = join(root, 'workspace');
   const agentDir = join(root, 'agent');
@@ -65,16 +73,21 @@ export async function piSessionFixture(options: { readonly extension: ExtensionF
   await mkdir(agentDir);
   if (options.config) await writeFile(join(cwd, '.pi-maintainer.conf.yml'), options.config);
   const requests: TranscriptContext[] = [];
+  const routedModels: string[] = [];
   const replies: ScriptedReply[] = [];
   const sessions: AgentSession[] = [];
   const errors: string[] = [];
+  const models = [scriptedModel, ...(options.models ?? [])];
   const provider: ExtensionFactory = (pi) =>
     pi.registerProvider(scriptedModel.provider, {
       apiKey: 'integration-only-not-a-secret',
       api: scriptedModel.api,
       baseUrl: scriptedModel.baseUrl,
-      models: [scriptedModel],
-      streamSimple: (model, context, streamOptions) => scriptedStream(model, context, streamOptions, replies.shift() ?? { text: '' }, (request) => requests.push(request)),
+      models: [...models],
+      streamSimple: (model, context, streamOptions) => {
+        routedModels.push(model.id);
+        return scriptedStream(model, context, streamOptions, replies.shift() ?? { text: '' }, (request) => requests.push(request));
+      },
     });
   onTestFinished(async () => {
     for (const session of sessions) {
@@ -104,7 +117,7 @@ export async function piSessionFixture(options: { readonly extension: ExtensionF
     await session.bindExtensions({ mode: 'print', onError: (error) => errors.push(error.error) });
     return session;
   };
-  return { root, cwd, agentDir, requests, replies, errors, open };
+  return { root, cwd, agentDir, requests, routedModels, replies, errors, open };
 }
 
 export async function promptAndSettle(session: AgentSession, text: string): Promise<void> {

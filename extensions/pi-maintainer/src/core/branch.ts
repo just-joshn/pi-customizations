@@ -17,17 +17,32 @@ const lifecycle = Type.Union([
   Type.Object({ kind: Type.Literal('interrupted'), ...frame, reason: Type.String() }),
 ]);
 
+const physicalModel = Type.Object({ provider: Type.String(), id: Type.String() });
+
+/** Nested coder frame. Architect suspends as `editor` while the editor format runs. */
+const phase = Type.Union([
+  Type.Object({ kind: Type.Literal('main') }),
+  Type.Object({
+    kind: Type.Literal('editor'),
+    format: Type.Enum(EDIT_FORMAT_NAMES),
+    parentMode: Type.Literal('architect'),
+    parentModel: physicalModel,
+    architectReplyId: Type.String(),
+  }),
+]);
+
 export const snapshotSchema = Type.Object({
   schema: Type.Literal(1),
   kind: Type.Literal('snapshot'),
   root: Type.String(),
   mode: Type.Enum(EDIT_FORMAT_NAMES),
+  phase,
   files: Type.Object({ editable: strings, readOnly: strings }),
   ignoredMentions: strings,
   neverAsk: strings,
   lastUserEntry: Type.Union([Type.String(), Type.Null()]),
   historyThrough: Type.Union([Type.String(), Type.Null()]),
-  physicalModel: Type.Union([Type.Object({ provider: Type.String(), id: Type.String() }), Type.Null()]),
+  physicalModel: Type.Union([physicalModel, Type.Null()]),
   lifecycle,
 });
 type Immutable<T> = T extends readonly unknown[] ? ReadonlyArray<Immutable<T[number]>> : T extends object ? { readonly [K in keyof T]: Immutable<T[K]> } : T;

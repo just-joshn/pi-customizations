@@ -248,11 +248,11 @@ test('startup never recreates a target with an unresolved intent', async () => {
 });
 
 test('an unavailable edit format refuses provider requests', async () => {
-  const f = await piSessionFixture({ extension, config: 'edit-format: ask\n' });
+  const f = await piSessionFixture({ extension, config: 'edit-format: help\n' });
   const session = await f.open();
   await promptAndSettle(session, 'not implemented');
   expect(f.requests).toHaveLength(0);
-  expect(restore(session.sessionManager.getBranch()).snapshot?.mode).toBe('ask');
+  expect(restore(session.sessionManager.getBranch()).snapshot?.mode).toBe('help');
   expect(f.errors).toEqual([]);
 });
 

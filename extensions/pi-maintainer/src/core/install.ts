@@ -44,6 +44,20 @@ function completedReply(event: TurnEndEvent): CompletedReply {
 
 const draft = (fact: DialogueFact): SessionBoundaryDraft => ({ type: 'custom_message', customType: BRANDING.dialogueEntry, content: fact.text, display: true, details: { ack: fact.ack, purpose: fact.purpose, reply: fact.reply } });
 
+/** Resolve `--editor-model` to a physical registry entry. Falls back to the main model when unset. */
+function resolveEditorModel(ctx: ExtensionContext, name: string | null, main: { provider: string; id: string }): { provider: string; id: string } | null {
+  if (name === null || name === '' || name === main.id || name === `${main.provider}/${main.id}`) return main;
+  const slash = name.indexOf('/');
+  if (slash > 0) {
+    const found = ctx.modelRegistry.find(name.slice(0, slash), name.slice(slash + 1));
+    if (found && found.api !== 'pi-virtual') return { provider: found.provider, id: found.id };
+    return null;
+  }
+  const sameProvider = ctx.modelRegistry.find(main.provider, name);
+  if (sameProvider && sameProvider.api !== 'pi-virtual') return { provider: sameProvider.provider, id: sameProvider.id };
+  return null;
+}
+
 async function initialSnapshot(ports: Ports, cwd: string, append: (data: unknown) => void, host: ReturnType<typeof createHost>, allowCreation: boolean, owner: string): Promise<Snapshot> {
   const editable: string[] = [];
   const tree = journaledTree(ports.edit.tree, owner, append, () => {});
@@ -74,6 +88,7 @@ async function initialSnapshot(ports: Ports, cwd: string, append: (data: unknown
     kind: 'snapshot',
     root,
     mode: ports.edit.requestedFormat ?? 'whole',
+    phase: { kind: 'main' },
     files: { editable: [...new Set(editable)], readOnly: [...new Set(readOnly)] },
     ignoredMentions: [],
     neverAsk: [],
@@ -118,6 +133,10 @@ export function installMaintainer(pi: ExtensionAPI, features: readonly SarFeatur
     runtime.current(ctx).reconcile(event.aborted);
   });
   pi.on('tool_call', () => ({ block: true, reason: 'Maintainer coders use reply-text edits, not model tools.', terminate: true }));
+  pi.on('cache_warming_decision', (_event, ctx) => {
+    if (restore(ctx.sessionManager.getBranch()).snapshot?.phase.kind === 'editor') return { action: 'stop' as const };
+    return undefined;
+  });
   for (const feature of features)
     for (const command of feature.commands)
       pi.registerCommand(command.name, {
@@ -187,9 +206,10 @@ class MaintainerRuntime {
       append: (data) => this.append(data),
       policy: this.#options.promptPolicy,
       suggestShellCommands: loaded.settings.value(editOptions.suggestShellCommands),
+      resolveEditorModel: (name, main) => resolveEditorModel(ctx, name, main),
     });
     if (!restored.snapshot) this.#controller.save(snapshot);
-    if (ctx.model?.api !== 'pi-virtual' && ctx.model) this.#controller.save({ ...snapshot, physicalModel: { provider: ctx.model.provider, id: ctx.model.id } });
+    if (ctx.model?.api !== 'pi-virtual' && ctx.model) this.#controller.save({ ...this.#controller.snapshot, physicalModel: { provider: ctx.model.provider, id: ctx.model.id } });
     this.restoreBranch(ctx);
     this.#pi.setActiveTools([]);
     const router = ctx.modelRegistry.find(BRANDING.routerProvider, BRANDING.routerId);
@@ -217,7 +237,7 @@ class MaintainerRuntime {
       const branch = ctx.sessionManager.getBranch();
       const users = branch.filter((entry) => entry.type === 'message' && entry.message.role === 'user').map((entry) => entry.id);
       controller.bindUser(users, { provider: model.provider, id: model.id }, request.reason);
-      if (request.reason === 'user') {
+      if (request.reason === 'user' && controller.snapshot.mode !== 'context') {
         const user = branch.filter((entry) => entry.type === 'message' && entry.message.role === 'user').at(-1);
         if (user?.type === 'message' && user.message.role === 'user') {
           const content =

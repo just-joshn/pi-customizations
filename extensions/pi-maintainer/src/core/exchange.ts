@@ -1,6 +1,7 @@
 import { ValueError } from '../edit/errors.ts';
 import { defaultFence, type Fence } from '../edit/fences.ts';
 import { intentPaths } from '../edit/intents.ts';
+import { contextPrompts } from '../edit/prompts/context.ts';
 import type { EditCandidate, EditContext, EditIntent, EditPlan, PathEdit, Ports } from '../feature.ts';
 import { pythonSorted } from '../support/python-sort.ts';
 import { chatFilesOf, type Snapshot } from './branch.ts';
@@ -16,7 +17,7 @@ export type CompletedReply = { readonly kind: 'complete'; readonly id: string; r
 export interface DialogueFact {
   readonly text: string;
   readonly ack: string | null;
-  readonly purpose: 'reflection' | 'saved';
+  readonly purpose: 'reflection' | 'saved' | 'editor-input' | 'architect-return';
   readonly reply: string;
 }
 export interface ReplyDecision {
@@ -31,6 +32,8 @@ export interface ExchangeEnv {
   readonly append: (data: unknown) => void;
   readonly suggestShellCommands: boolean;
   readonly policy?: PromptPolicy | undefined;
+  /** Resolve `--editor-model` against the host registry, or null when unavailable. */
+  readonly resolveEditorModel?: (name: string | null, main: { provider: string; id: string }) => { provider: string; id: string } | null;
 }
 
 const MAX_REFLECTIONS = 3;
@@ -58,13 +61,14 @@ export class ExchangeController {
 
   async projectRequest(view: RequestView) {
     const files = chatFilesOf(this.#state);
+    const editor = this.#state.phase.kind === 'editor';
     const history = partitionHistory(
       view.messages.filter((message) => message.role !== 'system'),
       view.projection,
       this.#state.historyThrough,
     );
     const curMessageText = getCurMessageText(history.current);
-    const repository = await this.#env.ports.map.repoMap({ editable: files.editable, readOnly: files.readOnly, curMessageText }, view.signal);
+    const repository = editor ? null : await this.#env.ports.map.repoMap({ editable: files.editable, readOnly: files.readOnly, curMessageText }, view.signal);
     const result = await projectRequest({
       snapshot: this.#state,
       view,
@@ -72,9 +76,10 @@ export class ExchangeController {
       notices: this.#env.host,
       source: this.#env.source,
       promptFormat: this.#env.ports.edit.formats.get(this.#state.mode)?.prompts ?? this.#state.mode,
-      suggestShellCommands: this.#env.suggestShellCommands,
+      suggestShellCommands: editor ? false : this.#env.suggestShellCommands,
       repository,
       policy: this.#env.policy,
+      editorFresh: editor,
     });
     this.#fence = result.fence;
     this.#prompts = result.prompts;
@@ -106,16 +111,27 @@ export class ExchangeController {
       return { dialogue: [], continue: false };
     }
     if (this.#state.lifecycle.kind !== 'active') return { dialogue: [], continue: false };
+    if (this.#state.mode === 'context' || (this.#state.mode === 'architect' && this.#state.phase.kind === 'main')) {
+      const modeDecision = this.#state.mode === 'context' ? await this.completeContext(reply, signal) : await this.completeArchitect(reply, signal);
+      if (modeDecision !== null) return modeDecision;
+    }
+    if (this.#state.mode === 'ask') {
+      this.#env.append({ schema: 1, kind: 'reply-finished', reply: reply.id });
+      return { dialogue: [], continue: false };
+    }
     const dialogue: DialogueFact[] = [];
     let prepared: readonly (string | null)[] = [];
     let reflection: string | null = null;
     const context = this.editContext(reply.id, signal);
+    const editorPhase = this.#state.phase.kind === 'editor' ? this.#state.phase : null;
     try {
       signal?.throwIfAborted();
-      const added = await this.checkForFileMentions(reply.text, signal);
-      if (added) {
-        this.#env.append({ schema: 1, kind: 'reply-finished', reply: reply.id });
-        return this.reflect(added, reply.id, dialogue);
+      if (!editorPhase) {
+        const added = await this.checkForFileMentions(reply.text, signal);
+        if (added) {
+          this.#env.append({ schema: 1, kind: 'reply-finished', reply: reply.id });
+          return this.reflect(added, reply.id, dialogue);
+        }
       }
       const format = this.#env.ports.edit.formats.get(this.#state.mode);
       if (!format) throw new Error(`Edit format ${this.#state.mode} is not implemented`);
@@ -140,8 +156,63 @@ export class ExchangeController {
     }
     dialogue.push(...(await this.recordEdited(prepared, reply, signal)));
     this.#env.append({ schema: 1, kind: 'reply-finished', reply: reply.id });
+    if (editorPhase) {
+      this.save({ ...this.#state, mode: editorPhase.parentMode, phase: { kind: 'main' }, physicalModel: editorPhase.parentModel });
+      if (reflection === null) dialogue.push({ text: 'I made those changes to the files.', ack: 'Ok.', purpose: 'architect-return', reply: reply.id });
+    }
     if (reflection !== null) return this.reflect(reflection, reply.id, dialogue);
     return { dialogue, continue: false };
+  }
+
+  /** Context mode. Replace editable files from mentions; never apply edits. */
+  async completeContext(reply: Extract<CompletedReply, { kind: 'complete' }>, signal?: AbortSignal): Promise<ReplyDecision | null> {
+    this.#env.append({ schema: 1, kind: 'reply-finished', reply: reply.id });
+    if (!reply.text.trim()) return { dialogue: [], continue: false };
+    signal?.throwIfAborted();
+    const inchat = inchatRelativeFiles(this.#state.root, chatFilesOf(this.#state));
+    const current = new Set(inchat);
+    const all = (await this.#env.ports.git.trackedFiles()) ?? inchat;
+    const mentioned = getFileMentions({ content: reply.text, inchat, readOnly: this.#state.files.readOnly.map((path) => getRelFname(this.#state.root, path)), addable: all, ignoreCurrent: true });
+    const mentionedRel = [...mentioned];
+    if (mentionedRel.length === current.size && mentionedRel.every((path) => current.has(path))) return { dialogue: [], continue: false };
+    const lifecycle = this.#state.lifecycle;
+    if (lifecycle.kind !== 'active' || lifecycle.reflectionsSent >= MAX_REFLECTIONS - 1) return { dialogue: [], continue: false };
+    const editable = mentionedRel.map((path) => absRootPath(this.#state.root, path));
+    this.save({ ...this.#state, files: { ...this.#state.files, editable } });
+    return this.reflect(contextPrompts.tryAgain, reply.id, []);
+  }
+
+  /** Architect mode. Confirm, then continue into a fresh editor request. */
+  async completeArchitect(reply: Extract<CompletedReply, { kind: 'complete' }>, signal?: AbortSignal): Promise<ReplyDecision | null> {
+    if (!reply.text.trim()) {
+      this.#env.append({ schema: 1, kind: 'reply-finished', reply: reply.id });
+      return { dialogue: [], continue: false };
+    }
+    signal?.throwIfAborted();
+    if (!this.#env.ports.edit.autoAcceptArchitect) {
+      const accepted = await this.#env.host.confirm({ question: 'Edit the files?' });
+      if (!accepted) {
+        this.#env.append({ schema: 1, kind: 'reply-finished', reply: reply.id });
+        return { dialogue: [], continue: false };
+      }
+    }
+    const main = this.#state.physicalModel;
+    if (main === null) throw new Error('No physical maintainer model is bound');
+    const resolved = this.#env.resolveEditorModel?.(this.#env.ports.edit.editorModel, main);
+    if (this.#env.ports.edit.editorModel && resolved === null) throw new Error(`Editor model ${this.#env.ports.edit.editorModel} is not available`);
+    const editorModel = resolved ?? main;
+    const format = this.#env.ports.edit.editorEditFormat;
+    if (!this.#env.ports.edit.formats.has(format)) throw new Error(`Editor format ${format} is not implemented`);
+    this.save({
+      ...this.#state,
+      mode: format,
+      physicalModel: editorModel,
+      phase: { kind: 'editor', format, parentMode: 'architect', parentModel: main, architectReplyId: reply.id },
+    });
+    this.#env.append({ schema: 1, kind: 'reply-finished', reply: reply.id });
+    const lifecycle = this.#state.lifecycle;
+    if (lifecycle.kind === 'active') this.save({ ...this.#state, lifecycle: { ...lifecycle, waitingFor: reply.id } });
+    return { dialogue: [{ text: reply.text, ack: null, purpose: 'editor-input', reply: reply.id }], continue: true };
   }
 
   async recordEdited(prepared: readonly (string | null)[], reply: Extract<CompletedReply, { kind: 'complete' }>, signal?: AbortSignal): Promise<DialogueFact[]> {

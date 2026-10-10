@@ -132,6 +132,8 @@ export interface ContextInputs {
   readonly suggestShellCommands: boolean;
   readonly policy?: PromptPolicy | undefined;
   readonly repository?: string | null;
+  /** Architect editor request. Clear done/current history except the editor-input dialogue. */
+  readonly editorFresh?: boolean;
 }
 
 export async function projectRequest(input: ContextInputs) {
@@ -167,11 +169,13 @@ function assembleRequest({ input, contents, fence, prompts, model }: { input: Co
           { role: 'assistant', content: ack },
         ])
       : [];
-  const history = partitionHistory(
-    view.messages.filter((message) => message.role !== 'system'),
-    view.projection,
-    snapshot.historyThrough,
-  );
+  const history = input.editorFresh
+    ? { done: [] as ContextMessage[], current: editorInputMessages(view.messages), partition: 'position-preserving' as const }
+    : partitionHistory(
+        view.messages.filter((message) => message.role !== 'system'),
+        view.projection,
+        snapshot.historyThrough,
+      );
   const readOnlyText = getFilesContent(snapshot.root, contents.readOnly, fence);
   const filesText = contents.files.editable.length
     ? prompts.filesContentPrefix + getFilesContent(snapshot.root, contents.editable, fence)
@@ -188,7 +192,7 @@ function assembleRequest({ input, contents, fence, prompts, model }: { input: Co
     messages: [
       { ...folded, sections: { ...folded.sections, preamble: policy.useSystemPrompt ? main : '' } } satisfies ContextMessage,
       ...(!policy.useSystemPrompt ? pair(main, 'Ok.') : []),
-      ...convert(prompt.examples),
+      ...(input.editorFresh ? [] : convert(prompt.examples)),
       ...pair(readOnlyText ? prompts.readOnlyFilesPrefix + readOnlyText : '', 'Ok, I will use these files as references.'),
       ...readOnlyImages,
       ...(readOnlyImages.length ? convert([{ role: 'assistant', content: 'Ok, I will use these images as references.' }]) : []),
@@ -201,6 +205,16 @@ function assembleRequest({ input, contents, fence, prompts, model }: { input: Co
       ...reminder.tail,
     ],
   };
+}
+
+function editorInputMessages(messages: readonly ContextMessage[]): ContextMessage[] {
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    const message = messages[index];
+    if (message?.role !== 'custom' || message.customType !== BRANDING.dialogueEntry) continue;
+    const details: unknown = message.details;
+    if (typeof details === 'object' && details !== null && 'purpose' in details && details.purpose === 'editor-input') return [message];
+  }
+  return [];
 }
 
 function tailReminder(current: ContextMessage[], text: string, policy: PromptPolicy, timestamp: number) {
