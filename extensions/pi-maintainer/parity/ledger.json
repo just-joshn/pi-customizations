@@ -3134,10 +3134,17 @@
         "aider/watch.py:68-71,257-281"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('session_start')",
+        "pi.on('session_shutdown')"
+      ],
+      "src": [
+        "src/core/watch.ts"
+      ],
+      "tests": [
+        "test/core/watch-bind.test.ts::AI comment markers yield one-based lines and the last actionable bang or question"
+      ]
     },
     {
       "id": "edit.watch.filter",
@@ -3147,10 +3154,18 @@
         "aider/watch.py:15-62,90-119"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('session_start')",
+        "pi.on('session_shutdown')"
+      ],
+      "src": [
+        "src/core/watch.ts"
+      ],
+      "tests": [
+        "test/core/watch-bind.test.ts::built-in and gitignore patterns exclude editor noise and keep source files",
+        "test/core/watch-bind.test.ts::filter keeps under-root AI-comment files under one MiB and drops ignored paths"
+      ]
     },
     {
       "id": "edit.watch.requests",
@@ -3173,10 +3188,17 @@
         "aider/watch.py:121-133"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('session_start')",
+        "pi.on('session_shutdown')"
+      ],
+      "src": [
+        "src/core/watch.ts"
+      ],
+      "tests": [
+        "test/core/watch-bind.test.ts::watcher roots exclude ignored top-level entries and fall back to the root"
+      ]
     },
     {
       "id": "edit.watch.lifecycle",
@@ -3186,10 +3208,17 @@
         "aider/watch.py:164-179"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('session_start')",
+        "pi.on('session_shutdown')"
+      ],
+      "src": [
+        "src/core/watch.ts"
+      ],
+      "tests": [
+        "test/core/watch-bind.test.ts::starting clears pending changes and stop joins the monitor before discarding it"
+      ]
     },
     {
       "id": "git.inventory.tracked-files",
@@ -3507,10 +3536,17 @@
         "aider/watch.py:135-143"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('session_start')",
+        "pi.on('session_shutdown')"
+      ],
+      "src": [
+        "src/core/watch.ts"
+      ],
+      "tests": [
+        "test/core/watch-bind.test.ts::empty notifications leave state alone while nonempty paths interrupt input"
+      ]
     },
     {
       "id": "edit.input.empty-selection",

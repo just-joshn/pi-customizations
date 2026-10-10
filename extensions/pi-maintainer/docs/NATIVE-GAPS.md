@@ -155,3 +155,14 @@ The flag adapters share the following gate answers. The table above identifies t
 6. **Authoritative Pi state.** Pi owns warming timers and provider cache policy. Compaction owns summarization; the editor frame adds no format-change summarizer.
 7. **Verification.** `test/core/modes.pi.test.ts` proves editor file context, `suggestShellCommands: false`, mid-editor warming stop, and zero `session_before_compact` / compaction entries on the architect→editor path. Residual for verified status: per-request prompt-cache header byte identity remains unsupported.
 8. **Delete when.** Pi offers a request-local cache-options control that editor frames can set, or the ledger sentence drops the prompt-caching claim.
+
+## File watcher host attachment
+
+1. **Behavior.** Aider watches workspace roots with `watchfiles`, filters to AI-comment files, interrupts waiting input on changes, and builds AI! / AI? requests with `grep_ast.TreeContext` structural slices (`aider/watch.py`).
+2. **Mechanism evaluated.** `pi.on('session_start')` / `pi.on('session_shutdown')` for long-lived resources (required by `extensions/AGENTS.md`); no public Pi file-watch, input-interrupt, or structural-context API.
+3. **Why it cannot.** Installed Pi 1.1.0 exports no filesystem watcher, no `interrupt_input` equivalent for the prompt editor, and no tree-sitter / `TreeContext` host. Live `watchfiles` semantics are not a Pi mechanism.
+4. **Why not omit.** Ledger rows `edit.watch.comments`, `edit.watch.filter`, `edit.watch.roots`, `edit.watch.changes`, and `edit.watch.lifecycle` are required edit parity. Omitting the domain port leaves AI-comment watching unportable.
+5. **Adapter.** `src/core/watch.ts` ports ignore loading, AI-comment extraction, filter, roots, change accumulation, and start/stop lifecycle behind an injectable `WatchMonitor`. No live `fs.watch` / `watchfiles` loop is started from the extension factory or `session_start` in this bind. `edit.watch.requests` stays open until a verified parser supplies structural context (see `docs/verification/tree-sitter-recovery-2026-10-10.md`).
+6. **Authoritative Pi state.** Session lifecycle, prompt queue, and model context stay with Pi. The watcher only holds pending changed paths and monitor handles.
+7. **Verification.** `test/core/watch-bind.test.ts` ports Aider `test_watch` units and proves filter and lifecycle contracts. Claimed ledger rows list those tests.
+8. **Delete when.** Pi exposes a public workspace file-watch API with cancellation, plus a documented way to interrupt idle prompt input; delete the monitor adapter when those land. Delete the requests gap when a Pi-native or approved parser provides TreeContext-equivalent slices.
