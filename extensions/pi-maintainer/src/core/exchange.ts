@@ -206,6 +206,8 @@ export class ExchangeController {
     const lintReflection = await this.validateWritten(signal);
     if (lintReflection !== null) return this.reflect(lintReflection, reply.id, dialogue);
     await this.forwardSuggestedShell(shellCommands, signal);
+    const testReflection = await this.validateTests(signal);
+    if (testReflection !== null) return this.reflect(testReflection, reply.id, dialogue);
     return { dialogue, continue: false };
   }
 
@@ -303,6 +305,15 @@ export class ExchangeController {
       }
     }
     if (!(await this.#env.host.confirm({ question: 'Attempt to fix lint errors?' }))) return null;
+    return outcome.report;
+  }
+
+  async validateTests(signal?: AbortSignal): Promise<string | null> {
+    const written = this.writtenRelPaths();
+    if (!written.length) return null;
+    const outcome = await this.#env.ports.lint.testEdited(signal);
+    if (outcome.kind !== 'failed') return null;
+    if (!(await this.#env.host.confirm({ question: 'Attempt to fix test errors?' }))) return null;
     return outcome.report;
   }
 

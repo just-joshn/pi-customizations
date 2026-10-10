@@ -2693,10 +2693,23 @@
         "aider/coders/base_coder.py:1585-1623"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')",
+        "Host.exec"
+      ],
+      "src": [
+        "src/lint/feature.ts",
+        "src/lint/options.ts",
+        "src/lint/validation.ts",
+        "src/lint/linter.ts",
+        "src/lint/shell.ts",
+        "src/core/exchange.ts",
+        "src/index.ts"
+      ],
+      "tests": [
+        "test/lint/followup-bind.test.ts::edited files are auto-committed before lint runs"
+      ]
     },
     {
       "id": "lint.followup.order",
@@ -2706,10 +2719,24 @@
         "aider/coders/base_coder.py:1596-1623"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')",
+        "Host.exec"
+      ],
+      "src": [
+        "src/lint/feature.ts",
+        "src/lint/options.ts",
+        "src/lint/validation.ts",
+        "src/lint/linter.ts",
+        "src/lint/shell.ts",
+        "src/core/exchange.ts",
+        "src/index.ts"
+      ],
+      "tests": [
+        "test/lint/followup-bind.test.ts::after edits, lint then shell then test follow when each is enabled",
+        "test/lint/followup-bind.test.ts::auto-lint off skips lintEdited work and auto-test off skips testEdited work"
+      ]
     },
     {
       "id": "lint.followup.reflect-failures",
@@ -2719,10 +2746,24 @@
         "aider/coders/base_coder.py:1599-1623"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')",
+        "Host.exec"
+      ],
+      "src": [
+        "src/lint/feature.ts",
+        "src/lint/options.ts",
+        "src/lint/validation.ts",
+        "src/lint/linter.ts",
+        "src/lint/shell.ts",
+        "src/core/exchange.ts",
+        "src/index.ts"
+      ],
+      "tests": [
+        "test/core/lifecycle-bind.test.ts::a failed lint report reflects after confirmation",
+        "test/lint/followup-bind.test.ts::a failed test report reflects after confirmation"
+      ]
     },
     {
       "id": "lint.options.auto-lint-auto-test",
@@ -2732,10 +2773,19 @@
         "aider/args.py:542-558"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.registerFlag"
+      ],
+      "src": [
+        "src/lint/options.ts",
+        "src/lint/feature.ts",
+        "src/index.ts"
+      ],
+      "tests": [
+        "test/lint/options-bind.test.ts::automatic lint defaults on and automatic tests default off",
+        "test/lint/options-bind.test.ts::cli and config can disable auto-lint and enable auto-test"
+      ]
     },
     {
       "id": "lint.python.checks",

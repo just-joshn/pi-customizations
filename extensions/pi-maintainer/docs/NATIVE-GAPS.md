@@ -167,6 +167,28 @@ The flag adapters share the following gate answers. The table above identifies t
 7. **Verification.** `test/core/watch-bind.test.ts` ports Aider `test_watch` units and proves filter and lifecycle contracts for the five verified watch rows. `edit.watch.requests` has empty `pi` / `src` / `tests` and remains open after this re-check. No newly expressible subset closed without a TreeContext or host-watch API.
 8. **Delete when.** Pi exposes a public workspace file-watch API with cancellation, plus a documented way to interrupt idle prompt input; delete the monitor adapter when those land. Delete the requests gap when a Pi-native or approved parser provides TreeContext-equivalent slices and the request path can be verified against them.
 
+## Lint and test local shell (pexpect / shell=True)
+
+1. **Behavior.** Shell, lint, and test commands run with the user's privileges, through pexpect when interactive on a non-Windows terminal and otherwise through a subprocess with `shell=True` (`aider/run_cmd.py:11-23,42-86`).
+2. **Mechanism evaluated (Pi 1.1.0).** `Host.exec` / `pi.exec` via `isolatedExec` with argv arrays and `shell: false`. No public PTY or shell-string exec API on Host.
+3. **Why it cannot.** Interactive pexpect (`spawn` + `interact`) and Python `subprocess` `shell=True` are not public Pi mechanisms. Inventing a parallel shell runner beside Host.exec would reintroduce injection risk Aider accepted for free-form command strings.
+4. **Why not omit.** Ledger row `lint.run.local-shell` requires that runner. Omitting leaves the row open.
+5. **Adapter.** `src/lint/shell.ts` runs command strings as `/bin/sh -c` through Host.exec. Lint language commands append an `oslex`-style quoted relative path. No pexpect path is started.
+6. **Authoritative Pi state.** Session lifecycle, permissions, and provider transport stay with Pi. Working-tree bytes stay with `WorkingTree`.
+7. **Verification.** Row `lint.run.local-shell` stays open. Follow-up and options rows that only need Host.exec argv execution are verified separately.
+8. **Delete when.** Pi exposes a documented interactive PTY exec and/or a safe shell-string exec that extensions may use for lint, test, and suggested shell commands, or the ledger drops the pexpect/`shell=True` claim.
+
+## Python lint tree-sitter syntax checks
+
+1. **Behavior.** Python lint combines tree-sitter syntax errors, compile errors, and flake8 errors limited to E9,F821,F823,F831,F406,F407,F701,F702,F704,F706, reported under "# Fix any errors below, if possible." with tree context around the error lines (`aider/linter.py:80-166`).
+2. **Mechanism evaluated.** Same tree-sitter recovery constraint as map structural context (`docs/verification/tree-sitter-recovery-2026-10-10.md`). Host.exec can run flake8 argv and a compile probe.
+3. **Why it cannot.** Built-in `basic_lint` / `TreeContext` slices require an accepted production tree-sitter bridge. Deep-importing private parsers or inventing a TreeContext harness is forbidden until recovery accepts one.
+4. **Why not omit.** Ledger row `lint.python.checks` requires the combined report including tree-sitter syntax errors and TreeContext.
+5. **Adapter.** None for tree-sitter syntax. Configured `--lint-cmd` values run through Host.exec. Default Python combine path is not claimed.
+6. **Authoritative Pi state.** Unchanged.
+7. **Verification.** Row `lint.python.checks` stays open after this re-check.
+8. **Delete when.** Parser recovery accepts a production bridge that can supply TreeContext-equivalent slices for lint, or the ledger drops the tree-sitter syntax claim.
+
 ## Git repository operations
 
 1. **Behavior.** Aider's `GitRepo` inventories tracked files, checks gitignore, stages new edit targets, dirty-checkpoints before apply, auto-commits whole files with model-authored messages, and undoes session commits (`aider/repo.py`, `aider/commands.py` `raw_cmd_undo`). `/git` prepends `git`, runs with `GIT_EDITOR=true`, shows combined output outside chat, and does not force cwd to the repo root (`aider/commands.py:967-986`).
