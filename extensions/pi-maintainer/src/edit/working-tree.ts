@@ -26,6 +26,8 @@ export interface WorkingTree {
   /** Creates missing parent directories and an empty file. False when the OS refuses. */
   touch(path: string): Promise<boolean>;
   remove(path: string): Promise<void>;
+  /** Creates a directory and its missing parents, as `Path.mkdir(parents=True, exist_ok=True)` does. */
+  mkdir(path: string): Promise<void>;
   mutate<T>(paths: readonly string[], operation: (tree: WorkingTree) => Promise<T>, signal?: AbortSignal): Promise<T>;
 }
 
@@ -183,6 +185,9 @@ function workingTree(options: WorkingTreeOptions, held: ReadonlySet<string> | nu
       if (held !== null) throw new Error('A file mutation transaction cannot be reentered');
       const keys = [...new Set(await Promise.all(paths.map((path) => mutationPath(path))))].sort();
       return lockPaths(keys, () => operation(workingTree(options, new Set(keys), operationSignal)), operationSignal);
+    },
+    async mkdir(path) {
+      if (!dryRun) await mkdir(path, { recursive: true });
     },
   };
 }

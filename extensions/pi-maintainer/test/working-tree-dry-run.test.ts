@@ -80,3 +80,12 @@ test('dry-run operations still read existing file contents', async () => {
 
   expect(await tree.read(path)).toBe('original\n');
 });
+
+test('dry-run mkdir leaves missing directories absent', async () => {
+  const { root, tree } = await fixture();
+  await writeFile(join(root, 'kept.txt'), 'kept');
+
+  await tree.mkdir(join(root, 'nested', 'deeper'));
+
+  expect(await readdir(root)).toEqual(['kept.txt']);
+});

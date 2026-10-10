@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -113,4 +113,29 @@ test('invalid UTF-8 bytes produce the encoding hint', async () => {
 
   expect(await createWorkingTree({ notices }).read(path)).toBeNull();
   expect(notices.error).toHaveBeenCalledWith('Use --encoding to set the unicode encoding.');
+});
+
+test('mkdir creates missing parent directories', async () => {
+  const { root, notices } = await fixture();
+
+  await createWorkingTree({ notices }).mkdir(join(root, 'a', 'b'));
+
+  expect((await stat(join(root, 'a', 'b'))).isDirectory()).toBe(true);
+});
+
+test('mkdir accepts an existing directory', async () => {
+  const { root, notices } = await fixture();
+  await writeFile(join(root, 'kept.txt'), 'kept');
+
+  await createWorkingTree({ notices }).mkdir(root);
+
+  expect(await readFile(join(root, 'kept.txt'), 'utf8')).toBe('kept');
+});
+
+test('mkdir refuses a path held by a file', async () => {
+  const { root, notices } = await fixture();
+  const path = join(root, 'source.txt');
+  await writeFile(path, 'original');
+
+  await expect(createWorkingTree({ notices }).mkdir(path)).rejects.toMatchObject({ code: 'EEXIST' });
 });

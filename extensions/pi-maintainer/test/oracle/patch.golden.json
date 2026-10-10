@@ -1,0 +1,2830 @@
+{
+  "apply_edits/add-appends-newline": {
+    "result": {
+      "notices": [["output", "Adding n.py"]],
+      "raised": null,
+      "tree": {
+        "n.py": "x\n"
+      }
+    }
+  },
+  "apply_edits/add-creates-parents": {
+    "result": {
+      "notices": [["output", "Adding a/b/n.py"]],
+      "raised": null,
+      "tree": {
+        "a/": null,
+        "a/b/": null,
+        "a/b/n.py": "x\n"
+      }
+    }
+  },
+  "apply_edits/add-empty-content": {
+    "result": {
+      "notices": [["output", "Adding n.py"]],
+      "raised": null,
+      "tree": {
+        "n.py": "\n"
+      }
+    }
+  },
+  "apply_edits/add-existing-file": {
+    "result": {
+      "notices": [],
+      "raised": {
+        "message": "Error applying action 'ActionType.ADD' to n.py: ADD Error: File already exists: n.py",
+        "type": "ValueError"
+      },
+      "tree": {
+        "n.py": ""
+      }
+    }
+  },
+  "apply_edits/add-keeps-trailing-newline": {
+    "result": {
+      "notices": [["output", "Adding n.py"]],
+      "raised": null,
+      "tree": {
+        "n.py": "x\n"
+      }
+    }
+  },
+  "apply_edits/add-parent-is-file": {
+    "result": {
+      "notices": [["output", "Adding parent/new.py"]],
+      "raised": {
+        "message": "Error applying action 'ActionType.ADD' to parent/new.py: [Errno 17] File exists: '<root>/parent'",
+        "type": "ValueError"
+      },
+      "tree": {
+        "parent": "regular file\n"
+      }
+    }
+  },
+  "apply_edits/add-preserves-carriage-return": {
+    "result": {
+      "notices": [["output", "Adding n.py"]],
+      "raised": null,
+      "tree": {
+        "n.py": "a\r\nb\n"
+      }
+    }
+  },
+  "apply_edits/add-tabs-non-bmp": {
+    "result": {
+      "notices": [["output", "Adding n.py"]],
+      "raised": null,
+      "tree": {
+        "n.py": "\t😀\n𝒳\n"
+      }
+    }
+  },
+  "apply_edits/delete-missing-warns": {
+    "result": {
+      "notices": [["output", "Deleting a.py"], ["warning", "DELETE Warning: File not found, skipping: a.py"]],
+      "raised": null,
+      "tree": {}
+    }
+  },
+  "apply_edits/delete-removes-file": {
+    "result": {
+      "notices": [["output", "Deleting a.py"]],
+      "raised": null,
+      "tree": {
+        "b.py": "y\n"
+      }
+    }
+  },
+  "apply_edits/delete-then-update": {
+    "result": {
+      "notices": [["output", "Deleting a.py"]],
+      "raised": {
+        "message": "Error applying action 'ActionType.UPDATE' to a.py: UPDATE Error: File does not exist: a.py",
+        "type": "ValueError"
+      },
+      "tree": {}
+    }
+  },
+  "apply_edits/delete-twice-warns": {
+    "result": {
+      "notices": [["output", "Deleting a.py"], ["output", "Deleting a.py"], ["warning", "DELETE Warning: File not found, skipping: a.py"]],
+      "raised": null,
+      "tree": {}
+    }
+  },
+  "apply_edits/dry-run-add-existing-file": {
+    "result": {
+      "notices": [],
+      "raised": {
+        "message": "Error applying action 'ActionType.ADD' to n.py: ADD Error: File already exists: n.py",
+        "type": "ValueError"
+      },
+      "tree": {
+        "n.py": ""
+      }
+    }
+  },
+  "apply_edits/dry-run-add-in-existing-directory": {
+    "result": {
+      "notices": [["output", "Adding n.py"]],
+      "raised": null,
+      "tree": {
+        "a.py": "x\n"
+      }
+    }
+  },
+  "apply_edits/dry-run-update": {
+    "result": {
+      "notices": [["output", "Updating a.py"]],
+      "raised": null,
+      "tree": {
+        "a.py": "x\n"
+      }
+    }
+  },
+  "apply_edits/empty-edits": {
+    "result": {
+      "notices": [],
+      "raised": null,
+      "tree": {
+        "a.py": "x\n"
+      }
+    }
+  },
+  "apply_edits/move-empty-string-is-no-move": {
+    "result": {
+      "notices": [["output", "Updating a.py"]],
+      "raised": null,
+      "tree": {
+        "a.py": "X\n"
+      }
+    }
+  },
+  "apply_edits/move-mismatch-leaves-files": {
+    "result": {
+      "notices": [],
+      "raised": {
+        "message": "Error applying action 'ActionType.UPDATE' to a.py: a.py: Mismatch applying patch near line 1.\nExpected lines to remove:\n- nope\nFound lines in file:\n  x",
+        "type": "ValueError"
+      },
+      "tree": {
+        "a.py": "x\n"
+      }
+    }
+  },
+  "apply_edits/move-onto-existing-file": {
+    "result": {
+      "notices": [["output", "Updating and moving src.py to dst.py"], ["warning", "UPDATE Warning: Target file for move already exists, overwriting: dst.py"]],
+      "raised": null,
+      "tree": {
+        "dst.py": "X\n"
+      }
+    }
+  },
+  "apply_edits/move-then-delete-destination": {
+    "result": {
+      "notices": [["output", "Updating and moving a.py to b.py"], ["output", "Deleting b.py"]],
+      "raised": null,
+      "tree": {}
+    }
+  },
+  "apply_edits/move-to-itself": {
+    "result": {
+      "notices": [["output", "Updating and moving a.py to a.py"]],
+      "raised": null,
+      "tree": {
+        "a.py": "X\n"
+      }
+    }
+  },
+  "apply_edits/move-to-new-directory": {
+    "result": {
+      "notices": [["output", "Updating and moving a.py to b/c.py"]],
+      "raised": null,
+      "tree": {
+        "b/": null,
+        "b/c.py": "X\n"
+      }
+    }
+  },
+  "apply_edits/move-to-normalized-itself": {
+    "result": {
+      "notices": [["output", "Updating and moving a.py to ./a.py"]],
+      "raised": null,
+      "tree": {
+        "a.py": "X\n"
+      }
+    }
+  },
+  "apply_edits/stops-at-first-failure": {
+    "result": {
+      "notices": [["output", "Updating a.py"]],
+      "raised": {
+        "message": "Error applying action 'ActionType.ADD' to b.py: ADD Error: File already exists: b.py",
+        "type": "ValueError"
+      },
+      "tree": {
+        "a.py": "X\n",
+        "b.py": "",
+        "c.py": "keep\n"
+      }
+    }
+  },
+  "apply_edits/tuple-path-ignored": {
+    "result": {
+      "notices": [["output", "Deleting a.py"]],
+      "raised": null,
+      "tree": {
+        "other.py": "y\n"
+      }
+    }
+  },
+  "apply_edits/update-blank-file-without-chunks": {
+    "result": {
+      "notices": [["output", "Updating e.txt"]],
+      "raised": null,
+      "tree": {
+        "e.txt": "\n"
+      }
+    }
+  },
+  "apply_edits/update-crlf-file": {
+    "result": {
+      "notices": [["output", "Updating w.txt"]],
+      "raised": null,
+      "tree": {
+        "w.txt": "a\nB\nc\n"
+      }
+    }
+  },
+  "apply_edits/update-deletes-every-line": {
+    "result": {
+      "notices": [["output", "Updating a.py"]],
+      "raised": null,
+      "tree": {
+        "a.py": "\n"
+      }
+    }
+  },
+  "apply_edits/update-deletion-mismatch": {
+    "result": {
+      "notices": [],
+      "raised": {
+        "message": "Error applying action 'ActionType.UPDATE' to a.py: a.py: Mismatch applying patch near line 1.\nExpected lines to remove:\n- zzz\n- b\nFound lines in file:\n  a\n  b",
+        "type": "ValueError"
+      },
+      "tree": {
+        "a.py": "a\nb\n"
+      }
+    }
+  },
+  "apply_edits/update-deletion-past-eof": {
+    "result": {
+      "notices": [],
+      "raised": {
+        "message": "Error applying action 'ActionType.UPDATE' to a.py: a.py: Mismatch applying patch near line 2.\nExpected lines to remove:\n- b\nFound lines in file:\n",
+        "type": "ValueError"
+      },
+      "tree": {
+        "a.py": "a\n"
+      }
+    }
+  },
+  "apply_edits/update-deletion-stripped-match": {
+    "result": {
+      "notices": [["output", "Updating a.py"]],
+      "raised": null,
+      "tree": {
+        "a.py": "A\nb\n"
+      }
+    }
+  },
+  "apply_edits/update-empty-file-without-chunks": {
+    "result": {
+      "notices": [["output", "Updating e.txt"]],
+      "raised": null,
+      "tree": {
+        "e.txt": ""
+      }
+    }
+  },
+  "apply_edits/update-equal-index-insertions-keep-order": {
+    "result": {
+      "notices": [["output", "Updating a.py"]],
+      "raised": null,
+      "tree": {
+        "a.py": "a\nfirst\nsecond\nb\n"
+      }
+    }
+  },
+  "apply_edits/update-form-feed-becomes-newline": {
+    "result": {
+      "notices": [["output", "Updating f.txt"]],
+      "raised": null,
+      "tree": {
+        "f.txt": "a\nb\nC\n"
+      }
+    }
+  },
+  "apply_edits/update-insert-into-empty-file": {
+    "result": {
+      "notices": [["output", "Updating e.txt"]],
+      "raised": null,
+      "tree": {
+        "e.txt": "x\n"
+      }
+    }
+  },
+  "apply_edits/update-insert-past-end": {
+    "result": {
+      "notices": [["output", "Updating a.py"]],
+      "raised": null,
+      "tree": {
+        "a.py": "a\nx\n"
+      }
+    }
+  },
+  "apply_edits/update-inserts-without-indentation-repair": {
+    "result": {
+      "notices": [["output", "Updating a.py"]],
+      "raised": null,
+      "tree": {
+        "a.py": "  a\nc\n"
+      }
+    }
+  },
+  "apply_edits/update-missing-file": {
+    "result": {
+      "notices": [],
+      "raised": {
+        "message": "Error applying action 'ActionType.UPDATE' to a.py: UPDATE Error: File does not exist: a.py",
+        "type": "ValueError"
+      },
+      "tree": {}
+    }
+  },
+  "apply_edits/update-negative-index": {
+    "result": {
+      "notices": [],
+      "raised": {
+        "message": "Error applying action 'ActionType.UPDATE' to a.py: a.py: Overlapping or out-of-order chunk detected. Current index 0, chunk starts at -1.",
+        "type": "ValueError"
+      },
+      "tree": {
+        "a.py": "a\n"
+      }
+    }
+  },
+  "apply_edits/update-overlap-inside-deletion": {
+    "result": {
+      "notices": [],
+      "raised": {
+        "message": "Error applying action 'ActionType.UPDATE' to a.py: a.py: Overlapping or out-of-order chunk detected. Current index 2, chunk starts at 1.",
+        "type": "ValueError"
+      },
+      "tree": {
+        "a.py": "a\nb\nc\n"
+      }
+    }
+  },
+  "apply_edits/update-overlapping-chunks": {
+    "result": {
+      "notices": [],
+      "raised": {
+        "message": "Error applying action 'ActionType.UPDATE' to a.py: a.py: Overlapping or out-of-order chunk detected. Current index 1, chunk starts at 0.",
+        "type": "ValueError"
+      },
+      "tree": {
+        "a.py": "a\nb\n"
+      }
+    }
+  },
+  "apply_edits/update-rewrites": {
+    "result": {
+      "notices": [["output", "Updating a.py"]],
+      "raised": null,
+      "tree": {
+        "a.py": "x\nY\nz\n"
+      }
+    }
+  },
+  "apply_edits/update-sorts-chunks": {
+    "result": {
+      "notices": [["output", "Updating a.py"]],
+      "raised": null,
+      "tree": {
+        "a.py": "A\nb\nC\n"
+      }
+    }
+  },
+  "apply_edits/update-tabs-non-bmp": {
+    "result": {
+      "notices": [["output", "Updating u.txt"]],
+      "raised": null,
+      "tree": {
+        "u.txt": "\t😀\n𝒴\n"
+      }
+    }
+  },
+  "apply_edits/update-unreadable-directory": {
+    "result": {
+      "notices": [["error", "<root>/pkg: is a directory"]],
+      "raised": {
+        "message": "Error applying action 'ActionType.UPDATE' to pkg: Could not read file for UPDATE: pkg",
+        "type": "ValueError"
+      },
+      "tree": {
+        "pkg/": null
+      }
+    }
+  },
+  "apply_edits/update-without-chunks-normalizes": {
+    "result": {
+      "notices": [["output", "Updating a.py"]],
+      "raised": null,
+      "tree": {
+        "a.py": "a\nb\n"
+      }
+    }
+  },
+  "apply_reply/add-bare-blank-lines": {
+    "result": {
+      "notices": [["output", "Adding n.txt"]],
+      "raised": null,
+      "tree": {
+        "n.txt": "a\n\n\nb\n"
+      }
+    }
+  },
+  "apply_reply/cli-patch-add-after-authorization-touch": {
+    "result": {
+      "notices": [],
+      "raised": {
+        "message": "Error applying action 'ActionType.ADD' to sample.py: ADD Error: File already exists: sample.py",
+        "type": "ValueError"
+      },
+      "tree": {
+        "sample.py": ""
+      }
+    }
+  },
+  "apply_reply/cli-patch-add-without-precreated-file": {
+    "result": {
+      "notices": [["output", "Adding sample.py"]],
+      "raised": null,
+      "tree": {
+        "sample.py": "value = 200\n"
+      }
+    }
+  },
+  "apply_reply/cli-patch-update": {
+    "result": {
+      "notices": [["output", "Updating sample.py"]],
+      "raised": null,
+      "tree": {
+        "sample.py": "value = 200\n"
+      }
+    }
+  },
+  "apply_reply/crlf-reply-and-file": {
+    "result": {
+      "notices": [["output", "Updating w.txt"], ["output", "Adding n.txt"]],
+      "raised": null,
+      "tree": {
+        "n.txt": "new\n",
+        "w.txt": "a\nB\nc\n"
+      }
+    }
+  },
+  "apply_reply/delete-add-update": {
+    "result": {
+      "notices": [["output", "Deleting old.txt"], ["output", "Adding docs/new.txt"], ["output", "Updating a.txt"]],
+      "raised": null,
+      "tree": {
+        "a.txt": "uno\n",
+        "docs/": null,
+        "docs/new.txt": "fresh\n"
+      }
+    }
+  },
+  "apply_reply/dry-run-update": {
+    "result": {
+      "notices": [["output", "Updating a.txt"]],
+      "raised": null,
+      "tree": {
+        "a.txt": "one\n"
+      }
+    }
+  },
+  "apply_reply/empty-file-gets-lines": {
+    "result": {
+      "notices": [["output", "Updating e.txt"]],
+      "raised": null,
+      "tree": {
+        "e.txt": "first\nsecond\n"
+      }
+    }
+  },
+  "apply_reply/empty-update-normalizes-file": {
+    "result": {
+      "notices": [["output", "Updating a.txt"]],
+      "raised": null,
+      "tree": {
+        "a.txt": "one\ntwo\n"
+      }
+    }
+  },
+  "apply_reply/eof-append": {
+    "result": {
+      "notices": [["output", "Updating a.py"]],
+      "raised": null,
+      "tree": {
+        "a.py": "x\ny\ntail\n"
+      }
+    }
+  },
+  "apply_reply/eof-context-at-end": {
+    "result": {
+      "notices": [["output", "Updating a.py"]],
+      "raised": null,
+      "tree": {
+        "a.py": "y\nx\ny\ntail\n"
+      }
+    }
+  },
+  "apply_reply/eof-penalty-still-applies": {
+    "result": {
+      "notices": [["output", "Updating a.py"]],
+      "raised": null,
+      "tree": {
+        "a.py": "x\nafter-x\ny\n"
+      }
+    }
+  },
+  "apply_reply/form-feed-file": {
+    "result": {
+      "notices": [["output", "Updating f.txt"]],
+      "raised": null,
+      "tree": {
+        "f.txt": "a\nb\nC\n"
+      }
+    }
+  },
+  "apply_reply/fuzz-0-exact": {
+    "result": {
+      "notices": [["output", "Updating a.py"]],
+      "raised": null,
+      "tree": {
+        "a.py": "def f():\n    return 2\n"
+      }
+    }
+  },
+  "apply_reply/fuzz-1-trailing-whitespace": {
+    "result": {
+      "notices": [["output", "Updating a.py"]],
+      "raised": null,
+      "tree": {
+        "a.py": "def f():   \n    return 2\n"
+      }
+    }
+  },
+  "apply_reply/fuzz-100-indentation": {
+    "result": {
+      "notices": [["output", "Updating a.py"]],
+      "raised": null,
+      "tree": {
+        "a.py": "def f():\n  return 2\n"
+      }
+    }
+  },
+  "apply_reply/merged-blocks-disjoint": {
+    "result": {
+      "notices": [["output", "Updating a.py"]],
+      "raised": null,
+      "tree": {
+        "a.py": "x\nY\nZ\n"
+      }
+    }
+  },
+  "apply_reply/merged-blocks-overlap": {
+    "result": {
+      "notices": [],
+      "raised": {
+        "message": "Error applying action 'ActionType.UPDATE' to a.py: a.py: Overlapping or out-of-order chunk detected. Current index 2, chunk starts at 1.",
+        "type": "ValueError"
+      },
+      "tree": {
+        "a.py": "x\ny\n"
+      }
+    }
+  },
+  "apply_reply/missing-sentinels-applies": {
+    "result": {
+      "notices": [["warning", "Patch format warning: Missing '*** Begin Patch'/'*** End Patch' sentinels."], ["output", "Updating a.txt"]],
+      "raised": null,
+      "tree": {
+        "a.txt": "uno\n"
+      }
+    }
+  },
+  "apply_reply/move-into-new-directory": {
+    "result": {
+      "notices": [["output", "Updating and moving a.txt to lib/b.txt"]],
+      "raised": null,
+      "tree": {
+        "lib/": null,
+        "lib/b.txt": "one\ntwo\n"
+      }
+    }
+  },
+  "apply_reply/move-onto-updated-file-mismatch": {
+    "result": {
+      "notices": [["output", "Updating and moving a.py to b.py"], ["warning", "UPDATE Warning: Target file for move already exists, overwriting: b.py"]],
+      "raised": {
+        "message": "Error applying action 'ActionType.UPDATE' to b.py: b.py: Mismatch applying patch near line 1.\nExpected lines to remove:\n- b1\nFound lines in file:\n  a2",
+        "type": "ValueError"
+      },
+      "tree": {
+        "b.py": "a2\n"
+      }
+    }
+  },
+  "apply_reply/non-bmp": {
+    "result": {
+      "notices": [["output", "Updating u.txt"], ["output", "Adding v.txt"]],
+      "raised": null,
+      "tree": {
+        "u.txt": "😀\n𝒴\n",
+        "v.txt": "🐍\n"
+      }
+    }
+  },
+  "apply_reply/prose-reply-changes-nothing": {
+    "result": {
+      "notices": [["warning", "Response does not appear to be in patch format."]],
+      "raised": null,
+      "tree": {
+        "a.txt": "one\n"
+      }
+    }
+  },
+  "apply_reply/scope-marker": {
+    "result": {
+      "notices": [["output", "Updating a.py"]],
+      "raised": null,
+      "tree": {
+        "a.py": "def f():\n    return 1\ndef g():\n    return 2\n"
+      }
+    }
+  },
+  "apply_reply/sequential-sections": {
+    "result": {
+      "notices": [["output", "Updating a.py"]],
+      "raised": null,
+      "tree": {
+        "a.py": "x\nY\nx\nZ\n"
+      }
+    }
+  },
+  "apply_reply/tabs": {
+    "result": {
+      "notices": [["output", "Updating t.go"]],
+      "raised": null,
+      "tree": {
+        "t.go": "func f() {\n\treturn 2\n}\n"
+      }
+    }
+  },
+  "apply_reply/update-bare-blank-line-context": {
+    "result": {
+      "notices": [["output", "Updating a.txt"]],
+      "raised": null,
+      "tree": {
+        "a.txt": "a\n\nB\n"
+      }
+    }
+  },
+  "find_context/eof-context-longer-than-file": {
+    "result": [-1, 10000]
+  },
+  "find_context/eof-empty-context-at-end": {
+    "result": [2, 0]
+  },
+  "find_context/eof-empty-file": {
+    "result": [0, 0]
+  },
+  "find_context/eof-end-ignores-start": {
+    "result": [2, 0]
+  },
+  "find_context/eof-fallback-fuzz-adds-penalty": {
+    "result": [0, 10100]
+  },
+  "find_context/eof-fallback-respects-start": {
+    "result": [-1, 10000]
+  },
+  "find_context/eof-falls-back-with-penalty": {
+    "result": [0, 10000]
+  },
+  "find_context/eof-fuzzy-at-end": {
+    "result": [2, 1]
+  },
+  "find_context/eof-not-found-keeps-penalty": {
+    "result": [-1, 10000]
+  },
+  "find_context/eof-prefers-file-end": {
+    "result": [2, 0]
+  },
+  "find_context/not-eof-searches-forward": {
+    "result": [2, 0]
+  },
+  "find_context_core/blank-context-lines": {
+    "result": [1, 0]
+  },
+  "find_context_core/bom-is-not-whitespace": {
+    "result": [-1, 0]
+  },
+  "find_context_core/carriage-return-rstripped": {
+    "result": [0, 1]
+  },
+  "find_context_core/context-longer-than-lines": {
+    "result": [-1, 0]
+  },
+  "find_context_core/empty-context-past-end": {
+    "result": [5, 0]
+  },
+  "find_context_core/empty-context-returns-start": {
+    "result": [1, 0]
+  },
+  "find_context_core/empty-lines": {
+    "result": [-1, 0]
+  },
+  "find_context_core/exact-beats-earlier-fuzzy": {
+    "result": [1, 0]
+  },
+  "find_context_core/exact-first-occurrence": {
+    "result": [1, 0]
+  },
+  "find_context_core/exact-from-start": {
+    "result": [3, 0]
+  },
+  "find_context_core/internal-whitespace-kept": {
+    "result": [-1, 0]
+  },
+  "find_context_core/no-match": {
+    "result": [-1, 0]
+  },
+  "find_context_core/non-bmp": {
+    "result": [1, 0]
+  },
+  "find_context_core/probe-exact-context": {
+    "result": [0, 0]
+  },
+  "find_context_core/probe-trimmed-context": {
+    "result": [0, 100]
+  },
+  "find_context_core/python-whitespace-stripped": {
+    "result": [0, 100]
+  },
+  "find_context_core/rstrip-beats-earlier-strip": {
+    "result": [1, 1]
+  },
+  "find_context_core/rstrip-context-side": {
+    "result": [0, 1]
+  },
+  "find_context_core/rstrip-fuzz-1": {
+    "result": [0, 1]
+  },
+  "find_context_core/start-past-match": {
+    "result": [-1, 0]
+  },
+  "find_context_core/strip-fuzz-100": {
+    "result": [0, 100]
+  },
+  "find_context_core/tab-against-spaces": {
+    "result": [0, 100]
+  },
+  "find_context_core/tabs-exact": {
+    "result": [0, 0]
+  },
+  "find_context_core/zero-width-space-is-not-whitespace": {
+    "result": [-1, 0]
+  },
+  "get_edits/add-is-not-read": {
+    "result": {
+      "edits": [
+        [
+          "new/n.py",
+          {
+            "chunks": [],
+            "move_path": null,
+            "new_content": "hello",
+            "path": "new/n.py",
+            "type": "Add"
+          }
+        ]
+      ],
+      "notices": [],
+      "raised": null
+    }
+  },
+  "get_edits/begin-only": {
+    "result": {
+      "edits": [],
+      "notices": [["warning", "Response does not appear to be in patch format."]],
+      "raised": null
+    }
+  },
+  "get_edits/begin-with-suffix": {
+    "result": {
+      "edits": [
+        [
+          "a.py",
+          {
+            "chunks": [],
+            "move_path": null,
+            "new_content": null,
+            "path": "a.py",
+            "type": "Delete"
+          }
+        ]
+      ],
+      "notices": [],
+      "raised": null
+    }
+  },
+  "get_edits/blank-update-path": {
+    "result": {
+      "edits": null,
+      "notices": [["error", "<root>: is a directory"]],
+      "raised": {
+        "message": "File referenced in patch not found or could not be read: ",
+        "type": "DiffError"
+      }
+    }
+  },
+  "get_edits/conflicting-actions": {
+    "result": {
+      "edits": null,
+      "notices": [],
+      "raised": {
+        "message": "Error parsing patch content: Conflicting actions for file: a.py",
+        "type": "ValueError"
+      }
+    }
+  },
+  "get_edits/crlf-reply-and-file": {
+    "result": {
+      "edits": [
+        [
+          "w.txt",
+          {
+            "chunks": [
+              {
+                "del_lines": ["b"],
+                "ins_lines": ["B"],
+                "orig_index": 1
+              }
+            ],
+            "move_path": null,
+            "new_content": null,
+            "path": "w.txt",
+            "type": "Update"
+          }
+        ]
+      ],
+      "notices": [],
+      "raised": null
+    }
+  },
+  "get_edits/duplicate-delete-warning": {
+    "result": {
+      "edits": [
+        [
+          "a.py",
+          {
+            "chunks": [],
+            "move_path": null,
+            "new_content": null,
+            "path": "a.py",
+            "type": "Delete"
+          }
+        ]
+      ],
+      "notices": [["warning", "Duplicate delete action for file: a.py ignored."]],
+      "raised": null
+    }
+  },
+  "get_edits/empty-file-insert": {
+    "result": {
+      "edits": [
+        [
+          "e.txt",
+          {
+            "chunks": [
+              {
+                "del_lines": [],
+                "ins_lines": ["first"],
+                "orig_index": 0
+              }
+            ],
+            "move_path": null,
+            "new_content": null,
+            "path": "e.txt",
+            "type": "Update"
+          }
+        ]
+      ],
+      "notices": [],
+      "raised": null
+    }
+  },
+  "get_edits/empty-reply": {
+    "result": {
+      "edits": [],
+      "notices": [],
+      "raised": null
+    }
+  },
+  "get_edits/fenced-patch": {
+    "result": {
+      "edits": null,
+      "notices": [["warning", "Patch format warning: Missing '*** Begin Patch'/'*** End Patch' sentinels."]],
+      "raised": {
+        "message": "Error parsing patch content: Unknown or misplaced line while parsing patch: ```",
+        "type": "ValueError"
+      }
+    }
+  },
+  "get_edits/form-feed-file": {
+    "result": {
+      "edits": [
+        [
+          "f.txt",
+          {
+            "chunks": [
+              {
+                "del_lines": ["c"],
+                "ins_lines": ["C"],
+                "orig_index": 2
+              }
+            ],
+            "move_path": null,
+            "new_content": null,
+            "path": "f.txt",
+            "type": "Update"
+          }
+        ]
+      ],
+      "notices": [],
+      "raised": null
+    }
+  },
+  "get_edits/full-sentinels": {
+    "result": {
+      "edits": [
+        [
+          "a.py",
+          {
+            "chunks": [
+              {
+                "del_lines": ["y"],
+                "ins_lines": ["Y"],
+                "orig_index": 1
+              }
+            ],
+            "move_path": null,
+            "new_content": null,
+            "path": "a.py",
+            "type": "Update"
+          }
+        ]
+      ],
+      "notices": [],
+      "raised": null
+    }
+  },
+  "get_edits/fuzzy-context-hidden": {
+    "result": {
+      "edits": [
+        [
+          "a.py",
+          {
+            "chunks": [
+              {
+                "del_lines": [" y"],
+                "ins_lines": ["Y"],
+                "orig_index": 1
+              }
+            ],
+            "move_path": null,
+            "new_content": null,
+            "path": "a.py",
+            "type": "Update"
+          }
+        ]
+      ],
+      "notices": [],
+      "raised": null
+    }
+  },
+  "get_edits/header-after-end-still-read": {
+    "result": {
+      "edits": null,
+      "notices": [["error", "<root>/z.py: file not found error"]],
+      "raised": {
+        "message": "File referenced in patch not found or could not be read: z.py",
+        "type": "DiffError"
+      }
+    }
+  },
+  "get_edits/indented-begin": {
+    "result": {
+      "edits": null,
+      "notices": [["warning", "Patch format warning: Missing '*** Begin Patch'/'*** End Patch' sentinels."]],
+      "raised": {
+        "message": "Error parsing patch content: Unknown or misplaced line while parsing patch:   *** Begin Patch",
+        "type": "ValueError"
+      }
+    }
+  },
+  "get_edits/invalid-add-line": {
+    "result": {
+      "edits": null,
+      "notices": [],
+      "raised": {
+        "message": "Error parsing patch content: Invalid Add File line (missing '+'): b",
+        "type": "ValueError"
+      }
+    }
+  },
+  "get_edits/invalid-line-prefix": {
+    "result": {
+      "edits": null,
+      "notices": [],
+      "raised": {
+        "message": "Error parsing patch content: Invalid line prefix in update section: oops",
+        "type": "ValueError"
+      }
+    }
+  },
+  "get_edits/leading-blank-line": {
+    "result": {
+      "edits": null,
+      "notices": [["warning", "Patch format warning: Missing '*** Begin Patch'/'*** End Patch' sentinels."]],
+      "raised": {
+        "message": "Error parsing patch content: Unknown or misplaced line while parsing patch: *** Begin Patch",
+        "type": "ValueError"
+      }
+    }
+  },
+  "get_edits/merged-update-blocks": {
+    "result": {
+      "edits": [
+        [
+          "a.py",
+          {
+            "chunks": [
+              {
+                "del_lines": ["y"],
+                "ins_lines": ["Y"],
+                "orig_index": 1
+              },
+              {
+                "del_lines": ["z"],
+                "ins_lines": ["Z"],
+                "orig_index": 2
+              }
+            ],
+            "move_path": null,
+            "new_content": null,
+            "path": "a.py",
+            "type": "Update"
+          }
+        ]
+      ],
+      "notices": [],
+      "raised": null
+    }
+  },
+  "get_edits/missing-delete-file": {
+    "result": {
+      "edits": null,
+      "notices": [["error", "<root>/missing.py: file not found error"]],
+      "raised": {
+        "message": "File referenced in patch not found or could not be read: missing.py",
+        "type": "DiffError"
+      }
+    }
+  },
+  "get_edits/missing-end-sentinel": {
+    "result": {
+      "edits": [
+        [
+          "a.py",
+          {
+            "chunks": [
+              {
+                "del_lines": ["y"],
+                "ins_lines": ["Y"],
+                "orig_index": 1
+              }
+            ],
+            "move_path": null,
+            "new_content": null,
+            "path": "a.py",
+            "type": "Update"
+          }
+        ]
+      ],
+      "notices": [],
+      "raised": null
+    }
+  },
+  "get_edits/missing-sentinels": {
+    "result": {
+      "edits": [
+        [
+          "a.py",
+          {
+            "chunks": [
+              {
+                "del_lines": ["y"],
+                "ins_lines": ["Y"],
+                "orig_index": 1
+              }
+            ],
+            "move_path": null,
+            "new_content": null,
+            "path": "a.py",
+            "type": "Update"
+          }
+        ]
+      ],
+      "notices": [["warning", "Patch format warning: Missing '*** Begin Patch'/'*** End Patch' sentinels."]],
+      "raised": null
+    }
+  },
+  "get_edits/missing-update-file": {
+    "result": {
+      "edits": null,
+      "notices": [["error", "<root>/missing.py: file not found error"]],
+      "raised": {
+        "message": "File referenced in patch not found or could not be read: missing.py",
+        "type": "DiffError"
+      }
+    }
+  },
+  "get_edits/non-bmp": {
+    "result": {
+      "edits": [
+        [
+          "u.txt",
+          {
+            "chunks": [
+              {
+                "del_lines": ["𝒳"],
+                "ins_lines": ["𝒴"],
+                "orig_index": 1
+              }
+            ],
+            "move_path": null,
+            "new_content": null,
+            "path": "u.txt",
+            "type": "Update"
+          }
+        ]
+      ],
+      "notices": [],
+      "raised": null
+    }
+  },
+  "get_edits/not-patch-like": {
+    "result": {
+      "edits": [],
+      "notices": [["warning", "Response does not appear to be in patch format."]],
+      "raised": null
+    }
+  },
+  "get_edits/prose-after-end-ignored": {
+    "result": {
+      "edits": [
+        [
+          "a.py",
+          {
+            "chunks": [],
+            "move_path": null,
+            "new_content": null,
+            "path": "a.py",
+            "type": "Delete"
+          }
+        ]
+      ],
+      "notices": [],
+      "raised": null
+    }
+  },
+  "get_edits/prose-before-patch": {
+    "result": {
+      "edits": null,
+      "notices": [["warning", "Patch format warning: Missing '*** Begin Patch'/'*** End Patch' sentinels."]],
+      "raised": {
+        "message": "Error parsing patch content: Unknown or misplaced line while parsing patch: Here is the change:",
+        "type": "ValueError"
+      }
+    }
+  },
+  "get_edits/read-error-before-parse-error": {
+    "result": {
+      "edits": null,
+      "notices": [["error", "<root>/missing.py: file not found error"]],
+      "raised": {
+        "message": "File referenced in patch not found or could not be read: missing.py",
+        "type": "DiffError"
+      }
+    }
+  },
+  "get_edits/tabs": {
+    "result": {
+      "edits": [
+        [
+          "t.go",
+          {
+            "chunks": [
+              {
+                "del_lines": ["\treturn 1"],
+                "ins_lines": ["\treturn 2"],
+                "orig_index": 1
+              }
+            ],
+            "move_path": null,
+            "new_content": null,
+            "path": "t.go",
+            "type": "Update"
+          }
+        ]
+      ],
+      "notices": [],
+      "raised": null
+    }
+  },
+  "get_edits/udiff-reply-is-patch-like": {
+    "result": {
+      "edits": null,
+      "notices": [["warning", "Patch format warning: Missing '*** Begin Patch'/'*** End Patch' sentinels."]],
+      "raised": {
+        "message": "Error parsing patch content: Unknown or misplaced line while parsing patch: --- a.py",
+        "type": "ValueError"
+      }
+    }
+  },
+  "get_edits/unicode-line-separator-reply": {
+    "result": {
+      "edits": [
+        [
+          "a.py",
+          {
+            "chunks": [],
+            "move_path": null,
+            "new_content": null,
+            "path": "a.py",
+            "type": "Delete"
+          }
+        ]
+      ],
+      "notices": [],
+      "raised": null
+    }
+  },
+  "get_edits/update-path-is-directory": {
+    "result": {
+      "edits": null,
+      "notices": [["error", "<root>/pkg: is a directory"]],
+      "raised": {
+        "message": "File referenced in patch not found or could not be read: pkg",
+        "type": "DiffError"
+      }
+    }
+  },
+  "get_edits/whitespace-reply": {
+    "result": {
+      "edits": [],
+      "notices": [],
+      "raised": null
+    }
+  },
+  "identify_files_needed/blank-path": {
+    "result": [""]
+  },
+  "identify_files_needed/crlf": {
+    "result": ["a.py", "b.py"]
+  },
+  "identify_files_needed/deduplicates": {
+    "result": ["a.py"]
+  },
+  "identify_files_needed/empty": {
+    "result": []
+  },
+  "identify_files_needed/prefixed-line-ignored": {
+    "result": []
+  },
+  "identify_files_needed/reads-after-end-patch": {
+    "result": ["a.py", "z.py"]
+  },
+  "identify_files_needed/requires-space-after-colon": {
+    "result": []
+  },
+  "identify_files_needed/strips-paths": {
+    "result": ["a.py"]
+  },
+  "identify_files_needed/unicode-line-separator": {
+    "result": ["a.py", "b.py"]
+  },
+  "identify_files_needed/update-and-delete": {
+    "result": ["a.py", "b.py"]
+  },
+  "parse_patch_text/add": {
+    "result": {
+      "notices": [],
+      "patch": {
+        "actions": [
+          [
+            "n.py",
+            {
+              "chunks": [],
+              "move_path": null,
+              "new_content": "a\nb",
+              "path": "n.py",
+              "type": "Add"
+            }
+          ]
+        ],
+        "fuzz": 0
+      },
+      "raised": null
+    }
+  },
+  "parse_patch_text/add-after-delete-duplicate": {
+    "result": {
+      "notices": [],
+      "patch": null,
+      "raised": {
+        "message": "Duplicate action for file: a.py",
+        "type": "DiffError"
+      }
+    }
+  },
+  "parse_patch_text/add-after-update-duplicate": {
+    "result": {
+      "notices": [],
+      "patch": null,
+      "raised": {
+        "message": "Duplicate action for file: a.py",
+        "type": "DiffError"
+      }
+    }
+  },
+  "parse_patch_text/add-bare-blank-lines": {
+    "result": {
+      "notices": [],
+      "patch": {
+        "actions": [
+          [
+            "n.py",
+            {
+              "chunks": [],
+              "move_path": null,
+              "new_content": "a\n\n\nb\n",
+              "path": "n.py",
+              "type": "Add"
+            }
+          ]
+        ],
+        "fuzz": 0
+      },
+      "raised": null
+    }
+  },
+  "parse_patch_text/add-duplicate": {
+    "result": {
+      "notices": [],
+      "patch": null,
+      "raised": {
+        "message": "Duplicate action for file: n.py",
+        "type": "DiffError"
+      }
+    }
+  },
+  "parse_patch_text/add-empty": {
+    "result": {
+      "notices": [],
+      "patch": {
+        "actions": [
+          [
+            "n.py",
+            {
+              "chunks": [],
+              "move_path": null,
+              "new_content": "",
+              "path": "n.py",
+              "type": "Add"
+            }
+          ]
+        ],
+        "fuzz": 0
+      },
+      "raised": null
+    }
+  },
+  "parse_patch_text/add-eof-marker-invalid": {
+    "result": {
+      "notices": [],
+      "patch": null,
+      "raised": {
+        "message": "Invalid Add File line (missing '+'): *** End of File",
+        "type": "DiffError"
+      }
+    }
+  },
+  "parse_patch_text/add-missing-path": {
+    "result": {
+      "notices": [],
+      "patch": null,
+      "raised": {
+        "message": "Add File action missing path.",
+        "type": "DiffError"
+      }
+    }
+  },
+  "parse_patch_text/add-missing-plus": {
+    "result": {
+      "notices": [],
+      "patch": null,
+      "raised": {
+        "message": "Invalid Add File line (missing '+'): oops",
+        "type": "DiffError"
+      }
+    }
+  },
+  "parse_patch_text/add-scope-line-invalid": {
+    "result": {
+      "notices": [],
+      "patch": null,
+      "raised": {
+        "message": "Invalid Add File line (missing '+'): @@",
+        "type": "DiffError"
+      }
+    }
+  },
+  "parse_patch_text/add-tabs-non-bmp": {
+    "result": {
+      "notices": [],
+      "patch": {
+        "actions": [
+          [
+            "n.py",
+            {
+              "chunks": [],
+              "move_path": null,
+              "new_content": "\t😀\n𝒳",
+              "path": "n.py",
+              "type": "Add"
+            }
+          ]
+        ],
+        "fuzz": 0
+      },
+      "raised": null
+    }
+  },
+  "parse_patch_text/blank-lines-between-actions": {
+    "result": {
+      "notices": [],
+      "patch": {
+        "actions": [
+          [
+            "a.py",
+            {
+              "chunks": [],
+              "move_path": null,
+              "new_content": null,
+              "path": "a.py",
+              "type": "Delete"
+            }
+          ],
+          [
+            "n.py",
+            {
+              "chunks": [],
+              "move_path": null,
+              "new_content": "x",
+              "path": "n.py",
+              "type": "Add"
+            }
+          ]
+        ],
+        "fuzz": 0
+      },
+      "raised": null
+    }
+  },
+  "parse_patch_text/blank-patch-line-matches-blank-file-line": {
+    "result": {
+      "notices": [],
+      "patch": {
+        "actions": [
+          [
+            "a.py",
+            {
+              "chunks": [
+                {
+                  "del_lines": ["b"],
+                  "ins_lines": [],
+                  "orig_index": 2
+                }
+              ],
+              "move_path": null,
+              "new_content": null,
+              "path": "a.py",
+              "type": "Update"
+            }
+          ]
+        ],
+        "fuzz": 0
+      },
+      "raised": null
+    }
+  },
+  "parse_patch_text/context-not-found": {
+    "result": {
+      "notices": [],
+      "patch": null,
+      "raised": {
+        "message": "Could not find patch context  starting near line 0:\nnope\nx",
+        "type": "DiffError"
+      }
+    }
+  },
+  "parse_patch_text/context-not-found-after-scope": {
+    "result": {
+      "notices": [],
+      "patch": null,
+      "raised": {
+        "message": "Could not find patch context  starting near line 3:\nnope",
+        "type": "DiffError"
+      }
+    }
+  },
+  "parse_patch_text/crlf-file-content": {
+    "result": {
+      "notices": [],
+      "patch": {
+        "actions": [
+          [
+            "a.py",
+            {
+              "chunks": [
+                {
+                  "del_lines": ["b"],
+                  "ins_lines": ["B"],
+                  "orig_index": 1
+                }
+              ],
+              "move_path": null,
+              "new_content": null,
+              "path": "a.py",
+              "type": "Update"
+            }
+          ]
+        ],
+        "fuzz": 0
+      },
+      "raised": null
+    }
+  },
+  "parse_patch_text/delete": {
+    "result": {
+      "notices": [],
+      "patch": {
+        "actions": [
+          [
+            "a.py",
+            {
+              "chunks": [],
+              "move_path": null,
+              "new_content": null,
+              "path": "a.py",
+              "type": "Delete"
+            }
+          ]
+        ],
+        "fuzz": 0
+      },
+      "raised": null
+    }
+  },
+  "parse_patch_text/delete-after-add-conflicts": {
+    "result": {
+      "notices": [],
+      "patch": null,
+      "raised": {
+        "message": "Conflicting actions for file: a.py",
+        "type": "DiffError"
+      }
+    }
+  },
+  "parse_patch_text/delete-after-update-conflicts": {
+    "result": {
+      "notices": [],
+      "patch": null,
+      "raised": {
+        "message": "Conflicting actions for file: a.py",
+        "type": "DiffError"
+      }
+    }
+  },
+  "parse_patch_text/delete-file-not-found": {
+    "result": {
+      "notices": [],
+      "patch": null,
+      "raised": {
+        "message": "Delete File Error - file not found: a.py",
+        "type": "DiffError"
+      }
+    }
+  },
+  "parse_patch_text/delete-missing-path": {
+    "result": {
+      "notices": [],
+      "patch": null,
+      "raised": {
+        "message": "Delete File action missing path.",
+        "type": "DiffError"
+      }
+    }
+  },
+  "parse_patch_text/duplicate-delete-then-error": {
+    "result": {
+      "notices": [["warning", "Duplicate delete action for file: a.py ignored."]],
+      "patch": null,
+      "raised": {
+        "message": "Unknown or misplaced line while parsing patch: prose",
+        "type": "DiffError"
+      }
+    }
+  },
+  "parse_patch_text/duplicate-delete-warns": {
+    "result": {
+      "notices": [["warning", "Duplicate delete action for file: a.py ignored."]],
+      "patch": {
+        "actions": [
+          [
+            "a.py",
+            {
+              "chunks": [],
+              "move_path": null,
+              "new_content": null,
+              "path": "a.py",
+              "type": "Delete"
+            }
+          ]
+        ],
+        "fuzz": 0
+      },
+      "raised": null
+    }
+  },
+  "parse_patch_text/empty-file-context-not-found": {
+    "result": {
+      "notices": [],
+      "patch": null,
+      "raised": {
+        "message": "Could not find patch context  starting near line 0:\nx",
+        "type": "DiffError"
+      }
+    }
+  },
+  "parse_patch_text/empty-file-insert": {
+    "result": {
+      "notices": [],
+      "patch": {
+        "actions": [
+          [
+            "e.txt",
+            {
+              "chunks": [
+                {
+                  "del_lines": [],
+                  "ins_lines": ["first"],
+                  "orig_index": 0
+                }
+              ],
+              "move_path": null,
+              "new_content": null,
+              "path": "e.txt",
+              "type": "Update"
+            }
+          ]
+        ],
+        "fuzz": 0
+      },
+      "raised": null
+    }
+  },
+  "parse_patch_text/empty-lines": {
+    "result": {
+      "notices": [],
+      "patch": {
+        "actions": [],
+        "fuzz": 0
+      },
+      "raised": null
+    }
+  },
+  "parse_patch_text/empty-scope-lines-ignored": {
+    "result": {
+      "notices": [],
+      "patch": {
+        "actions": [
+          [
+            "a.py",
+            {
+              "chunks": [
+                {
+                  "del_lines": ["z"],
+                  "ins_lines": [],
+                  "orig_index": 2
+                }
+              ],
+              "move_path": null,
+              "new_content": null,
+              "path": "a.py",
+              "type": "Update"
+            }
+          ]
+        ],
+        "fuzz": 0
+      },
+      "raised": null
+    }
+  },
+  "parse_patch_text/end-patch-trailing-space-misplaced": {
+    "result": {
+      "notices": [],
+      "patch": null,
+      "raised": {
+        "message": "Unknown or misplaced line while parsing patch: *** End Patch ",
+        "type": "DiffError"
+      }
+    }
+  },
+  "parse_patch_text/eof-at-end-no-penalty": {
+    "result": {
+      "notices": [],
+      "patch": {
+        "actions": [
+          [
+            "a.py",
+            {
+              "chunks": [
+                {
+                  "del_lines": [],
+                  "ins_lines": ["x"],
+                  "orig_index": 3
+                }
+              ],
+              "move_path": null,
+              "new_content": null,
+              "path": "a.py",
+              "type": "Update"
+            }
+          ]
+        ],
+        "fuzz": 0
+      },
+      "raised": null
+    }
+  },
+  "parse_patch_text/eof-context-not-found": {
+    "result": {
+      "notices": [],
+      "patch": null,
+      "raised": {
+        "message": "Could not find patch context *** End of File starting near line 0:\nnope",
+        "type": "DiffError"
+      }
+    }
+  },
+  "parse_patch_text/eof-marker-misplaced": {
+    "result": {
+      "notices": [],
+      "patch": null,
+      "raised": {
+        "message": "Unknown or misplaced line while parsing patch: *** End of File",
+        "type": "DiffError"
+      }
+    }
+  },
+  "parse_patch_text/eof-penalty-accumulates": {
+    "result": {
+      "notices": [],
+      "patch": {
+        "actions": [
+          [
+            "a.py",
+            {
+              "chunks": [
+                {
+                  "del_lines": [],
+                  "ins_lines": ["x"],
+                  "orig_index": 1
+                }
+              ],
+              "move_path": null,
+              "new_content": null,
+              "path": "a.py",
+              "type": "Update"
+            }
+          ]
+        ],
+        "fuzz": 10000
+      },
+      "raised": null
+    }
+  },
+  "parse_patch_text/form-feed-splits-file-lines": {
+    "result": {
+      "notices": [],
+      "patch": {
+        "actions": [
+          [
+            "a.py",
+            {
+              "chunks": [
+                {
+                  "del_lines": ["c"],
+                  "ins_lines": ["C"],
+                  "orig_index": 2
+                }
+              ],
+              "move_path": null,
+              "new_content": null,
+              "path": "a.py",
+              "type": "Update"
+            }
+          ]
+        ],
+        "fuzz": 0
+      },
+      "raised": null
+    }
+  },
+  "parse_patch_text/fuzz-1-and-100-accumulate": {
+    "result": {
+      "notices": [],
+      "patch": {
+        "actions": [
+          [
+            "a.py",
+            {
+              "chunks": [
+                {
+                  "del_lines": [],
+                  "ins_lines": ["B"],
+                  "orig_index": 2
+                },
+                {
+                  "del_lines": ["d"],
+                  "ins_lines": [],
+                  "orig_index": 3
+                }
+              ],
+              "move_path": null,
+              "new_content": null,
+              "path": "a.py",
+              "type": "Update"
+            }
+          ]
+        ],
+        "fuzz": 101
+      },
+      "raised": null
+    }
+  },
+  "parse_patch_text/fuzz-across-files": {
+    "result": {
+      "notices": [],
+      "patch": {
+        "actions": [
+          [
+            "a.py",
+            {
+              "chunks": [
+                {
+                  "del_lines": [],
+                  "ins_lines": ["A"],
+                  "orig_index": 1
+                }
+              ],
+              "move_path": null,
+              "new_content": null,
+              "path": "a.py",
+              "type": "Update"
+            }
+          ],
+          [
+            "b.py",
+            {
+              "chunks": [
+                {
+                  "del_lines": [],
+                  "ins_lines": ["B"],
+                  "orig_index": 1
+                }
+              ],
+              "move_path": null,
+              "new_content": null,
+              "path": "b.py",
+              "type": "Update"
+            }
+          ]
+        ],
+        "fuzz": 101
+      },
+      "raised": null
+    }
+  },
+  "parse_patch_text/header-without-space-misplaced": {
+    "result": {
+      "notices": [],
+      "patch": null,
+      "raised": {
+        "message": "Unknown or misplaced line while parsing patch: *** Delete File:a.py",
+        "type": "DiffError"
+      }
+    }
+  },
+  "parse_patch_text/insert-at-eof": {
+    "result": {
+      "notices": [],
+      "patch": {
+        "actions": [
+          [
+            "a.py",
+            {
+              "chunks": [
+                {
+                  "del_lines": [],
+                  "ins_lines": ["tail"],
+                  "orig_index": 3
+                }
+              ],
+              "move_path": null,
+              "new_content": null,
+              "path": "a.py",
+              "type": "Update"
+            }
+          ]
+        ],
+        "fuzz": 0
+      },
+      "raised": null
+    }
+  },
+  "parse_patch_text/insert-without-context": {
+    "result": {
+      "notices": [],
+      "patch": {
+        "actions": [
+          [
+            "a.py",
+            {
+              "chunks": [
+                {
+                  "del_lines": [],
+                  "ins_lines": ["top"],
+                  "orig_index": 0
+                }
+              ],
+              "move_path": null,
+              "new_content": null,
+              "path": "a.py",
+              "type": "Update"
+            }
+          ]
+        ],
+        "fuzz": 0
+      },
+      "raised": null
+    }
+  },
+  "parse_patch_text/missing-end-patch": {
+    "result": {
+      "notices": [],
+      "patch": {
+        "actions": [
+          [
+            "n.py",
+            {
+              "chunks": [],
+              "move_path": null,
+              "new_content": "x",
+              "path": "n.py",
+              "type": "Add"
+            }
+          ]
+        ],
+        "fuzz": 0
+      },
+      "raised": null
+    }
+  },
+  "parse_patch_text/move-checked-before-file-content": {
+    "result": {
+      "notices": [],
+      "patch": null,
+      "raised": {
+        "message": "Move to action missing path.",
+        "type": "DiffError"
+      }
+    }
+  },
+  "parse_patch_text/move-missing-path": {
+    "result": {
+      "notices": [],
+      "patch": null,
+      "raised": {
+        "message": "Move to action missing path.",
+        "type": "DiffError"
+      }
+    }
+  },
+  "parse_patch_text/move-to": {
+    "result": {
+      "notices": [],
+      "patch": {
+        "actions": [
+          [
+            "a.py",
+            {
+              "chunks": [
+                {
+                  "del_lines": [],
+                  "ins_lines": ["w"],
+                  "orig_index": 1
+                }
+              ],
+              "move_path": "b/c.py",
+              "new_content": null,
+              "path": "a.py",
+              "type": "Update"
+            }
+          ]
+        ],
+        "fuzz": 0
+      },
+      "raised": null
+    }
+  },
+  "parse_patch_text/move-without-space-invalid": {
+    "result": {
+      "notices": [],
+      "patch": null,
+      "raised": {
+        "message": "Invalid patch line found in update section: *** Move to:b.py",
+        "type": "DiffError"
+      }
+    }
+  },
+  "parse_patch_text/repeated-update-adds-move": {
+    "result": {
+      "notices": [],
+      "patch": {
+        "actions": [
+          [
+            "a.py",
+            {
+              "chunks": [],
+              "move_path": "c.py",
+              "new_content": null,
+              "path": "a.py",
+              "type": "Update"
+            }
+          ]
+        ],
+        "fuzz": 0
+      },
+      "raised": null
+    }
+  },
+  "parse_patch_text/repeated-update-conflicting-move": {
+    "result": {
+      "notices": [],
+      "patch": null,
+      "raised": {
+        "message": "Conflicting move targets for file: a.py",
+        "type": "DiffError"
+      }
+    }
+  },
+  "parse_patch_text/repeated-update-each-searches-from-top": {
+    "result": {
+      "notices": [],
+      "patch": {
+        "actions": [
+          [
+            "a.py",
+            {
+              "chunks": [
+                {
+                  "del_lines": ["y"],
+                  "ins_lines": ["Y"],
+                  "orig_index": 1
+                },
+                {
+                  "del_lines": ["y"],
+                  "ins_lines": ["Z"],
+                  "orig_index": 1
+                }
+              ],
+              "move_path": null,
+              "new_content": null,
+              "path": "a.py",
+              "type": "Update"
+            }
+          ]
+        ],
+        "fuzz": 0
+      },
+      "raised": null
+    }
+  },
+  "parse_patch_text/repeated-update-keeps-move": {
+    "result": {
+      "notices": [],
+      "patch": {
+        "actions": [
+          [
+            "a.py",
+            {
+              "chunks": [],
+              "move_path": "b.py",
+              "new_content": null,
+              "path": "a.py",
+              "type": "Update"
+            }
+          ]
+        ],
+        "fuzz": 0
+      },
+      "raised": null
+    }
+  },
+  "parse_patch_text/repeated-update-merges": {
+    "result": {
+      "notices": [],
+      "patch": {
+        "actions": [
+          [
+            "a.py",
+            {
+              "chunks": [
+                {
+                  "del_lines": ["y"],
+                  "ins_lines": ["Y"],
+                  "orig_index": 1
+                },
+                {
+                  "del_lines": ["z"],
+                  "ins_lines": ["Z"],
+                  "orig_index": 2
+                }
+              ],
+              "move_path": null,
+              "new_content": null,
+              "path": "a.py",
+              "type": "Update"
+            }
+          ],
+          [
+            "b.py",
+            {
+              "chunks": [],
+              "move_path": null,
+              "new_content": null,
+              "path": "b.py",
+              "type": "Delete"
+            }
+          ]
+        ],
+        "fuzz": 0
+      },
+      "raised": null
+    }
+  },
+  "parse_patch_text/repeated-update-same-move": {
+    "result": {
+      "notices": [],
+      "patch": {
+        "actions": [
+          [
+            "a.py",
+            {
+              "chunks": [],
+              "move_path": "b.py",
+              "new_content": null,
+              "path": "a.py",
+              "type": "Update"
+            }
+          ]
+        ],
+        "fuzz": 0
+      },
+      "raised": null
+    }
+  },
+  "parse_patch_text/repeated-update-section-error-first": {
+    "result": {
+      "notices": [],
+      "patch": null,
+      "raised": {
+        "message": "Could not find patch context  starting near line 0:\nnope",
+        "type": "DiffError"
+      }
+    }
+  },
+  "parse_patch_text/scope-advances-search": {
+    "result": {
+      "notices": [],
+      "patch": {
+        "actions": [
+          [
+            "a.py",
+            {
+              "chunks": [
+                {
+                  "del_lines": ["    return 1"],
+                  "ins_lines": ["    return 2"],
+                  "orig_index": 3
+                }
+              ],
+              "move_path": null,
+              "new_content": null,
+              "path": "a.py",
+              "type": "Update"
+            }
+          ]
+        ],
+        "fuzz": 0
+      },
+      "raised": null
+    }
+  },
+  "parse_patch_text/scope-ignores-indentation-without-fuzz": {
+    "result": {
+      "notices": [],
+      "patch": {
+        "actions": [
+          [
+            "a.py",
+            {
+              "chunks": [
+                {
+                  "del_lines": ["        pass"],
+                  "ins_lines": ["        return"],
+                  "orig_index": 2
+                }
+              ],
+              "move_path": null,
+              "new_content": null,
+              "path": "a.py",
+              "type": "Update"
+            }
+          ]
+        ],
+        "fuzz": 0
+      },
+      "raised": null
+    }
+  },
+  "parse_patch_text/scope-lines-consecutive": {
+    "result": {
+      "notices": [],
+      "patch": {
+        "actions": [
+          [
+            "a.py",
+            {
+              "chunks": [
+                {
+                  "del_lines": ["        pass"],
+                  "ins_lines": ["        return"],
+                  "orig_index": 2
+                }
+              ],
+              "move_path": null,
+              "new_content": null,
+              "path": "a.py",
+              "type": "Update"
+            }
+          ]
+        ],
+        "fuzz": 0
+      },
+      "raised": null
+    }
+  },
+  "parse_patch_text/scope-lines-not-consecutive": {
+    "result": {
+      "notices": [],
+      "patch": null,
+      "raised": {
+        "message": "Could not find scope context:\nclass A:\ndef f(self):",
+        "type": "DiffError"
+      }
+    }
+  },
+  "parse_patch_text/scope-not-found": {
+    "result": {
+      "notices": [],
+      "patch": null,
+      "raised": {
+        "message": "Could not find scope context:\ndef missing():",
+        "type": "DiffError"
+      }
+    }
+  },
+  "parse_patch_text/scope-search-starts-after-previous-section": {
+    "result": {
+      "notices": [],
+      "patch": null,
+      "raised": {
+        "message": "Could not find scope context:\ndef f():",
+        "type": "DiffError"
+      }
+    }
+  },
+  "parse_patch_text/sections-search-forward": {
+    "result": {
+      "notices": [],
+      "patch": {
+        "actions": [
+          [
+            "a.py",
+            {
+              "chunks": [
+                {
+                  "del_lines": ["y"],
+                  "ins_lines": ["Y"],
+                  "orig_index": 1
+                },
+                {
+                  "del_lines": ["y"],
+                  "ins_lines": ["Z"],
+                  "orig_index": 3
+                }
+              ],
+              "move_path": null,
+              "new_content": null,
+              "path": "a.py",
+              "type": "Update"
+            }
+          ]
+        ],
+        "fuzz": 0
+      },
+      "raised": null
+    }
+  },
+  "parse_patch_text/start-index-skips-begin": {
+    "result": {
+      "notices": [],
+      "patch": {
+        "actions": [
+          [
+            "a.py",
+            {
+              "chunks": [
+                {
+                  "del_lines": ["y"],
+                  "ins_lines": ["Y"],
+                  "orig_index": 1
+                }
+              ],
+              "move_path": null,
+              "new_content": null,
+              "path": "a.py",
+              "type": "Update"
+            }
+          ]
+        ],
+        "fuzz": 0
+      },
+      "raised": null
+    }
+  },
+  "parse_patch_text/stops-at-end-patch": {
+    "result": {
+      "notices": [],
+      "patch": {
+        "actions": [
+          [
+            "a.py",
+            {
+              "chunks": [],
+              "move_path": null,
+              "new_content": null,
+              "path": "a.py",
+              "type": "Delete"
+            }
+          ]
+        ],
+        "fuzz": 0
+      },
+      "raised": null
+    }
+  },
+  "parse_patch_text/unknown-line": {
+    "result": {
+      "notices": [],
+      "patch": null,
+      "raised": {
+        "message": "Unknown or misplaced line while parsing patch: prose",
+        "type": "DiffError"
+      }
+    }
+  },
+  "parse_patch_text/update-after-add-conflicts": {
+    "result": {
+      "notices": [],
+      "patch": null,
+      "raised": {
+        "message": "Conflicting actions for file: a.py",
+        "type": "DiffError"
+      }
+    }
+  },
+  "parse_patch_text/update-after-delete-conflicts": {
+    "result": {
+      "notices": [],
+      "patch": null,
+      "raised": {
+        "message": "Conflicting actions for file: a.py",
+        "type": "DiffError"
+      }
+    }
+  },
+  "parse_patch_text/update-bare-stars": {
+    "result": {
+      "notices": [],
+      "patch": null,
+      "raised": {
+        "message": "Empty patch section found.",
+        "type": "DiffError"
+      }
+    }
+  },
+  "parse_patch_text/update-eof-marker-trailing-space": {
+    "result": {
+      "notices": [],
+      "patch": null,
+      "raised": {
+        "message": "Empty patch section found.",
+        "type": "DiffError"
+      }
+    }
+  },
+  "parse_patch_text/update-missing-file-content": {
+    "result": {
+      "notices": [],
+      "patch": null,
+      "raised": {
+        "message": "Update File Error - missing file content for: a.py",
+        "type": "DiffError"
+      }
+    }
+  },
+  "parse_patch_text/update-missing-path": {
+    "result": {
+      "notices": [],
+      "patch": null,
+      "raised": {
+        "message": "Update File action missing path.",
+        "type": "DiffError"
+      }
+    }
+  },
+  "parse_patch_text/update-scope-at-end-of-lines": {
+    "result": {
+      "notices": [],
+      "patch": null,
+      "raised": {
+        "message": "Empty patch section found.",
+        "type": "DiffError"
+      }
+    }
+  },
+  "parse_patch_text/update-scope-then-end": {
+    "result": {
+      "notices": [],
+      "patch": null,
+      "raised": {
+        "message": "Empty patch section found.",
+        "type": "DiffError"
+      }
+    }
+  },
+  "parse_patch_text/update-single-chunk": {
+    "result": {
+      "notices": [],
+      "patch": {
+        "actions": [
+          [
+            "a.py",
+            {
+              "chunks": [
+                {
+                  "del_lines": ["y"],
+                  "ins_lines": ["Y"],
+                  "orig_index": 1
+                }
+              ],
+              "move_path": null,
+              "new_content": null,
+              "path": "a.py",
+              "type": "Update"
+            }
+          ]
+        ],
+        "fuzz": 0
+      },
+      "raised": null
+    }
+  },
+  "parse_patch_text/update-without-sections": {
+    "result": {
+      "notices": [],
+      "patch": {
+        "actions": [
+          [
+            "a.py",
+            {
+              "chunks": [],
+              "move_path": null,
+              "new_content": null,
+              "path": "a.py",
+              "type": "Update"
+            }
+          ]
+        ],
+        "fuzz": 0
+      },
+      "raised": null
+    }
+  },
+  "peek_next_section/add-header-terminates": {
+    "result": [
+      ["a"],
+      [
+        {
+          "del_lines": ["a"],
+          "ins_lines": [],
+          "orig_index": 0
+        }
+      ],
+      1,
+      false
+    ]
+  },
+  "peek_next_section/bare-stars-terminate": {
+    "result": [["a"], [], 1, false]
+  },
+  "peek_next_section/blank-line-is-context": {
+    "result": [
+      ["a", "", "b"],
+      [
+        {
+          "del_lines": ["b"],
+          "ins_lines": [],
+          "orig_index": 2
+        }
+      ],
+      3,
+      false
+    ]
+  },
+  "peek_next_section/carriage-returns-normalized": {
+    "result": [["a\r"], [], 2, true]
+  },
+  "peek_next_section/context-delete-insert": {
+    "result": [
+      ["a", "b", "c"],
+      [
+        {
+          "del_lines": ["b"],
+          "ins_lines": ["B"],
+          "orig_index": 1
+        }
+      ],
+      4,
+      false
+    ]
+  },
+  "peek_next_section/double-minus": {
+    "result": [
+      ["-x"],
+      [
+        {
+          "del_lines": ["-x"],
+          "ins_lines": [],
+          "orig_index": 0
+        }
+      ],
+      1,
+      false
+    ]
+  },
+  "peek_next_section/empty-section": {
+    "error": {
+      "message": "Empty patch section found.",
+      "type": "DiffError"
+    }
+  },
+  "peek_next_section/eof-marker": {
+    "result": [
+      ["a"],
+      [
+        {
+          "del_lines": [],
+          "ins_lines": ["b"],
+          "orig_index": 1
+        }
+      ],
+      3,
+      true
+    ]
+  },
+  "peek_next_section/eof-marker-trailing-space": {
+    "result": [["a"], [], 1, false]
+  },
+  "peek_next_section/eof-only": {
+    "result": [[], [], 1, true]
+  },
+  "peek_next_section/header-without-space-terminates": {
+    "result": [["a"], [], 1, false]
+  },
+  "peek_next_section/insert-only": {
+    "result": [
+      [],
+      [
+        {
+          "del_lines": [],
+          "ins_lines": ["a", "b"],
+          "orig_index": 0
+        }
+      ],
+      2,
+      false
+    ]
+  },
+  "peek_next_section/interleaved-changes-one-chunk": {
+    "result": [
+      ["a", "b", "c"],
+      [
+        {
+          "del_lines": ["a", "b"],
+          "ins_lines": ["A"],
+          "orig_index": 0
+        }
+      ],
+      4,
+      false
+    ]
+  },
+  "peek_next_section/invalid-prefix": {
+    "error": {
+      "message": "Invalid line prefix in update section: oops",
+      "type": "DiffError"
+    }
+  },
+  "peek_next_section/invalid-star-line": {
+    "error": {
+      "message": "Invalid patch line found in update section: *** Move to: x",
+      "type": "DiffError"
+    }
+  },
+  "peek_next_section/nbsp-line-becomes-empty": {
+    "result": [
+      [""],
+      [
+        {
+          "del_lines": [],
+          "ins_lines": ["b"],
+          "orig_index": 1
+        }
+      ],
+      2,
+      false
+    ]
+  },
+  "peek_next_section/past-end": {
+    "error": {
+      "message": "Empty patch section found.",
+      "type": "DiffError"
+    }
+  },
+  "peek_next_section/plus-only-line": {
+    "result": [
+      [],
+      [
+        {
+          "del_lines": [],
+          "ins_lines": [""],
+          "orig_index": 0
+        }
+      ],
+      1,
+      false
+    ]
+  },
+  "peek_next_section/runs-to-end": {
+    "result": [["a", "b"], [], 2, false]
+  },
+  "peek_next_section/scope-terminates": {
+    "result": [["a"], [], 1, false]
+  },
+  "peek_next_section/space-line-keeps-rest": {
+    "result": [
+      ["  ", "b"],
+      [
+        {
+          "del_lines": ["b"],
+          "ins_lines": [],
+          "orig_index": 1
+        }
+      ],
+      2,
+      false
+    ]
+  },
+  "peek_next_section/starts-mid-list": {
+    "result": [
+      ["a", "b"],
+      [
+        {
+          "del_lines": ["b"],
+          "ins_lines": [],
+          "orig_index": 1
+        }
+      ],
+      4,
+      false
+    ]
+  },
+  "peek_next_section/tabs-non-bmp": {
+    "result": [
+      ["\t😀", "𝒳"],
+      [
+        {
+          "del_lines": ["𝒳"],
+          "ins_lines": ["𝒴"],
+          "orig_index": 1
+        }
+      ],
+      3,
+      false
+    ]
+  },
+  "peek_next_section/two-chunks": {
+    "result": [
+      ["a", "b", "c", "e"],
+      [
+        {
+          "del_lines": ["b"],
+          "ins_lines": [],
+          "orig_index": 1
+        },
+        {
+          "del_lines": [],
+          "ins_lines": ["d"],
+          "orig_index": 3
+        }
+      ],
+      5,
+      false
+    ]
+  },
+  "peek_next_section/whitespace-line-becomes-empty": {
+    "result": [
+      ["", "b"],
+      [
+        {
+          "del_lines": ["b"],
+          "ins_lines": [],
+          "orig_index": 1
+        }
+      ],
+      2,
+      false
+    ]
+  }
+}
