@@ -7,7 +7,7 @@ import type { CommandEnv } from '../../src/core/command.ts';
 import { isolatedExec } from '../../src/core/isolated-exec.ts';
 import { addFiles, dropMatches, type SelectionEnv, type SelectionState } from '../../src/edit/selection.ts';
 import { createWorkingTree } from '../../src/edit/working-tree.ts';
-import { disabledGitPolicy, disabledRepositoryContext } from '../../src/feature.ts';
+import { disabledGitPolicy, disabledRepositoryContext, disabledValidation } from '../../src/feature.ts';
 import { gitCommands } from '../../src/git/commands.ts';
 import { commitFile, initRepo, policyIn, recordingHost, tempDir } from './support.ts';
 
@@ -42,6 +42,9 @@ function commandEnv(root: string, host: ReturnType<typeof recordingHost>, git: R
     tree: createWorkingTree({ notices: host }),
     git,
     map: disabledRepositoryContext,
+    lint: disabledValidation,
+    testCmd: null,
+    lintCmds: new Map(),
     autoCommits: true,
     supportsImages: true,
     sendUserMessage: async () => {},

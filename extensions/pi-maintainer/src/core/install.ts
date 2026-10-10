@@ -13,6 +13,8 @@ import { admitInitialEditable, readMessageFile } from '../edit/startup-input.ts'
 import { createPorts, type EditFormatName, isEditFormatName, type Ports, type SarFeature } from '../feature.ts';
 import { gitOptions } from '../git/options.ts';
 import { prepareGitRepository } from '../git/startup.ts';
+import { lintOptions } from '../lint/options.ts';
+import { parseLintCmds } from '../lint/parse-lint-cmds.ts';
 import { formatSettings } from '../settings/format-settings.ts';
 import { loadSettings } from '../settings/load.ts';
 import { settingsOptions } from '../settings/options.ts';
@@ -188,6 +190,8 @@ class MaintainerRuntime {
   #environment: Readonly<Record<string, string | undefined>> = {};
   #yes: boolean | null = null;
   #autoCommits = true;
+  #testCmd: string | null = null;
+  #lintCmds: ReadonlyMap<string | null, string> = new Map();
   readonly host: ReturnType<typeof createHost>;
   readonly #pi: ExtensionAPI;
   readonly #features: readonly SarFeature[];
@@ -217,6 +221,7 @@ class MaintainerRuntime {
   get ready(): boolean {
     return this.#controller !== null && this.#ports !== null;
   }
+
   commandEnv() {
     const controller = this.#controller;
     const ports = this.#ports;
@@ -234,6 +239,9 @@ class MaintainerRuntime {
       tree: ports.edit.tree,
       git: ports.git,
       map: ports.map,
+      lint: ports.lint,
+      testCmd: this.#testCmd,
+      lintCmds: this.#lintCmds,
       autoCommits: this.#autoCommits,
       supportsImages: model?.input.includes('image') ?? true,
       sendUserMessage: async (text: string) => {
@@ -315,6 +323,8 @@ class MaintainerRuntime {
     this.#ports = ports;
     this.#yes = ports.edit.yesAlways;
     this.#autoCommits = specs.includes(gitOptions.autoCommits) ? loaded.settings.value(gitOptions.autoCommits) : true;
+    this.#testCmd = specs.includes(lintOptions.testCmd) ? loaded.settings.value(lintOptions.testCmd) : null;
+    this.#lintCmds = specs.includes(lintOptions.lintCmd) ? parseLintCmds(loaded.settings.value(lintOptions.lintCmd)) : new Map();
     const restored = restore(ctx.sessionManager.getBranch());
     const snapshot =
       restored.snapshot ??

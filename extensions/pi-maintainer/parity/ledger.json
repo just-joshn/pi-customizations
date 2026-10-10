@@ -2808,10 +2808,25 @@
         "aider/commands.py:993-1047"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.registerCommand",
+        "Host.exec",
+        "pi.sendUserMessage"
+      ],
+      "src": [
+        "src/lint/commands.ts",
+        "src/lint/feature.ts",
+        "src/lint/validation.ts",
+        "src/lint/shell.ts",
+        "src/lint/select-files.ts",
+        "src/lint/run-output.ts",
+        "src/core/command.ts",
+        "src/core/install.ts"
+      ],
+      "tests": [
+        "test/lint/commands-bind.test.ts::/test runs the configured command and on failure adds repair output to chat"
+      ]
     },
     {
       "id": "lint.shell.approve-and-run",
@@ -2821,10 +2836,19 @@
         "aider/coders/base_coder.py:2434-2485"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "Host.exec",
+        "Host.confirm"
+      ],
+      "src": [
+        "src/lint/validation.ts",
+        "src/lint/shell.ts",
+        "src/core/confirm.ts"
+      ],
+      "tests": [
+        "test/lint/commands-bind.test.ts::runSuggestedShell confirms each block, skips comments, and offers add-output-to-chat"
+      ]
     },
     {
       "id": "lint.run.local-shell",
@@ -6375,10 +6399,17 @@
         "aider/commands.py:993-1047"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.registerCommand"
+      ],
+      "src": [
+        "src/lint/commands.ts",
+        "src/lint/feature.ts"
+      ],
+      "tests": [
+        "test/lint/commands-bind.test.ts::/test with neither argument nor configured command is a silent noop"
+      ]
     },
     {
       "id": "lint.commands.lint-file-selection",
@@ -6388,10 +6419,23 @@
         "aider/commands.py:356-409"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.registerCommand",
+        "Host.exec",
+        "pi.sendUserMessage"
+      ],
+      "src": [
+        "src/lint/commands.ts",
+        "src/lint/select-files.ts",
+        "src/lint/feature.ts",
+        "src/core/install.ts"
+      ],
+      "tests": [
+        "test/lint/commands-bind.test.ts::selectLintRelativeFiles prefers explicit filenames, then chat files, then dirty files",
+        "test/lint/commands-bind.test.ts::/lint requires a repository and lints dirty files when chat is empty",
+        "test/lint/commands-bind.test.ts::/lint uses explicit filenames before chat files"
+      ]
     },
     {
       "id": "lint.oneshot.test-exit",
@@ -6501,10 +6545,18 @@
         "aider/linter.py:118-166"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "Host.exec"
+      ],
+      "src": [
+        "src/lint/shell.ts",
+        "src/lint/validation.ts",
+        "docs/NATIVE-GAPS.md"
+      ],
+      "tests": [
+        "test/lint/security-bind.test.ts::Host.exec /bin/sh -c runs trusted shell under the user account; filename quoting does not sandbox compounds"
+      ]
     },
     {
       "id": "lint.docs.lint-flag-typo",

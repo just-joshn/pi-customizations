@@ -226,12 +226,17 @@ export type CheckOutcome = { readonly kind: 'disabled' } | { readonly kind: 'not
 /** Suggested-shell forward result. Approve/run lives in the lint SAR; edit only forwards. */
 export type ShellForwardOutcome = { readonly kind: 'disabled' } | { readonly kind: 'ran'; readonly output?: string };
 
+/** Manual `/test` result. Failure includes Aider `prompts.run_output` repair text for chat insertion. */
+export type TestCommandOutcome = { readonly kind: 'disabled' } | { readonly kind: 'passed' } | { readonly kind: 'failed'; readonly report: string };
+
 /** The lint and test parts of the coder hub. */
 export interface Validation {
   lintEdited(paths: ReadonlySet<string | null>, signal?: AbortSignal): Promise<CheckOutcome>;
   testEdited(signal?: AbortSignal): Promise<CheckOutcome>;
   /** Forward distinct suggested shell blocks. Disabled stub is a no-op. */
   runSuggestedShell(commands: readonly string[], signal?: AbortSignal): Promise<ShellForwardOutcome>;
+  /** Manual `/test`: run a shell command string; on non-zero exit return chat repair text. */
+  runTestCommand(command: string, signal?: AbortSignal): Promise<TestCommandOutcome>;
 }
 
 /** The Git port before the Git SAR lands: no repository, and every operation reports itself disabled. */
@@ -260,6 +265,7 @@ export const disabledValidation: Validation = {
   lintEdited: async () => ({ kind: 'disabled' }),
   testEdited: async () => ({ kind: 'disabled' }),
   runSuggestedShell: async () => ({ kind: 'disabled' }),
+  runTestCommand: async () => ({ kind: 'disabled' }),
 };
 
 export interface Ports {

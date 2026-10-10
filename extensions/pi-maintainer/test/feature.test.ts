@@ -69,6 +69,7 @@ test('disabled ports report disabled rather than success', async () => {
   expect(await disabledValidation.lintEdited(new Set(['a.py']))).toEqual({ kind: 'disabled' });
   expect(await disabledValidation.testEdited()).toEqual({ kind: 'disabled' });
   expect(await disabledValidation.runSuggestedShell(['echo hi'])).toEqual({ kind: 'disabled' });
+  expect(await disabledValidation.runTestCommand('false')).toEqual({ kind: 'disabled' });
 });
 
 test('edit format names follow Aider coder edit formats', () => {

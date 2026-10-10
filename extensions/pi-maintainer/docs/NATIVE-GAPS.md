@@ -173,9 +173,9 @@ The flag adapters share the following gate answers. The table above identifies t
 2. **Mechanism evaluated (Pi 1.1.0).** `Host.exec` / `pi.exec` via `isolatedExec` with argv arrays and `shell: false`. No public PTY or shell-string exec API on Host.
 3. **Why it cannot.** Interactive pexpect (`spawn` + `interact`) and Python `subprocess` `shell=True` are not public Pi mechanisms. Inventing a parallel shell runner beside Host.exec would reintroduce injection risk Aider accepted for free-form command strings.
 4. **Why not omit.** Ledger row `lint.run.local-shell` requires that runner. Omitting leaves the row open.
-5. **Adapter.** `src/lint/shell.ts` runs command strings as `/bin/sh -c` through Host.exec. Lint language commands append an `oslex`-style quoted relative path. No pexpect path is started.
+5. **Adapter.** `src/lint/shell.ts` runs command strings as `/bin/sh -c` through Host.exec. Lint language commands append an `oslex`-style quoted relative path. No pexpect path is started. That adapter is trusted shell under the user account (`lint.security.shell-trust`): filename `shellQuote` does not sandbox compound commands, redirections, or `;` chaining.
 6. **Authoritative Pi state.** Session lifecycle, permissions, and provider transport stay with Pi. Working-tree bytes stay with `WorkingTree`.
-7. **Verification.** Row `lint.run.local-shell` stays open. Follow-up and options rows that only need Host.exec argv execution are verified separately.
+7. **Verification.** Row `lint.run.local-shell` stays open (pexpect / interactive `shell=True` not claimed). `lint.security.shell-trust` is verified via `test/lint/security-bind.test.ts` against the `/bin/sh -c` adapter. Follow-up and options rows that only need Host.exec argv execution are verified separately.
 8. **Delete when.** Pi exposes a documented interactive PTY exec and/or a safe shell-string exec that extensions may use for lint, test, and suggested shell commands, or the ledger drops the pexpect/`shell=True` claim.
 
 ## Python lint tree-sitter syntax checks

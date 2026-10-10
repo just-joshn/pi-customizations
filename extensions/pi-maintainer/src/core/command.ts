@@ -1,6 +1,6 @@
 import type { PhysicalModelRef } from '../edit/model-switch.ts';
 import type { WorkingTree } from '../edit/working-tree.ts';
-import type { EditFormatName, GitPolicy, RepositoryContext } from '../feature.ts';
+import type { EditFormatName, GitPolicy, RepositoryContext, Validation } from '../feature.ts';
 import type { Snapshot } from './branch.ts';
 import type { Host } from './host.ts';
 
@@ -12,6 +12,11 @@ export interface CommandEnv {
   readonly tree: WorkingTree;
   readonly git: GitPolicy;
   readonly map: RepositoryContext;
+  readonly lint: Validation;
+  /** Resolved `--test-cmd` from the lint SAR (`null` when unset). */
+  readonly testCmd: string | null;
+  /** Resolved `--lint-cmd` map from the lint SAR. */
+  readonly lintCmds: ReadonlyMap<string | null, string>;
   /** Resolved `--auto-commits` from the git SAR. */
   readonly autoCommits: boolean;
   readonly supportsImages: boolean;

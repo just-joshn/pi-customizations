@@ -1,5 +1,6 @@
 import type { Feature, Validation } from '../feature.ts';
 import type { ResolvedSettings } from '../settings/spec.ts';
+import { lintCommands } from './commands.ts';
 import { lintOptionList, lintOptions } from './options.ts';
 import { parseLintCmds } from './parse-lint-cmds.ts';
 import { createValidation } from './validation.ts';
@@ -17,7 +18,7 @@ function settingsFromEnv(settings: ResolvedSettings) {
 export const lintFeature: Feature<Validation> & { readonly name: 'lint' } = {
   name: 'lint',
   options: lintOptionList,
-  commands: [],
+  commands: lintCommands,
   create({ settings, host, cwd, gitRoot }) {
     const root = gitRoot ?? cwd;
     return createValidation({
@@ -28,7 +29,10 @@ export const lintFeature: Feature<Validation> & { readonly name: 'lint' } = {
   },
 };
 
+export { lintCommands } from './commands.ts';
 export { createValidation } from './validation.ts';
 export { lintOptions, lintOptionList } from './options.ts';
 export { parseLintCmds } from './parse-lint-cmds.ts';
 export { findFilenamesAndLinenums, lintFile, resolveLintCommand } from './linter.ts';
+export { selectLintRelativeFiles, listDirtyRelativeFiles } from './select-files.ts';
+export { formatRunOutput } from './run-output.ts';

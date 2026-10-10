@@ -6,7 +6,7 @@ import { afterEach, expect, test } from 'vitest';
 import type { Snapshot } from '../../src/core/branch.ts';
 import { chatFilesOf } from '../../src/core/branch.ts';
 import type { CommandEnv } from '../../src/core/command.ts';
-import { disabledGitPolicy, type MapRequest, type RepositoryContext } from '../../src/feature.ts';
+import { disabledGitPolicy, disabledValidation, type MapRequest, type RepositoryContext } from '../../src/feature.ts';
 import { effectiveMapBudget } from '../../src/map/budget.ts';
 import { mapCommands } from '../../src/map/commands.ts';
 import { mapFeature } from '../../src/map/feature.ts';
@@ -73,6 +73,9 @@ function commandEnv(options: {
     } }) },
     git: disabledGitPolicy,
     map: options.map,
+    lint: disabledValidation,
+    testCmd: null,
+    lintCmds: new Map(),
     autoCommits: true,
     supportsImages: true,
     sendUserMessage: async () => {},

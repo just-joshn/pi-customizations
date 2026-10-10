@@ -4,6 +4,7 @@ import { ConfirmGroup } from '../core/confirm.ts';
 import type { Host } from '../core/host.ts';
 import type { ShellForwardOutcome, Validation } from '../feature.ts';
 import { lintFile } from './linter.ts';
+import { formatRunOutput } from './run-output.ts';
 import { runShellCommand } from './shell.ts';
 
 export interface CreateValidationOptions {
@@ -32,7 +33,11 @@ export function createValidation(options: CreateValidationOptions): Validation {
       for (const path of paths) {
         if (!path) continue;
         signal?.throwIfAborted();
-        const errors = await lintFile(absPath(root, path), { host, root, lintCmds, encoding: options.encoding }, signal);
+        const errors = await lintFile(
+          absPath(root, path),
+          { host, root, lintCmds, ...(options.encoding !== undefined ? { encoding: options.encoding } : {}) },
+          signal,
+        );
         if (errors) {
           report += '\n';
           report += errors;
@@ -58,6 +63,14 @@ export function createValidation(options: CreateValidationOptions): Validation {
       ].join('');
       host.output(output);
       return { kind: 'failed', report };
+    },
+
+    async runTestCommand(command, signal) {
+      signal?.throwIfAborted();
+      const { code, output } = await runShellCommand(host, command, root, signal);
+      if (output) host.output(output);
+      if (code === 0) return { kind: 'passed' };
+      return { kind: 'failed', report: formatRunOutput(command, output) };
     },
 
     async runSuggestedShell(commands, signal) {
