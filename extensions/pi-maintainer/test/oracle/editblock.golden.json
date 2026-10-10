@@ -1,0 +1,11 @@
+{
+  "find-blocks/basic": {
+    "result": [["foo.txt", "Two\n", "Tu\n"]]
+  },
+  "replace/first-match-only": {
+    "result": "x\nb\na\nb\n"
+  },
+  "similar-lines/did-you-mean": {
+    "result": ""
+  }
+}

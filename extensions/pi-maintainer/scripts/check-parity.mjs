@@ -1,15 +1,19 @@
 #!/usr/bin/env node
+import { spawnSync } from 'node:child_process';
 // The parity gate. Fails unless every census unit is covered and every row is well formed.
 // Usage:
 //   node scripts/check-parity.mjs                         ledger and coverage against the full census
 //   node scripts/check-parity.mjs --feature edit          also require every edit row verified with passing tests
+//   node scripts/check-parity.mjs --report r.json ...     reuse a vitest JSON report instead of running vitest
 //   node scripts/check-parity.mjs --final                 require every row verified
 //   node scripts/check-parity.mjs --fragment f.json --units edit,ev-edit,aider-test/test_editblock
 //                                                         validate one mapping fragment against a census slice
 import { createHash } from 'node:crypto';
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { existsSync, readFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+
 import { census, sourcesDir } from './census.mjs';
 
 const packageRoot = resolve(fileURLToPath(new URL('..', import.meta.url)));
@@ -69,23 +73,24 @@ function checkCoverage(units, coverage, rowIds) {
   return unitIds;
 }
 
-function testTitles() {
-  const titles = new Map();
-  const walk = (dir) => {
-    if (!existsSync(dir)) return;
-    for (const entry of readdirSync(dir, { withFileTypes: true })) {
-      const path = join(dir, entry.name);
-      if (entry.isDirectory()) walk(path);
-      else if (/\.test\.ts$/.test(entry.name)) titles.set(path.slice(packageRoot.length + 1), readFileSync(path, 'utf8'));
-    }
-  };
-  walk(join(packageRoot, 'test'));
-  return titles;
+function vitestReport() {
+  const reportPath = option('--report') ?? join(tmpdir(), `pi-maintainer-vitest-${process.pid}.json`);
+  if (!option('--report')) {
+    spawnSync('bun', ['x', 'vitest', 'run', '--reporter=json', `--outputFile=${reportPath}`], { cwd: packageRoot, stdio: 'ignore' });
+  }
+  if (!existsSync(reportPath)) {
+    fail(`no vitest JSON report at ${reportPath}`);
+    return [];
+  }
+  const report = JSON.parse(readFileSync(reportPath, 'utf8'));
+  return report.testResults.flatMap((file) => file.assertionResults.map((result) => ({ id: `${relative(packageRoot, file.name)}::${result.fullName}`, status: result.status, meta: result.meta ?? {} })));
 }
 
-function checkVerified(rows, scope) {
-  const files = testTitles();
-  const corpus = [...files.values()].join('\n');
+function matchingResults(results, test) {
+  return test.endsWith('*') ? results.filter((result) => result.id.startsWith(test.slice(0, -1))) : results.filter((result) => result.id === test);
+}
+
+function checkVerified(rows, scope, results) {
   for (const row of rows.filter((r) => scope(r))) {
     if (row.status !== 'verified') fail(`row ${row.id} is ${row.status}, not verified`);
     if (row.pi.length === 0) fail(`row ${row.id}: pi mechanisms are empty`);
@@ -93,25 +98,23 @@ function checkVerified(rows, scope) {
     for (const file of row.src) if (!existsSync(join(packageRoot, file))) fail(`row ${row.id}: src ${file} does not exist`);
     if (row.tests.length === 0) fail(`row ${row.id}: tests are empty`);
     for (const test of row.tests) {
-      const [file, title] = test.split('::');
-      const text = files.get(file ?? '');
-      if (text === undefined) fail(`row ${row.id}: test file ${file} does not exist`);
-      else if (!title || !text.includes(title)) fail(`row ${row.id}: test title ${JSON.stringify(title)} not found in ${file}`);
+      const matched = matchingResults(results, test);
+      if (matched.length === 0) fail(`row ${row.id}: no test result matches ${test}`);
+      for (const result of matched) if (result.status !== 'passed') fail(`row ${row.id}: ${result.id} is ${result.status}`);
     }
   }
-  return corpus;
 }
 
-function checkTags(units, coverage, rows, scope, corpus) {
+function checkTags(units, coverage, rows, scope, results) {
   const scoped = new Set(rows.filter(scope).map((row) => row.id));
+  const passed = results.filter((result) => result.status === 'passed');
+  const ported = new Set(passed.flatMap((result) => result.meta.aider ?? []));
+  const replayed = new Set(passed.flatMap((result) => result.meta.evidence ?? []));
   for (const unit of units) {
     const entry = coverage[unit.id];
     if (!entry?.rows?.some((id) => scoped.has(id))) continue;
-    if (unit.kind === 'aider-test') {
-      const tag = `[aider:${unit.id.slice('aider-test/'.length)}]`;
-      if (!corpus.includes(tag)) fail(`unit ${unit.id}: no ported test carries ${tag}`);
-    }
-    if (unit.kind === 'evidence' && !corpus.includes(`[evidence:${unit.id}]`)) fail(`unit ${unit.id}: no replay test carries [evidence:${unit.id}]`);
+    if (unit.kind === 'aider-test' && !ported.has(unit.id.slice('aider-test/'.length))) fail(`unit ${unit.id}: no passing test ports it (meta.aider)`);
+    if (unit.kind === 'evidence' && !replayed.has(unit.id)) fail(`unit ${unit.id}: no passing test replays it (meta.evidence)`);
   }
 }
 
@@ -157,8 +160,9 @@ if (fragmentPath) {
   if (feature !== undefined && !FEATURES.includes(feature)) fail(`--feature must be one of ${FEATURES.join(', ')}`);
   const scope = argv.includes('--final') ? () => true : feature ? (row) => row.feature === feature : null;
   if (scope) {
-    const corpus = checkVerified(ledger.rows, scope);
-    checkTags(units, coverage, ledger.rows, scope, corpus);
+    const results = vitestReport();
+    checkVerified(ledger.rows, scope, results);
+    checkTags(units, coverage, ledger.rows, scope, results);
   }
   const counts = Object.fromEntries(FEATURES.map((f) => [f, ledger.rows.filter((row) => row.feature === f).length]));
   const verified = ledger.rows.filter((row) => row.status === 'verified').length;

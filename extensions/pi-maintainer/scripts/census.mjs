@@ -11,8 +11,8 @@ import { fileURLToPath } from 'node:url';
 const packageRoot = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const sources = JSON.parse(readFileSync(join(packageRoot, 'parity/sources.json'), 'utf8'));
 
-export const sourcesDir = resolve(process.env['PI_MAINTAINER_SOURCES'] ?? sources.documentsDir);
-export const aiderCheckout = resolve(process.env['AIDER_CHECKOUT'] ?? sources.aider.checkout);
+export const sourcesDir = resolve(process.env.PI_MAINTAINER_SOURCES ?? sources.documentsDir);
+export const aiderCheckout = resolve(process.env.AIDER_CHECKOUT ?? sources.aider.checkout);
 
 const sha256 = (text) => createHash('sha256').update(text).digest('hex');
 
@@ -32,17 +32,14 @@ const FENCE = /^\s*(```|~~~)(.*)$/;
 const HEADING = /^(#{1,6})\s+(.*)$/;
 const ANCHOR = /^\s*<a id=/;
 
-export function documentUnits(docKey, text) {
-  const lines = text.split('\n');
+function createCollector(docKey) {
   const units = [];
   const sectionCounts = new Map();
   const slugUses = new Map();
   let section = 'preamble';
   let current = null;
-
   const flush = () => {
-    if (current === null) return;
-    const body = current.lines.join('\n').trim();
+    const body = current?.lines.join('\n').trim();
     if (body) {
       const count = (sectionCounts.get(section) ?? 0) + 1;
       sectionCounts.set(section, count);
@@ -50,62 +47,67 @@ export function documentUnits(docKey, text) {
     }
     current = null;
   };
-  const start = (kind, index, line) => {
-    flush();
-    current = { kind, start: index + 1, lines: [line] };
-  };
-
-  for (let index = 0; index < lines.length; index += 1) {
-    const line = lines[index] ?? '';
-    const fence = FENCE.exec(line);
-    if (fence) {
-      const marker = fence[1];
-      const info = (fence[2] ?? '').trim();
-      start(info.startsWith('mermaid') ? 'mermaid' : 'code', index, line);
-      for (index += 1; index < lines.length; index += 1) {
-        const inner = lines[index] ?? '';
-        current.lines.push(inner);
-        if (inner.trim().startsWith(marker)) break;
-      }
+  return {
+    units,
+    flush,
+    start(kind, index, line) {
       flush();
-      continue;
-    }
-    const heading = HEADING.exec(line);
-    if (heading) {
+      current = { kind, start: index + 1, lines: [line] };
+    },
+    append(line) {
+      current.lines.push(line);
+    },
+    hasOpen: () => current !== null,
+    openKind: () => current?.kind,
+    heading(title) {
       flush();
-      const base = slug(heading[2] ?? '') || 'section';
+      const base = slug(title) || 'section';
       const uses = (slugUses.get(base) ?? 0) + 1;
       slugUses.set(base, uses);
       section = uses === 1 ? base : `${base}-${uses}`;
-      continue;
-    }
-    if (!line.trim() || ANCHOR.test(line)) {
-      flush();
-      continue;
-    }
-    if (TABLE_ROW.test(line)) {
-      const next = lines[index + 1] ?? '';
-      if (TABLE_SEPARATOR.test(next) && current?.kind !== 'row') {
-        flush();
-        index += 1;
-        continue;
-      }
-      start('row', index, line);
-      flush();
-      continue;
-    }
-    if (LIST_ITEM.test(line)) {
-      start('item', index, line);
-      continue;
-    }
-    if (current === null) {
-      start(line.trimStart().startsWith('>') ? 'quote' : 'paragraph', index, line);
-      continue;
-    }
-    current.lines.push(line);
+    },
+  };
+}
+
+function consumeFence(lines, index, collector) {
+  const fence = FENCE.exec(lines[index] ?? '');
+  const marker = fence[1];
+  collector.start((fence[2] ?? '').trim().startsWith('mermaid') ? 'mermaid' : 'code', index, lines[index]);
+  let cursor = index + 1;
+  for (; cursor < lines.length; cursor += 1) {
+    collector.append(lines[cursor] ?? '');
+    if ((lines[cursor] ?? '').trim().startsWith(marker)) break;
   }
-  flush();
-  return units;
+  collector.flush();
+  return cursor;
+}
+
+function consumeTableRow(lines, index, collector) {
+  if (TABLE_SEPARATOR.test(lines[index + 1] ?? '') && collector.openKind() !== 'row') {
+    collector.flush();
+    return index + 1;
+  }
+  collector.start('row', index, lines[index]);
+  collector.flush();
+  return index;
+}
+
+export function documentUnits(docKey, text) {
+  const lines = text.split('\n');
+  const collector = createCollector(docKey);
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index] ?? '';
+    const heading = HEADING.exec(line);
+    if (FENCE.test(line)) index = consumeFence(lines, index, collector);
+    else if (heading) collector.heading(heading[2] ?? '');
+    else if (!line.trim() || ANCHOR.test(line)) collector.flush();
+    else if (TABLE_ROW.test(line)) index = consumeTableRow(lines, index, collector);
+    else if (LIST_ITEM.test(line)) collector.start('item', index, line);
+    else if (!collector.hasOpen()) collector.start(line.trimStart().startsWith('>') ? 'quote' : 'paragraph', index, line);
+    else collector.append(line);
+  }
+  collector.flush();
+  return collector.units;
 }
 
 function evidenceUnits(dirKey, dir, specs) {

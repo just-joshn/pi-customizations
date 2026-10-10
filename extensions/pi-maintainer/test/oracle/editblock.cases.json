@@ -1,0 +1,5 @@
+[
+  { "id": "find-blocks/basic", "op": "editblock.find_original_update_blocks", "args": { "content": "Here's the change:\n\n```text\nfoo.txt\n<<<<<<< SEARCH\nTwo\n=======\nTu\n>>>>>>> REPLACE\n```\n\nHope you like it!\n" } },
+  { "id": "replace/first-match-only", "op": "editblock.replace_most_similar_chunk", "args": { "whole": "a\nb\na\nb\n", "part": "a\n", "replace": "x\n" } },
+  { "id": "similar-lines/did-you-mean", "op": "editblock.find_similar_lines", "args": { "search_lines": "def foo():\n    return 1\n", "content_lines": "def bar():\n    pass\n\ndef foo():\n    return 2\n" } }
+]

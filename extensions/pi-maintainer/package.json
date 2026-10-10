@@ -1,0 +1,46 @@
+{
+  "name": "pi-maintainer",
+  "version": "0.1.0",
+  "description": "Aider's precise code editing, Git integration, repository map, and automated lint and test, rebuilt on Pi's own extension mechanisms.",
+  "type": "module",
+  "license": "Apache-2.0",
+  "keywords": [
+    "pi-package"
+  ],
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "pi": {
+    "extensions": [
+      "./src/index.ts"
+    ]
+  },
+  "files": [
+    "src",
+    "NOTICE",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc -p .",
+    "census": "node scripts/census.mjs",
+    "check:parity": "node scripts/check-parity.mjs",
+    "check:parity:final": "node scripts/check-parity.mjs --final"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-ai": "*",
+    "@earendil-works/pi-coding-agent": "*",
+    "typebox": "*"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-ai": "1.1.0",
+    "@earendil-works/pi-coding-agent": "1.1.0",
+    "@types/node": "^22.19.0",
+    "@vitest/coverage-v8": "^5.0.2",
+    "typebox": "1.3.27",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.2"
+  }
+}

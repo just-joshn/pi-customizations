@@ -1,0 +1,659 @@
+[
+  {
+    "id": "splitlines/0-0",
+    "op": "pystr.splitlines",
+    "args": {
+      "text": "",
+      "keepends": false
+    }
+  },
+  {
+    "id": "splitlines/0-1",
+    "op": "pystr.splitlines",
+    "args": {
+      "text": "",
+      "keepends": true
+    }
+  },
+  {
+    "id": "splitlines/1-0",
+    "op": "pystr.splitlines",
+    "args": {
+      "text": "a",
+      "keepends": false
+    }
+  },
+  {
+    "id": "splitlines/1-1",
+    "op": "pystr.splitlines",
+    "args": {
+      "text": "a",
+      "keepends": true
+    }
+  },
+  {
+    "id": "splitlines/2-0",
+    "op": "pystr.splitlines",
+    "args": {
+      "text": "a\nb",
+      "keepends": false
+    }
+  },
+  {
+    "id": "splitlines/2-1",
+    "op": "pystr.splitlines",
+    "args": {
+      "text": "a\nb",
+      "keepends": true
+    }
+  },
+  {
+    "id": "splitlines/3-0",
+    "op": "pystr.splitlines",
+    "args": {
+      "text": "a\r\nb\rc\n",
+      "keepends": false
+    }
+  },
+  {
+    "id": "splitlines/3-1",
+    "op": "pystr.splitlines",
+    "args": {
+      "text": "a\r\nb\rc\n",
+      "keepends": true
+    }
+  },
+  {
+    "id": "splitlines/4-0",
+    "op": "pystr.splitlines",
+    "args": {
+      "text": "a\u000b b\f c\u001c d\u001d e\u001e f g  h  i",
+      "keepends": false
+    }
+  },
+  {
+    "id": "splitlines/4-1",
+    "op": "pystr.splitlines",
+    "args": {
+      "text": "a\u000b b\f c\u001c d\u001d e\u001e f g  h  i",
+      "keepends": true
+    }
+  },
+  {
+    "id": "splitlines/5-0",
+    "op": "pystr.splitlines",
+    "args": {
+      "text": "\n\n",
+      "keepends": false
+    }
+  },
+  {
+    "id": "splitlines/5-1",
+    "op": "pystr.splitlines",
+    "args": {
+      "text": "\n\n",
+      "keepends": true
+    }
+  },
+  {
+    "id": "splitlines/6-0",
+    "op": "pystr.splitlines",
+    "args": {
+      "text": "x\r\r\n",
+      "keepends": false
+    }
+  },
+  {
+    "id": "splitlines/6-1",
+    "op": "pystr.splitlines",
+    "args": {
+      "text": "x\r\r\n",
+      "keepends": true
+    }
+  },
+  {
+    "id": "splitlines/7-0",
+    "op": "pystr.splitlines",
+    "args": {
+      "text": "tail\r",
+      "keepends": false
+    }
+  },
+  {
+    "id": "splitlines/7-1",
+    "op": "pystr.splitlines",
+    "args": {
+      "text": "tail\r",
+      "keepends": true
+    }
+  },
+  {
+    "id": "splitlines/8-0",
+    "op": "pystr.splitlines",
+    "args": {
+      "text": "emoji 🎉\n😀\r\n",
+      "keepends": false
+    }
+  },
+  {
+    "id": "splitlines/8-1",
+    "op": "pystr.splitlines",
+    "args": {
+      "text": "emoji 🎉\n😀\r\n",
+      "keepends": true
+    }
+  },
+  {
+    "id": "strip/ws-0",
+    "op": "pystr.strip",
+    "args": {
+      "text": "\tx\t"
+    }
+  },
+  {
+    "id": "isspace/ws-0",
+    "op": "pystr.isspace",
+    "args": {
+      "text": "\t"
+    }
+  },
+  {
+    "id": "strip/ws-1",
+    "op": "pystr.strip",
+    "args": {
+      "text": "\nx\n"
+    }
+  },
+  {
+    "id": "isspace/ws-1",
+    "op": "pystr.isspace",
+    "args": {
+      "text": "\n"
+    }
+  },
+  {
+    "id": "strip/ws-2",
+    "op": "pystr.strip",
+    "args": {
+      "text": "\u000bx\u000b"
+    }
+  },
+  {
+    "id": "isspace/ws-2",
+    "op": "pystr.isspace",
+    "args": {
+      "text": "\u000b"
+    }
+  },
+  {
+    "id": "strip/ws-3",
+    "op": "pystr.strip",
+    "args": {
+      "text": "\fx\f"
+    }
+  },
+  {
+    "id": "isspace/ws-3",
+    "op": "pystr.isspace",
+    "args": {
+      "text": "\f"
+    }
+  },
+  {
+    "id": "strip/ws-4",
+    "op": "pystr.strip",
+    "args": {
+      "text": "\rx\r"
+    }
+  },
+  {
+    "id": "isspace/ws-4",
+    "op": "pystr.isspace",
+    "args": {
+      "text": "\r"
+    }
+  },
+  {
+    "id": "strip/ws-5",
+    "op": "pystr.strip",
+    "args": {
+      "text": "\u001cx\u001c"
+    }
+  },
+  {
+    "id": "isspace/ws-5",
+    "op": "pystr.isspace",
+    "args": {
+      "text": "\u001c"
+    }
+  },
+  {
+    "id": "strip/ws-6",
+    "op": "pystr.strip",
+    "args": {
+      "text": "\u001dx\u001d"
+    }
+  },
+  {
+    "id": "isspace/ws-6",
+    "op": "pystr.isspace",
+    "args": {
+      "text": "\u001d"
+    }
+  },
+  {
+    "id": "strip/ws-7",
+    "op": "pystr.strip",
+    "args": {
+      "text": "\u001ex\u001e"
+    }
+  },
+  {
+    "id": "isspace/ws-7",
+    "op": "pystr.isspace",
+    "args": {
+      "text": "\u001e"
+    }
+  },
+  {
+    "id": "strip/ws-8",
+    "op": "pystr.strip",
+    "args": {
+      "text": "\u001fx\u001f"
+    }
+  },
+  {
+    "id": "isspace/ws-8",
+    "op": "pystr.isspace",
+    "args": {
+      "text": "\u001f"
+    }
+  },
+  {
+    "id": "strip/ws-9",
+    "op": "pystr.strip",
+    "args": {
+      "text": " x "
+    }
+  },
+  {
+    "id": "isspace/ws-9",
+    "op": "pystr.isspace",
+    "args": {
+      "text": " "
+    }
+  },
+  {
+    "id": "strip/ws-10",
+    "op": "pystr.strip",
+    "args": {
+      "text": "x"
+    }
+  },
+  {
+    "id": "isspace/ws-10",
+    "op": "pystr.isspace",
+    "args": {
+      "text": ""
+    }
+  },
+  {
+    "id": "strip/ws-11",
+    "op": "pystr.strip",
+    "args": {
+      "text": " x "
+    }
+  },
+  {
+    "id": "isspace/ws-11",
+    "op": "pystr.isspace",
+    "args": {
+      "text": " "
+    }
+  },
+  {
+    "id": "strip/ws-12",
+    "op": "pystr.strip",
+    "args": {
+      "text": " x "
+    }
+  },
+  {
+    "id": "isspace/ws-12",
+    "op": "pystr.isspace",
+    "args": {
+      "text": " "
+    }
+  },
+  {
+    "id": "strip/ws-13",
+    "op": "pystr.strip",
+    "args": {
+      "text": " x "
+    }
+  },
+  {
+    "id": "isspace/ws-13",
+    "op": "pystr.isspace",
+    "args": {
+      "text": " "
+    }
+  },
+  {
+    "id": "strip/ws-14",
+    "op": "pystr.strip",
+    "args": {
+      "text": " x "
+    }
+  },
+  {
+    "id": "isspace/ws-14",
+    "op": "pystr.isspace",
+    "args": {
+      "text": " "
+    }
+  },
+  {
+    "id": "strip/ws-15",
+    "op": "pystr.strip",
+    "args": {
+      "text": " x "
+    }
+  },
+  {
+    "id": "isspace/ws-15",
+    "op": "pystr.isspace",
+    "args": {
+      "text": " "
+    }
+  },
+  {
+    "id": "strip/ws-16",
+    "op": "pystr.strip",
+    "args": {
+      "text": " x "
+    }
+  },
+  {
+    "id": "isspace/ws-16",
+    "op": "pystr.isspace",
+    "args": {
+      "text": " "
+    }
+  },
+  {
+    "id": "strip/ws-17",
+    "op": "pystr.strip",
+    "args": {
+      "text": " x "
+    }
+  },
+  {
+    "id": "isspace/ws-17",
+    "op": "pystr.isspace",
+    "args": {
+      "text": " "
+    }
+  },
+  {
+    "id": "strip/ws-18",
+    "op": "pystr.strip",
+    "args": {
+      "text": " x "
+    }
+  },
+  {
+    "id": "isspace/ws-18",
+    "op": "pystr.isspace",
+    "args": {
+      "text": " "
+    }
+  },
+  {
+    "id": "strip/ws-19",
+    "op": "pystr.strip",
+    "args": {
+      "text": "　x　"
+    }
+  },
+  {
+    "id": "isspace/ws-19",
+    "op": "pystr.isspace",
+    "args": {
+      "text": "　"
+    }
+  },
+  {
+    "id": "strip/ws-20",
+    "op": "pystr.strip",
+    "args": {
+      "text": "﻿x﻿"
+    }
+  },
+  {
+    "id": "isspace/ws-20",
+    "op": "pystr.isspace",
+    "args": {
+      "text": "﻿"
+    }
+  },
+  {
+    "id": "strip/ws-21",
+    "op": "pystr.strip",
+    "args": {
+      "text": "᠎x᠎"
+    }
+  },
+  {
+    "id": "isspace/ws-21",
+    "op": "pystr.isspace",
+    "args": {
+      "text": "᠎"
+    }
+  },
+  {
+    "id": "strip/ws-22",
+    "op": "pystr.strip",
+    "args": {
+      "text": "​x​"
+    }
+  },
+  {
+    "id": "isspace/ws-22",
+    "op": "pystr.isspace",
+    "args": {
+      "text": "​"
+    }
+  },
+  {
+    "id": "strip/chars-0",
+    "op": "pystr.strip",
+    "args": {
+      "text": "  a b  "
+    }
+  },
+  {
+    "id": "strip/chars-1",
+    "op": "pystr.strip",
+    "args": {
+      "text": "xxaxx",
+      "chars": "x"
+    }
+  },
+  {
+    "id": "strip/chars-2",
+    "op": "pystr.strip",
+    "args": {
+      "text": "\n\nfoo\n\n",
+      "chars": "\n"
+    }
+  },
+  {
+    "id": "strip/chars-3",
+    "op": "pystr.strip",
+    "args": {
+      "text": ""
+    }
+  },
+  {
+    "id": "strip/chars-4",
+    "op": "pystr.strip",
+    "args": {
+      "text": "abc",
+      "chars": ""
+    }
+  },
+  {
+    "id": "strip/chars-5",
+    "op": "pystr.strip",
+    "args": {
+      "text": "😀a😀",
+      "chars": "😀"
+    }
+  },
+  {
+    "id": "split/0",
+    "op": "pystr.split",
+    "args": {
+      "text": ""
+    }
+  },
+  {
+    "id": "split/1",
+    "op": "pystr.split",
+    "args": {
+      "text": "  a  b\tc\n"
+    }
+  },
+  {
+    "id": "split/2",
+    "op": "pystr.split",
+    "args": {
+      "text": "\u001cab﻿c"
+    }
+  },
+  {
+    "id": "split/3",
+    "op": "pystr.split",
+    "args": {
+      "text": "one"
+    }
+  },
+  {
+    "id": "count/0",
+    "op": "pystr.count",
+    "args": {
+      "text": "aaaa",
+      "sub": "aa"
+    }
+  },
+  {
+    "id": "count/1",
+    "op": "pystr.count",
+    "args": {
+      "text": "abc",
+      "sub": ""
+    }
+  },
+  {
+    "id": "count/2",
+    "op": "pystr.count",
+    "args": {
+      "text": "😀😀",
+      "sub": ""
+    }
+  },
+  {
+    "id": "count/3",
+    "op": "pystr.count",
+    "args": {
+      "text": "",
+      "sub": ""
+    }
+  },
+  {
+    "id": "count/4",
+    "op": "pystr.count",
+    "args": {
+      "text": "a\nb\na\n",
+      "sub": "a\n"
+    }
+  },
+  {
+    "id": "replace/0",
+    "op": "pystr.replace",
+    "args": {
+      "text": "aaaa",
+      "old": "aa",
+      "new": "b"
+    }
+  },
+  {
+    "id": "replace/1",
+    "op": "pystr.replace",
+    "args": {
+      "text": "abc",
+      "old": "",
+      "new": "-"
+    }
+  },
+  {
+    "id": "replace/2",
+    "op": "pystr.replace",
+    "args": {
+      "text": "😀x",
+      "old": "",
+      "new": "|"
+    }
+  },
+  {
+    "id": "replace/3",
+    "op": "pystr.replace",
+    "args": {
+      "text": "",
+      "old": "",
+      "new": "z"
+    }
+  },
+  {
+    "id": "replace/4",
+    "op": "pystr.replace",
+    "args": {
+      "text": "a.b.c",
+      "old": ".",
+      "new": ""
+    }
+  },
+  {
+    "id": "expandtabs/0",
+    "op": "pystr.expandtabs",
+    "args": {
+      "text": "a\tb",
+      "tabsize": 8
+    }
+  },
+  {
+    "id": "expandtabs/1",
+    "op": "pystr.expandtabs",
+    "args": {
+      "text": "\tx\n\ty",
+      "tabsize": 4
+    }
+  },
+  {
+    "id": "expandtabs/2",
+    "op": "pystr.expandtabs",
+    "args": {
+      "text": "ab\tc\rd\te",
+      "tabsize": 4
+    }
+  },
+  {
+    "id": "expandtabs/3",
+    "op": "pystr.expandtabs",
+    "args": {
+      "text": "x\t",
+      "tabsize": 0
+    }
+  }
+]
