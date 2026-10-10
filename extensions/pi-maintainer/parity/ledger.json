@@ -937,10 +937,20 @@
         "aider/coders/base_coder.py:2206-2224"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "ctx.ui.confirm",
+        "withFileMutationQueue",
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/core/exchange.ts"
+      ],
+      "tests": [
+        "test/core/authorize.test.ts::a missing path asks Create new file and creates it when approved",
+        "test/core/authorize.test.ts::declining Create new file skips that path and prints Skipping edits",
+        "test/core/exchange.pi.test.ts::permission preparation creates an admitted reply target"
+      ]
     },
     {
       "id": "edit.authorize.confirm-unshared-file",
@@ -950,10 +960,18 @@
         "aider/coders/base_coder.py:2226-2240"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "ctx.ui.confirm",
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/core/exchange.ts"
+      ],
+      "tests": [
+        "test/core/authorize.test.ts::an existing unshared file asks Allow edits and joins the editable set when approved",
+        "test/core/exchange.pi.test.ts::no UI without explicit consent denies an unselected file"
+      ]
     },
     {
       "id": "edit.prompt.choose-fence",
@@ -1966,10 +1984,17 @@
         "aider/coders/base_coder.py:2191-2200"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/core/exchange.ts"
+      ],
+      "tests": [
+        "test/core/authorize.test.ts::an in-chat editable path is approved without a prompt",
+        "test/core/exchange.pi.test.ts::whole-file text completes an SDK edit exchange"
+      ]
     },
     {
       "id": "edit.authorize.create-failure",
@@ -1979,10 +2004,17 @@
         "aider/coders/base_coder.py:2211-2214"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "ctx.ui.confirm",
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/core/exchange.ts"
+      ],
+      "tests": [
+        "test/core/authorize.test.ts::a failed Create new file touch reports Unable to create and drops the path"
+      ]
     },
     {
       "id": "edit.authorize.once-per-path",
@@ -1992,10 +2024,18 @@
         "aider/coders/base_coder.py:2269-2294"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "ctx.ui.confirm",
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/core/exchange.ts"
+      ],
+      "tests": [
+        "test/core/authorize.test.ts::authorization asks once per distinct path and keeps every edit for that answer",
+        "test/core/authorize.test.ts::a declined path drops every edit for that path while pathless records still pass"
+      ]
     },
     {
       "id": "edit.authorize.read-only-reaches-approval",
@@ -2006,10 +2046,18 @@
         "aider/coders/base_prompts.py:24-56"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "ctx.ui.confirm",
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/core/exchange.ts"
+      ],
+      "tests": [
+        "test/core/authorize.test.ts::a read-only chat file reaches Allow edits and stays in the read-only set when approved",
+        "test/core/exchange.pi.test.ts::an admitted read-only target keeps Aider two-set semantics"
+      ]
     },
     {
       "id": "edit.authorize.no-root-containment",
@@ -2019,10 +2067,19 @@
         "aider/coders/base_coder.py:566-574,2191-2240"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "ctx.ui.confirm",
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/core/exchange.ts",
+        "src/core/chat-files.ts"
+      ],
+      "tests": [
+        "test/core/authorize.test.ts::a path outside the root goes through ordinary approval and is writable when approved",
+        "test/core/intents.pi.test.ts::explicit consent permits an absolute MOVE destination outside the root"
+      ]
     },
     {
       "id": "edit.patch.action-errors",
@@ -2766,10 +2823,17 @@
         "aider/coders/base_coder.py:2191-2240"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "ctx.ui.confirm",
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/core/exchange.ts"
+      ],
+      "tests": [
+        "test/core/authorize.test.ts::repository policy refusal skips a gitignored path and approved paths reach staging and dirty-commit hooks"
+      ]
     },
     {
       "id": "edit.watch.comments",

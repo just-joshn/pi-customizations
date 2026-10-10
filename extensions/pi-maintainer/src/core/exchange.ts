@@ -305,6 +305,7 @@ export class ExchangeController {
       this.#env.host.error(`Unable to create ${path}, skipping edits.`);
       return false;
     }
+    if (await this.#env.ports.git.needToAdd(path)) await this.#env.ports.git.stageNewFile(full);
     this.save({ ...this.#state, files: { ...this.#state.files, editable: [...new Set([...this.#state.files.editable, full])] } });
     return true;
   }
