@@ -3776,10 +3776,23 @@
         "aider/coders/base_coder.py:329,360,1187-1196,2434-2448"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/core/exchange.ts",
+        "src/edit/feature.ts",
+        "src/edit/editblock.ts",
+        "src/feature.ts",
+        "src/edit/options.ts",
+        "src/edit/prompts/format.ts"
+      ],
+      "tests": [
+        "test/edit/shell-bind.test.ts::suggest-shell-commands defaults to true and --no-suggest-shell-commands disables it",
+        "test/edit/shell-bind.test.ts::disabling suggest-shell-commands swaps to the no-shell prompt text",
+        "test/edit/shell-bind.test.ts::suggest-shell-commands false skips the shell port even when the reply has bash fences"
+      ]
     },
     {
       "id": "edit.shell.forward-blocks",
@@ -3790,10 +3803,23 @@
         "aider/coders/base_coder.py:2434-2448"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/core/exchange.ts",
+        "src/edit/feature.ts",
+        "src/edit/editblock.ts",
+        "src/feature.ts"
+      ],
+      "tests": [
+        "test/edit/shell-bind.test.ts::a bare bash fence forwards one distinct block to the validation shell port",
+        "test/edit/shell-bind.test.ts::duplicate identical bash fences forward once",
+        "test/edit/shell-bind.test.ts::a SEARCH-bearing shell fence stays a file edit and does not reach the shell port",
+        "test/editblock-ports.test.ts::collects a bare bash fence as a suggested shell command",
+        "test/editblock-ports.test.ts::treats a shell fence with SEARCH as an edit not a command"
+      ]
     },
     {
       "id": "edit.commands.add-literal",

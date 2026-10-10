@@ -1,6 +1,6 @@
 import { type EditContext, type EditFormatName, type EditFormats, type Feature, isEditFormatName, registerEditFormat } from '../feature.ts';
 import { editCommands } from './commands.ts';
-import { applyEdits as applyEditBlocks, applyEditsDryRun as applyEditBlocksDryRun, type EditBlock, getEdits as getEditBlocks } from './editblock.ts';
+import { applyEdits as applyEditBlocks, applyEditsDryRun as applyEditBlocksDryRun, type ParsedBlock, pathEditsFromReply } from './editblock.ts';
 import { architectFormat, askFormat, contextFormat, defaultEditorFormat, editorDiffFencedFormat, editorDiffFormat, editorWholeFormat } from './modes.ts';
 import { editOptionList, editOptions } from './options.ts';
 import { applyEdits as applyPatchEdits, applyEditsDryRun as applyPatchEditsDryRun, type EditResult, getEdits as getPatchEdits, type PatchContext, editIntent as patchEditIntent } from './patch.ts';
@@ -40,10 +40,10 @@ function patchContext(context: EditContext): PatchContext {
 }
 
 const editBlockFormat = {
-  editIntent: (edit: EditBlock) => ({ kind: 'upsert' as const, path: edit[0] }),
-  getEdits: (content: string, context: EditContext) => getEditBlocks(content, editBlockContext(context)).edits,
-  applyEditsDryRun: (edits: readonly EditBlock[], context: EditContext) => applyEditBlocksDryRun(edits, editBlockContext(context)),
-  applyEdits: (edits: readonly EditBlock[], context: EditContext) => applyEditBlocks(edits, editBlockContext(context)),
+  editIntent: (edit: ParsedBlock) => (edit[0] === null ? null : { kind: 'upsert' as const, path: edit[0] }),
+  getEdits: (content: string, context: EditContext) => pathEditsFromReply(content, editBlockContext(context)),
+  applyEditsDryRun: (edits: readonly ParsedBlock[], context: EditContext) => applyEditBlocksDryRun(edits, editBlockContext(context)),
+  applyEdits: (edits: readonly ParsedBlock[], context: EditContext) => applyEditBlocks(edits, editBlockContext(context)),
 };
 
 const udiffFormat = {
@@ -62,14 +62,14 @@ export const wholeFileFormat = registerEditFormat<WholeFileEdit>({
   applyEdits,
 });
 
-export const diffFormat = registerEditFormat<EditBlock>({
+export const diffFormat = registerEditFormat<ParsedBlock>({
   name: 'diff',
   prompts: 'diff',
   ...editBlockFormat,
 });
 
 /** Same SEARCH/REPLACE apply path as `diff`; only the prompts differ. */
-export const diffFencedFormat = registerEditFormat<EditBlock>({
+export const diffFencedFormat = registerEditFormat<ParsedBlock>({
   name: 'diff-fenced',
   prompts: 'diff-fenced',
   ...editBlockFormat,

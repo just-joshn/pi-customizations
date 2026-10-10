@@ -74,6 +74,8 @@ export type PrepareToEdit = <E extends PathEdit>(candidates: readonly EditCandid
 /** The edits that survived permission, and the step that writes them. */
 export interface EditPlan {
   readonly targets: readonly (string | null)[];
+  /** Shell-command blocks surfaced as `PathEdit` with `path: null`. */
+  readonly shellCommands: readonly string[];
   apply(): Promise<void>;
 }
 
@@ -106,8 +108,10 @@ export function registerEditFormat<E extends PathEdit>(format: EditFormat<E>): R
           const prepared = await prepare(candidates, locked);
           const allowed = new Set([...context.inchatRelativeFiles, ...prepared.flatMap((candidate) => intentPaths(candidate.intent))].map(context.absRootPath));
           const applying = mutationContext(locked, allowed);
+          const shellCommands = prepared.flatMap((candidate) => (candidate.edit[0] === null && typeof candidate.edit[1] === 'string' ? [candidate.edit[1]] : []));
           return use({
             targets: prepared.map((candidate) => candidate.edit[0]),
+            shellCommands,
             apply: () =>
               format.applyEdits(
                 prepared.map((candidate) => candidate.edit),
@@ -187,10 +191,15 @@ export interface RepositoryContext {
 
 export type CheckOutcome = { readonly kind: 'disabled' } | { readonly kind: 'not-run' } | { readonly kind: 'passed' } | { readonly kind: 'failed'; readonly report: string } | { readonly kind: 'unavailable'; readonly reason: string };
 
+/** Suggested-shell forward result. Approve/run lives in the lint SAR; edit only forwards. */
+export type ShellForwardOutcome = { readonly kind: 'disabled' } | { readonly kind: 'ran'; readonly output?: string };
+
 /** The lint and test parts of the coder hub. */
 export interface Validation {
   lintEdited(paths: ReadonlySet<string | null>, signal?: AbortSignal): Promise<CheckOutcome>;
   testEdited(signal?: AbortSignal): Promise<CheckOutcome>;
+  /** Forward distinct suggested shell blocks. Disabled stub is a no-op. */
+  runSuggestedShell(commands: readonly string[], signal?: AbortSignal): Promise<ShellForwardOutcome>;
 }
 
 /** The Git port before the Git SAR lands: no repository, and every operation reports itself disabled. */
@@ -210,6 +219,7 @@ export const disabledRepositoryContext: RepositoryContext = { repoMap: async () 
 export const disabledValidation: Validation = {
   lintEdited: async () => ({ kind: 'disabled' }),
   testEdited: async () => ({ kind: 'disabled' }),
+  runSuggestedShell: async () => ({ kind: 'disabled' }),
 };
 
 export interface Ports {

@@ -136,6 +136,7 @@ export class ExchangeController {
     }
     const dialogue: DialogueFact[] = [];
     let prepared: readonly (string | null)[] = [];
+    let shellCommands: readonly string[] = [];
     let reflection: string | null = null;
     const context = this.editContext(reply.id, signal);
     const editorPhase = this.#state.phase.kind === 'editor' ? this.#state.phase : null;
@@ -156,6 +157,7 @@ export class ExchangeController {
         (edits, locked) => this.prepareToEdit(edits, locked),
         async (plan) => {
           prepared = plan.targets;
+          shellCommands = plan.shellCommands;
           this.trackPrepared(prepared);
           await this.applyPlan(plan, signal);
         },
@@ -176,7 +178,23 @@ export class ExchangeController {
     if (reflection !== null) return this.reflect(reflection, reply.id, dialogue);
     const lintReflection = await this.validateWritten(signal);
     if (lintReflection !== null) return this.reflect(lintReflection, reply.id, dialogue);
+    await this.forwardSuggestedShell(shellCommands, signal);
     return { dialogue, continue: false };
+  }
+
+  /** Aider `run_shell_commands`: when suggestions are on, forward each distinct block once. */
+  async forwardSuggestedShell(commands: readonly string[], signal?: AbortSignal): Promise<void> {
+    if (!this.#env.suggestShellCommands) return;
+    const done = new Set<string>();
+    const distinct: string[] = [];
+    for (const command of commands) {
+      if (done.has(command)) continue;
+      done.add(command);
+      distinct.push(command);
+    }
+    if (distinct.length === 0) return;
+    signal?.throwIfAborted();
+    await this.#env.ports.lint.runSuggestedShell(distinct, signal);
   }
 
   /** Context mode. Replace editable files from mentions; never apply edits. */

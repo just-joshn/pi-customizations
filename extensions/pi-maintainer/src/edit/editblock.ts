@@ -8,11 +8,20 @@ import { AttributeError, pyIndex } from '../support/pybuiltins.ts';
 import { splitlines, strip } from '../support/pystr.ts';
 import { type ChatFiles, getInchatRelativeFiles, getRelFname } from './coder-paths.ts';
 import { findSimilarLines, replaceMostSimilarChunk } from './editblock-match.ts';
-import { DEFAULT_FENCE, type EditBlock, type Fence, findOriginalUpdateBlocks, type ParsedBlock } from './editblock-parse.ts';
+import { DEFAULT_FENCE, type EditBlock, type Fence, findOriginalUpdateBlocks, type ParsedBlock, type ShellBlock } from './editblock-parse.ts';
 import { ValueError } from './errors.ts';
 import type { WorkingTree } from './working-tree.ts';
 
 export { DEFAULT_FENCE, type EditBlock, type Fence, type ParsedBlock, type ShellBlock } from './editblock-parse.ts';
+
+const isShellBlock = (edit: ParsedBlock): edit is ShellBlock => edit[0] === null;
+const isFileEdit = (edit: ParsedBlock): edit is EditBlock => edit[0] !== null;
+
+/** File edits plus shell fences as `PathEdit` with `path: null` for the edit pipeline. */
+export function pathEditsFromReply(reply: string, ctx: Pick<EditBlockContext, 'fence' | 'root' | 'absFnames'>): ParsedBlock[] {
+  const { edits, shellCommands } = getEdits(reply, ctx);
+  return [...edits, ...shellCommands.map((command): ShellBlock => [null, command])];
+}
 
 /** The `EditBlockCoder` attributes that its methods read. */
 export interface EditBlockContext extends ChatFiles {
@@ -165,17 +174,22 @@ async function failureReport(failed: readonly EditBlock[], passed: readonly Edit
 /**
  * `EditBlockCoder.apply_edits_dry_run`: resolves each edit against cumulative virtual results of
  * earlier blocks without writing, and returns the edits with the path the cross-file fallback chose.
+ * Shell blocks pass through unchanged and are never written.
  */
-export async function applyEditsDryRun(edits: readonly EditBlock[], ctx: EditBlockContext): Promise<EditBlock[]> {
-  return (await resolveEdits(edits, ctx, true)).updatedEdits;
+export async function applyEditsDryRun(edits: readonly ParsedBlock[], ctx: EditBlockContext): Promise<ParsedBlock[]> {
+  const shells = edits.filter(isShellBlock);
+  const files = edits.filter(isFileEdit);
+  return [...(await resolveEdits(files, ctx, true)).updatedEdits, ...shells];
 }
 
 /**
  * `EditBlockCoder.apply_edits`: writes each matching edit in order, then throws `ValueError`
  * with Aider's failure report when any block failed. Edits that matched stay written.
+ * Shell blocks are ignored (forwarded later via the validation port).
  */
-export async function applyEdits(edits: readonly EditBlock[], ctx: EditBlockContext): Promise<void> {
-  const { passed, failed } = await resolveEdits(edits, ctx, false);
+export async function applyEdits(edits: readonly ParsedBlock[], ctx: EditBlockContext): Promise<void> {
+  const files = edits.filter(isFileEdit);
+  const { passed, failed } = await resolveEdits(files, ctx, false);
   if (failed.length === 0) return;
   throw new ValueError(await failureReport(failed, passed, ctx));
 }

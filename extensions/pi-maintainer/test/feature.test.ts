@@ -67,6 +67,7 @@ test('disabled ports report disabled rather than success', async () => {
   expect(await disabledRepositoryContext.repoMap({ chatFiles: new Set(), otherFiles: new Set(), mentionedFnames: new Set(), mentionedIdents: new Set() })).toBe(null);
   expect(await disabledValidation.lintEdited(new Set(['a.py']))).toEqual({ kind: 'disabled' });
   expect(await disabledValidation.testEdited()).toEqual({ kind: 'disabled' });
+  expect(await disabledValidation.runSuggestedShell(['echo hi'])).toEqual({ kind: 'disabled' });
 });
 
 test('edit format names follow Aider coder edit formats', () => {
