@@ -1,0 +1,2969 @@
+[
+  {
+    "id": "find_context_core/empty-context-returns-start",
+    "op": "patch.find_context_core",
+    "args": {
+      "lines": ["a", "b"],
+      "context": [],
+      "start": 1
+    }
+  },
+  {
+    "id": "find_context_core/empty-context-past-end",
+    "op": "patch.find_context_core",
+    "args": {
+      "lines": ["a"],
+      "context": [],
+      "start": 5
+    }
+  },
+  {
+    "id": "find_context_core/exact-first-occurrence",
+    "op": "patch.find_context_core",
+    "args": {
+      "lines": ["x", "a", "b", "a", "b"],
+      "context": ["a", "b"],
+      "start": 0
+    }
+  },
+  {
+    "id": "find_context_core/exact-from-start",
+    "op": "patch.find_context_core",
+    "args": {
+      "lines": ["x", "a", "b", "a", "b"],
+      "context": ["a", "b"],
+      "start": 2
+    }
+  },
+  {
+    "id": "find_context_core/rstrip-fuzz-1",
+    "op": "patch.find_context_core",
+    "args": {
+      "lines": ["a  ", "b\t"],
+      "context": ["a", "b"],
+      "start": 0
+    }
+  },
+  {
+    "id": "find_context_core/rstrip-context-side",
+    "op": "patch.find_context_core",
+    "args": {
+      "lines": ["a"],
+      "context": ["a   "],
+      "start": 0
+    }
+  },
+  {
+    "id": "find_context_core/strip-fuzz-100",
+    "op": "patch.find_context_core",
+    "args": {
+      "lines": ["  a", "\tb"],
+      "context": ["a", "b"],
+      "start": 0
+    }
+  },
+  {
+    "id": "find_context_core/exact-beats-earlier-fuzzy",
+    "op": "patch.find_context_core",
+    "args": {
+      "lines": ["a ", "a"],
+      "context": ["a"],
+      "start": 0
+    }
+  },
+  {
+    "id": "find_context_core/rstrip-beats-earlier-strip",
+    "op": "patch.find_context_core",
+    "args": {
+      "lines": [" a", "a "],
+      "context": ["a"],
+      "start": 0
+    }
+  },
+  {
+    "id": "find_context_core/no-match",
+    "op": "patch.find_context_core",
+    "args": {
+      "lines": ["a"],
+      "context": ["b"],
+      "start": 0
+    }
+  },
+  {
+    "id": "find_context_core/context-longer-than-lines",
+    "op": "patch.find_context_core",
+    "args": {
+      "lines": ["a"],
+      "context": ["a", "b"],
+      "start": 0
+    }
+  },
+  {
+    "id": "find_context_core/start-past-match",
+    "op": "patch.find_context_core",
+    "args": {
+      "lines": ["a", "b"],
+      "context": ["a"],
+      "start": 1
+    }
+  },
+  {
+    "id": "find_context_core/empty-lines",
+    "op": "patch.find_context_core",
+    "args": {
+      "lines": [],
+      "context": ["a"],
+      "start": 0
+    }
+  },
+  {
+    "id": "find_context_core/internal-whitespace-kept",
+    "op": "patch.find_context_core",
+    "args": {
+      "lines": ["a  b"],
+      "context": ["a b"],
+      "start": 0
+    }
+  },
+  {
+    "id": "find_context_core/python-whitespace-stripped",
+    "op": "patch.find_context_core",
+    "args": {
+      "lines": ["\u00a0a\u3000", "\u001fb\u0085"],
+      "context": ["a", "b"],
+      "start": 0
+    }
+  },
+  {
+    "id": "find_context_core/bom-is-not-whitespace",
+    "op": "patch.find_context_core",
+    "args": {
+      "lines": ["\ufeffa"],
+      "context": ["a"],
+      "start": 0
+    }
+  },
+  {
+    "id": "find_context_core/zero-width-space-is-not-whitespace",
+    "op": "patch.find_context_core",
+    "args": {
+      "lines": ["\u200ba"],
+      "context": ["a"],
+      "start": 0
+    }
+  },
+  {
+    "id": "find_context_core/carriage-return-rstripped",
+    "op": "patch.find_context_core",
+    "args": {
+      "lines": ["a\r"],
+      "context": ["a"],
+      "start": 0
+    }
+  },
+  {
+    "id": "find_context_core/tabs-exact",
+    "op": "patch.find_context_core",
+    "args": {
+      "lines": ["\tx = 1"],
+      "context": ["\tx = 1"],
+      "start": 0
+    }
+  },
+  {
+    "id": "find_context_core/tab-against-spaces",
+    "op": "patch.find_context_core",
+    "args": {
+      "lines": ["\tx = 1"],
+      "context": ["    x = 1"],
+      "start": 0
+    }
+  },
+  {
+    "id": "find_context_core/non-bmp",
+    "op": "patch.find_context_core",
+    "args": {
+      "lines": ["😀 a", "𝒳"],
+      "context": ["𝒳"],
+      "start": 0
+    }
+  },
+  {
+    "id": "find_context_core/blank-context-lines",
+    "op": "patch.find_context_core",
+    "args": {
+      "lines": ["a", "", "b"],
+      "context": ["", "b"],
+      "start": 0
+    }
+  },
+  {
+    "id": "find_context_core/probe-exact-context",
+    "op": "patch.find_context_core",
+    "args": {
+      "lines": ["x = 1"],
+      "context": ["x = 1"],
+      "start": 0
+    }
+  },
+  {
+    "id": "find_context_core/probe-trimmed-context",
+    "op": "patch.find_context_core",
+    "args": {
+      "lines": ["    x = 1   "],
+      "context": ["x = 1"],
+      "start": 0
+    }
+  },
+  {
+    "id": "find_context/not-eof-searches-forward",
+    "op": "patch.find_context",
+    "args": {
+      "lines": ["a", "b", "a"],
+      "context": ["a"],
+      "start": 1,
+      "eof": false
+    }
+  },
+  {
+    "id": "find_context/eof-prefers-file-end",
+    "op": "patch.find_context",
+    "args": {
+      "lines": ["a", "b", "a"],
+      "context": ["a"],
+      "start": 0,
+      "eof": true
+    }
+  },
+  {
+    "id": "find_context/eof-fuzzy-at-end",
+    "op": "patch.find_context",
+    "args": {
+      "lines": ["a", "b", "a  "],
+      "context": ["a"],
+      "start": 0,
+      "eof": true
+    }
+  },
+  {
+    "id": "find_context/eof-falls-back-with-penalty",
+    "op": "patch.find_context",
+    "args": {
+      "lines": ["a", "b", "c"],
+      "context": ["a"],
+      "start": 0,
+      "eof": true
+    }
+  },
+  {
+    "id": "find_context/eof-fallback-fuzz-adds-penalty",
+    "op": "patch.find_context",
+    "args": {
+      "lines": [" a", "b", "c"],
+      "context": ["a"],
+      "start": 0,
+      "eof": true
+    }
+  },
+  {
+    "id": "find_context/eof-not-found-keeps-penalty",
+    "op": "patch.find_context",
+    "args": {
+      "lines": ["a"],
+      "context": ["z"],
+      "start": 0,
+      "eof": true
+    }
+  },
+  {
+    "id": "find_context/eof-context-longer-than-file",
+    "op": "patch.find_context",
+    "args": {
+      "lines": ["a"],
+      "context": ["a", "b"],
+      "start": 0,
+      "eof": true
+    }
+  },
+  {
+    "id": "find_context/eof-empty-context-at-end",
+    "op": "patch.find_context",
+    "args": {
+      "lines": ["a", "b"],
+      "context": [],
+      "start": 0,
+      "eof": true
+    }
+  },
+  {
+    "id": "find_context/eof-empty-file",
+    "op": "patch.find_context",
+    "args": {
+      "lines": [],
+      "context": [],
+      "start": 0,
+      "eof": true
+    }
+  },
+  {
+    "id": "find_context/eof-end-ignores-start",
+    "op": "patch.find_context",
+    "args": {
+      "lines": ["a", "b", "a"],
+      "context": ["a"],
+      "start": 3,
+      "eof": true
+    }
+  },
+  {
+    "id": "find_context/eof-fallback-respects-start",
+    "op": "patch.find_context",
+    "args": {
+      "lines": ["a", "x", "b"],
+      "context": ["a"],
+      "start": 1,
+      "eof": true
+    }
+  },
+  {
+    "id": "peek_next_section/context-delete-insert",
+    "op": "patch.peek_next_section",
+    "args": {
+      "lines": [" a", "-b", "+B", " c", "*** End Patch"],
+      "index": 0
+    }
+  },
+  {
+    "id": "peek_next_section/two-chunks",
+    "op": "patch.peek_next_section",
+    "args": {
+      "lines": [" a", "-b", " c", "+d", " e"],
+      "index": 0
+    }
+  },
+  {
+    "id": "peek_next_section/interleaved-changes-one-chunk",
+    "op": "patch.peek_next_section",
+    "args": {
+      "lines": ["-a", "+A", "-b", " c"],
+      "index": 0
+    }
+  },
+  {
+    "id": "peek_next_section/blank-line-is-context",
+    "op": "patch.peek_next_section",
+    "args": {
+      "lines": [" a", "", "-b"],
+      "index": 0
+    }
+  },
+  {
+    "id": "peek_next_section/whitespace-line-becomes-empty",
+    "op": "patch.peek_next_section",
+    "args": {
+      "lines": ["\t", "-b"],
+      "index": 0
+    }
+  },
+  {
+    "id": "peek_next_section/nbsp-line-becomes-empty",
+    "op": "patch.peek_next_section",
+    "args": {
+      "lines": ["\u00a0", "+b"],
+      "index": 0
+    }
+  },
+  {
+    "id": "peek_next_section/space-line-keeps-rest",
+    "op": "patch.peek_next_section",
+    "args": {
+      "lines": ["   ", "-b"],
+      "index": 0
+    }
+  },
+  {
+    "id": "peek_next_section/invalid-prefix",
+    "op": "patch.peek_next_section",
+    "args": {
+      "lines": [" a", "oops"],
+      "index": 0
+    }
+  },
+  {
+    "id": "peek_next_section/invalid-star-line",
+    "op": "patch.peek_next_section",
+    "args": {
+      "lines": [" a", "*** Move to: x"],
+      "index": 0
+    }
+  },
+  {
+    "id": "peek_next_section/bare-stars-terminate",
+    "op": "patch.peek_next_section",
+    "args": {
+      "lines": [" a", "***", " b"],
+      "index": 0
+    }
+  },
+  {
+    "id": "peek_next_section/eof-marker",
+    "op": "patch.peek_next_section",
+    "args": {
+      "lines": [" a", "+b", "*** End of File", "*** End Patch"],
+      "index": 0
+    }
+  },
+  {
+    "id": "peek_next_section/eof-marker-trailing-space",
+    "op": "patch.peek_next_section",
+    "args": {
+      "lines": [" a", "*** End of File "],
+      "index": 0
+    }
+  },
+  {
+    "id": "peek_next_section/empty-section",
+    "op": "patch.peek_next_section",
+    "args": {
+      "lines": ["*** End Patch"],
+      "index": 0
+    }
+  },
+  {
+    "id": "peek_next_section/eof-only",
+    "op": "patch.peek_next_section",
+    "args": {
+      "lines": ["*** End of File"],
+      "index": 0
+    }
+  },
+  {
+    "id": "peek_next_section/scope-terminates",
+    "op": "patch.peek_next_section",
+    "args": {
+      "lines": [" a", "@@ def f", " b"],
+      "index": 0
+    }
+  },
+  {
+    "id": "peek_next_section/header-without-space-terminates",
+    "op": "patch.peek_next_section",
+    "args": {
+      "lines": [" a", "*** Delete File:x"],
+      "index": 0
+    }
+  },
+  {
+    "id": "peek_next_section/add-header-terminates",
+    "op": "patch.peek_next_section",
+    "args": {
+      "lines": ["-a", "*** Add File: b"],
+      "index": 0
+    }
+  },
+  {
+    "id": "peek_next_section/insert-only",
+    "op": "patch.peek_next_section",
+    "args": {
+      "lines": ["+a", "+b"],
+      "index": 0
+    }
+  },
+  {
+    "id": "peek_next_section/runs-to-end",
+    "op": "patch.peek_next_section",
+    "args": {
+      "lines": [" a", " b"],
+      "index": 0
+    }
+  },
+  {
+    "id": "peek_next_section/carriage-returns-normalized",
+    "op": "patch.peek_next_section",
+    "args": {
+      "lines": [" a\r", "*** End of File\r"],
+      "index": 0
+    }
+  },
+  {
+    "id": "peek_next_section/starts-mid-list",
+    "op": "patch.peek_next_section",
+    "args": {
+      "lines": ["x", "y", " a", "-b"],
+      "index": 2
+    }
+  },
+  {
+    "id": "peek_next_section/plus-only-line",
+    "op": "patch.peek_next_section",
+    "args": {
+      "lines": ["+"],
+      "index": 0
+    }
+  },
+  {
+    "id": "peek_next_section/double-minus",
+    "op": "patch.peek_next_section",
+    "args": {
+      "lines": ["--x"],
+      "index": 0
+    }
+  },
+  {
+    "id": "peek_next_section/tabs-non-bmp",
+    "op": "patch.peek_next_section",
+    "args": {
+      "lines": [" \t😀", "-𝒳", "+𝒴"],
+      "index": 0
+    }
+  },
+  {
+    "id": "peek_next_section/past-end",
+    "op": "patch.peek_next_section",
+    "args": {
+      "lines": [" a"],
+      "index": 1
+    }
+  },
+  {
+    "id": "identify_files_needed/update-and-delete",
+    "op": "patch.identify_files_needed",
+    "args": {
+      "text": "*** Begin Patch\n*** Update File: a.py\n*** Delete File: b.py\n*** Add File: c.py\n+x\n*** End Patch\n"
+    }
+  },
+  {
+    "id": "identify_files_needed/deduplicates",
+    "op": "patch.identify_files_needed",
+    "args": {
+      "text": "*** Begin Patch\n*** Update File: a.py\n x\n*** Update File: a.py\n y\n*** End Patch\n"
+    }
+  },
+  {
+    "id": "identify_files_needed/strips-paths",
+    "op": "patch.identify_files_needed",
+    "args": {
+      "text": "*** Update File:   a.py  \n"
+    }
+  },
+  {
+    "id": "identify_files_needed/requires-space-after-colon",
+    "op": "patch.identify_files_needed",
+    "args": {
+      "text": "*** Update File:a.py\n*** Delete File:b.py\n"
+    }
+  },
+  {
+    "id": "identify_files_needed/reads-after-end-patch",
+    "op": "patch.identify_files_needed",
+    "args": {
+      "text": "*** Begin Patch\n*** Delete File: a.py\n*** End Patch\n*** Delete File: z.py\n"
+    }
+  },
+  {
+    "id": "identify_files_needed/crlf",
+    "op": "patch.identify_files_needed",
+    "args": {
+      "text": "*** Update File: a.py\r\n*** Delete File: b.py\r\n"
+    }
+  },
+  {
+    "id": "identify_files_needed/prefixed-line-ignored",
+    "op": "patch.identify_files_needed",
+    "args": {
+      "text": "+*** Update File: a.py\n *** Delete File: b.py\n"
+    }
+  },
+  {
+    "id": "identify_files_needed/blank-path",
+    "op": "patch.identify_files_needed",
+    "args": {
+      "text": "*** Delete File:   \n"
+    }
+  },
+  {
+    "id": "identify_files_needed/unicode-line-separator",
+    "op": "patch.identify_files_needed",
+    "args": {
+      "text": "*** Update File: a.py\u2028*** Delete File: b.py"
+    }
+  },
+  {
+    "id": "identify_files_needed/empty",
+    "op": "patch.identify_files_needed",
+    "args": {
+      "text": ""
+    }
+  },
+  {
+    "id": "parse_patch_text/update-single-chunk",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Update File: a.py", "@@", " x", "-y", "+Y", "*** End Patch"],
+      "start_index": 0,
+      "current_files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/start-index-skips-begin",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Begin Patch", "*** Update File: a.py", " x", "-y", "+Y"],
+      "start_index": 1,
+      "current_files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/fuzz-1-and-100-accumulate",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Update File: a.py", " b", "+B", "@@", " c", "-d"],
+      "start_index": 0,
+      "current_files": {
+        "a.py": "a\n  b\nc  \nd\n"
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/eof-penalty-accumulates",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Update File: a.py", " a", "+x", "*** End of File"],
+      "start_index": 0,
+      "current_files": {
+        "a.py": "a\nb\nc\n"
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/eof-at-end-no-penalty",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Update File: a.py", " c", "+x", "*** End of File"],
+      "start_index": 0,
+      "current_files": {
+        "a.py": "a\nb\nc\n"
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/fuzz-across-files",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Update File: a.py", " a", "+A", "*** Update File: b.py", " b", "+B"],
+      "start_index": 0,
+      "current_files": {
+        "a.py": "a \n",
+        "b.py": " b\n"
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/scope-advances-search",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Update File: a.py", "@@ def g():", "-    return 1", "+    return 2"],
+      "start_index": 0,
+      "current_files": {
+        "a.py": "def f():\n    return 1\ndef g():\n    return 1\n"
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/scope-ignores-indentation-without-fuzz",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Update File: a.py", "@@     def f(self):", "-        pass", "+        return"],
+      "start_index": 0,
+      "current_files": {
+        "a.py": "class A:\n    def f(self):\n        pass\n"
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/scope-lines-consecutive",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Update File: a.py", "@@ class A:", "@@ def f(self):", "-        pass", "+        return"],
+      "start_index": 0,
+      "current_files": {
+        "a.py": "class A:\n    def f(self):\n        pass\n"
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/scope-lines-not-consecutive",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Update File: a.py", "@@ class A:", "@@ def f(self):", "-        pass"],
+      "start_index": 0,
+      "current_files": {
+        "a.py": "class A:\n    x = 1\n    def f(self):\n        pass\n"
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/scope-not-found",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Update File: a.py", "@@ def missing():", " x"],
+      "start_index": 0,
+      "current_files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/scope-search-starts-after-previous-section",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Update File: a.py", "@@ def g():", "-    return 1", "+    return 2", "@@ def f():", " x"],
+      "start_index": 0,
+      "current_files": {
+        "a.py": "def f():\n    return 1\ndef g():\n    return 1\n"
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/empty-scope-lines-ignored",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Update File: a.py", "@@", "@@   ", " y", "-z"],
+      "start_index": 0,
+      "current_files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/context-not-found",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Update File: a.py", " nope", "-x"],
+      "start_index": 0,
+      "current_files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/eof-context-not-found",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Update File: a.py", " nope", "*** End of File"],
+      "start_index": 0,
+      "current_files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/context-not-found-after-scope",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Update File: a.py", "@@ def g():", " nope"],
+      "start_index": 0,
+      "current_files": {
+        "a.py": "def f():\n    return 1\ndef g():\n    return 1\n"
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/sections-search-forward",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Update File: a.py", " x", "-y", "+Y", "@@", " x", "-y", "+Z"],
+      "start_index": 0,
+      "current_files": {
+        "a.py": "x\ny\nx\ny\n"
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/move-to",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Update File: a.py", "*** Move to: b/c.py", "@@", " x", "+w"],
+      "start_index": 0,
+      "current_files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/move-missing-path",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Update File: a.py", "*** Move to:   "],
+      "start_index": 0,
+      "current_files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/move-without-space-invalid",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Update File: a.py", "*** Move to:b.py", " x"],
+      "start_index": 0,
+      "current_files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/move-checked-before-file-content",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Update File: a.py", "*** Move to: "],
+      "start_index": 0,
+      "current_files": {}
+    }
+  },
+  {
+    "id": "parse_patch_text/update-missing-path",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Update File:   ", " x"],
+      "start_index": 0,
+      "current_files": {
+        "": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/update-missing-file-content",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Update File: a.py", " x"],
+      "start_index": 0,
+      "current_files": {}
+    }
+  },
+  {
+    "id": "parse_patch_text/update-without-sections",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Update File: a.py", "*** End Patch"],
+      "start_index": 0,
+      "current_files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/update-scope-then-end",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Update File: a.py", "@@", "*** End Patch"],
+      "start_index": 0,
+      "current_files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/update-bare-stars",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Update File: a.py", " x", "***"],
+      "start_index": 0,
+      "current_files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/update-eof-marker-trailing-space",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Update File: a.py", " z", "*** End of File "],
+      "start_index": 0,
+      "current_files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/update-scope-at-end-of-lines",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Update File: a.py", "@@ x"],
+      "start_index": 0,
+      "current_files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/insert-without-context",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Update File: a.py", "@@", "+top"],
+      "start_index": 0,
+      "current_files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/insert-at-eof",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Update File: a.py", "@@", "+tail", "*** End of File"],
+      "start_index": 0,
+      "current_files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/repeated-update-merges",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Update File: a.py", " x", "-y", "+Y", "*** Delete File: b.py", "*** Update File: a.py", " y", "-z", "+Z"],
+      "start_index": 0,
+      "current_files": {
+        "a.py": "x\ny\nz\n",
+        "b.py": ""
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/repeated-update-each-searches-from-top",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Update File: a.py", " x", "-y", "+Y", "*** Update File: a.py", " x", "-y", "+Z"],
+      "start_index": 0,
+      "current_files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/repeated-update-keeps-move",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Update File: a.py", "*** Move to: b.py", " x", "*** Update File: a.py", " y"],
+      "start_index": 0,
+      "current_files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/repeated-update-same-move",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Update File: a.py", "*** Move to: b.py", " x", "*** Update File: a.py", "*** Move to: b.py", " y"],
+      "start_index": 0,
+      "current_files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/repeated-update-adds-move",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Update File: a.py", " x", "*** Update File: a.py", "*** Move to: c.py", " y"],
+      "start_index": 0,
+      "current_files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/repeated-update-conflicting-move",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Update File: a.py", "*** Move to: b.py", " x", "*** Update File: a.py", "*** Move to: c.py", " y"],
+      "start_index": 0,
+      "current_files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/repeated-update-section-error-first",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Update File: a.py", "*** Move to: b.py", " x", "*** Update File: a.py", "*** Move to: c.py", " nope"],
+      "start_index": 0,
+      "current_files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/update-after-delete-conflicts",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Delete File: a.py", "*** Update File: a.py", " x"],
+      "start_index": 0,
+      "current_files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/update-after-add-conflicts",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Add File: a.py", "+x", "*** Update File: a.py", " x"],
+      "start_index": 0,
+      "current_files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/delete",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Delete File: a.py"],
+      "start_index": 0,
+      "current_files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/duplicate-delete-warns",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Delete File: a.py", "*** Delete File:  a.py "],
+      "start_index": 0,
+      "current_files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/duplicate-delete-then-error",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Delete File: a.py", "*** Delete File: a.py", "prose"],
+      "start_index": 0,
+      "current_files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/delete-after-update-conflicts",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Update File: a.py", " x", "*** Delete File: a.py"],
+      "start_index": 0,
+      "current_files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/delete-after-add-conflicts",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Add File: a.py", "+x", "*** Delete File: a.py"],
+      "start_index": 0,
+      "current_files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/delete-missing-path",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Delete File:  "],
+      "start_index": 0,
+      "current_files": {
+        "": ""
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/delete-file-not-found",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Delete File: a.py"],
+      "start_index": 0,
+      "current_files": {}
+    }
+  },
+  {
+    "id": "parse_patch_text/add",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Add File: n.py", "+a", "+b"],
+      "start_index": 0,
+      "current_files": {}
+    }
+  },
+  {
+    "id": "parse_patch_text/add-bare-blank-lines",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Add File: n.py", "+a", "", "  \t", "+b", "+"],
+      "start_index": 0,
+      "current_files": {}
+    }
+  },
+  {
+    "id": "parse_patch_text/add-empty",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Add File: n.py", "*** End Patch"],
+      "start_index": 0,
+      "current_files": {}
+    }
+  },
+  {
+    "id": "parse_patch_text/add-missing-plus",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Add File: n.py", "+a", "oops"],
+      "start_index": 0,
+      "current_files": {}
+    }
+  },
+  {
+    "id": "parse_patch_text/add-eof-marker-invalid",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Add File: n.py", "+a", "*** End of File"],
+      "start_index": 0,
+      "current_files": {}
+    }
+  },
+  {
+    "id": "parse_patch_text/add-scope-line-invalid",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Add File: n.py", "@@"],
+      "start_index": 0,
+      "current_files": {}
+    }
+  },
+  {
+    "id": "parse_patch_text/add-missing-path",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Add File:  "],
+      "start_index": 0,
+      "current_files": {}
+    }
+  },
+  {
+    "id": "parse_patch_text/add-duplicate",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Add File: n.py", "+a", "*** Add File: n.py", "+b"],
+      "start_index": 0,
+      "current_files": {}
+    }
+  },
+  {
+    "id": "parse_patch_text/add-after-delete-duplicate",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Delete File: a.py", "*** Add File: a.py", "+b"],
+      "start_index": 0,
+      "current_files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/add-after-update-duplicate",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Update File: a.py", " x", "*** Add File: a.py", "+b"],
+      "start_index": 0,
+      "current_files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/add-tabs-non-bmp",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Add File: n.py", "+\t😀", "+𝒳"],
+      "start_index": 0,
+      "current_files": {}
+    }
+  },
+  {
+    "id": "parse_patch_text/blank-lines-between-actions",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["", "*** Delete File: a.py", "   ", "*** Add File: n.py", "+x"],
+      "start_index": 0,
+      "current_files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/unknown-line",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["prose"],
+      "start_index": 0,
+      "current_files": {}
+    }
+  },
+  {
+    "id": "parse_patch_text/header-without-space-misplaced",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Delete File:a.py"],
+      "start_index": 0,
+      "current_files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/eof-marker-misplaced",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Delete File: a.py", "*** End of File"],
+      "start_index": 0,
+      "current_files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/stops-at-end-patch",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Delete File: a.py", "*** End Patch", "garbage"],
+      "start_index": 0,
+      "current_files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/end-patch-trailing-space-misplaced",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Delete File: a.py", "*** End Patch "],
+      "start_index": 0,
+      "current_files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/missing-end-patch",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Add File: n.py", "+x"],
+      "start_index": 0,
+      "current_files": {}
+    }
+  },
+  {
+    "id": "parse_patch_text/empty-lines",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": [],
+      "start_index": 0,
+      "current_files": {}
+    }
+  },
+  {
+    "id": "parse_patch_text/form-feed-splits-file-lines",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Update File: a.py", " b", "-c", "+C"],
+      "start_index": 0,
+      "current_files": {
+        "a.py": "a\fb\nc\n"
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/crlf-file-content",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Update File: a.py", " a", "-b", "+B"],
+      "start_index": 0,
+      "current_files": {
+        "a.py": "a\r\nb\r\n"
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/empty-file-insert",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Update File: e.txt", "@@", "+first"],
+      "start_index": 0,
+      "current_files": {
+        "e.txt": ""
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/empty-file-context-not-found",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Update File: e.txt", " x"],
+      "start_index": 0,
+      "current_files": {
+        "e.txt": ""
+      }
+    }
+  },
+  {
+    "id": "parse_patch_text/blank-patch-line-matches-blank-file-line",
+    "op": "patch.parse_patch_text",
+    "args": {
+      "lines": ["*** Update File: a.py", " a", "", "-b"],
+      "start_index": 0,
+      "current_files": {
+        "a.py": "a\n\nb\n"
+      }
+    }
+  },
+  {
+    "id": "get_edits/empty-reply",
+    "op": "patch.get_edits",
+    "args": {
+      "reply": "",
+      "files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "get_edits/whitespace-reply",
+    "op": "patch.get_edits",
+    "args": {
+      "reply": "  \n\t\n",
+      "files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "get_edits/not-patch-like",
+    "op": "patch.get_edits",
+    "args": {
+      "reply": "I changed nothing.\n",
+      "files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "get_edits/begin-only",
+    "op": "patch.get_edits",
+    "args": {
+      "reply": "*** Begin Patch\n",
+      "files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "get_edits/full-sentinels",
+    "op": "patch.get_edits",
+    "args": {
+      "reply": "*** Begin Patch\n*** Update File: a.py\n@@\n x\n-y\n+Y\n*** End Patch\n",
+      "files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "get_edits/missing-sentinels",
+    "op": "patch.get_edits",
+    "args": {
+      "reply": "*** Update File: a.py\n@@\n-y\n+Y\n",
+      "files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "get_edits/missing-end-sentinel",
+    "op": "patch.get_edits",
+    "args": {
+      "reply": "*** Begin Patch\n*** Update File: a.py\n x\n-y\n+Y\n",
+      "files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "get_edits/begin-with-suffix",
+    "op": "patch.get_edits",
+    "args": {
+      "reply": "*** Begin Patch now\n*** Delete File: a.py\n",
+      "files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "get_edits/indented-begin",
+    "op": "patch.get_edits",
+    "args": {
+      "reply": "  *** Begin Patch\n*** Delete File: a.py\n*** End Patch\n",
+      "files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "get_edits/prose-before-patch",
+    "op": "patch.get_edits",
+    "args": {
+      "reply": "Here is the change:\n*** Begin Patch\n*** Update File: a.py\n x\n-y\n+Y\n*** End Patch\n",
+      "files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "get_edits/fenced-patch",
+    "op": "patch.get_edits",
+    "args": {
+      "reply": "```\n*** Begin Patch\n*** Delete File: a.py\n*** End Patch\n```\n",
+      "files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "get_edits/leading-blank-line",
+    "op": "patch.get_edits",
+    "args": {
+      "reply": "\n*** Begin Patch\n*** Delete File: a.py\n*** End Patch\n",
+      "files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "get_edits/prose-after-end-ignored",
+    "op": "patch.get_edits",
+    "args": {
+      "reply": "*** Begin Patch\n*** Delete File: a.py\n*** End Patch\nDone!\n",
+      "files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "get_edits/header-after-end-still-read",
+    "op": "patch.get_edits",
+    "args": {
+      "reply": "*** Begin Patch\n*** Delete File: a.py\n*** End Patch\n*** Update File: z.py\n",
+      "files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "get_edits/udiff-reply-is-patch-like",
+    "op": "patch.get_edits",
+    "args": {
+      "reply": "--- a.py\n+++ a.py\n@@ -1 +1 @@\n-x\n+X\n",
+      "files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "get_edits/missing-update-file",
+    "op": "patch.get_edits",
+    "args": {
+      "reply": "*** Begin Patch\n*** Update File: missing.py\n x\n*** End Patch\n",
+      "files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "get_edits/missing-delete-file",
+    "op": "patch.get_edits",
+    "args": {
+      "reply": "*** Begin Patch\n*** Delete File: missing.py\n*** End Patch\n",
+      "files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "get_edits/update-path-is-directory",
+    "op": "patch.get_edits",
+    "args": {
+      "reply": "*** Begin Patch\n*** Update File: pkg\n x\n*** End Patch\n",
+      "files": {
+        "a.py": "x\ny\nz\n"
+      },
+      "dirs": ["pkg"]
+    }
+  },
+  {
+    "id": "get_edits/blank-update-path",
+    "op": "patch.get_edits",
+    "args": {
+      "reply": "*** Begin Patch\n*** Update File:   \n x\n*** End Patch\n",
+      "files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "get_edits/read-error-before-parse-error",
+    "op": "patch.get_edits",
+    "args": {
+      "reply": "*** Begin Patch\n*** Update File: missing.py\noops\n*** End Patch\n",
+      "files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "get_edits/invalid-line-prefix",
+    "op": "patch.get_edits",
+    "args": {
+      "reply": "*** Begin Patch\n*** Update File: a.py\n x\noops\n*** End Patch\n",
+      "files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "get_edits/invalid-add-line",
+    "op": "patch.get_edits",
+    "args": {
+      "reply": "*** Begin Patch\n*** Add File: n.py\n+a\nb\n*** End Patch\n",
+      "files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "get_edits/merged-update-blocks",
+    "op": "patch.get_edits",
+    "args": {
+      "reply": "*** Begin Patch\n*** Update File: a.py\n x\n-y\n+Y\n*** Update File: a.py\n y\n-z\n+Z\n*** End Patch\n",
+      "files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "get_edits/duplicate-delete-warning",
+    "op": "patch.get_edits",
+    "args": {
+      "reply": "*** Begin Patch\n*** Delete File: a.py\n*** Delete File: a.py\n*** End Patch\n",
+      "files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "get_edits/conflicting-actions",
+    "op": "patch.get_edits",
+    "args": {
+      "reply": "*** Begin Patch\n*** Update File: a.py\n x\n*** Delete File: a.py\n*** End Patch\n",
+      "files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "get_edits/add-is-not-read",
+    "op": "patch.get_edits",
+    "args": {
+      "reply": "*** Begin Patch\n*** Add File: new/n.py\n+hello\n*** End Patch\n",
+      "files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "get_edits/crlf-reply-and-file",
+    "op": "patch.get_edits",
+    "args": {
+      "reply": "*** Begin Patch\r\n*** Update File: w.txt\r\n a\r\n-b\r\n+B\r\n*** End Patch\r\n",
+      "files": {
+        "w.txt": "a\r\nb\r\nc\r\n"
+      }
+    }
+  },
+  {
+    "id": "get_edits/tabs",
+    "op": "patch.get_edits",
+    "args": {
+      "reply": "*** Begin Patch\n*** Update File: t.go\n@@ func f() {\n-\treturn 1\n+\treturn 2\n*** End Patch\n",
+      "files": {
+        "t.go": "func f() {\n\treturn 1\n}\n"
+      }
+    }
+  },
+  {
+    "id": "get_edits/non-bmp",
+    "op": "patch.get_edits",
+    "args": {
+      "reply": "*** Begin Patch\n*** Update File: u.txt\n 😀\n-𝒳\n+𝒴\n*** End Patch\n",
+      "files": {
+        "u.txt": "😀\n𝒳\n"
+      }
+    }
+  },
+  {
+    "id": "get_edits/empty-file-insert",
+    "op": "patch.get_edits",
+    "args": {
+      "reply": "*** Begin Patch\n*** Update File: e.txt\n@@\n+first\n*** End Patch\n",
+      "files": {
+        "e.txt": ""
+      }
+    }
+  },
+  {
+    "id": "get_edits/form-feed-file",
+    "op": "patch.get_edits",
+    "args": {
+      "reply": "*** Begin Patch\n*** Update File: f.txt\n b\n-c\n+C\n*** End Patch\n",
+      "files": {
+        "f.txt": "a\fb\nc\n"
+      }
+    }
+  },
+  {
+    "id": "get_edits/unicode-line-separator-reply",
+    "op": "patch.get_edits",
+    "args": {
+      "reply": "*** Begin Patch\u2028*** Delete File: a.py\u2028*** End Patch",
+      "files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "get_edits/fuzzy-context-hidden",
+    "op": "patch.get_edits",
+    "args": {
+      "reply": "*** Begin Patch\n*** Update File: a.py\n x  \n- y\n+Y\n*** End Patch\n",
+      "files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "apply_edits/add-appends-newline",
+    "op": "patch.apply_edits",
+    "args": {
+      "edits": [
+        [
+          "n.py",
+          {
+            "type": "Add",
+            "path": "n.py",
+            "new_content": "x"
+          }
+        ]
+      ]
+    }
+  },
+  {
+    "id": "apply_edits/add-keeps-trailing-newline",
+    "op": "patch.apply_edits",
+    "args": {
+      "edits": [
+        [
+          "n.py",
+          {
+            "type": "Add",
+            "path": "n.py",
+            "new_content": "x\n"
+          }
+        ]
+      ]
+    }
+  },
+  {
+    "id": "apply_edits/add-empty-content",
+    "op": "patch.apply_edits",
+    "args": {
+      "edits": [
+        [
+          "n.py",
+          {
+            "type": "Add",
+            "path": "n.py",
+            "new_content": ""
+          }
+        ]
+      ]
+    }
+  },
+  {
+    "id": "apply_edits/add-creates-parents",
+    "op": "patch.apply_edits",
+    "args": {
+      "edits": [
+        [
+          "a/b/n.py",
+          {
+            "type": "Add",
+            "path": "a/b/n.py",
+            "new_content": "x"
+          }
+        ]
+      ]
+    }
+  },
+  {
+    "id": "apply_edits/add-existing-file",
+    "op": "patch.apply_edits",
+    "args": {
+      "edits": [
+        [
+          "n.py",
+          {
+            "type": "Add",
+            "path": "n.py",
+            "new_content": "x"
+          }
+        ]
+      ],
+      "files": {
+        "n.py": ""
+      }
+    }
+  },
+  {
+    "id": "apply_edits/add-preserves-carriage-return",
+    "op": "patch.apply_edits",
+    "args": {
+      "edits": [
+        [
+          "n.py",
+          {
+            "type": "Add",
+            "path": "n.py",
+            "new_content": "a\r\nb"
+          }
+        ]
+      ]
+    }
+  },
+  {
+    "id": "apply_edits/add-tabs-non-bmp",
+    "op": "patch.apply_edits",
+    "args": {
+      "edits": [
+        [
+          "n.py",
+          {
+            "type": "Add",
+            "path": "n.py",
+            "new_content": "\t😀\n𝒳"
+          }
+        ]
+      ]
+    }
+  },
+  {
+    "id": "apply_edits/delete-removes-file",
+    "op": "patch.apply_edits",
+    "args": {
+      "edits": [
+        [
+          "a.py",
+          {
+            "type": "Delete",
+            "path": "a.py"
+          }
+        ]
+      ],
+      "files": {
+        "a.py": "x\n",
+        "b.py": "y\n"
+      }
+    }
+  },
+  {
+    "id": "apply_edits/delete-missing-warns",
+    "op": "patch.apply_edits",
+    "args": {
+      "edits": [
+        [
+          "a.py",
+          {
+            "type": "Delete",
+            "path": "a.py"
+          }
+        ]
+      ]
+    }
+  },
+  {
+    "id": "apply_edits/delete-twice-warns",
+    "op": "patch.apply_edits",
+    "args": {
+      "edits": [
+        [
+          "a.py",
+          {
+            "type": "Delete",
+            "path": "a.py"
+          }
+        ],
+        [
+          "a.py",
+          {
+            "type": "Delete",
+            "path": "a.py"
+          }
+        ]
+      ],
+      "files": {
+        "a.py": "x\n"
+      }
+    }
+  },
+  {
+    "id": "apply_edits/update-rewrites",
+    "op": "patch.apply_edits",
+    "args": {
+      "edits": [
+        [
+          "a.py",
+          {
+            "type": "Update",
+            "path": "a.py",
+            "chunks": [
+              {
+                "orig_index": 1,
+                "del_lines": ["y"],
+                "ins_lines": ["Y"]
+              }
+            ]
+          }
+        ]
+      ],
+      "files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "apply_edits/update-missing-file",
+    "op": "patch.apply_edits",
+    "args": {
+      "edits": [
+        [
+          "a.py",
+          {
+            "type": "Update",
+            "path": "a.py",
+            "chunks": []
+          }
+        ]
+      ]
+    }
+  },
+  {
+    "id": "apply_edits/update-unreadable-directory",
+    "op": "patch.apply_edits",
+    "args": {
+      "edits": [
+        [
+          "pkg",
+          {
+            "type": "Update",
+            "path": "pkg",
+            "chunks": []
+          }
+        ]
+      ],
+      "dirs": ["pkg"]
+    }
+  },
+  {
+    "id": "apply_edits/update-without-chunks-normalizes",
+    "op": "patch.apply_edits",
+    "args": {
+      "edits": [
+        [
+          "a.py",
+          {
+            "type": "Update",
+            "path": "a.py",
+            "chunks": []
+          }
+        ]
+      ],
+      "files": {
+        "a.py": "a\r\nb"
+      }
+    }
+  },
+  {
+    "id": "apply_edits/update-empty-file-without-chunks",
+    "op": "patch.apply_edits",
+    "args": {
+      "edits": [
+        [
+          "e.txt",
+          {
+            "type": "Update",
+            "path": "e.txt",
+            "chunks": []
+          }
+        ]
+      ],
+      "files": {
+        "e.txt": ""
+      }
+    }
+  },
+  {
+    "id": "apply_edits/update-blank-file-without-chunks",
+    "op": "patch.apply_edits",
+    "args": {
+      "edits": [
+        [
+          "e.txt",
+          {
+            "type": "Update",
+            "path": "e.txt",
+            "chunks": []
+          }
+        ]
+      ],
+      "files": {
+        "e.txt": "\n"
+      }
+    }
+  },
+  {
+    "id": "apply_edits/update-deletes-every-line",
+    "op": "patch.apply_edits",
+    "args": {
+      "edits": [
+        [
+          "a.py",
+          {
+            "type": "Update",
+            "path": "a.py",
+            "chunks": [
+              {
+                "orig_index": 0,
+                "del_lines": ["a"],
+                "ins_lines": []
+              }
+            ]
+          }
+        ]
+      ],
+      "files": {
+        "a.py": "a\n"
+      }
+    }
+  },
+  {
+    "id": "apply_edits/update-overlapping-chunks",
+    "op": "patch.apply_edits",
+    "args": {
+      "edits": [
+        [
+          "a.py",
+          {
+            "type": "Update",
+            "path": "a.py",
+            "chunks": [
+              {
+                "orig_index": 0,
+                "del_lines": ["a"],
+                "ins_lines": ["A"]
+              },
+              {
+                "orig_index": 0,
+                "del_lines": ["a"],
+                "ins_lines": ["B"]
+              }
+            ]
+          }
+        ]
+      ],
+      "files": {
+        "a.py": "a\nb\n"
+      }
+    }
+  },
+  {
+    "id": "apply_edits/update-overlap-inside-deletion",
+    "op": "patch.apply_edits",
+    "args": {
+      "edits": [
+        [
+          "a.py",
+          {
+            "type": "Update",
+            "path": "a.py",
+            "chunks": [
+              {
+                "orig_index": 0,
+                "del_lines": ["a", "b"],
+                "ins_lines": []
+              },
+              {
+                "orig_index": 1,
+                "del_lines": [],
+                "ins_lines": ["x"]
+              }
+            ]
+          }
+        ]
+      ],
+      "files": {
+        "a.py": "a\nb\nc\n"
+      }
+    }
+  },
+  {
+    "id": "apply_edits/update-sorts-chunks",
+    "op": "patch.apply_edits",
+    "args": {
+      "edits": [
+        [
+          "a.py",
+          {
+            "type": "Update",
+            "path": "a.py",
+            "chunks": [
+              {
+                "orig_index": 2,
+                "del_lines": ["c"],
+                "ins_lines": ["C"]
+              },
+              {
+                "orig_index": 0,
+                "del_lines": ["a"],
+                "ins_lines": ["A"]
+              }
+            ]
+          }
+        ]
+      ],
+      "files": {
+        "a.py": "a\nb\nc\n"
+      }
+    }
+  },
+  {
+    "id": "apply_edits/update-equal-index-insertions-keep-order",
+    "op": "patch.apply_edits",
+    "args": {
+      "edits": [
+        [
+          "a.py",
+          {
+            "type": "Update",
+            "path": "a.py",
+            "chunks": [
+              {
+                "orig_index": 1,
+                "del_lines": [],
+                "ins_lines": ["first"]
+              },
+              {
+                "orig_index": 1,
+                "del_lines": [],
+                "ins_lines": ["second"]
+              }
+            ]
+          }
+        ]
+      ],
+      "files": {
+        "a.py": "a\nb\n"
+      }
+    }
+  },
+  {
+    "id": "apply_edits/update-deletion-mismatch",
+    "op": "patch.apply_edits",
+    "args": {
+      "edits": [
+        [
+          "a.py",
+          {
+            "type": "Update",
+            "path": "a.py",
+            "chunks": [
+              {
+                "orig_index": 0,
+                "del_lines": ["zzz", "b"],
+                "ins_lines": ["new"]
+              }
+            ]
+          }
+        ]
+      ],
+      "files": {
+        "a.py": "a\nb\n"
+      }
+    }
+  },
+  {
+    "id": "apply_edits/update-deletion-stripped-match",
+    "op": "patch.apply_edits",
+    "args": {
+      "edits": [
+        [
+          "a.py",
+          {
+            "type": "Update",
+            "path": "a.py",
+            "chunks": [
+              {
+                "orig_index": 0,
+                "del_lines": ["  a\t"],
+                "ins_lines": ["A"]
+              }
+            ]
+          }
+        ]
+      ],
+      "files": {
+        "a.py": "a\nb\n"
+      }
+    }
+  },
+  {
+    "id": "apply_edits/update-deletion-past-eof",
+    "op": "patch.apply_edits",
+    "args": {
+      "edits": [
+        [
+          "a.py",
+          {
+            "type": "Update",
+            "path": "a.py",
+            "chunks": [
+              {
+                "orig_index": 1,
+                "del_lines": ["b"],
+                "ins_lines": []
+              }
+            ]
+          }
+        ]
+      ],
+      "files": {
+        "a.py": "a\n"
+      }
+    }
+  },
+  {
+    "id": "apply_edits/update-negative-index",
+    "op": "patch.apply_edits",
+    "args": {
+      "edits": [
+        [
+          "a.py",
+          {
+            "type": "Update",
+            "path": "a.py",
+            "chunks": [
+              {
+                "orig_index": -1,
+                "del_lines": [],
+                "ins_lines": ["x"]
+              }
+            ]
+          }
+        ]
+      ],
+      "files": {
+        "a.py": "a\n"
+      }
+    }
+  },
+  {
+    "id": "apply_edits/update-insert-past-end",
+    "op": "patch.apply_edits",
+    "args": {
+      "edits": [
+        [
+          "a.py",
+          {
+            "type": "Update",
+            "path": "a.py",
+            "chunks": [
+              {
+                "orig_index": 5,
+                "del_lines": [],
+                "ins_lines": ["x"]
+              }
+            ]
+          }
+        ]
+      ],
+      "files": {
+        "a.py": "a\n"
+      }
+    }
+  },
+  {
+    "id": "apply_edits/update-insert-into-empty-file",
+    "op": "patch.apply_edits",
+    "args": {
+      "edits": [
+        [
+          "e.txt",
+          {
+            "type": "Update",
+            "path": "e.txt",
+            "chunks": [
+              {
+                "orig_index": 0,
+                "del_lines": [],
+                "ins_lines": ["x"]
+              }
+            ]
+          }
+        ]
+      ],
+      "files": {
+        "e.txt": ""
+      }
+    }
+  },
+  {
+    "id": "apply_edits/update-inserts-without-indentation-repair",
+    "op": "patch.apply_edits",
+    "args": {
+      "edits": [
+        [
+          "a.py",
+          {
+            "type": "Update",
+            "path": "a.py",
+            "chunks": [
+              {
+                "orig_index": 1,
+                "del_lines": ["    b"],
+                "ins_lines": ["c"]
+              }
+            ]
+          }
+        ]
+      ],
+      "files": {
+        "a.py": "  a\n  b\n"
+      }
+    }
+  },
+  {
+    "id": "apply_edits/update-crlf-file",
+    "op": "patch.apply_edits",
+    "args": {
+      "edits": [
+        [
+          "w.txt",
+          {
+            "type": "Update",
+            "path": "w.txt",
+            "chunks": [
+              {
+                "orig_index": 1,
+                "del_lines": ["b"],
+                "ins_lines": ["B"]
+              }
+            ]
+          }
+        ]
+      ],
+      "files": {
+        "w.txt": "a\r\nb\r\nc\r\n"
+      }
+    }
+  },
+  {
+    "id": "apply_edits/update-tabs-non-bmp",
+    "op": "patch.apply_edits",
+    "args": {
+      "edits": [
+        [
+          "u.txt",
+          {
+            "type": "Update",
+            "path": "u.txt",
+            "chunks": [
+              {
+                "orig_index": 1,
+                "del_lines": ["𝒳"],
+                "ins_lines": ["𝒴"]
+              }
+            ]
+          }
+        ]
+      ],
+      "files": {
+        "u.txt": "\t😀\n𝒳\n"
+      }
+    }
+  },
+  {
+    "id": "apply_edits/update-form-feed-becomes-newline",
+    "op": "patch.apply_edits",
+    "args": {
+      "edits": [
+        [
+          "f.txt",
+          {
+            "type": "Update",
+            "path": "f.txt",
+            "chunks": [
+              {
+                "orig_index": 2,
+                "del_lines": ["c"],
+                "ins_lines": ["C"]
+              }
+            ]
+          }
+        ]
+      ],
+      "files": {
+        "f.txt": "a\fb\nc\n"
+      }
+    }
+  },
+  {
+    "id": "apply_edits/move-to-new-directory",
+    "op": "patch.apply_edits",
+    "args": {
+      "edits": [
+        [
+          "a.py",
+          {
+            "type": "Update",
+            "path": "a.py",
+            "chunks": [
+              {
+                "orig_index": 0,
+                "del_lines": ["x"],
+                "ins_lines": ["X"]
+              }
+            ],
+            "move_path": "b/c.py"
+          }
+        ]
+      ],
+      "files": {
+        "a.py": "x\n"
+      }
+    }
+  },
+  {
+    "id": "apply_edits/move-onto-existing-file",
+    "op": "patch.apply_edits",
+    "args": {
+      "edits": [
+        [
+          "src.py",
+          {
+            "type": "Update",
+            "path": "src.py",
+            "chunks": [
+              {
+                "orig_index": 0,
+                "del_lines": ["x"],
+                "ins_lines": ["X"]
+              }
+            ],
+            "move_path": "dst.py"
+          }
+        ]
+      ],
+      "files": {
+        "src.py": "x\n",
+        "dst.py": "old\n"
+      }
+    }
+  },
+  {
+    "id": "apply_edits/move-to-itself",
+    "op": "patch.apply_edits",
+    "args": {
+      "edits": [
+        [
+          "a.py",
+          {
+            "type": "Update",
+            "path": "a.py",
+            "chunks": [
+              {
+                "orig_index": 0,
+                "del_lines": ["x"],
+                "ins_lines": ["X"]
+              }
+            ],
+            "move_path": "a.py"
+          }
+        ]
+      ],
+      "files": {
+        "a.py": "x\n"
+      }
+    }
+  },
+  {
+    "id": "apply_edits/move-to-normalized-itself",
+    "op": "patch.apply_edits",
+    "args": {
+      "edits": [
+        [
+          "a.py",
+          {
+            "type": "Update",
+            "path": "a.py",
+            "chunks": [
+              {
+                "orig_index": 0,
+                "del_lines": ["x"],
+                "ins_lines": ["X"]
+              }
+            ],
+            "move_path": "./a.py"
+          }
+        ]
+      ],
+      "files": {
+        "a.py": "x\n"
+      }
+    }
+  },
+  {
+    "id": "apply_edits/move-empty-string-is-no-move",
+    "op": "patch.apply_edits",
+    "args": {
+      "edits": [
+        [
+          "a.py",
+          {
+            "type": "Update",
+            "path": "a.py",
+            "chunks": [
+              {
+                "orig_index": 0,
+                "del_lines": ["x"],
+                "ins_lines": ["X"]
+              }
+            ],
+            "move_path": ""
+          }
+        ]
+      ],
+      "files": {
+        "a.py": "x\n"
+      }
+    }
+  },
+  {
+    "id": "apply_edits/move-mismatch-leaves-files",
+    "op": "patch.apply_edits",
+    "args": {
+      "edits": [
+        [
+          "a.py",
+          {
+            "type": "Update",
+            "path": "a.py",
+            "chunks": [
+              {
+                "orig_index": 0,
+                "del_lines": ["nope"],
+                "ins_lines": ["X"]
+              }
+            ],
+            "move_path": "b.py"
+          }
+        ]
+      ],
+      "files": {
+        "a.py": "x\n"
+      }
+    }
+  },
+  {
+    "id": "apply_edits/stops-at-first-failure",
+    "op": "patch.apply_edits",
+    "args": {
+      "edits": [
+        [
+          "a.py",
+          {
+            "type": "Update",
+            "path": "a.py",
+            "chunks": [
+              {
+                "orig_index": 0,
+                "del_lines": ["x"],
+                "ins_lines": ["X"]
+              }
+            ]
+          }
+        ],
+        [
+          "b.py",
+          {
+            "type": "Add",
+            "path": "b.py",
+            "new_content": "new"
+          }
+        ],
+        [
+          "c.py",
+          {
+            "type": "Delete",
+            "path": "c.py"
+          }
+        ]
+      ],
+      "files": {
+        "a.py": "x\n",
+        "b.py": "",
+        "c.py": "keep\n"
+      }
+    }
+  },
+  {
+    "id": "apply_edits/delete-then-update",
+    "op": "patch.apply_edits",
+    "args": {
+      "edits": [
+        [
+          "a.py",
+          {
+            "type": "Delete",
+            "path": "a.py"
+          }
+        ],
+        [
+          "a.py",
+          {
+            "type": "Update",
+            "path": "a.py",
+            "chunks": []
+          }
+        ]
+      ],
+      "files": {
+        "a.py": "x\n"
+      }
+    }
+  },
+  {
+    "id": "apply_edits/move-then-delete-destination",
+    "op": "patch.apply_edits",
+    "args": {
+      "edits": [
+        [
+          "a.py",
+          {
+            "type": "Update",
+            "path": "a.py",
+            "chunks": [],
+            "move_path": "b.py"
+          }
+        ],
+        [
+          "b.py",
+          {
+            "type": "Delete",
+            "path": "b.py"
+          }
+        ]
+      ],
+      "files": {
+        "a.py": "x\n"
+      }
+    }
+  },
+  {
+    "id": "apply_edits/tuple-path-ignored",
+    "op": "patch.apply_edits",
+    "args": {
+      "edits": [
+        [
+          "other.py",
+          {
+            "type": "Delete",
+            "path": "a.py"
+          }
+        ]
+      ],
+      "files": {
+        "a.py": "x\n",
+        "other.py": "y\n"
+      }
+    }
+  },
+  {
+    "id": "apply_edits/empty-edits",
+    "op": "patch.apply_edits",
+    "args": {
+      "edits": [],
+      "files": {
+        "a.py": "x\n"
+      }
+    }
+  },
+  {
+    "id": "apply_edits/dry-run-update",
+    "op": "patch.apply_edits",
+    "args": {
+      "edits": [
+        [
+          "a.py",
+          {
+            "type": "Update",
+            "path": "a.py",
+            "chunks": [
+              {
+                "orig_index": 0,
+                "del_lines": ["x"],
+                "ins_lines": ["X"]
+              }
+            ]
+          }
+        ]
+      ],
+      "files": {
+        "a.py": "x\n"
+      },
+      "dry_run": true
+    }
+  },
+  {
+    "id": "apply_edits/dry-run-add-in-existing-directory",
+    "op": "patch.apply_edits",
+    "args": {
+      "edits": [
+        [
+          "n.py",
+          {
+            "type": "Add",
+            "path": "n.py",
+            "new_content": "x"
+          }
+        ]
+      ],
+      "files": {
+        "a.py": "x\n"
+      },
+      "dry_run": true
+    }
+  },
+  {
+    "id": "apply_edits/dry-run-add-existing-file",
+    "op": "patch.apply_edits",
+    "args": {
+      "edits": [
+        [
+          "n.py",
+          {
+            "type": "Add",
+            "path": "n.py",
+            "new_content": "x"
+          }
+        ]
+      ],
+      "files": {
+        "n.py": ""
+      },
+      "dry_run": true
+    }
+  },
+  {
+    "id": "apply_reply/cli-patch-update",
+    "op": "patch.apply_reply",
+    "args": {
+      "reply": "*** Begin Patch\n*** Update File: sample.py\n@@\n-value = 100\n+value = 200\n*** End Patch\n",
+      "files": {
+        "sample.py": "value = 100\n"
+      }
+    }
+  },
+  {
+    "id": "apply_reply/cli-patch-add-without-precreated-file",
+    "op": "patch.apply_reply",
+    "args": {
+      "reply": "*** Begin Patch\n*** Add File: sample.py\n+value = 200\n*** End Patch\n"
+    }
+  },
+  {
+    "id": "apply_reply/cli-patch-add-after-authorization-touch",
+    "op": "patch.apply_reply",
+    "args": {
+      "reply": "*** Begin Patch\n*** Add File: sample.py\n+value = 200\n*** End Patch\n",
+      "files": {
+        "sample.py": ""
+      }
+    }
+  },
+  {
+    "id": "apply_reply/move-onto-updated-file-mismatch",
+    "op": "patch.apply_reply",
+    "args": {
+      "reply": "*** Begin Patch\n*** Update File: a.py\n*** Move to: b.py\n-a1\n+a2\n*** Update File: b.py\n-b1\n+b2\n*** End Patch\n",
+      "files": {
+        "a.py": "a1\n",
+        "b.py": "b1\n"
+      }
+    }
+  },
+  {
+    "id": "apply_reply/fuzz-0-exact",
+    "op": "patch.apply_reply",
+    "args": {
+      "reply": "*** Begin Patch\n*** Update File: a.py\n def f():\n-    return 1\n+    return 2\n*** End Patch\n",
+      "files": {
+        "a.py": "def f():\n    return 1\n"
+      }
+    }
+  },
+  {
+    "id": "apply_reply/fuzz-1-trailing-whitespace",
+    "op": "patch.apply_reply",
+    "args": {
+      "reply": "*** Begin Patch\n*** Update File: a.py\n def f():\n-    return 1\n+    return 2\n*** End Patch\n",
+      "files": {
+        "a.py": "def f():   \n    return 1\t\n"
+      }
+    }
+  },
+  {
+    "id": "apply_reply/fuzz-100-indentation",
+    "op": "patch.apply_reply",
+    "args": {
+      "reply": "*** Begin Patch\n*** Update File: a.py\n def f():\n-  return 1\n+  return 2\n*** End Patch\n",
+      "files": {
+        "a.py": "def f():\n    return 1\n"
+      }
+    }
+  },
+  {
+    "id": "apply_reply/eof-append",
+    "op": "patch.apply_reply",
+    "args": {
+      "reply": "*** Begin Patch\n*** Update File: a.py\n@@\n+tail\n*** End of File\n*** End Patch\n",
+      "files": {
+        "a.py": "x\ny\n"
+      }
+    }
+  },
+  {
+    "id": "apply_reply/eof-context-at-end",
+    "op": "patch.apply_reply",
+    "args": {
+      "reply": "*** Begin Patch\n*** Update File: a.py\n y\n+tail\n*** End of File\n*** End Patch\n",
+      "files": {
+        "a.py": "y\nx\ny\n"
+      }
+    }
+  },
+  {
+    "id": "apply_reply/eof-penalty-still-applies",
+    "op": "patch.apply_reply",
+    "args": {
+      "reply": "*** Begin Patch\n*** Update File: a.py\n x\n+after-x\n*** End of File\n*** End Patch\n",
+      "files": {
+        "a.py": "x\ny\n"
+      }
+    }
+  },
+  {
+    "id": "apply_reply/scope-marker",
+    "op": "patch.apply_reply",
+    "args": {
+      "reply": "*** Begin Patch\n*** Update File: a.py\n@@ def g():\n-    return 1\n+    return 2\n*** End Patch\n",
+      "files": {
+        "a.py": "def f():\n    return 1\ndef g():\n    return 1\n"
+      }
+    }
+  },
+  {
+    "id": "apply_reply/sequential-sections",
+    "op": "patch.apply_reply",
+    "args": {
+      "reply": "*** Begin Patch\n*** Update File: a.py\n x\n-y\n+Y\n@@\n x\n-y\n+Z\n*** End Patch\n",
+      "files": {
+        "a.py": "x\ny\nx\ny\n"
+      }
+    }
+  },
+  {
+    "id": "apply_reply/merged-blocks-overlap",
+    "op": "patch.apply_reply",
+    "args": {
+      "reply": "*** Begin Patch\n*** Update File: a.py\n x\n-y\n+Y\n*** Update File: a.py\n x\n-y\n+Z\n*** End Patch\n",
+      "files": {
+        "a.py": "x\ny\n"
+      }
+    }
+  },
+  {
+    "id": "apply_reply/merged-blocks-disjoint",
+    "op": "patch.apply_reply",
+    "args": {
+      "reply": "*** Begin Patch\n*** Update File: a.py\n x\n-y\n+Y\n*** Update File: a.py\n y\n-z\n+Z\n*** End Patch\n",
+      "files": {
+        "a.py": "x\ny\nz\n"
+      }
+    }
+  },
+  {
+    "id": "apply_reply/crlf-reply-and-file",
+    "op": "patch.apply_reply",
+    "args": {
+      "reply": "*** Begin Patch\r\n*** Update File: w.txt\r\n a\r\n-b\r\n+B\r\n*** Add File: n.txt\r\n+new\r\n*** End Patch\r\n",
+      "files": {
+        "w.txt": "a\r\nb\r\nc\r\n"
+      }
+    }
+  },
+  {
+    "id": "apply_reply/tabs",
+    "op": "patch.apply_reply",
+    "args": {
+      "reply": "*** Begin Patch\n*** Update File: t.go\n@@ func f() {\n-\treturn 1\n+\treturn 2\n*** End Patch\n",
+      "files": {
+        "t.go": "func f() {\n\treturn 1\n}\n"
+      }
+    }
+  },
+  {
+    "id": "apply_reply/non-bmp",
+    "op": "patch.apply_reply",
+    "args": {
+      "reply": "*** Begin Patch\n*** Update File: u.txt\n 😀\n-𝒳\n+𝒴\n*** Add File: v.txt\n+🐍\n*** End Patch\n",
+      "files": {
+        "u.txt": "😀\n𝒳\n"
+      }
+    }
+  },
+  {
+    "id": "apply_reply/empty-file-gets-lines",
+    "op": "patch.apply_reply",
+    "args": {
+      "reply": "*** Begin Patch\n*** Update File: e.txt\n@@\n+first\n+second\n*** End Patch\n",
+      "files": {
+        "e.txt": ""
+      }
+    }
+  },
+  {
+    "id": "apply_reply/empty-update-normalizes-file",
+    "op": "patch.apply_reply",
+    "args": {
+      "reply": "*** Begin Patch\n*** Update File: a.txt\n*** End Patch\n",
+      "files": {
+        "a.txt": "one\ntwo"
+      }
+    }
+  },
+  {
+    "id": "apply_reply/add-bare-blank-lines",
+    "op": "patch.apply_reply",
+    "args": {
+      "reply": "*** Begin Patch\n*** Add File: n.txt\n+a\n\n\t\n+b\n*** End Patch\n"
+    }
+  },
+  {
+    "id": "apply_reply/update-bare-blank-line-context",
+    "op": "patch.apply_reply",
+    "args": {
+      "reply": "*** Begin Patch\n*** Update File: a.txt\n a\n\n-b\n+B\n*** End Patch\n",
+      "files": {
+        "a.txt": "a\n\nb\n"
+      }
+    }
+  },
+  {
+    "id": "apply_reply/delete-add-update",
+    "op": "patch.apply_reply",
+    "args": {
+      "reply": "*** Begin Patch\n*** Delete File: old.txt\n*** Add File: docs/new.txt\n+fresh\n*** Update File: a.txt\n-one\n+uno\n*** End Patch\n",
+      "files": {
+        "old.txt": "bye\n",
+        "a.txt": "one\n"
+      }
+    }
+  },
+  {
+    "id": "apply_reply/move-into-new-directory",
+    "op": "patch.apply_reply",
+    "args": {
+      "reply": "*** Begin Patch\n*** Update File: a.txt\n*** Move to: lib/b.txt\n one\n+two\n*** End Patch\n",
+      "files": {
+        "a.txt": "one\n"
+      }
+    }
+  },
+  {
+    "id": "apply_reply/missing-sentinels-applies",
+    "op": "patch.apply_reply",
+    "args": {
+      "reply": "*** Update File: a.txt\n-one\n+uno\n",
+      "files": {
+        "a.txt": "one\n"
+      }
+    }
+  },
+  {
+    "id": "apply_reply/prose-reply-changes-nothing",
+    "op": "patch.apply_reply",
+    "args": {
+      "reply": "Sure, the code looks good.\n",
+      "files": {
+        "a.txt": "one\n"
+      }
+    }
+  },
+  {
+    "id": "apply_reply/dry-run-update",
+    "op": "patch.apply_reply",
+    "args": {
+      "reply": "*** Begin Patch\n*** Update File: a.txt\n-one\n+uno\n*** End Patch\n",
+      "files": {
+        "a.txt": "one\n"
+      },
+      "dry_run": true
+    }
+  },
+  {
+    "id": "apply_reply/form-feed-file",
+    "op": "patch.apply_reply",
+    "args": {
+      "reply": "*** Begin Patch\n*** Update File: f.txt\n b\n-c\n+C\n*** End Patch\n",
+      "files": {
+        "f.txt": "a\fb\nc\n"
+      }
+    }
+  }
+]
