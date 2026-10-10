@@ -144,6 +144,12 @@ export interface EditFormats {
   readonly initialFiles: InitialFiles;
   readonly dryRun: boolean;
   readonly yesAlways: boolean | null;
+  /** `--auto-accept-architect` (Aider default True). */
+  readonly autoAcceptArchitect: boolean;
+  /** `--editor-model`, or null to reuse the main physical model. */
+  readonly editorModel: string | null;
+  /** Resolved `--editor-edit-format` (defaults like Aider's editor-prefixed format). */
+  readonly editorEditFormat: EditFormatName;
   readonly tree: WorkingTree;
 }
 

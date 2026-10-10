@@ -1,5 +1,6 @@
-import { type EditContext, type EditFormats, type Feature, isEditFormatName, registerEditFormat } from '../feature.ts';
+import { type EditContext, type EditFormatName, type EditFormats, type Feature, isEditFormatName, registerEditFormat } from '../feature.ts';
 import { applyEdits as applyEditBlocks, applyEditsDryRun as applyEditBlocksDryRun, type EditBlock, getEdits as getEditBlocks } from './editblock.ts';
+import { architectFormat, askFormat, contextFormat, defaultEditorFormat, editorDiffFencedFormat, editorDiffFormat, editorWholeFormat } from './modes.ts';
 import { editOptionList, editOptions } from './options.ts';
 import { applyEdits as applyPatchEdits, applyEditsDryRun as applyPatchEditsDryRun, type EditResult, getEdits as getPatchEdits, type PatchContext, editIntent as patchEditIntent } from './patch.ts';
 import { applyEdits as applyUdiffEdits, applyEditsDryRun as applyUdiffEditsDryRun, getEdits as getUdiffEdits, type UdiffEdit } from './udiff.ts';
@@ -101,6 +102,7 @@ export const editFeature: Feature<EditFormats> & { readonly name: 'edit' } = {
   commands: [],
   create({ settings, host }) {
     const requested = settings.value(editOptions.editFormat);
+    const editorEditFormat = settings.value(editOptions.editorEditFormat);
     const dryRun = settings.value(editOptions.dryRun);
     return {
       formats: new Map([
@@ -110,11 +112,20 @@ export const editFeature: Feature<EditFormats> & { readonly name: 'edit' } = {
         ['udiff', udiffEditFormat],
         ['udiff-simple', udiffSimpleFormat],
         ['patch', patchFormat],
+        ['ask', askFormat],
+        ['architect', architectFormat],
+        ['context', contextFormat],
+        ['editor-diff', editorDiffFormat],
+        ['editor-diff-fenced', editorDiffFencedFormat],
+        ['editor-whole', editorWholeFormat],
       ]),
       requestedFormat: requested !== null && isEditFormatName(requested) ? requested : null,
       initialFiles: { editable: settings.value(editOptions.file), readOnly: settings.value(editOptions.read) },
       dryRun,
       yesAlways: settings.value(editOptions.yesAlways),
+      autoAcceptArchitect: settings.value(editOptions.autoAcceptArchitect),
+      editorModel: settings.value(editOptions.editorModel),
+      editorEditFormat: defaultEditorFormat(editorEditFormat !== null && isEditFormatName(editorEditFormat) ? (editorEditFormat as EditFormatName) : null),
       tree: createWorkingTree({ notices: host, encoding: settings.value(editOptions.encoding) ?? 'utf-8', lineEndings: lineEndings(settings.value(editOptions.lineEndings)), dryRun }),
     };
   },

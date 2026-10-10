@@ -73,7 +73,7 @@ Each destructive file operation stores its intent before the operation and its o
 
 ## Deliberate limits
 
-Git, map, and lint ports are disabled. No parity is claimed for them. Architect and editor flow, ask and context execution, model-specific defaults, shell suggestions, slash commands, file watching, and Pi binary journeys remain deferred. The `apply` option is registered but standalone application is not implemented yet.
+Git, map, and lint ports are disabled. No parity is claimed for them. Ask, context, and architect or editor chat modes are wired through the format registry and `ExchangeController` phase. Map-budget context refresh, architect editor commit or cost return, model-specific defaults, shell suggestions, slash commands, file watching, and Pi binary journeys remain deferred. The `apply` option is registered but standalone application is not implemented yet.
 
 Context hooks lack source-entry provenance. The supported cooperation contract keeps the number, order, and roles of canonical projected conversation messages. Content can change. If that shape changes or a history cut is compacted out, E6 preserves incoming history without strict done/current partitioning. Arbitrary prior filtering, insertion, or reordering cannot preserve exact Aider partitioning through Pi 1.1.0.
 
