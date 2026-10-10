@@ -311,10 +311,16 @@
         "aider/coders/editblock_coder.py:386-396"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/editblock-parse.ts"
+      ],
+      "tests": [
+        "test/editblock-ports.test.ts::accepts SEARCH markers from five to nine characters"
+      ]
     },
     {
       "id": "edit.sr.parse-blocks",
@@ -324,10 +330,23 @@
         "aider/coders/editblock_coder.py:439-535"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/editblock-parse.ts"
+      ],
+      "tests": [
+        "test/editblock-ports.test.ts::parses a fenced SEARCH/REPLACE block",
+        "test/editblock-ports.test.ts::parses blocks when the reply has no final newline",
+        "test/editblock-ports.test.ts::reuses filename across multiple blocks for one file",
+        "test/editblock-ports.test.ts::parses a csharp-fenced SEARCH/REPLACE block",
+        "test/editblock-ports.test.ts::parses under quad backticks when the reply uses triples",
+        "test/editblock-ports.test.ts::parses markdown sections into edits shell commands and errors",
+        "test/editblock-ports.test.ts::finds filename above the opening fence",
+        "test/editblock-ports.test.ts::reuses the previous filename for an incomplete block"
+      ]
     },
     {
       "id": "edit.sr.replace-ends-at-divider",
@@ -337,10 +356,16 @@
         "aider/coders/editblock_coder.py:513-526"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/editblock-parse.ts"
+      ],
+      "tests": [
+        "test/editblock-ports.test.ts::ends REPLACE text at the next divider line"
+      ]
     },
     {
       "id": "edit.sr.malformed-error",
@@ -350,10 +375,17 @@
         "aider/coders/editblock_coder.py:504-533"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/editblock-parse.ts"
+      ],
+      "tests": [
+        "test/editblock-ports.test.ts::rejects an unclosed SEARCH/REPLACE block",
+        "test/editblock-ports.test.ts::parses markdown sections into edits shell commands and errors"
+      ]
     },
     {
       "id": "edit.sr.missing-filename-error",
@@ -363,10 +395,16 @@
         "aider/coders/editblock_coder.py:399-402,496-500"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/editblock-parse.ts"
+      ],
+      "tests": [
+        "test/editblock-ports.test.ts::rejects a block with no recoverable filename"
+      ]
     },
     {
       "id": "edit.sr.filename-lookback",
@@ -376,10 +414,20 @@
         "aider/coders/editblock_coder.py:404-436,538-569"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/editblock-parse.ts"
+      ],
+      "tests": [
+        "test/editblock-ports.test.ts::finds filenames by exact basename fuzzy and fence lookback",
+        "test/editblock-ports.test.ts::finds filename above the opening fence",
+        "test/editblock-ports.test.ts::recovers a filename past a mangled fence pair",
+        "test/editblock-ports.test.ts::parses under quad backticks when the reply uses triples",
+        "test/editblock-ports.test.ts::parses markdown sections into edits shell commands and errors"
+      ]
     },
     {
       "id": "edit.sr.filename-selection",
@@ -389,10 +437,16 @@
         "aider/coders/editblock_coder.py:571-599"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/editblock-parse.ts"
+      ],
+      "tests": [
+        "test/editblock-ports.test.ts::finds filenames by exact basename fuzzy and fence lookback"
+      ]
     },
     {
       "id": "edit.sr.reuse-previous-filename",
@@ -402,10 +456,17 @@
         "aider/coders/editblock_coder.py:496-502"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/editblock-parse.ts"
+      ],
+      "tests": [
+        "test/editblock-ports.test.ts::reuses the previous filename for an incomplete block",
+        "test/editblock-ports.test.ts::reuses filename across multiple blocks for one file"
+      ]
     },
     {
       "id": "edit.sr.new-file-name-unmatched",
@@ -415,10 +476,16 @@
         "aider/coders/editblock_coder.py:490-494"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/editblock-parse.ts"
+      ],
+      "tests": [
+        "test/editblock-ports.test.ts::keeps a new empty-SEARCH filename unmatched to chat files"
+      ]
     },
     {
       "id": "edit.sr.shell-blocks",
@@ -428,10 +495,19 @@
         "aider/coders/editblock_coder.py:21-36,450-486"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/editblock-parse.ts",
+        "src/edit/editblock.ts"
+      ],
+      "tests": [
+        "test/editblock-ports.test.ts::treats a shell fence with SEARCH as an edit not a command",
+        "test/editblock-ports.test.ts::collects a bare bash fence as a suggested shell command",
+        "test/editblock-ports.test.ts::parses markdown sections into edits shell commands and errors"
+      ]
     },
     {
       "id": "edit.sr.strip-wrapping",
@@ -441,10 +517,19 @@
         "aider/coders/editblock_coder.py:335-361,364-366"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "withFileMutationQueue",
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/editblock.ts"
+      ],
+      "tests": [
+        "test/editblock-ports.test.ts::strips filename and fence wrapping from SEARCH text",
+        "test/editblock-ports.test.ts::strips fence wrapping without a filename",
+        "test/editblock-ports.test.ts::keeps unwrapped SEARCH text unchanged"
+      ]
     },
     {
       "id": "edit.sr.empty-search-appends",
@@ -454,10 +539,18 @@
         "aider/coders/editblock_coder.py:369-379"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "withFileMutationQueue",
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/editblock.ts"
+      ],
+      "tests": [
+        "test/editblock-ports.test.ts::appends REPLACE when SEARCH is empty",
+        "test/editblock-ports.test.ts::creates a new file without remapping an in-chat neighbor"
+      ]
     },
     {
       "id": "edit.sr.newline-normalization",
@@ -467,10 +560,17 @@
         "aider/coders/editblock_coder.py:127-131,157-162"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "withFileMutationQueue",
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/editblock-match.ts"
+      ],
+      "tests": [
+        "test/editblock-ports.test.ts::normalizes missing final newlines before matching"
+      ]
     },
     {
       "id": "edit.sr.exact-first-match",
@@ -480,10 +580,18 @@
         "aider/coders/editblock_coder.py:134-138,146-154"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "withFileMutationQueue",
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/editblock-match.ts"
+      ],
+      "tests": [
+        "test/editblock-ports.test.ts::replaces only the first exact match",
+        "test/editblock.test.ts::applies a full SEARCH/REPLACE reply"
+      ]
     },
     {
       "id": "edit.sr.leading-whitespace",
@@ -493,10 +601,21 @@
         "aider/coders/editblock_coder.py:140-143,243-293"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "withFileMutationQueue",
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/editblock-match.ts"
+      ],
+      "tests": [
+        "test/editblock-ports.test.ts::repairs varied missing leading whitespace",
+        "test/editblock-ports.test.ts::repairs uniform missing leading whitespace",
+        "test/editblock-ports.test.ts::replaces only the first whitespace-tolerant match",
+        "test/editblock-ports.test.ts::repairs partially missing leading whitespace",
+        "test/editblock-ports.test.ts::skips a leading blank SEARCH line then matches"
+      ]
     },
     {
       "id": "edit.sr.skip-leading-blank",
@@ -506,10 +625,17 @@
         "aider/coders/editblock_coder.py:168-173"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "withFileMutationQueue",
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/editblock-match.ts"
+      ],
+      "tests": [
+        "test/editblock-ports.test.ts::skips a leading blank SEARCH line then matches"
+      ]
     },
     {
       "id": "edit.sr.ellipsis",
@@ -519,10 +645,17 @@
         "aider/coders/editblock_coder.py:175-181,190-240"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "withFileMutationQueue",
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/editblock-match.ts"
+      ],
+      "tests": [
+        "test/editblock-ports.test.ts::applies ellipsis SEARCH pieces in order"
+      ]
     },
     {
       "id": "edit.sr.no-fuzzy-content",
@@ -532,10 +665,17 @@
         "aider/coders/editblock_coder.py:183-188,296-329"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "withFileMutationQueue",
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/editblock-match.ts"
+      ],
+      "tests": [
+        "test/editblock-ports.test.ts::fails when SEARCH is only similar not exact"
+      ]
     },
     {
       "id": "edit.sr.cross-file-fallback",
@@ -545,10 +685,18 @@
         "aider/coders/editblock_coder.py:55-67"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "withFileMutationQueue",
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/editblock.ts"
+      ],
+      "tests": [
+        "test/editblock-ports.test.ts::falls back to another chat file when the named file misses",
+        "test/editblock-ports.test.ts::creates a new file without remapping an in-chat neighbor"
+      ]
     },
     {
       "id": "edit.sr.failure-report",
@@ -558,10 +706,17 @@
         "aider/coders/editblock_coder.py:79-124,602-628"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "withFileMutationQueue",
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/editblock.ts"
+      ],
+      "tests": [
+        "test/editblock-ports.test.ts::reports unmatched blocks with similar lines and keep-applied note"
+      ]
     },
     {
       "id": "edit.sr.sequential-writes",
