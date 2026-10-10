@@ -2670,10 +2670,20 @@
         "aider/coders/__init__.py:1-34"
       ],
       "kind": "fix",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": [],
+      "status": "verified",
+      "pi": [
+        "Pi package"
+      ],
+      "src": [
+        "src/index.ts",
+        "src/edit/feature.ts",
+        "src/edit/model-format-policy.ts",
+        "src/edit/model-format-settings.json",
+        "package.json"
+      ],
+      "tests": [
+        "test/edit/install-complete-runtime.test.ts::isolated package load registers every edit format and packaged resources"
+      ],
       "fix": {
         "defect": "The installed Aider package omits coder subpackages and model resources; installed-cli.txt fails on aider.resources while source-cli.txt works through checkout shadowing.",
         "intent": "pyproject.toml:26-28 declares the aider console entry point and :40-42 enables package data; aider/models.py:155-158 loads model settings as mandatory runtime data. A runnable installed entry point requires those modules and resources.",

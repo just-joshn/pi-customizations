@@ -145,6 +145,17 @@ The flag adapters share the following gate answers. The table above identifies t
 7. **Verification.** `test/core/modes.pi.test.ts` proves editor file context, `suggestShellCommands: false`, mid-editor warming stop, and zero `session_before_compact` / compaction entries on the architect→editor path. Residual for verified status: per-request prompt-cache header byte identity remains unsupported. Row stays open.
 8. **Delete when.** Pi offers a request-local `cacheRetention` (or equivalent) on virtual-route continuations that editor frames can set, or the ledger sentence drops the prompt-caching claim.
 
+## Pre-send context-limit proceed confirm
+
+1. **Behavior.** When estimated request tokens reach the model input limit, Aider reports the overflow, lists ways to reduce context (`/drop`, `/clear`, smaller files), and sends the request only if the user confirms `Try to proceed anyway?` (`aider/coders/base_coder.py:1396-1417,1429-1432`).
+2. **Mechanism evaluated (Pi 1.1.0, re-checked 2026-10-10).** `estimateTokens` / `estimateContextTokens` / `shouldCompact`; compaction on `threshold` and `overflow` with automatic compact-and-retry; `ctx.getContextUsage()`; `ctx.ui.confirm` / Host `confirm`; `ctx.abort()` from `before_agent_start` / `context_with_system`; `before_provider_request` (result type `unknown`, payload replace only).
+3. **Why it cannot.** Pi owns context-window management as compaction and overflow recovery (`extensions/AGENTS.md`). Threshold compaction and post-error overflow recovery run without a pre-send admission confirm. `before_provider_request` can replace a payload but cannot express confirm-gated send. `ctx.ui.confirm` and `estimateTokens` exist, but composing them into Aider's `check_tokens` gate would invent a second overflow policy beside Pi compaction.
+4. **Why not omit.** Ledger row `edit.prompt.context-limit-confirm` requires that proceed-anyway confirm. Omitting leaves the row open.
+5. **Adapter.** None. No custom pre-send token gate is added.
+6. **Authoritative Pi state.** Compaction settings, threshold triggers, overflow recovery, and provider send stay with AgentSession.
+7. **Verification.** Row stays open. Re-check recorded in `docs/decisions.tsv` for this residual. No claimed FAIL for this id beyond the open status.
+8. **Delete when.** Pi exposes a public pre-send context-limit admission hook that can report overflow tips and confirm before the provider call, or the ledger sentence drops the proceed-anyway confirm.
+
 ## File watcher host attachment
 
 1. **Behavior.** Aider watches workspace roots with `watchfiles`, filters to AI-comment files, interrupts waiting input on changes, and builds AI! / AI? requests with `grep_ast.TreeContext` structural slices (`aider/watch.py`).

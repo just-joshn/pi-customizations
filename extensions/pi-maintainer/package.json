@@ -18,8 +18,7 @@
   "files": [
     "src",
     "NOTICE",
-    "LICENSE",
-    "README.md"
+    "LICENSE"
   ],
   "scripts": {
     "test": "vitest run",
