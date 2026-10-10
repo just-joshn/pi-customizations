@@ -45,3 +45,91 @@ All citations refer to installed Pi 1.1.0 under `CA` = `@earendil-works/pi-codin
 Two Pi parsing behaviors have no adapter. A boolean extension flag followed by a word takes the word as its value (`args.js:248-251`), so `pi --dry-run "fix it"` loses the prompt; write the prompt first or after `--`. Flag values exist only after extensions load (`CA/dist/core/agent-session-services.js:8-46`), so resolution runs on `session_start`, not in the factory.
 
 These rows are deleted when Pi's extension flags gain negation, repetition, and ordering.
+
+The flag adapters share the following gate answers. The table above identifies the exact syntax for each kind.
+
+1. **Behavior.** Preserve all Aider option values and validate numeric and choice inputs.
+2. **Mechanism evaluated.** `registerFlag` and `getFlag`, plus installed `dist/cli/args.js`.
+3. **Why it cannot.** Pi exposes only string and boolean values, without repetition, alias identity, or argument ordering.
+4. **Why not omit.** The original E6 brief requires every edit option to use the shared resolver.
+5. **Adapter.** Register explicit spellings and decode one value from Pi. Encoded lists replace repeatable flags. Conflicting spellings produce diagnostics.
+6. **Authoritative Pi state.** Pi parses argv and stores flag values. There is no private argv parser.
+7. **Verification.** Settings oracle tests cover conversion and precedence. SDK tests resolve startup file lists from YAML. These adapters do not schedule work or alter branches, permissions, or usage.
+8. **Delete when.** Native extension flags express these kinds and retain their order.
+
+## Reply-text editing and operation receipts
+
+1. **Behavior.** A finalized assistant reply becomes parsed edits, preflight, file permission preparation, application, and at most three repair responses. Each destructive operation has intent and observation records keyed by committed reply entry ID and ordinal.
+2. **Mechanism evaluated.** `turn_end`, `agent_before_settle`, `appendEntry`, boundary drafts, and `withFileMutationQueue`.
+3. **Why it cannot.** Pi owns those boundaries but does not interpret Aider reply formats. Pi's session append and filesystem write are not a shared transaction.
+4. **Why not omit.** Reply-text editing and crash-safe refusal to replay ambiguous edits are binding E6 requirements.
+5. **Adapter.** `ExchangeController.completeReply` calls format and permission methods directly. `journaledTree` wraps write, touch, and remove with individual receipts. Final reconciliation never parses a reply again.
+6. **Authoritative Pi state.** SessionManager owns reply IDs, transcript, active branch, continuation, retries, compaction, and usage. The controller stores domain facts only.
+7. **Verification.** Real SDK tests inspect requests, disk bytes, receipts, and final settlement. Error and aborted provider replies are excluded before parsing. Multi-file edits are non-atomic. A missing observation blocks replay.
+8. **Delete when.** Pi offers native reply-text formats and a durable operation journal, or the edit protocol changes to Pi tools.
+
+## File transaction callback
+
+1. **Behavior.** Serialize the complete preflight, read, permission preparation, and write transaction for every potentially mutated file.
+2. **Mechanism evaluated.** Native `withFileMutationQueue`.
+3. **Why it cannot.** It supplies one non-reentrant file lock. Queued WorkingTree write adapters cannot reacquire that lock inside the transaction.
+4. **Why not omit.** The operator requires complete read-modify-write serialization rather than write-only locks.
+5. **Adapter.** `WorkingTree.mutate` resolves effective file identities, deduplicates aliases, acquires sorted native locks, and supplies an unqueued tree during the callback. Formats declare all mutation endpoints. The registry also locks editable fallback candidates.
+6. **Authoritative Pi state.** Native file queues remain the only serializer. Pi session state and provider lifecycle are unchanged.
+7. **Verification.** File transaction tests use actual files and competing native queue operations. The callback checks cancellation, rejects reentry and undeclared mutations, and releases locks on failure. External editors and processes are outside this in-process guarantee.
+8. **Delete when.** Pi exposes a multi-file mutation scope with lock-aware file adapters.
+
+## Branch-derived domain state
+
+1. **Behavior.** Editable and read-only sets, mode, reflection counts, permissions, and receipts follow the active session branch through reload and navigation.
+2. **Mechanism evaluated.** `appendEntry`, `getBranch`, `session_start`, and `session_tree`.
+3. **Why it cannot.** Pi stores custom entries but does not know the Aider domain schema or fold.
+4. **Why not omit.** Branch-aware chat files and interruption recovery are binding requirements.
+5. **Adapter.** `restore(branch)` validates versioned domain entries and folds snapshots and receipts without I/O. Hook handlers rebuild disposable controllers from that value.
+6. **Authoritative Pi state.** SessionManager selects the branch and persists entries. Navigation does not undo disk edits. No external journal or transcript mirror exists.
+7. **Verification.** SDK tests use persistent session reopen, reload, and `navigateTree`. Pure restore tests check unknown schemas and pending receipts. Commands refuse changes while a run is active.
+8. **Delete when.** Pi offers a native branch-relative extension state schema and reducer. Domain permission and format semantics still belong to maintainer.
+
+## Full-transcript prompt assembly
+
+1. **Behavior.** Each actual request uses Aider's system, examples, read-only files, repository, done history, fresh chat files, current history, and reminder order.
+2. **Mechanism evaluated.** Structured `before_agent_start`, `context`, `context_with_system`, and `buildSessionProjection`.
+3. **Why it cannot.** Pi has no mid-run structured prompt setter. Conversation-only transforms cannot place system reminders. Context messages lack source-entry IDs.
+4. **Why not omit.** File content and fences must refresh before each reflection, with Aider chunk placement.
+5. **Adapter.** `projectRequest` calls a supplied `PromptSource`, folds incoming system state, replaces the owned preamble, and retains incoming transformed messages. Position-preserving transforms support done/current partitioning. Other shapes retain incoming history without claiming exact partitioning.
+6. **Authoritative Pi state.** Canonical context and compaction stay in SessionManager. Earlier transformations are not replaced with raw branch messages. Foreign prompt sections, free-form system text, and tool state survive folding. Tools are disabled through the native active set.
+7. **Verification.** Real provider requests show file context and reflection feedback. Order, prior transformations, branch reload, and compaction cases check the supported cooperation contract. Synthetic acknowledgments have zero usage and are request-local. Exact token counting and canonical prompt-transition recording remain unsupported.
+8. **Delete when.** Pi supplies provenance-preserving full-context transforms and a mid-run structured prompt setter.
+
+## Confirmation adaptation
+
+1. **Behavior.** Preserve Aider yes, no, all, skip, never, default, and explicit-yes-required decision rules, with denial on Pi dialog cancellation or unavailable UI.
+2. **Mechanism evaluated.** Native `ctx.ui.select`, `confirm`, and dialog abort signals.
+3. **Why it cannot.** Pi confirm cannot express group answers. Print and JSON have no stdin confirmation interface.
+4. **Why not omit.** Files outside the editable set require admission before application.
+5. **Adapter.** `createHost` maps offered choices to native select and passes the active signal. No UI returns no unless an explicit global policy has already answered. Cancellation never becomes Aider's EOF-as-default acceptance.
+6. **Authoritative Pi state.** Pi owns dialog lifetime and cancellation. Branch snapshots store never answers. Aider's batch preference remains local to each batch.
+7. **Verification.** Confirmation oracle tests cover source decision rules. Real SDK permission tests cover configured yes, denial without UI, and interruption. No model usage is added for confirmations.
+8. **Delete when.** Pi provides a native confirmation policy with the same groups and noninteractive behavior.
+
+## Command environment
+
+1. **Behavior.** Maintainer subprocesses receive the locally resolved `.env` environment without changing provider credentials in `process.env`.
+2. **Mechanism evaluated.** `pi.exec` with cwd, timeout, and signal.
+3. **Why it cannot.** Pi 1.1.0 `ExecOptions` has no environment field.
+4. **Why not omit.** The architecture requires local dotenv values to reach maintainer commands.
+5. **Adapter.** Host exec invokes `env -i --` with explicit environment assignments and the command argv. It never constructs shell text.
+6. **Authoritative Pi state.** `pi.exec` owns subprocess execution and cancellation. Pi's environment, auth, and provider transport are unchanged.
+7. **Verification.** Host tests check exact environment output and abort propagation. This requires a POSIX `env` executable. No Git, map, lint, shell-suggestion, or Windows command parity is claimed by E6.
+8. **Delete when.** `pi.exec` accepts an explicit command environment.
+
+## Scripted provider test adapter
+
+1. **Behavior.** Deterministically record actual in-process provider requests and supply text, malformed, error, aborted, and tool-call responses.
+2. **Mechanism evaluated.** SDK `createAgentSession`, `DefaultResourceLoader`, and public `pi.registerProvider`.
+3. **Why it cannot.** A remote real model cannot deterministically produce every malformed or cancellation case. No supported external wire API represents this test script.
+4. **Why not omit.** The original brief requires actual SDK lifecycle execution rather than mocked hook invocation.
+5. **Adapter.** `test/support/pi-session.ts` registers one test-only scripted streaming API. It uses public resource loading and does not wrap an agent loop.
+6. **Authoritative Pi state.** AgentSession and SessionManager own requests, persistence, branches, model selection, tools, and settlement.
+7. **Verification.** Integration assertions inspect received normalized requests, literal disk contents, persisted branch facts, and `agent_settled`. The stream honors abort and request instrumentation. It adds no network service or background process.
+8. **Delete when.** Pi provides a public deterministic scripted-provider test fixture with these scenarios.

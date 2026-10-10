@@ -9,7 +9,7 @@ const context: EditContext = {
   root: '/project',
   inchatRelativeFiles: [],
   absRootPath: (path) => `/project/${path}`,
-  tree: { dryRun: false, read: async () => null, write: async () => {}, exists: async () => false, touch: async () => true, remove: async () => {} },
+  tree: { dryRun: false, read: async () => null, write: async () => {}, exists: async () => false, touch: async () => true, remove: async () => {}, mutate: async (_paths, operation) => operation(context.tree) },
   notices: { output: () => {}, warning: () => {}, error: () => {} },
 };
 
@@ -17,6 +17,8 @@ function recordingFormat(): { format: EditFormat<Tagged>; applied: Tagged[][] } 
   const applied: Tagged[][] = [];
   const format: EditFormat<Tagged> = {
     name: 'whole',
+    prompts: 'whole',
+    mutationPaths: (edit) => (edit[0] === null ? [] : [edit[0]]),
     getEdits: (content) => content.split(' ').map((word): Tagged => [word === '-' ? null : word, `tag:${word}`]),
     applyEditsDryRun: (edits) => edits.filter((edit) => edit[1] !== 'tag:skip'),
     applyEdits: async (edits) => {
@@ -30,10 +32,16 @@ test('a registered format plans targets after dry run plus permission', async ()
   const recorder = recordingFormat();
   const { applied } = recorder;
   const format = registerEditFormat(recorder.format);
-  const plan = await format.plan('a.py skip - b.py', context, async (edits) => edits.filter((edit) => edit[0] !== 'b.py'));
-  expect(plan.targets).toEqual(['a.py', null]);
-  expect(applied).toEqual([]);
-  await plan.apply();
+  await format.withPlan(
+    'a.py skip - b.py',
+    context,
+    async (edits) => edits.filter((edit) => edit[0] !== 'b.py'),
+    async (plan) => {
+      expect(plan.targets).toEqual(['a.py', null]);
+      expect(applied).toEqual([]);
+      await plan.apply();
+    },
+  );
   expect(applied).toEqual([
     [
       ['a.py', 'tag:a.py'],

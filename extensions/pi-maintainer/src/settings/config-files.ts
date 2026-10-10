@@ -2,6 +2,7 @@ import { existsSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 
 import { isMap, isScalar, isSeq, parseDocument } from 'yaml';
+import { BRANDING } from '../branding.ts';
 import { plainScalarText } from './yaml-values.ts';
 
 /** A config value as configargparse sees it: one string, or a list of strings. */
@@ -15,7 +16,7 @@ export interface ConfigEntry {
 export type ParsedConfig = { readonly ok: true; readonly entries: readonly ConfigEntry[] } | { readonly ok: false; readonly error: string };
 
 /** The Pi spelling of `.aider.conf.yml`. */
-export const CONFIG_FILE_NAME = '.pi-maintainer.conf.yml';
+export const CONFIG_FILE_NAME = BRANDING.configFile;
 
 function nodeText(node: unknown): string | null {
   if (node === null || node === undefined) return null;

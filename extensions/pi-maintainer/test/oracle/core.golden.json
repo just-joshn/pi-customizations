@@ -1,0 +1,128 @@
+{
+  "confirm/all-shared": {
+    "result": {
+      "answers": [true, true],
+      "never": [],
+      "preference": "all"
+    }
+  },
+  "confirm/default-no": {
+    "result": {
+      "answers": [false],
+      "never": [],
+      "preference": null
+    }
+  },
+  "confirm/default-yes": {
+    "result": {
+      "answers": [true],
+      "never": [],
+      "preference": null
+    }
+  },
+  "confirm/eof-source-default": {
+    "result": {
+      "answers": [true],
+      "never": [],
+      "preference": null
+    }
+  },
+  "confirm/explicit-all": {
+    "result": {
+      "answers": [false],
+      "never": [],
+      "preference": "all"
+    }
+  },
+  "confirm/explicit-policy-denied": {
+    "result": {
+      "answers": [false],
+      "never": [],
+      "preference": null
+    }
+  },
+  "confirm/explicit-typed-yes": {
+    "result": {
+      "answers": [true],
+      "never": [],
+      "preference": null
+    }
+  },
+  "confirm/hidden-group": {
+    "result": {
+      "answers": [false],
+      "never": [],
+      "preference": "all"
+    }
+  },
+  "confirm/invalid-reprompt": {
+    "result": {
+      "answers": [false],
+      "never": [],
+      "preference": null
+    }
+  },
+  "confirm/never-before-global": {
+    "result": {
+      "answers": [false],
+      "never": [["Allow?", null]],
+      "preference": null
+    }
+  },
+  "confirm/never-key": {
+    "result": {
+      "answers": [false, false, true],
+      "never": [["Allow?", "a"]],
+      "preference": null
+    }
+  },
+  "confirm/no-policy": {
+    "result": {
+      "answers": [false],
+      "never": [],
+      "preference": null
+    }
+  },
+  "confirm/prefix-case": {
+    "result": {
+      "answers": [true],
+      "never": [],
+      "preference": null
+    }
+  },
+  "confirm/skip-shared": {
+    "result": {
+      "answers": [false, false],
+      "never": [],
+      "preference": "skip"
+    }
+  },
+  "confirm/yes-policy": {
+    "result": {
+      "answers": [true],
+      "never": [],
+      "preference": null
+    }
+  },
+  "files-content/crlf-unicode-tab": {
+    "result": "\n文😀.py\n<code>\n\t😀\r\n</code>\n"
+  },
+  "files-content/empty": {
+    "result": ""
+  },
+  "files-content/empty-file": {
+    "result": "\nempty.txt\n```\n```\n"
+  },
+  "files-content/images-excluded": {
+    "result": "\nUPPER.PNG\n```\ntext```\n"
+  },
+  "files-content/missing-newline": {
+    "result": "\na.py\n```\nbefore```\n"
+  },
+  "files-content/newline": {
+    "result": "\na.py\n```\nbefore\n```\n"
+  },
+  "files-content/outside-root": {
+    "result": "\n../other/a.py\n```\na```\n\nsub/b.py\n```\nb\n```\n"
+  }
+}

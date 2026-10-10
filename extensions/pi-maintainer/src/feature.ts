@@ -51,18 +51,21 @@ export interface EditContext {
   readonly absRootPath: (path: string) => string;
   readonly tree: WorkingTree;
   readonly notices: Notices;
+  readonly signal?: AbortSignal | undefined;
 }
 
 /** One Aider coder's reply-text edit format. Each format keeps its own edit tuple type. */
 export interface EditFormat<E extends PathEdit> {
   readonly name: EditFormatName;
+  readonly prompts: EditFormatName;
+  mutationPaths(edit: E): readonly string[];
   getEdits(content: string, context: EditContext): E[] | Promise<E[]>;
   applyEditsDryRun(edits: readonly E[], context: EditContext): E[] | Promise<E[]>;
   applyEdits(edits: readonly E[], context: EditContext): Promise<void>;
 }
 
 /** `prepare_to_edit`: keeps the edits whose paths the user allows, in order. */
-export type PrepareToEdit = <E extends PathEdit>(edits: readonly E[]) => Promise<E[]>;
+export type PrepareToEdit = <E extends PathEdit>(edits: readonly E[], context: EditContext) => Promise<E[]>;
 
 /** The edits that survived permission, and the step that writes them. */
 export interface EditPlan {
@@ -73,17 +76,28 @@ export interface EditPlan {
 /** A format with its edit tuple type hidden, so formats of different tuple types share one registry. */
 export interface RegisteredEditFormat {
   readonly name: EditFormatName;
-  /** `get_edits`, `apply_edits_dry_run`, then `prepare_to_edit`, the first half of `apply_updates`. */
-  plan(content: string, context: EditContext, prepare: PrepareToEdit): Promise<EditPlan>;
+  readonly prompts: EditFormatName;
+  withPlan<T>(content: string, context: EditContext, prepare: PrepareToEdit, use: (plan: EditPlan) => Promise<T>): Promise<T>;
 }
 
 export function registerEditFormat<E extends PathEdit>(format: EditFormat<E>): RegisteredEditFormat {
   return {
     name: format.name,
-    async plan(content, context, prepare) {
-      const edits = await format.applyEditsDryRun(await format.getEdits(content, context), context);
-      const prepared = await prepare(edits);
-      return { targets: prepared.map((edit) => edit[0]), apply: () => format.applyEdits(prepared, context) };
+    prompts: format.prompts,
+    async withPlan(content, context, prepare, use) {
+      context.signal?.throwIfAborted();
+      const raw = await format.getEdits(content, context);
+      const paths = [...context.inchatRelativeFiles, ...raw.flatMap((edit) => format.mutationPaths(edit))].map(context.absRootPath);
+      return context.tree.mutate(
+        paths,
+        async (tree) => {
+          const locked = { ...context, tree };
+          const edits = await format.applyEditsDryRun(raw, locked);
+          const prepared = await prepare(edits, locked);
+          return use({ targets: prepared.map((edit) => edit[0]), apply: () => format.applyEdits(prepared, locked) });
+        },
+        context.signal,
+      );
     },
   };
 }

@@ -1,6 +1,6 @@
 import { constants } from 'node:fs';
-import { access, mkdir, readFile, unlink, utimes, writeFile } from 'node:fs/promises';
-import { dirname } from 'node:path';
+import { access, mkdir, readFile, realpath, unlink, utimes, writeFile } from 'node:fs/promises';
+import { basename, dirname, join, resolve } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 
 import { withFileMutationQueue } from '@earendil-works/pi-coding-agent';
@@ -26,6 +26,7 @@ export interface WorkingTree {
   /** Creates missing parent directories and an empty file. False when the OS refuses. */
   touch(path: string): Promise<boolean>;
   remove(path: string): Promise<void>;
+  mutate<T>(paths: readonly string[], operation: (tree: WorkingTree) => Promise<T>, signal?: AbortSignal): Promise<T>;
 }
 
 export type LineEndings = 'platform' | 'lf' | 'crlf';
@@ -63,16 +64,17 @@ function readFailure(path: string, error: unknown, notices: Notices): null {
   return null;
 }
 
-async function writeWithRetries(path: string, bytes: string, encoding: BufferEncoding, notices: Notices): Promise<void> {
+async function writeWithRetries(path: string, bytes: string, encoding: BufferEncoding, notices: Notices, signal?: AbortSignal): Promise<void> {
   let delay = FIRST_RETRY_DELAY_MS;
   for (let attempt = 1; ; attempt += 1) {
     try {
+      signal?.throwIfAborted();
       await writeFile(path, bytes, { encoding });
       return;
     } catch (error) {
       const permission = errorCode(error) === 'EACCES' || errorCode(error) === 'EPERM';
       if (permission && attempt < WRITE_ATTEMPTS) {
-        await sleep(delay);
+        await sleep(delay, undefined, { signal });
         delay *= 2;
         continue;
       }
@@ -96,50 +98,83 @@ function nodeEncoding(encoding: string): BufferEncoding {
   throw new TypeError(`unknown encoding: ${encoding}`);
 }
 
-export function createWorkingTree(options: WorkingTreeOptions): WorkingTree {
-  const { notices } = options;
+async function mutationPath(path: string): Promise<string> {
+  const absolute = resolve(path);
+  try {
+    return await realpath(absolute);
+  } catch (error) {
+    if (errorCode(error) !== 'ENOENT' && errorCode(error) !== 'ENOTDIR') throw error;
+    const parent = dirname(absolute);
+    return parent === absolute ? absolute : join(await mutationPath(parent), basename(absolute));
+  }
+}
+
+async function lockPaths<T>(paths: readonly string[], operation: () => Promise<T>, signal?: AbortSignal): Promise<T> {
+  signal?.throwIfAborted();
+  const [head, ...rest] = paths;
+  if (head === undefined) return operation();
+  return withFileMutationQueue(head, () => lockPaths(rest, operation, signal));
+}
+
+async function touchFile(path: string): Promise<boolean> {
+  try {
+    await mkdir(dirname(path), { recursive: true });
+    const now = new Date();
+    await utimes(path, now, now).catch(() => writeFile(path, '', { flag: 'a' }));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function exists(path: string): Promise<boolean> {
+  try {
+    await access(path, constants.F_OK);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function readText(path: string, encoding: string, notices: Notices): Promise<string | null> {
+  try {
+    const bytes = await readFile(path);
+    const latin1 = LATIN1_ALIASES.has(normalizeEncoding(encoding));
+    return universalNewlines(latin1 ? bytes.toString('latin1') : new TextDecoder(encoding, { fatal: true, ignoreBOM: true }).decode(bytes));
+  } catch (error) {
+    return readFailure(path, error, notices);
+  }
+}
+
+function workingTree(options: WorkingTreeOptions, held: ReadonlySet<string> | null, signal?: AbortSignal): WorkingTree {
   const encoding = options.encoding ?? 'utf-8';
-  const isLatin1 = LATIN1_ALIASES.has(normalizeEncoding(encoding));
   const separator = lineSeparator(options.lineEndings ?? 'platform');
   const dryRun = options.dryRun ?? false;
+  const mutation = async <T>(path: string, operation: () => Promise<T>): Promise<T> => {
+    signal?.throwIfAborted();
+    if (held === null) return withFileMutationQueue(path, operation);
+    if (!held.has(await mutationPath(path))) throw new Error(`Mutation target was not locked: ${path}`);
+    return operation();
+  };
   return {
     dryRun,
-    async read(path) {
-      try {
-        const bytes = await readFile(path);
-        const text = isLatin1 ? bytes.toString('latin1') : new TextDecoder(encoding, { fatal: true, ignoreBOM: true }).decode(bytes);
-        return universalNewlines(text);
-      } catch (error) {
-        return readFailure(path, error, notices);
-      }
-    },
+    exists,
+    read: (path) => readText(path, encoding, options.notices),
     async write(path, content) {
       if (dryRun) return;
       const bytes = separator === '\n' ? content : content.replace(/\n/g, separator);
-      await withFileMutationQueue(path, () => writeWithRetries(path, bytes, nodeEncoding(encoding), notices));
+      await mutation(path, () => writeWithRetries(path, bytes, nodeEncoding(encoding), options.notices, signal));
     },
-    async exists(path) {
-      try {
-        await access(path, constants.F_OK);
-        return true;
-      } catch {
-        return false;
-      }
-    },
-    async touch(path) {
-      if (dryRun) return true;
-      try {
-        await mkdir(dirname(path), { recursive: true });
-        const now = new Date();
-        await utimes(path, now, now).catch(() => writeFile(path, '', { flag: 'a' }));
-        return true;
-      } catch {
-        return false;
-      }
-    },
+    touch: (path) => (dryRun ? Promise.resolve(true) : mutation(path, () => touchFile(path))),
     async remove(path) {
-      if (dryRun) return;
-      await withFileMutationQueue(path, () => unlink(path));
+      if (!dryRun) await mutation(path, () => unlink(path));
+    },
+    async mutate(paths, operation, operationSignal) {
+      if (held !== null) throw new Error('A file mutation transaction cannot be reentered');
+      const keys = [...new Set(await Promise.all(paths.map(mutationPath)))].sort();
+      return lockPaths(keys, () => operation(workingTree(options, new Set(keys), operationSignal)), operationSignal);
     },
   };
 }
+
+export const createWorkingTree = (options: WorkingTreeOptions): WorkingTree => workingTree(options, null);

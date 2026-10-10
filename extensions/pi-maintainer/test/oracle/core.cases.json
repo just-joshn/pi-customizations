@@ -1,0 +1,28 @@
+[
+  { "id": "files-content/empty", "op": "core.files_content", "args": { "contents": [] } },
+  { "id": "files-content/newline", "op": "core.files_content", "args": { "contents": [["/project/a.py", "before\n"]] } },
+  { "id": "files-content/missing-newline", "op": "core.files_content", "args": { "contents": [["/project/a.py", "before"]] } },
+  { "id": "files-content/crlf-unicode-tab", "op": "core.files_content", "args": { "contents": [["/project/文😀.py", "\t😀\r\n"]], "fence": ["<code>", "</code>"] } },
+  { "id": "files-content/empty-file", "op": "core.files_content", "args": { "contents": [["/project/empty.txt", ""]] } },
+  { "id": "files-content/images-excluded", "op": "core.files_content", "args": { "contents": [["/project/a.png", "YWJj"], ["/project/x.pdf", "YWJj"], ["/project/UPPER.PNG", "text"]] } },
+  { "id": "files-content/outside-root", "op": "core.files_content", "args": { "contents": [["/other/a.py", "a"], ["/project/sub/b.py", "b\n"]] } },
+  { "id": "confirm/yes-policy", "op": "core.confirm", "args": { "yes": true, "questions": [{ "question": "Allow?" }] } },
+  { "id": "confirm/no-policy", "op": "core.confirm", "args": { "yes": false, "questions": [{ "question": "Allow?" }] } },
+  { "id": "confirm/explicit-policy-denied", "op": "core.confirm", "args": { "yes": true, "questions": [{ "question": "Run?", "explicit": true }] } },
+  { "id": "confirm/default-yes", "op": "core.confirm", "args": { "typed": [""], "questions": [{ "question": "Allow?" }] } },
+  { "id": "confirm/default-no", "op": "core.confirm", "args": { "typed": [""], "questions": [{ "question": "Allow?", "default": "n" }] } },
+  { "id": "confirm/eof-source-default", "op": "core.confirm", "args": { "typed": [null], "questions": [{ "question": "Allow?" }] } },
+  { "id": "confirm/prefix-case", "op": "core.confirm", "args": { "typed": ["Y"], "questions": [{ "question": "Allow?" }] } },
+  { "id": "confirm/invalid-reprompt", "op": "core.confirm", "args": { "typed": ["wat", "no"], "questions": [{ "question": "Allow?" }] } },
+  { "id": "confirm/all-shared", "op": "core.confirm", "args": { "group": ["a", "b"], "typed": ["all"], "questions": [{ "question": "Allow?", "subject": "a" }, { "question": "Allow?", "subject": "b" }] } },
+  { "id": "confirm/skip-shared", "op": "core.confirm", "args": { "group": ["a", "b"], "typed": ["skip"], "questions": [{ "question": "Allow?", "subject": "a" }, { "question": "Allow?", "subject": "b" }] } },
+  { "id": "confirm/hidden-group", "op": "core.confirm", "args": { "group": ["a"], "preference": "all", "typed": ["no"], "questions": [{ "question": "Allow?", "subject": "a" }] } },
+  {
+    "id": "confirm/never-key",
+    "op": "core.confirm",
+    "args": { "typed": ["don't", "yes"], "questions": [{ "question": "Allow?", "subject": "a", "allow_never": true }, { "question": "Allow?", "subject": "a" }, { "question": "Allow?", "subject": "b" }] }
+  },
+  { "id": "confirm/never-before-global", "op": "core.confirm", "args": { "yes": true, "never": [["Allow?", null]], "questions": [{ "question": "Allow?" }] } },
+  { "id": "confirm/explicit-all", "op": "core.confirm", "args": { "group": ["a", "b"], "preference": "all", "questions": [{ "question": "Run?", "explicit": true }] } },
+  { "id": "confirm/explicit-typed-yes", "op": "core.confirm", "args": { "typed": ["yes"], "questions": [{ "question": "Run?", "explicit": true, "subject": "a\nb" }] } }
+]
