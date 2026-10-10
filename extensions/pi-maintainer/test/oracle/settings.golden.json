@@ -1,0 +1,968 @@
+{
+  "dotenv-path/explicit-env-file": {
+    "result": ["<root>/home/.env", "<root>/repo/.env", "<root>/repo/pkg/.env", "<root>/repo/pkg/custom.env"]
+  },
+  "dotenv-path/explicit-env-file-is-home": {
+    "result": ["<root>/repo/.env", "<root>/home/.env"]
+  },
+  "dotenv-path/git-root-is-cwd": {
+    "result": ["<root>/home/.env", "<root>/repo/.env"]
+  },
+  "dotenv-path/no-git": {
+    "result": ["<root>/home/.env", "<root>/repo/.env"]
+  },
+  "dotenv-path/subdir-default-env-file-loads-last": {
+    "result": ["<root>/home/.env", "<root>/repo/pkg/.env", "<root>/repo/.env"]
+  },
+  "dotenv/comments": {
+    "result": {
+      "A": "1",
+      "B": "x#notcomment",
+      "C": "q"
+    }
+  },
+  "dotenv/crlf": {
+    "result": {
+      "A": "1",
+      "B": "two",
+      "C": "three"
+    }
+  },
+  "dotenv/default-with-colon": {
+    "result": {
+      "A": "a:b"
+    }
+  },
+  "dotenv/double-quoted-escapes": {
+    "result": {
+      "A": "line\nnext\t\\ \"q\" 's"
+    }
+  },
+  "dotenv/earlier-env-default": {
+    "result": {
+      "A": "",
+      "B": ""
+    }
+  },
+  "dotenv/empty-value": {
+    "result": {
+      "A": "",
+      "B": "",
+      "C": ""
+    }
+  },
+  "dotenv/export-prefix": {
+    "result": {
+      "A": "1",
+      "B": "2"
+    }
+  },
+  "dotenv/hash-in-double-quotes": {
+    "result": {
+      "A": "a # b"
+    }
+  },
+  "dotenv/interpolation": {
+    "result": {
+      "A": "hello",
+      "B": "hello world",
+      "C": "fallback",
+      "D": "",
+      "E": "/home/u/x",
+      "HOME": "/home/u"
+    }
+  },
+  "dotenv/interpolation-single-quotes": {
+    "result": {
+      "A": "x",
+      "B": "x"
+    }
+  },
+  "dotenv/invalid-line-skipped": {
+    "result": {
+      "A": "1",
+      "C": "3"
+    }
+  },
+  "dotenv/key-without-equals": {
+    "result": {
+      "A": "x"
+    }
+  },
+  "dotenv/multiline-double-quoted": {
+    "result": {
+      "A": "one\ntwo",
+      "B": "3"
+    }
+  },
+  "dotenv/no-trailing-newline": {
+    "result": {
+      "A": "last"
+    }
+  },
+  "dotenv/override-environment": {
+    "result": {
+      "A": "file",
+      "KEEP": "k"
+    }
+  },
+  "dotenv/quoted-key": {
+    "result": {
+      "my key": "v"
+    }
+  },
+  "dotenv/simple": {
+    "result": {
+      "A": "1",
+      "B": "two"
+    }
+  },
+  "dotenv/single-quoted-literal": {
+    "result": {
+      "A": "raw \\n ' \\ $B"
+    }
+  },
+  "dotenv/spaces-around-equals": {
+    "result": {
+      "A": "spaced",
+      "B": "left"
+    }
+  },
+  "dotenv/trailing-whitespace": {
+    "result": {
+      "A": "value",
+      "B": "lead"
+    }
+  },
+  "dotenv/unicode-whitespace": {
+    "result": {
+      "A": "x",
+      "B": "y"
+    }
+  },
+  "dotenv/value-with-equals": {
+    "result": {
+      "URL": "http://x?a=b&c=d"
+    }
+  },
+  "resolve/apply-from-env": {
+    "result": {
+      "apply": "reply.txt",
+      "auto_accept_architect": true,
+      "dry_run": false,
+      "edit_format": null,
+      "editor_edit_format": null,
+      "editor_model": null,
+      "encoding": "utf-8",
+      "file": [],
+      "line_endings": "platform",
+      "read": [],
+      "suggest_shell_commands": true,
+      "yes_always": null
+    }
+  },
+  "resolve/architect-cwd-beats-home-edit-format": {
+    "result": {
+      "apply": null,
+      "auto_accept_architect": true,
+      "dry_run": false,
+      "edit_format": "architect",
+      "editor_edit_format": null,
+      "editor_model": null,
+      "encoding": "utf-8",
+      "file": [],
+      "line_endings": "platform",
+      "read": [],
+      "suggest_shell_commands": true,
+      "yes_always": null
+    }
+  },
+  "resolve/architect-false-is-no-assignment": {
+    "result": {
+      "apply": null,
+      "auto_accept_architect": true,
+      "dry_run": false,
+      "edit_format": "patch",
+      "editor_edit_format": null,
+      "editor_model": null,
+      "encoding": "utf-8",
+      "file": [],
+      "line_endings": "platform",
+      "read": [],
+      "suggest_shell_commands": true,
+      "yes_always": null
+    }
+  },
+  "resolve/cli-architect-const": {
+    "result": {
+      "apply": null,
+      "auto_accept_architect": true,
+      "dry_run": false,
+      "edit_format": "architect",
+      "editor_edit_format": null,
+      "editor_model": null,
+      "encoding": "utf-8",
+      "file": [],
+      "line_endings": "platform",
+      "read": [],
+      "suggest_shell_commands": true,
+      "yes_always": null
+    }
+  },
+  "resolve/cli-beats-env": {
+    "result": {
+      "apply": null,
+      "auto_accept_architect": true,
+      "dry_run": false,
+      "edit_format": "udiff",
+      "editor_edit_format": null,
+      "editor_model": null,
+      "encoding": "utf-8",
+      "file": [],
+      "line_endings": "platform",
+      "read": [],
+      "suggest_shell_commands": true,
+      "yes_always": null
+    }
+  },
+  "resolve/cli-chat-mode-alias": {
+    "result": {
+      "apply": null,
+      "auto_accept_architect": true,
+      "dry_run": false,
+      "edit_format": "ask",
+      "editor_edit_format": null,
+      "editor_model": null,
+      "encoding": "utf-8",
+      "file": [],
+      "line_endings": "platform",
+      "read": [],
+      "suggest_shell_commands": true,
+      "yes_always": null
+    }
+  },
+  "resolve/cli-edit-format": {
+    "result": {
+      "apply": null,
+      "auto_accept_architect": true,
+      "dry_run": false,
+      "edit_format": "whole",
+      "editor_edit_format": null,
+      "editor_model": null,
+      "encoding": "utf-8",
+      "file": [],
+      "line_endings": "platform",
+      "read": [],
+      "suggest_shell_commands": true,
+      "yes_always": null
+    }
+  },
+  "resolve/cli-edit-format-beats-env-architect": {
+    "result": {
+      "apply": null,
+      "auto_accept_architect": true,
+      "dry_run": false,
+      "edit_format": "whole",
+      "editor_edit_format": null,
+      "editor_model": null,
+      "encoding": "utf-8",
+      "file": [],
+      "line_endings": "platform",
+      "read": [],
+      "suggest_shell_commands": true,
+      "yes_always": null
+    }
+  },
+  "resolve/cli-negated-flag": {
+    "result": {
+      "apply": null,
+      "auto_accept_architect": true,
+      "dry_run": false,
+      "edit_format": null,
+      "editor_edit_format": null,
+      "editor_model": null,
+      "encoding": "utf-8",
+      "file": [],
+      "line_endings": "platform",
+      "read": [],
+      "suggest_shell_commands": false,
+      "yes_always": null
+    }
+  },
+  "resolve/config-alias-key": {
+    "result": {
+      "apply": null,
+      "auto_accept_architect": true,
+      "dry_run": false,
+      "edit_format": "context",
+      "editor_edit_format": null,
+      "editor_model": null,
+      "encoding": "utf-8",
+      "file": [],
+      "line_endings": "platform",
+      "read": [],
+      "suggest_shell_commands": true,
+      "yes_always": null
+    }
+  },
+  "resolve/config-auto-accept-off": {
+    "result": {
+      "apply": null,
+      "auto_accept_architect": false,
+      "dry_run": false,
+      "edit_format": null,
+      "editor_edit_format": null,
+      "editor_model": null,
+      "encoding": "utf-8",
+      "file": [],
+      "line_endings": "platform",
+      "read": [],
+      "suggest_shell_commands": true,
+      "yes_always": null
+    }
+  },
+  "resolve/config-dashed-key": {
+    "result": {
+      "apply": null,
+      "auto_accept_architect": true,
+      "dry_run": false,
+      "edit_format": "ask",
+      "editor_edit_format": null,
+      "editor_model": null,
+      "encoding": "utf-8",
+      "file": [],
+      "line_endings": "platform",
+      "read": [],
+      "suggest_shell_commands": true,
+      "yes_always": null
+    }
+  },
+  "resolve/config-false-then-cli-flag": {
+    "result": {
+      "apply": null,
+      "auto_accept_architect": true,
+      "dry_run": true,
+      "edit_format": null,
+      "editor_edit_format": null,
+      "editor_model": null,
+      "encoding": "utf-8",
+      "file": [],
+      "line_endings": "platform",
+      "read": [],
+      "suggest_shell_commands": true,
+      "yes_always": null
+    }
+  },
+  "resolve/config-list-for-scalar": {
+    "error": {
+      "message": "argparse exit 2",
+      "type": "RuntimeError"
+    }
+  },
+  "resolve/config-negative-key-false-turns-off": {
+    "result": {
+      "apply": null,
+      "auto_accept_architect": true,
+      "dry_run": false,
+      "edit_format": null,
+      "editor_edit_format": null,
+      "editor_model": null,
+      "encoding": "utf-8",
+      "file": [],
+      "line_endings": "platform",
+      "read": [],
+      "suggest_shell_commands": true,
+      "yes_always": null
+    }
+  },
+  "resolve/config-negative-key-true-turns-on": {
+    "result": {
+      "apply": null,
+      "auto_accept_architect": true,
+      "dry_run": true,
+      "edit_format": null,
+      "editor_edit_format": null,
+      "editor_model": null,
+      "encoding": "utf-8",
+      "file": [],
+      "line_endings": "platform",
+      "read": [],
+      "suggest_shell_commands": true,
+      "yes_always": null
+    }
+  },
+  "resolve/config-null-skipped": {
+    "result": {
+      "apply": null,
+      "auto_accept_architect": true,
+      "dry_run": false,
+      "edit_format": null,
+      "editor_edit_format": null,
+      "editor_model": "base",
+      "encoding": "utf-8",
+      "file": [],
+      "line_endings": "platform",
+      "read": [],
+      "suggest_shell_commands": true,
+      "yes_always": null
+    }
+  },
+  "resolve/config-quoted-true": {
+    "result": {
+      "apply": null,
+      "auto_accept_architect": true,
+      "dry_run": true,
+      "edit_format": null,
+      "editor_edit_format": null,
+      "editor_model": null,
+      "encoding": "utf-8",
+      "file": [],
+      "line_endings": "platform",
+      "read": [],
+      "suggest_shell_commands": true,
+      "yes_always": null
+    }
+  },
+  "resolve/config-unknown-key-ignored": {
+    "result": {
+      "apply": null,
+      "auto_accept_architect": true,
+      "dry_run": false,
+      "edit_format": "whole",
+      "editor_edit_format": null,
+      "editor_model": null,
+      "encoding": "utf-8",
+      "file": [],
+      "line_endings": "platform",
+      "read": [],
+      "suggest_shell_commands": true,
+      "yes_always": null
+    }
+  },
+  "resolve/config-yes-word": {
+    "result": {
+      "apply": null,
+      "auto_accept_architect": true,
+      "dry_run": true,
+      "edit_format": null,
+      "editor_edit_format": null,
+      "editor_model": null,
+      "encoding": "utf-8",
+      "file": [],
+      "line_endings": "platform",
+      "read": [],
+      "suggest_shell_commands": true,
+      "yes_always": null
+    }
+  },
+  "resolve/cwd-config-beats-git-in-subdir": {
+    "result": {
+      "apply": null,
+      "auto_accept_architect": true,
+      "dry_run": false,
+      "edit_format": null,
+      "editor_edit_format": null,
+      "editor_model": null,
+      "encoding": "utf-16le",
+      "file": [],
+      "line_endings": "platform",
+      "read": [],
+      "suggest_shell_commands": true,
+      "yes_always": null
+    }
+  },
+  "resolve/cwd-config-beats-home": {
+    "result": {
+      "apply": null,
+      "auto_accept_architect": true,
+      "dry_run": false,
+      "edit_format": "patch",
+      "editor_edit_format": null,
+      "editor_model": null,
+      "encoding": "utf-8",
+      "file": [],
+      "line_endings": "platform",
+      "read": [],
+      "suggest_shell_commands": true,
+      "yes_always": null
+    }
+  },
+  "resolve/defaults": {
+    "result": {
+      "apply": null,
+      "auto_accept_architect": true,
+      "dry_run": false,
+      "edit_format": null,
+      "editor_edit_format": null,
+      "editor_model": null,
+      "encoding": "utf-8",
+      "file": [],
+      "line_endings": "platform",
+      "read": [],
+      "suggest_shell_commands": true,
+      "yes_always": null
+    }
+  },
+  "resolve/dry-run-invalid-boolean": {
+    "error": {
+      "message": "argparse exit 2",
+      "type": "RuntimeError"
+    }
+  },
+  "resolve/edit-format-invalid-choice": {
+    "error": {
+      "message": "argparse exit 2",
+      "type": "RuntimeError"
+    }
+  },
+  "resolve/editor-edit-format-invalid": {
+    "error": {
+      "message": "argparse exit 2",
+      "type": "RuntimeError"
+    }
+  },
+  "resolve/encoding-hex-int": {
+    "result": {
+      "apply": null,
+      "auto_accept_architect": true,
+      "dry_run": false,
+      "edit_format": null,
+      "editor_edit_format": null,
+      "editor_model": null,
+      "encoding": "16",
+      "file": [],
+      "line_endings": "platform",
+      "read": [],
+      "suggest_shell_commands": true,
+      "yes_always": null
+    }
+  },
+  "resolve/encoding-octal-int": {
+    "result": {
+      "apply": null,
+      "auto_accept_architect": true,
+      "dry_run": false,
+      "edit_format": null,
+      "editor_edit_format": null,
+      "editor_model": null,
+      "encoding": "15",
+      "file": [],
+      "line_endings": "platform",
+      "read": [],
+      "suggest_shell_commands": true,
+      "yes_always": null
+    }
+  },
+  "resolve/env-architect-beats-config": {
+    "result": {
+      "apply": null,
+      "auto_accept_architect": true,
+      "dry_run": false,
+      "edit_format": "architect",
+      "editor_edit_format": null,
+      "editor_model": null,
+      "encoding": "utf-8",
+      "file": [],
+      "line_endings": "platform",
+      "read": [],
+      "suggest_shell_commands": true,
+      "yes_always": null
+    }
+  },
+  "resolve/env-beats-config": {
+    "result": {
+      "apply": null,
+      "auto_accept_architect": true,
+      "dry_run": false,
+      "edit_format": null,
+      "editor_edit_format": null,
+      "editor_model": null,
+      "encoding": "utf-8",
+      "file": [],
+      "line_endings": "lf",
+      "read": [],
+      "suggest_shell_commands": true,
+      "yes_always": null
+    }
+  },
+  "resolve/env-edit-format": {
+    "result": {
+      "apply": null,
+      "auto_accept_architect": true,
+      "dry_run": false,
+      "edit_format": "diff",
+      "editor_edit_format": null,
+      "editor_model": null,
+      "encoding": "utf-8",
+      "file": [],
+      "line_endings": "platform",
+      "read": [],
+      "suggest_shell_commands": true,
+      "yes_always": null
+    }
+  },
+  "resolve/env-editor-model": {
+    "result": {
+      "apply": null,
+      "auto_accept_architect": true,
+      "dry_run": false,
+      "edit_format": null,
+      "editor_edit_format": null,
+      "editor_model": "sonnet",
+      "encoding": "utf-8",
+      "file": [],
+      "line_endings": "platform",
+      "read": [],
+      "suggest_shell_commands": true,
+      "yes_always": null
+    }
+  },
+  "resolve/env-empty-dry-run-invalid": {
+    "error": {
+      "message": "argparse exit 2",
+      "type": "RuntimeError"
+    }
+  },
+  "resolve/env-empty-editor-model": {
+    "result": {
+      "apply": null,
+      "auto_accept_architect": true,
+      "dry_run": false,
+      "edit_format": null,
+      "editor_edit_format": null,
+      "editor_model": "",
+      "encoding": "utf-8",
+      "file": [],
+      "line_endings": "platform",
+      "read": [],
+      "suggest_shell_commands": true,
+      "yes_always": null
+    }
+  },
+  "resolve/env-suggest-false": {
+    "result": {
+      "apply": null,
+      "auto_accept_architect": true,
+      "dry_run": false,
+      "edit_format": null,
+      "editor_edit_format": null,
+      "editor_model": null,
+      "encoding": "utf-8",
+      "file": [],
+      "line_endings": "platform",
+      "read": [],
+      "suggest_shell_commands": false,
+      "yes_always": null
+    }
+  },
+  "resolve/file-cli-replaces-config-list": {
+    "result": {
+      "apply": null,
+      "auto_accept_architect": true,
+      "dry_run": false,
+      "edit_format": null,
+      "editor_edit_format": null,
+      "editor_model": null,
+      "encoding": "utf-8",
+      "file": ["c.py"],
+      "line_endings": "platform",
+      "read": [],
+      "suggest_shell_commands": true,
+      "yes_always": null
+    }
+  },
+  "resolve/file-config-scalar": {
+    "result": {
+      "apply": null,
+      "auto_accept_architect": true,
+      "dry_run": false,
+      "edit_format": null,
+      "editor_edit_format": null,
+      "editor_model": null,
+      "encoding": "utf-8",
+      "file": ["one.py"],
+      "line_endings": "platform",
+      "read": [],
+      "suggest_shell_commands": true,
+      "yes_always": null
+    }
+  },
+  "resolve/file-env-json-list": {
+    "result": {
+      "apply": null,
+      "auto_accept_architect": true,
+      "dry_run": false,
+      "edit_format": null,
+      "editor_edit_format": null,
+      "editor_model": null,
+      "encoding": "utf-8",
+      "file": ["x.py", "y.py"],
+      "line_endings": "platform",
+      "read": [],
+      "suggest_shell_commands": true,
+      "yes_always": null
+    }
+  },
+  "resolve/file-env-legacy-list": {
+    "result": {
+      "apply": null,
+      "auto_accept_architect": true,
+      "dry_run": false,
+      "edit_format": null,
+      "editor_edit_format": null,
+      "editor_model": null,
+      "encoding": "utf-8",
+      "file": [],
+      "line_endings": "platform",
+      "read": ["one.md", "two.md"],
+      "suggest_shell_commands": true,
+      "yes_always": null
+    }
+  },
+  "resolve/file-env-replaces-config": {
+    "result": {
+      "apply": null,
+      "auto_accept_architect": true,
+      "dry_run": false,
+      "edit_format": null,
+      "editor_edit_format": null,
+      "editor_model": null,
+      "encoding": "utf-8",
+      "file": ["b.py"],
+      "line_endings": "platform",
+      "read": [],
+      "suggest_shell_commands": true,
+      "yes_always": null
+    }
+  },
+  "resolve/file-env-single": {
+    "result": {
+      "apply": null,
+      "auto_accept_architect": true,
+      "dry_run": false,
+      "edit_format": null,
+      "editor_edit_format": null,
+      "editor_model": null,
+      "encoding": "utf-8",
+      "file": ["single.py"],
+      "line_endings": "platform",
+      "read": [],
+      "suggest_shell_commands": true,
+      "yes_always": null
+    }
+  },
+  "resolve/file-list-from-config": {
+    "result": {
+      "apply": null,
+      "auto_accept_architect": true,
+      "dry_run": false,
+      "edit_format": null,
+      "editor_edit_format": null,
+      "editor_model": null,
+      "encoding": "utf-8",
+      "file": ["a.py", "b.py"],
+      "line_endings": "platform",
+      "read": ["docs/x.md", "docs/y.md"],
+      "suggest_shell_commands": true,
+      "yes_always": null
+    }
+  },
+  "resolve/git-config-beats-home": {
+    "result": {
+      "apply": null,
+      "auto_accept_architect": true,
+      "dry_run": true,
+      "edit_format": null,
+      "editor_edit_format": null,
+      "editor_model": null,
+      "encoding": "utf-8",
+      "file": [],
+      "line_endings": "platform",
+      "read": [],
+      "suggest_shell_commands": true,
+      "yes_always": null
+    }
+  },
+  "resolve/home-config-only": {
+    "result": {
+      "apply": null,
+      "auto_accept_architect": true,
+      "dry_run": false,
+      "edit_format": null,
+      "editor_edit_format": "editor-diff",
+      "editor_model": "gpt-x",
+      "encoding": "utf-8",
+      "file": [],
+      "line_endings": "platform",
+      "read": [],
+      "suggest_shell_commands": true,
+      "yes_always": null
+    }
+  },
+  "resolve/line-endings-invalid-choice": {
+    "error": {
+      "message": "argparse exit 2",
+      "type": "RuntimeError"
+    }
+  },
+  "resolve/same-file-later-key-wins-architect": {
+    "result": {
+      "apply": null,
+      "auto_accept_architect": true,
+      "dry_run": false,
+      "edit_format": "architect",
+      "editor_edit_format": null,
+      "editor_model": null,
+      "encoding": "utf-8",
+      "file": [],
+      "line_endings": "platform",
+      "read": [],
+      "suggest_shell_commands": true,
+      "yes_always": null
+    }
+  },
+  "resolve/same-file-later-key-wins-edit-format": {
+    "result": {
+      "apply": null,
+      "auto_accept_architect": true,
+      "dry_run": false,
+      "edit_format": "diff",
+      "editor_edit_format": null,
+      "editor_model": null,
+      "encoding": "utf-8",
+      "file": [],
+      "line_endings": "platform",
+      "read": [],
+      "suggest_shell_commands": true,
+      "yes_always": null
+    }
+  },
+  "resolve/yes-always-cli": {
+    "result": {
+      "apply": null,
+      "auto_accept_architect": true,
+      "dry_run": false,
+      "edit_format": null,
+      "editor_edit_format": null,
+      "editor_model": null,
+      "encoding": "utf-8",
+      "file": [],
+      "line_endings": "platform",
+      "read": [],
+      "suggest_shell_commands": true,
+      "yes_always": true
+    }
+  },
+  "resolve/yes-always-config-false-stays-none": {
+    "result": {
+      "apply": null,
+      "auto_accept_architect": true,
+      "dry_run": false,
+      "edit_format": null,
+      "editor_edit_format": null,
+      "editor_model": null,
+      "encoding": "utf-8",
+      "file": [],
+      "line_endings": "platform",
+      "read": [],
+      "suggest_shell_commands": true,
+      "yes_always": null
+    }
+  },
+  "resolve/yes-always-config-true": {
+    "result": {
+      "apply": null,
+      "auto_accept_architect": true,
+      "dry_run": false,
+      "edit_format": null,
+      "editor_edit_format": null,
+      "editor_model": null,
+      "encoding": "utf-8",
+      "file": [],
+      "line_endings": "platform",
+      "read": [],
+      "suggest_shell_commands": true,
+      "yes_always": true
+    }
+  },
+  "resolve/yes-always-env-one": {
+    "result": {
+      "apply": null,
+      "auto_accept_architect": true,
+      "dry_run": false,
+      "edit_format": null,
+      "editor_edit_format": null,
+      "editor_model": null,
+      "encoding": "utf-8",
+      "file": [],
+      "line_endings": "platform",
+      "read": [],
+      "suggest_shell_commands": true,
+      "yes_always": true
+    }
+  },
+  "resolve/yes-always-env-zero-stays-none": {
+    "result": {
+      "apply": null,
+      "auto_accept_architect": true,
+      "dry_run": false,
+      "edit_format": null,
+      "editor_edit_format": null,
+      "editor_model": null,
+      "encoding": "utf-8",
+      "file": [],
+      "line_endings": "platform",
+      "read": [],
+      "suggest_shell_commands": true,
+      "yes_always": null
+    }
+  },
+  "yaml/bad-syntax": {
+    "error": {
+      "message": "Couldn't parse config file: while parsing a flow sequence\n  in \"<file>\", line 1, column 4\ndid not find expected ',' or ']'\n  in \"<file>\", line 2, column 1",
+      "type": "ConfigFileParserException"
+    }
+  },
+  "yaml/big-int": {
+    "result": [["a", "123456789012345678901234567890"]]
+  },
+  "yaml/booleans": {
+    "result": [["a", "True"], ["b", "False"], ["c", "True"], ["d", "False"], ["e", "True"], ["f", "y"], ["g", "n"]]
+  },
+  "yaml/empty-document": {
+    "error": {
+      "message": "The config file doesn't appear to contain 'key: value' pairs (aka. a YAML mapping). yaml.load('stream') returned type 'NoneType' instead of 'dict'.",
+      "type": "ConfigFileParserException"
+    }
+  },
+  "yaml/floats": {
+    "result": [["a", "1.5"], ["b", "1e3"], ["c", "1000.0"], ["d", "0.5"], ["e", "inf"], ["f", "-inf"], ["g", "nan"], ["h", "2.0"], ["i", "10.25"], ["j", "1e-05"], ["k", "1.2345678901234568e+16"]]
+  },
+  "yaml/ints": {
+    "result": [["a", "31"], ["b", "15"], ["c", "5"], ["d", "1000"], ["e", "90"], ["f", "-42"], ["g", "7"], ["h", "0"]]
+  },
+  "yaml/lists": {
+    "result": [["a", ["x", 2, true, null]], ["b", ["q", null, 16]]]
+  },
+  "yaml/not-a-mapping": {
+    "error": {
+      "message": "The config file doesn't appear to contain 'key: value' pairs (aka. a YAML mapping). yaml.load('stream') returned type 'list' instead of 'dict'.",
+      "type": "ConfigFileParserException"
+    }
+  },
+  "yaml/nulls-skipped": {
+    "result": [["e", "text"]]
+  },
+  "yaml/quoted": {
+    "result": [["a", "yes"], ["b", "017"], ["c", ""], ["d", "it's"]]
+  },
+  "yaml/scalar-document": {
+    "error": {
+      "message": "The config file doesn't appear to contain 'key: value' pairs (aka. a YAML mapping). yaml.load('stream') returned type 'str' instead of 'dict'.",
+      "type": "ConfigFileParserException"
+    }
+  },
+  "yaml/strings": {
+    "result": [["a", "hello world"], ["b", "path/to/file.py"], ["c", "2001-12-14"], ["d", "08"], ["e", "1.2.3"]]
+  }
+}

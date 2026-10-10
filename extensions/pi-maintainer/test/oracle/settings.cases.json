@@ -1,0 +1,781 @@
+[
+  {
+    "id": "resolve/defaults",
+    "op": "settings.resolve",
+    "args": {}
+  },
+  {
+    "id": "resolve/cli-edit-format",
+    "op": "settings.resolve",
+    "args": {
+      "cli": {
+        "edit-format": "whole"
+      }
+    }
+  },
+  {
+    "id": "resolve/cli-chat-mode-alias",
+    "op": "settings.resolve",
+    "args": {
+      "cli": {
+        "chat-mode": "ask"
+      }
+    }
+  },
+  {
+    "id": "resolve/cli-architect-const",
+    "op": "settings.resolve",
+    "args": {
+      "cli": {
+        "architect": true
+      }
+    }
+  },
+  {
+    "id": "resolve/env-edit-format",
+    "op": "settings.resolve",
+    "args": {
+      "env": {
+        "EDIT_FORMAT": "diff"
+      }
+    }
+  },
+  {
+    "id": "resolve/cli-beats-env",
+    "op": "settings.resolve",
+    "args": {
+      "env": {
+        "EDIT_FORMAT": "diff"
+      },
+      "cli": {
+        "edit-format": "udiff"
+      }
+    }
+  },
+  {
+    "id": "resolve/cwd-config-beats-home",
+    "op": "settings.resolve",
+    "args": {
+      "configs": {
+        "home": "edit-format: diff\n",
+        "cwd": "edit-format: patch\n"
+      }
+    }
+  },
+  {
+    "id": "resolve/git-config-beats-home",
+    "op": "settings.resolve",
+    "args": {
+      "configs": {
+        "home": "dry-run: false\n",
+        "git": "dry-run: true\n"
+      },
+      "subdir": "pkg"
+    }
+  },
+  {
+    "id": "resolve/cwd-config-beats-git-in-subdir",
+    "op": "settings.resolve",
+    "args": {
+      "configs": {
+        "git": "encoding: latin-1\n",
+        "cwd": "encoding: utf-16le\n"
+      },
+      "subdir": "pkg"
+    }
+  },
+  {
+    "id": "resolve/home-config-only",
+    "op": "settings.resolve",
+    "args": {
+      "configs": {
+        "home": "editor-model: gpt-x\neditor-edit-format: editor-diff\n"
+      }
+    }
+  },
+  {
+    "id": "resolve/env-beats-config",
+    "op": "settings.resolve",
+    "args": {
+      "configs": {
+        "cwd": "line-endings: crlf\n"
+      },
+      "env": {
+        "LINE_ENDINGS": "lf"
+      }
+    }
+  },
+  {
+    "id": "resolve/config-negative-key-true-turns-on",
+    "op": "settings.resolve",
+    "args": {
+      "configs": {
+        "cwd": "no-dry-run: true\n"
+      }
+    }
+  },
+  {
+    "id": "resolve/config-negative-key-false-turns-off",
+    "op": "settings.resolve",
+    "args": {
+      "configs": {
+        "home": "dry-run: true\n",
+        "cwd": "no-dry-run: false\n"
+      }
+    }
+  },
+  {
+    "id": "resolve/config-false-then-cli-flag",
+    "op": "settings.resolve",
+    "args": {
+      "configs": {
+        "cwd": "dry-run: false\n"
+      },
+      "cli": {
+        "dry-run": true
+      }
+    }
+  },
+  {
+    "id": "resolve/cli-negated-flag",
+    "op": "settings.resolve",
+    "args": {
+      "configs": {
+        "cwd": "suggest-shell-commands: true\n"
+      },
+      "cli": {
+        "no-suggest-shell-commands": true
+      }
+    }
+  },
+  {
+    "id": "resolve/yes-always-config-false-stays-none",
+    "op": "settings.resolve",
+    "args": {
+      "configs": {
+        "cwd": "yes-always: false\n"
+      }
+    }
+  },
+  {
+    "id": "resolve/yes-always-config-true",
+    "op": "settings.resolve",
+    "args": {
+      "configs": {
+        "cwd": "yes-always: true\n"
+      }
+    }
+  },
+  {
+    "id": "resolve/yes-always-env-one",
+    "op": "settings.resolve",
+    "args": {
+      "env": {
+        "YES_ALWAYS": "1"
+      }
+    }
+  },
+  {
+    "id": "resolve/yes-always-env-zero-stays-none",
+    "op": "settings.resolve",
+    "args": {
+      "env": {
+        "YES_ALWAYS": "0"
+      }
+    }
+  },
+  {
+    "id": "resolve/yes-always-cli",
+    "op": "settings.resolve",
+    "args": {
+      "cli": {
+        "yes-always": true
+      }
+    }
+  },
+  {
+    "id": "resolve/file-list-from-config",
+    "op": "settings.resolve",
+    "args": {
+      "configs": {
+        "cwd": "file: [a.py, b.py]\nread:\n  - docs/x.md\n  - docs/y.md\n"
+      }
+    }
+  },
+  {
+    "id": "resolve/file-cli-replaces-config-list",
+    "op": "settings.resolve",
+    "args": {
+      "configs": {
+        "cwd": "file: [a.py, b.py]\n"
+      },
+      "cli": {
+        "file": "c.py"
+      }
+    }
+  },
+  {
+    "id": "resolve/file-env-json-list",
+    "op": "settings.resolve",
+    "args": {
+      "env": {
+        "FILE": "[\"x.py\", \"y.py\"]"
+      }
+    }
+  },
+  {
+    "id": "resolve/file-env-legacy-list",
+    "op": "settings.resolve",
+    "args": {
+      "env": {
+        "READ": "[one.md, two.md]"
+      }
+    }
+  },
+  {
+    "id": "resolve/file-env-single",
+    "op": "settings.resolve",
+    "args": {
+      "env": {
+        "FILE": "single.py"
+      }
+    }
+  },
+  {
+    "id": "resolve/file-config-scalar",
+    "op": "settings.resolve",
+    "args": {
+      "configs": {
+        "home": "file: one.py\n"
+      }
+    }
+  },
+  {
+    "id": "resolve/file-env-replaces-config",
+    "op": "settings.resolve",
+    "args": {
+      "configs": {
+        "cwd": "file: [a.py]\n"
+      },
+      "env": {
+        "FILE": "b.py"
+      }
+    }
+  },
+  {
+    "id": "resolve/line-endings-invalid-choice",
+    "op": "settings.resolve",
+    "args": {
+      "configs": {
+        "cwd": "line-endings: mac\n"
+      }
+    }
+  },
+  {
+    "id": "resolve/edit-format-invalid-choice",
+    "op": "settings.resolve",
+    "args": {
+      "cli": {
+        "edit-format": "unified"
+      }
+    }
+  },
+  {
+    "id": "resolve/encoding-hex-int",
+    "op": "settings.resolve",
+    "args": {
+      "configs": {
+        "cwd": "encoding: 0x10\n"
+      }
+    }
+  },
+  {
+    "id": "resolve/encoding-octal-int",
+    "op": "settings.resolve",
+    "args": {
+      "configs": {
+        "cwd": "encoding: 017\n"
+      }
+    }
+  },
+  {
+    "id": "resolve/dry-run-invalid-boolean",
+    "op": "settings.resolve",
+    "args": {
+      "configs": {
+        "cwd": "dry-run: maybe\n"
+      }
+    }
+  },
+  {
+    "id": "resolve/architect-cwd-beats-home-edit-format",
+    "op": "settings.resolve",
+    "args": {
+      "configs": {
+        "home": "edit-format: diff\n",
+        "cwd": "architect: true\n"
+      }
+    }
+  },
+  {
+    "id": "resolve/same-file-later-key-wins-architect",
+    "op": "settings.resolve",
+    "args": {
+      "configs": {
+        "cwd": "edit-format: diff\narchitect: true\n"
+      }
+    }
+  },
+  {
+    "id": "resolve/same-file-later-key-wins-edit-format",
+    "op": "settings.resolve",
+    "args": {
+      "configs": {
+        "cwd": "architect: true\nedit-format: diff\n"
+      }
+    }
+  },
+  {
+    "id": "resolve/env-architect-beats-config",
+    "op": "settings.resolve",
+    "args": {
+      "configs": {
+        "cwd": "edit-format: diff\n"
+      },
+      "env": {
+        "ARCHITECT": "true"
+      }
+    }
+  },
+  {
+    "id": "resolve/cli-edit-format-beats-env-architect",
+    "op": "settings.resolve",
+    "args": {
+      "env": {
+        "ARCHITECT": "true"
+      },
+      "cli": {
+        "edit-format": "whole"
+      }
+    }
+  },
+  {
+    "id": "resolve/architect-false-is-no-assignment",
+    "op": "settings.resolve",
+    "args": {
+      "configs": {
+        "home": "edit-format: patch\n",
+        "cwd": "architect: false\n"
+      }
+    }
+  },
+  {
+    "id": "resolve/env-suggest-false",
+    "op": "settings.resolve",
+    "args": {
+      "env": {
+        "SUGGEST_SHELL_COMMANDS": "false"
+      }
+    }
+  },
+  {
+    "id": "resolve/config-auto-accept-off",
+    "op": "settings.resolve",
+    "args": {
+      "configs": {
+        "git": "auto-accept-architect: off\n"
+      }
+    }
+  },
+  {
+    "id": "resolve/config-yes-word",
+    "op": "settings.resolve",
+    "args": {
+      "configs": {
+        "cwd": "dry-run: yes\n"
+      }
+    }
+  },
+  {
+    "id": "resolve/config-quoted-true",
+    "op": "settings.resolve",
+    "args": {
+      "configs": {
+        "cwd": "dry-run: \"true\"\n"
+      }
+    }
+  },
+  {
+    "id": "resolve/env-editor-model",
+    "op": "settings.resolve",
+    "args": {
+      "env": {
+        "EDITOR_MODEL": "sonnet"
+      }
+    }
+  },
+  {
+    "id": "resolve/env-empty-editor-model",
+    "op": "settings.resolve",
+    "args": {
+      "env": {
+        "EDITOR_MODEL": ""
+      }
+    }
+  },
+  {
+    "id": "resolve/env-empty-dry-run-invalid",
+    "op": "settings.resolve",
+    "args": {
+      "env": {
+        "DRY_RUN": ""
+      }
+    }
+  },
+  {
+    "id": "resolve/config-null-skipped",
+    "op": "settings.resolve",
+    "args": {
+      "configs": {
+        "home": "editor-model: base\n",
+        "cwd": "editor-model:\n"
+      }
+    }
+  },
+  {
+    "id": "resolve/config-list-for-scalar",
+    "op": "settings.resolve",
+    "args": {
+      "configs": {
+        "cwd": "encoding: [utf-8]\n"
+      }
+    }
+  },
+  {
+    "id": "resolve/config-dashed-key",
+    "op": "settings.resolve",
+    "args": {
+      "configs": {
+        "cwd": "--edit-format: ask\n"
+      }
+    }
+  },
+  {
+    "id": "resolve/config-alias-key",
+    "op": "settings.resolve",
+    "args": {
+      "configs": {
+        "cwd": "chat-mode: context\n"
+      }
+    }
+  },
+  {
+    "id": "resolve/config-unknown-key-ignored",
+    "op": "settings.resolve",
+    "args": {
+      "configs": {
+        "cwd": "map-tokens: 2048\nedit-format: whole\n"
+      }
+    }
+  },
+  {
+    "id": "resolve/apply-from-env",
+    "op": "settings.resolve",
+    "args": {
+      "env": {
+        "APPLY": "reply.txt"
+      }
+    }
+  },
+  {
+    "id": "resolve/editor-edit-format-invalid",
+    "op": "settings.resolve",
+    "args": {
+      "env": {
+        "EDITOR_EDIT_FORMAT": "nope"
+      }
+    }
+  },
+  {
+    "id": "yaml/booleans",
+    "op": "settings.yaml_config",
+    "args": {
+      "text": "a: yes\nb: No\nc: TRUE\nd: off\ne: On\nf: y\ng: n\n"
+    }
+  },
+  {
+    "id": "yaml/ints",
+    "op": "settings.yaml_config",
+    "args": {
+      "text": "a: 0x1F\nb: 017\nc: 0b101\nd: 1_000\ne: 1:30\nf: -42\ng: +7\nh: 0\n"
+    }
+  },
+  {
+    "id": "yaml/floats",
+    "op": "settings.yaml_config",
+    "args": {
+      "text": "a: 1.5\nb: 1e3\nc: 1.0e+3\nd: .5\ne: .inf\nf: -.inf\ng: .NaN\nh: 2.0\ni: 1_0.2_5\nj: 0.00001\nk: 12345678901234567.0\n"
+    }
+  },
+  {
+    "id": "yaml/nulls-skipped",
+    "op": "settings.yaml_config",
+    "args": {
+      "text": "a: ~\nb: null\nc:\nd: NULL\ne: text\n"
+    }
+  },
+  {
+    "id": "yaml/quoted",
+    "op": "settings.yaml_config",
+    "args": {
+      "text": "a: \"yes\"\nb: '017'\nc: \"\"\nd: 'it''s'\n"
+    }
+  },
+  {
+    "id": "yaml/lists",
+    "op": "settings.yaml_config",
+    "args": {
+      "text": "a: [x, 2, true, ~]\nb:\n  - q\n  -\n  - 0x10\n"
+    }
+  },
+  {
+    "id": "yaml/strings",
+    "op": "settings.yaml_config",
+    "args": {
+      "text": "a: hello world\nb: path/to/file.py\nc: 2001-12-14\nd: 08\ne: 1.2.3\n"
+    }
+  },
+  {
+    "id": "yaml/not-a-mapping",
+    "op": "settings.yaml_config",
+    "args": {
+      "text": "- a\n- b\n"
+    }
+  },
+  {
+    "id": "yaml/empty-document",
+    "op": "settings.yaml_config",
+    "args": {
+      "text": ""
+    }
+  },
+  {
+    "id": "yaml/scalar-document",
+    "op": "settings.yaml_config",
+    "args": {
+      "text": "just text\n"
+    }
+  },
+  {
+    "id": "yaml/bad-syntax",
+    "op": "settings.yaml_config",
+    "args": {
+      "text": "a: [1\n"
+    }
+  },
+  {
+    "id": "yaml/big-int",
+    "op": "settings.yaml_config",
+    "args": {
+      "text": "a: 123456789012345678901234567890\n"
+    }
+  },
+  {
+    "id": "dotenv/simple",
+    "op": "settings.dotenv",
+    "args": {
+      "text": "A=1\nB=two\n"
+    }
+  },
+  {
+    "id": "dotenv/export-prefix",
+    "op": "settings.dotenv",
+    "args": {
+      "text": "export A=1\nexport  B=2\n"
+    }
+  },
+  {
+    "id": "dotenv/double-quoted-escapes",
+    "op": "settings.dotenv",
+    "args": {
+      "text": "A=\"line\\nnext\\t\\\\ \\\"q\\\" \\'s\"\n"
+    }
+  },
+  {
+    "id": "dotenv/single-quoted-literal",
+    "op": "settings.dotenv",
+    "args": {
+      "text": "A='raw \\n \\' \\\\ $B'\n"
+    }
+  },
+  {
+    "id": "dotenv/comments",
+    "op": "settings.dotenv",
+    "args": {
+      "text": "# comment\nA=1 # trailing\nB=x#notcomment\n  # indented\nC='q' # after quote\n"
+    }
+  },
+  {
+    "id": "dotenv/multiline-double-quoted",
+    "op": "settings.dotenv",
+    "args": {
+      "text": "A=\"one\ntwo\"\nB=3\n"
+    }
+  },
+  {
+    "id": "dotenv/interpolation",
+    "op": "settings.dotenv",
+    "args": {
+      "text": "A=hello\nB=${A} world\nC=${MISSING:-fallback}\nD=${MISSING}\nE=${HOME}/x\n",
+      "environment": {
+        "HOME": "/home/u"
+      }
+    }
+  },
+  {
+    "id": "dotenv/interpolation-single-quotes",
+    "op": "settings.dotenv",
+    "args": {
+      "text": "A=x\nB='${A}'\n"
+    }
+  },
+  {
+    "id": "dotenv/override-environment",
+    "op": "settings.dotenv",
+    "args": {
+      "text": "A=file\n",
+      "environment": {
+        "A": "env",
+        "KEEP": "k"
+      }
+    }
+  },
+  {
+    "id": "dotenv/key-without-equals",
+    "op": "settings.dotenv",
+    "args": {
+      "text": "LONE\nA=${LONE}x\n"
+    }
+  },
+  {
+    "id": "dotenv/invalid-line-skipped",
+    "op": "settings.dotenv",
+    "args": {
+      "text": "A=1\n=bad\nB='unterminated\nC=3\n"
+    }
+  },
+  {
+    "id": "dotenv/crlf",
+    "op": "settings.dotenv",
+    "args": {
+      "text": "A=1\r\nB='two'\r\nC=\"three\"\r\n"
+    }
+  },
+  {
+    "id": "dotenv/empty-value",
+    "op": "settings.dotenv",
+    "args": {
+      "text": "A=\nB=\"\"\nC=''\n"
+    }
+  },
+  {
+    "id": "dotenv/spaces-around-equals",
+    "op": "settings.dotenv",
+    "args": {
+      "text": "A = spaced\nB= left\n"
+    }
+  },
+  {
+    "id": "dotenv/quoted-key",
+    "op": "settings.dotenv",
+    "args": {
+      "text": "'my key'=v\n"
+    }
+  },
+  {
+    "id": "dotenv/value-with-equals",
+    "op": "settings.dotenv",
+    "args": {
+      "text": "URL=http://x?a=b&c=d\n"
+    }
+  },
+  {
+    "id": "dotenv/trailing-whitespace",
+    "op": "settings.dotenv",
+    "args": {
+      "text": "A=value   \nB=  lead\n"
+    }
+  },
+  {
+    "id": "dotenv/unicode-whitespace",
+    "op": "settings.dotenv",
+    "args": {
+      "text": "A=x #c\nB=y　\n"
+    }
+  },
+  {
+    "id": "dotenv/no-trailing-newline",
+    "op": "settings.dotenv",
+    "args": {
+      "text": "A=last"
+    }
+  },
+  {
+    "id": "dotenv/hash-in-double-quotes",
+    "op": "settings.dotenv",
+    "args": {
+      "text": "A=\"a # b\"\n"
+    }
+  },
+  {
+    "id": "dotenv/default-with-colon",
+    "op": "settings.dotenv",
+    "args": {
+      "text": "A=${X:-a:b}\n"
+    }
+  },
+  {
+    "id": "dotenv/earlier-env-default",
+    "op": "settings.dotenv",
+    "args": {
+      "text": "A=${B:-d}\n",
+      "environment": {
+        "B": ""
+      }
+    }
+  },
+  {
+    "id": "dotenv-path/git-root-is-cwd",
+    "op": "settings.dotenv_search_path",
+    "args": {}
+  },
+  {
+    "id": "dotenv-path/subdir-default-env-file-loads-last",
+    "op": "settings.dotenv_search_path",
+    "args": {
+      "subdir": "pkg"
+    }
+  },
+  {
+    "id": "dotenv-path/no-git",
+    "op": "settings.dotenv_search_path",
+    "args": {
+      "git": false
+    }
+  },
+  {
+    "id": "dotenv-path/explicit-env-file",
+    "op": "settings.dotenv_search_path",
+    "args": {
+      "subdir": "pkg",
+      "env_file": "custom.env"
+    }
+  },
+  {
+    "id": "dotenv-path/explicit-env-file-is-home",
+    "op": "settings.dotenv_search_path",
+    "args": {
+      "env_file": "../home/.env"
+    }
+  }
+]

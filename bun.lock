@@ -66,6 +66,9 @@
     "extensions/pi-maintainer": {
       "name": "pi-maintainer",
       "version": "0.1.0",
+      "dependencies": {
+        "yaml": "2.9.0",
+      },
       "devDependencies": {
         "@earendil-works/pi-ai": "1.1.0",
         "@earendil-works/pi-coding-agent": "1.1.0",

@@ -29,6 +29,9 @@
     "check:parity": "node scripts/check-parity.mjs",
     "check:parity:final": "node scripts/check-parity.mjs --final"
   },
+  "dependencies": {
+    "yaml": "2.9.0"
+  },
   "peerDependencies": {
     "@earendil-works/pi-ai": "*",
     "@earendil-works/pi-coding-agent": "*",
