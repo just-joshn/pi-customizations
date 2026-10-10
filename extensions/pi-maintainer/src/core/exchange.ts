@@ -150,9 +150,7 @@ export class ExchangeController {
         this.interrupt('aborted');
         return { dialogue: [], continue: false };
       }
-      reflection = error instanceof Error ? error.message : String(error);
-      this.#env.host.error(error instanceof ValueError ? 'The LLM did not conform to the edit format.' : 'Exception while updating files:');
-      this.#env.host.error(reflection);
+      reflection = this.reportApplicationError(error);
     }
     dialogue.push(...(await this.recordEdited(prepared, reply, signal)));
     this.#env.append({ schema: 1, kind: 'reply-finished', reply: reply.id });
@@ -161,6 +159,8 @@ export class ExchangeController {
       if (reflection === null) dialogue.push({ text: 'I made those changes to the files.', ack: 'Ok.', purpose: 'architect-return', reply: reply.id });
     }
     if (reflection !== null) return this.reflect(reflection, reply.id, dialogue);
+    const lintReflection = await this.validateWritten(signal);
+    if (lintReflection !== null) return this.reflect(lintReflection, reply.id, dialogue);
     return { dialogue, continue: false };
   }
 
@@ -215,13 +215,38 @@ export class ExchangeController {
     return { dialogue: [{ text: reply.text, ack: null, purpose: 'editor-input', reply: reply.id }], continue: true };
   }
 
-  async recordEdited(prepared: readonly (string | null)[], reply: Extract<CompletedReply, { kind: 'complete' }>, signal?: AbortSignal): Promise<DialogueFact[]> {
-    const lifecycle = this.#state.lifecycle;
-    const written = lifecycle.kind === 'active' ? lifecycle.writtenPaths : [];
+  async recordEdited(_prepared: readonly (string | null)[], reply: Extract<CompletedReply, { kind: 'complete' }>, signal?: AbortSignal): Promise<DialogueFact[]> {
+    const written = this.writtenRelPaths();
     if (!written.length) return [];
-    if (!this.#env.ports.edit.dryRun) await this.#env.ports.git.autoCommit(new Set(prepared), { kind: 'conversation', text: reply.text }, signal);
+    if (!this.#env.ports.edit.dryRun) await this.#env.ports.git.autoCommit(new Set(written), { kind: 'conversation', text: reply.text }, signal);
     this.save({ ...this.#state, historyThrough: reply.id });
     return this.#prompts?.filesContentGptEditsNoRepo ? [{ text: this.#prompts.filesContentGptEditsNoRepo, ack: 'Ok.', purpose: 'saved', reply: reply.id }] : [];
+  }
+
+  async validateWritten(signal?: AbortSignal): Promise<string | null> {
+    const written = this.writtenRelPaths();
+    if (!written.length) return null;
+    const outcome = await this.#env.ports.lint.lintEdited(new Set(written), signal);
+    if (outcome.kind !== 'failed') return null;
+    if (!this.#env.ports.edit.dryRun) await this.#env.ports.git.autoCommit(new Set(written), { kind: 'linter' }, signal);
+    if (!(await this.#env.host.confirm({ question: 'Attempt to fix lint errors?' }))) return null;
+    return outcome.report;
+  }
+
+  writtenRelPaths(): string[] {
+    const lifecycle = this.#state.lifecycle;
+    if (lifecycle.kind !== 'active') return [];
+    return lifecycle.writtenPaths.map((path) => getRelFname(this.#state.root, path));
+  }
+
+  reportApplicationError(error: unknown): string {
+    const reflection = error instanceof Error ? error.message : String(error);
+    if (error instanceof ValueError) {
+      this.#env.host.error('The LLM did not conform to the edit format.');
+      this.#env.host.output('https://aider.chat/docs/troubleshooting/edit-errors.html');
+    } else this.#env.host.error('Exception while updating files:');
+    this.#env.host.error(reflection);
+    return reflection;
   }
 
   async checkForFileMentions(content: string, signal?: AbortSignal): Promise<string | null> {
@@ -312,8 +337,13 @@ export class ExchangeController {
 
   async applyPlan(plan: EditPlan, signal?: AbortSignal): Promise<void> {
     signal?.throwIfAborted();
-    await plan.apply();
-    for (const path of new Set(plan.targets)) this.#env.host.output(this.#env.ports.edit.dryRun ? `Did not apply edit to ${path} (--dry-run)` : `Applied edit to ${path}`);
+    const dryRun = this.#env.ports.edit.dryRun;
+    try {
+      await plan.apply();
+    } finally {
+      const paths = dryRun ? [...new Set(plan.targets.filter((path): path is string => path !== null))] : this.writtenRelPaths();
+      for (const path of paths) this.#env.host.output(dryRun ? `Did not apply edit to ${path} (--dry-run)` : `Applied edit to ${path}`);
+    }
   }
 
   trackPrepared(paths: readonly (string | null)[]): void {

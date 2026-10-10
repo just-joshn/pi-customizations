@@ -43,7 +43,7 @@ test('an approved dangling symlink receives the whole-file body', async () => {
   expect(f.errors).toEqual([]);
 });
 
-test('failed application does not report a successful file update', async () => {
+test('failed application does not report a successful file update', { meta: { evidence: ['ev-edit/cli-apply/patch-add'] } }, async () => {
   const f = await piSessionFixture({ extension: maintainerExtension(), config: 'yes-always: true\n' });
   await mkdir(join(f.cwd, 'bad.txt'));
   f.replies.push({ text: 'bad.txt\n```\nbody\n```\n' }, { text: '' });

@@ -177,6 +177,30 @@ test('declined MOVE destination preserves both files', async () => {
   expect(await readFile(join(space.root, 'destination.py'), 'utf8')).toBe('protected\n');
 });
 
+test('replays the recorded patch CLI add content', { meta: { evidence: ['ev-edit/cli-apply/patch-add'] } }, async () => {
+  const space = await workspace({ dryRun: false });
+  await mkdir(join(space.root, 'dir'), { recursive: true });
+  const reply = ['*** Begin Patch', '*** Add File: dir/added.py', '+hello', '*** End Patch'].join('\n');
+  const context: EditContext = {
+    fence: ['```', '```'],
+    root: space.root,
+    inchatRelativeFiles: [],
+    absRootPath: space.ctx.absRootPath,
+    tree: space.workingTree,
+    notices: { ...space.ctx.io, error: () => {} },
+  };
+  await patchFormat.withPlan(
+    reply,
+    context,
+    async (candidates) => [...candidates],
+    async (plan) => {
+      expect(plan.targets).toEqual(['dir/added.py']);
+      await plan.apply();
+    },
+  );
+  expect(await readFile(join(space.root, 'dir/added.py'), 'utf8')).toBe('hello\n');
+});
+
 test('ADD editIntent leaves creation to application', async () => {
   const space = await workspace({ dryRun: false });
   await mkdir(join(space.root, 'dir'), { recursive: true });

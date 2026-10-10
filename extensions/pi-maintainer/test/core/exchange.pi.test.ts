@@ -136,12 +136,35 @@ test('a later filesystem failure preserves evidence of an earlier write', async 
   expect(f.errors).toEqual([]);
 });
 
-test.for(['error', 'aborted', 'length'] as const)('provider $0 text never becomes a partial disk edit', async (stopReason) => {
+test('provider length text never becomes a partial disk edit', { meta: { aider: ['test_coder/TestCoder.test_token_limit_error_handling'] } }, async () => {
   const f = await piSessionFixture({ extension, config: 'file: [hello.txt]\n' });
   await writeFile(join(f.cwd, 'hello.txt'), 'before');
-  f.replies.push({ text: 'hello.txt\n```\npartial\n```\n', stopReason });
+  f.replies.push({ text: 'hello.txt\n```\npartial\n```\n', stopReason: 'length' });
   const session = await f.open();
   await promptAndSettle(session, 'make the edit');
   expect(await readFile(join(f.cwd, 'hello.txt'), 'utf8')).toBe('before');
+  expect(restore(session.sessionManager.getBranch()).snapshot?.lifecycle).toMatchObject({ kind: 'interrupted', reason: 'length' });
+  expect(f.errors).toEqual([]);
+});
+
+test('provider aborted text never becomes a partial disk edit', { meta: { aider: ['test_coder/TestCoder.test_keyboard_interrupt_handling', 'test_coder/TestCoder.test_message_sanity_after_partial_response'] } }, async () => {
+  const f = await piSessionFixture({ extension, config: 'file: [hello.txt]\n' });
+  await writeFile(join(f.cwd, 'hello.txt'), 'before');
+  f.replies.push({ text: 'hello.txt\n```\npartial\n```\n', stopReason: 'aborted' });
+  const session = await f.open();
+  await promptAndSettle(session, 'make the edit');
+  expect(await readFile(join(f.cwd, 'hello.txt'), 'utf8')).toBe('before');
+  expect(restore(session.sessionManager.getBranch()).snapshot?.lifecycle).toMatchObject({ kind: 'interrupted', reason: 'aborted' });
+  expect(f.errors).toEqual([]);
+});
+
+test('provider error text never becomes a partial disk edit', async () => {
+  const f = await piSessionFixture({ extension, config: 'file: [hello.txt]\n' });
+  await writeFile(join(f.cwd, 'hello.txt'), 'before');
+  f.replies.push({ text: 'hello.txt\n```\npartial\n```\n', stopReason: 'error' });
+  const session = await f.open();
+  await promptAndSettle(session, 'make the edit');
+  expect(await readFile(join(f.cwd, 'hello.txt'), 'utf8')).toBe('before');
+  expect(restore(session.sessionManager.getBranch()).snapshot?.lifecycle).toMatchObject({ kind: 'interrupted', reason: 'error' });
   expect(f.errors).toEqual([]);
 });

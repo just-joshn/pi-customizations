@@ -1886,10 +1886,18 @@
         "aider/coders/base_coder.py:1585,2296-2304"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/core/exchange.ts",
+        "src/core/install.ts"
+      ],
+      "tests": [
+        "test/core/lifecycle-bind.test.ts::complete reply parses preflights authorizes then applies in that order",
+        "test/core/exchange.pi.test.ts::whole-file text completes an SDK edit exchange"
+      ]
     },
     {
       "id": "edit.lifecycle.reflect-application-errors",
@@ -1899,10 +1907,19 @@
         "aider/coders/base_coder.py:924-944,2305-2316"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')",
+        "continue"
+      ],
+      "src": [
+        "src/core/exchange.ts",
+        "src/core/install.ts"
+      ],
+      "tests": [
+        "test/core/lifecycle-bind.test.ts::a ValueError prints the edit-format notice URL and error then reflects",
+        "test/core/exchange.pi.test.ts::a malformed reply reaches the next actual request as feedback"
+      ]
     },
     {
       "id": "edit.lifecycle.malformed-count",
@@ -1912,10 +1929,19 @@
         "aider/coders/base_coder.py:2305-2306"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')",
+        "continue"
+      ],
+      "src": [
+        "src/core/exchange.ts",
+        "src/core/install.ts"
+      ],
+      "tests": [
+        "test/core/lifecycle-bind.test.ts::a ValueError prints the edit-format notice URL and error then reflects",
+        "test/core/lifecycle.pi.test.ts::exactly three reflections reach provider requests"
+      ]
     },
     {
       "id": "edit.lifecycle.max-reflections",
@@ -1925,10 +1951,21 @@
         "aider/coders/base_coder.py:101,924-944"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')",
+        "continue",
+        "pi.on('agent_settled')"
+      ],
+      "src": [
+        "src/core/exchange.ts",
+        "src/core/install.ts"
+      ],
+      "tests": [
+        "test/core/lifecycle.pi.test.ts::exactly three reflections reach provider requests",
+        "test/core/lifecycle-bind.test.ts::a fourth reflection stops with the three-reflection warning",
+        "test/core/lifecycle.pi.test.ts::a new canonical user resets an exhausted reflection budget"
+      ]
     },
     {
       "id": "edit.lifecycle.skip-truncated-reply",
@@ -1938,10 +1975,17 @@
         "aider/coders/base_coder.py:1492-1496,1536-1547"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/core/exchange.ts",
+        "src/core/install.ts"
+      ],
+      "tests": [
+        "test/core/exchange.pi.test.ts::provider length text never becomes a partial disk edit"
+      ]
     },
     {
       "id": "edit.lifecycle.skip-interrupted-reply",
@@ -1951,10 +1995,19 @@
         "aider/coders/base_coder.py:1489-1491,1575-1583"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')",
+        "pi.on('agent_settled')"
+      ],
+      "src": [
+        "src/core/exchange.ts",
+        "src/core/install.ts"
+      ],
+      "tests": [
+        "test/core/exchange.pi.test.ts::provider aborted text never becomes a partial disk edit",
+        "test/core/lifecycle.pi.test.ts::provider cancellation leaves the disk file unchanged"
+      ]
     },
     {
       "id": "edit.lifecycle.skip-errored-reply",
@@ -1969,10 +2022,18 @@
         "intent": "The two other incomplete-reply paths return before edit application: output exhaustion (aider/coders/base_coder.py:1536-1547) and interruption, which records \"I see that you interrupted my previous reply.\" (aider/coders/base_coder.py:1575-1583).",
         "behavior": "When the provider request ends in a non-retryable error, show the error and do not process mentions, apply edits, commit, lint, run commands, or test from the partial reply."
       },
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/core/exchange.ts",
+        "src/core/install.ts"
+      ],
+      "tests": [
+        "test/core/exchange.pi.test.ts::provider error text never becomes a partial disk edit",
+        "test/core/retry.pi.test.ts::native retry does not apply the failed response or spend a reflection"
+      ]
     },
     {
       "id": "edit.lifecycle.move-to-history",
@@ -1983,10 +2044,20 @@
         "aider/coders/base_prompts.py:6"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')",
+        "pi.on('agent_settled')",
+        "pi.on('agent_before_settle')"
+      ],
+      "src": [
+        "src/core/exchange.ts",
+        "src/core/install.ts"
+      ],
+      "tests": [
+        "test/core/lifecycle-bind.test.ts::a successful reply moves history and emits the no-repo saved notice",
+        "test/core/exchange.pi.test.ts::whole-file text completes an SDK edit exchange"
+      ]
     },
     {
       "id": "edit.dry-run.report-new-file",
@@ -2570,10 +2641,20 @@
         "aider/coders/base_coder.py:864-870,924-934"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.registerVirtualModel",
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/core/exchange.ts",
+        "src/core/install.ts"
+      ],
+      "tests": [
+        "test/core/lifecycle-bind.test.ts::a new user binding clears reflection and edit tracking",
+        "test/core/lifecycle.pi.test.ts::a new canonical user resets an exhausted reflection budget",
+        "test/core/lifecycle.pi.test.ts::canonical user binding precedes the actual provider call"
+      ]
     },
     {
       "id": "edit.lifecycle.preprocess-input",
@@ -2583,10 +2664,18 @@
         "aider/coders/base_coder.py:912-944"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.registerVirtualModel",
+        "pi.on('context_with_system')"
+      ],
+      "src": [
+        "src/core/exchange.ts",
+        "src/core/install.ts"
+      ],
+      "tests": [
+        "test/core/mentions.pi.test.ts::user preprocessing admits a mentioned file before the first request"
+      ]
     },
     {
       "id": "edit.lifecycle.stream-entry",
@@ -2610,10 +2699,21 @@
         "aider/coders/base_coder.py:2296-2336"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/core/exchange.ts",
+        "src/edit/feature.ts"
+      ],
+      "tests": [
+        "test/edit/patch.test.ts::replays the recorded patch CLI update content",
+        "test/edit/patch.test.ts::replays the recorded patch CLI add content",
+        "test/wholefile.test.ts::replays the recorded whole-file CLI replacement content",
+        "test/udiff.test.ts::replays the recorded udiff CLI replacement content",
+        "test/editblock-ports.test.ts::replaces only the first exact match"
+      ]
     },
     {
       "id": "edit.lifecycle.failed-apply-outcome",
@@ -2624,10 +2724,18 @@
         "aider/coders/base_coder.py:2296-2328"
       ],
       "kind": "fix",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": [],
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/core/exchange.ts",
+        "src/core/install.ts"
+      ],
+      "tests": [
+        "test/core/core-review.pi.test.ts::failed application does not report a successful file update",
+        "test/core/lifecycle-bind.test.ts::auto-commit and lint ports receive only successfully written paths"
+      ],
       "fix": {
         "defect": "cli-apply-results.json records exit 0 for patch ADD despite an application error and an empty output file.",
         "intent": "aider/main.py:1085 distinguishes failure to read supplied content, and aider/coders/base_coder.py:2310-2315 explicitly reports edit failure. An apply command must expose that failure to its caller, not label the failed operation successful.",
@@ -2643,10 +2751,18 @@
         "aider/coders/udiff_coder.py:111-118"
       ],
       "kind": "fix",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": [],
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/core/exchange.ts",
+        "src/core/install.ts"
+      ],
+      "tests": [
+        "test/core/lifecycle-bind.test.ts::auto-commit and lint ports receive only successfully written paths",
+        "test/core/intents.pi.test.ts::a failed MOVE removal keeps the successful destination write separate from prepared targets"
+      ],
       "fix": {
         "defect": "apply_updates derives edited from every permitted tuple before writing, so patch-lifecycle.json reports new.py as edited even after ADD fails and leaves it empty.",
         "intent": "aider/coders/base_coder.py:2330-2334 distinguishes Did not apply edit from Applied edit, :1588 names the tracked set aider_edited_files, and aider/coders/udiff_coder.py:111-112 labels success only at the write. These reports describe applied changes, not merely authorization.",
@@ -2815,10 +2931,19 @@
         "aider/coders/base_coder.py:1585-1594,2269-2304"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/core/exchange.ts",
+        "src/core/install.ts"
+      ],
+      "tests": [
+        "test/core/lifecycle-bind.test.ts::complete reply parses preflights authorizes then applies in that order",
+        "test/core/lifecycle-bind.test.ts::auto-commit and lint ports receive only successfully written paths",
+        "test/core/authorize.test.ts::repository policy refusal skips a gitignored path and approved paths reach staging and dirty-commit hooks"
+      ]
     },
     {
       "id": "edit.lifecycle.validation-port",
@@ -2828,10 +2953,18 @@
         "aider/coders/base_coder.py:1596-1623,2434-2485"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')",
+        "continue"
+      ],
+      "src": [
+        "src/core/exchange.ts",
+        "src/core/install.ts"
+      ],
+      "tests": [
+        "test/core/lifecycle-bind.test.ts::a failed lint report reflects after confirmation"
+      ]
     },
     {
       "id": "edit.lifecycle.undo-port",
