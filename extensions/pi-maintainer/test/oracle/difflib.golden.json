@@ -104,6 +104,167 @@
   "get-close-matches/ties-order-by-string-descending": {
     "result": ["abz", "aby", "abx"]
   },
+  "is-character-junk/custom-ws": {
+    "result": true
+  },
+  "is-character-junk/empty": {
+    "result": true
+  },
+  "is-character-junk/letter": {
+    "result": false
+  },
+  "is-character-junk/newline": {
+    "result": false
+  },
+  "is-character-junk/no-break-space": {
+    "result": false
+  },
+  "is-character-junk/space": {
+    "result": true
+  },
+  "is-character-junk/space-tab": {
+    "result": true
+  },
+  "is-character-junk/tab": {
+    "result": true
+  },
+  "is-line-junk/bare-hash": {
+    "result": true
+  },
+  "is-line-junk/byte-order-mark": {
+    "result": false
+  },
+  "is-line-junk/empty": {
+    "result": true
+  },
+  "is-line-junk/hash-among-blanks": {
+    "result": true
+  },
+  "is-line-junk/hash-newline-hash": {
+    "result": false
+  },
+  "is-line-junk/hash-then-text": {
+    "result": false
+  },
+  "is-line-junk/ideographic-space": {
+    "result": true
+  },
+  "is-line-junk/newline": {
+    "result": true
+  },
+  "is-line-junk/next-line-char": {
+    "result": true
+  },
+  "is-line-junk/tab-crlf": {
+    "result": true
+  },
+  "is-line-junk/text": {
+    "result": false
+  },
+  "is-line-junk/two-hashes": {
+    "result": false
+  },
+  "is-line-junk/unicode-blanks": {
+    "result": true
+  },
+  "ndiff/aider-find-last-non-deleted": {
+    "result": ["  def f():\n", "-     return 1\n", "+     return 10\n", "?             +\n", "  \n", "- def g():\n", "?     ^\n", "+ def h():\n", "?     ^\n", "-     return 2\n"]
+  },
+  "ndiff/astral-hint-columns": {
+    "result": ["- a😀b\n", "?   ^\n", "+ a😀c\n", "?   ^\n"]
+  },
+  "ndiff/both-empty": {
+    "result": []
+  },
+  "ndiff/char-junk-blank-default": {
+    "result": ["- private Thread currentThread;\n", "+ private volatile Thread currentThread;\n", "?         +++++++++\n"]
+  },
+  "ndiff/char-junk-none": {
+    "result": ["- private Thread currentThread;\n", "+ private volatile Thread currentThread;\n", "?       +++++++++\n"]
+  },
+  "ndiff/char-junk-spacing-default": {
+    "result": ["- x = 1  # one\n", "?       -\n", "+ x =  1 # one\n", "?     +\n"]
+  },
+  "ndiff/char-junk-spacing-none": {
+    "result": ["- x = 1  # one\n", "?      -\n", "+ x =  1 # one\n", "?     +\n"]
+  },
+  "ndiff/crlf-lines": {
+    "result": ["  one\r\n", "- two\r\n", "?   ^\n", "+ tw0\r\n", "?   ^\n", "  three\r\n"]
+  },
+  "ndiff/crlf-versus-lf": {
+    "result": ["- abc\r\n", "?    -\n", "+ abc\n"]
+  },
+  "ndiff/docstring-one-two-three": {
+    "result": ["- one\n", "?  ^\n", "+ ore\n", "?  ^\n", "- two\n", "- three\n", "?  -\n", "+ tree\n", "+ emu\n"]
+  },
+  "ndiff/docstring-zen": {
+    "result": [
+      "    1. Beautiful is better than ugly.\n",
+      "-   2. Explicit is better than implicit.\n",
+      "-   3. Simple is better than complex.\n",
+      "+   3.   Simple is better than complex.\n",
+      "?     ++\n",
+      "-   4. Complex is better than complicated.\n",
+      "+   4. Complicated is better than complex.\n",
+      "+   5. Flat is better than nested.\n"
+    ]
+  },
+  "ndiff/empty-a": {
+    "result": ["+ a\n", "+ b\n"]
+  },
+  "ndiff/empty-b": {
+    "result": ["- a\n", "- b\n"]
+  },
+  "ndiff/hints-keep-original-tabs": {
+    "result": ["- \tabcDefghiJkl\n", "? \t   ^  ^  ^\n", "+ \tabcdefGhijkl\n", "? \t   ^  ^  ^\n"]
+  },
+  "ndiff/identical": {
+    "result": ["  a\n", "  b\n"]
+  },
+  "ndiff/identical-junk-pair-synchs": {
+    "result": ["- a\n", "+ x\n", "  \n", "- b\n", "+ y\n"]
+  },
+  "ndiff/intraline-replace-hints": {
+    "result": ["- abcDefghiJkl\n", "?    ^  ^  ^\n", "+ abcdefGhijkl\n", "?    ^  ^  ^\n"]
+  },
+  "ndiff/line-junk-explicitly-none": {
+    "result": ["- a\n", "+ x\n", "  \n", "- b\n", "+ y\n"]
+  },
+  "ndiff/long-lines-char-autojunk": {
+    "result": [
+      "-     return render_template('index.html', title=title, items=items, user=current_user, settings=settings, page=page, per_page=per_page, total=total, query=query, filters=filters, sort=sort_order, debug=debug_mode)\n",
+      "?                                                                                                                                                                                        ^^^^^^^^^^^       ^^^^^^^^^\n",
+      "+     return render_template('index.html', title=title, items=items, user=current_user, settings=settings, page=page, per_page=per_page, total=total, query=query, filters=filters, sort=order, debug=False)\n",
+      "?                                                                                                                                                                                        ^^^^^^       ^^^^\n"
+    ]
+  },
+  "ndiff/newline-only-difference": {
+    "result": ["- abc\n", "?    -\n", "+ abc"]
+  },
+  "ndiff/no-trailing-newline": {
+    "result": ["  a\n", "- abcdef", "?      ^\n", "+ abcdeg", "?      ^\n"]
+  },
+  "ndiff/plain-replace-a-shorter-first": {
+    "result": ["- xyz\n", "+ one\n", "+ two\n", "+ three\n"]
+  },
+  "ndiff/plain-replace-b-shorter-first": {
+    "result": ["+ xyz\n", "- one\n", "- two\n", "- three\n"]
+  },
+  "ndiff/plain-replace-equal-sizes": {
+    "result": ["- one\n", "- two\n", "+ xyz\n", "+ qrs\n"]
+  },
+  "ndiff/ratio-between-start-and-cutoff-plain": {
+    "result": ["- abcdefghijXYZ\n", "+ abcdefghiQRS\n"]
+  },
+  "ndiff/ratio-exactly-cutoff-synchs": {
+    "result": ["- abcde12\n", "?      ^^\n", "+ abcde34\n", "?      ^^\n"]
+  },
+  "ndiff/synch-recurses-both-sides": {
+    "result": ["- abcdef1\n", "?       ^\n", "+ abcdef9\n", "?       ^\n", "- MIDDLE-LINE-HERE-1\n", "?                  ^\n", "+ MIDDLE-LINE-HERE-2\n", "?                  ^\n", "- ghijkl2\n", "?       ^\n", "+ ghijkl8\n", "?       ^\n"]
+  },
+  "ndiff/ties-scan-b-before-a": {
+    "result": ["- abcdefX\n", "- qrstuvY\n", "?       ^\n", "+ qrstuvZ\n", "?       ^\n", "+ abcdefW\n"]
+  },
   "sequence-matcher/adjacent-blocks-collapse": {
     "result": {
       "find_longest_match": {
@@ -1101,6 +1262,70 @@
       "opcodes_after_grouping": [["insert", 0, 0, 0, 1], ["equal", 0, 2, 1, 3], ["replace", 2, 4, 3, 4]],
       "quick_ratio": 0.75,
       "ratio": 0.5,
+      "real_quick_ratio": 1.0
+    }
+  },
+  "sequence-matcher/isjunk-character-junk-function": {
+    "result": {
+      "find_longest_match": {
+        "a": 0,
+        "b": 0,
+        "size": 1
+      },
+      "grouped_opcodes": [[["equal", 0, 1, 0, 1], ["replace", 1, 2, 1, 2], ["equal", 2, 3, 2, 3], ["replace", 3, 4, 3, 4], ["equal", 4, 5, 4, 5]]],
+      "matching_blocks": [
+        {
+          "a": 0,
+          "b": 0,
+          "size": 1
+        },
+        {
+          "a": 2,
+          "b": 2,
+          "size": 1
+        },
+        {
+          "a": 4,
+          "b": 4,
+          "size": 1
+        },
+        {
+          "a": 5,
+          "b": 5,
+          "size": 0
+        }
+      ],
+      "opcodes": [["equal", 0, 1, 0, 1], ["replace", 1, 2, 1, 2], ["equal", 2, 3, 2, 3], ["replace", 3, 4, 3, 4], ["equal", 4, 5, 4, 5]],
+      "opcodes_after_grouping": [["equal", 0, 1, 0, 1], ["replace", 1, 2, 1, 2], ["equal", 2, 3, 2, 3], ["replace", 3, 4, 3, 4], ["equal", 4, 5, 4, 5]],
+      "quick_ratio": 1.0,
+      "ratio": 0.6,
+      "real_quick_ratio": 1.0
+    }
+  },
+  "sequence-matcher/isjunk-line-junk-function": {
+    "result": {
+      "find_longest_match": {
+        "a": 1,
+        "b": 0,
+        "size": 1
+      },
+      "grouped_opcodes": [[["delete", 0, 1, 0, 0], ["equal", 1, 2, 0, 1], ["replace", 2, 4, 1, 4]]],
+      "matching_blocks": [
+        {
+          "a": 1,
+          "b": 0,
+          "size": 1
+        },
+        {
+          "a": 4,
+          "b": 4,
+          "size": 0
+        }
+      ],
+      "opcodes": [["delete", 0, 1, 0, 0], ["equal", 1, 2, 0, 1], ["replace", 2, 4, 1, 4]],
+      "opcodes_after_grouping": [["delete", 0, 1, 0, 0], ["equal", 1, 2, 0, 1], ["replace", 2, 4, 1, 4]],
+      "quick_ratio": 0.75,
+      "ratio": 0.25,
       "real_quick_ratio": 1.0
     }
   },

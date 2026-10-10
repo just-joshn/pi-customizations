@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { getCloseMatches, SequenceMatcher, unifiedDiff } from '../../src/support/difflib.ts';
+import { Differ, getCloseMatches, isLineJunk, ndiff, SequenceMatcher, unifiedDiff } from '../../src/support/difflib.ts';
 
 test('ratio compares strings by code point, not UTF-16 unit', () => {
   expect(new SequenceMatcher({ a: '\u{1F600}a', b: '\u{1F600}b' }).ratio()).toBe(0.5);
@@ -79,6 +79,32 @@ test('unified diff writes dated headers', () => {
 
 test('unified diff marks an empty original range as 0,0', () => {
   expect(unifiedDiff([], ['a\n', 'b\n'])).toEqual(['--- \n', '+++ \n', '@@ -0,0 +1,2 @@\n', '+a\n', '+b\n']);
+});
+
+test('ndiff hints the changed characters of similar lines', () => {
+  expect(ndiff(['one\n', 'two\n', 'three\n'], ['ore\n', 'tree\n', 'emu\n'])).toEqual(['- one\n', '?  ^\n', '+ ore\n', '?  ^\n', '- two\n', '- three\n', '?  -\n', '+ tree\n', '+ emu\n']);
+});
+
+test('ndiff keeps the missing newline of a last line', () => {
+  expect(ndiff(['abc\n'], ['abc'])).toEqual(['- abc\n', '?    -\n', '+ abc']);
+});
+
+test('ndiff counts the lines Aider keeps from the original', () => {
+  const original = ['def f():\n', '    return 1\n', '\n', 'def g():\n', '    return 2\n'];
+  const updated = ['def f():\n', '    return 10\n', '\n', 'def h():\n'];
+
+  expect(ndiff(original, updated).map((line) => line[0])).toEqual([' ', '-', '+', '?', ' ', '-', '?', '+', '?', '-']);
+});
+
+test('ndiff treats blanks as character junk unlike a plain Differ', () => {
+  const before = ['private Thread currentThread;\n'];
+  const after = ['private volatile Thread currentThread;\n'];
+
+  expect([ndiff(before, after)[2], new Differ().compare(before, after)[2]]).toEqual(['?         +++++++++\n', '?       +++++++++\n']);
+});
+
+test('a lone hash among blanks is line junk', () => {
+  expect([isLineJunk('  #   \n'), isLineJunk('\u3000#\u00a0\n'), isLineJunk('# x\n')]).toEqual([true, true, false]);
 });
 
 test('context as long as the input yields one whole-file hunk', () => {

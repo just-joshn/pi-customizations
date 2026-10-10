@@ -55,3 +55,19 @@ def get_close_matches(args, _case_dir):
 def unified_diff(args, _case_dir):
     options = given(args, "fromfile", "tofile", "fromfiledate", "tofiledate", "n", "lineterm")
     return list(difflib.unified_diff(args["a"], args["b"], **options))
+
+
+@op("difflib.ndiff")
+def ndiff(args, _case_dir):
+    junk = {name: junk_of(spec) for name, spec in given(args, "linejunk", "charjunk").items()}
+    return list(difflib.ndiff(args["a"], args["b"], **junk))
+
+
+@op("difflib.is_line_junk")
+def is_line_junk(args, _case_dir):
+    return difflib.IS_LINE_JUNK(args["line"])
+
+
+@op("difflib.is_character_junk")
+def is_character_junk(args, _case_dir):
+    return difflib.IS_CHARACTER_JUNK(args["ch"], **given(args, "ws"))

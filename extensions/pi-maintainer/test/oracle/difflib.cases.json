@@ -186,6 +186,24 @@
     }
   },
   {
+    "id": "sequence-matcher/isjunk-line-junk-function",
+    "op": "difflib.sequence_matcher",
+    "args": {
+      "isjunk": "IS_LINE_JUNK",
+      "a": ["#\n", "x = 1\n", "  \n", "y = 2\n"],
+      "b": ["x = 1\n", "#\n", "y = 3\n", "  \n"]
+    }
+  },
+  {
+    "id": "sequence-matcher/isjunk-character-junk-function",
+    "op": "difflib.sequence_matcher",
+    "args": {
+      "isjunk": "IS_CHARACTER_JUNK",
+      "a": "a\tb c",
+      "b": "a b\tc"
+    }
+  },
+  {
     "id": "sequence-matcher/autojunk-popular-element-dropped",
     "op": "difflib.sequence_matcher",
     "args": {
@@ -1220,6 +1238,382 @@
         "l199\n",
         "\n"
       ]
+    }
+  },
+  {
+    "id": "ndiff/docstring-one-two-three",
+    "op": "difflib.ndiff",
+    "args": {
+      "a": ["one\n", "two\n", "three\n"],
+      "b": ["ore\n", "tree\n", "emu\n"]
+    }
+  },
+  {
+    "id": "ndiff/docstring-zen",
+    "op": "difflib.ndiff",
+    "args": {
+      "a": ["  1. Beautiful is better than ugly.\n", "  2. Explicit is better than implicit.\n", "  3. Simple is better than complex.\n", "  4. Complex is better than complicated.\n"],
+      "b": ["  1. Beautiful is better than ugly.\n", "  3.   Simple is better than complex.\n", "  4. Complicated is better than complex.\n", "  5. Flat is better than nested.\n"]
+    }
+  },
+  {
+    "id": "ndiff/identical",
+    "op": "difflib.ndiff",
+    "args": {
+      "a": ["a\n", "b\n"],
+      "b": ["a\n", "b\n"]
+    }
+  },
+  {
+    "id": "ndiff/both-empty",
+    "op": "difflib.ndiff",
+    "args": {
+      "a": [],
+      "b": []
+    }
+  },
+  {
+    "id": "ndiff/empty-a",
+    "op": "difflib.ndiff",
+    "args": {
+      "a": [],
+      "b": ["a\n", "b\n"]
+    }
+  },
+  {
+    "id": "ndiff/empty-b",
+    "op": "difflib.ndiff",
+    "args": {
+      "a": ["a\n", "b\n"],
+      "b": []
+    }
+  },
+  {
+    "id": "ndiff/intraline-replace-hints",
+    "op": "difflib.ndiff",
+    "args": {
+      "a": ["abcDefghiJkl\n"],
+      "b": ["abcdefGhijkl\n"]
+    }
+  },
+  {
+    "id": "ndiff/hints-keep-original-tabs",
+    "op": "difflib.ndiff",
+    "args": {
+      "a": ["\tabcDefghiJkl\n"],
+      "b": ["\tabcdefGhijkl\n"]
+    }
+  },
+  {
+    "id": "ndiff/ratio-exactly-cutoff-synchs",
+    "op": "difflib.ndiff",
+    "args": {
+      "a": ["abcde12\n"],
+      "b": ["abcde34\n"]
+    }
+  },
+  {
+    "id": "ndiff/ratio-between-start-and-cutoff-plain",
+    "op": "difflib.ndiff",
+    "args": {
+      "a": ["abcdefghijXYZ\n"],
+      "b": ["abcdefghiQRS\n"]
+    }
+  },
+  {
+    "id": "ndiff/ties-scan-b-before-a",
+    "op": "difflib.ndiff",
+    "args": {
+      "a": ["abcdefX\n", "qrstuvY\n"],
+      "b": ["qrstuvZ\n", "abcdefW\n"]
+    }
+  },
+  {
+    "id": "ndiff/identical-junk-pair-synchs",
+    "op": "difflib.ndiff",
+    "args": {
+      "a": ["a\n", "\n", "b\n"],
+      "b": ["x\n", "\n", "y\n"],
+      "linejunk": "IS_LINE_JUNK"
+    }
+  },
+  {
+    "id": "ndiff/line-junk-explicitly-none",
+    "op": "difflib.ndiff",
+    "args": {
+      "a": ["a\n", "\n", "b\n"],
+      "b": ["x\n", "\n", "y\n"],
+      "linejunk": null
+    }
+  },
+  {
+    "id": "ndiff/char-junk-blank-default",
+    "op": "difflib.ndiff",
+    "args": {
+      "a": ["private Thread currentThread;\n"],
+      "b": ["private volatile Thread currentThread;\n"]
+    }
+  },
+  {
+    "id": "ndiff/char-junk-none",
+    "op": "difflib.ndiff",
+    "args": {
+      "a": ["private Thread currentThread;\n"],
+      "b": ["private volatile Thread currentThread;\n"],
+      "charjunk": null
+    }
+  },
+  {
+    "id": "ndiff/char-junk-spacing-default",
+    "op": "difflib.ndiff",
+    "args": {
+      "a": ["x = 1  # one\n"],
+      "b": ["x =  1 # one\n"]
+    }
+  },
+  {
+    "id": "ndiff/char-junk-spacing-none",
+    "op": "difflib.ndiff",
+    "args": {
+      "a": ["x = 1  # one\n"],
+      "b": ["x =  1 # one\n"],
+      "charjunk": null
+    }
+  },
+  {
+    "id": "ndiff/plain-replace-b-shorter-first",
+    "op": "difflib.ndiff",
+    "args": {
+      "a": ["one\n", "two\n", "three\n"],
+      "b": ["xyz\n"]
+    }
+  },
+  {
+    "id": "ndiff/plain-replace-a-shorter-first",
+    "op": "difflib.ndiff",
+    "args": {
+      "a": ["xyz\n"],
+      "b": ["one\n", "two\n", "three\n"]
+    }
+  },
+  {
+    "id": "ndiff/plain-replace-equal-sizes",
+    "op": "difflib.ndiff",
+    "args": {
+      "a": ["one\n", "two\n"],
+      "b": ["xyz\n", "qrs\n"]
+    }
+  },
+  {
+    "id": "ndiff/newline-only-difference",
+    "op": "difflib.ndiff",
+    "args": {
+      "a": ["abc\n"],
+      "b": ["abc"]
+    }
+  },
+  {
+    "id": "ndiff/no-trailing-newline",
+    "op": "difflib.ndiff",
+    "args": {
+      "a": ["a\n", "abcdef"],
+      "b": ["a\n", "abcdeg"]
+    }
+  },
+  {
+    "id": "ndiff/crlf-versus-lf",
+    "op": "difflib.ndiff",
+    "args": {
+      "a": ["abc\r\n"],
+      "b": ["abc\n"]
+    }
+  },
+  {
+    "id": "ndiff/crlf-lines",
+    "op": "difflib.ndiff",
+    "args": {
+      "a": ["one\r\n", "two\r\n", "three\r\n"],
+      "b": ["one\r\n", "tw0\r\n", "three\r\n"]
+    }
+  },
+  {
+    "id": "ndiff/astral-hint-columns",
+    "op": "difflib.ndiff",
+    "args": {
+      "a": ["a😀b\n"],
+      "b": ["a😀c\n"]
+    }
+  },
+  {
+    "id": "ndiff/synch-recurses-both-sides",
+    "op": "difflib.ndiff",
+    "args": {
+      "a": ["abcdef1\n", "MIDDLE-LINE-HERE-1\n", "ghijkl2\n"],
+      "b": ["abcdef9\n", "MIDDLE-LINE-HERE-2\n", "ghijkl8\n"]
+    }
+  },
+  {
+    "id": "ndiff/long-lines-char-autojunk",
+    "op": "difflib.ndiff",
+    "args": {
+      "a": ["    return render_template('index.html', title=title, items=items, user=current_user, settings=settings, page=page, per_page=per_page, total=total, query=query, filters=filters, sort=sort_order, debug=debug_mode)\n"],
+      "b": ["    return render_template('index.html', title=title, items=items, user=current_user, settings=settings, page=page, per_page=per_page, total=total, query=query, filters=filters, sort=order, debug=False)\n"]
+    }
+  },
+  {
+    "id": "ndiff/aider-find-last-non-deleted",
+    "op": "difflib.ndiff",
+    "args": {
+      "a": ["def f():\n", "    return 1\n", "\n", "def g():\n", "    return 2\n"],
+      "b": ["def f():\n", "    return 10\n", "\n", "def h():\n"]
+    }
+  },
+  {
+    "id": "is-line-junk/newline",
+    "op": "difflib.is_line_junk",
+    "args": {
+      "line": "\n"
+    }
+  },
+  {
+    "id": "is-line-junk/hash-among-blanks",
+    "op": "difflib.is_line_junk",
+    "args": {
+      "line": "  #   \n"
+    }
+  },
+  {
+    "id": "is-line-junk/text",
+    "op": "difflib.is_line_junk",
+    "args": {
+      "line": "hello\n"
+    }
+  },
+  {
+    "id": "is-line-junk/bare-hash",
+    "op": "difflib.is_line_junk",
+    "args": {
+      "line": "#"
+    }
+  },
+  {
+    "id": "is-line-junk/two-hashes",
+    "op": "difflib.is_line_junk",
+    "args": {
+      "line": "##"
+    }
+  },
+  {
+    "id": "is-line-junk/empty",
+    "op": "difflib.is_line_junk",
+    "args": {
+      "line": ""
+    }
+  },
+  {
+    "id": "is-line-junk/unicode-blanks",
+    "op": "difflib.is_line_junk",
+    "args": {
+      "line": "\u001c#\u001f"
+    }
+  },
+  {
+    "id": "is-line-junk/ideographic-space",
+    "op": "difflib.is_line_junk",
+    "args": {
+      "line": "　# \n"
+    }
+  },
+  {
+    "id": "is-line-junk/hash-then-text",
+    "op": "difflib.is_line_junk",
+    "args": {
+      "line": " # x"
+    }
+  },
+  {
+    "id": "is-line-junk/hash-newline-hash",
+    "op": "difflib.is_line_junk",
+    "args": {
+      "line": "#\n#"
+    }
+  },
+  {
+    "id": "is-line-junk/tab-crlf",
+    "op": "difflib.is_line_junk",
+    "args": {
+      "line": "\t\r\n"
+    }
+  },
+  {
+    "id": "is-line-junk/next-line-char",
+    "op": "difflib.is_line_junk",
+    "args": {
+      "line": ""
+    }
+  },
+  {
+    "id": "is-line-junk/byte-order-mark",
+    "op": "difflib.is_line_junk",
+    "args": {
+      "line": "﻿"
+    }
+  },
+  {
+    "id": "is-character-junk/space",
+    "op": "difflib.is_character_junk",
+    "args": {
+      "ch": " "
+    }
+  },
+  {
+    "id": "is-character-junk/tab",
+    "op": "difflib.is_character_junk",
+    "args": {
+      "ch": "\t"
+    }
+  },
+  {
+    "id": "is-character-junk/newline",
+    "op": "difflib.is_character_junk",
+    "args": {
+      "ch": "\n"
+    }
+  },
+  {
+    "id": "is-character-junk/letter",
+    "op": "difflib.is_character_junk",
+    "args": {
+      "ch": "x"
+    }
+  },
+  {
+    "id": "is-character-junk/empty",
+    "op": "difflib.is_character_junk",
+    "args": {
+      "ch": ""
+    }
+  },
+  {
+    "id": "is-character-junk/space-tab",
+    "op": "difflib.is_character_junk",
+    "args": {
+      "ch": " \t"
+    }
+  },
+  {
+    "id": "is-character-junk/no-break-space",
+    "op": "difflib.is_character_junk",
+    "args": {
+      "ch": " "
+    }
+  },
+  {
+    "id": "is-character-junk/custom-ws",
+    "op": "difflib.is_character_junk",
+    "args": {
+      "ch": "x",
+      "ws": "xyz"
     }
   }
 ]
