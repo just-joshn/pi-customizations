@@ -197,6 +197,35 @@ async function toolRoundTrip(modelId: string) {
 
 const cliParameters = { type: 'OBJECT', properties: { path: { type: 'STRING' } }, required: ['path'] };
 
+test('Cloud Code tool parameters drop const and uniqueItems after convertTools', async () => {
+  const constrainedTool = {
+    name: 'constrained',
+    description: 'Constrained',
+    parameters: {
+      type: 'object' as const,
+      properties: {
+        kind: { type: 'string' as const, const: 'webhook' },
+        fields: { type: 'array' as const, items: { type: 'string' as const }, uniqueItems: true },
+      },
+      required: ['kind', 'fields'],
+    },
+  };
+  const { server } = await run((_, res) => stream(res, textAndThinking), {
+    context: { tools: [constrainedTool], messages: [{ role: 'user', content: 'go', timestamp: 1 }] },
+  });
+  const declaration = body(server.requests[0]).request.tools?.[0]?.functionDeclarations?.[0] as Record<string, unknown> | undefined;
+  const parameters = declaration?.['parameters'] as Record<string, unknown>;
+  expect(JSON.stringify(parameters)).not.toContain('"const"');
+  expect(JSON.stringify(parameters)).not.toContain('"uniqueItems"');
+  expect(parameters).toMatchObject({
+    type: 'OBJECT',
+    properties: {
+      kind: { type: 'STRING', enum: ['webhook'] },
+      fields: { type: 'ARRAY', items: { type: 'STRING' } },
+    },
+  });
+});
+
 test('a Gemini tool call round trip declares OpenAPI parameters and returns the result in a model turn', async () => {
   const { first, sentTools, followUp } = await toolRoundTrip('gemini-3.1-pro');
   expect(first.message.stopReason).toBe('toolUse');
