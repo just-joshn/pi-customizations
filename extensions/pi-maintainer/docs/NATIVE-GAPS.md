@@ -180,14 +180,25 @@ The flag adapters share the following gate answers. The table above identifies t
 
 ## Python lint tree-sitter syntax checks
 
-1. **Behavior.** Python lint combines tree-sitter syntax errors, compile errors, and flake8 errors limited to E9,F821,F823,F831,F406,F407,F701,F702,F704,F706, reported under "# Fix any errors below, if possible." with tree context around the error lines (`aider/linter.py:80-166`).
-2. **Mechanism evaluated.** Same tree-sitter recovery constraint as map structural context (`docs/verification/tree-sitter-recovery-2026-10-10.md`). Host.exec can run flake8 argv and a compile probe.
+1. **Behavior.** Python lint combines tree-sitter syntax errors, compile errors, and flake8 errors limited to E9,F821,F823,F831,F406,F407,F701,F702,F704,F706, reported under "# Fix any errors below, if possible." with tree context around the error lines (`aider/linter.py:80-166`). Tree-sitter syntax fallback alone records zero-based ERROR/missing start rows without columns (`aider/linter.py:80-166`). Model-facing lint reports render tree context around extracted lines (`aider/linter.py:80-166,272-285`).
+2. **Mechanism evaluated.** Same tree-sitter recovery constraint as map structural context (`docs/verification/tree-sitter-recovery-2026-10-10.md`). Host.exec can run flake8 argv and a compile probe. Line extraction and plain diagnostic text already bind without TreeContext.
 3. **Why it cannot.** Built-in `basic_lint` / `TreeContext` slices require an accepted production tree-sitter bridge. Deep-importing private parsers or inventing a TreeContext harness is forbidden until recovery accepts one.
-4. **Why not omit.** Ledger row `lint.python.checks` requires the combined report including tree-sitter syntax errors and TreeContext.
-5. **Adapter.** None for tree-sitter syntax. Configured `--lint-cmd` values run through Host.exec. Default Python combine path is not claimed.
+4. **Why not omit.** Ledger rows `lint.python.checks`, `lint.tree-sitter.syntax-errors`, and `lint.diagnostics.context-render` require tree-sitter syntax and TreeContext slices. Omitting leaves those rows open.
+5. **Adapter.** None for tree-sitter syntax or TreeContext rendering. Configured `--lint-cmd` values run through Host.exec. Default Python combine path is not claimed. Plain diagnostic headers and extracted source lines remain on the Host.exec custom-cmd path.
 6. **Authoritative Pi state.** Unchanged.
-7. **Verification.** Row `lint.python.checks` stays open after this re-check.
-8. **Delete when.** Parser recovery accepts a production bridge that can supply TreeContext-equivalent slices for lint, or the ledger drops the tree-sitter syntax claim.
+7. **Verification.** Rows `lint.python.checks`, `lint.tree-sitter.syntax-errors`, and `lint.diagnostics.context-render` stay open after this re-check. Expressible lint dispatch/diagnostics/line-extraction rows are verified separately.
+8. **Delete when.** Parser recovery accepts a production bridge that can supply TreeContext-equivalent slices for lint, or the ledger drops the tree-sitter syntax and context-render claims.
+
+## Callable test commands
+
+1. **Behavior.** Aider accepts a callable test command that is invoked directly, prints and returns truthy errors, and does not change cwd or insert chat messages (`aider/commands.py:993-1011`).
+2. **Mechanism evaluated.** `pi.registerFlag` string `--test-cmd`, `Host.exec` for string commands, `Validation.runTestCommand` for `/test` and auto-test.
+3. **Why it cannot.** Pi settings and flags expose string values only. There is no extension API to register or invoke an in-process callable as a test command without inventing a parallel callable registry outside Aider's config surface.
+4. **Why not omit.** Ledger row `lint.test.callable-no-chat` requires that callable path. Omitting leaves the row open.
+5. **Adapter.** None for callables. String `--test-cmd` / `/test` argv runs through Host.exec. Callable test commands are not claimed.
+6. **Authoritative Pi state.** Session chat and Host.exec stay with Pi.
+7. **Verification.** Row `lint.test.callable-no-chat` stays open. String `/test` and auto-test rows are verified separately.
+8. **Delete when.** Pi exposes an extension-owned callable or script-hook settings kind for test commands, or the ledger drops the callable claim.
 
 ## Git repository operations
 
