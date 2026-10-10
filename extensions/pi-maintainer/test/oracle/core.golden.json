@@ -119,6 +119,12 @@
       "preference": null
     }
   },
+  "current-text/empty": {
+    "result": ""
+  },
+  "current-text/newlines": {
+    "result": "alpha\nbeta\n\n"
+  },
   "files-content/crlf-unicode-tab": {
     "result": "\n文😀.py\n<code>\n\t😀\r\n</code>\n"
   },

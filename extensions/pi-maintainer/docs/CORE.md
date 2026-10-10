@@ -57,7 +57,7 @@ interface Feature<P> {
 
 - `snapshot`, `replace(snapshot)`, and `save(snapshot)` read, restore, and persist domain state.
 - `bindUser(userEntries, model, reason)` binds canonical Pi user IDs. The reason is `user`, `continuation`, or `retry`. A native retry resumes an interrupted frame without spending a reflection.
-- `projectRequest(view)` assembles the provider request. It calls the repository port with current conversation text. The disabled port returns no repository content.
+- `projectRequest(view)` assembles the provider request. It calls the repository port with current conversation text from `getCurMessageText(messages: readonly ContextMessage[]): string`. The helper preserves Aider's trailing newline for each message. The disabled port returns no repository content.
 - `completeReply(reply, signal?): Promise<ReplyDecision>` processes a committed reply ID and complete text, or an incomplete outcome and its reason. It returns dialogue facts and the guarded continuation decision.
 - `checkForFileMentions(content, signal?): Promise<string | null>` confirms admissions and records denied mentions on the branch.
 - `prepareToEdit<E extends PathEdit>(edits, context): Promise<E[]>` filters edits through file permission preparation. `allowedToEdit`, `applyPlan`, and the edited-path tracking methods implement those steps.
@@ -95,7 +95,7 @@ PDF context, arbitrary reordered context projections, Aider's exact token-count 
 
 ## Verification receipt
 
-The final runtime check passed 23 files and 425 tests. V8 coverage includes untested source files. It measured 92.15% statements, 81.66% branches, 92.93% functions, and 94.38% lines. Oracle freshness passed all seven retained groups and their 321 capture cases. Core has 52 cases. Fresh captures are not a claim that an unimplemented SAR is complete.
+The final runtime check passed 23 files and 427 tests. V8 coverage includes untested source files. It measured 92.17% statements, 81.66% branches, 92.95% functions, and 94.41% lines. Oracle freshness passed all seven retained groups and their 323 capture cases. Core has 54 cases. Fresh captures are not a claim that an unimplemented SAR is complete.
 
 Run from the package directory:
 
@@ -117,7 +117,7 @@ git diff --check
 
 Biome passes. Neither repository-wide policy script reports a pi-maintainer finding. This receipt makes no repository-wide pass claim. Whitespace checking passes.
 
-The file-content oracle was challenged by inserting a newline before the closing fence. Six cases failed. The implementation was restored and the final suite passed. The path oracle initially failed because its fixture lacked Aider's cache field and did not canonicalize the temporary root. After correcting those fixture defects, three symlink traversal cases failed against the old TypeScript implementation. The fix passed those cases and an SDK physical-write regression.
+The file-content oracle was challenged by inserting a newline before the closing fence. Six cases failed. The implementation was restored and the final suite passed. The path oracle initially failed because its fixture lacked Aider's cache field and did not canonicalize the temporary root. After correcting those fixture defects, three symlink traversal cases failed against the old TypeScript implementation. The fix passed those cases and an SDK physical-write regression. A final source check found a missing newline in repository-port current text. The SDK regression failed before the fix. Empty and multi-message oracle cases now verify that helper against Aider.
 
 ## Changed files
 

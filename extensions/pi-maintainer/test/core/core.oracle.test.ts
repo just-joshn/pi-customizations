@@ -2,7 +2,7 @@ import { Type } from 'typebox';
 import { expect, test } from 'vitest';
 import { findCommonRoot, getRelFname, inchatRelativeFiles } from '../../src/core/chat-files.ts';
 import { ConfirmGroup, confirmAsk } from '../../src/core/confirm.ts';
-import { getFilesContent } from '../../src/core/context.ts';
+import { type ContextMessage, getCurMessageText, getFilesContent } from '../../src/core/context.ts';
 import { getFileMentions } from '../../src/core/mentions.ts';
 import { oracleCases, outcomeOf } from '../support/oracle.ts';
 
@@ -10,6 +10,12 @@ const filesSchema = Type.Object({ contents: Type.Array(Type.Tuple([Type.String()
 
 test.for(oracleCases('core', 'core.files_content', filesSchema))('get_files_content $id', async ({ args, expected }) => {
   expect(await outcomeOf(() => getFilesContent(args.root ?? '/project', args.contents, args.fence ?? ['```', '```']))).toEqual(expected);
+});
+
+const currentSchema = Type.Object({ messages: Type.Array(Type.Object({ content: Type.String() })) });
+test.for(oracleCases('core', 'core.current_message_text', currentSchema))('get_cur_message_text $id', async ({ args, expected }) => {
+  const messages = args.messages.map(({ content }) => ({ role: 'user', content, timestamp: 0 }) satisfies ContextMessage);
+  expect(await outcomeOf(() => getCurMessageText(messages))).toEqual(expected);
 });
 
 const relativeSchema = Type.Object({ root: Type.String(), path: Type.String() });

@@ -64,9 +64,9 @@ test('repository port text occupies the native provider repository chunk', async
   const session = await f.open();
   await promptAndSettle(session, 'CURRENT');
   const texts = f.requests[0]?.messages.map(textOf) ?? [];
-  expect(texts).toContain('REPO for CURRENT');
-  expect(texts.indexOf('READ ONLY\nreference.txt\n```\nreference\n```\n')).toBeLessThan(texts.indexOf('REPO for CURRENT'));
-  expect(texts.indexOf('REPO for CURRENT')).toBeLessThan(texts.indexOf('EDITABLE\nedit.txt\n```\neditable\n```\n'));
+  expect(texts).toContain('REPO for CURRENT\n');
+  expect(texts.indexOf('READ ONLY\nreference.txt\n```\nreference\n```\n')).toBeLessThan(texts.indexOf('REPO for CURRENT\n'));
+  expect(texts.indexOf('REPO for CURRENT\n')).toBeLessThan(texts.indexOf('EDITABLE\nedit.txt\n```\neditable\n```\n'));
   expect(f.errors).toEqual([]);
 });
 

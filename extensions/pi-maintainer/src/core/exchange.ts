@@ -5,7 +5,7 @@ import { pythonSorted } from '../support/python-sort.ts';
 import { chatFilesOf, type Snapshot } from './branch.ts';
 import { absRootPath, getRelFname, inchatRelativeFiles } from './chat-files.ts';
 import { ConfirmGroup } from './confirm.ts';
-import { partitionHistory, projectRequest, type RequestView } from './context.ts';
+import { getCurMessageText, partitionHistory, projectRequest, type RequestView } from './context.ts';
 import type { Host } from './host.ts';
 import { getFileMentions } from './mentions.ts';
 import { journaledTree } from './mutations.ts';
@@ -62,9 +62,7 @@ export class ExchangeController {
       view.projection,
       this.#state.historyThrough,
     );
-    const curMessageText = history.current
-      .flatMap((message) => (!('content' in message) ? [] : typeof message.content === 'string' ? [message.content] : message.content.filter((block) => block.type === 'text').map((block) => block.text)))
-      .join('\n');
+    const curMessageText = getCurMessageText(history.current);
     const repository = await this.#env.ports.map.repoMap({ editable: files.editable, readOnly: files.readOnly, curMessageText }, view.signal);
     const result = await projectRequest({
       snapshot: this.#state,

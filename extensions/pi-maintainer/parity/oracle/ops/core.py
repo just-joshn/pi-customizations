@@ -20,6 +20,11 @@ def files_content(args, _case_dir):
     return Coder.get_files_content(coder)
 
 
+@op("core.current_message_text")
+def current_message_text(args, _case_dir):
+    return Coder.get_cur_message_text(SimpleNamespace(cur_messages=args["messages"]))
+
+
 @op("core.format_chunks")
 def format_chunks(args, _case_dir):
     model = SimpleNamespace(system_prompt_prefix=args.get("prefix", ""),

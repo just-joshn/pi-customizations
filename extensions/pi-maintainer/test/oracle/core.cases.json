@@ -29,6 +29,8 @@
   { "id": "root-path/symlink-parent-missing", "op": "core.root_path", "args": { "path": "link/../target.txt" } },
   { "id": "root-path/symlink-missing-prefix", "op": "core.root_path", "args": { "path": "link/../new/target.txt" } },
   { "id": "root-path/missing-prefix-parent", "op": "core.root_path", "args": { "path": "link/never/../target.txt" } },
+  { "id": "current-text/empty", "op": "core.current_message_text", "args": { "messages": [] } },
+  { "id": "current-text/newlines", "op": "core.current_message_text", "args": { "messages": [{ "content": "alpha" }, { "content": "beta\n" }] } },
   {
     "id": "chunks/provider-order",
     "op": "core.format_chunks",

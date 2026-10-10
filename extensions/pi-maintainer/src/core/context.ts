@@ -19,6 +19,23 @@ export function getFilesContent(root: string, contents: readonly FileContent[], 
     .join('');
 }
 
+/** `Coder.get_cur_message_text`, with Pi text blocks joined before adding each message's newline. */
+export function getCurMessageText(messages: readonly ContextMessage[]): string {
+  return messages
+    .flatMap((message) => {
+      if (!('content' in message)) return [];
+      const content =
+        typeof message.content === 'string'
+          ? message.content
+          : message.content
+              .filter((block) => block.type === 'text')
+              .map((block) => block.text)
+              .join('');
+      return [`${content}\n`];
+    })
+    .join('');
+}
+
 export async function readChatFiles(snapshot: Snapshot, tree: WorkingTree, notices: Notices) {
   let files: ChatFiles = chatFilesOf(snapshot);
   const editable: FileContent[] = [];
