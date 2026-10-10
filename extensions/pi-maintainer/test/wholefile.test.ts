@@ -115,8 +115,12 @@ test('rejects a nameless block without choosing among chat files', () => {
   expect(() => getEdits('```\nnew\n```', ['a', 'b'])).toThrow(new ValueError('No filename provided before ``` in file listing'));
 });
 
-test('replays the recorded whole-file CLI replacement content', async () => {
-  const context = await workingDirectory({ 'sample.py': 'value = 100\n' });
-  await applyEdits(getEdits('sample.py\n```python\nvalue = 200\n```\n', ['sample.py']), context);
-  expect(await readFile(join(context.root, 'sample.py'), 'utf8')).toBe('value = 200\n');
-});
+test(
+  'replays the recorded whole-file CLI replacement content',
+  { meta: { evidence: ['ev-edit/cli-apply/whole-update'] } },
+  async () => {
+    const context = await workingDirectory({ 'sample.py': 'value = 100\n' });
+    await applyEdits(getEdits('sample.py\n```python\nvalue = 200\n```\n', ['sample.py']), context);
+    expect(await readFile(join(context.root, 'sample.py'), 'utf8')).toBe('value = 200\n');
+  },
+);

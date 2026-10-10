@@ -243,13 +243,17 @@
         "aider/io.py:453-476"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
+      "status": "verified",
+      "pi": [
+        "pi.on('context_with_system')"
+      ],
       "src": [
         "src/edit/working-tree.ts"
       ],
       "tests": [
-        "test/working-tree-read.oracle.test.ts::reads Aider text *"
+        "test/working-tree-read.oracle.test.ts::reads Aider text *",
+        "test/working-tree.test.ts::invalid UTF-8 bytes produce the encoding hint",
+        "test/working-tree.test.ts::reads UTF-16LE bytes when that codec is configured"
       ]
     },
     {
@@ -871,10 +875,17 @@
         "aider/coders/wholefile_coder.py:105-106"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "withFileMutationQueue",
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/wholefile.ts"
+      ],
+      "tests": [
+        "test/wholefile.oracle.test.ts::getEdits get_edits/unclosed*"
+      ]
     },
     {
       "id": "edit.whole.provenance-priority",
@@ -904,7 +915,7 @@
         "aider/coders/wholefile_coder.py:124-128"
       ],
       "kind": "parity",
-      "status": "open",
+      "status": "verified",
       "pi": [
         "withFileMutationQueue",
         "pi.on('turn_end')"
@@ -914,7 +925,8 @@
       ],
       "tests": [
         "test/wholefile.test.ts::overwrites an existing chat file",
-        "test/wholefile.test.ts::overwrites a file with an empty block"
+        "test/wholefile.test.ts::overwrites a file with an empty block",
+        "test/wholefile.test.ts::replays the recorded whole-file CLI replacement content"
       ]
     },
     {
@@ -1033,10 +1045,17 @@
         "aider/coders/udiff_coder.py:52-67"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/udiff.ts"
+      ],
+      "tests": [
+        "test/udiff.test.ts::getEdits inherits the prior path across fences",
+        "test/udiff.oracle.test.ts::get edits get_edits/inherit-path"
+      ]
     },
     {
       "id": "edit.udiff.later-header",
@@ -1065,10 +1084,17 @@
         "aider/coders/udiff_coder.py:69-85,243-258"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/udiff.ts"
+      ],
+      "tests": [
+        "test/udiff.oracle.test.ts::normalize hunk *",
+        "test/udiff.oracle.test.ts::apply edits apply_edits/normalize-dedupe"
+      ]
     },
     {
       "id": "edit.udiff.empty-before-appends",
@@ -1078,10 +1104,16 @@
         "aider/coders/udiff_coder.py:121-138"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/udiff.ts"
+      ],
+      "tests": [
+        "test/udiff.oracle.test.ts::do replace do_replace/append*"
+      ]
     },
     {
       "id": "edit.udiff.direct-replace",
@@ -1092,10 +1124,18 @@
         "aider/coders/search_replace.py:18-171,239-243,565-614"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/udiff.ts"
+      ],
+      "tests": [
+        "test/udiff.oracle.test.ts::directly apply *",
+        "test/udiff.test.ts::replays the recorded udiff CLI replacement content",
+        "test/udiff.test.ts::udiff format plans an upsert and applies the hunk"
+      ]
     },
     {
       "id": "edit.udiff.repair-before-text",
@@ -1119,10 +1159,16 @@
         "aider/coders/udiff_coder.py:160-198,282-310"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/udiff.ts"
+      ],
+      "tests": [
+        "test/udiff.oracle.test.ts::apply hunk apply_hunk/context-reduction"
+      ]
     },
     {
       "id": "edit.udiff.all-occurrences",
@@ -1133,10 +1179,17 @@
         "aider/coders/udiff_coder.py:261-279"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/udiff.ts"
+      ],
+      "tests": [
+        "test/udiff.oracle.test.ts::directly apply directly_apply/all-occurrences",
+        "test/udiff.test.ts::literal udiff replace changes every occurrence"
+      ]
     },
     {
       "id": "edit.udiff.single-strategy",
@@ -1160,10 +1213,18 @@
         "aider/coders/udiff_coder.py:86-118"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/udiff.ts"
+      ],
+      "tests": [
+        "test/udiff.test.ts::applyEdits keeps earlier writes when a later hunk fails",
+        "test/udiff.oracle.test.ts::apply edits apply_edits/sequential-success",
+        "test/udiff.oracle.test.ts::apply edits apply_edits/partial-success-survives"
+      ]
     },
     {
       "id": "edit.udiff.no-match-error",
@@ -1173,10 +1234,17 @@
         "aider/coders/udiff_coder.py:16-26,103-108"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/udiff.ts"
+      ],
+      "tests": [
+        "test/udiff.test.ts::applyEdits keeps earlier writes when a later hunk fails",
+        "test/udiff.oracle.test.ts::apply edits apply_edits/no-match-error"
+      ]
     },
     {
       "id": "edit.udiff.partial-success-note",
@@ -1204,10 +1272,21 @@
         "aider/coders/patch_coder.py:220-254,301-307"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/patch.ts",
+        "src/edit/patch-parse.ts",
+        "src/edit/patch-sections.ts"
+      ],
+      "tests": [
+        "test/edit/patch.oracle.test.ts::getEdits get_edits/full-sentinels",
+        "test/edit/patch.oracle.test.ts::getEdits get_edits/missing-sentinels",
+        "test/edit/patch.oracle.test.ts::getEdits get_edits/not-patch-like",
+        "test/edit/patch.oracle.test.ts::applies reply apply_reply/missing-sentinels-applies"
+      ]
     },
     {
       "id": "edit.patch.read-files-at-parse",
@@ -1217,10 +1296,18 @@
         "aider/coders/patch_coder.py:194-204,256-272"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/patch.ts"
+      ],
+      "tests": [
+        "test/edit/patch.oracle.test.ts::getEdits get_edits/missing-update-file",
+        "test/edit/patch.oracle.test.ts::getEdits get_edits/missing-delete-file",
+        "test/edit/patch.oracle.test.ts::getEdits get_edits/read-error-before-parse-error"
+      ]
     },
     {
       "id": "edit.patch.action-headers",
@@ -1230,10 +1317,21 @@
         "aider/coders/patch_coder.py:301-402"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/patch.ts",
+        "src/edit/patch-parse.ts",
+        "src/edit/patch-sections.ts"
+      ],
+      "tests": [
+        "test/edit/patch.oracle.test.ts::parsePatchText parse_patch_text/update-single-chunk",
+        "test/edit/patch.oracle.test.ts::parsePatchText parse_patch_text/delete",
+        "test/edit/patch.oracle.test.ts::parsePatchText parse_patch_text/move-to",
+        "test/edit/patch.oracle.test.ts::getEdits get_edits/full-sentinels"
+      ]
     },
     {
       "id": "edit.patch.repeated-actions",
@@ -1243,10 +1341,18 @@
         "aider/coders/patch_coder.py:329-345,362-369,384-385"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/patch.ts",
+        "src/edit/patch-parse.ts",
+        "src/edit/patch-sections.ts"
+      ],
+      "tests": [
+        "test/edit/patch.oracle.test.ts::parsePatchText parse_patch_text/repeated-update*"
+      ]
     },
     {
       "id": "edit.patch.parse-errors",
@@ -1256,10 +1362,20 @@
         "aider/coders/patch_coder.py:274-288"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/patch.ts",
+        "src/edit/patch-parse.ts",
+        "src/edit/patch-sections.ts"
+      ],
+      "tests": [
+        "test/edit/patch.oracle.test.ts::getEdits get_edits/invalid-line-prefix",
+        "test/edit/patch.oracle.test.ts::getEdits get_edits/invalid-add-line",
+        "test/edit/patch.oracle.test.ts::parsePatchText parse_patch_text/context-not-found"
+      ]
     },
     {
       "id": "edit.patch.add-lines",
@@ -1269,10 +1385,19 @@
         "aider/coders/patch_coder.py:516-547"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/patch.ts",
+        "src/edit/patch-parse.ts",
+        "src/edit/patch-sections.ts"
+      ],
+      "tests": [
+        "test/edit/patch.oracle.test.ts::applyEdits apply_edits/add-appends-newline",
+        "test/edit/patch.oracle.test.ts::getEdits get_edits/invalid-add-line"
+      ]
     },
     {
       "id": "edit.patch.update-lines",
@@ -1282,10 +1407,19 @@
         "aider/coders/patch_coder.py:96-180"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/patch.ts",
+        "src/edit/patch-parse.ts",
+        "src/edit/patch-sections.ts"
+      ],
+      "tests": [
+        "test/edit/patch.oracle.test.ts::peekNextSection peek_next_section/context-delete-insert",
+        "test/edit/patch.oracle.test.ts::peekNextSection peek_next_section/blank-line-is-context"
+      ]
     },
     {
       "id": "edit.patch.scope-markers",
@@ -1295,10 +1429,19 @@
         "aider/coders/patch_coder.py:435-485"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/patch.ts",
+        "src/edit/patch-parse.ts",
+        "src/edit/patch-sections.ts"
+      ],
+      "tests": [
+        "test/edit/patch.oracle.test.ts::parsePatchText parse_patch_text/scope-*",
+        "test/edit/patch.oracle.test.ts::applies reply apply_reply/scope-marker"
+      ]
     },
     {
       "id": "edit.patch.context-fuzz",
@@ -1308,10 +1451,19 @@
         "aider/coders/patch_coder.py:59-78,488-492"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/patch-sections.ts"
+      ],
+      "tests": [
+        "test/edit/patch.oracle.test.ts::findContextCore *",
+        "test/edit/patch.test.ts::exact context matches at fuzz 0",
+        "test/edit/patch.test.ts::trimmed context matches at fuzz 100",
+        "test/edit/patch.oracle.test.ts::applies reply apply_reply/fuzz-*"
+      ]
     },
     {
       "id": "edit.patch.eof-context",
@@ -1321,10 +1473,17 @@
         "aider/coders/patch_coder.py:81-93,182-186"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/patch-sections.ts"
+      ],
+      "tests": [
+        "test/edit/patch.oracle.test.ts::findContext find_context/eof-*",
+        "test/edit/patch.oracle.test.ts::applies reply apply_reply/eof-*"
+      ]
     },
     {
       "id": "edit.patch.context-not-found",
@@ -1334,10 +1493,19 @@
         "aider/coders/patch_coder.py:494-500"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/patch.ts",
+        "src/edit/patch-parse.ts",
+        "src/edit/patch-sections.ts"
+      ],
+      "tests": [
+        "test/edit/patch.oracle.test.ts::parsePatchText parse_patch_text/context-not-found",
+        "test/edit/patch.oracle.test.ts::parsePatchText parse_patch_text/eof-context-not-found"
+      ]
     },
     {
       "id": "edit.patch.original-indices",
@@ -1347,10 +1515,19 @@
         "aider/coders/patch_coder.py:151-160,173-180,503-507"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/patch.ts",
+        "src/edit/patch-parse.ts",
+        "src/edit/patch-apply.ts",
+        "src/edit/patch-sections.ts"
+      ],
+      "tests": [
+        "test/edit/patch.oracle.test.ts::applyEdits apply_edits/update-equal-index-insertio*"
+      ]
     },
     {
       "id": "edit.patch.update-reconstruction",
@@ -1360,10 +1537,21 @@
         "aider/coders/patch_coder.py:591-601,642-706"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/patch.ts",
+        "src/edit/patch-parse.ts",
+        "src/edit/patch-apply.ts",
+        "src/edit/patch-sections.ts"
+      ],
+      "tests": [
+        "test/edit/patch.test.ts::replays the recorded patch CLI update content",
+        "test/edit/patch.oracle.test.ts::applies reply apply_reply/cli-patch-update",
+        "test/edit/patch.oracle.test.ts::applies reply apply_reply/sequential-sections"
+      ]
     },
     {
       "id": "edit.patch.verify-deletions",
@@ -1373,10 +1561,16 @@
         "aider/coders/patch_coder.py:671-691"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/patch-apply.ts"
+      ],
+      "tests": [
+        "test/edit/patch.oracle.test.ts::applyEdits apply_edits/update-deletion-mismatch"
+      ]
     },
     {
       "id": "edit.patch.update-missing-file",
@@ -1386,10 +1580,20 @@
         "aider/coders/patch_coder.py:591-598"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/patch.ts",
+        "src/edit/patch-parse.ts",
+        "src/edit/patch-apply.ts",
+        "src/edit/patch-sections.ts"
+      ],
+      "tests": [
+        "test/edit/patch.oracle.test.ts::applyEdits apply_edits/update-missing-file",
+        "test/edit/patch.oracle.test.ts::applyEdits apply_edits/update-unreadable-directory"
+      ]
     },
     {
       "id": "edit.patch.add-existing-fails",
@@ -1399,10 +1603,16 @@
         "aider/coders/patch_coder.py:566-569"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/patch-apply.ts"
+      ],
+      "tests": [
+        "test/edit/patch.oracle.test.ts::applyEdits apply_edits/add-existing-file"
+      ]
     },
     {
       "id": "edit.patch.add-writes",
@@ -1412,10 +1622,21 @@
         "aider/coders/patch_coder.py:570-580"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/patch.ts",
+        "src/edit/patch-parse.ts",
+        "src/edit/patch-apply.ts",
+        "src/edit/patch-sections.ts"
+      ],
+      "tests": [
+        "test/edit/patch.oracle.test.ts::applyEdits apply_edits/add-appends-newline",
+        "test/edit/patch.oracle.test.ts::applyEdits apply_edits/add-creates-parents",
+        "test/edit/patch.test.ts::ADD editIntent leaves creation to application"
+      ]
     },
     {
       "id": "edit.patch.delete-unlinks",
@@ -1425,10 +1646,17 @@
         "aider/coders/patch_coder.py:582-589"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/patch-apply.ts"
+      ],
+      "tests": [
+        "test/edit/patch.oracle.test.ts::applyEdits apply_edits/delete-removes-file",
+        "test/edit/patch.oracle.test.ts::applyEdits apply_edits/delete-missing-warns"
+      ]
     },
     {
       "id": "edit.patch.move",
@@ -1438,10 +1666,20 @@
         "aider/coders/patch_coder.py:603-627"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/patch.ts",
+        "src/edit/patch-parse.ts",
+        "src/edit/patch-apply.ts",
+        "src/edit/patch-sections.ts"
+      ],
+      "tests": [
+        "test/edit/patch.oracle.test.ts::applyEdits apply_edits/move-to-new-directory",
+        "test/edit/patch.oracle.test.ts::applies reply apply_reply/move-into-new-directory"
+      ]
     },
     {
       "id": "edit.patch.add-after-approval",
@@ -1794,10 +2032,18 @@
         "aider/coders/patch_coder.py:549-640"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/patch-apply.ts"
+      ],
+      "tests": [
+        "test/edit/patch.oracle.test.ts::applyEdits apply_edits/move-mismatch-leaves-files",
+        "test/edit/patch.oracle.test.ts::applyEdits apply_edits/delete-then-update",
+        "test/edit/patch.test.ts::ADD under a regular-file parent raises Python Errno 17"
+      ]
     },
     {
       "id": "edit.io.line-endings-option",
@@ -2355,10 +2601,16 @@
         "aider/coders/udiff_prompts.py:47-58,103-109"
       ],
       "kind": "fix",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": [],
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/udiff.ts"
+      ],
+      "tests": [
+        "test/udiff.oracle.test.ts::apply edits apply_edits/empty-result-truthiness"
+      ],
       "fix": {
         "defect": "Truthiness checks discard a successful empty replacement before the write and classify complete-content deletion as no match.",
         "intent": "aider/coders/udiff_prompts.py:47-58 demonstrates a deletion-only hunk and :103-109 instructs deleting code with minus lines; aider/coders/udiff_coder.py:111-112 marks successful application for writing.",
