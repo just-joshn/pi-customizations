@@ -122,6 +122,7 @@ export const editFeature: Feature<EditFormats> & { readonly name: 'edit' } = {
       ]),
       requestedFormat: requested !== null && isEditFormatName(requested) ? requested : null,
       initialFiles: { editable: settings.value(editOptions.file), readOnly: settings.value(editOptions.read) },
+      messageFile: settings.value(editOptions.messageFile),
       dryRun,
       yesAlways: settings.value(editOptions.yesAlways),
       autoAcceptArchitect: settings.value(editOptions.autoAcceptArchitect),

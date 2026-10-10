@@ -133,6 +133,8 @@ export interface EditFormats {
   /** `--edit-format`, or null to use the model's default format. */
   readonly requestedFormat: EditFormatName | null;
   readonly initialFiles: InitialFiles;
+  /** `--message-file`, or null when unset. */
+  readonly messageFile: string | null;
   readonly dryRun: boolean;
   readonly yesAlways: boolean | null;
   /** `--auto-accept-architect` (Aider default True). */

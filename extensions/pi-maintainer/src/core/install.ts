@@ -4,6 +4,7 @@ import type { ContextWithSystemEvent, ExtensionAPI, ExtensionContext, ModelRoute
 import { Text } from '@earendil-works/pi-tui';
 import { BRANDING } from '../branding.ts';
 import { editOptions } from '../edit/options.ts';
+import { admitInitialEditable, readMessageFile } from '../edit/startup-input.ts';
 import { createPorts, type Ports, type SarFeature } from '../feature.ts';
 import { formatSettings } from '../settings/format-settings.ts';
 import { loadSettings } from '../settings/load.ts';
@@ -66,23 +67,8 @@ function resolveEditorModel(ctx: ExtensionContext, name: string | null, main: { 
 }
 
 async function initialSnapshot(ports: Ports, cwd: string, append: (data: unknown) => void, host: ReturnType<typeof createHost>, allowCreation: boolean, owner: string): Promise<Snapshot> {
-  const editable: string[] = [];
   const tree = journaledTree(ports.edit.tree, owner, append, () => {});
-  for (const path of ports.edit.initialFiles.editable) {
-    const full = absRootPath(cwd, path);
-    if (!(await tree.exists(full))) {
-      if (!allowCreation) {
-        host.warning(`Recovery refused startup creation of ${path}.`);
-        continue;
-      }
-      if (!(await tree.touch(full))) {
-        host.warning(`Can not create ${path}, skipping.`);
-        continue;
-      }
-      host.output(`Creating empty file ${path}`);
-    }
-    editable.push(full);
-  }
+  const editable = await admitInitialEditable(ports.edit.initialFiles.editable, { cwd, tree, host, allowCreation });
   const root = ports.git.repoRoot() ?? findCommonRoot(editable, cwd);
   const readOnly: string[] = [];
   for (const path of ports.edit.initialFiles.readOnly) {
@@ -290,6 +276,12 @@ class MaintainerRuntime {
     this.#pi.setActiveTools([]);
     const router = ctx.modelRegistry.find(BRANDING.routerProvider, BRANDING.routerId);
     if (!router || !(await this.#pi.setModel(router))) throw new Error('Maintainer router cannot be selected');
+    if (!restored.snapshot && ports.edit.messageFile) {
+      const messagePath = absRootPath(ctx.cwd, ports.edit.messageFile);
+      const text = await readMessageFile(messagePath, ports.edit.tree, this.host);
+      if (text === null) throw new Error(`Unable to read message file ${ports.edit.messageFile}`);
+      this.#pi.sendUserMessage(text);
+    }
   }
   restoreBranch(ctx: ExtensionContext): void {
     const controller = this.current(ctx);

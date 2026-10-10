@@ -3557,10 +3557,21 @@
         "aider/main.py:1153-1155"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.registerFlag",
+        "pi.on('session_start')",
+        "pi.getFlag"
+      ],
+      "src": [
+        "src/edit/startup-input.ts",
+        "src/core/install.ts",
+        "src/edit/options.ts",
+        "src/edit/feature.ts"
+      ],
+      "tests": [
+        "test/edit/input-bind.test.ts::an empty startup file list yields an empty editable selection"
+      ]
     },
     {
       "id": "edit.input.initial-files",
@@ -3570,10 +3581,22 @@
         "aider/coders/base_coder.py:448-473"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.registerFlag",
+        "pi.on('session_start')",
+        "pi.getFlag"
+      ],
+      "src": [
+        "src/edit/startup-input.ts",
+        "src/core/install.ts",
+        "src/edit/options.ts",
+        "src/edit/feature.ts"
+      ],
+      "tests": [
+        "test/edit/input-bind.test.ts::missing editable files are created and selected",
+        "test/edit/input-bind.test.ts::paths that cannot be created or are not ordinary files are diagnosed and excluded"
+      ]
     },
     {
       "id": "edit.input.message-file",
@@ -3583,10 +3606,23 @@
         "aider/main.py:1126-1151"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.registerFlag",
+        "pi.on('session_start')",
+        "pi.getFlag",
+        "pi.sendUserMessage"
+      ],
+      "src": [
+        "src/edit/startup-input.ts",
+        "src/core/install.ts",
+        "src/edit/options.ts",
+        "src/edit/feature.ts"
+      ],
+      "tests": [
+        "test/edit/input-bind.test.ts::a message file is read with the configured encoding and enters the request path",
+        "test/edit/input-bind.test.ts::a missing message file is reported and does not enter the request path"
+      ]
     },
     {
       "id": "edit.prompt.system-prefix",

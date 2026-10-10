@@ -21,6 +21,12 @@ export const editOptions = {
   lineEndings: stringOption({ name: 'line-endings', defaultValue: 'platform', choices: ['platform', 'lf', 'crlf'], help: 'Line endings to use when writing files (default: platform)', sar: 'edit' }),
   file: listOption({ name: 'file', help: 'specify a file to edit (can be used multiple times)', sar: 'edit' }),
   read: listOption({ name: 'read', help: 'specify a read-only file (can be used multiple times)', sar: 'edit' }),
+  messageFile: stringOption({
+    name: 'message-file',
+    defaultValue: null,
+    help: 'Specify a file containing the message to send the LLM, process reply, then exit (disables chat mode)',
+    sar: 'edit',
+  }),
   apply: stringOption({ name: 'apply', defaultValue: null, help: 'Apply the changes from the given file instead of running the chat (debug)', sar: 'edit' }),
   suggestShellCommands: booleanOption({ name: 'suggest-shell-commands', defaultValue: true, negatable: true, help: 'Enable/disable suggesting shell commands (default: True)', sar: 'edit' }),
   setEnv: listOption({ name: 'set-env', help: 'Set an environment variable (to control API settings, can be used multiple times)', sar: 'edit' }),

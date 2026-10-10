@@ -125,6 +125,7 @@ async function harness(
         formats: new Map([['whole', format]]),
         requestedFormat: 'whole',
         initialFiles: { editable: [], readOnly: [] },
+        messageFile: null,
         dryRun: false,
         yesAlways: true,
         autoAcceptArchitect: true,

@@ -95,6 +95,7 @@ async function harness(options: {
         formats: new Map(),
         requestedFormat: null,
         initialFiles: { editable: [], readOnly: [] },
+        messageFile: null,
         dryRun: options.dryRun ?? false,
         yesAlways: null,
         autoAcceptArchitect: true,
