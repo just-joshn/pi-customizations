@@ -204,7 +204,7 @@ test('auto-commit and lint ports receive only successfully written paths', { met
     editable: ['good.txt', 'bad.txt'],
   });
   await h.controller.completeReply({ kind: 'complete', id: 'reply-partial', text: 'RUN' });
-  expect(h.outputs).toEqual(['Applied edit to good.txt']);
+  expect(h.outputs).toEqual(['bad.txt good.txt', 'Applied edit to good.txt']);
   expect(h.commits).toEqual([{ paths: ['good.txt'], context: 'conversation' }]);
   expect(h.lintCalls).toEqual([]);
   expect(h.controller.snapshot.lifecycle).toMatchObject({ preparedTargets: ['good.txt', 'bad.txt'], writtenPaths: [absRootPath(h.root, 'good.txt')] });

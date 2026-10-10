@@ -6,6 +6,7 @@ import { replyTextForEdits } from '../edit/reasoning.ts';
 import type { EditCandidate, EditContext, EditIntent, EditPlan, PathEdit, Ports } from '../feature.ts';
 import { pythonSorted } from '../support/python-sort.ts';
 import { chatFilesOf, type Snapshot } from './branch.ts';
+import { chatListingPaths, formatFilesForInput } from './chat-file-listing.ts';
 import { absRootPath, allRelativeFiles, getRelFname, inchatRelativeFiles } from './chat-files.ts';
 import { ConfirmGroup } from './confirm.ts';
 import { getCurMessageText, partitionHistory, projectRequest, type RequestView } from './context.ts';
@@ -38,6 +39,8 @@ export interface ExchangeEnv {
   readonly resolveEditorModel?: (name: string | null, main: { provider: string; id: string }) => { provider: string; id: string } | null;
   /** Aider `reasoning_tag_name`. Undefined falls back to `REASONING_TAG`. */
   readonly reasoningTag?: string;
+  /** Aider `InputOutput.pretty`. Defaults to true. */
+  readonly pretty?: boolean;
 }
 
 const MAX_REFLECTIONS = 3;
@@ -65,6 +68,7 @@ export class ExchangeController {
 
   async projectRequest(view: RequestView) {
     const files = chatFilesOf(this.#state);
+    this.#emitChatFileListing(files);
     const editor = this.#state.phase.kind === 'editor';
     const history = partitionHistory(
       view.messages.filter((message) => message.role !== 'system'),
@@ -103,6 +107,18 @@ export class ExchangeController {
     this.#prompts = result.prompts;
     if (JSON.stringify(result.files) !== JSON.stringify(this.#state.files)) this.save({ ...this.#state, files: result.files });
     return result;
+  }
+
+  #emitChatFileListing(files: ReturnType<typeof chatFilesOf>): void {
+    const { relFnames, relReadOnlyFnames } = chatListingPaths(this.#state.root, files);
+    if (!relFnames.length) return;
+    const listing = formatFilesForInput({
+      relFnames,
+      relReadOnlyFnames,
+      pretty: this.#env.pretty ?? true,
+      root: this.#state.root,
+    });
+    if (listing) this.#env.host.output(listing.replace(/\n$/, ''));
   }
 
   bindUser(userEntries: string[], model: { provider: string; id: string }, reason: 'user' | 'continuation' | 'retry'): void {

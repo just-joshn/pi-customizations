@@ -2377,10 +2377,25 @@
         "aider/coders/base_coder.py:898-910"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "host.output",
+        "context_with_system"
+      ],
+      "src": [
+        "src/core/chat-file-listing.ts",
+        "src/core/exchange.ts"
+      ],
+      "tests": [
+        "test/core/ui-chat-listing-bind.test.ts::plain mode lists read-only first with (read only) then editable paths",
+        "test/core/ui-chat-listing-bind.test.ts::pretty mode with no files prints nothing",
+        "test/core/ui-chat-listing-bind.test.ts::pretty mode editable-only columns omit the Editable label",
+        "test/core/ui-chat-listing-bind.test.ts::pretty mode read-only-only columns use the Readonly label",
+        "test/core/ui-chat-listing-bind.test.ts::pretty mode mixed files label Readonly then Editable",
+        "test/core/ui-chat-listing-bind.test.ts::projectRequest emits the plain chat-file listing before the model prompt",
+        "test/core/ui-chat-listing-bind.test.ts::projectRequest emits pretty Readonly and Editable columns when both kinds exist",
+        "test/core/ui-chat-listing-bind.test.ts::projectRequest skips listing when the chat has no files"
+      ]
     },
     {
       "id": "edit.commands.argument-completions",
