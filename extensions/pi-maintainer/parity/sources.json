@@ -42,5 +42,21 @@
       "test_linter",
       "test_run_cmd"
     ]
+  },
+  "testModuleOwners": {
+    "test_editblock": "edit",
+    "test_wholefile": "edit",
+    "test_udiff": "edit",
+    "test_find_or_blocks": "edit",
+    "test_reasoning": "edit",
+    "test_io": "edit",
+    "test_history": "edit",
+    "test_watch": "edit",
+    "test_repo": "git",
+    "test_sanity_check_repo": "git",
+    "test_repomap": "map",
+    "test_special": "map",
+    "test_linter": "lint",
+    "test_run_cmd": "lint"
   }
 }

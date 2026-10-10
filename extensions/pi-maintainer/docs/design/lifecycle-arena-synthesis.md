@@ -1,6 +1,6 @@
 # Lifecycle arena synthesis
 
-Status: parent scoring written before reading the cross-judge. Pick, grafts, and verification are pending.
+Status: candidate 2 was selected in `../ARCHITECTURE.md` and the decision trail at 2026-10-10T04:31:08Z. The scoring below is the retained pre-selection analysis. Implementation verification remains pending.
 
 ## Dropouts
 
@@ -28,11 +28,11 @@ Scores use `grounding/ARENA-RUBRIC.md`. The parent read every file in both packa
 
 **Testability and failure semantics.** Candidate 1 records intent and observation around each destructive effect, keyed by response entry and action ordinal. Reconciliation can then name the exact ambiguous step. Its pure reducer tests need no fakes. Candidate 2 records receipts around the whole reply, which is coarser, but its real-Pi verification plan is broader, including foreign handlers, queued steering, and RPC dialogs.
 
-## Parent leaning
+## Selected base and grafts
 
-Candidate 2 as the base. A maintainer extending this port compares it against Aider's source, and a controller that reads like `send_message` keeps that comparison cheap. Candidate 1's effect interpreter adds a layer that Aider does not have.
+Candidate 2 is the base. A maintainer extending this port compares it against Aider's source, and a controller that reads like `send_message` keeps that comparison cheap. Candidate 1's effect interpreter adds a layer that Aider does not have.
 
-Grafts under consideration from candidate 1:
+The following grafts are binding implementation and verification obligations:
 
 - The response transition table as the behavioral test contract.
 - Per-destructive-step intent and observation receipts instead of one receipt per reply.
@@ -40,7 +40,7 @@ Grafts under consideration from candidate 1:
 - The explicit `agent_before_settle` role as final reconciliation without a second response processor.
 - The evidence that `message_end` precedes persistence, so user-entry binding happens in the route callback.
 
-Rejected from candidate 1, pending the judge:
+Rejected from candidate 1:
 
 - The generic effect interpreter, for the reason above.
 - The single `ChatFiles` map as the baseline, because it changes Aider behavior without a fix row.
