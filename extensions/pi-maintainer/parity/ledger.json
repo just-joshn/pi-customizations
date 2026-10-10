@@ -4692,6 +4692,434 @@
         "test/edit/prompts.test.ts::Windows nested dot-only paths produce no image message while ordinary image and PDF paths do",
         "test/edit/prompts.test.ts::Windows path rules drop MIME for nested dot-only image names"
       ]
+    },
+    {
+      "id": "git.startup.discover-root",
+      "feature": "git",
+      "behavior": "Startup discovers the Git root from the working directory before constructing the coder, and that root locates config, history, ignore, and env files.",
+      "aider": [
+        "aider/main.py:60-85,460-504",
+        "aider/args.py:22-32,272-275,422-432"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "git.startup.setup-repo",
+      "feature": "git",
+      "behavior": "When no repository exists, setup_git offers initialization outside the home directory and make_new_repo creates a repo with ignore patterns without a second confirmation.",
+      "aider": [
+        "aider/main.py:88-129"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "git.startup.sanity-check",
+      "feature": "git",
+      "behavior": "Repository sanity checks refuse bare repositories, corrupt repos, unsupported index versions above 2 when unsafe, and continue carefully on detached HEAD.",
+      "aider": [
+        "aider/repo.py:62-129"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "git.filter.gitignore",
+      "feature": "git",
+      "behavior": "Git ignore rules via git check-ignore reject ignored paths for initial editable files, /add, and edit permission unless an explicit editing path bypasses the check.",
+      "aider": [
+        "aider/repo.py:489-520",
+        "aider/commands.py:800-870"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "git.filter.aiderignore",
+      "feature": "git",
+      "behavior": "Aider ignore rules exclude matching tracked paths from inventory and from add/edit flows that consult the ignore file.",
+      "aider": [
+        "aider/repo.py:433-520",
+        "aider/main.py:460-520"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "git.filter.subtree",
+      "feature": "git",
+      "behavior": "Subtree-only mode limits repository inventory and addable paths to the configured subdirectory tree.",
+      "aider": [
+        "aider/repo.py:433-487"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "git.inventory.addable-files",
+      "feature": "git",
+      "behavior": "get_addable_relative_files returns filtered inventory minus editable and read-only chat files, sorted and deduplicated.",
+      "aider": [
+        "aider/coders/base_coder.py:2153-2173"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "git.inventory.no-repo-fallback",
+      "feature": "git",
+      "behavior": "Without a repository, relative file inventory is limited to in-chat files rather than a Git-backed listing.",
+      "aider": [
+        "aider/coders/base_coder.py:2153-2167"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "git.dirty.path-semantics",
+      "feature": "git",
+      "behavior": "GitRepo.is_dirty() without a path excludes untracked files by GitPython default, while is_dirty(path) is true for paths absent from filtered inventory.",
+      "aider": [
+        "aider/repo.py:598-602"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "git.commit.auto-after-edit",
+      "feature": "git",
+      "behavior": "After applying edits, the base coder automatically commits edited files when automatic commits are on, before lint and test follow-ups.",
+      "aider": [
+        "aider/coders/base_coder.py:2295-2424"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "git.commit.noop-when-clean",
+      "feature": "git",
+      "behavior": "commit returns early without a model call when there is no selected filename set and the repository is clean, or when the computed diff is empty.",
+      "aider": [
+        "aider/repo.py:280-315"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "git.commit.verify-flag",
+      "feature": "git",
+      "behavior": "When git-commit-verify is off, commits pass --no-verify so pre-commit hooks do not block the assistant commit.",
+      "aider": [
+        "aider/repo.py:280-318"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "git.commit.attribution",
+      "feature": "git",
+      "behavior": "Assistant commits apply CLI attribution defaults for Co-authored-by trailers and committer name suffixes according to attribution flags and aider_edits.",
+      "aider": [
+        "aider/repo.py:199-280",
+        "aider/args.py:240-280"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "git.commit.message-language",
+      "feature": "git",
+      "behavior": "Commit-message generation respects the configured commit language when prompting the commit-message models.",
+      "aider": [
+        "aider/repo.py:326-373",
+        "aider/args.py:400-450"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "git.commit.selected-files-only",
+      "feature": "git",
+      "behavior": "A selected-file commit stages and commits only the named edit files, leaving unrelated staged or dirty files untouched.",
+      "aider": [
+        "aider/repo.py:280-315",
+        "aider/coders/base_coder.py:2375-2424"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "git.diff.for-commit-message",
+      "feature": "git",
+      "behavior": "Commit-message diffs compare filesystem content to HEAD for the selected paths and include staged and unstaged changes rather than a single staged patch.",
+      "aider": [
+        "aider/repo.py:375-403"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "git.diff.cmd-display",
+      "feature": "git",
+      "behavior": "/diff compares against HEAD^ when fewer than two message checkpoints exist, otherwise against the second-last checkpoint, and warns when the baseline equals HEAD or is empty.",
+      "aider": [
+        "aider/commands.py:664-683"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "git.diff.detached-and-unborn",
+      "feature": "git",
+      "behavior": "Diff extraction handles detached HEAD and unborn-branch repositories without treating them as ordinary attached-branch HEAD comparisons.",
+      "aider": [
+        "aider/repo.py:375-403"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "git.commands.raw-git",
+      "feature": "git",
+      "behavior": "/git prepends git to the supplied text, runs it with shell=True, forces GIT_EDITOR=true, shows combined output without adding it to chat, and does not set cwd to the repo root.",
+      "aider": [
+        "aider/commands.py:690-720"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "git.commands.commit",
+      "feature": "git",
+      "behavior": "/commit triggers a repository commit of current changes using the shared commit path and optional user message.",
+      "aider": [
+        "aider/commands.py:520-560"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "git.commands.add-from-subdir",
+      "feature": "git",
+      "behavior": "/add from a subdirectory resolves paths relative to the repository and can add those files into the chat.",
+      "aider": [
+        "aider/commands.py:800-900"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "git.commands.add-ignore-policy",
+      "feature": "git",
+      "behavior": "/add refuses or warns on gitignored and aiderignored paths according to ignore policy rather than silently adding them.",
+      "aider": [
+        "aider/commands.py:800-900"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "git.commands.add-untracked",
+      "feature": "git",
+      "behavior": "/add and drop handle untracked files so they can enter or leave the chat without incorrectly treating them as tracked inventory.",
+      "aider": [
+        "aider/commands.py:800-950"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "git.config.auto-commits",
+      "feature": "git",
+      "behavior": "The --git, --auto-commits, --dirty-commits, and related BooleanOptionalAction options form the effective Git policy after CLI, env, and YAML merge.",
+      "aider": [
+        "aider/args.py:240-450",
+        "aider/main.py:460-520"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "git.config.gitignore-offer",
+      "feature": "git",
+      "behavior": "When --gitignore is on, startup can offer to append Aider and environment-file exclusions to .gitignore.",
+      "aider": [
+        "aider/main.py:130-200",
+        "aider/args.py:240-300"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "git.config.aiderignore-path",
+      "feature": "git",
+      "behavior": "The aiderignore path resolves from configuration relative to the Git root and is used for inventory and add filters.",
+      "aider": [
+        "aider/main.py:460-520",
+        "aider/args.py:272-320"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "git.repo.open-single-root",
+      "feature": "git",
+      "behavior": "GitRepo opens exactly one discovered repository root with GitDB and throws FileNotFoundError when zero or multiple roots match the inputs.",
+      "aider": [
+        "aider/repo.py:62-129"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "git.repo.unavailable",
+      "feature": "git",
+      "behavior": "When GitPython is unavailable or the git executable is missing, Git integration disables repository arguments and continues without a repo rather than crashing the whole process.",
+      "aider": [
+        "aider/repo.py:6-17",
+        "aider/main.py:512-513"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "git.dry-run.skips-commits",
+      "feature": "git",
+      "behavior": "Coder dry-run mode returns from auto_commit without writing commits, and CLI --commit also guards dry-run before committing.",
+      "aider": [
+        "aider/coders/base_coder.py:2375-2377",
+        "aider/main.py:1065-1069"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "git.security.path-trust",
+      "feature": "git",
+      "behavior": "Working-tree path helpers resolve symlinks for some checks but do not enforce root containment on every path API, while /add outside-root refusal remains conditional on automatic commits for non-image files.",
+      "aider": [
+        "aider/coders/base_coder.py:2100-2250",
+        "aider/commands.py:846-856"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "git.hooks.pre-commit-boundary",
+      "feature": "git",
+      "behavior": "Pre-commit hooks remain a Git trust boundary for commits that run verify, separate from aider dirty checkpoints and message generation.",
+      "aider": [
+        "aider/repo.py:280-318"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "git.worktree.linked-and-index",
+      "feature": "git",
+      "behavior": "Linked worktrees and uncommon index versions are handled through the same GitRepo discovery and sanity paths rather than a separate VCS backend.",
+      "aider": [
+        "aider/repo.py:62-129"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
     }
   ]
 }

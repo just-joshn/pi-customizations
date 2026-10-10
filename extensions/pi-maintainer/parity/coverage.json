@@ -1,164 +1,334 @@
 {
   "edit/response-parsing/p1": {
-    "rows": ["edit.sr.parse-blocks", "edit.sr.marker-tolerance", "edit.sr.replace-ends-at-divider", "edit.sr.malformed-error", "edit.sr.missing-filename-error"]
+    "rows": [
+      "edit.sr.parse-blocks",
+      "edit.sr.marker-tolerance",
+      "edit.sr.replace-ends-at-divider",
+      "edit.sr.malformed-error",
+      "edit.sr.missing-filename-error"
+    ]
   },
   "edit/response-parsing/p2": {
-    "rows": ["edit.sr.filename-lookback", "edit.sr.filename-selection", "edit.sr.reuse-previous-filename", "edit.sr.new-file-name-unmatched"]
+    "rows": [
+      "edit.sr.filename-lookback",
+      "edit.sr.filename-selection",
+      "edit.sr.reuse-previous-filename",
+      "edit.sr.new-file-name-unmatched"
+    ]
   },
   "edit/response-parsing/p3": {
-    "rows": ["edit.sr.shell-blocks"]
+    "rows": [
+      "edit.sr.shell-blocks"
+    ]
   },
   "edit/matching-order/p1": {
-    "rows": ["edit.sr.strip-wrapping", "edit.sr.empty-search-appends"]
+    "rows": [
+      "edit.sr.strip-wrapping",
+      "edit.sr.empty-search-appends"
+    ]
   },
   "edit/matching-order/p2": {
-    "rows": ["edit.sr.newline-normalization", "edit.sr.exact-first-match", "edit.sr.leading-whitespace", "edit.sr.skip-leading-blank", "edit.sr.ellipsis", "edit.sr.no-fuzzy-content"]
+    "rows": [
+      "edit.sr.newline-normalization",
+      "edit.sr.exact-first-match",
+      "edit.sr.leading-whitespace",
+      "edit.sr.skip-leading-blank",
+      "edit.sr.ellipsis",
+      "edit.sr.no-fuzzy-content"
+    ]
   },
   "edit/matching-order/i3": {
-    "rows": ["edit.sr.newline-normalization"]
+    "rows": [
+      "edit.sr.newline-normalization"
+    ]
   },
   "edit/matching-order/i4": {
-    "rows": ["edit.sr.exact-first-match"]
+    "rows": [
+      "edit.sr.exact-first-match"
+    ]
   },
   "edit/matching-order/i5": {
-    "rows": ["edit.sr.leading-whitespace"]
+    "rows": [
+      "edit.sr.leading-whitespace"
+    ]
   },
   "edit/matching-order/i6": {
-    "rows": ["edit.sr.skip-leading-blank"]
+    "rows": [
+      "edit.sr.skip-leading-blank"
+    ]
   },
   "edit/matching-order/i7": {
-    "rows": ["edit.sr.ellipsis"]
+    "rows": [
+      "edit.sr.ellipsis"
+    ]
   },
   "edit/matching-order/i8": {
-    "rows": ["edit.sr.no-fuzzy-content"]
+    "rows": [
+      "edit.sr.no-fuzzy-content"
+    ]
   },
   "edit/matching-order/p9": {
     "nonclaim": "evidence",
     "note": "source citation for the matching-order list above"
   },
   "edit/matching-order/p10": {
-    "rows": ["edit.sr.exact-first-match"]
+    "rows": [
+      "edit.sr.exact-first-match"
+    ]
   },
   "edit/indentation-adjustment/p1": {
-    "rows": ["edit.sr.leading-whitespace"]
+    "rows": [
+      "edit.sr.leading-whitespace"
+    ]
   },
   "edit/indentation-adjustment/p2": {
-    "rows": ["edit.sr.leading-whitespace"]
+    "rows": [
+      "edit.sr.leading-whitespace"
+    ]
   },
   "edit/ellipsis-behavior/p1": {
-    "rows": ["edit.sr.ellipsis"]
+    "rows": [
+      "edit.sr.ellipsis"
+    ]
   },
   "edit/ellipsis-behavior/p2": {
-    "rows": ["edit.sr.ellipsis"]
+    "rows": [
+      "edit.sr.ellipsis"
+    ]
   },
   "edit/cross-file-fallback-and-disabled-fuzzy-content/p1": {
-    "rows": ["edit.sr.cross-file-fallback"]
+    "rows": [
+      "edit.sr.cross-file-fallback"
+    ]
   },
   "edit/cross-file-fallback-and-disabled-fuzzy-content/p2": {
-    "rows": ["edit.sr.no-fuzzy-content"]
+    "rows": [
+      "edit.sr.no-fuzzy-content"
+    ]
   },
   "edit/cross-file-fallback-and-disabled-fuzzy-content/p3": {
-    "rows": ["edit.sr.failure-report", "edit.sr.sequential-writes", "edit.sr.empty-result-success"]
+    "rows": [
+      "edit.sr.failure-report",
+      "edit.sr.sequential-writes",
+      "edit.sr.empty-result-success"
+    ]
   },
   "edit/cross-file-fallback-and-disabled-fuzzy-content/p4": {
-    "rows": ["edit.sr.preflight-per-block", "edit.sr.sequential-writes"]
+    "rows": [
+      "edit.sr.preflight-per-block",
+      "edit.sr.sequential-writes"
+    ]
   },
   "edit/whole-file-parsing-and-priorities/p1": {
-    "rows": ["edit.whole.fence-blocks", "edit.whole.overwrite"]
+    "rows": [
+      "edit.whole.fence-blocks",
+      "edit.whole.overwrite"
+    ]
   },
   "edit/whole-file-parsing-and-priorities/p2": {
-    "rows": ["edit.whole.filename-preceding-line", "edit.whole.bogus-dir-prefix", "edit.whole.fallback-filename"]
+    "rows": [
+      "edit.whole.filename-preceding-line",
+      "edit.whole.bogus-dir-prefix",
+      "edit.whole.fallback-filename"
+    ]
   },
   "edit/whole-file-parsing-and-priorities/p3": {
-    "rows": ["edit.whole.unfinished-block", "edit.whole.provenance-priority"]
+    "rows": [
+      "edit.whole.unfinished-block",
+      "edit.whole.provenance-priority"
+    ]
   },
   "edit/whole-file-parsing-and-priorities/p4": {
-    "rows": ["edit.whole.overwrite"]
+    "rows": [
+      "edit.whole.overwrite"
+    ]
   },
   "edit/parsing-is-content-based-not-coordinate-based/p1": {
-    "rows": ["edit.udiff.diff-fences", "edit.udiff.header-filename"]
+    "rows": [
+      "edit.udiff.diff-fences",
+      "edit.udiff.header-filename"
+    ]
   },
   "edit/parsing-is-content-based-not-coordinate-based/p2": {
-    "rows": ["edit.udiff.hunks-ignore-coordinates", "edit.udiff.inherit-path", "edit.udiff.later-header"]
+    "rows": [
+      "edit.udiff.hunks-ignore-coordinates",
+      "edit.udiff.inherit-path",
+      "edit.udiff.later-header"
+    ]
   },
   "edit/normalization-and-fallback/p1": {
-    "rows": ["edit.udiff.normalize-dedupe", "edit.udiff.empty-before-appends"]
+    "rows": [
+      "edit.udiff.normalize-dedupe",
+      "edit.udiff.empty-before-appends"
+    ]
   },
   "edit/normalization-and-fallback/p2": {
-    "rows": ["edit.udiff.direct-replace", "edit.udiff.repair-before-text"]
+    "rows": [
+      "edit.udiff.direct-replace",
+      "edit.udiff.repair-before-text"
+    ]
   },
   "edit/normalization-and-fallback/p3": {
-    "rows": ["edit.udiff.context-reduction"]
+    "rows": [
+      "edit.udiff.context-reduction"
+    ]
   },
   "edit/normalization-and-fallback/p4": {
-    "rows": ["edit.udiff.direct-replace", "edit.udiff.single-strategy"]
+    "rows": [
+      "edit.udiff.direct-replace",
+      "edit.udiff.single-strategy"
+    ]
   },
   "edit/repeated-matches-replace-all-occurrences/p1": {
-    "rows": ["edit.udiff.all-occurrences"]
+    "rows": [
+      "edit.udiff.all-occurrences"
+    ]
   },
   "edit/repeated-matches-replace-all-occurrences/p2": {
-    "rows": ["edit.udiff.all-occurrences"]
+    "rows": [
+      "edit.udiff.all-occurrences"
+    ]
   },
   "edit/repeated-matches-replace-all-occurrences/p3": {
-    "rows": ["edit.udiff.sequential-writes", "edit.udiff.no-match-error", "edit.udiff.partial-success-note", "edit.udiff.empty-result-success"]
+    "rows": [
+      "edit.udiff.sequential-writes",
+      "edit.udiff.no-match-error",
+      "edit.udiff.partial-success-note",
+      "edit.udiff.empty-result-success"
+    ]
   },
   "edit/retained-experiments-are-not-active-fallback-strategies/p1": {
-    "rows": ["edit.udiff.single-strategy"]
+    "rows": [
+      "edit.udiff.single-strategy"
+    ]
   },
   "edit/retained-experiments-are-not-active-fallback-strategies/p2": {
-    "rows": ["edit.udiff.repair-before-text"]
+    "rows": [
+      "edit.udiff.repair-before-text"
+    ]
   },
   "edit/parsing-resolves-current-file-positions/p1": {
-    "rows": ["edit.patch.sentinels", "edit.patch.action-headers", "edit.patch.scope-markers", "edit.patch.read-files-at-parse"]
+    "rows": [
+      "edit.patch.sentinels",
+      "edit.patch.action-headers",
+      "edit.patch.scope-markers",
+      "edit.patch.read-files-at-parse"
+    ]
   },
   "edit/parsing-resolves-current-file-positions/p2": {
-    "rows": ["edit.patch.sentinels", "edit.patch.action-headers", "edit.patch.parse-errors", "edit.patch.repeated-actions"]
+    "rows": [
+      "edit.patch.sentinels",
+      "edit.patch.action-headers",
+      "edit.patch.parse-errors",
+      "edit.patch.repeated-actions"
+    ]
   },
   "edit/parsing-resolves-current-file-positions/p3": {
-    "rows": ["edit.patch.add-lines", "edit.patch.update-lines"]
+    "rows": [
+      "edit.patch.add-lines",
+      "edit.patch.update-lines"
+    ]
   },
   "edit/parsing-resolves-current-file-positions/p4": {
-    "rows": ["edit.patch.context-fuzz", "edit.patch.eof-context", "edit.patch.scope-markers", "edit.patch.context-not-found", "edit.patch.immediate-context-work"]
+    "rows": [
+      "edit.patch.context-fuzz",
+      "edit.patch.eof-context",
+      "edit.patch.scope-markers",
+      "edit.patch.context-not-found",
+      "edit.patch.immediate-context-work"
+    ]
   },
   "edit/update-reconstruction/p1": {
-    "rows": ["edit.patch.update-reconstruction", "edit.patch.verify-deletions", "edit.patch.original-indices", "edit.patch.update-missing-file"]
+    "rows": [
+      "edit.patch.update-reconstruction",
+      "edit.patch.verify-deletions",
+      "edit.patch.original-indices",
+      "edit.patch.update-missing-file"
+    ]
   },
   "edit/update-reconstruction/p2": {
-    "rows": ["edit.patch.verify-deletions", "edit.patch.update-reconstruction"]
+    "rows": [
+      "edit.patch.verify-deletions",
+      "edit.patch.update-reconstruction"
+    ]
   },
   "edit/add-conflicts-with-shared-preparation/p1": {
-    "rows": ["edit.patch.add-existing-fails", "edit.patch.add-writes", "edit.patch.add-after-approval", "edit.patch.add-parent-file-error"]
+    "rows": [
+      "edit.patch.add-existing-fails",
+      "edit.patch.add-writes",
+      "edit.patch.add-after-approval",
+      "edit.patch.add-parent-file-error"
+    ]
   },
   "edit/add-conflicts-with-shared-preparation/p2": {
-    "rows": ["edit.patch.add-after-approval"]
+    "rows": [
+      "edit.patch.add-after-approval"
+    ]
   },
   "edit/delete-move-and-dry-run-defects/p1": {
-    "rows": ["edit.patch.delete-unlinks", "edit.patch.move", "edit.patch.authorize-move-destination"]
+    "rows": [
+      "edit.patch.delete-unlinks",
+      "edit.patch.move",
+      "edit.patch.authorize-move-destination"
+    ]
   },
   "edit/delete-move-and-dry-run-defects/p2": {
-    "rows": ["edit.dry-run.preserve-files", "edit.patch.dry-run-application"]
+    "rows": [
+      "edit.dry-run.preserve-files",
+      "edit.patch.dry-run-application"
+    ]
   },
   "edit/delete-move-and-dry-run-defects/p3": {
-    "rows": ["edit.dry-run.preserve-files", "edit.patch.add-after-approval", "edit.patch.dry-run-application"]
+    "rows": [
+      "edit.dry-run.preserve-files",
+      "edit.patch.add-after-approval",
+      "edit.patch.dry-run-application"
+    ]
   },
   "edit/architect-and-context-modes/p1": {
-    "rows": ["edit.architect.confirm-editor", "edit.architect.editor-selection", "edit.architect.fresh-editor-request", "edit.architect.editor-options", "map.architect.disable-editor-map", "edit.context.map-policy"]
+    "rows": [
+      "edit.architect.confirm-editor",
+      "edit.architect.editor-selection",
+      "edit.architect.fresh-editor-request",
+      "edit.architect.editor-options",
+      "map.architect.disable-editor-map",
+      "edit.context.map-policy"
+    ]
   },
   "edit/architect-and-context-modes/p2": {
-    "rows": ["edit.architect.fresh-editor-request", "edit.architect.editor-application", "git.architect.return-editor-commits", "edit.architect.return-editor-cost"]
+    "rows": [
+      "edit.architect.fresh-editor-request",
+      "edit.architect.editor-application",
+      "git.architect.return-editor-commits",
+      "edit.architect.return-editor-cost"
+    ]
   },
   "edit/architect-and-context-modes/p3": {
-    "rows": ["map.context.expand-refresh-map", "edit.context.replace-file-selection", "edit.context.bypass-edit-application", "edit.context.map-policy"]
+    "rows": [
+      "map.context.expand-refresh-map",
+      "edit.context.replace-file-selection",
+      "edit.context.bypass-edit-application",
+      "edit.context.map-policy"
+    ]
   },
   "edit/history-images-and-prompt-caching/p1": {
-    "rows": ["edit.prompt.message-order", "edit.prompt.examples-placement", "edit.prompt.reminder-placement", "edit.prompt.context-limit-confirm", "edit.prompt.reminder-budget"]
+    "rows": [
+      "edit.prompt.message-order",
+      "edit.prompt.examples-placement",
+      "edit.prompt.reminder-placement",
+      "edit.prompt.context-limit-confirm",
+      "edit.prompt.reminder-budget"
+    ]
   },
   "edit/history-images-and-prompt-caching/p2": {
     "nonclaim": "pi-owned",
     "note": "Pi compaction summarizes older history and keeps a recent tail, so pi-maintainer runs no history summarizer"
   },
   "edit/history-images-and-prompt-caching/p3": {
-    "rows": ["edit.prompt.images", "edit.prompt.image-mime-dotfiles"]
+    "rows": [
+      "edit.prompt.images",
+      "edit.prompt.image-mime-dotfiles"
+    ]
   },
   "edit/history-images-and-prompt-caching/p4": {
     "nonclaim": "pi-owned",
@@ -173,7 +343,10 @@
     "note": "Pi streams assistant content and reasoning and assembles tool-call fragments"
   },
   "edit/streaming-transport-and-reasoning/p3": {
-    "rows": ["edit.reasoning.strip-before-edits", "edit.lifecycle.apply-order"]
+    "rows": [
+      "edit.reasoning.strip-before-edits",
+      "edit.lifecycle.apply-order"
+    ]
   },
   "edit/streaming-transport-and-reasoning/p4": {
     "nonclaim": "pi-owned",
@@ -192,124 +365,249 @@
     ]
   },
   "edit/permission-filesystem-and-execution-boundaries/p2": {
-    "rows": ["edit.authorize.read-only-reaches-approval"]
+    "rows": [
+      "edit.authorize.read-only-reaches-approval"
+    ]
   },
   "edit/permission-filesystem-and-execution-boundaries/p3": {
-    "rows": ["edit.authorize.no-root-containment", "git.commands.add-refuses-outside-root", "edit.patch.authorize-move-destination"]
+    "rows": [
+      "edit.authorize.no-root-containment",
+      "git.commands.add-refuses-outside-root",
+      "edit.patch.authorize-move-destination"
+    ]
   },
   "edit/permission-filesystem-and-execution-boundaries/p4": {
-    "rows": ["edit.io.read-text", "edit.io.write-text", "edit.io.write-retry-errors", "edit.io.nonatomic-overwrite"]
+    "rows": [
+      "edit.io.read-text",
+      "edit.io.write-text",
+      "edit.io.write-retry-errors",
+      "edit.io.nonatomic-overwrite"
+    ]
   },
   "edit/permission-filesystem-and-execution-boundaries/p5": {
-    "rows": ["edit.io.read-text", "edit.io.write-text", "edit.sr.newline-normalization", "edit.whole.overwrite", "edit.patch.update-reconstruction"]
+    "rows": [
+      "edit.io.read-text",
+      "edit.io.write-text",
+      "edit.sr.newline-normalization",
+      "edit.whole.overwrite",
+      "edit.patch.update-reconstruction"
+    ]
   },
   "edit/permission-filesystem-and-execution-boundaries/p6": {
-    "rows": ["edit.sr.preflight-per-block", "edit.patch.read-files-at-parse", "edit.sr.sequential-writes", "edit.udiff.sequential-writes", "edit.patch.action-errors", "edit.patch.verify-deletions", "edit.io.nonatomic-overwrite"]
+    "rows": [
+      "edit.sr.preflight-per-block",
+      "edit.patch.read-files-at-parse",
+      "edit.sr.sequential-writes",
+      "edit.udiff.sequential-writes",
+      "edit.patch.action-errors",
+      "edit.patch.verify-deletions",
+      "edit.io.nonatomic-overwrite"
+    ]
   },
   "edit/permission-filesystem-and-execution-boundaries/p7": {
-    "rows": ["edit.dry-run.preserve-files", "edit.dry-run.report-new-file"]
+    "rows": [
+      "edit.dry-run.preserve-files",
+      "edit.dry-run.report-new-file"
+    ]
   },
   "edit/permission-filesystem-and-execution-boundaries/p8": {
-    "rows": ["lint.run.local-shell", "lint.shell.approve-and-run", "edit.confirm.yes-always"]
+    "rows": [
+      "lint.run.local-shell",
+      "lint.shell.approve-and-run",
+      "edit.confirm.yes-always"
+    ]
   },
   "edit/permission-filesystem-and-execution-boundaries/p9": {
-    "rows": ["git.commit.message-context", "edit.lifecycle.validation-port"]
+    "rows": [
+      "git.commit.message-context",
+      "edit.lifecycle.validation-port"
+    ]
   },
   "edit/reflections-retries-validation-commits-and-undo/p1": {
-    "rows": ["edit.lifecycle.skip-errored-reply"]
+    "rows": [
+      "edit.lifecycle.skip-errored-reply"
+    ]
   },
   "edit/reflections-retries-validation-commits-and-undo/p2": {
-    "rows": ["edit.lifecycle.skip-truncated-reply", "edit.lifecycle.skip-interrupted-reply", "git.mentions.add-and-reflect"]
+    "rows": [
+      "edit.lifecycle.skip-truncated-reply",
+      "edit.lifecycle.skip-interrupted-reply",
+      "git.mentions.add-and-reflect"
+    ]
   },
   "edit/reflections-retries-validation-commits-and-undo/p3": {
-    "rows": ["edit.lifecycle.reflect-application-errors", "edit.sr.sequential-writes", "edit.udiff.sequential-writes", "edit.lifecycle.malformed-count", "edit.lifecycle.max-reflections"]
+    "rows": [
+      "edit.lifecycle.reflect-application-errors",
+      "edit.sr.sequential-writes",
+      "edit.udiff.sequential-writes",
+      "edit.lifecycle.malformed-count",
+      "edit.lifecycle.max-reflections"
+    ]
   },
   "edit/reflections-retries-validation-commits-and-undo/p4": {
-    "rows": ["lint.followup.commit-before-validation", "edit.lifecycle.move-to-history", "lint.followup.order", "lint.followup.reflect-failures", "lint.options.auto-lint-auto-test"]
+    "rows": [
+      "lint.followup.commit-before-validation",
+      "edit.lifecycle.move-to-history",
+      "lint.followup.order",
+      "lint.followup.reflect-failures",
+      "lint.options.auto-lint-auto-test"
+    ]
   },
   "edit/reflections-retries-validation-commits-and-undo/p5": {
-    "rows": ["lint.python.checks", "lint.test.command-output", "edit.lifecycle.git-port", "edit.lifecycle.validation-port"]
+    "rows": [
+      "lint.python.checks",
+      "lint.test.command-output",
+      "edit.lifecycle.git-port",
+      "edit.lifecycle.validation-port"
+    ]
   },
   "edit/reflections-retries-validation-commits-and-undo/p6": {
-    "rows": ["git.dirty.checkpoint-before-edit", "git.dirty.off-without-auto-commits", "git.commit.stage-whole-files", "edit.lifecycle.git-port"]
+    "rows": [
+      "git.dirty.checkpoint-before-edit",
+      "git.dirty.off-without-auto-commits",
+      "git.commit.stage-whole-files",
+      "edit.lifecycle.git-port"
+    ]
   },
   "edit/reflections-retries-validation-commits-and-undo/p7": {
-    "rows": ["git.undo.preconditions", "git.undo.restore-and-reset", "edit.lifecycle.undo-port"]
+    "rows": [
+      "git.undo.preconditions",
+      "git.undo.restore-and-reset",
+      "edit.lifecycle.undo-port"
+    ]
   },
   "ev-edit/probe/duplicate-search-first-match": {
-    "rows": ["edit.sr.exact-first-match"]
+    "rows": [
+      "edit.sr.exact-first-match"
+    ]
   },
   "ev-edit/probe/indentation-recovery": {
-    "rows": ["edit.sr.leading-whitespace"]
+    "rows": [
+      "edit.sr.leading-whitespace"
+    ]
   },
   "ev-edit/probe/fuzzy-content-disabled": {
-    "rows": ["edit.sr.no-fuzzy-content"]
+    "rows": [
+      "edit.sr.no-fuzzy-content"
+    ]
   },
   "ev-edit/probe/empty-search-appends": {
-    "rows": ["edit.sr.empty-search-appends"]
+    "rows": [
+      "edit.sr.empty-search-appends"
+    ]
   },
   "ev-edit/probe/newline-normalization": {
-    "rows": ["edit.sr.newline-normalization"]
+    "rows": [
+      "edit.sr.newline-normalization"
+    ]
   },
   "ev-edit/probe/udiff-literal-replaces-all": {
-    "rows": ["edit.udiff.all-occurrences"]
+    "rows": [
+      "edit.udiff.all-occurrences"
+    ]
   },
   "ev-edit/probe/patch-exact-context": {
-    "rows": ["edit.patch.context-fuzz"]
+    "rows": [
+      "edit.patch.context-fuzz"
+    ]
   },
   "ev-edit/probe/patch-trimmed-context": {
-    "rows": ["edit.patch.context-fuzz"]
+    "rows": [
+      "edit.patch.context-fuzz"
+    ]
   },
   "ev-edit/patch-lifecycle/reported-edited": {
-    "rows": ["edit.lifecycle.successful-targets", "edit.patch.add-after-approval"]
+    "rows": [
+      "edit.lifecycle.successful-targets",
+      "edit.patch.add-after-approval"
+    ]
   },
   "ev-edit/patch-lifecycle/file-exists": {
-    "rows": ["edit.patch.add-after-approval"]
+    "rows": [
+      "edit.patch.add-after-approval"
+    ]
   },
   "ev-edit/patch-lifecycle/file-content": {
-    "rows": ["edit.patch.add-after-approval"]
+    "rows": [
+      "edit.patch.add-after-approval"
+    ]
   },
   "ev-edit/patch-lifecycle/reflected-message": {
-    "rows": ["edit.patch.add-after-approval"]
+    "rows": [
+      "edit.patch.add-after-approval"
+    ]
   },
   "ev-edit/patch-lifecycle/dry-run-delete-removed-file": {
-    "rows": ["edit.dry-run.preserve-files", "edit.patch.dry-run-application"]
+    "rows": [
+      "edit.dry-run.preserve-files",
+      "edit.patch.dry-run-application"
+    ]
   },
   "ev-edit/patch-lifecycle/dry-run-move-removed-source": {
-    "rows": ["edit.dry-run.preserve-files", "edit.patch.dry-run-application"]
+    "rows": [
+      "edit.dry-run.preserve-files",
+      "edit.patch.dry-run-application"
+    ]
   },
   "ev-edit/patch-lifecycle/dry-run-move-created-destination": {
-    "rows": ["edit.dry-run.preserve-files", "edit.patch.dry-run-application"]
+    "rows": [
+      "edit.dry-run.preserve-files",
+      "edit.patch.dry-run-application"
+    ]
   },
   "aider-test/test_editblock/TestUtils.test_find_filename": {
-    "rows": ["edit.sr.filename-lookback", "edit.sr.filename-selection"]
+    "rows": [
+      "edit.sr.filename-lookback",
+      "edit.sr.filename-selection"
+    ]
   },
   "aider-test/test_editblock/TestUtils.test_strip_quoted_wrapping": {
-    "rows": ["edit.sr.strip-wrapping"]
+    "rows": [
+      "edit.sr.strip-wrapping"
+    ]
   },
   "aider-test/test_editblock/TestUtils.test_strip_quoted_wrapping_no_filename": {
-    "rows": ["edit.sr.strip-wrapping"]
+    "rows": [
+      "edit.sr.strip-wrapping"
+    ]
   },
   "aider-test/test_editblock/TestUtils.test_strip_quoted_wrapping_no_wrapping": {
-    "rows": ["edit.sr.strip-wrapping"]
+    "rows": [
+      "edit.sr.strip-wrapping"
+    ]
   },
   "aider-test/test_editblock/TestUtils.test_find_original_update_blocks": {
-    "rows": ["edit.sr.parse-blocks", "edit.sr.filename-lookback"]
+    "rows": [
+      "edit.sr.parse-blocks",
+      "edit.sr.filename-lookback"
+    ]
   },
   "aider-test/test_editblock/TestUtils.test_find_original_update_blocks_quote_below_filename": {
-    "rows": ["edit.sr.parse-blocks", "edit.sr.filename-lookback"]
+    "rows": [
+      "edit.sr.parse-blocks",
+      "edit.sr.filename-lookback"
+    ]
   },
   "aider-test/test_editblock/TestUtils.test_find_original_update_blocks_unclosed": {
-    "rows": ["edit.sr.malformed-error"]
+    "rows": [
+      "edit.sr.malformed-error"
+    ]
   },
   "aider-test/test_editblock/TestUtils.test_find_original_update_blocks_missing_filename": {
-    "rows": ["edit.sr.missing-filename-error"]
+    "rows": [
+      "edit.sr.missing-filename-error"
+    ]
   },
   "aider-test/test_editblock/TestUtils.test_find_original_update_blocks_no_final_newline": {
-    "rows": ["edit.sr.parse-blocks"]
+    "rows": [
+      "edit.sr.parse-blocks"
+    ]
   },
   "aider-test/test_editblock/TestUtils.test_incomplete_edit_block_missing_filename": {
-    "rows": ["edit.sr.parse-blocks", "edit.sr.reuse-previous-filename"]
+    "rows": [
+      "edit.sr.parse-blocks",
+      "edit.sr.reuse-previous-filename"
+    ]
   },
   "aider-test/test_editblock/TestUtils.test_check_for_ctags_failure": {
     "nonclaim": "meta",
@@ -328,129 +626,230 @@
     "note": "not an Aider test; a def line inside the reply fixture string of test_incomplete_edit_block_missing_filename (tests/basic/test_editblock.py:203-247)"
   },
   "aider-test/test_editblock/TestUtils.test_replace_part_with_missing_varied_leading_whitespace": {
-    "rows": ["edit.sr.leading-whitespace"]
+    "rows": [
+      "edit.sr.leading-whitespace"
+    ]
   },
   "aider-test/test_editblock/TestUtils.test_replace_part_with_missing_leading_whitespace": {
-    "rows": ["edit.sr.leading-whitespace"]
+    "rows": [
+      "edit.sr.leading-whitespace"
+    ]
   },
   "aider-test/test_editblock/TestUtils.test_replace_multiple_matches": {
-    "rows": ["edit.sr.exact-first-match"]
+    "rows": [
+      "edit.sr.exact-first-match"
+    ]
   },
   "aider-test/test_editblock/TestUtils.test_replace_multiple_matches_missing_whitespace": {
-    "rows": ["edit.sr.leading-whitespace"]
+    "rows": [
+      "edit.sr.leading-whitespace"
+    ]
   },
   "aider-test/test_editblock/TestUtils.test_replace_part_with_just_some_missing_leading_whitespace": {
-    "rows": ["edit.sr.leading-whitespace"]
+    "rows": [
+      "edit.sr.leading-whitespace"
+    ]
   },
   "aider-test/test_editblock/TestUtils.test_replace_part_with_missing_leading_whitespace_including_blank_line": {
-    "rows": ["edit.sr.skip-leading-blank", "edit.sr.leading-whitespace"]
+    "rows": [
+      "edit.sr.skip-leading-blank",
+      "edit.sr.leading-whitespace"
+    ]
   },
   "aider-test/test_editblock/TestUtils.test_create_new_file_with_other_file_in_chat": {
-    "rows": ["edit.sr.empty-search-appends", "edit.sr.cross-file-fallback"]
+    "rows": [
+      "edit.sr.empty-search-appends",
+      "edit.sr.cross-file-fallback"
+    ]
   },
   "aider-test/test_editblock/TestUtils.test_full_edit": {
-    "rows": ["edit.sr.exact-first-match", "edit.sr.sequential-writes"]
+    "rows": [
+      "edit.sr.exact-first-match",
+      "edit.sr.sequential-writes"
+    ]
   },
   "aider-test/test_editblock/TestUtils.test_full_edit_dry_run": {
-    "rows": ["edit.dry-run.preserve-files"]
+    "rows": [
+      "edit.dry-run.preserve-files"
+    ]
   },
   "aider-test/test_editblock/TestUtils.test_find_original_update_blocks_mupltiple_same_file": {
-    "rows": ["edit.sr.parse-blocks", "edit.sr.reuse-previous-filename"]
+    "rows": [
+      "edit.sr.parse-blocks",
+      "edit.sr.reuse-previous-filename"
+    ]
   },
   "aider-test/test_editblock/TestUtils.test_deepseek_coder_v2_filename_mangling": {
-    "rows": ["edit.sr.filename-lookback"]
+    "rows": [
+      "edit.sr.filename-lookback"
+    ]
   },
   "aider-test/test_editblock/TestUtils.test_new_file_created_in_same_folder": {
-    "rows": ["edit.sr.new-file-name-unmatched"]
+    "rows": [
+      "edit.sr.new-file-name-unmatched"
+    ]
   },
   "aider-test/test_editblock/TestUtils.test_find_original_update_blocks_quad_backticks_with_triples_in_LLM_reply": {
-    "rows": ["edit.sr.parse-blocks", "edit.sr.filename-lookback"]
+    "rows": [
+      "edit.sr.parse-blocks",
+      "edit.sr.filename-lookback"
+    ]
   },
   "aider-test/test_editblock/TestUtils.test_find_original_update_blocks_with_sh_language_identifier": {
-    "rows": ["edit.sr.shell-blocks"]
+    "rows": [
+      "edit.sr.shell-blocks"
+    ]
   },
   "aider-test/test_editblock/TestUtils.test_find_original_update_blocks_with_csharp_language_identifier": {
-    "rows": ["edit.sr.parse-blocks", "edit.sr.filename-lookback"]
+    "rows": [
+      "edit.sr.parse-blocks",
+      "edit.sr.filename-lookback"
+    ]
   },
   "aider-test/test_wholefile/TestWholeFileCoder.test_no_files": {
     "nonclaim": "pi-owned",
     "note": "Pi renders the streaming assistant reply; Aider's whole-file live-diff rendering and its fallback to raw reply text are presentation of that stream"
   },
   "aider-test/test_wholefile/TestWholeFileCoder.test_no_files_new_file_should_ask": {
-    "rows": ["edit.authorize.create-new-file"]
+    "rows": [
+      "edit.authorize.create-new-file"
+    ]
   },
   "aider-test/test_wholefile/TestWholeFileCoder.test_update_files": {
-    "rows": ["edit.whole.fence-blocks", "edit.whole.filename-preceding-line", "edit.whole.overwrite"]
+    "rows": [
+      "edit.whole.fence-blocks",
+      "edit.whole.filename-preceding-line",
+      "edit.whole.overwrite"
+    ]
   },
   "aider-test/test_wholefile/TestWholeFileCoder.test_update_files_live_diff": {
     "nonclaim": "pi-owned",
     "note": "Pi renders the streaming assistant reply; the bounded partial diff of a whole-file block is presentation of that stream"
   },
   "aider-test/test_wholefile/TestWholeFileCoder.test_update_files_with_existing_fence": {
-    "rows": ["edit.prompt.choose-fence", "edit.whole.fence-blocks", "edit.whole.filename-preceding-line", "edit.whole.overwrite"]
+    "rows": [
+      "edit.prompt.choose-fence",
+      "edit.whole.fence-blocks",
+      "edit.whole.filename-preceding-line",
+      "edit.whole.overwrite"
+    ]
   },
   "aider-test/test_wholefile/TestWholeFileCoder.test_update_files_bogus_path_prefix": {
-    "rows": ["edit.whole.bogus-dir-prefix"]
+    "rows": [
+      "edit.whole.bogus-dir-prefix"
+    ]
   },
   "aider-test/test_wholefile/TestWholeFileCoder.test_update_files_not_in_chat": {
-    "rows": ["edit.authorize.confirm-unshared-file", "edit.whole.fence-blocks", "edit.whole.filename-preceding-line", "edit.whole.overwrite"]
+    "rows": [
+      "edit.authorize.confirm-unshared-file",
+      "edit.whole.fence-blocks",
+      "edit.whole.filename-preceding-line",
+      "edit.whole.overwrite"
+    ]
   },
   "aider-test/test_wholefile/TestWholeFileCoder.test_update_files_no_filename_single_file_in_chat": {
-    "rows": ["edit.whole.fallback-filename"]
+    "rows": [
+      "edit.whole.fallback-filename"
+    ]
   },
   "aider-test/test_wholefile/TestWholeFileCoder.test_update_files_earlier_filename": {
-    "rows": ["edit.whole.fallback-filename"]
+    "rows": [
+      "edit.whole.fallback-filename"
+    ]
   },
   "aider-test/test_wholefile/TestWholeFileCoder.test_update_hash_filename": {
-    "rows": ["edit.whole.filename-preceding-line"]
+    "rows": [
+      "edit.whole.filename-preceding-line"
+    ]
   },
   "aider-test/test_wholefile/TestWholeFileCoder.test_update_named_file_but_extra_unnamed_code_block": {
-    "rows": ["edit.whole.provenance-priority", "edit.whole.fallback-filename"]
+    "rows": [
+      "edit.whole.provenance-priority",
+      "edit.whole.fallback-filename"
+    ]
   },
   "aider-test/test_wholefile/TestWholeFileCoder.test_full_edit": {
-    "rows": ["edit.whole.fence-blocks", "edit.whole.filename-preceding-line", "edit.whole.overwrite"]
+    "rows": [
+      "edit.whole.fence-blocks",
+      "edit.whole.filename-preceding-line",
+      "edit.whole.overwrite"
+    ]
   },
   "aider-test/test_udiff/TestUnifiedDiffCoder.test_find_diffs_single_hunk": {
-    "rows": ["edit.udiff.diff-fences", "edit.udiff.header-filename", "edit.udiff.hunks-ignore-coordinates"]
+    "rows": [
+      "edit.udiff.diff-fences",
+      "edit.udiff.header-filename",
+      "edit.udiff.hunks-ignore-coordinates"
+    ]
   },
   "aider-test/test_udiff/TestUnifiedDiffCoder.test_find_diffs_dev_null": {
-    "rows": ["edit.udiff.header-filename"]
+    "rows": [
+      "edit.udiff.header-filename"
+    ]
   },
   "aider-test/test_udiff/TestUnifiedDiffCoder.test_find_diffs_dirname_with_spaces": {
-    "rows": ["edit.udiff.header-filename"]
+    "rows": [
+      "edit.udiff.header-filename"
+    ]
   },
   "aider-test/test_udiff/TestUnifiedDiffCoder.test_find_multi_diffs": {
-    "rows": ["edit.udiff.diff-fences", "edit.udiff.later-header"]
+    "rows": [
+      "edit.udiff.diff-fences",
+      "edit.udiff.later-header"
+    ]
   },
   "aider-test/test_find_or_blocks/TestFindOrBlocks.test_process_markdown": {
-    "rows": ["edit.sr.parse-blocks", "edit.sr.filename-lookback", "edit.sr.malformed-error", "edit.sr.shell-blocks"]
+    "rows": [
+      "edit.sr.parse-blocks",
+      "edit.sr.filename-lookback",
+      "edit.sr.malformed-error",
+      "edit.sr.shell-blocks"
+    ]
   },
   "aider-test/test_reasoning/TestReasoning.test_send_with_reasoning_content": {
-    "rows": ["edit.reasoning.strip-before-edits"]
+    "rows": [
+      "edit.reasoning.strip-before-edits"
+    ]
   },
   "aider-test/test_reasoning/TestReasoning.test_send_with_reasoning_content_stream": {
-    "rows": ["edit.reasoning.strip-before-edits"]
+    "rows": [
+      "edit.reasoning.strip-before-edits"
+    ]
   },
   "aider-test/test_reasoning/TestReasoning.test_send_with_think_tags": {
-    "rows": ["edit.reasoning.strip-before-edits"]
+    "rows": [
+      "edit.reasoning.strip-before-edits"
+    ]
   },
   "aider-test/test_reasoning/TestReasoning.test_send_with_think_tags_stream": {
-    "rows": ["edit.reasoning.strip-before-edits"]
+    "rows": [
+      "edit.reasoning.strip-before-edits"
+    ]
   },
   "aider-test/test_reasoning/TestReasoning.test_remove_reasoning_content": {
-    "rows": ["edit.reasoning.strip-before-edits"]
+    "rows": [
+      "edit.reasoning.strip-before-edits"
+    ]
   },
   "aider-test/test_reasoning/TestReasoning.test_send_with_reasoning": {
-    "rows": ["edit.reasoning.strip-before-edits"]
+    "rows": [
+      "edit.reasoning.strip-before-edits"
+    ]
   },
   "aider-test/test_reasoning/TestReasoning.test_send_with_reasoning_stream": {
-    "rows": ["edit.reasoning.strip-before-edits"]
+    "rows": [
+      "edit.reasoning.strip-before-edits"
+    ]
   },
   "aider-test/test_reasoning/TestReasoning.test_simple_send_with_retries_removes_reasoning": {
-    "rows": ["edit.reasoning.strip-auxiliary-replies"]
+    "rows": [
+      "edit.reasoning.strip-auxiliary-replies"
+    ]
   },
   "aider-test/test_io/TestInputOutput.test_line_endings_validation": {
-    "rows": ["edit.io.line-endings-option"]
+    "rows": [
+      "edit.io.line-endings-option"
+    ]
   },
   "aider-test/test_io/TestInputOutput.test_no_color_environment_variable": {
     "nonclaim": "pi-owned",
@@ -465,7 +864,9 @@
     "note": "Pi's terminal UI owns dumb-terminal detection and plain rendering"
   },
   "aider-test/test_io/TestInputOutput.test_autocompleter_get_command_completions": {
-    "rows": ["edit.commands.argument-completions"]
+    "rows": [
+      "edit.commands.argument-completions"
+    ]
   },
   "aider-test/test_io/TestInputOutput.test_autocompleter_with_non_existent_file": {
     "nonclaim": "pi-owned",
@@ -480,16 +881,25 @@
     "note": "Pi's editor reads user input and its history"
   },
   "aider-test/test_io/TestInputOutput.test_confirm_ask_explicit_yes_required": {
-    "rows": ["edit.confirm.yes-always", "edit.confirm.answers"]
+    "rows": [
+      "edit.confirm.yes-always",
+      "edit.confirm.answers"
+    ]
   },
   "aider-test/test_io/TestInputOutput.test_confirm_ask_with_group": {
-    "rows": ["edit.confirm.group"]
+    "rows": [
+      "edit.confirm.group"
+    ]
   },
   "aider-test/test_io/TestInputOutput.test_confirm_ask_yes_no": {
-    "rows": ["edit.confirm.answers"]
+    "rows": [
+      "edit.confirm.answers"
+    ]
   },
   "aider-test/test_io/TestInputOutput.test_confirm_ask_allow_never": {
-    "rows": ["edit.confirm.dont-ask-again"]
+    "rows": [
+      "edit.confirm.dont-ask-again"
+    ]
   },
   "aider-test/test_io/TestInputOutputMultilineMode.test_toggle_multiline_mode": {
     "nonclaim": "pi-owned",
@@ -516,19 +926,29 @@
     "note": "Pi themes own output colors"
   },
   "aider-test/test_io/TestInputOutputFormatFiles.test_format_files_for_input_pretty_false": {
-    "rows": ["edit.ui.chat-file-listing"]
+    "rows": [
+      "edit.ui.chat-file-listing"
+    ]
   },
   "aider-test/test_io/TestInputOutputFormatFiles.test_format_files_for_input_pretty_true_no_files": {
-    "rows": ["edit.ui.chat-file-listing"]
+    "rows": [
+      "edit.ui.chat-file-listing"
+    ]
   },
   "aider-test/test_io/TestInputOutputFormatFiles.test_format_files_for_input_pretty_true_editable_only": {
-    "rows": ["edit.ui.chat-file-listing"]
+    "rows": [
+      "edit.ui.chat-file-listing"
+    ]
   },
   "aider-test/test_io/TestInputOutputFormatFiles.test_format_files_for_input_pretty_true_readonly_only": {
-    "rows": ["edit.ui.chat-file-listing"]
+    "rows": [
+      "edit.ui.chat-file-listing"
+    ]
   },
   "aider-test/test_io/TestInputOutputFormatFiles.test_format_files_for_input_pretty_true_mixed_files": {
-    "rows": ["edit.ui.chat-file-listing"]
+    "rows": [
+      "edit.ui.chat-file-listing"
+    ]
   },
   "aider-test/test_history/TestChatSummary.test_initialization": {
     "nonclaim": "pi-owned",
@@ -563,7 +983,12 @@
     "note": "Version fallback and source CLI identity are provenance, not an edit protocol."
   },
   "edit/provenance-evidence-methodology-and-scope/p3": {
-    "rows": ["edit.factory.select-format", "edit.lifecycle.apply-order", "edit.context.fresh-files", "edit.authorize.once-per-path"]
+    "rows": [
+      "edit.factory.select-format",
+      "edit.lifecycle.apply-order",
+      "edit.context.fresh-files",
+      "edit.authorize.once-per-path"
+    ]
   },
   "edit/provenance-evidence-methodology-and-scope/p4": {
     "nonclaim": "meta",
@@ -594,17 +1019,27 @@
     "note": "Limits on live-provider, benchmark, and general correctness claims."
   },
   "edit/local-installation-boundary/p1": {
-    "rows": ["edit.install.complete-runtime"]
+    "rows": [
+      "edit.install.complete-runtime"
+    ]
   },
   "edit/local-installation-boundary/p2": {
-    "rows": ["edit.install.complete-runtime"]
+    "rows": [
+      "edit.install.complete-runtime"
+    ]
   },
   "edit/local-installation-boundary/p3": {
     "nonclaim": "evidence",
     "note": "Checkout execution uses installed dependencies and does not prove standalone packaging."
   },
   "edit/overview/p1": {
-    "rows": ["edit.factory.select-format", "edit.authorize.once-per-path", "edit.sr.exact-first-match", "edit.udiff.all-occurrences", "edit.patch.context-fuzz"]
+    "rows": [
+      "edit.factory.select-format",
+      "edit.authorize.once-per-path",
+      "edit.sr.exact-first-match",
+      "edit.udiff.all-occurrences",
+      "edit.patch.context-fuzz"
+    ]
   },
   "edit/overview/p2": {
     "rows": [
@@ -620,28 +1055,51 @@
     ]
   },
   "edit/the-coder-is-the-turn-controller/p1": {
-    "rows": ["edit.lifecycle.reset-turn", "edit.lifecycle.max-reflections", "edit.factory.transfer-selection", "edit.context.fresh-files"]
+    "rows": [
+      "edit.lifecycle.reset-turn",
+      "edit.lifecycle.max-reflections",
+      "edit.factory.transfer-selection",
+      "edit.context.fresh-files"
+    ]
   },
   "edit/the-coder-is-the-turn-controller/p2": {
-    "rows": ["edit.authorize.no-root-containment"]
+    "rows": [
+      "edit.authorize.no-root-containment"
+    ]
   },
   "edit/edit-records-share-a-path-not-a-common-payload/p1": {
-    "rows": ["edit.authorize.once-per-path"]
+    "rows": [
+      "edit.authorize.once-per-path"
+    ]
   },
   "edit/edit-records-share-a-path-not-a-common-payload/r2": {
-    "rows": ["edit.sr.parse-blocks", "edit.sr.exact-first-match"]
+    "rows": [
+      "edit.sr.parse-blocks",
+      "edit.sr.exact-first-match"
+    ]
   },
   "edit/edit-records-share-a-path-not-a-common-payload/r3": {
-    "rows": ["edit.sr.shell-blocks"]
+    "rows": [
+      "edit.sr.shell-blocks"
+    ]
   },
   "edit/edit-records-share-a-path-not-a-common-payload/r4": {
-    "rows": ["edit.whole.overwrite", "edit.whole.provenance-priority"]
+    "rows": [
+      "edit.whole.overwrite",
+      "edit.whole.provenance-priority"
+    ]
   },
   "edit/edit-records-share-a-path-not-a-common-payload/r5": {
-    "rows": ["edit.udiff.hunks-ignore-coordinates"]
+    "rows": [
+      "edit.udiff.hunks-ignore-coordinates"
+    ]
   },
   "edit/edit-records-share-a-path-not-a-common-payload/r6": {
-    "rows": ["edit.patch.action-headers", "edit.patch.add-lines", "edit.patch.move"]
+    "rows": [
+      "edit.patch.action-headers",
+      "edit.patch.add-lines",
+      "edit.patch.move"
+    ]
   },
   "edit/edit-records-share-a-path-not-a-common-payload/p7": {
     "nonclaim": "evidence",
@@ -652,26 +1110,53 @@
     "note": "Lead-in to the patch domain shape."
   },
   "edit/edit-records-share-a-path-not-a-common-payload/c9": {
-    "rows": ["edit.patch.action-headers", "edit.patch.original-indices", "edit.patch.add-lines", "edit.patch.move", "edit.patch.context-fuzz"]
+    "rows": [
+      "edit.patch.action-headers",
+      "edit.patch.original-indices",
+      "edit.patch.add-lines",
+      "edit.patch.move",
+      "edit.patch.context-fuzz"
+    ]
   },
   "edit/edit-records-share-a-path-not-a-common-payload/p10": {
-    "rows": ["edit.patch.original-indices", "edit.patch.move", "edit.patch.context-fuzz"]
+    "rows": [
+      "edit.patch.original-indices",
+      "edit.patch.move",
+      "edit.patch.context-fuzz"
+    ]
   },
   "edit/context-has-separate-representations/p1": {
-    "rows": ["edit.prompt.message-order"]
+    "rows": [
+      "edit.prompt.message-order"
+    ]
   },
   "edit/context-has-separate-representations/p2": {
     "nonclaim": "meta",
     "note": "Lead-in naming the tag data shape."
   },
   "edit/context-has-separate-representations/c3": {
-    "rows": ["edit.context.map-summary", "map.tags.coordinates"]
+    "rows": [
+      "edit.context.map-summary",
+      "map.tags.coordinates"
+    ]
   },
   "edit/context-has-separate-representations/p4": {
-    "rows": ["edit.context.map-summary", "map.tags.coordinates", "map.tags.lexical-fallback", "map.rank.lexical-graph"]
+    "rows": [
+      "edit.context.map-summary",
+      "map.tags.coordinates",
+      "map.tags.lexical-fallback",
+      "map.rank.lexical-graph"
+    ]
   },
   "edit/permission-matching-and-persistence-are-different-decisions/p1": {
-    "rows": ["edit.authorize.once-per-path", "edit.sr.cross-file-fallback", "edit.sr.no-fuzzy-content", "edit.lifecycle.successful-targets", "edit.lifecycle.git-port", "edit.lifecycle.validation-port"]
+    "rows": [
+      "edit.authorize.once-per-path",
+      "edit.sr.cross-file-fallback",
+      "edit.sr.no-fuzzy-content",
+      "edit.lifecycle.successful-targets",
+      "edit.lifecycle.git-port",
+      "edit.lifecycle.validation-port"
+    ]
   },
   "edit/component-relationships/m1": {
     "rows": [
@@ -695,7 +1180,13 @@
     ]
   },
   "edit/component-relationships/p2": {
-    "rows": ["edit.factory.select-format", "edit.lifecycle.apply-order", "edit.lifecycle.git-port", "edit.lifecycle.validation-port", "edit.context.map-policy"]
+    "rows": [
+      "edit.factory.select-format",
+      "edit.lifecycle.apply-order",
+      "edit.lifecycle.git-port",
+      "edit.lifecycle.validation-port",
+      "edit.context.map-policy"
+    ]
   },
   "edit/a-normal-edit-turn/m1": {
     "rows": [
@@ -717,123 +1208,241 @@
     ]
   },
   "edit/a-normal-edit-turn/p2": {
-    "rows": ["edit.lifecycle.apply-order", "edit.sr.preflight-per-block", "edit.lifecycle.max-reflections"]
+    "rows": [
+      "edit.lifecycle.apply-order",
+      "edit.sr.preflight-per-block",
+      "edit.lifecycle.max-reflections"
+    ]
   },
   "edit/upstream-entry-adapters/p1": {
-    "rows": ["edit.lifecycle.preprocess-input", "edit.factory.transfer-selection"]
+    "rows": [
+      "edit.lifecycle.preprocess-input",
+      "edit.factory.transfer-selection"
+    ]
   },
   "edit/upstream-entry-adapters/p2": {
-    "rows": ["edit.lifecycle.stream-entry", "edit.lifecycle.max-reflections"]
+    "rows": [
+      "edit.lifecycle.stream-entry",
+      "edit.lifecycle.max-reflections"
+    ]
   },
   "edit/upstream-entry-adapters/p3": {
-    "rows": ["edit.watch.comments", "edit.watch.requests"]
+    "rows": [
+      "edit.watch.comments",
+      "edit.watch.requests"
+    ]
   },
   "edit/upstream-entry-adapters/p4": {
     "nonclaim": "pi-owned",
     "note": "Pi owns external-editor prompt entry; this is distinct from the claimed architect editor-model request."
   },
   "edit/upstream-entry-adapters/p5": {
-    "rows": ["edit.lifecycle.supplied-reply"]
+    "rows": [
+      "edit.lifecycle.supplied-reply"
+    ]
   },
   "edit/format-selection-and-complete-dispatch/p1": {
-    "rows": ["edit.factory.select-format", "edit.context.map-policy", "map.budget.explicit-enable", "edit.model.format-policy", "map.model.mapping-policy"]
+    "rows": [
+      "edit.factory.select-format",
+      "edit.context.map-policy",
+      "map.budget.explicit-enable",
+      "edit.model.format-policy",
+      "map.model.mapping-policy"
+    ]
   },
   "edit/format-selection-and-complete-dispatch/r2": {
-    "rows": ["edit.factory.select-format", "edit.sr.parse-blocks"]
+    "rows": [
+      "edit.factory.select-format",
+      "edit.sr.parse-blocks"
+    ]
   },
   "edit/format-selection-and-complete-dispatch/r3": {
-    "rows": ["edit.factory.select-format", "edit.factory.prompt-variants"]
+    "rows": [
+      "edit.factory.select-format",
+      "edit.factory.prompt-variants"
+    ]
   },
   "edit/format-selection-and-complete-dispatch/r4": {
-    "rows": ["edit.factory.select-format", "edit.whole.overwrite"]
+    "rows": [
+      "edit.factory.select-format",
+      "edit.whole.overwrite"
+    ]
   },
   "edit/format-selection-and-complete-dispatch/r5": {
-    "rows": ["edit.factory.select-format", "edit.patch.action-headers"]
+    "rows": [
+      "edit.factory.select-format",
+      "edit.patch.action-headers"
+    ]
   },
   "edit/format-selection-and-complete-dispatch/r6": {
-    "rows": ["edit.factory.select-format", "edit.udiff.diff-fences"]
+    "rows": [
+      "edit.factory.select-format",
+      "edit.udiff.diff-fences"
+    ]
   },
   "edit/format-selection-and-complete-dispatch/r7": {
-    "rows": ["edit.factory.select-format", "edit.factory.prompt-variants"]
+    "rows": [
+      "edit.factory.select-format",
+      "edit.factory.prompt-variants"
+    ]
   },
   "edit/format-selection-and-complete-dispatch/r8": {
-    "rows": ["edit.factory.select-format", "edit.factory.prompt-variants"]
+    "rows": [
+      "edit.factory.select-format",
+      "edit.factory.prompt-variants"
+    ]
   },
   "edit/format-selection-and-complete-dispatch/r9": {
-    "rows": ["edit.factory.select-format", "edit.factory.prompt-variants"]
+    "rows": [
+      "edit.factory.select-format",
+      "edit.factory.prompt-variants"
+    ]
   },
   "edit/format-selection-and-complete-dispatch/r10": {
-    "rows": ["edit.factory.select-format", "edit.factory.prompt-variants"]
+    "rows": [
+      "edit.factory.select-format",
+      "edit.factory.prompt-variants"
+    ]
   },
   "edit/format-selection-and-complete-dispatch/r11": {
-    "rows": ["edit.architect.fresh-editor-request"]
+    "rows": [
+      "edit.architect.fresh-editor-request"
+    ]
   },
   "edit/format-selection-and-complete-dispatch/r12": {
-    "rows": ["edit.factory.ask-no-writes"]
+    "rows": [
+      "edit.factory.ask-no-writes"
+    ]
   },
   "edit/format-selection-and-complete-dispatch/r13": {
     "nonclaim": "out-of-scope",
     "note": "Aider documentation help is outside the four SARs; it is not the ask mode."
   },
   "edit/format-selection-and-complete-dispatch/r15": {
-    "rows": ["edit.factory.no-legacy-tools"]
+    "rows": [
+      "edit.factory.no-legacy-tools"
+    ]
   },
   "edit/format-selection-and-complete-dispatch/r16": {
-    "rows": ["edit.factory.no-legacy-tools"]
+    "rows": [
+      "edit.factory.no-legacy-tools"
+    ]
   },
   "edit/format-selection-and-complete-dispatch/r17": {
-    "rows": ["edit.factory.no-legacy-tools"]
+    "rows": [
+      "edit.factory.no-legacy-tools"
+    ]
   },
   "edit/format-selection-and-complete-dispatch/r18": {
-    "rows": ["edit.factory.select-format", "edit.factory.ask-no-writes"]
+    "rows": [
+      "edit.factory.select-format",
+      "edit.factory.ask-no-writes"
+    ]
   },
   "edit/format-selection-and-complete-dispatch/r19": {
-    "rows": ["edit.factory.select-format"]
+    "rows": [
+      "edit.factory.select-format"
+    ]
   },
   "edit/format-selection-and-complete-dispatch/r14": {
-    "rows": ["edit.context.replace-file-selection", "edit.context.bypass-edit-application"]
+    "rows": [
+      "edit.context.replace-file-selection",
+      "edit.context.bypass-edit-application"
+    ]
   },
   "edit/format-selection-and-complete-dispatch/p20": {
-    "rows": ["edit.factory.select-format", "edit.factory.prompt-variants"]
+    "rows": [
+      "edit.factory.select-format",
+      "edit.factory.prompt-variants"
+    ]
   },
   "edit/format-selection-and-complete-dispatch/p21": {
-    "rows": ["edit.factory.ask-no-writes", "edit.factory.no-legacy-tools", "edit.context.bypass-edit-application"]
+    "rows": [
+      "edit.factory.ask-no-writes",
+      "edit.factory.no-legacy-tools",
+      "edit.context.bypass-edit-application"
+    ]
   },
   "edit/inventory-and-authoritative-files/p1": {
-    "rows": ["edit.context.inventory-port", "git.inventory.tracked-files"]
+    "rows": [
+      "edit.context.inventory-port",
+      "git.inventory.tracked-files"
+    ]
   },
   "edit/inventory-and-authoritative-files/p2": {
-    "rows": ["edit.context.map-request", "map.context.seed-and-fallback"]
+    "rows": [
+      "edit.context.map-request",
+      "map.context.seed-and-fallback"
+    ]
   },
   "edit/inventory-and-authoritative-files/p3": {
-    "rows": ["edit.context.fresh-files", "edit.context.read-only-files", "edit.prompt.choose-fence"]
+    "rows": [
+      "edit.context.fresh-files",
+      "edit.context.read-only-files",
+      "edit.prompt.choose-fence"
+    ]
   },
   "edit/tree-sitter-tags-and-graph-ranking/p1": {
-    "rows": ["edit.context.map-summary", "map.tags.extract", "map.tags.lexical-fallback"]
+    "rows": [
+      "edit.context.map-summary",
+      "map.tags.extract",
+      "map.tags.lexical-fallback"
+    ]
   },
   "edit/tree-sitter-tags-and-graph-ranking/p2": {
-    "rows": ["edit.context.map-summary", "map.tags.python-query", "map.rank.lexical-graph"]
+    "rows": [
+      "edit.context.map-summary",
+      "map.tags.python-query",
+      "map.rank.lexical-graph"
+    ]
   },
   "edit/tree-sitter-tags-and-graph-ranking/p3": {
-    "rows": ["edit.context.map-request", "edit.context.map-summary", "map.rank.lexical-graph"]
+    "rows": [
+      "edit.context.map-request",
+      "edit.context.map-summary",
+      "map.rank.lexical-graph"
+    ]
   },
   "edit/tree-sitter-tags-and-graph-ranking/p4": {
-    "rows": ["edit.context.map-request", "map.rank.weights"]
+    "rows": [
+      "edit.context.map-request",
+      "map.rank.weights"
+    ]
   },
   "edit/tree-sitter-tags-and-graph-ranking/p5": {
-    "rows": ["edit.context.map-summary", "map.render.structural-context"]
+    "rows": [
+      "edit.context.map-summary",
+      "map.render.structural-context"
+    ]
   },
   "edit/token-budgets-and-caches/p1": {
-    "rows": ["edit.context.map-policy", "map.budget.model-default", "map.budget.explicit-enable"]
+    "rows": [
+      "edit.context.map-policy",
+      "map.budget.model-default",
+      "map.budget.explicit-enable"
+    ]
   },
   "edit/token-budgets-and-caches/p2": {
-    "rows": ["edit.context.map-policy", "edit.context.map-summary", "map.budget.sampled-prefix", "map.budget.no-files"]
+    "rows": [
+      "edit.context.map-policy",
+      "edit.context.map-summary",
+      "map.budget.sampled-prefix",
+      "map.budget.no-files"
+    ]
   },
   "edit/token-budgets-and-caches/p3": {
-    "rows": ["edit.context.map-policy", "map.budget.no-files"]
+    "rows": [
+      "edit.context.map-policy",
+      "map.budget.no-files"
+    ]
   },
   "edit/token-budgets-and-caches/p4": {
-    "rows": ["edit.context.map-policy", "edit.context.map-summary", "map.cache.tags-mtime", "map.cache.rendered-policy"]
+    "rows": [
+      "edit.context.map-policy",
+      "edit.context.map-summary",
+      "map.cache.tags-mtime",
+      "map.cache.rendered-policy"
+    ]
   },
   "edit/dependencies-declared-and-installed-roles/p1": {
     "nonclaim": "provenance",
@@ -848,34 +1457,72 @@
     "note": "Pi owns provider transport and model metadata; no LiteLLM adapter is recreated."
   },
   "edit/dependencies-declared-and-installed-roles/r4": {
-    "rows": ["edit.udiff.repair-before-text", "edit.udiff.single-strategy"]
+    "rows": [
+      "edit.udiff.repair-before-text",
+      "edit.udiff.single-strategy"
+    ]
   },
   "edit/dependencies-declared-and-installed-roles/r5": {
-    "rows": ["edit.lifecycle.git-port", "edit.context.inventory-port", "git.inventory.tracked-files", "git.dirty.checkpoint-before-edit", "git.commit.stage-whole-files", "git.undo.restore-and-reset"]
+    "rows": [
+      "edit.lifecycle.git-port",
+      "edit.context.inventory-port",
+      "git.inventory.tracked-files",
+      "git.dirty.checkpoint-before-edit",
+      "git.commit.stage-whole-files",
+      "git.undo.restore-and-reset"
+    ]
   },
   "edit/dependencies-declared-and-installed-roles/r6": {
-    "rows": ["edit.context.map-summary", "edit.watch.requests", "map.tags.extract", "map.render.structural-context"]
+    "rows": [
+      "edit.context.map-summary",
+      "edit.watch.requests",
+      "map.tags.extract",
+      "map.render.structural-context"
+    ]
   },
   "edit/dependencies-declared-and-installed-roles/r7": {
-    "rows": ["edit.context.map-summary", "edit.lifecycle.validation-port", "map.tags.extract", "lint.python.checks"]
+    "rows": [
+      "edit.context.map-summary",
+      "edit.lifecycle.validation-port",
+      "map.tags.extract",
+      "lint.python.checks"
+    ]
   },
   "edit/dependencies-declared-and-installed-roles/r8": {
-    "rows": ["edit.context.map-summary", "map.tags.extract"]
+    "rows": [
+      "edit.context.map-summary",
+      "map.tags.extract"
+    ]
   },
   "edit/dependencies-declared-and-installed-roles/r9": {
-    "rows": ["edit.context.map-summary", "map.rank.lexical-graph"]
+    "rows": [
+      "edit.context.map-summary",
+      "map.rank.lexical-graph"
+    ]
   },
   "edit/dependencies-declared-and-installed-roles/r10": {
-    "rows": ["edit.context.map-summary", "map.rank.lexical-graph"]
+    "rows": [
+      "edit.context.map-summary",
+      "map.rank.lexical-graph"
+    ]
   },
   "edit/dependencies-declared-and-installed-roles/r11": {
-    "rows": ["edit.context.map-summary", "map.rank.lexical-graph"]
+    "rows": [
+      "edit.context.map-summary",
+      "map.rank.lexical-graph"
+    ]
   },
   "edit/dependencies-declared-and-installed-roles/r12": {
-    "rows": ["edit.context.map-summary", "map.cache.tags-mtime"]
+    "rows": [
+      "edit.context.map-summary",
+      "map.cache.tags-mtime"
+    ]
   },
   "edit/dependencies-declared-and-installed-roles/r13": {
-    "rows": ["edit.context.map-summary", "map.tags.lexical-fallback"]
+    "rows": [
+      "edit.context.map-summary",
+      "map.tags.lexical-fallback"
+    ]
   },
   "edit/dependencies-declared-and-installed-roles/r14": {
     "nonclaim": "pi-owned",
@@ -886,42 +1533,72 @@
     "note": "Pi supplies provider tokenization; no Python tokenizers runtime is shipped."
   },
   "edit/dependencies-declared-and-installed-roles/r16": {
-    "rows": ["edit.settings.precedence", "edit.model.format-policy"]
+    "rows": [
+      "edit.settings.precedence",
+      "edit.model.format-policy"
+    ]
   },
   "edit/dependencies-declared-and-installed-roles/r17": {
-    "rows": ["edit.authorize.repository-policy", "edit.context.inventory-port", "git.inventory.tracked-files", "edit.watch.filter"]
+    "rows": [
+      "edit.authorize.repository-policy",
+      "edit.context.inventory-port",
+      "git.inventory.tracked-files",
+      "edit.watch.filter"
+    ]
   },
   "edit/dependencies-declared-and-installed-roles/r18": {
-    "rows": ["edit.prompt.images"]
+    "rows": [
+      "edit.prompt.images"
+    ]
   },
   "edit/dependencies-declared-and-installed-roles/r19": {
-    "rows": ["edit.lifecycle.validation-port", "lint.python.checks"]
+    "rows": [
+      "edit.lifecycle.validation-port",
+      "lint.python.checks"
+    ]
   },
   "edit/dependencies-declared-and-installed-roles/r20": {
     "nonclaim": "pi-owned",
     "note": "Pi owns terminal rendering and themes; the Rich renderer is not ported."
   },
   "edit/dependencies-declared-and-installed-roles/r21": {
-    "rows": ["edit.commands.argument-completions"]
+    "rows": [
+      "edit.commands.argument-completions"
+    ]
   },
   "edit/dependencies-declared-and-installed-roles/r22": {
-    "rows": ["edit.settings.precedence"]
+    "rows": [
+      "edit.settings.precedence"
+    ]
   },
   "edit/dependencies-declared-and-installed-roles/r23": {
-    "rows": ["edit.watch.comments", "edit.watch.requests", "edit.watch.lifecycle"]
+    "rows": [
+      "edit.watch.comments",
+      "edit.watch.requests",
+      "edit.watch.lifecycle"
+    ]
   },
   "edit/dependencies-declared-and-installed-roles/r24": {
     "nonclaim": "provenance",
     "note": "Distribution-version handling records the investigated installation, not edit matching."
   },
   "edit/dependencies-declared-and-installed-roles/r25": {
-    "rows": ["edit.lifecycle.validation-port", "lint.run.local-shell"]
+    "rows": [
+      "edit.lifecycle.validation-port",
+      "lint.run.local-shell"
+    ]
   },
   "edit/dependencies-declared-and-installed-roles/r26": {
-    "rows": ["edit.lifecycle.validation-port", "lint.run.local-shell"]
+    "rows": [
+      "edit.lifecycle.validation-port",
+      "lint.run.local-shell"
+    ]
   },
   "edit/dependencies-declared-and-installed-roles/r27": {
-    "rows": ["edit.lifecycle.validation-port", "lint.run.local-shell"]
+    "rows": [
+      "edit.lifecycle.validation-port",
+      "lint.run.local-shell"
+    ]
   },
   "edit/dependencies-declared-and-installed-roles/r28": {
     "nonclaim": "out-of-scope",
@@ -948,23 +1625,45 @@
     "note": "Pointers to dependency metadata and import-edge inventory with static-analysis limits."
   },
   "edit/dependencies-declared-and-installed-roles/p34": {
-    "rows": ["edit.factory.no-legacy-tools", "edit.install.complete-runtime", "edit.settings.precedence", "edit.model.format-policy"]
+    "rows": [
+      "edit.factory.no-legacy-tools",
+      "edit.install.complete-runtime",
+      "edit.settings.precedence",
+      "edit.model.format-policy"
+    ]
   },
   "edit/dependencies-declared-and-installed-roles/p35": {
-    "rows": ["edit.sr.exact-first-match", "edit.udiff.all-occurrences", "edit.patch.update-reconstruction", "edit.io.write-text"]
+    "rows": [
+      "edit.sr.exact-first-match",
+      "edit.udiff.all-occurrences",
+      "edit.patch.update-reconstruction",
+      "edit.io.write-text"
+    ]
   },
   "edit/packaged-resources-and-installation-failures/p1": {
-    "rows": ["edit.install.complete-runtime", "edit.model.format-policy", "edit.context.map-summary", "map.tags.extract"]
+    "rows": [
+      "edit.install.complete-runtime",
+      "edit.model.format-policy",
+      "edit.context.map-summary",
+      "map.tags.extract"
+    ]
   },
   "edit/packaged-resources-and-installation-failures/p2": {
-    "rows": ["edit.install.complete-runtime"]
+    "rows": [
+      "edit.install.complete-runtime"
+    ]
   },
   "edit/packaged-resources-and-installation-failures/p3": {
     "nonclaim": "evidence",
     "note": "Manifest exclusions distinguish optional website assets from the required runtime omissions."
   },
   "edit/packaged-resources-and-installation-failures/p4": {
-    "rows": ["edit.install.complete-runtime", "edit.factory.select-format", "edit.context.map-summary", "map.tags.extract"]
+    "rows": [
+      "edit.install.complete-runtime",
+      "edit.factory.select-format",
+      "edit.context.map-summary",
+      "map.tags.extract"
+    ]
   },
   "edit/packaged-resources-and-installation-failures/p5": {
     "nonclaim": "meta",
@@ -991,7 +1690,15 @@
     "note": "Saved Aider test totals and limits; these are not verified ledger rows."
   },
   "edit/source-backed-cli-checks/p1": {
-    "rows": ["edit.lifecycle.supplied-reply", "edit.lifecycle.failed-apply-outcome", "edit.patch.add-after-approval", "edit.sr.exact-first-match", "edit.whole.overwrite", "edit.udiff.direct-replace", "edit.patch.update-reconstruction"]
+    "rows": [
+      "edit.lifecycle.supplied-reply",
+      "edit.lifecycle.failed-apply-outcome",
+      "edit.patch.add-after-approval",
+      "edit.sr.exact-first-match",
+      "edit.whole.overwrite",
+      "edit.udiff.direct-replace",
+      "edit.patch.update-reconstruction"
+    ]
   },
   "edit/source-backed-cli-checks/p2": {
     "nonclaim": "evidence",
@@ -1012,7 +1719,12 @@
     ]
   },
   "edit/coverage-interpretation/p2": {
-    "rows": ["edit.udiff.diff-fences", "edit.udiff.header-filename", "edit.udiff.hunks-ignore-coordinates", "edit.udiff.later-header"]
+    "rows": [
+      "edit.udiff.diff-fences",
+      "edit.udiff.header-filename",
+      "edit.udiff.hunks-ignore-coordinates",
+      "edit.udiff.later-header"
+    ]
   },
   "edit/coverage-interpretation/p3": {
     "rows": [
@@ -1029,7 +1741,10 @@
     ]
   },
   "edit/coverage-interpretation/p4": {
-    "rows": ["edit.architect.confirm-editor", "edit.architect.fresh-editor-request"]
+    "rows": [
+      "edit.architect.confirm-editor",
+      "edit.architect.fresh-editor-request"
+    ]
   },
   "edit/coverage-interpretation/p5": {
     "rows": [
@@ -1129,98 +1844,183 @@
     "note": "Source navigation pointer in the starting-point index, not an additional behavioral assertion."
   },
   "edit/gotchas-and-evidence-status/r1": {
-    "rows": ["edit.sr.exact-first-match", "edit.udiff.all-occurrences"]
+    "rows": [
+      "edit.sr.exact-first-match",
+      "edit.udiff.all-occurrences"
+    ]
   },
   "edit/gotchas-and-evidence-status/r2": {
-    "rows": ["edit.sr.cross-file-fallback"]
+    "rows": [
+      "edit.sr.cross-file-fallback"
+    ]
   },
   "edit/gotchas-and-evidence-status/r3": {
-    "rows": ["edit.sr.no-fuzzy-content"]
+    "rows": [
+      "edit.sr.no-fuzzy-content"
+    ]
   },
   "edit/gotchas-and-evidence-status/r4": {
-    "rows": ["edit.patch.add-after-approval"]
+    "rows": [
+      "edit.patch.add-after-approval"
+    ]
   },
   "edit/gotchas-and-evidence-status/r5": {
-    "rows": ["edit.lifecycle.failed-apply-outcome"]
+    "rows": [
+      "edit.lifecycle.failed-apply-outcome"
+    ]
   },
   "edit/gotchas-and-evidence-status/r6": {
-    "rows": ["edit.dry-run.preserve-files"]
+    "rows": [
+      "edit.dry-run.preserve-files"
+    ]
   },
   "edit/gotchas-and-evidence-status/r7": {
-    "rows": ["edit.patch.authorize-move-destination"]
+    "rows": [
+      "edit.patch.authorize-move-destination"
+    ]
   },
   "edit/gotchas-and-evidence-status/r8": {
-    "rows": ["edit.authorize.read-only-reaches-approval"]
+    "rows": [
+      "edit.authorize.read-only-reaches-approval"
+    ]
   },
   "edit/gotchas-and-evidence-status/r9": {
-    "rows": ["edit.authorize.no-root-containment"]
+    "rows": [
+      "edit.authorize.no-root-containment"
+    ]
   },
   "edit/gotchas-and-evidence-status/r10": {
-    "rows": ["edit.lifecycle.successful-targets"]
+    "rows": [
+      "edit.lifecycle.successful-targets"
+    ]
   },
   "edit/gotchas-and-evidence-status/r11": {
-    "rows": ["edit.sr.empty-result-success", "edit.udiff.empty-result-success"]
+    "rows": [
+      "edit.sr.empty-result-success",
+      "edit.udiff.empty-result-success"
+    ]
   },
   "edit/gotchas-and-evidence-status/r12": {
-    "rows": ["edit.udiff.partial-success-note"]
+    "rows": [
+      "edit.udiff.partial-success-note"
+    ]
   },
   "edit/gotchas-and-evidence-status/r13": {
-    "rows": ["edit.sr.preflight-per-block"]
+    "rows": [
+      "edit.sr.preflight-per-block"
+    ]
   },
   "edit/gotchas-and-evidence-status/r14": {
-    "rows": ["edit.lifecycle.git-port", "edit.lifecycle.validation-port", "lint.followup.commit-before-validation"]
+    "rows": [
+      "edit.lifecycle.git-port",
+      "edit.lifecycle.validation-port",
+      "lint.followup.commit-before-validation"
+    ]
   },
   "edit/gotchas-and-evidence-status/r15": {
-    "rows": ["edit.install.complete-runtime"]
+    "rows": [
+      "edit.install.complete-runtime"
+    ]
   },
   "edit/gotchas-and-evidence-status/r16": {
-    "rows": ["edit.context.map-summary", "map.tags.no-duplicate-final-capture"]
+    "rows": [
+      "edit.context.map-summary",
+      "map.tags.no-duplicate-final-capture"
+    ]
   },
   "edit/gotchas-and-evidence-status/r17": {
-    "rows": ["edit.prompt.reminder-budget"]
+    "rows": [
+      "edit.prompt.reminder-budget"
+    ]
   },
   "edit/gotchas-and-evidence-status/r18": {
-    "rows": ["edit.lifecycle.skip-errored-reply"]
+    "rows": [
+      "edit.lifecycle.skip-errored-reply"
+    ]
   },
   "edit/gotchas-and-evidence-status/p19": {
-    "rows": ["edit.sr.empty-result-success", "edit.udiff.empty-result-success", "edit.whole.overwrite"]
+    "rows": [
+      "edit.sr.empty-result-success",
+      "edit.udiff.empty-result-success",
+      "edit.whole.overwrite"
+    ]
   },
   "edit/gotchas-and-evidence-status/p20": {
-    "rows": ["edit.context.map-summary", "map.tags.no-duplicate-final-capture"]
+    "rows": [
+      "edit.context.map-summary",
+      "map.tags.no-duplicate-final-capture"
+    ]
   },
   "edit/gotchas-and-evidence-status/p21": {
-    "rows": ["edit.prompt.reminder-budget"]
+    "rows": [
+      "edit.prompt.reminder-budget"
+    ]
   },
   "edit/behavioral-compatibility-contracts/p1": {
     "nonclaim": "meta",
     "note": "Lead-in to the enumerated behavioral contracts."
   },
   "edit/behavioral-compatibility-contracts/i2": {
-    "rows": ["edit.factory.select-format"]
+    "rows": [
+      "edit.factory.select-format"
+    ]
   },
   "edit/behavioral-compatibility-contracts/i3": {
-    "rows": ["edit.authorize.once-per-path"]
+    "rows": [
+      "edit.authorize.once-per-path"
+    ]
   },
   "edit/behavioral-compatibility-contracts/i4": {
-    "rows": ["edit.sr.exact-first-match", "edit.sr.leading-whitespace", "edit.sr.skip-leading-blank", "edit.sr.ellipsis", "edit.sr.cross-file-fallback"]
+    "rows": [
+      "edit.sr.exact-first-match",
+      "edit.sr.leading-whitespace",
+      "edit.sr.skip-leading-blank",
+      "edit.sr.ellipsis",
+      "edit.sr.cross-file-fallback"
+    ]
   },
   "edit/behavioral-compatibility-contracts/i5": {
-    "rows": ["edit.whole.provenance-priority", "edit.whole.overwrite"]
+    "rows": [
+      "edit.whole.provenance-priority",
+      "edit.whole.overwrite"
+    ]
   },
   "edit/behavioral-compatibility-contracts/i6": {
-    "rows": ["edit.udiff.hunks-ignore-coordinates", "edit.udiff.normalize-dedupe", "edit.udiff.context-reduction", "edit.udiff.all-occurrences"]
+    "rows": [
+      "edit.udiff.hunks-ignore-coordinates",
+      "edit.udiff.normalize-dedupe",
+      "edit.udiff.context-reduction",
+      "edit.udiff.all-occurrences"
+    ]
   },
   "edit/behavioral-compatibility-contracts/i7": {
-    "rows": ["edit.patch.original-indices", "edit.patch.context-fuzz", "edit.patch.verify-deletions"]
+    "rows": [
+      "edit.patch.original-indices",
+      "edit.patch.context-fuzz",
+      "edit.patch.verify-deletions"
+    ]
   },
   "edit/behavioral-compatibility-contracts/i8": {
-    "rows": ["edit.lifecycle.apply-order", "edit.lifecycle.reflect-application-errors", "edit.lifecycle.validation-port", "edit.sr.sequential-writes", "lint.followup.reflect-failures"]
+    "rows": [
+      "edit.lifecycle.apply-order",
+      "edit.lifecycle.reflect-application-errors",
+      "edit.lifecycle.validation-port",
+      "edit.sr.sequential-writes",
+      "lint.followup.reflect-failures"
+    ]
   },
   "edit/behavioral-compatibility-contracts/i9": {
-    "rows": ["edit.context.map-summary", "map.rank.lexical-graph", "map.budget.sampled-prefix"]
+    "rows": [
+      "edit.context.map-summary",
+      "map.rank.lexical-graph",
+      "map.budget.sampled-prefix"
+    ]
   },
   "edit/behavioral-compatibility-contracts/p10": {
-    "rows": ["edit.dry-run.preserve-files", "edit.patch.add-after-approval"]
+    "rows": [
+      "edit.dry-run.preserve-files",
+      "edit.patch.add-after-approval"
+    ]
   },
   "edit/completeness-limits/p1": {
     "nonclaim": "meta",
@@ -1335,7 +2135,9 @@
     "note": "Commands to reproduce source identity and helper probes."
   },
   "edit/reproducible-inspection-commands/p3": {
-    "rows": ["edit.dry-run.preserve-files"]
+    "rows": [
+      "edit.dry-run.preserve-files"
+    ]
   },
   "edit/reproducible-inspection-commands/p4": {
     "nonclaim": "meta",
@@ -1379,77 +2181,133 @@
     ]
   },
   "ev-edit/cli-apply/patch-add": {
-    "rows": ["edit.lifecycle.supplied-reply", "edit.patch.add-after-approval", "edit.lifecycle.failed-apply-outcome"]
+    "rows": [
+      "edit.lifecycle.supplied-reply",
+      "edit.patch.add-after-approval",
+      "edit.lifecycle.failed-apply-outcome"
+    ]
   },
   "ev-edit/cli-apply/diff-update": {
-    "rows": ["edit.sr.exact-first-match", "edit.lifecycle.supplied-reply"]
+    "rows": [
+      "edit.sr.exact-first-match",
+      "edit.lifecycle.supplied-reply"
+    ]
   },
   "ev-edit/cli-apply/whole-update": {
-    "rows": ["edit.whole.overwrite", "edit.lifecycle.supplied-reply"]
+    "rows": [
+      "edit.whole.overwrite",
+      "edit.lifecycle.supplied-reply"
+    ]
   },
   "ev-edit/cli-apply/udiff-update": {
-    "rows": ["edit.udiff.direct-replace", "edit.lifecycle.supplied-reply"]
+    "rows": [
+      "edit.udiff.direct-replace",
+      "edit.lifecycle.supplied-reply"
+    ]
   },
   "ev-edit/cli-apply/patch-update": {
-    "rows": ["edit.patch.update-reconstruction", "edit.lifecycle.supplied-reply"]
+    "rows": [
+      "edit.patch.update-reconstruction",
+      "edit.lifecycle.supplied-reply"
+    ]
   },
   "aider-test/test_watch/test_gitignore_patterns": {
-    "rows": ["edit.watch.filter"]
+    "rows": [
+      "edit.watch.filter"
+    ]
   },
   "aider-test/test_watch/test_get_roots_to_watch": {
-    "rows": ["edit.watch.roots"]
+    "rows": [
+      "edit.watch.roots"
+    ]
   },
   "aider-test/test_watch/test_handle_changes": {
-    "rows": ["edit.watch.changes"]
+    "rows": [
+      "edit.watch.changes"
+    ]
   },
   "aider-test/test_watch/test_ai_comment_pattern": {
-    "rows": ["edit.watch.comments"]
+    "rows": [
+      "edit.watch.comments"
+    ]
   },
   "aider-test/test_main/TestMain.test_env_file_override": {
-    "rows": ["edit.settings.dotenv-overlay"]
+    "rows": [
+      "edit.settings.dotenv-overlay"
+    ]
   },
   "aider-test/test_main/TestMain.test_load_dotenv_files_override": {
-    "rows": ["edit.settings.dotenv-overlay"]
+    "rows": [
+      "edit.settings.dotenv-overlay"
+    ]
   },
   "aider-test/test_main/TestMain.test_encodings_arg": {
-    "rows": ["edit.settings.encoding"]
+    "rows": [
+      "edit.settings.encoding"
+    ]
   },
   "aider-test/test_coder/TestCoder.test_get_files_content": {
-    "rows": ["edit.context.fresh-files"]
+    "rows": [
+      "edit.context.fresh-files"
+    ]
   },
   "aider-test/test_coder/TestCoder.test_check_for_file_mentions_with_mocked_confirm": {
-    "rows": ["edit.mentions.confirm-and-remember"]
+    "rows": [
+      "edit.mentions.confirm-and-remember"
+    ]
   },
   "aider-test/test_coder/TestCoder.test_get_file_mentions_various_formats": {
-    "rows": ["edit.mentions.extract-paths"]
+    "rows": [
+      "edit.mentions.extract-paths"
+    ]
   },
   "aider-test/test_coder/TestCoder.test_get_file_mentions_multiline_backticks": {
-    "rows": ["edit.mentions.extract-paths"]
+    "rows": [
+      "edit.mentions.extract-paths"
+    ]
   },
   "aider-test/test_coder/TestCoder.test_get_file_mentions_path_formats": {
-    "rows": ["edit.mentions.extract-paths"]
+    "rows": [
+      "edit.mentions.extract-paths"
+    ]
   },
   "aider-test/test_coder/TestCoder.test_run_with_file_deletion": {
-    "rows": ["edit.context.fresh-files"]
+    "rows": [
+      "edit.context.fresh-files"
+    ]
   },
   "aider-test/test_coder/TestCoder.test_run_with_file_unicode_error": {
-    "rows": ["edit.context.fresh-files", "edit.io.read-text"]
+    "rows": [
+      "edit.context.fresh-files",
+      "edit.io.read-text"
+    ]
   },
   "aider-test/test_coder/TestCoder.test_choose_fence": {
-    "rows": ["edit.prompt.choose-fence"]
+    "rows": [
+      "edit.prompt.choose-fence"
+    ]
   },
   "aider-test/test_coder/TestCoder.test_run_with_file_utf_unicode_error": {
-    "rows": ["edit.context.fresh-files", "edit.settings.encoding", "edit.io.read-text"]
+    "rows": [
+      "edit.context.fresh-files",
+      "edit.settings.encoding",
+      "edit.io.read-text"
+    ]
   },
   "aider-test/test_coder/TestCoder.test_check_for_urls": {
     "nonclaim": "out-of-scope",
     "note": "Automatic web scraping and URL capture are outside the four SARs."
   },
   "aider-test/test_coder/TestCoder.test_suggest_shell_commands": {
-    "rows": ["edit.sr.shell-blocks", "edit.shell.forward-blocks"]
+    "rows": [
+      "edit.sr.shell-blocks",
+      "edit.shell.forward-blocks"
+    ]
   },
   "aider-test/test_coder/TestCoder.test_no_suggest_shell_commands": {
-    "rows": ["edit.shell.suggestion-setting"]
+    "rows": [
+      "edit.shell.suggestion-setting"
+    ]
   },
   "aider-test/test_coder/TestCoder.test_detect_urls_enabled": {
     "nonclaim": "out-of-scope",
@@ -1460,47 +2318,76 @@
     "note": "URL capture controls are outside the four SARs."
   },
   "aider-test/test_coder/TestCoder.test_unknown_edit_format_exception": {
-    "rows": ["edit.factory.select-format"]
+    "rows": [
+      "edit.factory.select-format"
+    ]
   },
   "aider-test/test_coder/TestCoder.test_unknown_edit_format_creation": {
-    "rows": ["edit.factory.select-format"]
+    "rows": [
+      "edit.factory.select-format"
+    ]
   },
   "aider-test/test_coder/TestCoder.test_system_prompt_prefix": {
-    "rows": ["edit.prompt.system-prefix"]
+    "rows": [
+      "edit.prompt.system-prefix"
+    ]
   },
   "aider-test/test_coder/TestCoder.test_coder_create_with_new_file_oserror": {
-    "rows": ["edit.input.initial-files"]
+    "rows": [
+      "edit.input.initial-files"
+    ]
   },
   "aider-test/test_coder/TestCoder.test_show_exhausted_error": {
     "nonclaim": "pi-owned",
     "note": "Pi reports model context exhaustion and native input and output token usage."
   },
   "aider-test/test_coder/TestCoder.test_keyboard_interrupt_handling": {
-    "rows": ["edit.lifecycle.skip-interrupted-reply"]
+    "rows": [
+      "edit.lifecycle.skip-interrupted-reply"
+    ]
   },
   "aider-test/test_coder/TestCoder.test_token_limit_error_handling": {
-    "rows": ["edit.lifecycle.skip-truncated-reply"]
+    "rows": [
+      "edit.lifecycle.skip-truncated-reply"
+    ]
   },
   "aider-test/test_coder/TestCoder.test_message_sanity_after_partial_response": {
-    "rows": ["edit.lifecycle.skip-interrupted-reply"]
+    "rows": [
+      "edit.lifecycle.skip-interrupted-reply"
+    ]
   },
   "aider-test/test_coder/TestCoder.test_normalize_language": {
-    "rows": ["edit.prompt.normalize-language"]
+    "rows": [
+      "edit.prompt.normalize-language"
+    ]
   },
   "aider-test/test_coder/TestCoder.test_get_user_language": {
-    "rows": ["edit.prompt.language-precedence"]
+    "rows": [
+      "edit.prompt.language-precedence"
+    ]
   },
   "aider-test/test_coder/TestCoder.test_architect_coder_auto_accept_true": {
-    "rows": ["edit.architect.confirm-editor", "edit.architect.fresh-editor-request"]
+    "rows": [
+      "edit.architect.confirm-editor",
+      "edit.architect.fresh-editor-request"
+    ]
   },
   "aider-test/test_coder/TestCoder.test_architect_coder_auto_accept_false_confirmed": {
-    "rows": ["edit.architect.confirm-editor", "edit.architect.fresh-editor-request"]
+    "rows": [
+      "edit.architect.confirm-editor",
+      "edit.architect.fresh-editor-request"
+    ]
   },
   "aider-test/test_coder/TestCoder.test_architect_coder_auto_accept_false_rejected": {
-    "rows": ["edit.architect.confirm-editor"]
+    "rows": [
+      "edit.architect.confirm-editor"
+    ]
   },
   "aider-test/test_commands/TestCommands.test_cmd_add": {
-    "rows": ["edit.commands.create-unmatched", "edit.commands.add-literal"]
+    "rows": [
+      "edit.commands.create-unmatched",
+      "edit.commands.add-literal"
+    ]
   },
   "aider-test/test_commands/TestCommands.test_cmd_copy": {
     "nonclaim": "out-of-scope",
@@ -1515,150 +2402,266 @@
     "note": "Clipboard dependency failure is outside the four SARs."
   },
   "aider-test/test_commands/TestCommands.test_cmd_add_bad_glob": {
-    "rows": ["edit.commands.add-glob", "edit.commands.create-unmatched"]
+    "rows": [
+      "edit.commands.add-glob",
+      "edit.commands.create-unmatched"
+    ]
   },
   "aider-test/test_commands/TestCommands.test_cmd_add_with_glob_patterns": {
-    "rows": ["edit.commands.add-glob"]
+    "rows": [
+      "edit.commands.add-glob"
+    ]
   },
   "aider-test/test_commands/TestCommands.test_cmd_add_no_match": {
-    "rows": ["edit.commands.create-unmatched"]
+    "rows": [
+      "edit.commands.create-unmatched"
+    ]
   },
   "aider-test/test_commands/TestCommands.test_cmd_add_no_match_but_make_it": {
-    "rows": ["edit.commands.create-unmatched", "edit.commands.add-literal"]
+    "rows": [
+      "edit.commands.create-unmatched",
+      "edit.commands.add-literal"
+    ]
   },
   "aider-test/test_commands/TestCommands.test_cmd_add_drop_directory": {
-    "rows": ["edit.commands.add-glob", "edit.commands.drop-matches"]
+    "rows": [
+      "edit.commands.add-glob",
+      "edit.commands.drop-matches"
+    ]
   },
   "aider-test/test_commands/TestCommands.test_cmd_drop_with_glob_patterns": {
-    "rows": ["edit.commands.drop-matches"]
+    "rows": [
+      "edit.commands.drop-matches"
+    ]
   },
   "aider-test/test_commands/TestCommands.test_cmd_drop_without_glob": {
-    "rows": ["edit.commands.drop-matches"]
+    "rows": [
+      "edit.commands.drop-matches"
+    ]
   },
   "aider-test/test_commands/TestCommands.test_cmd_add_bad_encoding": {
-    "rows": ["edit.commands.add-literal", "edit.io.read-text"]
+    "rows": [
+      "edit.commands.add-literal",
+      "edit.io.read-text"
+    ]
   },
   "aider-test/test_commands/TestCommands.test_cmd_tokens": {
-    "rows": ["edit.commands.file-token-listing"]
+    "rows": [
+      "edit.commands.file-token-listing"
+    ]
   },
   "aider-test/test_commands/TestCommands.test_cmd_add_from_outside_root": {
-    "rows": ["edit.commands.add-root-policy"]
+    "rows": [
+      "edit.commands.add-root-policy"
+    ]
   },
   "aider-test/test_commands/TestCommands.test_cmd_add_filename_with_special_chars": {
-    "rows": ["edit.commands.add-literal"]
+    "rows": [
+      "edit.commands.add-literal"
+    ]
   },
   "aider-test/test_commands/TestCommands.test_cmd_add_dirname_with_special_chars": {
-    "rows": ["edit.commands.add-glob"]
+    "rows": [
+      "edit.commands.add-glob"
+    ]
   },
   "aider-test/test_commands/TestCommands.test_cmd_add_abs_filename": {
-    "rows": ["edit.commands.add-literal"]
+    "rows": [
+      "edit.commands.add-literal"
+    ]
   },
   "aider-test/test_commands/TestCommands.test_cmd_add_quoted_filename": {
-    "rows": ["edit.commands.add-literal"]
+    "rows": [
+      "edit.commands.add-literal"
+    ]
   },
   "aider-test/test_commands/TestCommands.test_cmd_save_and_load": {
-    "rows": ["edit.commands.save-selection", "edit.commands.load-selection", "edit.commands.reset"]
+    "rows": [
+      "edit.commands.save-selection",
+      "edit.commands.load-selection",
+      "edit.commands.reset"
+    ]
   },
   "aider-test/test_commands/TestCommands.test_cmd_save_and_load_with_external_file": {
-    "rows": ["edit.commands.save-selection", "edit.commands.load-selection", "edit.commands.read-only-paths"]
+    "rows": [
+      "edit.commands.save-selection",
+      "edit.commands.load-selection",
+      "edit.commands.read-only-paths"
+    ]
   },
   "aider-test/test_commands/TestCommands.test_cmd_save_and_load_with_multiple_external_files": {
-    "rows": ["edit.commands.save-selection", "edit.commands.load-selection", "edit.commands.read-only-paths"]
+    "rows": [
+      "edit.commands.save-selection",
+      "edit.commands.load-selection",
+      "edit.commands.read-only-paths"
+    ]
   },
   "aider-test/test_commands/TestCommands.test_cmd_read_only_with_image_file": {
-    "rows": ["edit.commands.read-only-images", "edit.prompt.images"]
+    "rows": [
+      "edit.commands.read-only-images",
+      "edit.prompt.images"
+    ]
   },
   "aider-test/test_commands/TestCommands.test_cmd_read_only_with_glob_pattern": {
-    "rows": ["edit.commands.read-only-paths"]
+    "rows": [
+      "edit.commands.read-only-paths"
+    ]
   },
   "aider-test/test_commands/TestCommands.test_cmd_read_only_with_recursive_glob": {
-    "rows": ["edit.commands.read-only-paths"]
+    "rows": [
+      "edit.commands.read-only-paths"
+    ]
   },
   "aider-test/test_commands/TestCommands.test_cmd_read_only_with_nonexistent_glob": {
-    "rows": ["edit.commands.read-only-paths"]
+    "rows": [
+      "edit.commands.read-only-paths"
+    ]
   },
   "aider-test/test_commands/TestCommands.test_cmd_add_unicode_error": {
-    "rows": ["edit.commands.add-literal", "edit.io.read-text"]
+    "rows": [
+      "edit.commands.add-literal",
+      "edit.io.read-text"
+    ]
   },
   "aider-test/test_commands/TestCommands.test_cmd_think_tokens": {
     "nonclaim": "pi-owned",
     "note": "Pi owns thinking controls and provider reasoning budgets; no Aider extra_params mutation is ported."
   },
   "aider-test/test_commands/TestCommands.test_cmd_read_only": {
-    "rows": ["edit.commands.read-only-paths", "edit.commands.drop-matches"]
+    "rows": [
+      "edit.commands.read-only-paths",
+      "edit.commands.drop-matches"
+    ]
   },
   "aider-test/test_commands/TestCommands.test_cmd_read_only_with_external_file": {
-    "rows": ["edit.commands.read-only-paths", "edit.commands.drop-matches"]
+    "rows": [
+      "edit.commands.read-only-paths",
+      "edit.commands.drop-matches"
+    ]
   },
   "aider-test/test_commands/TestCommands.test_cmd_drop_read_only_with_relative_path": {
-    "rows": ["edit.commands.drop-matches"]
+    "rows": [
+      "edit.commands.drop-matches"
+    ]
   },
   "aider-test/test_commands/TestCommands.test_cmd_read_only_bulk_conversion": {
-    "rows": ["edit.commands.read-only-conversion"]
+    "rows": [
+      "edit.commands.read-only-conversion"
+    ]
   },
   "aider-test/test_commands/TestCommands.test_cmd_read_only_with_multiple_files": {
-    "rows": ["edit.commands.read-only-paths", "edit.commands.drop-matches"]
+    "rows": [
+      "edit.commands.read-only-paths",
+      "edit.commands.drop-matches"
+    ]
   },
   "aider-test/test_commands/TestCommands.test_cmd_read_only_with_tilde_path": {
-    "rows": ["edit.commands.read-only-paths", "edit.commands.drop-matches"]
+    "rows": [
+      "edit.commands.read-only-paths",
+      "edit.commands.drop-matches"
+    ]
   },
   "aider-test/test_commands/TestCommands.test_cmd_read_only_with_square_brackets": {
-    "rows": ["edit.commands.read-only-paths", "edit.commands.drop-matches"]
+    "rows": [
+      "edit.commands.read-only-paths",
+      "edit.commands.drop-matches"
+    ]
   },
   "aider-test/test_commands/TestCommands.test_cmd_model": {
-    "rows": ["edit.commands.model-format-switch"]
+    "rows": [
+      "edit.commands.model-format-switch"
+    ]
   },
   "aider-test/test_commands/TestCommands.test_cmd_model_preserves_explicit_edit_format": {
-    "rows": ["edit.commands.model-format-switch"]
+    "rows": [
+      "edit.commands.model-format-switch"
+    ]
   },
   "aider-test/test_commands/TestCommands.test_cmd_editor_model": {
-    "rows": ["edit.commands.editor-model-switch"]
+    "rows": [
+      "edit.commands.editor-model-switch"
+    ]
   },
   "aider-test/test_commands/TestCommands.test_cmd_model_updates_default_edit_format": {
-    "rows": ["edit.commands.model-format-switch"]
+    "rows": [
+      "edit.commands.model-format-switch"
+    ]
   },
   "aider-test/test_commands/TestCommands.test_cmd_ask": {
-    "rows": ["edit.commands.one-shot-ask", "edit.factory.ask-no-writes"]
+    "rows": [
+      "edit.commands.one-shot-ask",
+      "edit.factory.ask-no-writes"
+    ]
   },
   "aider-test/test_commands/TestCommands.test_cmd_reset": {
-    "rows": ["edit.commands.reset", "edit.commands.drop-all"]
+    "rows": [
+      "edit.commands.reset",
+      "edit.commands.drop-all"
+    ]
   },
   "aider-test/test_commands/TestCommands.test_reset_with_original_read_only_files": {
-    "rows": ["edit.commands.reset", "edit.commands.drop-all"]
+    "rows": [
+      "edit.commands.reset",
+      "edit.commands.drop-all"
+    ]
   },
   "aider-test/test_commands/TestCommands.test_reset_with_no_original_read_only_files": {
-    "rows": ["edit.commands.reset", "edit.commands.drop-all"]
+    "rows": [
+      "edit.commands.reset",
+      "edit.commands.drop-all"
+    ]
   },
   "aider-test/test_commands/TestCommands.test_cmd_reasoning_effort": {
     "nonclaim": "pi-owned",
     "note": "Pi owns model thinking and reasoning controls, not a recreated Aider provider-settings command."
   },
   "aider-test/test_commands/TestCommands.test_drop_with_original_read_only_files": {
-    "rows": ["edit.commands.drop-all"]
+    "rows": [
+      "edit.commands.drop-all"
+    ]
   },
   "aider-test/test_commands/TestCommands.test_drop_specific_original_read_only_file": {
-    "rows": ["edit.commands.drop-matches"]
+    "rows": [
+      "edit.commands.drop-matches"
+    ]
   },
   "aider-test/test_commands/TestCommands.test_drop_with_no_original_read_only_files": {
-    "rows": ["edit.commands.drop-all"]
+    "rows": [
+      "edit.commands.drop-all"
+    ]
   },
   "aider-test/test_commands/TestCommands.test_cmd_load_with_switch_coder": {
-    "rows": ["edit.commands.load-selection"]
+    "rows": [
+      "edit.commands.load-selection"
+    ]
   },
   "aider-test/test_commands/TestCommands.test_reset_after_coder_clone_preserves_original_read_only_files": {
-    "rows": ["edit.commands.reset", "edit.commands.drop-all", "edit.factory.transfer-selection"]
+    "rows": [
+      "edit.commands.reset",
+      "edit.commands.drop-all",
+      "edit.factory.transfer-selection"
+    ]
   },
   "aider-test/test_commands/TestCommands.test_drop_bare_after_coder_clone_preserves_original_read_only_files": {
-    "rows": ["edit.commands.drop-all", "edit.factory.transfer-selection"]
+    "rows": [
+      "edit.commands.drop-all",
+      "edit.factory.transfer-selection"
+    ]
   },
   "aider-test/test_main/TestMain.test_main_with_empty_dir_no_files_on_command": {
-    "rows": ["edit.input.empty-selection"]
+    "rows": [
+      "edit.input.empty-selection"
+    ]
   },
   "aider-test/test_main/TestMain.test_main_with_emptqy_dir_new_file": {
-    "rows": ["edit.input.initial-files"]
+    "rows": [
+      "edit.input.initial-files"
+    ]
   },
   "aider-test/test_main/TestMain.test_message_file_flag": {
-    "rows": ["edit.input.message-file"]
+    "rows": [
+      "edit.input.message-file"
+    ]
   },
   "aider-test/test_main/TestMain.test_main_exit_calls_version_check": {
     "nonclaim": "out-of-scope",
@@ -1669,10 +2672,14 @@
     "note": "Pi stores user input history and one-shot prompts through its native input and session mechanisms."
   },
   "aider-test/test_main/TestMain.test_yes": {
-    "rows": ["edit.confirm.yes-always"]
+    "rows": [
+      "edit.confirm.yes-always"
+    ]
   },
   "aider-test/test_main/TestMain.test_default_yes": {
-    "rows": ["edit.confirm.answers"]
+    "rows": [
+      "edit.confirm.answers"
+    ]
   },
   "aider-test/test_main/TestMain.test_dark_mode_sets_code_theme": {
     "nonclaim": "pi-owned",
@@ -1683,19 +2690,32 @@
     "note": "Pi themes own light terminal and code styling."
   },
   "aider-test/test_main/TestMain.test_env_file_flag_sets_automatic_variable": {
-    "rows": ["edit.settings.dotenv-overlay", "edit.settings.precedence"]
+    "rows": [
+      "edit.settings.dotenv-overlay",
+      "edit.settings.precedence"
+    ]
   },
   "aider-test/test_main/TestMain.test_default_env_file_sets_automatic_variable": {
-    "rows": ["edit.settings.dotenv-overlay", "edit.settings.precedence"]
+    "rows": [
+      "edit.settings.dotenv-overlay",
+      "edit.settings.precedence"
+    ]
   },
   "aider-test/test_main/TestMain.test_verbose_mode_lists_env_vars": {
-    "rows": ["edit.settings.diagnostics", "edit.settings.redact-secrets"]
+    "rows": [
+      "edit.settings.diagnostics",
+      "edit.settings.redact-secrets"
+    ]
   },
   "aider-test/test_main/TestMain.test_read_option": {
-    "rows": ["edit.commands.read-only-paths"]
+    "rows": [
+      "edit.commands.read-only-paths"
+    ]
   },
   "aider-test/test_main/TestMain.test_read_option_with_external_file": {
-    "rows": ["edit.commands.read-only-paths"]
+    "rows": [
+      "edit.commands.read-only-paths"
+    ]
   },
   "aider-test/test_main/TestMain.test_model_metadata_file": {
     "nonclaim": "pi-owned",
@@ -1710,16 +2730,25 @@
     "note": "Pi provider integration decides whether cache headers are supported."
   },
   "aider-test/test_main/TestMain.test_return_coder": {
-    "rows": ["edit.input.empty-selection", "edit.factory.select-format"]
+    "rows": [
+      "edit.input.empty-selection",
+      "edit.factory.select-format"
+    ]
   },
   "aider-test/test_main/TestMain.test_suggest_shell_commands_default": {
-    "rows": ["edit.shell.suggestion-setting"]
+    "rows": [
+      "edit.shell.suggestion-setting"
+    ]
   },
   "aider-test/test_main/TestMain.test_suggest_shell_commands_disabled": {
-    "rows": ["edit.shell.suggestion-setting"]
+    "rows": [
+      "edit.shell.suggestion-setting"
+    ]
   },
   "aider-test/test_main/TestMain.test_suggest_shell_commands_enabled": {
-    "rows": ["edit.shell.suggestion-setting"]
+    "rows": [
+      "edit.shell.suggestion-setting"
+    ]
   },
   "aider-test/test_main/TestMain.test_detect_urls_default": {
     "nonclaim": "out-of-scope",
@@ -1746,16 +2775,24 @@
     "note": "The Python test runner analytics opt-out checks Aider telemetry, outside all four SARs."
   },
   "aider-test/test_main/TestMain.test_set_env_single": {
-    "rows": ["edit.settings.environment-pairs"]
+    "rows": [
+      "edit.settings.environment-pairs"
+    ]
   },
   "aider-test/test_main/TestMain.test_set_env_multiple": {
-    "rows": ["edit.settings.environment-pairs"]
+    "rows": [
+      "edit.settings.environment-pairs"
+    ]
   },
   "aider-test/test_main/TestMain.test_set_env_with_spaces": {
-    "rows": ["edit.settings.environment-pairs"]
+    "rows": [
+      "edit.settings.environment-pairs"
+    ]
   },
   "aider-test/test_main/TestMain.test_set_env_invalid_format": {
-    "rows": ["edit.settings.environment-pairs"]
+    "rows": [
+      "edit.settings.environment-pairs"
+    ]
   },
   "aider-test/test_main/TestMain.test_api_key_single": {
     "nonclaim": "pi-owned",
@@ -1770,7 +2807,9 @@
     "note": "Pi owns provider credential validation and its diagnostics."
   },
   "aider-test/test_main/TestMain.test_invalid_edit_format": {
-    "rows": ["edit.factory.select-format"]
+    "rows": [
+      "edit.factory.select-format"
+    ]
   },
   "aider-test/test_main/TestMain.test_default_model_selection": {
     "nonclaim": "pi-owned",
@@ -1781,7 +2820,10 @@
     "note": "Pi owns physical-model selection precedence across configured providers."
   },
   "aider-test/test_main/TestMain.test_chat_language_spanish": {
-    "rows": ["edit.prompt.reply-language", "edit.settings.chat-language-propagation"]
+    "rows": [
+      "edit.prompt.reply-language",
+      "edit.settings.chat-language-propagation"
+    ]
   },
   "aider-test/test_main/TestMain.test_reasoning_effort_option": {
     "nonclaim": "pi-owned",
@@ -1908,15 +2950,3600 @@
     "note": "Pi providers own temperature fields in completion requests."
   },
   "aider-test/test_coder/TestCoder.test_check_for_ambiguous_filename_mentions_of_longer_paths": {
-    "rows": ["edit.mentions.extract-paths", "edit.mentions.confirm-and-remember"]
+    "rows": [
+      "edit.mentions.extract-paths",
+      "edit.mentions.confirm-and-remember"
+    ]
   },
   "aider-test/test_coder/TestCoder.test_skip_duplicate_basename_mentions": {
-    "rows": ["edit.mentions.extract-paths"]
+    "rows": [
+      "edit.mentions.extract-paths"
+    ]
   },
   "aider-test/test_coder/TestCoder.test_check_for_file_mentions_read_only": {
-    "rows": ["edit.mentions.extract-paths"]
+    "rows": [
+      "edit.mentions.extract-paths"
+    ]
   },
   "aider-test/test_coder/TestCoder.test_check_for_subdir_mention": {
-    "rows": ["edit.mentions.extract-paths", "edit.mentions.confirm-and-remember"]
+    "rows": [
+      "edit.mentions.extract-paths",
+      "edit.mentions.confirm-and-remember"
+    ]
+  },
+  "git/aider-git-software-architecture-reconstruction/p1": {
+    "nonclaim": "provenance",
+    "note": "reconstruction title and date"
+  },
+  "git/what-this-reconstruction-establishes/p1": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.dirty.checkpoint-before-edit",
+      "git.commit.auto-after-edit",
+      "git.startup.discover-root"
+    ]
+  },
+  "git/what-this-reconstruction-establishes/p2": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.dirty.checkpoint-before-edit",
+      "git.commit.auto-after-edit",
+      "git.startup.discover-root"
+    ]
+  },
+  "git/what-this-reconstruction-establishes/p3": {
+    "nonclaim": "meta",
+    "note": "document scope statement without a new observable"
+  },
+  "git/baseline-and-identity/r1": {
+    "nonclaim": "provenance",
+    "note": "checkout path, commit, and distribution identity"
+  },
+  "git/baseline-and-identity/r2": {
+    "nonclaim": "provenance",
+    "note": "checkout path, commit, and distribution identity"
+  },
+  "git/baseline-and-identity/r3": {
+    "nonclaim": "provenance",
+    "note": "checkout path, commit, and distribution identity"
+  },
+  "git/baseline-and-identity/r4": {
+    "nonclaim": "provenance",
+    "note": "checkout path, commit, and distribution identity"
+  },
+  "git/baseline-and-identity/r5": {
+    "nonclaim": "provenance",
+    "note": "checkout path, commit, and distribution identity"
+  },
+  "git/baseline-and-identity/r6": {
+    "nonclaim": "provenance",
+    "note": "checkout path, commit, and distribution identity"
+  },
+  "git/baseline-and-identity/r7": {
+    "nonclaim": "provenance",
+    "note": "checkout path, commit, and distribution identity"
+  },
+  "git/baseline-and-identity/r8": {
+    "nonclaim": "provenance",
+    "note": "checkout path, commit, and distribution identity"
+  },
+  "git/baseline-and-identity/r9": {
+    "nonclaim": "provenance",
+    "note": "checkout path, commit, and distribution identity"
+  },
+  "git/baseline-and-identity/r10": {
+    "nonclaim": "provenance",
+    "note": "checkout path, commit, and distribution identity"
+  },
+  "git/baseline-and-identity/r11": {
+    "nonclaim": "provenance",
+    "note": "checkout path, commit, and distribution identity"
+  },
+  "git/baseline-and-identity/r12": {
+    "nonclaim": "provenance",
+    "note": "checkout path, commit, and distribution identity"
+  },
+  "git/baseline-and-identity/p13": {
+    "nonclaim": "provenance",
+    "note": "checkout path, commit, and distribution identity"
+  },
+  "git/installed-executable-and-local-verification-environment/p1": {
+    "nonclaim": "evidence",
+    "note": "local venv executable and verification interpreter"
+  },
+  "git/installed-executable-and-local-verification-environment/p2": {
+    "nonclaim": "evidence",
+    "note": "local venv executable and verification interpreter"
+  },
+  "git/installed-executable-and-local-verification-environment/p3": {
+    "nonclaim": "evidence",
+    "note": "local venv executable and verification interpreter"
+  },
+  "git/installed-executable-and-local-verification-environment/p4": {
+    "nonclaim": "evidence",
+    "note": "local venv executable and verification interpreter"
+  },
+  "git/evidence-notation-and-navigation/p1": {
+    "nonclaim": "meta",
+    "note": "evidence notation and navigation conventions"
+  },
+  "git/evidence-notation-and-navigation/p2": {
+    "nonclaim": "meta",
+    "note": "evidence notation and navigation conventions"
+  },
+  "git/evidence-notation-and-navigation/i3": {
+    "nonclaim": "meta",
+    "note": "evidence notation and navigation conventions"
+  },
+  "git/evidence-notation-and-navigation/i4": {
+    "nonclaim": "meta",
+    "note": "evidence notation and navigation conventions"
+  },
+  "git/evidence-notation-and-navigation/i5": {
+    "nonclaim": "meta",
+    "note": "evidence notation and navigation conventions"
+  },
+  "git/evidence-notation-and-navigation/i6": {
+    "nonclaim": "meta",
+    "note": "evidence notation and navigation conventions"
+  },
+  "git/evidence-notation-and-navigation/i7": {
+    "nonclaim": "meta",
+    "note": "evidence notation and navigation conventions"
+  },
+  "git/evidence-notation-and-navigation/p8": {
+    "nonclaim": "meta",
+    "note": "evidence notation and navigation conventions"
+  },
+  "git/the-state-model/p1": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.dirty.path-semantics",
+      "git.dirty.checkpoint-before-edit",
+      "git.commit.stage-whole-files",
+      "git.undo.preconditions"
+    ]
+  },
+  "git/the-state-model/r2": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.dirty.path-semantics",
+      "git.dirty.checkpoint-before-edit",
+      "git.commit.stage-whole-files",
+      "git.undo.preconditions"
+    ]
+  },
+  "git/the-state-model/r3": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.dirty.path-semantics",
+      "git.dirty.checkpoint-before-edit",
+      "git.commit.stage-whole-files",
+      "git.undo.preconditions"
+    ]
+  },
+  "git/the-state-model/r4": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.dirty.path-semantics",
+      "git.dirty.checkpoint-before-edit",
+      "git.commit.stage-whole-files",
+      "git.undo.preconditions"
+    ]
+  },
+  "git/the-state-model/r5": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.dirty.path-semantics",
+      "git.dirty.checkpoint-before-edit",
+      "git.commit.stage-whole-files",
+      "git.undo.preconditions"
+    ]
+  },
+  "git/the-state-model/r6": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.dirty.path-semantics",
+      "git.dirty.checkpoint-before-edit",
+      "git.commit.stage-whole-files",
+      "git.undo.preconditions"
+    ]
+  },
+  "git/the-state-model/r7": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.dirty.path-semantics",
+      "git.dirty.checkpoint-before-edit",
+      "git.commit.stage-whole-files",
+      "git.undo.preconditions"
+    ]
+  },
+  "git/the-state-model/r8": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.dirty.path-semantics",
+      "git.dirty.checkpoint-before-edit",
+      "git.commit.stage-whole-files",
+      "git.undo.preconditions"
+    ]
+  },
+  "git/the-state-model/r9": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.dirty.path-semantics",
+      "git.dirty.checkpoint-before-edit",
+      "git.commit.stage-whole-files",
+      "git.undo.preconditions"
+    ]
+  },
+  "git/the-state-model/r10": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.dirty.path-semantics",
+      "git.dirty.checkpoint-before-edit",
+      "git.commit.stage-whole-files",
+      "git.undo.preconditions"
+    ]
+  },
+  "git/the-state-model/r11": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.dirty.path-semantics",
+      "git.dirty.checkpoint-before-edit",
+      "git.commit.stage-whole-files",
+      "git.undo.preconditions"
+    ]
+  },
+  "git/the-state-model/r12": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.dirty.path-semantics",
+      "git.dirty.checkpoint-before-edit",
+      "git.commit.stage-whole-files",
+      "git.undo.preconditions"
+    ]
+  },
+  "git/the-state-model/r13": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.dirty.path-semantics",
+      "git.dirty.checkpoint-before-edit",
+      "git.commit.stage-whole-files",
+      "git.undo.preconditions"
+    ]
+  },
+  "git/the-state-model/r14": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.dirty.path-semantics",
+      "git.dirty.checkpoint-before-edit",
+      "git.commit.stage-whole-files",
+      "git.undo.preconditions"
+    ]
+  },
+  "git/the-state-model/p15": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.dirty.path-semantics",
+      "git.dirty.checkpoint-before-edit",
+      "git.commit.stage-whole-files",
+      "git.undo.preconditions"
+    ]
+  },
+  "git/repository-membership-is-not-git-ls-files/p1": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.filter.aiderignore"
+    ]
+  },
+  "git/repository-membership-is-not-git-ls-files/p2": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.filter.aiderignore"
+    ]
+  },
+  "git/repository-membership-is-not-git-ls-files/i3": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.filter.aiderignore"
+    ]
+  },
+  "git/repository-membership-is-not-git-ls-files/i4": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.filter.aiderignore"
+    ]
+  },
+  "git/repository-membership-is-not-git-ls-files/i5": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.filter.aiderignore"
+    ]
+  },
+  "git/repository-membership-is-not-git-ls-files/i6": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.filter.aiderignore"
+    ]
+  },
+  "git/repository-membership-is-not-git-ls-files/i7": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.filter.aiderignore"
+    ]
+  },
+  "git/repository-membership-is-not-git-ls-files/i8": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.filter.aiderignore"
+    ]
+  },
+  "git/repository-membership-is-not-git-ls-files/p9": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.filter.aiderignore"
+    ]
+  },
+  "git/dirty-state-has-two-meanings/p1": {
+    "rows": [
+      "git.dirty.path-semantics",
+      "git.dirty.checkpoint-before-edit"
+    ]
+  },
+  "git/dirty-state-has-two-meanings/p2": {
+    "rows": [
+      "git.dirty.path-semantics",
+      "git.dirty.checkpoint-before-edit"
+    ]
+  },
+  "git/dirty-state-has-two-meanings/p3": {
+    "rows": [
+      "git.dirty.path-semantics",
+      "git.dirty.checkpoint-before-edit"
+    ]
+  },
+  "git/three-kinds-of-commit/r1": {
+    "rows": [
+      "git.dirty.checkpoint-before-edit",
+      "git.commit.auto-after-edit",
+      "git.commit.stage-whole-files",
+      "git.commit.attribution"
+    ]
+  },
+  "git/three-kinds-of-commit/r2": {
+    "rows": [
+      "git.dirty.checkpoint-before-edit",
+      "git.commit.auto-after-edit",
+      "git.commit.stage-whole-files",
+      "git.commit.attribution"
+    ]
+  },
+  "git/three-kinds-of-commit/r3": {
+    "rows": [
+      "git.dirty.checkpoint-before-edit",
+      "git.commit.auto-after-edit",
+      "git.commit.stage-whole-files",
+      "git.commit.attribution"
+    ]
+  },
+  "git/three-kinds-of-commit/p4": {
+    "rows": [
+      "git.dirty.checkpoint-before-edit",
+      "git.commit.auto-after-edit",
+      "git.commit.stage-whole-files",
+      "git.commit.attribution"
+    ]
+  },
+  "git/component-and-dependency-graph/m1": {
+    "rows": [
+      "git.startup.discover-root",
+      "git.repo.open-single-root",
+      "git.commit.auto-after-edit",
+      "git.inventory.tracked-files"
+    ]
+  },
+  "git/component-and-dependency-graph/p2": {
+    "rows": [
+      "git.startup.discover-root",
+      "git.repo.open-single-root",
+      "git.commit.auto-after-edit",
+      "git.inventory.tracked-files"
+    ]
+  },
+  "git/1-startup-discovers-the-repository-before-constructing-the-c/p1": {
+    "rows": [
+      "git.startup.discover-root",
+      "git.config.auto-commits",
+      "git.config.aiderignore-path"
+    ]
+  },
+  "git/1-startup-discovers-the-repository-before-constructing-the-c/p2": {
+    "rows": [
+      "git.startup.discover-root",
+      "git.config.auto-commits",
+      "git.config.aiderignore-path"
+    ]
+  },
+  "git/1-startup-discovers-the-repository-before-constructing-the-c/p3": {
+    "rows": [
+      "git.startup.discover-root",
+      "git.config.auto-commits",
+      "git.config.aiderignore-path"
+    ]
+  },
+  "git/1-startup-discovers-the-repository-before-constructing-the-c/p4": {
+    "rows": [
+      "git.startup.discover-root",
+      "git.config.auto-commits",
+      "git.config.aiderignore-path"
+    ]
+  },
+  "git/1-startup-discovers-the-repository-before-constructing-the-c/i5": {
+    "rows": [
+      "git.startup.discover-root",
+      "git.config.auto-commits",
+      "git.config.aiderignore-path"
+    ]
+  },
+  "git/1-startup-discovers-the-repository-before-constructing-the-c/i6": {
+    "rows": [
+      "git.startup.discover-root",
+      "git.config.auto-commits",
+      "git.config.aiderignore-path"
+    ]
+  },
+  "git/1-startup-discovers-the-repository-before-constructing-the-c/i7": {
+    "rows": [
+      "git.startup.discover-root",
+      "git.config.auto-commits",
+      "git.config.aiderignore-path"
+    ]
+  },
+  "git/1-startup-discovers-the-repository-before-constructing-the-c/p8": {
+    "rows": [
+      "git.startup.discover-root",
+      "git.config.auto-commits",
+      "git.config.aiderignore-path"
+    ]
+  },
+  "git/1-startup-discovers-the-repository-before-constructing-the-c/p9": {
+    "rows": [
+      "git.startup.discover-root",
+      "git.config.auto-commits",
+      "git.config.aiderignore-path"
+    ]
+  },
+  "git/1-startup-discovers-the-repository-before-constructing-the-c/p10": {
+    "rows": [
+      "git.startup.discover-root",
+      "git.config.auto-commits",
+      "git.config.aiderignore-path"
+    ]
+  },
+  "git/2-startup-can-mutate-repository-metadata/p1": {
+    "rows": [
+      "git.startup.setup-repo",
+      "git.config.gitignore-offer"
+    ]
+  },
+  "git/2-startup-can-mutate-repository-metadata/p2": {
+    "rows": [
+      "git.startup.setup-repo",
+      "git.config.gitignore-offer"
+    ]
+  },
+  "git/2-startup-can-mutate-repository-metadata/p3": {
+    "rows": [
+      "git.startup.setup-repo",
+      "git.config.gitignore-offer"
+    ]
+  },
+  "git/2-startup-can-mutate-repository-metadata/p4": {
+    "rows": [
+      "git.startup.setup-repo",
+      "git.config.gitignore-offer"
+    ]
+  },
+  "git/configuration-contract/p1": {
+    "rows": [
+      "git.config.auto-commits",
+      "git.config.gitignore-offer",
+      "git.config.aiderignore-path",
+      "git.commit.attribution",
+      "git.commands.raw-git"
+    ]
+  },
+  "git/configuration-contract/r2": {
+    "rows": [
+      "git.config.auto-commits",
+      "git.config.gitignore-offer",
+      "git.config.aiderignore-path",
+      "git.commit.attribution",
+      "git.commands.raw-git"
+    ]
+  },
+  "git/configuration-contract/r3": {
+    "rows": [
+      "git.config.auto-commits",
+      "git.config.gitignore-offer",
+      "git.config.aiderignore-path",
+      "git.commit.attribution",
+      "git.commands.raw-git"
+    ]
+  },
+  "git/configuration-contract/r4": {
+    "rows": [
+      "git.config.auto-commits",
+      "git.config.gitignore-offer",
+      "git.config.aiderignore-path",
+      "git.commit.attribution",
+      "git.commands.raw-git"
+    ]
+  },
+  "git/configuration-contract/r5": {
+    "rows": [
+      "git.config.auto-commits",
+      "git.config.gitignore-offer",
+      "git.config.aiderignore-path",
+      "git.commit.attribution",
+      "git.commands.raw-git"
+    ]
+  },
+  "git/configuration-contract/r6": {
+    "rows": [
+      "git.config.auto-commits",
+      "git.config.gitignore-offer",
+      "git.config.aiderignore-path",
+      "git.commit.attribution",
+      "git.commands.raw-git"
+    ]
+  },
+  "git/configuration-contract/r7": {
+    "rows": [
+      "git.config.auto-commits",
+      "git.config.gitignore-offer",
+      "git.config.aiderignore-path",
+      "git.commit.attribution",
+      "git.commands.raw-git"
+    ]
+  },
+  "git/configuration-contract/r8": {
+    "rows": [
+      "git.config.auto-commits",
+      "git.config.gitignore-offer",
+      "git.config.aiderignore-path",
+      "git.commit.attribution",
+      "git.commands.raw-git"
+    ]
+  },
+  "git/configuration-contract/r9": {
+    "rows": [
+      "git.config.auto-commits",
+      "git.config.gitignore-offer",
+      "git.config.aiderignore-path",
+      "git.commit.attribution",
+      "git.commands.raw-git"
+    ]
+  },
+  "git/configuration-contract/r10": {
+    "rows": [
+      "git.config.auto-commits",
+      "git.config.gitignore-offer",
+      "git.config.aiderignore-path",
+      "git.commit.attribution",
+      "git.commands.raw-git"
+    ]
+  },
+  "git/configuration-contract/r11": {
+    "rows": [
+      "git.config.auto-commits",
+      "git.config.gitignore-offer",
+      "git.config.aiderignore-path",
+      "git.commit.attribution",
+      "git.commands.raw-git"
+    ]
+  },
+  "git/configuration-contract/r12": {
+    "rows": [
+      "git.config.auto-commits",
+      "git.config.gitignore-offer",
+      "git.config.aiderignore-path",
+      "git.commit.attribution",
+      "git.commands.raw-git"
+    ]
+  },
+  "git/configuration-contract/r13": {
+    "rows": [
+      "git.config.auto-commits",
+      "git.config.gitignore-offer",
+      "git.config.aiderignore-path",
+      "git.commit.attribution",
+      "git.commands.raw-git"
+    ]
+  },
+  "git/configuration-contract/r14": {
+    "rows": [
+      "git.config.auto-commits",
+      "git.config.gitignore-offer",
+      "git.config.aiderignore-path",
+      "git.commit.attribution",
+      "git.commands.raw-git"
+    ]
+  },
+  "git/configuration-contract/r15": {
+    "rows": [
+      "git.config.auto-commits",
+      "git.config.gitignore-offer",
+      "git.config.aiderignore-path",
+      "git.commit.attribution",
+      "git.commands.raw-git"
+    ]
+  },
+  "git/configuration-contract/r16": {
+    "rows": [
+      "git.config.auto-commits",
+      "git.config.gitignore-offer",
+      "git.config.aiderignore-path",
+      "git.commit.attribution",
+      "git.commands.raw-git"
+    ]
+  },
+  "git/configuration-contract/r17": {
+    "rows": [
+      "git.config.auto-commits",
+      "git.config.gitignore-offer",
+      "git.config.aiderignore-path",
+      "git.commit.attribution",
+      "git.commands.raw-git"
+    ]
+  },
+  "git/configuration-contract/r18": {
+    "rows": [
+      "git.config.auto-commits",
+      "git.config.gitignore-offer",
+      "git.config.aiderignore-path",
+      "git.commit.attribution",
+      "git.commands.raw-git"
+    ]
+  },
+  "git/configuration-contract/r19": {
+    "rows": [
+      "git.config.auto-commits",
+      "git.config.gitignore-offer",
+      "git.config.aiderignore-path",
+      "git.commit.attribution",
+      "git.commands.raw-git"
+    ]
+  },
+  "git/configuration-contract/r20": {
+    "rows": [
+      "git.config.auto-commits",
+      "git.config.gitignore-offer",
+      "git.config.aiderignore-path",
+      "git.commit.attribution",
+      "git.commands.raw-git"
+    ]
+  },
+  "git/configuration-contract/r21": {
+    "rows": [
+      "git.config.auto-commits",
+      "git.config.gitignore-offer",
+      "git.config.aiderignore-path",
+      "git.commit.attribution",
+      "git.commands.raw-git"
+    ]
+  },
+  "git/configuration-contract/r22": {
+    "rows": [
+      "git.config.auto-commits",
+      "git.config.gitignore-offer",
+      "git.config.aiderignore-path",
+      "git.commit.attribution",
+      "git.commands.raw-git"
+    ]
+  },
+  "git/configuration-contract/p23": {
+    "rows": [
+      "git.config.auto-commits",
+      "git.config.gitignore-offer",
+      "git.config.aiderignore-path",
+      "git.commit.attribution",
+      "git.commands.raw-git"
+    ]
+  },
+  "git/configuration-contract/m24": {
+    "rows": [
+      "git.config.auto-commits",
+      "git.config.gitignore-offer",
+      "git.config.aiderignore-path",
+      "git.commit.attribution",
+      "git.commands.raw-git"
+    ]
+  },
+  "git/configuration-contract/p25": {
+    "rows": [
+      "git.config.auto-commits",
+      "git.config.gitignore-offer",
+      "git.config.aiderignore-path",
+      "git.commit.attribution",
+      "git.commands.raw-git"
+    ]
+  },
+  "git/3-file-filters-have-separate-jobs/r1": {
+    "rows": [
+      "git.filter.gitignore",
+      "git.filter.aiderignore",
+      "git.filter.subtree",
+      "git.authorize.skip-gitignored"
+    ]
+  },
+  "git/3-file-filters-have-separate-jobs/r2": {
+    "rows": [
+      "git.filter.gitignore",
+      "git.filter.aiderignore",
+      "git.filter.subtree",
+      "git.authorize.skip-gitignored"
+    ]
+  },
+  "git/3-file-filters-have-separate-jobs/r3": {
+    "rows": [
+      "git.filter.gitignore",
+      "git.filter.aiderignore",
+      "git.filter.subtree",
+      "git.authorize.skip-gitignored"
+    ]
+  },
+  "git/3-file-filters-have-separate-jobs/r4": {
+    "rows": [
+      "git.filter.gitignore",
+      "git.filter.aiderignore",
+      "git.filter.subtree",
+      "git.authorize.skip-gitignored"
+    ]
+  },
+  "git/3-file-filters-have-separate-jobs/p5": {
+    "rows": [
+      "git.filter.gitignore",
+      "git.filter.aiderignore",
+      "git.filter.subtree",
+      "git.authorize.skip-gitignored"
+    ]
+  },
+  "git/3-file-filters-have-separate-jobs/p6": {
+    "rows": [
+      "git.filter.gitignore",
+      "git.filter.aiderignore",
+      "git.filter.subtree",
+      "git.authorize.skip-gitignored"
+    ]
+  },
+  "git/3-file-filters-have-separate-jobs/p7": {
+    "rows": [
+      "git.filter.gitignore",
+      "git.filter.aiderignore",
+      "git.filter.subtree",
+      "git.authorize.skip-gitignored"
+    ]
+  },
+  "git/3-file-filters-have-separate-jobs/p8": {
+    "rows": [
+      "git.filter.gitignore",
+      "git.filter.aiderignore",
+      "git.filter.subtree",
+      "git.authorize.skip-gitignored"
+    ]
+  },
+  "git/3-file-filters-have-separate-jobs/p9": {
+    "rows": [
+      "git.filter.gitignore",
+      "git.filter.aiderignore",
+      "git.filter.subtree",
+      "git.authorize.skip-gitignored"
+    ]
+  },
+  "git/3-file-filters-have-separate-jobs/p10": {
+    "rows": [
+      "git.filter.gitignore",
+      "git.filter.aiderignore",
+      "git.filter.subtree",
+      "git.authorize.skip-gitignored"
+    ]
+  },
+  "git/4-repository-inventory-becomes-model-context/p1": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.inventory.addable-files",
+      "git.inventory.no-repo-fallback"
+    ]
+  },
+  "git/4-repository-inventory-becomes-model-context/p2": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.inventory.addable-files",
+      "git.inventory.no-repo-fallback"
+    ]
+  },
+  "git/4-repository-inventory-becomes-model-context/p3": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.inventory.addable-files",
+      "git.inventory.no-repo-fallback"
+    ]
+  },
+  "git/4-repository-inventory-becomes-model-context/p4": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.inventory.addable-files",
+      "git.inventory.no-repo-fallback"
+    ]
+  },
+  "git/4-repository-inventory-becomes-model-context/p5": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.inventory.addable-files",
+      "git.inventory.no-repo-fallback"
+    ]
+  },
+  "git/5-edit-formats-share-commit-orchestration/p1": {
+    "rows": [
+      "git.dirty.checkpoint-before-edit",
+      "git.commit.auto-after-edit",
+      "git.authorize.stage-new-file",
+      "git.architect.return-editor-commits"
+    ]
+  },
+  "git/5-edit-formats-share-commit-orchestration/p2": {
+    "rows": [
+      "git.dirty.checkpoint-before-edit",
+      "git.commit.auto-after-edit",
+      "git.authorize.stage-new-file",
+      "git.architect.return-editor-commits"
+    ]
+  },
+  "git/5-edit-formats-share-commit-orchestration/p3": {
+    "rows": [
+      "git.dirty.checkpoint-before-edit",
+      "git.commit.auto-after-edit",
+      "git.authorize.stage-new-file",
+      "git.architect.return-editor-commits"
+    ]
+  },
+  "git/5-edit-formats-share-commit-orchestration/p4": {
+    "rows": [
+      "git.dirty.checkpoint-before-edit",
+      "git.commit.auto-after-edit",
+      "git.authorize.stage-new-file",
+      "git.architect.return-editor-commits"
+    ]
+  },
+  "git/5-edit-formats-share-commit-orchestration/p5": {
+    "rows": [
+      "git.dirty.checkpoint-before-edit",
+      "git.commit.auto-after-edit",
+      "git.authorize.stage-new-file",
+      "git.architect.return-editor-commits"
+    ]
+  },
+  "git/6-dirty-checkpoints-precede-assistant-writes/p1": {
+    "rows": [
+      "git.dirty.checkpoint-before-edit",
+      "git.dirty.off-without-auto-commits",
+      "git.authorize.skip-gitignored"
+    ]
+  },
+  "git/6-dirty-checkpoints-precede-assistant-writes/p2": {
+    "rows": [
+      "git.dirty.checkpoint-before-edit",
+      "git.dirty.off-without-auto-commits",
+      "git.authorize.skip-gitignored"
+    ]
+  },
+  "git/6-dirty-checkpoints-precede-assistant-writes/p3": {
+    "rows": [
+      "git.dirty.checkpoint-before-edit",
+      "git.dirty.off-without-auto-commits",
+      "git.authorize.skip-gitignored"
+    ]
+  },
+  "git/6-dirty-checkpoints-precede-assistant-writes/p4": {
+    "rows": [
+      "git.dirty.checkpoint-before-edit",
+      "git.dirty.off-without-auto-commits",
+      "git.authorize.skip-gitignored"
+    ]
+  },
+  "git/6-dirty-checkpoints-precede-assistant-writes/p5": {
+    "rows": [
+      "git.dirty.checkpoint-before-edit",
+      "git.dirty.off-without-auto-commits",
+      "git.authorize.skip-gitignored"
+    ]
+  },
+  "git/6-dirty-checkpoints-precede-assistant-writes/m6": {
+    "rows": [
+      "git.dirty.checkpoint-before-edit",
+      "git.dirty.off-without-auto-commits",
+      "git.authorize.skip-gitignored"
+    ]
+  },
+  "git/6-dirty-checkpoints-precede-assistant-writes/p7": {
+    "rows": [
+      "git.dirty.checkpoint-before-edit",
+      "git.dirty.off-without-auto-commits",
+      "git.authorize.skip-gitignored"
+    ]
+  },
+  "git/7-automatic-commits-and-validation-are-separate/p1": {
+    "rows": [
+      "git.commit.auto-after-edit",
+      "git.dirty.off-without-auto-commits",
+      "git.commit.stage-whole-files"
+    ]
+  },
+  "git/7-automatic-commits-and-validation-are-separate/p2": {
+    "rows": [
+      "git.commit.auto-after-edit",
+      "git.dirty.off-without-auto-commits",
+      "git.commit.stage-whole-files"
+    ]
+  },
+  "git/7-automatic-commits-and-validation-are-separate/p3": {
+    "rows": [
+      "git.commit.auto-after-edit",
+      "git.dirty.off-without-auto-commits",
+      "git.commit.stage-whole-files"
+    ]
+  },
+  "git/7-automatic-commits-and-validation-are-separate/p4": {
+    "rows": [
+      "git.commit.auto-after-edit",
+      "git.dirty.off-without-auto-commits",
+      "git.commit.stage-whole-files"
+    ]
+  },
+  "git/7-automatic-commits-and-validation-are-separate/p5": {
+    "rows": [
+      "git.commit.auto-after-edit",
+      "git.dirty.off-without-auto-commits",
+      "git.commit.stage-whole-files"
+    ]
+  },
+  "git/8-commit-execution-selects-whole-files/p1": {
+    "rows": [
+      "git.commit.stage-whole-files",
+      "git.commit.noop-when-clean",
+      "git.commit.message-context",
+      "git.commit.selected-files-only",
+      "git.commit.verify-flag"
+    ]
+  },
+  "git/8-commit-execution-selects-whole-files/p2": {
+    "rows": [
+      "git.commit.stage-whole-files",
+      "git.commit.noop-when-clean",
+      "git.commit.message-context",
+      "git.commit.selected-files-only",
+      "git.commit.verify-flag"
+    ]
+  },
+  "git/8-commit-execution-selects-whole-files/p3": {
+    "rows": [
+      "git.commit.stage-whole-files",
+      "git.commit.noop-when-clean",
+      "git.commit.message-context",
+      "git.commit.selected-files-only",
+      "git.commit.verify-flag"
+    ]
+  },
+  "git/8-commit-execution-selects-whole-files/p4": {
+    "rows": [
+      "git.commit.stage-whole-files",
+      "git.commit.noop-when-clean",
+      "git.commit.message-context",
+      "git.commit.selected-files-only",
+      "git.commit.verify-flag"
+    ]
+  },
+  "git/8-commit-execution-selects-whole-files/p5": {
+    "rows": [
+      "git.commit.stage-whole-files",
+      "git.commit.noop-when-clean",
+      "git.commit.message-context",
+      "git.commit.selected-files-only",
+      "git.commit.verify-flag"
+    ]
+  },
+  "git/8-commit-execution-selects-whole-files/p6": {
+    "rows": [
+      "git.commit.stage-whole-files",
+      "git.commit.noop-when-clean",
+      "git.commit.message-context",
+      "git.commit.selected-files-only",
+      "git.commit.verify-flag"
+    ]
+  },
+  "git/9-diffs-for-messages-are-not-always-a-single-patch/p1": {
+    "rows": [
+      "git.diff.for-commit-message",
+      "git.diff.detached-and-unborn",
+      "git.commit.message-context"
+    ]
+  },
+  "git/9-diffs-for-messages-are-not-always-a-single-patch/p2": {
+    "rows": [
+      "git.diff.for-commit-message",
+      "git.diff.detached-and-unborn",
+      "git.commit.message-context"
+    ]
+  },
+  "git/9-diffs-for-messages-are-not-always-a-single-patch/p3": {
+    "rows": [
+      "git.diff.for-commit-message",
+      "git.diff.detached-and-unborn",
+      "git.commit.message-context"
+    ]
+  },
+  "git/9-diffs-for-messages-are-not-always-a-single-patch/p4": {
+    "rows": [
+      "git.diff.for-commit-message",
+      "git.diff.detached-and-unborn",
+      "git.commit.message-context"
+    ]
+  },
+  "git/9-diffs-for-messages-are-not-always-a-single-patch/p5": {
+    "rows": [
+      "git.diff.for-commit-message",
+      "git.diff.detached-and-unborn",
+      "git.commit.message-context"
+    ]
+  },
+  "git/10-commit-messages-cross-the-model-boundary/p1": {
+    "rows": [
+      "git.commit.message-context",
+      "git.commit.message-language"
+    ]
+  },
+  "git/10-commit-messages-cross-the-model-boundary/p2": {
+    "rows": [
+      "git.commit.message-context",
+      "git.commit.message-language"
+    ]
+  },
+  "git/10-commit-messages-cross-the-model-boundary/p3": {
+    "rows": [
+      "git.commit.message-context",
+      "git.commit.message-language"
+    ]
+  },
+  "git/10-commit-messages-cross-the-model-boundary/p4": {
+    "rows": [
+      "git.commit.message-context",
+      "git.commit.message-language"
+    ]
+  },
+  "git/10-commit-messages-cross-the-model-boundary/p5": {
+    "rows": [
+      "git.commit.message-context",
+      "git.commit.message-language"
+    ]
+  },
+  "git/10-commit-messages-cross-the-model-boundary/p6": {
+    "rows": [
+      "git.commit.message-context",
+      "git.commit.message-language"
+    ]
+  },
+  "git/10-commit-messages-cross-the-model-boundary/p7": {
+    "rows": [
+      "git.commit.message-context",
+      "git.commit.message-language"
+    ]
+  },
+  "git/11-attribution-has-cli-and-library-defaults/p1": {
+    "rows": [
+      "git.commit.attribution"
+    ]
+  },
+  "git/11-attribution-has-cli-and-library-defaults/r2": {
+    "rows": [
+      "git.commit.attribution"
+    ]
+  },
+  "git/11-attribution-has-cli-and-library-defaults/r3": {
+    "rows": [
+      "git.commit.attribution"
+    ]
+  },
+  "git/11-attribution-has-cli-and-library-defaults/r4": {
+    "rows": [
+      "git.commit.attribution"
+    ]
+  },
+  "git/11-attribution-has-cli-and-library-defaults/r5": {
+    "rows": [
+      "git.commit.attribution"
+    ]
+  },
+  "git/11-attribution-has-cli-and-library-defaults/r6": {
+    "rows": [
+      "git.commit.attribution"
+    ]
+  },
+  "git/11-attribution-has-cli-and-library-defaults/p7": {
+    "rows": [
+      "git.commit.attribution"
+    ]
+  },
+  "git/11-attribution-has-cli-and-library-defaults/p8": {
+    "rows": [
+      "git.commit.attribution"
+    ]
+  },
+  "git/11-attribution-has-cli-and-library-defaults/r9": {
+    "rows": [
+      "git.commit.attribution"
+    ]
+  },
+  "git/11-attribution-has-cli-and-library-defaults/r10": {
+    "rows": [
+      "git.commit.attribution"
+    ]
+  },
+  "git/11-attribution-has-cli-and-library-defaults/r11": {
+    "rows": [
+      "git.commit.attribution"
+    ]
+  },
+  "git/11-attribution-has-cli-and-library-defaults/r12": {
+    "rows": [
+      "git.commit.attribution"
+    ]
+  },
+  "git/11-attribution-has-cli-and-library-defaults/r13": {
+    "rows": [
+      "git.commit.attribution"
+    ]
+  },
+  "git/11-attribution-has-cli-and-library-defaults/p14": {
+    "rows": [
+      "git.commit.attribution"
+    ]
+  },
+  "git/11-attribution-has-cli-and-library-defaults/p15": {
+    "rows": [
+      "git.commit.attribution"
+    ]
+  },
+  "git/12-diff-display-has-two-execution-paths/p1": {
+    "rows": [
+      "git.diff.cmd-display"
+    ]
+  },
+  "git/12-diff-display-has-two-execution-paths/p2": {
+    "rows": [
+      "git.diff.cmd-display"
+    ]
+  },
+  "git/12-diff-display-has-two-execution-paths/p3": {
+    "rows": [
+      "git.diff.cmd-display"
+    ]
+  },
+  "git/12-diff-display-has-two-execution-paths/p4": {
+    "rows": [
+      "git.diff.cmd-display"
+    ]
+  },
+  "git/13-undo-is-a-guarded-local-history-rewrite/p1": {
+    "rows": [
+      "git.undo.preconditions",
+      "git.undo.restore-and-reset"
+    ]
+  },
+  "git/13-undo-is-a-guarded-local-history-rewrite/i2": {
+    "rows": [
+      "git.undo.preconditions",
+      "git.undo.restore-and-reset"
+    ]
+  },
+  "git/13-undo-is-a-guarded-local-history-rewrite/i3": {
+    "rows": [
+      "git.undo.preconditions",
+      "git.undo.restore-and-reset"
+    ]
+  },
+  "git/13-undo-is-a-guarded-local-history-rewrite/i4": {
+    "rows": [
+      "git.undo.preconditions",
+      "git.undo.restore-and-reset"
+    ]
+  },
+  "git/13-undo-is-a-guarded-local-history-rewrite/i5": {
+    "rows": [
+      "git.undo.preconditions",
+      "git.undo.restore-and-reset"
+    ]
+  },
+  "git/13-undo-is-a-guarded-local-history-rewrite/i6": {
+    "rows": [
+      "git.undo.preconditions",
+      "git.undo.restore-and-reset"
+    ]
+  },
+  "git/13-undo-is-a-guarded-local-history-rewrite/i7": {
+    "rows": [
+      "git.undo.preconditions",
+      "git.undo.restore-and-reset"
+    ]
+  },
+  "git/13-undo-is-a-guarded-local-history-rewrite/p8": {
+    "rows": [
+      "git.undo.preconditions",
+      "git.undo.restore-and-reset"
+    ]
+  },
+  "git/13-undo-is-a-guarded-local-history-rewrite/p9": {
+    "rows": [
+      "git.undo.preconditions",
+      "git.undo.restore-and-reset"
+    ]
+  },
+  "git/13-undo-is-a-guarded-local-history-rewrite/m10": {
+    "rows": [
+      "git.undo.preconditions",
+      "git.undo.restore-and-reset"
+    ]
+  },
+  "git/13-undo-is-a-guarded-local-history-rewrite/p11": {
+    "rows": [
+      "git.undo.preconditions",
+      "git.undo.restore-and-reset"
+    ]
+  },
+  "git/13-undo-is-a-guarded-local-history-rewrite/p12": {
+    "rows": [
+      "git.undo.preconditions",
+      "git.undo.restore-and-reset"
+    ]
+  },
+  "git/13-undo-is-a-guarded-local-history-rewrite/p13": {
+    "rows": [
+      "git.undo.preconditions",
+      "git.undo.restore-and-reset"
+    ]
+  },
+  "git/13-undo-is-a-guarded-local-history-rewrite/p14": {
+    "rows": [
+      "git.undo.preconditions",
+      "git.undo.restore-and-reset"
+    ]
+  },
+  "git/14-manual-git-is-a-different-trust-boundary/p1": {
+    "rows": [
+      "git.commands.raw-git",
+      "git.security.path-trust"
+    ]
+  },
+  "git/14-manual-git-is-a-different-trust-boundary/p2": {
+    "rows": [
+      "git.commands.raw-git",
+      "git.security.path-trust"
+    ]
+  },
+  "git/14-manual-git-is-a-different-trust-boundary/p3": {
+    "rows": [
+      "git.commands.raw-git",
+      "git.security.path-trust"
+    ]
+  },
+  "git/14-manual-git-is-a-different-trust-boundary/p4": {
+    "rows": [
+      "git.commands.raw-git",
+      "git.security.path-trust"
+    ]
+  },
+  "git/source-registry-and-ownership/p1": {
+    "nonclaim": "provenance",
+    "note": "source path registry at the pinned commit"
+  },
+  "git/source-registry-and-ownership/r2": {
+    "nonclaim": "provenance",
+    "note": "source path registry at the pinned commit"
+  },
+  "git/source-registry-and-ownership/r3": {
+    "nonclaim": "provenance",
+    "note": "source path registry at the pinned commit"
+  },
+  "git/source-registry-and-ownership/r4": {
+    "nonclaim": "provenance",
+    "note": "source path registry at the pinned commit"
+  },
+  "git/source-registry-and-ownership/r5": {
+    "nonclaim": "provenance",
+    "note": "source path registry at the pinned commit"
+  },
+  "git/source-registry-and-ownership/r6": {
+    "nonclaim": "provenance",
+    "note": "source path registry at the pinned commit"
+  },
+  "git/source-registry-and-ownership/r7": {
+    "nonclaim": "provenance",
+    "note": "source path registry at the pinned commit"
+  },
+  "git/source-registry-and-ownership/r8": {
+    "nonclaim": "provenance",
+    "note": "source path registry at the pinned commit"
+  },
+  "git/source-registry-and-ownership/r9": {
+    "nonclaim": "provenance",
+    "note": "source path registry at the pinned commit"
+  },
+  "git/source-registry-and-ownership/r10": {
+    "nonclaim": "provenance",
+    "note": "source path registry at the pinned commit"
+  },
+  "git/source-registry-and-ownership/r11": {
+    "nonclaim": "provenance",
+    "note": "source path registry at the pinned commit"
+  },
+  "git/source-registry-and-ownership/r12": {
+    "nonclaim": "provenance",
+    "note": "source path registry at the pinned commit"
+  },
+  "git/source-registry-and-ownership/r13": {
+    "nonclaim": "provenance",
+    "note": "source path registry at the pinned commit"
+  },
+  "git/source-registry-and-ownership/r14": {
+    "nonclaim": "provenance",
+    "note": "source path registry at the pinned commit"
+  },
+  "git/source-registry-and-ownership/r15": {
+    "nonclaim": "provenance",
+    "note": "source path registry at the pinned commit"
+  },
+  "git/source-registry-and-ownership/r16": {
+    "nonclaim": "provenance",
+    "note": "source path registry at the pinned commit"
+  },
+  "git/source-registry-and-ownership/r17": {
+    "nonclaim": "provenance",
+    "note": "source path registry at the pinned commit"
+  },
+  "git/source-registry-and-ownership/r18": {
+    "nonclaim": "provenance",
+    "note": "source path registry at the pinned commit"
+  },
+  "git/source-registry-and-ownership/r19": {
+    "nonclaim": "provenance",
+    "note": "source path registry at the pinned commit"
+  },
+  "git/source-registry-and-ownership/r20": {
+    "nonclaim": "provenance",
+    "note": "source path registry at the pinned commit"
+  },
+  "git/source-registry-and-ownership/r21": {
+    "nonclaim": "provenance",
+    "note": "source path registry at the pinned commit"
+  },
+  "git/source-registry-and-ownership/r22": {
+    "nonclaim": "provenance",
+    "note": "source path registry at the pinned commit"
+  },
+  "git/source-registry-and-ownership/r23": {
+    "nonclaim": "provenance",
+    "note": "source path registry at the pinned commit"
+  },
+  "git/gitrepo-method-contracts/r1": {
+    "rows": [
+      "git.repo.open-single-root",
+      "git.commit.stage-whole-files",
+      "git.commit.message-context",
+      "git.diff.for-commit-message",
+      "git.inventory.tracked-files",
+      "git.dirty.path-semantics",
+      "git.filter.gitignore",
+      "git.commit.attribution",
+      "git.commit.verify-flag"
+    ]
+  },
+  "git/gitrepo-method-contracts/r2": {
+    "rows": [
+      "git.repo.open-single-root",
+      "git.commit.stage-whole-files",
+      "git.commit.message-context",
+      "git.diff.for-commit-message",
+      "git.inventory.tracked-files",
+      "git.dirty.path-semantics",
+      "git.filter.gitignore",
+      "git.commit.attribution",
+      "git.commit.verify-flag"
+    ]
+  },
+  "git/gitrepo-method-contracts/r3": {
+    "rows": [
+      "git.repo.open-single-root",
+      "git.commit.stage-whole-files",
+      "git.commit.message-context",
+      "git.diff.for-commit-message",
+      "git.inventory.tracked-files",
+      "git.dirty.path-semantics",
+      "git.filter.gitignore",
+      "git.commit.attribution",
+      "git.commit.verify-flag"
+    ]
+  },
+  "git/gitrepo-method-contracts/r4": {
+    "rows": [
+      "git.repo.open-single-root",
+      "git.commit.stage-whole-files",
+      "git.commit.message-context",
+      "git.diff.for-commit-message",
+      "git.inventory.tracked-files",
+      "git.dirty.path-semantics",
+      "git.filter.gitignore",
+      "git.commit.attribution",
+      "git.commit.verify-flag"
+    ]
+  },
+  "git/gitrepo-method-contracts/r5": {
+    "rows": [
+      "git.repo.open-single-root",
+      "git.commit.stage-whole-files",
+      "git.commit.message-context",
+      "git.diff.for-commit-message",
+      "git.inventory.tracked-files",
+      "git.dirty.path-semantics",
+      "git.filter.gitignore",
+      "git.commit.attribution",
+      "git.commit.verify-flag"
+    ]
+  },
+  "git/gitrepo-method-contracts/r6": {
+    "rows": [
+      "git.repo.open-single-root",
+      "git.commit.stage-whole-files",
+      "git.commit.message-context",
+      "git.diff.for-commit-message",
+      "git.inventory.tracked-files",
+      "git.dirty.path-semantics",
+      "git.filter.gitignore",
+      "git.commit.attribution",
+      "git.commit.verify-flag"
+    ]
+  },
+  "git/gitrepo-method-contracts/r7": {
+    "rows": [
+      "git.repo.open-single-root",
+      "git.commit.stage-whole-files",
+      "git.commit.message-context",
+      "git.diff.for-commit-message",
+      "git.inventory.tracked-files",
+      "git.dirty.path-semantics",
+      "git.filter.gitignore",
+      "git.commit.attribution",
+      "git.commit.verify-flag"
+    ]
+  },
+  "git/gitrepo-method-contracts/r8": {
+    "rows": [
+      "git.repo.open-single-root",
+      "git.commit.stage-whole-files",
+      "git.commit.message-context",
+      "git.diff.for-commit-message",
+      "git.inventory.tracked-files",
+      "git.dirty.path-semantics",
+      "git.filter.gitignore",
+      "git.commit.attribution",
+      "git.commit.verify-flag"
+    ]
+  },
+  "git/gitrepo-method-contracts/r9": {
+    "rows": [
+      "git.repo.open-single-root",
+      "git.commit.stage-whole-files",
+      "git.commit.message-context",
+      "git.diff.for-commit-message",
+      "git.inventory.tracked-files",
+      "git.dirty.path-semantics",
+      "git.filter.gitignore",
+      "git.commit.attribution",
+      "git.commit.verify-flag"
+    ]
+  },
+  "git/gitrepo-method-contracts/r10": {
+    "rows": [
+      "git.repo.open-single-root",
+      "git.commit.stage-whole-files",
+      "git.commit.message-context",
+      "git.diff.for-commit-message",
+      "git.inventory.tracked-files",
+      "git.dirty.path-semantics",
+      "git.filter.gitignore",
+      "git.commit.attribution",
+      "git.commit.verify-flag"
+    ]
+  },
+  "git/gitrepo-method-contracts/r11": {
+    "rows": [
+      "git.repo.open-single-root",
+      "git.commit.stage-whole-files",
+      "git.commit.message-context",
+      "git.diff.for-commit-message",
+      "git.inventory.tracked-files",
+      "git.dirty.path-semantics",
+      "git.filter.gitignore",
+      "git.commit.attribution",
+      "git.commit.verify-flag"
+    ]
+  },
+  "git/gitrepo-method-contracts/r12": {
+    "rows": [
+      "git.repo.open-single-root",
+      "git.commit.stage-whole-files",
+      "git.commit.message-context",
+      "git.diff.for-commit-message",
+      "git.inventory.tracked-files",
+      "git.dirty.path-semantics",
+      "git.filter.gitignore",
+      "git.commit.attribution",
+      "git.commit.verify-flag"
+    ]
+  },
+  "git/gitrepo-method-contracts/r13": {
+    "rows": [
+      "git.repo.open-single-root",
+      "git.commit.stage-whole-files",
+      "git.commit.message-context",
+      "git.diff.for-commit-message",
+      "git.inventory.tracked-files",
+      "git.dirty.path-semantics",
+      "git.filter.gitignore",
+      "git.commit.attribution",
+      "git.commit.verify-flag"
+    ]
+  },
+  "git/gitrepo-method-contracts/r14": {
+    "rows": [
+      "git.repo.open-single-root",
+      "git.commit.stage-whole-files",
+      "git.commit.message-context",
+      "git.diff.for-commit-message",
+      "git.inventory.tracked-files",
+      "git.dirty.path-semantics",
+      "git.filter.gitignore",
+      "git.commit.attribution",
+      "git.commit.verify-flag"
+    ]
+  },
+  "git/gitrepo-method-contracts/r15": {
+    "rows": [
+      "git.repo.open-single-root",
+      "git.commit.stage-whole-files",
+      "git.commit.message-context",
+      "git.diff.for-commit-message",
+      "git.inventory.tracked-files",
+      "git.dirty.path-semantics",
+      "git.filter.gitignore",
+      "git.commit.attribution",
+      "git.commit.verify-flag"
+    ]
+  },
+  "git/gitrepo-method-contracts/r16": {
+    "rows": [
+      "git.repo.open-single-root",
+      "git.commit.stage-whole-files",
+      "git.commit.message-context",
+      "git.diff.for-commit-message",
+      "git.inventory.tracked-files",
+      "git.dirty.path-semantics",
+      "git.filter.gitignore",
+      "git.commit.attribution",
+      "git.commit.verify-flag"
+    ]
+  },
+  "git/gitrepo-method-contracts/r17": {
+    "rows": [
+      "git.repo.open-single-root",
+      "git.commit.stage-whole-files",
+      "git.commit.message-context",
+      "git.diff.for-commit-message",
+      "git.inventory.tracked-files",
+      "git.dirty.path-semantics",
+      "git.filter.gitignore",
+      "git.commit.attribution",
+      "git.commit.verify-flag"
+    ]
+  },
+  "git/gitrepo-method-contracts/r18": {
+    "rows": [
+      "git.repo.open-single-root",
+      "git.commit.stage-whole-files",
+      "git.commit.message-context",
+      "git.diff.for-commit-message",
+      "git.inventory.tracked-files",
+      "git.dirty.path-semantics",
+      "git.filter.gitignore",
+      "git.commit.attribution",
+      "git.commit.verify-flag"
+    ]
+  },
+  "git/gitrepo-method-contracts/r19": {
+    "rows": [
+      "git.repo.open-single-root",
+      "git.commit.stage-whole-files",
+      "git.commit.message-context",
+      "git.diff.for-commit-message",
+      "git.inventory.tracked-files",
+      "git.dirty.path-semantics",
+      "git.filter.gitignore",
+      "git.commit.attribution",
+      "git.commit.verify-flag"
+    ]
+  },
+  "git/gitrepo-method-contracts/p20": {
+    "rows": [
+      "git.repo.open-single-root",
+      "git.commit.stage-whole-files",
+      "git.commit.message-context",
+      "git.diff.for-commit-message",
+      "git.inventory.tracked-files",
+      "git.dirty.path-semantics",
+      "git.filter.gitignore",
+      "git.commit.attribution",
+      "git.commit.verify-flag"
+    ]
+  },
+  "git/direct-and-transitive-dependency-responsibilities/p1": {
+    "nonclaim": "evidence",
+    "note": "dependency path prefix for the verification venv"
+  },
+  "git/direct-and-transitive-dependency-responsibilities/r2": {
+    "rows": [
+      "git.repo.open-single-root",
+      "git.inventory.tracked-files",
+      "git.filter.gitignore",
+      "git.commit.stage-whole-files",
+      "git.diff.for-commit-message",
+      "git.repo.unavailable"
+    ]
+  },
+  "git/direct-and-transitive-dependency-responsibilities/r3": {
+    "rows": [
+      "git.repo.open-single-root",
+      "git.inventory.tracked-files",
+      "git.filter.gitignore",
+      "git.commit.stage-whole-files",
+      "git.diff.for-commit-message",
+      "git.repo.unavailable"
+    ]
+  },
+  "git/direct-and-transitive-dependency-responsibilities/r4": {
+    "rows": [
+      "git.repo.open-single-root",
+      "git.inventory.tracked-files",
+      "git.filter.gitignore",
+      "git.commit.stage-whole-files",
+      "git.diff.for-commit-message",
+      "git.repo.unavailable"
+    ]
+  },
+  "git/direct-and-transitive-dependency-responsibilities/r5": {
+    "rows": [
+      "git.repo.open-single-root",
+      "git.inventory.tracked-files",
+      "git.filter.gitignore",
+      "git.commit.stage-whole-files",
+      "git.diff.for-commit-message",
+      "git.repo.unavailable"
+    ]
+  },
+  "git/direct-and-transitive-dependency-responsibilities/r6": {
+    "rows": [
+      "git.repo.open-single-root",
+      "git.inventory.tracked-files",
+      "git.filter.gitignore",
+      "git.commit.stage-whole-files",
+      "git.diff.for-commit-message",
+      "git.repo.unavailable"
+    ]
+  },
+  "git/direct-and-transitive-dependency-responsibilities/r7": {
+    "rows": [
+      "git.repo.open-single-root",
+      "git.inventory.tracked-files",
+      "git.filter.gitignore",
+      "git.commit.stage-whole-files",
+      "git.diff.for-commit-message",
+      "git.repo.unavailable"
+    ]
+  },
+  "git/direct-and-transitive-dependency-responsibilities/r8": {
+    "rows": [
+      "git.repo.open-single-root",
+      "git.inventory.tracked-files",
+      "git.filter.gitignore",
+      "git.commit.stage-whole-files",
+      "git.diff.for-commit-message",
+      "git.repo.unavailable"
+    ]
+  },
+  "git/direct-and-transitive-dependency-responsibilities/r9": {
+    "rows": [
+      "git.repo.open-single-root",
+      "git.inventory.tracked-files",
+      "git.filter.gitignore",
+      "git.commit.stage-whole-files",
+      "git.diff.for-commit-message",
+      "git.repo.unavailable"
+    ]
+  },
+  "git/direct-and-transitive-dependency-responsibilities/r10": {
+    "rows": [
+      "git.repo.open-single-root",
+      "git.inventory.tracked-files",
+      "git.filter.gitignore",
+      "git.commit.stage-whole-files",
+      "git.diff.for-commit-message",
+      "git.repo.unavailable"
+    ]
+  },
+  "git/direct-and-transitive-dependency-responsibilities/r11": {
+    "rows": [
+      "git.repo.open-single-root",
+      "git.inventory.tracked-files",
+      "git.filter.gitignore",
+      "git.commit.stage-whole-files",
+      "git.diff.for-commit-message",
+      "git.repo.unavailable"
+    ]
+  },
+  "git/direct-and-transitive-dependency-responsibilities/r12": {
+    "rows": [
+      "git.repo.open-single-root",
+      "git.inventory.tracked-files",
+      "git.filter.gitignore",
+      "git.commit.stage-whole-files",
+      "git.diff.for-commit-message",
+      "git.repo.unavailable"
+    ]
+  },
+  "git/direct-and-transitive-dependency-responsibilities/r13": {
+    "rows": [
+      "git.repo.open-single-root",
+      "git.inventory.tracked-files",
+      "git.filter.gitignore",
+      "git.commit.stage-whole-files",
+      "git.diff.for-commit-message",
+      "git.repo.unavailable"
+    ]
+  },
+  "git/direct-and-transitive-dependency-responsibilities/r14": {
+    "rows": [
+      "git.repo.open-single-root",
+      "git.inventory.tracked-files",
+      "git.filter.gitignore",
+      "git.commit.stage-whole-files",
+      "git.diff.for-commit-message",
+      "git.repo.unavailable"
+    ]
+  },
+  "git/direct-and-transitive-dependency-responsibilities/r15": {
+    "rows": [
+      "git.repo.open-single-root",
+      "git.inventory.tracked-files",
+      "git.filter.gitignore",
+      "git.commit.stage-whole-files",
+      "git.diff.for-commit-message",
+      "git.repo.unavailable"
+    ]
+  },
+  "git/direct-and-transitive-dependency-responsibilities/r16": {
+    "rows": [
+      "git.repo.open-single-root",
+      "git.inventory.tracked-files",
+      "git.filter.gitignore",
+      "git.commit.stage-whole-files",
+      "git.diff.for-commit-message",
+      "git.repo.unavailable"
+    ]
+  },
+  "git/direct-and-transitive-dependency-responsibilities/r17": {
+    "rows": [
+      "git.repo.open-single-root",
+      "git.inventory.tracked-files",
+      "git.filter.gitignore",
+      "git.commit.stage-whole-files",
+      "git.diff.for-commit-message",
+      "git.repo.unavailable"
+    ]
+  },
+  "git/direct-and-transitive-dependency-responsibilities/r18": {
+    "rows": [
+      "git.repo.open-single-root",
+      "git.inventory.tracked-files",
+      "git.filter.gitignore",
+      "git.commit.stage-whole-files",
+      "git.diff.for-commit-message",
+      "git.repo.unavailable"
+    ]
+  },
+  "git/direct-and-transitive-dependency-responsibilities/r19": {
+    "rows": [
+      "git.repo.open-single-root",
+      "git.inventory.tracked-files",
+      "git.filter.gitignore",
+      "git.commit.stage-whole-files",
+      "git.diff.for-commit-message",
+      "git.repo.unavailable"
+    ]
+  },
+  "git/direct-and-transitive-dependency-responsibilities/r20": {
+    "rows": [
+      "git.repo.open-single-root",
+      "git.inventory.tracked-files",
+      "git.filter.gitignore",
+      "git.commit.stage-whole-files",
+      "git.diff.for-commit-message",
+      "git.repo.unavailable"
+    ]
+  },
+  "git/direct-and-transitive-dependency-responsibilities/r21": {
+    "rows": [
+      "git.repo.open-single-root",
+      "git.inventory.tracked-files",
+      "git.filter.gitignore",
+      "git.commit.stage-whole-files",
+      "git.diff.for-commit-message",
+      "git.repo.unavailable"
+    ]
+  },
+  "git/direct-and-transitive-dependency-responsibilities/r22": {
+    "rows": [
+      "git.repo.open-single-root",
+      "git.inventory.tracked-files",
+      "git.filter.gitignore",
+      "git.commit.stage-whole-files",
+      "git.diff.for-commit-message",
+      "git.repo.unavailable"
+    ]
+  },
+  "git/direct-and-transitive-dependency-responsibilities/r23": {
+    "rows": [
+      "git.repo.open-single-root",
+      "git.inventory.tracked-files",
+      "git.filter.gitignore",
+      "git.commit.stage-whole-files",
+      "git.diff.for-commit-message",
+      "git.repo.unavailable"
+    ]
+  },
+  "git/direct-and-transitive-dependency-responsibilities/p24": {
+    "rows": [
+      "git.repo.open-single-root",
+      "git.inventory.tracked-files",
+      "git.filter.gitignore",
+      "git.commit.stage-whole-files",
+      "git.diff.for-commit-message",
+      "git.repo.unavailable"
+    ]
+  },
+  "git/direct-and-transitive-dependency-responsibilities/p25": {
+    "rows": [
+      "git.repo.open-single-root",
+      "git.inventory.tracked-files",
+      "git.filter.gitignore",
+      "git.commit.stage-whole-files",
+      "git.diff.for-commit-message",
+      "git.repo.unavailable"
+    ]
+  },
+  "git/direct-and-transitive-dependency-responsibilities/p26": {
+    "rows": [
+      "git.repo.open-single-root",
+      "git.inventory.tracked-files",
+      "git.filter.gitignore",
+      "git.commit.stage-whole-files",
+      "git.diff.for-commit-message",
+      "git.repo.unavailable"
+    ]
+  },
+  "git/direct-and-transitive-dependency-responsibilities/p27": {
+    "rows": [
+      "git.repo.open-single-root",
+      "git.inventory.tracked-files",
+      "git.filter.gitignore",
+      "git.commit.stage-whole-files",
+      "git.diff.for-commit-message",
+      "git.repo.unavailable"
+    ]
+  },
+  "git/operation-inventory/r1": {
+    "rows": [
+      "git.startup.discover-root",
+      "git.startup.setup-repo",
+      "git.inventory.tracked-files",
+      "git.commit.auto-after-edit",
+      "git.undo.restore-and-reset",
+      "git.commands.raw-git",
+      "git.diff.cmd-display"
+    ]
+  },
+  "git/operation-inventory/r2": {
+    "rows": [
+      "git.startup.discover-root",
+      "git.startup.setup-repo",
+      "git.inventory.tracked-files",
+      "git.commit.auto-after-edit",
+      "git.undo.restore-and-reset",
+      "git.commands.raw-git",
+      "git.diff.cmd-display"
+    ]
+  },
+  "git/operation-inventory/r3": {
+    "rows": [
+      "git.startup.discover-root",
+      "git.startup.setup-repo",
+      "git.inventory.tracked-files",
+      "git.commit.auto-after-edit",
+      "git.undo.restore-and-reset",
+      "git.commands.raw-git",
+      "git.diff.cmd-display"
+    ]
+  },
+  "git/operation-inventory/r4": {
+    "rows": [
+      "git.startup.discover-root",
+      "git.startup.setup-repo",
+      "git.inventory.tracked-files",
+      "git.commit.auto-after-edit",
+      "git.undo.restore-and-reset",
+      "git.commands.raw-git",
+      "git.diff.cmd-display"
+    ]
+  },
+  "git/operation-inventory/r5": {
+    "rows": [
+      "git.startup.discover-root",
+      "git.startup.setup-repo",
+      "git.inventory.tracked-files",
+      "git.commit.auto-after-edit",
+      "git.undo.restore-and-reset",
+      "git.commands.raw-git",
+      "git.diff.cmd-display"
+    ]
+  },
+  "git/operation-inventory/r6": {
+    "rows": [
+      "git.startup.discover-root",
+      "git.startup.setup-repo",
+      "git.inventory.tracked-files",
+      "git.commit.auto-after-edit",
+      "git.undo.restore-and-reset",
+      "git.commands.raw-git",
+      "git.diff.cmd-display"
+    ]
+  },
+  "git/operation-inventory/r7": {
+    "rows": [
+      "git.startup.discover-root",
+      "git.startup.setup-repo",
+      "git.inventory.tracked-files",
+      "git.commit.auto-after-edit",
+      "git.undo.restore-and-reset",
+      "git.commands.raw-git",
+      "git.diff.cmd-display"
+    ]
+  },
+  "git/operation-inventory/r8": {
+    "rows": [
+      "git.startup.discover-root",
+      "git.startup.setup-repo",
+      "git.inventory.tracked-files",
+      "git.commit.auto-after-edit",
+      "git.undo.restore-and-reset",
+      "git.commands.raw-git",
+      "git.diff.cmd-display"
+    ]
+  },
+  "git/operation-inventory/r9": {
+    "rows": [
+      "git.startup.discover-root",
+      "git.startup.setup-repo",
+      "git.inventory.tracked-files",
+      "git.commit.auto-after-edit",
+      "git.undo.restore-and-reset",
+      "git.commands.raw-git",
+      "git.diff.cmd-display"
+    ]
+  },
+  "git/operation-inventory/r10": {
+    "rows": [
+      "git.startup.discover-root",
+      "git.startup.setup-repo",
+      "git.inventory.tracked-files",
+      "git.commit.auto-after-edit",
+      "git.undo.restore-and-reset",
+      "git.commands.raw-git",
+      "git.diff.cmd-display"
+    ]
+  },
+  "git/operation-inventory/r11": {
+    "rows": [
+      "git.startup.discover-root",
+      "git.startup.setup-repo",
+      "git.inventory.tracked-files",
+      "git.commit.auto-after-edit",
+      "git.undo.restore-and-reset",
+      "git.commands.raw-git",
+      "git.diff.cmd-display"
+    ]
+  },
+  "git/operation-inventory/r12": {
+    "rows": [
+      "git.startup.discover-root",
+      "git.startup.setup-repo",
+      "git.inventory.tracked-files",
+      "git.commit.auto-after-edit",
+      "git.undo.restore-and-reset",
+      "git.commands.raw-git",
+      "git.diff.cmd-display"
+    ]
+  },
+  "git/operation-inventory/r13": {
+    "rows": [
+      "git.startup.discover-root",
+      "git.startup.setup-repo",
+      "git.inventory.tracked-files",
+      "git.commit.auto-after-edit",
+      "git.undo.restore-and-reset",
+      "git.commands.raw-git",
+      "git.diff.cmd-display"
+    ]
+  },
+  "git/operation-inventory/r14": {
+    "rows": [
+      "git.startup.discover-root",
+      "git.startup.setup-repo",
+      "git.inventory.tracked-files",
+      "git.commit.auto-after-edit",
+      "git.undo.restore-and-reset",
+      "git.commands.raw-git",
+      "git.diff.cmd-display"
+    ]
+  },
+  "git/operation-inventory/p15": {
+    "rows": [
+      "git.startup.discover-root",
+      "git.startup.setup-repo",
+      "git.inventory.tracked-files",
+      "git.commit.auto-after-edit",
+      "git.undo.restore-and-reset",
+      "git.commands.raw-git",
+      "git.diff.cmd-display"
+    ]
+  },
+  "git/operation-inventory/p16": {
+    "rows": [
+      "git.startup.discover-root",
+      "git.startup.setup-repo",
+      "git.inventory.tracked-files",
+      "git.commit.auto-after-edit",
+      "git.undo.restore-and-reset",
+      "git.commands.raw-git",
+      "git.diff.cmd-display"
+    ]
+  },
+  "git/operation-inventory/p17": {
+    "rows": [
+      "git.startup.discover-root",
+      "git.startup.setup-repo",
+      "git.inventory.tracked-files",
+      "git.commit.auto-after-edit",
+      "git.undo.restore-and-reset",
+      "git.commands.raw-git",
+      "git.diff.cmd-display"
+    ]
+  },
+  "git/behavioral-and-documentation-mismatches/r1": {
+    "rows": [
+      "git.commit.attribution",
+      "git.undo.restore-and-reset",
+      "git.dirty.path-semantics",
+      "git.commands.raw-git"
+    ]
+  },
+  "git/behavioral-and-documentation-mismatches/r2": {
+    "rows": [
+      "git.commit.attribution",
+      "git.undo.restore-and-reset",
+      "git.dirty.path-semantics",
+      "git.commands.raw-git"
+    ]
+  },
+  "git/behavioral-and-documentation-mismatches/r3": {
+    "rows": [
+      "git.commit.attribution",
+      "git.undo.restore-and-reset",
+      "git.dirty.path-semantics",
+      "git.commands.raw-git"
+    ]
+  },
+  "git/behavioral-and-documentation-mismatches/r4": {
+    "rows": [
+      "git.commit.attribution",
+      "git.undo.restore-and-reset",
+      "git.dirty.path-semantics",
+      "git.commands.raw-git"
+    ]
+  },
+  "git/behavioral-and-documentation-mismatches/r5": {
+    "rows": [
+      "git.commit.attribution",
+      "git.undo.restore-and-reset",
+      "git.dirty.path-semantics",
+      "git.commands.raw-git"
+    ]
+  },
+  "git/behavioral-and-documentation-mismatches/r6": {
+    "rows": [
+      "git.commit.attribution",
+      "git.undo.restore-and-reset",
+      "git.dirty.path-semantics",
+      "git.commands.raw-git"
+    ]
+  },
+  "git/behavioral-and-documentation-mismatches/r7": {
+    "rows": [
+      "git.commit.attribution",
+      "git.undo.restore-and-reset",
+      "git.dirty.path-semantics",
+      "git.commands.raw-git"
+    ]
+  },
+  "git/behavioral-and-documentation-mismatches/r8": {
+    "rows": [
+      "git.commit.attribution",
+      "git.undo.restore-and-reset",
+      "git.dirty.path-semantics",
+      "git.commands.raw-git"
+    ]
+  },
+  "git/behavioral-and-documentation-mismatches/r9": {
+    "rows": [
+      "git.commit.attribution",
+      "git.undo.restore-and-reset",
+      "git.dirty.path-semantics",
+      "git.commands.raw-git"
+    ]
+  },
+  "git/behavioral-and-documentation-mismatches/r10": {
+    "rows": [
+      "git.commit.attribution",
+      "git.undo.restore-and-reset",
+      "git.dirty.path-semantics",
+      "git.commands.raw-git"
+    ]
+  },
+  "git/behavioral-and-documentation-mismatches/r11": {
+    "rows": [
+      "git.commit.attribution",
+      "git.undo.restore-and-reset",
+      "git.dirty.path-semantics",
+      "git.commands.raw-git"
+    ]
+  },
+  "git/dry-run-is-not-a-global-transaction-guard/p1": {
+    "rows": [
+      "git.dry-run.skips-commits",
+      "git.commit.auto-after-edit"
+    ]
+  },
+  "git/dry-run-is-not-a-global-transaction-guard/p2": {
+    "rows": [
+      "git.dry-run.skips-commits",
+      "git.commit.auto-after-edit"
+    ]
+  },
+  "git/dry-run-is-not-a-global-transaction-guard/p3": {
+    "rows": [
+      "git.dry-run.skips-commits",
+      "git.commit.auto-after-edit"
+    ]
+  },
+  "git/failure-modes-and-recovery-boundaries/r1": {
+    "rows": [
+      "git.repo.unavailable",
+      "git.repo.open-single-root",
+      "git.startup.sanity-check",
+      "git.undo.preconditions",
+      "git.commit.verify-flag",
+      "git.hooks.pre-commit-boundary"
+    ]
+  },
+  "git/failure-modes-and-recovery-boundaries/r2": {
+    "rows": [
+      "git.repo.unavailable",
+      "git.repo.open-single-root",
+      "git.startup.sanity-check",
+      "git.undo.preconditions",
+      "git.commit.verify-flag",
+      "git.hooks.pre-commit-boundary"
+    ]
+  },
+  "git/failure-modes-and-recovery-boundaries/r3": {
+    "rows": [
+      "git.repo.unavailable",
+      "git.repo.open-single-root",
+      "git.startup.sanity-check",
+      "git.undo.preconditions",
+      "git.commit.verify-flag",
+      "git.hooks.pre-commit-boundary"
+    ]
+  },
+  "git/failure-modes-and-recovery-boundaries/r4": {
+    "rows": [
+      "git.repo.unavailable",
+      "git.repo.open-single-root",
+      "git.startup.sanity-check",
+      "git.undo.preconditions",
+      "git.commit.verify-flag",
+      "git.hooks.pre-commit-boundary"
+    ]
+  },
+  "git/failure-modes-and-recovery-boundaries/r5": {
+    "rows": [
+      "git.repo.unavailable",
+      "git.repo.open-single-root",
+      "git.startup.sanity-check",
+      "git.undo.preconditions",
+      "git.commit.verify-flag",
+      "git.hooks.pre-commit-boundary"
+    ]
+  },
+  "git/failure-modes-and-recovery-boundaries/r6": {
+    "rows": [
+      "git.repo.unavailable",
+      "git.repo.open-single-root",
+      "git.startup.sanity-check",
+      "git.undo.preconditions",
+      "git.commit.verify-flag",
+      "git.hooks.pre-commit-boundary"
+    ]
+  },
+  "git/failure-modes-and-recovery-boundaries/r7": {
+    "rows": [
+      "git.repo.unavailable",
+      "git.repo.open-single-root",
+      "git.startup.sanity-check",
+      "git.undo.preconditions",
+      "git.commit.verify-flag",
+      "git.hooks.pre-commit-boundary"
+    ]
+  },
+  "git/failure-modes-and-recovery-boundaries/r8": {
+    "rows": [
+      "git.repo.unavailable",
+      "git.repo.open-single-root",
+      "git.startup.sanity-check",
+      "git.undo.preconditions",
+      "git.commit.verify-flag",
+      "git.hooks.pre-commit-boundary"
+    ]
+  },
+  "git/failure-modes-and-recovery-boundaries/r9": {
+    "rows": [
+      "git.repo.unavailable",
+      "git.repo.open-single-root",
+      "git.startup.sanity-check",
+      "git.undo.preconditions",
+      "git.commit.verify-flag",
+      "git.hooks.pre-commit-boundary"
+    ]
+  },
+  "git/failure-modes-and-recovery-boundaries/r10": {
+    "rows": [
+      "git.repo.unavailable",
+      "git.repo.open-single-root",
+      "git.startup.sanity-check",
+      "git.undo.preconditions",
+      "git.commit.verify-flag",
+      "git.hooks.pre-commit-boundary"
+    ]
+  },
+  "git/failure-modes-and-recovery-boundaries/r11": {
+    "rows": [
+      "git.repo.unavailable",
+      "git.repo.open-single-root",
+      "git.startup.sanity-check",
+      "git.undo.preconditions",
+      "git.commit.verify-flag",
+      "git.hooks.pre-commit-boundary"
+    ]
+  },
+  "git/failure-modes-and-recovery-boundaries/r12": {
+    "rows": [
+      "git.repo.unavailable",
+      "git.repo.open-single-root",
+      "git.startup.sanity-check",
+      "git.undo.preconditions",
+      "git.commit.verify-flag",
+      "git.hooks.pre-commit-boundary"
+    ]
+  },
+  "git/failure-modes-and-recovery-boundaries/r13": {
+    "rows": [
+      "git.repo.unavailable",
+      "git.repo.open-single-root",
+      "git.startup.sanity-check",
+      "git.undo.preconditions",
+      "git.commit.verify-flag",
+      "git.hooks.pre-commit-boundary"
+    ]
+  },
+  "git/failure-modes-and-recovery-boundaries/r14": {
+    "rows": [
+      "git.repo.unavailable",
+      "git.repo.open-single-root",
+      "git.startup.sanity-check",
+      "git.undo.preconditions",
+      "git.commit.verify-flag",
+      "git.hooks.pre-commit-boundary"
+    ]
+  },
+  "git/failure-modes-and-recovery-boundaries/r15": {
+    "rows": [
+      "git.repo.unavailable",
+      "git.repo.open-single-root",
+      "git.startup.sanity-check",
+      "git.undo.preconditions",
+      "git.commit.verify-flag",
+      "git.hooks.pre-commit-boundary"
+    ]
+  },
+  "git/failure-modes-and-recovery-boundaries/r16": {
+    "rows": [
+      "git.repo.unavailable",
+      "git.repo.open-single-root",
+      "git.startup.sanity-check",
+      "git.undo.preconditions",
+      "git.commit.verify-flag",
+      "git.hooks.pre-commit-boundary"
+    ]
+  },
+  "git/failure-modes-and-recovery-boundaries/r17": {
+    "rows": [
+      "git.repo.unavailable",
+      "git.repo.open-single-root",
+      "git.startup.sanity-check",
+      "git.undo.preconditions",
+      "git.commit.verify-flag",
+      "git.hooks.pre-commit-boundary"
+    ]
+  },
+  "git/failure-modes-and-recovery-boundaries/r18": {
+    "rows": [
+      "git.repo.unavailable",
+      "git.repo.open-single-root",
+      "git.startup.sanity-check",
+      "git.undo.preconditions",
+      "git.commit.verify-flag",
+      "git.hooks.pre-commit-boundary"
+    ]
+  },
+  "git/failure-modes-and-recovery-boundaries/p19": {
+    "rows": [
+      "git.repo.unavailable",
+      "git.repo.open-single-root",
+      "git.startup.sanity-check",
+      "git.undo.preconditions",
+      "git.commit.verify-flag",
+      "git.hooks.pre-commit-boundary"
+    ]
+  },
+  "git/failure-modes-and-recovery-boundaries/p20": {
+    "rows": [
+      "git.repo.unavailable",
+      "git.repo.open-single-root",
+      "git.startup.sanity-check",
+      "git.undo.preconditions",
+      "git.commit.verify-flag",
+      "git.hooks.pre-commit-boundary"
+    ]
+  },
+  "git/security-and-trust-boundaries/i1": {
+    "rows": [
+      "git.security.path-trust",
+      "git.commands.add-refuses-outside-root",
+      "git.commands.raw-git",
+      "git.hooks.pre-commit-boundary",
+      "git.filter.gitignore"
+    ]
+  },
+  "git/security-and-trust-boundaries/i2": {
+    "rows": [
+      "git.security.path-trust",
+      "git.commands.add-refuses-outside-root",
+      "git.commands.raw-git",
+      "git.hooks.pre-commit-boundary",
+      "git.filter.gitignore"
+    ]
+  },
+  "git/security-and-trust-boundaries/i3": {
+    "rows": [
+      "git.security.path-trust",
+      "git.commands.add-refuses-outside-root",
+      "git.commands.raw-git",
+      "git.hooks.pre-commit-boundary",
+      "git.filter.gitignore"
+    ]
+  },
+  "git/security-and-trust-boundaries/i4": {
+    "rows": [
+      "git.security.path-trust",
+      "git.commands.add-refuses-outside-root",
+      "git.commands.raw-git",
+      "git.hooks.pre-commit-boundary",
+      "git.filter.gitignore"
+    ]
+  },
+  "git/security-and-trust-boundaries/i5": {
+    "rows": [
+      "git.security.path-trust",
+      "git.commands.add-refuses-outside-root",
+      "git.commands.raw-git",
+      "git.hooks.pre-commit-boundary",
+      "git.filter.gitignore"
+    ]
+  },
+  "git/security-and-trust-boundaries/i6": {
+    "rows": [
+      "git.security.path-trust",
+      "git.commands.add-refuses-outside-root",
+      "git.commands.raw-git",
+      "git.hooks.pre-commit-boundary",
+      "git.filter.gitignore"
+    ]
+  },
+  "git/security-and-trust-boundaries/i7": {
+    "rows": [
+      "git.security.path-trust",
+      "git.commands.add-refuses-outside-root",
+      "git.commands.raw-git",
+      "git.hooks.pre-commit-boundary",
+      "git.filter.gitignore"
+    ]
+  },
+  "git/security-and-trust-boundaries/i8": {
+    "rows": [
+      "git.security.path-trust",
+      "git.commands.add-refuses-outside-root",
+      "git.commands.raw-git",
+      "git.hooks.pre-commit-boundary",
+      "git.filter.gitignore"
+    ]
+  },
+  "git/security-and-trust-boundaries/i9": {
+    "rows": [
+      "git.security.path-trust",
+      "git.commands.add-refuses-outside-root",
+      "git.commands.raw-git",
+      "git.hooks.pre-commit-boundary",
+      "git.filter.gitignore"
+    ]
+  },
+  "git/security-and-trust-boundaries/p10": {
+    "rows": [
+      "git.security.path-trust",
+      "git.commands.add-refuses-outside-root",
+      "git.commands.raw-git",
+      "git.hooks.pre-commit-boundary",
+      "git.filter.gitignore"
+    ]
+  },
+  "git/architecture-rationale-and-trade-offs/r1": {
+    "rows": [
+      "git.commit.auto-after-edit",
+      "git.dirty.checkpoint-before-edit",
+      "git.commit.selected-files-only",
+      "git.undo.restore-and-reset",
+      "git.inventory.tracked-files"
+    ]
+  },
+  "git/architecture-rationale-and-trade-offs/r2": {
+    "rows": [
+      "git.commit.auto-after-edit",
+      "git.dirty.checkpoint-before-edit",
+      "git.commit.selected-files-only",
+      "git.undo.restore-and-reset",
+      "git.inventory.tracked-files"
+    ]
+  },
+  "git/architecture-rationale-and-trade-offs/r3": {
+    "rows": [
+      "git.commit.auto-after-edit",
+      "git.dirty.checkpoint-before-edit",
+      "git.commit.selected-files-only",
+      "git.undo.restore-and-reset",
+      "git.inventory.tracked-files"
+    ]
+  },
+  "git/architecture-rationale-and-trade-offs/r4": {
+    "rows": [
+      "git.commit.auto-after-edit",
+      "git.dirty.checkpoint-before-edit",
+      "git.commit.selected-files-only",
+      "git.undo.restore-and-reset",
+      "git.inventory.tracked-files"
+    ]
+  },
+  "git/architecture-rationale-and-trade-offs/r5": {
+    "rows": [
+      "git.commit.auto-after-edit",
+      "git.dirty.checkpoint-before-edit",
+      "git.commit.selected-files-only",
+      "git.undo.restore-and-reset",
+      "git.inventory.tracked-files"
+    ]
+  },
+  "git/architecture-rationale-and-trade-offs/r6": {
+    "rows": [
+      "git.commit.auto-after-edit",
+      "git.dirty.checkpoint-before-edit",
+      "git.commit.selected-files-only",
+      "git.undo.restore-and-reset",
+      "git.inventory.tracked-files"
+    ]
+  },
+  "git/architecture-rationale-and-trade-offs/r7": {
+    "rows": [
+      "git.commit.auto-after-edit",
+      "git.dirty.checkpoint-before-edit",
+      "git.commit.selected-files-only",
+      "git.undo.restore-and-reset",
+      "git.inventory.tracked-files"
+    ]
+  },
+  "git/architecture-rationale-and-trade-offs/r8": {
+    "rows": [
+      "git.commit.auto-after-edit",
+      "git.dirty.checkpoint-before-edit",
+      "git.commit.selected-files-only",
+      "git.undo.restore-and-reset",
+      "git.inventory.tracked-files"
+    ]
+  },
+  "git/architecture-rationale-and-trade-offs/r9": {
+    "rows": [
+      "git.commit.auto-after-edit",
+      "git.dirty.checkpoint-before-edit",
+      "git.commit.selected-files-only",
+      "git.undo.restore-and-reset",
+      "git.inventory.tracked-files"
+    ]
+  },
+  "git/architecture-rationale-and-trade-offs/p10": {
+    "rows": [
+      "git.commit.auto-after-edit",
+      "git.dirty.checkpoint-before-edit",
+      "git.commit.selected-files-only",
+      "git.undo.restore-and-reset",
+      "git.inventory.tracked-files"
+    ]
+  },
+  "git/retained-artifacts/p1": {
+    "nonclaim": "evidence",
+    "note": "pointer to git evidence directory artifacts"
+  },
+  "git/retained-artifacts/r2": {
+    "nonclaim": "evidence",
+    "note": "pointer to git evidence directory artifacts"
+  },
+  "git/retained-artifacts/r3": {
+    "nonclaim": "evidence",
+    "note": "pointer to git evidence directory artifacts"
+  },
+  "git/retained-artifacts/r4": {
+    "nonclaim": "evidence",
+    "note": "pointer to git evidence directory artifacts"
+  },
+  "git/retained-artifacts/r5": {
+    "nonclaim": "evidence",
+    "note": "pointer to git evidence directory artifacts"
+  },
+  "git/retained-artifacts/r6": {
+    "nonclaim": "evidence",
+    "note": "pointer to git evidence directory artifacts"
+  },
+  "git/retained-artifacts/r7": {
+    "nonclaim": "evidence",
+    "note": "pointer to git evidence directory artifacts"
+  },
+  "git/retained-artifacts/r8": {
+    "nonclaim": "evidence",
+    "note": "pointer to git evidence directory artifacts"
+  },
+  "git/retained-artifacts/r9": {
+    "nonclaim": "evidence",
+    "note": "pointer to git evidence directory artifacts"
+  },
+  "git/retained-artifacts/r10": {
+    "nonclaim": "evidence",
+    "note": "pointer to git evidence directory artifacts"
+  },
+  "git/retained-artifacts/r11": {
+    "nonclaim": "evidence",
+    "note": "pointer to git evidence directory artifacts"
+  },
+  "git/existing-tests-executed/p1": {
+    "nonclaim": "evidence",
+    "note": "recorded existing-test execution totals"
+  },
+  "git/existing-tests-executed/r2": {
+    "nonclaim": "evidence",
+    "note": "recorded existing-test execution totals"
+  },
+  "git/existing-tests-executed/r3": {
+    "nonclaim": "evidence",
+    "note": "recorded existing-test execution totals"
+  },
+  "git/existing-tests-executed/r4": {
+    "nonclaim": "evidence",
+    "note": "recorded existing-test execution totals"
+  },
+  "git/existing-tests-executed/r5": {
+    "nonclaim": "evidence",
+    "note": "recorded existing-test execution totals"
+  },
+  "git/existing-tests-executed/p6": {
+    "nonclaim": "evidence",
+    "note": "recorded existing-test execution totals"
+  },
+  "git/existing-tests-executed/p7": {
+    "nonclaim": "evidence",
+    "note": "recorded existing-test execution totals"
+  },
+  "git/synthetic-experiment-results/p1": {
+    "nonclaim": "evidence",
+    "note": "probe experiment pass count"
+  },
+  "git/synthetic-experiment-results/r2": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.commit.selected-files-only",
+      "git.dirty.path-semantics",
+      "git.undo.preconditions",
+      "git.diff.detached-and-unborn",
+      "git.commit.attribution",
+      "git.hooks.pre-commit-boundary",
+      "git.worktree.linked-and-index"
+    ]
+  },
+  "git/synthetic-experiment-results/r3": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.commit.selected-files-only",
+      "git.dirty.path-semantics",
+      "git.undo.preconditions",
+      "git.diff.detached-and-unborn",
+      "git.commit.attribution",
+      "git.hooks.pre-commit-boundary",
+      "git.worktree.linked-and-index"
+    ]
+  },
+  "git/synthetic-experiment-results/r4": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.commit.selected-files-only",
+      "git.dirty.path-semantics",
+      "git.undo.preconditions",
+      "git.diff.detached-and-unborn",
+      "git.commit.attribution",
+      "git.hooks.pre-commit-boundary",
+      "git.worktree.linked-and-index"
+    ]
+  },
+  "git/synthetic-experiment-results/r5": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.commit.selected-files-only",
+      "git.dirty.path-semantics",
+      "git.undo.preconditions",
+      "git.diff.detached-and-unborn",
+      "git.commit.attribution",
+      "git.hooks.pre-commit-boundary",
+      "git.worktree.linked-and-index"
+    ]
+  },
+  "git/synthetic-experiment-results/r6": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.commit.selected-files-only",
+      "git.dirty.path-semantics",
+      "git.undo.preconditions",
+      "git.diff.detached-and-unborn",
+      "git.commit.attribution",
+      "git.hooks.pre-commit-boundary",
+      "git.worktree.linked-and-index"
+    ]
+  },
+  "git/synthetic-experiment-results/r7": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.commit.selected-files-only",
+      "git.dirty.path-semantics",
+      "git.undo.preconditions",
+      "git.diff.detached-and-unborn",
+      "git.commit.attribution",
+      "git.hooks.pre-commit-boundary",
+      "git.worktree.linked-and-index"
+    ]
+  },
+  "git/synthetic-experiment-results/r8": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.commit.selected-files-only",
+      "git.dirty.path-semantics",
+      "git.undo.preconditions",
+      "git.diff.detached-and-unborn",
+      "git.commit.attribution",
+      "git.hooks.pre-commit-boundary",
+      "git.worktree.linked-and-index"
+    ]
+  },
+  "git/synthetic-experiment-results/r9": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.commit.selected-files-only",
+      "git.dirty.path-semantics",
+      "git.undo.preconditions",
+      "git.diff.detached-and-unborn",
+      "git.commit.attribution",
+      "git.hooks.pre-commit-boundary",
+      "git.worktree.linked-and-index"
+    ]
+  },
+  "git/synthetic-experiment-results/r10": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.commit.selected-files-only",
+      "git.dirty.path-semantics",
+      "git.undo.preconditions",
+      "git.diff.detached-and-unborn",
+      "git.commit.attribution",
+      "git.hooks.pre-commit-boundary",
+      "git.worktree.linked-and-index"
+    ]
+  },
+  "git/synthetic-experiment-results/r11": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.commit.selected-files-only",
+      "git.dirty.path-semantics",
+      "git.undo.preconditions",
+      "git.diff.detached-and-unborn",
+      "git.commit.attribution",
+      "git.hooks.pre-commit-boundary",
+      "git.worktree.linked-and-index"
+    ]
+  },
+  "git/synthetic-experiment-results/r12": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.commit.selected-files-only",
+      "git.dirty.path-semantics",
+      "git.undo.preconditions",
+      "git.diff.detached-and-unborn",
+      "git.commit.attribution",
+      "git.hooks.pre-commit-boundary",
+      "git.worktree.linked-and-index"
+    ]
+  },
+  "git/synthetic-experiment-results/r13": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.commit.selected-files-only",
+      "git.dirty.path-semantics",
+      "git.undo.preconditions",
+      "git.diff.detached-and-unborn",
+      "git.commit.attribution",
+      "git.hooks.pre-commit-boundary",
+      "git.worktree.linked-and-index"
+    ]
+  },
+  "git/synthetic-experiment-results/r14": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.commit.selected-files-only",
+      "git.dirty.path-semantics",
+      "git.undo.preconditions",
+      "git.diff.detached-and-unborn",
+      "git.commit.attribution",
+      "git.hooks.pre-commit-boundary",
+      "git.worktree.linked-and-index"
+    ]
+  },
+  "git/synthetic-experiment-results/r15": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.commit.selected-files-only",
+      "git.dirty.path-semantics",
+      "git.undo.preconditions",
+      "git.diff.detached-and-unborn",
+      "git.commit.attribution",
+      "git.hooks.pre-commit-boundary",
+      "git.worktree.linked-and-index"
+    ]
+  },
+  "git/synthetic-experiment-results/r16": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.commit.selected-files-only",
+      "git.dirty.path-semantics",
+      "git.undo.preconditions",
+      "git.diff.detached-and-unborn",
+      "git.commit.attribution",
+      "git.hooks.pre-commit-boundary",
+      "git.worktree.linked-and-index"
+    ]
+  },
+  "git/synthetic-experiment-results/r17": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.commit.selected-files-only",
+      "git.dirty.path-semantics",
+      "git.undo.preconditions",
+      "git.diff.detached-and-unborn",
+      "git.commit.attribution",
+      "git.hooks.pre-commit-boundary",
+      "git.worktree.linked-and-index"
+    ]
+  },
+  "git/synthetic-experiment-results/r18": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.commit.selected-files-only",
+      "git.dirty.path-semantics",
+      "git.undo.preconditions",
+      "git.diff.detached-and-unborn",
+      "git.commit.attribution",
+      "git.hooks.pre-commit-boundary",
+      "git.worktree.linked-and-index"
+    ]
+  },
+  "git/synthetic-experiment-results/r19": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.commit.selected-files-only",
+      "git.dirty.path-semantics",
+      "git.undo.preconditions",
+      "git.diff.detached-and-unborn",
+      "git.commit.attribution",
+      "git.hooks.pre-commit-boundary",
+      "git.worktree.linked-and-index"
+    ]
+  },
+  "git/synthetic-experiment-results/r20": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.commit.selected-files-only",
+      "git.dirty.path-semantics",
+      "git.undo.preconditions",
+      "git.diff.detached-and-unborn",
+      "git.commit.attribution",
+      "git.hooks.pre-commit-boundary",
+      "git.worktree.linked-and-index"
+    ]
+  },
+  "git/synthetic-experiment-results/r21": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.commit.selected-files-only",
+      "git.dirty.path-semantics",
+      "git.undo.preconditions",
+      "git.diff.detached-and-unborn",
+      "git.commit.attribution",
+      "git.hooks.pre-commit-boundary",
+      "git.worktree.linked-and-index"
+    ]
+  },
+  "git/synthetic-experiment-results/r22": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.commit.selected-files-only",
+      "git.dirty.path-semantics",
+      "git.undo.preconditions",
+      "git.diff.detached-and-unborn",
+      "git.commit.attribution",
+      "git.hooks.pre-commit-boundary",
+      "git.worktree.linked-and-index"
+    ]
+  },
+  "git/synthetic-experiment-results/r23": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.commit.selected-files-only",
+      "git.dirty.path-semantics",
+      "git.undo.preconditions",
+      "git.diff.detached-and-unborn",
+      "git.commit.attribution",
+      "git.hooks.pre-commit-boundary",
+      "git.worktree.linked-and-index"
+    ]
+  },
+  "git/synthetic-experiment-results/r24": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.commit.selected-files-only",
+      "git.dirty.path-semantics",
+      "git.undo.preconditions",
+      "git.diff.detached-and-unborn",
+      "git.commit.attribution",
+      "git.hooks.pre-commit-boundary",
+      "git.worktree.linked-and-index"
+    ]
+  },
+  "git/synthetic-experiment-results/p25": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.commit.selected-files-only",
+      "git.dirty.path-semantics",
+      "git.undo.preconditions",
+      "git.diff.detached-and-unborn",
+      "git.commit.attribution",
+      "git.hooks.pre-commit-boundary",
+      "git.worktree.linked-and-index"
+    ]
+  },
+  "git/reproduction-commands/p1": {
+    "nonclaim": "evidence",
+    "note": "reproduction commands for local verification"
+  },
+  "git/reproduction-commands/c2": {
+    "nonclaim": "evidence",
+    "note": "reproduction commands for local verification"
+  },
+  "git/reproduction-commands/p3": {
+    "nonclaim": "evidence",
+    "note": "reproduction commands for local verification"
+  },
+  "git/reproduction-commands/p4": {
+    "nonclaim": "evidence",
+    "note": "reproduction commands for local verification"
+  },
+  "git/coverage-matrix-and-limitations/r1": {
+    "nonclaim": "meta",
+    "note": "coverage matrix and investigation limits"
+  },
+  "git/coverage-matrix-and-limitations/r2": {
+    "nonclaim": "meta",
+    "note": "coverage matrix and investigation limits"
+  },
+  "git/coverage-matrix-and-limitations/r3": {
+    "nonclaim": "meta",
+    "note": "coverage matrix and investigation limits"
+  },
+  "git/coverage-matrix-and-limitations/r4": {
+    "nonclaim": "meta",
+    "note": "coverage matrix and investigation limits"
+  },
+  "git/coverage-matrix-and-limitations/r5": {
+    "nonclaim": "meta",
+    "note": "coverage matrix and investigation limits"
+  },
+  "git/coverage-matrix-and-limitations/r6": {
+    "nonclaim": "meta",
+    "note": "coverage matrix and investigation limits"
+  },
+  "git/coverage-matrix-and-limitations/r7": {
+    "nonclaim": "meta",
+    "note": "coverage matrix and investigation limits"
+  },
+  "git/coverage-matrix-and-limitations/r8": {
+    "nonclaim": "meta",
+    "note": "coverage matrix and investigation limits"
+  },
+  "git/coverage-matrix-and-limitations/r9": {
+    "nonclaim": "meta",
+    "note": "coverage matrix and investigation limits"
+  },
+  "git/coverage-matrix-and-limitations/r10": {
+    "nonclaim": "meta",
+    "note": "coverage matrix and investigation limits"
+  },
+  "git/coverage-matrix-and-limitations/r11": {
+    "nonclaim": "meta",
+    "note": "coverage matrix and investigation limits"
+  },
+  "git/coverage-matrix-and-limitations/r12": {
+    "nonclaim": "meta",
+    "note": "coverage matrix and investigation limits"
+  },
+  "git/coverage-matrix-and-limitations/r13": {
+    "nonclaim": "meta",
+    "note": "coverage matrix and investigation limits"
+  },
+  "git/coverage-matrix-and-limitations/r14": {
+    "nonclaim": "meta",
+    "note": "coverage matrix and investigation limits"
+  },
+  "git/coverage-matrix-and-limitations/r15": {
+    "nonclaim": "meta",
+    "note": "coverage matrix and investigation limits"
+  },
+  "git/coverage-matrix-and-limitations/r16": {
+    "nonclaim": "meta",
+    "note": "coverage matrix and investigation limits"
+  },
+  "git/coverage-matrix-and-limitations/r17": {
+    "nonclaim": "meta",
+    "note": "coverage matrix and investigation limits"
+  },
+  "git/coverage-matrix-and-limitations/r18": {
+    "nonclaim": "meta",
+    "note": "coverage matrix and investigation limits"
+  },
+  "git/coverage-matrix-and-limitations/r19": {
+    "nonclaim": "meta",
+    "note": "coverage matrix and investigation limits"
+  },
+  "git/coverage-matrix-and-limitations/r20": {
+    "nonclaim": "meta",
+    "note": "coverage matrix and investigation limits"
+  },
+  "git/coverage-matrix-and-limitations/r21": {
+    "nonclaim": "meta",
+    "note": "coverage matrix and investigation limits"
+  },
+  "git/coverage-matrix-and-limitations/r22": {
+    "nonclaim": "meta",
+    "note": "coverage matrix and investigation limits"
+  },
+  "git/coverage-matrix-and-limitations/r23": {
+    "nonclaim": "meta",
+    "note": "coverage matrix and investigation limits"
+  },
+  "git/coverage-matrix-and-limitations/r24": {
+    "nonclaim": "meta",
+    "note": "coverage matrix and investigation limits"
+  },
+  "git/coverage-matrix-and-limitations/p25": {
+    "nonclaim": "meta",
+    "note": "coverage matrix and investigation limits"
+  },
+  "git/coverage-matrix-and-limitations/p26": {
+    "nonclaim": "meta",
+    "note": "coverage matrix and investigation limits"
+  },
+  "git/final-assessment/p1": {
+    "rows": [
+      "git.dirty.checkpoint-before-edit",
+      "git.commit.auto-after-edit",
+      "git.undo.preconditions",
+      "git.inventory.tracked-files"
+    ]
+  },
+  "git/final-assessment/p2": {
+    "rows": [
+      "git.dirty.checkpoint-before-edit",
+      "git.commit.auto-after-edit",
+      "git.undo.preconditions",
+      "git.inventory.tracked-files"
+    ]
+  },
+  "ev-git/probe/inventory-semantics": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.dirty.path-semantics"
+    ]
+  },
+  "ev-git/probe/selected-commit-excludes-unrelated-staged-files": {
+    "rows": [
+      "git.commit.selected-files-only"
+    ]
+  },
+  "ev-git/probe/new-unstaged-file-message-input": {
+    "rows": [
+      "git.diff.for-commit-message",
+      "git.commit.message-context"
+    ]
+  },
+  "ev-git/probe/all-file-commit-uses-tracked-changes-and-staged-additions": {
+    "rows": [
+      "git.commit.stage-whole-files",
+      "git.inventory.tracked-files"
+    ]
+  },
+  "ev-git/probe/attribution-and-prefix-behavior": {
+    "rows": [
+      "git.commit.attribution"
+    ]
+  },
+  "ev-git/probe/pre-commit-hook-boundary": {
+    "rows": [
+      "git.hooks.pre-commit-boundary",
+      "git.commit.verify-flag"
+    ]
+  },
+  "ev-git/probe/aiderignore-cache-deletion": {
+    "rows": [
+      "git.filter.aiderignore"
+    ]
+  },
+  "ev-git/probe/subtree-filtering": {
+    "rows": [
+      "git.filter.subtree"
+    ]
+  },
+  "ev-git/probe/unborn-branch-diff": {
+    "rows": [
+      "git.diff.detached-and-unborn"
+    ]
+  },
+  "ev-git/probe/detached-branch-diff": {
+    "rows": [
+      "git.diff.detached-and-unborn",
+      "git.diff.for-commit-message"
+    ]
+  },
+  "ev-git/probe/index-version-3": {
+    "rows": [
+      "git.startup.sanity-check",
+      "git.worktree.linked-and-index"
+    ]
+  },
+  "ev-git/probe/index-version-4": {
+    "rows": [
+      "git.startup.sanity-check",
+      "git.worktree.linked-and-index"
+    ]
+  },
+  "ev-git/probe/undo-preserves-unrelated-dirt": {
+    "rows": [
+      "git.undo.restore-and-reset",
+      "git.undo.preconditions"
+    ]
+  },
+  "ev-git/probe/undo-refuses-added-file": {
+    "rows": [
+      "git.undo.preconditions"
+    ]
+  },
+  "ev-git/probe/coder-dirty-checkpoint-and-auto-commit": {
+    "rows": [
+      "git.dirty.checkpoint-before-edit",
+      "git.commit.auto-after-edit"
+    ]
+  },
+  "ev-git/probe/dry-run-dirty-checkpoint": {
+    "rows": [
+      "git.dry-run.skips-commits",
+      "git.dirty.checkpoint-before-edit"
+    ]
+  },
+  "ev-git/probe/commit-message-model-fallback": {
+    "rows": [
+      "git.commit.message-context"
+    ]
+  },
+  "ev-git/probe/repository-discovery": {
+    "rows": [
+      "git.startup.discover-root",
+      "git.repo.open-single-root"
+    ]
+  },
+  "ev-git/probe/linked-worktree": {
+    "rows": [
+      "git.worktree.linked-and-index",
+      "git.startup.discover-root"
+    ]
+  },
+  "ev-git/probe/symlink-path-resolution": {
+    "rows": [
+      "git.security.path-trust"
+    ]
+  },
+  "ev-git/probe/undo-remote-tracking-equality-guard": {
+    "rows": [
+      "git.undo.preconditions"
+    ]
+  },
+  "ev-git/probe/raw-git-command-execution": {
+    "rows": [
+      "git.commands.raw-git"
+    ]
+  },
+  "ev-git/probe/cli-defaults": {
+    "rows": [
+      "git.config.auto-commits",
+      "git.commit.attribution"
+    ]
+  },
+  "aider-test/test_coder/TestCoder.test_allowed_to_edit": {
+    "rows": [
+      "git.authorize.stage-new-file",
+      "git.filter.gitignore"
+    ]
+  },
+  "aider-test/test_coder/TestCoder.test_allowed_to_edit_no": {
+    "rows": [
+      "git.authorize.stage-new-file"
+    ]
+  },
+  "aider-test/test_coder/TestCoder.test_allowed_to_edit_dirty": {
+    "rows": [
+      "git.dirty.checkpoint-before-edit"
+    ]
+  },
+  "aider-test/test_coder/TestCoder.test_check_for_filename_mentions": {
+    "rows": [
+      "git.mentions.add-and-reflect"
+    ]
+  },
+  "aider-test/test_coder/TestCoder.test_new_file_edit_one_commit": {
+    "rows": [
+      "git.authorize.stage-new-file",
+      "git.commit.auto-after-edit"
+    ]
+  },
+  "aider-test/test_coder/TestCoder.test_only_commit_gpt_edited_file": {
+    "rows": [
+      "git.commit.selected-files-only"
+    ]
+  },
+  "aider-test/test_coder/TestCoder.test_gpt_edit_to_dirty_file": {
+    "rows": [
+      "git.dirty.checkpoint-before-edit",
+      "git.commit.auto-after-edit"
+    ]
+  },
+  "aider-test/test_coder/TestCoder.test_gpt_edit_to_existing_file_not_in_repo": {
+    "rows": [
+      "git.authorize.stage-new-file"
+    ]
+  },
+  "aider-test/test_coder/TestCoder.test_skip_aiderignored_files": {
+    "rows": [
+      "git.filter.aiderignore"
+    ]
+  },
+  "aider-test/test_coder/TestCoder.test_skip_gitignored_files_on_init": {
+    "rows": [
+      "git.filter.gitignore",
+      "git.authorize.skip-gitignored"
+    ]
+  },
+  "aider-test/test_coder/TestCoder.test_coder_from_coder_with_subdir": {
+    "rows": [
+      "git.startup.discover-root",
+      "git.filter.subtree"
+    ]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_git": {
+    "rows": [
+      "git.commands.raw-git"
+    ]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_add_from_subdir": {
+    "rows": [
+      "git.commands.add-from-subdir"
+    ]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_add_from_subdir_again": {
+    "rows": [
+      "git.commands.add-from-subdir"
+    ]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_commit": {
+    "rows": [
+      "git.commands.commit",
+      "git.commit.stage-whole-files"
+    ]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_add_from_outside_git": {
+    "rows": [
+      "git.commands.add-refuses-outside-root"
+    ]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_add_dirname_with_special_chars_git": {
+    "rows": [
+      "git.commands.add-from-subdir"
+    ]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_add_existing_with_dirty_repo": {
+    "rows": [
+      "git.commands.add-from-subdir",
+      "git.dirty.path-semantics"
+    ]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_add_read_only_file": {
+    "rows": [
+      "git.inventory.addable-files"
+    ]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_add_drop_untracked_files": {
+    "rows": [
+      "git.commands.add-untracked"
+    ]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_undo_with_dirty_files_not_in_last_commit": {
+    "rows": [
+      "git.undo.preconditions"
+    ]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_undo_with_newly_committed_file": {
+    "rows": [
+      "git.undo.restore-and-reset",
+      "git.undo.preconditions"
+    ]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_undo_on_first_commit": {
+    "rows": [
+      "git.undo.preconditions"
+    ]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_add_gitignored_file": {
+    "rows": [
+      "git.commands.add-ignore-policy",
+      "git.filter.gitignore"
+    ]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_add_aiderignored_file": {
+    "rows": [
+      "git.commands.add-ignore-policy",
+      "git.filter.aiderignore"
+    ]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_read_only_from_working_dir": {
+    "rows": [
+      "git.inventory.addable-files"
+    ]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_diff": {
+    "rows": [
+      "git.diff.cmd-display"
+    ]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_weak_model": {
+    "rows": [
+      "git.commit.message-context"
+    ]
+  },
+  "aider-test/test_main/TestMain.test_main_with_empty_git_dir_new_file": {
+    "rows": [
+      "git.startup.setup-repo",
+      "git.startup.discover-root"
+    ]
+  },
+  "aider-test/test_main/TestMain.test_main_with_empty_git_dir_new_files": {
+    "rows": [
+      "git.startup.setup-repo",
+      "git.startup.discover-root"
+    ]
+  },
+  "aider-test/test_main/TestMain.test_main_with_dname_and_fname": {
+    "rows": [
+      "git.startup.discover-root"
+    ]
+  },
+  "aider-test/test_main/TestMain.test_main_with_subdir_repo_fnames": {
+    "rows": [
+      "git.startup.discover-root",
+      "git.filter.subtree"
+    ]
+  },
+  "aider-test/test_main/TestMain.test_main_with_git_config_yml": {
+    "rows": [
+      "git.config.auto-commits"
+    ]
+  },
+  "aider-test/test_main/TestMain.test_main_with_empty_git_dir_new_subdir_file": {
+    "rows": [
+      "git.startup.setup-repo"
+    ]
+  },
+  "aider-test/test_main/TestMain.test_setup_git": {
+    "rows": [
+      "git.startup.setup-repo"
+    ]
+  },
+  "aider-test/test_main/TestMain.test_check_gitignore": {
+    "rows": [
+      "git.config.gitignore-offer"
+    ]
+  },
+  "aider-test/test_main/TestMain.test_command_line_gitignore_files_flag": {
+    "rows": [
+      "git.config.gitignore-offer"
+    ]
+  },
+  "aider-test/test_main/TestMain.test_add_command_gitignore_files_flag": {
+    "rows": [
+      "git.config.gitignore-offer",
+      "git.filter.gitignore"
+    ]
+  },
+  "aider-test/test_main/TestMain.test_main_args": {
+    "rows": [
+      "git.config.auto-commits"
+    ]
+  },
+  "aider-test/test_main/TestMain.test_false_vals_in_env_file": {
+    "rows": [
+      "git.config.auto-commits"
+    ]
+  },
+  "aider-test/test_main/TestMain.test_true_vals_in_env_file": {
+    "rows": [
+      "git.config.auto-commits"
+    ]
+  },
+  "aider-test/test_main/TestMain.test_git_config_include": {
+    "rows": [
+      "git.config.auto-commits"
+    ]
+  },
+  "aider-test/test_main/TestMain.test_git_config_include_directive": {
+    "rows": [
+      "git.config.auto-commits"
+    ]
+  },
+  "aider-test/test_main/TestMain.test_resolve_aiderignore_path": {
+    "rows": [
+      "git.config.aiderignore-path"
+    ]
+  },
+  "aider-test/test_main/TestMain.test_commit_language_japanese": {
+    "rows": [
+      "git.commit.message-language"
+    ]
+  },
+  "aider-test/test_main/TestMain.test_main_exit_with_git_command_not_found": {
+    "rows": [
+      "git.repo.unavailable"
+    ]
+  },
+  "aider-test/test_main/TestMain.test_argv_file_respects_git": {
+    "rows": [
+      "git.startup.discover-root",
+      "git.filter.gitignore"
+    ]
+  },
+  "aider-test/test_repo/TestRepo.test_diffs_empty_repo": {
+    "rows": [
+      "git.diff.for-commit-message",
+      "git.commit.noop-when-clean"
+    ]
+  },
+  "aider-test/test_repo/TestRepo.test_diffs_nonempty_repo": {
+    "rows": [
+      "git.diff.for-commit-message"
+    ]
+  },
+  "aider-test/test_repo/TestRepo.test_diffs_with_single_byte_encoding": {
+    "rows": [
+      "git.diff.for-commit-message"
+    ]
+  },
+  "aider-test/test_repo/TestRepo.test_diffs_detached_head": {
+    "rows": [
+      "git.diff.detached-and-unborn"
+    ]
+  },
+  "aider-test/test_repo/TestRepo.test_diffs_between_commits": {
+    "rows": [
+      "git.diff.for-commit-message",
+      "git.diff.cmd-display"
+    ]
+  },
+  "aider-test/test_repo/TestRepo.test_get_commit_message": {
+    "rows": [
+      "git.commit.message-context"
+    ]
+  },
+  "aider-test/test_repo/TestRepo.test_get_commit_message_strip_quotes": {
+    "rows": [
+      "git.commit.message-context"
+    ]
+  },
+  "aider-test/test_repo/TestRepo.test_get_commit_message_no_strip_unmatched_quotes": {
+    "rows": [
+      "git.commit.message-context"
+    ]
+  },
+  "aider-test/test_repo/TestRepo.test_get_commit_message_with_custom_prompt": {
+    "rows": [
+      "git.commit.message-context"
+    ]
+  },
+  "aider-test/test_repo/TestRepo.test_commit_with_custom_committer_name": {
+    "rows": [
+      "git.commit.attribution"
+    ]
+  },
+  "aider-test/test_repo/TestRepo.test_commit_with_co_authored_by": {
+    "rows": [
+      "git.commit.attribution"
+    ]
+  },
+  "aider-test/test_repo/TestRepo.test_commit_co_authored_by_with_explicit_name_modification": {
+    "rows": [
+      "git.commit.attribution"
+    ]
+  },
+  "aider-test/test_repo/TestRepo.test_commit_ai_edits_no_coauthor_explicit_false": {
+    "rows": [
+      "git.commit.attribution"
+    ]
+  },
+  "aider-test/test_repo/TestRepo.test_get_tracked_files": {
+    "rows": [
+      "git.inventory.tracked-files"
+    ]
+  },
+  "aider-test/test_repo/TestRepo.test_get_tracked_files_with_new_staged_file": {
+    "rows": [
+      "git.inventory.tracked-files"
+    ]
+  },
+  "aider-test/test_repo/TestRepo.test_get_tracked_files_with_aiderignore": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.filter.aiderignore"
+    ]
+  },
+  "aider-test/test_repo/TestRepo.test_get_tracked_files_from_subdir": {
+    "rows": [
+      "git.inventory.tracked-files",
+      "git.filter.subtree"
+    ]
+  },
+  "aider-test/test_repo/TestRepo.test_subtree_only": {
+    "rows": [
+      "git.filter.subtree"
+    ]
+  },
+  "aider-test/test_repo/TestRepo.test_noop_commit": {
+    "rows": [
+      "git.commit.noop-when-clean"
+    ]
+  },
+  "aider-test/test_repo/TestRepo.test_git_commit_verify": {
+    "rows": [
+      "git.commit.verify-flag"
+    ]
+  },
+  "aider-test/test_repo/TestRepo.test_get_commit_message_uses_system_prompt_prefix": {
+    "rows": [
+      "git.commit.message-context"
+    ]
+  },
+  "aider-test/test_sanity_check_repo/test_detached_head_state": {
+    "rows": [
+      "git.startup.sanity-check",
+      "git.diff.detached-and-unborn"
+    ]
+  },
+  "aider-test/test_sanity_check_repo/test_git_index_version_greater_than_2": {
+    "rows": [
+      "git.startup.sanity-check",
+      "git.worktree.linked-and-index"
+    ]
+  },
+  "aider-test/test_sanity_check_repo/test_bare_repository": {
+    "rows": [
+      "git.startup.sanity-check"
+    ]
+  },
+  "aider-test/test_sanity_check_repo/test_sanity_check_repo_with_corrupt_repo": {
+    "rows": [
+      "git.startup.sanity-check"
+    ]
+  },
+  "aider-test/test_sanity_check_repo/test_sanity_check_repo_with_no_repo": {
+    "rows": [
+      "git.startup.sanity-check",
+      "git.repo.open-single-root"
+    ]
   }
 }
