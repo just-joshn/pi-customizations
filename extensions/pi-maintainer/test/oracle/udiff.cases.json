@@ -1,0 +1,371 @@
+[
+  {
+    "id": "find_diffs/single-hunk",
+    "op": "udiff.find_diffs",
+    "args": {
+      "content": "\nSome text...\n\n```diff\n--- file.txt\n+++ file.txt\n@@ ... @@\n-Original\n+Modified\n```\n"
+    }
+  },
+  {
+    "id": "find_diffs/dev-null",
+    "op": "udiff.find_diffs",
+    "args": {
+      "content": "\n```diff\n--- /dev/null\n+++ file.txt\n@@ ... @@\n+Created\n```\n"
+    }
+  },
+  {
+    "id": "find_diffs/dirname-with-spaces",
+    "op": "udiff.find_diffs",
+    "args": {
+      "content": "\n```diff\n--- dir name with spaces/file.txt\n+++ dir name with spaces/file.txt\n@@ ... @@\n-Original\n+Modified\n```\n"
+    }
+  },
+  {
+    "id": "find_diffs/git-prefixes",
+    "op": "udiff.find_diffs",
+    "args": {
+      "content": "```diff\n--- a/src/app.py\n+++ b/src/app.py\n@@\n-old\n+new\n```\n"
+    }
+  },
+  {
+    "id": "find_diffs/multi-file",
+    "op": "udiff.find_diffs",
+    "args": {
+      "content": "```diff\n--- aider/versioncheck.py\n+++ aider/versioncheck.py\n@@ ... @@\n     except Exception as err:\n         print_cmd(f\"Error checking pypi for new version: {err}\")\n+        return False\n\n--- aider/main.py\n+++ aider/main.py\n@@ ... @@\n     other_group.add_argument(\n         \"--version\",\n         action=\"version\",\n         version=f\"%(prog)s {__version__}\",\n         help=\"Show the version number and exit\",\n     )\n+    other_group.add_argument(\n+        \"--check-update\",\n+        action=\"store_true\",\n+        help=\"Check for updates and return status in the exit code\",\n+        default=False,\n+    )\n     other_group.add_argument(\n         \"--apply\",\n         metavar=\"FILE\",\n```\n"
+    }
+  },
+  {
+    "id": "find_diffs/no-fence",
+    "op": "udiff.find_diffs",
+    "args": {
+      "content": "--- file.txt\n+++ file.txt\n@@\n-a\n+b\n"
+    }
+  },
+  {
+    "id": "find_diffs/missing-trailing-newline",
+    "op": "udiff.find_diffs",
+    "args": {
+      "content": "```diff\n--- file.txt\n+++ file.txt\n@@\n-a\n+b\n```"
+    }
+  },
+  {
+    "id": "find_diffs/context-only-discarded",
+    "op": "udiff.find_diffs",
+    "args": {
+      "content": "```diff\n--- file.txt\n+++ file.txt\n@@\n unchanged\n@@\n-a\n+b\n```\n"
+    }
+  },
+  {
+    "id": "find_diffs/no-header-path-null",
+    "op": "udiff.find_diffs",
+    "args": {
+      "content": "```diff\n@@\n-a\n+b\n```\n"
+    }
+  },
+  {
+    "id": "get_edits/inherit-path",
+    "op": "udiff.get_edits",
+    "args": {
+      "content": "```diff\n--- file.txt\n+++ file.txt\n@@\n-a\n+b\n@@\n-c\n+d\n```\n```diff\n@@\n-e\n+f\n```\n"
+    }
+  },
+  {
+    "id": "get_edits/later-header-verbatim",
+    "op": "udiff.get_edits",
+    "args": {
+      "content": "```diff\n--- a/one.py\n+++ b/one.py\n@@\n-a\n+b\n\n--- two.py\n+++ two.py\n@@\n-c\n+d\n```\n"
+    }
+  },
+  {
+    "id": "hunk_to_before_after/mixed",
+    "op": "udiff.hunk_to_before_after",
+    "args": {
+      "hunk": [" context\n", "-old\n", "+new\n", " tail\n"]
+    }
+  },
+  {
+    "id": "hunk_to_before_after/lines",
+    "op": "udiff.hunk_to_before_after",
+    "args": {
+      "hunk": [" context\n", "-old\n", "+new\n"],
+      "lines": true
+    }
+  },
+  {
+    "id": "hunk_to_before_after/short-line",
+    "op": "udiff.hunk_to_before_after",
+    "args": {
+      "hunk": ["\n", "-x\n"]
+    }
+  },
+  {
+    "id": "cleanup/whitespace-only",
+    "op": "udiff.cleanup_pure_whitespace_lines",
+    "args": {
+      "lines": ["   \n", "keep\n", "\t\r\n", ""]
+    }
+  },
+  {
+    "id": "normalize/basic",
+    "op": "udiff.normalize_hunk",
+    "args": {
+      "hunk": ["-Original\n", "+Modified\n"]
+    }
+  },
+  {
+    "id": "normalize/whitespace-lines",
+    "op": "udiff.normalize_hunk",
+    "args": {
+      "hunk": [" keep\n", "   \n", "-old\n", "+new\n"]
+    }
+  },
+  {
+    "id": "diff_lines/replace-line",
+    "op": "udiff.diff_lines",
+    "args": {
+      "search_text": "a\nb\n",
+      "replace_text": "a\nc\n"
+    }
+  },
+  {
+    "id": "diff_lines/insert",
+    "op": "udiff.diff_lines",
+    "args": {
+      "search_text": "hello\n",
+      "replace_text": "hello\nworld\n"
+    }
+  },
+  {
+    "id": "diff_lines/unicode",
+    "op": "udiff.diff_lines",
+    "args": {
+      "search_text": "café\n😀\n",
+      "replace_text": "cafe\n😃\n"
+    }
+  },
+  {
+    "id": "diff_lines/crlf",
+    "op": "udiff.diff_lines",
+    "args": {
+      "search_text": "a\r\nb\r\n",
+      "replace_text": "a\r\nc\r\n"
+    }
+  },
+  {
+    "id": "diff_lines/equal",
+    "op": "udiff.diff_lines",
+    "args": {
+      "search_text": "same\n",
+      "replace_text": "same\n"
+    }
+  },
+  {
+    "id": "search_and_replace/one",
+    "op": "udiff.search_and_replace",
+    "args": {
+      "search_text": "old\n",
+      "replace_text": "new\n",
+      "original_text": "before\nold\nafter\n"
+    }
+  },
+  {
+    "id": "search_and_replace/all-occurrences",
+    "op": "udiff.search_and_replace",
+    "args": {
+      "search_text": "x\n",
+      "replace_text": "y\n",
+      "original_text": "x\nz\nx\n"
+    }
+  },
+  {
+    "id": "search_and_replace/missing",
+    "op": "udiff.search_and_replace",
+    "args": {
+      "search_text": "nope\n",
+      "replace_text": "y\n",
+      "original_text": "x\n"
+    }
+  },
+  {
+    "id": "flexible/literal",
+    "op": "udiff.flexible_search_and_replace",
+    "args": {
+      "search_text": "bar\n",
+      "replace_text": "baz\n",
+      "original_text": "foo\nbar\nqux\n"
+    }
+  },
+  {
+    "id": "flexible/strip-blank",
+    "op": "udiff.flexible_search_and_replace",
+    "args": {
+      "search_text": "\nbar\n\n",
+      "replace_text": "\nbaz\n\n",
+      "original_text": "foo\nbar\nqux\n"
+    }
+  },
+  {
+    "id": "flexible/relative-indent",
+    "op": "udiff.flexible_search_and_replace",
+    "args": {
+      "search_text": "    foo\n        bar\n",
+      "replace_text": "    foo\n        baz\n",
+      "original_text": "        foo\n            bar\n        qux\n"
+    }
+  },
+  {
+    "id": "relative_indent/roundtrip",
+    "op": "udiff.relative_indent_roundtrip",
+    "args": {
+      "search_text": "    foo\n        bar\n",
+      "replace_text": "    foo\n        baz\n",
+      "original_text": "    foo\n        bar\n    qux\n"
+    }
+  },
+  {
+    "id": "directly_apply/exact",
+    "op": "udiff.directly_apply_hunk",
+    "args": {
+      "content": "one\ntwo\nthree\n",
+      "hunk": [" one\n", "-two\n", "+TWO\n", " three\n"]
+    }
+  },
+  {
+    "id": "directly_apply/tiny-repeated-refused",
+    "op": "udiff.directly_apply_hunk",
+    "args": {
+      "content": "x\ny\nx\n",
+      "hunk": ["-x\n", "+z\n"]
+    }
+  },
+  {
+    "id": "directly_apply/all-occurrences",
+    "op": "udiff.directly_apply_hunk",
+    "args": {
+      "content": "prefix_alpha_ok\nbeta\nprefix_alpha_ok\n",
+      "hunk": ["-prefix_alpha_ok\n", "+PREFIX_ALPHA_OK\n"]
+    }
+  },
+  {
+    "id": "make_new_lines/noop-when-short",
+    "op": "udiff.make_new_lines_explicit",
+    "args": {
+      "content": "abcdefghi\n",
+      "hunk": ["-ab\n", "+zz\n"]
+    }
+  },
+  {
+    "id": "apply_hunk/direct",
+    "op": "udiff.apply_hunk",
+    "args": {
+      "content": "keep\nold\nkeep\n",
+      "hunk": [" keep\n", "-old\n", "+new\n", " keep\n"]
+    }
+  },
+  {
+    "id": "apply_hunk/context-reduction",
+    "op": "udiff.apply_hunk",
+    "args": {
+      "content": "a\nb\nTARGET\nc\nd\n",
+      "hunk": [" wrong\n", " b\n", "-TARGET\n", "+changed\n", " c\n", " wrong2\n"]
+    }
+  },
+  {
+    "id": "apply_hunk/no-match",
+    "op": "udiff.apply_hunk",
+    "args": {
+      "content": "nothing here\n",
+      "hunk": ["-missing\n", "+added\n"]
+    }
+  },
+  {
+    "id": "do_replace/append-new-file",
+    "op": "udiff.do_replace",
+    "args": {
+      "fname": "new.txt",
+      "exists": false,
+      "content": null,
+      "hunk": ["+hello\n"]
+    }
+  },
+  {
+    "id": "do_replace/append-existing",
+    "op": "udiff.do_replace",
+    "args": {
+      "fname": "file.txt",
+      "exists": true,
+      "content": "start\n",
+      "hunk": ["+end\n"]
+    }
+  },
+  {
+    "id": "do_replace/replace",
+    "op": "udiff.do_replace",
+    "args": {
+      "fname": "file.txt",
+      "exists": true,
+      "content": "one\ntwo\nthree\n",
+      "hunk": [" one\n", "-two\n", "+TWO\n", " three\n"]
+    }
+  },
+  {
+    "id": "apply_edits/sequential-success",
+    "op": "udiff.apply_edits",
+    "args": {
+      "files": {
+        "file.txt": "one\ntwo\nthree\n"
+      },
+      "edits": [
+        ["file.txt", [" one\n", "-two\n", "+TWO\n", " three\n"]],
+        ["file.txt", [" one\n", " TWO\n", "-three\n", "+THREE\n"]]
+      ]
+    }
+  },
+  {
+    "id": "apply_edits/no-match-error",
+    "op": "udiff.apply_edits",
+    "args": {
+      "files": {
+        "file.txt": "one\n"
+      },
+      "edits": [["file.txt", ["-missing\n", "+x\n"]]]
+    }
+  },
+  {
+    "id": "apply_edits/normalize-dedupe",
+    "op": "udiff.apply_edits",
+    "args": {
+      "files": {
+        "file.txt": "Original\n"
+      },
+      "edits": [
+        ["file.txt", ["-Original\n", "+Modified\n"]],
+        ["file.txt", ["-Original\n", "+Modified\n"]]
+      ]
+    }
+  },
+  {
+    "id": "apply_edits/partial-success-survives",
+    "op": "udiff.apply_edits",
+    "args": {
+      "files": {
+        "a.txt": "old\n",
+        "b.txt": "keep\n"
+      },
+      "edits": [
+        ["a.txt", ["-old\n", "+new\n"]],
+        ["b.txt", ["-missing\n", "+x\n"]]
+      ]
+    }
+  },
+  {
+    "id": "apply_edits/empty-result-truthiness",
+    "op": "udiff.apply_edits",
+    "args": {
+      "files": {
+        "file.txt": "delete-me\n"
+      },
+      "edits": [["file.txt", ["-delete-me\n"]]]
+    }
+  }
+]

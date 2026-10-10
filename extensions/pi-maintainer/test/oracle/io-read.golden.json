@@ -1,0 +1,110 @@
+{
+  "read/ascii-low-byte-range": {
+    "result": {
+      "errors": [],
+      "text": "\u0000\u0001\u0002\u0003\u0004\u0005\u0006\u0007\b\t\n\u000b\f\n\u000e\u000f\u0010\u0011\u0012\u0013\u0014\u0015\u0016\u0017\u0018\u0019\u001a\u001b\u001c\u001d\u001e\u001f !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
+    }
+  },
+  "read/directory": {
+    "result": {
+      "errors": ["source.txt: is a directory"],
+      "text": null
+    }
+  },
+  "read/iso-8859-1-byte-range": {
+    "result": {
+      "errors": [],
+      "text": "\u0000\u0001\u0002\u0003\u0004\u0005\u0006\u0007\b\t\n\u000b\f\n\u000e\u000f\u0010\u0011\u0012\u0013\u0014\u0015\u0016\u0017\u0018\u0019\u001a\u001b\u001c\u001d\u001e\u001f !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~ ¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ"
+    }
+  },
+  "read/latin-1-byte-range": {
+    "result": {
+      "errors": [],
+      "text": "\u0000\u0001\u0002\u0003\u0004\u0005\u0006\u0007\b\t\n\u000b\f\n\u000e\u000f\u0010\u0011\u0012\u0013\u0014\u0015\u0016\u0017\u0018\u0019\u001a\u001b\u001c\u001d\u001e\u001f !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~ ¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ"
+    }
+  },
+  "read/latin1-byte-range": {
+    "result": {
+      "errors": [],
+      "text": "\u0000\u0001\u0002\u0003\u0004\u0005\u0006\u0007\b\t\n\u000b\f\n\u000e\u000f\u0010\u0011\u0012\u0013\u0014\u0015\u0016\u0017\u0018\u0019\u001a\u001b\u001c\u001d\u001e\u001f !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~ ¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ"
+    }
+  },
+  "read/latin1-newlines": {
+    "result": {
+      "errors": [],
+      "text": "\n£\nÿ\n"
+    }
+  },
+  "read/missing": {
+    "result": {
+      "errors": ["source.txt: file not found error"],
+      "text": null
+    }
+  },
+  "read/utf16be-preserved": {
+    "result": {
+      "errors": [],
+      "text": "A\nΩ"
+    }
+  },
+  "read/utf16le-bom": {
+    "result": {
+      "errors": [],
+      "text": "﻿Å"
+    }
+  },
+  "read/utf16le-empty": {
+    "result": {
+      "errors": [],
+      "text": ""
+    }
+  },
+  "read/utf16le-newlines": {
+    "result": {
+      "errors": [],
+      "text": "first\nÅ\n🐱\n"
+    }
+  },
+  "read/utf8-alias": {
+    "result": {
+      "errors": [],
+      "text": "café🐱\n"
+    }
+  },
+  "read/utf8-bom": {
+    "result": {
+      "errors": [],
+      "text": "﻿hello"
+    }
+  },
+  "read/utf8-capitalized": {
+    "result": {
+      "errors": [],
+      "text": "café🐱\n"
+    }
+  },
+  "read/utf8-empty": {
+    "result": {
+      "errors": [],
+      "text": ""
+    }
+  },
+  "read/utf8-newlines": {
+    "result": {
+      "errors": [],
+      "text": "first\nsecond\nthird\nfourth"
+    }
+  },
+  "read/utf8-unicode": {
+    "result": {
+      "errors": [],
+      "text": "café\u0000🐱 \n"
+    }
+  },
+  "read/windows1252-preserved": {
+    "result": {
+      "errors": [],
+      "text": "A€\n£"
+    }
+  }
+}

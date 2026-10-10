@@ -1,0 +1,122 @@
+{
+  "choose_fence/all-collide": {
+    "result": {
+      "fence": ["```", "```"],
+      "warnings": ["Unable to find a fencing strategy! Falling back to: ```...```"]
+    }
+  },
+  "choose_fence/closing-tag-collision": {
+    "result": {
+      "fence": ["<code>", "</code>"],
+      "warnings": []
+    }
+  },
+  "choose_fence/code-collision": {
+    "result": {
+      "fence": ["<pre>", "</pre>"],
+      "warnings": []
+    }
+  },
+  "choose_fence/codeblock-collision": {
+    "result": {
+      "fence": ["<sourcecode>", "</sourcecode>"],
+      "warnings": []
+    }
+  },
+  "choose_fence/crlf": {
+    "result": {
+      "fence": ["<code>", "</code>"],
+      "warnings": []
+    }
+  },
+  "choose_fence/custom-all-collide": {
+    "result": {
+      "fence": ["OPEN", "CLOSE"],
+      "warnings": ["Unable to find a fencing strategy! Falling back to: OPEN...CLOSE"]
+    }
+  },
+  "choose_fence/custom-order": {
+    "result": {
+      "fence": ["😀", "END"],
+      "warnings": []
+    }
+  },
+  "choose_fence/empty": {
+    "result": {
+      "fence": ["```", "```"],
+      "warnings": []
+    }
+  },
+  "choose_fence/empty-readonly": {
+    "result": {
+      "fence": ["```", "```"],
+      "warnings": []
+    }
+  },
+  "choose_fence/empty-token-collides": {
+    "result": {
+      "fence": ["", "END"],
+      "warnings": ["Unable to find a fencing strategy! Falling back to: ...END"]
+    }
+  },
+  "choose_fence/files-separated-by-newline": {
+    "result": {
+      "fence": ["```", "```"],
+      "warnings": []
+    }
+  },
+  "choose_fence/indentation-not-collision": {
+    "result": {
+      "fence": ["```", "```"],
+      "warnings": []
+    }
+  },
+  "choose_fence/no-collision": {
+    "result": {
+      "fence": ["```", "```"],
+      "warnings": []
+    }
+  },
+  "choose_fence/no-strategies": {
+    "error": {
+      "message": "list index out of range",
+      "type": "IndexError"
+    }
+  },
+  "choose_fence/pre-collision": {
+    "result": {
+      "fence": ["<codeblock>", "</codeblock>"],
+      "warnings": []
+    }
+  },
+  "choose_fence/quadruple-collision": {
+    "result": {
+      "fence": ["<source>", "</source>"],
+      "warnings": []
+    }
+  },
+  "choose_fence/readonly-collision": {
+    "result": {
+      "fence": ["<source>", "</source>"],
+      "warnings": []
+    }
+  },
+  "choose_fence/triple-collision": {
+    "result": {
+      "fence": ["````", "````"],
+      "warnings": []
+    }
+  },
+  "choose_fence/unicode-linebreaks": {
+    "result": {
+      "fence": ["<codeblock>", "</codeblock>"],
+      "warnings": []
+    }
+  },
+  "choose_fence/unreadable-readonly": {
+    "result": {
+      "fence": ["```", "```"],
+      "warnings": []
+    }
+  }
+}

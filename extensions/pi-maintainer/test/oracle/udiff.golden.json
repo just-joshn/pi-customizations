@@ -1,0 +1,219 @@
+{
+  "apply_edits/empty-result-truthiness": {
+    "result": {
+      "errors": [],
+      "files": {
+        "file.txt": "\n"
+      },
+      "outcome": {
+        "result": null
+      }
+    }
+  },
+  "apply_edits/no-match-error": {
+    "result": {
+      "errors": [],
+      "files": {
+        "file.txt": "one\n"
+      },
+      "outcome": {
+        "error": {
+          "message": "UnifiedDiffNoMatch: hunk failed to apply!\n\nfile.txt does not contain lines that match the diff you provided!\nTry again.\nDO NOT skip blank lines, comments, docstrings, etc!\nThe diff needs to apply cleanly to the lines in file.txt!\n\nfile.txt does not contain these 1 exact lines in a row:\n```\nmissing\n```\n",
+          "type": "ValueError"
+        }
+      }
+    }
+  },
+  "apply_edits/normalize-dedupe": {
+    "result": {
+      "errors": [],
+      "files": {
+        "file.txt": "Modified\n"
+      },
+      "outcome": {
+        "result": null
+      }
+    }
+  },
+  "apply_edits/partial-success-survives": {
+    "result": {
+      "errors": [],
+      "files": {
+        "a.txt": "new\n",
+        "b.txt": "keep\n"
+      },
+      "outcome": {
+        "error": {
+          "message": "UnifiedDiffNoMatch: hunk failed to apply!\n\nb.txt does not contain lines that match the diff you provided!\nTry again.\nDO NOT skip blank lines, comments, docstrings, etc!\nThe diff needs to apply cleanly to the lines in b.txt!\n\nb.txt does not contain these 1 exact lines in a row:\n```\nmissing\n```\n",
+          "type": "ValueError"
+        }
+      }
+    }
+  },
+  "apply_edits/sequential-success": {
+    "result": {
+      "errors": [],
+      "files": {
+        "file.txt": "one\nTWO\nTHREE\n"
+      },
+      "outcome": {
+        "result": null
+      }
+    }
+  },
+  "apply_hunk/context-reduction": {
+    "result": "a\nb\nchanged\nc\nd\n"
+  },
+  "apply_hunk/direct": {
+    "result": "keep\nnew\nkeep\n"
+  },
+  "apply_hunk/no-match": {
+    "result": null
+  },
+  "cleanup/whitespace-only": {
+    "error": {
+      "message": "string index out of range",
+      "type": "IndexError"
+    }
+  },
+  "diff_lines/crlf": {
+    "result": [" a\r\n", "-b\r\n", "+c\r\n"]
+  },
+  "diff_lines/equal": {
+    "result": [" same\n"]
+  },
+  "diff_lines/insert": {
+    "result": [" hello\n", "+world\n"]
+  },
+  "diff_lines/replace-line": {
+    "result": [" a\n", "-b\n", "+c\n"]
+  },
+  "diff_lines/unicode": {
+    "result": ["-café\n", "-😀\n", "+cafe\n", "+😃\n"]
+  },
+  "directly_apply/all-occurrences": {
+    "result": "PREFIX_ALPHA_OK\nbeta\nPREFIX_ALPHA_OK\n"
+  },
+  "directly_apply/exact": {
+    "result": "one\nTWO\nthree\n"
+  },
+  "directly_apply/tiny-repeated-refused": {
+    "result": null
+  },
+  "do_replace/append-existing": {
+    "result": {
+      "exists_after": true,
+      "result": "start\nend\n"
+    }
+  },
+  "do_replace/append-new-file": {
+    "result": {
+      "exists_after": true,
+      "result": "hello\n"
+    }
+  },
+  "do_replace/replace": {
+    "result": {
+      "exists_after": true,
+      "result": "one\nTWO\nthree\n"
+    }
+  },
+  "find_diffs/context-only-discarded": {
+    "result": [["file.txt", ["-a\n", "+b\n"]]]
+  },
+  "find_diffs/dev-null": {
+    "result": [["file.txt", ["+Created\n"]]]
+  },
+  "find_diffs/dirname-with-spaces": {
+    "result": [["dir name with spaces/file.txt", ["-Original\n", "+Modified\n"]]]
+  },
+  "find_diffs/git-prefixes": {
+    "result": [["src/app.py", ["-old\n", "+new\n"]]]
+  },
+  "find_diffs/missing-trailing-newline": {
+    "result": [["file.txt", ["-a\n", "+b\n"]]]
+  },
+  "find_diffs/multi-file": {
+    "result": [
+      ["aider/versioncheck.py", ["     except Exception as err:\n", "         print_cmd(f\"Error checking pypi for new version: {err}\")\n", "+        return False\n"]],
+      [
+        "aider/main.py",
+        [
+          "     other_group.add_argument(\n",
+          "         \"--version\",\n",
+          "         action=\"version\",\n",
+          "         version=f\"%(prog)s {__version__}\",\n",
+          "         help=\"Show the version number and exit\",\n",
+          "     )\n",
+          "+    other_group.add_argument(\n",
+          "+        \"--check-update\",\n",
+          "+        action=\"store_true\",\n",
+          "+        help=\"Check for updates and return status in the exit code\",\n",
+          "+        default=False,\n",
+          "+    )\n",
+          "     other_group.add_argument(\n",
+          "         \"--apply\",\n",
+          "         metavar=\"FILE\",\n"
+        ]
+      ]
+    ]
+  },
+  "find_diffs/no-fence": {
+    "result": []
+  },
+  "find_diffs/no-header-path-null": {
+    "result": [[null, ["-a\n", "+b\n"]]]
+  },
+  "find_diffs/single-hunk": {
+    "result": [["file.txt", ["-Original\n", "+Modified\n"]]]
+  },
+  "flexible/literal": {
+    "result": "foo\nbaz\nqux\n"
+  },
+  "flexible/relative-indent": {
+    "result": "        foo\n            baz\n        qux\n"
+  },
+  "flexible/strip-blank": {
+    "result": "foo\nbaz\nqux\n"
+  },
+  "get_edits/inherit-path": {
+    "result": [["file.txt", ["-a\n", "+b\n"]], ["file.txt", ["-c\n", "+d\n"]], ["file.txt", ["-e\n", "+f\n"]]]
+  },
+  "get_edits/later-header-verbatim": {
+    "result": [["one.py", ["-a\n", "+b\n"]], ["two.py", ["-c\n", "+d\n"]]]
+  },
+  "hunk_to_before_after/lines": {
+    "result": [["context\n", "old\n"], ["context\n", "new\n"]]
+  },
+  "hunk_to_before_after/mixed": {
+    "result": ["context\nold\ntail\n", "context\nnew\ntail\n"]
+  },
+  "hunk_to_before_after/short-line": {
+    "result": ["\nx\n", "\n"]
+  },
+  "make_new_lines/noop-when-short": {
+    "result": ["-ab\n", "+zz\n"]
+  },
+  "normalize/basic": {
+    "result": ["-Original\n", "+Modified\n"]
+  },
+  "normalize/whitespace-lines": {
+    "result": [" keep\n", " \n", "-old\n", "+new\n"]
+  },
+  "relative_indent/roundtrip": {
+    "result": {
+      "absolute": ["    foo\n        bar\n", "    foo\n        baz\n", "    foo\n        bar\n    qux\n"],
+      "marker": "←",
+      "relative": ["    \nfoo\n    \nbar\n", "    \nfoo\n    \nbaz\n", "    \nfoo\n    \nbar\n←←←←\nqux\n"]
+    }
+  },
+  "search_and_replace/all-occurrences": {
+    "result": "y\nz\ny\n"
+  },
+  "search_and_replace/missing": {
+    "result": null
+  },
+  "search_and_replace/one": {
+    "result": "before\nnew\nafter\n"
+  }
+}

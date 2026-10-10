@@ -1,0 +1,485 @@
+import { homedir } from 'node:os';
+
+import type { ContextWithSystemEvent, ExtensionAPI, ExtensionContext, ModelRouteRequest, SessionBoundaryDraft, TurnEndEvent } from '@earendil-works/pi-coding-agent';
+import { Text } from '@earendil-works/pi-tui';
+import { BRANDING } from '../branding.ts';
+import { selectEditFormat, UnknownEditFormat } from '../edit/factory.ts';
+import { type ModelFormatPolicy, promptPolicyFromModelFormat, resolveModelFormatPolicyForRef } from '../edit/model-format-policy.ts';
+import { defaultEditorFormat } from '../edit/modes.ts';
+import { editOptions } from '../edit/options.ts';
+import { packagedDefaultEditFormat } from '../edit/packaged-default-format.ts';
+import { textFromAssistantContent } from '../edit/reasoning.ts';
+import { admitInitialEditable, readMessageFile } from '../edit/startup-input.ts';
+import { createPorts, type EditFormatName, isEditFormatName, type Ports, type SarFeature } from '../feature.ts';
+import { gitOptions } from '../git/options.ts';
+import { prepareGitRepository } from '../git/startup.ts';
+import { runExplicitLintWorkflow } from '../lint/commands.ts';
+import { lintOptions } from '../lint/options.ts';
+import { runLintTestOneshot } from '../lint/oneshot.ts';
+import { parseLintCmds } from '../lint/parse-lint-cmds.ts';
+import { formatSettings } from '../settings/format-settings.ts';
+import { loadSettings } from '../settings/load.ts';
+import { settingsOptions } from '../settings/options.ts';
+import { flagRegistrations } from '../settings/sources.ts';
+import type { AnyOptionSpec, ResolvedSettings } from '../settings/spec.ts';
+import { mapOptions } from '../map/options.ts';
+import { runShowRepoMap } from '../map/show-repo-map.ts';
+import { chatFilesOf, restore, type Snapshot } from './branch.ts';
+import { absRootPath, findCommonRoot } from './chat-files.ts';
+import { type CompletedReply, type DialogueFact, ExchangeController } from './exchange.ts';
+import { journaledTree } from './mutations.ts';
+import { createHost } from './pi-host.ts';
+import type { PromptPolicy, PromptSource } from './prompts.ts';
+import { routeEntryActions } from './route-entry.ts';
+
+export interface MaintainerOptions {
+  readonly promptSource?: PromptSource;
+  readonly promptPolicy?: PromptPolicy;
+  readonly home?: () => string;
+  readonly processEnvironment?: () => Readonly<Record<string, string | undefined>>;
+}
+
+/** Idle cache warming for an architect editor frame. Provider cache headers stay unsupported. */
+export function cacheWarmingDecisionForPhase(phaseKind: Snapshot['phase']['kind'] | undefined): { action: 'stop' } | undefined {
+  return phaseKind === 'editor' ? { action: 'stop' } : undefined;
+}
+
+const missingPromptSource: PromptSource = {
+  get() {
+    throw new Error('Maintainer PromptSource is not configured. E7 prompt formatting must be wired before using the default extension.');
+  },
+};
+
+function completedReply(event: TurnEndEvent): CompletedReply {
+  const message = event.message;
+  if (event.outcome !== 'completed' || message.role !== 'assistant') return { kind: 'incomplete', id: event.messageEntryId, reason: event.outcome };
+  if (message.stopReason !== 'stop' || message.content.some((block) => block.type === 'toolCall')) return { kind: 'incomplete', id: event.messageEntryId, reason: message.stopReason };
+  return {
+    kind: 'complete',
+    id: event.messageEntryId,
+    text: textFromAssistantContent(message.content),
+  };
+}
+
+const draft = (fact: DialogueFact): SessionBoundaryDraft => ({ type: 'custom_message', customType: BRANDING.dialogueEntry, content: fact.text, display: true, details: { ack: fact.ack, purpose: fact.purpose, reply: fact.reply } });
+
+/** Resolve `--editor-model` to a physical registry entry. Falls back to the main model when unset. */
+function resolveEditorModel(ctx: ExtensionContext, name: string | null, main: { provider: string; id: string }): { provider: string; id: string } | null {
+  if (name === null || name === '' || name === main.id || name === `${main.provider}/${main.id}`) return main;
+  const slash = name.indexOf('/');
+  if (slash > 0) {
+    const found = ctx.modelRegistry.find(name.slice(0, slash), name.slice(slash + 1));
+    if (found && found.api !== 'pi-virtual') return { provider: found.provider, id: found.id };
+    return null;
+  }
+  const sameProvider = ctx.modelRegistry.find(main.provider, name);
+  if (sameProvider && sameProvider.api !== 'pi-virtual') return { provider: sameProvider.provider, id: sameProvider.id };
+  return null;
+}
+
+function modelFormatPolicyForContext(ctx: ExtensionContext): ModelFormatPolicy {
+  if (ctx.model && ctx.model.api !== 'pi-virtual') return resolveModelFormatPolicyForRef({ provider: ctx.model.provider, id: ctx.model.id });
+  return resolveModelFormatPolicyForRef({ provider: '', id: '' });
+}
+
+function portsWithModelFormatPolicy(ports: Ports, settings: ResolvedSettings, policy: ModelFormatPolicy): Ports {
+  const requestedEditor = settings.value(editOptions.editorEditFormat);
+  const fromSettings = requestedEditor !== null && isEditFormatName(requestedEditor) ? (requestedEditor as EditFormatName) : null;
+  const fromModel = policy.editorEditFormat;
+  return {
+    ...ports,
+    edit: {
+      ...ports.edit,
+      editorEditFormat: defaultEditorFormat(fromSettings ?? fromModel),
+    },
+  };
+}
+
+/** Resolve startup mode; keep a valid EditFormatName even when its protocol is not registered yet. */
+function resolveStartupMode(ports: Ports, modelDefault: EditFormatName): EditFormatName {
+  try {
+    return selectEditFormat(ports.edit.formats, ports.edit.requestedFormat, { modelDefault }).name;
+  } catch (error) {
+    if (error instanceof UnknownEditFormat && isEditFormatName(error.editFormat)) return error.editFormat;
+    throw error;
+  }
+}
+
+async function initialSnapshot(ports: Ports, cwd: string, append: (data: unknown) => void, host: ReturnType<typeof createHost>, allowCreation: boolean, owner: string, modelDefault: EditFormatName): Promise<Snapshot> {
+  const tree = journaledTree(ports.edit.tree, owner, append, () => {});
+  const editable = await admitInitialEditable(ports.edit.initialFiles.editable, { cwd, tree, host, allowCreation });
+  const root = ports.git.repoRoot() ?? findCommonRoot(editable, cwd);
+  const readOnly: string[] = [];
+  for (const path of ports.edit.initialFiles.readOnly) {
+    const full = absRootPath(root, path);
+    if (await tree.exists(full)) readOnly.push(full);
+    else host.warning(`Error: Read-only file ${path} does not exist. Skipping.`);
+  }
+  return {
+    schema: 1,
+    kind: 'snapshot',
+    root,
+    mode: resolveStartupMode(ports, modelDefault),
+    phase: { kind: 'main' },
+    files: { editable: [...new Set(editable)], readOnly: [...new Set(readOnly)] },
+    originalReadOnly: [...new Set(readOnly)],
+    returnMode: null,
+    ignoredMentions: [],
+    neverAsk: [],
+    lastUserEntry: null,
+    historyThrough: null,
+    physicalModel: null,
+    editorModel: null,
+    weakModel: null,
+    assistantCommits: [],
+    lifecycle: { kind: 'idle' },
+  };
+}
+
+export function installMaintainer(pi: ExtensionAPI, features: readonly SarFeature[], options: MaintainerOptions = {}): void {
+  const specs = [...features.flatMap((feature) => feature.options), ...Object.values(settingsOptions)];
+  for (const spec of specs) for (const flag of flagRegistrations(spec)) pi.registerFlag(flag.name, { type: flag.type, description: flag.description });
+  const runtime = new MaintainerRuntime(pi, features, options);
+  pi.registerVirtualModel({
+    provider: BRANDING.routerProvider,
+    id: BRANDING.routerId,
+    name: 'Maintainer coder',
+    thinkingLevels: ['off', 'minimal', 'low', 'medium', 'high', 'xhigh', 'max'],
+    route: (request, ctx) => runtime.route(request, ctx),
+  });
+  pi.registerEntryRenderer(BRANDING.stateEntry, (entry) => new Text(JSON.stringify(entry.data), 0, 0));
+  pi.on('session_start', (_event, ctx) => runtime.start(ctx));
+  pi.on('session_tree', (_event, ctx) => runtime.restoreBranch(ctx));
+  pi.on('session_shutdown', () => runtime.dispose());
+  pi.on('before_agent_start', (event, ctx) => {
+    runtime.context = ctx;
+    pi.setActiveTools([]);
+    if (!restore(ctx.sessionManager.getBranch()).snapshot) {
+      runtime.host.error('Selected branch has no maintainer snapshot. Select a physical model and reload before prompting.');
+      ctx.abort();
+    }
+    const promptOptions = event.systemPromptOptions;
+    promptOptions.customPrompt = 'Maintainer reply-text editing. No model tools.';
+  });
+  pi.on('context_with_system', (event, ctx) => runtime.project(event, ctx));
+  pi.on('turn_end', (event, ctx) => runtime.complete(event, ctx));
+  pi.on('agent_before_settle', (event, ctx) => {
+    runtime.current(ctx).reconcile(event.outcome === 'aborted');
+  });
+  pi.on('agent_settled', (event, ctx) => {
+    const controller = runtime.current(ctx);
+    controller.reconcile(event.aborted);
+    const returning = controller.snapshot.returnMode;
+    if (returning !== null) controller.save({ ...controller.snapshot, mode: returning, returnMode: null });
+  });
+  pi.on('tool_call', () => ({ block: true, reason: 'Maintainer coders use reply-text edits, not model tools.', terminate: true }));
+  pi.on('cache_warming_decision', (_event, ctx) => cacheWarmingDecisionForPhase(restore(ctx.sessionManager.getBranch()).snapshot?.phase.kind));
+  for (const feature of features)
+    for (const command of feature.commands)
+      pi.registerCommand(command.name, {
+        description: command.description,
+        ...(command.complete
+          ? {
+              getArgumentCompletions: async (prefix: string) => {
+                if (!runtime.ready) return null;
+                const values = await command.complete?.(prefix, runtime.commandEnv());
+                return (values ?? []).map((value) => ({ value, label: value }));
+              },
+            }
+          : {}),
+        handler: async (args, ctx) => {
+          runtime.context = ctx;
+          if (!ctx.isIdle()) throw new Error('Maintainer commands require an idle session');
+          await command.run(args, runtime.commandEnv());
+        },
+      });
+}
+
+class MaintainerRuntime {
+  context: ExtensionContext | null = null;
+  #controller: ExchangeController | null = null;
+  #ports: Ports | null = null;
+  #environment: Readonly<Record<string, string | undefined>> = {};
+  #yes: boolean | null = null;
+  #autoCommits = true;
+  #testCmd: string | null = null;
+  #lintCmds: ReadonlyMap<string | null, string> = new Map();
+  readonly host: ReturnType<typeof createHost>;
+  readonly #pi: ExtensionAPI;
+  readonly #features: readonly SarFeature[];
+  readonly #options: MaintainerOptions;
+
+  constructor(pi: ExtensionAPI, features: readonly SarFeature[], options: MaintainerOptions) {
+    this.#pi = pi;
+    this.#features = features;
+    this.#options = options;
+    this.host = createHost(pi, {
+      context: () => {
+        if (!this.context) throw new Error('Maintainer context is unavailable');
+        return this.context;
+      },
+      yes: () => this.#yes,
+      never: () => this.#controller?.snapshot.neverAsk ?? [],
+      remember: (key) => {
+        if (this.#controller) this.#controller.save({ ...this.#controller.snapshot, neverAsk: [...this.#controller.snapshot.neverAsk, key] });
+      },
+      environment: () => this.#environment,
+      notice: (level, text) => {
+        this.context?.ui.notify(text, level);
+        this.append({ schema: 1, kind: 'notice', level, text });
+      },
+    });
+  }
+  get ready(): boolean {
+    return this.#controller !== null && this.#ports !== null;
+  }
+
+  commandEnv() {
+    const controller = this.#controller;
+    const ports = this.#ports;
+    if (!controller || !ports) throw new Error('Maintainer is not initialized');
+    const ctx = this.context;
+    if (!ctx) throw new Error('Maintainer context is unavailable');
+    const physical = controller.snapshot.physicalModel;
+    const model = physical ? ctx.modelRegistry.find(physical.provider, physical.id) : undefined;
+    return {
+      host: this.host,
+      get snapshot() {
+        return controller.snapshot;
+      },
+      save: (snapshot: Parameters<ExchangeController['save']>[0]) => controller.save(snapshot),
+      tree: ports.edit.tree,
+      git: ports.git,
+      map: ports.map,
+      lint: ports.lint,
+      testCmd: this.#testCmd,
+      lintCmds: this.#lintCmds,
+      autoCommits: this.#autoCommits,
+      supportsImages: model?.input.includes('image') ?? true,
+      sendUserMessage: async (text: string) => {
+        this.#pi.sendUserMessage(text);
+      },
+      setPhysicalModel: async (modelRef: { provider: string; id: string }) => {
+        const found = ctx.modelRegistry.find(modelRef.provider, modelRef.id);
+        if (!found || found.api === 'pi-virtual') return false;
+        controller.save({ ...controller.snapshot, physicalModel: { provider: found.provider, id: found.id } });
+        return true;
+      },
+      findPhysicalModel: (name: string) => {
+        const slash = name.indexOf('/');
+        if (slash > 0) {
+          const found = ctx.modelRegistry.find(name.slice(0, slash), name.slice(slash + 1));
+          if (found && found.api !== 'pi-virtual') return { provider: found.provider, id: found.id };
+          return null;
+        }
+        if (physical) {
+          const same = ctx.modelRegistry.find(physical.provider, name);
+          if (same && same.api !== 'pi-virtual') return { provider: same.provider, id: same.id };
+        }
+        for (const candidate of ctx.modelRegistry.getAvailable()) {
+          if (candidate.api === 'pi-virtual') continue;
+          if (candidate.id === name) return { provider: candidate.provider, id: candidate.id };
+        }
+        return null;
+      },
+      defaultEditFormat: packagedDefaultEditFormat,
+    };
+  }
+  append(data: unknown): void {
+    this.#pi.appendEntry(BRANDING.stateEntry, data);
+  }
+  current(ctx: ExtensionContext): ExchangeController {
+    this.context = ctx;
+    if (!this.#controller) throw new Error('Maintainer is not initialized');
+    return this.#controller;
+  }
+  async start(ctx: ExtensionContext): Promise<void> {
+    this.context = ctx;
+    const specs = this.#features.flatMap((feature) => feature.options);
+    const loaded = await loadSettings({ specs, cwd: ctx.cwd, home: (this.#options.home ?? homedir)(), getFlag: (name) => this.#pi.getFlag(name), processEnvironment: (this.#options.processEnvironment ?? (() => process.env))() });
+    for (const problem of loaded.problems) this.host.error(problem);
+    if (loaded.problems.length) throw new Error('Invalid maintainer settings');
+    this.#environment = loaded.environment;
+    if (loaded.settings.value(editOptions.verbose)) {
+      this.host.output(
+        formatSettings({
+          dotenvFiles: loaded.dotenvFiles,
+          environment: loaded.environment,
+          environmentPrefix: BRANDING.envPrefix,
+          options: specs.map((spec: AnyOptionSpec) => ({ name: spec.name, value: loaded.settings.value(spec), source: loaded.settings.source(spec) })),
+          secrets: loaded.secrets,
+        }),
+      );
+    }
+    const formatPolicy = modelFormatPolicyForContext(ctx);
+    const hasGitFeature = this.#features.some((feature) => feature.name === 'git');
+    const gitPrepared = hasGitFeature
+      ? await prepareGitRepository({
+          host: this.host,
+          cwd: ctx.cwd,
+          home: (this.#options.home ?? homedir)(),
+          gitEnabled: specs.includes(gitOptions.git) ? loaded.settings.value(gitOptions.git) : true,
+          gitignoreOffer: specs.includes(gitOptions.gitignore) ? loaded.settings.value(gitOptions.gitignore) : true,
+        })
+      : null;
+    const ports = portsWithModelFormatPolicy(
+      createPorts(this.#features, {
+        settings: loaded.settings,
+        cwd: ctx.cwd,
+        host: this.host,
+        ...(gitPrepared ? { gitRoot: gitPrepared.kind === 'ready' ? gitPrepared.root : null } : {}),
+      }),
+      loaded.settings,
+      formatPolicy,
+    );
+    this.#ports = ports;
+    this.#yes = ports.edit.yesAlways;
+    this.#autoCommits = specs.includes(gitOptions.autoCommits) ? loaded.settings.value(gitOptions.autoCommits) : true;
+    this.#testCmd = specs.includes(lintOptions.testCmd) ? loaded.settings.value(lintOptions.testCmd) : null;
+    this.#lintCmds = specs.includes(lintOptions.lintCmd) ? parseLintCmds(loaded.settings.value(lintOptions.lintCmd)) : new Map();
+    const restored = restore(ctx.sessionManager.getBranch());
+    const snapshot =
+      restored.snapshot ??
+      (await initialSnapshot(ports, ctx.cwd, (data) => this.append(data), this.host, !restored.pendingOperations.length && !restored.invalidRecords.length, ctx.sessionManager.getLeafId() ?? 'startup', formatPolicy.editFormat));
+    this.#controller = new ExchangeController(snapshot, {
+      ports,
+      host: this.host,
+      source: this.#options.promptSource ?? missingPromptSource,
+      append: (data) => this.append(data),
+      policy: this.#options.promptPolicy ?? promptPolicyFromModelFormat(formatPolicy),
+      suggestShellCommands: loaded.settings.value(editOptions.suggestShellCommands),
+      resolveEditorModel: (name, main) => resolveEditorModel(ctx, name, main),
+    });
+    if (!restored.snapshot) this.#controller.save(snapshot);
+    if (ctx.model?.api !== 'pi-virtual' && ctx.model) {
+      const main = { provider: ctx.model.provider, id: ctx.model.id };
+      const editor = resolveEditorModel(ctx, ports.edit.editorModel, main);
+      this.#controller.save({
+        ...this.#controller.snapshot,
+        physicalModel: main,
+        editorModel: ports.edit.editorModel ? editor : this.#controller.snapshot.editorModel,
+        weakModel: this.#controller.snapshot.weakModel,
+      });
+    }
+    this.restoreBranch(ctx);
+    this.#pi.setActiveTools([]);
+    const router = ctx.modelRegistry.find(BRANDING.routerProvider, BRANDING.routerId);
+    if (!router || !(await this.#pi.setModel(router))) throw new Error('Maintainer router cannot be selected');
+    if (specs.includes(mapOptions.showRepoMap) && loaded.settings.value(mapOptions.showRepoMap)) {
+      const shown = await runShowRepoMap({
+        enabled: true,
+        root: this.#controller.snapshot.root,
+        files: chatFilesOf(this.#controller.snapshot),
+        git: ports.git,
+        map: ports.map,
+        output: (text) => this.host.output(text),
+      });
+      if (shown.kind === 'exit') return;
+    }
+    const oneshotLint = specs.includes(lintOptions.lint) && loaded.settings.value(lintOptions.lint);
+    const oneshotTest = specs.includes(lintOptions.test) && loaded.settings.value(lintOptions.test);
+    if (oneshotLint || oneshotTest) {
+      const oneshot = await runLintTestOneshot({
+        lint: oneshotLint,
+        test: oneshotTest,
+        testCmd: this.#testCmd,
+        runLintWorkflow: async () => {
+          await runExplicitLintWorkflow('', this.commandEnv());
+        },
+        runTestCommand: async (command) => {
+          const outcome = await ports.lint.runTestCommand(command);
+          return {
+            childFailed: outcome.kind === 'failed',
+            repairText: outcome.kind === 'failed' ? outcome.report : null,
+          };
+        },
+        error: (message) => this.host.error(message),
+        placeholder: null,
+      });
+      if (oneshot.kind === 'exit') {
+        process.exitCode = oneshot.status;
+        return;
+      }
+    }
+    if (!restored.snapshot && ports.edit.applyFile) {
+      const applyPath = absRootPath(ctx.cwd, ports.edit.applyFile);
+      const text = await readMessageFile(applyPath, ports.edit.tree, this.host);
+      if (text === null) throw new Error(`Unable to read apply file ${ports.edit.applyFile}`);
+      await this.#controller.applySavedResponse(text);
+      return;
+    }
+    if (!restored.snapshot && ports.edit.messageFile) {
+      const messagePath = absRootPath(ctx.cwd, ports.edit.messageFile);
+      const text = await readMessageFile(messagePath, ports.edit.tree, this.host);
+      if (text === null) throw new Error(`Unable to read message file ${ports.edit.messageFile}`);
+      this.#pi.sendUserMessage(text);
+    }
+  }
+  restoreBranch(ctx: ExtensionContext): void {
+    const controller = this.current(ctx);
+    const restored = restore(ctx.sessionManager.getBranch());
+    if (restored.snapshot) controller.replace(restored.snapshot);
+    if (restored.pendingOperations.length || restored.invalidRecords.length) controller.interrupt('Unresolved or invalid operation records require manual reconciliation');
+    else if (controller.snapshot.lifecycle.kind === 'active') controller.interrupt('The previous exchange was interrupted. It will not be replayed.');
+  }
+  async route(request: ModelRouteRequest, ctx: ExtensionContext) {
+    const controller = this.current(ctx);
+    request.signal?.throwIfAborted();
+    if (request.reason === 'continuation' && controller.snapshot.lifecycle.kind === 'interrupted') throw new Error('Maintainer exchange is interrupted');
+    const restored = restore(ctx.sessionManager.getBranch());
+    if (!restored.snapshot) throw new Error('Selected branch has no maintainer snapshot');
+    if (restored.pendingOperations.length || restored.invalidRecords.length) throw new Error('Unresolved maintainer operation receipts');
+    if (this.#pi.getActiveTools().length) throw new Error('Another extension reactivated tools in maintainer mode');
+    const reference = controller.snapshot.physicalModel;
+    const model = reference ? ctx.modelRegistry.find(reference.provider, reference.id) : undefined;
+    if (!model || model.api === 'pi-virtual') throw new Error('Maintainer needs an available physical model');
+    const entry = routeEntryActions(request.reason);
+    if (entry.bindExchange && request.reason !== 'direct') {
+      const branch = ctx.sessionManager.getBranch();
+      const users = branch.filter((entry) => entry.type === 'message' && entry.message.role === 'user').map((entry) => entry.id);
+      controller.bindUser(users, { provider: model.provider, id: model.id }, request.reason);
+      if (entry.preprocessMentions && controller.snapshot.mode !== 'context') {
+        const user = branch.filter((entry) => entry.type === 'message' && entry.message.role === 'user').at(-1);
+        if (user?.type === 'message' && user.message.role === 'user') {
+          const content =
+            typeof user.message.content === 'string'
+              ? user.message.content
+              : user.message.content
+                  .filter((block) => block.type === 'text')
+                  .map((block) => block.text)
+                  .join('');
+          await controller.checkForFileMentions(content, request.signal);
+        }
+      }
+    }
+    if (request.reason === 'user' || request.reason === 'direct') return { model, thinkingLevel: request.thinkingLevel };
+    return { model, thinkingLevel: request.failed?.thinkingLevel ?? request.previous?.thinkingLevel ?? request.thinkingLevel };
+  }
+  async project(event: ContextWithSystemEvent, ctx: ExtensionContext) {
+    try {
+      const controller = this.current(ctx);
+      const physical = controller.snapshot.physicalModel;
+      const model = physical ? ctx.modelRegistry.find(physical.provider, physical.id) : undefined;
+      const result = await controller.projectRequest({ messages: event.messages, projection: ctx.sessionManager.buildSessionProjection().entries, supportsImages: model?.input.includes('image') ?? false, signal: ctx.signal });
+      return { messages: result.messages };
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error);
+      this.host.error(reason);
+      this.#controller?.interrupt(reason);
+      ctx.abort();
+      return undefined;
+    }
+  }
+  async complete(event: TurnEndEvent, ctx: ExtensionContext) {
+    const controller = this.current(ctx);
+    if (restore(ctx.sessionManager.getBranch()).finishedReplies.has(event.messageEntryId)) return;
+    const decision = await controller.completeReply(completedReply(event), ctx.signal);
+    if (!decision.dialogue.length) return;
+    return { entries: [...event.entries, ...decision.dialogue.map(draft)], ...(decision.continue ? { continue: true } : {}) };
+  }
+  dispose(): void {
+    this.context = null;
+    this.#controller = null;
+    this.#ports = null;
+  }
+}

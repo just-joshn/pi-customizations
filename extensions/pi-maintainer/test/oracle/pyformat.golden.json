@@ -1,0 +1,98 @@
+{
+  "format/empty-template": {
+    "result": ""
+  },
+  "format/empty-value": {
+    "result": "[]"
+  },
+  "format/escaped-braces": {
+    "result": "{name}"
+  },
+  "format/escaped-close-then-open": {
+    "result": "}{"
+  },
+  "format/fence-indexes": {
+    "result": "```python\ncode\n```\n"
+  },
+  "format/field-inside-escapes": {
+    "result": "{v}"
+  },
+  "format/literal-only": {
+    "result": "plain text"
+  },
+  "format/missing-key": {
+    "error": {
+      "message": "'missing'",
+      "type": "KeyError"
+    }
+  },
+  "format/multiline-values": {
+    "result": "one\ntwo\n\n"
+  },
+  "format/named-field": {
+    "result": "a 1 b"
+  },
+  "format/nested-index": {
+    "result": "b"
+  },
+  "format/open-brace-in-field": {
+    "error": {
+      "message": "unexpected '{' in field name",
+      "type": "ValueError"
+    }
+  },
+  "format/repeated-field": {
+    "result": "v-v"
+  },
+  "format/single-close": {
+    "error": {
+      "message": "Single '}' encountered in format string",
+      "type": "ValueError"
+    }
+  },
+  "format/single-open-at-end": {
+    "error": {
+      "message": "Single '{' encountered in format string",
+      "type": "ValueError"
+    }
+  },
+  "format/stray-close-after-field": {
+    "error": {
+      "message": "Single '}' encountered in format string",
+      "type": "ValueError"
+    }
+  },
+  "format/string-index-counts-code-points": {
+    "result": "b"
+  },
+  "format/string-index-out-of-range": {
+    "error": {
+      "message": "string index out of range",
+      "type": "IndexError"
+    }
+  },
+  "format/tuple-index-out-of-range": {
+    "error": {
+      "message": "tuple index out of range",
+      "type": "IndexError"
+    }
+  },
+  "format/unclosed-bracket": {
+    "error": {
+      "message": "expected '}' before end of string",
+      "type": "ValueError"
+    }
+  },
+  "format/unclosed-field": {
+    "error": {
+      "message": "expected '}' before end of string",
+      "type": "ValueError"
+    }
+  },
+  "format/unused-values-ignored": {
+    "result": "no fields"
+  },
+  "format/value-braces-not-reparsed": {
+    "result": "{y} }{"
+  }
+}

@@ -1,0 +1,9 @@
+pi-maintainer
+
+This product includes software ported from Aider
+(https://github.com/Aider-AI/aider) at commit
+5dc9490bb35f9729ef2c95d00a19ccd30c26339c, licensed under the Apache License,
+Version 2.0. The ported parts were translated from Python to TypeScript and
+adapted to the Pi extension API. Behavior that differs from that commit on
+purpose is recorded as a fix row in parity/ledger.json in the source
+repository.

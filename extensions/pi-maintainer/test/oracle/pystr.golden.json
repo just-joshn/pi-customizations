@@ -1,0 +1,382 @@
+{
+  "count/0": {
+    "result": 2
+  },
+  "count/1": {
+    "result": 4
+  },
+  "count/2": {
+    "result": 3
+  },
+  "count/3": {
+    "result": 1
+  },
+  "count/4": {
+    "result": 2
+  },
+  "expandtabs/0": {
+    "result": "a       b"
+  },
+  "expandtabs/1": {
+    "result": "    x\n    y"
+  },
+  "expandtabs/2": {
+    "result": "ab  c\rd   e"
+  },
+  "expandtabs/3": {
+    "result": "x"
+  },
+  "isspace/ws-0": {
+    "result": true
+  },
+  "isspace/ws-1": {
+    "result": true
+  },
+  "isspace/ws-10": {
+    "result": true
+  },
+  "isspace/ws-11": {
+    "result": true
+  },
+  "isspace/ws-12": {
+    "result": true
+  },
+  "isspace/ws-13": {
+    "result": true
+  },
+  "isspace/ws-14": {
+    "result": true
+  },
+  "isspace/ws-15": {
+    "result": true
+  },
+  "isspace/ws-16": {
+    "result": true
+  },
+  "isspace/ws-17": {
+    "result": true
+  },
+  "isspace/ws-18": {
+    "result": true
+  },
+  "isspace/ws-19": {
+    "result": true
+  },
+  "isspace/ws-2": {
+    "result": true
+  },
+  "isspace/ws-20": {
+    "result": false
+  },
+  "isspace/ws-21": {
+    "result": false
+  },
+  "isspace/ws-22": {
+    "result": false
+  },
+  "isspace/ws-3": {
+    "result": true
+  },
+  "isspace/ws-4": {
+    "result": true
+  },
+  "isspace/ws-5": {
+    "result": true
+  },
+  "isspace/ws-6": {
+    "result": true
+  },
+  "isspace/ws-7": {
+    "result": true
+  },
+  "isspace/ws-8": {
+    "result": true
+  },
+  "isspace/ws-9": {
+    "result": true
+  },
+  "replace/0": {
+    "result": "bb"
+  },
+  "replace/1": {
+    "result": "-a-b-c-"
+  },
+  "replace/2": {
+    "result": "|😀|x|"
+  },
+  "replace/3": {
+    "result": "z"
+  },
+  "replace/4": {
+    "result": "abc"
+  },
+  "split/0": {
+    "result": []
+  },
+  "split/1": {
+    "result": ["a", "b", "c"]
+  },
+  "split/2": {
+    "result": ["a", "b﻿c"]
+  },
+  "split/3": {
+    "result": ["one"]
+  },
+  "splitlines/0-0": {
+    "result": []
+  },
+  "splitlines/0-1": {
+    "result": []
+  },
+  "splitlines/1-0": {
+    "result": ["a"]
+  },
+  "splitlines/1-1": {
+    "result": ["a"]
+  },
+  "splitlines/2-0": {
+    "result": ["a", "b"]
+  },
+  "splitlines/2-1": {
+    "result": ["a\n", "b"]
+  },
+  "splitlines/3-0": {
+    "result": ["a", "b", "c"]
+  },
+  "splitlines/3-1": {
+    "result": ["a\r\n", "b\r", "c\n"]
+  },
+  "splitlines/4-0": {
+    "result": ["a", " b", " c", " d", " e", " f", " g", " h", " i"]
+  },
+  "splitlines/4-1": {
+    "result": ["a\u000b", " b\f", " c\u001c", " d\u001d", " e\u001e", " f", " g ", " h ", " i"]
+  },
+  "splitlines/5-0": {
+    "result": ["", ""]
+  },
+  "splitlines/5-1": {
+    "result": ["\n", "\n"]
+  },
+  "splitlines/6-0": {
+    "result": ["x", ""]
+  },
+  "splitlines/6-1": {
+    "result": ["x\r", "\r\n"]
+  },
+  "splitlines/7-0": {
+    "result": ["tail"]
+  },
+  "splitlines/7-1": {
+    "result": ["tail\r"]
+  },
+  "splitlines/8-0": {
+    "result": ["emoji 🎉", "😀"]
+  },
+  "splitlines/8-1": {
+    "result": ["emoji 🎉\n", "😀\r\n"]
+  },
+  "strip/chars-0": {
+    "result": {
+      "lstrip": "a b  ",
+      "rstrip": "  a b",
+      "strip": "a b"
+    }
+  },
+  "strip/chars-1": {
+    "result": {
+      "lstrip": "axx",
+      "rstrip": "xxa",
+      "strip": "a"
+    }
+  },
+  "strip/chars-2": {
+    "result": {
+      "lstrip": "foo\n\n",
+      "rstrip": "\n\nfoo",
+      "strip": "foo"
+    }
+  },
+  "strip/chars-3": {
+    "result": {
+      "lstrip": "",
+      "rstrip": "",
+      "strip": ""
+    }
+  },
+  "strip/chars-4": {
+    "result": {
+      "lstrip": "abc",
+      "rstrip": "abc",
+      "strip": "abc"
+    }
+  },
+  "strip/chars-5": {
+    "result": {
+      "lstrip": "a😀",
+      "rstrip": "😀a",
+      "strip": "a"
+    }
+  },
+  "strip/ws-0": {
+    "result": {
+      "lstrip": "x\t",
+      "rstrip": "\tx",
+      "strip": "x"
+    }
+  },
+  "strip/ws-1": {
+    "result": {
+      "lstrip": "x\n",
+      "rstrip": "\nx",
+      "strip": "x"
+    }
+  },
+  "strip/ws-10": {
+    "result": {
+      "lstrip": "x",
+      "rstrip": "x",
+      "strip": "x"
+    }
+  },
+  "strip/ws-11": {
+    "result": {
+      "lstrip": "x ",
+      "rstrip": " x",
+      "strip": "x"
+    }
+  },
+  "strip/ws-12": {
+    "result": {
+      "lstrip": "x ",
+      "rstrip": " x",
+      "strip": "x"
+    }
+  },
+  "strip/ws-13": {
+    "result": {
+      "lstrip": "x ",
+      "rstrip": " x",
+      "strip": "x"
+    }
+  },
+  "strip/ws-14": {
+    "result": {
+      "lstrip": "x ",
+      "rstrip": " x",
+      "strip": "x"
+    }
+  },
+  "strip/ws-15": {
+    "result": {
+      "lstrip": "x ",
+      "rstrip": " x",
+      "strip": "x"
+    }
+  },
+  "strip/ws-16": {
+    "result": {
+      "lstrip": "x ",
+      "rstrip": " x",
+      "strip": "x"
+    }
+  },
+  "strip/ws-17": {
+    "result": {
+      "lstrip": "x ",
+      "rstrip": " x",
+      "strip": "x"
+    }
+  },
+  "strip/ws-18": {
+    "result": {
+      "lstrip": "x ",
+      "rstrip": " x",
+      "strip": "x"
+    }
+  },
+  "strip/ws-19": {
+    "result": {
+      "lstrip": "x　",
+      "rstrip": "　x",
+      "strip": "x"
+    }
+  },
+  "strip/ws-2": {
+    "result": {
+      "lstrip": "x\u000b",
+      "rstrip": "\u000bx",
+      "strip": "x"
+    }
+  },
+  "strip/ws-20": {
+    "result": {
+      "lstrip": "﻿x﻿",
+      "rstrip": "﻿x﻿",
+      "strip": "﻿x﻿"
+    }
+  },
+  "strip/ws-21": {
+    "result": {
+      "lstrip": "᠎x᠎",
+      "rstrip": "᠎x᠎",
+      "strip": "᠎x᠎"
+    }
+  },
+  "strip/ws-22": {
+    "result": {
+      "lstrip": "​x​",
+      "rstrip": "​x​",
+      "strip": "​x​"
+    }
+  },
+  "strip/ws-3": {
+    "result": {
+      "lstrip": "x\f",
+      "rstrip": "\fx",
+      "strip": "x"
+    }
+  },
+  "strip/ws-4": {
+    "result": {
+      "lstrip": "x\r",
+      "rstrip": "\rx",
+      "strip": "x"
+    }
+  },
+  "strip/ws-5": {
+    "result": {
+      "lstrip": "x\u001c",
+      "rstrip": "\u001cx",
+      "strip": "x"
+    }
+  },
+  "strip/ws-6": {
+    "result": {
+      "lstrip": "x\u001d",
+      "rstrip": "\u001dx",
+      "strip": "x"
+    }
+  },
+  "strip/ws-7": {
+    "result": {
+      "lstrip": "x\u001e",
+      "rstrip": "\u001ex",
+      "strip": "x"
+    }
+  },
+  "strip/ws-8": {
+    "result": {
+      "lstrip": "x\u001f",
+      "rstrip": "\u001fx",
+      "strip": "x"
+    }
+  },
+  "strip/ws-9": {
+    "result": {
+      "lstrip": "x ",
+      "rstrip": " x",
+      "strip": "x"
+    }
+  }
+}
