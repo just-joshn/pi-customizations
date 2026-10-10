@@ -3612,10 +3612,18 @@
         "aider/repomap.py:365-574"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('context_with_system')"
+      ],
+      "src": [
+        "src/map/rank.ts",
+        "src/map/pagerank.ts",
+        "src/map/context.ts"
+      ],
+      "tests": [
+        "test/map/rank-bind.test.ts::weighted PageRank over same-name def/ref edges omits chat definitions from ranked tags"
+      ]
     },
     {
       "id": "map.rank.weights",
@@ -3625,10 +3633,16 @@
         "aider/repomap.py:485-514"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('context_with_system')"
+      ],
+      "src": [
+        "src/map/rank.ts"
+      ],
+      "tests": [
+        "test/map/rank-bind.test.ts::identifier weights multiply mentions and long names by ten, chat refs by fifty, commons by one tenth"
+      ]
     },
     {
       "id": "map.render.structural-context",
@@ -5551,10 +5565,17 @@
         "aider/coders/base_coder.py:2153-2167"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "Host.exec"
+      ],
+      "src": [
+        "src/git/policy.ts",
+        "src/core/chat-files.ts"
+      ],
+      "tests": [
+        "test/map/files-hints-bind.test.ts::map file universe is sorted deduplicated Git HEAD-and-index inventory after aiderignore; untracked excluded"
+      ]
     },
     {
       "id": "map.files.partition-chat-other",
@@ -5565,10 +5586,16 @@
         "aider/repomap.py:550-557,748-785"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('context_with_system')"
+      ],
+      "src": [
+        "src/core/repo-map.ts"
+      ],
+      "tests": [
+        "test/map/files-hints-bind.test.ts::normal mapping partitions editable plus in-root read-only as chat files and excludes them from rendered map text"
+      ]
     },
     {
       "id": "map.files.important-basenames",
@@ -5579,10 +5606,17 @@
         "aider/repomap.py:559-574,656-662"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('context_with_system')"
+      ],
+      "src": [
+        "src/map/special.ts",
+        "src/map/rank.ts"
+      ],
+      "tests": [
+        "test/map/rank-bind.test.ts::important basenames match configured root names case-sensitively and prepend when absent from ranked list"
+      ]
     },
     {
       "id": "map.hints.mention-extraction",
@@ -5592,10 +5626,18 @@
         "aider/coders/base_coder.py:672-707,1714-1759"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('context_with_system')"
+      ],
+      "src": [
+        "src/core/repo-map.ts",
+        "src/core/mentions.ts",
+        "src/core/context.ts"
+      ],
+      "tests": [
+        "test/map/files-hints-bind.test.ts::mention hints come from current messages only via path, unique punctuated basename, and stem matches of length >= 5"
+      ]
     },
     {
       "id": "map.rank.personalization",
@@ -5605,10 +5647,17 @@
         "aider/repomap.py:383,422-445,519-531"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('context_with_system')"
+      ],
+      "src": [
+        "src/map/rank.ts",
+        "src/map/pagerank.ts"
+      ],
+      "tests": [
+        "test/map/rank-bind.test.ts::personalization boosts chat and path/ident matches by 100 over the scan universe and stores only positives"
+      ]
     },
     {
       "id": "map.rank.definition-scores",
@@ -5618,10 +5667,16 @@
         "aider/repomap.py:533-574"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('context_with_system')"
+      ],
+      "src": [
+        "src/map/rank.ts"
+      ],
+      "tests": [
+        "test/map/rank-bind.test.ts::definition scores order non-chat defs then append filename-only leftovers before budget search"
+      ]
     },
     {
       "id": "map.render.prompt-insertion",

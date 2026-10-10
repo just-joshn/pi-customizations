@@ -1,8 +1,9 @@
+import { accessSync, constants } from 'node:fs';
 import { relative } from 'node:path';
 
 import type { MapRequest, RepositoryContext } from '../feature.ts';
 import { effectiveMapBudget, resolveMapEnablement } from './budget.ts';
-import { filenameOnlyEntries } from './rank.ts';
+import { getRankedTags, prependImportantFiles } from './rank.ts';
 import { renderRankedMap } from './render.ts';
 
 export type MapRefresh = 'auto' | 'always' | 'files' | 'manual';
@@ -25,6 +26,15 @@ function relFname(root: string, fname: string): string {
     return relativePath === '' ? '.' : relativePath;
   } catch {
     return fname;
+  }
+}
+
+function fileExists(absPath: string): boolean {
+  try {
+    accessSync(absPath, constants.F_OK);
+    return true;
+  } catch {
+    return false;
   }
 }
 
@@ -53,7 +63,18 @@ export function createRepositoryContext(config: RepositoryContextConfig): Reposi
 
       const chatRel = new Set([...request.chatFiles].map((path) => relFname(config.root, path)));
       const otherRel = [...request.otherFiles].map((path) => relFname(config.root, path));
-      const ranked = filenameOnlyEntries(otherRel);
+      const ranked = prependImportantFiles(
+        getRankedTags({
+          chatFnames: [...request.chatFiles],
+          otherFnames: [...request.otherFiles],
+          mentionedFnames: request.mentionedFnames,
+          mentionedIdents: request.mentionedIdents,
+          tagsByAbsPath: new Map(),
+          getRelFname: (absPath) => relFname(config.root, absPath),
+          fileExists,
+        }),
+        otherRel,
+      );
       const prefixLen = Math.min(Math.max(Math.trunc(budget / 25), 1), ranked.length);
       const body = renderRankedMap(ranked.slice(0, prefixLen), chatRel);
       if (!body.trim()) return null;
