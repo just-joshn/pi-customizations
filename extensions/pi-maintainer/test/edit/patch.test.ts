@@ -203,3 +203,34 @@ test('ADD editIntent leaves creation to application', async () => {
   );
   expect(await readFile(join(space.root, 'dir/added.py'), 'utf8')).toBe('hello\n');
 });
+
+test('replays the recorded patch CLI add content', { meta: { evidence: ['ev-edit/cli-apply/patch-add'] } }, async () => {
+  const space = await workspace({ dryRun: false });
+  const reply = ['*** Begin Patch', '*** Add File: sample.py', '+value = 200', '*** End Patch'].join('\n');
+  await patchFormat.withPlan(
+    reply,
+    {
+      fence: ['```', '```'],
+      root: space.root,
+      inchatRelativeFiles: [],
+      absRootPath: space.ctx.absRootPath,
+      tree: space.workingTree,
+      notices: space.ctx.io,
+    },
+    async (candidates) => {
+      expect(await space.workingTree.exists(space.ctx.absRootPath('sample.py'))).toBe(false);
+      return [...candidates];
+    },
+    async (plan) => {
+      expect(plan.targets).toEqual(['sample.py']);
+      await plan.apply();
+    },
+  );
+  expect(await readFile(join(space.root, 'sample.py'), 'utf8')).toBe('value = 200\n');
+});
+
+test('patch ADD of a path that existed before the reply still fails', async () => {
+  const space = await workspace({ files: { 'sample.py': 'already\n' } });
+  await expect(applyEdits([['sample.py', { type: 'Add', path: 'sample.py', newContent: 'value = 200' }]], space.ctx)).rejects.toThrow('ADD Error: File already exists: sample.py');
+  expect(await readFile(join(space.root, 'sample.py'), 'utf8')).toBe('already\n');
+});

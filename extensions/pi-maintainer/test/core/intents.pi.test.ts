@@ -101,7 +101,11 @@ test('explicit consent permits an absolute MOVE destination outside the root', a
   expect(f.errors).toEqual([]);
 });
 
-test('ADD authorization leaves creation to the format', async () => {
+test('ADD authorization leaves creation to the format', {
+  meta: {
+    evidence: ['ev-edit/patch-lifecycle/reported-edited', 'ev-edit/patch-lifecycle/file-exists', 'ev-edit/patch-lifecycle/file-content', 'ev-edit/patch-lifecycle/reflected-message'],
+  },
+}, async () => {
   const f = await fixture({ config: 'yes-always: true\n' });
   f.edits.push(['added.txt', { kind: 'add', path: 'added.txt' }]);
   f.replies.push({ text: 'RUN' });
@@ -112,7 +116,17 @@ test('ADD authorization leaves creation to the format', async () => {
     .getBranch()
     .filter((entry) => entry.type === 'custom')
     .map((entry) => entry.data);
-  expect(records).toEqual(expect.arrayContaining([expect.objectContaining({ kind: 'operation-intent', operation: 'write' })]));
+  const added = join(f.cwd, 'added.txt');
+  expect(records).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({ kind: 'operation-intent', operation: 'write', path: added }),
+      expect.objectContaining({ kind: 'operation-observed', outcome: 'succeeded' }),
+      expect.objectContaining({
+        kind: 'snapshot',
+        lifecycle: expect.objectContaining({ kind: 'active', preparedTargets: ['added.txt'], writtenPaths: [added] }),
+      }),
+    ]),
+  );
   expect(records).not.toEqual(expect.arrayContaining([expect.objectContaining({ kind: 'operation-intent', operation: 'touch' })]));
   expect(f.requests).toHaveLength(1);
   expect(f.errors).toEqual([]);

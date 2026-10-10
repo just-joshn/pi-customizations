@@ -321,7 +321,7 @@ export async function applyEdits(edits: readonly UdiffEdit[], ctx: UdiffContext)
   }
   if (errors.length === 0) return;
   let message = errors.join('\n\n');
-  // Aider compares joined error character length to hunk count (source-confirmed defect).
-  if (message.length < uniq.length) message += otherHunksApplied;
+  // Count failed hunks against attempted hunks (Aider compared character length to hunk count).
+  if (errors.length < uniq.length) message += otherHunksApplied;
   throw new ValueError(message);
 }

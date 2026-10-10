@@ -256,6 +256,22 @@ test('an unavailable edit format refuses provider requests', async () => {
   expect(f.errors).toEqual([]);
 });
 
+test('approved patch ADD writes content without an authorization touch', async () => {
+  const f = await piSessionFixture({ extension, config: 'edit-format: patch\nyes-always: true\n' });
+  f.replies.push({ text: '*** Begin Patch\n*** Add File: sample.py\n+value = 200\n*** End Patch\n' });
+  const session = await f.open();
+  await promptAndSettle(session, 'add sample.py');
+  expect(await readFile(join(f.cwd, 'sample.py'), 'utf8')).toBe('value = 200\n');
+  const records = session.sessionManager
+    .getBranch()
+    .filter((entry) => entry.type === 'custom')
+    .map((entry) => entry.data);
+  expect(records).toEqual(expect.arrayContaining([expect.objectContaining({ kind: 'operation-intent', operation: 'write' })]));
+  expect(records).not.toEqual(expect.arrayContaining([expect.objectContaining({ kind: 'operation-intent', operation: 'touch' })]));
+  expect(f.requests).toHaveLength(1);
+  expect(f.errors).toEqual([]);
+});
+
 test('a missing prompt source stops before a provider request', async () => {
   const f = await piSessionFixture({ extension: (pi) => installMaintainer(pi, [editFeature], { home: () => '/nonexistent', processEnvironment: () => ({}) }) });
   const session = await f.open();

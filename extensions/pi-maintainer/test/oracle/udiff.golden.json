@@ -44,7 +44,7 @@
       },
       "outcome": {
         "error": {
-          "message": "UnifiedDiffNoMatch: hunk failed to apply!\n\nb.txt does not contain lines that match the diff you provided!\nTry again.\nDO NOT skip blank lines, comments, docstrings, etc!\nThe diff needs to apply cleanly to the lines in b.txt!\n\nb.txt does not contain these 1 exact lines in a row:\n```\nmissing\n```\n",
+          "message": "UnifiedDiffNoMatch: hunk failed to apply!\n\nb.txt does not contain lines that match the diff you provided!\nTry again.\nDO NOT skip blank lines, comments, docstrings, etc!\nThe diff needs to apply cleanly to the lines in b.txt!\n\nb.txt does not contain these 1 exact lines in a row:\n```\nmissing\n```\nNote: some hunks did apply successfully. See the updated source code shown above.\n\n",
           "type": "ValueError"
         }
       }

@@ -1164,10 +1164,19 @@
         "aider/coders/search_replace.py:406-431"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/udiff.ts",
+        "src/edit/search-replace.ts"
+      ],
+      "tests": [
+        "test/udiff.test.ts::rebuilds before text from the file when direct replace fails",
+        "test/udiff.test.ts::keeps the original hunk when repaired before text is too short",
+        "test/udiff.oracle.test.ts::make new lines make_new_lines/noop-when-short"
+      ]
     },
     {
       "id": "edit.udiff.context-reduction",
@@ -1218,10 +1227,19 @@
         "aider/coders/search_replace.py:193-403,448-562,622-757"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/udiff.ts",
+        "src/edit/search-replace.ts"
+      ],
+      "tests": [
+        "test/udiff.test.ts::udiff refuses a reverse-lines-only match and never enables reverse preprocs",
+        "test/udiff.oracle.test.ts::flexible search replace *",
+        "test/udiff.oracle.test.ts::directly apply *"
+      ]
     },
     {
       "id": "edit.udiff.sequential-writes",
@@ -1277,10 +1295,17 @@
         "intent": "The other_hunks_applied message (aider/coders/udiff_coder.py:41-43) says \"some hunks did apply successfully\", and the guard compares against len(uniq), the number of hunks attempted, so the check was meant to count failed hunks against attempted hunks.",
         "behavior": "Append the note whenever the number of failed hunks is less than the number of hunks attempted."
       },
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/udiff.ts"
+      ],
+      "tests": [
+        "test/udiff.test.ts::partial success appends the sibling-hunks note",
+        "test/udiff.oracle.test.ts::apply edits apply_edits/partial-success-survives"
+      ]
     },
     {
       "id": "edit.patch.sentinels",
@@ -1713,16 +1738,22 @@
         "intent": "The patch prompt defines Add as creating a new file with the given lines (aider/coders/patch_prompts.py:153), the user approved \"Create new file?\" for that path (aider/coders/base_coder.py:2207), and the Add guard exists to protect files that already existed (aider/coders/patch_coder.py:567-569).",
         "behavior": "Treat a path created empty by this reply's approval as new, so the approved Add writes its content with a trailing newline. An Add of a path that existed before the reply still fails with \"ADD Error: File already exists: <path>\"."
       },
-      "status": "open",
+      "status": "verified",
       "pi": [
         "pi.on('turn_end')"
       ],
       "src": [
         "src/edit/feature.ts",
-        "src/edit/patch.ts"
+        "src/edit/patch.ts",
+        "src/edit/patch-apply.ts",
+        "src/core/exchange.ts"
       ],
       "tests": [
-        "test/edit/patch.test.ts::ADD editIntent leaves creation to application"
+        "test/edit/patch.test.ts::ADD editIntent leaves creation to application",
+        "test/edit/patch.test.ts::replays the recorded patch CLI add content",
+        "test/edit/patch.test.ts::patch ADD of a path that existed before the reply still fails",
+        "test/core/intents.pi.test.ts::ADD authorization leaves creation to the format",
+        "test/core/lifecycle.pi.test.ts::approved patch ADD writes content without an authorization touch"
       ]
     },
     {

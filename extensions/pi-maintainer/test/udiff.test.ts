@@ -8,8 +8,8 @@ import { udiffEditFormat, udiffSimpleFormat } from '../src/edit/feature.ts';
 import { allPreprocs } from '../src/edit/search-replace.ts';
 import { applyEdits, applyHunk, directlyApplyHunk, findDiffs, getEdits, hunkToBeforeAfter, makeNewLinesExplicit } from '../src/edit/udiff.ts';
 import { createWorkingTree } from '../src/edit/working-tree.ts';
-import { pyLength, splitlines, strip } from '../src/support/pystr.ts';
 import type { EditContext } from '../src/feature.ts';
+import { pyLength, splitlines, strip } from '../src/support/pystr.ts';
 
 const notices = {
   output() {},
@@ -17,7 +17,7 @@ const notices = {
   error() {},
 };
 
-async function udiffTree(root: string) {
+function udiffTree() {
   return createWorkingTree({ notices });
 }
 
@@ -209,7 +209,7 @@ test('applyEdits keeps earlier writes when a later hunk fails', async () => {
   onTestFinished(() => rm(root, { recursive: true, force: true }));
   await writeFile(join(root, 'a.txt'), 'old\n');
   await writeFile(join(root, 'b.txt'), 'keep\n');
-  const tree = await udiffTree(root);
+  const tree = udiffTree();
   await expect(
     applyEdits(
       [
@@ -233,7 +233,7 @@ test('partial success appends the sibling-hunks note', async () => {
   onTestFinished(() => rm(root, { recursive: true, force: true }));
   await writeFile(join(root, 'a.txt'), 'old\n');
   await writeFile(join(root, 'b.txt'), 'keep\n');
-  const tree = await udiffTree(root);
+  const tree = udiffTree();
   let message = '';
   try {
     await applyEdits(
@@ -252,7 +252,7 @@ test('partial success appends the sibling-hunks note', async () => {
     expect(error).toBeInstanceOf(ValueError);
     message = error instanceof Error ? error.message : '';
   }
-  expect(message).toContain('UnifiedDiffNoMatch');
+  expect(message).toMatch(/^UnifiedDiffNoMatch:/);
   expect(message.endsWith('Note: some hunks did apply successfully. See the updated source code shown above.\n\n')).toBe(true);
   expect(await readFile(join(root, 'a.txt'), 'utf8')).toBe('new\n');
 });
