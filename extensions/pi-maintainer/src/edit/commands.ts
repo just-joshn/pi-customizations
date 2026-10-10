@@ -1,7 +1,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 
 import { chatFilesOf } from '../core/branch.ts';
-import { getRelFname, inchatRelativeFiles, readText } from '../core/chat-files.ts';
+import { addableRelativeFiles, getRelFname, inchatRelativeFiles, readText } from '../core/chat-files.ts';
 import type { CommandEnv, CommandSpec } from '../core/command.ts';
 import { type EditFormatName, isEditFormatName } from '../feature.ts';
 import { transferModeSelection } from './factory.ts';
@@ -29,10 +29,9 @@ function quoteFname(name: string): string {
 }
 
 async function completeAdd(prefix: string, env: CommandEnv): Promise<readonly string[]> {
-  const tracked = (await env.git.trackedFiles()) ?? [];
-  const inchat = new Set(inchatRelativeFiles(env.snapshot.root, chatFilesOf(env.snapshot)));
-  return tracked
-    .filter((name) => !inchat.has(name) && name.startsWith(prefix))
+  const addable = await addableRelativeFiles(env.snapshot.root, chatFilesOf(env.snapshot), env.git);
+  return addable
+    .filter((name) => name.startsWith(prefix))
     .map(quoteFname)
     .sort();
 }

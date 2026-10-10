@@ -101,7 +101,7 @@ export async function globFilteredToRepo(pattern: string, env: SelectionEnv): Pr
 
 async function matchAddWord(word: string, env: SelectionEnv): Promise<string[]> {
   const fname = isAbsolute(word) ? word : join(env.root, word);
-  if (await env.git.isGitIgnored(getRelFname(env.root, fname))) {
+  if (await env.git.isIgnored(getRelFname(env.root, fname))) {
     env.host.warning(`Skipping ${fname} due to aiderignore or --subtree-only.`);
     return [];
   }

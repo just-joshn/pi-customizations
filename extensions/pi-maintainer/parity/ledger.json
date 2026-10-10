@@ -4778,10 +4778,22 @@
         "aider/commands.py:800-870"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "Host.exec"
+      ],
+      "src": [
+        "src/git/feature.ts",
+        "src/git/policy.ts",
+        "src/git/options.ts",
+        "src/index.ts",
+        "src/core/exchange.ts",
+        "src/edit/selection.ts"
+      ],
+      "tests": [
+        "test/git/filters-bind.test.ts::isGitIgnored matches git check-ignore for paths rejected from inventory and edits",
+        "test/git/authorize-bind.test.ts::gitignored paths are skipped with the Aider skip warning"
+      ]
     },
     {
       "id": "git.filter.aiderignore",
@@ -4792,10 +4804,20 @@
         "aider/main.py:460-520"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "Host.exec"
+      ],
+      "src": [
+        "src/git/feature.ts",
+        "src/git/policy.ts",
+        "src/git/options.ts",
+        "src/index.ts"
+      ],
+      "tests": [
+        "test/git/filters-bind.test.ts::aiderignore excludes matching tracked paths and marks them policy-ignored",
+        "test/git/inventory-bind.test.ts::aiderignore excludes matching tracked paths from inventory"
+      ]
     },
     {
       "id": "git.filter.subtree",
@@ -4805,10 +4827,19 @@
         "aider/repo.py:433-487"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "Host.exec"
+      ],
+      "src": [
+        "src/git/feature.ts",
+        "src/git/policy.ts",
+        "src/git/options.ts",
+        "src/index.ts"
+      ],
+      "tests": [
+        "test/git/filters-bind.test.ts::subtree-only inventory and isIgnored stay under the cwd tree"
+      ]
     },
     {
       "id": "git.inventory.addable-files",
@@ -4818,10 +4849,17 @@
         "aider/coders/base_coder.py:2153-2173"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.registerCommand"
+      ],
+      "src": [
+        "src/core/chat-files.ts",
+        "src/edit/commands.ts"
+      ],
+      "tests": [
+        "test/git/filters-bind.test.ts::addable relative files are filtered inventory minus editable and read-only chat files"
+      ]
     },
     {
       "id": "git.inventory.no-repo-fallback",
@@ -4831,10 +4869,18 @@
         "aider/coders/base_coder.py:2153-2167"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "Host.exec"
+      ],
+      "src": [
+        "src/core/chat-files.ts",
+        "src/git/policy.ts"
+      ],
+      "tests": [
+        "test/git/filters-bind.test.ts::without a repository relative inventory is limited to in-chat editable files",
+        "test/core/context-bind.test.ts::inventory falls back to chat files without walking the workspace"
+      ]
     },
     {
       "id": "git.dirty.path-semantics",
@@ -5016,10 +5062,19 @@
         "aider/commands.py:800-900"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.registerCommand",
+        "Host.exec"
+      ],
+      "src": [
+        "src/edit/selection.ts",
+        "src/git/policy.ts",
+        "src/feature.ts"
+      ],
+      "tests": [
+        "test/git/filters-bind.test.ts::add refuses gitignored paths and skips aiderignored paths with Aider warnings"
+      ]
     },
     {
       "id": "git.commands.add-untracked",
@@ -5083,10 +5138,19 @@
         "aider/args.py:272-320"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "Host.exec"
+      ],
+      "src": [
+        "src/git/feature.ts",
+        "src/git/policy.ts",
+        "src/git/options.ts",
+        "src/index.ts"
+      ],
+      "tests": [
+        "test/git/filters-bind.test.ts::configured aiderignore path resolves relative to the git root and filters inventory"
+      ]
     },
     {
       "id": "git.repo.open-single-root",

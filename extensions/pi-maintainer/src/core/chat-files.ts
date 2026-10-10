@@ -48,6 +48,14 @@ export async function allRelativeFiles(root: string, files: ChatFiles, git: { tr
   return inchatRelativeFiles(root, files);
 }
 
+/** `Coder.get_addable_relative_files`: inventory minus editable and read-only chat files. */
+export async function addableRelativeFiles(root: string, files: ChatFiles, git: { trackedFiles(): Promise<readonly string[] | null> }): Promise<string[]> {
+  const all = new Set(await allRelativeFiles(root, files, git));
+  for (const path of inchatRelativeFiles(root, files)) all.delete(path);
+  for (const path of files.readOnly) all.delete(getRelFname(root, path));
+  return pythonSorted(all);
+}
+
 /** `utils.find_common_root`. */
 export function findCommonRoot(absFnames: readonly string[], cwd: string): string {
   const [only] = absFnames;

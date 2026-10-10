@@ -1,5 +1,5 @@
 import { existsSync, readFileSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { isAbsolute, join, resolve } from 'node:path';
 
 import ignoreImport, { type Ignore } from 'ignore';
 import type { Host } from '../core/host.ts';
@@ -10,6 +10,13 @@ import { buildCommitMessageRequest, normalizeCommitMessage } from './commit-mess
 import { effectiveDirtyCommits } from './options.ts';
 
 const createIgnore = ignoreImport as unknown as () => Ignore;
+
+/** `aider.args.resolve_aiderignore_path`: absolute stays absolute; relative joins the git root when present. */
+export function resolveAiderIgnorePath(path: string, gitRoot?: string | null): string {
+  if (isAbsolute(path)) return path;
+  if (gitRoot) return join(gitRoot, path);
+  return path;
+}
 
 export interface GitPolicySettings {
   readonly autoCommits: boolean;
@@ -41,7 +48,7 @@ export interface CreateGitPolicyOptions {
 }
 
 function aiderIgnorePath(root: string, configured: string | null): string {
-  return configured ? resolve(root, configured) : join(root, '.aiderignore');
+  return configured ? resolveAiderIgnorePath(configured, root) : join(root, '.aiderignore');
 }
 
 function loadAiderIgnore(root: string, configured: string | null): Ignore | null {
@@ -70,6 +77,7 @@ export function createGitPolicy(options: CreateGitPolicyOptions): GitPolicy {
       trackedFiles: async () => null,
       needToAdd: async () => false,
       isGitIgnored: async () => false,
+      isIgnored: async () => false,
       stageNewFile: async () => {},
       needsDirtyCommit: async () => false,
       dirtyCommit: async () => ({ kind: 'disabled' }),
@@ -91,22 +99,29 @@ export function createGitPolicy(options: CreateGitPolicyOptions): GitPolicy {
     return tracked.has(normalize(path));
   }
 
+  function outsideSubtree(normalized: string): boolean {
+    if (!options.settings.subtreeOnly) return false;
+    const cwdRel = normalizeRepoPath(root, options.cwd);
+    if (cwdRel === '.' || cwdRel === '') return false;
+    return normalized !== cwdRel && !normalized.startsWith(`${cwdRel}/`);
+  }
+
+  function isAiderIgnored(normalized: string): boolean {
+    const aider = loadAiderIgnore(root, options.settings.aiderIgnore);
+    return aider?.ignores(normalized) ?? false;
+  }
+
   async function listTracked(signal?: AbortSignal): Promise<Set<string>> {
     const listed = await git(['ls-files', '--cached'], signal);
     if (listed.code !== 0) {
       host.error(`Unable to list files in git repo: ${listed.stderr.trim() || listed.stdout.trim()}`);
       return new Set();
     }
-    const aider = loadAiderIgnore(root, options.settings.aiderIgnore);
     const files = new Set<string>();
     for (const line of listed.stdout.split('\n')) {
       if (!line) continue;
       const normalized = normalize(line);
-      if (aider?.ignores(normalized)) continue;
-      if (options.settings.subtreeOnly) {
-        const cwdRel = normalizeRepoPath(root, options.cwd);
-        if (cwdRel !== '.' && cwdRel !== '' && normalized !== cwdRel && !normalized.startsWith(`${cwdRel}/`)) continue;
-      }
+      if (isAiderIgnored(normalized) || outsideSubtree(normalized)) continue;
       files.add(normalized);
     }
     return files;
@@ -200,6 +215,10 @@ export function createGitPolicy(options: CreateGitPolicyOptions): GitPolicy {
     isGitIgnored: async (path) => {
       const check = await git(['check-ignore', '-q', '--', normalize(path)]);
       return check.code === 0;
+    },
+    isIgnored: async (path) => {
+      const normalized = normalize(path);
+      return outsideSubtree(normalized) || isAiderIgnored(normalized);
     },
     stageNewFile: async (absPath) => {
       if (!autoCommits) return;

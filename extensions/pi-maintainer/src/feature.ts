@@ -172,7 +172,10 @@ export interface GitPolicy {
   trackedFiles(): Promise<readonly string[] | null>;
   /** `need_to_add` in `allowed_to_edit`: a repository exists and does not hold the path. */
   needToAdd(path: string): Promise<boolean>;
+  /** `GitRepo.git_ignored_file`: git check-ignore. */
   isGitIgnored(path: string): Promise<boolean>;
+  /** `GitRepo.ignored_file`: aiderignore and --subtree-only, not gitignore. */
+  isIgnored(path: string): Promise<boolean>;
   /** Stages a file the edit created, when automatic commits are on. */
   stageNewFile(absPath: string): Promise<void>;
   /** `check_for_dirty_commit`'s test: dirty commits are on and the path has uncommitted changes. */
@@ -218,6 +221,7 @@ export const disabledGitPolicy: GitPolicy = {
   trackedFiles: async () => null,
   needToAdd: async () => false,
   isGitIgnored: async () => false,
+  isIgnored: async () => false,
   stageNewFile: async () => {},
   needsDirtyCommit: async () => false,
   dirtyCommit: async () => ({ kind: 'disabled' }),

@@ -1,4 +1,4 @@
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, realpath, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -23,7 +23,7 @@ const defaultSettings: GitPolicySettings = {
 };
 
 export async function tempDir(prefix: string): Promise<string> {
-  const root = await mkdtemp(join(tmpdir(), prefix));
+  const root = await realpath(await mkdtemp(join(tmpdir(), prefix)));
   onTestFinished(() => rm(root, { recursive: true, force: true }));
   return root;
 }
@@ -88,12 +88,17 @@ export function policyIn(
   root: string,
   host: Host,
   overrides: Partial<GitPolicySettings> = {},
-  extras: { readonly generateCommitMessage?: (request: { readonly system: string; readonly user: string }) => Promise<string | null>; readonly sessionCommitHashes?: Set<string> } = {},
+  extras: {
+    readonly cwd?: string;
+    readonly generateCommitMessage?: (request: { readonly system: string; readonly user: string }) => Promise<string | null>;
+    readonly sessionCommitHashes?: Set<string>;
+  } = {},
 ) {
+  const { cwd, ...rest } = extras;
   return createGitPolicy({
     host,
-    cwd: root,
+    cwd: cwd ?? root,
     settings: { ...defaultSettings, ...overrides },
-    ...extras,
+    ...rest,
   });
 }
