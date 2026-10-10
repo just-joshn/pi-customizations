@@ -19,20 +19,12 @@ const bindings = {
   'edit.io.read-text': {
     pi: ["pi.on('context_with_system')"],
     src: ['src/edit/working-tree.ts'],
-    tests: [
-      'test/working-tree-read.oracle.test.ts::reads Aider text *',
-      'test/working-tree.test.ts::invalid UTF-8 bytes produce the encoding hint',
-      'test/working-tree.test.ts::reads UTF-16LE bytes when that codec is configured',
-    ],
+    tests: ['test/working-tree-read.oracle.test.ts::reads Aider text *', 'test/working-tree.test.ts::invalid UTF-8 bytes produce the encoding hint', 'test/working-tree.test.ts::reads UTF-16LE bytes when that codec is configured'],
   },
   'edit.whole.overwrite': {
     pi: queueTurn,
     src: ['src/edit/wholefile.ts'],
-    tests: [
-      'test/wholefile.test.ts::overwrites an existing chat file',
-      'test/wholefile.test.ts::overwrites a file with an empty block',
-      'test/wholefile.test.ts::replays the recorded whole-file CLI replacement content',
-    ],
+    tests: ['test/wholefile.test.ts::overwrites an existing chat file', 'test/wholefile.test.ts::overwrites a file with an empty block', 'test/wholefile.test.ts::replays the recorded whole-file CLI replacement content'],
   },
   'edit.whole.unfinished-block': {
     pi: queueTurn,
@@ -42,18 +34,12 @@ const bindings = {
   'edit.udiff.inherit-path': {
     pi: turnEnd,
     src: udiffSrc,
-    tests: [
-      'test/udiff.test.ts::getEdits inherits the prior path across fences',
-      'test/udiff.oracle.test.ts::get edits get_edits/inherit-path',
-    ],
+    tests: ['test/udiff.test.ts::getEdits inherits the prior path across fences', 'test/udiff.oracle.test.ts::get edits get_edits/inherit-path'],
   },
   'edit.udiff.normalize-dedupe': {
     pi: turnEnd,
     src: udiffSrc,
-    tests: [
-      'test/udiff.oracle.test.ts::normalize hunk *',
-      'test/udiff.oracle.test.ts::apply edits apply_edits/normalize-dedupe',
-    ],
+    tests: ['test/udiff.oracle.test.ts::normalize hunk *', 'test/udiff.oracle.test.ts::apply edits apply_edits/normalize-dedupe'],
   },
   'edit.udiff.empty-before-appends': {
     pi: turnEnd,
@@ -63,11 +49,7 @@ const bindings = {
   'edit.udiff.direct-replace': {
     pi: turnEnd,
     src: udiffSrc,
-    tests: [
-      'test/udiff.oracle.test.ts::directly apply *',
-      'test/udiff.test.ts::replays the recorded udiff CLI replacement content',
-      'test/udiff.test.ts::udiff format plans an upsert and applies the hunk',
-    ],
+    tests: ['test/udiff.oracle.test.ts::directly apply *', 'test/udiff.test.ts::replays the recorded udiff CLI replacement content', 'test/udiff.test.ts::udiff format plans an upsert and applies the hunk'],
   },
   'edit.udiff.context-reduction': {
     pi: turnEnd,
@@ -77,10 +59,7 @@ const bindings = {
   'edit.udiff.all-occurrences': {
     pi: turnEnd,
     src: udiffSrc,
-    tests: [
-      'test/udiff.oracle.test.ts::directly apply directly_apply/all-occurrences',
-      'test/udiff.test.ts::literal udiff replace changes every occurrence',
-    ],
+    tests: ['test/udiff.oracle.test.ts::directly apply directly_apply/all-occurrences', 'test/udiff.test.ts::literal udiff replace changes every occurrence'],
   },
   'edit.udiff.sequential-writes': {
     pi: turnEnd,
@@ -94,10 +73,7 @@ const bindings = {
   'edit.udiff.no-match-error': {
     pi: turnEnd,
     src: udiffSrc,
-    tests: [
-      'test/udiff.test.ts::applyEdits keeps earlier writes when a later hunk fails',
-      'test/udiff.oracle.test.ts::apply edits apply_edits/no-match-error',
-    ],
+    tests: ['test/udiff.test.ts::applyEdits keeps earlier writes when a later hunk fails', 'test/udiff.oracle.test.ts::apply edits apply_edits/no-match-error'],
   },
   'edit.udiff.empty-result-success': {
     pi: turnEnd,
@@ -150,26 +126,17 @@ const bindings = {
   'edit.patch.add-lines': {
     pi: turnEnd,
     src: patchParseSrc,
-    tests: [
-      'test/edit/patch.oracle.test.ts::applyEdits apply_edits/add-appends-newline',
-      'test/edit/patch.oracle.test.ts::getEdits get_edits/invalid-add-line',
-    ],
+    tests: ['test/edit/patch.oracle.test.ts::applyEdits apply_edits/add-appends-newline', 'test/edit/patch.oracle.test.ts::getEdits get_edits/invalid-add-line'],
   },
   'edit.patch.update-lines': {
     pi: turnEnd,
     src: patchParseSrc,
-    tests: [
-      'test/edit/patch.oracle.test.ts::peekNextSection peek_next_section/context-delete-insert',
-      'test/edit/patch.oracle.test.ts::peekNextSection peek_next_section/blank-line-is-context',
-    ],
+    tests: ['test/edit/patch.oracle.test.ts::peekNextSection peek_next_section/context-delete-insert', 'test/edit/patch.oracle.test.ts::peekNextSection peek_next_section/blank-line-is-context'],
   },
   'edit.patch.scope-markers': {
     pi: turnEnd,
     src: patchParseSrc,
-    tests: [
-      'test/edit/patch.oracle.test.ts::parsePatchText parse_patch_text/scope-*',
-      'test/edit/patch.oracle.test.ts::applies reply apply_reply/scope-marker',
-    ],
+    tests: ['test/edit/patch.oracle.test.ts::parsePatchText parse_patch_text/scope-*', 'test/edit/patch.oracle.test.ts::applies reply apply_reply/scope-marker'],
   },
   'edit.patch.context-fuzz': {
     pi: turnEnd,
@@ -184,18 +151,12 @@ const bindings = {
   'edit.patch.eof-context': {
     pi: turnEnd,
     src: ['src/edit/patch-sections.ts'],
-    tests: [
-      'test/edit/patch.oracle.test.ts::findContext find_context/eof-*',
-      'test/edit/patch.oracle.test.ts::applies reply apply_reply/eof-*',
-    ],
+    tests: ['test/edit/patch.oracle.test.ts::findContext find_context/eof-*', 'test/edit/patch.oracle.test.ts::applies reply apply_reply/eof-*'],
   },
   'edit.patch.context-not-found': {
     pi: turnEnd,
     src: patchParseSrc,
-    tests: [
-      'test/edit/patch.oracle.test.ts::parsePatchText parse_patch_text/context-not-found',
-      'test/edit/patch.oracle.test.ts::parsePatchText parse_patch_text/eof-context-not-found',
-    ],
+    tests: ['test/edit/patch.oracle.test.ts::parsePatchText parse_patch_text/context-not-found', 'test/edit/patch.oracle.test.ts::parsePatchText parse_patch_text/eof-context-not-found'],
   },
   'edit.patch.original-indices': {
     pi: turnEnd,
@@ -219,10 +180,7 @@ const bindings = {
   'edit.patch.update-missing-file': {
     pi: turnEnd,
     src: patchSrc,
-    tests: [
-      'test/edit/patch.oracle.test.ts::applyEdits apply_edits/update-missing-file',
-      'test/edit/patch.oracle.test.ts::applyEdits apply_edits/update-unreadable-directory',
-    ],
+    tests: ['test/edit/patch.oracle.test.ts::applyEdits apply_edits/update-missing-file', 'test/edit/patch.oracle.test.ts::applyEdits apply_edits/update-unreadable-directory'],
   },
   'edit.patch.add-existing-fails': {
     pi: turnEnd,
@@ -241,18 +199,12 @@ const bindings = {
   'edit.patch.delete-unlinks': {
     pi: turnEnd,
     src: ['src/edit/patch-apply.ts'],
-    tests: [
-      'test/edit/patch.oracle.test.ts::applyEdits apply_edits/delete-removes-file',
-      'test/edit/patch.oracle.test.ts::applyEdits apply_edits/delete-missing-warns',
-    ],
+    tests: ['test/edit/patch.oracle.test.ts::applyEdits apply_edits/delete-removes-file', 'test/edit/patch.oracle.test.ts::applyEdits apply_edits/delete-missing-warns'],
   },
   'edit.patch.move': {
     pi: turnEnd,
     src: patchSrc,
-    tests: [
-      'test/edit/patch.oracle.test.ts::applyEdits apply_edits/move-to-new-directory',
-      'test/edit/patch.oracle.test.ts::applies reply apply_reply/move-into-new-directory',
-    ],
+    tests: ['test/edit/patch.oracle.test.ts::applyEdits apply_edits/move-to-new-directory', 'test/edit/patch.oracle.test.ts::applies reply apply_reply/move-into-new-directory'],
   },
   'edit.patch.action-errors': {
     pi: turnEnd,

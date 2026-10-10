@@ -81,31 +81,27 @@ test('trimmed context matches at fuzz 100', { meta: { evidence: ['ev-edit/probe/
   expect(findContextCore(['    x = 1   '], ['x = 1'], 0)).toEqual([0, 100]);
 });
 
-test(
-  'replays the recorded patch CLI update content',
-  { meta: { evidence: ['ev-edit/cli-apply/patch-update'] } },
-  async () => {
-    const space = await workspace({ files: { 'sample.py': 'value = 100\n' } });
-    const reply = ['*** Begin Patch', '*** Update File: sample.py', '@@', '-value = 100', '+value = 200', '*** End Patch'].join('\n');
-    await patchFormat.withPlan(
-      reply,
-      {
-        fence: ['```', '```'],
-        root: space.root,
-        inchatRelativeFiles: ['sample.py'],
-        absRootPath: space.ctx.absRootPath,
-        tree: space.workingTree,
-        notices: space.ctx.io,
-      },
-      async (candidates) => [...candidates],
-      async (plan) => {
-        expect(plan.targets).toEqual(['sample.py']);
-        await plan.apply();
-      },
-    );
-    expect(await readFile(join(space.root, 'sample.py'), 'utf8')).toBe('value = 200\n');
-  },
-);
+test('replays the recorded patch CLI update content', { meta: { evidence: ['ev-edit/cli-apply/patch-update'] } }, async () => {
+  const space = await workspace({ files: { 'sample.py': 'value = 100\n' } });
+  const reply = ['*** Begin Patch', '*** Update File: sample.py', '@@', '-value = 100', '+value = 200', '*** End Patch'].join('\n');
+  await patchFormat.withPlan(
+    reply,
+    {
+      fence: ['```', '```'],
+      root: space.root,
+      inchatRelativeFiles: ['sample.py'],
+      absRootPath: space.ctx.absRootPath,
+      tree: space.workingTree,
+      notices: space.ctx.io,
+    },
+    async (candidates) => [...candidates],
+    async (plan) => {
+      expect(plan.targets).toEqual(['sample.py']);
+      await plan.apply();
+    },
+  );
+  expect(await readFile(join(space.root, 'sample.py'), 'utf8')).toBe('value = 200\n');
+});
 
 test('workspace seeds observe through one sandbox resolver', async () => {
   const space = await workspace({ files: { 'nested/../seeded.py': 'seed\n' } });
@@ -114,36 +110,28 @@ test('workspace seeds observe through one sandbox resolver', async () => {
   expect(await space.snapshot()).toEqual({ 'seeded.py': 'seed\n' });
 });
 
-test(
-  'dry-run application leaves DELETE MOVE and nested ADD untouched',
-  {
-    meta: {
-      evidence: [
-        'ev-edit/patch-lifecycle/dry-run-delete-removed-file',
-        'ev-edit/patch-lifecycle/dry-run-move-removed-source',
-        'ev-edit/patch-lifecycle/dry-run-move-created-destination',
-      ],
-    },
+test('dry-run application leaves DELETE MOVE and nested ADD untouched', {
+  meta: {
+    evidence: ['ev-edit/patch-lifecycle/dry-run-delete-removed-file', 'ev-edit/patch-lifecycle/dry-run-move-removed-source', 'ev-edit/patch-lifecycle/dry-run-move-created-destination'],
   },
-  async () => {
-    const space = await workspace({
-      files: { 'source.py': 'old\n' },
-      dryRun: true,
-    });
-    const before = await space.snapshot();
-    await applyEdits(
-      [
-        ['source.py', { type: 'Delete', path: 'source.py' }],
-        ['source.py', { type: 'Update', path: 'source.py', chunks: [{ origIndex: 0, delLines: ['old'], insLines: ['new'] }], movePath: 'nested/destination.py' }],
-        ['nested/deeper/new.py', { type: 'Add', path: 'nested/deeper/new.py', newContent: 'new' }],
-      ],
-      space.ctx,
-    );
-    expect(await space.snapshot()).toEqual(before);
-    expect(await readFile(join(space.root, 'source.py'), 'utf8')).toBe('old\n');
-    await expect(access(join(space.root, 'nested'))).rejects.toMatchObject({ code: 'ENOENT' });
-  },
-);
+}, async () => {
+  const space = await workspace({
+    files: { 'source.py': 'old\n' },
+    dryRun: true,
+  });
+  const before = await space.snapshot();
+  await applyEdits(
+    [
+      ['source.py', { type: 'Delete', path: 'source.py' }],
+      ['source.py', { type: 'Update', path: 'source.py', chunks: [{ origIndex: 0, delLines: ['old'], insLines: ['new'] }], movePath: 'nested/destination.py' }],
+      ['nested/deeper/new.py', { type: 'Add', path: 'nested/deeper/new.py', newContent: 'new' }],
+    ],
+    space.ctx,
+  );
+  expect(await space.snapshot()).toEqual(before);
+  expect(await readFile(join(space.root, 'source.py'), 'utf8')).toBe('old\n');
+  await expect(access(join(space.root, 'nested'))).rejects.toMatchObject({ code: 'ENOENT' });
+});
 
 test('patch editIntent maps ADD UPDATE DELETE and MOVE', () => {
   expect(patchEditIntent(['added.py', { type: 'Add', path: 'added.py', newContent: 'x' }])).toEqual({ kind: 'add', path: 'added.py' });

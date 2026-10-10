@@ -89,37 +89,29 @@ test('parses multiple files from one fence', { meta: { aider: ['test_udiff/TestU
   expect(edits[0]?.[1]).toHaveLength(3);
 });
 
-test(
-  'replays the recorded udiff CLI replacement content',
-  { meta: { evidence: ['ev-edit/cli-apply/udiff-update'] } },
-  async () => {
-    const root = await mkdtemp(join(tmpdir(), 'udiff-cli-'));
-    onTestFinished(() => rm(root, { recursive: true, force: true }));
-    await writeFile(join(root, 'sample.py'), 'value = 100\n');
-    const tree = createWorkingTree({
-      notices: {
-        output() {},
-        warning() {},
-        error() {},
-      },
-    });
-    await applyEdits([['sample.py', ['-value = 100\n', '+value = 200\n']]], {
-      root,
-      absFnames: new Set(),
-      absRootPath: (path) => resolve(root, path),
-      tree,
-    });
-    expect(await readFile(join(root, 'sample.py'), 'utf8')).toBe('value = 200\n');
-  },
-);
+test('replays the recorded udiff CLI replacement content', { meta: { evidence: ['ev-edit/cli-apply/udiff-update'] } }, async () => {
+  const root = await mkdtemp(join(tmpdir(), 'udiff-cli-'));
+  onTestFinished(() => rm(root, { recursive: true, force: true }));
+  await writeFile(join(root, 'sample.py'), 'value = 100\n');
+  const tree = createWorkingTree({
+    notices: {
+      output() {},
+      warning() {},
+      error() {},
+    },
+  });
+  await applyEdits([['sample.py', ['-value = 100\n', '+value = 200\n']]], {
+    root,
+    absFnames: new Set(),
+    absRootPath: (path) => resolve(root, path),
+    tree,
+  });
+  expect(await readFile(join(root, 'sample.py'), 'utf8')).toBe('value = 200\n');
+});
 
-test(
-  'literal udiff replace changes every occurrence',
-  { meta: { evidence: ['ev-edit/probe/udiff-literal-replaces-all'] } },
-  () => {
-    expect(directlyApplyHunk('value = 100\nvalue = 100\n', ['-value = 100\n', '+value = 200\n'])).toBe('value = 200\nvalue = 200\n');
-  },
-);
+test('literal udiff replace changes every occurrence', { meta: { evidence: ['ev-edit/probe/udiff-literal-replaces-all'] } }, () => {
+  expect(directlyApplyHunk('value = 100\nvalue = 100\n', ['-value = 100\n', '+value = 200\n'])).toBe('value = 200\nvalue = 200\n');
+});
 
 test('udiff format plans an upsert and applies the hunk', async () => {
   const root = await mkdtemp(join(tmpdir(), 'udiff-format-'));

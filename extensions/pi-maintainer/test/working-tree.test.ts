@@ -106,42 +106,30 @@ test('remove reports a missing path', async () => {
   await expect(createWorkingTree({ notices }).remove(join(root, 'missing'))).rejects.toMatchObject({ code: 'ENOENT' });
 });
 
-test(
-  'invalid UTF-8 bytes produce the encoding hint',
-  {
-    meta: {
-      aider: [
-        'test_coder/TestCoder.test_run_with_file_unicode_error',
-        'test_commands/TestCommands.test_cmd_add_bad_encoding',
-        'test_commands/TestCommands.test_cmd_add_unicode_error',
-      ],
-    },
+test('invalid UTF-8 bytes produce the encoding hint', {
+  meta: {
+    aider: ['test_coder/TestCoder.test_run_with_file_unicode_error', 'test_commands/TestCommands.test_cmd_add_bad_encoding', 'test_commands/TestCommands.test_cmd_add_unicode_error'],
   },
-  async () => {
-    const { root, notices } = await fixture();
-    const path = join(root, 'source.txt');
-    await writeFile(path, Buffer.from([0xff]));
+}, async () => {
+  const { root, notices } = await fixture();
+  const path = join(root, 'source.txt');
+  await writeFile(path, Buffer.from([0xff]));
 
-    expect(await createWorkingTree({ notices }).read(path)).toBeNull();
-    expect(notices.error).toHaveBeenCalledWith('Use --encoding to set the unicode encoding.');
-  },
-);
+  expect(await createWorkingTree({ notices }).read(path)).toBeNull();
+  expect(notices.error).toHaveBeenCalledWith('Use --encoding to set the unicode encoding.');
+});
 
-test(
-  'reads UTF-16LE bytes when that codec is configured',
-  {
-    meta: {
-      aider: ['test_coder/TestCoder.test_run_with_file_utf_unicode_error'],
-    },
+test('reads UTF-16LE bytes when that codec is configured', {
+  meta: {
+    aider: ['test_coder/TestCoder.test_run_with_file_utf_unicode_error'],
   },
-  async () => {
-    const { root, notices } = await fixture();
-    const path = join(root, 'source.txt');
-    await writeFile(path, Buffer.from('café', 'utf16le'));
+}, async () => {
+  const { root, notices } = await fixture();
+  const path = join(root, 'source.txt');
+  await writeFile(path, Buffer.from('café', 'utf16le'));
 
-    expect(await createWorkingTree({ encoding: 'utf-16le', notices }).read(path)).toBe('café');
-  },
-);
+  expect(await createWorkingTree({ encoding: 'utf-16le', notices }).read(path)).toBe('café');
+});
 
 test('mkdir creates missing parent directories', async () => {
   const { root, notices } = await fixture();
