@@ -58,7 +58,7 @@ Every feature and final gate runs the package's real Vitest suite. Any nonzero s
 
 `--report <path>` names the output of this fresh run, relative to the package root or absolute. The gate removes an existing report at that path before running Vitest. It never accepts a previously supplied report as proof of the integrated source. Without this option it creates and cleans up a private temporary report directory.
 
-`--fragment <path> --units <prefixes>` validates structure and census coverage without claiming verified behavior. The selection must be nonempty, and every comma-separated prefix must select census units. A missing, empty, or unknown prefix fails, even when another prefix is valid.
+`--fragment <path> --units <prefixes>` validates structure and census coverage without claiming verified behavior. The fragment path must be nonempty. Supplying `--fragment` without a path cannot switch to whole-ledger mode. The selection must be nonempty, and every comma-separated prefix must select census units. A missing, empty, or unknown prefix fails, even when another prefix is valid.
 
 ## Rows
 

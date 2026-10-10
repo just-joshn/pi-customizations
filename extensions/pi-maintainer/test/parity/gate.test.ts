@@ -10,6 +10,16 @@ test('accepts a current passing slice with a real behavior assertion', async () 
 });
 
 test.for([
+  { name: 'missing', args: ['--fragment'] },
+  { name: 'empty', args: ['--fragment', ''] },
+])('rejects a $name fragment path', async ({ args }) => {
+  const { root } = await fixture();
+  const result = gate(root, args);
+  expect(result.code).toBe(1);
+  expect(result.output).toContain('FAIL --fragment must name a JSON file');
+});
+
+test.for([
   { name: 'omitted', args: [] },
   { name: 'empty', args: ['--units', ''] },
   { name: 'unknown', args: ['--units', 'missing'] },

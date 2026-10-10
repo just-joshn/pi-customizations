@@ -204,6 +204,7 @@ const units = census();
 checkSourcePins();
 checkOwners(units);
 const fragmentPath = option('--fragment');
+if (argv.includes('--fragment') && !fragmentPath) fail('--fragment must name a JSON file');
 if (fragmentPath) {
   const prefixes = (option('--units') ?? '').split(',').map((prefix) => prefix.trim());
   const matches = (unit, prefix) => prefix && (unit.id === prefix || unit.id.startsWith(prefix.endsWith('/') ? prefix : `${prefix}/`));
