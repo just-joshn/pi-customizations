@@ -1,0 +1,26 @@
+{
+  "edit/delete-move-and-dry-run-defects/p2": {
+    "rows": ["edit.dry-run.preserve-files"]
+  },
+  "ev-edit/patch-lifecycle/dry-run-delete-removed-file": {
+    "rows": ["edit.dry-run.preserve-files"]
+  },
+  "ev-edit/patch-lifecycle/dry-run-move-removed-source": {
+    "rows": ["edit.dry-run.preserve-files"]
+  },
+  "ev-edit/patch-lifecycle/dry-run-move-created-destination": {
+    "rows": ["edit.dry-run.preserve-files"]
+  },
+  "edit/architect-and-context-modes/p1": {
+    "rows": ["edit.architect.confirm-editor", "edit.architect.editor-selection", "edit.architect.fresh-editor-request", "edit.architect.editor-options", "map.architect.disable-editor-map"]
+  },
+  "edit/architect-and-context-modes/p2": {
+    "rows": ["edit.architect.fresh-editor-request", "edit.architect.editor-application", "git.architect.return-editor-commits", "edit.architect.return-editor-cost"]
+  },
+  "edit/architect-and-context-modes/p3": {
+    "rows": ["map.context.expand-refresh-map", "edit.context.replace-file-selection", "edit.context.bypass-edit-application"]
+  },
+  "edit/permission-filesystem-and-execution-boundaries/p4": {
+    "rows": ["edit.io.read-text", "edit.io.write-text", "edit.io.write-retry-errors", "edit.io.nonatomic-overwrite"]
+  }
+}

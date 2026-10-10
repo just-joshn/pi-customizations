@@ -1,0 +1,185 @@
+{
+  "rows": [
+    {
+      "id": "edit.dry-run.preserve-files",
+      "feature": "edit",
+      "behavior": "Dry-run mode leaves file contents and existence unchanged for creation, deletion, updates, and moves.",
+      "aider": ["aider/args.py:508-512", "aider/io.py:488-489", "aider/coders/patch_coder.py:576-634"],
+      "kind": "fix",
+      "fix": {
+        "defect": "The reconstruction's delete-move-and-dry-run-defects section and patch-lifecycle.json reproduce deletion of both DELETE targets and MOVE sources during dry-run.",
+        "intent": "aider/args.py:512 promises: Perform a dry run without modifying files (default: False).",
+        "behavior": "Suppress every file mutation in dry-run, including direct touches, directory creation, deletion, destination writes, and move-source unlink. Preserve the existing source and destination contents."
+      },
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "edit.architect.confirm-editor",
+      "feature": "edit",
+      "behavior": "Nonempty architect replies ask whether to edit unless automatic acceptance is enabled; blank replies do not start an editor.",
+      "aider": ["aider/coders/architect_coder.py:11-18"],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "edit.architect.editor-selection",
+      "feature": "edit",
+      "behavior": "The architect uses the configured editor model or falls back to its main model, with the main model's editor edit format.",
+      "aider": ["aider/coders/architect_coder.py:20-26"],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "edit.architect.fresh-editor-request",
+      "feature": "edit",
+      "behavior": "The editor receives the architect reply as a fresh request with preprocessing disabled and both conversation-history lists cleared.",
+      "aider": ["aider/coders/architect_coder.py:34-44"],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "edit.architect.editor-options",
+      "feature": "edit",
+      "behavior": "The editor inherits file context but disables suggested shell commands, prompt caching, cache warming, and format-change summarization.",
+      "aider": ["aider/coders/architect_coder.py:27-37"],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "edit.architect.editor-application",
+      "feature": "edit",
+      "behavior": "Architect edits use the editor's ordinary format application rather than a separate atomic application step.",
+      "aider": ["aider/coders/architect_coder.py:44-48", "aider/coders/base_coder.py:1588-1599"],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "git.architect.return-editor-commits",
+      "feature": "git",
+      "behavior": "After the editor finishes, its assistant commit hashes are assigned back to the architect coder.",
+      "aider": ["aider/coders/architect_coder.py:48"],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "edit.architect.return-editor-cost",
+      "feature": "edit",
+      "behavior": "The editor starts with the architect's total cost and returns its accumulated total after the editor request finishes.",
+      "aider": ["aider/coders/architect_coder.py:29-30,47"],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "map.architect.disable-editor-map",
+      "feature": "map",
+      "behavior": "The architect disables repository-map tokens for its editor request.",
+      "aider": ["aider/coders/architect_coder.py:28"],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "map.context.expand-refresh-map",
+      "feature": "map",
+      "behavior": "Context mode forces map refresh, multiplies the map budget by the no-file multiplier, and resets that multiplier to one.",
+      "aider": ["aider/coders/context_coder.py:11-19"],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "edit.context.replace-file-selection",
+      "feature": "edit",
+      "behavior": "Context replies replace editable files with mentioned files and request another reply unless the selection is unchanged or the reflection count reaches the stopping threshold.",
+      "aider": ["aider/coders/context_coder.py:21-44"],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "edit.context.bypass-edit-application",
+      "feature": "edit",
+      "behavior": "Context completion returns before ordinary edit application, including for blank replies.",
+      "aider": ["aider/coders/context_coder.py:21-24,50", "aider/coders/base_coder.py:1570-1571"],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "edit.io.read-text",
+      "feature": "edit",
+      "behavior": "Text reads use the configured codec and universal-newline handling, with Aider-equivalent read results and error diagnostics.",
+      "aider": ["aider/io.py:453-476"],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": ["src/edit/working-tree.ts"],
+      "tests": ["test/working-tree-read.oracle.test.ts::reads Aider text *"]
+    },
+    {
+      "id": "edit.io.write-text",
+      "feature": "edit",
+      "behavior": "Text writes overwrite the target using the configured codec and newline policy, including strict encoding failures.",
+      "aider": ["aider/io.py:478-494"],
+      "kind": "parity",
+      "status": "open",
+      "pi": ["withFileMutationQueue"],
+      "src": ["src/edit/working-tree.ts"],
+      "tests": ["test/working-tree.test.ts::writes configured *", "test/working-tree.test.ts::writes UTF-16LE file bytes"]
+    },
+    {
+      "id": "edit.io.write-retry-errors",
+      "feature": "edit",
+      "behavior": "Permission-denied writes retry up to five attempts with exponential delays before reporting and raising; other OS errors report and raise immediately.",
+      "aider": ["aider/io.py:491-515"],
+      "kind": "parity",
+      "status": "open",
+      "pi": ["withFileMutationQueue"],
+      "src": ["src/edit/working-tree.ts"],
+      "tests": ["test/working-tree.test.ts::reports a write failure when the parent directory is missing"]
+    },
+    {
+      "id": "edit.io.nonatomic-overwrite",
+      "feature": "edit",
+      "behavior": "Writes do not use temporary-file replacement, fsync, or multi-file transactions; an earlier successful write survives a later failure.",
+      "aider": ["aider/io.py:491-515", "aider/coders/wholefile_coder.py:124-128"],
+      "kind": "parity",
+      "status": "open",
+      "pi": ["withFileMutationQueue"],
+      "src": ["src/edit/working-tree.ts"],
+      "tests": []
+    }
+  ]
+}

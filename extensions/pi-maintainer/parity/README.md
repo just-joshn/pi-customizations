@@ -1,6 +1,8 @@
 # pi-maintainer parity ledger
 
-pi-maintainer reproduces Aider at commit `5dc9490bb35f9729ef2c95d00a19ccd30c26339c` through Pi mechanisms. This directory proves that claim. Every census unit is either covered by a ledger row with passing tests or classified as a non-claim with a reason. The gate fails on anything else.
+pi-maintainer targets behavioral parity with Aider at commit `5dc9490bb35f9729ef2c95d00a19ccd30c26339c` through Pi mechanisms. This directory defines the evidence required to establish parity. The ledger and coverage map are not yet complete.
+
+The coverage gate requires every census unit to map to a ledger row or a justified non-claim. `--feature <name>` also requires passing tests and implementation references for that feature's rows. `--final` applies those verification checks to every row.
 
 ## Files
 
@@ -61,4 +63,6 @@ A unit maps to `rows` when it states, depicts, or tests any Aider behavior, incl
 
 Aider's own installation defects are not non-claims. They map to rows about pi-maintainer installing completely.
 
-An Aider test unit that checks in-scope behavior maps to the rows it checks, and a ported test carries the tag `[aider:<module>/<name>]` in its title. An evidence unit maps to rows, and its replay test carries `[evidence:<unit id>]`.
+An Aider test unit that checks in-scope behavior maps to the rows it checks. Its ported Vitest test carries `meta.aider`, an array of unit IDs without the `aider-test/` prefix. An evidence replay test carries `meta.evidence`, an array of full evidence unit IDs.
+
+The gate reads these arrays from passing assertions in the Vitest JSON report. Test-title tags do not satisfy this check. `test/support/vitest-meta.ts` declares the metadata types.
