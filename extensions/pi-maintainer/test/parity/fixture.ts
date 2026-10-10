@@ -94,6 +94,22 @@ export async function fixture() {
   return { root, coverage };
 }
 
+export async function unboundFixture(tag: 'aider' | 'evidence') {
+  const initial = await fixture();
+  const unit = tag === 'aider' ? testUnit : 'ev-edit/probe/fixture';
+  if (tag === 'evidence') await json(initial.root, 'sources/Aider-Precise-Code-Editing-Evidence/probes.json', { fixture: { value: 2 } });
+  const coverage = { ...initial.coverage, [unit]: { rows: [row.id] } };
+  await json(initial.root, 'parity/coverage.json', coverage);
+  const retained = tag === 'aider' ? {} : { aider: [testUnit.slice('aider-test/'.length)] };
+  await put(
+    initial.root,
+    'test/value.test.ts',
+    `import { expect, test } from 'vitest'; import { editableValue } from '../src/value.ts'; test('returns the editable value', { meta: ${JSON.stringify(retained)} }, () => expect(editableValue()).toBe(2));\n`,
+  );
+  const metadata = { [tag]: [tag === 'aider' ? unit.slice('aider-test/'.length) : unit] };
+  return { ...initial, coverage, unit, metadata };
+}
+
 export function gate(root: string, args: string[] = [], bin?: string) {
   const { PATH: inheritedPath } = process.env;
   const result = spawnSync(process.execPath, ['scripts/check-parity.mjs', ...args], {
