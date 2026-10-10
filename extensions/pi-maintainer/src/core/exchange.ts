@@ -192,7 +192,14 @@ export class ExchangeController {
     dialogue.push(...(await this.recordEdited(prepared, reply, signal)));
     this.#env.append({ schema: 1, kind: 'reply-finished', reply: reply.id });
     if (editorPhase) {
-      this.save({ ...this.#state, mode: editorPhase.parentMode, phase: { kind: 'main' }, physicalModel: editorPhase.parentModel });
+      // Aider `architect_coder.py:48`: assign the editor's aider_commit_hashes back onto the architect.
+      this.save({
+        ...this.#state,
+        mode: editorPhase.parentMode,
+        phase: { kind: 'main' },
+        physicalModel: editorPhase.parentModel,
+        assistantCommits: [...this.#state.assistantCommits],
+      });
       if (reflection === null) dialogue.push({ text: 'I made those changes to the files.', ack: 'Ok.', purpose: 'architect-return', reply: reply.id });
     }
     if (reflection !== null) return this.reflect(reflection, reply.id, dialogue);
@@ -275,8 +282,12 @@ export class ExchangeController {
   async recordEdited(_prepared: readonly (string | null)[], reply: Extract<CompletedReply, { kind: 'complete' }>, signal?: AbortSignal): Promise<DialogueFact[]> {
     const written = this.writtenRelPaths();
     if (!written.length) return [];
-    if (!this.#env.ports.edit.dryRun) await this.#env.ports.git.autoCommit(new Set(written), { kind: 'conversation', text: reply.text }, signal);
-    this.save({ ...this.#state, historyThrough: reply.id });
+    let assistantCommits = this.#state.assistantCommits;
+    if (!this.#env.ports.edit.dryRun) {
+      const result = await this.#env.ports.git.autoCommit(new Set(written), { kind: 'conversation', text: reply.text }, signal);
+      if (result.kind === 'committed') assistantCommits = [...new Set([...assistantCommits, result.hash])];
+    }
+    this.save({ ...this.#state, historyThrough: reply.id, assistantCommits });
     return this.#prompts?.filesContentGptEditsNoRepo ? [{ text: this.#prompts.filesContentGptEditsNoRepo, ack: 'Ok.', purpose: 'saved', reply: reply.id }] : [];
   }
 
@@ -285,7 +296,12 @@ export class ExchangeController {
     if (!written.length) return null;
     const outcome = await this.#env.ports.lint.lintEdited(new Set(written), signal);
     if (outcome.kind !== 'failed') return null;
-    if (!this.#env.ports.edit.dryRun) await this.#env.ports.git.autoCommit(new Set(written), { kind: 'linter' }, signal);
+    if (!this.#env.ports.edit.dryRun) {
+      const result = await this.#env.ports.git.autoCommit(new Set(written), { kind: 'linter' }, signal);
+      if (result.kind === 'committed') {
+        this.save({ ...this.#state, assistantCommits: [...new Set([...this.#state.assistantCommits, result.hash])] });
+      }
+    }
     if (!(await this.#env.host.confirm({ question: 'Attempt to fix lint errors?' }))) return null;
     return outcome.report;
   }

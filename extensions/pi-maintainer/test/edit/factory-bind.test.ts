@@ -62,6 +62,7 @@ function snapshot(root: string, files: Snapshot['files'], ignoredMentions: strin
     physicalModel: { provider: 'test', id: 'scripted' },
     editorModel: null,
     weakModel: null,
+    assistantCommits: [],
     lifecycle: { kind: 'idle' },
   };
 }

@@ -43,6 +43,7 @@ function snapshot(root: string, files: { editable?: string[]; readOnly?: string[
     physicalModel: null,
     editorModel: null,
     weakModel: null,
+    assistantCommits: [],
     lifecycle: { kind: 'idle' },
   };
 }

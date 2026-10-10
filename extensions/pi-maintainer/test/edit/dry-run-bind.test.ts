@@ -42,6 +42,7 @@ function snapshot(root: string): Snapshot {
     physicalModel: { provider: 'test', id: 'scripted' },
     editorModel: null,
     weakModel: null,
+    assistantCommits: [],
     lifecycle: { kind: 'active', userEntries: ['user-1'], reflectionsSent: 0, preparedTargets: [], writtenPaths: [], waitingFor: null },
   };
 }

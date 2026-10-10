@@ -30,6 +30,7 @@ function baseSnapshot(overrides: Partial<Snapshot> = {}): Snapshot {
     physicalModel: { provider: 'p', id: 'gpt-3.5' },
     editorModel: null,
     weakModel: null,
+    assistantCommits: [],
     lifecycle: { kind: 'idle' },
     ...overrides,
   };

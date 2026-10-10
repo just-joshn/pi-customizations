@@ -114,6 +114,7 @@ async function initialSnapshot(ports: Ports, cwd: string, append: (data: unknown
     physicalModel: null,
     editorModel: null,
     weakModel: null,
+    assistantCommits: [],
     lifecycle: { kind: 'idle' },
   };
 }

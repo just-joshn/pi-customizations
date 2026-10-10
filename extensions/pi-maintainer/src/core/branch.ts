@@ -51,15 +51,18 @@ export const snapshotSchema = Type.Object({
   editorModel: Type.Optional(Type.Union([physicalModel, Type.Null()])),
   /** Weak model preserved across main/editor switches. Optional for older snapshots. */
   weakModel: Type.Optional(Type.Union([physicalModel, Type.Null()])),
+  /** Aider `aider_commit_hashes`. Optional for older snapshots. */
+  assistantCommits: Type.Optional(strings),
   lifecycle,
 });
 type Immutable<T> = T extends readonly unknown[] ? ReadonlyArray<Immutable<T[number]>> : T extends object ? { readonly [K in keyof T]: Immutable<T[K]> } : T;
 type ParsedSnapshot = Immutable<Static<typeof snapshotSchema>>;
-export type Snapshot = Omit<ParsedSnapshot, 'originalReadOnly' | 'returnMode' | 'editorModel' | 'weakModel'> & {
+export type Snapshot = Omit<ParsedSnapshot, 'originalReadOnly' | 'returnMode' | 'editorModel' | 'weakModel' | 'assistantCommits'> & {
   readonly originalReadOnly: readonly string[];
   readonly returnMode: EditFormatName | null;
   readonly editorModel: Readonly<Static<typeof physicalModel>> | null;
   readonly weakModel: Readonly<Static<typeof physicalModel>> | null;
+  readonly assistantCommits: readonly string[];
 };
 
 function normalizeSnapshot(data: ParsedSnapshot): Snapshot {
@@ -69,6 +72,7 @@ function normalizeSnapshot(data: ParsedSnapshot): Snapshot {
     returnMode: data.returnMode ?? null,
     editorModel: data.editorModel ?? null,
     weakModel: data.weakModel ?? null,
+    assistantCommits: data.assistantCommits ?? [],
   };
 }
 

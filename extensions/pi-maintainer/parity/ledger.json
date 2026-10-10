@@ -148,10 +148,19 @@
         "aider/coders/architect_coder.py:48"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')",
+        "pi.appendEntry",
+        "pi.registerVirtualModel"
+      ],
+      "src": [
+        "src/core/exchange.ts",
+        "src/core/branch.ts"
+      ],
+      "tests": [
+        "test/core/git-surface-bind.test.ts::after the editor finishes, its assistant commit hashes are assigned back to the architect coder"
+      ]
     },
     {
       "id": "edit.architect.return-editor-cost",
@@ -2572,10 +2581,19 @@
         "aider/coders/base_coder.py:1560-1567,1714-1781"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')",
+        "pi.registerVirtualModel"
+      ],
+      "src": [
+        "src/core/mentions.ts",
+        "src/core/exchange.ts"
+      ],
+      "tests": [
+        "test/core/git-surface-bind.test.ts::tracked reply mentions are offered one by one and approved adds reflect without applying edits",
+        "test/core/mentions.pi.test.ts::assistant mentions reflect before applying the proposed edit"
+      ]
     },
     {
       "id": "git.commands.add-refuses-outside-root",
@@ -2585,10 +2603,18 @@
         "aider/commands.py:846-856"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.registerCommand"
+      ],
+      "src": [
+        "src/edit/selection.ts",
+        "src/edit/commands.ts"
+      ],
+      "tests": [
+        "test/core/git-surface-bind.test.ts::add refuses a non-image path outside the root with Aider text when automatic commits are on",
+        "test/edit/selection.test.ts::add refuses a non-image path outside the root when auto-commits are on"
+      ]
     },
     {
       "id": "git.undo.preconditions",
