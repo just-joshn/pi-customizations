@@ -2225,10 +2225,19 @@
         "aider/io.py:806-865,873-901"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "ctx.ui.select"
+      ],
+      "src": [
+        "src/core/confirm.ts",
+        "src/core/pi-host.ts",
+        "src/core/exchange.ts"
+      ],
+      "tests": [
+        "test/core/confirm-bind.test.ts::empty and EOF answers take the default yes while invalid input reprompts",
+        "test/core/confirm-bind.test.ts::yes-always answers yes except explicit-yes questions, and always-no answers no"
+      ]
     },
     {
       "id": "edit.confirm.yes-always",
@@ -2238,10 +2247,18 @@
         "aider/io.py:866-869"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "ctx.ui.select"
+      ],
+      "src": [
+        "src/core/confirm.ts",
+        "src/core/pi-host.ts",
+        "src/core/exchange.ts"
+      ],
+      "tests": [
+        "test/core/confirm-bind.test.ts::yes-always answers yes except explicit-yes questions, and always-no answers no"
+      ]
     },
     {
       "id": "edit.confirm.group",
@@ -2251,10 +2268,18 @@
         "aider/io.py:82-89,826-836,870-872,918-923"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "ctx.ui.select"
+      ],
+      "src": [
+        "src/core/confirm.ts",
+        "src/core/pi-host.ts",
+        "src/core/exchange.ts"
+      ],
+      "tests": [
+        "test/core/confirm-bind.test.ts::a multi-item confirm group shares All and Skip without asking again"
+      ]
     },
     {
       "id": "edit.confirm.dont-ask-again",
@@ -2264,10 +2289,18 @@
         "aider/io.py:819-831,837-839,902-906"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "ctx.ui.select"
+      ],
+      "src": [
+        "src/core/confirm.ts",
+        "src/core/pi-host.ts",
+        "src/core/exchange.ts"
+      ],
+      "tests": [
+        "test/core/confirm-bind.test.ts::Don't ask again denies the same question and subject for the rest of the session"
+      ]
     },
     {
       "id": "edit.ui.chat-file-listing",
