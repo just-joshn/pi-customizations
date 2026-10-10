@@ -26,7 +26,8 @@
     "typecheck": "tsc -p .",
     "census": "node scripts/census.mjs",
     "check:parity": "node scripts/check-parity.mjs",
-    "check:parity:final": "node scripts/check-parity.mjs --final"
+    "check:parity:final": "node scripts/check-parity.mjs --final",
+    "journey:edit": "node parity/journeys/edit/verify.mjs"
   },
   "dependencies": {
     "diff-match-patch": "1.0.5",
