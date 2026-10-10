@@ -1,0 +1,5 @@
+ts	phase	decision	why	evidence	result
+2026-10-10T06:05:00Z	start	Resume 994e46a7 without discarding either inherited commit	The prior worker stopped on a provider limit	81aed9d5; 994e46a7	131 open rows; 172 of 541 edit units covered
+2026-10-10T06:22:00Z	gate	Require a nonempty intended selection and a local contract for claimed slice units	Empty selections and later-only claims could pass without proving edit behavior	test/parity/gate.test.ts	RED reproduced CLI exit 0; GREEN exits 1 for invalid selections and later-only claims
+2026-10-10T06:23:00Z	gate	Run Vitest fresh and treat --report as an output path	A supplied report did not prove the current integrated source	scripts/check-parity.mjs; test/parity/gate.test.ts	Runner errors and failed tests fail closed
+2026-10-10T06:24:00Z	mutation	Temporarily ignore subprocess status 7 and restore the guard	Prove the regression test observes the runner failure rather than metadata	test/parity/gate.test.ts: rejects a runner failure status after passing referenced tests	Mutation gate exited 0 and regression failed; guard restored

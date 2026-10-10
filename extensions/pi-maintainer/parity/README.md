@@ -2,7 +2,9 @@
 
 pi-maintainer targets behavioral parity with Aider at commit `5dc9490bb35f9729ef2c95d00a19ccd30c26339c` through Pi mechanisms. This directory defines the evidence required to establish parity. The ledger and coverage map are not yet complete.
 
-The coverage gate requires every census unit to map to a ledger row or a justified non-claim. Each SAR is gated on its own slice of the census, so one SAR can pass before the next one starts.
+The coverage gate requires every census unit to map to a ledger row or a justified non-claim. Coverage records obligations, not completed implementations. A complete edit obligation map can have zero uncovered units while `--feature edit` still fails on open rows.
+
+Each SAR is gated on its own slice of the census. Its local contracts can pass before the later features exist. Cross-feature integration contracts remain obligations of the final gate.
 
 | Command | Units that must be covered | Rows that must be verified |
 | --- | --- | --- |
@@ -40,7 +42,21 @@ The slices of the four SARs partition the census. The slice of a SAR holds:
 
 An Aider test belongs to the SAR whose behavior it asserts. A test that needs code from two SARs belongs to the later one in the build order edit, git, map, lint, because it can pass only once that SAR exists. A test of behavior outside the four features still has an owner: the SAR whose slice records it as a non-claim.
 
-`--feature <sar>` requires a `meta.aider` or `meta.evidence` tag for each test or evidence unit in the slice that maps to a row of that SAR. A slice unit that maps only to rows of other SARs is checked by `--final`, which requires the tag for every test or evidence unit that maps to any row.
+A claimed unit must include a row of its owning slice. Moving an edit unit's only claims to open Git, map, or lint rows does not cover its edit contract. A feature slice must be nonempty and have contract rows. Reclassifying all its behavior as nonclaims cannot make its gate pass.
+
+For a document that crosses a port boundary, coverage includes both the edit-side observable contract and the later integration behavior. For example, edit checks that the controller supplies editable paths and conversation hints to the repository-context port and includes the returned text without interpreting it as an edit. Map checks the tags, ranking, budget, and cache behavior that produce that text. Edit tests use the explicit port boundary, not a copy of Git, map, or lint. The map rows remain open until the map implementation and tests land. `--final` requires those integration rows verified.
+
+This split does not change shared-test ownership. A test that actually needs two SARs belongs to the later one. Its census unit moves with its owner, not with whichever document mentions it.
+
+`--feature <sar>` requires a `meta.aider` or `meta.evidence` tag for each claimed test or evidence unit in its slice. `--final` requires those tags for every claimed test and evidence unit. A tag alone does not prove behavior. Ported tests assert literal outcomes through the public contract.
+
+## Fresh runner evidence
+
+Every feature and final gate runs the package's real Vitest suite. Any nonzero subprocess status, runner error, missing report, invalid JSON, unsuccessful report, failed suite, or failed assertion fails the gate. Unrelated failures cannot be ignored because a ledger's referenced assertions pass.
+
+`--report <path>` names the output of this fresh run, relative to the package root or absolute. The gate removes an existing report at that path before running Vitest. It never accepts a previously supplied report as proof of the integrated source. Without this option it creates and cleans up a private temporary report directory.
+
+`--fragment <path> --units <prefixes>` validates structure and census coverage without claiming verified behavior. The selection must be nonempty, and every comma-separated prefix must select census units. A missing, empty, or unknown prefix fails, even when another prefix is valid.
 
 ## Rows
 

@@ -7,12 +7,12 @@ import { spawnSync } from 'node:child_process';
 // Usage:
 //   node scripts/check-parity.mjs                         ledger and coverage against the full census
 //   node scripts/check-parity.mjs --feature edit          coverage of the edit slice, every edit row verified with passing tests
-//   node scripts/check-parity.mjs --report r.json ...     reuse a vitest JSON report instead of running vitest
+//   node scripts/check-parity.mjs --report r.json ...     write the fresh vitest JSON report to this path
 //   node scripts/check-parity.mjs --final                 coverage of the full census, every row verified
 //   node scripts/check-parity.mjs --fragment f.json --units edit,ev-edit,aider-test/test_editblock
 //                                                         validate one mapping fragment against a census slice
 import { createHash } from 'node:crypto';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -101,17 +101,51 @@ function requireCovered(units, coverage) {
   for (const unit of units) if (!Object.hasOwn(coverage, unit.id)) fail(`unit ${unit.id} is not covered`);
 }
 
+function checkContracts(units, coverage, rows) {
+  const owners = new Map(rows.map((row) => [row.id, row.feature]));
+  for (const unit of units) {
+    const entry = coverage[unit.id];
+    if (entry?.rows && !entry.rows.some((id) => owners.get(id) === sliceOf(unit))) {
+      fail(`unit ${unit.id}: no ${sliceOf(unit)} contract row; later integration rows do not discharge this slice`);
+    }
+  }
+}
+
+function reportResults(report) {
+  if (report.success !== true) fail('vitest report.success is not true');
+  if (report.numFailedTests > 0 || report.numFailedTestSuites > 0) fail('vitest report contains failures');
+  if (!Array.isArray(report.testResults)) throw new Error('testResults must be an array');
+  return report.testResults.flatMap((file) => {
+    if (typeof file.name !== 'string' || !Array.isArray(file.assertionResults)) throw new Error('invalid test suite');
+    if (file.status === 'failed') fail(`vitest failed suite ${relative(packageRoot, file.name)}`);
+    return file.assertionResults.map((result) => {
+      if (typeof result.fullName !== 'string' || typeof result.status !== 'string') throw new Error('invalid assertion');
+      const id = `${relative(packageRoot, file.name)}::${result.fullName}`;
+      if (result.status === 'failed') fail(`vitest failed ${id}`);
+      return { id, status: result.status, meta: result.meta ?? {} };
+    });
+  });
+}
+
 function vitestReport() {
-  const reportPath = option('--report') ?? join(tmpdir(), `pi-maintainer-vitest-${process.pid}.json`);
-  if (!option('--report')) {
-    spawnSync('bun', ['x', 'vitest', 'run', '--reporter=json', `--outputFile=${reportPath}`], { cwd: packageRoot, stdio: 'ignore' });
-  }
-  if (!existsSync(reportPath)) {
-    fail(`no vitest JSON report at ${reportPath}`);
+  const temporary = mkdtempSync(join(tmpdir(), 'pi-maintainer-vitest-'));
+  const reportPath = option('--report') ? resolve(packageRoot, option('--report')) : join(temporary, 'report.json');
+  try {
+    rmSync(reportPath, { force: true });
+    const run = spawnSync('bun', ['x', 'vitest', 'run', '--reporter=json', `--outputFile=${reportPath}`], { cwd: packageRoot, stdio: 'ignore' });
+    if (run.error) fail(`vitest runner error: ${run.error.message}`);
+    if (run.status !== 0) fail(`vitest exited with status ${run.status}${run.signal ? ` (${run.signal})` : ''}`);
+    if (!existsSync(reportPath)) {
+      fail(`no vitest JSON report at ${reportPath}`);
+      return [];
+    }
+    return reportResults(JSON.parse(readFileSync(reportPath, 'utf8')));
+  } catch (error) {
+    fail(`invalid vitest JSON report at ${reportPath}: ${error.message}`);
     return [];
+  } finally {
+    rmSync(temporary, { recursive: true, force: true });
   }
-  const report = JSON.parse(readFileSync(reportPath, 'utf8'));
-  return report.testResults.flatMap((file) => file.assertionResults.map((result) => ({ id: `${relative(packageRoot, file.name)}::${result.fullName}`, status: result.status, meta: result.meta ?? {} })));
 }
 
 function matchingResults(results, test) {
@@ -171,8 +205,11 @@ checkSourcePins();
 checkOwners(units);
 const fragmentPath = option('--fragment');
 if (fragmentPath) {
-  const prefixes = (option('--units') ?? '').split(',').filter(Boolean);
-  const slice = units.filter((unit) => prefixes.some((prefix) => unit.id === prefix || unit.id.startsWith(prefix.endsWith('/') ? prefix : `${prefix}/`)));
+  const prefixes = (option('--units') ?? '').split(',').map((prefix) => prefix.trim());
+  const matches = (unit, prefix) => prefix && (unit.id === prefix || unit.id.startsWith(prefix.endsWith('/') ? prefix : `${prefix}/`));
+  for (const prefix of prefixes) if (!units.some((unit) => matches(unit, prefix))) fail(`--units prefix ${JSON.stringify(prefix)} selects no census units`);
+  const slice = units.filter((unit) => prefixes.some((prefix) => matches(unit, prefix)));
+  if (slice.length === 0) fail('--units must select a nonempty intended census slice');
   const fragment = JSON.parse(readFileSync(resolve(fragmentPath), 'utf8'));
   const rows = fragment.rows ?? [];
   rows.forEach(checkRow);
@@ -180,6 +217,7 @@ if (fragmentPath) {
   if (rowIds.size !== rows.length) fail('fragment has duplicate row ids');
   checkCoverage(slice, fragment.coverage ?? {}, rowIds, 'unit in this slice');
   requireCovered(slice, fragment.coverage ?? {});
+  checkContracts(slice, fragment.coverage ?? {}, rows);
   const used = new Set(Object.values(fragment.coverage ?? {}).flatMap((entry) => entry.rows ?? []));
   for (const row of rows) if (!used.has(row.id)) fail(`row ${row.id} is not referenced by any unit`);
   process.stdout.write(`fragment: ${slice.length} units, ${rows.length} rows\n`);
@@ -190,14 +228,17 @@ if (fragmentPath) {
   const rowIds = new Set(ledger.rows.map((row) => row.id));
   if (rowIds.size !== ledger.rows.length) fail('ledger has duplicate row ids');
   checkCoverage(units, coverage, rowIds, 'census unit');
+  checkContracts(units, coverage, ledger.rows);
   const used = new Set(Object.values(coverage).flatMap((entry) => entry.rows ?? []));
   for (const row of ledger.rows) if (!used.has(row.id)) fail(`row ${row.id} is not referenced by any unit`);
   const feature = option('--feature');
-  if (feature !== undefined && !FEATURES.includes(feature)) fail(`--feature must be one of ${FEATURES.join(', ')}`);
+  if (argv.includes('--feature') && !FEATURES.includes(feature)) fail(`--feature must be one of ${FEATURES.join(', ')}`);
   const final = argv.includes('--final');
   const required = feature && !final ? units.filter((unit) => sliceOf(unit) === feature) : units;
+  if (required.length === 0) fail('gate must select a nonempty intended census slice');
   requireCovered(required, coverage);
   const scope = final ? () => true : feature ? (row) => row.feature === feature : null;
+  if (feature && !ledger.rows.some((row) => row.feature === feature)) fail(`${feature} slice has no contract rows`);
   if (scope) {
     const results = vitestReport();
     checkVerified(ledger.rows, scope, results);
