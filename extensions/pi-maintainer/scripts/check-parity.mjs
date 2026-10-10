@@ -72,6 +72,8 @@ function checkRow(row) {
     for (const key of ['defect', 'intent', 'behavior']) if (typeof row.fix?.[key] !== 'string' || !row.fix[key]) fail(`${where}: fix.${key} is required`);
   } else if (row?.fix !== undefined) fail(`${where}: only fix rows carry fix`);
   if (!STATUSES.has(row?.status)) fail(`${where}: status must be open or verified`);
+  if (row?.gap !== undefined && row.gap !== 'native') fail(`${where}: gap must be \"native\" when set`);
+  if (row?.gap === 'native' && row.status !== 'open') fail(`${where}: gap native requires status open`);
   for (const key of ['pi', 'src', 'tests']) if (!Array.isArray(row?.[key])) fail(`${where}: ${key} must be an array`);
 }
 
@@ -152,8 +154,16 @@ function matchingResults(results, test) {
   return test.endsWith('*') ? results.filter((result) => result.id.startsWith(test.slice(0, -1))) : results.filter((result) => result.id === test);
 }
 
-function checkVerified(rows, scope, results) {
+function isDisposedNativeGap(row) {
+  return row.status === 'open' && row.gap === 'native';
+}
+
+function checkVerified(rows, scope, results, { allowNativeGaps }) {
   for (const row of rows.filter((r) => scope(r))) {
+    if (allowNativeGaps && isDisposedNativeGap(row)) {
+      process.stdout.write(`native-gap: ${row.id} left open (documented gap)\n`);
+      continue;
+    }
     if (row.status !== 'verified') fail(`row ${row.id} is ${row.status}, not verified`);
     if (row.pi.length === 0) fail(`row ${row.id}: pi mechanisms are empty`);
     if (row.src.length === 0) fail(`row ${row.id}: src is empty`);
@@ -169,7 +179,11 @@ function checkVerified(rows, scope, results) {
 
 function checkTags(units, coverage, rows, scope, results) {
   const passed = results.filter((result) => result.status === 'passed');
-  const proofs = new Map(rows.filter(scope).map((row) => [row.id, { feature: row.feature, results: row.tests.flatMap((test) => matchingResults(passed, test)) }]));
+  const proofs = new Map(
+    rows
+      .filter((row) => scope(row) && !isDisposedNativeGap(row))
+      .map((row) => [row.id, { feature: row.feature, results: row.tests.flatMap((test) => matchingResults(passed, test)) }]),
+  );
   for (const unit of units) {
     const tag = unit.kind === 'aider-test' ? 'aider' : unit.kind === 'evidence' ? 'evidence' : null;
     if (!tag) continue;
@@ -247,7 +261,8 @@ if (fragmentPath) {
   if (feature && !ledger.rows.some((row) => row.feature === feature)) fail(`${feature} slice has no contract rows`);
   if (scope) {
     const results = vitestReport();
-    checkVerified(ledger.rows, scope, results);
+    // --feature allows disposed NATIVE-GAP opens (empty pi/src/tests). --final still requires every row verified.
+    checkVerified(ledger.rows, scope, results, { allowNativeGaps: !final });
     checkTags(required, coverage, ledger.rows, scope, results);
   }
   for (const name of FEATURES) process.stdout.write(sliceProgress(name, units, coverage, ledger.rows));

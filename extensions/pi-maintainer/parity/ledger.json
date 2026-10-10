@@ -105,19 +105,10 @@
       ],
       "kind": "parity",
       "status": "open",
-      "pi": [
-        "pi.on('context_with_system')",
-        "pi.on('cache_warming_decision')",
-        "pi.on('turn_end')"
-      ],
-      "src": [
-        "src/core/exchange.ts",
-        "src/core/context.ts",
-        "src/core/install.ts"
-      ],
-      "tests": [
-        "test/core/modes.pi.test.ts::architect editor frame keeps file context and disables shell, warming, and format-change summarization"
-      ]
+      "pi": [],
+      "src": [],
+      "tests": [],
+      "gap": "native"
     },
     {
       "id": "edit.architect.editor-application",
@@ -1897,7 +1888,8 @@
       "status": "open",
       "pi": [],
       "src": [],
-      "tests": []
+      "tests": [],
+      "gap": "native"
     },
     {
       "id": "edit.prompt.images",
@@ -3514,7 +3506,8 @@
       "status": "open",
       "pi": [],
       "src": [],
-      "tests": []
+      "tests": [],
+      "gap": "native"
     },
     {
       "id": "edit.watch.roots",

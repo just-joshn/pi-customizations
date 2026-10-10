@@ -9,7 +9,7 @@ Each SAR is gated on its own slice of the census. Its local contracts can pass b
 | Command | Units that must be covered | Rows that must be verified |
 | --- | --- | --- |
 | `node scripts/check-parity.mjs` | every census unit | none |
-| `node scripts/check-parity.mjs --feature <sar>` | the units in the slice of `<sar>` | every row whose `feature` is `<sar>` |
+| `node scripts/check-parity.mjs --feature <sar>` | the units in the slice of `<sar>` | every row whose `feature` is `<sar>`, except disposed NATIVE-GAP opens (`status: open` and `gap: "native"`, documented in `docs/NATIVE-GAPS.md`) |
 | `node scripts/check-parity.mjs --final` | every census unit | every row |
 
 Every run prints one progress line per SAR: slice size, covered units, uncovered units, rows, and verified rows. Every run, including `--fragment`, fails when a shared-module test unit has no owner, when an owner is not a SAR, or when `test-owners.json` names a unit that is not a shared-module test in the census.

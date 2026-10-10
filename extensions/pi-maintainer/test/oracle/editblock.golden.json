@@ -224,10 +224,13 @@
     "result": {
       "errors": [],
       "files": {
-        "f.txt": ""
+        "f.txt": "x\n"
       },
       "outcome": {
-        "result": null
+        "error": {
+          "message": "# 1 SEARCH/REPLACE block failed to match!\n\n## SearchReplaceNoExactMatch: This SEARCH block failed to exactly match lines in f.txt\n<<<<<<< SEARCH\nx\n=======\n>>>>>>> REPLACE\n\nDid you mean to match some of these actual lines from f.txt?\n\n```\nx\n```\n\nThe SEARCH section must exactly match an existing block of lines including all white space, comments, indentation, docstrings, etc\n",
+          "type": "ValueError"
+        }
       }
     }
   },
@@ -299,7 +302,10 @@
         "e.txt": ""
       },
       "outcome": {
-        "result": null
+        "error": {
+          "message": "list index out of range",
+          "type": "IndexError"
+        }
       }
     }
   },
@@ -1282,7 +1288,7 @@
     "result": "\tif y:\n\t\treturn 2\n\t\t\tpass\n"
   },
   "perfect-or-whitespace/empty-result-is-failure": {
-    "result": ""
+    "result": null
   },
   "perfect-or-whitespace/no-match": {
     "result": null
@@ -1357,7 +1363,7 @@
     "result": null
   },
   "replace/delete-all-is-failure": {
-    "result": ""
+    "result": null
   },
   "replace/delete-some-lines": {
     "result": "a\nb\n"
