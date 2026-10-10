@@ -10,7 +10,7 @@ import type { GitPolicy } from '../../src/feature.ts';
 import { maintainerExtension, testPrompts, textOf } from '../support/maintainer.ts';
 import { piSessionFixture, promptAndSettle, scriptedModel } from '../support/pi-session.ts';
 
-test('ask mode answers without writing files', async () => {
+test('ask mode answers without writing files', { meta: { aider: ['test_commands/TestCommands.test_cmd_ask'] } }, async () => {
   const f = await piSessionFixture({ extension: maintainerExtension(), config: 'edit-format: ask\nfile: [notes.txt]\n' });
   await writeFile(join(f.cwd, 'notes.txt'), 'before\n');
   f.replies.push({ text: 'notes.txt\n```\nafter\n```\n' });
@@ -67,7 +67,7 @@ test('context mode skips edit application for blank replies', async () => {
   expect(f.errors).toEqual([]);
 });
 
-test('architect mode continues into an editor format that applies the edit', async () => {
+test('architect mode continues into an editor format that applies the edit', { meta: { aider: ['test_coder/TestCoder.test_architect_coder_auto_accept_true'] } }, async () => {
   const f = await piSessionFixture({
     extension: maintainerExtension(),
     config: 'edit-format: architect\nauto-accept-architect: true\neditor-edit-format: editor-whole\nfile: [hello.txt]\nyes-always: true\n',
@@ -89,7 +89,7 @@ test('architect mode continues into an editor format that applies the edit', asy
   expect(f.errors).toEqual([]);
 });
 
-test('architect mode without auto-accept skips the editor when denied', async () => {
+test('architect mode without auto-accept skips the editor when denied', { meta: { aider: ['test_coder/TestCoder.test_architect_coder_auto_accept_false_rejected'] } }, async () => {
   const f = await piSessionFixture({
     extension: maintainerExtension(),
     config: 'edit-format: architect\nauto-accept-architect: false\nfile: [hello.txt]\n',
@@ -104,7 +104,9 @@ test('architect mode without auto-accept skips the editor when denied', async ()
   expect(f.errors).toEqual([]);
 });
 
-test('architect editor request routes to the configured editor model', async () => {
+test('architect editor request routes to the configured editor model', {
+  meta: { aider: ['test_coder/TestCoder.test_architect_coder_auto_accept_true', 'test_coder/TestCoder.test_architect_coder_auto_accept_false_confirmed'] },
+}, async () => {
   const editorModel = { ...scriptedModel, id: 'editor-scripted', name: 'Editor scripted' };
   const f = await piSessionFixture({
     extension: maintainerExtension(),
