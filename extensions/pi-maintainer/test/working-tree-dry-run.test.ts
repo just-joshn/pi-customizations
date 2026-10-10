@@ -34,9 +34,12 @@ test('dry-run writes leave missing files absent', async () => {
 
 test('dry-run touch leaves missing directories absent', async () => {
   const { root, tree } = await fixture();
+  const path = join(root, 'nested', 'new.txt');
 
-  expect(await tree.touch(join(root, 'nested', 'new.txt'))).toBe(true);
+  expect(await tree.touch(path)).toBe(true);
 
+  expect(await tree.exists(path)).toBe(true);
+  expect(await tree.read(path)).toBe('');
   expect(await readdir(root)).toHaveLength(0);
 });
 

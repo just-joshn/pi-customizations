@@ -158,7 +158,7 @@ async function readText(path: string, encoding: string, notices: Notices): Promi
   }
 }
 
-function workingTree(options: WorkingTreeOptions, held: ReadonlySet<string> | null, signal?: AbortSignal): WorkingTree {
+function workingTree(options: WorkingTreeOptions, held: ReadonlySet<string> | null, signal?: AbortSignal, dryTouched: Set<string> = new Set()): WorkingTree {
   const encoding = options.encoding ?? 'utf-8';
   const separator = lineSeparator(options.lineEndings ?? 'platform');
   const dryRun = options.dryRun ?? false;
@@ -170,21 +170,30 @@ function workingTree(options: WorkingTreeOptions, held: ReadonlySet<string> | nu
   };
   return {
     dryRun,
-    exists,
-    read: (path) => readText(path, encoding, options.notices),
+    async exists(path) {
+      return (dryRun && dryTouched.has(await mutationPath(path))) || exists(path);
+    },
+    async read(path) {
+      if (dryRun && dryTouched.has(await mutationPath(path)) && !(await exists(path))) return '';
+      return readText(path, encoding, options.notices);
+    },
     async write(path, content) {
       if (dryRun) return;
       const bytes = separator === '\n' ? content : content.replace(/\n/g, separator);
       await mutation(path, () => writeWithRetries(path, bytes, nodeEncoding(encoding), options.notices, signal));
     },
-    touch: (path) => (dryRun ? Promise.resolve(true) : mutation(path, () => touchFile(path))),
+    async touch(path) {
+      if (!dryRun) return mutation(path, () => touchFile(path));
+      if (!(await exists(path))) dryTouched.add(await mutationPath(path));
+      return true;
+    },
     async remove(path) {
       if (!dryRun) await mutation(path, () => unlink(path));
     },
     async mutate(paths, operation, operationSignal) {
       if (held !== null) throw new Error('A file mutation transaction cannot be reentered');
       const keys = [...new Set(await Promise.all(paths.map((path) => mutationPath(path))))].sort();
-      return lockPaths(keys, () => operation(workingTree(options, new Set(keys), operationSignal)), operationSignal);
+      return lockPaths(keys, () => operation(workingTree(options, new Set(keys), operationSignal, dryTouched)), operationSignal);
     },
     async mkdir(path) {
       if (!dryRun) await mkdir(path, { recursive: true });

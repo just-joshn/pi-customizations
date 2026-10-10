@@ -2098,10 +2098,19 @@
         "intent": "The --dry-run help says \"Perform a dry run without modifying files\" (aider/args.py:512), and apply_updates reports each edit in dry-run as \"Did not apply edit to <path> (--dry-run)\" (aider/coders/base_coder.py:2330-2334).",
         "behavior": "In dry-run, treat an approved new-file block as applying to empty content without writing, and report \"Did not apply edit to <path> (--dry-run)\" with no error, no file, and no reflection."
       },
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/working-tree.ts",
+        "src/core/exchange.ts",
+        "src/edit/editblock.ts"
+      ],
+      "tests": [
+        "test/edit/dry-run-bind.test.ts::dry-run empty-SEARCH new file reports Did not apply without writing or reflecting",
+        "test/working-tree-dry-run.test.ts::dry-run touch leaves missing directories absent"
+      ]
     },
     {
       "id": "edit.authorize.in-chat-allowed",
