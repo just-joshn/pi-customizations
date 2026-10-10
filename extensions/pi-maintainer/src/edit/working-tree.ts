@@ -83,10 +83,14 @@ async function writeWithRetries(path: string, bytes: string, encoding: BufferEnc
   }
 }
 
+const LATIN1_ALIASES = new Set(['latin-1', 'latin1', 'iso-8859-1']);
+
+const normalizeEncoding = (encoding: string): string => encoding.toLowerCase().replace(/_/g, '-');
+
 function nodeEncoding(encoding: string): BufferEncoding {
-  const normalized = encoding.toLowerCase().replace(/_/g, '-');
+  const normalized = normalizeEncoding(encoding);
   if (normalized === 'utf-8' || normalized === 'utf8') return 'utf8';
-  if (normalized === 'latin-1' || normalized === 'latin1' || normalized === 'iso-8859-1') return 'latin1';
+  if (LATIN1_ALIASES.has(normalized)) return 'latin1';
   if (normalized === 'ascii') return 'ascii';
   if (normalized === 'utf-16le' || normalized === 'utf16le') return 'utf16le';
   throw new TypeError(`unknown encoding: ${encoding}`);
@@ -95,6 +99,7 @@ function nodeEncoding(encoding: string): BufferEncoding {
 export function createWorkingTree(options: WorkingTreeOptions): WorkingTree {
   const { notices } = options;
   const encoding = options.encoding ?? 'utf-8';
+  const isLatin1 = LATIN1_ALIASES.has(normalizeEncoding(encoding));
   const separator = lineSeparator(options.lineEndings ?? 'platform');
   const dryRun = options.dryRun ?? false;
   return {
@@ -102,8 +107,8 @@ export function createWorkingTree(options: WorkingTreeOptions): WorkingTree {
     async read(path) {
       try {
         const bytes = await readFile(path);
-        const decoder = new TextDecoder(nodeEncoding(encoding) === 'latin1' ? 'iso-8859-1' : encoding, { fatal: true, ignoreBOM: true });
-        return universalNewlines(decoder.decode(bytes));
+        const text = isLatin1 ? bytes.toString('latin1') : new TextDecoder(encoding, { fatal: true, ignoreBOM: true }).decode(bytes);
+        return universalNewlines(text);
       } catch (error) {
         return readFailure(path, error, notices);
       }
