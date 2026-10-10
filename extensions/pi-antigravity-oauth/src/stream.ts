@@ -28,6 +28,7 @@ import {
 import { cloudCodeHeaders, openStream, parseApiKey } from './cloudcode.ts';
 import { parseVariant, type Variant } from './models.ts';
 import { convertMessages, convertTools, isThinkingPart, mapStopReasonString, mapToolChoice, retainThoughtSignature } from './pi-ai/google-shared.ts';
+import { sanitizeConvertedTools } from './openapi-parameters.ts';
 import { sanitizeSurrogates } from './pi-ai/sanitize-unicode.ts';
 import { buildBaseOptions } from './pi-ai/simple-options.ts';
 
@@ -115,7 +116,9 @@ export function buildRequest(model: Model<Api>, context: TranscriptContext, proj
   const request: GeminiRequest = {
     contents: toolResultRole(model, convertMessages(asGoogleModel(model), transcript)),
     ...(systemText && { systemInstruction: { role: 'user', parts: [{ text: sanitizeSurrogates(systemText) }] } }),
-    ...(tools.length > 0 && { tools: upperCaseTypes(convertTools(tools, true, false)) as ReturnType<typeof convertTools> }),
+    ...(tools.length > 0 && {
+      tools: upperCaseTypes(sanitizeConvertedTools(convertTools(tools, true, false))) as ReturnType<typeof convertTools>,
+    }),
     ...(tools.length > 0 && options.toolChoice && { toolConfig: { functionCallingConfig: { mode: mapToolChoice(options.toolChoice) } } }),
     generationConfig: {
       ...(options.temperature !== undefined && { temperature: options.temperature }),

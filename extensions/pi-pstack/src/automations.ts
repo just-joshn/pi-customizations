@@ -38,13 +38,14 @@ const Identity = {
   automationId: Type.String({ pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' }),
 };
 
-const SaveParameters = Type.Intersect([
-  Type.Object({
+const SaveParameters = Type.Object(
+  {
     ...Identity,
     revision: Type.String({ pattern: '^[a-f0-9]{64}$' }),
-  }),
-  AutomationSchema,
-]);
+    ...(AutomationSchema as unknown as { properties: Record<string, unknown> }).properties,
+  },
+  { additionalProperties: false },
+);
 
 const EnableParameters = Type.Object({
   ...Identity,
@@ -275,8 +276,18 @@ function registerSaveTool(pi: ExtensionAPI): void {
     description:
       'Persist the automation definition with kind=disabled. Never starts Slack or webhook ingress. Creation-boundary finish stops here.',
     parameters: SaveParameters,
-    execute: async (_id, input, signal, _update, ctx) => {
+    execute: async (_id, raw, signal, _update, ctx) => {
       signal?.throwIfAborted();
+      const input = raw as {
+        automationId: string;
+        revision: string;
+        name: string;
+        description: string;
+        instructions: string;
+        operationalPath?: string;
+        trigger: Parameters<typeof saveAutomation>[1]['trigger'];
+        tools: string[];
+      };
       const draft = await saveAutomation(
         directory(ctx, input.automationId),
         {
