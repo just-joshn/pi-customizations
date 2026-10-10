@@ -37,7 +37,8 @@ const drifted = [];
 for (const area of areas) {
   const cases = join(oracleDir, `${area}.cases.json`);
   const goldenPath = join(oracleDir, `${area}.golden.json`);
-  const output = execFileSync(join(aiderCheckout, sources.aider.python), [join(packageRoot, 'parity/oracle/aider_oracle.py'), cases], { env, encoding: 'utf8', maxBuffer: 256 * 1024 * 1024 });
+  const raw = execFileSync(join(aiderCheckout, sources.aider.python), [join(packageRoot, 'parity/oracle/aider_oracle.py'), cases], { env, encoding: 'utf8', maxBuffer: 256 * 1024 * 1024 });
+  const output = execFileSync('bun', ['x', 'biome', 'format', `--stdin-file-path=${goldenPath}`], { cwd: packageRoot, input: raw, encoding: 'utf8', maxBuffer: 256 * 1024 * 1024 });
   if (check) {
     let committed = '';
     try {
