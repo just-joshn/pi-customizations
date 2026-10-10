@@ -1,0 +1,62 @@
+import { type AssistantMessage, createAssistantMessageEventStream, type Model, type SimpleStreamOptions, type TranscriptContext } from '@earendil-works/pi-ai';
+import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
+import { appendFileSync } from 'node:fs';
+
+const LOG = process.env.PROTO_LOG ?? '/tmp/pm-proto/log.jsonl';
+const log = (kind: string, data: unknown) => appendFileSync(LOG, `${JSON.stringify({ kind, data })}\n`);
+const REPLIES = (process.env.PROTO_REPLIES ?? 'first reply with <<<<<<< SEARCH|second reply').split('|');
+let call = 0;
+const usage = () => ({ input: 0, output: 0, cacheRead: 0, cacheWrite: 0, totalTokens: 0, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 } });
+
+function stream(model: Model<string>, context: TranscriptContext, _options?: SimpleStreamOptions) {
+  const s = createAssistantMessageEventStream();
+  log('provider_request', { systemPrompt: context.systemPrompt, messages: context.messages, tools: (context.tools ?? []).map((t) => t.name) });
+  const text = REPLIES[Math.min(call, REPLIES.length - 1)] ?? '';
+  call += 1;
+  (async () => {
+    const message: AssistantMessage = { role: 'assistant', content: [], api: model.api, provider: model.provider, model: model.id, usage: usage(), stopReason: 'stop', timestamp: Date.now() };
+    s.push({ type: 'start', partial: message });
+    message.content.push({ type: 'text', text });
+    s.push({ type: 'text_start', contentIndex: 0, partial: message });
+    s.push({ type: 'text_delta', contentIndex: 0, delta: text, partial: message });
+    s.push({ type: 'text_end', contentIndex: 0, content: text, partial: message });
+    s.push({ type: 'done', reason: 'stop', message });
+    s.end();
+  })();
+  return s;
+}
+
+const textOf = (message: { content?: unknown }) => (Array.isArray(message.content) ? message.content.map((c: { type: string; text?: string }) => (c.type === 'text' ? c.text : '')).join('') : String(message.content ?? ''));
+
+export default function (pi: ExtensionAPI) {
+  pi.registerProvider('proto', { name: 'Proto', baseUrl: 'http://127.0.0.1:9', apiKey: 'proto-key', api: 'proto-scripted', streamSimple: stream, models: [{ id: 'scripted', name: 'Scripted', reasoning: false, input: ['text'], cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 }, contextWindow: 128000, maxTokens: 4096 }] });
+  let reflections = 0;
+  pi.on('session_start', async () => {
+    log('session_start', { active: pi.getActiveTools(), all: pi.getAllTools().map((t) => t.name) });
+    if (process.env.PROTO_NO_TOOLS) pi.setActiveTools([]);
+    log('after_set', pi.getActiveTools());
+  });
+  pi.on('before_agent_start', async (event) => {
+    log('before_agent_start', { prompt: event.prompt, selectedTools: event.systemPromptOptions.selectedTools, sections: Object.keys(event.systemPromptOptions.sections), customPrompt: event.systemPromptOptions.customPrompt ?? null });
+    event.systemPromptOptions.customPrompt = 'AIDER MAIN SYSTEM PROMPT';
+  });
+  pi.on('context', async (event) => {
+    log('context', { roles: event.messages.map((m) => `${m.role}${'customType' in m ? `:${String(m.customType)}` : ''}`) });
+    const files = { role: 'user' as const, content: [{ type: 'text' as const, text: 'FILES: hello.txt' }], timestamp: Date.now() };
+    const ok = { role: 'assistant' as const, content: [{ type: 'text' as const, text: 'Ok.' }], api: 'proto-scripted', provider: 'proto', model: 'scripted', usage: usage(), stopReason: 'stop' as const, timestamp: Date.now() };
+    return { messages: [files, ok, ...event.messages] };
+  });
+  pi.on('message_end', async (event) => log('message_end', { role: event.message.role }));
+  pi.on('turn_end', async (event, ctx) => {
+    const text = textOf(event.message as { content?: unknown });
+    log('turn_end', { turnIndex: event.turnIndex, role: event.message.role, text, toolResults: event.toolResults.length, continue: event.continue, canContinue: event.context.canContinue, outcome: event.outcome, pending: event.context.pendingMessages.length, llmRoles: event.context.llmMessages.map((m) => m.role) });
+    log('confirm_probe', { hasUI: ctx.hasUI, mode: ctx.mode, answer: await ctx.ui.confirm('Create new file?', 'hello.txt') });
+    if (text.includes('<<<<<<< SEARCH') && reflections < 1) {
+      reflections += 1;
+      return { entries: [{ type: 'custom_message', customType: 'aider-reflection', content: 'REFLECTION: The SEARCH block did not match.', display: true }], continue: true };
+    }
+    return undefined;
+  });
+  pi.on('agent_before_settle', async (event) => log('agent_before_settle', { continue: event.continue, outcome: event.outcome, canContinue: event.context.canContinue }));
+  pi.on('agent_settled', async (event) => log('agent_settled', event));
+}
