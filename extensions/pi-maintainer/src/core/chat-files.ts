@@ -1,8 +1,9 @@
 import { realpathSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
-import { basename, dirname, join, relative, resolve } from 'node:path';
+import { basename, dirname, isAbsolute, join, relative } from 'node:path';
 
 import type { Notices, WorkingTree } from '../edit/working-tree.ts';
+import { pythonSorted } from '../support/python-sort.ts';
 
 /** Aider's two chat-file sets, `abs_fnames` and `abs_read_only_fnames`, as absolute paths in insertion order. */
 export interface ChatFiles {
@@ -18,17 +19,18 @@ export const withoutEditable = (files: ChatFiles, path: string): ChatFiles => ({
 
 /** `utils.safe_abs_path`: Python's non-strict `Path.resolve()`, following symlinks in the existing prefix. */
 export function safeAbsPath(path: string): string {
-  const absolute = resolve(path);
+  const absolute = isAbsolute(path) ? path : `${process.cwd()}/${path}`;
   try {
-    return realpathSync(absolute);
-  } catch {
+    return realpathSync.native(absolute);
+  } catch (error) {
+    if (error instanceof Error && 'code' in error && error.code === 'ELOOP') throw error;
     const parent = dirname(absolute);
     return parent === absolute ? absolute : join(safeAbsPath(parent), basename(absolute));
   }
 }
 
 /** `Coder.abs_root_path`. */
-export const absRootPath = (root: string, path: string): string => safeAbsPath(resolve(root, path));
+export const absRootPath = (root: string, path: string): string => safeAbsPath(isAbsolute(path) ? path : `${root}/${path}`);
 
 /** `Coder.get_rel_fname`: `os.path.relpath(fname, root)`. */
 export function getRelFname(root: string, fname: string): string {
@@ -37,7 +39,7 @@ export function getRelFname(root: string, fname: string): string {
 }
 
 /** `Coder.get_inchat_relative_files`: sorted unique relative paths of the editable files. */
-export const inchatRelativeFiles = (root: string, files: ChatFiles): string[] => [...new Set([...files.editable].map((file) => getRelFname(root, file)))].sort();
+export const inchatRelativeFiles = (root: string, files: ChatFiles): string[] => pythonSorted(new Set([...files.editable].map((file) => getRelFname(root, file))));
 
 /** `utils.find_common_root`. */
 export function findCommonRoot(absFnames: readonly string[], cwd: string): string {

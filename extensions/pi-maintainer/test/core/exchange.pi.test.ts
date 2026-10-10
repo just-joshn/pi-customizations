@@ -1,8 +1,9 @@
-import { readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, symlink, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 import { getCurrentTools } from '@earendil-works/pi-ai';
 import { expect, test } from 'vitest';
+import { restore } from '../../src/core/branch.ts';
 import { maintainerExtension, textOf } from '../support/maintainer.ts';
 import { piSessionFixture, promptAndSettle } from '../support/pi-session.ts';
 
@@ -66,6 +67,72 @@ test('no UI without explicit consent denies an unselected file', async () => {
   await promptAndSettle(session, 'edit it');
   expect(await readFile(path, 'utf8')).toBe('before');
   expect(f.requests).toHaveLength(1);
+  expect(f.errors).toEqual([]);
+});
+
+test('an admitted read-only target keeps Aider two-set semantics', async () => {
+  const f = await piSessionFixture({ extension, config: 'read: [reference.txt]\nyes-always: true\n' });
+  const path = join(f.cwd, 'reference.txt');
+  await writeFile(path, 'before\n');
+  f.replies.push({ text: 'reference.txt\n```\nafter\n```\n' }, { text: '' });
+  const session = await f.open();
+  await promptAndSettle(session, 'admit the edit');
+  await promptAndSettle(session, 'read it again');
+  expect(restore(session.sessionManager.getBranch()).snapshot?.files).toEqual({ editable: [path], readOnly: [path] });
+  expect(f.requests[1]?.messages.map(textOf)).toContain('READ ONLY\nreference.txt\n```\nafter\n```\n');
+  expect(f.requests[1]?.messages.map(textOf)).toContain('EDITABLE\nreference.txt\n```\nafter\n```\n');
+  expect(await readFile(path, 'utf8')).toBe('after\n');
+  expect(f.errors).toEqual([]);
+});
+
+test('symlink parent traversal edits the admitted physical target', async () => {
+  const f = await piSessionFixture({ extension, config: 'yes-always: true\n' });
+  const child = join(f.root, 'outside', 'child');
+  await mkdir(child, { recursive: true });
+  await symlink(child, join(f.cwd, 'link'));
+  await writeFile(join(f.root, 'outside', 'target.txt'), 'before\n');
+  await writeFile(join(f.cwd, 'target.txt'), 'not the target\n');
+  f.replies.push({ text: 'link/../target.txt\n```\nafter\n```\n' });
+  const session = await f.open();
+  await promptAndSettle(session, 'edit the target');
+  expect(await readFile(join(f.root, 'outside', 'target.txt'), 'utf8')).toBe('after\n');
+  expect(await readFile(join(f.cwd, 'target.txt'), 'utf8')).toBe('not the target\n');
+  expect(f.errors).toEqual([]);
+});
+
+test('a symlink loop cannot redirect an edit to a lexical parent', async () => {
+  const f = await piSessionFixture({ extension, config: 'yes-always: true\n' });
+  await symlink('loop', join(f.cwd, 'loop'));
+  await writeFile(join(f.cwd, 'target.txt'), 'protected\n');
+  f.replies.push({ text: 'loop/../target.txt\n```\nafter\n```\n' }, { text: '' });
+  const session = await f.open();
+  await promptAndSettle(session, 'reject the loop');
+  expect(await readFile(join(f.cwd, 'target.txt'), 'utf8')).toBe('protected\n');
+  expect(f.requests).toHaveLength(2);
+  expect(f.errors).toEqual([]);
+});
+
+test('a later filesystem failure preserves evidence of an earlier write', async () => {
+  const f = await piSessionFixture({ extension, config: 'file: [good.txt]\nyes-always: true\n' });
+  await writeFile(join(f.cwd, 'good.txt'), 'before\n');
+  await mkdir(join(f.cwd, 'bad.txt'));
+  f.replies.push({ text: 'good.txt\n```\nafter\n```\nbad.txt\n```\nsecond\n```\n' }, { text: '' });
+  const session = await f.open();
+  await promptAndSettle(session, 'two edits');
+  expect(await readFile(join(f.cwd, 'good.txt'), 'utf8')).toBe('after\n');
+  const records = session.sessionManager
+    .getBranch()
+    .filter((entry) => entry.type === 'custom')
+    .map((entry) => entry.data);
+  expect(records).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({ kind: 'operation-intent', ordinal: 0, path: join(f.cwd, 'good.txt') }),
+      expect.objectContaining({ kind: 'operation-observed', ordinal: 0, outcome: 'succeeded' }),
+      expect.objectContaining({ kind: 'operation-intent', ordinal: 1, path: join(f.cwd, 'bad.txt') }),
+      expect.objectContaining({ kind: 'operation-observed', ordinal: 1, outcome: 'failed' }),
+    ]),
+  );
+  expect(f.requests).toHaveLength(2);
   expect(f.errors).toEqual([]);
 });
 

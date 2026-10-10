@@ -1,6 +1,6 @@
 import { constants } from 'node:fs';
 import { access, mkdir, readFile, realpath, unlink, utimes, writeFile } from 'node:fs/promises';
-import { basename, dirname, join, resolve } from 'node:path';
+import { basename, dirname, isAbsolute, join } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 
 import { withFileMutationQueue } from '@earendil-works/pi-coding-agent';
@@ -69,7 +69,7 @@ async function writeWithRetries(path: string, bytes: string, encoding: BufferEnc
   for (let attempt = 1; ; attempt += 1) {
     try {
       signal?.throwIfAborted();
-      await writeFile(path, bytes, { encoding });
+      await writeFile(path, bytes, { encoding, ...(signal ? { signal } : {}) });
       return;
     } catch (error) {
       const permission = errorCode(error) === 'EACCES' || errorCode(error) === 'EPERM';
@@ -99,7 +99,7 @@ function nodeEncoding(encoding: string): BufferEncoding {
 }
 
 async function mutationPath(path: string): Promise<string> {
-  const absolute = resolve(path);
+  const absolute = isAbsolute(path) ? path : `${process.cwd()}/${path}`;
   try {
     return await realpath(absolute);
   } catch (error) {
@@ -152,7 +152,7 @@ function workingTree(options: WorkingTreeOptions, held: ReadonlySet<string> | nu
   const dryRun = options.dryRun ?? false;
   const mutation = async <T>(path: string, operation: () => Promise<T>): Promise<T> => {
     signal?.throwIfAborted();
-    if (held === null) return withFileMutationQueue(path, operation);
+    if (held === null) return withFileMutationQueue(await mutationPath(path), operation);
     if (!held.has(await mutationPath(path))) throw new Error(`Mutation target was not locked: ${path}`);
     return operation();
   };

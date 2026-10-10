@@ -2,14 +2,20 @@ import { unlink, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 import { getCurrentSystemPrompt, getCurrentTools } from '@earendil-works/pi-ai';
+import { Type } from 'typebox';
 import { expect, test } from 'vitest';
 import { restore } from '../../src/core/branch.ts';
+import { installMaintainer } from '../../src/core/install.ts';
+import { editFeature } from '../../src/edit/feature.ts';
 import { maintainerExtension, testPrompts, textOf } from '../support/maintainer.ts';
+import { oracleCases } from '../support/oracle.ts';
 import { piSessionFixture, promptAndSettle } from '../support/pi-session.ts';
 
 const extension = maintainerExtension();
 
 test('provider messages follow the Aider chunk order', async () => {
+  const golden = oracleCases('core', 'core.format_chunks', Type.Object({ main: Type.String() }))[0];
+  if (!golden) throw new Error('missing chunk-order oracle case');
   const f = await piSessionFixture({
     extension: maintainerExtension({
       promptSource: {
@@ -29,19 +35,38 @@ test('provider messages follow the Aider chunk order', async () => {
   f.replies.push({ text: '' });
   const session = await f.open();
   await promptAndSettle(session, 'CURRENT');
-  expect(f.requests[0]?.messages.map((message, index) => [message.role, index === 0 ? 'SYSTEM' : textOf(message)])).toEqual([
-    ['system', 'SYSTEM'],
-    ['user', 'EXAMPLE USER'],
-    ['assistant', 'EXAMPLE ASSISTANT'],
-    ['user', "I switched to a new code base. Please don't consider the above files or try to edit them any longer."],
-    ['assistant', 'Ok.'],
-    ['user', 'READ ONLY\nreference.txt\n```\nreference\n```\n'],
-    ['assistant', 'Ok, I will use these files as references.'],
-    ['user', 'EDITABLE\nedit.txt\n```\neditable\n```\n'],
-    ['assistant', 'Ok, any changes I propose will be to those files.'],
-    ['user', 'CURRENT'],
-    ['system', 'TEST REMINDER'],
-  ]);
+  const result = f.requests[0]?.messages.map((message, index) => [message.role, message.role === 'system' && index === 0 ? message.sections?.['preamble'] : textOf(message)]);
+  expect({ result }).toEqual(golden.expected);
+  expect(f.errors).toEqual([]);
+});
+
+test('repository port text occupies the native provider repository chunk', async () => {
+  const f = await piSessionFixture({
+    extension: (pi) =>
+      installMaintainer(
+        pi,
+        [
+          editFeature,
+          {
+            name: 'map',
+            options: [],
+            commands: [],
+            create: () => ({ repoMap: async (request) => `REPO for ${request.curMessageText}` }),
+          },
+        ],
+        { promptSource: testPrompts, home: () => '/nonexistent', processEnvironment: () => ({}) },
+      ),
+    config: 'file: [edit.txt]\nread: [reference.txt]\n',
+  });
+  await writeFile(join(f.cwd, 'edit.txt'), 'editable\n');
+  await writeFile(join(f.cwd, 'reference.txt'), 'reference\n');
+  f.replies.push({ text: '' });
+  const session = await f.open();
+  await promptAndSettle(session, 'CURRENT');
+  const texts = f.requests[0]?.messages.map(textOf) ?? [];
+  expect(texts).toContain('REPO for CURRENT');
+  expect(texts.indexOf('READ ONLY\nreference.txt\n```\nreference\n```\n')).toBeLessThan(texts.indexOf('REPO for CURRENT'));
+  expect(texts.indexOf('REPO for CURRENT')).toBeLessThan(texts.indexOf('EDITABLE\nedit.txt\n```\neditable\n```\n'));
   expect(f.errors).toEqual([]);
 });
 
@@ -136,5 +161,49 @@ test('native compaction does not resurrect completed raw history', async () => {
   const texts = f.requests[1]?.messages.map(textOf) ?? [];
   expect(texts.some((text) => text.includes('NATIVE SUMMARY'))).toBe(true);
   expect(texts).not.toContain('RAW OLD USER');
+  expect(f.errors).toEqual([]);
+});
+
+test('vision context retains literal image bytes outside text fences', async () => {
+  const f = await piSessionFixture({ extension, config: 'file: [image.png]\nread: [reference.jpg]\n' });
+  await writeFile(join(f.cwd, 'image.png'), Uint8Array.from([1, 2, 3, 4]));
+  await writeFile(join(f.cwd, 'reference.jpg'), Uint8Array.from([5, 6, 7]));
+  f.replies.push({ text: '' });
+  const session = await f.open();
+  await promptAndSettle(session, 'images');
+  const blocks = f.requests[0]?.messages.flatMap((message) => (message.role === 'user' && Array.isArray(message.content) ? message.content : [])) ?? [];
+  expect(blocks.filter((block) => block.type === 'image')).toEqual([
+    { type: 'image', data: 'BQYH', mimeType: 'image/jpeg' },
+    { type: 'image', data: 'AQIDBA==', mimeType: 'image/png' },
+  ]);
+  expect(f.requests[0]?.messages.map(textOf)).toContain('EDITABLE');
+  expect(f.errors).toEqual([]);
+});
+
+test('an unreadable image is dropped from editable membership', async () => {
+  const f = await piSessionFixture({ extension, config: 'file: [image.png]\n' });
+  await writeFile(join(f.cwd, 'image.png'), Uint8Array.from([1]));
+  const session = await f.open();
+  await unlink(join(f.cwd, 'image.png'));
+  f.replies.push({ text: '' });
+  await promptAndSettle(session, 'read it');
+  expect(restore(session.sessionManager.getBranch()).snapshot?.files.editable).toEqual([]);
+  expect(f.requests[0]?.messages.map(textOf)).toContain('NO EDITABLE FILES');
+  expect(f.errors).toEqual([]);
+});
+
+test('an injected prompt policy places the reminder in the current user', async () => {
+  const f = await piSessionFixture({
+    extension: maintainerExtension({
+      promptPolicy: { useSystemPrompt: false, examplesAsSystemMessage: true, systemPromptPrefix: 'PREFIX', reminder: 'user' },
+      promptSource: { get: async (format, variables) => ({ ...(await testPrompts.get(format, variables)), exampleMessages: [{ role: 'user', content: 'EXAMPLE' }] }) },
+    }),
+  });
+  f.replies.push({ text: '' });
+  const session = await f.open();
+  await promptAndSettle(session, 'CURRENT');
+  const texts = f.requests[0]?.messages.map(textOf) ?? [];
+  expect(texts).toContain('PREFIX\nTEST MAIN\n# Example conversations:\n\n## USER: EXAMPLE\nTEST REMINDER');
+  expect(texts).toContain('CURRENT\n\nTEST REMINDER');
   expect(f.errors).toEqual([]);
 });

@@ -30,7 +30,8 @@ export const snapshotSchema = Type.Object({
   physicalModel: Type.Union([Type.Object({ provider: Type.String(), id: Type.String() }), Type.Null()]),
   lifecycle,
 });
-export type Snapshot = Static<typeof snapshotSchema>;
+type Immutable<T> = T extends readonly unknown[] ? ReadonlyArray<Immutable<T[number]>> : T extends object ? { readonly [K in keyof T]: Immutable<T[K]> } : T;
+export type Snapshot = Immutable<Static<typeof snapshotSchema>>;
 
 const operationSchema = Type.Object({
   schema: Type.Literal(1),
@@ -40,7 +41,7 @@ const operationSchema = Type.Object({
   operation: Type.Union([Type.Literal('write'), Type.Literal('touch'), Type.Literal('remove')]),
   path: Type.String(),
 });
-export type OperationIntent = Static<typeof operationSchema>;
+export type OperationIntent = Readonly<Static<typeof operationSchema>>;
 const observationSchema = Type.Object({
   schema: Type.Literal(1),
   kind: Type.Literal('operation-observed'),

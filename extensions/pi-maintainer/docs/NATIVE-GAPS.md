@@ -65,7 +65,7 @@ The flag adapters share the following gate answers. The table above identifies t
 4. **Why not omit.** Reply-text editing and crash-safe refusal to replay ambiguous edits are binding E6 requirements.
 5. **Adapter.** `ExchangeController.completeReply` calls format and permission methods directly. `journaledTree` wraps write, touch, and remove with individual receipts. Final reconciliation never parses a reply again.
 6. **Authoritative Pi state.** SessionManager owns reply IDs, transcript, active branch, continuation, retries, compaction, and usage. The controller stores domain facts only.
-7. **Verification.** Real SDK tests inspect requests, disk bytes, receipts, and final settlement. Error and aborted provider replies are excluded before parsing. Multi-file edits are non-atomic. A missing observation blocks replay.
+7. **Verification.** Real SDK tests inspect requests, disk bytes, receipts, and final settlement. Error and aborted provider replies are excluded before parsing. Pi-owned retries preserve the reflection count and do not apply failed response text. The later-write failure case retains the first successful disk write and both operation outcomes. Multi-file edits are non-atomic. A missing observation blocks replay.
 8. **Delete when.** Pi offers native reply-text formats and a durable operation journal, or the edit protocol changes to Pi tools.
 
 ## File transaction callback
@@ -74,9 +74,9 @@ The flag adapters share the following gate answers. The table above identifies t
 2. **Mechanism evaluated.** Native `withFileMutationQueue`.
 3. **Why it cannot.** It supplies one non-reentrant file lock. Queued WorkingTree write adapters cannot reacquire that lock inside the transaction.
 4. **Why not omit.** The operator requires complete read-modify-write serialization rather than write-only locks.
-5. **Adapter.** `WorkingTree.mutate` resolves effective file identities, deduplicates aliases, acquires sorted native locks, and supplies an unqueued tree during the callback. Formats declare all mutation endpoints. The registry also locks editable fallback candidates.
+5. **Adapter.** `WorkingTree.mutate` resolves effective file identities, deduplicates aliases, acquires sorted native locks, and supplies an unqueued tree during the callback. Resolution follows symlinks before collapsing `..`. Standalone mutations use the same identity. Formats declare all mutation endpoints. The registry also locks editable fallback candidates.
 6. **Authoritative Pi state.** Native file queues remain the only serializer. Pi session state and provider lifecycle are unchanged.
-7. **Verification.** File transaction tests use actual files and competing native queue operations. The callback checks cancellation, rejects reentry and undeclared mutations, and releases locks on failure. External editors and processes are outside this in-process guarantee.
+7. **Verification.** File transaction tests use actual files and competing native queue operations. The callback checks cancellation, rejects reentry and undeclared mutations, and releases locks on failure. Python oracle cases and an actual SDK write verify symlink parent traversal. A symlink-loop test protects the lexical parent from unintended writes. External editors, retargeted symlinks, and processes are outside this in-process guarantee.
 8. **Delete when.** Pi exposes a multi-file mutation scope with lock-aware file adapters.
 
 ## Branch-derived domain state
@@ -87,7 +87,7 @@ The flag adapters share the following gate answers. The table above identifies t
 4. **Why not omit.** Branch-aware chat files and interruption recovery are binding requirements.
 5. **Adapter.** `restore(branch)` validates versioned domain entries and folds snapshots and receipts without I/O. Hook handlers rebuild disposable controllers from that value.
 6. **Authoritative Pi state.** SessionManager selects the branch and persists entries. Navigation does not undo disk edits. No external journal or transcript mirror exists.
-7. **Verification.** SDK tests use persistent session reopen, reload, and `navigateTree`. Pure restore tests check unknown schemas and pending receipts. Commands refuse changes while a run is active.
+7. **Verification.** SDK tests use persistent session reopen, reload, and `navigateTree`. Pure restore tests check unknown schemas, duplicate identities, orphan observations, and pending receipts. Pending receipts block startup creation. A branch predating maintainer metadata refuses requests until the operator selects a physical model and reloads. Commands refuse changes while a run is active.
 8. **Delete when.** Pi offers a native branch-relative extension state schema and reducer. Domain permission and format semantics still belong to maintainer.
 
 ## Full-transcript prompt assembly
@@ -98,7 +98,7 @@ The flag adapters share the following gate answers. The table above identifies t
 4. **Why not omit.** File content and fences must refresh before each reflection, with Aider chunk placement.
 5. **Adapter.** `projectRequest` calls a supplied `PromptSource`, folds incoming system state, replaces the owned preamble, and retains incoming transformed messages. Position-preserving transforms support done/current partitioning. Other shapes retain incoming history without claiming exact partitioning.
 6. **Authoritative Pi state.** Canonical context and compaction stay in SessionManager. Earlier transformations are not replaced with raw branch messages. Foreign prompt sections, free-form system text, and tool state survive folding. Tools are disabled through the native active set.
-7. **Verification.** Real provider requests show file context and reflection feedback. Order, prior transformations, branch reload, and compaction cases check the supported cooperation contract. Synthetic acknowledgments have zero usage and are request-local. Exact token counting and canonical prompt-transition recording remain unsupported.
+7. **Verification.** Real provider requests show file context and reflection feedback. The order test compares with pinned Aider `format_chat_chunks` output. Prior transformations, branch reload, and compaction cases check the supported cooperation contract. PromptSource receives the active native abort signal. Missing or failed formatting calls `ctx.abort()` and sends no provider request. Synthetic acknowledgments have zero usage and are request-local. Native accounting tests verify that they add no usage or cost. Exact token counting and canonical prompt-transition recording remain unsupported.
 8. **Delete when.** Pi supplies provenance-preserving full-context transforms and a mid-run structured prompt setter.
 
 ## Confirmation adaptation

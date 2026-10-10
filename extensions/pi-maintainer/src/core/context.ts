@@ -1,4 +1,4 @@
-import { type AssistantMessage, getCurrentSystemMessage, type ImageContent } from '@earendil-works/pi-ai';
+import { type AssistantMessage, getCurrentSystemMessage, type ImageContent, type TextContent } from '@earendil-works/pi-ai';
 import type { ContextWithSystemEvent, ProjectedSessionEntry } from '@earendil-works/pi-coding-agent';
 import { BRANDING } from '../branding.ts';
 import { chooseFence, type Fence } from '../edit/fences.ts';
@@ -53,7 +53,11 @@ function expandDialogue(messages: readonly ContextMessage[], model: { provider: 
   });
 }
 
-export function partitionHistory(incoming: readonly ContextMessage[], projected: readonly ProjectedSessionEntry[], cut: string | null) {
+export function partitionHistory(
+  incoming: readonly ContextMessage[],
+  projected: readonly ProjectedSessionEntry[],
+  cut: string | null,
+): { done: ContextMessage[]; current: ContextMessage[]; partition: 'position-preserving' | 'unpartitioned' } {
   const contributions = projected.flatMap((entry) => entry.messages.filter((message) => message.role !== 'system').map((message) => ({ id: entry.sourceEntry.id, message })));
   const sameShape = contributions.length === incoming.length && contributions.every((entry, index) => entry.message.role === incoming[index]?.role);
   if (!sameShape) return { done: [], current: [...incoming], partition: 'unpartitioned' };
@@ -98,6 +102,7 @@ export interface RequestView {
   readonly messages: readonly ContextMessage[];
   readonly projection: readonly ProjectedSessionEntry[];
   readonly supportsImages: boolean;
+  readonly signal?: AbortSignal | undefined;
 }
 
 export interface ContextInputs {
@@ -116,13 +121,16 @@ export async function projectRequest(input: ContextInputs) {
   const { snapshot } = input;
   const model = snapshot.physicalModel;
   if (model === null) throw new Error('No physical maintainer model is bound');
+  input.view.signal?.throwIfAborted();
   const contents = await readChatFiles(snapshot, input.tree, input.notices);
+  input.view.signal?.throwIfAborted();
   const chosen = chooseFence(
     contents.editable.map(([, text]) => text),
     contents.readOnly.map(([, text]) => text),
   );
   for (const warning of chosen.warnings) input.notices.warning(warning);
-  const prompts = await input.source.get(input.promptFormat, { model, root: snapshot.root, fence: chosen.fence, suggestShellCommands: input.suggestShellCommands });
+  const prompts = await input.source.get(input.promptFormat, { model, root: snapshot.root, fence: chosen.fence, suggestShellCommands: input.suggestShellCommands, signal: input.view.signal });
+  input.view.signal?.throwIfAborted();
   const assembled = assembleRequest({ input, contents, fence: chosen.fence, prompts, model });
   return { prompts, fence: chosen.fence, files: contents.files, ...assembled };
 }
@@ -181,6 +189,10 @@ function assembleRequest({ input, contents, fence, prompts, model }: { input: Co
 function tailReminder(current: ContextMessage[], text: string, policy: PromptPolicy, timestamp: number) {
   if (policy.reminder === 'sys' && text) return { current, tail: [{ role: 'system', content: text, timestamp } satisfies ContextMessage] };
   const last = current.at(-1);
-  if (policy.reminder === 'user' && text && last?.role === 'user' && typeof last.content === 'string') return { current: [...current.slice(0, -1), { ...last, content: `${last.content}\n\n${text}` }], tail: [] };
+  if (policy.reminder === 'user' && text && last?.role === 'user') {
+    const suffix = `\n\n${text}`;
+    const content = typeof last.content === 'string' ? last.content + suffix : last.content.every((block) => block.type === 'text') ? [...last.content, { type: 'text', text: suffix } satisfies TextContent] : last.content;
+    return { current: [...current.slice(0, -1), { ...last, content }], tail: [] };
+  }
   return { current, tail: [] };
 }

@@ -1,10 +1,13 @@
 import { ValueError } from '../edit/errors.ts';
 import { defaultFence, type Fence } from '../edit/fences.ts';
 import type { EditContext, EditPlan, PathEdit, Ports } from '../feature.ts';
+import { pythonSorted } from '../support/python-sort.ts';
 import { chatFilesOf, type Snapshot } from './branch.ts';
-import { absRootPath, inchatRelativeFiles } from './chat-files.ts';
-import { projectRequest, type RequestView } from './context.ts';
+import { absRootPath, getRelFname, inchatRelativeFiles } from './chat-files.ts';
+import { ConfirmGroup } from './confirm.ts';
+import { partitionHistory, projectRequest, type RequestView } from './context.ts';
 import type { Host } from './host.ts';
+import { getFileMentions } from './mentions.ts';
 import { journaledTree } from './mutations.ts';
 import type { PromptPolicy, PromptSet, PromptSource } from './prompts.ts';
 
@@ -27,8 +30,9 @@ export interface ExchangeEnv {
   readonly append: (data: unknown) => void;
   readonly suggestShellCommands: boolean;
   readonly policy?: PromptPolicy | undefined;
-  readonly maxReflections?: number | undefined;
 }
+
+const MAX_REFLECTIONS = 3;
 
 export class ExchangeController {
   #state: Snapshot;
@@ -52,6 +56,16 @@ export class ExchangeController {
   }
 
   async projectRequest(view: RequestView) {
+    const files = chatFilesOf(this.#state);
+    const history = partitionHistory(
+      view.messages.filter((message) => message.role !== 'system'),
+      view.projection,
+      this.#state.historyThrough,
+    );
+    const curMessageText = history.current
+      .flatMap((message) => (!('content' in message) ? [] : typeof message.content === 'string' ? [message.content] : message.content.filter((block) => block.type === 'text').map((block) => block.text)))
+      .join('\n');
+    const repository = await this.#env.ports.map.repoMap({ editable: files.editable, readOnly: files.readOnly, curMessageText }, view.signal);
     const result = await projectRequest({
       snapshot: this.#state,
       view,
@@ -60,6 +74,7 @@ export class ExchangeController {
       source: this.#env.source,
       promptFormat: this.#env.ports.edit.formats.get(this.#state.mode)?.prompts ?? this.#state.mode,
       suggestShellCommands: this.#env.suggestShellCommands,
+      repository,
       policy: this.#env.policy,
     });
     this.#fence = result.fence;
@@ -68,14 +83,22 @@ export class ExchangeController {
     return result;
   }
 
-  bindUser(userEntries: string[], model: { provider: string; id: string }): void {
+  bindUser(userEntries: string[], model: { provider: string; id: string }, reason: 'user' | 'continuation' | 'retry'): void {
+    if (!this.#env.ports.edit.formats.has(this.#state.mode)) throw new Error(`Edit format ${this.#state.mode} is not implemented`);
     const last = userEntries.at(-1);
     if (last === undefined || last === this.#state.lastUserEntry) {
       const lifecycle = this.#state.lifecycle;
-      this.save({ ...this.#state, physicalModel: model, lifecycle: lifecycle.kind === 'active' ? { ...lifecycle, waitingFor: null } : lifecycle });
+      const next: Snapshot['lifecycle'] =
+        lifecycle.kind === 'active'
+          ? { ...lifecycle, waitingFor: null }
+          : lifecycle.kind === 'interrupted' && reason === 'retry'
+            ? { kind: 'active', userEntries: lifecycle.userEntries, reflectionsSent: lifecycle.reflectionsSent, preparedTargets: lifecycle.preparedTargets, writtenPaths: lifecycle.writtenPaths, waitingFor: null }
+            : lifecycle;
+      this.save({ ...this.#state, physicalModel: model, lifecycle: next });
       return;
     }
-    this.save({ ...this.#state, physicalModel: model, lastUserEntry: last, lifecycle: { kind: 'active', userEntries, reflectionsSent: 0, preparedTargets: [], writtenPaths: [], waitingFor: null } });
+    const newUsers = this.#state.lastUserEntry === null ? [...userEntries] : userEntries.slice(userEntries.indexOf(this.#state.lastUserEntry) + 1);
+    this.save({ ...this.#state, physicalModel: model, lastUserEntry: last, lifecycle: { kind: 'active', userEntries: newUsers, reflectionsSent: 0, preparedTargets: [], writtenPaths: [], waitingFor: null } });
   }
 
   async completeReply(reply: CompletedReply, signal?: AbortSignal): Promise<ReplyDecision> {
@@ -90,6 +113,11 @@ export class ExchangeController {
     const context = this.editContext(reply.id, signal);
     try {
       signal?.throwIfAborted();
+      const added = await this.checkForFileMentions(reply.text, signal);
+      if (added) {
+        this.#env.append({ schema: 1, kind: 'reply-finished', reply: reply.id });
+        return this.reflect(added, reply.id, dialogue);
+      }
       const format = this.#env.ports.edit.formats.get(this.#state.mode);
       if (!format) throw new Error(`Edit format ${this.#state.mode} is not implemented`);
       await format.withPlan(
@@ -111,14 +139,37 @@ export class ExchangeController {
       this.#env.host.error(error instanceof ValueError ? 'The LLM did not conform to the edit format.' : 'Exception while updating files:');
       this.#env.host.error(reflection);
     }
-    if (prepared.length) {
-      if (!context.tree.dryRun) await this.#env.ports.git.autoCommit(new Set(prepared), { kind: 'conversation', text: reply.text }, signal);
-      this.save({ ...this.#state, historyThrough: reply.id });
-      if (this.#prompts?.filesContentGptEditsNoRepo) dialogue.push({ text: this.#prompts.filesContentGptEditsNoRepo, ack: 'Ok.', purpose: 'saved', reply: reply.id });
-    }
+    dialogue.push(...(await this.recordEdited(prepared, reply, signal)));
     this.#env.append({ schema: 1, kind: 'reply-finished', reply: reply.id });
     if (reflection !== null) return this.reflect(reflection, reply.id, dialogue);
     return { dialogue, continue: false };
+  }
+
+  async recordEdited(prepared: readonly (string | null)[], reply: Extract<CompletedReply, { kind: 'complete' }>, signal?: AbortSignal): Promise<DialogueFact[]> {
+    if (!prepared.length) return [];
+    if (!this.#env.ports.edit.dryRun) await this.#env.ports.git.autoCommit(new Set(prepared), { kind: 'conversation', text: reply.text }, signal);
+    this.save({ ...this.#state, historyThrough: reply.id });
+    return this.#prompts?.filesContentGptEditsNoRepo ? [{ text: this.#prompts.filesContentGptEditsNoRepo, ack: 'Ok.', purpose: 'saved', reply: reply.id }] : [];
+  }
+
+  async checkForFileMentions(content: string, signal?: AbortSignal): Promise<string | null> {
+    const inchat = inchatRelativeFiles(this.#state.root, chatFilesOf(this.#state));
+    const readOnly = this.#state.files.readOnly.map((path) => getRelFname(this.#state.root, path));
+    const all = (await this.#env.ports.git.trackedFiles()) ?? inchat;
+    const excluded = new Set([...inchat, ...readOnly]);
+    const mentioned = getFileMentions({ content, inchat, readOnly, addable: all.filter((path) => !excluded.has(path)), ignoreCurrent: false });
+    const fresh = pythonSorted(mentioned).filter((path) => !this.#state.ignoredMentions.includes(path));
+    const group = new ConfirmGroup(fresh);
+    const added: string[] = [];
+    for (const path of fresh) {
+      signal?.throwIfAborted();
+      if (await this.#env.host.confirm({ question: 'Add file to the chat?', subject: path, group, allowNever: true })) {
+        signal?.throwIfAborted();
+        this.save({ ...this.#state, files: { ...this.#state.files, editable: [...new Set([...this.#state.files.editable, absRootPath(this.#state.root, path)])] } });
+        added.push(path);
+      } else this.save({ ...this.#state, ignoredMentions: [...new Set([...this.#state.ignoredMentions, path])] });
+    }
+    return added.length ? `I added these files to the chat: ${added.join(', ')}\nLet me know if there are others we should add.` : null;
   }
 
   editContext(reply: string, signal?: AbortSignal): EditContext {
@@ -195,7 +246,7 @@ export class ExchangeController {
   }
   reflect(text: string, reply: string, dialogue: DialogueFact[]): ReplyDecision {
     const lifecycle = this.#state.lifecycle;
-    const max = this.#env.maxReflections ?? 3;
+    const max = MAX_REFLECTIONS;
     if (lifecycle.kind !== 'active') return { dialogue, continue: false };
     if (lifecycle.reflectionsSent >= max) {
       this.#env.host.warning(`Only ${max} reflections allowed, stopping.`);

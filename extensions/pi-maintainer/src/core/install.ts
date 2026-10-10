@@ -1,16 +1,15 @@
 import { homedir } from 'node:os';
-import { resolve } from 'node:path';
 
 import type { ContextWithSystemEvent, ExtensionAPI, ExtensionContext, ModelRouteRequest, SessionBoundaryDraft, TurnEndEvent } from '@earendil-works/pi-coding-agent';
 import { Text } from '@earendil-works/pi-tui';
 import { BRANDING } from '../branding.ts';
 import { editOptions } from '../edit/options.ts';
-import { disabledGitPolicy, disabledRepositoryContext, disabledValidation, type Ports, type SarFeature } from '../feature.ts';
+import { createPorts, type Ports, type SarFeature } from '../feature.ts';
 import { loadSettings } from '../settings/load.ts';
 import { settingsOptions } from '../settings/options.ts';
 import { flagRegistrations } from '../settings/sources.ts';
 import { restore, type Snapshot } from './branch.ts';
-import { absRootPath, findCommonRoot, safeAbsPath } from './chat-files.ts';
+import { absRootPath, findCommonRoot } from './chat-files.ts';
 import { type CompletedReply, type DialogueFact, ExchangeController } from './exchange.ts';
 import { journaledTree } from './mutations.ts';
 import { createHost } from './pi-host.ts';
@@ -19,7 +18,6 @@ import type { PromptPolicy, PromptSource } from './prompts.ts';
 export interface MaintainerOptions {
   readonly promptSource?: PromptSource;
   readonly promptPolicy?: PromptPolicy;
-  readonly maxReflections?: number;
   readonly home?: () => string;
   readonly processEnvironment?: () => Readonly<Record<string, string | undefined>>;
 }
@@ -46,12 +44,16 @@ function completedReply(event: TurnEndEvent): CompletedReply {
 
 const draft = (fact: DialogueFact): SessionBoundaryDraft => ({ type: 'custom_message', customType: BRANDING.dialogueEntry, content: fact.text, display: true, details: { ack: fact.ack, purpose: fact.purpose, reply: fact.reply } });
 
-async function initialSnapshot(ports: Ports, cwd: string, append: (data: unknown) => void, host: ReturnType<typeof createHost>): Promise<Snapshot> {
+async function initialSnapshot(ports: Ports, cwd: string, append: (data: unknown) => void, host: ReturnType<typeof createHost>, allowCreation: boolean, owner: string): Promise<Snapshot> {
   const editable: string[] = [];
-  const tree = journaledTree(ports.edit.tree, 'startup', append, () => {});
+  const tree = journaledTree(ports.edit.tree, owner, append, () => {});
   for (const path of ports.edit.initialFiles.editable) {
-    const full = safeAbsPath(resolve(cwd, path));
+    const full = absRootPath(cwd, path);
     if (!(await tree.exists(full))) {
+      if (!allowCreation) {
+        host.warning(`Recovery refused startup creation of ${path}.`);
+        continue;
+      }
       if (!(await tree.touch(full))) {
         host.warning(`Can not create ${path}, skipping.`);
         continue;
@@ -100,6 +102,10 @@ export function installMaintainer(pi: ExtensionAPI, features: readonly SarFeatur
   pi.on('before_agent_start', (event, ctx) => {
     runtime.context = ctx;
     pi.setActiveTools([]);
+    if (!restore(ctx.sessionManager.getBranch()).snapshot) {
+      runtime.host.error('Selected branch has no maintainer snapshot. Select a physical model and reload before prompting.');
+      ctx.abort();
+    }
     const promptOptions = event.systemPromptOptions;
     promptOptions.customPrompt = 'Maintainer reply-text editing. No model tools.';
   });
@@ -170,18 +176,15 @@ class MaintainerRuntime {
     for (const problem of loaded.problems) this.host.error(problem);
     if (loaded.problems.length) throw new Error('Invalid maintainer settings');
     this.#environment = loaded.environment;
-    const edit = this.#features.find((feature) => feature.name === 'edit');
-    if (edit?.name !== 'edit') throw new Error('Maintainer needs an edit feature');
-    const ports: Ports = { edit: edit.create({ settings: loaded.settings, cwd: ctx.cwd, host: this.host }), git: disabledGitPolicy, map: disabledRepositoryContext, lint: disabledValidation };
+    const ports = createPorts(this.#features, { settings: loaded.settings, cwd: ctx.cwd, host: this.host });
     this.#yes = ports.edit.yesAlways;
     const restored = restore(ctx.sessionManager.getBranch());
-    const snapshot = restored.snapshot ?? (await initialSnapshot(ports, ctx.cwd, (data) => this.append(data), this.host));
+    const snapshot = restored.snapshot ?? (await initialSnapshot(ports, ctx.cwd, (data) => this.append(data), this.host, !restored.pendingOperations.length && !restored.invalidRecords.length, ctx.sessionManager.getLeafId() ?? 'startup'));
     this.#controller = new ExchangeController(snapshot, {
       ports,
       host: this.host,
       source: this.#options.promptSource ?? missingPromptSource,
       append: (data) => this.append(data),
-      maxReflections: this.#options.maxReflections,
       policy: this.#options.promptPolicy,
       suggestShellCommands: loaded.settings.value(editOptions.suggestShellCommands),
     });
@@ -204,6 +207,7 @@ class MaintainerRuntime {
     request.signal?.throwIfAborted();
     if (request.reason === 'continuation' && controller.snapshot.lifecycle.kind === 'interrupted') throw new Error('Maintainer exchange is interrupted');
     const restored = restore(ctx.sessionManager.getBranch());
+    if (!restored.snapshot) throw new Error('Selected branch has no maintainer snapshot');
     if (restored.pendingOperations.length || restored.invalidRecords.length) throw new Error('Unresolved maintainer operation receipts');
     if (this.#pi.getActiveTools().length) throw new Error('Another extension reactivated tools in maintainer mode');
     const reference = controller.snapshot.physicalModel;
@@ -212,7 +216,20 @@ class MaintainerRuntime {
     if (request.reason !== 'direct') {
       const branch = ctx.sessionManager.getBranch();
       const users = branch.filter((entry) => entry.type === 'message' && entry.message.role === 'user').map((entry) => entry.id);
-      controller.bindUser(users, { provider: model.provider, id: model.id });
+      controller.bindUser(users, { provider: model.provider, id: model.id }, request.reason);
+      if (request.reason === 'user') {
+        const user = branch.filter((entry) => entry.type === 'message' && entry.message.role === 'user').at(-1);
+        if (user?.type === 'message' && user.message.role === 'user') {
+          const content =
+            typeof user.message.content === 'string'
+              ? user.message.content
+              : user.message.content
+                  .filter((block) => block.type === 'text')
+                  .map((block) => block.text)
+                  .join('');
+          await controller.checkForFileMentions(content, request.signal);
+        }
+      }
     }
     return { model, thinkingLevel: request.failed?.thinkingLevel ?? request.previous?.thinkingLevel ?? request.thinkingLevel };
   }
@@ -221,7 +238,7 @@ class MaintainerRuntime {
       const controller = this.current(ctx);
       const physical = controller.snapshot.physicalModel;
       const model = physical ? ctx.modelRegistry.find(physical.provider, physical.id) : undefined;
-      const result = await controller.projectRequest({ messages: event.messages, projection: ctx.sessionManager.buildSessionProjection().entries, supportsImages: model?.input.includes('image') ?? false });
+      const result = await controller.projectRequest({ messages: event.messages, projection: ctx.sessionManager.buildSessionProjection().entries, supportsImages: model?.input.includes('image') ?? false, signal: ctx.signal });
       return { messages: result.messages };
     } catch (error) {
       const reason = error instanceof Error ? error.message : String(error);

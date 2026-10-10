@@ -24,6 +24,7 @@ export interface PromptVariables {
   readonly root: string;
   readonly model: { readonly provider: string; readonly id: string };
   readonly suggestShellCommands: boolean;
+  readonly signal?: AbortSignal | undefined;
 }
 
 export interface PromptSource {

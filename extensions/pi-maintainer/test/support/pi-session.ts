@@ -23,6 +23,8 @@ export const zeroUsage = (): AssistantMessage['usage'] => ({ input: 0, output: 0
 
 export interface ScriptedReply {
   readonly text: string;
+  readonly errorMessage?: string;
+  readonly usage?: AssistantMessage['usage'];
   readonly stopReason?: 'stop' | 'length' | 'error' | 'aborted' | 'toolUse';
   readonly tool?: { readonly name: string; readonly id: string; readonly arguments: JsonObject };
   readonly wait?: (signal: AbortSignal | undefined) => Promise<void>;
@@ -40,11 +42,11 @@ function scriptedStream(model: Model<string>, context: TranscriptContext, option
       await reply.wait?.(options?.signal);
       const content: AssistantMessage['content'] = [{ type: 'text', text: reply.text }, ...(reply.tool ? [{ type: 'toolCall', ...reply.tool } satisfies AssistantMessage['content'][number]] : [])];
       const stopReason = options?.signal?.aborted ? 'aborted' : (reply.stopReason ?? 'stop');
-      const message: AssistantMessage = { ...initial, content, stopReason };
+      const message: AssistantMessage = { ...initial, content, stopReason, usage: reply.usage ?? initial.usage };
       stream.push({ type: 'text_start', contentIndex: 0, partial: message });
       stream.push({ type: 'text_delta', contentIndex: 0, delta: reply.text, partial: message });
       stream.push({ type: 'text_end', contentIndex: 0, content: reply.text, partial: message });
-      if (stopReason === 'error' || stopReason === 'aborted') stream.push({ type: 'error', reason: stopReason, error: { ...message, errorMessage: 'Scripted interruption' } });
+      if (stopReason === 'error' || stopReason === 'aborted') stream.push({ type: 'error', reason: stopReason, error: { ...message, errorMessage: reply.errorMessage ?? 'Scripted interruption' } });
       else stream.push({ type: 'done', reason: stopReason, message });
       stream.end();
     } catch (error) {
@@ -55,7 +57,7 @@ function scriptedStream(model: Model<string>, context: TranscriptContext, option
   return stream;
 }
 
-export async function piSessionFixture(options: { readonly extension: ExtensionFactory; readonly before?: readonly ExtensionFactory[]; readonly after?: readonly ExtensionFactory[]; readonly config?: string }) {
+export async function piSessionFixture(options: { readonly extension: ExtensionFactory; readonly before?: readonly ExtensionFactory[]; readonly after?: readonly ExtensionFactory[]; readonly config?: string; readonly retry?: boolean }) {
   const root = await realpath(await mkdtemp(join(tmpdir(), 'maintainer-sdk-')));
   const cwd = join(root, 'workspace');
   const agentDir = join(root, 'agent');
@@ -82,7 +84,7 @@ export async function piSessionFixture(options: { readonly extension: ExtensionF
     await rm(root, { recursive: true, force: true });
   });
   const open = async (manager = SessionManager.create(cwd, join(root, 'sessions'))) => {
-    const settingsManager = SettingsManager.inMemory({ compaction: { enabled: false, keepRecentTokens: 0 }, retry: { enabled: false }, cacheWarming: 'off' });
+    const settingsManager = SettingsManager.inMemory({ compaction: { enabled: false, keepRecentTokens: 0 }, retry: { enabled: options.retry ?? false, maxRetries: 1, baseDelayMs: 0, maxAgentDelayMs: 0 }, cacheWarming: 'off' });
     const loader = new DefaultResourceLoader({
       cwd,
       agentDir,

@@ -62,16 +62,15 @@ test('a suppressed continuation becomes interrupted at final reconciliation', as
 test('canonical user binding precedes the actual provider call', async () => {
   const f = await piSessionFixture({ extension });
   const session = await f.open();
-  f.replies.push({
-    text: '',
-    wait: async () => {
-      const branch = session.sessionManager.getBranch();
-      const user = branch.findLast((entry) => entry.type === 'message' && entry.message.role === 'user');
-      expect(restore(branch).snapshot).toMatchObject({ lastUserEntry: user?.id, lifecycle: { kind: 'active', reflectionsSent: 0 } });
-    },
-  });
+  const wait = async () => {
+    const branch = session.sessionManager.getBranch();
+    const user = branch.findLast((entry) => entry.type === 'message' && entry.message.role === 'user');
+    expect(restore(branch).snapshot).toMatchObject({ lastUserEntry: user?.id, lifecycle: { kind: 'active', reflectionsSent: 0, userEntries: [user?.id] } });
+  };
+  f.replies.push({ text: '', wait }, { text: '', wait });
   await promptAndSettle(session, 'bind me');
-  expect(f.requests).toHaveLength(1);
+  await promptAndSettle(session, 'bind the next user');
+  expect(f.requests).toHaveLength(2);
   expect(f.errors).toEqual([]);
 });
 
@@ -219,11 +218,79 @@ test('tool_call blocks an intentionally reactivated capability', async () => {
   expect(f.errors).toEqual([]);
 });
 
+test('branches predating maintainer state refuse requests until reload', async () => {
+  const f = await piSessionFixture({ extension });
+  const session = await f.open();
+  const root = session.sessionManager.getBranch()[0];
+  if (!root) throw new Error('fixture has no root entry');
+  await session.navigateTree(root.id, { summarize: false });
+  await promptAndSettle(session, 'do not reuse another branch');
+  expect(f.requests).toHaveLength(0);
+  expect(restore(session.sessionManager.getBranch()).snapshot).toBeNull();
+  await session.setModel(scriptedModel);
+  await session.reload();
+  f.replies.push({ text: '' });
+  await promptAndSettle(session, 'initialized');
+  expect(f.requests).toHaveLength(1);
+  expect(f.errors).toEqual([]);
+});
+
+test('startup never recreates a target with an unresolved intent', async () => {
+  const f = await piSessionFixture({ extension, config: 'file: [initial.txt]\n' });
+  const manager = SessionManager.inMemory(f.cwd);
+  manager.appendCustomEntry(BRANDING.stateEntry, { schema: 1, kind: 'operation-intent', reply: 'startup-crash', ordinal: 0, operation: 'touch', path: join(f.cwd, 'initial.txt') });
+  const session = await f.open(manager);
+  await expect(readFile(join(f.cwd, 'initial.txt'))).rejects.toMatchObject({ code: 'ENOENT' });
+  await promptAndSettle(session, 'blocked');
+  expect(f.requests).toHaveLength(0);
+  expect(restore(session.sessionManager.getBranch()).pendingOperations).toHaveLength(1);
+  expect(f.errors).toEqual([]);
+});
+
+test('an unavailable edit format refuses provider requests', async () => {
+  const f = await piSessionFixture({ extension, config: 'edit-format: ask\n' });
+  const session = await f.open();
+  await promptAndSettle(session, 'not implemented');
+  expect(f.requests).toHaveLength(0);
+  expect(restore(session.sessionManager.getBranch()).snapshot?.mode).toBe('ask');
+  expect(f.errors).toEqual([]);
+});
+
 test('a missing prompt source stops before a provider request', async () => {
   const f = await piSessionFixture({ extension: (pi) => installMaintainer(pi, [editFeature], { home: () => '/nonexistent', processEnvironment: () => ({}) }) });
   const session = await f.open();
   await promptAndSettle(session, 'do not send an unformatted request');
   expect(restore(session.sessionManager.getBranch()).snapshot?.lifecycle).toMatchObject({ kind: 'interrupted' });
+  expect(f.requests).toHaveLength(0);
+  expect(f.errors).toEqual([]);
+});
+
+test('prompt formatting receives the active native abort signal', async () => {
+  let entered = () => {};
+  let observed: AbortSignal | undefined;
+  const formatting = new Promise<void>((done) => {
+    entered = done;
+  });
+  const f = await piSessionFixture({
+    extension: maintainerExtension({
+      promptSource: {
+        get: async (_format, variables) => {
+          observed = variables.signal;
+          entered();
+          if (!observed) throw new Error('missing request signal');
+          if (!observed.aborted) await new Promise<void>((done) => observed?.addEventListener('abort', () => done(), { once: true }));
+          observed.throwIfAborted();
+          throw new Error('formatter was not cancelled');
+        },
+      },
+    }),
+  });
+  const session = await f.open();
+  const running = promptAndSettle(session, 'cancel formatting');
+  await formatting;
+  await session.abort();
+  await running;
+  expect(observed?.aborted).toBe(true);
   expect(f.requests).toHaveLength(0);
   expect(f.errors).toEqual([]);
 });

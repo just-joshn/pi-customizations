@@ -187,3 +187,14 @@ export interface Ports {
 
 /** A feature together with its SAR name, so a list of features can be told apart. */
 export type SarFeature = { [N in SarName]: Feature<Ports[N]> & { readonly name: N } }[SarName];
+
+export function createPorts(features: readonly SarFeature[], env: FeatureEnv): Ports {
+  const edit = features.find((feature) => feature.name === 'edit');
+  if (edit?.name !== 'edit') throw new Error('Maintainer needs an edit feature');
+  return {
+    edit: edit.create(env),
+    git: features.find((feature) => feature.name === 'git')?.create(env) ?? disabledGitPolicy,
+    map: features.find((feature) => feature.name === 'map')?.create(env) ?? disabledRepositoryContext,
+    lint: features.find((feature) => feature.name === 'lint')?.create(env) ?? disabledValidation,
+  };
+}
