@@ -6107,6 +6107,329 @@
       "tests": [
         "test/map/commands-bind.test.ts::rendered map text can include filenames plus source excerpts with literals, comments, and configuration values, without secret redaction"
       ]
+    },
+    {
+      "id": "lint.options.lint-cmd-mapping",
+      "feature": "lint",
+      "behavior": "parse_lint_cmds accepts only language-prefixed commands matching ^[a-z]+:.*, maps unprefixed commands under None, strips whitespace, and lets later entries for the same key win.",
+      "aider": [
+        "aider/args.py:526-565",
+        "aider/main.py:278-302"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "lint.options.oneshot-flags",
+      "feature": "lint",
+      "behavior": "Startup --lint runs the explicit lint workflow, and --test requires --test-cmd otherwise exiting with status 1, before optional commit and process exit.",
+      "aider": [
+        "aider/main.py:1053-1073",
+        "aider/args.py:526-565"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "lint.dispatch.precedence",
+      "feature": "lint",
+      "behavior": "Without an explicit lint command override, Linter chooses a global configured command, else a language-specific checker, else tree-sitter syntax fallback, and filename recognition happens before selecting the global command.",
+      "aider": [
+        "aider/linter.py:21-80"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "lint.dispatch.unknown-skip",
+      "feature": "lint",
+      "behavior": "Unknown or unsupported filename extensions produce no lint report under automatic and global-command dispatch, so an all-language command still skips unrecognized files.",
+      "aider": [
+        "aider/linter.py:21-80"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "lint.tree-sitter.syntax-errors",
+      "feature": "lint",
+      "behavior": "Tree-sitter syntax fallback parses UTF-8 bytes and records zero-based start rows for ERROR and missing nodes without exposing column numbers.",
+      "aider": [
+        "aider/linter.py:80-166"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "lint.custom.append-relpath",
+      "feature": "lint",
+      "behavior": "Custom lint appends one oslex-quoted relative filename to the configured shell string, runs through the subprocess path, discards output on exit zero, and turns nonzero output into diagnostic context.",
+      "aider": [
+        "aider/linter.py:118-166",
+        "aider/run_cmd.py:42-86"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "lint.diagnostics.line-extraction",
+      "feature": "lint",
+      "behavior": "find_filenames_and_linenums extracts filename to one-based line-number sets from diagnostic text using a word-boundary filename pattern followed by :<line>.",
+      "aider": [
+        "aider/linter.py:171-174,272-285"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "lint.diagnostics.context-render",
+      "feature": "lint",
+      "behavior": "Lint errors are rendered for the model under a fix-any-errors header with tree context around the extracted error lines.",
+      "aider": [
+        "aider/linter.py:80-166,272-285"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "lint.selection.edit-targets",
+      "feature": "lint",
+      "behavior": "Automatic lint runs over the authorized edit-target set from apply_updates, not a post-write Git diff, including after partial failures and during global dry-run.",
+      "aider": [
+        "aider/coders/base_coder.py:2267-2337,1585-1623"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "lint.lifecycle.message-reset",
+      "feature": "lint",
+      "behavior": "init_before_message resets edited-file accumulation, reflection state, lint and test outcomes, suggested commands, and related per-message counters at the start of each user-message lifecycle.",
+      "aider": [
+        "aider/coders/base_coder.py:864-945"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "lint.reflection.budget",
+      "feature": "lint",
+      "behavior": "The shared reflection budget defaults to three additional requests after the original response and counts lint errors, test errors, malformed edits, and other reflection sources together.",
+      "aider": [
+        "aider/coders/base_coder.py:1585-1623"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "lint.commit.post-lint",
+      "feature": "lint",
+      "behavior": "After automatic lint on selected targets, the coder attempts another commit using the context string \"Ran the linter\" whether or not diagnostics were produced.",
+      "aider": [
+        "aider/coders/base_coder.py:1585-1623,2375-2423"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "lint.test.callable-no-chat",
+      "feature": "lint",
+      "behavior": "A callable test command is invoked directly, prints and returns truthy errors, and does not change cwd or insert chat messages.",
+      "aider": [
+        "aider/commands.py:993-1011"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "lint.test.no-command-noop",
+      "feature": "lint",
+      "behavior": "cmd_test with neither an argument nor a configured test command returns silently without running a process.",
+      "aider": [
+        "aider/commands.py:993-1047"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "lint.commands.lint-file-selection",
+      "feature": "lint",
+      "behavior": "/lint requires a repository and selects explicit filenames, otherwise chat files, otherwise dirty files unioning staged and unstaged paths.",
+      "aider": [
+        "aider/commands.py:356-409"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "lint.oneshot.test-exit",
+      "feature": "lint",
+      "behavior": "Startup --test ignores returned failure feedback for model fixing unless io.placeholder is populated, and child test failure is not propagated as Aider process exit status.",
+      "aider": [
+        "aider/main.py:1053-1073,1272-1274"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "lint.apply.bypasses-validation",
+      "feature": "lint",
+      "behavior": "--apply calls only apply_updates on a saved response and bypasses response-tail lint, shell, and test validation.",
+      "aider": [
+        "aider/main.py:975-993"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "lint.coder.ask-architect",
+      "feature": "lint",
+      "behavior": "Ask mode produces no edits because get_edits returns an empty list, while architect mode inherits ask but still runs editor-path validation when the editor applies edits.",
+      "aider": [
+        "aider/coders/base_coder.py:931-945,1585-1623"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "lint.fail.ambiguous-pass",
+      "feature": "lint",
+      "behavior": "A falsy lint result can mean clean, unsupported, unreadable, or unavailable parser, and a falsy test result can mean success or no configured command.",
+      "aider": [
+        "aider/linter.py:70-80",
+        "aider/commands.py:993-1054"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "lint.fail.explicit-unknown-command",
+      "feature": "lint",
+      "behavior": "An explicit lint command bypasses unknown-file dispatch skipping, and a failed unknown command can still fail while building model-facing diagnostic context.",
+      "aider": [
+        "aider/linter.py:118-166"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "lint.fail.root-none-path",
+      "feature": "lint",
+      "behavior": "When Linter.root is None, relative-name conversion preserves the incoming path object so a pathlib.Path can reach Flake8 command-header string joins unsafely.",
+      "aider": [
+        "aider/linter.py:21-80,80-116"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "lint.fail.stale-diagnostics",
+      "feature": "lint",
+      "behavior": "Tree-sitter and compile checks use the initially read file bytes while Flake8 and custom commands read the on-disk file, so a modifying command can leave repair context stale relative to disk.",
+      "aider": [
+        "aider/linter.py:80-166"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "lint.security.shell-trust",
+      "feature": "lint",
+      "behavior": "Lint, test, and shell command strings run as trusted arbitrary shell execution under the user account; filename quoting does not sandbox compound commands or redirections.",
+      "aider": [
+        "aider/run_cmd.py:11-23,42-86",
+        "aider/linter.py:118-166"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "lint.docs.lint-flag-typo",
+      "feature": "lint",
+      "behavior": "The --lint option is boolean one-shot lint; language-specific checkers are configured only through --lint-cmd \"language: command\".",
+      "aider": [
+        "aider/website/docs/usage/lint-test.md:31-34",
+        "aider/args.py:526-565"
+      ],
+      "kind": "fix",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": [],
+      "fix": {
+        "defect": "The usage guide shows --lint \"language: cmd\", but --lint is a boolean one-shot flag and language mappings belong to --lint-cmd.",
+        "intent": "args.py declares --lint as store_true and --lint-cmd as the repeatable language-command mapping; the guide should match those flags.",
+        "behavior": "The --lint option is boolean one-shot lint; language-specific checkers are configured only through --lint-cmd \"language: command\"."
+      }
     }
   ]
 }

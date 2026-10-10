@@ -9850,5 +9850,1352 @@
     "rows": [
       "map.files.important-basenames"
     ]
+  },
+  "lint/provenance-and-scope/p1": {
+    "nonclaim": "provenance",
+    "note": "pinned checkout, evidence classes, and reconstruction date"
+  },
+  "lint/provenance-and-scope/p2": {
+    "nonclaim": "provenance",
+    "note": "pinned checkout, evidence classes, and reconstruction date"
+  },
+  "lint/provenance-and-scope/p3": {
+    "rows": [
+      "lint.options.auto-lint-auto-test",
+      "lint.followup.order",
+      "lint.python.checks",
+      "lint.test.command-output"
+    ]
+  },
+  "lint/provenance-and-scope/p4": {
+    "nonclaim": "provenance",
+    "note": "pinned checkout, evidence classes, and reconstruction date"
+  },
+  "lint/provenance-and-scope/i5": {
+    "nonclaim": "provenance",
+    "note": "pinned checkout, evidence classes, and reconstruction date"
+  },
+  "lint/provenance-and-scope/i6": {
+    "nonclaim": "provenance",
+    "note": "pinned checkout, evidence classes, and reconstruction date"
+  },
+  "lint/provenance-and-scope/i7": {
+    "nonclaim": "provenance",
+    "note": "pinned checkout, evidence classes, and reconstruction date"
+  },
+  "lint/provenance-and-scope/p8": {
+    "nonclaim": "provenance",
+    "note": "pinned checkout, evidence classes, and reconstruction date"
+  },
+  "lint/architectural-summary/p1": {
+    "rows": [
+      "lint.options.auto-lint-auto-test",
+      "lint.followup.order",
+      "lint.test.command-output"
+    ]
+  },
+  "lint/architectural-summary/p2": {
+    "rows": [
+      "lint.options.auto-lint-auto-test",
+      "lint.followup.order",
+      "lint.test.command-output"
+    ]
+  },
+  "lint/architectural-summary/p3": {
+    "nonclaim": "evidence",
+    "note": "runtime Python version and installed-versus-checkout hash observations"
+  },
+  "lint/architectural-summary/p4": {
+    "nonclaim": "evidence",
+    "note": "setuptools package-discovery observation for the incomplete install"
+  },
+  "lint/recovered-component-boundaries/m1": {
+    "rows": [
+      "lint.followup.order",
+      "lint.python.checks",
+      "lint.test.command-output",
+      "lint.run.local-shell"
+    ]
+  },
+  "lint/recovered-component-boundaries/p2": {
+    "rows": [
+      "lint.followup.order",
+      "lint.python.checks",
+      "lint.test.command-output",
+      "lint.run.local-shell"
+    ]
+  },
+  "lint/recovered-component-boundaries/r3": {
+    "rows": [
+      "lint.followup.order",
+      "lint.python.checks",
+      "lint.test.command-output",
+      "lint.run.local-shell"
+    ]
+  },
+  "lint/recovered-component-boundaries/r4": {
+    "rows": [
+      "lint.followup.order",
+      "lint.python.checks",
+      "lint.test.command-output",
+      "lint.run.local-shell"
+    ]
+  },
+  "lint/recovered-component-boundaries/r5": {
+    "nonclaim": "out-of-scope",
+    "note": "edit-format coder parsing belongs to the edit SAR"
+  },
+  "lint/recovered-component-boundaries/r6": {
+    "rows": [
+      "lint.followup.order",
+      "lint.python.checks",
+      "lint.test.command-output",
+      "lint.run.local-shell"
+    ]
+  },
+  "lint/recovered-component-boundaries/r7": {
+    "rows": [
+      "lint.followup.order",
+      "lint.python.checks",
+      "lint.test.command-output",
+      "lint.run.local-shell"
+    ]
+  },
+  "lint/recovered-component-boundaries/r8": {
+    "rows": [
+      "lint.followup.order",
+      "lint.python.checks",
+      "lint.test.command-output",
+      "lint.run.local-shell"
+    ]
+  },
+  "lint/recovered-component-boundaries/r9": {
+    "rows": [
+      "lint.followup.order",
+      "lint.python.checks",
+      "lint.test.command-output",
+      "lint.run.local-shell"
+    ]
+  },
+  "lint/recovered-component-boundaries/p10": {
+    "rows": [
+      "lint.followup.order",
+      "lint.python.checks",
+      "lint.test.command-output",
+      "lint.run.local-shell"
+    ]
+  },
+  "lint/data-contracts/p1": {
+    "rows": [
+      "lint.python.checks",
+      "lint.diagnostics.context-render",
+      "lint.test.command-output",
+      "lint.fail.ambiguous-pass",
+      "lint.lifecycle.message-reset"
+    ]
+  },
+  "lint/data-contracts/r2": {
+    "rows": [
+      "lint.python.checks",
+      "lint.diagnostics.context-render",
+      "lint.test.command-output",
+      "lint.fail.ambiguous-pass",
+      "lint.lifecycle.message-reset"
+    ]
+  },
+  "lint/data-contracts/r3": {
+    "rows": [
+      "lint.python.checks",
+      "lint.diagnostics.context-render",
+      "lint.test.command-output",
+      "lint.fail.ambiguous-pass",
+      "lint.lifecycle.message-reset"
+    ]
+  },
+  "lint/data-contracts/r4": {
+    "rows": [
+      "lint.python.checks",
+      "lint.diagnostics.context-render",
+      "lint.test.command-output",
+      "lint.fail.ambiguous-pass",
+      "lint.lifecycle.message-reset"
+    ]
+  },
+  "lint/data-contracts/r5": {
+    "rows": [
+      "lint.python.checks",
+      "lint.diagnostics.context-render",
+      "lint.test.command-output",
+      "lint.fail.ambiguous-pass",
+      "lint.lifecycle.message-reset"
+    ]
+  },
+  "lint/data-contracts/r6": {
+    "rows": [
+      "lint.python.checks",
+      "lint.diagnostics.context-render",
+      "lint.test.command-output",
+      "lint.fail.ambiguous-pass",
+      "lint.lifecycle.message-reset"
+    ]
+  },
+  "lint/data-contracts/r7": {
+    "rows": [
+      "lint.python.checks",
+      "lint.diagnostics.context-render",
+      "lint.test.command-output",
+      "lint.fail.ambiguous-pass",
+      "lint.lifecycle.message-reset"
+    ]
+  },
+  "lint/data-contracts/r8": {
+    "rows": [
+      "lint.python.checks",
+      "lint.diagnostics.context-render",
+      "lint.test.command-output",
+      "lint.fail.ambiguous-pass",
+      "lint.lifecycle.message-reset"
+    ]
+  },
+  "lint/data-contracts/r9": {
+    "rows": [
+      "lint.python.checks",
+      "lint.diagnostics.context-render",
+      "lint.test.command-output",
+      "lint.fail.ambiguous-pass",
+      "lint.lifecycle.message-reset"
+    ]
+  },
+  "lint/data-contracts/p10": {
+    "rows": [
+      "lint.python.checks",
+      "lint.diagnostics.context-render",
+      "lint.test.command-output",
+      "lint.fail.ambiguous-pass",
+      "lint.lifecycle.message-reset"
+    ]
+  },
+  "lint/data-contracts/p11": {
+    "rows": [
+      "lint.python.checks",
+      "lint.diagnostics.context-render",
+      "lint.test.command-output",
+      "lint.fail.ambiguous-pass",
+      "lint.lifecycle.message-reset"
+    ]
+  },
+  "lint/edit-targets-versus-changed-files/p1": {
+    "rows": [
+      "lint.selection.edit-targets"
+    ]
+  },
+  "lint/edit-targets-versus-changed-files/p2": {
+    "rows": [
+      "lint.selection.edit-targets"
+    ]
+  },
+  "lint/configuration-exact-controls-and-precedence/p1": {
+    "rows": [
+      "lint.options.auto-lint-auto-test",
+      "lint.options.lint-cmd-mapping",
+      "lint.options.oneshot-flags",
+      "lint.docs.lint-flag-typo"
+    ]
+  },
+  "lint/configuration-exact-controls-and-precedence/r2": {
+    "rows": [
+      "lint.options.auto-lint-auto-test",
+      "lint.options.lint-cmd-mapping",
+      "lint.options.oneshot-flags",
+      "lint.docs.lint-flag-typo"
+    ]
+  },
+  "lint/configuration-exact-controls-and-precedence/r3": {
+    "rows": [
+      "lint.options.auto-lint-auto-test",
+      "lint.options.lint-cmd-mapping",
+      "lint.options.oneshot-flags",
+      "lint.docs.lint-flag-typo"
+    ]
+  },
+  "lint/configuration-exact-controls-and-precedence/r4": {
+    "rows": [
+      "lint.options.auto-lint-auto-test",
+      "lint.options.lint-cmd-mapping",
+      "lint.options.oneshot-flags",
+      "lint.docs.lint-flag-typo"
+    ]
+  },
+  "lint/configuration-exact-controls-and-precedence/r5": {
+    "rows": [
+      "lint.options.auto-lint-auto-test",
+      "lint.options.lint-cmd-mapping",
+      "lint.options.oneshot-flags",
+      "lint.docs.lint-flag-typo"
+    ]
+  },
+  "lint/configuration-exact-controls-and-precedence/r6": {
+    "rows": [
+      "lint.options.auto-lint-auto-test",
+      "lint.options.lint-cmd-mapping",
+      "lint.options.oneshot-flags",
+      "lint.docs.lint-flag-typo"
+    ]
+  },
+  "lint/configuration-exact-controls-and-precedence/r7": {
+    "rows": [
+      "lint.options.auto-lint-auto-test",
+      "lint.options.lint-cmd-mapping",
+      "lint.options.oneshot-flags",
+      "lint.docs.lint-flag-typo"
+    ]
+  },
+  "lint/configuration-exact-controls-and-precedence/p8": {
+    "nonclaim": "meta",
+    "note": "configargparse precedence is shared configuration infrastructure"
+  },
+  "lint/configuration-exact-controls-and-precedence/p9": {
+    "nonclaim": "meta",
+    "note": "dotenv load order is shared configuration infrastructure"
+  },
+  "lint/configuration-exact-controls-and-precedence/p10": {
+    "rows": [
+      "lint.options.auto-lint-auto-test",
+      "lint.options.lint-cmd-mapping",
+      "lint.options.oneshot-flags",
+      "lint.docs.lint-flag-typo"
+    ]
+  },
+  "lint/configuration-exact-controls-and-precedence/p11": {
+    "rows": [
+      "lint.options.auto-lint-auto-test",
+      "lint.options.lint-cmd-mapping",
+      "lint.options.oneshot-flags",
+      "lint.docs.lint-flag-typo"
+    ]
+  },
+  "lint/configuration-exact-controls-and-precedence/c12": {
+    "rows": [
+      "lint.options.auto-lint-auto-test",
+      "lint.options.lint-cmd-mapping",
+      "lint.options.oneshot-flags",
+      "lint.docs.lint-flag-typo"
+    ]
+  },
+  "lint/configuration-exact-controls-and-precedence/p13": {
+    "rows": [
+      "lint.options.auto-lint-auto-test",
+      "lint.options.lint-cmd-mapping",
+      "lint.options.oneshot-flags",
+      "lint.docs.lint-flag-typo"
+    ]
+  },
+  "lint/full-lifecycle-state-flow/m1": {
+    "rows": [
+      "lint.lifecycle.message-reset",
+      "lint.followup.commit-before-validation",
+      "lint.followup.order",
+      "lint.followup.reflect-failures",
+      "lint.shell.approve-and-run",
+      "lint.commit.post-lint",
+      "lint.reflection.budget",
+      "lint.selection.edit-targets"
+    ]
+  },
+  "lint/full-lifecycle-state-flow/p2": {
+    "rows": [
+      "lint.lifecycle.message-reset",
+      "lint.followup.commit-before-validation",
+      "lint.followup.order",
+      "lint.followup.reflect-failures",
+      "lint.shell.approve-and-run",
+      "lint.commit.post-lint",
+      "lint.reflection.budget",
+      "lint.selection.edit-targets"
+    ]
+  },
+  "lint/full-lifecycle-state-flow/p3": {
+    "nonclaim": "out-of-scope",
+    "note": "exhausted-response and file-context reflection before edits belong to the edit SAR"
+  },
+  "lint/full-lifecycle-state-flow/p4": {
+    "rows": [
+      "lint.lifecycle.message-reset",
+      "lint.followup.commit-before-validation",
+      "lint.followup.order",
+      "lint.followup.reflect-failures",
+      "lint.shell.approve-and-run",
+      "lint.commit.post-lint",
+      "lint.reflection.budget",
+      "lint.selection.edit-targets"
+    ]
+  },
+  "lint/full-lifecycle-state-flow/p5": {
+    "rows": [
+      "lint.lifecycle.message-reset",
+      "lint.followup.commit-before-validation",
+      "lint.followup.order",
+      "lint.followup.reflect-failures",
+      "lint.shell.approve-and-run",
+      "lint.commit.post-lint",
+      "lint.reflection.budget",
+      "lint.selection.edit-targets"
+    ]
+  },
+  "lint/full-lifecycle-state-flow/p6": {
+    "rows": [
+      "lint.lifecycle.message-reset",
+      "lint.followup.commit-before-validation",
+      "lint.followup.order",
+      "lint.followup.reflect-failures",
+      "lint.shell.approve-and-run",
+      "lint.commit.post-lint",
+      "lint.reflection.budget",
+      "lint.selection.edit-targets"
+    ]
+  },
+  "lint/full-lifecycle-state-flow/p7": {
+    "rows": [
+      "lint.lifecycle.message-reset",
+      "lint.followup.commit-before-validation",
+      "lint.followup.order",
+      "lint.followup.reflect-failures",
+      "lint.shell.approve-and-run",
+      "lint.commit.post-lint",
+      "lint.reflection.budget",
+      "lint.selection.edit-targets"
+    ]
+  },
+  "lint/full-lifecycle-state-flow/p8": {
+    "rows": [
+      "lint.lifecycle.message-reset",
+      "lint.followup.commit-before-validation",
+      "lint.followup.order",
+      "lint.followup.reflect-failures",
+      "lint.shell.approve-and-run",
+      "lint.commit.post-lint",
+      "lint.reflection.budget",
+      "lint.selection.edit-targets"
+    ]
+  },
+  "lint/lint-internals/p1": {
+    "rows": [
+      "lint.dispatch.precedence",
+      "lint.dispatch.unknown-skip",
+      "lint.python.checks",
+      "lint.tree-sitter.syntax-errors",
+      "lint.custom.append-relpath",
+      "lint.diagnostics.line-extraction",
+      "lint.diagnostics.context-render"
+    ]
+  },
+  "lint/lint-internals/p2": {
+    "rows": [
+      "lint.dispatch.precedence",
+      "lint.dispatch.unknown-skip",
+      "lint.python.checks",
+      "lint.tree-sitter.syntax-errors",
+      "lint.custom.append-relpath",
+      "lint.diagnostics.line-extraction",
+      "lint.diagnostics.context-render"
+    ]
+  },
+  "lint/lint-internals/i3": {
+    "rows": [
+      "lint.dispatch.precedence",
+      "lint.dispatch.unknown-skip",
+      "lint.python.checks",
+      "lint.tree-sitter.syntax-errors",
+      "lint.custom.append-relpath",
+      "lint.diagnostics.line-extraction",
+      "lint.diagnostics.context-render"
+    ]
+  },
+  "lint/lint-internals/i4": {
+    "rows": [
+      "lint.dispatch.precedence",
+      "lint.dispatch.unknown-skip",
+      "lint.python.checks",
+      "lint.tree-sitter.syntax-errors",
+      "lint.custom.append-relpath",
+      "lint.diagnostics.line-extraction",
+      "lint.diagnostics.context-render"
+    ]
+  },
+  "lint/lint-internals/i5": {
+    "rows": [
+      "lint.dispatch.precedence",
+      "lint.dispatch.unknown-skip",
+      "lint.python.checks",
+      "lint.tree-sitter.syntax-errors",
+      "lint.custom.append-relpath",
+      "lint.diagnostics.line-extraction",
+      "lint.diagnostics.context-render"
+    ]
+  },
+  "lint/lint-internals/i6": {
+    "rows": [
+      "lint.dispatch.precedence",
+      "lint.dispatch.unknown-skip",
+      "lint.python.checks",
+      "lint.tree-sitter.syntax-errors",
+      "lint.custom.append-relpath",
+      "lint.diagnostics.line-extraction",
+      "lint.diagnostics.context-render"
+    ]
+  },
+  "lint/lint-internals/p7": {
+    "rows": [
+      "lint.dispatch.precedence",
+      "lint.dispatch.unknown-skip",
+      "lint.python.checks",
+      "lint.tree-sitter.syntax-errors",
+      "lint.custom.append-relpath",
+      "lint.diagnostics.line-extraction",
+      "lint.diagnostics.context-render"
+    ]
+  },
+  "lint/lint-internals/p8": {
+    "rows": [
+      "lint.dispatch.precedence",
+      "lint.dispatch.unknown-skip",
+      "lint.python.checks",
+      "lint.tree-sitter.syntax-errors",
+      "lint.custom.append-relpath",
+      "lint.diagnostics.line-extraction",
+      "lint.diagnostics.context-render"
+    ]
+  },
+  "lint/lint-internals/p9": {
+    "rows": [
+      "lint.dispatch.precedence",
+      "lint.dispatch.unknown-skip",
+      "lint.python.checks",
+      "lint.tree-sitter.syntax-errors",
+      "lint.custom.append-relpath",
+      "lint.diagnostics.line-extraction",
+      "lint.diagnostics.context-render"
+    ]
+  },
+  "lint/lint-internals/i10": {
+    "rows": [
+      "lint.dispatch.precedence",
+      "lint.dispatch.unknown-skip",
+      "lint.python.checks",
+      "lint.tree-sitter.syntax-errors",
+      "lint.custom.append-relpath",
+      "lint.diagnostics.line-extraction",
+      "lint.diagnostics.context-render"
+    ]
+  },
+  "lint/lint-internals/i11": {
+    "rows": [
+      "lint.dispatch.precedence",
+      "lint.dispatch.unknown-skip",
+      "lint.python.checks",
+      "lint.tree-sitter.syntax-errors",
+      "lint.custom.append-relpath",
+      "lint.diagnostics.line-extraction",
+      "lint.diagnostics.context-render"
+    ]
+  },
+  "lint/lint-internals/i12": {
+    "rows": [
+      "lint.dispatch.precedence",
+      "lint.dispatch.unknown-skip",
+      "lint.python.checks",
+      "lint.tree-sitter.syntax-errors",
+      "lint.custom.append-relpath",
+      "lint.diagnostics.line-extraction",
+      "lint.diagnostics.context-render"
+    ]
+  },
+  "lint/lint-internals/p13": {
+    "rows": [
+      "lint.dispatch.precedence",
+      "lint.dispatch.unknown-skip",
+      "lint.python.checks",
+      "lint.tree-sitter.syntax-errors",
+      "lint.custom.append-relpath",
+      "lint.diagnostics.line-extraction",
+      "lint.diagnostics.context-render"
+    ]
+  },
+  "lint/lint-internals/c14": {
+    "rows": [
+      "lint.dispatch.precedence",
+      "lint.dispatch.unknown-skip",
+      "lint.python.checks",
+      "lint.tree-sitter.syntax-errors",
+      "lint.custom.append-relpath",
+      "lint.diagnostics.line-extraction",
+      "lint.diagnostics.context-render"
+    ]
+  },
+  "lint/lint-internals/p15": {
+    "rows": [
+      "lint.dispatch.precedence",
+      "lint.dispatch.unknown-skip",
+      "lint.python.checks",
+      "lint.tree-sitter.syntax-errors",
+      "lint.custom.append-relpath",
+      "lint.diagnostics.line-extraction",
+      "lint.diagnostics.context-render"
+    ]
+  },
+  "lint/lint-internals/p16": {
+    "rows": [
+      "lint.dispatch.precedence",
+      "lint.dispatch.unknown-skip",
+      "lint.python.checks",
+      "lint.tree-sitter.syntax-errors",
+      "lint.custom.append-relpath",
+      "lint.diagnostics.line-extraction",
+      "lint.diagnostics.context-render"
+    ]
+  },
+  "lint/lint-internals/p17": {
+    "rows": [
+      "lint.dispatch.precedence",
+      "lint.dispatch.unknown-skip",
+      "lint.python.checks",
+      "lint.tree-sitter.syntax-errors",
+      "lint.custom.append-relpath",
+      "lint.diagnostics.line-extraction",
+      "lint.diagnostics.context-render"
+    ]
+  },
+  "lint/lint-internals/p18": {
+    "rows": [
+      "lint.dispatch.precedence",
+      "lint.dispatch.unknown-skip",
+      "lint.python.checks",
+      "lint.tree-sitter.syntax-errors",
+      "lint.custom.append-relpath",
+      "lint.diagnostics.line-extraction",
+      "lint.diagnostics.context-render"
+    ]
+  },
+  "lint/test-internals/p1": {
+    "rows": [
+      "lint.test.command-output",
+      "lint.test.callable-no-chat",
+      "lint.test.no-command-noop",
+      "lint.run.local-shell"
+    ]
+  },
+  "lint/test-internals/i2": {
+    "rows": [
+      "lint.test.command-output",
+      "lint.test.callable-no-chat",
+      "lint.test.no-command-noop",
+      "lint.run.local-shell"
+    ]
+  },
+  "lint/test-internals/i3": {
+    "rows": [
+      "lint.test.command-output",
+      "lint.test.callable-no-chat",
+      "lint.test.no-command-noop",
+      "lint.run.local-shell"
+    ]
+  },
+  "lint/test-internals/i4": {
+    "rows": [
+      "lint.test.command-output",
+      "lint.test.callable-no-chat",
+      "lint.test.no-command-noop",
+      "lint.run.local-shell"
+    ]
+  },
+  "lint/test-internals/p5": {
+    "rows": [
+      "lint.test.command-output",
+      "lint.test.callable-no-chat",
+      "lint.test.no-command-noop",
+      "lint.run.local-shell"
+    ]
+  },
+  "lint/test-internals/p6": {
+    "rows": [
+      "lint.test.command-output",
+      "lint.test.callable-no-chat",
+      "lint.test.no-command-noop",
+      "lint.run.local-shell"
+    ]
+  },
+  "lint/test-internals/p7": {
+    "rows": [
+      "lint.test.command-output",
+      "lint.test.callable-no-chat",
+      "lint.test.no-command-noop",
+      "lint.run.local-shell"
+    ]
+  },
+  "lint/execution-platform/p1": {
+    "rows": [
+      "lint.run.local-shell",
+      "lint.security.shell-trust"
+    ]
+  },
+  "lint/execution-platform/p2": {
+    "rows": [
+      "lint.run.local-shell",
+      "lint.security.shell-trust"
+    ]
+  },
+  "lint/execution-platform/p3": {
+    "rows": [
+      "lint.run.local-shell",
+      "lint.security.shell-trust"
+    ]
+  },
+  "lint/execution-platform/p4": {
+    "rows": [
+      "lint.run.local-shell",
+      "lint.security.shell-trust"
+    ]
+  },
+  "lint/manual-and-one-shot-distinctions/p1": {
+    "rows": [
+      "lint.commands.lint-file-selection",
+      "lint.test.command-output",
+      "lint.shell.approve-and-run",
+      "lint.options.oneshot-flags",
+      "lint.oneshot.test-exit",
+      "lint.apply.bypasses-validation"
+    ]
+  },
+  "lint/manual-and-one-shot-distinctions/p2": {
+    "rows": [
+      "lint.commands.lint-file-selection",
+      "lint.test.command-output",
+      "lint.shell.approve-and-run",
+      "lint.options.oneshot-flags",
+      "lint.oneshot.test-exit",
+      "lint.apply.bypasses-validation"
+    ]
+  },
+  "lint/manual-and-one-shot-distinctions/p3": {
+    "rows": [
+      "lint.commands.lint-file-selection",
+      "lint.test.command-output",
+      "lint.shell.approve-and-run",
+      "lint.options.oneshot-flags",
+      "lint.oneshot.test-exit",
+      "lint.apply.bypasses-validation"
+    ]
+  },
+  "lint/manual-and-one-shot-distinctions/i4": {
+    "rows": [
+      "lint.commands.lint-file-selection",
+      "lint.test.command-output",
+      "lint.shell.approve-and-run",
+      "lint.options.oneshot-flags",
+      "lint.oneshot.test-exit",
+      "lint.apply.bypasses-validation"
+    ]
+  },
+  "lint/manual-and-one-shot-distinctions/i5": {
+    "rows": [
+      "lint.commands.lint-file-selection",
+      "lint.test.command-output",
+      "lint.shell.approve-and-run",
+      "lint.options.oneshot-flags",
+      "lint.oneshot.test-exit",
+      "lint.apply.bypasses-validation"
+    ]
+  },
+  "lint/manual-and-one-shot-distinctions/i6": {
+    "rows": [
+      "lint.commands.lint-file-selection",
+      "lint.test.command-output",
+      "lint.shell.approve-and-run",
+      "lint.options.oneshot-flags",
+      "lint.oneshot.test-exit",
+      "lint.apply.bypasses-validation"
+    ]
+  },
+  "lint/manual-and-one-shot-distinctions/i7": {
+    "rows": [
+      "lint.commands.lint-file-selection",
+      "lint.test.command-output",
+      "lint.shell.approve-and-run",
+      "lint.options.oneshot-flags",
+      "lint.oneshot.test-exit",
+      "lint.apply.bypasses-validation"
+    ]
+  },
+  "lint/manual-and-one-shot-distinctions/i8": {
+    "rows": [
+      "lint.commands.lint-file-selection",
+      "lint.test.command-output",
+      "lint.shell.approve-and-run",
+      "lint.options.oneshot-flags",
+      "lint.oneshot.test-exit",
+      "lint.apply.bypasses-validation"
+    ]
+  },
+  "lint/manual-and-one-shot-distinctions/p9": {
+    "rows": [
+      "lint.commands.lint-file-selection",
+      "lint.test.command-output",
+      "lint.shell.approve-and-run",
+      "lint.options.oneshot-flags",
+      "lint.oneshot.test-exit",
+      "lint.apply.bypasses-validation"
+    ]
+  },
+  "lint/manual-and-one-shot-distinctions/p10": {
+    "rows": [
+      "lint.commands.lint-file-selection",
+      "lint.test.command-output",
+      "lint.shell.approve-and-run",
+      "lint.options.oneshot-flags",
+      "lint.oneshot.test-exit",
+      "lint.apply.bypasses-validation"
+    ]
+  },
+  "lint/manual-and-one-shot-distinctions/p11": {
+    "rows": [
+      "lint.commands.lint-file-selection",
+      "lint.test.command-output",
+      "lint.shell.approve-and-run",
+      "lint.options.oneshot-flags",
+      "lint.oneshot.test-exit",
+      "lint.apply.bypasses-validation"
+    ]
+  },
+  "lint/coder-inheritance-and-commit-interaction/p1": {
+    "rows": [
+      "lint.coder.ask-architect",
+      "lint.followup.commit-before-validation",
+      "lint.commit.post-lint"
+    ]
+  },
+  "lint/coder-inheritance-and-commit-interaction/p2": {
+    "rows": [
+      "lint.coder.ask-architect",
+      "lint.followup.commit-before-validation",
+      "lint.commit.post-lint"
+    ]
+  },
+  "lint/coder-inheritance-and-commit-interaction/p3": {
+    "rows": [
+      "lint.coder.ask-architect",
+      "lint.followup.commit-before-validation",
+      "lint.commit.post-lint"
+    ]
+  },
+  "lint/source-map/r1": {
+    "nonclaim": "provenance",
+    "note": "source path registry for lint components at the pinned commit"
+  },
+  "lint/source-map/r2": {
+    "nonclaim": "provenance",
+    "note": "source path registry for lint components at the pinned commit"
+  },
+  "lint/source-map/r3": {
+    "nonclaim": "provenance",
+    "note": "source path registry for lint components at the pinned commit"
+  },
+  "lint/source-map/r4": {
+    "nonclaim": "provenance",
+    "note": "source path registry for lint components at the pinned commit"
+  },
+  "lint/source-map/r5": {
+    "nonclaim": "provenance",
+    "note": "source path registry for lint components at the pinned commit"
+  },
+  "lint/source-map/r6": {
+    "nonclaim": "provenance",
+    "note": "source path registry for lint components at the pinned commit"
+  },
+  "lint/source-map/r7": {
+    "nonclaim": "provenance",
+    "note": "source path registry for lint components at the pinned commit"
+  },
+  "lint/source-map/r8": {
+    "nonclaim": "provenance",
+    "note": "source path registry for lint components at the pinned commit"
+  },
+  "lint/source-map/r9": {
+    "nonclaim": "provenance",
+    "note": "source path registry for lint components at the pinned commit"
+  },
+  "lint/source-map/r10": {
+    "nonclaim": "provenance",
+    "note": "source path registry for lint components at the pinned commit"
+  },
+  "lint/source-map/r11": {
+    "nonclaim": "provenance",
+    "note": "source path registry for lint components at the pinned commit"
+  },
+  "lint/dependencies-versions-and-roles/p1": {
+    "nonclaim": "evidence",
+    "note": "Python version range and lockfile loading preamble"
+  },
+  "lint/dependencies-versions-and-roles/r2": {
+    "rows": [
+      "lint.python.checks",
+      "lint.tree-sitter.syntax-errors",
+      "lint.run.local-shell",
+      "lint.custom.append-relpath"
+    ]
+  },
+  "lint/dependencies-versions-and-roles/r3": {
+    "rows": [
+      "lint.python.checks",
+      "lint.tree-sitter.syntax-errors",
+      "lint.run.local-shell",
+      "lint.custom.append-relpath"
+    ]
+  },
+  "lint/dependencies-versions-and-roles/r4": {
+    "rows": [
+      "lint.python.checks",
+      "lint.tree-sitter.syntax-errors",
+      "lint.run.local-shell",
+      "lint.custom.append-relpath"
+    ]
+  },
+  "lint/dependencies-versions-and-roles/r5": {
+    "rows": [
+      "lint.python.checks",
+      "lint.tree-sitter.syntax-errors",
+      "lint.run.local-shell",
+      "lint.custom.append-relpath"
+    ]
+  },
+  "lint/dependencies-versions-and-roles/r6": {
+    "rows": [
+      "lint.python.checks",
+      "lint.tree-sitter.syntax-errors",
+      "lint.run.local-shell",
+      "lint.custom.append-relpath"
+    ]
+  },
+  "lint/dependencies-versions-and-roles/r7": {
+    "rows": [
+      "lint.python.checks",
+      "lint.tree-sitter.syntax-errors",
+      "lint.run.local-shell",
+      "lint.custom.append-relpath"
+    ]
+  },
+  "lint/dependencies-versions-and-roles/r8": {
+    "rows": [
+      "lint.python.checks",
+      "lint.tree-sitter.syntax-errors",
+      "lint.run.local-shell",
+      "lint.custom.append-relpath"
+    ]
+  },
+  "lint/dependencies-versions-and-roles/r9": {
+    "rows": [
+      "lint.python.checks",
+      "lint.tree-sitter.syntax-errors",
+      "lint.run.local-shell",
+      "lint.custom.append-relpath"
+    ]
+  },
+  "lint/dependencies-versions-and-roles/r10": {
+    "rows": [
+      "lint.python.checks",
+      "lint.tree-sitter.syntax-errors",
+      "lint.run.local-shell",
+      "lint.custom.append-relpath"
+    ]
+  },
+  "lint/dependencies-versions-and-roles/r11": {
+    "nonclaim": "evidence",
+    "note": "configargparse and PyYAML versions outside lint runtime contracts"
+  },
+  "lint/dependencies-versions-and-roles/r12": {
+    "nonclaim": "evidence",
+    "note": "python-dotenv version outside lint runtime contracts"
+  },
+  "lint/dependencies-versions-and-roles/r13": {
+    "nonclaim": "evidence",
+    "note": "GitPython version outside lint runtime contracts"
+  },
+  "lint/dependencies-versions-and-roles/r14": {
+    "nonclaim": "evidence",
+    "note": "rich and litellm versions outside lint runtime contracts"
+  },
+  "lint/dependencies-versions-and-roles/r15": {
+    "nonclaim": "evidence",
+    "note": "pathspec version outside lint runtime contracts"
+  },
+  "lint/dependencies-versions-and-roles/p16": {
+    "nonclaim": "evidence",
+    "note": "lock citation and installed-version artifact pointers"
+  },
+  "lint/dependencies-versions-and-roles/p17": {
+    "rows": [
+      "lint.tree-sitter.syntax-errors",
+      "lint.python.checks"
+    ]
+  },
+  "lint/dependencies-versions-and-roles/p18": {
+    "rows": [
+      "lint.tree-sitter.syntax-errors"
+    ]
+  },
+  "lint/dependencies-versions-and-roles/p19": {
+    "rows": [
+      "lint.custom.append-relpath",
+      "lint.run.local-shell"
+    ]
+  },
+  "lint/replay-commands-and-evidence/p1": {
+    "nonclaim": "evidence",
+    "note": "reproduction commands and retained probe artifact pointers"
+  },
+  "lint/replay-commands-and-evidence/c2": {
+    "nonclaim": "evidence",
+    "note": "reproduction commands and retained probe artifact pointers"
+  },
+  "lint/replay-commands-and-evidence/p3": {
+    "nonclaim": "evidence",
+    "note": "reproduction commands and retained probe artifact pointers"
+  },
+  "lint/replay-commands-and-evidence/p4": {
+    "nonclaim": "evidence",
+    "note": "reproduction commands and retained probe artifact pointers"
+  },
+  "lint/replay-commands-and-evidence/p5": {
+    "nonclaim": "evidence",
+    "note": "reproduction commands and retained probe artifact pointers"
+  },
+  "lint/reconstruction-review/p1": {
+    "nonclaim": "meta",
+    "note": "independent review note without a new observable contract"
+  },
+  "lint/failure-semantics-security-and-quality-attributes/p1": {
+    "rows": [
+      "lint.selection.edit-targets"
+    ]
+  },
+  "lint/failure-semantics-security-and-quality-attributes/p2": {
+    "rows": [
+      "lint.selection.edit-targets",
+      "lint.fail.ambiguous-pass",
+      "lint.fail.explicit-unknown-command",
+      "lint.fail.root-none-path",
+      "lint.docs.lint-flag-typo",
+      "lint.dispatch.unknown-skip",
+      "lint.security.shell-trust",
+      "lint.fail.stale-diagnostics"
+    ]
+  },
+  "lint/failure-semantics-security-and-quality-attributes/p3": {
+    "rows": [
+      "lint.selection.edit-targets",
+      "lint.fail.ambiguous-pass",
+      "lint.fail.explicit-unknown-command",
+      "lint.fail.root-none-path",
+      "lint.docs.lint-flag-typo",
+      "lint.dispatch.unknown-skip",
+      "lint.security.shell-trust",
+      "lint.fail.stale-diagnostics"
+    ]
+  },
+  "lint/failure-semantics-security-and-quality-attributes/p4": {
+    "rows": [
+      "lint.selection.edit-targets",
+      "lint.fail.ambiguous-pass",
+      "lint.fail.explicit-unknown-command",
+      "lint.fail.root-none-path",
+      "lint.docs.lint-flag-typo",
+      "lint.dispatch.unknown-skip",
+      "lint.security.shell-trust",
+      "lint.fail.stale-diagnostics"
+    ]
+  },
+  "lint/failure-semantics-security-and-quality-attributes/p5": {
+    "rows": [
+      "lint.dispatch.unknown-skip",
+      "lint.docs.lint-flag-typo"
+    ]
+  },
+  "lint/failure-semantics-security-and-quality-attributes/p6": {
+    "rows": [
+      "lint.selection.edit-targets",
+      "lint.fail.ambiguous-pass",
+      "lint.fail.explicit-unknown-command",
+      "lint.fail.root-none-path",
+      "lint.docs.lint-flag-typo",
+      "lint.dispatch.unknown-skip",
+      "lint.security.shell-trust",
+      "lint.fail.stale-diagnostics"
+    ]
+  },
+  "lint/failure-semantics-security-and-quality-attributes/p7": {
+    "rows": [
+      "lint.selection.edit-targets",
+      "lint.fail.ambiguous-pass",
+      "lint.fail.explicit-unknown-command",
+      "lint.fail.root-none-path",
+      "lint.docs.lint-flag-typo",
+      "lint.dispatch.unknown-skip",
+      "lint.security.shell-trust",
+      "lint.fail.stale-diagnostics"
+    ]
+  },
+  "lint/coverage-and-reconstruction-limits/p1": {
+    "nonclaim": "evidence",
+    "note": "recorded focused unittest execution totals"
+  },
+  "lint/coverage-and-reconstruction-limits/p2": {
+    "nonclaim": "evidence",
+    "note": "recorded probe and orchestration case counts"
+  },
+  "lint/coverage-and-reconstruction-limits/p3": {
+    "nonclaim": "meta",
+    "note": "stated verification bounds and remaining unexercised boundaries"
+  },
+  "lint/coverage-and-reconstruction-limits/p4": {
+    "nonclaim": "meta",
+    "note": "stated verification bounds and remaining unexercised boundaries"
+  },
+  "ev-lint/probe/python-valid": {
+    "rows": [
+      "lint.python.checks"
+    ]
+  },
+  "ev-lint/probe/python-undefined": {
+    "rows": [
+      "lint.python.checks",
+      "lint.diagnostics.context-render"
+    ]
+  },
+  "ev-lint/probe/python-syntax": {
+    "rows": [
+      "lint.python.checks",
+      "lint.tree-sitter.syntax-errors"
+    ]
+  },
+  "ev-lint/probe/javascript-syntax": {
+    "rows": [
+      "lint.tree-sitter.syntax-errors",
+      "lint.dispatch.precedence"
+    ]
+  },
+  "ev-lint/probe/typescript-skipped": {
+    "rows": [
+      "lint.dispatch.unknown-skip"
+    ]
+  },
+  "ev-lint/probe/unknown-extension-skipped": {
+    "rows": [
+      "lint.dispatch.unknown-skip"
+    ]
+  },
+  "ev-lint/probe/python-style-ignored": {
+    "rows": [
+      "lint.python.checks"
+    ]
+  },
+  "ev-lint/probe/custom-success-output-discarded": {
+    "rows": [
+      "lint.custom.append-relpath"
+    ]
+  },
+  "ev-lint/probe/custom-failure-empty-output": {
+    "rows": [
+      "lint.custom.append-relpath",
+      "lint.diagnostics.context-render"
+    ]
+  },
+  "ev-lint/probe/custom-failure-diagnostic": {
+    "rows": [
+      "lint.custom.append-relpath",
+      "lint.diagnostics.line-extraction",
+      "lint.diagnostics.context-render"
+    ]
+  },
+  "ev-lint/probe/global-unknown-extension-skipped": {
+    "rows": [
+      "lint.dispatch.unknown-skip",
+      "lint.dispatch.precedence"
+    ]
+  },
+  "ev-lint/probe/explicit-unknown-command-fails-in-context-renderer": {
+    "rows": [
+      "lint.fail.explicit-unknown-command"
+    ]
+  },
+  "ev-lint/probe/python-root-path": {
+    "rows": [
+      "lint.fail.root-none-path",
+      "lint.python.checks"
+    ]
+  },
+  "ev-lint/probe/python-root-path~2": {
+    "rows": [
+      "lint.fail.root-none-path",
+      "lint.python.checks"
+    ]
+  },
+  "ev-lint/probe/tree-sitter-zero-based": {
+    "rows": [
+      "lint.tree-sitter.syntax-errors"
+    ]
+  },
+  "ev-lint/probe/diagnostic-line-extraction": {
+    "rows": [
+      "lint.diagnostics.line-extraction"
+    ]
+  },
+  "ev-lint/probe/test-success-output-not-in-chat": {
+    "rows": [
+      "lint.test.command-output"
+    ]
+  },
+  "ev-lint/probe/test-failure-output-in-chat": {
+    "rows": [
+      "lint.test.command-output"
+    ]
+  },
+  "ev-lint/probe/test-failure-empty-output-still-in-chat": {
+    "rows": [
+      "lint.test.command-output"
+    ]
+  },
+  "ev-lint/probe/callable-failure-no-chat-insertion": {
+    "rows": [
+      "lint.test.callable-no-chat"
+    ]
+  },
+  "ev-lint/probe/configured-test-fallback": {
+    "rows": [
+      "lint.test.command-output",
+      "lint.test.no-command-noop"
+    ]
+  },
+  "ev-lint/probe/no-test-command-noop": {
+    "rows": [
+      "lint.test.no-command-noop"
+    ]
+  },
+  "ev-lint/probe/runner-merges-stderr": {
+    "rows": [
+      "lint.run.local-shell"
+    ]
+  },
+  "ev-lint/orchestration/no-edits-no-checks": {
+    "rows": [
+      "lint.selection.edit-targets",
+      "lint.followup.order"
+    ]
+  },
+  "ev-lint/orchestration/both-checks-pass": {
+    "rows": [
+      "lint.followup.order",
+      "lint.options.auto-lint-auto-test",
+      "lint.test.command-output"
+    ]
+  },
+  "ev-lint/orchestration/accepted-lint-failure-defers-test": {
+    "rows": [
+      "lint.followup.reflect-failures",
+      "lint.followup.order"
+    ]
+  },
+  "ev-lint/orchestration/declined-lint-failure-runs-test": {
+    "rows": [
+      "lint.followup.reflect-failures",
+      "lint.followup.order",
+      "lint.test.command-output"
+    ]
+  },
+  "ev-lint/orchestration/disabled-lint-runs-test": {
+    "rows": [
+      "lint.options.auto-lint-auto-test",
+      "lint.test.command-output"
+    ]
+  },
+  "ev-lint/orchestration/disabled-test-still-lints": {
+    "rows": [
+      "lint.options.auto-lint-auto-test",
+      "lint.python.checks"
+    ]
+  },
+  "ev-lint/orchestration/reflection-limit": {
+    "rows": [
+      "lint.reflection.budget",
+      "lint.followup.reflect-failures"
+    ]
+  },
+  "ev-lint/oneshot/test-exit": {
+    "rows": [
+      "lint.oneshot.test-exit",
+      "lint.options.oneshot-flags"
+    ]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_test_unbound_local_error": {
+    "rows": [
+      "lint.test.command-output"
+    ]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_test_returns_output_on_failure": {
+    "rows": [
+      "lint.test.command-output"
+    ]
+  },
+  "aider-test/test_commands/TestCommands.test_cmd_lint_with_dirty_file": {
+    "rows": [
+      "lint.commands.lint-file-selection"
+    ]
+  },
+  "aider-test/test_main/TestMain.test_lint_option": {
+    "rows": [
+      "lint.options.oneshot-flags"
+    ]
+  },
+  "aider-test/test_linter/TestLinter.test_init": {
+    "rows": [
+      "lint.dispatch.precedence"
+    ]
+  },
+  "aider-test/test_linter/TestLinter.test_set_linter": {
+    "rows": [
+      "lint.dispatch.precedence",
+      "lint.options.lint-cmd-mapping"
+    ]
+  },
+  "aider-test/test_linter/TestLinter.test_get_rel_fname": {
+    "rows": [
+      "lint.fail.root-none-path"
+    ]
+  },
+  "aider-test/test_linter/TestLinter.test_run_cmd": {
+    "rows": [
+      "lint.custom.append-relpath",
+      "lint.run.local-shell"
+    ]
+  },
+  "aider-test/test_linter/TestLinter.test_run_cmd_win": {
+    "rows": [
+      "lint.custom.append-relpath",
+      "lint.run.local-shell"
+    ]
+  },
+  "aider-test/test_linter/TestLinter.test_run_cmd_with_errors": {
+    "rows": [
+      "lint.custom.append-relpath",
+      "lint.diagnostics.context-render"
+    ]
+  },
+  "aider-test/test_linter/TestLinter.test_run_cmd_with_special_chars": {
+    "rows": [
+      "lint.custom.append-relpath"
+    ]
+  },
+  "aider-test/test_run_cmd/test_run_cmd_echo": {
+    "rows": [
+      "lint.run.local-shell"
+    ]
   }
 }

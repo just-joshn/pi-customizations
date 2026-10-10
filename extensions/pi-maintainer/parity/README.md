@@ -1,8 +1,8 @@
 # pi-maintainer parity ledger
 
-pi-maintainer targets behavioral parity with Aider at commit `5dc9490bb35f9729ef2c95d00a19ccd30c26339c` through Pi mechanisms. This directory defines the evidence required to establish parity. The edit, git, and map obligation maps are complete. Lint coverage remains for its later SAR. Many ledger rows remain open until their SARs implement and verify them.
+pi-maintainer targets behavioral parity with Aider at commit `5dc9490bb35f9729ef2c95d00a19ccd30c26339c` through Pi mechanisms. This directory defines the evidence required to establish parity. The edit, git, map, and lint obligation maps are complete. Many ledger rows remain open until their SARs implement and verify them.
 
-The coverage gate requires every census unit to map to a ledger row or a justified non-claim. Coverage records obligations, not completed implementations. A complete edit obligation map can have zero uncovered units while `--feature edit` still fails on open rows.
+The coverage gate requires every census unit to map to a ledger row or a justified non-claim. Coverage records obligations, not completed implementations. A complete obligation map can have zero uncovered units while `--feature <sar>` still fails on open rows.
 
 Each SAR is gated on its own slice of the census. Its local contracts can pass before the later features exist. Cross-feature integration contracts remain obligations of the final gate.
 
