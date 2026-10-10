@@ -30,10 +30,7 @@ const EXPECTED_HEADER = ['ts', 'phase', 'decision', 'why', 'evidence', 'result']
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const stripAnsi = (text) =>
-  text
-    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
-    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
 
 function writeRootFor(side) {
   return join(evidenceRoot, 'fixture-out', side);
@@ -146,7 +143,11 @@ async function snapshotBaseline() {
 }
 
 function parseTsv(text) {
-  const lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n').filter((l) => l.length > 0);
+  const lines = text
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n')
+    .split('\n')
+    .filter((l) => l.length > 0);
   if (lines.length === 0) {
     return { header: [], rows: [], okHeader: false, dataRowCount: 0, proseEvidence: [], missingCols: EXPECTED_HEADER };
   }
@@ -206,11 +207,7 @@ async function pollOnce(baseline) {
 
 function observeScreen(text) {
   return {
-    showMeYourWork:
-      /\/show-me-your-work\b/i.test(text) ||
-      /\[skill\]\s*show-me-your-work/i.test(text) ||
-      /\bshow-me-your-work\b/i.test(text) ||
-      /\bUsed show-me-your-work\b/i.test(text),
+    showMeYourWork: /\/show-me-your-work\b/i.test(text) || /\[skill\]\s*show-me-your-work/i.test(text) || /\bshow-me-your-work\b/i.test(text) || /\bUsed show-me-your-work\b/i.test(text),
     decisionsTsv: /decisions\.tsv/i.test(text),
     working: /[\u2800-\u28FF]/.test(text) || /\bWorking\b/.test(text),
   };
@@ -230,13 +227,7 @@ function scoreTrail(parsed) {
   const contractHeld = parsed.okHeader && parsed.dataRowCount >= 1 && evidencePointersOk;
   return {
     contractHeld,
-    reason: contractHeld
-      ? 'ok'
-      : !parsed.okHeader
-        ? 'bad_header'
-        : parsed.dataRowCount < 1
-          ? 'no_data_rows'
-          : 'prose_evidence',
+    reason: contractHeld ? 'ok' : !parsed.okHeader ? 'bad_header' : parsed.dataRowCount < 1 ? 'no_data_rows' : 'prose_evidence',
     hasPrescribedColumns: parsed.okHeader,
     dataRowCount: parsed.dataRowCount,
     evidencePointersOk,
@@ -268,13 +259,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -328,10 +313,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
       await sleep(800);
       continue;
     }
-    const chatReady =
-      !/Trust project folder\?/i.test(text) &&
-      (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) &&
-      (/fixture-app|Skill conflicts|greet|medium|README/i.test(text));
+    const chatReady = !/Trust project folder\?/i.test(text) && (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) && /fixture-app|Skill conflicts|greet|medium|README/i.test(text);
     if (chatReady) return lines;
     await sleep(200);
   }
@@ -421,12 +403,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        ['show-me-your-work', 'decisions.tsv', 'farewell', 'hello', 'phase', 'TSV', 'decision'],
-        300_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['show-me-your-work', 'decisions.tsv', 'farewell', 'hello', 'phase', 'TSV', 'decision'], 300_000);
     } catch {
       // settle may still land artifacts
     }
@@ -440,10 +417,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
       const done = await readDone(side);
       const trail = await readBestTrail();
       const scored = scoreTrail(trail.parsed);
-      const enough =
-        done.exists ||
-        (scored.contractHeld && productPaths.size > 0) ||
-        (scored.dataRowCount >= 1 && !obs.working && firstTrailAt && Date.now() - Date.parse(firstTrailAt) > 60_000);
+      const enough = done.exists || (scored.contractHeld && productPaths.size > 0) || (scored.dataRowCount >= 1 && !obs.working && firstTrailAt && Date.now() - Date.parse(firstTrailAt) > 60_000);
       if (enough && !obs.working) {
         calm += 1;
         if (calm >= 3) break;

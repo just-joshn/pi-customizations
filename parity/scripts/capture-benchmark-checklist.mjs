@@ -7,7 +7,7 @@
 import { createHash } from 'node:crypto';
 import { access, mkdir, readdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
-import { dirname, join, relative } from 'node:path';
+import { join, relative } from 'node:path';
 
 import { sha256 } from '../recorder/files.mjs';
 import { outputBytes, startAttempt } from '../recorder/index.mjs';
@@ -25,15 +25,12 @@ const fixtureApp = join(evidenceRoot, 'fixture-app');
 const GEOMETRY = { rows: 40, cols: 120 };
 const LOCKED_FIXTURE_DIGEST = 'sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004';
 const SETTLE_MS = 1_500_000;
-const POLL_MS = 400;
+const _POLL_MS = 400;
 const FIXTURE_KEEP = new Set(['README.md', 'claim.md', 'measure.mjs']);
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const stripAnsi = (text) =>
-  text
-    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
-    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
 
 function writeRootFor(side) {
   return join(evidenceRoot, 'fixture-out', side);
@@ -105,43 +102,19 @@ async function restoreFixture() {
 
 function observeScreen(text) {
   return {
-    benchmarkChecklist:
-      /\/benchmark-checklist\b/i.test(text) ||
-      /\[skill\]\s*benchmark-checklist/i.test(text) ||
-      /\bUsed benchmark-checklist\b/i.test(text) ||
-      /\bbenchmark-checklist\b/i.test(text),
+    benchmarkChecklist: /\/benchmark-checklist\b/i.test(text) || /\[skill\]\s*benchmark-checklist/i.test(text) || /\bUsed benchmark-checklist\b/i.test(text) || /\bbenchmark-checklist\b/i.test(text),
     working: /[\u2800-\u28FF]/.test(text) || /\bWorking\b/.test(text),
   };
 }
 
 export function scoreChecklistText(text, { skillChrome = false } = {}) {
   const body = text ?? '';
-  const q4 =
-    /\b(question\s*4|q\s*4|did it error|errorCount|errors?\b|outputs?\s*correct|non-success|failures?\b)/i.test(
-      body,
-    );
-  const q7 =
-    /\b(question\s*7|q\s*7|did it even happen|work (ran|happened)|timed region|workHappened|outputs?\s*(were\s*)?(sorted|correct)|bytes were|result (was )?used)/i.test(
-      body,
-    );
-  const oneRun =
-    /\b(one run|single run|1 run|runCount\s*[:=]\s*1|ballpark|this is one run|labeled as one run)\b/i.test(body);
-  const runEvidence =
-    /\brun-evidence\.json\b/i.test(body) ||
-    /\bmeasure\.mjs\b/i.test(body) ||
-    /\b(slowMs|fastMs|speedupPct|errorCount)\b/i.test(body) ||
-    /\b\d+(\.\d+)?\s*ms\b/i.test(body) ||
-    /sha256:[a-f0-9]{8,}/i.test(body);
-  const comparativeWinnerWithoutChecks =
-    /\b(winner|adopt|ship|25%\s*faster|sortFast is (about )?\d+% faster)\b/i.test(body) &&
-    (!q4 || !q7 || !oneRun);
-  const contractHeld =
-    (skillChrome || /benchmark-checklist/i.test(body) || /checklist/i.test(body)) &&
-    q4 &&
-    q7 &&
-    oneRun &&
-    runEvidence &&
-    !comparativeWinnerWithoutChecks;
+  const q4 = /\b(question\s*4|q\s*4|did it error|errorCount|errors?\b|outputs?\s*correct|non-success|failures?\b)/i.test(body);
+  const q7 = /\b(question\s*7|q\s*7|did it even happen|work (ran|happened)|timed region|workHappened|outputs?\s*(were\s*)?(sorted|correct)|bytes were|result (was )?used)/i.test(body);
+  const oneRun = /\b(one run|single run|1 run|runCount\s*[:=]\s*1|ballpark|this is one run|labeled as one run)\b/i.test(body);
+  const runEvidence = /\brun-evidence\.json\b/i.test(body) || /\bmeasure\.mjs\b/i.test(body) || /\b(slowMs|fastMs|speedupPct|errorCount)\b/i.test(body) || /\b\d+(\.\d+)?\s*ms\b/i.test(body) || /sha256:[a-f0-9]{8,}/i.test(body);
+  const comparativeWinnerWithoutChecks = /\b(winner|adopt|ship|25%\s*faster|sortFast is (about )?\d+% faster)\b/i.test(body) && (!q4 || !q7 || !oneRun);
+  const contractHeld = (skillChrome || /benchmark-checklist/i.test(body) || /checklist/i.test(body)) && q4 && q7 && oneRun && runEvidence && !comparativeWinnerWithoutChecks;
   return {
     contractHeld,
     q4,
@@ -150,19 +123,7 @@ export function scoreChecklistText(text, { skillChrome = false } = {}) {
     runEvidence,
     skillChrome,
     comparativeWinnerWithoutChecks,
-    reason: contractHeld
-      ? 'ok'
-      : !q4
-        ? 'missing_q4'
-        : !q7
-          ? 'missing_q7'
-          : !oneRun
-            ? 'missing_one_run_label'
-            : !runEvidence
-              ? 'missing_run_evidence'
-              : comparativeWinnerWithoutChecks
-                ? 'comparative_without_checks'
-                : 'missing_skill',
+    reason: contractHeld ? 'ok' : !q4 ? 'missing_q4' : !q7 ? 'missing_q7' : !oneRun ? 'missing_one_run_label' : !runEvidence ? 'missing_run_evidence' : comparativeWinnerWithoutChecks ? 'comparative_without_checks' : 'missing_skill',
   };
 }
 
@@ -173,11 +134,7 @@ function scoreDoneLine(line) {
     const m = part.match(/^([^=]+)=(.*)$/);
     if (m) fields[m[1]] = m[2];
   }
-  const ok =
-    /^(yes|true|1)$/i.test(fields.q4 ?? '') &&
-    /^(yes|true|1)$/i.test(fields.q7 ?? '') &&
-    /^(yes|true|1)$/i.test(fields.oneRun ?? '') &&
-    Boolean(fields.evidence);
+  const ok = /^(yes|true|1)$/i.test(fields.q4 ?? '') && /^(yes|true|1)$/i.test(fields.q7 ?? '') && /^(yes|true|1)$/i.test(fields.oneRun ?? '') && Boolean(fields.evidence);
   return { ok, fields };
 }
 
@@ -217,13 +174,7 @@ function spec({ side, argv, env, fixtureDigest, fixturePath }) {
 const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -276,10 +227,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
       await sleep(800);
       continue;
     }
-    const chatReady =
-      !/Trust project folder\?/i.test(text) &&
-      (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) &&
-      (/fixture-app|Skill conflicts|sort|medium|README|claim/i.test(text));
+    const chatReady = !/Trust project folder\?/i.test(text) && (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) && /fixture-app|Skill conflicts|sort|medium|README|claim/i.test(text);
     if (chatReady) return lines;
     await sleep(200);
   }
@@ -341,12 +289,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        ['benchmark-checklist', 'question 4', 'Question 4', 'one run', 'run-evidence', 'errorCount', 'workHappened'],
-        300_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['benchmark-checklist', 'question 4', 'Question 4', 'one run', 'run-evidence', 'errorCount', 'workHappened'], 300_000);
     } catch {
       // settle may still land artifacts
     }
@@ -397,9 +340,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     const scored = scoreChecklistText(combined, {
       skillChrome: screenFinal.benchmarkChecklist || ptyObs.benchmarkChecklist,
     });
-    const contractHeld =
-      scored.contractHeld &&
-      ((done.scored?.ok ?? false) || (scored.q4 && scored.q7 && scored.oneRun && scored.runEvidence));
+    const contractHeld = scored.contractHeld && ((done.scored?.ok ?? false) || (scored.q4 && scored.q7 && scored.oneRun && scored.runEvidence));
 
     const measureDigest = await fileDigest(join(fixtureApp, 'measure.mjs'));
     const claimDigest = await fileDigest(join(fixtureApp, 'claim.md'));
@@ -408,9 +349,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
       screenFinal,
       pty: ptyObs,
       done,
-      report: report.exists
-        ? { path: report.path, bytes: Buffer.byteLength(report.text ?? '', 'utf8'), preview: (report.text ?? '').slice(0, 2000) }
-        : null,
+      report: report.exists ? { path: report.path, bytes: Buffer.byteLength(report.text ?? '', 'utf8'), preview: (report.text ?? '').slice(0, 2000) } : null,
       runEvidenceExists,
       runEvidence,
       score: { ...scored, contractHeld },
@@ -459,14 +398,8 @@ function selfTest() {
     ].join('\n'),
     { skillChrome: true },
   );
-  const missingQ4 = scoreChecklistText(
-    'benchmark-checklist one run Question 7 workHappened true run-evidence.json 12 ms',
-    { skillChrome: true },
-  );
-  const missingOneRun = scoreChecklistText(
-    'benchmark-checklist Question 4 errorCount 0 Question 7 workHappened true run-evidence.json 12 ms',
-    { skillChrome: true },
-  );
+  const missingQ4 = scoreChecklistText('benchmark-checklist one run Question 7 workHappened true run-evidence.json 12 ms', { skillChrome: true });
+  const missingOneRun = scoreChecklistText('benchmark-checklist Question 4 errorCount 0 Question 7 workHappened true run-evidence.json 12 ms', { skillChrome: true });
   const cases = [
     ['pass', pass.contractHeld === true && pass.reason === 'ok'],
     ['missingQ4', missingQ4.contractHeld === false && missingQ4.reason === 'missing_q4'],

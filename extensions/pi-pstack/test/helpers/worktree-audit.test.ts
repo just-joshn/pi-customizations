@@ -55,7 +55,7 @@ function audit(args: string[], options: { directory: string; path?: string; cwd?
     encoding: 'utf8',
     env: {
       ...process.env,
-      PATH: options.path ?? process.env['PATH'],
+      PATH: options.path ?? process.env.PATH,
       HOME: options.directory,
       PI_CODING_AGENT_DIR: join(options.directory, 'agent'),
       PI_CODING_AGENT_SESSION_DIR: '',
@@ -125,7 +125,7 @@ afterEach(async () => {
 });
 
 function withGh(bin: string): string {
-  return `${bin}:${process.env['PATH']}`;
+  return `${bin}:${process.env.PATH}`;
 }
 
 describe('worktree-audit.sh columns and buckets', () => {

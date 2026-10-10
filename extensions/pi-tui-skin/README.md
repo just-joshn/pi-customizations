@@ -14,6 +14,10 @@ To load it in every session, add the package path to the `packages` list in
 `~/.pi/agent/settings.json`. The `pi` manifest points at `./src/index.ts` and
 `./themes/tui-skin.json`.
 
+This package calls `ctx.ui.setTheme('tui-skin')` on install. If you also enable
+`pi-one-dark-pro-theme`, the skin wins for that session. Pick one as the active
+look, or unload the skin when you want One Dark Pro.
+
 ## Tool coverage
 
 The skin uses Pi 1.0.2's `pi.registerToolRenderer()` for `read`, `bash`,
@@ -74,8 +78,8 @@ node scripts/capture-reference.mjs --check    # fail when the installed build dr
 node scripts/compare-reference.mjs --known "location PR segment"
 ```
 
-`.audit/pi-tui-skin/parity-inventory.md` lists every known difference, what
-closed it, and the ones left open with the reason.
+`docs/parity-inventory.md` lists every known difference, what closed it, and
+the ones left open with the reason.
 
 ## Palette
 
@@ -90,19 +94,29 @@ green through violet to magenta.
 
 ## Verify
 
+From the repository root, `make verify-tui-skin` runs the offline gate:
+
 ```sh
+bun run check:skin
 bun run typecheck
 bun run test:coverage
-bun run check:skin
-node scripts/check-skin-boundaries.mjs --self-test
-node scripts/check-prompt-parity.mjs
-node scripts/lib/frame-invariants.mjs --self-test
+bun run check:prompt-parity
+bun run check:frame-invariants
+```
+
+`check:prompt-parity` needs `pi` on `PATH`. `check:frame-invariants` is a local
+self-test and needs no TUI host.
+
+These stay out of `make verify-tui-skin` because they need prior smoke captures,
+`reference-agent` on `PATH`, or a live tmux matrix:
+
+```sh
 bun run check:reference
+bun run check:reference:capture
 bun run check:smoke
 ```
 
 `bun run check:smoke` needs `pi` and `tmux` on `PATH`. It runs every scenario
 from `node scripts/tmux-smoke.mjs --list`, and writes one plain-text and one
 ANSI capture per step under `artifacts/<scenario>/`. Run one scenario with
-`node scripts/tmux-smoke.mjs --steps <name>`. From the repository root,
-`make verify-tui-skin` runs the offline checks.
+`node scripts/tmux-smoke.mjs --steps <name>`.

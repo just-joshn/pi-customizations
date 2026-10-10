@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 // check-parity.mjs regenerates into a scratch directory to detect drift.
-const root = resolve(process.env['PI_CAVEMAN_SYNC_TARGET'] ?? packageRoot);
+const root = resolve(process.env.PI_CAVEMAN_SYNC_TARGET ?? packageRoot);
 const upstream = resolve(process.argv[2] ?? '');
 if (!process.argv[2] || !existsSync(join(upstream, 'skills', 'caveman', 'SKILL.md'))) {
   process.stderr.write('usage: sync-upstream.mjs <caveman checkout>\n');

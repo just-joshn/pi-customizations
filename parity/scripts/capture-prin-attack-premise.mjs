@@ -24,24 +24,8 @@ const piAgentDir = '/tmp/pi-ref-agent';
 const piRulePath = join(piAgentDir, 'pstack', 'models.mdc');
 const evidenceRoot = join(root, 'evidence', 'principles', 'attack-premise');
 const fixtureApp = join(evidenceRoot, 'fixture-app');
-const leafSkillCursor = join(
-  root,
-  'reference',
-  'cursor-plugins',
-  'pstack',
-  'skills',
-  'principle-attack-the-premise',
-  'SKILL.md',
-);
-const leafSkillPi = join(
-  root,
-  '..',
-  'extensions',
-  'pi-pstack',
-  'skills',
-  'principle-attack-the-premise',
-  'SKILL.md',
-);
+const leafSkillCursor = join(root, 'reference', 'cursor-plugins', 'pstack', 'skills', 'principle-attack-the-premise', 'SKILL.md');
+const leafSkillPi = join(root, '..', 'extensions', 'pi-pstack', 'skills', 'principle-attack-the-premise', 'SKILL.md');
 const GEOMETRY = { rows: 40, cols: 120 };
 const LOCKED_FIXTURE_DIGEST = 'sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004';
 const SETTLE_MS = 1_500_000;
@@ -53,24 +37,11 @@ const VERIFY_SCRIPT_REL = 'scripts/verify.mjs';
 const PREMISE_REL = 'evidence/premise.txt';
 const CENSUS_SCRIPT_REL = 'scripts/census.mjs';
 const CENSUS_OUT_REL = 'evidence/census-out.txt';
-const BASELINE_REL = [
-  ...PRODUCT_REL,
-  'history/fix1-capacity.md',
-  'history/fix2-buffer.md',
-  'README.md',
-  'NOTES.md',
-  'package.json',
-  VERIFY_SCRIPT_REL,
-  'evidence/.gitkeep',
-  'out/.gitkeep',
-];
+const BASELINE_REL = [...PRODUCT_REL, 'history/fix1-capacity.md', 'history/fix2-buffer.md', 'README.md', 'NOTES.md', 'package.json', VERIFY_SCRIPT_REL, 'evidence/.gitkeep', 'out/.gitkeep'];
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const stripAnsi = (text) =>
-  text
-    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
-    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
 
 function writeRootFor(side) {
   return join(evidenceRoot, 'fixture-out', side);
@@ -152,19 +123,12 @@ function isAttackPremiseSkillPath(p) {
 function observeAttackPremiseText(text, { ignorePromptSlice } = {}) {
   let hay = stripAnsi(text || '');
   if (ignorePromptSlice) hay = hay.split(ignorePromptSlice).join(' ');
-  const potetoMode =
-    /\/poteto-mode\b/i.test(hay) ||
-    /\[skill\]\s*poteto-mode/i.test(hay) ||
-    /\bUsed poteto-mode\b/i.test(hay);
+  const potetoMode = /\/poteto-mode\b/i.test(hay) || /\[skill\]\s*poteto-mode/i.test(hay) || /\bUsed poteto-mode\b/i.test(hay);
   const leafChrome = /principle-attack-the-premise[/\\]SKILL\.md/i.test(hay);
   const usedLeaf = /\bUsed principle-attack-the-premise\b/i.test(hay);
   const skillBracketLeaf = /\[skill\]\s*principle-attack-the-premise\b/i.test(hay);
   const hostAttached = Boolean(usedLeaf || skillBracketLeaf);
-  const verifyMention =
-    /scripts\/verify\.mjs/i.test(hay) ||
-    /evidence\/verify-out\.txt/i.test(hay) ||
-    /\bPREMISE-OK\b/.test(hay) ||
-    /\bPREMISE-FAIL\b/.test(hay);
+  const verifyMention = /scripts\/verify\.mjs/i.test(hay) || /evidence\/verify-out\.txt/i.test(hay) || /\bPREMISE-OK\b/.test(hay) || /\bPREMISE-FAIL\b/.test(hay);
   const working = /[\u2800-\u28FF]/.test(hay) || /\bWorking\b/.test(hay);
   return { potetoMode, leafChrome, hostAttached, verifyMention, working };
 }
@@ -209,14 +173,7 @@ function extractToolCallsFromJsonl(text) {
 }
 
 function pathFromArgs(args) {
-  return (
-    args.path ||
-    args.file_path ||
-    args.filePath ||
-    args.target_file ||
-    args.file ||
-    null
-  );
+  return args.path || args.file_path || args.filePath || args.target_file || args.file || null;
 }
 
 function scoreCallsForAttackPremise(calls) {
@@ -229,19 +186,14 @@ function scoreCallsForAttackPremise(calls) {
     const args = call.args || {};
     const blob = JSON.stringify(args);
     const path = pathFromArgs(args);
-    const isRead =
-      /^(Read|read|read_file|ReadFile|cat|blob-mention)$/i.test(name) ||
-      (name === 'bash' && typeof args.command === 'string' && /\bcat\b/.test(args.command));
+    const isRead = /^(Read|read|read_file|ReadFile|cat|blob-mention)$/i.test(name) || (name === 'bash' && typeof args.command === 'string' && /\bcat\b/.test(args.command));
     if (isRead && isAttackPremiseSkillPath(path || blob)) {
       leafSkillRead = true;
       if (!leafSkillReadAt) leafSkillReadAt = call.ts || new Date().toISOString();
       toolOrder.push(`${name}(attack-premise-leaf)`);
       continue;
     }
-    if (
-      /\bscripts\/verify\.mjs\b/i.test(blob) ||
-      (typeof args.command === 'string' && /verify\.mjs/.test(args.command))
-    ) {
+    if (/\bscripts\/verify\.mjs\b/i.test(blob) || (typeof args.command === 'string' && /verify\.mjs/.test(args.command))) {
       ranVerifyScript = true;
       toolOrder.push(`${name}(verify.mjs)`);
       continue;
@@ -256,28 +208,10 @@ function scoreCallsForAttackPremise(calls) {
   };
 }
 
-export function scoreAttackPremise({
-  frontmatter,
-  done,
-  verifyOut,
-  productOk,
-  premiseWritten,
-  censusScript,
-  noCompensatory,
-  screenText,
-  ptyText,
-  sessionScore,
-  transcriptScore,
-  prompt,
-}) {
+export function scoreAttackPremise({ frontmatter, done, verifyOut, productOk, premiseWritten, censusScript, noCompensatory, screenText, ptyText, sessionScore, transcriptScore, prompt }) {
   const screen = observeAttackPremiseText(screenText, { ignorePromptSlice: prompt });
   const pty = observeAttackPremiseText(ptyText, { ignorePromptSlice: prompt });
-  const leafSkillRead = Boolean(
-    sessionScore?.leafSkillRead ||
-      transcriptScore?.leafSkillRead ||
-      screen.leafChrome ||
-      pty.leafChrome,
-  );
+  const leafSkillRead = Boolean(sessionScore?.leafSkillRead || transcriptScore?.leafSkillRead || screen.leafChrome || pty.leafChrome);
   const usedChrome = Boolean(screen.hostAttached || pty.hostAttached || sessionScore?.hostAttached);
   const modelAutoInvoke = usedChrome && !leafSkillRead;
   const keptVerifyOk = Boolean(verifyOut?.ok);
@@ -286,16 +220,7 @@ export function scoreAttackPremise({
   const premiseOk = Boolean(premiseWritten);
   const censusOk = Boolean(censusScript);
   const noCompensatoryOk = Boolean(noCompensatory);
-  const contractHeld =
-    frontmatterOk &&
-    leafSkillRead &&
-    productOk &&
-    keptVerifyOk &&
-    premiseOk &&
-    censusOk &&
-    noCompensatoryOk &&
-    verifiedDone &&
-    !modelAutoInvoke;
+  const contractHeld = frontmatterOk && leafSkillRead && productOk && keptVerifyOk && premiseOk && censusOk && noCompensatoryOk && verifiedDone && !modelAutoInvoke;
   return {
     frontmatterOk,
     leafSkillRead,
@@ -353,14 +278,7 @@ async function restoreProduct() {
   const files = await walkFiles(fixtureApp);
   for (const rel of files) {
     if (keep.has(rel)) continue;
-    if (
-      rel.startsWith('src/') ||
-      rel.startsWith('scripts/') ||
-      rel.startsWith('evidence/') ||
-      rel.startsWith('out/') ||
-      rel.endsWith('.tsv') ||
-      rel.startsWith('.audit/')
-    ) {
+    if (rel.startsWith('src/') || rel.startsWith('scripts/') || rel.startsWith('evidence/') || rel.startsWith('out/') || rel.endsWith('.tsv') || rel.startsWith('.audit/')) {
       await rm(join(fixtureApp, rel), { force: true, recursive: true });
     }
   }
@@ -444,13 +362,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -504,10 +416,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
       await sleep(800);
       continue;
     }
-    const chatReady =
-      !/Trust project folder\?/i.test(text) &&
-      (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) &&
-      (/attack-premise|greet|README|medium|Skill conflicts|Session TTL|fixture-app/i.test(text));
+    const chatReady = !/Trust project folder\?/i.test(text) && (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) && /attack-premise|greet|README|medium|Skill conflicts|Session TTL|fixture-app/i.test(text);
     if (chatReady) return lines;
     await sleep(200);
   }
@@ -544,9 +453,7 @@ async function summarizePiSession(sessionPath) {
   const text = await readFile(sessionPath, 'utf8');
   const calls = extractToolCallsFromJsonl(text);
   const scored = scoreCallsForAttackPremise(calls);
-  const hostAttached =
-    /\bUsed principle-attack-the-premise\b/i.test(text) ||
-    /\[skill\]\s*principle-attack-the-premise\b/i.test(text);
+  const hostAttached = /\bUsed principle-attack-the-premise\b/i.test(text) || /\[skill\]\s*principle-attack-the-premise\b/i.test(text);
   return { sessionPath, hostAttached, ...scored };
 }
 
@@ -575,10 +482,7 @@ async function findCursorTranscripts(sinceMs, side) {
         } catch {
           continue;
         }
-        const mentionsThisAttempt =
-          text.includes(doneAbs) ||
-          (text.includes(`attack-premise/fixture-out/${side}/done.txt`) &&
-            text.includes('PREMISE'));
+        const mentionsThisAttempt = text.includes(doneAbs) || (text.includes(`attack-premise/fixture-out/${side}/done.txt`) && text.includes('PREMISE'));
         if (mentionsThisAttempt) hits.push({ path: abs, mtimeMs: st.mtimeMs, size: st.size });
       }
     }
@@ -601,9 +505,7 @@ async function summarizeCursorTranscripts(sinceMs, side) {
       leafSkillRead: scored.leafSkillRead || leafInBlob,
     };
     const rank = (merged.leafSkillRead ? 4 : 0) + (merged.ranVerifyScript ? 2 : 0);
-    const bestRank = best
-      ? (best.leafSkillRead ? 4 : 0) + (best.ranVerifyScript ? 2 : 0)
-      : -1;
+    const bestRank = best ? (best.leafSkillRead ? 4 : 0) + (best.ranVerifyScript ? 2 : 0) : -1;
     if (!best || rank > bestRank || (rank === bestRank && hit.mtimeMs > (best.mtimeMs || 0))) {
       best = { ...merged, mtimeMs: hit.mtimeMs };
     }
@@ -690,22 +592,7 @@ async function runSide(side, ruleBytes, ruleDigest, frontmatter) {
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        [
-          'poteto-mode',
-          'assign.js',
-          'verify',
-          'PREMISE-OK',
-          'PREMISE-FAIL',
-          'principle-attack-the-premise',
-          'census',
-          'premise',
-          'Phase',
-        ],
-        300_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['poteto-mode', 'assign.js', 'verify', 'PREMISE-OK', 'PREMISE-FAIL', 'principle-attack-the-premise', 'census', 'premise', 'Phase'], 300_000);
     } catch {
       // settle may still land artifacts
     }
@@ -822,17 +709,7 @@ async function runSide(side, ruleBytes, ruleDigest, frontmatter) {
 
     const snapDir = join(attempt.dir, 'fixture-snapshot');
     await mkdir(snapDir, { recursive: true });
-    for (const rel of [
-      ...PRODUCT_REL,
-      ...ARTIFACT_REL,
-      'history/fix1-capacity.md',
-      'history/fix2-buffer.md',
-      'README.md',
-      'NOTES.md',
-      'package.json',
-      VERIFY_SCRIPT_REL,
-      VERIFY_OUT_REL,
-    ]) {
+    for (const rel of [...PRODUCT_REL, ...ARTIFACT_REL, 'history/fix1-capacity.md', 'history/fix2-buffer.md', 'README.md', 'NOTES.md', 'package.json', VERIFY_SCRIPT_REL, VERIFY_OUT_REL]) {
       const abs = join(fixtureApp, rel);
       if (!(await pathExists(abs))) continue;
       const dest = join(snapDir, rel);
@@ -953,17 +830,13 @@ if (isMain) {
   await snapshotBaseline();
   const frontmatter = await readFrontmatterFiles();
   if (!frontmatter.cursor.ok || !frontmatter.pi.ok) {
-    console.error(
-      JSON.stringify({ error: 'attack-premise frontmatter not ok', frontmatter }, null, 2),
-    );
+    console.error(JSON.stringify({ error: 'attack-premise frontmatter not ok', frontmatter }, null, 2));
     process.exit(1);
   }
   const preRule = await readFile(referenceRulePath, 'utf8');
   const preDigest = await sha256(referenceRulePath);
   if (preDigest !== LOCKED_FIXTURE_DIGEST) {
-    console.error(
-      `Reference rule digest ${preDigest} does not match the locked fixture ${LOCKED_FIXTURE_DIGEST}`,
-    );
+    console.error(`Reference rule digest ${preDigest} does not match the locked fixture ${LOCKED_FIXTURE_DIGEST}`);
     process.exit(1);
   }
 
@@ -974,10 +847,7 @@ if (isMain) {
     results.push(result);
     console.log(JSON.stringify(result));
   }
-  await writeFile(
-    join(evidenceRoot, 'capture-results.json'),
-    `${JSON.stringify({ scenario: 'prin-attack-premise', fixtureDigest: preDigest, frontmatter, results }, null, 2)}\n`,
-  );
+  await writeFile(join(evidenceRoot, 'capture-results.json'), `${JSON.stringify({ scenario: 'prin-attack-premise', fixtureDigest: preDigest, frontmatter, results }, null, 2)}\n`);
   console.log(
     JSON.stringify({
       scenario: 'prin-attack-premise',

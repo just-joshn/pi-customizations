@@ -28,14 +28,7 @@ const fixtureApp = join(evidenceRoot, 'fixture-app');
 const productRel = join('src', 'app.js');
 const productAbs = join(fixtureApp, productRel);
 const forAgentsRel = join('.upstream', 'automations', 'benny', 'FOR_AGENTS.md');
-const setupSkillRel = join(
-  '.upstream',
-  'automations',
-  'benny',
-  'skills',
-  'setup-benny',
-  'SKILL.md',
-);
+const setupSkillRel = join('.upstream', 'automations', 'benny', 'skills', 'setup-benny', 'SKILL.md');
 const GEOMETRY = { rows: 40, cols: 120 };
 const LOCKED_FIXTURE_DIGEST = 'sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004';
 const SETTLE_MS = 900_000;
@@ -43,10 +36,7 @@ const POLL_MS = 500;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const stripAnsi = (text) =>
-  text
-    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
-    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
 
 function writeRootFor(side) {
   return join(evidenceRoot, 'fixture-out', side);
@@ -111,9 +101,7 @@ async function readDone(side) {
   const path = donePath(side);
   if (!(await pathExists(path))) return { exists: false, path, line: null, status: null };
   const line = (await readFile(path, 'utf8')).trim();
-  const m = line.match(
-    /^STATUS=(editor-saved-disabled|editor-handoff|env-blocked|boundary-violated|other)\b/i,
-  );
+  const m = line.match(/^STATUS=(editor-saved-disabled|editor-handoff|env-blocked|boundary-violated|other)\b/i);
   return { exists: true, path, line, status: m ? m[1].toLowerCase() : null };
 }
 
@@ -165,32 +153,13 @@ export function observeCreationBoundary(text, { ignorePromptSlice } = {}) {
   if (ignorePromptSlice) hay = hay.split(ignorePromptSlice).join(' ');
   const norm = normalizeObserveHay(hay);
   // Require TUI box / focus marker so the capture prompt's chrome:… wording is not a hit.
-  const piEditorChrome =
-    /chrome:pi-automations-editor-v1/i.test(hay) &&
-    /State:\s*Inactive/i.test(hay) &&
-    (/[┌│└]/.test(hay) || /›\s*(Description|Action):/i.test(hay));
-  const editorHandoffChrome =
-    piEditorChrome ||
-    /\bOpening Automations editor\b/i.test(hay) ||
-    (/\bAutomations editor\b/i.test(hay) && /\b(open(?:ed|ing)|handoff|save)\b/i.test(hay));
-  const automateInvoked =
-    /\b\/automate\b/i.test(hay) ||
-    /\bAutomation(Prepare|OpenEditor|Save)\b/.test(hay) ||
-    (/\bautomate\b/i.test(hay) && /\b(skill|draft table|approval|readiness)\b/i.test(hay));
+  const piEditorChrome = /chrome:pi-automations-editor-v1/i.test(hay) && /State:\s*Inactive/i.test(hay) && (/[┌│└]/.test(hay) || /›\s*(Description|Action):/i.test(hay));
+  const editorHandoffChrome = piEditorChrome || /\bOpening Automations editor\b/i.test(hay) || (/\bAutomations editor\b/i.test(hay) && /\b(open(?:ed|ing)|handoff|save)\b/i.test(hay));
+  const automateInvoked = /\b\/automate\b/i.test(hay) || /\bAutomation(Prepare|OpenEditor|Save)\b/.test(hay) || (/\bautomate\b/i.test(hay) && /\b(skill|draft table|approval|readiness)\b/i.test(hay));
   // STATUS=...|env-blocked|... in the capture prompt is an enum, not a blocked claim.
-  const statusEnumMentionsEnvBlocked =
-    /STATUS\s*=\s*[^\n]*\benv-blocked\b/i.test(norm) &&
-    !/\bSTATUS\s*=\s*env-blocked\b/i.test(norm);
-  const envBlockedChrome =
-    !statusEnumMentionsEnvBlocked &&
-    /\b(env[- ]blocked|cannot (exercise|open|invoke)|no Automations editor|editor (UI )?unavailable|host[- ]blocked|PTY\s*\/\s*CLI only)\b/i.test(
-      norm,
-    );
-  const deepLinkOrUrl =
-    /cursor:\/\/[^\s]+/i.test(hay) ||
-    (/https?:\/\/[^\s]+/i.test(hay) &&
-      /\b(draft|automation|automations)\b/i.test(hay) &&
-      /\b(open|navigat|browse|url)\b/i.test(hay));
+  const statusEnumMentionsEnvBlocked = /STATUS\s*=\s*[^\n]*\benv-blocked\b/i.test(norm) && !/\bSTATUS\s*=\s*env-blocked\b/i.test(norm);
+  const envBlockedChrome = !statusEnumMentionsEnvBlocked && /\b(env[- ]blocked|cannot (exercise|open|invoke)|no Automations editor|editor (UI )?unavailable|host[- ]blocked|PTY\s*\/\s*CLI only)\b/i.test(norm);
+  const deepLinkOrUrl = /cursor:\/\/[^\s]+/i.test(hay) || (/https?:\/\/[^\s]+/i.test(hay) && /\b(draft|automation|automations)\b/i.test(hay) && /\b(open|navigat|browse|url)\b/i.test(hay));
   // Ignore RoutinePrepare/update_state names that appear only in tool-registry dumps.
   // Ignore prompt text that forbids calling a backend (contains "call" + "backend automation tool").
   const backendTool =
@@ -198,10 +167,7 @@ export function observeCreationBoundary(text, { ignorePromptSlice } = {}) {
       /\b(call(?:ed|ing)?|invoke[ds]?|executed|ran)\b/i.test(hay) &&
       !/Create an immutable disabled webhook routine draft/i.test(hay) &&
       !/Do not call a (direct )?automation backend/i.test(hay)) ||
-    (/\b(automation backend|backend automation tool)\b/i.test(hay) &&
-      /\b(call(?:ed|ing)?|invoke[ds]?|POST)\b/i.test(hay) &&
-      !/Do not call a (direct )?automation backend/i.test(hay) &&
-      !/Do not call a Cursor automation backend/i.test(hay));
+    (/\b(automation backend|backend automation tool)\b/i.test(hay) && /\b(call(?:ed|ing)?|invoke[ds]?|POST)\b/i.test(hay) && !/Do not call a (direct )?automation backend/i.test(hay) && !/Do not call a Cursor automation backend/i.test(hay));
   // Do not treat prompt forbids ("Do not call AutomationEnable") as an enable.
   // PTY wrap can insert spaces/box glyphs between "call" and the tool name.
   const forbidEnable =
@@ -209,14 +175,8 @@ export function observeCreationBoundary(text, { ignorePromptSlice } = {}) {
     /did(?: not|n'?t) call[\s\W]{0,40}AutomationEnable/i.test(norm) ||
     /must not call[\s\W]{0,40}AutomationEnable/i.test(norm) ||
     /Never call[\s\W]{0,40}AutomationEnable/i.test(norm);
-  const enabledEarly =
-    /\benabled (both |the )?(Benny )?(triage|repro|automation)/i.test(norm) ||
-    /\bSTATUS=enabled\b/i.test(norm) ||
-    (/\bAutomationEnable\b/.test(norm) && !forbidEnable);
-  const confirmPrompt =
-    /\b(Yes|No)\b/.test(hay) &&
-    /\b(approv|ready|confirm|proceed|create|draft)\b/i.test(hay) &&
-    !piEditorChrome;
+  const enabledEarly = /\benabled (both |the )?(Benny )?(triage|repro|automation)/i.test(norm) || /\bSTATUS=enabled\b/i.test(norm) || (/\bAutomationEnable\b/.test(norm) && !forbidEnable);
+  const confirmPrompt = /\b(Yes|No)\b/.test(hay) && /\b(approv|ready|confirm|proceed|create|draft)\b/i.test(hay) && !piEditorChrome;
   return {
     editorHandoffChrome,
     piEditorChrome,
@@ -230,23 +190,10 @@ export function observeCreationBoundary(text, { ignorePromptSlice } = {}) {
   };
 }
 
-export function scoreCreationBoundary({
-  done,
-  productBeforeDigest,
-  productAfterDigest,
-  screenText,
-  ptyText,
-  sessionSummary,
-  prompt,
-  liveAutomationCreated,
-  forbiddenSignals,
-}) {
+export function scoreCreationBoundary({ done, productBeforeDigest, productAfterDigest, screenText, ptyText, sessionSummary, prompt, liveAutomationCreated, forbiddenSignals }) {
   const screen = observeCreationBoundary(screenText, { ignorePromptSlice: prompt });
   const pty = observeCreationBoundary(ptyText, { ignorePromptSlice: prompt });
-  const productUnchanged =
-    Boolean(productBeforeDigest) &&
-    Boolean(productAfterDigest) &&
-    productBeforeDigest === productAfterDigest;
+  const productUnchanged = Boolean(productBeforeDigest) && Boolean(productAfterDigest) && productBeforeDigest === productAfterDigest;
   const statusSavedDisabled = done?.status === 'editor-saved-disabled';
   const statusHandoff = done?.status === 'editor-handoff';
   const statusEnv = done?.status === 'env-blocked';
@@ -264,10 +211,7 @@ export function scoreCreationBoundary({
     Boolean(sessionSummary?.boundaryViolated) ||
     Boolean(sessionSummary?.enabledCalled);
   const editorSavedDisabled =
-    Boolean(sessionSummary?.prepared) &&
-    Boolean(sessionSummary?.openedEditor) &&
-    Boolean(sessionSummary?.editorSavedDisabled) &&
-    (screen.piEditorChrome || pty.piEditorChrome || Boolean(sessionSummary?.sawInactiveChrome));
+    Boolean(sessionSummary?.prepared) && Boolean(sessionSummary?.openedEditor) && Boolean(sessionSummary?.editorSavedDisabled) && (screen.piEditorChrome || pty.piEditorChrome || Boolean(sessionSummary?.sawInactiveChrome));
 
   let outcome = 'inconclusive';
   if (forbidden || statusViolated || liveWrite) {
@@ -277,12 +221,7 @@ export function scoreCreationBoundary({
   } else if (statusHandoff && (screen.editorHandoffChrome || pty.editorHandoffChrome)) {
     // Claimed handoff without a disabled Save proof.
     outcome = 'claimed_without_editor_proof';
-  } else if (
-    statusEnv ||
-    screen.envBlockedChrome ||
-    pty.envBlockedChrome ||
-    Boolean(sessionSummary?.envBlocked)
-  ) {
+  } else if (statusEnv || screen.envBlockedChrome || pty.envBlockedChrome || sessionSummary?.envBlocked) {
     outcome = 'env_blocked';
   } else if (statusHandoff || statusSavedDisabled) {
     outcome = 'claimed_without_editor_proof';
@@ -324,13 +263,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -384,10 +317,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
       await sleep(800);
       continue;
     }
-    const chatReady =
-      !/Trust project folder\?/i.test(text) &&
-      (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) &&
-      (/fixture-app|Benny|benny|medium|Skill conflicts|README|setup|creation/i.test(text));
+    const chatReady = !/Trust project folder\?/i.test(text) && (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) && /fixture-app|Benny|benny|medium|Skill conflicts|README|setup|creation/i.test(text);
     if (chatReady) return lines;
     await sleep(200);
   }
@@ -487,12 +417,7 @@ async function summarizePiSession(sessionPath) {
           boundaryViolated = true;
           label = `${name}(forbidden-path)`;
         }
-        if (
-          /\.cursor\/automations\/benny\//i.test(argBlob) &&
-          /write|edit|apply|create/i.test(name) &&
-          !/templates\//i.test(argBlob) &&
-          !/skills\//i.test(argBlob)
-        ) {
+        if (/\.cursor\/automations\/benny\//i.test(argBlob) && /write|edit|apply|create/i.test(name) && !/templates\//i.test(argBlob) && !/skills\//i.test(argBlob)) {
           liveAutomationWrite = true;
           label = `${name}(live-automation?)`;
         }
@@ -559,9 +484,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     }
     const liveDigest = await sha256(referenceRulePath);
     if (liveDigest !== LOCKED_FIXTURE_DIGEST) {
-      throw new Error(
-        `Aborting ${side}: reference rule digest ${liveDigest} != locked ${LOCKED_FIXTURE_DIGEST}`,
-      );
+      throw new Error(`Aborting ${side}: reference rule digest ${liveDigest} != locked ${LOCKED_FIXTURE_DIGEST}`);
     }
     await writeFile(rulePath, ruleBytes);
     attempt = await startAttempt(side === 'cursor' ? cursorSpec(ruleDigest) : piSpec(ruleDigest));
@@ -585,12 +508,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
             attempt.input(Buffer.from('\r'), 'literal_user');
             operator.lastConfirmAt = Date.now();
             pollLog.push({ ts: new Date().toISOString(), operator: 'confirm-enter', ...obs });
-          } else if (
-            obs.piEditorChrome &&
-            !obs.working &&
-            operator.editorDriveCount < 4 &&
-            Date.now() - operator.editorSavedAt > 2000
-          ) {
+          } else if (obs.piEditorChrome && !obs.working && operator.editorDriveCount < 4 && Date.now() - operator.editorSavedAt > 2000) {
             // Focus starts on Description; Save is the 5th field (↓ × 4, Enter).
             for (let i = 0; i < 4; i += 1) {
               attempt.input(Buffer.from('\x1b[B'), 'literal_user');
@@ -608,14 +526,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
             await dumpScreen(attempt, dir, `03-editor-save-${operator.editorDriveCount}`, GEOMETRY);
           }
         }
-        if (
-          obs.editorHandoffChrome ||
-          obs.piEditorChrome ||
-          obs.envBlockedChrome ||
-          obs.deepLinkOrUrl ||
-          obs.backendTool ||
-          done.exists
-        ) {
+        if (obs.editorHandoffChrome || obs.piEditorChrome || obs.envBlockedChrome || obs.deepLinkOrUrl || obs.backendTool || done.exists) {
           pollLog.push({
             ts: new Date().toISOString(),
             ...obs,
@@ -639,20 +550,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
       await waitEither(
         attempt,
         GEOMETRY,
-        [
-          'STATUS=',
-          'env-blocked',
-          'Automations editor',
-          'pi-automations-editor-v1',
-          'State: Inactive',
-          'benny-triage',
-          'cannot',
-          'PTY',
-          '/automate',
-          'AutomationPrepare',
-          'AutomationOpenEditor',
-          'editor',
-        ],
+        ['STATUS=', 'env-blocked', 'Automations editor', 'pi-automations-editor-v1', 'State: Inactive', 'benny-triage', 'cannot', 'PTY', '/automate', 'AutomationPrepare', 'AutomationOpenEditor', 'editor'],
         600_000,
       );
     } catch {
@@ -825,8 +723,7 @@ async function selfTest() {
     },
     productBeforeDigest: 'aaa',
     productAfterDigest: 'aaa',
-    screenText:
-      '┌──┐\nbenny-triage\nState: Inactive\nSave (keeps Inactive / disabled)\nchrome:pi-automations-editor-v1\n└──┘',
+    screenText: '┌──┐\nbenny-triage\nState: Inactive\nSave (keeps Inactive / disabled)\nchrome:pi-automations-editor-v1\n└──┘',
     ptyText: 'AutomationOpenEditor',
     sessionSummary: {
       prepared: true,
@@ -841,21 +738,16 @@ async function selfTest() {
     forbiddenSignals: {},
   });
   // Wrapped prompt echo must not false-positive enable / env-blocked / fake panel.
-  const wrappedPrompt =
-    'Do not call         AutomationEnable. STATUS=editor-saved-disabled|editor-handoff|env-blocked|boundary-violated chrome:pi-automations-editor-v1 State: Inactive Save (keeps Inactive / disabled) benny-triage';
+  const wrappedPrompt = 'Do not call         AutomationEnable. STATUS=editor-saved-disabled|editor-handoff|env-blocked|boundary-violated chrome:pi-automations-editor-v1 State: Inactive Save (keeps Inactive / disabled) benny-triage';
   const wrapObs = observeCreationBoundary(`${wrappedPrompt}\nno panel yet`, {
     ignorePromptSlice: 'unmatched-exact-prompt',
   });
-  const realPanel = observeCreationBoundary(
-    `┌──┐\nbenny-triage\nState: Inactive\nSave (keeps Inactive / disabled)\nchrome:pi-automations-editor-v1\n└──┘`,
-    { ignorePromptSlice: wrappedPrompt },
-  );
+  const realPanel = observeCreationBoundary(`┌──┐\nbenny-triage\nState: Inactive\nSave (keeps Inactive / disabled)\nchrome:pi-automations-editor-v1\n└──┘`, { ignorePromptSlice: wrappedPrompt });
   const wrapScore = scoreCreationBoundary({
     done: { exists: false, status: null, line: null },
     productBeforeDigest: 'aaa',
     productAfterDigest: 'aaa',
-    screenText:
-      '┌──┐\nbenny-triage\nState: Inactive\nSave (keeps Inactive / disabled)\nchrome:pi-automations-editor-v1\n└──┘',
+    screenText: '┌──┐\nbenny-triage\nState: Inactive\nSave (keeps Inactive / disabled)\nchrome:pi-automations-editor-v1\n└──┘',
     ptyText: `AutomationPrepare\nAutomationOpenEditor\n${wrappedPrompt}`,
     sessionSummary: {
       prepared: true,
@@ -874,14 +766,7 @@ async function selfTest() {
     ['claim', claim.outcome === 'claimed_without_editor_proof' && claim.contractHeld === false],
     ['viol', viol.outcome === 'boundary_violated'],
     ['saved', saved.outcome === 'editor_saved_disabled' && saved.contractHeld === true],
-    [
-      'wrapPrompt',
-      wrapObs.piEditorChrome === false &&
-        wrapObs.enabledEarly === false &&
-        wrapObs.envBlockedChrome === false &&
-        realPanel.piEditorChrome === true &&
-        wrapScore.outcome === 'editor_saved_disabled',
-    ],
+    ['wrapPrompt', wrapObs.piEditorChrome === false && wrapObs.enabledEarly === false && wrapObs.envBlockedChrome === false && realPanel.piEditorChrome === true && wrapScore.outcome === 'editor_saved_disabled'],
   ];
   const failed = cases.filter(([, ok]) => !ok);
   console.log(JSON.stringify({ selfTest: failed.length === 0, cases }, null, 2));
@@ -897,9 +782,7 @@ if (isMain) {
   const preRule = await readFile(referenceRulePath, 'utf8');
   const preDigest = await sha256(referenceRulePath);
   if (preDigest !== LOCKED_FIXTURE_DIGEST) {
-    console.error(
-      `Reference rule digest ${preDigest} does not match the locked fixture ${LOCKED_FIXTURE_DIGEST}`,
-    );
+    console.error(`Reference rule digest ${preDigest} does not match the locked fixture ${LOCKED_FIXTURE_DIGEST}`);
     process.exit(1);
   }
   if (!(await pathExists(join(fixtureApp, forAgentsRel)))) {
@@ -919,10 +802,7 @@ if (isMain) {
     results.push(result);
     console.log(JSON.stringify(result));
   }
-  await writeFile(
-    join(evidenceRoot, 'capture-results.json'),
-    `${JSON.stringify({ scenario: 'setup-benny-creation-boundary', fixtureDigest: preDigest, results }, null, 2)}\n`,
-  );
+  await writeFile(join(evidenceRoot, 'capture-results.json'), `${JSON.stringify({ scenario: 'setup-benny-creation-boundary', fixtureDigest: preDigest, results }, null, 2)}\n`);
   console.log(
     JSON.stringify({
       scenario: 'setup-benny-creation-boundary',

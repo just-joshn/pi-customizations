@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { createHash } from 'node:crypto';
 // Captures /setup-pstack role confirmation (PSTACK-SETUP-ROLE-CONFIRM-001): after budget,
 // before write, dump the confirm screen and score whether every role is shown with its
 // model and whether accept/change is asked. Real PTY both sides. Restores locked fixture.
@@ -6,7 +7,6 @@
 // Usage: node scripts/capture-setup-role-confirm.mjs [--cursor-only|--pi-only]
 // Evidence root: parity/evidence/setup-role-confirm/
 import { copyFile, mkdir, readFile, rename, writeFile } from 'node:fs/promises';
-import { createHash } from 'node:crypto';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 
@@ -24,30 +24,13 @@ const evidenceRoot = join(root, 'evidence', 'setup-role-confirm');
 const GEOMETRY = { rows: 64, cols: 120 };
 const LOCKED_FIXTURE_DIGEST = 'sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004';
 
-const ROLE_CONFIRM_NEEDLES = [
-  'Accept as-is',
-  'Change specific roles',
-  'accept as-is',
-  'change specific roles',
-  'Current roles',
-  'Roles:',
-  'Roles keep',
-  'keep all as',
-];
-const BUDGET_NEEDLES = [
-  '› [',
-  'Pick a budget',
-  'Choose a budget',
-  'Reply with a number',
-  'Reply with one of those four',
-  'unlimited — max reasoning',
-  'small — medium reasoning',
-];
+const ROLE_CONFIRM_NEEDLES = ['Accept as-is', 'Change specific roles', 'accept as-is', 'change specific roles', 'Current roles', 'Roles:', 'Roles keep', 'keep all as'];
+const BUDGET_NEEDLES = ['› [', 'Pick a budget', 'Choose a budget', 'Reply with a number', 'Reply with one of those four', 'unlimited — max reasoning', 'small — medium reasoning'];
 const WRITE_NEEDLE = 'Edited pstack-models.mdc';
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-function digestBytes(bytes) {
+function _digestBytes(bytes) {
   return `sha256:${createHash('sha256').update(bytes).digest('hex')}`;
 }
 
@@ -92,10 +75,7 @@ function scoreRoleConfirm(lines, expectedRoles) {
     else if (text.includes(role)) listed.push({ role, model, form: 'role-name-only' });
     else missing.push({ role, model });
   }
-  const acceptPrompt =
-    /Accept as-is/i.test(text) ||
-    /accept as-is/i.test(text) ||
-    (/Change specific roles/i.test(text) && /Accept/i.test(text));
+  const acceptPrompt = /Accept as-is/i.test(text) || /accept as-is/i.test(text) || (/Change specific roles/i.test(text) && /Accept/i.test(text));
   const changePrompt = /Change specific roles/i.test(text) || /change specific/i.test(text);
   const summaryOnly =
     (/All \d+ roles (are )?currently (run )?inherit-parent/i.test(text) ||
@@ -150,13 +130,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: join(root, 'fixtures', 'first-run'),
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -188,12 +162,7 @@ async function restoreLocked(lockedBytes) {
 }
 
 async function answerBudgetOnly(attempt, dir) {
-  const first = await waitEither(
-    attempt,
-    GEOMETRY,
-    [...BUDGET_NEEDLES, WRITE_NEEDLE, ...ROLE_CONFIRM_NEEDLES],
-    300_000,
-  ).catch(async (error) => {
+  const first = await waitEither(attempt, GEOMETRY, [...BUDGET_NEEDLES, WRITE_NEEDLE, ...ROLE_CONFIRM_NEEDLES], 300_000).catch(async (error) => {
     await dumpScreen(attempt, dir, '01-budget-timeout', GEOMETRY);
     throw error;
   });
@@ -325,8 +294,7 @@ async function runSide(side, lockedBytes, lockedDigest) {
 
     const digestBeforeAccept = await sha256(rulePath);
     observations.digestBeforeAccept = digestBeforeAccept;
-    observations.writeBeforeConfirm =
-      confirm.kind === 'wrote-before-confirm' || score.writeCardOnSameScreen || digestBeforeAccept !== lockedDigest;
+    observations.writeBeforeConfirm = confirm.kind === 'wrote-before-confirm' || score.writeCardOnSameScreen || digestBeforeAccept !== lockedDigest;
 
     let acceptPath = null;
     try {
@@ -369,18 +337,9 @@ async function runSide(side, lockedBytes, lockedDigest) {
     await writeFile(join(dir, 'rule-after.mdc'), after);
     observations.afterDigest = afterDigest;
     observations.wrote = after !== lockedBytes;
-    observations.writeOnlyAfterConfirm =
-      confirm.kind === 'role-confirm' && !observations.writeBeforeConfirm && observations.wrote;
+    observations.writeOnlyAfterConfirm = confirm.kind === 'role-confirm' && !observations.writeBeforeConfirm && observations.wrote;
 
-    for (const name of [
-      '00-ready',
-      '01-budget',
-      '02-role-confirm',
-      '02-role-confirm-or-write',
-      '03-write-card',
-      '03-no-write',
-      '04-settled',
-    ]) {
+    for (const name of ['00-ready', '01-budget', '02-role-confirm', '02-role-confirm-or-write', '03-write-card', '03-no-write', '04-settled']) {
       try {
         await copyFile(join(dir, `screen-${name}.txt`), join(attempt.dir, `screen-${name}.txt`));
       } catch {

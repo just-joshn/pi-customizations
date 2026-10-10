@@ -6,9 +6,7 @@ import { matchesKey } from '@earendil-works/pi-tui';
 /** Probe and journey marker for real in-PTY Automations editor chrome (not ctx.ui.editor stub). */
 export const AUTOMATIONS_EDITOR_CHROME = 'pi-automations-editor-v1' as const;
 
-export type AutomationsEditorTrigger =
-  | { readonly type: 'slack.top_level'; readonly channelId: string }
-  | { readonly type: 'webhook'; readonly fields: readonly string[]; readonly port: number };
+export type AutomationsEditorTrigger = { readonly type: 'slack.top_level'; readonly channelId: string } | { readonly type: 'webhook'; readonly fields: readonly string[]; readonly port: number };
 
 export interface AutomationsEditorDraft {
   readonly name: string;
@@ -20,14 +18,7 @@ export interface AutomationsEditorDraft {
   readonly revision: string;
 }
 
-export type AutomationsEditorInput =
-  | 'up'
-  | 'down'
-  | 'enter'
-  | 'escape'
-  | 'backspace'
-  | 'space'
-  | { readonly char: string };
+export type AutomationsEditorInput = 'up' | 'down' | 'enter' | 'escape' | 'backspace' | 'space' | { readonly char: string };
 
 export type AutomationsEditorFieldId = 'description' | 'instructions' | 'trigger' | 'tools' | 'save' | 'cancel';
 
@@ -62,14 +53,7 @@ export interface AutomationsEditorResult {
   };
 }
 
-const FIELD_IDS: readonly AutomationsEditorFieldId[] = [
-  'description',
-  'instructions',
-  'trigger',
-  'tools',
-  'save',
-  'cancel',
-] as const;
+const FIELD_IDS: readonly AutomationsEditorFieldId[] = ['description', 'instructions', 'trigger', 'tools', 'save', 'cancel'] as const;
 
 export function formatTriggerText(trigger: AutomationsEditorTrigger): string {
   if (trigger.type === 'slack.top_level') {
@@ -147,13 +131,7 @@ function commitEdit(state: AutomationsEditorState): AutomationsEditorState {
   if (!id || id === 'save' || id === 'cancel') return withState(state, { editing: false, buffer: '' });
   const value = state.buffer;
   const fields =
-    id === 'description'
-      ? { ...state.fields, description: value }
-      : id === 'instructions'
-        ? { ...state.fields, instructions: value }
-        : id === 'trigger'
-          ? { ...state.fields, triggerText: value }
-          : { ...state.fields, toolsText: value };
+    id === 'description' ? { ...state.fields, description: value } : id === 'instructions' ? { ...state.fields, instructions: value } : id === 'trigger' ? { ...state.fields, triggerText: value } : { ...state.fields, toolsText: value };
   return withState(state, { fields, editing: false, buffer: '', error: undefined });
 }
 
@@ -206,14 +184,7 @@ export function reduceAutomationsEditor(state: AutomationsEditorState, input: Au
       if (id === 'save') return finishSaved(state);
       if (id === 'cancel') return withState(state, { finished: true, disposition: 'cancelled', error: undefined });
       if (id === 'description' || id === 'instructions' || id === 'trigger' || id === 'tools') {
-        const buffer =
-          id === 'description'
-            ? state.fields.description
-            : id === 'instructions'
-              ? state.fields.instructions
-              : id === 'trigger'
-                ? state.fields.triggerText
-                : state.fields.toolsText;
+        const buffer = id === 'description' ? state.fields.description : id === 'instructions' ? state.fields.instructions : id === 'trigger' ? state.fields.triggerText : state.fields.toolsText;
         return withState(state, { editing: true, buffer, error: undefined });
       }
       return state;
@@ -250,8 +221,7 @@ const wrapParagraph = (text: string, width: number): string[] => {
   if (current) lines.push(current);
   return lines.length > 0 ? lines : [''];
 };
-const wrap = (text: string, width: number): string[] =>
-  text.split(/\r?\n/).flatMap((paragraph) => (paragraph.length === 0 ? [''] : wrapParagraph(paragraph, width)));
+const wrap = (text: string, width: number): string[] => text.split(/\r?\n/).flatMap((paragraph) => (paragraph.length === 0 ? [''] : wrapParagraph(paragraph, width)));
 
 function fieldValue(state: AutomationsEditorState, id: AutomationsEditorFieldId): string {
   if (state.editing && FIELD_IDS[state.focus] === id) return `${state.buffer}▏`;

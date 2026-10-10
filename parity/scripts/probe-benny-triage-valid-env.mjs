@@ -10,25 +10,8 @@ import { pathToFileURL } from 'node:url';
 const isMain = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
 const root = new URL('../', import.meta.url).pathname;
 const evidenceRoot = join(root, 'evidence', 'benny-triage');
-const skillPath = join(
-  evidenceRoot,
-  'fixture-app',
-  '.upstream',
-  'automations',
-  'benny',
-  'skills',
-  'triage-issue-reports',
-  'SKILL.md',
-);
-const exampleConfigPath = join(
-  evidenceRoot,
-  'fixture-app',
-  '.upstream',
-  'automations',
-  'benny',
-  'templates',
-  'configuration.example.yaml',
-);
+const skillPath = join(evidenceRoot, 'fixture-app', '.upstream', 'automations', 'benny', 'skills', 'triage-issue-reports', 'SKILL.md');
+const exampleConfigPath = join(evidenceRoot, 'fixture-app', '.upstream', 'automations', 'benny', 'templates', 'configuration.example.yaml');
 const userBennyConfig = join(homedir(), '.config', 'benny', 'configuration.yaml');
 const grantFlagDefault = join(homedir(), '.config', 'benny', 'test-thread-grant.json');
 
@@ -49,12 +32,8 @@ function envPresent(name) {
 async function configLooksFilled(path) {
   if (!(await pathExists(path))) return { present: false, filled: false, piNativeActions: false };
   const text = await readFile(path, 'utf8');
-  const filled =
-    !text.includes('SOURCE_CHANNEL_ID') &&
-    !text.includes('TRIAGE_IDENTITY_USER_ID') &&
-    /source_channel_id:\s*"C[A-Z0-9]+"/i.test(text);
-  const piNativeActions =
-    text.includes('slack.thread.read') && text.includes('slack.thread.reply');
+  const filled = !text.includes('SOURCE_CHANNEL_ID') && !text.includes('TRIAGE_IDENTITY_USER_ID') && /source_channel_id:\s*"C[A-Z0-9]+"/i.test(text);
+  const piNativeActions = text.includes('slack.thread.read') && text.includes('slack.thread.reply');
   return { present: true, filled, piNativeActions };
 }
 
@@ -63,12 +42,7 @@ async function grantPresent() {
   if (!(await pathExists(path))) return { present: false, path };
   try {
     const data = JSON.parse(await readFile(path, 'utf8'));
-    const ok =
-      data &&
-      typeof data === 'object' &&
-      data.scope === 'benny-test-channel-thread-posts-only' &&
-      typeof data.source_channel_id === 'string' &&
-      data.source_channel_id.startsWith('C');
+    const ok = data && typeof data === 'object' && data.scope === 'benny-test-channel-thread-posts-only' && typeof data.source_channel_id === 'string' && data.source_channel_id.startsWith('C');
     return { present: Boolean(ok), path };
   } catch {
     return { present: false, path };
@@ -109,19 +83,13 @@ export async function probeBennyTriageValidEnv() {
     missing.push('no BENNY_SLACK_BOT_TOKEN or SLACK_BOT_TOKEN in environment (source ~/.config/benny/load-env.sh)');
   }
   if (!actionsNamed) {
-    missing.push(
-      'Slack actions not set to Pi-native slack.thread.read / slack.thread.reply (run wizard)',
-    );
+    missing.push('Slack actions not set to Pi-native slack.thread.read / slack.thread.reply (run wizard)');
   }
   if (!checks.configuredSlackActionsResolvableInHarness) {
-    missing.push(
-      'harness cannot yet invoke Slack read/post (need live Slack MCP tools in Agent chat on this repo, or bot API wiring in capture)',
-    );
+    missing.push('harness cannot yet invoke Slack read/post (need live Slack MCP tools in Agent chat on this repo, or bot API wiring in capture)');
   }
   if (!checks.liveSlackPostOwnerGrantPresent) {
-    missing.push(
-      'no test-thread owner grant at ~/.config/benny/test-thread-grant.json (run wizard stage)',
-    );
+    missing.push('no test-thread owner grant at ~/.config/benny/test-thread-grant.json (run wizard stage)');
   }
 
   const runnable = missing.length === 0;

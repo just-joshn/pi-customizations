@@ -181,11 +181,7 @@ async function readDone(side) {
 function observeScreen(lines) {
   const text = lines.join('\n');
   return {
-    unslopSkill:
-      /\/unslop\b/i.test(text) ||
-      /\[skill\]\s*unslop/i.test(text) ||
-      /\bUsed unslop\b/i.test(text) ||
-      /\bunslop\b/i.test(text),
+    unslopSkill: /\/unslop\b/i.test(text) || /\[skill\]\s*unslop/i.test(text) || /\bUsed unslop\b/i.test(text) || /\bunslop\b/i.test(text),
     patternScanMention: /\b(scan|pattern|AI[- ]tell|rewrite)\b/i.test(text),
     working: /[\u2800-\u28FF]/.test(text) || /\bWorking\b/.test(text),
   };
@@ -207,13 +203,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -293,12 +283,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        ['unslop', 'rewrite', 'draft.md', 'AI tell', 'pattern'],
-        300_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['unslop', 'rewrite', 'draft.md', 'AI tell', 'pattern'], 300_000);
     } catch {
       // settle may still land artifacts
     }
@@ -378,10 +363,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     await writeFile(join(dir, 'poll-log.json'), `${JSON.stringify(pollLog, null, 2)}\n`);
     await writeFile(join(dir, 'draft-before.md'), beforeText);
     await writeFile(join(dir, 'draft-after.md'), afterText);
-    await writeFile(
-      join(dir, 'baseline-draft.json'),
-      `${JSON.stringify({ digest: draftBaseline, tellCount: beforeTells.length, tells: beforeTells }, null, 2)}\n`,
-    );
+    await writeFile(join(dir, 'baseline-draft.json'), `${JSON.stringify({ digest: draftBaseline, tellCount: beforeTells.length, tells: beforeTells }, null, 2)}\n`);
 
     const snapDir = join(attempt.dir, 'fixture-snapshot');
     await mkdir(snapDir, { recursive: true });

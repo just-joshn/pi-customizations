@@ -1,14 +1,4 @@
 #!/usr/bin/env node
-/**
- * Host-neutral Slack actions for Benny parity harness.
- * Uses BENNY_SLACK_BOT_TOKEN / SLACK_BOT_TOKEN. Never prints the token.
- *
- * Usage:
- *   node parity/scripts/benny-slack-actions.mjs read <channel> <thread_ts>
- *   node parity/scripts/benny-slack-actions.mjs reply <channel> <thread_ts> <text...>
- *   node parity/scripts/benny-slack-actions.mjs root-count <channel> <since_ts>
- */
-import { writeFileSync } from 'node:fs';
 
 function token() {
   const t = process.env.BENNY_SLACK_BOT_TOKEN || process.env.SLACK_BOT_TOKEN;

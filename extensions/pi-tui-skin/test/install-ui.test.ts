@@ -72,15 +72,27 @@ type UiCall = { method: string; args: unknown[] };
 const UI_METHODS = ['setTitle', 'setTheme', 'setHeader', 'setFooter', 'setEditorComponent', 'setWidget', 'setWorkingIndicator', 'setWorkingMessage', 'setWorkingVisible', 'setHiddenThinkingLabel'];
 
 const INSTALL_METHODS = ['setTitle', 'setTheme', 'setHeader', 'setFooter', 'setEditorComponent', 'setWorkingIndicator', 'setWorkingMessage', 'setWidget', 'setHiddenThinkingLabel'];
-const UNINSTALL_METHODS = ['setWidget', 'setEditorComponent', 'setFooter', 'setHeader', 'setWorkingMessage', 'setWorkingIndicator', 'setWorkingVisible', 'setHiddenThinkingLabel'];
+const UNINSTALL_METHODS = ['setWidget', 'setEditorComponent', 'setFooter', 'setHeader', 'setWorkingMessage', 'setWorkingIndicator', 'setWorkingVisible', 'setHiddenThinkingLabel', 'setTheme', 'setTitle'];
 
-function fakeContext(mode: string) {
+function fakeContext(mode: string, options: { themeName?: string; title?: string; sessionName?: string } = {}) {
   const calls: UiCall[] = [];
   const failures = new Map<string, string>();
-  const ui: Record<string, unknown> = { theme: makeTheme() };
+  const theme = makeTheme();
+  if (options.themeName !== undefined) {
+    Object.defineProperty(theme, 'name', { value: options.themeName, configurable: true });
+  }
+  let currentTitle = options.title ?? 'π - proj';
+  const ui: Record<string, unknown> = {
+    theme,
+    getTitle: () => currentTitle,
+  };
   for (const method of UI_METHODS) {
     ui[method] = (...args: unknown[]) => {
       calls.push({ method, args });
+      if (method === 'setTitle' && typeof args[0] === 'string') currentTitle = args[0];
+      if (method === 'setTheme' && typeof args[0] === 'string') {
+        Object.defineProperty(theme, 'name', { value: args[0], configurable: true });
+      }
       const failure = failures.get(method);
       if (failure !== undefined) throw new Error(failure);
     };
@@ -91,6 +103,7 @@ function fakeContext(mode: string) {
     thinkingLevel: 'high',
     model: { id: 'gpt-6-sol', name: 'GPT-6 Sol', provider: 'openai' },
     getContextUsage: () => ({ tokens: 16000, contextWindow: 200000, percent: 8 }),
+    sessionManager: { getSessionName: () => options.sessionName },
     ui,
   } as never;
   const failOn = (method: string, message: string): void => {
@@ -175,6 +188,27 @@ describe('install-ui controller', () => {
     expect(callsFor(calls, 'setWorkingVisible').at(-1)?.args).toEqual([true]);
     expect(callsFor(calls, 'setWidget').at(-1)?.args).toEqual(['tui-skin.activity', undefined]);
     expect(callsFor(calls, 'setWorkingMessage').at(-1)?.args).toEqual([]);
+  });
+
+  test('uninstall restores the theme and title captured before install', () => {
+    const { ctx, calls } = fakeContext('tui', { themeName: 'one-dark-pro-flat', title: 'π - my-session - proj' });
+    const controller = createUiController(createPresentationStore());
+    controller.install(ctx);
+    controller.uninstall(ctx);
+
+    expect(callsFor(calls, 'setTheme').at(-1)?.args).toEqual(['one-dark-pro-flat']);
+    expect(callsFor(calls, 'setTitle').at(-1)?.args).toEqual(['π - my-session - proj']);
+  });
+
+  test('uninstall restores a synthesized Pi title when the host has no getTitle', () => {
+    const { ctx, calls } = fakeContext('tui', { themeName: 'dark', sessionName: 'sprint' });
+    delete (ctx as { ui: { getTitle?: () => string } }).ui.getTitle;
+    const controller = createUiController(createPresentationStore());
+    controller.install(ctx);
+    controller.uninstall(ctx);
+
+    expect(callsFor(calls, 'setTheme').at(-1)?.args).toEqual(['dark']);
+    expect(callsFor(calls, 'setTitle').at(-1)?.args).toEqual(['π - sprint - proj']);
   });
 });
 
@@ -263,7 +297,6 @@ describe('install-ui controller removal, rendering', () => {
     const indicator = callsFor(calls, 'setWorkingIndicator')[0]?.args[0] as { frames: string[]; intervalMs: number };
     expect(indicator.intervalMs).toBe(120);
     expect(indicator.frames.map((frame) => stripTerminalSequences(frame))).toEqual(['·', '•', '●', '•']);
-    // biome-ignore lint/security/noSecrets: the escape a terminal shows for the theme's success role
     expect(indicator.frames[2]).toBe('\u001b[38;2;62;208;122m●\u001b[39m');
     expect(callsFor(calls, 'setWorkingMessage')[0]?.args).toEqual(['Working']);
   });
@@ -297,7 +330,6 @@ describe('install-ui controller working frames on render', () => {
     const reinstalled = installed[1];
     if (reinstalled === undefined) throw new Error('the frames were not reinstalled');
     const frames = (reinstalled.args[0] as { frames: string[] }).frames;
-    // biome-ignore lint/security/noSecrets: the escape a terminal shows for the switched theme's success role
     expect(frames[2]).toBe('\u001b[38;2;140;194;101m●\u001b[39m');
     expect(frames[0]).toBe(odd.fg('dim', '·'));
   });

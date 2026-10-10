@@ -84,7 +84,6 @@ describe('fitWidth', () => {
   });
 
   test('counts wide CJK characters by columns', () => {
-    // biome-ignore lint/security/noSecrets: CJK sample text, not a secret
     const result = fitWidth('日本語テキスト', 5);
     expect(stripTerminalSequences(result)).toBe('日本…');
     expect(visibleWidth(result)).toBe(5);

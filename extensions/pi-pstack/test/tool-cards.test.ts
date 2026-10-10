@@ -1,5 +1,5 @@
-import { expect, test } from 'vitest';
 import type { Theme } from '@earendil-works/pi-coding-agent';
+import { expect, test } from 'vitest';
 import { askQuestionResultCard, setupWriteCard } from '../src/tool-cards.ts';
 
 const theme = { fg: (_color: string, text: string) => text, bold: (text: string) => text } as unknown as Theme;
@@ -16,8 +16,7 @@ const budgetQuestion = {
 };
 
 const stripAnsi = (line: string) => line.replace(/\u001B\[[0-9;]*[A-Za-z]/g, '').replace(/\u001B\]8;;[^\u0007]*\u0007/g, '');
-const trimmed = (component: { render: (width: number) => string[] }, width = 120) =>
-  component.render(width).map((line) => stripAnsi(line).trimEnd());
+const trimmed = (component: { render: (width: number) => string[] }, width = 120) => component.render(width).map((line) => stripAnsi(line).trimEnd());
 
 test('the submitted card shows the header, prompts, and the checked answer', () => {
   const args = { questions: [budgetQuestion] };

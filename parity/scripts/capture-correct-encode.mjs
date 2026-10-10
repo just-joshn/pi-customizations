@@ -1,12 +1,12 @@
 #!/usr/bin/env node
+import { spawn } from 'node:child_process';
+import { createHash } from 'node:crypto';
 // cmd-correct-encode: /correct raises enforcement above docs and proves fail on a past mistake.
 // Real PTY both sides via the recorder. Screens + written files + Pi session are the oracle.
 //
 // Usage: node scripts/capture-correct-encode.mjs [--cursor-only|--pi-only|--both]
 // Evidence root: parity/evidence/correct/
 import { access, cp, mkdir, readdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises';
-import { createHash } from 'node:crypto';
-import { spawn } from 'node:child_process';
 import { homedir } from 'node:os';
 import { join, relative } from 'node:path';
 
@@ -29,10 +29,7 @@ const SETTLE_MS = 1_200_000;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const stripAnsi = (text) =>
-  text
-    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
-    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
 
 function writeRootFor(side) {
   return join(evidenceRoot, 'fixture-out', side);
@@ -126,33 +123,14 @@ function classifyEncodingLevel(diff, encodingText = '') {
   const paths = [...diff.added, ...diff.changed, ...diff.removed].map((p) => p.replace(/\\/g, '/'));
   const pathBlob = paths.join('\n').toLowerCase();
   const note = (encodingText || '').toLowerCase();
-  const docsOnlyPaths =
-    paths.length > 0 &&
-    paths.every(
-      (p) =>
-        /(^|\/)agents\.md$/i.test(p) ||
-        /(^|\/)readme\.md$/i.test(p) ||
-        /(^|\/)corrections\.md$/i.test(p) ||
-        /\.mdc$/i.test(p),
-    );
+  const docsOnlyPaths = paths.length > 0 && paths.every((p) => /(^|\/)agents\.md$/i.test(p) || /(^|\/)readme\.md$/i.test(p) || /(^|\/)corrections\.md$/i.test(p) || /\.mdc$/i.test(p));
   // Prefer what landed on disk over prose that mentions higher levels as rejected options.
   const architecture =
-    (paths.some((p) => /src\/db\.js$/i.test(p)) &&
-      (diff.removed.some((p) => /src\/db\.js$/i.test(p)) || /hide|rename|internal/i.test(note))) ||
-    (paths.some((p) => /package\.json$/i.test(p)) &&
-      /exports|\"private\"\s*:\s*true/i.test(note) &&
-      !/lint|check-store|scripts\//i.test(pathBlob + note));
-  const lint =
-    paths.some((p) => /^scripts\/.+\.m?js$/i.test(p) || /eslint|biome|lint/i.test(p)) ||
-    /no-restricted-imports|restricted.?import|lint:store|check-store-boundary/i.test(
-      pathBlob + '\n' + note,
-    );
-  const types =
-    paths.some((p) => /\.d\.ts$/i.test(p) || /tsconfig/i.test(p)) ||
-    (/\btypescript\b|\btypecheck\b|\btsc\b/i.test(note) && paths.some((p) => /\.ts$/i.test(p)));
-  const test =
-    paths.some((p) => /^test\/.+\.test\.js$/i.test(p)) ||
-    (/\bnode --test\b|\bnpm test\b/i.test(note) && !lint);
+    (paths.some((p) => /src\/db\.js$/i.test(p)) && (diff.removed.some((p) => /src\/db\.js$/i.test(p)) || /hide|rename|internal/i.test(note))) ||
+    (paths.some((p) => /package\.json$/i.test(p)) && /exports|"private"\s*:\s*true/i.test(note) && !/lint|check-store|scripts\//i.test(pathBlob + note));
+  const lint = paths.some((p) => /^scripts\/.+\.m?js$/i.test(p) || /eslint|biome|lint/i.test(p)) || /no-restricted-imports|restricted.?import|lint:store|check-store-boundary/i.test(pathBlob + '\n' + note);
+  const types = paths.some((p) => /\.d\.ts$/i.test(p) || /tsconfig/i.test(p)) || (/\btypescript\b|\btypecheck\b|\btsc\b/i.test(note) && paths.some((p) => /\.ts$/i.test(p)));
+  const test = paths.some((p) => /^test\/.+\.test\.js$/i.test(p)) || (/\bnode --test\b|\bnpm test\b/i.test(note) && !lint);
   const docs = docsOnlyPaths;
 
   let level = 'none';
@@ -172,7 +150,7 @@ function classifyEncodingLevel(diff, encodingText = '') {
 }
 
 async function runProofCandidate(cwd, command) {
-  if (!command || !command.trim()) return null;
+  if (!command?.trim()) return null;
   const child = spawn(command, {
     cwd,
     shell: true,
@@ -204,21 +182,16 @@ function extractProofCommand(proofText) {
     .split('\n')
     .map((l) => l.trim())
     .find((l) => /^(node|npm|npx|bun|pnpm|yarn|eslint|biome)\b/i.test(l));
-  if (line) return line.replace(/\s+#.*$/, '').replace(/\s+exit.*/i, '').trim();
-  const m = text.match(
-    /\b((?:node|npm|npx|bun|pnpm|yarn|eslint|biome)[^\n]*?(?:past-mistake|check-|test)[^\n]*)/i,
-  );
+  if (line)
+    return line
+      .replace(/\s+#.*$/, '')
+      .replace(/\s+exit.*/i, '')
+      .trim();
+  const m = text.match(/\b((?:node|npm|npx|bun|pnpm|yarn|eslint|biome)[^\n]*?(?:past-mistake|check-|test)[^\n]*)/i);
   return m ? m[1].trim() : null;
 }
 
-function scoreCorrect({
-  screenText,
-  encodingText,
-  proofText,
-  doneLine,
-  diff,
-  proofRun,
-}) {
+function scoreCorrect({ screenText, encodingText, proofText, doneLine, diff, proofRun }) {
   const normalized = stripAnsi(screenText || '');
   const correctSkill =
     /\/correct\b/i.test(normalized) ||
@@ -229,17 +202,9 @@ function scoreCorrect({
     /Encode the mistake at the highest/i.test(normalized) ||
     /highest working level/i.test(normalized);
   const encoding = classifyEncodingLevel(diff, `${encodingText}\n${normalized}\n${proofText}`);
-  const proofMentionsPast =
-    /past-mistake-1/i.test(proofText || '') ||
-    /past-mistake-1/i.test(encodingText || '') ||
-    /past-mistake-1/i.test(normalized);
-  const proofExitClaim =
-    /exit[^0-9]*[1-9]\d*/i.test(proofText || '') ||
-    /non-?zero/i.test(proofText || '') ||
-    /failed/i.test(proofText || '');
-  const proved =
-    Boolean(proofRun?.failedAsExpected) ||
-    (proofMentionsPast && proofExitClaim && Boolean(proofText?.trim()));
+  const proofMentionsPast = /past-mistake-1/i.test(proofText || '') || /past-mistake-1/i.test(encodingText || '') || /past-mistake-1/i.test(normalized);
+  const proofExitClaim = /exit[^0-9]*[1-9]\d*/i.test(proofText || '') || /non-?zero/i.test(proofText || '') || /failed/i.test(proofText || '');
+  const proved = Boolean(proofRun?.failedAsExpected) || (proofMentionsPast && proofExitClaim && Boolean(proofText?.trim()));
   const doneYes = /^correct=yes$/i.test(doneLine || '');
   const doneNo = /^correct=no$/i.test(doneLine || '');
   const doneFail = /^correct=fail$/i.test(doneLine || '');
@@ -298,13 +263,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -367,8 +326,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
     const chatReady =
       !/Trust project folder\?/i.test(text) &&
       (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) &&
-      (/fixture-app|store-boundary|correct|medium|Skill conflicts|README|AGENTS/i.test(text) ||
-        /db\.js|store/i.test(text));
+      (/fixture-app|store-boundary|correct|medium|Skill conflicts|README|AGENTS/i.test(text) || /db\.js|store/i.test(text));
     if (chatReady) return lines;
     await sleep(200);
   }
@@ -448,11 +406,7 @@ async function summarizePiSession(sessionPath) {
       if (part.type === 'toolCall' || part.type === 'tool_use') {
         toolOrder.push(part.name || part.toolName || '');
       }
-      if (
-        part.type === 'text' &&
-        typeof part.text === 'string' &&
-        (msg.role === 'assistant' || o.type === 'message')
-      ) {
+      if (part.type === 'text' && typeof part.text === 'string' && (msg.role === 'assistant' || o.type === 'message')) {
         assistantTexts.push(part.text);
       }
     }
@@ -521,12 +475,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        ['correct', 'architecture', 'lint', 'test', 'past-mistake', 'store.js', 'db.js', 'encode'],
-        900_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['correct', 'architecture', 'lint', 'test', 'past-mistake', 'store.js', 'db.js', 'encode'], 900_000);
     } catch {
       // settle may still land artifacts
     }
@@ -593,19 +542,10 @@ async function runSide(side, ruleBytes, ruleDigest) {
       : null;
 
     const candidates = [fileScore, sessionScore, screenScore, ptyScore].filter(Boolean);
-    const rank = (o) =>
-      Number(o.outcome === 'encoded_with_proof') * 4 +
-      Number(o.aboveDocs) * 2 +
-      Number(o.proved);
+    const rank = (o) => Number(o.outcome === 'encoded_with_proof') * 4 + Number(o.aboveDocs) * 2 + Number(o.proved);
     const bestScore = candidates.sort((a, b) => rank(b) - rank(a))[0] || screenScore;
 
-    const skillActivated = Boolean(
-      screenScore.correctSkill ||
-        ptyScore.correctSkill ||
-        sessionSummary?.skillInjected ||
-        sessionSummary?.promptInjected ||
-        /\/correct\b/i.test(turn),
-    );
+    const skillActivated = Boolean(screenScore.correctSkill || ptyScore.correctSkill || sessionSummary?.skillInjected || sessionSummary?.promptInjected || /\/correct\b/i.test(turn));
 
     // Snapshot fixture after state for the attempt
     const snapshotDir = join(dir, 'fixture-after');

@@ -23,24 +23,8 @@ const piAgentDir = '/tmp/pi-ref-agent';
 const piRulePath = join(piAgentDir, 'pstack', 'models.mdc');
 const evidenceRoot = join(root, 'evidence', 'principles', 'idempotent');
 const fixtureApp = join(evidenceRoot, 'fixture-app');
-const idemSkillCursor = join(
-  root,
-  'reference',
-  'cursor-plugins',
-  'pstack',
-  'skills',
-  'principle-make-operations-idempotent',
-  'SKILL.md',
-);
-const idemSkillPi = join(
-  root,
-  '..',
-  'extensions',
-  'pi-pstack',
-  'skills',
-  'principle-make-operations-idempotent',
-  'SKILL.md',
-);
+const idemSkillCursor = join(root, 'reference', 'cursor-plugins', 'pstack', 'skills', 'principle-make-operations-idempotent', 'SKILL.md');
+const idemSkillPi = join(root, '..', 'extensions', 'pi-pstack', 'skills', 'principle-make-operations-idempotent', 'SKILL.md');
 const GEOMETRY = { rows: 40, cols: 120 };
 const LOCKED_FIXTURE_DIGEST = 'sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004';
 const SETTLE_MS = 1_500_000;
@@ -49,23 +33,11 @@ const PRODUCT_REL = ['src/apply.js'];
 const VERIFY_OUT_REL = 'evidence/verify-out.txt';
 const VERIFY_SCRIPT_REL = 'scripts/verify.mjs';
 const APPLY_SCRIPT_REL = 'scripts/apply.mjs';
-const BASELINE_REL = [
-  ...PRODUCT_REL,
-  'README.md',
-  'NOTES.md',
-  'package.json',
-  VERIFY_SCRIPT_REL,
-  APPLY_SCRIPT_REL,
-  'evidence/.gitkeep',
-  'state/.gitkeep',
-];
+const BASELINE_REL = [...PRODUCT_REL, 'README.md', 'NOTES.md', 'package.json', VERIFY_SCRIPT_REL, APPLY_SCRIPT_REL, 'evidence/.gitkeep', 'state/.gitkeep'];
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const stripAnsi = (text) =>
-  text
-    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
-    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
 
 function writeRootFor(side) {
   return join(evidenceRoot, 'fixture-out', side);
@@ -148,28 +120,14 @@ function isIdemSkillPath(p) {
 function observeIdemText(text, { ignorePromptSlice } = {}) {
   let hay = stripAnsi(text || '');
   if (ignorePromptSlice) hay = hay.split(ignorePromptSlice).join(' ');
-  const potetoMode =
-    /\/poteto-mode\b/i.test(hay) ||
-    /\[skill\]\s*poteto-mode/i.test(hay) ||
-    /\bUsed poteto-mode\b/i.test(hay);
+  const potetoMode = /\/poteto-mode\b/i.test(hay) || /\[skill\]\s*poteto-mode/i.test(hay) || /\bUsed poteto-mode\b/i.test(hay);
   const leafChrome = /principle-make-operations-idempotent[/\\]SKILL\.md/i.test(hay);
   const usedLeaf = /\bUsed principle-make-operations-idempotent\b/i.test(hay);
   const skillBracketLeaf = /\[skill\]\s*principle-make-operations-idempotent\b/i.test(hay);
   const hostAttached = Boolean(usedLeaf || skillBracketLeaf);
-  const failMention =
-    /\bAPPLY-FAIL\b/.test(hay) ||
-    /converge=no/i.test(hay) ||
-    /run counter/i.test(hay);
-  const verifyMention =
-    /scripts\/verify\.mjs/i.test(hay) ||
-    /evidence\/verify-out\.txt/i.test(hay) ||
-    /\bAPPLY-OK\b/.test(hay) ||
-    /\bAPPLY-FAIL\b/.test(hay);
-  const crashMention =
-    /CRASH_AFTER/i.test(hay) ||
-    /mid-?crash/i.test(hay) ||
-    /partial prior/i.test(hay) ||
-    /converge/i.test(hay);
+  const failMention = /\bAPPLY-FAIL\b/.test(hay) || /converge=no/i.test(hay) || /run counter/i.test(hay);
+  const verifyMention = /scripts\/verify\.mjs/i.test(hay) || /evidence\/verify-out\.txt/i.test(hay) || /\bAPPLY-OK\b/.test(hay) || /\bAPPLY-FAIL\b/.test(hay);
+  const crashMention = /CRASH_AFTER/i.test(hay) || /mid-?crash/i.test(hay) || /partial prior/i.test(hay) || /converge/i.test(hay);
   const working = /[\u2800-\u28FF]/.test(hay) || /\bWorking\b/.test(hay);
   return {
     potetoMode,
@@ -226,14 +184,7 @@ function extractToolCallsFromJsonl(text) {
 }
 
 function pathFromArgs(args) {
-  return (
-    args.path ||
-    args.file_path ||
-    args.filePath ||
-    args.target_file ||
-    args.file ||
-    null
-  );
+  return args.path || args.file_path || args.filePath || args.target_file || args.file || null;
 }
 
 function isProductPath(p) {
@@ -265,27 +216,21 @@ function scoreCallsForIdem(calls) {
     const args = call.args || {};
     const blob = JSON.stringify(args);
     const path = pathFromArgs(args);
-    const isRead =
-      /^(Read|read|read_file|ReadFile|cat|blob-mention)$/i.test(name) ||
-      (name === 'bash' && typeof args.command === 'string' && /\bcat\b/.test(args.command));
+    const isRead = /^(Read|read|read_file|ReadFile|cat|blob-mention)$/i.test(name) || (name === 'bash' && typeof args.command === 'string' && /\bcat\b/.test(args.command));
     if (isRead && isIdemSkillPath(path || blob)) {
       leafSkillRead = true;
       if (!leafSkillReadAt) leafSkillReadAt = call.ts || new Date().toISOString();
       toolOrder.push(`${name}(idempotent-leaf)`);
       continue;
     }
-    const verifyHit =
-      /\bscripts\/verify\.mjs\b/i.test(blob) ||
-      (typeof args.command === 'string' && /verify\.mjs/.test(args.command));
+    const verifyHit = /\bscripts\/verify\.mjs\b/i.test(blob) || (typeof args.command === 'string' && /verify\.mjs/.test(args.command));
     if (verifyHit) {
       ranVerifyScript = true;
       if (!firstVerifyAt) firstVerifyAt = call.ts || new Date().toISOString();
       toolOrder.push(`${name}(verify.mjs)`);
       continue;
     }
-    const crashHit =
-      /CRASH_AFTER\s*=\s*1/.test(blob) ||
-      (typeof args.command === 'string' && /CRASH_AFTER=1/.test(args.command));
+    const crashHit = /CRASH_AFTER\s*=\s*1/.test(blob) || (typeof args.command === 'string' && /CRASH_AFTER=1/.test(args.command));
     if (crashHit) {
       ranCrashProof = true;
       toolOrder.push(`${name}(crash-after)`);
@@ -310,62 +255,27 @@ function scoreCallsForIdem(calls) {
 }
 
 export function analyzeApplySource(applySrc) {
-  const stillIncrementsRun =
-    /prev\.run\s*\+\s*1/.test(applySrc || '') ||
-    /run\s*=\s*.*\+\s*1/.test(applySrc || '') ||
-    /\brun\s*\+\s*1\b/.test(applySrc || '');
-  const fixedToken =
-    /token\s*:\s*['"]v1['"]/.test(applySrc || '') ||
-    /payload\s*:\s*['"]DEPLOYED['"]/.test(applySrc || '');
+  const stillIncrementsRun = /prev\.run\s*\+\s*1/.test(applySrc || '') || /run\s*=\s*.*\+\s*1/.test(applySrc || '') || /\brun\s*\+\s*1\b/.test(applySrc || '');
+  const fixedToken = /token\s*:\s*['"]v1['"]/.test(applySrc || '') || /payload\s*:\s*['"]DEPLOYED['"]/.test(applySrc || '');
   const writesFinal = /final\.json/.test(applySrc || '');
   const keepsCrashHook = /crashAfter\s*===\s*1/.test(applySrc || '') || /CRASH_AFTER_STEP_1/.test(applySrc || '');
   const convergent = writesFinal && keepsCrashHook && !stillIncrementsRun;
   return { stillIncrementsRun, fixedToken, writesFinal, keepsCrashHook, convergent };
 }
 
-export function scoreIdempotent({
-  frontmatter,
-  done,
-  verifyOut,
-  productOk,
-  productAnalysis,
-  screenText,
-  ptyText,
-  sessionScore,
-  transcriptScore,
-  prompt,
-}) {
+export function scoreIdempotent({ frontmatter, done, verifyOut, productOk, productAnalysis, screenText, ptyText, sessionScore, transcriptScore, prompt }) {
   const screen = observeIdemText(screenText, { ignorePromptSlice: prompt });
   const pty = observeIdemText(ptyText, { ignorePromptSlice: prompt });
-  const leafSkillRead = Boolean(
-    sessionScore?.leafSkillRead ||
-      transcriptScore?.leafSkillRead ||
-      screen.leafChrome ||
-      pty.leafChrome,
-  );
+  const leafSkillRead = Boolean(sessionScore?.leafSkillRead || transcriptScore?.leafSkillRead || screen.leafChrome || pty.leafChrome);
   const usedChrome = Boolean(screen.hostAttached || pty.hostAttached || sessionScore?.hostAttached);
   const modelAutoInvoke = usedChrome && !leafSkillRead;
-  const ranVerifyScript = Boolean(
-    sessionScore?.ranVerifyScript ||
-      transcriptScore?.ranVerifyScript ||
-      screen.verifyMention ||
-      pty.verifyMention,
-  );
+  const ranVerifyScript = Boolean(sessionScore?.ranVerifyScript || transcriptScore?.ranVerifyScript || screen.verifyMention || pty.verifyMention);
   const convergeOk = Boolean(verifyOut?.ok);
   const convergentFix = Boolean(productAnalysis?.convergent);
   const stillIncrementsRun = Boolean(productAnalysis?.stillIncrementsRun);
   const verifiedDone = /^verified=yes\b/i.test((done?.line || '').trim());
   const frontmatterOk = Boolean(frontmatter?.ok);
-  const contractHeld =
-    frontmatterOk &&
-    leafSkillRead &&
-    ranVerifyScript &&
-    convergeOk &&
-    convergentFix &&
-    !stillIncrementsRun &&
-    productOk &&
-    verifiedDone &&
-    !modelAutoInvoke;
+  const contractHeld = frontmatterOk && leafSkillRead && ranVerifyScript && convergeOk && convergentFix && !stillIncrementsRun && productOk && verifiedDone && !modelAutoInvoke;
   return {
     frontmatterOk,
     leafSkillRead,
@@ -484,13 +394,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -544,10 +448,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
       await sleep(800);
       continue;
     }
-    const chatReady =
-      !/Trust project folder\?/i.test(text) &&
-      (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) &&
-      (/idempotent|apply|README|medium|Skill conflicts|Session TTL|fixture-app/i.test(text));
+    const chatReady = !/Trust project folder\?/i.test(text) && (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) && /idempotent|apply|README|medium|Skill conflicts|Session TTL|fixture-app/i.test(text);
     if (chatReady) return lines;
     await sleep(200);
   }
@@ -584,9 +485,7 @@ async function summarizePiSession(sessionPath) {
   const text = await readFile(sessionPath, 'utf8');
   const calls = extractToolCallsFromJsonl(text);
   const scored = scoreCallsForIdem(calls);
-  const hostAttached =
-    /\bUsed principle-make-operations-idempotent\b/i.test(text) ||
-    /\[skill\]\s*principle-make-operations-idempotent\b/i.test(text);
+  const hostAttached = /\bUsed principle-make-operations-idempotent\b/i.test(text) || /\[skill\]\s*principle-make-operations-idempotent\b/i.test(text);
   const failMention = /\bAPPLY-FAIL\b/.test(text) || /converge=no/i.test(text);
   return { sessionPath, hostAttached, failMention, ...scored };
 }
@@ -616,9 +515,7 @@ async function findCursorTranscripts(sinceMs, side) {
         } catch {
           continue;
         }
-        const mentionsThisAttempt =
-          text.includes(doneAbs) ||
-          (text.includes(`idempotent/fixture-out/${side}/done.txt`) && text.includes('apply'));
+        const mentionsThisAttempt = text.includes(doneAbs) || (text.includes(`idempotent/fixture-out/${side}/done.txt`) && text.includes('apply'));
         if (mentionsThisAttempt) hits.push({ path: abs, mtimeMs: st.mtimeMs, size: st.size });
       }
     }
@@ -642,11 +539,8 @@ async function summarizeCursorTranscripts(sinceMs, side) {
       leafSkillRead: scored.leafSkillRead || leafInBlob,
       failMention,
     };
-    const rank =
-      (merged.leafSkillRead ? 4 : 0) + (merged.ranVerifyScript ? 2 : 0) + (merged.convergent ? 0 : 0);
-    const bestRank = best
-      ? (best.leafSkillRead ? 4 : 0) + (best.ranVerifyScript ? 2 : 0)
-      : -1;
+    const rank = (merged.leafSkillRead ? 4 : 0) + (merged.ranVerifyScript ? 2 : 0) + (merged.convergent ? 0 : 0);
+    const bestRank = best ? (best.leafSkillRead ? 4 : 0) + (best.ranVerifyScript ? 2 : 0) : -1;
     if (!best || rank > bestRank || (rank === bestRank && hit.mtimeMs > (best.mtimeMs || 0))) {
       best = { ...merged, mtimeMs: hit.mtimeMs };
     }
@@ -722,21 +616,7 @@ async function runSide(side, ruleBytes, ruleDigest, frontmatter) {
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        [
-          'poteto-mode',
-          'apply.js',
-          'verify',
-          'APPLY-OK',
-          'APPLY-FAIL',
-          'principle-make-operations-idempotent',
-          'converge',
-          'CRASH_AFTER',
-        ],
-        300_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['poteto-mode', 'apply.js', 'verify', 'APPLY-OK', 'APPLY-FAIL', 'principle-make-operations-idempotent', 'converge', 'CRASH_AFTER'], 300_000);
     } catch {
       // settle may still land artifacts
     }
@@ -846,15 +726,7 @@ async function runSide(side, ruleBytes, ruleDigest, frontmatter) {
 
     const snapDir = join(attempt.dir, 'fixture-snapshot');
     await mkdir(snapDir, { recursive: true });
-    for (const rel of [
-      'src/apply.js',
-      'README.md',
-      'NOTES.md',
-      'package.json',
-      VERIFY_SCRIPT_REL,
-      APPLY_SCRIPT_REL,
-      VERIFY_OUT_REL,
-    ]) {
+    for (const rel of ['src/apply.js', 'README.md', 'NOTES.md', 'package.json', VERIFY_SCRIPT_REL, APPLY_SCRIPT_REL, VERIFY_OUT_REL]) {
       const abs = join(fixtureApp, rel);
       if (!(await pathExists(abs))) continue;
       const dest = join(snapDir, rel);
@@ -988,10 +860,7 @@ if (isMain) {
     results.push(result);
     console.log(JSON.stringify(result));
   }
-  await writeFile(
-    join(evidenceRoot, 'capture-results.json'),
-    `${JSON.stringify({ scenario: 'prin-idempotent', fixtureDigest: preDigest, frontmatter, results }, null, 2)}\n`,
-  );
+  await writeFile(join(evidenceRoot, 'capture-results.json'), `${JSON.stringify({ scenario: 'prin-idempotent', fixtureDigest: preDigest, frontmatter, results }, null, 2)}\n`);
   console.log(
     JSON.stringify({
       scenario: 'prin-idempotent',

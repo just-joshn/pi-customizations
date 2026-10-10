@@ -24,17 +24,8 @@ const referenceRulePath = join(homedir(), '.cursor', 'rules', 'pstack-models.mdc
 const piAgentDir = '/tmp/pi-ref-agent';
 const piRulePath = join(piAgentDir, 'pstack', 'models.mdc');
 const evidenceRoot = join(root, 'evidence', 'consumer');
-const toolsCwd = join(
-  root,
-  'reference',
-  'cursor-plugins',
-  'pstack',
-  'skills',
-  'poteto-mode',
-  'scripts',
-);
-const consumerPath =
-  'parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/package.json';
+const toolsCwd = join(root, 'reference', 'cursor-plugins', 'pstack', 'skills', 'poteto-mode', 'scripts');
+const consumerPath = 'parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/package.json';
 const GEOMETRY = { rows: 36, cols: 120 };
 const LOCKED_FIXTURE_DIGEST = 'sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004';
 const LOCKED_CONSUMER_DIGEST = 'd1f815091209d49763775cc188e8e06ff32d5fec648bffd2272bc25a165e87c3';
@@ -98,13 +89,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: toolsCwd,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -149,10 +134,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
       await sleep(800);
       continue;
     }
-    if (
-      !/Trust project folder\?/i.test(text) &&
-      (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text))
-    ) {
+    if (!/Trust project folder\?/i.test(text) && (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text))) {
       return lines;
     }
     await sleep(200);
@@ -195,9 +177,7 @@ async function waitBunTestSettled(attempt, side, timeoutMs) {
 
 async function readBunTypesVersion() {
   try {
-    const pkg = JSON.parse(
-      await readFile(join(toolsCwd, 'node_modules', 'bun-types', 'package.json'), 'utf8'),
-    );
+    const pkg = JSON.parse(await readFile(join(toolsCwd, 'node_modules', 'bun-types', 'package.json'), 'utf8'));
     return typeof pkg.version === 'string' ? pkg.version : null;
   } catch {
     return null;
@@ -251,16 +231,9 @@ async function runSide(side, ruleBytes, ruleDigest) {
       consumerMatchesLocked: consumerHex === LOCKED_CONSUMER_DIGEST,
       bunTypesVersion,
       bunTypesMatchesLocked: bunTypesVersion === LOCKED_BUN_TYPES_VERSION,
-      journeyClosed:
-        bunTestChromeOk(settled.observations) &&
-        settled.doneOk &&
-        consumerHex === LOCKED_CONSUMER_DIGEST &&
-        bunTypesVersion === LOCKED_BUN_TYPES_VERSION,
+      journeyClosed: bunTestChromeOk(settled.observations) && settled.doneOk && consumerHex === LOCKED_CONSUMER_DIGEST && bunTypesVersion === LOCKED_BUN_TYPES_VERSION,
     };
-    await writeFile(
-      join(dir, 'observations-bun-test.json'),
-      `${JSON.stringify(observations, null, 2)}\n`,
-    );
+    await writeFile(join(dir, 'observations-bun-test.json'), `${JSON.stringify(observations, null, 2)}\n`);
     return {
       side,
       attemptDir: attempt.dir,
@@ -315,24 +288,16 @@ if (bySide.cursor && bySide.pi) {
       packageId: 'npm:bun-types@1.3.14',
       activation: 'test',
       consumerPath,
-      acceptanceJourney:
-        'Paired journey proving bun test orch watch-pr under locked bun-types',
+      acceptanceJourney: 'Paired journey proving bun test orch watch-pr under locked bun-types',
       alsoCloses: {
         packageId: 'npm:bun-types@1.3.14',
         activation: 'test/typecheck',
-        reason:
-          'package.json scripts.test is exactly "bun test orch watch-pr"; not a distinct command from the test activation row',
+        reason: 'package.json scripts.test is exactly "bun test orch watch-pr"; not a distinct command from the test activation row',
       },
     },
     fixtureDigest: preDigest,
-    promptSharedShape:
-      'In this cwd, run exactly: bun run test; write EXIT=0 to side-specific done path',
-    steps: [
-      { send: 'bun run test … EXIT=0 …' },
-      { send: '\r' },
-      { settle: true },
-      { cancel: true },
-    ],
+    promptSharedShape: 'In this cwd, run exactly: bun run test; write EXIT=0 to side-specific done path',
+    steps: [{ send: 'bun run test … EXIT=0 …' }, { send: '\r' }, { settle: true }, { cancel: true }],
     cursor: {
       attemptId: bySide.cursor.attemptId,
       dir: bySide.cursor.attemptDir,
@@ -349,9 +314,7 @@ if (bySide.cursor && bySide.pi) {
       observedEnv: bySide.pi.observedEnv,
       observations: bySide.pi.observations,
     },
-    pairClosed:
-      bySide.cursor.observations.journeyClosed === true &&
-      bySide.pi.observations.journeyClosed === true,
+    pairClosed: bySide.cursor.observations.journeyClosed === true && bySide.pi.observations.journeyClosed === true,
     provenance: {
       capturedWith: `parity/scripts/capture-consumer-bun-test.mjs ${only}`,
       toolsCwd,

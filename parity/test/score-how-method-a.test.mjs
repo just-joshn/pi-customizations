@@ -1,12 +1,11 @@
-import { mkdir, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
-import { tmpdir } from 'node:os';
 import { execFile } from 'node:child_process';
-import { promisify } from 'node:util';
+import { mkdir, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { promisify } from 'node:util';
 
 import { expect, test } from 'vitest';
-
 import { runCli, scorePlaintext } from '../scripts/score-how-method-a.mjs';
 
 const execute = promisify(execFile);
@@ -23,10 +22,7 @@ const out = (seq, text) => ({
 async function writeAttempt(events) {
   const dir = join(tmpdir(), `how-method-a-${Date.now()}-${Math.random().toString(16).slice(2)}`);
   await mkdir(dir, { recursive: true });
-  await writeFile(
-    join(dir, 'identity.json'),
-    `${JSON.stringify({ schema: 1, attemptId: 'test', side: 'fixture' }, null, 2)}\n`,
-  );
+  await writeFile(join(dir, 'identity.json'), `${JSON.stringify({ schema: 1, attemptId: 'test', side: 'fixture' }, null, 2)}\n`);
   await writeFile(join(dir, 'events.jsonl'), `${events.map((event) => JSON.stringify(event)).join('\n')}\n`);
   return dir;
 }

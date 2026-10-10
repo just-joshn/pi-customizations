@@ -7,7 +7,6 @@ const WS_CHARS = '\\t\\n\\v\\f\\r\\x1c-\\x1f \\x85\\xa0\\u1680\\u2000-\\u200a\\u
 /** Python `\s` for str patterns. */
 export const S = `[${WS_CHARS}]`;
 /** Python `\w` for str patterns (requires the `u` flag). */
-// biome-ignore lint/security/noSecrets: regex character class, not a credential
 export const W = '[\\p{L}\\p{N}_]';
 
 const LEADING_WS = new RegExp(`^${S}+`, 'u');

@@ -1,5 +1,7 @@
 # Latest pstack parity audit
 
+> Historical 0.15.7 run. For live inventory and discovery counts, use [current-source-parity.md](current-source-parity.md) and the package README. Current package (0.15.15 / Pi 1.1.0): `bun run check:resources` reports 193 upstream files and 215 generated resources; discovery is 73 skills and 71 templates.
+
 ## Scope and completion rule
 
 The source for this update is `~/src/experiments/plugins/pstack` at commit `9511e60321f7e533a187d62854a3d53a53752874`, version 0.15.7. The previous package pinned `ecc249f1e306fc64ddf83c7bed16cacf7c2239db`, version 0.15.5. The upstream delta contains 19 changed files, including three new skills. The team-kit dependency has no changed files between those revisions.
@@ -42,7 +44,7 @@ The existing snapshot uses generic host names. This update retains `Cursor` to `
 
 The first full comparison examined 161 pstack source files. After the base substitutions, 152 matched. The nine remaining differences already existed outside the latest delta. They are lowercase host-name substitutions in the Benny documentation and why skill, the helper package scope, and the restored GraphQL `endCursor` literal and matching helper fields. `scripts/check-latest-source.mjs` now names those legacy adaptations explicitly and verifies all 161 files against the actual pinned Git tree. Four isolated Git-fixture tests cover normalization, binary preservation, content drift, missing inventory, and invalid revision rejection. These files must not be described as pristine original source bytes.
 
-`bun run check:resources` verifies 190 preserved files across pstack and team-kit and 211 generated resources. Native discovery includes 71 skills and 69 prompt templates when host resources are included.
+At the time of the 0.15.7 run, `bun run check:resources` verified 190 preserved files and 211 generated resources, with 71 skills and 69 prompt templates when host resources were included. Those figures are historical. The current package reports 193 upstream files, 215 generated resources, 73 skills, and 71 templates (see the banner above).
 
 ## Verification record
 
@@ -70,7 +72,7 @@ The clause ledger keeps its existing verdicts and ownership ranges. Evidence poi
 
 The user accepted verified Pi-native parity for the latest upstream changes, with external-service and proprietary-host limits documented. This supersedes the interim request to replace all cloud facilities locally. The seven external clauses stay external. They are not reclassified as verified, and this release does not claim absolute parity with proprietary hosted services.
 
-The final cross-family review verified the current test and audit artifacts and reported no code-correctness, security, or Pi-ownership defects. Its one actionable documentation finding was the root README version and discovery counts. Those now match 0.15.7, 71 skills, and 69 prompt templates. Local review receipts are retained in `.audit/latest-pstack/trail-review-final.txt`.
+The final cross-family review verified the current test and audit artifacts and reported no code-correctness, security, or Pi-ownership defects. Its one actionable documentation finding was the root README version and discovery counts. For that 0.15.7 acceptance they matched 71 skills and 69 prompt templates. The package README now tracks 0.15.15 with 73 skills and 71 templates. Local review receipts are retained in `.audit/latest-pstack/trail-review-final.txt`.
 
 ## Remaining limits
 

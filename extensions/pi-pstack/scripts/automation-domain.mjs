@@ -33,10 +33,7 @@ export const AutomationSchema = Type.Object(
 );
 
 function canonicalBody(input) {
-  const trigger =
-    input.trigger.type === 'webhook'
-      ? { type: 'webhook', fields: [...input.trigger.fields].sort(), port: input.trigger.port }
-      : { type: 'slack.top_level', channelId: input.trigger.channelId };
+  const trigger = input.trigger.type === 'webhook' ? { type: 'webhook', fields: [...input.trigger.fields].sort(), port: input.trigger.port } : { type: 'slack.top_level', channelId: input.trigger.channelId };
   const body = {
     name: input.name.trim(),
     description: input.description,

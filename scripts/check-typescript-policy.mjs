@@ -21,7 +21,6 @@ const preservedRoots = [
   'parity/research/',
 ];
 const helperConfig = 'extensions/pi-pstack/test/helpers/tsconfig.json';
-// biome-ignore lint/security/noSecrets: Public TypeScript option names are not credentials.
 const helperExceptions = new Set(['noPropertyAccessFromIndexSignature', 'erasableSyntaxOnly', 'noUncheckedIndexedAccess']);
 const localPath = (root, path) => relative(root, path).replaceAll('\\', '/');
 const isPreserved = (root, path) => preservedRoots.some((prefix) => localPath(root, path).startsWith(prefix));

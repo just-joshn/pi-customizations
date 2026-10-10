@@ -26,10 +26,7 @@ const SETTLE_MS = 1_500_000;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const stripAnsi = (text) =>
-  text
-    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
-    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
 
 function writeRootFor(side) {
   return join(evidenceRoot, 'fixture-out', side);
@@ -52,7 +49,7 @@ function donePath(side) {
 }
 
 function arenaPrompt(side) {
-  const out = writeRootFor(side);
+  const _out = writeRootFor(side);
   const cands = candidatesRoot(side);
   const synthNote = synthesisPath(side);
   const synthCode = synthesizedPath(side);
@@ -96,51 +93,14 @@ async function listCandidateDirs(side) {
   return dirs.sort((a, b) => a.name.localeCompare(b.name));
 }
 
-export function scoreArena({
-  synthesisText,
-  synthesizedText,
-  doneLine,
-  screenText,
-  ptyText,
-  sessionSummary,
-  candidateDirs,
-}) {
-  const blobs = [synthesisText || '', screenText || '', ptyText || '', sessionSummary?.assistantJoined || ''].join(
-    '\n\n---\n\n',
-  );
+export function scoreArena({ synthesisText, synthesizedText, doneLine, screenText, ptyText, sessionSummary, candidateDirs }) {
+  const blobs = [synthesisText || '', screenText || '', ptyText || '', sessionSummary?.assistantJoined || ''].join('\n\n---\n\n');
   const candidateCountOnDisk = (candidateDirs || []).filter((c) => c.hasCode || c.hasRationale).length;
-  const fanoutPatterns = [
-    /\bFan(?:\s|-)?out\b/i,
-    /\bcandidate[-_\s]?[12]\b/i,
-    /\bN\s*=\s*[23]\b/i,
-    /\bparallel candidates?\b/i,
-    /\barena runners?\b/i,
-    /\bspawn(?:ed)?\s+(?:two|2|three|3)\b/i,
-  ];
-  const basePatterns = [
-    /\bBase\b\s*[:#]/i,
-    /\bpicked?\s+(?:the\s+)?base\b/i,
-    /\bbase candidate\b/i,
-    /\bchose\s+c[12]\b/i,
-    /\bpick(?:ed)?\s+c[12]\b/i,
-  ];
-  const graftPatterns = [
-    /\bGrafts?\b\s*[:#]/i,
-    /\bgrafted\b/i,
-    /\bfrom candidate\b/i,
-    /\bfrom c[12]\b/i,
-    /\bport(?:ed)?\s+from\b/i,
-  ];
-  const noneNeededPatterns = [
-    /\bno graft (?:is )?needed\b/i,
-    /\bgraft=none-needed\b/i,
-    /\bconverg(?:ed|ence)\b/i,
-  ];
-  const verifyPatterns = [
-    /\bverif(?:y|ied|ication)\b/i,
-    /\bprove it works\b/i,
-    /\bself-?test\b/i,
-  ];
+  const fanoutPatterns = [/\bFan(?:\s|-)?out\b/i, /\bcandidate[-_\s]?[12]\b/i, /\bN\s*=\s*[23]\b/i, /\bparallel candidates?\b/i, /\barena runners?\b/i, /\bspawn(?:ed)?\s+(?:two|2|three|3)\b/i];
+  const basePatterns = [/\bBase\b\s*[:#]/i, /\bpicked?\s+(?:the\s+)?base\b/i, /\bbase candidate\b/i, /\bchose\s+c[12]\b/i, /\bpick(?:ed)?\s+c[12]\b/i];
+  const graftPatterns = [/\bGrafts?\b\s*[:#]/i, /\bgrafted\b/i, /\bfrom candidate\b/i, /\bfrom c[12]\b/i, /\bport(?:ed)?\s+from\b/i];
+  const noneNeededPatterns = [/\bno graft (?:is )?needed\b/i, /\bgraft=none-needed\b/i, /\bconverg(?:ed|ence)\b/i];
+  const verifyPatterns = [/\bverif(?:y|ied|ication)\b/i, /\bprove it works\b/i, /\bself-?test\b/i];
 
   const fanoutText = fanoutPatterns.some((re) => re.test(blobs));
   const baseText = basePatterns.some((re) => re.test(synthesisText || '') || re.test(blobs));
@@ -151,28 +111,15 @@ export function scoreArena({
   const toolOrder = sessionSummary?.toolOrder || [];
   const toolNames = toolOrder.map((t) => String(t).toLowerCase());
   const taskCount = toolNames.filter((n) => n === 'task' || n === 'agent').length;
-  const arenaSkill =
-    /\/arena\b/i.test(blobs) ||
-    /\[skill\]\s*arena/i.test(blobs) ||
-    /\bUsed arena\b/i.test(blobs) ||
-    Boolean(sessionSummary?.arenaSkillInjected);
+  const arenaSkill = /\/arena\b/i.test(blobs) || /\[skill\]\s*arena/i.test(blobs) || /\bUsed arena\b/i.test(blobs) || Boolean(sessionSummary?.arenaSkillInjected);
 
   const doneParsed = parseDoneLine(doneLine);
-  const fanout =
-    candidateCountOnDisk >= 2 ||
-    taskCount >= 2 ||
-    fanoutText ||
-    doneParsed.fanout === 'yes';
-  const base =
-    Boolean(synthesizedText && synthesizedText.trim()) &&
-    (baseText || doneParsed.base === 'yes' || /base/i.test(synthesisText || ''));
+  const fanout = candidateCountOnDisk >= 2 || taskCount >= 2 || fanoutText || doneParsed.fanout === 'yes';
+  const base = Boolean(synthesizedText?.trim()) && (baseText || doneParsed.base === 'yes' || /base/i.test(synthesisText || ''));
   let graft = 'no';
   if (graftText || doneParsed.graft === 'yes') graft = 'yes';
   else if (noneNeeded || doneParsed.graft === 'none-needed') graft = 'none-needed';
-  const verify =
-    verifyText ||
-    doneParsed.verify === 'yes' ||
-    Boolean(synthesizedText && synthesizedText.trim() && synthesisText && synthesisText.trim());
+  const verify = verifyText || doneParsed.verify === 'yes' || Boolean(synthesizedText?.trim() && synthesisText?.trim());
 
   const contractOk = Boolean(fanout && base && (graft === 'yes' || graft === 'none-needed') && verify);
 
@@ -207,11 +154,9 @@ function parseDoneLine(line) {
 }
 
 function observeSignals(text) {
-  const arenaSkill =
-    /\/arena\b/i.test(text) || /\[skill\]\s*arena/i.test(text) || /\bUsed arena\b/i.test(text);
+  const arenaSkill = /\/arena\b/i.test(text) || /\[skill\]\s*arena/i.test(text) || /\bUsed arena\b/i.test(text);
   const working = /[\u2800-\u28FF]/.test(text) || /\bWorking\b/.test(text);
-  const fanoutChrome =
-    /\bFan(?:\s|-)?out\b/i.test(text) || /\bcandidate[-_\s]?[12]\b/i.test(text) || /\bPhase B\b/i.test(text);
+  const fanoutChrome = /\bFan(?:\s|-)?out\b/i.test(text) || /\bcandidate[-_\s]?[12]\b/i.test(text) || /\bPhase B\b/i.test(text);
   const baseChrome = /\bBase\b\s*[:#]/i.test(text) || /\bPick(?:ed)?\b/i.test(text);
   const graftChrome = /\bGraft/i.test(text);
   return { arenaSkill, working, fanoutChrome, baseChrome, graftChrome };
@@ -240,13 +185,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -390,12 +329,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        ['arena', 'Fan', 'candidate', 'Frame', 'parseQuery', 'Base', 'Graft'],
-        300_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['arena', 'Fan', 'candidate', 'Frame', 'parseQuery', 'Base', 'Graft'], 300_000);
     } catch {
       // settle may still land artifacts
     }
@@ -410,10 +344,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
       const synthesized = await readOptional(synthesizedPath(side));
       const done = await readOptional(donePath(side));
       const cands = await listCandidateDirs(side);
-      const enough =
-        (synthesis.exists && synthesized.exists) ||
-        done.exists ||
-        (cands.filter((c) => c.hasCode).length >= 2 && synthesis.exists);
+      const enough = (synthesis.exists && synthesized.exists) || done.exists || (cands.filter((c) => c.hasCode).length >= 2 && synthesis.exists);
       if (enough && !obs.working) {
         calm += 1;
         if (calm >= 3) break;
@@ -462,9 +393,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
       candidateDirs,
       synthesis,
       synthesized,
-      done: done.exists
-        ? { exists: true, path: done.path, line: (done.text || '').trim() }
-        : { exists: false, path: done.path, line: null },
+      done: done.exists ? { exists: true, path: done.path, line: (done.text || '').trim() } : { exists: false, path: done.path, line: null },
       scoring,
       session: sessionSummary
         ? {
@@ -511,8 +440,7 @@ if (preDigest !== LOCKED_FIXTURE_DIGEST) {
 
 if (only === '--self-test') {
   const pass = scoreArena({
-    synthesisText:
-      '## Synthesis\n**Base:** c1\n**Grafts:** URLSearchParams edge handling from c2\n**Verification:** node -e checks pass\n',
+    synthesisText: '## Synthesis\n**Base:** c1\n**Grafts:** URLSearchParams edge handling from c2\n**Verification:** node -e checks pass\n',
     synthesizedText: 'export function parseQuery(qs) { return {}; }\n',
     doneLine: 'fanout=yes base=yes graft=yes verify=yes candidates=2',
     screenText: 'Fan out 2 candidates\nPick base c1\nGraft from c2',

@@ -13,7 +13,7 @@ const BG_SHELL_STOP = 'Background' + 'ShellStop';
 
 type ToolMock = {
   name: string;
-  execute: (id?: string, params?: unknown, signal?: unknown, update?: unknown, ctx?: unknown) => Promise<{ details: unknown }>;
+  execute: (id?: string, params?: unknown, signal?: unknown, update?: unknown, ctx?: unknown) => Promise<{ content?: { type: string; text: string }[]; details: unknown; structuredContent?: unknown }>;
 };
 type Listener = (...args: unknown[]) => unknown;
 
@@ -88,10 +88,22 @@ test('registerShells stops a started shell on request', async () => {
     expect(started.details.title).toBe('long-running');
     expect(started.details.pattern).toBe('^tick');
     expect(started.details.status).toEqual({ kind: 'running' });
-    const listed = (await tools.get(BG_SHELL_LIST)?.execute()) as { details: Array<{ id: string }> };
+    const listed = (await tools.get(BG_SHELL_LIST)?.execute()) as {
+      content: { type: string; text: string }[];
+      details: Array<{ id: string }>;
+      structuredContent: unknown;
+    };
     expect(listed.details.map((record) => record.id)).toEqual([started.details.id]);
-    const stopped = (await tools.get(BG_SHELL_STOP)?.execute('2', { id: started.details.id })) as { details: { status: unknown } };
+    expect(listed.content[0]?.text).toBe(JSON.stringify(listed.details));
+    expect(listed.structuredContent).toEqual(listed.details);
+    const stopped = (await tools.get(BG_SHELL_STOP)?.execute('2', { id: started.details.id })) as {
+      content: { type: string; text: string }[];
+      details: { status: unknown };
+      structuredContent: unknown;
+    };
     expect(stopped.details.status).toEqual({ kind: 'stopped' });
+    expect(stopped.content[0]?.text).toBe(JSON.stringify(stopped.details));
+    expect(stopped.structuredContent).toEqual(stopped.details);
     expect(() => process.kill(started.details.pid, 0)).toThrow(/ESRCH/);
   } finally {
     await shutdown?.({ type: 'session_shutdown', reason: 'quit' }, ctx);

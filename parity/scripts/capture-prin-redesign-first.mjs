@@ -23,24 +23,8 @@ const piAgentDir = '/tmp/pi-ref-agent';
 const piRulePath = join(piAgentDir, 'pstack', 'models.mdc');
 const evidenceRoot = join(root, 'evidence', 'principles', 'redesign-first');
 const fixtureApp = join(evidenceRoot, 'fixture-app');
-const redesignSkillCursor = join(
-  root,
-  'reference',
-  'cursor-plugins',
-  'pstack',
-  'skills',
-  'principle-redesign-from-first-principles',
-  'SKILL.md',
-);
-const redesignSkillPi = join(
-  root,
-  '..',
-  'extensions',
-  'pi-pstack',
-  'skills',
-  'principle-redesign-from-first-principles',
-  'SKILL.md',
-);
+const redesignSkillCursor = join(root, 'reference', 'cursor-plugins', 'pstack', 'skills', 'principle-redesign-from-first-principles', 'SKILL.md');
+const redesignSkillPi = join(root, '..', 'extensions', 'pi-pstack', 'skills', 'principle-redesign-from-first-principles', 'SKILL.md');
 const GEOMETRY = { rows: 40, cols: 120 };
 const LOCKED_FIXTURE_DIGEST = 'sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004';
 const SETTLE_MS = 1_500_000;
@@ -49,21 +33,11 @@ const PRODUCT_REL = ['src/product.js'];
 const DOC_REL = ['README.md', 'NOTES.md', 'docs/price.md'];
 const VERIFY_OUT_REL = 'evidence/verify-out.txt';
 const VERIFY_SCRIPT_REL = 'scripts/verify.mjs';
-const BASELINE_REL = [
-  ...PRODUCT_REL,
-  ...DOC_REL,
-  'package.json',
-  VERIFY_SCRIPT_REL,
-  'evidence/.gitkeep',
-  'out/.gitkeep',
-];
+const BASELINE_REL = [...PRODUCT_REL, ...DOC_REL, 'package.json', VERIFY_SCRIPT_REL, 'evidence/.gitkeep', 'out/.gitkeep'];
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const stripAnsi = (text) =>
-  text
-    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
-    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
 
 function writeRootFor(side) {
   return join(evidenceRoot, 'fixture-out', side);
@@ -157,25 +131,13 @@ function isDocPath(p) {
 function observeRedesignText(text, { ignorePromptSlice } = {}) {
   let hay = stripAnsi(text || '');
   if (ignorePromptSlice) hay = hay.split(ignorePromptSlice).join(' ');
-  const potetoMode =
-    /\/poteto-mode\b/i.test(hay) ||
-    /\[skill\]\s*poteto-mode/i.test(hay) ||
-    /\bUsed poteto-mode\b/i.test(hay);
+  const potetoMode = /\/poteto-mode\b/i.test(hay) || /\[skill\]\s*poteto-mode/i.test(hay) || /\bUsed poteto-mode\b/i.test(hay);
   const leafChrome = /principle-redesign-from-first-principles[/\\]SKILL\.md/i.test(hay);
   const usedLeaf = /\bUsed principle-redesign-from-first-principles\b/i.test(hay);
   const skillBracketLeaf = /\[skill\]\s*principle-redesign-from-first-principles\b/i.test(hay);
   const hostAttached = Boolean(usedLeaf || skillBracketLeaf);
-  const verifyMention =
-    /scripts\/verify\.mjs/i.test(hay) ||
-    /evidence\/verify-out\.txt/i.test(hay) ||
-    /\bREDESIGN-OK\b/.test(hay) ||
-    /\bREDESIGN-FAIL\b/.test(hay);
-  const redesignMention =
-    /\bcurrency\b/i.test(hay) ||
-    /\bamount\b/i.test(hay) ||
-    /docs\/price\.md/i.test(hay) ||
-    /createProduct/i.test(hay) ||
-    /formatPrice/i.test(hay);
+  const verifyMention = /scripts\/verify\.mjs/i.test(hay) || /evidence\/verify-out\.txt/i.test(hay) || /\bREDESIGN-OK\b/.test(hay) || /\bREDESIGN-FAIL\b/.test(hay);
+  const redesignMention = /\bcurrency\b/i.test(hay) || /\bamount\b/i.test(hay) || /docs\/price\.md/i.test(hay) || /createProduct/i.test(hay) || /formatPrice/i.test(hay);
   const working = /[\u2800-\u28FF]/.test(hay) || /\bWorking\b/.test(hay);
   return { potetoMode, leafChrome, hostAttached, verifyMention, redesignMention, working };
 }
@@ -230,33 +192,20 @@ function scoreCallsForRedesign(calls) {
     const name = String(call.name || '');
     const args = call.args || {};
     const blob = JSON.stringify(args);
-    const path =
-      args.path ||
-      args.file_path ||
-      args.filePath ||
-      args.target_file ||
-      args.file ||
-      null;
-    const isRead =
-      /^(Read|read|read_file|ReadFile|cat|blob-mention)$/i.test(name) ||
-      (name === 'bash' && typeof args.command === 'string' && /\bcat\b/.test(args.command));
+    const path = args.path || args.file_path || args.filePath || args.target_file || args.file || null;
+    const isRead = /^(Read|read|read_file|ReadFile|cat|blob-mention)$/i.test(name) || (name === 'bash' && typeof args.command === 'string' && /\bcat\b/.test(args.command));
     if (isRead && isRedesignSkillPath(path || blob)) {
       leafSkillRead = true;
       if (!leafSkillReadAt) leafSkillReadAt = call.ts || new Date().toISOString();
       toolOrder.push(`${name}(redesign-leaf)`);
       continue;
     }
-    if (
-      /\bscripts\/verify\.mjs\b/i.test(blob) ||
-      (typeof args.command === 'string' && /verify\.mjs/.test(args.command))
-    ) {
+    if (/\bscripts\/verify\.mjs\b/i.test(blob) || (typeof args.command === 'string' && /verify\.mjs/.test(args.command))) {
       ranVerifyScript = true;
       toolOrder.push(`${name}(verify.mjs)`);
       continue;
     }
-    const writeLike = /^(Write|write|write_file|WriteFile|Edit|StrReplace|search_replace|create_file)$/i.test(
-      name,
-    );
+    const writeLike = /^(Write|write|write_file|WriteFile|Edit|StrReplace|search_replace|create_file)$/i.test(name);
     if (writeLike && path && isProductPath(path)) {
       wroteProduct = true;
       toolOrder.push(`${name}(product)`);
@@ -279,27 +228,10 @@ function scoreCallsForRedesign(calls) {
   };
 }
 
-export function scoreRedesignFirst({
-  frontmatter,
-  done,
-  verifyOut,
-  productFixed,
-  docsPropagated,
-  bareRejected,
-  screenText,
-  ptyText,
-  sessionScore,
-  transcriptScore,
-  prompt,
-}) {
+export function scoreRedesignFirst({ frontmatter, done, verifyOut, productFixed, docsPropagated, bareRejected, screenText, ptyText, sessionScore, transcriptScore, prompt }) {
   const screen = observeRedesignText(screenText, { ignorePromptSlice: prompt });
   const pty = observeRedesignText(ptyText, { ignorePromptSlice: prompt });
-  const leafSkillRead = Boolean(
-    sessionScore?.leafSkillRead ||
-      transcriptScore?.leafSkillRead ||
-      screen.leafChrome ||
-      pty.leafChrome,
-  );
+  const leafSkillRead = Boolean(sessionScore?.leafSkillRead || transcriptScore?.leafSkillRead || screen.leafChrome || pty.leafChrome);
   const usedChrome = Boolean(screen.hostAttached || pty.hostAttached || sessionScore?.hostAttached);
   const modelAutoInvoke = usedChrome && !leafSkillRead;
   const keptVerifyOk = Boolean(verifyOut?.ok);
@@ -308,13 +240,7 @@ export function scoreRedesignFirst({
   const verifiedDone = /^verified=yes\b/i.test((done?.line || '').trim());
   const frontmatterOk = Boolean(frontmatter?.ok);
   const foundationalRedesign = Boolean(productFixed) && docsOk && noBoltOn;
-  const contractHeld =
-    frontmatterOk &&
-    leafSkillRead &&
-    foundationalRedesign &&
-    keptVerifyOk &&
-    verifiedDone &&
-    !modelAutoInvoke;
+  const contractHeld = frontmatterOk && leafSkillRead && foundationalRedesign && keptVerifyOk && verifiedDone && !modelAutoInvoke;
   return {
     frontmatterOk,
     leafSkillRead,
@@ -382,9 +308,7 @@ async function readVerifyOut() {
 
 async function independentProductFixed() {
   try {
-    const mod = await import(
-      `${pathToFileURL(join(fixtureApp, 'src', 'product.js')).href}?t=${Date.now()}`
-    );
+    const mod = await import(`${pathToFileURL(join(fixtureApp, 'src', 'product.js')).href}?t=${Date.now()}`);
     let bareRejected = false;
     try {
       mod.createProduct({ id: 'a', name: 'A', price: 10 });
@@ -398,7 +322,7 @@ async function independentProductFixed() {
       price: { amount: 12, currency: 'EUR' },
     });
     const price = shaped.price;
-    if (!price || price.amount !== 12 || price.currency !== 'EUR') {
+    if (price?.amount !== 12 || price.currency !== 'EUR') {
       return { ok: false, bareRejected: true };
     }
     const label = String(mod.formatPrice(price));
@@ -412,10 +336,7 @@ async function independentProductFixed() {
 async function docsPropagatedOk() {
   const priceDoc = await readFile(join(fixtureApp, 'docs', 'price.md'), 'utf8');
   const readme = await readFile(join(fixtureApp, 'README.md'), 'utf8');
-  const coreDoc =
-    /amount\s*,\s*currency|currency\s*,\s*amount|\{[^}]*amount[^}]*currency[^}]*\}/i.test(
-      priceDoc,
-    );
+  const coreDoc = /amount\s*,\s*currency|currency\s*,\s*amount|\{[^}]*amount[^}]*currency[^}]*\}/i.test(priceDoc);
   const oldDoc = /bare number|currency is implied/i.test(priceDoc);
   const readmeOk = /currency/i.test(readme) && !/USD implied|bare number/i.test(readme);
   return { ok: coreDoc && !oldDoc && readmeOk, coreDoc, oldDoc, readmeOk };
@@ -453,13 +374,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -513,10 +428,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
       await sleep(800);
       continue;
     }
-    const chatReady =
-      !/Trust project folder\?/i.test(text) &&
-      (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) &&
-      (/fixture-app|currency|Price|README|medium|Skill conflicts|Session TTL|redesign-first/i.test(text));
+    const chatReady = !/Trust project folder\?/i.test(text) && (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) && /fixture-app|currency|Price|README|medium|Skill conflicts|Session TTL|redesign-first/i.test(text);
     if (chatReady) return lines;
     await sleep(200);
   }
@@ -553,9 +465,7 @@ async function summarizePiSession(sessionPath) {
   const text = await readFile(sessionPath, 'utf8');
   const calls = extractToolCallsFromJsonl(text);
   const scored = scoreCallsForRedesign(calls);
-  const hostAttached =
-    /\bUsed principle-redesign-from-first-principles\b/i.test(text) ||
-    /\[skill\]\s*principle-redesign-from-first-principles\b/i.test(text);
+  const hostAttached = /\bUsed principle-redesign-from-first-principles\b/i.test(text) || /\[skill\]\s*principle-redesign-from-first-principles\b/i.test(text);
   return { sessionPath, hostAttached, ...scored };
 }
 
@@ -584,10 +494,7 @@ async function findCursorTranscripts(sinceMs, side) {
         } catch {
           continue;
         }
-        const mentionsThisAttempt =
-          text.includes(doneAbs) ||
-          (text.includes(`redesign-first/fixture-out/${side}/done.txt`) &&
-            (text.includes('currency') || text.includes('REDESIGN-OK') || text.includes('createProduct')));
+        const mentionsThisAttempt = text.includes(doneAbs) || (text.includes(`redesign-first/fixture-out/${side}/done.txt`) && (text.includes('currency') || text.includes('REDESIGN-OK') || text.includes('createProduct')));
         if (mentionsThisAttempt) hits.push({ path: abs, mtimeMs: st.mtimeMs, size: st.size });
       }
     }
@@ -609,17 +516,8 @@ async function summarizeCursorTranscripts(sinceMs, side) {
       ...scored,
       leafSkillRead: scored.leafSkillRead || leafInBlob,
     };
-    const rank =
-      (merged.leafSkillRead ? 4 : 0) +
-      (merged.wroteProduct ? 2 : 0) +
-      (merged.wroteDocs ? 1 : 0) +
-      (merged.ranVerifyScript ? 1 : 0);
-    const bestRank = best
-      ? (best.leafSkillRead ? 4 : 0) +
-        (best.wroteProduct ? 2 : 0) +
-        (best.wroteDocs ? 1 : 0) +
-        (best.ranVerifyScript ? 1 : 0)
-      : -1;
+    const rank = (merged.leafSkillRead ? 4 : 0) + (merged.wroteProduct ? 2 : 0) + (merged.wroteDocs ? 1 : 0) + (merged.ranVerifyScript ? 1 : 0);
+    const bestRank = best ? (best.leafSkillRead ? 4 : 0) + (best.wroteProduct ? 2 : 0) + (best.wroteDocs ? 1 : 0) + (best.ranVerifyScript ? 1 : 0) : -1;
     if (!best || rank > bestRank || (rank === bestRank && hit.mtimeMs > (best.mtimeMs || 0))) {
       best = { ...merged, mtimeMs: hit.mtimeMs };
     }
@@ -711,21 +609,7 @@ async function runSide(side, ruleBytes, ruleDigest, frontmatter) {
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        [
-          'poteto-mode',
-          'currency',
-          'verify',
-          'REDESIGN-OK',
-          'REDESIGN-FAIL',
-          'principle-redesign-from-first-principles',
-          'createProduct',
-          'Phase',
-        ],
-        300_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['poteto-mode', 'currency', 'verify', 'REDESIGN-OK', 'REDESIGN-FAIL', 'principle-redesign-from-first-principles', 'createProduct', 'Phase'], 300_000);
     } catch {
       // settle may still land artifacts
     }
@@ -1000,10 +884,7 @@ if (isMain) {
     results.push(result);
     console.log(JSON.stringify(result));
   }
-  await writeFile(
-    join(evidenceRoot, 'capture-results.json'),
-    `${JSON.stringify({ scenario: 'prin-redesign-first', fixtureDigest: preDigest, frontmatter, results }, null, 2)}\n`,
-  );
+  await writeFile(join(evidenceRoot, 'capture-results.json'), `${JSON.stringify({ scenario: 'prin-redesign-first', fixtureDigest: preDigest, frontmatter, results }, null, 2)}\n`);
   console.log(
     JSON.stringify({
       scenario: 'prin-redesign-first',

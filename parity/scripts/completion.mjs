@@ -35,15 +35,11 @@ function sourceLockBlockers(value) {
   if (!value) return [];
   return [
     ...(value.status !== 'locked' ? [diagnostic('SOURCE_LOCK_INCOMPLETE', 'source-lock.json', 'status', 'The source lock is not finalized.', '§2')] : []),
-    ...(value.cursorPlugins.completeDependencyClosure !== true
-      ? [diagnostic('SOURCE_CLOSURE_INCOMPLETE', 'source-lock.json', 'cursorPlugins.completeDependencyClosure', 'Complete dependency source closure remains required.', '§2')]
-      : []),
+    ...(value.cursorPlugins.completeDependencyClosure !== true ? [diagnostic('SOURCE_CLOSURE_INCOMPLETE', 'source-lock.json', 'cursorPlugins.completeDependencyClosure', 'Complete dependency source closure remains required.', '§2')] : []),
     ...(value.cursorCli.referenceConfigurationCaptured !== true
       ? [diagnostic('REFERENCE_CONFIGURATION_MISSING', 'source-lock.json', 'cursorCli.referenceConfigurationCaptured', 'Working reference configuration has not been captured.', '§2')]
       : []),
-    ...(value.pi.tarballIntegrityVerified !== true
-      ? [diagnostic('PI_PACKAGE_INTEGRITY_UNVERIFIED', 'source-lock.json', 'pi.tarballIntegrityVerified', 'Pi runtime package integrity has not been verified.', '§2')]
-      : []),
+    ...(value.pi.tarballIntegrityVerified !== true ? [diagnostic('PI_PACKAGE_INTEGRITY_UNVERIFIED', 'source-lock.json', 'pi.tarballIntegrityVerified', 'Pi runtime package integrity has not been verified.', '§2')] : []),
   ];
 }
 
@@ -53,17 +49,11 @@ function dependencyBlockers(value) {
   return [
     ...(!value.nodes.length ? [diagnostic('DEPENDENCY_INVENTORY_EMPTY', 'dependencies.json', 'nodes', 'Dependency inventory is empty.', '§3')] : []),
     ...(value.closureAudited !== true ? [diagnostic('DEPENDENCY_AUDIT_MISSING', 'dependencies.json', 'closureAudited', 'Independent recursive closure audit remains required.', '§3')] : []),
-    ...value.unresolvedReferences.map((_, index) =>
-      diagnostic('DEPENDENCY_REFERENCE_UNRESOLVED', 'dependencies.json', `unresolvedReferences[${index}]`, 'Dependency reference is unresolved.', '§3'),
-    ),
-    ...value.nodes.flatMap((node, index) =>
-      node.readingComplete === false ? [diagnostic('SOURCE_READING_INCOMPLETE', 'dependencies.json', `nodes[${index}]`, 'Required source reading remains incomplete.', '§3')] : [],
-    ),
+    ...value.unresolvedReferences.map((_, index) => diagnostic('DEPENDENCY_REFERENCE_UNRESOLVED', 'dependencies.json', `unresolvedReferences[${index}]`, 'Dependency reference is unresolved.', '§3')),
+    ...value.nodes.flatMap((node, index) => (node.readingComplete === false ? [diagnostic('SOURCE_READING_INCOMPLETE', 'dependencies.json', `nodes[${index}]`, 'Required source reading remains incomplete.', '§3')] : [])),
     ...value.edges.flatMap((edge, index) => [
       ...(edge.status !== 'resolved' ? [diagnostic('DEPENDENCY_EDGE_UNRESOLVED', 'dependencies.json', `edges[${index}]`, 'Dependency edge has not been resolved.', '§3')] : []),
-      ...(!ids.has(edge.from) || !ids.has(edge.to)
-        ? [diagnostic('DEPENDENCY_NODE_MISSING', 'dependencies.json', `edges[${index}]`, 'Dependency edge refers to a missing node.', '§3')]
-        : []),
+      ...(!ids.has(edge.from) || !ids.has(edge.to) ? [diagnostic('DEPENDENCY_NODE_MISSING', 'dependencies.json', `edges[${index}]`, 'Dependency edge refers to a missing node.', '§3')] : []),
     ]),
   ];
 }
@@ -75,9 +65,7 @@ function requirementBlockers(value) {
     ...(!value.acceptanceDefinitionOwner || value.acceptanceDefinitionsFrozen !== true
       ? [diagnostic('ACCEPTANCE_DEFINITIONS_UNFROZEN', 'requirements.json', 'acceptanceDefinitionsFrozen', 'Independent acceptance definitions are not frozen.', '§4')]
       : []),
-    ...(value.coverageDenominatorComplete !== true
-      ? [diagnostic('COVERAGE_DENOMINATOR_INCOMPLETE', 'requirements.json', 'coverageDenominatorComplete', 'Full requirement-by-configuration denominator is incomplete.', '§4')]
-      : []),
+    ...(value.coverageDenominatorComplete !== true ? [diagnostic('COVERAGE_DENOMINATOR_INCOMPLETE', 'requirements.json', 'coverageDenominatorComplete', 'Full requirement-by-configuration denominator is incomplete.', '§4')] : []),
   ];
   for (const [index, item] of value.requirements.entries()) {
     const locator = `requirements[${index}]`;
@@ -86,21 +74,11 @@ function requirementBlockers(value) {
       continue;
     }
     if (item.status !== VERIFIED) {
-      blockers.push(
-        diagnostic('REQUIREMENT_UNVERIFIED', 'requirements.json', `${locator}.status`, `Requirement ${item.id} is not verified-pass-paired.`, '§9'),
-      );
+      blockers.push(diagnostic('REQUIREMENT_UNVERIFIED', 'requirements.json', `${locator}.status`, `Requirement ${item.id} is not verified-pass-paired.`, '§9'));
       continue;
     }
     if (!pairedEvidence(item)) {
-      blockers.push(
-        diagnostic(
-          'REQUIREMENT_VERIFIED_WITHOUT_EVIDENCE',
-          'requirements.json',
-          `${locator}.evidence`,
-          `Requirement ${item.id} claims verified-pass-paired without paired Cursor+Pi evidence.`,
-          '§9',
-        ),
-      );
+      blockers.push(diagnostic('REQUIREMENT_VERIFIED_WITHOUT_EVIDENCE', 'requirements.json', `${locator}.evidence`, `Requirement ${item.id} claims verified-pass-paired without paired Cursor+Pi evidence.`, '§9'));
     }
   }
   return blockers;
@@ -142,15 +120,7 @@ function mismatchBlockers(value) {
   if (!value) return [];
   return value.items.flatMap((item, index) => {
     if (typeof item.status === 'string' && CLOSED_MISMATCH.test(item.status)) return [];
-    return [
-      diagnostic(
-        'BEHAVIOR_MISMATCH_OPEN',
-        'mismatches.json',
-        `items[${index}]`,
-        `Behavioral mismatch ${item.id ?? index} remains unresolved.`,
-        '§9',
-      ),
-    ];
+    return [diagnostic('BEHAVIOR_MISMATCH_OPEN', 'mismatches.json', `items[${index}]`, `Behavioral mismatch ${item.id ?? index} remains unresolved.`, '§9')];
   });
 }
 

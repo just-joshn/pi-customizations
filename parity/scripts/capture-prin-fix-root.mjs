@@ -23,15 +23,7 @@ const piAgentDir = '/tmp/pi-ref-agent';
 const piRulePath = join(piAgentDir, 'pstack', 'models.mdc');
 const evidenceRoot = join(root, 'evidence', 'principles', 'fix-root');
 const fixtureApp = join(evidenceRoot, 'fixture-app');
-const fixSkillCursor = join(
-  root,
-  'reference',
-  'cursor-plugins',
-  'pstack',
-  'skills',
-  'principle-fix-root-causes',
-  'SKILL.md',
-);
+const fixSkillCursor = join(root, 'reference', 'cursor-plugins', 'pstack', 'skills', 'principle-fix-root-causes', 'SKILL.md');
 const fixSkillPi = join(root, '..', 'extensions', 'pi-pstack', 'skills', 'principle-fix-root-causes', 'SKILL.md');
 const GEOMETRY = { rows: 40, cols: 120 };
 const LOCKED_FIXTURE_DIGEST = 'sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004';
@@ -43,10 +35,7 @@ const VERIFY_SCRIPT_REL = 'scripts/verify.mjs';
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const stripAnsi = (text) =>
-  text
-    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
-    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
 
 function writeRootFor(side) {
   return join(evidenceRoot, 'fixture-out', side);
@@ -127,24 +116,13 @@ function isFixRootSkillPath(p) {
 function observeFixRootText(text, { ignorePromptSlice } = {}) {
   let hay = stripAnsi(text || '');
   if (ignorePromptSlice) hay = hay.split(ignorePromptSlice).join(' ');
-  const potetoMode =
-    /\/poteto-mode\b/i.test(hay) ||
-    /\[skill\]\s*poteto-mode/i.test(hay) ||
-    /\bUsed poteto-mode\b/i.test(hay);
+  const potetoMode = /\/poteto-mode\b/i.test(hay) || /\[skill\]\s*poteto-mode/i.test(hay) || /\bUsed poteto-mode\b/i.test(hay);
   const leafChrome = /principle-fix-root-causes[/\\]SKILL\.md/i.test(hay);
   const usedLeaf = /\bUsed principle-fix-root-causes\b/i.test(hay);
   const skillBracketLeaf = /\[skill\]\s*principle-fix-root-causes\b/i.test(hay);
   const hostAttached = Boolean(usedLeaf || skillBracketLeaf);
-  const failMention =
-    /\bGREET-FAIL\b/.test(hay) ||
-    /Cannot read properties of undefined/i.test(hay) ||
-    /reading 'toUpperCase'/i.test(hay) ||
-    /\bTypeError\b/i.test(hay);
-  const verifyMention =
-    /scripts\/verify\.mjs/i.test(hay) ||
-    /evidence\/verify-out\.txt/i.test(hay) ||
-    /\bGREET-OK\b/.test(hay) ||
-    /\bGREET-FAIL\b/.test(hay);
+  const failMention = /\bGREET-FAIL\b/.test(hay) || /Cannot read properties of undefined/i.test(hay) || /reading 'toUpperCase'/i.test(hay) || /\bTypeError\b/i.test(hay);
+  const verifyMention = /scripts\/verify\.mjs/i.test(hay) || /evidence\/verify-out\.txt/i.test(hay) || /\bGREET-OK\b/.test(hay) || /\bGREET-FAIL\b/.test(hay);
   const working = /[\u2800-\u28FF]/.test(hay) || /\bWorking\b/.test(hay);
   return { potetoMode, leafChrome, hostAttached, failMention, verifyMention, working };
 }
@@ -189,14 +167,7 @@ function extractToolCallsFromJsonl(text) {
 }
 
 function pathFromArgs(args) {
-  return (
-    args.path ||
-    args.file_path ||
-    args.filePath ||
-    args.target_file ||
-    args.file ||
-    null
-  );
+  return args.path || args.file_path || args.filePath || args.target_file || args.file || null;
 }
 
 function isProductPath(p) {
@@ -229,18 +200,14 @@ function scoreCallsForFixRoot(calls) {
     const args = call.args || {};
     const blob = JSON.stringify(args);
     const path = pathFromArgs(args);
-    const isRead =
-      /^(Read|read|read_file|ReadFile|cat|blob-mention)$/i.test(name) ||
-      (name === 'bash' && typeof args.command === 'string' && /\bcat\b/.test(args.command));
+    const isRead = /^(Read|read|read_file|ReadFile|cat|blob-mention)$/i.test(name) || (name === 'bash' && typeof args.command === 'string' && /\bcat\b/.test(args.command));
     if (isRead && isFixRootSkillPath(path || blob)) {
       leafSkillRead = true;
       if (!leafSkillReadAt) leafSkillReadAt = call.ts || new Date().toISOString();
       toolOrder.push(`${name}(fix-root-leaf)`);
       continue;
     }
-    const verifyHit =
-      /\bscripts\/verify\.mjs\b/i.test(blob) ||
-      (typeof args.command === 'string' && /verify\.mjs/.test(args.command));
+    const verifyHit = /\bscripts\/verify\.mjs\b/i.test(blob) || (typeof args.command === 'string' && /verify\.mjs/.test(args.command));
     if (verifyHit) {
       ranVerifyScript = true;
       if (!firstVerifyAt) firstVerifyAt = call.ts || new Date().toISOString();
@@ -274,48 +241,21 @@ export function analyzeProductSources(configSrc, greetSrc) {
   const rootCauseFixed = /\b(?:cfg|config)\.displayName\b/.test(configSrc || '');
   const stillTypo = /\.displayNam\b/.test(configSrc || '');
   const nilGuardInGreet =
-    /\?\.toUpperCase\b/.test(greetSrc || '') ||
-    /\bif\s*\(\s*!?\s*name\b/.test(greetSrc || '') ||
-    /\bname\s*\|\|/.test(greetSrc || '') ||
-    /\bname\s*\?\?/.test(greetSrc || '') ||
-    /\btypeof\s+name\b/.test(greetSrc || '');
+    /\?\.toUpperCase\b/.test(greetSrc || '') || /\bif\s*\(\s*!?\s*name\b/.test(greetSrc || '') || /\bname\s*\|\|/.test(greetSrc || '') || /\bname\s*\?\?/.test(greetSrc || '') || /\btypeof\s+name\b/.test(greetSrc || '');
   const hardcodedOk = /hello,\s*WORLD/.test(greetSrc || '') && !/toUpperCase/.test(greetSrc || '');
   const soleNilGuard = !rootCauseFixed && (nilGuardInGreet || hardcodedOk);
   return { rootCauseFixed, stillTypo, nilGuardInGreet, hardcodedOk, soleNilGuard };
 }
 
-export function scoreFixRoot({
-  frontmatter,
-  done,
-  verifyOut,
-  productOk,
-  productAnalysis,
-  screenText,
-  ptyText,
-  sessionScore,
-  transcriptScore,
-  prompt,
-  firstVerifyAt,
-  firstProductAt,
-}) {
+export function scoreFixRoot({ frontmatter, done, verifyOut, productOk, productAnalysis, screenText, ptyText, sessionScore, transcriptScore, prompt, firstVerifyAt, firstProductAt }) {
   const screen = observeFixRootText(screenText, { ignorePromptSlice: prompt });
   const pty = observeFixRootText(ptyText, { ignorePromptSlice: prompt });
-  const leafSkillRead = Boolean(
-    sessionScore?.leafSkillRead ||
-      transcriptScore?.leafSkillRead ||
-      screen.leafChrome ||
-      pty.leafChrome,
-  );
+  const leafSkillRead = Boolean(sessionScore?.leafSkillRead || transcriptScore?.leafSkillRead || screen.leafChrome || pty.leafChrome);
   const usedChrome = Boolean(screen.hostAttached || pty.hostAttached || sessionScore?.hostAttached);
   const modelAutoInvoke = usedChrome && !leafSkillRead;
-  const ranVerifyScript = Boolean(
-    sessionScore?.ranVerifyScript || transcriptScore?.ranVerifyScript || screen.verifyMention || pty.verifyMention,
-  );
-  const toolOrderReproduce = Boolean(
-    sessionScore?.sawFailBeforeWrite || transcriptScore?.sawFailBeforeWrite,
-  );
-  const pollReproduce =
-    Boolean(firstVerifyAt) && Boolean(firstProductAt) && String(firstVerifyAt) <= String(firstProductAt);
+  const ranVerifyScript = Boolean(sessionScore?.ranVerifyScript || transcriptScore?.ranVerifyScript || screen.verifyMention || pty.verifyMention);
+  const toolOrderReproduce = Boolean(sessionScore?.sawFailBeforeWrite || transcriptScore?.sawFailBeforeWrite);
+  const pollReproduce = Boolean(firstVerifyAt) && Boolean(firstProductAt) && String(firstVerifyAt) <= String(firstProductAt);
   const failSeen = Boolean(screen.failMention || pty.failMention || sessionScore?.failMention);
   const reproducedFirst = toolOrderReproduce || pollReproduce || (ranVerifyScript && failSeen && productOk);
   const rootCauseFixed = Boolean(productAnalysis?.rootCauseFixed);
@@ -323,16 +263,7 @@ export function scoreFixRoot({
   const keptVerifyOk = Boolean(verifyOut?.ok);
   const verifiedDone = /^verified=yes\b/i.test((done?.line || '').trim());
   const frontmatterOk = Boolean(frontmatter?.ok);
-  const contractHeld =
-    frontmatterOk &&
-    leafSkillRead &&
-    reproducedFirst &&
-    rootCauseFixed &&
-    !soleNilGuard &&
-    productOk &&
-    keptVerifyOk &&
-    verifiedDone &&
-    !modelAutoInvoke;
+  const contractHeld = frontmatterOk && leafSkillRead && reproducedFirst && rootCauseFixed && !soleNilGuard && productOk && keptVerifyOk && verifiedDone && !modelAutoInvoke;
   return {
     frontmatterOk,
     leafSkillRead,
@@ -361,16 +292,7 @@ async function baselineProduct() {
 
 async function snapshotBaseline() {
   const baselineDir = join(evidenceRoot, 'fixture-baseline');
-  for (const rel of [
-    'src/config.js',
-    'src/greet.js',
-    'README.md',
-    'NOTES.md',
-    'package.json',
-    VERIFY_SCRIPT_REL,
-    'evidence/.gitkeep',
-    'out/.gitkeep',
-  ]) {
+  for (const rel of ['src/config.js', 'src/greet.js', 'README.md', 'NOTES.md', 'package.json', VERIFY_SCRIPT_REL, 'evidence/.gitkeep', 'out/.gitkeep']) {
     const src = join(fixtureApp, rel);
     if (!(await pathExists(src))) continue;
     const dst = join(baselineDir, rel);
@@ -381,16 +303,7 @@ async function snapshotBaseline() {
 
 async function restoreProduct() {
   const baselineDir = join(evidenceRoot, 'fixture-baseline');
-  for (const rel of [
-    'src/config.js',
-    'src/greet.js',
-    'README.md',
-    'NOTES.md',
-    'package.json',
-    VERIFY_SCRIPT_REL,
-    'evidence/.gitkeep',
-    'out/.gitkeep',
-  ]) {
+  for (const rel of ['src/config.js', 'src/greet.js', 'README.md', 'NOTES.md', 'package.json', VERIFY_SCRIPT_REL, 'evidence/.gitkeep', 'out/.gitkeep']) {
     const src = join(baselineDir, rel);
     const dst = join(fixtureApp, rel);
     if (await pathExists(src)) {
@@ -401,16 +314,7 @@ async function restoreProduct() {
   await rm(join(fixtureApp, VERIFY_OUT_REL), { force: true });
   const files = await walkFiles(fixtureApp);
   for (const rel of files) {
-    if (
-      rel === 'README.md' ||
-      rel === 'NOTES.md' ||
-      rel === 'package.json' ||
-      rel === 'src/config.js' ||
-      rel === 'src/greet.js' ||
-      rel === VERIFY_SCRIPT_REL ||
-      rel === 'evidence/.gitkeep' ||
-      rel === 'out/.gitkeep'
-    ) {
+    if (rel === 'README.md' || rel === 'NOTES.md' || rel === 'package.json' || rel === 'src/config.js' || rel === 'src/greet.js' || rel === VERIFY_SCRIPT_REL || rel === 'evidence/.gitkeep' || rel === 'out/.gitkeep') {
       continue;
     }
     if (rel.startsWith('evidence/') || rel.startsWith('out/') || rel.endsWith('.tsv') || rel.startsWith('.audit/')) {
@@ -473,13 +377,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -533,10 +431,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
       await sleep(800);
       continue;
     }
-    const chatReady =
-      !/Trust project folder\?/i.test(text) &&
-      (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) &&
-      (/fix-root|greet|README|medium|Skill conflicts|Session TTL|fixture-app/i.test(text));
+    const chatReady = !/Trust project folder\?/i.test(text) && (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) && /fix-root|greet|README|medium|Skill conflicts|Session TTL|fixture-app/i.test(text);
     if (chatReady) return lines;
     await sleep(200);
   }
@@ -573,13 +468,8 @@ async function summarizePiSession(sessionPath) {
   const text = await readFile(sessionPath, 'utf8');
   const calls = extractToolCallsFromJsonl(text);
   const scored = scoreCallsForFixRoot(calls);
-  const hostAttached =
-    /\bUsed principle-fix-root-causes\b/i.test(text) ||
-    /\[skill\]\s*principle-fix-root-causes\b/i.test(text);
-  const failMention =
-    /\bGREET-FAIL\b/.test(text) ||
-    /Cannot read properties of undefined/i.test(text) ||
-    /reading 'toUpperCase'/i.test(text);
+  const hostAttached = /\bUsed principle-fix-root-causes\b/i.test(text) || /\[skill\]\s*principle-fix-root-causes\b/i.test(text);
+  const failMention = /\bGREET-FAIL\b/.test(text) || /Cannot read properties of undefined/i.test(text) || /reading 'toUpperCase'/i.test(text);
   return { sessionPath, hostAttached, failMention, ...scored };
 }
 
@@ -608,9 +498,7 @@ async function findCursorTranscripts(sinceMs, side) {
         } catch {
           continue;
         }
-        const mentionsThisAttempt =
-          text.includes(doneAbs) ||
-          (text.includes(`fix-root/fixture-out/${side}/done.txt`) && text.includes('greet'));
+        const mentionsThisAttempt = text.includes(doneAbs) || (text.includes(`fix-root/fixture-out/${side}/done.txt`) && text.includes('greet'));
         if (mentionsThisAttempt) hits.push({ path: abs, mtimeMs: st.mtimeMs, size: st.size });
       }
     }
@@ -627,25 +515,15 @@ async function summarizeCursorTranscripts(sinceMs, side) {
     const text = await readFile(hit.path, 'utf8');
     const scored = scoreCallsForFixRoot(extractToolCallsFromJsonl(text));
     const leafInBlob = /principle-fix-root-causes[/\\]SKILL\.md/i.test(text);
-    const failMention =
-      /\bGREET-FAIL\b/.test(text) ||
-      /Cannot read properties of undefined/i.test(text) ||
-      /reading 'toUpperCase'/i.test(text);
+    const failMention = /\bGREET-FAIL\b/.test(text) || /Cannot read properties of undefined/i.test(text) || /reading 'toUpperCase'/i.test(text);
     const merged = {
       path: hit.path,
       ...scored,
       leafSkillRead: scored.leafSkillRead || leafInBlob,
       failMention,
     };
-    const rank =
-      (merged.leafSkillRead ? 4 : 0) +
-      (merged.ranVerifyScript ? 2 : 0) +
-      (merged.sawFailBeforeWrite ? 1 : 0);
-    const bestRank = best
-      ? (best.leafSkillRead ? 4 : 0) +
-        (best.ranVerifyScript ? 2 : 0) +
-        (best.sawFailBeforeWrite ? 1 : 0)
-      : -1;
+    const rank = (merged.leafSkillRead ? 4 : 0) + (merged.ranVerifyScript ? 2 : 0) + (merged.sawFailBeforeWrite ? 1 : 0);
+    const bestRank = best ? (best.leafSkillRead ? 4 : 0) + (best.ranVerifyScript ? 2 : 0) + (best.sawFailBeforeWrite ? 1 : 0) : -1;
     if (!best || rank > bestRank || (rank === bestRank && hit.mtimeMs > (best.mtimeMs || 0))) {
       best = { ...merged, mtimeMs: hit.mtimeMs };
     }
@@ -721,22 +599,7 @@ async function runSide(side, ruleBytes, ruleDigest, frontmatter) {
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        [
-          'poteto-mode',
-          'greet.js',
-          'config.js',
-          'verify',
-          'GREET-OK',
-          'GREET-FAIL',
-          'principle-fix-root-causes',
-          'Phase',
-          'toUpperCase',
-        ],
-        300_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['poteto-mode', 'greet.js', 'config.js', 'verify', 'GREET-OK', 'GREET-FAIL', 'principle-fix-root-causes', 'Phase', 'toUpperCase'], 300_000);
     } catch {
       // settle may still land artifacts
     }
@@ -848,15 +711,7 @@ async function runSide(side, ruleBytes, ruleDigest, frontmatter) {
 
     const snapDir = join(attempt.dir, 'fixture-snapshot');
     await mkdir(snapDir, { recursive: true });
-    for (const rel of [
-      'src/config.js',
-      'src/greet.js',
-      'README.md',
-      'NOTES.md',
-      'package.json',
-      VERIFY_SCRIPT_REL,
-      VERIFY_OUT_REL,
-    ]) {
+    for (const rel of ['src/config.js', 'src/greet.js', 'README.md', 'NOTES.md', 'package.json', VERIFY_SCRIPT_REL, VERIFY_OUT_REL]) {
       const abs = join(fixtureApp, rel);
       if (!(await pathExists(abs))) continue;
       const dest = join(snapDir, rel);
@@ -897,14 +752,8 @@ async function runSide(side, ruleBytes, ruleDigest, frontmatter) {
 
 async function selfTest() {
   const fm = { ok: true, name: 'principle-fix-root-causes', disableModelInvocation: true };
-  const goodAnalysis = analyzeProductSources(
-    'export function readDisplayName(cfg) { return cfg.displayName; }\n',
-    'return `hello, ${name.toUpperCase()}`;\n',
-  );
-  const guardOnly = analyzeProductSources(
-    'export function readDisplayName(cfg) { return cfg.displayNam; }\n',
-    'return `hello, ${(name ?? "world").toUpperCase()}`;\n',
-  );
+  const goodAnalysis = analyzeProductSources('export function readDisplayName(cfg) { return cfg.displayName; }\n', 'return `hello, ${name.toUpperCase()}`;\n');
+  const guardOnly = analyzeProductSources('export function readDisplayName(cfg) { return cfg.displayNam; }\n', 'return `hello, ${(name ?? "world").toUpperCase()}`;\n');
   const pass = scoreFixRoot({
     frontmatter: fm,
     done: { exists: true, line: 'verified=yes' },
@@ -993,10 +842,7 @@ if (isMain) {
     results.push(result);
     console.log(JSON.stringify(result));
   }
-  await writeFile(
-    join(evidenceRoot, 'capture-results.json'),
-    `${JSON.stringify({ scenario: 'prin-fix-root', fixtureDigest: preDigest, frontmatter, results }, null, 2)}\n`,
-  );
+  await writeFile(join(evidenceRoot, 'capture-results.json'), `${JSON.stringify({ scenario: 'prin-fix-root', fixtureDigest: preDigest, frontmatter, results }, null, 2)}\n`);
   console.log(
     JSON.stringify({
       scenario: 'prin-fix-root',

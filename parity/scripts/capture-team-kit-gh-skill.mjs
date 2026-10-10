@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { execFile } from 'node:child_process';
 // Parameterized Cursor+Pi pair for GitHub-bound cursor-team-kit skills.
 // Uses disposable fixture repo just-joshn/team-kit-gh-fixture (cwd under
 // parity/fixtures/team-kit-gh). Real PTY both sides. Oracle is on-disk
@@ -11,7 +12,6 @@ import { access, cp, mkdir, readFile, rename, rm, writeFile } from 'node:fs/prom
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
 import { sha256 } from '../recorder/files.mjs';
@@ -84,11 +84,7 @@ const SKILLS = {
       const local = (await readIfExists(paths.artifact)) || '';
       let prBody = '';
       try {
-        const { stdout } = await execFileAsync(
-          'gh',
-          ['pr', 'view', '1', '--repo', 'just-joshn/team-kit-gh-fixture', '--json', 'body', '-q', '.body'],
-          { cwd: fixtureRepo, maxBuffer: 2_000_000 },
-        );
+        const { stdout } = await execFileAsync('gh', ['pr', 'view', '1', '--repo', 'just-joshn/team-kit-gh-fixture', '--json', 'body', '-q', '.body'], { cwd: fixtureRepo, maxBuffer: 2_000_000 });
         prBody = stdout;
       } catch (error) {
         prBody = `ERROR:${error.message}`;
@@ -182,9 +178,7 @@ const SKILLS = {
     },
     async postCheck(side, paths) {
       const text = (await readIfExists(paths.artifact)) || '';
-      const urlMatch = text.match(
-        /https:\/\/github\.com\/just-joshn\/team-kit-gh-fixture\/pull\/\d+/,
-      );
+      const urlMatch = text.match(/https:\/\/github\.com\/just-joshn\/team-kit-gh-fixture\/pull\/\d+/);
       let prExists = false;
       if (urlMatch) {
         try {
@@ -230,11 +224,7 @@ const SKILLS = {
       const pr = ctx.failingPrNumber;
       if (pr) {
         try {
-          const { stdout } = await execFileAsync(
-            'gh',
-            ['pr', 'checks', String(pr), '--repo', 'just-joshn/team-kit-gh-fixture'],
-            { cwd: fixtureRepo, maxBuffer: 2_000_000 },
-          );
+          const { stdout } = await execFileAsync('gh', ['pr', 'checks', String(pr), '--repo', 'just-joshn/team-kit-gh-fixture'], { cwd: fixtureRepo, maxBuffer: 2_000_000 });
           checkSummary = stdout.trim();
           checksPass = /pass/i.test(stdout) && !/\bfail\b/i.test(stdout);
         } catch (error) {
@@ -274,11 +264,7 @@ const SKILLS = {
       const pr = ctx.failingPrNumber;
       if (pr) {
         try {
-          const { stdout } = await execFileAsync(
-            'gh',
-            ['pr', 'checks', String(pr), '--repo', 'just-joshn/team-kit-gh-fixture'],
-            { cwd: fixtureRepo, maxBuffer: 2_000_000 },
-          );
+          const { stdout } = await execFileAsync('gh', ['pr', 'checks', String(pr), '--repo', 'just-joshn/team-kit-gh-fixture'], { cwd: fixtureRepo, maxBuffer: 2_000_000 });
           checkSummary = stdout.trim();
           checksPass = /pass/i.test(stdout) && !/\bfail\b/i.test(stdout);
         } catch (error) {
@@ -297,10 +283,7 @@ const SKILLS = {
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const stripAnsi = (text) =>
-  text
-    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
-    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
 
 async function pathExists(path) {
   try {
@@ -429,13 +412,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureRepo,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -489,9 +466,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
       await sleep(800);
       continue;
     }
-    const chatReady =
-      !/Trust project folder\?/i.test(text) &&
-      (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text));
+    const chatReady = !/Trust project folder\?/i.test(text) && (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text));
     if (chatReady) return lines;
     await sleep(200);
   }
@@ -506,11 +481,7 @@ async function waitSkillSettled(attempt, side, timeoutMs, prompt) {
     last = await screenLines(attempt, GEOMETRY);
     const obs = observeSkill(last.join('\n'), { ignorePromptSlice: prompt });
     const done = await readDone(side);
-    const enough =
-      done.status === 'verified' ||
-      done.status === 'not-verified' ||
-      done.status === 'inconclusive' ||
-      done.status === 'env-blocked';
+    const enough = done.status === 'verified' || done.status === 'not-verified' || done.status === 'inconclusive' || done.status === 'env-blocked';
     if (enough && !obs.working) {
       calm += 1;
       if (calm >= 3) return last;
@@ -524,11 +495,7 @@ async function waitSkillSettled(attempt, side, timeoutMs, prompt) {
 
 async function ensureFixtureOnSeedBranch(skillCfg) {
   await execFileAsync('git', ['fetch', 'origin'], { cwd: fixtureRepo });
-  if (
-    skillId === 'new-branch-and-pr' ||
-    skillCfg?.useFreshBranch ||
-    skillCfg?.needsFailingPr
-  ) {
+  if (skillId === 'new-branch-and-pr' || skillCfg?.useFreshBranch || skillCfg?.needsFailingPr) {
     await execFileAsync('git', ['checkout', 'main'], { cwd: fixtureRepo });
     await execFileAsync('git', ['pull', '--ff-only', 'origin', 'main'], { cwd: fixtureRepo });
   } else {
@@ -563,20 +530,7 @@ async function createFailingPr(side) {
   await execFileAsync('git', ['push', '-u', 'origin', branch], { cwd: fixtureRepo });
   const { stdout: prUrl } = await execFileAsync(
     'gh',
-    [
-      'pr',
-      'create',
-      '--repo',
-      'just-joshn/team-kit-gh-fixture',
-      '--base',
-      'main',
-      '--head',
-      branch,
-      '--title',
-      `fixture fail-ci ${skillId} ${side}`,
-      '--body',
-      `Intentional failing CI for ${skillId} pair capture (${side}).`,
-    ],
+    ['pr', 'create', '--repo', 'just-joshn/team-kit-gh-fixture', '--base', 'main', '--head', branch, '--title', `fixture fail-ci ${skillId} ${side}`, '--body', `Intentional failing CI for ${skillId} pair capture (${side}).`],
     { cwd: fixtureRepo, maxBuffer: 1_000_000 },
   );
   const url = prUrl.trim();
@@ -585,11 +539,7 @@ async function createFailingPr(side) {
   let last = '';
   while (Date.now() < deadline) {
     try {
-      const { stdout } = await execFileAsync(
-        'gh',
-        ['pr', 'checks', String(number), '--repo', 'just-joshn/team-kit-gh-fixture'],
-        { cwd: fixtureRepo, maxBuffer: 2_000_000 },
-      );
+      const { stdout } = await execFileAsync('gh', ['pr', 'checks', String(number), '--repo', 'just-joshn/team-kit-gh-fixture'], { cwd: fixtureRepo, maxBuffer: 2_000_000 });
       last = stdout;
     } catch (error) {
       // gh pr checks exits non-zero when any check fails; stdout still has the table.
@@ -648,23 +598,7 @@ async function runSide(side, ruleBytes, ruleDigest, skillCfg, sideCtx = {}) {
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        [
-          skillId,
-          'STATUS=',
-          'gh ',
-          FIXTURE_COMMENT_MARKER,
-          FIXTURE_GUIDANCE_MARKER,
-          'FIXTURE_CANVAS',
-          'FIXTURE_SHIP',
-          'FIXTURE_CI_FIX',
-          'FIXTURE_CI_LOOP',
-          'pull/',
-        ],
-        300_000,
-      );
+      await waitEither(attempt, GEOMETRY, [skillId, 'STATUS=', 'gh ', FIXTURE_COMMENT_MARKER, FIXTURE_GUIDANCE_MARKER, 'FIXTURE_CANVAS', 'FIXTURE_SHIP', 'FIXTURE_CI_FIX', 'FIXTURE_CI_LOOP', 'pull/'], 300_000);
     } catch {
       // settle may still land artifacts
     }
@@ -756,8 +690,7 @@ async function writePair(results, preDigest, lockedSkillDigest, skillCfg) {
   if (!bySide.cursor || !bySide.pi) return null;
   const cursor = bySide.cursor;
   const pi = bySide.pi;
-  const bothClosed =
-    Boolean(cursor.observations?.score?.closed) && Boolean(pi.observations?.score?.closed);
+  const bothClosed = Boolean(cursor.observations?.score?.closed) && Boolean(pi.observations?.score?.closed);
   const pair = {
     schema: 1,
     pairId: skillCfg.pairId,
@@ -769,13 +702,7 @@ async function writePair(results, preDigest, lockedSkillDigest, skillCfg) {
     fixtureDigest: preDigest,
     fixturePrUrl: FIXTURE_PR_URL,
     fixtureRepo: 'https://github.com/just-joshn/team-kit-gh-fixture',
-    steps: [
-      { wait: 'ready screen (Tip: on Cursor; Pi chat ready without Trust dialog)' },
-      { send: `/${skillId} ...` },
-      { send: '\r' },
-      { wait: 'STATUS=verified with skill artifact oracle, or STATUS=env-blocked' },
-      { cancel: true },
-    ],
+    steps: [{ wait: 'ready screen (Tip: on Cursor; Pi chat ready without Trust dialog)' }, { send: `/${skillId} ...` }, { send: '\r' }, { wait: 'STATUS=verified with skill artifact oracle, or STATUS=env-blocked' }, { cancel: true }],
     cursor: {
       attemptId: cursor.attemptId,
       dir: cursor.attemptDir,
@@ -802,8 +729,7 @@ async function writePair(results, preDigest, lockedSkillDigest, skillCfg) {
     skillClosure: {
       [skillId]: bothClosed ? 'closed_by_this_pair' : 'open',
     },
-    note:
-      'Cursor loads locked team-kit via --plugin-dir. Pi seeds the same SKILL.md bytes under .pi/skills/<skill>/. Fixture is disposable just-joshn/team-kit-gh-fixture. Full 18-skill closure is not claimed by this pair alone.',
+    note: 'Cursor loads locked team-kit via --plugin-dir. Pi seeds the same SKILL.md bytes under .pi/skills/<skill>/. Fixture is disposable just-joshn/team-kit-gh-fixture. Full 18-skill closure is not claimed by this pair alone.',
     verdict: bothClosed ? 'pass' : 'fail',
   };
   const pairPath = join(evidenceRoot, `pair-${skillCfg.pairId}.json`);
@@ -813,27 +739,15 @@ async function writePair(results, preDigest, lockedSkillDigest, skillCfg) {
 
 if (isMain) {
   if (!skillId || !SKILLS[skillId]) {
-    console.error(
-      `Usage: node parity/scripts/capture-team-kit-gh-skill.mjs <${Object.keys(SKILLS).join('|')}> [--cursor-only|--pi-only|--both]`,
-    );
+    console.error(`Usage: node parity/scripts/capture-team-kit-gh-skill.mjs <${Object.keys(SKILLS).join('|')}> [--cursor-only|--pi-only|--both]`);
     process.exit(2);
   }
   const skillCfg = SKILLS[skillId];
-  const lockedSkill = join(
-    root,
-    'reference',
-    'cursor-plugins',
-    'cursor-team-kit',
-    'skills',
-    skillId,
-    'SKILL.md',
-  );
+  const lockedSkill = join(root, 'reference', 'cursor-plugins', 'cursor-team-kit', 'skills', skillId, 'SKILL.md');
   const preRule = await readFile(referenceRulePath, 'utf8');
   const preDigest = await sha256(referenceRulePath);
   if (preDigest !== LOCKED_FIXTURE_DIGEST) {
-    console.error(
-      `Reference rule digest ${preDigest} does not match the locked fixture ${LOCKED_FIXTURE_DIGEST}`,
-    );
+    console.error(`Reference rule digest ${preDigest} does not match the locked fixture ${LOCKED_FIXTURE_DIGEST}`);
     process.exit(1);
   }
   const lockedSkillDigest = (await sha256(lockedSkill)).replace(/^sha256:/, '');
@@ -854,10 +768,7 @@ if (isMain) {
     console.log(JSON.stringify(result));
   }
   const pairPath = await writePair(results, preDigest, lockedSkillDigest, skillCfg);
-  await writeFile(
-    join(evidenceRoot, `capture-results-${skillId}.json`),
-    `${JSON.stringify({ scenario: skillCfg.scenarioRef, fixtureDigest: preDigest, pairPath, results }, null, 2)}\n`,
-  );
+  await writeFile(join(evidenceRoot, `capture-results-${skillId}.json`), `${JSON.stringify({ scenario: skillCfg.scenarioRef, fixtureDigest: preDigest, pairPath, results }, null, 2)}\n`);
   console.log(
     JSON.stringify({
       scenario: skillCfg.scenarioRef,

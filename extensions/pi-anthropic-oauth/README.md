@@ -73,14 +73,14 @@ bun run test
 bun run typecheck
 bun run test:coverage
 bunx vitest run --sequence.shuffle
-node --experimental-strip-types scripts/prove-request-paths.ts
-node --experimental-strip-types scripts/prove-context-guard.ts --expect green
-node --experimental-strip-types scripts/prove-native.ts
+bun run prove
 ```
+
+From the repository root, `make verify-oauth` runs typecheck, coverage, and `bun run prove` for this package. The prove scripts use the pinned `@earendil-works/pi-coding-agent` `1.1.0` CLI bundle and local HTTP peers. They stay offline and do not need a separate `pi` install.
 
 The tests use native Pi providers, authentication, and streams against local HTTP peers. `prove-request-paths.ts` verifies normal prompts, compaction, virtual routing, and `models.json` header overrides. `prove-context-guard.ts` reproduces the cross-provider context-limit wedge with `--expect red` on the parent commit and verifies that the guard keeps every request under the window with `--expect green`. `prove-native.ts` verifies print, JSON, RPC, ambient authentication, session correlation, fork, reload, session replacement, tool execution, native Bash output, and cancellation.
 
-These probes use disposable Pi directories and synthetic tokens. They do not contact Anthropic for inference or inspect your credentials. Set `PI_OAUTH_CLI_PATH` to an installed Pi's `dist/bundle/cli.js` to repeat them against that host. They otherwise use the package's pinned Pi `1.0.2` test dependency. Both probes also cover the earlier Pi `1.0.0` host.
+These probes use disposable Pi directories and synthetic tokens. They do not contact Anthropic for inference or inspect your credentials. Set `PI_OAUTH_CLI_PATH` to an installed Pi's `dist/bundle/cli.js` to repeat them against that host. They otherwise use the package's pinned Pi `1.1.0` test dependency. Historical receipts for Pi `1.0.0` and `1.0.1` remain under `docs/verification/`.
 
 Capture the installed Claude Code reference with Python 3:
 

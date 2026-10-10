@@ -2,12 +2,14 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import { afterEach, expect, test } from 'vitest';
-import { runtimeOwner } from '../src/runtime.ts';
+import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
+import { afterEach, expect, test, vi } from 'vitest';
+import { registerRuntime, runtimeOwner } from '../src/runtime.ts';
 
 const homes: string[] = [];
 afterEach(() => {
   for (const home of homes.splice(0)) rmSync(home, { recursive: true, force: true });
+  vi.unstubAllEnvs();
 });
 
 function home(extension?: string): string {
@@ -18,6 +20,34 @@ function home(extension?: string): string {
     writeFileSync(join(dir, '.pi/agent/extensions/caveman-native.js'), extension);
   }
   return dir;
+}
+
+type SessionHandler = (event: Record<string, unknown>, ctx: ExtensionContext) => void;
+
+function yieldApi(tools: readonly { readonly name: string }[]) {
+  const handlers: SessionHandler[] = [];
+  const notices: Array<{ readonly text: string; readonly level: string }> = [];
+  const pi = {
+    on: (name: string, handler: SessionHandler) => {
+      if (name === 'session_start') handlers.push(handler);
+    },
+    getAllTools: () => tools,
+  };
+  const ctx = {
+    hasUI: true,
+    ui: {
+      notify: (text: string, level: string) => {
+        notices.push({ text, level });
+      },
+    },
+  } as unknown as ExtensionContext;
+  return {
+    pi: pi as unknown as ExtensionAPI,
+    notices,
+    sessionStart: () => {
+      for (const handler of handlers) handler({ type: 'session_start' }, ctx);
+    },
+  };
 }
 
 test('the package owns the runtime when the CLI manages none', () => {
@@ -38,4 +68,25 @@ test('an unrelated caveman-native.js leaves the runtime with the package', () =>
 
 test('an empty hook command leaves the runtime with the package', () => {
   expect(runtimeOwner({ CAVEMAN_PI_HOOK_CMD: '' }, home())).toBe('package');
+});
+
+test('yielding to caveman wrap warns when caveman_retrieve did not load', () => {
+  vi.stubEnv('CAVEMAN_PI_HOOK_CMD', '["caveman"]');
+  const api = yieldApi([]);
+  expect(registerRuntime(api.pi)).toBe('caveman-wrap');
+  api.sessionStart();
+  expect(api.notices).toEqual([
+    {
+      text: 'Caveman: direct mode, no compression this session (the caveman-wrap runtime extension did not load)',
+      level: 'warning',
+    },
+  ]);
+});
+
+test('yielding to caveman wrap stays quiet when caveman_retrieve is present', () => {
+  vi.stubEnv('CAVEMAN_PI_HOOK_CMD', '["caveman"]');
+  const api = yieldApi([{ name: 'caveman_retrieve' }]);
+  expect(registerRuntime(api.pi)).toBe('caveman-wrap');
+  api.sessionStart();
+  expect(api.notices).toEqual([]);
 });

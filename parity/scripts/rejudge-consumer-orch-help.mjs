@@ -10,8 +10,7 @@ const root = new URL('../', import.meta.url).pathname;
 const evidenceRoot = join(root, 'evidence', 'consumer');
 const pairPath = join(evidenceRoot, 'pair-consumer-orch-help-1.json');
 const LOCKED_CONSUMER_DIGEST = 'f091687df627a0b75fabd54af58945a9cd6c7039ef0622012ac9ed60cd8ec434';
-const consumerPath =
-  'parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/orch/orch.ts';
+const consumerPath = 'parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/orch/orch.ts';
 const consumerAbs = join(root, 'reference/cursor-plugins/pstack/skills/poteto-mode/scripts/orch/orch.ts');
 
 function observeHelp(text) {

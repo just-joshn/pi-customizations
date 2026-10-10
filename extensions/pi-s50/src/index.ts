@@ -9,8 +9,9 @@ import { isRecord, parseJson } from './orchestrator/decode.ts';
 import { S50_DIR } from './orchestrator/persistence.ts';
 import { gatedActions } from './policy/authorization.ts';
 import { commandsOf } from './policy/shell-words.ts';
+import { registerRenderers } from './renderers.ts';
 
-type Pi = Pick<ExtensionAPI, 'registerCommand' | 'registerTool' | 'getCommands' | 'getAllTools' | 'sendMessage' | 'on'>;
+type Pi = Pick<ExtensionAPI, 'registerCommand' | 'registerTool' | 'registerMessageRenderer' | 'getCommands' | 'getAllTools' | 'sendMessage' | 'on'>;
 
 const SUBAGENT_TOOLS = new Set(['subagent', 'Task']);
 
@@ -209,7 +210,7 @@ async function authorizeBash(pi: Pi, command: string, ctx: ExtensionContext): Pr
 
 const NOTIFY_LEVEL = { 0: 'info', 1: 'error', 2: 'warning', 3: 'warning' } as const;
 
-export default function s50(pi: Pi) {
+function registerS50Command(pi: Pi): void {
   pi.registerCommand('s50', {
     description: USAGE.split('\n').slice(1, 3).join(' ').trim(),
     getArgumentCompletions: (prefix) => {
@@ -226,7 +227,10 @@ export default function s50(pi: Pi) {
       }
     },
   });
+}
 
+function registerS50Tool(pi: Pi): void {
+  const resultSchema = Type.Object({ code: Type.Number() });
   pi.registerTool({
     name: 's50',
     label: 'S50',
@@ -239,9 +243,10 @@ export default function s50(pi: Pi) {
       'Stop at authorization gates; force-push, merge, deploy, destructive deletion, publishing, and public or customer messages need the user.',
     ],
     parameters: Type.Object({ argv: Type.Array(Type.String(), { minItems: 1 }) }),
+    outputSchema: resultSchema,
     executionMode: 'sequential',
     // The tool writes .s50/, runs git, creates worktrees, and registry refresh fetches skills.sh and GitHub.
-    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
+    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true },
     execute: async (_toolCallId, params, signal, _onUpdate, ctx) => {
       const needs = confirmationReason(params.argv);
       if (needs !== null) {
@@ -250,10 +255,21 @@ export default function s50(pi: Pi) {
       }
       const result = await run(pi, ctx.cwd, params.argv, signal);
       if (result.code === 1) throw new Error(bounded(result.stdout));
-      return { content: [{ type: 'text', text: bounded(result.stdout) }], details: { code: result.code }, ...(result.code === 2 ? { isError: true } : {}) };
+      const details = { code: result.code };
+      return {
+        content: [{ type: 'text', text: bounded(result.stdout) }],
+        details,
+        structuredContent: details,
+        ...(result.code === 2 ? { isError: true } : {}),
+      };
     },
   });
+}
 
+export default function s50(pi: Pi) {
+  registerRenderers(pi);
+  registerS50Command(pi);
+  registerS50Tool(pi);
   pi.on('tool_call', async (event, ctx) => {
     if (isToolCallEventType('bash', event)) return authorizeBash(pi, event.input.command, ctx);
     if (isToolCallEventType('write', event) || isToolCallEventType('edit', event)) return insideState(ctx.cwd, event.input.path) ? S50_ONLY : undefined;

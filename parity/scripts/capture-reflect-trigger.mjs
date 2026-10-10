@@ -1,11 +1,11 @@
 #!/usr/bin/env node
+import { createHash } from 'node:crypto';
 // cmd-reflect-trigger: substantive fixture turn, then /reflect with three-lens fan-out.
 // Real PTY both sides via the recorder. Screens + Pi session are the oracle.
 //
 // Usage: node scripts/capture-reflect-trigger.mjs [--cursor-only|--pi-only|--both]
 // Evidence root: parity/evidence/reflect/
 import { access, mkdir, readdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises';
-import { createHash } from 'node:crypto';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 
@@ -28,10 +28,7 @@ const SETTLE_MS = 1_500_000;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const stripAnsi = (text) =>
-  text
-    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
-    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
 
 function writeRootFor(side) {
   return join(evidenceRoot, 'fixture-out', side);
@@ -85,16 +82,8 @@ async function restoreFixture() {
 
 function scoreReflect(text) {
   const normalized = stripAnsi(text || '');
-  const reflectSkill =
-    /\/reflect\b/i.test(normalized) ||
-    /\[skill\]\s*reflect/i.test(normalized) ||
-    /\bUsed reflect\b/i.test(normalized) ||
-    /\bLoaded reflect\b/i.test(normalized) ||
-    /\bskill:\s*reflect\b/i.test(normalized);
-  const skipped =
-    /\breflect is skipped\b/i.test(normalized) ||
-    /\bskip(?:ping|ped)?\b.*\breflect\b/i.test(normalized) ||
-    /\btrivial\b.*\b(skip|off-topic)\b/i.test(normalized);
+  const reflectSkill = /\/reflect\b/i.test(normalized) || /\[skill\]\s*reflect/i.test(normalized) || /\bUsed reflect\b/i.test(normalized) || /\bLoaded reflect\b/i.test(normalized) || /\bskill:\s*reflect\b/i.test(normalized);
+  const skipped = /\breflect is skipped\b/i.test(normalized) || /\bskip(?:ping|ped)?\b.*\breflect\b/i.test(normalized) || /\btrivial\b.*\b(skip|off-topic)\b/i.test(normalized);
   const judgment = /\bjudgment\b/i.test(normalized);
   const tooling = /\btooling\b/i.test(normalized);
   const divergent = /\bdivergent\b/i.test(normalized);
@@ -107,11 +96,7 @@ function scoreReflect(text) {
     /\bgeneral-purpose\b/i.test(normalized) ||
     /\bRunning\b.*\b(subagent|agent|task)\b/i.test(normalized) ||
     /\bspawn(?:ed|ing)?\b/i.test(normalized);
-  const synthesizer =
-    /\bAccepted\b/i.test(normalized) ||
-    /\bRejected\b/i.test(normalized) ||
-    /\bBacklog\b/i.test(normalized) ||
-    /\bsynthesiz/i.test(normalized);
+  const synthesizer = /\bAccepted\b/i.test(normalized) || /\bRejected\b/i.test(normalized) || /\bBacklog\b/i.test(normalized) || /\bsynthesiz/i.test(normalized);
   const multiAgentReview = (lensHits >= 2 && spawnSignal) || (lensHits === 3 && synthesizer) || (spawnSignal && synthesizer && lensHits >= 1);
   return {
     reflectSkill,
@@ -150,13 +135,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -210,10 +189,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
       await sleep(800);
       continue;
     }
-    const chatReady =
-      !/Trust project folder\?/i.test(text) &&
-      (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) &&
-      (/fixture-app|reflect|clamp|medium|Skill conflicts|NOTES/i.test(text) || /README/i.test(text));
+    const chatReady = !/Trust project folder\?/i.test(text) && (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) && (/fixture-app|reflect|clamp|medium|Skill conflicts|NOTES/i.test(text) || /README/i.test(text));
     if (chatReady) return lines;
     await sleep(200);
   }
@@ -253,7 +229,7 @@ async function summarizePiSession(sessionPath) {
   const toolOrder = [];
   let skillInjected = false;
   let taskCount = 0;
-  let assistantTexts = [];
+  const assistantTexts = [];
   for (const line of lines) {
     let o;
     try {
@@ -356,12 +332,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     await dumpScreen(attempt, dir, '05-submitted-reflect', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        ['reflect', 'judgment', 'tooling', 'divergent', 'Accepted', 'Rejected', 'Backlog', 'reflect='],
-        900_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['reflect', 'judgment', 'tooling', 'divergent', 'Accepted', 'Rejected', 'Backlog', 'reflect='], 900_000);
     } catch {
       // settle may still land artifacts
     }
@@ -387,25 +358,12 @@ async function runSide(side, ruleBytes, ruleDigest) {
 
     const screenScore = scoreReflect(settledText);
     const ptyScore = scoreReflect(ptyText);
-    const sessionScore =
-      sessionSummary?.assistantJoined ? scoreReflect(sessionSummary.assistantJoined) : null;
+    const sessionScore = sessionSummary?.assistantJoined ? scoreReflect(sessionSummary.assistantJoined) : null;
     const candidates = [sessionScore, screenScore, ptyScore].filter(Boolean);
-    const bestScore =
-      candidates.sort(
-        (a, b) =>
-          Number(b.multiAgentReview) - Number(a.multiAgentReview) ||
-          b.lensHits - a.lensHits ||
-          Number(b.synthesizer) - Number(a.synthesizer),
-      )[0] || screenScore;
+    const bestScore = candidates.sort((a, b) => Number(b.multiAgentReview) - Number(a.multiAgentReview) || b.lensHits - a.lensHits || Number(b.synthesizer) - Number(a.synthesizer))[0] || screenScore;
 
-    const skillActivated = Boolean(
-      screenScore.reflectSkill || ptyScore.reflectSkill || sessionSummary?.skillInjected || /\/reflect\b/i.test(turn2),
-    );
-    const multiAgentReview = Boolean(
-      bestScore?.multiAgentReview ||
-        (sessionSummary?.taskCount ?? 0) >= 3 ||
-        ((sessionSummary?.taskCount ?? 0) >= 2 && bestScore?.synthesizer),
-    );
+    const skillActivated = Boolean(screenScore.reflectSkill || ptyScore.reflectSkill || sessionSummary?.skillInjected || /\/reflect\b/i.test(turn2));
+    const multiAgentReview = Boolean(bestScore?.multiAgentReview || (sessionSummary?.taskCount ?? 0) >= 3 || ((sessionSummary?.taskCount ?? 0) >= 2 && bestScore?.synthesizer));
 
     const clampAfter = await readFile(join(fixtureApp, 'src/clamp.js'), 'utf8');
     const notesAfter = await readFile(join(fixtureApp, 'NOTES.md'), 'utf8');

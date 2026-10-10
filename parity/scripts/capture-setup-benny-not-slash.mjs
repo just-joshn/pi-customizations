@@ -27,14 +27,7 @@ const fixtureApp = join(evidenceRoot, 'fixture-app');
 const productRel = join('src', 'app.js');
 const productAbs = join(fixtureApp, productRel);
 const forAgentsRel = join('.upstream', 'automations', 'benny', 'FOR_AGENTS.md');
-const setupSkillRel = join(
-  '.upstream',
-  'automations',
-  'benny',
-  'skills',
-  'setup-benny',
-  'SKILL.md',
-);
+const setupSkillRel = join('.upstream', 'automations', 'benny', 'skills', 'setup-benny', 'SKILL.md');
 const GEOMETRY = { rows: 40, cols: 120 };
 const LOCKED_FIXTURE_DIGEST = 'sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004';
 const SETTLE_MS = 900_000;
@@ -42,10 +35,7 @@ const POLL_MS = 500;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const stripAnsi = (text) =>
-  text
-    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
-    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
 
 function writeRootFor(side) {
   return join(evidenceRoot, 'fixture-out', side);
@@ -99,13 +89,7 @@ function stripNegatedSetupSlashMentions(hay) {
   const slashTok = '[`\'"]*\\/setup-benny[`\'"]*';
   return hay
     .replace(/\bSTATUS=not-slash\|slash-invoked\|automation-created\|blocked\|other[^\n]*/gi, ' ')
-    .replace(
-      new RegExp(
-        String.raw`\b(?:do not|don't|did not|didn't)\s+(?:look for or invoke|invoke|run)\s+(?:a\s+)?(?:discovered\s+)?(?:Benny\s+)?(?:slash\s+skill|${slashTok})\b`,
-        'gi',
-      ),
-      ' ',
-    )
+    .replace(new RegExp(String.raw`\b(?:do not|don't|did not|didn't)\s+(?:look for or invoke|invoke|run)\s+(?:a\s+)?(?:discovered\s+)?(?:Benny\s+)?(?:slash\s+skill|${slashTok})\b`, 'gi'), ' ')
     .replace(new RegExp(String.raw`\b(?:do not|don't|did not|didn't)\s+run\s+${slashTok}\b`, 'gi'), ' ')
     .replace(new RegExp(String.raw`\bI (?:did not|didn't) run\s+${slashTok}\b`, 'gi'), ' ')
     .replace(/\btreated[^\n.]{0,80}not a slash skill\b/gi, ' ')
@@ -116,12 +100,8 @@ export function observeSetupBennyNotSlash(text, { ignorePromptSlice } = {}) {
   let hay = stripAnsi(text || '');
   if (ignorePromptSlice) hay = hay.split(ignorePromptSlice).join(' ');
   hay = stripNegatedSetupSlashMentions(hay);
-  const forAgentsChrome =
-    /FOR_AGENTS\.md/i.test(hay) ||
-    /\.upstream\/automations\/benny\/FOR_AGENTS/i.test(hay);
-  const setupBennyPathChrome =
-    /setup-benny\/SKILL\.md/i.test(hay) ||
-    /\.upstream\/automations\/benny\/skills\/setup-benny/i.test(hay);
+  const forAgentsChrome = /FOR_AGENTS\.md/i.test(hay) || /\.upstream\/automations\/benny\/FOR_AGENTS/i.test(hay);
+  const setupBennyPathChrome = /setup-benny\/SKILL\.md/i.test(hay) || /\.upstream\/automations\/benny\/skills\/setup-benny/i.test(hay);
   const notSlashClaim =
     /\bnot (a |an )?(plugin )?slash skill\b/i.test(hay) ||
     /\bnot (registered as )?slash skills?\b/i.test(hay) ||
@@ -140,13 +120,8 @@ export function observeSetupBennyNotSlash(text, { ignorePromptSlice } = {}) {
   const automationCreated =
     /\bCreated (a )?(live )?automation\b/i.test(hay) ||
     /\bOpening Automations editor\b/i.test(hay) ||
-    (/\b\/automate\b/i.test(hay) &&
-      /\b(creat(?:e|ing|ed)|start(?:ed|ing)|open(?:ed|ing))\b/i.test(hay) &&
-      !/\bdo not (create|use|run)\b/i.test(hay) &&
-      !/\buntil (the user|i) explicitly ask/i.test(hay));
-  const secretWrite =
-    /\b(slack[_-]?bot[_-]?token|xoxb-|xoxp-)\b/i.test(hay) &&
-    /\b(wrote|writing|saved|committed)\b/i.test(hay);
+    (/\b\/automate\b/i.test(hay) && /\b(creat(?:e|ing|ed)|start(?:ed|ing)|open(?:ed|ing))\b/i.test(hay) && !/\bdo not (create|use|run)\b/i.test(hay) && !/\buntil (the user|i) explicitly ask/i.test(hay));
+  const secretWrite = /\b(slack[_-]?bot[_-]?token|xoxb-|xoxp-)\b/i.test(hay) && /\b(wrote|writing|saved|committed)\b/i.test(hay);
   return {
     forAgentsChrome,
     setupBennyPathChrome,
@@ -158,21 +133,10 @@ export function observeSetupBennyNotSlash(text, { ignorePromptSlice } = {}) {
   };
 }
 
-export function scoreSetupBennyNotSlash({
-  done,
-  productBeforeDigest,
-  productAfterDigest,
-  screenText,
-  ptyText,
-  sessionSummary,
-  prompt,
-}) {
+export function scoreSetupBennyNotSlash({ done, productBeforeDigest, productAfterDigest, screenText, ptyText, sessionSummary, prompt }) {
   const screen = observeSetupBennyNotSlash(screenText, { ignorePromptSlice: prompt });
   const pty = observeSetupBennyNotSlash(ptyText, { ignorePromptSlice: prompt });
-  const productUnchanged =
-    Boolean(productBeforeDigest) &&
-    Boolean(productAfterDigest) &&
-    productBeforeDigest === productAfterDigest;
+  const productUnchanged = Boolean(productBeforeDigest) && Boolean(productAfterDigest) && productBeforeDigest === productAfterDigest;
   const statusNotSlash = done?.status === 'not-slash';
   const statusSlash = done?.status === 'slash-invoked';
   const statusAutomation = done?.status === 'automation-created';
@@ -195,25 +159,12 @@ export function scoreSetupBennyNotSlash({
     screen.secretWrite ||
     pty.secretWrite ||
     sessionSecret;
-  const pathEntry =
-    sessionForAgents ||
-    sessionSetup ||
-    screen.forAgentsChrome ||
-    screen.setupBennyPathChrome ||
-    pty.forAgentsChrome ||
-    pty.setupBennyPathChrome;
-  const notSlashSignal =
-    statusNotSlash ||
-    screen.notSlashClaim ||
-    pty.notSlashClaim ||
-    Boolean(sessionSummary?.notSlashClaim) ||
-    (pathEntry && !forbidden);
+  const pathEntry = sessionForAgents || sessionSetup || screen.forAgentsChrome || screen.setupBennyPathChrome || pty.forAgentsChrome || pty.setupBennyPathChrome;
+  const notSlashSignal = statusNotSlash || screen.notSlashClaim || pty.notSlashClaim || Boolean(sessionSummary?.notSlashClaim) || (pathEntry && !forbidden);
   const engaged = Boolean(pathEntry || done?.exists || sessionSetup || sessionForAgents);
   let outcome = 'inconclusive';
   if (forbidden || statusSlash || statusAutomation) {
-    outcome = statusAutomation || screen.automationCreated || pty.automationCreated || sessionAutomation
-      ? 'automation_created'
-      : 'slash_invoked';
+    outcome = statusAutomation || screen.automationCreated || pty.automationCreated || sessionAutomation ? 'automation_created' : 'slash_invoked';
   } else if (engaged && notSlashSignal && productUnchanged) {
     outcome = 'not_slash';
   } else if (statusBlocked && engaged && !forbidden) {
@@ -257,13 +208,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -317,10 +262,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
       await sleep(800);
       continue;
     }
-    const chatReady =
-      !/Trust project folder\?/i.test(text) &&
-      (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) &&
-      (/fixture-app|Benny|benny|medium|Skill conflicts|README|setup/i.test(text));
+    const chatReady = !/Trust project folder\?/i.test(text) && (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) && /fixture-app|Benny|benny|medium|Skill conflicts|README|setup/i.test(text);
     if (chatReady) return lines;
     await sleep(200);
   }
@@ -451,9 +393,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     // Re-check locked digest immediately before touching the shared rule (Grok-cap race).
     const liveDigest = await sha256(referenceRulePath);
     if (liveDigest !== LOCKED_FIXTURE_DIGEST) {
-      throw new Error(
-        `Aborting ${side}: reference rule digest ${liveDigest} != locked ${LOCKED_FIXTURE_DIGEST}`,
-      );
+      throw new Error(`Aborting ${side}: reference rule digest ${liveDigest} != locked ${LOCKED_FIXTURE_DIGEST}`);
     }
     await writeFile(rulePath, ruleBytes);
     attempt = await startAttempt(side === 'cursor' ? cursorSpec(ruleDigest) : piSpec(ruleDigest));
@@ -491,22 +431,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        [
-          'STATUS=',
-          'FOR_AGENTS',
-          'setup-benny',
-          'not a slash',
-          'not slash',
-          'slash skill',
-          'destination',
-          'Which repository',
-          'which repository',
-        ],
-        600_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['STATUS=', 'FOR_AGENTS', 'setup-benny', 'not a slash', 'not slash', 'slash skill', 'destination', 'Which repository', 'which repository'], 600_000);
     } catch {
       // settle may still land artifacts
     }
@@ -587,8 +512,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
           }
         : null,
       pollSamples: pollLog.length,
-      scorerNote:
-        'not_slash requires path engagement (FOR_AGENTS and/or setup-benny SKILL.md) + not-slash signal + unchanged src/app.js + no slash invoke + no automation create',
+      scorerNote: 'not_slash requires path engagement (FOR_AGENTS and/or setup-benny SKILL.md) + not-slash signal + unchanged src/app.js + no slash invoke + no automation create',
     };
 
     const afterRule = await readFile(rulePath, 'utf8');
@@ -666,8 +590,7 @@ async function selfTest() {
     },
     productBeforeDigest: 'aaa',
     productAfterDigest: 'aaa',
-    screenText:
-      'I treated setup-benny as pack content, not a slash skill. I did not run /setup-benny or create any automation. Read FOR_AGENTS.md.',
+    screenText: 'I treated setup-benny as pack content, not a slash skill. I did not run /setup-benny or create any automation. Read FOR_AGENTS.md.',
     ptyText: 'Do not run /setup-benny. STATUS=not-slash|slash-invoked|automation-created|blocked|other',
     sessionSummary: {
       forAgentsRead: true,
@@ -717,10 +640,7 @@ if (isMain) {
     results.push(result);
     console.log(JSON.stringify(result));
   }
-  await writeFile(
-    join(evidenceRoot, 'capture-results.json'),
-    `${JSON.stringify({ scenario: 'cmd-setup-benny-not-slash', fixtureDigest: preDigest, results }, null, 2)}\n`,
-  );
+  await writeFile(join(evidenceRoot, 'capture-results.json'), `${JSON.stringify({ scenario: 'cmd-setup-benny-not-slash', fixtureDigest: preDigest, results }, null, 2)}\n`);
   console.log(
     JSON.stringify({
       scenario: 'cmd-setup-benny-not-slash',

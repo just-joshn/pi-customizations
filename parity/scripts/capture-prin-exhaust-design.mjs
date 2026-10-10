@@ -23,24 +23,8 @@ const piAgentDir = '/tmp/pi-ref-agent';
 const piRulePath = join(piAgentDir, 'pstack', 'models.mdc');
 const evidenceRoot = join(root, 'evidence', 'principles', 'exhaust-design');
 const fixtureApp = join(evidenceRoot, 'fixture-app');
-const exhaustSkillCursor = join(
-  root,
-  'reference',
-  'cursor-plugins',
-  'pstack',
-  'skills',
-  'principle-exhaust-the-design-space',
-  'SKILL.md',
-);
-const exhaustSkillPi = join(
-  root,
-  '..',
-  'extensions',
-  'pi-pstack',
-  'skills',
-  'principle-exhaust-the-design-space',
-  'SKILL.md',
-);
+const exhaustSkillCursor = join(root, 'reference', 'cursor-plugins', 'pstack', 'skills', 'principle-exhaust-the-design-space', 'SKILL.md');
+const exhaustSkillPi = join(root, '..', 'extensions', 'pi-pstack', 'skills', 'principle-exhaust-the-design-space', 'SKILL.md');
 const GEOMETRY = { rows: 40, cols: 120 };
 const LOCKED_FIXTURE_DIGEST = 'sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004';
 const SETTLE_MS = 1_500_000;
@@ -49,22 +33,11 @@ const PRODUCT_REL = ['src/picker.js'];
 const DOC_REL = ['README.md', 'NOTES.md', 'DECISION.md'];
 const VERIFY_OUT_REL = 'evidence/verify-out.txt';
 const VERIFY_SCRIPT_REL = 'scripts/verify.mjs';
-const BASELINE_REL = [
-  ...PRODUCT_REL,
-  'README.md',
-  'NOTES.md',
-  'package.json',
-  VERIFY_SCRIPT_REL,
-  'evidence/.gitkeep',
-  'prototypes/.gitkeep',
-];
+const BASELINE_REL = [...PRODUCT_REL, 'README.md', 'NOTES.md', 'package.json', VERIFY_SCRIPT_REL, 'evidence/.gitkeep', 'prototypes/.gitkeep'];
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const stripAnsi = (text) =>
-  text
-    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
-    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
 
 function writeRootFor(side) {
   return join(evidenceRoot, 'fixture-out', side);
@@ -155,19 +128,12 @@ function isPrototypeRel(rel) {
 function observeExhaustText(text, { ignorePromptSlice } = {}) {
   let hay = stripAnsi(text || '');
   if (ignorePromptSlice) hay = hay.split(ignorePromptSlice).join(' ');
-  const potetoMode =
-    /\/poteto-mode\b/i.test(hay) ||
-    /\[skill\]\s*poteto-mode/i.test(hay) ||
-    /\bUsed poteto-mode\b/i.test(hay);
+  const potetoMode = /\/poteto-mode\b/i.test(hay) || /\[skill\]\s*poteto-mode/i.test(hay) || /\bUsed poteto-mode\b/i.test(hay);
   const leafChrome = /principle-exhaust-the-design-space[/\\]SKILL\.md/i.test(hay);
   const usedLeaf = /\bUsed principle-exhaust-the-design-space\b/i.test(hay);
   const skillBracketLeaf = /\[skill\]\s*principle-exhaust-the-design-space\b/i.test(hay);
   const hostAttached = Boolean(usedLeaf || skillBracketLeaf);
-  const verifyMention =
-    /scripts\/verify\.mjs/i.test(hay) ||
-    /evidence\/verify-out\.txt/i.test(hay) ||
-    /\bEXHAUST-OK\b/.test(hay) ||
-    /\bEXHAUST-FAIL\b/.test(hay);
+  const verifyMention = /scripts\/verify\.mjs/i.test(hay) || /evidence\/verify-out\.txt/i.test(hay) || /\bEXHAUST-OK\b/.test(hay) || /\bEXHAUST-FAIL\b/.test(hay);
   const protoMention = /prototypes\//i.test(hay) || /\bAPPROACH:\b/i.test(hay) || /\bDECISION\.md\b/i.test(hay);
   const working = /[\u2800-\u28FF]/.test(hay) || /\bWorking\b/.test(hay);
   return { potetoMode, leafChrome, hostAttached, verifyMention, protoMention, working };
@@ -217,14 +183,7 @@ function extractToolCallsFromJsonl(text) {
 }
 
 function pathFromArgs(args) {
-  return (
-    args.path ||
-    args.file_path ||
-    args.filePath ||
-    args.target_file ||
-    args.file ||
-    null
-  );
+  return args.path || args.file_path || args.filePath || args.target_file || args.file || null;
 }
 
 function isWriteLike(name, args) {
@@ -252,18 +211,14 @@ function scoreCallsForExhaust(calls) {
     const args = call.args || {};
     const blob = JSON.stringify(args);
     const path = pathFromArgs(args);
-    const isRead =
-      /^(Read|read|read_file|ReadFile|cat|blob-mention)$/i.test(name) ||
-      (name === 'bash' && typeof args.command === 'string' && /\bcat\b/.test(args.command));
+    const isRead = /^(Read|read|read_file|ReadFile|cat|blob-mention)$/i.test(name) || (name === 'bash' && typeof args.command === 'string' && /\bcat\b/.test(args.command));
     if (isRead && isExhaustSkillPath(path || blob)) {
       leafSkillRead = true;
       if (!leafSkillReadAt) leafSkillReadAt = call.ts || new Date().toISOString();
       toolOrder.push(`${name}(exhaust-leaf)`);
       continue;
     }
-    const verifyHit =
-      /\bscripts\/verify\.mjs\b/i.test(blob) ||
-      (typeof args.command === 'string' && /verify\.mjs/.test(args.command));
+    const verifyHit = /\bscripts\/verify\.mjs\b/i.test(blob) || (typeof args.command === 'string' && /verify\.mjs/.test(args.command));
     if (verifyHit) {
       ranVerifyScript = true;
       if (!firstVerifyAt) firstVerifyAt = call.ts || new Date().toISOString();
@@ -330,59 +285,19 @@ export function analyzePrototypes(protoBodies) {
   };
 }
 
-export function scoreExhaustDesign({
-  frontmatter,
-  done,
-  verifyOut,
-  productOk,
-  prototypeArtifacts,
-  prototypeAnalysis,
-  decisionExists,
-  screenText,
-  ptyText,
-  sessionScore,
-  transcriptScore,
-  prompt,
-  firstProtoAt,
-  firstProductAt,
-}) {
+export function scoreExhaustDesign({ frontmatter, done, verifyOut, productOk, prototypeArtifacts, prototypeAnalysis, decisionExists, screenText, ptyText, sessionScore, transcriptScore, prompt, firstProtoAt, firstProductAt }) {
   const screen = observeExhaustText(screenText, { ignorePromptSlice: prompt });
   const pty = observeExhaustText(ptyText, { ignorePromptSlice: prompt });
-  const leafSkillRead = Boolean(
-    sessionScore?.leafSkillRead ||
-      transcriptScore?.leafSkillRead ||
-      screen.leafChrome ||
-      pty.leafChrome,
-  );
+  const leafSkillRead = Boolean(sessionScore?.leafSkillRead || transcriptScore?.leafSkillRead || screen.leafChrome || pty.leafChrome);
   const usedChrome = Boolean(screen.hostAttached || pty.hostAttached || sessionScore?.hostAttached);
   const modelAutoInvoke = usedChrome && !leafSkillRead;
-  const ranVerifyScript = Boolean(
-    sessionScore?.ranVerifyScript ||
-      transcriptScore?.ranVerifyScript ||
-      screen.verifyMention ||
-      pty.verifyMention,
-  );
-  const prototypesPresent = Boolean(
-    (prototypeArtifacts?.length || 0) >= 2 &&
-      prototypeAnalysis?.okCount &&
-      prototypeAnalysis?.okDistinct,
-  );
-  const prototypesBeforeProduct = Boolean(
-    firstProtoAt && firstProductAt && Date.parse(firstProtoAt) <= Date.parse(firstProductAt),
-  );
+  const ranVerifyScript = Boolean(sessionScore?.ranVerifyScript || transcriptScore?.ranVerifyScript || screen.verifyMention || pty.verifyMention);
+  const prototypesPresent = Boolean((prototypeArtifacts?.length || 0) >= 2 && prototypeAnalysis?.okCount && prototypeAnalysis?.okDistinct);
+  const prototypesBeforeProduct = Boolean(firstProtoAt && firstProductAt && Date.parse(firstProtoAt) <= Date.parse(firstProductAt));
   const exhaustOk = Boolean(verifyOut?.ok);
   const verifiedDone = /^verified=yes\b/i.test((done?.line || '').trim());
   const frontmatterOk = Boolean(frontmatter?.ok);
-  const contractHeld =
-    frontmatterOk &&
-    leafSkillRead &&
-    ranVerifyScript &&
-    exhaustOk &&
-    productOk &&
-    prototypesPresent &&
-    decisionExists &&
-    verifiedDone &&
-    !modelAutoInvoke;
+  const contractHeld = frontmatterOk && leafSkillRead && ranVerifyScript && exhaustOk && productOk && prototypesPresent && decisionExists && verifiedDone && !modelAutoInvoke;
   return {
     frontmatterOk,
     leafSkillRead,
@@ -508,13 +423,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -568,10 +477,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
       await sleep(800);
       continue;
     }
-    const chatReady =
-      !/Trust project folder\?/i.test(text) &&
-      (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) &&
-      (/exhaust|picker|README|medium|Skill conflicts|Session TTL|fixture-app/i.test(text));
+    const chatReady = !/Trust project folder\?/i.test(text) && (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) && /exhaust|picker|README|medium|Skill conflicts|Session TTL|fixture-app/i.test(text);
     if (chatReady) return lines;
     await sleep(200);
   }
@@ -608,9 +514,7 @@ async function summarizePiSession(sessionPath) {
   const text = await readFile(sessionPath, 'utf8');
   const calls = extractToolCallsFromJsonl(text);
   const scored = scoreCallsForExhaust(calls);
-  const hostAttached =
-    /\bUsed principle-exhaust-the-design-space\b/i.test(text) ||
-    /\[skill\]\s*principle-exhaust-the-design-space\b/i.test(text);
+  const hostAttached = /\bUsed principle-exhaust-the-design-space\b/i.test(text) || /\[skill\]\s*principle-exhaust-the-design-space\b/i.test(text);
   return { sessionPath, hostAttached, ...scored };
 }
 
@@ -639,9 +543,7 @@ async function findCursorTranscripts(sinceMs, side) {
         } catch {
           continue;
         }
-        const mentionsThisAttempt =
-          text.includes(doneAbs) ||
-          (text.includes(`exhaust-design/fixture-out/${side}/done.txt`) && text.includes('picker'));
+        const mentionsThisAttempt = text.includes(doneAbs) || (text.includes(`exhaust-design/fixture-out/${side}/done.txt`) && text.includes('picker'));
         if (mentionsThisAttempt) hits.push({ path: abs, mtimeMs: st.mtimeMs, size: st.size });
       }
     }
@@ -731,12 +633,7 @@ async function runSide(side, ruleBytes, ruleDigest, frontmatter) {
         }
         if (snap.hits.decision.length && !firstDecisionAt) firstDecisionAt = snap.now;
         if (snap.hits.verify.length && !firstVerifyAt) firstVerifyAt = snap.now;
-        if (
-          snap.hits.product.length ||
-          snap.hits.verify.length ||
-          snap.hits.prototypes.length ||
-          snap.hits.decision.length
-        ) {
+        if (snap.hits.product.length || snap.hits.verify.length || snap.hits.prototypes.length || snap.hits.decision.length) {
           pollLog.push({
             ts: snap.now,
             product: snap.hits.product,
@@ -757,22 +654,7 @@ async function runSide(side, ruleBytes, ruleDigest, frontmatter) {
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        [
-          'poteto-mode',
-          'picker',
-          'verify',
-          'EXHAUST-OK',
-          'EXHAUST-FAIL',
-          'principle-exhaust-the-design-space',
-          'prototypes',
-          'APPROACH',
-          'DECISION',
-        ],
-        300_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['poteto-mode', 'picker', 'verify', 'EXHAUST-OK', 'EXHAUST-FAIL', 'principle-exhaust-the-design-space', 'prototypes', 'APPROACH', 'DECISION'], 300_000);
     } catch {
       // settle may still land artifacts
     }
@@ -786,9 +668,7 @@ async function runSide(side, ruleBytes, ruleDigest, frontmatter) {
       const done = await readDone(side);
       const verify = await readVerifyOut();
       for (const p of await listPrototypeArtifacts()) prototypePaths.add(p);
-      const enough =
-        done.exists ||
-        (verify.ok && productPaths.size > 0 && prototypePaths.size >= 2 && (await pathExists(join(fixtureApp, 'DECISION.md'))));
+      const enough = done.exists || (verify.ok && productPaths.size > 0 && prototypePaths.size >= 2 && (await pathExists(join(fixtureApp, 'DECISION.md'))));
       if (enough && !obs.working) {
         calm += 1;
         if (calm >= 3) break;
@@ -1052,10 +932,7 @@ if (isMain) {
     results.push(result);
     console.log(JSON.stringify(result));
   }
-  await writeFile(
-    join(evidenceRoot, 'capture-results.json'),
-    `${JSON.stringify({ scenario: 'prin-exhaust-design', fixtureDigest: preDigest, frontmatter, results }, null, 2)}\n`,
-  );
+  await writeFile(join(evidenceRoot, 'capture-results.json'), `${JSON.stringify({ scenario: 'prin-exhaust-design', fixtureDigest: preDigest, frontmatter, results }, null, 2)}\n`);
   console.log(
     JSON.stringify({
       scenario: 'prin-exhaust-design',

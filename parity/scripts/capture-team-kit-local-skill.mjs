@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { spawnSync } from 'node:child_process';
 // Parameterized team-kit local-skill pair capture.
 // Cursor loads locked cursor-team-kit via --plugin-dir.
 // Pi gets the same SKILL.md bytes seeded under .pi/skills/<skillId>/.
@@ -7,11 +8,10 @@
 // Usage:
 //   node parity/scripts/capture-team-kit-local-skill.mjs --skill=<id> [--cursor-only|--pi-only|--both]
 // Evidence: parity/evidence/team-kit/
-import { access, cp, mkdir, readFile, rename, rm, writeFile, readdir } from 'node:fs/promises';
+import { access, cp, mkdir, readdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { spawnSync } from 'node:child_process';
 
 import { sha256 } from '../recorder/files.mjs';
 import { outputBytes, startAttempt } from '../recorder/index.mjs';
@@ -31,10 +31,7 @@ const SETTLE_MS = 900_000;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const stripAnsi = (text) =>
-  text
-    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
-    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
 
 function parseArgs(argv) {
   let skill = null;
@@ -200,10 +197,7 @@ console.log('typecheck ok');
       });
       const text = await readFile(join(fixtureApp, 'value.txt'), 'utf8');
       if (!text.includes('<<<<<<<')) {
-        await writeFile(
-          join(fixtureApp, 'value.txt'),
-          '<<<<<<< HEAD\nmain-value\n=======\nfeature-value\n>>>>>>> feature\n',
-        );
+        await writeFile(join(fixtureApp, 'value.txt'), '<<<<<<< HEAD\nmain-value\n=======\nfeature-value\n>>>>>>> feature\n');
       }
     },
     prompt(side, skillId, fixtureApp) {
@@ -245,10 +239,7 @@ console.log('typecheck ok');
       runGit(fixtureApp, ['init']);
       runGit(fixtureApp, ['config', 'user.email', 'fixture@example.com']);
       runGit(fixtureApp, ['config', 'user.name', 'Fixture User']);
-      await writeFile(
-        join(fixtureApp, 'src', 'util.js'),
-        'export function double(n) {\n  return n * 2;\n}\n',
-      );
+      await writeFile(join(fixtureApp, 'src', 'util.js'), 'export function double(n) {\n  return n * 2;\n}\n');
       runGit(fixtureApp, ['add', 'src/util.js']);
       runGit(fixtureApp, ['commit', '-m', 'clean util']);
       runGit(fixtureApp, ['branch', '-M', 'main']);
@@ -288,11 +279,7 @@ console.log('typecheck ok');
     },
     async oracle(side, skillId, fixtureApp) {
       const text = await readFile(join(fixtureApp, 'src', 'util.js'), 'utf8');
-      const slopGone =
-        !/try\s*\{/.test(text) &&
-        !/@type\s*\{any\}/.test(text) &&
-        !/This helper function doubles/.test(text) &&
-        !/Defensive check/.test(text);
+      const slopGone = !/try\s*\{/.test(text) && !/@type\s*\{any\}/.test(text) && !/This helper function doubles/.test(text) && !/Defensive check/.test(text);
       const keepsBehavior = /return\s+n\s*\*\s*2/.test(text) || /return\s+n\*2/.test(text);
       const summaryExists = await pathExists(summaryPath(side, skillId));
       const done = await readDone(side, skillId);
@@ -383,16 +370,8 @@ rl.on('line', (line) => {
       runGit(fixtureApp, ['add', 'alpha.txt'], env);
       runGit(fixtureApp, ['commit', '-m', 'ship ALPHA feature'], env);
       await writeFile(join(fixtureApp, 'beta.txt'), 'beta\n');
-      runGit(
-        fixtureApp,
-        ['add', 'beta.txt'],
-        { GIT_AUTHOR_DATE: '2026-10-08T12:00:00', GIT_COMMITTER_DATE: '2026-10-08T12:00:00' },
-      );
-      runGit(
-        fixtureApp,
-        ['commit', '-m', 'ship BETA polish'],
-        { GIT_AUTHOR_DATE: '2026-10-08T12:00:00', GIT_COMMITTER_DATE: '2026-10-08T12:00:00' },
-      );
+      runGit(fixtureApp, ['add', 'beta.txt'], { GIT_AUTHOR_DATE: '2026-10-08T12:00:00', GIT_COMMITTER_DATE: '2026-10-08T12:00:00' });
+      runGit(fixtureApp, ['commit', '-m', 'ship BETA polish'], { GIT_AUTHOR_DATE: '2026-10-08T12:00:00', GIT_COMMITTER_DATE: '2026-10-08T12:00:00' });
     },
     prompt(side, skillId, fixtureApp) {
       const outRoot = join(evidenceRoot, 'fixture-out', side, skillId);
@@ -458,8 +437,7 @@ rl.on('line', (line) => {
       if (summaryExists) {
         const text = await readFile(summaryFile, 'utf8');
         mentionsAlpha = /\bALPHA\b/.test(text);
-        hasClass =
-          /bug/i.test(text) && (/tech\s*debt/i.test(text) || /debt/i.test(text)) && /net[- ]?new/i.test(text);
+        hasClass = /bug/i.test(text) && (/tech\s*debt/i.test(text) || /debt/i.test(text)) && /net[- ]?new/i.test(text);
       }
       return {
         summaryExists,
@@ -480,10 +458,7 @@ rl.on('line', (line) => {
       runGit(fixtureApp, ['init']);
       runGit(fixtureApp, ['config', 'user.email', 'fixture@example.com']);
       runGit(fixtureApp, ['config', 'user.name', 'Fixture User']);
-      await writeFile(
-        join(fixtureApp, 'src', 'process.js'),
-        'export function processItem(item) {\n  return item;\n}\n',
-      );
+      await writeFile(join(fixtureApp, 'src', 'process.js'), 'export function processItem(item) {\n  return item;\n}\n');
       runGit(fixtureApp, ['add', 'src/process.js']);
       runGit(fixtureApp, ['commit', '-m', 'base']);
       runGit(fixtureApp, ['branch', '-M', 'main']);
@@ -548,9 +523,7 @@ rl.on('line', (line) => {
         mentionsNest,
         proposesSimplify,
         done,
-        closed: Boolean(
-          summaryExists && mentionsNest && proposesSimplify && done.status === 'verified',
-        ),
+        closed: Boolean(summaryExists && mentionsNest && proposesSimplify && done.status === 'verified'),
         honestBlocker: done.status === 'env-blocked',
       };
     },
@@ -717,10 +690,7 @@ server.listen(8765, '127.0.0.1', () => console.log('listening 8765'));
           }),
         ].join('\n') + '\n',
       );
-      await writeFile(
-        join(chatDir, 'README.md'),
-        'Synthetic parent transcripts for workflow-from-chats fixture. Not live Cursor paths.\n',
-      );
+      await writeFile(join(chatDir, 'README.md'), 'Synthetic parent transcripts for workflow-from-chats fixture. Not live Cursor paths.\n');
     },
     prompt(side, skillId, fixtureApp) {
       const outRoot = join(evidenceRoot, 'fixture-out', side, skillId);
@@ -758,9 +728,7 @@ server.listen(8765, '127.0.0.1', () => console.log('listening 8765'));
         markerOk,
         testPref,
         done,
-        closed: Boolean(
-          summaryExists && ruleExists && markerOk && testPref && done.status === 'verified',
-        ),
+        closed: Boolean(summaryExists && ruleExists && markerOk && testPref && done.status === 'verified'),
         honestBlocker: done.status === 'env-blocked',
       };
     },
@@ -810,13 +778,7 @@ const cursorSpec = (skillId, fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureAppFor(skillId),
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -873,11 +835,7 @@ async function waitPiChatReady(attempt, timeoutMs, skillId) {
       continue;
     }
     const chatReady =
-      !/Trust project folder\?/i.test(text) &&
-      (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) &&
-      (new RegExp(skillId, 'i').test(text) ||
-        /Skill conflicts|medium/i.test(text) ||
-        /fixture-apps/i.test(text));
+      !/Trust project folder\?/i.test(text) && (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) && (new RegExp(skillId, 'i').test(text) || /Skill conflicts|medium/i.test(text) || /fixture-apps/i.test(text));
     if (chatReady) return lines;
     await sleep(200);
   }
@@ -928,9 +886,7 @@ async function runSide(side, skillId, conf, ruleBytes, ruleDigest) {
   try {
     await writeFile(rulePath, ruleBytes);
     if (side === 'pi') await ensurePiTrust(fixtureApp);
-    attempt = await startAttempt(
-      side === 'cursor' ? cursorSpec(skillId, ruleDigest) : piSpec(skillId, ruleDigest),
-    );
+    attempt = await startAttempt(side === 'cursor' ? cursorSpec(skillId, ruleDigest) : piSpec(skillId, ruleDigest));
     if (side === 'cursor') {
       await waitEither(attempt, GEOMETRY, ['Tip:', 'agent'], 90_000);
     } else {
@@ -971,8 +927,7 @@ async function runSide(side, skillId, conf, ruleBytes, ruleDigest) {
     observations.summaryExists = await pathExists(summaryPath(side, skillId));
     observations.seededSkill = seeded;
     observations.oracle = await conf.oracle(side, skillId, fixtureApp);
-    const skillPath =
-      Boolean(observations.screenFinal?.skillMention) || Boolean(observations.pty?.skillMention);
+    const skillPath = Boolean(observations.screenFinal?.skillMention) || Boolean(observations.pty?.skillMention);
     observations.score = {
       skillPath,
       envBlocked: Boolean(observations.oracle?.honestBlocker),
@@ -1044,8 +999,7 @@ async function writePair(skillId, conf, results, preDigest, lockedSkillDigest) {
   if (!bySide.cursor || !bySide.pi) return null;
   const cursor = bySide.cursor;
   const pi = bySide.pi;
-  const bothClosed =
-    Boolean(cursor.observations?.score?.closed) && Boolean(pi.observations?.score?.closed);
+  const bothClosed = Boolean(cursor.observations?.score?.closed) && Boolean(pi.observations?.score?.closed);
   const pair = {
     schema: 1,
     pairId: conf.pairId,
@@ -1055,13 +1009,7 @@ async function writePair(skillId, conf, results, preDigest, lockedSkillDigest) {
     skillMdPath: `parity/reference/cursor-plugins/cursor-team-kit/skills/${skillId}/SKILL.md`,
     skillMdSha256: lockedSkillDigest,
     fixtureDigest: preDigest,
-    steps: [
-      { wait: 'ready screen (Tip: on Cursor; Pi chat ready without Trust dialog)' },
-      { send: `/${skillId} ...` },
-      { send: '\r' },
-      { wait: 'STATUS=verified with skill oracle, or STATUS=env-blocked' },
-      { cancel: true },
-    ],
+    steps: [{ wait: 'ready screen (Tip: on Cursor; Pi chat ready without Trust dialog)' }, { send: `/${skillId} ...` }, { send: '\r' }, { wait: 'STATUS=verified with skill oracle, or STATUS=env-blocked' }, { cancel: true }],
     cursor: {
       attemptId: cursor.attemptId,
       dir: cursor.attemptDir,
@@ -1086,8 +1034,7 @@ async function writePair(skillId, conf, results, preDigest, lockedSkillDigest) {
     skillClosure: {
       [skillId]: bothClosed ? 'closed_by_this_pair' : 'open',
     },
-    note:
-      'Cursor loads locked team-kit via --plugin-dir. Pi seeds the same SKILL.md bytes under .pi/skills/<skill>/.',
+    note: 'Cursor loads locked team-kit via --plugin-dir. Pi seeds the same SKILL.md bytes under .pi/skills/<skill>/.',
     verdict: bothClosed ? 'pass' : 'fail',
   };
   const pairPath = join(evidenceRoot, `pair-${conf.pairId}.json`);
@@ -1098,9 +1045,7 @@ async function writePair(skillId, conf, results, preDigest, lockedSkillDigest) {
 if (isMain) {
   const { skill, only } = parseArgs(process.argv.slice(2));
   if (!skill || !SKILLS[skill]) {
-    console.error(
-      `Usage: node parity/scripts/capture-team-kit-local-skill.mjs --skill=<${Object.keys(SKILLS).join('|')}> [--both|--cursor-only|--pi-only]`,
-    );
+    console.error(`Usage: node parity/scripts/capture-team-kit-local-skill.mjs --skill=<${Object.keys(SKILLS).join('|')}> [--both|--cursor-only|--pi-only]`);
     process.exit(2);
   }
   const conf = SKILLS[skill];
@@ -1108,9 +1053,7 @@ if (isMain) {
   const preRule = await readFile(referenceRulePath, 'utf8');
   const preDigest = await sha256(referenceRulePath);
   if (preDigest !== LOCKED_FIXTURE_DIGEST) {
-    console.error(
-      `Reference rule digest ${preDigest} does not match the locked fixture ${LOCKED_FIXTURE_DIGEST}`,
-    );
+    console.error(`Reference rule digest ${preDigest} does not match the locked fixture ${LOCKED_FIXTURE_DIGEST}`);
     process.exit(1);
   }
   const lockedSkillDigest = (await sha256(lockedSkill)).replace(/^sha256:/, '');
@@ -1126,10 +1069,7 @@ if (isMain) {
     console.log(JSON.stringify(result));
   }
   const pairPath = await writePair(skill, conf, results, preDigest, lockedSkillDigest);
-  await writeFile(
-    join(evidenceRoot, `capture-results-${skill}.json`),
-    `${JSON.stringify({ scenario: `team-kit:${skill}`, fixtureDigest: preDigest, pairPath, results }, null, 2)}\n`,
-  );
+  await writeFile(join(evidenceRoot, `capture-results-${skill}.json`), `${JSON.stringify({ scenario: `team-kit:${skill}`, fixtureDigest: preDigest, pairPath, results }, null, 2)}\n`);
   console.log(
     JSON.stringify({
       scenario: `team-kit:${skill}`,

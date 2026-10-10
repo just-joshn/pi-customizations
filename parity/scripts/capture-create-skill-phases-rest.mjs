@@ -5,7 +5,7 @@
 //
 // Usage:
 //   node scripts/capture-create-skill-phases-rest.mjs --phase discovery|design|verification|all [--cursor-only|--pi-only|--both]
-import { access, cp, mkdir, readFile, rename, rm, writeFile, readdir } from 'node:fs/promises';
+import { access, cp, mkdir, readdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -61,10 +61,7 @@ const PHASES = {
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const stripAnsi = (text) =>
-  text
-    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
-    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
 
 function phaseRoot(phaseId) {
   return join(evidenceRoot, phaseId);
@@ -89,9 +86,7 @@ function artifactPath(phaseId, side) {
 }
 
 function skillRel(side) {
-  return side === 'cursor'
-    ? join('.cursor', 'skills', SKILL_NAME, 'SKILL.md')
-    : join('.pi', 'skills', SKILL_NAME, 'SKILL.md');
+  return side === 'cursor' ? join('.cursor', 'skills', SKILL_NAME, 'SKILL.md') : join('.pi', 'skills', SKILL_NAME, 'SKILL.md');
 }
 
 function skillAbs(side) {
@@ -128,22 +123,11 @@ async function readArtifact(phaseId, side) {
   const digest = await sha256(path);
   let ok = false;
   if (phaseId === 'discovery') {
-    ok =
-      /purpose/i.test(text) &&
-      /location|storage|project/i.test(text) &&
-      /trigger/i.test(text) &&
-      text.trim().length > 80;
+    ok = /purpose/i.test(text) && /location|storage|project/i.test(text) && /trigger/i.test(text) && text.trim().length > 80;
   } else if (phaseId === 'design') {
-    ok =
-      new RegExp(SKILL_NAME, 'i').test(text) &&
-      /description/i.test(text) &&
-      /section/i.test(text) &&
-      text.trim().length > 80;
+    ok = new RegExp(SKILL_NAME, 'i').test(text) && /description/i.test(text) && /section/i.test(text) && text.trim().length > 80;
   } else {
-    ok =
-      (text.includes(MARKER) || /discover|appl/i.test(text)) &&
-      /under\s*500|line|trigger|terminolog/i.test(text) &&
-      text.trim().length > 40;
+    ok = (text.includes(MARKER) || /discover|appl/i.test(text)) && /under\s*500|line|trigger|terminolog/i.test(text) && text.trim().length > 40;
   }
   return { exists: true, path, text, byteLength: Buffer.byteLength(text), sha256: digest, ok };
 }
@@ -181,21 +165,11 @@ function observeCommon(text, { ignorePromptSlice } = {}) {
   let hay = stripAnsi(text || '');
   if (ignorePromptSlice) hay = hay.split(ignorePromptSlice).join(' ');
   return {
-    createSkillMention:
-      /\b\/create-skill\b/i.test(hay) ||
-      /\bcreate-skill\b/i.test(hay) ||
-      /\[skill\]\s*create-skill\b/i.test(hay),
+    createSkillMention: /\b\/create-skill\b/i.test(hay) || /\bcreate-skill\b/i.test(hay) || /\[skill\]\s*create-skill\b/i.test(hay),
     skillPathMention: new RegExp(SKILL_NAME, 'i').test(hay),
     markerMention: hay.includes(MARKER),
-    askMention:
-      /\bAskQuestion\b/i.test(hay) ||
-      /\bwhere should\b/i.test(hay) ||
-      /\bpurpose\b/i.test(hay) ||
-      /\btrigger\b/i.test(hay) ||
-      /\?/g.test(hay),
-    envBlocked:
-      /\benv[- ]blocked\b/i.test(hay) ||
-      /\bcannot (run|exercise|invoke).{0,40}create-skill\b/i.test(hay),
+    askMention: /\bAskQuestion\b/i.test(hay) || /\bwhere should\b/i.test(hay) || /\bpurpose\b/i.test(hay) || /\btrigger\b/i.test(hay) || /\?/g.test(hay),
+    envBlocked: /\benv[- ]blocked\b/i.test(hay) || /\bcannot (run|exercise|invoke).{0,40}create-skill\b/i.test(hay),
     working: /[\u2800-\u28FF]/.test(hay) || /\bWorking\b/.test(hay),
   };
 }
@@ -304,13 +278,7 @@ const cursorSpec = (phase, fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -368,10 +336,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
       await sleep(800);
       continue;
     }
-    const chatReady =
-      !/Trust project folder\?/i.test(text) &&
-      (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) &&
-      (/fixture-app|create-skill|Skill conflicts|medium/i.test(text));
+    const chatReady = !/Trust project folder\?/i.test(text) && (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) && /fixture-app|create-skill|Skill conflicts|medium/i.test(text);
     if (chatReady) return lines;
     await sleep(200);
   }
@@ -451,13 +416,8 @@ async function waitPhaseSettled(attempt, phaseId, side, timeoutMs, prompt, expec
       enough = (art.ok && done.status === expectedStatus) || done.status === 'env-blocked';
       if (skill.exists && skill.ok && !art.ok) enough = false;
     } else {
-      const applied =
-        art.text.includes(`APPLIED=${MARKER}`) ||
-        obs.markerMention ||
-        (await readDone(phaseId, side)).line?.includes(MARKER);
-      enough =
-        (art.ok && done.status === expectedStatus && (applied || art.text.includes(MARKER))) ||
-        done.status === 'env-blocked';
+      const applied = art.text.includes(`APPLIED=${MARKER}`) || obs.markerMention || (await readDone(phaseId, side)).line?.includes(MARKER);
+      enough = (art.ok && done.status === expectedStatus && (applied || art.text.includes(MARKER))) || done.status === 'env-blocked';
     }
 
     if (enough && !obs.working) {
@@ -472,8 +432,7 @@ async function waitPhaseSettled(attempt, phaseId, side, timeoutMs, prompt, expec
 }
 
 function scorePhase(phaseId, { art, done, screenObs, ptyObs, skill }) {
-  const createPath =
-    Boolean(screenObs?.createSkillMention) || Boolean(ptyObs?.createSkillMention);
+  const createPath = Boolean(screenObs?.createSkillMention) || Boolean(ptyObs?.createSkillMention);
   const envBlocked = done?.status === 'env-blocked' || Boolean(screenObs?.envBlocked);
   if (phaseId === 'discovery') {
     const closed = Boolean(art?.ok) && done?.status === 'discovered' && createPath && !skill?.ok;
@@ -499,10 +458,7 @@ function scorePhase(phaseId, { art, done, screenObs, ptyObs, skill }) {
       honestBlocker: !closed && envBlocked,
     };
   }
-  const applied =
-    Boolean(screenObs?.markerMention) ||
-    Boolean(ptyObs?.markerMention) ||
-    Boolean(art?.text?.includes(MARKER));
+  const applied = Boolean(screenObs?.markerMention) || Boolean(ptyObs?.markerMention) || Boolean(art?.text?.includes(MARKER));
   const closed = Boolean(art?.ok) && done?.status === 'verified' && createPath && applied;
   return {
     artifactOk: Boolean(art?.ok),
@@ -534,9 +490,7 @@ async function runSide(phase, side, ruleBytes, ruleDigest) {
   try {
     await writeFile(rulePath, ruleBytes);
     if (side === 'pi') await ensurePiTrust();
-    attempt = await startAttempt(
-      side === 'cursor' ? cursorSpec(phase, ruleDigest) : piSpec(phase, ruleDigest),
-    );
+    attempt = await startAttempt(side === 'cursor' ? cursorSpec(phase, ruleDigest) : piSpec(phase, ruleDigest));
     if (side === 'cursor') {
       await waitEither(attempt, GEOMETRY, ['Tip:', 'agent'], 90_000);
     } else {
@@ -552,25 +506,13 @@ async function runSide(phase, side, ruleBytes, ruleDigest) {
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        ['create-skill', SKILL_NAME, 'STATUS=', 'Purpose', 'description', MARKER, 'env-blocked', '?'],
-        300_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['create-skill', SKILL_NAME, 'STATUS=', 'Purpose', 'description', MARKER, 'env-blocked', '?'], 300_000);
     } catch {
       // settle may still land the artifact
     }
     await dumpScreen(attempt, dir, '03-signal', GEOMETRY);
 
-    const settled = await waitPhaseSettled(
-      attempt,
-      phase.id,
-      side,
-      SETTLE_MS,
-      prompt,
-      phase.doneStatus,
-    );
+    const settled = await waitPhaseSettled(attempt, phase.id, side, SETTLE_MS, prompt, phase.doneStatus);
     try {
       await waitSettled(attempt, GEOMETRY, 60_000);
     } catch {
@@ -660,10 +602,7 @@ async function writePair(phase, results, preDigest) {
   if (!bySide.cursor || !bySide.pi) return null;
   const cursor = bySide.cursor;
   const pi = bySide.pi;
-  const closed =
-    cursor.observations?.score?.phaseClosed && pi.observations?.score?.phaseClosed
-      ? 'closed_by_this_pair'
-      : 'open';
+  const closed = cursor.observations?.score?.phaseClosed && pi.observations?.score?.phaseClosed ? 'closed_by_this_pair' : 'open';
   const pair = {
     schema: 1,
     pairId: phase.pairId,
@@ -674,22 +613,9 @@ async function writePair(phase, results, preDigest) {
     capturedAt: new Date().toISOString(),
     steps:
       phase.id === 'discovery'
-        ? [
-            { wait: 'ready screen' },
-            { send: '/create-skill Phase 1 Discovery only (sparse request)' },
-            { send: '\r' },
-            { send: 'packed discovery answers' },
-            { wait: 'requirements.md + STATUS=discovered' },
-            { cancel: true },
-          ]
+        ? [{ wait: 'ready screen' }, { send: '/create-skill Phase 1 Discovery only (sparse request)' }, { send: '\r' }, { send: 'packed discovery answers' }, { wait: 'requirements.md + STATUS=discovered' }, { cancel: true }]
         : phase.id === 'design'
-          ? [
-              { wait: 'ready screen' },
-              { send: '/create-skill Phase 2 Design only with locked requirements' },
-              { send: '\r' },
-              { wait: 'design.md + STATUS=designed' },
-              { cancel: true },
-            ]
+          ? [{ wait: 'ready screen' }, { send: '/create-skill Phase 2 Design only with locked requirements' }, { send: '\r' }, { wait: 'design.md + STATUS=designed' }, { cancel: true }]
           : [
               { wait: 'ready screen with seeded Phase 3 SKILL.md' },
               { send: '/create-skill Phase 4 Verification checks' },
@@ -726,12 +652,8 @@ async function writePair(phase, results, preDigest) {
       'create-skill-implementation': 'prior_pair_create-skill-impl-1',
       'create-skill-verification': phase.id === 'verification' ? closed : 'see_other_pair',
     },
-    note:
-      'Phase evidence lives under evidence/create-skill/<phase>/{cursor,pi}/. Phase 3 Implementation pair create-skill-impl-1 is unchanged.',
-    verdict:
-      cursor.observations?.score?.phaseClosed && pi.observations?.score?.phaseClosed
-        ? 'pass'
-        : 'open_or_blocked',
+    note: 'Phase evidence lives under evidence/create-skill/<phase>/{cursor,pi}/. Phase 3 Implementation pair create-skill-impl-1 is unchanged.',
+    verdict: cursor.observations?.score?.phaseClosed && pi.observations?.score?.phaseClosed ? 'pass' : 'open_or_blocked',
     requirementIds: [],
   };
   const pairPath = join(evidenceRoot, `pair-${phase.pairId}.json`);
@@ -755,13 +677,10 @@ if (isMain) {
   const preRule = await readFile(referenceRulePath, 'utf8');
   const preDigest = await sha256(referenceRulePath);
   if (preDigest !== LOCKED_FIXTURE_DIGEST) {
-    console.error(
-      `Reference rule digest ${preDigest} does not match the locked fixture ${LOCKED_FIXTURE_DIGEST}`,
-    );
+    console.error(`Reference rule digest ${preDigest} does not match the locked fixture ${LOCKED_FIXTURE_DIGEST}`);
     process.exit(1);
   }
-  const phaseIds =
-    phaseArg === 'all' ? ['discovery', 'design', 'verification'] : [phaseArg];
+  const phaseIds = phaseArg === 'all' ? ['discovery', 'design', 'verification'] : [phaseArg];
   for (const id of phaseIds) {
     if (!PHASES[id]) {
       console.error(`Unknown phase ${id}`);
@@ -774,14 +693,23 @@ if (isMain) {
   }
   const outPath = join(evidenceRoot, 'capture-results-phases-rest.json');
   await writeFile(outPath, `${JSON.stringify({ fixtureDigest: preDigest, summaries }, null, 2)}\n`);
-  console.log(JSON.stringify({ fixtureDigest: preDigest, summaries: summaries.map((s) => ({
-    phase: s.phase,
-    pairPath: s.pairPath,
-    results: s.results.map((r) => ({
-      side: r.side,
-      attemptId: r.attemptId,
-      score: r.observations.score,
-      artifactSha256: r.observations.artifact?.sha256 ?? null,
-    })),
-  })) }, null, 2));
+  console.log(
+    JSON.stringify(
+      {
+        fixtureDigest: preDigest,
+        summaries: summaries.map((s) => ({
+          phase: s.phase,
+          pairPath: s.pairPath,
+          results: s.results.map((r) => ({
+            side: r.side,
+            attemptId: r.attemptId,
+            score: r.observations.score,
+            artifactSha256: r.observations.artifact?.sha256 ?? null,
+          })),
+        })),
+      },
+      null,
+      2,
+    ),
+  );
 }

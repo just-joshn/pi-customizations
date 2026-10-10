@@ -32,10 +32,7 @@ const PRODUCT_RELS = ['src/ttl.js', 'src/sessionStore.js', 'CHANGE.diff', 'packa
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const stripAnsi = (text) =>
-  text
-    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
-    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
 
 function writeRootFor(side) {
   return join(evidenceRoot, 'fixture-out', side);
@@ -89,7 +86,7 @@ async function walkFiles(dir, base = dir) {
   return out.sort();
 }
 
-async function fileDigest(path) {
+async function _fileDigest(path) {
   if (!(await pathExists(path))) return null;
   const buf = await readFile(path);
   return createHash('sha256').update(buf).digest('hex');
@@ -127,22 +124,14 @@ async function restoreProduct() {
 
 async function listProofArtifacts() {
   const files = await walkFiles(fixtureApp);
-  return files.filter(
-    (rel) =>
-      rel.startsWith('proofs/') ||
-      rel.startsWith('scripts/') ||
-      (rel.startsWith('test/') && rel.endsWith('.js')) ||
-      /\.test\.js$/.test(rel),
-  );
+  return files.filter((rel) => rel.startsWith('proofs/') || rel.startsWith('scripts/') || (rel.startsWith('test/') && rel.endsWith('.js')) || /\.test\.js$/.test(rel));
 }
 
 async function readDone(side) {
   const path = donePath(side);
   if (!(await pathExists(path))) return { exists: false, path, line: null, proof: null, certainty: null, fact: null };
   const line = (await readFile(path, 'utf8')).trim().split('\n')[0] ?? '';
-  const m = line.match(
-    /^PROOF=(step5|step4|step3|step2|step1|cheaper-stop|writeup-only)\b(?:\s+certainty=(\S+))?(?:\s+fact=(.+))?$/i,
-  );
+  const m = line.match(/^PROOF=(step5|step4|step3|step2|step1|cheaper-stop|writeup-only)\b(?:\s+certainty=(\S+))?(?:\s+fact=(.+))?$/i);
   return {
     exists: true,
     path,
@@ -165,20 +154,9 @@ export function observeRunProofText(text, { ignorePromptSlice } = {}) {
     /\bexit code\b/i.test(hay) ||
     /\bran (the )?(script|test|proof)\b/i.test(hay) ||
     /\bproof(s)?\/[\w./-]+\.m?js\b/i.test(hay);
-  const certaintyNamed =
-    /\bstep\s*[1-5]\b/i.test(hay) ||
-    /\bcertainty\b/i.test(hay) ||
-    /\b(proven|unproven|cheaper stop)\b/i.test(hay);
-  const writeupOnlySmell =
-    /\bblast radius\b/i.test(hay) &&
-    !ranCode &&
-    !/\bPROOF=step[45]\b/i.test(hay) &&
-    !/\bPROOF=cheaper-stop\b/i.test(hay);
-  const skillChrome =
-    /\/blast-radius\b/i.test(hay) ||
-    /\[skill\]\s*blast-radius/i.test(hay) ||
-    /\bUsed blast-radius\b/i.test(hay) ||
-    /\bblast-radius\b/i.test(hay);
+  const certaintyNamed = /\bstep\s*[1-5]\b/i.test(hay) || /\bcertainty\b/i.test(hay) || /\b(proven|unproven|cheaper stop)\b/i.test(hay);
+  const writeupOnlySmell = /\bblast radius\b/i.test(hay) && !ranCode && !/\bPROOF=step[45]\b/i.test(hay) && !/\bPROOF=cheaper-stop\b/i.test(hay);
+  const skillChrome = /\/blast-radius\b/i.test(hay) || /\[skill\]\s*blast-radius/i.test(hay) || /\bUsed blast-radius\b/i.test(hay) || /\bblast-radius\b/i.test(hay);
   return {
     ranCode,
     certaintyNamed,
@@ -188,14 +166,7 @@ export function observeRunProofText(text, { ignorePromptSlice } = {}) {
   };
 }
 
-export function scoreBlastRadiusRunProof({
-  done,
-  proofArtifacts,
-  screenText,
-  ptyText,
-  sessionSummary,
-  prompt,
-}) {
+export function scoreBlastRadiusRunProof({ done, proofArtifacts, screenText, ptyText, sessionSummary, prompt }) {
   const screen = observeRunProofText(screenText, { ignorePromptSlice: prompt });
   const pty = observeRunProofText(ptyText, { ignorePromptSlice: prompt });
   const artifacts = Array.isArray(proofArtifacts) ? proofArtifacts : [];
@@ -207,12 +178,7 @@ export function scoreBlastRadiusRunProof({
   const writeupOnly = proofLevel === 'writeup-only' || proofLevel === 'step1';
   const runEvidence = hasArtifacts || screen.ranCode || pty.ranCode || sessionRan;
   const certaintyStated = Boolean(done?.certainty) || screen.certaintyNamed || pty.certaintyNamed;
-  const engaged =
-    Boolean(sessionSummary?.skillRead) ||
-    screen.skillChrome ||
-    pty.skillChrome ||
-    Boolean(done?.exists) ||
-    hasArtifacts;
+  const engaged = Boolean(sessionSummary?.skillRead) || screen.skillChrome || pty.skillChrome || Boolean(done?.exists) || hasArtifacts;
 
   let outcome = 'inconclusive';
   if (engaged && step4Plus && (runEvidence || certaintyStated)) outcome = 'run_proof';
@@ -253,13 +219,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -313,10 +273,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
       await sleep(800);
       continue;
     }
-    const chatReady =
-      !/Trust project folder\?/i.test(text) &&
-      (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) &&
-      (/fixture-app|ttl|CHANGE|medium|Skill conflicts|README|Session TTL/i.test(text));
+    const chatReady = !/Trust project folder\?/i.test(text) && (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) && /fixture-app|ttl|CHANGE|medium|Skill conflicts|README|Session TTL/i.test(text);
     if (chatReady) return lines;
     await sleep(200);
   }
@@ -378,12 +335,7 @@ async function summarizePiSession(sessionPath) {
           skillRead = true;
           label = `${name}(blast-radius)`;
         }
-        if (
-          /\bnode\b/i.test(`${name} ${argBlob}`) ||
-          /\bnpm\s+test\b/i.test(argBlob) ||
-          /proofs\//i.test(argBlob) ||
-          /\.test\.js/i.test(argBlob)
-        ) {
+        if (/\bnode\b/i.test(`${name} ${argBlob}`) || /\bnpm\s+test\b/i.test(argBlob) || /proofs\//i.test(argBlob) || /\.test\.js/i.test(argBlob)) {
           ranCodeTools = true;
           label = `${name}(run-code)`;
         }
@@ -466,23 +418,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        [
-          'blast-radius',
-          'blast radius',
-          'PROOF=',
-          'certainty',
-          'ttl',
-          'isExpired',
-          'CHANGE.diff',
-          'step 4',
-          'step4',
-          'node ',
-        ],
-        600_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['blast-radius', 'blast radius', 'PROOF=', 'certainty', 'ttl', 'isExpired', 'CHANGE.diff', 'step 4', 'step4', 'node '], 600_000);
     } catch {
       // settle may still land artifacts
     }
@@ -552,8 +488,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
           }
         : null,
       pollSamples: pollLog.length,
-      scorerNote:
-        'run_proof requires engagement plus step4/step5 (or observed code run) with certainty; cheaper_stop requires named cheaper stop + certainty; writeup_only is a contract miss',
+      scorerNote: 'run_proof requires engagement plus step4/step5 (or observed code run) with certainty; cheaper_stop requires named cheaper stop + certainty; writeup_only is a contract miss',
     };
 
     const afterRule = await readFile(rulePath, 'utf8');
@@ -665,10 +600,7 @@ for (const side of sides) {
   results.push(result);
   console.log(JSON.stringify(result));
 }
-await writeFile(
-  join(evidenceRoot, 'capture-results.json'),
-  `${JSON.stringify({ scenario: 'cmd-blast-radius-run-proof', fixtureDigest: preDigest, results }, null, 2)}\n`,
-);
+await writeFile(join(evidenceRoot, 'capture-results.json'), `${JSON.stringify({ scenario: 'cmd-blast-radius-run-proof', fixtureDigest: preDigest, results }, null, 2)}\n`);
 console.log(
   JSON.stringify({
     scenario: 'cmd-blast-radius-run-proof',

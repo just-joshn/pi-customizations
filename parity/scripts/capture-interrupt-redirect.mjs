@@ -63,20 +63,13 @@ function isWorking(text) {
 function observeInterrupt(lines) {
   const text = lines.join('\n');
   return {
-    howSkill:
-      /Used how/i.test(text) ||
-      /\[skill\]\s*how/i.test(text) ||
-      /skill:\s*how/i.test(text) ||
-      (/\/how\b/i.test(text) && /startAttempt|events\.jsonl|recorder/i.test(text)),
-    midFlightSignal:
-      /startAttempt|events\.jsonl|allocateDir|recorder|Reading|Read |Tool|Task|Todo/i.test(text) ||
-      isWorking(text),
+    howSkill: /Used how/i.test(text) || /\[skill\]\s*how/i.test(text) || /skill:\s*how/i.test(text) || (/\/how\b/i.test(text) && /startAttempt|events\.jsonl|recorder/i.test(text)),
+    midFlightSignal: /startAttempt|events\.jsonl|allocateDir|recorder|Reading|Read |Tool|Task|Todo/i.test(text) || isWorking(text),
     working: isWorking(text),
     cancelledMarkerMention: /CANCELLED-HOW-COMPLETE/i.test(text),
     redirectMarkerMention: /REDIRECT-OK/i.test(text),
     redirectAnswer: /REDIRECT-OK\s*56/i.test(text),
-    cancelChrome:
-      /stopp?ed|interrupt|cancel|aborted|Interrupted|Esc to|Generation stopped|User cancelled/i.test(text),
+    cancelChrome: /stopp?ed|interrupt|cancel|aborted|Interrupted|Esc to|Generation stopped|User cancelled/i.test(text),
   };
 }
 
@@ -118,13 +111,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: join(root, 'fixtures', 'first-run'),
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,

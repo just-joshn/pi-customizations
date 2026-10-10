@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { spawn } from 'node:child_process';
 // prin-guard-context: /poteto-mode inventory MARKER-* tokens from a large corpus/.
 // Observe leaf Read of principle-guard-the-context-window and subagent routing of
 // bulk dump reading. Deliver GUARD-OK + out/summary.json. Real PTY both sides.
@@ -10,7 +11,6 @@ import { access, mkdir, readdir, readFile, rename, rm, stat, writeFile } from 'n
 import { homedir } from 'node:os';
 import { dirname, join, relative } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { spawn } from 'node:child_process';
 
 import { sha256 } from '../recorder/files.mjs';
 import { outputBytes, startAttempt } from '../recorder/index.mjs';
@@ -24,24 +24,8 @@ const piAgentDir = '/tmp/pi-ref-agent';
 const piRulePath = join(piAgentDir, 'pstack', 'models.mdc');
 const evidenceRoot = join(root, 'evidence', 'principles', 'guard-context');
 const fixtureApp = join(evidenceRoot, 'fixture-app');
-const guardSkillCursor = join(
-  root,
-  'reference',
-  'cursor-plugins',
-  'pstack',
-  'skills',
-  'principle-guard-the-context-window',
-  'SKILL.md',
-);
-const guardSkillPi = join(
-  root,
-  '..',
-  'extensions',
-  'pi-pstack',
-  'skills',
-  'principle-guard-the-context-window',
-  'SKILL.md',
-);
+const guardSkillCursor = join(root, 'reference', 'cursor-plugins', 'pstack', 'skills', 'principle-guard-the-context-window', 'SKILL.md');
+const guardSkillPi = join(root, '..', 'extensions', 'pi-pstack', 'skills', 'principle-guard-the-context-window', 'SKILL.md');
 const GEOMETRY = { rows: 40, cols: 120 };
 const LOCKED_FIXTURE_DIGEST = 'sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004';
 const SETTLE_MS = 1_500_000;
@@ -51,23 +35,11 @@ const VERIFY_SCRIPT_REL = 'scripts/verify.mjs';
 const SEED_SCRIPT_REL = 'scripts/seed-corpus.mjs';
 const SUMMARY_REL = 'out/summary.json';
 const MARKERS_REL = 'src/markers.json';
-const EXPECTED_MARKERS = [
-  'MARKER-ALPHA',
-  'MARKER-BRAVO',
-  'MARKER-CHARLIE',
-  'MARKER-DELTA',
-  'MARKER-ECHO',
-  'MARKER-FOXTROT',
-  'MARKER-GOLF',
-  'MARKER-HOTEL',
-];
+const EXPECTED_MARKERS = ['MARKER-ALPHA', 'MARKER-BRAVO', 'MARKER-CHARLIE', 'MARKER-DELTA', 'MARKER-ECHO', 'MARKER-FOXTROT', 'MARKER-GOLF', 'MARKER-HOTEL'];
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const stripAnsi = (text) =>
-  text
-    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
-    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
 
 function writeRootFor(side) {
   return join(evidenceRoot, 'fixture-out', side);
@@ -163,25 +135,15 @@ function isTaskToolName(name) {
 function observeGuardText(text, { ignorePromptSlice } = {}) {
   let hay = stripAnsi(text || '');
   if (ignorePromptSlice) hay = hay.split(ignorePromptSlice).join(' ');
-  const potetoMode =
-    /\/poteto-mode\b/i.test(hay) ||
-    /\[skill\]\s*poteto-mode/i.test(hay) ||
-    /\bUsed poteto-mode\b/i.test(hay);
+  const potetoMode = /\/poteto-mode\b/i.test(hay) || /\[skill\]\s*poteto-mode/i.test(hay) || /\bUsed poteto-mode\b/i.test(hay);
   const leafChrome = /principle-guard-the-context-window[/\\]SKILL\.md/i.test(hay);
   const usedLeaf = /\bUsed principle-guard-the-context-window\b/i.test(hay);
   const skillBracketLeaf = /\[skill\]\s*principle-guard-the-context-window\b/i.test(hay);
   const hostAttached = Boolean(usedLeaf || skillBracketLeaf);
   // Screen chrome only. Ignore tool-catalog prose such as TaskStop's
   // "Abort a running subagent" that lives in every Pi system prompt.
-  const subagentChrome =
-    /\bCalled Task\b/i.test(hay) ||
-    /\bcursor · Task\b/i.test(hay) ||
-    /\bRunning subagent\b.*\b(explore|generalPurpose|poteto-agent|ci-investigator)\b/i.test(hay);
-  const verifyMention =
-    /scripts\/verify\.mjs/i.test(hay) ||
-    /evidence\/verify-out\.txt/i.test(hay) ||
-    /\bGUARD-OK\b/.test(hay) ||
-    /\bGUARD-FAIL\b/.test(hay);
+  const subagentChrome = /\bCalled Task\b/i.test(hay) || /\bcursor · Task\b/i.test(hay) || /\bRunning subagent\b.*\b(explore|generalPurpose|poteto-agent|ci-investigator)\b/i.test(hay);
+  const verifyMention = /scripts\/verify\.mjs/i.test(hay) || /evidence\/verify-out\.txt/i.test(hay) || /\bGUARD-OK\b/.test(hay) || /\bGUARD-FAIL\b/.test(hay);
   const working = /[\u2800-\u28FF]/.test(hay) || /\bWorking\b/.test(hay);
   return { potetoMode, leafChrome, hostAttached, subagentChrome, verifyMention, working };
 }
@@ -241,16 +203,8 @@ function scoreCallsForGuard(calls) {
     const name = String(call.name || '');
     const args = call.args || {};
     const blob = JSON.stringify(args);
-    const path =
-      args.path ||
-      args.file_path ||
-      args.filePath ||
-      args.target_file ||
-      args.file ||
-      null;
-    const isRead =
-      /^(Read|read|read_file|ReadFile|cat|blob-mention)$/i.test(name) ||
-      (name === 'bash' && typeof args.command === 'string' && /\bcat\b/.test(args.command));
+    const path = args.path || args.file_path || args.filePath || args.target_file || args.file || null;
+    const isRead = /^(Read|read|read_file|ReadFile|cat|blob-mention)$/i.test(name) || (name === 'bash' && typeof args.command === 'string' && /\bcat\b/.test(args.command));
     if (isRead && isGuardSkillPath(path || blob)) {
       leafSkillRead = true;
       if (!leafSkillReadAt) leafSkillReadAt = call.ts || new Date().toISOString();
@@ -259,25 +213,14 @@ function scoreCallsForGuard(calls) {
     }
     const nestedTool = args.toolName || args.name || args.tool || '';
     const nestedArgs = args.arguments || args.input || args.args || {};
-    const nestedKind =
-      args.subagent_type ||
-      args.agent_type ||
-      nestedArgs.subagent_type ||
-      nestedArgs.agent_type ||
-      null;
-    if (
-      isTaskToolName(name) ||
-      (/^(CallDynamicTool)$/i.test(name) && isTaskToolName(nestedTool))
-    ) {
+    const nestedKind = args.subagent_type || args.agent_type || nestedArgs.subagent_type || nestedArgs.agent_type || null;
+    if (isTaskToolName(name) || (/^(CallDynamicTool)$/i.test(name) && isTaskToolName(nestedTool))) {
       subagentRouted = true;
       if (!subagentRoutedAt) subagentRoutedAt = call.ts || new Date().toISOString();
       toolOrder.push(`${name}(subagent${nestedKind ? `:${nestedKind}` : ''})`);
       continue;
     }
-    if (
-      /\bscripts\/verify\.mjs\b/i.test(blob) ||
-      (typeof args.command === 'string' && /verify\.mjs/.test(args.command))
-    ) {
+    if (/\bscripts\/verify\.mjs\b/i.test(blob) || (typeof args.command === 'string' && /verify\.mjs/.test(args.command))) {
       ranVerifyScript = true;
       toolOrder.push(`${name}(verify.mjs)`);
       continue;
@@ -300,26 +243,10 @@ function scoreCallsForGuard(calls) {
   };
 }
 
-export function scoreGuardContext({
-  frontmatter,
-  done,
-  verifyOut,
-  summary,
-  productOk,
-  screenText,
-  ptyText,
-  sessionScore,
-  transcriptScore,
-  prompt,
-}) {
+export function scoreGuardContext({ frontmatter, done, verifyOut, summary, productOk, screenText, ptyText, sessionScore, transcriptScore, prompt }) {
   const screen = observeGuardText(screenText, { ignorePromptSlice: prompt });
   const pty = observeGuardText(ptyText, { ignorePromptSlice: prompt });
-  const leafSkillRead = Boolean(
-    sessionScore?.leafSkillRead ||
-      transcriptScore?.leafSkillRead ||
-      screen.leafChrome ||
-      pty.leafChrome,
-  );
+  const leafSkillRead = Boolean(sessionScore?.leafSkillRead || transcriptScore?.leafSkillRead || screen.leafChrome || pty.leafChrome);
   const usedChrome = Boolean(screen.hostAttached || pty.hostAttached || sessionScore?.hostAttached);
   const modelAutoInvoke = usedChrome && !leafSkillRead;
   // Prefer tool-call / child-session evidence. Screen chrome is supporting only.
@@ -328,22 +255,13 @@ export function scoreGuardContext({
       transcriptScore?.subagentRouted ||
       sessionScore?.childSession ||
       transcriptScore?.childSession ||
-      ((screen.subagentChrome || pty.subagentChrome) &&
-        (sessionScore?.leafSkillRead || transcriptScore?.leafSkillRead || leafSkillRead)),
+      ((screen.subagentChrome || pty.subagentChrome) && (sessionScore?.leafSkillRead || transcriptScore?.leafSkillRead || leafSkillRead)),
   );
   const keptVerifyOk = Boolean(verifyOut?.ok);
   const summaryOk = Boolean(summary?.ok);
   const verifiedDone = /^verified=yes\b/i.test((done?.line || '').trim());
   const frontmatterOk = Boolean(frontmatter?.ok);
-  const contractHeld =
-    frontmatterOk &&
-    leafSkillRead &&
-    subagentRouted &&
-    productOk &&
-    keptVerifyOk &&
-    summaryOk &&
-    verifiedDone &&
-    !modelAutoInvoke;
+  const contractHeld = frontmatterOk && leafSkillRead && subagentRouted && productOk && keptVerifyOk && summaryOk && verifiedDone && !modelAutoInvoke;
   return {
     frontmatterOk,
     leafSkillRead,
@@ -374,16 +292,7 @@ async function baselineProduct() {
 
 async function snapshotBaseline() {
   const baselineDir = join(evidenceRoot, 'fixture-baseline');
-  for (const rel of [
-    MARKERS_REL,
-    'README.md',
-    'NOTES.md',
-    'package.json',
-    VERIFY_SCRIPT_REL,
-    SEED_SCRIPT_REL,
-    'evidence/.gitkeep',
-    'out/.gitkeep',
-  ]) {
+  for (const rel of [MARKERS_REL, 'README.md', 'NOTES.md', 'package.json', VERIFY_SCRIPT_REL, SEED_SCRIPT_REL, 'evidence/.gitkeep', 'out/.gitkeep']) {
     const src = join(fixtureApp, rel);
     if (!(await pathExists(src))) continue;
     const dst = join(baselineDir, rel);
@@ -394,16 +303,7 @@ async function snapshotBaseline() {
 
 async function restoreProduct() {
   const baselineDir = join(evidenceRoot, 'fixture-baseline');
-  for (const rel of [
-    MARKERS_REL,
-    'README.md',
-    'NOTES.md',
-    'package.json',
-    VERIFY_SCRIPT_REL,
-    SEED_SCRIPT_REL,
-    'evidence/.gitkeep',
-    'out/.gitkeep',
-  ]) {
+  for (const rel of [MARKERS_REL, 'README.md', 'NOTES.md', 'package.json', VERIFY_SCRIPT_REL, SEED_SCRIPT_REL, 'evidence/.gitkeep', 'out/.gitkeep']) {
     const src = join(baselineDir, rel);
     const dst = join(fixtureApp, rel);
     if (await pathExists(src)) {
@@ -454,10 +354,7 @@ async function readSummary() {
     markers = null;
   }
   const want = [...EXPECTED_MARKERS].sort();
-  const ok =
-    Array.isArray(markers) &&
-    markers.length === want.length &&
-    markers.every((m, i) => m === want[i]);
+  const ok = Array.isArray(markers) && markers.length === want.length && markers.every((m, i) => m === want[i]);
   return { exists: true, path, line: raw, ok, markers };
 }
 
@@ -498,13 +395,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -558,10 +449,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
       await sleep(800);
       continue;
     }
-    const chatReady =
-      !/Trust project folder\?/i.test(text) &&
-      (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) &&
-      (/guard-context|corpus|README|medium|Skill conflicts|Session TTL|fixture-app/i.test(text));
+    const chatReady = !/Trust project folder\?/i.test(text) && (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) && /guard-context|corpus|README|medium|Skill conflicts|Session TTL|fixture-app/i.test(text);
     if (chatReady) return lines;
     await sleep(200);
   }
@@ -582,12 +470,7 @@ async function findLatestPiSession() {
     for (const entry of entries) {
       const abs = join(dir, entry.name);
       if (entry.isDirectory()) await walk(abs);
-      else if (
-        entry.isFile() &&
-        entry.name.endsWith('.jsonl') &&
-        abs.includes(needle) &&
-        !abs.includes('/subagents/')
-      ) {
+      else if (entry.isFile() && entry.name.endsWith('.jsonl') && abs.includes(needle) && !abs.includes('/subagents/')) {
         const st = await stat(abs).catch(() => null);
         if (!st) continue;
         if (!best || st.mtimeMs > best.ms) best = { path: abs, ms: st.mtimeMs };
@@ -602,11 +485,7 @@ async function findPiChildSession(sessionPath) {
   if (!sessionPath) return null;
   const uuid = sessionPath.match(/_([0-9a-f-]{36})\.jsonl$/i)?.[1];
   const base = sessionPath.replace(/\.jsonl$/, '');
-  const candidates = [
-    join(dirname(sessionPath), 'subagents'),
-    uuid ? join(dirname(sessionPath), uuid, 'subagents') : null,
-    join(base, 'subagents'),
-  ].filter(Boolean);
+  const candidates = [join(dirname(sessionPath), 'subagents'), uuid ? join(dirname(sessionPath), uuid, 'subagents') : null, join(base, 'subagents')].filter(Boolean);
   let best = null;
   for (const subDir of candidates) {
     if (!(await pathExists(subDir))) continue;
@@ -626,9 +505,7 @@ async function summarizePiSession(sessionPath) {
   const text = await readFile(sessionPath, 'utf8');
   const calls = extractToolCallsFromJsonl(text);
   const scored = scoreCallsForGuard(calls);
-  const hostAttached =
-    /\bUsed principle-guard-the-context-window\b/i.test(text) ||
-    /\[skill\]\s*principle-guard-the-context-window\b/i.test(text);
+  const hostAttached = /\bUsed principle-guard-the-context-window\b/i.test(text) || /\[skill\]\s*principle-guard-the-context-window\b/i.test(text);
   const childSession = await findPiChildSession(sessionPath);
   return {
     sessionPath,
@@ -664,9 +541,7 @@ async function findCursorTranscripts(sinceMs, side) {
         } catch {
           continue;
         }
-        const mentionsThisAttempt =
-          text.includes(doneAbs) ||
-          (text.includes(`guard-context/fixture-out/${side}/done.txt`) && text.includes('corpus/'));
+        const mentionsThisAttempt = text.includes(doneAbs) || (text.includes(`guard-context/fixture-out/${side}/done.txt`) && text.includes('corpus/'));
         if (mentionsThisAttempt) hits.push({ path: abs, mtimeMs: st.mtimeMs, size: st.size });
       }
     }
@@ -690,13 +565,8 @@ async function summarizeCursorTranscripts(sinceMs, side) {
       leafSkillRead: scored.leafSkillRead || leafInBlob,
       subagentRouted: scored.subagentRouted || subagentChrome,
     };
-    const rank =
-      (merged.leafSkillRead ? 4 : 0) +
-      (merged.subagentRouted ? 4 : 0) +
-      (merged.ranVerifyScript ? 2 : 0);
-    const bestRank = best
-      ? (best.leafSkillRead ? 4 : 0) + (best.subagentRouted ? 4 : 0) + (best.ranVerifyScript ? 2 : 0)
-      : -1;
+    const rank = (merged.leafSkillRead ? 4 : 0) + (merged.subagentRouted ? 4 : 0) + (merged.ranVerifyScript ? 2 : 0);
+    const bestRank = best ? (best.leafSkillRead ? 4 : 0) + (best.subagentRouted ? 4 : 0) + (best.ranVerifyScript ? 2 : 0) : -1;
     if (!best || rank > bestRank || (rank === bestRank && hit.mtimeMs > (best.mtimeMs || 0))) {
       best = { ...merged, mtimeMs: hit.mtimeMs };
     }
@@ -761,22 +631,7 @@ async function runSide(side, ruleBytes, ruleDigest, frontmatter) {
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        [
-          'poteto-mode',
-          'corpus',
-          'verify',
-          'GUARD-OK',
-          'GUARD-FAIL',
-          'principle-guard-the-context-window',
-          'Running subagent',
-          'Task',
-          'Phase',
-        ],
-        300_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['poteto-mode', 'corpus', 'verify', 'GUARD-OK', 'GUARD-FAIL', 'principle-guard-the-context-window', 'Running subagent', 'Task', 'Phase'], 300_000);
     } catch {
       // settle may still land artifacts
     }
@@ -882,16 +737,7 @@ async function runSide(side, ruleBytes, ruleDigest, frontmatter) {
 
     const snapDir = join(attempt.dir, 'fixture-snapshot');
     await mkdir(snapDir, { recursive: true });
-    for (const rel of [
-      MARKERS_REL,
-      'README.md',
-      'NOTES.md',
-      'package.json',
-      VERIFY_SCRIPT_REL,
-      SEED_SCRIPT_REL,
-      VERIFY_OUT_REL,
-      SUMMARY_REL,
-    ]) {
+    for (const rel of [MARKERS_REL, 'README.md', 'NOTES.md', 'package.json', VERIFY_SCRIPT_REL, SEED_SCRIPT_REL, VERIFY_OUT_REL, SUMMARY_REL]) {
       const abs = join(fixtureApp, rel);
       if (!(await pathExists(abs))) continue;
       const dest = join(snapDir, rel);
@@ -1052,10 +898,7 @@ async function writePair(results, preDigest) {
     journeyFamily: 'journey-family-principles',
     requirementIds: ['PSTACK-PRIN-GUARD-CONTEXT-001'],
     fixtureDigest: preDigest,
-    promptSharedShape: guardPrompt('<side>').replace(
-      /fixture-out\/<side>\//,
-      'fixture-out/<side>/',
-    ),
+    promptSharedShape: guardPrompt('<side>').replace(/fixture-out\/<side>\//, 'fixture-out/<side>/'),
     steps: [
       { wait: 'ready screen (Tip: on Cursor; Pi chat ready without Trust dialog)' },
       {
@@ -1076,9 +919,7 @@ async function writePair(results, preDigest) {
       transcript: cursor.observations?.transcript?.path ?? null,
       proofCopyPath: 'parity/evidence/principles/guard-context/fixture-out/cursor/evidence/verify-out.txt',
       observations: {
-        potetoMode: Boolean(
-          cursor.observations?.screenFinal?.potetoMode || cursor.observations?.pty?.potetoMode,
-        ),
+        potetoMode: Boolean(cursor.observations?.screenFinal?.potetoMode || cursor.observations?.pty?.potetoMode),
         leafSkillRead: cursor.observations.score.leafSkillRead,
         leafSkillPath: cursor.observations?.transcript?.toolOrder?.find((t) => /guard-leaf/.test(t))
           ? '~/.claude/skills/principle-guard-the-context-window/SKILL.md'
@@ -1112,9 +953,7 @@ async function writePair(results, preDigest) {
       observations: {
         potetoMode: Boolean(pi.observations?.screenFinal?.potetoMode || pi.observations?.pty?.potetoMode),
         leafSkillRead: pi.observations.score.leafSkillRead,
-        leafSkillPath: pi.observations.score.leafSkillRead
-          ? 'extensions/pi-pstack/skills/principle-guard-the-context-window/SKILL.md'
-          : null,
+        leafSkillPath: pi.observations.score.leafSkillRead ? 'extensions/pi-pstack/skills/principle-guard-the-context-window/SKILL.md' : null,
         subagentRouted: pi.observations.score.subagentRouted,
         childSession: pi.observations?.session?.childSession ?? null,
         summaryOk: pi.observations.score.summaryOk,
@@ -1134,12 +973,8 @@ async function writePair(results, preDigest) {
     deltas: [
       {
         topic: 'leaf skill path',
-        cursor: cursor.observations.score.leafSkillRead
-          ? 'Read principle-guard-the-context-window/SKILL.md'
-          : 'unobserved',
-        pi: pi.observations.score.leafSkillRead
-          ? 'Read principle-guard-the-context-window/SKILL.md'
-          : 'unobserved',
+        cursor: cursor.observations.score.leafSkillRead ? 'Read principle-guard-the-context-window/SKILL.md' : 'unobserved',
+        pi: pi.observations.score.leafSkillRead ? 'Read principle-guard-the-context-window/SKILL.md' : 'unobserved',
         reconciled: cursor.observations.score.leafSkillRead === pi.observations.score.leafSkillRead,
       },
       {
@@ -1150,12 +985,8 @@ async function writePair(results, preDigest) {
       },
       {
         topic: 'guard-context outcome',
-        cursor: cursor.observations.score.contractHeld
-          ? 'contractHeld. Leaf Read + subagent + GUARD-OK.'
-          : 'contract not held',
-        pi: pi.observations.score.contractHeld
-          ? 'contractHeld. Leaf Read + subagent + GUARD-OK.'
-          : 'contract not held',
+        cursor: cursor.observations.score.contractHeld ? 'contractHeld. Leaf Read + subagent + GUARD-OK.' : 'contract not held',
+        pi: pi.observations.score.contractHeld ? 'contractHeld. Leaf Read + subagent + GUARD-OK.' : 'contract not held',
         reconciled: cursor.observations.score.contractHeld === pi.observations.score.contractHeld,
       },
     ],
@@ -1188,9 +1019,7 @@ if (isMain) {
   const preRule = await readFile(referenceRulePath, 'utf8');
   const preDigest = await sha256(referenceRulePath);
   if (preDigest !== LOCKED_FIXTURE_DIGEST) {
-    console.error(
-      `Reference rule digest ${preDigest} does not match the locked fixture ${LOCKED_FIXTURE_DIGEST}`,
-    );
+    console.error(`Reference rule digest ${preDigest} does not match the locked fixture ${LOCKED_FIXTURE_DIGEST}`);
     process.exit(1);
   }
 
@@ -1201,10 +1030,7 @@ if (isMain) {
     results.push(result);
     console.log(JSON.stringify(result));
   }
-  await writeFile(
-    join(evidenceRoot, 'capture-results.json'),
-    `${JSON.stringify({ scenario: 'prin-guard-context', fixtureDigest: preDigest, frontmatter, results }, null, 2)}\n`,
-  );
+  await writeFile(join(evidenceRoot, 'capture-results.json'), `${JSON.stringify({ scenario: 'prin-guard-context', fixtureDigest: preDigest, frontmatter, results }, null, 2)}\n`);
   const pairPath = await writePair(results, preDigest);
   console.log(
     JSON.stringify({

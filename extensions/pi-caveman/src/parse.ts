@@ -26,7 +26,6 @@ const ONE_SHOT_COMMANDS: Readonly<Record<string, IndependentMode>> = {
 // Only " and ` delimit quotes: apostrophes are too common in ordinary English.
 const QUOTED_SPAN_REGEX = /(["`])(?:(?!\1).)*\1/g;
 const ACTIVATION_VERBS = '(?:activate|enable|start|turn on|use|switch to|want|give me)';
-// biome-ignore lint/security/noSecrets: regex source, not a credential
 const ACTIVATION_GAP = '(?:\\s+(?:the|to|into|on|in|please|now|it|me|my|this|that|mode))*';
 const ACTIVATION_VERB_PHRASE = new RegExp(`\\b${ACTIVATION_VERBS}\\b${ACTIVATION_GAP}\\s+caveman\\b`);
 const ACTIVATION_TALK_LIKE = /\btalk\s+like\s+(?:a\s+|an\s+|the\s+)?caveman\b/;

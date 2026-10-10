@@ -1,4 +1,3 @@
-// biome-ignore-all lint/security/noSecrets: the literals below are truecolor escape sequences, not secrets.
 import { existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';

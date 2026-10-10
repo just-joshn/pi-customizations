@@ -30,23 +30,8 @@ const seedDir = join(evidenceRoot, 'seed');
 const productRel = join('src', 'app.js');
 const productAbs = join(fixtureApp, productRel);
 const forAgentsRel = join('.upstream', 'automations', 'benny', 'FOR_AGENTS.md');
-const setupSkillRel = join(
-  '.upstream',
-  'automations',
-  'benny',
-  'skills',
-  'setup-benny',
-  'SKILL.md',
-);
-const controlAdapterRel = join(
-  '.upstream',
-  'automations',
-  'benny',
-  'skills',
-  'reproduce-and-fix-issues',
-  'references',
-  'control-adapter.md',
-);
+const setupSkillRel = join('.upstream', 'automations', 'benny', 'skills', 'setup-benny', 'SKILL.md');
+const controlAdapterRel = join('.upstream', 'automations', 'benny', 'skills', 'reproduce-and-fix-issues', 'references', 'control-adapter.md');
 const configRel = join('.cursor', 'benny', 'configuration.yaml');
 const featureMapRel = join('.cursor', 'benny', 'feature-map.md');
 const controlSkillRel = join('.cursor', 'skills', 'control-target-app', 'SKILL.md');
@@ -59,10 +44,7 @@ const POLL_MS = 500;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const stripAnsi = (text) =>
-  text
-    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
-    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
 
 function writeRootFor(side) {
   return join(evidenceRoot, 'fixture-out', side);
@@ -108,9 +90,7 @@ async function readDone(side) {
   const path = donePath(side);
   if (!(await pathExists(path))) return { exists: false, path, line: null, status: null };
   const line = (await readFile(path, 'utf8')).trim();
-  const m = line.match(
-    /^STATUS=(fail-closed|control-ok|automation-enabled|blocked|other)\b/i,
-  );
+  const m = line.match(/^STATUS=(fail-closed|control-ok|automation-enabled|blocked|other)\b/i);
   return { exists: true, path, line, status: m ? m[1].toLowerCase() : null };
 }
 
@@ -120,10 +100,7 @@ async function restoreSeed() {
   await copyFile(join(seedDir, 'configuration.yaml'), join(fixtureApp, configRel));
   await copyFile(join(seedDir, 'feature-map.md'), join(fixtureApp, featureMapRel));
   await copyFile(join(seedDir, 'routing.md'), join(fixtureApp, '.cursor', 'benny', 'routing.md'));
-  await copyFile(
-    join(seedDir, 'control-target-app.SKILL.md'),
-    join(fixtureApp, controlSkillRel),
-  );
+  await copyFile(join(seedDir, 'control-target-app.SKILL.md'), join(fixtureApp, controlSkillRel));
 }
 
 async function listLiveAutomationExtras() {
@@ -154,31 +131,16 @@ async function listLiveAutomationExtras() {
 export function observeControlFailClosed(text, { ignorePromptSlice } = {}) {
   let hay = stripAnsi(text || '');
   if (ignorePromptSlice) hay = hay.split(ignorePromptSlice).join(' ');
-  const controlChrome =
-    /\bcontrol-adapter\.md\b/i.test(hay) ||
-    /\bcontrol-target-app\b/i.test(hay) ||
-    /\bVerify the control adapter\b/i.test(hay) ||
-    /\bfeature-map\.md\b/i.test(hay) ||
-    /\bCONTROL-FAIL-CLOSED-STUB-SKILL-MARKER\b/.test(hay);
-  const missingCapability =
-    /\b(not implemented|unimplemented|missing|lacks?|incomplete|cannot)\b/i.test(hay) &&
-    /\b(capability|screenshot|recording|bring up|drive UI|cleanup|control)\b/i.test(hay);
-  const failClosedPhrase =
-    /\bfail[- ]closed\b/i.test(hay) ||
-    /\bleave(s| the)? repro (automation )?disabled\b/i.test(hay) ||
-    /\brepro automation stays disabled\b/i.test(hay) ||
-    /\bdisabled\b[^\n]{0,60}\brepro\b/i.test(hay);
-  const controlOkClaim =
-    /\bSTATUS=control-ok\b/i.test(hay) ||
-    (/\bcontrol-ok\b/i.test(hay) && /\ball (required )?capabilities\b/i.test(hay));
+  const controlChrome = /\bcontrol-adapter\.md\b/i.test(hay) || /\bcontrol-target-app\b/i.test(hay) || /\bVerify the control adapter\b/i.test(hay) || /\bfeature-map\.md\b/i.test(hay) || /\bCONTROL-FAIL-CLOSED-STUB-SKILL-MARKER\b/.test(hay);
+  const missingCapability = /\b(not implemented|unimplemented|missing|lacks?|incomplete|cannot)\b/i.test(hay) && /\b(capability|screenshot|recording|bring up|drive UI|cleanup|control)\b/i.test(hay);
+  const failClosedPhrase = /\bfail[- ]closed\b/i.test(hay) || /\bleave(s| the)? repro (automation )?disabled\b/i.test(hay) || /\brepro automation stays disabled\b/i.test(hay) || /\bdisabled\b[^\n]{0,60}\brepro\b/i.test(hay);
+  const controlOkClaim = /\bSTATUS=control-ok\b/i.test(hay) || (/\bcontrol-ok\b/i.test(hay) && /\ball (required )?capabilities\b/i.test(hay));
   const automationEnabled =
     /\bCreated (a )?(live )?automation\b/i.test(hay) ||
     /\bOpening Automations editor\b/i.test(hay) ||
     /\benabled (the )?Benny repro\b/i.test(hay) ||
     /\bSTATUS=automation-enabled\b/i.test(hay) ||
-    (/\b\/automate\b/i.test(hay) &&
-      /\b(creat(?:e|ing|ed)|start(?:ed|ing)|enable[ds]?)\b/i.test(hay) &&
-      !/\bdo not (create|enable|use|run)\b/i.test(hay));
+    (/\b\/automate\b/i.test(hay) && /\b(creat(?:e|ing|ed)|start(?:ed|ing)|enable[ds]?)\b/i.test(hay) && !/\bdo not (create|enable|use|run)\b/i.test(hay));
   return {
     controlChrome,
     missingCapability,
@@ -189,66 +151,24 @@ export function observeControlFailClosed(text, { ignorePromptSlice } = {}) {
   };
 }
 
-export function scoreControlFailClosed({
-  done,
-  productBeforeDigest,
-  productAfterDigest,
-  screenText,
-  ptyText,
-  sessionSummary,
-  prompt,
-  liveAutomationExtras,
-  stubIntact,
-  featureMapIntact,
-}) {
+export function scoreControlFailClosed({ done, productBeforeDigest, productAfterDigest, screenText, ptyText, sessionSummary, prompt, liveAutomationExtras, stubIntact, featureMapIntact }) {
   const screen = observeControlFailClosed(screenText, { ignorePromptSlice: prompt });
   const pty = observeControlFailClosed(ptyText, { ignorePromptSlice: prompt });
-  const productUnchanged =
-    Boolean(productBeforeDigest) &&
-    Boolean(productAfterDigest) &&
-    productBeforeDigest === productAfterDigest;
+  const productUnchanged = Boolean(productBeforeDigest) && Boolean(productAfterDigest) && productBeforeDigest === productAfterDigest;
   const statusFail = done?.status === 'fail-closed';
   const statusOk = done?.status === 'control-ok';
   const statusAuto = done?.status === 'automation-enabled';
   const extras = Array.isArray(liveAutomationExtras) ? liveAutomationExtras : [];
-  const autoSideEffect =
-    statusAuto ||
-    screen.automationEnabled ||
-    pty.automationEnabled ||
-    Boolean(sessionSummary?.automationEnabled) ||
-    extras.length > 0;
-  const controlOkWrong =
-    statusOk ||
-    screen.controlOkClaim ||
-    pty.controlOkClaim ||
-    Boolean(sessionSummary?.controlOkClaim);
-  const engaged =
-    Boolean(done?.exists) ||
-    screen.controlChrome ||
-    pty.controlChrome ||
-    Boolean(sessionSummary?.controlRead) ||
-    Boolean(sessionSummary?.setupBennyRead) ||
-    Boolean(sessionSummary?.stubRead);
-  const failSignal =
-    statusFail ||
-    screen.failClosedPhrase ||
-    pty.failClosedPhrase ||
-    screen.missingCapability ||
-    pty.missingCapability ||
-    Boolean(sessionSummary?.failClosedClaim) ||
-    Boolean(sessionSummary?.missingCapability);
+  const autoSideEffect = statusAuto || screen.automationEnabled || pty.automationEnabled || Boolean(sessionSummary?.automationEnabled) || extras.length > 0;
+  const controlOkWrong = statusOk || screen.controlOkClaim || pty.controlOkClaim || Boolean(sessionSummary?.controlOkClaim);
+  const engaged = Boolean(done?.exists) || screen.controlChrome || pty.controlChrome || Boolean(sessionSummary?.controlRead) || Boolean(sessionSummary?.setupBennyRead) || Boolean(sessionSummary?.stubRead);
+  const failSignal = statusFail || screen.failClosedPhrase || pty.failClosedPhrase || screen.missingCapability || pty.missingCapability || Boolean(sessionSummary?.failClosedClaim) || Boolean(sessionSummary?.missingCapability);
   let outcome = 'inconclusive';
   if (autoSideEffect) {
     outcome = 'automation_enabled';
   } else if (controlOkWrong && !statusFail) {
     outcome = 'control_ok';
-  } else if (
-    engaged &&
-    failSignal &&
-    productUnchanged &&
-    stubIntact !== false &&
-    featureMapIntact !== false
-  ) {
+  } else if (engaged && failSignal && productUnchanged && stubIntact !== false && featureMapIntact !== false) {
     outcome = 'fail_closed';
   } else if (statusFail && productUnchanged && !autoSideEffect) {
     outcome = 'fail_closed';
@@ -283,13 +203,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -343,10 +257,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
       await sleep(800);
       continue;
     }
-    const chatReady =
-      !/Trust project folder\?/i.test(text) &&
-      (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) &&
-      (/fixture-app|Benny|benny|medium|Skill conflicts|README|setup|control/i.test(text));
+    const chatReady = !/Trust project folder\?/i.test(text) && (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) && /fixture-app|Benny|benny|medium|Skill conflicts|README|setup|control/i.test(text);
     if (chatReady) return lines;
     await sleep(200);
   }
@@ -431,10 +342,7 @@ async function summarizePiSession(sessionPath) {
           featureMapRead = true;
           label = `${name}(feature-map.md)`;
         }
-        if (
-          /\/automate\b/i.test(argBlob) ||
-          (/\bautomate\b/i.test(name) && /\b(creat|enable)/i.test(argBlob))
-        ) {
+        if (/\/automate\b/i.test(argBlob) || (/\bautomate\b/i.test(name) && /\b(creat|enable)/i.test(argBlob))) {
           automationEnabled = true;
           label = `${name}(automate)`;
         }
@@ -500,9 +408,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     }
     const liveDigest = await sha256(referenceRulePath);
     if (liveDigest !== LOCKED_FIXTURE_DIGEST) {
-      throw new Error(
-        `Aborting ${side}: reference rule digest ${liveDigest} != locked ${LOCKED_FIXTURE_DIGEST}`,
-      );
+      throw new Error(`Aborting ${side}: reference rule digest ${liveDigest} != locked ${LOCKED_FIXTURE_DIGEST}`);
     }
     await writeFile(rulePath, ruleBytes);
     attempt = await startAttempt(side === 'cursor' ? cursorSpec(ruleDigest) : piSpec(ruleDigest));
@@ -540,20 +446,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        [
-          'STATUS=',
-          'fail-closed',
-          'control-ok',
-          'control-adapter',
-          'control-target-app',
-          'not implemented',
-          'repro automation',
-        ],
-        600_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['STATUS=', 'fail-closed', 'control-ok', 'control-adapter', 'control-target-app', 'not implemented', 'repro automation'], 600_000);
     } catch {
       // settle may still land artifacts
     }
@@ -647,8 +540,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
           }
         : null,
       pollSamples: pollLog.length,
-      scorerNote:
-        'fail_closed = engaged control verification + missing-capability/fail-closed signal + product unchanged + stub/feature-map intact + no live automation enable/create side effect',
+      scorerNote: 'fail_closed = engaged control verification + missing-capability/fail-closed signal + product unchanged + stub/feature-map intact + no live automation enable/create side effect',
     };
 
     const afterRule = await readFile(rulePath, 'utf8');
@@ -682,10 +574,8 @@ async function runSide(side, ruleBytes, ruleDigest) {
 }
 
 async function selfTest() {
-  const failText =
-    'Read control-adapter.md and control-target-app. Screenshot and recording are not implemented. Fail closed; leave the repro automation disabled.';
-  const okWrong =
-    'All required capabilities confirmed. STATUS=control-ok reason=adapter ready';
+  const failText = 'Read control-adapter.md and control-target-app. Screenshot and recording are not implemented. Fail closed; leave the repro automation disabled.';
+  const okWrong = 'All required capabilities confirmed. STATUS=control-ok reason=adapter ready';
   const autoText = 'Created a live automation for Benny reproduce via /automate';
   const pass = scoreControlFailClosed({
     done: {
@@ -752,9 +642,7 @@ if (isMain) {
   const preRule = await readFile(referenceRulePath, 'utf8');
   const preDigest = await sha256(referenceRulePath);
   if (preDigest !== LOCKED_FIXTURE_DIGEST) {
-    console.error(
-      `Reference rule digest ${preDigest} does not match the locked fixture ${LOCKED_FIXTURE_DIGEST}`,
-    );
+    console.error(`Reference rule digest ${preDigest} does not match the locked fixture ${LOCKED_FIXTURE_DIGEST}`);
     process.exit(1);
   }
   for (const rel of [forAgentsRel, setupSkillRel, controlAdapterRel]) {
@@ -777,10 +665,7 @@ if (isMain) {
     results.push(result);
     console.log(JSON.stringify(result));
   }
-  await writeFile(
-    join(evidenceRoot, 'capture-results.json'),
-    `${JSON.stringify({ scenario: 'setup-benny-control-fail-closed', fixtureDigest: preDigest, results }, null, 2)}\n`,
-  );
+  await writeFile(join(evidenceRoot, 'capture-results.json'), `${JSON.stringify({ scenario: 'setup-benny-control-fail-closed', fixtureDigest: preDigest, results }, null, 2)}\n`);
   console.log(
     JSON.stringify({
       scenario: 'setup-benny-control-fail-closed',

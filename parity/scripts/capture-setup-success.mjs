@@ -109,12 +109,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
       // Model-authored chat form instead of AskQuestion. Prefer the exact unlimited label.
       attempt.input(Buffer.from('unlimited — max reasoning'), 'literal_user');
       attempt.input(Buffer.from('\r'), 'literal_user');
-      const afterBudget = await waitEither(
-        attempt,
-        GEOMETRY,
-        ['› [', 'Edited pstack-models.mdc', 'Reply with', 'Accept', 'roles', 'inherit-parent'],
-        300_000,
-      );
+      const afterBudget = await waitEither(attempt, GEOMETRY, ['› [', 'Edited pstack-models.mdc', 'Reply with', 'Accept', 'roles', 'inherit-parent'], 300_000);
       if (afterBudget === '› [') {
         attempt.input(Buffer.from(' '), 'literal_user');
         attempt.input(Buffer.from('\r'), 'literal_user');

@@ -1,4 +1,3 @@
-// biome-ignore-all lint/security/noSecrets: fixture paths and prompts, not credentials
 import { chmodSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';

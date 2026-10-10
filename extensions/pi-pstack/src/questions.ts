@@ -1,8 +1,8 @@
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { Container } from '@earendil-works/pi-tui';
 import { type Static, Type } from 'typebox';
+import { initialPanelState, type PanelAnswer, type PanelInput, panelAnswers, reducePanel, renderPanel, toPanelInput } from './questions-panel.ts';
 import { boundedResult } from './results.ts';
-import { type PanelAnswer, type PanelInput, initialPanelState, panelAnswers, reducePanel, renderPanel, toPanelInput } from './questions-panel.ts';
 import { askQuestionResultCard } from './tool-cards.ts';
 
 const text = Type.String({ minLength: 1, pattern: '\\S' });

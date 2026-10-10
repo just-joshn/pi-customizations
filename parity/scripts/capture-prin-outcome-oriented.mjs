@@ -23,24 +23,8 @@ const piAgentDir = '/tmp/pi-ref-agent';
 const piRulePath = join(piAgentDir, 'pstack', 'models.mdc');
 const evidenceRoot = join(root, 'evidence', 'principles', 'outcome-oriented');
 const fixtureApp = join(evidenceRoot, 'fixture-app');
-const outcomeSkillCursor = join(
-  root,
-  'reference',
-  'cursor-plugins',
-  'pstack',
-  'skills',
-  'principle-outcome-oriented-execution',
-  'SKILL.md',
-);
-const outcomeSkillPi = join(
-  root,
-  '..',
-  'extensions',
-  'pi-pstack',
-  'skills',
-  'principle-outcome-oriented-execution',
-  'SKILL.md',
-);
+const outcomeSkillCursor = join(root, 'reference', 'cursor-plugins', 'pstack', 'skills', 'principle-outcome-oriented-execution', 'SKILL.md');
+const outcomeSkillPi = join(root, '..', 'extensions', 'pi-pstack', 'skills', 'principle-outcome-oriented-execution', 'SKILL.md');
 const GEOMETRY = { rows: 40, cols: 120 };
 const LOCKED_FIXTURE_DIGEST = 'sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004';
 const SETTLE_MS = 1_500_000;
@@ -50,24 +34,11 @@ const V1_REL = 'src/pricingV1.js';
 const CALLER_REL = ['src/cart.js', 'src/checkout.js'];
 const VERIFY_OUT_REL = 'evidence/verify-out.txt';
 const VERIFY_SCRIPT_REL = 'scripts/verify.mjs';
-const BASELINE_REL = [
-  'src/pricingV1.js',
-  'src/cart.js',
-  'src/checkout.js',
-  'README.md',
-  'NOTES.md',
-  'package.json',
-  VERIFY_SCRIPT_REL,
-  'evidence/.gitkeep',
-  'out/.gitkeep',
-];
+const BASELINE_REL = ['src/pricingV1.js', 'src/cart.js', 'src/checkout.js', 'README.md', 'NOTES.md', 'package.json', VERIFY_SCRIPT_REL, 'evidence/.gitkeep', 'out/.gitkeep'];
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const stripAnsi = (text) =>
-  text
-    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
-    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
 
 function writeRootFor(side) {
   return join(evidenceRoot, 'fixture-out', side);
@@ -164,19 +135,12 @@ function isPricingPath(p) {
 function observeOutcomeText(text, { ignorePromptSlice } = {}) {
   let hay = stripAnsi(text || '');
   if (ignorePromptSlice) hay = hay.split(ignorePromptSlice).join(' ');
-  const potetoMode =
-    /\/poteto-mode\b/i.test(hay) ||
-    /\[skill\]\s*poteto-mode/i.test(hay) ||
-    /\bUsed poteto-mode\b/i.test(hay);
+  const potetoMode = /\/poteto-mode\b/i.test(hay) || /\[skill\]\s*poteto-mode/i.test(hay) || /\bUsed poteto-mode\b/i.test(hay);
   const leafChrome = /principle-outcome-oriented-execution[/\\]SKILL\.md/i.test(hay);
   const usedLeaf = /\bUsed principle-outcome-oriented-execution\b/i.test(hay);
   const skillBracketLeaf = /\[skill\]\s*principle-outcome-oriented-execution\b/i.test(hay);
   const hostAttached = Boolean(usedLeaf || skillBracketLeaf);
-  const verifyMention =
-    /scripts\/verify\.mjs/i.test(hay) ||
-    /evidence\/verify-out\.txt/i.test(hay) ||
-    /\bOUTCOME-OK\b/.test(hay) ||
-    /\bOUTCOME-FAIL\b/.test(hay);
+  const verifyMention = /scripts\/verify\.mjs/i.test(hay) || /evidence\/verify-out\.txt/i.test(hay) || /\bOUTCOME-OK\b/.test(hay) || /\bOUTCOME-FAIL\b/.test(hay);
   const working = /[\u2800-\u28FF]/.test(hay) || /\bWorking\b/.test(hay);
   return { potetoMode, leafChrome, hostAttached, verifyMention, working };
 }
@@ -225,14 +189,7 @@ function extractToolCallsFromJsonl(text) {
 }
 
 function pathFromArgs(args) {
-  return (
-    args.path ||
-    args.file_path ||
-    args.filePath ||
-    args.target_file ||
-    args.file ||
-    null
-  );
+  return args.path || args.file_path || args.filePath || args.target_file || args.file || null;
 }
 
 function isWriteLike(name, args) {
@@ -268,19 +225,14 @@ function scoreCallsForOutcome(calls) {
     const args = call.args || {};
     const blob = JSON.stringify(args);
     const path = pathFromArgs(args);
-    const isRead =
-      /^(Read|read|read_file|ReadFile|cat|blob-mention)$/i.test(name) ||
-      (name === 'bash' && typeof args.command === 'string' && /\bcat\b/.test(args.command));
+    const isRead = /^(Read|read|read_file|ReadFile|cat|blob-mention)$/i.test(name) || (name === 'bash' && typeof args.command === 'string' && /\bcat\b/.test(args.command));
     if (isRead && isOutcomeSkillPath(path || blob)) {
       leafSkillRead = true;
       if (!leafSkillReadAt) leafSkillReadAt = call.ts || new Date().toISOString();
       toolOrder.push(`${name}(outcome-leaf)`);
       continue;
     }
-    if (
-      /\bscripts\/verify\.mjs\b/i.test(blob) ||
-      (typeof args.command === 'string' && /verify\.mjs/.test(args.command))
-    ) {
+    if (/\bscripts\/verify\.mjs\b/i.test(blob) || (typeof args.command === 'string' && /verify\.mjs/.test(args.command))) {
       ranVerifyScript = true;
       toolOrder.push(`${name}(verify.mjs)`);
       continue;
@@ -302,9 +254,7 @@ function scoreCallsForOutcome(calls) {
     }
     if (name) toolOrder.push(name);
   }
-  const converged =
-    Boolean(firstV1DeleteAt) &&
-    (Boolean(firstCallerAt) || Boolean(firstPricingAt));
+  const converged = Boolean(firstV1DeleteAt) && (Boolean(firstCallerAt) || Boolean(firstPricingAt));
   return {
     leafSkillRead,
     leafSkillReadAt,
@@ -317,50 +267,18 @@ function scoreCallsForOutcome(calls) {
   };
 }
 
-export function scoreOutcomeOriented({
-  frontmatter,
-  done,
-  verifyOut,
-  productOk,
-  v1Deleted,
-  callersConverged,
-  pricingPresent,
-  dualPath,
-  converged,
-  screenText,
-  ptyText,
-  sessionScore,
-  transcriptScore,
-  prompt,
-}) {
+export function scoreOutcomeOriented({ frontmatter, done, verifyOut, productOk, v1Deleted, callersConverged, pricingPresent, dualPath, converged, screenText, ptyText, sessionScore, transcriptScore, prompt }) {
   const screen = observeOutcomeText(screenText, { ignorePromptSlice: prompt });
   const pty = observeOutcomeText(ptyText, { ignorePromptSlice: prompt });
-  const leafSkillRead = Boolean(
-    sessionScore?.leafSkillRead ||
-      transcriptScore?.leafSkillRead ||
-      screen.leafChrome ||
-      pty.leafChrome,
-  );
+  const leafSkillRead = Boolean(sessionScore?.leafSkillRead || transcriptScore?.leafSkillRead || screen.leafChrome || pty.leafChrome);
   const usedChrome = Boolean(screen.hostAttached || pty.hostAttached || sessionScore?.hostAttached);
   const modelAutoInvoke = usedChrome && !leafSkillRead;
   const waveOk = Boolean(converged || sessionScore?.converged || transcriptScore?.converged);
   const keptVerifyOk = Boolean(verifyOut?.ok);
   const verifiedDone = /^verified=yes\b/i.test((done?.line || '').trim());
   const frontmatterOk = Boolean(frontmatter?.ok);
-  const convergeWithoutDualPath =
-    Boolean(v1Deleted) &&
-    Boolean(callersConverged) &&
-    Boolean(pricingPresent) &&
-    !dualPath &&
-    Boolean(productOk);
-  const contractHeld =
-    frontmatterOk &&
-    leafSkillRead &&
-    convergeWithoutDualPath &&
-    waveOk &&
-    keptVerifyOk &&
-    verifiedDone &&
-    !modelAutoInvoke;
+  const convergeWithoutDualPath = Boolean(v1Deleted) && Boolean(callersConverged) && Boolean(pricingPresent) && !dualPath && Boolean(productOk);
+  const contractHeld = frontmatterOk && leafSkillRead && convergeWithoutDualPath && waveOk && keptVerifyOk && verifiedDone && !modelAutoInvoke;
   return {
     frontmatterOk,
     leafSkillRead,
@@ -418,13 +336,7 @@ async function restoreProduct() {
   const files = await walkFiles(fixtureApp);
   for (const rel of files) {
     if (keep.has(rel)) continue;
-    if (
-      rel.startsWith('src/') ||
-      rel.startsWith('evidence/') ||
-      rel.startsWith('out/') ||
-      rel.endsWith('.tsv') ||
-      rel.startsWith('.audit/')
-    ) {
+    if (rel.startsWith('src/') || rel.startsWith('evidence/') || rel.startsWith('out/') || rel.endsWith('.tsv') || rel.startsWith('.audit/')) {
       await rm(join(fixtureApp, rel), { force: true, recursive: true });
     }
   }
@@ -453,11 +365,7 @@ async function diskOracle() {
     const body = await readFile(join(fixtureApp, 'src', name), 'utf8');
     if (/\bpriceV1\b/.test(body) || /\bpricingV1\b/.test(body)) legacySymbol = true;
     if (/compat|shim|bridge|adapter|dual.?path/i.test(name)) dualPath = true;
-    if (
-      /\bpriceV1\b/.test(body) &&
-      /\bpriceFor\b/.test(body) &&
-      /export\s+(?:function|const|\{)/.test(body)
-    ) {
+    if (/\bpriceV1\b/.test(body) && /\bpriceFor\b/.test(body) && /export\s+(?:function|const|\{)/.test(body)) {
       dualPath = true;
     }
     if (CALLER_REL.some((rel) => rel.endsWith(name))) {
@@ -469,20 +377,15 @@ async function diskOracle() {
   let cartOk = false;
   let checkoutOk = false;
   try {
-    const cartMod = await import(
-      `${pathToFileURL(join(fixtureApp, 'src', 'cart.js')).href}?t=${Date.now()}`
-    );
-    const checkoutMod = await import(
-      `${pathToFileURL(join(fixtureApp, 'src', 'checkout.js')).href}?t=${Date.now()}`
-    );
+    const cartMod = await import(`${pathToFileURL(join(fixtureApp, 'src', 'cart.js')).href}?t=${Date.now()}`);
+    const checkoutMod = await import(`${pathToFileURL(join(fixtureApp, 'src', 'checkout.js')).href}?t=${Date.now()}`);
     cartOk = cartMod.cart() === 'cart:5';
     checkoutOk = checkoutMod.checkout() === 'pay:5';
   } catch {
     cartOk = false;
     checkoutOk = false;
   }
-  const productOk =
-    cartOk && checkoutOk && v1Deleted && pricingPresent && callersConverged && !legacySymbol && !dualPath;
+  const productOk = cartOk && checkoutOk && v1Deleted && pricingPresent && callersConverged && !legacySymbol && !dualPath;
   return {
     cartOk,
     checkoutOk,
@@ -528,13 +431,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -588,10 +485,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
       await sleep(800);
       continue;
     }
-    const chatReady =
-      !/Trust project folder\?/i.test(text) &&
-      (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) &&
-      (/outcome-oriented|cart|pricing|README|medium|Skill conflicts|Session TTL|fixture-app/i.test(text));
+    const chatReady = !/Trust project folder\?/i.test(text) && (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) && /outcome-oriented|cart|pricing|README|medium|Skill conflicts|Session TTL|fixture-app/i.test(text);
     if (chatReady) return lines;
     await sleep(200);
   }
@@ -628,9 +522,7 @@ async function summarizePiSession(sessionPath) {
   const text = await readFile(sessionPath, 'utf8');
   const calls = extractToolCallsFromJsonl(text);
   const scored = scoreCallsForOutcome(calls);
-  const hostAttached =
-    /\bUsed principle-outcome-oriented-execution\b/i.test(text) ||
-    /\[skill\]\s*principle-outcome-oriented-execution\b/i.test(text);
+  const hostAttached = /\bUsed principle-outcome-oriented-execution\b/i.test(text) || /\[skill\]\s*principle-outcome-oriented-execution\b/i.test(text);
   return { sessionPath, hostAttached, ...scored };
 }
 
@@ -659,9 +551,7 @@ async function findCursorTranscripts(sinceMs, side) {
         } catch {
           continue;
         }
-        const mentionsThisAttempt =
-          text.includes(doneAbs) ||
-          (text.includes(`outcome-oriented/fixture-out/${side}/done.txt`) && text.includes('priceFor'));
+        const mentionsThisAttempt = text.includes(doneAbs) || (text.includes(`outcome-oriented/fixture-out/${side}/done.txt`) && text.includes('priceFor'));
         if (mentionsThisAttempt) hits.push({ path: abs, mtimeMs: st.mtimeMs, size: st.size });
       }
     }
@@ -683,13 +573,8 @@ async function summarizeCursorTranscripts(sinceMs, side) {
       ...scored,
       leafSkillRead: scored.leafSkillRead || leafInBlob,
     };
-    const rank =
-      (merged.leafSkillRead ? 4 : 0) +
-      (merged.ranVerifyScript ? 2 : 0) +
-      (merged.converged ? 1 : 0);
-    const bestRank = best
-      ? (best.leafSkillRead ? 4 : 0) + (best.ranVerifyScript ? 2 : 0) + (best.converged ? 1 : 0)
-      : -1;
+    const rank = (merged.leafSkillRead ? 4 : 0) + (merged.ranVerifyScript ? 2 : 0) + (merged.converged ? 1 : 0);
+    const bestRank = best ? (best.leafSkillRead ? 4 : 0) + (best.ranVerifyScript ? 2 : 0) + (best.converged ? 1 : 0) : -1;
     if (!best || rank > bestRank || (rank === bestRank && hit.mtimeMs > (best.mtimeMs || 0))) {
       best = { ...merged, mtimeMs: hit.mtimeMs };
     }
@@ -770,13 +655,7 @@ async function runSide(side, ruleBytes, ruleDigest, frontmatter) {
           if (!firstPricingAt) firstPricingAt = snap.now;
         }
         if (snap.hits.verify.length && !firstVerifyAt) firstVerifyAt = snap.now;
-        if (
-          snap.hits.product.length ||
-          snap.hits.verify.length ||
-          snap.hits.deleted.length ||
-          snap.hits.callers.length ||
-          snap.hits.format.length
-        ) {
+        if (snap.hits.product.length || snap.hits.verify.length || snap.hits.deleted.length || snap.hits.callers.length || snap.hits.format.length) {
           pollLog.push({
             ts: snap.now,
             product: snap.hits.product,
@@ -798,24 +677,7 @@ async function runSide(side, ruleBytes, ruleDigest, frontmatter) {
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        [
-          'poteto-mode',
-          'cart.js',
-          'checkout.js',
-          'pricing.js',
-          'verify',
-          'OUTCOME-OK',
-          'OUTCOME-FAIL',
-          'principle-outcome-oriented-execution',
-          'pricingV1',
-          'priceFor',
-          'Phase',
-        ],
-        300_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['poteto-mode', 'cart.js', 'checkout.js', 'pricing.js', 'verify', 'OUTCOME-OK', 'OUTCOME-FAIL', 'principle-outcome-oriented-execution', 'pricingV1', 'priceFor', 'Phase'], 300_000);
     } catch {
       // settle may still land artifacts
     }
@@ -872,8 +734,7 @@ async function runSide(side, ruleBytes, ruleDigest, frontmatter) {
     const done = await readDone(side);
     const verifyOut = await readVerifyOut();
     const oracle = await diskOracle();
-    const pollSameWave =
-      Boolean(firstV1DeleteAt) && (Boolean(firstCallerAt) || Boolean(firstPricingAt));
+    const pollSameWave = Boolean(firstV1DeleteAt) && (Boolean(firstCallerAt) || Boolean(firstPricingAt));
 
     let sessionScore = null;
     let transcriptScore = null;
@@ -939,17 +800,7 @@ async function runSide(side, ruleBytes, ruleDigest, frontmatter) {
 
     const snapDir = join(attempt.dir, 'fixture-snapshot');
     await mkdir(snapDir, { recursive: true });
-    for (const rel of [
-      'src/pricingV1.js',
-      'src/cart.js',
-      'src/checkout.js',
-      'src/pricing.js',
-      'README.md',
-      'NOTES.md',
-      'package.json',
-      VERIFY_SCRIPT_REL,
-      VERIFY_OUT_REL,
-    ]) {
+    for (const rel of ['src/pricingV1.js', 'src/cart.js', 'src/checkout.js', 'src/pricing.js', 'README.md', 'NOTES.md', 'package.json', VERIFY_SCRIPT_REL, VERIFY_OUT_REL]) {
       const abs = join(fixtureApp, rel);
       if (!(await pathExists(abs))) continue;
       const dest = join(snapDir, rel);
@@ -1016,8 +867,7 @@ async function selfTest() {
     dualPath: false,
     converged: true,
     screenText: 'Read principle-outcome-oriented-execution/SKILL.md then OUTCOME-OK',
-    ptyText:
-      'Used principle-outcome-oriented-execution\nprinciple-outcome-oriented-execution/SKILL.md',
+    ptyText: 'Used principle-outcome-oriented-execution\nprinciple-outcome-oriented-execution/SKILL.md',
     sessionScore: {
       leafSkillRead: true,
       ranVerifyScript: true,
@@ -1059,22 +909,11 @@ async function selfTest() {
     productOk: false,
   });
   const cases = [
-    [
-      'pass',
-      pass.contractHeld === true &&
-        pass.convergeWithoutDualPath === true &&
-        pass.v1Deleted === true &&
-        pass.dualPath === false,
-    ],
+    ['pass', pass.contractHeld === true && pass.convergeWithoutDualPath === true && pass.v1Deleted === true && pass.dualPath === false],
     ['noLeaf', noLeaf.contractHeld === false && noLeaf.leafSkillRead === false],
     ['autoInvoke', autoInvoke.contractHeld === false && autoInvoke.modelAutoInvoke === true],
     ['keptLegacy', keptLegacy.contractHeld === false && keptLegacy.v1Deleted === false],
-    [
-      'shim',
-      shim.contractHeld === false &&
-        shim.dualPath === true &&
-        shim.convergeWithoutDualPath === false,
-    ],
+    ['shim', shim.contractHeld === false && shim.dualPath === true && shim.convergeWithoutDualPath === false],
   ];
   const failed = cases.filter(([, ok]) => !ok);
   console.log(JSON.stringify({ selfTest: failed.length === 0, cases }, null, 2));
@@ -1109,10 +948,7 @@ if (isMain) {
     results.push(result);
     console.log(JSON.stringify(result));
   }
-  await writeFile(
-    join(evidenceRoot, 'capture-results.json'),
-    `${JSON.stringify({ scenario: 'prin-outcome-oriented', fixtureDigest: preDigest, frontmatter, results }, null, 2)}\n`,
-  );
+  await writeFile(join(evidenceRoot, 'capture-results.json'), `${JSON.stringify({ scenario: 'prin-outcome-oriented', fixtureDigest: preDigest, frontmatter, results }, null, 2)}\n`);
   console.log(
     JSON.stringify({
       scenario: 'prin-outcome-oriented',

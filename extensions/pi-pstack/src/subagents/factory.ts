@@ -2,9 +2,9 @@ import { randomUUID } from 'node:crypto';
 
 import type { Model } from '@earendil-works/pi-ai';
 import { type ExtensionAPI, type ExtensionContext, getAgentDir } from '@earendil-works/pi-coding-agent';
+import { personaTaskAgents } from '../persona-agents.ts';
 import type { AgentDefinition } from './agent-definition.ts';
 import type { AgentNode } from './agent-node.ts';
-import { personaTaskAgents } from '../persona-agents.ts';
 import { type AgentGates, offeredAgents, type RegistryInputs, resolveAgentType } from './agent-registry.ts';
 import type { ChildContextEntry } from './child-session.ts';
 import { parsePatterns } from './content-exclusion.ts';

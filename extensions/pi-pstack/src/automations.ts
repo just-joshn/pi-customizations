@@ -3,16 +3,9 @@ import { basename, join } from 'node:path';
 
 import { type ExtensionAPI, type ExtensionContext, getAgentDir } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
-import {
-  disableAutomation,
-  enableAutomation,
-  inspectAutomation,
-  prepareAutomation,
-  recordThreadSafety,
-  saveAutomation,
-  threadSafetyReceipt,
-} from '../scripts/automation-client.mjs';
+import { disableAutomation, enableAutomation, inspectAutomation, prepareAutomation, recordThreadSafety, saveAutomation, threadSafetyReceipt } from '../scripts/automation-client.mjs';
 import { AutomationSchema } from './automation-domain.ts';
+import { AutomationDisableOutput, AutomationEnableOutput, AutomationInspectOutput, AutomationOpenEditorOutput, AutomationPrepareOutput, AutomationRecordThreadSafetyOutput, AutomationSaveOutput } from './automation-output-schemas.ts';
 import {
   AUTOMATIONS_EDITOR_CHROME,
   type AutomationsEditorDraft,
@@ -23,15 +16,6 @@ import {
   renderAutomationsEditor,
   toAutomationsEditorInput,
 } from './automations-editor.ts';
-import {
-  AutomationDisableOutput,
-  AutomationEnableOutput,
-  AutomationInspectOutput,
-  AutomationOpenEditorOutput,
-  AutomationPrepareOutput,
-  AutomationRecordThreadSafetyOutput,
-  AutomationSaveOutput,
-} from './automation-output-schemas.ts';
 import { dataResult as result } from './results.ts';
 
 const Identity = {
@@ -80,15 +64,7 @@ function directory(ctx: ExtensionContext, automationId: string) {
   return join(root(ctx), automationId);
 }
 
-function toEditorDraft(draft: {
-  name: string;
-  description: string;
-  instructions: string;
-  operationalPath?: string;
-  trigger: AutomationsEditorDraft['trigger'];
-  tools: string[];
-  revision: string;
-}): AutomationsEditorDraft {
+function toEditorDraft(draft: { name: string; description: string; instructions: string; operationalPath?: string; trigger: AutomationsEditorDraft['trigger']; tools: string[]; revision: string }): AutomationsEditorDraft {
   return {
     name: draft.name,
     description: draft.description,
@@ -100,10 +76,7 @@ function toEditorDraft(draft: {
   };
 }
 
-async function openAutomationsEditorChrome(
-  draft: AutomationsEditorDraft,
-  ctx: ExtensionContext,
-): Promise<ReturnType<typeof automationsEditorResult>> {
+async function openAutomationsEditorChrome(draft: AutomationsEditorDraft, ctx: ExtensionContext): Promise<ReturnType<typeof automationsEditorResult>> {
   return ctx.ui.custom((tui, _theme, _keybindings, done) => {
     let state = initialAutomationsEditorState(draft);
     return {
@@ -194,8 +167,7 @@ function registerDraftTools(pi: ExtensionAPI): void {
     exposure: 'direct',
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
     label: 'Prepare automation draft',
-    description:
-      'Create an immutable disabled automation draft under pstack-automations. No Slack ingress and no services start. Returns automationId and revision for editor handoff.',
+    description: 'Create an immutable disabled automation draft under pstack-automations. No Slack ingress and no services start. Returns automationId and revision for editor handoff.',
     parameters: AutomationSchema,
     execute: async (_id, input, signal, _update, ctx) => {
       signal?.throwIfAborted();
@@ -230,8 +202,7 @@ function registerOpenEditorTool(pi: ExtensionAPI): void {
     exposure: 'direct',
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     label: 'Open Automations editor',
-    description:
-      'Open the reviewed Automations editor handoff for a disabled draft. Shows name, trigger, instructions, tools, and Inactive state. Does not enable the automation.',
+    description: 'Open the reviewed Automations editor handoff for a disabled draft. Shows name, trigger, instructions, tools, and Inactive state. Does not enable the automation.',
     parameters: Type.Object(Identity),
     execute: async (_id, input, signal, _update, ctx) => {
       signal?.throwIfAborted();
@@ -273,8 +244,7 @@ function registerSaveTool(pi: ExtensionAPI): void {
     exposure: 'direct',
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     label: 'Save automation draft',
-    description:
-      'Persist the automation definition with kind=disabled. Never starts Slack or webhook ingress. Creation-boundary finish stops here.',
+    description: 'Persist the automation definition with kind=disabled. Never starts Slack or webhook ingress. Creation-boundary finish stops here.',
     parameters: SaveParameters,
     execute: async (_id, raw, signal, _update, ctx) => {
       signal?.throwIfAborted();
@@ -315,8 +285,7 @@ function registerThreadSafetyTool(pi: ExtensionAPI): void {
     exposure: 'direct',
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     label: 'Record thread-safety receipt',
-    description:
-      'Persist thread-safety.json for the exact draft revision after all seven checks pass. Does not enable the automation or start Slack ingress.',
+    description: 'Persist thread-safety.json for the exact draft revision after all seven checks pass. Does not enable the automation or start Slack ingress.',
     parameters: RecordThreadSafetyParameters,
     execute: async (_id, input, signal, _update, ctx) => {
       signal?.throwIfAborted();
@@ -339,8 +308,7 @@ function registerEnableTool(pi: ExtensionAPI): void {
     exposure: 'model-only',
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     label: 'Enable automation after thread-safety',
-    description:
-      'Mark a draft enabled after thread-safety.json matches the exact revision and the operator confirms. Does not start Slack ingress. Creation-boundary workflows must not call this before the seven checks.',
+    description: 'Mark a draft enabled after thread-safety.json matches the exact revision and the operator confirms. Does not start Slack ingress. Creation-boundary workflows must not call this before the seven checks.',
     parameters: EnableParameters,
     execute: async (_id, input, signal, _update, ctx) => {
       signal?.throwIfAborted();
@@ -359,11 +327,7 @@ function registerEnableTool(pi: ExtensionAPI): void {
       }
       if (!ctx.hasUI) throw new Error('Automation activation requires interactive operator approval.');
       signal?.throwIfAborted();
-      const approved = await ctx.ui.confirm(
-        'Enable automation?',
-        JSON.stringify({ name: draft.name, revision: draft.revision, trigger: draft.trigger, tools: draft.tools }, null, 2),
-        signal ? { signal } : {},
-      );
+      const approved = await ctx.ui.confirm('Enable automation?', JSON.stringify({ name: draft.name, revision: draft.revision, trigger: draft.trigger, tools: draft.tools }, null, 2), signal ? { signal } : {});
       signal?.throwIfAborted();
       if (!approved) return result({ enabled: false as const, refused: false as const, revision: draft.revision });
       const enabled = await enableAutomation(path, input.revision, signal);
@@ -387,8 +351,7 @@ function registerDisableTool(pi: ExtensionAPI): void {
     exposure: 'direct',
     annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
     label: 'Disable automation',
-    description:
-      'Clear local enabled status for an automation draft. Does not delete definition.json or thread-safety.json. Does not touch Slack ingress (none runs yet).',
+    description: 'Clear local enabled status for an automation draft. Does not delete definition.json or thread-safety.json. Does not touch Slack ingress (none runs yet).',
     parameters: Type.Object(Identity),
     execute: async (_id, input, signal, _update, ctx) => {
       signal?.throwIfAborted();

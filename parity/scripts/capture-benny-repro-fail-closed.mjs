@@ -8,7 +8,7 @@
 import { createHash } from 'node:crypto';
 import { access, mkdir, readdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
-import { dirname, join } from 'node:path';
+import { join } from 'node:path';
 
 import { sha256 } from '../recorder/files.mjs';
 import { outputBytes, startAttempt } from '../recorder/index.mjs';
@@ -24,14 +24,7 @@ const evidenceRoot = join(root, 'evidence', 'benny-repro');
 const fixtureApp = join(evidenceRoot, 'fixture-app');
 const productRel = join('src', 'app.js');
 const productAbs = join(fixtureApp, productRel);
-const skillRel = join(
-  '.upstream',
-  'automations',
-  'benny',
-  'skills',
-  'reproduce-and-fix-issues',
-  'SKILL.md',
-);
+const skillRel = join('.upstream', 'automations', 'benny', 'skills', 'reproduce-and-fix-issues', 'SKILL.md');
 const configRel = join('.upstream', 'benny', 'configuration.yaml');
 const GEOMETRY = { rows: 40, cols: 120 };
 const LOCKED_FIXTURE_DIGEST = 'sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004';
@@ -40,10 +33,7 @@ const POLL_MS = 500;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const stripAnsi = (text) =>
-  text
-    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
-    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
 
 function writeRootFor(side) {
   return join(evidenceRoot, 'fixture-out', side);
@@ -103,21 +93,10 @@ export function observeFailClosedText(text, { ignorePromptSlice } = {}) {
     /\bincomplete (Benny )?config/i.test(hay);
   // Prefer concrete tooling/side-effect chrome over skill-body prose (the skill
   // text itself mentions reproduce / draft PR / feature map).
-  const uiReproAttempt =
-    /\b(playwright|puppeteer|chromium)\b/i.test(hay) ||
-    /\bStarting (browser|CDP|screen recording)\b/i.test(hay) ||
-    /\bcontrol-target-app\b/i.test(hay) && /\b(click|navigate|screenshot)\b/i.test(hay);
-  const draftPrAttempt =
-    /\bgh pr create\b/i.test(hay) ||
-    /\bOpened draft (pull )?request\b/i.test(hay) ||
-    /pull\/\d+\b/.test(hay) && /\bhttps?:\/\/github\.com\//i.test(hay);
-  const productEditAttempt =
-    /\b(Edited|Wrote|Updated)\s+src\/app\.js\b/i.test(hay) ||
-    /\bapply.?patch\b.*src\/app\.js/i.test(hay);
-  const skillChrome =
-    /reproduce-and-fix-issues/i.test(hay) ||
-    /\[skill\]\s*reproduce/i.test(hay) ||
-    /\bUsed reproduce-and-fix-issues\b/i.test(hay);
+  const uiReproAttempt = /\b(playwright|puppeteer|chromium)\b/i.test(hay) || /\bStarting (browser|CDP|screen recording)\b/i.test(hay) || (/\bcontrol-target-app\b/i.test(hay) && /\b(click|navigate|screenshot)\b/i.test(hay));
+  const draftPrAttempt = /\bgh pr create\b/i.test(hay) || /\bOpened draft (pull )?request\b/i.test(hay) || (/pull\/\d+\b/.test(hay) && /\bhttps?:\/\/github\.com\//i.test(hay));
+  const productEditAttempt = /\b(Edited|Wrote|Updated)\s+src\/app\.js\b/i.test(hay) || /\bapply.?patch\b.*src\/app\.js/i.test(hay);
+  const skillChrome = /reproduce-and-fix-issues/i.test(hay) || /\[skill\]\s*reproduce/i.test(hay) || /\bUsed reproduce-and-fix-issues\b/i.test(hay);
   return {
     failClosedPhrase,
     uiReproAttempt,
@@ -128,21 +107,10 @@ export function observeFailClosedText(text, { ignorePromptSlice } = {}) {
   };
 }
 
-export function scoreBennyReproFailClosed({
-  done,
-  productBeforeDigest,
-  productAfterDigest,
-  screenText,
-  ptyText,
-  sessionSummary,
-  prompt,
-}) {
+export function scoreBennyReproFailClosed({ done, productBeforeDigest, productAfterDigest, screenText, ptyText, sessionSummary, prompt }) {
   const screen = observeFailClosedText(screenText, { ignorePromptSlice: prompt });
   const pty = observeFailClosedText(ptyText, { ignorePromptSlice: prompt });
-  const productUnchanged =
-    Boolean(productBeforeDigest) &&
-    Boolean(productAfterDigest) &&
-    productBeforeDigest === productAfterDigest;
+  const productUnchanged = Boolean(productBeforeDigest) && Boolean(productAfterDigest) && productBeforeDigest === productAfterDigest;
   const statusFailClosed = done?.status === 'fail-closed' || done?.status === 'blocked';
   const statusProceeded = done?.status === 'proceeded';
   const sessionUi = Boolean(sessionSummary?.uiReproTools);
@@ -161,14 +129,8 @@ export function scoreBennyReproFailClosed({
     pty.draftPrAttempt ||
     pty.productEditAttempt ||
     statusProceeded;
-  const failClosedSignal =
-    statusFailClosed ||
-    screen.failClosedPhrase ||
-    pty.failClosedPhrase ||
-    Boolean(sessionSummary?.failClosedPhrase);
-  const engaged = Boolean(
-    sessionSkillRead || screen.skillChrome || pty.skillChrome || done?.exists,
-  );
+  const failClosedSignal = statusFailClosed || screen.failClosedPhrase || pty.failClosedPhrase || Boolean(sessionSummary?.failClosedPhrase);
+  const engaged = Boolean(sessionSkillRead || screen.skillChrome || pty.skillChrome || done?.exists);
   let outcome = 'inconclusive';
   if (engaged && failClosedSignal && !forbidden && productUnchanged) outcome = 'fail_closed';
   else if (forbidden || statusProceeded) outcome = 'proceeded';
@@ -207,13 +169,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -267,10 +223,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
       await sleep(800);
       continue;
     }
-    const chatReady =
-      !/Trust project folder\?/i.test(text) &&
-      (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) &&
-      (/fixture-app|Benny|benny|medium|Skill conflicts|README/i.test(text));
+    const chatReady = !/Trust project folder\?/i.test(text) && (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) && /fixture-app|Benny|benny|medium|Skill conflicts|README/i.test(text);
     if (chatReady) return lines;
     await sleep(200);
   }
@@ -424,22 +377,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        [
-          'fail-closed',
-          'fail closed',
-          'STATUS=',
-          'reproduce-and-fix-issues',
-          'configuration.yaml',
-          'missing',
-          'incomplete',
-          'feature map',
-          'control adapter',
-        ],
-        600_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['fail-closed', 'fail closed', 'STATUS=', 'reproduce-and-fix-issues', 'configuration.yaml', 'missing', 'incomplete', 'feature map', 'control adapter'], 600_000);
     } catch {
       // settle may still land artifacts
     }
@@ -518,8 +456,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
           }
         : null,
       pollSamples: pollLog.length,
-      scorerNote:
-        'fail_closed requires engagement + fail-closed/blocked signal + unchanged src/app.js + no UI/PR/product side effects',
+      scorerNote: 'fail_closed requires engagement + fail-closed/blocked signal + unchanged src/app.js + no UI/PR/product side effects',
     };
 
     const afterRule = await readFile(rulePath, 'utf8');

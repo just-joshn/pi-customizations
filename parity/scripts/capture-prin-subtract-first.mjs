@@ -23,24 +23,8 @@ const piAgentDir = '/tmp/pi-ref-agent';
 const piRulePath = join(piAgentDir, 'pstack', 'models.mdc');
 const evidenceRoot = join(root, 'evidence', 'principles', 'subtract-first');
 const fixtureApp = join(evidenceRoot, 'fixture-app');
-const subSkillCursor = join(
-  root,
-  'reference',
-  'cursor-plugins',
-  'pstack',
-  'skills',
-  'principle-subtract-before-you-add',
-  'SKILL.md',
-);
-const subSkillPi = join(
-  root,
-  '..',
-  'extensions',
-  'pi-pstack',
-  'skills',
-  'principle-subtract-before-you-add',
-  'SKILL.md',
-);
+const subSkillCursor = join(root, 'reference', 'cursor-plugins', 'pstack', 'skills', 'principle-subtract-before-you-add', 'SKILL.md');
+const subSkillPi = join(root, '..', 'extensions', 'pi-pstack', 'skills', 'principle-subtract-before-you-add', 'SKILL.md');
 const GEOMETRY = { rows: 40, cols: 120 };
 const LOCKED_FIXTURE_DIGEST = 'sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004';
 const SETTLE_MS = 1_500_000;
@@ -49,25 +33,11 @@ const PRODUCT_REL = ['src/greet.js', 'src/core.js', 'src/legacyValidate.js', 'sr
 const DEAD_REL = ['src/legacyValidate.js', 'src/stubRefs.js'];
 const VERIFY_OUT_REL = 'evidence/verify-out.txt';
 const VERIFY_SCRIPT_REL = 'scripts/verify.mjs';
-const BASELINE_REL = [
-  'src/greet.js',
-  'src/core.js',
-  'src/legacyValidate.js',
-  'src/stubRefs.js',
-  'README.md',
-  'NOTES.md',
-  'package.json',
-  VERIFY_SCRIPT_REL,
-  'evidence/.gitkeep',
-  'out/.gitkeep',
-];
+const BASELINE_REL = ['src/greet.js', 'src/core.js', 'src/legacyValidate.js', 'src/stubRefs.js', 'README.md', 'NOTES.md', 'package.json', VERIFY_SCRIPT_REL, 'evidence/.gitkeep', 'out/.gitkeep'];
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const stripAnsi = (text) =>
-  text
-    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
-    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
 
 function writeRootFor(side) {
   return join(evidenceRoot, 'fixture-out', side);
@@ -159,19 +129,12 @@ function isCapabilityPath(p) {
 function observeSubtractText(text, { ignorePromptSlice } = {}) {
   let hay = stripAnsi(text || '');
   if (ignorePromptSlice) hay = hay.split(ignorePromptSlice).join(' ');
-  const potetoMode =
-    /\/poteto-mode\b/i.test(hay) ||
-    /\[skill\]\s*poteto-mode/i.test(hay) ||
-    /\bUsed poteto-mode\b/i.test(hay);
+  const potetoMode = /\/poteto-mode\b/i.test(hay) || /\[skill\]\s*poteto-mode/i.test(hay) || /\bUsed poteto-mode\b/i.test(hay);
   const leafChrome = /principle-subtract-before-you-add[/\\]SKILL\.md/i.test(hay);
   const usedLeaf = /\bUsed principle-subtract-before-you-add\b/i.test(hay);
   const skillBracketLeaf = /\[skill\]\s*principle-subtract-before-you-add\b/i.test(hay);
   const hostAttached = Boolean(usedLeaf || skillBracketLeaf);
-  const verifyMention =
-    /scripts\/verify\.mjs/i.test(hay) ||
-    /evidence\/verify-out\.txt/i.test(hay) ||
-    /\bSUBTRACT-OK\b/.test(hay) ||
-    /\bSUBTRACT-FAIL\b/.test(hay);
+  const verifyMention = /scripts\/verify\.mjs/i.test(hay) || /evidence\/verify-out\.txt/i.test(hay) || /\bSUBTRACT-OK\b/.test(hay) || /\bSUBTRACT-FAIL\b/.test(hay);
   const working = /[\u2800-\u28FF]/.test(hay) || /\bWorking\b/.test(hay);
   return { potetoMode, leafChrome, hostAttached, verifyMention, working };
 }
@@ -216,14 +179,7 @@ function extractToolCallsFromJsonl(text) {
 }
 
 function pathFromArgs(args) {
-  return (
-    args.path ||
-    args.file_path ||
-    args.filePath ||
-    args.target_file ||
-    args.file ||
-    null
-  );
+  return args.path || args.file_path || args.filePath || args.target_file || args.file || null;
 }
 
 function isWriteLike(name, args) {
@@ -258,19 +214,14 @@ function scoreCallsForSubtract(calls) {
     const args = call.args || {};
     const blob = JSON.stringify(args);
     const path = pathFromArgs(args);
-    const isRead =
-      /^(Read|read|read_file|ReadFile|cat|blob-mention)$/i.test(name) ||
-      (name === 'bash' && typeof args.command === 'string' && /\bcat\b/.test(args.command));
+    const isRead = /^(Read|read|read_file|ReadFile|cat|blob-mention)$/i.test(name) || (name === 'bash' && typeof args.command === 'string' && /\bcat\b/.test(args.command));
     if (isRead && isSubtractSkillPath(path || blob)) {
       leafSkillRead = true;
       if (!leafSkillReadAt) leafSkillReadAt = call.ts || new Date().toISOString();
       toolOrder.push(`${name}(subtract-leaf)`);
       continue;
     }
-    if (
-      /\bscripts\/verify\.mjs\b/i.test(blob) ||
-      (typeof args.command === 'string' && /verify\.mjs/.test(args.command))
-    ) {
+    if (/\bscripts\/verify\.mjs\b/i.test(blob) || (typeof args.command === 'string' && /verify\.mjs/.test(args.command))) {
       ranVerifyScript = true;
       toolOrder.push(`${name}(verify.mjs)`);
       continue;
@@ -287,10 +238,7 @@ function scoreCallsForSubtract(calls) {
     }
     if (name) toolOrder.push(name);
   }
-  const removedBeforeAdd =
-    Boolean(firstDeadDeleteAt) &&
-    Boolean(firstCapabilityWriteAt) &&
-    String(firstDeadDeleteAt) <= String(firstCapabilityWriteAt);
+  const removedBeforeAdd = Boolean(firstDeadDeleteAt) && Boolean(firstCapabilityWriteAt) && String(firstDeadDeleteAt) <= String(firstCapabilityWriteAt);
   return {
     leafSkillRead,
     leafSkillReadAt,
@@ -321,34 +269,16 @@ export function scoreSubtractFirst({
 }) {
   const screen = observeSubtractText(screenText, { ignorePromptSlice: prompt });
   const pty = observeSubtractText(ptyText, { ignorePromptSlice: prompt });
-  const leafSkillRead = Boolean(
-    sessionScore?.leafSkillRead ||
-      transcriptScore?.leafSkillRead ||
-      screen.leafChrome ||
-      pty.leafChrome,
-  );
+  const leafSkillRead = Boolean(sessionScore?.leafSkillRead || transcriptScore?.leafSkillRead || screen.leafChrome || pty.leafChrome);
   const usedChrome = Boolean(screen.hostAttached || pty.hostAttached || sessionScore?.hostAttached);
   const modelAutoInvoke = usedChrome && !leafSkillRead;
   const toolOrderOk = Boolean(sessionScore?.removedBeforeAdd || transcriptScore?.removedBeforeAdd);
-  const pollOrderOk =
-    Boolean(firstDeletedAt) &&
-    Boolean(firstCapabilityAt) &&
-    String(firstDeletedAt) <= String(firstCapabilityAt);
+  const pollOrderOk = Boolean(firstDeletedAt) && Boolean(firstCapabilityAt) && String(firstDeletedAt) <= String(firstCapabilityAt);
   const orderOk = Boolean(removedBeforeAdd) || toolOrderOk || pollOrderOk;
   const keptVerifyOk = Boolean(verifyOut?.ok);
   const verifiedDone = /^verified=yes\b/i.test((done?.line || '').trim());
   const frontmatterOk = Boolean(frontmatter?.ok);
-  const contractHeld =
-    frontmatterOk &&
-    leafSkillRead &&
-    Boolean(deadWeightGone) &&
-    Boolean(capabilityAdded) &&
-    orderOk &&
-    !speculativeKept &&
-    productOk &&
-    keptVerifyOk &&
-    verifiedDone &&
-    !modelAutoInvoke;
+  const contractHeld = frontmatterOk && leafSkillRead && Boolean(deadWeightGone) && Boolean(capabilityAdded) && orderOk && !speculativeKept && productOk && keptVerifyOk && verifiedDone && !modelAutoInvoke;
   return {
     frontmatterOk,
     leafSkillRead,
@@ -401,13 +331,7 @@ async function restoreProduct() {
   const files = await walkFiles(fixtureApp);
   for (const rel of files) {
     if (keep.has(rel)) continue;
-    if (
-      rel.startsWith('src/') ||
-      rel.startsWith('evidence/') ||
-      rel.startsWith('out/') ||
-      rel.endsWith('.tsv') ||
-      rel.startsWith('.audit/')
-    ) {
+    if (rel.startsWith('src/') || rel.startsWith('evidence/') || rel.startsWith('out/') || rel.endsWith('.tsv') || rel.startsWith('.audit/')) {
       await rm(join(fixtureApp, rel), { force: true, recursive: true });
     }
   }
@@ -430,15 +354,11 @@ async function diskOracle() {
   } catch {
     srcFiles = [];
   }
-  const speculativeKept = srcFiles.some((name) =>
-    /legacy|stub|validate|guard|parser|middleware|registry|facade/i.test(name),
-  );
+  const speculativeKept = srcFiles.some((name) => /legacy|stub|validate|guard|parser|middleware|registry|facade/i.test(name));
   let plainOk = false;
   let shoutOk = false;
   try {
-    const mod = await import(
-      `${pathToFileURL(join(fixtureApp, 'src', 'greet.js')).href}?t=${Date.now()}`
-    );
+    const mod = await import(`${pathToFileURL(join(fixtureApp, 'src', 'greet.js')).href}?t=${Date.now()}`);
     plainOk = mod.greet() === 'hello, world';
     shoutOk = mod.greet({ shout: true }) === 'HELLO, WORLD';
   } catch {
@@ -492,13 +412,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -552,10 +466,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
       await sleep(800);
       continue;
     }
-    const chatReady =
-      !/Trust project folder\?/i.test(text) &&
-      (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) &&
-      (/subtract-first|greet|README|medium|Skill conflicts|Session TTL|fixture-app/i.test(text));
+    const chatReady = !/Trust project folder\?/i.test(text) && (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) && /subtract-first|greet|README|medium|Skill conflicts|Session TTL|fixture-app/i.test(text);
     if (chatReady) return lines;
     await sleep(200);
   }
@@ -592,9 +503,7 @@ async function summarizePiSession(sessionPath) {
   const text = await readFile(sessionPath, 'utf8');
   const calls = extractToolCallsFromJsonl(text);
   const scored = scoreCallsForSubtract(calls);
-  const hostAttached =
-    /\bUsed principle-subtract-before-you-add\b/i.test(text) ||
-    /\[skill\]\s*principle-subtract-before-you-add\b/i.test(text);
+  const hostAttached = /\bUsed principle-subtract-before-you-add\b/i.test(text) || /\[skill\]\s*principle-subtract-before-you-add\b/i.test(text);
   return { sessionPath, hostAttached, ...scored };
 }
 
@@ -623,9 +532,7 @@ async function findCursorTranscripts(sinceMs, side) {
         } catch {
           continue;
         }
-        const mentionsThisAttempt =
-          text.includes(doneAbs) ||
-          (text.includes(`subtract-first/fixture-out/${side}/done.txt`) && text.includes('greet'));
+        const mentionsThisAttempt = text.includes(doneAbs) || (text.includes(`subtract-first/fixture-out/${side}/done.txt`) && text.includes('greet'));
         if (mentionsThisAttempt) hits.push({ path: abs, mtimeMs: st.mtimeMs, size: st.size });
       }
     }
@@ -647,15 +554,8 @@ async function summarizeCursorTranscripts(sinceMs, side) {
       ...scored,
       leafSkillRead: scored.leafSkillRead || leafInBlob,
     };
-    const rank =
-      (merged.leafSkillRead ? 4 : 0) +
-      (merged.ranVerifyScript ? 2 : 0) +
-      (merged.removedBeforeAdd ? 1 : 0);
-    const bestRank = best
-      ? (best.leafSkillRead ? 4 : 0) +
-        (best.ranVerifyScript ? 2 : 0) +
-        (best.removedBeforeAdd ? 1 : 0)
-      : -1;
+    const rank = (merged.leafSkillRead ? 4 : 0) + (merged.ranVerifyScript ? 2 : 0) + (merged.removedBeforeAdd ? 1 : 0);
+    const bestRank = best ? (best.leafSkillRead ? 4 : 0) + (best.ranVerifyScript ? 2 : 0) + (best.removedBeforeAdd ? 1 : 0) : -1;
     if (!best || rank > bestRank || (rank === bestRank && hit.mtimeMs > (best.mtimeMs || 0))) {
       best = { ...merged, mtimeMs: hit.mtimeMs };
     }
@@ -730,12 +630,7 @@ async function runSide(side, ruleBytes, ruleDigest, frontmatter) {
           if (!firstCapabilityAt) firstCapabilityAt = snap.now;
         }
         if (snap.hits.verify.length && !firstVerifyAt) firstVerifyAt = snap.now;
-        if (
-          snap.hits.product.length ||
-          snap.hits.verify.length ||
-          snap.hits.deleted.length ||
-          snap.hits.capability.length
-        ) {
+        if (snap.hits.product.length || snap.hits.verify.length || snap.hits.deleted.length || snap.hits.capability.length) {
           pollLog.push({
             ts: snap.now,
             product: snap.hits.product,
@@ -756,22 +651,7 @@ async function runSide(side, ruleBytes, ruleDigest, frontmatter) {
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        [
-          'poteto-mode',
-          'greet.js',
-          'verify',
-          'SUBTRACT-OK',
-          'SUBTRACT-FAIL',
-          'principle-subtract-before-you-add',
-          'legacyValidate',
-          'stubRefs',
-          'Phase',
-        ],
-        300_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['poteto-mode', 'greet.js', 'verify', 'SUBTRACT-OK', 'SUBTRACT-FAIL', 'principle-subtract-before-you-add', 'legacyValidate', 'stubRefs', 'Phase'], 300_000);
     } catch {
       // settle may still land artifacts
     }
@@ -824,10 +704,7 @@ async function runSide(side, ruleBytes, ruleDigest, frontmatter) {
     const done = await readDone(side);
     const verifyOut = await readVerifyOut();
     const oracle = await diskOracle();
-    const pollRemovedBeforeAdd =
-      Boolean(firstDeletedAt) &&
-      Boolean(firstCapabilityAt) &&
-      String(firstDeletedAt) <= String(firstCapabilityAt);
+    const pollRemovedBeforeAdd = Boolean(firstDeletedAt) && Boolean(firstCapabilityAt) && String(firstDeletedAt) <= String(firstCapabilityAt);
 
     let sessionScore = null;
     let transcriptScore = null;
@@ -893,17 +770,7 @@ async function runSide(side, ruleBytes, ruleDigest, frontmatter) {
 
     const snapDir = join(attempt.dir, 'fixture-snapshot');
     await mkdir(snapDir, { recursive: true });
-    for (const rel of [
-      'src/greet.js',
-      'src/core.js',
-      'src/legacyValidate.js',
-      'src/stubRefs.js',
-      'README.md',
-      'NOTES.md',
-      'package.json',
-      VERIFY_SCRIPT_REL,
-      VERIFY_OUT_REL,
-    ]) {
+    for (const rel of ['src/greet.js', 'src/core.js', 'src/legacyValidate.js', 'src/stubRefs.js', 'README.md', 'NOTES.md', 'package.json', VERIFY_SCRIPT_REL, VERIFY_OUT_REL]) {
       const abs = join(fixtureApp, rel);
       if (!(await pathExists(abs))) continue;
       const dest = join(snapDir, rel);
@@ -1046,10 +913,7 @@ if (isMain) {
     results.push(result);
     console.log(JSON.stringify(result));
   }
-  await writeFile(
-    join(evidenceRoot, 'capture-results.json'),
-    `${JSON.stringify({ scenario: 'prin-subtract-first', fixtureDigest: preDigest, frontmatter, results }, null, 2)}\n`,
-  );
+  await writeFile(join(evidenceRoot, 'capture-results.json'), `${JSON.stringify({ scenario: 'prin-subtract-first', fixtureDigest: preDigest, frontmatter, results }, null, 2)}\n`);
   console.log(
     JSON.stringify({
       scenario: 'prin-subtract-first',

@@ -1,47 +1,23 @@
 #!/usr/bin/env node
+import { execFile } from 'node:child_process';
+import { createHash } from 'node:crypto';
 // Probe whether setup-benny first-time creation can finish through the
 // built-in /automate → Automations editor handoff inside the PTY harness.
 // Usage: node parity/scripts/probe-setup-benny-creation-boundary-host.mjs
 import { access, mkdir, readFile, writeFile } from 'node:fs/promises';
-import { execFile } from 'node:child_process';
-import { promisify } from 'node:util';
-import { createHash } from 'node:crypto';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { promisify } from 'node:util';
 
 const execFileAsync = promisify(execFile);
 const isMain = Boolean(process.argv[1]) && import.meta.url === pathToFileURL(process.argv[1]).href;
 const root = new URL('../', import.meta.url).pathname;
 const evidenceRoot = join(root, 'evidence', 'setup-benny', 'creation-boundary');
 const cursorAgentBin = join(homedir(), '.local', 'bin', 'cursor-agent');
-const cursorAgentVersionRoot = join(
-  homedir(),
-  '.local',
-  'share',
-  'cursor-agent',
-  'versions',
-  '2026.10.01-e373342',
-);
-const docsRetrieval = join(
-  root,
-  'research',
-  'cursor-host',
-  'services',
-  'retrievals',
-  'docs_cloud-agent_automations.md',
-);
-const setupBennySkill = join(
-  root,
-  'reference',
-  'cursor-plugins',
-  'pstack',
-  'automations',
-  'benny',
-  'skills',
-  'setup-benny',
-  'SKILL.md',
-);
+const cursorAgentVersionRoot = join(homedir(), '.local', 'share', 'cursor-agent', 'versions', '2026.10.01-e373342');
+const docsRetrieval = join(root, 'research', 'cursor-host', 'services', 'retrievals', 'docs_cloud-agent_automations.md');
+const setupBennySkill = join(root, 'reference', 'cursor-plugins', 'pstack', 'automations', 'benny', 'skills', 'setup-benny', 'SKILL.md');
 const piAutomateMe = join(root, '..', 'extensions', 'pi-pstack', 'skills', 'automate-me', 'SKILL.md');
 const piAutomateSkill = join(root, '..', 'extensions', 'pi-pstack', 'host', 'skills', 'automate', 'SKILL.md');
 const piAutomationsEditor = join(root, '..', 'extensions', 'pi-pstack', 'src', 'automations-editor.ts');
@@ -50,12 +26,7 @@ const piAutomationsEditorTest = join(root, '..', 'extensions', 'pi-pstack', 'tes
 const piSetupBennyAdapter = join(root, '..', 'extensions', 'pi-pstack', 'host', 'adapters', 'benny', 'SKILL.md');
 
 async function detectPiAutomationsEditorChrome() {
-  const [editorSrc, toolsSrc, testSrc, skillPresent] = await Promise.all([
-    readText(piAutomationsEditor),
-    readText(piAutomationsTools),
-    readText(piAutomationsEditorTest),
-    pathExists(piAutomateSkill),
-  ]);
+  const [editorSrc, toolsSrc, testSrc, skillPresent] = await Promise.all([readText(piAutomationsEditor), readText(piAutomationsTools), readText(piAutomationsEditorTest), pathExists(piAutomateSkill)]);
   if (!editorSrc || !toolsSrc || !testSrc || !skillPresent) {
     return { available: false, reasons: ['missing editor module, tools wire, editor tests, or host/skills/automate/SKILL.md'] };
   }
@@ -189,16 +160,8 @@ export async function probeCreationBoundaryHost() {
 
   const docsText = await readText(docsRetrieval);
   const setupText = await readText(setupBennySkill);
-  const automateSkillHits = await walkFind(
-    cursorAgentVersionRoot,
-    (abs, name) =>
-      name === 'SKILL.md' &&
-      (/\/automate\//i.test(abs) || /\/skills\/automate\//i.test(abs)),
-  );
-  const automateNamedDirs = await walkFind(
-    cursorAgentVersionRoot,
-    (_abs, name) => /^automate$/i.test(name) === false && /automate\.md$/i.test(name),
-  );
+  const automateSkillHits = await walkFind(cursorAgentVersionRoot, (abs, name) => name === 'SKILL.md' && (/\/automate\//i.test(abs) || /\/skills\/automate\//i.test(abs)));
+  const automateNamedDirs = await walkFind(cursorAgentVersionRoot, (_abs, name) => /^automate$/i.test(name) === false && /automate\.md$/i.test(name));
 
   const checks = {
     cursorAgentBinPresent: await pathExists(cursorAgentBin),
@@ -211,14 +174,9 @@ export async function probeCreationBoundaryHost() {
     cursorAgentBundleAutomateSkillMdCount: automateSkillHits.length,
     cursorAgentBundleAutomateMdCount: automateNamedDirs.length,
     docsRetrievalPresent: Boolean(docsText),
-    docsSayAgentsWindowOrCursorAutomationsUrl: Boolean(
-      docsText &&
-        (/Agents Window/i.test(docsText) || /cursor\.com\/automations/i.test(docsText)),
-    ),
+    docsSayAgentsWindowOrCursorAutomationsUrl: Boolean(docsText && (/Agents Window/i.test(docsText) || /cursor\.com\/automations/i.test(docsText))),
     docsSayAutomateSkillPath: Boolean(docsText && /\/automate/i.test(docsText)),
-    setupBennyCreationBoundaryPresent: Boolean(
-      setupText && /Creation boundary/i.test(setupText) && /Automations editor handoff/i.test(setupText),
-    ),
+    setupBennyCreationBoundaryPresent: Boolean(setupText && /Creation boundary/i.test(setupText) && /Automations editor handoff/i.test(setupText)),
     piAutomateMePresent: await pathExists(piAutomateMe),
     // Flips true when extensions/pi-pstack/host/skills/automate/SKILL.md ships. Independent of editor chrome.
     piBuiltInAutomateSkillPresent: await pathExists(piAutomateSkill),
@@ -256,23 +214,13 @@ export async function probeCreationBoundaryHost() {
     missing.push('Automations editor UI is not available inside cursor-agent PTY harness');
   }
   if (!checks.automationsEditorUiAvailableInPiPty) {
-    missing.push(
-      piEditor.reasons.length
-        ? `Automations editor UI is not available inside Pi PTY harness (${piEditor.reasons.join('; ')})`
-        : 'Automations editor UI is not available inside Pi PTY harness',
-    );
+    missing.push(piEditor.reasons.length ? `Automations editor UI is not available inside Pi PTY harness (${piEditor.reasons.join('; ')})` : 'Automations editor UI is not available inside Pi PTY harness');
   }
   if (!checks.piSetupBennyAdapterUsesAutomatePath) {
-    missing.push(
-      piAdapter.reasons.length
-        ? `Pi setup-benny adapter is not on /automate path (${piAdapter.reasons.join('; ')})`
-        : 'Pi setup-benny adapter is not on /automate path',
-    );
+    missing.push(piAdapter.reasons.length ? `Pi setup-benny adapter is not on /automate path (${piAdapter.reasons.join('; ')})` : 'Pi setup-benny adapter is not on /automate path');
   }
   if (checks.docsSayAgentsWindowOrCursorAutomationsUrl) {
-    missing.push(
-      'Cursor docs place creation at Agents Window / cursor.com/automations / local /automate, none of which the PTY harness can drive to editor save',
-    );
+    missing.push('Cursor docs place creation at Agents Window / cursor.com/automations / local /automate, none of which the PTY harness can drive to editor save');
   }
 
   const runnable = missing.length === 0;

@@ -2,7 +2,7 @@
 
 This Pi package lets a Google Antigravity subscription answer in Pi. It signs in the way the Antigravity CLI (`agy`) signs in, and it sends the requests that `agy` sends to the Cloud Code Assist API (`v1internal`). It registers the provider `google-antigravity`, which Pi removed from its built-in providers.
 
-The provider reuses Pi's own parts where the wire allows. Pi's transcript helpers and cost accounting come from `@earendil-works/pi-ai`, the entry point Pi supplies to extensions. Pi's Google message and tool conversion and stop-reason mapping build each request too, but Pi does not supply those modules to extensions. `src/pi-ai/` therefore holds verbatim copies of them from pi-ai 1.0.2. `bun run vendor` regenerates the copies from the pinned devDependency, and `bun run check:vendor` fails when they drift. Pi stores the login in `auth.json` and refreshes it. The package adds the Cloud Code envelope, its streaming reader, and the login flow. Pi's `google-generative-ai` API cannot send the envelope, because it rejects a custom `fetch`.
+The provider reuses Pi's own parts where the wire allows. Pi's transcript helpers and cost accounting come from `@earendil-works/pi-ai`, the entry point Pi supplies to extensions. Pi's Google message and tool conversion and stop-reason mapping build each request too, but Pi does not supply those modules to extensions. `src/pi-ai/` therefore holds verbatim copies of them from pi-ai 1.1.0. `bun run vendor` regenerates the copies from the pinned devDependency, and `bun run check:vendor` fails when they drift. Pi stores the login in `auth.json` and refreshes it. The package adds the Cloud Code envelope, its streaming reader, and the login flow. Pi's `google-generative-ai` API cannot send the envelope, because it rejects a custom `fetch`.
 
 ## Use it
 
@@ -34,10 +34,11 @@ Three differences from `agy` remain. `agy` adds `labels` with its own conversati
 
 ## Verify it
 
-Run `bun install` first. It installs the Pi packages the tests import, pinned to 1.0.2. Pi does not install development dependencies when it loads the package.
+Run `bun install` first. It installs the Pi packages the tests import, pinned to 1.1.0. Pi does not install development dependencies when it loads the package.
 
 - `bun run test` runs the provider, login, model catalog, and `/antigravity` against local servers that stand in for Google.
 - `bun run typecheck` runs `tsc` in strict mode.
 - `bun run check:vendor` confirms that `src/pi-ai/` still matches the pinned pi-ai sources.
+- `bun run check:native-gap` confirms `docs/native-gap.md` still covers the custom stream and vendoring gaps (eight-point gate plus file inventory).
 - `node --experimental-strip-types scripts/prove-pi.ts` loads the extension in `pi`. It checks that `pi --list-models` lists the provider's models. Then it sends one prompt. If you are logged in, the prompt gets a live answer. If not, the script confirms that Pi asks you to log in.
 - `node scripts/snapshot-catalog.mjs <response.json>` rewrites `src/catalog-snapshot.ts` from a saved `fetchAvailableModels` response.

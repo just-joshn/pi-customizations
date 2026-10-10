@@ -1,14 +1,6 @@
 import { expect, test } from 'vitest';
-
-import {
-  AUTOMATIONS_EDITOR_CHROME,
-  automationsEditorResult,
-  formatTriggerText,
-  initialAutomationsEditorState,
-  reduceAutomationsEditor,
-  renderAutomationsEditor,
-} from '../src/automations-editor.ts';
 import type { AutomationsEditorDraft } from '../src/automations-editor.ts';
+import { AUTOMATIONS_EDITOR_CHROME, automationsEditorResult, formatTriggerText, initialAutomationsEditorState, reduceAutomationsEditor, renderAutomationsEditor } from '../src/automations-editor.ts';
 
 const draft: AutomationsEditorDraft = {
   name: 'benny-triage',
@@ -94,10 +86,6 @@ test('invalid trigger JSON on Save keeps the editor open with an error', () => {
 });
 
 test('formatTriggerText round-trips slack and webhook shapes', () => {
-  expect(formatTriggerText({ type: 'slack.top_level', channelId: 'C1' })).toBe(
-    '{"type":"slack.top_level","channelId":"C1"}',
-  );
-  expect(formatTriggerText({ type: 'webhook', fields: ['x'], port: 8080 })).toBe(
-    '{"type":"webhook","fields":["x"],"port":8080}',
-  );
+  expect(formatTriggerText({ type: 'slack.top_level', channelId: 'C1' })).toBe('{"type":"slack.top_level","channelId":"C1"}');
+  expect(formatTriggerText({ type: 'webhook', fields: ['x'], port: 8080 })).toBe('{"type":"webhook","fields":["x"],"port":8080}');
 });

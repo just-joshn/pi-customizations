@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { createHash } from 'node:crypto';
 // cmd-interrogate-no-autoapply: invoke /interrogate on a tiny contested product
 // file and prove findings are reported without rewriting the product digest.
 // Real PTY both sides via the recorder.
@@ -6,7 +7,6 @@
 // Usage: node scripts/capture-interrogate-no-autoapply.mjs [--cursor-only|--pi-only|--both]
 // Evidence root: parity/evidence/interrogate/
 import { access, mkdir, readdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises';
-import { createHash } from 'node:crypto';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 
@@ -31,10 +31,7 @@ const SETTLE_MS = 1_500_000;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const stripAnsi = (text) =>
-  text
-    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
-    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
 
 function writeRootFor(side) {
   return join(evidenceRoot, 'fixture-out', side);
@@ -92,12 +89,8 @@ function scoreVerdict(text) {
   const hasNoted = /\bNoted\b/i.test(normalized);
   const hasDismissed = /\bDismissed\b/i.test(normalized);
   const hasAgreement = /\bAgreement Map\b/i.test(normalized);
-  const sectionHits = [hasIntent, hasReviewers, hasActOn, hasConsider, hasNoted, hasDismissed, hasAgreement].filter(
-    Boolean,
-  ).length;
-  const findingsLanguage =
-    /\b(finding|findings|bug|null|mutat|side.?effect|act on|consider)\b/i.test(normalized) &&
-    sectionHits >= 2;
+  const sectionHits = [hasIntent, hasReviewers, hasActOn, hasConsider, hasNoted, hasDismissed, hasAgreement].filter(Boolean).length;
+  const findingsLanguage = /\b(finding|findings|bug|null|mutat|side.?effect|act on|consider)\b/i.test(normalized) && sectionHits >= 2;
   return {
     hasIntent,
     hasReviewers,
@@ -112,17 +105,8 @@ function scoreVerdict(text) {
 }
 
 function observeSignals(text) {
-  const interrogateSkill =
-    /\/interrogate\b/i.test(text) ||
-    /\[skill\]\s*interrogate/i.test(text) ||
-    /\bUsed interrogate\b/i.test(text) ||
-    /\binterrogate\b/i.test(text);
-  const reviewerSpawn =
-    /\breviewer\b/i.test(text) ||
-    /\bTask\b.*\b(running|started|background|general-purpose)/i.test(text) ||
-    /\bAgent\b.*\b(running|started|background)/i.test(text) ||
-    /\bsubagent\b/i.test(text) ||
-    /\bspawn/i.test(text);
+  const interrogateSkill = /\/interrogate\b/i.test(text) || /\[skill\]\s*interrogate/i.test(text) || /\bUsed interrogate\b/i.test(text) || /\binterrogate\b/i.test(text);
+  const reviewerSpawn = /\breviewer\b/i.test(text) || /\bTask\b.*\b(running|started|background|general-purpose)/i.test(text) || /\bAgent\b.*\b(running|started|background)/i.test(text) || /\bsubagent\b/i.test(text) || /\bspawn/i.test(text);
   const working = /[\u2800-\u28FF]/.test(text) || /\bWorking\b/.test(text);
   return { interrogateSkill, reviewerSpawn, working, verdict: scoreVerdict(text) };
 }
@@ -150,13 +134,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -210,10 +188,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
       await sleep(800);
       continue;
     }
-    const chatReady =
-      !/Trust project folder\?/i.test(text) &&
-      (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) &&
-      (/fixture-app|interrogate|total\.js|medium|Skill conflicts/i.test(text) || /README/i.test(text));
+    const chatReady = !/Trust project folder\?/i.test(text) && (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) && (/fixture-app|interrogate|total\.js|medium|Skill conflicts/i.test(text) || /README/i.test(text));
     if (chatReady) return lines;
     await sleep(200);
   }
@@ -253,7 +228,7 @@ async function summarizePiSession(sessionPath) {
   const toolOrder = [];
   let skillInjected = false;
   let wroteProduct = false;
-  let assistantTexts = [];
+  const assistantTexts = [];
   for (const line of lines) {
     let o;
     try {
@@ -274,10 +249,7 @@ async function summarizePiSession(sessionPath) {
         const name = part.name || part.toolName || '';
         toolOrder.push(name);
         const args = JSON.stringify(part.arguments || part.input || {});
-        if (
-          /write|edit|str_replace/i.test(name) &&
-          (args.includes(productRel) || args.includes('total.js'))
-        ) {
+        if (/write|edit|str_replace/i.test(name) && (args.includes(productRel) || args.includes('total.js'))) {
           wroteProduct = true;
         }
       }
@@ -305,10 +277,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
   if (side === 'pi') await ensurePiTrust();
   const before = await readProductState();
   await writeFile(join(dir, 'product-before.js'), before.text ?? '');
-  await writeFile(
-    join(dir, 'product-before.json'),
-    `${JSON.stringify({ path: before.path, digest: before.digest }, null, 2)}\n`,
-  );
+  await writeFile(join(dir, 'product-before.json'), `${JSON.stringify({ path: before.path, digest: before.digest }, null, 2)}\n`);
   await writeFile(backupPath, ruleBytes);
   const rulePath = side === 'cursor' ? referenceRulePath : piRulePath;
   const prompt = interrogatePrompt(side);
@@ -331,12 +300,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        ['interrogate', 'Intent', 'Reviewers', 'Act On', 'Consider', 'total.js', 'findings='],
-        600_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['interrogate', 'Intent', 'Reviewers', 'Act On', 'Consider', 'total.js', 'findings='], 600_000);
     } catch {
       // settle may still land artifacts
     }
@@ -377,18 +341,10 @@ async function runSide(side, ruleBytes, ruleDigest) {
     const after = await readProductState();
     const screenScore = scoreVerdict(settledText);
     const ptyScore = scoreVerdict(ptyText);
-    const sessionScore =
-      sessionSummary?.assistantJoined ? scoreVerdict(sessionSummary.assistantJoined) : null;
-    const bestScore =
-      [sessionScore, screenScore, ptyScore]
-        .filter(Boolean)
-        .sort((a, b) => Number(b.findingsReported) - Number(a.findingsReported))[0] || screenScore;
+    const sessionScore = sessionSummary?.assistantJoined ? scoreVerdict(sessionSummary.assistantJoined) : null;
+    const bestScore = [sessionScore, screenScore, ptyScore].filter(Boolean).sort((a, b) => Number(b.findingsReported) - Number(a.findingsReported))[0] || screenScore;
 
-    const skillActivated = Boolean(
-      observeSignals(settledText).interrogateSkill ||
-        observeSignals(ptyText).interrogateSkill ||
-        sessionSummary?.skillInjected,
-    );
+    const skillActivated = Boolean(observeSignals(settledText).interrogateSkill || observeSignals(ptyText).interrogateSkill || sessionSummary?.skillInjected);
     const productUnchanged = before.exists && after.exists && before.digest === after.digest;
     const autoApplied = before.exists && after.exists && before.digest !== after.digest;
 
@@ -412,15 +368,11 @@ async function runSide(side, ruleBytes, ruleDigest) {
             toolOrder: sessionSummary.toolOrder,
           }
         : null,
-      reviewerSpawnSignal:
-        observeSignals(settledText).reviewerSpawn || observeSignals(ptyText).reviewerSpawn,
+      reviewerSpawnSignal: observeSignals(settledText).reviewerSpawn || observeSignals(ptyText).reviewerSpawn,
     };
 
     await writeFile(join(dir, 'product-after.js'), after.text ?? '');
-    await writeFile(
-      join(dir, 'product-after.json'),
-      `${JSON.stringify({ path: after.path, digest: after.digest, productUnchanged, autoApplied }, null, 2)}\n`,
-    );
+    await writeFile(join(dir, 'product-after.json'), `${JSON.stringify({ path: after.path, digest: after.digest, productUnchanged, autoApplied }, null, 2)}\n`);
     const afterRule = await readFile(rulePath, 'utf8');
     const afterRuleDigest = await sha256(rulePath);
     await writeFile(join(dir, 'rule-after.mdc'), afterRule);

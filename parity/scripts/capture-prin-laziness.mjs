@@ -23,24 +23,8 @@ const piAgentDir = '/tmp/pi-ref-agent';
 const piRulePath = join(piAgentDir, 'pstack', 'models.mdc');
 const evidenceRoot = join(root, 'evidence', 'principles', 'laziness');
 const fixtureApp = join(evidenceRoot, 'fixture-app');
-const lazySkillCursor = join(
-  root,
-  'reference',
-  'cursor-plugins',
-  'pstack',
-  'skills',
-  'principle-laziness-protocol',
-  'SKILL.md',
-);
-const lazySkillPi = join(
-  root,
-  '..',
-  'extensions',
-  'pi-pstack',
-  'skills',
-  'principle-laziness-protocol',
-  'SKILL.md',
-);
+const lazySkillCursor = join(root, 'reference', 'cursor-plugins', 'pstack', 'skills', 'principle-laziness-protocol', 'SKILL.md');
+const lazySkillPi = join(root, '..', 'extensions', 'pi-pstack', 'skills', 'principle-laziness-protocol', 'SKILL.md');
 const GEOMETRY = { rows: 40, cols: 120 };
 const LOCKED_FIXTURE_DIGEST = 'sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004';
 const SETTLE_MS = 1_500_000;
@@ -48,24 +32,11 @@ const POLL_MS = 400;
 const PRODUCT_REL = ['src/greet.js', 'src/core.js', 'src/pipeline.js'];
 const VERIFY_OUT_REL = 'evidence/verify-out.txt';
 const VERIFY_SCRIPT_REL = 'scripts/verify.mjs';
-const BASELINE_REL = [
-  'src/greet.js',
-  'src/core.js',
-  'src/pipeline.js',
-  'README.md',
-  'NOTES.md',
-  'package.json',
-  VERIFY_SCRIPT_REL,
-  'evidence/.gitkeep',
-  'out/.gitkeep',
-];
+const BASELINE_REL = ['src/greet.js', 'src/core.js', 'src/pipeline.js', 'README.md', 'NOTES.md', 'package.json', VERIFY_SCRIPT_REL, 'evidence/.gitkeep', 'out/.gitkeep'];
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const stripAnsi = (text) =>
-  text
-    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
-    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
 
 function writeRootFor(side) {
   return join(evidenceRoot, 'fixture-out', side);
@@ -143,32 +114,23 @@ function isLazySkillPath(p) {
   return /principle-laziness-protocol[/\\]SKILL\.md/i.test(s);
 }
 
-const ASK_TOOL_RE =
-  /^(AskQuestion|AskUserQuestion|ask_question|ask-user|RequestUserInput|questions)$/i;
+const ASK_TOOL_RE = /^(AskQuestion|AskUserQuestion|ask_question|ask-user|RequestUserInput|questions)$/i;
 // Permission ask to the human only. Exclude explanatory prose such as
 // "instead of asking you which one" (matches a naive "which one").
-const ASK_PHRASE_RE =
-  /\b(?:should I (?:use|pick|choose|do|implement)|which format should I|do you (?:want|prefer) (?:me to|plain|json)|would you like me to|can I (?:use|pick|choose) (?:plain|json))\b[^?\n]{0,100}\?/i;
+const ASK_PHRASE_RE = /\b(?:should I (?:use|pick|choose|do|implement)|which format should I|do you (?:want|prefer) (?:me to|plain|json)|would you like me to|can I (?:use|pick|choose) (?:plain|json))\b[^?\n]{0,100}\?/i;
 const IRREVERSIBLE_RE = /\b(force-?push|git push --force|rm -rf\s+\/|delete production|send.*(email|slack|customer))\b/i;
 
 function observeLazyText(text, { ignorePromptSlice } = {}) {
   let hay = stripAnsi(text || '');
   if (ignorePromptSlice) hay = hay.split(ignorePromptSlice).join(' ');
-  const potetoMode =
-    /\/poteto-mode\b/i.test(hay) ||
-    /\[skill\]\s*poteto-mode/i.test(hay) ||
-    /\bUsed poteto-mode\b/i.test(hay);
+  const potetoMode = /\/poteto-mode\b/i.test(hay) || /\[skill\]\s*poteto-mode/i.test(hay) || /\bUsed poteto-mode\b/i.test(hay);
   const leafChrome = /principle-laziness-protocol[/\\]SKILL\.md/i.test(hay);
   const usedLeaf = /\bUsed principle-laziness-protocol\b/i.test(hay);
   const skillBracketLeaf = /\[skill\]\s*principle-laziness-protocol\b/i.test(hay);
   const hostAttached = Boolean(usedLeaf || skillBracketLeaf);
   const askPhrase = ASK_PHRASE_RE.test(hay);
   const irreversibleMention = IRREVERSIBLE_RE.test(hay);
-  const verifyMention =
-    /scripts\/verify\.mjs/i.test(hay) ||
-    /evidence\/verify-out\.txt/i.test(hay) ||
-    /\bFLAT-OK\b/.test(hay) ||
-    /\bFLAT-FAIL\b/.test(hay);
+  const verifyMention = /scripts\/verify\.mjs/i.test(hay) || /evidence\/verify-out\.txt/i.test(hay) || /\bFLAT-OK\b/.test(hay) || /\bFLAT-FAIL\b/.test(hay);
   const working = /[\u2800-\u28FF]/.test(hay) || /\bWorking\b/.test(hay);
   return { potetoMode, leafChrome, hostAttached, askPhrase, irreversibleMention, verifyMention, working };
 }
@@ -223,16 +185,8 @@ function scoreCallsForLazy(calls) {
     const name = String(call.name || '');
     const args = call.args || {};
     const blob = JSON.stringify(args);
-    const path =
-      args.path ||
-      args.file_path ||
-      args.filePath ||
-      args.target_file ||
-      args.file ||
-      null;
-    const isRead =
-      /^(Read|read|read_file|ReadFile|cat|blob-mention)$/i.test(name) ||
-      (name === 'bash' && typeof args.command === 'string' && /\bcat\b/.test(args.command));
+    const path = args.path || args.file_path || args.filePath || args.target_file || args.file || null;
+    const isRead = /^(Read|read|read_file|ReadFile|cat|blob-mention)$/i.test(name) || (name === 'bash' && typeof args.command === 'string' && /\bcat\b/.test(args.command));
     if (isRead && isLazySkillPath(path || blob)) {
       leafSkillRead = true;
       if (!leafSkillReadAt) leafSkillReadAt = call.ts || new Date().toISOString();
@@ -240,23 +194,17 @@ function scoreCallsForLazy(calls) {
       continue;
     }
     const nestedTool = args.toolName || args.name || args.tool || '';
-    if (ASK_TOOL_RE.test(name) || ( /^(CallDynamicTool|mcp|Tool)$/i.test(name) && ASK_TOOL_RE.test(String(nestedTool)))) {
+    if (ASK_TOOL_RE.test(name) || (/^(CallDynamicTool|mcp|Tool)$/i.test(name) && ASK_TOOL_RE.test(String(nestedTool)))) {
       askTool = true;
       toolOrder.push(`${name}(ask)`);
       continue;
     }
-    if (
-      /\bscripts\/verify\.mjs\b/i.test(blob) ||
-      (typeof args.command === 'string' && /verify\.mjs/.test(args.command))
-    ) {
+    if (/\bscripts\/verify\.mjs\b/i.test(blob) || (typeof args.command === 'string' && /verify\.mjs/.test(args.command))) {
       ranVerifyScript = true;
       toolOrder.push(`${name}(verify.mjs)`);
       continue;
     }
-    if (
-      (typeof args.command === 'string' && IRREVERSIBLE_RE.test(args.command)) ||
-      IRREVERSIBLE_RE.test(blob)
-    ) {
+    if ((typeof args.command === 'string' && IRREVERSIBLE_RE.test(args.command)) || IRREVERSIBLE_RE.test(blob)) {
       irreversibleTool = true;
       toolOrder.push(`${name}(irreversible)`);
       continue;
@@ -273,27 +221,10 @@ function scoreCallsForLazy(calls) {
   };
 }
 
-export function scoreLaziness({
-  frontmatter,
-  done,
-  verifyOut,
-  productOk,
-  preferredDeletion,
-  addedLayer,
-  screenText,
-  ptyText,
-  sessionScore,
-  transcriptScore,
-  prompt,
-}) {
+export function scoreLaziness({ frontmatter, done, verifyOut, productOk, preferredDeletion, addedLayer, screenText, ptyText, sessionScore, transcriptScore, prompt }) {
   const screen = observeLazyText(screenText, { ignorePromptSlice: prompt });
   const pty = observeLazyText(ptyText, { ignorePromptSlice: prompt });
-  const leafSkillRead = Boolean(
-    sessionScore?.leafSkillRead ||
-      transcriptScore?.leafSkillRead ||
-      screen.leafChrome ||
-      pty.leafChrome,
-  );
+  const leafSkillRead = Boolean(sessionScore?.leafSkillRead || transcriptScore?.leafSkillRead || screen.leafChrome || pty.leafChrome);
   const usedChrome = Boolean(screen.hostAttached || pty.hostAttached || sessionScore?.hostAttached);
   const modelAutoInvoke = usedChrome && !leafSkillRead;
   const keptVerifyOk = Boolean(verifyOut?.ok);
@@ -301,15 +232,7 @@ export function scoreLaziness({
   const frontmatterOk = Boolean(frontmatter?.ok);
   const preferredDeletionOk = Boolean(preferredDeletion);
   const addedLayerOk = !addedLayer;
-  const contractHeld =
-    frontmatterOk &&
-    leafSkillRead &&
-    productOk &&
-    keptVerifyOk &&
-    preferredDeletionOk &&
-    addedLayerOk &&
-    verifiedDone &&
-    !modelAutoInvoke;
+  const contractHeld = frontmatterOk && leafSkillRead && productOk && keptVerifyOk && preferredDeletionOk && addedLayerOk && verifiedDone && !modelAutoInvoke;
   return {
     frontmatterOk,
     leafSkillRead,
@@ -361,13 +284,7 @@ async function restoreProduct() {
   const files = await walkFiles(fixtureApp);
   for (const rel of files) {
     if (keep.has(rel)) continue;
-    if (
-      rel.startsWith('src/') ||
-      rel.startsWith('evidence/') ||
-      rel.startsWith('out/') ||
-      rel.endsWith('.tsv') ||
-      rel.startsWith('.audit/')
-    ) {
+    if (rel.startsWith('src/') || rel.startsWith('evidence/') || rel.startsWith('out/') || rel.endsWith('.tsv') || rel.startsWith('.audit/')) {
       await rm(join(fixtureApp, rel), { force: true, recursive: true });
     }
   }
@@ -389,14 +306,10 @@ async function diskOracle() {
   } catch {
     srcFiles = [];
   }
-  const layeredName = srcFiles.some((name) =>
-    /strateg|adapter|registry|facade|middleware|pipeline/i.test(name),
-  );
+  const layeredName = srcFiles.some((name) => /strateg|adapter|registry|facade|middleware|pipeline/i.test(name));
   let greetOk = false;
   try {
-    const mod = await import(
-      `${pathToFileURL(join(fixtureApp, 'src', 'greet.js')).href}?t=${Date.now()}`
-    );
+    const mod = await import(`${pathToFileURL(join(fixtureApp, 'src', 'greet.js')).href}?t=${Date.now()}`);
     greetOk = mod.greet() === 'hello, world';
   } catch {
     greetOk = false;
@@ -439,13 +352,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -499,10 +406,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
       await sleep(800);
       continue;
     }
-    const chatReady =
-      !/Trust project folder\?/i.test(text) &&
-      (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) &&
-      (/laziness|greet|README|medium|Skill conflicts|Session TTL|fixture-app/i.test(text));
+    const chatReady = !/Trust project folder\?/i.test(text) && (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) && /laziness|greet|README|medium|Skill conflicts|Session TTL|fixture-app/i.test(text);
     if (chatReady) return lines;
     await sleep(200);
   }
@@ -539,9 +443,7 @@ async function summarizePiSession(sessionPath) {
   const text = await readFile(sessionPath, 'utf8');
   const calls = extractToolCallsFromJsonl(text);
   const scored = scoreCallsForLazy(calls);
-  const hostAttached =
-    /\bUsed principle-laziness-protocol\b/i.test(text) ||
-    /\[skill\]\s*principle-laziness-protocol\b/i.test(text);
+  const hostAttached = /\bUsed principle-laziness-protocol\b/i.test(text) || /\[skill\]\s*principle-laziness-protocol\b/i.test(text);
   const askPhrase = ASK_PHRASE_RE.test(stripAnsi(text));
   return { sessionPath, hostAttached, askPhrase, ...scored, askTool: scored.askTool };
 }
@@ -571,9 +473,7 @@ async function findCursorTranscripts(sinceMs, side) {
         } catch {
           continue;
         }
-        const mentionsThisAttempt =
-          text.includes(doneAbs) ||
-          (text.includes(`laziness/fixture-out/${side}/done.txt`) && text.includes('greet.js'));
+        const mentionsThisAttempt = text.includes(doneAbs) || (text.includes(`laziness/fixture-out/${side}/done.txt`) && text.includes('greet.js'));
         if (mentionsThisAttempt) hits.push({ path: abs, mtimeMs: st.mtimeMs, size: st.size });
       }
     }
@@ -598,13 +498,8 @@ async function summarizeCursorTranscripts(sinceMs, side) {
       askTool: scored.askTool,
       askPhrase,
     };
-    const rank =
-      (merged.leafSkillRead ? 4 : 0) +
-      (merged.ranVerifyScript ? 2 : 0) +
-      (!merged.askTool ? 1 : 0);
-    const bestRank = best
-      ? (best.leafSkillRead ? 4 : 0) + (best.ranVerifyScript ? 2 : 0) + (!best.askTool ? 1 : 0)
-      : -1;
+    const rank = (merged.leafSkillRead ? 4 : 0) + (merged.ranVerifyScript ? 2 : 0) + (!merged.askTool ? 1 : 0);
+    const bestRank = best ? (best.leafSkillRead ? 4 : 0) + (best.ranVerifyScript ? 2 : 0) + (!best.askTool ? 1 : 0) : -1;
     if (!best || rank > bestRank || (rank === bestRank && hit.mtimeMs > (best.mtimeMs || 0))) {
       best = { ...merged, mtimeMs: hit.mtimeMs };
     }
@@ -691,21 +586,7 @@ async function runSide(side, ruleBytes, ruleDigest, frontmatter) {
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        [
-          'poteto-mode',
-          'greet.js',
-          'verify',
-          'FLAT-OK',
-          'FLAT-FAIL',
-          'principle-laziness-protocol',
-          'pipeline',
-          'Phase',
-        ],
-        300_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['poteto-mode', 'greet.js', 'verify', 'FLAT-OK', 'FLAT-FAIL', 'principle-laziness-protocol', 'pipeline', 'Phase'], 300_000);
     } catch {
       // settle may still land artifacts
     }
@@ -814,16 +695,7 @@ async function runSide(side, ruleBytes, ruleDigest, frontmatter) {
 
     const snapDir = join(attempt.dir, 'fixture-snapshot');
     await mkdir(snapDir, { recursive: true });
-    for (const rel of [
-      'src/greet.js',
-      'src/core.js',
-      'src/pipeline.js',
-      'README.md',
-      'NOTES.md',
-      'package.json',
-      VERIFY_SCRIPT_REL,
-      VERIFY_OUT_REL,
-    ]) {
+    for (const rel of ['src/greet.js', 'src/core.js', 'src/pipeline.js', 'README.md', 'NOTES.md', 'package.json', VERIFY_SCRIPT_REL, VERIFY_OUT_REL]) {
       const abs = join(fixtureApp, rel);
       if (!(await pathExists(abs))) continue;
       const dest = join(snapDir, rel);
@@ -841,10 +713,7 @@ async function runSide(side, ruleBytes, ruleDigest, frontmatter) {
       await writeFile(dest, await readFile(abs));
     }
     // Record pipeline absence in after snapshot marker.
-    await writeFile(
-      join(afterDir, 'pipeline-absent.txt'),
-      `${!(await pathExists(join(fixtureApp, 'src', 'pipeline.js')))}\n`,
-    );
+    await writeFile(join(afterDir, 'pipeline-absent.txt'), `${!(await pathExists(join(fixtureApp, 'src', 'pipeline.js')))}\n`);
 
     return {
       side,
@@ -948,10 +817,7 @@ if (isMain) {
     results.push(result);
     console.log(JSON.stringify(result));
   }
-  await writeFile(
-    join(evidenceRoot, 'capture-results.json'),
-    `${JSON.stringify({ scenario: 'prin-laziness', fixtureDigest: preDigest, frontmatter, results }, null, 2)}\n`,
-  );
+  await writeFile(join(evidenceRoot, 'capture-results.json'), `${JSON.stringify({ scenario: 'prin-laziness', fixtureDigest: preDigest, frontmatter, results }, null, 2)}\n`);
   console.log(
     JSON.stringify({
       scenario: 'prin-laziness',

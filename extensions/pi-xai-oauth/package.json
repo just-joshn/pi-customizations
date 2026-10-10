@@ -22,7 +22,9 @@
   "scripts": {
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "typecheck": "tsc -p ."
+    "typecheck": "tsc -p .",
+    "prove:list": "node --experimental-strip-types scripts/prove-pi.ts --list-only",
+    "prove": "node --experimental-strip-types scripts/prove-pi.ts"
   },
   "peerDependencies": {
     "@earendil-works/pi-ai": "*",

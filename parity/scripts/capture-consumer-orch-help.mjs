@@ -21,17 +21,8 @@ const referenceRulePath = join(homedir(), '.cursor', 'rules', 'pstack-models.mdc
 const piAgentDir = '/tmp/pi-ref-agent';
 const piRulePath = join(piAgentDir, 'pstack', 'models.mdc');
 const evidenceRoot = join(root, 'evidence', 'consumer');
-const toolsCwd = join(
-  root,
-  'reference',
-  'cursor-plugins',
-  'pstack',
-  'skills',
-  'poteto-mode',
-  'scripts',
-);
-const consumerPath =
-  'parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/orch/orch.ts';
+const toolsCwd = join(root, 'reference', 'cursor-plugins', 'pstack', 'skills', 'poteto-mode', 'scripts');
+const consumerPath = 'parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/orch/orch.ts';
 const GEOMETRY = { rows: 36, cols: 120 };
 const LOCKED_FIXTURE_DIGEST = 'sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004';
 const LOCKED_CONSUMER_DIGEST = 'f091687df627a0b75fabd54af58945a9cd6c7039ef0622012ac9ed60cd8ec434';
@@ -90,13 +81,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: toolsCwd,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -141,10 +126,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
       await sleep(800);
       continue;
     }
-    if (
-      !/Trust project folder\?/i.test(text) &&
-      (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text))
-    ) {
+    if (!/Trust project folder\?/i.test(text) && (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text))) {
       return lines;
     }
     await sleep(200);
@@ -229,10 +211,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
       consumerPath,
       consumerSha256: consumerHex,
       consumerMatchesLocked: consumerHex === LOCKED_CONSUMER_DIGEST,
-      journeyClosed:
-        helpChromeOk(settled.observations) &&
-        settled.doneOk &&
-        consumerHex === LOCKED_CONSUMER_DIGEST,
+      journeyClosed: helpChromeOk(settled.observations) && settled.doneOk && consumerHex === LOCKED_CONSUMER_DIGEST,
     };
     await writeFile(join(dir, 'observations-orch-help.json'), `${JSON.stringify(observations, null, 2)}\n`);
     return {
@@ -288,18 +267,11 @@ if (bySide.cursor && bySide.pi) {
       packageId: 'npm:commander@14.0.0',
       activation: 'runtime',
       consumerPath,
-      acceptanceJourney:
-        'Paired Cursor+Pi journey exercising npm:commander@14.0.0 via parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/orch/orch.ts',
+      acceptanceJourney: 'Paired Cursor+Pi journey exercising npm:commander@14.0.0 via parity/reference/cursor-plugins/pstack/skills/poteto-mode/scripts/orch/orch.ts',
     },
     fixtureDigest: preDigest,
-    promptSharedShape:
-      'In this cwd, run exactly: bun run orch/orch.ts --help; write EXIT=0 to side-specific done path',
-    steps: [
-      { send: 'bun run orch/orch.ts --help … EXIT=0 …' },
-      { send: '\r' },
-      { settle: true },
-      { cancel: true },
-    ],
+    promptSharedShape: 'In this cwd, run exactly: bun run orch/orch.ts --help; write EXIT=0 to side-specific done path',
+    steps: [{ send: 'bun run orch/orch.ts --help … EXIT=0 …' }, { send: '\r' }, { settle: true }, { cancel: true }],
     cursor: {
       attemptId: bySide.cursor.attemptId,
       dir: bySide.cursor.attemptDir,
@@ -316,9 +288,7 @@ if (bySide.cursor && bySide.pi) {
       observedEnv: bySide.pi.observedEnv,
       observations: bySide.pi.observations,
     },
-    pairClosed:
-      bySide.cursor.observations.journeyClosed === true &&
-      bySide.pi.observations.journeyClosed === true,
+    pairClosed: bySide.cursor.observations.journeyClosed === true && bySide.pi.observations.journeyClosed === true,
     provenance: {
       capturedWith: `parity/scripts/capture-consumer-orch-help.mjs ${only}`,
       toolsCwd,

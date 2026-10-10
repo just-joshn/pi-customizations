@@ -42,20 +42,14 @@ const PI_COMPLETE_FOLLOW_UP =
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const stripAnsi = (text) =>
-  text
-    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
-    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
 
 /** Redact secret-shaped tokens so evidence never stores a live key. */
 export function redactSecrets(text) {
   return String(text || '')
     .replace(/(Authorization:\s*Bearer\s+)([^\s'"`]+)/gi, '$1<redacted>')
     .replace(/(X-Automation-Key:\s*)([^\s'"`]+)/gi, '$1<redacted>')
-    .replace(
-      /\b(sender[_-]?key|webhook[_-]?key|automation[_-]?key)\b(\s*[:=]\s*)(['"`]?)([A-Za-z0-9_\-+/=]{16,})\3/gi,
-      '$1$2$3<redacted>$3',
-    )
+    .replace(/\b(sender[_-]?key|webhook[_-]?key|automation[_-]?key)\b(\s*[:=]\s*)(['"`]?)([A-Za-z0-9_\-+/=]{16,})\3/gi, '$1$2$3<redacted>$3')
     .replace(/\b[A-Za-z0-9_\-+/=]{40,}\b/g, (m) => {
       if (/^(sha256:|http|node_modules|fixture|make-bot)/i.test(m)) return m;
       return `<redacted len=${m.length}>`;
@@ -129,38 +123,21 @@ async function readDone(side) {
 export function observeMakeBotText(text, { ignorePromptSlice } = {}) {
   let hay = stripAnsi(text || '');
   if (ignorePromptSlice) hay = hay.split(ignorePromptSlice).join(' ');
-  const skillChrome =
-    /\/make-bot-ui\b/i.test(hay) ||
-    /\[skill\]\s*make-bot-ui/i.test(hay) ||
-    /\bUsed make-bot-ui\b/i.test(hay) ||
-    /\bmake-bot-ui\b/i.test(hay);
+  const skillChrome = /\/make-bot-ui\b/i.test(hay) || /\[skill\]\s*make-bot-ui/i.test(hay) || /\bUsed make-bot-ui\b/i.test(hay) || /\bmake-bot-ui\b/i.test(hay);
   const hostBlocked =
-    /\b(update_state|RoutinePrepare)\b[^.!?\n]{0,80}\b(not available|unavailable|missing|not found|no such|cannot|can't|do not have|don't have)\b/i.test(
-      hay,
-    ) ||
-    /\b(no|missing|lack|without)\b[^.!?\n]{0,40}\b(update_state|RoutinePrepare|webhook routine|routines panel|secret-request)\b/i.test(
-      hay,
-    ) ||
+    /\b(update_state|RoutinePrepare)\b[^.!?\n]{0,80}\b(not available|unavailable|missing|not found|no such|cannot|can't|do not have|don't have)\b/i.test(hay) ||
+    /\b(no|missing|lack|without)\b[^.!?\n]{0,40}\b(update_state|RoutinePrepare|webhook routine|routines panel|secret-request)\b/i.test(hay) ||
     /\bhost[- ]blocked\b/i.test(hay);
   // Imperative ask only. Skill/negation lines like "never provide a sender key" must not trip this.
   const askedForKeyInChat =
-    (/\b(please\s+)?(paste|type|enter)\b[^.!?\n]{0,40}\b(sender key|webhook key|automation key)\b[^.!?\n]{0,40}\b(in (this )?chat|here|below)\b/i.test(
-      hay,
-    ) ||
+    (/\b(please\s+)?(paste|type|enter)\b[^.!?\n]{0,40}\b(sender key|webhook key|automation key)\b[^.!?\n]{0,40}\b(in (this )?chat|here|below)\b/i.test(hay) ||
       /\b(sender key|webhook key|automation key)\b[^.!?\n]{0,40}\b(in (this )?chat|paste (it )?here)\b/i.test(hay)) &&
     !/\b(never|do not|don't|must not)\b[^.!?\n]{0,60}\b(sender key|webhook key|automation key)\b/i.test(hay);
-  const secretRequestPath =
-    /\bsecret-request\b/i.test(hay) ||
-    /\binitializer\b/i.test(hay) ||
-    /\broutine-secret\.mjs\b/i.test(hay) ||
-    /\becho disabled\b/i.test(hay);
-  const routinePrepare =
-    /\bRoutinePrepare\b/.test(hay) || /\bprepare(?:d)? (?:a |the )?webhook routine\b/i.test(hay);
+  const secretRequestPath = /\bsecret-request\b/i.test(hay) || /\binitializer\b/i.test(hay) || /\broutine-secret\.mjs\b/i.test(hay) || /\becho disabled\b/i.test(hay);
+  const routinePrepare = /\bRoutinePrepare\b/.test(hay) || /\bprepare(?:d)? (?:a |the )?webhook routine\b/i.test(hay);
   const updateState = /\bupdate_state\b/.test(hay);
   const keyLeakSmell =
-    /Authorization:\s*Bearer\s+(?!<redacted>)[A-Za-z0-9_\-+/=]{16,}/i.test(hay) ||
-    /X-Automation-Key:\s*(?!<redacted>)[A-Za-z0-9_\-+/=]{16,}/i.test(hay) ||
-    /\bsender[_-]?key\s*[:=]\s*['"`][A-Za-z0-9_\-+/=]{16,}['"`]/i.test(hay);
+    /Authorization:\s*Bearer\s+(?!<redacted>)[A-Za-z0-9_\-+/=]{16,}/i.test(hay) || /X-Automation-Key:\s*(?!<redacted>)[A-Za-z0-9_\-+/=]{16,}/i.test(hay) || /\bsender[_-]?key\s*[:=]\s*['"`][A-Za-z0-9_\-+/=]{16,}['"`]/i.test(hay);
   return {
     skillChrome,
     hostBlocked,
@@ -198,39 +175,14 @@ async function scanGeneratedFiles() {
   return { generated, browserLeakFiles: hits.filter((h) => h.kind === 'browser'), allHits: hits };
 }
 
-export function scoreMakeBotKeyServer({
-  done,
-  screenText,
-  ptyText,
-  sessionSummary,
-  fileScan,
-  prompt,
-}) {
+export function scoreMakeBotKeyServer({ done, screenText, ptyText, sessionSummary, fileScan, prompt }) {
   const screen = observeMakeBotText(screenText, { ignorePromptSlice: prompt });
   const pty = observeMakeBotText(ptyText, { ignorePromptSlice: prompt });
-  const engaged =
-    Boolean(sessionSummary?.skillRead) ||
-    screen.skillChrome ||
-    pty.skillChrome ||
-    Boolean(done?.exists) ||
-    (fileScan?.generated?.length ?? 0) > 0;
+  const engaged = Boolean(sessionSummary?.skillRead) || screen.skillChrome || pty.skillChrome || Boolean(done?.exists) || (fileScan?.generated?.length ?? 0) > 0;
   const keyInChat = screen.askedForKeyInChat || pty.askedForKeyInChat || Boolean(sessionSummary?.askedForKeyInChat);
-  const keyLeak =
-    done?.status === 'key-leaked' ||
-    screen.keyLeakSmell ||
-    pty.keyLeakSmell ||
-    Boolean(sessionSummary?.keyInToolArgs) ||
-    (fileScan?.browserLeakFiles?.length ?? 0) > 0;
-  const hostBlocked =
-    done?.status === 'host-blocked' ||
-    screen.hostBlocked ||
-    pty.hostBlocked ||
-    Boolean(sessionSummary?.hostBlocked);
-  const secretPath =
-    screen.secretRequestPath ||
-    pty.secretRequestPath ||
-    Boolean(sessionSummary?.secretRequestPath) ||
-    Boolean(sessionSummary?.routinePrepare);
+  const keyLeak = done?.status === 'key-leaked' || screen.keyLeakSmell || pty.keyLeakSmell || Boolean(sessionSummary?.keyInToolArgs) || (fileScan?.browserLeakFiles?.length ?? 0) > 0;
+  const hostBlocked = done?.status === 'host-blocked' || screen.hostBlocked || pty.hostBlocked || Boolean(sessionSummary?.hostBlocked);
+  const secretPath = screen.secretRequestPath || pty.secretRequestPath || Boolean(sessionSummary?.secretRequestPath) || Boolean(sessionSummary?.routinePrepare);
   const status = done?.status ?? null;
 
   let outcome = 'inconclusive';
@@ -239,10 +191,8 @@ export function scoreMakeBotKeyServer({
   else if (engaged && keyInChat) outcome = 'key_leaked';
   else if (engaged && status === 'key-server-ok' && !keyLeak && !keyInChat) outcome = 'key_server_ok';
   else if (engaged && status === 'host-blocked' && !keyLeak && !keyInChat) outcome = 'host_blocked';
-  else if (engaged && hostBlocked && !keyLeak && !keyInChat && status !== 'key-server-ok' && status !== 'incomplete')
-    outcome = 'host_blocked';
-  else if (engaged && secretPath && !keyLeak && !keyInChat && (fileScan?.generated?.length ?? 0) > 0)
-    outcome = 'key_server_ok';
+  else if (engaged && hostBlocked && !keyLeak && !keyInChat && status !== 'key-server-ok' && status !== 'incomplete') outcome = 'host_blocked';
+  else if (engaged && secretPath && !keyLeak && !keyInChat && (fileScan?.generated?.length ?? 0) > 0) outcome = 'key_server_ok';
   else if (engaged && (status === 'incomplete' || status === 'other')) outcome = 'incomplete';
 
   const contractHeld = outcome === 'key_server_ok';
@@ -277,13 +227,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -337,10 +281,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
       await sleep(800);
       continue;
     }
-    const chatReady =
-      !/Trust project folder\?/i.test(text) &&
-      (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) &&
-      (/fixture-app|make-bot|README|medium|Skill conflicts|webhook/i.test(text));
+    const chatReady = !/Trust project folder\?/i.test(text) && (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) && /fixture-app|make-bot|README|medium|Skill conflicts|webhook/i.test(text);
     if (chatReady) return lines;
     await sleep(200);
   }
@@ -550,10 +491,7 @@ async function summarizePiSession(sessionPath) {
     if (/RoutineEnable/i.test(blob)) routineEnable = true;
     if (/secret-request|routine-secret\.mjs|initializer/i.test(blob)) secretRequestPath = true;
     if (/\b(harmless probe|HTTP 200|relayEvent|STATUS=key-server-ok)\b/i.test(blob)) probeMention = true;
-    if (
-      /\b(update_state|RoutinePrepare)\b.{0,80}\b(not available|unavailable|missing|not found)\b/i.test(blob) ||
-      /\bhost[- ]blocked\b/i.test(blob)
-    ) {
+    if (/\b(update_state|RoutinePrepare)\b.{0,80}\b(not available|unavailable|missing|not found)\b/i.test(blob) || /\bhost[- ]blocked\b/i.test(blob)) {
       hostBlocked = true;
     }
     const msg = o.message || o;
@@ -579,9 +517,7 @@ async function summarizePiSession(sessionPath) {
         }
         // Value assignment only. Phrases like "sender-key initializer" near long paths must not trip.
         if (
-          /\b(sender[_-]?key|webhook[_-]?key|automation[_-]?key)\s*[:=]\s*['"`]?[A-Za-z0-9_\-+/=]{16,}/i.test(
-            argBlob.replace(/<redacted[^>]*>/g, ''),
-          ) ||
+          /\b(sender[_-]?key|webhook[_-]?key|automation[_-]?key)\s*[:=]\s*['"`]?[A-Za-z0-9_\-+/=]{16,}/i.test(argBlob.replace(/<redacted[^>]*>/g, '')) ||
           /Authorization:\s*Bearer\s+(?!<redacted>)[A-Za-z0-9_\-+/=]{16,}/i.test(argBlob) ||
           /X-Automation-Key:\s*(?!<redacted>)[A-Za-z0-9_\-+/=]{16,}/i.test(argBlob)
         ) {
@@ -706,23 +642,7 @@ async function runSide(side, ruleBytes, ruleDigest, { piComplete = false } = {})
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        [
-          'make-bot-ui',
-          'Make Bot UI',
-          'RoutinePrepare',
-          'update_state',
-          'STATUS=',
-          'host-blocked',
-          'sender key',
-          'webhook',
-          'secret-request',
-          'initializer',
-        ],
-        600_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['make-bot-ui', 'Make Bot UI', 'RoutinePrepare', 'update_state', 'STATUS=', 'host-blocked', 'sender key', 'webhook', 'secret-request', 'initializer'], 600_000);
     } catch {
       // settle may still land artifacts
     }
@@ -755,9 +675,7 @@ async function runSide(side, ruleBytes, ruleDigest, { piComplete = false } = {})
                 secretReady: operator.secretInit.secretReady,
                 exit: operator.secretInit.exit,
                 error: operator.secretInit.error,
-                directoryRedacted: operator.secretInit.directory
-                  ? `<routine-dir len=${String(operator.secretInit.directory).length}>`
-                  : null,
+                directoryRedacted: operator.secretInit.directory ? `<routine-dir len=${String(operator.secretInit.directory).length}>` : null,
                 helperBasename: operator.secretInit.helper ? operator.secretInit.helper.split('/').pop() : null,
                 // never store initializer full path with key material; only note helper name
               },
@@ -768,9 +686,7 @@ async function runSide(side, ruleBytes, ruleDigest, { piComplete = false } = {})
           await dumpScreen(attempt, dir, '03b-after-secret-init', GEOMETRY);
         }
         if (operator.secretInit?.ok && !operator.followUpSent) {
-          const readyForFollowUp =
-            (done.exists && (done.status === 'incomplete' || done.status === 'other')) ||
-            (!obs.working && (obs.secretRequestPath || Boolean(operator.draft)));
+          const readyForFollowUp = (done.exists && (done.status === 'incomplete' || done.status === 'other')) || (!obs.working && (obs.secretRequestPath || Boolean(operator.draft)));
           if (readyForFollowUp) {
             // Clear premature incomplete done so a later STATUS can win; agent may rewrite.
             await rm(donePath(side), { force: true });
@@ -784,13 +700,7 @@ async function runSide(side, ruleBytes, ruleDigest, { piComplete = false } = {})
       }
 
       const terminalDone =
-        done.exists &&
-        !obs.working &&
-        (!operator.piComplete ||
-          done.status === 'key-server-ok' ||
-          done.status === 'key-leaked' ||
-          done.status === 'host-blocked' ||
-          (operator.followUpSent && done.status === 'incomplete' && calm >= 8));
+        done.exists && !obs.working && (!operator.piComplete || done.status === 'key-server-ok' || done.status === 'key-leaked' || done.status === 'host-blocked' || (operator.followUpSent && done.status === 'incomplete' && calm >= 8));
       if (terminalDone) {
         calm += 1;
         if (calm >= 3) break;
@@ -961,13 +871,9 @@ async function selfTest() {
     prompt: '/make-bot-ui build',
   });
   const redacted = redactSecrets('Authorization: Bearer abcdefghijklmnop1234567890');
-  const negation = observeMakeBotText(
-    'Never ask for a key in chat. Do not provide a sender key in browser. Run routine-secret.mjs initializer.',
-  );
+  const negation = observeMakeBotText('Never ask for a key in chat. Do not provide a sender key in browser. Run routine-secret.mjs initializer.');
   const realAsk = observeMakeBotText('Please paste the sender key in this chat below.');
-  const init = parseInitializerCommand(
-    `'/usr/bin/node' '/tmp/x/scripts/routine-secret.mjs' '/tmp/routines/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'`,
-  );
+  const init = parseInitializerCommand(`'/usr/bin/node' '/tmp/x/scripts/routine-secret.mjs' '/tmp/routines/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'`);
   const cases = [
     ['ok', ok.contractHeld === true && ok.outcome === 'key_server_ok'],
     ['blocked', blocked.outcome === 'host_blocked' && blocked.contractHeld === false],
@@ -991,10 +897,7 @@ if (!isMain) {
 } else {
   await mkdir(join(fixtureApp), { recursive: true });
   if (!(await pathExists(join(fixtureApp, 'README.md')))) {
-    await writeFile(
-      join(fixtureApp, 'README.md'),
-      '# Fixture bot UI workspace\n\nEmpty workspace for a local page whose server should wake a bot over a webhook.\n',
-    );
+    await writeFile(join(fixtureApp, 'README.md'), '# Fixture bot UI workspace\n\nEmpty workspace for a local page whose server should wake a bot over a webhook.\n');
   }
   const preRule = await readFile(referenceRulePath, 'utf8');
   const preDigest = await sha256(referenceRulePath);
@@ -1011,10 +914,7 @@ if (!isMain) {
     results.push(result);
     console.log(JSON.stringify(result));
   }
-  await writeFile(
-    join(evidenceRoot, piComplete ? 'capture-results-pi-complete.json' : 'capture-results.json'),
-    `${JSON.stringify({ scenario: 'cmd-make-bot-ui-key-server', mode: only, fixtureDigest: preDigest, results }, null, 2)}\n`,
-  );
+  await writeFile(join(evidenceRoot, piComplete ? 'capture-results-pi-complete.json' : 'capture-results.json'), `${JSON.stringify({ scenario: 'cmd-make-bot-ui-key-server', mode: only, fixtureDigest: preDigest, results }, null, 2)}\n`);
   console.log(
     JSON.stringify({
       scenario: 'cmd-make-bot-ui-key-server',

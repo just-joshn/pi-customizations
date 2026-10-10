@@ -379,6 +379,22 @@ test('a session id is forwarded in the request envelope', async () => {
   expect(body(server.requests[0]).request.sessionId).toBe('sess-1');
 });
 
+test('an empty-stream retry sends a fresh request id', async () => {
+  let calls = 0;
+  const empty = sse([{ response: { candidates: [{ finishReason: 'STOP' }] } }]);
+  const { server, message } = await run((_, res) => stream(res, ++calls === 1 ? empty : textAndThinking), {
+    stream: { sessionId: 'sess-retry' },
+  });
+  expect(server.requests).toHaveLength(2);
+  expect(body(server.requests[0]).requestId).not.toBe(body(server.requests[1]).requestId);
+  expect(body(server.requests[1]).request.sessionId).toBe('sess-retry');
+  expect(message.stopReason).toBe('stop');
+  expect(message.content).toEqual([
+    { type: 'thinking', thinking: 'Let me think', thinkingSignature: 'sig1' },
+    { type: 'text', text: 'Hello', textSignature: undefined },
+  ]);
+});
+
 test('a tool round trip keeps the turn in the request id and advances the step by two', async () => {
   const { first, followUp } = await toolRoundTrip('claude-sonnet-5-5');
   const opening = body(first.server.requests[0]).requestId.split('/');

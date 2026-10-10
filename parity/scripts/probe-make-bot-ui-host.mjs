@@ -1,11 +1,11 @@
 #!/usr/bin/env node
+import { execFile } from 'node:child_process';
 // Probe whether make-bot-ui can run without fabricating webhook host support.
 // Usage: node parity/scripts/probe-make-bot-ui-host.mjs
 import { access, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
 const execFileAsync = promisify(execFile);
@@ -82,9 +82,7 @@ export async function probeMakeBotUiHost() {
   if (!checks.piRefAgentLoadsPiPstack) missing.push('PI_CODING_AGENT_DIR settings do not load extensions/pi-pstack');
   if (!checks.sandboxExecPresent) missing.push('sandbox-exec missing (Pi routine secret/state path fails closed off macOS)');
   if (!checks.cursorCliWebhookRoutinesAvailableInHarness) {
-    missing.push(
-      'cursor-agent PTY harness has no update_state / webhook Routines panel / secret-request delivery for Automations',
-    );
+    missing.push('cursor-agent PTY harness has no update_state / webhook Routines panel / secret-request delivery for Automations');
   }
   if (checks.cursorSkillRequiresUpdateState && !checks.cursorAgentHelpMentionsUpdateState) {
     missing.push('Cursor skill requires update_state but cursor-agent --help does not expose it');

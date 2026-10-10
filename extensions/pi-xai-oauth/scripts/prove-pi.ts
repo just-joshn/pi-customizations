@@ -9,6 +9,7 @@ const packageDir = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const EXPECTED_IDS = ['grok-4.7', 'grok-4.7-build-fast', 'grok-4.6', 'grok-4.5', 'grok-4.7-low-fast', 'grok-4.7-medium-fast', 'grok-4.7-high-fast', 'grok-4.7-xhigh-fast'];
 const PRINT_MODEL = 'grok-build/grok-4.7-xhigh-fast';
 const TIMEOUT_MS = 120_000;
+const listOnly = process.argv.includes('--list-only');
 
 type Run = { readonly code: number; readonly output: string; readonly stdout: string };
 
@@ -39,6 +40,11 @@ try {
   const missing = EXPECTED_IDS.filter((id) => !listedIds.includes(id));
   if (listed.code !== 0 || missing.length > 0) throw new Error(`pi --list-models did not list every grok-build model. Missing: ${missing.join(', ') || 'none'}.\nexit=${listed.code}\n${listed.output.replaceAll(accessToken, '[token]')}`);
   process.stdout.write(`pi --list-models lists ${listedIds.length} grok-build models: ${listedIds.join(', ')}\n`);
+
+  if (listOnly) {
+    process.stdout.write('prove-pi --list-only: skipped live print resolution check\n');
+    process.exit(0);
+  }
 
   // Pi does not fail on an unregistered model id. It warns "Using custom model id" and sends the
   // request anyway, so that warning is what shows the alias is missing. The proxy may answer,

@@ -23,24 +23,8 @@ const piAgentDir = '/tmp/pi-ref-agent';
 const piRulePath = join(piAgentDir, 'pstack', 'models.mdc');
 const evidenceRoot = join(root, 'evidence', 'principles', 'experience-first');
 const fixtureApp = join(evidenceRoot, 'fixture-app');
-const leafSkillCursor = join(
-  root,
-  'reference',
-  'cursor-plugins',
-  'pstack',
-  'skills',
-  'principle-experience-first',
-  'SKILL.md',
-);
-const leafSkillPi = join(
-  root,
-  '..',
-  'extensions',
-  'pi-pstack',
-  'skills',
-  'principle-experience-first',
-  'SKILL.md',
-);
+const leafSkillCursor = join(root, 'reference', 'cursor-plugins', 'pstack', 'skills', 'principle-experience-first', 'SKILL.md');
+const leafSkillPi = join(root, '..', 'extensions', 'pi-pstack', 'skills', 'principle-experience-first', 'SKILL.md');
 const GEOMETRY = { rows: 40, cols: 120 };
 const LOCKED_FIXTURE_DIGEST = 'sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004';
 const SETTLE_MS = 1_500_000;
@@ -51,22 +35,11 @@ const VERIFY_OUT_REL = 'evidence/verify-out.txt';
 const VERIFY_SCRIPT_REL = 'scripts/verify.mjs';
 const STATUS_SCRIPT_REL = 'scripts/status.mjs';
 const IMPACT_REL = 'IMPACT.md';
-const BASELINE_REL = [
-  ...PRODUCT_REL,
-  ...DOC_REL,
-  'package.json',
-  VERIFY_SCRIPT_REL,
-  STATUS_SCRIPT_REL,
-  'evidence/.gitkeep',
-  'out/.gitkeep',
-];
+const BASELINE_REL = [...PRODUCT_REL, ...DOC_REL, 'package.json', VERIFY_SCRIPT_REL, STATUS_SCRIPT_REL, 'evidence/.gitkeep', 'out/.gitkeep'];
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const stripAnsi = (text) =>
-  text
-    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
-    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
 
 function writeRootFor(side) {
   return join(evidenceRoot, 'fixture-out', side);
@@ -149,19 +122,12 @@ function isExperienceSkillPath(p) {
 function observeExperienceText(text, { ignorePromptSlice } = {}) {
   let hay = stripAnsi(text || '');
   if (ignorePromptSlice) hay = hay.split(ignorePromptSlice).join(' ');
-  const potetoMode =
-    /\/poteto-mode\b/i.test(hay) ||
-    /\[skill\]\s*poteto-mode/i.test(hay) ||
-    /\bUsed poteto-mode\b/i.test(hay);
+  const potetoMode = /\/poteto-mode\b/i.test(hay) || /\[skill\]\s*poteto-mode/i.test(hay) || /\bUsed poteto-mode\b/i.test(hay);
   const leafChrome = /principle-experience-first[/\\]SKILL\.md/i.test(hay);
   const usedLeaf = /\bUsed principle-experience-first\b/i.test(hay);
   const skillBracketLeaf = /\[skill\]\s*principle-experience-first\b/i.test(hay);
   const hostAttached = Boolean(usedLeaf || skillBracketLeaf);
-  const verifyMention =
-    /scripts\/verify\.mjs/i.test(hay) ||
-    /evidence\/verify-out\.txt/i.test(hay) ||
-    /\bEXPERIENCE-OK\b/.test(hay) ||
-    /\bEXPERIENCE-FAIL\b/.test(hay);
+  const verifyMention = /scripts\/verify\.mjs/i.test(hay) || /evidence\/verify-out\.txt/i.test(hay) || /\bEXPERIENCE-OK\b/.test(hay) || /\bEXPERIENCE-FAIL\b/.test(hay);
   const working = /[\u2800-\u28FF]/.test(hay) || /\bWorking\b/.test(hay);
   return { potetoMode, leafChrome, hostAttached, verifyMention, working };
 }
@@ -206,14 +172,7 @@ function extractToolCallsFromJsonl(text) {
 }
 
 function pathFromArgs(args) {
-  return (
-    args.path ||
-    args.file_path ||
-    args.filePath ||
-    args.target_file ||
-    args.file ||
-    null
-  );
+  return args.path || args.file_path || args.filePath || args.target_file || args.file || null;
 }
 
 function scoreCallsForExperience(calls) {
@@ -226,19 +185,14 @@ function scoreCallsForExperience(calls) {
     const args = call.args || {};
     const blob = JSON.stringify(args);
     const path = pathFromArgs(args);
-    const isRead =
-      /^(Read|read|read_file|ReadFile|cat|blob-mention)$/i.test(name) ||
-      (name === 'bash' && typeof args.command === 'string' && /\bcat\b/.test(args.command));
+    const isRead = /^(Read|read|read_file|ReadFile|cat|blob-mention)$/i.test(name) || (name === 'bash' && typeof args.command === 'string' && /\bcat\b/.test(args.command));
     if (isRead && isExperienceSkillPath(path || blob)) {
       leafSkillRead = true;
       if (!leafSkillReadAt) leafSkillReadAt = call.ts || new Date().toISOString();
       toolOrder.push(`${name}(experience-first-leaf)`);
       continue;
     }
-    if (
-      /\bscripts\/verify\.mjs\b/i.test(blob) ||
-      (typeof args.command === 'string' && /verify\.mjs/.test(args.command))
-    ) {
+    if (/\bscripts\/verify\.mjs\b/i.test(blob) || (typeof args.command === 'string' && /verify\.mjs/.test(args.command))) {
       ranVerifyScript = true;
       toolOrder.push(`${name}(verify.mjs)`);
       continue;
@@ -253,28 +207,10 @@ function scoreCallsForExperience(calls) {
   };
 }
 
-export function scoreExperienceFirst({
-  frontmatter,
-  done,
-  verifyOut,
-  productOk,
-  experienceOverConvenience,
-  dualImpact,
-  kitchenSink,
-  screenText,
-  ptyText,
-  sessionScore,
-  transcriptScore,
-  prompt,
-}) {
+export function scoreExperienceFirst({ frontmatter, done, verifyOut, productOk, experienceOverConvenience, dualImpact, kitchenSink, screenText, ptyText, sessionScore, transcriptScore, prompt }) {
   const screen = observeExperienceText(screenText, { ignorePromptSlice: prompt });
   const pty = observeExperienceText(ptyText, { ignorePromptSlice: prompt });
-  const leafSkillRead = Boolean(
-    sessionScore?.leafSkillRead ||
-      transcriptScore?.leafSkillRead ||
-      screen.leafChrome ||
-      pty.leafChrome,
-  );
+  const leafSkillRead = Boolean(sessionScore?.leafSkillRead || transcriptScore?.leafSkillRead || screen.leafChrome || pty.leafChrome);
   const usedChrome = Boolean(screen.hostAttached || pty.hostAttached || sessionScore?.hostAttached);
   const modelAutoInvoke = usedChrome && !leafSkillRead;
   const keptVerifyOk = Boolean(verifyOut?.ok);
@@ -283,16 +219,7 @@ export function scoreExperienceFirst({
   const experienceOk = Boolean(experienceOverConvenience);
   const dualImpactOk = Boolean(dualImpact);
   const noKitchenSink = !kitchenSink;
-  const contractHeld =
-    frontmatterOk &&
-    leafSkillRead &&
-    productOk &&
-    keptVerifyOk &&
-    experienceOk &&
-    dualImpactOk &&
-    noKitchenSink &&
-    verifiedDone &&
-    !modelAutoInvoke;
+  const contractHeld = frontmatterOk && leafSkillRead && productOk && keptVerifyOk && experienceOk && dualImpactOk && noKitchenSink && verifiedDone && !modelAutoInvoke;
   return {
     frontmatterOk,
     leafSkillRead,
@@ -345,14 +272,7 @@ async function restoreProduct() {
   const files = await walkFiles(fixtureApp);
   for (const rel of files) {
     if (keep.has(rel)) continue;
-    if (
-      rel.startsWith('src/') ||
-      rel.startsWith('evidence/') ||
-      rel.startsWith('out/') ||
-      rel === IMPACT_REL ||
-      rel.endsWith('.tsv') ||
-      rel.startsWith('.audit/')
-    ) {
+    if (rel.startsWith('src/') || rel.startsWith('evidence/') || rel.startsWith('out/') || rel === IMPACT_REL || rel.endsWith('.tsv') || rel.startsWith('.audit/')) {
       await rm(join(fixtureApp, rel), { force: true, recursive: true });
     }
   }
@@ -378,9 +298,7 @@ async function diskOracle() {
   let machine = '';
   let experienceOverConvenience = false;
   try {
-    const mod = await import(
-      `${pathToFileURL(join(fixtureApp, 'src', 'status.js')).href}?t=${Date.now()}`
-    );
+    const mod = await import(`${pathToFileURL(join(fixtureApp, 'src', 'status.js')).href}?t=${Date.now()}`);
     const state = mod.sampleState();
     human = String(mod.formatStatus(state));
     machine = String(mod.formatStatus(state, { json: true }));
@@ -394,22 +312,11 @@ async function diskOracle() {
     let machineOk = false;
     try {
       const parsed = JSON.parse(machine);
-      machineOk =
-        parsed &&
-        typeof parsed === 'object' &&
-        parsed.ok === state.ok &&
-        parsed.queue === state.queue &&
-        parsed.next === state.next;
+      machineOk = parsed && typeof parsed === 'object' && parsed.ok === state.ok && parsed.queue === state.queue && parsed.next === state.next;
     } catch {
       machineOk = false;
     }
-    experienceOverConvenience =
-      !humanLooksJson &&
-      /^Status:\s+/m.test(human) &&
-      /^Ready:\s+/m.test(human) &&
-      /^Next:\s+/m.test(human) &&
-      /^Queue:\s+/m.test(human) &&
-      machineOk;
+    experienceOverConvenience = !humanLooksJson && /^Status:\s+/m.test(human) && /^Ready:\s+/m.test(human) && /^Next:\s+/m.test(human) && /^Queue:\s+/m.test(human) && machineOk;
   } catch {
     experienceOverConvenience = false;
   }
@@ -429,11 +336,7 @@ async function diskOracle() {
     impactText = await readFile(join(fixtureApp, IMPACT_REL), 'utf8');
     const consumer = sectionBody(impactText, /^##\s+Consumer\b.*$/im);
     const maintainer = sectionBody(impactText, /^##\s+Maintainer\b.*$/im);
-    dualImpact =
-      consumer.length >= 40 &&
-      maintainer.length >= 40 &&
-      /(user|operator|consumer|delight|read|cli|human)/i.test(consumer) &&
-      /(maintain|engineer|support|explain|next)/i.test(maintainer);
+    dualImpact = consumer.length >= 40 && maintainer.length >= 40 && /(user|operator|consumer|delight|read|cli|human)/i.test(consumer) && /(maintain|engineer|support|explain|next)/i.test(maintainer);
   }
 
   const productOk = experienceOverConvenience && dualImpact && !kitchenSink;
@@ -481,13 +384,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -541,10 +438,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
       await sleep(800);
       continue;
     }
-    const chatReady =
-      !/Trust project folder\?/i.test(text) &&
-      (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) &&
-      (/experience-first|status|README|medium|Skill conflicts|Session TTL|fixture-app/i.test(text));
+    const chatReady = !/Trust project folder\?/i.test(text) && (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) && /experience-first|status|README|medium|Skill conflicts|Session TTL|fixture-app/i.test(text);
     if (chatReady) return lines;
     await sleep(200);
   }
@@ -581,9 +475,7 @@ async function summarizePiSession(sessionPath) {
   const text = await readFile(sessionPath, 'utf8');
   const calls = extractToolCallsFromJsonl(text);
   const scored = scoreCallsForExperience(calls);
-  const hostAttached =
-    /\bUsed principle-experience-first\b/i.test(text) ||
-    /\[skill\]\s*principle-experience-first\b/i.test(text);
+  const hostAttached = /\bUsed principle-experience-first\b/i.test(text) || /\[skill\]\s*principle-experience-first\b/i.test(text);
   return { sessionPath, hostAttached, ...scored };
 }
 
@@ -612,10 +504,7 @@ async function findCursorTranscripts(sinceMs, side) {
         } catch {
           continue;
         }
-        const mentionsThisAttempt =
-          text.includes(doneAbs) ||
-          (text.includes(`experience-first/fixture-out/${side}/done.txt`) &&
-            text.includes('status'));
+        const mentionsThisAttempt = text.includes(doneAbs) || (text.includes(`experience-first/fixture-out/${side}/done.txt`) && text.includes('status'));
         if (mentionsThisAttempt) hits.push({ path: abs, mtimeMs: st.mtimeMs, size: st.size });
       }
     }
@@ -638,9 +527,7 @@ async function summarizeCursorTranscripts(sinceMs, side) {
       leafSkillRead: scored.leafSkillRead || leafInBlob,
     };
     const rank = (merged.leafSkillRead ? 4 : 0) + (merged.ranVerifyScript ? 2 : 0);
-    const bestRank = best
-      ? (best.leafSkillRead ? 4 : 0) + (best.ranVerifyScript ? 2 : 0)
-      : -1;
+    const bestRank = best ? (best.leafSkillRead ? 4 : 0) + (best.ranVerifyScript ? 2 : 0) : -1;
     if (!best || rank > bestRank || (rank === bestRank && hit.mtimeMs > (best.mtimeMs || 0))) {
       best = { ...merged, mtimeMs: hit.mtimeMs };
     }
@@ -725,21 +612,7 @@ async function runSide(side, ruleBytes, ruleDigest, frontmatter) {
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        [
-          'poteto-mode',
-          'status.js',
-          'verify',
-          'EXPERIENCE-OK',
-          'EXPERIENCE-FAIL',
-          'principle-experience-first',
-          'IMPACT',
-          'formatStatus',
-        ],
-        300_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['poteto-mode', 'status.js', 'verify', 'EXPERIENCE-OK', 'EXPERIENCE-FAIL', 'principle-experience-first', 'IMPACT', 'formatStatus'], 300_000);
     } catch {
       // settle may still land artifacts
     }
@@ -849,16 +722,7 @@ async function runSide(side, ruleBytes, ruleDigest, frontmatter) {
 
     const snapDir = join(attempt.dir, 'fixture-snapshot');
     await mkdir(snapDir, { recursive: true });
-    for (const rel of [
-      'src/status.js',
-      'README.md',
-      'NOTES.md',
-      IMPACT_REL,
-      'package.json',
-      VERIFY_SCRIPT_REL,
-      STATUS_SCRIPT_REL,
-      VERIFY_OUT_REL,
-    ]) {
+    for (const rel of ['src/status.js', 'README.md', 'NOTES.md', IMPACT_REL, 'package.json', VERIFY_SCRIPT_REL, STATUS_SCRIPT_REL, VERIFY_OUT_REL]) {
       const abs = join(fixtureApp, rel);
       if (!(await pathExists(abs))) continue;
       const dest = join(snapDir, rel);
@@ -966,17 +830,13 @@ if (isMain) {
   await snapshotBaseline();
   const frontmatter = await readFrontmatterFiles();
   if (!frontmatter.cursor.ok || !frontmatter.pi.ok) {
-    console.error(
-      JSON.stringify({ error: 'experience-first frontmatter not ok', frontmatter }, null, 2),
-    );
+    console.error(JSON.stringify({ error: 'experience-first frontmatter not ok', frontmatter }, null, 2));
     process.exit(1);
   }
   const preRule = await readFile(referenceRulePath, 'utf8');
   const preDigest = await sha256(referenceRulePath);
   if (preDigest !== LOCKED_FIXTURE_DIGEST) {
-    console.error(
-      `Reference rule digest ${preDigest} does not match the locked fixture ${LOCKED_FIXTURE_DIGEST}`,
-    );
+    console.error(`Reference rule digest ${preDigest} does not match the locked fixture ${LOCKED_FIXTURE_DIGEST}`);
     process.exit(1);
   }
 
@@ -987,10 +847,7 @@ if (isMain) {
     results.push(result);
     console.log(JSON.stringify(result));
   }
-  await writeFile(
-    join(evidenceRoot, 'capture-results.json'),
-    `${JSON.stringify({ scenario: 'prin-experience-first', fixtureDigest: preDigest, frontmatter, results }, null, 2)}\n`,
-  );
+  await writeFile(join(evidenceRoot, 'capture-results.json'), `${JSON.stringify({ scenario: 'prin-experience-first', fixtureDigest: preDigest, frontmatter, results }, null, 2)}\n`);
   console.log(
     JSON.stringify({
       scenario: 'prin-experience-first',

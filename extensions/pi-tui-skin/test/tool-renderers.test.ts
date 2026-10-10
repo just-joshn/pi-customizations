@@ -147,12 +147,7 @@ describe('tui-skin long paths, write, grep result rows', () => {
     expect(plainLine(longPath, 20)).toBe('◇ Read /Users/som...');
     expect(renderLines(longPath, 20).length).toBe(1);
 
-    const widePath = renderReadCall(
-      // biome-ignore lint/security/noSecrets: a wide-character path fixture, not a secret.
-      { path: '資料/長い名前のファイル.ts' },
-      theme,
-      rowContext(),
-    );
+    const widePath = renderReadCall({ path: '資料/長い名前のファイル.ts' }, theme, rowContext());
     expect(plainLine(widePath, 20)).toBe('◇ Read 資料/長い...');
     expect(renderLines(widePath, 20).length).toBe(1);
   });

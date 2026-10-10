@@ -25,10 +25,6 @@
       }
     }
   },
-  "openAxes": [
-    "Supported reference platforms from the official Cursor CLI contract.",
-    "Matched paired environments for every ledger configuration cell.",
-    "Account-owner prerequisites that still block some reference journeys."
-  ],
+  "openAxes": ["Supported reference platforms from the official Cursor CLI contract.", "Matched paired environments for every ledger configuration cell.", "Account-owner prerequisites that still block some reference journeys."],
   "ledgerMatrixRef": "parity/configurations.json"
 }

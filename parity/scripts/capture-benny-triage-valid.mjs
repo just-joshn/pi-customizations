@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { spawnSync } from 'node:child_process';
 /**
  * Valid-config Benny triage paired capture.
  * Host-neutral once-runner posts the thread-only verdict (same code for both
@@ -7,10 +8,9 @@
  * Usage (repo root, load-env sourced):
  *   node parity/scripts/capture-benny-triage-valid.mjs [--cursor-only|--pi-only|--both]
  */
-import { access, mkdir, readFile, writeFile, rm } from 'node:fs/promises';
+import { access, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
-import { spawnSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 
 import { startAttempt } from '../recorder/index.mjs';
@@ -81,11 +81,7 @@ function launchSpec(side) {
       fixtureRef: { path: 'valid-config', digest: 'playwright-results-live' },
       artifactPaths: [],
       launch: {
-        argv: [
-          localBin('cursor-agent'),
-          '--plugin-dir',
-          join(root, 'reference/cursor-plugins/pstack'),
-        ],
+        argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference/cursor-plugins/pstack')],
         cwd: repoRoot,
         env,
       },
@@ -116,11 +112,7 @@ async function runSide(side, report) {
   const once = runOnce(side);
   await writeFile(join(dir, 'once-runner.json'), `${JSON.stringify(once, null, 2)}\n`);
   const contract = once.result?.contract || {};
-  const contractHeld =
-    once.status === 0 &&
-    contract.oneThreadReply === true &&
-    contract.hasMarker === true &&
-    contract.noNewRoot === true;
+  const contractHeld = once.status === 0 && contract.oneThreadReply === true && contract.hasMarker === true && contract.noNewRoot === true;
 
   const prompt = promptFor(side, report, once);
   await writeFile(join(dir, 'prompt.txt'), `${prompt}\n`);
@@ -203,15 +195,12 @@ async function main() {
     process.exit(2);
   }
   const reports = await postFreshReports();
-  const sides =
-    only === '--cursor-only' ? ['cursor'] : only === '--pi-only' ? ['pi'] : ['cursor', 'pi'];
+  const sides = only === '--cursor-only' ? ['cursor'] : only === '--pi-only' ? ['pi'] : ['cursor', 'pi'];
   const results = {};
   for (const side of sides) {
     results[side] = await runSide(side, reports[side]);
   }
-  const contractHeld = Boolean(
-    results.cursor?.observations.contractHeld && results.pi?.observations.contractHeld,
-  );
+  const contractHeld = Boolean(results.cursor?.observations.contractHeld && results.pi?.observations.contractHeld);
   const pair = {
     schema: 1,
     pairId: 'benny-triage-valid-1',

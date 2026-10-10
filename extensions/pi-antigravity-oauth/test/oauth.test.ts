@@ -166,7 +166,6 @@ test('refresh keeps the refresh token and project when Google omits a new refres
       ['grant_type', 'refresh_token'],
       ['refresh_token', '1//refresh'],
       ['client_id', '1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com'],
-      // biome-ignore lint/security/noSecrets: public installed-app credential, not a confidential secret
       ['client_secret', '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'],
     ]);
     expect(refreshed).toMatchObject({ access: 'ya29.refreshed', refresh: '1//refresh', projectId: 'companion-42', email: 'dev@example.com' });

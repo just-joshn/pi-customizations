@@ -1,4 +1,3 @@
-// biome-ignore-all lint/security/noSecrets: fixture paths, not credentials
 import { join } from 'node:path';
 
 import { afterEach, expect, test, vi } from 'vitest';

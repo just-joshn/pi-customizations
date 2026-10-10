@@ -12,6 +12,8 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "check:skin": "node scripts/check-skin-boundaries.mjs",
+    "check:prompt-parity": "node scripts/check-prompt-parity.mjs",
+    "check:frame-invariants": "node scripts/lib/frame-invariants.mjs --self-test",
     "check:smoke": "node scripts/tmux-smoke.mjs --all",
     "sweep": "node scripts/ui-sweep.mjs",
     "sweep:fast": "node scripts/ui-sweep.mjs --fast",

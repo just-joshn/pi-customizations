@@ -24,24 +24,8 @@ const piAgentDir = '/tmp/pi-ref-agent';
 const piRulePath = join(piAgentDir, 'pstack', 'models.mdc');
 const evidenceRoot = join(root, 'evidence', 'principles', 'foundational');
 const fixtureApp = join(evidenceRoot, 'fixture-app');
-const foundSkillCursor = join(
-  root,
-  'reference',
-  'cursor-plugins',
-  'pstack',
-  'skills',
-  'principle-foundational-thinking',
-  'SKILL.md',
-);
-const foundSkillPi = join(
-  root,
-  '..',
-  'extensions',
-  'pi-pstack',
-  'skills',
-  'principle-foundational-thinking',
-  'SKILL.md',
-);
+const foundSkillCursor = join(root, 'reference', 'cursor-plugins', 'pstack', 'skills', 'principle-foundational-thinking', 'SKILL.md');
+const foundSkillPi = join(root, '..', 'extensions', 'pi-pstack', 'skills', 'principle-foundational-thinking', 'SKILL.md');
 const GEOMETRY = { rows: 40, cols: 120 };
 const LOCKED_FIXTURE_DIGEST = 'sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004';
 const SETTLE_MS = 1_500_000;
@@ -52,22 +36,11 @@ const NOTES_REL = 'NOTES.md';
 const PRODUCT_WATCH = [BOARD_REL, NOTES_REL, ...SHAPE_REL];
 const VERIFY_OUT_REL = 'evidence/verify-out.txt';
 const VERIFY_SCRIPT_REL = 'scripts/verify.mjs';
-const BASELINE_REL = [
-  BOARD_REL,
-  NOTES_REL,
-  'README.md',
-  'package.json',
-  VERIFY_SCRIPT_REL,
-  'evidence/.gitkeep',
-  'out/.gitkeep',
-];
+const BASELINE_REL = [BOARD_REL, NOTES_REL, 'README.md', 'package.json', VERIFY_SCRIPT_REL, 'evidence/.gitkeep', 'out/.gitkeep'];
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const stripAnsi = (text) =>
-  text
-    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
-    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
 
 function writeRootFor(side) {
   return join(evidenceRoot, 'fixture-out', side);
@@ -150,11 +123,7 @@ function isFoundSkillPath(p) {
 function isShapePath(p) {
   if (!p) return false;
   const s = String(p);
-  return (
-    /src[/\\](types|model|job|shape)\.js/i.test(s) ||
-    /docs[/\\]shape\.md/i.test(s) ||
-    /NOTES\.md/i.test(s)
-  );
+  return /src[/\\](types|model|job|shape)\.js/i.test(s) || /docs[/\\]shape\.md/i.test(s) || /NOTES\.md/i.test(s);
 }
 
 function isBoardPath(p) {
@@ -165,26 +134,13 @@ function isBoardPath(p) {
 function observeFoundText(text, { ignorePromptSlice } = {}) {
   let hay = stripAnsi(text || '');
   if (ignorePromptSlice) hay = hay.split(ignorePromptSlice).join(' ');
-  const potetoMode =
-    /\/poteto-mode\b/i.test(hay) ||
-    /\[skill\]\s*poteto-mode/i.test(hay) ||
-    /\bUsed poteto-mode\b/i.test(hay);
+  const potetoMode = /\/poteto-mode\b/i.test(hay) || /\[skill\]\s*poteto-mode/i.test(hay) || /\bUsed poteto-mode\b/i.test(hay);
   const leafChrome = /principle-foundational-thinking[/\\]SKILL\.md/i.test(hay);
   const usedLeaf = /\bUsed principle-foundational-thinking\b/i.test(hay);
   const skillBracketLeaf = /\[skill\]\s*principle-foundational-thinking\b/i.test(hay);
   const hostAttached = Boolean(usedLeaf || skillBracketLeaf);
-  const shapeMention =
-    /\bsrc\/types\.js\b/i.test(hay) ||
-    /\bJob\b/.test(hay) ||
-    /\bstatus\b.*\bpending\b/i.test(hay) ||
-    /\bdata shape\b/i.test(hay) ||
-    /\bcore types?\b/i.test(hay) ||
-    /\bscaffold\b/i.test(hay);
-  const verifyMention =
-    /scripts\/verify\.mjs/i.test(hay) ||
-    /evidence\/verify-out\.txt/i.test(hay) ||
-    /\bBOARD-OK\b/.test(hay) ||
-    /\bBOARD-FAIL\b/.test(hay);
+  const shapeMention = /\bsrc\/types\.js\b/i.test(hay) || /\bJob\b/.test(hay) || /\bstatus\b.*\bpending\b/i.test(hay) || /\bdata shape\b/i.test(hay) || /\bcore types?\b/i.test(hay) || /\bscaffold\b/i.test(hay);
+  const verifyMention = /scripts\/verify\.mjs/i.test(hay) || /evidence\/verify-out\.txt/i.test(hay) || /\bBOARD-OK\b/.test(hay) || /\bBOARD-FAIL\b/.test(hay);
   const working = /[\u2800-\u28FF]/.test(hay) || /\bWorking\b/.test(hay);
   return { potetoMode, leafChrome, hostAttached, shapeMention, verifyMention, working };
 }
@@ -229,14 +185,7 @@ function extractToolCallsFromJsonl(text) {
 }
 
 function pathFromArgs(args) {
-  return (
-    args.path ||
-    args.file_path ||
-    args.filePath ||
-    args.target_file ||
-    args.file ||
-    null
-  );
+  return args.path || args.file_path || args.filePath || args.target_file || args.file || null;
 }
 
 function isWriteLike(name, args) {
@@ -252,12 +201,7 @@ function isWriteLike(name, args) {
 
 function notesLooksLikeShape(text) {
   if (!text) return false;
-  return (
-    /\bJob\b/.test(text) &&
-    /\bstatus\b/i.test(text) &&
-    /\bpending\b/i.test(text) &&
-    (/\bpayload\b/i.test(text) || /\bid\b/i.test(text))
-  );
+  return /\bJob\b/.test(text) && /\bstatus\b/i.test(text) && /\bpending\b/i.test(text) && (/\bpayload\b/i.test(text) || /\bid\b/i.test(text));
 }
 
 export function scoreCallsForFoundational(calls) {
@@ -273,18 +217,14 @@ export function scoreCallsForFoundational(calls) {
     const blob = JSON.stringify(args);
     const path = pathFromArgs(args);
     const cmd = typeof args.command === 'string' ? args.command : '';
-    const isRead =
-      /^(Read|read|read_file|ReadFile|cat|blob-mention)$/i.test(name) ||
-      (name === 'bash' && /\bcat\b/.test(cmd));
+    const isRead = /^(Read|read|read_file|ReadFile|cat|blob-mention)$/i.test(name) || (name === 'bash' && /\bcat\b/.test(cmd));
     if (isRead && isFoundSkillPath(path || blob)) {
       leafSkillRead = true;
       if (!leafSkillReadAt) leafSkillReadAt = call.ts || new Date().toISOString();
       toolOrder.push(`${name}(found-leaf)`);
       continue;
     }
-    const verifyHit =
-      /\bscripts\/verify\.mjs\b/i.test(blob) ||
-      (typeof args.command === 'string' && /verify\.mjs/.test(args.command));
+    const verifyHit = /\bscripts\/verify\.mjs\b/i.test(blob) || (typeof args.command === 'string' && /verify\.mjs/.test(args.command));
     if (verifyHit) {
       ranVerifyScript = true;
       toolOrder.push(`${name}(verify.mjs)`);
@@ -305,9 +245,7 @@ export function scoreCallsForFoundational(calls) {
     }
     if (name) toolOrder.push(name);
   }
-  const shapeBeforeLogic =
-    Boolean(firstShapeWriteAt) &&
-    (!firstBoardWriteAt || String(firstShapeWriteAt) <= String(firstBoardWriteAt));
+  const shapeBeforeLogic = Boolean(firstShapeWriteAt) && (!firstBoardWriteAt || String(firstShapeWriteAt) <= String(firstBoardWriteAt));
   return {
     leafSkillRead,
     leafSkillReadAt,
@@ -321,13 +259,8 @@ export function scoreCallsForFoundational(calls) {
 
 export function analyzeProductSources({ boardSrc, typesSrc, modelSrc, jobSrc, notesSrc }) {
   const hasShapeModule = Boolean(typesSrc || modelSrc || jobSrc);
-  const shapeExportsJob =
-    /\b(?:Job|JOB_|STATUS|JobStatus)\b/.test(typesSrc || '') ||
-    /\b(?:Job|JOB_|STATUS|JobStatus)\b/.test(modelSrc || '') ||
-    /\b(?:Job|JOB_|STATUS|JobStatus)\b/.test(jobSrc || '');
-  const boardImportsShape =
-    /from\s+['"]\.\/(types|model|job|shape)\.js['"]/.test(boardSrc || '') ||
-    /require\(\s*['"]\.\/(types|model|job|shape)\.js['"]\s*\)/.test(boardSrc || '');
+  const shapeExportsJob = /\b(?:Job|JOB_|STATUS|JobStatus)\b/.test(typesSrc || '') || /\b(?:Job|JOB_|STATUS|JobStatus)\b/.test(modelSrc || '') || /\b(?:Job|JOB_|STATUS|JobStatus)\b/.test(jobSrc || '');
+  const boardImportsShape = /from\s+['"]\.\/(types|model|job|shape)\.js['"]/.test(boardSrc || '') || /require\(\s*['"]\.\/(types|model|job|shape)\.js['"]\s*\)/.test(boardSrc || '');
   const boardStillStub = /throw new Error\(['"]not implemented['"]\)/.test(boardSrc || '');
   const notesShape = notesLooksLikeShape(notesSrc || '');
   return {
@@ -340,47 +273,20 @@ export function analyzeProductSources({ boardSrc, typesSrc, modelSrc, jobSrc, no
   };
 }
 
-export function scoreFoundational({
-  frontmatter,
-  done,
-  verifyOut,
-  productOk,
-  productAnalysis,
-  screenText,
-  ptyText,
-  sessionScore,
-  transcriptScore,
-  prompt,
-  firstShapeAt,
-  firstBoardAt,
-}) {
+export function scoreFoundational({ frontmatter, done, verifyOut, productOk, productAnalysis, screenText, ptyText, sessionScore, transcriptScore, prompt, firstShapeAt, firstBoardAt }) {
   const screen = observeFoundText(screenText, { ignorePromptSlice: prompt });
   const pty = observeFoundText(ptyText, { ignorePromptSlice: prompt });
-  const leafSkillRead = Boolean(
-    sessionScore?.leafSkillRead ||
-      transcriptScore?.leafSkillRead ||
-      screen.leafChrome ||
-      pty.leafChrome,
-  );
+  const leafSkillRead = Boolean(sessionScore?.leafSkillRead || transcriptScore?.leafSkillRead || screen.leafChrome || pty.leafChrome);
   const usedChrome = Boolean(screen.hostAttached || pty.hostAttached || sessionScore?.hostAttached);
   const modelAutoInvoke = usedChrome && !leafSkillRead;
   const toolShapeBefore = Boolean(sessionScore?.shapeBeforeLogic || transcriptScore?.shapeBeforeLogic);
-  const pollShapeBefore =
-    Boolean(firstShapeAt) && (!firstBoardAt || String(firstShapeAt) <= String(firstBoardAt));
+  const pollShapeBefore = Boolean(firstShapeAt) && (!firstBoardAt || String(firstShapeAt) <= String(firstBoardAt));
   const shapeBeforeLogic = toolShapeBefore || pollShapeBefore;
   const namedShapeArtifact = Boolean(productAnalysis?.namedShapeArtifact);
   const keptVerifyOk = Boolean(verifyOut?.ok);
   const verifiedDone = /^verified=yes\b/i.test((done?.line || '').trim());
   const frontmatterOk = Boolean(frontmatter?.ok);
-  const contractHeld =
-    frontmatterOk &&
-    leafSkillRead &&
-    shapeBeforeLogic &&
-    namedShapeArtifact &&
-    productOk &&
-    keptVerifyOk &&
-    verifiedDone &&
-    !modelAutoInvoke;
+  const contractHeld = frontmatterOk && leafSkillRead && shapeBeforeLogic && namedShapeArtifact && productOk && keptVerifyOk && verifiedDone && !modelAutoInvoke;
   return {
     frontmatterOk,
     leafSkillRead,
@@ -507,13 +413,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -567,10 +467,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
       await sleep(800);
       continue;
     }
-    const chatReady =
-      !/Trust project folder\?/i.test(text) &&
-      (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) &&
-      (/foundational|board|README|medium|Skill conflicts|Session TTL|fixture-app|job/i.test(text));
+    const chatReady = !/Trust project folder\?/i.test(text) && (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) && /foundational|board|README|medium|Skill conflicts|Session TTL|fixture-app|job/i.test(text);
     if (chatReady) return lines;
     await sleep(200);
   }
@@ -607,9 +504,7 @@ async function summarizePiSession(sessionPath) {
   const text = await readFile(sessionPath, 'utf8');
   const calls = extractToolCallsFromJsonl(text);
   const scored = scoreCallsForFoundational(calls);
-  const hostAttached =
-    /\bUsed principle-foundational-thinking\b/i.test(text) ||
-    /\[skill\]\s*principle-foundational-thinking\b/i.test(text);
+  const hostAttached = /\bUsed principle-foundational-thinking\b/i.test(text) || /\[skill\]\s*principle-foundational-thinking\b/i.test(text);
   return { sessionPath, hostAttached, ...scored };
 }
 
@@ -638,9 +533,7 @@ async function findCursorTranscripts(sinceMs, side) {
         } catch {
           continue;
         }
-        const mentionsThisAttempt =
-          text.includes(doneAbs) ||
-          (text.includes(`foundational/fixture-out/${side}/done.txt`) && text.includes('board'));
+        const mentionsThisAttempt = text.includes(doneAbs) || (text.includes(`foundational/fixture-out/${side}/done.txt`) && text.includes('board'));
         if (mentionsThisAttempt) hits.push({ path: abs, mtimeMs: st.mtimeMs, size: st.size });
       }
     }
@@ -662,13 +555,8 @@ async function summarizeCursorTranscripts(sinceMs, side) {
       ...scored,
       leafSkillRead: scored.leafSkillRead || leafInBlob,
     };
-    const rank =
-      (merged.leafSkillRead ? 4 : 0) +
-      (merged.shapeBeforeLogic ? 2 : 0) +
-      (merged.ranVerifyScript ? 1 : 0);
-    const bestRank = best
-      ? (best.leafSkillRead ? 4 : 0) + (best.shapeBeforeLogic ? 2 : 0) + (best.ranVerifyScript ? 1 : 0)
-      : -1;
+    const rank = (merged.leafSkillRead ? 4 : 0) + (merged.shapeBeforeLogic ? 2 : 0) + (merged.ranVerifyScript ? 1 : 0);
+    const bestRank = best ? (best.leafSkillRead ? 4 : 0) + (best.shapeBeforeLogic ? 2 : 0) + (best.ranVerifyScript ? 1 : 0) : -1;
     if (!best || rank > bestRank || (rank === bestRank && hit.mtimeMs > (best.mtimeMs || 0))) {
       best = { ...merged, mtimeMs: hit.mtimeMs };
     }
@@ -758,23 +646,7 @@ async function runSide(side, ruleBytes, ruleDigest, frontmatter) {
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        [
-          'poteto-mode',
-          'board.js',
-          'types.js',
-          'verify',
-          'BOARD-OK',
-          'BOARD-FAIL',
-          'principle-foundational-thinking',
-          'Phase',
-          'Job',
-          'enqueue',
-        ],
-        300_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['poteto-mode', 'board.js', 'types.js', 'verify', 'BOARD-OK', 'BOARD-FAIL', 'principle-foundational-thinking', 'Phase', 'Job', 'enqueue'], 300_000);
     } catch {
       // settle may still land artifacts
     }
@@ -893,15 +765,7 @@ async function runSide(side, ruleBytes, ruleDigest, frontmatter) {
 
     const snapDir = join(attempt.dir, 'fixture-snapshot');
     await mkdir(snapDir, { recursive: true });
-    const snapRels = [
-      BOARD_REL,
-      NOTES_REL,
-      'README.md',
-      'package.json',
-      VERIFY_SCRIPT_REL,
-      VERIFY_OUT_REL,
-      ...SHAPE_REL,
-    ];
+    const snapRels = [BOARD_REL, NOTES_REL, 'README.md', 'package.json', VERIFY_SCRIPT_REL, VERIFY_OUT_REL, ...SHAPE_REL];
     for (const rel of snapRels) {
       const abs = join(fixtureApp, rel);
       if (!(await pathExists(abs))) continue;
@@ -1044,10 +908,7 @@ if (isMain) {
     results.push(result);
     console.log(JSON.stringify(result));
   }
-  await writeFile(
-    join(evidenceRoot, 'capture-results.json'),
-    `${JSON.stringify({ scenario: 'prin-foundational', fixtureDigest: preDigest, frontmatter, results }, null, 2)}\n`,
-  );
+  await writeFile(join(evidenceRoot, 'capture-results.json'), `${JSON.stringify({ scenario: 'prin-foundational', fixtureDigest: preDigest, frontmatter, results }, null, 2)}\n`);
   console.log(
     JSON.stringify({
       scenario: 'prin-foundational',

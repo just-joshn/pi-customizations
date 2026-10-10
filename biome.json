@@ -57,8 +57,11 @@
       "correctness": {
         "noUndeclaredDependencies": "error"
       },
+      "complexity": {
+        "useLiteralKeys": "off"
+      },
       "security": {
-        "noSecrets": "warn"
+        "noSecrets": "off"
       },
       "suspicious": {
         "noDeprecatedImports": "warn",
@@ -78,5 +81,42 @@
         }
       }
     }
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["parity/**"],
+      "linter": {
+        "rules": {
+          "complexity": {
+            "noUselessTernary": "off"
+          },
+          "correctness": {
+            "noUnusedFunctionParameters": "off"
+          },
+          "style": {
+            "useTemplate": "off"
+          },
+          "suspicious": {
+            "noAssignInExpressions": "off",
+            "noControlCharactersInRegex": "off",
+            "noShadowRestrictedNames": "off",
+            "noTemplateCurlyInString": "off"
+          },
+          "security": {
+            "noSecrets": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["**/test/**", "extensions/pi-pstack/scripts/**"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noControlCharactersInRegex": "off"
+          }
+        }
+      }
+    }
+  ]
 }

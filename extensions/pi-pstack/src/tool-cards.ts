@@ -3,8 +3,7 @@
 // captured reference forms byte-for-byte (see test/tool-cards.test.ts and
 // parity/evidence/setup-prepair, parity/evidence/setup-cancel).
 import { Container, HStack, Text } from '@earendil-works/pi-tui';
-
-import { type PanelAnswer, defaultPanelTitle } from './questions-panel.ts';
+import { defaultPanelTitle, type PanelAnswer } from './questions-panel.ts';
 
 type Titled = { fg(color: string, text: string): string; bold(text: string): string };
 

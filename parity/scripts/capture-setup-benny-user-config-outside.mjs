@@ -6,17 +6,7 @@
 // Usage: node scripts/capture-setup-benny-user-config-outside.mjs [--cursor-only|--pi-only|--both|--self-test]
 // Evidence root: parity/evidence/setup-benny/user-config-outside/
 import { createHash } from 'node:crypto';
-import {
-  access,
-  cp,
-  mkdir,
-  readdir,
-  readFile,
-  rename,
-  rm,
-  stat,
-  writeFile,
-} from 'node:fs/promises';
+import { access, cp, mkdir, readdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { join, relative, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -37,44 +27,17 @@ const evidenceRoot = join(setupBennyRoot, 'user-config-outside');
 const fixtureApp = join(evidenceRoot, 'fixture-app');
 const seedExamples = join(evidenceRoot, 'seed', 'examples');
 const productRel = join('src', 'app.js');
-const productAbs = join(fixtureApp, productRel);
+const _productAbs = join(fixtureApp, productRel);
 const forAgentsRel = join('.upstream', 'automations', 'benny', 'FOR_AGENTS.md');
-const setupSkillRel = join(
-  '.upstream',
-  'automations',
-  'benny',
-  'skills',
-  'setup-benny',
-  'SKILL.md',
-);
+const setupSkillRel = join('.upstream', 'automations', 'benny', 'skills', 'setup-benny', 'SKILL.md');
 const packDestRel = join('.cursor', 'automations', 'benny');
 const preferredUserDirRel = join('.cursor', 'benny');
 const EXAMPLE_RELS = [
   join('.cursor', 'automations', 'benny', 'templates', 'configuration.example.yaml'),
-  join(
-    '.cursor',
-    'automations',
-    'benny',
-    'skills',
-    'reproduce-and-fix-issues',
-    'references',
-    'feature-map.example.md',
-  ),
-  join(
-    '.cursor',
-    'automations',
-    'benny',
-    'skills',
-    'triage-issue-reports',
-    'references',
-    'routing.example.md',
-  ),
+  join('.cursor', 'automations', 'benny', 'skills', 'reproduce-and-fix-issues', 'references', 'feature-map.example.md'),
+  join('.cursor', 'automations', 'benny', 'skills', 'triage-issue-reports', 'references', 'routing.example.md'),
 ];
-const EXAMPLE_MARKERS = [
-  'USER-CONFIG-OUTSIDE-EXAMPLE-CONFIG-MARKER',
-  'USER-CONFIG-OUTSIDE-EXAMPLE-FEATURE-MAP-MARKER',
-  'USER-CONFIG-OUTSIDE-EXAMPLE-ROUTING-MARKER',
-];
+const EXAMPLE_MARKERS = ['USER-CONFIG-OUTSIDE-EXAMPLE-CONFIG-MARKER', 'USER-CONFIG-OUTSIDE-EXAMPLE-FEATURE-MAP-MARKER', 'USER-CONFIG-OUTSIDE-EXAMPLE-ROUTING-MARKER'];
 const USER_BASENAMES = ['configuration.yaml', 'feature-map.md', 'routing.md'];
 const GEOMETRY = { rows: 40, cols: 120 };
 const LOCKED_FIXTURE_DIGEST = 'sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004';
@@ -84,10 +47,7 @@ const RULE_BACKUP = `${referenceRulePath}.setup-benny-user-config-outside-backup
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const stripAnsi = (text) =>
-  text
-    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
-    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
 
 function writeRootFor(side) {
   return join(evidenceRoot, 'fixture-out', side);
@@ -231,30 +191,19 @@ export async function inspectAdaptState(fixtureRoot = fixtureApp) {
 
 export function scoreAdapt({ done, before, after, screenText, ptyText, sessionSummary }) {
   const hay = stripAnsi(`${screenText || ''}\n${ptyText || ''}`);
-  const productUnchanged =
-    Boolean(before?.productDigest) && before.productDigest === after?.productDigest;
+  const productUnchanged = Boolean(before?.productDigest) && before.productDigest === after?.productDigest;
 
   const examplesUntouched = EXAMPLE_RELS.every((relPath) => {
     const rel = relPath.split(sep).join('/');
-    return (
-      Boolean(before?.exampleDigests?.[rel]) &&
-      before.exampleDigests[rel] === after?.exampleDigests?.[rel]
-    );
+    return Boolean(before?.exampleDigests?.[rel]) && before.exampleDigests[rel] === after?.exampleDigests?.[rel];
   });
 
-  const eachBaseOutside = USER_BASENAMES.every(
-    (base) => (after?.byBase?.[base]?.length ?? 0) >= 1,
-  );
-  const preferredAllPresent = USER_BASENAMES.every((base) =>
-    Boolean(after?.preferred?.[base]?.exists),
-  );
+  const eachBaseOutside = USER_BASENAMES.every((base) => (after?.byBase?.[base]?.length ?? 0) >= 1);
+  const preferredAllPresent = USER_BASENAMES.every((base) => Boolean(after?.preferred?.[base]?.exists));
   const noUserNamedInsidePack = (after?.insidePackUserNamed?.length ?? 0) === 0;
   const outsidePlacementOk = eachBaseOutside && noUserNamedInsidePack;
 
-  const adaptChrome =
-    /\.cursor\/benny/i.test(hay) ||
-    /user-owned|adapt|configuration\.yaml|feature-map|routing\.md/i.test(hay) ||
-    Boolean(sessionSummary?.userWrite);
+  const adaptChrome = /\.cursor\/benny/i.test(hay) || /user-owned|adapt|configuration\.yaml|feature-map|routing\.md/i.test(hay) || Boolean(sessionSummary?.userWrite);
 
   let outcome = 'inconclusive';
   if (!productUnchanged || !examplesUntouched || !noUserNamedInsidePack) {
@@ -298,13 +247,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -356,53 +299,13 @@ async function resetFixtureExamplesAndUserOwned() {
     if (isUnderPackDest(rel)) continue;
     await rm(abs, { force: true });
   }
-  await cp(
-    join(seedExamples, 'configuration.example.yaml'),
-    join(fixtureApp, EXAMPLE_RELS[0]),
-  );
-  await cp(
-    join(seedExamples, 'feature-map.example.md'),
-    join(fixtureApp, EXAMPLE_RELS[1]),
-  );
+  await cp(join(seedExamples, 'configuration.example.yaml'), join(fixtureApp, EXAMPLE_RELS[0]));
+  await cp(join(seedExamples, 'feature-map.example.md'), join(fixtureApp, EXAMPLE_RELS[1]));
   await cp(join(seedExamples, 'routing.example.md'), join(fixtureApp, EXAMPLE_RELS[2]));
   // Keep upstream examples aligned with dest seed
-  await cp(
-    join(seedExamples, 'configuration.example.yaml'),
-    join(
-      fixtureApp,
-      '.upstream',
-      'automations',
-      'benny',
-      'templates',
-      'configuration.example.yaml',
-    ),
-  );
-  await cp(
-    join(seedExamples, 'feature-map.example.md'),
-    join(
-      fixtureApp,
-      '.upstream',
-      'automations',
-      'benny',
-      'skills',
-      'reproduce-and-fix-issues',
-      'references',
-      'feature-map.example.md',
-    ),
-  );
-  await cp(
-    join(seedExamples, 'routing.example.md'),
-    join(
-      fixtureApp,
-      '.upstream',
-      'automations',
-      'benny',
-      'skills',
-      'triage-issue-reports',
-      'references',
-      'routing.example.md',
-    ),
-  );
+  await cp(join(seedExamples, 'configuration.example.yaml'), join(fixtureApp, '.upstream', 'automations', 'benny', 'templates', 'configuration.example.yaml'));
+  await cp(join(seedExamples, 'feature-map.example.md'), join(fixtureApp, '.upstream', 'automations', 'benny', 'skills', 'reproduce-and-fix-issues', 'references', 'feature-map.example.md'));
+  await cp(join(seedExamples, 'routing.example.md'), join(fixtureApp, '.upstream', 'automations', 'benny', 'skills', 'triage-issue-reports', 'references', 'routing.example.md'));
 }
 
 async function waitPiChatReady(attempt, timeoutMs) {
@@ -416,10 +319,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
       await sleep(800);
       continue;
     }
-    const chatReady =
-      !/Trust project folder\?/i.test(text) &&
-      (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) &&
-      (/fixture-app|Benny|benny|medium|Skill conflicts|README|setup|adapt/i.test(text));
+    const chatReady = !/Trust project folder\?/i.test(text) && (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) && /fixture-app|Benny|benny|medium|Skill conflicts|README|setup|adapt/i.test(text);
     if (chatReady) return lines;
     await sleep(200);
   }
@@ -487,12 +387,7 @@ async function summarizePiSession(sessionPath) {
           setupBennyRead = true;
           label = `${name}(setup-benny/SKILL.md)`;
         }
-        if (
-          /\.cursor\/benny|user-owned|configuration\.yaml|feature-map\.md|routing\.md/i.test(
-            argBlob,
-          ) &&
-          /write|edit|apply|create|bash|cp|copy|mkdir/i.test(`${name} ${argBlob}`)
-        ) {
+        if (/\.cursor\/benny|user-owned|configuration\.yaml|feature-map\.md|routing\.md/i.test(argBlob) && /write|edit|apply|create|bash|cp|copy|mkdir/i.test(`${name} ${argBlob}`)) {
           userWrite = true;
           label = `${name}(user-owned)`;
         }
@@ -540,9 +435,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     }
     const liveDigest = await sha256(referenceRulePath);
     if (liveDigest !== LOCKED_FIXTURE_DIGEST) {
-      throw new Error(
-        `Aborting ${side}: reference rule digest ${liveDigest} != locked ${LOCKED_FIXTURE_DIGEST}`,
-      );
+      throw new Error(`Aborting ${side}: reference rule digest ${liveDigest} != locked ${LOCKED_FIXTURE_DIGEST}`);
     }
     await writeFile(rulePath, ruleBytes);
     attempt = await startAttempt(side === 'cursor' ? cursorSpec(ruleDigest) : piSpec(ruleDigest));
@@ -560,11 +453,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
         const text = lines.join('\n');
         const done = await readDone(side);
         const afterSnap = await inspectAdaptState(fixtureApp);
-        if (
-          done.exists ||
-          afterSnap.userOwned.length > 0 ||
-          /STATUS=|adapt-ok|\.cursor\/benny/i.test(text)
-        ) {
+        if (done.exists || afterSnap.userOwned.length > 0 || /STATUS=|adapt-ok|\.cursor\/benny/i.test(text)) {
           pollLog.push({
             ts: new Date().toISOString(),
             doneExists: done.exists,
@@ -585,21 +474,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        [
-          'STATUS=',
-          'adapt-ok',
-          'FOR_AGENTS',
-          '.cursor/benny',
-          'configuration.yaml',
-          'feature-map',
-          'routing.md',
-          'user-owned',
-        ],
-        600_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['STATUS=', 'adapt-ok', 'FOR_AGENTS', '.cursor/benny', 'configuration.yaml', 'feature-map', 'routing.md', 'user-owned'], 600_000);
     } catch {
       // settle may still land artifacts
     }
@@ -679,8 +554,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
           }
         : null,
       pollSamples: pollLog.length,
-      scorerNote:
-        'adapt_ok requires each of configuration.yaml, feature-map.md, routing.md outside .cursor/automations/benny/, no same-named non-example files inside the pack, example digests unchanged, and product unchanged',
+      scorerNote: 'adapt_ok requires each of configuration.yaml, feature-map.md, routing.md outside .cursor/automations/benny/, no same-named non-example files inside the pack, example digests unchanged, and product unchanged',
     };
 
     const afterRule = await readFile(rulePath, 'utf8');
@@ -689,10 +563,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     await writeFile(join(dir, 'observations.json'), `${JSON.stringify(observations, null, 2)}\n`);
     await writeFile(join(dir, 'prompt.txt'), `${prompt}\n`);
     await writeFile(join(dir, 'poll-log.json'), `${JSON.stringify(pollLog, null, 2)}\n`);
-    await writeFile(
-      join(dir, 'adapt-diff.json'),
-      `${JSON.stringify({ before, after, score }, null, 2)}\n`,
-    );
+    await writeFile(join(dir, 'adapt-diff.json'), `${JSON.stringify({ before, after, score }, null, 2)}\n`);
     if (done.exists) {
       await writeFile(join(dir, 'done-copy.txt'), `${done.line}\n`);
     }
@@ -726,18 +597,9 @@ async function selfTest() {
   });
   await mkdir(join(pack, 'skills', 'triage-issue-reports', 'references'), { recursive: true });
   await mkdir(join(tmp, 'src'), { recursive: true });
-  await writeFile(
-    join(pack, 'templates', 'configuration.example.yaml'),
-    `# ${EXAMPLE_MARKERS[0]}\ncfg\n`,
-  );
-  await writeFile(
-    join(pack, 'skills', 'reproduce-and-fix-issues', 'references', 'feature-map.example.md'),
-    `<!-- ${EXAMPLE_MARKERS[1]} -->\nmap\n`,
-  );
-  await writeFile(
-    join(pack, 'skills', 'triage-issue-reports', 'references', 'routing.example.md'),
-    `<!-- ${EXAMPLE_MARKERS[2]} -->\nroute\n`,
-  );
+  await writeFile(join(pack, 'templates', 'configuration.example.yaml'), `# ${EXAMPLE_MARKERS[0]}\ncfg\n`);
+  await writeFile(join(pack, 'skills', 'reproduce-and-fix-issues', 'references', 'feature-map.example.md'), `<!-- ${EXAMPLE_MARKERS[1]} -->\nmap\n`);
+  await writeFile(join(pack, 'skills', 'triage-issue-reports', 'references', 'routing.example.md'), `<!-- ${EXAMPLE_MARKERS[2]} -->\nroute\n`);
   await writeFile(join(tmp, 'src', 'app.js'), 'product\n');
 
   const before = await inspectAdaptState(tmp);
@@ -757,10 +619,7 @@ async function selfTest() {
   });
 
   // Edit example -> mismatch
-  await writeFile(
-    join(pack, 'templates', 'configuration.example.yaml'),
-    `# ${EXAMPLE_MARKERS[0]}\ncfg EDITED\n`,
-  );
+  await writeFile(join(pack, 'templates', 'configuration.example.yaml'), `# ${EXAMPLE_MARKERS[0]}\ncfg EDITED\n`);
   const afterBad = await inspectAdaptState(tmp);
   const mismatch = scoreAdapt({
     done: {
@@ -797,9 +656,7 @@ if (isMain) {
   const preRule = await readFile(referenceRulePath, 'utf8');
   const preDigest = await sha256(referenceRulePath);
   if (preDigest !== LOCKED_FIXTURE_DIGEST) {
-    console.error(
-      `Reference rule digest ${preDigest} does not match the locked fixture ${LOCKED_FIXTURE_DIGEST}`,
-    );
+    console.error(`Reference rule digest ${preDigest} does not match the locked fixture ${LOCKED_FIXTURE_DIGEST}`);
     process.exit(1);
   }
   if (!(await pathExists(join(fixtureApp, forAgentsRel)))) {
@@ -808,18 +665,14 @@ if (isMain) {
   }
   await mkdir(evidenceRoot, { recursive: true });
 
-  const sides =
-    only === '--cursor-only' ? ['cursor'] : only === '--pi-only' ? ['pi'] : ['cursor', 'pi'];
+  const sides = only === '--cursor-only' ? ['cursor'] : only === '--pi-only' ? ['pi'] : ['cursor', 'pi'];
   const results = [];
   for (const side of sides) {
     const result = await runSide(side, preRule, preDigest);
     results.push(result);
     console.log(JSON.stringify(result));
   }
-  await writeFile(
-    join(evidenceRoot, 'capture-results.json'),
-    `${JSON.stringify({ scenario: 'setup-benny-user-config-outside', fixtureDigest: preDigest, results }, null, 2)}\n`,
-  );
+  await writeFile(join(evidenceRoot, 'capture-results.json'), `${JSON.stringify({ scenario: 'setup-benny-user-config-outside', fixtureDigest: preDigest, results }, null, 2)}\n`);
   console.log(
     JSON.stringify({
       scenario: 'setup-benny-user-config-outside',

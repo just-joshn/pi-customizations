@@ -6,17 +6,7 @@
 // Usage: node scripts/capture-setup-benny-pack-merge.mjs [--cursor-only|--pi-only|--both|--self-test]
 // Evidence root: parity/evidence/setup-benny/pack-merge/
 import { createHash } from 'node:crypto';
-import {
-  access,
-  cp,
-  mkdir,
-  readdir,
-  readFile,
-  rename,
-  rm,
-  stat,
-  writeFile,
-} from 'node:fs/promises';
+import { access, cp, mkdir, readdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { join, relative, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -38,25 +28,17 @@ const fixtureApp = join(evidenceRoot, 'fixture-app');
 const seedDest = join(evidenceRoot, 'seed', 'destination');
 const seedUser = join(evidenceRoot, 'seed', 'user-owned');
 const productRel = join('src', 'app.js');
-const productAbs = join(fixtureApp, productRel);
+const _productAbs = join(fixtureApp, productRel);
 const sourceRootRel = join('.upstream', 'automations', 'benny');
 const destRootRel = join('.cursor', 'automations', 'benny');
 const forAgentsRel = join(sourceRootRel, 'FOR_AGENTS.md');
 const setupSkillRel = join(sourceRootRel, 'skills', 'setup-benny', 'SKILL.md');
 const destOnlyRel = join(destRootRel, 'DESTINATION_ONLY.md');
 const destReadmeRel = join(destRootRel, 'README.md');
-const userOwnedRels = [
-  join('.cursor', 'benny', 'configuration.yaml'),
-  join('.cursor', 'benny', 'feature-map.md'),
-  join('.cursor', 'benny', 'routing.md'),
-];
+const userOwnedRels = [join('.cursor', 'benny', 'configuration.yaml'), join('.cursor', 'benny', 'feature-map.md'), join('.cursor', 'benny', 'routing.md')];
 const LOCAL_EDIT_MARKER = 'PACK-MERGE-LOCAL-EDIT-MARKER';
 const DEST_ONLY_MARKER = 'PACK-MERGE-DEST-ONLY-MARKER';
-const USER_MARKERS = [
-  'PACK-MERGE-USER-OWNED-CONFIG-MARKER',
-  'PACK-MERGE-USER-OWNED-FEATURE-MAP-MARKER',
-  'PACK-MERGE-USER-OWNED-ROUTING-MARKER',
-];
+const USER_MARKERS = ['PACK-MERGE-USER-OWNED-CONFIG-MARKER', 'PACK-MERGE-USER-OWNED-FEATURE-MAP-MARKER', 'PACK-MERGE-USER-OWNED-ROUTING-MARKER'];
 const REQUIRED_DEST_RELS = [
   'FOR_AGENTS.md',
   'skills/setup-benny/SKILL.md',
@@ -78,10 +60,7 @@ const RULE_BACKUP = `${referenceRulePath}.setup-benny-pack-merge-backup`;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const stripAnsi = (text) =>
-  text
-    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
-    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
 
 function writeRootFor(side) {
   return join(evidenceRoot, 'fixture-out', side);
@@ -155,12 +134,10 @@ async function walkFiles(dir, out = []) {
   return out;
 }
 
-async function listSourceRels() {
+async function _listSourceRels() {
   const abs = join(fixtureApp, sourceRootRel);
   const files = await walkFiles(abs);
-  return files
-    .map((f) => relative(abs, f).split(sep).join('/'))
-    .sort();
+  return files.map((f) => relative(abs, f).split(sep).join('/')).sort();
 }
 
 async function resetFixtureToSeed() {
@@ -226,18 +203,9 @@ export async function inspectMergeState(fixtureRoot = fixtureApp) {
   };
 }
 
-export function scorePackMerge({
-  done,
-  before,
-  after,
-  screenText,
-  ptyText,
-  sessionSummary,
-}) {
+export function scorePackMerge({ done, before, after, screenText, ptyText, sessionSummary }) {
   const hay = stripAnsi(`${screenText || ''}\n${ptyText || ''}`);
-  const productUnchanged =
-    before?.digests?.[productRel.split(sep).join('/')] ===
-    after?.digests?.[productRel.split(sep).join('/')];
+  const productUnchanged = before?.digests?.[productRel.split(sep).join('/')] === after?.digests?.[productRel.split(sep).join('/')];
 
   const userOwnedUnchanged = userOwnedRels.every((rel) => {
     const key = rel.split(sep).join('/');
@@ -248,16 +216,9 @@ export function scorePackMerge({
   const allSourceCopied = (after?.missingSourceCopies?.length ?? Infinity) === 0;
   const destOnlyOk = Boolean(after?.destOnlyPreserved);
   const localEditOk = Boolean(after?.localEditPreserved);
-  const askedAboutConflict =
-    /\b(ambiguous|local edit|overwrite|replace|diff|conflict|keep (your|the) local)\b/i.test(
-      hay,
-    ) || Boolean(sessionSummary?.askedConflict);
+  const askedAboutConflict = /\b(ambiguous|local edit|overwrite|replace|diff|conflict|keep (your|the) local)\b/i.test(hay) || Boolean(sessionSummary?.askedConflict);
 
-  const mergeChrome =
-    /\.cursor\/automations\/benny/i.test(hay) ||
-    /\bmerge\b/i.test(hay) ||
-    /\bcop(y|ied)\b/i.test(hay) ||
-    Boolean(sessionSummary?.packWrite);
+  const mergeChrome = /\.cursor\/automations\/benny/i.test(hay) || /\bmerge\b/i.test(hay) || /\bcop(y|ied)\b/i.test(hay) || Boolean(sessionSummary?.packWrite);
 
   const statusOk = done?.status === 'merge-ok';
   const statusMismatch = done?.status === 'merge-mismatch';
@@ -268,14 +229,7 @@ export function scorePackMerge({
     outcome = 'merge_mismatch';
   } else if (requiredPresent && allSourceCopied && destOnlyOk && userOwnedUnchanged && localEditOk) {
     outcome = 'merge_ok';
-  } else if (
-    requiredPresent &&
-    allSourceCopied &&
-    destOnlyOk &&
-    userOwnedUnchanged &&
-    !localEditOk &&
-    askedAboutConflict
-  ) {
+  } else if (requiredPresent && allSourceCopied && destOnlyOk && userOwnedUnchanged && !localEditOk && askedAboutConflict) {
     // Stop-and-ask is allowed when ownership is ambiguous; still require pack files present.
     outcome = 'merge_ok';
   } else if (statusMismatch || (!allSourceCopied && (statusOk || mergeChrome))) {
@@ -321,13 +275,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -380,10 +328,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
       await sleep(800);
       continue;
     }
-    const chatReady =
-      !/Trust project folder\?/i.test(text) &&
-      (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) &&
-      (/fixture-app|Benny|benny|medium|Skill conflicts|README|setup|pack-merge/i.test(text));
+    const chatReady = !/Trust project folder\?/i.test(text) && (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) && /fixture-app|Benny|benny|medium|Skill conflicts|README|setup|pack-merge/i.test(text);
     if (chatReady) return lines;
     await sleep(200);
   }
@@ -451,10 +396,7 @@ async function summarizePiSession(sessionPath) {
           setupBennyRead = true;
           label = `${name}(setup-benny/SKILL.md)`;
         }
-        if (
-          /\.cursor\/automations\/benny/i.test(argBlob) &&
-          /write|edit|apply|create|bash|cp|copy|rsync/i.test(`${name} ${argBlob}`)
-        ) {
+        if (/\.cursor\/automations\/benny/i.test(argBlob) && /write|edit|apply|create|bash|cp|copy|rsync/i.test(`${name} ${argBlob}`)) {
           packWrite = true;
           label = `${name}(pack-dest)`;
         }
@@ -464,11 +406,7 @@ async function summarizePiSession(sessionPath) {
         assistantTexts.push(part.text);
         if (/FOR_AGENTS\.md/i.test(part.text)) forAgentsRead = true;
         if (/setup-benny\/SKILL\.md/i.test(part.text)) setupBennyRead = true;
-        if (
-          /\b(ambiguous|local edit|overwrite|replace|diff|conflict|keep (your|the) local)\b/i.test(
-            part.text,
-          )
-        ) {
+        if (/\b(ambiguous|local edit|overwrite|replace|diff|conflict|keep (your|the) local)\b/i.test(part.text)) {
           askedConflict = true;
         }
       }
@@ -510,9 +448,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     }
     const liveDigest = await sha256(referenceRulePath);
     if (liveDigest !== LOCKED_FIXTURE_DIGEST) {
-      throw new Error(
-        `Aborting ${side}: reference rule digest ${liveDigest} != locked ${LOCKED_FIXTURE_DIGEST}`,
-      );
+      throw new Error(`Aborting ${side}: reference rule digest ${liveDigest} != locked ${LOCKED_FIXTURE_DIGEST}`);
     }
     await writeFile(rulePath, ruleBytes);
     attempt = await startAttempt(side === 'cursor' ? cursorSpec(ruleDigest) : piSpec(ruleDigest));
@@ -530,11 +466,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
         const text = lines.join('\n');
         const done = await readDone(side);
         const afterSnap = await inspectMergeState(fixtureApp);
-        if (
-          done.exists ||
-          afterSnap.destPresent.length > before.destPresent.length ||
-          /STATUS=|merge-ok|automations\/benny/i.test(text)
-        ) {
+        if (done.exists || afterSnap.destPresent.length > before.destPresent.length || /STATUS=|merge-ok|automations\/benny/i.test(text)) {
           pollLog.push({
             ts: new Date().toISOString(),
             doneExists: done.exists,
@@ -557,21 +489,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        [
-          'STATUS=',
-          'merge-ok',
-          'FOR_AGENTS',
-          'automations/benny',
-          'DESTINATION_ONLY',
-          LOCAL_EDIT_MARKER,
-          'copied',
-          'merged',
-        ],
-        600_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['STATUS=', 'merge-ok', 'FOR_AGENTS', 'automations/benny', 'DESTINATION_ONLY', LOCAL_EDIT_MARKER, 'copied', 'merged'], 600_000);
     } catch {
       // settle may still land artifacts
     }
@@ -654,8 +572,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
           }
         : null,
       pollSamples: pollLog.length,
-      scorerNote:
-        'merge_ok requires required pack files at destination, all source rel paths copied, DESTINATION_ONLY preserved, user-owned digests unchanged, and local README marker preserved (or stop-and-ask evidenced)',
+      scorerNote: 'merge_ok requires required pack files at destination, all source rel paths copied, DESTINATION_ONLY preserved, user-owned digests unchanged, and local README marker preserved (or stop-and-ask evidenced)',
     };
 
     const afterRule = await readFile(rulePath, 'utf8');
@@ -664,10 +581,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     await writeFile(join(dir, 'observations.json'), `${JSON.stringify(observations, null, 2)}\n`);
     await writeFile(join(dir, 'prompt.txt'), `${prompt}\n`);
     await writeFile(join(dir, 'poll-log.json'), `${JSON.stringify(pollLog, null, 2)}\n`);
-    await writeFile(
-      join(dir, 'merge-diff.json'),
-      `${JSON.stringify({ before, after, score }, null, 2)}\n`,
-    );
+    await writeFile(join(dir, 'merge-diff.json'), `${JSON.stringify({ before, after, score }, null, 2)}\n`);
     if (done.exists) {
       await writeFile(join(dir, 'done-copy.txt'), `${done.line}\n`);
     }
@@ -719,59 +633,29 @@ async function selfTest() {
     await writeFile(join(rootDir, 'FOR_AGENTS.md'), 'agents\n');
     await writeFile(join(rootDir, 'README.md'), 'readme upstream\n');
     await writeFile(join(rootDir, 'skills', 'setup-benny', 'SKILL.md'), 'setup\n');
-    await writeFile(
-      join(rootDir, 'skills', 'reproduce-and-fix-issues', 'SKILL.md'),
-      'repro\n',
-    );
-    await writeFile(
-      join(rootDir, 'skills', 'reproduce-and-fix-issues', 'references', 'control-adapter.md'),
-      'c\n',
-    );
-    await writeFile(
-      join(rootDir, 'skills', 'reproduce-and-fix-issues', 'references', 'feature-map.example.md'),
-      'f\n',
-    );
-    await writeFile(
-      join(rootDir, 'skills', 'reproduce-and-fix-issues', 'references', 'verify-existing-fix.md'),
-      'v\n',
-    );
+    await writeFile(join(rootDir, 'skills', 'reproduce-and-fix-issues', 'SKILL.md'), 'repro\n');
+    await writeFile(join(rootDir, 'skills', 'reproduce-and-fix-issues', 'references', 'control-adapter.md'), 'c\n');
+    await writeFile(join(rootDir, 'skills', 'reproduce-and-fix-issues', 'references', 'feature-map.example.md'), 'f\n');
+    await writeFile(join(rootDir, 'skills', 'reproduce-and-fix-issues', 'references', 'verify-existing-fix.md'), 'v\n');
     await writeFile(join(rootDir, 'skills', 'triage-issue-reports', 'SKILL.md'), 'triage\n');
-    await writeFile(
-      join(rootDir, 'skills', 'triage-issue-reports', 'references', 'routing.example.md'),
-      'r\n',
-    );
+    await writeFile(join(rootDir, 'skills', 'triage-issue-reports', 'references', 'routing.example.md'), 'r\n');
     await writeFile(join(rootDir, 'templates', 'configuration.example.yaml'), 'cfg\n');
     await writeFile(join(rootDir, 'templates', 'reproduce-automation-prompt.md'), 'rp\n');
     await writeFile(join(rootDir, 'templates', 'triage-automation-prompt.md'), 'tp\n');
   };
   await writeTree(src);
   await writeFile(join(tmp, 'src', 'app.js'), 'product\n');
-  await writeFile(
-    join(dest, 'DESTINATION_ONLY.md'),
-    `# Destination-only\n\n${DEST_ONLY_MARKER}\n`,
-  );
-  await writeFile(
-    join(dest, 'README.md'),
-    `readme upstream\n\n<!-- ${LOCAL_EDIT_MARKER}: keep -->\n`,
-  );
-  await writeFile(
-    join(user, 'configuration.yaml'),
-    `${USER_MARKERS[0]}: do-not-overwrite\n`,
-  );
+  await writeFile(join(dest, 'DESTINATION_ONLY.md'), `# Destination-only\n\n${DEST_ONLY_MARKER}\n`);
+  await writeFile(join(dest, 'README.md'), `readme upstream\n\n<!-- ${LOCAL_EDIT_MARKER}: keep -->\n`);
+  await writeFile(join(user, 'configuration.yaml'), `${USER_MARKERS[0]}: do-not-overwrite\n`);
   await writeFile(join(user, 'feature-map.md'), `${USER_MARKERS[1]}\n`);
   await writeFile(join(user, 'routing.md'), `${USER_MARKERS[2]}\n`);
 
   const before = await inspectMergeState(tmp);
   // Simulate good merge
   await writeTree(dest);
-  await writeFile(
-    join(dest, 'DESTINATION_ONLY.md'),
-    `# Destination-only\n\n${DEST_ONLY_MARKER}\n`,
-  );
-  await writeFile(
-    join(dest, 'README.md'),
-    `readme upstream\nmerged body\n\n<!-- ${LOCAL_EDIT_MARKER}: keep -->\n`,
-  );
+  await writeFile(join(dest, 'DESTINATION_ONLY.md'), `# Destination-only\n\n${DEST_ONLY_MARKER}\n`);
+  await writeFile(join(dest, 'README.md'), `readme upstream\nmerged body\n\n<!-- ${LOCAL_EDIT_MARKER}: keep -->\n`);
   const afterOk = await inspectMergeState(tmp);
   const pass = scorePackMerge({
     done: { exists: true, status: 'merge-ok', line: 'STATUS=merge-ok reason=ok' },
@@ -816,9 +700,7 @@ if (isMain) {
   const preRule = await readFile(referenceRulePath, 'utf8');
   const preDigest = await sha256(referenceRulePath);
   if (preDigest !== LOCKED_FIXTURE_DIGEST) {
-    console.error(
-      `Reference rule digest ${preDigest} does not match the locked fixture ${LOCKED_FIXTURE_DIGEST}`,
-    );
+    console.error(`Reference rule digest ${preDigest} does not match the locked fixture ${LOCKED_FIXTURE_DIGEST}`);
     process.exit(1);
   }
   if (!(await pathExists(join(fixtureApp, forAgentsRel)))) {
@@ -827,18 +709,14 @@ if (isMain) {
   }
   await mkdir(evidenceRoot, { recursive: true });
 
-  const sides =
-    only === '--cursor-only' ? ['cursor'] : only === '--pi-only' ? ['pi'] : ['cursor', 'pi'];
+  const sides = only === '--cursor-only' ? ['cursor'] : only === '--pi-only' ? ['pi'] : ['cursor', 'pi'];
   const results = [];
   for (const side of sides) {
     const result = await runSide(side, preRule, preDigest);
     results.push(result);
     console.log(JSON.stringify(result));
   }
-  await writeFile(
-    join(evidenceRoot, 'capture-results.json'),
-    `${JSON.stringify({ scenario: 'setup-benny-pack-merge', fixtureDigest: preDigest, results }, null, 2)}\n`,
-  );
+  await writeFile(join(evidenceRoot, 'capture-results.json'), `${JSON.stringify({ scenario: 'setup-benny-pack-merge', fixtureDigest: preDigest, results }, null, 2)}\n`);
   console.log(
     JSON.stringify({
       scenario: 'setup-benny-pack-merge',

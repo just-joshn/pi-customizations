@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { createHash } from 'node:crypto';
 // Captures alias acceptance + unavailable-slug validate for
 // PSTACK-SETUP-ALIAS-ALWAYS-VALID-001 and PSTACK-SETUP-VALIDATE-001.
 // Real PTY both sides. Restores the locked reference rule.
@@ -6,7 +7,6 @@
 // Usage: node scripts/capture-setup-alias-validate.mjs [--cursor-only|--pi-only]
 // Evidence root: parity/evidence/setup-alias-validate/
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
-import { createHash } from 'node:crypto';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 
@@ -79,10 +79,15 @@ function observeScreen(lines) {
 }
 
 function scoreRule(beforeText, afterText) {
-  const before = parseRoles(beforeText);
+  const _before = parseRoles(beforeText);
   const after = parseRoles(afterText);
   const afterValues = Object.values(after);
-  const unavailablePersisted = afterValues.some((value) => value.split(',').map((part) => part.trim()).includes(UNAVAILABLE_SLUG));
+  const unavailablePersisted = afterValues.some((value) =>
+    value
+      .split(',')
+      .map((part) => part.trim())
+      .includes(UNAVAILABLE_SLUG),
+  );
   const aliasValues = afterValues.filter((value) => {
     const parts = value.split(',').map((part) => part.trim());
     return parts.every((part) => part === 'inherit-parent' || part === 'auto');
@@ -106,13 +111,8 @@ function scoreOracles(observations, ruleScore) {
   const anyUnavailableRejected = screens.some((screen) => screen.unavailableRejected);
   const anyUnavailableMention = screens.some((screen) => screen.unavailableMention);
   const anyWriteCard = screens.some((screen) => screen.writeCard);
-  const aliasAlwaysValid =
-    ruleScore.keepAliasPreserved &&
-    (ruleScore.autoRoleValue === AUTO_VALUE || ruleScore.inheritParentCount > 0) &&
-    !ruleScore.unavailablePersisted;
-  const validateStop =
-    !ruleScore.unavailablePersisted &&
-    ((anyUnavailableRejected && anyUnavailableMention) || (anyUnavailableMention && !anyWriteCard && !ruleScore.wrote));
+  const aliasAlwaysValid = ruleScore.keepAliasPreserved && (ruleScore.autoRoleValue === AUTO_VALUE || ruleScore.inheritParentCount > 0) && !ruleScore.unavailablePersisted;
+  const validateStop = !ruleScore.unavailablePersisted && ((anyUnavailableRejected && anyUnavailableMention) || (anyUnavailableMention && !anyWriteCard && !ruleScore.wrote));
   return {
     aliasAlwaysValid,
     validateUnavailableStopsWrite: validateStop,
@@ -142,13 +142,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: join(root, 'fixtures', 'first-run'),
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -213,12 +207,7 @@ async function answerBudgetAndProbe(attempt, dir) {
     attempt.input(Buffer.from('\r'), 'literal_user');
     await sleep(800);
     for (let panel = 2; panel <= 8; panel += 1) {
-      const next = await waitEither(
-        attempt,
-        GEOMETRY,
-        ['Edited pstack-models.mdc', 'Unavailable model', '› [', ...chatFormNeedles],
-        180_000,
-      ).catch(() => null);
+      const next = await waitEither(attempt, GEOMETRY, ['Edited pstack-models.mdc', 'Unavailable model', '› [', ...chatFormNeedles], 180_000).catch(() => null);
       await dumpScreen(attempt, dir, `0${panel}-panel`, GEOMETRY);
       if (next === 'Edited pstack-models.mdc') return { path: 'askquestion-wrote' };
       if (next === 'Unavailable model') return { path: 'askquestion-tool-rejected' };
@@ -277,12 +266,7 @@ async function runSide(side, fixtureBytes, fixtureDigest, lockedBytes) {
     observations.path = drive.path;
 
     // Wait for write, tool rejection, or a settled re-ask without write.
-    const terminal = await waitEither(
-      attempt,
-      GEOMETRY,
-      ['Edited pstack-models.mdc', 'Unavailable model', 'ask again', 'Ask again', 'choose again', 'not available', 'needs a choice'],
-      360_000,
-    ).catch(async () => {
+    const terminal = await waitEither(attempt, GEOMETRY, ['Edited pstack-models.mdc', 'Unavailable model', 'ask again', 'Ask again', 'choose again', 'not available', 'needs a choice'], 360_000).catch(async () => {
       await waitSettled(attempt, GEOMETRY, 120_000).catch(() => {});
       return null;
     });

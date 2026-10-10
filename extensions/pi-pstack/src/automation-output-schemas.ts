@@ -27,11 +27,7 @@ const Disabled = Type.Object({ ...Definition, kind: Type.Literal('disabled') });
 const Enabled = Type.Object({ ...Definition, kind: Type.Literal('enabled') });
 
 export const AutomationPrepareOutput = Disabled;
-export const AutomationInspectOutput = Type.Union([
-  Disabled,
-  Enabled,
-  Type.Object({ ...Definition, kind: Type.Literal('failed'), error: Type.String() }),
-]);
+export const AutomationInspectOutput = Type.Union([Disabled, Enabled, Type.Object({ ...Definition, kind: Type.Literal('failed'), error: Type.String() })]);
 const EditorDefinition = Type.Object({
   name: Type.String(),
   description: Type.String(),

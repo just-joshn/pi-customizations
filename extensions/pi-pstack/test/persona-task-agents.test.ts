@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { personaTaskAgents } from '../src/persona-agents.ts';
-import { offeredAgents, resolveAgentType, type AgentGates, type RegistryInputs } from '../src/subagents/agent-registry.ts';
+import { type AgentGates, offeredAgents, type RegistryInputs, resolveAgentType } from '../src/subagents/agent-registry.ts';
 
 const gates: AgentGates = { rubberDuck: true, subconscious: false };
 const withPersonas = (): RegistryInputs => ({ custom: personaTaskAgents(), policy: {}, disabled: [], gates });

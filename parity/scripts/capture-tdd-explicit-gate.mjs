@@ -167,7 +167,6 @@ async function pollOnce(baseline) {
       } else {
         hits.product.push(rel);
       }
-      continue;
     }
   }
   return { now, hits };
@@ -193,22 +192,10 @@ async function readDone(side) {
 function observeScreen(lines) {
   const text = lines.join('\n');
   return {
-    tddSkill:
-      /\/tdd\b/i.test(text) ||
-      /\[skill\]\s*tdd/i.test(text) ||
-      /\bUsed tdd\b/i.test(text) ||
-      /\bTDD\b/.test(text),
-    redSignal:
-      /\bfail(ed|ing|ure)?\b/i.test(text) ||
-      /\bAssertionError\b/i.test(text) ||
-      /\bnot ok\b/i.test(text) ||
-      /\bRED\b/.test(text),
-    greenSignal:
-      /\bpass(ed|ing)?\b/i.test(text) ||
-      /\bok\b/i.test(text) ||
-      /\bGREEN\b/.test(text),
-    skipImpractical:
-      /impractical|skip(?:ping)?\s+(?:tdd|the\s+test)|expensive|integration-heavy/i.test(text),
+    tddSkill: /\/tdd\b/i.test(text) || /\[skill\]\s*tdd/i.test(text) || /\bUsed tdd\b/i.test(text) || /\bTDD\b/.test(text),
+    redSignal: /\bfail(ed|ing|ure)?\b/i.test(text) || /\bAssertionError\b/i.test(text) || /\bnot ok\b/i.test(text) || /\bRED\b/.test(text),
+    greenSignal: /\bpass(ed|ing)?\b/i.test(text) || /\bok\b/i.test(text) || /\bGREEN\b/.test(text),
+    skipImpractical: /impractical|skip(?:ping)?\s+(?:tdd|the\s+test)|expensive|integration-heavy/i.test(text),
     working: /[\u2800-\u28FF]/.test(text) || /\bWorking\b/.test(text),
   };
 }
@@ -229,13 +216,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -324,12 +305,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        ['tdd', 'TDD', 'clamp', 'fail', 'test', 'AssertionError', 'not ok', 'regression'],
-        300_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['tdd', 'TDD', 'clamp', 'fail', 'test', 'AssertionError', 'not ok', 'regression'], 300_000);
     } catch {
       // settle may still land artifacts
     }
@@ -384,9 +360,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
       productPaths: productList,
       ordering,
       testBeforeProduct: ordering === 'test_before_product',
-      redBeforeGreen:
-        ordering === 'test_before_product' ||
-        (screenFinal.skipImpractical && ordering === 'neither'),
+      redBeforeGreen: ordering === 'test_before_product' || (screenFinal.skipImpractical && ordering === 'neither'),
       done: await readDone(side),
       pollSamples: pollLog.length,
     };
@@ -397,10 +371,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     await writeFile(join(dir, 'observations.json'), `${JSON.stringify(observations, null, 2)}\n`);
     await writeFile(join(dir, 'prompt.txt'), `${prompt}\n`);
     await writeFile(join(dir, 'poll-log.json'), `${JSON.stringify(pollLog, null, 2)}\n`);
-    await writeFile(
-      join(dir, 'baseline-product.json'),
-      `${JSON.stringify(baseline, null, 2)}\n`,
-    );
+    await writeFile(join(dir, 'baseline-product.json'), `${JSON.stringify(baseline, null, 2)}\n`);
 
     const snapDir = join(attempt.dir, 'fixture-snapshot');
     await mkdir(snapDir, { recursive: true });

@@ -5,7 +5,6 @@ import { dirname, join, resolve } from 'node:path';
 import { promisify } from 'node:util';
 
 import { expect, onTestFinished, test } from 'vitest';
-
 import { runCompletion } from '../scripts/check-completion.mjs';
 import { evaluateCompletion } from '../scripts/completion.mjs';
 
@@ -171,9 +170,7 @@ test('a sealed fixture can pass and fill completion fields', async () => {
     executedJourneyCount: 1,
   });
   expect(result.report.cursorReference).toEqual({ pluginsRevision: 'a'.repeat(40), cliVersion: 'reference-test' });
-  expect(result.report.evidenceIndex).toEqual([
-    { requirementId: 'R1', pair: 'parity/evidence/pairs/example.json', attempts: { cursor: 'cursor-attempt', pi: 'pi-attempt' } },
-  ]);
+  expect(result.report.evidenceIndex).toEqual([{ requirementId: 'R1', pair: 'parity/evidence/pairs/example.json', attempts: { cursor: 'cursor-attempt', pi: 'pi-attempt' } }]);
   const written = JSON.parse(await readFile(join(root, 'completion.json'), 'utf8'));
   expect(written.verdict).toBe('PASS');
   expect(written.deploymentManifestDigest).toBe('b'.repeat(64));

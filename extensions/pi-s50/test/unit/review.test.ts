@@ -6,7 +6,6 @@ import { REVIEW_DIMENSIONS, reviewAssurance, reviewDimensions } from '../../src/
 import { fixedClock } from '../support/clock.ts';
 import { applyAll, expectOk, freshRun } from './support.ts';
 
-// biome-ignore lint/security/noSecrets: sha256 of "abc"
 const ABC_SHA256 = 'sha256:ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad';
 
 const FINDING: FindingInput = {
@@ -38,7 +37,6 @@ describe('findings', () => {
   });
 
   test('finding text is redacted', () => {
-    // biome-ignore lint/security/noSecrets: synthetic test value
     const state = expectOk(apply(freshRun(), { kind: 'record_finding', finding: { ...FINDING, evidence: 'logged sk-livekey12345678' } }, fixedClock()));
     expect(state.findings[0]?.evidence).toBe('logged <REDACTED>');
   });
@@ -162,7 +160,6 @@ describe('review phase', () => {
 
   test('web guideline hash binds to every later finding', () => {
     const { state } = applyAll(inReview('browser'), [fullReview('abc'), { kind: 'record_finding', finding: FINDING }]);
-    // biome-ignore lint/security/noSecrets: a public git commit SHA
     const skillLock = `web-design-guidelines@${'063bee94c3f4df8453406c830b0a7df0f2860278'}`;
     expect(state.findings.map((finding) => [finding.revision, finding.guidelines])).toEqual([['r1', { contentHash: ABC_SHA256, skillLock }]]);
   });

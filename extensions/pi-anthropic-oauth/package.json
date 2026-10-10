@@ -23,7 +23,11 @@
   "scripts": {
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "typecheck": "tsc -p ."
+    "typecheck": "tsc -p .",
+    "prove:paths": "node --experimental-strip-types scripts/prove-request-paths.ts",
+    "prove:context-guard": "node --experimental-strip-types scripts/prove-context-guard.ts --expect green",
+    "prove:native": "node --experimental-strip-types scripts/prove-native.ts",
+    "prove": "bun run prove:paths && bun run prove:context-guard && bun run prove:native"
   },
   "peerDependencies": {
     "@earendil-works/pi-ai": "*",

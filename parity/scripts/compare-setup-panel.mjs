@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { createHash } from 'node:crypto';
 // Compares the deterministic artifacts of the paired /setup-pstack capture: the written
 // rule bytes, the AskQuestion panel chrome, and the ordered user input. Model-authored
 // content (title, prompts, option labels, batching, chat text) is normalized to tokens and
@@ -7,7 +8,6 @@
 //
 // Usage: node scripts/compare-setup-panel.mjs [pairJson]
 import { readFile, writeFile } from 'node:fs/promises';
-import { createHash } from 'node:crypto';
 import { dirname, join } from 'node:path';
 
 import { renderScreen } from '../recorder/screen.mjs';
@@ -122,7 +122,10 @@ for (const side of SIDES) {
   let frameSeq = null;
   for (const candidate of frameCandidates) {
     block = await panelBlock(attempts[side].events, candidate);
-    if (block !== null) { frameSeq = candidate; break; }
+    if (block !== null) {
+      frameSeq = candidate;
+      break;
+    }
   }
   const extracted = block === null ? null : normalizeChrome(block);
   chrome[side] = { attemptDir: attempts[side].attemptDir, panelSeq: cursorSeq, frameSeq, block, batching: extracted?.batching ?? null, normalized: extracted?.normalized ?? null };

@@ -1,14 +1,6 @@
-import { expect, test } from 'vitest';
-
-import {
-  playbookTodoWriteStarted,
-  potetoModeSkillPrompt,
-  potetoPlaybookTodoGateMessage,
-  potetoPlaybookTodoUsageBlock,
-  registerPotetoPlaybookTodoGate,
-  todosHavePlaybookSteps,
-} from '../src/poteto-playbook-todo-gate.ts';
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
+import { expect, test } from 'vitest';
+import { playbookTodoWriteStarted, potetoModeSkillPrompt, potetoPlaybookTodoGateMessage, potetoPlaybookTodoUsageBlock, registerPotetoPlaybookTodoGate, todosHavePlaybookSteps } from '../src/poteto-playbook-todo-gate.ts';
 import type { StateStore } from '../src/state.ts';
 
 const potetoPrompt = `<skill name="poteto-mode" location="/pkg/skills/poteto-mode/SKILL.md">\n# Poteto mode\n</skill>\n\nfix the off-by-one in src/inc.js`;

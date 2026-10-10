@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+import { execFile } from 'node:child_process';
+import { createHash } from 'node:crypto';
 // Captures PSTACK-SETUP-MAINTAIN-VERIFY-OUTCOMES-001 (and SHIP-001 when PR/no-PR matches).
 // Seeds an aligned verify-hello-cli, runs /maintain-verification-skill end to end,
 // and records OUTCOME= + PR= markers. Real PTY both sides.
@@ -9,22 +11,16 @@
 //   node scripts/capture-maintain-verify-outcomes.mjs [--cursor-only|--pi-only|--both]
 // Evidence root: parity/evidence/maintain-verify/
 import { access, chmod, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
-import { createHash } from 'node:crypto';
-import { execFile } from 'node:child_process';
-import { promisify } from 'node:util';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
+import { promisify } from 'node:util';
 
 import { startAttempt } from '../recorder/index.mjs';
 import { dumpScreen, screenLines, waitEither, waitSettled } from './journey-helpers.mjs';
 
 const execFileAsync = promisify(execFile);
 const argvFlags = new Set(process.argv.slice(2));
-const only = argvFlags.has('--cursor-only')
-  ? '--cursor-only'
-  : argvFlags.has('--pi-only')
-    ? '--pi-only'
-    : '--both';
+const only = argvFlags.has('--cursor-only') ? '--cursor-only' : argvFlags.has('--pi-only') ? '--pi-only' : '--both';
 const root = new URL('../', import.meta.url).pathname;
 const localBin = (name) => join(homedir(), '.local', 'bin', name);
 const piAgentDir = '/tmp/pi-ref-agent';
@@ -38,9 +34,7 @@ const SCENARIO_REF = 'setup-maintain-verify-outcomes';
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 function skillRel(side) {
-  return side === 'cursor'
-    ? join('.cursor', 'skills', SKILL_NAME, 'SKILL.md')
-    : join('.pi', 'skills', SKILL_NAME, 'SKILL.md');
+  return side === 'cursor' ? join('.cursor', 'skills', SKILL_NAME, 'SKILL.md') : join('.pi', 'skills', SKILL_NAME, 'SKILL.md');
 }
 
 function skillAbs(side) {
@@ -73,8 +67,7 @@ async function pathExists(path) {
 }
 
 function skillBodyFor(side) {
-  const evidenceRootRel =
-    side === 'cursor' ? `.cursor/evidence/${SKILL_NAME}` : `.pi/evidence/${SKILL_NAME}`;
+  const evidenceRootRel = side === 'cursor' ? `.cursor/evidence/${SKILL_NAME}` : `.pi/evidence/${SKILL_NAME}`;
   return `---
 name: ${SKILL_NAME}
 description: Verify the hello-cli fixture via ./hello.sh (prints HELLO-FAMILY-13). Project-local verification skill with launch/drive and a feature map.
@@ -148,10 +141,7 @@ async function ensureFixtureBase() {
   const readme = join(fixtureApp, 'README.md');
   await writeFile(hello, '#!/bin/sh\necho HELLO-FAMILY-13\n');
   await chmod(hello, 0o755);
-  await writeFile(
-    readme,
-    '# hello-cli\n\nTiny CLI fixture for maintain-verify outcomes capture.\n\n## Run\n\n```bash\n./hello.sh\n```\n\nPrints `HELLO-FAMILY-13` and exits 0.\n',
-  );
+  await writeFile(readme, '# hello-cli\n\nTiny CLI fixture for maintain-verify outcomes capture.\n\n## Run\n\n```bash\n./hello.sh\n```\n\nPrints `HELLO-FAMILY-13` and exits 0.\n');
 }
 
 async function seedSkills(side) {
@@ -196,15 +186,10 @@ function observeOutcomes(lines) {
   const outcomeMatch = text.match(/\bOUTCOME\s*=\s*(clean|changed|blocked)\b/i);
   const prMatch = text.match(/\bPR\s*=\s*(\S+)/i);
   return {
-    maintainInvoked:
-      /maintain-verification-skill|\/maintain-verification/i.test(text) ||
-      /\[skill\]\s*maintain-verification/i.test(text),
+    maintainInvoked: /maintain-verification-skill|\/maintain-verification/i.test(text) || /\[skill\]\s*maintain-verification/i.test(text),
     outcomeMention: outcomeMatch ? outcomeMatch[1].toLowerCase() : null,
     prMention: prMatch ? prMatch[1] : null,
-    prOpenedOnScreen:
-      /https:\/\/github\.com\/[^\s]+\/pull\/\d+/i.test(text) ||
-      /\bgh pr create\b/i.test(text) ||
-      /opened (a |the )?PR\b/i.test(text),
+    prOpenedOnScreen: /https:\/\/github\.com\/[^\s]+\/pull\/\d+/i.test(text) || /\bgh pr create\b/i.test(text) || /opened (a |the )?PR\b/i.test(text),
     working: /[\u2800-\u28FF]/.test(text) || /\bWorking\b/.test(text),
   };
 }
@@ -238,10 +223,7 @@ async function readOutcomeMarker(side) {
   if (outcome === 'clean') {
     definitionOk = !pr || pr.toLowerCase() === 'none';
   } else if (outcome === 'blocked') {
-    definitionOk =
-      (!pr || pr.toLowerCase() === 'none') &&
-      Boolean(blocker) &&
-      blocker.toLowerCase() !== 'none';
+    definitionOk = (!pr || pr.toLowerCase() === 'none') && Boolean(blocker) && blocker.toLowerCase() !== 'none';
   } else if (outcome === 'changed') {
     definitionOk = Boolean(pr) && pr.toLowerCase() !== 'none';
   }
@@ -297,13 +279,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
   });
@@ -346,10 +322,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
       await sleep(800);
       continue;
     }
-    const chatReady =
-      !/Trust project folder\?/i.test(text) &&
-      (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) &&
-      (/fixture-app|hello-cli|Skill conflicts|medium/i.test(text));
+    const chatReady = !/Trust project folder\?/i.test(text) && (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) && /fixture-app|hello-cli|Skill conflicts|medium/i.test(text);
     if (chatReady) return lines;
     await sleep(200);
   }
@@ -412,22 +385,7 @@ async function runSide(side, fixtureDigest) {
     await dumpScreen(attempt, dir, '02-outcomes-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        [
-          'maintain-verification',
-          'verify-hello-cli',
-          'OUTCOME=',
-          'clean',
-          'changed',
-          'blocked',
-          'source wave',
-          'live pass',
-          'Ship',
-        ],
-        300_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['maintain-verification', 'verify-hello-cli', 'OUTCOME=', 'clean', 'changed', 'blocked', 'source wave', 'live pass', 'Ship'], 300_000);
     } catch {
       // settle may still land the marker
     }
@@ -448,25 +406,14 @@ async function runSide(side, fixtureDigest) {
     observations.final = observeOutcomes(finalLines);
     observations.marker = await readOutcomeMarker(side);
     observations.gitAfter = await gitSnapshot('after');
-    observations.maintainRan = Boolean(
-      observations.final?.maintainInvoked || observations.marker?.outcomeOk,
-    );
+    observations.maintainRan = Boolean(observations.final?.maintainInvoked || observations.marker?.outcomeOk);
     observations.outcome = observations.marker?.outcome ?? observations.final?.outcomeMention ?? null;
     observations.pr = observations.marker?.pr ?? null;
     observations.blocker = observations.marker?.blocker ?? null;
     observations.outcomeDefOk = Boolean(observations.marker?.ok);
-    observations.prNoneOk =
-      observations.outcome === 'clean' || observations.outcome === 'blocked'
-        ? !observations.pr || observations.pr.toLowerCase() === 'none'
-        : null;
-    observations.prPresentOk =
-      observations.outcome === 'changed'
-        ? Boolean(observations.pr) && observations.pr.toLowerCase() !== 'none'
-        : null;
-    observations.noPrOpenedOnScreen =
-      observations.outcome === 'clean' || observations.outcome === 'blocked'
-        ? !observations.final?.prOpenedOnScreen
-        : null;
+    observations.prNoneOk = observations.outcome === 'clean' || observations.outcome === 'blocked' ? !observations.pr || observations.pr.toLowerCase() === 'none' : null;
+    observations.prPresentOk = observations.outcome === 'changed' ? Boolean(observations.pr) && observations.pr.toLowerCase() !== 'none' : null;
+    observations.noPrOpenedOnScreen = observations.outcome === 'clean' || observations.outcome === 'blocked' ? !observations.final?.prOpenedOnScreen : null;
 
     await writeFile(join(dir, 'observations.json'), `${JSON.stringify(observations, null, 2)}\n`);
     await writeFile(join(dir, 'prompt-outcomes.txt'), `${prompt}\n`);
@@ -487,9 +434,7 @@ async function runSide(side, fixtureDigest) {
 }
 
 await ensureFixtureBase();
-const fixtureDigest = digestText(
-  `${SCENARIO_REF}\n${await readFile(join(fixtureApp, 'hello.sh'), 'utf8')}\n${skillBodyFor('cursor')}`,
-);
+const fixtureDigest = digestText(`${SCENARIO_REF}\n${await readFile(join(fixtureApp, 'hello.sh'), 'utf8')}\n${skillBodyFor('cursor')}`);
 const sides = only === '--cursor-only' ? ['cursor'] : only === '--pi-only' ? ['pi'] : ['cursor', 'pi'];
 const results = [];
 for (const side of sides) {

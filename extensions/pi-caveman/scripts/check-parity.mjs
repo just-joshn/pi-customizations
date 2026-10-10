@@ -10,7 +10,7 @@ import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
-const checkout = resolve(process.env['CAVEMAN_CHECKOUT'] ?? '/tmp/caveman');
+const checkout = resolve(process.env.CAVEMAN_CHECKOUT ?? '/tmp/caveman');
 const final = process.argv.includes('--final');
 const ledger = JSON.parse(readFileSync(join(root, 'parity/ledger.json'), 'utf8'));
 const failures = [];

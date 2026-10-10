@@ -43,27 +43,13 @@ function observeCancel(lines) {
   return {
     clarifyingPanel: /Clarifying Questions|› \[/.test(text),
     questionPrompt: /› \[/.test(text),
-    freeformBudgetAsk:
-      /Which budget should pstack use/i.test(text) ||
-      /Pick a (reasoning )?budget/i.test(text) ||
-      /Reply with one of those/i.test(text) ||
-      /1\.\s*unlimited/i.test(text),
+    freeformBudgetAsk: /Which budget should pstack use/i.test(text) || /Pick a (reasoning )?budget/i.test(text) || /Reply with one of those/i.test(text) || /1\.\s*unlimited/i.test(text),
     setupMention: /setup-pstack|Configure which models|Used setup-pstack/i.test(text),
     working: /[\u2800-\u28FF]/.test(text) || /\bWorking\b/.test(text),
   };
 }
 
-const CANCEL_NEEDLES = [
-  '› [',
-  'Clarifying Questions',
-  'Question 1',
-  'Which budget should pstack use',
-  'Pick a reasoning budget',
-  'Pick a budget',
-  'Reply with one of those',
-  '1. unlimited',
-  'unlimited —',
-];
+const CANCEL_NEEDLES = ['› [', 'Clarifying Questions', 'Question 1', 'Which budget should pstack use', 'Pick a reasoning budget', 'Pick a budget', 'Reply with one of those', '1. unlimited', 'unlimited —'];
 
 function spec({ side, cwd, argv, env, fixtureDigest, fixturePath }) {
   return {
@@ -81,13 +67,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: join(root, 'fixtures', 'first-run'),
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -124,10 +104,7 @@ async function waitHelpSettled(attempt, timeoutMs) {
     last = await screenLines(attempt, GEOMETRY);
     const text = last.join('\n');
     const busy = /[\u2800-\u28FF]/.test(text) || /\bWorking\b/.test(text);
-    const helpChrome =
-      /Used poteto-help/i.test(text) ||
-      /\[skill\]\s*poteto-help/i.test(text) ||
-      (/poteto-help/i.test(text) && /review|skill|playbook|\/[a-z]/i.test(text));
+    const helpChrome = /Used poteto-help/i.test(text) || /\[skill\]\s*poteto-help/i.test(text) || (/poteto-help/i.test(text) && /review|skill|playbook|\/[a-z]/i.test(text));
     if (helpChrome && !busy) {
       await sleep(800);
       const again = await screenLines(attempt, GEOMETRY);
@@ -215,14 +192,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
       afterDigest,
       fixtureDigest: ruleDigest,
       observations,
-      discardedPriors:
-        side === 'cursor'
-          ? [
-              '886d7088-e56d-4533-bf9d-88be00dfccba',
-              '94b23b30-a55c-4513-95d3-150105eefcf7',
-              '6fbe605c-9003-470a-ba94-4bb8e55c57da',
-            ]
-          : undefined,
+      discardedPriors: side === 'cursor' ? ['886d7088-e56d-4533-bf9d-88be00dfccba', '94b23b30-a55c-4513-95d3-150105eefcf7', '6fbe605c-9003-470a-ba94-4bb8e55c57da'] : undefined,
     };
   } finally {
     if (attempt) {

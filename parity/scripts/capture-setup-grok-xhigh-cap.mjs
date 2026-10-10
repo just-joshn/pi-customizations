@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+import { spawn } from 'node:child_process';
+import { createHash } from 'node:crypto';
 // Captures PSTACK-SETUP-GROK-XHIGH-CAP-001: under budget unlimited, Grok real slugs
 // stay at xhigh (including grok-*-xhigh-fast); non-Grok real slugs may go to max;
 // aliases unchanged. Real PTY both sides. Serializes ~/.cursor/rules/pstack-models.mdc
@@ -9,8 +11,6 @@
 //                                                [--pi-fixture=mixed|claude-only]
 // Evidence root: parity/evidence/setup-grok-xhigh-cap/
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
-import { createHash } from 'node:crypto';
-import { spawn } from 'node:child_process';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 
@@ -25,9 +25,7 @@ function parseCli(argv) {
     if (arg === '--cursor-only' || arg === '--pi-only' || arg === '--both') only = arg;
     else if (arg.startsWith('--pi-fixture=')) piFixture = arg.slice('--pi-fixture='.length);
     else if (arg === '--help' || arg === '-h') {
-      console.log(
-        'Usage: capture-setup-grok-xhigh-cap.mjs [--cursor-only|--pi-only|--both] [--pi-fixture=mixed|claude-only]',
-      );
+      console.log('Usage: capture-setup-grok-xhigh-cap.mjs [--cursor-only|--pi-only|--both] [--pi-fixture=mixed|claude-only]');
       process.exit(0);
     } else {
       console.error(`Unknown argument: ${arg}`);
@@ -94,7 +92,10 @@ function effortToken(value) {
 }
 
 function splitEntries(value) {
-  return value.split(',').map((part) => part.trim()).filter(Boolean);
+  return value
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean);
 }
 
 function scoreGrokXhighCap(beforeText, afterText) {
@@ -166,9 +167,7 @@ function scoreGrokXhighCap(beforeText, afterText) {
     grokTotal: grokEntries.length,
     nonGrokMaxCount: nonGrokEntries.filter((entry) => entry.mappedMax).length,
     nonGrokTotal: nonGrokEntries.length,
-    aliasesPreserved:
-      aliasEntries.every((entry) => entry.preserved) &&
-      failures.every((f) => f.reason !== 'alias-changed' && f.reason !== 'alias-role-missing-or-wrong'),
+    aliasesPreserved: aliasEntries.every((entry) => entry.preserved) && failures.every((f) => f.reason !== 'alias-changed' && f.reason !== 'alias-role-missing-or-wrong'),
     pass: failures.length === 0,
     failures,
   };
@@ -286,13 +285,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: join(root, 'fixtures', 'first-run'),
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -367,18 +360,8 @@ async function selectFocusedOption(attempt) {
 
 async function answerBudgetApply(attempt, dir, side) {
   const instruction = instructionFor(side);
-  const chatFormNeedles = [
-    'Reply with a number',
-    'Reply with one of those four labels',
-    'Reply with one of those labels',
-    'reply with one label',
-    'Pick a budget',
-  ];
-  const refuseNeedles = [
-    "I haven't written",
-    'not acting on it',
-    'Which budget do you want',
-  ];
+  const chatFormNeedles = ['Reply with a number', 'Reply with one of those four labels', 'Reply with one of those labels', 'reply with one label', 'Pick a budget'];
+  const refuseNeedles = ["I haven't written", 'not acting on it', 'Which budget do you want'];
   const first = await waitEither(attempt, GEOMETRY, ['› [', 'Edited pstack-models.mdc', ...chatFormNeedles], 300_000);
   await waitQuiet(attempt);
   await dumpScreen(attempt, dir, '01-question', GEOMETRY);
@@ -391,12 +374,7 @@ async function answerBudgetApply(attempt, dir, side) {
       // Space-select unlimited (already focused), Enter to role-confirm, then Other+type.
       await selectFocusedOption(attempt);
       await dumpScreen(attempt, dir, '01b-after-unlimited', GEOMETRY);
-      const second = await waitEither(
-        attempt,
-        GEOMETRY,
-        ['› [', 'Edited pstack-models.mdc', 'Unavailable model', ...chatFormNeedles, ...refuseNeedles],
-        180_000,
-      ).catch(() => null);
+      const second = await waitEither(attempt, GEOMETRY, ['› [', 'Edited pstack-models.mdc', 'Unavailable model', ...chatFormNeedles, ...refuseNeedles], 180_000).catch(() => null);
       await dumpScreen(attempt, dir, '01c-role-or-next', GEOMETRY);
       if (second === 'Edited pstack-models.mdc') return { path: 'askquestion-wrote' };
       if (second === 'Unavailable model') return { path: 'askquestion-unavailable' };
@@ -408,12 +386,7 @@ async function answerBudgetApply(attempt, dir, side) {
         await submitText(attempt, instruction);
       }
       for (let panel = 2; panel <= 7; panel += 1) {
-        const wrote = await waitEither(
-          attempt,
-          GEOMETRY,
-          ['Edited pstack-models.mdc', '› [', 'Unavailable model', ...chatFormNeedles, ...refuseNeedles],
-          180_000,
-        ).catch(() => null);
+        const wrote = await waitEither(attempt, GEOMETRY, ['Edited pstack-models.mdc', '› [', 'Unavailable model', ...chatFormNeedles, ...refuseNeedles], 180_000).catch(() => null);
         await dumpScreen(attempt, dir, `0${panel}-panel`, GEOMETRY);
         if (wrote === 'Edited pstack-models.mdc') return { path: 'askquestion-wrote' };
         if (wrote === 'Unavailable model') return { path: 'askquestion-unavailable' };
@@ -434,12 +407,7 @@ async function answerBudgetApply(attempt, dir, side) {
     await selectOtherAndType(attempt, instruction, 4);
     await dumpScreen(attempt, dir, '01b-after-other', GEOMETRY);
     for (let panel = 2; panel <= 6; panel += 1) {
-      const wrote = await waitEither(
-        attempt,
-        GEOMETRY,
-        ['Edited pstack-models.mdc', '› [', 'Unavailable model', ...chatFormNeedles],
-        180_000,
-      ).catch(() => null);
+      const wrote = await waitEither(attempt, GEOMETRY, ['Edited pstack-models.mdc', '› [', 'Unavailable model', ...chatFormNeedles], 180_000).catch(() => null);
       await dumpScreen(attempt, dir, `0${panel}-panel`, GEOMETRY);
       if (wrote === 'Edited pstack-models.mdc') return { path: 'askquestion-wrote' };
       if (wrote === 'Unavailable model') return { path: 'askquestion-unavailable' };
@@ -461,12 +429,7 @@ async function answerBudgetApply(attempt, dir, side) {
   await submitText(attempt, BUDGET_PICK, { doubleEnter: true });
   await waitQuiet(attempt, 180_000);
   await dumpScreen(attempt, dir, '01b-after-budget-pick', GEOMETRY);
-  const afterPick = await waitEither(
-    attempt,
-    GEOMETRY,
-    ['Edited pstack-models.mdc', '› [', 'Accept as-is', 'Current roles', ...chatFormNeedles, 'Add a follow-up'],
-    180_000,
-  ).catch(() => null);
+  const afterPick = await waitEither(attempt, GEOMETRY, ['Edited pstack-models.mdc', '› [', 'Accept as-is', 'Current roles', ...chatFormNeedles, 'Add a follow-up'], 180_000).catch(() => null);
   if (afterPick === 'Edited pstack-models.mdc') return { path: 'chatform-budget-wrote' };
   if (afterPick === '› [') {
     await selectOtherAndType(attempt, instruction, 3);
@@ -536,11 +499,7 @@ async function runSide(side, fixtureBytes, fixtureDigest, lockedBytes) {
     }
     if (!sawWrite) {
       await dumpScreen(attempt, dir, '02-timeout', GEOMETRY);
-      const err = new Error(
-        sawUnavailable
-          ? 'Timed out waiting for write; screen showed Unavailable model / missing provider.'
-          : 'Timed out waiting for unlimited budget-apply write (screen or rule file).',
-      );
+      const err = new Error(sawUnavailable ? 'Timed out waiting for write; screen showed Unavailable model / missing provider.' : 'Timed out waiting for unlimited budget-apply write (screen or rule file).');
       err.code = sawUnavailable ? 'GROK_UNAVAILABLE' : 'WRITE_TIMEOUT';
       throw err;
     }
@@ -553,9 +512,7 @@ async function runSide(side, fixtureBytes, fixtureDigest, lockedBytes) {
     await sleep(2_000);
     await dumpScreen(attempt, dir, '03-after-write', GEOMETRY);
 
-    const offer = await waitEither(attempt, GEOMETRY, ['verification skill', 'verification-skill', 'Add a follow-up', '›'], 60_000).catch(
-      () => null,
-    );
+    const offer = await waitEither(attempt, GEOMETRY, ['verification skill', 'verification-skill', 'Add a follow-up', '›'], 60_000).catch(() => null);
     if (offer && /verification/i.test(offer)) {
       attempt.input(Buffer.from('No\r'), 'literal_user');
       await sleep(1000);

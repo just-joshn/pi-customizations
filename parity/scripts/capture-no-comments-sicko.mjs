@@ -31,10 +31,7 @@ const CATCHPHRASE = 'Yes... Ha ha ha... Yes!';
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const stripAnsi = (text) =>
-  text
-    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
-    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
 
 function writeRootFor(side) {
   return join(evidenceRoot, 'fixture-out', side);
@@ -157,18 +154,9 @@ function countLineComments(source) {
 }
 
 function observeSignals(text) {
-  const noCommentsSkill =
-    /\/no-comments\b/i.test(text) ||
-    /\[skill\]\s*no-comments/i.test(text) ||
-    /\bUsed no-comments\b/i.test(text) ||
-    /\bno-comments\b/i.test(text);
-  const commentSicko =
-    /Comment Sicko/i.test(text) ||
-    /comment-sicko/i.test(text) ||
-    /subagent_type["']?\s*[:=]\s*["']?Comment Sicko/i.test(text);
-  const taskSpawn =
-    /\bTask\b/.test(text) &&
-    (/Comment Sicko/i.test(text) || /subagent/i.test(text) || /Running subagent/i.test(text));
+  const noCommentsSkill = /\/no-comments\b/i.test(text) || /\[skill\]\s*no-comments/i.test(text) || /\bUsed no-comments\b/i.test(text) || /\bno-comments\b/i.test(text);
+  const commentSicko = /Comment Sicko/i.test(text) || /comment-sicko/i.test(text) || /subagent_type["']?\s*[:=]\s*["']?Comment Sicko/i.test(text);
+  const taskSpawn = /\bTask\b/.test(text) && (/Comment Sicko/i.test(text) || /subagent/i.test(text) || /Running subagent/i.test(text));
   const catchphrase = text.includes(CATCHPHRASE) || /Yes\.\.\.\s*Ha ha ha\.\.\.\s*Yes!/i.test(text);
   const working = /[\u2800-\u28FF]/.test(text) || /\bWorking\b/.test(text);
   return {
@@ -204,13 +192,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -295,10 +277,7 @@ async function summarizePiSession(sessionPath) {
         const args = part.arguments || part.input || {};
         toolOrder.push(name);
         const argBlob = JSON.stringify(args);
-        if (
-          (name === 'Task' || name === 'Agent' || /task/i.test(name)) &&
-          /Comment Sicko|comment-sicko/i.test(argBlob)
-        ) {
+        if ((name === 'Task' || name === 'Agent' || /task/i.test(name)) && /Comment Sicko|comment-sicko/i.test(argBlob)) {
           sickoTask = true;
         }
         if (['write', 'edit', 'bash'].includes(name)) {
@@ -384,12 +363,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        ['no-comments', 'Comment Sicko', 'Ha ha ha', 'greet.js', 'Running subagent', 'Task'],
-        300_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['no-comments', 'Comment Sicko', 'Ha ha ha', 'greet.js', 'Running subagent', 'Task'], 300_000);
     } catch {
       // settle may still land artifacts
     }
@@ -403,10 +377,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
       const done = await readDone(side);
       const hasProduct = productPaths.size > 0;
       const enough =
-        done.exists ||
-        (firstSickoAt && hasProduct) ||
-        (hasProduct && !obs.working && firstProductAt && Date.now() - Date.parse(firstProductAt) > 120_000) ||
-        (firstSickoAt && !obs.working && Date.now() - Date.parse(firstSickoAt) > 240_000);
+        done.exists || (firstSickoAt && hasProduct) || (hasProduct && !obs.working && firstProductAt && Date.now() - Date.parse(firstProductAt) > 120_000) || (firstSickoAt && !obs.working && Date.now() - Date.parse(firstSickoAt) > 240_000);
       if (enough && !obs.working) {
         calm += 1;
         if (calm >= 3) break;
@@ -461,15 +432,9 @@ async function runSide(side, ruleBytes, ruleDigest) {
     const screenFinal = observeSignals((await screenLines(attempt, GEOMETRY)).join('\n'));
     const done = await readDone(side);
 
-    const sickoSpawned = Boolean(
-      firstSickoAt || ptyObs.sickoPath || screenFinal.sickoPath || sessionSummary?.sickoTask,
-    );
-    const catchphraseObserved = Boolean(
-      firstCatchphraseAt || ptyObs.catchphrase || screenFinal.catchphrase || sessionSummary?.catchphraseSeen,
-    );
-    const skillActivated = Boolean(
-      firstSkillAt || ptyObs.noCommentsSkill || screenFinal.noCommentsSkill || sessionSummary?.skillInjected,
-    );
+    const sickoSpawned = Boolean(firstSickoAt || ptyObs.sickoPath || screenFinal.sickoPath || sessionSummary?.sickoTask);
+    const catchphraseObserved = Boolean(firstCatchphraseAt || ptyObs.catchphrase || screenFinal.catchphrase || sessionSummary?.catchphraseSeen);
+    const skillActivated = Boolean(firstSkillAt || ptyObs.noCommentsSkill || screenFinal.noCommentsSkill || sessionSummary?.skillInjected);
 
     const observations = {
       screenFinal,

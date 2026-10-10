@@ -6,9 +6,8 @@
 // Usage: node scripts/capture-disable-model-invocation.mjs [--cursor-only|--pi-only|--both|--self-test]
 // Evidence root: parity/evidence/disable-model/
 import { access, mkdir, readdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises';
-import { createHash } from 'node:crypto';
 import { homedir } from 'node:os';
-import { dirname, join } from 'node:path';
+import { join } from 'node:path';
 
 import { sha256 } from '../recorder/files.mjs';
 import { outputBytes, startAttempt } from '../recorder/index.mjs';
@@ -30,10 +29,7 @@ const SETTLE_MS = 900_000;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const stripAnsi = (text) =>
-  text
-    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
-    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
 
 function writeRootFor(side) {
   return join(evidenceRoot, 'fixture-out', side);
@@ -103,15 +99,7 @@ export function observeHostHowAttachment(text, { ignorePromptSlice } = {}) {
   };
 }
 
-export function scoreDisableModel({
-  prompt,
-  screenText,
-  ptyText,
-  sessionSummary,
-  frontmatter,
-  doneLine,
-  answerExists,
-}) {
+export function scoreDisableModel({ prompt, screenText, ptyText, sessionSummary, frontmatter, doneLine, answerExists }) {
   const promptHasSlashHow = /^\s*\/how\b/i.test(prompt || '');
   const screen = observeHostHowAttachment(screenText, { ignorePromptSlice: prompt });
   const pty = observeHostHowAttachment(ptyText, { ignorePromptSlice: prompt });
@@ -121,12 +109,7 @@ export function scoreDisableModel({
   const hostAttached = Boolean(screen.hostAttached || pty.hostAttached || sessionHostAttached);
   const answered = /^answered=yes\b/i.test((doneLine || '').trim()) && Boolean(answerExists);
   const frontmatterOk = Boolean(frontmatter?.ok);
-  const contractHeld =
-    frontmatterOk &&
-    !promptHasSlashHow &&
-    !hostAttached &&
-    !howInAvailableSkills &&
-    answered;
+  const contractHeld = frontmatterOk && !promptHasSlashHow && !hostAttached && !howInAvailableSkills && answered;
   return {
     promptHasSlashHow,
     frontmatterOk,
@@ -180,13 +163,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -240,10 +217,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
       await sleep(800);
       continue;
     }
-    const chatReady =
-      !/Trust project folder\?/i.test(text) &&
-      (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) &&
-      (/fixture-app|disable-model|store\.js|medium|Skill conflicts/i.test(text) || /README/i.test(text));
+    const chatReady = !/Trust project folder\?/i.test(text) && (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) && (/fixture-app|disable-model|store\.js|medium|Skill conflicts/i.test(text) || /README/i.test(text));
     if (chatReady) return lines;
     await sleep(200);
   }
@@ -362,12 +336,7 @@ async function runSide(side, ruleBytes, ruleDigest, frontmatter) {
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        ['answered=', 'store.js', 'api.js', 'soft-delete', 'soft delete', 'layer'],
-        600_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['answered=', 'store.js', 'api.js', 'soft-delete', 'soft delete', 'layer'], 600_000);
     } catch {
       // settle may still land artifacts
     }
@@ -440,8 +409,7 @@ async function runSide(side, ruleBytes, ruleDigest, frontmatter) {
             toolOrder: sessionSummary.toolOrder,
           }
         : null,
-      scorerNote:
-        'hostAttached from Used how / [skill] how / <skill name="how"> / how explainer; voluntary read of how/SKILL.md is noted and not a fail',
+      scorerNote: 'hostAttached from Used how / [skill] how / <skill name="how"> / how explainer; voluntary read of how/SKILL.md is noted and not a fail',
     };
 
     if (answer.exists) {
@@ -473,9 +441,7 @@ async function runSide(side, ruleBytes, ruleDigest, frontmatter) {
 }
 
 async function selfTest() {
-  const frontmatterOk = parseHowFrontmatter(
-    '---\nname: how\ndisable-model-invocation: true\n---\n# How\n',
-  );
+  const frontmatterOk = parseHowFrontmatter('---\nname: how\ndisable-model-invocation: true\n---\n# How\n');
   const frontmatterBad = parseHowFrontmatter('---\nname: how\n---\n# How\n');
   const passCase = scoreDisableModel({
     prompt: 'walk through how store.js connects',
@@ -510,10 +476,7 @@ async function selfTest() {
     ['passCase', passCase.contractHeld === true],
     ['failAttach', failAttach.contractHeld === false && failAttach.hostAttached === true],
     ['failCatalog', failCatalog.contractHeld === false && failCatalog.howInAvailableSkills === true],
-    [
-      'organicHowWordNotSlash',
-      observeHostHowAttachment('walk through how store.js connects').slashHowCommand === false,
-    ],
+    ['organicHowWordNotSlash', observeHostHowAttachment('walk through how store.js connects').slashHowCommand === false],
   ];
   const failed = cases.filter(([, ok]) => !ok);
   console.log(JSON.stringify({ selfTest: failed.length === 0, cases }, null, 2));
@@ -526,10 +489,7 @@ if (only === '--self-test') {
 }
 
 const frontmatter = await readHowFrontmatterFiles();
-await writeFile(
-  join(evidenceRoot, 'frontmatter.json'),
-  `${JSON.stringify(frontmatter, null, 2)}\n`,
-);
+await writeFile(join(evidenceRoot, 'frontmatter.json'), `${JSON.stringify(frontmatter, null, 2)}\n`);
 if (!frontmatter.cursor.ok || !frontmatter.pi.ok) {
   console.error('how skill frontmatter missing disable-model-invocation: true on locked paths');
   console.error(JSON.stringify(frontmatter, null, 2));

@@ -2218,13 +2218,13 @@
     }
   ],
   "host": {
-    "pi": "1.0.4",
+    "pi": "1.1.0",
     "packages": {
-      "@earendil-works/pi-coding-agent": "1.0.4",
-      "@earendil-works/pi-ai": "1.0.4",
-      "@earendil-works/pi-tui": "1.0.4"
+      "@earendil-works/pi-coding-agent": "1.1.0",
+      "@earendil-works/pi-ai": "1.1.0",
+      "@earendil-works/pi-tui": "1.1.0"
     },
-    "upstreamRuntimeSdkPin": "pi-ai 1.0.2 (admitted at 1.0.4 via scripts/sdk-review.json)",
+    "upstreamRuntimeSdkPin": "pi-ai 1.0.2 (admitted at 1.1.0 via scripts/sdk-review.json)",
     "node": "v24.21.0",
     "platform": "darwin-arm64"
   }

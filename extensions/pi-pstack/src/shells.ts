@@ -1,6 +1,7 @@
 import type { JsonValue } from '@earendil-works/pi-ai';
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
+import { dataResult } from './results.ts';
 import { asShellHandoff, type ShellRole, shellHandoff, shellHandoffEvent, shellRole } from './shell-ownership.ts';
 import { type ShellRecord, ShellRuntime, type ShellStatus, shellDirs } from './shell-runtime.ts';
 import { stopPendingEvent } from './subagents/stop-pending.ts';
@@ -33,10 +34,6 @@ function started(record: ShellRecord) {
   const pattern = record.pattern === undefined ? 'none; wakes only on exit' : record.pattern;
   const text = `Started background shell ${record.id} (pid ${record.pid}).\nOutput file: ${record.outputFile}\nPattern: ${pattern}`;
   return { content: [{ type: 'text' as const, text }], details: record, structuredContent: record as unknown as JsonValue };
-}
-
-function json<T>(details: T) {
-  return { content: [{ type: 'text' as const, text: JSON.stringify(details, null, 2) }], details, structuredContent: details as unknown as JsonValue };
 }
 
 export type ShellTask = Readonly<{ id: string; status: ShellStatus; command: string }>;
@@ -121,7 +118,7 @@ export function registerShells(pi: ExtensionAPI): void {
     exposure: 'direct',
     annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false, destructiveHint: false },
     executionMode: 'parallel',
-    execute: async () => json(runtime.list()),
+    execute: async () => dataResult(runtime.list()),
   });
   pi.registerTool({
     name: 'Background' + 'ShellStop',
@@ -134,6 +131,6 @@ export function registerShells(pi: ExtensionAPI): void {
     exposure: 'direct',
     annotations: { destructiveHint: true, idempotentHint: true, openWorldHint: false },
     executionMode: 'sequential',
-    execute: async (_id, params) => json(await runtime.stop(params.id)),
+    execute: async (_id, params) => dataResult(await runtime.stop(params.id)),
   });
 }

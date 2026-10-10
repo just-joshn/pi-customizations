@@ -164,7 +164,6 @@ describe('run commands', () => {
     await runCli(OFFLINE_REFRESH, context(cwd));
     expect(await runCli(['feature', 'x', '--consumer', 'fax:machine'], context(cwd))).toEqual({
       code: 1,
-      // biome-ignore lint/security/noSecrets: the CLI's consumer-kind usage text
       stdout: '--consumer kind must be one of browser|electron|cli|tui|http|rpc|library|native\n',
     });
   });

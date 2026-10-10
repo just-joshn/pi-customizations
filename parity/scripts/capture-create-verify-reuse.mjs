@@ -24,11 +24,7 @@ const argvFlags = new Set(process.argv.slice(2));
 const maintainMode = argvFlags.has('--maintain');
 const interviewMode = argvFlags.has('--interview');
 const proveMode = argvFlags.has('--prove') || maintainMode;
-const only = argvFlags.has('--cursor-only')
-  ? '--cursor-only'
-  : argvFlags.has('--pi-only')
-    ? '--pi-only'
-    : '--both';
+const only = argvFlags.has('--cursor-only') ? '--cursor-only' : argvFlags.has('--pi-only') ? '--pi-only' : '--both';
 const root = new URL('../', import.meta.url).pathname;
 const localBin = (name) => join(homedir(), '.local', 'bin', name);
 const referenceRulePath = join(homedir(), '.cursor', 'rules', 'pstack-models.mdc');
@@ -42,13 +38,7 @@ const SETTLE_MS = 1_500_000;
 const PROVE_SETTLE_MS = 1_800_000;
 const MAINTAIN_SETTLE_MS = 2_400_000;
 const SKILL_NAME = 'verify-hello-cli';
-const SCENARIO_REF = maintainMode
-  ? 'create-verify:generate-prove-offer-maintain'
-  : proveMode
-    ? 'create-verify:generate-then-prove'
-    : interviewMode
-      ? 'setup-create-verify-interview'
-      : 'create-verify:generate-then-reuse';
+const SCENARIO_REF = maintainMode ? 'create-verify:generate-prove-offer-maintain' : proveMode ? 'create-verify:generate-then-prove' : interviewMode ? 'setup-create-verify-interview' : 'create-verify:generate-then-reuse';
 if (interviewMode && (proveMode || maintainMode)) {
   console.error('Use only one of --interview, --prove, --maintain');
   process.exit(1);
@@ -57,9 +47,7 @@ if (interviewMode && (proveMode || maintainMode)) {
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 function skillRel(side) {
-  return side === 'cursor'
-    ? join('.cursor', 'skills', SKILL_NAME, 'SKILL.md')
-    : join('.pi', 'skills', SKILL_NAME, 'SKILL.md');
+  return side === 'cursor' ? join('.cursor', 'skills', SKILL_NAME, 'SKILL.md') : join('.pi', 'skills', SKILL_NAME, 'SKILL.md');
 }
 
 function skillAbs(side) {
@@ -194,10 +182,7 @@ function maintainPrompt(side) {
 function observeCreate(lines) {
   const text = lines.join('\n');
   return {
-    createVerifySkill:
-      /create-verification-skill/i.test(text) ||
-      /\[skill\]\s*create-verification/i.test(text) ||
-      /verify-hello-cli/i.test(text),
+    createVerifySkill: /create-verification-skill/i.test(text) || /\[skill\]\s*create-verification/i.test(text) || /verify-hello-cli/i.test(text),
     wroteSkill: /SKILL\.md|verify-hello-cli|frontmatter|Launch|Doctor/i.test(text),
     working: /[\u2800-\u28FF]/.test(text) || /\bWorking\b/.test(text),
   };
@@ -206,10 +191,7 @@ function observeCreate(lines) {
 function observeProve(lines) {
   const text = lines.join('\n');
   return {
-    proveMention:
-      /live prove|prove step|prove the|running (launch|doctor|drive)|Launch.*Doctor|HELLO-FAMILY-13|artifacts\/hello|\.pi\/evidence/i.test(
-        text,
-      ),
+    proveMention: /live prove|prove step|prove the|running (launch|doctor|drive)|Launch.*Doctor|HELLO-FAMILY-13|artifacts\/hello|\.pi\/evidence/i.test(text),
     maintainMention: /maintain-verification-skill|\/maintain-verification/i.test(text),
     working: /[\u2800-\u28FF]/.test(text) || /\bWorking\b/.test(text),
   };
@@ -282,10 +264,7 @@ function proofCandidatesFor(side) {
 }
 
 async function readProofArtifacts(side = null) {
-  const candidates = side ? proofCandidatesFor(side) : [
-    ...proofCandidatesFor('cursor'),
-    ...proofCandidatesFor('pi'),
-  ];
+  const candidates = side ? proofCandidatesFor(side) : [...proofCandidatesFor('cursor'), ...proofCandidatesFor('pi')];
   for (const candidate of candidates) {
     const stdoutPath = join(candidate.dir, candidate.stdout);
     if (!(await pathExists(stdoutPath))) continue;
@@ -338,9 +317,7 @@ function observeMaintain(lines) {
   const text = lines.join('\n');
   const outcomeMatch = text.match(/\bOUTCOME\s*=\s*(clean|changed|blocked)\b/i);
   return {
-    maintainCommand:
-      /maintain-verification-skill|\/maintain-verification/i.test(text) ||
-      /\[skill\]\s*maintain-verification/i.test(text),
+    maintainCommand: /maintain-verification-skill|\/maintain-verification/i.test(text) || /\[skill\]\s*maintain-verification/i.test(text),
     outcomeMention: outcomeMatch ? outcomeMatch[1].toLowerCase() : null,
     cleanMention: /\bclean\b/i.test(text),
     changedMention: /\bchanged\b/i.test(text),
@@ -417,23 +394,12 @@ async function readMaintainOutcome(side) {
 function interviewAnswersFromRepo(data) {
   const keys = ['surface', 'run', 'drive', 'observe', 'isolate'];
   const missing = keys.filter((k) => typeof data?.[k] !== 'string' || !data[k].trim());
-  const evidencePaths = Array.isArray(data?.evidencePaths)
-    ? data.evidencePaths.map((p) => String(p))
-    : [];
+  const evidencePaths = Array.isArray(data?.evidencePaths) ? data.evidencePaths.map((p) => String(p)) : [];
   const evidenceJoined = evidencePaths.join('\n').toLowerCase();
-  const readRepoFiles =
-    /readme\.md/.test(evidenceJoined) ||
-    /hello\.sh/.test(evidenceJoined) ||
-    evidencePaths.some((p) => /(^|\/)(README\.md|hello\.sh)$/i.test(p));
+  const readRepoFiles = /readme\.md/.test(evidenceJoined) || /hello\.sh/.test(evidenceJoined) || evidencePaths.some((p) => /(^|\/)(README\.md|hello\.sh)$/i.test(p));
   const askedUser = Boolean(data?.askedUser);
-  const askedUserAbout = Array.isArray(data?.askedUserAbout)
-    ? data.askedUserAbout.map((x) => String(x).toLowerCase())
-    : [];
-  const askedAboutObservable = askedUserAbout.some((topic) =>
-    /surface|run|drive|observe|isolate|how (does|do) (it|the app) start|what (surface|cli)/i.test(
-      topic,
-    ),
-  );
+  const askedUserAbout = Array.isArray(data?.askedUserAbout) ? data.askedUserAbout.map((x) => String(x).toLowerCase()) : [];
+  const askedAboutObservable = askedUserAbout.some((topic) => /surface|run|drive|observe|isolate|how (does|do) (it|the app) start|what (surface|cli)/i.test(topic));
   const baseBuildsOrReported = data?.baseBuildsOrReported === true;
   return {
     keysOk: missing.length === 0,
@@ -444,11 +410,7 @@ function interviewAnswersFromRepo(data) {
     askedUserAbout,
     askedAboutObservable,
     baseBuildsOrReported,
-    ok:
-      missing.length === 0 &&
-      readRepoFiles &&
-      baseBuildsOrReported &&
-      (!askedUser || !askedAboutObservable),
+    ok: missing.length === 0 && readRepoFiles && baseBuildsOrReported && (!askedUser || !askedAboutObservable),
   };
 }
 
@@ -480,9 +442,7 @@ async function readFeatureMap(side) {
   let featureFiles = [];
   if (await pathExists(paths.featureDir)) {
     const { readdir } = await import('node:fs/promises');
-    featureFiles = (await readdir(paths.featureDir)).filter(
-      (name) => name.endsWith('.md') && name !== 'README.md',
-    );
+    featureFiles = (await readdir(paths.featureDir)).filter((name) => name.endsWith('.md') && name !== 'README.md');
   }
   return {
     readmeExists,
@@ -495,12 +455,8 @@ async function readFeatureMap(side) {
 function observeInterview(lines) {
   const text = lines.join('\n');
   return {
-    interviewMention:
-      /interview\.json|Surface|Run|Drive|Observe|Isolate|evidencePaths|askedUser/i.test(text),
-    askedUserOnScreen:
-      /what (is|are) (the )?(surface|run command|primary surface)|how does (the )?app start|which surface should I/i.test(
-        text,
-      ),
+    interviewMention: /interview\.json|Surface|Run|Drive|Observe|Isolate|evidencePaths|askedUser/i.test(text),
+    askedUserOnScreen: /what (is|are) (the )?(surface|run command|primary surface)|how does (the )?app start|which surface should I/i.test(text),
     working: /[\u2800-\u28FF]/.test(text) || /\bWorking\b/.test(text),
   };
 }
@@ -536,13 +492,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -596,10 +546,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
       await sleep(800);
       continue;
     }
-    const chatReady =
-      !/Trust project folder\?/i.test(text) &&
-      (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) &&
-      (/fixture-app|hello-cli|Skill conflicts/i.test(text) || /medium/i.test(text));
+    const chatReady = !/Trust project folder\?/i.test(text) && (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) && (/fixture-app|hello-cli|Skill conflicts/i.test(text) || /medium/i.test(text));
     if (chatReady) return lines;
     await sleep(200);
   }
@@ -636,15 +583,7 @@ async function waitInterviewSettled(attempt, side, timeoutMs) {
     const meta = await readSkillMeta(side);
     const interview = await readInterview(side);
     const featureMap = await readFeatureMap(side);
-    if (
-      interview.ok &&
-      meta.exists &&
-      meta.nameOk &&
-      meta.sectionsOk &&
-      !meta.hasTodoPlaceholder &&
-      featureMap.ok &&
-      !obs.working
-    ) {
+    if (interview.ok && meta.exists && meta.nameOk && meta.sectionsOk && !meta.hasTodoPlaceholder && featureMap.ok && !obs.working) {
       calm += 1;
       if (calm >= 3) return last;
     } else {
@@ -772,13 +711,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
   const rulePath = side === 'cursor' ? referenceRulePath : piRulePath;
   const observations = {};
   const prompt1 = createPrompt(side);
-  const prompt2 = interviewMode
-    ? null
-    : maintainMode
-      ? maintainPrompt(side)
-      : proveMode
-        ? null
-        : reusePrompt(side);
+  const prompt2 = interviewMode ? null : maintainMode ? maintainPrompt(side) : proveMode ? null : reusePrompt(side);
   let attempt;
   try {
     await writeFile(rulePath, ruleBytes);
@@ -799,24 +732,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     await dumpScreen(attempt, dir, '02-create-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        [
-          'create-verification',
-          'verify-hello-cli',
-          'SKILL.md',
-          'Launch',
-          'Doctor',
-          'Interview',
-          'interview.json',
-          'feature',
-          'HELLO-FAMILY-13',
-          'prove',
-          'maintain-verification',
-        ],
-        300_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['create-verification', 'verify-hello-cli', 'SKILL.md', 'Launch', 'Doctor', 'Interview', 'interview.json', 'feature', 'HELLO-FAMILY-13', 'prove', 'maintain-verification'], 300_000);
     } catch {
       // final settle may still land the skill / proof
     }
@@ -837,9 +753,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
       }
       await sleep(1500);
       await dumpScreen(attempt, dir, '04-interview-settled', GEOMETRY);
-      const finalLines = interviewLines.length
-        ? interviewLines
-        : await screenLines(attempt, GEOMETRY);
+      const finalLines = interviewLines.length ? interviewLines : await screenLines(attempt, GEOMETRY);
       observations.createFinal = observeCreate(finalLines);
       observations.interviewFinal = observeInterview(finalLines);
       observations.skillAfterCreate = await readSkillMeta(side);
@@ -892,15 +806,11 @@ async function runSide(side, ruleBytes, ruleDigest) {
         }
         await sleep(1500);
         await dumpScreen(attempt, dir, '07-maintain-settled', GEOMETRY);
-        const maintainFinalLines = maintainLines.length
-          ? maintainLines
-          : await screenLines(attempt, GEOMETRY);
+        const maintainFinalLines = maintainLines.length ? maintainLines : await screenLines(attempt, GEOMETRY);
         observations.maintainFinal = observeMaintain(maintainFinalLines);
         observations.maintainOutcome = await readMaintainOutcome(side);
         observations.skillAfterMaintain = await readSkillMeta(side);
-        observations.maintainRan = Boolean(
-          observations.maintainFinal?.maintainCommand || observations.maintainOutcome?.ok,
-        );
+        observations.maintainRan = Boolean(observations.maintainFinal?.maintainCommand || observations.maintainOutcome?.ok);
         observations.maintainOutcomeOk = Boolean(observations.maintainOutcome?.ok);
       }
     } else {
@@ -913,9 +823,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
       }
       await sleep(1500);
       await dumpScreen(attempt, dir, '04-create-settled', GEOMETRY);
-      observations.createFinal = observeCreate(
-        createLines.length ? createLines : await screenLines(attempt, GEOMETRY),
-      );
+      observations.createFinal = observeCreate(createLines.length ? createLines : await screenLines(attempt, GEOMETRY));
       observations.skillAfterCreate = await readSkillMeta(side);
 
       attempt.input(Buffer.from(prompt2), 'literal_user');
@@ -934,9 +842,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
       }
       await sleep(1500);
       await dumpScreen(attempt, dir, '07-reuse-settled', GEOMETRY);
-      observations.reuseFinal = observeReuse(
-        reuseLines.length ? reuseLines : await screenLines(attempt, GEOMETRY),
-      );
+      observations.reuseFinal = observeReuse(reuseLines.length ? reuseLines : await screenLines(attempt, GEOMETRY));
       observations.skillAfterReuse = await readSkillMeta(side);
       observations.reuse = await readReuse(side);
     }

@@ -120,7 +120,8 @@ async function validateSkillMetadata(skill: { name: string; description: string;
   expect(expectDefined(nameMatch?.[1]).trim()).toBe(skill.name);
 
   if (skill.name === 'typescript-best-practices') {
-    expect(fm).toMatch(/^paths:\s*\["\*\*\/\*\.ts",\s*"\*\*\/\*\.tsx"\]\s*$/m);
+    expect(fm).toMatch(/^disable-model-invocation:\s*true\s*$/m);
+    expect(fm).not.toMatch(/^paths:/m);
   }
 }
 

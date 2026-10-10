@@ -55,7 +55,8 @@ test('Pi registers exactly one s50 command with one s50 tool', async () => {
   expect([...(loaded?.commands.keys() ?? [])]).toStrictEqual(['s50']);
   expect([...(loaded?.tools.keys() ?? [])]).toStrictEqual(['s50']);
   const tool = loaded?.tools.get('s50')?.definition;
-  expect([tool?.executionMode, tool?.annotations, tool?.promptGuidelines?.length]).toStrictEqual(['sequential', { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true }, 3]);
+  expect([tool?.executionMode, tool?.annotations, tool?.promptGuidelines?.length]).toStrictEqual(['sequential', { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true }, 3]);
+  expect(tool?.outputSchema).toEqual(expect.objectContaining({ type: 'object' }));
 });
 
 test('the s50 skill frontmatter names s50 with a Use when trigger', async () => {
@@ -77,7 +78,7 @@ test('a blocked run comes back as an error result with details', async () => {
   const { tool } = loadFakePi();
   const cwd = repo();
   const result = await tool.execute('call-2', { argv: ['feature', 'export invoices'] }, undefined, undefined, toolContext(cwd, null));
-  expect([result.isError, result.details]).toStrictEqual([true, { code: 2 }]);
+  expect([result.isError, result.details, result.structuredContent]).toStrictEqual([true, { code: 2 }, { code: 2 }]);
 });
 
 test('Pi skill discovery feeds the run its installed skills', async () => {

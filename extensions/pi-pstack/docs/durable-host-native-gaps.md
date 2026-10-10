@@ -1,6 +1,6 @@
 # Durable host native gaps
 
-This audit targets Pi 1.0.2. Durable Task, subscription, and routine contracts require an external owner after the initiating Pi process exits. Native RPC already supports a long-lived Pi root. Root longevity is not a missing Pi capability.
+This audit targets Pi 1.1.0 (package pin and installed `@earendil-works/pi-coding-agent`). Durable Task, subscription, and routine contracts require an external owner after the initiating Pi process exits. Native RPC already supports a long-lived Pi root. Root longevity is not a missing Pi capability. Re-checked on 1.1.0: `RpcClient.send` remains private and `ExecOptions` still omits stdin and env.
 
 The gaps concern detached ownership, reconnection, scheduling, authenticated ingress, and whole-process isolation. Pi remains authoritative for sessions, branches, model requests, tools, queues, retries, compaction, cancellation, and usage.
 

@@ -104,8 +104,8 @@ test('generation separates reusable prompts from procedural skills and Reference
     }
     {
       const text = await readFile(join(f.directory, 'skills/typescript-best-practices/SKILL.md'), 'utf8');
-      expect(text).not.toMatch(/^(mode|icon|color|reminder):/m);
-      expect(text).toMatch(/^paths:\s*\["\*\*\/\*\.ts",\s*"\*\*\/\*\.tsx"\]\s*$/m);
+      expect(text).not.toMatch(/^(mode|icon|color|reminder|paths):/m);
+      expect(text).toMatch(/^disable-model-invocation:\s*true\s*$/m);
     }
   } finally {
     await f.close();

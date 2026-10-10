@@ -27,14 +27,7 @@ const evidenceRoot = join(root, 'evidence', 'benny-triage');
 const fixtureApp = join(evidenceRoot, 'fixture-app');
 const productRel = join('src', 'app.js');
 const productAbs = join(fixtureApp, productRel);
-const skillRel = join(
-  '.upstream',
-  'automations',
-  'benny',
-  'skills',
-  'triage-issue-reports',
-  'SKILL.md',
-);
+const skillRel = join('.upstream', 'automations', 'benny', 'skills', 'triage-issue-reports', 'SKILL.md');
 const configRel = join('.upstream', 'benny', 'configuration.yaml');
 const GEOMETRY = { rows: 40, cols: 120 };
 const LOCKED_FIXTURE_DIGEST = 'sha256:2b6b4668aab2c08758d602531426082a3d4a25d8eeb2104b963cbf35255f6004';
@@ -43,10 +36,7 @@ const POLL_MS = 500;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const stripAnsi = (text) =>
-  text
-    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
-    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
 
 function writeRootFor(side) {
   return join(evidenceRoot, 'fixture-out', side);
@@ -105,13 +95,11 @@ export function observeTriageFailClosedText(text, { ignorePromptSlice } = {}) {
     /\bincomplete (Benny )?config/i.test(hay) ||
     /\bwithout posting or writing\b/i.test(hay);
   const slackPostAttempt =
-    /\b(SendSlackMessage|PostToSlack|chat\.postMessage)\b/i.test(hay) ||
-    /\bPosted (a )?(verdict|reply) (to|in) (Slack|thread|channel)\b/i.test(hay) ||
-    /\bslack\s+(post|message|reply)\b/i.test(hay) && /\b(sent|posted|wrote)\b/i.test(hay);
+    /\b(SendSlackMessage|PostToSlack|chat\.postMessage)\b/i.test(hay) || /\bPosted (a )?(verdict|reply) (to|in) (Slack|thread|channel)\b/i.test(hay) || (/\bslack\s+(post|message|reply)\b/i.test(hay) && /\b(sent|posted|wrote)\b/i.test(hay));
   const trackerWriteAttempt =
     /\b(createIssue|create_issue|issues\.create|linear\.create|gh\s+issue\s+create)\b/i.test(hay) ||
     /\b(Created|Opened|Filed)\s+(a\s+)?(tracker|Linear|GitHub)\s+issue\b/i.test(hay) ||
-    /\btracker\.example\/issue\//i.test(hay) && /\b(created|filed|opened)\b/i.test(hay);
+    (/\btracker\.example\/issue\//i.test(hay) && /\b(created|filed|opened)\b/i.test(hay));
   // Affirmative reproduce/fix only. The journey prompt itself says
   // "Do not ... start reproduce-and-fix-issues unless...", and assistants
   // often echo "no reproduce-and-fix runs". Those must not trip this.
@@ -122,14 +110,10 @@ export function observeTriageFailClosedText(text, { ignorePromptSlice } = {}) {
   const reproduceFixAttempt =
     /\b(start|invoke|launching)\s+reproduce-and-fix-issues\b/i.test(withoutPromptNegations) ||
     /\bfollowing\s+reproduce-and-fix-issues\b/i.test(withoutPromptNegations) ||
-    /\b(playwright|puppeteer)\b/i.test(withoutPromptNegations) &&
-      /\b(launch|navigate|screenshot|click)\b/i.test(withoutPromptNegations) ||
+    (/\b(playwright|puppeteer)\b/i.test(withoutPromptNegations) && /\b(launch|navigate|screenshot|click)\b/i.test(withoutPromptNegations)) ||
     /\bOpening draft (pull )?request\b/i.test(withoutPromptNegations) ||
     /\bgh pr create\b/i.test(withoutPromptNegations);
-  const skillChrome =
-    /triage-issue-reports/i.test(hay) ||
-    /\[skill\]\s*triage/i.test(hay) ||
-    /\bUsed triage-issue-reports\b/i.test(hay);
+  const skillChrome = /triage-issue-reports/i.test(hay) || /\[skill\]\s*triage/i.test(hay) || /\bUsed triage-issue-reports\b/i.test(hay);
   return {
     failClosedPhrase,
     slackPostAttempt,
@@ -140,21 +124,10 @@ export function observeTriageFailClosedText(text, { ignorePromptSlice } = {}) {
   };
 }
 
-export function scoreBennyTriageFailClosed({
-  done,
-  productBeforeDigest,
-  productAfterDigest,
-  screenText,
-  ptyText,
-  sessionSummary,
-  prompt,
-}) {
+export function scoreBennyTriageFailClosed({ done, productBeforeDigest, productAfterDigest, screenText, ptyText, sessionSummary, prompt }) {
   const screen = observeTriageFailClosedText(screenText, { ignorePromptSlice: prompt });
   const pty = observeTriageFailClosedText(ptyText, { ignorePromptSlice: prompt });
-  const productUnchanged =
-    Boolean(productBeforeDigest) &&
-    Boolean(productAfterDigest) &&
-    productBeforeDigest === productAfterDigest;
+  const productUnchanged = Boolean(productBeforeDigest) && Boolean(productAfterDigest) && productBeforeDigest === productAfterDigest;
   const statusFailClosed = done?.status === 'fail-closed' || done?.status === 'blocked';
   const statusProceeded = done?.status === 'proceeded';
   const sessionSlack = Boolean(sessionSummary?.slackPostTools);
@@ -174,14 +147,8 @@ export function scoreBennyTriageFailClosed({
     pty.trackerWriteAttempt ||
     pty.reproduceFixAttempt ||
     statusProceeded;
-  const failClosedSignal =
-    statusFailClosed ||
-    screen.failClosedPhrase ||
-    pty.failClosedPhrase ||
-    Boolean(sessionSummary?.failClosedPhrase);
-  const engaged = Boolean(
-    sessionSummary?.skillRead || screen.skillChrome || pty.skillChrome || done?.exists,
-  );
+  const failClosedSignal = statusFailClosed || screen.failClosedPhrase || pty.failClosedPhrase || Boolean(sessionSummary?.failClosedPhrase);
+  const engaged = Boolean(sessionSummary?.skillRead || screen.skillChrome || pty.skillChrome || done?.exists);
   let outcome = 'inconclusive';
   if (engaged && failClosedSignal && !forbidden && productUnchanged) outcome = 'fail_closed';
   else if (forbidden || statusProceeded) outcome = 'proceeded';
@@ -221,13 +188,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -281,10 +242,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
       await sleep(800);
       continue;
     }
-    const chatReady =
-      !/Trust project folder\?/i.test(text) &&
-      (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) &&
-      (/fixture-app|Benny|benny|medium|Skill conflicts|README/i.test(text));
+    const chatReady = !/Trust project folder\?/i.test(text) && (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) && /fixture-app|Benny|benny|medium|Skill conflicts|README/i.test(text);
     if (chatReady) return lines;
     await sleep(200);
   }
@@ -443,22 +401,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        [
-          'fail-closed',
-          'fail closed',
-          'STATUS=',
-          'triage-issue-reports',
-          'configuration.yaml',
-          'missing',
-          'incomplete',
-          'without posting',
-          'tracker',
-        ],
-        600_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['fail-closed', 'fail closed', 'STATUS=', 'triage-issue-reports', 'configuration.yaml', 'missing', 'incomplete', 'without posting', 'tracker'], 600_000);
     } catch {
       // settle may still land artifacts
     }
@@ -538,8 +481,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
           }
         : null,
       pollSamples: pollLog.length,
-      scorerNote:
-        'fail_closed requires engagement + fail-closed/blocked signal + unchanged src/app.js + no Slack/tracker/reproduce side effects',
+      scorerNote: 'fail_closed requires engagement + fail-closed/blocked signal + unchanged src/app.js + no Slack/tracker/reproduce side effects',
     };
 
     const afterRule = await readFile(rulePath, 'utf8');
@@ -645,10 +587,7 @@ if (isMain) {
     results.push(result);
     console.log(JSON.stringify(result));
   }
-  await writeFile(
-    join(evidenceRoot, 'capture-results.json'),
-    `${JSON.stringify({ scenario: 'cmd-benny-triage-thread-only', fixtureDigest: preDigest, results }, null, 2)}\n`,
-  );
+  await writeFile(join(evidenceRoot, 'capture-results.json'), `${JSON.stringify({ scenario: 'cmd-benny-triage-thread-only', fixtureDigest: preDigest, results }, null, 2)}\n`);
   console.log(
     JSON.stringify({
       scenario: 'cmd-benny-triage-thread-only',

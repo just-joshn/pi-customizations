@@ -29,14 +29,7 @@ const seedDir = join(evidenceRoot, 'seed');
 const productRel = join('src', 'app.js');
 const productAbs = join(fixtureApp, productRel);
 const forAgentsRel = join('.upstream', 'automations', 'benny', 'FOR_AGENTS.md');
-const setupSkillRel = join(
-  '.upstream',
-  'automations',
-  'benny',
-  'skills',
-  'setup-benny',
-  'SKILL.md',
-);
+const setupSkillRel = join('.upstream', 'automations', 'benny', 'skills', 'setup-benny', 'SKILL.md');
 const inventoryRel = join('.cursor', 'benny', 'existing-live-automations.json');
 const inventoryAbs = join(fixtureApp, inventoryRel);
 const configRel = join('.cursor', 'benny', 'configuration.yaml');
@@ -47,10 +40,7 @@ const POLL_MS = 500;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const stripAnsi = (text) =>
-  text
-    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
-    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
 
 function writeRootFor(side) {
   return join(evidenceRoot, 'fixture-out', side);
@@ -99,9 +89,7 @@ async function readDone(side) {
   const path = donePath(side);
   if (!(await pathExists(path))) return { exists: false, path, line: null, status: null };
   const line = (await readFile(path, 'utf8')).trim();
-  const m = line.match(
-    /^STATUS=(checklist-ok|used-automate|created-duplicate|editor-blocked|blocked|other)\b/i,
-  );
+  const m = line.match(/^STATUS=(checklist-ok|used-automate|created-duplicate|editor-blocked|blocked|other)\b/i);
   return { exists: true, path, line, status: m ? m[1].toLowerCase() : null };
 }
 
@@ -172,26 +160,11 @@ export function observeExistingNoAutomate(text, { ignorePromptSlice } = {}) {
   const checklistChrome =
     /\beditor checklist\b/i.test(hay) ||
     /\bchecklist\b/i.test(hay) ||
-    (/\bName and description\b/i.test(hay) &&
-      /\btriage-issue-reports\/SKILL\.md\b/i.test(hay) &&
-      /\breproduce-and-fix-issues\/SKILL\.md\b/i.test(hay)) ||
-    (/\bAutomations editor\b/i.test(hay) &&
-      /\bbenny-triage\b/i.test(hay) &&
-      /\bbenny-reproduce\b/i.test(hay));
-  const askEditorUpdate =
-    /\bAutomations editor\b/i.test(hay) ||
-    /\bupdate each existing automation\b/i.test(hay) ||
-    /\bedit each automation\b/i.test(hay) ||
-    /\bupdate .+ in (?:its|the) Automations editor\b/i.test(hay);
-  const noDuplicateChrome =
-    /\bdo not create (?:replacements|duplicates)\b/i.test(hay) ||
-    /\bwithout creating (?:replacements|duplicates)\b/i.test(hay) ||
-    /\bno (?:replacements|duplicates)\b/i.test(hay);
-  const editorBlockedChrome =
-    /\bAutomations editor\b[^\n]{0,80}\b(unavailable|cannot|can't|not available|CLI|PTY)\b/i.test(
-      hay,
-    ) ||
-    /\b(unavailable|cannot|can't|not available)\b[^\n]{0,80}\bAutomations editor\b/i.test(hay);
+    (/\bName and description\b/i.test(hay) && /\btriage-issue-reports\/SKILL\.md\b/i.test(hay) && /\breproduce-and-fix-issues\/SKILL\.md\b/i.test(hay)) ||
+    (/\bAutomations editor\b/i.test(hay) && /\bbenny-triage\b/i.test(hay) && /\bbenny-reproduce\b/i.test(hay));
+  const askEditorUpdate = /\bAutomations editor\b/i.test(hay) || /\bupdate each existing automation\b/i.test(hay) || /\bedit each automation\b/i.test(hay) || /\bupdate .+ in (?:its|the) Automations editor\b/i.test(hay);
+  const noDuplicateChrome = /\bdo not create (?:replacements|duplicates)\b/i.test(hay) || /\bwithout creating (?:replacements|duplicates)\b/i.test(hay) || /\bno (?:replacements|duplicates)\b/i.test(hay);
+  const editorBlockedChrome = /\bAutomations editor\b[^\n]{0,80}\b(unavailable|cannot|can't|not available|CLI|PTY)\b/i.test(hay) || /\b(unavailable|cannot|can't|not available)\b[^\n]{0,80}\bAutomations editor\b/i.test(hay);
   return {
     usedAutomate,
     refuseAutomate,
@@ -204,39 +177,13 @@ export function observeExistingNoAutomate(text, { ignorePromptSlice } = {}) {
   };
 }
 
-export function scoreExistingNoAutomate({
-  done,
-  productBeforeDigest,
-  productAfterDigest,
-  screenText,
-  ptyText,
-  sessionSummary,
-  transcriptSummary,
-  prompt,
-  inventoryIntact,
-  duplicateCreated,
-}) {
+export function scoreExistingNoAutomate({ done, productBeforeDigest, productAfterDigest, screenText, ptyText, sessionSummary, transcriptSummary, prompt, inventoryIntact, duplicateCreated }) {
   const screen = observeExistingNoAutomate(screenText, { ignorePromptSlice: prompt });
   const pty = observeExistingNoAutomate(ptyText, { ignorePromptSlice: prompt });
-  const productUnchanged =
-    Boolean(productBeforeDigest) &&
-    Boolean(productAfterDigest) &&
-    productBeforeDigest === productAfterDigest;
-  const automateHit = Boolean(
-    sessionSummary?.automateUsed ||
-      transcriptSummary?.automateUsed ||
-      screen.automateUsedForUpdate ||
-      pty.automateUsedForUpdate,
-  );
-  const checklist =
-    Boolean(screen.checklistChrome || pty.checklistChrome) ||
-    Boolean(sessionSummary?.checklistChrome) ||
-    Boolean(transcriptSummary?.checklistChrome) ||
-    done?.status === 'checklist-ok';
-  const askEditor =
-    Boolean(screen.askEditorUpdate || pty.askEditorUpdate) ||
-    Boolean(sessionSummary?.askEditorUpdate) ||
-    Boolean(transcriptSummary?.askEditorUpdate);
+  const productUnchanged = Boolean(productBeforeDigest) && Boolean(productAfterDigest) && productBeforeDigest === productAfterDigest;
+  const automateHit = Boolean(sessionSummary?.automateUsed || transcriptSummary?.automateUsed || screen.automateUsedForUpdate || pty.automateUsedForUpdate);
+  const checklist = Boolean(screen.checklistChrome || pty.checklistChrome) || Boolean(sessionSummary?.checklistChrome) || Boolean(transcriptSummary?.checklistChrome) || done?.status === 'checklist-ok';
+  const askEditor = Boolean(screen.askEditorUpdate || pty.askEditorUpdate) || Boolean(sessionSummary?.askEditorUpdate) || Boolean(transcriptSummary?.askEditorUpdate);
   const dup = Boolean(duplicateCreated?.length) || done?.status === 'created-duplicate';
   const statusUsedAutomate = done?.status === 'used-automate';
   const statusEditorBlocked = done?.status === 'editor-blocked';
@@ -248,15 +195,7 @@ export function scoreExistingNoAutomate({
     outcome = 'used_automate';
   } else if (dup) {
     outcome = 'created_duplicate';
-  } else if (
-    checklist &&
-    askEditor &&
-    inventoryIntact &&
-    productUnchanged &&
-    !automateHit &&
-    !dup &&
-    (statusChecklistOk || statusEditorBlocked || done?.exists)
-  ) {
+  } else if (checklist && askEditor && inventoryIntact && productUnchanged && !automateHit && !dup && (statusChecklistOk || statusEditorBlocked || done?.exists)) {
     // checklist-ok is preferred; editor-blocked with checklist still proves no-automate path
     outcome = statusEditorBlocked && !statusChecklistOk ? 'editor_blocked_with_checklist' : 'checklist_no_automate';
   } else if (statusEditorBlocked && !checklist) {
@@ -306,13 +245,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -376,10 +309,7 @@ async function waitPiChatReady(attempt, timeoutMs) {
       await sleep(800);
       continue;
     }
-    const chatReady =
-      !/Trust project folder\?/i.test(text) &&
-      (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) &&
-      (/fixture-app|Benny|benny|medium|Skill conflicts|README|setup|existing/i.test(text));
+    const chatReady = !/Trust project folder\?/i.test(text) && (/claude-subscription|claude-sonnet/i.test(text) || /\$0\.\d+/.test(text)) && /fixture-app|Benny|benny|medium|Skill conflicts|README|setup|existing/i.test(text);
     if (chatReady) return lines;
     await sleep(200);
   }
@@ -513,10 +443,7 @@ async function findCursorTranscripts(sinceMs, side) {
         } catch {
           continue;
         }
-        const mentionsThisAttempt =
-          text.includes(doneAbs) ||
-          (text.includes(`existing-no-automate/fixture-out/${side}/done.txt`) &&
-            text.includes('existing-live-automations'));
+        const mentionsThisAttempt = text.includes(doneAbs) || (text.includes(`existing-no-automate/fixture-out/${side}/done.txt`) && text.includes('existing-live-automations'));
         if (mentionsThisAttempt) hits.push({ path: abs, mtimeMs: st.mtimeMs, size: st.size });
       }
     }
@@ -534,17 +461,8 @@ async function summarizeCursorTranscripts(sinceMs, side) {
     const chrome = summarizeToolBlob(text);
     const setupBennyRead = /setup-benny\/SKILL\.md/i.test(text);
     const inventoryRead = /existing-live-automations\.json/i.test(text);
-    const rank =
-      (chrome.checklistChrome ? 4 : 0) +
-      (chrome.askEditorUpdate ? 2 : 0) +
-      (setupBennyRead ? 1 : 0) -
-      (chrome.automateUsed ? 8 : 0);
-    const bestRank = best
-      ? (best.checklistChrome ? 4 : 0) +
-        (best.askEditorUpdate ? 2 : 0) +
-        (best.setupBennyRead ? 1 : 0) -
-        (best.automateUsed ? 8 : 0)
-      : -999;
+    const rank = (chrome.checklistChrome ? 4 : 0) + (chrome.askEditorUpdate ? 2 : 0) + (setupBennyRead ? 1 : 0) - (chrome.automateUsed ? 8 : 0);
+    const bestRank = best ? (best.checklistChrome ? 4 : 0) + (best.askEditorUpdate ? 2 : 0) + (best.setupBennyRead ? 1 : 0) - (best.automateUsed ? 8 : 0) : -999;
     if (!best || rank > bestRank || (rank === bestRank && hit.mtimeMs > (best.mtimeMs || 0))) {
       best = {
         path: hit.path,
@@ -561,12 +479,7 @@ async function summarizeCursorTranscripts(sinceMs, side) {
 async function inventoryStillIntact() {
   if (!(await pathExists(inventoryAbs))) return false;
   const text = await readFile(inventoryAbs, 'utf8');
-  return (
-    /auto_fixture_triage_001/.test(text) &&
-    /auto_fixture_repro_001/.test(text) &&
-    /benny-triage/.test(text) &&
-    /benny-reproduce/.test(text)
-  );
+  return /auto_fixture_triage_001/.test(text) && /auto_fixture_repro_001/.test(text) && /benny-triage/.test(text) && /benny-reproduce/.test(text);
 }
 
 async function runSide(side, ruleBytes, ruleDigest) {
@@ -602,9 +515,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     }
     const liveDigest = await sha256(referenceRulePath);
     if (liveDigest !== LOCKED_FIXTURE_DIGEST) {
-      throw new Error(
-        `Aborting ${side}: reference rule digest ${liveDigest} != locked ${LOCKED_FIXTURE_DIGEST}`,
-      );
+      throw new Error(`Aborting ${side}: reference rule digest ${liveDigest} != locked ${LOCKED_FIXTURE_DIGEST}`);
     }
     await writeFile(rulePath, ruleBytes);
     attempt = await startAttempt(side === 'cursor' ? cursorSpec(ruleDigest) : piSpec(ruleDigest));
@@ -621,13 +532,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
         const lines = await screenLines(attempt, GEOMETRY);
         const obs = observeExistingNoAutomate(lines.join('\n'), { ignorePromptSlice: prompt });
         const done = await readDone(side);
-        if (
-          obs.checklistChrome ||
-          obs.automateUsedForUpdate ||
-          obs.askEditorUpdate ||
-          obs.editorBlockedChrome ||
-          done.exists
-        ) {
+        if (obs.checklistChrome || obs.automateUsedForUpdate || obs.askEditorUpdate || obs.editorBlockedChrome || done.exists) {
           pollLog.push({
             ts: new Date().toISOString(),
             ...obs,
@@ -649,21 +554,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        [
-          'STATUS=',
-          'checklist',
-          'Automations editor',
-          '/automate',
-          'benny-triage',
-          'benny-reproduce',
-          'do not use',
-          'creation-only',
-        ],
-        600_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['STATUS=', 'checklist', 'Automations editor', '/automate', 'benny-triage', 'benny-reproduce', 'do not use', 'creation-only'], 600_000);
     } catch {
       // settle may still land artifacts
     }
@@ -756,8 +647,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
         : null,
       transcript: transcriptSummary,
       pollSamples: pollLog.length,
-      scorerNote:
-        'checklist_no_automate requires checklist + ask-editor chrome, no /automate update path, inventory intact, no duplicate creates, product unchanged',
+      scorerNote: 'checklist_no_automate requires checklist + ask-editor chrome, no /automate update path, inventory intact, no duplicate creates, product unchanged',
     };
 
     const afterRule = await readFile(rulePath, 'utf8');
@@ -802,8 +692,7 @@ async function selfTest() {
     },
     productBeforeDigest: 'aaa',
     productAfterDigest: 'aaa',
-    screenText:
-      'Editor checklist for benny-triage and benny-reproduce. Update each in its Automations editor. Do not create duplicates. Name and description. triage-issue-reports/SKILL.md reproduce-and-fix-issues/SKILL.md',
+    screenText: 'Editor checklist for benny-triage and benny-reproduce. Update each in its Automations editor. Do not create duplicates. Name and description. triage-issue-reports/SKILL.md reproduce-and-fix-issues/SKILL.md',
     ptyText: 'creation-only. do not use /automate. Automations editor checklist',
     sessionSummary: { automateUsed: false, checklistChrome: true, askEditorUpdate: true },
     transcriptSummary: null,
@@ -839,10 +728,7 @@ async function selfTest() {
     inventoryIntact: true,
     duplicateCreated: ['.cursor/automations/benny-triage-v2.yaml'],
   });
-  const obsRefuse = observeExistingNoAutomate(
-    'The built-in automate skill is creation-only. Do not use /automate to update existing automations. Editor checklist follows.',
-    { ignorePromptSlice: prompt },
-  );
+  const obsRefuse = observeExistingNoAutomate('The built-in automate skill is creation-only. Do not use /automate to update existing automations. Editor checklist follows.', { ignorePromptSlice: prompt });
   const cases = [
     ['pass', pass.contractHeld === true && pass.outcome === 'checklist_no_automate'],
     ['usedAuto', usedAuto.contractHeld === false && usedAuto.outcome === 'used_automate'],
@@ -863,9 +749,7 @@ if (isMain) {
   const preRule = await readFile(referenceRulePath, 'utf8');
   const preDigest = await sha256(referenceRulePath);
   if (preDigest !== LOCKED_FIXTURE_DIGEST) {
-    console.error(
-      `Reference rule digest ${preDigest} does not match the locked fixture ${LOCKED_FIXTURE_DIGEST}`,
-    );
+    console.error(`Reference rule digest ${preDigest} does not match the locked fixture ${LOCKED_FIXTURE_DIGEST}`);
     process.exit(1);
   }
   if (!(await pathExists(join(fixtureApp, forAgentsRel)))) {
@@ -890,10 +774,7 @@ if (isMain) {
     results.push(result);
     console.log(JSON.stringify(result));
   }
-  await writeFile(
-    join(evidenceRoot, 'capture-results.json'),
-    `${JSON.stringify({ scenario: 'setup-benny-existing-no-automate', fixtureDigest: preDigest, results }, null, 2)}\n`,
-  );
+  await writeFile(join(evidenceRoot, 'capture-results.json'), `${JSON.stringify({ scenario: 'setup-benny-existing-no-automate', fixtureDigest: preDigest, results }, null, 2)}\n`);
   console.log(
     JSON.stringify({
       scenario: 'setup-benny-existing-no-automate',

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { createHash } from 'node:crypto';
 // Captures journey family 02: re-run /setup-pstack on a mixed-role fixture, mutate
 // one role, assert unrelated roles and settings stay put, then probe model identity
 // on a follow-up turn. Real PTY both sides. Restores the locked reference rule.
@@ -6,7 +7,6 @@
 // Usage: node scripts/capture-setup-rerun.mjs [--cursor-only|--pi-only]
 // Evidence root: parity/evidence/setup-rerun/
 import { copyFile, mkdir, readFile, rename, writeFile } from 'node:fs/promises';
-import { createHash } from 'node:crypto';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 
@@ -28,8 +28,7 @@ const MUTATE_ROLE = 'feature, refactoring';
 const MUTATE_TO = 'auto';
 const KEEP_ROLE = 'bug-fix';
 const KEEP_VALUE = 'auto';
-const FOLLOWUP =
-  'Reply with exactly one line that starts with MODEL-ID-CHECK and then your model identifier. Do no other work.';
+const FOLLOWUP = 'Reply with exactly one line that starts with MODEL-ID-CHECK and then your model identifier. Do no other work.';
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -108,13 +107,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: join(root, 'fixtures', 'first-run'),
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -173,12 +166,7 @@ async function answerBudgetAndMutate(attempt, dir) {
     await sleep(800);
     // If a second panel appears, send the same instruction again via Other/free text.
     for (let panel = 2; panel <= 6; panel += 1) {
-      const wrote = await waitEither(
-        attempt,
-        GEOMETRY,
-        ['Edited pstack-models.mdc', '› [', ...chatFormNeedles],
-        120_000,
-      ).catch(() => null);
+      const wrote = await waitEither(attempt, GEOMETRY, ['Edited pstack-models.mdc', '› [', ...chatFormNeedles], 120_000).catch(() => null);
       await dumpScreen(attempt, dir, `0${panel}-panel`, GEOMETRY);
       if (wrote === 'Edited pstack-models.mdc') return { path: 'askquestion-wrote' };
       if (wrote === '› [') {
@@ -254,9 +242,7 @@ async function runSide(side, mixedBytes, mixedDigest, lockedBytes, settingsDiges
     await dumpScreen(attempt, dir, '03-after-write', GEOMETRY);
 
     // Decline verification offer if it appears.
-    const offer = await waitEither(attempt, GEOMETRY, ['verification skill', 'verification-skill', 'Add a follow-up', '›'], 60_000).catch(
-      () => null,
-    );
+    const offer = await waitEither(attempt, GEOMETRY, ['verification skill', 'verification-skill', 'Add a follow-up', '›'], 60_000).catch(() => null);
     if (offer && /verification/i.test(offer)) {
       attempt.input(Buffer.from('No\r'), 'literal_user');
       await sleep(1000);

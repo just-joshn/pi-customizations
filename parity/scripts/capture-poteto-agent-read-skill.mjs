@@ -30,10 +30,7 @@ const MARKER_LINE = 'HELLO';
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const stripAnsi = (text) =>
-  text
-    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
-    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
+const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '').replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '');
 
 function writeRootFor(side) {
   return join(evidenceRoot, 'fixture-out', side);
@@ -84,25 +81,11 @@ async function readMarker(side) {
 }
 
 function observeSpawnText(text) {
-  const potetoMode =
-    /\/poteto-mode\b/i.test(text) ||
-    /\[skill\]\s*poteto-mode/i.test(text) ||
-    /\bUsed poteto-mode\b/i.test(text) ||
-    /\bpoteto-mode\b/i.test(text);
-  const potetoAgent =
-    /\bpoteto-agent\b/i.test(text) ||
-    /subagent_type["']?\s*[:=]\s*["']?poteto-agent/i.test(text) ||
-    /agent_type["']?\s*[:=]\s*["']?poteto-agent/i.test(text);
-  const generalPurpose =
-    /\bgeneralPurpose\b/.test(text) ||
-    /\bgeneral-purpose\b/i.test(text) ||
-    /\bgeneral_purpose\b/i.test(text);
-  const taskSpawn =
-    (/\bTask\b/.test(text) || /\btask\b/.test(text) || /\bRunning subagent\b/i.test(text)) &&
-    (potetoAgent || /subagent/i.test(text));
-  const skillReadChrome =
-    /poteto-mode[/\\]SKILL\.md/i.test(text) ||
-    (/SKILL\.md/i.test(text) && /poteto-mode/i.test(text));
+  const potetoMode = /\/poteto-mode\b/i.test(text) || /\[skill\]\s*poteto-mode/i.test(text) || /\bUsed poteto-mode\b/i.test(text) || /\bpoteto-mode\b/i.test(text);
+  const potetoAgent = /\bpoteto-agent\b/i.test(text) || /subagent_type["']?\s*[:=]\s*["']?poteto-agent/i.test(text) || /agent_type["']?\s*[:=]\s*["']?poteto-agent/i.test(text);
+  const generalPurpose = /\bgeneralPurpose\b/.test(text) || /\bgeneral-purpose\b/i.test(text) || /\bgeneral_purpose\b/i.test(text);
+  const taskSpawn = (/\bTask\b/.test(text) || /\btask\b/.test(text) || /\bRunning subagent\b/i.test(text)) && (potetoAgent || /subagent/i.test(text));
+  const skillReadChrome = /poteto-mode[/\\]SKILL\.md/i.test(text) || (/SKILL\.md/i.test(text) && /poteto-mode/i.test(text));
   const principlesChrome = /Principles index|## Principles|\bPrinciples\b.*poteto/i.test(text);
   const working = /[\u2800-\u28FF]/.test(text) || /\bWorking\b/.test(text);
   return {
@@ -180,7 +163,7 @@ function scoreChildCalls(calls) {
   let firstOtherWorkAt = null;
   let skillPath = null;
   let skillLimit = null;
-  let principlesInPath = false;
+  let _principlesInPath = false;
   let substituted = false;
   let potetoSpawn = false;
 
@@ -196,31 +179,18 @@ function scoreChildCalls(calls) {
       if (isGeneralPurposeKind(kind)) substituted = true;
     }
 
-    const path =
-      args.path ||
-      args.file_path ||
-      args.filePath ||
-      args.target_file ||
-      args.file ||
-      (typeof args.command === 'string' && args.command.match(/(?:^|\s)(\S*poteto-mode\S*SKILL\.md)/i)?.[1]) ||
-      null;
+    const path = args.path || args.file_path || args.filePath || args.target_file || args.file || (typeof args.command === 'string' && args.command.match(/(?:^|\s)(\S*poteto-mode\S*SKILL\.md)/i)?.[1]) || null;
 
-    const isRead =
-      /^(Read|read|read_file|ReadFile|cat)$/i.test(name) ||
-      (name === 'bash' && typeof args.command === 'string' && /\bcat\b/.test(args.command) && /SKILL\.md/.test(args.command));
+    const isRead = /^(Read|read|read_file|ReadFile|cat)$/i.test(name) || (name === 'bash' && typeof args.command === 'string' && /\bcat\b/.test(args.command) && /SKILL\.md/.test(args.command));
 
-    const isWork =
-      /^(Write|write|Edit|edit|StrReplace|ApplyPatch|Bash|bash|Shell|shell|Delete|delete|TodoWrite|TaskCreate)$/i.test(
-        name,
-      ) ||
-      (name === 'bash' && typeof args.command === 'string' && !/SKILL\.md/.test(args.command));
+    const isWork = /^(Write|write|Edit|edit|StrReplace|ApplyPatch|Bash|bash|Shell|shell|Delete|delete|TodoWrite|TaskCreate)$/i.test(name) || (name === 'bash' && typeof args.command === 'string' && !/SKILL\.md/.test(args.command));
 
     if (isRead && isPotetoSkillPath(path || blob)) {
       if (!firstSkillReadAt) {
         firstSkillReadAt = call.ts || new Date().toISOString();
         skillPath = path || 'poteto-mode/SKILL.md';
         skillLimit = args.limit ?? args.end_line ?? args.endLine ?? null;
-        principlesInPath = true;
+        _principlesInPath = true;
       }
       continue;
     }
@@ -231,14 +201,8 @@ function scoreChildCalls(calls) {
     }
   }
 
-  const ordering = classifyOrdering(
-    firstSkillReadAt,
-    firstOtherWorkAt,
-    Boolean(firstSkillReadAt),
-    Boolean(firstOtherWorkAt),
-  );
-  const skillBeforeWork =
-    ordering === 'skill_before_work' || ordering === 'skill_only';
+  const ordering = classifyOrdering(firstSkillReadAt, firstOtherWorkAt, Boolean(firstSkillReadAt), Boolean(firstOtherWorkAt));
+  const skillBeforeWork = ordering === 'skill_before_work' || ordering === 'skill_only';
 
   return {
     toolOrder: toolOrder.slice(0, 40),
@@ -259,9 +223,7 @@ async function summarizeTranscriptFile(path) {
   const text = await readFile(path, 'utf8');
   const calls = extractToolCallsFromJsonl(text);
   const score = scoreChildCalls(calls);
-  const hasInlineSkill =
-    /poteto-mode[\s\S]{0,200}SKILL\.md/i.test(text) ||
-    /<manually_attached_skills>[\s\S]*Skill Name:\s*poteto-mode/i.test(text);
+  const hasInlineSkill = /poteto-mode[\s\S]{0,200}SKILL\.md/i.test(text) || /<manually_attached_skills>[\s\S]*Skill Name:\s*poteto-mode/i.test(text);
   const hasPrinciplesInline = /## Principles/.test(text) && /poteto-mode/i.test(text);
   return {
     path,
@@ -269,9 +231,7 @@ async function summarizeTranscriptFile(path) {
     hasInlineSkill,
     hasPrinciplesInline,
     ...score,
-    skillLoadedBeforeWork:
-      score.skillBeforeWork ||
-      (hasInlineSkill && hasPrinciplesInline && score.ordering !== 'work_before_skill'),
+    skillLoadedBeforeWork: score.skillBeforeWork || (hasInlineSkill && hasPrinciplesInline && score.ordering !== 'work_before_skill'),
   };
 }
 
@@ -329,11 +289,7 @@ async function summarizePiParentSession(sessionPath) {
   // Pi stores the parent jsonl next to a UUID dir: <ts>_<uuid>.jsonl and <uuid>/subagents/.
   const base = sessionPath.replace(/\.jsonl$/, '');
   const uuid = sessionPath.match(/_([0-9a-f-]{36})\.jsonl$/i)?.[1];
-  const candidates = [
-    join(dirname(sessionPath), 'subagents'),
-    uuid ? join(dirname(sessionPath), uuid, 'subagents') : null,
-    join(base, 'subagents'),
-  ].filter(Boolean);
+  const candidates = [join(dirname(sessionPath), 'subagents'), uuid ? join(dirname(sessionPath), uuid, 'subagents') : null, join(base, 'subagents')].filter(Boolean);
   for (const subDir of candidates) {
     if (!(await pathExists(subDir))) continue;
     const entries = await readdir(subDir);
@@ -390,8 +346,7 @@ async function findCursorChildTranscripts(sinceMs, markerAbs) {
           continue;
         }
         const mentionsMarker = text.includes(markerAbs) || text.includes('marker.txt');
-        const mentionsPoteto =
-          /poteto-agent/i.test(text) || /poteto-mode[/\\]SKILL\.md/i.test(text) || /HELLO/.test(text);
+        const mentionsPoteto = /poteto-agent/i.test(text) || /poteto-mode[/\\]SKILL\.md/i.test(text) || /HELLO/.test(text);
         if (mentionsMarker || (mentionsPoteto && /poteto-mode/i.test(text))) {
           hits.push({ path: abs, mtimeMs: st.mtimeMs, size: st.size });
         }
@@ -419,13 +374,7 @@ const cursorSpec = (fixtureDigest) =>
   spec({
     side: 'cursor',
     cwd: fixtureApp,
-    argv: [
-      localBin('cursor-agent'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'pstack'),
-      '--plugin-dir',
-      join(root, 'reference', 'cursor-plugins', 'cursor-team-kit'),
-    ],
+    argv: [localBin('cursor-agent'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'pstack'), '--plugin-dir', join(root, 'reference', 'cursor-plugins', 'cursor-team-kit')],
     env: { TERM: 'xterm-256color', HOME: process.env.HOME ?? '', PATH: process.env.PATH ?? '' },
     fixtureDigest,
     fixturePath: referenceRulePath,
@@ -509,12 +458,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
     await dumpScreen(attempt, dir, '02-submitted', GEOMETRY);
 
     try {
-      await waitEither(
-        attempt,
-        GEOMETRY,
-        ['poteto-agent', 'poteto-mode', 'Running subagent', 'Task', 'HELLO', 'SKILL.md', 'marker.txt'],
-        300_000,
-      );
+      await waitEither(attempt, GEOMETRY, ['poteto-agent', 'poteto-mode', 'Running subagent', 'Task', 'HELLO', 'SKILL.md', 'marker.txt'], 300_000);
     } catch {
       // settle may still land artifacts
     }
@@ -575,12 +519,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
         } catch {
           text = '';
         }
-        const wroteMarker =
-          text.includes(markerPath(side)) &&
-          (text.includes(`'${MARKER_LINE}'`) ||
-            text.includes(`"${MARKER_LINE}"`) ||
-            text.includes(`${MARKER_LINE}\\n`) ||
-            /printf ['"]HELLO/.test(text));
+        const wroteMarker = text.includes(markerPath(side)) && (text.includes(`'${MARKER_LINE}'`) || text.includes(`"${MARKER_LINE}"`) || text.includes(`${MARKER_LINE}\\n`) || /printf ['"]HELLO/.test(text));
         cursorChildren.push({ ...scored, wroteMarker });
       }
       bestChild =
@@ -596,21 +535,11 @@ async function runSide(side, ruleBytes, ruleDigest) {
     const done = await readDone(side);
     const screenFinal = observeSpawnText((await screenLines(attempt, GEOMETRY)).join('\n'));
 
-    const potetoAgentSpawned = Boolean(
-      firstSpawnAt ||
-        ptyObs.potetoAgent ||
-        screenFinal.potetoAgent ||
-        sessionSummary?.potetoTask ||
-        bestChild?.potetoSpawnInChild,
-    );
-    const generalPurposeSubstituted = Boolean(
-      sessionSummary?.generalPurposeTask && !sessionSummary?.potetoTask,
-    );
+    const potetoAgentSpawned = Boolean(firstSpawnAt || ptyObs.potetoAgent || screenFinal.potetoAgent || sessionSummary?.potetoTask || bestChild?.potetoSpawnInChild);
+    const generalPurposeSubstituted = Boolean(sessionSummary?.generalPurposeTask && !sessionSummary?.potetoTask);
     const unknownAgentType = Boolean(sessionSummary?.unknownAgent);
     const skillBeforeWork = Boolean(bestChild?.skillBeforeWork || bestChild?.skillLoadedBeforeWork);
-    const principlesCovered = Boolean(
-      bestChild?.principlesIndexCovered || bestChild?.hasPrinciplesInline,
-    );
+    const principlesCovered = Boolean(bestChild?.principlesIndexCovered || bestChild?.hasPrinciplesInline);
 
     let verdict = 'inconclusive';
     if (unknownAgentType || generalPurposeSubstituted) {
@@ -642,12 +571,7 @@ async function runSide(side, ruleBytes, ruleDigest) {
       skillBeforeWork,
       principlesCovered,
       verdict,
-      passShaped:
-        potetoAgentSpawned &&
-        !generalPurposeSubstituted &&
-        !unknownAgentType &&
-        skillBeforeWork &&
-        principlesCovered,
+      passShaped: potetoAgentSpawned && !generalPurposeSubstituted && !unknownAgentType && skillBeforeWork && principlesCovered,
       session: sessionSummary,
       cursorChildren: cursorChildren.map((c) => ({
         path: c.path,

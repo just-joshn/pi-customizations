@@ -6,7 +6,6 @@ test.for([
   { code: 'still_stopping', name: 'AgentStillStoppingError' },
   { code: 'transient', name: 'AgentResumeTransientError' },
   { code: 'permanent', name: 'AgentResumePermanentlyRefusedError' },
-  // biome-ignore lint/security/noSecrets: fixture name from the module under test, not a credential
   { code: 'user_stopped', name: 'AgentStoppedByUserError' },
   { code: 'state', name: 'ResumeAgentStateError' },
 ] as const)('$code ResumeError carries the documented name and code', ({ code, name }) => {

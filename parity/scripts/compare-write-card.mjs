@@ -9,7 +9,10 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 
 const strip = (line) => line.replace(/\u001b\[[0-9;?]*[A-Za-z]/g, '').replace(/\u001b\]8;;\u0007/g, '');
-const gutter = (line) => strip(line).replace(/[┃│]\s*$/, '').replace(/\s+$/, '');
+const gutter = (line) =>
+  strip(line)
+    .replace(/[┃│]\s*$/, '')
+    .replace(/\s+$/, '');
 
 function writeCardFindings(lines) {
   const findings = [];
