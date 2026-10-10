@@ -148,10 +148,10 @@ The flag adapters share the following gate answers. The table above identifies t
 ## Architect editor prompt-cache headers
 
 1. **Behavior.** Aider sets `cache_prompts=False` and `num_cache_warming_pings=0` on the editor coder (`aider/coders/architect_coder.py:30-31`).
-2. **Mechanism evaluated.** `cache_warming_decision` (idle warming) and provider request options.
+2. **Mechanism evaluated.** `cache_warming_decision` (idle warming) and provider request options on the physical model request.
 3. **Why it cannot.** Pi 1.1.0 exposes idle cache-warming decisions, not a general per-request prompt-cache header setter for an in-run editor continuation.
-4. **Why not omit.** Editor options parity includes disabling prompt caching and cache warming.
-5. **Adapter.** `cache_warming_decision` returns `{ action: 'stop' }` while `snapshot.phase.kind === 'editor'`. Exact provider cache-header parity is not claimed.
-6. **Authoritative Pi state.** Pi owns warming timers and provider cache policy.
-7. **Verification.** Hook registration is covered by typecheck against `ExtensionAPI.on("cache_warming_decision")`. Provider header byte identity remains unsupported.
-8. **Delete when.** Pi offers a request-local cache-options control that editor frames can set.
+4. **Why not omit.** Ledger row `edit.architect.editor-options` includes disabling prompt caching and cache warming. File context, shell-off, warming stop, and no format-change summarizer are expressible; prompt-cache header off is not.
+5. **Adapter.** `cache_warming_decision` returns `{ action: 'stop' }` while `snapshot.phase.kind === 'editor'` via `cacheWarmingDecisionForPhase`. No provider cache headers are invented.
+6. **Authoritative Pi state.** Pi owns warming timers and provider cache policy. Compaction owns summarization; the editor frame adds no format-change summarizer.
+7. **Verification.** `test/core/modes.pi.test.ts` proves editor file context, `suggestShellCommands: false`, mid-editor warming stop, and zero `session_before_compact` / compaction entries on the architect→editor path. Residual for verified status: per-request prompt-cache header byte identity remains unsupported.
+8. **Delete when.** Pi offers a request-local cache-options control that editor frames can set, or the ledger sentence drops the prompt-caching claim.

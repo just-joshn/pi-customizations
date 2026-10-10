@@ -1,12 +1,14 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
+import { getCurrentSystemPrompt } from '@earendil-works/pi-ai';
+import type { AgentSession } from '@earendil-works/pi-coding-agent';
 import { expect, test } from 'vitest';
 import { restore } from '../../src/core/branch.ts';
-import { installMaintainer } from '../../src/core/install.ts';
+import { cacheWarmingDecisionForPhase, installMaintainer } from '../../src/core/install.ts';
 import { editFeature } from '../../src/edit/feature.ts';
 import { contextPrompts } from '../../src/edit/prompts/context.ts';
-import type { GitPolicy } from '../../src/feature.ts';
+import type { GitPolicy, RepositoryContext } from '../../src/feature.ts';
 import { maintainerExtension, testPrompts, textOf } from '../support/maintainer.ts';
 import { piSessionFixture, promptAndSettle, scriptedModel } from '../support/pi-session.ts';
 
@@ -119,5 +121,74 @@ test('architect editor request routes to the configured editor model', {
   await promptAndSettle(session, 'architect with editor model');
   expect(await readFile(join(f.cwd, 'hello.txt'), 'utf8')).toBe('done\n');
   expect(f.routedModels).toEqual(['scripted', 'editor-scripted']);
+  expect(f.errors).toEqual([]);
+});
+
+test('architect editor frame keeps file context and disables shell, warming, and format-change summarization', async () => {
+  const promptCalls: Array<{ format: string; suggestShellCommands: boolean }> = [];
+  let compactCalls = 0;
+  let session!: AgentSession;
+  const map: RepositoryContext = { repoMap: async () => 'REPO MAP TEXT' };
+  const f = await piSessionFixture({
+    config: 'edit-format: architect\nauto-accept-architect: true\neditor-edit-format: editor-whole\nfile: [hello.txt]\nyes-always: true\nsuggest-shell-commands: true\n',
+    after: [
+      (pi) => {
+        pi.on('session_before_compact', () => {
+          compactCalls += 1;
+          return undefined;
+        });
+      },
+    ],
+    extension: (pi) =>
+      installMaintainer(pi, [editFeature, { name: 'map', options: [], commands: [], create: () => map }], {
+        promptSource: {
+          get: async (format, variables) => {
+            promptCalls.push({ format, suggestShellCommands: variables.suggestShellCommands });
+            return {
+              ...(await testPrompts.get(format, variables)),
+              mainSystem: variables.suggestShellCommands ? 'MAIN SHELL_ON' : 'MAIN SHELL_OFF',
+            };
+          },
+        },
+        home: () => '/nonexistent-maintainer-home',
+        processEnvironment: () => ({}),
+      }),
+  });
+  await writeFile(join(f.cwd, 'hello.txt'), 'before\n');
+  f.replies.push(
+    { text: 'Update hello.txt to say after.' },
+    {
+      text: 'hello.txt\n```\nafter\n```\n',
+      wait: async () => {
+        const phase = restore(session.sessionManager.getBranch()).snapshot?.phase;
+        expect(phase?.kind).toBe('editor');
+        expect(cacheWarmingDecisionForPhase(phase?.kind)).toEqual({ action: 'stop' });
+      },
+    },
+  );
+  session = await f.open();
+  await promptAndSettle(session, 'please edit');
+  expect(await readFile(join(f.cwd, 'hello.txt'), 'utf8')).toBe('after\n');
+  expect(f.requests).toHaveLength(2);
+  const architectTexts = f.requests[0]?.messages.map(textOf).join('\n') ?? '';
+  const editorTexts = f.requests[1]?.messages.map(textOf).join('\n') ?? '';
+  const architectSystem = getCurrentSystemPrompt(f.requests[0]?.messages ?? []) ?? '';
+  const editorSystem = getCurrentSystemPrompt(f.requests[1]?.messages ?? []) ?? '';
+  expect(architectTexts).toContain('REPO MAP TEXT');
+  expect(architectSystem).toContain('MAIN SHELL_ON');
+  expect(editorTexts).toContain('EDITABLE\nhello.txt\n```\nbefore\n```\n');
+  expect(editorSystem).toContain('MAIN SHELL_OFF');
+  expect(editorTexts).not.toContain('REPO MAP TEXT');
+  expect(editorSystem).not.toContain('MAIN SHELL_ON');
+  expect(editorTexts).not.toContain('please edit');
+  expect(promptCalls).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({ format: 'architect', suggestShellCommands: true }),
+      expect.objectContaining({ format: 'editor-whole', suggestShellCommands: false }),
+    ]),
+  );
+  expect(cacheWarmingDecisionForPhase('main')).toBeUndefined();
+  expect(compactCalls).toBe(0);
+  expect(session.sessionManager.getBranch().some((entry) => entry.type === 'compaction')).toBe(false);
   expect(f.errors).toEqual([]);
 });

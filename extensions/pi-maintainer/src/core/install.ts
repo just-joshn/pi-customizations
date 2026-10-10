@@ -22,6 +22,11 @@ export interface MaintainerOptions {
   readonly processEnvironment?: () => Readonly<Record<string, string | undefined>>;
 }
 
+/** Idle cache warming for an architect editor frame. Provider cache headers stay unsupported. */
+export function cacheWarmingDecisionForPhase(phaseKind: Snapshot['phase']['kind'] | undefined): { action: 'stop' } | undefined {
+  return phaseKind === 'editor' ? { action: 'stop' } : undefined;
+}
+
 const missingPromptSource: PromptSource = {
   get() {
     throw new Error('Maintainer PromptSource is not configured. E7 prompt formatting must be wired before using the default extension.');
@@ -133,10 +138,7 @@ export function installMaintainer(pi: ExtensionAPI, features: readonly SarFeatur
     runtime.current(ctx).reconcile(event.aborted);
   });
   pi.on('tool_call', () => ({ block: true, reason: 'Maintainer coders use reply-text edits, not model tools.', terminate: true }));
-  pi.on('cache_warming_decision', (_event, ctx) => {
-    if (restore(ctx.sessionManager.getBranch()).snapshot?.phase.kind === 'editor') return { action: 'stop' as const };
-    return undefined;
-  });
+  pi.on('cache_warming_decision', (_event, ctx) => cacheWarmingDecisionForPhase(restore(ctx.sessionManager.getBranch()).snapshot?.phase.kind));
   for (const feature of features)
     for (const command of feature.commands)
       pi.registerCommand(command.name, {
