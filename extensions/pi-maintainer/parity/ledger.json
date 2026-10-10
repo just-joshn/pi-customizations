@@ -2919,10 +2919,19 @@
         "aider/coders/base_coder.py:2153-2173"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('context_with_system')"
+      ],
+      "src": [
+        "src/core/chat-files.ts",
+        "src/core/exchange.ts",
+        "src/core/repo-map.ts"
+      ],
+      "tests": [
+        "test/core/context-bind.test.ts::inventory uses tracked files when the git port reports a repository",
+        "test/core/context-bind.test.ts::inventory falls back to chat files without walking the workspace"
+      ]
     },
     {
       "id": "edit.context.map-request",
@@ -2932,10 +2941,17 @@
         "aider/coders/base_coder.py:672-747"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('context_with_system')"
+      ],
+      "src": [
+        "src/core/repo-map.ts",
+        "src/core/exchange.ts"
+      ],
+      "tests": [
+        "test/core/context-bind.test.ts::repo map request seeds chat files, hints, and retries with fewer constraints"
+      ]
     },
     {
       "id": "edit.context.map-summary",
@@ -2946,10 +2962,17 @@
         "aider/coders/base_prompts.py:45-48"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('context_with_system')"
+      ],
+      "src": [
+        "src/core/context.ts",
+        "src/core/exchange.ts"
+      ],
+      "tests": [
+        "test/core/context.pi.test.ts::repository port text occupies the native provider repository chunk"
+      ]
     },
     {
       "id": "edit.context.map-policy",
@@ -2961,10 +2984,22 @@
         "aider/coders/architect_coder.py:27-32"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('context_with_system')",
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/core/exchange.ts",
+        "src/core/repo-map.ts",
+        "src/edit/modes.ts"
+      ],
+      "tests": [
+        "test/core/context-bind.test.ts::context mode expands map refresh and budget policy on every attempt",
+        "test/core/context-bind.test.ts::disabled map policy never calls the repository-context port",
+        "test/core/context.pi.test.ts::context mode expands repository-map refresh and budget on the map port",
+        "test/core/modes.pi.test.ts::architect editor frame keeps file context and disables shell, warming, and format-change summarization"
+      ]
     },
     {
       "id": "edit.context.fresh-files",
@@ -2975,10 +3010,23 @@
         "aider/coders/base_prompts.py:24-30"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('context_with_system')"
+      ],
+      "src": [
+        "src/core/context.ts",
+        "src/core/exchange.ts",
+        "src/core/repo-map.ts",
+        "src/core/chat-files.ts"
+      ],
+      "tests": [
+        "test/core/context.pi.test.ts::fresh file content occupies the completed/current boundary",
+        "test/core/context.pi.test.ts::failed reads drop editable paths but retain read-only paths",
+        "test/edit/prompts.test.ts::the chat files message lists each file above its fenced content",
+        "test/working-tree.test.ts::invalid UTF-8 bytes produce the encoding hint",
+        "test/working-tree.test.ts::reads UTF-16LE bytes when that codec is configured"
+      ]
     },
     {
       "id": "edit.context.read-only-files",
@@ -2989,10 +3037,18 @@
         "aider/coders/base_prompts.py:50-52"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('context_with_system')"
+      ],
+      "src": [
+        "src/core/context.ts",
+        "src/core/exchange.ts"
+      ],
+      "tests": [
+        "test/core/context.pi.test.ts::read-only files are reference text and stay outside the editable set",
+        "test/core/context.pi.test.ts::repository port text occupies the native provider repository chunk"
+      ]
     },
     {
       "id": "edit.lifecycle.git-port",

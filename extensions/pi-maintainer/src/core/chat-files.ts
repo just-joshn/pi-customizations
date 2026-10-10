@@ -41,6 +41,13 @@ export function getRelFname(root: string, fname: string): string {
 /** `Coder.get_inchat_relative_files`: sorted unique relative paths of the editable files. */
 export const inchatRelativeFiles = (root: string, files: ChatFiles): string[] => pythonSorted(new Set([...files.editable].map((file) => getRelFname(root, file))));
 
+/** `Coder.get_all_relative_files`: tracked inventory when Git is enabled, otherwise chat files only. */
+export async function allRelativeFiles(root: string, files: ChatFiles, git: { trackedFiles(): Promise<readonly string[] | null> }): Promise<string[]> {
+  const tracked = await git.trackedFiles();
+  if (tracked !== null) return pythonSorted(new Set(tracked));
+  return inchatRelativeFiles(root, files);
+}
+
 /** `utils.find_common_root`. */
 export function findCommonRoot(absFnames: readonly string[], cwd: string): string {
   const [only] = absFnames;

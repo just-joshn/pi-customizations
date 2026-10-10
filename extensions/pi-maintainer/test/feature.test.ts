@@ -64,7 +64,7 @@ test('disabled ports report disabled rather than success', async () => {
   expect(await disabledGitPolicy.trackedFiles()).toBe(null);
   expect(await disabledGitPolicy.autoCommit(new Set(['a.py']), { kind: 'linter' })).toEqual({ kind: 'disabled' });
   expect(await disabledGitPolicy.dirtyCommit(new Set(['a.py']))).toEqual({ kind: 'disabled' });
-  expect(await disabledRepositoryContext.repoMap({ editable: new Set(), readOnly: new Set(), curMessageText: '' })).toBe(null);
+  expect(await disabledRepositoryContext.repoMap({ chatFiles: new Set(), otherFiles: new Set(), mentionedFnames: new Set(), mentionedIdents: new Set() })).toBe(null);
   expect(await disabledValidation.lintEdited(new Set(['a.py']))).toEqual({ kind: 'disabled' });
   expect(await disabledValidation.testEdited()).toEqual({ kind: 'disabled' });
 });

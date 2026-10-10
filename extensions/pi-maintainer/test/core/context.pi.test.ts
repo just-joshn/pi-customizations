@@ -7,6 +7,7 @@ import { expect, test } from 'vitest';
 import { restore } from '../../src/core/branch.ts';
 import { installMaintainer } from '../../src/core/install.ts';
 import { editFeature } from '../../src/edit/feature.ts';
+import type { MapRequest } from '../../src/feature.ts';
 import { maintainerExtension, testPrompts, textOf } from '../support/maintainer.ts';
 import { oracleCases } from '../support/oracle.ts';
 import { piSessionFixture, promptAndSettle } from '../support/pi-session.ts';
@@ -51,7 +52,9 @@ test('repository port text occupies the native provider repository chunk', async
             name: 'map',
             options: [],
             commands: [],
-            create: () => ({ repoMap: async (request) => `REPO for ${request.curMessageText}` }),
+            create: () => ({
+              repoMap: async (request) => `REPO for ${[...request.mentionedIdents].sort().join(' ')}\n`,
+            }),
           },
         ],
         { promptSource: testPrompts, home: () => '/nonexistent', processEnvironment: () => ({}) },
@@ -113,6 +116,57 @@ test('earlier boundary entries survive a malformed reflection', async () => {
   expect(f.errors).toEqual([]);
 });
 
+test('read-only files are reference text and stay outside the editable set', async () => {
+  const f = await piSessionFixture({ extension, config: 'file: [edit.txt]\nread: [reference.txt]\n' });
+  await writeFile(join(f.cwd, 'edit.txt'), 'editable\n');
+  await writeFile(join(f.cwd, 'reference.txt'), 'reference\n');
+  f.replies.push({ text: '' });
+  const session = await f.open();
+  await promptAndSettle(session, 'use the reference');
+  const texts = f.requests[0]?.messages.map(textOf) ?? [];
+  expect(texts).toContain('READ ONLY\nreference.txt\n```\nreference\n```\n');
+  expect(texts.filter((text) => text.startsWith('EDITABLE')).join('\n')).not.toContain('reference.txt');
+  expect(restore(session.sessionManager.getBranch()).snapshot?.files).toEqual({
+    editable: [join(f.cwd, 'edit.txt')],
+    readOnly: [join(f.cwd, 'reference.txt')],
+  });
+  expect(f.errors).toEqual([]);
+});
+
+test('context mode expands repository-map refresh and budget on the map port', async () => {
+  const calls: MapRequest[] = [];
+  const f = await piSessionFixture({
+    config: 'edit-format: context\nfile: [alpha.txt]\n',
+    extension: (pi) =>
+      installMaintainer(
+        pi,
+        [
+          editFeature,
+          {
+            name: 'map',
+            options: [],
+            commands: [],
+            create: () => ({
+              repoMap: async (request) => {
+                calls.push(request);
+                return 'CONTEXT MAP';
+              },
+            }),
+          },
+        ],
+        { promptSource: testPrompts, home: () => '/nonexistent', processEnvironment: () => ({}) },
+      ),
+  });
+  await writeFile(join(f.cwd, 'alpha.txt'), 'alpha\n');
+  f.replies.push({ text: 'alpha.txt is enough.\n' });
+  const session = await f.open();
+  await promptAndSettle(session, 'which files?');
+  expect(calls.length).toBeGreaterThan(0);
+  expect(calls[0]).toMatchObject({ refresh: 'always', expandNoFilesBudget: true, forceRefresh: true });
+  expect(f.requests[0]?.messages.map(textOf)).toContain('CONTEXT MAP');
+  expect(f.errors).toEqual([]);
+});
+
 test('fresh file content occupies the completed/current boundary', async () => {
   const f = await piSessionFixture({ extension, config: 'file: [edit.txt]\n' });
   await writeFile(join(f.cwd, 'edit.txt'), 'before\n');
@@ -128,7 +182,9 @@ test('fresh file content occupies the completed/current boundary', async () => {
   expect(f.errors).toEqual([]);
 });
 
-test('failed reads drop editable paths but retain read-only paths', async () => {
+test('failed reads drop editable paths but retain read-only paths', {
+  meta: { aider: ['test_coder/TestCoder.test_run_with_file_deletion'] },
+}, async () => {
   const f = await piSessionFixture({ extension, config: 'file: [edit.txt]\nread: [reference.txt]\n' });
   await writeFile(join(f.cwd, 'edit.txt'), 'before');
   await writeFile(join(f.cwd, 'reference.txt'), 'reference');

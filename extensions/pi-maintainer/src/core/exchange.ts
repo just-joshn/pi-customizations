@@ -5,13 +5,14 @@ import { contextPrompts } from '../edit/prompts/context.ts';
 import type { EditCandidate, EditContext, EditIntent, EditPlan, PathEdit, Ports } from '../feature.ts';
 import { pythonSorted } from '../support/python-sort.ts';
 import { chatFilesOf, type Snapshot } from './branch.ts';
-import { absRootPath, getRelFname, inchatRelativeFiles } from './chat-files.ts';
+import { absRootPath, allRelativeFiles, getRelFname, inchatRelativeFiles } from './chat-files.ts';
 import { ConfirmGroup } from './confirm.ts';
 import { getCurMessageText, partitionHistory, projectRequest, type RequestView } from './context.ts';
 import type { Host } from './host.ts';
 import { getFileMentions } from './mentions.ts';
 import { journaledTree } from './mutations.ts';
 import type { PromptPolicy, PromptSet, PromptSource } from './prompts.ts';
+import { requestRepoMap } from './repo-map.ts';
 
 export type CompletedReply = { readonly kind: 'complete'; readonly id: string; readonly text: string } | { readonly kind: 'incomplete'; readonly id: string; readonly reason: string };
 export interface DialogueFact {
@@ -68,7 +69,21 @@ export class ExchangeController {
       this.#state.historyThrough,
     );
     const curMessageText = getCurMessageText(history.current);
-    const repository = editor ? null : await this.#env.ports.map.repoMap({ editable: files.editable, readOnly: files.readOnly, curMessageText }, view.signal);
+    const contextMode = this.#state.mode === 'context';
+    const repository = await requestRepoMap({
+      root: this.#state.root,
+      files,
+      git: this.#env.ports.git,
+      map: this.#env.ports.map,
+      curMessageText,
+      policy: {
+        disabled: editor,
+        forceRefresh: contextMode,
+        refresh: contextMode ? 'always' : 'auto',
+        expandNoFilesBudget: contextMode,
+      },
+      signal: view.signal,
+    });
     const result = await projectRequest({
       snapshot: this.#state,
       view,
@@ -169,9 +184,10 @@ export class ExchangeController {
     this.#env.append({ schema: 1, kind: 'reply-finished', reply: reply.id });
     if (!reply.text.trim()) return { dialogue: [], continue: false };
     signal?.throwIfAborted();
-    const inchat = inchatRelativeFiles(this.#state.root, chatFilesOf(this.#state));
+    const chatFiles = chatFilesOf(this.#state);
+    const inchat = inchatRelativeFiles(this.#state.root, chatFiles);
     const current = new Set(inchat);
-    const all = (await this.#env.ports.git.trackedFiles()) ?? inchat;
+    const all = await allRelativeFiles(this.#state.root, chatFiles, this.#env.ports.git);
     const mentioned = getFileMentions({ content: reply.text, inchat, readOnly: this.#state.files.readOnly.map((path) => getRelFname(this.#state.root, path)), addable: all, ignoreCurrent: true });
     const mentionedRel = [...mentioned];
     if (mentionedRel.length === current.size && mentionedRel.every((path) => current.has(path))) return { dialogue: [], continue: false };
@@ -250,9 +266,10 @@ export class ExchangeController {
   }
 
   async checkForFileMentions(content: string, signal?: AbortSignal): Promise<string | null> {
-    const inchat = inchatRelativeFiles(this.#state.root, chatFilesOf(this.#state));
+    const chatFiles = chatFilesOf(this.#state);
+    const inchat = inchatRelativeFiles(this.#state.root, chatFiles);
     const readOnly = this.#state.files.readOnly.map((path) => getRelFname(this.#state.root, path));
-    const all = (await this.#env.ports.git.trackedFiles()) ?? inchat;
+    const all = await allRelativeFiles(this.#state.root, chatFiles, this.#env.ports.git);
     const excluded = new Set([...inchat, ...readOnly]);
     const mentioned = getFileMentions({ content, inchat, readOnly, addable: all.filter((path) => !excluded.has(path)), ignoreCurrent: false });
     const fresh = pythonSorted(mentioned).filter((path) => !this.#state.ignoredMentions.includes(path));

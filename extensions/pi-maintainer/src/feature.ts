@@ -165,10 +165,15 @@ export interface GitPolicy {
   autoCommit(paths: ReadonlySet<string | null>, context: CommitContext, signal?: AbortSignal): Promise<CommitResult>;
 }
 
+/** One attempt at `Coder.get_repo_map` → `RepoMap.get_repo_map`. Absolute paths for file sets. */
 export interface MapRequest {
-  readonly editable: ReadonlySet<string>;
-  readonly readOnly: ReadonlySet<string>;
-  readonly curMessageText: string;
+  readonly chatFiles: ReadonlySet<string>;
+  readonly otherFiles: ReadonlySet<string>;
+  readonly mentionedFnames: ReadonlySet<string>;
+  readonly mentionedIdents: ReadonlySet<string>;
+  readonly forceRefresh?: boolean;
+  readonly refresh?: 'auto' | 'files' | 'always';
+  readonly expandNoFilesBudget?: boolean;
 }
 
 /** The repository-map parts of the coder hub (`aider/repomap.py`, `get_repo_map`). */
