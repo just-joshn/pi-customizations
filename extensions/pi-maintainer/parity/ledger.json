@@ -3680,10 +3680,23 @@
         "aider/coders/base_coder.py:1714-1759"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')",
+        "pi.registerVirtualModel"
+      ],
+      "src": [
+        "src/core/mentions.ts",
+        "src/core/exchange.ts"
+      ],
+      "tests": [
+        "test/core/mentions-bind.test.ts::getFileMentions extracts plain, backtick, fence, quote, bold, and Windows-slash paths",
+        "test/core/mentions-bind.test.ts::getFileMentions keeps multiline backtick paths",
+        "test/core/mentions-bind.test.ts::getFileMentions skips ambiguous basenames and basenames already in chat",
+        "test/core/mentions-bind.test.ts::checkForFileMentions prefers the exact shorter path when basenames collide",
+        "test/core/mentions-bind.test.ts::checkForFileMentions admits a nested backtick path",
+        "test/core/mentions-bind.test.ts::checkForFileMentions skips read-only inventory without prompting"
+      ]
     },
     {
       "id": "edit.mentions.confirm-and-remember",
@@ -3693,10 +3706,22 @@
         "aider/coders/base_coder.py:1761-1781"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('turn_end')",
+        "pi.registerVirtualModel"
+      ],
+      "src": [
+        "src/core/mentions.ts",
+        "src/core/exchange.ts"
+      ],
+      "tests": [
+        "test/core/mentions-bind.test.ts::checkForFileMentions offers paths in sorted order, admits approvals, and remembers declines",
+        "test/core/mentions-bind.test.ts::checkForFileMentions prefers the exact shorter path when basenames collide",
+        "test/core/mentions-bind.test.ts::checkForFileMentions admits a nested backtick path",
+        "test/core/mentions.pi.test.ts::assistant mentions reflect before applying the proposed edit",
+        "test/core/mentions.pi.test.ts::denied mentions persist on the active branch across reload"
+      ]
     },
     {
       "id": "edit.shell.suggestion-setting",
