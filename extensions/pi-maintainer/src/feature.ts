@@ -178,6 +178,8 @@ export interface GitPolicy {
   isIgnored(path: string): Promise<boolean>;
   /** Stages a file the edit created, when automatic commits are on. */
   stageNewFile(absPath: string): Promise<void>;
+  /** `GitRepo.is_dirty`: pathless excludes untracked; a path absent from inventory is dirty. */
+  isDirty(path?: string, signal?: AbortSignal): Promise<boolean>;
   /** `check_for_dirty_commit`'s test: dirty commits are on and the path has uncommitted changes. */
   needsDirtyCommit(path: string): Promise<boolean>;
   dirtyCommit(paths: ReadonlySet<string>, signal?: AbortSignal): Promise<CheckpointResult>;
@@ -223,6 +225,7 @@ export const disabledGitPolicy: GitPolicy = {
   isGitIgnored: async () => false,
   isIgnored: async () => false,
   stageNewFile: async () => {},
+  isDirty: async () => false,
   needsDirtyCommit: async () => false,
   dirtyCommit: async () => ({ kind: 'disabled' }),
   autoCommit: async () => ({ kind: 'disabled' }),

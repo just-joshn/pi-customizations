@@ -4890,10 +4890,20 @@
         "aider/repo.py:598-602"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "Host.exec"
+      ],
+      "src": [
+        "src/git/feature.ts",
+        "src/git/policy.ts",
+        "src/git/options.ts",
+        "src/index.ts",
+        "src/git/cli.ts"
+      ],
+      "tests": [
+        "test/git/commit-wave-bind.test.ts::pathless isDirty ignores untracked files while a missing inventory path is dirty"
+      ]
     },
     {
       "id": "git.commit.auto-after-edit",
@@ -4903,10 +4913,20 @@
         "aider/coders/base_coder.py:2295-2424"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "Host.exec"
+      ],
+      "src": [
+        "src/git/feature.ts",
+        "src/git/policy.ts",
+        "src/git/options.ts",
+        "src/index.ts",
+        "src/core/exchange.ts"
+      ],
+      "tests": [
+        "test/git/commit-wave-bind.test.ts::after applying edits the exchange auto-commits written files before lint follow-up"
+      ]
     },
     {
       "id": "git.commit.noop-when-clean",
@@ -4916,10 +4936,20 @@
         "aider/repo.py:280-315"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "Host.exec"
+      ],
+      "src": [
+        "src/git/feature.ts",
+        "src/git/policy.ts",
+        "src/git/options.ts",
+        "src/index.ts",
+        "src/git/cli.ts"
+      ],
+      "tests": [
+        "test/git/commit-wave-bind.test.ts::autoCommit is a noop without a model call when the selection is empty or the diff is empty"
+      ]
     },
     {
       "id": "git.commit.verify-flag",
@@ -4929,10 +4959,20 @@
         "aider/repo.py:280-318"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "Host.exec"
+      ],
+      "src": [
+        "src/git/feature.ts",
+        "src/git/policy.ts",
+        "src/git/options.ts",
+        "src/index.ts",
+        "src/git/cli.ts"
+      ],
+      "tests": [
+        "test/git/commit-wave-bind.test.ts::git-commit-verify off passes --no-verify so a failing pre-commit hook does not block"
+      ]
     },
     {
       "id": "git.commit.attribution",
@@ -4943,10 +4983,21 @@
         "aider/args.py:240-280"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "Host.exec"
+      ],
+      "src": [
+        "src/git/feature.ts",
+        "src/git/policy.ts",
+        "src/git/options.ts",
+        "src/index.ts",
+        "src/branding.ts",
+        "src/git/cli.ts"
+      ],
+      "tests": [
+        "test/git/commit-wave-bind.test.ts::assistant commits apply co-authored-by and optional name attribution from CLI defaults"
+      ]
     },
     {
       "id": "git.commit.message-language",
@@ -4957,10 +5008,20 @@
         "aider/args.py:400-450"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "Host.exec"
+      ],
+      "src": [
+        "src/git/feature.ts",
+        "src/git/policy.ts",
+        "src/git/options.ts",
+        "src/index.ts",
+        "src/git/commit-message.ts"
+      ],
+      "tests": [
+        "test/git/commit-wave-bind.test.ts::commit-message generation respects the configured commit language"
+      ]
     },
     {
       "id": "git.commit.selected-files-only",
@@ -4971,10 +5032,21 @@
         "aider/coders/base_coder.py:2375-2424"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "Host.exec"
+      ],
+      "src": [
+        "src/git/feature.ts",
+        "src/git/policy.ts",
+        "src/git/options.ts",
+        "src/index.ts",
+        "src/git/cli.ts"
+      ],
+      "tests": [
+        "test/git/commit-wave-bind.test.ts::a selected-file commit leaves unrelated staged and dirty files untouched",
+        "test/git/commit-bind.test.ts::a commit stages and commits the whole content of named files"
+      ]
     },
     {
       "id": "git.diff.for-commit-message",
@@ -5098,10 +5170,19 @@
         "aider/main.py:460-520"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.registerFlag"
+      ],
+      "src": [
+        "src/git/options.ts",
+        "src/git/feature.ts",
+        "src/settings/load.ts",
+        "src/settings/resolve.ts"
+      ],
+      "tests": [
+        "test/git/commit-wave-bind.test.ts::CLI env and YAML merge form the effective auto dirty and git option policy"
+      ]
     },
     {
       "id": "git.config.gitignore-offer",
@@ -5212,10 +5293,20 @@
         "aider/main.py:1065-1069"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "Host.exec"
+      ],
+      "src": [
+        "src/git/feature.ts",
+        "src/git/policy.ts",
+        "src/git/options.ts",
+        "src/index.ts",
+        "src/core/exchange.ts"
+      ],
+      "tests": [
+        "test/git/commit-wave-bind.test.ts::dry-run skips auto-commit and dirty checkpoints"
+      ]
     },
     {
       "id": "git.security.path-trust",
@@ -5239,10 +5330,21 @@
         "aider/repo.py:280-318"
       ],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "Host.exec"
+      ],
+      "src": [
+        "src/git/feature.ts",
+        "src/git/policy.ts",
+        "src/git/options.ts",
+        "src/index.ts",
+        "src/git/cli.ts"
+      ],
+      "tests": [
+        "test/git/commit-wave-bind.test.ts::pre-commit hooks remain a trust boundary when verify is on",
+        "test/git/commit-wave-bind.test.ts::git-commit-verify off passes --no-verify so a failing pre-commit hook does not block"
+      ]
     },
     {
       "id": "git.worktree.linked-and-index",

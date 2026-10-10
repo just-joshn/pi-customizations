@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { isAbsolute, join, resolve } from 'node:path';
 
 import ignoreImport, { type Ignore } from 'ignore';
+import { BRANDING, coAuthoredBy } from '../branding.ts';
 import type { Host } from '../core/host.ts';
 import type { CommitContext, CommitResult, GitPolicy } from '../feature.ts';
 import { findGitRoot } from '../settings/config-files.ts';
@@ -79,6 +80,7 @@ export function createGitPolicy(options: CreateGitPolicyOptions): GitPolicy {
       isGitIgnored: async () => false,
       isIgnored: async () => false,
       stageNewFile: async () => {},
+      isDirty: async () => false,
       needsDirtyCommit: async () => false,
       dirtyCommit: async () => ({ kind: 'disabled' }),
       autoCommit: async () => ({ kind: 'disabled' }),
@@ -127,9 +129,13 @@ export function createGitPolicy(options: CreateGitPolicyOptions): GitPolicy {
     return files;
   }
 
-  async function isDirty(path: string, signal?: AbortSignal): Promise<boolean> {
-    if (!(await pathInRepo(path, signal))) return true;
-    const status = await git(['status', '--porcelain', '--', normalize(path)], signal);
+  async function isDirty(path?: string, signal?: AbortSignal): Promise<boolean> {
+    if (path !== undefined) {
+      if (!(await pathInRepo(path, signal))) return true;
+      const status = await git(['status', '--porcelain', '--', normalize(path)], signal);
+      return status.code === 0 && status.stdout.trim().length > 0;
+    }
+    const status = await git(['status', '--porcelain', '--untracked-files=no'], signal);
     return status.code === 0 && status.stdout.trim().length > 0;
   }
 
@@ -174,10 +180,10 @@ export function createGitPolicy(options: CreateGitPolicyOptions): GitPolicy {
     const effectiveAuthor = attributeAuthor === null ? true : attributeAuthor;
     const effectiveCommitter = attributeCommitter === null ? true : attributeCommitter;
     const prefix = aiderEdits && (options.settings.attributeCommitMessageAuthor || options.settings.attributeCommitMessageCommitter);
-    if (prefix) message = `aider: ${message}`;
+    if (prefix) message = `${BRANDING.messagePrefix}${message}`;
     let full = message;
     if (aiderEdits && attributeCoAuthoredBy) {
-      full = `${message}\n\nCo-authored-by: aider (unknown-model) <aider@aider.chat>`;
+      full = `${message}\n\n${coAuthoredBy('unknown-model')}`;
     }
     const useAuthor = aiderEdits && effectiveAuthor && (!attributeCoAuthoredBy || authorExplicit);
     const useCommitter = effectiveCommitter && (!(aiderEdits && attributeCoAuthoredBy) || committerExplicit);
@@ -188,7 +194,7 @@ export function createGitPolicy(options: CreateGitPolicyOptions): GitPolicy {
     }
     const name = await git(['config', '--get', 'user.name'], signal);
     const baseName = name.stdout.trim() || 'User';
-    const attributed = `${baseName} (aider)`;
+    const attributed = `${baseName}${BRANDING.nameSuffix}`;
     const env: Record<string, string> = {};
     if (useCommitter) env['GIT_COMMITTER_NAME'] = attributed;
     if (useAuthor) env['GIT_AUTHOR_NAME'] = attributed;
@@ -225,6 +231,7 @@ export function createGitPolicy(options: CreateGitPolicyOptions): GitPolicy {
       const added = await git(['add', '--', absPath]);
       if (added.code !== 0) host.error(`Unable to add ${absPath}: ${added.stderr.trim() || added.stdout.trim()}`);
     },
+    isDirty,
     needsDirtyCommit: async (path) => {
       if (!dirtyCommits) return false;
       if (!(await isDirty(path))) return false;
