@@ -17,10 +17,8 @@ export function prep(content: string): [content: string, lines: string[]] {
 
 export function perfectOrWhitespace(wholeLines: readonly string[], partLines: readonly string[], replaceLines: readonly string[]): string | null {
   const perfect = perfectReplace(wholeLines, partLines, replaceLines);
-  if (perfect) return perfect;
-  const whitespace = replacePartWithMissingLeadingWhitespace(wholeLines, partLines, replaceLines);
-  if (whitespace) return whitespace;
-  return null;
+  if (perfect !== null) return perfect;
+  return replacePartWithMissingLeadingWhitespace(wholeLines, partLines, replaceLines);
 }
 
 export function perfectReplace(wholeLines: readonly string[], partLines: readonly string[], replaceLines: readonly string[]): string | null {
@@ -38,13 +36,13 @@ export function replaceMostSimilarChunk(whole: string, part: string, replace: st
   const [partText, partLines] = prep(part);
   const [replaceText, replaceLines] = prep(replace);
   const res = perfectOrWhitespace(wholeLines, partLines, replaceLines);
-  if (res) return res;
+  if (res !== null) return res;
   if (partLines.length > 2 && !strip(pyIndex(partLines, 0))) {
     const skipBlankLine = perfectOrWhitespace(wholeLines, partLines.slice(1), replaceLines);
-    if (skipBlankLine) return skipBlankLine;
+    if (skipBlankLine !== null) return skipBlankLine;
   }
   try {
-    return tryDotdotdots(wholeText, partText, replaceText) || null;
+    return tryDotdotdots(wholeText, partText, replaceText);
   } catch (error) {
     if (error instanceof ValueError) return null;
     throw error;

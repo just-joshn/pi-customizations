@@ -70,10 +70,30 @@ interface Resolution {
   readonly newContent: string | null;
 }
 
+/** Reads earlier blocks' results first so preflight targets match sequential application. */
+function withVirtualResults(tree: EditBlockContext['tree'], dryRun: boolean): EditBlockContext['tree'] {
+  const virtual = new Map<string, string>();
+  return {
+    read: async (path) => {
+      const hit = virtual.get(path);
+      return hit === undefined ? tree.read(path) : hit;
+    },
+    write: async (path, content) => {
+      virtual.set(path, content);
+      if (!dryRun) await tree.write(path, content);
+    },
+    exists: async (path) => virtual.has(path) || tree.exists(path),
+    touch: async (path) => {
+      if (!virtual.has(path)) virtual.set(path, '');
+      return tree.touch(path);
+    },
+  };
+}
+
 async function replaceInChatFiles([, original, updated]: EditBlock, ctx: EditBlockContext): Promise<Resolution | null> {
   for (const fullPath of ctx.absFnames) {
     const newContent = await doReplace(fullPath, await ctx.tree.read(fullPath), original, updated, ctx.fence, ctx.tree);
-    if (newContent) return { path: getRelFname(ctx.root, fullPath), fullPath, newContent };
+    if (newContent !== null) return { path: getRelFname(ctx.root, fullPath), fullPath, newContent };
   }
   return null;
 }
@@ -86,7 +106,7 @@ async function resolveEdit(edit: EditBlock, ctx: EditBlockContext): Promise<Reso
   if (await ctx.tree.exists(fullPath)) {
     newContent = await doReplace(fullPath, await ctx.tree.read(fullPath), original, updated, ctx.fence, ctx.tree);
   }
-  if (!newContent && strip(original)) {
+  if (newContent === null && strip(original)) {
     const elsewhere = await replaceInChatFiles(edit, ctx);
     if (elsewhere) return elsewhere;
   }
@@ -100,14 +120,15 @@ interface Outcome {
 }
 
 async function resolveEdits(edits: readonly EditBlock[], ctx: EditBlockContext, dryRun: boolean): Promise<Outcome> {
+  const resolving = { ...ctx, tree: withVirtualResults(ctx.tree, dryRun) };
   const updatedEdits: EditBlock[] = [];
   const passed: EditBlock[] = [];
   const failed: EditBlock[] = [];
   for (const edit of edits) {
-    const { path, fullPath, newContent } = await resolveEdit(edit, ctx);
+    const { path, fullPath, newContent } = await resolveEdit(edit, resolving);
     updatedEdits.push([path, edit[1], edit[2]]);
-    if (newContent) {
-      if (!dryRun) await ctx.tree.write(fullPath, newContent);
+    if (newContent !== null) {
+      await resolving.tree.write(fullPath, newContent);
       passed.push(edit);
     } else {
       failed.push(edit);
@@ -142,9 +163,8 @@ async function failureReport(failed: readonly EditBlock[], passed: readonly Edit
 }
 
 /**
- * `EditBlockCoder.apply_edits_dry_run`: resolves each edit against the files on disk without
- * writing, and returns the edits with the path the cross-file fallback chose. Each edit resolves
- * independently, so a block that depends on an earlier one can resolve differently when applied.
+ * `EditBlockCoder.apply_edits_dry_run`: resolves each edit against cumulative virtual results of
+ * earlier blocks without writing, and returns the edits with the path the cross-file fallback chose.
  */
 export async function applyEditsDryRun(edits: readonly EditBlock[], ctx: EditBlockContext): Promise<EditBlock[]> {
   return (await resolveEdits(edits, ctx, true)).updatedEdits;

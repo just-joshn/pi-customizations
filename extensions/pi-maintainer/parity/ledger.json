@@ -756,10 +756,17 @@
         "aider/coders/editblock_coder.py:38-39,46-67,76-77"
       ],
       "kind": "fix",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": [],
+      "status": "verified",
+      "pi": [
+        "withFileMutationQueue",
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/editblock.ts"
+      ],
+      "tests": [
+        "test/editblock-ports.test.ts::preflight targets match sequential apply for dependent blocks"
+      ],
       "fix": {
         "defect": "SEARCH/REPLACE preflight rereads unchanged disk for every block while real application writes earlier blocks, so dependent blocks can resolve to different files between authorization and persistence.",
         "intent": "aider/coders/editblock_coder.py:38-39 delegates preflight to the same application routine; :46-71 applies blocks in order, and aider/coders/base_coder.py:2300-2304 authorizes the returned targets before that application. Matching and authorization therefore require a preflight prediction of the actual sequential targets.",
@@ -2321,10 +2328,18 @@
         "aider/coders/editblock_prompts.py:58-77,148"
       ],
       "kind": "fix",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": [],
+      "status": "verified",
+      "pi": [
+        "withFileMutationQueue",
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/editblock.ts",
+        "src/edit/editblock-match.ts"
+      ],
+      "tests": [
+        "test/editblock-ports.test.ts::empty REPLACE that clears a file is success not fallback"
+      ],
       "fix": {
         "defect": "Truthiness checks discard an empty successful replacement in both matching and persistence, potentially triggering unrelated cross-file fallback.",
         "intent": "aider/coders/editblock_prompts.py:58-77 demonstrates an empty REPLACE for deletion and :148 instructs deletion through a SEARCH/REPLACE block; perfect_replace at aider/coders/editblock_coder.py:146-154 returns the joined replacement even when empty.",
