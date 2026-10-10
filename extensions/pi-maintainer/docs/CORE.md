@@ -12,9 +12,9 @@ The first E6 milestone uses a real in-process Pi SDK session. `test/core/exchang
 
 ## Format integration
 
-`EditFormat<E extends PathEdit>` requires `name`, `prompts`, `mutationPaths(edit)`, `getEdits(content, context)`, `applyEditsDryRun(edits, context)`, and `applyEdits(edits, context)`.
+`EditFormat<E extends PathEdit>` requires `name`, `prompts`, `editIntent(edit)`, `getEdits(content, context)`, `applyEditsDryRun(edits, context)`, and `applyEdits(edits, context)`.
 
-`getEdits` parses reply text without mutation. `mutationPaths` declares every potentially mutated endpoint, including move destinations. The registry also locks all editable files so fallback matching can read them safely. `RegisteredEditFormat.withPlan(content, context, prepare, use)` holds those native locks across preflight, permission preparation, and `use(plan)`. `EditPlan` has `targets` and `apply()`. The plan is valid only during its callback.
+`getEdits` parses reply text without mutation. `editIntent` declares the authorization unit, including both MOVE endpoints. The registry also locks all editable files so fallback matching can read them safely. `RegisteredEditFormat.withPlan(content, context, prepare, use)` holds those native locks across preflight, permission preparation, and `use(plan)`. `PrepareToEdit` keeps or drops whole candidates. Application is limited to the authorized endpoint set. `EditPlan` has `targets` and `apply()`. The plan is valid only during its callback.
 
 `PrepareToEdit` receives the edits and the locked `EditContext`. Its second argument is required. Using a captured queued tree instead can deadlock. `WorkingTree.mutate(paths, operation, signal)` supplies an unqueued tree inside the native queue. Nested mutation transactions are rejected. Undeclared writes are rejected. Standalone mutations use the same canonical native queue identity. Resolution follows symlinks before collapsing `..`. It also resolves existing prefixes of new paths. Symlink loops cannot fall back to a different lexical target.
 
@@ -60,7 +60,7 @@ interface Feature<P> {
 - `projectRequest(view)` assembles the provider request. It calls the repository port with current conversation text from `getCurMessageText(messages: readonly ContextMessage[]): string`. The helper preserves Aider's trailing newline for each message. The disabled port returns no repository content.
 - `completeReply(reply, signal?): Promise<ReplyDecision>` processes a committed reply ID and complete text, or an incomplete outcome and its reason. It returns dialogue facts and the guarded continuation decision.
 - `checkForFileMentions(content, signal?): Promise<string | null>` confirms admissions and records denied mentions on the branch.
-- `prepareToEdit<E extends PathEdit>(edits, context): Promise<E[]>` filters edits through file permission preparation. `allowedToEdit`, `applyPlan`, and the edited-path tracking methods implement those steps.
+- `prepareToEdit<E extends PathEdit>(candidates, context): Promise<EditCandidate<E>[]>` authorizes every intent endpoint before keeping a candidate. `allowedToEdit`, `applyPlan`, and the edited-path tracking methods implement those steps. ADD consent does not pre-create the file.
 - `interrupt(reason)` and `reconcile(aborted)` record interruption or final settlement. Neither parses or reapplies reply text.
 
 ## State and safety

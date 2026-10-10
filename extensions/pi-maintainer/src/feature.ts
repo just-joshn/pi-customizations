@@ -1,5 +1,6 @@
 import type { Host } from './core/host.ts';
 import type { Fence } from './edit/fences.ts';
+import { intentPaths, mutationContext } from './edit/intents.ts';
 import type { Notices, WorkingTree } from './edit/working-tree.ts';
 import type { AnyOptionSpec, ResolvedSettings, SarName } from './settings/spec.ts';
 
@@ -54,18 +55,30 @@ export interface EditContext {
   readonly signal?: AbortSignal | undefined;
 }
 
+export type EditIntent =
+  | { readonly kind: 'upsert'; readonly path: string }
+  | { readonly kind: 'add'; readonly path: string }
+  | { readonly kind: 'update'; readonly path: string }
+  | { readonly kind: 'delete'; readonly path: string }
+  | { readonly kind: 'move'; readonly source: string; readonly destination: string };
+
+export interface EditCandidate<E extends PathEdit> {
+  readonly edit: E;
+  readonly intent: EditIntent | null;
+}
+
 /** One Aider coder's reply-text edit format. Each format keeps its own edit tuple type. */
 export interface EditFormat<E extends PathEdit> {
   readonly name: EditFormatName;
   readonly prompts: EditFormatName;
-  mutationPaths(edit: E): readonly string[];
+  editIntent(edit: E): EditIntent | null;
   getEdits(content: string, context: EditContext): E[] | Promise<E[]>;
   applyEditsDryRun(edits: readonly E[], context: EditContext): E[] | Promise<E[]>;
   applyEdits(edits: readonly E[], context: EditContext): Promise<void>;
 }
 
-/** `prepare_to_edit`: keeps the edits whose paths the user allows, in order. */
-export type PrepareToEdit = <E extends PathEdit>(edits: readonly E[], context: EditContext) => Promise<E[]>;
+/** Keeps whole edit units only after every intent endpoint is authorized. */
+export type PrepareToEdit = <E extends PathEdit>(candidates: readonly EditCandidate<E>[], context: EditContext) => Promise<EditCandidate<E>[]>;
 
 /** The edits that survived permission, and the step that writes them. */
 export interface EditPlan {
@@ -86,15 +99,30 @@ export function registerEditFormat<E extends PathEdit>(format: EditFormat<E>): R
     prompts: format.prompts,
     async withPlan(content, context, prepare, use) {
       context.signal?.throwIfAborted();
-      const raw = await format.getEdits(content, context);
-      const paths = [...context.inchatRelativeFiles, ...raw.flatMap((edit) => format.mutationPaths(edit))].map(context.absRootPath);
+      const raw = await format.getEdits(content, mutationContext(context, new Set()));
+      const paths = new Set([...context.inchatRelativeFiles, ...raw.flatMap((edit) => intentPaths(format.editIntent(edit)))].map(context.absRootPath));
       return context.tree.mutate(
-        paths,
+        [...paths],
         async (tree) => {
           const locked = { ...context, tree };
-          const edits = await format.applyEditsDryRun(raw, locked);
-          const prepared = await prepare(edits, locked);
-          return use({ targets: prepared.map((edit) => edit[0]), apply: () => format.applyEdits(prepared, locked) });
+          const edits = await format.applyEditsDryRun(raw, mutationContext(locked, new Set()));
+          const candidates = edits.map((edit) => ({ edit, intent: format.editIntent(edit) }));
+          for (const candidate of candidates) {
+            for (const path of intentPaths(candidate.intent)) {
+              if (!paths.has(context.absRootPath(path))) throw new Error(`Preflight introduced an unlocked endpoint: ${path}`);
+            }
+          }
+          const prepared = await prepare(candidates, locked);
+          const allowed = new Set([...context.inchatRelativeFiles, ...prepared.flatMap((candidate) => intentPaths(candidate.intent))].map(context.absRootPath));
+          const applying = mutationContext(locked, allowed);
+          return use({
+            targets: prepared.map((candidate) => candidate.edit[0]),
+            apply: () =>
+              format.applyEdits(
+                prepared.map((candidate) => candidate.edit),
+                applying,
+              ),
+          });
         },
         context.signal,
       );

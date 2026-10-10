@@ -1,6 +1,7 @@
 import { ValueError } from '../edit/errors.ts';
 import { defaultFence, type Fence } from '../edit/fences.ts';
-import type { EditContext, EditPlan, PathEdit, Ports } from '../feature.ts';
+import { intentPaths } from '../edit/intents.ts';
+import type { EditCandidate, EditContext, EditIntent, EditPlan, PathEdit, Ports } from '../feature.ts';
 import { pythonSorted } from '../support/python-sort.ts';
 import { chatFilesOf, type Snapshot } from './branch.ts';
 import { absRootPath, getRelFname, inchatRelativeFiles } from './chat-files.ts';
@@ -184,29 +185,38 @@ export class ExchangeController {
     };
   }
 
-  async prepareToEdit<E extends PathEdit>(edits: readonly E[], context: EditContext): Promise<E[]> {
+  async prepareToEdit<E extends PathEdit>(candidates: readonly EditCandidate<E>[], context: EditContext): Promise<EditCandidate<E>[]> {
     const seen = new Map<string, boolean>();
-    const prepared: E[] = [];
+    const prepared: EditCandidate<E>[] = [];
     const dirty = new Set<string>();
-    for (const edit of edits) {
+    for (const candidate of candidates) {
       context.signal?.throwIfAborted();
-      const path = edit[0];
-      if (path === null) {
-        prepared.push(edit);
+      const paths = intentPaths(candidate.intent);
+      if (candidate.intent === null) {
+        if (candidate.edit[0] === null) prepared.push(candidate);
         continue;
       }
-      const allowed = seen.get(path) ?? (await this.allowedToEdit(path, context));
-      seen.set(path, allowed);
+      let allowed = true;
+      for (const path of paths) {
+        const decision = seen.get(path) ?? (await this.allowedToEdit(path, context, candidate.intent));
+        seen.set(path, decision);
+        if (!decision) {
+          allowed = false;
+          break;
+        }
+      }
       if (!allowed) continue;
-      prepared.push(edit);
-      if (await this.#env.ports.git.needsDirtyCommit(path)) dirty.add(path);
+      prepared.push(candidate);
+      for (const path of paths) {
+        if (await this.#env.ports.git.needsDirtyCommit(path)) dirty.add(path);
+      }
     }
     const checkpoint = context.tree.dryRun ? ({ kind: 'disabled' } as const) : await this.#env.ports.git.dirtyCommit(dirty, context.signal);
     if (checkpoint.kind === 'failed') throw new Error(checkpoint.error);
     return prepared;
   }
 
-  async allowedToEdit(path: string, context: EditContext): Promise<boolean> {
+  async allowedToEdit(path: string, context: EditContext, intent: EditIntent | null = null): Promise<boolean> {
     const full = context.absRootPath(path);
     if (this.#state.files.editable.includes(full)) return true;
     if (await this.#env.ports.git.isGitIgnored(path)) {
@@ -220,7 +230,7 @@ export class ExchangeController {
       return false;
     }
     context.signal?.throwIfAborted();
-    if (!exists && !(await context.tree.touch(full))) {
+    if (!exists && intent?.kind !== 'add' && !(await context.tree.touch(full))) {
       this.#env.host.error(`Unable to create ${path}, skipping edits.`);
       return false;
     }

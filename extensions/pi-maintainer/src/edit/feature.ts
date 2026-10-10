@@ -8,7 +8,7 @@ const lineEndings = (value: string | null): LineEndings => (value === 'lf' || va
 export const wholeFileFormat = registerEditFormat<WholeFileEdit>({
   name: 'whole',
   prompts: 'whole',
-  mutationPaths: (edit) => [edit[0]],
+  editIntent: (edit) => ({ kind: 'upsert', path: edit[0] }),
   getEdits: (content, context) => getEdits(content, context.inchatRelativeFiles, context.fence),
   applyEditsDryRun: (edits) => [...edits],
   applyEdits,

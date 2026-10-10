@@ -18,7 +18,7 @@ function recordingFormat(): { format: EditFormat<Tagged>; applied: Tagged[][] } 
   const format: EditFormat<Tagged> = {
     name: 'whole',
     prompts: 'whole',
-    mutationPaths: (edit) => (edit[0] === null ? [] : [edit[0]]),
+    editIntent: (edit) => (edit[0] === null ? null : { kind: 'upsert', path: edit[0] }),
     getEdits: (content) => content.split(' ').map((word): Tagged => [word === '-' ? null : word, `tag:${word}`]),
     applyEditsDryRun: (edits) => edits.filter((edit) => edit[1] !== 'tag:skip'),
     applyEdits: async (edits) => {
@@ -35,7 +35,7 @@ test('a registered format plans targets after dry run plus permission', async ()
   await format.withPlan(
     'a.py skip - b.py',
     context,
-    async (edits) => edits.filter((edit) => edit[0] !== 'b.py'),
+    async (candidates) => candidates.filter((candidate) => candidate.edit[0] !== 'b.py'),
     async (plan) => {
       expect(plan.targets).toEqual(['a.py', null]);
       expect(applied).toEqual([]);
