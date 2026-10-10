@@ -1,7 +1,7 @@
-import type { Snapshot } from './branch.ts';
-import type { Host } from './host.ts';
 import type { WorkingTree } from '../edit/working-tree.ts';
 import type { GitPolicy } from '../feature.ts';
+import type { Snapshot } from './branch.ts';
+import type { Host } from './host.ts';
 
 /** Runtime capabilities a SAR slash command may use. Wired by `installMaintainer`. */
 export interface CommandEnv {

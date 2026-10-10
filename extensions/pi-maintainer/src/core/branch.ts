@@ -2,7 +2,7 @@ import type { SessionEntry } from '@earendil-works/pi-coding-agent';
 import { type Static, Type } from 'typebox';
 import { Value } from 'typebox/value';
 import { BRANDING } from '../branding.ts';
-import { type EditFormatName, EDIT_FORMAT_NAMES } from '../feature.ts';
+import { EDIT_FORMAT_NAMES, type EditFormatName } from '../feature.ts';
 
 const strings = Type.Array(Type.String());
 const frame = {

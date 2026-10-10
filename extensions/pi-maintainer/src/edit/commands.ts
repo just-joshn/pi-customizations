@@ -1,20 +1,10 @@
 import { readFile, writeFile } from 'node:fs/promises';
 
-import type { CommandEnv, CommandSpec } from '../core/command.ts';
 import { chatFilesOf } from '../core/branch.ts';
 import { getRelFname, inchatRelativeFiles } from '../core/chat-files.ts';
-import { isEditFormatName, type EditFormatName } from '../feature.ts';
-import {
-  addFiles,
-  applySelection,
-  dropAll,
-  dropMatches,
-  ModeSwitchError,
-  readOnlyFiles,
-  saveSelectionCommands,
-  selectionFromSnapshot,
-  type SelectionEnv,
-} from './selection.ts';
+import type { CommandEnv, CommandSpec } from '../core/command.ts';
+import { type EditFormatName, isEditFormatName } from '../feature.ts';
+import { addFiles, applySelection, dropAll, dropMatches, ModeSwitchError, readOnlyFiles, type SelectionEnv, saveSelectionCommands, selectionFromSnapshot } from './selection.ts';
 
 function selectionEnv(env: CommandEnv): SelectionEnv {
   return {
@@ -45,11 +35,11 @@ async function completeAdd(prefix: string, env: CommandEnv): Promise<readonly st
 }
 
 async function completeDrop(prefix: string, env: CommandEnv): Promise<readonly string[]> {
-  const files = [
-    ...inchatRelativeFiles(env.snapshot.root, chatFilesOf(env.snapshot)),
-    ...env.snapshot.files.readOnly.map((path) => getRelFname(env.snapshot.root, path)),
-  ];
-  return [...new Set(files)].filter((name) => name.startsWith(prefix)).map(quoteFname).sort();
+  const files = [...inchatRelativeFiles(env.snapshot.root, chatFilesOf(env.snapshot)), ...env.snapshot.files.readOnly.map((path) => getRelFname(env.snapshot.root, path))];
+  return [...new Set(files)]
+    .filter((name) => name.startsWith(prefix))
+    .map(quoteFname)
+    .sort();
 }
 
 async function runChatMode(args: string, env: CommandEnv, format: EditFormatName): Promise<void> {

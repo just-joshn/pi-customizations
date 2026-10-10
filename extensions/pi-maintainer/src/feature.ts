@@ -5,8 +5,8 @@ import { intentPaths, mutationContext } from './edit/intents.ts';
 import type { Notices, WorkingTree } from './edit/working-tree.ts';
 import type { AnyOptionSpec, ResolvedSettings, SarName } from './settings/spec.ts';
 
-export type { SarName } from './settings/spec.ts';
 export type { CommandEnv, CommandSpec } from './core/command.ts';
+export type { SarName } from './settings/spec.ts';
 
 /** Everything a SAR's port factory receives. */
 export interface FeatureEnv {
