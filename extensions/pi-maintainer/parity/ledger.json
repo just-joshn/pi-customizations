@@ -49,7 +49,8 @@
         "src/edit/modes.ts"
       ],
       "tests": [
-        "test/core/modes.pi.test.ts::architect mode without auto-accept skips the editor when denied"
+        "test/core/modes.pi.test.ts::architect mode without auto-accept skips the editor when denied",
+        "test/core/modes.pi.test.ts::architect mode without auto-accept continues into the editor when confirmed"
       ]
     },
     {
@@ -91,7 +92,8 @@
         "src/core/context.ts"
       ],
       "tests": [
-        "test/core/modes.pi.test.ts::architect mode continues into an editor format that applies the edit"
+        "test/core/modes.pi.test.ts::architect mode continues into an editor format that applies the edit",
+        "test/core/modes.pi.test.ts::architect mode without auto-accept continues into the editor when confirmed"
       ]
     },
     {
@@ -4651,7 +4653,8 @@
         "src/core/command.ts"
       ],
       "tests": [
-        "test/core/commands.pi.test.ts::/save and /load reconstruct editable and read-only selections"
+        "test/core/commands.pi.test.ts::/save and /load reconstruct editable and read-only selections",
+        "test/core/commands.pi.test.ts::/load skips interactive mode-switch commands and continues"
       ]
     },
     {

@@ -100,8 +100,26 @@ test('architect mode without auto-accept skips the editor when denied', { meta: 
   expect(f.errors).toEqual([]);
 });
 
+test('architect mode without auto-accept continues into the editor when confirmed', {
+  meta: { aider: ['test_coder/TestCoder.test_architect_coder_auto_accept_false_confirmed'] },
+}, async () => {
+  const f = await piSessionFixture({
+    extension: maintainerExtension(),
+    config: 'edit-format: architect\nauto-accept-architect: false\neditor-edit-format: editor-whole\nfile: [hello.txt]\nyes-always: true\n',
+  });
+  await writeFile(join(f.cwd, 'hello.txt'), 'before\n');
+  f.replies.push({ text: 'Update hello.txt to say after.' }, { text: 'hello.txt\n```\nafter\n```\n' });
+  const session = await f.open();
+  await promptAndSettle(session, 'please edit');
+  expect(await readFile(join(f.cwd, 'hello.txt'), 'utf8')).toBe('after\n');
+  expect(f.requests).toHaveLength(2);
+  expect(restore(session.sessionManager.getBranch()).snapshot).toMatchObject({ mode: 'architect', phase: { kind: 'main' } });
+  expect(f.requests[1]?.messages.map(textOf).join('\n')).not.toContain('please edit');
+  expect(f.errors).toEqual([]);
+});
+
 test('architect editor request routes to the configured editor model', {
-  meta: { aider: ['test_coder/TestCoder.test_architect_coder_auto_accept_true', 'test_coder/TestCoder.test_architect_coder_auto_accept_false_confirmed'] },
+  meta: { aider: ['test_coder/TestCoder.test_architect_coder_auto_accept_true'] },
 }, async () => {
   const editorModel = { ...scriptedModel, id: 'editor-scripted', name: 'Editor scripted' };
   const f = await piSessionFixture({

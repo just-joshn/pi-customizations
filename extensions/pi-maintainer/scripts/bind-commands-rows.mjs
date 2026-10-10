@@ -91,7 +91,10 @@ const bindings = {
   'edit.commands.load-selection': {
     pi,
     src,
-    tests: ['test/core/commands.pi.test.ts::/save and /load reconstruct editable and read-only selections'],
+    tests: [
+      'test/core/commands.pi.test.ts::/save and /load reconstruct editable and read-only selections',
+      'test/core/commands.pi.test.ts::/load skips interactive mode-switch commands and continues',
+    ],
   },
   'edit.commands.one-shot-ask': {
     pi,
