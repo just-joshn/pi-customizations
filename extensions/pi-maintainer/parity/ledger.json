@@ -937,11 +937,11 @@
       "id": "edit.patch.authorize-move-destination",
       "feature": "edit",
       "behavior": "An Update with Move to writes its destination only after the destination passes the same approval as any other edited path.",
-      "aider": ["aider/coders/patch_coder.py:603-627", "aider/coders/base_coder.py:2269-2294"],
+      "aider": ["aider/coders/patch_coder.py:603-627", "aider/coders/base_coder.py:2191-2240,2269-2294", "aider/coders/patch_prompts.py:20-24,147"],
       "kind": "fix",
       "fix": {
         "defect": "Authorization sees only the source path of a patch action, so a Move to destination outside the chat is written, and an existing destination overwritten, without approval. The reconstruction lists this as a source-confirmed gotcha (aider/coders/patch_coder.py:583-634).",
-        "intent": "Every edited path passes allowed_to_edit, which asks \"Allow edits to file that has not been added to the chat?\" or \"Create new file?\" before Aider writes a file outside the chat (aider/coders/base_coder.py:2191-2240,2269-2294), and the patch prompt says \"Only create patches for files that the user has added to the chat!\" (aider/coders/patch_prompts.py:147).",
+        "intent": "aider/coders/patch_prompts.py:22-24 requires full path names, asking to add existing files outside the chat, and waiting for approval; :147 says Only create patches for files that the user has added to the chat. aider/coders/base_coder.py:2226-2235 asks Allow edits to file that has not been added to the chat for an existing target. These rules require destination approval, not a blanket root-containment restriction.",
         "behavior": "Authorize a Move to destination with the same rules as an edited path: no prompt when it is in the editable chat set, \"Create new file?\" when it is missing, and \"Allow edits to file that has not been added to the chat?\" when it exists outside the chat. A declined destination skips the action and leaves the source unchanged."
       },
       "status": "open",
@@ -2417,6 +2417,44 @@
       "pi": [],
       "src": [],
       "tests": []
+    },
+    {
+      "id": "edit.patch.add-parent-file-error",
+      "feature": "edit",
+      "behavior": "ADD beneath a parent that is a regular file raises ValueError with the Python [Errno 17] File exists diagnostic and leaves that parent file unchanged.",
+      "aider": ["aider/coders/patch_coder.py:549-580,633-640"],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "edit.patch.immediate-context-work",
+      "feature": "edit",
+      "behavior": "An immediate exact context match compares only its candidate slice and returns before whitespace-normalizing unrelated original lines.",
+      "aider": ["aider/coders/patch_coder.py:59-78"],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": []
+    },
+    {
+      "id": "edit.patch.dry-run-application",
+      "feature": "edit",
+      "behavior": "Parsed DELETE, MOVE, and nested ADD actions applied in dry-run leave source and destination contents, file existence, and parent-directory existence unchanged.",
+      "aider": ["aider/args.py:508-512", "aider/io.py:478-489", "aider/coders/patch_coder.py:549-635"],
+      "kind": "fix",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": [],
+      "fix": {
+        "defect": "Patch application calls mkdir and unlink directly without checking dry-run; suppressing InputOutput.write_text alone still deletes DELETE or MOVE sources and creates nested ADD or MOVE directories.",
+        "intent": "aider/args.py:512 promises Perform a dry run without modifying files, and aider/io.py:487-489 suppresses persistence in dry-run. The same intent applies to patch_coder.py:575,589,622-627 filesystem mutations through actual patch application.",
+        "behavior": "Parsed DELETE, MOVE, and nested ADD actions applied in dry-run leave source and destination contents, file existence, and parent-directory existence unchanged."
+      }
     }
   ]
 }

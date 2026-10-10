@@ -87,6 +87,15 @@ Every feature and final gate runs the package's real Vitest suite. Any nonzero s
 - A `fix` specifies the intended behavior instead of the source defect. Preserved parity rows still describe unrelated source semantics. For example, dry-run fixes suppress persistence while retaining ordinary patch deletion and move behavior. Empty-result fixes retain each format's matching policy while treating an empty successful result as success. The cumulative-preflight fix retains SEARCH/REPLACE matching but predicts targets using earlier blocks' virtual results.
 - `pi`, `src`, and `tests` are filled during implementation. `pi` names Pi mechanisms such as `pi.on('turn_end')`. `src` lists package files. `tests` lists `<test file>::<test title>`.
 
+## Patch application obligations
+
+The patch follow-up rows remain open. Raw algorithm parity and fresh goldens do not prove application integration or the intent-backed fixes.
+
+- `edit.patch.add-parent-file-error` covers ADD `parent/new.py` when `parent` is a regular file. Assert unchanged filesystem state, `ValueError`, and the Python `[Errno 17] File exists` diagnostic. Normalize temporary roots in both notices and `raised.message`. Run the same error case under two independent roots and compare the complete normalized outcomes. Do not omit the raised message or substitute Node EEXIST wording.
+- `edit.patch.immediate-context-work` covers candidate-local exact matching. Assert literal match positions and fuzz values, then count original-line reads for immediate matches. The exact branch returns before unrelated lines are normalized. This is an operation-count obligation, not a timing or speedup claim.
+- `edit.patch.dry-run-application` requires parsed DELETE, MOVE, and nested ADD to reach the actual patch applicator with dry-run enabled. Compare literal source and destination contents, file existence, and parent-directory state before and after. Isolated WorkingTree mutation guards are not proof of this row.
+- `edit.patch.authorize-move-destination` requires approval for an existing destination outside the editable chat set before overwrite or source removal. `aider/coders/patch_prompts.py:22-24,147` and `aider/coders/base_coder.py:2226-2235` establish that intent. Include a declined-destination case that preserves both files. This does not impose blanket root containment on every edit.
+
 ## Coverage
 
 ```json

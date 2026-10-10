@@ -118,7 +118,7 @@
     "rows": ["edit.patch.add-lines", "edit.patch.update-lines"]
   },
   "edit/parsing-resolves-current-file-positions/p4": {
-    "rows": ["edit.patch.context-fuzz", "edit.patch.eof-context", "edit.patch.scope-markers", "edit.patch.context-not-found"]
+    "rows": ["edit.patch.context-fuzz", "edit.patch.eof-context", "edit.patch.scope-markers", "edit.patch.context-not-found", "edit.patch.immediate-context-work"]
   },
   "edit/update-reconstruction/p1": {
     "rows": ["edit.patch.update-reconstruction", "edit.patch.verify-deletions", "edit.patch.original-indices", "edit.patch.update-missing-file"]
@@ -127,7 +127,7 @@
     "rows": ["edit.patch.verify-deletions", "edit.patch.update-reconstruction"]
   },
   "edit/add-conflicts-with-shared-preparation/p1": {
-    "rows": ["edit.patch.add-existing-fails", "edit.patch.add-writes", "edit.patch.add-after-approval"]
+    "rows": ["edit.patch.add-existing-fails", "edit.patch.add-writes", "edit.patch.add-after-approval", "edit.patch.add-parent-file-error"]
   },
   "edit/add-conflicts-with-shared-preparation/p2": {
     "rows": ["edit.patch.add-after-approval"]
@@ -136,10 +136,10 @@
     "rows": ["edit.patch.delete-unlinks", "edit.patch.move", "edit.patch.authorize-move-destination"]
   },
   "edit/delete-move-and-dry-run-defects/p2": {
-    "rows": ["edit.dry-run.preserve-files"]
+    "rows": ["edit.dry-run.preserve-files", "edit.patch.dry-run-application"]
   },
   "edit/delete-move-and-dry-run-defects/p3": {
-    "rows": ["edit.dry-run.preserve-files", "edit.patch.add-after-approval"]
+    "rows": ["edit.dry-run.preserve-files", "edit.patch.add-after-approval", "edit.patch.dry-run-application"]
   },
   "edit/architect-and-context-modes/p1": {
     "rows": ["edit.architect.confirm-editor", "edit.architect.editor-selection", "edit.architect.fresh-editor-request", "edit.architect.editor-options", "map.architect.disable-editor-map", "edit.context.map-policy"]
@@ -273,13 +273,13 @@
     "rows": ["edit.patch.add-after-approval"]
   },
   "ev-edit/patch-lifecycle/dry-run-delete-removed-file": {
-    "rows": ["edit.dry-run.preserve-files"]
+    "rows": ["edit.dry-run.preserve-files", "edit.patch.dry-run-application"]
   },
   "ev-edit/patch-lifecycle/dry-run-move-removed-source": {
-    "rows": ["edit.dry-run.preserve-files"]
+    "rows": ["edit.dry-run.preserve-files", "edit.patch.dry-run-application"]
   },
   "ev-edit/patch-lifecycle/dry-run-move-created-destination": {
-    "rows": ["edit.dry-run.preserve-files"]
+    "rows": ["edit.dry-run.preserve-files", "edit.patch.dry-run-application"]
   },
   "aider-test/test_editblock/TestUtils.test_find_filename": {
     "rows": ["edit.sr.filename-lookback", "edit.sr.filename-selection"]
