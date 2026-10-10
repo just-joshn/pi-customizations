@@ -11,10 +11,21 @@
         "intent": "aider/args.py:512 promises: Perform a dry run without modifying files (default: False).",
         "behavior": "Suppress every file mutation in dry-run, including direct touches, directory creation, deletion, destination writes, and move-source unlink. Preserve the existing source and destination contents."
       },
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "withFileMutationQueue",
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/working-tree.ts",
+        "src/edit/patch.ts",
+        "src/edit/editblock.ts"
+      ],
+      "tests": [
+        "test/working-tree-dry-run.test.ts::dry-run *",
+        "test/edit/patch.test.ts::dry-run application leaves DELETE MOVE and nested ADD untouched",
+        "test/editblock.test.ts::dry-run full SEARCH/REPLACE leaves the file unchanged"
+      ]
     },
     {
       "id": "edit.architect.confirm-editor",
@@ -154,10 +165,13 @@
       "behavior": "Text writes overwrite the target using the configured codec and newline policy, including strict encoding failures.",
       "aider": ["aider/io.py:478-494"],
       "kind": "parity",
-      "status": "open",
+      "status": "verified",
       "pi": ["withFileMutationQueue"],
       "src": ["src/edit/working-tree.ts"],
-      "tests": ["test/working-tree.test.ts::writes configured *", "test/working-tree.test.ts::writes UTF-16LE file bytes"]
+      "tests": [
+        "test/working-tree.test.ts::writes configured *",
+        "test/working-tree.test.ts::writes UTF-16LE file bytes"
+      ]
     },
     {
       "id": "edit.io.write-retry-errors",
@@ -165,7 +179,7 @@
       "behavior": "Permission-denied writes retry up to five attempts with exponential delays before reporting and raising; other OS errors report and raise immediately.",
       "aider": ["aider/io.py:491-515"],
       "kind": "parity",
-      "status": "open",
+      "status": "verified",
       "pi": ["withFileMutationQueue"],
       "src": ["src/edit/working-tree.ts"],
       "tests": ["test/working-tree.test.ts::reports a write failure when the parent directory is missing"]
@@ -176,10 +190,16 @@
       "behavior": "Writes do not use temporary-file replacement, fsync, or multi-file transactions; an earlier successful write survives a later failure.",
       "aider": ["aider/io.py:491-515", "aider/coders/wholefile_coder.py:124-128"],
       "kind": "parity",
-      "status": "open",
-      "pi": ["withFileMutationQueue"],
-      "src": ["src/edit/working-tree.ts"],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "withFileMutationQueue",
+        "pi.on('turn_end')"
+      ],
+      "src": [
+        "src/edit/working-tree.ts",
+        "src/core/exchange.ts"
+      ],
+      "tests": ["test/core/exchange.pi.test.ts::a later filesystem failure preserves evidence of an earlier write"]
     },
     {
       "id": "edit.sr.marker-tolerance",
@@ -407,10 +427,13 @@
       "behavior": "Blocks apply in reply order, each reading the file after earlier blocks were written, and blocks that matched stay written when a later block fails.",
       "aider": ["aider/coders/editblock_coder.py:41-75"],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "withFileMutationQueue",
+        "pi.on('turn_end')"
+      ],
+      "src": ["src/edit/editblock.ts"],
+      "tests": ["test/editblock.test.ts::applies a full SEARCH/REPLACE reply"]
     },
     {
       "id": "edit.sr.preflight-per-block",
@@ -434,10 +457,18 @@
       "behavior": "Whole-file parsing reads the combined content of the reply and its continuations, a line starting with either fence string opens or closes a file block, and the lines inside a block become that file's complete new content with no search or merge.",
       "aider": ["aider/coders/wholefile_coder.py:22-52,86-87", "aider/coders/base_coder.py:2128-2135"],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "withFileMutationQueue",
+        "pi.on('turn_end')"
+      ],
+      "src": ["src/edit/wholefile.ts"],
+      "tests": [
+        "test/wholefile.test.ts::overwrites an existing chat file",
+        "test/wholefile.test.ts::uses an alternate fence when file content contains backticks",
+        "test/wholefile.test.ts::writes a named file that is not in chat",
+        "test/wholefile.test.ts::writes the response newline once"
+      ]
     },
     {
       "id": "edit.whole.filename-preceding-line",
@@ -445,10 +476,19 @@
       "behavior": "A file block takes its filename from the line just before its opening fence, stripped of asterisks, a trailing colon, backticks, leading hashes, and whitespace, and a candidate longer than 250 characters is discarded.",
       "aider": ["aider/coders/wholefile_coder.py:55-66"],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "withFileMutationQueue",
+        "pi.on('turn_end')"
+      ],
+      "src": ["src/edit/wholefile.ts"],
+      "tests": [
+        "test/wholefile.test.ts::overwrites an existing chat file",
+        "test/wholefile.test.ts::uses an alternate fence when file content contains backticks",
+        "test/wholefile.test.ts::writes a named file that is not in chat",
+        "test/wholefile.test.ts::cleans heading markers from filenames",
+        "test/wholefile.test.ts::writes the response newline once"
+      ]
     },
     {
       "id": "edit.whole.bogus-dir-prefix",
@@ -456,10 +496,13 @@
       "behavior": "A block filename that is not an in-chat file but whose basename is an in-chat relative filename is replaced by that basename.",
       "aider": ["aider/coders/wholefile_coder.py:68-72"],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "withFileMutationQueue",
+        "pi.on('turn_end')"
+      ],
+      "src": ["src/edit/wholefile.ts"],
+      "tests": ["test/wholefile.test.ts::removes a bogus path prefix when its basename is in chat"]
     },
     {
       "id": "edit.whole.fallback-filename",
@@ -467,10 +510,17 @@
       "behavior": "A block without a usable filename uses the last backtick-quoted in-chat filename named in the prose since the previous block, then the only in-chat file, and otherwise fails with \"No filename provided before <fence> in file listing\".",
       "aider": ["aider/coders/wholefile_coder.py:73-84,88-96"],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "withFileMutationQueue",
+        "pi.on('turn_end')"
+      ],
+      "src": ["src/edit/wholefile.ts"],
+      "tests": [
+        "test/wholefile.test.ts::infers an earlier quoted name across a blank line",
+        "test/wholefile.test.ts::uses earlier quoted filenames for separate blocks",
+        "test/wholefile.test.ts::ignores an extra unnamed block after a named replacement"
+      ]
     },
     {
       "id": "edit.whole.unfinished-block",
@@ -489,10 +539,13 @@
       "behavior": "Whole-file edits are kept in the order of filename provenance (explicit block name, then prose mention, then sole chat file), and only the first edit for each filename is applied.",
       "aider": ["aider/coders/wholefile_coder.py:108-122"],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "withFileMutationQueue",
+        "pi.on('turn_end')"
+      ],
+      "src": ["src/edit/wholefile.ts"],
+      "tests": ["test/wholefile.test.ts::ignores an extra unnamed block after a named replacement"]
     },
     {
       "id": "edit.whole.overwrite",
@@ -501,9 +554,15 @@
       "aider": ["aider/coders/wholefile_coder.py:124-128"],
       "kind": "parity",
       "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "pi": [
+        "withFileMutationQueue",
+        "pi.on('turn_end')"
+      ],
+      "src": ["src/edit/wholefile.ts"],
+      "tests": [
+        "test/wholefile.test.ts::overwrites an existing chat file",
+        "test/wholefile.test.ts::overwrites a file with an empty block"
+      ]
     },
     {
       "id": "edit.authorize.create-new-file",
@@ -533,10 +592,16 @@
       "behavior": "Before each request the fence is the first of the fence pairs ```, ````, <source>, <code>, <pre>, <codeblock>, and <sourcecode> whose opening or closing string starts no line of the editable or read-only file content, falling back to ``` with a warning.",
       "aider": ["aider/coders/base_coder.py:609-635", "aider/coders/base_coder.py:73-86"],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": [
+        "pi.on('before_agent_start')",
+        "pi.on('context_with_system')"
+      ],
+      "src": ["src/edit/fences.ts"],
+      "tests": [
+        "test/fences.test.ts::selects a fence absent from the editable file content",
+        "test/wholefile.test.ts::uses an alternate fence when file content contains backticks"
+      ]
     },
     {
       "id": "edit.udiff.diff-fences",
@@ -544,10 +609,13 @@
       "behavior": "Unified-diff parsing reads only fenced blocks whose opening line starts with ```diff, each ending at the next line that starts with ```, after a final newline is added to the reply.",
       "aider": ["aider/coders/udiff_coder.py:312-344"],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": ["pi.on('turn_end')"],
+      "src": ["src/edit/udiff.ts"],
+      "tests": [
+        "test/udiff.test.ts::parses a single fenced hunk",
+        "test/udiff.test.ts::parses multiple files from one fence"
+      ]
     },
     {
       "id": "edit.udiff.header-filename",
@@ -555,10 +623,14 @@
       "behavior": "Leading \"--- \" and \"+++ \" lines name the file by the +++ path, dropping its \"b/\" prefix only when the --- path starts with \"a/\" or is /dev/null, and keeping spaces in the path.",
       "aider": ["aider/coders/udiff_coder.py:346-360"],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": ["pi.on('turn_end')"],
+      "src": ["src/edit/udiff.ts"],
+      "tests": [
+        "test/udiff.test.ts::parses a single fenced hunk",
+        "test/udiff.test.ts::strips /dev/null creation headers",
+        "test/udiff.test.ts::keeps spaces in directory names"
+      ]
     },
     {
       "id": "edit.udiff.hunks-ignore-coordinates",
@@ -566,10 +638,10 @@
       "behavior": "\"@@\" lines end hunks without their line numbers being read, and a hunk with no \"+\" or \"-\" line is discarded.",
       "aider": ["aider/coders/udiff_coder.py:362-400"],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": ["pi.on('turn_end')"],
+      "src": ["src/edit/udiff.ts"],
+      "tests": ["test/udiff.test.ts::parses a single fenced hunk"]
     },
     {
       "id": "edit.udiff.inherit-path",
@@ -588,10 +660,10 @@
       "behavior": "A \"--- \" and \"+++ \" pair inside a diff block starts the next file with the +++ path taken verbatim, without \"b/\" stripping.",
       "aider": ["aider/coders/udiff_coder.py:372-383"],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": ["pi.on('turn_end')"],
+      "src": ["src/edit/udiff.ts"],
+      "tests": ["test/udiff.test.ts::parses multiple files from one fence"]
     },
     {
       "id": "edit.udiff.normalize-dedupe",
@@ -929,9 +1001,12 @@
         "behavior": "Treat a path created empty by this reply's approval as new, so the approved Add writes its content with a trailing newline. An Add of a path that existed before the reply still fails with \"ADD Error: File already exists: <path>\"."
       },
       "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "pi": ["pi.on('turn_end')"],
+      "src": [
+        "src/edit/feature.ts",
+        "src/edit/patch.ts"
+      ],
+      "tests": ["test/edit/patch.test.ts::ADD editIntent leaves creation to application"]
     },
     {
       "id": "edit.patch.authorize-move-destination",
@@ -944,10 +1019,14 @@
         "intent": "aider/coders/patch_prompts.py:22-24 requires full path names, asking to add existing files outside the chat, and waiting for approval; :147 says Only create patches for files that the user has added to the chat. aider/coders/base_coder.py:2226-2235 asks Allow edits to file that has not been added to the chat for an existing target. These rules require destination approval, not a blanket root-containment restriction.",
         "behavior": "Authorize a Move to destination with the same rules as an edited path: no prompt when it is in the editable chat set, \"Create new file?\" when it is missing, and \"Allow edits to file that has not been added to the chat?\" when it exists outside the chat. A declined destination skips the action and leaves the source unchanged."
       },
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": ["pi.on('turn_end')"],
+      "src": [
+        "src/edit/feature.ts",
+        "src/edit/patch.ts",
+        "src/core/exchange.ts"
+      ],
+      "tests": ["test/edit/patch.test.ts::declined MOVE destination preserves both files"]
     },
     {
       "id": "edit.prompt.message-order",
@@ -2111,10 +2190,10 @@
       "behavior": "A configured model system-prompt prefix appears before the formatted edit instructions.",
       "aider": ["aider/coders/base_coder.py:1226-1230"],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": ["pi.on('context_with_system')"],
+      "src": ["src/edit/prompts/format.ts"],
+      "tests": ["test/edit/prompts.test.ts::the system prompt prefix starts the system message"]
     },
     {
       "id": "edit.prompt.normalize-language",
@@ -2122,10 +2201,15 @@
       "behavior": "Language names pass through unchanged, locale identifiers become readable language names, empty or C or POSIX values produce no language, and unknown identifiers remain unchanged.",
       "aider": ["aider/coders/base_coder.py:1048-1092"],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": ["pi.on('context_with_system')"],
+      "src": ["src/edit/prompts/format.ts"],
+      "tests": [
+        "test/edit/prompts.test.ts::C, POSIX, or nothing normalizes to no language",
+        "test/edit/prompts.test.ts::a language name stays as it is",
+        "test/edit/prompts.test.ts::a locale code maps to its language name",
+        "test/edit/prompts.test.ts::an unknown locale code stays as it is"
+      ]
     },
     {
       "id": "edit.prompt.language-precedence",
@@ -2133,10 +2217,17 @@
       "behavior": "Reply language comes from an explicit chat-language setting, then system locale, then LANG, LANGUAGE, LC_ALL, or LC_MESSAGES in order with encoding suffixes removed.",
       "aider": ["aider/coders/base_coder.py:1094-1125"],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": ["pi.on('context_with_system')"],
+      "src": ["src/edit/prompts/format.ts"],
+      "tests": [
+        "test/edit/prompts.test.ts::a chat language code normalizes to its language name",
+        "test/edit/prompts.test.ts::the chat language setting outranks the locale",
+        "test/edit/prompts.test.ts::the locale names the language without a chat language",
+        "test/edit/prompts.test.ts::LANG names the language when the locale has none",
+        "test/edit/prompts.test.ts::LANGUAGE names the language when LANG is unset",
+        "test/edit/prompts.test.ts::no setting, locale, or environment yields no language"
+      ]
     },
     {
       "id": "edit.prompt.reply-language",
@@ -2424,10 +2515,13 @@
       "behavior": "ADD beneath a parent that is a regular file raises ValueError with the Python [Errno 17] File exists diagnostic and leaves that parent file unchanged.",
       "aider": ["aider/coders/patch_coder.py:549-580,633-640"],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": ["withFileMutationQueue"],
+      "src": [
+        "src/edit/patch.ts",
+        "src/edit/patch-apply.ts"
+      ],
+      "tests": ["test/edit/patch.test.ts::ADD under a regular-file parent raises Python Errno 17"]
     },
     {
       "id": "edit.patch.immediate-context-work",
@@ -2435,10 +2529,10 @@
       "behavior": "An immediate exact context match compares only its candidate slice and returns before whitespace-normalizing unrelated original lines.",
       "aider": ["aider/coders/patch_coder.py:59-78"],
       "kind": "parity",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": []
+      "status": "verified",
+      "pi": ["pi.on('turn_end')"],
+      "src": ["src/edit/patch-sections.ts"],
+      "tests": ["test/edit/patch.test.ts::immediate exact context matches avoid whole-file normalization"]
     },
     {
       "id": "edit.patch.dry-run-application",
@@ -2446,10 +2540,13 @@
       "behavior": "Parsed DELETE, MOVE, and nested ADD actions applied in dry-run leave source and destination contents, file existence, and parent-directory existence unchanged.",
       "aider": ["aider/args.py:508-512", "aider/io.py:478-489", "aider/coders/patch_coder.py:549-635"],
       "kind": "fix",
-      "status": "open",
-      "pi": [],
-      "src": [],
-      "tests": [],
+      "status": "verified",
+      "pi": ["withFileMutationQueue"],
+      "src": [
+        "src/edit/patch.ts",
+        "src/edit/working-tree.ts"
+      ],
+      "tests": ["test/edit/patch.test.ts::dry-run application leaves DELETE MOVE and nested ADD untouched"],
       "fix": {
         "defect": "Patch application calls mkdir and unlink directly without checking dry-run; suppressing InputOutput.write_text alone still deletes DELETE or MOVE sources and creates nested ADD or MOVE directories.",
         "intent": "aider/args.py:512 promises Perform a dry run without modifying files, and aider/io.py:487-489 suppresses persistence in dry-run. The same intent applies to patch_coder.py:575,589,622-627 filesystem mutations through actual patch application.",

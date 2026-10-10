@@ -28,12 +28,28 @@ async function workingDirectory(initial: Record<string, string> = {}) {
   };
 }
 
-test('applies a full SEARCH/REPLACE reply', { meta: { aider: ['test_editblock/TestEditBlockCoder.test_full_edit'] } }, async () => {
+test('applies a full SEARCH/REPLACE reply', { meta: { aider: ['test_editblock/TestUtils.test_full_edit'] } }, async () => {
   const ctx = await workingDirectory({ 'file.txt': 'one\ntwo\nthree\n' });
   const reply = 'file.txt\n<<<<<<< SEARCH\ntwo\n=======\nnew\n>>>>>>> REPLACE\n';
   const { edits } = getEdits(reply, ctx);
   await applyEdits(edits, ctx);
   expect(await readFile(join(ctx.root, 'file.txt'), 'utf8')).toBe('one\nnew\nthree\n');
+});
+
+test('dry-run full SEARCH/REPLACE leaves the file unchanged', { meta: { aider: ['test_editblock/TestUtils.test_full_edit_dry_run'] } }, async () => {
+  const ctx = await workingDirectory({ 'file.txt': 'one\ntwo\nthree\n' });
+  const dry = createWorkingTree({
+    dryRun: true,
+    notices: {
+      output() {},
+      warning() {},
+      error() {},
+    },
+  });
+  const reply = 'file.txt\n<<<<<<< SEARCH\ntwo\n=======\nnew\n>>>>>>> REPLACE\n';
+  const { edits } = getEdits(reply, ctx);
+  await applyEdits(edits, { ...ctx, tree: dry });
+  expect(await readFile(join(ctx.root, 'file.txt'), 'utf8')).toBe('one\ntwo\nthree\n');
 });
 
 test('diff format plans an upsert for the named file', async () => {
