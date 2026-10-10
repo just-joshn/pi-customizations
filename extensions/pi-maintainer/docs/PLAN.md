@@ -20,7 +20,7 @@ Rigor is high because the claim is total parity. Three independent checks back e
 
 ## The SAR loop
 
-Each SAR runs the same six units. Each unit ends in a check, and the next unit starts only after that check passes.
+Each SAR runs the same six acceptance stages. Recovery and independent port work may overlap the obligation mapping, but an incomplete map remains a blocker to accepting the SAR. A component check establishes only that component's result. It never establishes SAR completion or permits the next SAR to start.
 
 | Unit | Work | Check |
 | --- | --- | --- |
@@ -39,18 +39,27 @@ A SAR owns its document units (`<sar>/...`), its evidence units (`ev-<sar>/...`)
 
 | Id | Unit | Depends on | Worktree branch |
 | --- | --- | --- | --- |
-| E1 | Gate slicing, test owners, edit ledger fragment | none | `pm/ledger` |
-| E2 | SEARCH/REPLACE port (`editblock_coder.py`, fenced variant) | none | `pm/editblock` |
-| E3 | Unified diff port (`udiff_coder.py`, active `search_replace.py`, difflib, diff-match-patch) | none | `pm/udiff` |
+| E0 | Shared CPython difflib port | none | `pm/difflib` |
+| E1 | Gate slicing, test owners, complete edit obligation map | none | `pm/ledger` |
+| E2 | SEARCH/REPLACE port (`editblock_coder.py`, fenced variant) | E0 | `pm/editblock` |
+| E3 | Unified diff port (`udiff_coder.py`, active `search_replace.py`, diff-match-patch) | E0, E6 contract | `pm/udiff` |
 | E4 | Custom patch port (`patch_coder.py`) | none | `pm/patch` |
 | E5 | Whole-file port finish (NUL-path resolution gap, ported tests) | none | `pm/wholefile` |
 | E6 | Core: Feature contract, settings, exchange controller, Pi wiring, SDK test harness | none | `pm/core` |
 | E7 | Prompts: every edit prompt module and Aider's system-prompt formatting | none | `pm/prompts` |
 | E8 | Edit commands, chat modes, architect and context flows | E6, E7 | later |
-| E9 | File watcher and AI comments | E6 | later |
+| E9 | File watcher and AI comments | E6, tree-sitter prototype | later |
 | E10 | Model settings: default edit format and editor policy per model | E6 | later |
-| E11 | Edit journeys, print and RPC | E8 | later |
+| E11 | Edit journeys, print and RPC | E2 through E10 | later |
 | E12 | Row verification, edit gate, reviews, commits | all | coordinator |
+
+## Recovery ownership
+
+Eight delegates stopped with provider rate limits. Their commits and unfinished files are retained in their worktrees. Recovery uses native Pi Tasks whose observed model is `openai/gpt-6.1-sol`.
+
+At most two implementations run concurrently, counting parent-authored product changes as one implementation. When both slots are occupied, the parent may review, run checks, integrate unchanged checked commits, and update the audit trail. Repairs wait for a free slot. Reviews do not start another implementation or delegate their own fanout.
+
+A replacement gets the original brief, the surviving branch state, the extraction receipt, and the remaining acceptance obligations. Reports from stopped delegates are historical evidence, not completion verdicts. Each accepted component is checked again at the integrated head. E1's ledger rows remain open until implementation and behavioral tests establish them.
 
 ## SARs 2 to 4
 
