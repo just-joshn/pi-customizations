@@ -71,7 +71,7 @@ Every drive captures user-observable evidence written directly to `artifacts/ver
 - **poteto-mode:**
   - `off.txt` and `off.json`: UI notification (`"Poteto mode is off."`) and appended branch state entry (`"pstack-state"`, `enabled: false`).
 - **standalone-skills:**
-  - `skills.txt` and `skills.json`: verified registration of `skill:doctor`, `skill:implement-cli-from-contract`, `skill:reverse-engineer-cli`, `skill:run`, and `skill:simplify`.
+  - `skills.txt` and `skills.json`: verified registration of `skill:doctor`, `skill:implement-cli-from-contract`, `skill:port-harness-capability`, `skill:reverse-engineer-cli`, `skill:run`, and `skill:simplify`.
 - **oauth-providers:**
   - `claude-models.txt`: table of registered `claude-subscription` models.
   - `antigravity-models.txt`: table of registered `google-antigravity` models.

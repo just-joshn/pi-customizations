@@ -295,6 +295,7 @@ async function driveStandaloneSkills(artifactDir) {
       const expected = [
         'skill:doctor',
         'skill:implement-cli-from-contract',
+        'skill:port-harness-capability',
         'skill:reverse-engineer-cli',
         'skill:run',
         'skill:simplify',
