@@ -121,7 +121,7 @@ test('/model and /editor-model persist role selections for the next reconstructi
   let snapshot = restore(session.sessionManager.getBranch()).snapshot;
   expect(snapshot?.physicalModel).toEqual({ provider: 'maintainer-test', id: 'scripted' });
   expect(snapshot?.editorModel).toEqual({ provider: 'maintainer-test', id: 'editor-scripted' });
-  await session.prompt('/model other-scripted');
+  await session.setModel(other);
   snapshot = restore(session.sessionManager.getBranch()).snapshot;
   expect(snapshot?.physicalModel).toEqual({ provider: 'maintainer-test', id: 'other-scripted' });
   expect(snapshot?.editorModel).toEqual({ provider: 'maintainer-test', id: 'editor-scripted' });

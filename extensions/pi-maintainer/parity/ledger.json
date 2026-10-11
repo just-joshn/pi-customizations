@@ -4671,7 +4671,7 @@
       "kind": "parity",
       "status": "verified",
       "pi": [
-        "pi.registerCommand",
+        "pi.on('model_select')",
         "pi.appendEntry",
         "ctx.modelRegistry"
       ],
