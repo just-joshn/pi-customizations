@@ -137,8 +137,7 @@ test('drop removes matching editable and read-only paths', {
   const b = join(h.root, 'b.txt');
   const state: SelectionState = { editable: [a], readOnly: [b], originalReadOnly: [] };
   const next = await dropMatches('a.txt b.txt', state, h.env);
-  expect(next.editable).toEqual([]);
-  expect(next.readOnly).toEqual([]);
+  expect(next).toEqual({ editable: [], readOnly: [], originalReadOnly: [] });
 });
 
 test('read-only converts editable files when bare', { meta: { aider: ['test_commands/TestCommands.test_cmd_read_only_bulk_conversion'] } }, async () => {

@@ -181,7 +181,12 @@ test('unsupported language, unavailable parser or query, and empty input yield n
         outcome: ok({ 'name.definition.function': [{ text: 'f', startLine: 0 }] }),
       }),
     }),
-  ).toEqual([]);
+  ).toEqual([]);  expect(
+    extractTags({
+      ...base,
+      runtime: runtimeWith({ outcome: ok({ 'name.definition.function': [{ text: 'f', startLine: 0 }] }) }),
+    }),
+  ).toHaveLength(1);
 });
 
 test('when definitions exist without references, name tokens supply reference tags at line minus one', {
@@ -315,6 +320,7 @@ test('Julia mapping degrades without an uncaught query error when the tags query
       resolveQuery: (lang) => readTagsQuery(lang, packagedQueryAssetRoots()),
     }),
   ).toEqual([]);
+  expect(readTagsQuery('julia', packagedQueryAssetRoots())).toEqual(expect.any(String));
 });
 
 test('an install with zero query assets cannot emit definition or reference tags', {

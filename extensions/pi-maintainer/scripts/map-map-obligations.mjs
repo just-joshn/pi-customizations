@@ -429,17 +429,22 @@ function openRowRecord(spec) {
   return row;
 }
 
-function main() {
-  const units = census().filter((unit) => sliceOf(unit.id) === 'map');
-  const ledger = readJson('parity/ledger.json');
-  const coverage = readJson('parity/coverage.json');
-
+/** Every pre-existing open row must still be open and owned by this slice. */
+function assertExistingOpen(ledger) {
   for (const id of EXISTING_OPEN) {
     const prior = ledger.rows.find((row) => row.id === id);
     if (!prior) throw new Error(`missing existing open map row ${id}`);
     if (prior.status !== 'open') throw new Error(`existing map row ${id} is ${prior.status}, expected open`);
     if (prior.feature !== 'map') throw new Error(`existing map row ${id} has feature ${prior.feature}`);
   }
+}
+
+function main() {
+  const units = census().filter((unit) => sliceOf(unit.id) === 'map');
+  const ledger = readJson('parity/ledger.json');
+  const coverage = readJson('parity/coverage.json');
+
+  assertExistingOpen(ledger);
 
   const existingById = new Map(ledger.rows.map((row) => [row.id, row]));
   const openRecords = OPEN_ROWS.map(openRowRecord);

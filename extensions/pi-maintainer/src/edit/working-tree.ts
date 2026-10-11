@@ -108,22 +108,23 @@ function nodeEncoding(encoding: string): BufferEncoding {
   throw new TypeError(`unknown encoding: ${encoding}`);
 }
 
+/** The symlink target, or null when the path is not a readable symlink. */
+async function symlinkTarget(path: string): Promise<string | null> {
+  try {
+    return (await lstat(path)).isSymbolicLink() ? await readlink(path) : null;
+  } catch {
+    return null;
+  }
+}
+
 async function mutationPath(path: string, seen: ReadonlySet<string> = new Set()): Promise<string> {
   const absolute = isAbsolute(path) ? path : `${process.cwd()}/${path}`;
   try {
     return await realpath(absolute);
   } catch (error) {
     if (errorCode(error) !== 'ENOENT' && errorCode(error) !== 'ENOTDIR') throw error;
-    if (!seen.has(absolute)) {
-      try {
-        if ((await lstat(absolute)).isSymbolicLink()) {
-          const link = await readlink(absolute);
-          return mutationPath(isAbsolute(link) ? link : join(dirname(absolute), link), new Set([...seen, absolute]));
-        }
-      } catch {
-        // Path is not a readable symlink. Fall through to the lexical parent.
-      }
-    }
+    const link = seen.has(absolute) ? null : await symlinkTarget(absolute);
+    if (link !== null) return mutationPath(isAbsolute(link) ? link : join(dirname(absolute), link), new Set([...seen, absolute]));
     const parent = dirname(absolute);
     return parent === absolute ? absolute : join(await mutationPath(parent, seen), basename(absolute));
   }

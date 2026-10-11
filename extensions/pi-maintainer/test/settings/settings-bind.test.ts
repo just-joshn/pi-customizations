@@ -166,7 +166,7 @@ test('verbose diagnostics list dotenv-derived options and redact credential over
   const loaded = await loadSettings({
     specs: editOptionList,
     getFlag: (name) => {
-      if (name === 'set-env') return 'OPENAI_API_KEY=sk-secret-value-1234';
+      if (name === 'set-env') return 'OPENAI_API_KEY=sk-test-1234';
       if (name === 'api-key') return 'anthropic=anthro-secret-5678';
       if (name === 'verbose') return true;
       return undefined;
@@ -184,8 +184,8 @@ test('verbose diagnostics list dotenv-derived options and redact credential over
   });
   expect(report).toContain('PI_MAINTAINER_DRY_RUN');
   expect(report).toMatch(/dry-run:\s*True/);
-  expect(report).toContain('sk-secret-value-1234'.slice(-4));
-  expect(report).not.toContain('sk-secret-value-1234');
+  expect(report).toContain('sk-test-1234'.slice(-4));
+  expect(report).not.toContain('sk-test-1234');
   expect(report).not.toContain('anthro-secret-5678');
   expect(scrubSensitiveInfo(['anthro-secret-5678'], 'anthro-secret-5678')).toBe('...5678');
   expect(applyApiKeyPairs(['anthropic=anthro-secret-5678'], {}).environment['ANTHROPIC_API_KEY']).toBe('anthro-secret-5678');

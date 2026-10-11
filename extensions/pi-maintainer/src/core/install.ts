@@ -157,8 +157,15 @@ export function installMaintainer(pi: ExtensionAPI, features: readonly SarFeatur
   pi.on('session_start', (_event, ctx) => runtime.start(ctx));
   pi.on('session_tree', (_event, ctx) => runtime.restoreBranch(ctx));
   pi.on('session_shutdown', () => runtime.dispose());
+  registerModelSelect(pi, runtime);
+  registerTurnHooks(pi, runtime);
+  registerCommands(pi, features, runtime);
+}
+
+/** Switching the physical model re-derives editor/weak roles and edit format, then routes back through the virtual model. */
+function registerModelSelect(pi: ExtensionAPI, runtime: MaintainerRuntime): void {
   pi.on('model_select', async (event, ctx) => {
-    runtime.context = ctx;
+    runtime.attach(ctx);
     if (!runtime.ready) return;
     if (event.model.api === 'pi-virtual') return;
     const env = runtime.commandEnv();
@@ -183,8 +190,12 @@ export function installMaintainer(pi: ExtensionAPI, features: readonly SarFeatur
     const router = ctx.modelRegistry.find(BRANDING.routerProvider, BRANDING.routerId);
     if (router) await pi.setModel(router);
   });
+}
+
+/** Per-turn hooks: snapshot guard, projection, completion, settle reconciliation, and the no-tools policy. */
+function registerTurnHooks(pi: ExtensionAPI, runtime: MaintainerRuntime): void {
   pi.on('before_agent_start', (event, ctx) => {
-    runtime.context = ctx;
+    runtime.attach(ctx);
     pi.setActiveTools([]);
     if (!restore(ctx.sessionManager.getBranch()).snapshot) {
       runtime.host.error('Selected branch has no maintainer snapshot. Select a physical model and reload before prompting.');
@@ -206,6 +217,9 @@ export function installMaintainer(pi: ExtensionAPI, features: readonly SarFeatur
   });
   pi.on('tool_call', () => ({ block: true, reason: 'Maintainer coders use reply-text edits, not model tools.', terminate: true }));
   pi.on('cache_warming_decision', (_event, ctx) => cacheWarmingDecisionForPhase(restore(ctx.sessionManager.getBranch()).snapshot?.phase.kind));
+}
+
+function registerCommands(pi: ExtensionAPI, features: readonly SarFeature[], runtime: MaintainerRuntime): void {
   for (const feature of features)
     for (const command of feature.commands) {
       if (command.name === 'model') continue;
@@ -221,7 +235,7 @@ export function installMaintainer(pi: ExtensionAPI, features: readonly SarFeatur
             }
           : {}),
         handler: async (args, ctx) => {
-          runtime.context = ctx;
+          runtime.attach(ctx);
           if (!ctx.isIdle()) throw new Error('Maintainer commands require an idle session');
           await command.run(args, runtime.commandEnv());
         },
@@ -242,6 +256,11 @@ class MaintainerRuntime {
   readonly #pi: ExtensionAPI;
   readonly #features: readonly SarFeature[];
   readonly #options: MaintainerOptions;
+
+  /** Remember the latest extension context for host calls made outside an event. */
+  attach(ctx: ExtensionContext): void {
+    this.context = ctx;
+  }
 
   constructor(pi: ExtensionAPI, features: readonly SarFeature[], options: MaintainerOptions) {
     this.#pi = pi;

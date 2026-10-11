@@ -29,7 +29,7 @@ export function createTagsCache(input: { readonly openPersistent: () => TagCache
   try {
     return input.openPersistent();
   } catch {
-    // continue to recreate / memory
+    if (!input.recreatePersistent) return memoryStore();
   }
   try {
     if (input.recreatePersistent) return input.recreatePersistent();

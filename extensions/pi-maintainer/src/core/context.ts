@@ -194,6 +194,13 @@ export function providerSystemSections(folded: { readonly sections?: Readonly<Re
   return sections;
 }
 
+/** The editable-files message and its acknowledgement, falling back to the repo-map or no-files prompts. */
+function editableFilesDialogue(input: ContextInputs, contents: Awaited<ReturnType<typeof readChatFiles>>, fence: Fence, prompts: PromptSet): { filesText: string; filesAck: string } {
+  if (contents.files.editable.length) return { filesText: prompts.filesContentPrefix + getFilesContent(input.snapshot.root, contents.editable, fence), filesAck: prompts.filesContentAssistantReply };
+  if (input.repository && prompts.filesNoFullFilesWithRepoMap) return { filesText: prompts.filesNoFullFilesWithRepoMap, filesAck: prompts.filesNoFullFilesWithRepoMapReply };
+  return { filesText: prompts.filesNoFullFiles, filesAck: 'Ok.' };
+}
+
 function assembleRequest({ input, contents, fence, prompts, model }: { input: ContextInputs; contents: Awaited<ReturnType<typeof readChatFiles>>; fence: Fence; prompts: PromptSet; model: { provider: string; id: string } }) {
   const { snapshot, view } = input;
   const policy = input.policy ?? defaultPromptPolicy;
@@ -217,12 +224,7 @@ function assembleRequest({ input, contents, fence, prompts, model }: { input: Co
         snapshot.historyThrough,
       );
   const readOnlyText = getFilesContent(snapshot.root, contents.readOnly, fence);
-  const filesText = contents.files.editable.length
-    ? prompts.filesContentPrefix + getFilesContent(snapshot.root, contents.editable, fence)
-    : input.repository && prompts.filesNoFullFilesWithRepoMap
-      ? prompts.filesNoFullFilesWithRepoMap
-      : prompts.filesNoFullFiles;
-  const filesAck = contents.files.editable.length ? prompts.filesContentAssistantReply : input.repository && prompts.filesNoFullFilesWithRepoMap ? prompts.filesNoFullFilesWithRepoMapReply : 'Ok.';
+  const { filesText, filesAck } = editableFilesDialogue(input, contents, fence, prompts);
   const readOnlyImages = view.supportsImages ? images(snapshot.root, contents.readOnly, timestamp) : [];
   const editableImages = view.supportsImages ? images(snapshot.root, contents.editable, timestamp) : [];
   const current = expandDialogue(history.current, model);

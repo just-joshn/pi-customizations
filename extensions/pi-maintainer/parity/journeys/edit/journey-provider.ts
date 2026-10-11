@@ -63,7 +63,7 @@ export default function journeyProvider(pi: ExtensionAPI): void {
   pi.registerProvider('maintainer-journey', {
     api: 'openai-completions',
     baseUrl: 'https://unused.invalid',
-    apiKey: 'fixture-only-not-a-credential',
+    apiKey: 'unused',
     models: [
       {
         id: 'recorder',

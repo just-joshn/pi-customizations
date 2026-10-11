@@ -39,7 +39,9 @@ test('an empty startup file list yields an empty editable selection', {
 
   const f = await piSessionFixture({ extension: maintainerExtension() });
   const session = await f.open();
-  expect(restore(session.sessionManager.getBranch()).snapshot?.files.editable).toEqual([]);
+  const restored = restore(session.sessionManager.getBranch()).snapshot;
+  expect(restored?.root).toBe(f.cwd);
+  expect(restored?.files.editable).toEqual([]);
   expect(f.requests).toHaveLength(0);
   expect(f.errors).toEqual([]);
 });
@@ -101,14 +103,14 @@ test('a message file is read with the configured encoding and enters the request
   });
   await writeFile(join(f.cwd, 'prompt.txt'), 'This is a test message from a file.');
   f.replies.push({ text: 'ok' });
-  let settled = false;
   const session = await f.open();
-  const unsubscribe = session.subscribe((event) => {
-    if (event.type === 'agent_settled') settled = true;
+  await new Promise<void>((resolve) => {
+    const unsubscribe = session.subscribe((event) => {
+      if (event.type !== 'agent_settled') return;
+      unsubscribe();
+      resolve();
+    });
   });
-  for (let i = 0; i < 50 && !settled; i += 1) await new Promise((resolve) => setTimeout(resolve, 20));
-  unsubscribe();
-  expect(settled).toBe(true);
   expect(f.requests).toHaveLength(1);
   expect(f.requests[0]?.messages.some((message) => message.role === 'user' && textOf(message) === 'This is a test message from a file.')).toBe(true);
   expect(f.errors).toEqual([]);

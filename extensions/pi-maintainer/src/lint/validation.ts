@@ -21,49 +21,98 @@ function absPath(root: string, path: string): string {
   return isAbsolute(path) ? path : join(root, path);
 }
 
+/** Lint each edited path; any failure report wins, then unavailability, then clean. */
+async function lintEdited(options: CreateValidationOptions, paths: Parameters<Validation['lintEdited']>[0], signal?: AbortSignal): ReturnType<Validation['lintEdited']> {
+  const { host, root, autoLint, lintCmds } = options;
+  if (!autoLint) return { kind: 'not-run' };
+  signal?.throwIfAborted();
+  let report = '';
+  let sawClean = false;
+  let sawUnsupported = false;
+  let unavailableReason: string | null = null;
+  for (const path of paths) {
+    if (!path) continue;
+    signal?.throwIfAborted();
+    const outcome = await lintFile(absPath(root, path), { host, root, lintCmds, ...(options.encoding !== undefined ? { encoding: options.encoding } : {}) }, signal);
+    switch (outcome.kind) {
+      case 'failed':
+        report += '\n';
+        report += outcome.report;
+        report += '\n';
+        break;
+      case 'clean':
+        sawClean = true;
+        break;
+      case 'unsupported':
+        sawUnsupported = true;
+        break;
+      case 'unreadable':
+      case 'unavailable':
+        unavailableReason = outcome.reason;
+        break;
+    }
+  }
+  if (report) {
+    host.warning(report);
+    return { kind: 'failed', report };
+  }
+  if (unavailableReason) return { kind: 'unavailable', reason: unavailableReason };
+  if (sawClean) return { kind: 'passed' };
+  if (sawUnsupported) return { kind: 'not-run' };
+  return { kind: 'passed' };
+}
+
+/** Confirm and run each suggested shell block, optionally forwarding the output to the chat. */
+async function runSuggestedShell(options: CreateValidationOptions, commands: Parameters<Validation['runSuggestedShell']>[0], signal?: AbortSignal): ReturnType<Validation['runSuggestedShell']> {
+  const { host, root } = options;
+  signal?.throwIfAborted();
+  const group = new ConfirmGroup(commands);
+  let accumulated = '';
+  for (const block of commands) {
+    signal?.throwIfAborted();
+    const lines = block.trim().split(/\r?\n/);
+    const commandCount = lines.filter((line) => {
+      const trimmed = line.trim();
+      return trimmed && !trimmed.startsWith('#');
+    }).length;
+    const question = commandCount === 1 ? 'Run shell command?' : 'Run shell commands?';
+    const approved = await host.confirm({
+      question,
+      subject: lines.join('\n'),
+      explicitYesRequired: true,
+      group,
+      allowNever: true,
+    });
+    if (!approved) continue;
+
+    for (const line of lines) {
+      const command = line.trim();
+      if (!command || command.startsWith('#')) continue;
+      host.output('');
+      host.output(`Running ${command}`);
+      const { output } = await runShellCommand(host, command, root, signal);
+      if (output) accumulated += `Output from ${command}\n${output}\n`;
+    }
+  }
+
+  if (accumulated.trim()) {
+    const add = await host.confirm({ question: 'Add command output to the chat?', allowNever: true });
+    if (add) {
+      const numLines = accumulated.trim().split(/\r?\n/).length;
+      const linePlural = numLines === 1 ? 'line' : 'lines';
+      host.output(`Added ${numLines} ${linePlural} of output to the chat.`);
+      return { kind: 'ran', output: accumulated };
+    }
+  }
+  return { kind: 'ran' } satisfies ShellForwardOutcome;
+}
+
 /** `Validation` over Host.exec: lint, suggested shell, and the automatic test command. */
 export function createValidation(options: CreateValidationOptions): Validation {
-  const { host, root, autoLint, autoTest, lintCmds, testCmd } = options;
+  const { host, root, autoTest, testCmd } = options;
 
   return {
-    async lintEdited(paths, signal) {
-      if (!autoLint) return { kind: 'not-run' };
-      signal?.throwIfAborted();
-      let report = '';
-      let sawClean = false;
-      let sawUnsupported = false;
-      let unavailableReason: string | null = null;
-      for (const path of paths) {
-        if (!path) continue;
-        signal?.throwIfAborted();
-        const outcome = await lintFile(absPath(root, path), { host, root, lintCmds, ...(options.encoding !== undefined ? { encoding: options.encoding } : {}) }, signal);
-        switch (outcome.kind) {
-          case 'failed':
-            report += '\n';
-            report += outcome.report;
-            report += '\n';
-            break;
-          case 'clean':
-            sawClean = true;
-            break;
-          case 'unsupported':
-            sawUnsupported = true;
-            break;
-          case 'unreadable':
-          case 'unavailable':
-            unavailableReason = outcome.reason;
-            break;
-        }
-      }
-      if (report) {
-        host.warning(report);
-        return { kind: 'failed', report };
-      }
-      if (unavailableReason) return { kind: 'unavailable', reason: unavailableReason };
-      if (sawClean) return { kind: 'passed' };
-      if (sawUnsupported) return { kind: 'not-run' };
-      return { kind: 'passed' };
-    },
+    lintEdited: (paths, signal) => lintEdited(options, paths, signal),
 
     async testEdited(signal) {
       if (!autoTest) return { kind: 'not-run' };
@@ -84,47 +133,6 @@ export function createValidation(options: CreateValidationOptions): Validation {
       return { kind: 'failed', report: formatRunOutput(command, output) };
     },
 
-    async runSuggestedShell(commands, signal) {
-      signal?.throwIfAborted();
-      const group = new ConfirmGroup(commands);
-      let accumulated = '';
-      for (const block of commands) {
-        signal?.throwIfAborted();
-        const lines = block.trim().split(/\r?\n/);
-        const commandCount = lines.filter((line) => {
-          const trimmed = line.trim();
-          return trimmed && !trimmed.startsWith('#');
-        }).length;
-        const question = commandCount === 1 ? 'Run shell command?' : 'Run shell commands?';
-        const approved = await host.confirm({
-          question,
-          subject: lines.join('\n'),
-          explicitYesRequired: true,
-          group,
-          allowNever: true,
-        });
-        if (!approved) continue;
-
-        for (const line of lines) {
-          const command = line.trim();
-          if (!command || command.startsWith('#')) continue;
-          host.output('');
-          host.output(`Running ${command}`);
-          const { output } = await runShellCommand(host, command, root, signal);
-          if (output) accumulated += `Output from ${command}\n${output}\n`;
-        }
-      }
-
-      if (accumulated.trim()) {
-        const add = await host.confirm({ question: 'Add command output to the chat?', allowNever: true });
-        if (add) {
-          const numLines = accumulated.trim().split(/\r?\n/).length;
-          const linePlural = numLines === 1 ? 'line' : 'lines';
-          host.output(`Added ${numLines} ${linePlural} of output to the chat.`);
-          return { kind: 'ran', output: accumulated };
-        }
-      }
-      return { kind: 'ran' } satisfies ShellForwardOutcome;
-    },
+    runSuggestedShell: (commands, signal) => runSuggestedShell(options, commands, signal),
   };
 }

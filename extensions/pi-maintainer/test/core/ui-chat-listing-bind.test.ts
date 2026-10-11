@@ -184,5 +184,6 @@ test('projectRequest skips listing when the chat has no files', {
   meta: { aider: ['test_io/TestInputOutputFormatFiles.test_format_files_for_input_pretty_true_no_files'] },
 }, async () => {
   const { outputs } = await harness({ pretty: true, editable: [], readOnly: [] });
-  expect(outputs.filter((line) => line.includes('Readonly:') || line.includes('(read only)'))).toEqual([]);
+  expect(outputs.join('\n')).not.toContain('Readonly:');
+  expect(outputs.join('\n')).not.toContain('(read only)');
 });

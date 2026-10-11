@@ -231,8 +231,9 @@ test('suggest-shell-commands false skips the shell port even when the reply has 
   },
 }, async () => {
   const h = await harness({ suggestShellCommands: false });
-  await h.controller.completeReply({ kind: 'complete', id: 'reply-off', text: BASH_REPLY });
+  const decision = await h.controller.completeReply({ kind: 'complete', id: 'reply-off', text: BASH_REPLY });
   expect(h.shellCalls).toEqual([]);
+  expect(decision.continue).toBe(false);
 });
 
 test('a SEARCH-bearing shell fence stays a file edit and does not reach the shell port', {
