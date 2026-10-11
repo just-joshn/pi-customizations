@@ -15,7 +15,7 @@ Extensions, themes, and skills for [Pi](https://pi.dev), the coding agent by Ear
 | [`extensions/pi-s50`](extensions/pi-s50/README.md) | A deterministic engineering coordinator that takes feature, bug, and frontend work to `PR_READY` against revision-bound evidence, with external skills limited to the skills.sh all-time top 50. |
 | [`extensions/pi-maintainer`](extensions/pi-maintainer/README.md) | Aider-parity edit, git, map, and lint on Pi 1.1.0. Declares runtime npm dependencies (`yaml`, `ignore`, `diff-match-patch`), so the workspace install below is required before Pi can load it. |
 | [`extensions/pi-one-dark-pro-theme`](extensions/pi-one-dark-pro-theme/README.md) | One Dark Pro Flat theme for Pi, computed from the pinned VS Code theme file. |
-| [`skills/`](skills/) | Five standalone skills: `doctor`, `run`, `simplify`, `reverse-engineer-cli`, `implement-cli-from-contract`. |
+| [`skills/`](skills/) | Six standalone skills: `doctor`, `run`, `simplify`, `reverse-engineer-cli`, `implement-cli-from-contract`, `port-harness-capability`. |
 
 ## Install
 
@@ -28,7 +28,7 @@ bun install
 pi install ./extensions/pi-pstack   # or any other extension directory
 ```
 
-The repository root is its own Pi package holding the five standalone skills. Run `pi install .` from the clone root to install those. To update, run `git pull --ff-only` in the clone, then `bun install`, then `/reload` in Pi.
+The repository root is its own Pi package holding the six standalone skills. Run `pi install .` from the clone root to install those. To update, run `git pull --ff-only` in the clone, then `bun install`, then `/reload` in Pi.
 
 The OAuth extensions log you into paid subscriptions and send requests that identify as other clients. Read each extension's README before using one, and use them only with accounts you own.
 

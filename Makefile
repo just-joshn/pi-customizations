@@ -1,6 +1,6 @@
-.PHONY: verify verify-s50 verify-s50-harness verify-caveman sweep-tui-skin verify-lint verify-agents verify-mechanisms verify-toolchain verify-extension verify-parity-audit verify-oauth verify-tui-skin verify-one-dark-pro-theme verify-test-conventions verify-install verify-python verify-xai-oauth-live
+.PHONY: verify verify-s50 verify-s50-harness verify-caveman sweep-tui-skin verify-lint verify-agents verify-mechanisms verify-toolchain verify-extension verify-parity-audit verify-oauth verify-tui-skin verify-one-dark-pro-theme verify-test-conventions verify-install verify-python verify-skill-node verify-xai-oauth-live
 
-verify: verify-s50 verify-caveman verify-lint verify-agents verify-mechanisms verify-toolchain verify-test-conventions verify-extension verify-oauth verify-tui-skin verify-one-dark-pro-theme verify-install verify-python
+verify: verify-s50 verify-caveman verify-lint verify-agents verify-mechanisms verify-toolchain verify-test-conventions verify-extension verify-oauth verify-tui-skin verify-one-dark-pro-theme verify-install verify-python verify-skill-node
 
 verify-lint:
 	bun run ci
@@ -94,3 +94,6 @@ verify-python:
 	uv run --no-project --with coverage==7.16.1 coverage report
 	uv run --no-project --with coverage==7.16.1 coverage json -o .audit/python-coverage/report.json
 	uv run --no-project python -c 'import json; from pathlib import Path; expected = {str(path) for path in Path("skills").glob("*/scripts/*.py")}; measured = set(json.loads(Path(".audit/python-coverage/report.json").read_text())["files"]); assert expected == measured, (expected - measured, measured - expected)'
+
+verify-skill-node:
+	node --test skills/*/tests/*.test.mjs

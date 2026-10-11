@@ -14,7 +14,7 @@ pi install ./extensions/pi-pstack
 
 If you already have a checkout, run only the `pi install` command from its root. Keep the checkout in place. Pi loads local packages from that directory without copying them.
 
-The package lives in `extensions/pi-pstack`, not the repository root. Use the clone-and-install commands above rather than `pi install git:github.com/just-joshn/pi-customizations`. The repository root is a separate package that holds only the five standalone skills.
+The package lives in `extensions/pi-pstack`, not the repository root. Use the clone-and-install commands above rather than `pi install git:github.com/just-joshn/pi-customizations`. The repository root is a separate package that holds only the six standalone skills.
 
 To update, run `git pull --ff-only` from the checkout root, then run `/reload` in pi.
 
