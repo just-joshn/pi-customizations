@@ -27,6 +27,7 @@ import { mapOptions } from '../map/options.ts';
 import { runShowRepoMap } from '../map/show-repo-map.ts';
 import { chatFilesOf, restore, type Snapshot } from './branch.ts';
 import { absRootPath, findCommonRoot } from './chat-files.ts';
+import { stripSkillBlocks } from './context.ts';
 import { type CompletedReply, type DialogueFact, ExchangeController } from './exchange.ts';
 import { journaledTree } from './mutations.ts';
 import { createHost } from './pi-host.ts';
@@ -474,13 +475,14 @@ class MaintainerRuntime {
       if (entry.preprocessMentions && controller.snapshot.mode !== 'context') {
         const user = branch.filter((entry) => entry.type === 'message' && entry.message.role === 'user').at(-1);
         if (user?.type === 'message' && user.message.role === 'user') {
-          const content =
+          const content = stripSkillBlocks(
             typeof user.message.content === 'string'
               ? user.message.content
               : user.message.content
                   .filter((block) => block.type === 'text')
                   .map((block) => block.text)
-                  .join('');
+                  .join(''),
+          );
           await controller.checkForFileMentions(content, request.signal);
         }
       }

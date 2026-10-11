@@ -36,6 +36,34 @@ export function getCurMessageText(messages: readonly ContextMessage[]): string {
     .join('');
 }
 
+/** Remove Pi skill delivery wrappers (`<skill name=...>...</skill>`) from model-facing text. */
+export function stripSkillBlocks(text: string): string {
+  return text.replace(/<skill\b[^>]*>[\s\S]*?<\/skill>/gi, '').replace(/^\s*\n+/, '').replace(/\n{3,}/g, '\n\n');
+}
+
+function stripSkillsFromMessage(message: ContextMessage): ContextMessage {
+  if (!('content' in message)) return message;
+  if (typeof message.content === 'string') {
+    const content = stripSkillBlocks(message.content);
+    return content === message.content ? message : { ...message, content };
+  }
+  if (!Array.isArray(message.content)) return message;
+  let changed = false;
+  const content = message.content.map((block) => {
+    if (block.type !== 'text') return block;
+    const text = stripSkillBlocks(block.text);
+    if (text === block.text) return block;
+    changed = true;
+    return { ...block, text };
+  });
+  return changed ? { ...message, content } : message;
+}
+
+/** Drop skill wrappers from provider-bound messages. Session history stays untouched. */
+export function stripSkillsFromMessages(messages: readonly ContextMessage[]): ContextMessage[] {
+  return messages.map(stripSkillsFromMessage);
+}
+
 export async function readChatFiles(snapshot: Snapshot, tree: WorkingTree, notices: Notices) {
   let files: ChatFiles = chatFilesOf(snapshot);
   const editable: FileContent[] = [];

@@ -9,7 +9,7 @@ import { chatFilesOf, type Snapshot } from './branch.ts';
 import { chatListingPaths, formatFilesForInput } from './chat-file-listing.ts';
 import { absRootPath, allRelativeFiles, getRelFname, inchatRelativeFiles } from './chat-files.ts';
 import { ConfirmGroup } from './confirm.ts';
-import { getCurMessageText, partitionHistory, projectRequest, type RequestView } from './context.ts';
+import { getCurMessageText, partitionHistory, projectRequest, stripSkillsFromMessages, type RequestView } from './context.ts';
 import type { Host } from './host.ts';
 import { getFileMentions } from './mentions.ts';
 import { journaledTree } from './mutations.ts';
@@ -70,9 +70,10 @@ export class ExchangeController {
     const files = chatFilesOf(this.#state);
     this.#emitChatFileListing(files);
     const editor = this.#state.phase.kind === 'editor';
+    const cleaned: RequestView = { ...view, messages: stripSkillsFromMessages(view.messages) };
     const history = partitionHistory(
-      view.messages.filter((message) => message.role !== 'system'),
-      view.projection,
+      cleaned.messages.filter((message) => message.role !== 'system'),
+      cleaned.projection,
       this.#state.historyThrough,
     );
     const curMessageText = getCurMessageText(history.current);
@@ -89,11 +90,11 @@ export class ExchangeController {
         refresh: contextMode ? 'always' : 'auto',
         expandNoFilesBudget: contextMode,
       },
-      signal: view.signal,
+      signal: cleaned.signal,
     });
     const result = await projectRequest({
       snapshot: this.#state,
-      view,
+      view: cleaned,
       tree: this.#env.ports.edit.tree,
       notices: this.#env.host,
       source: this.#env.source,
