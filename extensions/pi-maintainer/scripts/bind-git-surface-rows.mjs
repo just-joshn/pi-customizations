@@ -29,9 +29,7 @@ const bindings = {
   'git.architect.return-editor-commits': {
     pi: ["pi.on('turn_end')", 'pi.appendEntry', 'pi.registerVirtualModel'],
     src: ['src/core/exchange.ts', 'src/core/branch.ts'],
-    tests: [
-      'test/core/git-surface-bind.test.ts::after the editor finishes, its assistant commit hashes are assigned back to the architect coder',
-    ],
+    tests: ['test/core/git-surface-bind.test.ts::after the editor finishes, its assistant commit hashes are assigned back to the architect coder'],
   },
 };
 

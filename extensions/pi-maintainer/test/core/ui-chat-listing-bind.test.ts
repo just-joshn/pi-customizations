@@ -4,8 +4,8 @@ import { join } from 'node:path';
 
 import { expect, onTestFinished, test } from 'vitest';
 import type { Snapshot } from '../../src/core/branch.ts';
-import { absRootPath } from '../../src/core/chat-files.ts';
 import { formatFilesForInput } from '../../src/core/chat-file-listing.ts';
+import { absRootPath } from '../../src/core/chat-files.ts';
 import { ExchangeController } from '../../src/core/exchange.ts';
 import type { Host } from '../../src/core/host.ts';
 import { createWorkingTree } from '../../src/edit/working-tree.ts';
@@ -125,7 +125,7 @@ async function harness(options: { readonly pretty?: boolean; readonly editable?:
     prompts: 'whole',
     editIntent: (edit: readonly [string, { readonly kind: 'upsert'; readonly path: string }]) => edit[1],
     getEdits: () => [],
-    applyEditsDryRun: (edits: readonly unknown[]) => [...edits],
+    applyEditsDryRun: (edits) => [...edits],
     applyEdits: async () => {},
   });
   const controller = new ExchangeController(snapshot, {
@@ -164,10 +164,7 @@ async function harness(options: { readonly pretty?: boolean; readonly editable?:
 
 test('projectRequest emits the plain chat-file listing before the model prompt', {
   meta: {
-    aider: [
-      'test_io/TestInputOutputFormatFiles.test_format_files_for_input_pretty_false',
-      'aider/coders/base_coder.py:898-910',
-    ],
+    aider: ['test_io/TestInputOutputFormatFiles.test_format_files_for_input_pretty_false', 'aider/coders/base_coder.py:898-910'],
   },
 }, async () => {
   const { outputs } = await harness({ pretty: false, editable: ['edit.txt'], readOnly: ['ro.txt'] });
@@ -176,10 +173,7 @@ test('projectRequest emits the plain chat-file listing before the model prompt',
 
 test('projectRequest emits pretty Readonly and Editable columns when both kinds exist', {
   meta: {
-    aider: [
-      'test_io/TestInputOutputFormatFiles.test_format_files_for_input_pretty_true_mixed_files',
-      'aider/coders/base_coder.py:898-910',
-    ],
+    aider: ['test_io/TestInputOutputFormatFiles.test_format_files_for_input_pretty_true_mixed_files', 'aider/coders/base_coder.py:898-910'],
   },
 }, async () => {
   const { outputs } = await harness({ pretty: true, editable: ['edit.txt'], readOnly: ['ro.txt'] });

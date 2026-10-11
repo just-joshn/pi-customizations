@@ -293,8 +293,7 @@ function placeReminder(input: ChatChunksInput, chunks: ChatChunks): ChatChunks {
   const messagesTokens = model.tokenCount(allMessages(chunks));
   const reminderTokens = model.tokenCount(reminderMessage);
   const curTokens = model.tokenCount(chunks.cur);
-  const totalTokens =
-    messagesTokens !== null && reminderTokens !== null && curTokens !== null ? messagesTokens + reminderTokens + curTokens : 0;
+  const totalTokens = messagesTokens !== null && reminderTokens !== null && curTokens !== null ? messagesTokens + reminderTokens + curTokens : 0;
   const maxInputTokens = model.maxInputTokens || 0;
   if (maxInputTokens && !(totalTokens < maxInputTokens && prompts.systemReminder)) return chunks;
   if (model.reminder === 'sys') return { ...chunks, reminder: reminderMessage };

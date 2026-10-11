@@ -1,15 +1,15 @@
 import { accessSync, constants } from 'node:fs';
-import { join, relative } from 'node:path';
 import { stat } from 'node:fs/promises';
+import { join, relative } from 'node:path';
 
 import type { MapRequest, RepositoryContext } from '../feature.ts';
 import { effectiveMapBudget, resolveMapEnablement } from './budget.ts';
 import { getRankedTags, prependImportantFiles } from './rank.ts';
 import { renderRankedMap } from './render.ts';
-import { renderedCacheKey, type MapRefresh, type RenderedMapState } from './rendered-cache.ts';
+import { type MapRefresh, type RenderedMapState, renderedCacheKey } from './rendered-cache.ts';
 import { selectRankedPrefix } from './sampled-prefix.ts';
-import { createTagsCache, getCachedTags, type TagCacheStore } from './tags-cache.ts';
 import type { Tag } from './tag.ts';
+import { createTagsCache, getCachedTags, type TagCacheStore } from './tags-cache.ts';
 
 export type { MapRefresh };
 
@@ -31,12 +31,7 @@ export interface RepositoryContextConfig {
   readonly now?: () => number;
   readonly reportError?: (message: string) => void;
   readonly inspect?: (snapshot: MapRuntimeSnapshot) => void;
-  readonly buildMap?: (input: {
-    readonly request: MapRequest;
-    readonly budget: number;
-    readonly chatRel: ReadonlySet<string>;
-    readonly otherRel: readonly string[];
-  }) => Promise<string | null>;
+  readonly buildMap?: (input: { readonly request: MapRequest; readonly budget: number; readonly chatRel: ReadonlySet<string>; readonly otherRel: readonly string[] }) => Promise<string | null>;
   readonly tagsCache?: TagCacheStore;
   readonly tokenCount?: (text: string) => number;
 }
@@ -91,12 +86,7 @@ export function createRepositoryContext(config: RepositoryContextConfig): Reposi
   const now = config.now ?? (() => Date.now() / 1000);
   const tokenCount = config.tokenCount ?? ((text: string) => Math.ceil(text.length / 4));
 
-  async function defaultBuild(input: {
-    readonly request: MapRequest;
-    readonly budget: number;
-    readonly chatRel: ReadonlySet<string>;
-    readonly otherRel: readonly string[];
-  }): Promise<string | null> {
+  async function defaultBuild(input: { readonly request: MapRequest; readonly budget: number; readonly chatRel: ReadonlySet<string>; readonly otherRel: readonly string[] }): Promise<string | null> {
     const tagsByAbsPath = new Map<string, readonly Tag[]>();
     for (const abs of input.request.otherFiles) {
       try {

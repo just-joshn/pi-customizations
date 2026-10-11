@@ -5,34 +5,14 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { expect, onTestFinished, test } from 'vitest';
+import { defined } from '../support/defined.ts';
 
 const packageRoot = fileURLToPath(new URL('../..', import.meta.url));
 const checkoutSrc = realpathSync(join(packageRoot, 'src'));
 
-const EXPECTED_FORMATS = [
-  'whole',
-  'diff',
-  'diff-fenced',
-  'udiff',
-  'udiff-simple',
-  'patch',
-  'ask',
-  'architect',
-  'context',
-  'editor-diff',
-  'editor-diff-fenced',
-  'editor-whole',
-] as const;
+const EXPECTED_FORMATS = ['whole', 'diff', 'diff-fenced', 'udiff', 'udiff-simple', 'patch', 'ask', 'architect', 'context', 'editor-diff', 'editor-diff-fenced', 'editor-whole'] as const;
 
-const PEERS = [
-  '@earendil-works/pi-ai',
-  '@earendil-works/pi-coding-agent',
-  '@earendil-works/pi-tui',
-  'typebox',
-  'diff-match-patch',
-  'ignore',
-  'yaml',
-] as const;
+const PEERS = ['@earendil-works/pi-ai', '@earendil-works/pi-coding-agent', '@earendil-works/pi-tui', 'typebox', 'diff-match-patch', 'ignore', 'yaml'] as const;
 
 function linkDependency(name: string, fromRoot: string, intoModules: string): void {
   const source = join(fromRoot, 'node_modules', name);
@@ -51,7 +31,7 @@ test('isolated package load registers every edit format and packaged resources',
 
   const extractRoot = join(staging, 'extract');
   mkdirSync(extractRoot);
-  execFileSync('tar', ['-xzf', join(staging, tarball!), '-C', extractRoot], { stdio: 'pipe' });
+  execFileSync('tar', ['-xzf', join(staging, defined(tarball)), '-C', extractRoot], { stdio: 'pipe' });
   const packed = realpathSync(join(extractRoot, 'package'));
   expect(packed).not.toBe(realpathSync(packageRoot));
   expect(realpathSync(join(packed, 'src'))).not.toBe(checkoutSrc);
@@ -88,26 +68,13 @@ test('isolated package load registers every edit format and packaged resources',
   for (const name of EXPECTED_FORMATS) {
     const format = formats.get(name);
     expect(format, name).toBeDefined();
-    expect(typeof format!.withPlan).toBe('function');
-    expect(typeof format!.prompts).toBe('string');
+    expect(typeof defined(format).withPlan).toBe('function');
+    expect(typeof defined(format).prompts).toBe('string');
   }
 
   const promptFiles = readdirSync(join(packed, 'src/edit/prompts')).filter((name) => name.endsWith('.ts'));
   expect(promptFiles).toEqual(
-    expect.arrayContaining([
-      'architect.ts',
-      'ask.ts',
-      'context.ts',
-      'editblock-fenced.ts',
-      'editblock.ts',
-      'editor-diff-fenced.ts',
-      'editor-editblock.ts',
-      'editor-whole.ts',
-      'patch.ts',
-      'udiff-simple.ts',
-      'udiff.ts',
-      'wholefile.ts',
-    ]),
+    expect.arrayContaining(['architect.ts', 'ask.ts', 'context.ts', 'editblock-fenced.ts', 'editblock.ts', 'editor-diff-fenced.ts', 'editor-editblock.ts', 'editor-whole.ts', 'patch.ts', 'udiff-simple.ts', 'udiff.ts', 'wholefile.ts']),
   );
   for (const file of promptFiles) {
     const url = pathToFileURL(join(packed, 'src/edit/prompts', file)).href;

@@ -16,10 +16,7 @@ const bindings = {
   'edit.confirm.answers': {
     pi,
     src: confirmSrc,
-    tests: [
-      'test/core/confirm-bind.test.ts::empty and EOF answers take the default yes while invalid input reprompts',
-      'test/core/confirm-bind.test.ts::yes-always answers yes except explicit-yes questions, and always-no answers no',
-    ],
+    tests: ['test/core/confirm-bind.test.ts::empty and EOF answers take the default yes while invalid input reprompts', 'test/core/confirm-bind.test.ts::yes-always answers yes except explicit-yes questions, and always-no answers no'],
   },
   'edit.confirm.yes-always': {
     pi,

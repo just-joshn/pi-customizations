@@ -21,10 +21,7 @@ const bindings = {
   'edit.watch.filter': {
     pi: watchPi,
     src: watchSrc,
-    tests: [
-      'test/core/watch-bind.test.ts::built-in and gitignore patterns exclude editor noise and keep source files',
-      'test/core/watch-bind.test.ts::filter keeps under-root AI-comment files under one MiB and drops ignored paths',
-    ],
+    tests: ['test/core/watch-bind.test.ts::built-in and gitignore patterns exclude editor noise and keep source files', 'test/core/watch-bind.test.ts::filter keeps under-root AI-comment files under one MiB and drops ignored paths'],
   },
   'edit.watch.roots': {
     pi: watchPi,

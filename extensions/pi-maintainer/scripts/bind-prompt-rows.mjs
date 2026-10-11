@@ -48,10 +48,7 @@ const bindings = {
   'edit.prompt.image-mime-dotfiles': {
     pi,
     src: imageSrc,
-    tests: [
-      `${prompts}::Windows nested dot-only paths produce no image message while ordinary image and PDF paths do`,
-      `${prompts}::Windows path rules drop MIME for nested dot-only image names`,
-    ],
+    tests: [`${prompts}::Windows nested dot-only paths produce no image message while ordinary image and PDF paths do`, `${prompts}::Windows path rules drop MIME for nested dot-only image names`],
   },
 };
 

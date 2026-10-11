@@ -13,10 +13,7 @@ const bindings = {
   'edit.dry-run.report-new-file': {
     pi: ["pi.on('turn_end')"],
     src: ['src/edit/working-tree.ts', 'src/core/exchange.ts', 'src/edit/editblock.ts'],
-    tests: [
-      'test/edit/dry-run-bind.test.ts::dry-run empty-SEARCH new file reports Did not apply without writing or reflecting',
-      'test/working-tree-dry-run.test.ts::dry-run touch leaves missing directories absent',
-    ],
+    tests: ['test/edit/dry-run-bind.test.ts::dry-run empty-SEARCH new file reports Did not apply without writing or reflecting', 'test/working-tree-dry-run.test.ts::dry-run touch leaves missing directories absent'],
   },
 };
 

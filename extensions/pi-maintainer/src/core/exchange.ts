@@ -9,7 +9,7 @@ import { chatFilesOf, type Snapshot } from './branch.ts';
 import { chatListingPaths, formatFilesForInput } from './chat-file-listing.ts';
 import { absRootPath, allRelativeFiles, getRelFname, inchatRelativeFiles } from './chat-files.ts';
 import { ConfirmGroup } from './confirm.ts';
-import { getCurMessageText, partitionHistory, projectRequest, stripSkillsFromMessages, type RequestView } from './context.ts';
+import { getCurMessageText, partitionHistory, projectRequest, type RequestView, stripSkillsFromMessages } from './context.ts';
 import type { Host } from './host.ts';
 import { getFileMentions } from './mentions.ts';
 import { journaledTree } from './mutations.ts';

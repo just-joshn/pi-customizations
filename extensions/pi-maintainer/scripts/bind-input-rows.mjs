@@ -21,18 +21,12 @@ const bindings = {
   'edit.input.initial-files': {
     pi: ['pi.registerFlag', "pi.on('session_start')", 'pi.getFlag'],
     src: inputSrc,
-    tests: [
-      'test/edit/input-bind.test.ts::missing editable files are created and selected',
-      'test/edit/input-bind.test.ts::paths that cannot be created or are not ordinary files are diagnosed and excluded',
-    ],
+    tests: ['test/edit/input-bind.test.ts::missing editable files are created and selected', 'test/edit/input-bind.test.ts::paths that cannot be created or are not ordinary files are diagnosed and excluded'],
   },
   'edit.input.message-file': {
     pi: inputPi,
     src: inputSrc,
-    tests: [
-      'test/edit/input-bind.test.ts::a message file is read with the configured encoding and enters the request path',
-      'test/edit/input-bind.test.ts::a missing message file is reported and does not enter the request path',
-    ],
+    tests: ['test/edit/input-bind.test.ts::a message file is read with the configured encoding and enters the request path', 'test/edit/input-bind.test.ts::a missing message file is reported and does not enter the request path'],
   },
 };
 

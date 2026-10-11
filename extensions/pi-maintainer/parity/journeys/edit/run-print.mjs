@@ -3,21 +3,16 @@ import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import {
-  assertPiVersion,
-  extensionArgs,
-  journeyEnv,
-  prepareWorkspace,
-  readEdited,
-  resolvePi,
-  runPi,
-  saveArtifact,
-} from './host.mjs';
+import { assertPiVersion, extensionArgs, journeyEnv, prepareWorkspace, readEdited, resolvePi, runPi, saveArtifact } from './host.mjs';
 
 async function requestLog(logDir) {
   const names = (await readdir(logDir)).filter((name) => name.startsWith('requests-') && name.endsWith('.jsonl'));
   const chunks = await Promise.all(names.map((name) => readFile(join(logDir, name), 'utf8').catch(() => '')));
-  return chunks.join('').split('\n').filter(Boolean).map((line) => JSON.parse(line));
+  return chunks
+    .join('')
+    .split('\n')
+    .filter(Boolean)
+    .map((line) => JSON.parse(line));
 }
 
 export async function runPrintJourney() {
@@ -25,17 +20,7 @@ export async function runPrintJourney() {
   const version = assertPiVersion(piBin);
   const workspace = await prepareWorkspace({ format: 'whole', before: 'before-print\n' });
   try {
-    const args = [
-      ...extensionArgs(),
-      '--print',
-      '--no-session',
-      '--provider',
-      'maintainer-journey',
-      '--model',
-      'recorder',
-      '--',
-      'JOURNEY:wholefile',
-    ];
+    const args = [...extensionArgs(), '--print', '--no-session', '--provider', 'maintainer-journey', '--model', 'recorder', '--', 'JOURNEY:wholefile'];
     const result = await runPi(piBin, args, { cwd: workspace.cwd, env: journeyEnv(workspace) });
     const after = await readEdited(workspace.cwd);
     const requests = await requestLog(workspace.logDir);

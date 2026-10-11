@@ -6,7 +6,7 @@ import { BRANDING, coAuthoredBy } from '../branding.ts';
 import type { Host } from '../core/host.ts';
 import type { CommitContext, CommitResult, GitPolicy } from '../feature.ts';
 import { findGitRoot } from '../settings/config-files.ts';
-import { createGitRun, normalizeRepoPath, type GitRun } from './cli.ts';
+import { createGitRun, type GitRun, normalizeRepoPath } from './cli.ts';
 import { buildCommitMessageRequest, normalizeCommitMessage } from './commit-message.ts';
 import { effectiveDirtyCommits } from './options.ts';
 
@@ -196,13 +196,7 @@ export function createGitPolicy(options: CreateGitPolicyOptions): GitPolicy {
     return context?.trim() ? normalizeCommitMessage(context.split('\n')[0] ?? context).slice(0, 72) || 'Update files' : 'Update files';
   }
 
-  async function commitFiles(
-    fnames: readonly string[] | null,
-    context: string | null,
-    aiderEdits: boolean,
-    signal?: AbortSignal,
-    forcedMessage?: string,
-  ): Promise<CommitResult> {
+  async function commitFiles(fnames: readonly string[] | null, context: string | null, aiderEdits: boolean, signal?: AbortSignal, forcedMessage?: string): Promise<CommitResult> {
     if (!autoCommits && aiderEdits) return { kind: 'disabled' };
     const named = fnames ?? [];
     if (fnames === null) {
@@ -211,10 +205,7 @@ export function createGitPolicy(options: CreateGitPolicyOptions): GitPolicy {
     }
     const diffs = await diffsFor(named, signal);
     if (!diffs.trim()) return { kind: 'unchanged' };
-    let message =
-      forcedMessage !== undefined
-        ? normalizeCommitMessage(forcedMessage) || '(no commit message provided)'
-        : await resolveCommitMessage(named, context, signal);
+    let message = forcedMessage !== undefined ? normalizeCommitMessage(forcedMessage) || '(no commit message provided)' : await resolveCommitMessage(named, context, signal);
     const attributeAuthor = options.settings.attributeAuthor;
     const attributeCommitter = options.settings.attributeCommitter;
     const attributeCoAuthoredBy = options.settings.attributeCoAuthoredBy;
@@ -301,9 +292,7 @@ export function createGitPolicy(options: CreateGitPolicyOptions): GitPolicy {
     getDiffs: async (fnames = [], signal) => diffsFor(fnames, signal),
     diffCommits: async (fromCommit, toCommit, signal) => diffCommits(fromCommit, toCommit, signal),
     commitDirty: async (message, signal) => {
-      const result = message?.trim()
-        ? await commitFiles(null, null, false, signal, message)
-        : await commitFiles(null, null, false, signal);
+      const result = message?.trim() ? await commitFiles(null, null, false, signal, message) : await commitFiles(null, null, false, signal);
       if (result.kind === 'unchanged') host.warning('No more changes to commit.');
       return result;
     },

@@ -39,8 +39,8 @@ export function getRepoMessages(repoMap: string | null): readonly RepoTextMessag
 }
 
 function addCacheControl(messages: readonly CacheMarkedMessage[]): readonly CacheMarkedMessage[] {
-  if (messages.length === 0) return messages;
-  const last = messages[messages.length - 1]!;
+  const last = messages.at(-1);
+  if (last === undefined) return messages;
   const text = typeof last.content === 'string' ? last.content : last.content.map((part) => ('text' in part ? part.text : '')).join('');
   return [
     ...messages.slice(0, -1),
@@ -54,10 +54,7 @@ function addCacheControl(messages: readonly CacheMarkedMessage[]): readonly Cach
 /** Mark the repo chunk (or readonly_files when empty) the way ChatChunks.add_cache_control_headers does. */
 export function addCacheControlHeaders(chunks: PromptChunks): PromptChunks {
   const systemOrExamples = chunks.examples.length > 0 ? { examples: addCacheControl(chunks.examples), system: chunks.system } : { system: addCacheControl(chunks.system), examples: chunks.examples };
-  const repoOrReadonly =
-    chunks.repo.length > 0
-      ? { repo: addCacheControl(chunks.repo), readonlyFiles: chunks.readonlyFiles }
-      : { repo: chunks.repo, readonlyFiles: addCacheControl(chunks.readonlyFiles) };
+  const repoOrReadonly = chunks.repo.length > 0 ? { repo: addCacheControl(chunks.repo), readonlyFiles: chunks.readonlyFiles } : { repo: chunks.repo, readonlyFiles: addCacheControl(chunks.readonlyFiles) };
   return {
     ...chunks,
     ...systemOrExamples,

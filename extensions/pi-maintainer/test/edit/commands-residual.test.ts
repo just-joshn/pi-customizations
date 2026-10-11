@@ -5,6 +5,7 @@ import { editCommands } from '../../src/edit/commands.ts';
 import { estimateFencedFileTokens, fileTokenRows, formatFileTokenLines } from '../../src/edit/file-token-listing.ts';
 import { editFormatAfterModelSwitch, rolesAfterEditorModelSwitch, rolesAfterMainModelSwitch } from '../../src/edit/model-switch.ts';
 import { disabledGitPolicy, disabledRepositoryContext, type EditFormatName } from '../../src/feature.ts';
+import { defined } from '../support/defined.ts';
 
 function baseSnapshot(overrides: Partial<Snapshot> = {}): Snapshot {
   return {
@@ -29,10 +30,7 @@ function baseSnapshot(overrides: Partial<Snapshot> = {}): Snapshot {
   };
 }
 
-function commandEnv(options: {
-  readonly snapshot: Snapshot;
-  readonly defaults?: Record<string, EditFormatName>;
-}): { readonly env: CommandEnv; readonly saves: Snapshot[] } {
+function commandEnv(options: { readonly snapshot: Snapshot; readonly defaults?: Record<string, EditFormatName> }): { readonly env: CommandEnv; readonly saves: Snapshot[] } {
   const saves: Snapshot[] = [];
   let snapshot = options.snapshot;
   const defaults = options.defaults ?? {};
@@ -88,10 +86,7 @@ test('native fenced-file token estimates use Pi estimateTokens', {
 
 test('main model switch preserves editor and weak roles and an explicit edit format', {
   meta: {
-    aider: [
-      'test_commands/TestCommands.test_cmd_model',
-      'test_commands/TestCommands.test_cmd_model_preserves_explicit_edit_format',
-    ],
+    aider: ['test_commands/TestCommands.test_cmd_model', 'test_commands/TestCommands.test_cmd_model_preserves_explicit_edit_format'],
   },
 }, () => {
   const roles = rolesAfterMainModelSwitch({
@@ -104,17 +99,13 @@ test('main model switch preserves editor and weak roles and an explicit edit for
     editor: { provider: 'p', id: 'editor' },
     weak: { provider: 'p', id: 'weak' },
   });
-  expect(
-    editFormatAfterModelSwitch({ current: 'udiff', oldModelDefault: 'diff', newModelDefault: 'whole' }),
-  ).toBe('udiff');
+  expect(editFormatAfterModelSwitch({ current: 'udiff', oldModelDefault: 'diff', newModelDefault: 'whole' })).toBe('udiff');
 });
 
 test('main model switch adopts the new model default when format was not explicit', {
   meta: { aider: ['test_commands/TestCommands.test_cmd_model_updates_default_edit_format'] },
 }, () => {
-  expect(
-    editFormatAfterModelSwitch({ current: 'diff', oldModelDefault: 'diff', newModelDefault: 'whole' }),
-  ).toBe('whole');
+  expect(editFormatAfterModelSwitch({ current: 'diff', oldModelDefault: 'diff', newModelDefault: 'whole' })).toBe('whole');
 });
 
 test('editor model switch preserves main and weak roles for the next reconstruction', {
@@ -135,10 +126,7 @@ test('editor model switch preserves main and weak roles for the next reconstruct
 
 test('/model adopts the new packaged default and keeps editor and weak selections', {
   meta: {
-    aider: [
-      'test_commands/TestCommands.test_cmd_model',
-      'test_commands/TestCommands.test_cmd_model_updates_default_edit_format',
-    ],
+    aider: ['test_commands/TestCommands.test_cmd_model', 'test_commands/TestCommands.test_cmd_model_updates_default_edit_format'],
   },
 }, async () => {
   const model = editCommands.find((command) => command.name === 'model');
@@ -147,7 +135,7 @@ test('/model adopts the new packaged default and keeps editor and weak selection
     snapshot: baseSnapshot({ mode: 'diff' }),
     defaults: { 'gpt-3.5': 'diff', 'gpt-4': 'whole' },
   });
-  await model!.run('gpt-4', env);
+  await defined(model).run('gpt-4', env);
   expect(saves.at(-1)).toMatchObject({
     physicalModel: { provider: 'p', id: 'gpt-4' },
     editorModel: { provider: 'p', id: 'editor' },
@@ -164,7 +152,7 @@ test('/model preserves an explicit edit format across the main model switch', {
     snapshot: baseSnapshot({ mode: 'udiff' }),
     defaults: { 'gpt-3.5': 'diff', 'gpt-4': 'whole' },
   });
-  await model!.run('gpt-4', env);
+  await defined(model).run('gpt-4', env);
   expect(saves.at(-1)?.mode).toBe('udiff');
 });
 
@@ -173,7 +161,7 @@ test('/editor-model preserves main and weak selections on the snapshot', {
 }, async () => {
   const editor = editCommands.find((command) => command.name === 'editor-model');
   const { env, saves } = commandEnv({ snapshot: baseSnapshot() });
-  await editor!.run('gpt-4', env);
+  await defined(editor).run('gpt-4', env);
   expect(saves.at(-1)).toMatchObject({
     physicalModel: { provider: 'p', id: 'gpt-3.5' },
     editorModel: { provider: 'p', id: 'gpt-4' },
@@ -212,7 +200,7 @@ test('/tokens lists selected editable and read-only files with estimates and a d
       mkdir: async () => {},
     },
   } as unknown as CommandEnv;
-  await tokens!.run('', wired);
+  await defined(tokens).run('', wired);
   const text = outputs.join('\n');
   expect(text).toContain('foo.txt');
   expect(text).toContain('bar.txt');

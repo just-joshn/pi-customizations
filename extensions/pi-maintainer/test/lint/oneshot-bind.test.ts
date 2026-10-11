@@ -3,11 +3,10 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { expect, onTestFinished, test } from 'vitest';
-
 import type { Host } from '../../src/core/host.ts';
 import { lintFile, relativeLintName } from '../../src/lint/linter.ts';
-import { lintOptions } from '../../src/lint/options.ts';
 import { runLintTestOneshot } from '../../src/lint/oneshot.ts';
+import { lintOptions } from '../../src/lint/options.ts';
 import { createValidation } from '../../src/lint/validation.ts';
 
 async function tempRoot(prefix: string): Promise<string> {
@@ -28,25 +27,21 @@ function hostStub(overrides: Partial<Host> = {}): Host {
   };
 }
 
-test(
-  '--lint and --test are boolean oneshot startup flags; --test-cmd remains the command string',
-  {
-    meta: {
-      aider: ['test_main/TestMain.test_lint_option', 'args.py:526-565'],
-      evidence: ['ev-lint/oneshot/test-exit'],
-    },
+test('--lint and --test are boolean oneshot startup flags; --test-cmd remains the command string', {
+  meta: {
+    aider: ['test_main/TestMain.test_lint_option', 'args.py:526-565'],
+    evidence: ['ev-lint/oneshot/test-exit'],
   },
-  () => {
-    expect(lintOptions.lint.kind).toBe('boolean');
-    expect(lintOptions.lint.defaultValue).toBe(false);
-    expect(lintOptions.lint.negatable).toBe(false);
-    expect(lintOptions.test.kind).toBe('boolean');
-    expect(lintOptions.test.defaultValue).toBe(false);
-    expect(lintOptions.test.negatable).toBe(false);
-    expect(lintOptions.testCmd.kind).toBe('string');
-    expect(lintOptions.testCmd.defaultValue).toBeNull();
-  },
-);
+}, () => {
+  expect(lintOptions.lint.kind).toBe('boolean');
+  expect(lintOptions.lint.defaultValue).toBe(false);
+  expect(lintOptions.lint.negatable).toBe(false);
+  expect(lintOptions.test.kind).toBe('boolean');
+  expect(lintOptions.test.defaultValue).toBe(false);
+  expect(lintOptions.test.negatable).toBe(false);
+  expect(lintOptions.testCmd.kind).toBe('string');
+  expect(lintOptions.testCmd.defaultValue).toBeNull();
+});
 
 test('startup --test without --test-cmd exits 1 before running tests', async () => {
   const errors: string[] = [];
@@ -88,50 +83,46 @@ test('startup --lint runs the lint workflow then exits 0 before optional commit'
   expect(order).toEqual(['lint']);
 });
 
-test(
-  'startup --test ignores repair feedback for model fixing unless placeholder is set; child failure is not process exit status',
-  {
-    meta: {
-      aider: ['main.py:1053-1073,1272-1274'],
-      evidence: ['ev-lint/oneshot/test-exit'],
+test('startup --test ignores repair feedback for model fixing unless placeholder is set; child failure is not process exit status', {
+  meta: {
+    aider: ['main.py:1053-1073,1272-1274'],
+    evidence: ['ev-lint/oneshot/test-exit'],
+  },
+}, async () => {
+  const fixing: string[] = [];
+  const result = await runLintTestOneshot({
+    lint: false,
+    test: true,
+    testCmd: 'printf known-test-failure; exit 7',
+    runLintWorkflow: async () => {},
+    runTestCommand: async (cmd) => {
+      expect(cmd).toBe('printf known-test-failure; exit 7');
+      return { childFailed: true, repairText: 'I ran this test command, which failed:\n\nprintf known-test-failure; exit 7\n' };
     },
-  },
-  async () => {
-    const fixing: string[] = [];
-    const result = await runLintTestOneshot({
-      lint: false,
-      test: true,
-      testCmd: 'printf known-test-failure; exit 7',
-      runLintWorkflow: async () => {},
-      runTestCommand: async (cmd) => {
-        expect(cmd).toBe('printf known-test-failure; exit 7');
-        return { childFailed: true, repairText: 'I ran this test command, which failed:\n\nprintf known-test-failure; exit 7\n' };
-      },
-      error: () => {},
-      placeholder: null,
-      runPlaceholder: async (text) => {
-        fixing.push(text);
-      },
-    });
-    expect(result).toEqual({ kind: 'exit', status: 0 });
-    expect(fixing).toEqual([]);
+    error: () => {},
+    placeholder: null,
+    runPlaceholder: async (text) => {
+      fixing.push(text);
+    },
+  });
+  expect(result).toEqual({ kind: 'exit', status: 0 });
+  expect(fixing).toEqual([]);
 
-    const withPlaceholder = await runLintTestOneshot({
-      lint: false,
-      test: true,
-      testCmd: 'false',
-      runLintWorkflow: async () => {},
-      runTestCommand: async () => ({ childFailed: true, repairText: 'repair' }),
-      error: () => {},
-      placeholder: "What's wrong? Fix",
-      runPlaceholder: async (text) => {
-        fixing.push(text);
-      },
-    });
-    expect(withPlaceholder).toEqual({ kind: 'exit', status: 0 });
-    expect(fixing).toEqual(["What's wrong? Fix"]);
-  },
-);
+  const withPlaceholder = await runLintTestOneshot({
+    lint: false,
+    test: true,
+    testCmd: 'false',
+    runLintWorkflow: async () => {},
+    runTestCommand: async () => ({ childFailed: true, repairText: 'repair' }),
+    error: () => {},
+    placeholder: "What's wrong? Fix",
+    runPlaceholder: async (text) => {
+      fixing.push(text);
+    },
+  });
+  expect(withPlaceholder).toEqual({ kind: 'exit', status: 0 });
+  expect(fixing).toEqual(["What's wrong? Fix"]);
+});
 
 test('lint and test CheckOutcome kinds distinguish clean, unsupported, unreadable, unavailable, and missing command', async () => {
   const root = await tempRoot('lint-ambiguous-');
@@ -210,20 +201,16 @@ test('lint and test CheckOutcome kinds distinguish clean, unsupported, unreadabl
   expect(await withTest.testEdited()).toEqual({ kind: 'passed' });
 });
 
-test(
-  'relativeLintName with null root preserves the incoming path object (Aider get_rel_fname quirk)',
-  {
-    meta: {
-      aider: ['test_linter/TestLinter.test_get_rel_fname', 'linter.py:21-80,80-116'],
-      evidence: ['ev-lint/probe/python-root-path', 'ev-lint/probe/python-root-path~2'],
-    },
+test('relativeLintName with null root preserves the incoming path object (Aider get_rel_fname quirk)', {
+  meta: {
+    aider: ['test_linter/TestLinter.test_get_rel_fname', 'linter.py:21-80,80-116'],
+    evidence: ['ev-lint/probe/python-root-path', 'ev-lint/probe/python-root-path~2'],
   },
-  () => {
-    const pathObj = { toString: () => '/abs/file.py' };
-    expect(relativeLintName(pathObj, null)).toBe(pathObj);
-    expect(relativeLintName('/repo/src/a.py', '/repo')).toBe('src/a.py');
-  },
-);
+}, () => {
+  const pathObj = { toString: () => '/abs/file.py' };
+  expect(relativeLintName(pathObj, null)).toBe(pathObj);
+  expect(relativeLintName('/repo/src/a.py', '/repo')).toBe('src/a.py');
+});
 
 test('custom lint command that rewrites the file leaves repair markers on initially read bytes', async () => {
   const root = await tempRoot('lint-stale-');

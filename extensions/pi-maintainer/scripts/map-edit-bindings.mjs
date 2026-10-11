@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Map Vitest titles and meta.aider / meta.evidence tags to edit ledger rows via coverage.json.
-import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -40,8 +40,7 @@ for (const file of walk(join(root, 'test'))) {
   if (file.includes(`${join('test', 'parity')}`)) continue;
   const text = readFileSync(file, 'utf8');
   const rx = /test\(\s*(['"`])((?:\\.|(?!\1).)*)\1\s*,\s*\{/g;
-  let match;
-  while ((match = rx.exec(text))) {
+  for (const match of text.matchAll(rx)) {
     const title = match[2];
     const optionsStart = match.index + match[0].length - 1;
     const block = balanced(text, optionsStart);
@@ -90,7 +89,10 @@ const focus = process.argv.slice(2);
 const rows = ledger.rows.filter((row) => row.feature === 'edit' && (!focus.length || focus.some((prefix) => row.id.startsWith(prefix) || row.id === prefix)));
 
 for (const row of rows) {
-  const tagUnits = [...unitRows.entries()].filter(([, mapped]) => mapped.has(row.id)).map(([unit]) => unit).filter((unit) => unit.startsWith('aider-test/') || unit.startsWith('ev-'));
+  const tagUnits = [...unitRows.entries()]
+    .filter(([, mapped]) => mapped.has(row.id))
+    .map(([unit]) => unit)
+    .filter((unit) => unit.startsWith('aider-test/') || unit.startsWith('ev-'));
   const candidates = byRow.get(row.id) ?? [];
   const covered = new Set(candidates.map((entry) => entry.unit));
   const missing = tagUnits.filter((unit) => !covered.has(unit));

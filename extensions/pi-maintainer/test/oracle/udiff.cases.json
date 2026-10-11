@@ -315,10 +315,7 @@
       "files": {
         "file.txt": "one\ntwo\nthree\n"
       },
-      "edits": [
-        ["file.txt", [" one\n", "-two\n", "+TWO\n", " three\n"]],
-        ["file.txt", [" one\n", " TWO\n", "-three\n", "+THREE\n"]]
-      ]
+      "edits": [["file.txt", [" one\n", "-two\n", "+TWO\n", " three\n"]], ["file.txt", [" one\n", " TWO\n", "-three\n", "+THREE\n"]]]
     }
   },
   {
@@ -338,10 +335,7 @@
       "files": {
         "file.txt": "Original\n"
       },
-      "edits": [
-        ["file.txt", ["-Original\n", "+Modified\n"]],
-        ["file.txt", ["-Original\n", "+Modified\n"]]
-      ]
+      "edits": [["file.txt", ["-Original\n", "+Modified\n"]], ["file.txt", ["-Original\n", "+Modified\n"]]]
     }
   },
   {
@@ -352,10 +346,7 @@
         "a.txt": "old\n",
         "b.txt": "keep\n"
       },
-      "edits": [
-        ["a.txt", ["-old\n", "+new\n"]],
-        ["b.txt", ["-missing\n", "+x\n"]]
-      ]
+      "edits": [["a.txt", ["-old\n", "+new\n"]], ["b.txt", ["-missing\n", "+x\n"]]]
     }
   },
   {

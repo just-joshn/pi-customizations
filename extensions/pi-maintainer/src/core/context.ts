@@ -38,14 +38,17 @@ export function getCurMessageText(messages: readonly ContextMessage[]): string {
 
 /** Remove Pi skill delivery wrappers (`<skill name=...>...</skill>`) from model-facing text. */
 export function stripSkillBlocks(text: string): string {
-  return text.replace(/<skill\b[^>]*>[\s\S]*?<\/skill>/gi, '').replace(/^\s*\n+/, '').replace(/\n{3,}/g, '\n\n');
+  return text
+    .replace(/<skill\b[^>]*>[\s\S]*?<\/skill>/gi, '')
+    .replace(/^\s*\n+/, '')
+    .replace(/\n{3,}/g, '\n\n');
 }
 
 function stripSkillsFromMessage(message: ContextMessage): ContextMessage {
   if (!('content' in message)) return message;
   if (typeof message.content === 'string') {
     const content = stripSkillBlocks(message.content);
-    return content === message.content ? message : { ...message, content };
+    return content === message.content ? message : ({ ...message, content } as ContextMessage);
   }
   if (!Array.isArray(message.content)) return message;
   let changed = false;
@@ -56,7 +59,7 @@ function stripSkillsFromMessage(message: ContextMessage): ContextMessage {
     changed = true;
     return { ...block, text };
   });
-  return changed ? { ...message, content } : message;
+  return changed ? ({ ...message, content } as ContextMessage) : message;
 }
 
 /** Drop skill wrappers from provider-bound messages. Session history stays untouched. */
@@ -183,11 +186,11 @@ export async function projectRequest(input: ContextInputs) {
 }
 
 /** Provider system sections owned by maintainer. Keep Pi `cwd`; drop foreign tool-usage sections. */
-export function providerSystemSections(folded: { readonly sections?: Readonly<Record<string, string>> | undefined }, preamble: string, useSystemPrompt: boolean): Record<string, string> {
+export function providerSystemSections(folded: { readonly sections?: Readonly<Record<string, string | null>> | undefined }, preamble: string, useSystemPrompt: boolean): Record<string, string> {
   const sections: Record<string, string> = {};
-  const cwd = folded.sections?.cwd;
-  if (typeof cwd === 'string' && cwd.length > 0) sections.cwd = cwd;
-  if (useSystemPrompt) sections.preamble = preamble;
+  const cwd = folded.sections?.['cwd'];
+  if (typeof cwd === 'string' && cwd.length > 0) sections['cwd'] = cwd;
+  if (useSystemPrompt) sections['preamble'] = preamble;
   return sections;
 }
 

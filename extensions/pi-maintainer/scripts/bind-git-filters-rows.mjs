@@ -16,18 +16,12 @@ const bindings = {
   'git.filter.gitignore': {
     pi: execPi,
     src: [...gitSrc, 'src/core/exchange.ts', 'src/edit/selection.ts'],
-    tests: [
-      'test/git/filters-bind.test.ts::isGitIgnored matches git check-ignore for paths rejected from inventory and edits',
-      'test/git/authorize-bind.test.ts::gitignored paths are skipped with the Aider skip warning',
-    ],
+    tests: ['test/git/filters-bind.test.ts::isGitIgnored matches git check-ignore for paths rejected from inventory and edits', 'test/git/authorize-bind.test.ts::gitignored paths are skipped with the Aider skip warning'],
   },
   'git.filter.aiderignore': {
     pi: execPi,
     src: [...gitSrc],
-    tests: [
-      'test/git/filters-bind.test.ts::aiderignore excludes matching tracked paths and marks them policy-ignored',
-      'test/git/inventory-bind.test.ts::aiderignore excludes matching tracked paths from inventory',
-    ],
+    tests: ['test/git/filters-bind.test.ts::aiderignore excludes matching tracked paths and marks them policy-ignored', 'test/git/inventory-bind.test.ts::aiderignore excludes matching tracked paths from inventory'],
   },
   'git.filter.subtree': {
     pi: execPi,
@@ -37,31 +31,22 @@ const bindings = {
   'git.inventory.addable-files': {
     pi: ['pi.registerCommand'],
     src: ['src/core/chat-files.ts', 'src/edit/commands.ts'],
-    tests: [
-      'test/git/filters-bind.test.ts::addable relative files are filtered inventory minus editable and read-only chat files',
-    ],
+    tests: ['test/git/filters-bind.test.ts::addable relative files are filtered inventory minus editable and read-only chat files'],
   },
   'git.inventory.no-repo-fallback': {
     pi: ['Host.exec'],
     src: ['src/core/chat-files.ts', 'src/git/policy.ts'],
-    tests: [
-      'test/git/filters-bind.test.ts::without a repository relative inventory is limited to in-chat editable files',
-      'test/core/context-bind.test.ts::inventory falls back to chat files without walking the workspace',
-    ],
+    tests: ['test/git/filters-bind.test.ts::without a repository relative inventory is limited to in-chat editable files', 'test/core/context-bind.test.ts::inventory falls back to chat files without walking the workspace'],
   },
   'git.config.aiderignore-path': {
     pi: execPi,
     src: [...gitSrc],
-    tests: [
-      'test/git/filters-bind.test.ts::configured aiderignore path resolves relative to the git root and filters inventory',
-    ],
+    tests: ['test/git/filters-bind.test.ts::configured aiderignore path resolves relative to the git root and filters inventory'],
   },
   'git.commands.add-ignore-policy': {
     pi: ['pi.registerCommand', 'Host.exec'],
     src: ['src/edit/selection.ts', 'src/git/policy.ts', 'src/feature.ts'],
-    tests: [
-      'test/git/filters-bind.test.ts::add refuses gitignored paths and skips aiderignored paths with Aider warnings',
-    ],
+    tests: ['test/git/filters-bind.test.ts::add refuses gitignored paths and skips aiderignored paths with Aider warnings'],
   },
 };
 

@@ -1,8 +1,8 @@
 import { expect, test } from 'vitest';
-import { defaultEditorFormat } from '../../src/edit/modes.ts';
-import { promptPolicyFromModelFormat, resolveModelFormatPolicy } from '../../src/edit/model-format-policy.ts';
 import { selectEditFormat } from '../../src/edit/factory.ts';
 import { editFeature } from '../../src/edit/feature.ts';
+import { promptPolicyFromModelFormat, resolveModelFormatPolicy } from '../../src/edit/model-format-policy.ts';
+import { defaultEditorFormat } from '../../src/edit/modes.ts';
 import type { ResolvedSettings } from '../../src/settings/spec.ts';
 
 const configureMeta = { meta: { aider: ['test_models/TestModels.test_configure_model_settings'] } };

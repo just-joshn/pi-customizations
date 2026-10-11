@@ -7,16 +7,8 @@ import type { Snapshot } from '../../src/core/branch.ts';
 import { absRootPath } from '../../src/core/chat-files.ts';
 import { ExchangeController } from '../../src/core/exchange.ts';
 import type { Host } from '../../src/core/host.ts';
-import {
-  type EditCandidate,
-  type EditContext,
-  type EditIntent,
-  type GitPolicy,
-  disabledGitPolicy,
-  disabledRepositoryContext,
-  disabledValidation,
-} from '../../src/feature.ts';
 import { createWorkingTree } from '../../src/edit/working-tree.ts';
+import { disabledGitPolicy, disabledRepositoryContext, disabledValidation, type EditCandidate, type EditContext, type EditIntent, type GitPolicy } from '../../src/feature.ts';
 
 type Upsert = readonly [string | null, EditIntent | null];
 
@@ -133,19 +125,15 @@ async function harness(options: {
   return { root, controller, context, candidate, resolved, outputs, warnings, errors, confirms, staged, dirtyBatches };
 }
 
-test(
-  'a missing path asks Create new file and creates it when approved',
-  { meta: { aider: ['test_wholefile/TestWholeFileCoder.test_no_files_new_file_should_ask'] } },
-  async () => {
-    const h = await harness({});
-    const prepared = await h.controller.prepareToEdit([h.candidate('nested/new.txt', { kind: 'upsert', path: 'nested/new.txt' })], h.context);
-    expect(h.confirms).toEqual([{ question: 'Create new file?', subject: 'nested/new.txt' }]);
-    expect(prepared).toHaveLength(1);
-    expect(await readFile(join(h.root, 'nested/new.txt'), 'utf8')).toBe('');
-    expect(h.controller.snapshot.files.editable).toEqual([h.resolved('nested/new.txt')]);
-    expect(h.outputs).toEqual([]);
-  },
-);
+test('a missing path asks Create new file and creates it when approved', { meta: { aider: ['test_wholefile/TestWholeFileCoder.test_no_files_new_file_should_ask'] } }, async () => {
+  const h = await harness({});
+  const prepared = await h.controller.prepareToEdit([h.candidate('nested/new.txt', { kind: 'upsert', path: 'nested/new.txt' })], h.context);
+  expect(h.confirms).toEqual([{ question: 'Create new file?', subject: 'nested/new.txt' }]);
+  expect(prepared).toHaveLength(1);
+  expect(await readFile(join(h.root, 'nested/new.txt'), 'utf8')).toBe('');
+  expect(h.controller.snapshot.files.editable).toEqual([h.resolved('nested/new.txt')]);
+  expect(h.outputs).toEqual([]);
+});
 
 test('declining Create new file skips that path and prints Skipping edits', async () => {
   const h = await harness({ confirm: async () => false });
@@ -155,19 +143,15 @@ test('declining Create new file skips that path and prints Skipping edits', asyn
   await expect(access(join(h.root, 'missing.txt'))).rejects.toMatchObject({ code: 'ENOENT' });
 });
 
-test(
-  'an existing unshared file asks Allow edits and joins the editable set when approved',
-  { meta: { aider: ['test_wholefile/TestWholeFileCoder.test_update_files_not_in_chat'] } },
-  async () => {
-    const h = await harness({});
-    await writeFile(join(h.root, 'outside.txt'), 'before\n');
-    const prepared = await h.controller.prepareToEdit([h.candidate('outside.txt', { kind: 'update', path: 'outside.txt' })], h.context);
-    expect(h.confirms).toEqual([{ question: 'Allow edits to file that has not been added to the chat?', subject: 'outside.txt' }]);
-    expect(prepared).toHaveLength(1);
-    expect(h.controller.snapshot.files.editable).toEqual([h.resolved('outside.txt')]);
-    expect(await readFile(join(h.root, 'outside.txt'), 'utf8')).toBe('before\n');
-  },
-);
+test('an existing unshared file asks Allow edits and joins the editable set when approved', { meta: { aider: ['test_wholefile/TestWholeFileCoder.test_update_files_not_in_chat'] } }, async () => {
+  const h = await harness({});
+  await writeFile(join(h.root, 'outside.txt'), 'before\n');
+  const prepared = await h.controller.prepareToEdit([h.candidate('outside.txt', { kind: 'update', path: 'outside.txt' })], h.context);
+  expect(h.confirms).toEqual([{ question: 'Allow edits to file that has not been added to the chat?', subject: 'outside.txt' }]);
+  expect(prepared).toHaveLength(1);
+  expect(h.controller.snapshot.files.editable).toEqual([h.resolved('outside.txt')]);
+  expect(await readFile(join(h.root, 'outside.txt'), 'utf8')).toBe('before\n');
+});
 
 test('an in-chat editable path is approved without a prompt', async () => {
   const h = await harness({});
@@ -191,14 +175,7 @@ test('a failed Create new file touch reports Unable to create and drops the path
 test('authorization asks once per distinct path and keeps every edit for that answer', async () => {
   const h = await harness({});
   await writeFile(join(h.root, 'shared.txt'), 'before\n');
-  const prepared = await h.controller.prepareToEdit(
-    [
-      h.candidate('shared.txt', { kind: 'update', path: 'shared.txt' }),
-      h.candidate('shared.txt', { kind: 'update', path: 'shared.txt' }),
-      h.candidate(null, null),
-    ],
-    h.context,
-  );
+  const prepared = await h.controller.prepareToEdit([h.candidate('shared.txt', { kind: 'update', path: 'shared.txt' }), h.candidate('shared.txt', { kind: 'update', path: 'shared.txt' }), h.candidate(null, null)], h.context);
   expect(h.confirms).toHaveLength(1);
   expect(prepared).toHaveLength(3);
   expect(prepared[2]?.edit[0]).toBeNull();
@@ -207,14 +184,7 @@ test('authorization asks once per distinct path and keeps every edit for that an
 test('a declined path drops every edit for that path while pathless records still pass', async () => {
   const h = await harness({ confirm: async () => false });
   await writeFile(join(h.root, 'shared.txt'), 'before\n');
-  const prepared = await h.controller.prepareToEdit(
-    [
-      h.candidate('shared.txt', { kind: 'update', path: 'shared.txt' }),
-      h.candidate('shared.txt', { kind: 'update', path: 'shared.txt' }),
-      h.candidate(null, null),
-    ],
-    h.context,
-  );
+  const prepared = await h.controller.prepareToEdit([h.candidate('shared.txt', { kind: 'update', path: 'shared.txt' }), h.candidate('shared.txt', { kind: 'update', path: 'shared.txt' }), h.candidate(null, null)], h.context);
   expect(prepared).toEqual([expect.objectContaining({ edit: [null, null] })]);
   expect(h.outputs).toEqual(['Skipping edits to shared.txt']);
 });
@@ -254,11 +224,7 @@ test('repository policy refusal skips a gitignored path and approved paths reach
   await writeFile(join(h.root, 'ignored.txt'), 'x\n');
   await writeFile(join(h.root, 'tracked.txt'), 'y\n');
   const prepared = await h.controller.prepareToEdit(
-    [
-      h.candidate('ignored.txt', { kind: 'update', path: 'ignored.txt' }),
-      h.candidate('tracked.txt', { kind: 'update', path: 'tracked.txt' }),
-      h.candidate('brand-new.txt', { kind: 'upsert', path: 'brand-new.txt' }),
-    ],
+    [h.candidate('ignored.txt', { kind: 'update', path: 'ignored.txt' }), h.candidate('tracked.txt', { kind: 'update', path: 'tracked.txt' }), h.candidate('brand-new.txt', { kind: 'upsert', path: 'brand-new.txt' })],
     h.context,
   );
   expect(h.warnings).toEqual(['Skipping edits to ignored.txt that matches gitignore spec.']);

@@ -13,15 +13,6 @@ const load = 'test/settings/load.test.ts';
 const tree = 'test/working-tree.test.ts';
 
 const pi = ['pi.registerFlag', "pi.on('session_start')", 'pi.getFlag'];
-const src = [
-  'src/settings/load.ts',
-  'src/settings/resolve.ts',
-  'src/settings/environment-pairs.ts',
-  'src/settings/format-settings.ts',
-  'src/edit/options.ts',
-  'src/edit/feature.ts',
-  'src/core/install.ts',
-];
 
 /** @type {Record<string, { pi: string[]; src: string[]; tests: string[] }>} */
 const bindings = {
@@ -49,10 +40,7 @@ const bindings = {
   'edit.settings.encoding': {
     pi,
     src: ['src/edit/options.ts', 'src/edit/feature.ts', 'src/edit/working-tree.ts', 'src/settings/load.ts'],
-    tests: [
-      `${bind}::cli encoding wins and reaches the edit working tree`,
-      `${tree}::reads UTF-16LE bytes when that codec is configured`,
-    ],
+    tests: [`${bind}::cli encoding wins and reaches the edit working tree`, `${tree}::reads UTF-16LE bytes when that codec is configured`],
   },
   'edit.settings.environment-pairs': {
     pi,

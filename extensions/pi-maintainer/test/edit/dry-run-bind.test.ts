@@ -102,27 +102,23 @@ async function harness() {
   return { root, controller, outputs, warnings, errors };
 }
 
-test(
-  'dry-run empty-SEARCH new file reports Did not apply without writing or reflecting',
-  {
-    meta: {
-      aider: ['test_editblock/TestUtils.test_full_edit_dry_run', 'test_wholefile/TestWholeFileCoder.test_no_files_new_file_should_ask'],
-    },
+test('dry-run empty-SEARCH new file reports Did not apply without writing or reflecting', {
+  meta: {
+    aider: ['test_editblock/TestUtils.test_full_edit_dry_run', 'test_wholefile/TestWholeFileCoder.test_no_files_new_file_should_ask'],
   },
-  async () => {
-    const h = await harness();
-    const reply = `new.txt
+}, async () => {
+  const h = await harness();
+  const reply = `new.txt
 <<<<<<< SEARCH
 =======
 created
 >>>>>>> REPLACE
 `;
-    const decision = await h.controller.completeReply({ kind: 'complete', id: 'reply-1', text: reply });
-    expect(h.outputs).toContain('Did not apply edit to new.txt (--dry-run)');
-    expect(h.errors).toEqual([]);
-    expect(decision.continue).toBe(false);
-    expect(decision.dialogue.filter((fact) => fact.purpose === 'reflection')).toEqual([]);
-    await expect(access(join(h.root, 'new.txt'))).rejects.toMatchObject({ code: 'ENOENT' });
-    expect(await readdir(h.root)).toEqual(['chat.txt']);
-  },
-);
+  const decision = await h.controller.completeReply({ kind: 'complete', id: 'reply-1', text: reply });
+  expect(h.outputs).toContain('Did not apply edit to new.txt (--dry-run)');
+  expect(h.errors).toEqual([]);
+  expect(decision.continue).toBe(false);
+  expect(decision.dialogue.filter((fact) => fact.purpose === 'reflection')).toEqual([]);
+  await expect(access(join(h.root, 'new.txt'))).rejects.toMatchObject({ code: 'ENOENT' });
+  expect(await readdir(h.root)).toEqual(['chat.txt']);
+});

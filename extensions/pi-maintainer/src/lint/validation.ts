@@ -36,11 +36,7 @@ export function createValidation(options: CreateValidationOptions): Validation {
       for (const path of paths) {
         if (!path) continue;
         signal?.throwIfAborted();
-        const outcome = await lintFile(
-          absPath(root, path),
-          { host, root, lintCmds, ...(options.encoding !== undefined ? { encoding: options.encoding } : {}) },
-          signal,
-        );
+        const outcome = await lintFile(absPath(root, path), { host, root, lintCmds, ...(options.encoding !== undefined ? { encoding: options.encoding } : {}) }, signal);
         switch (outcome.kind) {
           case 'failed':
             report += '\n';
@@ -75,10 +71,7 @@ export function createValidation(options: CreateValidationOptions): Validation {
       signal?.throwIfAborted();
       const { code, output } = await runShellCommand(host, testCmd, root, signal);
       if (code === 0) return { kind: 'passed' };
-      const report = [
-        `I ran this test command, which failed:\n\n${testCmd}\n\n`,
-        output ? `Command output:\n\n${output}` : 'Command output was empty.',
-      ].join('');
+      const report = [`I ran this test command, which failed:\n\n${testCmd}\n\n`, output ? `Command output:\n\n${output}` : 'Command output was empty.'].join('');
       host.output(output);
       return { kind: 'failed', report };
     },

@@ -1,11 +1,7 @@
 import type { Host } from '../core/host.ts';
 
 /** Aider `cmd_lint` file choice: explicit args, else chat files, else dirty staged∪unstaged. */
-export function selectLintRelativeFiles(input: {
-  readonly explicit: readonly string[];
-  readonly chatFiles: readonly string[];
-  readonly dirtyFiles: readonly string[];
-}): readonly string[] {
+export function selectLintRelativeFiles(input: { readonly explicit: readonly string[]; readonly chatFiles: readonly string[]; readonly dirtyFiles: readonly string[] }): readonly string[] {
   if (input.explicit.length) return [...input.explicit];
   if (input.chatFiles.length) return [...input.chatFiles];
   return [...input.dirtyFiles];

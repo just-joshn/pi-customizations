@@ -120,133 +120,121 @@ async function exchangeHarness(options: {
   return { root, controller, confirms, host };
 }
 
-test(
-  'tracked reply mentions are offered one by one and approved adds reflect without applying edits',
-  {
-    meta: {
-      aider: ['test_coder/TestCoder.test_check_for_filename_mentions', 'test_coder/TestCoder.test_check_for_file_mentions_with_mocked_confirm'],
-    },
+test('tracked reply mentions are offered one by one and approved adds reflect without applying edits', {
+  meta: {
+    aider: ['test_coder/TestCoder.test_check_for_filename_mentions', 'test_coder/TestCoder.test_check_for_file_mentions_with_mocked_confirm'],
   },
-  async () => {
-    const h = await exchangeHarness({
-      git: { trackedFiles: async () => ['file1.txt', 'file2.py'] },
-      snapshot: (root) =>
-        baseSnapshot(root, {
-          files: { editable: [absRootPath(root, 'chat.txt')], readOnly: [] },
-        }),
-      confirm: async (request) => request.subject === 'file1.txt',
-    });
-    await writeFile(join(h.root, 'chat.txt'), 'chat\n');
-    await writeFile(join(h.root, 'file1.txt'), 'one\n');
-    await writeFile(join(h.root, 'file2.py'), 'two\n');
-    await h.controller.projectRequest({
-      messages: [{ role: 'user', content: 'edit', timestamp: Date.now() }],
-      projection: [],
-      supportsImages: false,
-    });
-    const decision = await h.controller.completeReply({
-      kind: 'complete',
-      id: 'reply-1',
-      text: 'Please check file1.txt and file2.py\n```\nshould-not-apply\n```\n',
-    });
-    expect(h.confirms).toEqual([
-      { question: 'Add file to the chat?', subject: 'file1.txt' },
-      { question: 'Add file to the chat?', subject: 'file2.py' },
-    ]);
-    expect(decision.continue).toBe(true);
-    expect(decision.dialogue.some((fact) => fact.purpose === 'reflection' && fact.text.includes('I added these files to the chat: file1.txt'))).toBe(true);
-    expect(h.controller.snapshot.files.editable).toEqual([absRootPath(h.root, 'chat.txt'), absRootPath(h.root, 'file1.txt')]);
-    expect(h.controller.snapshot.ignoredMentions).toEqual(['file2.py']);
-    expect(await readFile(join(h.root, 'chat.txt'), 'utf8')).toBe('chat\n');
-    expect(await readFile(join(h.root, 'file1.txt'), 'utf8')).toBe('one\n');
-  },
-);
+}, async () => {
+  const h = await exchangeHarness({
+    git: { trackedFiles: async () => ['file1.txt', 'file2.py'] },
+    snapshot: (root) =>
+      baseSnapshot(root, {
+        files: { editable: [absRootPath(root, 'chat.txt')], readOnly: [] },
+      }),
+    confirm: async (request) => request.subject === 'file1.txt',
+  });
+  await writeFile(join(h.root, 'chat.txt'), 'chat\n');
+  await writeFile(join(h.root, 'file1.txt'), 'one\n');
+  await writeFile(join(h.root, 'file2.py'), 'two\n');
+  await h.controller.projectRequest({
+    messages: [{ role: 'user', content: 'edit', timestamp: Date.now() }],
+    projection: [],
+    supportsImages: false,
+  });
+  const decision = await h.controller.completeReply({
+    kind: 'complete',
+    id: 'reply-1',
+    text: 'Please check file1.txt and file2.py\n```\nshould-not-apply\n```\n',
+  });
+  expect(h.confirms).toEqual([
+    { question: 'Add file to the chat?', subject: 'file1.txt' },
+    { question: 'Add file to the chat?', subject: 'file2.py' },
+  ]);
+  expect(decision.continue).toBe(true);
+  expect(decision.dialogue.some((fact) => fact.purpose === 'reflection' && fact.text.includes('I added these files to the chat: file1.txt'))).toBe(true);
+  expect(h.controller.snapshot.files.editable).toEqual([absRootPath(h.root, 'chat.txt'), absRootPath(h.root, 'file1.txt')]);
+  expect(h.controller.snapshot.ignoredMentions).toEqual(['file2.py']);
+  expect(await readFile(join(h.root, 'chat.txt'), 'utf8')).toBe('chat\n');
+  expect(await readFile(join(h.root, 'file1.txt'), 'utf8')).toBe('one\n');
+});
 
-test(
-  'add refuses a non-image path outside the root with Aider text when automatic commits are on',
-  {
-    meta: {
-      aider: ['test_commands/TestCommands.test_cmd_add_from_outside_root', 'test_commands/TestCommands.test_cmd_add_from_outside_git'],
+test('add refuses a non-image path outside the root with Aider text when automatic commits are on', {
+  meta: {
+    aider: ['test_commands/TestCommands.test_cmd_add_from_outside_root', 'test_commands/TestCommands.test_cmd_add_from_outside_git'],
+  },
+}, async () => {
+  const root = await realpath(await mkdtemp(join(tmpdir(), 'git-surface-add-')));
+  onTestFinished(() => rm(root, { recursive: true, force: true }));
+  const outside = await realpath(await mkdtemp(join(tmpdir(), 'outside-')));
+  onTestFinished(() => rm(outside, { recursive: true, force: true }));
+  const errors: string[] = [];
+  const host: Host = {
+    output: () => {},
+    warning: () => {},
+    error: (text) => {
+      errors.push(text);
     },
-  },
-  async () => {
-    const root = await realpath(await mkdtemp(join(tmpdir(), 'git-surface-add-')));
-    onTestFinished(() => rm(root, { recursive: true, force: true }));
-    const outside = await realpath(await mkdtemp(join(tmpdir(), 'outside-')));
-    onTestFinished(() => rm(outside, { recursive: true, force: true }));
-    const errors: string[] = [];
-    const host: Host = {
-      output: () => {},
-      warning: () => {},
-      error: (text) => {
-        errors.push(text);
-      },
-      confirm: async () => true,
-      select: async () => undefined,
-      exec: async () => ({ stdout: '', stderr: '', code: 0, killed: false }),
-    };
-    const file = join(outside, 'ext.txt');
-    await writeFile(file, 'x\n');
-    const empty: SelectionState = { editable: [], readOnly: [], originalReadOnly: [] };
-    const envOn: SelectionEnv = {
-      root,
-      host,
-      tree: createWorkingTree({ notices: host }),
-      git: { ...disabledGitPolicy, repoRoot: () => root, trackedFiles: async () => [] },
-      autoCommits: true,
-      supportsImages: true,
-    };
-    const refused = await addFiles(file, empty, envOn);
-    expect(refused.editable).toEqual([]);
-    expect(errors).toEqual([`Can not add ${file}, which is not within ${root}`]);
+    confirm: async () => true,
+    select: async () => undefined,
+    exec: async () => ({ stdout: '', stderr: '', code: 0, killed: false }),
+  };
+  const file = join(outside, 'ext.txt');
+  await writeFile(file, 'x\n');
+  const empty: SelectionState = { editable: [], readOnly: [], originalReadOnly: [] };
+  const envOn: SelectionEnv = {
+    root,
+    host,
+    tree: createWorkingTree({ notices: host }),
+    git: { ...disabledGitPolicy, repoRoot: () => root, trackedFiles: async () => [] },
+    autoCommits: true,
+    supportsImages: true,
+  };
+  const refused = await addFiles(file, empty, envOn);
+  expect(refused.editable).toEqual([]);
+  expect(errors).toEqual([`Can not add ${file}, which is not within ${root}`]);
 
-    errors.length = 0;
-    const envOff: SelectionEnv = { ...envOn, autoCommits: false };
-    const admitted = await addFiles(file, empty, envOff);
-    expect(admitted.editable).toEqual([file]);
-    expect(errors).toEqual([]);
-  },
-);
+  errors.length = 0;
+  const envOff: SelectionEnv = { ...envOn, autoCommits: false };
+  const admitted = await addFiles(file, empty, envOff);
+  expect(admitted.editable).toEqual([file]);
+  expect(errors).toEqual([]);
+});
 
-test(
-  'after the editor finishes, its assistant commit hashes are assigned back to the architect coder',
-  {
-    meta: {
-      aider: ['test_coder/TestCoder.test_architect_coder_auto_accept_true'],
+test('after the editor finishes, its assistant commit hashes are assigned back to the architect coder', {
+  meta: {
+    aider: ['test_coder/TestCoder.test_architect_coder_auto_accept_true'],
+  },
+}, async () => {
+  const h = await exchangeHarness({
+    git: {
+      autoCommit: async () => ({ kind: 'committed', hash: 'abc1234', message: 'editor change' }),
     },
-  },
-  async () => {
-    const h = await exchangeHarness({
-      git: {
-        autoCommit: async () => ({ kind: 'committed', hash: 'abc1234', message: 'editor change' }),
-      },
-      snapshot: (root) =>
-        baseSnapshot(root, {
-          mode: 'editor-whole',
-          phase: {
-            kind: 'editor',
-            format: 'editor-whole',
-            parentMode: 'architect',
-            parentModel: { provider: 'test', id: 'scripted' },
-            architectReplyId: 'arch-1',
-          },
-          files: { editable: [absRootPath(root, 'hello.txt')], readOnly: [] },
-          assistantCommits: ['prior'],
-        }),
-    });
-    await writeFile(join(h.root, 'hello.txt'), 'before\n');
-    await h.controller.projectRequest({
-      messages: [{ role: 'user', content: 'edit', timestamp: Date.now() }],
-      projection: [],
-      supportsImages: false,
-    });
-    const decision = await h.controller.completeReply({ kind: 'complete', id: 'editor-1', text: 'hello.txt' });
-    expect(await readFile(join(h.root, 'hello.txt'), 'utf8')).toBe('after\n');
-    expect(h.controller.snapshot).toMatchObject({
-      mode: 'architect',
-      phase: { kind: 'main' },
-      assistantCommits: ['prior', 'abc1234'],
-    });
-    expect(decision.dialogue.some((fact) => fact.purpose === 'architect-return')).toBe(true);
-  },
-);
+    snapshot: (root) =>
+      baseSnapshot(root, {
+        mode: 'editor-whole',
+        phase: {
+          kind: 'editor',
+          format: 'editor-whole',
+          parentMode: 'architect',
+          parentModel: { provider: 'test', id: 'scripted' },
+          architectReplyId: 'arch-1',
+        },
+        files: { editable: [absRootPath(root, 'hello.txt')], readOnly: [] },
+        assistantCommits: ['prior'],
+      }),
+  });
+  await writeFile(join(h.root, 'hello.txt'), 'before\n');
+  await h.controller.projectRequest({
+    messages: [{ role: 'user', content: 'edit', timestamp: Date.now() }],
+    projection: [],
+    supportsImages: false,
+  });
+  const decision = await h.controller.completeReply({ kind: 'complete', id: 'editor-1', text: 'hello.txt' });
+  expect(await readFile(join(h.root, 'hello.txt'), 'utf8')).toBe('after\n');
+  expect(h.controller.snapshot).toMatchObject({
+    mode: 'architect',
+    phase: { kind: 'main' },
+    assistantCommits: ['prior', 'abc1234'],
+  });
+  expect(decision.dialogue.some((fact) => fact.purpose === 'architect-return')).toBe(true);
+});

@@ -9,13 +9,7 @@ const path = join(root, 'parity/ledger.json');
 const ledger = JSON.parse(readFileSync(path, 'utf8'));
 
 const pi = ['pi.registerFlag', "pi.on('session_start')", 'Host.exec'];
-const oneshotSrc = [
-  'src/lint/oneshot.ts',
-  'src/lint/options.ts',
-  'src/lint/commands.ts',
-  'src/lint/feature.ts',
-  'src/core/install.ts',
-];
+const oneshotSrc = ['src/lint/oneshot.ts', 'src/lint/options.ts', 'src/lint/commands.ts', 'src/lint/feature.ts', 'src/core/install.ts'];
 const failSrc = ['src/lint/linter.ts', 'src/lint/validation.ts', 'src/lint/feature.ts'];
 
 /** @type {Record<string, { pi: string[]; src: string[]; tests: string[] }>} */
@@ -32,30 +26,22 @@ const bindings = {
   'lint.oneshot.test-exit': {
     pi,
     src: oneshotSrc,
-    tests: [
-      'test/lint/oneshot-bind.test.ts::startup --test ignores repair feedback for model fixing unless placeholder is set; child failure is not process exit status',
-    ],
+    tests: ['test/lint/oneshot-bind.test.ts::startup --test ignores repair feedback for model fixing unless placeholder is set; child failure is not process exit status'],
   },
   'lint.fail.ambiguous-pass': {
     pi: ['Host.exec'],
     src: failSrc,
-    tests: [
-      'test/lint/oneshot-bind.test.ts::lint and test CheckOutcome kinds distinguish clean, unsupported, unreadable, unavailable, and missing command',
-    ],
+    tests: ['test/lint/oneshot-bind.test.ts::lint and test CheckOutcome kinds distinguish clean, unsupported, unreadable, unavailable, and missing command'],
   },
   'lint.fail.root-none-path': {
     pi: ['Host.exec'],
     src: ['src/lint/linter.ts'],
-    tests: [
-      'test/lint/oneshot-bind.test.ts::relativeLintName with null root preserves the incoming path object (Aider get_rel_fname quirk)',
-    ],
+    tests: ['test/lint/oneshot-bind.test.ts::relativeLintName with null root preserves the incoming path object (Aider get_rel_fname quirk)'],
   },
   'lint.fail.stale-diagnostics': {
     pi: ['Host.exec'],
     src: ['src/lint/linter.ts'],
-    tests: [
-      'test/lint/oneshot-bind.test.ts::custom lint command that rewrites the file leaves repair markers on initially read bytes',
-    ],
+    tests: ['test/lint/oneshot-bind.test.ts::custom lint command that rewrites the file leaves repair markers on initially read bytes'],
   },
 };
 

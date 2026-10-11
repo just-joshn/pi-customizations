@@ -29,12 +29,11 @@ export const lintFeature: Feature<Validation> & { readonly name: 'lint' } = {
   },
 };
 
-export { lintCommands } from './commands.ts';
-export { createValidation } from './validation.ts';
-export { lintOptions, lintOptionList } from './options.ts';
-export { parseLintCmds } from './parse-lint-cmds.ts';
+export { lintCommands, runExplicitLintWorkflow } from './commands.ts';
 export { findFilenamesAndLinenums, lintFile, lintReportText, relativeLintName, resolveLintCommand } from './linter.ts';
 export { runLintTestOneshot } from './oneshot.ts';
-export { selectLintRelativeFiles, listDirtyRelativeFiles } from './select-files.ts';
+export { lintOptionList, lintOptions } from './options.ts';
+export { parseLintCmds } from './parse-lint-cmds.ts';
 export { formatRunOutput } from './run-output.ts';
-export { runExplicitLintWorkflow } from './commands.ts';
+export { listDirtyRelativeFiles, selectLintRelativeFiles } from './select-files.ts';
+export { createValidation } from './validation.ts';

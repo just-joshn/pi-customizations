@@ -29,18 +29,12 @@ const bindings = {
   'edit.commands.add-glob': {
     pi,
     src,
-    tests: [
-      'test/edit/selection.test.ts::add expands a directory glob under the root',
-      'test/edit/selection.test.ts::add refuses wildcard creation when nothing matches',
-    ],
+    tests: ['test/edit/selection.test.ts::add expands a directory glob under the root', 'test/edit/selection.test.ts::add refuses wildcard creation when nothing matches'],
   },
   'edit.commands.create-unmatched': {
     pi,
     src,
-    tests: [
-      'test/edit/selection.test.ts::add creates an unmatched non-wildcard path after confirmation',
-      'test/edit/selection.test.ts::add refuses wildcard creation when nothing matches',
-    ],
+    tests: ['test/edit/selection.test.ts::add creates an unmatched non-wildcard path after confirmation', 'test/edit/selection.test.ts::add refuses wildcard creation when nothing matches'],
   },
   'edit.commands.add-root-policy': {
     pi,
@@ -55,10 +49,7 @@ const bindings = {
   'edit.commands.drop-all': {
     pi,
     src,
-    tests: [
-      'test/edit/selection.test.ts::bare drop keeps originally supplied read-only files',
-      'test/core/commands.pi.test.ts::/drop clears editable files while keeping original read-only files',
-    ],
+    tests: ['test/edit/selection.test.ts::bare drop keeps originally supplied read-only files', 'test/core/commands.pi.test.ts::/drop clears editable files while keeping original read-only files'],
   },
   'edit.commands.reset': {
     pi,
@@ -83,18 +74,12 @@ const bindings = {
   'edit.commands.save-selection': {
     pi,
     src,
-    tests: [
-      'test/edit/selection.test.ts::save writes reconstruction commands with relative and absolute paths',
-      'test/core/commands.pi.test.ts::/save and /load reconstruct editable and read-only selections',
-    ],
+    tests: ['test/edit/selection.test.ts::save writes reconstruction commands with relative and absolute paths', 'test/core/commands.pi.test.ts::/save and /load reconstruct editable and read-only selections'],
   },
   'edit.commands.load-selection': {
     pi,
     src,
-    tests: [
-      'test/core/commands.pi.test.ts::/save and /load reconstruct editable and read-only selections',
-      'test/core/commands.pi.test.ts::/load skips interactive mode-switch commands and continues',
-    ],
+    tests: ['test/core/commands.pi.test.ts::/save and /load reconstruct editable and read-only selections', 'test/core/commands.pi.test.ts::/load skips interactive mode-switch commands and continues'],
   },
   'edit.commands.one-shot-ask': {
     pi,

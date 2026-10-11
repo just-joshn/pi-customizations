@@ -5,12 +5,7 @@ import type { MapRequest, RepositoryContext } from '../feature.ts';
  * omitting in-repo read-only partitioning into chat, mention hints, and wrapper fallbacks
  * (`aider/commands.py:472-478`).
  */
-export async function tokensRepoMapContent(input: {
-  readonly editable: ReadonlySet<string>;
-  readonly allAbsFiles: readonly string[];
-  readonly map: RepositoryContext;
-  readonly signal?: AbortSignal;
-}): Promise<string | null> {
+export async function tokensRepoMapContent(input: { readonly editable: ReadonlySet<string>; readonly allAbsFiles: readonly string[]; readonly map: RepositoryContext; readonly signal?: AbortSignal }): Promise<string | null> {
   const chatFiles = new Set(input.editable);
   const otherFiles = new Set(input.allAbsFiles.filter((path) => !chatFiles.has(path)));
   const request: MapRequest = {

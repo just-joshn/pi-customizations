@@ -92,7 +92,7 @@ test('replays the recorded patch CLI update content', { meta: { evidence: ['ev-e
       inchatRelativeFiles: ['sample.py'],
       absRootPath: space.ctx.absRootPath,
       tree: space.workingTree,
-      notices: space.ctx.io,
+      notices: { ...space.ctx.io, error: () => {} },
     },
     async (candidates) => [...candidates],
     async (plan) => {
@@ -239,7 +239,7 @@ test('replays the recorded patch CLI add content', { meta: { evidence: ['ev-edit
       inchatRelativeFiles: [],
       absRootPath: space.ctx.absRootPath,
       tree: space.workingTree,
-      notices: space.ctx.io,
+      notices: { ...space.ctx.io, error: () => {} },
     },
     async (candidates) => {
       expect(await space.workingTree.exists(space.ctx.absRootPath('sample.py'))).toBe(false);

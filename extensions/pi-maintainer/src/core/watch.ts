@@ -1,6 +1,7 @@
-import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, type Stats, statSync } from 'node:fs';
 import { isAbsolute, relative, resolve } from 'node:path';
-import ignore from 'ignore';
+
+import ignoreImport, { type Ignore } from 'ignore';
 
 /** One watchfiles-style change: change kind plus absolute path. */
 export type WatchChange = readonly [changeType: string, path: string];
@@ -68,11 +69,12 @@ const ALWAYS_IGNORE = [
 
 const AI_COMMENT_PATTERN = /(?:#|\/\/|--|;+) *(ai\b.*|ai\b.*|.*\bai[?!]?) *$/i;
 const ONE_MIB = 1024 * 1024;
+const createIgnore = ignoreImport as unknown as () => Ignore;
 
 /** Load Aider's built-in ignore list plus each existing gitignore path into one matcher. */
 export function loadGitignores(gitignorePaths: readonly string[]): IgnoreSpec | null {
   if (gitignorePaths.length === 0) return null;
-  const ig = ignore().add([...ALWAYS_IGNORE]);
+  const ig = createIgnore().add([...ALWAYS_IGNORE]);
   for (const path of gitignorePaths) {
     if (!existsSync(path)) continue;
     ig.add(readFileSync(path, 'utf8'));
@@ -103,7 +105,10 @@ export function getAiComments(filepath: string, readText: (path: string) => stri
     if (!comment) continue;
     lineNums.push(index + 1);
     comments.push(comment);
-    const normalized = comment.toLowerCase().replace(/^[/#\-;]+/, '').trim();
+    const normalized = comment
+      .toLowerCase()
+      .replace(/^[/#\-;]+/, '')
+      .trim();
     if (normalized.startsWith('ai!') || normalized.endsWith('ai!')) action = '!';
     else if (normalized.startsWith('ai?') || normalized.endsWith('ai?')) action = '?';
   }
@@ -154,7 +159,7 @@ export class FileWatcher {
     const abs = resolve(path);
     const rel = posixRel(this.#root, abs);
     if (rel === null || rel === '.') return false;
-    let stats;
+    let stats: Stats;
     try {
       stats = statSync(abs);
     } catch {

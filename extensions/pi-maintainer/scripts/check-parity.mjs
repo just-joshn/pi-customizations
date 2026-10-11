@@ -72,7 +72,7 @@ function checkRow(row) {
     for (const key of ['defect', 'intent', 'behavior']) if (typeof row.fix?.[key] !== 'string' || !row.fix[key]) fail(`${where}: fix.${key} is required`);
   } else if (row?.fix !== undefined) fail(`${where}: only fix rows carry fix`);
   if (!STATUSES.has(row?.status)) fail(`${where}: status must be open or verified`);
-  if (row?.gap !== undefined && row.gap !== 'native') fail(`${where}: gap must be \"native\" when set`);
+  if (row?.gap !== undefined && row.gap !== 'native') fail(`${where}: gap must be "native" when set`);
   if (row?.gap === 'native' && row.status !== 'open') fail(`${where}: gap native requires status open`);
   for (const key of ['pi', 'src', 'tests']) if (!Array.isArray(row?.[key])) fail(`${where}: ${key} must be an array`);
 }
@@ -179,11 +179,7 @@ function checkVerified(rows, scope, results, { allowNativeGaps }) {
 
 function checkTags(units, coverage, rows, scope, results) {
   const passed = results.filter((result) => result.status === 'passed');
-  const proofs = new Map(
-    rows
-      .filter((row) => scope(row) && !isDisposedNativeGap(row))
-      .map((row) => [row.id, { feature: row.feature, results: row.tests.flatMap((test) => matchingResults(passed, test)) }]),
-  );
+  const proofs = new Map(rows.filter((row) => scope(row) && !isDisposedNativeGap(row)).map((row) => [row.id, { feature: row.feature, results: row.tests.flatMap((test) => matchingResults(passed, test)) }]));
   for (const unit of units) {
     const tag = unit.kind === 'aider-test' ? 'aider' : unit.kind === 'evidence' ? 'evidence' : null;
     if (!tag) continue;

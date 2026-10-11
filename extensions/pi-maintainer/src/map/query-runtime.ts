@@ -11,10 +11,7 @@ export type Captures = Readonly<Record<string, readonly CaptureNode[]>>;
  * Outcome of running a tags query. Parser and query failures stay in-band so Julia
  * incompatibilities degrade instead of aborting the map (`map.query.julia-compat`).
  */
-export type CaptureOutcome =
-  | { readonly kind: 'ok'; readonly captures: Captures }
-  | { readonly kind: 'unavailable' }
-  | { readonly kind: 'query-error'; readonly message: string };
+export type CaptureOutcome = { readonly kind: 'ok'; readonly captures: Captures } | { readonly kind: 'unavailable' } | { readonly kind: 'query-error'; readonly message: string };
 
 /**
  * Process-local parsers and query execution. Production stays unavailable until

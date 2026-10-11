@@ -3,7 +3,6 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { expect, onTestFinished, test } from 'vitest';
-
 import type { Snapshot } from '../../src/core/branch.ts';
 import { absRootPath } from '../../src/core/chat-files.ts';
 import { ExchangeController } from '../../src/core/exchange.ts';
@@ -11,15 +10,7 @@ import type { Host } from '../../src/core/host.ts';
 import { ValueError } from '../../src/edit/errors.ts';
 import { architectFormat, askFormat, editorWholeFormat } from '../../src/edit/modes.ts';
 import { createWorkingTree } from '../../src/edit/working-tree.ts';
-import {
-  disabledGitPolicy,
-  disabledRepositoryContext,
-  disabledValidation,
-  type EditFormat,
-  type GitPolicy,
-  registerEditFormat,
-  type Validation,
-} from '../../src/feature.ts';
+import { disabledGitPolicy, disabledRepositoryContext, disabledValidation, type EditFormat, type GitPolicy, registerEditFormat, type Validation } from '../../src/feature.ts';
 
 type Upsert = readonly [string, { readonly kind: 'upsert'; readonly path: string }];
 
@@ -187,7 +178,7 @@ test('automatic lint selects authorized prepare targets not a git dirty listing'
         ['other.txt', { kind: 'upsert', path: 'other.txt' }],
       ],
       applyEditsDryRun: (edits) => [...edits],
-      applyEdits: async (edits, context) => {
+      applyEdits: async (_edits, context) => {
         await context.tree.write(context.absRootPath('good.txt'), 'ok\n');
         await context.tree.write(context.absRootPath('other.txt'), 'ok\n');
       },

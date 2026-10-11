@@ -9,39 +9,24 @@ const path = join(root, 'parity/ledger.json');
 const ledger = JSON.parse(readFileSync(path, 'utf8'));
 
 const pi = ['pi.registerCommand', 'Host.exec', 'pi.sendUserMessage'];
-const lintSrc = [
-  'src/lint/commands.ts',
-  'src/lint/feature.ts',
-  'src/lint/validation.ts',
-  'src/lint/shell.ts',
-  'src/lint/select-files.ts',
-  'src/lint/run-output.ts',
-  'src/core/command.ts',
-  'src/core/install.ts',
-];
+const lintSrc = ['src/lint/commands.ts', 'src/lint/feature.ts', 'src/lint/validation.ts', 'src/lint/shell.ts', 'src/lint/select-files.ts', 'src/lint/run-output.ts', 'src/core/command.ts', 'src/core/install.ts'];
 
 /** @type {Record<string, { pi: string[]; src: string[]; tests: string[] }>} */
 const bindings = {
   'lint.test.command-output': {
     pi,
     src: lintSrc,
-    tests: [
-      'test/lint/commands-bind.test.ts::/test runs the configured command and on failure adds repair output to chat',
-    ],
+    tests: ['test/lint/commands-bind.test.ts::/test runs the configured command and on failure adds repair output to chat'],
   },
   'lint.shell.approve-and-run': {
     pi: ['Host.exec', 'Host.confirm'],
     src: ['src/lint/validation.ts', 'src/lint/shell.ts', 'src/core/confirm.ts'],
-    tests: [
-      'test/lint/commands-bind.test.ts::runSuggestedShell confirms each block, skips comments, and offers add-output-to-chat',
-    ],
+    tests: ['test/lint/commands-bind.test.ts::runSuggestedShell confirms each block, skips comments, and offers add-output-to-chat'],
   },
   'lint.test.no-command-noop': {
     pi: ['pi.registerCommand'],
     src: ['src/lint/commands.ts', 'src/lint/feature.ts'],
-    tests: [
-      'test/lint/commands-bind.test.ts::/test with neither argument nor configured command is a silent noop',
-    ],
+    tests: ['test/lint/commands-bind.test.ts::/test with neither argument nor configured command is a silent noop'],
   },
   'lint.commands.lint-file-selection': {
     pi,
@@ -55,9 +40,7 @@ const bindings = {
   'lint.security.shell-trust': {
     pi: ['Host.exec'],
     src: ['src/lint/shell.ts', 'src/lint/validation.ts', 'docs/NATIVE-GAPS.md'],
-    tests: [
-      'test/lint/security-bind.test.ts::Host.exec /bin/sh -c runs trusted shell under the user account; filename quoting does not sandbox compounds',
-    ],
+    tests: ['test/lint/security-bind.test.ts::Host.exec /bin/sh -c runs trusted shell under the user account; filename quoting does not sandbox compounds'],
   },
 };
 

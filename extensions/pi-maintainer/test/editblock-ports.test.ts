@@ -26,7 +26,7 @@ async function workspace(initial: Record<string, string> = {}) {
   };
 }
 
-const alwaysExists = { exists: async () => true, touch: async () => {} };
+const alwaysExists = { exists: async () => true, touch: async () => true };
 
 test('finds filenames by exact basename fuzzy and fence lookback', { meta: { aider: ['test_editblock/TestUtils.test_find_filename'] } }, () => {
   const valid = ['file1.py', 'file2.py', 'dir/file3.py', String.raw`\windows\__init__.py`];
