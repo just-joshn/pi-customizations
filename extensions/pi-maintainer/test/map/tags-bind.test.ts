@@ -181,7 +181,8 @@ test('unsupported language, unavailable parser or query, and empty input yield n
         outcome: ok({ 'name.definition.function': [{ text: 'f', startLine: 0 }] }),
       }),
     }),
-  ).toEqual([]);  expect(
+  ).toEqual([]);
+  expect(
     extractTags({
       ...base,
       runtime: runtimeWith({ outcome: ok({ 'name.definition.function': [{ text: 'f', startLine: 0 }] }) }),

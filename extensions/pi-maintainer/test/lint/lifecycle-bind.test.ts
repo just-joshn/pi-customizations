@@ -6,11 +6,11 @@ import { expect, onTestFinished, test } from 'vitest';
 import type { Snapshot } from '../../src/core/branch.ts';
 import { absRootPath } from '../../src/core/chat-files.ts';
 import { ExchangeController } from '../../src/core/exchange.ts';
-import type { Host } from '../../src/core/host.ts';
 import { ValueError } from '../../src/edit/errors.ts';
 import { architectFormat, askFormat, editorWholeFormat } from '../../src/edit/modes.ts';
 import { createWorkingTree } from '../../src/edit/working-tree.ts';
 import { disabledGitPolicy, disabledRepositoryContext, disabledValidation, type EditFormat, type GitPolicy, registerEditFormat, type Validation } from '../../src/feature.ts';
+import { capturedHost, editPort } from '../support/harness.ts';
 
 type Upsert = readonly [string, { readonly kind: 'upsert'; readonly path: string }];
 
@@ -51,53 +51,30 @@ function snapshot(root: string, editable: string[], mode: Snapshot['mode'] = 'wh
   };
 }
 
-async function harness(
-  options: {
-    readonly format?: EditFormat<Upsert>;
-    readonly git?: Partial<GitPolicy>;
-    readonly lint?: Partial<Validation>;
-    readonly confirm?: (request: { question: string }) => Promise<boolean>;
-    readonly editable?: string[];
-    readonly dryRun?: boolean;
-    readonly mode?: Snapshot['mode'];
-    readonly formats?: ReadonlyMap<string, EditFormat<Upsert> | typeof askFormat | typeof architectFormat | typeof editorWholeFormat>;
-    readonly suggestShellCommands?: boolean;
-    readonly autoAcceptArchitect?: boolean;
-  } = {},
-) {
-  const root = await realpath(await mkdtemp(join(tmpdir(), 'lint-lifecycle-')));
-  onTestFinished(() => rm(root, { recursive: true, force: true }));
+function wholeFormat(): EditFormat<Upsert> {
+  return {
+    name: 'whole',
+    prompts: 'whole',
+    editIntent: (edit) => edit[1],
+    getEdits: (content) => {
+      if (content === 'MALFORMED') throw new ValueError('No filename provided before ``` in file listing');
+      return [[content.trim(), { kind: 'upsert' as const, path: content.trim() }]];
+    },
+    applyEditsDryRun: (edits) => [...edits],
+    applyEdits: async (edits, context) => {
+      for (const [path] of edits) {
+        await context.tree.write(context.absRootPath(path), 'after\n');
+      }
+    },
+  };
+}
+
+/** Git and validation ports that record commits, lint, shell, and test calls before delegating. */
+function recordingPorts(options: { readonly git?: Partial<GitPolicy>; readonly lint?: Partial<Validation> }) {
   const commits: Array<{ paths: string[]; context: string }> = [];
   const lintCalls: string[][] = [];
   const shellCalls: string[][] = [];
   const testCalls: number[] = [];
-  const host: Host = {
-    output: () => {},
-    warning: () => {},
-    error: () => {},
-    confirm: async (request) => options.confirm?.(request) ?? true,
-    select: async () => undefined,
-    exec: async () => ({ stdout: '', stderr: '', code: 0, killed: false }),
-  };
-  const format = registerEditFormat(
-    options.format ?? {
-      name: 'whole',
-      prompts: 'whole',
-      editIntent: (edit) => edit[1],
-      getEdits: (content) => {
-        if (content === 'MALFORMED') throw new ValueError('No filename provided before ``` in file listing');
-        return [[content.trim(), { kind: 'upsert' as const, path: content.trim() }]];
-      },
-      applyEditsDryRun: (edits) => [...edits],
-      applyEdits: async (edits, context) => {
-        for (const [path] of edits) {
-          await context.tree.write(context.absRootPath(path), 'after\n');
-        }
-      },
-    },
-  );
-  const dryRun = options.dryRun ?? false;
-  const tree = createWorkingTree({ notices: host, dryRun });
   const git: GitPolicy = {
     ...disabledGitPolicy,
     ...options.git,
@@ -122,12 +99,36 @@ async function harness(
       return options.lint?.testEdited?.(signal) ?? { kind: 'not-run' };
     },
   };
+  return { git, lint, commits, lintCalls, shellCalls, testCalls };
+}
+
+async function harness(
+  options: {
+    readonly format?: EditFormat<Upsert>;
+    readonly git?: Partial<GitPolicy>;
+    readonly lint?: Partial<Validation>;
+    readonly confirm?: (request: { question: string }) => Promise<boolean>;
+    readonly editable?: string[];
+    readonly dryRun?: boolean;
+    readonly mode?: Snapshot['mode'];
+    readonly formats?: ReadonlyMap<string, EditFormat<Upsert> | typeof askFormat | typeof architectFormat | typeof editorWholeFormat>;
+    readonly suggestShellCommands?: boolean;
+    readonly autoAcceptArchitect?: boolean;
+  } = {},
+) {
+  const root = await realpath(await mkdtemp(join(tmpdir(), 'lint-lifecycle-')));
+  onTestFinished(() => rm(root, { recursive: true, force: true }));
+  const host = capturedHost({ confirm: async (request) => options.confirm?.(request) ?? true });
+  const format = registerEditFormat(options.format ?? wholeFormat());
+  const dryRun = options.dryRun ?? false;
+  const tree = createWorkingTree({ notices: host, dryRun });
+  const { git, lint, commits, lintCalls, shellCalls, testCalls } = recordingPorts(options);
   const editable = (options.editable ?? ['target.txt']).map((path) => absRootPath(root, path));
   for (const path of editable) await writeFile(path, 'before\n');
   const mode = options.mode ?? 'whole';
   const formats =
     options.formats ??
-    new Map([
+    new Map<string, unknown>([
       ['whole', format],
       ['ask', askFormat],
       ['architect', architectFormat],
@@ -135,20 +136,7 @@ async function harness(
     ]);
   const controller = new ExchangeController(snapshot(root, editable, mode), {
     ports: {
-      edit: {
-        formats: formats as never,
-        requestedFormat: mode,
-        initialFiles: { editable: [], readOnly: [] },
-        messageFile: null,
-        applyFile: null,
-        dryRun,
-        yesAlways: true,
-        autoAcceptArchitect: options.autoAcceptArchitect ?? true,
-        editorModel: null,
-        chatLanguage: null,
-        editorEditFormat: 'editor-whole',
-        tree,
-      },
+      edit: editPort({ formats: formats as never, tree, requestedFormat: mode, dryRun, autoAcceptArchitect: options.autoAcceptArchitect ?? true }),
       git,
       map: disabledRepositoryContext,
       lint,

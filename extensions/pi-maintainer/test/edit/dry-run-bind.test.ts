@@ -5,10 +5,10 @@ import { join } from 'node:path';
 import { expect, onTestFinished, test } from 'vitest';
 import type { Snapshot } from '../../src/core/branch.ts';
 import { ExchangeController } from '../../src/core/exchange.ts';
-import type { Host } from '../../src/core/host.ts';
 import { diffFormat } from '../../src/edit/feature.ts';
 import { createWorkingTree } from '../../src/edit/working-tree.ts';
 import { disabledGitPolicy, disabledRepositoryContext, disabledValidation } from '../../src/feature.ts';
+import { capturedHost, editPort } from '../support/harness.ts';
 
 const prompts = {
   get: async () => ({
@@ -51,40 +51,12 @@ async function harness() {
   const root = await realpath(await mkdtemp(join(tmpdir(), 'dry-run-report-')));
   onTestFinished(() => rm(root, { recursive: true, force: true }));
   await writeFile(join(root, 'chat.txt'), 'keep\n');
-  const outputs: string[] = [];
-  const warnings: string[] = [];
-  const errors: string[] = [];
-  const host: Host = {
-    output: (text) => {
-      outputs.push(text);
-    },
-    warning: (text) => {
-      warnings.push(text);
-    },
-    error: (text) => {
-      errors.push(text);
-    },
-    confirm: async () => true,
-    select: async () => undefined,
-    exec: async () => ({ stdout: '', stderr: '', code: 0, killed: false }),
-  };
+  const host = capturedHost();
+  const { outputs, warnings, errors } = host;
   const tree = createWorkingTree({ dryRun: true, notices: host });
   const controller = new ExchangeController(snapshot(root), {
     ports: {
-      edit: {
-        formats: new Map([['diff', diffFormat]]),
-        requestedFormat: 'diff',
-        initialFiles: { editable: [], readOnly: [] },
-        messageFile: null,
-        applyFile: null,
-        dryRun: true,
-        yesAlways: true,
-        autoAcceptArchitect: true,
-        editorModel: null,
-        chatLanguage: null,
-        editorEditFormat: 'editor-diff',
-        tree,
-      },
+      edit: editPort({ formats: new Map([['diff', diffFormat]]), tree, requestedFormat: 'diff', dryRun: true, editorEditFormat: 'editor-diff' }),
       git: disabledGitPolicy,
       map: disabledRepositoryContext,
       lint: disabledValidation,

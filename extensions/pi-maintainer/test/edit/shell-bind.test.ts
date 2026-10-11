@@ -6,7 +6,6 @@ import { expect, onTestFinished, test } from 'vitest';
 import type { Snapshot } from '../../src/core/branch.ts';
 import { absRootPath } from '../../src/core/chat-files.ts';
 import { ExchangeController } from '../../src/core/exchange.ts';
-import type { Host } from '../../src/core/host.ts';
 import { diffFormat } from '../../src/edit/feature.ts';
 import { editOptions } from '../../src/edit/options.ts';
 import { editBlockPrompts } from '../../src/edit/prompts/editblock.ts';
@@ -14,6 +13,7 @@ import { type ChatChunksInput, fmtSystemPrompt } from '../../src/edit/prompts/fo
 import { createWorkingTree } from '../../src/edit/working-tree.ts';
 import { disabledGitPolicy, disabledRepositoryContext, disabledValidation, type Validation } from '../../src/feature.ts';
 import { loadSettings } from '../../src/settings/load.ts';
+import { capturedHost, editPort } from '../support/harness.ts';
 
 const BASH_REPLY = `Here's a shell command to run:
 
@@ -64,18 +64,26 @@ function snapshot(root: string, editable: string[] = []): Snapshot {
   };
 }
 
+const prompts = {
+  get: async () => ({
+    mainSystem: 'MAIN',
+    systemReminder: 'REMINDER',
+    exampleMessages: [] as const,
+    filesContentPrefix: 'EDITABLE',
+    filesContentAssistantReply: 'Ok.',
+    filesNoFullFiles: 'NONE',
+    filesNoFullFilesWithRepoMap: '',
+    filesNoFullFilesWithRepoMapReply: '',
+    readOnlyFilesPrefix: 'READ ONLY',
+    filesContentGptEditsNoRepo: 'I updated the files.',
+  }),
+};
+
 async function harness(options: { readonly suggestShellCommands?: boolean; readonly lint?: Partial<Validation>; readonly editable?: string[] } = {}) {
   const root = await realpath(await mkdtemp(join(tmpdir(), 'shell-bind-')));
   onTestFinished(() => rm(root, { recursive: true, force: true }));
   const shellCalls: string[][] = [];
-  const host: Host = {
-    output: () => {},
-    warning: () => {},
-    error: () => {},
-    confirm: async () => true,
-    select: async () => undefined,
-    exec: async () => ({ stdout: '', stderr: '', code: 0, killed: false }),
-  };
+  const host = capturedHost();
   const tree = createWorkingTree({ notices: host });
   const lint: Validation = {
     ...disabledValidation,
@@ -89,39 +97,13 @@ async function harness(options: { readonly suggestShellCommands?: boolean; reado
   for (const path of editable) await writeFile(path, 'before\n');
   const controller = new ExchangeController(snapshot(root, editable), {
     ports: {
-      edit: {
-        formats: new Map([['diff', diffFormat]]),
-        requestedFormat: 'diff',
-        initialFiles: { editable: [], readOnly: [] },
-        messageFile: null,
-        applyFile: null,
-        dryRun: false,
-        yesAlways: true,
-        autoAcceptArchitect: true,
-        editorModel: null,
-        chatLanguage: null,
-        editorEditFormat: 'editor-diff',
-        tree,
-      },
+      edit: editPort({ formats: new Map([['diff', diffFormat]]), tree, requestedFormat: 'diff', editorEditFormat: 'editor-diff' }),
       git: disabledGitPolicy,
       map: disabledRepositoryContext,
       lint,
     },
     host,
-    source: {
-      get: async () => ({
-        mainSystem: 'MAIN',
-        systemReminder: 'REMINDER',
-        exampleMessages: [] as const,
-        filesContentPrefix: 'EDITABLE',
-        filesContentAssistantReply: 'Ok.',
-        filesNoFullFiles: 'NONE',
-        filesNoFullFilesWithRepoMap: '',
-        filesNoFullFilesWithRepoMapReply: '',
-        readOnlyFilesPrefix: 'READ ONLY',
-        filesContentGptEditsNoRepo: 'I updated the files.',
-      }),
-    },
+    source: prompts,
     append: () => {},
     suggestShellCommands: options.suggestShellCommands ?? true,
   });

@@ -7,9 +7,9 @@ import type { Snapshot } from '../../src/core/branch.ts';
 import { formatFilesForInput } from '../../src/core/chat-file-listing.ts';
 import { absRootPath } from '../../src/core/chat-files.ts';
 import { ExchangeController } from '../../src/core/exchange.ts';
-import type { Host } from '../../src/core/host.ts';
 import { createWorkingTree } from '../../src/edit/working-tree.ts';
 import { disabledGitPolicy, disabledRepositoryContext, disabledValidation, registerEditFormat } from '../../src/feature.ts';
+import { capturedHost, editPort } from '../support/harness.ts';
 
 const prompts = {
   get: async () => ({
@@ -84,24 +84,8 @@ test('pretty mode mixed files label Readonly then Editable', {
   ).toBe('Readonly: ro1.txt ro[markup].txt\nEditable: edit1.txt edit[markup].txt\n');
 });
 
-async function harness(options: { readonly pretty?: boolean; readonly editable?: string[]; readonly readOnly?: string[] } = {}) {
-  const root = await realpath(await mkdtemp(join(tmpdir(), 'ui-chat-listing-')));
-  onTestFinished(() => rm(root, { recursive: true, force: true }));
-  const outputs: string[] = [];
-  const host: Host = {
-    output: (text) => {
-      outputs.push(text);
-    },
-    warning: () => {},
-    error: () => {},
-    confirm: async () => true,
-    select: async () => undefined,
-    exec: async () => ({ stdout: '', stderr: '', code: 0, killed: false }),
-  };
-  const editable = (options.editable ?? ['edit.txt']).map((path) => absRootPath(root, path));
-  const readOnly = (options.readOnly ?? ['ro.txt']).map((path) => absRootPath(root, path));
-  for (const path of [...editable, ...readOnly]) await writeFile(path, 'body\n');
-  const snapshot: Snapshot = {
+function activeSnapshot(root: string, editable: string[], readOnly: string[]): Snapshot {
+  return {
     schema: 1,
     kind: 'snapshot',
     root,
@@ -120,6 +104,16 @@ async function harness(options: { readonly pretty?: boolean; readonly editable?:
     assistantCommits: [],
     lifecycle: { kind: 'active', userEntries: ['user-1'], reflectionsSent: 0, preparedTargets: [], writtenPaths: [], waitingFor: null },
   };
+}
+
+async function harness(options: { readonly pretty?: boolean; readonly editable?: string[]; readonly readOnly?: string[] } = {}) {
+  const root = await realpath(await mkdtemp(join(tmpdir(), 'ui-chat-listing-')));
+  onTestFinished(() => rm(root, { recursive: true, force: true }));
+  const host = capturedHost();
+  const editable = (options.editable ?? ['edit.txt']).map((path) => absRootPath(root, path));
+  const readOnly = (options.readOnly ?? ['ro.txt']).map((path) => absRootPath(root, path));
+  for (const path of [...editable, ...readOnly]) await writeFile(path, 'body\n');
+  const snapshot = activeSnapshot(root, editable, readOnly);
   const format = registerEditFormat({
     name: 'whole',
     prompts: 'whole',
@@ -130,20 +124,7 @@ async function harness(options: { readonly pretty?: boolean; readonly editable?:
   });
   const controller = new ExchangeController(snapshot, {
     ports: {
-      edit: {
-        formats: new Map([['whole', format]]),
-        requestedFormat: 'whole',
-        initialFiles: { editable: [], readOnly: [] },
-        messageFile: null,
-        applyFile: null,
-        dryRun: false,
-        yesAlways: true,
-        autoAcceptArchitect: true,
-        editorModel: null,
-        chatLanguage: null,
-        editorEditFormat: 'editor-whole',
-        tree: createWorkingTree({ notices: host }),
-      },
+      edit: editPort({ formats: new Map([['whole', format]]), tree: createWorkingTree({ notices: host }) }),
       git: disabledGitPolicy,
       map: disabledRepositoryContext,
       lint: disabledValidation,
@@ -159,7 +140,7 @@ async function harness(options: { readonly pretty?: boolean; readonly editable?:
     projection: [],
     supportsImages: false,
   });
-  return { outputs, root };
+  return { outputs: host.outputs, root };
 }
 
 test('projectRequest emits the plain chat-file listing before the model prompt', {

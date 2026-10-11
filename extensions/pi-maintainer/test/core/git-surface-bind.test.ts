@@ -11,6 +11,7 @@ import { ValueError } from '../../src/edit/errors.ts';
 import { addFiles, type SelectionEnv, type SelectionState } from '../../src/edit/selection.ts';
 import { createWorkingTree } from '../../src/edit/working-tree.ts';
 import { disabledGitPolicy, disabledRepositoryContext, disabledValidation, type EditFormat, type GitPolicy, registerEditFormat } from '../../src/feature.ts';
+import { capturedHost, editPort } from '../support/harness.ts';
 
 type Upsert = readonly [string, { readonly kind: 'upsert'; readonly path: string }];
 
@@ -61,17 +62,12 @@ async function exchangeHarness(options: {
   const root = await realpath(await mkdtemp(join(tmpdir(), 'git-surface-')));
   onTestFinished(() => rm(root, { recursive: true, force: true }));
   const confirms: { question: string; subject?: string | null }[] = [];
-  const host: Host = {
-    output: () => {},
-    warning: () => {},
-    error: () => {},
+  const host = capturedHost({
     confirm: async (request) => {
       confirms.push({ question: request.question, subject: request.subject ?? null });
       return options.confirm?.(request) ?? true;
     },
-    select: async () => undefined,
-    exec: async () => ({ stdout: '', stderr: '', code: 0, killed: false }),
-  };
+  });
   const format = registerEditFormat(
     options.format ?? {
       name: 'whole',
@@ -91,23 +87,13 @@ async function exchangeHarness(options: {
   const git: GitPolicy = { ...disabledGitPolicy, ...options.git };
   const controller = new ExchangeController(options.snapshot(root), {
     ports: {
-      edit: {
+      edit: editPort({
         formats: new Map([
           ['whole', format],
           ['editor-whole', format],
         ]),
-        requestedFormat: 'whole',
-        initialFiles: { editable: [], readOnly: [] },
-        messageFile: null,
-        applyFile: null,
-        dryRun: false,
-        yesAlways: true,
-        autoAcceptArchitect: true,
-        editorModel: null,
-        chatLanguage: null,
-        editorEditFormat: 'editor-whole',
         tree: createWorkingTree({ notices: host }),
-      },
+      }),
       git,
       map: disabledRepositoryContext,
       lint: disabledValidation,

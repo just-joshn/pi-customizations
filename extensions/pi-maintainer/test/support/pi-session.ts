@@ -57,6 +57,21 @@ function scriptedStream(model: Model<string>, context: TranscriptContext, option
   return stream;
 }
 
+/** The scripted provider: each stream consumes the next queued reply and records the routed model and request. */
+function scriptedProvider(models: readonly Model<string>[], sinks: { readonly routedModels: string[]; readonly replies: ScriptedReply[]; readonly requests: TranscriptContext[] }): ExtensionFactory {
+  return (pi) =>
+    pi.registerProvider(scriptedModel.provider, {
+      apiKey: 'integration-only-not-a-secret',
+      api: scriptedModel.api,
+      baseUrl: scriptedModel.baseUrl,
+      models: [...models],
+      streamSimple: (model, context, streamOptions) => {
+        sinks.routedModels.push(model.id);
+        return scriptedStream(model, context, streamOptions, sinks.replies.shift() ?? { text: '' }, (request) => sinks.requests.push(request));
+      },
+    });
+}
+
 export async function piSessionFixture(options: {
   readonly extension: ExtensionFactory;
   readonly before?: readonly ExtensionFactory[];
@@ -78,17 +93,7 @@ export async function piSessionFixture(options: {
   const sessions: AgentSession[] = [];
   const errors: string[] = [];
   const models = [scriptedModel, ...(options.models ?? [])];
-  const provider: ExtensionFactory = (pi) =>
-    pi.registerProvider(scriptedModel.provider, {
-      apiKey: 'integration-only-not-a-secret',
-      api: scriptedModel.api,
-      baseUrl: scriptedModel.baseUrl,
-      models: [...models],
-      streamSimple: (model, context, streamOptions) => {
-        routedModels.push(model.id);
-        return scriptedStream(model, context, streamOptions, replies.shift() ?? { text: '' }, (request) => requests.push(request));
-      },
-    });
+  const provider = scriptedProvider(models, { routedModels, replies, requests });
   onTestFinished(async () => {
     for (const session of sessions) {
       await session.abort();

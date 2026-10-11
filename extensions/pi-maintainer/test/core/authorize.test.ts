@@ -6,9 +6,9 @@ import { expect, onTestFinished, test } from 'vitest';
 import type { Snapshot } from '../../src/core/branch.ts';
 import { absRootPath } from '../../src/core/chat-files.ts';
 import { ExchangeController } from '../../src/core/exchange.ts';
-import type { Host } from '../../src/core/host.ts';
 import { createWorkingTree } from '../../src/edit/working-tree.ts';
 import { disabledGitPolicy, disabledRepositoryContext, disabledValidation, type EditCandidate, type EditContext, type EditIntent, type GitPolicy } from '../../src/feature.ts';
+import { capturedHost, editPort } from '../support/harness.ts';
 
 type Upsert = readonly [string | null, EditIntent | null];
 
@@ -40,6 +40,25 @@ function snapshot(root: string, files: { editable?: string[]; readOnly?: string[
   };
 }
 
+/** A git port that records staged files and dirty-commit batches before delegating. */
+function recordingGit(overrides: Partial<GitPolicy> = {}) {
+  const staged: string[] = [];
+  const dirtyBatches: string[][] = [];
+  const git: GitPolicy = {
+    ...disabledGitPolicy,
+    ...overrides,
+    stageNewFile: async (absPath) => {
+      staged.push(absPath);
+      await overrides.stageNewFile?.(absPath);
+    },
+    dirtyCommit: async (paths, signal) => {
+      dirtyBatches.push([...paths].sort());
+      return overrides.dirtyCommit?.(paths, signal) ?? { kind: 'disabled' };
+    },
+  };
+  return { git, staged, dirtyBatches };
+}
+
 async function harness(options: {
   readonly files?: { editable?: string[]; readOnly?: string[] };
   readonly confirm?: (request: { question: string; subject?: string }) => Promise<boolean>;
@@ -48,58 +67,20 @@ async function harness(options: {
 }) {
   const root = await mkdtemp(join(tmpdir(), 'authorize-'));
   onTestFinished(() => rm(root, { recursive: true, force: true }));
-  const outputs: string[] = [];
-  const warnings: string[] = [];
-  const errors: string[] = [];
   const confirms: { question: string; subject?: string }[] = [];
-  const staged: string[] = [];
-  const dirtyBatches: string[][] = [];
-  const host: Host = {
-    output: (text) => {
-      outputs.push(text);
-    },
-    warning: (text) => {
-      warnings.push(text);
-    },
-    error: (text) => {
-      errors.push(text);
-    },
+  const host = capturedHost({
     confirm: async (request) => {
-      confirms.push({ question: request.question, ...(request.subject ? { subject: request.subject } : {}) });
-      return options.confirm?.({ question: request.question, ...(request.subject ? { subject: request.subject } : {}) }) ?? true;
+      const asked = { question: request.question, ...(request.subject ? { subject: request.subject } : {}) };
+      confirms.push(asked);
+      return options.confirm?.(asked) ?? true;
     },
-    select: async () => undefined,
-    exec: async () => ({ stdout: '', stderr: '', code: 0, killed: false }),
-  };
-  const git: GitPolicy = {
-    ...disabledGitPolicy,
-    ...options.git,
-    stageNewFile: async (absPath) => {
-      staged.push(absPath);
-      await options.git?.stageNewFile?.(absPath);
-    },
-    dirtyCommit: async (paths, signal) => {
-      dirtyBatches.push([...paths].sort());
-      return options.git?.dirtyCommit?.(paths, signal) ?? { kind: 'disabled' };
-    },
-  };
+  });
+  const { outputs, warnings, errors } = host;
+  const { git, staged, dirtyBatches } = recordingGit(options.git);
   const tree = createWorkingTree({ notices: host, ...(options.dryRun === undefined ? {} : { dryRun: options.dryRun }) });
   const controller = new ExchangeController(snapshot(root, options.files), {
     ports: {
-      edit: {
-        formats: new Map(),
-        requestedFormat: null,
-        initialFiles: { editable: [], readOnly: [] },
-        messageFile: null,
-        applyFile: null,
-        dryRun: options.dryRun ?? false,
-        yesAlways: null,
-        autoAcceptArchitect: true,
-        editorModel: null,
-        chatLanguage: null,
-        editorEditFormat: 'editor-whole',
-        tree,
-      },
+      edit: editPort({ formats: new Map(), tree, requestedFormat: null, dryRun: options.dryRun ?? false, yesAlways: null }),
       git,
       map: disabledRepositoryContext,
       lint: disabledValidation,

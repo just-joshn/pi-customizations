@@ -6,10 +6,10 @@ import { expect, onTestFinished, test } from 'vitest';
 import type { Snapshot } from '../../src/core/branch.ts';
 import { absRootPath } from '../../src/core/chat-files.ts';
 import { ExchangeController } from '../../src/core/exchange.ts';
-import type { Host } from '../../src/core/host.ts';
 import { ValueError } from '../../src/edit/errors.ts';
 import { createWorkingTree } from '../../src/edit/working-tree.ts';
 import { disabledGitPolicy, disabledRepositoryContext, disabledValidation, type EditFormat, type GitPolicy, registerEditFormat, type Validation } from '../../src/feature.ts';
+import { capturedHost, editPort } from '../support/harness.ts';
 
 type Upsert = readonly [string, { readonly kind: 'upsert'; readonly path: string }];
 
@@ -52,56 +52,36 @@ function snapshot(root: string, editable: string[] = []): Snapshot {
   };
 }
 
-async function harness(
-  options: { readonly format?: EditFormat<Upsert>; readonly git?: Partial<GitPolicy>; readonly lint?: Partial<Validation>; readonly confirm?: (request: { question: string }) => Promise<boolean>; readonly editable?: string[] } = {},
-) {
-  const root = await realpath(await mkdtemp(join(tmpdir(), 'lifecycle-bind-')));
-  onTestFinished(() => rm(root, { recursive: true, force: true }));
-  const outputs: string[] = [];
-  const warnings: string[] = [];
-  const errors: string[] = [];
+/** A whole-file format that records parse, preflight, and apply steps in order. */
+function steppedWholeFormat(steps: string[]): EditFormat<Upsert> {
+  return {
+    name: 'whole',
+    prompts: 'whole',
+    editIntent: (edit) => edit[1],
+    getEdits: (content) => {
+      steps.push('parse');
+      if (content === 'MALFORMED') throw new ValueError('No filename provided before ``` in file listing');
+      if (content === 'NONE') return [];
+      return [[content.trim(), { kind: 'upsert' as const, path: content.trim() }]];
+    },
+    applyEditsDryRun: (edits) => {
+      steps.push('preflight');
+      return [...edits];
+    },
+    applyEdits: async (edits, context) => {
+      steps.push('apply');
+      for (const [path] of edits) {
+        await context.tree.write(context.absRootPath(path), 'after\n');
+      }
+    },
+  };
+}
+
+/** Git and lint ports that record every dirty batch, auto-commit, and lint call before delegating. */
+function recordingPorts(options: { readonly git?: Partial<GitPolicy>; readonly lint?: Partial<Validation> }) {
   const commits: Array<{ paths: string[]; context: string }> = [];
   const dirtyBatches: string[][] = [];
   const lintCalls: string[][] = [];
-  const host: Host = {
-    output: (text) => {
-      outputs.push(text);
-    },
-    warning: (text) => {
-      warnings.push(text);
-    },
-    error: (text) => {
-      errors.push(text);
-    },
-    confirm: async (request) => options.confirm?.(request) ?? true,
-    select: async () => undefined,
-    exec: async () => ({ stdout: '', stderr: '', code: 0, killed: false }),
-  };
-  const steps: string[] = [];
-  const format = registerEditFormat(
-    options.format ?? {
-      name: 'whole',
-      prompts: 'whole',
-      editIntent: (edit) => edit[1],
-      getEdits: (content) => {
-        steps.push('parse');
-        if (content === 'MALFORMED') throw new ValueError('No filename provided before ``` in file listing');
-        if (content === 'NONE') return [];
-        return [[content.trim(), { kind: 'upsert' as const, path: content.trim() }]];
-      },
-      applyEditsDryRun: (edits) => {
-        steps.push('preflight');
-        return [...edits];
-      },
-      applyEdits: async (edits, context) => {
-        steps.push('apply');
-        for (const [path] of edits) {
-          await context.tree.write(context.absRootPath(path), 'after\n');
-        }
-      },
-    },
-  );
-  const tree = createWorkingTree({ notices: host });
   const git: GitPolicy = {
     ...disabledGitPolicy,
     ...options.git,
@@ -122,24 +102,25 @@ async function harness(
       return options.lint?.lintEdited?.(paths, signal) ?? { kind: 'disabled' };
     },
   };
+  return { git, lint, commits, dirtyBatches, lintCalls };
+}
+
+async function harness(
+  options: { readonly format?: EditFormat<Upsert>; readonly git?: Partial<GitPolicy>; readonly lint?: Partial<Validation>; readonly confirm?: (request: { question: string }) => Promise<boolean>; readonly editable?: string[] } = {},
+) {
+  const root = await realpath(await mkdtemp(join(tmpdir(), 'lifecycle-bind-')));
+  onTestFinished(() => rm(root, { recursive: true, force: true }));
+  const host = capturedHost({ confirm: async (request) => options.confirm?.(request) ?? true });
+  const { outputs, warnings, errors } = host;
+  const steps: string[] = [];
+  const format = registerEditFormat(options.format ?? steppedWholeFormat(steps));
+  const tree = createWorkingTree({ notices: host });
+  const { git, lint, commits, dirtyBatches, lintCalls } = recordingPorts(options);
   const editable = (options.editable ?? ['target.txt']).map((path) => absRootPath(root, path));
   for (const path of editable) await writeFile(path, 'before\n');
   const controller = new ExchangeController(snapshot(root, editable), {
     ports: {
-      edit: {
-        formats: new Map([['whole', format]]),
-        requestedFormat: 'whole',
-        initialFiles: { editable: [], readOnly: [] },
-        messageFile: null,
-        applyFile: null,
-        dryRun: false,
-        yesAlways: true,
-        autoAcceptArchitect: true,
-        editorModel: null,
-        chatLanguage: null,
-        editorEditFormat: 'editor-whole',
-        tree,
-      },
+      edit: editPort({ formats: new Map([['whole', format]]), tree }),
       git,
       map: disabledRepositoryContext,
       lint,
