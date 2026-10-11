@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { stripSkillBlocks, stripSkillsFromMessages, type ContextMessage } from '../../src/core/context.ts';
+import { providerSystemSections, stripSkillBlocks, stripSkillsFromMessages, type ContextMessage } from '../../src/core/context.ts';
 
 test('stripSkillBlocks keeps trailing user args after a Pi skill delivery wrapper', () => {
   const text = `<skill name="poteto-mode" location="/pkg/skills/poteto-mode/SKILL.md">
@@ -21,6 +21,18 @@ test('stripSkillBlocks leaves ordinary user text unchanged', () => {
 test('stripSkillBlocks removes every closed skill wrapper', () => {
   const text = `<skill name="how" location="/a">body</skill>\n\nfirst\n\n<skill name="why" location="/b">more</skill>\n\nsecond`;
   expect(stripSkillBlocks(text)).toBe('first\n\nsecond');
+});
+
+test('providerSystemSections keeps cwd and Aider preamble only', () => {
+  expect(
+    providerSystemSections(
+      { sections: { cwd: '<cwd>/repo</cwd>', foreign: 'FOREIGN', pstack_poteto_playbook_todos: 'TodoWrite' } },
+      'AIDER MAIN',
+      true,
+    ),
+  ).toEqual({ cwd: '<cwd>/repo</cwd>', preamble: 'AIDER MAIN' });
+  expect(providerSystemSections({ sections: { foreign: 'FOREIGN' } }, 'AIDER MAIN', true)).toEqual({ preamble: 'AIDER MAIN' });
+  expect(providerSystemSections({ sections: { cwd: '<cwd>/repo</cwd>' } }, 'AIDER MAIN', false)).toEqual({ cwd: '<cwd>/repo</cwd>' });
 });
 
 test('stripSkillsFromMessages rewrites string and text-block user content', () => {

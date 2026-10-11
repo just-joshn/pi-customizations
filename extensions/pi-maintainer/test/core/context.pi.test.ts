@@ -94,7 +94,7 @@ do a complete manual test of pi-maintainer`;
   expect(f.errors).toEqual([]);
 });
 
-test('earlier context transformations survive maintainer assembly', async () => {
+test('conversation context transforms survive; maintainer owns provider system sections', async () => {
   const f = await piSessionFixture({
     extension,
     before: [
@@ -112,9 +112,10 @@ test('earlier context transformations survive maintainer assembly', async () => 
   await promptAndSettle(session, 'current');
   const request = f.requests[0];
   expect(request?.messages.some((message) => textOf(message) === 'TRANSFORMED current')).toBe(true);
-  expect(getCurrentSystemPrompt(request?.messages ?? [])).toContain('FOREIGN SECTION');
-  expect(getCurrentSystemPrompt(request?.messages ?? [])).toContain('FOREIGN FREE TEXT');
-  expect(getCurrentSystemPrompt(request?.messages ?? [])).toContain('TEST MAIN');
+  const systemPrompt = getCurrentSystemPrompt(request?.messages ?? []);
+  expect(systemPrompt).toContain('TEST MAIN');
+  expect(systemPrompt).not.toContain('FOREIGN SECTION');
+  expect(systemPrompt).not.toContain('FOREIGN FREE TEXT');
   expect(getCurrentTools(request?.messages ?? [])).toEqual([]);
   expect(f.errors).toEqual([]);
 });

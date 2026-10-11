@@ -182,6 +182,15 @@ export async function projectRequest(input: ContextInputs) {
   return { prompts, fence: chosen.fence, files: contents.files, ...assembled };
 }
 
+/** Provider system sections owned by maintainer. Keep Pi `cwd`; drop foreign tool-usage sections. */
+export function providerSystemSections(folded: { readonly sections?: Readonly<Record<string, string>> | undefined }, preamble: string, useSystemPrompt: boolean): Record<string, string> {
+  const sections: Record<string, string> = {};
+  const cwd = folded.sections?.cwd;
+  if (typeof cwd === 'string' && cwd.length > 0) sections.cwd = cwd;
+  if (useSystemPrompt) sections.preamble = preamble;
+  return sections;
+}
+
 function assembleRequest({ input, contents, fence, prompts, model }: { input: ContextInputs; contents: Awaited<ReturnType<typeof readChatFiles>>; fence: Fence; prompts: PromptSet; model: { provider: string; id: string } }) {
   const { snapshot, view } = input;
   const policy = input.policy ?? defaultPromptPolicy;
@@ -218,7 +227,7 @@ function assembleRequest({ input, contents, fence, prompts, model }: { input: Co
   return {
     partition: history.partition,
     messages: [
-      { ...folded, sections: { ...folded.sections, preamble: policy.useSystemPrompt ? main : '' } } satisfies ContextMessage,
+      { ...folded, content: '', sections: providerSystemSections(folded, main, policy.useSystemPrompt) } satisfies ContextMessage,
       ...(!policy.useSystemPrompt ? pair(main, 'Ok.') : []),
       ...(input.editorFresh ? [] : convert(prompt.examples)),
       ...pair(readOnlyText ? prompts.readOnlyFilesPrefix + readOnlyText : '', 'Ok, I will use these files as references.'),
