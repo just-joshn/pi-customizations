@@ -8,8 +8,7 @@ const root = fileURLToPath(new URL('..', import.meta.url));
 const path = join(root, 'parity/ledger.json');
 const ledger = JSON.parse(readFileSync(path, 'utf8'));
 
-const pi = ['pi.registerCommand', 'pi.appendEntry', 'ctx.modelRegistry'];
-const src = [
+const modelSwitchSrc = [
   'src/edit/commands.ts',
   'src/edit/file-token-listing.ts',
   'src/edit/model-switch.ts',
@@ -29,8 +28,8 @@ const bindings = {
     ],
   },
   'edit.commands.model-format-switch': {
-    pi,
-    src,
+    pi: ["pi.on('model_select')", 'pi.appendEntry', 'ctx.modelRegistry'],
+    src: modelSwitchSrc,
     tests: [
       'test/edit/commands-residual.test.ts::/model adopts the new packaged default and keeps editor and weak selections',
       'test/edit/commands-residual.test.ts::/model preserves an explicit edit format across the main model switch',
@@ -38,8 +37,8 @@ const bindings = {
     ],
   },
   'edit.commands.editor-model-switch': {
-    pi,
-    src,
+    pi: ['pi.registerCommand', 'pi.appendEntry', 'ctx.modelRegistry'],
+    src: modelSwitchSrc,
     tests: [
       'test/edit/commands-residual.test.ts::/editor-model preserves main and weak selections on the snapshot',
       'test/core/commands.pi.test.ts::/model and /editor-model persist role selections for the next reconstruction',

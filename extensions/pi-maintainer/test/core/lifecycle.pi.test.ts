@@ -209,7 +209,7 @@ test('tool_call blocks an intentionally reactivated capability', async () => {
   });
   f.replies.push({ text: '', stopReason: 'toolUse', tool: { name: 'danger', id: 'stray', arguments: {} } });
   const session = await f.open();
-  await session.setModel(scriptedModel);
+  session.agent.state.model = scriptedModel;
   await promptAndSettle(session, 'try a tool');
   expect(executions).toBe(0);
   expect(f.requests).toHaveLength(1);

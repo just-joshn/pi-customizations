@@ -5,6 +5,7 @@ import { Text } from '@earendil-works/pi-tui';
 import { BRANDING } from '../branding.ts';
 import { selectEditFormat, UnknownEditFormat } from '../edit/factory.ts';
 import { type ModelFormatPolicy, promptPolicyFromModelFormat, resolveModelFormatPolicyForRef } from '../edit/model-format-policy.ts';
+import { editFormatAfterModelSwitch, rolesAfterMainModelSwitch } from '../edit/model-switch.ts';
 import { defaultEditorFormat } from '../edit/modes.ts';
 import { editOptions } from '../edit/options.ts';
 import { packagedDefaultEditFormat } from '../edit/packaged-default-format.ts';
@@ -31,6 +32,7 @@ import { journaledTree } from './mutations.ts';
 import { createHost } from './pi-host.ts';
 import type { PromptPolicy, PromptSource } from './prompts.ts';
 import { routeEntryActions } from './route-entry.ts';
+import { stateEntryRenderText } from './state-entry-render.ts';
 
 export interface MaintainerOptions {
   readonly promptSource?: PromptSource;
@@ -147,10 +149,39 @@ export function installMaintainer(pi: ExtensionAPI, features: readonly SarFeatur
     thinkingLevels: ['off', 'minimal', 'low', 'medium', 'high', 'xhigh', 'max'],
     route: (request, ctx) => runtime.route(request, ctx),
   });
-  pi.registerEntryRenderer(BRANDING.stateEntry, (entry) => new Text(JSON.stringify(entry.data), 0, 0));
+  pi.registerEntryRenderer(BRANDING.stateEntry, (entry) => {
+    const text = stateEntryRenderText(entry.data);
+    return text === null ? undefined : new Text(text, 0, 0);
+  });
   pi.on('session_start', (_event, ctx) => runtime.start(ctx));
   pi.on('session_tree', (_event, ctx) => runtime.restoreBranch(ctx));
   pi.on('session_shutdown', () => runtime.dispose());
+  pi.on('model_select', async (event, ctx) => {
+    runtime.context = ctx;
+    if (!runtime.ready) return;
+    if (event.model.api === 'pi-virtual') return;
+    const env = runtime.commandEnv();
+    const nextMain = { provider: event.model.provider, id: event.model.id };
+    const roles = rolesAfterMainModelSwitch({
+      editor: env.snapshot.editorModel,
+      weak: env.snapshot.weakModel,
+      nextMain,
+    });
+    const mode = editFormatAfterModelSwitch({
+      current: env.snapshot.mode,
+      oldModelDefault: env.defaultEditFormat(env.snapshot.physicalModel),
+      newModelDefault: env.defaultEditFormat(nextMain),
+    });
+    env.save({
+      ...env.snapshot,
+      physicalModel: roles.main,
+      editorModel: roles.editor,
+      weakModel: roles.weak,
+      mode,
+    });
+    const router = ctx.modelRegistry.find(BRANDING.routerProvider, BRANDING.routerId);
+    if (router) await pi.setModel(router);
+  });
   pi.on('before_agent_start', (event, ctx) => {
     runtime.context = ctx;
     pi.setActiveTools([]);
@@ -175,7 +206,8 @@ export function installMaintainer(pi: ExtensionAPI, features: readonly SarFeatur
   pi.on('tool_call', () => ({ block: true, reason: 'Maintainer coders use reply-text edits, not model tools.', terminate: true }));
   pi.on('cache_warming_decision', (_event, ctx) => cacheWarmingDecisionForPhase(restore(ctx.sessionManager.getBranch()).snapshot?.phase.kind));
   for (const feature of features)
-    for (const command of feature.commands)
+    for (const command of feature.commands) {
+      if (command.name === 'model') continue;
       pi.registerCommand(command.name, {
         description: command.description,
         ...(command.complete
@@ -193,6 +225,7 @@ export function installMaintainer(pi: ExtensionAPI, features: readonly SarFeatur
           await command.run(args, runtime.commandEnv());
         },
       });
+    }
 }
 
 class MaintainerRuntime {
