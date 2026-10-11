@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises';
 
 import { expect, test } from 'vitest';
 
-const extensions = ['pi-anthropic-oauth', 'pi-antigravity-oauth', 'pi-one-dark-pro-theme', 'pi-pstack', 'pi-tui-skin', 'pi-xai-oauth'];
+const extensions = ['pi-anthropic-oauth', 'pi-antigravity-oauth', 'pi-pstack', 'pi-xai-oauth'];
 
 test.for(extensions)('%s develops against Pi 1.1.0 without bundling host packages', async (name) => {
   const manifest = JSON.parse(await readFile(new URL(`../../${name}/package.json`, import.meta.url), 'utf8'));

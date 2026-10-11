@@ -37,5 +37,5 @@ Each feature file starts with an H1 title and one paragraph describing the user-
 
 - [pstack status and todos](./pstack-status.md) covers `/pstack status`, `/pstack todos`, direct `TodoWrite` replacement and merge, and the TUI todo widget.
 - [Poteto mode](./poteto-mode.md) covers command and direct-tool mode changes, UI notifications, and branch state persistence.
-- [Standalone skills](./standalone-skills.md) covers discovery of repository skills (`doctor`, `simplify`, `run`, `reverse-engineer-cli`, `implement-cli-from-contract`).
+- [Standalone skills](./standalone-skills.md) covers discovery of repository skills (`port-harness-capability`).
 - [OAuth providers](./oauth-providers.md) covers subscription model provider registration for Claude and Antigravity.

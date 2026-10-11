@@ -9,7 +9,7 @@
   "workspaces": [
     "extensions/*"
   ],
-  "description": "Standalone Pi skills: doctor, run, simplify, reverse-engineer-cli, implement-cli-from-contract, and port-harness-capability.",
+  "description": "Standalone Pi skill: port-harness-capability.",
   "license": "MIT",
   "keywords": [
     "pi-package"
@@ -24,7 +24,7 @@
     "check:agents": "node scripts/check-agents-compliance.selftest.mjs && node scripts/check-agents-compliance.mjs",
     "check:tests": "node extensions/scripts/check-vitest-conventions.selftest.mjs && node extensions/scripts/check-vitest-conventions.mjs",
     "check:toolchain": "node scripts/check-bun-toolchain.selftest.mjs && node scripts/check-bun-toolchain.mjs && node scripts/check-workspace-deps.selftest.mjs && node scripts/check-workspace-deps.mjs",
-    "test:coverage": "bun run --sequential --filter pi-pstack --filter pi-one-dark-pro-theme test:coverage",
+    "test:coverage": "bun run --sequential --filter pi-pstack test:coverage",
     "sync:types-policy": "node scripts/sync-typescript-policy.mjs --write",
     "check:types-policy": "node scripts/typescript-policy.selftest.mjs && node scripts/sync-typescript-policy.mjs && node scripts/check-typescript-policy.selftest.mjs && node scripts/check-typescript-policy.mjs",
     "typecheck": "bun run check:types-policy && tsc --noEmit -p tsconfig.json && bun run --sequential --filter '*' typecheck",

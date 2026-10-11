@@ -292,14 +292,7 @@ async function driveStandaloneSkills(artifactDir) {
       const res = await session.send({ type: 'get_commands' });
       const skills = res.commands.filter((c) => c.source === 'skill' && c.name.startsWith('skill:')).map((c) => c.name);
 
-      const expected = [
-        'skill:doctor',
-        'skill:implement-cli-from-contract',
-        'skill:port-harness-capability',
-        'skill:reverse-engineer-cli',
-        'skill:run',
-        'skill:simplify',
-      ];
+      const expected = ['skill:port-harness-capability'];
 
       for (const exp of expected) {
         assert.ok(skills.includes(exp), `Expected standalone skill ${exp} not registered`);

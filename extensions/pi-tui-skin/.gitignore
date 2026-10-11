@@ -1,5 +1,0 @@
-node_modules/
-coverage/
-artifacts/
-# reference/ is committed on purpose: it is the parity baseline the skin is diffed against.
-reference/.check/
