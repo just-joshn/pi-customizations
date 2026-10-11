@@ -212,92 +212,26 @@ function nonclaim(category, note) {
 // Section slug -> default mapping for every unit under git/<slug>/
 const SECTION_RULES = {
   'aider-git-software-architecture-reconstruction': nonclaim('provenance', 'reconstruction title and date'),
-  'what-this-reconstruction-establishes': rows(
-    'git.inventory.tracked-files',
-    'git.dirty.checkpoint-before-edit',
-    'git.commit.auto-after-edit',
-    'git.startup.discover-root',
-  ),
+  'what-this-reconstruction-establishes': rows('git.inventory.tracked-files', 'git.dirty.checkpoint-before-edit', 'git.commit.auto-after-edit', 'git.startup.discover-root'),
   'baseline-and-identity': nonclaim('provenance', 'checkout path, commit, and distribution identity'),
   'installed-executable-and-local-verification-environment': nonclaim('evidence', 'local venv executable and verification interpreter'),
   'evidence-notation-and-navigation': nonclaim('meta', 'evidence notation and navigation conventions'),
-  'the-state-model': rows(
-    'git.inventory.tracked-files',
-    'git.dirty.path-semantics',
-    'git.dirty.checkpoint-before-edit',
-    'git.commit.stage-whole-files',
-    'git.undo.preconditions',
-  ),
+  'the-state-model': rows('git.inventory.tracked-files', 'git.dirty.path-semantics', 'git.dirty.checkpoint-before-edit', 'git.commit.stage-whole-files', 'git.undo.preconditions'),
   'repository-membership-is-not-git-ls-files': rows('git.inventory.tracked-files', 'git.filter.aiderignore'),
   'dirty-state-has-two-meanings': rows('git.dirty.path-semantics', 'git.dirty.checkpoint-before-edit'),
-  'three-kinds-of-commit': rows(
-    'git.dirty.checkpoint-before-edit',
-    'git.commit.auto-after-edit',
-    'git.commit.stage-whole-files',
-    'git.commit.attribution',
-  ),
-  'component-and-dependency-graph': rows(
-    'git.startup.discover-root',
-    'git.repo.open-single-root',
-    'git.commit.auto-after-edit',
-    'git.inventory.tracked-files',
-  ),
-  '1-startup-discovers-the-repository-before-constructing-the-c': rows(
-    'git.startup.discover-root',
-    'git.config.auto-commits',
-    'git.config.aiderignore-path',
-  ),
+  'three-kinds-of-commit': rows('git.dirty.checkpoint-before-edit', 'git.commit.auto-after-edit', 'git.commit.stage-whole-files', 'git.commit.attribution'),
+  'component-and-dependency-graph': rows('git.startup.discover-root', 'git.repo.open-single-root', 'git.commit.auto-after-edit', 'git.inventory.tracked-files'),
+  '1-startup-discovers-the-repository-before-constructing-the-c': rows('git.startup.discover-root', 'git.config.auto-commits', 'git.config.aiderignore-path'),
   '2-startup-can-mutate-repository-metadata': rows('git.startup.setup-repo', 'git.config.gitignore-offer'),
-  'configuration-contract': rows(
-    'git.config.auto-commits',
-    'git.config.gitignore-offer',
-    'git.config.aiderignore-path',
-    'git.commit.attribution',
-    'git.commands.raw-git',
-  ),
-  '3-file-filters-have-separate-jobs': rows(
-    'git.filter.gitignore',
-    'git.filter.aiderignore',
-    'git.filter.subtree',
-    'git.authorize.skip-gitignored',
-  ),
-  '4-repository-inventory-becomes-model-context': rows(
-    'git.inventory.tracked-files',
-    'git.inventory.addable-files',
-    'git.inventory.no-repo-fallback',
-  ),
-  '5-edit-formats-share-commit-orchestration': rows(
-    'git.dirty.checkpoint-before-edit',
-    'git.commit.auto-after-edit',
-    'git.authorize.stage-new-file',
-    'git.architect.return-editor-commits',
-  ),
-  '6-dirty-checkpoints-precede-assistant-writes': rows(
-    'git.dirty.checkpoint-before-edit',
-    'git.dirty.off-without-auto-commits',
-    'git.authorize.skip-gitignored',
-  ),
-  '7-automatic-commits-and-validation-are-separate': rows(
-    'git.commit.auto-after-edit',
-    'git.dirty.off-without-auto-commits',
-    'git.commit.stage-whole-files',
-  ),
-  '8-commit-execution-selects-whole-files': rows(
-    'git.commit.stage-whole-files',
-    'git.commit.noop-when-clean',
-    'git.commit.message-context',
-    'git.commit.selected-files-only',
-    'git.commit.verify-flag',
-  ),
-  '9-diffs-for-messages-are-not-always-a-single-patch': rows(
-    'git.diff.for-commit-message',
-    'git.diff.detached-and-unborn',
-    'git.commit.message-context',
-  ),
-  '10-commit-messages-cross-the-model-boundary': rows(
-    'git.commit.message-context',
-    'git.commit.message-language',
-  ),
+  'configuration-contract': rows('git.config.auto-commits', 'git.config.gitignore-offer', 'git.config.aiderignore-path', 'git.commit.attribution', 'git.commands.raw-git'),
+  '3-file-filters-have-separate-jobs': rows('git.filter.gitignore', 'git.filter.aiderignore', 'git.filter.subtree', 'git.authorize.skip-gitignored'),
+  '4-repository-inventory-becomes-model-context': rows('git.inventory.tracked-files', 'git.inventory.addable-files', 'git.inventory.no-repo-fallback'),
+  '5-edit-formats-share-commit-orchestration': rows('git.dirty.checkpoint-before-edit', 'git.commit.auto-after-edit', 'git.authorize.stage-new-file', 'git.architect.return-editor-commits'),
+  '6-dirty-checkpoints-precede-assistant-writes': rows('git.dirty.checkpoint-before-edit', 'git.dirty.off-without-auto-commits', 'git.authorize.skip-gitignored'),
+  '7-automatic-commits-and-validation-are-separate': rows('git.commit.auto-after-edit', 'git.dirty.off-without-auto-commits', 'git.commit.stage-whole-files'),
+  '8-commit-execution-selects-whole-files': rows('git.commit.stage-whole-files', 'git.commit.noop-when-clean', 'git.commit.message-context', 'git.commit.selected-files-only', 'git.commit.verify-flag'),
+  '9-diffs-for-messages-are-not-always-a-single-patch': rows('git.diff.for-commit-message', 'git.diff.detached-and-unborn', 'git.commit.message-context'),
+  '10-commit-messages-cross-the-model-boundary': rows('git.commit.message-context', 'git.commit.message-language'),
   '11-attribution-has-cli-and-library-defaults': rows('git.commit.attribution'),
   '12-diff-display-has-two-execution-paths': rows('git.diff.cmd-display'),
   '13-undo-is-a-guarded-local-history-rewrite': rows('git.undo.preconditions', 'git.undo.restore-and-reset'),
@@ -314,52 +248,13 @@ const SECTION_RULES = {
     'git.commit.attribution',
     'git.commit.verify-flag',
   ),
-  'direct-and-transitive-dependency-responsibilities': rows(
-    'git.repo.open-single-root',
-    'git.inventory.tracked-files',
-    'git.filter.gitignore',
-    'git.commit.stage-whole-files',
-    'git.diff.for-commit-message',
-    'git.repo.unavailable',
-  ),
-  'operation-inventory': rows(
-    'git.startup.discover-root',
-    'git.startup.setup-repo',
-    'git.inventory.tracked-files',
-    'git.commit.auto-after-edit',
-    'git.undo.restore-and-reset',
-    'git.commands.raw-git',
-    'git.diff.cmd-display',
-  ),
-  'behavioral-and-documentation-mismatches': rows(
-    'git.commit.attribution',
-    'git.undo.restore-and-reset',
-    'git.dirty.path-semantics',
-    'git.commands.raw-git',
-  ),
+  'direct-and-transitive-dependency-responsibilities': rows('git.repo.open-single-root', 'git.inventory.tracked-files', 'git.filter.gitignore', 'git.commit.stage-whole-files', 'git.diff.for-commit-message', 'git.repo.unavailable'),
+  'operation-inventory': rows('git.startup.discover-root', 'git.startup.setup-repo', 'git.inventory.tracked-files', 'git.commit.auto-after-edit', 'git.undo.restore-and-reset', 'git.commands.raw-git', 'git.diff.cmd-display'),
+  'behavioral-and-documentation-mismatches': rows('git.commit.attribution', 'git.undo.restore-and-reset', 'git.dirty.path-semantics', 'git.commands.raw-git'),
   'dry-run-is-not-a-global-transaction-guard': rows('git.dry-run.skips-commits', 'git.commit.auto-after-edit'),
-  'failure-modes-and-recovery-boundaries': rows(
-    'git.repo.unavailable',
-    'git.repo.open-single-root',
-    'git.startup.sanity-check',
-    'git.undo.preconditions',
-    'git.commit.verify-flag',
-    'git.hooks.pre-commit-boundary',
-  ),
-  'security-and-trust-boundaries': rows(
-    'git.security.path-trust',
-    'git.commands.add-refuses-outside-root',
-    'git.commands.raw-git',
-    'git.hooks.pre-commit-boundary',
-    'git.filter.gitignore',
-  ),
-  'architecture-rationale-and-trade-offs': rows(
-    'git.commit.auto-after-edit',
-    'git.dirty.checkpoint-before-edit',
-    'git.commit.selected-files-only',
-    'git.undo.restore-and-reset',
-    'git.inventory.tracked-files',
-  ),
+  'failure-modes-and-recovery-boundaries': rows('git.repo.unavailable', 'git.repo.open-single-root', 'git.startup.sanity-check', 'git.undo.preconditions', 'git.commit.verify-flag', 'git.hooks.pre-commit-boundary'),
+  'security-and-trust-boundaries': rows('git.security.path-trust', 'git.commands.add-refuses-outside-root', 'git.commands.raw-git', 'git.hooks.pre-commit-boundary', 'git.filter.gitignore'),
+  'architecture-rationale-and-trade-offs': rows('git.commit.auto-after-edit', 'git.dirty.checkpoint-before-edit', 'git.commit.selected-files-only', 'git.undo.restore-and-reset', 'git.inventory.tracked-files'),
   'retained-artifacts': nonclaim('evidence', 'pointer to git evidence directory artifacts'),
   'existing-tests-executed': nonclaim('evidence', 'recorded existing-test execution totals'),
   'synthetic-experiment-results': rows(
@@ -374,12 +269,7 @@ const SECTION_RULES = {
   ),
   'reproduction-commands': nonclaim('evidence', 'reproduction commands for local verification'),
   'coverage-matrix-and-limitations': nonclaim('meta', 'coverage matrix and investigation limits'),
-  'final-assessment': rows(
-    'git.dirty.checkpoint-before-edit',
-    'git.commit.auto-after-edit',
-    'git.undo.preconditions',
-    'git.inventory.tracked-files',
-  ),
+  'final-assessment': rows('git.dirty.checkpoint-before-edit', 'git.commit.auto-after-edit', 'git.undo.preconditions', 'git.inventory.tracked-files'),
 };
 
 // Unit-level overrides where a section mixes nonclaim with behavior.
@@ -391,16 +281,10 @@ const UNIT_OVERRIDES = {
 
 const EVIDENCE_RULES = {
   'ev-git/probe/aiderignore-cache-deletion': rows('git.filter.aiderignore'),
-  'ev-git/probe/all-file-commit-uses-tracked-changes-and-staged-additions': rows(
-    'git.commit.stage-whole-files',
-    'git.inventory.tracked-files',
-  ),
+  'ev-git/probe/all-file-commit-uses-tracked-changes-and-staged-additions': rows('git.commit.stage-whole-files', 'git.inventory.tracked-files'),
   'ev-git/probe/attribution-and-prefix-behavior': rows('git.commit.attribution'),
   'ev-git/probe/cli-defaults': rows('git.config.auto-commits', 'git.commit.attribution'),
-  'ev-git/probe/coder-dirty-checkpoint-and-auto-commit': rows(
-    'git.dirty.checkpoint-before-edit',
-    'git.commit.auto-after-edit',
-  ),
+  'ev-git/probe/coder-dirty-checkpoint-and-auto-commit': rows('git.dirty.checkpoint-before-edit', 'git.commit.auto-after-edit'),
   'ev-git/probe/commit-message-model-fallback': rows('git.commit.message-context'),
   'ev-git/probe/detached-branch-diff': rows('git.diff.detached-and-unborn', 'git.diff.for-commit-message'),
   'ev-git/probe/dry-run-dirty-checkpoint': rows('git.dry-run.skips-commits', 'git.dirty.checkpoint-before-edit'),
@@ -426,15 +310,9 @@ const TEST_RULES = {
   'aider-test/test_coder/TestCoder.test_allowed_to_edit_no': rows('git.authorize.stage-new-file'),
   'aider-test/test_coder/TestCoder.test_allowed_to_edit_dirty': rows('git.dirty.checkpoint-before-edit'),
   'aider-test/test_coder/TestCoder.test_check_for_filename_mentions': rows('git.mentions.add-and-reflect'),
-  'aider-test/test_coder/TestCoder.test_new_file_edit_one_commit': rows(
-    'git.authorize.stage-new-file',
-    'git.commit.auto-after-edit',
-  ),
+  'aider-test/test_coder/TestCoder.test_new_file_edit_one_commit': rows('git.authorize.stage-new-file', 'git.commit.auto-after-edit'),
   'aider-test/test_coder/TestCoder.test_only_commit_gpt_edited_file': rows('git.commit.selected-files-only'),
-  'aider-test/test_coder/TestCoder.test_gpt_edit_to_dirty_file': rows(
-    'git.dirty.checkpoint-before-edit',
-    'git.commit.auto-after-edit',
-  ),
+  'aider-test/test_coder/TestCoder.test_gpt_edit_to_dirty_file': rows('git.dirty.checkpoint-before-edit', 'git.commit.auto-after-edit'),
   'aider-test/test_coder/TestCoder.test_gpt_edit_to_existing_file_not_in_repo': rows('git.authorize.stage-new-file'),
   'aider-test/test_coder/TestCoder.test_skip_aiderignored_files': rows('git.filter.aiderignore'),
   'aider-test/test_coder/TestCoder.test_skip_gitignored_files_on_init': rows('git.filter.gitignore', 'git.authorize.skip-gitignored'),
@@ -445,23 +323,14 @@ const TEST_RULES = {
   'aider-test/test_commands/TestCommands.test_cmd_commit': rows('git.commands.commit', 'git.commit.stage-whole-files'),
   'aider-test/test_commands/TestCommands.test_cmd_add_from_outside_git': rows('git.commands.add-refuses-outside-root'),
   'aider-test/test_commands/TestCommands.test_cmd_add_dirname_with_special_chars_git': rows('git.commands.add-from-subdir'),
-  'aider-test/test_commands/TestCommands.test_cmd_add_existing_with_dirty_repo': rows(
-    'git.commands.add-from-subdir',
-    'git.dirty.path-semantics',
-  ),
+  'aider-test/test_commands/TestCommands.test_cmd_add_existing_with_dirty_repo': rows('git.commands.add-from-subdir', 'git.dirty.path-semantics'),
   'aider-test/test_commands/TestCommands.test_cmd_add_read_only_file': rows('git.inventory.addable-files'),
   'aider-test/test_commands/TestCommands.test_cmd_add_drop_untracked_files': rows('git.commands.add-untracked'),
   'aider-test/test_commands/TestCommands.test_cmd_undo_with_dirty_files_not_in_last_commit': rows('git.undo.preconditions'),
-  'aider-test/test_commands/TestCommands.test_cmd_undo_with_newly_committed_file': rows(
-    'git.undo.restore-and-reset',
-    'git.undo.preconditions',
-  ),
+  'aider-test/test_commands/TestCommands.test_cmd_undo_with_newly_committed_file': rows('git.undo.restore-and-reset', 'git.undo.preconditions'),
   'aider-test/test_commands/TestCommands.test_cmd_undo_on_first_commit': rows('git.undo.preconditions'),
   'aider-test/test_commands/TestCommands.test_cmd_add_gitignored_file': rows('git.commands.add-ignore-policy', 'git.filter.gitignore'),
-  'aider-test/test_commands/TestCommands.test_cmd_add_aiderignored_file': rows(
-    'git.commands.add-ignore-policy',
-    'git.filter.aiderignore',
-  ),
+  'aider-test/test_commands/TestCommands.test_cmd_add_aiderignored_file': rows('git.commands.add-ignore-policy', 'git.filter.aiderignore'),
   'aider-test/test_commands/TestCommands.test_cmd_read_only_from_working_dir': rows('git.inventory.addable-files'),
   'aider-test/test_commands/TestCommands.test_cmd_diff': rows('git.diff.cmd-display'),
   'aider-test/test_commands/TestCommands.test_cmd_weak_model': rows('git.commit.message-context'),
@@ -499,20 +368,14 @@ const TEST_RULES = {
   'aider-test/test_repo/TestRepo.test_commit_ai_edits_no_coauthor_explicit_false': rows('git.commit.attribution'),
   'aider-test/test_repo/TestRepo.test_get_tracked_files': rows('git.inventory.tracked-files'),
   'aider-test/test_repo/TestRepo.test_get_tracked_files_with_new_staged_file': rows('git.inventory.tracked-files'),
-  'aider-test/test_repo/TestRepo.test_get_tracked_files_with_aiderignore': rows(
-    'git.inventory.tracked-files',
-    'git.filter.aiderignore',
-  ),
+  'aider-test/test_repo/TestRepo.test_get_tracked_files_with_aiderignore': rows('git.inventory.tracked-files', 'git.filter.aiderignore'),
   'aider-test/test_repo/TestRepo.test_get_tracked_files_from_subdir': rows('git.inventory.tracked-files', 'git.filter.subtree'),
   'aider-test/test_repo/TestRepo.test_subtree_only': rows('git.filter.subtree'),
   'aider-test/test_repo/TestRepo.test_noop_commit': rows('git.commit.noop-when-clean'),
   'aider-test/test_repo/TestRepo.test_git_commit_verify': rows('git.commit.verify-flag'),
   'aider-test/test_repo/TestRepo.test_get_commit_message_uses_system_prompt_prefix': rows('git.commit.message-context'),
   'aider-test/test_sanity_check_repo/test_detached_head_state': rows('git.startup.sanity-check', 'git.diff.detached-and-unborn'),
-  'aider-test/test_sanity_check_repo/test_git_index_version_greater_than_2': rows(
-    'git.startup.sanity-check',
-    'git.worktree.linked-and-index',
-  ),
+  'aider-test/test_sanity_check_repo/test_git_index_version_greater_than_2': rows('git.startup.sanity-check', 'git.worktree.linked-and-index'),
   'aider-test/test_sanity_check_repo/test_bare_repository': rows('git.startup.sanity-check'),
   'aider-test/test_sanity_check_repo/test_sanity_check_repo_with_corrupt_repo': rows('git.startup.sanity-check'),
   'aider-test/test_sanity_check_repo/test_sanity_check_repo_with_no_repo': rows('git.startup.sanity-check', 'git.repo.open-single-root'),
@@ -604,9 +467,7 @@ function main() {
   writeJson('parity/ledger.json', nextLedger);
 
   const covered = units.filter((unit) => Object.hasOwn(nextCoverage, unit.id)).length;
-  process.stdout.write(
-    `map-git-obligations: slice ${units.length}, covered ${covered}, open rows added ${openRecords.length}, git rows total ${12 + openRecords.length}\n`,
-  );
+  process.stdout.write(`map-git-obligations: slice ${units.length}, covered ${covered}, open rows added ${openRecords.length}, git rows total ${12 + openRecords.length}\n`);
 }
 
 main();

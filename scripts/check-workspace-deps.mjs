@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-import { createRequire } from 'node:module';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -35,9 +35,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     process.stdout.write('workspace runtime dependencies resolve\n');
   } else {
     for (const entry of missing) {
-      process.stderr.write(
-        `FAIL ${entry.package}: cannot resolve runtime dependency ${entry.dependency} from ${entry.dir}\n`,
-      );
+      process.stderr.write(`FAIL ${entry.package}: cannot resolve runtime dependency ${entry.dependency} from ${entry.dir}\n`);
     }
     process.stderr.write('Hint: run `bun install` from the repository root, then retry.\n');
     process.exit(1);

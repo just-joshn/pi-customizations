@@ -17,52 +17,37 @@ const bindings = {
   'git.dirty.path-semantics': {
     pi: execPi,
     src: [...gitSrc, 'src/git/cli.ts'],
-    tests: [
-      'test/git/commit-wave-bind.test.ts::pathless isDirty ignores untracked files while a missing inventory path is dirty',
-    ],
+    tests: ['test/git/commit-wave-bind.test.ts::pathless isDirty ignores untracked files while a missing inventory path is dirty'],
   },
   'git.commit.auto-after-edit': {
     pi: execPi,
     src: exchangeSrc,
-    tests: [
-      'test/git/commit-wave-bind.test.ts::after applying edits the exchange auto-commits written files before lint follow-up',
-    ],
+    tests: ['test/git/commit-wave-bind.test.ts::after applying edits the exchange auto-commits written files before lint follow-up'],
   },
   'git.commit.noop-when-clean': {
     pi: execPi,
     src: [...gitSrc, 'src/git/cli.ts'],
-    tests: [
-      'test/git/commit-wave-bind.test.ts::autoCommit is a noop without a model call when the selection is empty or the diff is empty',
-    ],
+    tests: ['test/git/commit-wave-bind.test.ts::autoCommit is a noop without a model call when the selection is empty or the diff is empty'],
   },
   'git.commit.verify-flag': {
     pi: execPi,
     src: [...gitSrc, 'src/git/cli.ts'],
-    tests: [
-      'test/git/commit-wave-bind.test.ts::git-commit-verify off passes --no-verify so a failing pre-commit hook does not block',
-    ],
+    tests: ['test/git/commit-wave-bind.test.ts::git-commit-verify off passes --no-verify so a failing pre-commit hook does not block'],
   },
   'git.commit.attribution': {
     pi: execPi,
     src: [...gitSrc, 'src/branding.ts', 'src/git/cli.ts'],
-    tests: [
-      'test/git/commit-wave-bind.test.ts::assistant commits apply co-authored-by and optional name attribution from CLI defaults',
-    ],
+    tests: ['test/git/commit-wave-bind.test.ts::assistant commits apply co-authored-by and optional name attribution from CLI defaults'],
   },
   'git.commit.message-language': {
     pi: execPi,
     src: [...gitSrc, 'src/git/commit-message.ts'],
-    tests: [
-      'test/git/commit-wave-bind.test.ts::commit-message generation respects the configured commit language',
-    ],
+    tests: ['test/git/commit-wave-bind.test.ts::commit-message generation respects the configured commit language'],
   },
   'git.commit.selected-files-only': {
     pi: execPi,
     src: [...gitSrc, 'src/git/cli.ts'],
-    tests: [
-      'test/git/commit-wave-bind.test.ts::a selected-file commit leaves unrelated staged and dirty files untouched',
-      'test/git/commit-bind.test.ts::a commit stages and commits the whole content of named files',
-    ],
+    tests: ['test/git/commit-wave-bind.test.ts::a selected-file commit leaves unrelated staged and dirty files untouched', 'test/git/commit-bind.test.ts::a commit stages and commits the whole content of named files'],
   },
   'git.dry-run.skips-commits': {
     pi: execPi,
@@ -72,17 +57,12 @@ const bindings = {
   'git.hooks.pre-commit-boundary': {
     pi: execPi,
     src: [...gitSrc, 'src/git/cli.ts'],
-    tests: [
-      'test/git/commit-wave-bind.test.ts::pre-commit hooks remain a trust boundary when verify is on',
-      'test/git/commit-wave-bind.test.ts::git-commit-verify off passes --no-verify so a failing pre-commit hook does not block',
-    ],
+    tests: ['test/git/commit-wave-bind.test.ts::pre-commit hooks remain a trust boundary when verify is on', 'test/git/commit-wave-bind.test.ts::git-commit-verify off passes --no-verify so a failing pre-commit hook does not block'],
   },
   'git.config.auto-commits': {
     pi: ['pi.registerFlag'],
     src: ['src/git/options.ts', 'src/git/feature.ts', 'src/settings/load.ts', 'src/settings/resolve.ts'],
-    tests: [
-      'test/git/commit-wave-bind.test.ts::CLI env and YAML merge form the effective auto dirty and git option policy',
-    ],
+    tests: ['test/git/commit-wave-bind.test.ts::CLI env and YAML merge form the effective auto dirty and git option policy'],
   },
 };
 

@@ -8,30 +8,16 @@ const root = fileURLToPath(new URL('..', import.meta.url));
 const path = join(root, 'parity/ledger.json');
 const ledger = JSON.parse(readFileSync(path, 'utf8'));
 
-const src = [
-  'src/map/tag.ts',
-  'src/map/extract.ts',
-  'src/map/query-runtime.ts',
-  'src/map/query-assets.ts',
-  'src/map/queries/tree-sitter-language-pack/python-tags.scm',
-  'src/map/queries/tree-sitter-languages/julia-tags.scm',
-];
+const src = ['src/map/tag.ts', 'src/map/extract.ts', 'src/map/query-runtime.ts', 'src/map/query-assets.ts', 'src/map/queries/tree-sitter-language-pack/python-tags.scm', 'src/map/queries/tree-sitter-languages/julia-tags.scm'];
 const pi = ["pi.on('context_with_system')", 'pi.registerFlag'];
 const tests = {
-  coordinates:
-    'test/map/tags-bind.test.ts::repository tags carry relative and absolute paths, kind, name, and zero-based or minus-one lines',
-  extract:
-    'test/map/tags-bind.test.ts::unsupported language, unavailable parser or query, and empty input yield no semantic tags',
-  lexical:
-    'test/map/tags-bind.test.ts::when definitions exist without references, name tokens supply reference tags at line minus one',
-  python:
-    'test/map/tags-bind.test.ts::Python query assets identify constants, classes, functions, and attribute call names',
-  nodup:
-    'test/map/tags-bind.test.ts::a parser capture contributes each returned node once rather than appending the final node again',
-  assets:
-    'test/map/tags-bind.test.ts::query selection prefers language-pack tags assets then tree-sitter-languages; missing yields none',
-  julia:
-    'test/map/tags-bind.test.ts::Julia mapping degrades without an uncaught query error when the tags query is incompatible',
+  coordinates: 'test/map/tags-bind.test.ts::repository tags carry relative and absolute paths, kind, name, and zero-based or minus-one lines',
+  extract: 'test/map/tags-bind.test.ts::unsupported language, unavailable parser or query, and empty input yield no semantic tags',
+  lexical: 'test/map/tags-bind.test.ts::when definitions exist without references, name tokens supply reference tags at line minus one',
+  python: 'test/map/tags-bind.test.ts::Python query assets identify constants, classes, functions, and attribute call names',
+  nodup: 'test/map/tags-bind.test.ts::a parser capture contributes each returned node once rather than appending the final node again',
+  assets: 'test/map/tags-bind.test.ts::query selection prefers language-pack tags assets then tree-sitter-languages; missing yields none',
+  julia: 'test/map/tags-bind.test.ts::Julia mapping degrades without an uncaught query error when the tags query is incompatible',
   deps: 'test/map/tags-bind.test.ts::an install with zero query assets cannot emit definition or reference tags',
 };
 

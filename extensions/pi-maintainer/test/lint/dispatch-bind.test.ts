@@ -1,16 +1,16 @@
+import { readFileSync } from 'node:fs';
 import { mkdtemp, realpath, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 import { expect, onTestFinished, test } from 'vitest';
-
 import type { Host } from '../../src/core/host.ts';
 import { findFilenamesAndLinenums, lintFile } from '../../src/lint/linter.ts';
 import { lintOptions } from '../../src/lint/options.ts';
 import { parseLintCmds } from '../../src/lint/parse-lint-cmds.ts';
 import { shellQuote } from '../../src/lint/shell.ts';
+import { defined } from '../support/defined.ts';
 
 async function tempRoot(prefix: string): Promise<string> {
   const root = await realpath(await mkdtemp(join(tmpdir(), prefix)));
@@ -43,13 +43,7 @@ function recordingHost(runs: string[]): Host {
 }
 
 test('parse_lint_cmds maps language prefixes, unprefixed None, strips, and last key wins', () => {
-  const mapped = parseLintCmds([
-    'python: flake8',
-    'eslint',
-    'python: ruff ',
-    'javascript: eslint --fix',
-    '',
-  ]);
+  const mapped = parseLintCmds(['python: flake8', 'eslint', 'python: ruff ', 'javascript: eslint --fix', '']);
   expect([...mapped.entries()]).toEqual([
     ['python', 'ruff'],
     [null, 'eslint'],
@@ -133,7 +127,7 @@ test('nonzero custom lint output becomes diagnostic context with extracted lines
 test('find_filenames_and_linenums extracts one-based line sets with word-boundary filename matches', () => {
   const text = 'ignore sample.pyx:9\nsample.py:2: err\nsample.py:4: other\nother.py:3: skip\n';
   const found = findFilenamesAndLinenums(text, ['sample.py']);
-  expect([...found.get('sample.py')!].sort((a, b) => a - b)).toEqual([2, 4]);
+  expect([...defined(found.get('sample.py'))].sort((a, b) => a - b)).toEqual([2, 4]);
   expect(found.has('other.py')).toBe(false);
 });
 

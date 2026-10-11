@@ -10,6 +10,7 @@ import { routeEntryActions } from '../../src/core/route-entry.ts';
 import { editCommands } from '../../src/edit/commands.ts';
 import { createWorkingTree } from '../../src/edit/working-tree.ts';
 import { disabledGitPolicy, disabledRepositoryContext, disabledValidation, type GitPolicy, registerEditFormat, type UndoResult } from '../../src/feature.ts';
+import { defined } from '../support/defined.ts';
 
 const packageRoot = fileURLToPath(new URL('../..', import.meta.url));
 
@@ -144,7 +145,7 @@ test('/undo dispatches to the git port and surfaces a disabled refusal', async (
     },
   };
   const { env, errors, outputs } = commandEnv(git);
-  await undo!.run('', env);
+  await defined(undo).run('', env);
   expect(calls).toBe(1);
   expect(errors).toEqual(['No git repository found.']);
   expect(outputs).toEqual([]);
@@ -167,7 +168,7 @@ test('/undo surfaces a restoration result from the git port without edit-layer r
     },
   };
   const { env, errors, outputs } = commandEnv(git);
-  await undo!.run('', env);
+  await defined(undo).run('', env);
   expect(calls).toBe(1);
   expect(errors).toEqual([]);
   expect(outputs).toEqual(['Removed: abc1234 aider: edited foo.py', 'Now at:  def5678 prior']);

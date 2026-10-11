@@ -50,7 +50,8 @@ export async function openSingleRoot(host: Host, paths: readonly string[]): Prom
     host.error('Files are in different git repos.');
     return { kind: 'multiple' };
   }
-  return { kind: 'ok', root: [...roots][0]! };
+  const [root] = roots;
+  return root === undefined ? { kind: 'none' } : { kind: 'ok', root };
 }
 
 async function gitCommandAvailable(host: Host, cwd: string): Promise<boolean> {

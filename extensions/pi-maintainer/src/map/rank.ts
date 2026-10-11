@@ -1,7 +1,7 @@
 import { basename, extname, normalize } from 'node:path';
 
 import { pythonSorted } from '../support/python-sort.ts';
-import { pageRank, PageRankError, type RankEdge } from './pagerank.ts';
+import { PageRankError, pageRank, type RankEdge } from './pagerank.ts';
 import { filterImportantFiles } from './special.ts';
 import type { Tag } from './tag.ts';
 
@@ -115,12 +115,7 @@ function scanFiles(input: RankTagsInput): ScanResult | null {
   return { defines, references, definitions, personalization, chatRelFnames };
 }
 
-function buildEdges(
-  defines: Map<string, Set<string>>,
-  references: Map<string, string[]>,
-  mentionedIdents: ReadonlySet<string>,
-  chatRelFnames: ReadonlySet<string>,
-): IdentEdge[] {
+function buildEdges(defines: Map<string, Set<string>>, references: Map<string, string[]>, mentionedIdents: ReadonlySet<string>, chatRelFnames: ReadonlySet<string>): IdentEdge[] {
   const effectiveRefs = references.size === 0 ? new Map([...defines].map(([name, files]) => [name, [...files]])) : references;
   const edges: IdentEdge[] = [];
   for (const [ident, definers] of defines) {
@@ -148,9 +143,7 @@ function buildEdges(
 
 function runPageRank(edges: readonly IdentEdge[], personalization: Readonly<Record<string, number>>): Readonly<Record<string, number>> | null {
   try {
-    return Object.keys(personalization).length > 0
-      ? pageRank(edges, { personalization, dangling: personalization })
-      : pageRank(edges);
+    return Object.keys(personalization).length > 0 ? pageRank(edges, { personalization, dangling: personalization }) : pageRank(edges);
   } catch (error) {
     if (!(error instanceof PageRankError)) throw error;
     try {
@@ -224,13 +217,7 @@ export function getRankedTags(input: RankTagsInput): RankedEntry[] {
   const ranked = runPageRank(edges, scan.personalization);
   if (!ranked) return [];
   const otherRel = input.otherFnames.map((abs) => input.getRelFname(abs));
-  return assembleRankedEntries(
-    scoreDefinitions(edges, ranked),
-    scan.definitions,
-    scan.chatRelFnames,
-    ranked,
-    otherRel,
-  );
+  return assembleRankedEntries(scoreDefinitions(edges, ranked), scan.definitions, scan.chatRelFnames, ranked, otherRel);
 }
 
 /**

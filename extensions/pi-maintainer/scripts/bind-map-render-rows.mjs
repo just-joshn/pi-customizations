@@ -22,26 +22,17 @@ const src = [
 ];
 const pi = ["pi.on('context_with_system')", 'pi.registerFlag'];
 const tests = {
-  modelDefault:
-    'test/map/render-bind.test.ts::default map budget is one eighth of model input capacity clamped to 1024 through 4096',
-  explicit:
-    'test/map/render-bind.test.ts::positive explicit map budget enables mapping when model policy would disable it',
-  sampled:
-    'test/map/render-bind.test.ts::map selection uses sampled token estimates and binary search for a ranked prefix within fifteen percent of budget',
-  tagsMtime:
-    'test/map/render-bind.test.ts::tag cache entries are reused only for the same filename and mtime and are replaced after a miss',
-  rendered:
-    'test/map/render-bind.test.ts::manual refresh reuses the last map, files refresh reuses file-set and budget keys, always recomputes, and auto reuses hint-sensitive keys when map processing exceeds one second',
-  expand:
-    'test/map/render-bind.test.ts::context mode forces map refresh, multiplies the map budget by the no-file multiplier, and resets that multiplier to one',
+  modelDefault: 'test/map/render-bind.test.ts::default map budget is one eighth of model input capacity clamped to 1024 through 4096',
+  explicit: 'test/map/render-bind.test.ts::positive explicit map budget enables mapping when model policy would disable it',
+  sampled: 'test/map/render-bind.test.ts::map selection uses sampled token estimates and binary search for a ranked prefix within fifteen percent of budget',
+  tagsMtime: 'test/map/render-bind.test.ts::tag cache entries are reused only for the same filename and mtime and are replaced after a miss',
+  rendered: 'test/map/render-bind.test.ts::manual refresh reuses the last map, files refresh reuses file-set and budget keys, always recomputes, and auto reuses hint-sensitive keys when map processing exceeds one second',
+  expand: 'test/map/render-bind.test.ts::context mode forces map refresh, multiplies the map budget by the no-file multiplier, and resets that multiplier to one',
   seed: 'test/map/render-bind.test.ts::repository mapping uses editable and in-root read-only seeds with conversation hints and retries an empty map with fewer hints or seeds',
   zero: 'test/map/render-bind.test.ts::a nonpositive map token budget returns no map text from RepoMap',
-  recursion:
-    'test/map/render-bind.test.ts::a RecursionError during map generation is reported and the map budget is set to zero so later maps stay disabled',
-  memory:
-    'test/map/render-bind.test.ts::when persistent tag-cache creation fails, mapping recreates the cache or falls back to an in-memory dictionary and continues producing maps',
-  prompt:
-    'test/map/render-bind.test.ts::the coder inserts the prefixed repository map as a user message followed by an assistant acknowledgment, with optional cache marking after the map chunk',
+  recursion: 'test/map/render-bind.test.ts::a RecursionError during map generation is reported and the map budget is set to zero so later maps stay disabled',
+  memory: 'test/map/render-bind.test.ts::when persistent tag-cache creation fails, mapping recreates the cache or falls back to an in-memory dictionary and continues producing maps',
+  prompt: 'test/map/render-bind.test.ts::the coder inserts the prefixed repository map as a user message followed by an assistant acknowledgment, with optional cache marking after the map chunk',
 };
 
 /** @type {Record<string, { pi: string[]; src: string[]; tests: string[] }>} */

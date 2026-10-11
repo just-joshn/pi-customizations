@@ -27,10 +27,7 @@ const bindings = {
   'git.diff.cmd-display': {
     pi: commandPi,
     src: gitSrc,
-    tests: [
-      'test/git/diffs-bind.test.ts::/diff uses HEAD^ with fewer than two message checkpoints and the second-last checkpoint otherwise',
-      'test/git/diffs-bind.test.ts::diffCommits returns the patch between two revisions',
-    ],
+    tests: ['test/git/diffs-bind.test.ts::/diff uses HEAD^ with fewer than two message checkpoints and the second-last checkpoint otherwise', 'test/git/diffs-bind.test.ts::diffCommits returns the patch between two revisions'],
   },
   'git.diff.detached-and-unborn': {
     pi: execPi,
@@ -43,9 +40,7 @@ const bindings = {
   'git.commands.raw-git': {
     pi: commandPi,
     src: gitSrc,
-    tests: [
-      'test/git/commands-bind.test.ts::/git runs argv git with GIT_EDITOR=true from process cwd and shows combined output',
-    ],
+    tests: ['test/git/commands-bind.test.ts::/git runs argv git with GIT_EDITOR=true from process cwd and shows combined output'],
   },
   'git.commands.commit': {
     pi: commandPi,

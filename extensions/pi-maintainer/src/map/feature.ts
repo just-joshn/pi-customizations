@@ -40,4 +40,4 @@ export const mapFeature: Feature<RepositoryContext> & { readonly name: 'map' } =
 };
 
 export { createRepositoryContext } from './context.ts';
-export { mapOptions, mapOptionList } from './options.ts';
+export { mapOptionList, mapOptions } from './options.ts';

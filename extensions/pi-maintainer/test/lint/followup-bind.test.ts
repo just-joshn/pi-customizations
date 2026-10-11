@@ -3,7 +3,6 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { expect, onTestFinished, test } from 'vitest';
-
 import type { Snapshot } from '../../src/core/branch.ts';
 import { absRootPath } from '../../src/core/chat-files.ts';
 import { ExchangeController } from '../../src/core/exchange.ts';
@@ -215,7 +214,7 @@ test('after edits, lint then shell then test follow when each is enabled', async
         filesNoFullFilesWithRepoMap: '',
         filesNoFullFilesWithRepoMapReply: '',
         readOnlyFilesPrefix: 'READ ONLY',
-        filesContentGptEditsNoRepo: null,
+        filesContentGptEditsNoRepo: '',
       }),
     },
     append: () => {},
@@ -285,7 +284,7 @@ test('a failed test report reflects after confirmation', async () => {
         filesNoFullFilesWithRepoMap: '',
         filesNoFullFilesWithRepoMapReply: '',
         readOnlyFilesPrefix: 'READ ONLY',
-        filesContentGptEditsNoRepo: null,
+        filesContentGptEditsNoRepo: '',
       }),
     },
     append: () => {},

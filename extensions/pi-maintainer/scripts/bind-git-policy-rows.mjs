@@ -16,10 +16,7 @@ const bindings = {
   'git.inventory.tracked-files': {
     pi: execPi,
     src: [...gitSrc, 'src/git/cli.ts'],
-    tests: [
-      'test/git/inventory-bind.test.ts::tracked inventory merges committed blobs and index entries without unstaged untracked files',
-      'test/git/inventory-bind.test.ts::aiderignore excludes matching tracked paths from inventory',
-    ],
+    tests: ['test/git/inventory-bind.test.ts::tracked inventory merges committed blobs and index entries without unstaged untracked files', 'test/git/inventory-bind.test.ts::aiderignore excludes matching tracked paths from inventory'],
   },
   'git.authorize.skip-gitignored': {
     pi: execPi,
@@ -29,18 +26,12 @@ const bindings = {
   'git.authorize.stage-new-file': {
     pi: execPi,
     src: gitSrc,
-    tests: [
-      'test/git/authorize-bind.test.ts::an untracked approved path is staged when automatic commits are on',
-      'test/git/authorize-bind.test.ts::stageNewFile is a no-op when automatic commits are off',
-    ],
+    tests: ['test/git/authorize-bind.test.ts::an untracked approved path is staged when automatic commits are on', 'test/git/authorize-bind.test.ts::stageNewFile is a no-op when automatic commits are off'],
   },
   'git.dirty.off-without-auto-commits': {
     pi: execPi,
     src: ['src/git/options.ts', 'src/git/policy.ts', 'src/git/feature.ts'],
-    tests: [
-      'test/git/dirty-bind.test.ts::turning automatic commits off also turns dirty commits off',
-      'test/git/dirty-bind.test.ts::dirtyCommit is disabled when automatic commits forced dirty commits off',
-    ],
+    tests: ['test/git/dirty-bind.test.ts::turning automatic commits off also turns dirty commits off', 'test/git/dirty-bind.test.ts::dirtyCommit is disabled when automatic commits forced dirty commits off'],
   },
   'git.dirty.checkpoint-before-edit': {
     pi: execPi,
@@ -55,18 +46,12 @@ const bindings = {
   'git.commit.message-context': {
     pi: execPi,
     src: [...gitSrc, 'src/git/commit-message.ts'],
-    tests: [
-      'test/git/commit-bind.test.ts::commit message generation sends the commit diff and the chat context',
-      'test/git/commit-bind.test.ts::buildCommitMessageRequest places context above the diffs block',
-    ],
+    tests: ['test/git/commit-bind.test.ts::commit message generation sends the commit diff and the chat context', 'test/git/commit-bind.test.ts::buildCommitMessageRequest places context above the diffs block'],
   },
   'git.undo.preconditions': {
     pi: execPi,
     src: gitSrc,
-    tests: [
-      'test/git/undo-bind.test.ts::undo refuses without a repository, on the first commit, and when HEAD is not a session commit',
-      'test/git/undo-bind.test.ts::undo refuses when a changed file is dirty after the session commit',
-    ],
+    tests: ['test/git/undo-bind.test.ts::undo refuses without a repository, on the first commit, and when HEAD is not a session commit', 'test/git/undo-bind.test.ts::undo refuses when a changed file is dirty after the session commit'],
   },
   'git.undo.restore-and-reset': {
     pi: execPi,

@@ -1,12 +1,6 @@
 export type MapRefresh = 'auto' | 'always' | 'files' | 'manual';
 
-export type RenderedCacheKey = readonly [
-  chat: string | null,
-  other: string | null,
-  tokens: number,
-  mentionedFnames?: string | null,
-  mentionedIdents?: string | null,
-];
+export type RenderedCacheKey = readonly [chat: string | null, other: string | null, tokens: number, mentionedFnames?: string | null, mentionedIdents?: string | null];
 
 export interface RenderedMapState {
   mapCache: Map<string, string | null>;
@@ -22,11 +16,7 @@ export function renderedCacheKey(input: {
   readonly mentionedFnames: readonly string[];
   readonly mentionedIdents: readonly string[];
 }): string {
-  const base: Array<string | number | null> = [
-    input.chatFiles.length ? [...input.chatFiles].sort().join('\0') : null,
-    input.otherFiles.length ? [...input.otherFiles].sort().join('\0') : null,
-    input.maxMapTokens,
-  ];
+  const base: Array<string | number | null> = [input.chatFiles.length ? [...input.chatFiles].sort().join('\0') : null, input.otherFiles.length ? [...input.otherFiles].sort().join('\0') : null, input.maxMapTokens];
   if (input.refresh === 'auto') {
     base.push(input.mentionedFnames.length ? [...input.mentionedFnames].sort().join('\0') : null);
     base.push(input.mentionedIdents.length ? [...input.mentionedIdents].sort().join('\0') : null);

@@ -38,14 +38,17 @@ export function getCurMessageText(messages: readonly ContextMessage[]): string {
 
 /** Remove Pi skill delivery wrappers (`<skill name=...>...</skill>`) from model-facing text. */
 export function stripSkillBlocks(text: string): string {
-  return text.replace(/<skill\b[^>]*>[\s\S]*?<\/skill>/gi, '').replace(/^\s*\n+/, '').replace(/\n{3,}/g, '\n\n');
+  return text
+    .replace(/<skill\b[^>]*>[\s\S]*?<\/skill>/gi, '')
+    .replace(/^\s*\n+/, '')
+    .replace(/\n{3,}/g, '\n\n');
 }
 
 function stripSkillsFromMessage(message: ContextMessage): ContextMessage {
   if (!('content' in message)) return message;
   if (typeof message.content === 'string') {
     const content = stripSkillBlocks(message.content);
-    return content === message.content ? message : { ...message, content };
+    return content === message.content ? message : ({ ...message, content } as ContextMessage);
   }
   if (!Array.isArray(message.content)) return message;
   let changed = false;
@@ -56,7 +59,7 @@ function stripSkillsFromMessage(message: ContextMessage): ContextMessage {
     changed = true;
     return { ...block, text };
   });
-  return changed ? { ...message, content } : message;
+  return changed ? ({ ...message, content } as ContextMessage) : message;
 }
 
 /** Drop skill wrappers from provider-bound messages. Session history stays untouched. */
@@ -183,12 +186,19 @@ export async function projectRequest(input: ContextInputs) {
 }
 
 /** Provider system sections owned by maintainer. Keep Pi `cwd`; drop foreign tool-usage sections. */
-export function providerSystemSections(folded: { readonly sections?: Readonly<Record<string, string>> | undefined }, preamble: string, useSystemPrompt: boolean): Record<string, string> {
+export function providerSystemSections(folded: { readonly sections?: Readonly<Record<string, string | null>> | undefined }, preamble: string, useSystemPrompt: boolean): Record<string, string> {
   const sections: Record<string, string> = {};
-  const cwd = folded.sections?.cwd;
-  if (typeof cwd === 'string' && cwd.length > 0) sections.cwd = cwd;
-  if (useSystemPrompt) sections.preamble = preamble;
+  const cwd = folded.sections?.['cwd'];
+  if (typeof cwd === 'string' && cwd.length > 0) sections['cwd'] = cwd;
+  if (useSystemPrompt) sections['preamble'] = preamble;
   return sections;
+}
+
+/** The editable-files message and its acknowledgement, falling back to the repo-map or no-files prompts. */
+function editableFilesDialogue(input: ContextInputs, contents: Awaited<ReturnType<typeof readChatFiles>>, fence: Fence, prompts: PromptSet): { filesText: string; filesAck: string } {
+  if (contents.files.editable.length) return { filesText: prompts.filesContentPrefix + getFilesContent(input.snapshot.root, contents.editable, fence), filesAck: prompts.filesContentAssistantReply };
+  if (input.repository && prompts.filesNoFullFilesWithRepoMap) return { filesText: prompts.filesNoFullFilesWithRepoMap, filesAck: prompts.filesNoFullFilesWithRepoMapReply };
+  return { filesText: prompts.filesNoFullFiles, filesAck: 'Ok.' };
 }
 
 function assembleRequest({ input, contents, fence, prompts, model }: { input: ContextInputs; contents: Awaited<ReturnType<typeof readChatFiles>>; fence: Fence; prompts: PromptSet; model: { provider: string; id: string } }) {
@@ -214,12 +224,7 @@ function assembleRequest({ input, contents, fence, prompts, model }: { input: Co
         snapshot.historyThrough,
       );
   const readOnlyText = getFilesContent(snapshot.root, contents.readOnly, fence);
-  const filesText = contents.files.editable.length
-    ? prompts.filesContentPrefix + getFilesContent(snapshot.root, contents.editable, fence)
-    : input.repository && prompts.filesNoFullFilesWithRepoMap
-      ? prompts.filesNoFullFilesWithRepoMap
-      : prompts.filesNoFullFiles;
-  const filesAck = contents.files.editable.length ? prompts.filesContentAssistantReply : input.repository && prompts.filesNoFullFilesWithRepoMap ? prompts.filesNoFullFilesWithRepoMapReply : 'Ok.';
+  const { filesText, filesAck } = editableFilesDialogue(input, contents, fence, prompts);
   const readOnlyImages = view.supportsImages ? images(snapshot.root, contents.readOnly, timestamp) : [];
   const editableImages = view.supportsImages ? images(snapshot.root, contents.editable, timestamp) : [];
   const current = expandDialogue(history.current, model);

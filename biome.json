@@ -12,7 +12,6 @@
       "!!**/build",
       "!!**/coverage",
       "!!extensions/pi-pstack/upstream",
-      "!!extensions/pi-caveman/vendor",
       "!!parity/reference",
       "!!parity/fixtures",
       "!!parity/evidence",
@@ -31,7 +30,9 @@
       "!!extensions/pi-pstack/skills",
       "!!extensions/pi-pstack/docs/resource-map.json",
       "!!extensions/pi-pstack/docs/parity/clauses",
-      "!!extensions/pi-s50/test/fixtures/*.html"
+      "!!extensions/pi-maintainer/parity/coverage.json",
+      "!!extensions/pi-maintainer/parity/ledger.json",
+      "!!extensions/pi-maintainer/test/fixtures/watch"
     ]
   },
   "formatter": {

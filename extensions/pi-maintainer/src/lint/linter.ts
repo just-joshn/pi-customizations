@@ -35,11 +35,7 @@ function langOf(fname: string): string | null {
 }
 
 /** Resolve the shell command, or null when auto-dispatch should skip the file. */
-export function resolveLintCommand(
-  fname: string,
-  lintCmds: ReadonlyMap<string | null, string>,
-  explicitCmd?: string,
-): string | null {
+export function resolveLintCommand(fname: string, lintCmds: ReadonlyMap<string | null, string>, explicitCmd?: string): string | null {
   const trimmed = explicitCmd?.trim() ?? '';
   if (trimmed) return trimmed;
 

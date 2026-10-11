@@ -71,10 +71,7 @@ export function pageRank(
       ranks.set(edge.dst, (ranks.get(edge.dst) ?? 0) + alpha * (previous.get(edge.src) ?? 0) * edge.weight);
     }
     for (const node of nodeList) {
-      ranks.set(
-        node,
-        (ranks.get(node) ?? 0) + dangleSum * (danglingWeights.get(node) ?? 0) + (1 - alpha) * (personalization.get(node) ?? 0),
-      );
+      ranks.set(node, (ranks.get(node) ?? 0) + dangleSum * (danglingWeights.get(node) ?? 0) + (1 - alpha) * (personalization.get(node) ?? 0));
     }
     const err = nodeList.reduce((acc, node) => acc + Math.abs((ranks.get(node) ?? 0) - (previous.get(node) ?? 0)), 0);
     if (err < n * tol) {

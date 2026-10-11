@@ -11,11 +11,9 @@ const ledger = JSON.parse(readFileSync(path, 'utf8'));
 /** @type {Record<string, { pi: string[]; src: string[]; tests: string[] }>} */
 const bindings = {
   'edit.architect.return-editor-cost': {
-    pi: ['AgentSession.getSessionStats()', "pi.on('turn_end')", "pi.registerVirtualModel"],
+    pi: ['AgentSession.getSessionStats()', "pi.on('turn_end')", 'pi.registerVirtualModel'],
     src: ['src/core/exchange.ts', 'src/core/install.ts'],
-    tests: [
-      'test/core/modes.pi.test.ts::architect editor path starts from architect session cost and returns the accumulated total',
-    ],
+    tests: ['test/core/modes.pi.test.ts::architect editor path starts from architect session cost and returns the accumulated total'],
   },
 };
 

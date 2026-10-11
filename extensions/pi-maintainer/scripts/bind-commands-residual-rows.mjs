@@ -8,15 +8,7 @@ const root = fileURLToPath(new URL('..', import.meta.url));
 const path = join(root, 'parity/ledger.json');
 const ledger = JSON.parse(readFileSync(path, 'utf8'));
 
-const modelSwitchSrc = [
-  'src/edit/commands.ts',
-  'src/edit/file-token-listing.ts',
-  'src/edit/model-switch.ts',
-  'src/edit/packaged-default-format.ts',
-  'src/core/branch.ts',
-  'src/core/command.ts',
-  'src/core/install.ts',
-];
+const modelSwitchSrc = ['src/edit/commands.ts', 'src/edit/file-token-listing.ts', 'src/edit/model-switch.ts', 'src/edit/packaged-default-format.ts', 'src/core/branch.ts', 'src/core/command.ts', 'src/core/install.ts'];
 
 const bindings = {
   'edit.commands.file-token-listing': {
@@ -39,10 +31,7 @@ const bindings = {
   'edit.commands.editor-model-switch': {
     pi: ['pi.registerCommand', 'pi.appendEntry', 'ctx.modelRegistry'],
     src: modelSwitchSrc,
-    tests: [
-      'test/edit/commands-residual.test.ts::/editor-model preserves main and weak selections on the snapshot',
-      'test/core/commands.pi.test.ts::/model and /editor-model persist role selections for the next reconstruction',
-    ],
+    tests: ['test/edit/commands-residual.test.ts::/editor-model preserves main and weak selections on the snapshot', 'test/core/commands.pi.test.ts::/model and /editor-model persist role selections for the next reconstruction'],
   },
 };
 

@@ -3,7 +3,10 @@ import { isTagEntry } from './rank.ts';
 
 /** Truncate each rendered line to 100 characters (`aider/repomap.py:781-782`). */
 export function truncateMapLines(text: string): string {
-  return `${text.split('\n').map((line) => line.slice(0, 100)).join('\n')}\n`;
+  return `${text
+    .split('\n')
+    .map((line) => line.slice(0, 100))
+    .join('\n')}\n`;
 }
 
 /** Filename-only map body when structural TreeContext is unavailable. */

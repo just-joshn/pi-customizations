@@ -10,6 +10,7 @@ import { getPlatformInfo, getUserLanguage } from '../../src/edit/prompts/format.
 import { applyApiKeyPairs, applySetEnvPairs } from '../../src/settings/environment-pairs.ts';
 import { formatSettings, scrubSensitiveInfo } from '../../src/settings/format-settings.ts';
 import { loadSettings } from '../../src/settings/load.ts';
+import type { AnyOptionSpec } from '../../src/settings/spec.ts';
 
 const notices = { output: () => {}, warning: () => {}, error: () => {} };
 const host = {
@@ -124,7 +125,7 @@ test('a single --set-env pair lands in the extension environment', {
     cwd,
     home,
   });
-  expect(loaded.environment.TEST_VAR).toBe('test_value');
+  expect(loaded.environment['TEST_VAR']).toBe('test_value');
   expect(Object.hasOwn(process.env, 'TEST_VAR')).toBe(false);
 });
 
@@ -139,7 +140,7 @@ test('multiple --set-env pairs each apply', {
 test('--set-env keeps internal spaces after trimming ends', {
   meta: { aider: ['test_main/TestMain.test_set_env_with_spaces'] },
 }, () => {
-  expect(applySetEnvPairs(['TEST_VAR=test value with spaces'], {}).environment.TEST_VAR).toBe('test value with spaces');
+  expect(applySetEnvPairs(['TEST_VAR=test value with spaces'], {}).environment['TEST_VAR']).toBe('test value with spaces');
 });
 
 test('an invalid --set-env pair reports failure without writing', {
@@ -154,7 +155,7 @@ test('an invalid --set-env pair reports failure without writing', {
     home,
   });
   expect(loaded.problems).toEqual(expect.arrayContaining(['Invalid --set-env format: INVALID_FORMAT', 'Format should be: ENV_VAR_NAME=value']));
-  expect(loaded.environment.INVALID_FORMAT).toBeUndefined();
+  expect(loaded.environment['INVALID_FORMAT']).toBeUndefined();
 });
 
 test('verbose diagnostics list dotenv-derived options and redact credential overlays', {
@@ -165,7 +166,7 @@ test('verbose diagnostics list dotenv-derived options and redact credential over
   const loaded = await loadSettings({
     specs: editOptionList,
     getFlag: (name) => {
-      if (name === 'set-env') return 'OPENAI_API_KEY=sk-secret-value-1234';
+      if (name === 'set-env') return 'OPENAI_API_KEY=sk-test-1234';
       if (name === 'api-key') return 'anthropic=anthro-secret-5678';
       if (name === 'verbose') return true;
       return undefined;
@@ -178,16 +179,16 @@ test('verbose diagnostics list dotenv-derived options and redact credential over
     dotenvFiles: loaded.dotenvFiles,
     environment: loaded.environment,
     environmentPrefix: BRANDING.envPrefix,
-    options: editOptionList.map((spec) => ({ name: spec.name, value: loaded.settings.value(spec), source: loaded.settings.source(spec) })),
+    options: editOptionList.map((spec: AnyOptionSpec) => ({ name: spec.name, value: loaded.settings.value(spec), source: loaded.settings.source(spec) })),
     secrets: loaded.secrets,
   });
   expect(report).toContain('PI_MAINTAINER_DRY_RUN');
   expect(report).toMatch(/dry-run:\s*True/);
-  expect(report).toContain('sk-secret-value-1234'.slice(-4));
-  expect(report).not.toContain('sk-secret-value-1234');
+  expect(report).toContain('sk-test-1234'.slice(-4));
+  expect(report).not.toContain('sk-test-1234');
   expect(report).not.toContain('anthro-secret-5678');
   expect(scrubSensitiveInfo(['anthro-secret-5678'], 'anthro-secret-5678')).toBe('...5678');
-  expect(applyApiKeyPairs(['anthropic=anthro-secret-5678'], {}).environment.ANTHROPIC_API_KEY).toBe('anthro-secret-5678');
+  expect(applyApiKeyPairs(['anthropic=anthro-secret-5678'], {}).environment['ANTHROPIC_API_KEY']).toBe('anthro-secret-5678');
 });
 
 test('chat-language from settings reaches platform context through the edit port', {

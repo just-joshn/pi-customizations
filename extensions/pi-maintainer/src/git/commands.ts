@@ -24,7 +24,12 @@ export const gitCommands: readonly CommandSpec[] = [
     name: 'git',
     description: 'Run a git command (output excluded from chat)',
     async run(args, env) {
-      await runRawGit(args, (text) => env.host.output(text), (text) => env.host.error(text), process.cwd());
+      await runRawGit(
+        args,
+        (text) => env.host.output(text),
+        (text) => env.host.error(text),
+        process.cwd(),
+      );
     },
   },
   {

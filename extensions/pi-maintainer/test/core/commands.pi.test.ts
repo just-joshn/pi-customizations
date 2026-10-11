@@ -102,11 +102,7 @@ test('/save and /load reconstruct editable and read-only selections', {
 
 test('/model and /editor-model persist role selections for the next reconstruction', {
   meta: {
-    aider: [
-      'test_commands/TestCommands.test_cmd_model',
-      'test_commands/TestCommands.test_cmd_editor_model',
-      'test_commands/TestCommands.test_cmd_model_preserves_explicit_edit_format',
-    ],
+    aider: ['test_commands/TestCommands.test_cmd_model', 'test_commands/TestCommands.test_cmd_editor_model', 'test_commands/TestCommands.test_cmd_model_preserves_explicit_edit_format'],
   },
 }, async () => {
   const other = { ...scriptedModel, id: 'other-scripted', name: 'Other scripted' };

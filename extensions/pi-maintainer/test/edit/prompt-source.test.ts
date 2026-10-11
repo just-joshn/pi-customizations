@@ -9,7 +9,7 @@ const variables = {
   suggestShellCommands: false,
 };
 
-test('whole format returns a formatted mainSystem with the expert developer line', () => {
+test('whole format returns a formatted mainSystem with the expert developer line', async () => {
   const source = createEditPromptSource({
     env: {},
     chatLanguage: () => null,
@@ -17,7 +17,7 @@ test('whole format returns a formatted mainSystem with the expert developer line
     platform: () => 'Linux-6.1',
     windows: () => false,
   });
-  const set = source.get('whole', variables);
+  const set = await source.get('whole', variables);
   expect(set.mainSystem).toContain('Act as an expert software developer');
 });
 

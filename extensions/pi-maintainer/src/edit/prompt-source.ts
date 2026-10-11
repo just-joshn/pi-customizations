@@ -1,19 +1,20 @@
-import { platform as osPlatform, release, type as osType } from 'node:os';
+import { platform as osPlatform, type as osType, release } from 'node:os';
+
 import type { PromptSet, PromptSource, PromptVariables } from '../core/prompts.ts';
 import type { EditFormatName } from '../feature.ts';
 import { architectPrompts } from './prompts/architect.ts';
 import { askPrompts } from './prompts/ask.ts';
 import type { EditPrompts } from './prompts/base.ts';
 import { contextPrompts } from './prompts/context.ts';
-import { editBlockFencedPrompts } from './prompts/editblock-fenced.ts';
 import { editBlockPrompts } from './prompts/editblock.ts';
+import { editBlockFencedPrompts } from './prompts/editblock-fenced.ts';
 import { editorDiffFencedPrompts } from './prompts/editor-diff-fenced.ts';
 import { editorEditBlockPrompts } from './prompts/editor-editblock.ts';
 import { editorWholeFilePrompts } from './prompts/editor-whole.ts';
 import { fmtSystemPrompt, getPlatformInfo, getUserLanguage, type PromptContext } from './prompts/format.ts';
 import { patchPrompts } from './prompts/patch.ts';
-import { unifiedDiffSimplePrompts } from './prompts/udiff-simple.ts';
 import { unifiedDiffPrompts } from './prompts/udiff.ts';
+import { unifiedDiffSimplePrompts } from './prompts/udiff-simple.ts';
 import { wholeFilePrompts } from './prompts/wholefile.ts';
 
 export interface EditPromptSourceOptions {

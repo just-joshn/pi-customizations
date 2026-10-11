@@ -78,7 +78,10 @@ export async function commitFile(root: string, relative: string, content: string
     GIT_COMMITTER_NAME: 'Test User',
     GIT_COMMITTER_EMAIL: 'test@example.com',
   };
-  for (const args of [['add', '--', relative], ['commit', '-m', message, '--', relative]]) {
+  for (const args of [
+    ['add', '--', relative],
+    ['commit', '-m', message, '--', relative],
+  ]) {
     const outcome = await isolatedExec({ command: 'git', args, cwd: root }, env);
     if (outcome.code !== 0) throw new Error(`git ${args.join(' ')} failed: ${outcome.stderr || outcome.stdout}`);
   }

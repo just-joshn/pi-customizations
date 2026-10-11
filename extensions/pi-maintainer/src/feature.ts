@@ -213,9 +213,9 @@ export interface MapRequest {
   readonly otherFiles: ReadonlySet<string>;
   readonly mentionedFnames: ReadonlySet<string>;
   readonly mentionedIdents: ReadonlySet<string>;
-  readonly forceRefresh?: boolean;
-  readonly refresh?: 'auto' | 'files' | 'always';
-  readonly expandNoFilesBudget?: boolean;
+  readonly forceRefresh?: boolean | undefined;
+  readonly refresh?: 'auto' | 'files' | 'always' | undefined;
+  readonly expandNoFilesBudget?: boolean | undefined;
 }
 
 /** The repository-map parts of the coder hub (`aider/repomap.py`, `get_repo_map`). */

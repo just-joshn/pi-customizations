@@ -18,10 +18,7 @@ test('with pstack loaded, session keeps skill delivery while maintainer strips i
   const session = await f.open();
   await promptAndSettle(session, skillPrompt);
 
-  const users = session.sessionManager
-    .getBranch()
-    .filter((entry) => entry.type === 'message' && entry.message.role === 'user')
-    .map((entry) => textOf(entry.message));
+  const users = session.sessionManager.getBranch().flatMap((entry) => (entry.type === 'message' && entry.message.role === 'user' ? [textOf(entry.message)] : []));
   expect(users.some((text) => text.includes('<skill name="poteto-mode"'))).toBe(true);
   expect(users.some((text) => text.includes('hello from coexist'))).toBe(true);
 

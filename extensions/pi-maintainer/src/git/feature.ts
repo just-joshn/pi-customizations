@@ -37,5 +37,5 @@ export const gitFeature: Feature<GitPolicy> & { readonly name: 'git' } = {
 };
 
 export { gitCommands } from './commands.ts';
-export { effectiveDirtyCommits, gitOptions, gitOptionList } from './options.ts';
+export { effectiveDirtyCommits, gitOptionList, gitOptions } from './options.ts';
 export { createGitPolicy, resolveAiderIgnorePath } from './policy.ts';

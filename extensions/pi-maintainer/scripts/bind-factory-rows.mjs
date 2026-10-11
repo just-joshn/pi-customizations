@@ -24,24 +24,17 @@ const bindings = {
   'edit.factory.transfer-selection': {
     pi: ['pi.registerCommand', 'pi.appendEntry'],
     src: ['src/edit/factory.ts', 'src/edit/commands.ts'],
-    tests: [
-      'test/edit/factory-bind.test.ts::mode transfer preserves editable paths, read-only paths, and declined mentions',
-      'test/edit/factory-bind.test.ts::/ask then /code keep the chat file selection on the active exchange',
-    ],
+    tests: ['test/edit/factory-bind.test.ts::mode transfer preserves editable paths, read-only paths, and declined mentions', 'test/edit/factory-bind.test.ts::/ask then /code keep the chat file selection on the active exchange'],
   },
   'edit.factory.prompt-variants': {
     pi: ["pi.on('turn_end')"],
     src: ['src/edit/feature.ts', 'src/edit/modes.ts'],
-    tests: [
-      'test/edit/factory-bind.test.ts::diff-fenced, udiff-simple, and editor variants share parent apply paths with their own prompts',
-    ],
+    tests: ['test/edit/factory-bind.test.ts::diff-fenced, udiff-simple, and editor variants share parent apply paths with their own prompts'],
   },
   'edit.factory.no-legacy-tools': {
     pi: ['pi.setActiveTools', "pi.on('tool_call')", "pi.on('before_agent_start')"],
     src: ['src/edit/feature.ts', 'src/edit/factory.ts', 'src/core/install.ts'],
-    tests: [
-      'test/edit/factory-bind.test.ts::active edit modes accept reply-text protocols and omit historical replace_lines tools',
-    ],
+    tests: ['test/edit/factory-bind.test.ts::active edit modes accept reply-text protocols and omit historical replace_lines tools'],
   },
 };
 

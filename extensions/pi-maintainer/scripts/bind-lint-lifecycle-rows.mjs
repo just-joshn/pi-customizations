@@ -18,10 +18,7 @@ const bindings = {
   'lint.selection.edit-targets': {
     pi: turnEnd,
     src: lintSrc,
-    tests: [
-      'test/lint/lifecycle-bind.test.ts::automatic lint selects authorized prepare targets not a git dirty listing',
-      'test/lint/lifecycle-bind.test.ts::dry-run still lints the authorized edit-target set without writing',
-    ],
+    tests: ['test/lint/lifecycle-bind.test.ts::automatic lint selects authorized prepare targets not a git dirty listing', 'test/lint/lifecycle-bind.test.ts::dry-run still lints the authorized edit-target set without writing'],
   },
   'lint.lifecycle.message-reset': {
     pi: ['pi.registerVirtualModel', "pi.on('turn_end')"],
@@ -44,17 +41,12 @@ const bindings = {
   'lint.commit.post-lint': {
     pi: turnEnd,
     src: [...lintSrc, 'src/git/policy.ts'],
-    tests: [
-      'test/lint/lifecycle-bind.test.ts::post-lint commit uses Ran the linter context whether diagnostics were produced',
-      'test/core/lifecycle-bind.test.ts::a failed lint report reflects after confirmation',
-    ],
+    tests: ['test/lint/lifecycle-bind.test.ts::post-lint commit uses Ran the linter context whether diagnostics were produced', 'test/core/lifecycle-bind.test.ts::a failed lint report reflects after confirmation'],
   },
   'lint.apply.bypasses-validation': {
     pi: ['pi.registerFlag'],
     src: ['src/edit/options.ts', 'src/edit/feature.ts', ...exchangeSrc],
-    tests: [
-      'test/lint/lifecycle-bind.test.ts::applySavedResponse applies edits and bypasses lint shell and test validation',
-    ],
+    tests: ['test/lint/lifecycle-bind.test.ts::applySavedResponse applies edits and bypasses lint shell and test validation'],
   },
   'lint.coder.ask-architect': {
     pi: turnEnd,

@@ -4,8 +4,6 @@ node_modules/
 .DS_Store
 .audit/
 artifacts/
-extensions/pi-caveman/vendor/caveman/packages/pi-extension/dist/
-extensions/pi-caveman/vendor/caveman/packages/pi-extension/node_modules
 
 # pstack-for-Pi parity program: regenerable trees (see parity/source-lock.json and the maintainer guide)
 parity/node_modules/

@@ -31,27 +31,29 @@ const endings = [
   { value: 'platform', expected: process.platform === 'win32' ? 'a\r\nb\r\n' : 'a\nb\n' },
 ] as const;
 
-test.for(endings)('settings line-endings=$value writes that newline through the edit working tree', {
-  meta: { aider: ['test_io/TestInputOutput.test_line_endings_validation'] },
-}, async ({ value, expected }) => {
-  const { home, cwd } = await workspace();
-  const loaded = await loadSettings({
-    specs: editOptionList,
-    getFlag: (name) => (name === 'line-endings' ? value : undefined),
-    processEnvironment: {},
-    cwd,
-    home,
-  });
-  const ports = editFeature.create({ settings: loaded.settings, cwd, host });
-  const path = join(cwd, 'out.txt');
-  await ports.tree.write(path, 'a\nb\n');
-  expect(await readFile(path, 'utf8')).toBe(expected);
-});
+test.for(endings)(
+  'settings line-endings=$value writes that newline through the edit working tree',
+  {
+    meta: { aider: ['test_io/TestInputOutput.test_line_endings_validation'] },
+  },
+  async ({ value, expected }) => {
+    const { home, cwd } = await workspace();
+    const loaded = await loadSettings({
+      specs: editOptionList,
+      getFlag: (name) => (name === 'line-endings' ? value : undefined),
+      processEnvironment: {},
+      cwd,
+      home,
+    });
+    const ports = editFeature.create({ settings: loaded.settings, cwd, host });
+    const path = join(cwd, 'out.txt');
+    await ports.tree.write(path, 'a\nb\n');
+    expect(await readFile(path, 'utf8')).toBe(expected);
+  },
+);
 
 test('invalid line-endings fails with Aider Invalid line_endings value message', {
   meta: { aider: ['test_io/TestInputOutput.test_line_endings_validation'] },
 }, () => {
-  expect(() => createWorkingTree({ lineEndings: 'invalid', notices })).toThrow(
-    'Invalid line_endings value: invalid. Must be one of: platform, lf, crlf',
-  );
+  expect(() => createWorkingTree({ lineEndings: 'invalid', notices })).toThrow('Invalid line_endings value: invalid. Must be one of: platform, lf, crlf');
 });

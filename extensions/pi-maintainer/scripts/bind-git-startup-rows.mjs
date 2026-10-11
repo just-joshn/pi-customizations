@@ -8,14 +8,7 @@ const root = fileURLToPath(new URL('..', import.meta.url));
 const path = join(root, 'parity/ledger.json');
 const ledger = JSON.parse(readFileSync(path, 'utf8'));
 
-const startupSrc = [
-  'src/git/startup.ts',
-  'src/git/feature.ts',
-  'src/git/policy.ts',
-  'src/git/options.ts',
-  'src/core/install.ts',
-  'src/settings/config-files.ts',
-];
+const startupSrc = ['src/git/startup.ts', 'src/git/feature.ts', 'src/git/policy.ts', 'src/git/options.ts', 'src/core/install.ts', 'src/settings/config-files.ts'];
 const pi = ['Host.exec', 'Host.confirm'];
 const tests = {
   discover: 'test/git/startup-bind.test.ts::discoverGitRoot finds the repository from a subdirectory the way findGitRoot does',

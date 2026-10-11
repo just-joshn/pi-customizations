@@ -3,7 +3,6 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { expect, onTestFinished, test } from 'vitest';
-
 import { lintFeature } from '../../src/lint/feature.ts';
 import { lintOptionList, lintOptions } from '../../src/lint/options.ts';
 import { loadSettings } from '../../src/settings/load.ts';

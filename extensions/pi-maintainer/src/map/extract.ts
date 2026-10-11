@@ -1,5 +1,5 @@
-import type { Captures, CaptureNode, QueryRuntime } from './query-runtime.ts';
-import { lexicalReferenceTags, tag, type Tag } from './tag.ts';
+import type { CaptureNode, Captures, QueryRuntime } from './query-runtime.ts';
+import { lexicalReferenceTags, type Tag, tag } from './tag.ts';
 
 export interface ExtractTagsInput {
   readonly relFname: string;

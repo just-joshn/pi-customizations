@@ -25,35 +25,31 @@ const extension: ExtensionFactory = (pi) =>
     { promptSource: testPrompts, home: () => '/nonexistent', processEnvironment: () => ({}) },
   );
 
-test(
-  'assistant mentions reflect before applying the proposed edit',
-  {
-    meta: {
-      aider: ['test_coder/TestCoder.test_check_for_file_mentions_with_mocked_confirm'],
-    },
+test('assistant mentions reflect before applying the proposed edit', {
+  meta: {
+    aider: ['test_coder/TestCoder.test_check_for_file_mentions_with_mocked_confirm'],
   },
-  async () => {
-    const f = await piSessionFixture({ extension, config: 'yes-always: true\n' });
-    await writeFile(join(f.cwd, 'mentioned.txt'), 'before\n');
-    const reply = 'mentioned.txt\n```\nafter\n```\n';
-    f.replies.push(
-      { text: reply },
-      {
-        text: reply,
-        wait: async () => {
-          expect(await readFile(join(f.cwd, 'mentioned.txt'), 'utf8')).toBe('before\n');
-        },
+}, async () => {
+  const f = await piSessionFixture({ extension, config: 'yes-always: true\n' });
+  await writeFile(join(f.cwd, 'mentioned.txt'), 'before\n');
+  const reply = 'mentioned.txt\n```\nafter\n```\n';
+  f.replies.push(
+    { text: reply },
+    {
+      text: reply,
+      wait: async () => {
+        expect(await readFile(join(f.cwd, 'mentioned.txt'), 'utf8')).toBe('before\n');
       },
-    );
-    const session = await f.open();
-    await promptAndSettle(session, 'make a change');
-    expect(f.requests).toHaveLength(2);
-    expect(f.requests[1]?.messages.map(textOf)).toContain('I added these files to the chat: mentioned.txt\nLet me know if there are others we should add.');
-    expect(f.requests[1]?.messages.map(textOf)).toContain('EDITABLE\nmentioned.txt\n```\nbefore\n```\n');
-    expect(await readFile(join(f.cwd, 'mentioned.txt'), 'utf8')).toBe('after\n');
-    expect(f.errors).toEqual([]);
-  },
-);
+    },
+  );
+  const session = await f.open();
+  await promptAndSettle(session, 'make a change');
+  expect(f.requests).toHaveLength(2);
+  expect(f.requests[1]?.messages.map(textOf)).toContain('I added these files to the chat: mentioned.txt\nLet me know if there are others we should add.');
+  expect(f.requests[1]?.messages.map(textOf)).toContain('EDITABLE\nmentioned.txt\n```\nbefore\n```\n');
+  expect(await readFile(join(f.cwd, 'mentioned.txt'), 'utf8')).toBe('after\n');
+  expect(f.errors).toEqual([]);
+});
 
 test('user preprocessing admits a mentioned file before the first request', async () => {
   const f = await piSessionFixture({ extension, config: 'yes-always: true\n' });
@@ -66,24 +62,20 @@ test('user preprocessing admits a mentioned file before the first request', asyn
   expect(f.errors).toEqual([]);
 });
 
-test(
-  'denied mentions persist on the active branch across reload',
-  {
-    meta: {
-      aider: ['test_coder/TestCoder.test_check_for_file_mentions_with_mocked_confirm'],
-    },
+test('denied mentions persist on the active branch across reload', {
+  meta: {
+    aider: ['test_coder/TestCoder.test_check_for_file_mentions_with_mocked_confirm'],
   },
-  async () => {
-    const f = await piSessionFixture({ extension });
-    await writeFile(join(f.cwd, 'mentioned.txt'), 'before\n');
-    f.replies.push({ text: 'look at mentioned.txt' }, { text: 'look at mentioned.txt' });
-    const session = await f.open();
-    await promptAndSettle(session, 'inspect');
-    await session.reload();
-    await promptAndSettle(session, 'inspect again');
-    expect(restore(session.sessionManager.getBranch()).snapshot).toMatchObject({ ignoredMentions: ['mentioned.txt'], files: { editable: [] } });
-    expect(f.requests).toHaveLength(2);
-    expect(await readFile(join(f.cwd, 'mentioned.txt'), 'utf8')).toBe('before\n');
-    expect(f.errors).toEqual([]);
-  },
-);
+}, async () => {
+  const f = await piSessionFixture({ extension });
+  await writeFile(join(f.cwd, 'mentioned.txt'), 'before\n');
+  f.replies.push({ text: 'look at mentioned.txt' }, { text: 'look at mentioned.txt' });
+  const session = await f.open();
+  await promptAndSettle(session, 'inspect');
+  await session.reload();
+  await promptAndSettle(session, 'inspect again');
+  expect(restore(session.sessionManager.getBranch()).snapshot).toMatchObject({ ignoredMentions: ['mentioned.txt'], files: { editable: [] } });
+  expect(f.requests).toHaveLength(2);
+  expect(await readFile(join(f.cwd, 'mentioned.txt'), 'utf8')).toBe('before\n');
+  expect(f.errors).toEqual([]);
+});

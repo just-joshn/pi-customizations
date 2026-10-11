@@ -1,4 +1,4 @@
-import { mkdir, readFile, symlink } from 'node:fs/promises';
+import { mkdir, readFile, stat, symlink } from 'node:fs/promises';
 import { join } from 'node:path';
 
 import { createAssistantMessageEventStream } from '@earendil-works/pi-ai';
@@ -55,6 +55,7 @@ test('failed application does not report a successful file update', { meta: { ev
   });
   expect(saved).toEqual([]);
   expect(f.errors).toEqual([]);
+  expect((await stat(join(f.cwd, 'bad.txt'))).isDirectory()).toBe(true);
 });
 
 test('a fresh user request honors a changed native thinking selection', async () => {

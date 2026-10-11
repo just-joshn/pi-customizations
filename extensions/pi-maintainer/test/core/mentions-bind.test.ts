@@ -78,6 +78,8 @@ async function harness(options: {
         editorModel: null,
         chatLanguage: null,
         editorEditFormat: 'editor-whole',
+        messageFile: null,
+        applyFile: null,
         tree: createWorkingTree({ notices: host }),
       },
       git,

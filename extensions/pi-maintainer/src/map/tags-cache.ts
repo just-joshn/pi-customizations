@@ -25,15 +25,11 @@ function memoryStore(): TagCacheStore {
  * Open a tags cache the way `RepoMap.load_tags_cache` / `tags_cache_error` do
  * (`aider/repomap.py:177-230`): try persistent, recreate, then fall back to memory.
  */
-export function createTagsCache(input: {
-  readonly openPersistent: () => TagCacheStore;
-  readonly recreatePersistent?: () => TagCacheStore;
-  readonly warn?: (message: string) => void;
-}): TagCacheStore {
+export function createTagsCache(input: { readonly openPersistent: () => TagCacheStore; readonly recreatePersistent?: () => TagCacheStore; readonly warn?: (message: string) => void }): TagCacheStore {
   try {
     return input.openPersistent();
   } catch {
-    // continue to recreate / memory
+    if (!input.recreatePersistent) return memoryStore();
   }
   try {
     if (input.recreatePersistent) return input.recreatePersistent();

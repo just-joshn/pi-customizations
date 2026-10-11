@@ -8,30 +8,20 @@ import { disabledGitPolicy } from '../../src/feature.ts';
 import { getRepoMapTokens, resolveMapEnablement } from '../../src/map/budget.ts';
 import { createRepositoryContext } from '../../src/map/context.ts';
 import { addCacheControlHeaders, getRepoMessages } from '../../src/map/prompt-insertion.ts';
-import { selectRankedPrefix, estimateMapTokens } from '../../src/map/sampled-prefix.ts';
-import { createTagsCache, getCachedTags } from '../../src/map/tags-cache.ts';
-import { tag, type Tag } from '../../src/map/tag.ts';
-import { renderFilenameMap } from '../../src/map/render.ts';
 import type { RankedEntry } from '../../src/map/rank.ts';
+import { renderFilenameMap } from '../../src/map/render.ts';
+import { estimateMapTokens, selectRankedPrefix } from '../../src/map/sampled-prefix.ts';
+import { type Tag, tag } from '../../src/map/tag.ts';
+import { createTagsCache, getCachedTags } from '../../src/map/tags-cache.ts';
 
 const BUDGET_META = {
-  aider: [
-    'test_models/TestModels.test_get_repo_map_tokens',
-    'test_main/TestMain.test_yaml_config_file_loading',
-    'test_main/TestMain.test_map_tokens_option',
-    'test_main/TestMain.test_map_tokens_option_with_non_zero_value',
-  ],
+  aider: ['test_models/TestModels.test_get_repo_map_tokens', 'test_main/TestMain.test_yaml_config_file_loading', 'test_main/TestMain.test_map_tokens_option', 'test_main/TestMain.test_map_tokens_option_with_non_zero_value'],
   evidence: ['ev-map/probe/zero-budget-disables-map'],
 };
 
 const RENDERED_META = {
   aider: ['test_repomap/TestRepoMap.test_repo_map_refresh_files', 'test_repomap/TestRepoMap.test_repo_map_refresh_auto'],
-  evidence: [
-    'ev-map/probe/refresh-files-stale-until-forced',
-    'ev-map/probe/forced-map',
-    'ev-map/boundary/manual-reuses-map-even-when-file-list-changes',
-    'ev-map/boundary/auto-cache-key-includes-identifier-hints',
-  ],
+  evidence: ['ev-map/probe/refresh-files-stale-until-forced', 'ev-map/probe/forced-map', 'ev-map/boundary/manual-reuses-map-even-when-file-list-changes', 'ev-map/boundary/auto-cache-key-includes-identifier-hints'],
 };
 
 const SEED_META = {
@@ -299,12 +289,7 @@ test('context mode forces map refresh, multiplies the map budget by the no-file 
 test('repository mapping uses editable and in-root read-only seeds with conversation hints and retries an empty map with fewer hints or seeds', { meta: SEED_META }, async () => {
   const calls: unknown[] = [];
   const map = {
-    repoMap: async (request: {
-      chatFiles: ReadonlySet<string>;
-      otherFiles: ReadonlySet<string>;
-      mentionedFnames: ReadonlySet<string>;
-      mentionedIdents: ReadonlySet<string>;
-    }) => {
+    repoMap: async (request: { chatFiles: ReadonlySet<string>; otherFiles: ReadonlySet<string>; mentionedFnames: ReadonlySet<string>; mentionedIdents: ReadonlySet<string> }) => {
       calls.push({
         chat: [...request.chatFiles].sort(),
         other: [...request.otherFiles].sort(),
@@ -421,10 +406,12 @@ test('when persistent tag-cache creation fails, mapping recreates the cache or f
     return [tag({ relFname: 'a.py', fname: '/repo/a.py', name: 'A', kind: 'def', line: 0 })];
   });
   expect(tags).toHaveLength(1);
-  expect(getCachedTags(cache, '/repo/a.py', 1, () => {
-    loads += 1;
-    return [];
-  })).toHaveLength(1);
+  expect(
+    getCachedTags(cache, '/repo/a.py', 1, () => {
+      loads += 1;
+      return [];
+    }),
+  ).toHaveLength(1);
   expect(loads).toBe(1);
 });
 
