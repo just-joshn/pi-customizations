@@ -36,6 +36,34 @@ export function getCurMessageText(messages: readonly ContextMessage[]): string {
     .join('');
 }
 
+/** Remove Pi skill delivery wrappers (`<skill name=...>...</skill>`) from model-facing text. */
+export function stripSkillBlocks(text: string): string {
+  return text.replace(/<skill\b[^>]*>[\s\S]*?<\/skill>/gi, '').replace(/^\s*\n+/, '').replace(/\n{3,}/g, '\n\n');
+}
+
+function stripSkillsFromMessage(message: ContextMessage): ContextMessage {
+  if (!('content' in message)) return message;
+  if (typeof message.content === 'string') {
+    const content = stripSkillBlocks(message.content);
+    return content === message.content ? message : { ...message, content };
+  }
+  if (!Array.isArray(message.content)) return message;
+  let changed = false;
+  const content = message.content.map((block) => {
+    if (block.type !== 'text') return block;
+    const text = stripSkillBlocks(block.text);
+    if (text === block.text) return block;
+    changed = true;
+    return { ...block, text };
+  });
+  return changed ? { ...message, content } : message;
+}
+
+/** Drop skill wrappers from provider-bound messages. Session history stays untouched. */
+export function stripSkillsFromMessages(messages: readonly ContextMessage[]): ContextMessage[] {
+  return messages.map(stripSkillsFromMessage);
+}
+
 export async function readChatFiles(snapshot: Snapshot, tree: WorkingTree, notices: Notices) {
   let files: ChatFiles = chatFilesOf(snapshot);
   const editable: FileContent[] = [];
@@ -154,6 +182,15 @@ export async function projectRequest(input: ContextInputs) {
   return { prompts, fence: chosen.fence, files: contents.files, ...assembled };
 }
 
+/** Provider system sections owned by maintainer. Keep Pi `cwd`; drop foreign tool-usage sections. */
+export function providerSystemSections(folded: { readonly sections?: Readonly<Record<string, string>> | undefined }, preamble: string, useSystemPrompt: boolean): Record<string, string> {
+  const sections: Record<string, string> = {};
+  const cwd = folded.sections?.cwd;
+  if (typeof cwd === 'string' && cwd.length > 0) sections.cwd = cwd;
+  if (useSystemPrompt) sections.preamble = preamble;
+  return sections;
+}
+
 function assembleRequest({ input, contents, fence, prompts, model }: { input: ContextInputs; contents: Awaited<ReturnType<typeof readChatFiles>>; fence: Fence; prompts: PromptSet; model: { provider: string; id: string } }) {
   const { snapshot, view } = input;
   const policy = input.policy ?? defaultPromptPolicy;
@@ -190,7 +227,7 @@ function assembleRequest({ input, contents, fence, prompts, model }: { input: Co
   return {
     partition: history.partition,
     messages: [
-      { ...folded, sections: { ...folded.sections, preamble: policy.useSystemPrompt ? main : '' } } satisfies ContextMessage,
+      { ...folded, content: '', sections: providerSystemSections(folded, main, policy.useSystemPrompt) } satisfies ContextMessage,
       ...(!policy.useSystemPrompt ? pair(main, 'Ok.') : []),
       ...(input.editorFresh ? [] : convert(prompt.examples)),
       ...pair(readOnlyText ? prompts.readOnlyFilesPrefix + readOnlyText : '', 'Ok, I will use these files as references.'),

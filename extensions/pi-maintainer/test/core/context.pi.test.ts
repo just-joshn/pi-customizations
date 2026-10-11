@@ -73,7 +73,28 @@ test('repository port text occupies the native provider repository chunk', async
   expect(f.errors).toEqual([]);
 });
 
-test('earlier context transformations survive maintainer assembly', async () => {
+test('provider requests drop Pi skill delivery wrappers and keep the user args', async () => {
+  const f = await piSessionFixture({ extension });
+  f.replies.push({ text: '' });
+  const session = await f.open();
+  const skillPrompt = `<skill name="poteto-mode" location="/pkg/skills/poteto-mode/SKILL.md">
+References are relative to /pkg/skills/poteto-mode.
+
+# Poteto mode
+Use bash tools for reconnaissance.
+</skill>
+
+do a complete manual test of pi-maintainer`;
+  await promptAndSettle(session, skillPrompt);
+  const requestText = (f.requests[0]?.messages ?? []).map(textOf).join('\n');
+  expect(requestText).toContain('do a complete manual test of pi-maintainer');
+  expect(requestText).not.toContain('<skill');
+  expect(requestText).not.toContain('Use bash tools for reconnaissance');
+  expect(requestText).not.toContain('poteto-mode');
+  expect(f.errors).toEqual([]);
+});
+
+test('conversation context transforms survive; maintainer owns provider system sections', async () => {
   const f = await piSessionFixture({
     extension,
     before: [
@@ -91,9 +112,10 @@ test('earlier context transformations survive maintainer assembly', async () => 
   await promptAndSettle(session, 'current');
   const request = f.requests[0];
   expect(request?.messages.some((message) => textOf(message) === 'TRANSFORMED current')).toBe(true);
-  expect(getCurrentSystemPrompt(request?.messages ?? [])).toContain('FOREIGN SECTION');
-  expect(getCurrentSystemPrompt(request?.messages ?? [])).toContain('FOREIGN FREE TEXT');
-  expect(getCurrentSystemPrompt(request?.messages ?? [])).toContain('TEST MAIN');
+  const systemPrompt = getCurrentSystemPrompt(request?.messages ?? []);
+  expect(systemPrompt).toContain('TEST MAIN');
+  expect(systemPrompt).not.toContain('FOREIGN SECTION');
+  expect(systemPrompt).not.toContain('FOREIGN FREE TEXT');
   expect(getCurrentTools(request?.messages ?? [])).toEqual([]);
   expect(f.errors).toEqual([]);
 });
