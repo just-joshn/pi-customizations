@@ -18,7 +18,7 @@ test('the billing block reaches the wire byte for byte', async ({ models, model,
   await collect(models.streamSimple(model, prompt));
   expect(systemBlocks(soleRequest(server).body)[0]).toStrictEqual({
     type: 'text',
-    text: 'x-anthropic-billing-header: cc_version=2.1.288.9ae; cc_entrypoint=sdk-cli;',
+    text: 'x-anthropic-billing-header: cc_version=2.1.296.406; cc_entrypoint=sdk-cli;',
   });
 });
 
@@ -28,7 +28,7 @@ test('the non-simple stream carries the billing block', async ({ models, model, 
 });
 
 test.for([
-  { header: 'user-agent', value: 'claude-cli/2.1.288 (external, sdk-cli)' },
+  { header: 'user-agent', value: 'claude-cli/2.1.296 (external, sdk-cli)' },
   { header: 'x-app', value: 'cli' },
   { header: 'anthropic-version', value: '2023-06-01' },
   { header: 'anthropic-beta', value: 'claude-code-20250219,oauth-2025-04-20' },
@@ -55,6 +55,7 @@ test('explicit session headers override Pi session identity', async ({ models, m
 
 test('no x-api-key header is sent', async ({ models, model, server }) => {
   await collect(models.streamSimple(model, prompt));
+  expect(soleRequest(server).headers.authorization).toBe(`Bearer ${OAUTH_ACCESS_TOKEN}`);
   expect(soleRequest(server).headers).not.toHaveProperty('x-api-key');
 });
 

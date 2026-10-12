@@ -26,7 +26,7 @@ Start Pi with the provider selected:
 pi -e . --provider claude-subscription --model claude-sonnet-4-6
 ```
 
-The provider also accepts subscription access tokens from `ANTHROPIC_OAUTH_TOKEN` and `ANTHROPIC_AUTH_TOKEN`, in that order after `CLAUDE_CODE_OAUTH_TOKEN`. API keys are rejected on these paths. Ambient tokens are not copied into Pi's credential store and cannot refresh themselves.
+When both `ANTHROPIC_AUTH_TOKEN` and `CLAUDE_CODE_OAUTH_TOKEN` are set, the auth token wins, matching Claude Code `2.1.296` print mode and `auth status`. The provider also accepts an OAuth-shaped `ANTHROPIC_OAUTH_TOKEN`, but only after those two. Claude Code's CLI does not consult that variable. API keys are rejected on these paths. Ambient tokens are not copied into Pi's credential store and cannot refresh themselves.
 
 Pi's stored credential takes precedence over ambient tokens. Use Pi's `/logout` if you want to stop using the stored credential. A failed refresh retains that credential rather than silently switching accounts.
 
@@ -38,13 +38,13 @@ Use Pi's `models.json` for explicit header overrides. For example:
 {
   "providers": {
     "claude-subscription": {
-      "headers": { "user-agent": "claude-cli/2.1.288 (external, sdk-cli)" }
+      "headers": { "user-agent": "claude-cli/2.1.296 (external, sdk-cli)" }
     }
   }
 }
 ```
 
-The default identity matches the locally captured Claude Code `2.1.288` SDK request. The billing fingerprint derives from the request's first user text. Header overrides do not change the captured version used in that fingerprint.
+The default identity matches the locally captured Claude Code `2.1.296` SDK request for `Reply LOCAL_OK.`. Additional synthetic text captures agree with the existing billing rule at tested length boundaries and for Unicode; this does not establish its private implementation or arbitrary-input parity. The target derives the billing fingerprint from the request's first user text. Header overrides do not change the pinned version used in that fingerprint.
 
 Pi still controls thinking, output limits, tool execution, retries, compaction, model selection, and usage accounting. The package does not replace Pi's prompt or Bash-output policy.
 
@@ -88,7 +88,7 @@ Capture the installed Claude Code reference with Python 3:
 python3 scripts/capture-claude.py
 ```
 
-The capture runs Claude Code with an isolated home, safe mode, no tools, no session persistence, a synthetic OAuth token, and a local Messages endpoint. It prints only the selected request fields in `test/fixtures/claude-code-2.1.288.json`. No auth headers, account identifiers, complete prompts, or credential contents appear in the output. `CLAUDE_BIN` can select a different Claude executable.
+The capture runs Claude Code with an isolated home, safe mode, no tools, no session persistence, a synthetic OAuth token, and a local Messages endpoint. These settings alone do not enforce network or credential isolation; the current evidence captures additionally used an OS sandbox denying non-localhost networking and reads of real credential directories. The historical `2.1.288` fixture is preserved. It prints only the selected request fields in `test/fixtures/claude-code-2.1.296.json`. No auth headers, account identifiers, complete prompts, or credential contents appear in the output. `CLAUDE_BIN` can select a different Claude executable.
 
 When refreshing the identity, recapture the reference and update `src/identity.ts` and its literal regression vectors together. Do not import Claude Code internals or execute Claude Code from the extension factory.
 

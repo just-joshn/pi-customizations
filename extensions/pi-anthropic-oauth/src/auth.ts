@@ -1,6 +1,7 @@
 import type { ApiKeyAuth, AuthResult, OAuthAuth, ProviderAuth, ProviderEnv } from '@earendil-works/pi-ai';
 
-const TOKEN_VARIABLES: readonly string[] = ['CLAUDE_CODE_OAUTH_TOKEN', 'ANTHROPIC_OAUTH_TOKEN', 'ANTHROPIC_AUTH_TOKEN'];
+// Measured Claude Code 2.1.296 order. ANTHROPIC_OAUTH_TOKEN is a lower-priority alias that CLI does not consult.
+const TOKEN_VARIABLES: readonly string[] = ['ANTHROPIC_AUTH_TOKEN', 'CLAUDE_CODE_OAUTH_TOKEN', 'ANTHROPIC_OAUTH_TOKEN'];
 const OAUTH_ACCESS_TOKEN = /^sk-ant-oat01-[A-Za-z0-9_-]+$/;
 
 function tokenAuth(value: string, source: string, env?: ProviderEnv): AuthResult | undefined {
@@ -34,8 +35,10 @@ export function subscriptionAuth(oauth: OAuthAuth): ProviderAuth {
         interaction.signal.throwIfAborted();
         try {
           return await oauth.login(interaction, options);
-        } catch {
+        } catch (error) {
           interaction.signal.throwIfAborted();
+          // Pi backs out of /login only when the error message is exactly this.
+          if (error instanceof Error && error.message === 'Login cancelled') throw error;
           throw new Error('Claude subscription login failed. Try /login again.');
         }
       },
