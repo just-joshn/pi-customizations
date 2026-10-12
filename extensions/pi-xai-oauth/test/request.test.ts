@@ -8,12 +8,12 @@ import { test } from './network-guard.ts';
 const FAST = { id: 'grok-4.7-build-fast', contextWindow: 256000 };
 
 test('the client version is the one the contract was measured against', () => {
-  expect(GROK_CLIENT_VERSION).toBe('1.0.46');
+  expect(GROK_CLIENT_VERSION).toBe('1.0.50');
 });
 
 test('a session id yields the five identity headers', () => {
   expect(grokHeaders(FAST, { sessionId: 'session-1' })).toStrictEqual({
-    'x-grok-client-version': '1.0.46',
+    'x-grok-client-version': '1.0.50',
     'X-XAI-Token-Auth': 'xai-grok-cli',
     'x-grok-model-override': 'grok-4.7-build-fast',
     'x-grok-context-window': '256000',
@@ -67,7 +67,7 @@ test('streamSimple hands the inner stream the same model with merged headers', (
   expect(recorded[0]?.options).toStrictEqual({
     sessionId: 'session-1',
     headers: {
-      'x-grok-client-version': '1.0.46',
+      'x-grok-client-version': '1.0.50',
       'X-XAI-Token-Auth': 'xai-grok-cli',
       'x-grok-model-override': 'grok-4.7-build-fast',
       'x-grok-context-window': '256000',
@@ -93,7 +93,7 @@ test('stream hands the inner stream the same context with merged headers', () =>
   expect(() => streams.stream(model, context)).toThrow('recorded');
   expect(recorded[0]?.context).toBe(context);
   expect(recorded[0]?.headers).toStrictEqual({
-    'x-grok-client-version': '1.0.46',
+    'x-grok-client-version': '1.0.50',
     'X-XAI-Token-Auth': 'xai-grok-cli',
     'x-grok-model-override': 'grok-4.7',
     'x-grok-context-window': '256000',
