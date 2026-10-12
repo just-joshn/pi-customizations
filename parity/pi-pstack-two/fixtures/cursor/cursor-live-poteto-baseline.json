@@ -1,0 +1,162 @@
+{
+ "note": "Cursor baseline for LIVE-001: cursor-agent 2026.10.01, --model auto, print mode, same prompt and calc.js workspace as scripts/live-e2e.mjs poteto. Cursor resolved poteto-mode from ~/.claude/skills (an older local pstack copy) rather than the plugin cache.",
+ "prompt": "/poteto-mode How does add in calc.js treat two numeric strings such as \"2\" and \"3\"? This is a read-only question; do not change any files.",
+ "toolCalls": [
+  {
+   "tool": "readToolCall",
+   "args": {
+    "path": "/Users/josh-desktop/.claude/skills/poteto-mode/playbooks/investigation.md"
+   }
+  },
+  {
+   "tool": "getMcpToolsToolCall",
+   "args": {
+    "server": "cursor",
+    "toolName": "TodoWrite"
+   }
+  },
+  {
+   "tool": "globToolCall",
+   "args": {
+    "globPattern": "**/calc.js"
+   }
+  },
+  {
+   "tool": "readToolCall",
+   "args": {
+    "path": "/Users/josh-desktop/.claude/skills/unslop/SKILL.md"
+   }
+  },
+  {
+   "tool": "readToolCall",
+   "args": {
+    "path": "/Users/josh-desktop/.claude/skills/how/SKILL.md"
+   }
+  },
+  {
+   "tool": "updateTodosToolCall",
+   "todos": [
+    {
+     "id": "inv-1",
+     "content": "Route through the how skill. For motivation questions, also route through the why skill.",
+     "status": "TODO_STATUS_IN_PROGRESS"
+    },
+    {
+     "id": "inv-2",
+     "content": "Throughput checkpoint stays one line: `throughput checkpoint: n/a, read-only investigation`",
+     "status": "TODO_STATUS_PENDING"
+    },
+    {
+     "id": "inv-3",
+     "content": "Produce the how-shaped output (Overview / Key Concepts / How It Works / Where Things Live / Gotchas), or a recommendation with a tradeoffs table if the request is a decision between alternatives.",
+     "status": "TODO_STATUS_PENDING"
+    },
+    {
+     "id": "inv-4",
+     "content": "Apply the unslop skill to the reply.",
+     "status": "TODO_STATUS_PENDING"
+    }
+   ]
+  },
+  {
+   "tool": "readToolCall",
+   "args": {
+    "path": "/Users/josh-desktop/.claude/skills/how/references/explainer-prompt.md"
+   }
+  },
+  {
+   "tool": "globToolCall",
+   "args": {
+    "globPattern": "**/pstack-models.md"
+   }
+  },
+  {
+   "tool": "readToolCall",
+   "args": {
+    "path": "/private/tmp/cursor-live/calc.js"
+   }
+  },
+  {
+   "tool": "globToolCall",
+   "args": {
+    "targetDirectory": "/Users/josh-desktop/.claude",
+    "globPattern": "**/pstack*"
+   }
+  },
+  {
+   "tool": "getMcpToolsToolCall",
+   "args": {
+    "server": "cursor",
+    "toolName": "Task"
+   }
+  },
+  {
+   "tool": "taskToolCall",
+   "args": {
+    "description": "Explain add numeric strings",
+    "prompt": "You are writing an architectural explanation for a senior engineer. This is a SIMPLE how-question; there are no explorer findings. Explore and explain in one pass.\n\nREAD-ONLY. Do not modify any files.",
+    "subagentType": "{'unspecified': {}}",
+    "model": "claude-opus-5-5-medium",
+    "agentId": "238d11fe-113a-4356-aa8d-59fbd4679550",
+    "attachments": "[]",
+    "mode": "TASK_MODE_UNSPECIFIED",
+    "respondingToMessageIds": "[]",
+    "environment": "SUBAGENT_EXECUTION_ENVIRONMENT_UNSPECIFIED",
+    "machine": "{'sameMachine': {}}"
+   }
+  },
+  {
+   "tool": "grepToolCall",
+   "args": {
+    "pattern": "\\badd\\b",
+    "path": "/private/tmp/cursor-live",
+    "caseInsensitive": "False",
+    "multiline": "False",
+    "offset": "0"
+   }
+  },
+  {
+   "tool": "globToolCall",
+   "args": {
+    "targetDirectory": "/private/tmp/cursor-live",
+    "globPattern": "**/*.{js,mjs,cjs,ts,md,json}"
+   }
+  },
+  {
+   "tool": "updateTodosToolCall",
+   "todos": [
+    {
+     "id": "inv-1",
+     "content": "Route through the how skill. For motivation questions, also route through the why skill.",
+     "status": "TODO_STATUS_COMPLETED"
+    },
+    {
+     "id": "inv-2",
+     "content": "Throughput checkpoint stays one line: `throughput checkpoint: n/a, read-only investigation`",
+     "status": "TODO_STATUS_COMPLETED"
+    },
+    {
+     "id": "inv-3",
+     "content": "Produce the how-shaped output (Overview / Key Concepts / How It Works / Where Things Live / Gotchas), or a recommendation with a tradeoffs table if the request is a decision between alternatives.",
+     "status": "TODO_STATUS_IN_PROGRESS"
+    }
+   ]
+  },
+  {
+   "tool": "updateTodosToolCall",
+   "todos": [
+    {
+     "id": "inv-3",
+     "content": "Produce the how-shaped output (Overview / Key Concepts / How It Works / Where Things Live / Gotchas), or a recommendation with a tradeoffs table if the request is a decision between alternatives.",
+     "status": "TODO_STATUS_COMPLETED"
+    },
+    {
+     "id": "inv-4",
+     "content": "Apply the unslop skill to the reply.",
+     "status": "TODO_STATUS_COMPLETED"
+    }
+   ]
+  }
+ ],
+ "resultExcerpt": "Read-only investigation of `add` in `calc.js`. Opening the Investigation playbook and the source next.Simple single-function question. Routing through the how skill's direct-explain path.Spawning the how-skill explainer for this single-function case, and checking callers in parallel.Explainer is running. I'll present its walkthrough once it returns.Waiting on the explainer subagent before writing the investigation reply.`add(\"2\", \"3\")` returns the string `\"23\"`, not the number `5`. Throughput checkpoint: n/a, read-only investigation.### Overview\n\n`add` in `calc.js` concatenates two numeric strings. It does not add them as numbers. `add(\"2\", \"3\")` returns `\"23\"`, not `5`. The function is a bare wrapper around JavaScript's `+` operator. It does not validate, coerce, or check argument types.\n\nThe workspace has no callers, tests, or docs that define intended string behavior. Measured from the source and a Node check by [Explain add numeric strings](12b18e71-1170-4f2c-9d1f-043d7283a702).\n\n### How it works\n\n```1:3:/private/tmp/cursor-live/calc.js\nexport function add(a, b) {\n  return a + b;\n}\n```\n\nWhen `add(\"2\", \"3\")` runs, both arguments stay strings and go into `a + b`. If either operand is a string, JavaScript converts the other to a string and joins them. Numeric addition happens only when neither operand is a string. So the result is `\"23\"`.\n\n| Call | Result | `typeof` |\n|---|---|---|\n| `add(\"2\", \"3\")` | `\"23\"` | `string` |\n| `add(2, \"3\")` | `\"23\"` | `string` |\n| `add(2, 3)` | "
+}

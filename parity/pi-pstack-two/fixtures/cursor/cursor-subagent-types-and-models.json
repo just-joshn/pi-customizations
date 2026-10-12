@@ -1,0 +1,35 @@
+{
+ "source": "model-relayed copy of <available_subagent_types> and <available_subagent_models> from the Cursor CLI user-info message",
+ "captured": "2026-10-12T02:2x-02:3xZ (cursor-agent 2026.10.01-e373342, model auto, workspace /tmp/cursor-probe-ws)",
+ "subagentTypes": [
+  "generalPurpose",
+  "explore",
+  "cursor-guide",
+  "ci-investigator",
+  "bugbot",
+  "security-review",
+  "best-of-n-runner",
+  "Comment Sicko",
+  "poteto-agent"
+ ],
+ "pluginSubagentDescriptions": {
+  "Comment Sicko": "A deranged comment-hater that savors deletion and condemns workaround code.",
+  "poteto-agent": "Routing target for `/poteto-mode` and any request for poteto's style. Spawn a fresh `poteto-agent` for each new task, and resume one only in the strict cases that poteto-mode's Subagents section names. Reads the `poteto-mode` skill's `SKILL.md` in full before any work, including its inline Principles index. Substituting `generalPurpose` skips that read and drifts."
+ },
+ "subagentModelSlugs": [
+  "inherit",
+  "claude-fable-5-1-thinking-high",
+  "claude-opus-5-5-medium",
+  "claude-sonnet-5-5-medium",
+  "composer-2.5-fast",
+  "cursor-grok-4.6-high-fast",
+  "gemini-3.8-flash-high",
+  "gpt-5.6-sol-medium",
+  "grok-4.7-high",
+  "muse-spark-1.3-high"
+ ],
+ "contractExcerpts": [
+  "inherit (default; required unless the user explicitly requested another model)",
+  "If the user requests a model that is NOT in the list above, do NOT substitute a different model or guess."
+ ]
+}

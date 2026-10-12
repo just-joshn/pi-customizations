@@ -1,0 +1,23 @@
+{
+  "scenario": "poteto",
+  "requirement": "LIVE-001",
+  "model": "claude-subscription/claude-sonnet-5-5",
+  "prompt": "/poteto-mode How does add in calc.js treat two numeric strings such as \"2\" and \"3\"? This is a read-only question; do not change any files.",
+  "exitCode": 0,
+  "seconds": 5,
+  "checks": {
+    "readPlaybook": false,
+    "firstTodosAreStepsVerbatim": false,
+    "stepMatches": [false, false, false, false],
+    "workspaceUnchanged": true,
+    "todos": []
+  },
+  "toolCalls": [
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"cat calc.js\",\"timeout\":10}"
+    }
+  ],
+  "finalText": "`add(\"2\", \"3\")` returns the string `\"23\"`, not the number `5`.\n\n`add` in `calc.js` is just `a + b`, with no type coercion or validation. When both operands are strings, JavaScript's `+` concatenates them. This comes from reading the source only. I didn't run it.\n\nPassing one string and one number also concatenates. `add(\"2\", 3)` gives `\"23\"`. If you want numeric addition, the function would need to convert its inputs, for example with `Number(a) + Number(b)`. I haven't changed anything.\n\nThis was a read-only Investigation, so I applied no other principles.",
+  "stderrTail": ""
+}

@@ -1,0 +1,124 @@
+{
+ "source": "cursor-agent print mode, GetDynamicTools(server=cursor) raw tool result",
+ "captured": "2026-10-12T02:2x-02:3xZ (cursor-agent 2026.10.01-e373342, model auto, workspace /tmp/cursor-probe-ws)",
+ "cursorNamespaceTools": [
+  "AwaitShell",
+  "CreateGoal",
+  "Delete",
+  "EditNotebook",
+  "FetchMcpResource",
+  "GenerateImage",
+  "ReadLints",
+  "SwitchMode",
+  "Task",
+  "TodoWrite",
+  "UpdateGoal",
+  "WebFetch",
+  "WebSearch"
+ ],
+ "tools": {
+  "Task": {
+   "descriptionContractExcerpts": [
+    "When the agent is done, it will return a single message back to you.",
+    "Agents can be resumed using the `resume` parameter by passing the agent ID from a previous invocation.",
+    "If the agent is still running, the request fails; wait for completion before resuming.",
+    "Launch multiple agents concurrently ... use a single message with multiple tool uses.",
+    "Available subagent_types ... are listed in <available_subagent_types> in the initial user-info message.",
+    "Available model slugs for subagents are listed in <available_subagent_models> in the initial user-info message.",
+    "When an agent runs in the background, you will be automatically notified when it completes after you end your own turn - do NOT AwaitShell, poll, or proactively check on its progress."
+   ],
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "description": {
+      "type": "string",
+      "description": "A short, user-friendly title for the subagent. This appears in the UI as the subagent's name. Make it concrete and distinct, consider recent titles to avoid reuse. For resumed subagents which you are prompting to work on a separate task, give an updated description based on the latest work the subagent is performing. (Do not rename if the subagent is continuing work on the same high-level task.)"
+     },
+     "prompt": {
+      "type": "string",
+      "description": "The task for the agent to perform"
+     },
+     "model": {
+      "type": "string",
+      "description": "Optional model slug for this agent. If provided, it must resolve to one of the available model slugs. The available model slugs are listed in <available_subagent_models> in the initial user-info message. An invalid slug fails the call with the allowed list \u2014 pick a listed slug or omit this parameter; never retry an invalid slug unchanged. If omitted, the subagent uses the same model as the parent agent. Do not pass if resume field is set (prior model will be used). Use \"inherit\" unless the user explicitly requested another listed model."
+     },
+     "resume": {
+      "type": "string",
+      "description": "Optional agent ID to resume from. If provided, sends a follow-up message to the agent after it has completed. Requests to a currently running asynchronous agent fail; wait for completion before resuming."
+     },
+     "subagent_type": {
+      "type": "string",
+      "description": "Subagent type to use for this task. Available types are listed in the initial user-info message."
+     },
+     "file_attachments": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      },
+      "description": "Optional array of file paths to images or videos to attach to the subagent. Files are read and attached to the subagent's context. Use to forward relevant media to any subagent (e.g. pass a user-attached image's saved file path so the subagent sees the actual image rather than a prose description)."
+     },
+     "run_in_background": {
+      "type": "boolean",
+      "description": "Run the agent in the background (returns output_file path to check later). If this is false, you will be blocked until the agent completes. When true, the background subagent will send a notification when it completes."
+     }
+    },
+    "required": [
+     "description",
+     "prompt"
+    ]
+   }
+  },
+  "TodoWrite": {
+   "descriptionContractExcerpts": [
+    "Use this tool to create and manage a structured task list for your current coding session."
+   ],
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "todos": {
+      "type": "array",
+      "items": {
+       "type": "object",
+       "properties": {
+        "id": {
+         "type": "string",
+         "description": "Unique identifier for the TODO item"
+        },
+        "content": {
+         "type": "string",
+         "description": "The description/content of the TODO item"
+        },
+        "status": {
+         "type": "string",
+         "enum": [
+          "pending",
+          "in_progress",
+          "completed",
+          "cancelled"
+         ],
+         "description": "The current status of the TODO item"
+        }
+       },
+       "required": [
+        "id",
+        "content",
+        "status"
+       ]
+      },
+      "minItems": 2,
+      "description": "Array of TODO items to update or create"
+     },
+     "merge": {
+      "type": "boolean",
+      "description": "Whether to merge the todos with the existing todos. If true, the todos will be merged into the existing todos based on the id field. You can leave unchanged properties undefined. If false, the new todos will replace the existing todos."
+     }
+    },
+    "required": [
+     "todos",
+     "merge"
+    ]
+   }
+  }
+ },
+ "note": "Parameter schemas are the published model-facing interface. Tool prose is reduced to short contract excerpts; the rest of Cursor's tool descriptions is intentionally not stored."
+}

@@ -1,0 +1,37 @@
+{
+  "scenario": "setup",
+  "requirement": "LIVE-003",
+  "model": "deepseek/deepseek-flash",
+  "prompt": "/setup-pstack Use the large budget and keep the skill's mapping. For a role whose default model is not available, use the closest available model of the same family, else inherit-parent. Do not ask me anything; write the rule now.",
+  "exitCode": 0,
+  "seconds": 53,
+  "checks": {
+    "ruleWritten": true,
+    "alwaysApply": true,
+    "missingRoles": [],
+    "distinctValues": ["inherit-parent"],
+    "unresolvedValues": [],
+    "wroteCursorRule": false,
+    "rule": "---\ndescription: pstack per-role model choices (overrides skill defaults)\nalwaysApply: true\n---\n# pstack model configuration. One line per role. Delete a line to fall back to the skill default.\n# `inherit-parent` or `auto` as a value: the role runs on the parent chat model (omit Task `model`). Alias entries in a panel list still count toward its fan-out.\n# budget: large (xhigh)\n# No grok-* or claude-* family model is available in this session, so every real default falls back to inherit-parent.\n# Repeated entries on a panel line preserve its fan-out (one subagent per entry).\nfeature, refactoring: inherit-parent\nbug-fix: inherit-parent\nperf-issue: inherit-parent\nhillclimb: inherit-parent\njudgment and prose: inherit-parent\nhardest tasks: inherit-parent\nhow explorer: inherit-parent\nhow explainer: inherit-parent\nwhy investigators: inherit-parent\nwhy synthesizer: inherit-parent\nreflect tooling: inherit-parent\nreflect judgment, divergent, synthesizer: inherit-parent\narena runners: inherit-parent, inherit-parent\narena cross-judge pool: inherit-parent, inherit-parent\nswarm workers: inherit-parent\narchitect runners: inherit-parent, inherit-parent\ninterrogate reviewers: inherit-parent, inherit-parent\n"
+  },
+  "toolCalls": [
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"ls -la /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-two-live-yVD7UN/agent/pstack-two/ 2>&1; echo \\\"---RULE---\\\"; cat /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-two-live-yVD7UN/agent/pstack-two/pstack-models.mdc 2>&1; echo \\\"---CWD---\\\"; ls -la; echo \\\"---SKILLS---\\\"; ls /Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack-two/skills/ | head -60\",\"timeout\":30}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"grep -rn \\\"grok-4.7\\\\|claude-opus-5-5\\\\|same family\\\\|family\\\" /Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack-two/skills/ --include=*.md | head -60\",\"timeout\":30}"
+    },
+    {
+      "name": "write",
+      "arguments": "{\"path\":\"/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-two-live-yVD7UN/agent/pstack-two/pstack-models.mdc\",\"content\":\"---\\ndescription: pstack per-role model choices (overrides skill defaults)\\nalwaysApply: true\\n---\\n# pstack model configuration. One line per role. Delete a line to fall back to the skill default.\\n# `inherit-parent` or `auto` as a value: the role runs on the parent chat model (omit Task `model`). Alias entries in a panel list still count toward its fan-out.\\n# budget: large (xhigh)\\n# No grok-* or claude-* family model is available in this session, so every "
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"F=/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-two-live-yVD7UN/agent/pstack-two/pstack-models.mdc; echo \\\"--- exists ---\\\"; ls -l \\\"$F\\\"; echo \\\"--- content ---\\\"; cat \\\"$F\\\"; echo \\\"--- validation: real non-alias slugs present? ---\\\"; grep -E '^[a-z].*: ' \\\"$F\\\" | grep -v 'inherit-parent' || echo \\\"none (only inherit-parent entries)\\\"; echo \\\"--- role count ---\\\"; grep -cE '^[a-z].*: ' \\\"$F\\\"\",\"timeout\":30}"
+    }
+  ],
+  "finalText": "Rule written and validated.\n\n**File:** `/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-two-live-yVD7UN/agent/pstack-two/pstack-models.mdc` (`~/.cursor/rules/pstack-models.mdc`, `alwaysApply: true`)\n\n**Budget:** `large (xhigh)`\n\n**Result** — all 17 roles, mapping shape kept from the skill defaults:\n\n| Role line | Value |\n|---|---|\n| feature, refactoring / bug-fix / perf-issue / hillclimb | `inherit-parent` |\n| judgment and prose / hardest tasks | `inherit-parent` |\n| how explorer / how explainer | `inherit-parent` |\n| why investigators / why synthesizer | `inherit-parent` |\n| reflect tooling / reflect judgment, divergent, synthesizer | `inherit-parent` |\n| swarm workers | `inherit-parent` |\n| arena runners / architect runners / interrogate reviewers | `inherit-parent, inherit-parent` |\n| arena cross-judge pool | `inherit-parent, inherit-parent` |\n\n**Why everything inherits:** the detected Task model set is `openai/*`, `zai/glm-*`, `deepseek/*` only — there is no `grok-*` and no `claude-*` model in it. The skill's defaults are exclusively `grok-4.7-xhigh-fast` and `claude-opus-5-5-xhigh`, so no role has a same-family model to fall to, and your fallback (`else inherit-parent`) applies to all of them. No unavailable real slug was written; only the always-valid alias. Panel lines keep two entries so their fan-out (2 runners/reviewers) is unchanged.\n\n**Notes:** the rule takes effect in new sessions; re-running `/setup-pstack` updates it. The project here is an empty git repo with no `verify-*` skill or app harness, so if you later want agents to prove changes against the real app, `/create-verification-skill` can generate a project-local one. If you'd rather map the Grok/Judgment roles onto available families (e.g. `zai/glm-5.3` / `openai/gpt-5.3-codex` at `xhigh` for the code roles, `openai/gpt-5.5-pro` at `xhigh` for judgment), say the word and I'll rewrite the lines.",
+  "stderrTail": ""
+}

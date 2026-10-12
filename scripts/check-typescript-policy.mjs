@@ -12,6 +12,7 @@ const preservedRoots = [
   'extensions/pi-pstack/upstream/',
   'extensions/pi-pstack/upstream-team-kit/',
   'extensions/pi-pstack/skills/',
+  'extensions/pi-pstack-two/skills/',
   'parity/reference/',
   'parity/fixtures/',
   'parity/evidence/',
