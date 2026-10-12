@@ -51,6 +51,23 @@ async function backgroundAgent(): Promise<number> {
   return (end['result'] as { details: { pid: number } }).details.pid;
 }
 
+// Interactive Pi redraws the chat between the old session's shutdown and the new session's start, so a warning sent
+// at shutdown never reaches the screen. The new session's mode status marks that start.
+test.for([
+  { replace: 'new session', command: { type: 'new_session' }, reason: 'new' },
+  { replace: 'reload', command: { type: 'prompt', message: '/test-reload' }, reason: 'reload' },
+])('a $replace shows the stopped-subagent warning after the next session starts', async ({ command, reason }) => {
+  await backgroundAgent();
+  const mark = rpc.events.length;
+  rpc.send({ id: 'replace', ...command });
+  await rpc.waitFor((event) => event['id'] === 'replace');
+  const after = rpc.events.slice(mark);
+  const isUi = (event: PiEvent, method: string) => event.type === 'extension_ui_request' && event['method'] === method;
+  const started = after.findIndex((event) => isUi(event, 'setStatus') && event['statusKey'] === 'pstack-two-mode');
+  const warned = await rpc.waitFor((event) => isUi(event, 'notify') && String(event['message']).startsWith('Stopped 1 background') && rpc.events.indexOf(event) >= mark);
+  expect([warned['message'], rpc.events.indexOf(warned) - mark > started, started >= 0]).toEqual([`Stopped 1 background subagent (session ${reason}). Resume one with its agent ID.`, true, true]);
+});
+
 test('/reload keeps aliases and tools, and stops the old runtime children (PKG-002)', async () => {
   const pid = await backgroundAgent();
   expect(alive(pid)).toBe(true);
