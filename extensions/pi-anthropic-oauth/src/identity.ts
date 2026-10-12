@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 
 import type { TranscriptContext } from '@earendil-works/pi-ai';
 
-export const CLAUDE_CODE_VERSION = '2.1.288';
+export const CLAUDE_CODE_VERSION = '2.1.296';
 export const CLAUDE_USER_AGENT = `claude-cli/${CLAUDE_CODE_VERSION} (external, sdk-cli)`;
 const FINGERPRINT_SALT = '59cf53e54c78';
 const FINGERPRINT_INDICES = [4, 7, 20];

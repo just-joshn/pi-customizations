@@ -20,7 +20,7 @@ const extension = fileURLToPath(new URL('../src/index.ts', import.meta.url));
 const probe = fileURLToPath(new URL('./request-event-probe.ts', import.meta.url));
 const cliPath = process.env['PI_OAUTH_CLI_PATH'] ?? join(dirname(fileURLToPath(import.meta.resolve('@earendil-works/pi-coding-agent'))), 'bundle/cli.js');
 const { stdout: cliVersion } = await promisify(execFile)(process.execPath, [cliPath, '--version']);
-const BILLING_PATTERN = /^x-anthropic-billing-header: cc_version=2\.1\.288\.[a-f0-9]{3}; cc_entrypoint=sdk-cli;$/;
+const BILLING_PATTERN = /^x-anthropic-billing-header: cc_version=2\.1\.296\.[a-f0-9]{3}; cc_entrypoint=sdk-cli;$/;
 
 const root = await mkdtemp(join(tmpdir(), 'pi-oauth-paths-'));
 const server = await startMessagesServer(sseReply(textMessage('ok')));
@@ -75,7 +75,7 @@ try {
     };
     process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
 
-    if (systemTexts(server.requests[0]?.body)[0] !== 'x-anthropic-billing-header: cc_version=2.1.288.d44; cc_entrypoint=sdk-cli;') throw new Error('The first prompt did not get its captured fingerprint.');
+    if (systemTexts(server.requests[0]?.body)[0] !== 'x-anthropic-billing-header: cc_version=2.1.296.eb7; cc_entrypoint=sdk-cli;') throw new Error('The first prompt did not get its captured fingerprint.');
     if (agentLoopRequests !== PROMPTS.length || agentLoopProviders.length !== PROMPTS.length) throw new Error('Each agent-loop prompt should send one request and fire one before_provider_request event.');
     if (compactionRequests.length === 0) throw new Error('Compaction sent no request to the gateway.');
     if (routedRequests.length !== 1) throw new Error('The routed prompt should send one request to the gateway.');

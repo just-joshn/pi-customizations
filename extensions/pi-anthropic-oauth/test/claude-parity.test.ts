@@ -1,3 +1,5 @@
+import { readFile } from 'node:fs/promises';
+
 import { createModels, InMemoryCredentialStore } from '@earendil-works/pi-ai';
 import { expect, vi } from 'vitest';
 import { ask, PIXEL, user } from './support/context.ts';
@@ -6,19 +8,25 @@ import { test } from './support/fixtures.ts';
 import { soleRequest, systemTexts } from './support/request-body.ts';
 import { collect } from './support/run-stream.ts';
 
-const CAPTURED_BILLING = 'x-anthropic-billing-header: cc_version=2.1.288.988; cc_entrypoint=sdk-cli;';
+const CAPTURED_BILLING = 'x-anthropic-billing-header: cc_version=2.1.296.c4b; cc_entrypoint=sdk-cli;';
 
 const fingerprintCases = [
-  { name: 'short text', content: 'hi', expected: '9ae' },
-  { name: 'empty text', content: '', expected: '9ae' },
-  { name: 'Unicode text', content: '😀 hello 😀 world of Claude', expected: '073' },
-  { name: 'an image without text', content: [PIXEL], expected: '9ae' },
-  { name: 'the first text block after an image', content: [PIXEL, { type: 'text', text: 'Reply LOCAL_OK.' }], expected: '988' },
+  { name: 'short text', content: 'hi', expected: '406' },
+  { name: 'length 4', content: 'abcd', expected: '406' },
+  { name: 'length 5', content: 'abcde', expected: '448' },
+  { name: 'length 7', content: 'abcdefg', expected: '448' },
+  { name: 'length 8', content: 'abcdefgh', expected: '55c' },
+  { name: 'length 20', content: 'abcdefghijklmnopqrst', expected: '55c' },
+  { name: 'length 21', content: 'abcdefghijklmnopqrstu', expected: '0e9' },
+  { name: 'empty text (target-only)', content: '', expected: '406' },
+  { name: 'Unicode text', content: '😀 hello 😀 world of Claude', expected: 'a7e' },
+  { name: 'an image without text (target-only)', content: [PIXEL], expected: '406' },
+  { name: 'the first text block after an image (target-only)', content: [PIXEL, { type: 'text', text: 'Reply LOCAL_OK.' }], expected: 'c4b' },
 ] satisfies readonly { name: string; content: Parameters<typeof user>[0]; expected: string }[];
 
 test.for(fingerprintCases)('billing derives from $name', async ({ content, expected }, { models, model, server }) => {
   await collect(models.streamSimple(model, { messages: [user(content)] }));
-  expect(systemTexts(soleRequest(server).body)[0]).toBe(`x-anthropic-billing-header: cc_version=2.1.288.${expected}; cc_entrypoint=sdk-cli;`);
+  expect(systemTexts(soleRequest(server).body)[0]).toBe(`x-anthropic-billing-header: cc_version=2.1.296.${expected}; cc_entrypoint=sdk-cli;`);
 });
 
 test('later messages keep the first-user identity', async ({ models, model, server }) => {
@@ -31,18 +39,20 @@ test('concurrent requests keep identity request-local', async ({ models, model, 
   const second = ask('changed first message');
   const before = structuredClone([first, second]);
   await Promise.all([collect(models.streamSimple(model, first)), collect(models.streamSimple(model, second))]);
-  expect(new Set(server.requests.map(({ body }) => systemTexts(body)[0]))).toStrictEqual(new Set([CAPTURED_BILLING, 'x-anthropic-billing-header: cc_version=2.1.288.89e; cc_entrypoint=sdk-cli;']));
+  expect(new Set(server.requests.map(({ body }) => systemTexts(body)[0]))).toStrictEqual(new Set([CAPTURED_BILLING, 'x-anthropic-billing-header: cc_version=2.1.296.9d7; cc_entrypoint=sdk-cli;']));
   expect([first, second]).toStrictEqual(before);
 });
 
-test('billing matches the captured Claude request', async ({ models, model, server }) => {
-  await collect(models.streamSimple(model, ask('Reply LOCAL_OK.')));
-  expect(systemTexts(soleRequest(server).body)[0]).toBe(CAPTURED_BILLING);
+test('identity matches the current Claude SDK fixture', async ({ models, model, server }) => {
+  const reference = JSON.parse(await readFile(new URL('./fixtures/claude-code-2.1.296.json', import.meta.url), 'utf8'));
+  await collect(models.streamSimple(model, ask(reference.prompt)));
+  expect(systemTexts(soleRequest(server).body)[0]).toBe(reference.billing);
+  expect(soleRequest(server).headers['user-agent']).toBe(reference.headers['user-agent']);
 });
 
 test('the user agent matches the installed Claude Code capture', async ({ models, model, server }) => {
   await collect(models.streamSimple(model, ask('Reply LOCAL_OK.')));
-  expect(soleRequest(server).headers['user-agent']).toBe('claude-cli/2.1.288 (external, sdk-cli)');
+  expect(soleRequest(server).headers['user-agent']).toBe('claude-cli/2.1.296 (external, sdk-cli)');
 });
 
 test('ambient setup tokens stay outside credential storage', async ({ provider, model, server }) => {
