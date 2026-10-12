@@ -6,7 +6,7 @@ import { basename, dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
-const piDir = join(root, 'extensions/pi-pstack-two/node_modules/@earendil-works/pi-coding-agent');
+const piDir = join(root, 'extensions/pi-pstack/node_modules/@earendil-works/pi-coding-agent');
 const { loadSkills, parseFrontmatter } = await import(pathToFileURL(join(piDir, 'dist/index.js')).href);
 const virtualModules = await readFile(join(piDir, 'dist/core/extensions/virtual-modules.js'), 'utf8');
 const supplied = new Set([...virtualModules.matchAll(/^\s+"?([^":\s]+)"?: bundled\w+,$/gm)].map((match) => match[1]));

@@ -18,10 +18,10 @@ verify-test-conventions:
 	bun run check:tests
 
 # check:upstream also exists but needs a cursor/plugins checkout at the pinned commit:
-#   bun run --filter pi-pstack-two check:upstream -- --source /tmp/cursor-plugins
+#   bun run --filter pi-pstack check:upstream -- --source /tmp/cursor-plugins
 verify-extension:
-	bun run --filter pi-pstack-two typecheck
-	bun run --filter pi-pstack-two test:coverage
+	bun run --filter pi-pstack typecheck
+	bun run --filter pi-pstack test:coverage
 
 verify-oauth:
 	bun run --filter pi-anthropic-oauth typecheck

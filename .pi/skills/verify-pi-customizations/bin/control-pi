@@ -209,7 +209,7 @@ async function drivePstackCommands(artifactDir) {
   await mkdir(outDir, { recursive: true });
 
   const scratchDir = await mkdtemp(join(tmpdir(), 'control-pi-commands-'));
-  const pstackPkg = join(REPO_ROOT, 'extensions/pi-pstack-two');
+  const pstackPkg = join(REPO_ROOT, 'extensions/pi-pstack');
 
   try {
     const session = createRpcSession(pstackPkg, scratchDir);
@@ -247,7 +247,7 @@ async function drivePotetoMode(artifactDir) {
   await mkdir(outDir, { recursive: true });
 
   const scratchDir = await mkdtemp(join(tmpdir(), 'control-pi-mode-'));
-  const pstackPkg = join(REPO_ROOT, 'extensions/pi-pstack-two');
+  const pstackPkg = join(REPO_ROOT, 'extensions/pi-pstack');
 
   try {
     const session = createRpcSession(pstackPkg, scratchDir);
@@ -258,8 +258,8 @@ async function drivePotetoMode(artifactDir) {
         session.notifications.some((n) => n.message === 'Custom Mode on: poteto-mode. /mode off exits.'),
         'Expected UI notification "Custom Mode on: poteto-mode. /mode off exits." not observed',
       );
-      const onEntry = session.entries.find((e) => e.type === 'custom' && e.customType === 'pstack-two/mode');
-      assert.ok(onEntry, 'Expected pstack-two/mode entry appended to branch');
+      const onEntry = session.entries.find((e) => e.type === 'custom' && e.customType === 'pstack/mode');
+      assert.ok(onEntry, 'Expected pstack/mode entry appended to branch');
       assert.equal(onEntry.data?.skill, 'poteto-mode', 'On entry did not record the poteto-mode skill');
 
       // 2. Turn the mode off.
@@ -269,8 +269,8 @@ async function drivePotetoMode(artifactDir) {
         session.notifications.slice(beforeOff).some((n) => n.message === 'Custom Mode off.'),
         'Expected UI notification "Custom Mode off." not observed',
       );
-      const offEntry = session.entries.filter((e) => e.type === 'custom' && e.customType === 'pstack-two/mode').at(-1);
-      assert.ok(offEntry, 'Expected a second pstack-two/mode entry appended to branch');
+      const offEntry = session.entries.filter((e) => e.type === 'custom' && e.customType === 'pstack/mode').at(-1);
+      assert.ok(offEntry, 'Expected a second pstack/mode entry appended to branch');
       assert.equal(offEntry.data, null, 'Off entry did not record null mode data');
 
       await writeFile(

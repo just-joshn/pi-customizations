@@ -1,0 +1,16 @@
+[
+  {
+    "id": "worktree-audit-pi-transcripts",
+    "source": "pstack/skills/poteto-mode/scripts/worktree-audit.sh",
+    "edits": [
+      {
+        "before": "# Transcripts dir: ~/.cursor/projects/<slugified-repo-path>/agent-transcripts.\nslug=$(printf '%s' \"$main_wt\" | sed 's#^/##; s#/#-#g')\ntranscripts=\"$HOME/.cursor/projects/$slug/agent-transcripts\"",
+        "after": "# Transcripts: Pi session files and pi-pstack subagent transcripts. Pi keeps one session folder per working\n# directory under ${PI_CODING_AGENT_DIR:-~/.pi/agent}/sessions, unless PI_CODING_AGENT_SESSION_DIR or a sessionDir\n# setting (the working directory's .pi/settings.json over the agent's settings.json) names one custom folder, with\n# ~ expanded (also in PI_CODING_AGENT_DIR) and a relative path resolved from that working directory. Subagent transcripts live under\n# <agent dir>/pstack/workspaces/<folder>/subagents.\npi_expand() { case \"$1\" in \"~\") printf '%s' \"$HOME\" ;; \"~/\"*) printf '%s' \"$HOME/${1#\"~/\"}\" ;; *) printf '%s' \"$1\" ;; esac; }\npi_agent_dir=$(pi_expand \"${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}\")\npi_slug() { printf -- '--%s--' \"$(printf '%s' \"$1\" | sed 's#^/##; s#[/\\\\:]#-#g')\"; }\npi_session_dir() {\n\tlocal dir=\"${PI_CODING_AGENT_SESSION_DIR:-}\"\n\t[ -n \"$dir\" ] || dir=$(jq -r '.sessionDir // empty' \"$1/.pi/settings.json\" 2>/dev/null)\n\t[ -n \"$dir\" ] || dir=$(jq -r '.sessionDir // empty' \"$pi_agent_dir/settings.json\" 2>/dev/null)\n\tdir=$(pi_expand \"$dir\")\n\tcase \"$dir\" in\n\t\"\") printf '%s\\n' \"$pi_agent_dir/sessions/$(pi_slug \"$1\")\" ;;\n\t/*) printf '%s\\n' \"$dir\" ;;\n\t*) printf '%s\\n' \"$1/$dir\" ;;\n\tesac\n}\npi_chat_dirs() {\n\tpi_session_dir \"$1\"\n\tprintf '%s\\n' \"$pi_agent_dir/pstack/workspaces/$(pi_slug \"$1\")/subagents\"\n}"
+      },
+      {
+        "before": "\tif [ -d \"$transcripts\" ]; then\n\t\tf=$(rg -l -e \"${wt}/\" -e \"${wt}\\\"\" \"$transcripts\" 2>/dev/null \\",
+        "after": "\tchat_dirs=()\n\twhile IFS= read -r d; do [ -d \"$d\" ] && chat_dirs+=(\"$d\"); done < <({ pi_chat_dirs \"$main_wt\"; pi_chat_dirs \"$wt\"; } | sort -u)\n\tif [ ${#chat_dirs[@]} -gt 0 ]; then\n\t\tf=$(rg -l -e \"${wt}/\" -e \"${wt}\\\"\" \"${chat_dirs[@]}\" 2>/dev/null \\"
+      }
+    ]
+  }
+]

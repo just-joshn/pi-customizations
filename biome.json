@@ -25,9 +25,9 @@
       "!!parity/requirements.json",
       "!!parity/source-lock.json",
       "!!parity/scenarios",
-      "!!extensions/pi-pstack-two/skills",
-      "!!extensions/pi-pstack-two/automations",
-      "!!extensions/pi-pstack-two/upstream.lock.json",
+      "!!extensions/pi-pstack/skills",
+      "!!extensions/pi-pstack/automations",
+      "!!extensions/pi-pstack/upstream.lock.json",
       "!!extensions/pi-maintainer/parity/coverage.json",
       "!!extensions/pi-maintainer/parity/ledger.json",
       "!!extensions/pi-maintainer/test/fixtures/watch"
@@ -108,7 +108,7 @@
       }
     },
     {
-      "includes": ["**/test/**", "extensions/pi-pstack-two/scripts/**"],
+      "includes": ["**/test/**", "extensions/pi-pstack/scripts/**"],
       "linter": {
         "rules": {
           "suspicious": {

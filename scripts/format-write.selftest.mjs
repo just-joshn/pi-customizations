@@ -10,8 +10,8 @@ assert.deepEqual(
 );
 assert.deepEqual(writableSources(['a.ts', 'a.ts', 'b.jsonc', 'test.spec.mjs']), ['a.ts', 'b.jsonc', 'test.spec.mjs'], 'writable paths are unique and include executable harnesses');
 assert.deepEqual(
-  writableSources(['extensions/pi-pstack-two/skills/poteto-mode/scripts/store.ts', 'extensions/pi-pstack-two/src/mode.ts', 'extensions/pi-pstack-two/test/mode.test.ts']),
-  ['extensions/pi-pstack-two/src/mode.ts', 'extensions/pi-pstack-two/test/mode.test.ts'],
+  writableSources(['extensions/pi-pstack/skills/poteto-mode/scripts/store.ts', 'extensions/pi-pstack/src/mode.ts', 'extensions/pi-pstack/test/mode.test.ts']),
+  ['extensions/pi-pstack/src/mode.ts', 'extensions/pi-pstack/test/mode.test.ts'],
   'generated delivery cannot reach the formatter writer while maintained code remains writable',
 );
 process.stdout.write('Protected formatting self-test passed.\n');

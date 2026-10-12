@@ -69,7 +69,7 @@ Every drive captures user-observable evidence written directly to `artifacts/ver
   - `commands.json`: the registered command list, including the extension commands `mode` and `loop` and the pstack skill commands `skill:poteto-mode`, `skill:setup-pstack`, and `skill:poteto-help`.
   - `mode-status.txt`: the `/mode` report when no mode is on (`No Custom Mode is on.`).
 - **poteto-mode:**
-  - `mode.json`: the on notification (`"Custom Mode on: poteto-mode. /mode off exits."`), the appended branch entry (`customType: "pstack-two/mode"`, `data.skill: "poteto-mode"`), the off notification (`"Custom Mode off."`), and the closing entry with `data: null`.
+  - `mode.json`: the on notification (`"Custom Mode on: poteto-mode. /mode off exits."`), the appended branch entry (`customType: "pstack/mode"`, `data.skill: "poteto-mode"`), the off notification (`"Custom Mode off."`), and the closing entry with `data: null`.
 - **standalone-skills:**
   - `skills.txt` and `skills.json`: verified registration of `skill:port-harness-capability`.
 - **oauth-providers:**

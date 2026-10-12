@@ -68,8 +68,8 @@
         "typebox": "*",
       },
     },
-    "extensions/pi-pstack-two": {
-      "name": "pi-pstack-two",
+    "extensions/pi-pstack": {
+      "name": "pi-pstack",
       "version": "0.15.20-pi.1",
       "devDependencies": {
         "@earendil-works/pi-agent-core": "1.1.0",
@@ -540,7 +540,7 @@
 
     "pi-maintainer": ["pi-maintainer@workspace:extensions/pi-maintainer"],
 
-    "pi-pstack-two": ["pi-pstack-two@workspace:extensions/pi-pstack-two"],
+    "pi-pstack": ["pi-pstack@workspace:extensions/pi-pstack"],
 
     "pi-xai-oauth": ["pi-xai-oauth@workspace:extensions/pi-xai-oauth"],
 

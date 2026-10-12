@@ -27,7 +27,7 @@ try {
   await writeFile(join(directory, 'tsconfig.json'), JSON.stringify({ extends: authority, include: ['src/**/*.ts'], exclude: ['**/node_modules/**'] }));
   const missing = await inspectTypeScriptPolicy(directory);
   assert.ok(missing.failures.includes('Root compiler does not select helpers/tool.test.ts'), 'a leaf cannot hide an omitted root source');
-  const native = 'extensions/pi-pstack-two/skills/poteto-mode/scripts';
+  const native = 'extensions/pi-pstack/skills/poteto-mode/scripts';
   await mkdir(join(directory, native), { recursive: true });
   await writeFile(join(directory, native, 'store.ts'), 'export const native = 1;\n');
   await writeFile(join(directory, native, 'tsconfig.json'), JSON.stringify({ compilerOptions: { strict: true } }));

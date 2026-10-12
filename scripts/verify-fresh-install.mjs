@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 // installs npm packages with peers disabled. Each package must therefore load
 // from a copy without node_modules, using only the modules Pi supplies.
 const root = fileURLToPath(new URL('..', import.meta.url));
-const cli = join(root, 'extensions/pi-pstack-two/node_modules/@earendil-works/pi-coding-agent/dist/bundle/cli.js');
+const cli = join(root, 'extensions/pi-pstack/node_modules/@earendil-works/pi-coding-agent/dist/bundle/cli.js');
 const providers = [
   { dir: 'extensions/pi-anthropic-oauth', provider: 'claude-subscription' },
   { dir: 'extensions/pi-antigravity-oauth', provider: 'google-antigravity' },

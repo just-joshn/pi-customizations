@@ -21,7 +21,7 @@ The pstack extension registers two extension commands, `/mode` and `/loop`, and 
 Preconditions:
 
 - Environment passes `./.pi/skills/verify-pi-customizations/bin/control-pi doctor`.
-- `extensions/pi-pstack-two` is present and unchanged.
+- `extensions/pi-pstack` is present and unchanged.
 
 - **List the command surface.** Send `get_commands` to the RPC session. Run `./.pi/skills/verify-pi-customizations/bin/control-pi drive pstack-commands`. The driver asserts `/mode`, `/loop`, `skill:poteto-mode`, `skill:setup-pstack`, and `skill:poteto-help` are registered and saves the full command list.
 - **Request the mode report.** Send `/mode` to the RPC session. The fresh session has no mode on, so a `notify` UI request arrives with `No Custom Mode is on.`

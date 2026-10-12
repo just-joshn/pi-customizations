@@ -61,5 +61,5 @@
 
   "include": ["**/*.ts", "**/*.tsx", "**/*.mts", "**/*.cts"],
 
-  "exclude": ["**/node_modules/**", "**/dist/**", "**/build/**", "**/coverage/**", "extensions/pi-pstack-two/skills/**", "parity/research/dep-typescript-oracle-001/cases/**"]
+  "exclude": ["**/node_modules/**", "**/dist/**", "**/build/**", "**/coverage/**", "extensions/pi-pstack/skills/**", "parity/research/dep-typescript-oracle-001/cases/**"]
 }
