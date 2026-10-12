@@ -59,6 +59,7 @@ function hasEffort(efforts: readonly Effort[]): efforts is [Effort, ...Effort[]]
 
 function toGrokModel(row: unknown): GrokModel | undefined {
   if (!Check(Row, row)) return undefined;
+  if (/[\u0000-\u001F\u007F]/.test(row.name)) return undefined;
   if (row.api_backend !== undefined && row.api_backend !== 'responses') return undefined;
   const offered = new Set(row.reasoning_efforts.map((entry) => entry.value));
   const efforts = EFFORTS.filter((effort) => offered.has(effort));

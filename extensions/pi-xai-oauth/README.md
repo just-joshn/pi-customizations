@@ -33,11 +33,11 @@ Interactive Pi asks Grok Build for its model list when it starts and when `/mode
 
 ## What xAI sees
 
-Login is Pi's xAI device-code flow. It uses the same OAuth client id as grok build, `b1a00492-073a-47ea-816f-4c329264a828`. Each request sends the access token as bearer auth, and these headers:
+`/login` asks for a browser sign-in or a device code. Browser is Grok Build's default. Both use client `b1a00492-073a-47ea-816f-4c329264a828` and the scope Grok 1.0.50 requests, including conversations and workspaces. Pi stores the credential and refreshes it before expiry. A 401 before that does not retry inside this package, because Pi owns request recovery and does not treat that 401 as retryable. Each request sends the access token as bearer auth, and these headers:
 
-- `x-grok-client-version: 1.0.46`. Without it, Grok Build answers HTTP 426 and asks for Grok CLI 1.0.13 or later.
-- `X-XAI-Token-Auth: xai-grok-cli` and `x-grok-model-override` with the model id. Grok build's README lists both as required.
-- `x-grok-context-window` with the model's context window in Pi. Grok build sends it too. On 2026-10-02 a 267,668-token request succeeded with and without it.
+- `x-grok-client-version: 1.0.50`, the version Grok 1.0.50 sends. A responses request without it, or with a version below 1.0.13, gets HTTP 426. A models request does not enforce the version.
+- `X-XAI-Token-Auth: xai-grok-cli` and `x-grok-model-override` with the model id. Grok 1.0.50 sends both. On 2026-10-12 a valid token was accepted without them, and a wrong `X-XAI-Token-Auth` value was rejected.
+- `x-grok-context-window` with the model's context window in Pi. Grok 1.0.50 did not send it on a captured responses request. On 2026-10-02 a long request succeeded with and without it.
 - `x-grok-conv-id` with the Pi session id. It keeps a session on the same prompt cache. In a test on 2026-10-02, the second request of a session reused the cached prompt in 4 of 4 runs with the header and in 1 of 4 runs without it.
 
 The body is Pi's standard Responses request. It has `store: false`, the reasoning effort, and a request for encrypted reasoning so that the next turn can replay it. Grok Build adds its own preamble to each prompt. A short prompt reports about 1,250 input tokens on Grok 4.7 and about 210 on Grok 4.5, and most of them are cached.

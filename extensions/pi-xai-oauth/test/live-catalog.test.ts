@@ -21,7 +21,7 @@ async function refreshed(reply: () => Response) {
 test('the refresh sends the bearer token to the catalog endpoint', async () => {
   const { credential, endpoint, error } = await refreshed(() => Response.json(liveBody()));
   expect(error).toBeUndefined();
-  expect(endpoint.requests).toStrictEqual([{ url: 'https://cli-chat-proxy.grok.com/v1/models', authorization: `Bearer ${credential.access}` }]);
+  expect(endpoint.requests).toStrictEqual([{ url: 'https://cli-chat-proxy.grok.com/v1/models', authorization: `Bearer ${credential.access}`, redirect: 'error' }]);
 });
 
 test('the refresh lists a live-only model', async () => {

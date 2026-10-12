@@ -68,6 +68,10 @@ test('a row with an empty name is skipped', () => {
   expect(parsedModels({ data: [liveEntry('grok-4.7', { name: '' }), liveEntry('grok-4.6')] }).map((model) => model.id)).toStrictEqual(['grok-4.6']);
 });
 
+test('a name with a control character is skipped', () => {
+  expect(parsedModels({ data: [liveEntry('grok-4.7', { name: 'Grok\n4.7' }), liveEntry('grok-4.6')] }).map((model) => model.id)).toStrictEqual(['grok-4.6']);
+});
+
 test('an empty object is unreadable', () => {
   expect(parseCatalog({})).toStrictEqual({ kind: 'unreadable' });
 });

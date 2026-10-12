@@ -45,7 +45,7 @@ test('native streaming sends one request to the responses endpoint', ({ exchange
 
 test('native streaming preserves the Grok Build identity and bearer token', ({ exchange }) => {
   expect(exchange.requests[0]?.headers).toMatchObject({
-    'x-grok-client-version': '1.0.46',
+    'x-grok-client-version': '1.0.50',
     'x-xai-token-auth': 'xai-grok-cli',
     'x-grok-model-override': 'grok-4.7-build-fast',
     'x-grok-context-window': '256000',
@@ -55,7 +55,8 @@ test('native streaming preserves the Grok Build identity and bearer token', ({ e
 });
 
 test('native streaming sends the requested model and effort', ({ exchange }) => {
-  expect(exchange.requests[0]?.body).toMatchObject({ model: 'grok-4.7-build-fast', reasoning: { effort: 'xhigh' } });
+  expect(exchange.requests[0]?.body).toMatchObject({ model: 'grok-4.7-build-fast', reasoning: { effort: 'xhigh' }, store: false, stream: true });
+  expect(exchange.requests[0]?.body).toHaveProperty('include', ['reasoning.encrypted_content']);
 });
 
 test('native streaming applies default < level < request sampling precedence', ({ exchange }) => {

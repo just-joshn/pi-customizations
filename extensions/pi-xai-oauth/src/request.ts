@@ -1,7 +1,7 @@
 import type { Api, Model, Provider, ProviderHeaders, ProviderStreams, StreamOptions } from '@earendil-works/pi-ai';
 
-/** The proxy answers HTTP 426 below 1.0.13. Grok build 1.0.46 is the client the contract was measured against. */
-export const GROK_CLIENT_VERSION = '1.0.46';
+/** The proxy answers HTTP 426 below 1.0.13. Grok 1.0.50 sends this version; 1.0.46 still clears the gate. */
+export const GROK_CLIENT_VERSION = '1.0.50';
 
 export function grokHeaders(model: Pick<Model<Api>, 'id' | 'contextWindow'>, options: Pick<StreamOptions, 'headers' | 'sessionId'> | undefined): ProviderHeaders {
   return {

@@ -1,0 +1,196 @@
+{
+  "capability": "pi-xai-oauth",
+  "verdict": "VERIFIED",
+  "requirements": [
+    {
+      "id": "XAI-001",
+      "sourceBehavior": "Default login is a browser OIDC loopback at https://auth.x.ai with client b1a00492-073a-47ea-816f-4c329264a828 and redirect http://127.0.0.1:{port}/callback",
+      "evidence": "fixtures/grok-1.0.50-oauth.json browserLogin; grok login --oauth log on 2026-10-12",
+      "piMapping": "loginGrokBuild in src/login.ts, using AuthInteraction auth_url and a loopback /callback",
+      "acceptanceTest": "extensions/pi-xai-oauth/test/login.test.ts::browser login exchanges the callback code and does not leak the token",
+      "status": "VERIFIED",
+      "critical": true
+    },
+    {
+      "id": "XAI-002",
+      "sourceBehavior": "Device-code login uses client b1a00492-073a-47ea-816f-4c329264a828 at https://auth.x.ai/oauth2/device/code and verification host https://accounts.x.ai/oauth2/device",
+      "evidence": "fixtures/grok-1.0.50-oauth.json deviceLogin and piXaiOauthRequest; Pi 1.1.0 dist/auth/oauth/xai.js",
+      "piMapping": "createGrokBuildProvider spreads the built-in xai OAuthAuth login and refresh",
+      "acceptanceTest": "extensions/pi-xai-oauth/test/provider.test.ts::a provider built from an xAI instance keeps that instance login and refresh",
+      "status": "VERIFIED",
+      "critical": true
+    },
+    {
+      "id": "XAI-003",
+      "sourceBehavior": "A Grok-minted device token carried conversations and workspaces scopes in addition to the scopes Pi requests",
+      "evidence": "fixtures/grok-1.0.50-oauth.json deviceLogin.grantedScope versus piXaiOauthRequest.scope",
+      "piMapping": "GROK_OAUTH_SCOPE in src/login.ts, sent on the authorize URL and the device-code request",
+      "acceptanceTest": "extensions/pi-xai-oauth/test/login.test.ts::device login polls until the token endpoint completes",
+      "status": "VERIFIED",
+      "critical": true
+    },
+    {
+      "id": "XAI-004",
+      "sourceBehavior": "Refresh uses the refresh_token grant at https://auth.x.ai/oauth2/token about 300 seconds before expiry",
+      "evidence": "Grok user-guide 02-authentication.md early invalidation; Pi xai.js REFRESH_SKEW_MS",
+      "piMapping": "Delegated to Pi xAI oauth.refresh via src/index.ts",
+      "acceptanceTest": "extensions/pi-xai-oauth/test/provider.test.ts::a provider built from an xAI instance keeps that instance login and refresh",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "XAI-005",
+      "sourceBehavior": "Logout clears cached credentials. Grok writes auth.json mode 0600",
+      "evidence": "Isolated grok logout deleted the probe auth.json. Pi docs/slash-commands.md /logout and auth-storage.js mode 0o600",
+      "piMapping": "ModelRuntime.logout and AuthStorage file creation through the public runtime",
+      "acceptanceTest": "extensions/pi-xai-oauth/test/pi-owned-auth.test.ts::Pi creates auth.json owner-only, reloads an external rewrite, and logout clears it",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "XAI-006",
+      "sourceBehavior": "POST /v1/responses requires x-grok-client-version >= 1.0.13. Grok 1.0.50 sends 1.0.50",
+      "evidence": "fixtures/grok-1.0.50-oauth.json proxyProbes and inferenceHeaders.clientVersion",
+      "piMapping": "GROK_CLIENT_VERSION in src/request.ts, overridable by caller headers",
+      "acceptanceTest": "extensions/pi-xai-oauth/test/stream.test.ts::native streaming preserves the Grok Build identity and bearer token",
+      "status": "VERIFIED",
+      "critical": true
+    },
+    {
+      "id": "XAI-007",
+      "sourceBehavior": "Grok sends X-XAI-Token-Auth: xai-grok-cli. A wrong value is rejected. Omitting it still passed the auth gate on 2026-10-12",
+      "evidence": "fixtures/grok-1.0.50-oauth.json inferenceHeaders.tokenAuthValue and proxyProbes.responsesWrongTokenAuth; pi print 401 echoed x_xai_token_auth=xai-grok-cli",
+      "piMapping": "grokHeaders in src/request.ts",
+      "acceptanceTest": "extensions/pi-xai-oauth/test/stream.test.ts::native streaming preserves the Grok Build identity and bearer token",
+      "status": "VERIFIED",
+      "critical": true
+    },
+    {
+      "id": "XAI-008",
+      "sourceBehavior": "Grok sends x-grok-model-override with the model id on inference",
+      "evidence": "fixtures/grok-1.0.50-oauth.json inferenceHeaders; README required-header table",
+      "piMapping": "grokHeaders model.id, after virtual-model route resolves the physical id",
+      "acceptanceTest": "extensions/pi-xai-oauth/test/stream.test.ts::native streaming preserves the Grok Build identity and bearer token",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "XAI-009",
+      "sourceBehavior": "Grok sends x-grok-conv-id once a session exists",
+      "evidence": "fixtures/grok-1.0.50-oauth.json inferenceHeaders.sentByGrok150",
+      "piMapping": "grokHeaders copies StreamOptions.sessionId",
+      "acceptanceTest": "extensions/pi-xai-oauth/test/request.test.ts::a session id yields the five identity headers",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "XAI-010",
+      "sourceBehavior": "Model list is GET https://cli-chat-proxy.grok.com/v1/models with bearer auth",
+      "evidence": "fixtures/grok-1.0.50-oauth.json modelsCatalog; live bearer GET returned the four ids",
+      "piMapping": "fetchModels in src/index.ts",
+      "acceptanceTest": "extensions/pi-xai-oauth/test/live-catalog.test.ts::the refresh sends the bearer token to the catalog endpoint",
+      "status": "VERIFIED",
+      "critical": true
+    },
+    {
+      "id": "XAI-011",
+      "sourceBehavior": "Inference is POST /v1/responses with store false and encrypted reasoning include, not chat completions",
+      "evidence": "fixtures/grok-1.0.50-oauth.json inferenceHeaders; Pi openai-responses.js store false and reasoning.encrypted_content",
+      "piMapping": "withGrokHeaders delegates to the built-in xai OpenAI Responses stream",
+      "acceptanceTest": "extensions/pi-xai-oauth/test/stream.test.ts::native streaming sends the requested model and effort",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "XAI-012",
+      "sourceBehavior": "Catalog is grok-4.7, grok-4.7-build-fast, grok-4.6, and grok-4.5 on the Responses backend, with grok-4.5 lacking xhigh and default context 256000",
+      "evidence": "fixtures/grok-1.0.50-oauth.json modelsCatalog",
+      "piMapping": "parseCatalog and BASELINE in src/catalog.ts",
+      "acceptanceTest": "extensions/pi-xai-oauth/test/catalog.test.ts::the live-shaped body parses to the four served model ids",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "XAI-013",
+      "sourceBehavior": "On HTTP 401, Grok refreshes credentials and retries the request once",
+      "evidence": "Grok user-guide 02-authentication.md Automatic Credential Refresh. Not re-observed with a revoked token",
+      "piMapping": "Omitted. Pi owns request recovery. isRetryableAssistantError rejects this 401. See decisions.md D5.",
+      "status": "NOT APPLICABLE",
+      "reason": "A package-level retry would be a second recovery path around the credential lock. Pi does not treat this 401 as retryable."
+    },
+    {
+      "id": "XAI-014",
+      "sourceBehavior": "Grok reloads ~/.grok/auth.json before the next request without a restart",
+      "evidence": "Grok user-guide 02-authentication.md Hot Reload. Pi AuthStorage reloads on file revision",
+      "piMapping": "AuthStorage reload on the next ModelRuntime.getAuth",
+      "acceptanceTest": "extensions/pi-xai-oauth/test/pi-owned-auth.test.ts::Pi creates auth.json owner-only, reloads an external rewrite, and logout clears it",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "XAI-015",
+      "sourceBehavior": "Customer OIDC against a private issuer",
+      "evidence": "Grok user-guide 02-authentication.md OIDC. Default login log said has_oidc=false",
+      "piMapping": "Excluded. Default subscription login is auth.x.ai",
+      "status": "NOT APPLICABLE",
+      "reason": "Customer IdP login is a separate enterprise configuration, not the subscription grant this package replaces."
+    },
+    {
+      "id": "XAI-016",
+      "sourceBehavior": "External auth_provider_command mints a token on stdout",
+      "evidence": "Grok user-guide 02-authentication.md External Auth Provider",
+      "piMapping": "Excluded. Pi apiKey command resolution is a different provider shape",
+      "status": "NOT APPLICABLE",
+      "reason": "The helper is not the Grok Build subscription OAuth grant."
+    },
+    {
+      "id": "XAI-017",
+      "sourceBehavior": "XAI_API_KEY is a non-OAuth fallback, with conflicting precedence in Grok's README and user guide",
+      "evidence": "Grok README says the API key wins. User guide says the session token wins",
+      "piMapping": "Excluded. Built-in xai provider owns API keys at api.x.ai",
+      "status": "NOT APPLICABLE",
+      "reason": "API-key auth is not the subscription OAuth flow, and the package must not send an API key to the proxy under OAuth semantics."
+    },
+    {
+      "id": "XAI-018",
+      "sourceBehavior": "Grove git credentials and MCP OAuth",
+      "evidence": "Grok user-guide 02-authentication.md Grove section; MCP guide",
+      "piMapping": "Excluded",
+      "status": "NOT APPLICABLE",
+      "reason": "Grok documents both as separate from grok login."
+    },
+    {
+      "id": "XAI-019",
+      "sourceBehavior": "Grok also sends user id, email, client mode, agent id, doom-loop, and trace headers",
+      "evidence": "fixtures/grok-1.0.50-oauth.json inferenceHeaders. A responses probe accepted bearer plus client version alone",
+      "piMapping": "Excluded from grokHeaders",
+      "status": "NOT APPLICABLE",
+      "reason": "Those headers are agent metadata. The proxy accepted a token without them, and the port does not store the user's email."
+    },
+    {
+      "id": "XAI-020",
+      "sourceBehavior": "With a stored OAuth credential, the CLI lists the four Grok Build models",
+      "evidence": "bun run prove:list on 2026-10-12 listed eight ids, including the four catalog models",
+      "piMapping": "pi --no-extensions -e extensions/pi-xai-oauth --offline --list-models grok-build",
+      "acceptanceTest": "extensions/pi-xai-oauth/scripts/prove-pi.ts",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "XAI-021",
+      "sourceBehavior": "The package can be installed and removed without changing the user agent directory",
+      "evidence": "Isolated PI_CODING_AGENT_DIR install listed grok-build and remove cleared it on 2026-10-12",
+      "piMapping": "pi install <path> --no-approve and pi remove <path> --no-approve",
+      "acceptanceTest": "extensions/pi-xai-oauth/scripts/prove-install.mjs",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "XAI-022",
+      "sourceBehavior": "The live catalog offers context windows 256000 and 500000",
+      "evidence": "fixtures/grok-1.0.50-oauth.json modelsCatalog.contextWindows. Selection UX not observed",
+      "piMapping": "models.json modelOverrides.contextWindow, sent by grokHeaders",
+      "acceptanceTest": "extensions/pi-xai-oauth/test/pi-owned-auth.test.ts::Pi creates auth.json owner-only, reloads an external rewrite, and logout clears it",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "XAI-023",
+      "sourceBehavior": "Grok selects reasoning effort with --reasoning-effort, not a separate model id",
+      "evidence": "grok --help --reasoning-effort",
+      "piMapping": "Effort aliases are a Pi-local convenience and not part of the OAuth contract",
+      "status": "NOT APPLICABLE",
+      "reason": "Alias ids are not a Grok OAuth or proxy-auth behavior."
+    }
+  ]
+}
