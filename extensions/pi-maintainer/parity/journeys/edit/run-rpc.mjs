@@ -3,9 +3,9 @@ import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { rpcProcess } from '../../../../pi-pstack/scripts/rpc-process.mjs';
-import { promptAndSettle } from '../../../../pi-pstack/scripts/rpc-turn.mjs';
 import { assertPiVersion, extensionArgs, journeyEnv, prepareWorkspace, readEdited, resolvePi, saveArtifact, spawnPiRpc } from './host.mjs';
+import { rpcProcess } from './rpc-process.mjs';
+import { promptAndSettle } from './rpc-turn.mjs';
 
 async function requestLog(logDir) {
   const names = (await readdir(logDir)).filter((name) => name.startsWith('requests-') && name.endsWith('.jsonl'));

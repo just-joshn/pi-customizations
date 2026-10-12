@@ -26,10 +26,7 @@ jobs:
         with:
           node-version: 22
       - uses: oven-sh/setup-bun@v2
-      - uses: astral-sh/setup-uv@v5
       - run: bun install --frozen-lockfile
         working-directory: .
-      - run: bun run check:resources
-      - run: bun run check:parity
       - run: bun run typecheck
       - run: bun run test

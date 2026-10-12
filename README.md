@@ -6,7 +6,7 @@ Extensions and skills for [Pi](https://pi.dev), the coding agent by Earendil Wor
 
 | Package | What it does |
 | --- | --- |
-| [`extensions/pi-pstack-two`](extensions/pi-pstack-two/README.md) | Ports the Cursor pstack 0.15.20 plugin to Pi 1.1.0: `/poteto-mode`, `/mode`, `/loop`, the `Task` subagent tool, `TodoWrite`, `AskQuestion`, and the always-applied model rule, with pstack's skills shipped as upstream wrote them. |
+| [`extensions/pi-pstack`](extensions/pi-pstack/README.md) | Ports the Cursor pstack 0.15.20 plugin to Pi 1.1.0: `/poteto-mode`, `/mode`, `/loop`, the `Task` subagent tool, `TodoWrite`, `AskQuestion`, and the always-applied model rule, with pstack's skills shipped as upstream wrote them. |
 | [`extensions/pi-anthropic-oauth`](extensions/pi-anthropic-oauth/README.md) | Lets a Claude Pro or Max subscription answer in Pi through a separate `claude-subscription` provider. |
 | [`extensions/pi-antigravity-oauth`](extensions/pi-antigravity-oauth/README.md) | Restores the `google-antigravity` provider. Signs in with Google OAuth and talks to the Cloud Code Assist API. |
 | [`extensions/pi-xai-oauth`](extensions/pi-xai-oauth/README.md) | Lets a SuperGrok or X Premium subscription answer in Pi through the `grok-build` provider. |
@@ -21,7 +21,7 @@ Clone the repository, install workspace dependencies, then install a package fro
 git clone https://github.com/just-joshn/pi-customizations.git
 cd pi-customizations
 bun install
-pi install ./extensions/pi-pstack-two   # or any other extension directory
+pi install ./extensions/pi-pstack   # or any other extension directory
 ```
 
 The repository root is its own Pi package holding the standalone skill. Run `pi install .` from the clone root to install it. To update, run `git pull --ff-only` in the clone, then `bun install`, then `/reload` in Pi.
@@ -43,7 +43,7 @@ The [Pi 1.0.2 migration audit](docs/pi-1.0.2-migration.md) records the package i
 
 ## Repository notes
 
-- `extensions/pi-pstack-two/upstream.lock.json` pins the MIT-licensed pstack plugin and the cursor-team-kit skills it depends on to an upstream commit, and `check:upstream` verifies every shipped file against that pin.
+- `extensions/pi-pstack/upstream.lock.json` pins the MIT-licensed pstack plugin and the cursor-team-kit skills it depends on to an upstream commit, and `check:upstream` verifies every shipped file against that pin.
 - `extensions/pi-antigravity-oauth` embeds the Google installed-app OAuth client that the Antigravity desktop app ships. Google treats an installed-app client secret as non-confidential, so the value is public by design and kept in plain sight in the source.
 - Generated verification output lands in `artifacts/` and `.audit/`, both gitignored. Decision trails for past runs live in git history and in the extension docs.
 

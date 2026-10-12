@@ -78,7 +78,7 @@ function watchParent(pi: ExtensionAPI, parentPid: number): void {
   pi.on('session_shutdown', () => clearInterval(timer));
 }
 
-export default function piPstackTwo(pi: ExtensionAPI): void {
+export default function piPstack(pi: ExtensionAPI): void {
   const agents = loadAgentDefinitions();
 
   pi.on('input', (event) => aliasInputResult(event, new Set(aliasTable(pi.getCommands()).keys())));
