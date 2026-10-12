@@ -2,7 +2,7 @@
 
 `/poteto-mode` is the front door. You give it a goal, it matches one of twenty-three playbooks, copies that playbook's steps into the todo list, and calls the other skills as the steps need them. In this page you learn what a good prompt looks like, and how little of one you actually need.
 
-![A dispatcher pulls a switch lever to route robots on rail handcars toward lit gates, under a /poteto-mode departure board listing BUG FIX, FEATURE, and INVESTIGATION.](../../upstream/docs/guide/images/router.jpg)
+![A dispatcher pulls a switch lever to route robots on rail handcars toward lit gates, under a /poteto-mode departure board listing BUG FIX, FEATURE, and INVESTIGATION.](./images/router.jpg)
 
 ## What happens to your prompt
 
@@ -25,7 +25,7 @@ flowchart TD
     J --> K
 ```
 
-The diagram shows the common routes. There are also playbooks for hillclimbing a metric, diagnosing runtime symptoms and captured traces, prototypes, visual parity, authoring and evaluating skills, autonomous runs, babysitting a PR or stack to merge-ready, shipping a verified stack, running a PR queue on autopilot, orchestrating project-scale programs, session pickup, pausing safely, multi-phase plans, and worktree cleanup. The [playbook directory](../../skills/poteto-mode/playbooks/) has the full set. The ones this guide names less often are [Investigation](../../skills/poteto-mode/playbooks/investigation.md), [Runtime forensics](../../skills/poteto-mode/playbooks/runtime-forensics.md), [Trace forensics](../../skills/poteto-mode/playbooks/trace-forensics.md), [Prototype](../../skills/poteto-mode/playbooks/prototype.md), [Visual parity](../../skills/poteto-mode/playbooks/visual-parity.md), [Multi-phase plan](../../skills/poteto-mode/playbooks/multi-phase-plan.md), [Pause safely](../../skills/poteto-mode/playbooks/pause-safely.md).
+The diagram shows the common routes. There are also playbooks for hillclimbing a metric, diagnosing runtime symptoms and captured traces, prototypes, visual parity, authoring and evaluating skills, autonomous runs, babysitting a PR or stack to merge-ready, shipping a verified stack, running a PR queue on autopilot, orchestrating project-scale programs, session pickup, pausing safely, multi-phase plans, and worktree cleanup. The [playbook directory](../../skills/poteto-mode/playbooks/) has the full set.
 
 ## Say the goal, not the ceremony
 
@@ -82,11 +82,11 @@ continue
 keep going until done
 ```
 
-Short works because the playbook holds the structure. Plain `/poteto-mode <task>` covers one message. For sticky session mode, start with `/poteto-mode sticky` or `/poteto-mode sticky <task>`, which stays on for the session branch until you run `/poteto-mode off`. [Set up pstack](./01-setup.md#run-your-first-task) shows how to start it. Your words carry the intent, and the skill carries the rigor.
+Short works because the playbook holds the structure, and a Custom Mode keeps `/poteto-mode` in context on every turn. [Set up pstack](./01-setup.md#run-your-first-task) shows how to start one. Your words carry the intent, and the skill carries the rigor.
 
 ## Switch tasks with "new task"
 
-A long session accumulates context from the last task. When you change subjects, say so:
+A long chat accumulates context from the last task. When you change subjects, say so:
 
 ```text
 /poteto-mode new task. figure out why the cache entry survives logout. don't change any code yet.
@@ -96,7 +96,7 @@ A long session accumulates context from the last task. When you change subjects,
 
 ## Give parallel work its own machine
 
-If you run several agents against one repository on one computer, they will fight over the working tree, the ports, and the build output. The cleanest isolation is a worker on a configured independent VM, which the host contract shows when one exists. Each one gets its own machine and checkout, so it can install dependencies and run your app without touching yours. Ask the parent session to hand the work to workers on that VM.
+If you run several agents against one repository on one computer, they will fight over the working tree, the ports, and the build output. The cleanest isolation is a [cloud subagent](https://cursor.com/docs/subagents#cloud-subagents). Each one gets its own VM and branch, so it can install dependencies, run your app, and record video of the result without touching your machine. Type `/in-cloud` before the task, or ask the parent chat to hand work to cloud subagents.
 
 When the work has to stay local, ask for a worktree up front:
 
@@ -112,7 +112,7 @@ Worktrees accumulate. When disk gets tight, ask:
 /poteto-mode what's eating my disk? prune the worktrees that are safe to prune.
 ```
 
-The [Worktree cleanup playbook](../../skills/poteto-mode/playbooks/worktree-cleanup.md) classifies every worktree by merge state, uncommitted work, and which sessions still touch it. It deletes only what that evidence clears and pauses for your call on anything holding uncommitted work.
+The [Worktree cleanup playbook](../../skills/poteto-mode/playbooks/worktree-cleanup.md) classifies every worktree by merge state, uncommitted work, and which chats still touch it. It deletes only what that evidence clears and pauses for your call on anything holding uncommitted work.
 
 ## Leave it running
 

@@ -1,5 +1,5 @@
 {
-  "extends": "./tsconfig.policy.json",
-  "include": ["src/**/*.ts", "test/**/*.ts", "scripts/**/*.ts", "scripts/**/*.mts", "host/**/*.ts", "*.ts"],
-  "exclude": ["test/helpers", "node_modules", "dist", "build", "coverage"]
+  "extends": "../../tsconfig.json",
+  "include": ["src/**/*.ts", "test/**/*.ts"],
+  "exclude": ["node_modules", "coverage", "skills"]
 }

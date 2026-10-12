@@ -4,7 +4,7 @@ description: "Apply when debugging. Trace each symptom to its root cause and fix
 disable-model-invocation: true
 ---
 
-# Fix root causes
+# Fix Root Causes
 
 When debugging, do not fix symptoms. Trace every problem to its root cause and fix it there.
 

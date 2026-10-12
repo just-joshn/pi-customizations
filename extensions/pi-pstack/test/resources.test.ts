@@ -1,173 +1,204 @@
-import { execFileSync } from 'node:child_process';
-import fs, { access, cp, mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises';
-import { syncBuiltinESMExports } from 'node:module';
+import { createHash } from 'node:crypto';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { dirname, join } from 'node:path';
+import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { expect, test, vi } from 'vitest';
+import { loadSkills, parseFrontmatter } from '@earendil-works/pi-coding-agent';
+import { describe, expect, test } from 'vitest';
 
-const root = fileURLToPath(new URL('../', import.meta.url));
+const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const lock = JSON.parse(readFileSync(join(root, 'upstream.lock.json'), 'utf8')) as Lock;
+const PATCHES = JSON.parse(readFileSync(join(root, 'scripts/patches.json'), 'utf8')) as { id: string; edits: { before: string; after: string }[] }[];
 
-async function fixture() {
-  const directory = await mkdtemp(join(tmpdir(), 'pstack-resources-'));
-  try {
-    await mkdir(join(directory, 'docs'));
-    await mkdir(join(directory, 'scripts'));
-    for (const path of ['upstream', 'upstream-team-kit', 'skills', 'prompts', 'host/adapters', 'package.json', 'scripts', 'docs/source-inventory.json', 'docs/team-kit-source-inventory.json', 'docs/resource-map.json'])
-      await cp(join(root, path), join(directory, path), { recursive: true, filter: (source) => !source.split('/').includes('node_modules') });
-  } catch (error) {
-    await rm(directory, { recursive: true, force: true });
-    throw error;
-  }
-  return {
-    directory,
-    run: (...args: string[]) => execFileSync(process.execPath, [join(directory, 'scripts/resources.mjs'), ...args], { encoding: 'utf8', stdio: 'pipe' }),
-    close: () => rm(directory, { recursive: true, force: true }),
-  };
+interface LockFile {
+  source: string;
+  target: string;
+  transform: string;
+  mode: string;
+  sourceSha256: string;
+  targetSha256: string;
+  sourceFrontmatter?: string;
+}
+interface Lock {
+  source: { repository: string; commit: string; pstackVersion: string; teamKitVersion: string };
+  files: LockFile[];
+  authored: string[];
 }
 
-test('resource fixture copy failure removes the partially populated directory', async () => {
-  let directory = '';
-  const failing = vi.spyOn(fs, 'cp').mockImplementation(async (_source: unknown, destination: unknown) => {
-    directory = dirname(String(destination));
-    throw new Error('copy failed');
+const sha256 = (bytes: Buffer | string) => createHash('sha256').update(bytes).digest('hex');
+const PSTACK_HIDDEN = 51;
+const TEAM_KIT = ['control-cli', 'control-ui', 'deslop'];
+const STANDARD_FIELDS = new Set(['name', 'description', 'license', 'compatibility', 'metadata', 'allowed-tools', 'disable-model-invocation']);
+
+function loadPackageSkills() {
+  return loadSkills({ cwd: tmpdir(), agentDir: join(tmpdir(), 'pi-pstack-no-agent-dir'), skillPaths: [join(root, 'skills')], includeDefaults: false });
+}
+
+function splitFrontmatter(text: string) {
+  const match = /^---\n([\s\S]*?)\n---(\n[\s\S]*)?$/.exec(text);
+  if (!match) throw new Error('file has no frontmatter block');
+  return { frontmatter: match[1] ?? '', rest: match[2] ?? '' };
+}
+
+describe('generated resources', () => {
+  test('pins the upstream commit and versions (RES-002)', () => {
+    expect(lock.source).toEqual({
+      repository: 'https://github.com/cursor/plugins',
+      commit: '1b6d44ff26d4e242f4e8f68c391e6d2f7ca16def',
+      pstackVersion: '0.15.20',
+      teamKitVersion: '1.2.0',
+    });
   });
-  syncBuiltinESMExports();
-  try {
-    await expect(fixture()).rejects.toThrow(/copy failed/);
-    expect(directory).toMatch(/pstack-resources-/);
-    await expect(access(directory)).rejects.toThrow(/ENOENT/);
-  } finally {
-    failing.mockRestore();
-    syncBuiltinESMExports();
-  }
-});
 
-test('the canvas workflow uses a local browser without altering its source snapshot', async () => {
-  const generated = await readFile(join(root, 'skills/pr-review-canvas/SKILL.md'), 'utf8');
-  const source = await readFile(join(root, 'upstream-team-kit/skills/pr-review-canvas/SKILL.md'), 'utf8');
-  expect(generated).toContain('open a local browser');
-  expect(generated).toContain('Follow the control-ui skill');
-  expect(generated).not.toContain('navigate the in-app browser');
-  expect(source).toContain('navigate the in-app browser');
-});
+  test('every locked file exists with its recorded bytes and mode (RES-002)', () => {
+    const drift = lock.files.filter((file) => {
+      const path = join(root, file.target);
+      if (!existsSync(path)) return true;
+      const executable = (statSync(path).mode & 0o111) !== 0;
+      return sha256(readFileSync(path)) !== file.targetSha256 || executable !== (file.mode === '100755');
+    });
+    expect(drift.map((file) => file.target)).toEqual([]);
+    expect(lock.files).toHaveLength(166);
+  });
 
-test('reflect recommends Pi-native routing while preserving the source recommendation', async () => {
-  const path = 'skills/reflect/references/synthesizer.md';
-  const source = await readFile(join(root, 'upstream', path), 'utf8');
-  const generated = await readFile(join(root, path), 'utf8');
-  expect(source).toContain('- "path-shaped triggers belong in `paths:`, not description prose"');
-  expect(generated).toContain('- "Use directory-scoped `AGENTS.md` for persistent context and imperative descriptions or `/skill:name` for on-demand skills."');
-  expect(generated).not.toContain('triggers belong in `paths:`');
-});
+  test('untransformed files equal their upstream bytes (RES-002)', () => {
+    const changed = lock.files.filter((file) => file.transform === 'none' && file.sourceSha256 !== file.targetSha256);
+    expect(changed.map((file) => file.target)).toEqual([]);
+    const counts = new Map<string, number>();
+    for (const file of lock.files) counts.set(file.transform, (counts.get(file.transform) ?? 0) + 1);
+    expect(Object.fromEntries(counts)).toEqual({
+      none: 110,
+      frontmatter: 55,
+      'patch:worktree-audit-pi-transcripts': 1,
+    });
+  });
 
-test('why preserves caret wording in source and uses available file context in Pi delivery', async () => {
-  const source = await readFile(join(root, 'upstream/skills/why/SKILL.md'), 'utf8');
-  const generated = await readFile(join(root, 'skills/why/SKILL.md'), 'utf8');
-  expect(source).toContain('cursor location');
-  expect(generated).toContain('available file context');
-  expect(generated).not.toContain('reference location');
-  expect(generated).not.toContain('cursor location');
-});
+  test('frontmatter-normalized files keep the upstream body byte for byte (RES-002)', () => {
+    let checked = 0;
+    const mismatched = lock.files
+      .filter((file) => file.transform === 'frontmatter')
+      .filter((file) => {
+        checked += 1;
+        const { rest } = splitFrontmatter(readFileSync(join(root, file.target), 'utf8'));
+        return sha256(`---\n${file.sourceFrontmatter}\n---${rest}`) !== file.sourceSha256;
+      });
+    expect(mismatched.map((file) => file.target)).toEqual([]);
+    expect(checked).toBe(55);
+  });
 
-test('resource generation is reproducible across both source bundles', async () => {
-  const f = await fixture();
-  try {
-    const before = await readFile(join(f.directory, 'docs/resource-map.json'));
-    expect(f.run('--write')).toMatch(/193 upstream files and 215 generated resources/);
-    expect(await readFile(join(f.directory, 'docs/resource-map.json'))).toEqual(before);
-    expect(f.run()).toMatch(/193 upstream files and 215 generated resources/);
-  } finally {
-    await f.close();
-  }
-});
-
-test('generation separates reusable prompts from procedural skills and Reference metadata', async () => {
-  const f = await fixture();
-  try {
-    f.run('--write');
-    expect((await readdir(join(f.directory, 'prompts'))).length).toBe(67);
-    expect((await readdir(join(f.directory, 'skills'), { withFileTypes: true })).filter((entry) => entry.isDirectory()).length).toBe(68);
-    await expect(readFile(join(f.directory, 'skills/bro/SKILL.md'))).rejects.toMatchObject({ code: 'ENOENT' });
-    expect(await readFile(join(f.directory, 'prompts/bro.md'), 'utf8')).toMatch(/Restate your last message/);
-    const architectTemplate = await readFile(join(f.directory, 'prompts/architect.md'), 'utf8');
-    const architectBody = (await readFile(join(f.directory, 'skills/architect/SKILL.md'), 'utf8')).replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, '').trim();
-    expect(architectTemplate).toContain(architectBody);
-    expect(architectTemplate).not.toMatch(/architect\/SKILL\.md in full/);
-    expect(architectTemplate).toMatch(/\$ARGUMENTS/);
-    await expect(readFile(join(f.directory, 'prompts/poteto-mode.md'))).rejects.toMatchObject({ code: 'ENOENT' });
-    await expect(readFile(join(f.directory, 'prompts/setup-pstack.md'))).rejects.toMatchObject({ code: 'ENOENT' });
-    {
-      const text = await readFile(join(f.directory, 'skills/poteto-mode/SKILL.md'), 'utf8');
-      expect(text).not.toMatch(/^(mode|icon|color|reminder|paths):/m);
+  test('patched files differ from upstream only by the declared patch (RES-002, WTA-001)', () => {
+    for (const patch of PATCHES) {
+      const file = lock.files.find((entry) => entry.transform === `patch:${patch.id}`);
+      if (!file) throw new Error(`no locked file for patch ${patch.id}`);
+      let text = readFileSync(join(root, file.target), 'utf8');
+      for (const edit of patch.edits) text = text.replace(edit.after, edit.before);
+      expect(sha256(text)).toBe(file.sourceSha256);
     }
-    {
-      const text = await readFile(join(f.directory, 'skills/typescript-best-practices/SKILL.md'), 'utf8');
-      expect(text).not.toMatch(/^(mode|icon|color|reminder|paths):/m);
-      expect(text).toMatch(/^disable-model-invocation:\s*true\s*$/m);
+  });
+
+  test('loads 56 skills with no diagnostics and names equal to directories (RES-001)', () => {
+    const { skills, diagnostics } = loadPackageSkills();
+    expect(diagnostics).toEqual([]);
+    expect(skills).toHaveLength(56);
+    const renamed = skills.filter((skill) => skill.name !== skill.filePath.split('/').at(-2));
+    expect(renamed.map((skill) => skill.name)).toEqual([]);
+    expect(skills.map((skill) => skill.name)).toEqual(expect.arrayContaining(['poteto-mode', 'make-bot-ui', 'how', 'setup-pstack', 'create-skill', ...TEAM_KIT]));
+  });
+
+  test('keeps upstream descriptions and only Agent Skills fields at the top level (RES-001, RES-004)', () => {
+    for (const file of lock.files.filter((entry) => entry.transform === 'frontmatter')) {
+      const source = parseFrontmatter(`---\n${file.sourceFrontmatter}\n---\n`).frontmatter;
+      const target = parseFrontmatter(readFileSync(join(root, file.target), 'utf8')).frontmatter;
+      expect(target['description']).toBe(source['description']);
+      expect(target['disable-model-invocation']).toBe(source['disable-model-invocation']);
+      expect(Object.keys(target).filter((key) => !STANDARD_FIELDS.has(key))).toEqual([]);
     }
-  } finally {
-    await f.close();
-  }
-});
+  });
 
-test('generation migrates the former bro skill without deleting unrelated resources', async () => {
-  const f = await fixture();
-  try {
-    await mkdir(join(f.directory, 'skills/bro'));
-    await cp(join(f.directory, 'upstream/skills/bro/SKILL.md'), join(f.directory, 'skills/bro/SKILL.md'));
-    f.run('--write');
-    await expect(readFile(join(f.directory, 'skills/bro/SKILL.md'))).rejects.toMatchObject({ code: 'ENOENT' });
-    expect(await readFile(join(f.directory, 'prompts/bro.md'), 'utf8')).toMatch(/Restate your last message/);
-    await writeFile(join(f.directory, 'prompts/unexpected.md'), 'Unexpected prompt');
-    expect(() => f.run()).toThrow(/Unexpected generated resource files/);
-    expect(await readFile(join(f.directory, 'prompts/unexpected.md'), 'utf8')).toBe('Unexpected prompt');
-  } finally {
-    await f.close();
-  }
-});
+  test('moves Cursor-only fields under metadata with a cursor- prefix (RES-004)', () => {
+    const poteto = parseFrontmatter(readFileSync(join(root, 'skills/poteto-mode/SKILL.md'), 'utf8')).frontmatter;
+    expect(poteto['metadata']).toEqual({
+      'cursor-name': 'Poteto Mode',
+      'cursor-mode': true,
+      'cursor-icon': 'crown',
+      'cursor-color': 'yellow',
+      'cursor-reminder': "New task? Playbook match or rigor needed -> apply /poteto-mode. Casual turn or user opts out -> don't.",
+    });
+    const typescript = parseFrontmatter(readFileSync(join(root, 'skills/typescript-best-practices/SKILL.md'), 'utf8')).frontmatter;
+    expect(typescript['metadata']).toEqual({ 'cursor-paths': ['**/*.ts', '**/*.tsx'] });
+  });
 
-test('resource checks reject prompt drift and missing package discovery before generation writes', async () => {
-  const f = await fixture();
-  try {
-    const target = join(f.directory, 'prompts/bro.md');
-    await writeFile(target, 'Changed prompt');
-    expect(() => f.run()).toThrow(/Generated resource drift: prompts\/bro.md/);
-    const manifestPath = join(f.directory, 'package.json');
-    const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
-    await writeFile(manifestPath, JSON.stringify({ ...manifest, pi: { ...manifest.pi, prompts: [] } }));
-    expect(() => f.run('--write')).toThrow(/Package must register and distribute/);
-    expect(await readFile(target, 'utf8')).toBe('Changed prompt');
-  } finally {
-    await f.close();
-  }
-});
+  test('hides 51 pstack skills from model invocation and keeps the rest invocable (RES-003, RES-005)', () => {
+    const { skills } = loadPackageSkills();
+    const invocable = skills.filter((skill) => !skill.disableModelInvocation).map((skill) => skill.name);
+    expect(invocable.toSorted()).toEqual(['control-cli', 'control-ui', 'create-skill', 'deslop', 'setup-pstack']);
+    expect(skills.filter((skill) => skill.disableModelInvocation)).toHaveLength(PSTACK_HIDDEN);
+  });
 
-test('a changed kit source prevents all generation writes', async () => {
-  const f = await fixture();
-  try {
-    const target = join(f.directory, 'prompts/bro.md');
-    await writeFile(target, 'Existing generated sentinel');
-    await writeFile(join(f.directory, 'upstream-team-kit/skills/deslop/SKILL.md'), 'Changed source');
-    expect(() => f.run('--write')).toThrow(/Upstream hash mismatch: upstream-team-kit\/skills\/deslop\/SKILL.md/);
-    expect(await readFile(target, 'utf8')).toBe('Existing generated sentinel');
-  } finally {
-    await f.close();
-  }
-});
+  test('ships the subagent definitions unchanged (RES-006)', () => {
+    const agents = lock.files.filter((file) => file.target.startsWith('agents/'));
+    expect(agents.map((file) => [file.target, file.transform])).toEqual([
+      ['agents/comment-sicko.md', 'none'],
+      ['agents/poteto-agent.md', 'none'],
+    ]);
+  });
 
-test('overlapping source destinations fail before changing generated skills', async () => {
-  const f = await fixture();
-  try {
-    const target = join(f.directory, 'prompts/bro.md');
-    await writeFile(target, 'Existing generated sentinel');
-    const script = join(f.directory, 'scripts/resources.mjs');
-    const original = await readFile(script, 'utf8');
-    await writeFile(script, original.replace("{ directory: 'upstream-team-kit', inventory: 'docs/team-kit-source-inventory.json' }", "{ directory: 'upstream', inventory: 'docs/source-inventory.json' }"));
-    expect(() => f.run('--write')).toThrow(/Duplicate generated skill destination across source bundles/);
-    expect(await readFile(target, 'utf8')).toBe('Existing generated sentinel');
-  } finally {
-    await f.close();
-  }
+  test('resolves every relative Markdown link in shipped skills (RES-007)', () => {
+    const broken: string[] = [];
+    for (const file of lock.files.filter((entry) => entry.target.startsWith('skills/') && entry.target.endsWith('.md'))) {
+      const text = readFileSync(join(root, file.target), 'utf8');
+      // Every relative target that names a file or folder (an extension or a trailing /); placeholders such as (url) are not links.
+      for (const match of text.matchAll(/\]\((?![a-z]+:|#|\/)([^)#\s]+(?:\.[a-z0-9]+|\/))\)/gi)) {
+        const target = resolve(dirname(join(root, file.target)), match[1] ?? '');
+        if (!existsSync(target)) broken.push(`${file.target} -> ${match[1]}`);
+      }
+    }
+    expect(broken).toEqual([]);
+    expect(existsSync(join(root, 'docs/guide/01-setup.md'))).toBe(true);
+  });
+
+  test('ships Benny as files that never load as skills (RES-008)', () => {
+    const benny = lock.files.filter((file) => file.target.startsWith('automations/benny/'));
+    expect(benny.filter((file) => file.target.endsWith('SKILL.md'))).toHaveLength(3);
+    const { skills } = loadPackageSkills();
+    expect(skills.filter((skill) => skill.filePath.includes('/automations/'))).toEqual([]);
+  });
+
+  test('ships both MIT license texts (RES-009)', () => {
+    const pstack = readFileSync(join(root, 'licenses/pstack.LICENSE'), 'utf8');
+    const teamKit = readFileSync(join(root, 'licenses/cursor-team-kit.LICENSE'), 'utf8');
+    expect(pstack).toContain('Copyright (c) 2026 Lauren Tan');
+    expect(teamKit).toContain('MIT License');
+    const readme = readFileSync(join(root, 'README.md'), 'utf8');
+    expect(readme).toContain('licenses/pstack.LICENSE');
+    expect(readme).toContain('licenses/cursor-team-kit.LICENSE');
+  });
+
+  test('authored files are declared and stay outside the upstream lock (HOST-003)', () => {
+    expect(lock.authored).toEqual(['skills/create-skill/SKILL.md']);
+    expect(lock.files.some((file) => file.target.startsWith('skills/create-skill/'))).toBe(false);
+    const skill = parseFrontmatter(readFileSync(join(root, 'skills/create-skill/SKILL.md'), 'utf8'));
+    expect(skill.frontmatter['name']).toBe('create-skill');
+    const headings = skill.body.split('\n').filter((line) => line.startsWith('## '));
+    expect(headings).toEqual(['## 1. Decide placement and name', '## 2. Write the frontmatter', '## 3. Write the body for an agent reader', '## 4. Draft, test, iterate', '## 5. Tune the description', '## 6. Finish']);
+    expect(skill.body).toContain('`description` is one YAML scalar of at most 1024 characters. Quote it, or use `description: >-`');
+    expect(skill.body).toContain('When a pstack skill says `.cursor/skills/`, use `.pi/skills/`.');
+  });
+
+  test('ships nothing outside the lock under generated roots (RES-002)', () => {
+    const tracked = new Set([...lock.files.map((file) => file.target), ...lock.authored]);
+    const extra: string[] = [];
+    const walk = (directory: string) => {
+      for (const entry of readdirSync(directory, { withFileTypes: true })) {
+        const path = join(directory, entry.name);
+        if (entry.name === 'node_modules' || entry.name === '.DS_Store') continue;
+        if (entry.isDirectory()) walk(path);
+        else if (!tracked.has(relative(root, path))) extra.push(relative(root, path));
+      }
+    };
+    for (const directory of ['skills', 'agents', 'docs/guide', 'automations', 'licenses']) walk(join(root, directory));
+    expect(extra).toEqual([]);
+    expect(tracked.size).toBe(167);
+  });
 });

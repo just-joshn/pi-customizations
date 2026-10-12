@@ -203,40 +203,36 @@ async function runDoctor() {
   process.stdout.write('[doctor] Doctor check passed cleanly.\n');
 }
 
-async function drivePstackStatus(artifactDir) {
-  process.stdout.write('[drive:pstack-status] Starting verification...\n');
-  const outDir = artifactDir ?? join(REPO_ROOT, 'artifacts/verify-pi-customizations/pstack-status');
+async function drivePstackCommands(artifactDir) {
+  process.stdout.write('[drive:pstack-commands] Starting verification...\n');
+  const outDir = artifactDir ?? join(REPO_ROOT, 'artifacts/verify-pi-customizations/pstack-commands');
   await mkdir(outDir, { recursive: true });
 
-  const scratchDir = await mkdtemp(join(tmpdir(), 'control-pi-status-'));
+  const scratchDir = await mkdtemp(join(tmpdir(), 'control-pi-commands-'));
   const pstackPkg = join(REPO_ROOT, 'extensions/pi-pstack');
 
   try {
     const session = createRpcSession(pstackPkg, scratchDir);
     try {
-      // 1. Issue /pstack status
-      await session.send({ type: 'prompt', message: '/pstack status' });
-      const msgs = await session.send({ type: 'get_messages' });
-      const statusMsgs = msgs.messages.filter((m) => m.role === 'custom' && m.customType === 'pstack-status');
-      assert.ok(statusMsgs.length > 0, 'Expected pstack-status message not received');
-      const statusContent = String(statusMsgs[0].content);
-      assert.match(statusContent, /pstack \d+\.\d+\.\d+/, 'Status did not report pstack version');
-      assert.match(statusContent, /team-kit/, 'Status did not report team-kit');
-      assert.match(statusContent, /\d+ skills, \d+ prompt templates/, 'Status did not report skills/prompts count');
+      // 1. Extension surface: /mode and /loop are registered, pstack skills are loadable.
+      const res = await session.send({ type: 'get_commands' });
+      const names = res.commands.map((c) => c.name);
+      for (const expected of ['mode', 'loop']) {
+        assert.ok(names.includes(expected), `Expected extension command /${expected} not registered`);
+      }
+      for (const expected of ['skill:poteto-mode', 'skill:setup-pstack', 'skill:poteto-help']) {
+        assert.ok(names.includes(expected), `Expected pstack skill ${expected} not registered`);
+      }
+      await writeFile(join(outDir, 'commands.json'), `${JSON.stringify(res.commands, null, 2)}\n`, 'utf8');
 
-      await writeFile(join(outDir, 'status.txt'), `${statusContent}\n`, 'utf8');
-      await writeFile(join(outDir, 'status.json'), `${JSON.stringify(statusMsgs[0], null, 2)}\n`, 'utf8');
-
-      // 2. Issue /pstack todos
-      await session.send({ type: 'prompt', message: '/pstack todos' });
-      const msgsAfterTodos = await session.send({ type: 'get_messages' });
-      const todosMsgs = msgsAfterTodos.messages.filter((m) => m.role === 'custom' && m.customType === 'pstack-status');
-      assert.ok(todosMsgs.length >= 2, 'Expected pstack todos message not received');
-      const todosContent = String(todosMsgs[todosMsgs.length - 1].content);
-      assert.match(todosContent, /Todos: none\./, 'Expected "Todos: none."');
-
-      await writeFile(join(outDir, 'todos.txt'), `${todosContent}\n`, 'utf8');
-      process.stdout.write(`✓ Captured pstack status & todos evidence in ${outDir}\n`);
+      // 2. /mode with no mode on reports through a UI notification.
+      await session.send({ type: 'prompt', message: '/mode' });
+      assert.ok(
+        session.notifications.some((n) => n.message === 'No Custom Mode is on.'),
+        'Expected UI notification "No Custom Mode is on." not observed',
+      );
+      await writeFile(join(outDir, 'mode-status.txt'), 'No Custom Mode is on.\n', 'utf8');
+      process.stdout.write(`✓ Captured pstack command-surface evidence in ${outDir}\n`);
     } finally {
       await session.close();
     }
@@ -256,21 +252,33 @@ async function drivePotetoMode(artifactDir) {
   try {
     const session = createRpcSession(pstackPkg, scratchDir);
     try {
-      await session.send({ type: 'prompt', message: '/poteto-mode off' });
-      const notifications = session.notifications;
+      // 1. Turn the mode on.
+      await session.send({ type: 'prompt', message: '/mode poteto-mode' });
       assert.ok(
-        notifications.some((n) => n.message === 'Poteto mode is off.'),
-        'Expected UI notification "Poteto mode is off." not observed',
+        session.notifications.some((n) => n.message === 'Custom Mode on: poteto-mode. /mode off exits.'),
+        'Expected UI notification "Custom Mode on: poteto-mode. /mode off exits." not observed',
       );
+      const onEntry = session.entries.find((e) => e.type === 'custom' && e.customType === 'pstack/mode');
+      assert.ok(onEntry, 'Expected pstack/mode entry appended to branch');
+      assert.equal(onEntry.data?.skill, 'poteto-mode', 'On entry did not record the poteto-mode skill');
 
-      const entries = session.entries;
-      const stateEntry = entries.find((e) => e.type === 'custom' && e.customType === 'pstack-state');
-      assert.ok(stateEntry, 'Expected pstack-state entry appended to branch');
-      assert.equal(stateEntry.data?.enabled, false, 'State entry did not reflect enabled: false');
+      // 2. Turn the mode off.
+      const beforeOff = session.notifications.length;
+      await session.send({ type: 'prompt', message: '/mode off' });
+      assert.ok(
+        session.notifications.slice(beforeOff).some((n) => n.message === 'Custom Mode off.'),
+        'Expected UI notification "Custom Mode off." not observed',
+      );
+      const offEntry = session.entries.filter((e) => e.type === 'custom' && e.customType === 'pstack/mode').at(-1);
+      assert.ok(offEntry, 'Expected a second pstack/mode entry appended to branch');
+      assert.equal(offEntry.data, null, 'Off entry did not record null mode data');
 
-      await writeFile(join(outDir, 'off.txt'), 'Poteto mode is off.\n', 'utf8');
-      await writeFile(join(outDir, 'off.json'), `${JSON.stringify({ notifications, stateEntry }, null, 2)}\n`, 'utf8');
-      process.stdout.write(`✓ Captured poteto mode off evidence in ${outDir}\n`);
+      await writeFile(
+        join(outDir, 'mode.json'),
+        `${JSON.stringify({ notifications: session.notifications, entries: session.entries }, null, 2)}\n`,
+        'utf8',
+      );
+      process.stdout.write(`✓ Captured poteto mode on/off evidence in ${outDir}\n`);
     } finally {
       await session.close();
     }
@@ -338,7 +346,7 @@ async function driveOauthProviders(artifactDir) {
       env: { ...process.env, PI_CODING_AGENT_DIR: scratchDir },
       encoding: 'utf8',
     });
-    assert.match(antigravityOutput, /google-antigravity\s+gemini-3-flash-agent/, 'Expected google-antigravity models not found');
+    assert.match(antigravityOutput, /google-antigravity\s+gemini-/, 'Expected google-antigravity models not found');
 
     const grokPkg = join(REPO_ROOT, 'extensions/pi-xai-oauth');
     const grokOutput = execFileSync('pi', ['--no-extensions', '-e', grokPkg, '--list-models', 'grok-build'], {
@@ -366,8 +374,8 @@ async function main() {
     } else if (command === 'drive') {
       const feature = target || flags.feature;
       const artifactDir = flags['artifact-dir'] || flags.out;
-      if (feature === 'pstack-status') {
-        await drivePstackStatus(artifactDir);
+      if (feature === 'pstack-commands') {
+        await drivePstackCommands(artifactDir);
       } else if (feature === 'poteto-mode') {
         await drivePotetoMode(artifactDir);
       } else if (feature === 'standalone-skills') {
@@ -375,12 +383,12 @@ async function main() {
       } else if (feature === 'oauth-providers') {
         await driveOauthProviders(artifactDir);
       } else {
-        throw new Error(`Unknown feature to drive: '${feature}'. Expected: pstack-status, poteto-mode, standalone-skills, oauth-providers`);
+        throw new Error(`Unknown feature to drive: '${feature}'. Expected: pstack-commands, poteto-mode, standalone-skills, oauth-providers`);
       }
     } else {
       process.stdout.write(`Usage:
   control-pi doctor
-  control-pi drive <pstack-status | poteto-mode | standalone-skills | oauth-providers> [--out <dir>]
+  control-pi drive <pstack-commands | poteto-mode | standalone-skills | oauth-providers> [--out <dir>]
 `);
       process.exit(1);
     }

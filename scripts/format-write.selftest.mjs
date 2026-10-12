@@ -10,16 +10,8 @@ assert.deepEqual(
 );
 assert.deepEqual(writableSources(['a.ts', 'a.ts', 'b.jsonc', 'test.spec.mjs']), ['a.ts', 'b.jsonc', 'test.spec.mjs'], 'writable paths are unique and include executable harnesses');
 assert.deepEqual(
-  writableSources([
-    'extensions/pi-pstack/upstream/tool.ts',
-    'extensions/pi-pstack/upstream-team-kit/render.js',
-    'extensions/pi-pstack/skills/poteto-mode/scripts/store.ts',
-    'extensions/pi-pstack/docs/resource-map.json',
-    'extensions/pi-pstack/docs/parity/clauses/s1.json',
-    'extensions/pi-pstack/src/models.ts',
-    'extensions/pi-pstack/test/helpers/source-fidelity.test.ts',
-  ]),
-  ['extensions/pi-pstack/src/models.ts', 'extensions/pi-pstack/test/helpers/source-fidelity.test.ts'],
-  'source evidence and generated delivery cannot reach the formatter writer while maintained code remains writable',
+  writableSources(['extensions/pi-pstack/skills/poteto-mode/scripts/store.ts', 'extensions/pi-pstack/src/mode.ts', 'extensions/pi-pstack/test/mode.test.ts']),
+  ['extensions/pi-pstack/src/mode.ts', 'extensions/pi-pstack/test/mode.test.ts'],
+  'generated delivery cannot reach the formatter writer while maintained code remains writable',
 );
 process.stdout.write('Protected formatting self-test passed.\n');

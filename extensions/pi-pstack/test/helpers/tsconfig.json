@@ -1,6 +1,0 @@
-{
-  "extends": "../../tsconfig.json",
-  "compilerOptions": { "types": ["node", "bun-types"], "noPropertyAccessFromIndexSignature": false, "erasableSyntaxOnly": false, "noUncheckedIndexedAccess": false },
-  "include": ["./**/*.ts"],
-  "exclude": []
-}

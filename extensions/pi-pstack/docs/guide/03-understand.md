@@ -4,7 +4,7 @@ Editing code you don't understand is how subtle regressions ship, and that's as 
 
 pstack gives you four ways in. `/how` explains what the code does now. `/why` digs up the reasons it's shaped that way. `/teach` blends both into one explanation. `/recall` rebuilds your own recent context on a topic. Each one also makes the agent explain itself in words you can check. That's how you supervise an agent that may know the code better than you do.
 
-![A detective studies a machine blueprint with a magnifying glass while robots fetch case files; the evidence board behind her links clues under /how and /why.](../../upstream/docs/guide/images/understanding.jpg)
+![A detective studies a machine blueprint with a magnifying glass while robots fetch case files; the evidence board behind her links clues under /how and /why.](./images/understanding.jpg)
 
 ## Start with a read-only investigation
 
@@ -30,7 +30,7 @@ Ask the question you actually have. [`/how`](../../skills/how/SKILL.md) reads th
 /why was the retry limit set to five? does the reason still hold?
 ```
 
-[`/why`](../../skills/why/SKILL.md) works like a detective on a cold case. It starts from source control, then queries whatever evidence categories your Pi tools and integrations expose, such as the issue tracker, long-form docs, team chat, observability, error tracking, and analytics, all in parallel. The report cites everything, separates direct evidence from inference, and says "appears to" when the record is thin. A null result gets reported too, because "nobody wrote down why" is itself an answer.
+[`/why`](../../skills/why/SKILL.md) works like a detective on a cold case. It starts from source control, then queries whatever evidence categories your MCPs expose, such as the issue tracker, long-form docs, team chat, observability, error tracking, and analytics, all in parallel. The report cites everything, separates direct evidence from inference, and says "appears to" when the record is thin. A null result gets reported too, because "nobody wrote down why" is itself an answer.
 
 The two compose naturally. `do why first then how` is a perfectly good prompt when you suspect the history explains the mess.
 
@@ -56,13 +56,13 @@ Teaching helps the agent as much as you. An agent that has to explain its work m
 /recall catch me up on the export work from last week
 ```
 
-[`/recall`](../../skills/recall/SKILL.md) mines your own recent Pi sessions plus the shared record (issues, prior fixes, errors still firing) and hands back a brief on where things stand and what's next. Your old sessions hold context that a fresh agent lacks, so start new work on an old topic by loading it first, then hand over the new input:
+[`/recall`](../../skills/recall/SKILL.md) mines your own recent chats plus the shared record (issues, prior fixes, errors still firing) and hands back a brief on where things stand and what's next. Your old chats hold context that a fresh agent lacks, so start new work on an old topic by loading it first, then hand over the new input:
 
 ```text
 /recall my work on the virtualized list from yesterday, then read this bug report.
 ```
 
-If you want to resume one specific session, that's the Session pickup playbook below, not `/recall`.
+If you want to resume one specific chat, that's the Session pickup playbook below, not `/recall`.
 
 ## Take over prior work with Session pickup
 

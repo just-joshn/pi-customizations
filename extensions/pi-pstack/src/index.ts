@@ -1,88 +1,106 @@
-import { readdir, readFile } from 'node:fs/promises';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { homedir } from 'node:os';
 
-import { type ExtensionAPI, parseFrontmatter, VERSION } from '@earendil-works/pi-coding-agent';
-import { registerAutomations } from './automations.ts';
-import { skillCatalog } from './catalog.ts';
-import { registerCommands, registerNativeInput } from './commands.ts';
-import { registerContext, registerStatus } from './context.ts';
-import { registerFigureItOutPlaybookGate } from './figure-it-out-playbook-gate.ts';
-import { registerGoal } from './goal.ts';
-import { hostInstructions } from './host.ts';
-import { hostVersionNotice } from './host-version.ts';
-import { registerHowSpawnGate } from './how-spawn-gate.ts';
-import { FIRST_ACTION_RULE_TYPE, firstActionRule, usesAnthropicMessages } from './mode-rule.ts';
-import { readModelRule } from './models.ts';
-import { registerPotetoPlaybookTodoGate } from './poteto-playbook-todo-gate.ts';
-import { registerQuestions } from './questions.ts';
-import { registerRoutines } from './routines.ts';
-import { registerSetupTool } from './setup-tool.ts';
-import { registerShells } from './shells.ts';
-import { loadAllSkills } from './skills-map.ts';
-import { createState, registerStateTools } from './state.ts';
-import { registerTimers } from './timers.ts';
-import { registerWhySpawnGate } from './why-spawn-gate.ts';
-import { registerWorkers } from './workers.ts';
+import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
+import { getAgentDir } from '@earendil-works/pi-coding-agent';
+import { aliasInputResult, aliasTable, packageSkillNames } from './aliases.ts';
+import { registerAskQuestion } from './ask.ts';
+import { aliasAutocomplete } from './autocomplete.ts';
+import { childIdentity } from './child-env.ts';
+import { registerLoop } from './loop.ts';
+import { registerMode } from './mode.ts';
+import { isOneShot } from './modes.ts';
+import { PACKAGE_ROOT, rulePath, SKILLS_DIR, storeDir, subagentDir } from './paths.ts';
+import { cursorRuleWriteReason, modelsSection, readRule } from './rule.ts';
+import { hostSection, subagentsSection } from './sections.ts';
+import { type AgentDefinition, loadAgentDefinitions } from './task/agents.ts';
+import { availableModels, registerTask } from './task/tool.ts';
+import { registerTodoWrite } from './todo.ts';
 
-const root = fileURLToPath(new URL('../', import.meta.url));
+const WATCHDOG_MS = 1_000;
+const ORPHAN_EXIT_MS = 5_000;
 
-async function testedHostVersion() {
-  const manifest = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'));
-  return String(manifest.devDependencies['@earendil-works/pi-coding-agent']);
+/** In a subagent, the agent definition body joins the system prompt, as Cursor uses an agent file's body as its prompt. */
+function agentSection(agents: readonly AgentDefinition[]): Record<string, string> {
+  const prompt = agents.find((agent) => agent.type === childIdentity.agentType)?.prompt ?? '';
+  return prompt === '' ? {} : { pstack_agent: prompt };
 }
 
-async function listPlaybooks(dir: string) {
-  return (await readdir(dir)).filter((name) => name.endsWith('.md')).sort();
+function hostSections(pi: ExtensionAPI, ctx: ExtensionContext, agents: readonly AgentDefinition[]): Record<string, string> {
+  return {
+    pstack_host: hostSection({
+      packageRoot: PACKAGE_ROOT,
+      skillsDir: SKILLS_DIR,
+      skillNames: packageSkillNames(pi.getCommands()),
+      agentDir: getAgentDir(),
+      rulePath: rulePath(),
+      sessionDir: ctx.sessionManager.getSessionDir(),
+      sessionFile: ctx.sessionManager.getSessionFile(),
+      subagentDir: subagentDir(ctx.cwd),
+      storeDir: storeDir(ctx.cwd, ctx.sessionManager.getSessionId()),
+      loopAvailable: !isOneShot(ctx.mode),
+      questionsAvailable: ctx.hasUI,
+    }),
+    pstack_subagents: subagentsSection(agents, availableModels(ctx)),
+    pstack_models: modelsSection(readRule(rulePath()), rulePath()),
+    ...agentSection(agents),
+  };
 }
 
-async function loadModeSource() {
-  const { frontmatter } = parseFrontmatter<Record<string, unknown>>(await readFile(join(root, 'upstream/skills/poteto-mode/SKILL.md'), 'utf8'));
-  if (typeof frontmatter['reminder'] !== 'string' || typeof frontmatter['name'] !== 'string') throw new Error('Missing poteto-mode name or reminder in the upstream source.');
-  const text = (value: unknown) => (typeof value === 'string' ? value : undefined);
-  return { reminder: frontmatter['reminder'], badge: { name: frontmatter['name'], icon: text(frontmatter['icon']), color: text(frontmatter['color']) } };
+function alive(pid: number): boolean {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (error) {
+    return (error as NodeJS.ErrnoException).code === 'EPERM';
+  }
 }
 
-export default async function pstack(pi: ExtensionAPI) {
-  const environment = process.env['PI_PSTACK_WORKER_OWNER'] ? 'cloud' : 'local';
-  const [skills, { reminder, badge }, catalog, testedVersion] = await Promise.all([loadAllSkills(root, environment), loadModeSource(), skillCatalog(root, environment), testedHostVersion()]);
-  const mode = skills.get('poteto-mode');
-  if (!mode) throw new Error('Missing pstack resource. Run bun run generate.');
-  const commandSkills = new Map([...skills].filter(([name]) => name === 'poteto-mode' || name === 'setup-pstack'));
-  const playbooksDir = join(dirname(mode.path), 'playbooks');
-  const rule = firstActionRule({ playbooksDir, playbooks: await listPlaybooks(playbooksDir) });
-  const store = createState(pi, badge);
-  registerCommands(pi, commandSkills, store);
-  registerNativeInput(pi, skills, store);
-  registerSetupTool(pi);
-  const notice = hostVersionNotice(VERSION, testedVersion);
+/**
+ * A subagent runs in its own process group so abort and shutdown can stop everything it started, which also means
+ * it outlives a parent that crashes or is killed. The subagent therefore exits once its parent is gone. Normally the
+ * parent Pi is the direct parent, and a live `process.ppid` change (the OS reparents an orphan) cannot be fooled by a
+ * reused pid. When a launcher that does not exec sits in between, the parent pid is checked as well.
+ */
+function watchParent(pi: ExtensionAPI, parentPid: number): void {
+  let timer: ReturnType<typeof setInterval> | undefined;
+  const initialParent = process.ppid;
+  const parentGone = () => process.ppid !== initialParent || (initialParent !== parentPid && !alive(parentPid));
   pi.on('session_start', (_event, ctx) => {
-    store.restore(ctx);
-    if (notice) ctx.ui.notify(notice, 'warning');
+    timer = setInterval(() => {
+      if (!parentGone()) return;
+      clearInterval(timer);
+      ctx.abort();
+      ctx.shutdown();
+      setTimeout(() => process.exit(0), ORPHAN_EXIT_MS).unref();
+    }, WATCHDOG_MS);
+    timer.unref();
   });
-  pi.on('session_tree', (_event, ctx) => store.restore(ctx));
-  pi.on('before_agent_start', async (event, ctx) => {
-    const state = store.read();
-    event.systemPromptOptions.sections['pstack_host'] = hostInstructions(root, ctx, await readModelRule(ctx.cwd), catalog);
-    if (state.enabled) event.systemPromptOptions.sections['pstack_mode'] = `${reminder}\n\nReferences are relative to ${dirname(mode.path)}.\n\n${mode.body}`;
-    else delete event.systemPromptOptions.sections['pstack_mode'];
-    if (state.todos.length) event.systemPromptOptions.sections['pstack_todos'] = JSON.stringify(state.todos);
-    else delete event.systemPromptOptions.sections['pstack_todos'];
-    if (state.enabled && usesAnthropicMessages(ctx.model)) return { message: { customType: FIRST_ACTION_RULE_TYPE, content: rule, display: false } };
-    return undefined;
+  pi.on('session_shutdown', () => clearInterval(timer));
+}
+
+export default function piPstack(pi: ExtensionAPI): void {
+  const agents = loadAgentDefinitions();
+
+  pi.on('input', (event) => aliasInputResult(event, new Set(aliasTable(pi.getCommands()).keys())));
+  pi.on('session_start', (_event, ctx) => {
+    if (ctx.mode === 'tui') ctx.ui.addAutocompleteProvider((current) => aliasAutocomplete(current, aliasTable(pi.getCommands())));
   });
-  registerStateTools(pi, store);
-  registerQuestions(pi);
-  registerContext(pi);
-  registerStatus(pi, store);
-  registerWorkers(pi);
-  registerHowSpawnGate(pi);
-  registerWhySpawnGate(pi);
-  registerFigureItOutPlaybookGate(pi);
-  registerPotetoPlaybookTodoGate(pi, store);
-  registerShells(pi);
-  registerGoal(pi);
-  registerTimers(pi);
-  registerRoutines(pi);
-  registerAutomations(pi);
+
+  const mode = registerMode(pi);
+  const task = registerTask(pi, { agents, depth: childIdentity.depth });
+  const loop = registerLoop(pi, { hasPendingWork: task.hasBackgroundWork });
+  registerTodoWrite(pi);
+  registerAskQuestion(pi);
+  if (childIdentity.parentPid !== undefined) watchParent(pi, childIdentity.parentPid);
+
+  pi.on('before_agent_start', (event, ctx) => {
+    const modeText = mode.section();
+    const loopText = loop.section();
+    Object.assign(event.systemPromptOptions.sections, hostSections(pi, ctx, agents), modeText === undefined ? {} : { pstack_mode: modeText }, loopText === undefined ? {} : { pstack_loop: loopText });
+  });
+
+  pi.on('tool_call', (event, ctx) => {
+    const reason = cursorRuleWriteReason(event.toolName, event.input, { cwd: ctx.cwd, home: homedir(), piRulePath: rulePath() });
+    return reason === undefined ? undefined : { block: true, reason };
+  });
 }

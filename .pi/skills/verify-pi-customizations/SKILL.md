@@ -1,6 +1,6 @@
 ---
 name: verify-pi-customizations
-description: "Verify user-facing Pi CLI and RPC behavior for pi-customizations extensions and skills: pstack status and todos, poteto mode persistence, standalone skills discovery, and OAuth subscription models. Use before shipping or after changes to runtime behavior."
+description: "Verify user-facing Pi CLI and RPC behavior for pi-customizations extensions and skills: pstack command surface, poteto mode persistence, standalone skills discovery, and OAuth subscription models. Use before shipping or after changes to runtime behavior."
 ---
 
 # Verify pi-customizations
@@ -43,10 +43,10 @@ Exits `0` on success. If doctor fails, resolve environment issues before driving
 Drive features end-to-end using the project harness:
 
 ```bash
-# Verify pstack status and todo reporting
-./.pi/skills/verify-pi-customizations/bin/control-pi drive pstack-status
+# Verify the pstack extension command surface (/mode, /loop, pstack skills)
+./.pi/skills/verify-pi-customizations/bin/control-pi drive pstack-commands
 
-# Verify poteto mode off toggle and branch state entry
+# Verify custom mode on/off notifications and branch state entries
 ./.pi/skills/verify-pi-customizations/bin/control-pi drive poteto-mode
 
 # Verify root standalone skills registration
@@ -65,11 +65,11 @@ To choose a custom evidence directory for a supported feature drive:
 
 Every drive captures user-observable evidence written directly to `artifacts/verify-pi-customizations/<feature>/`:
 
-- **pstack-status:**
-  - `status.txt` and `status.json`: complete pstack version, team-kit version, skill counts (65 skills, 64 prompt templates), and mode state.
-  - `todos.txt`: output confirming todo list state (`Todos: none.`).
+- **pstack-commands:**
+  - `commands.json`: the registered command list, including the extension commands `mode` and `loop` and the pstack skill commands `skill:poteto-mode`, `skill:setup-pstack`, and `skill:poteto-help`.
+  - `mode-status.txt`: the `/mode` report when no mode is on (`No Custom Mode is on.`).
 - **poteto-mode:**
-  - `off.txt` and `off.json`: UI notification (`"Poteto mode is off."`) and appended branch state entry (`"pstack-state"`, `enabled: false`).
+  - `mode.json`: the on notification (`"Custom Mode on: poteto-mode. /mode off exits."`), the appended branch entry (`customType: "pstack/mode"`, `data.skill: "poteto-mode"`), the off notification (`"Custom Mode off."`), and the closing entry with `data: null`.
 - **standalone-skills:**
   - `skills.txt` and `skills.json`: verified registration of `skill:port-harness-capability`.
 - **oauth-providers:**
@@ -81,7 +81,7 @@ Proof standards:
 - All commands execute through real CLI/RPC calls, not unit test stubs.
 - Evidence records action, responses, notifications, and branch state mutations.
 - Proof artifacts survive cleanup.
-- Coverage is limited to the mapped drives: status and empty todos, the mode-off notification and appended state, skill registration, and fixture-backed provider model listing. These drives do not prove restart persistence, workflow execution, OAuth login, or inference.
+- Coverage is limited to the mapped drives: the command surface and the no-mode report, the mode on/off notifications and appended entries, skill registration, and fixture-backed provider model listing. These drives do not prove restart persistence, Task subagents, `/loop` timing, workflow execution, OAuth login, or inference.
 - Run doctor before each fresh drive and again after a failure. Check saved artifacts at their named paths after cleanup.
 
 ## Cleanup
