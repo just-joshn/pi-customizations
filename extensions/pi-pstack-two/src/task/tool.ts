@@ -187,6 +187,11 @@ function backgroundNotice(plan: Launch, prompt: string, ctx: ExtensionContext, t
 const TASK_DESCRIPTION =
   'Launch a subagent: a separate Pi process with its own context that works autonomously and returns one final message. It sees nothing of this conversation, so give it a self-contained prompt and say what to report back. Put several Task calls in one message to run them in parallel. Subagent types and model values are listed in the pstack_subagents section of the system prompt.';
 
+// Interactive Pi redraws the chat between a replaced session's shutdown and the next session's start, which erases a
+// warning sent at shutdown. The next runtime shows it instead, so it rides on globalThis across the reload.
+const STOPPED_NOTICE = Symbol.for('pi-pstack-two/stopped-subagents');
+const carrier = globalThis as { [STOPPED_NOTICE]?: string };
+
 export interface TaskToolOptions {
   agents: readonly AgentDefinition[];
   depth: number;
@@ -197,7 +202,16 @@ export function registerTask(pi: ExtensionAPI, options: TaskToolOptions): { hasB
   pi.on('agent_before_settle', (event, ctx) => registry.beforeSettle(ctx, event.outcome));
   pi.on('session_shutdown', (event, ctx) => {
     const stopped = registry.shutdown();
-    if (stopped > 0 && ctx.hasUI) ctx.ui.notify(`Stopped ${stopped} background subagent${stopped === 1 ? '' : 's'} (session ${event.reason}). Resume one with its agent ID.`, 'warning');
+    if (stopped === 0) return;
+    const message = `Stopped ${stopped} background subagent${stopped === 1 ? '' : 's'} (session ${event.reason}). Resume one with its agent ID.`;
+    if (event.reason === 'quit') {
+      if (ctx.hasUI) ctx.ui.notify(message, 'warning');
+    } else carrier[STOPPED_NOTICE] = message;
+  });
+  pi.on('session_start', (_event, ctx) => {
+    const message = carrier[STOPPED_NOTICE];
+    delete carrier[STOPPED_NOTICE];
+    if (message !== undefined && ctx.hasUI) ctx.ui.notify(message, 'warning');
   });
 
   pi.registerTool({
