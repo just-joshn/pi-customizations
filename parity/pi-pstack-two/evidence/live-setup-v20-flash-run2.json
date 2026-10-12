@@ -1,0 +1,125 @@
+{
+  "scenario": "setup",
+  "requirement": "LIVE-003",
+  "model": "deepseek/deepseek-flash",
+  "prompt": "/setup-pstack Use the large budget and keep the skill's mapping. For a role whose default model is not available, use the closest available model of the same family, else inherit-parent. Do not ask me anything; write the rule now.",
+  "exitCode": 0,
+  "seconds": 89,
+  "checks": {
+    "ruleWritten": true,
+    "alwaysApply": true,
+    "missingRoles": [],
+    "distinctValues": ["inherit-parent"],
+    "unresolvedValues": [],
+    "wroteCursorRule": false,
+    "rule": "---\ndescription: pstack per-role model choices (overrides skill defaults)\nalwaysApply: true\n---\n# pstack model configuration. One line per role. Delete a line to fall back to the skill default.\n# `inherit-parent` or `auto` as a value: the role runs on the parent chat model (omit Task `model`). Alias entries in a panel list still count toward its fan-out.\n# budget: large (xhigh)\n# No Grok and no Claude models are available in this session, so every skill-default slug falls back to inherit-parent (same-family model unavailable). Panel roles keep two entries to preserve their fan-out.\nfeature, refactoring: inherit-parent\nbug-fix: inherit-parent\nperf-issue: inherit-parent\nhillclimb: inherit-parent\njudgment and prose: inherit-parent\nhardest tasks: inherit-parent\nhow explorer: inherit-parent\nhow explainer: inherit-parent\nwhy investigators: inherit-parent\nwhy synthesizer: inherit-parent\nreflect tooling: inherit-parent\nreflect judgment, divergent, synthesizer: inherit-parent\narena runners: inherit-parent, inherit-parent\narena cross-judge pool: inherit-parent, inherit-parent\nswarm workers: inherit-parent\narchitect runners: inherit-parent, inherit-parent\ninterrogate reviewers: inherit-parent, inherit-parent\n"
+  },
+  "toolCalls": [
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"pwd; ls -la; echo \\\"---ENV---\\\"; env | grep -i -E 'pi_|pstack|cursor' | sort\",\"timeout\":30}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"ls -la /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-two-live-5OgTCn/agent/pstack-two/ 2>/dev/null; echo \\\"---rules---\\\"; ls -la /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-two-live-5OgTCn/agent/pstack-two/pstack-models.mdc 2>/dev/null; echo \\\"---cursor rules dir---\\\"; ls -la /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-two-live-5OgTCn/agent/ 2>/dev/null\",\"timeout\":30}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"cd /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-two-live-5OgTCn/agent; echo \\\"=== settings.json ===\\\"; cat settings.json; echo; echo \\\"=== models-store.json ===\\\"; cat models-store.json; echo; echo \\\"=== auth providers ===\\\"; cat auth.json | python3 -c \\\"import json,sys; d=json.load(sys.stdin); print(list(d.keys()))\\\" 2>/dev/null || head -c 500 auth.json\",\"timeout\":30}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"which pi; pi --help 2>&1 | head -50\",\"timeout\":60}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"pi auth --help 2>&1 | head -40; echo \\\"=== check ===\\\"; pi auth check 2>&1 | head -40\",\"timeout\":60}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"PKG=/Users/josh-desktop/src/personal/pi-customizations/node_modules/.bun/@earendil-works+pi-coding-agent@1.1.0+09fbb69761fd2fc3/node_modules/@earendil-works/pi-coding-agent; ls \\\"$PKG\\\"; echo \\\"=== search grok ===\\\"; grep -rl \\\"grok\\\" \\\"$PKG\\\" --include=*.js --include=*.json --include=*.ts 2>/dev/null | head -20; echo \\\"=== search claude ===\\\"; grep -rl \\\"claude\\\" \\\"$PKG\\\" --include=*.js --include=*.json 2>/dev/null | head -20\",\"timeout\":60}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"EXT=/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack-two; ls -R \\\"$EXT\\\" 2>/dev/null | head -80\",\"timeout\":30}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"PKG=/Users/josh-desktop/src/personal/pi-customizations/node_modules/.bun/@earendil-works+pi-coding-agent@1.1.0+09fbb69761fd2fc3/node_modules/@earendil-works/pi-coding-agent; sed -n '1,80p' \\\"$PKG/dist/bundle/chunks/xai.js\\\" 2>/dev/null; echo \\\"=== model catalog files ===\\\"; find \\\"$PKG/dist\\\" -iname '*model*' | head\",\"timeout\":30}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"EXT=/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack-two; grep -rn \\\"Available models\\\" \\\"$EXT/src\\\" \\\"$EXT/scripts\\\" 2>/dev/null | head; echo \\\"=== subagent model resolution ===\\\"; grep -rln \\\"subagent\\\" \\\"$EXT/src\\\" | head -20\",\"timeout\":30}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"EXT=/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack-two; ls \\\"$EXT/src\\\"; echo \\\"===\\\"; ls \\\"$EXT/src\\\"/* 2>/dev/null | head -60\",\"timeout\":30}"
+    },
+    {
+      "name": "read",
+      "arguments": "{\"path\":\"/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack-two/src/sections.ts\",\"offset\":1,\"limit\":130}"
+    },
+    {
+      "name": "read",
+      "arguments": "{\"path\":\"/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack-two/src/task/models.ts\",\"offset\":1,\"limit\":200}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"EXT=/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack-two; grep -rn \\\"AvailableModel\\\\|availableModels\\\\|listModels\\\\|getModels\\\\|subagentsSection\\\" \\\"$EXT/src\\\" | grep -v \\\"task/models.ts\\\" | head -40\",\"timeout\":30}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"pi --list-models 2>&1 | head -100\",\"timeout\":60}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"SK=/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack-two/skills/setup-pstack; ls -la \\\"$SK\\\"; find \\\"$SK\\\" -type f | head; echo \\\"=== references ===\\\"; for f in \\\"$SK\\\"/references/*; do echo \\\"--- $f ---\\\"; cat \\\"$f\\\"; done 2>/dev/null\",\"timeout\":30}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"EXT=/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack-two; grep -rn \\\"grok-4.7\\\\|claude-opus-5-5\\\\|inherit-parent\\\" \\\"$EXT/skills\\\" | head -40\",\"timeout\":30}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"EXT=/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack-two; find \\\"$EXT/test\\\" -type f | head -40; echo \\\"=== grep pstack-models in test ===\\\"; grep -rln \\\"pstack-models\\\\|budget\\\\|setup-pstack\\\" \\\"$EXT/test\\\" \\\"$EXT/scripts\\\" 2>/dev/null | head\",\"timeout\":30}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"EXT=/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack-two; sed -n '1,200p' \\\"$EXT/docs/guide/09-make-it-yours.md\\\"\",\"timeout\":30}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"EXT=/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack-two; grep -n \\\"setup-pstack\\\\|pstack-models\\\\|budget\\\\|inherit-parent\\\" \\\"$EXT/scripts/live-e2e.mjs\\\" | head -40\",\"timeout\":30}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"EXT=/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack-two; grep -n \\\"setup-pstack\\\\|pstack-models\\\\|budget\\\" \\\"$EXT/test/e2e/host.e2e.test.ts\\\" \\\"$EXT/test/resources.test.ts\\\" | head -40\",\"timeout\":30}"
+    },
+    {
+      "name": "read",
+      "arguments": "{\"limit\":120,\"offset\":120,\"path\":\"/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack-two/scripts/live-e2e.mjs\"}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"EXT=/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack-two; grep -n \\\"ROLES\\\" \\\"$EXT/scripts/live-e2e.mjs\\\" | head; echo \\\"=== fixture ===\\\"; cat \\\"$EXT/test/fixtures/list-models.ts\\\"\",\"timeout\":30}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"EXT=/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack-two; sed -n '1,120p' \\\"$EXT/scripts/live-e2e.mjs\\\"\",\"timeout\":30}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"AGENT=/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-two-live-5OgTCn/agent; mkdir -p \\\"$AGENT/pstack-two\\\"; ls -la \\\"$AGENT/pstack-two\\\"\",\"timeout\":30}"
+    },
+    {
+      "name": "write",
+      "arguments": "{\"path\":\"/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-two-live-5OgTCn/agent/pstack-two/pstack-models.mdc\",\"content\":\"---\\ndescription: pstack per-role model choices (overrides skill defaults)\\nalwaysApply: true\\n---\\n# pstack model configuration. One line per role. Delete a line to fall back to the skill default.\\n# `inherit-parent` or `auto` as a value: the role runs on the parent chat model (omit Task `model`). Alias entries in a panel list still count toward its fan-out.\\n# budget: large (xhigh)\\n# No Grok and no Claude models are available in this session, so every skill"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"RULE=/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-two-live-5OgTCn/agent/pstack-two/pstack-models.mdc\\necho \\\"=== file ===\\\"; cat \\\"$RULE\\\"; echo\\necho \\\"=== alwaysApply ===\\\"; grep -c 'alwaysApply: true' \\\"$RULE\\\"\\necho \\\"=== role line count (expect 17) ===\\\"; grep -cE '^(feature, refactoring|bug-fix|perf-issue|hillclimb|judgment and prose|hardest tasks|how explorer|how explainer|why investigators|why synthesizer|reflect tooling|reflect judgment, divergent, synthesizer|arena runners|arena cross-judge pool|swarm workers|architect runners|interrogate reviewers):' \\"
+    }
+  ],
+  "finalText": "Rule written to the mapped path:\n\n`/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-two-live-5OgTCn/agent/pstack-two/pstack-models.mdc`\n\n## What I found\n\nI enumerated the models actually resolvable by `Task` this session (`pi --list-models` + `ctx.modelRegistry.getAvailable()`):\n\n- **deepseek** (`deepseek-flash`, `deepseek-v4-pro`)\n- **openai** (gpt-4/4.1/4o, gpt-5.x, gpt-6.x, o1/o3/o4 families)\n- **zai** (glm-4.7, glm-5.x)\n\nThere is **no Grok model and no Claude model** available. `auth.json` has `grok-build` and `claude-subscription` entries, but their provider packages aren't loaded, so neither family appears in the catalog. The skill defaults are only `grok-4.7-xhigh-fast` and `claude-opus-5-5-xhigh` — two families that are both entirely absent.\n\n## What I did\n\nPer your rule — *same family if available, else inherit-parent* — every role fell through to `inherit-parent`. Nothing here needed an effort bump: `inherit-parent` carries no effort token, and `large (xhigh)` only rewrites real slugs, so the budget label is recorded but every value is an alias.\n\n- All 17 roles from the skill's mapping are present, in order, one line each.\n- The 4 panel roles (`arena runners`, `arena cross-judge pool`, `architect runners`, `interrogate reviewers`) keep **two** `inherit-parent` entries each, preserving their two-way fan-out (the skill's rule that alias entries still count toward fan-out). Collapsing them to one would have halved the panel.\n- `alwaysApply: true` is set, and the file was written only at the mapped path — nothing under `~/.cursor`.\n\nI verified all 17 role lines are present and that every value is `inherit-parent`, which `resolveSubagentModel` always resolves to the parent model.\n\n## Worth flagging\n\nBecause neither default family exists in this session, the rule is functionally \"run everything on the parent.\" That is the literal result of your fallback instruction, not a partial mapping — so no role currently uses a distinct available model. If you'd rather split the roles across the models you *do* have (for example a fast `deepseek`/`zai` model for the tooling/worker roles and a strong `openai` model for the judgment/prose roles), say the word and I'll rewrite it — that would be a capability match, not a same-family substitution.\n\nThe rule applies to new sessions; re-running `/setup-pstack` updates it in place.\n\nUnrelated to this task: the project has no verification skill or harness for driving a real app, so if you later want one, `/create-verification-skill` can generate it.",
+  "stderrTail": ""
+}

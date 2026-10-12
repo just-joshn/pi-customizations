@@ -1,0 +1,31 @@
+{
+  "scenario": "setup",
+  "requirement": "LIVE-003",
+  "model": "deepseek/deepseek-flash",
+  "prompt": "/setup-pstack Use the large budget and keep every role as the skill maps it, using inherit-parent for any role whose model is not available. Do not ask me anything; write the rule now.",
+  "exitCode": 0,
+  "seconds": 9,
+  "checks": {
+    "ruleWritten": true,
+    "alwaysApply": true,
+    "missingRoles": [],
+    "wroteCursorRule": false,
+    "rule": "---\ndescription: pstack per-role model choices (overrides skill defaults)\nalwaysApply: true\n---\n# pstack model configuration. One line per role. Delete a line to fall back to the skill default.\n# `inherit-parent` or `auto` as a value: the role runs on the parent chat model (omit Task `model`). Alias entries in a panel list still count toward its fan-out.\n# budget: large (xhigh)\nfeature, refactoring: inherit-parent\nbug-fix: inherit-parent\nperf-issue: inherit-parent\nhillclimb: inherit-parent\njudgment and prose: inherit-parent\nhardest tasks: inherit-parent\nhow explorer: inherit-parent\nhow explainer: inherit-parent\nwhy investigators: inherit-parent\nwhy synthesizer: inherit-parent\nreflect tooling: inherit-parent\nreflect judgment, divergent, synthesizer: inherit-parent\narena runners: inherit-parent, inherit-parent\narena cross-judge pool: inherit-parent, inherit-parent\nswarm workers: inherit-parent\narchitect runners: inherit-parent, inherit-parent\ninterrogate reviewers: inherit-parent, inherit-parent\n"
+  },
+  "toolCalls": [
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"ls -la /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-two-live-k5zJfz/agent/pstack-two/ 2>&1; echo \\\"---\\\"; cat /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-two-live-k5zJfz/agent/pstack-two/pstack-models.mdc 2>&1\",\"timeout\":30}"
+    },
+    {
+      "name": "write",
+      "arguments": "{\"path\":\"/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-two-live-k5zJfz/agent/pstack-two/pstack-models.mdc\",\"content\":\"---\\ndescription: pstack per-role model choices (overrides skill defaults)\\nalwaysApply: true\\n---\\n# pstack model configuration. One line per role. Delete a line to fall back to the skill default.\\n# `inherit-parent` or `auto` as a value: the role runs on the parent chat model (omit Task `model`). Alias entries in a panel list still count toward its fan-out.\\n# budget: large (xhigh)\\nfeature, refactoring: inherit-parent\\nbug-fix: inherit-parent\\nperf-issue: i"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"pwd; ls -a; echo \\\"--- skills ---\\\"; ls .pi/skills 2>/dev/null; find . -maxdepth 3 -iname \\\"*verify*\\\" -not -path \\\"*/node_modules/*\\\" 2>/dev/null | head -20\",\"timeout\":30}"
+    }
+  ],
+  "finalText": "Wrote the rule at `/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-two-live-k5zJfz/agent/pstack-two/pstack-models.mdc` (`~/.cursor/rules/pstack-models.mdc`).\n\n- **Budget:** `large (xhigh)`\n- **Detected models this session:** `deepseek/deepseek-flash`, `deepseek/deepseek-v4-pro` — neither skill-default family (Claude Opus 5.5, Grok 4.7) is available, so every role fell back to `inherit-parent` per your instruction. No retired roles existed (no prior rule), so nothing was dropped.\n- Panel lists kept their default fan-out lengths (2 entries each for arena runners, cross-judge pool, architect runners, interrogate reviewers), each entry aliased to the parent model.\n\nThe rule applies to new sessions; re-running `/setup-pstack` overwrites it idempotently.\n\nOne optional offer: this workspace is an empty repo with no `verify-*` skill or app-driving harness. Want a project-local verification skill so agents can drive the real app and prove changes work? I can generate one with `/create-verification-skill`. If not, no action needed.",
+  "stderrTail": ""
+}

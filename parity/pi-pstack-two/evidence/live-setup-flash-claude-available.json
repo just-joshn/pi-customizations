@@ -1,0 +1,45 @@
+{
+  "scenario": "setup",
+  "requirement": "LIVE-003",
+  "model": "deepseek/deepseek-flash",
+  "prompt": "/setup-pstack Use the large budget and keep the skill's mapping. For a role whose default model is not available, use the closest available model of the same family, else inherit-parent. Do not ask me anything; write the rule now.",
+  "exitCode": 0,
+  "seconds": 72,
+  "checks": {
+    "ruleWritten": true,
+    "alwaysApply": true,
+    "missingRoles": [],
+    "distinctValues": ["inherit-parent", "claude-subscription/claude-opus-5-5:xhigh"],
+    "unresolvedValues": [],
+    "wroteCursorRule": false,
+    "rule": "---\ndescription: pstack per-role model choices (overrides skill defaults)\nalwaysApply: true\n---\n# pstack model configuration. One line per role. Delete a line to fall back to the skill default.\n# `inherit-parent` or `auto` as a value: the role runs on the parent chat model (omit Task `model`). Alias entries in a panel list still count toward its fan-out.\n# budget: large (xhigh)\nfeature, refactoring: inherit-parent\nbug-fix: inherit-parent\nperf-issue: inherit-parent\nhillclimb: inherit-parent\njudgment and prose: claude-subscription/claude-opus-5-5:xhigh\nhardest tasks: claude-subscription/claude-opus-5-5:xhigh\nhow explorer: inherit-parent\nhow explainer: claude-subscription/claude-opus-5-5:xhigh\nwhy investigators: inherit-parent\nwhy synthesizer: claude-subscription/claude-opus-5-5:xhigh\nreflect tooling: inherit-parent\nreflect judgment, divergent, synthesizer: claude-subscription/claude-opus-5-5:xhigh\narena runners: claude-subscription/claude-opus-5-5:xhigh, inherit-parent\narena cross-judge pool: claude-subscription/claude-opus-5-5:xhigh, inherit-parent\nswarm workers: inherit-parent\narchitect runners: claude-subscription/claude-opus-5-5:xhigh, inherit-parent\ninterrogate reviewers: claude-subscription/claude-opus-5-5:xhigh, inherit-parent\n"
+  },
+  "toolCalls": [
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"ls -la; echo ---; ls -la .pi 2>/dev/null; echo ---; cat /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-two-live-dfHuP2/agent/pstack-two/pstack-models.mdc 2>/dev/null; echo \\\"---models---\\\"; (pi models list 2>&1 | head -50)\",\"timeout\":60}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"ls /Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack-two/skills | grep -i verif; echo \\\"---\\\"; rg -l \\\"verify\\\" --glob \\\"*.md\\\" -g '!node_modules' /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-two-live-dfHuP2/work 2>/dev/null | head; echo \\\"---\\\"; ls -la /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-two-live-dfHuP2/agent/pstack-two 2>/dev/null\",\"timeout\":60}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"ls -la /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-two-live-dfHuP2/agent/ 2>&1; ls -la /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-two-live-dfHuP2/agent/pstack-two/ 2>&1\",\"timeout\":30}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"mkdir -p /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-two-live-dfHuP2/agent/pstack-two && ls -la /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-two-live-dfHuP2/agent/\",\"timeout\":30}"
+    },
+    {
+      "name": "write",
+      "arguments": "{\"path\":\"/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-two-live-dfHuP2/agent/pstack-two/pstack-models.mdc\",\"content\":\"---\\ndescription: pstack per-role model choices (overrides skill defaults)\\nalwaysApply: true\\n---\\n# pstack model configuration. One line per role. Delete a line to fall back to the skill default.\\n# `inherit-parent` or `auto` as a value: the role runs on the parent chat model (omit Task `model`). Alias entries in a panel list still count toward its fan-out.\\n# budget: large (xhigh)\\nfeature, refactoring: inherit-parent\\nbug-fix: inherit-parent\\nperf-issue: i"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"cat /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-two-live-dfHuP2/agent/pstack-two/pstack-models.mdc\",\"timeout\":30}"
+    }
+  ],
+  "finalText": "Rule written: `/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-two-live-dfHuP2/agent/pstack-two/pstack-models.mdc`\n\n- **Budget:** `large (xhigh)` — kept the skill's mapping.\n- **Claude seats** (`claude-opus-5-5-xhigh`) → `claude-subscription/claude-opus-5-5:xhigh`, verified present.\n- **Grok seats** (`grok-4.7-xhigh-fast`): no Grok family is available in this session (detected set is `deepseek/*` and `claude-subscription/*` only), and there is no same-family fallback, so those roles are `inherit-parent` per your rule. In panel lists the alias entry stays, so fan-out counts are unchanged (arena/architect/interrogate still run 2).\n- No retired role lines existed to drop; no prior rule file existed, so this is a fresh write. It applies to new sessions, and re-running `/setup-pstack` updates it.\n\nOne note, no action needed from you: the work directory is an empty git repo with no harness, so there is no project-local verification skill available.",
+  "stderrTail": ""
+}

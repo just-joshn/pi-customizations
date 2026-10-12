@@ -1,0 +1,19 @@
+{
+ "note": "Matched-model Cursor baseline for LIVE-001: cursor-agent 2026.10.01, --model claude-sonnet-5-5-medium, same prompt and workspace. Compare with evidence/live-poteto-sonnet-run*.json from the Pi port.",
+ "toolCalls": [
+  {
+   "tool": "globToolCall",
+   "args": {
+    "targetDirectory": "/private/tmp/cursor-live",
+    "globPattern": "calc.js"
+   }
+  },
+  {
+   "tool": "readToolCall",
+   "args": {
+    "path": "/private/tmp/cursor-live/calc.js"
+   }
+  }
+ ],
+ "resultExcerpt": "`add(\"2\", \"3\")` returns the string `\"23\"`, not the number `5`.\n\n`add` in `calc.js` is `return a + b;` with no type coercion or validation. In JavaScript, `+` concatenates when either operand is a string. Two numeric strings are joined as text.\n\nI got this by reading `calc.js`. I didn't run it. The behavior follows from the language's `+` semantics.\n\nA caller who wants numeric addition has to convert first, for example `add(Number(\"2\"), Number(\"3\"))`. Alternatively, `add` itself could coerce its inputs. I changed nothing, as you asked."
+}

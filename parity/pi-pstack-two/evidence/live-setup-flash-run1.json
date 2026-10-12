@@ -1,0 +1,47 @@
+{
+  "scenario": "setup",
+  "requirement": "LIVE-003",
+  "model": "deepseek/deepseek-flash",
+  "prompt": "/setup-pstack Use the large budget and keep every role as the skill maps it, using inherit-parent for any role whose model is not available. Do not ask me anything; write the rule now.",
+  "exitCode": 0,
+  "seconds": 47,
+  "checks": {
+    "ruleWritten": true,
+    "alwaysApply": true,
+    "missingRoles": [],
+    "wroteCursorRule": false,
+    "rule": "---\ndescription: pstack per-role model choices (overrides skill defaults)\nalwaysApply: true\n---\n# pstack model configuration. One line per role. Delete a line to fall back to the skill default.\n# `inherit-parent` or `auto` as a value: the role runs on the parent chat model (omit Task `model`). Alias entries in a panel list still count toward its fan-out.\n# budget: large (xhigh)\n# No claude-* or grok-* slugs are available in this session (detected: deepseek/deepseek-flash, deepseek/deepseek-v4-pro), so every role that defaulted to a Claude or Grok family model runs on the parent model instead.\nfeature, refactoring: inherit-parent\nbug-fix: inherit-parent\nperf-issue: inherit-parent\nhillclimb: inherit-parent\njudgment and prose: inherit-parent\nhardest tasks: inherit-parent\nhow explorer: inherit-parent\nhow explainer: inherit-parent\nwhy investigators: inherit-parent\nwhy synthesizer: inherit-parent\nreflect tooling: inherit-parent\nreflect judgment, divergent, synthesizer: inherit-parent\narena runners: inherit-parent, inherit-parent\narena cross-judge pool: inherit-parent, inherit-parent\nswarm workers: inherit-parent\narchitect runners: inherit-parent, inherit-parent\ninterrogate reviewers: inherit-parent, inherit-parent\n"
+  },
+  "toolCalls": [
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"cat /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-two-live-wnNVTU/agent/pstack-two/pstack-models.mdc 2>/dev/null; echo \\\"---\\\"; ls /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-two-live-wnNVTU/agent/pstack-two/ 2>/dev/null\",\"timeout\":15}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"pi models 2>/dev/null | head -40; echo \\\"=== env ===\\\"; env | grep -i -E 'pi_|model' | head -30\",\"timeout\":30}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"cd ~ && ls -a .pi 2>/dev/null; echo \\\"--- config ---\\\"; cat .pi/config.json 2>/dev/null | head -60; echo \\\"--- other ---\\\"; ls .config/pi 2>/dev/null\",\"timeout\":15}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"env | grep -i -E 'pi_|provider|anthropic|openai' | head -30; echo \\\"=== root ===\\\"; ls -a /Users/josh-desktop/src/personal/pi-customizations | head -40\",\"timeout\":20}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"ls -a /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-two-live-wnNVTU/agent/ 2>/dev/null; echo \\\"--- provider cfg ---\\\"; find /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-two-live-wnNVTU/agent -maxdepth 2 -name '*.json' -o -maxdepth 2 -name '*.mdc' 2>/dev/null | head -20\",\"timeout\":15}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"cd /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-two-live-wnNVTU/agent && python3 -c \\\"\\nimport json\\nd=json.load(open('models-store.json'))\\nprint(json.dumps(d, indent=1)[:3000])\\n\\\"\",\"timeout\":20}"
+    },
+    {
+      "name": "write",
+      "arguments": "{\"path\":\"/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-two-live-wnNVTU/agent/pstack-two/pstack-models.mdc\",\"content\":\"---\\ndescription: pstack per-role model choices (overrides skill defaults)\\nalwaysApply: true\\n---\\n# pstack model configuration. One line per role. Delete a line to fall back to the skill default.\\n# `inherit-parent` or `auto` as a value: the role runs on the parent chat model (omit Task `model`). Alias entries in a panel list still count toward its fan-out.\\n# budget: large (xhigh)\\n# No claude-* or grok-* slugs are available in this session (detected: deeps"
+    }
+  ],
+  "finalText": "Rule written to `agent/pstack-two/pstack-models.mdc` (there was no prior rule).\n\n**Budget:** `large (xhigh)`\n\n**Roles:** all 17 lines kept as the skill maps them. Detected models in this session are only `deepseek/deepseek-flash` and `deepseek/deepseek-v4-pro` — no `claude-*` or `grok-*` slugs — so every role whose default was a Claude or Grok family model is set to `inherit-parent` (runs on the parent chat model). Panel list lengths were preserved (`arena runners`, `arena cross-judge pool`, `architect runners`, `interrogate reviewers` each keep two entries), so fan-out counts match the defaults.\n\nValidation: every value is `inherit-parent`, which always passes; no unverified slug was written. The rule is always-applied and takes effect in new sessions; re-running `/setup-pstack` updates it. Nothing was dropped as retired.\n\nOptional, no action needed: if this project has no way to drive the real app for proof, `/create-verification-skill` can generate a project-local one.",
+  "stderrTail": ""
+}

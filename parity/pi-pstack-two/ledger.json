@@ -1,0 +1,539 @@
+{
+  "capability": "cursor/pstack@0.15.20 + cursor-team-kit deps -> pi-pstack-two",
+  "verdict": "NOT VERIFIED",
+  "requirements": [
+    {
+      "id": "RES-001",
+      "sourceBehavior": "All 52 pstack skills load under their Cursor slash names with upstream descriptions",
+      "evidence": "S1 tree; S4 name rule; P2 Pi keeps \"Poteto Mode\" verbatim",
+      "piMapping": "generated skills/ via scripts/sync-upstream.mjs; pi.skills in package.json",
+      "acceptanceTest": "extensions/pi-pstack-two/test/resources.test.ts",
+      "status": "VERIFIED",
+      "critical": true
+    },
+    {
+      "id": "RES-002",
+      "sourceBehavior": "Shipped files equal upstream bytes except declared transforms",
+      "evidence": "S1 at 1b6d44f (pstack 0.15.20); sync-upstream.mjs --check passed against cursor/plugins@1b6d44f (166 files); the sync from 11713c6 changed exactly the 29 upstream-changed files plus the new check-plan.test.ts",
+      "piMapping": "upstream.lock.json hashes; sync-upstream.mjs --check",
+      "acceptanceTest": "extensions/pi-pstack-two/test/resources.test.ts",
+      "status": "VERIFIED",
+      "critical": true
+    },
+    {
+      "id": "RES-003",
+      "sourceBehavior": "51 skills hidden from model invocation; setup-pstack invocable",
+      "evidence": "S1 frontmatter; S4",
+      "piMapping": "frontmatter disable-model-invocation preserved",
+      "acceptanceTest": "extensions/pi-pstack-two/test/resources.test.ts",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "RES-004",
+      "sourceBehavior": "Non-standard frontmatter kept under metadata with a cursor- prefix",
+      "evidence": "S1; S4 field table: paths only scopes automatic surfacing, and the one pstack skill with paths (typescript-best-practices) is disable-model-invocation, so paths is inert for it in Cursor too",
+      "piMapping": "generator frontmatter transform",
+      "acceptanceTest": "extensions/pi-pstack-two/test/resources.test.ts",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "RES-005",
+      "sourceBehavior": "deslop, control-cli, control-ui ship model-invocable",
+      "evidence": "S1 README \"not shipped here\"; S2",
+      "piMapping": "generated skills from cursor-team-kit",
+      "acceptanceTest": "extensions/pi-pstack-two/test/resources.test.ts",
+      "status": "VERIFIED",
+      "critical": true
+    },
+    {
+      "id": "RES-006",
+      "sourceBehavior": "poteto-agent and comment-sicko definitions ship unchanged",
+      "evidence": "S1 agents/ at 1b6d44f; upstream renamed the Comment Sicko agent id to comment-sicko (de2dba6) and made poteto-agent a delegate (2bd5dd4)",
+      "piMapping": "agents/*.md verbatim",
+      "acceptanceTest": "extensions/pi-pstack-two/test/resources.test.ts",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "RES-007",
+      "sourceBehavior": "Relative links in skills resolve, including poteto-help guide links",
+      "evidence": "S1 poteto-help; the check covers all 70 relative file links in shipped skills, including bare references/x.md links (round-2 review finding)",
+      "piMapping": "docs/guide copied; package README",
+      "acceptanceTest": "extensions/pi-pstack-two/test/resources.test.ts",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "RES-008",
+      "sourceBehavior": "Benny pack ships dormant, not as skills",
+      "evidence": "S1 README",
+      "piMapping": "automations/benny outside pi.skills",
+      "acceptanceTest": "extensions/pi-pstack-two/test/resources.test.ts",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "RES-009",
+      "sourceBehavior": "pstack and team-kit MIT notices ship",
+      "evidence": "S1, S2 LICENSE",
+      "piMapping": "licenses/ directory; README",
+      "acceptanceTest": "extensions/pi-pstack-two/test/resources.test.ts",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "CMD-001",
+      "sourceBehavior": "/<skill> args attaches the skill body, path, and raw args to one message in every mode, for any loaded skill, including skills the user or pstack created (automate-me's /<handle>-mode)",
+      "evidence": "S4 (any skill by /name); S1 automate-me '/<handle>-mode'; F5; P2 E3/E3b; JSON, print, and TUI runs (evidence/tui-smoke.md) including a symlinked install; e2e: a user skill in the agent dir gets an alias (round-2 parity 1); the e2e suite also passed through the user's installed pi launcher",
+      "piMapping": "input event transform to /skill:name in src/aliases.ts over every skill in pi.getCommands()",
+      "acceptanceTest": "extensions/pi-pstack-two/test/e2e/aliases.e2e.test.ts::aliases work when the package is installed through a symlink (recheck 1)",
+      "status": "VERIFIED",
+      "critical": true
+    },
+    {
+      "id": "CMD-002",
+      "sourceBehavior": "Non-alias input passes through with its argument text; a user prompt template or command with a skill name keeps it; filtered skills get no alias",
+      "evidence": "P1; Pi's interactive editor handles built-ins before the input event (interactive-mode.js); getCommands() lists skills even with enableSkillCommands false (observed; e2e alias with it off); template precedence through Pi in test/e2e/aliases.e2e.test.ts",
+      "piMapping": "aliasTransform pure function",
+      "acceptanceTest": "extensions/pi-pstack-two/test/aliases.test.ts",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "CMD-003",
+      "sourceBehavior": "Typing / lists skills under their Cursor names with descriptions; choosing one completes /<name>",
+      "evidence": "S4; TUI run through a symlinked install, before and after /reload (evidence/tui-smoke.md)",
+      "piMapping": "ctx.ui.addAutocompleteProvider wrapper in src/autocomplete.ts, added on session_start in TUI mode",
+      "acceptanceTest": "extensions/pi-pstack-two/test/autocomplete.test.ts",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "MODE-001",
+      "sourceBehavior": "/mode <skill> keeps the skill in context every turn until exit",
+      "evidence": "S4 Custom Modes; TUI run (evidence/tui-smoke.md)",
+      "piMapping": "registerCommand(\"mode\") + before_agent_start sections.pstack_mode",
+      "acceptanceTest": "extensions/pi-pstack-two/test/e2e/mode.e2e.test.ts",
+      "status": "VERIFIED",
+      "critical": true
+    },
+    {
+      "id": "MODE-002",
+      "sourceBehavior": "/mode off exits, /mode reports, unknown names fail with the list",
+      "evidence": "S4",
+      "piMapping": "mode command parser",
+      "acceptanceTest": "extensions/pi-pstack-two/test/e2e/mode.e2e.test.ts",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "MODE-003",
+      "sourceBehavior": "Mode state follows the branch and survives resume",
+      "evidence": "P1 state guidance; restart of the same session file over RPC; unit test of branch reconstruction in test/mode.test.ts; entries store and restore only a validated skill name (round-2 security 3, recheck r2)",
+      "piMapping": "appendEntry pstack-two/mode; rebuilt from getBranch()",
+      "acceptanceTest": "extensions/pi-pstack-two/test/e2e/mode.e2e.test.ts",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "MODE-004",
+      "sourceBehavior": "poteto-mode reminder leads the mode section",
+      "evidence": "S1 frontmatter reminder",
+      "piMapping": "metadata.cursor-reminder read at injection",
+      "acceptanceTest": "extensions/pi-pstack-two/test/mode.test.ts",
+      "status": "INCONCLUSIVE",
+      "gap": "The port puts the cursor-reminder line first in the mode section (test/mode.test.ts passes), but Cursor does not document reminder and a Custom Mode turn could not be captured: the Cursor CLI has no Custom Mode in print mode (U2). Parity with what Cursor injects is unconfirmed. An Alt+Enter attempt on /poteto-mode in cursor-agent under tmux entered no mode."
+    },
+    {
+      "id": "MODE-005",
+      "sourceBehavior": "Active mode shows a status badge",
+      "evidence": "S4 badge; TUI footer showed mode: poteto-mode",
+      "piMapping": "ctx.ui.setStatus(\"pstack-two-mode\")",
+      "acceptanceTest": "extensions/pi-pstack-two/test/e2e/mode.e2e.test.ts",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "TASK-001",
+      "sourceBehavior": "Task accepts Cursor parameter contract plus readonly and environment",
+      "evidence": "F1; S1",
+      "piMapping": "TaskParams TypeBox schema in src/task/tool.ts",
+      "acceptanceTest": "extensions/pi-pstack-two/test/task-schema.test.ts",
+      "status": "VERIFIED",
+      "critical": true
+    },
+    {
+      "id": "TASK-002",
+      "sourceBehavior": "Foreground Task blocks and returns output + agent ID in Cursor format",
+      "evidence": "F3",
+      "piMapping": "src/task/tool.ts foreground path",
+      "acceptanceTest": "extensions/pi-pstack-two/test/e2e/task.e2e.test.ts",
+      "status": "VERIFIED",
+      "critical": true
+    },
+    {
+      "id": "TASK-003",
+      "sourceBehavior": "Background Task returns at once; <task> notification after the turn, with the child's usage in its details; one-shot runs wait for delivery unless aborted",
+      "evidence": "F2, F3; TUI run delivered the notification and woke the agent (evidence/tui-smoke.md); e2e checks usage in the notification details; test/registry.test.ts checks the aborted case",
+      "piMapping": "sendMessage followUp in TUI/RPC; agent_before_settle hold in print/JSON",
+      "acceptanceTest": "extensions/pi-pstack-two/test/e2e/task.e2e.test.ts",
+      "status": "VERIFIED",
+      "critical": true
+    },
+    {
+      "id": "TASK-004",
+      "sourceBehavior": "Multiple Task calls in one message run concurrently",
+      "evidence": "F2; S3",
+      "piMapping": "parallel tool execution mode",
+      "acceptanceTest": "extensions/pi-pstack-two/test/e2e/task.e2e.test.ts",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "TASK-005",
+      "sourceBehavior": "resume continues the same transcript in the directory it first ran; refused while running in the foreground, background, or another process; agent IDs are scoped to a workspace",
+      "evidence": "F1; F3; review fixes: sibling resumes, cross-process run lock naming the child pid, failing closed (test/records.test.ts; task e2e lock test); cross-workspace refusal; round 2: resume keeps depth, refuses a missing transcript, a corrupt record, a retired type, and a record from another directory with a colliding workspace name (e2e 'resume edge cases'); mutation-checked",
+      "piMapping": "--session-dir + --session-id <agentId>; in-process registry; run lock in src/task/records.ts; record written only after the child starts (src/task/tool.ts start)",
+      "acceptanceTest": "extensions/pi-pstack-two/test/e2e/task.e2e.test.ts",
+      "status": "VERIFIED",
+      "critical": true
+    },
+    {
+      "id": "TASK-006",
+      "sourceBehavior": "generalPurpose, poteto-agent, and comment-sicko resolve; unknown types, including the pre-0.15.20 name Comment Sicko, fail with the valid list",
+      "evidence": "F4 (Cursor lists plugin types by the agent file's name field); S1 at 1b6d44f renamed the agent id to comment-sicko (de2dba6); the 0.15.20 type itself was not captured from Cursor, whose cached plugin is 0.15.17",
+      "piMapping": "agents/*.md parsed in src/task/agents.ts",
+      "acceptanceTest": "extensions/pi-pstack-two/test/task-agents.test.ts",
+      "status": "VERIFIED",
+      "critical": true
+    },
+    {
+      "id": "TASK-007",
+      "sourceBehavior": "model accepts Cursor slugs, Pi specs, inherit aliases; rejects unlisted models and thinking levels the model does not support, with the allowed list",
+      "evidence": "F1 ('must resolve to one of the available model slugs'); F3; F4 (slugs carry efforts); S1 setup-pstack 'Grok slugs top out at xhigh'; pi-ai getSupportedThinkingLevels; deepseek-flash supports off, low, high, max (observed); live run: a real model retried a rejected claude-opus-5-5-xhigh with a listed model",
+      "piMapping": "src/task/models.ts resolveSubagentModel with per-model levels from getSupportedThinkingLevels",
+      "acceptanceTest": "extensions/pi-pstack-two/test/task-model.test.ts",
+      "status": "VERIFIED",
+      "critical": true
+    },
+    {
+      "id": "TASK-008",
+      "sourceBehavior": "readonly withholds file edits, state-changing shell, and MCP; a call can add readonly (fresh or resumed) but cannot lift a readonly agent type",
+      "evidence": "S3; S1; e2e readonly tools and resume-with-readonly (round-2 security 2)",
+      "piMapping": "child --tools read,grep,find,ls,TodoWrite --no-mcp; effectiveReadonly on fresh and resumed agents",
+      "acceptanceTest": "extensions/pi-pstack-two/test/e2e/task.e2e.test.ts",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "TASK-009",
+      "sourceBehavior": "is_background makes background the default",
+      "evidence": "S3; S1 poteto-agent",
+      "piMapping": "agent definition default",
+      "acceptanceTest": "extensions/pi-pstack-two/test/task-agents.test.ts",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "TASK-010",
+      "sourceBehavior": "environment cloud fails clearly, never runs locally",
+      "evidence": "S3",
+      "piMapping": "schema validation error",
+      "acceptanceTest": "extensions/pi-pstack-two/test/task-schema.test.ts",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "TASK-011",
+      "sourceBehavior": "Grandchildren cannot spawn subagents, whichever chat resumes them, and a subagent cannot lift a main-chat agent back to depth 1 by resuming it",
+      "evidence": "S3 FAQ; e2e task-chain; e2e: the main chat resuming a grandchild and a subagent resuming a main-chat agent both run it without Task (recheck r2 found and fixed the second direction); mutation-checked",
+      "piMapping": "PI_PSTACK_TWO_DEPTH env; depth stored in the agent record; resume runs at max(recorded depth, caller depth + 1)",
+      "acceptanceTest": "extensions/pi-pstack-two/test/e2e/task.e2e.test.ts",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "TASK-012",
+      "sourceBehavior": "Child transcripts persist per workspace under the subagent dir, named by agent ID; results name the file or its glob",
+      "evidence": "S3; F1",
+      "piMapping": "<agentDir>/pstack-two/workspaces/<Pi session folder name>/subagents",
+      "acceptanceTest": "extensions/pi-pstack-two/test/e2e/task.e2e.test.ts",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "TASK-013",
+      "sourceBehavior": "Abort and shutdown stop children (with a notice for background ones); a child exits when its parent process dies",
+      "evidence": "P1 lifecycle; process-group kill unit tests in test/task-runner.test.ts; mutation checks run this session: removing the parent watchdog fails 'exits when its parent is killed outright', removing the abort listener fails 'aborting the parent turn stops a foreground child', and removing the shutdown kill fails both lifecycle tests (reload, new session). The quit test still passes with the shutdown kill removed, because the orphan watchdog also ends the child, so it checks the outcome and notice only",
+      "piMapping": "process-group kill on abort and session_shutdown; parent watchdog in the child (src/index.ts watchParent): a process.ppid change, plus a pid check when a non-exec launcher sits between; no settle hold after an aborted run",
+      "acceptanceTest": "extensions/pi-pstack-two/test/e2e/task.e2e.test.ts",
+      "status": "VERIFIED",
+      "critical": true
+    },
+    {
+      "id": "TASK-014",
+      "sourceBehavior": "Foreground usage, including the child's own subagents and compactions, is reported on the tool result and enters the session totals",
+      "evidence": "P1 tools ('include their usage'); getSessionStats counts assistant, toolResult, and compaction usage; e2e: Task usage equals the child transcript's assistant plus tool-result usage, and get_session_stats includes it (round-2 architecture 2)",
+      "piMapping": "summed child usage (assistant, toolResult, compaction_end) in result.usage",
+      "acceptanceTest": "extensions/pi-pstack-two/test/e2e/task.e2e.test.ts",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "TASK-015",
+      "sourceBehavior": "Failed child yields an error status",
+      "evidence": "S3; e2e for foreground failure and for the background status: error notice",
+      "piMapping": "isError result / status error notification",
+      "acceptanceTest": "extensions/pi-pstack-two/test/e2e/task.e2e.test.ts",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "TASK-016",
+      "sourceBehavior": "file_attachments reach the child; a missing path or a directory fails; ~ expands",
+      "evidence": "F1; round-2 security 4",
+      "piMapping": "@path arguments to the child",
+      "acceptanceTest": "extensions/pi-pstack-two/test/e2e/task.e2e.test.ts",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "TASK-017",
+      "sourceBehavior": "Background subagent usage counts toward the session usage totals, as Cursor bills and lists every subagent run",
+      "evidence": "S3 usage pools; Pi 1.1.0 getSessionStats() totals assistant usage, tool-result usage, compaction and branch-summary usage, and 'usage' entries (dist/core/agent-session.js); SessionManager.appendUsage writes those entries (dist/core/session-manager.d.ts), but ExtensionContext.sessionManager is ReadonlySessionManager, which omits it (dist/core/extensions/types.d.ts:223, session-manager.d.ts:178); the only caller is Pi's cache warmer",
+      "piMapping": "none: usage stays in the child transcript and the notification details",
+      "status": "NOT VERIFIED",
+      "gap": "Pi 1.1.0 exposes no complete public way for an extension to add usage outside a tool result, a compaction draft, or a tree summary. Its 'usage' session entry would carry it, but ReadonlySessionManager omits appendUsage. A tool_result handler could attach pending usage to a later tool call, but that misattributes it and loses it when no tool call follows, so it was rejected (decisions.md D4). Foreground usage is counted (TASK-014); background usage is recorded in the child transcript and the notification's details.usage. Closes when Pi exposes a usage append to extensions."
+    },
+    {
+      "id": "TASK-018",
+      "sourceBehavior": "A subagent loads the project resources (skills, extensions, settings) its parent trusted",
+      "evidence": "S3 (subagents work in the same workspace); P1 docs/security.md (one-shot modes skip protected project resources under the default ask); ctx.isProjectTrusted() in types.d.ts; round-2 security review",
+      "piMapping": "child --approve or --no-approve from ctx.isProjectTrusted() in src/task/tool.ts and runner.ts childArgs",
+      "acceptanceTest": "extensions/pi-pstack-two/test/e2e/task.e2e.test.ts::a subagent gets the project resources its parent trusted (review r2: security)",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "TASK-019",
+      "sourceBehavior": "A readonly subagent can still run shell commands that change no state, such as git log or git blame",
+      "evidence": "S3 'no file edits, no state-changing shell commands'; round-2 parity review",
+      "piMapping": "none: readonly children get no bash",
+      "status": "NOT VERIFIED",
+      "gap": "Pi has no read-only shell, and a command allowlist parsed by the port could be bypassed (pipes, substitutions, pagers), which would claim isolation Pi does not provide. The port withholds bash from readonly children. pstack's readonly workflows (how explorers and explainers, interrogate reviewers) only read code, and interrogate's parent runs git diff itself, so no pstack instruction needs it, but a readonly child cannot run git log or git blame as Cursor's can."
+    },
+    {
+      "id": "TODO-001",
+      "sourceBehavior": "Every TodoWrite call valid under Cursor's schema behaves the same: id/content/status items, merge by id or replace; the port also accepts one item and merge updates that omit fields",
+      "evidence": "F1",
+      "piMapping": "src/todo.ts",
+      "acceptanceTest": "extensions/pi-pstack-two/test/todo.test.ts",
+      "status": "VERIFIED",
+      "critical": true
+    },
+    {
+      "id": "TODO-002",
+      "sourceBehavior": "Todo list follows the branch (a failed call does not reset it) and shows a widget",
+      "evidence": "P1 todo example; TUI widget rendered (evidence/tui-smoke.md); failed-call restore regression in test/todo.test.ts",
+      "piMapping": "details rebuilt from getBranch(); ctx.ui.setWidget",
+      "acceptanceTest": "extensions/pi-pstack-two/test/e2e/todo.e2e.test.ts",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "RULE-001",
+      "sourceBehavior": "Model rule is in every request when present",
+      "evidence": "S5; S1",
+      "piMapping": "before_agent_start sections.pstack_models",
+      "acceptanceTest": "extensions/pi-pstack-two/test/e2e/host.e2e.test.ts",
+      "status": "VERIFIED",
+      "critical": true
+    },
+    {
+      "id": "RULE-002",
+      "sourceBehavior": "write and edit calls on ~/.cursor/rules/pstack-models.mdc are blocked however the path is spelled (~, @, file://, symlink, case variant on case-insensitive disks); a bash command can still write it (documented)",
+      "evidence": "D6",
+      "piMapping": "tool_call guard",
+      "acceptanceTest": "extensions/pi-pstack-two/test/rule.test.ts",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "RULE-003",
+      "sourceBehavior": "Rule role values resolve through Task model resolution",
+      "evidence": "S1",
+      "piMapping": "resolveSubagentModel",
+      "acceptanceTest": "extensions/pi-pstack-two/test/task-model.test.ts",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "HOST-001",
+      "sourceBehavior": "System prompt names Pi equivalents for Cursor paths and features, including attached-skill framing",
+      "evidence": "S1; F6; the attached-skill framing ported from F5; round 2 adds recall's ~/.cursor/projects path, the session-file shape reflect reads, the subagent liveness signal, and a non-stalling cloud mapping",
+      "piMapping": "sections.pstack_host",
+      "acceptanceTest": "extensions/pi-pstack-two/test/e2e/host.e2e.test.ts",
+      "status": "VERIFIED",
+      "critical": true
+    },
+    {
+      "id": "HOST-002",
+      "sourceBehavior": "System prompt lists subagent types and model slugs",
+      "evidence": "F1; F4",
+      "piMapping": "sections.pstack_subagents",
+      "acceptanceTest": "extensions/pi-pstack-two/test/e2e/host.e2e.test.ts",
+      "status": "VERIFIED",
+      "critical": true
+    },
+    {
+      "id": "HOST-003",
+      "sourceBehavior": "create-skill skill exists for Pi",
+      "evidence": "S1 README; S4; covers each create-skill behavior pstack cites: placement, YAML description rules, draft/test/iterate, description tuning",
+      "piMapping": "skills/create-skill/SKILL.md (fresh text)",
+      "acceptanceTest": "extensions/pi-pstack-two/test/resources.test.ts",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "HOST-004",
+      "sourceBehavior": "/loop repeats a prompt or skill at an interval or agent-chosen wake until stopped; the agent can arm a loop itself; agent-paced loops wait for background subagents; abort ends a loop; intervals cap at 24d; one-shot runs (print, JSON, subagents) offer no Loop tool and are told why",
+      "evidence": "S4; S6; S1 playbooks arm /loop from the root chat; TUI run (evidence/tui-smoke.md); review fixes: agent-armed loops (parity 1), overflow cap (security 2), abort (architecture), Loop withdrawn and refused in one-shot runs with a mode-aware host-map line (recheck 2)",
+      "piMapping": "src/loop.ts command + Loop tool; session_start withdraws Loop in print/JSON; sections.pstack_host loop line by mode",
+      "acceptanceTest": "extensions/pi-pstack-two/test/loop.test.ts",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "HOST-005",
+      "sourceBehavior": "AskQuestion asks structured multiple-choice questions",
+      "evidence": "S1; S6",
+      "piMapping": "src/ask.ts over ctx.ui.select",
+      "acceptanceTest": "extensions/pi-pstack-two/test/e2e/ask.e2e.test.ts",
+      "status": "INCONCLUSIVE",
+      "gap": "The port asks structured questions and returns option IDs (test/e2e/ask.e2e.test.ts and the TUI run pass), and one-shot runs are told to ask in the final reply instead, but Cursor's AskQuestion schema could not be observed: cursor-agent has no such tool (F1, tmux probe) and the IDE was not captured (U1). Field names are reconstructed from pstack's text, so a model that expects Cursor's exact schema may differ."
+    },
+    {
+      "id": "HOST-006",
+      "sourceBehavior": "The image-generation tool that teach reaches for and ketchup's generated image map to Pi codemode models.generateImages() when an image model is configured",
+      "evidence": "S1 teach step 5 and ketchup at 1b6d44f ('a generated image'); F1 lists Cursor's GenerateImage tool; Pi docs/codemode.md models.generateImages(); parity review 6",
+      "piMapping": "host-map line in sections.pstack_host",
+      "acceptanceTest": "extensions/pi-pstack-two/test/e2e/host.e2e.test.ts",
+      "status": "INCONCLUSIVE",
+      "gap": "The host map names Pi's image path (tested), but no image model is configured in this environment (pi --list-models lists only chat models), so generating an image through the port was not exercised."
+    },
+    {
+      "id": "HOST-007",
+      "sourceBehavior": "\"The current agent's store\" that orchestrate writes into has a path in the system prompt",
+      "evidence": "S1 orchestrate.md store layout; orch.ts --store/ORCH_STORE; parity review 3",
+      "piMapping": "storeDir(cwd, sessionId) named in sections.pstack_host",
+      "acceptanceTest": "extensions/pi-pstack-two/test/e2e/host.e2e.test.ts",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "HOST-008",
+      "sourceBehavior": "Cursor tool names in pstack text (Read, Grep, Glob, Shell) and Cursor skill locations (~/.cursor/plugins/) have Pi meanings, including how tool calls and attached skills appear in a transcript that reflect reviews",
+      "evidence": "S1 reflect reviewers ('a Read of its SKILL.md ... a tool call (Shell, Grep, MCP, etc.)') and how/explainer-prompt.md ('Use Read, Grep, and Glob'); Pi docs/session-format.md and pi-ai ToolCall type",
+      "piMapping": "host-map line in sections.pstack_host",
+      "acceptanceTest": "extensions/pi-pstack-two/test/e2e/host.e2e.test.ts::maps the Cursor tool names and transcript shapes that pstack text relies on (HOST-008)",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "WTA-001",
+      "sourceBehavior": "worktree-audit.sh reads Pi session transcripts and pstack-two subagent transcripts instead of Cursor transcripts, finding custom session folders the way Pi does (PI_CODING_AGENT_SESSION_DIR, then project over agent sessionDir setting, ~ expanded, relative to the working directory)",
+      "evidence": "S1 script at 1b6d44f (adds the -b base flag, cf9a111); Pi main.js session-dir precedence and settings-manager normalizePath (tilde expansion); docs/settings.md sessionDir resolves relative paths from the working directory",
+      "piMapping": "literal patch in scripts/patches.json applied by the generator",
+      "acceptanceTest": "extensions/pi-pstack-two/test/scripts.test.ts",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "SCRIPT-001",
+      "sourceBehavior": "Bundled scripts run from the package; upstream's own test script (orch, watch-pr, check-plan) passes",
+      "evidence": "S1 at 1b6d44f (bun test orch watch-pr check-plan.test.ts: 63 pass); a fresh copy without node_modules bootstrapped commander and ran watch-pr --help and orch --help (observation, this session)",
+      "piMapping": "vendored scripts",
+      "acceptanceTest": "extensions/pi-pstack-two/test/scripts.test.ts",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "PKG-001",
+      "sourceBehavior": "pi install and pi remove work in an isolated agent dir",
+      "evidence": "P1 packages; install from a copy without node_modules and removal also passed through the user's installed pi launcher (PSTACK_TWO_E2E_PI=~/.pi/agent/bin/pi)",
+      "piMapping": "package.json pi manifest",
+      "acceptanceTest": "extensions/pi-pstack-two/test/e2e/package.e2e.test.ts",
+      "status": "VERIFIED",
+      "critical": true
+    },
+    {
+      "id": "PKG-002",
+      "sourceBehavior": "Reload and new session keep tools working and reset state",
+      "evidence": "P1 lifecycle; TUI /reload kept aliases, the / menu, the mode badge, and the todo widget (evidence/tui-smoke.md)",
+      "piMapping": "session_start/session_shutdown handlers",
+      "acceptanceTest": "extensions/pi-pstack-two/test/e2e/lifecycle.e2e.test.ts",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "SEC-001",
+      "sourceBehavior": "Children use argv arrays, a stdin prompt that cannot crash the parent on EPIPE, validated inputs, output bounded with Pi's truncateHead limits, and tolerate non-JSON stdout lines",
+      "evidence": "security reference; round-2 security 1 (EPIPE reproduced as an unhandled error, now handled; mutation-checked); bounded output in test/task-format.test.ts",
+      "piMapping": "src/task/runner.ts",
+      "acceptanceTest": "extensions/pi-pstack-two/test/task-runner.test.ts",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "LIVE-001",
+      "sourceBehavior": "Real model: /poteto-mode reads a playbook and writes its steps to TodoWrite",
+      "evidence": "S1 poteto-mode Playbooks",
+      "piMapping": "live run with a real provider",
+      "acceptanceTest": "extensions/pi-pstack-two/scripts/live-e2e.mjs",
+      "status": "INCONCLUSIVE",
+      "gap": "Probabilistic model behavior. deepseek-flash read the playbook in 6/6 runs (4 on 0.15.17, 2 on 0.15.20) and opened a todo list in 5/6; its first items were all four steps verbatim in 2/6 (2/4 on 0.15.17; 0/2 on 0.15.20, which matched 1 and 3 of 4 steps, shortening step 3). claude-sonnet-5-5 at medium effort skipped the playbook in both Cursor (1/1) and the port (3/3). No model was observed following it reliably in both hosts, and Cursor's auto model cannot run in Pi."
+    },
+    {
+      "id": "LIVE-002",
+      "sourceBehavior": "Real model: /no-comments spawns Task with subagent_type comment-sicko",
+      "evidence": "S1 no-comments at 1b6d44f; 2/2 deepseek-flash runs on 0.15.20 spawned Task with subagent_type comment-sicko, accepted its report, and removed both comments (evidence/live-nocomments-v20-flash-run1.json, run2); 2/2 earlier runs on 0.15.17 spawned Comment Sicko",
+      "piMapping": "live run with a real provider",
+      "acceptanceTest": "extensions/pi-pstack-two/scripts/live-e2e.mjs",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "LIVE-003",
+      "sourceBehavior": "Real model: /setup-pstack writes the Pi rule with every role line",
+      "evidence": "S1 setup-pstack; deepseek-flash wrote all 17 role lines with alwaysApply at the Pi path and nothing under ~/.cursor in 6/6 runs (evidence/live-summary.md, runs 1-3 on 0.15.17, 4-6 on 0.15.20). Run 4 wrote :xhigh for deepseek models, which the round-2 resolver rejects as unsupported levels; runs 5 and 6 used the per-model level catalog and the strict resolver, wrote inherit-parent for every role as the prompt prescribes, and every value resolved (evidence/live-setup-v20-flash-run2.json, run3)",
+      "piMapping": "live run with a real provider",
+      "acceptanceTest": "extensions/pi-pstack-two/scripts/live-e2e.mjs",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "NA-001",
+      "sourceBehavior": "Cloud subagents (environment cloud, cloud_base_branch, /in-cloud)",
+      "evidence": "S3 cloud subagents",
+      "piMapping": "none",
+      "status": "NOT APPLICABLE",
+      "reason": "Runs on Cursor-hosted VMs; Pi has no hosted runner. TASK-010 refuses the parameter explicitly."
+    },
+    {
+      "id": "NA-002",
+      "sourceBehavior": "make-bot-ui wakes a Grok Bot routine through update_state and SendToUser",
+      "evidence": "S1 make-bot-ui",
+      "piMapping": "skill ships unchanged",
+      "status": "NOT APPLICABLE",
+      "reason": "Grok Bot routines are a separate hosted Cursor product with no Pi counterpart; the host map tells the model they are unavailable."
+    },
+    {
+      "id": "NA-003",
+      "sourceBehavior": "Benny automations run on Cursor Automations with Slack ingress",
+      "evidence": "S1 automations/benny",
+      "piMapping": "files ship dormant (RES-008)",
+      "status": "NOT APPLICABLE",
+      "reason": "Cursor Automations is hosted infrastructure outside pstack and outside Pi."
+    },
+    {
+      "id": "NA-004",
+      "sourceBehavior": "Plan, Ask, and Debug modes and SwitchMode",
+      "evidence": "S1 README \"cursor already has a great plan mode\"",
+      "piMapping": "none",
+      "status": "NOT APPLICABLE",
+      "reason": "pstack does not call them; they are Cursor host modes, not dependencies."
+    },
+    {
+      "id": "NA-005",
+      "sourceBehavior": "/goal with CreateGoal and UpdateGoal",
+      "evidence": "F1 tool list",
+      "piMapping": "none",
+      "status": "NOT APPLICABLE",
+      "reason": "No pstack file references /goal."
+    },
+    {
+      "id": "NA-006",
+      "sourceBehavior": "Cursor built-in babysit skill",
+      "evidence": "S1 poteto-mode Babysit trigger",
+      "piMapping": "Babysit playbook ships",
+      "status": "NOT APPLICABLE",
+      "reason": "poteto-mode replaces the built-in for every request it would match."
+    },
+    {
+      "id": "NA-007",
+      "sourceBehavior": "Plugin logo, /add-plugin marketplace install, and the Agent Plugins v1 root manifest (pstack/plugin.json, added in 0.15.20)",
+      "evidence": "S1 .cursor-plugin/plugin.json and plugin.json at 1b6d44f",
+      "piMapping": "pi install (PKG-001)",
+      "status": "NOT APPLICABLE",
+      "reason": "Marketplace and packaging metadata, not behavior; Pi installs packages with pi install and reads the package.json pi manifest."
+    }
+  ]
+}
