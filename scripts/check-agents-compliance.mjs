@@ -35,7 +35,7 @@ import { closeTypeScriptSources, withTypeScriptSource } from './typescript-sourc
 const root = fileURLToPath(new URL('..', import.meta.url));
 
 const limits = { file: 800, typicalFile: 400, function: 50, nesting: 4 };
-const generatedPrefixes = ['extensions/pi-pstack/skills/', 'extensions/pi-pstack/prompts/'];
+const generatedPrefixes = ['extensions/pi-pstack/skills/', 'extensions/pi-pstack/prompts/', 'extensions/pi-pstack-two/skills/'];
 // Parity capture/research trees are gated by verify-parity-audit (OOB). They are full of long runners and intentional empty catches, so they stay out of this portable AGENTS scan.
 const skippedPrefixes = ['parity/'];
 const secretPatterns = [
