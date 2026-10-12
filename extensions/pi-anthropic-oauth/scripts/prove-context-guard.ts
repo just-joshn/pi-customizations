@@ -10,9 +10,9 @@
 // long`, the overflow-recovery summarization request is itself over the window
 // (it serializes the whole foreign-grown session), and no compaction entry
 // lands, so a second prompt wedges the same way.
-// GREEN (with the guard): the guard compacts before the request, each
-// summarization piece fits, no request exceeds the window, and the run carries
-// the compaction summary.
+// GREEN (with the guard): the wire fit keeps the first request under the
+// window, the guard compacts once that run settles, each summarization piece
+// fits, and the next run carries the compaction summary.
 //
 // Usage:
 //   node --experimental-strip-types scripts/prove-context-guard.ts --expect red
@@ -313,7 +313,7 @@ try {
   } else if (expected === 'red') {
     process.stdout.write('PASS the endpoint rejected the subscription prompts and the overflow summarization, and no compaction landed\n');
   } else {
-    process.stdout.write('PASS the guard compacted before the run, every subscription request stayed under the window, and the run carried the summary\n');
+    process.stdout.write('PASS the guard compacted before the next run, every subscription request stayed under the window, and the run carried the summary\n');
   }
 } finally {
   await server.close();
