@@ -12,7 +12,7 @@ Use Task agents.
 hello from coexist`;
 
 test('with pstack loaded, session keeps skill delivery while maintainer strips it from the provider request', async () => {
-  const pstack = (await import('../../../pi-pstack/src/index.ts')).default;
+  const pstack = (await import('../../../pi-pstack-two/src/index.ts')).default;
   const f = await piSessionFixture({ extension: piMaintainer, before: [pstack] });
   f.replies.push({ text: '' });
   const session = await f.open();

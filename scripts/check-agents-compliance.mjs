@@ -2,8 +2,8 @@
 // Enforces the root AGENTS.md rules that a static scan can decide.
 //
 // Scope is authored code. The pinned vendored trees (upstream, upstream-team-kit)
-// and the generated resources (pi-pstack/skills, pi-pstack/prompts) are verified
-// by check:resources and check:upstream, are never hand-edited, and are excluded
+// and the generated resources (pi-pstack-two/skills) are verified
+// by check:upstream, are never hand-edited, and are excluded
 // here because a style edit would be overwritten by the next generate.
 //
 // Severity split. A `violation` is a rule the AGENTS.md checklist states as a hard
@@ -35,7 +35,7 @@ import { closeTypeScriptSources, withTypeScriptSource } from './typescript-sourc
 const root = fileURLToPath(new URL('..', import.meta.url));
 
 const limits = { file: 800, typicalFile: 400, function: 50, nesting: 4 };
-const generatedPrefixes = ['extensions/pi-pstack/skills/', 'extensions/pi-pstack/prompts/', 'extensions/pi-pstack-two/skills/'];
+const generatedPrefixes = ['extensions/pi-pstack-two/skills/'];
 // Parity capture/research trees are gated by verify-parity-audit (OOB). They are full of long runners and intentional empty catches, so they stay out of this portable AGENTS scan.
 const skippedPrefixes = ['parity/'];
 const secretPatterns = [

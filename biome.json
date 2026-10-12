@@ -11,7 +11,6 @@
       "!!**/dist",
       "!!**/build",
       "!!**/coverage",
-      "!!extensions/pi-pstack/upstream",
       "!!parity/reference",
       "!!parity/fixtures",
       "!!parity/evidence",
@@ -26,13 +25,9 @@
       "!!parity/requirements.json",
       "!!parity/source-lock.json",
       "!!parity/scenarios",
-      "!!extensions/pi-pstack/upstream-team-kit",
-      "!!extensions/pi-pstack/skills",
       "!!extensions/pi-pstack-two/skills",
       "!!extensions/pi-pstack-two/automations",
       "!!extensions/pi-pstack-two/upstream.lock.json",
-      "!!extensions/pi-pstack/docs/resource-map.json",
-      "!!extensions/pi-pstack/docs/parity/clauses",
       "!!extensions/pi-maintainer/parity/coverage.json",
       "!!extensions/pi-maintainer/parity/ledger.json",
       "!!extensions/pi-maintainer/test/fixtures/watch"
@@ -113,7 +108,7 @@
       }
     },
     {
-      "includes": ["**/test/**", "extensions/pi-pstack/scripts/**"],
+      "includes": ["**/test/**", "extensions/pi-pstack-two/scripts/**"],
       "linter": {
         "rules": {
           "suspicious": {

@@ -1,4 +1,4 @@
-.PHONY: verify verify-lint verify-agents verify-mechanisms verify-toolchain verify-extension verify-parity-audit verify-oauth verify-test-conventions verify-install verify-skill-node verify-xai-oauth-live
+.PHONY: verify verify-lint verify-agents verify-mechanisms verify-toolchain verify-extension verify-oauth verify-test-conventions verify-install verify-skill-node verify-xai-oauth-live
 
 verify: verify-lint verify-agents verify-mechanisms verify-toolchain verify-test-conventions verify-extension verify-oauth verify-install verify-skill-node
 
@@ -17,19 +17,11 @@ verify-toolchain:
 verify-test-conventions:
 	bun run check:tests
 
+# check:upstream also exists but needs a cursor/plugins checkout at the pinned commit:
+#   bun run --filter pi-pstack-two check:upstream -- --source /tmp/cursor-plugins
 verify-extension:
-	bun run --filter pi-pstack check:resources
-	bun run --filter pi-pstack check:native-first
-	bun run --filter pi-pstack check:parity
-	bun run --filter pi-pstack typecheck
-	bun run --filter pi-pstack test:coverage
-	bun run --filter pi-pstack test:helpers
-	bun run --filter pi-pstack check:journeys
-
-# The clause inventory checks provenance against ~/src/experiments/plugins and its git history, so it needs that
-# preserved checkout and stays out of the portable verify-extension target.
-verify-parity-audit:
-	bun run --filter pi-pstack check:native-parity -- --allow-external
+	bun run --filter pi-pstack-two typecheck
+	bun run --filter pi-pstack-two test:coverage
 
 verify-oauth:
 	bun run --filter pi-anthropic-oauth typecheck

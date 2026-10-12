@@ -6,13 +6,11 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { rpcProcess } from '../extensions/pi-pstack/scripts/rpc-process.mjs';
-
 // Pi loads a local package in place without installing dependencies, and it
 // installs npm packages with peers disabled. Each package must therefore load
 // from a copy without node_modules, using only the modules Pi supplies.
 const root = fileURLToPath(new URL('..', import.meta.url));
-const cli = join(root, 'extensions/pi-pstack/node_modules/@earendil-works/pi-coding-agent/dist/bundle/cli.js');
+const cli = join(root, 'extensions/pi-pstack-two/node_modules/@earendil-works/pi-coding-agent/dist/bundle/cli.js');
 const providers = [
   { dir: 'extensions/pi-anthropic-oauth', provider: 'claude-subscription' },
   { dir: 'extensions/pi-antigravity-oauth', provider: 'google-antigravity' },
@@ -62,19 +60,52 @@ function listModels(agentDir, packageDir, provider) {
 }
 
 async function skillCommands(agentDir, packageDir) {
-  const child = spawn(process.execPath, [cli, '--mode', 'rpc', '--no-session', '--no-extensions', '-e', packageDir], {
-    cwd: agentDir,
-    env: { ...process.env, PI_CODING_AGENT_DIR: agentDir },
-    stdio: ['pipe', 'pipe', 'pipe'],
+  return new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, [cli, '--mode', 'rpc', '--no-session', '--no-extensions', '-e', packageDir], {
+      cwd: agentDir,
+      env: { ...process.env, PI_CODING_AGENT_DIR: agentDir },
+      stdio: ['pipe', 'pipe', 'pipe'],
+    });
+    let buffer = '';
+    let stderr = '';
+    let answered = false;
+    const onLine = (line) => {
+      try {
+        const record = JSON.parse(line);
+        if (record.type === 'response' && record.id === 'skills') {
+          answered = true;
+          if (record.success) {
+            resolve(record.data.commands.filter((command) => command.source === 'skill').map((command) => command.name));
+            child.stdin.end();
+          } else {
+            reject(new Error(record.error ?? 'get_commands failed'));
+            child.kill('SIGKILL');
+          }
+        }
+      } catch (error) {
+        if (!(error instanceof SyntaxError)) throw error;
+      }
+    };
+    child.stdout.setEncoding('utf8');
+    child.stdout.on('data', (chunk) => {
+      buffer += chunk;
+      let index = buffer.indexOf('\n');
+      while (index >= 0) {
+        const line = buffer.slice(0, index).trim();
+        buffer = buffer.slice(index + 1);
+        if (line) onLine(line);
+        index = buffer.indexOf('\n');
+      }
+    });
+    child.stderr.setEncoding('utf8');
+    child.stderr.on('data', (chunk) => {
+      stderr += chunk;
+    });
+    child.on('error', reject);
+    child.on('close', () => {
+      if (!answered) reject(new Error(`pi RPC exited before answering${stderr ? `: ${stderr.slice(-400)}` : ''}`));
+    });
   });
-  const client = rpcProcess(child);
-  try {
-    const { commands } = await client.send({ type: 'get_commands' });
-    assert.equal(await client.finish(), 0);
-    return commands.filter((command) => command.source === 'skill').map((command) => command.name);
-  } finally {
-    await client.close();
-  }
 }
 
 const workspace = await mkdtemp(join(tmpdir(), 'pi-fresh-install-'));
@@ -93,7 +124,6 @@ try {
   const skills = await skillCommands(agentDir, tree);
   for (const name of await readdir(join(tree, 'skills'))) assert.ok(skills.includes(`skill:${name}`), `root package exposes /skill:${name} from a fresh copy`);
   process.stdout.write(`repository root: ${skills.length} skills from a fresh copy\n`);
-  execFileSync(process.execPath, [join(root, 'extensions/pi-pstack/scripts/verify-cli.mjs'), join(tree, 'extensions/pi-pstack')], { stdio: 'inherit' });
 } finally {
   await rm(workspace, { recursive: true, force: true });
 }

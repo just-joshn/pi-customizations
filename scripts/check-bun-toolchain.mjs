@@ -14,11 +14,8 @@ const FOREIGN_COMMAND = /\b(?:npm|npx|yarn|pnpm)\b/;
 const FOREIGN_COMMAND_LINE = /^(?:npm|npx|yarn|pnpm)(?:\s|$)/;
 const FOREIGN_LAUNCH = /\b(?:execFileSync|execFile|execSync|exec|spawnSync|spawn)\s*\(\s*['"](?:npm|npx|yarn|pnpm)['"]/;
 const SKIP_SEGMENTS = new Set([...SKIP_DIRECTORIES, 'skills']);
-// Generated from the pinned snapshots, where the checker rejects any edit.
 // Parity capture/evidence trees deliberately record foreign package managers from other hosts.
-const SKIP_PREFIXES = ['extensions/pi-pstack/prompts', 'parity'];
-// Dated records keep the commands a past run actually executed.
-const RECORD_FILES = new Set(['extensions/pi-pstack/docs/team-kit-runtime-review.md']);
+const SKIP_PREFIXES = ['parity'];
 // A detector's own fixtures have to contain what it detects.
 const SKIP_FILES = new Set(['scripts/check-bun-toolchain.selftest.mjs']);
 
@@ -74,7 +71,6 @@ export function toolchainViolations(root) {
       continue;
     }
     if (path.endsWith('.md')) {
-      if (RECORD_FILES.has(path)) continue;
       for (const command of fencedCommands(readFileSync(join(root, path), 'utf8'))) {
         report(path, `documents another package manager: ${command}`);
       }
