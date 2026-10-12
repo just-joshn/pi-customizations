@@ -1,5 +1,5 @@
-// The context guard: Claude-accurate compaction timing at the only run
-// boundary where Pi's compaction is safe, plus a report hook for the wire fit.
+// The context guard: usage-calibrated compaction at Pi's safe run boundary,
+// plus a report hook for the wire fit.
 import type { Api, ImageContent, Model } from '@earendil-works/pi-ai';
 import type { CompactOptions, ExtensionAPI, SessionProjection } from '@earendil-works/pi-coding-agent';
 import { fitPayload, isSummarizationRequest } from './fit.ts';
@@ -104,7 +104,7 @@ function isBenignCompactionFailure(message: string): boolean {
 }
 
 /**
- * The bias one observation produces: the measured payload-to-usage ratio
+ * The bias one observation produces: the measured usage-to-payload-estimate ratio
  * clamped to [1, 2]. A usable observation resets the bias to this value, so
  * the 1.2 seed applies only until the session's first measurement. Returns
  * undefined when the observation is not usable.
@@ -118,7 +118,7 @@ export function calibratedBias(payload: unknown, usageTokens: number, fallback: 
   if (bpt === undefined) return undefined;
   const tokens = payloadTokens(payload, bpt);
   if (tokens <= 0) return undefined;
-  return Math.min(MAX_BIAS, Math.max(MIN_BIAS, tokens / usageTokens));
+  return Math.min(MAX_BIAS, Math.max(MIN_BIAS, usageTokens / tokens));
 }
 
 function createBeforeAgentStart(pi: ContextGuardHost, options: GuardOptions, biasOf: () => number): { readonly handler: (event: GuardEvent, ctx: GuardContext) => Promise<void>; readonly reset: () => void } {

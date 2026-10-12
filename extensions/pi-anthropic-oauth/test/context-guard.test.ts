@@ -4,6 +4,7 @@ import { createSyntheticSourceInfo } from '@earendil-works/pi-coding-agent';
 import { expect } from 'vitest';
 import { type ContextGuard, type ContextGuardHost, calibratedBias, type GuardContext, installContextGuard } from '../src/context/guard.ts';
 import { test } from './network-guard.ts';
+import { contextBudget, payloadTokens } from '../src/context/tokens.ts';
 
 type BeforeStartHandler = (event: { prompt: string; systemPrompt: string }, ctx: GuardContext) => unknown;
 type SessionHandler = () => unknown;
@@ -172,13 +173,13 @@ test('one prompt triggers at most one compaction', async () => {
   await first;
 });
 
-test('an observed payload calibrates the bias upward', async () => {
+test('OAUTH-026: higher endpoint usage calibrates compaction upward', async () => {
   const rig = createRig();
   const counter = counted();
   const ctx = guardContext({ projection: bigProjection(300_000), compact: counter.compact });
   await rig.beforeStart()(prompt, ctx);
   expect(counter.count()).toBe(0);
-  rig.guard.observe({ model: 'claude-opus-5-5', messages: [{ role: 'user', content: 'a'.repeat(300_000) }] }, 50_000);
+  rig.guard.observe({ model: 'claude-opus-5-5', messages: [{ role: 'user', content: 'a'.repeat(300_000) }] }, 200_000);
   await rig.beforeStart()(prompt, ctx);
   expect(counter.count()).toBe(1);
 });
@@ -188,9 +189,9 @@ function payloadWithTokens(tokens: number): Record<string, unknown> {
 }
 
 test('a measured ratio resets the bias within the clamp', () => {
-  expect(calibratedBias(payloadWithTokens(135_000), 150_000, undefined)).toBe(1);
-  expect(calibratedBias(payloadWithTokens(114_000), 100_000, undefined)).toBeCloseTo(1.14);
-  expect(calibratedBias(payloadWithTokens(114_000), 50_000, undefined)).toBe(2);
+  expect(calibratedBias(payloadWithTokens(135_000), 150_000, undefined)).toBeCloseTo(150_000 / 135_000);
+  expect(calibratedBias(payloadWithTokens(100_000), 114_000, undefined)).toBeCloseTo(1.14);
+  expect(calibratedBias(payloadWithTokens(50_000), 114_000, undefined)).toBe(2);
 });
 
 test('a measured ratio replaces the 1.2 seed', async () => {
@@ -199,15 +200,15 @@ test('a measured ratio replaces the 1.2 seed', async () => {
   const ctx = guardContext({ projection: bigProjection(441_000), compact: counter.compact });
   await rig.beforeStart()(prompt, ctx);
   expect(counter.count()).toBe(1);
-  rig.guard.observe(payloadWithTokens(135_000), 150_000);
+  rig.guard.observe(payloadWithTokens(135_000), 100_000);
   await rig.beforeStart()(prompt, ctx);
   expect(counter.count()).toBe(1);
 });
 
-test('the observed bias never falls below parity', async () => {
+test('OAUTH-026: lower endpoint usage does not inflate compaction', async () => {
   const rig = createRig();
   const counter = counted();
-  rig.guard.observe({ model: 'claude-opus-5-5', messages: [{ role: 'user', content: 'a'.repeat(435_000) }] }, 290_000);
+  rig.guard.observe({ model: 'claude-opus-5-5', messages: [{ role: 'user', content: 'a'.repeat(435_000) }] }, 100_000);
   await rig.beforeStart()(prompt, guardContext({ projection: bigProjection(435_000), compact: counter.compact }));
   expect(counter.count()).toBe(0);
 });
@@ -215,7 +216,7 @@ test('the observed bias never falls below parity', async () => {
 test('a summarization payload does not re-tune the conversation bias', async () => {
   const rig = createRig();
   const counter = counted();
-  rig.guard.observe({ model: 'claude-opus-5-5', system: [{ type: 'text', text: 'You are a context summarization assistant.' }], messages: [{ role: 'user', content: 'a'.repeat(435_000) }] }, 290_000);
+  rig.guard.observe({ model: 'claude-opus-5-5', system: [{ type: 'text', text: 'You are a context summarization assistant.' }], messages: [{ role: 'user', content: 'a'.repeat(435_000) }] }, 100_000);
   await rig.beforeStart()(prompt, guardContext({ projection: bigProjection(435_000), compact: counter.compact }));
   expect(counter.count()).toBe(1);
 });
@@ -224,7 +225,7 @@ test('a session start resets the observed bias', async () => {
   const rig = createRig();
   const counter = counted();
   const ctx = guardContext({ projection: bigProjection(300_000), compact: counter.compact });
-  rig.guard.observe({ model: 'claude-opus-5-5', messages: [{ role: 'user', content: 'a'.repeat(300_000) }] }, 50_000);
+  rig.guard.observe({ model: 'claude-opus-5-5', messages: [{ role: 'user', content: 'a'.repeat(300_000) }] }, 200_000);
   await rig.beforeStart()(prompt, ctx);
   expect(counter.count()).toBe(1);
   rig.sessionStart()();
@@ -240,6 +241,50 @@ test('an invalid observation leaves the session bias unchanged', async () => {
   rig.guard.observe({ model: 'claude-opus-5-5', messages: 'nope' }, 1000);
   await rig.beforeStart()(prompt, guardContext({ projection: bigProjection(300_000), compact: counter.compact }));
   expect(counter.count()).toBe(0);
+});
+
+test.for([0, -1, NaN, Infinity, -Infinity])('OAUTH-026: unusable usage %s does not calibrate', (usage) => {
+  expect(calibratedBias(payloadWithTokens(100), usage, undefined)).toBeUndefined();
+});
+
+test.for([null, undefined, '', [], {}, { messages: [] }])('OAUTH-026: unusable payload %j does not calibrate', (payload) => {
+  expect(calibratedBias(payload, 100, 3)).toBeUndefined();
+});
+
+test('OAUTH-026: multiplier boundaries and missing-model fallback', () => {
+  expect(calibratedBias(payloadWithTokens(100), 100, undefined)).toBe(1);
+  expect(calibratedBias(payloadWithTokens(100), 200, undefined)).toBe(2);
+  expect(calibratedBias(payloadWithTokens(100), Number.MAX_VALUE, undefined)).toBe(2);
+  expect(calibratedBias(payloadWithTokens(100), Number.MIN_VALUE, undefined)).toBe(1);
+  const payload = { messages: [{ role: 'user', content: 'a'.repeat(300) }] };
+  expect(calibratedBias(payload, 150, undefined)).toBeUndefined();
+  expect(calibratedBias(payload, 150, 3)).toBe(1.5);
+});
+
+test('OAUTH-026: higher endpoint usage makes wire fitting honor the measured multiplier', () => {
+  const rig = createRig();
+  const model = subscriptionModel();
+  const payload = { ...payloadWithTokens(100_000), messages: [
+    { role: 'user', content: 'a'.repeat(300_000) },
+    { role: 'assistant', content: 'ok' },
+    { role: 'user', content: 'keep me' },
+  ] };
+  expect(rig.guard.fit(payload, model)).toBe(payload);
+  rig.guard.observe(payloadWithTokens(100_000), 200_000);
+  const fitted = rig.guard.fit(payload, model);
+  expect(fitted).not.toBe(payload);
+  expect(payloadTokens(fitted, 3) * 2).toBeLessThan(contextBudget(model).blockAt);
+});
+
+test('OAUTH-026: lower endpoint usage removes seed inflation from wire fitting', () => {
+  const rig = createRig();
+  const payload = { ...payloadWithTokens(150_000), messages: [
+    { role: 'user', content: 'a'.repeat(450_000) },
+    { role: 'user', content: 'keep me' },
+  ] };
+  expect(rig.guard.fit(payload, subscriptionModel())).not.toBe(payload);
+  rig.guard.observe(payloadWithTokens(100_000), 50_000);
+  expect(rig.guard.fit(payload, subscriptionModel())).toBe(payload);
 });
 
 test('the wire fit reports the first cut of a session once', () => {
