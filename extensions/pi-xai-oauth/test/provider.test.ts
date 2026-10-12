@@ -3,6 +3,7 @@ import type { ExtensionVirtualModel } from '@earendil-works/pi-coding-agent';
 import { expect } from 'vitest';
 import { BASELINE, listPrices, toPiModel } from '../src/catalog.ts';
 import extension, { createGrokBuildProvider } from '../src/index.ts';
+import { loginGrokBuild } from '../src/login.ts';
 import { test } from './network-guard.ts';
 import { builtinXai } from './support/builtin-xai.ts';
 import { contextFinding, onlyProvider, register } from './support/fake-pi.ts';
@@ -39,6 +40,18 @@ test('the login is labeled as a Grok Build subscription', () => {
   expect(provider.auth.oauth?.name).toBe('Grok Build (SuperGrok or X Premium)');
   expect(provider.auth.oauth?.isSubscription).toBe(true);
   expect(provider.auth.oauth?.loginLabel).toBe('Sign in with SuperGrok or X Premium');
+});
+
+test('login is the Grok Build flow and refresh stays on the given xAI client', () => {
+  const refresh = async () => {
+    throw new Error('not called');
+  };
+  const toAuth = async () => ({ apiKey: 'kept' });
+  const custom = { ...xai, auth: { oauth: { name: 'probe', login: async () => { throw new Error('not called'); }, refresh, toAuth } } };
+  const built = createGrokBuildProvider(custom);
+  expect(built.auth.oauth?.login).toBe(loginGrokBuild);
+  expect(built.auth.oauth?.refresh).toBe(refresh);
+  expect(built.auth.oauth?.toAuth).toBe(toAuth);
 });
 
 test('the baseline lists the four Grok Build models', () => {
