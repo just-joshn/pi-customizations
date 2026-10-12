@@ -3,10 +3,10 @@ import type { CompactOptions, SessionProjection, ToolInfo } from '@earendil-work
 import { createSyntheticSourceInfo } from '@earendil-works/pi-coding-agent';
 import { expect } from 'vitest';
 import { type ContextGuard, type ContextGuardHost, calibratedBias, type GuardContext, installContextGuard } from '../src/context/guard.ts';
-import { test } from './network-guard.ts';
 import { contextBudget, payloadTokens } from '../src/context/tokens.ts';
+import { test } from './network-guard.ts';
 
-type BeforeStartHandler = (event: { prompt: string; systemPrompt: string }, ctx: GuardContext) => unknown;
+type SettledHandler = (event: { type: 'agent_settled'; aborted: boolean }, ctx: GuardContext) => unknown;
 type SessionHandler = () => unknown;
 type ProjectionMessage = SessionProjection['messages'][number];
 
@@ -18,7 +18,7 @@ function invoke(handler: unknown, args: readonly unknown[]): unknown {
 interface Rig {
   readonly guard: ContextGuard;
   readonly notices: string[];
-  beforeStart(): BeforeStartHandler;
+  settle(): SettledHandler;
   sessionStart(): SessionHandler;
 }
 
@@ -53,13 +53,13 @@ function createRig(compactionEnabled = true): Rig {
     getSettings: () => ({ compaction: { enabled: compactionEnabled } }),
   };
   const guard = installContextGuard(api, { providerId: 'claude-subscription', notify: (message) => notices.push(message) });
-  const beforeAgentStart = handlers.get('before_agent_start');
+  const agentSettled = handlers.get('agent_settled');
   const sessionStart = handlers.get('session_start');
-  if (beforeAgentStart === undefined || sessionStart === undefined) throw new Error('the guard did not register its handlers');
+  if (agentSettled === undefined || sessionStart === undefined) throw new Error('the guard did not register its handlers');
   return {
     guard,
     notices,
-    beforeStart: () => (event, ctx) => invoke(beforeAgentStart, [event, ctx]),
+    settle: () => (event, ctx) => invoke(agentSettled, [event, ctx]),
     sessionStart: () => () => invoke(sessionStart, []),
   };
 }
@@ -71,6 +71,7 @@ function guardContext(overrides: { projection?: readonly ProjectionMessage[]; id
     hasUI: false,
     ui: { notify: () => undefined },
     isIdle: () => overrides.idle ?? true,
+    getSystemPrompt: () => 'You are helpful.',
     sessionManager: {
       buildSessionProjection: () => ({ entries: [], messages: [...(overrides.projection ?? [])], thinkingLevel: 'off', model: null }),
     },
@@ -78,7 +79,7 @@ function guardContext(overrides: { projection?: readonly ProjectionMessage[]; id
   };
 }
 
-const prompt = { prompt: 'continue', systemPrompt: 'You are helpful.' };
+const settled = { type: 'agent_settled', aborted: false } as const;
 
 function bigProjection(bytes: number): ProjectionMessage[] {
   return [{ role: 'user', content: 'a'.repeat(bytes), timestamp: 1 }];
@@ -98,37 +99,44 @@ function counted(): { count: () => number; compact: (options?: CompactOptions) =
 test('the guard ignores another provider', async () => {
   const rig = createRig();
   const counter = counted();
-  await rig.beforeStart()(prompt, guardContext({ projection: bigProjection(450_000), compact: counter.compact, model: { ...subscriptionModel(), provider: 'anthropic' } }));
+  await rig.settle()(settled, guardContext({ projection: bigProjection(450_000), compact: counter.compact, model: { ...subscriptionModel(), provider: 'anthropic' } }));
   expect(counter.count()).toBe(0);
 });
 
 test('the guard compacts when the projection reaches the threshold', async () => {
   const rig = createRig();
   const counter = counted();
-  await rig.beforeStart()(prompt, guardContext({ projection: bigProjection(450_000), compact: counter.compact }));
+  await rig.settle()(settled, guardContext({ projection: bigProjection(450_000), compact: counter.compact }));
   expect(counter.count()).toBe(1);
-  expect(rig.notices.some((notice) => notice.includes('compacting before this request'))).toBe(true);
+  expect(rig.notices.some((notice) => notice.includes('compacting before the next request'))).toBe(true);
 });
 
 test('a below-threshold projection is left alone', async () => {
   const rig = createRig();
   const counter = counted();
-  await rig.beforeStart()(prompt, guardContext({ projection: bigProjection(300_000), compact: counter.compact }));
+  await rig.settle()(settled, guardContext({ projection: bigProjection(300_000), compact: counter.compact }));
   expect(counter.count()).toBe(0);
   expect(rig.notices).toStrictEqual([]);
 });
 
-test('the guard does not compact while a run is active', async () => {
+test('the guard does not compact while the session is busy', async () => {
   const rig = createRig();
   const counter = counted();
-  await rig.beforeStart()(prompt, guardContext({ projection: bigProjection(450_000), idle: false, compact: counter.compact }));
+  await rig.settle()(settled, guardContext({ projection: bigProjection(450_000), idle: false, compact: counter.compact }));
+  expect(counter.count()).toBe(0);
+});
+
+test('the guard leaves an aborted run alone', async () => {
+  const rig = createRig();
+  const counter = counted();
+  await rig.settle()({ type: 'agent_settled', aborted: true }, guardContext({ projection: bigProjection(450_000), compact: counter.compact }));
   expect(counter.count()).toBe(0);
 });
 
 test('the guard respects a disabled compaction setting', async () => {
   const rig = createRig(false);
   const counter = counted();
-  await rig.beforeStart()(prompt, guardContext({ projection: bigProjection(450_000), compact: counter.compact }));
+  await rig.settle()(settled, guardContext({ projection: bigProjection(450_000), compact: counter.compact }));
   expect(counter.count()).toBe(0);
 });
 
@@ -142,7 +150,7 @@ test.for(['Nothing to compact (session too small)', 'Already compacted'])('the b
       options?.onError?.(new Error(message));
     },
   });
-  await rig.beforeStart()(prompt, ctx);
+  await rig.settle()(settled, ctx);
   expect(compactions).toBe(1);
   expect(rig.notices.filter((notice) => notice.includes('compaction failed'))).toHaveLength(0);
 });
@@ -150,12 +158,12 @@ test.for(['Nothing to compact (session too small)', 'Already compacted'])('the b
 test('only the first real compaction failure warns', async () => {
   const rig = createRig();
   const ctx = guardContext({ projection: bigProjection(450_000), compact: (options) => options?.onError?.(new Error('summarization request failed')) });
-  await rig.beforeStart()(prompt, ctx);
-  await rig.beforeStart()(prompt, ctx);
+  await rig.settle()(settled, ctx);
+  await rig.settle()(settled, ctx);
   expect(rig.notices.filter((notice) => notice.includes('compaction failed: summarization request failed'))).toHaveLength(1);
 });
 
-test('one prompt triggers at most one compaction', async () => {
+test('one settle triggers at most one compaction', async () => {
   const rig = createRig();
   let compactions = 0;
   let finish: (() => void) | undefined;
@@ -166,8 +174,8 @@ test('one prompt triggers at most one compaction', async () => {
       finish = () => options?.onComplete?.({ summary: 'ok', firstKeptEntryId: 'entry', tokensBefore: 1 });
     },
   });
-  const first = rig.beforeStart()(prompt, ctx);
-  await rig.beforeStart()(prompt, ctx);
+  const first = rig.settle()(settled, ctx);
+  await rig.settle()(settled, ctx);
   expect(compactions).toBe(1);
   finish?.();
   await first;
@@ -177,10 +185,10 @@ test('OAUTH-026: higher endpoint usage calibrates compaction upward', async () =
   const rig = createRig();
   const counter = counted();
   const ctx = guardContext({ projection: bigProjection(300_000), compact: counter.compact });
-  await rig.beforeStart()(prompt, ctx);
+  await rig.settle()(settled, ctx);
   expect(counter.count()).toBe(0);
   rig.guard.observe({ model: 'claude-opus-5-5', messages: [{ role: 'user', content: 'a'.repeat(300_000) }] }, 200_000);
-  await rig.beforeStart()(prompt, ctx);
+  await rig.settle()(settled, ctx);
   expect(counter.count()).toBe(1);
 });
 
@@ -198,10 +206,10 @@ test('a measured ratio replaces the 1.2 seed', async () => {
   const rig = createRig();
   const counter = counted();
   const ctx = guardContext({ projection: bigProjection(441_000), compact: counter.compact });
-  await rig.beforeStart()(prompt, ctx);
+  await rig.settle()(settled, ctx);
   expect(counter.count()).toBe(1);
   rig.guard.observe(payloadWithTokens(135_000), 100_000);
-  await rig.beforeStart()(prompt, ctx);
+  await rig.settle()(settled, ctx);
   expect(counter.count()).toBe(1);
 });
 
@@ -209,7 +217,7 @@ test('OAUTH-026: lower endpoint usage does not inflate compaction', async () => 
   const rig = createRig();
   const counter = counted();
   rig.guard.observe({ model: 'claude-opus-5-5', messages: [{ role: 'user', content: 'a'.repeat(435_000) }] }, 100_000);
-  await rig.beforeStart()(prompt, guardContext({ projection: bigProjection(435_000), compact: counter.compact }));
+  await rig.settle()(settled, guardContext({ projection: bigProjection(435_000), compact: counter.compact }));
   expect(counter.count()).toBe(0);
 });
 
@@ -217,7 +225,7 @@ test('a summarization payload does not re-tune the conversation bias', async () 
   const rig = createRig();
   const counter = counted();
   rig.guard.observe({ model: 'claude-opus-5-5', system: [{ type: 'text', text: 'You are a context summarization assistant.' }], messages: [{ role: 'user', content: 'a'.repeat(435_000) }] }, 100_000);
-  await rig.beforeStart()(prompt, guardContext({ projection: bigProjection(435_000), compact: counter.compact }));
+  await rig.settle()(settled, guardContext({ projection: bigProjection(435_000), compact: counter.compact }));
   expect(counter.count()).toBe(1);
 });
 
@@ -226,10 +234,10 @@ test('a session start resets the observed bias', async () => {
   const counter = counted();
   const ctx = guardContext({ projection: bigProjection(300_000), compact: counter.compact });
   rig.guard.observe({ model: 'claude-opus-5-5', messages: [{ role: 'user', content: 'a'.repeat(300_000) }] }, 200_000);
-  await rig.beforeStart()(prompt, ctx);
+  await rig.settle()(settled, ctx);
   expect(counter.count()).toBe(1);
   rig.sessionStart()();
-  await rig.beforeStart()(prompt, ctx);
+  await rig.settle()(settled, ctx);
   expect(counter.count()).toBe(1);
 });
 
@@ -239,7 +247,7 @@ test('an invalid observation leaves the session bias unchanged', async () => {
   rig.guard.observe({ model: 'claude-opus-5-5' }, 0);
   rig.guard.observe(null, 1000);
   rig.guard.observe({ model: 'claude-opus-5-5', messages: 'nope' }, 1000);
-  await rig.beforeStart()(prompt, guardContext({ projection: bigProjection(300_000), compact: counter.compact }));
+  await rig.settle()(settled, guardContext({ projection: bigProjection(300_000), compact: counter.compact }));
   expect(counter.count()).toBe(0);
 });
 
@@ -264,11 +272,14 @@ test('OAUTH-026: multiplier boundaries and missing-model fallback', () => {
 test('OAUTH-026: higher endpoint usage makes wire fitting honor the measured multiplier', () => {
   const rig = createRig();
   const model = subscriptionModel();
-  const payload = { ...payloadWithTokens(100_000), messages: [
-    { role: 'user', content: 'a'.repeat(300_000) },
-    { role: 'assistant', content: 'ok' },
-    { role: 'user', content: 'keep me' },
-  ] };
+  const payload = {
+    ...payloadWithTokens(100_000),
+    messages: [
+      { role: 'user', content: 'a'.repeat(300_000) },
+      { role: 'assistant', content: 'ok' },
+      { role: 'user', content: 'keep me' },
+    ],
+  };
   expect(rig.guard.fit(payload, model)).toBe(payload);
   rig.guard.observe(payloadWithTokens(100_000), 200_000);
   const fitted = rig.guard.fit(payload, model);
@@ -278,10 +289,13 @@ test('OAUTH-026: higher endpoint usage makes wire fitting honor the measured mul
 
 test('OAUTH-026: lower endpoint usage removes seed inflation from wire fitting', () => {
   const rig = createRig();
-  const payload = { ...payloadWithTokens(150_000), messages: [
-    { role: 'user', content: 'a'.repeat(450_000) },
-    { role: 'user', content: 'keep me' },
-  ] };
+  const payload = {
+    ...payloadWithTokens(150_000),
+    messages: [
+      { role: 'user', content: 'a'.repeat(450_000) },
+      { role: 'user', content: 'keep me' },
+    ],
+  };
   expect(rig.guard.fit(payload, subscriptionModel())).not.toBe(payload);
   rig.guard.observe(payloadWithTokens(100_000), 50_000);
   expect(rig.guard.fit(payload, subscriptionModel())).toBe(payload);
