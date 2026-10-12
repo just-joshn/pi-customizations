@@ -13,6 +13,32 @@ test.for(['ANTHROPIC_OAUTH_TOKEN', 'ANTHROPIC_AUTH_TOKEN'])('the native %s token
   await expect(models.getAuth(provider.id)).resolves.toMatchObject({ auth: { apiKey: OAUTH_ACCESS_TOKEN }, source });
 });
 
+const AUTH_TOKEN = 'sk-ant-oat01-auth-token-wins';
+const SETUP_TOKEN = 'sk-ant-oat01-setup-token-loses';
+const OAUTH_ALIAS_TOKEN = 'sk-ant-oat01-oauth-alias-loses';
+
+test('ANTHROPIC_AUTH_TOKEN outranks a setup token', async ({ provider }) => {
+  const models = createModels({
+    authContext: {
+      env: async (name) => (name === 'ANTHROPIC_AUTH_TOKEN' ? AUTH_TOKEN : name === 'CLAUDE_CODE_OAUTH_TOKEN' ? SETUP_TOKEN : undefined),
+      fileExists: noFile,
+    },
+  });
+  models.setProvider(provider);
+  await expect(models.getAuth(provider.id)).resolves.toMatchObject({ auth: { apiKey: AUTH_TOKEN }, source: 'ANTHROPIC_AUTH_TOKEN' });
+});
+
+test('a setup token outranks ANTHROPIC_OAUTH_TOKEN', async ({ provider }) => {
+  const models = createModels({
+    authContext: {
+      env: async (name) => (name === 'CLAUDE_CODE_OAUTH_TOKEN' ? SETUP_TOKEN : name === 'ANTHROPIC_OAUTH_TOKEN' ? OAUTH_ALIAS_TOKEN : undefined),
+      fileExists: noFile,
+    },
+  });
+  models.setProvider(provider);
+  await expect(models.getAuth(provider.id)).resolves.toMatchObject({ auth: { apiKey: SETUP_TOKEN }, source: 'CLAUDE_CODE_OAUTH_TOKEN' });
+});
+
 test.for([
   { name: 'missing', token: undefined },
   { name: 'empty', token: '' },
@@ -100,6 +126,21 @@ test('login cancellation keeps its abort reason', async ({ provider }) => {
       },
     }),
   ).rejects.toBe(reason);
+});
+
+test('Pi login cancellation stays cancellation', async ({ provider }) => {
+  const oauth = provider.auth.oauth;
+  if (!oauth) throw new Error('No OAuth');
+  const cancelled = new Error('Login cancelled');
+  await expect(
+    oauth.login({
+      signal: new AbortController().signal,
+      notify: () => undefined,
+      prompt: async () => {
+        throw cancelled;
+      },
+    }),
+  ).rejects.toBe(cancelled);
 });
 
 test('a state mismatch never exchanges the authorization code', async ({ provider, tokenEndpoint }) => {
