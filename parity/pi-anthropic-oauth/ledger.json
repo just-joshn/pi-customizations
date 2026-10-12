@@ -1,0 +1,227 @@
+{
+  "capability": "pi-anthropic-oauth",
+  "verdict": "NOT VERIFIED",
+  "requirements": [
+    {
+      "id": "OAUTH-001",
+      "sourceBehavior": "OAuth-only subscription requests use bearer authentication and omit x-api-key",
+      "evidence": "fixtures/credential-precedence.json oauth-only rows; request-identity bearer assertion. Dual-header API-key case is OAUTH-010, not this row.",
+      "piMapping": "native Anthropic streaming via src/index.ts",
+      "acceptanceTest": "extensions/pi-anthropic-oauth/test/request-identity.test.ts::no x-api-key header is sent",
+      "status": "VERIFIED",
+      "critical": true
+    },
+    {
+      "id": "OAUTH-002",
+      "sourceBehavior": "Current Claude SDK user-agent and selected billing identity match the 2.1.296 capture",
+      "evidence": "Fresh sandboxed capture-claude.py matched test/fixtures/claude-code-2.1.296.json; identity-update.md",
+      "piMapping": "src/identity.ts request-local attribution on the native Anthropic stream",
+      "status": "VERIFIED",
+      "critical": true,
+      "acceptanceTest": "extensions/pi-anthropic-oauth/test/claude-parity.test.ts::identity matches the current Claude SDK fixture"
+    },
+    {
+      "id": "OAUTH-003",
+      "sourceBehavior": "General billing fingerprint behavior matches current Claude across boundary inputs",
+      "evidence": "Historical implementation claims binary-inspection provenance; single current baseline initially observed",
+      "piMapping": "src/identity.ts billingBlock",
+      "status": "INCONCLUSIVE",
+      "gap": "Length-boundary and Unicode captures agree with the existing rule. Empty, image, interactive, and arbitrary-input classification were not recaptured. Finite agreement is not proof of the private function."
+    },
+    {
+      "id": "OAUTH-004",
+      "sourceBehavior": "The selected SDK capture includes two ephemeral one-hour system cache controls",
+      "evidence": "test/fixtures/claude-code-2.1.296.json systemCache; target prompt-cache tests. Which block is uncached was not recorded by the capture.",
+      "piMapping": "provider-local cacheRetention and onPayload",
+      "acceptanceTest": "extensions/pi-anthropic-oauth/test/prompt-cache.test.ts",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "OAUTH-005",
+      "sourceBehavior": "Copy-code OAuth uses state/PKCE exchange and native persistence",
+      "evidence": "Target local token endpoint tests; native Pi OAuth interface, not live source login comparison",
+      "piMapping": "src/auth.ts delegates native OAuth; Pi credential store",
+      "status": "INCONCLUSIVE",
+      "gap": "Local native tests establish Pi correctness, not full current Claude login equivalence",
+      "critical": true
+    },
+    {
+      "id": "OAUTH-006",
+      "sourceBehavior": "Browser callback login completes successfully",
+      "evidence": "Existing docs explicitly disclose no complete browser exchange",
+      "piMapping": "Pi native OAuth callback login",
+      "status": "INCONCLUSIVE",
+      "gap": "Neither full local browser callback nor live browser login was performed",
+      "critical": true
+    },
+    {
+      "id": "OAUTH-007",
+      "sourceBehavior": "Current authorization URL, scopes and client parameters are equivalent",
+      "evidence": "fixtures/oauth-login-observation.json; installed pi-ai dist/auth/oauth/anthropic.js",
+      "piMapping": "builtin Anthropic OAuth delegated unchanged",
+      "status": "NOT VERIFIED",
+      "gap": "Claude Code 2.1.296 prints https://claude.com/cai/oauth/authorize and requests user:plugins. Pi native login uses https://claude.ai/oauth/authorize without that scope. Client id and copy-code redirect match. A second OAuth client was rejected because the token path was not isolated and no live exchange was authorized.",
+      "critical": true
+    },
+    {
+      "id": "OAUTH-008",
+      "sourceBehavior": "Refresh protocol, proactive margins and token rotation match current Claude",
+      "evidence": "Target oauth-credentials and auth-boundaries tests; source refresh not exercised",
+      "piMapping": "Pi native refresh transaction and locks",
+      "status": "INCONCLUSIVE",
+      "gap": "Synthetic rotation works but current Claude refresh timing/protocol was not compared",
+      "critical": true
+    },
+    {
+      "id": "OAUTH-009",
+      "sourceBehavior": "A setup token from CLAUDE_CODE_OAUTH_TOKEN is accepted and not copied into credential storage",
+      "evidence": "claude setup-token help; auth status oauth_token for that variable; storage test. ANTHROPIC_AUTH_TOKEN resolution is a separate auth-boundaries test, not this pointer.",
+      "piMapping": "src/auth.ts native ApiKeyAuth resolve",
+      "acceptanceTest": "extensions/pi-anthropic-oauth/test/claude-parity.test.ts::ambient setup tokens stay outside credential storage",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "OAUTH-010",
+      "sourceBehavior": "Credential precedence equals current Claude",
+      "evidence": "fixtures/credential-precedence.json; src/auth.ts",
+      "piMapping": "Pi stored credentials before ambient resolver",
+      "status": "NOT VERIFIED",
+      "gap": "Ambient ANTHROPIC_AUTH_TOKEN versus setup-token order now matches measured print mode. When ANTHROPIC_API_KEY and ANTHROPIC_AUTH_TOKEN are both set, Claude sends Bearer for the auth token and still sends x-api-key. Claude also prefers ANTHROPIC_API_KEY over a setup token. This provider rejects API-key fallback and does not emit both headers. Claude ignores ANTHROPIC_OAUTH_TOKEN, which remains a lower-priority alias. Stored-versus-environment order and interactive TUI precedence were not measured."
+    },
+    {
+      "id": "OAUTH-011",
+      "sourceBehavior": "OAuth error confidentiality and cancellation",
+      "evidence": "Target synthetic token errors and aborted login/refresh tests",
+      "piMapping": "src/auth.ts bounded wrappers preserve signal reason",
+      "status": "INCONCLUSIVE",
+      "critical": true,
+      "gap": "Local refresh and abort wrappers pass. Claude error text, login response bodies, and cancellation were not observed, so this is not source error parity."
+    },
+    {
+      "id": "OAUTH-012",
+      "sourceBehavior": "Every case-distinct tool remains independently callable",
+      "evidence": "test/tool-name-collision.test.ts and native OAuth casing behavior",
+      "piMapping": "src/index.ts withUniqueToolNames retains first declaration",
+      "status": "NOT VERIFIED",
+      "gap": "Task/task collide; second declaration is dropped, so lossless tool parity is absent",
+      "critical": true
+    },
+    {
+      "id": "OAUTH-013",
+      "sourceBehavior": "Local native streaming preserves text, tools, images, Unicode, and reported usage",
+      "evidence": "Target loopback responses.test.ts. Not a Claude stream observation. Abort coverage is stream-failures.test.ts and is not this pointer.",
+      "piMapping": "delegated anthropic.stream and streamSimple",
+      "acceptanceTest": "extensions/pi-anthropic-oauth/test/responses.test.ts",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "OAUTH-014",
+      "sourceBehavior": "Provider adapter covers compaction and virtual physical requests",
+      "evidence": "scripts/prove-request-paths.ts exit 0 on Pi 1.1.0; fixtures/prove-paths.stdout.txt",
+      "piMapping": "provider-local composed stream options",
+      "status": "VERIFIED",
+      "acceptanceTest": "extensions/pi-anthropic-oauth/scripts/prove-request-paths.ts"
+    },
+    {
+      "id": "OAUTH-015",
+      "sourceBehavior": "Reload/fork/session replacement retain valid request and tool behavior",
+      "evidence": "scripts/prove-native.ts exit 0 on Pi 1.1.0; fixtures/prove-native.stdout.txt",
+      "piMapping": "Pi extension runtime and request-local identity",
+      "status": "VERIFIED",
+      "acceptanceTest": "extensions/pi-anthropic-oauth/scripts/prove-native.ts"
+    },
+    {
+      "id": "OAUTH-016",
+      "sourceBehavior": "Context accounting and compaction thresholds equal current Claude",
+      "evidence": "Existing docs binary-inspection provenance and explicitly different UTF-8 estimator/calibration",
+      "piMapping": "src/context/tokens.ts and guard.ts",
+      "status": "NOT VERIFIED",
+      "gap": "Estimator uses UTF-8 instead of source-claimed UTF-16 and adaptive bias; current Claude thresholds have no independent clean-room baseline",
+      "critical": true
+    },
+    {
+      "id": "OAUTH-017",
+      "sourceBehavior": "Oversized requests preserve complete conversation semantics",
+      "evidence": "context-fit.test.ts smallest-prefix removal and summary head/tail fit",
+      "piMapping": "src/context/fit.ts request-local omission",
+      "status": "NOT VERIFIED",
+      "gap": "The adapter drops historical content to fit; this is intentional native-gap mitigation, not complete source-equivalent context semantics",
+      "critical": true
+    },
+    {
+      "id": "OAUTH-018",
+      "sourceBehavior": "Prompt preamble, beta set, thinking and output-limit request shape match selected current reference",
+      "evidence": "fixtures/claude-current-capture.json and source-grounding.md target comparison",
+      "piMapping": "Pi native Anthropic prompt/features/output policy",
+      "status": "NOT VERIFIED",
+      "gap": "Pi preamble and feature set differ; request conditions also differ. Exact request parity is not established and deliberately not imposed"
+    },
+    {
+      "id": "OAUTH-019",
+      "sourceBehavior": "Model aliases, catalog and subscription entitlement filtering match Claude",
+      "evidence": "Existing docs: bundled Pi catalog; no live entitlement discovery",
+      "piMapping": "anthropic.getModels() snapshot at provider registration",
+      "status": "NOT VERIFIED",
+      "gap": "Uses Pi catalog, not Claude aliases/account entitlement filtering"
+    },
+    {
+      "id": "OAUTH-020",
+      "sourceBehavior": "Claude credential files/Keychain are shared or synchronized",
+      "evidence": "README explicit non-sharing; src/auth.ts delegates Pi store",
+      "piMapping": "Pi auth.json is authoritative",
+      "status": "NOT VERIFIED",
+      "gap": "No Claude credential import or Keychain synchronization; deliberate ownership boundary"
+    },
+    {
+      "id": "OAUTH-021",
+      "sourceBehavior": "Live subscription entitlement, billing and cache acceptance succeed",
+      "evidence": "Only synthetic tokens and localhost peers used",
+      "piMapping": "native Messages requests with composed subscription attribution",
+      "status": "INCONCLUSIVE",
+      "gap": "No authorized live login/inference/account billing/cache observation",
+      "critical": true
+    },
+    {
+      "id": "OAUTH-022",
+      "sourceBehavior": "Project-local package install/discovery/removal works",
+      "evidence": "fixtures/lifecycle-assertions.json and fixtures/commands.json from isolated pi install --local / list / remove",
+      "piMapping": "pi install --local, loader and pi remove --local",
+      "status": "VERIFIED",
+      "acceptanceTest": "parity/pi-anthropic-oauth/fixtures/run-runtime-verification.py"
+    },
+    {
+      "id": "OAUTH-023",
+      "sourceBehavior": "Cross-platform OAuth integration works",
+      "evidence": "This environment is macOS only",
+      "piMapping": "native Pi provider APIs and Node runtime",
+      "status": "INCONCLUSIVE",
+      "gap": "Linux/Windows behavior not executed"
+    },
+    {
+      "id": "OAUTH-024",
+      "sourceBehavior": "Claude account/device telemetry, plugins and private workload protocols are reproduced",
+      "evidence": "Existing parity docs deliberate native differences",
+      "piMapping": "None; Pi features only",
+      "status": "NOT APPLICABLE",
+      "reason": "Surrounding Claude harness features are outside this subscription provider scope; no fabricated telemetry or plugin implementation"
+    },
+    {
+      "id": "OAUTH-025",
+      "sourceBehavior": "Use is permitted under current subscription terms",
+      "evidence": "Public terms fetch returned HTTP 403; no authorization baseline",
+      "piMapping": "Distribution and user account policy external to Pi APIs",
+      "status": "INCONCLUSIVE",
+      "gap": "Technical shape matching does not establish permission under service terms",
+      "critical": true
+    },
+    {
+      "id": "OAUTH-026",
+      "sourceBehavior": "When both are set, ANTHROPIC_AUTH_TOKEN outranks CLAUDE_CODE_OAUTH_TOKEN",
+      "evidence": "fixtures/credential-precedence.json print-mode and auth-status rows",
+      "piMapping": "src/auth.ts TOKEN_VARIABLES order in the native ApiKeyAuth resolver",
+      "acceptanceTest": "extensions/pi-anthropic-oauth/test/auth-boundaries.test.ts::ANTHROPIC_AUTH_TOKEN outranks a setup token",
+      "status": "VERIFIED",
+      "critical": true
+    }
+  ]
+}
