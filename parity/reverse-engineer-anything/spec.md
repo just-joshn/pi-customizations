@@ -702,6 +702,7 @@ Requirements added while implementing, each with its own acceptance test in
 | `ARCH-002` | A view reads evidence through the validated reader | `route.test.mjs::ROUTE-006` |
 | `ARCH-003` | A flag is boolean only where the command declares it | `route.test.mjs::ROUTE-007` |
 | `ARCH-004` | A malformed capture is a typed target error, not an execution failure | `har.test.mjs::HAR-007` |
+| `ARCH-005` | A missing or unreadable evidence path is a typed invalid request | `store.test.mjs::STORE-011` |
 | `MACOS-001` | Apple metadata families (plist, keyed archive, asset catalog, interface builder, signature) are refused by name with a reason | `capabilities.test.mjs::CAP-001` |
 | `MACOS-002` | Provider- and toolchain-backed native families (dylib tracing, dispatch metadata, managed/native boundaries, artifact extraction) are refused by name with a reason | `capabilities.test.mjs::CAP-002` |
 | `SKILL-005` | The skill loads in a real Pi session and the agent uses the port's CLI | `fixtures/e2e/pi-skill-load.txt` |

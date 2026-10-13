@@ -284,7 +284,13 @@ const requirements = [
     `${tests}/javascript.test.mjs::JS-008: asar inventory honours the integrity policy`,
   ),
   verified('JS-009', 'A member path that escapes the target is refused', 'harness security rules', 'lib/formats/zip.mjs normalizeMemberPath', `${tests}/javascript.test.mjs::JS-009: escaping member paths are refused`),
-  verified('JS-010', 'The CLI returns a reference-shaped envelope with a stable evidence id', 'FIXTURE envelope', 'scripts/rea.mjs + lib/commands.mjs', `${tests}/javascript.test.mjs::JS CLI`),
+  verified(
+    'JS-010',
+    'The CLI returns a reference-shaped envelope with a stable evidence id',
+    'FIXTURE envelope',
+    'scripts/rea.mjs + lib/commands.mjs',
+    `${tests}/javascript.test.mjs::JS CLI: analyze-javascript-application reports a reference-shaped envelope`,
+  ),
 
   verified(
     'ART-001',
@@ -402,6 +408,13 @@ const requirements = [
   verified('DISC-005', 'Absence is only claimable inside complete coverage', 'REA-SKILL', 'lib/discipline.mjs absenceClaimAllowed', `${tests}/discipline.test.mjs::DISC-005: absence is only claimable inside complete coverage`),
   verified('DISC-006', 'The port passes its own discipline audit', 'port design', 'lib/discipline.mjs auditEvidence', `${tests}/discipline.test.mjs::DISC-006: the analyzer output passes its own discipline audit`),
 
+  verified(
+    'ARCH-005',
+    'A missing or unreadable evidence path is a typed invalid request, not an untyped execution failure',
+    'independent verification run, 2026-10-13',
+    'lib/store.mjs readAnyEvidence',
+    `${tests}/store.test.mjs::STORE-011: a missing or unreadable evidence path is a typed invalid request`,
+  ),
   verified(
     'SEC-001',
     'A ZIP member over the member limit is refused before decompression, and an unreadable member is an integrity problem rather than a silent success',

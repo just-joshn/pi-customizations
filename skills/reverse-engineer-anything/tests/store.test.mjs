@@ -153,6 +153,24 @@ test('STORE-005: a bundle refuses to overwrite without permission', async (t) =>
   assert.ok(readFileSync(target, 'utf8').includes('pi-rea.bundle.v1'));
 });
 
+test('STORE-011: a missing or unreadable evidence path is a typed invalid request', async (t) => {
+  const store = await tempStore(t);
+  const { readAnyEvidence } = await import('../scripts/lib/store.mjs');
+  await assert.rejects(
+    () => readAnyEvidence(join(store.root, 'missing.json')),
+    (error) => error.code === 'invalid_request' && error.details.issues[0].reason === 'not_found',
+  );
+  const notJson = join(store.root, 'not-json.json');
+  writeFileSync(notJson, '{ this is not json');
+  await assert.rejects(
+    () => readAnyEvidence(notJson),
+    (error) => error.code === 'invalid_request' && error.details.issues[0].reason === 'invalid_value',
+  );
+  writeFileSync(notJson, JSON.stringify({ evidence_id: `ev_${'a'.repeat(64)}`, operation: 'inspect_artifact', limitations: ['x'], normalized_result: {} }));
+  const record = await readAnyEvidence(notJson);
+  assert.equal(record.operation, 'inspect_artifact');
+});
+
 test('STORE-006: readAnyEvidence refuses a session directory', async (t) => {
   const store = await tempStore(t);
   const { readAnyEvidence } = await import('../scripts/lib/store.mjs');

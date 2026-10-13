@@ -367,7 +367,7 @@
       "sourceBehavior": "The CLI returns a reference-shaped envelope with a stable evidence id",
       "evidence": "FIXTURE envelope",
       "piMapping": "scripts/rea.mjs + lib/commands.mjs",
-      "acceptanceTest": "skills/reverse-engineer-anything/tests/javascript.test.mjs::JS CLI",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/javascript.test.mjs::JS CLI: analyze-javascript-application reports a reference-shaped envelope",
       "status": "VERIFIED"
     },
     {
@@ -584,6 +584,14 @@
       "evidence": "port design",
       "piMapping": "lib/discipline.mjs auditEvidence",
       "acceptanceTest": "skills/reverse-engineer-anything/tests/discipline.test.mjs::DISC-006: the analyzer output passes its own discipline audit",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "ARCH-005",
+      "sourceBehavior": "A missing or unreadable evidence path is a typed invalid request, not an untyped execution failure",
+      "evidence": "independent verification run, 2026-10-13",
+      "piMapping": "lib/store.mjs readAnyEvidence",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/store.test.mjs::STORE-011: a missing or unreadable evidence path is a typed invalid request",
       "status": "VERIFIED"
     },
     {

@@ -30,7 +30,8 @@
       "!!extensions/pi-pstack/upstream.lock.json",
       "!!extensions/pi-maintainer/parity/coverage.json",
       "!!extensions/pi-maintainer/parity/ledger.json",
-      "!!extensions/pi-maintainer/test/fixtures/watch"
+      "!!extensions/pi-maintainer/test/fixtures/watch",
+      "!!parity/reverse-engineer-anything/verification.json"
     ]
   },
   "formatter": {
