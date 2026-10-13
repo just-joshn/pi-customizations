@@ -3,7 +3,7 @@ import { join } from 'node:path';
 
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { PACKAGE_ROOT } from '../../src/paths.ts';
-import { assistantTexts, contentText, makeSandbox, runJson, type Sandbox, startRpc } from './harness.ts';
+import { assistantTexts, contentText, makeSandbox, runJson, type Sandbox, script, startRpc, toolEnds } from './harness.ts';
 
 let sandbox: Sandbox;
 beforeEach(() => {
@@ -71,7 +71,7 @@ describe('host map (HOST-001)', () => {
     const [rpc, oneShot] = [section(await rpcSystemPrompt(), 'pstack_host'), section(await systemPrompt(['--no-session']), 'pstack_host')];
     expect([
       rpc.includes('- Todo lists: the TodoWrite tool. Structured questions: the AskQuestion tool.'),
-      oneShot.includes('- Todo lists: the TodoWrite tool. Structured questions: nobody can answer in this run, so it has no AskQuestion tool; put any question in your final reply.'),
+      oneShot.includes('- Todo lists: the TodoWrite tool. Structured questions: the AskQuestion tool, but nobody can answer in this run, so every question comes back skipped; decide yourself and say what you chose.'),
     ]).toEqual([true, true]);
   });
 
@@ -144,7 +144,29 @@ describe('tool listing', () => {
         .split('\n')
         .filter((line) => /^- (Task|TodoWrite|AskQuestion|Loop):/.test(line))
         .toSorted(),
-    ).toEqual(['- Task: Launch subagents (foreground, background with completion notifications, resume by agent ID)', '- TodoWrite: Create and update the todo list for this session']);
+    ).toEqual([
+      '- AskQuestion: Structured multiple-choice questions for the user',
+      '- Task: Launch subagents (foreground, background with completion notifications, resume by agent ID)',
+      '- TodoWrite: Create and update the todo list for this session',
+    ]);
     expect(prompt).toContain('- When a skill or playbook says to open a todolist or todo list, call TodoWrite before other work, with the steps it names as the first items.');
+  });
+});
+
+describe('image generation (HOST-006)', () => {
+  test('the path the host map names generates an image when an image model is configured', async () => {
+    const images = makeSandbox({ extensions: [join(PACKAGE_ROOT, 'test/fixtures/scripted-model.ts'), join(PACKAGE_ROOT, 'test/fixtures/image-model.ts')] });
+    try {
+      // The script follows the host map line: codemode's models.generateImages(), shown with image().
+      const code =
+        'const [painter] = await models.getAvailableOfType("image");\nconst result = await models.generateImages(painter, { input: [{ type: "text", text: "a fox" }] });\nfor (const block of result.output) if (block.type === "image") image(block);\nreturn painter.provider + "/" + painter.id + " " + result.stopReason;';
+      const run = await runJson(images, script([{ tool: 'codemode', args: { code } }]), ['--no-session', '--tools', '+codemode']);
+      const [end] = toolEnds(run.events, 'codemode');
+      expect(end?.isError).toBe(false);
+      expect(end?.text).toContain('testimg/painter stop');
+      expect(JSON.stringify(run.events.find((event) => event.type === 'tool_execution_end' && event['toolName'] === 'codemode'))).toContain('"type":"image"');
+    } finally {
+      images.dispose();
+    }
   });
 });

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect, test } from 'vitest';
-import { makeSandbox, type PiEvent, runJson, type Sandbox, script, startRpc } from './harness.ts';
+import { makeSandbox, type PiEvent, runJson, type Sandbox, script, startRpc, toolEnds } from './harness.ts';
 
 let sandbox: Sandbox;
 beforeEach(() => {
@@ -40,14 +40,44 @@ test('asks each question through UI dialogs and returns option IDs (HOST-005)', 
     rpc.send({ type: 'prompt', message: script([{ tool: 'AskQuestion', args: { questions: [budget, areas] } }]) });
     const end = await rpc.waitFor((event) => event.type === 'tool_execution_end' && event['toolName'] === 'AskQuestion');
     expect(seen.map((event) => [event['title'], event['options']])).toEqual([
-      ['Pick a reasoning budget', ['unlimited — max reasoning', 'large — xhigh reasoning']],
-      ['Which areas matter most? (pick one at a time, then ✓ Done selecting)', ['Response style', 'Subagents', 'Process', '✓ Done selecting']],
-      ['Which areas matter most? (picked: Subagents)', ['Response style', 'Process', '✓ Done selecting']],
-      ['Which areas matter most? (picked: Subagents, Process)', ['Response style', '✓ Done selecting']],
+      ['Pick a reasoning budget', ['unlimited — max reasoning', 'large — xhigh reasoning', 'Other: (type to answer)']],
+      ['Which areas matter most? (pick one at a time, then ✓ Done selecting)', ['Response style', 'Subagents', 'Process', 'Other: (type to answer)', '✓ Done selecting']],
+      ['Which areas matter most? (picked: Subagents)', ['Response style', 'Process', 'Other: (type to answer)', '✓ Done selecting']],
+      ['Which areas matter most? (picked: Subagents, Process)', ['Response style', 'Other: (type to answer)', '✓ Done selecting']],
     ]);
     const result = end['result'] as { content: { text: string }[]; details: unknown };
     expect(result.content[0]?.text).toBe('budget: large (large — xhigh reasoning)\nareas: subagents (Subagents), process (Process)');
     expect(result.details).toEqual({ answers: { budget: ['large'], areas: ['subagents', 'process'] } });
+  } finally {
+    await rpc.close();
+  }
+});
+
+test('shows the title and option descriptions of a Cursor-shaped call and still returns IDs (HOST-005)', async () => {
+  // Shape observed in Cursor IDE AskQuestion calls: a top-level title and optional option descriptions.
+  const confirm = {
+    id: 'confirm',
+    prompt: 'Write the rule with this table?',
+    options: [
+      { id: 'accept', label: 'Accept as-is (Recommended)', description: 'Keep all roles on inherit-parent.' },
+      { id: 'change', label: 'Change specific roles' },
+    ],
+  };
+  const rpc = startRpc(sandbox, ['--no-session']);
+  try {
+    const seen: PiEvent[] = [];
+    rpc.child.stdout?.on('data', () => {
+      for (const event of rpc.events.filter((candidate) => candidate.type === 'extension_ui_request' && candidate['method'] === 'select' && !seen.includes(candidate))) {
+        seen.push(event);
+        rpc.send({ type: 'extension_ui_response', id: event['id'], value: (event['options'] as string[])[0] });
+      }
+    });
+    rpc.send({ type: 'prompt', message: script([{ tool: 'AskQuestion', args: { title: 'Confirm pstack rule', questions: [confirm] } }]) });
+    const end = await rpc.waitFor((event) => event.type === 'tool_execution_end' && event['toolName'] === 'AskQuestion');
+    expect(seen.map((event) => [event['title'], event['options']])).toEqual([
+      ['Confirm pstack rule: Write the rule with this table?', ['Accept as-is (Recommended) — Keep all roles on inherit-parent.', 'Change specific roles', 'Other: (type to answer)']],
+    ]);
+    expect((end['result'] as { details: unknown }).details).toEqual({ answers: { confirm: ['accept'] } });
   } finally {
     await rpc.close();
   }
@@ -71,8 +101,35 @@ test('a dismissed question is reported, not guessed (HOST-005)', async () => {
   }
 });
 
-test('without a UI the tool is withdrawn, as the Cursor CLI has none (HOST-005)', async () => {
-  const run = await runJson(sandbox, 'tools\n@@tools-list', ['--no-session']);
-  const [tools = ''] = run.events.filter((event) => event.type === 'message_end' && (event['message'] as { role: string }).role === 'assistant').map((event) => JSON.stringify(event['message']));
-  expect([tools.includes('TodoWrite'), tools.includes('AskQuestion')]).toEqual([true, false]);
+test('without a UI the questions resolve as skipped, as Cursor print mode reports (HOST-005)', async () => {
+  // Observed: cursor-agent -p called AskQuestion and its final reply said the user skipped the question
+  // (parity/pi-pstack-two/evidence/cursor-delegate-v21-resume-run1.json).
+  const run = await runJson(sandbox, script([{ tool: 'AskQuestion', args: { questions: [budget] } }]), ['--no-session']);
+  const [end] = toolEnds(run.events, 'AskQuestion');
+  expect(end?.isError).toBe(false);
+  expect(end?.text).toBe('budget: skipped (no one can answer questions in this session; decide yourself and say what you chose)');
+  expect(end?.details).toEqual({ answers: {}, skipped: ['budget'] });
+});
+
+test('every question offers a typed Other answer, as the Cursor question dialog does (HOST-005)', async () => {
+  const rpc = startRpc(sandbox, ['--no-session']);
+  try {
+    const seen: PiEvent[] = [];
+    rpc.child.stdout?.on('data', () => {
+      for (const event of rpc.events.filter((candidate) => candidate.type === 'extension_ui_request' && !seen.includes(candidate))) {
+        seen.push(event);
+        if (event['method'] === 'select') rpc.send({ type: 'extension_ui_response', id: event['id'], value: 'Other: (type to answer)' });
+        if (event['method'] === 'input') rpc.send({ type: 'extension_ui_response', id: event['id'], value: 'xhigh but cheaper' });
+      }
+    });
+    rpc.send({ type: 'prompt', message: script([{ tool: 'AskQuestion', args: { questions: [budget] } }]) });
+    const end = await rpc.waitFor((event) => event.type === 'tool_execution_end' && event['toolName'] === 'AskQuestion');
+    const select = seen.find((event) => event['method'] === 'select');
+    expect((select?.['options'] as string[] | undefined)?.at(-1)).toBe('Other: (type to answer)');
+    const result = end['result'] as { content: { text: string }[]; details: unknown };
+    expect(result.content[0]?.text).toBe('budget: other ("xhigh but cheaper")');
+    expect(result.details).toEqual({ answers: { budget: ['other'] }, other: { budget: 'xhigh but cheaper' } });
+  } finally {
+    await rpc.close();
+  }
 });
