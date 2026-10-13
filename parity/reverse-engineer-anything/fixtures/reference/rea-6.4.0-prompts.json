@@ -1,0 +1,141 @@
+{
+  "source": "REA MCP prompts/list on rea-agents@6.4.0",
+  "prompts": [
+    {
+      "name": "investigate_feature",
+      "description": "Trace a feature through relevant artifact, symbol, and function evidence while distinguishing observations, inferences, and residual unknowns.",
+      "arguments": [
+        {
+          "name": "feature",
+          "required": true
+        },
+        {
+          "name": "target_path",
+          "required": false
+        },
+        {
+          "name": "document",
+          "required": false
+        },
+        {
+          "name": "procedure",
+          "required": false
+        },
+        {
+          "name": "provider_id",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "compare_application_versions",
+      "description": "Compare two shipped application artifacts through complete inventory and optional static or runtime evidence without equating missing data with unchanged behavior.",
+      "arguments": [
+        {
+          "name": "left_target_path",
+          "required": true
+        },
+        {
+          "name": "right_target_path",
+          "required": true
+        },
+        {
+          "name": "left_manifest_id",
+          "required": false
+        },
+        {
+          "name": "right_manifest_id",
+          "required": false
+        },
+        {
+          "name": "focus_occurrence_id",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "verify_reconstruction",
+      "description": "Evaluate a finite reconstruction specification against retained Evidence comparisons without broadening pass results into global equivalence claims.",
+      "arguments": [
+        {
+          "name": "reconstruction_goal",
+          "required": true
+        },
+        {
+          "name": "comparison_evidence_id",
+          "required": false
+        },
+        {
+          "name": "provider_id",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "trace_crash",
+      "description": "Correlate a crash symptom with static call and reference evidence plus optional process capture observations.",
+      "arguments": [
+        {
+          "name": "crash_signal",
+          "required": true
+        },
+        {
+          "name": "target_path",
+          "required": false
+        },
+        {
+          "name": "document",
+          "required": false
+        },
+        {
+          "name": "procedure",
+          "required": false
+        },
+        {
+          "name": "capture_evidence_id",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "audit_residual_unknowns",
+      "description": "Review current residual-unknown heads against retained evidence, revision integrity, and declared authority without silently closing unanswered questions.",
+      "arguments": [
+        {
+          "name": "audit_scope",
+          "required": true
+        },
+        {
+          "name": "unknown_id",
+          "required": false
+        },
+        {
+          "name": "evidence_id",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "prepare_bounded_process_capture",
+      "description": "Choose a command, inputs, observations, and stopping conditions for a process capture that answers the behavioral question.",
+      "arguments": [
+        {
+          "name": "behavior_question",
+          "required": true
+        },
+        {
+          "name": "executable",
+          "required": true
+        },
+        {
+          "name": "working_directory",
+          "required": true
+        },
+        {
+          "name": "prior_capture_evidence_id",
+          "required": false
+        }
+      ]
+    }
+  ]
+}

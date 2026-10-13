@@ -1,0 +1,7 @@
+# Real Pi 1.2.0 session, 2026-10-13T05:23:16Z
+# command: pi -p --no-session --skill <repo>/skills/reverse-engineer-anything "..."
+
+The route command chose:
+
+- **Operation:** `inspect-binary-layout`
+- **Format detected:** `mach-o` (a Mach-O binary, kind: `binary`)

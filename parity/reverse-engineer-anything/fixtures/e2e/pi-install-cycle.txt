@@ -1,0 +1,24 @@
+# pi install of the repository root into an isolated PI_CODING_AGENT_DIR, 2026-10-13T05:23:20Z
+# command: HOME=/tmp/pi-e2e-home PI_CODING_AGENT_DIR=/tmp/pi-e2e-home/.pi/agent pi install <repo>
+
+Installing /Users/josh-desktop/src/personal/pi-customizations...
+Installed /Users/josh-desktop/src/personal/pi-customizations
+
+# command: pi list
+User packages:
+  ../../../../Users/josh-desktop/src/personal/pi-customizations
+    /Users/josh-desktop/src/personal/pi-customizations
+
+# command: pi -p --no-session "List the name and description of the reverse-engineering skill available to you..."
+**Name:** reverse-engineer-anything
+
+**Description:** Reverse engineer a shipped artifact — an extracted JavaScript/Electron app or ASAR, an archive or package, a Mach-O/ELF/PE binary, a Go binary, or a retained HAR capture — and answer questions about how it works with evidence. Use when a claim depends on shipped bytes rather than available source: decompiling or tracing a feature, comparing versions of a binary, explaining what a bundled app does, reading a package inventory, or reconstructing behavior for a new implementation. Runs locally, writes nothing outside the target and the session store, performs no execution, and states what it could not establish. Skip it for ordinary analysis of a complete source repository — use normal repository tools there.
+
+DONE
+
+# command: pi remove <repo>
+Removing /Users/josh-desktop/src/personal/pi-customizations...
+Removed /Users/josh-desktop/src/personal/pi-customizations
+
+# command: pi list (after removal)
+No packages installed.
