@@ -1,0 +1,6 @@
+{
+  "name": "notepad-app",
+  "version": "2.1.0",
+  "main": "src/main/main.js",
+  "description": "Fixture extracted Electron app"
+}

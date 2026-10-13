@@ -11,7 +11,8 @@ Extensions and skills for [Pi](https://pi.dev), the coding agent by Earendil Wor
 | [`extensions/pi-antigravity-oauth`](extensions/pi-antigravity-oauth/README.md) | Restores the `google-antigravity` provider. Signs in with Google OAuth and talks to the Cloud Code Assist API. |
 | [`extensions/pi-xai-oauth`](extensions/pi-xai-oauth/README.md) | Lets a SuperGrok or X Premium subscription answer in Pi through the `grok-build` provider. |
 | [`extensions/pi-maintainer`](extensions/pi-maintainer/README.md) | Aider-parity edit, git, map, and lint on Pi 1.1.0. Declares runtime npm dependencies (`yaml`, `ignore`, `diff-match-patch`), so the workspace install below is required before Pi can load it. |
-| [`skills/`](skills/) | One standalone skill: `port-harness-capability`. |
+| [`skills/port-harness-capability`](skills/port-harness-capability/) | Clean-room ports of capabilities from other AI coding harnesses, with a machine-checked parity ledger. |
+| [`skills/reverse-engineer-anything`](skills/reverse-engineer-anything/) | A Pi-native reimplementation of [REA](https://github.com/morluto/rea)'s investigation contract: Evidence records, a session store, a residual-unknown registry, and engine-free analyzers for JavaScript/Electron apps and ASARs, archives, Mach-O/ELF/PE binaries, Go metadata and retained HAR captures. Local-only, no analysis engine, no npm dependency. |
 
 ## Install
 

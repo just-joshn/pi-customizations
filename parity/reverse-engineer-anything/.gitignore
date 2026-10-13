@@ -1,0 +1,6 @@
+# `parity/.gitignore` excludes regenerable `fixtures/` trees for the pstack program.
+# This port's fixtures are the frozen reference contract its tests and ledger cite,
+# so they are part of the deliverable and are re-included here. `fixtures/` inside
+# this directory wins over the parent rule.
+!fixtures/
+!fixtures/**
