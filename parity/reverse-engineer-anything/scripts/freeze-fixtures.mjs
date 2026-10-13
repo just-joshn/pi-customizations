@@ -120,7 +120,7 @@ const targetSource = join(capturesDir, 'targets/notepad-app');
 const targetDestination = join(fixturesDir, 'targets/notepad-app');
 await mkdir(targetDestination, { recursive: true });
 await cp(targetSource, targetDestination, { recursive: true });
-const targetFiles = await readdir(targetDestination, { recursive: true });
+const targetFiles = (await readdir(targetDestination, { recursive: true, withFileTypes: true })).filter((entry) => entry.isFile());
 const targetBytes = await stat(join(targetDestination, 'package.json'))
   .then(() => 0)
   .catch(() => null);

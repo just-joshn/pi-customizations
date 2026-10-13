@@ -1,17 +1,21 @@
 {
-  "ran_at": "2026-10-13T07:57:00.273Z",
+  "ran_at": "2026-10-13T08:05:55.627Z",
   "node": "v24.21.0",
   "platform": "darwin arm64",
-  "duration_ms": 16404,
-  "flags": ["--reference", "--pi"],
-  "passed": 25,
+  "duration_ms": 17159,
+  "flags": [
+    "--reference",
+    "--pi",
+    "--pr"
+  ],
+  "passed": 26,
   "failed": 0,
   "results": [
     {
       "claim": "no shipped file names the upstream package, CLI or MCP surface",
-      "method": "scan 48 shipped files",
+      "method": "scan 31 shipped files",
       "ok": true,
-      "detail": "clean"
+      "detail": "31 files clean"
     },
     {
       "claim": "every shipped import is a node builtin or relative, and none can launch a process or open a connection",
@@ -38,10 +42,10 @@
       "detail": "{\"VERIFIED\":95,\"NOT VERIFIED\":0,\"INCONCLUSIVE\":0,\"NOT APPLICABLE\":17}"
     },
     {
-      "claim": "every VERIFIED row cites an acceptance test that exists by file and by name",
-      "method": "115 citations checked against the test files",
+      "claim": "every VERIFIED row cites an acceptance test that exists by file and by exact name",
+      "method": "95 VERIFIED rows, 93 named citations",
       "ok": true,
-      "detail": "all citations resolve"
+      "detail": "all 95 citations resolve, 93 by exact name"
     },
     {
       "claim": "the reference catalog fixture really holds the reference tool surface",
@@ -89,13 +93,13 @@
       "claim": "evidence ids are content-addressed and stable",
       "method": "run the same analysis twice",
       "ok": true,
-      "detail": "ev_5a881dc22e22f2ca71bb650fa7daf00c0289c218c53a6293835f573e154ecf31"
+      "detail": "ev_8dadbddc831d96d57364600d637c2719deea45017e6d6839bddc1f4e43dafe01"
     },
     {
       "claim": "evidence is on disk before it is reported",
       "method": "read the store after the CLI exits",
       "ok": true,
-      "detail": ".rea/sessions/s_ee46237c-e793-495b-8bad-2965f6333e08/evidence/ev_5a881dc22e22f2ca71bb650fa7daf00c0289c218c53a6293835f573e154ecf31.json"
+      "detail": ".rea/sessions/s_5ccf30f4-23ea-42b1-a980-cd6f433c9d1d/evidence/ev_8dadbddc831d96d57364600d637c2719deea45017e6d6839bddc1f4e43dafe01.json"
     },
     {
       "claim": "a repeated analysis is deduplicated in the index",
@@ -156,6 +160,12 @@
       "method": "pi -p --no-session --skill, 1 attempt(s)",
       "ok": true,
       "detail": "run 1: exit_ok=true stdout=\"Operation: `inspect-binary-layout`\nFormat: `mach-o`\" stderr=\"\""
+    },
+    {
+      "claim": "this branch has an open pull request against main",
+      "method": "gh pr view 85",
+      "ok": true,
+      "detail": "OPEN fix/reverse-engineer-anything-verification -> main, 8 files, +674/-4, head matches"
     }
   ]
 }

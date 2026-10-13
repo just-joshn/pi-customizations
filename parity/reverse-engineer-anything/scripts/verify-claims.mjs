@@ -80,11 +80,12 @@ const tempRoot = () => mkdtempSync(join(tmpdir(), 'rea-verify-'));
 async function checkIndependence() {
   const forbidden = [/rea-agents/, /npx\s+rea\b/, /mcp__/, /@earendil/];
   const offenders = [];
-  for (const file of shippedFiles()) {
+  const files = shippedFiles();
+  for (const file of files) {
     const text = readFileSync(join(skillDir, file), 'utf8');
     for (const pattern of forbidden) if (pattern.test(text)) offenders.push(`${file} matches ${pattern}`);
   }
-  record('no shipped file names the upstream package, CLI or MCP surface', 'scan 48 shipped files', offenders.length === 0, offenders.join('; ') || 'clean');
+  record('no shipped file names the upstream package, CLI or MCP surface', `scan ${files.length} shipped files`, offenders.length === 0, offenders.join('; ') || `${files.length} files clean`);
 
   const processModules = new Set(['node:child_process', 'node:http', 'node:https', 'node:net', 'node:dns', 'node:tls', 'node:dgram', 'node:cluster', 'node:worker_threads', 'node:vm', 'node:repl']);
   const importIssues = [];
@@ -134,6 +135,9 @@ async function checkLedger() {
 
   const missingFile = [];
   const missingName = [];
+  const verifiedRows = ledger.requirements.filter((requirement) => requirement.status === 'VERIFIED').length;
+  let named = 0;
+  let exact = 0;
   for (const requirement of ledger.requirements) {
     if (requirement.status !== 'VERIFIED') continue;
     const [file, name] = requirement.acceptanceTest.split('::');
@@ -146,13 +150,17 @@ async function checkLedger() {
       continue;
     }
     if (name === undefined) continue;
-    if (!new RegExp(`test\\(\\s*(?:'|")${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'm').test(text)) missingName.push(`${requirement.id} -> ${name}`);
+    named += 1;
+    // An exact name, not a prefix: a citation that only matches the start of a
+    // longer test name is a loose claim, not a resolved one.
+    if (new RegExp(`test\\(\\s*(?:'|")${name.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?:'|")`, 'm').test(text)) exact += 1;
+    else missingName.push(`${requirement.id} -> ${name}`);
   }
   record(
-    'every VERIFIED row cites an acceptance test that exists by file and by name',
-    '115 citations checked against the test files',
-    missingFile.length === 0 && missingName.length === 0,
-    [...missingFile, ...missingName].join('; ') || 'all citations resolve',
+    'every VERIFIED row cites an acceptance test that exists by file and by exact name',
+    `${verifiedRows} VERIFIED rows, ${named} named citations`,
+    missingFile.length === 0 && missingName.length === 0 && exact === named,
+    [...missingFile, ...missingName].join('; ') || `all ${verifiedRows} citations resolve, ${exact} by exact name`,
   );
   return { counts, verdict };
 }
@@ -392,18 +400,28 @@ async function checkPackagingAndPi(reRunPi) {
 
 async function checkPullRequest(checkPr) {
   if (!checkPr) return;
-  const view = await shell('gh', ['pr', 'view', '84', '--json', 'number,title,state,baseRefName,headRefName,additions,deletions,changedFiles,url'], { cwd: root });
+  const branch = (await shell('git', ['rev-parse', '--abbrev-ref', 'HEAD'], { cwd: root })).stdout.trim();
+  const listed = await shell('gh', ['pr', 'list', '--head', branch, '--state', 'all', '--json', 'number,state', '--limit', '1'], { cwd: root });
+  if (!listed.ok) {
+    record('this branch has an open pull request against main', `gh pr list --head ${branch}`, false, listed.stderr.slice(0, 160));
+    return;
+  }
+  const found = JSON.parse(listed.stdout);
+  if (found.length === 0) {
+    record('this branch has an open pull request against main', `gh pr list --head ${branch}`, false, `no pull request found for ${branch}`);
+    return;
+  }
+  const view = await shell('gh', ['pr', 'view', String(found[0].number), '--json', 'number,title,state,baseRefName,headRefName,additions,deletions,changedFiles,url'], { cwd: root });
   if (!view.ok) {
-    record('the pull request reflects this branch', 'gh pr view 84', false, view.stderr.slice(0, 160));
+    record('this branch has an open pull request against main', `gh pr view ${found[0].number}`, false, view.stderr.slice(0, 160));
     return;
   }
   const pr = JSON.parse(view.stdout);
-  const counts = { files: pr.changedFiles, additions: pr.additions, deletions: pr.deletions };
   record(
-    'the pull request is open against main from this branch',
-    'gh pr view 84',
-    pr.state === 'OPEN' && pr.baseRefName === 'main' && pr.headRefName === 'feat/reverse-engineer-anything-skill',
-    `${pr.state} ${pr.headRefName} -> ${pr.baseRefName}, ${counts.files} files, +${counts.additions}/-${counts.deletions}`,
+    'this branch has an open pull request against main',
+    `gh pr view ${pr.number}`,
+    pr.state === 'OPEN' && pr.baseRefName === 'main' && pr.headRefName === branch,
+    `${pr.state} ${pr.headRefName} -> ${pr.baseRefName}, ${pr.changedFiles} files, +${pr.additions}/-${pr.deletions}, ${branch === pr.headRefName ? 'head matches' : 'head mismatch'}`,
   );
 }
 

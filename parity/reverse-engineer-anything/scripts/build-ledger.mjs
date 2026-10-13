@@ -284,7 +284,13 @@ const requirements = [
     `${tests}/javascript.test.mjs::JS-008: asar inventory honours the integrity policy`,
   ),
   verified('JS-009', 'A member path that escapes the target is refused', 'harness security rules', 'lib/formats/zip.mjs normalizeMemberPath', `${tests}/javascript.test.mjs::JS-009: escaping member paths are refused`),
-  verified('JS-010', 'The CLI returns a reference-shaped envelope with a stable evidence id', 'FIXTURE envelope', 'scripts/rea.mjs + lib/commands.mjs', `${tests}/javascript.test.mjs::JS CLI`),
+  verified(
+    'JS-010',
+    'The CLI returns a reference-shaped envelope with a stable evidence id',
+    'FIXTURE envelope',
+    'scripts/rea.mjs + lib/commands.mjs',
+    `${tests}/javascript.test.mjs::JS CLI: analyze-javascript-application reports a reference-shaped envelope`,
+  ),
 
   verified(
     'ART-001',

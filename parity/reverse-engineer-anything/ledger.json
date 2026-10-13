@@ -367,7 +367,7 @@
       "sourceBehavior": "The CLI returns a reference-shaped envelope with a stable evidence id",
       "evidence": "FIXTURE envelope",
       "piMapping": "scripts/rea.mjs + lib/commands.mjs",
-      "acceptanceTest": "skills/reverse-engineer-anything/tests/javascript.test.mjs::JS CLI",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/javascript.test.mjs::JS CLI: analyze-javascript-application reports a reference-shaped envelope",
       "status": "VERIFIED"
     },
     {

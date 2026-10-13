@@ -84,7 +84,7 @@ All commands were run on macOS 15 / Darwin arm64, Node v24.21.0, Pi 1.2.0.
 | Pi skill loading (real loader) | `node scripts/check-pi-mechanisms.mjs` | exit 0, 58 skills loaded including this one |
 | Pi end-to-end, per-session | `pi -p --no-session --skill skills/reverse-engineer-anything "…route /bin/ls…"` | replied `inspect-binary-layout` / `mach-o`; transcript in `fixtures/e2e/pi-skill-load.txt` |
 | Pi packaging, isolated agent dir | `HOME=… pi install <repo>` → `pi list` → `pi -p` discovery → `pi remove` | install, discovery and removal recorded in `fixtures/e2e/pi-install-cycle.txt` |
-| Parity ledger | `node skills/port-harness-capability/scripts/validate-ledger.mjs parity/reverse-engineer-anything/ledger.json --root .` | `{"verdict":"VERIFIED","counts":{"VERIFIED":94,"NOT VERIFIED":0,"INCONCLUSIVE":0,"NOT APPLICABLE":17}}` |
+| Parity ledger | `node skills/port-harness-capability/scripts/validate-ledger.mjs parity/reverse-engineer-anything/ledger.json --root .` | `{"verdict":"VERIFIED","counts":{"VERIFIED":95,"NOT VERIFIED":0,"INCONCLUSIVE":0,"NOT APPLICABLE":17}}` |
 | Reference comparison | REA 6.4.0 `analyze-javascript-application` on the same target | the port matches every Electron/IPC summary counter exactly (windows 1, explicit web preferences 2, bridges 1, exposed members 1, native bindings 1, IPC operations 2, literal channels 1, renderer transmissions 1, main handlers 1, paired 1, unpaired 0) |
 | Code compliance for the port | `node scripts/check-agents-compliance.mjs` | no violations in `skills/reverse-engineer-anything` or `parity/reverse-engineer-anything` (notes only) |
 
@@ -112,6 +112,11 @@ findings were fixed with regression tests; the raw reviews are in `reviews/`.
 The claims above are re-measured by `scripts/verify-claims.mjs`, which a reviewer reruns instead of
 trusting this document. Its first run found two real problems, both fixed before this revision:
 
+- The claim text said "115 VERIFIED citations" and "48 shipped files". The real numbers are 95
+  VERIFIED rows and 31 shipped files. The verifier had hardcoded both, so it reported the wrong
+  figures while passing, and one citation (`JS-010`) matched a test-name prefix rather than the full
+  name. The counts are now computed, the citation is exact, and the verifier fails if a named
+  citation does not match a declared test exactly.
 - The suite size was reported as 120 tests in 16 files. The true size of this skill's suite is 97
   tests in 14 files; the larger figure came from a glob that also matched the repository's other
   skill. Every count in this report and the pull request was corrected.
@@ -127,17 +132,22 @@ this report states. The full battery runs in about 16 seconds.
 
 The script then checks, among others: the shipped skill has no reference to the upstream package,
 its 75 import specifiers are all `node:` builtins or relative, production code never reads this
-evidence tree, the ledger validates and every one of its 115 VERIFIED citations resolves to a test
-that exists by file and by name, the reference fixture really holds 170 tools and 6 prompts, the
-port reproduces all 11 reference summary counters including 9 IPC counters, the analyzer writes no
+evidence tree, the ledger validates and all 95 VERIFIED citations resolve to a test that exists by file
+and by exact name, the reference fixture really holds 170 tools and 6 prompts, the port reproduces
+all 11 reference summary counters including 9 IPC counters on the same tree, the analyzer writes no
 marker file a target's code would have created, evidence is on disk and deduplicated after a repeat
 run, a traversal-shaped identifier is refused, credential values never reach the evidence, an
 oversized member is refused, the port adds no compliance violation, and the repository gates were
 already red before this branch.
 
+PR #84 was merged at 2026-10-13T07:20:24Z, while this re-measurement was still running. The
+corrections above therefore ship as a follow-up PR rather than an amendment, and this document
+describes the state of the follow-up branch: the merged revision carried the untyped error and the
+wrong counts.
+
 ## Parity status
 
-VERIFIED 94 · NOT VERIFIED 0 · INCONCLUSIVE 0 · NOT APPLICABLE 17 (validator-derived).
+VERIFIED 95 · NOT VERIFIED 0 · INCONCLUSIVE 0 · NOT APPLICABLE 17 (validator-derived).
 
 The 17 out-of-scope rows are deliberate and named in `ledger.json` with the prerequisite each one
 needs: provider decompilation (Hopper/Ghidra/IDA), Android code and resources (JADX/apktool), JEB,

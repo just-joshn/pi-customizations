@@ -17,7 +17,7 @@ Every failure is one JSON object on stdout with `code`, `category`, `message`, `
 | `evidence_integrity_mismatch` | An imported bundle's record does not hash to its `evidence_id`. | Do not trust that record. Re-export from the session that produced it. |
 | `revision_conflict` | A stale `--expected-revision`, or a duplicate unknown question. | Re-read with `list-unknowns`, then retry with the current revision. |
 | `configuration_invalid` | The store directory is unusable. | Pass `--store <writable path>` or repair permissions. |
-| `unsupported_target` with `details.code: "member_too_large"` | A member declares more than the 256 MiB member limit, so it was not decompressed. | The question cannot be answered from this member here; record it and name the limit. |
+| `artifact_integrity_mismatch` naming a member | The member declares more than the 256 MiB limit, or its bytes do not match what the container declares. It was not decompressed. | The question cannot be answered from this member here. Re-run with `--integrity-policy record-and-continue` only to inventory the rest, and report the contradiction. |
 | `execution_failure` | Anything else. Run with `PI_REA_DEBUG=1` to see the stack on stderr. | Read the message; report it rather than guessing. |
 
 ## Operations this port does not have
