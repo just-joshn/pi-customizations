@@ -7,8 +7,9 @@ import type { Usage } from '@earendil-works/pi-ai';
 import { PACKAGE_ROOT } from '../paths.ts';
 import type { ModelSpec } from './models.ts';
 
-// TodoWrite only changes the child's own todo list, so a readonly reviewer can still keep one.
-const READONLY_TOOLS = 'read,grep,find,ls,TodoWrite';
+// TodoWrite only changes the child's own todo list, so a readonly reviewer can still keep one. The child replaces
+// bash with a sandboxed read-only shell (readonly-shell.ts).
+const READONLY_TOOLS = 'read,grep,find,ls,bash,TodoWrite';
 const AGENT_ID = /^[A-Za-z0-9][A-Za-z0-9._-]{0,126}[A-Za-z0-9]$/;
 const KILL_GRACE_MS = 3_000;
 

@@ -30,7 +30,7 @@ describe('childArgs (SEC-001, TASK-008)', () => {
       '--thinking',
       'high',
       '--tools',
-      'read,grep,find,ls,TodoWrite',
+      'read,grep,find,ls,bash,TodoWrite',
       '--no-mcp',
       '@/w/a.png',
       '@/w/b.txt',

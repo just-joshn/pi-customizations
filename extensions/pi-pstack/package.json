@@ -1,7 +1,7 @@
 {
   "name": "pi-pstack",
-  "version": "0.15.20-pi.1",
-  "description": "Pi port of the pstack Cursor plugin 0.15.20 and the Cursor host features its skills call: subagents, todos, custom modes, the model rule, /loop, and AskQuestion",
+  "version": "0.15.21-pi.1",
+  "description": "Pi port of the pstack Cursor plugin 0.15.21 and the Cursor host features its skills call: subagents, todos, custom modes, the model rule, /loop, and AskQuestion",
   "type": "module",
   "license": "MIT",
   "keywords": [
@@ -26,6 +26,9 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "live:e2e": "node scripts/live-e2e.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/sandbox-runtime": "0.0.79"
   },
   "peerDependencies": {
     "@earendil-works/pi-ai": "*",
