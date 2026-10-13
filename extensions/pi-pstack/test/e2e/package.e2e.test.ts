@@ -4,7 +4,7 @@ import { join, resolve } from 'node:path';
 
 import { afterEach, beforeEach, expect, test } from 'vitest';
 import { PACKAGE_ROOT } from '../../src/paths.ts';
-import { contentText, makeSandbox, piInvocation, type Sandbox, startRpc } from './harness.ts';
+import { contentText, makeSandbox, piInvocation, runJson, type Sandbox, script, startRpc, toolEnds } from './harness.ts';
 
 let sandbox: Sandbox;
 beforeEach(() => {
@@ -52,6 +52,12 @@ test('installs from a fresh copy without node_modules, then removes cleanly (PKG
       .filter((name) => ['Task', 'TodoWrite', 'AskQuestion', 'Loop'].includes(name))
       .toSorted(),
   ).toEqual(['AskQuestion', 'Loop', 'Task', 'TodoWrite']);
+
+  // A local install gets no dependency install, so the readonly shell has no sandbox module and must refuse (TASK-019).
+  const steps = [{ tool: 'bash', args: { command: 'touch escaped.txt' } }];
+  const readonlyRun = await runJson(sandbox, script([{ tool: 'Task', args: { description: 'ro', prompt: `go\n@@script ${JSON.stringify(steps)}`, readonly: true } }]), ['--no-session']);
+  expect(toolEnds(readonlyRun.events, 'Task')[0]?.text).toContain('no verified OS sandbox is available');
+  expect(existsSync(join(sandbox.workDir, 'escaped.txt'))).toBe(false);
 
   pi('remove', copy);
   expect(settingsPackages()).toEqual([]);

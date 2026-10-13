@@ -3,6 +3,7 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 
 import { join } from 'node:path';
 
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
+import { PACKAGE_ROOT } from '../../src/paths.ts';
 import { assistantTexts, contentText, makeSandbox, type PiEvent, runJson, type Sandbox, script, startRpc, toolEnds } from './harness.ts';
 
 const AGENT_ID = /Agent ID: ([0-9a-f-]{36})/;
@@ -92,10 +93,37 @@ describe('subagent types', () => {
     expect(result.text).toContain('<pstack_agent>\n# Comment Sicko\n\nMy first output when spawned is exactly this.');
   });
 
-  test('readonly limits the child to read, grep, find, ls, and its todo list (TASK-008)', async () => {
+  test('readonly limits the child to read, grep, find, ls, a read-only shell, and its todo list (TASK-008, TASK-019)', async () => {
     const { result } = await runTask({ prompt: 'go\n@@tools-list', readonly: true });
     const tools = /<response>\n(.*)\n<\/response>/.exec(result.text)?.[1]?.split(',');
-    expect(tools?.toSorted()).toEqual(['TodoWrite', 'find', 'grep', 'ls', 'read']);
+    expect(tools?.toSorted()).toEqual(['TodoWrite', 'bash', 'find', 'grep', 'ls', 'read']);
+  });
+
+  test.skipIf(process.platform !== 'darwin' && process.platform !== 'linux')('a readonly child runs git log but cannot write files or reach the network (TASK-019)', async () => {
+    execFileSync('git', ['init', '-q'], { cwd: sandbox.workDir });
+    writeFileSync(join(sandbox.workDir, 'kept.txt'), 'KEPT\n');
+    execFileSync('git', ['-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-qm', 'RO-COMMIT-MARK', '--allow-empty'], { cwd: sandbox.workDir });
+    const outside = join(sandbox.root, 'outside-write.txt');
+    const steps = [
+      { tool: 'bash', args: { command: 'git log --oneline -1' } },
+      { tool: 'bash', args: { command: 'cat kept.txt | tr a-z A-Z' } },
+      { tool: 'bash', args: { command: 'touch made.txt' } },
+      { tool: 'bash', args: { command: `echo x > ${outside}` } },
+      { tool: 'bash', args: { command: 'rm kept.txt' } },
+      { tool: 'bash', args: { command: 'curl -sS -m 5 -o /dev/null https://example.com' } },
+    ];
+    const { result } = await runTask({ prompt: `go\n@@script ${JSON.stringify(steps)}`, readonly: true });
+    const lines = /<response>\n([\s\S]*)\n<\/response>/.exec(result.text)?.[1] ?? '';
+    expect(lines).toContain('RO-COMMIT-MARK');
+    expect(lines).toContain('KEPT');
+    expect(lines.match(/\[bash error\]/g)?.length).toBe(4);
+    expect([existsSync(join(sandbox.workDir, 'made.txt')), existsSync(outside), existsSync(join(sandbox.workDir, 'kept.txt'))]).toEqual([false, false, true]);
+  });
+
+  test('a writable child keeps the ordinary shell (TASK-019)', async () => {
+    const { result } = await runTask({ prompt: `go\n@@script ${JSON.stringify([{ tool: 'bash', args: { command: 'touch made.txt && echo MADE' } }])}` });
+    expect(result.text).toContain('MADE');
+    expect(existsSync(join(sandbox.workDir, 'made.txt'))).toBe(true);
   });
 
   test('a subagent gets the project resources its parent trusted (review r2: security)', async () => {
@@ -290,9 +318,69 @@ describe('resume edge cases', () => {
   test('honors readonly: true for an agent that started writable (review r2: security 2)', async () => {
     const first = await runJson(sandbox, script([task({ prompt: 'go\n@@say ONE' })]), ['--no-session']);
     const agentId = idOf(toolEnds(first.events, 'Task')[0]?.text);
-    const second = await runJson(sandbox, script([task({ prompt: 'again\n@@tools-list', resume: agentId, readonly: true })]), ['--no-session']);
-    const tools = /<response>\n(.*)\n<\/response>/.exec(toolEnds(second.events, 'Task')[0]?.text ?? '')?.[1]?.split(',');
-    expect(tools?.toSorted()).toEqual(['TodoWrite', 'find', 'grep', 'ls', 'read']);
+    const second = await runJson(sandbox, script([task({ prompt: `again\n@@script ${JSON.stringify([{ tool: 'bash', args: { command: 'touch made.txt' } }])}`, resume: agentId, readonly: true })]), ['--no-session']);
+    expect(toolEnds(second.events, 'Task')[0]?.text).toContain('[bash error]');
+    expect(existsSync(join(sandbox.workDir, 'made.txt'))).toBe(false);
+  });
+
+  test.for([undefined, false])('a raised readonly floor survives later resumes requesting %s', async (readonly) => {
+    const first = await runTask({ prompt: 'go\n@@tools-list' });
+    const agentId = idOf(first.result.text);
+    expect(first.result.text).toContain('write');
+    const path = join(subagentDir(), `${agentId}.json`);
+    const original = { ...JSON.parse(readFileSync(path, 'utf8')), extra: { preserved: true } };
+    writeFileSync(path, JSON.stringify(original));
+
+    const restricted = await runTask({ prompt: 'again\n@@tools-list', resume: agentId, readonly: true });
+    expect(restricted.result.details).toMatchObject({ readonly: true });
+    const resumed = await runTask({
+      prompt: `again\n@@script ${JSON.stringify([{ tool: 'write', args: { path: 'regained.txt', content: 'ESCAPED' } }])}`,
+      resume: agentId,
+      ...(readonly === undefined ? {} : { readonly }),
+    });
+    expect(resumed.result.text).toContain('Tool write not found');
+    expect(resumed.result.details).toMatchObject({ readonly: true });
+    expect(existsSync(join(sandbox.workDir, 'regained.txt'))).toBe(false);
+    expect(JSON.parse(readFileSync(path, 'utf8'))).toEqual({ ...original, readonly: true });
+  });
+
+  test('resume honors a current readonly agent definition over an older writable record', async () => {
+    const extension = join(sandbox.root, 'task-definition.ts');
+    const definition = (readonly: boolean) =>
+      writeFileSync(
+        extension,
+        `
+      import { registerTask } from ${JSON.stringify(join(PACKAGE_ROOT, 'src/task/tool.ts'))};
+      import { GENERAL_PURPOSE } from ${JSON.stringify(join(PACKAGE_ROOT, 'src/task/agents.ts'))};
+      export default (pi) => {
+        // Each -e extension gets its own module graph, so a depth guard here can misread in the subagent, whose
+        // own Task comes first. Decide at session_start, when the existing providers are visible.
+        pi.on('session_start', () => {
+          if (pi.getActiveTools().includes('Task')) return;
+          registerTask(pi, { agents: [{ ...GENERAL_PURPOSE, readonly: ${readonly} }], depth: 0 });
+        });
+      };
+    `,
+      );
+    writeFileSync(
+      join(sandbox.agentDir, 'settings.json'),
+      JSON.stringify({
+        packages: [{ source: PACKAGE_ROOT, extensions: [] }],
+        extensions: [extension, join(PACKAGE_ROOT, 'test/fixtures/scripted-model.ts')],
+        quietStartup: true,
+      }),
+    );
+    definition(false);
+    const first = await runTask({ prompt: 'go\n@@tools-list' });
+    const agentId = idOf(first.result.text);
+    expect(first.result.isError, first.result.text).toBe(false);
+    expect(first.result.details).toMatchObject({ readonly: false });
+    definition(true);
+    const resumed = await runTask({ prompt: 'again\n@@tools-list', resume: agentId, readonly: false });
+    expect(resumed.result.isError, resumed.result.text).toBe(false);
+    expect(resumed.result.details).toMatchObject({ readonly: true });
+    expect(/<response>\n(.*)\n<\/response>/.exec(resumed.result.text)?.[1]?.split(',')).not.toContain('write');
+    expect(JSON.parse(readFileSync(join(subagentDir(), `${agentId}.json`), 'utf8')).readonly).toBe(true);
   });
 
   test('refuses an agent whose transcript is missing instead of starting it fresh (review r2: security)', async () => {

@@ -1,7 +1,7 @@
 import { join } from 'node:path';
 
 import { describe, expect, test } from 'vitest';
-import { modeFromBranch, modeSection, parseModeArgs } from '../src/mode.ts';
+import { modeBadge, modeFromBranch, modeSection, parseModeArgs } from '../src/mode.ts';
 import { SKILLS_DIR } from '../src/paths.ts';
 
 describe('parseModeArgs (MODE-001, MODE-002)', () => {
@@ -35,12 +35,14 @@ describe('modeFromBranch (MODE-003)', () => {
 });
 
 describe('modeSection (MODE-001, MODE-004)', () => {
-  test('leads with the reminder, then the whole skill as Pi attaches it', () => {
+  test('carries the whole skill as Pi attaches it, without the frontmatter reminder (MODE-004)', () => {
+    // Observed: in a Cursor Agents Window Custom Mode, the model finds no line starting with "New task?" in its
+    // context (parity/pi-pstack-two/fixtures/0.15.21/user-captures/agents-window-custom-mode-no-reminder.jpg).
     const path = join(SKILLS_DIR, 'poteto-mode/SKILL.md');
     const section = modeSection({ skill: 'poteto-mode', path });
-    expect(section.split('\n').slice(0, 4)).toEqual([
+    expect(section).not.toContain('New task?');
+    expect(section.split('\n').slice(0, 3)).toEqual([
       'Custom Mode poteto-mode is on for every turn until the user runs /mode off.',
-      "New task? Playbook match or rigor needed -> apply /poteto-mode. Casual turn or user opts out -> don't.",
       `<skill name="poteto-mode" location="${path}">`,
       `References are relative to ${join(SKILLS_DIR, 'poteto-mode')}.`,
     ]);
@@ -48,12 +50,41 @@ describe('modeSection (MODE-001, MODE-004)', () => {
     expect(section.endsWith('\n</skill>')).toBe(true);
   });
 
-  test('omits the reminder line for a skill without one', () => {
+  test('a skill without a reminder gets the same shape', () => {
     const path = join(SKILLS_DIR, 'tdd/SKILL.md');
     expect(modeSection({ skill: 'tdd', path }).split('\n')[1]).toBe(`<skill name="tdd" location="${path}">`);
   });
 
   test('says so when the skill file is gone', () => {
     expect(modeSection({ skill: 'gone', path: '/nowhere/SKILL.md' })).toBe('Custom Mode gone is on, but its skill file /nowhere/SKILL.md no longer exists. Tell the user to run /mode off or /mode <skill>.');
+  });
+});
+
+describe('modeBadge (MODE-006)', () => {
+  test('poteto-mode shows its crown icon in its yellow badge color', () => {
+    expect(modeBadge({ skill: 'poteto-mode', path: join(SKILLS_DIR, 'poteto-mode/SKILL.md') })).toEqual({ text: '♛ mode: poteto-mode', color: 'warning' });
+  });
+
+  test('a skill without icon or color gets the default lightning icon and no color', () => {
+    expect(modeBadge({ skill: 'tdd', path: join(SKILLS_DIR, 'tdd/SKILL.md') })).toEqual({ text: '⚡ mode: tdd' });
+  });
+
+  test.for([
+    { color: 'green', expected: 'success' },
+    { color: 'red', expected: 'error' },
+    { color: 'orange', expected: 'warning' },
+    { color: 'brand', expected: 'accent' },
+    { color: 'default', expected: undefined },
+    { color: 'chartreuse', expected: undefined },
+  ])('Cursor color $color maps to the $expected theme color', ({ color, expected }) => {
+    expect(modeBadge({ skill: 'x' }, { 'cursor-color': color }).color).toBe(expected);
+  });
+
+  test.for(['constructor', 'toString', '__proto__'])('inherited key %s is not an icon or color (MODE-006)', (key) => {
+    expect(modeBadge({ skill: 'x' }, { 'cursor-icon': key, 'cursor-color': key })).toEqual({ text: '⚡ mode: x' });
+  });
+
+  test('an unknown icon name falls back to the default icon', () => {
+    expect(modeBadge({ skill: 'x' }, { 'cursor-icon': 'beaker-flask-unknown' }).text).toBe('⚡ mode: x');
   });
 });

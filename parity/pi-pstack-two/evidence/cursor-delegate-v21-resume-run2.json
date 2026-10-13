@@ -1,0 +1,64 @@
+{
+  "host": "cursor-agent",
+  "cursorAgentVersion": "2026.10.01-e373342",
+  "scenario": "delegate",
+  "requirement": "LIVE-004",
+  "model": "claude-opus-5-5-high",
+  "prompt": "/poteto-mode Delegate to one foreground poteto-agent: find what calc.js exports. Read-only.",
+  "exitCode": 0,
+  "seconds": 131,
+  "checks": {
+    "delegated": true,
+    "everyPromptHasSkillPath": true,
+    "prompts": [
+      "Poteto-mode skill: /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/cursor-live-Vds0bi/.cursor/skills/poteto-mode/SKILL.md\n\nRepo: /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/cursor-live-Vds0bi\n\nTask (READ-ONLY, do not modify any files, do not commit): find every file named calc.js in the repo (excluding node_modules) and report exactly what each one exports.\n\nReturn:\n- Path of"
+    ],
+    "subagentTypes": [
+      {
+        "custom": {
+          "name": "poteto-agent"
+        }
+      }
+    ]
+  },
+  "toolCalls": [
+    {
+      "kind": "readToolCall",
+      "args": "{\"path\":\"/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/cursor-live-Vds0bi/.cursor/skills/poteto-mode/playbooks/investigation.md\"}"
+    },
+    {
+      "kind": "getMcpToolsToolCall",
+      "args": "{\"server\":\"cursor\",\"toolName\":\"Task\",\"toolCallId\":\"toolu_01ALPuWYmHji1Z9XbA1FuDWF\"}"
+    },
+    {
+      "kind": "getMcpToolsToolCall",
+      "args": "{\"server\":\"cursor\",\"toolName\":\"TodoWrite\",\"toolCallId\":\"toolu_013Ucmv4gYbJqHZAeHzv64ze\"}"
+    },
+    {
+      "kind": "updateTodosToolCall",
+      "args": "{\"todos\":[{\"id\":\"1\",\"content\":\"Route through the **how** skill. For motivation questions, also route through the **why** skill. (skip: single-file export lookup, no architecture to explain)\",\"status\":\"TODO_STATUS_CANCELLED\",\"createdAt\":\"1791852623892\",\"updatedAt\":\"1791852623892\",\"dependencies\":[]},{\"id\":\"2\",\"content\":\"Throughput checkpoint: n/a, read-only investigation\",\"status\":\"TODO_STATUS_COMPLETED\",\"createdAt\":\"1791852623892\",\"updatedAt\":\"1791852623892\",\"dependencies\":[]},{\"id\":\"3\",\"content\":\"Produce the how-shaped output, or a recommendation with a tradeoffs table (delegate lookup to one "
+    },
+    {
+      "kind": "taskToolCall",
+      "args": "{\"description\":\"Find calc.js exports\",\"prompt\":\"Poteto-mode skill: /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/cursor-live-Vds0bi/.cursor/skills/poteto-mode/SKILL.md\\n\\nRepo: /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/cursor-live-Vds0bi\\n\\nTask (READ-ONLY, do not modify any files, do not commit): find every file named calc.js in the repo (excluding node_modules) and report exactly what each one exports.\\n\\nReturn:\\n- Path of each calc.js found.\\n- Module system (CommonJS module.exports / exports.x, or ESM export).\\n- Each exported name, its kind (function, const, cla"
+    },
+    {
+      "kind": "readToolCall",
+      "args": "{\"path\":\"/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/cursor-live-Vds0bi/.cursor/skills/unslop/SKILL.md\"}"
+    },
+    {
+      "kind": "readToolCall",
+      "args": "{\"path\":\"/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/cursor-live-Vds0bi/calc.js\"}"
+    },
+    {
+      "kind": "globToolCall",
+      "args": "{\"globPattern\":\"**/{calc.js,package.json}\"}"
+    },
+    {
+      "kind": "updateTodosToolCall",
+      "args": "{\"todos\":[{\"id\":\"3\",\"content\":\"Produce the how-shaped output\",\"status\":\"TODO_STATUS_COMPLETED\",\"createdAt\":\"1791852623893\",\"updatedAt\":\"1791852661630\",\"dependencies\":[]},{\"id\":\"4\",\"content\":\"Apply the **unslop** skill to the reply.\",\"status\":\"TODO_STATUS_COMPLETED\",\"createdAt\":\"1791852623893\",\"updatedAt\":\"1791852661630\",\"dependencies\":[]}],\"merge\":true}"
+    }
+  ],
+  "finalText": "I'll open the Investigation playbook and the Task tool schema, then delegate.The subagent reported back. I'll check its claim against the file before replying.`calc.js` has one export, a named ES module export called `add`. I delegated the lookup to one foreground poteto-agent, then read the file myself to confirm what it found. No files were changed.\n\n```1:1:calc.js\nexport const add = (a, b) => a + b;\n```\n\nThat line is the whole file. It's the only `calc.js` in the repo.\n\n**What this means if you import it.**\n- There's no default export, so you have to write `import { add } from './calc.js'`. Writing `import add from './calc.js'` fails.\n- It doesn't check its inputs. `add('1', 2)` returns `'12'`, because `+` joins strings instead of adding them. I worked that out from the code and didn't run it.\n- There's no `package.json` in the repo root, so nothing sets `\"type\": \"module\"` for this file. Older Node versions would treat it as CommonJS and reject the `export` keyword. Recent Node versions detect ESM syntax automatically. I inferred this and didn't run it. The subagent said the repo has no `package.json` at all, which isn't quite right. There is one at `.cursor/skills/poteto-mode/scripts/package.json`, but Node only checks the file's own folder and the folders above it, so that one doesn't affect `calc.js`.\n\n**How the poteto-mode playbook shaped this.** I used the Investigation playbook. I skipped its `how` skill step because explaining a one-line file needs no architecture write-up. I wrote this reply following the `unslop` skill. I didn't read any principle skills this session, so I'm not citing any.",
+  "stderrTail": ""
+}

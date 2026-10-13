@@ -44,11 +44,14 @@ test('/mode keeps the skill on every turn until /mode off, with a status badge (
     const firstReply = rpc.events.find((event) => event.type === 'message_end' && (event['message'] as { role: string }).role === 'assistant');
     if (firstReply === undefined) throw new Error('no assistant reply');
     expect(modeSectionOf(contentText((firstReply['message'] as { content: { type: string; text?: string }[] }).content))?.split('\n')[0]).toBe('Custom Mode poteto-mode is on for every turn until the user runs /mode off.');
-    expect(statuses(rpc)).toContain('mode: poteto-mode');
+    expect(statuses(rpc).some((text) => typeof text === 'string' && text.replace(/\x1b\[[0-9;]*m/g, '') === '♛ mode: poteto-mode')).toBe(true);
 
     const second = modeSectionOf(await ask(rpc, 'second turn\n@@sys'));
-    expect(second?.startsWith('Custom Mode poteto-mode is on for every turn until the user runs /mode off.\nNew task? Playbook match or rigor needed')).toBe(true);
-    expect(second).toContain('# Poteto mode\n\n## Non-negotiables');
+    expect(second?.startsWith('Custom Mode poteto-mode is on for every turn until the user runs /mode off.\n<skill name="poteto-mode"')).toBe(true);
+    expect(second).not.toContain('New task?');
+    expect(second).toContain('# Poteto mode\n\nBundled skills live at `../<name>/SKILL.md` from this file');
+    // The absolute path that 0.15.21's poteto-mode tells the parent to hand each poteto-agent (RES-010).
+    expect(second).toContain(`<skill name="poteto-mode" location="${join(PACKAGE_ROOT, 'skills/poteto-mode/SKILL.md')}">`);
 
     await command(rpc, '/mode off');
     expect(modeSectionOf(await ask(rpc, 'third turn\n@@sys'))).toBeUndefined();

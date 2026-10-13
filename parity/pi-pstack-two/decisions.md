@@ -178,3 +178,70 @@ Pi-private logic the port copies, because Pi exports no function for it. Each co
 | Loop `{prompt, intervalMs?, nextAt}` | In-memory, one per runtime | Until stop or shutdown | At most one; never in print or JSON mode, where the `Loop` tool is withdrawn |
 
 Validation sits at the boundaries: tool parameters (TypeBox schemas plus explicit checks for model, type, attachments, and agent IDs), command arguments, and the generator's source files. Internal functions trust their inputs.
+
+## 0.15.21 update (2026-10-12)
+
+Upstream `364a77e` + `997ffc7` change only prose: poteto-mode tells the parent where bundled skills live and to pass its absolute SKILL.md path to every `poteto-agent`; `poteto-agent.md` tells the delegate to use that path.
+
+- **Option A (selected): re-vendor byte for byte** by moving the pin in `scripts/sync-upstream.mjs` and running the sync. The Pi host already supplies the absolute path the prose asks for: `/skill:` expansion and `/mode` injection emit `<skill ... location="<abs>">`, and the package keeps skills as siblings, so `../<name>/SKILL.md` resolves. No extension code is needed.
+- **Option B (rejected): inject the path into poteto-agent Task prompts in `src/task`.** It would make compliance deterministic, but it rewrites the parent's prompt, which Cursor does not do, and duplicates the host map's `<SKILLS>` line. That is behavior beyond the source.
+- Version: `0.15.21-pi.1`. The README's Pi version is corrected to 1.2.0, the version the dev dependencies and the test run use.
+
+## D4 revision (2026-10-12): what "subagent usage" means in Cursor
+
+Cursor's subagent docs say subagents "consume tokens independently", each with "its own context window and token usage", that "the subagent task card shows which model ran", and that the account usage dashboard lists that model (fixtures/0.15.21/cursor-docs-quotes.md). They name no chat total that includes subagent tokens. TASK-017 had read "the usage dashboard" as the parent session's totals, and that reading is withdrawn. The requirement is now the documented contract: each child records its own usage, which Pi's per-child session already does, and the Task card names the model.
+
+| | A. `renderResult` card (chosen) | B. Add the model to the Task result text |
+|---|---|---|
+| Fidelity | Cursor's card is UI, not model-visible text | Changes the Cursor-format result the model reads (TASK-002) |
+| API | `registerTool({ renderResult })` | none |
+
+## D9. Readonly shell (TASK-019)
+
+| | A. OS sandbox around a `bash` override (chosen) | B. Own `sandbox-exec` profile, no dependency | C. Command allowlist |
+|---|---|---|---|
+| Enforcement | Kernel: Seatbelt on macOS, bubblewrap on Linux, via `@anthropic-ai/sandbox-runtime`, the library Pi's own `examples/extensions/sandbox` uses | Kernel, macOS only; Linux would need a second implementation | Parsing; pipes, substitutions, and pagers bypass it |
+| API | `createBashTool(cwd, { operations })` with `BashOperations`, registered as `bash` only in readonly children | same | `tool_call` block |
+| Cost | One dependency, loaded only in readonly children | Two hand-written sandboxes to maintain | Low, but unsound |
+
+**Choice: A**, the official example's pattern with a fixed policy: `allowWrite: []`, no network domains. It matches Cursor's documented mechanism (a Seatbelt/Landlock sandbox with network blocked by default). It fails closed: if the module is missing (local installs get no dependency install) or the platform has no sandbox, the tool returns an error and never runs the command unsandboxed. The import is dynamic so the rest of the package loads without the dependency. Cursor's docs do not say whether its readonly sandbox also blocks `/tmp`; the port blocks every write.
+
+## D10. AskQuestion title and option descriptions (HOST-005)
+
+24 Cursor IDE calls use a top-level `title` and per-option `description`. Pi's `ctx.ui.select` takes a title and plain strings, so the title prefixes each question's prompt and a description follows its label after an em dash. Answers map back by the shown text, so duplicate checks use the shown text.
+
+## D11. Mode badge styling (MODE-006)
+
+Cursor styles the badge with `icon` (default lightning) and `color`. `ctx.ui.setStatus` takes text, and `ctx.ui.theme.fg` takes a theme color. The icons pstack uses map to glyphs (crown ♛, lightning ⚡), and Cursor's ten colors map to the nearest theme color (green→success, red→error, yellow/orange→warning, the blues and purples and brand→accent, default→none). The alternative, an emoji for every Cursor icon name, would mean guessing at an icon set Cursor does not publish.
+
+## D9 revision (2026-10-13): enforcing the read-only shell after review
+
+The security review (reviews/resume-security.md) reproduced four enforcement failures in the first version. Fixes, each with a regression test through the real sandbox (`test/readonly-shell-security.test.ts`):
+
+- **Startup hooks ran before the sandbox.** `BASH_ENV`, `ENV`, and `BASH_FUNC_*` are stripped from the spawn environment, so the outer shell cannot source attacker-written startup files before the wrapper engages.
+- **Dependency defaults were writable.** The sandbox makes `/tmp/claude` and `~/.npm/_logs`, `~/.claude/debug` writable for itself. `denyWrite` names `/tmp/claude` (Seatbelt is last-match-wins, deny after allow) and `denyRead` drops the home defaults from the dependency's write set.
+- **A shared manager could carry a permissive policy.** `wrapWithSandbox` now receives `READ_ONLY_POLICY` as its per-command config, so the command never inherits whatever policy another consumer initialized. `session_shutdown` no longer calls `reset()` on the shared singleton; the short-lived child process is reclaimed by the OS instead.
+- **A pre-aborted call could run.** Wrapping happens in `execute` (which honors abort), and spawning is delegated to Pi's own local shell operations, which refuse an already-aborted signal, enforce timeouts, and kill the process tree — replacing the hand-rolled spawn.
+- **Resume could regain write access.** A raised readonly floor is now written to the agent record under the run lock, and the current type definition restricts older records (`src/task/tool.ts`).
+
+Honest boundary: this sandboxes shell subprocesses, not Pi or trusted extensions; the tool description says so. Error message: "no verified OS sandbox is available: <reason>".
+
+## D12. Pre-registered criterion for LIVE-001 and LIVE-004 (written before the runs)
+
+The two LIVE requirements measure model compliance, which no host can make deterministic. Parity means the port does not lower compliance relative to Cursor under the same model. Criterion: five paired runs per scenario at `claude-opus-5-5` high effort in each host (Cursor through `cursor-live.mjs` with clean project-local pinned resources, Pi through `live-e2e.mjs`). VERIFIED if both hosts succeed in at least 4 of 5 and the Pi count is no more than one below the Cursor count; NOT VERIFIED if Pi is two or more below Cursor; otherwise INCONCLUSIVE. Earlier runs are not counted toward the five. Success: LIVE-001 `readPlaybook && firstTodosAreStepsVerbatim`; LIVE-004 `delegated && everyPromptHasSkillPath`.
+
+## D12 result (2026-10-13)
+
+LIVE-004: Cursor 5/5, Pi 5/5, so VERIFIED under the criterion. LIVE-001: Cursor 1/5 and Pi 3/5 under the strict checker (5/5 if a playbook read through `bash cat` counts). The criterion's 4/5 floor fails because the reference itself complied once, so LIVE-001 stays INCONCLUSIVE. The criterion was not changed after the data.
+
+## D13. AskQuestion "Other" and print-mode skip (HOST-005)
+
+Observed in cursor-agent 2026.10.01: every question ends with `Other: (type to answer)`, and in print mode AskQuestion stays available and the question resolves as skipped. Earlier the port withdrew the tool without a UI, on the belief that the Cursor CLI had none. That belief is now disproved, so the tool stays available and returns each question as skipped. Other is a reserved last option; picking it opens `ctx.ui.input`, and the answer comes back as id `other` plus its text.
+
+## D14. Readonly contract versus observed Cursor behavior (TASK-019)
+
+Observed in Cursor: a call-level `readonly: true` is not enforced (the Agents Window and the CLI both let the subagent `touch probe.txt`), and an agent-file `readonly: true` blocks every shell call in the CLI, including `git log`. The docs promise "no file edits, no state-changing shell commands", which rules out the first and does not require the second. The clean-room rule is to preserve accidents only when a compatibility requirement makes them part of the contract. pstack's skills pass `readonly: true` to keep reviewers and explorers from editing, so reproducing the non-enforcement would break the intent pstack relies on. The port keeps the documented contract: writes and network are denied, and read-only commands run. Requirement source: the documentation. The two observed behaviors are recorded as source defects.
+
+## D15. Mode reminder (MODE-004)
+
+In a real Agents Window Custom Mode (crown badge shown), the model reports no "New task?" line in its context, while still following the playbook. The port therefore drops the frontmatter `reminder` from the per-turn mode section. The rejected alternative was to keep it as an extra nudge, which adds context Cursor does not send.

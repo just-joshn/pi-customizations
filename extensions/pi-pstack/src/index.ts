@@ -10,6 +10,7 @@ import { registerLoop } from './loop.ts';
 import { registerMode } from './mode.ts';
 import { isOneShot } from './modes.ts';
 import { PACKAGE_ROOT, rulePath, SKILLS_DIR, storeDir, subagentDir } from './paths.ts';
+import { registerReadonlyShell } from './readonly-shell.ts';
 import { cursorRuleWriteReason, modelsSection, readRule } from './rule.ts';
 import { hostSection, subagentsSection } from './sections.ts';
 import { type AgentDefinition, loadAgentDefinitions } from './task/agents.ts';
@@ -92,6 +93,7 @@ export default function piPstack(pi: ExtensionAPI): void {
   registerTodoWrite(pi);
   registerAskQuestion(pi);
   if (childIdentity.parentPid !== undefined) watchParent(pi, childIdentity.parentPid);
+  if (childIdentity.readonly) registerReadonlyShell(pi);
 
   pi.on('before_agent_start', (event, ctx) => {
     const modeText = mode.section();

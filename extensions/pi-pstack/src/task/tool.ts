@@ -8,6 +8,7 @@ import { type Static, Type } from 'typebox';
 import { childVariables } from '../child-env.ts';
 import { subagentDir } from '../paths.ts';
 import { type AgentDefinition, findAgent } from './agents.ts';
+import { renderTaskCard } from './card.ts';
 import { backgroundText, bounded, foregroundText } from './format.ts';
 import { type AvailableModel, type ModelSpec, resolveSubagentModel } from './models.ts';
 import { type AgentRecord, acquireRunLock, type RunLock, readRecord, transcriptFor, writeRecord } from './records.ts';
@@ -30,7 +31,9 @@ export const TaskParams = Type.Object({
   run_in_background: Type.Optional(
     Type.Boolean({ description: 'Return at once with the agent ID; the final response arrives as a notification after your turn ends. When false, block until the agent finishes. Defaults to the subagent type setting, else false.' }),
   ),
-  readonly: Type.Optional(Type.Boolean({ description: 'Limit the agent to read, grep, find, and ls, with no shell, no edits, and no MCP tools. A readonly subagent type stays readonly.' })),
+  readonly: Type.Optional(
+    Type.Boolean({ description: 'Limit the agent to read, grep, find, ls, and a read-only shell that can neither write files nor reach the network, with no edits and no MCP tools. A readonly subagent type stays readonly.' }),
+  ),
   file_attachments: Type.Optional(Type.Array(Type.String(), { description: 'Paths of files or images to attach to the agent first message.' })),
   environment: Type.Optional(StringEnum(['local', 'cloud'] as const, { description: 'Only local is available in Pi.' })),
   cloud_base_branch: Type.Optional(Type.String({ description: 'Cursor cloud option; unavailable in Pi.' })),
@@ -108,14 +111,15 @@ function planResume(params: TaskInput, ctx: ExtensionContext, agents: readonly A
   const agent = recordedAgent(agents, agentId, record.type);
   const attachments = resolveAttachments(params.file_attachments ?? [], ctx.cwd);
   const notes = params.model === undefined ? [] : [`Note: model "${params.model}" was ignored; a resumed agent keeps its earlier model.`];
+  const readonly = effectiveReadonly(effectiveReadonly(record.readonly, agent.readonly), params.readonly);
   // An agent never runs shallower than it was created or than its caller allows: a grandchild resumed from the main chat
-  // and a main-chat agent resumed from a subagent both run at depth 2. A call can add readonly but not lift it.
-  const readonly = effectiveReadonly(record.readonly, params.readonly);
+  // and a main-chat agent resumed from a subagent both run at depth 2. A call can add readonly but not lift it, and a
+  // type that has since become readonly restricts an older writable record too.
   return { agentId, agent, model: record.model, readonly, cwd: record.cwd, depth: Math.max(record.depth ?? 0, depth + 1), trusted: ctx.isProjectTrusted(), attachments, notes };
 }
 
 function launchChild(plan: Launch, prompt: string, signal: AbortSignal | undefined) {
-  const env = { ...process.env, ...childVariables(plan.agent.type, plan.depth) };
+  const env = { ...process.env, ...childVariables(plan.agent.type, plan.depth, plan.readonly) };
   const args = childArgs({ sessionDir: subagentDir(plan.cwd), agentId: plan.agentId, readonly: plan.readonly, trusted: plan.trusted, attachments: plan.attachments, ...(plan.model === undefined ? {} : { model: plan.model }) });
   return startChild({ command: piCommand(), args, prompt, cwd: plan.cwd, env, ...(signal === undefined ? {} : { signal }) });
 }
@@ -140,6 +144,12 @@ function recordFresh(plan: Launch): void {
 function start(plan: Launch, fresh: boolean, prompt: string, signal: AbortSignal | undefined, lock: RunLock): ChildHandle {
   let handle: ChildHandle | undefined;
   try {
+    if (!fresh) {
+      const dir = subagentDir(plan.cwd);
+      const record = readRecord(dir, plan.agentId);
+      if (record === undefined) throw new Error(`Unknown agent ID ${plan.agentId}. Resume needs an agent ID returned by an earlier Task call in this workspace.`);
+      writeRecord(dir, { ...record, readonly: plan.readonly });
+    }
     handle = launchChild(plan, prompt, signal);
     if (handle.pid !== undefined) {
       lock.holdFor(handle.pid);
@@ -222,11 +232,19 @@ export function registerTask(pi: ExtensionAPI, options: TaskToolOptions): { hasB
     parameters: TaskParams,
     // Cursor stops nesting at the subagent of a subagent, so that depth never sees the tool.
     defaultActive: options.depth < 2,
+    renderResult: (result, renderOptions) => renderTaskCard(result, renderOptions),
     async execute(toolCallId, params, signal, onUpdate, ctx) {
       taskPreflight(params, options.depth);
       const fresh = params.resume === undefined;
-      const plan = fresh ? planFresh(params, ctx, options.agents, options.depth) : planResume(params, ctx, options.agents, registry.isRunning, options.depth);
-      const lock = acquireRunLock(subagentDir(plan.cwd), plan.agentId);
+      const initialPlan = fresh ? planFresh(params, ctx, options.agents, options.depth) : planResume(params, ctx, options.agents, registry.isRunning, options.depth);
+      const lock = acquireRunLock(subagentDir(initialPlan.cwd), initialPlan.agentId);
+      let plan: Launch;
+      try {
+        plan = fresh ? initialPlan : planResume(params, ctx, options.agents, registry.isRunning, options.depth);
+      } catch (error) {
+        lock.release();
+        throw error;
+      }
       const background = params.run_in_background ?? (fresh && plan.agent.background);
       const handle = start(plan, fresh, params.prompt, background ? undefined : signal, lock);
       if (background) {

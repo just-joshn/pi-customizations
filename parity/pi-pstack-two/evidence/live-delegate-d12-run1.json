@@ -1,0 +1,47 @@
+{
+  "scenario": "delegate",
+  "requirement": "LIVE-004",
+  "model": "claude-subscription/claude-opus-5-5:high",
+  "prompt": "/poteto-mode Delegate to one foreground poteto-agent: find what calc.js exports. Read-only.",
+  "exitCode": 0,
+  "seconds": 43,
+  "checks": {
+    "delegated": true,
+    "everyPromptHasSkillPath": true,
+    "prompts": [
+      "Read-only task. Make no edits.\n\nFirst read /Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack/skills/poteto-mode/SKILL.md in full.\n\nTask: In the working directory /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-Gst5E8/work there is a file `calc.js`. Determine exactly what it exports. Check the module system (CommonJS `module.exports`/`exports.x` vs ESM `ex"
+    ]
+  },
+  "toolCalls": [
+    {
+      "name": "read",
+      "arguments": "{\"path\":\"/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack/skills/poteto-mode/playbooks/investigation.md\",\"offset\":null,\"limit\":null}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"ls -la; find . -name calc.js -not -path '*/node_modules/*'\",\"timeout\":null}"
+    },
+    {
+      "name": "TodoWrite",
+      "arguments": "{\"todos\":[{\"id\":\"1\",\"content\":\"Route through the **how** skill. For motivation questions, also route through the **why** skill.\",\"status\":\"in_progress\"},{\"id\":\"2\",\"content\":\"Throughput checkpoint stays one line: `throughput checkpoint: n/a, read-only investigation`.\",\"status\":\"completed\"},{\"id\":\"3\",\"content\":\"Produce the `how`-shaped output (Overview / Key Concepts / How It Works / Where Things Live / Gotchas), or a recommendation with a tradeoffs table if the request is a decision between alternatives.\",\"status\":\"pending\"},{\"id\":\"4\",\"content\":\"Apply the **unslop** skill to the reply.\",\"status"
+    },
+    {
+      "name": "TodoWrite",
+      "arguments": "{\"todos\":[{\"id\":\"1\",\"content\":\"Route through the **how** skill. For motivation questions, also route through the **why** skill. skip: user asked for exactly one poteto-agent; a 36-byte file does not need how's fan-out\",\"status\":\"cancelled\"},{\"id\":\"5\",\"status\":\"in_progress\"}],\"merge\":true}"
+    },
+    {
+      "name": "Task",
+      "arguments": "{\"description\":\"Find calc.js exports\",\"subagent_type\":\"poteto-agent\",\"run_in_background\":false,\"readonly\":true,\"prompt\":\"Read-only task. Make no edits.\\n\\nFirst read /Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack/skills/poteto-mode/SKILL.md in full.\\n\\nTask: In the working directory /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-Gst5E8/work there is a file `calc.js`. Determine exactly what it exports. Check the module system (CommonJS `module.exports`/`exports.x` vs ESM `export`), each exported name, and what each export is (function, constant, et"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"cat calc.js; node -e 'import(\\\"./calc.js\\\").then(m=>console.log(Object.keys(m), \\\"default\\\" in m, m.add(2,3)))'\",\"timeout\":null}"
+    },
+    {
+      "name": "TodoWrite",
+      "arguments": "{\"todos\":[{\"id\":\"5\",\"status\":\"completed\"},{\"id\":\"3\",\"status\":\"completed\"},{\"id\":\"4\",\"status\":\"completed\"}],\"merge\":true}"
+    }
+  ],
+  "finalText": "`calc.js` exports one thing. It is a named export called `add`, an arrow function that returns `a + b`. There is no default export.\n\n**Overview.** The whole file is one line, `export const add = (a, b) => a + b;` (`calc.js:1`). I ran a dynamic `import()` against it myself. It returned the export keys `['add']`, `\"default\" in module` came back `false`, and `add(2, 3)` returned `5`.\n\n**How it loads.** The file uses ESM syntax, and the directory has no `package.json`. The agent checked every parent folder up to the root and found none, so no `\"type\"` field is set. The agent ran Node v24.21.0, which saw the `export` syntax and loaded the file as ESM. Its guess is that older Node versions, or tools that don't detect ESM from syntax, would throw a `SyntaxError`. It did not test that.\n\n**Where things live.** The directory holds only `calc.js` and `.git`. The agent reported one commit, `68f0738 calc`.\n\n**Gotchas.**\n- `import { add } from \"./calc.js\"` works. `import add from \"./calc.js\"` fails because there is no default export. I confirmed the missing default.\n- The agent found that `require(\"./calc.js\")` works on Node 24. It returns the module object, so you need `const { add } = require(...)`.\n- `add` does not check its arguments. The agent ran `add(\"2\", 3)` and got `\"23\"`.\n\n**Process.**\n- One foreground, readonly `poteto-agent` did the work, as you asked. I checked its main claims myself by reading the file and running the import.\n- I skipped the Investigation playbook's step that routes through the **how** skill. That skill fans out to several agents, which would break your one-agent instruction, and a one-line file doesn't need it.\n- Throughput checkpoint is n/a because this was a read-only investigation.\n- I'm not citing any principle, because I didn't read any principle leaf skill this session.",
+  "stderrTail": ""
+}

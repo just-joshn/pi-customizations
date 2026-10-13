@@ -1,0 +1,50 @@
+
+ Warning: tmux extended-keys is off. Modified Enter keys may not work. Add `set -g extended-keys on` to ~/.tmux.conf and restart tmux.
+
+
+ go
+
+
+ ECHO: go
+
+
+ @@script [{"tool":"Task","args":{"description":"probe","prompt":"x\n@@say CARD-OK","model":"echo-high"}}]
+
+
+
+ Task description="probe" prompt="x\n@@say CARD-OK" model="echo-high"
+ generalPurpose · scripted/echo:high
+ This is the output of the subagent:
+
+ response:
+ <response>
+ CARD-OK
+ </response>
+
+ Agent ID: 9a653080-b05e-4a91-9818-69370e4735d2 (pass it as `resume` to send a follow-up after it completes)
+ Transcript:
+ /tmp/pstack-tui-lrLY/agent/pstack/workspaces/--private-tmp-pstack-tui-lrLY-work--/subagents/2026-10-13T00-18-25-579Z_9a653080-b05e-4a91-9818-69370e4735d2.json
+ l
+
+
+ RESULTS:
+ [Task] This is the output of the subagent:
+
+ response:
+ <response>
+ CARD-OK
+ </response>
+
+ Agent ID: 9a653080-b05e-4a91-9818-69370e4735d2 (pass it as resume to send a follow-up after it completes)
+ Transcript:
+ /tmp/pstack-tui-lrLY/agent/pstack/workspaces/--private-tmp-pstack-tui-lrLY-work--/subagents/2026-10-13T00-18-25-579Z_9a653080-b05e-4a91-9818-69370e4735d2.json
+ l
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+/private/tmp/pstack-tui-lrLY/work
+↑10k ↓117 R11k W10k CH95.8% 4.4%/128k (auto)                                                                                                       echo • medium

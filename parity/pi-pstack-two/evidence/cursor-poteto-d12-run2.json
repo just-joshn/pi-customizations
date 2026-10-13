@@ -1,0 +1,45 @@
+{
+  "host": "cursor-agent",
+  "cursorAgentVersion": "2026.10.01-e373342",
+  "scenario": "poteto",
+  "requirement": "LIVE-001",
+  "model": "claude-opus-5-5-high",
+  "prompt": "/poteto-mode How does add in calc.js treat two numeric strings such as \"2\" and \"3\"? This is a read-only question; do not change any files.",
+  "exitCode": 0,
+  "seconds": 26,
+  "checks": {
+    "readPlaybook": true,
+    "playbookPaths": ["/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/cursor-live-4rot2f/.cursor/skills/poteto-mode/playbooks/investigation.md"],
+    "firstTodosAreStepsVerbatim": false,
+    "stepMatches": [false, false, false, false],
+    "todos": []
+  },
+  "toolCalls": [
+    {
+      "kind": "globToolCall",
+      "args": "{\"globPattern\":\"**/calc.js\"}"
+    },
+    {
+      "kind": "readToolCall",
+      "args": "{\"path\":\"/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/cursor-live-4rot2f/.cursor/skills/poteto-mode/playbooks/investigation.md\"}"
+    },
+    {
+      "kind": "readToolCall",
+      "args": "{\"path\":\"/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/cursor-live-4rot2f/calc.js\"}"
+    },
+    {
+      "kind": "readToolCall",
+      "args": "{\"path\":\"/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/cursor-live-4rot2f/.cursor/skills/how/SKILL.md\"}"
+    },
+    {
+      "kind": "readToolCall",
+      "args": "{\"path\":\"/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/cursor-live-4rot2f/.cursor/skills/principle-prove-it-works/SKILL.md\"}"
+    },
+    {
+      "kind": "shellToolCall",
+      "args": "{\"command\":\"node --input-type=module -e 'import {add} from \\\"./calc.js\\\"; for (const [a,b] of [[\\\"2\\\",\\\"3\\\"],[2,3],[\\\"2\\\",3],[\\\" 2\\\",\\\"3\\\"],[\\\"2.5\\\",\\\"1e1\\\"]]) console.log(JSON.stringify([a,b]), \\\"->\\\", JSON.stringify(add(a,b)), typeof add(a,b));'\",\"workingDirectory\":\"\",\"timeout\":30000,\"toolCallId\":\"toolu_01EJk8KaXjQH17BkJEWF9Poo\",\"simpleCommands\":[\"node\"],\"hasInputRedirect\":false,\"hasOutputRedirect\":false,\"parsingResult\":{\"parsingFailed\":false,\"executableCommands\":[{\"name\":\"node\",\"args\":[{\"type\":\"word\",\"value\":\"--input-type=module\"},{\"type\":\"word\",\"value\":\"-e\"},{\"type\":\"raw_string\",\"value\":\"'"
+    }
+  ],
+  "finalText": "I'll read `calc.js` and the Investigation playbook first.The function is a bare `a + b`. I'll run it to confirm the behavior rather than infer it.`add(\"2\", \"3\")` returns the string `\"23\"`, not the number `5`. It joins the two strings instead of adding them. I confirmed this by running the function with Node, and I didn't change any files.\n\n**Overview.** `add` doesn't convert or check its inputs. It passes them straight to JavaScript's `+` operator.\n\n```1:3:calc.js\nexport function add(a, b) {\n  return a + b;\n}\n```\n\n**How it works.** JavaScript's `+` joins its operands as strings if either one is a string. It only adds numerically when both are numbers. So the result depends on the types you pass in.\n\n| Call | Result | Type |\n| --- | --- | --- |\n| `add(\"2\", \"3\")` | `\"23\"` | string |\n| `add(2, 3)` | `5` | number |\n| `add(\"2\", 3)` | `\"23\"` | string |\n| `add(\" 2\", \"3\")` | `\" 23\"` | string |\n| `add(\"2.5\", \"1e1\")` | `\"2.51e1\"` | string |\n\n**Gotchas.** If one argument is a string, the other gets turned into a string too, so `add(\"2\", 3)` also gives `\"23\"`. Whitespace and number notation stay as typed, because the strings are never read as numbers. Nothing throws an error or warns you. If callers get values from form fields, query params, or JSON, they'll get joined strings without noticing. Converting with `Number(a) + Number(b)` would fix that. That's a behavior change, so it would be a separate fix and isn't part of this answer.\n\n**Principles applied.** I read the Prove It Works principle. It's why I ran `add` with sample inputs instead of answering from memory of how `+` behaves. The `how` skill would normally send a simple question to one explainer subagent. I skipped that because the whole function is three lines and running it settled the question.",
+  "stderrTail": ""
+}

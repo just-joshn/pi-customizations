@@ -1,0 +1,43 @@
+{
+  "scenario": "delegate",
+  "requirement": "LIVE-004",
+  "model": "claude-subscription/claude-opus-5-5:high",
+  "prompt": "/poteto-mode Delegate to one foreground poteto-agent: find what calc.js exports. Read-only.",
+  "exitCode": 0,
+  "seconds": 47,
+  "checks": {
+    "delegated": true,
+    "everyPromptHasSkillPath": true,
+    "prompts": [
+      "Poteto-mode skill file: /Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack/skills/poteto-mode/SKILL.md (read it first as your instructions require).\n\nTask (read-only, no edits): In the workspace /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-Wh32Th/work, find what `calc.js` exports. It is the only source file there.\n\nReport back:\n- The verbatim contents o"
+    ]
+  },
+  "toolCalls": [
+    {
+      "name": "read",
+      "arguments": "{\"path\":\"/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack/skills/poteto-mode/playbooks/investigation.md\",\"offset\":null,\"limit\":null}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"ls -la; find . -name calc.js -not -path '*/node_modules/*'\",\"timeout\":null}"
+    },
+    {
+      "name": "TodoWrite",
+      "arguments": "{\"todos\":[{\"id\":\"1\",\"content\":\"Route through the how skill. For motivation questions, also route through the why skill. skip: one 36-byte file, the user asked for a single foreground delegate instead\",\"status\":\"cancelled\"},{\"id\":\"2\",\"content\":\"Throughput checkpoint: n/a, read-only investigation\",\"status\":\"completed\"},{\"id\":\"3\",\"content\":\"Produce the how-shaped output, or a recommendation with a tradeoffs table\",\"status\":\"pending\"},{\"id\":\"4\",\"content\":\"Apply the unslop skill to the reply\",\"status\":\"pending\"},{\"id\":\"5\",\"content\":\"Delegate to one foreground poteto-agent (readonly) to find calc.js"
+    },
+    {
+      "name": "Task",
+      "arguments": "{\"description\":\"Find calc.js exports\",\"subagent_type\":\"poteto-agent\",\"run_in_background\":false,\"readonly\":true,\"model\":\"claude-subscription/claude-opus-5-5:xhigh\",\"prompt\":\"Poteto-mode skill file: /Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack/skills/poteto-mode/SKILL.md (read it first as your instructions require).\\n\\nTask (read-only, no edits): In the workspace /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-Wh32Th/work, find what `calc.js` exports. It is the only source file there.\\n\\nReport back:\\n- The verbatim contents of calc.js.\\n- Every ex"
+    },
+    {
+      "name": "read",
+      "arguments": "{\"path\":\"calc.js\",\"offset\":null,\"limit\":null}"
+    },
+    {
+      "name": "TodoWrite",
+      "arguments": "{\"todos\":[{\"id\":\"3\",\"status\":\"completed\"},{\"id\":\"4\",\"status\":\"completed\"},{\"id\":\"5\",\"status\":\"completed\"}],\"merge\":true}"
+    }
+  ],
+  "finalText": "`calc.js` exports one thing, a named ES module export called `add`. It has no default export and no CommonJS exports. I read the file myself and it matches what the subagent reported.\n\n```js\nexport const add = (a, b) => a + b;\n```\n\n**Exports.**\n\n| Name | Kind | Module system | Line |\n|---|---|---|---|\n| `add` | `const` holding an arrow function that returns `a + b` | ESM | 1 |\n\n**How the delegate checked it.** I ran one read-only poteto-agent in the foreground. It ran the module under Node v24.21.0 instead of only reading the source. Both `require('./calc.js')` and a dynamic `import()` returned a namespace whose only key is `add`. Calling `add(2, 3)` returned `5`. `node --check` passed, and the file is the same as the committed HEAD.\n\n**Gotchas.**\n- The file uses ES module syntax but has a plain `.js` name, and no `package.json` exists in the folder or any folder above it. Node 24 still loads it because it detects ES module syntax on its own. On older Node versions, `require` would probably fail on `export`. That is a guess, because nobody tested an older Node.\n- `add` doesn't check its argument types. `add('1', 2)` would give `'12'`, because `+` joins strings. That comes from how JavaScript works and nobody ran it.\n\n**Process.** I skipped the `how` skill route because this is one 36-byte file and you asked for a single delegate. I'm not citing any principles, because I didn't read any principle skill files this session.",
+  "stderrTail": ""
+}

@@ -1,0 +1,806 @@
+{
+ "source": "Cursor IDE agent-transcripts under ~/.cursor/projects (tool_use parts named AskQuestion), captured 2026-10-12",
+ "calls": [
+  {
+   "transcript": "5cfe441e-efb2-4f62-8eea-c050ab05fb91.jsonl",
+   "input": {
+    "questions": [
+     {
+      "allow_multiple": false,
+      "id": "budget",
+      "options": [
+       {
+        "id": "unlimited",
+        "label": "unlimited \u2014 max reasoning"
+       },
+       {
+        "id": "large",
+        "label": "large \u2014 xhigh reasoning"
+       },
+       {
+        "id": "medium",
+        "label": "medium \u2014 high reasoning"
+       },
+       {
+        "id": "small",
+        "label": "small \u2014 medium reasoning (current)"
+       }
+      ],
+      "prompt": "Which reasoning budget should pstack use? Your current rule records `small (medium)`. With every role on `inherit-parent`, the budget only matters as a recorded baseline for when you later pick real models \u2014 aliases themselves never change."
+     }
+    ]
+   }
+  },
+  {
+   "transcript": "b7a3a717-95ba-476e-b1f1-248206a0f2d6.jsonl",
+   "input": {
+    "questions": [
+     {
+      "allow_multiple": false,
+      "id": "budget",
+      "options": [
+       {
+        "id": "unlimited",
+        "label": "unlimited \u2014 max reasoning"
+       },
+       {
+        "id": "large",
+        "label": "large \u2014 xhigh reasoning"
+       },
+       {
+        "id": "medium",
+        "label": "medium \u2014 high reasoning"
+       },
+       {
+        "id": "small",
+        "label": "small \u2014 medium reasoning (current)"
+       }
+      ],
+      "prompt": "Which reasoning budget should pstack use? (Current rule: small (medium). Note: all your roles are set to `inherit-parent`, so the budget only changes the recorded line unless you switch roles to real model slugs.)"
+     }
+    ]
+   }
+  },
+  {
+   "transcript": "b7a3a717-95ba-476e-b1f1-248206a0f2d6.jsonl",
+   "input": {
+    "questions": [
+     {
+      "allow_multiple": false,
+      "id": "confirm",
+      "options": [
+       {
+        "description": "Keep all 17 roles on inherit-parent; update the budget line to unlimited (max).",
+        "id": "accept",
+        "label": "Accept as-is (Recommended)"
+       },
+       {
+        "description": "Tell me which role(s) to change and to what model \u2014 use the free-text option to list them.",
+        "id": "change",
+        "label": "Change specific roles"
+       }
+      ],
+      "prompt": "Write the rule with this table?"
+     }
+    ]
+   }
+  },
+  {
+   "transcript": "9412da11-2e4a-4ecc-83fd-bf902dd0a5be.jsonl",
+   "input": {
+    "questions": [
+     {
+      "allow_multiple": false,
+      "id": "budget",
+      "options": [
+       {
+        "id": "unlimited",
+        "label": "unlimited \u2014 max reasoning"
+       },
+       {
+        "id": "large",
+        "label": "large \u2014 xhigh reasoning"
+       },
+       {
+        "id": "medium",
+        "label": "medium \u2014 high reasoning"
+       },
+       {
+        "id": "small",
+        "label": "small \u2014 medium reasoning (current)"
+       }
+      ],
+      "prompt": "Which reasoning budget should pstack use? (current: small)"
+     },
+     {
+      "allow_multiple": false,
+      "id": "roles",
+      "options": [
+       {
+        "id": "keep",
+        "label": "Accept as-is (Recommended) \u2014 all roles stay on the parent chat model"
+       },
+       {
+        "id": "one-model",
+        "label": "Point all roles at one detected model (I'll ask which)"
+       }
+      ],
+      "prompt": "All roles currently run on the parent chat model (inherit-parent). Accept as-is, or change specific roles?"
+     }
+    ]
+   }
+  },
+  {
+   "transcript": "d70d6fad-5067-40d9-bb94-4db26fa9f531.jsonl",
+   "input": {
+    "questions": [
+     {
+      "id": "budget",
+      "options": [
+       {
+        "id": "unlimited",
+        "label": "unlimited \u2014 max reasoning"
+       },
+       {
+        "id": "large",
+        "label": "large \u2014 xhigh reasoning"
+       },
+       {
+        "id": "medium",
+        "label": "medium \u2014 high reasoning"
+       },
+       {
+        "id": "small",
+        "label": "small \u2014 medium reasoning (current)"
+       }
+      ],
+      "prompt": "What reasoning budget should pstack target? Your current rule records `small \u2014 medium reasoning`."
+     }
+    ]
+   }
+  },
+  {
+   "transcript": "d70d6fad-5067-40d9-bb94-4db26fa9f531.jsonl",
+   "input": {
+    "questions": [
+     {
+      "id": "confirm",
+      "options": [
+       {
+        "description": "Write budget: unlimited (max), keep every role on inherit-parent",
+        "id": "accept",
+        "label": "Accept as-is (Recommended)"
+       },
+       {
+        "description": "Tell me which roles to change and to what \u2014 I'll ask per role",
+        "id": "change",
+        "label": "Change specific roles"
+       }
+      ],
+      "prompt": "Accept this rule (unlimited budget, all roles inherit-parent)?"
+     }
+    ]
+   }
+  },
+  {
+   "transcript": "c48b508a-ef6f-48ad-b20e-9e651fad2e86.jsonl",
+   "input": {
+    "questions": [
+     {
+      "id": "budget",
+      "options": [
+       {
+        "description": "Target effort: max. No detected slug reaches max, so real slugs fall back to their family's highest (high).",
+        "id": "unlimited",
+        "label": "unlimited \u2014 max reasoning"
+       },
+       {
+        "description": "Target effort: xhigh. No detected slug reaches xhigh, so real slugs fall back to high.",
+        "id": "large",
+        "label": "large \u2014 xhigh reasoning"
+       },
+       {
+        "description": "Target effort: high. Matches detected high-effort slugs directly.",
+        "id": "medium",
+        "label": "medium \u2014 high reasoning"
+       },
+       {
+        "description": "Target effort: medium. Only opus/sonnet/gpt sol are detected at medium; grok has no medium-effort slug.",
+        "id": "small",
+        "label": "small \u2014 medium reasoning (current)"
+       }
+      ],
+      "prompt": "Which reasoning budget? Current: small (medium)."
+     },
+     {
+      "id": "roles",
+      "options": [
+       {
+        "description": "Budget line updates only; every role keeps running on the parent chat model.",
+        "id": "keep",
+        "label": "Keep all roles on inherit-parent"
+       },
+       {
+        "description": "I map the skill defaults onto detected models per your budget, show the table, and confirm before writing.",
+        "id": "defaults",
+        "label": "Switch to detected models (skill defaults, mapped to budget)"
+       },
+       {
+        "description": "Tell me which roles get which slug or alias (inherit-parent / auto also allowed).",
+        "id": "specific",
+        "label": "I'll pick per-role"
+       }
+      ],
+      "prompt": "How should the roles be set?"
+     }
+    ]
+   }
+  },
+  {
+   "transcript": "8aede2aa-a6ce-4800-9336-6181833afdf0.jsonl",
+   "input": {
+    "title": "pstack reasoning budget",
+    "questions": [
+     {
+      "id": "budget",
+      "options": [
+       {
+        "id": "unlimited",
+        "label": "unlimited \u2014 max reasoning"
+       },
+       {
+        "id": "large",
+        "label": "large \u2014 xhigh reasoning"
+       },
+       {
+        "id": "medium",
+        "label": "medium \u2014 high reasoning"
+       },
+       {
+        "id": "small",
+        "label": "small \u2014 medium reasoning (current)"
+       }
+      ],
+      "prompt": "Which reasoning budget should pstack run at? Current rule records: small (medium). All roles are on inherit-parent, so this only updates the recorded budget unless you also pin real models to roles."
+     }
+    ]
+   }
+  },
+  {
+   "transcript": "8aede2aa-a6ce-4800-9336-6181833afdf0.jsonl",
+   "input": {
+    "questions": [
+     {
+      "id": "confirm",
+      "options": [
+       {
+        "id": "accept",
+        "label": "Accept as-is (all inherit-parent, budget unlimited)"
+       },
+       {
+        "id": "change",
+        "label": "Change specific roles (pick real models for some)"
+       }
+      ],
+      "prompt": "Write the rule with every role on inherit-parent and budget unlimited (max)? Or pin specific roles to detected models like claude-opus-5-5-medium or grok-4.7-high?"
+     }
+    ]
+   }
+  },
+  {
+   "transcript": "1344d19b-07d9-4f23-84d6-e638bc78e70e.jsonl",
+   "input": {
+    "title": "pstack budget",
+    "questions": [
+     {
+      "id": "budget",
+      "prompt": "Which reasoning budget should pstack record? (Current: small \u2014 medium reasoning)",
+      "options": [
+       {
+        "id": "small",
+        "label": "small \u2014 medium reasoning"
+       },
+       {
+        "id": "medium",
+        "label": "medium \u2014 high reasoning"
+       },
+       {
+        "id": "large",
+        "label": "large \u2014 xhigh reasoning"
+       },
+       {
+        "id": "unlimited",
+        "label": "unlimited \u2014 max reasoning"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "transcript": "bba9fbb7-5f3e-4ac7-a075-f5e7bcbd81c7.jsonl",
+   "input": {
+    "questions": [
+     {
+      "id": "target",
+      "options": [
+       {
+        "id": "cursor",
+        "label": "Cursor rule only (Recommended)"
+       },
+       {
+        "id": "claude",
+        "label": "Claude rule only"
+       },
+       {
+        "id": "both",
+        "label": "Both, kept in sync"
+       }
+      ],
+      "prompt": "Which rule file should this run update? (Cursor rule: ~/.cursor/rules/pstack-models.mdc \u2014 all roles inherit-parent, budget `small (medium)`. Claude rule: ~/.claude/rules/pstack-models.md \u2014 skill defaults, budget `unlimited`.)"
+     },
+     {
+      "id": "budget",
+      "options": [
+       {
+        "id": "unlimited",
+        "label": "unlimited \u2014 keep defaults"
+       },
+       {
+        "id": "large",
+        "label": "large \u2014 no effect beyond unlimited here (effort is set per skill or subagent, not per Task call)"
+       },
+       {
+        "id": "medium",
+        "label": "medium \u2014 selective step-down"
+       },
+       {
+        "id": "small",
+        "label": "small \u2014 nothing preserved"
+       }
+      ],
+      "prompt": "Which reasoning budget? (Cursor rule currently records `small (medium)`; Claude rule records `unlimited`.)"
+     }
+    ]
+   }
+  },
+  {
+   "transcript": "bba9fbb7-5f3e-4ac7-a075-f5e7bcbd81c7.jsonl",
+   "input": {
+    "questions": [
+     {
+      "id": "confirm",
+      "options": [
+       {
+        "id": "accept",
+        "label": "Accept as-is (Recommended)"
+       },
+       {
+        "id": "reset",
+        "label": "Reset roles to the unlimited default mapping"
+       },
+       {
+        "id": "change",
+        "label": "Change specific roles (tell me which)"
+       }
+      ],
+      "prompt": "Write the table above as-is, or change something?"
+     }
+    ]
+   }
+  },
+  {
+   "transcript": "e4214f4e-c6b0-4993-a80d-e15cfdeb651a.jsonl",
+   "input": {
+    "questions": [
+     {
+      "id": "budget",
+      "options": [
+       {
+        "description": "Restore skill defaults: opus/fable/sonnet tiers per role, 3-wide panels.",
+        "id": "unlimited",
+        "label": "unlimited \u2014 keep defaults"
+       },
+       {
+        "description": "No effect beyond unlimited here; effort is set per skill or subagent, not per Agent call.",
+        "id": "large",
+        "label": "large \u2014 no effect beyond unlimited here"
+       },
+       {
+        "description": "Single-model roles drop to sonnet except judgment/hardest/explainer/synthesizer roles; panels keep length with non-opus entries on sonnet.",
+        "id": "medium",
+        "label": "medium \u2014 selective step-down"
+       },
+       {
+        "description": "opus/fable roles land on sonnet, sonnet roles land on haiku \u2014 everywhere, lists included.",
+        "id": "small",
+        "label": "small \u2014 nothing preserved"
+       }
+      ],
+      "prompt": "Which reasoning budget should pstack use? (Claude rule records `small`; Cursor rule records `small (medium)`. Note: both files' current role values differ from what any budget would compute, so your existing per-role picks are preserved as hand-picked unless you change them in the next step.)"
+     },
+     {
+      "id": "scope",
+      "options": [
+       {
+        "description": "Write both files with the same values so the two environments agree.",
+        "id": "both",
+        "label": "Both \u2014 sync Cursor and Claude Code (Recommended)"
+       },
+       {
+        "description": "~/.cursor/rules/pstack-models.mdc \u2014 the rule actually applied in this session.",
+        "id": "cursor",
+        "label": "Cursor rule only"
+       },
+       {
+        "description": "~/.claude/rules/pstack-models.md \u2014 the skill's default target.",
+        "id": "claude",
+        "label": "Claude Code rule only"
+       }
+      ],
+      "prompt": "Which rule file should I write? The two currently disagree (Claude: all sonnet; Cursor: all inherit-parent)."
+     }
+    ]
+   }
+  },
+  {
+   "transcript": "e4214f4e-c6b0-4993-a80d-e15cfdeb651a.jsonl",
+   "input": {
+    "questions": [
+     {
+      "id": "confirm",
+      "options": [
+       {
+        "description": "Write the unlimited defaults table to both files.",
+        "id": "accept",
+        "label": "Accept as-is (Recommended)"
+       },
+       {
+        "description": "Tell me which roles to change and to what (free text) \u2014 e.g. `hardest tasks: inherit-parent`.",
+        "id": "change",
+        "label": "Change specific roles"
+       },
+       {
+        "description": "Every role on the parent chat model, matching your previous Cursor rule.",
+        "id": "all-inherit",
+        "label": "Pin everything to inherit-parent instead"
+       }
+      ],
+      "prompt": "Accept this role table as-is, or change specific roles?"
+     }
+    ]
+   }
+  },
+  {
+   "transcript": "1df68baf-fe24-4fea-a253-af2f0caf75af.jsonl",
+   "input": {
+    "title": "pstack budget",
+    "questions": [
+     {
+      "id": "budget",
+      "prompt": "What reasoning budget should pstack roles use? Your current rule is `small (medium)`. With no rule, `large` matches the skill defaults.",
+      "options": [
+       {
+        "id": "unlimited",
+        "label": "unlimited \u2014 max reasoning"
+       },
+       {
+        "id": "large",
+        "label": "large \u2014 xhigh reasoning"
+       },
+       {
+        "id": "medium",
+        "label": "medium \u2014 high reasoning"
+       },
+       {
+        "id": "small",
+        "label": "small \u2014 medium reasoning (current)"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "transcript": "1df68baf-fe24-4fea-a253-af2f0caf75af.jsonl",
+   "input": {
+    "questions": [
+     {
+      "id": "confirm",
+      "options": [
+       {
+        "id": "as-is",
+        "label": "Accept as-is \u2014 all roles stay on inherit-parent"
+       },
+       {
+        "id": "promote",
+        "label": "Promote roles to detected slugs at max effort"
+       },
+       {
+        "id": "change-some",
+        "label": "Change specific roles"
+       }
+      ],
+      "prompt": "Accept this rule as-is, or adjust roles? (If promoting: judgment-heavy roles \u2192 claude-fable-5-1-thinking-high, fast roles \u2192 grok-4.7-high-fast.)"
+     }
+    ],
+    "title": "Confirm pstack rule"
+   }
+  },
+  {
+   "transcript": "d7ba2cd8-364a-46dd-a00e-27e689ac6e51.jsonl",
+   "input": {
+    "title": "pstack budget",
+    "questions": [
+     {
+      "allow_multiple": false,
+      "id": "budget",
+      "options": [
+       {
+        "id": "unlimited",
+        "label": "unlimited \u2014 max reasoning"
+       },
+       {
+        "id": "large",
+        "label": "large \u2014 xhigh reasoning"
+       },
+       {
+        "id": "medium",
+        "label": "medium \u2014 high reasoning"
+       },
+       {
+        "id": "small",
+        "label": "small \u2014 medium reasoning (current)"
+       }
+      ],
+      "prompt": "Which reasoning budget should pstack use? Your current rule records `small`."
+     }
+    ]
+   }
+  },
+  {
+   "transcript": "424af199-a7c0-4101-8c13-fe81a6e3cb22.jsonl",
+   "input": {
+    "questions": [
+     {
+      "allow_multiple": false,
+      "id": "budget",
+      "options": [
+       {
+        "id": "unlimited",
+        "label": "unlimited \u2014 max reasoning"
+       },
+       {
+        "id": "large",
+        "label": "large \u2014 xhigh reasoning"
+       },
+       {
+        "id": "medium",
+        "label": "medium \u2014 high reasoning"
+       },
+       {
+        "id": "small",
+        "label": "small \u2014 medium reasoning (current)"
+       }
+      ],
+      "prompt": "Which reasoning budget should pstack roles use? Your current rule records `small`. Note: every role in your rule is `inherit-parent`, so this choice updates the recorded budget line only \u2014 alias roles stay on the parent chat model either way."
+     }
+    ]
+   }
+  },
+  {
+   "transcript": "424af199-a7c0-4101-8c13-fe81a6e3cb22.jsonl",
+   "input": {
+    "questions": [
+     {
+      "allow_multiple": false,
+      "id": "confirm",
+      "options": [
+       {
+        "id": "accept",
+        "label": "Accept as-is \u2014 write the rule"
+       },
+       {
+        "id": "change",
+        "label": "Change specific roles"
+       }
+      ],
+      "prompt": "Accept this configuration? \"Change specific roles\" lets you pick a role and set it to one of the detected models, or `inherit-parent` / `auto`."
+     }
+    ]
+   }
+  },
+  {
+   "transcript": "7abb196d-0981-4a43-9bb4-1fdc29a2e74f.jsonl",
+   "input": {
+    "questions": [
+     {
+      "id": "budget",
+      "options": [
+       {
+        "id": "unlimited",
+        "label": "unlimited \u2014 keep defaults"
+       },
+       {
+        "id": "large",
+        "label": "large \u2014 no effect beyond unlimited here; the harness sets effort per skill or subagent, not per Task call"
+       },
+       {
+        "id": "medium",
+        "label": "medium \u2014 selective step-down"
+       },
+       {
+        "id": "small",
+        "label": "small \u2014 nothing preserved"
+       }
+      ],
+      "prompt": "Which reasoning budget should pstack record? (Currently the Claude rule says `small`, the Cursor rule says `small (medium)`.)"
+     },
+     {
+      "id": "destination",
+      "options": [
+       {
+        "id": "cursor",
+        "label": "~/.cursor/rules/pstack-models.mdc (Recommended) \u2014 the rule loaded in this Cursor session"
+       },
+       {
+        "id": "claude",
+        "label": "~/.claude/rules/pstack-models.md \u2014 the path the skill names (Claude Code)"
+       },
+       {
+        "id": "both",
+        "label": "Both files"
+       }
+      ],
+      "prompt": "Which rule file should I write? The skill names ~/.claude/rules/pstack-models.md, but this session is Cursor and loads ~/.cursor/rules/pstack-models.mdc as an always-applied rule."
+     },
+     {
+      "id": "roles",
+      "options": [
+       {
+        "id": "keep",
+        "label": "Keep pins (Recommended) \u2014 Cursor file stays all-inherit-parent, Claude file stays all-sonnet"
+       },
+       {
+        "id": "reset",
+        "label": "Reset to defaults \u2014 drop the pins and write the skill-default table with the chosen budget applied"
+       }
+      ],
+      "prompt": "Keep the hand-pinned role values, or let the budget govern?"
+     }
+    ]
+   }
+  },
+  {
+   "transcript": "5dbfe6fb-b496-487d-b671-4e959c83b6dc.jsonl",
+   "input": {
+    "title": "pstack budget",
+    "questions": [
+     {
+      "id": "budget",
+      "prompt": "Which reasoning budget should pstack roles use? Your rule currently records `small (medium)`, with every role pinned to `inherit-parent` \u2014 a new budget only changes the recorded line unless you also move roles off the alias.",
+      "options": [
+       {
+        "id": "unlimited",
+        "label": "unlimited \u2014 max reasoning"
+       },
+       {
+        "id": "large",
+        "label": "large \u2014 xhigh reasoning"
+       },
+       {
+        "id": "medium",
+        "label": "medium \u2014 high reasoning"
+       },
+       {
+        "id": "small",
+        "label": "small \u2014 medium reasoning"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "transcript": "f3833fe3-d0cb-42ac-a44b-e898444a9908.jsonl",
+   "input": {
+    "questions": [
+     {
+      "id": "budget",
+      "prompt": "Which reasoning budget should pstack roles use? (Current rule records: small (medium). Since all roles are `inherit-parent`, this only sets the budget label unless you also pin specific models.)",
+      "options": [
+       {
+        "id": "unlimited",
+        "label": "unlimited \u2014 max reasoning"
+       },
+       {
+        "id": "large",
+        "label": "large \u2014 xhigh reasoning"
+       },
+       {
+        "id": "medium",
+        "label": "medium \u2014 high reasoning"
+       },
+       {
+        "id": "small",
+        "label": "small \u2014 medium reasoning"
+       }
+      ]
+     },
+     {
+      "id": "roles",
+      "prompt": "Keep every role on `inherit-parent` (each role runs on the parent chat model)?",
+      "options": [
+       {
+        "id": "keep",
+        "label": "Keep all on inherit-parent (Recommended)"
+       },
+       {
+        "id": "change",
+        "label": "Change specific roles to pinned models"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "transcript": "1ebdc4b6-c3e4-49bb-8acc-e252c8b30b14.jsonl",
+   "input": {
+    "questions": [
+     {
+      "id": "budget",
+      "options": [
+       {
+        "id": "unlimited",
+        "label": "unlimited \u2014 max reasoning"
+       },
+       {
+        "id": "large",
+        "label": "large \u2014 xhigh reasoning"
+       },
+       {
+        "id": "medium",
+        "label": "medium \u2014 high reasoning"
+       },
+       {
+        "id": "small",
+        "label": "small \u2014 medium reasoning (current)"
+       }
+      ],
+      "prompt": "Which reasoning budget should pstack roles use? Current rule records `small` (medium reasoning). Note: all roles are currently `inherit-parent`, so the budget line is the only thing that will change unless you adjust roles."
+     }
+    ]
+   }
+  },
+  {
+   "transcript": "1ebdc4b6-c3e4-49bb-8acc-e252c8b30b14.jsonl",
+   "input": {
+    "questions": [
+     {
+      "id": "roles",
+      "options": [
+       {
+        "id": "accept",
+        "label": "Accept as-is \u2014 all 17 roles stay inherit-parent"
+       },
+       {
+        "id": "opus",
+        "label": "Set all roles to claude-opus-5-5-medium"
+       },
+       {
+        "id": "grok",
+        "label": "Set all roles to grok-4.7-high"
+       },
+       {
+        "id": "auto",
+        "label": "Set all roles to auto"
+       }
+      ],
+      "prompt": "Keep every role on `inherit-parent` (runs on the parent chat model \u2014 how Auto users stay on Auto), or change specific roles? Pick Other to assign per-role."
+     }
+    ]
+   }
+  }
+ ]
+}

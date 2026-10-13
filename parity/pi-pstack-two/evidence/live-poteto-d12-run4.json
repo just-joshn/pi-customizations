@@ -1,0 +1,52 @@
+{
+  "scenario": "poteto",
+  "requirement": "LIVE-001",
+  "model": "claude-subscription/claude-opus-5-5:high",
+  "prompt": "/poteto-mode How does add in calc.js treat two numeric strings such as \"2\" and \"3\"? This is a read-only question; do not change any files.",
+  "exitCode": 0,
+  "seconds": 27,
+  "checks": {
+    "readPlaybook": false,
+    "firstTodosAreStepsVerbatim": true,
+    "stepMatches": [true, true, true, true],
+    "workspaceUnchanged": true,
+    "todos": [
+      "Route through the **how** skill. For motivation questions, also route through the **why** skill.",
+      "Throughput checkpoint stays one line: `throughput checkpoint: n/a, read-only investigation`.",
+      "Produce the `how`-shaped output (Overview / Key Concepts / How It Works / Where Things Live / Gotchas), or a recommendation with a tradeoffs table if the request is a decision between alternatives.",
+      "Apply the **unslop** skill to the reply."
+    ]
+  },
+  "toolCalls": [
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"cat /Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack/skills/poteto-mode/playbooks/investigation.md; ls -la; cat calc.js\",\"timeout\":null}"
+    },
+    {
+      "name": "TodoWrite",
+      "arguments": "{\"todos\":[{\"id\":\"1\",\"content\":\"Route through the **how** skill. For motivation questions, also route through the **why** skill.\",\"status\":\"in_progress\"},{\"id\":\"2\",\"content\":\"Throughput checkpoint stays one line: `throughput checkpoint: n/a, read-only investigation`.\",\"status\":\"completed\"},{\"id\":\"3\",\"content\":\"Produce the `how`-shaped output (Overview / Key Concepts / How It Works / Where Things Live / Gotchas), or a recommendation with a tradeoffs table if the request is a decision between alternatives.\",\"status\":\"pending\"},{\"id\":\"4\",\"content\":\"Apply the **unslop** skill to the reply.\",\"status"
+    },
+    {
+      "name": "read",
+      "arguments": "{\"path\":\"/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack/skills/how/SKILL.md\",\"offset\":null,\"limit\":null}"
+    },
+    {
+      "name": "read",
+      "arguments": "{\"path\":\"/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack/skills/unslop/SKILL.md\",\"offset\":null,\"limit\":null}"
+    },
+    {
+      "name": "read",
+      "arguments": "{\"path\":\"/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack/skills/principle-prove-it-works/SKILL.md\",\"offset\":null,\"limit\":null}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"cat /Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack/skills/how/references/explainer-prompt.md; cd /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-QAJxzf/work && cp calc.js /tmp/calc_probe.mjs && node -e 'import(\\\"/tmp/calc_probe.mjs\\\").then(({add})=>{for (const [a,b] of [[\\\"2\\\",\\\"3\\\"],[2,3],[\\\"2\\\",3],[2,\\\"3\\\"],[\\\" 2\\\",\\\"3\\\"],[\\\"2.5\\\",\\\"3\\\"]]) console.log(JSON.stringify([a,b]),\\\"->\\\",JSON.stringify(add(a,b)), typeof add(a,b))})'; rm /tmp/calc_probe.mjs; git status --short; git log --oneline | head\",\"timeout\":30}"
+    },
+    {
+      "name": "TodoWrite",
+      "arguments": "{\"todos\":[{\"id\":\"1\",\"content\":\"Route through the **how** skill. For motivation questions, also route through the **why** skill. (simple path, answered inline; why skill skipped: not a motivation question)\",\"status\":\"completed\"},{\"id\":\"3\",\"status\":\"completed\"},{\"id\":\"4\",\"status\":\"completed\"}],\"merge\":true}"
+    }
+  ],
+  "finalText": "`add(\"2\", \"3\")` returns the string `\"23\"`, not the number `5`. It joins the two strings instead of adding them. I confirmed this by running the function.\n\nthroughput checkpoint: n/a, read-only investigation\n\n### Overview\n`calc.js` exports one function, `add(a, b)`, whose whole body is `return a + b;`. It doesn't check its inputs or convert them to numbers. So what it returns depends entirely on how JavaScript's `+` operator handles the values it gets. Anyone calling it with form fields, query parameters, or parsed text gets string joining instead of a sum.\n\n### How it works\nJavaScript's `+` first converts both values to primitives. If either value is a string, it joins the two as text. Only when neither is a string does it add them as numbers. Two numeric strings hit the joining case.\n\nI ran `add` on a temporary copy of `calc.js` in Node:\n\n| Call | Result | Type |\n|---|---|---|\n| `add(\"2\", \"3\")` | `\"23\"` | string |\n| `add(2, 3)` | `5` | number |\n| `add(\"2\", 3)` | `\"23\"` | string |\n| `add(2, \"3\")` | `\"23\"` | string |\n| `add(\" 2\", \"3\")` | `\" 23\"` | string |\n| `add(\"2.5\", \"3\")` | `\"2.53\"` | string |\n\n### Where things live\n`calc.js` is the only source file in the repo. The git log has a single commit, `63dc775 calc`. There are no tests or callers that would show whether string input is expected.\n\n### Gotchas\n- One string argument is enough to switch to joining. `add(\"2\", 3)` also gives `\"23\"`.\n- Whitespace and decimal points stay in the output unchanged. That's why `\" 2\"` gives `\" 23\"` and `\"2.5\"` gives `\"2.53\"`.\n- The result's type changes with the input's type. A caller that later does `result * 2` gets `46` from `\"23\"`, so the mistake can spread without any error. That is my inference, and I didn't run it.\n\nIf numeric strings should add, a change would be `Number(a) + Number(b)` or rejecting non-numbers at the boundary. I didn't make that change because you asked for read-only.\n\n**Process.** Prove It Works is why I ran `add` instead of answering from the `+` rules alone. The table above is the observed output. I ran it on a copy in `/tmp` and deleted the copy afterwards. `git status` shows the working tree is clean. The how skill's simple path would have sent one explainer subagent. I answered directly instead, because the whole file is three lines. I skipped the why skill because this isn't a question about motivation.",
+  "stderrTail": ""
+}

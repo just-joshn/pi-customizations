@@ -1,0 +1,47 @@
+{
+  "scenario": "delegate",
+  "requirement": "LIVE-004",
+  "model": "claude-subscription/claude-opus-5-5:high",
+  "prompt": "/poteto-mode Delegate to one foreground poteto-agent: find what calc.js exports. Read-only.",
+  "exitCode": 0,
+  "seconds": 44,
+  "checks": {
+    "delegated": true,
+    "everyPromptHasSkillPath": true,
+    "prompts": [
+      "Read /Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack/skills/poteto-mode/SKILL.md first, as your agent definition requires.\n\nTask (read-only, no edits): in the repo at /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-DyiNFP/work, determine exactly what /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-DyiNFP/work/calc.js exports.\n\nRepor"
+    ]
+  },
+  "toolCalls": [
+    {
+      "name": "read",
+      "arguments": "{\"path\":\"/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack/skills/poteto-mode/playbooks/investigation.md\",\"offset\":null,\"limit\":null}"
+    },
+    {
+      "name": "TodoWrite",
+      "arguments": "{\"todos\":[{\"id\":\"1\",\"content\":\"Route through the **how** skill. For motivation questions, also route through the **why** skill.\",\"status\":\"in_progress\"},{\"id\":\"2\",\"content\":\"Throughput checkpoint stays one line: `throughput checkpoint: n/a, read-only investigation`.\",\"status\":\"completed\"},{\"id\":\"3\",\"content\":\"Produce the `how`-shaped output (Overview / Key Concepts / How It Works / Where Things Live / Gotchas), or a recommendation with a tradeoffs table if the request is a decision between alternatives.\",\"status\":\"pending\"},{\"id\":\"4\",\"content\":\"Apply the **unslop** skill to the reply.\",\"status"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"pwd; ls -la; find . -name calc.js -not -path '*/node_modules/*'\",\"timeout\":null}"
+    },
+    {
+      "name": "TodoWrite",
+      "arguments": "{\"todos\":[{\"id\":\"1\",\"status\":\"cancelled\",\"content\":\"Route through the **how** skill. For motivation questions, also route through the **why** skill. skip: the user named the routing (one foreground poteto-agent), and a 36-byte file needs no how fan-out\"},{\"id\":\"5\",\"status\":\"in_progress\"}],\"merge\":true}"
+    },
+    {
+      "name": "Task",
+      "arguments": "{\"description\":\"Find calc.js exports\",\"subagent_type\":\"poteto-agent\",\"run_in_background\":false,\"readonly\":true,\"prompt\":\"Read /Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack/skills/poteto-mode/SKILL.md first, as your agent definition requires.\\n\\nTask (read-only, no edits): in the repo at /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-DyiNFP/work, determine exactly what /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-DyiNFP/work/calc.js exports.\\n\\nReport back:\\n- The full verbatim contents of calc.js.\\n- Each exported name, it"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"cat calc.js; node --input-type=module -e \\\"const m=await import('./calc.js');console.log(Object.keys(m), m.add(2,3))\\\"; git status --short\",\"timeout\":null}"
+    },
+    {
+      "name": "TodoWrite",
+      "arguments": "{\"todos\":[{\"id\":\"5\",\"status\":\"completed\"},{\"id\":\"3\",\"status\":\"completed\"},{\"id\":\"4\",\"status\":\"completed\"}],\"merge\":true}"
+    }
+  ],
+  "finalText": "`calc.js` has one export, `add`, a named ES module export that takes two arguments. It has no default export. I sent this to one foreground read-only poteto-agent and then checked its answer myself. Nothing was edited.\n\n**What the file contains.** It is one line long.\n\n```js\nexport const add = (a, b) => a + b;\n```\n\n**What I ran.** I imported the module in Node. The export list came back as `[ 'add' ]` and `add(2, 3)` returned `5`. `git status` showed no changes. The agent got the same results with both `import` and `require`, and also found that `'default' in m` is `false`.\n\n**Where things live.** Everything is in `calc.js` at the repo root. The repo has no `package.json`.\n\n**Gotchas.**\n- The file uses `export`, but it has a `.js` extension and no `\"type\": \"module\"` setting. It still loads because Node v24.21.0 detects ES module syntax. Older Node versions, or Node with that detection turned off, would likely throw a SyntaxError on `require('./calc.js')`. That is a guess. Neither of us ran an older Node.\n- `require('./calc.js')` returns a namespace object, so callers have to use `.add`. `.default` is `undefined`.\n\n**Process.** This followed the Investigation playbook. The throughput checkpoint was n/a because the task was read-only. I skipped the `how` skill's usual fan-out because you asked for a single delegate and the file is 36 bytes. I didn't read any principle leaf skill this session, so none shaped a decision I can cite.",
+  "stderrTail": ""
+}

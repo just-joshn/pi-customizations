@@ -1,0 +1,39 @@
+{
+  "scenario": "delegate",
+  "requirement": "LIVE-004",
+  "model": "claude-subscription/claude-opus-5-5:high",
+  "prompt": "/poteto-mode Delegate to one foreground poteto-agent: find what calc.js exports. Read-only.",
+  "exitCode": 0,
+  "seconds": 58,
+  "checks": {
+    "delegated": true,
+    "everyPromptHasSkillPath": true,
+    "prompts": [
+      "Poteto-mode skill file (read it first, per your instructions): /Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack/skills/poteto-mode/SKILL.md\n\nTask (read-only, no edits): In the working directory /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-ijeqk8/work, locate calc.js (search the tree if it is not at the root) and determine exactly what it exports.\n\nRep"
+    ]
+  },
+  "toolCalls": [
+    {
+      "name": "read",
+      "arguments": "{\"path\":\"/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack/skills/poteto-mode/playbooks/investigation.md\",\"offset\":null,\"limit\":null}"
+    },
+    {
+      "name": "TodoWrite",
+      "arguments": "{\"todos\":[{\"id\":\"1\",\"content\":\"Route through the **how** skill. For motivation questions, also route through the **why** skill.\",\"status\":\"cancelled\"},{\"id\":\"2\",\"content\":\"Throughput checkpoint stays one line: `throughput checkpoint: n/a, read-only investigation`.\",\"status\":\"completed\"},{\"id\":\"3\",\"content\":\"Produce the `how`-shaped output (Overview / Key Concepts / How It Works / Where Things Live / Gotchas), or a recommendation with a tradeoffs table if the request is a decision between alternatives.\",\"status\":\"pending\"},{\"id\":\"4\",\"content\":\"Apply the **unslop** skill to the reply.\",\"status\":"
+    },
+    {
+      "name": "Task",
+      "arguments": "{\"description\":\"Find calc.js exports\",\"subagent_type\":\"poteto-agent\",\"run_in_background\":false,\"readonly\":true,\"model\":\"claude-subscription/claude-opus-5-5:xhigh\",\"prompt\":\"Poteto-mode skill file (read it first, per your instructions): /Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack/skills/poteto-mode/SKILL.md\\n\\nTask (read-only, no edits): In the working directory /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-ijeqk8/work, locate calc.js (search the tree if it is not at the root) and determine exactly what it exports.\\n\\nReport back:\\n- The path o"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"find . -name calc.js -not -path './node_modules/*'; cat -n calc.js\",\"timeout\":10}"
+    },
+    {
+      "name": "TodoWrite",
+      "arguments": "{\"todos\":[{\"id\":\"1\",\"content\":\"Route through the **how** skill. For motivation questions, also route through the **why** skill.\",\"status\":\"cancelled\"},{\"id\":\"3\",\"status\":\"completed\"},{\"id\":\"4\",\"status\":\"completed\"},{\"id\":\"5\",\"status\":\"completed\"}],\"merge\":true}"
+    }
+  ],
+  "finalText": "`calc.js` exports one thing, a named export called `add`. I checked the file myself after the agent reported back.\n\n```js\nexport const add = (a, b) => a + b;\n```\n\n- **What it is.** `add` is a const holding an arrow function. It takes two arguments and returns `a + b`.\n- **Where it lives.** `./calc.js` at the repo root is the only copy. I confirmed this with `find`.\n- **Module type.** It's an ES module. There's no default export and nothing from other files is re-exported. The file is one line, so nothing in it is left unexported.\n- **Runtime check.** The agent imported it on Node v24.21.0. The only key was `add`, and `add(2, 3)` returned `5`.\n- **Gotchas.** `add` doesn't check types, so `add('2', 3)` would give `'23'`. That follows from how `+` works in JavaScript, and nobody ran it. There's also no `package.json`, so Node 24 is guessing the file is ESM from the `export` syntax. An older Node would likely treat it as CommonJS and fail on `export`. That's a guess and wasn't tested.\n\nI skipped the playbook's **how** step because a one-line file didn't need it. The agent ran read-only in the foreground on Opus 5.5 at xhigh, which is the default model for judgment work.",
+  "stderrTail": ""
+}

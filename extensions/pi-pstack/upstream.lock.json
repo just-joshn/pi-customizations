@@ -1,8 +1,8 @@
 {
   "source": {
     "repository": "https://github.com/cursor/plugins",
-    "commit": "1b6d44ff26d4e242f4e8f68c391e6d2f7ca16def",
-    "pstackVersion": "0.15.20",
+    "commit": "997ffc7fe26bdaa6478a14e7f5b8d5f9ed747102",
+    "pstackVersion": "0.15.21",
     "teamKitVersion": "1.2.0"
   },
   "files": [
@@ -19,8 +19,8 @@
       "target": "agents/poteto-agent.md",
       "transform": "none",
       "mode": "100644",
-      "sourceSha256": "5cbeb2c1fea67b28ea9ef95c3416dca3c3f8be278b9654acbf2ea87c7877440a",
-      "targetSha256": "5cbeb2c1fea67b28ea9ef95c3416dca3c3f8be278b9654acbf2ea87c7877440a"
+      "sourceSha256": "cb41fdb80b3eaab7604547c378b97e339689dfebb77e24d4b10c07bbf65590ab",
+      "targetSha256": "cb41fdb80b3eaab7604547c378b97e339689dfebb77e24d4b10c07bbf65590ab"
     },
     {
       "source": "pstack/automations/benny/FOR_AGENTS.md",
@@ -918,8 +918,8 @@
       "target": "skills/poteto-mode/SKILL.md",
       "transform": "frontmatter",
       "mode": "100644",
-      "sourceSha256": "c5900f379a4582cd2980b45b82c419baffc11929a37e7bb463d77dd0569d37a5",
-      "targetSha256": "cc40a1d528468f12877f638e9773d3cba33eceaf64eccf0b0f73771f63f1b8cd",
+      "sourceSha256": "f6d1edf26119cb9251e3db499c79c689599fdf706c268b61051d05c8b953b43a",
+      "targetSha256": "5e6303f8b58d2b7b6362afc3d106543a0cbcb32ff1c47393aa08a4643c996a53",
       "sourceFrontmatter": "name: Poteto Mode\ndescription: poteto's agent style for concise, detailed responses, deliberate subagents, unslopped prose, simple code, and verified work. Use for poteto, /poteto-mode, or requests to work in this style.\ndisable-model-invocation: true\nmode: true\nicon: crown\ncolor: yellow\nreminder: New task? Playbook match or rigor needed -> apply /poteto-mode. Casual turn or user opts out -> don't."
     },
     {

@@ -1,0 +1,61 @@
+{
+  "scenario": "poteto",
+  "requirement": "LIVE-001",
+  "model": "claude-subscription/claude-opus-5-5:high",
+  "prompt": "/poteto-mode How does add in calc.js treat two numeric strings such as \"2\" and \"3\"? This is a read-only question; do not change any files.",
+  "exitCode": 0,
+  "seconds": 41,
+  "checks": {
+    "readPlaybook": true,
+    "firstTodosAreStepsVerbatim": true,
+    "stepMatches": [true, true, true, true],
+    "workspaceUnchanged": true,
+    "todos": [
+      "Route through the **how** skill. For motivation questions, also route through the **why** skill.",
+      "Throughput checkpoint stays one line: `throughput checkpoint: n/a, read-only investigation`.",
+      "Produce the `how`-shaped output (Overview / Key Concepts / How It Works / Where Things Live / Gotchas), or a recommendation with a tradeoffs table if the request is a decision between alternatives.",
+      "Apply the **unslop** skill to the reply.",
+      "Run add(\"2\",\"3\") read-only to observe the result"
+    ]
+  },
+  "toolCalls": [
+    {
+      "name": "read",
+      "arguments": "{\"path\":\"/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack/skills/poteto-mode/playbooks/investigation.md\",\"offset\":null,\"limit\":null}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"ls -la; cat calc.js\",\"timeout\":null}"
+    },
+    {
+      "name": "TodoWrite",
+      "arguments": "{\"todos\":[{\"id\":\"1\",\"content\":\"Route through the **how** skill. For motivation questions, also route through the **why** skill.\",\"status\":\"in_progress\"},{\"id\":\"2\",\"content\":\"Throughput checkpoint stays one line: `throughput checkpoint: n/a, read-only investigation`.\",\"status\":\"completed\"},{\"id\":\"3\",\"content\":\"Produce the `how`-shaped output (Overview / Key Concepts / How It Works / Where Things Live / Gotchas), or a recommendation with a tradeoffs table if the request is a decision between alternatives.\",\"status\":\"pending\"},{\"id\":\"4\",\"content\":\"Apply the **unslop** skill to the reply.\",\"status"
+    },
+    {
+      "name": "read",
+      "arguments": "{\"path\":\"/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack/skills/how/SKILL.md\",\"offset\":null,\"limit\":null}"
+    },
+    {
+      "name": "read",
+      "arguments": "{\"path\":\"/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack/skills/unslop/SKILL.md\",\"offset\":null,\"limit\":null}"
+    },
+    {
+      "name": "read",
+      "arguments": "{\"path\":\"/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack/skills/how/references/explainer-prompt.md\",\"offset\":null,\"limit\":null}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"node --input-type=module -e 'import {add} from \\\"./calc.js\\\"; for (const [a,b] of [[\\\"2\\\",\\\"3\\\"],[2,3],[\\\"2\\\",3],[\\\" 2\\\",\\\"3\\\"],[\\\"\\\",\\\"\\\"]]) { const r=add(a,b); console.log(JSON.stringify(a),JSON.stringify(b),\\\"->\\\",JSON.stringify(r),typeof r) }'; git status --short; git log --oneline | head\",\"timeout\":null}"
+    },
+    {
+      "name": "Task",
+      "arguments": "{\"description\":\"Explain add with strings\",\"subagent_type\":\"generalPurpose\",\"readonly\":true,\"run_in_background\":false,\"model\":\"claude-opus-5-5-xhigh\",\"prompt\":\"You are writing an architectural explanation for a senior engineer. No explorers ran; explore and explain in one pass. Read-only: do not modify any files.\\n\\n## Original Question\\n> How does add in calc.js treat two numeric strings such as \\\"2\\\" and \\\"3\\\"?\\n\\nRepo: /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-CbFKtM/work (calc.js is the only source file). Read it yourself. Ground claims in the code and in JavaScri"
+    },
+    {
+      "name": "TodoWrite",
+      "arguments": "{\"todos\":[{\"id\":\"1\",\"status\":\"completed\"},{\"id\":\"3\",\"status\":\"completed\"},{\"id\":\"4\",\"status\":\"completed\"},{\"id\":\"5\",\"status\":\"completed\"}],\"merge\":true}"
+    }
+  ],
+  "finalText": "`add(\"2\", \"3\")` returns the string `\"23\"`, not the number `5`. I ran it in Node to confirm.\n\n## Overview\n\n`add` doesn't check or convert its arguments. Its whole body is `return a + b;` (`calc.js:2`). In JavaScript, `+` joins the two values as text when either one is a string. So two numeric strings get joined, not added.\n\n## How it works\n\n1. `+` first turns each operand into a primitive value. `\"2\"` and `\"3\"` are already primitives, so they don't change.\n2. If either operand is a string, `+` turns both into strings and joins them. `\"2\"` plus `\"3\"` gives `\"23\"`.\n3. `+` only adds numerically when neither operand is a string.\n\nHere is what Node v-current returned when I imported `add` from `calc.js`:\n\n| Call | Result | Type |\n|---|---|---|\n| `add(\"2\", \"3\")` | `\"23\"` | string |\n| `add(2, 3)` | `5` | number |\n| `add(\"2\", 3)` | `\"23\"` | string |\n| `add(\" 2\", \"3\")` | `\" 23\"` | string |\n| `add(\"\", \"\")` | `\"\"` | string |\n\n## Where things live\n\n`calc.js` is the only source file in the repo, and `add` is its only export. The repo has one commit, `6c9994a calc`.\n\n## Gotchas\n\n- **One string is enough.** A single string argument switches `add` to joining, as `add(\"2\", 3)` shows above.\n- **Other operators convert to numbers.** In JavaScript, `\"2\" - \"3\"` is `-1`. This is from the language rules. I didn't run it. Only `+` joins strings, so `add` can behave differently from a subtraction helper written the same way.\n- **Nothing warns you.** `add` doesn't throw, so `\"23\"` passes silently into whatever runs next. Form fields, query params, and parsed CSV all give you strings. Those values need `Number(x)` before they reach `add`, or `add` has to convert them itself. I haven't recommended a fix because this was a read-only question.\n\n## Process\n\nI used the Investigation playbook and its `how` workflow. One read-only explainer subagent wrote the first draft. I checked its claims against the Node output above. I didn't read any principle skills this session, so I'm not citing any. I changed no files, and `git status` is clean.",
+  "stderrTail": ""
+}

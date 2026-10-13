@@ -1,0 +1,43 @@
+{
+  "scenario": "delegate",
+  "requirement": "LIVE-004",
+  "model": "claude-subscription/claude-opus-5-5:high",
+  "prompt": "/poteto-mode Delegate to one foreground poteto-agent: find what calc.js exports. Read-only.",
+  "exitCode": 0,
+  "seconds": 35,
+  "checks": {
+    "delegated": true,
+    "everyPromptHasSkillPath": true,
+    "prompts": [
+      "Before any work, read /Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack/skills/poteto-mode/SKILL.md in full.\n\nTask (read-only, no edits): in the repo at /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-aU2jbh/work, find what `calc.js` exports. It is the only source file at the repo root.\n\nReport back:\n- The module system used (CommonJS `module.exports`/`ex"
+    ]
+  },
+  "toolCalls": [
+    {
+      "name": "read",
+      "arguments": "{\"path\":\"/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack/skills/poteto-mode/playbooks/investigation.md\",\"offset\":null,\"limit\":null}"
+    },
+    {
+      "name": "TodoWrite",
+      "arguments": "{\"todos\":[{\"id\":\"1\",\"content\":\"Route through the **how** skill. For motivation questions, also route through the **why** skill.\",\"status\":\"in_progress\"},{\"id\":\"2\",\"content\":\"Throughput checkpoint stays one line: `throughput checkpoint: n/a, read-only investigation`.\",\"status\":\"completed\"},{\"id\":\"3\",\"content\":\"Produce the `how`-shaped output (Overview / Key Concepts / How It Works / Where Things Live / Gotchas), or a recommendation with a tradeoffs table if the request is a decision between alternatives.\",\"status\":\"pending\"},{\"id\":\"4\",\"content\":\"Apply the **unslop** skill to the reply.\",\"status"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"ls -la; find . -name calc.js -not -path '*/node_modules/*'\",\"timeout\":null}"
+    },
+    {
+      "name": "Task",
+      "arguments": "{\"description\":\"Find calc.js exports\",\"subagent_type\":\"poteto-agent\",\"run_in_background\":false,\"readonly\":true,\"prompt\":\"Before any work, read /Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack/skills/poteto-mode/SKILL.md in full.\\n\\nTask (read-only, no edits): in the repo at /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-aU2jbh/work, find what `calc.js` exports. It is the only source file at the repo root.\\n\\nReport back:\\n- The module system used (CommonJS `module.exports`/`exports.x`, or ESM `export`).\\n- Every exported name, its kind (function, co"
+    },
+    {
+      "name": "read",
+      "arguments": "{\"path\":\"calc.js\",\"offset\":null,\"limit\":null}"
+    },
+    {
+      "name": "TodoWrite",
+      "arguments": "{\"todos\":[{\"id\":\"1\",\"status\":\"completed\",\"content\":\"Route through the **how** skill. For motivation questions, also route through the **why** skill. skip: user directed a single foreground poteto-agent; a how fan-out would override that for a one-line file\"},{\"id\":\"3\",\"status\":\"completed\"},{\"id\":\"4\",\"status\":\"completed\"},{\"id\":\"5\",\"status\":\"completed\"}],\"merge\":true}"
+    }
+  ],
+  "finalText": "`calc.js` exports one thing, a named ESM export called `add`. It's a function that adds two values.\n\n```js\nexport const add = (a, b) => a + b;\n```\n\n**How I checked.** The subagent ran in read-only mode. It ran a Node dynamic import, which listed the export names as `['add']`. The same run showed `add.length` is 2 and `add(2, 3)` returns 5. I then read `calc.js` myself and it matched the subagent's copy exactly.\n\n**What's in the file.**\n- `calc.js` is a single 36-byte line and the only file tracked in the repo.\n- There is no default export and no `module.exports`.\n- There are no private helpers and no exports that depend on a condition.\n- The repo has no `package.json`. Node still loaded the file as ESM, so my guess is it detects the `export` keyword. I didn't confirm that.\n\n**Gotcha.** `add` has no type checks. If you pass strings, `+` joins them instead of adding: `add(\"2\", 3)` returns `\"23\"`.\n\n**Process.** I skipped the playbook's step of sending this through the how skill. You asked for exactly one foreground subagent, and that step would have started several more just to read one line. No principle shaped this. I didn't read any principle skill files this session, so I'm not citing any.",
+  "stderrTail": ""
+}

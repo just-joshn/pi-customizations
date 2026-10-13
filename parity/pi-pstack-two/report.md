@@ -103,3 +103,38 @@ Each gap names its resolution condition in `ledger.json`.
 ## Final verdict
 
 **NOT VERIFIED** — the verdict derived by `validate-ledger.mjs` from the requirement statuses (2 NOT VERIFIED rows block VERIFIED; no row is unproven by oversight — each carries a verified platform blocker and a closure condition).
+
+## Update: pstack 0.15.21 (2026-10-12)
+
+- **Upstream delta** (`cursor/plugins` `1b6d44f`→`997ffc7`, commits `364a77e` and `997ffc7`): poteto-mode now says bundled skills live at `../<name>/SKILL.md` and tells the parent to put its absolute path in every `poteto-agent` prompt. `poteto-agent.md` now tells the delegate to use that path. The version manifests were bumped. No cursor-team-kit changes.
+- **Port:** re-vendored byte for byte (`sync-upstream --check`: 166 files match). The package is now `0.15.21-pi.1`. No extension code changed, because Pi already supplies the absolute path through the skill `location`. The ledger paths now point at `extensions/pi-pstack/` (the package was renamed from `pi-pstack-two` in #79).
+- **Verification on this revision:** vitest 24 files / 256 tests pass; `tsc` and biome are clean. New RES-010 checks: the shipped text, every Principles-index leaf resolving at `../<name>/SKILL.md`, and `/mode` injecting the absolute `location` through the real Pi RPC.
+- **Live runs:** Pi with opus-5.5 passed the path to `poteto-agent` (1/1). Sonnet-4.6 did not (0/2). The Cursor CLI run picked up a stale `~/.codex/skills/poteto-mode`, so there is no clean Cursor baseline (LIVE-004 INCONCLUSIVE).
+- **Independent review:** 3 reviewers. Upstream completeness and Pi runtime paths had no findings. The ledger review raised 4 minor findings, all fixed: the sonnet run count, the LIVE-004 test citation, a tautological RES-010 check, and an unsupported `location` claim.
+- **Verdict (validator):** NOT VERIFIED. VERIFIED 52, NOT VERIFIED 2 (TASK-017 background usage totals, TASK-019 read-only shell; both carried over unchanged), INCONCLUSIVE 5, NOT APPLICABLE 7.
+
+## Update: 0.15.21 re-verification round (2026-10-13)
+
+- **Clean Cursor baselines.** `cursor-live.mjs` runs the scenarios through `cursor-agent` with an isolated `HOME` and the pinned 0.15.21 plugin resources copied project-locally, so stale `~/.claude`/`~/.codex` skill copies cannot shadow them; raw stream output is kept beside each JSON record. Clean runs: `poteto` read the playbook and copied the four steps (normalized equality 1/1); `delegate` included the absolute `poteto-mode/SKILL.md` path in the `poteto-agent` prompt (1/1). Pi opus-5.5:high recorded 3/3 for both scenarios, with the older Sonnet failures retained as counter-evidence.
+- **Readonly shell hardened.** The security review reproduced four enforcement failures; all are fixed with regressions: startup-hook env stripped, dependency default write paths denied, per-command sandbox policy, pre-aborted calls refused, lifecycle delegated to Pi's operations. The readonly floor now persists across resumes, and a type turned readonly restricts older records. macOS verified.
+- **Small fixes.** Mode badge lookups use own properties (inherited names like `constructor` no longer leak through).
+- **Still open.** MODE-004: what Cursor injects per mode turn remains unobserved — stored transcripts omit per-turn system context, and the authorized Agents Window probe could not reliably focus the composer (retries recorded in reviews/resume-mode.md). TASK-019 parity: Cursor's CLI contradicts its own docs (blocks `git log` under a readonly agent); the port implements the documented contract. The remote image path was verified only through an offline fixture provider.
+- **Verdict (validator):** INCONCLUSIVE. VERIFIED 56, NOT VERIFIED 0, INCONCLUSIVE 4 (MODE-004, TASK-019, LIVE-001, LIVE-004), NOT APPLICABLE 7.
+
+## Update: user captures and paired runs (2026-10-13, later)
+
+- **Paired runs (criterion pre-registered in D12).** LIVE-004 is VERIFIED: Cursor 5/5, Pi 5/5. LIVE-001 stays INCONCLUSIVE: Cursor 1/5 and Pi 3/5 under the strict checker (Pi 5/5 if a playbook read through `bash cat` counts). The reference fails the 4/5 floor, so no verdict can be drawn; the port complied at least as often as Cursor.
+- **User captures in the Cursor CLI.**
+  - Cursor's question dialog appends `Other: (type to answer)`, so the port now does the same and returns typed answers as `other`.
+  - Cursor's print mode keeps AskQuestion and resolves questions as skipped, so the port now keeps the tool without a UI and returns skipped instead of withdrawing it.
+  - A one-message `/poteto-mode` attach does not expose the `reminder` line, which matches the port.
+  - The CLI Task tool has no readonly option.
+- **Checks on this revision:** 289 tests in 27 files pass. Typecheck, biome, the 166-file upstream check, and the workspace dependency check pass.
+- **Verdict (validator):** INCONCLUSIVE. VERIFIED 57, NOT VERIFIED 0, INCONCLUSIVE 3 (MODE-004, TASK-019, LIVE-001), NOT APPLICABLE 7.
+
+## Update: Agents Window captures (2026-10-12, 21:14)
+
+- **MODE-004, now VERIFIED.** In a real Agents Window Custom Mode (crown poteto-mode badge visible), the model found no `New task?` line in its context and still applied the playbook. The port no longer injects the frontmatter `reminder` into the mode section (regression tests updated; the README says so). The badge in the same capture was a crown in yellow, consistent with MODE-006.
+- **TASK-019, now VERIFIED against the documented contract.** Cursor does not follow its own docs here. In both the Agents Window and the CLI, a call-level `readonly: true` let the subagent `touch probe.txt`. In the CLI, a readonly agent file blocked every shell call, including `git log`. The port implements the documented contract (writes and network denied, reads allowed) and records both observations as source defects (decisions.md D14).
+- **Checks:** 289 tests in 27 files pass. Typecheck and biome pass for pi-pstack and parity; the remaining repo-wide biome errors are in `pi-xai-oauth`, are unchanged from HEAD, and are not part of this work. The upstream check passes.
+- **Verdict (validator):** INCONCLUSIVE. VERIFIED 59, NOT VERIFIED 0, INCONCLUSIVE 1 (LIVE-001), NOT APPLICABLE 7.

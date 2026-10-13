@@ -1,0 +1,44 @@
+{
+  "scenario": "poteto",
+  "requirement": "LIVE-001",
+  "model": "claude-subscription/claude-opus-5-5:high",
+  "prompt": "/poteto-mode How does add in calc.js treat two numeric strings such as \"2\" and \"3\"? This is a read-only question; do not change any files.",
+  "exitCode": 0,
+  "seconds": 28,
+  "checks": {
+    "readPlaybook": false,
+    "firstTodosAreStepsVerbatim": true,
+    "stepMatches": [true, true, true, true],
+    "workspaceUnchanged": true,
+    "todos": [
+      "Route through the **how** skill. For motivation questions, also route through the **why** skill.",
+      "Throughput checkpoint stays one line: `throughput checkpoint: n/a, read-only investigation`.",
+      "Produce the `how`-shaped output (Overview / Key Concepts / How It Works / Where Things Live / Gotchas), or a recommendation with a tradeoffs table if the request is a decision between alternatives.",
+      "Apply the **unslop** skill to the reply."
+    ]
+  },
+  "toolCalls": [
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"cat /Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack/skills/poteto-mode/playbooks/investigation.md; ls -la; cat calc.js\",\"timeout\":null}"
+    },
+    {
+      "name": "TodoWrite",
+      "arguments": "{\"todos\":[{\"id\":\"1\",\"content\":\"Route through the **how** skill. For motivation questions, also route through the **why** skill.\",\"status\":\"in_progress\"},{\"id\":\"2\",\"content\":\"Throughput checkpoint stays one line: `throughput checkpoint: n/a, read-only investigation`.\",\"status\":\"completed\"},{\"id\":\"3\",\"content\":\"Produce the `how`-shaped output (Overview / Key Concepts / How It Works / Where Things Live / Gotchas), or a recommendation with a tradeoffs table if the request is a decision between alternatives.\",\"status\":\"pending\"},{\"id\":\"4\",\"content\":\"Apply the **unslop** skill to the reply.\",\"status"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"cd /Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack/skills; cat how/SKILL.md; echo ======; cat unslop/SKILL.md; echo =====; cat principle-prove-it-works/SKILL.md\",\"timeout\":null}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"cd /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-dK3DKg/work && node --input-type=module -e 'import {add} from \\\"./calc.js\\\"; for (const [a,b] of [[\\\"2\\\",\\\"3\\\"],[2,3],[\\\"2\\\",3],[2,\\\"3\\\"]]) { const r=add(a,b); console.log(JSON.stringify(a),JSON.stringify(b),\\\"=>\\\",JSON.stringify(r),typeof r) }' && git status --short && git log --oneline | head\",\"timeout\":30}"
+    },
+    {
+      "name": "TodoWrite",
+      "arguments": "{\"todos\":[{\"id\":\"1\",\"content\":\"Route through the **how** skill. For motivation questions, also route through the **why** skill. (Simple path. Answered inline with no explainer spawn because calc.js is 3 lines. Not a motivation question, so no why.)\",\"status\":\"completed\"},{\"id\":\"3\",\"status\":\"completed\"},{\"id\":\"4\",\"status\":\"completed\"}],\"merge\":true}"
+    }
+  ],
+  "finalText": "`add(\"2\", \"3\")` returns the string `\"23\"`, not the number `5`. I ran it to confirm.\n\n**Overview.** `calc.js` exports one function, `add(a, b)`, whose whole body is `return a + b;`. It does no type checks and no conversion. Anyone importing it gets whatever JavaScript's `+` operator does with the values they pass in.\n\n**How it works.** In JavaScript, `+` joins strings together if either operand is a string. It only adds numbers when both operands are numbers. I imported `add` from `./calc.js` with Node and got these results:\n\n| Call | Result | `typeof` |\n|---|---|---|\n| `add(\"2\", \"3\")` | `\"23\"` | string |\n| `add(2, 3)` | `5` | number |\n| `add(\"2\", 3)` | `\"23\"` | string |\n| `add(2, \"3\")` | `\"23\"` | string |\n\n**Where things live.** `calc.js` at the repo root, lines 1 to 3, is the only source file. The repo has one commit (`121144d calc`) and no tests.\n\n**Gotchas.**\n- One string argument is enough to get string concatenation. Values from form inputs, query params, or env vars are strings, so they will produce results like `\"23\"` without any error.\n- If numeric addition is what you want, the caller has to convert first (`add(Number(a), Number(b))`), or `add` has to parse its inputs. That is a behavior change, so it belongs in a Bug fix or Feature run, not this one.\n\n**Process.**\n- This was an Investigation, so I followed the `how` skill's simple path. I answered directly instead of spawning an explainer subagent, because the whole file is three lines.\n- The throughput checkpoint is n/a for a read-only investigation.\n- I applied one principle, **Prove It Works**. Because of it, I ran `add` under Node instead of reasoning from the operator's semantics, and the table shows what it actually returned.\n- I changed no files, and `git status` is clean.",
+  "stderrTail": ""
+}

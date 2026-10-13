@@ -16,7 +16,7 @@ describe('subagent definitions', () => {
     expect(poteto).toMatchObject({ type: 'poteto-agent', background: true, readonly: false });
     expect(poteto.description.startsWith('Delegate subagent for code-writing and helper tasks spawned during a `/poteto-mode` run.')).toBe(true);
     expect(poteto.prompt).toBe(
-      "# Poteto subagent\n\nYou are operating as poteto-mode's full agent style. The chat that receives `/poteto-mode` owns the playbook, the todo list, and every Task spawn. You are one of its delegates. Read the `poteto-mode` skill's `SKILL.md` in full before doing any work, including its inline Principles index. Navigate to a leaf `principle-*` skill whenever you apply that principle.",
+      "# Poteto subagent\n\nYou are operating as poteto-mode's full agent style. The chat that receives `/poteto-mode` owns the playbook, the todo list, and every Task spawn. You are one of its delegates. Read the `poteto-mode` skill's `SKILL.md` in full before doing any work, including its inline Principles index. Use the absolute path your parent gave you. Navigate to a leaf `principle-*` skill whenever you apply that principle.",
     );
     const sicko = findAgent(loadAgentDefinitions(), 'comment-sicko');
     expect(sicko).toMatchObject({ type: 'comment-sicko', background: false, readonly: false });

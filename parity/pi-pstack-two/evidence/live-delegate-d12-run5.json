@@ -1,0 +1,39 @@
+{
+  "scenario": "delegate",
+  "requirement": "LIVE-004",
+  "model": "claude-subscription/claude-opus-5-5:high",
+  "prompt": "/poteto-mode Delegate to one foreground poteto-agent: find what calc.js exports. Read-only.",
+  "exitCode": 0,
+  "seconds": 45,
+  "checks": {
+    "delegated": true,
+    "everyPromptHasSkillPath": true,
+    "prompts": [
+      "Poteto-mode skill file: /Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack/skills/poteto-mode/SKILL.md\n\nRead-only task. Do not edit any files.\n\nWorking directory: /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-YHSKbo/work\n\nFind the file calc.js in this directory tree (if more than one, report each). Report exactly what it exports: every exported name, its"
+    ]
+  },
+  "toolCalls": [
+    {
+      "name": "read",
+      "arguments": "{\"path\":\"/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack/skills/poteto-mode/playbooks/investigation.md\",\"offset\":null,\"limit\":null}"
+    },
+    {
+      "name": "TodoWrite",
+      "arguments": "{\"todos\":[{\"id\":\"1\",\"content\":\"Route through the **how** skill. For motivation questions, also route through the **why** skill.\",\"status\":\"cancelled\"},{\"id\":\"2\",\"content\":\"Throughput checkpoint stays one line: `throughput checkpoint: n/a, read-only investigation`.\",\"status\":\"completed\"},{\"id\":\"3\",\"content\":\"Produce the `how`-shaped output (Overview / Key Concepts / How It Works / Where Things Live / Gotchas), or a recommendation with a tradeoffs table if the request is a decision between alternatives.\",\"status\":\"pending\"},{\"id\":\"4\",\"content\":\"Apply the **unslop** skill to the reply.\",\"status\":"
+    },
+    {
+      "name": "Task",
+      "arguments": "{\"description\":\"Find calc.js exports\",\"subagent_type\":\"poteto-agent\",\"run_in_background\":false,\"readonly\":true,\"prompt\":\"Poteto-mode skill file: /Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack/skills/poteto-mode/SKILL.md\\n\\nRead-only task. Do not edit any files.\\n\\nWorking directory: /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-YHSKbo/work\\n\\nFind the file calc.js in this directory tree (if more than one, report each). Report exactly what it exports: every exported name, its kind (function, const, class, default export, CommonJS module.exports pr"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"ls -a; cat -n calc.js\",\"timeout\":10}"
+    },
+    {
+      "name": "TodoWrite",
+      "arguments": "{\"todos\":[{\"id\":\"1\",\"content\":\"skip: a one-file export lookup needs no how-skill fan-out\",\"status\":\"cancelled\"},{\"id\":\"3\",\"status\":\"completed\"},{\"id\":\"4\",\"status\":\"completed\"},{\"id\":\"5\",\"status\":\"completed\"}],\"merge\":true}"
+    }
+  ],
+  "finalText": "`calc.js` has one export, a named ESM export called `add`.\n\n```js\n// calc.js:1\nexport const add = (a, b) => a + b;\n```\n\n**What the export is.** `add` is a `const` that holds an arrow function. It takes `(a, b)` and returns `a + b`. There is no default export and no re-export, and nothing in the file is left unexported. The file is that one line. I read it myself after the delegate reported, and it matches.\n\n**Where it lives.** The working directory holds only `calc.js` and `.git`. The repo has one commit (`b10e35c calc`). There is no `package.json`.\n\n**Gotchas.**\n- **ESM is detected, not declared.** No `package.json` sets `\"type\": \"module\"`, and the file is `.js`, not `.mjs`. The delegate loaded it under Node v24.21.0, which detects ESM from the syntax. It got keys `['add']`, and `add(2, 3)` returned `5`. My guess is that older Node versions without syntax detection would throw on `export`. Nobody tested that.\n- **No type checks.** `+` also joins strings, so `add('1', 2)` gives `'12'`. That comes from JS semantics. It wasn't run.\n\n**Process.** One foreground `poteto-agent` ran read-only, as you asked. I skipped the `how` skill fan-out because this is a lookup in one file. No principle leaf skills shaped any decision, so I cite none.",
+  "stderrTail": ""
+}
