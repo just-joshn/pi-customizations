@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Runs pstack scenarios against a real model through the Pi CLI and records what the model did.
-// Usage: live-e2e.mjs [--model provider/id] [--scenario poteto|nocomments|setup|all] [--out <dir>] [--tag <name>]
+// Usage: live-e2e.mjs [--model provider/id] [--scenario poteto|delegate|nocomments|setup|all] [--out <dir>] [--tag <name>]
 //                     [--rule <file>] [--providers claude-subscription]
 // --rule copies a pstack-models.mdc into the throwaway agent directory first, for example to bound subagent cost.
 // --providers loads extra provider packages so their models are available without driving the run.
@@ -141,6 +141,24 @@ const SCENARIOS = {
       return { readPlaybook, firstTodosAreStepsVerbatim: verbatim.every(Boolean), stepMatches: verbatim, workspaceUnchanged: clean, todos: todos.map((todo) => todo.content) };
     },
   },
+  delegate: {
+    requirement: 'LIVE-004',
+    prompt: '/poteto-mode Delegate to one foreground poteto-agent: find what calc.js exports. Read-only.',
+    prepare: (box) => {
+      writeFileSync(join(box.work, 'calc.js'), 'export const add = (a, b) => a + b;\n');
+      commitAll(box, 'calc');
+    },
+    check: (calls) => {
+      // pstack 0.15.21: the parent puts poteto-mode's absolute SKILL.md path in every poteto-agent prompt.
+      const skillPath = join(packageRoot, 'skills/poteto-mode/SKILL.md');
+      const delegates = calls.filter((call) => call.name === 'Task' && call.arguments.subagent_type === 'poteto-agent');
+      return {
+        delegated: delegates.length > 0,
+        everyPromptHasSkillPath: delegates.length > 0 && delegates.every((call) => String(call.arguments.prompt ?? '').includes(skillPath)),
+        prompts: delegates.map((call) => String(call.arguments.prompt ?? '').slice(0, 400)),
+      };
+    },
+  },
   nocomments: {
     requirement: 'LIVE-002',
     prompt: '/no-comments',
@@ -230,7 +248,7 @@ async function runScenario(name, model, outDir, tag, ruleFile, providers) {
 const argv = process.argv.slice(2);
 const option = (name, fallback) => (argv.includes(name) ? argv[argv.indexOf(name) + 1] : fallback);
 const model = option('--model', 'deepseek/deepseek-flash');
-const outDir = resolve(option('--out', join(repoRoot, 'parity/pi-pstack/evidence')));
+const outDir = resolve(option('--out', join(repoRoot, 'parity/pi-pstack-two/evidence')));
 const chosen = option('--scenario', 'all');
 const tag = option('--tag', undefined);
 const ruleFile = argv.includes('--rule') ? resolve(option('--rule', '')) : undefined;
