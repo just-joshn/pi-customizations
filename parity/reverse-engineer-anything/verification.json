@@ -1,0 +1,161 @@
+{
+  "ran_at": "2026-10-13T07:57:00.273Z",
+  "node": "v24.21.0",
+  "platform": "darwin arm64",
+  "duration_ms": 16404,
+  "flags": ["--reference", "--pi"],
+  "passed": 25,
+  "failed": 0,
+  "results": [
+    {
+      "claim": "no shipped file names the upstream package, CLI or MCP surface",
+      "method": "scan 48 shipped files",
+      "ok": true,
+      "detail": "clean"
+    },
+    {
+      "claim": "every shipped import is a node builtin or relative, and none can launch a process or open a connection",
+      "method": "extract 75 import specifiers",
+      "ok": true,
+      "detail": "75 specifiers clean"
+    },
+    {
+      "claim": "production code never reads the development evidence tree",
+      "method": "scan scripts/ for \"parity\"",
+      "ok": true,
+      "detail": "clean"
+    },
+    {
+      "claim": "the suite passes at the size this report claims (96 pass, 1 skipped, 14 files)",
+      "method": "node --test over 14 files",
+      "ok": true,
+      "detail": "pass 96, fail 0, skipped 1, files 14"
+    },
+    {
+      "claim": "the ledger validates and derives VERIFIED",
+      "method": "validate-ledger.mjs",
+      "ok": true,
+      "detail": "{\"VERIFIED\":95,\"NOT VERIFIED\":0,\"INCONCLUSIVE\":0,\"NOT APPLICABLE\":17}"
+    },
+    {
+      "claim": "every VERIFIED row cites an acceptance test that exists by file and by name",
+      "method": "115 citations checked against the test files",
+      "ok": true,
+      "detail": "all citations resolve"
+    },
+    {
+      "claim": "the reference catalog fixture really holds the reference tool surface",
+      "method": "count tools and prompts",
+      "ok": true,
+      "detail": "tools 170, prompts 6"
+    },
+    {
+      "claim": "the reference refuses provider-backed ELF analysis on this host",
+      "method": "read the captured error",
+      "ok": true,
+      "detail": "capability_unavailable, \"supports Linux x64 only\""
+    },
+    {
+      "claim": "the fixtures record where they came from",
+      "method": "read PROVENANCE.md",
+      "ok": true,
+      "detail": "| Reference | `rea-agents@6.4.0` via `npx -y rea-agents@latest` |"
+    },
+    {
+      "claim": "the port reproduces every reference summary counter on the same target",
+      "method": "compare 11 summary fields against the frozen reference",
+      "ok": true,
+      "detail": "11 fields agree, including 9 IPC counters"
+    },
+    {
+      "claim": "statistics are documented as this port's own measures, not the reference parser's",
+      "method": "compare and expect a difference",
+      "ok": true,
+      "detail": "differ, as documented in decisions.md and the analyzer limitations"
+    },
+    {
+      "claim": "the live reference still agrees with the frozen fixture",
+      "method": "run npx rea-agents@latest and diff",
+      "ok": true,
+      "detail": "no drift since the fixture was captured"
+    },
+    {
+      "claim": "the analyzer executes nothing in the target",
+      "method": "plant a file-write in the target and check for it",
+      "ok": true,
+      "detail": "no marker written"
+    },
+    {
+      "claim": "evidence ids are content-addressed and stable",
+      "method": "run the same analysis twice",
+      "ok": true,
+      "detail": "ev_5a881dc22e22f2ca71bb650fa7daf00c0289c218c53a6293835f573e154ecf31"
+    },
+    {
+      "claim": "evidence is on disk before it is reported",
+      "method": "read the store after the CLI exits",
+      "ok": true,
+      "detail": ".rea/sessions/s_ee46237c-e793-495b-8bad-2965f6333e08/evidence/ev_5a881dc22e22f2ca71bb650fa7daf00c0289c218c53a6293835f573e154ecf31.json"
+    },
+    {
+      "claim": "a repeated analysis is deduplicated in the index",
+      "method": "expect one record with repeat_count 2",
+      "ok": true,
+      "detail": "records 1, repeat_count 2"
+    },
+    {
+      "claim": "a traversal-shaped identifier cannot name a path",
+      "method": "pass ../../etc/passwd as an evidence id",
+      "ok": true,
+      "detail": "invalid_request: ENOENT: /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/etc/passwd"
+    },
+    {
+      "claim": "credential values never reach the evidence",
+      "method": "inspect a capture holding a token and a bearer header",
+      "ok": true,
+      "detail": "token and bearer values absent, redaction marker present"
+    },
+    {
+      "claim": "an oversized member is refused instead of decompressed",
+      "method": "inspect a member declaring 4 GiB",
+      "ok": true,
+      "detail": "artifact_integrity_mismatch: Declared artifact integrity does not match for bomb.bin."
+    },
+    {
+      "claim": "the port adds no compliance violations",
+      "method": "check-agents-compliance.mjs, error severities only",
+      "ok": true,
+      "detail": "no error-severity finding in either new directory"
+    },
+    {
+      "claim": "the port is formatted and lint-clean",
+      "method": "biome check --error-on-warnings on both new directories",
+      "ok": true,
+      "detail": "exit 0"
+    },
+    {
+      "claim": "the repository gates were already red before this branch",
+      "method": "read the pristine-HEAD baseline and confirm its failing files are outside this diff",
+      "ok": true,
+      "detail": "baseline records 7 biome errors and 4 agent violations at fc39b16c; none of those files appear in this branch"
+    },
+    {
+      "claim": "the recorded Pi session shows the skill in use",
+      "method": "read the committed transcript",
+      "ok": true,
+      "detail": "- **Operation:** `inspect-binary-layout` - **Format detected:** `mach-o` (a Mach-O binary, kind: `binary`)"
+    },
+    {
+      "claim": "the recorded install cycle shows install, discovery and removal",
+      "method": "read the committed transcript",
+      "ok": true,
+      "detail": "install, discovery and removal all present"
+    },
+    {
+      "claim": "a live Pi session still loads the skill and uses the CLI",
+      "method": "pi -p --no-session --skill, 1 attempt(s)",
+      "ok": true,
+      "detail": "run 1: exit_ok=true stdout=\"Operation: `inspect-binary-layout`\nFormat: `mach-o`\" stderr=\"\""
+    }
+  ]
+}

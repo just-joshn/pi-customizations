@@ -42,7 +42,7 @@ deterministic parts live in scripts so they cannot drift from prose.
 | `scripts/rea.mjs` | CLI: argument parsing, flag scoping, error envelopes, exit codes |
 | `scripts/lib/{canonical,envelope,errors,error-vocabulary,store,store-io,unknowns,views,discipline,capabilities,route,target,commands}.mjs` | Evidence kernel, store, unknowns, views, discipline audit, matrix, routing |
 | `scripts/lib/formats/{javascript,javascript-lexer,javascript-graph,javascript-nodes,artifact,asar,zip,binary,gobinary,har,target-source}.mjs` | Format readers and the analyzer |
-| `tests/*.test.mjs` (16 files) | 120 tests, one per ledger acceptance test or regression |
+| `tests/*.test.mjs` (14 files) | 97 tests, one per ledger acceptance test or regression |
 | `parity/reverse-engineer-anything/` | spec, ledger, design record, reference fixtures, E2E transcripts, three independent reviews, this report |
 
 Activation:
@@ -79,7 +79,7 @@ All commands were run on macOS 15 / Darwin arm64, Node v24.21.0, Pi 1.2.0.
 
 | Check | Command | Result |
 | --- | --- | --- |
-| Unit + contract + regression tests | `node --test skills/*/tests/*.test.mjs` | **120 pass, 0 fail, 1 skipped** (the opt-in live Pi E2E) |
+| Unit + contract + regression tests | `node --test skills/reverse-engineer-anything/tests/*.test.mjs` | **96 pass, 0 fail, 1 skipped** (the opt-in live Pi E2E) |
 | Formatting and lint for the port | `biome check --error-on-warnings skills/reverse-engineer-anything parity/reverse-engineer-anything` | exit 0 |
 | Pi skill loading (real loader) | `node scripts/check-pi-mechanisms.mjs` | exit 0, 58 skills loaded including this one |
 | Pi end-to-end, per-session | `pi -p --no-session --skill skills/reverse-engineer-anything "…route /bin/ls…"` | replied `inspect-binary-layout` / `mach-o`; transcript in `fixtures/e2e/pi-skill-load.txt` |
@@ -87,6 +87,8 @@ All commands were run on macOS 15 / Darwin arm64, Node v24.21.0, Pi 1.2.0.
 | Parity ledger | `node skills/port-harness-capability/scripts/validate-ledger.mjs parity/reverse-engineer-anything/ledger.json --root .` | `{"verdict":"VERIFIED","counts":{"VERIFIED":94,"NOT VERIFIED":0,"INCONCLUSIVE":0,"NOT APPLICABLE":17}}` |
 | Reference comparison | REA 6.4.0 `analyze-javascript-application` on the same target | the port matches every Electron/IPC summary counter exactly (windows 1, explicit web preferences 2, bridges 1, exposed members 1, native bindings 1, IPC operations 2, literal channels 1, renderer transmissions 1, main handlers 1, paired 1, unpaired 0) |
 | Code compliance for the port | `node scripts/check-agents-compliance.mjs` | no violations in `skills/reverse-engineer-anything` or `parity/reverse-engineer-anything` (notes only) |
+
+| Claim re-measurement | `node parity/reverse-engineer-anything/scripts/verify-claims.mjs --reference --pi --pr` | every claim in this report re-measured by a re-runnable script; output in `verification.json` |
 
 Repository gates that fail, and why they are not this port's regressions: `bun run ci`,
 `check:agents`, `check:tests` and `verify-fresh-install` fail identically on a pristine `fc39b16c`
@@ -104,6 +106,34 @@ findings were fixed with regression tests; the raw reviews are in `reviews/`.
 | Parity coverage | 9 | 8 fixed (fixture annotation key, 12 undeclared reference operations, statistics semantics, undocumented zero fields, `OBS-002` wording + test, ungrounded `NOT APPLICABLE` evidence, summary-view shape, vacuous assertions); 1 handled as labelled evidence captures plus an opt-in re-runnable test |
 | Security and state integrity | 8 | all fixed: ZIP member cap and unreadable-member integrity, path traversal through `evidence_id`/`unknown_id`/bundle, HAR query and header credential redaction, unsynchronized unknown revisions, lock ownership, nesting depth |
 | Architecture and maintainability | 10 | 8 fixed (discipline audit wired, validated evidence reader, artifact coverage, duplicated api-surface, dead code removed, name resolution reachable, flag scoping, typed HAR parse error); 2 recorded as notes already covered by decisions |
+
+## Re-measurement of these claims
+
+The claims above are re-measured by `scripts/verify-claims.mjs`, which a reviewer reruns instead of
+trusting this document. Its first run found two real problems, both fixed before this revision:
+
+- The suite size was reported as 120 tests in 16 files. The true size of this skill's suite is 97
+  tests in 14 files; the larger figure came from a glob that also matched the repository's other
+  skill. Every count in this report and the pull request was corrected.
+- `inspect-analysis-view <missing-path>` escaped as an untyped `execution_failure`. It is now a
+  typed `invalid_request` with a named issue, with a regression test (`STORE-011`, `ARCH-005`).
+
+The verifier then found two bugs in itself. It required 120 passing tests, a threshold left over
+from the wrong count, so it failed on a correct suite. And it spawned `pi` with an inherited open
+stdin pipe, which made `pi -p` wait for an EOF that never arrived, so it reported the live-session
+claim as false when a direct run in a shell answered correctly in seconds. Both are fixed: the child
+now gets `/dev/null` on stdin plus an explicit timeout, and the suite check asserts the exact counts
+this report states. The full battery runs in about 16 seconds.
+
+The script then checks, among others: the shipped skill has no reference to the upstream package,
+its 75 import specifiers are all `node:` builtins or relative, production code never reads this
+evidence tree, the ledger validates and every one of its 115 VERIFIED citations resolves to a test
+that exists by file and by name, the reference fixture really holds 170 tools and 6 prompts, the
+port reproduces all 11 reference summary counters including 9 IPC counters, the analyzer writes no
+marker file a target's code would have created, evidence is on disk and deduplicated after a repeat
+run, a traversal-shaped identifier is refused, credential values never reach the evidence, an
+oversized member is refused, the port adds no compliance violation, and the repository gates were
+already red before this branch.
 
 ## Parity status
 
