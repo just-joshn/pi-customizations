@@ -1,0 +1,894 @@
+{
+  "capability": "morluto/rea reverse-engineer-anything skill (v41) → pi-rea skill",
+  "verdict": "VERIFIED",
+  "requirements": [
+    {
+      "id": "ENV-001",
+      "sourceBehavior": "Every analysis returns one Evidence envelope with the reference key set",
+      "evidence": "FIXTURE rea-6.4.0-analyze-javascript-application.json",
+      "piMapping": "lib/envelope.mjs createEnvelope",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/envelope.test.mjs::ENV-001: envelope carries the reference key set",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "ENV-002",
+      "sourceBehavior": "The subject carries a content digest of the bytes that were read",
+      "evidence": "REA-CLI analyze-javascript-application",
+      "piMapping": "lib/target.mjs describeSubject + digestTree",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/envelope.test.mjs::ENV-002: subject digest is content-addressed and stable across paths",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "ENV-003",
+      "sourceBehavior": "Evidence identity is a pure function of operation, parameters, subject digest and result",
+      "evidence": "REA-MCP evidence_id shape",
+      "piMapping": "lib/canonical.mjs evidenceId",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/envelope.test.mjs::ENV-003: evidence ids are deterministic and input-sensitive",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "ENV-004",
+      "sourceBehavior": "Provider and predicate identify the producing operation",
+      "evidence": "REA-CLI envelopes",
+      "piMapping": "lib/envelope.mjs PROVIDER",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/envelope.test.mjs::ENV-004: provider and predicate identify the operation",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "ENV-005",
+      "sourceBehavior": "Confidence and authority use the reference vocabularies",
+      "evidence": "FIXTURE envelope + observation vocabularies",
+      "piMapping": "lib/envelope.mjs CONFIDENCE/AUTHORITY/EVIDENCE_AUTHORITY",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/envelope.test.mjs::ENV-005: confidence and authority use the reference vocabularies",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "ENV-006",
+      "sourceBehavior": "Limitations travel with a result into views and exports",
+      "evidence": "REA-SKILL; FIXTURE view limitations",
+      "piMapping": "lib/store.mjs exportBundle + lib/views.mjs",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/envelope.test.mjs::ENV-006: limitations survive view and export",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "OBS-001",
+      "sourceBehavior": "Each observation carries authority, state, confidence, artifact, location, extractor and coverage",
+      "evidence": "FIXTURE observation shape",
+      "piMapping": "lib/envelope.mjs observation",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/envelope.test.mjs::OBS-001: observations carry artifact, location, extractor and coverage",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "OBS-002",
+      "sourceBehavior": "Static syntax is inferred, never observed execution",
+      "evidence": "REA-SKILL; FIXTURE state vocabulary",
+      "piMapping": "lib/envelope.mjs STATE + lib/discipline.mjs auditEvidence",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/envelope.test.mjs::OBS-002: static syntax yields inferred observations",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "OBS-003",
+      "sourceBehavior": "A truncated coverage block reports an exact omitted count",
+      "evidence": "FIXTURE coverage blocks",
+      "piMapping": "lib/envelope.mjs coverage",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/envelope.test.mjs::OBS-003: truncated coverage reports an omitted count",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "OBS-004",
+      "sourceBehavior": "A missing match in partial input is not absence",
+      "evidence": "REA-SKILL; REA-DOCS javascript-application-graph.md",
+      "piMapping": "lib/discipline.mjs absenceClaimAllowed",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/discipline.test.mjs::DISC-005: absence is only claimable inside complete coverage",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "ERR-001",
+      "sourceBehavior": "Failures use the reference error envelope, categories and exit code",
+      "evidence": "docs/error-contract.schema.json; FIXTURE rea-6.4.0-errors.json",
+      "piMapping": "lib/errors.mjs fail + errorEnvelope + scripts/rea.mjs",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/errors.test.mjs::ERR-001: error envelopes match the reference schema",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "ERR-002",
+      "sourceBehavior": "Every error names the next step in remediation.action",
+      "evidence": "REA-CLI captured failures",
+      "piMapping": "lib/errors.mjs defaultAction",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/errors.test.mjs::ERR-002: remediation names the next step",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "ERR-003",
+      "sourceBehavior": "Invalid input enumerates each issue path",
+      "evidence": "REA-CLI missing-path failure",
+      "piMapping": "lib/errors.mjs invalidInput + scripts/rea.mjs parse",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/errors.test.mjs::ERR-003: invalid input lists every issue path",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "ERR-004",
+      "sourceBehavior": "An unavailable capability is a typed refusal, not a crash",
+      "evidence": "REA-CLI capability_unavailable on macOS",
+      "piMapping": "lib/errors.mjs capabilityUnavailable + lib/commands.mjs",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/errors.test.mjs::ERR-004: missing prerequisite yields capability_unavailable",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "STORE-001",
+      "sourceBehavior": "Evidence is durably written before it is reported",
+      "evidence": "REA-SKILL retained-evidence rule",
+      "piMapping": "lib/store-io.mjs writeJsonAtomic + lib/store.mjs retain",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/store.test.mjs::STORE-001: evidence lands on disk before reporting",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "STORE-002",
+      "sourceBehavior": "Repeating an identical analysis keeps one record and counts the repeat",
+      "evidence": "REA-SKILL \"do not repeat identical analysis\"",
+      "piMapping": "lib/store.mjs retainRecord dedupe",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/store.test.mjs::STORE-002: identical analysis does not duplicate records",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "STORE-003",
+      "sourceBehavior": "The ledger is derived state that survives corruption and concurrent writers",
+      "evidence": "port design, decisions.md Decision 3",
+      "piMapping": "lib/store.mjs readLedger rebuild + withLedgerLock",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/store.test.mjs::STORE-003b: concurrent writers lose no index entry",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "STORE-004",
+      "sourceBehavior": "Export is byte-stable and import validates every content address",
+      "evidence": "REA-MCP export_evidence_bundle / get_evidence_bundle",
+      "piMapping": "lib/store.mjs exportBundle + importBundle + assertBundleIntegrity",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/store.test.mjs::STORE-004: bundle export is byte-stable and import validates digests",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "STORE-005",
+      "sourceBehavior": "A bundle export refuses to overwrite unless asked",
+      "evidence": "REA-MCP export_evidence_bundle overwrite guard",
+      "piMapping": "lib/store.mjs exportBundle",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/store.test.mjs::STORE-005: a bundle refuses to overwrite without permission",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "STORE-006",
+      "sourceBehavior": "A view refuses a directory as evidence",
+      "evidence": "pod design",
+      "piMapping": "lib/store.mjs readAnyEvidence",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/store.test.mjs::STORE-006: readAnyEvidence refuses a session directory",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "VIEW-001",
+      "sourceBehavior": "A summary view reads retained evidence without re-running the producer",
+      "evidence": "FIXTURE rea-6.4.0-analysis-view-summary.json",
+      "piMapping": "lib/views.mjs buildView + summarize",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/view.test.mjs::VIEW-001: summary view reads the retained record",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "VIEW-002",
+      "sourceBehavior": "A path that names several graph roles must be disambiguated by node id",
+      "evidence": "REA-SKILL \"a single file path can represent several graph roles\"",
+      "piMapping": "lib/views.mjs itemOf ambiguity refusal",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/view.test.mjs::VIEW-002: node selection is unambiguous when paths repeat",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "VIEW-003",
+      "sourceBehavior": "Page counters never imply source completeness",
+      "evidence": "REA-SKILL paging rule",
+      "piMapping": "lib/views.mjs page + coverage.source_complete",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/view.test.mjs::VIEW-003: page counters never imply completeness",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "VIEW-004",
+      "sourceBehavior": "Unknown view kinds and selectors are refused with issue paths",
+      "evidence": "REA-MCP inspect_analysis_view schema",
+      "piMapping": "lib/views.mjs buildView validation",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/view.test.mjs::VIEW-004: unknown view kinds and selectors are refused",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "UNK-001",
+      "sourceBehavior": "A residual unknown records its requirements, probes and evidence, at revision 1",
+      "evidence": "REA-MCP record_unknown schema",
+      "piMapping": "lib/unknowns.mjs recordUnknown",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/unknowns.test.mjs::UNK-001: recorded unknown carries requirements and revision 1",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "UNK-002",
+      "sourceBehavior": "Updates append immutable revisions and refuse a stale revision",
+      "evidence": "REA-SKILL; REA-MCP update_unknown",
+      "piMapping": "lib/unknowns.mjs updateUnknown",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/unknowns.test.mjs::UNK-002: stale revision conflicts instead of overwriting",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "UNK-003",
+      "sourceBehavior": "A resolution needs evidence that meets the recorded authority and confidence",
+      "evidence": "REA-SKILL \"only qualifying observed evidence can verify a resolution\"",
+      "piMapping": "lib/unknowns.mjs unmetRequirements + verifyUnknownResolution",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/unknowns.test.mjs::UNK-003: resolution is refused without qualifying evidence",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "UNK-004",
+      "sourceBehavior": "Unknowns survive an export/import round trip",
+      "evidence": "REA-MCP get_evidence_bundle",
+      "piMapping": "lib/unknowns.mjs unknownRecords + importUnknownRecord",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/unknowns.test.mjs::UNK-004: an unknown survives an export and import round trip",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "CAP-001",
+      "sourceBehavior": "Every implemented operation appears with its seven effect flags and limitations",
+      "evidence": "REA-CLI capabilities --json",
+      "piMapping": "lib/capabilities.mjs capabilityMatrix",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/capabilities.test.mjs::CAP-001: matrix reports effects for every operation",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "CAP-002",
+      "sourceBehavior": "An operation whose prerequisite is missing is unavailable with a reason and remediation",
+      "evidence": "REA-CLI capability_unavailable",
+      "piMapping": "lib/capabilities.mjs unavailableMatrix + lib/commands.mjs",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/capabilities.test.mjs::CAP-002: missing prerequisite shows as unavailable with remediation",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "CAP-003",
+      "sourceBehavior": "Write and process effects are declared, and no operation mutates the artifact",
+      "evidence": "REA-CLI effects vocabulary",
+      "piMapping": "lib/capabilities.mjs EFFECT_TEMPLATE",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/capabilities.test.mjs::CAP-003: write and process effects are declared",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "CAP-004",
+      "sourceBehavior": "Concurrent writers lose no ledger entry",
+      "evidence": "port design, decisions.md invariants",
+      "piMapping": "lib/store.mjs withLedgerLock",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/store.test.mjs::STORE-003b: concurrent writers lose no index entry",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "ROUTE-001",
+      "sourceBehavior": "The first operation is chosen from the target, before any other question",
+      "evidence": "REA-SKILL \"route the target first\"",
+      "piMapping": "lib/route.mjs routeByPath + ROUTES",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/route.test.mjs::ROUTE-001: each reference target class routes to its operation",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "ROUTE-002",
+      "sourceBehavior": "An ambiguous or unknown name is never resolved by guessing",
+      "evidence": "REA-SKILL target-selection rule",
+      "piMapping": "lib/route.mjs resolveTargetName",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/route.test.mjs::ROUTE-002: ambiguous target asks instead of choosing",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "ROUTE-003",
+      "sourceBehavior": "Routing follows the bytes, and an unsupported container is named",
+      "evidence": "REA-CLI --artifact-format auto",
+      "piMapping": "lib/route.mjs UNSUPPORTED + lib/target.mjs detectFormatFromBytes",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/route.test.mjs::ROUTE-003: content beats extension and mismatches are reported",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "ROUTE-004",
+      "sourceBehavior": "A Go binary routes to the Go reader with the layout reader as the alternative",
+      "evidence": "REA-README Go binaries row",
+      "piMapping": "lib/route.mjs decision goBinary",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/route.test.mjs::ROUTE-004: a Go binary routes to the Go reader",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "JS-001",
+      "sourceBehavior": "A JavaScript/Electron analysis executes nothing and reports the reference result shape",
+      "evidence": "FIXTURE rea-6.4.0-analyze-javascript-application.json",
+      "piMapping": "lib/formats/javascript.mjs analyzeJavaScriptApplication",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/javascript.test.mjs::JS-001: analyzing a tree executes nothing",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "JS-002",
+      "sourceBehavior": "Resolved, external and unresolved specifiers are distinguished",
+      "evidence": "FIXTURE javascript-module properties",
+      "piMapping": "lib/formats/javascript.mjs resolveSpecifier + addImportFacts",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/javascript.test.mjs::JS-002: inside, outside and unresolved specifiers are distinguished",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "JS-003",
+      "sourceBehavior": "Electron roles are reported with their mechanism, and an unresolved preload stays unresolved",
+      "evidence": "FIXTURE electron-main/renderer properties",
+      "piMapping": "lib/formats/javascript.mjs resolveElectronRoles + addRoleNode",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/javascript.test.mjs::JS-003: electron roles and unresolved preload are reported",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "JS-004",
+      "sourceBehavior": "IPC counts pair literal channels and count the unpaired ones",
+      "evidence": "FIXTURE summary.ipc",
+      "piMapping": "lib/formats/javascript.mjs pairIpc + buildSummary",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/javascript.test.mjs::JS-004: paired and unpaired channels are counted",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "JS-005",
+      "sourceBehavior": "Context-bridge members are separated from unknown members",
+      "evidence": "FIXTURE context-bridge-api properties",
+      "piMapping": "lib/formats/javascript.mjs graphNodeForBridge",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/javascript.test.mjs::JS-005: exposed members and unknown members are separated",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "JS-006",
+      "sourceBehavior": "Native member requests are marked as unverified exports",
+      "evidence": "FIXTURE native-export properties",
+      "piMapping": "lib/formats/javascript.mjs graphNodeForNativeRequest",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/javascript.test.mjs::JS-006: native member names are marked unverified",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "JS-007",
+      "sourceBehavior": "A parse failure is recorded without aborting the analysis",
+      "evidence": "FIXTURE statistics",
+      "piMapping": "lib/formats/javascript.mjs extractFiles",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/javascript.test.mjs::JS-007: parse failure is recorded and does not abort",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "JS-008",
+      "sourceBehavior": "An ASAR is read from its own index and its integrity policy decides the outcome",
+      "evidence": "REA-CLI --artifact-format / --integrity-policy",
+      "piMapping": "lib/formats/asar.mjs + javascript.mjs integrity handling",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/javascript.test.mjs::JS-008: asar inventory honours the integrity policy",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "JS-009",
+      "sourceBehavior": "A member path that escapes the target is refused",
+      "evidence": "harness security rules",
+      "piMapping": "lib/formats/zip.mjs normalizeMemberPath",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/javascript.test.mjs::JS-009: escaping member paths are refused",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "JS-010",
+      "sourceBehavior": "The CLI returns a reference-shaped envelope with a stable evidence id",
+      "evidence": "FIXTURE envelope",
+      "piMapping": "scripts/rea.mjs + lib/commands.mjs",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/javascript.test.mjs::JS CLI",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "ART-001",
+      "sourceBehavior": "An archive inventory lists every member with its digest and no extraction to disk",
+      "evidence": "REA-MCP inspect_artifact; REA-DOCS",
+      "piMapping": "lib/formats/artifact.mjs inspectArtifact",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/artifact.test.mjs::ART-001: inventory lists every member with digests",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "ART-002",
+      "sourceBehavior": "The integrity policy decides whether a contradiction fails the call or is recorded",
+      "evidence": "docs/error-contract.schema.json",
+      "piMapping": "lib/formats/artifact.mjs contradictionsIn + commands.mjs",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/artifact.test.mjs::ART-002: integrity policy decides the outcome",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "ART-003",
+      "sourceBehavior": "Inventory pages report selection apart from source completeness",
+      "evidence": "REA-MCP inspect_analysis_view inventory",
+      "piMapping": "lib/views.mjs inventoryOf",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/artifact.test.mjs::ART-003: occurrence selection pages without implying completeness",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "ART-004",
+      "sourceBehavior": "Unsupported containers are named rather than guessed",
+      "evidence": "REA-CLI capabilities limitations",
+      "piMapping": "lib/formats/artifact.mjs + lib/route.mjs UNSUPPORTED",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/artifact.test.mjs::ART-004: unsupported containers are named, not guessed",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "ART-005",
+      "sourceBehavior": "A hostile member path is refused and never read",
+      "evidence": "harness security rules",
+      "piMapping": "lib/formats/zip.mjs normalizeMemberPath",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/artifact.test.mjs::ART-005: hostile member paths are never read",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "ART-006",
+      "sourceBehavior": "A truncated container fails closed",
+      "evidence": "harness security rules",
+      "piMapping": "lib/formats/artifact.mjs asArtifactFormatError",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/artifact.test.mjs::ART-006: a truncated container fails closed",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "BIN-001",
+      "sourceBehavior": "Mach-O, ELF and PE facts are read from bytes without an engine",
+      "evidence": "REA-README; docs/binary-diagnostics.md",
+      "piMapping": "lib/formats/binary.mjs readBinaryLayout",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/binary.test.mjs::BIN-001: mach-o, elf and pe facts are read from bytes",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "BIN-002",
+      "sourceBehavior": "A stripped binary reports unavailable symbol coverage, never \"no imports\"",
+      "evidence": "docs/binary-diagnostics.md",
+      "piMapping": "lib/formats/binary.mjs symbol coverage",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/binary.test.mjs::BIN-002: a stripped binary reports unavailable symbol coverage",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "BIN-003",
+      "sourceBehavior": "Static mitigation candidates cite the marker that produced them",
+      "evidence": "REA-README static mitigation candidates",
+      "piMapping": "lib/formats/binary.mjs mitigations",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/binary.test.mjs::BIN-003: mitigations cite their marker",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "BIN-004",
+      "sourceBehavior": "An ELF on darwin is read, with the reference platform boundary recorded as a deviation",
+      "evidence": "REA-CLI capability_unavailable on macOS",
+      "piMapping": "lib/formats/binary.mjs + commands.mjs limitations",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/binary.test.mjs::BIN-004: elf on darwin is read with an explicit deviation limitation",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "BIN-005",
+      "sourceBehavior": "Malformed structures fail closed with a named code and offset",
+      "evidence": "harness security rules",
+      "piMapping": "lib/formats/binary.mjs FormatError + commands.mjs",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/binary.test.mjs::BIN-005: truncated and out-of-range structures fail closed",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "BIN-006",
+      "sourceBehavior": "A real host binary is read when present",
+      "evidence": "host observation (macOS, /bin/ls)",
+      "piMapping": "lib/formats/binary.mjs readBinaryLayout",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/binary.test.mjs::BIN-006: a real host binary is read when present",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "GO-001",
+      "sourceBehavior": "Go compiler version, build settings and modules are read from the embedded metadata",
+      "evidence": "REA-README Go binaries row",
+      "piMapping": "lib/formats/gobinary.mjs readGoBuildInfo",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/go.test.mjs::GO-001: buildinfo yields version, settings and modules",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "GO-002",
+      "sourceBehavior": "Absent metadata is reported as unknown, never as \"not a Go binary\"",
+      "evidence": "REA-README \"absent metadata does not prove a binary is not Go\"",
+      "piMapping": "lib/formats/gobinary.mjs + commands.mjs capabilityUnavailable",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/go.test.mjs::GO-002: missing buildinfo is reported as unknown",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "GO-003",
+      "sourceBehavior": "A real host Go binary is read when present",
+      "evidence": "host observation (Homebrew gh is Go)",
+      "piMapping": "lib/formats/gobinary.mjs readGoBuildInfo",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/go.test.mjs::GO-003: a real Go binary is read when present",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "GO-004",
+      "sourceBehavior": "A malformed buildinfo blob degrades to partial coverage",
+      "evidence": "harness failure-handling rules",
+      "piMapping": "lib/formats/gobinary.mjs coverage",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/go.test.mjs::GO-004: a malformed blob degrades instead of throwing",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "HAR-001",
+      "sourceBehavior": "A retained capture is inspected offline, and no recorded URL is fetched",
+      "evidence": "REA-DOCS web-network-captures.md; REA-SKILL",
+      "piMapping": "lib/formats/har.mjs readHarCapture",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/har.test.mjs::HAR-001: inspection performs no network access",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "HAR-002",
+      "sourceBehavior": "Credential header values never appear in the result",
+      "evidence": "REA-DOCS; REA-SKILL",
+      "piMapping": "lib/formats/har.mjs redaction",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/har.test.mjs::HAR-002: authorization and cookie values never appear",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "HAR-003",
+      "sourceBehavior": "The api-surface view groups by method, origin and path template",
+      "evidence": "docs/evidence-workflows.md",
+      "piMapping": "lib/formats/har.mjs apiSurface + lib/views.mjs apiSurfaceOf",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/har.test.mjs::HAR-003: api surface groups by method, origin and path template",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "HAR-004",
+      "sourceBehavior": "Record identity survives paging and an unsupported version is refused",
+      "evidence": "REA-SKILL; REA-DOCS",
+      "piMapping": "lib/formats/har.mjs ordinal + HarError",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/har.test.mjs::HAR-004: record ordinals survive paging",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "HAR-005",
+      "sourceBehavior": "A capped capture reports the exact omission",
+      "evidence": "REA-SKILL paging rule",
+      "piMapping": "lib/formats/har.mjs coverage",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/har.test.mjs::HAR-005: a truncated capture reports the omission",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "DISC-001",
+      "sourceBehavior": "A finding must cite evidence; an inference may not be reported as an observation",
+      "evidence": "REA-SKILL",
+      "piMapping": "lib/discipline.mjs auditEvidence",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/discipline.test.mjs::DISC-001: a finding without evidence cannot be reported as observed",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "DISC-002",
+      "sourceBehavior": "An execution claim requires a runtime record",
+      "evidence": "REA-SKILL",
+      "piMapping": "lib/discipline.mjs claimsExecution",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/discipline.test.mjs::DISC-002: execution claims require a runtime record",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "DISC-003",
+      "sourceBehavior": "Every cited evidence id resolves in the bundle",
+      "evidence": "REA-SKILL",
+      "piMapping": "lib/discipline.mjs unresolvedCitations",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/discipline.test.mjs::DISC-003: bundle resolves every cited evidence id",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "DISC-004",
+      "sourceBehavior": "The port never reads outside the declared target",
+      "evidence": "REA-SKILL \"do not broaden the target\"",
+      "piMapping": "lib/discipline.mjs isWithinTarget + lib/formats/target-source.mjs",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/discipline.test.mjs::DISC-004: paths outside the target are refused",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "DISC-005",
+      "sourceBehavior": "Absence is only claimable inside complete coverage",
+      "evidence": "REA-SKILL",
+      "piMapping": "lib/discipline.mjs absenceClaimAllowed",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/discipline.test.mjs::DISC-005: absence is only claimable inside complete coverage",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "DISC-006",
+      "sourceBehavior": "The port passes its own discipline audit",
+      "evidence": "port design",
+      "piMapping": "lib/discipline.mjs auditEvidence",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/discipline.test.mjs::DISC-006: the analyzer output passes its own discipline audit",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "SEC-001",
+      "sourceBehavior": "A ZIP member over the member limit is refused before decompression, and an unreadable member is an integrity problem rather than a silent success",
+      "evidence": "independent security review, finding 1",
+      "piMapping": "lib/formats/zip.mjs assertMemberWithinLimits + lib/formats/artifact.mjs coverageFor",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/artifact.test.mjs::ART-007: an oversized member is refused before it is decompressed",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "SEC-002",
+      "sourceBehavior": "A hostile bundle or CLI argument cannot name a path outside the store",
+      "evidence": "independent security review, findings 2 and 5",
+      "piMapping": "lib/store.mjs assertEvidenceId + lib/unknowns.mjs assertUnknownId",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/store.test.mjs::STORE-007: a malformed evidence or unknown id cannot name a path",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "SEC-003",
+      "sourceBehavior": "An imported unknown must hash to its own id, and concurrent updates cannot both append one revision",
+      "evidence": "independent security review, findings 2 and 6",
+      "piMapping": "lib/store.mjs importBundle + lib/unknowns.mjs locked()",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/store.test.mjs::STORE-009: concurrent unknown revisions cannot both win",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "SEC-004",
+      "sourceBehavior": "Credential query values and signing headers never survive a capture inspection",
+      "evidence": "independent security review, findings 3 and 4",
+      "piMapping": "lib/formats/har.mjs redactQuery + CREDENTIAL_NAME_PARTS",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/har.test.mjs::HAR-006: credential query values and signing headers are redacted",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "SEC-005",
+      "sourceBehavior": "Pathological nesting degrades with a named error instead of a stack overflow",
+      "evidence": "independent security review, finding 8",
+      "piMapping": "lib/canonical.mjs MAX_DEPTH + lib/formats/asar.mjs MAX_HEADER_DEPTH",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/envelope.test.mjs::ENV-007: a structure nested past the depth cap is refused, not overflowed",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "SEC-006",
+      "sourceBehavior": "A lock held by a live writer is not stolen from it",
+      "evidence": "independent security review, finding 7",
+      "piMapping": "lib/store.mjs withLedgerLock + releaseOwnLock",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/store.test.mjs::STORE-010: a lock held by a live writer is not stolen",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "ARCH-001",
+      "sourceBehavior": "The discipline audit is reachable from the CLI",
+      "evidence": "independent architecture review, finding 1",
+      "piMapping": "lib/commands.mjs discipline-audit + lib/discipline.mjs",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/discipline.test.mjs::DISC-007: the discipline audit is reachable from the CLI",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "ARCH-002",
+      "sourceBehavior": "A view reads evidence through the validated reader",
+      "evidence": "independent architecture review, finding 2",
+      "piMapping": "lib/commands.mjs inspect-analysis-view + lib/store.mjs readAnyEvidence",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/route.test.mjs::ROUTE-006: inspect-analysis-view refuses a directory as evidence",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "ARCH-003",
+      "sourceBehavior": "A flag is boolean only where the command declares it",
+      "evidence": "independent architecture review, finding 8",
+      "piMapping": "scripts/rea.mjs booleanFlagsFor + commandNameFrom",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/route.test.mjs::ROUTE-007: a flag is only boolean where the command declares it",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "ARCH-004",
+      "sourceBehavior": "A malformed capture is a typed target error, not an execution failure",
+      "evidence": "independent architecture review, finding 9",
+      "piMapping": "lib/commands.mjs inspect-web-network-capture",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/har.test.mjs::HAR-007: a capture that is not JSON is refused as an unsupported target",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "MACOS-001",
+      "sourceBehavior": "Apple metadata families are refused by name and compared against the reference capability matrix",
+      "evidence": "REA-CLI capabilities --json (fixture rea-6.4.0-capabilities.json)",
+      "piMapping": "lib/capabilities.mjs unavailableMatrix",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/capabilities.test.mjs::CAP-001: matrix reports effects for every operation",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "MACOS-002",
+      "sourceBehavior": "Provider- and toolchain-backed native families are refused by name with their prerequisite",
+      "evidence": "REA-CLI captured capability_unavailable on this host",
+      "piMapping": "lib/capabilities.mjs unavailableMatrix",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/capabilities.test.mjs::CAP-002: missing prerequisite shows as unavailable with remediation",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "SKILL-001",
+      "sourceBehavior": "The skill carries valid Agent Skills frontmatter and routes to its references",
+      "evidence": "Pi docs/skills.md; REA-SKILL install path",
+      "piMapping": "skills/reverse-engineer-anything/SKILL.md",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/skill.test.mjs::SKILL-001: skill frontmatter is valid and the skill loads in Pi",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "SKILL-002",
+      "sourceBehavior": "Every command the skill documents exists and accepts its documented flags",
+      "evidence": "port design",
+      "piMapping": "SKILL.md + references/*.md vs scripts/rea.mjs",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/skill.test.mjs::SKILL-002: every documented command exists and accepts its documented flags",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "SKILL-003",
+      "sourceBehavior": "Only the description is always loaded; the body stays short and instruction-only",
+      "evidence": "Pi docs/skills.md",
+      "piMapping": "SKILL.md frontmatter + body",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/skill.test.mjs::SKILL-003: description is the only always-loaded text",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "SKILL-004",
+      "sourceBehavior": "The skill declares no runtime dependency beyond Node builtins",
+      "evidence": "Pi docs/packages.md",
+      "piMapping": "scripts/**.mjs imports",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/skill.test.mjs::SKILL-004: the packaged skill declares no runtime dependency",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "INDEP-001",
+      "sourceBehavior": "The shipped skill never names the upstream package, CLI or MCP surface, and never cites a command it does not implement",
+      "evidence": "user constraint: zero exceptions",
+      "piMapping": "skill.test.mjs scanned allowlist",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/skill.test.mjs::INDEP-001: the shipped skill never reaches for the upstream project",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "INDEP-002",
+      "sourceBehavior": "No shipped module can import a network or process module, and none calls fetch",
+      "evidence": "user constraint: zero exceptions",
+      "piMapping": "skill.test.mjs import allowlist",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/skill.test.mjs::INDEP-002: the shipped skill can neither open a connection nor launch a process",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "INDEP-003",
+      "sourceBehavior": "Production code never reads the development evidence tree",
+      "evidence": "user constraint: zero exceptions",
+      "piMapping": "skill.test.mjs path scan",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/skill.test.mjs::INDEP-003: production code does not read the parity evidence tree",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "SKILL-005",
+      "sourceBehavior": "A real Pi session loads the skill and uses the port CLI",
+      "evidence": "measured observation on Pi 1.2.0",
+      "piMapping": "pi -p --no-session --skill <dir>",
+      "acceptanceTest": "parity/reverse-engineer-anything/fixtures/e2e/pi-skill-load.txt",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "SKILL-006",
+      "sourceBehavior": "The repository root installs as a Pi package exposing the skill, and removal unregisters it",
+      "evidence": "measured observation on Pi 1.2.0",
+      "piMapping": "pi install <repo> in an isolated PI_CODING_AGENT_DIR",
+      "acceptanceTest": "parity/reverse-engineer-anything/fixtures/e2e/pi-install-cycle.txt",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "PROV-001",
+      "sourceBehavior": "open_binary and the provider-backed native tier (analyze_function, procedure_pseudo_code, list_procedures, decompile, trace_feature, annotations, bookmarks)",
+      "evidence": "REA-README/docs (documented; prerequisites not verified on this host)",
+      "piMapping": "none — declared unavailable",
+      "status": "NOT APPLICABLE",
+      "reason": "Requires Hopper, Ghidra or IDA. None is installed, and the reference itself reports capability_unavailable on this host. inspect-binary-layout covers structure, symbols and mitigations; function-level questions are recorded as unknowns instead."
+    },
+    {
+      "id": "MACOS-003",
+      "sourceBehavior": "The macOS/Apple metadata family and the native provider helpers as separate entry points",
+      "evidence": "REA-CLI capabilities --json (fixture rea-6.4.0-capabilities.json)",
+      "piMapping": "none — declared unavailable",
+      "status": "NOT APPLICABLE",
+      "reason": "Several are listed as available on this host by the reference capability matrix. This port reports Mach-O structure and slices through inspect_binary_layout, refuses the Apple metadata formats by name, and never extracts an artifact to disk."
+    },
+    {
+      "id": "ANDROID-001",
+      "sourceBehavior": "inspect_android_package, inspect_android_class, inspect_android_method, search_android_classes, trace_android_references, decode_android_resources",
+      "evidence": "REA-README/docs (documented; prerequisites not verified on this host)",
+      "piMapping": "none — declared unavailable",
+      "status": "NOT APPLICABLE",
+      "reason": "Requires a headless JADX MCP JAR with a full JDK and a caller-supplied Apktool launcher. inspect-artifact still inventories APK members; the code answer stays open."
+    },
+    {
+      "id": "FIRMWARE-001",
+      "sourceBehavior": "inspect_firmware_regions and extract_firmware",
+      "evidence": "REA-README/docs (documented; prerequisites not verified on this host)",
+      "piMapping": "none — declared unavailable",
+      "status": "NOT APPLICABLE",
+      "reason": "Requires Binwalk or Unblob on Linux."
+    },
+    {
+      "id": "CAPTURE-001",
+      "sourceBehavior": "inspect_packet_capture, inspect_pcap_capture, decode_signal_recording, inspect_recorded_crash",
+      "evidence": "REA-README/docs (documented; prerequisites not verified on this host)",
+      "piMapping": "none — declared unavailable",
+      "status": "NOT APPLICABLE",
+      "reason": "Requires TShark 4.x with prlimit, sigrok-cli 0.7.2, or pwntools on Linux x64. A retained HAR is the only capture this port reads."
+    },
+    {
+      "id": "MANAGED-001",
+      "sourceBehavior": "inspect_managed_artifact, inspect_managed_members, compare_managed_members, import_managed_reconstruction",
+      "evidence": "REA-README/docs (documented; prerequisites not verified on this host)",
+      "piMapping": "none — declared unavailable",
+      "status": "NOT APPLICABLE",
+      "reason": "Managed PE/CLI metadata and CIL decoding are outside this port’s scope."
+    },
+    {
+      "id": "WASM-001",
+      "sourceBehavior": "inspect_wasm_artifact",
+      "evidence": "REA-README/docs (documented; prerequisites not verified on this host)",
+      "piMapping": "none — declared unavailable",
+      "status": "NOT APPLICABLE",
+      "reason": "Requires WABT 1.0.42 with exact byte/tool identity."
+    },
+    {
+      "id": "EVM-001",
+      "sourceBehavior": "inspect_evm_interface",
+      "evidence": "REA-README/docs (documented; prerequisites not verified on this host)",
+      "piMapping": "none — declared unavailable",
+      "status": "NOT APPLICABLE",
+      "reason": "Outside this port’s scope; no chain lookup or carrier handling is implemented."
+    },
+    {
+      "id": "SQLITE-001",
+      "sourceBehavior": "inspect_sqlite_database",
+      "evidence": "REA-README/docs (documented; prerequisites not verified on this host)",
+      "piMapping": "none — declared unavailable",
+      "status": "NOT APPLICABLE",
+      "reason": "Outside this port’s scope."
+    },
+    {
+      "id": "RUNTIME-001",
+      "sourceBehavior": "list_browser_targets, inspect_web_page, list_electron_targets, observe_web_execution, capture_browser_scenario, capture_process_scenario, observe_native_ui, capture_native_ui_scenario, observe_native_calls, inspect_native_load_image",
+      "evidence": "REA-README/docs (documented; prerequisites not verified on this host)",
+      "piMapping": "none — declared unavailable",
+      "status": "NOT APPLICABLE",
+      "reason": "These execute or observe a live target; this port performs no execution. references/runtime-observation.md states the boundary and how to record the gap."
+    },
+    {
+      "id": "FRIDA-001",
+      "sourceBehavior": "Frida instrumentation workflows",
+      "evidence": "REA-README/docs (documented; prerequisites not verified on this host)",
+      "piMapping": "none — declared unavailable",
+      "status": "NOT APPLICABLE",
+      "reason": "Instruments a running process; this port performs no execution."
+    },
+    {
+      "id": "JEB-001",
+      "sourceBehavior": "open_jeb_project, list_jeb_units, decompile_jeb_item, inspect_jeb_client",
+      "evidence": "REA-README/docs (documented; prerequisites not verified on this host)",
+      "piMapping": "none — declared unavailable",
+      "status": "NOT APPLICABLE",
+      "reason": "Requires a caller-started JEB client serving MCP."
+    },
+    {
+      "id": "ADB-001",
+      "sourceBehavior": "The adb device family (list_adb_devices, inspect_adb_*, pull/push/install, capture_adb_screen)",
+      "evidence": "REA-README/docs (documented; prerequisites not verified on this host)",
+      "piMapping": "none — declared unavailable",
+      "status": "NOT APPLICABLE",
+      "reason": "Requires a caller-supplied adb and an attached device."
+    },
+    {
+      "id": "COMPARE-001",
+      "sourceBehavior": "compare_artifacts, compare_bundles, compare_functions, compare_application_versions, compare_web_captures, compare_source_to_bundle, compare_javascript_export_shapes, find_changed_behavior, build_call_path, correlate_static_and_runtime",
+      "evidence": "REA-README/docs (documented; prerequisites not verified on this host)",
+      "piMapping": "none — declared unavailable",
+      "status": "NOT APPLICABLE",
+      "reason": "Comparison workflows await their own port. The evidence discipline they need is implemented, and two analyses can be diffed from their retained summaries by hand."
+    },
+    {
+      "id": "RECON-001",
+      "sourceBehavior": "verify_reconstruction, build_reconstruction_obligation_ledger, evaluate_reconstruction_coverage",
+      "evidence": "REA-README/docs (documented; prerequisites not verified on this host)",
+      "piMapping": "none — declared unavailable",
+      "status": "NOT APPLICABLE",
+      "reason": "Reconstruction verification is outside this port’s scope."
+    },
+    {
+      "id": "PROJECT-001",
+      "sourceBehavior": "project_android_application_graph, project_apple_application_graph, project_managed_application_graph",
+      "evidence": "REA-README/docs (documented; prerequisites not verified on this host)",
+      "piMapping": "none — declared unavailable",
+      "status": "NOT APPLICABLE",
+      "reason": "Depends on the Android, Apple and managed tiers above."
+    },
+    {
+      "id": "SERVER-001",
+      "sourceBehavior": "The REA MCP server itself (registration, doctor, setup, provider installation, npm distribution)",
+      "evidence": "REA-README/docs (documented; prerequisites not verified on this host)",
+      "piMapping": "none — declared unavailable",
+      "status": "NOT APPLICABLE",
+      "reason": "The port is a local CLI plus a Pi skill; it ships no server. REA’s own setup already registers MCP for Pi when the reference is wanted."
+    }
+  ]
+}
