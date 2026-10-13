@@ -9,3 +9,6 @@ artifacts/
 parity/node_modules/
 parity/reference/
 parity/fixtures/candidate-baseline/
+
+# pi-rea session store (working state, not a deliverable)
+.rea/
