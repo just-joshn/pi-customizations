@@ -128,7 +128,7 @@ from the wrong count, so it failed on a correct suite. And it spawned `pi` with 
 stdin pipe, which made `pi -p` wait for an EOF that never arrived, so it reported the live-session
 claim as false when a direct run in a shell answered correctly in seconds. Both are fixed: the child
 now gets `/dev/null` on stdin plus an explicit timeout, and the suite check asserts the exact counts
-this report states. The full battery runs in about 16 seconds.
+this report states. The full battery runs in about 17 seconds.
 
 The script then checks, among others: the shipped skill has no reference to the upstream package,
 its 75 import specifiers are all `node:` builtins or relative, production code never reads this
