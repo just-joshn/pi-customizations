@@ -45,8 +45,8 @@ describe('generated resources', () => {
   test('pins the upstream commit and versions (RES-002)', () => {
     expect(lock.source).toEqual({
       repository: 'https://github.com/cursor/plugins',
-      commit: '1b6d44ff26d4e242f4e8f68c391e6d2f7ca16def',
-      pstackVersion: '0.15.20',
+      commit: '997ffc7fe26bdaa6478a14e7f5b8d5f9ed747102',
+      pstackVersion: '0.15.21',
       teamKitVersion: '1.2.0',
     });
   });
@@ -142,6 +142,25 @@ describe('generated resources', () => {
       ['agents/comment-sicko.md', 'none'],
       ['agents/poteto-agent.md', 'none'],
     ]);
+  });
+
+  test('poteto-mode tells delegates where bundled skills live, and every principle it names is at ../<name>/SKILL.md (RES-010)', () => {
+    const potetoMode = join(root, 'skills/poteto-mode/SKILL.md');
+    const text = readFileSync(potetoMode, 'utf8');
+    expect(text).toContain('Bundled skills live at `../<name>/SKILL.md` from this file');
+    expect(readFileSync(join(root, 'agents/poteto-agent.md'), 'utf8')).toContain('Use the absolute path your parent gave you.');
+    // Each Principles index entry names its leaf: an explicit (**principle-x**), else principle-<kebab title>.
+    const index = text.slice(text.indexOf('Each leaf is the **principle-<title>** skill'), text.indexOf('\n## ', text.indexOf('Each leaf is the')));
+    const leaves = [...index.matchAll(/^- \*\*([^*]+?)\.?\*\*(?: \(\*\*(principle-[a-z-]+)\*\*\))?/gm)].map(
+      ([, title = '', explicit]) =>
+        explicit ??
+        `principle-${title
+          .toLowerCase()
+          .replace(/[^a-z0-9 -]/g, '')
+          .replace(/ +/g, '-')}`,
+    );
+    expect(leaves.length).toBeGreaterThan(20);
+    expect(leaves.filter((name) => !existsSync(resolve(dirname(potetoMode), '..', name, 'SKILL.md')))).toEqual([]);
   });
 
   test('resolves every relative Markdown link in shipped skills (RES-007)', () => {
