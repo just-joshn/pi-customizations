@@ -403,6 +403,13 @@ const requirements = [
   verified('DISC-006', 'The port passes its own discipline audit', 'port design', 'lib/discipline.mjs auditEvidence', `${tests}/discipline.test.mjs::DISC-006: the analyzer output passes its own discipline audit`),
 
   verified(
+    'ARCH-005',
+    'A missing or unreadable evidence path is a typed invalid request, not an untyped execution failure',
+    'independent verification run, 2026-10-13',
+    'lib/store.mjs readAnyEvidence',
+    `${tests}/store.test.mjs::STORE-011: a missing or unreadable evidence path is a typed invalid request`,
+  ),
+  verified(
     'SEC-001',
     'A ZIP member over the member limit is refused before decompression, and an unreadable member is an integrity problem rather than a silent success',
     'independent security review, finding 1',

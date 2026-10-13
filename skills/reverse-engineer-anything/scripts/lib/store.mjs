@@ -240,9 +240,18 @@ export const defaultStoreDir = (cwd = process.cwd()) => join(cwd, '.rea');
 /** Read-only store access for views: a view may read a record without a session. */
 export async function readAnyEvidence(path) {
   const resolved = resolve(path);
-  const info = await stat(resolved);
+  let info;
+  try {
+    info = await stat(resolved);
+  } catch {
+    throw invalidInput('No evidence file exists at that path.', [{ path: ['evidence'], reason: 'not_found', message: `ENOENT: ${resolved}` }]);
+  }
   if (!info.isFile()) throw invalidInput('Views read retained evidence files.', [{ path: ['evidence'], reason: 'invalid_value', message: `not a file: ${resolved}` }]);
-  return readJsonFile(resolved);
+  try {
+    return await readJsonFile(resolved);
+  } catch (error) {
+    throw invalidInput('The evidence file is not readable JSON.', [{ path: ['evidence'], reason: 'invalid_value', message: `${resolved}: ${error instanceof Error ? error.message : String(error)}` }]);
+  }
 }
 
 export { readJsonFile, writeJsonAtomic };

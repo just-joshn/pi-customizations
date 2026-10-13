@@ -587,6 +587,14 @@
       "status": "VERIFIED"
     },
     {
+      "id": "ARCH-005",
+      "sourceBehavior": "A missing or unreadable evidence path is a typed invalid request, not an untyped execution failure",
+      "evidence": "independent verification run, 2026-10-13",
+      "piMapping": "lib/store.mjs readAnyEvidence",
+      "acceptanceTest": "skills/reverse-engineer-anything/tests/store.test.mjs::STORE-011: a missing or unreadable evidence path is a typed invalid request",
+      "status": "VERIFIED"
+    },
+    {
       "id": "SEC-001",
       "sourceBehavior": "A ZIP member over the member limit is refused before decompression, and an unreadable member is an integrity problem rather than a silent success",
       "evidence": "independent security review, finding 1",
