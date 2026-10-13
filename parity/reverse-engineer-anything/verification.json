@@ -1,14 +1,10 @@
 {
-  "ran_at": "2026-10-13T08:05:55.627Z",
+  "ran_at": "2026-10-13T08:06:28.153Z",
   "node": "v24.21.0",
   "platform": "darwin arm64",
-  "duration_ms": 17159,
-  "flags": [
-    "--reference",
-    "--pi",
-    "--pr"
-  ],
-  "passed": 26,
+  "duration_ms": 7113,
+  "flags": [],
+  "passed": 23,
   "failed": 0,
   "results": [
     {
@@ -78,12 +74,6 @@
       "detail": "differ, as documented in decisions.md and the analyzer limitations"
     },
     {
-      "claim": "the live reference still agrees with the frozen fixture",
-      "method": "run npx rea-agents@latest and diff",
-      "ok": true,
-      "detail": "no drift since the fixture was captured"
-    },
-    {
       "claim": "the analyzer executes nothing in the target",
       "method": "plant a file-write in the target and check for it",
       "ok": true,
@@ -93,13 +83,13 @@
       "claim": "evidence ids are content-addressed and stable",
       "method": "run the same analysis twice",
       "ok": true,
-      "detail": "ev_8dadbddc831d96d57364600d637c2719deea45017e6d6839bddc1f4e43dafe01"
+      "detail": "ev_bf8879ccb2eaa347f97ccb92a7238cc704591db71e7d1e35d7f7a1ac2cdd97e6"
     },
     {
       "claim": "evidence is on disk before it is reported",
       "method": "read the store after the CLI exits",
       "ok": true,
-      "detail": ".rea/sessions/s_5ccf30f4-23ea-42b1-a980-cd6f433c9d1d/evidence/ev_8dadbddc831d96d57364600d637c2719deea45017e6d6839bddc1f4e43dafe01.json"
+      "detail": ".rea/sessions/s_3ff66b80-3b76-4093-8015-4251eb79eb35/evidence/ev_bf8879ccb2eaa347f97ccb92a7238cc704591db71e7d1e35d7f7a1ac2cdd97e6.json"
     },
     {
       "claim": "a repeated analysis is deduplicated in the index",
@@ -154,18 +144,6 @@
       "method": "read the committed transcript",
       "ok": true,
       "detail": "install, discovery and removal all present"
-    },
-    {
-      "claim": "a live Pi session still loads the skill and uses the CLI",
-      "method": "pi -p --no-session --skill, 1 attempt(s)",
-      "ok": true,
-      "detail": "run 1: exit_ok=true stdout=\"Operation: `inspect-binary-layout`\nFormat: `mach-o`\" stderr=\"\""
-    },
-    {
-      "claim": "this branch has an open pull request against main",
-      "method": "gh pr view 85",
-      "ok": true,
-      "detail": "OPEN fix/reverse-engineer-anything-verification -> main, 8 files, +674/-4, head matches"
     }
   ]
 }
