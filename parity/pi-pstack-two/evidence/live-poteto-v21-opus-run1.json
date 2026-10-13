@@ -1,0 +1,53 @@
+{
+  "scenario": "poteto",
+  "requirement": "LIVE-001",
+  "model": "claude-subscription/claude-opus-5-5:high",
+  "prompt": "/poteto-mode How does add in calc.js treat two numeric strings such as \"2\" and \"3\"? This is a read-only question; do not change any files.",
+  "exitCode": 0,
+  "seconds": 21,
+  "checks": {
+    "readPlaybook": true,
+    "firstTodosAreStepsVerbatim": false,
+    "stepMatches": [true, false, false, true],
+    "workspaceUnchanged": true,
+    "todos": [
+      "Route through the how skill. For motivation questions, also route through the why skill.",
+      "Throughput checkpoint stays one line: throughput checkpoint: n/a, read-only investigation",
+      "Produce the how-shaped output (Overview / Key Concepts / How It Works / Where Things Live / Gotchas)",
+      "Apply the unslop skill to the reply.",
+      "Confirm behavior by running add(\"2\",\"3\") read-only"
+    ]
+  },
+  "toolCalls": [
+    {
+      "name": "read",
+      "arguments": "{\"path\":\"/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack/skills/poteto-mode/playbooks/investigation.md\",\"offset\":null,\"limit\":null}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"ls -la; cat -n calc.js\",\"timeout\":null}"
+    },
+    {
+      "name": "TodoWrite",
+      "arguments": "{\"todos\":[{\"id\":\"1\",\"content\":\"Route through the how skill. For motivation questions, also route through the why skill.\",\"status\":\"in_progress\"},{\"id\":\"2\",\"content\":\"Throughput checkpoint stays one line: throughput checkpoint: n/a, read-only investigation\",\"status\":\"completed\"},{\"id\":\"3\",\"content\":\"Produce the how-shaped output (Overview / Key Concepts / How It Works / Where Things Live / Gotchas)\",\"status\":\"pending\"},{\"id\":\"4\",\"content\":\"Apply the unslop skill to the reply.\",\"status\":\"pending\"},{\"id\":\"5\",\"content\":\"Confirm behavior by running add(\\\"2\\\",\\\"3\\\") read-only\",\"status\":\"pending\"}],\""
+    },
+    {
+      "name": "read",
+      "arguments": "{\"path\":\"/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack/skills/how/SKILL.md\",\"offset\":null,\"limit\":null}"
+    },
+    {
+      "name": "read",
+      "arguments": "{\"path\":\"/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack/skills/unslop/SKILL.md\",\"offset\":null,\"limit\":null}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"node --input-type=module -e 'import {add} from \\\"./calc.js\\\"; const r=add(\\\"2\\\",\\\"3\\\"); console.log(JSON.stringify(r), typeof r); console.log(JSON.stringify(add(2,3)), JSON.stringify(add(\\\"2\\\",3)))'; git status --short; git log --oneline | head\",\"timeout\":null}"
+    },
+    {
+      "name": "TodoWrite",
+      "arguments": "{\"todos\":[{\"id\":\"1\",\"content\":\"Route through the how skill. skip spawning explainer: calc.js is 3 lines, answer verified by running it\",\"status\":\"completed\"},{\"id\":\"3\",\"status\":\"completed\"},{\"id\":\"4\",\"status\":\"completed\"},{\"id\":\"5\",\"status\":\"completed\"}],\"merge\":true}"
+    }
+  ],
+  "finalText": "`add(\"2\", \"3\")` returns the string `\"23\"`, not the number `5`. I ran it with Node to confirm. `typeof` on the result gives `\"string\"`.\n\n**Why it happens.** In `calc.js` (lines 1 to 3), `add` is `return a + b;` and has no type checks or conversion. In JavaScript, `+` joins its operands as text whenever either one is a string. It only adds them as numbers when neither is a string.\n\n| Call | Result (measured) |\n|---|---|\n| `add(2, 3)` | `5` |\n| `add(\"2\", \"3\")` | `\"23\"` |\n| `add(\"2\", 3)` | `\"23\"` |\n\n**What this means for callers.** Anyone passing raw form fields, query parameters or `process.argv` values gets string joining with no error. The result looks numeric enough to slip through until something compares or formats it. If `add` should always do arithmetic, it would need to convert its inputs with `Number(a) + Number(b)` or reject non-numbers. I made no change because you asked for read-only.\n\n**What I did.** This was a read-only investigation, so it doesn't need a throughput checkpoint. The `how` skill normally sends the question to a separate agent to explain. I skipped that because the file is three lines and running it settled the question directly. I didn't read any of the principle skills this session, so I'm not citing any. `git status` showed no changes after the run.",
+  "stderrTail": ""
+}

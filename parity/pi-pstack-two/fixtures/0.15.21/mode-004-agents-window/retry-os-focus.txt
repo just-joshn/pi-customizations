@@ -1,0 +1,16 @@
+Cursor owner bundle: com.todesktop.230313mzl4w4u92
+Cursor owner pid: 4190
+Before frontmost: true
+Window names:
+name of every window of application process Cursor
+After frontmost: true
+Window names after activation:
+name of every window of application process Cursor
+CursorUIViewService pid=1287 windows=0 frontmost=false
+Cursor pid=4190 windows=0 frontmost=true
+Cursor Helper pid=4202 windows=0 frontmost=false
+Cursor Helper pid=4381 windows=0 frontmost=false
+Cursor Helper (Plugin) pid=4413 windows=0 frontmost=false
+Cursor Helper pid=4446 windows=0 frontmost=false
+Cursor Helper (Plugin) pid=4448 windows=0 frontmost=false
+Cursor Helper (Plugin) pid=4447 windows=0 frontmost=false

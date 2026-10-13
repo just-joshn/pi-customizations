@@ -1,0 +1,60 @@
+{
+  "scenario": "poteto",
+  "requirement": "LIVE-001",
+  "model": "claude-subscription/claude-opus-5-5:high",
+  "prompt": "/poteto-mode How does add in calc.js treat two numeric strings such as \"2\" and \"3\"? This is a read-only question; do not change any files.",
+  "exitCode": 0,
+  "seconds": 73,
+  "checks": {
+    "readPlaybook": true,
+    "firstTodosAreStepsVerbatim": true,
+    "stepMatches": [true, true, true, true],
+    "workspaceUnchanged": true,
+    "todos": [
+      "Route through the **how** skill. For motivation questions, also route through the **why** skill.",
+      "Throughput checkpoint stays one line: `throughput checkpoint: n/a, read-only investigation`.",
+      "Produce the `how`-shaped output (Overview / Key Concepts / How It Works / Where Things Live / Gotchas), or a recommendation with a tradeoffs table if the request is a decision between alternatives.",
+      "Apply the **unslop** skill to the reply."
+    ]
+  },
+  "toolCalls": [
+    {
+      "name": "read",
+      "arguments": "{\"path\":\"/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack/skills/poteto-mode/playbooks/investigation.md\",\"offset\":null,\"limit\":null}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"ls -la; cat calc.js 2>/dev/null\",\"timeout\":null}"
+    },
+    {
+      "name": "TodoWrite",
+      "arguments": "{\"todos\":[{\"id\":\"1\",\"content\":\"Route through the **how** skill. For motivation questions, also route through the **why** skill.\",\"status\":\"in_progress\"},{\"id\":\"2\",\"content\":\"Throughput checkpoint stays one line: `throughput checkpoint: n/a, read-only investigation`.\",\"status\":\"completed\"},{\"id\":\"3\",\"content\":\"Produce the `how`-shaped output (Overview / Key Concepts / How It Works / Where Things Live / Gotchas), or a recommendation with a tradeoffs table if the request is a decision between alternatives.\",\"status\":\"pending\"},{\"id\":\"4\",\"content\":\"Apply the **unslop** skill to the reply.\",\"status"
+    },
+    {
+      "name": "read",
+      "arguments": "{\"path\":\"/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack/skills/how/SKILL.md\",\"offset\":null,\"limit\":null}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"git log --oneline -5; git status --short; node --input-type=module -e 'import {add} from \\\"./calc.js\\\"; console.log(JSON.stringify(add(\\\"2\\\",\\\"3\\\")), typeof add(\\\"2\\\",\\\"3\\\"), JSON.stringify(add(2,\\\"3\\\")), add(2,3))'\",\"timeout\":30}"
+    },
+    {
+      "name": "read",
+      "arguments": "{\"path\":\"/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack/skills/how/references/explainer-prompt.md\",\"offset\":null,\"limit\":null}"
+    },
+    {
+      "name": "Task",
+      "arguments": "{\"description\":\"Explain add in calc.js\",\"subagent_type\":\"generalPurpose\",\"readonly\":true,\"model\":\"claude-opus-5-5-xhigh\",\"run_in_background\":false,\"prompt\":\"You are writing an architectural explanation for a senior engineer. Explore and explain in one pass. Read-only; do not modify any files.\\n\\n## Original Question\\n\\n> How does `add` in calc.js treat two numeric strings such as \\\"2\\\" and \\\"3\\\"?\\n\\nThe repo is at /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-whl3Ph/work. calc.js is at its root. Read it and check whether anything else in the repo (callers, tests, parsing"
+    },
+    {
+      "name": "read",
+      "arguments": "{\"path\":\"/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack/skills/unslop/SKILL.md\",\"offset\":null,\"limit\":80}"
+    },
+    {
+      "name": "TodoWrite",
+      "arguments": "{\"todos\":[{\"id\":\"1\",\"status\":\"completed\"},{\"id\":\"3\",\"status\":\"completed\"},{\"id\":\"4\",\"status\":\"completed\"}],\"merge\":true}"
+    }
+  ],
+  "finalText": "`add(\"2\", \"3\")` returns the string `\"23\"`, not the number `5`. I checked this by running it. I changed no files.\n\n**Overview.** The repo has one tracked file, `calc.js`, from one commit (`1c59a71 calc`). `add` is `return a + b;` at `calc.js:2`. It has no type checks, no `Number()` or `parseFloat` call, and no validation. The repo has no callers, no tests, no `package.json`, and no parsing code. I read this from the code and `git ls-files`.\n\n**How it works.** JavaScript's `+` operator decides what to do from the operand types. This comes from ECMA-262, in ApplyStringOrNumericBinaryOperator:\n\n1. It converts both operands to primitives. `\"2\"` and `\"3\"` are already strings, so they stay as they are.\n2. If either primitive is a string, it converts both to strings and joins them.\n3. Only when neither operand is a string does it add them as numbers or BigInts.\n\nBoth inputs are strings, so step 2 runs and the result is `\"23\"`. Under Node v24 I measured `add(\"2\", \"3\")` returning `\"23\"` with `typeof` `\"string\"`, and `add(2, 3)` returning `5`.\n\n**Where things live.** `add` is defined at `calc.js:1-3`. Nothing else in the repo touches it.\n\n**Gotchas.** Each of these follows from the spec rule above. I ran the first one myself. The explainer subagent ran the rest.\n\n- One string operand is enough to get concatenation. `add(2, \"3\")` and `add(\"2\", 3)` both return `\"23\"`.\n- Whitespace is kept. `add(\" 2\", \"3 \")` returns `\" 23 \"`.\n- `add(\"\", \"\")` returns `\"\"`, not `0`.\n- `null` and `undefined` turn into text. `add(\"2\", null)` returns `\"2null\"`.\n- `add(1n, \"3\")` returns `\"13\"` and does not throw.\n- The file uses ESM `export` without a `package.json` that sets `\"type\": \"module\"`. Node 24 loaded it as ESM through syntax detection, which I saw happen. I'm guessing older Node versions would fail on it, and I didn't test that.\n\nIf callers expect numeric addition, the conversion has to happen in `add` or before the call. Nothing in the repo does it now. Whether to add that conversion is your call. This answer doesn't change the code.\n\n**Process.** I followed the Investigation playbook. The `how` skill rated this a simple question, so one read-only explainer subagent on `claude-opus-5-5-xhigh` traced it, and I checked its main claims against my own Node run. I used the `unslop` skill for the wording of this reply. No principle shaped a decision here, because nothing was designed or changed. Throughput checkpoint: n/a, read-only investigation.",
+  "stderrTail": ""
+}

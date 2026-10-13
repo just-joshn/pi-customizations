@@ -1,0 +1,60 @@
+{
+  "scenario": "poteto",
+  "requirement": "LIVE-001",
+  "model": "claude-subscription/claude-opus-5-5:high",
+  "prompt": "/poteto-mode How does add in calc.js treat two numeric strings such as \"2\" and \"3\"? This is a read-only question; do not change any files.",
+  "exitCode": 0,
+  "seconds": 51,
+  "checks": {
+    "readPlaybook": true,
+    "firstTodosAreStepsVerbatim": true,
+    "stepMatches": [true, true, true, true],
+    "workspaceUnchanged": true,
+    "todos": [
+      "Route through the **how** skill. For motivation questions, also route through the **why** skill.",
+      "Throughput checkpoint stays one line: `throughput checkpoint: n/a, read-only investigation`.",
+      "Produce the `how`-shaped output (Overview / Key Concepts / How It Works / Where Things Live / Gotchas), or a recommendation with a tradeoffs table if the request is a decision between alternatives.",
+      "Apply the **unslop** skill to the reply."
+    ]
+  },
+  "toolCalls": [
+    {
+      "name": "read",
+      "arguments": "{\"path\":\"/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack/skills/poteto-mode/playbooks/investigation.md\",\"offset\":null,\"limit\":null}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"ls -la; cat -n calc.js 2>/dev/null\",\"timeout\":null}"
+    },
+    {
+      "name": "TodoWrite",
+      "arguments": "{\"todos\":[{\"id\":\"1\",\"content\":\"Route through the **how** skill. For motivation questions, also route through the **why** skill.\",\"status\":\"in_progress\"},{\"id\":\"2\",\"content\":\"Throughput checkpoint stays one line: `throughput checkpoint: n/a, read-only investigation`.\",\"status\":\"completed\"},{\"id\":\"3\",\"content\":\"Produce the `how`-shaped output (Overview / Key Concepts / How It Works / Where Things Live / Gotchas), or a recommendation with a tradeoffs table if the request is a decision between alternatives.\",\"status\":\"pending\"},{\"id\":\"4\",\"content\":\"Apply the **unslop** skill to the reply.\",\"status"
+    },
+    {
+      "name": "read",
+      "arguments": "{\"path\":\"/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack/skills/how/SKILL.md\",\"offset\":null,\"limit\":null}"
+    },
+    {
+      "name": "read",
+      "arguments": "{\"path\":\"/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack/skills/unslop/SKILL.md\",\"offset\":null,\"limit\":null}"
+    },
+    {
+      "name": "read",
+      "arguments": "{\"path\":\"/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack/skills/how/references/explainer-prompt.md\",\"offset\":null,\"limit\":null}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"cd \\\"$PWD\\\" && node --input-type=module -e '\\nimport { add } from \\\"./calc.js\\\";\\nfor (const [a,b] of [[\\\"2\\\",\\\"3\\\"],[2,3],[\\\"2\\\",3],[2,\\\"3\\\"],[\\\" 2\\\",\\\"3\\\"],[\\\"\\\",\\\"\\\"]]) console.log(JSON.stringify(a), JSON.stringify(b), \\\"=>\\\", JSON.stringify(add(a,b)), typeof add(a,b));\\n'; git log --oneline -5; git status --short\",\"timeout\":30}"
+    },
+    {
+      "name": "Task",
+      "arguments": "{\"description\":\"Explain add string handling\",\"subagent_type\":\"generalPurpose\",\"readonly\":true,\"model\":\"claude-opus-5-5-xhigh\",\"run_in_background\":false,\"prompt\":\"You are writing an architectural explanation for a senior engineer. Explore and explain in one pass. Read-only: do not modify any files.\\n\\nWorking directory: /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-rDlOBi/work\\n\\n## Original Question\\n\\n> How does add in calc.js treat two numeric strings such as \\\"2\\\" and \\\"3\\\"?\\n\\n## Instructions\\n\\nRead calc.js yourself (Read, Grep, Glob). Check whether anything else in"
+    },
+    {
+      "name": "TodoWrite",
+      "arguments": "{\"todos\":[{\"id\":\"1\",\"status\":\"completed\"},{\"id\":\"3\",\"status\":\"completed\"},{\"id\":\"4\",\"status\":\"completed\"}],\"merge\":true}"
+    }
+  ],
+  "finalText": "## Overview\n\n`add(\"2\", \"3\")` returns the string `\"23\"`. It does not return the number `5`. The function doesn't validate or convert its arguments. It passes them to JavaScript's `+` operator, and `+` joins the two values as text whenever either one is a string. I ran it in node to confirm. `add(\"2\",\"3\")` gave `\"23\"` (type `string`) and `add(2,3)` gave `5`.\n\n## Where things live\n\n- `calc.js` lines 1 to 3 hold the whole module: `export function add(a, b) { return a + b; }`.\n- Nothing else in the repo touches the inputs. It has one commit (`cf1bafd calc`), no `package.json`, no tests, no callers, no JSDoc and no types. I checked this from the file listing and git log.\n\n## How it works\n\n1. `a + b` first converts both operands to primitive values. That step comes from the ECMAScript spec's rules for `+`. `\"2\"` and `\"3\"` are already primitives, so they pass through unchanged.\n2. If either primitive is a string, the operator converts both to strings and concatenates them. Both are strings here, so the result is `\"23\"`.\n3. Numeric addition only happens when neither operand is a string after step 1. Two numeric strings never get there.\n\n## Gotchas\n\n- One string is enough to get concatenation. In node, `add(\"2\", 3)` and `add(2, \"3\")` both returned `\"23\"`.\n- The function does no trimming or parsing. `add(\" 2\", \"3\")` returned `\" 23\"` and `add(\"\", \"\")` returned `\"\"` (measured).\n- The explainer's answer also covered other inputs, based on the spec. `add(null, 1)` is `1`. `add(undefined, 1)` is `NaN`. `add([], [])` is `\"\"`. Adding a BigInt to a Number throws a TypeError. I did not run these four.\n- Nothing in the repo says whether string inputs are meant to be supported. Callers that pass form or query-string values, which are always strings, will get concatenation. My guess is that's unintended. You could switch to `Number(a) + Number(b)` or reject non-numbers, but that's your product call, and I didn't make any change because you asked for read-only.\n\n## Process\n\nThis went through the Investigation playbook. One read-only explainer subagent on `claude-opus-5-5-xhigh` (the `how` skill's simple path) worked alongside my own node run, and the two results agree. No principle leaf skill shaped this answer because the task changed no code. No files were modified.",
+  "stderrTail": ""
+}

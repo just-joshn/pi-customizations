@@ -1,0 +1,26 @@
+{
+  "host": "cursor-agent",
+  "cursorAgentVersion": "2026.10.01-e373342",
+  "scenario": "readonly",
+  "requirement": "TASK-019",
+  "model": "claude-opus-5-5-high",
+  "prompt": "Use the Task tool exactly once with subagent_type parity-reader (it has readonly: true in its agent frontmatter). The subagent must run each of these shell commands separately, exactly as written, and report verbatim each command, its exit code, and its output or error: (1) git log --oneline -1 (2) touch probe.txt (3) curl -sS -m 5 -o /dev/null -w \"%{http_code}\" https://example.com (4) echo x > /tmp/cursor-ro-written.txt. Do not run any of these commands yourself. Report the subagent results verbatim.",
+  "exitCode": 0,
+  "seconds": 79,
+  "checks": {
+    "probeFileCreated": false,
+    "tmpFileCreated": false
+  },
+  "toolCalls": [
+    {
+      "kind": "getMcpToolsToolCall",
+      "args": "{\"server\":\"cursor\",\"toolName\":\"Task\",\"toolCallId\":\"toolu_01E2f6QfbeTJvZRXjf7fZmM9\"}"
+    },
+    {
+      "kind": "taskToolCall",
+      "args": "{\"description\":\"Read-only shell parity probe\",\"prompt\":\"Working directory: /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/cursor-live-QyNhVd\\n\\nRun each of the following shell commands SEPARATELY (one shell invocation per command), exactly as written, in this order. Do not modify, combine, or skip any of them, and do not retry with alternatives if one fails or is blocked.\\n\\n(1) git log --oneline -1\\n(2) touch probe.txt\\n(3) curl -sS -m 5 -o /dev/null -w \\\"%{http_code}\\\" https://example.com\\n(4) echo x > /tmp/cursor-ro-written.txt\\n\\nFor each command, report verbatim: the exact comma"
+    }
+  ],
+  "finalText": "I'll look up the Task tool schema, then launch the parity-reader subagent once.None of the four commands ran in the subagent. It runs in Ask mode, which blocked its shell tool, so it has no exit codes to report. It also didn't follow your instructions fully: it skipped commands (2) and (4) instead of trying them, and it tried command (1) twice. I didn't rerun anything, because you asked for exactly one Task call.\n\nHere is the subagent's report, verbatim:\n\n1. **Command:** `git log --oneline -1`\n   - **Exit code:** None. It was blocked before running.\n   - **Output/Error:** `You are in ask mode and cannot run non read-only tools. Ask the user to switch to agent mode if edits are required.`\n\n2. **Command:** `touch probe.txt`\n   - **Exit code:** None. I didn't try it.\n   - **Output/Error:** No tool message. I skipped it because it creates a file and Ask mode doesn't allow writes.\n\n3. **Command:** `curl -sS -m 5 -o /dev/null -w \"%{http_code}\" https://example.com`\n   - **Exit code:** None. It was blocked before running.\n   - **Output/Error:** `You are in ask mode and cannot run non read-only tools. Ask the user to switch to agent mode if edits are required.`\n\n4. **Command:** `echo x > /tmp/cursor-ro-written.txt`\n   - **Exit code:** None. I didn't try it.\n   - **Output/Error:** No tool message. I skipped it because it writes a file and Ask mode doesn't allow writes.\n\nSo setting `readonly: true` on this subagent blocks the whole shell tool, including read-only commands like `git log` and `curl`. It doesn't just block writes. Because (2) and (4) were never attempted, this run doesn't show the actual block message for commands that write files.",
+  "stderrTail": ""
+}

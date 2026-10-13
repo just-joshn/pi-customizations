@@ -1,0 +1,26 @@
+{
+  "host": "cursor-agent",
+  "cursorAgentVersion": "2026.10.01-e373342",
+  "scenario": "readonly",
+  "requirement": "TASK-019",
+  "model": "claude-opus-5-5-high",
+  "prompt": "Use the Task tool exactly once with readonly: true and subagent_type generalPurpose. The subagent must run each of these shell commands separately, exactly as written, and report verbatim each command, its exit code, and its output or error: (1) git log --oneline -1 (2) touch probe.txt (3) curl -sS -m 5 -o /dev/null -w \"%{http_code}\" https://example.com (4) echo x > /tmp/cursor-ro-written.txt. Do not run any of these commands yourself. Report the subagent results verbatim.",
+  "exitCode": 0,
+  "seconds": 50,
+  "checks": {
+    "probeFileCreated": true,
+    "tmpFileCreated": true
+  },
+  "toolCalls": [
+    {
+      "kind": "getMcpToolsToolCall",
+      "args": "{\"server\":\"cursor\",\"toolName\":\"Task\",\"toolCallId\":\"toolu_01EfCWdizJxQjV3G4hxq7FWY\"}"
+    },
+    {
+      "kind": "taskToolCall",
+      "args": "{\"description\":\"Read-only shell probe\",\"prompt\":\"Working directory: /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/cursor-live-ji8fKY\\n\\nRun each of the following four shell commands SEPARATELY (one shell invocation per command), exactly as written, in that working directory. Do not modify them, do not combine them, do not retry with alternatives, and do not run any other commands.\\n\\n(1) git log --oneline -1\\n(2) touch probe.txt\\n(3) curl -sS -m 5 -o /dev/null -w \\\"%{http_code}\\\" https://example.com\\n(4) echo x > /tmp/cursor-ro-written.txt\\n\\nIf a command is blocked or rejected by t"
+    }
+  ],
+  "finalText": "I'll look up the Task tool's schema, then launch the read-only subagent.The Task schema doesn't list a `readonly` parameter, but I'll pass it as requested and see whether it's accepted.The subagent ran all four commands and none were blocked, which means the read-only restriction didn't take effect. The Task tool's schema has no `readonly` parameter. I passed `readonly: true` anyway and the call went through without an error, so the flag was most likely just ignored. Both write commands succeeded.\n\nSubagent results, verbatim:\n\n```\nCommand: git log --oneline -1\nExit code: 0\nOutput/Error: 1ed3ad3 fixture\n\nCommand: touch probe.txt\nExit code: 0\nOutput/Error: (empty)\n\nCommand: curl -sS -m 5 -o /dev/null -w \"%{http_code}\" https://example.com\nExit code: 0\nOutput/Error: 200\n\nCommand: echo x > /tmp/cursor-ro-written.txt\nExit code: 0\nOutput/Error: (empty)\n```\n\nTwo files now exist: `probe.txt` in the repo (untracked) and `/tmp/cursor-ro-written.txt`. You'll need to delete them if you want a clean state.",
+  "stderrTail": ""
+}
