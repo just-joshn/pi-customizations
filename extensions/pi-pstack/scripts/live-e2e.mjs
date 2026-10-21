@@ -132,7 +132,8 @@ const SCENARIOS = {
     },
     check: (calls, box) => {
       const steps = playbookSteps('investigation');
-      const readPlaybook = calls.some((call) => call.name === 'read' && String(call.arguments.path ?? '').endsWith('poteto-mode/playbooks/investigation.md'));
+      const playbook = 'poteto-mode/playbooks/investigation.md';
+      const readPlaybook = calls.some((call) => (call.name === 'read' && String(call.arguments.path ?? '').endsWith(playbook)) || (call.name === 'bash' && String(call.arguments.command ?? '').includes(playbook)));
       const todos = calls.find((call) => call.name === 'TodoWrite')?.arguments.todos ?? [];
       // A todo list is plain text, so Markdown emphasis marks (** and backticks) are dropped before comparing.
       const plain = (text) => text.replace(/\*\*|`/g, '');
