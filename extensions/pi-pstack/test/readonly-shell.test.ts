@@ -1,3 +1,4 @@
+import { spawnSync } from 'node:child_process';
 import { existsSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -8,7 +9,7 @@ import { registerReadonlyShell } from '../src/readonly-shell.ts';
 
 function registeredBash(): ToolDefinition {
   const tools: ToolDefinition[] = [];
-  const pi = { registerTool: (tool: ToolDefinition) => tools.push(tool) } as unknown as ExtensionAPI;
+  const pi = { registerTool: (tool: ToolDefinition) => tools.push(tool), on: () => undefined } as unknown as ExtensionAPI;
   registerReadonlyShell(pi);
   const [bash] = tools;
   if (bash === undefined) throw new Error('no tool registered');
@@ -22,8 +23,17 @@ test('describes the subprocess boundary without claiming whole-process isolation
   expect(bash.description).toContain('Pi and trusted extensions are not sandboxed');
 });
 
+test.skipIf(process.platform !== 'darwin' && process.platform !== 'linux')('a process that used the shell exits on its own once its session shuts down', () => {
+  const cwd = mkdtempSync(join(tmpdir(), 'pi-pstack-ro-exit-'));
+  onTestFinished(() => rmSync(cwd, { recursive: true, force: true }));
+  const result = spawnSync(process.execPath, [join(import.meta.dirname, 'fixtures/readonly-shell-exit.ts')], { cwd, encoding: 'utf8', timeout: 20_000 });
+  expect(result.stdout).toContain('SANDBOXED');
+  expect(result.stdout).toContain('SHUTDOWN-DONE');
+  expect([result.error?.message, result.signal, result.status]).toEqual([undefined, null, 0]);
+});
+
 test('unsupported hosts fail closed without running a command', async () => {
-  vi.spyOn(process, 'platform', 'get').mockReturnValue('linux');
+  vi.spyOn(process, 'platform', 'get').mockReturnValue('freebsd');
   onTestFinished(() => {
     vi.restoreAllMocks();
   });
