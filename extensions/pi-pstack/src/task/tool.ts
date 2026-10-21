@@ -219,6 +219,9 @@ export function registerTask(pi: ExtensionAPI, options: TaskToolOptions): { hasB
     } else carrier[STOPPED_NOTICE] = message;
   });
   pi.on('session_start', (_event, ctx) => {
+    // Pi restores a resumed session's active tools, so an agent created at depth 1 and resumed at depth 2 would get Task back.
+    const active = pi.getActiveTools();
+    if (options.depth >= 2 && active.includes('Task')) pi.setActiveTools(active.filter((name) => name !== 'Task'));
     const message = carrier[STOPPED_NOTICE];
     delete carrier[STOPPED_NOTICE];
     if (message !== undefined && ctx.hasUI) ctx.ui.notify(message, 'warning');
