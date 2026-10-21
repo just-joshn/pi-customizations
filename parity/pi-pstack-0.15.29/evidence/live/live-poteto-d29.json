@@ -1,0 +1,77 @@
+{
+  "scenario": "poteto",
+  "requirement": "LIVE-001",
+  "model": "deepseek/deepseek-flash",
+  "prompt": "/poteto-mode How does add in calc.js treat two numeric strings such as \"2\" and \"3\"? This is a read-only question; do not change any files.",
+  "exitCode": 0,
+  "seconds": 24,
+  "checks": {
+    "readPlaybook": true,
+    "firstTodosAreStepsVerbatim": true,
+    "stepMatches": [
+      true,
+      true,
+      true,
+      true
+    ],
+    "workspaceUnchanged": true,
+    "todos": [
+      "Route through the **how** skill. For motivation questions, also route through the **why** skill.",
+      "Throughput checkpoint stays one line: `throughput checkpoint: n/a, read-only investigation`.",
+      "Produce the `how`-shaped output (Overview / Key Concepts / How It Works / Where Things Live / Gotchas), or a recommendation with a tradeoffs table if the request is a decision between alternatives.",
+      "Apply the **unslop** skill to the reply."
+    ]
+  },
+  "toolCalls": [
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"ls -la; echo \\\"---\\\"; find . -name \\\"calc.js\\\" -not -path \\\"*/node_modules/*\\\" 2>/dev/null\",\"timeout\":30}"
+    },
+    {
+      "name": "read",
+      "arguments": "{\"path\":\"/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/poteto-mode/playbooks/investigation.md\",\"offset\":null,\"limit\":null}"
+    },
+    {
+      "name": "read",
+      "arguments": "{\"path\":\"/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-kyvUz6/work/calc.js\",\"offset\":null,\"limit\":null}"
+    },
+    {
+      "name": "TodoWrite",
+      "arguments": "{\"merge\":false,\"todos\":[{\"id\":\"1\",\"content\":\"Route through the **how** skill. For motivation questions, also route through the **why** skill.\",\"status\":\"in_progress\"},{\"id\":\"2\",\"content\":\"Throughput checkpoint stays one line: `throughput checkpoint: n/a, read-only investigation`.\",\"status\":\"pending\"},{\"id\":\"3\",\"content\":\"Produce the `how`-shaped output (Overview / Key Concepts / How It Works / Where Things Live / Gotchas), or a recommendation with a tradeoffs table if the request is a decision between alternatives.\",\"status\":\"pending\"},{\"id\":\"4\",\"content\":\"Apply the **unslop** skill to the rep"
+    },
+    {
+      "name": "read",
+      "arguments": "{\"limit\":null,\"offset\":null,\"path\":\"/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/how/SKILL.md\"}"
+    },
+    {
+      "name": "read",
+      "arguments": "{\"limit\":null,\"offset\":null,\"path\":\"/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/unslop/SKILL.md\"}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"cd /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-kyvUz6/work && node --version && node --input-type=module -e '\\nimport { add } from \\\"./calc.js\\\";\\nconst cases = [[\\\"2\\\",\\\"3\\\"],[2,3],[\\\"2\\\",3],[2,\\\"3\\\"],[\\\"\\\",\\\"1\\\"],[null,1],[1n,2n]];\\nfor (const [a,b] of cases) {\\n  let out;\\n  try { out = JSON.stringify(add(a,b)); } catch (e) { out = \\\"throws \\\" + e.constructor.name + \\\": \\\" + e.message; }\\n  console.log(`${typeof a} ${JSON.stringify(String(a))} + ${typeof b} ${JSON.stringify(String(b))} -> ${out} (${typeof (()=>{try{return add(a,b)}catch{return undefined}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"cd /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-kyvUz6/work && git log --oneline -10 -- calc.js; echo \\\"--- pkg/config:\\\"; ls -a | head -20; cat package.json 2>/dev/null\",\"timeout\":30}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"cd /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-kyvUz6/work && node --input-type=module -e '\\nimport { add } from \\\"./calc.js\\\";\\nconst r = add(1n, 2n);\\nconsole.log(\\\"bigint+bigint ->\\\", r, typeof r);\\nconst s = add(new Date(0), 1);\\nconsole.log(\\\"Date+number ->\\\", s, typeof s);\\n'\",\"timeout\":60}"
+    },
+    {
+      "name": "read",
+      "arguments": "{\"limit\":null,\"offset\":null,\"path\":\"/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/principle-prove-it-works/SKILL.md\"}"
+    },
+    {
+      "name": "read",
+      "arguments": "{\"limit\":null,\"offset\":null,\"path\":\"/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/principle-guard-the-context-window/SKILL.md\"}"
+    },
+    {
+      "name": "TodoWrite",
+      "arguments": "{\"merge\":true,\"todos\":[{\"id\":\"1\",\"status\":\"completed\"},{\"id\":\"2\",\"status\":\"completed\"},{\"id\":\"3\",\"status\":\"completed\"},{\"id\":\"4\",\"status\":\"completed\"}]}"
+    }
+  ],
+  "finalText": "throughput checkpoint: n/a, read-only investigation.\n\n## Overview\n\n`add(\"2\", \"3\")` returns the string `\"23\"`, not the number `5`. `calc.js` is a three-line module with one export, and it hands both arguments straight to JavaScript's binary `+` operator with no validation, no coercion, and no type check. For two strings, `+` means concatenation, so the numbers are never added.\n\n## Key concepts\n\n`+` has two behaviors and picks one by operand type. If either operand is a string after conversion to a primitive, it concatenates and stringifies the other side. Otherwise it converts both to numbers and sums them. This dispatch happens inside the operator, so `add` inherits it completely.\n\n## How it works\n\nI ran the real module on Node v24.21.0 with `node --input-type=module`.\n\n| Call | Result | Type | Path taken |\n| --- | --- | --- | --- |\n| `add(\"2\", \"3\")` | `\"23\"` | string | concatenate |\n| `add(2, 3)` | `5` | number | numeric sum |\n| `add(\"2\", 3)` | `\"23\"` | string | concatenate |\n| `add(2, \"3\")` | `\"23\"` | string | concatenate |\n| `add(\"\", \"1\")` | `\"1\"` | string | concatenate |\n| `add(null, 1)` | `1` | number | `null` becomes `0` |\n| `add(1n, 2n)` | `3n` | bigint | bigint sum |\n| `add(new Date(0), 1)` | date string plus `\"1\"` | string | concatenate |\n\nAny single string operand is enough to switch the result to a string. Mixed inputs do not throw. They silently produce text.\n\n## Where things live\n\n`calc.js` is the whole artifact. One exported function, no package.json, no test file, and a single commit `9dad435` that added it. Nothing else in the repo defines or wraps `add`, so there is no other layer that could be coercing the arguments first.\n\n## Gotchas\n\n- The failure is silent. `add(\"2\", \"3\")` looks like it worked and returns `\"23\"`, so an upstream string such as a form field, a query parameter, or a CSV column turns a sum into glue.\n- Empty string is the nastiest case. `add(\"\", \"1\")` returns `\"1\"`, which reads as a correct answer.\n- `add(null, 1)` returns `1`, so a missing value counts as zero instead of failing.\n- Mixing a BigInt with a number or a string throws `TypeError`, the one input class that does fail loudly.\n- If this ever bites in production, the fix belongs at the boundary that produced the string, parsing there, not inside `add`. I made no change, since you asked for a read-only answer.\n\n## Process notes\n\n`how` step 1 routes a simple scope to one explainer subagent. I did that pass myself instead of spawning one. The entire artifact is three lines and was already in context, so a subagent would have added no coverage.\n\nPrinciples that shaped decisions, both leaves read this session. **Prove It Works** changed my method from reasoning about `+` to running the module and reporting actual return values and types. **Guard the Context Window** changed the `how` step 1 call, since its case for routing bulk to a subagent does not apply when there is no bulk. I also applied `unslop` to this reply.",
+  "stderrTail": ""
+}

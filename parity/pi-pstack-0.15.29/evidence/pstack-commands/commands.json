@@ -1,0 +1,1080 @@
+[
+  {
+    "name": "mode",
+    "description": "Keep a skill on every turn (Cursor's Custom Mode): /mode <skill> [task], /mode off, /mode",
+    "source": "extension",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/src/index.ts",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "loop",
+    "description": "Run a prompt repeatedly: /loop [interval] <prompt> (interval like 30s, 5m, 1h, at most 24d); /loop stop",
+    "source": "extension",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/src/index.ts",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:architect",
+    "description": "Sketch types, signatures, and module structure before code, then stay in the loop while implementation fills in. Use for /architect, 'architect this', 'design this', or non-trivial work where jumping to code would lock in the wrong shape.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/architect/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:arena",
+    "description": "Spawn N parallel candidates at the same task, pick a base, graft the strongest parts of the losers into it. Use for /arena, 'arena this', 'throw it in the arena', or when one attempt at a non-trivial artifact would lock in the wrong shape.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/arena/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:automate-me",
+    "description": "Use for \"automate me\", \"create/update/refresh my -mode skill\", \"turn/capture my preferences or working style into a skill\", or wanting agents to follow how the user works. Drafts or revises a personal -mode skill via create-skill + unslop, optionally pulling fresh evidence from recent transcripts.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/automate-me/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:benchmark-checklist",
+    "description": "Vet a perf measurement (limiter, tuning, limits, errors, repeatability, relevance, and whether the work happened) before you report or act on it. Use when you run a benchmark or report a speedup or regression you measured.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/benchmark-checklist/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:blast-radius",
+    "description": "Find what a change could break somewhere else before it ships, beyond the diff, and prove the one fact it's safe because of by running real code instead of writing it up. Use for 'blast radius of X', 'what could this break', or reviewing a small diff you don't trust.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/blast-radius/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:bro",
+    "description": "Restate the last message in plain human language, with no jargon.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/bro/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:control-cli",
+    "description": "Build or adapt a local harness to drive, inspect, and profile an interactive CLI or TUI without external services. Use for CLI UX checks, startup regressions, memory leaks, hangs, prompt flows, or terminal demos.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/control-cli/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:control-ui",
+    "description": "Build or adapt a local browser/CDP harness to drive and inspect a web, IDE, or Electron UI. Use for local UI verification, screenshots, accessibility snapshots, perf profiles, visual diffs, or reproducing UI bugs.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/control-ui/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:correct",
+    "description": "Find the mistakes agents keep repeating in this repo and make each one impossible. Try architecture first, then types, then a lint whose error names the fix, then a test, and write docs last. Prove each check fails on a real past mistake. Repeat this each time the operator corrects you. Use for /correct.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/correct/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:create-formal-verification-skill",
+    "description": "Generate a project-local skill that formally verifies the code where a bug costs the most and tests reach the least, in any language, with whichever verification tool fits. Use for /create-formal-verification-skill, \"model-check this race\", \"prove this invariant\", or when concurrency, retries, state machines, parsers, or unsafe code need more than tests.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/create-formal-verification-skill/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:create-skill",
+    "description": "Create or revise a Pi skill (a directory with SKILL.md plus optional scripts, references, and assets). Covers placement, frontmatter, agent-facing writing, a draft-test-iterate loop, and tuning the description so the skill triggers when it should. Use for /create-skill, \"write a skill\", \"turn this workflow into a skill\", or editing an existing SKILL.md.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/create-skill/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:create-verification-skill",
+    "description": "Generate a project-local verification skill that drives your app the way a user does — any language, framework, or platform. Use for /create-verification-skill, \"make a control skill for this repo\", or when a project has no scripted way to prove UI/CLI/service behavior.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/create-verification-skill/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:deslop",
+    "description": "Remove AI-generated code slop and clean up code style",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/deslop/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:figure-it-out",
+    "description": "Design an auditable playbook when no narrower one fits: a large migration, an ambitious multi-part change, or work a human reviews after stepping away. Scales rigor to the task, runs a hypothesis loop, and logs decisions. Use for /figure-it-out or 'figure it out'.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/figure-it-out/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:how",
+    "description": "Use for \"how does X work\", code walkthroughs before changing something, and placement / ownership / layering questions (\"where should this live\", \"which package owns this\", \"is this the right layer\"). Explains subsystem architecture, runtime flow, onboarding mental models. Use why for motivation.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/how/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:in-your-own-words",
+    "description": "Restate in your own words what you think the user's goals are and what problem they're trying to solve. Use for /in-your-own-words.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/in-your-own-words/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:interrogate",
+    "description": "Use for \"interrogate\", \"adversarial review\", \"multi-model review\", \"challenge this\", \"stress test this code\", \"find blind spots\", or \"tear this apart\". Multiple LLM reviewers challenge changes from independent angles.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/interrogate/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:ketchup",
+    "description": "Catch the user up on what changed in this chat since their last message, in plain words and small visuals. List every item waiting on them with what they need to decide it from the reply alone. Use for /ketchup.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/ketchup/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:maintain-formal-verification-skill",
+    "description": "Bring a project's formal verification back in line with the code after the code changes: find the commits that touched verified code, update the model, harness, or properties to describe the code as it is now, rerun, and say whether each failure is drift in the verification or a bug in the code. Use for /maintain-formal-verification-skill, \"is the model still true to the code\", or after merges and refactors that touched verified code without rechecking it.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/maintain-formal-verification-skill/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:maintain-verification-skill",
+    "description": "Periodic pass that keeps a project's verification skill and feature map honest: parallel source readers per feature, one live session driving every feature, at most one PR of proven corrections. Use for /maintain-verification-skill or \"audit the verify skill\".",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/maintain-verification-skill/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:make-bot-ui",
+    "description": "Use when building a custom UI (page, dashboard, buttons) that should wake a Grok Bot over a webhook, when the user must provide a webhook sender key, or when exposing that UI on Tailscale.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/make-bot-ui/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:no-comments",
+    "description": "Spawn Comment Sicko, fix accepted findings, and offer encodings for claimed constraints.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/no-comments/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:poteto-help",
+    "description": "Guides users through pstack setup, /poteto-mode, and picking the skill, playbook, or principle for a task. Type /poteto-help with a question.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/poteto-help/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:poteto-mode",
+    "description": "poteto's agent style for concise, detailed responses, deliberate subagents, unslopped prose, simple code, and verified work. Use for poteto, /poteto-mode, or requests to work in this style.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/poteto-mode/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:principle-attack-the-premise",
+    "description": "Apply when two or more fixes that share one premise have failed the same gate. Write the premise down and test it directly before you write another fix that assumes it.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/principle-attack-the-premise/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:principle-boundary-discipline",
+    "description": "Apply when wiring validation, error handling, or framework adapters. Concentrate guards at system boundaries (CLI, config, network, external APIs); trust internal types and keep business logic in pure functions.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/principle-boundary-discipline/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:principle-build-the-lever",
+    "description": "Apply to any non-trivial work, not just bulk work: edits, migrations, analyses, checks. Build the tool that does it or proves it (codemod, script, generator, or a skill your subagents follow) instead of working by hand. The tool is the artifact a reviewer can rerun.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/principle-build-the-lever/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:principle-encode-lessons-in-structure",
+    "description": "Apply when you catch yourself writing the same instruction a second time, or notice a recurring correction. Encode the rule as a lint, metadata flag, runtime check, or script instead of more text.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/principle-encode-lessons-in-structure/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:principle-exhaust-the-design-space",
+    "description": "Apply when facing a novel UI interaction or architectural decision with no precedent in the codebase. Build 2-3 competing prototypes and compare side by side before committing.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/principle-exhaust-the-design-space/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:principle-experience-first",
+    "description": "Apply when product, UX, or feature-scope tradeoffs come up. Choose user delight over implementation convenience; ship fewer polished features over more rough ones.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/principle-experience-first/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:principle-explain-the-number",
+    "description": "Apply before you trust, report, or act on a number you measured: a speedup, a regression, a throughput, a latency, or an eval result. Find what limits it, and rule out that it measured something other than the work you think.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/principle-explain-the-number/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:principle-fix-root-causes",
+    "description": "Apply when debugging. Trace each symptom back to the first place the system went wrong and fix it there. A guard is a fix only when the state it handles is legitimate.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/principle-fix-root-causes/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:principle-foundational-thinking",
+    "description": "Apply before writing logic: choosing core types and data structures, sequencing scaffold-vs-feature work, asking what concurrent actors share. Get the data structures right so downstream code becomes obvious.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/principle-foundational-thinking/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:principle-guard-the-context-window",
+    "description": "Apply when context is filling up: large outputs, long files, repeated reads, fan-out planning. Route bulk to subagents; keep summaries in the main thread, not raw payloads.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/principle-guard-the-context-window/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:principle-laziness-protocol",
+    "description": "Apply when refactoring, evaluating diff size, or tempted to add abstractions, layers, or signal threading. Bias toward deletion and the smallest change that solves the problem.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/principle-laziness-protocol/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:principle-make-operations-idempotent",
+    "description": "Apply when designing commands, lifecycle steps, or processing loops that run amid crashes, restarts, and retries. Converge to the same end state regardless of partial prior runs.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/principle-make-operations-idempotent/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:principle-migrate-callers-then-delete-legacy-apis",
+    "description": "Apply when introducing a new internal API while old callers still exist. Migrate callers and delete the old API in the same wave instead of preserving compatibility layers.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/principle-migrate-callers-then-delete-legacy-apis/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:principle-minimize-reader-load",
+    "description": "Apply when reviewing or shaping code that's hard to trace. Count layers between question and answer, and hidden state in the reader's head; collapse one-caller wrappers and shrink mutable scope.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/principle-minimize-reader-load/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:principle-model-the-domain",
+    "description": "Apply when writing stateful logic, or when code branches a lot or repeats a shape assumption across files.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/principle-model-the-domain/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:principle-never-block-on-the-human",
+    "description": "Apply when tempted to ask 'should I do X?' on reversible work.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/principle-never-block-on-the-human/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:principle-outcome-oriented-execution",
+    "description": "Apply during planned rewrites and migrations with explicit phase boundaries. Converge on the target architecture; don't preserve smooth intermediate states with throwaway compatibility code.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/principle-outcome-oriented-execution/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:principle-prove-it-works",
+    "description": "Apply after completing a task, before declaring done. Verify against the real artifact (run the feature, read the actual value, inspect the diff), not a proxy, self-report, or 'it compiles.'",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/principle-prove-it-works/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:principle-redesign-from-first-principles",
+    "description": "Apply when integrating a new requirement into an existing design.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/principle-redesign-from-first-principles/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:principle-separate-before-serializing-shared-state",
+    "description": "Apply when concurrent actors might write to the same file, branch, key, or state object. Eliminate the sharing first; serialize structurally only when one shared writer is a real invariant.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/principle-separate-before-serializing-shared-state/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:principle-sequence-verifiable-units",
+    "description": "Apply to multi-step work (sweeps, migrations, runs of similar edits) and to how you stack commits and PRs. Break work into small units that each end in a verifiable state, check each before the next, and order delivery so the sequence proves itself to a reviewer.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/principle-sequence-verifiable-units/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:principle-subtract-before-you-add",
+    "description": "Apply when sequencing an addition, refactor, or rewrite. Remove dead code, redundant validators, and stub references first, then build on the simpler base.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/principle-subtract-before-you-add/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:principle-test-behavior-not-implementation",
+    "description": "Apply when you write, change, or keep a test. Assert what the code's users can observe, so that the test fails when that behavior breaks and keeps passing when only the internals change.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/principle-test-behavior-not-implementation/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:principle-type-system-discipline",
+    "description": "Apply when designing types, reviewing a function signature, or writing code in any statically-typed language. Make illegal states unrepresentable, brand semantic primitives, parse external data at boundaries, exhaust variants, derive from authoritative schemas.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/principle-type-system-discipline/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:recall",
+    "description": "Reconstruct your recent working context from your own chat history, live state, and the shared record (user reports, prior fixes, incidents), then hand back a tight current-state brief. Use for 'recall my work on X', 'catch me up', 'what have I been working on', 'where did I leave off', before starting or resuming work.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/recall/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:reflect",
+    "description": "Spawn three parallel review subagents over the active transcript, surface learnings, and route each to a concrete edit on an existing skill. Use when the user says reflect.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/reflect/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:setup-pstack",
+    "description": "Configure which models pstack uses per role and at what reasoning budget. Detects your available models and writes an always-applied rule that overrides the skill defaults. Use for /setup-pstack, \"configure pstack models\", \"pstack budget\", or changing pstack's model choices.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/setup-pstack/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:sharpen",
+    "description": "Make a task deeper, not bigger, then rewrite the prompt. Use for /sharpen.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/sharpen/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:show-me-your-work",
+    "description": "Keep a reviewable decision trail for long-running or unattended work: a TSV log with one row per decision (what, why, evidence, result). Local by default; commit it when a reviewer needs the trail to trust the result. Use for /show-me-your-work, autonomous or multi-phase runs, or work a human reviews after stepping away.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/show-me-your-work/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:swarm",
+    "description": "Fan out N parallel workers, drain them, and return one report. Use for /swarm, 'swarm this', or parallel coverage, races, gauntlets, and exploration.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/swarm/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:tdd",
+    "description": "Use only when the user explicitly asks for TDD, a failing test, or a regression test, OR when the bug has an obvious cheap local test target. Skip when the test path is unclear, expensive, integration-heavy, or not requested.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/tdd/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:teach",
+    "description": "Explain a body of work plainly so a person actually understands it. Runs the `how` and `why` skills and weaves what they find into one clear explanation. Use for 'teach me this', 'help me really understand X', 'explain this change or subsystem to me'.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/teach/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:technical-writing",
+    "description": "Layered technical-writing standard: Diátaxis structure, Google developer style sentences, STE instruction rules, Global English syntax. Use for /technical-writing or when writing or reviewing docs, RFCs, readmes, PR descriptions, or commit messages.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/technical-writing/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:typescript-best-practices",
+    "description": "TypeScript best practices. Use when reading or editing any .ts or .tsx file.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/typescript-best-practices/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:unslop",
+    "description": "Cut AI tells from any writing.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/unslop/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:why",
+    "description": "Use for 'why does X work this way', 'why we picked Y', design rationale, regressions, postmortems, or data-backed thresholds. Discovers available MCPs and queries each evidence category (source control, issue tracker, long-form docs, real-time chat, infrastructure observability, error tracking, product analytics warehouse) in parallel, then returns a cited read on decisions and tradeoffs. Use how for runtime behavior.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/why/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:code-review",
+    "description": "Review the changes since a fixed point (commit, branch, tag, or merge-base) along two axes: Standards (does the code follow this repo's documented coding standards?) and Spec (does the code match what the originating issue/spec asked for?). Runs both reviews in parallel sub-agents and reports them side by side. Use when the user wants to review a branch, a PR, work-in-progress changes, or asks to \"review since X\".",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/code-review/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:codebase-design",
+    "description": "Shared vocabulary for designing deep modules. Use when the user wants to design or improve a module's interface, find deepening opportunities, decide where a seam goes, make code more testable or AI-navigable, or when another skill needs the deep-module vocabulary.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/codebase-design/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:design-taste-frontend",
+    "description": "Anti-slop frontend skill for landing pages, portfolios, and redesigns. The agent reads the brief, infers the right design direction, and ships interfaces that do not look templated. Real design systems when applicable, audit-first on redesigns, strict pre-flight check.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/design-taste-frontend/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:find-skills",
+    "description": "Helps users discover and install agent skills when they ask questions like \"how do I do X\", \"find a skill for X\", \"is there a skill that can...\", or express interest in extending capabilities. This skill should be used when the user is looking for functionality that might exist as an installable skill.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/find-skills/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:frontend-design",
+    "description": "Guidance for distinctive, intentional visual design when building new UI or reshaping an existing one. Helps with aesthetic direction, typography, and making choices that don't read as templated defaults.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/frontend-design/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:grill-me",
+    "description": "A relentless interview to sharpen a plan or design.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/grill-me/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:grill-with-docs",
+    "description": "A relentless interview to sharpen a plan or design, which also creates docs (ADR's and glossary) as we go.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/grill-with-docs/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:grilling",
+    "description": "Grill the user relentlessly about a plan, decision, or idea. Use when the user wants to stress-test their thinking, or uses any 'grill' trigger phrases.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/grilling/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:handoff",
+    "description": "Compact the current conversation into a handoff document for another agent to pick up.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/handoff/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:implement",
+    "description": "Implement a piece of work based on a spec or set of tickets.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/implement/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:improve-codebase-architecture",
+    "description": "Scan a codebase for deepening opportunities, present them as a visual HTML report, then grill through whichever one you pick.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/improve-codebase-architecture/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:prototype",
+    "description": "Build a throwaway prototype to answer a design question. Use when the user wants to sanity-check whether a state model or logic feels right, or explore what a UI should look like.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/prototype/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:research",
+    "description": "Investigate a question against high-trust primary sources and capture the findings as a Markdown file in the repo. Use when the user wants a topic researched, docs or API facts gathered, or reading legwork delegated to a background agent.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/research/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:to-spec",
+    "description": "Turn the current conversation into a spec and publish it to the project issue tracker: no interview, just synthesis of what you've already discussed.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/to-spec/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:to-tickets",
+    "description": "Break a plan, spec, or the current conversation into a set of tracer-bullet tickets, each declaring its blocking edges, published to the configured tracker (edges as text in one file per ticket locally, or native blocking links on a real tracker).",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/to-tickets/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:triage",
+    "description": "Move issues and external PRs through a state machine of triage roles, categorise, verify, grill if needed, and write agent-ready briefs.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/triage/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:twg",
+    "description": "Use TWG whenever Atlassian or company context would help: Jira workitems and issues; Confluence pages and PRDs; Bitbucket PRs; project or goal status and launch readiness; owners, SMEs, approvers, or escalation; personal, org, or leadership work rollups and out-of-office catch-ups; dependency maps; code search, repository, or PR discovery; incidents, on-call, or reliability; and deep internal research across connected sources, docs, work, and people.\n",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/twg/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:twg-agentic-search",
+    "description": "Use with root `twg` for deep iterative enterprise/company knowledge search and internal research with Rovo Search across connected apps/connectors including Confluence, Jira, Drive, Slack, Bitbucket, and GitHub.\n",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/twg-agentic-search/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:twg-artifacts",
+    "description": "Use with root `twg` when a user wants to share, publish, send, or update a standalone local or generated file as an Atlassian Artifact. Do not use for Jira or Confluence attachments.\n",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/twg-artifacts/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:twg-bench-lite",
+    "description": "Run a lightweight single-prompt A/B comparison of free Atlassian/local MCP context vs TWG CLI graph context using paired read-only agent sessions.\n",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/twg-bench-lite/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:twg-code-review",
+    "description": "Use when named or when the user requests additional context for code review. Review Bitbucket/GitHub PRs or local changes using TWG context, create JSON and Markdown, and post only when requested.\n",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/twg-code-review/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:twg-confluence",
+    "description": "Use with root `twg` for Confluence content, spaces, hierarchy, authoring, editing, comments, versions, permissions, exports, and CQL. Applies Confluence semantics and safe write rules.\n",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/twg-confluence/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:twg-context-discovery",
+    "description": "Use with root `twg` for deep context, dependency maps, related entities, project-to-repo discovery, OOO catch-ups, and \"catch me up\" requests around a concrete anchor.\n",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/twg-context-discovery/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:twg-engineering-work",
+    "description": "Use with root `twg` for code search, repositories using an API/package, implementation and reverse-dependency discovery, PR status and reviews, repo contributors, hot areas, and issue-to-PR lookups.\n",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/twg-engineering-work/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:twg-jira",
+    "description": "Use with root `twg` for Jira workitems, similar issue discovery, duplicate detection, projects, boards, sprints, fields, transitions, comments, links, and administration. Applies Jira semantics and safe mutation rules.\n",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/twg-jira/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:twg-jira-resolve-merged-work",
+    "description": "Clean up stale or unresolved Jira workitems. Dry-run single items, lists, boards, sprints, epics, or projects by matching Jira keys/titles to merged PRs, repos, Rovo/search-code hits, and assignee activity.\n",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/twg-jira-resolve-merged-work/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:twg-operational-health",
+    "description": "Use with the root `twg` skill for on-call handoffs, incident response and investigation, post-incident reviews, reliability reviews, Assets refresh, capacity views, meeting summaries, and operational risk readouts.\n",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/twg-operational-health/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:twg-responsibility-routing",
+    "description": "Use with root `twg` to route owners, subject-matter experts, maintainers, reviewers, approvers, decision authorities, Heads of Engineering, or escalation paths for a topic, area, ask, project, service, or component.\n",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/twg-responsibility-routing/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:twg-space-creation",
+    "description": "Create, design, bootstrap, or clone a whole Confluence space for any domain from a brief, existing space, repository evidence, or another source. Use for space creation or structure adaptation, not individual edits.\n",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/twg-space-creation/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:twg-status-rollups",
+    "description": "Use with root `twg` for status rollups, personal work summaries, and decision-readiness or go/no-go briefs. Routes to `pr-tree`, `org-tree`, `work-tree`, or `workitem-tree`.\n",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/twg-status-rollups/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:vercel-react-best-practices",
+    "description": "React and Next.js performance optimization guidelines from Vercel Engineering. This skill should be used when writing, reviewing, or refactoring React/Next.js code to ensure optimal performance patterns. Triggers on tasks involving React components, Next.js pages, data fetching, bundle optimization, or performance improvements.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/vercel-react-best-practices/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:wayfinder",
+    "description": "Plan a huge chunk of work (more than one agent session can hold) as a shared map of decision tickets on your issue tracker, and resolve them one at a time until the way to the destination is clear.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/wayfinder/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:wizard",
+    "description": "Generate an interactive bash wizard that walks a human through steps only they can perform. Use when provisioning infrastructure, setting up credentials or CI secrets, walking an unfamiliar third-party dashboard, or running a one-off migration or cutover. Don't invoke this for steps the agent can perform itself.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/wizard/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  }
+]

@@ -1,0 +1,56 @@
+{
+  "scenario": "delegate",
+  "requirement": "LIVE-004",
+  "model": "deepseek/deepseek-flash",
+  "prompt": "/poteto-mode Delegate to one foreground poteto-agent: find what calc.js exports. Read-only.",
+  "exitCode": 0,
+  "seconds": 41,
+  "checks": {
+    "delegated": true,
+    "everyPromptHasSkillPath": true,
+    "prompts": [
+      "Read-only task. Do not edit, create, or delete any file, and do not run commands that write.\n\nFirst read the poteto-mode skill in full at /Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/poteto-mode/SKILL.md, then follow it.\n\nWorkspace: /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-xVt3ch/work\nTarget file: calc.js in that",
+      "Read-only task. Do not edit, create, or delete any file, and do not run commands that write.\n\nFirst read the poteto-mode skill in full at /Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/poteto-mode/SKILL.md, then follow it.\n\nWorkspace: /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-xVt3ch/work\nTarget file: calc.js in that"
+    ]
+  },
+  "toolCalls": [
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"ls -la; echo \\\"---\\\"; find . -name 'calc.js' -not -path '*/node_modules/*' 2>/dev/null\",\"timeout\":30}"
+    },
+    {
+      "name": "read",
+      "arguments": "{\"path\":\"/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/poteto-mode/playbooks/investigation.md\",\"offset\":1,\"limit\":200}"
+    },
+    {
+      "name": "TodoWrite",
+      "arguments": "{\"todos\":[{\"id\":\"1\",\"content\":\"Route through the **how** skill. For motivation questions, also route through the **why** skill.\",\"status\":\"pending\"},{\"id\":\"2\",\"content\":\"Throughput checkpoint stays one line: `throughput checkpoint: n/a, read-only investigation`.\",\"status\":\"pending\"},{\"id\":\"3\",\"content\":\"Produce the `how`-shaped output (Overview / Key Concepts / How It Works / Where Things Live / Gotchas), or a recommendation with a tradeoffs table if the request is a decision between alternatives.\",\"status\":\"pending\"},{\"id\":\"4\",\"content\":\"Apply the **unslop** skill to the reply.\",\"status\":\"pen"
+    },
+    {
+      "name": "Task",
+      "arguments": "{\"description\":\"Report calc.js exports\",\"subagent_type\":\"poteto-agent\",\"readonly\":true,\"run_in_background\":false,\"model\":\"openai/gpt-5.1:low\",\"prompt\":\"Read-only task. Do not edit, create, or delete any file, and do not run commands that write.\\n\\nFirst read the poteto-mode skill in full at /Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/poteto-mode/SKILL.md, then follow it.\\n\\nWorkspace: /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-xVt3ch/work\\nTarget file: calc.js in that workspace.\\n\\nJob: determine exactly what "
+    },
+    {
+      "name": "Task",
+      "arguments": "{\"description\":\"Report calc.js exports\",\"prompt\":\"Read-only task. Do not edit, create, or delete any file, and do not run commands that write.\\n\\nFirst read the poteto-mode skill in full at /Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/poteto-mode/SKILL.md, then follow it.\\n\\nWorkspace: /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-xVt3ch/work\\nTarget file: calc.js in that workspace.\\n\\nJob: determine exactly what calc.js exports. Report:\\n1. The verbatim export statement(s), quoted from the file with line numbers."
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"cd /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-xVt3ch/work\\nwc -l -c calc.js; cat -A calc.js; echo \\\"--- tracked:\\\"; git ls-files; echo \\\"--- all non-git files:\\\"; find . -path ./.git -prune -o -type f -print\",\"timeout\":30}"
+    },
+    {
+      "name": "read",
+      "arguments": "{\"path\":\"/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/principle-guard-the-context-window/SKILL.md\",\"offset\":1,\"limit\":60}"
+    },
+    {
+      "name": "read",
+      "arguments": "{\"path\":\"/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/principle-prove-it-works/SKILL.md\",\"offset\":1,\"limit\":60}"
+    },
+    {
+      "name": "TodoWrite",
+      "arguments": "{\"merge\":true,\"todos\":[{\"id\":\"1\",\"status\":\"completed\"},{\"id\":\"2\",\"status\":\"completed\"},{\"id\":\"3\",\"status\":\"completed\"},{\"id\":\"4\",\"status\":\"completed\"},{\"id\":\"5\",\"status\":\"completed\"}]}"
+    }
+  ],
+  "finalText": "throughput checkpoint: n/a, read-only investigation\n\n**Overview**\n\n`calc.js` exports one function, `add`. That is the entire module, one line, 36 bytes.\n\n**How It Works**\n\nThe file in full, line 1:\n\n```js\nexport const add = (a, b) => a + b;\n```\n\nIt uses ESM syntax. The `export` keyword sits on a `const` declaration, and there is no `module.exports`, no `exports.name =`, and no `require(` in the file. There is one named export and no default export, no re-export, no conditional export.\n\n**Where Things Live**\n\n| Path | Role |\n|---|---|\n| `calc.js` | The whole module |\n| `.git` | One commit, `7d693b2 calc` |\n\n**Gotchas**\n\nNo file in the workspace imports or requires `calc.js`, so nothing consumes `add` today. I verified that with `git ls-files` and a full `find`; `calc.js` is the only tracked and the only untracked file.\n\nThere is no `package.json`. Under Node's default rules a `.js` file is CommonJS, so a bare `require` or plain Node import of this file would fail to parse the `export` statement until something supplies an ESM signal (`\"type\": \"module\"` or a `.mjs` extension). That last point is inference from the absent manifest, not from the file.\n\nThe name suggests a calculator module, but only `add` exists. No `subtract`, `multiply`, or `divide`.\n\n**Delegation note.** One foreground readonly `poteto-agent` did the read and I re-ran the checks myself against the file, so the claims above are confirmed, not passed through. Its first spawn was rejected by the API for the model slug I picked (`openai/gpt-5.1:low` is not supported on this account), and the no-role-line defaults named in the skill (`grok-4.7-xhigh-fast`, `claude-opus-5-5-xhigh`) are not in this harness's model list, so the retry ran on the inherited parent model.\n\n**Principles that shaped this.** **Prove It Works** stopped me from relaying the subagent's report as-is; I re-read and re-counted the file with `wc -l -c`, `cat -A`, `git ls-files`, and `find`, which is what turned the \"does anything import it\" answer from assumption into evidence. **Guard the Context Window** is why the file read went to a subagent in the first place.",
+  "stderrTail": ""
+}
