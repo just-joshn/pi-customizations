@@ -49,7 +49,7 @@ describe('host map (HOST-001)', () => {
     expect(host).toContain(
       "- Image generation (the image tool teach reaches for, ketchup's generated image): Pi generates images through codemode's models.generateImages() when codemode is on and an image model is configured. Otherwise say no image tool is available and use a mermaid diagram or a table.",
     );
-    expect(host).toContain('Installed skills (56): architect, arena, automate-me,');
+    expect(host).toContain('Installed skills (60): architect, arena, automate-me,');
     expect(host).toContain(
       `\`agent-transcripts/\` and \`~/.cursor/projects/<slug>/agent-transcripts/\` mean ${join(sandbox.agentDir, 'sessions')}/--${sandbox.workDir.replace(/^\//, '').replaceAll('/', '-')}--, Pi session JSONL files for this workspace. Each line is an entry: the first is a session header, and conversation turns have type "message" (the opening prompt is the first user message).`,
     );
@@ -63,8 +63,17 @@ describe('host map (HOST-001)', () => {
   test('maps the Cursor tool names and transcript shapes that pstack text relies on (HOST-008)', async () => {
     const host = section(await systemPrompt(['--no-session']), 'pstack_host');
     expect(host).toContain(
-      '- Cursor tool names in pstack text: Read is read, Grep is grep, Glob is find, Shell is bash. A skill under `~/.cursor/plugins/` is one under <SKILLS>. In a Pi transcript a tool call is a toolCall part of an assistant message (tool name plus arguments), and an attached skill is a <skill name="..." location="..."> block in a user message.',
+      '- Cursor tool names in pstack text: Read is read, Grep is grep, Glob is find, Shell is bash. A skill under `~/.cursor/plugins/` is one under <SKILLS>, and this package is the only pstack copy, so a search of `~/.cursor/plugins/` for `skills/<name>/SKILL.md` ends at <SKILLS>/<name>/SKILL.md. In a Pi transcript a tool call is a toolCall part of an assistant message (tool name plus arguments), and an attached skill is a <skill name="..." location="..."> block in a user message.',
     );
+  });
+
+  test("maps the non-Cursor conventions from upstream's harness adapter (HOST-009)", async () => {
+    const host = section(await systemPrompt(['--no-session']), 'pstack_host');
+    expect([
+      host.includes(`- A link to \`https://github.com/cursor/plugins/blob/main/pstack/<path>\` means ${PACKAGE_ROOT}/<path> when that file exists (skills/, agents/, docs/).`),
+      host.includes('- Bugbot comments on a GitHub PR are ordinary review threads, so triage them with the forge command the step gives.'),
+      host.includes('- A step that needs a Cursor-only feature with no Pi counterpart gets one line in your reply, `Skipped in Pi: <step>. <reason>.`, and you go on to the next step without stopping, asking, or retrying.'),
+    ]).toEqual([true, true, true]);
   });
 
   test('names AskQuestion only where a user can answer (HOST-005; review r2: parity 4)', async () => {
