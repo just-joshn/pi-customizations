@@ -1,6 +1,6 @@
 # pstack for Pi (pi-pstack)
 
-This package ports the Cursor plugin [pstack](https://github.com/cursor/plugins/tree/main/pstack) 0.15.29 to Pi 1.3.0, together with what pstack depends on: the `deslop`, `control-cli`, and `control-ui` skills from cursor-team-kit 1.2.0, and the Cursor host features that pstack's skills call by name. The skills ship as upstream wrote them. A small extension supplies the host features in Pi: `/name` skill commands, Custom Modes, the `Task` subagent tool, `TodoWrite`, `AskQuestion`, the always-applied model rule, `/loop`, and a system-prompt map from Cursor paths to Pi paths.
+This package ports the Cursor plugin [pstack](https://github.com/cursor/plugins/tree/main/pstack) 0.15.29 to Pi 1.4.0, together with what pstack depends on: the `deslop`, `control-cli`, and `control-ui` skills from cursor-team-kit 1.2.0, and the Cursor host features that pstack's skills call by name. The skills ship as upstream wrote them. A small extension supplies the host features in Pi: `/name` skill commands, Custom Modes, the `Task` subagent tool, `TodoWrite`, `AskQuestion`, the always-applied model rule, `/loop`, and a system-prompt map from Cursor paths to Pi paths.
 
 ## Get set up
 
@@ -62,7 +62,7 @@ Subagent transcripts are Pi sessions in `~/.pi/agent/pstack/workspaces/<workspac
 
 - Pi has no cloud VMs, so a cloud subagent runs on this machine in a git worktree. It starts from committed code only, as a cloud clone does, it shares your installed extensions, MCP servers, and network, and its branch is never pushed. Worktrees and branches stay until you or the worktree-cleanup playbook remove them. Cursor's cloud dashboards and `/in-cloud` have no counterpart. A local worker starts in the parent's directory.
 - `make-bot-ui` ships, but Grok Bot routines (`update_state`, `SendToUser`) are a hosted Cursor service with no Pi counterpart. The Benny automation pack ships as inert files under `automations/benny/`; it needs Cursor Automations and Slack.
-- Background subagent token usage is recorded in the child's transcript and in the `usage` field of the notification's details, but does not enter the parent session's totals. Pi 1.3.0 gives extensions no way to add usage outside a tool result, and a background result arrives after its tool call has returned. Cursor's docs describe each subagent's token usage as independent and name no chat total that includes it.
+- Background subagent token usage is recorded in the child's transcript and in the `usage` field of the notification's details, but does not enter the parent session's totals. Pi 1.4.0 gives extensions no way to add usage outside a tool result, and a background result arrives after its tool call has returned. Cursor's docs describe each subagent's token usage as independent and name no chat total that includes it.
 - `/reload`, `/new`, resume, and fork stop running background subagents, with a warning that names how many. Resume one later with its agent ID.
 - A print or JSON run waits for its background subagents before it exits, as Cursor's print mode does, with no timeout of its own.
 - Subagents start the same Pi script that runs the parent (`process.argv[1]`), or `pi` from `PATH`. Embedding the package through the SDK in another host is not supported.
@@ -90,7 +90,7 @@ bun run test
 bun run live:e2e -- --model deepseek/deepseek-flash      # real-model scenarios; needs credentials and gives the model under test your real auth.json (see the script header)
 ```
 
-The parity record for the 0.15.21 port is in `parity/pi-pstack-two/` (the archive keeps its recorded name): specification, design decisions, the ledger, fixtures, evidence, and reviews. The move to 0.15.29 and Pi 1.3.0 is recorded in `parity/pi-pstack-0.15.29/`: the decision log and its evidence.
+The parity record for the 0.15.21 port is in `parity/pi-pstack-two/` (the archive keeps its recorded name): specification, design decisions, the ledger, fixtures, evidence, and reviews. The move to 0.15.29 and Pi 1.3.0 is recorded in `parity/pi-pstack-0.15.29/`: the decision log and its evidence. The move to Pi 1.4.0 is recorded in `parity/pi-pstack-pi-1.4.0/`.
 
 ## Licenses
 
