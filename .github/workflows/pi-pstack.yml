@@ -26,6 +26,12 @@ jobs:
         with:
           node-version: 22
       - uses: oven-sh/setup-bun@v2
+      # The readonly shell's OS sandbox on Linux, per @anthropic-ai/sandbox-runtime's Linux requirements and its
+      # Ubuntu 24.04+ note.
+      - run: |
+          sudo apt-get update
+          sudo apt-get install -y bubblewrap socat ripgrep
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
       - run: bun install --frozen-lockfile
         working-directory: .
       - run: bun run typecheck

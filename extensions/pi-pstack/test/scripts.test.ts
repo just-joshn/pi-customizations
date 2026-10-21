@@ -14,7 +14,9 @@ beforeEach(() => {
 afterEach(() => rmSync(scratch, { recursive: true, force: true }));
 
 describe('bundled scripts run from the package (SCRIPT-001)', () => {
-  test("upstream's own test script (orch, watch-pr, check-plan) passes", () => {
+  test("upstream's own test script (orch, watch-pr, check-plan) passes once the CLIs' bootstrap has installed their dependencies", () => {
+    const bootstrap = spawnSync('bun', ['-e', "(await import('./bootstrap.ts')).ensureDependenciesInstalled()"], { cwd: SCRIPTS, encoding: 'utf8', timeout: 120_000 });
+    expect(bootstrap.status).toBe(0);
     const result = spawnSync('bun', ['run', 'test'], { cwd: SCRIPTS, encoding: 'utf8', timeout: 120_000 });
     expect(result.stderr).toMatch(/\n 68 pass\n 0 fail\n/);
     expect(result.status).toBe(0);
