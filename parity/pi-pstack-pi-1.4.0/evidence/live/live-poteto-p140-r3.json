@@ -1,0 +1,77 @@
+{
+  "scenario": "poteto",
+  "requirement": "LIVE-001",
+  "model": "deepseek/deepseek-flash",
+  "prompt": "/poteto-mode How does add in calc.js treat two numeric strings such as \"2\" and \"3\"? This is a read-only question; do not change any files.",
+  "exitCode": 0,
+  "seconds": 54,
+  "checks": {
+    "readPlaybook": true,
+    "firstTodosAreStepsVerbatim": true,
+    "stepMatches": [true, true, true, true],
+    "workspaceUnchanged": true,
+    "todos": [
+      "Route through the **how** skill. For motivation questions, also route through the **why** skill.",
+      "Throughput checkpoint stays one line: `throughput checkpoint: n/a, read-only investigation`.",
+      "Produce the `how`-shaped output (Overview / Key Concepts / How It Works / Where Things Live / Gotchas), or a recommendation with a tradeoffs table if the request is a decision between alternatives.",
+      "Apply the **unslop** skill to the reply.",
+      "Verify runtime behavior of add(\"2\", \"3\") without touching files"
+    ]
+  },
+  "toolCalls": [
+    {
+      "name": "read",
+      "arguments": "{\"path\":\"/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/poteto-mode/playbooks/investigation.md\",\"offset\":null,\"limit\":null}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"ls -la; echo ---; cat calc.js 2>/dev/null || find . -name 'calc.js' -not -path './node_modules/*'\"}"
+    },
+    {
+      "name": "read",
+      "arguments": "{\"path\":\"/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/how/SKILL.md\",\"limit\":null,\"offset\":null}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"cd /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-4DBWdw/work && git log --oneline -5 -- calc.js; echo ---; git status --porcelain\"}"
+    },
+    {
+      "name": "TodoWrite",
+      "arguments": "{\"todos\":[{\"id\":\"1\",\"content\":\"Route through the **how** skill. For motivation questions, also route through the **why** skill.\",\"status\":\"in_progress\"},{\"id\":\"2\",\"content\":\"Throughput checkpoint stays one line: `throughput checkpoint: n/a, read-only investigation`.\",\"status\":\"pending\"},{\"id\":\"3\",\"content\":\"Produce the `how`-shaped output (Overview / Key Concepts / How It Works / Where Things Live / Gotchas), or a recommendation with a tradeoffs table if the request is a decision between alternatives.\",\"status\":\"pending\"},{\"id\":\"4\",\"content\":\"Apply the **unslop** skill to the reply.\",\"status\":"
+    },
+    {
+      "name": "Task",
+      "arguments": "{\"description\":\"Explain add() semantics\",\"prompt\":\"Read-only exploration. Do not modify any file.\\n\\nWorkspace: /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-4DBWdw/work\\n\\nQuestion: How does `add` in calc.js treat two numeric strings such as \\\"2\\\" and \\\"3\\\"?\\n\\nSteps:\\n1. Read calc.js in full.\\n2. Inspect git history for that file (`git log -p -- calc.js`), and check whether any callers or tests exist in the repo (`find . -name '*.js' -not -path './node_modules/*'`, `grep -rn \\\"add(\\\" --include=*.js .`).\\n3. Confirm the runtime behavior empirically without writing files"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"cd /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-4DBWdw/work && node --input-type=module -e \\\"import('./calc.js').then(m=>{const r=m.add('2','3');console.log(typeof r, JSON.stringify(r), r.length)})\\\" 2>&1; echo ---; node --version; echo ---; grep -rn \\\"add(\\\" --include=*.js . 2>/dev/null | head\"}"
+    },
+    {
+      "name": "Task",
+      "arguments": "{\"description\":\"Explain add() semantics\",\"model\":\"openai/gpt-5.4:xhigh\",\"prompt\":\"Read-only exploration. Do not modify any file.\\n\\nWorkspace: /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-4DBWdw/work\\n\\nQuestion: How does `add` in calc.js treat two numeric strings such as \\\"2\\\" and \\\"3\\\"?\\n\\nSteps:\\n1. Read calc.js in full.\\n2. Inspect git history for that file (`git log -p -- calc.js`), and check whether any callers or tests exist in the repo (`find . -name '*.js' -not -path './node_modules/*'`, `grep -rn \\\"add(\\\" --include=*.js .`).\\n3. Confirm the runtime behavior em"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"cd /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-4DBWdw/work && git log --format='%h %ad %s' --date=short -- calc.js; echo ---; git log -p -- calc.js | head -40; echo ---; node --input-type=module -e \\\"import('./calc.js').then(m=>{console.log(JSON.stringify(m.add(2,3)), JSON.stringify(m.add('2',3)), JSON.stringify(m.add('2','3')))})\\\"\"}"
+    },
+    {
+      "name": "Task",
+      "arguments": "{\"description\":\"Explain add() semantics\",\"model\":\"zai/glm-5.2:max\",\"prompt\":\"Read-only exploration. Do not modify any file.\\n\\nWorkspace: /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-4DBWdw/work\\n\\nQuestion: How does `add` in calc.js treat two numeric strings such as \\\"2\\\" and \\\"3\\\"?\\n\\nSteps:\\n1. Read calc.js in full.\\n2. Inspect git history for that file (`git log -p -- calc.js`), and check whether any callers or tests exist in the repo (`find . -name '*.js' -not -path './node_modules/*'`, `grep -rn \\\"add(\\\" --include=*.js .`).\\n3. Confirm the runtime behavior empiric"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"cd /Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills && wc -l unslop/SKILL.md principle-prove-it-works/SKILL.md\"}"
+    },
+    {
+      "name": "read",
+      "arguments": "{\"path\":\"/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/unslop/SKILL.md\",\"offset\":null,\"limit\":null}"
+    },
+    {
+      "name": "read",
+      "arguments": "{\"path\":\"/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/principle-prove-it-works/SKILL.md\",\"offset\":null,\"limit\":null}"
+    }
+  ],
+  "finalText": "**Overview.** `add` converts nothing. It returns `a + b` (calc.js:2), and JavaScript's `+` concatenates when either operand is a string. So `add(\"2\", \"3\")` returns the string `\"23\"`, not the number `5`.\n\n**Key concepts.** The binary `+` has two behaviors. Two numbers add. If either operand is a string, the engine converts the other side to a string and concatenates. Numeric-looking strings are still strings, and nothing here calls `Number()` or `parseFloat()`.\n\n**How it works.** The function is a pass-through to the operator. With `a = \"2\"` and `b = \"3\"`, the engine evaluates `\"2\" + \"3\"` and produces `\"23\"`.\n\n**Where things live.** calc.js:1-3 is the whole module. The file appeared in one commit, `42468cd` (\"calc\", 2026-10-21), with no earlier version that coerced inputs. The repo holds no tests and no callers, and a grep for `add(` matches only the definition at calc.js:1.\n\n**Gotchas.** The return type follows the argument types silently. `add(\"2\", \"3\")` is the 2-character string `\"23\"`, `add(\"2\", 3)` is also `\"23\"`, and `add(2, 3)` is the number `5`. Nothing in the repo pins that contract, so a caller expecting arithmetic gets concatenation instead and no check catches it.\n\n**Evidence.** Measured, on Node v24.21.0, by importing calc.js and calling it. `typeof` returned `string`, the value was `\"23\"`, and its length was 2. I read the source line too, but the number came from running the function, per principle-prove-it-works, which changed my choice from trusting the source by eye to executing it.\n\n**Model routing.** The `how` explainer defaults to a Claude slug that this harness does not offer, and the OpenAI judgment slugs I tried (`gpt-5.5`, `gpt-5.4`) returned 400 from the account. The explainer ran on `zai/glm-5.2:max` instead, and its findings match my own run.\n\n`throughput checkpoint: n/a, read-only investigation`\n\nNo files were changed. The verdict is a property of the operator, not a bug in the file, so if arithmetic on strings is the intent, that is a new feature decision for you, not something this investigation should patch.",
+  "stderrTail": ""
+}

@@ -1,0 +1,68 @@
+{
+  "scenario": "poteto",
+  "requirement": "LIVE-001",
+  "model": "deepseek/deepseek-flash",
+  "prompt": "/poteto-mode How does add in calc.js treat two numeric strings such as \"2\" and \"3\"? This is a read-only question; do not change any files.",
+  "exitCode": 0,
+  "seconds": 37,
+  "checks": {
+    "readPlaybook": true,
+    "firstTodosAreStepsVerbatim": true,
+    "stepMatches": [true, true, true, true],
+    "workspaceUnchanged": true,
+    "todos": [
+      "Route through the **how** skill. For motivation questions, also route through the **why** skill.",
+      "Throughput checkpoint stays one line: `throughput checkpoint: n/a, read-only investigation`.",
+      "Produce the `how`-shaped output (Overview / Key Concepts / How It Works / Where Things Live / Gotchas), or a recommendation with a tradeoffs table if the request is a decision between alternatives.",
+      "Apply the **unslop** skill to the reply."
+    ]
+  },
+  "toolCalls": [
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"ls -la /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-93ULKL/work; echo ---; find . -name 'calc.js' -not -path '*/node_modules/*' 2>/dev/null\",\"timeout\":30}"
+    },
+    {
+      "name": "read",
+      "arguments": "{\"path\":\"/private/tmp/claude-501/-Users-josh-desktop-src-personal-update-pi-pstack-to-latest-pstack-version/70df41f0-8a09-470b-acd8-fc66d0dd3a0a/scratchpad/control-130/extensions/pi-pstack/skills/poteto-mode/playbooks/investigation.md\",\"offset\":null,\"limit\":null}"
+    },
+    {
+      "name": "TodoWrite",
+      "arguments": "{\"todos\":[{\"id\":\"1\",\"content\":\"Route through the **how** skill. For motivation questions, also route through the **why** skill.\",\"status\":\"in_progress\"},{\"id\":\"2\",\"content\":\"Throughput checkpoint stays one line: `throughput checkpoint: n/a, read-only investigation`.\",\"status\":\"pending\"},{\"id\":\"3\",\"content\":\"Produce the `how`-shaped output (Overview / Key Concepts / How It Works / Where Things Live / Gotchas), or a recommendation with a tradeoffs table if the request is a decision between alternatives.\",\"status\":\"pending\"},{\"id\":\"4\",\"content\":\"Apply the **unslop** skill to the reply.\",\"status\":"
+    },
+    {
+      "name": "read",
+      "arguments": "{\"path\":\"/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-93ULKL/work/calc.js\",\"offset\":null,\"limit\":null}"
+    },
+    {
+      "name": "read",
+      "arguments": "{\"path\":\"/private/tmp/claude-501/-Users-josh-desktop-src-personal-update-pi-pstack-to-latest-pstack-version/70df41f0-8a09-470b-acd8-fc66d0dd3a0a/scratchpad/control-130/extensions/pi-pstack/skills/how/SKILL.md\",\"offset\":null,\"limit\":null}"
+    },
+    {
+      "name": "read",
+      "arguments": "{\"limit\":null,\"offset\":null,\"path\":\"/private/tmp/claude-501/-Users-josh-desktop-src-personal-update-pi-pstack-to-latest-pstack-version/70df41f0-8a09-470b-acd8-fc66d0dd3a0a/scratchpad/control-130/extensions/pi-pstack/skills/how/references/explainer-prompt.md\"}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"cd /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-93ULKL/work && git log --oneline -5 -- calc.js 2>&1; echo ---; git status --porcelain\",\"timeout\":30}"
+    },
+    {
+      "name": "Task",
+      "arguments": "{\"description\":\"Explain calc.js add\",\"subagent_type\":\"generalPurpose\",\"readonly\":true,\"run_in_background\":false,\"model\":\"openai/gpt-5.5:xhigh\",\"prompt\":\"You are writing an architectural explanation for a senior engineer. You have read-only access to the codebase. Working directory: /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-93ULKL/work. Do not modify any files.\\n\\n## Original Question\\n\\n> How does `add` in calc.js treat two numeric strings such as \\\"2\\\" and \\\"3\\\"?\\n\\n## Instructions\\n\\nRead /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-93ULKL/w"
+    },
+    {
+      "name": "Task",
+      "arguments": "{\"description\":\"Explain calc.js add\",\"model\":\"deepseek/deepseek-v4-pro:high\",\"prompt\":\"You are writing an architectural explanation for a senior engineer. You have read-only access to the codebase. Working directory: /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-93ULKL/work. Do not modify any files.\\n\\n## Original Question\\n\\n> How does `add` in calc.js treat two numeric strings such as \\\"2\\\" and \\\"3\\\"?\\n\\n## Instructions\\n\\nRead /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-93ULKL/work/calc.js and its git history (`git log -p -- calc.js` in that d"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"cd /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-93ULKL/work && node --input-type=module -e \\\"import { add } from './calc.js'; const r1=add('2','3'), r2=add('2',3), r3=add(2,3); console.log(JSON.stringify({r1,t1:typeof r1,r2,t2:typeof r2,r3,t3:typeof r3}))\\\"\",\"timeout\":60}"
+    },
+    {
+      "name": "read",
+      "arguments": "{\"limit\":null,\"offset\":null,\"path\":\"/private/tmp/claude-501/-Users-josh-desktop-src-personal-update-pi-pstack-to-latest-pstack-version/70df41f0-8a09-470b-acd8-fc66d0dd3a0a/scratchpad/control-130/extensions/pi-pstack/skills/unslop/SKILL.md\"}"
+    }
+  ],
+  "finalText": "## Overview\n\n`add` in `calc.js` returns `a + b` with no coercion and no type check. JavaScript's `+` is overloaded, so two numeric strings concatenate instead of adding. `add(\"2\", \"3\")` returns the string `\"23\"`, not the number `5`.\n\nThe whole function, read from `/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-93ULKL/work/calc.js`:\n\n```js\nexport function add(a, b) {\n  return a + b;\n}\n```\n\n## How It Works\n\n`+` adds numbers only when both operands are numbers. One string operand is enough to switch it to string concatenation, and `add` never inspects or converts its arguments. Observed on this machine with Node, run by me:\n\n| Call | Result | `typeof` result |\n|---|---|---|\n| `add(\"2\", \"3\")` | `\"23\"` | `\"string\"` |\n| `add(\"2\", 3)` | `\"23\"` | `\"string\"` |\n| `add(2, 3)` | `5` | `\"number\"` |\n\n```\n{\"r1\":\"23\",\"t1\":\"string\",\"r2\":\"23\",\"t2\":\"string\",\"r3\":5,\"t3\":\"number\"}\n```\n\nThe mixed call matters as much as the two-string case. A caller that reads one operand from a text input and passes the other as a literal still gets concatenation.\n\n## Where Things Live\n\nThe repo holds a single file, `calc.js`, which exports `add`. Git has one commit on it, `42a371d \"calc\"`, which added the file in this form, so no earlier version coerced to numbers. No caller and no test exists anywhere in the repo, so the behavior is unexercised today. Anything that imports `add` inherits the concatenation.\n\n## Gotchas\n\nThe parameter names `a` and `b` are generic and carry no numeric intent. The function name does. That mismatch between the name `add` and what `+` actually does is the entire bug surface.\n\nThe function never checks `typeof` and never calls `Number(...)` or `parseInt(...)`. If numeric strings are a real input, the caller has to convert, because `add` will not.\n\n## Notes\n\nThe `how` skill's default explainer model is `claude-opus-5-5-xhigh`, and no pstack model rule exists here. I ran the explainer on `deepseek/deepseek-v4-pro:high` after `openai/gpt-5.5:xhigh` was rejected by the provider, and its result was checked against my own run above.\n\n`throughput checkpoint: n/a, read-only investigation`\n\nNo files changed. No principle leaf was read this session, so none is cited.",
+  "stderrTail": ""
+}

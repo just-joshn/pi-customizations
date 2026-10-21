@@ -1,0 +1,65 @@
+{
+  "scenario": "poteto",
+  "requirement": "LIVE-001",
+  "model": "deepseek/deepseek-flash",
+  "prompt": "/poteto-mode How does add in calc.js treat two numeric strings such as \"2\" and \"3\"? This is a read-only question; do not change any files.",
+  "exitCode": 0,
+  "seconds": 176,
+  "checks": {
+    "readPlaybook": false,
+    "firstTodosAreStepsVerbatim": true,
+    "stepMatches": [true, true, true, true],
+    "workspaceUnchanged": true,
+    "todos": [
+      "Route through the **how** skill. For motivation questions, also route through the **why** skill.",
+      "Throughput checkpoint stays one line: `throughput checkpoint: n/a, read-only investigation`.",
+      "Produce the `how`-shaped output (Overview / Key Concepts / How It Works / Where Things Live / Gotchas), or a recommendation with a tradeoffs table if the request is a decision between alternatives.",
+      "Apply the **unslop** skill to the reply.",
+      "Write the reply clean per poteto-mode's Writing the reply rules"
+    ]
+  },
+  "toolCalls": [
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"ls -la; echo \\\"---\\\"; find . -maxdepth 3 -name \\\"calc.js\\\" -not -path \\\"./node_modules/*\\\"\",\"timeout\":30}"
+    },
+    {
+      "name": "read",
+      "arguments": "{\"path\":\"calc.js\",\"offset\":1,\"limit\":20}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"git log --oneline -5; echo \\\"---\\\"; git status --porcelain\",\"timeout\":30}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"cat \\\"/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/poteto-mode/playbooks/investigation.md\\\"\",\"timeout\":30}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"cd /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-fIcIeD/work && node --input-type=module -e '\\nimport { add } from \\\"./calc.js\\\";\\nconst r = add(\\\"2\\\",\\\"3\\\");\\nconsole.log(JSON.stringify(r), typeof r, \\\"=== \\\\\\\"23\\\\\\\"?\\\", r === \\\"23\\\");\\n'\",\"timeout\":30}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"cat \\\"/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/how/SKILL.md\\\"\",\"timeout\":30}"
+    },
+    {
+      "name": "Task",
+      "arguments": "{\"description\":\"Explain add() numeric strings\",\"subagent_type\":\"generalPurpose\",\"readonly\":true,\"run_in_background\":false,\"model\":\"openai/gpt-5.6-sol:high\",\"prompt\":\"You are the explainer for a narrow \\\"how does function X work\\\" question. Working directory: /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-fIcIeD/work\\n\\nQuestion: How does `add` in calc.js treat two numeric strings such as \\\"2\\\" and \\\"3\\\"?\\n\\nConstraints:\\n- Read-only. Do not create, modify, or delete any file. Do not write a temporary file.\\n- You may read calc.js, inspect git history (git log, git show), "
+    },
+    {
+      "name": "TodoWrite",
+      "arguments": "{\"todos\":[{\"id\":\"1\",\"content\":\"Route through the **how** skill. For motivation questions, also route through the **why** skill.\",\"status\":\"completed\"},{\"id\":\"2\",\"content\":\"Throughput checkpoint stays one line: `throughput checkpoint: n/a, read-only investigation`.\",\"status\":\"completed\"},{\"id\":\"3\",\"content\":\"Produce the `how`-shaped output (Overview / Key Concepts / How It Works / Where Things Live / Gotchas), or a recommendation with a tradeoffs table if the request is a decision between alternatives.\",\"status\":\"in_progress\"},{\"id\":\"4\",\"content\":\"Apply the **unslop** skill to the reply.\",\"stat"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"cat \\\"/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/unslop/SKILL.md\\\"; echo \\\"=== PROVE IT WORKS ===\\\"; cat \\\"/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/principle-prove-it-works/SKILL.md\\\"\",\"timeout\":30}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"cd /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-fIcIeD/work && node --input-type=module -e '\\nimport { add } from \\\"./calc.js\\\";\\nconst show = (v) => typeof v === \\\"string\\\" ? JSON.stringify(v) : String(v);\\nfor (const [a,b] of [[\\\"2\\\",\\\"3\\\"],[\\\"2\\\",3],[2,3],[\\\"abc\\\",3],[\\\"2e3\\\",3],[\\\" \\\",3],[null,3],[undefined,3],[true,3],[[2],3],[[],[]],[{},{}],[\\\"2\\\",true]]) {\\n  const r = add(a,b);\\n  console.log(`${show(a)} + ${show(b)} => ${show(r)} (${typeof r})`);\\n}\\n' ; echo \\\"--- repo contents ---\\\"; git ls-files\",\"timeout\":30}"
+    }
+  ],
+  "finalText": "`add(\"2\", \"3\")` returns the string `\"23\"`, not the number `5`. The function does no conversion, and JavaScript's `+` concatenates when either operand is a string. Measured by importing `calc.js` and calling it.\n\n### Overview\n`calc.js` exports one function, `add(a, b)`, whose body is `return a + b;`. It delegates entirely to the `+` operator, so whatever `+` does with the two argument types is what `add` does.\n\n### Key concepts\nOperators evaluate their operands left to right, then convert each to a primitive (`Symbol.toPrimitive`, then `valueOf()`, then `toString()`). After that:\n\n- If either primitive is a string, both become strings and join.\n- Otherwise both become numbers and add.\n\nA primitive string stays a string through that conversion, so operand order never matters here. The operator does not inspect whether the string looks numeric. `\"2\"`, `\"2e3\"`, `\" \"`, and `\"abc\"` all take the concatenation branch.\n\n### How it works\nMeasured results from `node --input-type=module -e 'import { add } from \"./calc.js\"; ...'` in this checkout:\n\n| Call | Result | `typeof` |\n|---|---|---|\n| `add(\"2\", \"3\")` | `\"23\"` | `string` |\n| `add(\"2\", 3)` | `\"23\"` | `string` |\n| `add(2, 3)` | `5` | `number` |\n| `add(\"2\", true)` | `\"2true\"` | `string` |\n| `add(\"abc\", 3)` | `\"abc3\"` | `string` |\n| `add(\"2e3\", 3)` | `\"2e33\"` | `string` |\n| `add(\" \", 3)` | `\" 3\"` | `string` |\n| `add(null, 3)` | `3` | `number` |\n| `add(true, 3)` | `4` | `number` |\n| `add(undefined, 3)` | `NaN` | `number` |\n| `add([2], 3)` | `\"23\"` | `string` |\n| `add([], [])` | `\"\"` | `string` |\n| `add({}, {})` | `\"[object Object][object Object]\"` | `string` |\n\nThe coercion rules are quoted from the language spec. Every row in the table was executed.\n\n### Where things live\nThe function spans `calc.js` lines 1 to 3, with the addition on line 2. `calc.js` is the only tracked file, and `git grep add` finds no other reference, so nothing in this repository calls `add` yet.\n\n### Gotchas\nThe result is a plausible-looking string rather than a thrown error, so a caller reading output alone sees `\"23\"` and may take it for a number. `typeof result === \"string\"` or a strict comparison against `5` catches it immediately. Beware that `-`, `*`, and `/` do coerce numeric strings, so the same values can behave correctly one line later and hide where the bug started. Downstream, a string result keeps concatenating on the next `+`.\n\nThe `how` skill's explainer default, `claude-opus-5-5-xhigh`, is not in this session's model list, so I ran the explainer on `openai/gpt-5.6-sol` at high effort and re-ran its table myself.\n\nPrinciple cited: **Prove It Works**. I read its leaf this session, and it is why the answer rests on an executed call to the real `calc.js` plus an independent re-run of every table row, instead of reasoning from the operator rules alone.\n\nNo files changed.",
+  "stderrTail": ""
+}
