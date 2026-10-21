@@ -47,7 +47,7 @@ describe('host map (HOST-001)', () => {
     expect(host).toContain(`Subagent transcripts for this workspace: ${join(workspace, 'subagents')}/*_<agent id>.jsonl. A subagent is still running while ${join(workspace, 'subagents')}/<agent id>.lock exists and names a live pid.`);
     expect(host).toMatch(new RegExp(`"The current agent's store" \\(orchestrate's store layout\\) is ${join(workspace, 'store')}/[0-9a-f-]+\\. Create it when a playbook needs it, and pass it to orch as --store\\.`));
     expect(host).toContain(
-      "- Image generation (the image tool teach reaches for, ketchup's generated image): Pi generates images through codemode's models.generateImages() when codemode is on and an image model is configured. Otherwise say no image tool is available and use a mermaid diagram or a table.",
+      "- Image generation (the image tool teach reaches for, ketchup's generated image): Pi generates images through codemode's models.generateImages() when codemode is on and an image model is configured. Otherwise say no image tool is available and use a mermaid diagram or a table. Cursor's `/visualize` charts have no Pi counterpart, so draw a chart as a mermaid diagram (xychart-beta for numbers).",
     );
     expect(host).toContain('Installed skills (60): architect, arena, automate-me,');
     expect(host).toContain(
