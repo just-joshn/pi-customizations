@@ -42,7 +42,7 @@ const run = async (tool: ToolDefinition, command: string, signal?: AbortSignal):
 test.skipIf(!supported)('a shared pre-initialized sandbox policy does not weaken the shell (TASK-019)', async () => {
   dir = realpathSync(mkdtempSync(join(tmpdir(), 'pi-pstack-ro-shared-')));
   const text = await run(bash(), `printf shared-escape > ${join(dir, 'shared-escape.txt')} && cat ${join(dir, 'shared-escape.txt')}`).catch((error: Error) => `ERROR: ${error.message}`);
-  expect(text).toContain('Operation not permitted');
+  expect(text).toMatch(/Operation not permitted|Read-only file system/);
   expect(existsSync(join(dir, 'shared-escape.txt'))).toBe(false);
 });
 

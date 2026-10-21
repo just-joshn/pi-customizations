@@ -73,7 +73,12 @@ export function registerReadonlyShell(pi: ExtensionAPI): void {
       return bash.execute(toolCallId, params, signal, onUpdate);
     },
   });
-  // No SandboxManager.reset() on shutdown: the manager is a shared singleton, and tearing it down could break
-  // another consumer in this process. This readonly subagent is a short-lived process, so the OS reclaims the
-  // sandbox when it exits.
+  // On Linux the sandbox's socat bridges keep the event loop alive, so a readonly child never exits unless the
+  // sandbox is released.
+  pi.on('session_shutdown', async () => {
+    const started = ready;
+    ready = undefined;
+    const sandbox = await started?.catch(() => undefined);
+    await sandbox?.reset();
+  });
 }

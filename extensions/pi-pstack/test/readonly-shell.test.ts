@@ -8,7 +8,7 @@ import { registerReadonlyShell } from '../src/readonly-shell.ts';
 
 function registeredBash(): ToolDefinition {
   const tools: ToolDefinition[] = [];
-  const pi = { registerTool: (tool: ToolDefinition) => tools.push(tool) } as unknown as ExtensionAPI;
+  const pi = { registerTool: (tool: ToolDefinition) => tools.push(tool), on: () => undefined } as unknown as ExtensionAPI;
   registerReadonlyShell(pi);
   const [bash] = tools;
   if (bash === undefined) throw new Error('no tool registered');
@@ -23,7 +23,7 @@ test('describes the subprocess boundary without claiming whole-process isolation
 });
 
 test('unsupported hosts fail closed without running a command', async () => {
-  vi.spyOn(process, 'platform', 'get').mockReturnValue('linux');
+  vi.spyOn(process, 'platform', 'get').mockReturnValue('freebsd');
   onTestFinished(() => {
     vi.restoreAllMocks();
   });
