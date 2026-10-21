@@ -52,6 +52,33 @@ describe('resolveSubagentModel (TASK-007)', () => {
     expect(resolveSubagentModel('grok-4.7-xhigh-fast', fast, parent)).toEqual({ provider: 'grok-build', id: 'grok-4.7-fast', thinking: 'xhigh' });
   });
 
+  test.for([
+    { value: 'claude-opus-5-5[effort=high]', expected: { provider: 'claude-subscription', id: 'claude-opus-5-5', thinking: 'high' } },
+    { value: 'claude-opus-5-5[]', expected: { provider: 'claude-subscription', id: 'claude-opus-5-5' } },
+    { value: 'claude-opus-5-5[effort=high,context=300k]', expected: { provider: 'claude-subscription', id: 'claude-opus-5-5', thinking: 'high' } },
+    { value: 'grok-4.7[fast=false]', expected: { provider: 'grok-build', id: 'grok-4.7' } },
+    { value: 'grok-4.7[fast=true, effort=low]', expected: { provider: 'grok-build', id: 'grok-4.7', thinking: 'low' } },
+    { value: 'deepseek/deepseek-flash[effort=max]', expected: { provider: 'deepseek', id: 'deepseek-flash', thinking: 'max' } },
+  ])('maps the Cursor model parameters in $value', ({ value, expected }) => {
+    expect(resolveSubagentModel(value, available, parent)).toEqual(expected);
+  });
+
+  test('fast=true picks a model whose own id ends in -fast, and fast=false keeps the standard one', () => {
+    const fast = [...available, { provider: 'grok-build', id: 'grok-4.7-fast', reasoning: true, levels: ['low', 'xhigh'] }];
+    expect([resolveSubagentModel('grok-4.7[fast=true,effort=xhigh]', fast, parent), resolveSubagentModel('grok-4.7[fast=false]', fast, parent)]).toEqual([
+      { provider: 'grok-build', id: 'grok-4.7-fast', thinking: 'xhigh' },
+      { provider: 'grok-build', id: 'grok-4.7' },
+    ]);
+  });
+
+  test.for(['claude-opus-5-5[speed=1]', 'claude-opus-5-5[effort=turbo]', 'claude-opus-5-5[fast=maybe]', 'claude-opus-5-5[effort]', 'claude-opus-5-5-high[effort=low]'])('rejects the model parameters in %s with the allowed list', (value) => {
+    expect(() => resolveSubagentModel(value, available, parent)).toThrow(`Invalid model selection "${value}".`);
+  });
+
+  test('rejects an effort parameter the model does not support', () => {
+    expect(() => resolveSubagentModel('grok-4.7[effort=max]', available, parent)).toThrow('grok-build/grok-4.7 does not support thinking level max; it supports low, medium, high, xhigh.');
+  });
+
   test('rejects an id that two providers share, naming both', () => {
     expect(() => resolveSubagentModel('deepseek-flash', available, parent)).toThrow('Model "deepseek-flash" matches more than one provider: deepseek/deepseek-flash, other/deepseek-flash. Use <provider>/<model-id>.');
   });

@@ -58,14 +58,27 @@ export function modeSection(mode: ActiveMode): string {
 }
 
 // Cursor styles a mode's badge with the skill's `icon` (default: lightning) and `color`. A terminal has neither Cursor's
-// icon set nor its palette, so the icons pstack uses map to glyphs and the colors to the nearest theme color.
-const BADGE_ICONS: Record<string, string> = { crown: '♛', lightning: '⚡' };
+// icon set nor its palette, so pstack's icon and the ones Cursor's skills docs name map to glyphs, and the colors to the nearest theme color.
+const BADGE_ICONS: Record<string, string> = {
+  crown: '♛',
+  lightning: '⚡',
+  code: '</>',
+  terminal: '>_',
+  bug: '✱',
+  'git-branch': '⎇',
+  'book-open': '❐',
+  beaker: '⚗',
+  shield: '⛨',
+  rocket: '➶',
+};
 const BADGE_COLORS: Record<string, ThemeColor> = { green: 'success', red: 'error', yellow: 'warning', orange: 'warning', cyan: 'accent', blue: 'accent', purple: 'accent', magenta: 'accent', brand: 'accent' };
 
+/** pstack's skills carry `icon` and `color` as metadata `cursor-icon` and `cursor-color`; a skill written for Cursor has them at the top level. */
 function skillMetadata(mode: ActiveMode): Record<string, unknown> {
   if (mode.path === undefined || !existsSync(mode.path)) return {};
-  const metadata = parseFrontmatter(readFileSync(mode.path, 'utf8')).frontmatter['metadata'];
-  return typeof metadata === 'object' && metadata !== null ? (metadata as Record<string, unknown>) : {};
+  const { frontmatter } = parseFrontmatter(readFileSync(mode.path, 'utf8'));
+  const metadata = typeof frontmatter['metadata'] === 'object' && frontmatter['metadata'] !== null ? (frontmatter['metadata'] as Record<string, unknown>) : {};
+  return { 'cursor-icon': frontmatter['icon'], 'cursor-color': frontmatter['color'], ...metadata };
 }
 
 export function modeBadge(mode: ActiveMode, metadata: Record<string, unknown> = skillMetadata(mode)): { text: string; color?: ThemeColor } {

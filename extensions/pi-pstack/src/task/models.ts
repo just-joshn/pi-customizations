@@ -79,6 +79,40 @@ function resolveCursorSlug(value: string, available: readonly AvailableModel[]):
   return model === undefined ? undefined : withThinking(model, effort);
 }
 
+interface ModelParameters {
+  effort?: Effort;
+  fast?: boolean;
+}
+
+const BRACKETED = /^(.+)\[([^\]]*)\]$/;
+
+/** Cursor's `id=value` pairs. Pi sets a context window per model, not per call, so `context` is accepted and has no effect. */
+function parseModelParameters(text: string): ModelParameters | undefined {
+  let parsed: ModelParameters = {};
+  for (const pair of text
+    .split(',')
+    .map((part) => part.trim())
+    .filter((part) => part !== '')) {
+    const [key, value, ...rest] = pair.split('=').map((part) => part.trim());
+    if (value === undefined || value === '' || rest.length > 0) return undefined;
+    const effort = asEffort(value);
+    if (key === 'effort' && effort !== undefined) parsed = { ...parsed, effort };
+    else if (key === 'fast' && (value === 'true' || value === 'false')) parsed = { ...parsed, fast: value === 'true' };
+    else if (key !== 'context') return undefined;
+  }
+  return parsed;
+}
+
+/** `<model>[effort=high,fast=false,context=300k]`, Cursor's per-model parameters; `[]` is the standard variant. */
+function resolveBracketed(value: string, available: readonly AvailableModel[]): ModelSpec | undefined {
+  const match = BRACKETED.exec(value);
+  const base = match?.[1];
+  const parameters = parseModelParameters(match?.[2] ?? '');
+  if (base === undefined || parameters === undefined) return undefined;
+  const model = (parameters.fast === true ? findModel(`${base}-fast`, available) : undefined) ?? findModel(base, available);
+  return model === undefined ? undefined : withThinking(model, parameters.effort);
+}
+
 /**
  * Resolves Task's `model` like Cursor: aliases run on the parent, a listed model runs as asked, and anything else
  * fails with the allowed list. Cursor slugs `<id>-<effort>[-fast]` map to a Pi model plus thinking level.
@@ -87,7 +121,7 @@ export function resolveSubagentModel(value: string | undefined, available: reado
   const requested = (value ?? '').trim();
   if (INHERIT.has(requested)) return parent;
   try {
-    const resolved = resolvePiSpec(requested, available) ?? resolveCursorSlug(requested, available);
+    const resolved = resolveBracketed(requested, available) ?? resolvePiSpec(requested, available) ?? resolveCursorSlug(requested, available);
     if (resolved === undefined) throw invalid(requested, available);
     return resolved;
   } catch (error) {

@@ -24,7 +24,7 @@ export const TaskParams = Type.Object({
   model: Type.Optional(
     Type.String({
       description:
-        'Optional model for this agent, from the pstack_subagents section: inherit (default), a Cursor-style slug such as claude-opus-5-5-xhigh, or a Pi model such as provider/model:high. An invalid value fails with the allowed list; pick a listed value or omit it. Ignored with resume.',
+        'Optional model for this agent, from the pstack_subagents section: inherit (default), a Cursor-style slug such as claude-opus-5-5-xhigh or claude-opus-5-5[effort=high], or a Pi model such as provider/model:high. An invalid value fails with the allowed list; pick a listed value or omit it. Ignored with resume.',
     }),
   ),
   resume: Type.Optional(Type.String({ description: 'Agent ID from an earlier Task call in this workspace. Sends this prompt as a follow-up with the agent context preserved. Fails while that agent is still running.' })),
