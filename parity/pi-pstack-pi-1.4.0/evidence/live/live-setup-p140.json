@@ -1,0 +1,37 @@
+{
+  "scenario": "setup",
+  "requirement": "LIVE-003",
+  "model": "deepseek/deepseek-flash",
+  "prompt": "/setup-pstack Use the large budget and keep the skill's mapping. For a role whose default model is not available, use the closest available model of the same family, else inherit-parent. Do not ask me anything; write the rule now.",
+  "exitCode": 0,
+  "seconds": 27,
+  "checks": {
+    "ruleWritten": true,
+    "alwaysApply": true,
+    "missingRoles": [],
+    "distinctValues": ["inherit-parent"],
+    "unresolvedValues": [],
+    "wroteCursorRule": false,
+    "rule": "---\ndescription: pstack per-role model choices (overrides skill defaults)\nalwaysApply: true\n---\n# pstack model configuration. One line per role. Delete a line to fall back to the skill default.\n# `inherit-parent` or `auto` as a value: the role runs on the parent chat model (omit Task `model`). Alias entries in a panel list still count toward its fan-out.\n# budget: large (xhigh)\n# Skill defaults are claude-opus-5-5-xhigh and grok-4.7-xhigh-fast. This session has no anthropic or xai models,\n# so every role falls back to inherit-parent. Add an anthropic/xai provider and re-run /setup-pstack to restore them.\nfeature, refactoring: inherit-parent\nbug-fix: inherit-parent\nperf-issue: inherit-parent\nhillclimb: inherit-parent\njudgment and prose: inherit-parent\nhardest tasks: inherit-parent\nhow explorer: inherit-parent\nhow explainer: inherit-parent\nwhy investigators: inherit-parent\nwhy synthesizer: inherit-parent\nreflect tooling: inherit-parent\nreflect judgment, divergent, synthesizer: inherit-parent\narena runners: inherit-parent, inherit-parent\narena cross-judge pool: inherit-parent, inherit-parent\nswarm workers: inherit-parent\narchitect runners: inherit-parent, inherit-parent\ninterrogate reviewers: inherit-parent, inherit-parent\n"
+  },
+  "toolCalls": [
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"ls -la /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-gtm7fw/agent/pstack/ 2>/dev/null; echo '---'; env | grep -i '^PI_' | sed 's/=.*/=<set>/'; echo '---'; which pi; pi models 2>&1 | head -60\",\"timeout\":60}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"cd /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-gtm7fw/work && ls -a | head -30; echo '--- project skills ---'; ls .pi/skills 2>/dev/null; ls .cursor/skills 2>/dev/null; echo '--- verify-ish ---'; find . -maxdepth 3 -name '*verif*' -not -path '*/node_modules/*' 2>/dev/null | head\",\"timeout\":60}"
+    },
+    {
+      "name": "write",
+      "arguments": "{\"path\":\"/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-gtm7fw/agent/pstack/pstack-models.mdc\",\"content\":\"---\\ndescription: pstack per-role model choices (overrides skill defaults)\\nalwaysApply: true\\n---\\n# pstack model configuration. One line per role. Delete a line to fall back to the skill default.\\n# `inherit-parent` or `auto` as a value: the role runs on the parent chat model (omit Task `model`). Alias entries in a panel list still count toward its fan-out.\\n# budget: large (xhigh)\\n# Skill defaults are claude-opus-5-5-xhigh and grok-4.7-xhigh-fast. This session has"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"cat \\\"/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-gtm7fw/agent/pstack/pstack-models.mdc\\\"; echo '--- roles declared vs written ---'; grep -c ':' \\\"/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-gtm7fw/agent/pstack/pstack-models.mdc\\\"\",\"timeout\":30}"
+    }
+  ],
+  "finalText": "Rule written: `/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-gtm7fw/agent/pstack/pstack-models.mdc` (applies to new sessions; re-running `/setup-pstack` updates it in place).\n\n**Budget:** `large` → target effort `xhigh` (the skill defaults already sit at `xhigh`, so nothing was pushed up or down).\n\n**What happened to the mapping:** I detected live models first — this session has only `deepseek` (deepseek-flash, deepseek-v4-pro), `zai` (glm-4.7 / 5-turbo / 5.2 / 5.3 family), and `openai` (gpt-4 → gpt-6 lines). There is **no anthropic or xai provider**, so neither `claude-opus-5-5-xhigh` nor `grok-4.7-xhigh-fast` exists. Per your fallback rule (closest same-family model, else inherit-parent), every role resolved to `inherit-parent` — no role was re-mapped across families, and nothing unverified was written.\n\n| role | value |\n|---|---|\n| feature, refactoring · bug-fix · perf-issue · hillclimb | inherit-parent |\n| judgment and prose · hardest tasks | inherit-parent |\n| how explorer · how explainer | inherit-parent |\n| why investigators · why synthesizer | inherit-parent |\n| reflect tooling · reflect judgment, divergent, synthesizer | inherit-parent |\n| arena runners (2) · arena cross-judge pool (2) | inherit-parent ×2 each |\n| swarm workers | inherit-parent |\n| architect runners (2) · interrogate reviewers (2) | inherit-parent ×2 each |\n\nPanel list lengths are preserved, so arena/architect/interrogate still fan out 2 subagents each; the cross-judge pool still holds 2 entries (Arena now picks a judge from whatever the parent model is, so cross-family judging is unavailable until another family is added).\n\nDropped lines: none — no prior rule existed.\n\nTwo things to note: the fallback is a real downgrade in diversity, since every panel entry is now the same model, so arena/architect comparisons lose their cross-family signal until an anthropic or xai provider is configured. And steps 7–8 (offers of `/create-verification-skill` and `/create-formal-verification-skill`) were left unasked per your instruction — this workspace has neither: no `.pi/skills` or `.cursor/skills`, no `*verif*` harness.\n\nSkipped in Pi: nothing.",
+  "stderrTail": ""
+}
