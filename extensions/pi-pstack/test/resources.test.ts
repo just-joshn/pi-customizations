@@ -27,7 +27,7 @@ interface Lock {
 }
 
 const sha256 = (bytes: Buffer | string) => createHash('sha256').update(bytes).digest('hex');
-const PSTACK_HIDDEN = 51;
+const PSTACK_HIDDEN = 55;
 const TEAM_KIT = ['control-cli', 'control-ui', 'deslop'];
 const STANDARD_FIELDS = new Set(['name', 'description', 'license', 'compatibility', 'metadata', 'allowed-tools', 'disable-model-invocation']);
 
@@ -45,8 +45,8 @@ describe('generated resources', () => {
   test('pins the upstream commit and versions (RES-002)', () => {
     expect(lock.source).toEqual({
       repository: 'https://github.com/cursor/plugins',
-      commit: '997ffc7fe26bdaa6478a14e7f5b8d5f9ed747102',
-      pstackVersion: '0.15.21',
+      commit: '699e1e7488c53c05ca13409f40da83cd37682091',
+      pstackVersion: '0.15.29',
       teamKitVersion: '1.2.0',
     });
   });
@@ -59,7 +59,7 @@ describe('generated resources', () => {
       return sha256(readFileSync(path)) !== file.targetSha256 || executable !== (file.mode === '100755');
     });
     expect(drift.map((file) => file.target)).toEqual([]);
-    expect(lock.files).toHaveLength(166);
+    expect(lock.files).toHaveLength(171);
   });
 
   test('untransformed files equal their upstream bytes (RES-002)', () => {
@@ -68,8 +68,8 @@ describe('generated resources', () => {
     const counts = new Map<string, number>();
     for (const file of lock.files) counts.set(file.transform, (counts.get(file.transform) ?? 0) + 1);
     expect(Object.fromEntries(counts)).toEqual({
-      none: 110,
-      frontmatter: 55,
+      none: 111,
+      frontmatter: 59,
       'patch:worktree-audit-pi-transcripts': 1,
     });
   });
@@ -84,7 +84,7 @@ describe('generated resources', () => {
         return sha256(`---\n${file.sourceFrontmatter}\n---${rest}`) !== file.sourceSha256;
       });
     expect(mismatched.map((file) => file.target)).toEqual([]);
-    expect(checked).toBe(55);
+    expect(checked).toBe(59);
   });
 
   test('patched files differ from upstream only by the declared patch (RES-002, WTA-001)', () => {
@@ -97,10 +97,10 @@ describe('generated resources', () => {
     }
   });
 
-  test('loads 56 skills with no diagnostics and names equal to directories (RES-001)', () => {
+  test('loads 60 skills with no diagnostics and names equal to directories (RES-001)', () => {
     const { skills, diagnostics } = loadPackageSkills();
     expect(diagnostics).toEqual([]);
-    expect(skills).toHaveLength(56);
+    expect(skills).toHaveLength(60);
     const renamed = skills.filter((skill) => skill.name !== skill.filePath.split('/').at(-2));
     expect(renamed.map((skill) => skill.name)).toEqual([]);
     expect(skills.map((skill) => skill.name)).toEqual(expect.arrayContaining(['poteto-mode', 'make-bot-ui', 'how', 'setup-pstack', 'create-skill', ...TEAM_KIT]));
@@ -118,18 +118,12 @@ describe('generated resources', () => {
 
   test('moves Cursor-only fields under metadata with a cursor- prefix (RES-004)', () => {
     const poteto = parseFrontmatter(readFileSync(join(root, 'skills/poteto-mode/SKILL.md'), 'utf8')).frontmatter;
-    expect(poteto['metadata']).toEqual({
-      'cursor-name': 'Poteto Mode',
-      'cursor-mode': true,
-      'cursor-icon': 'crown',
-      'cursor-color': 'yellow',
-      'cursor-reminder': "New task? Playbook match or rigor needed -> apply /poteto-mode. Casual turn or user opts out -> don't.",
-    });
+    expect(poteto['metadata']).toEqual({ 'cursor-icon': 'crown', 'cursor-color': 'yellow' });
     const typescript = parseFrontmatter(readFileSync(join(root, 'skills/typescript-best-practices/SKILL.md'), 'utf8')).frontmatter;
     expect(typescript['metadata']).toEqual({ 'cursor-paths': ['**/*.ts', '**/*.tsx'] });
   });
 
-  test('hides 51 pstack skills from model invocation and keeps the rest invocable (RES-003, RES-005)', () => {
+  test('hides 55 pstack skills from model invocation and keeps the rest invocable (RES-003, RES-005)', () => {
     const { skills } = loadPackageSkills();
     const invocable = skills.filter((skill) => !skill.disableModelInvocation).map((skill) => skill.name);
     expect(invocable.toSorted()).toEqual(['control-cli', 'control-ui', 'create-skill', 'deslop', 'setup-pstack']);
@@ -216,8 +210,8 @@ describe('generated resources', () => {
         else if (!tracked.has(relative(root, path))) extra.push(relative(root, path));
       }
     };
-    for (const directory of ['skills', 'agents', 'docs/guide', 'automations', 'licenses']) walk(join(root, directory));
+    for (const directory of ['skills', 'agents', 'docs', 'automations', 'licenses']) walk(join(root, directory));
     expect(extra).toEqual([]);
-    expect(tracked.size).toBe(167);
+    expect(tracked.size).toBe(172);
   });
 });

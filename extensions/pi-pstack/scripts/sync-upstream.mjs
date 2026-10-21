@@ -11,8 +11,8 @@ import { fileURLToPath } from 'node:url';
 
 export const SOURCE = {
   repository: 'https://github.com/cursor/plugins',
-  commit: '997ffc7fe26bdaa6478a14e7f5b8d5f9ed747102',
-  pstackVersion: '0.15.21',
+  commit: '699e1e7488c53c05ca13409f40da83cd37682091',
+  pstackVersion: '0.15.29',
   teamKitVersion: '1.2.0',
 };
 
@@ -35,7 +35,7 @@ export function targetFor(source) {
   if (teamKit) return TEAM_KIT_SKILLS.includes(teamKit[1]) ? `skills/${teamKit[1]}/${teamKit[2]}` : undefined;
   if (source === 'pstack/LICENSE') return 'licenses/pstack.LICENSE';
   if (source === 'cursor-team-kit/LICENSE') return 'licenses/cursor-team-kit.LICENSE';
-  const pstack = /^pstack\/((?:skills|agents|automations)\/.+|docs\/guide\/.+)$/.exec(source);
+  const pstack = /^pstack\/((?:skills|agents|automations|docs)\/.+)$/.exec(source);
   return pstack?.[1];
 }
 
