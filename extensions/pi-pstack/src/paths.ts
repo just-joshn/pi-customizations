@@ -34,9 +34,13 @@ export function subagentDir(cwd: string): string {
   return join(workspaceStateDir(cwd), 'subagents');
 }
 
-/** Git worktrees of environment "cloud" subagents launched from this workspace, one per agent ID. */
 export function worktreesDir(cwd: string): string {
   return join(workspaceStateDir(cwd), 'worktrees');
+}
+
+/** The store of the main chat that started this subagent tree, which autopilot owners write their trails into. */
+export function rootStoreDir(cwd: string, sessionId: string, inherited: string | undefined): string {
+  return inherited ?? storeDir(cwd, sessionId);
 }
 
 /** "The current agent's store" that orchestrate's store layout writes into: one directory per session. */

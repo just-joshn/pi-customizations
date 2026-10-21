@@ -60,6 +60,12 @@ describe('host map (HOST-001)', () => {
     );
   });
 
+  test("names the main chat's own store as the root agent's store", async () => {
+    const host = section(await systemPrompt(['--no-session']), 'pstack_host');
+    const current = /"The current agent's store" \(orchestrate's store layout\) is (\S+)\. /.exec(host)?.[1];
+    expect(host).toContain(`"The root agent's store" is ${current}, the store of the main chat that started this subagent tree; in the main chat it is the current agent's store.`);
+  });
+
   test('maps the Cursor tool names and transcript shapes that pstack text relies on (HOST-008)', async () => {
     const host = section(await systemPrompt(['--no-session']), 'pstack_host');
     expect(host).toContain(

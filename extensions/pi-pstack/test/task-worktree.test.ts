@@ -80,17 +80,27 @@ describe('planWorktree', () => {
 });
 
 describe('addWorktree', () => {
-  test('creates the branch at the base commit with only committed files, leaving the parent checkout alone', () => {
+  test('creates the branch at the base commit with only committed files, leaving the parent checkout alone', async () => {
     const head = commitFile('a.txt', 'COMMITTED', 'first');
     writeFileSync(join(repo, 'a.txt'), 'DIRTY');
     const worktree = planWorktree(repo, worktrees, id);
-    addWorktree(repo, worktree);
+    await addWorktree(repo, worktree, undefined);
     expect([git('rev-parse', `pstack/${id}`), readFileSync(join(worktree.path, 'a.txt'), 'utf8'), readFileSync(join(repo, 'a.txt'), 'utf8'), git('branch', '--show-current')]).toEqual([head, 'COMMITTED', 'DIRTY', 'main']);
   });
 
-  test('reports git failure, such as a branch that already exists', () => {
+  test('reports git failure, such as a branch that already exists', async () => {
     commitFile('a.txt', 'A', 'first');
     git('branch', `pstack/${id}`);
-    expect(() => addWorktree(repo, planWorktree(repo, worktrees, id))).toThrow(`Could not create the subagent's worktree at ${join(worktrees, id)}: fatal: a branch named 'pstack/${id}' already exists`);
+    await expect(addWorktree(repo, planWorktree(repo, worktrees, id), undefined)).rejects.toThrow(`Could not create the subagent's worktree at ${join(worktrees, id)}: fatal: a branch named 'pstack/${id}' already exists`);
+  });
+
+  test('an abort stops a slow checkout instead of blocking until it ends', async () => {
+    commitFile('a.txt', 'A', 'first');
+    writeFileSync(join(repo, '.git/hooks/post-checkout'), '#!/bin/sh\nsleep 30\n', { mode: 0o755 });
+    const controller = new AbortController();
+    setTimeout(() => controller.abort(), 200);
+    const started = Date.now();
+    await expect(addWorktree(repo, planWorktree(repo, worktrees, id), controller.signal)).rejects.toThrow(`Stopped creating the subagent's worktree at ${join(worktrees, id)}.`);
+    expect(Date.now() - started).toBeLessThan(5000);
   });
 });

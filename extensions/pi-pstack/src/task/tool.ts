@@ -5,8 +5,8 @@ import { basename, join } from 'node:path';
 import { getSupportedThinkingLevels, StringEnum } from '@earendil-works/pi-ai';
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { type Static, Type } from 'typebox';
-import { childVariables } from '../child-env.ts';
-import { subagentDir, worktreesDir } from '../paths.ts';
+import { childIdentity, childVariables } from '../child-env.ts';
+import { rootStoreDir, subagentDir, worktreesDir } from '../paths.ts';
 import { type AgentDefinition, findAgent } from './agents.ts';
 import { renderTaskCard } from './card.ts';
 import { backgroundText, bounded, foregroundText, worktreeLine, worktreePreface } from './format.ts';
@@ -66,6 +66,7 @@ interface Launch {
   workspace: string;
   /** Set for a cloud agent, which runs here instead of in the workspace. */
   worktree: Worktree | undefined;
+  rootStore: string;
   /** 1 for a subagent of the main chat; an agent keeps its depth when resumed. */
   depth: number;
   trusted: boolean;
@@ -89,6 +90,8 @@ function parentModel(ctx: ExtensionContext): ModelSpec | undefined {
   return ctx.thinkingLevel === undefined ? { provider: ctx.model.provider, id: ctx.model.id } : { provider: ctx.model.provider, id: ctx.model.id, thinking: ctx.thinkingLevel };
 }
 
+const rootStoreOf = (ctx: ExtensionContext) => rootStoreDir(ctx.cwd, ctx.sessionManager.getSessionId(), childIdentity.rootStore);
+
 function planFresh(params: TaskInput, ctx: ExtensionContext, agents: readonly AgentDefinition[], depth: number): Launch {
   const agent = findAgent(agents, params.subagent_type);
   const model = resolveSubagentModel(params.model ?? agent.model, availableModels(ctx), parentModel(ctx));
@@ -97,7 +100,7 @@ function planFresh(params: TaskInput, ctx: ExtensionContext, agents: readonly Ag
   const agentId = randomUUID();
   const worktree = params.environment === 'cloud' ? planWorktree(ctx.cwd, worktreesDir(ctx.cwd), agentId, params.cloud_base_branch) : undefined;
   const notes = worktree === undefined ? [] : [worktreeLine(worktree)];
-  return { agentId, agent, model, readonly, workspace: ctx.cwd, worktree, depth: depth + 1, trusted: ctx.isProjectTrusted(), attachments, notes };
+  return { agentId, agent, model, readonly, workspace: ctx.cwd, worktree, rootStore: rootStoreOf(ctx), depth: depth + 1, trusted: ctx.isProjectTrusted(), attachments, notes };
 }
 
 function recordedAgent(agents: readonly AgentDefinition[], agentId: string, type: string): AgentDefinition {
@@ -129,11 +132,11 @@ function planResume(params: TaskInput, ctx: ExtensionContext, agents: readonly A
   // An agent never runs shallower than it was created or than its caller allows: a grandchild resumed from the main chat
   // and a main-chat agent resumed from a subagent both run at depth 2. A call can add readonly but not lift it, and a
   // type that has since become readonly restricts an older writable record too.
-  return { agentId, agent, model: record.model, readonly, workspace: record.cwd, worktree, depth: Math.max(record.depth ?? 0, depth + 1), trusted: ctx.isProjectTrusted(), attachments, notes };
+  return { agentId, agent, model: record.model, readonly, workspace: record.cwd, worktree, rootStore: rootStoreOf(ctx), depth: Math.max(record.depth ?? 0, depth + 1), trusted: ctx.isProjectTrusted(), attachments, notes };
 }
 
 function launchChild(plan: Launch, prompt: string, signal: AbortSignal | undefined) {
-  const env = { ...process.env, ...childVariables(plan.agent.type, plan.depth, plan.readonly) };
+  const env = { ...process.env, ...childVariables(plan.agent.type, plan.depth, plan.readonly, plan.rootStore) };
   const args = childArgs({ sessionDir: subagentDir(plan.workspace), agentId: plan.agentId, readonly: plan.readonly, trusted: plan.trusted, attachments: plan.attachments, ...(plan.model === undefined ? {} : { model: plan.model }) });
   return startChild({ command: piCommand(), args, prompt, cwd: plan.worktree?.cwd ?? plan.workspace, env, ...(signal === undefined ? {} : { signal }) });
 }
@@ -165,7 +168,6 @@ function start(plan: Launch, fresh: boolean, prompt: string, signal: AbortSignal
       if (record === undefined) throw new Error(`Unknown agent ID ${plan.agentId}. Resume needs an agent ID returned by an earlier Task call in this workspace.`);
       writeRecord(dir, { ...record, readonly: plan.readonly });
     }
-    if (fresh && plan.worktree !== undefined) addWorktree(plan.workspace, plan.worktree);
     handle = launchChild(plan, fresh && plan.worktree !== undefined ? worktreePreface(plan.worktree, prompt) : prompt, signal);
     if (handle.pid !== undefined) {
       lock.holdFor(handle.pid);
@@ -208,6 +210,30 @@ function backgroundNotice(plan: Launch, prompt: string, ctx: ExtensionContext, t
       return { status: 'error', detail: outcome.finalText === '' ? outcome.failure : `${outcome.failure}\n${bounded(outcome.finalText, transcript)}`, usage: outcome.usage };
     },
   };
+}
+
+/** Plans the launch and takes the agent's run lock; a resume is planned again under the lock, since the agent may have started in between. */
+function prepare(params: TaskInput, ctx: ExtensionContext, options: TaskToolOptions, isRunning: (agentId: string) => boolean): { plan: Launch; lock: RunLock } {
+  const fresh = params.resume === undefined;
+  const initialPlan = fresh ? planFresh(params, ctx, options.agents, options.depth) : planResume(params, ctx, options.agents, isRunning, options.depth);
+  const lock = acquireRunLock(subagentDir(initialPlan.workspace), initialPlan.agentId);
+  try {
+    return { plan: fresh ? initialPlan : planResume(params, ctx, options.agents, isRunning, options.depth), lock };
+  } catch (error) {
+    lock.release();
+    throw error;
+  }
+}
+
+/** Only a fresh cloud agent awaits here, so a resume keeps taking its lock and starting in one synchronous step. */
+async function createWorktree(plan: Launch, lock: RunLock, signal: AbortSignal | undefined): Promise<void> {
+  if (plan.worktree === undefined) return;
+  try {
+    await addWorktree(plan.workspace, plan.worktree, signal);
+  } catch (error) {
+    lock.release();
+    throw error;
+  }
 }
 
 const TASK_DESCRIPTION =
@@ -259,15 +285,8 @@ export function registerTask(pi: ExtensionAPI, options: TaskToolOptions): { hasB
     async execute(toolCallId, params, signal, onUpdate, ctx) {
       taskPreflight(params, options.depth);
       const fresh = params.resume === undefined;
-      const initialPlan = fresh ? planFresh(params, ctx, options.agents, options.depth) : planResume(params, ctx, options.agents, registry.isRunning, options.depth);
-      const lock = acquireRunLock(subagentDir(initialPlan.workspace), initialPlan.agentId);
-      let plan: Launch;
-      try {
-        plan = fresh ? initialPlan : planResume(params, ctx, options.agents, registry.isRunning, options.depth);
-      } catch (error) {
-        lock.release();
-        throw error;
-      }
+      const { plan, lock } = prepare(params, ctx, options, registry.isRunning);
+      if (fresh) await createWorktree(plan, lock, signal);
       const background = params.run_in_background ?? (fresh && plan.agent.background);
       const handle = start(plan, fresh, params.prompt, background ? undefined : signal, lock);
       if (background) {

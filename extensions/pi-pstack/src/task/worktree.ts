@@ -1,7 +1,7 @@
 // Cursor runs an environment "cloud" subagent in its own VM clone on its own branch. Pi has no subagent isolation API
 // and Task already spawns each subagent as a child process, so the closest local form is a git worktree on a new
 // branch, the mapping upstream pstack's Claude Code adapter uses (isolation: "worktree").
-import { execFileSync } from 'node:child_process';
+import { execFile, execFileSync } from 'node:child_process';
 import { join } from 'node:path';
 
 /** Where a cloud subagent runs. Records and transcripts stay keyed on the parent workspace, never on this. */
@@ -56,11 +56,14 @@ export function planWorktree(cwd: string, worktreesDir: string, agentId: string,
 }
 
 /** Creates the worktree and its branch. Nothing here removes them: the parent merges the branch, and worktree-cleanup prunes. */
-export function addWorktree(repoDir: string, worktree: Worktree): void {
-  try {
-    git(repoDir, ['worktree', 'add', '--quiet', '-b', worktree.branch, worktree.path, worktree.commit]);
-  } catch (error) {
-    const stderr = String((error as { stderr?: unknown }).stderr ?? (error as Error).message).trim();
-    throw new Error(`Could not create the subagent's worktree at ${worktree.path}: ${stderr}`);
-  }
+export function addWorktree(repoDir: string, worktree: Worktree, signal: AbortSignal | undefined): Promise<void> {
+  // A checkout can run hooks and filters for a long time, so it runs off the event loop and stops with the Task call.
+  const args = ['-C', repoDir, 'worktree', 'add', '--quiet', '-b', worktree.branch, worktree.path, worktree.commit];
+  return new Promise((resolve, reject) => {
+    execFile('git', args, { encoding: 'utf8', ...(signal === undefined ? {} : { signal }) }, (error, _stdout, stderr) => {
+      if (error === null) resolve();
+      else if (signal?.aborted === true) reject(new Error(`Stopped creating the subagent's worktree at ${worktree.path}.`));
+      else reject(new Error(`Could not create the subagent's worktree at ${worktree.path}: ${(stderr || error.message).trim()}`));
+    });
+  });
 }

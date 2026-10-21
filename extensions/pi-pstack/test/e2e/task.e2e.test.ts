@@ -198,6 +198,13 @@ describe('subagent types', () => {
     expect([await sees('--approve'), await sees('--no-approve')]).toEqual([true, false]);
   });
 
+  test("a child's system prompt names the main chat's store as the root agent's store (autopilot-full step 2)", async () => {
+    const { result } = await runTask({ prompt: 'go\n@@sys' });
+    const current = /"The current agent's store" \(orchestrate's store layout\) is (\S+)\. /.exec(result.text)?.[1];
+    const root = /"The root agent's store" is (\S+), the store of the main chat/.exec(result.text)?.[1];
+    expect([current?.split('/').at(-2), root?.split('/').at(-2), root === current]).toEqual(['store', 'store', false]);
+  });
+
   test('a normal child has write tools and the pstack tools', async () => {
     const { result } = await runTask({ prompt: 'go\n@@tools-list' });
     const tools = /<response>\n(.*)\n<\/response>/.exec(result.text)?.[1]?.split(',') ?? [];

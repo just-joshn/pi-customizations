@@ -1,0 +1,10 @@
+npm warn Unknown user config "tokenHelper" (//npm.pkg.github.com/:tokenHelper). This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+ RUN  v5.0.2 /Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack
+
+
+ Test Files  28 passed (28)
+      Tests  337 passed (337)
+   Start at  16:00:23
+   Duration  41.75s (tests 85%, import 14%, transform 1%)
+

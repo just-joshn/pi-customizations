@@ -13,6 +13,7 @@ export interface HostFacts {
   sessionFile: string | undefined;
   subagentDir: string;
   storeDir: string;
+  rootStoreDir: string;
   /** False in print and JSON runs, including subagents, which exit when they settle. */
   loopAvailable: boolean;
   /** False when nobody can answer a dialog (print and JSON runs, including subagents). */
@@ -41,7 +42,7 @@ export function hostSection(facts: HostFacts): string {
       : '- Todo lists: the TodoWrite tool. Structured questions: the AskQuestion tool, but nobody can answer in this run, so every question comes back skipped; decide yourself and say what you chose.',
     `- Transcripts: \`agent-transcripts/\` and \`~/.cursor/projects/<slug>/agent-transcripts/\` mean ${facts.sessionDir}, Pi session JSONL files for this workspace. Each line is an entry: the first is a session header, and conversation turns have type "message" (the opening prompt is the first user message). ${transcript} Subagent transcripts for this workspace: ${facts.subagentDir}/*_<agent id>.jsonl. A subagent is still running while ${facts.subagentDir}/<agent id>.lock exists and names a live pid.`,
     '- Cursor tool names in pstack text: Read is read, Grep is grep, Glob is find, Shell is bash. A skill under `~/.cursor/plugins/` is one under <SKILLS>, and this package is the only pstack copy, so a search of `~/.cursor/plugins/` for `skills/<name>/SKILL.md` ends at <SKILLS>/<name>/SKILL.md. In a Pi transcript a tool call is a toolCall part of an assistant message (tool name plus arguments), and an attached skill is a <skill name="..." location="..."> block in a user message.',
-    `- "The current agent's store" (orchestrate's store layout) is ${facts.storeDir}. Create it when a playbook needs it, and pass it to orch as --store.`,
+    `- "The current agent's store" (orchestrate's store layout) is ${facts.storeDir}. Create it when a playbook needs it, and pass it to orch as --store. "The root agent's store" is ${facts.rootStoreDir}, the store of the main chat that started this subagent tree; in the main chat it is the current agent's store.`,
     facts.loopAvailable ? LOOP_LINE : NO_LOOP_LINE,
     "- Image generation (the image tool teach reaches for, ketchup's generated image): Pi generates images through codemode's models.generateImages() when codemode is on and an image model is configured. Otherwise say no image tool is available and use a mermaid diagram or a table. Cursor's `/visualize` charts have no Pi counterpart, so draw a chart as a mermaid diagram (xychart-beta for numbers).",
     "- Custom Mode (Cursor's Option+Enter): the user runs `/mode <skill>` to keep a skill on every turn and `/mode off` to exit.",
