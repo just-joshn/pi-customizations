@@ -6,6 +6,7 @@ const COLLAPSED_LINES = 10;
 interface CardDetails {
   subagentType: string;
   model: { provider: string; id: string; thinking?: string } | null;
+  worktree?: { branch: string } | null;
 }
 
 function isCardDetails(details: unknown): details is CardDetails {
@@ -18,9 +19,10 @@ export function taskCardText(result: Pick<AgentToolResult<unknown>, 'content' | 
   const lines = text.split('\n');
   const body = expanded || lines.length <= COLLAPSED_LINES ? lines : [...lines.slice(0, COLLAPSED_LINES), `… ${lines.length - COLLAPSED_LINES} more lines`];
   if (!isCardDetails(result.details)) return body.join('\n');
-  const { model, subagentType } = result.details;
+  const { model, subagentType, worktree } = result.details;
   const modelName = model === null ? "Pi's default model" : `${model.provider}/${model.id}${model.thinking === undefined ? '' : `:${model.thinking}`}`;
-  return [`${subagentType} · ${modelName}`, ...body].join('\n');
+  const branch = worktree === undefined || worktree === null ? '' : ` · branch ${worktree.branch}`;
+  return [`${subagentType} · ${modelName}${branch}`, ...body].join('\n');
 }
 
 export function renderTaskCard(result: AgentToolResult<unknown>, options: { expanded: boolean }): Text {

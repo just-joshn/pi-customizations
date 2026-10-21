@@ -34,6 +34,11 @@ export function subagentDir(cwd: string): string {
   return join(workspaceStateDir(cwd), 'subagents');
 }
 
+/** Git worktrees of environment "cloud" subagents launched from this workspace, one per agent ID. */
+export function worktreesDir(cwd: string): string {
+  return join(workspaceStateDir(cwd), 'worktrees');
+}
+
 /** "The current agent's store" that orchestrate's store layout writes into: one directory per session. */
 export function storeDir(cwd: string, sessionId: string): string {
   return join(workspaceStateDir(cwd), 'store', sessionId);

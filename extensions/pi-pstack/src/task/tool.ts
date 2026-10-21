@@ -6,14 +6,15 @@ import { getSupportedThinkingLevels, StringEnum } from '@earendil-works/pi-ai';
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { type Static, Type } from 'typebox';
 import { childVariables } from '../child-env.ts';
-import { subagentDir } from '../paths.ts';
+import { subagentDir, worktreesDir } from '../paths.ts';
 import { type AgentDefinition, findAgent } from './agents.ts';
 import { renderTaskCard } from './card.ts';
-import { backgroundText, bounded, foregroundText } from './format.ts';
+import { backgroundText, bounded, foregroundText, worktreeLine, worktreePreface } from './format.ts';
 import { type AvailableModel, type ModelSpec, resolveSubagentModel } from './models.ts';
 import { type AgentRecord, acquireRunLock, type RunLock, readRecord, transcriptFor, writeRecord } from './records.ts';
 import { type BackgroundNotice, createSubagentRegistry } from './registry.ts';
 import { type ChildHandle, type ChildOutcome, childArgs, resolveAttachments, startChild, validateAgentId } from './runner.ts';
+import { addWorktree, planWorktree, type Worktree } from './worktree.ts';
 
 const TITLE_LIMIT = 200;
 
@@ -35,17 +36,18 @@ export const TaskParams = Type.Object({
     Type.Boolean({ description: 'Limit the agent to read, grep, find, ls, and a read-only shell that can neither write files nor reach the network, with no edits and no MCP tools. A readonly subagent type stays readonly.' }),
   ),
   file_attachments: Type.Optional(Type.Array(Type.String(), { description: 'Paths of files or images to attach to the agent first message.' })),
-  environment: Type.Optional(StringEnum(['local', 'cloud'] as const, { description: 'Only local is available in Pi.' })),
-  cloud_base_branch: Type.Optional(Type.String({ description: 'Cursor cloud option; unavailable in Pi.' })),
+  environment: Type.Optional(
+    StringEnum(['local', 'cloud'] as const, {
+      description:
+        'local (default) runs the agent in this working directory. cloud runs it on this machine in its own git worktree on a new branch pstack/<agent id>, created from cloud_base_branch or the current HEAD commit, so uncommitted changes do not reach it. The result names the worktree and branch; merge the branch to take its commits. Ignored with resume.',
+    }),
+  ),
+  cloud_base_branch: Type.Optional(Type.String({ description: 'With environment cloud, the branch the worktree starts from: a local branch or ref, else origin/<branch>. Defaults to the current HEAD commit. Needs environment cloud.' })),
 });
 type TaskInput = Static<typeof TaskParams>;
 
 export function taskPreflight(params: TaskInput, depth: number): undefined {
-  if (params.environment === 'cloud' || params.cloud_base_branch !== undefined) {
-    throw new Error(
-      'Pi has no cloud subagents, so environment "cloud" and cloud_base_branch are unavailable. Repeat this call without them to run the worker locally. A local worker starts in this working directory, so when workers write in parallel, tell each one to create its own git worktree (git worktree add <path> -b <branch> <base>) and work only there.',
-    );
-  }
+  if (params.cloud_base_branch !== undefined && params.environment !== 'cloud') throw new Error('cloud_base_branch needs environment "cloud": it names the branch the subagent\'s worktree starts from.');
   if (depth >= 2) throw new Error('A subagent launched by another subagent cannot launch further subagents.');
   return undefined;
 }
@@ -60,7 +62,10 @@ interface Launch {
   agent: AgentDefinition;
   model: ModelSpec | undefined;
   readonly: boolean;
-  cwd: string;
+  /** The parent workspace: records, transcripts, and run locks live under its state folder. */
+  workspace: string;
+  /** Set for a cloud agent, which runs here instead of in the workspace. */
+  worktree: Worktree | undefined;
   /** 1 for a subagent of the main chat; an agent keeps its depth when resumed. */
   depth: number;
   trusted: boolean;
@@ -89,7 +94,10 @@ function planFresh(params: TaskInput, ctx: ExtensionContext, agents: readonly Ag
   const model = resolveSubagentModel(params.model ?? agent.model, availableModels(ctx), parentModel(ctx));
   const attachments = resolveAttachments(params.file_attachments ?? [], ctx.cwd);
   const readonly = effectiveReadonly(agent.readonly, params.readonly);
-  return { agentId: randomUUID(), agent, model, readonly, cwd: ctx.cwd, depth: depth + 1, trusted: ctx.isProjectTrusted(), attachments, notes: [] };
+  const agentId = randomUUID();
+  const worktree = params.environment === 'cloud' ? planWorktree(ctx.cwd, worktreesDir(ctx.cwd), agentId, params.cloud_base_branch) : undefined;
+  const notes = worktree === undefined ? [] : [worktreeLine(worktree)];
+  return { agentId, agent, model, readonly, workspace: ctx.cwd, worktree, depth: depth + 1, trusted: ctx.isProjectTrusted(), attachments, notes };
 }
 
 function recordedAgent(agents: readonly AgentDefinition[], agentId: string, type: string): AgentDefinition {
@@ -108,20 +116,26 @@ function planResume(params: TaskInput, ctx: ExtensionContext, agents: readonly A
   if (record.cwd !== ctx.cwd) throw new Error(`Agent ${agentId} belongs to ${record.cwd}, not this workspace. Start a new agent instead.`);
   // Without its transcript, --session-id would start an empty session under the old ID.
   if (transcriptFor(dir, agentId) === undefined) throw new Error(`Agent ${agentId} has no transcript to resume, so its earlier context is gone. Start a new agent instead.`);
+  const { worktree } = record;
+  if (worktree !== undefined && !existsSync(worktree.cwd)) throw new Error(`Agent ${agentId} ran in the git worktree ${worktree.path}, which no longer exists. Start a new agent instead.`);
   const agent = recordedAgent(agents, agentId, record.type);
   const attachments = resolveAttachments(params.file_attachments ?? [], ctx.cwd);
-  const notes = params.model === undefined ? [] : [`Note: model "${params.model}" was ignored; a resumed agent keeps its earlier model.`];
+  const notes = [
+    ...(worktree === undefined ? [] : [worktreeLine(worktree)]),
+    ...(params.model === undefined ? [] : [`Note: model "${params.model}" was ignored; a resumed agent keeps its earlier model.`]),
+    ...(params.environment === undefined ? [] : [`Note: environment "${params.environment}" was ignored; a resumed agent runs where it first ran.`]),
+  ];
   const readonly = effectiveReadonly(effectiveReadonly(record.readonly, agent.readonly), params.readonly);
   // An agent never runs shallower than it was created or than its caller allows: a grandchild resumed from the main chat
   // and a main-chat agent resumed from a subagent both run at depth 2. A call can add readonly but not lift it, and a
   // type that has since become readonly restricts an older writable record too.
-  return { agentId, agent, model: record.model, readonly, cwd: record.cwd, depth: Math.max(record.depth ?? 0, depth + 1), trusted: ctx.isProjectTrusted(), attachments, notes };
+  return { agentId, agent, model: record.model, readonly, workspace: record.cwd, worktree, depth: Math.max(record.depth ?? 0, depth + 1), trusted: ctx.isProjectTrusted(), attachments, notes };
 }
 
 function launchChild(plan: Launch, prompt: string, signal: AbortSignal | undefined) {
   const env = { ...process.env, ...childVariables(plan.agent.type, plan.depth, plan.readonly) };
-  const args = childArgs({ sessionDir: subagentDir(plan.cwd), agentId: plan.agentId, readonly: plan.readonly, trusted: plan.trusted, attachments: plan.attachments, ...(plan.model === undefined ? {} : { model: plan.model }) });
-  return startChild({ command: piCommand(), args, prompt, cwd: plan.cwd, env, ...(signal === undefined ? {} : { signal }) });
+  const args = childArgs({ sessionDir: subagentDir(plan.workspace), agentId: plan.agentId, readonly: plan.readonly, trusted: plan.trusted, attachments: plan.attachments, ...(plan.model === undefined ? {} : { model: plan.model }) });
+  return startChild({ command: piCommand(), args, prompt, cwd: plan.worktree?.cwd ?? plan.workspace, env, ...(signal === undefined ? {} : { signal }) });
 }
 
 function recordFresh(plan: Launch): void {
@@ -129,12 +143,13 @@ function recordFresh(plan: Launch): void {
     agentId: plan.agentId,
     type: plan.agent.type,
     readonly: plan.readonly,
-    cwd: plan.cwd,
+    cwd: plan.workspace,
     createdAt: new Date().toISOString(),
     depth: plan.depth,
     ...(plan.model === undefined ? {} : { model: plan.model }),
+    ...(plan.worktree === undefined ? {} : { worktree: plan.worktree }),
   };
-  writeRecord(subagentDir(plan.cwd), record);
+  writeRecord(subagentDir(plan.workspace), record);
 }
 
 /**
@@ -145,12 +160,13 @@ function start(plan: Launch, fresh: boolean, prompt: string, signal: AbortSignal
   let handle: ChildHandle | undefined;
   try {
     if (!fresh) {
-      const dir = subagentDir(plan.cwd);
+      const dir = subagentDir(plan.workspace);
       const record = readRecord(dir, plan.agentId);
       if (record === undefined) throw new Error(`Unknown agent ID ${plan.agentId}. Resume needs an agent ID returned by an earlier Task call in this workspace.`);
       writeRecord(dir, { ...record, readonly: plan.readonly });
     }
-    handle = launchChild(plan, prompt, signal);
+    if (fresh && plan.worktree !== undefined) addWorktree(plan.workspace, plan.worktree);
+    handle = launchChild(plan, fresh && plan.worktree !== undefined ? worktreePreface(plan.worktree, prompt) : prompt, signal);
     if (handle.pid !== undefined) {
       lock.holdFor(handle.pid);
       if (fresh) recordFresh(plan);
@@ -165,18 +181,18 @@ function start(plan: Launch, fresh: boolean, prompt: string, signal: AbortSignal
 
 /** The transcript file, or before Pi has created it, the pattern it will match. */
 function transcriptOf(plan: Launch): string {
-  return transcriptFor(subagentDir(plan.cwd), plan.agentId) ?? join(subagentDir(plan.cwd), `*_${plan.agentId}.jsonl`);
+  return transcriptFor(subagentDir(plan.workspace), plan.agentId) ?? join(subagentDir(plan.workspace), `*_${plan.agentId}.jsonl`);
 }
 
 function details(plan: Launch, background: boolean, status: string, pid?: number) {
-  return { agentId: plan.agentId, subagentType: plan.agent.type, model: plan.model ?? null, readonly: plan.readonly, background, status, transcript: transcriptOf(plan), pid: pid ?? null };
+  return { agentId: plan.agentId, subagentType: plan.agent.type, model: plan.model ?? null, readonly: plan.readonly, background, status, transcript: transcriptOf(plan), pid: pid ?? null, worktree: plan.worktree ?? null };
 }
 
 function foregroundResult(plan: Launch, outcome: ChildOutcome) {
   const transcript = transcriptOf(plan);
   if (outcome.failure === undefined) return { content: [{ type: 'text' as const, text: foregroundText(plan.agentId, outcome.finalText, transcript, plan.notes) }], details: details(plan, false, 'success'), usage: outcome.usage };
   const partial = outcome.finalText === '' ? [] : ['', 'Partial output:', bounded(outcome.finalText, transcript)];
-  const text = [`Subagent failed: ${outcome.failure}`, ...partial, '', `Agent ID: ${plan.agentId}`].join('\n');
+  const text = [`Subagent failed: ${outcome.failure}`, ...partial, '', `Agent ID: ${plan.agentId}`, ...plan.notes].join('\n');
   return { content: [{ type: 'text' as const, text }], details: details(plan, false, 'error'), usage: outcome.usage, isError: true };
 }
 
@@ -240,7 +256,7 @@ export function registerTask(pi: ExtensionAPI, options: TaskToolOptions): { hasB
       taskPreflight(params, options.depth);
       const fresh = params.resume === undefined;
       const initialPlan = fresh ? planFresh(params, ctx, options.agents, options.depth) : planResume(params, ctx, options.agents, registry.isRunning, options.depth);
-      const lock = acquireRunLock(subagentDir(initialPlan.cwd), initialPlan.agentId);
+      const lock = acquireRunLock(subagentDir(initialPlan.workspace), initialPlan.agentId);
       let plan: Launch;
       try {
         plan = fresh ? initialPlan : planResume(params, ctx, options.agents, registry.isRunning, options.depth);

@@ -56,7 +56,7 @@ describe('host map (HOST-001)', () => {
     expect(host).toContain('MCP tools are named mcp__<server>__<tool>; `pi mcp list` shows the servers.');
     expect(host).toContain("Cursor's built-in create-skill skill is <SKILLS>/create-skill/SKILL.md. `.cursor/skills/` means `.pi/skills/`;");
     expect(host).toContain(
-      '- Cloud subagents (environment "cloud") do not exist in Pi: run that worker locally instead, and when workers write in parallel, have each create its own git worktree and work only there. Say so in your report and keep going. Grok Bot routines (update_state, SendToUser) and Cursor Automations are unavailable; say so.',
+      '- Cloud subagents (environment "cloud") run on this machine in their own git worktree on branch pstack/<agent id>, created from cloud_base_branch or this checkout\'s HEAD commit, so uncommitted changes do not reach them. The Task result names the worktree and branch; merge that branch to take the subagent\'s work. Pi never deletes these worktrees or branches; the worktree-cleanup playbook prunes them. Grok Bot routines (update_state, SendToUser) and Cursor Automations are unavailable; say so.',
     );
   });
 

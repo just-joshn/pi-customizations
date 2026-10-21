@@ -2,6 +2,7 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, w
 import { join } from 'node:path';
 
 import type { ModelSpec } from './models.ts';
+import type { Worktree } from './worktree.ts';
 
 /** What resume needs to restart an agent the way it first ran. */
 export interface AgentRecord {
@@ -9,10 +10,17 @@ export interface AgentRecord {
   type: string;
   model?: ModelSpec;
   readonly: boolean;
+  /** The parent workspace the agent belongs to; a cloud agent runs in `worktree` instead. */
   cwd: string;
   createdAt: string;
   /** 1 for a subagent of the main chat, 2 for a subagent of a subagent; absent in records written before it existed. */
   depth?: number;
+  worktree?: Worktree;
+}
+
+function isWorktree(value: unknown): value is Worktree {
+  const worktree = value as Partial<Worktree> | null;
+  return typeof worktree === 'object' && worktree !== null && (['path', 'cwd', 'branch', 'base', 'commit'] as const).every((key) => typeof worktree[key] === 'string');
 }
 
 function isRecord(value: unknown, agentId: string): value is AgentRecord {
@@ -25,7 +33,8 @@ function isRecord(value: unknown, agentId: string): value is AgentRecord {
     typeof record.type === 'string' &&
     typeof record.readonly === 'boolean' &&
     typeof record.cwd === 'string' &&
-    (record.depth === undefined || Number.isInteger(record.depth))
+    (record.depth === undefined || Number.isInteger(record.depth)) &&
+    (record.worktree === undefined || isWorktree(record.worktree))
   );
 }
 

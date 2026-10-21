@@ -22,3 +22,8 @@ test('the card keeps the result text, shortened until expanded (TASK-017)', () =
 test('a result without Task details renders its text alone (TASK-017)', () => {
   expect(taskCardText({ content: [{ type: 'text', text: 'Invalid model' }], details: undefined }, false)).toBe('Invalid model');
 });
+
+test('a cloud agent card names its worktree branch (TASK-010)', () => {
+  const details = { subagentType: 'poteto-agent', model: null, worktree: { path: '/w', cwd: '/w', branch: 'pstack/x', base: 'HEAD', commit: 'c' } };
+  expect(taskCardText({ content: [{ type: 'text', text: 'done' }], details }, true).split('\n')[0]).toBe("poteto-agent · Pi's default model · branch pstack/x");
+});
