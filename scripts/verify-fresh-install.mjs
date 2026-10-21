@@ -11,6 +11,7 @@ import { fileURLToPath } from 'node:url';
 // from a copy without node_modules, using only the modules Pi supplies.
 const root = fileURLToPath(new URL('..', import.meta.url));
 const cli = join(root, 'extensions/pi-pstack/node_modules/@earendil-works/pi-coding-agent/dist/bundle/cli.js');
+const RPC_TIMEOUT_MS = 60_000;
 const providers = [
   { dir: 'extensions/pi-anthropic-oauth', provider: 'claude-subscription' },
   { dir: 'extensions/pi-antigravity-oauth', provider: 'google-antigravity' },
@@ -69,11 +70,16 @@ async function skillCommands(agentDir, packageDir) {
     let buffer = '';
     let stderr = '';
     let answered = false;
+    const timer = setTimeout(() => {
+      child.kill('SIGKILL');
+      reject(new Error(`pi RPC did not answer get_commands within ${RPC_TIMEOUT_MS} ms${stderr ? `: ${stderr.slice(-400)}` : ''}`));
+    }, RPC_TIMEOUT_MS);
     const onLine = (line) => {
       try {
         const record = JSON.parse(line);
         if (record.type === 'response' && record.id === 'skills') {
           answered = true;
+          clearTimeout(timer);
           if (record.success) {
             resolve(record.data.commands.filter((command) => command.source === 'skill').map((command) => command.name));
             child.stdin.end();
@@ -102,7 +108,9 @@ async function skillCommands(agentDir, packageDir) {
       stderr += chunk;
     });
     child.on('error', reject);
+    child.stdin.write(`${JSON.stringify({ id: 'skills', type: 'get_commands' })}\n`);
     child.on('close', () => {
+      clearTimeout(timer);
       if (!answered) reject(new Error(`pi RPC exited before answering${stderr ? `: ${stderr.slice(-400)}` : ''}`));
     });
   });
