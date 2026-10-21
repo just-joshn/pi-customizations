@@ -1,0 +1,81 @@
+{
+  "scenario": "poteto",
+  "requirement": "LIVE-001",
+  "model": "deepseek/deepseek-flash",
+  "prompt": "/poteto-mode How does add in calc.js treat two numeric strings such as \"2\" and \"3\"? This is a read-only question; do not change any files.",
+  "exitCode": 0,
+  "seconds": 41,
+  "checks": {
+    "readPlaybook": true,
+    "firstTodosAreStepsVerbatim": true,
+    "stepMatches": [true, true, true, true],
+    "workspaceUnchanged": true,
+    "todos": [
+      "Route through the how skill. For motivation questions, also route through the why skill.",
+      "Throughput checkpoint stays one line: `throughput checkpoint: n/a, read-only investigation`.",
+      "Produce the how-shaped output (Overview / Key Concepts / How It Works / Where Things Live / Gotchas), or a recommendation with a tradeoffs table if the request is a decision between alternatives.",
+      "Apply the unslop skill to the reply.",
+      "skip: motivation question not asked, so the why skill is not needed."
+    ]
+  },
+  "toolCalls": [
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"ls -la; echo ---; ls\",\"timeout\":30}"
+    },
+    {
+      "name": "read",
+      "arguments": "{\"path\":\"/private/tmp/claude-501/-Users-josh-desktop-src-personal-update-pi-pstack-to-latest-pstack-version/70df41f0-8a09-470b-acd8-fc66d0dd3a0a/scratchpad/control-130/extensions/pi-pstack/skills/poteto-mode/playbooks/investigation.md\",\"offset\":null,\"limit\":null}"
+    },
+    {
+      "name": "read",
+      "arguments": "{\"path\":\"/private/tmp/claude-501/-Users-josh-desktop-src-personal-update-pi-pstack-to-latest-pstack-version/70df41f0-8a09-470b-acd8-fc66d0dd3a0a/scratchpad/control-130/extensions/pi-pstack/skills/how/SKILL.md\",\"offset\":null,\"limit\":null}"
+    },
+    {
+      "name": "read",
+      "arguments": "{\"path\":\"/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-O2xAQP/work/calc.js\",\"offset\":null,\"limit\":null}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"cat \\\"/private/tmp/claude-501/-Users-josh-desktop-src-personal-update-pi-pstack-to-latest-pstack-version/70df41f0-8a09-470b-acd8-fc66d0dd3a0a/scratchpad/control-130/extensions/pi-pstack/skills/how/references/explainer-prompt.md\\\"; echo ===; cd /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-O2xAQP/work && ls .git && cat package.json 2>/dev/null\",\"timeout\":30}"
+    },
+    {
+      "name": "TodoWrite",
+      "arguments": "{\"todos\":[{\"id\":\"1\",\"content\":\"Route through the how skill. For motivation questions, also route through the why skill.\",\"status\":\"in_progress\"},{\"id\":\"2\",\"content\":\"Throughput checkpoint stays one line: `throughput checkpoint: n/a, read-only investigation`.\",\"status\":\"pending\"},{\"id\":\"3\",\"content\":\"Produce the how-shaped output (Overview / Key Concepts / How It Works / Where Things Live / Gotchas), or a recommendation with a tradeoffs table if the request is a decision between alternatives.\",\"status\":\"pending\"},{\"id\":\"4\",\"content\":\"Apply the unslop skill to the reply.\",\"status\":\"pending\"},{\"i"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"cd /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-O2xAQP/work && cat > /tmp/poteto_probe.mjs <<'EOF'\\nimport { add } from '/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-O2xAQP/work/calc.js';\\nconst r = add(\\\"2\\\", \\\"3\\\");\\nconsole.log('result:', JSON.stringify(r), 'typeof:', typeof r);\\nconsole.log('number case:', add(2, 3));\\ntry { console.log('minus:', add(\\\"2\\\",\\\"3\\\") - 0 === 23); } catch (e) { console.log(e.message); }\\nEOF\\nnode /tmp/poteto_probe.mjs; echo \\\"exit=$?\\\"; echo ---; git -C . log --oneline -5 -- calc.js; echo ---; git -C "
+    },
+    {
+      "name": "Task",
+      "arguments": "{\"description\":\"Explain calc.js add strings\",\"subagent_type\":\"generalPurpose\",\"readonly\":true,\"model\":\"openai/gpt-5.4:high\",\"run_in_background\":true,\"prompt\":\"You are writing an architectural explanation for a senior engineer. You have read-only access to a small repository; explore it yourself and write the explanation.\\n\\n## Original Question\\n\\n> How does `add` in calc.js treat two numeric strings such as \\\"2\\\" and \\\"3\\\"?\\n\\n## Repo location\\n\\n/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-O2xAQP/work\\n\\nIt contains a single source file, calc.js, plus a .git directory"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"cd /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-O2xAQP/work && node -e '\\nimport(\\\"/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-O2xAQP/work/calc.js\\\").then(({add})=>{\\nconst cases=[[\\\"2\\\",\\\"3\\\"],[2,3],[\\\"2\\\",3],[2,\\\"3\\\"],[\\\"\\\",\\\"\\\"],[null,1],[undefined,1],[1n,2n],[[],[]],[\\\"2\\\"],[0.1,0.2],[\\\"2\\\",\\\"3\\\",]];\\nfor(const [a,b] of cases){let out,err;try{out=add(a,b)}catch(e){err=e.constructor.name+\\\": \\\"+e.message}\\nconsole.log(JSON.stringify(String(a))+\\\" + \\\"+JSON.stringify(String(b))+\\\" -> \\\"+(err?(\\\"THROWS \\\"+err):JSON.stringify(out)+\\\""
+    },
+    {
+      "name": "read",
+      "arguments": "{\"limit\":null,\"offset\":null,\"path\":\"/private/tmp/claude-501/-Users-josh-desktop-src-personal-update-pi-pstack-to-latest-pstack-version/70df41f0-8a09-470b-acd8-fc66d0dd3a0a/scratchpad/control-130/extensions/pi-pstack/skills/unslop/SKILL.md\"}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"cd /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-O2xAQP/work && node -e '\\nimport(\\\"/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-O2xAQP/work/calc.js\\\").then(({add})=>{\\nconst util=require(\\\"util\\\");\\nconst cases=[[\\\"2\\\",\\\"3\\\"],[2,3],[\\\"2\\\",3],[2,\\\"3\\\"],[\\\"\\\",\\\"\\\"],[null,1],[undefined,1],[1n,2n],[1n,\\\"2\\\"],[[],[]],[[\\\"2\\\"],[\\\"3\\\"]],[\\\"2\\\"],[0.1,0.2],[true,1],[\\\"3\\\",\\\"4\\\"]];\\nfor(const args of cases){let out,err;try{out=add(...args)}catch(e){err=e.constructor.name+\\\": \\\"+e.message}\\nconsole.log(util.inspect(args,{depth:2})+\\\" -> \\\"+(err?"
+    },
+    {
+      "name": "read",
+      "arguments": "{\"limit\":null,\"offset\":null,\"path\":\"/private/tmp/claude-501/-Users-josh-desktop-src-personal-update-pi-pstack-to-latest-pstack-version/70df41f0-8a09-470b-acd8-fc66d0dd3a0a/scratchpad/control-130/extensions/pi-pstack/skills/principle-prove-it-works/SKILL.md\"}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"cd /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-O2xAQP/work && git status --porcelain; echo \\\"status-exit=$?\\\"; wc -l calc.js; node --version\",\"timeout\":30}"
+    },
+    {
+      "name": "TodoWrite",
+      "arguments": "{\"merge\":true,\"todos\":[{\"content\":\"Route through the how skill. For motivation questions, also route through the why skill.\",\"id\":\"1\",\"status\":\"completed\"},{\"content\":\"Throughput checkpoint stays one line: `throughput checkpoint: n/a, read-only investigation`.\",\"id\":\"2\",\"status\":\"completed\"},{\"content\":\"Produce the how-shaped output (Overview / Key Concepts / How It Works / Where Things Live / Gotchas), or a recommendation with a tradeoffs table if the request is a decision between alternatives.\",\"id\":\"3\",\"status\":\"completed\"},{\"content\":\"Apply the unslop skill to the reply.\",\"id\":\"4\",\"status\""
+    }
+  ],
+  "finalText": "The explainer subagent failed before it produced anything. Its model choice was rejected.\n\nWhat happened. The `how` skill's explainer default is `claude-opus-5-5-xhigh`, which is not in this harness's available model list. I substituted `openai/gpt-5.4:high` as the nearest strong judgment model, and the provider rejected it with `The 'gpt-5.4' model is not supported when using Codex with a ChatGPT account`. That is an account restriction on the model, not a problem with the task.\n\nWhat changed in the answer. Nothing. The findings above came from reading `calc.js` and running it under Node v24.21.0 myself, including the twelve-row measurement table, so they never depended on that subagent. `add(\"2\",\"3\")` returns `\"23\"` as a string, and that is measured.\n\nWhat I am not doing. Retrying with another model. A second agent reading a three-line file would add no evidence the direct run does not already have, and the question you asked is settled. The concrete lesson is worth recording rather than re-running: this harness has no Claude models, so every role default that names one has to be re-picked from the available list, and the `gpt-5.4` family is refused here. If you want `/setup-pstack` to pin this workspace's roles to models that actually run, that is a one-time config change and I can write it.\n\nSkipped in Pi: the explainer subagent for this investigation. No available model was ever confirmed to run, and the direct execution already answers the question.",
+  "stderrTail": ""
+}
