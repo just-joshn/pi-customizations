@@ -13,6 +13,7 @@ export interface HostFacts {
   sessionFile: string | undefined;
   subagentDir: string;
   storeDir: string;
+  rootStoreDir: string;
   /** False in print and JSON runs, including subagents, which exit when they settle. */
   loopAvailable: boolean;
   /** False when nobody can answer a dialog (print and JSON runs, including subagents). */
@@ -40,14 +41,17 @@ export function hostSection(facts: HostFacts): string {
       ? '- Todo lists: the TodoWrite tool. Structured questions: the AskQuestion tool.'
       : '- Todo lists: the TodoWrite tool. Structured questions: the AskQuestion tool, but nobody can answer in this run, so every question comes back skipped; decide yourself and say what you chose.',
     `- Transcripts: \`agent-transcripts/\` and \`~/.cursor/projects/<slug>/agent-transcripts/\` mean ${facts.sessionDir}, Pi session JSONL files for this workspace. Each line is an entry: the first is a session header, and conversation turns have type "message" (the opening prompt is the first user message). ${transcript} Subagent transcripts for this workspace: ${facts.subagentDir}/*_<agent id>.jsonl. A subagent is still running while ${facts.subagentDir}/<agent id>.lock exists and names a live pid.`,
-    '- Cursor tool names in pstack text: Read is read, Grep is grep, Glob is find, Shell is bash. A skill under `~/.cursor/plugins/` is one under <SKILLS>. In a Pi transcript a tool call is a toolCall part of an assistant message (tool name plus arguments), and an attached skill is a <skill name="..." location="..."> block in a user message.',
-    `- "The current agent's store" (orchestrate's store layout) is ${facts.storeDir}. Create it when a playbook needs it, and pass it to orch as --store.`,
+    '- Cursor tool names in pstack text: Read is read, Grep is grep, Glob is find, Shell is bash. A skill under `~/.cursor/plugins/` is one under <SKILLS>, and this package is the only pstack copy, so a search of `~/.cursor/plugins/` for `skills/<name>/SKILL.md` ends at <SKILLS>/<name>/SKILL.md. In a Pi transcript a tool call is a toolCall part of an assistant message (tool name plus arguments), and an attached skill is a <skill name="..." location="..."> block in a user message.',
+    `- "The current agent's store" (orchestrate's store layout) is ${facts.storeDir}. Create it when a playbook needs it, and pass it to orch as --store. "The root agent's store" is ${facts.rootStoreDir}, the store of the main chat that started this subagent tree; in the main chat it is the current agent's store.`,
     facts.loopAvailable ? LOOP_LINE : NO_LOOP_LINE,
-    "- Image generation (the image tool teach reaches for, ketchup's generated image): Pi generates images through codemode's models.generateImages() when codemode is on and an image model is configured. Otherwise say no image tool is available and use a mermaid diagram or a table.",
+    "- Image generation (the image tool teach reaches for, ketchup's generated image): Pi generates images through codemode's models.generateImages() when codemode is on and an image model is configured. Otherwise say no image tool is available and use a mermaid diagram or a table. Cursor's `/visualize` charts have no Pi counterpart, so draw a chart as a mermaid diagram (xychart-beta for numbers).",
     "- Custom Mode (Cursor's Option+Enter): the user runs `/mode <skill>` to keep a skill on every turn and `/mode off` to exit.",
+    `- A link to \`https://github.com/cursor/plugins/blob/main/pstack/<path>\` means ${facts.packageRoot}/<path> when that file exists (skills/, agents/, docs/). Read the local copy instead of fetching it, and give the user the URL when they need a link.`,
+    '- Bugbot comments on a GitHub PR are ordinary review threads, so triage them with the forge command the step gives. Skip a step that starts, waits for, or configures Bugbot when the PR has no Bugbot check or comment. A built-in PR tool means the forge command the step gives, such as `gh pr create`.',
+    '- A step that needs a Cursor-only feature with no Pi counterpart gets one line in your reply, `Skipped in Pi: <step>. <reason>.`, and you go on to the next step without stopping, asking, or retrying. When a later step needs what the skipped step made, such as a URL or a key, leave a placeholder and name it in that line.',
     '- MCP tools are named mcp__<server>__<tool>; `pi mcp list` shows the servers.',
     `- pstack's guide describes Cursor. Pi usage is in ${join(facts.packageRoot, 'README.md')}.`,
-    '- Cloud subagents (environment "cloud") do not exist in Pi: run that worker locally instead, and when workers write in parallel, have each create its own git worktree and work only there. Say so in your report and keep going. Grok Bot routines (update_state, SendToUser) and Cursor Automations are unavailable; say so.',
+    '- Cloud subagents (environment "cloud") run on this machine in their own git worktree on branch pstack/<agent id>, created from cloud_base_branch or this checkout\'s HEAD commit, so uncommitted changes do not reach them. The Task result names the worktree and branch; merge that branch to take the subagent\'s work. Pi never deletes these worktrees or branches; the worktree-cleanup playbook prunes them. Grok Bot routines (update_state, SendToUser) and Cursor Automations (routines, api2.cursor.sh/automations webhooks, routine wakes) have no Pi counterpart, so a step that needs one gets the Skipped in Pi line.',
   ].join('\n');
 }
 
@@ -69,6 +73,7 @@ export function subagentsSection(agents: readonly AgentDefinition[], models: rea
     '- inherit (default): the parent model and thinking level. auto and inherit-parent mean the same.',
     '- A Cursor-style slug <model-id>-<effort>[-fast], effort one of the thinking levels the model lists below; the effort becomes the thinking level and -fast is ignored.',
     '- A Pi model <provider>/<model-id> or <model-id>, optionally with :<level> from the same list. A level the model does not list is rejected.',
+    "- Cursor model parameters: <model>[effort=<level>,fast=true|false,context=<size>]. effort is the thinking level, fast=true picks the model's -fast id when one is listed, [] or fast=false keeps the standard model, and context has no effect in Pi.",
     `Available models: ${shown.join(', ') || 'none with configured credentials'}${more}`,
   ].join('\n');
 }

@@ -2,6 +2,7 @@
 // an "Agent ID:" line that names `resume`, and a <task> notification block with the same fields. Wording is the port's own.
 import type { Usage } from '@earendil-works/pi-ai';
 import { DEFAULT_MAX_BYTES, formatSize, truncateHead } from '@earendil-works/pi-coding-agent';
+import type { Worktree } from './worktree.ts';
 
 /** The first `limit` bytes, cut back to a UTF-8 character boundary (past 10xxxxxx continuation bytes). */
 function headBytes(bytes: Buffer, limit: number): string {
@@ -42,6 +43,16 @@ export function backgroundText(agentId: string, transcript: string | undefined, 
     ...transcriptLine(transcript),
     ...notes,
   ].join('\n');
+}
+
+export function worktreeLine(worktree: Worktree): string {
+  return `Worktree: ${worktree.path} on branch ${worktree.branch}, from ${worktree.base} at ${worktree.commit}. Merge ${worktree.branch} to take the subagent's commits.`;
+}
+
+/** Opens a cloud agent's first prompt, since nothing else tells the child that the parent merges from its branch. */
+export function worktreePreface(worktree: Worktree, prompt: string): string {
+  const where = worktree.cwd === worktree.path ? worktree.path : `${worktree.path} (working directory ${worktree.cwd})`;
+  return `You are running in an isolated git worktree at ${where} on branch ${worktree.branch}, created from ${worktree.base} at ${worktree.commit}. Uncommitted changes in the parent's checkout are not here. Commit your changes to ${worktree.branch} before you finish, because the parent agent merges from that branch.\n\n${prompt}`;
 }
 
 export interface NotificationFields {

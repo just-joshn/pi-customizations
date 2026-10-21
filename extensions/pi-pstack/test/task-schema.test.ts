@@ -17,10 +17,12 @@ describe('Task parameters (TASK-001)', () => {
 describe('Task preflight', () => {
   const ok = { description: 'probe', prompt: 'p' };
 
-  test.for([{ environment: 'cloud' as const }, { cloud_base_branch: 'feature/x' }])('refuses cloud execution instead of running locally: %j (TASK-010)', (extra) => {
-    expect(() => taskPreflight({ ...ok, ...extra }, 0)).toThrow(
-      'Pi has no cloud subagents, so environment "cloud" and cloud_base_branch are unavailable. Repeat this call without them to run the worker locally. A local worker starts in this working directory, so when workers write in parallel, tell each one to create its own git worktree (git worktree add <path> -b <branch> <base>) and work only there.',
-    );
+  test.for([{ cloud_base_branch: 'feature/x' }, { cloud_base_branch: 'feature/x', environment: 'local' as const }])('refuses cloud_base_branch without environment cloud: %j (TASK-010)', (extra) => {
+    expect(() => taskPreflight({ ...ok, ...extra }, 0)).toThrow('cloud_base_branch needs environment "cloud": it names the branch the subagent\'s worktree starts from.');
+  });
+
+  test('allows environment cloud with or without a base branch (TASK-010)', () => {
+    expect([taskPreflight({ ...ok, environment: 'cloud' }, 0), taskPreflight({ ...ok, environment: 'cloud', cloud_base_branch: 'main' }, 1)]).toEqual([undefined, undefined]);
   });
 
   test('refuses a grandchild launch (TASK-011)', () => {

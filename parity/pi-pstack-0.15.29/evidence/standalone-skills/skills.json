@@ -1,0 +1,420 @@
+[
+  {
+    "name": "skill:port-harness-capability",
+    "description": "Clean-room port of a capability from another AI coding harness (Claude Code, Codex, Cursor, OpenCode, Gemini CLI, and others): plugin, extension, skill, prompt, hook, rule, command, tool, or workflow. Reimplements it as a Pi-native extension, skill, prompt template, theme, or package with proven behavioral parity. Grounds the source behavior in evidence, designs the smallest Pi mechanism, builds and tests it through the real Pi CLI, keeps a machine-checked parity ledger, and reports VERIFIED, NOT VERIFIED, or INCONCLUSIVE. Invoke with /skill:port-harness-capability followed by the source harness, capability, references, and constraints.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/skills/port-harness-capability/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:reverse-engineer-anything",
+    "description": "Reverse engineer a shipped artifact — an extracted JavaScript/Electron app or ASAR, an archive or package, a Mach-O/ELF/PE binary, a Go binary, or a retained HAR capture — and answer questions about how it works with evidence. Use when a claim depends on shipped bytes rather than available source: decompiling or tracing a feature, comparing versions of a binary, explaining what a bundled app does, reading a package inventory, or reconstructing behavior for a new implementation. Runs locally, writes nothing outside the target and the session store, performs no execution, and states what it could not establish. Skip it for ordinary analysis of a complete source repository — use normal repository tools there.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/skills/reverse-engineer-anything/SKILL.md",
+      "source": "cli",
+      "scope": "temporary",
+      "origin": "top-level"
+    }
+  },
+  {
+    "name": "skill:code-review",
+    "description": "Review the changes since a fixed point (commit, branch, tag, or merge-base) along two axes: Standards (does the code follow this repo's documented coding standards?) and Spec (does the code match what the originating issue/spec asked for?). Runs both reviews in parallel sub-agents and reports them side by side. Use when the user wants to review a branch, a PR, work-in-progress changes, or asks to \"review since X\".",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/code-review/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:codebase-design",
+    "description": "Shared vocabulary for designing deep modules. Use when the user wants to design or improve a module's interface, find deepening opportunities, decide where a seam goes, make code more testable or AI-navigable, or when another skill needs the deep-module vocabulary.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/codebase-design/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:design-taste-frontend",
+    "description": "Anti-slop frontend skill for landing pages, portfolios, and redesigns. The agent reads the brief, infers the right design direction, and ships interfaces that do not look templated. Real design systems when applicable, audit-first on redesigns, strict pre-flight check.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/design-taste-frontend/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:find-skills",
+    "description": "Helps users discover and install agent skills when they ask questions like \"how do I do X\", \"find a skill for X\", \"is there a skill that can...\", or express interest in extending capabilities. This skill should be used when the user is looking for functionality that might exist as an installable skill.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/find-skills/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:frontend-design",
+    "description": "Guidance for distinctive, intentional visual design when building new UI or reshaping an existing one. Helps with aesthetic direction, typography, and making choices that don't read as templated defaults.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/frontend-design/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:grill-me",
+    "description": "A relentless interview to sharpen a plan or design.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/grill-me/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:grill-with-docs",
+    "description": "A relentless interview to sharpen a plan or design, which also creates docs (ADR's and glossary) as we go.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/grill-with-docs/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:grilling",
+    "description": "Grill the user relentlessly about a plan, decision, or idea. Use when the user wants to stress-test their thinking, or uses any 'grill' trigger phrases.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/grilling/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:handoff",
+    "description": "Compact the current conversation into a handoff document for another agent to pick up.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/handoff/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:implement",
+    "description": "Implement a piece of work based on a spec or set of tickets.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/implement/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:improve-codebase-architecture",
+    "description": "Scan a codebase for deepening opportunities, present them as a visual HTML report, then grill through whichever one you pick.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/improve-codebase-architecture/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:prototype",
+    "description": "Build a throwaway prototype to answer a design question. Use when the user wants to sanity-check whether a state model or logic feels right, or explore what a UI should look like.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/prototype/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:research",
+    "description": "Investigate a question against high-trust primary sources and capture the findings as a Markdown file in the repo. Use when the user wants a topic researched, docs or API facts gathered, or reading legwork delegated to a background agent.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/research/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:to-spec",
+    "description": "Turn the current conversation into a spec and publish it to the project issue tracker: no interview, just synthesis of what you've already discussed.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/to-spec/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:to-tickets",
+    "description": "Break a plan, spec, or the current conversation into a set of tracer-bullet tickets, each declaring its blocking edges, published to the configured tracker (edges as text in one file per ticket locally, or native blocking links on a real tracker).",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/to-tickets/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:triage",
+    "description": "Move issues and external PRs through a state machine of triage roles, categorise, verify, grill if needed, and write agent-ready briefs.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/triage/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:twg",
+    "description": "Use TWG whenever Atlassian or company context would help: Jira workitems and issues; Confluence pages and PRDs; Bitbucket PRs; project or goal status and launch readiness; owners, SMEs, approvers, or escalation; personal, org, or leadership work rollups and out-of-office catch-ups; dependency maps; code search, repository, or PR discovery; incidents, on-call, or reliability; and deep internal research across connected sources, docs, work, and people.\n",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/twg/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:twg-agentic-search",
+    "description": "Use with root `twg` for deep iterative enterprise/company knowledge search and internal research with Rovo Search across connected apps/connectors including Confluence, Jira, Drive, Slack, Bitbucket, and GitHub.\n",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/twg-agentic-search/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:twg-artifacts",
+    "description": "Use with root `twg` when a user wants to share, publish, send, or update a standalone local or generated file as an Atlassian Artifact. Do not use for Jira or Confluence attachments.\n",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/twg-artifacts/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:twg-bench-lite",
+    "description": "Run a lightweight single-prompt A/B comparison of free Atlassian/local MCP context vs TWG CLI graph context using paired read-only agent sessions.\n",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/twg-bench-lite/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:twg-code-review",
+    "description": "Use when named or when the user requests additional context for code review. Review Bitbucket/GitHub PRs or local changes using TWG context, create JSON and Markdown, and post only when requested.\n",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/twg-code-review/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:twg-confluence",
+    "description": "Use with root `twg` for Confluence content, spaces, hierarchy, authoring, editing, comments, versions, permissions, exports, and CQL. Applies Confluence semantics and safe write rules.\n",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/twg-confluence/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:twg-context-discovery",
+    "description": "Use with root `twg` for deep context, dependency maps, related entities, project-to-repo discovery, OOO catch-ups, and \"catch me up\" requests around a concrete anchor.\n",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/twg-context-discovery/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:twg-engineering-work",
+    "description": "Use with root `twg` for code search, repositories using an API/package, implementation and reverse-dependency discovery, PR status and reviews, repo contributors, hot areas, and issue-to-PR lookups.\n",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/twg-engineering-work/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:twg-jira",
+    "description": "Use with root `twg` for Jira workitems, similar issue discovery, duplicate detection, projects, boards, sprints, fields, transitions, comments, links, and administration. Applies Jira semantics and safe mutation rules.\n",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/twg-jira/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:twg-jira-resolve-merged-work",
+    "description": "Clean up stale or unresolved Jira workitems. Dry-run single items, lists, boards, sprints, epics, or projects by matching Jira keys/titles to merged PRs, repos, Rovo/search-code hits, and assignee activity.\n",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/twg-jira-resolve-merged-work/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:twg-operational-health",
+    "description": "Use with the root `twg` skill for on-call handoffs, incident response and investigation, post-incident reviews, reliability reviews, Assets refresh, capacity views, meeting summaries, and operational risk readouts.\n",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/twg-operational-health/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:twg-responsibility-routing",
+    "description": "Use with root `twg` to route owners, subject-matter experts, maintainers, reviewers, approvers, decision authorities, Heads of Engineering, or escalation paths for a topic, area, ask, project, service, or component.\n",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/twg-responsibility-routing/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:twg-space-creation",
+    "description": "Create, design, bootstrap, or clone a whole Confluence space for any domain from a brief, existing space, repository evidence, or another source. Use for space creation or structure adaptation, not individual edits.\n",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/twg-space-creation/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:twg-status-rollups",
+    "description": "Use with root `twg` for status rollups, personal work summaries, and decision-readiness or go/no-go briefs. Routes to `pr-tree`, `org-tree`, `work-tree`, or `workitem-tree`.\n",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/twg-status-rollups/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:vercel-react-best-practices",
+    "description": "React and Next.js performance optimization guidelines from Vercel Engineering. This skill should be used when writing, reviewing, or refactoring React/Next.js code to ensure optimal performance patterns. Triggers on tasks involving React components, Next.js pages, data fetching, bundle optimization, or performance improvements.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/vercel-react-best-practices/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:wayfinder",
+    "description": "Plan a huge chunk of work (more than one agent session can hold) as a shared map of decision tickets on your issue tracker, and resolve them one at a time until the way to the destination is clear.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/wayfinder/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  },
+  {
+    "name": "skill:wizard",
+    "description": "Generate an interactive bash wizard that walks a human through steps only they can perform. Use when provisioning infrastructure, setting up credentials or CI secrets, walking an unfamiliar third-party dashboard, or running a one-off migration or cutover. Don't invoke this for steps the agent can perform itself.",
+    "source": "skill",
+    "sourceInfo": {
+      "path": "/Users/josh-desktop/.agents/skills/wizard/SKILL.md",
+      "source": "auto",
+      "scope": "user",
+      "origin": "top-level",
+      "baseDir": "/Users/josh-desktop/.agents"
+    }
+  }
+]

@@ -9,7 +9,7 @@ import { childIdentity } from './child-env.ts';
 import { registerLoop } from './loop.ts';
 import { registerMode } from './mode.ts';
 import { isOneShot } from './modes.ts';
-import { PACKAGE_ROOT, rulePath, SKILLS_DIR, storeDir, subagentDir } from './paths.ts';
+import { PACKAGE_ROOT, rootStoreDir, rulePath, SKILLS_DIR, storeDir, subagentDir } from './paths.ts';
 import { registerReadonlyShell } from './readonly-shell.ts';
 import { cursorRuleWriteReason, modelsSection, readRule } from './rule.ts';
 import { hostSection, subagentsSection } from './sections.ts';
@@ -38,6 +38,7 @@ function hostSections(pi: ExtensionAPI, ctx: ExtensionContext, agents: readonly 
       sessionFile: ctx.sessionManager.getSessionFile(),
       subagentDir: subagentDir(ctx.cwd),
       storeDir: storeDir(ctx.cwd, ctx.sessionManager.getSessionId()),
+      rootStoreDir: rootStoreDir(ctx.cwd, ctx.sessionManager.getSessionId(), childIdentity.rootStore),
       loopAvailable: !isOneShot(ctx.mode),
       questionsAvailable: ctx.hasUI,
     }),

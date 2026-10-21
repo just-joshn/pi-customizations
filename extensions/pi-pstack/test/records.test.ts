@@ -4,8 +4,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
-import { storeDir, subagentDir, workspaceSlug } from '../src/paths.ts';
-import { acquireRunLock, readRecord } from '../src/task/records.ts';
+import { storeDir, subagentDir, workspaceSlug, worktreesDir } from '../src/paths.ts';
+import { acquireRunLock, readRecord, writeRecord } from '../src/task/records.ts';
 
 const id = '11111111-2222-4333-8444-555555555555';
 let dir = '';
@@ -68,6 +68,17 @@ describe('agent records (review r2: architecture 5)', () => {
     writeFileSync(join(dir, `${id}.json`), text);
     expect(() => readRecord(dir, id)).toThrow(`Agent record ${join(dir, `${id}.json`)} is unreadable; delete it and start a new agent.`);
   });
+
+  test("a cloud agent's worktree survives a write and read (TASK-010)", () => {
+    const worktree = { path: '/s/wt', cwd: '/s/wt/pkg', branch: `pstack/${id}`, base: 'main', commit: 'abc' };
+    writeRecord(dir, { agentId: id, type: 'generalPurpose', readonly: false, cwd: '/w/app', createdAt: 't', worktree });
+    expect(readRecord(dir, id)?.worktree).toEqual(worktree);
+  });
+
+  test('a record whose worktree lacks a field is unreadable (TASK-010)', () => {
+    writeFileSync(join(dir, `${id}.json`), JSON.stringify({ agentId: id, type: 'generalPurpose', readonly: false, cwd: '/w/app', createdAt: 't', worktree: { path: '/s/wt' } }));
+    expect(() => readRecord(dir, id)).toThrow(`Agent record ${join(dir, `${id}.json`)} is unreadable; delete it and start a new agent.`);
+  });
 });
 
 describe('per-workspace state (review: parity 4)', () => {
@@ -77,6 +88,6 @@ describe('per-workspace state (review: parity 4)', () => {
 
   test('keeps subagents and the agent store under the workspace', () => {
     const base = join(process.env['PI_CODING_AGENT_DIR'] ?? join(process.env['HOME'] ?? '', '.pi/agent'), 'pstack/workspaces/--w-app--');
-    expect([subagentDir('/w/app'), storeDir('/w/app', 'session-1')]).toEqual([join(base, 'subagents'), join(base, 'store/session-1')]);
+    expect([subagentDir('/w/app'), storeDir('/w/app', 'session-1'), worktreesDir('/w/app')]).toEqual([join(base, 'subagents'), join(base, 'store/session-1'), join(base, 'worktrees')]);
   });
 });

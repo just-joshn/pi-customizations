@@ -16,7 +16,7 @@ afterEach(() => rmSync(scratch, { recursive: true, force: true }));
 describe('bundled scripts run from the package (SCRIPT-001)', () => {
   test("upstream's own test script (orch, watch-pr, check-plan) passes", () => {
     const result = spawnSync('bun', ['run', 'test'], { cwd: SCRIPTS, encoding: 'utf8', timeout: 120_000 });
-    expect(result.stderr).toMatch(/\n 63 pass\n 0 fail\n/);
+    expect(result.stderr).toMatch(/\n 68 pass\n 0 fail\n/);
     expect(result.status).toBe(0);
   });
 

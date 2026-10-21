@@ -73,17 +73,81 @@ describe('foreground', () => {
     expect(assistant?.message?.thinkingLevel).toBe('high');
   });
 
-  test('environment cloud is refused (TASK-010)', async () => {
-    const { result } = await runTask({ prompt: 'go\n@@say X', environment: 'cloud' });
-    expect(result.isError).toBe(true);
-    expect(result.text).toContain('Pi has no cloud subagents');
-  });
-
   test('file attachments reach the child first message (TASK-016)', async () => {
     writeFileSync(join(sandbox.workDir, 'note.txt'), 'ATTACHED-CONTENT-7');
     const { result } = await runTask({ prompt: 'go\n@@say GOT', file_attachments: ['note.txt'] });
     const user = transcriptOf(idOf(result.text)).find((entry) => entry.message?.role === 'user');
     expect(JSON.stringify(user?.message?.content)).toContain('ATTACHED-CONTENT-7');
+  });
+});
+
+describe('cloud worktrees (TASK-010)', () => {
+  const git = (...args: string[]) => execFileSync('git', ['-C', sandbox.workDir, '-c', 'user.email=t@t', '-c', 'user.name=t', ...args], { encoding: 'utf8' }).trim();
+  const worktreeOf = (agentId: string) => join(sandbox.agentDir, 'pstack/workspaces', slug(sandbox.workDir), 'worktrees', agentId);
+  const response = (text: string) => /<response>\n([\s\S]*)\n<\/response>/.exec(text)?.[1];
+  const bash = (command: string) => `go\n@@script ${JSON.stringify([{ tool: 'bash', args: { command } }])}`;
+  const repoWith = (text: string) => {
+    git('init', '-q', '-b', 'main');
+    writeFileSync(join(sandbox.workDir, 'a.txt'), text);
+    git('add', 'a.txt');
+    git('commit', '-qm', 'first');
+    return git('rev-parse', 'HEAD');
+  };
+
+  test("runs the child in its own worktree on pstack/<agent id> from the parent's HEAD, without uncommitted changes", async () => {
+    const head = repoWith('COMMITTED');
+    writeFileSync(join(sandbox.workDir, 'a.txt'), 'DIRTY');
+    const { result } = await runTask({ prompt: bash('pwd; git branch --show-current; cat a.txt; echo; echo NEW > b.txt; git add b.txt; git -c user.email=t@t -c user.name=t commit -qm CHILD-COMMIT'), environment: 'cloud' });
+    const agentId = idOf(result.text);
+    const path = worktreeOf(agentId);
+    expect(result.isError, result.text).toBe(false);
+    expect(response(result.text)).toBe(`RESULTS:\n[bash] ${path}\npstack/${agentId}\nCOMMITTED\n`);
+    expect(result.details).toMatchObject({ worktree: { path, cwd: path, branch: `pstack/${agentId}`, base: 'HEAD', commit: head } });
+    expect(result.text).toContain(`\nWorktree: ${path} on branch pstack/${agentId}, from HEAD at ${head}. Merge pstack/${agentId} to take the subagent's commits.`);
+    expect([git('log', '-1', '--format=%s', `pstack/${agentId}`), git('rev-parse', `pstack/${agentId}~1`), git('branch', '--show-current')]).toEqual(['CHILD-COMMIT', head, 'main']);
+    const user = transcriptOf(agentId).find((entry) => entry.message?.role === 'user');
+    expect(contentText(user?.message?.content as string).startsWith(`You are running in an isolated git worktree at ${path} on branch pstack/${agentId}, created from HEAD at ${head}.`)).toBe(true);
+  });
+
+  test('cloud_base_branch picks the branch the worktree starts from', async () => {
+    repoWith('MAIN');
+    git('checkout', '-qb', 'feature');
+    writeFileSync(join(sandbox.workDir, 'a.txt'), 'FEATURE');
+    git('commit', '-qam', 'feature');
+    const feature = git('rev-parse', 'HEAD');
+    git('checkout', '-q', 'main');
+    const { result } = await runTask({ prompt: bash('cat a.txt'), environment: 'cloud', cloud_base_branch: 'feature' });
+    expect(response(result.text)).toBe('RESULTS:\n[bash] FEATURE');
+    expect(result.details).toMatchObject({ worktree: { base: 'feature', commit: feature } });
+  });
+
+  test('a working directory outside git fails before any child starts', async () => {
+    const { result } = await runTask({ prompt: 'go\n@@say X', environment: 'cloud' });
+    expect(result.text).toBe(`environment "cloud" runs the subagent in its own git worktree, but ${sandbox.workDir} is not inside a git repository. Omit environment to run the subagent here.`);
+    expect(existsSync(subagentDir())).toBe(false);
+  });
+
+  test('cloud_base_branch without environment cloud fails', async () => {
+    const { result } = await runTask({ prompt: 'go\n@@say X', cloud_base_branch: 'main' });
+    expect(result.text).toBe('cloud_base_branch needs environment "cloud": it names the branch the subagent\'s worktree starts from.');
+  });
+
+  test('resume runs the agent in its recorded worktree, from the parent workspace', async () => {
+    repoWith('A');
+    const first = await runTask({ prompt: 'go\n@@say ONE', environment: 'cloud' });
+    const agentId = idOf(first.result.text);
+    const resumed = await runTask({ prompt: bash('pwd; git branch --show-current'), resume: agentId });
+    expect(response(resumed.result.text)).toBe(`RESULTS:\n[bash] ${worktreeOf(agentId)}\npstack/${agentId}\n`);
+    expect(resumed.result.details).toMatchObject({ worktree: { path: worktreeOf(agentId), branch: `pstack/${agentId}` } });
+  });
+
+  test('resume fails when the recorded worktree is gone', async () => {
+    repoWith('A');
+    const first = await runTask({ prompt: 'go\n@@say ONE', environment: 'cloud' });
+    const agentId = idOf(first.result.text);
+    git('worktree', 'remove', '--force', worktreeOf(agentId));
+    const { result } = await runTask({ prompt: 'again\n@@say TWO', resume: agentId });
+    expect(result.text).toBe(`Agent ${agentId} ran in the git worktree ${worktreeOf(agentId)}, which no longer exists. Start a new agent instead.`);
   });
 });
 
@@ -132,6 +196,13 @@ describe('subagent types', () => {
     const sees = async (flag: string) =>
       (await runJson(sandbox, script([task({ prompt: 'go\n@@sys' })]), ['--no-session', flag])).events.some((event) => JSON.stringify(event).includes('PROJECT-SKILL-MARKER') && event.type === 'tool_execution_end');
     expect([await sees('--approve'), await sees('--no-approve')]).toEqual([true, false]);
+  });
+
+  test("a child's system prompt names the main chat's store as the root agent's store (autopilot-full step 2)", async () => {
+    const { result } = await runTask({ prompt: 'go\n@@sys' });
+    const current = /"The current agent's store" \(orchestrate's store layout\) is (\S+)\. /.exec(result.text)?.[1];
+    const root = /"The root agent's store" is (\S+), the store of the main chat/.exec(result.text)?.[1];
+    expect([current?.split('/').at(-2), root?.split('/').at(-2), root === current]).toEqual(['store', 'store', false]);
   });
 
   test('a normal child has write tools and the pstack tools', async () => {

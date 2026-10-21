@@ -1,0 +1,47 @@
+{
+  "scenario": "setup",
+  "requirement": "LIVE-003",
+  "model": "deepseek/deepseek-flash",
+  "prompt": "/setup-pstack Use the large budget and keep the skill's mapping. For a role whose default model is not available, use the closest available model of the same family, else inherit-parent. Do not ask me anything; write the rule now.",
+  "exitCode": 0,
+  "seconds": 83,
+  "checks": {
+    "ruleWritten": true,
+    "alwaysApply": true,
+    "missingRoles": [],
+    "distinctValues": [
+      "inherit-parent"
+    ],
+    "unresolvedValues": [],
+    "wroteCursorRule": false,
+    "rule": "---\ndescription: pstack per-role model choices (overrides skill defaults)\nalwaysApply: true\n---\n# pstack model configuration. One line per role. Delete a line to fall back to the skill default.\n# `inherit-parent` or `auto` as a value: the role runs on the parent chat model (omit Task `model`). Alias entries in a panel list still count toward its fan-out.\n# budget: large (xhigh)\nfeature, refactoring: inherit-parent\nbug-fix: inherit-parent\nperf-issue: inherit-parent\nhillclimb: inherit-parent\njudgment and prose: inherit-parent\nhardest tasks: inherit-parent\nhow explorer: inherit-parent\nhow explainer: inherit-parent\nwhy investigators: inherit-parent\nwhy synthesizer: inherit-parent\nreflect tooling: inherit-parent\nreflect judgment, divergent, synthesizer: inherit-parent\narena runners: inherit-parent, inherit-parent\narena cross-judge pool: inherit-parent, inherit-parent\nswarm workers: inherit-parent\narchitect runners: inherit-parent, inherit-parent\ninterrogate reviewers: inherit-parent, inherit-parent\n"
+  },
+  "toolCalls": [
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"ls -la /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-2uVEyO/agent/pstack/ 2>/dev/null; echo \\\"---\\\"; cat /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-2uVEyO/agent/pstack/pstack-models.mdc 2>/dev/null || echo \\\"NO RULE FILE\\\"\",\"timeout\":30}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"cd /Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version 2>/dev/null && (pi models list 2>&1 | head -60) ; echo \\\"=== env ===\\\"; env | grep -i '^PI_' | head -30\",\"timeout\":60}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"env | grep -i '^PI_' | head -40; echo \\\"=== HOME cfg ===\\\"; ls ~/.pi 2>/dev/null | head; echo \\\"=== agent dir ===\\\"; ls -la /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-2uVEyO/agent/ | head -20\",\"timeout\":30}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"ls -a /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-2uVEyO/work | head -20; echo \\\"=== skills ===\\\"; find /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-2uVEyO/work -maxdepth 4 -name 'SKILL.md' 2>/dev/null | head -20\",\"timeout\":30}"
+    },
+    {
+      "name": "write",
+      "arguments": "{\"path\":\"/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-2uVEyO/agent/pstack/pstack-models.mdc\",\"content\":\"---\\ndescription: pstack per-role model choices (overrides skill defaults)\\nalwaysApply: true\\n---\\n# pstack model configuration. One line per role. Delete a line to fall back to the skill default.\\n# `inherit-parent` or `auto` as a value: the role runs on the parent chat model (omit Task `model`). Alias entries in a panel list still count toward its fan-out.\\n# budget: large (xhigh)\\nfeature, refactoring: inherit-parent\\nbug-fix: inherit-parent\\nperf-issue: inherit-p"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"cat /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-2uVEyO/agent/pstack/pstack-models.mdc; echo \\\"=== non-comment role lines ===\\\"; grep -v '^#' /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-2uVEyO/agent/pstack/pstack-models.mdc | grep ':' | wc -l\",\"timeout\":30}"
+    }
+  ],
+  "finalText": "Rule written to `/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-2uVEyO/agent/pstack/pstack-models.mdc` (your `~/.cursor/rules/pstack-models.mdc` equivalent; nothing was written under `~/.cursor`).\n\n**Detected models** (from the Task model list): `deepseek/*`, `openai/*`, `zai/*` only. Your parent model is `deepseek-flash` at `high`, provider `deepseek`.\n\n**What that forced:** the skill's defaults are `claude-opus-5-5-xhigh` and `grok-4.7-xhigh-fast`. Neither the Anthropic nor the xAI/Grok family exists in this session, so \"closest same-family model\" had no candidate for any role, and every role took the `inherit-parent` fallback. Concretely:\n\n- judgment/hardest/explainer/synthesizer roles → would have been `claude-opus-5-5-xhigh`\n- explorers/investigators/tooling/workers → would have been `grok-4.7-xhigh-fast`\n- both now inherit the parent model instead of silently picking an unconfirmed `openai/…` or `zai/…` slug, which step 4 forbids\n\n**Kept from the skill's mapping:** all 17 role lines, the 2-entry fan-out on `arena runners`, `arena cross-judge pool`, `architect runners`, `interrogate reviewers` (so panel subagent counts don't shrink), and `# budget: large (xhigh)`. Budget is recorded as intent; with no real slugs in the file there is no effort token to rewrite. The `how critics` line from the retired role is absent (there was no prior rule).\n\nIf you'd rather have real per-role models, the two tiers available here are e.g. `openai/gpt-5.5:xhigh` for the judgment tier and `openai/gpt-5.4-mini:medium` or `zai/glm-5.3-flash:high` for the fast tier — say the word and I'll rewrite those lines.\n\nApplies to new sessions; re-running this skill rewrites the file in place.\n\nSkipped in Pi: steps 7–8 offers. Per your instruction I asked nothing; noting only that this workspace is an empty repo (`.git`, no files, no project skills), so there is no existing `verify-*` or formal-verification skill — `/create-verification-skill` and `/create-formal-verification-skill` remain available if you want them later.",
+  "stderrTail": ""
+}

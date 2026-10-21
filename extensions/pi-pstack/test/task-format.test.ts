@@ -1,6 +1,6 @@
 import { DEFAULT_MAX_BYTES, DEFAULT_MAX_LINES } from '@earendil-works/pi-coding-agent';
 import { describe, expect, test } from 'vitest';
-import { backgroundText, bounded, foregroundText, notificationText } from '../src/task/format.ts';
+import { backgroundText, bounded, foregroundText, notificationText, worktreeLine, worktreePreface } from '../src/task/format.ts';
 
 const id = '11111111-2222-4333-8444-555555555555';
 
@@ -47,5 +47,19 @@ describe('Task texts (TASK-002, TASK-003, SEC-001)', () => {
     const text = bounded('😀'.repeat(2_000_000), undefined);
     const kept = text.split('\n[truncated')[0] ?? '';
     expect([Buffer.byteLength(kept, 'utf8'), kept.endsWith('😀'), performance.now() - started < 2_000]).toEqual([51_200, true, true]);
+  });
+});
+
+describe('cloud worktree texts (TASK-010)', () => {
+  const worktree = { path: '/w/wt', cwd: '/w/wt/pkg', branch: `pstack/${id}`, base: 'main', commit: 'abc123' };
+
+  test('the result line names the worktree and the branch to merge', () => {
+    expect(worktreeLine(worktree)).toBe(`Worktree: /w/wt on branch pstack/${id}, from main at abc123. Merge pstack/${id} to take the subagent's commits.`);
+  });
+
+  test("the child's prompt opens with where it runs and that it must commit", () => {
+    expect(worktreePreface(worktree, 'do it')).toBe(
+      `You are running in an isolated git worktree at /w/wt (working directory /w/wt/pkg) on branch pstack/${id}, created from main at abc123. Uncommitted changes in the parent's checkout are not here. Commit your changes to pstack/${id} before you finish, because the parent agent merges from that branch.\n\ndo it`,
+    );
   });
 });

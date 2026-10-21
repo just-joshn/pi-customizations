@@ -47,24 +47,39 @@ describe('host map (HOST-001)', () => {
     expect(host).toContain(`Subagent transcripts for this workspace: ${join(workspace, 'subagents')}/*_<agent id>.jsonl. A subagent is still running while ${join(workspace, 'subagents')}/<agent id>.lock exists and names a live pid.`);
     expect(host).toMatch(new RegExp(`"The current agent's store" \\(orchestrate's store layout\\) is ${join(workspace, 'store')}/[0-9a-f-]+\\. Create it when a playbook needs it, and pass it to orch as --store\\.`));
     expect(host).toContain(
-      "- Image generation (the image tool teach reaches for, ketchup's generated image): Pi generates images through codemode's models.generateImages() when codemode is on and an image model is configured. Otherwise say no image tool is available and use a mermaid diagram or a table.",
+      "- Image generation (the image tool teach reaches for, ketchup's generated image): Pi generates images through codemode's models.generateImages() when codemode is on and an image model is configured. Otherwise say no image tool is available and use a mermaid diagram or a table. Cursor's `/visualize` charts have no Pi counterpart, so draw a chart as a mermaid diagram (xychart-beta for numbers).",
     );
-    expect(host).toContain('Installed skills (56): architect, arena, automate-me,');
+    expect(host).toContain('Installed skills (60): architect, arena, automate-me,');
     expect(host).toContain(
       `\`agent-transcripts/\` and \`~/.cursor/projects/<slug>/agent-transcripts/\` mean ${join(sandbox.agentDir, 'sessions')}/--${sandbox.workDir.replace(/^\//, '').replaceAll('/', '-')}--, Pi session JSONL files for this workspace. Each line is an entry: the first is a session header, and conversation turns have type "message" (the opening prompt is the first user message).`,
     );
     expect(host).toContain('MCP tools are named mcp__<server>__<tool>; `pi mcp list` shows the servers.');
     expect(host).toContain("Cursor's built-in create-skill skill is <SKILLS>/create-skill/SKILL.md. `.cursor/skills/` means `.pi/skills/`;");
     expect(host).toContain(
-      '- Cloud subagents (environment "cloud") do not exist in Pi: run that worker locally instead, and when workers write in parallel, have each create its own git worktree and work only there. Say so in your report and keep going. Grok Bot routines (update_state, SendToUser) and Cursor Automations are unavailable; say so.',
+      '- Cloud subagents (environment "cloud") run on this machine in their own git worktree on branch pstack/<agent id>, created from cloud_base_branch or this checkout\'s HEAD commit, so uncommitted changes do not reach them. The Task result names the worktree and branch; merge that branch to take the subagent\'s work. Pi never deletes these worktrees or branches; the worktree-cleanup playbook prunes them. Grok Bot routines (update_state, SendToUser) and Cursor Automations (routines, api2.cursor.sh/automations webhooks, routine wakes) have no Pi counterpart, so a step that needs one gets the Skipped in Pi line.',
     );
+  });
+
+  test("names the main chat's own store as the root agent's store", async () => {
+    const host = section(await systemPrompt(['--no-session']), 'pstack_host');
+    const current = /"The current agent's store" \(orchestrate's store layout\) is (\S+)\. /.exec(host)?.[1];
+    expect(host).toContain(`"The root agent's store" is ${current}, the store of the main chat that started this subagent tree; in the main chat it is the current agent's store.`);
   });
 
   test('maps the Cursor tool names and transcript shapes that pstack text relies on (HOST-008)', async () => {
     const host = section(await systemPrompt(['--no-session']), 'pstack_host');
     expect(host).toContain(
-      '- Cursor tool names in pstack text: Read is read, Grep is grep, Glob is find, Shell is bash. A skill under `~/.cursor/plugins/` is one under <SKILLS>. In a Pi transcript a tool call is a toolCall part of an assistant message (tool name plus arguments), and an attached skill is a <skill name="..." location="..."> block in a user message.',
+      '- Cursor tool names in pstack text: Read is read, Grep is grep, Glob is find, Shell is bash. A skill under `~/.cursor/plugins/` is one under <SKILLS>, and this package is the only pstack copy, so a search of `~/.cursor/plugins/` for `skills/<name>/SKILL.md` ends at <SKILLS>/<name>/SKILL.md. In a Pi transcript a tool call is a toolCall part of an assistant message (tool name plus arguments), and an attached skill is a <skill name="..." location="..."> block in a user message.',
     );
+  });
+
+  test("maps the non-Cursor conventions from upstream's harness adapter (HOST-009)", async () => {
+    const host = section(await systemPrompt(['--no-session']), 'pstack_host');
+    expect([
+      host.includes(`- A link to \`https://github.com/cursor/plugins/blob/main/pstack/<path>\` means ${PACKAGE_ROOT}/<path> when that file exists (skills/, agents/, docs/).`),
+      host.includes('- Bugbot comments on a GitHub PR are ordinary review threads, so triage them with the forge command the step gives.'),
+      host.includes('- A step that needs a Cursor-only feature with no Pi counterpart gets one line in your reply, `Skipped in Pi: <step>. <reason>.`, and you go on to the next step without stopping, asking, or retrying.'),
+    ]).toEqual([true, true, true]);
   });
 
   test('names AskQuestion only where a user can answer (HOST-005; review r2: parity 4)', async () => {

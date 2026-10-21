@@ -1,0 +1,10 @@
+# live cloud subagent, deepseek/deepseek-flash, isolated agent dir
+-- pstack/a7346da9-b361-4c27-861d-f9908d2d55d1
+d38dd3d Add b.txt
+884c2aa init
+hello
+-- pstack/f3de8a4e-2d04-49d8-99a8-6773cb964767
+884c2aa init
+fatal: path 'b.txt' does not exist in 'pstack/f3de8a4e-2d04-49d8-99a8-6773cb964767'
+-- parent checkout
+a.txt

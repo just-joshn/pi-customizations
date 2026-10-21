@@ -1,0 +1,32 @@
+{
+  "notifications": [
+    {
+      "message": "Custom Mode on: poteto-mode. /mode off exits.",
+      "notifyType": "info"
+    },
+    {
+      "message": "Custom Mode off.",
+      "notifyType": "info"
+    }
+  ],
+  "entries": [
+    {
+      "type": "custom",
+      "customType": "pstack/mode",
+      "data": {
+        "skill": "poteto-mode"
+      },
+      "id": "f67b204d",
+      "parentId": "7a5f0716",
+      "timestamp": "2026-10-21T21:49:05.151Z"
+    },
+    {
+      "type": "custom",
+      "customType": "pstack/mode",
+      "data": null,
+      "id": "ad87474e",
+      "parentId": "f67b204d",
+      "timestamp": "2026-10-21T21:49:05.153Z"
+    }
+  ]
+}

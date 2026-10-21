@@ -5,8 +5,6 @@ description: >-
   Grok Bot over a webhook, when the user must provide a webhook sender key, or
   when exposing that UI on Tailscale.
 disable-model-invocation: true
-metadata:
-  cursor-name: Make Bot UI
 ---
 # How to make a bot UI
 

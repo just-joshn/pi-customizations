@@ -1,6 +1,8 @@
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import { describe, expect, test } from 'vitest';
+import { describe, expect, onTestFinished, test } from 'vitest';
 import { modeBadge, modeFromBranch, modeSection, parseModeArgs } from '../src/mode.ts';
 import { SKILLS_DIR } from '../src/paths.ts';
 
@@ -67,6 +69,28 @@ describe('modeBadge (MODE-006)', () => {
 
   test('a skill without icon or color gets the default lightning icon and no color', () => {
     expect(modeBadge({ skill: 'tdd', path: join(SKILLS_DIR, 'tdd/SKILL.md') })).toEqual({ text: '⚡ mode: tdd' });
+  });
+
+  test.for([
+    { icon: 'code', expected: '</> mode: x' },
+    { icon: 'terminal', expected: '>_ mode: x' },
+    { icon: 'bug', expected: '✱ mode: x' },
+    { icon: 'git-branch', expected: '⎇ mode: x' },
+    { icon: 'book-open', expected: '❐ mode: x' },
+    { icon: 'beaker', expected: '⚗ mode: x' },
+    { icon: 'shield', expected: '⛨ mode: x' },
+    { icon: 'rocket', expected: '➶ mode: x' },
+    { icon: 'no-such-icon', expected: '⚡ mode: x' },
+  ])('the Cursor icon $icon shows as $expected', ({ icon, expected }) => {
+    expect(modeBadge({ skill: 'x' }, { 'cursor-icon': icon }).text).toBe(expected);
+  });
+
+  test('a Pi skill written in Cursor format styles its badge from top-level icon and color', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'pstack-badge-'));
+    onTestFinished(() => rmSync(dir, { recursive: true, force: true }));
+    const path = join(dir, 'SKILL.md');
+    writeFileSync(path, '---\nname: tdd-mode\ndescription: d\nicon: beaker\ncolor: green\n---\n\nbody\n');
+    expect(modeBadge({ skill: 'tdd-mode', path })).toEqual({ text: '⚗ mode: tdd-mode', color: 'success' });
   });
 
   test.for([
