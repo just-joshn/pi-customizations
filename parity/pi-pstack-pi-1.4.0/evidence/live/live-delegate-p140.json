@@ -1,0 +1,31 @@
+{
+  "scenario": "delegate",
+  "requirement": "LIVE-004",
+  "model": "deepseek/deepseek-flash",
+  "prompt": "/poteto-mode Delegate to one foreground poteto-agent: find what calc.js exports. Read-only.",
+  "exitCode": 0,
+  "seconds": 20,
+  "checks": {
+    "delegated": true,
+    "everyPromptHasSkillPath": true,
+    "prompts": [
+      "Read the poteto-mode skill at /Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/poteto-mode/SKILL.md in full before doing any work.\n\nTask: In the workspace /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-Ulj3Pg/work, read the file calc.js and report exactly what it exports.\n\nConstraints: This is strictly read-only. Do not ed"
+    ]
+  },
+  "toolCalls": [
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"ls -la; find . -name 'calc.js' -not -path '*/node_modules/*' 2>/dev/null | head\",\"timeout\":30}"
+    },
+    {
+      "name": "Task",
+      "arguments": "{\"description\":\"Find calc.js exports\",\"prompt\":\"Read the poteto-mode skill at /Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/poteto-mode/SKILL.md in full before doing any work.\\n\\nTask: In the workspace /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-Ulj3Pg/work, read the file calc.js and report exactly what it exports.\\n\\nConstraints: This is strictly read-only. Do not edit, create, or delete any file, and do not run commands that mutate state.\\n\\nReport back, concisely:\\n1. The full contents of calc.js (it is small)"
+    },
+    {
+      "name": "read",
+      "arguments": "{\"path\":\"calc.js\",\"offset\":1,\"limit\":10}"
+    }
+  ],
+  "finalText": "**Answer.** `calc.js` exports one thing, a named ES export `add`, defined on line 1 as `(a, b) => a + b`. It has no default export and no `module.exports`, so importers reach it as `import { add } from './calc.js'`. I read the one-line file myself after the agent reported, and the report matches.\n\n**Who this is for.** Anyone importing `calc.js`. The only callable surface available to them is `add`, with no default binding to fall back on.\n\n**Delegation.** One foreground `poteto-agent` ran read-only on `deepseek/deepseek-flash:low`, since the job was a single-file lookup. No files were created, edited, or deleted, and it reported a `n/a` throughput checkpoint for the read-only scope.\n\n**Principles named.** **Laziness Protocol** (`principle-laziness-protocol`) shaped two choices. I read the agent's target file myself rather than trusting its summary, and I picked the cheapest model tier for a one-line read instead of a judgment model.\n\n`calc.js` is the only file in the workspace besides `.git`.",
+  "stderrTail": ""
+}

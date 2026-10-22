@@ -1,0 +1,81 @@
+{
+  "scenario": "poteto",
+  "requirement": "LIVE-001",
+  "model": "deepseek/deepseek-flash",
+  "prompt": "/poteto-mode How does add in calc.js treat two numeric strings such as \"2\" and \"3\"? This is a read-only question; do not change any files.",
+  "exitCode": 0,
+  "seconds": 129,
+  "checks": {
+    "readPlaybook": true,
+    "firstTodosAreStepsVerbatim": true,
+    "stepMatches": [true, true, true, true],
+    "workspaceUnchanged": true,
+    "todos": [
+      "Route through the how skill. For motivation questions, also route through the why skill.",
+      "Throughput checkpoint stays one line: `throughput checkpoint: n/a, read-only investigation`.",
+      "Produce the how-shaped output (Overview / Key Concepts / How It Works / Where Things Live / Gotchas), or a recommendation with a tradeoffs table if the request is a decision between alternatives.",
+      "Apply the unslop skill to the reply.",
+      "Verify the string-concat claim against the real file (proof, not inference)"
+    ]
+  },
+  "toolCalls": [
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"ls -la; echo ---; find . -name \\\"calc.js\\\" -not -path \\\"*/node_modules/*\\\" 2>/dev/null\"}"
+    },
+    {
+      "name": "read",
+      "arguments": "{\"path\":\"/private/tmp/claude-501/-Users-josh-desktop-src-personal-update-pi-pstack-to-latest-pstack-version/70df41f0-8a09-470b-acd8-fc66d0dd3a0a/scratchpad/control-130/extensions/pi-pstack/skills/poteto-mode/playbooks/investigation.md\",\"offset\":1,\"limit\":200}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"cat -A calc.js; echo ---; cd /private/tmp/claude-501/-Users-josh-desktop-src-personal-update-pi-pstack-to-latest-pstack-version/70df41f0-8a09-470b-acd8-fc66d0dd3a0a/scratchpad/control-130/extensions/pi-pstack/skills; wc -l how/SKILL.md unslop/SKILL.md\"}"
+    },
+    {
+      "name": "read",
+      "arguments": "{\"path\":\"/private/tmp/claude-501/-Users-josh-desktop-src-personal-update-pi-pstack-to-latest-pstack-version/70df41f0-8a09-470b-acd8-fc66d0dd3a0a/scratchpad/control-130/extensions/pi-pstack/skills/how/SKILL.md\",\"offset\":1,\"limit\":300}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"cd /private/tmp/claude-501/-Users-josh-desktop-src-personal-update-pi-pstack-to-latest-pstack-version/70df41f0-8a09-470b-acd8-fc66d0dd3a0a/scratchpad/control-130/extensions/pi-pstack/skills; ls poteto-mode/references poteto-mode/playbooks; echo ---; cat how/references/explainer-prompt.md\"}"
+    },
+    {
+      "name": "read",
+      "arguments": "{\"path\":\"/private/tmp/claude-501/-Users-josh-desktop-src-personal-update-pi-pstack-to-latest-pstack-version/70df41f0-8a09-470b-acd8-fc66d0dd3a0a/scratchpad/control-130/extensions/pi-pstack/skills/unslop/SKILL.md\",\"offset\":1,\"limit\":80}"
+    },
+    {
+      "name": "TodoWrite",
+      "arguments": "{\"todos\":[{\"id\":\"1\",\"content\":\"Route through the how skill. For motivation questions, also route through the why skill.\",\"status\":\"in_progress\"},{\"id\":\"2\",\"content\":\"Throughput checkpoint stays one line: `throughput checkpoint: n/a, read-only investigation`.\",\"status\":\"pending\"},{\"id\":\"3\",\"content\":\"Produce the how-shaped output (Overview / Key Concepts / How It Works / Where Things Live / Gotchas), or a recommendation with a tradeoffs table if the request is a decision between alternatives.\",\"status\":\"pending\"},{\"id\":\"4\",\"content\":\"Apply the unslop skill to the reply.\",\"status\":\"pending\"},{\"i"
+    },
+    {
+      "name": "Task",
+      "arguments": "{\"description\":\"Explain calc.js add behavior\",\"subagent_type\":\"generalPurpose\",\"readonly\":true,\"model\":\"claude-opus-5-5-xhigh\",\"run_in_background\":false,\"prompt\":\"You are writing an architectural explanation for a senior engineer. You have read-only access to the codebase at /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-9bFuGD/work.\\n\\n## Original Question\\n\\n> How does `add` in calc.js treat two numeric strings such as \\\"2\\\" and \\\"3\\\"?\\n\\n## Instructions\\n\\nTrace the actual code yourself (read files, check git history for context, run `node` to evaluate the function if "
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"cd /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-9bFuGD/work && node --input-type=module -e '\\nimport { add } from \\\"./calc.js\\\";\\nconsole.log(\\\"add(2,3)      =\\\", JSON.stringify(add(2,3)));\\nconsole.log(\\\"add(\\\\\\\"2\\\\\\\",\\\\\\\"3\\\\\\\")  =\\\", JSON.stringify(add(\\\"2\\\",\\\"3\\\")));\\nconsole.log(\\\"add(\\\\\\\"2\\\\\\\",3)    =\\\", JSON.stringify(add(\\\"2\\\",3)));\\nconsole.log(\\\"typeof result =\\\", typeof add(\\\"2\\\",\\\"3\\\"));\\n' ; echo ---; git log --oneline --all -- calc.js | head; echo ---; git status --short; ls -a\"}"
+    },
+    {
+      "name": "Task",
+      "arguments": "{\"description\":\"Explain calc.js add behavior\",\"prompt\":\"You are writing an architectural explanation for a senior engineer. You have read-only access to the codebase at /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-9bFuGD/work. Do not modify any file there. The only source file is calc.js, which is 46 bytes.\\n\\n## Original Question\\n\\n> How does `add` in calc.js treat two numeric strings such as \\\"2\\\" and \\\"3\\\"?\\n\\n## Instructions\\n\\nTrace the actual code yourself. Read calc.js and any other files in the repo, check `git log` history for context on how it was added, and "
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"cd /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-9bFuGD/work && git log --format='%h %ad %s' --date=short -p -- calc.js | head -40; echo ---; git status\"}"
+    },
+    {
+      "name": "Task",
+      "arguments": "{\"description\":\"Explain calc.js add behavior\",\"model\":\"openai/gpt-5.6-sol:xhigh\",\"prompt\":\"You are writing an architectural explanation for a senior engineer. You have read-only access to the codebase at /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-9bFuGD/work. Do not modify any file there. The only source file is calc.js, which is 46 bytes.\\n\\n## Original Question\\n\\n> How does `add` in calc.js treat two numeric strings such as \\\"2\\\" and \\\"3\\\"?\\n\\n## Instructions\\n\\nTrace the actual code yourself. Read calc.js and any other files in the repo, check `git log` history fo"
+    },
+    {
+      "name": "read",
+      "arguments": "{\"limit\":60,\"offset\":1,\"path\":\"/private/tmp/claude-501/-Users-josh-desktop-src-personal-update-pi-pstack-to-latest-pstack-version/70df41f0-8a09-470b-acd8-fc66d0dd3a0a/scratchpad/control-130/extensions/pi-pstack/skills/principle-prove-it-works/SKILL.md\"}"
+    },
+    {
+      "name": "TodoWrite",
+      "arguments": "{\"merge\":true,\"todos\":[{\"id\":\"1\",\"status\":\"completed\"},{\"id\":\"2\",\"status\":\"completed\"},{\"id\":\"3\",\"status\":\"completed\"},{\"id\":\"4\",\"status\":\"completed\"},{\"id\":\"5\",\"status\":\"completed\"}]}"
+    }
+  ],
+  "finalText": "`add(\"2\", \"3\")` returns the string `\"23\"`, not the number `5`.\n\nthroughput checkpoint: n/a, read-only investigation\n\n## Overview\n\n`calc.js` has one named export. `add(a, b)` returns `a + b` and does nothing else. JavaScript's `+` is overloaded, so the result depends on the argument types. Two numbers add. Two strings concatenate. Numeric-looking strings stay strings, so `add(\"2\", \"3\")` joins them into `\"23\"`.\n\n## Key concepts\n\nThe built-in `+` operator picks its behavior from its operands. It adds when both sides are numbers. It concatenates when either side is a string, converting the other side to a string first. This function adds no parsing or type enforcement of its own.\n\n## How it works\n\n1. `calc.js:1` declares `add(a, b)` with two untyped parameters. No TypeScript annotations, JSDoc types, or runtime guards.\n2. `calc.js:2` evaluates `a + b`. With `add(\"2\", \"3\")` both operands are strings, so `+` concatenates and the function returns `\"23\"` of type `string`.\n3. With `add(2, 3)` the same line performs numeric addition and returns `5` of type `number`.\n\nRan both against the real module:\n\n```\nadd(2,3)      = 5\nadd(\"2\",\"3\")  = \"23\"\nadd(\"2\",3)    = \"23\"\ntypeof result = string\n```\n\nThere is no `Number`, `parseInt`, or validation anywhere. The coercion is entirely JavaScript's.\n\n## Where things live\n\n`calc.js` lines 1 to 3 hold the whole implementation. There are no tests, no `package.json`, and no call sites. Git history is one commit, `4d57f28 calc`, which added the file in its current form with no design context.\n\n## Gotchas\n\nThe name `add` suggests arithmetic, but the body only guarantees `+` semantics. A mixed call such as `add(\"2\", 3)` also returns `\"23\"`, because the number converts to text. Any caller passing values read from a form field, query string, or environment variable gets concatenation, and the untyped signature gives a TypeScript caller no warning.\n\n**Verification.** Ran the exported function in Node against the actual file. Output above. No files were changed. `git status` is clean.\n\n**Principle applied. Prove It Works.** It changed the approach from reading the source and asserting string concatenation to executing `add` in Node and reporting the observed value and type.\n\n**Model note.** The explainer ran on `openai/gpt-5.6-sol:xhigh`. The `how explainer` default slug, `claude-opus-5-5-xhigh`, is not offered by this Task tool, and `gpt-5.5-pro` was rejected by the backend, so I used the nearest high-effort judgment model available.",
+  "stderrTail": ""
+}

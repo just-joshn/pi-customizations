@@ -1,0 +1,142 @@
+	"version": "1.4.0",
+$ tsc --noEmit -p tsconfig.json
+$ vitest run
+
+ RUN  v5.0.2 /home/runner/repo/extensions/pi-pstack
+
+ ✓ test/task-model.test.ts (36 tests) 11ms
+ ✓ test/resources.test.ts (16 tests) 108ms
+ ✓ test/mode.test.ts (34 tests) 19ms
+ ✓ test/task-worktree.test.ts (11 tests) 855ms
+ ✓ test/task-runner.test.ts (21 tests) 392ms
+ ✓ test/records.test.ts (13 tests) 87ms
+ ✓ test/rule.test.ts (11 tests) 1441ms
+   ✓ guard through Pi (RULE-002) (1)
+     ✓ a scripted write to Cursor rule is blocked and the file is never created 1424ms
+ ✓ test/readonly-shell-security.test.ts (4 tests) 229ms
+ ✓ test/task-format.test.ts (8 tests) 31ms
+ ✓ test/ask.test.ts (8 tests) 8ms
+ ✓ test/scripts.test.ts (12 tests | 8 skipped) 2354ms
+   ✓ bundled scripts run from the package (SCRIPT-001) (4)
+     ✓ upstream's own test script (orch, watch-pr, check-plan) passes once the CLIs' bootstrap has installed their dependencies 2200ms
+ ✓ test/todo.test.ts (8 tests) 4ms
+ ✓ test/task-agents.test.ts (6 tests) 33ms
+ ✓ test/aliases.test.ts (15 tests) 4ms
+ ✓ test/e2e/ask.e2e.test.ts (5 tests) 3364ms
+   ✓ asks each question through UI dialogs and returns option IDs (HOST-005) 1544ms
+   ✓ shows the title and option descriptions of a Cursor-shaped call and still returns IDs (HOST-005) 452ms
+   ✓ a dismissed question is reported, not guessed (HOST-005) 348ms
+   ✓ without a UI the questions resolve as skipped, as Cursor print mode reports (HOST-005) 571ms
+   ✓ every question offers a typed Other answer, as the Cursor question dialog does (HOST-005) 448ms
+ ✓ test/task-schema.test.ts (8 tests) 16ms
+ ✓ test/e2e/lifecycle.e2e.test.ts (4 tests) 2563ms
+   ✓ a new session shows the stopped-subagent warning after the next session starts 831ms
+   ✓ a reload shows the stopped-subagent warning after the next session starts 494ms
+   ✓ /reload keeps aliases and tools, and stops the old runtime children (PKG-002) 544ms
+   ✓ a new session resets mode and todos and stops the old children (PKG-002) 693ms
+ ✓ test/autocomplete.test.ts (3 tests) 2ms
+ ✓ test/task-card.test.ts (5 tests) 3ms
+ ✓ test/e2e/todo.e2e.test.ts (1 test) 452ms
+   ✓ TodoWrite state follows a fork back to the earlier branch and drives the widget (TODO-001, TODO-002) 452ms
+ ✓ test/registry.test.ts (1 test) 2ms
+ ✓ test/readonly-shell.test.ts (2 tests) 36ms
+ ✓ test/e2e/aliases.e2e.test.ts (8 tests) 3348ms
+   ✓ /how attaches the skill body, path, and raw arguments to one message (CMD-001) 560ms
+   ✓ the skill does not ride along on the next message (CMD-001) 405ms
+   ✓ aliases work in print mode, where extension commands cannot start a run (CMD-001) 516ms
+   ✓ a user's own prompt template of the same name wins over the alias (CMD-002) 410ms
+   ✓ aliases work when the package is installed through a symlink (recheck 1) 583ms
+   ✓ a skill of the user's own gets a /name alias too, as in Cursor (review r2: parity 1) 368ms
+ ✓ test/e2e/package.e2e.test.ts (1 test) 2718ms
+   ✓ installs from a fresh copy without node_modules, then removes cleanly (PKG-001) 2717ms
+ ✓ test/e2e/mode.e2e.test.ts (6 tests) 5105ms
+   ✓ /mode keeps the skill on every turn until /mode off, with a status badge (MODE-001, MODE-002, MODE-005) 1775ms
+   ✓ the /mode task goes through normal skill expansion (MODE-001) 467ms
+   ✓ /mode rejects an unknown skill and lists the choices (MODE-002) 551ms
+   ✓ a mode whose stored skill path went stale is found again by name (recheck 4) 952ms
+   ✓ a stored mode whose skill no longer loads never inlines the stored path (review r2: security 3) 657ms
+   ✓ the mode survives a restart of the same session (MODE-003) 703ms
+ ✓ test/e2e/host.e2e.test.ts (15 tests) 7400ms
+   ✓ host map (HOST-001) (10)
+     ✓ names the skills, rule, transcript, and subagent locations 1654ms
+     ✓ names the main chat's own store as the root agent's store 472ms
+     ✓ maps the Cursor tool names and transcript shapes that pstack text relies on (HOST-008) 524ms
+     ✓ maps the non-Cursor conventions from upstream's harness adapter (HOST-009) 532ms
+     ✓ names AskQuestion only where a user can answer (HOST-005; review r2: parity 4) 968ms
+     ✓ frames an attached skill as the workflow to follow, as Cursor does for /name 360ms
+   ✓ model rule (RULE-001) (2)
+     ✓ applies the rule on every request when it exists 382ms
+   ✓ tool listing (1)
+     ✓ lists the pstack tools a one-shot run can use, and the todolist guideline (HOST-001, TODO-001, recheck 2) 359ms
+   ✓ image generation (HOST-006) (1)
+     ✓ the path the host map names generates an image when an image model is configured 594ms
+ ✓ test/loop.test.ts (29 tests) 15209ms
+   ✓ /loop through Pi (HOST-004) (12)
+     ✓ a fixed interval repeats the prompt verbatim, with loop state in the system prompt, until /loop stop 2583ms
+     ✓ an agent-paced loop tells the model to pick the next wake 520ms
+     ✓ without an interval the agent picks each wake, and the loop ends when it picks none 1539ms
+     ✓ a loop prompt that names a skill attaches the skill on every iteration 1413ms
+     ✓ the agent can arm a loop itself, as pstack playbooks tell it to (review: parity 1) 1405ms
+     ✓ a new wake_in replaces a wake that is already scheduled (review r2: parity 2) 1355ms
+     ✓ an agent-paced loop waits for background subagents instead of ending (review: parity 1) 1980ms
+     ✓ aborting a loop run stops the loop (review: architecture) 3301ms
+     ✓ naming Loop in --tools does not bring it back in a one-shot run (recheck 2) 305ms
+     ✓ print and JSON runs refuse /loop because the process exits 322ms
+ ✓ test/e2e/task.e2e.test.ts (46 tests) 45386ms
+   ✓ foreground (5)
+     ✓ returns the response in Cursor format with agent ID, usage, and a transcript (TASK-002, TASK-012, TASK-014) 1912ms
+     ✓ a failed child returns an error status with its message (TASK-015) 949ms
+     ✓ an invalid model fails with the allowed list before any child starts (TASK-007) 471ms
+     ✓ a Cursor slug picks the model and thinking level (TASK-007) 763ms
+     ✓ file attachments reach the child first message (TASK-016) 497ms
+   ✓ cloud worktrees (TASK-010) (6)
+     ✓ runs the child in its own worktree on pstack/<agent id> from the parent's HEAD, without uncommitted changes 692ms
+     ✓ cloud_base_branch picks the branch the worktree starts from 475ms
+     ✓ cloud_base_branch without environment cloud fails 446ms
+     ✓ resume runs the agent in its recorded worktree, from the parent workspace 1340ms
+     ✓ resume fails when the recorded worktree is gone 707ms
+   ✓ subagent types (9)
+     ✓ comment-sicko runs with its agent body in the system prompt (TASK-006) 499ms
+     ✓ readonly limits the child to read, grep, find, ls, a read-only shell, and its todo list (TASK-008, TASK-019) 458ms
+     ✓ a readonly child runs git log but cannot write files or reach the network (TASK-019) 864ms
+     ✓ a writable child keeps the ordinary shell (TASK-019) 887ms
+     ✓ a subagent gets the project resources its parent trusted (review r2: security) 1134ms
+     ✓ a child's system prompt names the main chat's store as the root agent's store (autopilot-full step 2) 673ms
+     ✓ a normal child has write tools and the pstack tools 665ms
+     ✓ a subagent of a subagent cannot launch more (TASK-011) 786ms
+   ✓ background and parallel (6)
+     ✓ returns at once and delivers a <task> notification after the turn (TASK-003) 2180ms
+     ✓ while a subagent runs, its run lock names the child process that writes the transcript (recheck) 558ms
+     ✓ the background notification records the child usage (review r2: architecture 1) 641ms
+     ✓ a failed background child notifies with status error and its message (TASK-015) 558ms
+     ✓ poteto-agent runs in the background by default (TASK-009) 522ms
+     ✓ two Task calls in one message run at the same time (TASK-004) 1773ms
+   ✓ usage accounting (2)
+     ✓ foreground usage includes what the child spent on its own subagent (review r2: architecture 2) 870ms
+     ✓ foreground subagent usage enters the session totals (TASK-014) 478ms
+   ✓ resume over RPC (1)
+     ✓ continues the same transcript, refuses running and unknown agents (TASK-005) 4912ms
+   ✓ resume across processes and workspaces (3)
+     ✓ a new Pi process in the same workspace resumes the agent with its context (TASK-005) 980ms
+     ✓ another workspace cannot resume it, so agents never cross workspaces (review: parity 4, security) 754ms
+     ✓ two calls in one message that resume the same agent get one writer (review: security 3, architecture 2) 2472ms
+   ✓ resume edge cases (9)
+     ✓ honors readonly: true for an agent that started writable (review r2: security 2) 1067ms
+     ✓ a raised readonly floor survives later resumes requesting undefined 1436ms
+     ✓ a raised readonly floor survives later resumes requesting false 1461ms
+     ✓ resume honors a current readonly agent definition over an older writable record 1120ms
+     ✓ a subagent that resumes a depth-1 agent runs it one level down, so nesting stays capped (recheck r2: 1) 1524ms
+     ✓ an agent keeps its depth on resume, so the root cannot lift a grandchild (review r2: architecture) 2604ms
+   ✓ child environment (2)
+     ✓ a bad attachment leaves no agent record behind (review: security 4, architecture 8) 305ms
+     ✓ commands a subagent runs do not inherit the port's variables (review: architecture) 867ms
+   ✓ cancellation (3)
+     ✓ aborting the parent turn stops a foreground child (TASK-013) 455ms
+     ✓ closing the session stops a background child (TASK-013) 513ms
+     ✓ a subagent busy in a silent command exits when its parent is killed outright (review: parity 5) 1836ms
+
+ Test Files  28 passed (28)
+      Tests  329 passed | 8 skipped (337)
+   Start at  23:44:41
+   Duration  46.69s (tests 81%, import 18%, transform 1%)
+
