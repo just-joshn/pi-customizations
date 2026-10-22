@@ -49,7 +49,7 @@ describe('host map (HOST-001)', () => {
     expect(host).toContain(
       "- Image generation (the image tool teach reaches for, ketchup's generated image): Pi generates images through codemode's models.generateImages() when codemode is on and an image model is configured. Otherwise say no image tool is available and use a mermaid diagram or a table. Cursor's `/visualize` charts have no Pi counterpart, so draw a chart as a mermaid diagram (xychart-beta for numbers).",
     );
-    expect(host).toContain('Installed skills (60): architect, arena, automate-me,');
+    expect(host).toContain('Installed skills (61): architect, arena, automate-me,');
     expect(host).toContain(
       `\`agent-transcripts/\` and \`~/.cursor/projects/<slug>/agent-transcripts/\` mean ${join(sandbox.agentDir, 'sessions')}/--${sandbox.workDir.replace(/^\//, '').replaceAll('/', '-')}--, Pi session JSONL files for this workspace. Each line is an entry: the first is a session header, and conversation turns have type "message" (the opening prompt is the first user message).`,
     );

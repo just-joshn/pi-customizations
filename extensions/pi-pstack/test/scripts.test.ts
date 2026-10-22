@@ -1,5 +1,5 @@
 import { execFileSync, spawnSync } from 'node:child_process';
-import { chmodSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, cpSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -46,6 +46,25 @@ describe('bundled scripts run from the package (SCRIPT-001)', () => {
     expect(header).toBe('ts\tphase\tdecision\twhy\tevidence\tresult');
     expect(first?.split('\t').slice(1)).toEqual(['frame', 'counted the work', 'size first', 'commit abc', "'=SUM(A1)"]);
     expect(second?.split('\t').slice(1)).toEqual(['build', 'shipped', 'tests green', "'-", 'ok']);
+  });
+});
+
+describe('statechart.mjs runs from the package (SCRIPT-001)', () => {
+  const STATECHART = join(SKILLS_DIR, 'statechart/scripts');
+
+  test('--help prints the commands and exits 0', () => {
+    const result = spawnSync('node', [join(STATECHART, 'statechart.mjs'), '--help'], { encoding: 'utf8', timeout: 60_000 });
+    expect(result.stdout.split('\n')[0]).toBe('Usage: node statechart.mjs from-spec SPEC.tla [--fixed FIXED.tla | --against AGREED.tla] [--label TEXT] [--map FILE] [--expect-broken RULE]... [--title TEXT] [--out DIR] [--png]');
+    expect(result.status).toBe(0);
+  });
+
+  test('from-spec without TLA2TOOLS says where to get TLC, exits 2, and writes nothing', () => {
+    cpSync(join(STATECHART, 'model'), scratch, { recursive: true });
+    const { TLA2TOOLS: _unset, ...env } = process.env;
+    const result = spawnSync('node', [join(STATECHART, 'statechart.mjs'), 'from-spec', join(scratch, 'OutputFolder.tla')], { encoding: 'utf8', env, timeout: 60_000 });
+    expect(result.stderr).toBe('Cannot find TLC. Download tla2tools.jar from a TLA+ release:\n  https://github.com/tlaplus/tlaplus/releases\nThen set TLA2TOOLS to the path of tla2tools.jar, and JAVA to a java binary (Java 11 or later).\n');
+    expect(result.status).toBe(2);
+    expect(readdirSync(scratch).toSorted()).toEqual(['OutputFolder.cfg', 'OutputFolder.map.mjs', 'OutputFolder.tla']);
   });
 });
 

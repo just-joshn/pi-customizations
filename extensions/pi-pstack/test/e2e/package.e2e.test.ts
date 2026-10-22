@@ -45,7 +45,7 @@ test('installs from a fresh copy without node_modules, then removes cleanly (PKG
     'skill:how',
     'skill:poteto-mode',
   ]);
-  expect(installed.commands.filter((name) => name.startsWith('skill:'))).toHaveLength(60);
+  expect(installed.commands.filter((name) => name.startsWith('skill:'))).toHaveLength(61);
   expect(
     installed.tools
       .split(',')
