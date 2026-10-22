@@ -1,0 +1,112 @@
+✔ a transition on a composite leaves from every state inside it (2.074334ms)
+✔ the deepest source wins when a composite and a state inside it share a label (0.232125ms)
+✔ a top-level composite split by -- makes one region per part (0.255208ms)
+✔ a rule's sentence is the comment lines right above it, and a state key ignores field order (0.232583ms)
+✔ the legend is not part of the machine (0.086333ms)
+✔ the parser refuses charts it cannot read (0.383833ms)
+✔ the parser reads class shorthand, repeated descriptions, and states first named inside a composite (0.127042ms)
+✔ TLC values, states, graphs, and traces parse (0.760959ms)
+✔ a rule broken by a start state is a counterexample of one state (0.18225ms)
+✔ TLC output from a run that failed or stopped early is refused (0.254042ms)
+✔ a step that changes nothing keeps a state unsettled, and a quote in a reader label survives the chart (35.966209ms)
+✔ chart-to-tla writes one action per label and one invariant per never line (35.243166ms)
+✔ chart-to-tla refuses a never line that names no state (35.289625ms)
+✔ a never line names a state exactly, or every state inside a composite (37.158625ms)
+✔ compare reads parallel regions as one machine, so a guard across regions shows (74.691875ms)
+✔ a %% when line guards a step on the other region's states, and [words] are only its text (70.881708ms)
+✔ a label with a guarded and an unguarded move in one region writes both moves (35.523ms)
+✔ compare reads a one-region chart as the machine its steps reach, without steps that change nothing (66.847166ms)
+✔ a -- outside a composite is refused, not read as one region (143.844542ms)
+✔ compare refuses a chart it cannot read, or an ACTUAL chart that is not drawn for comparison (185.990625ms)
+✔ an edge lists every step, writes shared leading words once, and the chart renders at its natural width (145.924458ms)
+✔ statechart.mjs writes the spec next to the chart, keeps it on the next run, and stops without TLC (182.348292ms)
+✔ statechart.mjs writes no output folder when it refuses the input (182.292458ms)
+✔ statechart.mjs does not use an output folder that has files that it did not write (70.960833ms)
+✔ statechart.mjs exits 2 and names a helper script that cannot start (37.251625ms)
+✔ statechart.mjs names the chart it refuses and the argument it does not know (318.961042ms)
+✔ every script prints its help with -h or --help, and points at it for an argument it does not know (659.079375ms)
+✔ from-chart checks the agreed chart and draws it back unchanged (681.536667ms)
+✔ TLC reads a label with a guarded and an unguarded move in one region (711.66975ms)
+✔ from-chart finds the design bug, and from-spec with the fix marks it fixed (5512.232709ms)
+✔ --png exits 2 unless every chart renders, even with --expect-broken, and keeps the files it wrote (3517.93025ms)
+✔ a state reached only after a bug takes the bug's color, and the fix edge leaves the state before the changed step (756.183209ms)
+✔ from-spec writes a mapping to fill in, then draws each bug in every view the mapping has (1690.701ms)
+✔ a rule broken by a start state marks that state wrong (328.66675ms)
+✔ a bug that only the fixed model has is numbered after the current bugs and drawn wrong (703.028375ms)
+✔ states of one context sit in one box, and an arrow from the box's border stands for the same step from each (372.627583ms)
+✔ from-spec --against compares the code with the spec on the parts both have, and --expect-broken sets the exit code (9160.28125ms)
+✔ from-chart checks a chart whose regions guard each other, and draws it back unchanged (1136.032333ms)
+✔ from-spec draws parallel regions only when they combine back into TLC's graph, and boxes otherwise (1484.976167ms)
+✔ the mapping's guard words show on an arrow only when every model step behind it has them (1497.208416ms)
+✔ the mapping's timer() writes after N s on timer steps, and refuses a value that is not seconds (1456.474292ms)
+✔ group() fills each state with its group's color, and the legend lists only the groups the chart draws (741.477833ms)
+✔ the mapping cannot hide a broken rule, and refuses a status name, a dark or bad color, or a group that is not a name (1068.455917ms)
+✔ the fix changes a bug only at the first step that the reader sees differently (5581.412459ms)
+✔ a step the reader does not see breaks the rule, and the fix shows it on another screen (2470.4245ms)
+✔ each looping step on a bug path keeps its own label, a null cause groups bugs by end state, and the mapping names the key's colors (747.853ms)
+✔ a rule that stays broken reports only the step that broke it (761.849334ms)
+✔ from-spec warns when steps carry the name of the whole next-state action (787.432333ms)
+✔ a rerun without --png removes the chart.png of an earlier run (343.209ms)
+✔ a run whose Node is killed mid-TLC leaves the output folder as it was, and a rerun charts its own spec (1069.144292ms)
+✔ a run whose spec changes while it reads it leaves the output folder, and the run that read the new spec charts it (4000.251084ms)
+﹣ runs in PID namespaces that hide which namespace they are in chart only their own spec (0.113583ms) # cannot make a PID namespace, or cannot compile a readlink preload
+✔ a file that is put in the output folder during a run stays, and the run exits 2 (3435.137958ms)
+✖ a run whose rename fails after it moves the output folder aside puts the folder back, or says where it is (796.136917ms)
+✖ each TLC run writes the standard modules in its own temp folder, so overlapping runs cannot rewrite them under each other (824.268375ms)
+✔ a run that TLC stops on an error keeps TLC's output and writes no output folder (349.253708ms)
+✔ runs of two specs that overlap on one output folder all finish, and the folder always holds one run's files (2885.011125ms)
+✔ the output folder model keeps every rule, and breaks one with a shared TLC folder, without each guard, or when a failed rename deletes the folder moved aside (23286.658458ms)
+ℹ tests 58
+ℹ suites 0
+ℹ pass 55
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 1
+ℹ todo 0
+ℹ duration_ms 80589.733666
+
+✖ failing tests:
+
+test at skills/statechart/scripts/test/statechart.test.mjs:2575:1
+✖ a run whose rename fails after it moves the output folder aside puts the folder back, or says where it is (796.136917ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  0 !== 2
+  
+      at TestContext.<anonymous> (file:///Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/statechart/scripts/test/statechart.test.mjs:2590:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 2,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at skills/statechart/scripts/test/statechart.test.mjs:2611:1
+✖ each TLC run writes the standard modules in its own temp folder, so overlapping runs cannot rewrite them under each other (824.268375ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'Parsing file /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/statechart-1XfnKM/tmp/tlc-npKUjv/tmp/tlc-7811307657427423740/Naturals.tla (jar:file:/private/tmp/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)'
+  - 'Parsing file /var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/statechart-1XfnKM/tmp/tlc-npKUjv/tmp/Naturals.tla'
+  
+      at TestContext.<anonymous> (file:///Users/josh-desktop/src/personal/update-pi-pstack-to-latest-pstack-version/extensions/pi-pstack/skills/statechart/scripts/test/statechart.test.mjs:2646:14)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'Parsing file /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/statechart-1XfnKM/tmp/tlc-npKUjv/tmp/tlc-7811307657427423740/Naturals.tla (jar:file:/private/tmp/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)',
+    expected: 'Parsing file /var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/statechart-1XfnKM/tmp/tlc-npKUjv/tmp/Naturals.tla',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

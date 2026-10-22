@@ -1,0 +1,43 @@
+{
+  "scenario": "setup",
+  "requirement": "LIVE-003",
+  "model": "deepseek/deepseek-flash",
+  "prompt": "/setup-pstack Use the large budget and keep the skill's mapping. For a role whose default model is not available, use the closest available model of the same family, else inherit-parent. Do not ask me anything; write the rule now.",
+  "exitCode": 0,
+  "seconds": 13,
+  "checks": {
+    "ruleWritten": true,
+    "alwaysApply": true,
+    "missingRoles": [],
+    "distinctValues": [
+      "inherit-parent"
+    ],
+    "unresolvedValues": [],
+    "wroteCursorRule": false,
+    "rule": "---\ndescription: pstack per-role model choices (overrides skill defaults)\nalwaysApply: true\n---\n# pstack model configuration. One line per role. Delete a line to fall back to the skill default.\n# `inherit-parent` or `auto` as a value: the role runs on the parent chat model (omit Task `model`). Alias entries in a panel list still count toward its fan-out.\n# budget: large (xhigh)\n# Detected families in this session: openai (gpt-*/o*), zai (glm-*), deepseek. No claude or grok models are available,\n# so every skill-default role (all claude-opus-5-5-xhigh / grok-4.7-xhigh-fast) falls back to inherit-parent.\n# Panel lists keep two entries so their fan-out count is unchanged.\nfeature, refactoring: inherit-parent\nbug-fix: inherit-parent\nperf-issue: inherit-parent\nhillclimb: inherit-parent\njudgment and prose: inherit-parent\nhardest tasks: inherit-parent\nhow explorer: inherit-parent\nhow explainer: inherit-parent\nwhy investigators: inherit-parent\nwhy synthesizer: inherit-parent\nreflect tooling: inherit-parent\nreflect judgment, divergent, synthesizer: inherit-parent\narena runners: inherit-parent, inherit-parent\narena cross-judge pool: inherit-parent, inherit-parent\nswarm workers: inherit-parent\narchitect runners: inherit-parent, inherit-parent\ninterrogate reviewers: inherit-parent, inherit-parent\n"
+  },
+  "toolCalls": [
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"ls -la /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-UJlC0V/agent/pstack/ 2>&1; echo \\\"---\\\"; cat /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-UJlC0V/agent/pstack/pstack-models.mdc 2>&1\"}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"cd /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-UJlC0V/work && ls -a; echo \\\"--- verify skills ---\\\"; ls .pi/skills 2>/dev/null; ls .claude/skills 2>/dev/null\"}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"mkdir -p /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-UJlC0V/agent/pstack && echo ok\"}"
+    },
+    {
+      "name": "write",
+      "arguments": "{\"path\":\"/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-UJlC0V/agent/pstack/pstack-models.mdc\",\"content\":\"---\\ndescription: pstack per-role model choices (overrides skill defaults)\\nalwaysApply: true\\n---\\n# pstack model configuration. One line per role. Delete a line to fall back to the skill default.\\n# `inherit-parent` or `auto` as a value: the role runs on the parent chat model (omit Task `model`). Alias entries in a panel list still count toward its fan-out.\\n# budget: large (xhigh)\\n# Detected families in this session: openai (gpt-*/o*), zai (glm-*), deepseek. No cl"
+    },
+    {
+      "name": "read",
+      "arguments": "{\"path\":\"/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-UJlC0V/agent/pstack/pstack-models.mdc\",\"offset\":null,\"limit\":null}"
+    }
+  ],
+  "finalText": "Rule written: `/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-UJlC0V/agent/pstack/pstack-models.mdc` (`alwaysApply: true`, budget `large (xhigh)`). It applies to new sessions; re-running `/setup-pstack` rewrites it.\n\n**What happened to the mapping.** I detected these families for `Task`: `openai` (gpt-4…gpt-6.1-sol, o-series), `zai` (glm-4.7…glm-5.3-highspeed), `deepseek` (deepseek-flash, deepseek-v4-pro). The skill defaults are all `claude-opus-5-5-*` and `grok-4.7-*`, and neither the Claude nor the Grok family is available here — so \"closest same-family model, else `inherit-parent`\" resolves to `inherit-parent` for every role. `inherit-parent` always passes validation, and the `large` budget is a no-op on aliases.\n\nTwo consequences worth knowing:\n\n- Every pstack role now runs on the parent chat model. That's the same behavior as having no rule, so this file currently pins nothing except the budget declaration and the fan-out shape.\n- Panel lists (`arena runners`, `arena cross-judge pool`, `architect runners`, `interrogate reviewers`) kept **two** entries so the fan-out count is unchanged, even though both entries are now the same alias — those pairs run as two same-model subagents.\n\nIf you'd rather have real slugs pinned, the available set above means pstack roles would have to move to `openai/gpt-5.6-sol`-class or `zai/glm-5.3`-class models. Say the word and I'll map each role onto those families instead.\n\nSkipped in Pi: steps 7 and 8 offers (verify skill / formal verification skill) — you said not to ask; the workspace is an empty git checkout with no `verify-*` or formal-verification skill, so either could be generated later with `/create-verification-skill` or `/create-formal-verification-skill`.\n\nFor a parent chat to loop on: nothing blocking here.",
+  "stderrTail": ""
+}
