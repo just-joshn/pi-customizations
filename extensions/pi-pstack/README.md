@@ -1,6 +1,6 @@
 # pstack for Pi (pi-pstack)
 
-This package ports the Cursor plugin [pstack](https://github.com/cursor/plugins/tree/main/pstack) 0.15.29 to Pi 1.4.0, together with what pstack depends on: the `deslop`, `control-cli`, and `control-ui` skills from cursor-team-kit 1.2.0, and the Cursor host features that pstack's skills call by name. The skills ship as upstream wrote them. A small extension supplies the host features in Pi: `/name` skill commands, Custom Modes, the `Task` subagent tool, `TodoWrite`, `AskQuestion`, the always-applied model rule, `/loop`, and a system-prompt map from Cursor paths to Pi paths.
+This package ports the Cursor plugin [pstack](https://github.com/cursor/plugins/tree/main/pstack) 0.15.30 to Pi 1.4.0, together with what pstack depends on: the `deslop`, `control-cli`, and `control-ui` skills from cursor-team-kit 1.2.0, and the Cursor host features that pstack's skills call by name. The skills ship as upstream wrote them. A small extension supplies the host features in Pi: `/name` skill commands, Custom Modes, the `Task` subagent tool, `TodoWrite`, `AskQuestion`, the always-applied model rule, `/loop`, and a system-prompt map from Cursor paths to Pi paths.
 
 ## Get set up
 
@@ -76,10 +76,11 @@ Subagent transcripts are Pi sessions in `~/.pi/agent/pstack/workspaces/<workspac
 - Workspace folders follow Pi's session-folder naming, so two paths that differ only by `/` versus `-` (`/a-b/c` and `/a/b-c`) share a folder, as they share Pi's session folder; resume refuses an agent whose record names the other directory.
 - The run lock that keeps one writer per agent ID names the process writing the transcript. Two Pi processes that take over the same stale lock within microseconds of each other could both succeed. A lock file without a readable pid counts as held; the error names the file to delete.
 - The Bun tools under `skills/poteto-mode/scripts/` (`watch-pr`, `orch`) need Bun, and install their one dependency on first run. `worktree-audit.sh` needs `rg`, `jq`, and macOS's BSD `stat` and `date`, as upstream does.
+- `statechart` needs Java 11 or later and `TLA2TOOLS` set to the path of `tla2tools.jar` from a [TLA+ release](https://github.com/tlaplus/tlaplus/releases); without `TLA2TOOLS` it says where to get TLC and exits 2. Its `--png` flag renders through `npx @mermaid-js/mermaid-cli`, as upstream documents.
 
 ## Maintain it
 
-`upstream.lock.json` pins `cursor/plugins@699e1e7` (pstack 0.15.29) and records every shipped file's source and hash. Two transforms exist: each `SKILL.md` gets its `name` set to its directory, with Cursor-only fields moved under `metadata` as `cursor-*`, and `worktree-audit.sh` reads Pi session files instead of Cursor transcripts, finding them the way Pi does: `PI_CODING_AGENT_SESSION_DIR`, then a `sessionDir` setting, then one folder per working directory (`scripts/patches.json`). `skills/create-skill/` is authored here.
+`upstream.lock.json` pins `cursor/plugins@eb4db2b` (pstack 0.15.30) and records every shipped file's source and hash. Two transforms exist: each `SKILL.md` gets its `name` set to its directory, with Cursor-only fields moved under `metadata` as `cursor-*`, and `worktree-audit.sh` reads Pi session files instead of Cursor transcripts, finding them the way Pi does: `PI_CODING_AGENT_SESSION_DIR`, then a `sessionDir` setting, then one folder per working directory (`scripts/patches.json`). `skills/create-skill/` is authored here.
 
 ```sh
 git clone https://github.com/cursor/plugins.git /tmp/cursor-plugins
@@ -90,7 +91,7 @@ bun run test
 bun run live:e2e -- --model deepseek/deepseek-flash      # real-model scenarios; needs credentials and gives the model under test your real auth.json (see the script header)
 ```
 
-The parity record for the 0.15.21 port is in `parity/pi-pstack-two/` (the archive keeps its recorded name): specification, design decisions, the ledger, fixtures, evidence, and reviews. The move to 0.15.29 and Pi 1.3.0 is recorded in `parity/pi-pstack-0.15.29/`: the decision log and its evidence. The move to Pi 1.4.0 is recorded in `parity/pi-pstack-pi-1.4.0/`.
+The parity record for the 0.15.21 port is in `parity/pi-pstack-two/` (the archive keeps its recorded name): specification, design decisions, the ledger, fixtures, evidence, and reviews. The move to 0.15.29 and Pi 1.3.0 is recorded in `parity/pi-pstack-0.15.29/`: the decision log and its evidence. The move to Pi 1.4.0 is recorded in `parity/pi-pstack-pi-1.4.0/`. The move to 0.15.30, which adds the `statechart` skill, is recorded in `parity/pi-pstack-0.15.30/`.
 
 ## Licenses
 
