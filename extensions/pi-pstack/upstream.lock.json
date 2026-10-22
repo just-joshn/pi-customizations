@@ -1,8 +1,8 @@
 {
   "source": {
     "repository": "https://github.com/cursor/plugins",
-    "commit": "699e1e7488c53c05ca13409f40da83cd37682091",
-    "pstackVersion": "0.15.29",
+    "commit": "eb4db2b55b2b7dec3d9282754cddf0a56bf4ff10",
+    "pstackVersion": "0.15.30",
     "teamKitVersion": "1.2.0"
   },
   "files": [
@@ -163,8 +163,8 @@
       "target": "docs/guide/06-verify-and-ship.md",
       "transform": "none",
       "mode": "100644",
-      "sourceSha256": "5c16c88bf377bf5ea5ffd4cd9dc1a83f19a0415090cc4645865d16a5500d1cab",
-      "targetSha256": "5c16c88bf377bf5ea5ffd4cd9dc1a83f19a0415090cc4645865d16a5500d1cab"
+      "sourceSha256": "9276f7a20f72c115536e0a12f08aa2e9699fcd7498c217d9a02a7149c7d3a4a8",
+      "targetSha256": "9276f7a20f72c115536e0a12f08aa2e9699fcd7498c217d9a02a7149c7d3a4a8"
     },
     {
       "source": "pstack/docs/guide/07-overnight.md",
@@ -584,8 +584,8 @@
       "target": "skills/poteto-help/SKILL.md",
       "transform": "frontmatter",
       "mode": "100644",
-      "sourceSha256": "67c77ee5e91c19809b01d08cc73cc2870a52fb95fc64dc33328bf8ff9e49891c",
-      "targetSha256": "67c77ee5e91c19809b01d08cc73cc2870a52fb95fc64dc33328bf8ff9e49891c",
+      "sourceSha256": "7022e2cd0d65d5964151444c4efa82a34792a6644210a0ba60d7d6cfa69c72b8",
+      "targetSha256": "7022e2cd0d65d5964151444c4efa82a34792a6644210a0ba60d7d6cfa69c72b8",
       "sourceFrontmatter": "name: poteto-help\ndescription: Guides users through pstack setup, /poteto-mode, and picking the skill, playbook, or principle for a task. Type /poteto-help with a question.\ndisable-model-invocation: true"
     },
     {
@@ -1265,6 +1265,103 @@
       "sourceSha256": "920a8217cbb62f92a2222fb81fc9eab17ecd554a0277e444a95a927195139bd1",
       "targetSha256": "920a8217cbb62f92a2222fb81fc9eab17ecd554a0277e444a95a927195139bd1",
       "sourceFrontmatter": "name: show-me-your-work\ndescription: \"Keep a reviewable decision trail for long-running or unattended work: a TSV log with one row per decision (what, why, evidence, result). Local by default; commit it when a reviewer needs the trail to trust the result. Use for /show-me-your-work, autonomous or multi-phase runs, or work a human reviews after stepping away.\"\ndisable-model-invocation: true"
+    },
+    {
+      "source": "pstack/skills/statechart/scripts/chart-to-tla.mjs",
+      "target": "skills/statechart/scripts/chart-to-tla.mjs",
+      "transform": "none",
+      "mode": "100644",
+      "sourceSha256": "9f794e273d0729ae874d68a67bfa1df4ebddc12420b7ab5081fdf58dceb729e4",
+      "targetSha256": "9f794e273d0729ae874d68a67bfa1df4ebddc12420b7ab5081fdf58dceb729e4"
+    },
+    {
+      "source": "pstack/skills/statechart/scripts/compare-charts.mjs",
+      "target": "skills/statechart/scripts/compare-charts.mjs",
+      "transform": "none",
+      "mode": "100644",
+      "sourceSha256": "12f4dc4700093156978ef1785b92739c8cf1e8375b8d13201fcdc2006a20c43b",
+      "targetSha256": "12f4dc4700093156978ef1785b92739c8cf1e8375b8d13201fcdc2006a20c43b"
+    },
+    {
+      "source": "pstack/skills/statechart/scripts/lib.mjs",
+      "target": "skills/statechart/scripts/lib.mjs",
+      "transform": "none",
+      "mode": "100644",
+      "sourceSha256": "47731d9dba3fd831bb81b739af31f2dd80b7a25dd6fa6786ee3c0d531e1ab781",
+      "targetSha256": "47731d9dba3fd831bb81b739af31f2dd80b7a25dd6fa6786ee3c0d531e1ab781"
+    },
+    {
+      "source": "pstack/skills/statechart/scripts/model/OutputFolder.cfg",
+      "target": "skills/statechart/scripts/model/OutputFolder.cfg",
+      "transform": "none",
+      "mode": "100644",
+      "sourceSha256": "8b9662ab7d51de9d54f84abab02888822da9c01ce4f1b86a6453a8a513773995",
+      "targetSha256": "8b9662ab7d51de9d54f84abab02888822da9c01ce4f1b86a6453a8a513773995"
+    },
+    {
+      "source": "pstack/skills/statechart/scripts/model/OutputFolder.map.mjs",
+      "target": "skills/statechart/scripts/model/OutputFolder.map.mjs",
+      "transform": "none",
+      "mode": "100644",
+      "sourceSha256": "33f2ef1c2ba397573206640843fffbc228d066e53fe5ced779d82f99600f3fd8",
+      "targetSha256": "33f2ef1c2ba397573206640843fffbc228d066e53fe5ced779d82f99600f3fd8"
+    },
+    {
+      "source": "pstack/skills/statechart/scripts/model/OutputFolder.tla",
+      "target": "skills/statechart/scripts/model/OutputFolder.tla",
+      "transform": "none",
+      "mode": "100644",
+      "sourceSha256": "75bef6811d9a8e56bd702fd8d782e52101918c8dc05c6cc9dc43d02b9fe1b56f",
+      "targetSha256": "75bef6811d9a8e56bd702fd8d782e52101918c8dc05c6cc9dc43d02b9fe1b56f"
+    },
+    {
+      "source": "pstack/skills/statechart/scripts/statechart.mjs",
+      "target": "skills/statechart/scripts/statechart.mjs",
+      "transform": "none",
+      "mode": "100644",
+      "sourceSha256": "d352ca68fb05cef8673ce1b86ea516cc619ff6c1f4faea70233de59bcdf7a9b7",
+      "targetSha256": "d352ca68fb05cef8673ce1b86ea516cc619ff6c1f4faea70233de59bcdf7a9b7"
+    },
+    {
+      "source": "pstack/skills/statechart/scripts/test/statechart.test.mjs",
+      "target": "skills/statechart/scripts/test/statechart.test.mjs",
+      "transform": "none",
+      "mode": "100644",
+      "sourceSha256": "494119bb923d25876d4984c6831a6ffcbdfd697c5f834cd6e61121ca5530b83c",
+      "targetSha256": "494119bb923d25876d4984c6831a6ffcbdfd697c5f834cd6e61121ca5530b83c"
+    },
+    {
+      "source": "pstack/skills/statechart/scripts/test/sync.mmd",
+      "target": "skills/statechart/scripts/test/sync.mmd",
+      "transform": "none",
+      "mode": "100644",
+      "sourceSha256": "cb1f5387058a0f79d6187eb217690588a2e2d384637b4d53cbc4bb050c570757",
+      "targetSha256": "cb1f5387058a0f79d6187eb217690588a2e2d384637b4d53cbc4bb050c570757"
+    },
+    {
+      "source": "pstack/skills/statechart/scripts/test/upload.mmd",
+      "target": "skills/statechart/scripts/test/upload.mmd",
+      "transform": "none",
+      "mode": "100644",
+      "sourceSha256": "bbc1fa70e26cbcbcc7cde5d8fb7eda26df34b6d973053bf13c40b18527ff0e76",
+      "targetSha256": "bbc1fa70e26cbcbcc7cde5d8fb7eda26df34b6d973053bf13c40b18527ff0e76"
+    },
+    {
+      "source": "pstack/skills/statechart/scripts/tlc-to-chart.mjs",
+      "target": "skills/statechart/scripts/tlc-to-chart.mjs",
+      "transform": "none",
+      "mode": "100644",
+      "sourceSha256": "ce41082fbc7aac05f135ccfd1e80705c60e5b38364187dd22fb1e27fdb017cd6",
+      "targetSha256": "ce41082fbc7aac05f135ccfd1e80705c60e5b38364187dd22fb1e27fdb017cd6"
+    },
+    {
+      "source": "pstack/skills/statechart/SKILL.md",
+      "target": "skills/statechart/SKILL.md",
+      "transform": "frontmatter",
+      "mode": "100644",
+      "sourceSha256": "ad01133b5578a6e1949edeee7ccd49f918c0a37c980e9b8adc1ca27c28fbd959",
+      "targetSha256": "ad01133b5578a6e1949edeee7ccd49f918c0a37c980e9b8adc1ca27c28fbd959",
+      "sourceFrontmatter": "name: statechart\ndescription: \"Draw what an app's user sees as a Mermaid statechart from a TLA+ model. States are gray if they work, red if still wrong, and green if fixed. Each bug TLC finds is a numbered path. Use for /statechart, \\\"show the PM the bug\\\", or to turn an agreed chart into a TLA+ skeleton.\"\ndisable-model-invocation: true"
     },
     {
       "source": "pstack/skills/swarm/SKILL.md",

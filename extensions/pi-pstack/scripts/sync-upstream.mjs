@@ -11,8 +11,8 @@ import { fileURLToPath } from 'node:url';
 
 export const SOURCE = {
   repository: 'https://github.com/cursor/plugins',
-  commit: '699e1e7488c53c05ca13409f40da83cd37682091',
-  pstackVersion: '0.15.29',
+  commit: 'eb4db2b55b2b7dec3d9282754cddf0a56bf4ff10',
+  pstackVersion: '0.15.30',
   teamKitVersion: '1.2.0',
 };
 
