@@ -55,7 +55,11 @@ describe('host map (HOST-001)', () => {
     expect(host).toContain(
       `\`agent-transcripts/\` and \`~/.cursor/projects/<slug>/agent-transcripts/\` mean ${join(sandbox.agentDir, 'sessions')}/--${sandbox.workDir.replace(/^\//, '').replaceAll('/', '-')}--, Pi session JSONL files for this workspace. Each line is an entry: the first is a session header, and conversation turns have type "message" (the opening prompt is the first user message).`,
     );
-    expect(host).toContain('MCP tools are named mcp__<server>__<tool>; `pi mcp list` shows the servers.');
+    expect(host).toContain('MCP tools are named mcp__<server>__<tool>; `pi mcp list` shows the servers. Cursor\'s available-tools map and its `mcps/` directory both mean `pi mcp list`.');
+    expect(host).toContain(
+      "- Media in a reply: Pi's chat renders no image or video inside a reply. To show the user a screenshot or a frame, read the image file with the read tool, which displays it inline in terminals that support images, and name its path. A video cannot play in Pi, so give the video's path and read one frame from each slide.",
+    );
+    expect(host).toContain(`Pi usage is in ${join(PACKAGE_ROOT, 'README.md')}. Cursor's \`/add-plugin pstack\` and Customize sidebar mean \`pi install\` with this package, as that README describes. Cursor's Plan Mode has no Pi counterpart.`);
     expect(host).toContain("Cursor's built-in create-skill skill is <SKILLS>/create-skill/SKILL.md. `.cursor/skills/` means `.pi/skills/`;");
     expect(host).toContain(
       '- Cloud subagents (environment "cloud") run on this machine in their own git worktree on branch pstack/<agent id>, created from cloud_base_branch or this checkout\'s HEAD commit, so uncommitted changes do not reach them. The Task result names the worktree and branch; merge that branch to take the subagent\'s work. Pi never deletes these worktrees or branches; the worktree-cleanup playbook prunes them. Grok Bot routines (update_state, SendToUser) and Cursor Automations (routines, api2.cursor.sh/automations webhooks, routine wakes) have no Pi counterpart, so a step that needs one gets the Skipped in Pi line.',
