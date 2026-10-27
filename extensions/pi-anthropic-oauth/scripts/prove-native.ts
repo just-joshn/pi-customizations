@@ -14,7 +14,7 @@ import { textMessage, toolUseMessage } from '../test/support/sse.ts';
 
 const cliPath = process.env['PI_OAUTH_CLI_PATH'] ?? join(dirname(fileURLToPath(import.meta.resolve('@earendil-works/pi-coding-agent'))), 'bundle/cli.js');
 const { stdout: version } = await promisify(execFile)(process.execPath, [cliPath, '--version']);
-const reference: unknown = JSON.parse(await readFile(new URL('../test/fixtures/claude-code-2.1.296.json', import.meta.url), 'utf8'));
+const reference: unknown = JSON.parse(await readFile(new URL('../test/fixtures/claude-code-2.1.311.json', import.meta.url), 'utf8'));
 if (!isRecord(reference) || typeof reference['prompt'] !== 'string' || typeof reference['billing'] !== 'string' || !isRecord(reference['headers']) || typeof reference['headers']['user-agent'] !== 'string')
   throw new Error('The captured Claude reference is invalid.');
 const root = await mkdtemp(join(tmpdir(), 'pi-oauth-native-'));
@@ -69,7 +69,7 @@ try {
     assert.ok(first);
     assert.equal((await client.fork(first.entryId)).cancelled, false);
     await client.promptAndWait('changed first message', undefined, timeout);
-    assert.equal(systemTexts(server.requests.at(-1)?.body)[0], 'x-anthropic-billing-header: cc_version=2.1.296.9d7; cc_entrypoint=sdk-cli;');
+    assert.equal(systemTexts(server.requests.at(-1)?.body)[0], 'x-anthropic-billing-header: cc_version=2.1.311.fe0; cc_entrypoint=sdk-cli;');
 
     assert.equal(await client.prompt('/verify_oauth_reload'), 'handled');
     const beforeReload = server.requests.length;
@@ -77,7 +77,7 @@ try {
     assert.equal(await client.getLastAssistantText(), 'LOCAL_OK');
     assert.ok(server.requests.length > beforeReload);
     const reloaded = server.requests.at(-1);
-    assert.match(systemTexts(reloaded?.body)[0] ?? '', /^x-anthropic-billing-header: cc_version=2\.1\.296\.[a-f0-9]{3}; cc_entrypoint=sdk-cli;$/);
+    assert.match(systemTexts(reloaded?.body)[0] ?? '', /^x-anthropic-billing-header: cc_version=2\.1\.311\.[a-f0-9]{3}; cc_entrypoint=sdk-cli;$/);
     assert.equal(reloaded?.headers['user-agent'], reference['headers']['user-agent']);
     assert.equal(reloaded?.headers['x-api-key'], undefined);
     assert.equal((await client.newSession()).cancelled, false);

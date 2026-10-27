@@ -1,8 +1,15 @@
-import type { ApiKeyAuth, AuthResult, OAuthAuth, ProviderAuth, ProviderEnv } from '@earendil-works/pi-ai';
+import type { ApiKeyAuth, AuthEvent, AuthResult, OAuthAuth, ProviderAuth, ProviderAuthInteraction, ProviderEnv } from '@earendil-works/pi-ai';
 
-// Measured Claude Code 2.1.296 order. ANTHROPIC_OAUTH_TOKEN is a lower-priority alias that CLI does not consult.
+// Measured Claude Code 2.1.311 order. ANTHROPIC_OAUTH_TOKEN is a lower-priority alias that CLI does not consult.
 const TOKEN_VARIABLES: readonly string[] = ['ANTHROPIC_AUTH_TOKEN', 'CLAUDE_CODE_OAUTH_TOKEN', 'ANTHROPIC_OAUTH_TOKEN'];
 const OAUTH_ACCESS_TOKEN = /^sk-ant-oat01-[A-Za-z0-9_-]+$/;
+
+// Measured from `claude auth login --claudeai` on Claude Code 2.1.311.
+export const CLAUDE_AUTHORIZE_ORIGIN = 'https://claude.com';
+export const CLAUDE_AUTHORIZE_PATH = '/cai/oauth/authorize';
+export const CLAUDE_OAUTH_SCOPES =
+  'org:create_api_key user:profile user:inference user:sessions:claude_code user:mcp_servers user:file_upload user:plugins';
+const CLAUDE_COPY_CODE_LOGIN = 'copy_code';
 
 function tokenAuth(value: string, source: string, env?: ProviderEnv): AuthResult | undefined {
   if (!value) return undefined;
@@ -25,6 +32,32 @@ const subscriptionToken: ApiKeyAuth = {
   },
 };
 
+export function rewriteClaudeAuthorizeUrl(url: string): string {
+  const parsed = new URL(url);
+  const next = new URL(`${CLAUDE_AUTHORIZE_ORIGIN}${CLAUDE_AUTHORIZE_PATH}`);
+  next.search = parsed.search;
+  next.searchParams.set('scope', CLAUDE_OAUTH_SCOPES);
+  return next.toString();
+}
+
+function withClaudeLogin(interaction: ProviderAuthInteraction): ProviderAuthInteraction {
+  return {
+    signal: interaction.signal,
+    prompt: async (prompt) => {
+      // Claude Code's subscription login is paste-code with the platform redirect.
+      if (prompt.type === 'select') return CLAUDE_COPY_CODE_LOGIN;
+      return interaction.prompt(prompt);
+    },
+    notify: (event: AuthEvent) => {
+      if (event.type === 'auth_url') {
+        interaction.notify({ ...event, url: rewriteClaudeAuthorizeUrl(event.url) });
+        return;
+      }
+      interaction.notify(event);
+    },
+  };
+}
+
 export function subscriptionAuth(oauth: OAuthAuth): ProviderAuth {
   return {
     apiKey: subscriptionToken,
@@ -34,7 +67,7 @@ export function subscriptionAuth(oauth: OAuthAuth): ProviderAuth {
       login: async (interaction, options) => {
         interaction.signal.throwIfAborted();
         try {
-          return await oauth.login(interaction, options);
+          return await oauth.login(withClaudeLogin(interaction), options);
         } catch (error) {
           interaction.signal.throwIfAborted();
           // Pi backs out of /login only when the error message is exactly this.

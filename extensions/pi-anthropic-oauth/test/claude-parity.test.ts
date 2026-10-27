@@ -2,31 +2,32 @@ import { readFile } from 'node:fs/promises';
 
 import { createModels, InMemoryCredentialStore } from '@earendil-works/pi-ai';
 import { expect, vi } from 'vitest';
+import { CLAUDE_AUTHORIZE_ORIGIN, CLAUDE_AUTHORIZE_PATH, CLAUDE_OAUTH_SCOPES } from '../src/auth.ts';
 import { ask, PIXEL, user } from './support/context.ts';
 import { OAUTH_ACCESS_TOKEN } from './support/credentials.ts';
 import { test } from './support/fixtures.ts';
 import { soleRequest, systemTexts } from './support/request-body.ts';
 import { collect } from './support/run-stream.ts';
 
-const CAPTURED_BILLING = 'x-anthropic-billing-header: cc_version=2.1.296.c4b; cc_entrypoint=sdk-cli;';
+const CAPTURED_BILLING = 'x-anthropic-billing-header: cc_version=2.1.311.f5c; cc_entrypoint=sdk-cli;';
 
 const fingerprintCases = [
-  { name: 'short text', content: 'hi', expected: '406' },
-  { name: 'length 4', content: 'abcd', expected: '406' },
-  { name: 'length 5', content: 'abcde', expected: '448' },
-  { name: 'length 7', content: 'abcdefg', expected: '448' },
-  { name: 'length 8', content: 'abcdefgh', expected: '55c' },
-  { name: 'length 20', content: 'abcdefghijklmnopqrst', expected: '55c' },
-  { name: 'length 21', content: 'abcdefghijklmnopqrstu', expected: '0e9' },
-  { name: 'empty text (target-only)', content: '', expected: '406' },
-  { name: 'Unicode text', content: '😀 hello 😀 world of Claude', expected: 'a7e' },
-  { name: 'an image without text (target-only)', content: [PIXEL], expected: '406' },
-  { name: 'the first text block after an image (target-only)', content: [PIXEL, { type: 'text', text: 'Reply LOCAL_OK.' }], expected: 'c4b' },
+  { name: 'short text', content: 'hi', expected: '972' },
+  { name: 'length 4', content: 'abcd', expected: '972' },
+  { name: 'length 5', content: 'abcde', expected: 'fd3' },
+  { name: 'length 7', content: 'abcdefg', expected: 'fd3' },
+  { name: 'length 8', content: 'abcdefgh', expected: '3ae' },
+  { name: 'length 20', content: 'abcdefghijklmnopqrst', expected: '3ae' },
+  { name: 'length 21', content: 'abcdefghijklmnopqrstu', expected: '62d' },
+  { name: 'empty text (target-only)', content: '', expected: '972' },
+  { name: 'Unicode text', content: '😀 hello 😀 world of Claude', expected: '020' },
+  { name: 'an image without text (target-only)', content: [PIXEL], expected: '972' },
+  { name: 'the first text block after an image (target-only)', content: [PIXEL, { type: 'text', text: 'Reply LOCAL_OK.' }], expected: 'f5c' },
 ] satisfies readonly { name: string; content: Parameters<typeof user>[0]; expected: string }[];
 
 test.for(fingerprintCases)('billing derives from $name', async ({ content, expected }, { models, model, server }) => {
   await collect(models.streamSimple(model, { messages: [user(content)] }));
-  expect(systemTexts(soleRequest(server).body)[0]).toBe(`x-anthropic-billing-header: cc_version=2.1.296.${expected}; cc_entrypoint=sdk-cli;`);
+  expect(systemTexts(soleRequest(server).body)[0]).toBe(`x-anthropic-billing-header: cc_version=2.1.311.${expected}; cc_entrypoint=sdk-cli;`);
 });
 
 test('later messages keep the first-user identity', async ({ models, model, server }) => {
@@ -39,12 +40,12 @@ test('concurrent requests keep identity request-local', async ({ models, model, 
   const second = ask('changed first message');
   const before = structuredClone([first, second]);
   await Promise.all([collect(models.streamSimple(model, first)), collect(models.streamSimple(model, second))]);
-  expect(new Set(server.requests.map(({ body }) => systemTexts(body)[0]))).toStrictEqual(new Set([CAPTURED_BILLING, 'x-anthropic-billing-header: cc_version=2.1.296.9d7; cc_entrypoint=sdk-cli;']));
+  expect(new Set(server.requests.map(({ body }) => systemTexts(body)[0]))).toStrictEqual(new Set([CAPTURED_BILLING, 'x-anthropic-billing-header: cc_version=2.1.311.fe0; cc_entrypoint=sdk-cli;']));
   expect([first, second]).toStrictEqual(before);
 });
 
 test('identity matches the current Claude SDK fixture', async ({ models, model, server }) => {
-  const reference = JSON.parse(await readFile(new URL('./fixtures/claude-code-2.1.296.json', import.meta.url), 'utf8'));
+  const reference = JSON.parse(await readFile(new URL('./fixtures/claude-code-2.1.311.json', import.meta.url), 'utf8'));
   await collect(models.streamSimple(model, ask(reference.prompt)));
   expect(systemTexts(soleRequest(server).body)[0]).toBe(reference.billing);
   expect(soleRequest(server).headers['user-agent']).toBe(reference.headers['user-agent']);
@@ -52,7 +53,7 @@ test('identity matches the current Claude SDK fixture', async ({ models, model, 
 
 test('the user agent matches the installed Claude Code capture', async ({ models, model, server }) => {
   await collect(models.streamSimple(model, ask('Reply LOCAL_OK.')));
-  expect(soleRequest(server).headers['user-agent']).toBe('claude-cli/2.1.296 (external, sdk-cli)');
+  expect(soleRequest(server).headers['user-agent']).toBe('claude-cli/2.1.311 (external, sdk-cli)');
 });
 
 test('ambient setup tokens stay outside credential storage', async ({ provider, model, server }) => {
@@ -72,22 +73,24 @@ test('ambient API keys are rejected without exposure', async ({ provider }) => {
   await expect(failure).rejects.not.toThrow('not-an-oauth-token');
 });
 
-test('copy-code login keeps native PKCE exchange', async ({ provider, models, tokenEndpoint, credentials }) => {
+test('login matches Claude Code authorize URL, scopes, and paste-code redirect', async ({ provider, models, tokenEndpoint, credentials }) => {
   let urls: readonly URL[] = [];
+  // Ask for browser login; the provider must still follow Claude's paste-code path.
   const credential = await models.login(provider.id, 'oauth', {
     notify: (event) => {
       if (event.type === 'auth_url') urls = [...urls, new URL(event.url)];
     },
     prompt: async (prompt) => {
-      if (prompt.type === 'select') return 'copy_code';
+      if (prompt.type === 'select') return 'browser';
       const [url] = urls;
       if (!url) throw new Error('No authorization URL was shown');
       return `local-code#${url.searchParams.get('state')}`;
     },
   });
   expect(urls).toHaveLength(1);
-  expect(urls[0]?.origin).toBe('https://claude.ai');
-  expect(urls[0]?.pathname).toBe('/oauth/authorize');
+  expect(urls[0]?.origin).toBe(CLAUDE_AUTHORIZE_ORIGIN);
+  expect(urls[0]?.pathname).toBe(CLAUDE_AUTHORIZE_PATH);
+  expect(urls[0]?.searchParams.get('scope')).toBe(CLAUDE_OAUTH_SCOPES);
   expect(urls[0]?.searchParams.get('code_challenge_method')).toBe('S256');
   expect(tokenEndpoint.requests).toMatchObject([{ body: { grant_type: 'authorization_code', code: 'local-code', client_id: '9d1c250a-e61b-44d9-88ed-5944d1962f5e', redirect_uri: 'https://platform.claude.com/oauth/code/callback' } }]);
   await expect(credentials.read(provider.id)).resolves.toStrictEqual(credential);
