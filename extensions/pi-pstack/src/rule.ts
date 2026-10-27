@@ -2,7 +2,7 @@ import { existsSync, readFileSync, realpathSync } from 'node:fs';
 import { basename, dirname, isAbsolute, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { stripFrontmatter } from '@earendil-works/pi-coding-agent';
+import { parseFrontmatter } from '@earendil-works/pi-coding-agent';
 
 const RULE_SECTION_LIMIT = 8_000;
 const WRITE_TOOLS = new Set(['write', 'edit']);
@@ -50,10 +50,17 @@ export function readRule(path: string): string | undefined {
   return existsSync(path) ? readFileSync(path, 'utf8') : undefined;
 }
 
-/** The always-applied rule as Cursor would inline it: the body, without frontmatter, bounded in size. */
+/** The rule as Cursor would apply it: an always-applied body inline and bounded, else its description or nothing. */
 export function modelsSection(ruleText: string | undefined, path: string): string {
   if (ruleText === undefined) return `No pstack model rule exists at ${path}. Every role uses its skill default until /setup-pstack writes one.`;
-  const body = stripFrontmatter(ruleText).trim();
+  const { frontmatter, body: rawBody } = parseFrontmatter(ruleText);
+  if (frontmatter['alwaysApply'] === false) {
+    const description = typeof frontmatter['description'] === 'string' ? frontmatter['description'].trim() : '';
+    return description === ''
+      ? `The rule at ${path} applies only when the user attaches it (alwaysApply: false, no description). Every role uses its skill default.`
+      : `The rule at ${path} is not always applied (alwaysApply: false). Its description: ${description}. Read it when that description applies. Until then every role uses its skill default.`;
+  }
+  const body = rawBody.trim();
   if (body.length <= RULE_SECTION_LIMIT) return `Path: ${path}\n${body}`;
   return `Path: ${path}\n${body.slice(0, RULE_SECTION_LIMIT)}\n[truncated: the rule is ${body.length} characters; read ${path} for the rest]`;
 }
