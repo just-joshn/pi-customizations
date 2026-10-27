@@ -88,7 +88,7 @@ Capture the installed Claude Code reference with Python 3:
 python3 scripts/capture-claude.py
 ```
 
-The capture runs Claude Code with an isolated home, safe mode, no tools, no session persistence, a synthetic OAuth token, and a local Messages endpoint. These settings alone do not enforce network or credential isolation; the current evidence captures additionally used an OS sandbox denying non-localhost networking and reads of real credential directories. The historical `2.1.288` and `2.1.296` fixtures are preserved. It prints only the selected request fields in `test/fixtures/claude-code-2.1.311.json`. No auth headers, account identifiers, complete prompts, or credential contents appear in the output. `CLAUDE_BIN` can select a different Claude executable.
+The capture runs Claude Code with an isolated home, safe mode, no tools, no session persistence, a synthetic OAuth token, and a local Messages endpoint. These settings alone do not enforce network or credential isolation. Historical evidence captures for older fixtures additionally used an OS sandbox. The `2.1.311` capture used the isolated home and loopback gateway without that sandbox. The historical `2.1.288` and `2.1.296` fixtures are preserved. The script prints only the selected request fields in `test/fixtures/claude-code-2.1.311.json`. No auth headers, account identifiers, complete prompts, or credential contents appear in the output. `CLAUDE_BIN` can select a different Claude executable.
 
 When refreshing the identity, recapture the reference and update `src/identity.ts` and its literal regression vectors together. Do not import Claude Code internals or execute Claude Code from the extension factory.
 

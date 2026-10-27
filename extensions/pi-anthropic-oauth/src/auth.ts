@@ -1,10 +1,10 @@
 import type { ApiKeyAuth, AuthEvent, AuthResult, OAuthAuth, ProviderAuth, ProviderAuthInteraction, ProviderEnv } from '@earendil-works/pi-ai';
 
-// Measured Claude Code 2.1.311 order. ANTHROPIC_OAUTH_TOKEN is a lower-priority alias that CLI does not consult.
-const TOKEN_VARIABLES: readonly string[] = ['ANTHROPIC_AUTH_TOKEN', 'CLAUDE_CODE_OAUTH_TOKEN', 'ANTHROPIC_OAUTH_TOKEN'];
+const CLAUDE_CODE_TOKEN_VARIABLES: readonly string[] = ['ANTHROPIC_AUTH_TOKEN', 'CLAUDE_CODE_OAUTH_TOKEN'];
+const ANTHROPIC_OAUTH_TOKEN_ALIAS = 'ANTHROPIC_OAUTH_TOKEN';
+const AMBIENT_TOKEN_VARIABLES: readonly string[] = [...CLAUDE_CODE_TOKEN_VARIABLES, ANTHROPIC_OAUTH_TOKEN_ALIAS];
 const OAUTH_ACCESS_TOKEN = /^sk-ant-oat01-[A-Za-z0-9_-]+$/;
 
-// Measured from `claude auth login --claudeai` on Claude Code 2.1.311.
 export const CLAUDE_AUTHORIZE_ORIGIN = 'https://claude.com';
 export const CLAUDE_AUTHORIZE_PATH = '/cai/oauth/authorize';
 export const CLAUDE_OAUTH_SCOPES =
@@ -23,7 +23,7 @@ const subscriptionToken: ApiKeyAuth = {
   resolve: async ({ ctx, credential, signal }) => {
     signal.throwIfAborted();
     if (credential?.key !== undefined) return tokenAuth(credential.key, 'stored credential', credential.env);
-    for (const source of TOKEN_VARIABLES) {
+    for (const source of AMBIENT_TOKEN_VARIABLES) {
       const value = await ctx.env(source);
       signal.throwIfAborted();
       if (value) return tokenAuth(value, source);
@@ -40,11 +40,10 @@ export function rewriteClaudeAuthorizeUrl(url: string): string {
   return next.toString();
 }
 
-function withClaudeLogin(interaction: ProviderAuthInteraction): ProviderAuthInteraction {
+function withForcedPasteCodeLogin(interaction: ProviderAuthInteraction): ProviderAuthInteraction {
   return {
     signal: interaction.signal,
     prompt: async (prompt) => {
-      // Claude Code's subscription login is paste-code with the platform redirect.
       if (prompt.type === 'select') return CLAUDE_COPY_CODE_LOGIN;
       return interaction.prompt(prompt);
     },
@@ -67,7 +66,7 @@ export function subscriptionAuth(oauth: OAuthAuth): ProviderAuth {
       login: async (interaction, options) => {
         interaction.signal.throwIfAborted();
         try {
-          return await oauth.login(withClaudeLogin(interaction), options);
+          return await oauth.login(withForcedPasteCodeLogin(interaction), options);
         } catch (error) {
           interaction.signal.throwIfAborted();
           // Pi backs out of /login only when the error message is exactly this.
