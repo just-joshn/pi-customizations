@@ -1,8 +1,8 @@
 {
   "source": {
     "repository": "https://github.com/cursor/plugins",
-    "commit": "519d36aa98955bf680db01bcde5fdfba686dc901",
-    "pstackVersion": "0.15.34",
+    "commit": "ab1f702ce8e8b6557edb56b09f52cde8bfb83f17",
+    "pstackVersion": "0.15.35",
     "teamKitVersion": "1.2.0"
   },
   "files": [
@@ -147,8 +147,8 @@
       "target": "docs/guide/04-design.md",
       "transform": "none",
       "mode": "100644",
-      "sourceSha256": "cff616278303b533e617c5c4408af6d28895edbb8687d6ce99bb5dd1f6644a6c",
-      "targetSha256": "cff616278303b533e617c5c4408af6d28895edbb8687d6ce99bb5dd1f6644a6c"
+      "sourceSha256": "2421f2793303a2cb02aabac5ecdc4bfafb5e68024a28123f4f134cc7df4a5211",
+      "targetSha256": "2421f2793303a2cb02aabac5ecdc4bfafb5e68024a28123f4f134cc7df4a5211"
     },
     {
       "source": "pstack/docs/guide/05-build-and-clean.md",
@@ -171,8 +171,8 @@
       "target": "docs/guide/07-overnight.md",
       "transform": "none",
       "mode": "100644",
-      "sourceSha256": "b767a5dc5d7257efdb5cc8cfac92acfbb18fe8e023a3438339f4b45ce4a9264a",
-      "targetSha256": "b767a5dc5d7257efdb5cc8cfac92acfbb18fe8e023a3438339f4b45ce4a9264a"
+      "sourceSha256": "1eb78b9b6268bbfbf856aca637336dffec564604fa95dec08b725583691c6f53",
+      "targetSha256": "1eb78b9b6268bbfbf856aca637336dffec564604fa95dec08b725583691c6f53"
     },
     {
       "source": "pstack/docs/guide/08-principles.md",
@@ -195,8 +195,8 @@
       "target": "docs/guide/10-recipes-and-pitfalls.md",
       "transform": "none",
       "mode": "100644",
-      "sourceSha256": "0d4b71436d9646d2e656e19fcdc570624f2d8b66bc09ed73b731d55f554e3a0b",
-      "targetSha256": "0d4b71436d9646d2e656e19fcdc570624f2d8b66bc09ed73b731d55f554e3a0b"
+      "sourceSha256": "784da0a2373e58123c4591b778909efc8d01b2b1f820b6029fa85a3fe2491fb4",
+      "targetSha256": "784da0a2373e58123c4591b778909efc8d01b2b1f820b6029fa85a3fe2491fb4"
     },
     {
       "source": "pstack/docs/guide/images/design.jpg",
@@ -316,8 +316,8 @@
       "target": "skills/arena/SKILL.md",
       "transform": "frontmatter",
       "mode": "100644",
-      "sourceSha256": "ed72f6c132b1ce3974d949581d0adc5dade424fe20793ac3b4c4fae22ecb9354",
-      "targetSha256": "ed72f6c132b1ce3974d949581d0adc5dade424fe20793ac3b4c4fae22ecb9354",
+      "sourceSha256": "d0adeca6c9b19d43d90ed8f0484f0ddd362f05006d628b8f4cc6c9b55fa4d2b3",
+      "targetSha256": "d0adeca6c9b19d43d90ed8f0484f0ddd362f05006d628b8f4cc6c9b55fa4d2b3",
       "sourceFrontmatter": "name: arena\ndescription: \"Spawn N parallel candidates at the same task, pick a base, graft the strongest parts of the losers into it. Use for /arena, 'arena this', 'throw it in the arena', or when one attempt at a non-trivial artifact would lock in the wrong shape.\"\ndisable-model-invocation: true"
     },
     {
@@ -478,54 +478,22 @@
       "sourceFrontmatter": "name: in-your-own-words\ndescription: \"Restate in your own words what you think the user's goals are and what problem they're trying to solve. Use for /in-your-own-words.\"\ndisable-model-invocation: true"
     },
     {
-      "source": "pstack/skills/interrogate/references/code-quality-review.md",
-      "target": "skills/interrogate/references/code-quality-review.md",
-      "transform": "none",
-      "mode": "100644",
-      "sourceSha256": "79162fda183eafd40d51661fbb5e151c7ba250f89e506ba17f5bd135dcbd50a8",
-      "targetSha256": "79162fda183eafd40d51661fbb5e151c7ba250f89e506ba17f5bd135dcbd50a8"
-    },
-    {
-      "source": "pstack/skills/interrogate/references/lead-judgment.md",
-      "target": "skills/interrogate/references/lead-judgment.md",
-      "transform": "none",
-      "mode": "100644",
-      "sourceSha256": "355f5195a76bc75a655125292369f2a8231a2b61fabe5188d8f1386060922b87",
-      "targetSha256": "355f5195a76bc75a655125292369f2a8231a2b61fabe5188d8f1386060922b87"
-    },
-    {
-      "source": "pstack/skills/interrogate/references/reviewer-prompt.md",
-      "target": "skills/interrogate/references/reviewer-prompt.md",
-      "transform": "none",
-      "mode": "100644",
-      "sourceSha256": "f6005cc2b535006fca97a96c5bfda49df57312eedf1ffd8d1aaaf3eb33817c25",
-      "targetSha256": "f6005cc2b535006fca97a96c5bfda49df57312eedf1ffd8d1aaaf3eb33817c25"
-    },
-    {
-      "source": "pstack/skills/interrogate/references/rubric.md",
-      "target": "skills/interrogate/references/rubric.md",
-      "transform": "none",
-      "mode": "100644",
-      "sourceSha256": "0f9c6bdb0b96e26dbde5f6407f417e0c02f54080e7a1268d8994f3c3ec6c5ac0",
-      "targetSha256": "0f9c6bdb0b96e26dbde5f6407f417e0c02f54080e7a1268d8994f3c3ec6c5ac0"
-    },
-    {
       "source": "pstack/skills/interrogate/SKILL.md",
       "target": "skills/interrogate/SKILL.md",
       "transform": "frontmatter",
       "mode": "100644",
-      "sourceSha256": "a16dfe179005abc22a4651b82f25b0c8ab953284276efe4e6dc341958fb63647",
-      "targetSha256": "a16dfe179005abc22a4651b82f25b0c8ab953284276efe4e6dc341958fb63647",
-      "sourceFrontmatter": "name: interrogate\ndescription: \"Use for \\\"interrogate\\\", \\\"adversarial review\\\", \\\"multi-model review\\\", \\\"challenge this\\\", \\\"stress test this code\\\", \\\"find blind spots\\\", or \\\"tear this apart\\\". Multiple LLM reviewers challenge changes from independent angles.\"\ndisable-model-invocation: true"
+      "sourceSha256": "3f3c2e9b8cf6b180dba9f32a4aff85e5691b09805232468e37a0ba45437a9984",
+      "targetSha256": "3f3c2e9b8cf6b180dba9f32a4aff85e5691b09805232468e37a0ba45437a9984",
+      "sourceFrontmatter": "name: interrogate\ndescription: \"Use for \\\"interrogate\\\", \\\"adversarial review\\\", \\\"multi-model review\\\", \\\"challenge this\\\", \\\"stress test this code\\\", \\\"find blind spots\\\", or \\\"tear this apart\\\". Adversaries try to break a change or design, and only findings proven by a run survive.\"\ndisable-model-invocation: true"
     },
     {
       "source": "pstack/skills/ketchup-video/SKILL.md",
       "target": "skills/ketchup-video/SKILL.md",
       "transform": "frontmatter",
       "mode": "100644",
-      "sourceSha256": "74f1b9e61f8479e2be5b91a4f53136f6ad8e144fd950c9848de6aa1cdbb7645c",
-      "targetSha256": "74f1b9e61f8479e2be5b91a4f53136f6ad8e144fd950c9848de6aa1cdbb7645c",
-      "sourceFrontmatter": "name: ketchup-video\ndescription: \"Catch the user up like /ketchup, with a short silent video of slides for what happened and the waiting calls as text under it. Use for /ketchup-video.\"\ndisable-model-invocation: true"
+      "sourceSha256": "027aed9a01adf208aeac3a134f47d12f7c1e42d6fea03095aedc2bae58cdcfd1",
+      "targetSha256": "027aed9a01adf208aeac3a134f47d12f7c1e42d6fea03095aedc2bae58cdcfd1",
+      "sourceFrontmatter": "name: ketchup-video\ndescription: \"Catch the user up like /ketchup, with a short subtitled video of slides for what happened and the waiting calls as text under it. Use for /ketchup-video.\"\ndisable-model-invocation: true"
     },
     {
       "source": "pstack/skills/ketchup/SKILL.md",
@@ -585,16 +553,16 @@
       "target": "skills/poteto-help/references/recipes.md",
       "transform": "none",
       "mode": "100644",
-      "sourceSha256": "f2d573014f72f7c798b1998b45f4360a8a83e7b8026c4ed9074e56c5a9d49338",
-      "targetSha256": "f2d573014f72f7c798b1998b45f4360a8a83e7b8026c4ed9074e56c5a9d49338"
+      "sourceSha256": "5323aca73a39a3b607c2bb22cd33551fe893563dfd4b104df838da010e9fc702",
+      "targetSha256": "5323aca73a39a3b607c2bb22cd33551fe893563dfd4b104df838da010e9fc702"
     },
     {
       "source": "pstack/skills/poteto-help/SKILL.md",
       "target": "skills/poteto-help/SKILL.md",
       "transform": "frontmatter",
       "mode": "100644",
-      "sourceSha256": "75751c04546aa8150673f7c83ad5cd87eaeb44fb59d40f9262591ba8066d2c24",
-      "targetSha256": "75751c04546aa8150673f7c83ad5cd87eaeb44fb59d40f9262591ba8066d2c24",
+      "sourceSha256": "768368881379d688c4e3bbdae55dd2d7874fde98a258324d3527de1bf09f9bd1",
+      "targetSha256": "768368881379d688c4e3bbdae55dd2d7874fde98a258324d3527de1bf09f9bd1",
       "sourceFrontmatter": "name: poteto-help\ndescription: Guides users through pstack setup, /poteto-mode, and picking the skill, playbook, or principle for a task. Type /poteto-help with a question.\ndisable-model-invocation: true"
     },
     {
@@ -610,32 +578,32 @@
       "target": "skills/poteto-mode/playbooks/autonomous-run.md",
       "transform": "none",
       "mode": "100644",
-      "sourceSha256": "6ac974fd2b09748add56493e89f578a35a6a9289e1026515878d81ef3cf129d1",
-      "targetSha256": "6ac974fd2b09748add56493e89f578a35a6a9289e1026515878d81ef3cf129d1"
+      "sourceSha256": "e74323411b5a760ffa7393d908d07fed420c68f8dc2aed1267505eaeadf130f2",
+      "targetSha256": "e74323411b5a760ffa7393d908d07fed420c68f8dc2aed1267505eaeadf130f2"
     },
     {
       "source": "pstack/skills/poteto-mode/playbooks/autopilot-full.md",
       "target": "skills/poteto-mode/playbooks/autopilot-full.md",
       "transform": "none",
       "mode": "100644",
-      "sourceSha256": "acf4f4a58c11045f9d3e8807d907a877e61ca6432b079f1087d7d30fc931566f",
-      "targetSha256": "acf4f4a58c11045f9d3e8807d907a877e61ca6432b079f1087d7d30fc931566f"
+      "sourceSha256": "2da35982565c6cf1dbe25f7a05ccae28f7729389aefc6dbb3e010eb883abdd19",
+      "targetSha256": "2da35982565c6cf1dbe25f7a05ccae28f7729389aefc6dbb3e010eb883abdd19"
     },
     {
       "source": "pstack/skills/poteto-mode/playbooks/autopilot-stack.md",
       "target": "skills/poteto-mode/playbooks/autopilot-stack.md",
       "transform": "none",
       "mode": "100644",
-      "sourceSha256": "c6bcb18b2ce605e77a2a2225854590a4b9a687911f79331746d91a4fe9a52e60",
-      "targetSha256": "c6bcb18b2ce605e77a2a2225854590a4b9a687911f79331746d91a4fe9a52e60"
+      "sourceSha256": "34de4bb101dd56524d8067c73bba5988ead6f93d3ab8f96ac13a6adcb43696cb",
+      "targetSha256": "34de4bb101dd56524d8067c73bba5988ead6f93d3ab8f96ac13a6adcb43696cb"
     },
     {
       "source": "pstack/skills/poteto-mode/playbooks/babysit.md",
       "target": "skills/poteto-mode/playbooks/babysit.md",
       "transform": "none",
       "mode": "100644",
-      "sourceSha256": "e261c1ff5581e0f8fc6c686f34de4b535f87473e77beabea7dd8323021214610",
-      "targetSha256": "e261c1ff5581e0f8fc6c686f34de4b535f87473e77beabea7dd8323021214610"
+      "sourceSha256": "d546a937ed800abe1d29aae8a689fb57212280fdde62fae1fc1dc7f2efd9d904",
+      "targetSha256": "d546a937ed800abe1d29aae8a689fb57212280fdde62fae1fc1dc7f2efd9d904"
     },
     {
       "source": "pstack/skills/poteto-mode/playbooks/bug-fix.md",
@@ -682,24 +650,24 @@
       "target": "skills/poteto-mode/playbooks/multi-phase-plan.md",
       "transform": "none",
       "mode": "100644",
-      "sourceSha256": "5f239457bfdec3345c92caa06c59bf0257c662b89353f25a1c02ea942dcd00b1",
-      "targetSha256": "5f239457bfdec3345c92caa06c59bf0257c662b89353f25a1c02ea942dcd00b1"
+      "sourceSha256": "2b4fbb547e5ccfe46d1279d714eb0199d28e995f06bdc4eda4afbca9221fbbe6",
+      "targetSha256": "2b4fbb547e5ccfe46d1279d714eb0199d28e995f06bdc4eda4afbca9221fbbe6"
     },
     {
       "source": "pstack/skills/poteto-mode/playbooks/opening-a-pr.md",
       "target": "skills/poteto-mode/playbooks/opening-a-pr.md",
       "transform": "none",
       "mode": "100644",
-      "sourceSha256": "a5aef646de8b651306c2d10974623650e4a013a245aec1c00525bbe0e31bfa76",
-      "targetSha256": "a5aef646de8b651306c2d10974623650e4a013a245aec1c00525bbe0e31bfa76"
+      "sourceSha256": "b22b7ad7cd102b99d334f4399ae1dba78e0aaf4bee2d5241fda71753c7ce48f9",
+      "targetSha256": "b22b7ad7cd102b99d334f4399ae1dba78e0aaf4bee2d5241fda71753c7ce48f9"
     },
     {
       "source": "pstack/skills/poteto-mode/playbooks/orchestrate.md",
       "target": "skills/poteto-mode/playbooks/orchestrate.md",
       "transform": "none",
       "mode": "100644",
-      "sourceSha256": "08dce6c9e7be1d13bc6944ab9b51665f935c531437f5e088bc53d2a62099ef05",
-      "targetSha256": "08dce6c9e7be1d13bc6944ab9b51665f935c531437f5e088bc53d2a62099ef05"
+      "sourceSha256": "fa044dfaeb6803183ff56c71dbca9f5e8b0942aaf10d4974168b47498092ae98",
+      "targetSha256": "fa044dfaeb6803183ff56c71dbca9f5e8b0942aaf10d4974168b47498092ae98"
     },
     {
       "source": "pstack/skills/poteto-mode/playbooks/pause-safely.md",
@@ -842,8 +810,8 @@
       "target": "skills/poteto-mode/scripts/orch/store.ts",
       "transform": "none",
       "mode": "100644",
-      "sourceSha256": "bf0ed29c44093ee3b333aa10b138612f773c81eda73df7dc5337c59713f35a97",
-      "targetSha256": "bf0ed29c44093ee3b333aa10b138612f773c81eda73df7dc5337c59713f35a97"
+      "sourceSha256": "963c9a30c21f395d9b26a992fae83dc09afff614edbf7f1bc4909be73aa59443",
+      "targetSha256": "963c9a30c21f395d9b26a992fae83dc09afff614edbf7f1bc4909be73aa59443"
     },
     {
       "source": "pstack/skills/poteto-mode/scripts/package.json",
@@ -962,8 +930,8 @@
       "target": "skills/poteto-mode/SKILL.md",
       "transform": "frontmatter",
       "mode": "100644",
-      "sourceSha256": "2755f102e7a6d0496b429d1031a22fb353e1f3d523543367caeaae5c4ed6f544",
-      "targetSha256": "395005e2949070c880ebdba0b98f8fb4c1f7ab1b806b9ae60dcf1a7a21035a36",
+      "sourceSha256": "ee1848c973a112026f09ba12ea7a13c1654006e7bf170d1c34bf5d5816bc439b",
+      "targetSha256": "0b25e9b3497eb5c1473f4d3acb3ad5ef3cfca5380db9a049ad6514f71efbefee",
       "sourceFrontmatter": "name: poteto-mode\ndescription: poteto's agent style for concise, detailed responses, deliberate subagents, unslopped prose, simple code, and verified work. Use for poteto, /poteto-mode, or requests to work in this style.\ndisable-model-invocation: true\nicon: crown\ncolor: yellow"
     },
     {
@@ -1025,9 +993,9 @@
       "target": "skills/principle-explain-the-number/SKILL.md",
       "transform": "frontmatter",
       "mode": "100644",
-      "sourceSha256": "cd5a25f9e7cf023627ccb470dc5faa97542f29b4319496a32b839a8e1e988047",
-      "targetSha256": "cd5a25f9e7cf023627ccb470dc5faa97542f29b4319496a32b839a8e1e988047",
-      "sourceFrontmatter": "name: principle-explain-the-number\ndescription: \"Apply before you trust, report, or act on a number you measured: a speedup, a regression, a throughput, a latency, or an eval result. Find what limits it, and rule out that it measured something other than the work you think.\"\ndisable-model-invocation: true"
+      "sourceSha256": "3c84fbf9a7d9842abcfcd134010782b32092ac3d3fb4aaf9ed5732dca83aa58c",
+      "targetSha256": "3c84fbf9a7d9842abcfcd134010782b32092ac3d3fb4aaf9ed5732dca83aa58c",
+      "sourceFrontmatter": "name: principle-explain-the-number\ndescription: \"Apply before you measure, and before you trust, report, or act on a number you measured: a speedup, a regression, a throughput, a latency, or an eval result. Find what limits it, and rule out that it measured something other than the work you think.\"\ndisable-model-invocation: true"
     },
     {
       "source": "pstack/skills/principle-fix-root-causes/SKILL.md",
@@ -1237,8 +1205,8 @@
       "target": "skills/setup-pstack/SKILL.md",
       "transform": "frontmatter",
       "mode": "100644",
-      "sourceSha256": "b45512f6ca5e96e81681984683b7472bfe892581da3a89a73cca4159438f29ed",
-      "targetSha256": "b45512f6ca5e96e81681984683b7472bfe892581da3a89a73cca4159438f29ed",
+      "sourceSha256": "df8ad3638a4dca31fb4b43d58056f0299f23ad0530614166d55ef989062b41ec",
+      "targetSha256": "df8ad3638a4dca31fb4b43d58056f0299f23ad0530614166d55ef989062b41ec",
       "sourceFrontmatter": "name: setup-pstack\ndescription: Configure which models pstack uses per role and at what reasoning budget. Detects your available models and writes an always-applied rule that overrides the skill defaults. Use for /setup-pstack, \"configure pstack models\", \"pstack budget\", or changing pstack's model choices."
     },
     {
