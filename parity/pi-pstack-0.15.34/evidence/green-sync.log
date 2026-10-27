@@ -1,0 +1,2 @@
+$ node scripts/sync-upstream.mjs --source /tmp/cursor-plugins
+wrote 579 files from 519d36aa98955bf680db01bcde5fdfba686dc901
