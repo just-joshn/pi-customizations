@@ -11,3 +11,4 @@ ts	phase	decision	why	evidence	result
 2026-10-27T16:05:38Z	red	updated ExpectedCounts and tip SourcePin pins before SOURCE move	RED-first proves the registry contract before sync	parity/pi-pstack-0.15.34/evidence/red-vitest.log: 9 failed | 23 passed	fail
 2026-10-27T16:06:13Z	green	SOURCE tip 519d36aa; sync wrote 579 files; check passed	SOURCE+lock are the only registry; generator output only	parity/pi-pstack-0.15.34/evidence/green-{sync,check,resources-vitest}.log	pass
 2026-10-27T16:07:01Z	script	rewrote SCRIPT-001 for statechart shim usage/exit; presence asserts; poteto 82 pass	graft C2 depth + C3 presence; obsolete mjs contract deleted	parity/pi-pstack-0.15.34/evidence/script-vitest.log: 14 passed	pass
+2026-10-27T16:07:34Z	docs	package 0.15.34-pi.1; README pin tip; Limits mise/TLC first-run; parity pointer	docs match the shipped pin so maintainers regenerate against tip	extensions/pi-pstack/{package.json,README.md}; README.md	pass
