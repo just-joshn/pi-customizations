@@ -1,0 +1,1 @@
+{"isError":false,"model":{"provider":"deepseek","id":"deepseek-flash","thinking":"off"},"description":"Say OK probe","text":"This is the output of the subagent:\n\nresponse:\n<response>\nOK\n</response>\n\nAgent ID: 978ad92c-b12a-40f5-89b4-075919b11379 (pass it as `resume` to send a follow-u"}
