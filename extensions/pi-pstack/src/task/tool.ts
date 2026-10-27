@@ -72,6 +72,7 @@ interface Launch {
   trusted: boolean;
   attachments: string[];
   notes: string[];
+  description: string;
 }
 
 /** The running pi script, so children match the parent's Pi version; falls back to `pi` on PATH. */
@@ -100,7 +101,7 @@ function planFresh(params: TaskInput, ctx: ExtensionContext, agents: readonly Ag
   const agentId = randomUUID();
   const worktree = params.environment === 'cloud' ? planWorktree(ctx.cwd, worktreesDir(ctx.cwd), agentId, params.cloud_base_branch) : undefined;
   const notes = worktree === undefined ? [] : [worktreeLine(worktree)];
-  return { agentId, agent, model, readonly, workspace: ctx.cwd, worktree, rootStore: rootStoreOf(ctx), depth: depth + 1, trusted: ctx.isProjectTrusted(), attachments, notes };
+  return { agentId, agent, model, readonly, workspace: ctx.cwd, worktree, rootStore: rootStoreOf(ctx), depth: depth + 1, trusted: ctx.isProjectTrusted(), attachments, notes, description: params.description };
 }
 
 function recordedAgent(agents: readonly AgentDefinition[], agentId: string, type: string): AgentDefinition {
@@ -132,7 +133,7 @@ function planResume(params: TaskInput, ctx: ExtensionContext, agents: readonly A
   // An agent never runs shallower than it was created or than its caller allows: a grandchild resumed from the main chat
   // and a main-chat agent resumed from a subagent both run at depth 2. A call can add readonly but not lift it, and a
   // type that has since become readonly restricts an older writable record too.
-  return { agentId, agent, model: record.model, readonly, workspace: record.cwd, worktree, rootStore: rootStoreOf(ctx), depth: Math.max(record.depth ?? 0, depth + 1), trusted: ctx.isProjectTrusted(), attachments, notes };
+  return { agentId, agent, model: record.model, readonly, workspace: record.cwd, worktree, rootStore: rootStoreOf(ctx), depth: Math.max(record.depth ?? 0, depth + 1), trusted: ctx.isProjectTrusted(), attachments, notes, description: params.description };
 }
 
 function launchChild(plan: Launch, prompt: string, signal: AbortSignal | undefined) {
@@ -187,7 +188,7 @@ function transcriptOf(plan: Launch): string {
 }
 
 function details(plan: Launch, background: boolean, status: string, pid?: number) {
-  return { agentId: plan.agentId, subagentType: plan.agent.type, model: plan.model ?? null, readonly: plan.readonly, background, status, transcript: transcriptOf(plan), pid: pid ?? null, worktree: plan.worktree ?? null };
+  return { agentId: plan.agentId, subagentType: plan.agent.type, model: plan.model ?? null, readonly: plan.readonly, background, status, transcript: transcriptOf(plan), pid: pid ?? null, worktree: plan.worktree ?? null, description: plan.description };
 }
 
 function foregroundResult(plan: Launch, outcome: ChildOutcome) {

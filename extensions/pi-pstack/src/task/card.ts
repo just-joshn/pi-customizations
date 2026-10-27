@@ -7,22 +7,24 @@ interface CardDetails {
   subagentType: string;
   model: { provider: string; id: string; thinking?: string } | null;
   worktree?: { branch: string } | null;
+  description?: string;
 }
 
 function isCardDetails(details: unknown): details is CardDetails {
   return typeof details === 'object' && details !== null && 'subagentType' in details && 'model' in details;
 }
 
-/** Cursor's subagent task card shows which model ran; this card heads the result with the agent type and model. */
+/** Cursor's subagent task card is named by the Task description and shows which model ran; this card heads the result with both. */
 export function taskCardText(result: Pick<AgentToolResult<unknown>, 'content' | 'details'>, expanded: boolean): string {
   const text = result.content.map((part) => (part.type === 'text' ? part.text : '')).join('\n');
   const lines = text.split('\n');
   const body = expanded || lines.length <= COLLAPSED_LINES ? lines : [...lines.slice(0, COLLAPSED_LINES), `… ${lines.length - COLLAPSED_LINES} more lines`];
   if (!isCardDetails(result.details)) return body.join('\n');
-  const { model, subagentType, worktree } = result.details;
+  const { model, subagentType, worktree, description } = result.details;
   const modelName = model === null ? "Pi's default model" : `${model.provider}/${model.id}${model.thinking === undefined ? '' : `:${model.thinking}`}`;
   const branch = worktree === undefined || worktree === null ? '' : ` · branch ${worktree.branch}`;
-  return [`${subagentType} · ${modelName}${branch}`, ...body].join('\n');
+  const title = description === undefined || description.trim() === '' ? '' : `${description.trim()} · `;
+  return [`${title}${subagentType} · ${modelName}${branch}`, ...body].join('\n');
 }
 
 export function renderTaskCard(result: AgentToolResult<unknown>, options: { expanded: boolean }): Text {
