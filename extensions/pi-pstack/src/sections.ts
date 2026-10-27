@@ -73,7 +73,7 @@ export function subagentsSection(agents: readonly AgentDefinition[], models: rea
     'Model values for Task (and for role lines in the model rule):',
     '- inherit (default): the parent model and thinking level. auto and inherit-parent mean the same.',
     ...(parent === undefined ? [] : [`- This chat runs ${parent.provider}/${parent.id}${parent.thinking === undefined ? '' : `:${parent.thinking}`}. pstack's model families (claude-*, grok-*) go by the model id after its provider.`]),
-    '- A Cursor-style slug <model-id>-<effort>[-fast], effort one of the thinking levels the model lists below; the effort becomes the thinking level and -fast is ignored.',
+    '- A Cursor-style slug <model-id>[-<effort>][-fast], effort one of the thinking levels the model lists below or none for off; the effort becomes the thinking level and -fast is ignored.',
     '- A Pi model <provider>/<model-id> or <model-id>, optionally with :<level> from the same list. A level the model does not list is rejected.',
     "- Cursor model parameters: <model>[effort=<level>,fast=true|false,context=<size>]. effort is the thinking level, fast=true picks the model's -fast id when one is listed, [] or fast=false keeps the standard model, and context has no effect in Pi.",
     `Available models: ${shown.join(', ') || 'none with configured credentials'}${more}`,

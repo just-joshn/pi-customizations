@@ -137,7 +137,7 @@ describe('subagent catalog (HOST-002)', () => {
     expect(catalog).toContain('- inherit (default): the parent model and thinking level. auto and inherit-parent mean the same.');
     expect(catalog).toMatch(/^- This chat runs scripted\/echo(:\w+)?\. pstack's model families \(claude-\*, grok-\*\) go by the model id after its provider\.$/m);
     expect(catalog).toContain('Available models: scripted/echo (thinking: off, minimal, low, medium, high), scripted/plain');
-    expect(catalog).toContain('- A Cursor-style slug <model-id>-<effort>[-fast], effort one of the thinking levels the model lists below; the effort becomes the thinking level and -fast is ignored.');
+    expect(catalog).toContain('- A Cursor-style slug <model-id>[-<effort>][-fast], effort one of the thinking levels the model lists below or none for off; the effort becomes the thinking level and -fast is ignored.');
   });
 });
 

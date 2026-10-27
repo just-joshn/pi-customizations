@@ -30,6 +30,21 @@ describe('resolveSubagentModel (TASK-007)', () => {
     expect(resolveSubagentModel(value, available, parent)).toEqual(expected);
   });
 
+  test('maps Cursor slugs with none, minimal, or a bare -fast suffix (Cursor CLI 2026.10.22 model list)', () => {
+    const local = [...available, { provider: 'openai', id: 'gpt-5.3-codex', reasoning: true, levels: ['minimal', 'low', 'high'] }];
+    expect([
+      resolveSubagentModel('grok-4.7-fast', local, parent),
+      resolveSubagentModel('deepseek/deepseek-flash-none', local, parent),
+      resolveSubagentModel('gpt-5.3-codex-minimal', local, parent),
+      resolveSubagentModel('gpt-5.3-codex-minimal-fast', local, parent),
+    ]).toEqual([
+      { provider: 'grok-build', id: 'grok-4.7' },
+      { provider: 'deepseek', id: 'deepseek-flash', thinking: 'off' },
+      { provider: 'openai', id: 'gpt-5.3-codex', thinking: 'minimal' },
+      { provider: 'openai', id: 'gpt-5.3-codex', thinking: 'minimal' },
+    ]);
+  });
+
   test.for([
     { value: 'deepseek/deepseek-flash', expected: { provider: 'deepseek', id: 'deepseek-flash' } },
     { value: 'deepseek/deepseek-flash:high', expected: { provider: 'deepseek', id: 'deepseek-flash', thinking: 'high' } },
