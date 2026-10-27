@@ -1,7 +1,7 @@
 {
   "name": "pi-pstack",
-  "version": "0.15.34-pi.1",
-  "description": "Pi port of the pstack Cursor plugin 0.15.34 and the Cursor host features its skills call: subagents, todos, custom modes, the model rule, /loop, and AskQuestion",
+  "version": "0.15.35-pi.1",
+  "description": "Pi port of the pstack Cursor plugin 0.15.35 and the Cursor host features its skills call: subagents, todos, custom modes, the model rule, /loop, and AskQuestion",
   "type": "module",
   "license": "MIT",
   "keywords": [
