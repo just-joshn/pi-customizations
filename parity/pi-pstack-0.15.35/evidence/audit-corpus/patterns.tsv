@@ -1,0 +1,58 @@
+task-subagent-type	subagent_type|subagent type|subagent_type:
+task-run-in-background	run_in_background
+task-resume	resume:\s*["'`]|resume the|resumed agent|`resume`
+task-readonly	readonly:\s*true|readonly subagent|`readonly`
+cloud-env	environment:\s*["']cloud|environment "cloud"|cloud_base_branch
+cloud-agent	cloud agent|cloud subagent|cloud VM|cloud clone|cloud dashboard|/in-cloud|in-cloud
+grok-bot	Grok Bot|SendToUser|update_state
+automations	Automations|api2\.cursor\.sh|routine wake|routines
+bugbot	Bugbot|bugbot
+generate-image	GenerateImage|generateImages|image generation|image tool
+visualize	/visualize|visualize
+awaitshell	AwaitShell|await shell|await_shell
+origin-cli	Origin CLI|`origin`|origin CLI|\borigin\b(?= )|/ship
+cursor-model-slug	claude-opus-[0-9]|claude-sonnet-[0-9]|claude-haiku-[0-9]|grok-[0-9]|composer-[0-9]|cursor-grok
+cursor-model-effort	-xhigh|-fast\b|\[effort=|fast=true
+cursor-rule-mdc	\.cursor/rules|pstack-models\.mdc|\.mdc\b
+cursor-skills-path	\.cursor/skills|~/\.cursor/skills
+cursor-plugins-path	~/\.cursor/plugins|\.cursor-plugin
+cursor-projects-path	~/\.cursor/projects
+cursor-transcripts	agent-transcripts
+cursor-home-path	~/\.cursor|cursor/plugins|github\.com/cursor/plugins
+cursor-tool-mcp	MCP|mcp__
+cursor-hooks	\.cursor/hooks|hooks\.json|\bhooks?\b
+cursor-switch-mode	SwitchMode|switch_mode|switch mode
+cursor-custom-mode	Custom Mode|Option\+Enter|option\+enter
+cursor-loop	/loop|Loop tool|`Loop`|Loop \{|arm the loop|arm a loop
+cursor-ask	AskQuestion|AskQuestion tool
+cursor-todo	TodoWrite
+cursor-shell-tool	`Shell`|Shell tool|Shell is|AwaitShell
+cursor-read-tool	`Read`|Read is
+cursor-write-tool	`Write`|`Edit`|`Delete`|`StrReplace`|`ApplyPatch`
+cursor-grep-tool	`Grep`|`Glob`
+cursor-agents-window	Agents Window|agent window|Agents panel|agent panel
+cursor-builtin-babysit	built-in babysit|Cursor's built-in babysit
+cursor-create-skill	create-skill
+cursor-ui	Cursor Settings|Command Palette|\bcmd\+k\b|Cmd\+K|chat tab|Notepads|@Docs|@file|@folder|Plan Mode
+cursor-terminal	terminal sandbox|Cursor Terminal|integrated terminal
+cursor-cli	cursor-agent|`agent` CLI|\bagent CLI\b
+cursor-sdk	Cursor SDK|cursor-sdk|@cursor/sdk
+git-worktree	\bworktree
+slack	Slack
+benny	benny
+in-cursor	\bin Cursor\b|Cursor's|Cursor is|as Cursor
+pr-tool	gh pr|GitHub MCP|github mcp|forge
+store	\.orch|--store|agent store|orchestrate.*store
+inline-video	inline video|embedded video|embed the video|video of slides|videos the work produced|inline the screenshots and videos
+image-tool	image-generation|image generation tool|image model|generated image
+cursor-install	/add-plugin|Customize in the sidebar|/plugin marketplace add|/plugin install
+cursor-plan-mode	Plan Mode
+cursor-project	Cursor Project|cursor.com/blog/projects|Projects panel
+cursor-settings-state	available-tools map|`mcps/`|mcps directory
+cursor-plugin-cache	plugins/cache
+cursor-frontmatter	cursor-paths
+ask-mode	Ask mode|Ask/|agent mode
+shared-record	shared record
+cursor-restart	Cursor restart|restart Cursor
+cursor-builtin-skill	Cursor's own skill|Cursor's built-in|built-in babysit
+cursor-editor-context	open files, recent edits|cursor location|selection

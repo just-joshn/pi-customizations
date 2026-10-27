@@ -1,7 +1,7 @@
 import { join } from 'node:path';
 
 import type { AgentDefinition } from './task/agents.ts';
-import { type AvailableModel, modelLabel } from './task/models.ts';
+import { type AvailableModel, type ModelSpec, modelLabel } from './task/models.ts';
 
 export interface HostFacts {
   packageRoot: string;
@@ -49,8 +49,9 @@ export function hostSection(facts: HostFacts): string {
     `- A link to \`https://github.com/cursor/plugins/blob/main/pstack/<path>\` means ${facts.packageRoot}/<path> when that file exists (skills/, agents/, docs/). Read the local copy instead of fetching it, and give the user the URL when they need a link.`,
     '- Bugbot comments on a GitHub PR are ordinary review threads, so triage them with the forge command the step gives. Skip a step that starts, waits for, or configures Bugbot when the PR has no Bugbot check or comment. A built-in PR tool means the forge command the step gives, such as `gh pr create`.',
     '- A step that needs a Cursor-only feature with no Pi counterpart gets one line in your reply, `Skipped in Pi: <step>. <reason>.`, and you go on to the next step without stopping, asking, or retrying. When a later step needs what the skipped step made, such as a URL or a key, leave a placeholder and name it in that line.',
-    '- MCP tools are named mcp__<server>__<tool>; `pi mcp list` shows the servers.',
-    `- pstack's guide describes Cursor. Pi usage is in ${join(facts.packageRoot, 'README.md')}.`,
+    "- MCP tools are named mcp__<server>__<tool>; `pi mcp list` shows the servers. Cursor's available-tools map and its `mcps/` directory both mean `pi mcp list`.",
+    "- Media in a reply: Pi's chat renders no image or video inside a reply. To show the user a screenshot or a frame, read the image file with the read tool, which displays it inline in terminals that support images, and name its path. A video cannot play in Pi, so give the video's path and read one frame from each slide.",
+    `- pstack's guide describes Cursor. Pi usage is in ${join(facts.packageRoot, 'README.md')}. Cursor's \`/add-plugin pstack\` and Customize sidebar mean \`pi install\` with this package, as that README describes. Cursor's Plan Mode has no Pi counterpart.`,
     '- Cloud subagents (environment "cloud") run on this machine in their own git worktree on branch pstack/<agent id>, created from cloud_base_branch or this checkout\'s HEAD commit, so uncommitted changes do not reach them. The Task result names the worktree and branch; merge that branch to take the subagent\'s work. Pi never deletes these worktrees or branches; the worktree-cleanup playbook prunes them. Grok Bot routines (update_state, SendToUser) and Cursor Automations (routines, api2.cursor.sh/automations webhooks, routine wakes) have no Pi counterpart, so a step that needs one gets the Skipped in Pi line.',
   ].join('\n');
 }
@@ -63,7 +64,7 @@ function agentLine(agent: AgentDefinition): string {
 }
 
 /** Cursor puts these lists in <available_subagent_types> and <available_subagent_models>; Task's description points here. */
-export function subagentsSection(agents: readonly AgentDefinition[], models: readonly AvailableModel[]): string {
+export function subagentsSection(agents: readonly AgentDefinition[], models: readonly AvailableModel[], parent: ModelSpec | undefined): string {
   const shown = models.slice(0, MODEL_LIST_LIMIT).map(modelLabel);
   const more = models.length > MODEL_LIST_LIMIT ? `, and ${models.length - MODEL_LIST_LIMIT} more (pi --list-models)` : '';
   return [
@@ -71,7 +72,8 @@ export function subagentsSection(agents: readonly AgentDefinition[], models: rea
     ...agents.map(agentLine),
     'Model values for Task (and for role lines in the model rule):',
     '- inherit (default): the parent model and thinking level. auto and inherit-parent mean the same.',
-    '- A Cursor-style slug <model-id>-<effort>[-fast], effort one of the thinking levels the model lists below; the effort becomes the thinking level and -fast is ignored.',
+    ...(parent === undefined ? [] : [`- This chat runs ${parent.provider}/${parent.id}${parent.thinking === undefined ? '' : `:${parent.thinking}`}. pstack's model families (claude-*, grok-*) go by the model id after its provider.`]),
+    '- A Cursor-style slug <model-id>[-<effort>][-fast], effort one of the thinking levels the model lists below or none for off; the effort becomes the thinking level and -fast is ignored.',
     '- A Pi model <provider>/<model-id> or <model-id>, optionally with :<level> from the same list. A level the model does not list is rejected.',
     "- Cursor model parameters: <model>[effort=<level>,fast=true|false,context=<size>]. effort is the thinking level, fast=true picks the model's -fast id when one is listed, [] or fast=false keeps the standard model, and context has no effect in Pi.",
     `Available models: ${shown.join(', ') || 'none with configured credentials'}${more}`,

@@ -1,0 +1,2 @@
+$ node scripts/sync-upstream.mjs --check --source /tmp/cursor-plugins
+upstream check passed: 575 files match ab1f702ce8e8b6557edb56b09f52cde8bfb83f17

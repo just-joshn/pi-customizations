@@ -1,0 +1,12 @@
+== deepseek/deepseek-flash:high
+Verbatim line from `<pstack_subagents>`:
+
+> - This chat runs deepseek/deepseek-flash:high. pstack's model families (claude-*, grok-*) go by the model id after its provider.
+
+Phase A step 3 defines families by prefix, so this parent is the `deepseek` family (neither `claude-*` nor `grok-*`). Phase C says the judge is never from the parent's family, and "A parent from any other family gets `claude-opus-5-5-xhigh` first," so with the default pool (`claude-opus-5-5-xhigh`, `grok-4.7-xhigh-fast`) the cross-judge would run on `claude-opus-5-5-xhigh`. In practice that slug is absent from the Task allowlist here, so the rejection fallback would land it on `grok-4.7-xhigh-fast`.
+
+(Also note: the rule line is in fact present in `/Users/josh-desktop/.pi/agent/pstack/pstack-models.mdc` as `arena cross-judge pool: deepseek/deepseek-flash:max`, so the real run would use that — and it would then have to skip it, since `deepseek` is the parent's own family.)
+== xai/grok-4.7:low
+- This chat runs xai/grok-4.7:low. pstack's model families (claude-*, grok-*) go by the model id after its provider.
+
+With the default pool and that rule line missing, the cross-judge would run on `claude-opus-5-5-xhigh`. The parent model id is `grok-4.7`, so its family is `grok-*`, and Phase C says a parent from any family other than Claude gets `claude-opus-5-5-xhigh` first.

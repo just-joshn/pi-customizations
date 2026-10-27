@@ -45,8 +45,8 @@ describe('generated resources', () => {
   test('pins the upstream commit and versions (RES-002)', () => {
     expect(lock.source).toEqual({
       repository: 'https://github.com/cursor/plugins',
-      commit: '519d36aa98955bf680db01bcde5fdfba686dc901',
-      pstackVersion: '0.15.34',
+      commit: 'ab1f702ce8e8b6557edb56b09f52cde8bfb83f17',
+      pstackVersion: '0.15.35',
       teamKitVersion: '1.2.0',
     });
   });
@@ -59,7 +59,7 @@ describe('generated resources', () => {
       return sha256(readFileSync(path)) !== file.targetSha256 || executable !== (file.mode === '100755');
     });
     expect(drift.map((file) => file.target)).toEqual([]);
-    expect(lock.files).toHaveLength(579);
+    expect(lock.files).toHaveLength(575);
   });
 
   test('untransformed files equal their upstream bytes (RES-002)', () => {
@@ -68,7 +68,7 @@ describe('generated resources', () => {
     const counts = new Map<string, number>();
     for (const file of lock.files) counts.set(file.transform, (counts.get(file.transform) ?? 0) + 1);
     expect(Object.fromEntries(counts)).toEqual({
-      none: 517,
+      none: 513,
       frontmatter: 61,
       'patch:worktree-audit-pi-transcripts': 1,
     });
@@ -214,6 +214,6 @@ describe('generated resources', () => {
     };
     for (const directory of ['skills', 'agents', 'docs', 'automations', 'licenses']) walk(join(root, directory));
     expect(extra).toEqual([]);
-    expect(tracked.size).toBe(580);
+    expect(tracked.size).toBe(576);
   });
 });

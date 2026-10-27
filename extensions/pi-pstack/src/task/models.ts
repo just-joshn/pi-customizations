@@ -17,7 +17,7 @@ export interface ModelSpec {
 
 const INHERIT = new Set(['', 'inherit', 'inherit-parent', 'auto', 'default']);
 const EFFORTS = new Set<string>(['off', 'minimal', 'low', 'medium', 'high', 'xhigh', 'max']);
-const CURSOR_SLUG = /^(.+?)(?:-thinking)?-(low|medium|high|xhigh|max)(?:-fast)?$/;
+const CURSOR_SLUG = /^(.+?)(?:-thinking)?(?:-(none|minimal|low|medium|high|xhigh|max))?(-fast)?$/;
 
 const asEffort = (value: string): Effort | undefined => (EFFORTS.has(value) ? (value as Effort) : undefined);
 
@@ -69,13 +69,14 @@ function resolvePiSpec(value: string, available: readonly AvailableModel[]): Mod
   return model === undefined ? undefined : withThinking(model, level);
 }
 
-/** `<id>-<effort>[-fast]`: a Pi model whose own id ends in -fast wins, else the base id; the effort is the thinking level. */
+/** `<id>[-<effort>][-fast]`: a Pi model whose own id ends in -fast wins, else the base id; the effort is the thinking level, and Cursor's `none` is Pi's `off`. */
 function resolveCursorSlug(value: string, available: readonly AvailableModel[]): ModelSpec | undefined {
   const match = CURSOR_SLUG.exec(value);
   const base = match?.[1];
-  const effort = match?.[2] === undefined ? undefined : asEffort(match[2]);
-  if (base === undefined || effort === undefined) return undefined;
-  const model = (value.endsWith('-fast') ? findModel(`${base}-fast`, available) : undefined) ?? findModel(base, available);
+  const effort = match?.[2] === undefined ? undefined : asEffort(match[2] === 'none' ? 'off' : match[2]);
+  const fast = match?.[3] !== undefined;
+  if (base === undefined || (effort === undefined && !fast)) return undefined;
+  const model = (fast ? findModel(`${base}-fast`, available) : undefined) ?? findModel(base, available);
   return model === undefined ? undefined : withThinking(model, effort);
 }
 

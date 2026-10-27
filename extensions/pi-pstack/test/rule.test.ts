@@ -84,6 +84,18 @@ describe('models section (RULE-001)', () => {
     expect(modelsSection(text, piRule)).toBe(`Path: ${piRule}\n# budget: large (xhigh)\narena runners: claude-opus-5-5-xhigh, grok-4.7-xhigh-fast`);
   });
 
+  test('treats alwaysApply: false with a description as a rule the agent applies when relevant', () => {
+    const text = '---\ndescription: pstack per-role model choices\nalwaysApply: false\n---\narena runners: grok-4.7-xhigh-fast\n';
+    expect(modelsSection(text, piRule)).toBe(
+      `The rule at ${piRule} is not always applied (alwaysApply: false). Its description: pstack per-role model choices. Read it when that description applies. Until then every role uses its skill default.`,
+    );
+  });
+
+  test('treats alwaysApply: false without a description as a manual rule', () => {
+    const text = '---\nalwaysApply: false\n---\narena runners: grok-4.7-xhigh-fast\n';
+    expect(modelsSection(text, piRule)).toBe(`The rule at ${piRule} applies only when the user attaches it (alwaysApply: false, no description). Every role uses its skill default.`);
+  });
+
   test('says defaults apply when the rule is absent', () => {
     expect(modelsSection(undefined, piRule)).toBe(`No pstack model rule exists at ${piRule}. Every role uses its skill default until /setup-pstack writes one.`);
   });

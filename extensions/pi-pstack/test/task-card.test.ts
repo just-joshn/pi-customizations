@@ -27,3 +27,8 @@ test('a cloud agent card names its worktree branch (TASK-010)', () => {
   const details = { subagentType: 'poteto-agent', model: null, worktree: { path: '/w', cwd: '/w', branch: 'pstack/x', base: 'HEAD', commit: 'c' } };
   expect(taskCardText({ content: [{ type: 'text', text: 'done' }], details }, true).split('\n')[0]).toBe("poteto-agent · Pi's default model · branch pstack/x");
 });
+
+test('the card leads with the Task description, as Cursor names the subagent by it', () => {
+  const details = { subagentType: 'poteto-agent', model: null, description: 'Audit skill corpus' };
+  expect(taskCardText({ content: [{ type: 'text', text: 'done' }], details }, true).split('\n')[0]).toBe("Audit skill corpus · poteto-agent · Pi's default model");
+});
