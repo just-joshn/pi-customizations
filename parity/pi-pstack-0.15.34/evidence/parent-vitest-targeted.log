@@ -1,0 +1,9 @@
+
+ RUN  v5.0.2 /Users/josh-desktop/src/personal/pi-customizations-wt/pi-pstack-0.15.34/extensions/pi-pstack
+
+
+ Test Files  4 passed (4)
+      Tests  46 passed (46)
+   Start at  09:09:36
+   Duration  8.72s (tests 90%, import 9%, transform 1%)
+

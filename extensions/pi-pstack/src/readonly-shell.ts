@@ -8,8 +8,11 @@ import { type BashSpawnContext, createBashTool, type ExtensionAPI, type Extensio
 // denyWrite names the paths the sandbox makes writable for itself (/tmp/claude is a dependency default), and
 // denyRead drops the dependency's writable home defaults (~/.npm/_logs, ~/.claude/debug). Seatbelt is
 // last-match-wins with deny emitted after allow; on Linux bubblewrap binds deny last the same way.
+// allowAllUnixSockets skips apply-seccomp: on GitHub-hosted runners (and other nested-userns hosts) that
+// helper fails writing /proc/self/setgroups even with setuid bwrap. Write and network denial still come
+// from bubblewrap / sandbox-exec; only AF_UNIX blocking is dropped.
 const READ_ONLY_POLICY: SandboxRuntimeConfig = {
-  network: { allowedDomains: [], deniedDomains: [] },
+  network: { allowedDomains: [], deniedDomains: [], allowAllUnixSockets: true },
   filesystem: {
     denyRead: ['~/.npm/_logs', '~/.claude/debug'],
     allowWrite: [],
@@ -38,7 +41,11 @@ function sandboxReady(): Promise<Sandbox> {
       const { SandboxManager } = await import('@anthropic-ai/sandbox-runtime');
       if (!SandboxManager.isSupportedPlatform()) throw new Error(`${process.platform} is not supported`);
       // initialize verifies the sandbox dependencies (bubblewrap, socat, sandbox-exec) before it starts.
+      // A second initialize is a no-op once another consumer has started the manager, and several
+      // Linux flags (notably allowAllUnixSockets) are read from the manager config, not the per-call
+      // wrap override — so updateConfig installs our policy even when we lost the initialize race.
       await SandboxManager.initialize(READ_ONLY_POLICY);
+      SandboxManager.updateConfig(READ_ONLY_POLICY);
       return SandboxManager;
     } catch (error) {
       throw new Error(`no verified OS sandbox is available: ${error instanceof Error ? error.message : String(error)}`);

@@ -1,6 +1,6 @@
 # pstack for Pi (pi-pstack)
 
-This package ports the Cursor plugin [pstack](https://github.com/cursor/plugins/tree/main/pstack) 0.15.30 to Pi 1.4.0, together with what pstack depends on: the `deslop`, `control-cli`, and `control-ui` skills from cursor-team-kit 1.2.0, and the Cursor host features that pstack's skills call by name. The skills ship as upstream wrote them. A small extension supplies the host features in Pi: `/name` skill commands, Custom Modes, the `Task` subagent tool, `TodoWrite`, `AskQuestion`, the always-applied model rule, `/loop`, and a system-prompt map from Cursor paths to Pi paths.
+This package ports the Cursor plugin [pstack](https://github.com/cursor/plugins/tree/main/pstack) 0.15.34 to Pi 1.4.0, together with what pstack depends on: the `deslop`, `control-cli`, and `control-ui` skills from cursor-team-kit 1.2.0, and the Cursor host features that pstack's skills call by name. The skills ship as upstream wrote them. A small extension supplies the host features in Pi: `/name` skill commands, Custom Modes, the `Task` subagent tool, `TodoWrite`, `AskQuestion`, the always-applied model rule, `/loop`, and a system-prompt map from Cursor paths to Pi paths.
 
 ## Get set up
 
@@ -14,7 +14,7 @@ This package ports the Cursor plugin [pstack](https://github.com/cursor/plugins/
    ```
 
    Pi does not install dependencies for a local package, so `bun install` (or `npm install` in `extensions/pi-pstack`) fetches the one runtime dependency, `@anthropic-ai/sandbox-runtime`, which only readonly subagents load for their read-only shell. Without it everything else works, and a readonly subagent's shell commands fail instead of running unsandboxed. To try it for one session without installing, run `pi -e ./extensions/pi-pstack`.
-   Installing changes nothing until you invoke a skill. 55 pstack skills stay out of the model's automatic skill list, as in Cursor; only `/setup-pstack`, `create-skill`, and the three cursor-team-kit skills can load from your words alone.
+   Installing changes nothing until you invoke a skill. 57 pstack skills stay out of the model's automatic skill list, as in Cursor; only `/setup-pstack`, `create-skill`, and the three cursor-team-kit skills can load from your words alone.
 2. Run `/setup-pstack`. It lists the models the `Task` tool can use, asks for a reasoning budget, maps a model to each role, and writes the model rule. A new rule applies from the next request.
 3. Start real work with `/poteto-mode`, a goal, and a check that can pass or fail.
 
@@ -69,18 +69,18 @@ Subagent transcripts are Pi sessions in `~/.pi/agent/pstack/workspaces/<workspac
 - Depth limits apply to `Task`. A writable subagent can still start `pi` through `bash`, and that process is outside the port's depth limit and parent watchdog.
 - A child loads your installed extensions plus this package. If you run one checkout with `-e` while a different checkout of pi-pstack is installed, the child loads both and fails on duplicate tools; use one copy, or a separate `PI_CODING_AGENT_DIR`, as `live:e2e` does.
 - Subagents run headless in JSON mode, so an extension that asks for permission through a dialog cannot ask there.
-- The read-only shell sandboxes shell subprocesses only. Pi and trusted extensions in a readonly child are trusted code and are not sandboxed by it, and the sandbox is verified on macOS and on the Ubuntu CI runner. On Linux it needs `bubblewrap`, `socat`, and `ripgrep`. Ubuntu 24.04 and later also restrict unprivileged user namespaces. Either add an AppArmor profile that grants `userns` to `bwrap`, or run `sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0`, which lifts the restriction for every program on the machine. `@anthropic-ai/sandbox-runtime` documents both.
+- The read-only shell sandboxes shell subprocesses only. Pi and trusted extensions in a readonly child are trusted code and are not sandboxed by it, and the sandbox is verified on macOS and on the Ubuntu CI runner. On Linux it needs `bubblewrap`, `socat`, and `ripgrep`. Ubuntu 24.04 and later also restrict unprivileged user namespaces. Either add an AppArmor profile that grants `userns` to `bwrap`, or run `sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0`, which lifts the restriction for every program on the machine. The policy sets `allowAllUnixSockets: true` so Linux skips `apply-seccomp`: that helper's nested userns fails with `setgroups` Permission denied on GitHub-hosted runners even with setuid `bwrap`. Filesystem write denial and network denial still come from bubblewrap. `@anthropic-ai/sandbox-runtime` documents the sysctl, setuid `bwrap` in its own CI, and `allowAllUnixSockets` as the way to run without the seccomp helper.
 - The rule guard covers the `write` and `edit` tools. A shell command can still write `~/.cursor/rules/pstack-models.mdc`; the system prompt tells the model not to.
 - Whether a model follows a playbook is the model's call. In the recorded runs, claude-sonnet-5-5 at medium effort skipped the poteto-mode playbook in both Cursor and this port, and deepseek-flash followed it. See `parity/pi-pstack-two/evidence/live-summary.md` (the archive keeps its recorded name).
 - A model rule from before this version may name a thinking level a model does not support (for example `deepseek/deepseek-flash:xhigh`). Task now rejects such a value with the allowed list; rerun `/setup-pstack` to rewrite the rule.
 - Workspace folders follow Pi's session-folder naming, so two paths that differ only by `/` versus `-` (`/a-b/c` and `/a/b-c`) share a folder, as they share Pi's session folder; resume refuses an agent whose record names the other directory.
 - The run lock that keeps one writer per agent ID names the process writing the transcript. Two Pi processes that take over the same stale lock within microseconds of each other could both succeed. A lock file without a readable pid counts as held; the error names the file to delete.
 - The Bun tools under `skills/poteto-mode/scripts/` (`watch-pr`, `orch`) need Bun, and install their one dependency on first run. `worktree-audit.sh` needs `rg`, `jq`, and macOS's BSD `stat` and `date`, as upstream does.
-- `statechart` needs Java 11 or later and `TLA2TOOLS` set to the path of `tla2tools.jar` from a [TLA+ release](https://github.com/tlaplus/tlaplus/releases); without `TLA2TOOLS` it says where to get TLC and exits 2. Its `--png` flag renders through `npx @mermaid-js/mermaid-cli`, as upstream documents.
+- `statechart` runs `skills/statechart/scripts/statechart` (a shim into `statechart.ts`). The first run installs TLC and Java through [mise](https://mise.jdx.dev/) and needs the network; later runs reuse that install. Without a SPEC it prints `Usage: statechart SPEC.tla` and exits 2.
 
 ## Maintain it
 
-`upstream.lock.json` pins `cursor/plugins@eb4db2b` (pstack 0.15.30) and records every shipped file's source and hash. Two transforms exist: each `SKILL.md` gets its `name` set to its directory, with Cursor-only fields moved under `metadata` as `cursor-*`, and `worktree-audit.sh` reads Pi session files instead of Cursor transcripts, finding them the way Pi does: `PI_CODING_AGENT_SESSION_DIR`, then a `sessionDir` setting, then one folder per working directory (`scripts/patches.json`). `skills/create-skill/` is authored here.
+`upstream.lock.json` pins `cursor/plugins@519d36aa` (pstack 0.15.34) and records every shipped file's source and hash. Two transforms exist: each `SKILL.md` gets its `name` set to its directory, with Cursor-only fields moved under `metadata` as `cursor-*`, and `worktree-audit.sh` reads Pi session files instead of Cursor transcripts, finding them the way Pi does: `PI_CODING_AGENT_SESSION_DIR`, then a `sessionDir` setting, then one folder per working directory (`scripts/patches.json`). `skills/create-skill/` is authored here.
 
 ```sh
 git clone https://github.com/cursor/plugins.git /tmp/cursor-plugins
@@ -91,7 +91,7 @@ bun run test
 bun run live:e2e -- --model deepseek/deepseek-flash      # real-model scenarios; needs credentials and gives the model under test your real auth.json (see the script header)
 ```
 
-The parity record for the 0.15.21 port is in `parity/pi-pstack-two/` (the archive keeps its recorded name): specification, design decisions, the ledger, fixtures, evidence, and reviews. The move to 0.15.29 and Pi 1.3.0 is recorded in `parity/pi-pstack-0.15.29/`: the decision log and its evidence. The move to Pi 1.4.0 is recorded in `parity/pi-pstack-pi-1.4.0/`. The move to 0.15.30, which adds the `statechart` skill, is recorded in `parity/pi-pstack-0.15.30/`.
+The parity record for the 0.15.21 port is in `parity/pi-pstack-two/` (the archive keeps its recorded name): specification, design decisions, the ledger, fixtures, evidence, and reviews. The move to 0.15.29 and Pi 1.3.0 is recorded in `parity/pi-pstack-0.15.29/`: the decision log and its evidence. The move to Pi 1.4.0 is recorded in `parity/pi-pstack-pi-1.4.0/`. The move to 0.15.30, which adds the `statechart` skill, is recorded in `parity/pi-pstack-0.15.30/`. The move to 0.15.34 (ketchup-video, statechart TypeScript rewrite, full tip corpus) is recorded in `parity/pi-pstack-0.15.34/`.
 
 ## Licenses
 

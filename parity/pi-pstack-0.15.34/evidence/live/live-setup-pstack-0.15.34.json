@@ -1,0 +1,61 @@
+{
+  "scenario": "setup",
+  "requirement": "LIVE-003",
+  "model": "deepseek/deepseek-flash",
+  "prompt": "/setup-pstack Use the large budget and keep the skill's mapping. For a role whose default model is not available, use the closest available model of the same family, else inherit-parent. Do not ask me anything; write the rule now.",
+  "exitCode": 0,
+  "seconds": 79,
+  "checks": {
+    "ruleWritten": true,
+    "alwaysApply": true,
+    "missingRoles": [],
+    "distinctValues": [
+      "xai/grok-4.7:xhigh",
+      "inherit-parent"
+    ],
+    "unresolvedValues": [
+      "xai/grok-4.7:xhigh",
+      "xai/grok-4.7:xhigh",
+      "xai/grok-4.7:xhigh",
+      "xai/grok-4.7:xhigh",
+      "xai/grok-4.7:xhigh",
+      "xai/grok-4.7:xhigh",
+      "xai/grok-4.7:xhigh",
+      "xai/grok-4.7:xhigh",
+      "xai/grok-4.7:xhigh",
+      "xai/grok-4.7:xhigh",
+      "xai/grok-4.7:xhigh",
+      "xai/grok-4.7:xhigh"
+    ],
+    "wroteCursorRule": false,
+    "rule": "---\ndescription: pstack per-role model choices (overrides skill defaults)\nalwaysApply: true\n---\n# pstack model configuration. One line per role. Delete a line to fall back to the skill default.\n# `inherit-parent` or `auto` as a value: the role runs on the parent chat model (omit Task `model`). Alias entries in a panel list still count toward its fan-out.\n# budget: large (xhigh)\nfeature, refactoring: xai/grok-4.7:xhigh\nbug-fix: xai/grok-4.7:xhigh\nperf-issue: xai/grok-4.7:xhigh\nhillclimb: xai/grok-4.7:xhigh\njudgment and prose: inherit-parent\nhardest tasks: inherit-parent\nhow explorer: xai/grok-4.7:xhigh\nhow explainer: inherit-parent\nwhy investigators: xai/grok-4.7:xhigh\nwhy synthesizer: inherit-parent\nreflect tooling: xai/grok-4.7:xhigh\nreflect judgment, divergent, synthesizer: inherit-parent\narena runners: inherit-parent, xai/grok-4.7:xhigh\narena cross-judge pool: inherit-parent, xai/grok-4.7:xhigh\nswarm workers: xai/grok-4.7:xhigh\narchitect runners: inherit-parent, xai/grok-4.7:xhigh\ninterrogate reviewers: inherit-parent, xai/grok-4.7:xhigh\n"
+  },
+  "toolCalls": [
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"ls -la /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-eZY0eL/agent/pstack/ 2>&1; echo '---'; cat /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-eZY0eL/agent/pstack/pstack-models.mdc 2>&1; echo '--- pi cli ---'; which pi; pi models list 2>&1 | head -40\",\"timeout\":60}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"pi models list 2>&1 | tail -20; echo '=== claude? ==='; pi models list 2>&1 | grep -i -E 'claude|anthropic|grok' \",\"timeout\":60}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"cd /Users/josh-desktop/src/personal/pi-customizations-wt/pi-pstack-0.15.34/extensions/pi-pstack && pi models --help 2>&1 | head -30; echo '=== docs grep ==='; grep -rn \\\"grok-4.7:xhigh\\\\|<provider>/<model-id>\\\" --include=*.md . 2>/dev/null | head -10\",\"timeout\":60}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"cd /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-eZY0eL/work && timeout 120 pi --print --model xai/grok-4.7:xhigh \\\"Reply with exactly: ok\\\" 2>&1 | tail -5\",\"timeout\":140}"
+    },
+    {
+      "name": "write",
+      "arguments": "{\"path\":\"/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-eZY0eL/agent/pstack/pstack-models.mdc\",\"content\":\"---\\ndescription: pstack per-role model choices (overrides skill defaults)\\nalwaysApply: true\\n---\\n# pstack model configuration. One line per role. Delete a line to fall back to the skill default.\\n# `inherit-parent` or `auto` as a value: the role runs on the parent chat model (omit Task `model`). Alias entries in a panel list still count toward its fan-out.\\n# budget: large (xhigh)\\nfeature, refactoring: xai/grok-4.7:xhigh\\nbug-fix: xai/grok-4.7:xhigh\\nperf-issue: x"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"cat /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-eZY0eL/agent/pstack/pstack-models.mdc\",\"timeout\":30}"
+    }
+  ],
+  "finalText": "Rule written to `/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-eZY0eL/agent/pstack/pstack-models.mdc` (the Pi path for `~/.cursor/rules/pstack-models.mdc`).\n\n**Detected models** (`pi models list`, the dependable source): deepseek, openai (`gpt-4*`…`gpt-6.1-sol`, `o1`–`o4-mini`), xai `grok-4.3/4.5/4.6/4.7`, zai `glm-*`, plus `inherit` / `auto` / `inherit-parent`. **No `anthropic/*` or `google/*` in this session.**\n\n**Substitutions applied** (same-family-closest, else alias):\n- `grok-4.7-xhigh-fast` → `xai/grok-4.7:xhigh` (grok 4.7 does not publish a `-fast` variant here; xhigh is its ceiling). Verified live: `pi --print --model xai/grok-4.7:xhigh` returned `ok`.\n- `claude-opus-5-5-xhigh` → `inherit-parent` for every role, since no Claude/Anthropic family model exists to fall back to. Those roles are `judgment and prose`, `hardest tasks`, `how explainer`, `why synthesizer`, `reflect judgment, divergent, synthesizer`, and the Claude half of each panel list.\n\n**Budget:** `large (xhigh)` — unchanged from the skill defaults, so `grok-4.7` sits at its `xhigh` ceiling.\n\nNothing was dropped; no retired roles were present (no prior rule existed).\n\nTwo notes:\n- Both models in every panel list are kept, so fan-out counts stay at two even though one entry is an alias (`inherit-parent` runs on the parent model — which is how an Auto user stays on Auto).\n- Skipped in Pi: the optional `/create-verification-skill` and `/create-formal-verification-skill` offers — you asked for no questions. Say the word if you want either generated.\n\nApplies to new sessions; re-running `/setup-pstack` updates this file in place.",
+  "stderrTail": ""
+}

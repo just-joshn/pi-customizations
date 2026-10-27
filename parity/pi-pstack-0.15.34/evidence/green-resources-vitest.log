@@ -1,0 +1,10 @@
+$ vitest run test/resources.test.ts "test/e2e/package.e2e.test.ts" "test/e2e/host.e2e.test.ts"
+
+ RUN  v5.0.2 /Users/josh-desktop/src/personal/pi-customizations-wt/pi-pstack-0.15.34/extensions/pi-pstack
+
+
+ Test Files  3 passed (3)
+      Tests  32 passed (32)
+   Start at  09:06:03
+   Duration  4.65s (tests 83%, import 16%, transform 1%)
+
