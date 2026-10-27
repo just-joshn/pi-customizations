@@ -1,0 +1,15 @@
+     68|     const counts = new Map<string, number>();
+     69|     for (const file of lock.files) counts.set(file.transform, (counts.…
+     70|     expect(Object.fromEntries(counts)).toEqual({
+       |                                        ^
+     71|       none: 513,
+     72|       frontmatter: 61,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 13 passed (16)
+   Start at  14:02:23
+   Duration  799ms (import 80%, tests 17%, transform 3%)
+
