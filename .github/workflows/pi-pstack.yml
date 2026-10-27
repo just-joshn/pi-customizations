@@ -32,9 +32,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y bubblewrap socat ripgrep
           sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
-          # Without setuid, unprivileged bwrap forces setgroups=deny in its userns. apply-seccomp then
-          # cannot write /proc/self/setgroups in a nested userns (Permission denied / CAP_SYS_ADMIN),
-          # and every readonly-shell TASK-019 test fails. Match sandbox-runtime's CI.
+          # Match sandbox-runtime's CI host setup. The read-only shell also sets
+          # allowAllUnixSockets so apply-seccomp (nested userns / setgroups) is skipped.
           sudo chmod u+s "$(which bwrap)"
           bwrap --ro-bind / / --unshare-net true
       - run: bun install --frozen-lockfile

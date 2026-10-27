@@ -8,8 +8,11 @@ import { type BashSpawnContext, createBashTool, type ExtensionAPI, type Extensio
 // denyWrite names the paths the sandbox makes writable for itself (/tmp/claude is a dependency default), and
 // denyRead drops the dependency's writable home defaults (~/.npm/_logs, ~/.claude/debug). Seatbelt is
 // last-match-wins with deny emitted after allow; on Linux bubblewrap binds deny last the same way.
+// allowAllUnixSockets skips apply-seccomp: on GitHub-hosted runners (and other nested-userns hosts) that
+// helper fails writing /proc/self/setgroups even with setuid bwrap. Write and network denial still come
+// from bubblewrap / sandbox-exec; only AF_UNIX blocking is dropped.
 const READ_ONLY_POLICY: SandboxRuntimeConfig = {
-  network: { allowedDomains: [], deniedDomains: [] },
+  network: { allowedDomains: [], deniedDomains: [], allowAllUnixSockets: true },
   filesystem: {
     denyRead: ['~/.npm/_logs', '~/.claude/debug'],
     allowWrite: [],
