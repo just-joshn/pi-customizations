@@ -12,3 +12,4 @@ ts	phase	decision	why	evidence	result
 2026-10-27T16:06:13Z	green	SOURCE tip 519d36aa; sync wrote 579 files; check passed	SOURCE+lock are the only registry; generator output only	parity/pi-pstack-0.15.34/evidence/green-{sync,check,resources-vitest}.log	pass
 2026-10-27T16:07:01Z	script	rewrote SCRIPT-001 for statechart shim usage/exit; presence asserts; poteto 82 pass	graft C2 depth + C3 presence; obsolete mjs contract deleted	parity/pi-pstack-0.15.34/evidence/script-vitest.log: 14 passed	pass
 2026-10-27T16:07:34Z	docs	package 0.15.34-pi.1; README pin tip; Limits mise/TLC first-run; parity pointer	docs match the shipped pin so maintainers regenerate against tip	extensions/pi-pstack/{package.json,README.md}; README.md	pass
+2026-10-27T16:08:33Z	verify	typecheck exit 0; test 340 passed; check:upstream 579 match tip	package gate before parent confirm/fact-check	parity/pi-pstack-0.15.34/evidence/verify-{typecheck,test,check-upstream}.log	pass
