@@ -27,7 +27,7 @@ interface Lock {
 }
 
 const sha256 = (bytes: Buffer | string) => createHash('sha256').update(bytes).digest('hex');
-const PSTACK_HIDDEN = 56;
+const PSTACK_HIDDEN = 57;
 const TEAM_KIT = ['control-cli', 'control-ui', 'deslop'];
 const STANDARD_FIELDS = new Set(['name', 'description', 'license', 'compatibility', 'metadata', 'allowed-tools', 'disable-model-invocation']);
 
@@ -45,8 +45,8 @@ describe('generated resources', () => {
   test('pins the upstream commit and versions (RES-002)', () => {
     expect(lock.source).toEqual({
       repository: 'https://github.com/cursor/plugins',
-      commit: 'eb4db2b55b2b7dec3d9282754cddf0a56bf4ff10',
-      pstackVersion: '0.15.30',
+      commit: '519d36aa98955bf680db01bcde5fdfba686dc901',
+      pstackVersion: '0.15.34',
       teamKitVersion: '1.2.0',
     });
   });
@@ -59,7 +59,7 @@ describe('generated resources', () => {
       return sha256(readFileSync(path)) !== file.targetSha256 || executable !== (file.mode === '100755');
     });
     expect(drift.map((file) => file.target)).toEqual([]);
-    expect(lock.files).toHaveLength(183);
+    expect(lock.files).toHaveLength(579);
   });
 
   test('untransformed files equal their upstream bytes (RES-002)', () => {
@@ -68,8 +68,8 @@ describe('generated resources', () => {
     const counts = new Map<string, number>();
     for (const file of lock.files) counts.set(file.transform, (counts.get(file.transform) ?? 0) + 1);
     expect(Object.fromEntries(counts)).toEqual({
-      none: 122,
-      frontmatter: 60,
+      none: 517,
+      frontmatter: 61,
       'patch:worktree-audit-pi-transcripts': 1,
     });
   });
@@ -84,7 +84,7 @@ describe('generated resources', () => {
         return sha256(`---\n${file.sourceFrontmatter}\n---${rest}`) !== file.sourceSha256;
       });
     expect(mismatched.map((file) => file.target)).toEqual([]);
-    expect(checked).toBe(60);
+    expect(checked).toBe(61);
   });
 
   test('patched files differ from upstream only by the declared patch (RES-002, WTA-001)', () => {
@@ -97,13 +97,15 @@ describe('generated resources', () => {
     }
   });
 
-  test('loads 61 skills with no diagnostics and names equal to directories (RES-001)', () => {
+  test('loads 62 skills with no diagnostics and names equal to directories (RES-001)', () => {
     const { skills, diagnostics } = loadPackageSkills();
     expect(diagnostics).toEqual([]);
-    expect(skills).toHaveLength(61);
+    expect(skills).toHaveLength(62);
     const renamed = skills.filter((skill) => skill.name !== skill.filePath.split('/').at(-2));
     expect(renamed.map((skill) => skill.name)).toEqual([]);
-    expect(skills.map((skill) => skill.name)).toEqual(expect.arrayContaining(['poteto-mode', 'make-bot-ui', 'how', 'setup-pstack', 'create-skill', ...TEAM_KIT]));
+    expect(skills.map((skill) => skill.name)).toEqual(
+      expect.arrayContaining(['poteto-mode', 'make-bot-ui', 'how', 'setup-pstack', 'create-skill', 'ketchup-video', 'statechart', ...TEAM_KIT]),
+    );
   });
 
   test('keeps upstream descriptions and only Agent Skills fields at the top level (RES-001, RES-004)', () => {
@@ -123,7 +125,7 @@ describe('generated resources', () => {
     expect(typescript['metadata']).toEqual({ 'cursor-paths': ['**/*.ts', '**/*.tsx'] });
   });
 
-  test('hides 56 pstack skills from model invocation and keeps the rest invocable (RES-003, RES-005)', () => {
+  test('hides 57 pstack skills from model invocation and keeps the rest invocable (RES-003, RES-005)', () => {
     const { skills } = loadPackageSkills();
     const invocable = skills.filter((skill) => !skill.disableModelInvocation).map((skill) => skill.name);
     expect(invocable.toSorted()).toEqual(['control-cli', 'control-ui', 'create-skill', 'deslop', 'setup-pstack']);
@@ -212,6 +214,6 @@ describe('generated resources', () => {
     };
     for (const directory of ['skills', 'agents', 'docs', 'automations', 'licenses']) walk(join(root, directory));
     expect(extra).toEqual([]);
-    expect(tracked.size).toBe(184);
+    expect(tracked.size).toBe(580);
   });
 });

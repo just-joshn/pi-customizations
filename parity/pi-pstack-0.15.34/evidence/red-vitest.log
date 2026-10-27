@@ -1,0 +1,223 @@
+$ vitest run test/resources.test.ts "test/e2e/package.e2e.test.ts" "test/e2e/host.e2e.test.ts"
+
+ RUN  v5.0.2 /Users/josh-desktop/src/personal/pi-customizations-wt/pi-pstack-0.15.34/extensions/pi-pstack
+
+ ❯ test/resources.test.ts (16 tests | 7 failed) 75ms
+   ❯ generated resources (16)
+     × pins the upstream commit and versions (RES-002) 4ms
+     × every locked file exists with its recorded bytes and mode (RES-002) 13ms
+     × untransformed files equal their upstream bytes (RES-002) 1ms
+     × frontmatter-normalized files keep the upstream body byte for byte (RES-002) 2ms
+     × loads 62 skills with no diagnostics and names equal to directories (RES-001) 18ms
+     × hides 57 pstack skills from model invocation and keeps the rest invocable (RES-003, RES-005) 8ms
+     × ships nothing outside the lock under generated roots (RES-002) 3ms
+ ❯ test/e2e/package.e2e.test.ts (1 test | 1 failed) 795ms
+   × installs from a fresh copy without node_modules, then removes cleanly (PKG-001) 794ms
+ ❯ test/e2e/host.e2e.test.ts (15 tests | 1 failed) 4474ms
+   ❯ host map (HOST-001) (10)
+     × names the skills, rule, transcript, and subagent locations 577ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 9 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/resources.test.ts > generated resources > pins the upstream commit and versions (RES-002)
+AssertionError: expected { …(4) } to deeply equal { …(4) }
+
+- Expected
++ Received
+
+  {
+-   "commit": "519d36aa98955bf680db01bcde5fdfba686dc901",
+-   "pstackVersion": "0.15.34",
++   "commit": "eb4db2b55b2b7dec3d9282754cddf0a56bf4ff10",
++   "pstackVersion": "0.15.30",
+    "repository": "https://github.com/cursor/plugins",
+    "teamKitVersion": "1.2.0",
+  }
+
+ ❯ test/resources.test.ts:46:25
+     44| describe('generated resources', () => {
+     45|   test('pins the upstream commit and versions (RES-002)', () => {
+     46|     expect(lock.source).toEqual({
+       |                         ^
+     47|       repository: 'https://github.com/cursor/plugins',
+     48|       commit: '519d36aa98955bf680db01bcde5fdfba686dc901',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/9]⎯
+
+ FAIL  test/resources.test.ts > generated resources > every locked file exists with its recorded bytes and mode (RES-002)
+AssertionError: expected [ Array(183) ] to have a length of 579 but got 183
+
+- Expected
++ Received
+
+- 579
++ 183
+
+ ❯ test/resources.test.ts:62:24
+     60|     });
+     61|     expect(drift.map((file) => file.target)).toEqual([]);
+     62|     expect(lock.files).toHaveLength(579);
+       |                        ^
+     63|   });
+     64|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/9]⎯
+
+ FAIL  test/resources.test.ts > generated resources > untransformed files equal their upstream bytes (RES-002)
+AssertionError: expected { none: 122, frontmatter: 60, …(1) } to deeply equal { none: 517, frontmatter: 61, …(1) }
+
+- Expected
++ Received
+
+  {
+-   "frontmatter": 61,
+-   "none": 517,
++   "frontmatter": 60,
++   "none": 122,
+    "patch:worktree-audit-pi-transcripts": 1,
+  }
+
+ ❯ test/resources.test.ts:70:40
+     68|     const counts = new Map<string, number>();
+     69|     for (const file of lock.files) counts.set(file.transform, (counts.…
+     70|     expect(Object.fromEntries(counts)).toEqual({
+       |                                        ^
+     71|       none: 517,
+     72|       frontmatter: 61,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/9]⎯
+
+ FAIL  test/resources.test.ts > generated resources > frontmatter-normalized files keep the upstream body byte for byte (RES-002)
+AssertionError: expected 60 to be 61 // Object.is equality
+
+- Expected
++ Received
+
+- 61
++ 60
+
+ ❯ test/resources.test.ts:87:21
+     85|       });
+     86|     expect(mismatched.map((file) => file.target)).toEqual([]);
+     87|     expect(checked).toBe(61);
+       |                     ^
+     88|   });
+     89|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/9]⎯
+
+ FAIL  test/resources.test.ts > generated resources > loads 62 skills with no diagnostics and names equal to directories (RES-001)
+AssertionError: expected [ { name: 'architect', …(5) }, …(60) ] to have a length of 62 but got 61
+
+- Expected
++ Received
+
+- 62
++ 61
+
+ ❯ test/resources.test.ts:103:20
+    101|     const { skills, diagnostics } = loadPackageSkills();
+    102|     expect(diagnostics).toEqual([]);
+    103|     expect(skills).toHaveLength(62);
+       |                    ^
+    104|     const renamed = skills.filter((skill) => skill.name !== skill.file…
+    105|     expect(renamed.map((skill) => skill.name)).toEqual([]);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/9]⎯
+
+ FAIL  test/resources.test.ts > generated resources > hides 57 pstack skills from model invocation and keeps the rest invocable (RES-003, RES-005)
+AssertionError: expected [ { name: 'architect', …(5) }, …(55) ] to have a length of 57 but got 56
+
+- Expected
++ Received
+
+- 57
++ 56
+
+ ❯ test/resources.test.ts:132:68
+    130|     const invocable = skills.filter((skill) => !skill.disableModelInvo…
+    131|     expect(invocable.toSorted()).toEqual(['control-cli', 'control-ui',…
+    132|     expect(skills.filter((skill) => skill.disableModelInvocation)).toH…
+       |                                                                    ^
+    133|   });
+    134|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/9]⎯
+
+ FAIL  test/resources.test.ts > generated resources > ships nothing outside the lock under generated roots (RES-002)
+AssertionError: expected 184 to be 580 // Object.is equality
+
+- Expected
++ Received
+
+- 580
++ 184
+
+ ❯ test/resources.test.ts:217:26
+    215|     for (const directory of ['skills', 'agents', 'docs', 'automations'…
+    216|     expect(extra).toEqual([]);
+    217|     expect(tracked.size).toBe(580);
+       |                          ^
+    218|   });
+    219| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/9]⎯
+
+ FAIL  test/e2e/host.e2e.test.ts > host map (HOST-001) > names the skills, rule, transcript, and subagent locations
+AssertionError: expected 'pstack runs here through the pi-pstac…' to contain 'Installed skills (62): architect, are…'
+
+- Expected
++ Received
+
+- Installed skills (62): architect, arena, automate-me,
++ pstack runs here through the pi-pstack package. Its skills were written for Cursor; read their Cursor references through this map.
++ - <SKILLS> = /Users/josh-desktop/src/personal/pi-customizations-wt/pi-pstack-0.15.34/extensions/pi-pstack/skills. "the X skill", "/X", and "principle-X" mean <SKILLS>/X/SKILL.md, even for skills hidden from automatic invocation. Installed skills (61): architect, arena, automate-me, benchmark-checklist, blast-radius, bro, control-cli, control-ui, correct, create-formal-verification-skill, create-skill, create-verification-skill, deslop, figure-it-out, how, in-your-own-words, interrogate, ketchup, maintain-formal-verification-skill, maintain-verification-skill, make-bot-ui, no-comments, poteto-help, poteto-mode, principle-attack-the-premise, principle-boundary-discipline, principle-build-the-lever, principle-encode-lessons-in-structure, principle-exhaust-the-design-space, principle-experience-first, principle-explain-the-number, principle-fix-root-causes, principle-foundational-thinking, principle-guard-the-context-window, principle-laziness-protocol, principle-make-operations-idempotent, principle-migrate-callers-then-delete-legacy-apis, principle-minimize-reader-load, principle-model-the-domain, principle-never-block-on-the-human, principle-outcome-oriented-execution, principle-prove-it-works, principle-redesign-from-first-principles, principle-separate-before-serializing-shared-state, principle-sequence-verifiable-units, principle-subtract-before-you-add, principle-test-behavior-not-implementation, principle-type-system-discipline, recall, reflect, setup-pstack, sharpen, show-me-your-work, statechart, swarm, tdd, teach, technical-writing, typescript-best-practices, unslop, why.
++ - A <skill> block in a user message means the user attached that skill to this request (Cursor: a manually attached skill). Follow its workflow from its first step, including the steps it says to take before answering, instead of answering directly.
++ - Cursor's built-in create-skill skill is <SKILLS>/create-skill/SKILL.md. `.cursor/skills/` means `.pi/skills/`; `~/.cursor/skills/` means `/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pi-pstack-e2e-mGBfEW/agent/skills/`.
++ - `~/.cursor/rules/pstack-models.mdc` means /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pi-pstack-e2e-mGBfEW/agent/pstack/pstack-models.mdc. Read and write only that file and never write under ~/.cursor. Its current content is in <pstack_models>.
++ - Subagents: call the Task tool as the skills describe (subagent_type, model, readonly, run_in_background, resume). Types and model slugs are in <pstack_subagents>. A background agent notifies you after your turn ends; do not poll it.
++ - Todo lists: the TodoWrite tool. Structured questions: the AskQuestion tool, but nobody can answer in this run, so every question comes back skipped; decide yourself and say what you chose.
++ - Transcripts: `agent-transcripts/` and `~/.cursor/projects/<slug>/agent-transcripts/` mean /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pi-pstack-e2e-mGBfEW/agent/sessions/--private-var-folders-11-m_kwnqr97632l_cjt0mhytvh0000gn-T-pi-pstack-e2e-mGBfEW-work--, Pi session JSONL files for this workspace. Each line is an entry: the first is a session header, and conversation turns have type "message" (the opening prompt is the first user message). This chat's transcript is /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pi-pstack-e2e-mGBfEW/agent/sessions/--private-var-folders-11-m_kwnqr97632l_cjt0mhytvh0000gn-T-pi-pstack-e2e-mGBfEW-work--/2026-10-27T16-05-23-310Z_01a17e1b-f2ee-7051-90a1-01eb7fd2008d.jsonl. Subagent transcripts for this workspace: /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pi-pstack-e2e-mGBfEW/agent/pstack/workspaces/--private-var-folders-11-m_kwnqr97632l_cjt0mhytvh0000gn-T-pi-pstack-e2e-mGBfEW-work--/subagents/*_<agent id>.jsonl. A subagent is still running while /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pi-pstack-e2e-mGBfEW/agent/pstack/workspaces/--private-var-folders-11-m_kwnqr97632l_cjt0mhytvh0000gn-T-pi-pstack-e2e-mGBfEW-work--/subagents/<agent id>.lock exists and names a live pid.
++ - Cursor tool names in pstack text: Read is read, Grep is grep, Glob is find, Shell is bash. A skill under `~/.cursor/plugins/` is one under <SKILLS>, and this package is the only pstack copy, so a search of `~/.cursor/plugins/` for `skills/<name>/SKILL.md` ends at <SKILLS>/<name>/SKILL.md. In a Pi transcript a tool call is a toolCall part of an assistant message (tool name plus arguments), and an attached skill is a <skill name="..." location="..."> block in a user message.
++ - "The current agent's store" (orchestrate's store layout) is /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pi-pstack-e2e-mGBfEW/agent/pstack/workspaces/--private-var-folders-11-m_kwnqr97632l_cjt0mhytvh0000gn-T-pi-pstack-e2e-mGBfEW-work--/store/01a17e1b-f2ee-7051-90a1-01eb7fd2008d. Create it when a playbook needs it, and pass it to orch as --store. "The root agent's store" is /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pi-pstack-e2e-mGBfEW/agent/pstack/workspaces/--private-var-folders-11-m_kwnqr97632l_cjt0mhytvh0000gn-T-pi-pstack-e2e-mGBfEW-work--/store/01a17e1b-f2ee-7051-90a1-01eb7fd2008d, the store of the main chat that started this subagent tree; in the main chat it is the current agent's store.
++ - /loop: this run ends when it settles (a subagent, or a print or JSON run), so it has no Loop tool and cannot arm a loop. Keep working until the goal is met, and name in the final reply anything the parent chat should loop on.
++ - Image generation (the image tool teach reaches for, ketchup's generated image): Pi generates images through codemode's models.generateImages() when codemode is on and an image model is configured. Otherwise say no image tool is available and use a mermaid diagram or a table. Cursor's `/visualize` charts have no Pi counterpart, so draw a chart as a mermaid diagram (xychart-beta for numbers).
++ - Custom Mode (Cursor's Option+Enter): the user runs `/mode <skill>` to keep a skill on every turn and `/mode off` to exit.
++ - A link to `https://github.com/cursor/plugins/blob/main/pstack/<path>` means /Users/josh-desktop/src/personal/pi-customizations-wt/pi-pstack-0.15.34/extensions/pi-pstack/<path> when that file exists (skills/, agents/, docs/). Read the local copy instead of fetching it, and give the user the URL when they need a link.
++ - Bugbot comments on a GitHub PR are ordinary review threads, so triage them with the forge command the step gives. Skip a step that starts, waits for, or configures Bugbot when the PR has no Bugbot check or comment. A built-in PR tool means the forge command the step gives, such as `gh pr create`.
++ - A step that needs a Cursor-only feature with no Pi counterpart gets one line in your reply, `Skipped in Pi: <step>. <reason>.`, and you go on to the next step without stopping, asking, or retrying. When a later step needs what the skipped step made, such as a URL or a key, leave a placeholder and name it in that line.
++ - MCP tools are named mcp__<server>__<tool>; `pi mcp list` shows the servers.
++ - pstack's guide describes Cursor. Pi usage is in /Users/josh-desktop/src/personal/pi-customizations-wt/pi-pstack-0.15.34/extensions/pi-pstack/README.md.
++ - Cloud subagents (environment "cloud") run on this machine in their own git worktree on branch pstack/<agent id>, created from cloud_base_branch or this checkout's HEAD commit, so uncommitted changes do not reach them. The Task result names the worktree and branch; merge that branch to take the subagent's work. Pi never deletes these worktrees or branches; the worktree-cleanup playbook prunes them. Grok Bot routines (update_state, SendToUser) and Cursor Automations (routines, api2.cursor.sh/automations webhooks, routine wakes) have no Pi counterpart, so a step that needs one gets the Skipped in Pi line.
+
+ ❯ test/e2e/host.e2e.test.ts:52:18
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/9]⎯
+
+ FAIL  test/e2e/package.e2e.test.ts > installs from a fresh copy without node_modules, then removes cleanly (PKG-001)
+AssertionError: expected [ 'skill:architect', …(60) ] to have a length of 62 but got 61
+
+- Expected
++ Received
+
+- 62
++ 61
+
+ ❯ test/e2e/package.e2e.test.ts:48:74
+     46|     'skill:poteto-mode',
+     47|   ]);
+     48|   expect(installed.commands.filter((name) => name.startsWith('skill:')…
+       |                                                                          ^
+     49|   expect(
+     50|     installed.tools
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/9]⎯
+
+
+ Test Files  3 failed (3)
+      Tests  9 failed | 23 passed (32)
+   Start at  09:05:22
+   Duration  5.13s (tests 75%, import 23%, transform 1%)
+
+error: script "test" exited with code 1
