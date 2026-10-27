@@ -26,12 +26,17 @@ jobs:
         with:
           node-version: 22
       - uses: oven-sh/setup-bun@v2
-      # The readonly shell's OS sandbox on Linux, per @anthropic-ai/sandbox-runtime's Linux requirements and its
-      # Ubuntu 24.04+ note.
+      # The readonly shell's OS sandbox on Linux, per @anthropic-ai/sandbox-runtime's Linux requirements
+      # and its own GitHub Actions integration workflow.
       - run: |
           sudo apt-get update
           sudo apt-get install -y bubblewrap socat ripgrep
           sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+          # Without setuid, unprivileged bwrap forces setgroups=deny in its userns. apply-seccomp then
+          # cannot write /proc/self/setgroups in a nested userns (Permission denied / CAP_SYS_ADMIN),
+          # and every readonly-shell TASK-019 test fails. Match sandbox-runtime's CI.
+          sudo chmod u+s "$(which bwrap)"
+          bwrap --ro-bind / / --unshare-net true
       - run: bun install --frozen-lockfile
         working-directory: .
       - run: bun run typecheck
