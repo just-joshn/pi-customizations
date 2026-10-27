@@ -1,7 +1,7 @@
 import { join } from 'node:path';
 
 import type { AgentDefinition } from './task/agents.ts';
-import { type AvailableModel, modelLabel } from './task/models.ts';
+import { type AvailableModel, type ModelSpec, modelLabel } from './task/models.ts';
 
 export interface HostFacts {
   packageRoot: string;
@@ -63,7 +63,7 @@ function agentLine(agent: AgentDefinition): string {
 }
 
 /** Cursor puts these lists in <available_subagent_types> and <available_subagent_models>; Task's description points here. */
-export function subagentsSection(agents: readonly AgentDefinition[], models: readonly AvailableModel[]): string {
+export function subagentsSection(agents: readonly AgentDefinition[], models: readonly AvailableModel[], parent: ModelSpec | undefined): string {
   const shown = models.slice(0, MODEL_LIST_LIMIT).map(modelLabel);
   const more = models.length > MODEL_LIST_LIMIT ? `, and ${models.length - MODEL_LIST_LIMIT} more (pi --list-models)` : '';
   return [
@@ -71,6 +71,7 @@ export function subagentsSection(agents: readonly AgentDefinition[], models: rea
     ...agents.map(agentLine),
     'Model values for Task (and for role lines in the model rule):',
     '- inherit (default): the parent model and thinking level. auto and inherit-parent mean the same.',
+    ...(parent === undefined ? [] : [`- This chat runs ${parent.provider}/${parent.id}${parent.thinking === undefined ? '' : `:${parent.thinking}`}. pstack's model families (claude-*, grok-*) go by the model id after its provider.`]),
     '- A Cursor-style slug <model-id>-<effort>[-fast], effort one of the thinking levels the model lists below; the effort becomes the thinking level and -fast is ignored.',
     '- A Pi model <provider>/<model-id> or <model-id>, optionally with :<level> from the same list. A level the model does not list is rejected.',
     "- Cursor model parameters: <model>[effort=<level>,fast=true|false,context=<size>]. effort is the thinking level, fast=true picks the model's -fast id when one is listed, [] or fast=false keeps the standard model, and context has no effect in Pi.",

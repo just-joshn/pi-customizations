@@ -14,7 +14,7 @@ import { registerReadonlyShell } from './readonly-shell.ts';
 import { cursorRuleWriteReason, modelsSection, readRule } from './rule.ts';
 import { hostSection, subagentsSection } from './sections.ts';
 import { type AgentDefinition, loadAgentDefinitions } from './task/agents.ts';
-import { availableModels, registerTask } from './task/tool.ts';
+import { availableModels, parentModel, registerTask } from './task/tool.ts';
 import { registerTodoWrite } from './todo.ts';
 
 const WATCHDOG_MS = 1_000;
@@ -42,7 +42,7 @@ function hostSections(pi: ExtensionAPI, ctx: ExtensionContext, agents: readonly 
       loopAvailable: !isOneShot(ctx.mode),
       questionsAvailable: ctx.hasUI,
     }),
-    pstack_subagents: subagentsSection(agents, availableModels(ctx)),
+    pstack_subagents: subagentsSection(agents, availableModels(ctx), parentModel(ctx)),
     pstack_models: modelsSection(readRule(rulePath()), rulePath()),
     ...agentSection(agents),
   };

@@ -85,7 +85,7 @@ export function availableModels(ctx: ExtensionContext): AvailableModel[] {
   return ctx.modelRegistry.getAvailable().map((model) => ({ provider: model.provider, id: model.id, reasoning: model.reasoning, levels: getSupportedThinkingLevels(model) }));
 }
 
-function parentModel(ctx: ExtensionContext): ModelSpec | undefined {
+export function parentModel(ctx: ExtensionContext): ModelSpec | undefined {
   if (ctx.model === undefined) return undefined;
   return ctx.thinkingLevel === undefined ? { provider: ctx.model.provider, id: ctx.model.id } : { provider: ctx.model.provider, id: ctx.model.id, thinking: ctx.thinkingLevel };
 }
