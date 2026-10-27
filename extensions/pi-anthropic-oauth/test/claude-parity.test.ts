@@ -73,9 +73,8 @@ test('ambient API keys are rejected without exposure', async ({ provider }) => {
   await expect(failure).rejects.not.toThrow('not-an-oauth-token');
 });
 
-test('login matches Claude Code authorize URL, scopes, and paste-code redirect', async ({ provider, models, tokenEndpoint, credentials }) => {
+test('login ignores a browser method choice and keeps Claude paste-code authorize URL', async ({ provider, models, tokenEndpoint, credentials }) => {
   let urls: readonly URL[] = [];
-  // Ask for browser login; the provider must still follow Claude's paste-code path.
   const credential = await models.login(provider.id, 'oauth', {
     notify: (event) => {
       if (event.type === 'auth_url') urls = [...urls, new URL(event.url)];
