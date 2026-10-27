@@ -1,5 +1,5 @@
 import { execFileSync, spawnSync } from 'node:child_process';
-import { chmodSync, cpSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -18,7 +18,7 @@ describe('bundled scripts run from the package (SCRIPT-001)', () => {
     const bootstrap = spawnSync('bun', ['-e', "(await import('./bootstrap.ts')).ensureDependenciesInstalled()"], { cwd: SCRIPTS, encoding: 'utf8', timeout: 120_000 });
     expect(bootstrap.status).toBe(0);
     const result = spawnSync('bun', ['run', 'test'], { cwd: SCRIPTS, encoding: 'utf8', timeout: 120_000 });
-    expect(result.stderr).toMatch(/\n 68 pass\n 0 fail\n/);
+    expect(result.stderr).toMatch(/\n 82 pass\n 0 fail\n/);
     expect(result.status).toBe(0);
   });
 
@@ -49,22 +49,19 @@ describe('bundled scripts run from the package (SCRIPT-001)', () => {
   });
 });
 
-describe('statechart.mjs runs from the package (SCRIPT-001)', () => {
+describe('statechart CLI runs from the package (SCRIPT-001)', () => {
   const STATECHART = join(SKILLS_DIR, 'statechart/scripts');
+  const bin = join(STATECHART, 'statechart');
 
-  test('--help prints the commands and exits 0', () => {
-    const result = spawnSync('node', [join(STATECHART, 'statechart.mjs'), '--help'], { encoding: 'utf8', timeout: 60_000 });
-    expect(result.stdout.split('\n')[0]).toBe('Usage: node statechart.mjs from-spec SPEC.tla [--fixed FIXED.tla | --against AGREED.tla] [--label TEXT] [--map FILE] [--expect-broken RULE]... [--title TEXT] [--out DIR] [--png]');
-    expect(result.status).toBe(0);
+  test('ships the TypeScript entry and ketchup-video skill', () => {
+    expect(existsSync(join(STATECHART, 'statechart.ts'))).toBe(true);
+    expect(existsSync(join(SKILLS_DIR, 'ketchup-video/SKILL.md'))).toBe(true);
   });
 
-  test('from-spec without TLA2TOOLS says where to get TLC, exits 2, and writes nothing', () => {
-    cpSync(join(STATECHART, 'model'), scratch, { recursive: true });
-    const { TLA2TOOLS: _unset, ...env } = process.env;
-    const result = spawnSync('node', [join(STATECHART, 'statechart.mjs'), 'from-spec', join(scratch, 'OutputFolder.tla')], { encoding: 'utf8', env, timeout: 60_000 });
-    expect(result.stderr).toBe('Cannot find TLC. Download tla2tools.jar from a TLA+ release:\n  https://github.com/tlaplus/tlaplus/releases\nThen set TLA2TOOLS to the path of tla2tools.jar, and JAVA to a java binary (Java 11 or later).\n');
+  test('missing SPEC prints usage and exits 2', () => {
+    const result = spawnSync(bin, [], { encoding: 'utf8', cwd: scratch, timeout: 60_000 });
     expect(result.status).toBe(2);
-    expect(readdirSync(scratch).toSorted()).toEqual(['OutputFolder.cfg', 'OutputFolder.map.mjs', 'OutputFolder.tla']);
+    expect(result.stderr).toContain('Usage: statechart SPEC.tla');
   });
 });
 
