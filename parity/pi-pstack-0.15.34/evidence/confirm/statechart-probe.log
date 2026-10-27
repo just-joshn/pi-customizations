@@ -1,0 +1,9 @@
+Ran the shipped script with no SPEC argument, from a temp dir outside the repo so nothing was written here.
+
+```
+Usage: statechart SPEC.tla [--config FILE] [--view FILE] [--out DIR]
+```
+
+It prints `Give one SPEC.tla.` on the line above that, sends both to stderr, writes nothing to stdout, and exits 2 (the script's "cannot run" code). Real invocations exit 0 when every rule holds and 1 when a rule breaks.
+
+No principle leaf skill was read this session, so none is cited.

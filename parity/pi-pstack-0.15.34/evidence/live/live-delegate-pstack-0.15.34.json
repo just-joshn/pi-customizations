@@ -1,0 +1,27 @@
+{
+  "scenario": "delegate",
+  "requirement": "LIVE-004",
+  "model": "deepseek/deepseek-flash",
+  "prompt": "/poteto-mode Delegate to one foreground poteto-agent: find what calc.js exports. Read-only.",
+  "exitCode": 0,
+  "seconds": 32,
+  "checks": {
+    "delegated": true,
+    "everyPromptHasSkillPath": true,
+    "prompts": [
+      "You are working in the directory /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-uc6JVO/work.\n\nBefore any work, read the poteto-mode skill's SKILL.md in full, including its inline Principles index, at this absolute path:\n/Users/josh-desktop/src/personal/pi-customizations-wt/pi-pstack-0.15.34/extensions/pi-pstack/skills/poteto-mode/SKILL.md\n\nTask: find the file calc.js in this "
+    ]
+  },
+  "toolCalls": [
+    {
+      "name": "Task",
+      "arguments": "{\"description\":\"Find calc.js exports\",\"prompt\":\"You are working in the directory /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-uc6JVO/work.\\n\\nBefore any work, read the poteto-mode skill's SKILL.md in full, including its inline Principles index, at this absolute path:\\n/Users/josh-desktop/src/personal/pi-customizations-wt/pi-pstack-0.15.34/extensions/pi-pstack/skills/poteto-mode/SKILL.md\\n\\nTask: find the file calc.js in this working directory and report exactly what it exports. This is a read-only investigation. Do not edit, create, or delete any files. Do not run insta"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"cd /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-uc6JVO/work && ls -a && echo '---' && cat calc.js && echo '---' && git status --porcelain && echo '(end)'\",\"timeout\":30}"
+    }
+  ],
+  "finalText": "Verified myself. `calc.js` exports one thing.\n\n**The export.** `add(a, b)`, a named ESM `export const` arrow function returning `a + b`, at line 1 of `/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-uc6JVO/work/calc.js`. The whole file is that one line.\n\n**Nothing else.** No default export, no CommonJS `module.exports`, no re-exports. `ls` confirms `calc.js` is the only non-git file, so there is no sibling copy.\n\n**Gotcha for a consumer.** There is no `package.json` in the directory. Node v24 read the file as ESM on import (measured by the subagent), but a consumer on older Node or a bundler defaulting `.js` to CommonJS will fail on the `export` keyword. That second part is inference from the missing manifest, not a run.\n\nTree is clean, no files modified.\n\n**Principles cited.** `principle-prove-it-works` shaped the delegate's method, which imported the module and read the namespace instead of stopping at the file read, since syntax alone understates what a consumer receives. `principle-guard-the-context-window` shaped sending the lookup to one subagent rather than fanning out over a one-line file. The **unslop** skill shaped this reply's prose.\n\nOne judgment call I made without asking. I re-read `calc.js` and ran `git status` after the agent reported, rather than passing its answer straight through, because I own its work. No open decisions.",
+  "stderrTail": ""
+}

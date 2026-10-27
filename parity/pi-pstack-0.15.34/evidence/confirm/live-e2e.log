@@ -1,0 +1,60 @@
+$ node scripts/live-e2e.mjs --model deepseek/deepseek-flash --scenario all --out "/Users/josh-desktop/src/personal/pi-customizations-wt/pi-pstack-0.15.34/parity/pi-pstack-0.15.34/evidence/live" --tag "pstack-0.15.34"
+poteto: {"readPlaybook":true,"firstTodosAreStepsVerbatim":false,"stepMatches":[false,false,false,false],"workspaceUnchanged":true,"todos":["Route through the **how** skill (simple path: single tiny module, one function)","Throughput checkpoint stays one line: `throughput checkpoint: n/a, read-only investigation`","Produce the `how`-shaped output (Overview / Key Concepts / How It Works / Where Things Live / Gotchas)","Apply the **unslop** skill to the reply"]}
+delegate: {"delegated":true,"everyPromptHasSkillPath":true,"prompts":["You are working in the directory /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-uc6JVO/work.\n\nBefore any work, read the poteto-mode skill's SKILL.md in full, including its inline Principles index, at this absolute path:\n/Users/josh-desktop/src/personal/pi-customizations-wt/pi-pstack-0.15.34/extensions/pi-pstack/skills/poteto-mode/SKILL.md\n\nTask: find the file calc.js in this "]}
+nocomments: {"spawnedCommentSicko":true,"taskTypes":["comment-sicko","comment-sicko"]}
+{"provider":"deepseek","id":"deepseek-flash","reasoning":true,"levels":["off","low","high","max"]}
+{"provider":"deepseek","id":"deepseek-v4-pro","reasoning":true,"levels":["off","high","max"]}
+{"provider":"openai","id":"gpt-4","reasoning":false,"levels":["off"]}
+{"provider":"openai","id":"gpt-4-turbo","reasoning":false,"levels":["off"]}
+{"provider":"openai","id":"gpt-4.1","reasoning":false,"levels":["off"]}
+{"provider":"openai","id":"gpt-4.1-mini","reasoning":false,"levels":["off"]}
+{"provider":"openai","id":"gpt-4.1-nano","reasoning":false,"levels":["off"]}
+{"provider":"openai","id":"gpt-4o","reasoning":false,"levels":["off"]}
+{"provider":"openai","id":"gpt-4o-2024-05-13","reasoning":false,"levels":["off"]}
+{"provider":"openai","id":"gpt-4o-2024-08-06","reasoning":false,"levels":["off"]}
+{"provider":"openai","id":"gpt-4o-2024-11-20","reasoning":false,"levels":["off"]}
+{"provider":"openai","id":"gpt-4o-mini","reasoning":false,"levels":["off"]}
+{"provider":"openai","id":"gpt-5","reasoning":true,"levels":["minimal","low","medium","high"]}
+{"provider":"openai","id":"gpt-5-chat-latest","reasoning":false,"levels":["off"]}
+{"provider":"openai","id":"gpt-5-mini","reasoning":true,"levels":["minimal","low","medium","high"]}
+{"provider":"openai","id":"gpt-5-nano","reasoning":true,"levels":["minimal","low","medium","high"]}
+{"provider":"openai","id":"gpt-5-pro","reasoning":true,"levels":["high"]}
+{"provider":"openai","id":"gpt-5.1","reasoning":true,"levels":["off","low","medium","high"]}
+{"provider":"openai","id":"gpt-5.2","reasoning":true,"levels":["off","low","medium","high","xhigh"]}
+{"provider":"openai","id":"gpt-5.2-pro","reasoning":true,"levels":["medium","high","xhigh"]}
+{"provider":"openai","id":"gpt-5.3-codex","reasoning":true,"levels":["off","low","medium","high","xhigh"]}
+{"provider":"openai","id":"gpt-5.3-codex-spark","reasoning":true,"levels":["low","medium","high","xhigh"]}
+{"provider":"openai","id":"gpt-5.4","reasoning":true,"levels":["off","low","medium","high","xhigh"]}
+{"provider":"openai","id":"gpt-5.4-mini","reasoning":true,"levels":["off","low","medium","high","xhigh"]}
+{"provider":"openai","id":"gpt-5.4-nano","reasoning":true,"levels":["off","low","medium","high","xhigh"]}
+{"provider":"openai","id":"gpt-5.4-pro","reasoning":true,"levels":["medium","high","xhigh"]}
+{"provider":"openai","id":"gpt-5.5","reasoning":true,"levels":["off","low","medium","high","xhigh"]}
+{"provider":"openai","id":"gpt-5.5-pro","reasoning":true,"levels":["medium","high","xhigh"]}
+{"provider":"openai","id":"gpt-5.6-luna","reasoning":true,"levels":["off","low","medium","high","xhigh","max"]}
+{"provider":"openai","id":"gpt-5.6-sol","reasoning":true,"levels":["off","low","medium","high","xhigh","max"]}
+{"provider":"openai","id":"gpt-5.6-terra","reasoning":true,"levels":["off","low","medium","high","xhigh","max"]}
+{"provider":"openai","id":"gpt-6-astra","reasoning":true,"levels":["low","medium","high","xhigh","max"]}
+{"provider":"openai","id":"gpt-6-luna","reasoning":true,"levels":["off","low","medium","high","xhigh","max"]}
+{"provider":"openai","id":"gpt-6-sol","reasoning":true,"levels":["off","low","medium","high","xhigh","max"]}
+{"provider":"openai","id":"gpt-6.1-sol","reasoning":true,"levels":["low","medium","high","xhigh","max"]}
+{"provider":"openai","id":"gpt-daybreak-blue-latest","reasoning":true,"levels":["off","low","medium","high","xhigh","max"]}
+{"provider":"openai","id":"gpt-daybreak-red-latest","reasoning":true,"levels":["off","low","medium","high","xhigh","max"]}
+{"provider":"openai","id":"gpt-realtime-2.1","reasoning":true,"levels":["minimal","low","medium","high","xhigh"]}
+{"provider":"openai","id":"o1","reasoning":true,"levels":["low","medium","high"]}
+{"provider":"openai","id":"o1-pro","reasoning":true,"levels":["low","medium","high"]}
+{"provider":"openai","id":"o3","reasoning":true,"levels":["low","medium","high"]}
+{"provider":"openai","id":"o3-mini","reasoning":true,"levels":["low","medium","high"]}
+{"provider":"openai","id":"o3-pro","reasoning":true,"levels":["low","medium","high"]}
+{"provider":"openai","id":"o4-mini","reasoning":true,"levels":["low","medium","high"]}
+{"provider":"xai","id":"grok-4.3","reasoning":true,"levels":["off","low","medium","high","xhigh"]}
+{"provider":"xai","id":"grok-4.5","reasoning":true,"levels":["low","medium","high","xhigh"]}
+{"provider":"xai","id":"grok-4.6","reasoning":true,"levels":["low","medium","high","xhigh"]}
+{"provider":"xai","id":"grok-4.7","reasoning":true,"levels":["low","medium","high","xhigh"]}
+{"provider":"zai","id":"glm-4.7","reasoning":true,"levels":["off","minimal","low","medium","high"]}
+{"provider":"zai","id":"glm-5-turbo","reasoning":true,"levels":["off","minimal","low","medium","high"]}
+{"provider":"zai","id":"glm-5.2","reasoning":true,"levels":["off","high","max"]}
+{"provider":"zai","id":"glm-5.2-highspeed","reasoning":true,"levels":["off","high","max"]}
+{"provider":"zai","id":"glm-5.3","reasoning":true,"levels":["low","high","max"]}
+{"provider":"zai","id":"glm-5.3-flash","reasoning":true,"levels":["low","high","max"]}
+{"provider":"zai","id":"glm-5.3-highspeed","reasoning":true,"levels":["low","high","max"]}
+setup: {"ruleWritten":true,"alwaysApply":true,"missingRoles":[],"distinctValues":["xai/grok-4.7:xhigh","inherit-parent"],"unresolvedValues":["xai/grok-4.7:xhigh","xai/grok-4.7:xhigh","xai/grok-4.7:xhigh","xai/grok-4.7:xhigh","xai/grok-4.7:xhigh","xai/grok-4.7:xhigh","xai/grok-4.7:xhigh","xai/grok-4.7:xhigh","xai/grok-4.7:xhigh","xai/grok-4.7:xhigh","xai/grok-4.7:xhigh","xai/grok-4.7:xhigh"],"wroteCursorRule":false,"rule":"---\ndescription: pstack per-role model choices (overrides skill defaults)\nalwaysApply: true\n---\n# pstack model configuration. One line per role. Delete a line to fall back to the skill default.\n# `inherit-parent` or `auto` as a value: the role runs on the parent chat model (omit Task `model`). Alias entries in a panel list still count toward its fan-out.\n# budget: large (xhigh)\nfeature, refactoring: xai/grok-4.7:xhigh\nbug-fix: xai/grok-4.7:xhigh\nperf-issue: xai/grok-4.7:xhigh\nhillclimb: xai/grok-4.7:xhigh\njudgment and prose: inherit-parent\nhardest tasks: inherit-parent\nhow explorer: xai/grok-4.7:xhigh\nhow explainer: inherit-parent\nwhy investigators: xai/grok-4.7:xhigh\nwhy synthesizer: inherit-parent\nreflect tooling: xai/grok-4.7:xhigh\nreflect judgment, divergent, synthesizer: inherit-parent\narena runners: inherit-parent, xai/grok-4.7:xhigh\narena cross-judge pool: inherit-parent, xai/grok-4.7:xhigh\nswarm workers: xai/grok-4.7:xhigh\narchitect runners: inherit-parent, xai/grok-4.7:xhigh\ninterrogate reviewers: inherit-parent, xai/grok-4.7:xhigh\n"}

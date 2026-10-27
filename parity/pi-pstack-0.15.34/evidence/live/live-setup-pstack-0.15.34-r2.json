@@ -1,0 +1,61 @@
+{
+  "scenario": "setup",
+  "requirement": "LIVE-003",
+  "model": "deepseek/deepseek-flash",
+  "prompt": "/setup-pstack Use the large budget and keep the skill's mapping. For a role whose default model is not available, use the closest available model of the same family, else inherit-parent. Do not ask me anything; write the rule now.",
+  "exitCode": 0,
+  "seconds": 59,
+  "checks": {
+    "ruleWritten": true,
+    "alwaysApply": true,
+    "missingRoles": [],
+    "distinctValues": [
+      "grok-4.7-xhigh-fast",
+      "inherit-parent"
+    ],
+    "unresolvedValues": [
+      "grok-4.7-xhigh-fast",
+      "grok-4.7-xhigh-fast",
+      "grok-4.7-xhigh-fast",
+      "grok-4.7-xhigh-fast",
+      "grok-4.7-xhigh-fast",
+      "grok-4.7-xhigh-fast",
+      "grok-4.7-xhigh-fast",
+      "grok-4.7-xhigh-fast",
+      "grok-4.7-xhigh-fast",
+      "grok-4.7-xhigh-fast",
+      "grok-4.7-xhigh-fast",
+      "grok-4.7-xhigh-fast"
+    ],
+    "wroteCursorRule": false,
+    "rule": "---\ndescription: pstack per-role model choices (overrides skill defaults)\nalwaysApply: true\n---\n# pstack model configuration. One line per role. Delete a line to fall back to the skill default.\n# `inherit-parent` or `auto` as a value: the role runs on the parent chat model (omit Task `model`). Alias entries in a panel list still count toward its fan-out.\n# budget: large (xhigh)\n# No anthropic/claude models exist in this session, so every role whose skill default was claude-opus-5-5-xhigh inherits the parent model instead.\n# Grok slugs: `-fast` is ignored in Pi; `grok-4.7-xhigh-fast` resolves to xai/grok-4.7 at xhigh.\nfeature, refactoring: grok-4.7-xhigh-fast\nbug-fix: grok-4.7-xhigh-fast\nperf-issue: grok-4.7-xhigh-fast\nhillclimb: grok-4.7-xhigh-fast\njudgment and prose: inherit-parent\nhardest tasks: inherit-parent\nhow explorer: grok-4.7-xhigh-fast\nhow explainer: inherit-parent\nwhy investigators: grok-4.7-xhigh-fast\nwhy synthesizer: inherit-parent\nreflect tooling: grok-4.7-xhigh-fast\nreflect judgment, divergent, synthesizer: inherit-parent\narena runners: inherit-parent, grok-4.7-xhigh-fast\narena cross-judge pool: inherit-parent, grok-4.7-xhigh-fast\nswarm workers: grok-4.7-xhigh-fast\narchitect runners: inherit-parent, grok-4.7-xhigh-fast\ninterrogate reviewers: inherit-parent, grok-4.7-xhigh-fast\n"
+  },
+  "toolCalls": [
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"ls -la /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-zZRHpF/agent/pstack/ 2>/dev/null; echo \\\"---\\\"; cat /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-zZRHpF/agent/pstack/pstack-models.mdc 2>/dev/null || echo \\\"NO RULE FILE\\\"\",\"timeout\":15}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"cd /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-zZRHpF/work && ls -a 2>/dev/null | head -30\",\"timeout\":15}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"ls -la /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-zZRHpF/agent/ 2>/dev/null; echo \\\"=== models ===\\\"; (pi models 2>&1 | head -60) || true\",\"timeout\":30}"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"mkdir -p /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-zZRHpF/agent/pstack && echo ok\",\"timeout\":15}"
+    },
+    {
+      "name": "write",
+      "arguments": "{\"path\":\"/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-zZRHpF/agent/pstack/pstack-models.mdc\",\"content\":\"---\\ndescription: pstack per-role model choices (overrides skill defaults)\\nalwaysApply: true\\n---\\n# pstack model configuration. One line per role. Delete a line to fall back to the skill default.\\n# `inherit-parent` or `auto` as a value: the role runs on the parent chat model (omit Task `model`). Alias entries in a panel list still count toward its fan-out.\\n# budget: large (xhigh)\\n# No anthropic/claude models exist in this session, so every role whose skill defaul"
+    },
+    {
+      "name": "bash",
+      "arguments": "{\"command\":\"cat /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-zZRHpF/agent/pstack/pstack-models.mdc; echo \\\"=== verify ===\\\"; pi models 2>&1 | head -40\",\"timeout\":30}"
+    }
+  ],
+  "finalText": "Rule written to `/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-live-zZRHpF/agent/pstack/pstack-models.mdc` (`alwaysApply: true`), effective from the next request. Re-running `/setup-pstack` rewrites it idempotently.\n\n**Budget:** `large (xhigh)` — effort token on every real slug is `xhigh`.\n\n| role(s) | model | why |\n|---|---|---|\n| feature/refactoring, bug-fix, perf-issue, hillclimb, how explorer, why investigators, reflect tooling, swarm workers | `grok-4.7-xhigh-fast` | skill default, detected as `xai/grok-4.7` @ xhigh (`-fast` is ignored in Pi) |\n| judgment and prose, hardest tasks, how explainer, why synthesizer, reflect judgment/divergent/synthesizer | `inherit-parent` | default was `claude-opus-5-5-xhigh`; no anthropic family in this session, so it falls to parent |\n| arena runners, arena cross-judge pool, architect runners, interrogate reviewers | `inherit-parent, grok-4.7-xhigh-fast` | two entries each → two subagents per panel |\n\nValidation: every written real slug resolves to a detected model; `inherit-parent` used exactly where the default family (claude) is absent. Nothing dropped — no retired roles were in the file (it didn't exist).\n\nConsequence worth knowing: the judgment/hardest roles now run on this chat's model (`deepseek/deepseek-flash` @ high), since that's what `inherit-parent` means here. If you'd rather they ride the strongest available non-Claude family, the one-line change is `judgment and prose: openai/gpt-5.6-sol:xhigh` and the same for `hardest tasks`, `how explainer`, `why synthesizer`.\n\nSkipped: the two optional installs at the end of the skill (project verification skill, formal verification skill) — you asked for no questions and nobody can answer in this run; this workspace is a bare `.git` checkout with no skills or harness to build on. Say the word in a normal chat and I'll generate them.",
+  "stderrTail": ""
+}
