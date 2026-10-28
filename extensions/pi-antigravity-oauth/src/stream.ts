@@ -250,7 +250,7 @@ function usageFor(model: Model<Api>, metadata: Record<string, number | undefined
   return usage;
 }
 
-// agents-compliance-ignore parameter-mutation: the pi-ai contract carries this message as the shared live partial, so its fields update in place
+// The pi-ai contract carries this message as the shared live partial, so its fields update in place.
 function applyChunkState(output: AssistantMessage, model: Model<Api>, response: CloudCodeResponse): void {
   const candidate = response.candidates?.[0];
   if (candidate?.finishReason) {
@@ -269,7 +269,7 @@ function createReducer(output: AssistantMessage, stream: AssistantMessageEventSt
     chunk(model: Model<Api>, chunk: CloudCodeChunk) {
       const response = chunk.response;
       if (!response) return;
-      // agents-compliance-ignore parameter-mutation: pi-ai consumers share this live partial, including its first known response ID
+      // pi-ai consumers share this live partial, including its first known response ID.
       if (!output.responseId && response.responseId !== undefined) output.responseId = response.responseId;
       for (const part of response.candidates?.[0]?.content?.parts ?? []) {
         if (part.text !== undefined) applyTextPart(stream, output, part as GeminiPart & { text: string });

@@ -67,7 +67,7 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 These rules cover the Vitest suites under `extensions/*/test`. They restate the official Vitest 5 guide (vitest.dev, `docs/guide` at tag `v5.0.5`) for this repository: Node-only Pi extensions and CLI scripts, `environment: 'node'`, `globals: false`, `pool: 'forks'`, `isolate: true`, V8 coverage. Browser mode and DOM environments do not apply here.
 
-Run tests with each package's own scripts (`bun run test`, `bun run test:coverage`), or `bun run test` at the root for every workspace. Follow the existing conventions: `test` rather than `it`, explicit imports from `vitest`, `*.test.ts` files in each package's `test/` directory.
+Run tests with each package's own scripts (`bun run test`, `bun run test:coverage`), or `bun run test` at the root for every workspace. A package's `test` script runs `vitest run`, never watch mode. `bun run check:tests` enforces the rules below that a static scan can decide. Follow the existing conventions: `test` rather than `it`, explicit imports from `vitest`, `*.test.ts` files in each package's `test/` directory.
 
 ### What to test
 
@@ -108,7 +108,8 @@ Run tests with each package's own scripts (`bun run test`, `bun run test:coverag
 
 - Pick the matcher that states the requirement: `toBe` for primitives and identity, `toEqual` for structure, `toStrictEqual` when `undefined` keys, classes, or sparse arrays matter, `toBeCloseTo` for floats.
 - Use `toMatchObject`, `toHaveProperty`, and asymmetric matchers (`expect.any`, `expect.objectContaining`, `expect.stringMatching`) when only part of a value is the contract.
-- Do not let a weak matcher (`toBeDefined`, `toBeTruthy`, `not.toThrow`, bare `toHaveBeenCalled`) be a test's only check when the real value is known.
+- Every test makes at least one assertion. A weak matcher (`toBeDefined`, `toBeTruthy`, `toBeFalsy`, `not.toThrow`, `toHaveBeenCalled`, `toBeGreaterThan(0)`) is never a test's only check. Assert the value the code produces.
+- Assert exact values: `toBe(true)` and `toBe(false)`, not `toBeTruthy()` and `toBeFalsy()`.
 - Wrap the call in a function for `toThrow`: `expect(() => parse(input)).toThrow(/expected/)`.
 - Use `expect.soft` only for independent checks where seeing every failure helps.
 - `mock.calls` holds references, not copies. Assert before the argument is mutated, or copy it first.

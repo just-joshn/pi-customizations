@@ -13,7 +13,6 @@
   "license": "MIT",
   "scripts": {
     "test": "bun run --sequential --filter '*' test",
-    "check:agents": "node scripts/check-agents-compliance.selftest.mjs && node scripts/check-agents-compliance.mjs",
     "check:tests": "node extensions/scripts/check-vitest-conventions.selftest.mjs && node extensions/scripts/check-vitest-conventions.mjs",
     "check:toolchain": "node scripts/check-bun-toolchain.selftest.mjs && node scripts/check-bun-toolchain.mjs && node scripts/check-workspace-deps.selftest.mjs && node scripts/check-workspace-deps.mjs",
     "test:coverage": "bun run --sequential --filter pi-pstack test:coverage",

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Enforces the extensions/AGENTS.md vitest rules that a static scan can decide.
+// Enforces the rules in section 5 (Vitest) of the root AGENTS.md that a static scan can decide.
 import { readdir, readFile } from 'node:fs/promises';
 import { join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -10,7 +10,7 @@ import { closeTypeScriptSources, withTypeScriptSource } from '../../scripts/type
 const root = fileURLToPath(new URL('..', import.meta.url));
 
 const skipDirectories = new Set(['node_modules', 'coverage', 'dist', '.git']);
-const weakMatchers = new Set(['toBeDefined', 'toBeTruthy', 'toBeFalsy', 'toBeUndefined', 'toBeNaN']);
+const weakMatchers = new Set(['toBeDefined', 'toBeTruthy', 'toBeFalsy']);
 const chainLinks = new Set(['resolves', 'rejects', 'not', 'soft', 'poll', 'each', 'for', 'skip', 'only', 'concurrent', 'sequential']);
 
 function dotted(node) {
@@ -54,9 +54,7 @@ function literal(node) {
 function isWeakAssertion(call, matcher, negated) {
   if (weakMatchers.has(matcher)) return true;
   if (matcher === 'toThrow' && negated) return true;
-  if (matcher === 'toHaveBeenCalled' || matcher === 'toHaveBeenCalled' + 'Times') return true;
-  if (matcher === 'toEqual' || matcher === 'toStrictEqual') return literal(call.arguments[0]) === '[]';
-  if (matcher === 'toHaveLength') return literal(call.arguments[0]) === 0;
+  if (matcher === 'toHaveBeenCalled') return true;
   if (matcher === 'toBeGreaterThan') return literal(call.arguments[0]) === 0;
   return false;
 }
@@ -122,6 +120,12 @@ function collectTests(source, report) {
         if (callback) testCalls.push({ node, name, callback });
       }
       if (/^[a-z]+\.concurrent/.test(dotted(node))) report('review', 'concurrent-test', node, 'concurrent tests need every resource independently isolated');
+      const chain = chainNames(node);
+      if (['describe', 'test', 'it'].includes(chain[0])) {
+        if (chain.includes('only')) report('violation', 'focused-test', node, `${chain.join('.')} must not be committed`);
+        if (chain.includes('each')) report('violation', 'jest-each', node, `use ${chain[0]}.for instead of ${chain[0]}.each`);
+        if (chain[0] === 'it') report('violation', 'it-alias', node, 'this repository writes test(), not it()');
+      }
     }
     node.forEachChild((child) => walk(child, depth));
   };

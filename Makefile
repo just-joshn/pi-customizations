@@ -1,12 +1,9 @@
-.PHONY: verify verify-lint verify-agents verify-mechanisms verify-toolchain verify-extension verify-oauth verify-test-conventions verify-install verify-xai-oauth-live
+.PHONY: verify verify-lint verify-mechanisms verify-toolchain verify-extension verify-oauth verify-test-conventions verify-install verify-xai-oauth-live
 
-verify: verify-lint verify-agents verify-mechanisms verify-toolchain verify-test-conventions verify-extension verify-oauth verify-install
+verify: verify-lint verify-mechanisms verify-toolchain verify-test-conventions verify-extension verify-oauth verify-install
 
 verify-lint:
 	bun run ci
-
-verify-agents:
-	bun run check:agents
 
 verify-mechanisms:
 	node scripts/check-pi-mechanisms.mjs

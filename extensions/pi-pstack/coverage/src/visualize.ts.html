@@ -1,0 +1,757 @@
+
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Code coverage report for src/visualize.ts</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../prettify.css" />
+    <link rel="stylesheet" href="../base.css" />
+    <link rel="shortcut icon" type="image/x-icon" href="../favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+    
+<body>
+<div class='wrapper'>
+    <div class='pad1'>
+        <h1><a href="../index.html">All files</a> / <a href="index.html">src</a> visualize.ts</h1>
+        <div class='clearfix'>
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">97.41% </span>
+                <span class="quiet">Statements</span>
+                <span class='fraction'>151/155</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">92.85% </span>
+                <span class="quiet">Branches</span>
+                <span class='fraction'>65/70</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">97.14% </span>
+                <span class="quiet">Functions</span>
+                <span class='fraction'>34/35</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">98.4% </span>
+                <span class="quiet">Lines</span>
+                <span class='fraction'>123/125</span>
+            </div>
+        
+            
+        </div>
+        <p class="quiet">
+            Press <em>n</em> or <em>j</em> to go to the next uncovered block, <em>b</em>, <em>p</em> or <em>k</em> for the previous block.
+        </p>
+        <template id="filterTemplate">
+            <div class="quiet">
+                Filter:
+                <input type="search" id="fileSearch">
+            </div>
+        </template>
+    </div>
+    <div class='status-line high'></div>
+    <pre><table class="coverage">
+<tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
+<a name='L2'></a><a href='#L2'>2</a>
+<a name='L3'></a><a href='#L3'>3</a>
+<a name='L4'></a><a href='#L4'>4</a>
+<a name='L5'></a><a href='#L5'>5</a>
+<a name='L6'></a><a href='#L6'>6</a>
+<a name='L7'></a><a href='#L7'>7</a>
+<a name='L8'></a><a href='#L8'>8</a>
+<a name='L9'></a><a href='#L9'>9</a>
+<a name='L10'></a><a href='#L10'>10</a>
+<a name='L11'></a><a href='#L11'>11</a>
+<a name='L12'></a><a href='#L12'>12</a>
+<a name='L13'></a><a href='#L13'>13</a>
+<a name='L14'></a><a href='#L14'>14</a>
+<a name='L15'></a><a href='#L15'>15</a>
+<a name='L16'></a><a href='#L16'>16</a>
+<a name='L17'></a><a href='#L17'>17</a>
+<a name='L18'></a><a href='#L18'>18</a>
+<a name='L19'></a><a href='#L19'>19</a>
+<a name='L20'></a><a href='#L20'>20</a>
+<a name='L21'></a><a href='#L21'>21</a>
+<a name='L22'></a><a href='#L22'>22</a>
+<a name='L23'></a><a href='#L23'>23</a>
+<a name='L24'></a><a href='#L24'>24</a>
+<a name='L25'></a><a href='#L25'>25</a>
+<a name='L26'></a><a href='#L26'>26</a>
+<a name='L27'></a><a href='#L27'>27</a>
+<a name='L28'></a><a href='#L28'>28</a>
+<a name='L29'></a><a href='#L29'>29</a>
+<a name='L30'></a><a href='#L30'>30</a>
+<a name='L31'></a><a href='#L31'>31</a>
+<a name='L32'></a><a href='#L32'>32</a>
+<a name='L33'></a><a href='#L33'>33</a>
+<a name='L34'></a><a href='#L34'>34</a>
+<a name='L35'></a><a href='#L35'>35</a>
+<a name='L36'></a><a href='#L36'>36</a>
+<a name='L37'></a><a href='#L37'>37</a>
+<a name='L38'></a><a href='#L38'>38</a>
+<a name='L39'></a><a href='#L39'>39</a>
+<a name='L40'></a><a href='#L40'>40</a>
+<a name='L41'></a><a href='#L41'>41</a>
+<a name='L42'></a><a href='#L42'>42</a>
+<a name='L43'></a><a href='#L43'>43</a>
+<a name='L44'></a><a href='#L44'>44</a>
+<a name='L45'></a><a href='#L45'>45</a>
+<a name='L46'></a><a href='#L46'>46</a>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a>
+<a name='L51'></a><a href='#L51'>51</a>
+<a name='L52'></a><a href='#L52'>52</a>
+<a name='L53'></a><a href='#L53'>53</a>
+<a name='L54'></a><a href='#L54'>54</a>
+<a name='L55'></a><a href='#L55'>55</a>
+<a name='L56'></a><a href='#L56'>56</a>
+<a name='L57'></a><a href='#L57'>57</a>
+<a name='L58'></a><a href='#L58'>58</a>
+<a name='L59'></a><a href='#L59'>59</a>
+<a name='L60'></a><a href='#L60'>60</a>
+<a name='L61'></a><a href='#L61'>61</a>
+<a name='L62'></a><a href='#L62'>62</a>
+<a name='L63'></a><a href='#L63'>63</a>
+<a name='L64'></a><a href='#L64'>64</a>
+<a name='L65'></a><a href='#L65'>65</a>
+<a name='L66'></a><a href='#L66'>66</a>
+<a name='L67'></a><a href='#L67'>67</a>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a>
+<a name='L70'></a><a href='#L70'>70</a>
+<a name='L71'></a><a href='#L71'>71</a>
+<a name='L72'></a><a href='#L72'>72</a>
+<a name='L73'></a><a href='#L73'>73</a>
+<a name='L74'></a><a href='#L74'>74</a>
+<a name='L75'></a><a href='#L75'>75</a>
+<a name='L76'></a><a href='#L76'>76</a>
+<a name='L77'></a><a href='#L77'>77</a>
+<a name='L78'></a><a href='#L78'>78</a>
+<a name='L79'></a><a href='#L79'>79</a>
+<a name='L80'></a><a href='#L80'>80</a>
+<a name='L81'></a><a href='#L81'>81</a>
+<a name='L82'></a><a href='#L82'>82</a>
+<a name='L83'></a><a href='#L83'>83</a>
+<a name='L84'></a><a href='#L84'>84</a>
+<a name='L85'></a><a href='#L85'>85</a>
+<a name='L86'></a><a href='#L86'>86</a>
+<a name='L87'></a><a href='#L87'>87</a>
+<a name='L88'></a><a href='#L88'>88</a>
+<a name='L89'></a><a href='#L89'>89</a>
+<a name='L90'></a><a href='#L90'>90</a>
+<a name='L91'></a><a href='#L91'>91</a>
+<a name='L92'></a><a href='#L92'>92</a>
+<a name='L93'></a><a href='#L93'>93</a>
+<a name='L94'></a><a href='#L94'>94</a>
+<a name='L95'></a><a href='#L95'>95</a>
+<a name='L96'></a><a href='#L96'>96</a>
+<a name='L97'></a><a href='#L97'>97</a>
+<a name='L98'></a><a href='#L98'>98</a>
+<a name='L99'></a><a href='#L99'>99</a>
+<a name='L100'></a><a href='#L100'>100</a>
+<a name='L101'></a><a href='#L101'>101</a>
+<a name='L102'></a><a href='#L102'>102</a>
+<a name='L103'></a><a href='#L103'>103</a>
+<a name='L104'></a><a href='#L104'>104</a>
+<a name='L105'></a><a href='#L105'>105</a>
+<a name='L106'></a><a href='#L106'>106</a>
+<a name='L107'></a><a href='#L107'>107</a>
+<a name='L108'></a><a href='#L108'>108</a>
+<a name='L109'></a><a href='#L109'>109</a>
+<a name='L110'></a><a href='#L110'>110</a>
+<a name='L111'></a><a href='#L111'>111</a>
+<a name='L112'></a><a href='#L112'>112</a>
+<a name='L113'></a><a href='#L113'>113</a>
+<a name='L114'></a><a href='#L114'>114</a>
+<a name='L115'></a><a href='#L115'>115</a>
+<a name='L116'></a><a href='#L116'>116</a>
+<a name='L117'></a><a href='#L117'>117</a>
+<a name='L118'></a><a href='#L118'>118</a>
+<a name='L119'></a><a href='#L119'>119</a>
+<a name='L120'></a><a href='#L120'>120</a>
+<a name='L121'></a><a href='#L121'>121</a>
+<a name='L122'></a><a href='#L122'>122</a>
+<a name='L123'></a><a href='#L123'>123</a>
+<a name='L124'></a><a href='#L124'>124</a>
+<a name='L125'></a><a href='#L125'>125</a>
+<a name='L126'></a><a href='#L126'>126</a>
+<a name='L127'></a><a href='#L127'>127</a>
+<a name='L128'></a><a href='#L128'>128</a>
+<a name='L129'></a><a href='#L129'>129</a>
+<a name='L130'></a><a href='#L130'>130</a>
+<a name='L131'></a><a href='#L131'>131</a>
+<a name='L132'></a><a href='#L132'>132</a>
+<a name='L133'></a><a href='#L133'>133</a>
+<a name='L134'></a><a href='#L134'>134</a>
+<a name='L135'></a><a href='#L135'>135</a>
+<a name='L136'></a><a href='#L136'>136</a>
+<a name='L137'></a><a href='#L137'>137</a>
+<a name='L138'></a><a href='#L138'>138</a>
+<a name='L139'></a><a href='#L139'>139</a>
+<a name='L140'></a><a href='#L140'>140</a>
+<a name='L141'></a><a href='#L141'>141</a>
+<a name='L142'></a><a href='#L142'>142</a>
+<a name='L143'></a><a href='#L143'>143</a>
+<a name='L144'></a><a href='#L144'>144</a>
+<a name='L145'></a><a href='#L145'>145</a>
+<a name='L146'></a><a href='#L146'>146</a>
+<a name='L147'></a><a href='#L147'>147</a>
+<a name='L148'></a><a href='#L148'>148</a>
+<a name='L149'></a><a href='#L149'>149</a>
+<a name='L150'></a><a href='#L150'>150</a>
+<a name='L151'></a><a href='#L151'>151</a>
+<a name='L152'></a><a href='#L152'>152</a>
+<a name='L153'></a><a href='#L153'>153</a>
+<a name='L154'></a><a href='#L154'>154</a>
+<a name='L155'></a><a href='#L155'>155</a>
+<a name='L156'></a><a href='#L156'>156</a>
+<a name='L157'></a><a href='#L157'>157</a>
+<a name='L158'></a><a href='#L158'>158</a>
+<a name='L159'></a><a href='#L159'>159</a>
+<a name='L160'></a><a href='#L160'>160</a>
+<a name='L161'></a><a href='#L161'>161</a>
+<a name='L162'></a><a href='#L162'>162</a>
+<a name='L163'></a><a href='#L163'>163</a>
+<a name='L164'></a><a href='#L164'>164</a>
+<a name='L165'></a><a href='#L165'>165</a>
+<a name='L166'></a><a href='#L166'>166</a>
+<a name='L167'></a><a href='#L167'>167</a>
+<a name='L168'></a><a href='#L168'>168</a>
+<a name='L169'></a><a href='#L169'>169</a>
+<a name='L170'></a><a href='#L170'>170</a>
+<a name='L171'></a><a href='#L171'>171</a>
+<a name='L172'></a><a href='#L172'>172</a>
+<a name='L173'></a><a href='#L173'>173</a>
+<a name='L174'></a><a href='#L174'>174</a>
+<a name='L175'></a><a href='#L175'>175</a>
+<a name='L176'></a><a href='#L176'>176</a>
+<a name='L177'></a><a href='#L177'>177</a>
+<a name='L178'></a><a href='#L178'>178</a>
+<a name='L179'></a><a href='#L179'>179</a>
+<a name='L180'></a><a href='#L180'>180</a>
+<a name='L181'></a><a href='#L181'>181</a>
+<a name='L182'></a><a href='#L182'>182</a>
+<a name='L183'></a><a href='#L183'>183</a>
+<a name='L184'></a><a href='#L184'>184</a>
+<a name='L185'></a><a href='#L185'>185</a>
+<a name='L186'></a><a href='#L186'>186</a>
+<a name='L187'></a><a href='#L187'>187</a>
+<a name='L188'></a><a href='#L188'>188</a>
+<a name='L189'></a><a href='#L189'>189</a>
+<a name='L190'></a><a href='#L190'>190</a>
+<a name='L191'></a><a href='#L191'>191</a>
+<a name='L192'></a><a href='#L192'>192</a>
+<a name='L193'></a><a href='#L193'>193</a>
+<a name='L194'></a><a href='#L194'>194</a>
+<a name='L195'></a><a href='#L195'>195</a>
+<a name='L196'></a><a href='#L196'>196</a>
+<a name='L197'></a><a href='#L197'>197</a>
+<a name='L198'></a><a href='#L198'>198</a>
+<a name='L199'></a><a href='#L199'>199</a>
+<a name='L200'></a><a href='#L200'>200</a>
+<a name='L201'></a><a href='#L201'>201</a>
+<a name='L202'></a><a href='#L202'>202</a>
+<a name='L203'></a><a href='#L203'>203</a>
+<a name='L204'></a><a href='#L204'>204</a>
+<a name='L205'></a><a href='#L205'>205</a>
+<a name='L206'></a><a href='#L206'>206</a>
+<a name='L207'></a><a href='#L207'>207</a>
+<a name='L208'></a><a href='#L208'>208</a>
+<a name='L209'></a><a href='#L209'>209</a>
+<a name='L210'></a><a href='#L210'>210</a>
+<a name='L211'></a><a href='#L211'>211</a>
+<a name='L212'></a><a href='#L212'>212</a>
+<a name='L213'></a><a href='#L213'>213</a>
+<a name='L214'></a><a href='#L214'>214</a>
+<a name='L215'></a><a href='#L215'>215</a>
+<a name='L216'></a><a href='#L216'>216</a>
+<a name='L217'></a><a href='#L217'>217</a>
+<a name='L218'></a><a href='#L218'>218</a>
+<a name='L219'></a><a href='#L219'>219</a>
+<a name='L220'></a><a href='#L220'>220</a>
+<a name='L221'></a><a href='#L221'>221</a>
+<a name='L222'></a><a href='#L222'>222</a>
+<a name='L223'></a><a href='#L223'>223</a>
+<a name='L224'></a><a href='#L224'>224</a>
+<a name='L225'></a><a href='#L225'>225</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">17x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">110x</span>
+<span class="cline-any cline-yes">110x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">18x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">15x</span>
+<span class="cline-any cline-yes">15x</span>
+<span class="cline-any cline-yes">15x</span>
+<span class="cline-any cline-yes">150065x</span>
+<span class="cline-any cline-yes">150065x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">15x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">15x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">15x</span>
+<span class="cline-any cline-yes">18x</span>
+<span class="cline-any cline-yes">18x</span>
+<span class="cline-any cline-yes">18x</span>
+<span class="cline-any cline-yes">18x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">40x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">150011x</span>
+<span class="cline-any cline-yes">150011x</span>
+<span class="cline-any cline-yes">150011x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">40x</span>
+<span class="cline-any cline-yes">40x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">154x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">528x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-yes">15x</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">364x</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-yes">110x</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-yes">66x</span>
+<span class="cline-any cline-yes">66x</span>
+<span class="cline-any cline-yes">66x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-yes">38x</span>
+<span class="cline-any cline-yes">38x</span>
+<span class="cline-any cline-yes">38x</span>
+<span class="cline-any cline-yes">38x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-yes">15x</span>
+<span class="cline-any cline-yes">15x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">18x</span>
+<span class="cline-any cline-yes">18x</span>
+<span class="cline-any cline-yes">18x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">36x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">36x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-yes">15x</span>
+<span class="cline-any cline-yes">15x</span>
+<span class="cline-any cline-yes">15x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+&nbsp;
+import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
+import { type Static, Type } from 'typebox';
+&nbsp;
+export const MAX_POINTS = 500;
+export const MAX_SERIES = 32;
+&nbsp;
+const VisualizeParams = Type.Object({
+  title: Type.String({ description: 'Chart title.' }),
+  kind: Type.Union([Type.Literal('bar'), Type.Literal('line')], { description: 'bar: one bar per label and series. line: one line per series across the labels.' }),
+  labels: Type.Array(Type.String(), { description: `Category or x-axis labels, at most ${MAX_POINTS}.` }),
+  series: Type.Array(Type.Object({ name: Type.String(), values: Type.Array(Type.Number(), { description: 'One value per label.' }) }), { description: `One or more named series, at most ${MAX_SERIES}.` }),
+  unit: Type.Optional(Type.String({ description: 'Unit shown after values, such as ms or %.' })),
+});
+&nbsp;
+export type Chart = Static&lt;typeof VisualizeParams&gt;;
+&nbsp;
+/** The reason a chart cannot be drawn, or undefined when it can. */
+export function chartError(chart: Chart): string | undefined {
+  if (chart.labels.length === 0) return 'labels is empty: a chart needs at least one point.';
+  if (chart.series.length === 0) return 'series is empty: a chart needs at least one series.';
+  if (chart.series.length &gt; MAX_SERIES) return `too many series: ${chart.series.length} series, at most ${MAX_SERIES}.`;
+  if (chart.labels.length &gt; MAX_POINTS) return `too many points: ${chart.labels.length} labels, at most ${MAX_POINTS}.`;
+  for (const series of chart.series) {
+    if (series.values.length !== chart.labels.length) return `series "${series.name}" has ${series.values.length} values for ${chart.labels.length} labels; each series needs one value per label.`;
+    const bad = series.values.findIndex((value) =&gt; !Number.isFinite(value));
+    if (bad !== -1) return `series "${series.name}" value ${bad} (label "${chart.labels[bad]}") is ${series.values[bad]}, not a finite number.`;
+  }
+  return undefined;
+}
+&nbsp;
+export function formatValue(value: number, unit?: string): string {
+  const text = Number.isInteger(value) ? String(value) : String(Number(value.toPrecision(4)));
+  return unit === undefined || unit === '' ? text : `${text} ${unit}`;
+}
+&nbsp;
+const BAR_WIDTH = 40;
+const BAR_FILLS = ['█', '▓', '▒', '░'];
+const LINE_MARKS = ['●', '○', '◆', '◇', '■', '□', '▲', '△'];
+const PLOT_HEIGHT = 10;
+const PLOT_WIDTH = 60;
+&nbsp;
+function legend(chart: Chart, marks: readonly string[]): string[] {
+  return chart.series.length &lt; 2 ? [] : ['', chart.series.map((series, index) =&gt; `${marks[index % marks.length]} ${series.name}`).join('  ')];
+}
+&nbsp;
+function maxAbs(chart: Chart): number {
+  let max = 0;
+  for (const series of chart.series) for (const value of series.values) max = Math.max(max, Math.abs(value));
+  return max;
+}
+&nbsp;
+function extent(values: Iterable&lt;number&gt;): { min: number; max: number } {
+  let min = Infinity;
+  let max = -Infinity;
+  for (const value of values) {
+    if (value &lt; min) min = value;
+    if (value &gt; max) max = value;
+  }
+  return { min, max };
+}
+&nbsp;
+function barText(chart: Chart): string[] {
+  const max = maxAbs(chart);
+  let labelWidth = 0;
+  for (const label of chart.labels) labelWidth = Math.max(labelWidth, label.length);
+  const lines: string[] = [];
+  chart.labels.forEach((label, point) =&gt; {
+    chart.series.forEach((series, index) =&gt; {
+      const value = series.values[point]!;
+      const cells = max === 0 ? <span class="branch-0 cbranch-no" title="branch not covered" >0 : M</span>ath.max(value === 0 ? 0 : 1, Math.round((Math.abs(value) / max) * BAR_WIDTH));
+      const name = index === 0 ? label.padEnd(labelWidth) : ' '.repeat(labelWidth);
+      lines.push(`${name} │${BAR_FILLS[index % BAR_FILLS.length]!.repeat(cells)} ${formatValue(value, chart.unit)}`);
+    });
+  });
+  return [...lines, ...legend(chart, BAR_FILLS)];
+}
+&nbsp;
+function lineText(chart: Chart): string[] {
+  const { min, max } = extent(chart.series.flatMap((series) =&gt; series.values));
+  const columns = Math.min(PLOT_WIDTH, chart.labels.length);
+  const grid = Array.from({ length: PLOT_HEIGHT }, () =&gt; Array&lt;string&gt;(columns).fill(' '));
+  chart.series.forEach((series, index) =&gt; {
+    series.values.forEach((value, point) =&gt; {
+      const column = chart.labels.length === 1 ? 0 : Math.round((point / (chart.labels.length - 1)) * (columns - 1));
+      const row = max === min ? Math.floor(PLOT_HEIGHT / 2) : Math.round(((max - value) / (max - min)) * (PLOT_HEIGHT - 1));
+      grid[row]![column] = LINE_MARKS[index % LINE_MARKS.length]!;
+    });
+  });
+  const top = formatValue(max, chart.unit);
+  const bottom = formatValue(min, chart.unit);
+  const axisWidth = Math.max(top.length, bottom.length);
+  const rows = grid.map((cells, row) =&gt; {
+    const tick = row === 0 ? top : row === PLOT_HEIGHT - 1 ? bottom : '';
+    return `${tick.padStart(axisWidth)} ${row === 0 || row === PLOT_HEIGHT - 1 ? '┤' : '│'}${cells.join('')}`;
+  });
+  const first = chart.labels[0]!;
+  const last = chart.labels.at(-1)!;
+  const xLabels = chart.labels.length === 1 ? first : `${first}${' '.repeat(Math.max(1, columns - first.length - last.length))}${last}`;
+  return [...rows, `${' '.repeat(axisWidth)} └${'─'.repeat(columns)}`, `${' '.repeat(axisWidth + 2)}${xLabels}`, ...legend(chart, LINE_MARKS)];
+}
+&nbsp;
+/** The chart as Unicode text: the title, then the bars or the plot, then a legend when there is more than one series. */
+export function renderChartText(chart: Chart): string {
+  return [chart.title, '', ...(chart.kind === 'bar' ? barText(chart) : lineText(chart))].join('\n');
+}
+&nbsp;
+const PALETTE = ['#4e79a7', '#f28e2b', '#e15759', '#76b7b2', '#59a14f', '#edc948', '#b07aa1', '#ff9da7'];
+&nbsp;
+export function escapeXml(text: string): string {
+  return text.replace(/[&lt;&gt;&amp;'"]/g, (char) =&gt; ({ '&lt;': '&amp;lt;', '&gt;': '&amp;gt;', '&amp;': '&amp;amp;', "'": '&amp;apos;', '"': '&amp;quot;' })[char]!);
+}
+&nbsp;
+const round = (value: number) =&gt; Math.round(value * 100) / 100;
+&nbsp;
+/** A self-contained SVG of the chart: title, labeled axes with ticks, and a legend. */
+export function renderChartSvg(chart: Chart): string {
+  const width = 800;
+  const height = 450;
+  const margin = { top: 60, right: 30, bottom: 80, left: 80 };
+  const plotWidth = width - margin.left - margin.right;
+  const plotHeight = height - margin.top - margin.bottom;
+  const values = chart.series.flatMap((series) =&gt; series.values);
+  let { min, max } = extent(values);
+  if (chart.kind === 'bar') {
+    min = Math.min(min, 0);
+    max = Math.max(max, 0);
+  }
+  <span class="missing-if-branch" title="if path not taken" >I</span>if (min === max) {
+<span class="cstat-no" title="statement not covered" >    min -= 1;</span>
+<span class="cstat-no" title="statement not covered" >    max += 1;</span>
+  }
+  const y = (value: number) =&gt; round(margin.top + ((max - value) / (max - min)) * plotHeight);
+  const count = chart.labels.length;
+  const band = plotWidth / count;
+  const xCenter = (point: number) =&gt; round(margin.left + (chart.kind === 'bar' || count === 1 ? band * (point + 0.5) : (point / (count - 1)) * plotWidth));
+  const parts: string[] = [];
+&nbsp;
+  parts.push(`&lt;text x="${width / 2}" y="30" text-anchor="middle" font-size="18" font-weight="bold"&gt;${escapeXml(chart.title)}&lt;/text&gt;`);
+  const ticks = 5;
+  for (let tick = 0; tick &lt;= ticks; tick += 1) {
+    const value = min + ((max - min) * tick) / ticks;
+    parts.push(`&lt;line x1="${margin.left}" y1="${y(value)}" x2="${width - margin.right}" y2="${y(value)}" stroke="#e0e0e0"/&gt;`);
+    parts.push(`&lt;text x="${margin.left - 8}" y="${y(value) + 4}" text-anchor="end" font-size="11"&gt;${escapeXml(formatValue(value, chart.unit))}&lt;/text&gt;`);
+  }
+  parts.push(`&lt;line x1="${margin.left}" y1="${margin.top}" x2="${margin.left}" y2="${margin.top + plotHeight}" stroke="#333"/&gt;`);
+  parts.push(`&lt;line x1="${margin.left}" y1="${y(Math.max(min, Math.min(0, max)))}" x2="${width - margin.right}" y2="${y(Math.max(min, Math.min(0, max)))}" stroke="#333"/&gt;`);
+  const labelEvery = Math.max(1, Math.ceil(count / 20));
+  chart.labels.forEach((label, point) =&gt; {
+    <span class="missing-if-branch" title="if path not taken" >I</span>if (point % labelEvery !== 0) <span class="cstat-no" title="statement not covered" >return;</span>
+    const x = xCenter(point);
+    const labelY = margin.top + plotHeight + 16;
+    parts.push(`&lt;text x="${x}" y="${labelY}" text-anchor="end" font-size="11" transform="rotate(-30 ${x} ${labelY})"&gt;${escapeXml(label)}&lt;/text&gt;`);
+  });
+  if (chart.unit !== undefined &amp;&amp; chart.unit !== '') parts.push(`&lt;text x="18" y="${margin.top + plotHeight / 2}" text-anchor="middle" font-size="12" transform="rotate(-90 18 ${margin.top + plotHeight / 2})"&gt;${escapeXml(chart.unit)}&lt;/text&gt;`);
+&nbsp;
+  chart.series.forEach((series, index) =&gt; {
+    const color = PALETTE[index % PALETTE.length];
+    if (chart.kind === 'bar') {
+      const barWidth = (band * 0.8) / chart.series.length;
+      series.values.forEach((value, point) =&gt; {
+        const x = round(margin.left + band * point + band * 0.1 + barWidth * index);
+        const top = Math.min(y(value), y(0));
+        parts.push(`&lt;rect x="${x}" y="${top}" width="${round(barWidth)}" height="${round(Math.abs(y(value) - y(0)))}" fill="${color}"&gt;&lt;title&gt;${escapeXml(`${series.name} ${chart.labels[point]}: ${formatValue(value, chart.unit)}`)}&lt;/title&gt;&lt;/rect&gt;`);
+      });
+    } else {
+      const points = series.values.map((value, point) =&gt; `${xCenter(point)},${y(value)}`).join(' ');
+      parts.push(`&lt;polyline points="${points}" fill="none" stroke="${color}" stroke-width="2"/&gt;`);
+      <span class="missing-if-branch" title="else path not taken" >E</span>if (count &lt;= 60) series.values.forEach((value, point) =&gt; parts.push(`&lt;circle cx="${xCenter(point)}" cy="${y(value)}" r="3" fill="${color}"/&gt;`));
+    }
+  });
+&nbsp;
+  chart.series.forEach((series, index) =&gt; {
+    const x = margin.left + index * 150;
+    parts.push(`&lt;rect x="${x}" y="42" width="12" height="12" fill="${PALETTE[index % PALETTE.length]}"/&gt;`);
+    parts.push(`&lt;text x="${x + 18}" y="52" font-size="12"&gt;${escapeXml(series.name)}&lt;/text&gt;`);
+  });
+&nbsp;
+  return [`&lt;?xml version="1.0" encoding="UTF-8"?&gt;`, `&lt;svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" font-family="sans-serif"&gt;`, `&lt;rect width="${width}" height="${height}" fill="#ffffff"/&gt;`, ...parts, '&lt;/svg&gt;', ''].join('\n');
+}
+&nbsp;
+export function chartSlug(title: string): string {
+  const slug = title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 48)
+    .replace(/-+$/, '');
+  return slug === '' ? 'chart' : slug;
+}
+&nbsp;
+function timestamp(date: Date): string {
+  return date.toISOString().replace(/[-:]/g, '').replace(/\.\d+Z$/, 'Z');
+}
+&nbsp;
+export interface VisualizeOptions {
+  artifactsDir: (ctx: ExtensionContext) =&gt; string;
+  now?: () =&gt; Date;
+}
+&nbsp;
+export function registerVisualize(pi: ExtensionAPI, options: VisualizeOptions): void {
+  pi.registerTool({
+    name: 'visualize',
+    label: 'Visualize',
+    description: 'Draw a bar or line chart from labels and one or more named series. The result shows the chart as Unicode text and names an SVG file written to the session artifacts folder.',
+    promptSnippet: 'Draw a bar or line chart (Unicode in the result, SVG file in the artifacts folder)',
+    parameters: VisualizeParams,
+    annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+    async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
+      const error = chartError(params);
+      if (error !== undefined) throw new Error(`visualize: ${error}`);
+      const dir = options.artifactsDir(ctx);
+      mkdirSync(dir, { recursive: true });
+      const stamp = timestamp((options.<span class="fstat-no" title="function not covered" ><span class="branch-1 cbranch-no" title="branch not covered" >now ?? (() =&gt; <span class="cstat-no" title="statement not covered" >n</span>ew Date()))</span></span>());
+      const slug = chartSlug(params.title);
+      let path = join(dir, `${stamp}-${slug}.svg`);
+      for (let n = 2; existsSync(path); n += 1) path = join(dir, `${stamp}-${slug}-${n}.svg`);
+      writeFileSync(path, renderChartSvg(params));
+      return { content: [{ type: 'text', text: `${renderChartText(params)}\n\nSVG: ${path}` }], details: { path } };
+    },
+  });
+}
+&nbsp;</pre></td></tr></table></pre>
+
+                <div class='push'></div><!-- for sticky footer -->
+            </div><!-- /wrapper -->
+            <div class='footer quiet pad2 space-top1 center small'>
+                Code coverage generated by
+                <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
+                at 2026-10-28T19:55:28.376Z
+            </div>
+        <script src="../prettify.js"></script>
+        <script>
+            window.onload = function () {
+                prettyPrint();
+            };
+        </script>
+        <script src="../sorter.js"></script>
+        <script src="../block-navigation.js"></script>
+    </body>
+</html>
+    
