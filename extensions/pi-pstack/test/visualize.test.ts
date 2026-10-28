@@ -25,7 +25,7 @@ function assertWellFormed(xml: string): void {
     const [, closing, name, , selfClosing] = match;
     if (selfClosing) continue;
     if (closing) expect(stack.pop()).toBe(name);
-    else stack.push(name!);
+    else stack.push(name as string);
   }
   expect(stack).toEqual([]);
   // Every `<` starts a tag the pattern accepted, so no tag was skipped as malformed.
@@ -40,11 +40,11 @@ test('bars scale to the largest value and show each value', () => {
   const rows = lines.slice(2);
   expect(rows).toHaveLength(3);
   const width = (row: string) => (row.match(/█/g) ?? []).length;
-  expect(width(rows[1]!)).toBe(40);
-  expect(width(rows[0]!)).toBe(10);
-  expect(width(rows[2]!)).toBe(0);
+  expect(width(rows[1] as string)).toBe(40);
+  expect(width(rows[0] as string)).toBe(10);
+  expect(width(rows[2] as string)).toBe(0);
   expect(rows[1]).toMatch(/^\/bb │█+ 40 ms$/);
-  expect(rows[0]!.indexOf('│')).toBe(rows[1]!.indexOf('│'));
+  expect((rows[0] as string).indexOf('│')).toBe((rows[1] as string).indexOf('│'));
 });
 
 test('several bar series get distinct fills and a legend', () => {
@@ -105,7 +105,7 @@ test('slugs titles for file names', () => {
 function tool(dir: string): ToolDefinition {
   const tools: ToolDefinition[] = [];
   registerVisualize({ registerTool: (definition: ToolDefinition) => tools.push(definition) } as unknown as ExtensionAPI, { artifactsDir: () => join(dir, 'artifacts'), now: () => new Date('2026-10-28T16:44:01.813Z') });
-  return tools[0]!;
+  return tools[0] as ToolDefinition;
 }
 
 test('the tool returns the chart and writes the SVG to the artifacts folder', async () => {

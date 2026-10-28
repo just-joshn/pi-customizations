@@ -154,13 +154,23 @@ export class RoutineServer {
   private handle(request: IncomingMessage, response: ServerResponse): void {
     const slug = /^\/routines\/([a-z0-9-]+)\/?$/.exec(new URL(request.url ?? '/', 'http://localhost').pathname)?.[1];
     const route = slug === undefined ? undefined : this.routes.get(slug);
-    if (route === undefined) return reply(response, 404, 'No such routine.');
+    if (route === undefined) {
+      reply(response, 404, 'No such routine.');
+      return;
+    }
     if (request.method !== 'POST') {
       response.setHeader('allow', 'POST');
-      return reply(response, 405, 'Use POST.');
+      reply(response, 405, 'Use POST.');
+      return;
     }
-    if (!keyMatches(presentedKey(request), readKey(route.credentialFile))) return reply(response, 401, 'Wrong or missing sender key.');
-    if (Number(request.headers['content-length'] ?? 0) > MAX_BODY_BYTES) return reply(response, 413, `Body over ${MAX_BODY_BYTES} bytes.`);
+    if (!keyMatches(presentedKey(request), readKey(route.credentialFile))) {
+      reply(response, 401, 'Wrong or missing sender key.');
+      return;
+    }
+    if (Number(request.headers['content-length'] ?? 0) > MAX_BODY_BYTES) {
+      reply(response, 413, `Body over ${MAX_BODY_BYTES} bytes.`);
+      return;
+    }
     const chunks: Buffer[] = [];
     let size = 0;
     let done = false;
@@ -193,8 +203,7 @@ export class RoutineServer {
         if (typeof header === 'string') headers[name] = header;
       }
       route.onEvent({ headers, bodyDigest: createHash('sha256').update(raw).digest('hex'), body, timestampMs: Date.now() });
-      return reply(response, 200, 'ok');
+      reply(response, 200, 'ok');
     });
-    return undefined;
   }
 }

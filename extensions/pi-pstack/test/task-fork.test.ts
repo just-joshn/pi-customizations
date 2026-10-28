@@ -199,6 +199,16 @@ describe('prepareFork: plan mode', () => {
     expect([plan.planMode, plan.readonly, plan.worktree]).toEqual([true, false, undefined]);
     lock.release();
   });
+
+  test("a plan-mode fork of an isolated worker runs readonly in that worker's worktree", () => {
+    const tree = join(root, 'worktrees', source);
+    mkdirSync(tree, { recursive: true });
+    const worktree: Worktree = { path: tree, cwd: tree, branch: `pstack/${source}`, base: 'HEAD', commit: 'abc' };
+    writeSource({ worktree }, tree);
+    const { plan, lock } = prepareFork(params(), ctx(), { agents, depth: 0, planMode: () => true }, notRunning);
+    expect([plan.planMode, plan.readonly, plan.worktree]).toEqual([true, false, worktree]);
+    lock.release();
+  });
 });
 
 describe('prepareFork: run locks', () => {

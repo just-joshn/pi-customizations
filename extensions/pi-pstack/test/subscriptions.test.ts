@@ -334,11 +334,13 @@ describe('subscribe_github_pr', () => {
     fake.emit('session_tree');
     expect(waiters).toHaveLength(2);
     hold = false;
-    waiters.splice(0).forEach((release) => release());
+    waiters.splice(0).forEach((release) => {
+      release();
+    });
     await vi.advanceTimersByTimeAsync(0);
     const stored = fake.entries.filter((entry) => entry.customType === SUBSCRIPTIONS_ENTRY).at(-1);
     const data = structuredClone(stored?.data) as { subscriptions: { expiresAt: number }[] };
-    data.subscriptions[0]!.expiresAt = Date.now() + 60_000;
+    (data.subscriptions[0] as { expiresAt: number }).expiresAt = Date.now() + 60_000;
     fake.entries.push({ type: 'custom', customType: SUBSCRIPTIONS_ENTRY, data });
     fake.emit('session_tree');
     await vi.advanceTimersByTimeAsync(0);

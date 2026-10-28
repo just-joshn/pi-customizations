@@ -394,7 +394,7 @@ describe('resume across processes and workspaces', () => {
     const agentId = idOf(toolEnds(first.events, 'Task')[0]?.text);
     const second = await runJson(sandbox, script([[task({ prompt: 'a\n@@sleep 1500 A', resume: agentId }), task({ prompt: 'b\n@@say B', resume: agentId })]]), ['--no-session']);
     const ends = toolEnds(second.events, 'Task');
-    expect(ends.map((end) => end.text.split('\n')[0]?.slice(0, 32)).toSorted()).toEqual(['Sent to agent ' + agentId.slice(0, 18), 'This is the output of the subagent:'.slice(0, 32)]);
+    expect(ends.map((end) => end.text.split('\n')[0]?.slice(0, 32)).toSorted()).toEqual([`Sent to agent ${agentId.slice(0, 18)}`, 'This is the output of the subagent:'.slice(0, 32)]);
     expect(ends.map((end) => /<response>\n(.*)\n<\/response>/.exec(end.text)?.[1]).filter((text) => text !== undefined)).toEqual(['B']);
     expect(readdirSync(subagentDir()).filter((name) => name.endsWith(`_${agentId}.jsonl`))).toHaveLength(1);
   });
@@ -550,7 +550,7 @@ describe('stop_agent (C-H4)', () => {
     const rpc = startRpc(sandbox, ['--no-session']);
     try {
       const [launch] = toolEnds(await rpcPrompt(rpc, script([task({ prompt: 'go\n@@sleep 60000 SLOW', run_in_background: true })])), 'Task');
-      const { agentId, pid } = launch?.details as { agentId: string; pid: number };
+      const { agentId, pid } = (launch as { details: { agentId: string; pid: number } }).details;
       const events = await rpcPrompt(rpc, script([stop(agentId)]));
       const [stopped] = toolEnds(events, 'stop_agent');
       expect([stopped?.isError, stopped?.text, alive(pid)]).toEqual([false, `Stopped agent ${agentId}: its run was aborted and its process has exited. Its result reports the stop; resume it with Task resume.`, false]);
@@ -570,7 +570,7 @@ describe('stop_agent (C-H4)', () => {
     const rpc = startRpc(sandbox, ['--no-session']);
     try {
       const [launch] = toolEnds(await rpcPrompt(rpc, script([task({ prompt: 'go\n@@sleep 60000 SLOW', run_in_background: true })])), 'Task');
-      const { agentId, pid } = launch?.details as { agentId: string; pid: number };
+      const { agentId, pid } = (launch as { details: { agentId: string; pid: number } }).details;
       // Pi writes the transcript once the child takes its prompt; before that a resume finds no context to continue.
       await vi.waitFor(() => expect(readdirSync(subagentDir()).some((name) => name.endsWith(`_${agentId}.jsonl`))).toBe(true), { timeout: 15_000, interval: 50 });
       const resumed = await runJson(sandbox, script([task({ prompt: 'x', resume: agentId })]), ['--no-session']);

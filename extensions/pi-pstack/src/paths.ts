@@ -23,7 +23,11 @@ export function routinesDir(): string {
   return join(stateDir(), 'routines');
 }
 
-/** Pi's rule for a session folder name, so per-workspace state lines up with `<agentDir>/sessions/<slug>`. */
+/**
+ * Pi's rule for a session folder name, so per-workspace state lines up with `<agentDir>/sessions/<slug>`. The live
+ * `sessionManager.getSessionDir()` needs a session and names the current one, which is `<workspace>/subagents` in a
+ * subagent, so the rule stays here for a working directory (docs/native-gaps.md).
+ */
 export function workspaceSlug(cwd: string): string {
   return `--${resolve(cwd)
     .replace(/^[/\\]/, '')

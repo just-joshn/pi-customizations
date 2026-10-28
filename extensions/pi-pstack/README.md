@@ -28,7 +28,7 @@ Remove the package with `pi remove ./extensions/pi-pstack`. Its state lives in `
 |---|---|
 | `/poteto-mode <task>` | The skill attaches to that one message. Every skill Pi loaded works this way: pstack's (`/how`, `/why`, `/arena`, `/interrogate`, `/principle-prove-it-works`, `/deslop`) and your own, such as a `/<handle>-mode` skill from `/automate-me`. `/skill:<name>` works too. |
 | `/mode poteto-mode [task]` | Keeps the skill in context on every turn. The footer shows a badge with the skill's `icon` and `color` metadata, such as a yellow `♛ mode: poteto-mode` (other skills get `⚡`). `/mode off` exits and `/mode` reports. Any loaded skill can back a mode. |
-| `/plan [task]` | Plan mode: the agent gets read-only tools (`read`, `grep`, `find`, `ls`, the sandboxed `bash_readonly`, `AskQuestion`, `TodoWrite`, `agent_status`, and `Task`, whose launches run readonly and local, with no worktree, even for a `fork`), investigates, and writes a plan with goal, verified steps, and risks. Writes are blocked. `/plan off` restores your tools so the agent can execute; `/plan` reports. The footer shows `plan`. |
+| `/plan [task]` | Plan mode: the agent gets read-only tools (`read`, `grep`, `find`, `ls`, the sandboxed `bash_readonly`, `AskQuestion`, `TodoWrite`, `agent_status`, and `Task`, whose launches run readonly: a fresh one runs here with no worktree, and a resume or fork stays where its agent ran), investigates, and writes a plan with goal, verified steps, and risks. Writes are blocked. `/plan off` restores your tools so the agent can execute; `/plan` reports. The footer shows `plan`. |
 | `/loop 30m <prompt>` | Runs the prompt now and again 30 minutes after each run settles. Without an interval the agent picks each wake with the `Loop` tool, and the loop ends when it picks none and no background subagent is still running. `/loop stop` or Escape during a run ends it. The prompt can be a skill command, such as `/loop 1h /poteto-mode run the audit tick`. When a playbook says to arm `/loop`, the agent starts it with the `Loop` tool. Intervals go up to 24 days. |
 | `/routines` | Lists webhook routines with their URL, credential file, and status. |
 | `/setup-pstack` | Configures the per-role models. |
@@ -59,7 +59,7 @@ Remove the package with `pi remove ./extensions/pi-pstack`. Its state lives in `
 | Transcripts | The system prompt names this workspace's Pi session directory, the current session file, and this workspace's subagent transcripts. |
 | Image generation | Pi's codemode `models.generateImages()`, when codemode is on and an image model is configured; otherwise skills fall back to a Mermaid diagram. |
 
-Subagent transcripts are Pi sessions in `<pstack dir>/workspaces/<workspace folder>/subagents/`, named by agent ID, next to a small record that `resume`, `fork`, and `agent_status` read. Agent IDs belong to the workspace that started them. Children inherit your installed extensions and MCP servers, and local ones run in your working directory. Give each local subagent that writes its own git worktree, or launch it with `environment: "cloud"`, because a child process does not isolate the filesystem. A child exits on its own if its parent Pi process dies.
+Subagent transcripts are Pi sessions in `<pstack dir>/workspaces/<workspace folder>/subagents/`, with the agent ID in each file name, next to a small record that `resume`, `fork`, and `agent_status` read. Agent IDs belong to the workspace that started them. Children inherit your installed extensions and MCP servers, and local ones run in your working directory. Give each local subagent that writes its own git worktree, or launch it with `environment: "cloud"`, because a child process does not isolate the filesystem. A child exits on its own if its parent Pi process dies.
 
 ## Limits
 
@@ -83,7 +83,7 @@ Subagent transcripts are Pi sessions in `<pstack dir>/workspaces/<workspace fold
 
 ## Maintain it
 
-The skills, agents, guide, and automation pack are this package's own files; edit them in place. They track pstack 0.15.36 in behavior. The record of the move to Pi-native text and the host features added for it is in `parity/pi-pstack-0.15.36/` (design and decisions); earlier records are in `parity/pi-pstack-*`.
+The skills, agents, guide, and automation pack are this package's own files; edit them in place. They track pstack 0.15.36 in behavior. The record of the move to Pi-native text and the host features added for it is at the repository root, in `parity/pi-pstack-0.15.36/` (design and decisions); earlier records are in the root's `parity/pi-pstack-*`. Four mechanisms Pi 1.4.0 does not export keep a hand-written implementation here: [`docs/native-gaps.md`](docs/native-gaps.md) names each one, the evidence, and the public API that would replace it.
 
 ```sh
 bun run typecheck

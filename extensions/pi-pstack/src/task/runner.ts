@@ -244,6 +244,8 @@ interface RpcResponse {
  * Runs one `pi --mode rpc` child in its own process group, so abort and shutdown can stop it and everything it started.
  * The child stays open while its run is active or a command awaits its response, so a steer always lands in a run;
  * once the run settles with nothing outstanding, closing stdin makes Pi save the session and exit.
+ * Pi's `RpcClient` cannot start or end this child (no detached spawn, stdin close, `extension_ui_response`, or exit
+ * code); docs/native-gaps.md records each missing mechanism.
  */
 export function startChild(options: ChildOptions): ChildHandle {
   const [command, ...prefix] = options.command;
