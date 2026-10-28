@@ -1,5 +1,5 @@
 {
-  "name": "@cursor-skill/statechart",
+  "name": "@pi-pstack/statechart",
   "private": true,
   "type": "module",
   "scripts": {

@@ -16,9 +16,9 @@ Load the external Benny configuration supplied by the automation. If the config,
 - Never post a root message in the source channel.
 - Preflight the source parent before every source-thread post.
 - The coordinator is the only Slack poster.
-- Delegated analysis workers are read-only and return findings or media notes.
-- A fix-phase code worker may edit only when its environment provably excludes Slack credentials and every Slack write action. Otherwise the coordinator edits.
-- Every child prompt must explicitly forbid `SendSlackMessage`, `PostToSlack`, `chat.postMessage`, and all other Slack writes.
+- Delegated analysis workers are read-only and return findings or media notes. In Pi, start each one with `Task` and `readonly: true`, which gives it no MCP servers and a shell with no network.
+- A fix-phase code worker may edit only when its environment provably excludes Slack credentials and every Slack write action. Otherwise the coordinator edits. A writable Pi subagent inherits the session's MCP servers and environment, so it qualifies only when the Pi process that owns the subscriptions loads no Slack MCP server with write tools and has no Slack token in its environment.
+- Every child prompt must explicitly forbid every Slack MCP write tool (`mcp__<slack-server>__*` tools that post, edit, react, or upload), `chat.postMessage`, and all other Slack writes.
 - Never give a child a Slack token, posting instructions, source coordinates for posting, or permission to report externally.
 - If a child needs Slack write access to run, do not launch it.
 - Utility bots are evidence sources. They do not own the fix unless a person explicitly delegated the fix to them.
@@ -119,9 +119,9 @@ Use the configured plain Unicode status strings. Keep status text short:
 - Draft pull request opened
 - Fix did not land
 
-Prefer configured Cursor Slack actions. Use `BENNY_SLACK_BOT_TOKEN` only when the user configured it for a narrow missing capability such as editing this one status message. Never expose the token to a worker.
+Prefer the configured Slack MCP tools. Use `BENNY_SLACK_BOT_TOKEN` only when the user configured it for a narrow missing capability such as editing this one status message. Never expose the token to a worker.
 
-If no operations channel is configured, keep detailed status in the automation run output. Do not substitute a source-channel root message.
+If no operations channel is configured, keep detailed status in the run's final message (its Task notification). Do not substitute a source-channel root message.
 
 ## 5. Load and check the control adapter
 
@@ -201,7 +201,7 @@ Post detailed evidence only in the operations thread when configured. Keep the s
 
 Update the operations status first.
 
-For `Could not reproduce` or `Blocked`, post nothing in the source thread. The operations thread or run output carries the result.
+For `Could not reproduce` or `Blocked`, post nothing in the source thread. The operations thread or the run's final message (its Task notification) carries the result.
 
 For a confirmed repro, run the source preflight and post at most one unprompted source reply:
 
@@ -294,7 +294,7 @@ Only after before-and-after proof:
 - Include the repro steps, root cause, test result, before and after evidence, and blast-radius checks.
 - Run the pull request text and all Slack updates through pstack's `unslop` skill.
 
-If pull request creation fails, do not claim success. Keep the commit or branch state in the run output and mark operations status `Fix did not land`.
+If pull request creation fails, do not claim success. Keep the commit or branch state in the run's final message (its Task notification) and mark operations status `Fix did not land`.
 
 On success, mark operations status `Draft pull request opened` and post one concise reply in the operations thread with the linked pull request. Do not create a second source-channel root or unprompted source reply.
 

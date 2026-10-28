@@ -12,7 +12,6 @@ A skill is a directory whose `SKILL.md` holds YAML frontmatter and instructions 
 - Project skill: `.pi/skills/<name>/SKILL.md`, or `.agents/skills/<name>/SKILL.md` for other Agent Skills hosts. Commit it with the repo.
 - Personal skill: `~/.pi/agent/skills/<name>/SKILL.md` (respect `PI_CODING_AGENT_DIR` when it is set).
 - Packaged skill: a `skills/` directory inside a Pi package.
-- When a pstack skill says `.cursor/skills/`, use `.pi/skills/`. When it says `~/.cursor/skills/`, use `~/.pi/agent/skills/`.
 - The name uses lowercase letters, digits, and single hyphens, at most 64 characters, and matches the directory name.
 - Before creating a new skill, search the existing skills for one that already covers the job. Extend it instead of adding an overlap.
 

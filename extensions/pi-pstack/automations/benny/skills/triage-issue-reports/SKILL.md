@@ -19,8 +19,8 @@ Load the external Benny configuration supplied by the automation. If the config 
 - If the parent is missing, deleted, inaccessible, or uncertain, stop with no writes.
 - Post one substantive verdict. Do not narrate progress.
 - The coordinator is the only Slack poster.
-- Delegated workers return findings only. They must be read-only and receive no Slack credentials or write actions.
-- Every child prompt must forbid `SendSlackMessage`, `PostToSlack`, `chat.postMessage`, and every other Slack write.
+- Delegated workers return findings only. They must be read-only and receive no Slack credentials or write actions. In Pi, start each one with `Task` and `readonly: true`: a readonly subagent gets no MCP servers, and its shell can neither write files nor reach the network.
+- Every child prompt must forbid every Slack MCP write tool (`mcp__<slack-server>__*` tools that post, edit, react, or upload), `chat.postMessage`, and every other Slack write.
 - If worker isolation cannot enforce those limits, do the work in the coordinator.
 - Never create an issue that cannot link back to the source thread.
 - Prefer no ticket over a guessed or duplicate ticket.
@@ -225,7 +225,7 @@ Use only the configured marker strings. The repro automation trusts the marker o
 
 After posting, read the same source thread and verify the verdict appears under `SOURCE_THREAD_TS`. If it does not, never retry at the root.
 
-If this run created a tracker issue and the verdict did not land, use the adapter's compensation action. Verify that the issue is canceled, closed, or deleted. If compensation cannot be verified, report the failure only in the automation run output.
+If this run created a tracker issue and the verdict did not land, use the adapter's compensation action. Verify that the issue is canceled, closed, or deleted. If compensation cannot be verified, report the failure only in the run's final message (its Task notification).
 
 ## 10. Watch one follow-up window
 
