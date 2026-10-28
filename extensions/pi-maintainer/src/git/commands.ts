@@ -1,5 +1,4 @@
-import type { CommandSpec } from '../core/command.ts';
-import { isolatedExec } from '../core/isolated-exec.ts';
+import type { CommandEnv, CommandSpec } from '../core/command.ts';
 import { parseQuotedFilenames } from '../edit/quoted-filenames.ts';
 
 /**
@@ -7,14 +6,13 @@ import { parseQuotedFilenames } from '../edit/quoted-filenames.ts';
  * and prints combined stdout+stderr without adding it to chat.
  * Aider uses `shell=True`; Pi uses argv via Host.exec/isolatedExec so shell metacharacters are not evaluated.
  */
-async function runRawGit(argsText: string, output: (text: string) => void, error: (text: string) => void, cwd: string): Promise<void> {
+async function runRawGit(argsText: string, env: CommandEnv): Promise<void> {
   const args = parseQuotedFilenames(argsText);
   try {
-    const base = Object.fromEntries(Object.entries(process.env).filter((entry): entry is [string, string] => entry[1] !== undefined));
-    const outcome = await isolatedExec({ command: 'git', args, cwd }, { ...base, GIT_EDITOR: 'true' });
-    output(`${outcome.stdout}${outcome.stderr}`);
+    const outcome = await env.host.exec({ command: 'git', args, cwd: process.cwd(), env: { GIT_EDITOR: 'true' } });
+    env.host.output(`${outcome.stdout}${outcome.stderr}`);
   } catch (err) {
-    error(`Error running /git command: ${err instanceof Error ? err.message : String(err)}`);
+    env.host.error(`Error running /git command: ${err instanceof Error ? err.message : String(err)}`);
   }
 }
 
@@ -24,12 +22,7 @@ export const gitCommands: readonly CommandSpec[] = [
     name: 'git',
     description: 'Run a git command (output excluded from chat)',
     async run(args, env) {
-      await runRawGit(
-        args,
-        (text) => env.host.output(text),
-        (text) => env.host.error(text),
-        process.cwd(),
-      );
+      await runRawGit(args, env);
     },
   },
   {

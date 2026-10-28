@@ -111,6 +111,50 @@
       "gap": "native"
     },
     {
+      "id": "edit.history.summary-budget",
+      "feature": "edit",
+      "behavior": "Once an applied edit leaves the chat history above --max-chat-history-tokens, the weak model then the main model summarize it with Aider's summarize prompt and the result is prefixed with Aider's summary prefix.",
+      "aider": [
+        "aider/coders/base_coder.py:510-517,1002-1044",
+        "aider/history.py:27-64,98-123",
+        "aider/prompts.py:50-68"
+      ],
+      "kind": "parity",
+      "status": "verified",
+      "pi": [
+        "pi.on('agent_settled')",
+        "ctx.compact()",
+        "pi.on('session_before_compact')",
+        "ctx.modelRegistry.complete"
+      ],
+      "src": [
+        "src/edit/history-summary.ts",
+        "src/core/install.ts"
+      ],
+      "tests": [
+        "test/core/history-summary.pi.test.ts::the default history budget is one sixteenth of the input limit clamped to 1024-8192",
+        "test/core/history-summary.pi.test.ts::summarization starts only above the soft limit",
+        "test/core/history-summary.pi.test.ts::history tokens are the sum of the per-message estimates",
+        "test/core/history-summary.pi.test.ts::summary input keeps user and assistant turns under Aider role headings",
+        "test/core/history-summary.pi.test.ts::the summary ladder falls back to the main model and prefixes its reply",
+        "test/core/history-summary.pi.test.ts::history past the soft budget is summarized with Aider summary prompt and the weak model"
+      ]
+    },
+    {
+      "id": "edit.history.recent-tail-split",
+      "feature": "edit",
+      "behavior": "History summarization keeps a tail under half the soft budget unsummarized, summarizes the head, and recurses when the summary plus tail still exceeds the limit.",
+      "aider": [
+        "aider/history.py:33-96"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": [],
+      "gap": "native"
+    },
+    {
       "id": "edit.architect.editor-application",
       "feature": "edit",
       "behavior": "Architect edits use the editor's ordinary format application rather than a separate atomic application step.",
@@ -2583,7 +2627,11 @@
       ],
       "tests": [
         "test/git/commit-bind.test.ts::commit message generation sends the commit diff and the chat context",
-        "test/git/commit-bind.test.ts::buildCommitMessageRequest places context above the diffs block"
+        "test/git/commit-bind.test.ts::buildCommitMessageRequest places context above the diffs block",
+        "test/git/commit-model.test.ts::the commit-message model ladder keeps the first non-empty reply and sends both models the same request",
+        "test/git/commit-model.test.ts::surrounding quotes are stripped only as a matched pair",
+        "test/git/commit-model.test.ts::a custom commit prompt replaces the default system prompt",
+        "test/core/commit-message.pi.test.ts::an assistant commit is authored by the weak model and trailers the main model"
       ]
     },
     {
@@ -2787,7 +2835,8 @@
       "status": "open",
       "pi": [],
       "src": [],
-      "tests": []
+      "tests": [],
+      "gap": "native"
     },
     {
       "id": "lint.test.command-output",
@@ -2850,7 +2899,8 @@
       "status": "open",
       "pi": [],
       "src": [],
-      "tests": []
+      "tests": [],
+      "gap": "native"
     },
     {
       "id": "edit.install.complete-runtime",
@@ -3743,7 +3793,8 @@
       "status": "open",
       "pi": [],
       "src": [],
-      "tests": []
+      "tests": [],
+      "gap": "native"
     },
     {
       "id": "map.budget.model-default",
@@ -5391,9 +5442,9 @@
     {
       "id": "git.commands.raw-git",
       "feature": "git",
-      "behavior": "/git prepends git to the supplied text, runs it with shell=True, forces GIT_EDITOR=true, shows combined output without adding it to chat, and does not set cwd to the repo root.",
+      "behavior": "/git prepends git to the supplied text, runs the resulting argv with GIT_EDITOR=true and no shell evaluation, shows combined output without adding it to chat, and does not set cwd to the repo root.",
       "aider": [
-        "aider/commands.py:690-720"
+        "aider/commands.py:967-991"
       ],
       "kind": "parity",
       "status": "verified",
@@ -6010,7 +6061,7 @@
       "behavior": "Julia repository mapping degrades without an uncaught query error when the selected Julia tags query is incompatible with the installed grammar.",
       "aider": [
         "aider/repomap.py:284-302",
-        "aider/queries/tree-sitter-language-pack/julia-tags.scm:1-40"
+        "aider/queries/tree-sitter-languages/julia-tags.scm:1-60"
       ],
       "kind": "fix",
       "status": "verified",
@@ -6271,7 +6322,8 @@
       "status": "open",
       "pi": [],
       "src": [],
-      "tests": []
+      "tests": [],
+      "gap": "native"
     },
     {
       "id": "lint.custom.append-relpath",
@@ -6304,7 +6356,9 @@
       ],
       "kind": "parity",
       "status": "verified",
-      "pi": [],
+      "pi": [
+        "Host.exec"
+      ],
       "src": [
         "src/lint/linter.ts"
       ],
@@ -6323,7 +6377,8 @@
       "status": "open",
       "pi": [],
       "src": [],
-      "tests": []
+      "tests": [],
+      "gap": "native"
     },
     {
       "id": "lint.selection.edit-targets",
@@ -6429,7 +6484,8 @@
       "status": "open",
       "pi": [],
       "src": [],
-      "tests": []
+      "tests": [],
+      "gap": "native"
     },
     {
       "id": "lint.test.no-command-noop",
@@ -6674,6 +6730,20 @@
         "intent": "args.py declares --lint as store_true and --lint-cmd as the repeatable language-command mapping; the guide should match those flags.",
         "behavior": "The --lint option is boolean one-shot lint; language-specific checkers are configured only through --lint-cmd \"language: command\"."
       }
+    },
+    {
+      "id": "git.commit.model-prefix",
+      "feature": "git",
+      "behavior": "Commit-message generation prepends the model's own system_prompt_prefix to the commit system prompt before sending it.",
+      "aider": [
+        "aider/repo.py:339-352"
+      ],
+      "kind": "parity",
+      "status": "open",
+      "pi": [],
+      "src": [],
+      "tests": [],
+      "gap": "native"
     }
   ]
 }

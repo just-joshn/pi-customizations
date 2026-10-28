@@ -15,6 +15,10 @@ export interface FeatureEnv {
   readonly cwd: string;
   /** Pre-validated git root from startup. `null` disables Git. Omitted means discover from `cwd`. */
   readonly gitRoot?: string | null;
+  /** Aider's commit-message model ladder, wired by the extension host. Used by the git feature. */
+  readonly generateCommitMessage?: (request: { readonly system: string; readonly user: string }, signal?: AbortSignal) => Promise<string | null>;
+  /** `coder.main_model.name` for assistant commit trailers. Used by the git feature. */
+  readonly mainModelName?: () => string;
 }
 
 export interface Feature<Port> {

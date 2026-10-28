@@ -3,7 +3,7 @@ import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { assertPiVersion, extensionArgs, journeyEnv, prepareWorkspace, readEdited, resolvePi, runPi, saveArtifact } from './host.mjs';
+import { assertPiVersion, extensionArgs, journeyEnv, lastCommit, prepareWorkspace, readEdited, resolvePi, runPi, saveArtifact } from './host.mjs';
 
 async function requestLog(logDir) {
   const names = (await readdir(logDir)).filter((name) => name.startsWith('requests-') && name.endsWith('.jsonl'));
@@ -23,16 +23,21 @@ export async function runPrintJourney() {
     const args = [...extensionArgs(), '--print', '--no-session', '--provider', 'maintainer-journey', '--model', 'recorder', '--', 'JOURNEY:wholefile'];
     const result = await runPi(piBin, args, { cwd: workspace.cwd, env: journeyEnv(workspace) });
     const after = await readEdited(workspace.cwd);
+    const commit = lastCommit(workspace.cwd);
     const requests = await requestLog(workspace.logDir);
     assert.equal(result.code, 0, `print pi exit ${result.code}\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`);
     assert.equal(after, 'after-print\n', `expected whole-file apply, got ${JSON.stringify(after)}`);
-    assert.ok(requests.length >= 1, 'expected at least one scripted provider request');
+    assert.ok(requests.length >= 2, `expected edit and commit-message requests, got ${requests.length}`);
+    assert.equal(commit?.subject, 'feat: journey edit', `expected a model-authored commit subject, got ${JSON.stringify(commit)}`);
+    assert.match(commit?.body ?? '', /Co-authored-by: pi \(recorder\) <noreply@pi\.dev>/, `expected the selected model in the trailer, got ${JSON.stringify(commit)}`);
+    assert.match(result.stderr, /Commit [0-9a-f]+ feat: journey edit/, `expected Aider's console output on stderr, got ${JSON.stringify(result.stderr)}`);
     const artifact = {
       mode: 'print',
       pi: { bin: piBin, version },
       exitCode: result.code,
       before: 'before-print\n',
       after,
+      commit,
       prompt: 'JOURNEY:wholefile',
       format: 'whole',
       requests,

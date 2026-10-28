@@ -1,9 +1,20 @@
 import { homedir } from 'node:os';
 
-import type { ContextWithSystemEvent, ExtensionAPI, ExtensionContext, ModelRouteRequest, SessionBoundaryDraft, TurnEndEvent } from '@earendil-works/pi-coding-agent';
+import {
+  type ContextWithSystemEvent,
+  convertToLlm,
+  type ExtensionAPI,
+  type ExtensionContext,
+  type ModelRouteRequest,
+  type SessionBeforeCompactEvent,
+  type SessionBeforeCompactResult,
+  type SessionBoundaryDraft,
+  type TurnEndEvent,
+} from '@earendil-works/pi-coding-agent';
 import { Text } from '@earendil-works/pi-tui';
 import { BRANDING } from '../branding.ts';
 import { selectEditFormat, UnknownEditFormat } from '../edit/factory.ts';
+import { historyOverBudget, historyTokens, maxChatHistoryTokens, summarizeHistory, summaryConversationText } from '../edit/history-summary.ts';
 import { type ModelFormatPolicy, promptPolicyFromModelFormat, resolveModelFormatPolicyForRef } from '../edit/model-format-policy.ts';
 import { editFormatAfterModelSwitch, rolesAfterMainModelSwitch } from '../edit/model-switch.ts';
 import { defaultEditorFormat } from '../edit/modes.ts';
@@ -12,6 +23,7 @@ import { packagedDefaultEditFormat } from '../edit/packaged-default-format.ts';
 import { textFromAssistantContent } from '../edit/reasoning.ts';
 import { admitInitialEditable, readMessageFile } from '../edit/startup-input.ts';
 import { createPorts, type EditFormatName, isEditFormatName, type Ports, type SarFeature } from '../feature.ts';
+import { createCommitMessageGenerator } from '../git/commit-model.ts';
 import { gitOptions } from '../git/options.ts';
 import { prepareGitRepository } from '../git/startup.ts';
 import { runExplicitLintWorkflow } from '../lint/commands.ts';
@@ -65,6 +77,19 @@ function completedReply(event: TurnEndEvent): CompletedReply {
 }
 
 const draft = (fact: DialogueFact): SessionBoundaryDraft => ({ type: 'custom_message', customType: BRANDING.dialogueEntry, content: fact.text, display: true, details: { ack: fact.ack, purpose: fact.purpose, reply: fact.reply } });
+
+/** Resolve a model name the way `--weak-model` will use it: `provider/id` or a unique id. */
+function resolvePhysicalModel(ctx: ExtensionContext, name: string): { provider: string; id: string } | null {
+  const slash = name.indexOf('/');
+  if (slash > 0) {
+    const found = ctx.modelRegistry.find(name.slice(0, slash), name.slice(slash + 1));
+    return found && found.api !== 'pi-virtual' ? { provider: found.provider, id: found.id } : null;
+  }
+  for (const candidate of [...ctx.modelRegistry.getAvailable(), ...ctx.modelRegistry.getAll()]) {
+    if (candidate.api !== 'pi-virtual' && candidate.id === name) return { provider: candidate.provider, id: candidate.id };
+  }
+  return null;
+}
 
 /** Resolve `--editor-model` to a physical registry entry. Falls back to the main model when unset. */
 function resolveEditorModel(ctx: ExtensionContext, name: string | null, main: { provider: string; id: string }): { provider: string; id: string } | null {
@@ -156,6 +181,8 @@ export function installMaintainer(pi: ExtensionAPI, features: readonly SarFeatur
   });
   pi.on('session_start', (_event, ctx) => runtime.start(ctx));
   pi.on('session_tree', (_event, ctx) => runtime.restoreBranch(ctx));
+  pi.on('session_before_compact', (event, ctx) => runtime.summarizeForCompaction(event, ctx));
+  pi.on('agent_settled', (event, ctx) => runtime.summarizeSettledHistory(event, ctx));
   pi.on('session_shutdown', () => runtime.dispose());
   registerModelSelect(pi, runtime);
   registerTurnHooks(pi, runtime);
@@ -250,6 +277,10 @@ class MaintainerRuntime {
   #environment: Readonly<Record<string, string | undefined>> = {};
   #yes: boolean | null = null;
   #autoCommits = true;
+  #verbose = false;
+  #maxChatHistoryTokens: number | null = null;
+  #weakModelName: string | null = null;
+  #summarizingHistory = false;
   #testCmd: string | null = null;
   #lintCmds: ReadonlyMap<string | null, string> = new Map();
   readonly host: ReturnType<typeof createHost>;
@@ -278,7 +309,9 @@ class MaintainerRuntime {
       },
       environment: () => this.#environment,
       notice: (level, text) => {
-        this.context?.ui.notify(text, level);
+        const ctx = this.context;
+        if (ctx?.hasUI) ctx.ui.notify(text, level);
+        else process.stderr.write(`${text}\n`);
         this.append({ schema: 1, kind: 'notice', level, text });
       },
     });
@@ -351,7 +384,7 @@ class MaintainerRuntime {
     const specs = this.#features.flatMap((feature) => feature.options);
     const loaded = await loadSettings({ specs, cwd: ctx.cwd, home: (this.#options.home ?? homedir)(), getFlag: (name) => this.#pi.getFlag(name), processEnvironment: (this.#options.processEnvironment ?? (() => process.env))() });
     for (const problem of loaded.problems) this.host.error(problem);
-    if (loaded.problems.length) throw new Error('Invalid maintainer settings');
+    if (loaded.problems.length) throw new Error(`Invalid maintainer settings: ${loaded.problems.join('; ')}`);
     this.#environment = loaded.environment;
     if (loaded.settings.value(editOptions.verbose)) {
       this.host.output(
@@ -365,6 +398,15 @@ class MaintainerRuntime {
       );
     }
     const formatPolicy = modelFormatPolicyForContext(ctx);
+    this.#yes = specs.includes(editOptions.yesAlways) ? loaded.settings.value(editOptions.yesAlways) : null;
+    const weakModelName = specs.includes(editOptions.weakModel) ? loaded.settings.value(editOptions.weakModel) : null;
+    this.#weakModelName = weakModelName;
+    const commitMessages = createCommitMessageGenerator({
+      registry: ctx.modelRegistry,
+      main: () => this.#controller?.snapshot.physicalModel ?? null,
+      weak: () => (this.#weakModelName ? resolvePhysicalModel(ctx, this.#weakModelName) : null),
+      error: (text) => this.host.error(text),
+    });
     const hasGitFeature = this.#features.some((feature) => feature.name === 'git');
     const gitPrepared = hasGitFeature
       ? await prepareGitRepository({
@@ -381,13 +423,16 @@ class MaintainerRuntime {
         cwd: ctx.cwd,
         host: this.host,
         ...(gitPrepared ? { gitRoot: gitPrepared.kind === 'ready' ? gitPrepared.root : null } : {}),
+        generateCommitMessage: commitMessages,
+        mainModelName: () => this.#controller?.snapshot.physicalModel?.id ?? 'unknown-model',
       }),
       loaded.settings,
       formatPolicy,
     );
     this.#ports = ports;
-    this.#yes = ports.edit.yesAlways;
     this.#autoCommits = specs.includes(gitOptions.autoCommits) ? loaded.settings.value(gitOptions.autoCommits) : true;
+    this.#verbose = loaded.settings.value(editOptions.verbose);
+    this.#maxChatHistoryTokens = specs.includes(editOptions.maxChatHistoryTokens) ? loaded.settings.value(editOptions.maxChatHistoryTokens) : null;
     this.#testCmd = specs.includes(lintOptions.testCmd) ? loaded.settings.value(lintOptions.testCmd) : null;
     this.#lintCmds = specs.includes(lintOptions.lintCmd) ? parseLintCmds(loaded.settings.value(lintOptions.lintCmd)) : new Map();
     const restored = restore(ctx.sessionManager.getBranch());
@@ -451,6 +496,7 @@ class MaintainerRuntime {
       });
       if (oneshot.kind === 'exit') {
         process.exitCode = oneshot.status;
+        ctx.shutdown();
         return;
       }
     }
@@ -467,6 +513,57 @@ class MaintainerRuntime {
       if (text === null) throw new Error(`Unable to read message file ${ports.edit.messageFile}`);
       this.#pi.sendUserMessage(text);
     }
+  }
+  /**
+   * Aider `move_back_cur_messages`/`summarize_start`: once an edit lands, a history larger than
+   * the soft budget starts summarizing (`aider/coders/base_coder.py:1036-1044,1002-1017`).
+   * Pi compaction decides whether a cut point exists at its own `keepRecentTokens`.
+   */
+  summarizeSettledHistory(event: { readonly aborted: boolean }, ctx: ExtensionContext): void {
+    const controller = this.#controller;
+    if (event.aborted || controller === null) return;
+    const branch = ctx.sessionManager.getBranch();
+    const lastAssistant = branch.filter((entry) => entry.type === 'message' && entry.message.role === 'assistant').at(-1);
+    if (controller.snapshot.historyThrough === null || lastAssistant?.type !== 'message' || lastAssistant.id !== controller.snapshot.historyThrough) return;
+    const physical = controller.snapshot.physicalModel;
+    const model = physical ? ctx.modelRegistry.find(physical.provider, physical.id) : undefined;
+    const budget = maxChatHistoryTokens(this.#maxChatHistoryTokens, model?.contextWindow ?? 0);
+    const messages = ctx.sessionManager.buildSessionProjection().messages.filter((message) => message.role !== 'system');
+    if (!historyOverBudget(historyTokens(messages), budget)) return;
+    this.#summarizingHistory = true;
+    ctx.compact({
+      onComplete: () => {
+        this.#summarizingHistory = false;
+      },
+      onError: (error: Error) => {
+        this.#summarizingHistory = false;
+        if (this.#verbose) this.host.warning(`Unable to summarize chat history: ${error.message}`);
+      },
+    });
+  }
+  /** Aider's `prompts.summarize` and weak model replace Pi's structured summary for this compaction. */
+  async summarizeForCompaction(event: SessionBeforeCompactEvent, ctx: ExtensionContext): Promise<SessionBeforeCompactResult | undefined> {
+    if (!this.#summarizingHistory) return undefined;
+    const messages = [...event.preparation.messagesToSummarize, ...event.preparation.turnPrefixMessages];
+    const summary = await summarizeHistory(
+      {
+        registry: ctx.modelRegistry,
+        main: () => this.#controller?.snapshot.physicalModel ?? null,
+        weak: () => (this.#weakModelName ? resolvePhysicalModel(ctx, this.#weakModelName) : null),
+        error: (text) => this.host.error(text),
+      },
+      summaryConversationText(convertToLlm(messages)),
+      event.signal,
+    );
+    if (!summary) return undefined;
+    return {
+      compaction: {
+        summary: summary.text,
+        firstKeptEntryId: event.preparation.firstKeptEntryId,
+        tokensBefore: event.preparation.tokensBefore,
+        ...(summary.usage ? { usage: summary.usage } : {}),
+      },
+    };
   }
   restoreBranch(ctx: ExtensionContext): void {
     const controller = this.current(ctx);

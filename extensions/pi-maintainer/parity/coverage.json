@@ -321,8 +321,9 @@
     ]
   },
   "edit/history-images-and-prompt-caching/p2": {
-    "nonclaim": "pi-owned",
-    "note": "Pi compaction summarizes older history and keeps a recent tail, so pi-maintainer runs no history summarizer"
+    "rows": [
+      "edit.history.summary-budget"
+    ]
   },
   "edit/history-images-and-prompt-caching/p3": {
     "rows": [
@@ -951,28 +952,34 @@
     ]
   },
   "aider-test/test_history/TestChatSummary.test_initialization": {
-    "nonclaim": "pi-owned",
-    "note": "Pi compaction replaces Aider's ChatSummary history summarizer"
+    "rows": [
+      "edit.history.summary-budget"
+    ]
   },
   "aider-test/test_history/TestChatSummary.test_too_big": {
-    "nonclaim": "pi-owned",
-    "note": "Pi compaction decides when history is too large"
+    "rows": [
+      "edit.history.summary-budget"
+    ]
   },
   "aider-test/test_history/TestChatSummary.test_tokenize": {
-    "nonclaim": "pi-owned",
-    "note": "Pi compaction estimates history tokens"
+    "rows": [
+      "edit.history.summary-budget"
+    ]
   },
   "aider-test/test_history/TestChatSummary.test_summarize_all": {
-    "nonclaim": "pi-owned",
-    "note": "Pi compaction summarizes history"
+    "rows": [
+      "edit.history.summary-budget"
+    ]
   },
   "aider-test/test_history/TestChatSummary.test_summarize": {
-    "nonclaim": "pi-owned",
-    "note": "Pi compaction keeps a recent tail and summarizes the rest"
+    "rows": [
+      "edit.history.recent-tail-split"
+    ]
   },
   "aider-test/test_history/TestChatSummary.test_fallback_to_second_model": {
-    "nonclaim": "pi-owned",
-    "note": "Pi compaction chooses and retries its summarization model"
+    "rows": [
+      "edit.history.summary-budget"
+    ]
   },
   "edit/provenance-evidence-methodology-and-scope/p1": {
     "nonclaim": "provenance",
@@ -6515,7 +6522,7 @@
   },
   "aider-test/test_repo/TestRepo.test_get_commit_message_uses_system_prompt_prefix": {
     "rows": [
-      "git.commit.message-context"
+      "git.commit.model-prefix"
     ]
   },
   "aider-test/test_sanity_check_repo/test_detached_head_state": {

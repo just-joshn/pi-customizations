@@ -27,7 +27,8 @@
     "census": "node scripts/census.mjs",
     "check:parity": "node scripts/check-parity.mjs",
     "check:parity:final": "node scripts/check-parity.mjs --final",
-    "journey:edit": "node parity/journeys/edit/verify.mjs"
+    "journey:edit": "node parity/journeys/edit/verify.mjs",
+    "check:options": "node scripts/capture-aider-options.mjs"
   },
   "dependencies": {
     "diff-match-patch": "1.0.5",
@@ -41,9 +42,9 @@
     "typebox": "*"
   },
   "devDependencies": {
-    "@earendil-works/pi-ai": "1.2.0",
-    "@earendil-works/pi-coding-agent": "1.2.0",
-    "@earendil-works/pi-tui": "1.2.0",
+    "@earendil-works/pi-ai": "1.4.0",
+    "@earendil-works/pi-coding-agent": "1.4.0",
+    "@earendil-works/pi-tui": "1.4.0",
     "@types/diff-match-patch": "1.0.36",
     "@types/node": "^22.19.0",
     "@vitest/coverage-v8": "^5.0.2",

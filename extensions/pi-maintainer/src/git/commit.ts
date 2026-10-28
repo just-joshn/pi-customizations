@@ -20,17 +20,17 @@ interface Attribution {
   readonly useCommitter: boolean;
 }
 
+/** `aider/repo.py:204-210,300-303`: a generated message, or Aider's own placeholder after failure. */
 async function resolveCommitMessage(s: GitSession, fnames: readonly string[], context: string | null, signal?: AbortSignal): Promise<string> {
   const diffs = await diffsFor(s, fnames, signal);
   const request = buildCommitMessageRequest(diffs, context, {
     commitPrompt: s.options.settings.commitPrompt,
     userLanguage: s.options.settings.commitLanguage,
   });
-  if (s.options.generateCommitMessage) {
-    const generated = await s.options.generateCommitMessage(request);
-    if (generated) return normalizeCommitMessage(generated) || '(no commit message provided)';
-  }
-  return context?.trim() ? normalizeCommitMessage(context.split('\n')[0] ?? context).slice(0, 72) || 'Update files' : 'Update files';
+  const generated = s.options.generateCommitMessage ? await s.options.generateCommitMessage(request, signal) : null;
+  if (generated) return normalizeCommitMessage(generated) || '(no commit message provided)';
+  if (s.options.generateCommitMessage) s.host.error('Failed to generate commit message!');
+  return '(no commit message provided)';
 }
 
 /** Aider's author/committer/co-authored-by rules applied to one commit message. */
@@ -41,7 +41,7 @@ function attribute(s: GitSession, base: string, aiderEdits: boolean): Attributio
   const effectiveCommitter = attributeCommitter === null ? true : attributeCommitter;
   const prefix = aiderEdits && (settings.attributeCommitMessageAuthor || settings.attributeCommitMessageCommitter);
   const message = prefix ? `${BRANDING.messagePrefix}${base}` : base;
-  const full = aiderEdits && attributeCoAuthoredBy ? `${message}\n\n${coAuthoredBy('unknown-model')}` : message;
+  const full = aiderEdits && attributeCoAuthoredBy ? `${message}\n\n${coAuthoredBy(s.options.mainModelName?.() ?? 'unknown-model')}` : message;
   return {
     message,
     full,

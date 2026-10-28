@@ -26,12 +26,14 @@ export const gitFeature: Feature<GitPolicy> & { readonly name: 'git' } = {
   name: 'git',
   options: gitOptionList,
   commands: gitCommands,
-  create({ settings, host, cwd, gitRoot }) {
+  create({ settings, host, cwd, gitRoot, generateCommitMessage, mainModelName }) {
     return createGitPolicy({
       host,
       cwd,
       settings: settingsFromEnv(settings),
       ...(gitRoot !== undefined ? { repoRoot: gitRoot } : {}),
+      ...(generateCommitMessage ? { generateCommitMessage } : {}),
+      ...(mainModelName ? { mainModelName } : {}),
     });
   },
 };

@@ -5,6 +5,11 @@ export interface ExecRequest {
   readonly command: string;
   readonly args: readonly string[];
   readonly cwd: string;
+  /**
+   * Per-command variables layered over the resolved maintainer environment. Aider's git
+   * attribution uses this so `.env` values still reach the child.
+   */
+  readonly env?: Readonly<Record<string, string>>;
   readonly signal?: AbortSignal;
   readonly timeoutMs?: number;
 }

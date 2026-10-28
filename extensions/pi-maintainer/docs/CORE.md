@@ -1,5 +1,7 @@
 # E6 core integration
 
+This document records the E6 core milestone. `docs/ARCHITECTURE.md` is the current design contract and the gates in the README measure current state; the "Deliberate limits" and verification numbers below describe the milestone, dated 2026-10-10, and later SARs replaced several of those limits.
+
 ## Tested contract
 
 The first E6 milestone uses a real in-process Pi SDK session. `test/core/exchange.pi.test.ts` drives `AgentSession.prompt()` through a scripted registered provider and waits for `agent_settled`. It checks provider-visible file contents, actual edited disk bytes, zero tools, operation receipts, and malformed-response feedback in the next request.
@@ -34,7 +36,7 @@ The first E6 milestone uses a real in-process Pi SDK session. `test/core/exchang
 
 `loadSettings(inputs: SettingsInputs): Promise<LoadedSettings>` requires `specs`, `getFlag(name)`, `processEnvironment`, `cwd`, and `home`. `getFlag` returns a boolean, string, or undefined. `LoadedSettings` has `settings`, `problems`, `environment`, `gitRoot`, `dotenvFiles`, and `secrets` (credential material from `--set-env` / `--api-key` for diagnostics scrubbing). `ResolvedSettings.value<T>(option: OptionSpec<T>): T` returns the typed value. `source(option: AnyOptionSpec): string` returns its origin.
 
-The runtime consumes this one inherited resolver. CLI wins over the effective prefixed environment, later config files, and defaults. Local dotenv values affect maintainer commands without replacing Pi's process environment or provider credentials. `createPorts(features, env)` instantiates the supplied SAR factories and fills absent Git, map, and lint ports with their explicit disabled implementations. Only edit is supplied by the production factory.
+The runtime consumes this one inherited resolver. CLI wins over the effective prefixed environment, later config files, and defaults. Local dotenv values affect maintainer commands without replacing Pi's process environment or provider credentials. `createPorts(features, env)` instantiates the supplied SAR factories and fills absent Git, map, and lint ports with their explicit disabled implementations. The production factory supplies all four features with `createEditPromptSource()`.
 
 ## Feature contract
 
@@ -73,9 +75,9 @@ Each destructive file operation stores its intent before the operation and its o
 
 ## Deliberate limits
 
-Git, map, and lint ports are disabled. No parity is claimed for them. Ask, context, and architect or editor chat modes are wired through the format registry and `ExchangeController` phase. Map-budget context refresh, architect editor commit or cost return, model-specific defaults, shell suggestions, slash commands, file watching, and Pi binary journeys remain deferred. The `apply` option is registered but standalone application is not implemented yet.
+At the E6 milestone, Git, map, and lint ports were disabled and no parity was claimed for them. Later milestones wired all four features, their slash commands, map-budget context refresh, shell suggestions, and the real-Pi print and RPC journeys. File watching remains a documented native gap (`docs/NATIVE-GAPS.md`), and `docs/ARCHITECTURE.md` is the current contract.
 
-Context hooks lack source-entry provenance. The supported cooperation contract keeps the number, order, and roles of canonical projected conversation messages. Content can change. If that shape changes or a history cut is compacted out, E6 preserves incoming history without strict done/current partitioning. Arbitrary prior filtering, insertion, or reordering cannot preserve exact Aider partitioning through Pi 1.1.0.
+Context hooks lack source-entry provenance. The supported cooperation contract keeps the number, order, and roles of canonical projected conversation messages. Content can change. If that shape changes or a history cut is compacted out, E6 preserves incoming history without strict done/current partitioning. Arbitrary prior filtering, insertion, or reordering cannot preserve exact Aider partitioning through Pi 1.4.0.
 
 Branch navigation restores metadata but does not undo disk edits. A branch predating maintainer metadata refuses requests. Selecting a physical model and reloading initializes that branch. Manually overriding the selected virtual coder is not a supported way to change maintainer models yet.
 
@@ -95,7 +97,7 @@ PDF context, arbitrary reordered context projections, Aider's exact token-count 
 
 ## Verification receipt
 
-The final runtime check passed 23 files and 427 tests. V8 coverage includes untested source files. It measured 92.17% statements, 81.66% branches, 92.95% functions, and 94.41% lines. Oracle freshness passed all seven retained groups and their 323 capture cases. Core has 54 cases. Fresh captures are not a claim that an unimplemented SAR is complete.
+At the E6 milestone, the runtime check passed 23 files and 427 tests. V8 coverage includes untested source files. It measured 92.17% statements, 81.66% branches, 92.95% functions, and 94.41% lines. Oracle freshness passed all seven retained groups and their 323 capture cases. Core has 54 cases. Fresh captures are not a claim that an unimplemented SAR is complete.
 
 Run from the package directory:
 
@@ -110,12 +112,12 @@ Run from the worktree root:
 
 ```sh
 bun x biome check extensions/pi-maintainer
-node scripts/check-agents-compliance.mjs
+node scripts/check-pi-mechanisms.mjs
 node extensions/scripts/check-vitest-conventions.mjs
 git diff --check
 ```
 
-Biome passes. Neither repository-wide policy script reports a pi-maintainer finding. This receipt makes no repository-wide pass claim. Whitespace checking passes.
+At the milestone, Biome passed and neither repository-wide policy script reported a pi-maintainer finding. This receipt makes no repository-wide pass claim. Whitespace checking passes.
 
 The file-content oracle was challenged by inserting a newline before the closing fence. Six cases failed. The implementation was restored and the final suite passed. The path oracle initially failed because its fixture lacked Aider's cache field and did not canonicalize the temporary root. After correcting those fixture defects, three symlink traversal cases failed against the old TypeScript implementation. The fix passed those cases and an SDK physical-write regression. A final source check found a missing newline in repository-port current text. The SDK regression failed before the fix. Empty and multi-message oracle cases now verify that helper against Aider.
 

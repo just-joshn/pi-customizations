@@ -72,3 +72,28 @@ test('print-mode host selection does not invent user consent', async () => {
   expect(confirmed).toBe(false);
   expect(f.errors).toEqual([]);
 });
+
+test('native exec layers a per-command overlay over the resolved environment', async () => {
+  let result: ExecOutcome | undefined;
+  const f = await piSessionFixture({
+    extension: (pi) => {
+      pi.registerCommand('probe-env-overlay', {
+        description: 'test environment overlay',
+        handler: async (_args, ctx) => {
+          result = await nativeHost(pi, ctx).exec({ command: '/usr/bin/env', args: [], cwd: ctx.cwd, env: { TEST_VALUE: 'overridden', EXTRA: 'added' } });
+        },
+      });
+    },
+  });
+  const session = await f.open();
+  await session.prompt('/probe-env-overlay');
+  const values = Object.fromEntries(
+    (result?.stdout ?? '')
+      .trim()
+      .split('\n')
+      .map((line) => [line.slice(0, line.indexOf('=')), line.slice(line.indexOf('=') + 1)]),
+  );
+  expect(values['TEST_VALUE']).toBe('overridden');
+  expect(values['EXTRA']).toBe('added');
+  expect(f.errors).toEqual([]);
+});

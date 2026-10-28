@@ -3,7 +3,7 @@ import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { assertPiVersion, extensionArgs, journeyEnv, prepareWorkspace, readEdited, resolvePi, saveArtifact, spawnPiRpc } from './host.mjs';
+import { assertPiVersion, extensionArgs, journeyEnv, lastCommit, prepareWorkspace, readEdited, resolvePi, saveArtifact, spawnPiRpc } from './host.mjs';
 import { rpcProcess } from './rpc-process.mjs';
 import { promptAndSettle } from './rpc-turn.mjs';
 
@@ -23,11 +23,13 @@ export async function runRpcJourney() {
   const workspace = await prepareWorkspace({ format: 'diff', before: 'before-rpc\n' });
   const child = spawnPiRpc(piBin, [...extensionArgs(), '--mode', 'rpc', '--no-session', '--provider', 'maintainer-journey', '--model', 'recorder'], { cwd: workspace.cwd, env: journeyEnv(workspace) });
   let settlements = 0;
+  const notifications = [];
   const client = rpcProcess(child, {
     requestDeadlineMs: 180000,
     shutdownDeadlineMs: 15000,
     onRecord: (record) => {
       if (record.type === 'agent_settled') settlements += 1;
+      if (record.type === 'extension_ui_request' && record.method === 'notify') notifications.push(record.message);
     },
   });
   try {
@@ -40,9 +42,16 @@ export async function runRpcJourney() {
       { type: 'prompt', message: 'JOURNEY:editblock' },
     );
     const after = await readEdited(workspace.cwd);
+    const commit = lastCommit(workspace.cwd);
     const requests = await requestLog(workspace.logDir);
     assert.equal(after, 'after-rpc\n', `expected editblock apply, got ${JSON.stringify(after)}`);
-    assert.ok(requests.length >= 1, 'expected at least one scripted provider request');
+    assert.ok(requests.length >= 2, `expected edit and commit-message requests, got ${requests.length}`);
+    assert.equal(commit?.subject, 'feat: journey edit', `expected a model-authored commit subject, got ${JSON.stringify(commit)}`);
+    assert.match(commit?.body ?? '', /Co-authored-by: pi \(recorder\) <noreply@pi\.dev>/, `expected the selected model in the trailer, got ${JSON.stringify(commit)}`);
+    assert.ok(
+      notifications.some((message) => /Commit [0-9a-f]+ feat: journey edit/.test(String(message))),
+      `expected Aider's console output in RPC notifications, got ${JSON.stringify(notifications)}`,
+    );
     const code = await client.finish();
     assert.equal(code, 0, `rpc pi exit ${code}\nstderr:\n${client.stderr}`);
     const artifact = {
@@ -51,9 +60,11 @@ export async function runRpcJourney() {
       exitCode: code,
       before: 'before-rpc\n',
       after,
+      commit,
       prompt: 'JOURNEY:editblock',
       format: 'diff',
       requests,
+      notifications,
       stderr: client.stderr,
       verifiedAt: new Date().toISOString(),
     };

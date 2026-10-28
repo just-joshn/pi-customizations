@@ -43,7 +43,7 @@ export function createHost(_pi: ExtensionAPI, binding: HostBinding): Host {
     async exec(request) {
       const signal = request.signal ?? binding.context().signal;
       signal?.throwIfAborted();
-      return isolatedExec({ ...request, ...(signal ? { signal } : {}) }, binding.environment());
+      return isolatedExec({ ...request, ...(signal ? { signal } : {}) }, { ...binding.environment(), ...request.env });
     },
   };
 }

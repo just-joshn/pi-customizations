@@ -30,8 +30,10 @@ export interface CreateGitPolicyOptions {
    * Pre-validated root from startup. `null` disables the port. When omitted, discover from `cwd`.
    */
   readonly repoRoot?: string | null;
-  /** Injected commit-message models. When absent, commits use a short fallback message. */
-  readonly generateCommitMessage?: (request: { readonly system: string; readonly user: string }) => Promise<string | null>;
+  /** Injected commit-message models. When absent, commits use Aider's placeholder message. */
+  readonly generateCommitMessage?: (request: { readonly system: string; readonly user: string }, signal?: AbortSignal) => Promise<string | null>;
+  /** `coder.main_model.name` for the Co-authored-by trailer, read at commit time. */
+  readonly mainModelName?: () => string;
   readonly run?: GitRun;
   readonly sessionCommitHashes?: Set<string>;
 }

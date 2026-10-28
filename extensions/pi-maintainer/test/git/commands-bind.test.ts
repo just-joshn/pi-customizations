@@ -4,10 +4,12 @@ import { join } from 'node:path';
 import { expect, onTestFinished, test } from 'vitest';
 import { absRootPath } from '../../src/core/chat-files.ts';
 import type { CommandEnv } from '../../src/core/command.ts';
+import type { ExecRequest } from '../../src/core/host.ts';
 import { isolatedExec } from '../../src/core/isolated-exec.ts';
 import { addFiles, dropMatches, type SelectionEnv, type SelectionState } from '../../src/edit/selection.ts';
 import { createWorkingTree } from '../../src/edit/working-tree.ts';
 import { disabledGitPolicy, disabledRepositoryContext, disabledValidation } from '../../src/feature.ts';
+import { createGitRun } from '../../src/git/cli.ts';
 import { gitCommands } from '../../src/git/commands.ts';
 import { commitFile, initRepo, policyIn, recordingHost, tempDir } from './support.ts';
 
@@ -162,4 +164,37 @@ test('/add from a nested cwd admits an untracked file under that subdirectory', 
 test('gitCommands registers git, commit, and diff through the feature command list', () => {
   expect(gitCommands.map((command) => command.name).sort()).toEqual(['commit', 'diff', 'git']);
   expect(disabledGitPolicy.getDiffs).toBeTypeOf('function');
+});
+
+test('/git hands GIT_EDITOR to Host.exec instead of spawning its own child', async () => {
+  const root = await tempDir('git-cmd-env-');
+  const requests: ExecRequest[] = [];
+  const base = recordingHost();
+  const host = {
+    ...base,
+    exec: async (request: ExecRequest) => {
+      requests.push(request);
+      return { stdout: 'from-host\n', stderr: '', code: 0, killed: false };
+    },
+  };
+  const git = policyIn(root, host);
+  const run = gitCommands.find((command) => command.name === 'git');
+  await run?.run('status', commandEnv(root, host, git));
+  expect(requests).toEqual([{ command: 'git', args: ['status'], cwd: process.cwd(), env: { GIT_EDITOR: 'true' } }]);
+  expect(base.outputs).toContain('from-host\n');
+});
+
+test('an attribution overlay reaches Host.exec without reading process.env', async () => {
+  const root = await tempDir('git-run-env-');
+  const requests: ExecRequest[] = [];
+  const base = recordingHost();
+  const host = {
+    ...base,
+    exec: async (request: ExecRequest) => {
+      requests.push(request);
+      return { stdout: '', stderr: '', code: 0, killed: false };
+    },
+  };
+  await createGitRun(host, root)(['commit', '-m', 'x'], { env: { GIT_AUTHOR_NAME: 'Test User (pi)' } });
+  expect(requests).toEqual([{ command: 'git', args: ['commit', '-m', 'x'], cwd: root, env: { GIT_AUTHOR_NAME: 'Test User (pi)' } }]);
 });
