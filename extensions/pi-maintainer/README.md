@@ -2,7 +2,7 @@
 
 Aider's edit, git, map, and lint features rebuilt on Pi's extension API for [Pi](https://pi.dev) 1.4.0. The target is behavioral parity with Aider at commit `5dc9490bb35f9729ef2c95d00a19ccd30c26339c`, as described by the four reconstructions pinned in `parity/sources.json`.
 
-Parity is measured, not asserted. `parity/ledger.json` holds one row per observable Aider behavior. `docs/NATIVE-GAPS.md` records every behavior Pi's public API cannot express, with the eight answers that `extensions/AGENTS.md` requires. `parity/options.json` disposes of every Aider long option as registered or explicitly nonclaimed. `node scripts/check-parity.mjs --final` stays red while a row is open, so a green `--feature <sar>` run means that feature's rows are verified and a red one names what is missing.
+Parity is measured, not asserted. `parity/ledger.json` holds one row per observable Aider behavior. `docs/NATIVE-GAPS.md` records every behavior Pi's public API cannot express, with the eight native-gap answers that file defines. `parity/options.json` disposes of every Aider long option as registered or explicitly nonclaimed. `node scripts/check-parity.mjs --final` stays red while a row is open, so a green `--feature <sar>` run means that feature's rows are verified and a red one names what is missing.
 
 ## Install
 

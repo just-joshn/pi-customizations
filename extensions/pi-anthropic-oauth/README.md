@@ -96,7 +96,6 @@ From the repository root, run the packaging and style checks:
 
 ```bash
 bunx biome ci extensions/pi-anthropic-oauth --error-on-warnings --max-diagnostics=none
-bun run check:agents
 bun run check:tests
 node scripts/check-pi-mechanisms.mjs
 ```

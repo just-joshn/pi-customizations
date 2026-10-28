@@ -27,4 +27,4 @@ The repository's checks enforce these, and a violation fails review.
 
 ## Verify before reporting
 
-From `extensions/pi-maintainer`: `bun x vitest run`, `bun x tsc -p .`, then from the repository root `bun x biome ci extensions/pi-maintainer --error-on-warnings`, `node scripts/check-agents-compliance.mjs | grep pi-maintainer` (must print nothing), and `node extensions/scripts/check-vitest-conventions.mjs | grep pi-maintainer` (must print no errors).
+From `extensions/pi-maintainer`: `bun x vitest run`, `bun x tsc -p .`, then from the repository root `bun x biome ci extensions/pi-maintainer --error-on-warnings`, `node extensions/scripts/check-vitest-conventions.mjs | grep pi-maintainer` (must print no errors).

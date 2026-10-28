@@ -1,6 +1,6 @@
 # Native gaps
 
-Every custom adapter in pi-maintainer, with the eight answers that `extensions/AGENTS.md` requires before custom logic is added. The answers are, in order: the exact required behavior, the Pi mechanism evaluated, why the public API cannot express the requirement, why omitting the behavior is unacceptable, the smallest adapter, the Pi-owned state that stays authoritative, the verification, and the condition for deleting the adapter.
+Every custom adapter in pi-maintainer, with eight answers recorded before custom logic is added. The answers are, in order: the exact required behavior, the Pi mechanism evaluated, why the public API cannot express the requirement, why omitting the behavior is unacceptable, the smallest adapter, the Pi-owned state that stays authoritative, the verification, and the condition for deleting the adapter.
 
 All citations refer to installed Pi 1.4.0 under `CA` = `@earendil-works/pi-coding-agent/` and to the Aider checkout at `5dc9490bb35f9729ef2c95d00a19ccd30c26339c`.
 
@@ -149,7 +149,7 @@ The flag adapters share the following gate answers. The table above identifies t
 
 1. **Behavior.** When estimated request tokens reach the model input limit, Aider reports the overflow, lists ways to reduce context (`/drop`, `/clear`, smaller files), and sends the request only if the user confirms `Try to proceed anyway?` (`aider/coders/base_coder.py:1396-1417,1429-1432`).
 2. **Mechanism evaluated (Pi 1.4.0, re-checked).** `estimateTokens` / `shouldCompact` / `ctx.compact()` / `session_before_compact`; compaction on `threshold` and `overflow` with automatic compact-and-retry; `ctx.getContextUsage()`; `ctx.ui.confirm` / Host `confirm`; `ctx.abort()` from `before_agent_start` / `context_with_system`; `before_provider_request` (result type `unknown`, payload replace only).
-3. **Why it cannot.** Pi owns context-window management as compaction and overflow recovery (`extensions/AGENTS.md`). Threshold compaction and post-error overflow recovery run without a pre-send admission confirm. `before_provider_request` can replace a payload but cannot express confirm-gated send. `ctx.ui.confirm` and `estimateTokens` exist, but composing them into Aider's `check_tokens` gate would invent a second overflow policy beside Pi compaction.
+3. **Why it cannot.** Pi owns context-window management as compaction and overflow recovery (Pi's `docs/compaction.md`). Threshold compaction and post-error overflow recovery run without a pre-send admission confirm. `before_provider_request` can replace a payload but cannot express confirm-gated send. `ctx.ui.confirm` and `estimateTokens` exist, but composing them into Aider's `check_tokens` gate would invent a second overflow policy beside Pi compaction.
 4. **Why not omit.** Ledger row `edit.prompt.context-limit-confirm` requires that proceed-anyway confirm. Omitting leaves the row open.
 5. **Adapter.** None. No custom pre-send token gate is added.
 6. **Authoritative Pi state.** Compaction settings, threshold triggers, overflow recovery, and provider send stay with AgentSession.

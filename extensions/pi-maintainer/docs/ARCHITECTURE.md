@@ -43,7 +43,7 @@ parity/
 
 Rules that keep the symmetry real:
 
-- Only `src/core/` calls `pi.on`, `pi.registerCommand`, `pi.registerFlag`, `pi.registerVirtualModel`, `pi.appendEntry`, `pi.sendMessage`, `pi.sendUserMessage`, and `pi.setActiveTools`. A SAR declares options, commands, and its port. The core registers them. This keeps one Pi adapter, so `extensions/AGENTS.md` compliance is reviewed in one place.
+- Only `src/core/` calls `pi.on`, `pi.registerCommand`, `pi.registerFlag`, `pi.registerVirtualModel`, `pi.appendEntry`, `pi.sendMessage`, `pi.sendUserMessage`, and `pi.setActiveTools`. A SAR declares options, commands, and its port. The core registers them. This keeps one Pi adapter, so Pi-native compliance is reviewed in one place.
 - Ports never import Pi. They receive what they need (a `WorkingTree`, a `Host` with UI and process capabilities, resolved settings) as arguments.
 - Every SAR registers through the same three lists: `options`, `commands`, and one port. No SAR has a private registration path.
 
@@ -108,7 +108,7 @@ The lifecycle base design is candidate 2 of the lifecycle arena, an exchange con
 
 ## Native gaps
 
-`docs/NATIVE-GAPS.md` lists every custom adapter with the eight answers that `extensions/AGENTS.md` requires. A custom adapter without an entry fails review.
+`docs/NATIVE-GAPS.md` lists every custom adapter with the eight native-gap answers that file defines. A custom adapter without an entry fails review.
 
 ## Test layers
 
