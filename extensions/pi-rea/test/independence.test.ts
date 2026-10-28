@@ -39,11 +39,17 @@ test('KERN-002: the package declares no reference dependency', () => {
   expect(manifest.files).toContain('schemas');
 });
 
-test('KERN-002: the extension only imports Pi, typebox and relative modules', () => {
+test('KERN-002: the extension only imports Pi, typebox, Babel parser, and relative modules', () => {
   const specifiers = (source: string): string[] => [...source.matchAll(/(?:^|[\s;])(?:import|export)\s(?:[^'"]*?\sfrom\s)?['"]([^'"]+)['"]|import\(\s*['"]([^'"]+)['"]\s*\)/gm)].map((match) => match[1] ?? match[2] ?? '');
-  for (const file of shippedFiles.filter((path) => path.endsWith('.ts'))) {
+  const sources = shippedFiles.filter((path) => path.endsWith('.ts') || path.endsWith('.mjs'));
+  for (const file of sources) {
     for (const specifier of specifiers(read(file))) {
-      const allowed = specifier.startsWith('.') || specifier.startsWith('node:') || specifier === '@earendil-works/pi-coding-agent' || specifier === '@earendil-works/pi-ai';
+      const allowed =
+        specifier.startsWith('.') ||
+        specifier.startsWith('node:') ||
+        specifier === '@earendil-works/pi-coding-agent' ||
+        specifier === '@earendil-works/pi-ai' ||
+        specifier === '@babel/parser';
       expect(allowed, `${file} imports ${specifier}`).toBe(true);
     }
   }

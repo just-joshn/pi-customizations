@@ -13,8 +13,14 @@ schema and line of code here is this project's own (see
 This package advertises the **rea-agents 6.8.0** agent-facing catalog (**229
 tools**). All **229** are registered as kernel handlers today: absorbed static
 analyzers plus fail-closed provider/capability refuses that match measured REA
-6.8.0 missing-provider envelopes. Do not read that catalog size as behavioral
-parity. Gaps belong under `parity/pi-rea/`.
+6.8.0 missing-provider envelopes. Catalog size is not behavioral parity.
+
+Measured DiffCase parity lives under `parity/pi-rea/`: **93** frozen cases are
+exact vs `npx` `rea-agents` 6.8.0 envelopes on the Darwin host that ran the
+harness. That smoke includes fixture-scoped `semantic_graph` goldens for known
+roots and harness-aligned refuse prose for some missing providers. It does not
+prove a full Babel semantic port, live Frida/ADB bridges, or a DiffCase for
+every catalog name.
 
 ## What works today
 
@@ -34,7 +40,7 @@ parity. Gaps belong under `parity/pi-rea/`.
 | Selected compare_* fail-closed (4) | `compare_functions`, `compare_process_captures`, `compare_wasm_interfaces`, `find_changed_behavior` |
 | WABT / TShark / pcap / sigrok / EVM (8) | Kernel fail-closed with measured missing-provider envelopes (`wabt-artifact`, `tshark-capture`, `pcap`, `sigrok-recording`, `evmole-interface`) |
 | Native observe / dylib (4) | Kernel fail-closed: `target_unavailable` when closed, `capability_unavailable`/`native-macos` when open (no LLDB bridge) |
-| Engine-free gap refuse (20) | Kernel fail-closed `engine-free`/`not_implemented` for exports/objdump/graphs/reconstruction/JS-web traces/process capture/env export until real parsers land |
+| Engine-free / host Evidence (selected) | `inspect_with_objdump` and `inspect_native_exports` emit measured Evidence; other reconstruction/process/env gaps still refuse closed |
 | Six Pi prompt templates under `prompts/` | Implemented (`investigate_feature`, `compare_application_versions`, `verify_reconstruction`, `trace_crash`, `audit_residual_unknowns`, `prepare_bounded_process_capture`) |
 | `route` helper | Skill/CLI helper only; not an oracle MCP tool in 6.8.0 |
 | `rea` CLI | Not implemented inside this package |
