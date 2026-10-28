@@ -1,0 +1,64 @@
+[
+  {
+    "scenario": "models.json override",
+    "cliVersion": "1.4.0",
+    "agentLoop": {
+      "requests": 3,
+      "withBillingBlock": 3,
+      "eventProviders": ["claude-subscription", "claude-subscription", "claude-subscription"],
+      "headerEventProviders": ["claude-subscription", "claude-subscription", "claude-subscription"]
+    },
+    "compaction": {
+      "requests": 2,
+      "withBillingBlock": 2,
+      "eventProviders": [],
+      "headerEventProviders": ["claude-subscription", "claude-subscription"]
+    },
+    "virtualRoute": {
+      "requests": 1,
+      "withBillingBlock": 1,
+      "eventProviders": ["router"],
+      "headerEventProviders": ["router"]
+    },
+    "userAgents": ["claude-cli/9.9.9"],
+    "sessionHeaders": [
+      "01a18426-6a9d-745c-8a54-667c81411ee0",
+      "01a18426-6a9d-745c-8a54-667c81411ee0",
+      "01a18426-6a9d-745c-8a54-667c81411ee0",
+      "01a18426-6aef-745c-8a54-667e1ef032d4",
+      "01a18426-6af1-745c-8a54-66819bc12ea7",
+      "01a18426-6a9d-745c-8a54-667c81411ee0"
+    ]
+  },
+  {
+    "scenario": "extension default",
+    "cliVersion": "1.4.0",
+    "agentLoop": {
+      "requests": 3,
+      "withBillingBlock": 3,
+      "eventProviders": ["claude-subscription", "claude-subscription", "claude-subscription"],
+      "headerEventProviders": ["claude-subscription", "claude-subscription", "claude-subscription"]
+    },
+    "compaction": {
+      "requests": 2,
+      "withBillingBlock": 2,
+      "eventProviders": [],
+      "headerEventProviders": ["claude-subscription", "claude-subscription"]
+    },
+    "virtualRoute": {
+      "requests": 1,
+      "withBillingBlock": 1,
+      "eventProviders": ["router"],
+      "headerEventProviders": ["router"]
+    },
+    "userAgents": ["claude-cli/2.1.311 (external, sdk-cli)"],
+    "sessionHeaders": [
+      "01a18426-6bb7-7748-9027-3df927f44da6",
+      "01a18426-6bb7-7748-9027-3df927f44da6",
+      "01a18426-6bb7-7748-9027-3df927f44da6",
+      "01a18426-6c08-7748-9027-3dfa7b3f4c78",
+      "01a18426-6c0a-7748-9027-3dfcf1b97127",
+      "01a18426-6bb7-7748-9027-3df927f44da6"
+    ]
+  }
+]

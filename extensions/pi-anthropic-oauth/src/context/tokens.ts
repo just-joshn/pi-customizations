@@ -1,5 +1,6 @@
-// Claude Code's token accounting, extracted from the installed 2.1.291 bundle.
-// One definition of "how this provider counts tokens" for the whole extension.
+// Claude Code's token accounting, extracted from the installed 2.1.311 bundle
+// and unchanged in 2.1.312. One definition of "how this provider counts
+// tokens" for the whole extension.
 import type { Api, AssistantMessage, ImageContent, Message, Model, SystemMessage, TextContent, ThinkingContent, ToolCall } from '@earendil-works/pi-ai';
 
 export type BytesPerToken = 3 | 4;
@@ -67,12 +68,15 @@ const FOUR_BYTE_MODELS: ReadonlySet<string> = new Set([
 ]);
 
 /**
- * Claude Code's jg(). A missing id is 4; the 14 named models are 4; every
- * other model is 3. Dots and underscores normalize to dashes.
+ * Claude Code's four-bytes-per-token check (`gy` in the 2.1.311 bundle). A
+ * missing id is 4; the 14 named models are 4; every other model is 3. A
+ * trailing eight-digit date names a variant of the same model, so a dated
+ * alias resolves to its family. Dots and underscores normalize to dashes.
  */
 export function bytesPerToken(modelId: string): BytesPerToken {
   if (modelId === '') return 4;
-  return FOUR_BYTE_MODELS.has(modelId.toLowerCase().replace(/[._]/g, '-')) ? 4 : 3;
+  const normalized = modelId.toLowerCase().replace(/[._]/g, '-');
+  return FOUR_BYTE_MODELS.has(normalized.replace(/-\d{8}$/, '')) ? 4 : 3;
 }
 
 /**

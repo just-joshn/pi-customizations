@@ -43,7 +43,9 @@ function withForcedPasteCodeLogin(interaction: ProviderAuthInteraction): Provide
   return {
     signal: interaction.signal,
     prompt: async (prompt) => {
-      if (prompt.type === 'select') return CLAUDE_COPY_CODE_LOGIN;
+      // Answer only the method option Pi offers, so a selector for something else
+      // reaches the user instead of being answered with a stale id.
+      if (prompt.type === 'select' && prompt.options.some((option) => option.id === CLAUDE_COPY_CODE_LOGIN)) return CLAUDE_COPY_CODE_LOGIN;
       return interaction.prompt(prompt);
     },
     notify: (event: AuthEvent) => {
@@ -62,6 +64,7 @@ export function subscriptionAuth(oauth: OAuthAuth): ProviderAuth {
     oauth: {
       ...oauth,
       name: 'Claude subscription (Provider CLI)',
+      loginLabel: 'Claude subscription (Provider CLI)',
       login: async (interaction, options) => {
         interaction.signal.throwIfAborted();
         try {

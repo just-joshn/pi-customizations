@@ -53,8 +53,8 @@ test('the provider id differs from the built-in anthropic id', async () => {
   expect(provider.id).not.toBe('anthropic');
 });
 
-test('the login choice is labeled Claude subscription (Provider CLI)', () => {
-  expect(captureProvider(extension).auth.oauth?.name).toBe('Claude subscription (Provider CLI)');
+test('the login selector is labeled Claude subscription (Provider CLI)', () => {
+  expect(captureProvider(extension).auth.oauth?.loginLabel).toBe('Claude subscription (Provider CLI)');
 });
 
 test('the login keeps the built-in subscription flag', () => {

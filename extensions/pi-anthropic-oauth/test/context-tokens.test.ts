@@ -14,23 +14,33 @@ const FOUR_BYTE_MODELS = [
   'claude-opus-4-0',
   'claude-opus-4-1',
   'claude-opus-4-5',
+  'claude-opus-4-5-20251101',
   'claude-opus-4-6',
   'claude-sonnet-4-0',
   'claude-sonnet-4-5',
+  'claude-sonnet-4-5-20250929',
   'claude-sonnet-4-6',
   'claude-haiku-4-5',
+  'claude-haiku-4-5-20251001',
 ];
 
 test.for(FOUR_BYTE_MODELS)('%s counts four bytes per token', (modelId) => {
   expect(bytesPerToken(modelId)).toBe(4);
 });
 
-test.for(['claude-opus-5-5', 'claude-sonnet-5-5', 'unknown-model'])('%s counts three bytes per token', (modelId) => {
+// The remaining ids in Pi 1.4.0's Anthropic catalog. Claude Code scores each 3.
+const THREE_BYTE_MODELS = ['claude-fable-5', 'claude-fable-5-1', 'claude-haiku-5-5', 'claude-opus-4-7', 'claude-opus-4-8', 'claude-opus-5', 'claude-opus-5-5', 'claude-sonnet-5', 'claude-sonnet-5-5', 'unknown-model'];
+
+test.for(THREE_BYTE_MODELS)('%s counts three bytes per token', (modelId) => {
   expect(bytesPerToken(modelId)).toBe(3);
 });
 
 test('a missing model id counts four bytes per token', () => {
   expect(bytesPerToken('')).toBe(4);
+});
+
+test('a dated alias outside the four-byte set stays at three bytes', () => {
+  expect(bytesPerToken('claude-opus-4-2-20260101')).toBe(3);
 });
 
 test('dots and underscores normalize before the allowlist lookup', () => {

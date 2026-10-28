@@ -10,6 +10,7 @@ const ROUTED_MODEL = 'claude-sonnet-4-6';
 export default function (pi: Pick<ExtensionAPI, 'on' | 'registerVirtualModel' | 'registerCommand'>) {
   const log = process.env['REQUEST_EVENT_LOG'];
   if (!log) throw new Error('REQUEST_EVENT_LOG is not set.');
+  const headerLog = process.env['REQUEST_HEADER_LOG'];
   pi.registerVirtualModel({
     provider: ROUTER_PROVIDER,
     id: ROUTER_MODEL,
@@ -23,6 +24,11 @@ export default function (pi: Pick<ExtensionAPI, 'on' | 'registerVirtualModel' | 
   pi.on('before_provider_request', (_event, ctx) => {
     appendFileSync(log, `${ctx.model?.provider}\n`);
   });
+  if (headerLog !== undefined) {
+    pi.on('before_provider_headers', (_event, ctx) => {
+      appendFileSync(headerLog, `${ctx.model?.provider}\n`);
+    });
+  }
   pi.registerCommand('verify_oauth_reload', {
     description: 'Reload the runtime for the local OAuth verification probe',
     handler: async (_args, ctx) => {
