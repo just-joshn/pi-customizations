@@ -1,0 +1,200 @@
+{
+  "kind": "evidence",
+  "body": {
+    "evidence_id": "ev_88eea725a0bd58439074bca6dc4544b65eda117fbcc3b037c097a58fc6d65ed5",
+    "subject": {
+      "name": "sample.har",
+      "digest": {
+        "sha256": "603908e63a47b3a7883401049dbf9f9f4dbb02979b003223c60012a8ca670e4b"
+      },
+      "local_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/sample.har",
+      "format": "file",
+      "architecture": null
+    },
+    "provider": {
+      "id": "har-schema/lossless-json",
+      "name": "REA HAR capture adapter",
+      "version": "har-schema@2.0.0;har-schema-corrections@1;jsonc-parser@3.3.1;lossless-json@4.3.1"
+    },
+    "analysis_profile": null,
+    "predicate_type": "rea.analysis",
+    "operation": "inspect_web_network_capture",
+    "parameters": {
+      "capture_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/sample.har",
+      "format": "har",
+      "record_ordinals": [
+        0
+      ],
+      "sensitive_value_count": 0
+    },
+    "raw_result": null,
+    "normalized_result": {
+      "decoder": {
+        "id": "har-schema/lossless-json",
+        "name": "REA HAR capture adapter",
+        "version": "har-schema@2.0.0;har-schema-corrections@1;jsonc-parser@3.3.1;lossless-json@4.3.1"
+      },
+      "container": {
+        "reported": {
+          "log": {
+            "version": "1.2",
+            "creator": {
+              "name": "parity",
+              "version": "1"
+            },
+            "entries": null
+          }
+        },
+        "numeric_literals": [],
+        "redactions": [],
+        "records_pointer": "/log/entries"
+      },
+      "total_records": 1,
+      "records": [
+        {
+          "ordinal": 0,
+          "location": {
+            "kind": "json-pointer",
+            "pointer": "/log/entries/0"
+          },
+          "reported": {
+            "startedDateTime": "2026-10-13T05:00:00.000Z",
+            "time": 12,
+            "request": {
+              "method": "GET",
+              "url": "https://api.example.test/api/notes/42",
+              "httpVersion": "HTTP/1.1",
+              "cookies": [],
+              "headers": [
+                {
+                  "name": "Host",
+                  "value": "api.example.test"
+                }
+              ],
+              "queryString": [],
+              "headersSize": -1,
+              "bodySize": 0
+            },
+            "response": {
+              "status": 200,
+              "statusText": "OK",
+              "httpVersion": "HTTP/1.1",
+              "cookies": [],
+              "headers": [
+                {
+                  "name": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "content": {
+                "size": 2,
+                "mimeType": "application/json",
+                "text": "{}"
+              },
+              "redirectURL": "",
+              "headersSize": -1,
+              "bodySize": 2
+            },
+            "cache": {},
+            "timings": {
+              "send": 0,
+              "wait": 10,
+              "receive": 2
+            }
+          },
+          "binary_fields": [],
+          "numeric_literals": [
+            {
+              "pointer": "/time",
+              "producer_type": "json-number",
+              "literal": "12"
+            },
+            {
+              "pointer": "/request/headersSize",
+              "producer_type": "json-number",
+              "literal": "-1"
+            },
+            {
+              "pointer": "/request/bodySize",
+              "producer_type": "json-number",
+              "literal": "0"
+            },
+            {
+              "pointer": "/response/status",
+              "producer_type": "json-number",
+              "literal": "200"
+            },
+            {
+              "pointer": "/response/content/size",
+              "producer_type": "json-number",
+              "literal": "2"
+            },
+            {
+              "pointer": "/response/headersSize",
+              "producer_type": "json-number",
+              "literal": "-1"
+            },
+            {
+              "pointer": "/response/bodySize",
+              "producer_type": "json-number",
+              "literal": "2"
+            },
+            {
+              "pointer": "/timings/send",
+              "producer_type": "json-number",
+              "literal": "0"
+            },
+            {
+              "pointer": "/timings/wait",
+              "producer_type": "json-number",
+              "literal": "10"
+            },
+            {
+              "pointer": "/timings/receive",
+              "producer_type": "json-number",
+              "literal": "2"
+            }
+          ],
+          "redactions": [],
+          "limitations": [
+            "HAR text without an encoding declaration is producer-decoded Unicode. Unsupported declared body encodings remain opaque; original body bytes remain unknown unless content explicitly uses valid base64. Declared sizes are preserved independently of retained bytes. mitmproxy 12.2.3 SaveHar may report null optional postData.text; that null is retained and omitted only from the upstream validation copy."
+          ]
+        }
+      ],
+      "artifact": {
+        "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/sample.har",
+        "sha256": "603908e63a47b3a7883401049dbf9f9f4dbb02979b003223c60012a8ca670e4b",
+        "bytes": 726
+      },
+      "runtime_attribution": "unknown",
+      "limitations": [
+        "This is retained producer evidence, without live browser transaction IDs, scenario provenance, execution attribution or deployment authenticity. Recorded URLs are never fetched.",
+        "Every record is decoded before selection; no partial success is returned on malformed input or a resource limit.",
+        "Known authentication headers/cookies and explicitly marked literal values are excluded. Unknown extension names do not establish sensitivity.",
+        "Complete evidence is bounded by a 33554432-byte input budget, a 100663296-byte reply budget, and a 64-level nesting cap. Those have no runtime override. capture_timeout_ms is 30000 ms (omitted means 30000). HAR/SAZ/qlog use a 192 MiB Node old-generation heap (source default). The effective REA_CAPTURE_DECODER_OLD_GENERATION_MIB value is 192 MiB (source default; default 192 MiB, floor 8 MiB, maximum 16384 MiB). Set REA_CAPTURE_DECODER_OLD_GENERATION_MIB in the environment that starts REA to a decimal integer from 8 to 16384, then restart REA. In a running MCP server, use update_analysis_settings with setting capture.decoder_old_generation_mib and action set instead; the new value applies to new work without a REA restart. On Node.js the decoder passes --max-old-space-size=192 and removes inherited NODE_OPTIONS, so additional host memory and NODE_OPTIONS do not raise this heap. The 8 MiB semi-space stays fixed. On Bun the V8 flags are ignored. Windows limits the decoder's committed memory to this value plus a 512 MiB reserve. Other Bun hosts enforce no decoder heap limit. Mitmproxy decoding uses a 768 MiB Linux address-space limit."
+      ],
+      "format": "har"
+    },
+    "confidence": "observed",
+    "authority": "historical-reference",
+    "environment": null,
+    "limitations": [
+      "This is retained producer evidence, without live browser transaction IDs, scenario provenance, execution attribution or deployment authenticity. Recorded URLs are never fetched.",
+      "Every record is decoded before selection; no partial success is returned on malformed input or a resource limit.",
+      "Known authentication headers/cookies and explicitly marked literal values are excluded. Unknown extension names do not establish sensitivity.",
+      "Complete evidence is bounded by a 33554432-byte input budget, a 100663296-byte reply budget, and a 64-level nesting cap. Those have no runtime override. capture_timeout_ms is 30000 ms (omitted means 30000). HAR/SAZ/qlog use a 192 MiB Node old-generation heap (source default). The effective REA_CAPTURE_DECODER_OLD_GENERATION_MIB value is 192 MiB (source default; default 192 MiB, floor 8 MiB, maximum 16384 MiB). Set REA_CAPTURE_DECODER_OLD_GENERATION_MIB in the environment that starts REA to a decimal integer from 8 to 16384, then restart REA. In a running MCP server, use update_analysis_settings with setting capture.decoder_old_generation_mib and action set instead; the new value applies to new work without a REA restart. On Node.js the decoder passes --max-old-space-size=192 and removes inherited NODE_OPTIONS, so additional host memory and NODE_OPTIONS do not raise this heap. The 8 MiB semi-space stays fixed. On Bun the V8 flags are ignored. Windows limits the decoder's committed memory to this value plus a 512 MiB reserve. Other Bun hosts enforce no decoder heap limit. Mitmproxy decoding uses a 768 MiB Linux address-space limit."
+    ],
+    "relationship_coverage": null,
+    "locations": [
+      {
+        "kind": "artifact-path",
+        "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/sample.har"
+      }
+    ],
+    "evidence_links": []
+  },
+  "meta": {
+    "command": "inspect-web-network-capture",
+    "duration": "944ms"
+  }
+}

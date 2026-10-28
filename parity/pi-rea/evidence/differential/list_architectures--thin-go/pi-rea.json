@@ -1,0 +1,67 @@
+{
+  "kind": "evidence",
+  "body": {
+    "evidence_id": "ev_782e49e955c4cfd3fb2593440fc8626d4d884c7506055992c52549a423c8e188",
+    "subject": {
+      "name": "fixture-go-macho",
+      "digest": {
+        "sha256": "fb6fcf5aaf18e4c2990ce7e43d3f41c965952f32a6452b0c18c586053155a71e"
+      },
+      "format": "mach-o",
+      "architecture": "arm64",
+      "local_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/fixture-go-macho"
+    },
+    "provider": {
+      "id": "pi-rea-in-process",
+      "name": "pi-rea in-process analysis",
+      "version": "0.1.0"
+    },
+    "analysis_profile": null,
+    "predicate_type": "rea.analysis",
+    "operation": "list_architectures",
+    "parameters": {
+      "input_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/fixture-go-macho"
+    },
+    "raw_result": null,
+    "normalized_result": {
+      "architectures": {
+        "items": [
+          {
+            "name": "arm64",
+            "hidden": false,
+            "cpu_type": null,
+            "cpu_subtype": null,
+            "file_offset": null,
+            "size": null,
+            "alignment": null
+          }
+        ],
+        "total": 1,
+        "exhaustive": true,
+        "limitations": []
+      },
+      "provenance": [
+        {
+          "tool": "pi-rea/macho-parser",
+          "command": [],
+          "tool_version": "0.1.0",
+          "version_reason": "pi-rea reads the universal header in process; no external tool ran or was sampled.",
+          "executable_sha256": null,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "stdout_bytes": 0,
+          "stderr_bytes": 0
+        }
+      ],
+      "limitations": []
+    },
+    "confidence": "observed",
+    "authority": "shipped-artifact",
+    "environment": null,
+    "limitations": [],
+    "locations": [],
+    "evidence_links": []
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "kind": "error",
+  "body": {
+    "code": "invalid_request",
+    "category": "invalid_input",
+    "message": "Function analysis requires analyze_function Evidence with the rea.analysis predicate; the left Evidence has operation inspect_go_binary and predicate rea.analysis.",
+    "retryable": false,
+    "remediation": {
+      "action": "Read the declared input schema or CLI usage for compare_functions; if using MCP and the catalog may be stale, call tools/list. Correct the listed fields, then retry. Do not repeat the unchanged call."
+    },
+    "recovery": {
+      "kind": "inspect_input_contract",
+      "operation": "compare_functions"
+    },
+    "details": {
+      "operation": "compare_functions",
+      "issues": [
+        {
+          "path": [
+            "left"
+          ],
+          "reason": "invalid_value",
+          "message": "Function analysis requires analyze_function Evidence with the rea.analysis predicate; the left Evidence has operation inspect_go_binary and predicate rea.analysis.",
+          "expected": {
+            "operation": "analyze_function",
+            "predicate_type": "rea.analysis"
+          }
+        }
+      ]
+    }
+  }
+}

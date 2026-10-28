@@ -1,0 +1,113 @@
+{
+  "kind": "evidence",
+  "body": {
+    "evidence_id": "ev_9c53271605f008718b71b043225ee13ca9e3bcdcfb64f4ddae7986442cd8c58b",
+    "subject": {
+      "name": "Fixture.app.zip",
+      "digest": {
+        "sha256": "9ee55888cca01f9713ef4dabfa764680d32abe975505d268f1cba3434648cf50"
+      },
+      "local_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/bundle/Fixture.app.zip",
+      "format": "zip",
+      "architecture": null
+    },
+    "provider": {
+      "id": "rea-apple-application",
+      "name": "REA Apple application workflows",
+      "version": "1"
+    },
+    "analysis_profile": null,
+    "predicate_type": "rea.apple-application-graph",
+    "operation": "project_apple_application_graph",
+    "parameters": {
+      "inventory_evidence_ids": [
+        "ev_fa6a8fbfd2048319e39ab75c869e617648ab10d9e9598e428adaade8241b5f6f"
+      ]
+    },
+    "raw_result": null,
+    "normalized_result": {
+      "projection_id": "aap_9a4163e927d39ceb6821b85db91db310f1e6ccb8c168726f8fd853870d1ed82f",
+      "root_sha256": "9ee55888cca01f9713ef4dabfa764680d32abe975505d268f1cba3434648cf50",
+      "root_format": "zip",
+      "platforms": [
+        "macos"
+      ],
+      "source_evidence_ids": [
+        "ev_fa6a8fbfd2048319e39ab75c869e617648ab10d9e9598e428adaade8241b5f6f"
+      ],
+      "application_roots": [
+        "Fixture.app"
+      ],
+      "bundles": [
+        {
+          "path": "Fixture.app",
+          "parent_path": null,
+          "layout": "macos-deep",
+          "role": "application",
+          "role_basis": "path-convention",
+          "info_plist_path": "Fixture.app/Contents/Info.plist",
+          "executable_candidates": [],
+          "signing_paths": []
+        }
+      ],
+      "components": {
+        "bundle_metadata": [
+          {
+            "path": "Fixture.app/Contents/Info.plist",
+            "artifact_id": "art_6f599173d09b634445783f0e153488462e42fd8457b4abcc0791c29dd6012c9a",
+            "sha256": "c4808384c7cd8e1444e3782822364754a249014b3b118bf3cd483be294424479",
+            "format": "plist"
+          }
+        ],
+        "executables": [],
+        "frameworks": [],
+        "native_libraries": [],
+        "javascript": [],
+        "signing": [],
+        "privileged_helpers": [],
+        "launchd_plists": [],
+        "helpers": []
+      },
+      "unavailable_components": [],
+      "symlinks": [],
+      "runtime_families": [],
+      "bridge_candidates": [],
+      "bridge_candidate_coverage": {
+        "status": "complete",
+        "total_candidates": 0,
+        "emitted_candidates": 0,
+        "omitted_candidates": 0
+      },
+      "coverage": {
+        "status": "complete-within-inventory",
+        "inventory_complete": true
+      },
+      "limitations": [
+        "ZIP inventory lists central-directory entries only. Non-entry bytes, including leading bytes before the first entry such as a self-extractor stub, an APK Signing Block before the central directory or a ZIP comment after it, are not occurrences.",
+        "Bundle roles follow path conventions. Read each info_plist_path with inspect_plist for CFBundleExecutable, identifiers, and declared services.",
+        "Bundle identifiers and signing claims require dedicated plist and CMS parsing; this projection reports only exact paths and hashes.",
+        "Runtime families are inferred from inventory formats and bounded framework path conventions, not observed runtime loading.",
+        "Generic framework and dylib paths do not establish Swift or Objective-C; this inventory projection does not decode language metadata.",
+        "Bridge candidates are path-based hypotheses, not observed runtime calls.",
+        "A bridge basis is inferred from the native path and is repeated for every managed component."
+      ]
+    },
+    "confidence": "inferred",
+    "authority": "analyst-inference",
+    "environment": null,
+    "limitations": [
+      "ZIP inventory lists central-directory entries only. Non-entry bytes, including leading bytes before the first entry such as a self-extractor stub, an APK Signing Block before the central directory or a ZIP comment after it, are not occurrences.",
+      "Bundle roles follow path conventions. Read each info_plist_path with inspect_plist for CFBundleExecutable, identifiers, and declared services.",
+      "Bundle identifiers and signing claims require dedicated plist and CMS parsing; this projection reports only exact paths and hashes.",
+      "Runtime families are inferred from inventory formats and bounded framework path conventions, not observed runtime loading.",
+      "Generic framework and dylib paths do not establish Swift or Objective-C; this inventory projection does not decode language metadata.",
+      "Bridge candidates are path-based hypotheses, not observed runtime calls.",
+      "A bridge basis is inferred from the native path and is repeated for every managed component."
+    ],
+    "relationship_coverage": null,
+    "locations": [],
+    "evidence_links": [
+      "ev_fa6a8fbfd2048319e39ab75c869e617648ab10d9e9598e428adaade8241b5f6f"
+    ]
+  }
+}

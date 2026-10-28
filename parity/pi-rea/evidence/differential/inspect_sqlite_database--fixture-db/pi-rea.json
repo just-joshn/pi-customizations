@@ -1,0 +1,117 @@
+{
+  "kind": "evidence",
+  "body": {
+    "evidence_id": "ev_06e2bde3d82ca1d5b9400055daef3a11bcd1744143b6d63aea19c91026bbb209",
+    "subject": {
+      "name": "fixture.db",
+      "digest": {
+        "sha256": "ee7688474b742fd8fa1849e4927dfcf3397447639e2baf1d8cac14c25858b1ad"
+      },
+      "format": "file",
+      "architecture": null,
+      "local_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/fixture.db"
+    },
+    "provider": {
+      "id": "pi-rea-in-process",
+      "name": "pi-rea in-process analysis",
+      "version": "0.1.0"
+    },
+    "analysis_profile": null,
+    "predicate_type": "rea.analysis",
+    "operation": "inspect_sqlite_database",
+    "parameters": {
+      "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/fixture.db"
+    },
+    "raw_result": null,
+    "normalized_result": {
+      "artifact": {
+        "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/fixture.db",
+        "sha256": "ee7688474b742fd8fa1849e4927dfcf3397447639e2baf1d8cac14c25858b1ad",
+        "bytes": 20480
+      },
+      "wal": null,
+      "engine": {
+        "name": "SQLite",
+        "version": "3.54.0"
+      },
+      "worker_timeout_ms": 30000,
+      "database_encoding": "UTF-8",
+      "schema": {
+        "scope": "inventory",
+        "completeness": "complete",
+        "tables": [
+          {
+            "name": "users",
+            "root_page": 2,
+            "kind": "table",
+            "without_rowid": false,
+            "strict": false,
+            "column_count": 4,
+            "columns_completeness": "not_requested",
+            "columns": []
+          },
+          {
+            "name": "audit_log",
+            "root_page": 5,
+            "kind": "table",
+            "without_rowid": false,
+            "strict": false,
+            "column_count": 3,
+            "columns_completeness": "not_requested",
+            "columns": []
+          }
+        ],
+        "indexes": [
+          {
+            "name": "sqlite_autoindex_users_1",
+            "table": "users",
+            "root_page": 3
+          },
+          {
+            "name": "idx_users_name",
+            "table": "users",
+            "root_page": 4
+          }
+        ],
+        "views": [
+          {
+            "name": "adults"
+          }
+        ],
+        "triggers": [
+          {
+            "name": "users_audit",
+            "table": "users"
+          }
+        ]
+      },
+      "rows": null,
+      "limitations": [
+        "Inspects an offline stable file set. Filesystem identity checks detect observed acquisition changes; they do not establish an atomic snapshot of an actively changing database. Supply an application-created backup or quiescent database/WAL pair.",
+        "The source database and WAL are never opened by SQLite or modified. A private copy may acquire its own WAL-index sidecar and is removed after inspection.",
+        "SQLite reports current schema and selected committed rows from its valid database/WAL state. Deleted records, uncommitted or invalid WAL tails, encrypted databases, forensic recovery, and full integrity verification are outside this profile.",
+        "Stored CREATE statements preserve index/view/trigger definitions. Views, triggers, and virtual/shadow table rows are not executed; virtual-table column expansion is unsupported.",
+        "Selected rows have unspecified order and are a bounded sample. Text display may replace invalid sequences; bytes_hex and encoding preserve SQLite's text byte representation, not original on-disk page offsets.",
+        "Resource boundaries: at most two concurrent inspections per provider; combined input 256 MiB per inspection, complete worker JSON 16 MiB, native SQLite value/record and SQL statement lengths 16 MiB, owned-worker JavaScript heap 256 MiB. The parent applies a separate supervised worker deadline, reported in worker_timeout_ms. These are distinct from total resident memory; an overall native SQLite heap cap is not claimed. Failures return no partial success."
+      ]
+    },
+    "confidence": "observed",
+    "authority": "shipped-artifact",
+    "environment": null,
+    "limitations": [
+      "Inspects an offline stable file set. Filesystem identity checks detect observed acquisition changes; they do not establish an atomic snapshot of an actively changing database. Supply an application-created backup or quiescent database/WAL pair.",
+      "The source database and WAL are never opened by SQLite or modified. A private copy may acquire its own WAL-index sidecar and is removed after inspection.",
+      "SQLite reports current schema and selected committed rows from its valid database/WAL state. Deleted records, uncommitted or invalid WAL tails, encrypted databases, forensic recovery, and full integrity verification are outside this profile.",
+      "Stored CREATE statements preserve index/view/trigger definitions. Views, triggers, and virtual/shadow table rows are not executed; virtual-table column expansion is unsupported.",
+      "Selected rows have unspecified order and are a bounded sample. Text display may replace invalid sequences; bytes_hex and encoding preserve SQLite's text byte representation, not original on-disk page offsets.",
+      "Resource boundaries: at most two concurrent inspections per provider; combined input 256 MiB per inspection, complete worker JSON 16 MiB, native SQLite value/record and SQL statement lengths 16 MiB, owned-worker JavaScript heap 256 MiB. The parent applies a separate supervised worker deadline, reported in worker_timeout_ms. These are distinct from total resident memory; an overall native SQLite heap cap is not claimed. Failures return no partial success."
+    ],
+    "locations": [
+      {
+        "kind": "artifact-path",
+        "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/fixture.db"
+      }
+    ],
+    "evidence_links": []
+  }
+}

@@ -1,0 +1,87 @@
+{
+  "kind": "evidence",
+  "body": {
+    "evidence_id": "ev_f08d95757018b56a17edca6f2e83b687c56fdda0f2f66209d3e1c27c06f70cad",
+    "subject": {
+      "name": "fixture-go-macho-fat",
+      "digest": {
+        "sha256": "1e291a4d2e67e0ed63683fd0325cdba65ec669fe15325c0914b32b936ca679ec"
+      },
+      "format": "mach-o-universal",
+      "architecture": "arm64",
+      "local_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/fixture-go-macho-fat"
+    },
+    "provider": {
+      "id": "pi-rea-in-process",
+      "name": "pi-rea in-process analysis",
+      "version": "0.1.0"
+    },
+    "analysis_profile": null,
+    "predicate_type": "rea.analysis",
+    "operation": "list_architectures",
+    "parameters": {
+      "input_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/fixture-go-macho-fat"
+    },
+    "raw_result": null,
+    "normalized_result": {
+      "architectures": {
+        "items": [
+          {
+            "name": "x86_64",
+            "hidden": false,
+            "cpu_type": "CPU_TYPE_X86_64",
+            "cpu_subtype": "CPU_SUBTYPE_X86_ALL",
+            "file_offset": 4096,
+            "size": 2610752,
+            "alignment": 4096
+          },
+          {
+            "name": "arm64",
+            "hidden": false,
+            "cpu_type": "CPU_TYPE_ARM64",
+            "cpu_subtype": "CPU_SUBTYPE_ARM64_ALL",
+            "file_offset": 2621440,
+            "size": 2509618,
+            "alignment": 16384
+          }
+        ],
+        "total": 2,
+        "exhaustive": true,
+        "limitations": []
+      },
+      "provenance": [
+        {
+          "tool": "pi-rea/macho-parser",
+          "command": [],
+          "tool_version": "0.1.0",
+          "version_reason": "pi-rea reads the universal header in process; no external tool ran or was sampled.",
+          "executable_sha256": null,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "stdout_bytes": 0,
+          "stderr_bytes": 0
+        }
+      ],
+      "limitations": []
+    },
+    "confidence": "observed",
+    "authority": "shipped-artifact",
+    "environment": null,
+    "limitations": [],
+    "locations": [
+      {
+        "kind": "file-offset-range",
+        "start": 4096,
+        "end": 2614848
+      },
+      {
+        "kind": "file-offset-range",
+        "start": 2621440,
+        "end": 5131058
+      }
+    ],
+    "evidence_links": []
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "kind": "error",
+  "body": {
+    "code": "capability_unavailable",
+    "category": "unsupported_provider",
+    "message": "The selected adb binary was not found: adb. Set REA_ADB_PATH to an absolute path to an existing adb binary.",
+    "retryable": false,
+    "remediation": {
+      "action": "The selected adb binary was not found: adb. Set REA_ADB_PATH to an absolute path to an existing adb binary."
+    },
+    "details": {
+      "provider_id": "adb",
+      "operation": "list_adb_devices",
+      "reason": "The selected adb binary was not found: adb. Set REA_ADB_PATH to an absolute path to an existing adb binary.",
+      "diagnostics": {
+        "selected_binary": "adb",
+        "path_source": "path",
+        "remediation": "Set REA_ADB_PATH to an absolute path to an existing adb binary"
+      }
+    }
+  },
+  "raw": {
+    "result": {
+      "_meta": {
+        "provenance": {
+          "untrusted_content": true,
+          "source": "analysis_target"
+        }
+      },
+      "content": [
+        {
+          "type": "text",
+          "text": "{\"error\":{\"code\":\"capability_unavailable\",\"category\":\"unsupported_provider\",\"message\":\"The selected adb binary was not found: adb. Set REA_ADB_PATH to an absolute path to an existing adb binary.\",\"retryable\":false,\"remediation\":{\"action\":\"The selected adb binary was not found: adb. Set REA_ADB_PATH to an absolute path to an existing adb binary.\"},\"details\":{\"provider_id\":\"adb\",\"operation\":\"list_adb_devices\",\"reason\":\"The selected adb binary was not found: adb. Set REA_ADB_PATH to an absolute path to an existing adb binary.\",\"diagnostics\":{\"selected_binary\":\"adb\",\"path_source\":\"path\",\"remediation\":\"Set REA_ADB_PATH to an absolute path to an existing adb binary\"}}}}"
+        }
+      ],
+      "isError": true
+    },
+    "jsonrpc": "2.0",
+    "id": 2
+  },
+  "stderr": "{\"level\":40,\"time\":1793183524405,\"application\":\"rea\",\"mode\":\"mcp\",\"layer\":\"server\",\"tool\":\"list_adb_devices\",\"durationMs\":4.12,\"status\":\"error\",\"msg\":\"MCP tool execution completed\"}\n"
+}

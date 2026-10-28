@@ -1,0 +1,35 @@
+{
+  "kind": "error",
+  "body": {
+    "code": "unreadable_output",
+    "category": "execution_failure",
+    "message": "Analysis returned an unreadable result. Run `rea doctor` and review the reported details; repeating the unchanged request is not expected to succeed.",
+    "retryable": false,
+    "remediation": {
+      "action": "Analysis returned an unreadable result. Run `rea doctor` and review the reported details; repeating the unchanged request is not expected to succeed."
+    },
+    "details": {
+      "operation": "inspect_asset_catalog",
+      "reason": "assetutil did not produce usable catalog metadata for Contents/Resources/Assets.car",
+      "diagnostics": {
+        "catalog_path": "Contents/Resources/Assets.car"
+      },
+      "provider_diagnostics": {
+        "catalog_path": "Contents/Resources/Assets.car"
+      },
+      "captured_output": {
+        "stdout": "",
+        "stderr": "BOMStreamWithFileAndSys: read: Operation not permitted\nassetutil Error: Unable to read file at '/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/bundle/Fixture.app/Contents/Resources/Assets.car'\ncarutil: error:\n\t/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/bundle/Fixture.app/Contents/Resources/Assets.car is not a valid AssetCatalog\n",
+        "stdout_bytes": 0,
+        "stderr_bytes": 404,
+        "exit_code": 1,
+        "signal": null,
+        "truncated": false
+      }
+    }
+  },
+  "meta": {
+    "command": "inspect-asset-catalog",
+    "duration": "152ms"
+  }
+}

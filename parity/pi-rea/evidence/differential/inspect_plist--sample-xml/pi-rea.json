@@ -1,0 +1,86 @@
+{
+  "kind": "evidence",
+  "body": {
+    "evidence_id": "ev_f86e288b55149a9a5e29305a71edabcf9331a3fd59eacaee4734fd0ab3ca7428",
+    "subject": {
+      "name": "sample-xml.plist",
+      "digest": {
+        "sha256": "e0f1b1b64867c05df78625d25b7d25cc2319364a2b291982d24dd2e0ab7ab582"
+      },
+      "format": "plist",
+      "architecture": null,
+      "local_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/plist/sample-xml.plist"
+    },
+    "provider": {
+      "id": "pi-rea-in-process",
+      "name": "pi-rea in-process analysis",
+      "version": "0.1.0"
+    },
+    "analysis_profile": null,
+    "predicate_type": "rea.analysis",
+    "operation": "inspect_plist",
+    "parameters": {
+      "input_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/plist/sample-xml.plist"
+    },
+    "raw_result": null,
+    "normalized_result": {
+      "format": "xml",
+      "value": {
+        "CFBundleIdentifier": "com.example.fixture",
+        "CFBundleName": "Parity Fixture",
+        "CFBundleShortVersionString": "1.2.3",
+        "CFBundleVersion": "456",
+        "LSMinimumSystemVersion": "14.0",
+        "List": [
+          "alpha",
+          "beta",
+          {
+            "$plist_type": "data",
+            "base64": "aGVsbG8="
+          },
+          2.5
+        ],
+        "Nested": {
+          "count": 7,
+          "flag": true
+        },
+        "Nothing": false
+      },
+      "bundle": {
+        "identifier": "com.example.fixture",
+        "executable": null,
+        "name": "Parity Fixture",
+        "version": "456",
+        "short_version": "1.2.3"
+      },
+      "source_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/plist/sample-xml.plist",
+      "limitations": [],
+      "provenance": [
+        {
+          "tool": "pi-rea/plist-parser",
+          "command": [],
+          "tool_version": "0.1.0",
+          "version_reason": "pi-rea decodes the property list in process; no external tool ran or was sampled.",
+          "executable_sha256": null,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "stdout_bytes": 0,
+          "stderr_bytes": 0
+        }
+      ]
+    },
+    "confidence": "observed",
+    "authority": "shipped-artifact",
+    "environment": null,
+    "limitations": [],
+    "locations": [
+      {
+        "kind": "artifact-path",
+        "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/plist/sample-xml.plist"
+      }
+    ],
+    "evidence_links": []
+  }
+}

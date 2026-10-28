@@ -1,0 +1,175 @@
+{
+  "kind": "evidence",
+  "body": {
+    "evidence_id": "ev_90f47c8dd0ef59755d95c665a7dc3a2d5f1af0014277abb6d119f6396ff3a22a",
+    "subject": {
+      "name": "sample.pyc",
+      "digest": {
+        "sha256": "27b381900c2289f9fbc259f34594861d009cfbbf8a521dc0851a010c6c0dbb9f"
+      },
+      "local_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/pyc/sample.pyc",
+      "format": "file",
+      "architecture": null
+    },
+    "provider": {
+      "id": "rea-python-pyc",
+      "name": "REA CPython pyc parser",
+      "version": "1"
+    },
+    "analysis_profile": null,
+    "predicate_type": "rea.analysis",
+    "operation": "inspect_python_pyc",
+    "parameters": {
+      "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/pyc/sample.pyc",
+      "max_file_bytes": 16777216,
+      "max_objects": 16384,
+      "max_depth": 64,
+      "max_string_bytes": 1048576
+    },
+    "raw_result": null,
+    "normalized_result": {
+      "artifact": {
+        "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/pyc/sample.pyc",
+        "sha256": "27b381900c2289f9fbc259f34594861d009cfbbf8a521dc0851a010c6c0dbb9f",
+        "bytes": 352
+      },
+      "header": {
+        "magic": 3571,
+        "python_version": "3.13",
+        "code_layout": "py311",
+        "flags": 0,
+        "hash_based": false,
+        "check_source": false,
+        "source_hash_hex": null,
+        "source_mtime": 1793160668,
+        "source_size": 61
+      },
+      "code_objects": [
+        {
+          "name": "<module>",
+          "qualname": "<module>",
+          "filename": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/pyc/sample.py",
+          "firstlineno": 1,
+          "argcount": 0,
+          "posonlyargcount": 0,
+          "kwonlyargcount": 0,
+          "nlocals": null,
+          "stacksize": 3,
+          "flags": 0,
+          "names": [
+            "greet",
+            "x"
+          ],
+          "varnames": null,
+          "freevars": null,
+          "cellvars": null,
+          "localsplusnames": [],
+          "localspluskinds_hex": "",
+          "bytecode": {
+            "bytes": 26,
+            "sha256": "b2eb0cc05a3ab93d0a69a099ceba75bff8c9fea7900fb1f1227b5eb3b3e9b339"
+          },
+          "consts": [
+            {
+              "kind": "code",
+              "name": "greet",
+              "firstlineno": 1
+            },
+            {
+              "kind": "str",
+              "bytes": 5,
+              "truncated": false,
+              "value": "world"
+            },
+            {
+              "kind": "none"
+            }
+          ],
+          "nested_code": [
+            1
+          ]
+        },
+        {
+          "name": "greet",
+          "qualname": "greet",
+          "filename": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/pyc/sample.py",
+          "firstlineno": 1,
+          "argcount": 1,
+          "posonlyargcount": 0,
+          "kwonlyargcount": 0,
+          "nlocals": null,
+          "stacksize": 2,
+          "flags": 3,
+          "names": [],
+          "varnames": null,
+          "freevars": null,
+          "cellvars": null,
+          "localsplusnames": [
+            "name"
+          ],
+          "localspluskinds_hex": "20",
+          "bytecode": {
+            "bytes": 12,
+            "sha256": "803895fb71287b526c81eb184c748fd44cd6d050bf376ab157346793f8f53b88"
+          },
+          "consts": [
+            {
+              "kind": "none"
+            },
+            {
+              "kind": "str",
+              "bytes": 3,
+              "truncated": false,
+              "value": "hi "
+            }
+          ],
+          "nested_code": []
+        }
+      ],
+      "coverage": {
+        "status": "complete",
+        "objects": 29,
+        "code_objects": 2,
+        "marshal_bytes": 336,
+        "marshal_depth": 4
+      },
+      "limitations": [
+        "Bytecode is retained as length and SHA-256 only; this workflow does not decompile, disassemble, or recover source.",
+        "The selected file is not executed and CPython is not invoked.",
+        "source_mtime and source_size are header fields; they do not prove a matching .py is present.",
+        "python_version is the pinned CPython magic table for this header, not a runtime interpreter."
+      ]
+    },
+    "confidence": "observed",
+    "authority": "shipped-artifact",
+    "environment": null,
+    "limitations": [
+      "Bytecode is retained as length and SHA-256 only; this workflow does not decompile, disassemble, or recover source.",
+      "The selected file is not executed and CPython is not invoked.",
+      "source_mtime and source_size are header fields; they do not prove a matching .py is present.",
+      "python_version is the pinned CPython magic table for this header, not a runtime interpreter."
+    ],
+    "relationship_coverage": null,
+    "locations": [
+      {
+        "kind": "artifact-path",
+        "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/pyc/sample.pyc"
+      },
+      {
+        "kind": "file-offset-range",
+        "start": 0,
+        "end": 16
+      },
+      {
+        "kind": "file-offset-range",
+        "start": 16,
+        "end": 352
+      }
+    ],
+    "evidence_links": []
+  },
+  "meta": {
+    "command": "inspect-python-pyc",
+    "duration": "7ms"
+  }
+}

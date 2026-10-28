@@ -1,0 +1,114 @@
+{
+  "kind": "evidence",
+  "body": {
+    "evidence_id": "ev_52bcf03cd93872776b01d5b8b95dece01b4ed9be94b6adc22691fcc026ef24f8",
+    "subject": {
+      "name": "sample-xml.plist",
+      "digest": {
+        "sha256": "e0f1b1b64867c05df78625d25b7d25cc2319364a2b291982d24dd2e0ab7ab582"
+      },
+      "local_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/plist/sample-xml.plist",
+      "format": "plist",
+      "architecture": null
+    },
+    "provider": {
+      "id": "native-macos",
+      "name": "macOS native inspection utilities",
+      "version": null
+    },
+    "analysis_profile": null,
+    "predicate_type": "rea.analysis",
+    "operation": "inspect_plist",
+    "parameters": {
+      "input_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/plist/sample-xml.plist"
+    },
+    "raw_result": null,
+    "normalized_result": {
+      "format": "xml",
+      "value": {
+        "CFBundleIdentifier": "com.example.fixture",
+        "CFBundleName": "Parity Fixture",
+        "CFBundleShortVersionString": "1.2.3",
+        "CFBundleVersion": "456",
+        "LSMinimumSystemVersion": "14.0",
+        "Nested": {
+          "flag": true,
+          "count": 7
+        },
+        "List": [
+          "alpha",
+          "beta",
+          {
+            "$plist_type": "data",
+            "base64": "aGVsbG8="
+          },
+          2.5
+        ],
+        "Nothing": false
+      },
+      "bundle": {
+        "identifier": "com.example.fixture",
+        "executable": null,
+        "name": "Parity Fixture",
+        "version": "456",
+        "short_version": "1.2.3"
+      },
+      "source_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/plist/sample-xml.plist",
+      "provenance": [
+        {
+          "tool": "file",
+          "command": [
+            "/usr/bin/file",
+            "-b",
+            "$PLIST"
+          ],
+          "tool_version": null,
+          "version_reason": "Tool exposes no uniform stable version flag; executable SHA-256 is a prelaunch file sample and does not prove atomic OS image binding.",
+          "executable_sha256": "8014815e1028410f48966f1880f99c842a5678cf2fcaa010e8d7e9e498f651d0",
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "stdout_bytes": 34,
+          "stderr_bytes": 0
+        },
+        {
+          "tool": "plutil",
+          "command": [
+            "/usr/bin/plutil",
+            "-lint",
+            "--",
+            "$PLIST"
+          ],
+          "tool_version": null,
+          "version_reason": "Tool exposes no uniform stable version flag; executable SHA-256 is a prelaunch file sample and does not prove atomic OS image binding.",
+          "executable_sha256": "5ec63ed0506b7676b30fe69d00ae48c689daf1badc1e786a18166b01b615e8ac",
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "stdout_bytes": 109,
+          "stderr_bytes": 0
+        }
+      ],
+      "limitations": []
+    },
+    "confidence": "observed",
+    "authority": "shipped-artifact",
+    "environment": null,
+    "limitations": [],
+    "relationship_coverage": null,
+    "locations": [
+      {
+        "kind": "artifact-path",
+        "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/plist/sample-xml.plist"
+      }
+    ],
+    "evidence_links": [],
+    "caller_input_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/plist/sample-xml.plist"
+  },
+  "meta": {
+    "command": "inspect-plist",
+    "duration": "1247ms"
+  }
+}

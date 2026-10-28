@@ -1,0 +1,83 @@
+{
+  "kind": "error",
+  "body": {
+    "code": "invalid_request",
+    "category": "invalid_input",
+    "message": "Analysis input is invalid. Check the arguments and try again.",
+    "retryable": false,
+    "remediation": {
+      "action": "Read the declared input schema or CLI usage for inspect_il2cpp_metadata; if using MCP and the catalog may be stale, call tools/list. Correct the listed fields, then retry. Do not repeat the unchanged call."
+    },
+    "recovery": {
+      "kind": "inspect_input_contract",
+      "operation": "inspect_il2cpp_metadata"
+    },
+    "details": {
+      "operation": "inspect_il2cpp_metadata",
+      "issues": [
+        {
+          "path": [
+            "path"
+          ],
+          "reason": "invalid_format",
+          "message": "Selected artifact /Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/il2cpp/global-metadata.dat is corrupt: unexpected-header-size: stringLiterals starts at 0, not immediately after the 256-byte header"
+        }
+      ],
+      "partial_observation": {
+        "evidence_id": "ev_16f218760671745cd9723e191f89b09ff1e01d3d0ab208804ff88bd22bc210a1",
+        "subject": {
+          "name": "global-metadata.dat",
+          "digest": {
+            "sha256": "a6b978cf8d6dba0691dd02d397f1f9b24e78e334d482dad9add0dd770d6e9c9f"
+          },
+          "local_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/il2cpp/global-metadata.dat",
+          "format": "file",
+          "architecture": null
+        },
+        "provider": {
+          "id": "il2cpp-metadata",
+          "name": "REA IL2CPP global-metadata reader",
+          "version": "1"
+        },
+        "analysis_profile": null,
+        "predicate_type": "rea.il2cpp-metadata-source",
+        "operation": "observe_il2cpp_metadata_source",
+        "parameters": {
+          "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/il2cpp/global-metadata.dat"
+        },
+        "raw_result": null,
+        "normalized_result": {
+          "artifact": {
+            "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/il2cpp/global-metadata.dat",
+            "sha256": "a6b978cf8d6dba0691dd02d397f1f9b24e78e334d482dad9add0dd770d6e9c9f",
+            "bytes": 256
+          },
+          "inventory_status": "not-returned-as-complete"
+        },
+        "confidence": "observed",
+        "authority": "shipped-artifact",
+        "environment": null,
+        "limitations": [
+          "This partial source observation does not contain a complete metadata inventory. Section row counts, when available, are derived from the validated header extents and record layout; names and relationships may remain unexamined."
+        ],
+        "relationship_coverage": null,
+        "locations": [
+          {
+            "kind": "artifact-path",
+            "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/il2cpp/global-metadata.dat"
+          },
+          {
+            "kind": "file-offset-range",
+            "start": 0,
+            "end": 256
+          }
+        ],
+        "evidence_links": []
+      }
+    }
+  },
+  "meta": {
+    "command": "inspect-il2cpp-metadata",
+    "duration": "6ms"
+  }
+}

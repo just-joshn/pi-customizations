@@ -1,0 +1,9 @@
+{
+  "kind": "configuration",
+  "body": {
+    "sessions": [],
+    "bridge_directory": "/Users/josh-desktop/.cache/rea/cutter-bridge",
+    "discovery_status": "no_live_bridge_found",
+    "bridge_directory_security": "not_checked"
+  }
+}

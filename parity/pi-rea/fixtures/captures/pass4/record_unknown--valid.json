@@ -1,0 +1,73 @@
+{
+  "request": {
+    "name": "record_unknown",
+    "arguments": {
+      "question": "Does the fixture binary embed its build settings?",
+      "severity": "medium",
+      "domain": "fixture-go-macho",
+      "required_authority": "shipped-artifact",
+      "required_confidence": "observed",
+      "required_environment": {
+        "id": null,
+        "platform": null,
+        "architecture": null,
+        "isolation": null
+      },
+      "recommended_probes": [
+        {
+          "operation": "inspect_macho",
+          "rationale": "Read embedded build metadata from the shipped artifact."
+        }
+      ],
+      "relationships": [],
+      "supporting_evidence_ids": [],
+      "contradicting_evidence_ids": []
+    }
+  },
+  "response": {
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "{\"result\":{\"unknown_id\":\"unk_bc8bdaf06f3a03e81f50fec259b1b9045ad356bb9e890f091f09deb6f1003287\",\"revision\":1,\"previous_revision_digest\":null,\"revision_digest\":\"c1e24a4fef8f7699a3ea4f720b5edf49d26a14b2154f5b6c3777595fe390769a\",\"scope_digest\":null,\"question\":\"Does the fixture binary embed its build settings?\",\"status\":\"open\",\"severity\":\"medium\",\"domain\":\"fixture-go-macho\",\"supporting_evidence_ids\":[],\"contradicting_evidence_ids\":[],\"required_authority\":\"shipped-artifact\",\"required_confidence\":\"observed\",\"required_environment\":{\"id\":null,\"platform\":null,\"architecture\":null,\"isolation\":null},\"recommended_probes\":[{\"operation\":\"inspect_macho\",\"rationale\":\"Read embedded build metadata from the shipped artifact.\"}],\"relationships\":[],\"resolution\":null,\"mutation_evidence_ids\":[\"ev_71ee13d1da5a1c41ae0f4ae4359936d3066191458e0d4a98027609e842b45b99\"]}}"
+        }
+      ],
+      "structuredContent": {
+        "result": {
+          "unknown_id": "unk_bc8bdaf06f3a03e81f50fec259b1b9045ad356bb9e890f091f09deb6f1003287",
+          "revision": 1,
+          "previous_revision_digest": null,
+          "revision_digest": "c1e24a4fef8f7699a3ea4f720b5edf49d26a14b2154f5b6c3777595fe390769a",
+          "scope_digest": null,
+          "question": "Does the fixture binary embed its build settings?",
+          "status": "open",
+          "severity": "medium",
+          "domain": "fixture-go-macho",
+          "supporting_evidence_ids": [],
+          "contradicting_evidence_ids": [],
+          "required_authority": "shipped-artifact",
+          "required_confidence": "observed",
+          "required_environment": {
+            "id": null,
+            "platform": null,
+            "architecture": null,
+            "isolation": null
+          },
+          "recommended_probes": [
+            {
+              "operation": "inspect_macho",
+              "rationale": "Read embedded build metadata from the shipped artifact."
+            }
+          ],
+          "relationships": [],
+          "resolution": null,
+          "mutation_evidence_ids": [
+            "ev_71ee13d1da5a1c41ae0f4ae4359936d3066191458e0d4a98027609e842b45b99"
+          ]
+        }
+      }
+    },
+    "jsonrpc": "2.0",
+    "id": 12
+  }
+}

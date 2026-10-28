@@ -1,0 +1,29 @@
+{
+  "request": {
+    "name": "export_evidence_bundle",
+    "arguments": {
+      "path": "$FIXTURES/bundle.json",
+      "overwrite": true
+    }
+  },
+  "response": {
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "{\"result\":{\"path\":\"$FIXTURES/bundle.json\",\"bytes\":2381,\"records\":1,\"unknowns\":0}}"
+        }
+      ],
+      "structuredContent": {
+        "result": {
+          "path": "$FIXTURES/bundle.json",
+          "bytes": 2381,
+          "records": 1,
+          "unknowns": 0
+        }
+      }
+    },
+    "jsonrpc": "2.0",
+    "id": 17
+  }
+}

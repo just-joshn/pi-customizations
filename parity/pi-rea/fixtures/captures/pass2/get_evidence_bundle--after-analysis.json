@@ -1,0 +1,58 @@
+{
+  "request": {
+    "name": "get_evidence_bundle",
+    "arguments": {
+      "detail": "summary"
+    }
+  },
+  "response": {
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "{\"result\":{\"kind\":\"evidence-bundle-summary\",\"filters\":{},\"total_retained_records\":1,\"matching_records\":1,\"unknown_revisions\":0,\"records\":[{\"evidence_id\":\"ev_84eb596b2241b21bfc92ee1e70022963f3f7dbc5356f9cd666825c5f7fde4524\",\"subject\":{\"name\":\"fixture-go-macho\",\"digest\":{\"sha256\":\"778698b8198949aaa5ce0e539e889addf766187b15d552f97163d8411307231a\"},\"format\":\"mach-o\",\"architecture\":\"arm64\",\"local_path\":\"$FIXTURES/fixture-go-macho\"},\"provider\":{\"id\":\"native-macos\",\"name\":\"macOS native inspection utilities\",\"version\":null},\"operation\":\"inspect_plist\",\"confidence\":\"observed\",\"authority\":\"shipped-artifact\",\"analysis_profile_digest\":null,\"retention\":\"complete-record\",\"limitation_count\":0,\"native_dossier\":{\"available\":false,\"reason\":\"different-operation\"}}]}}"
+        }
+      ],
+      "structuredContent": {
+        "result": {
+          "kind": "evidence-bundle-summary",
+          "filters": {},
+          "total_retained_records": 1,
+          "matching_records": 1,
+          "unknown_revisions": 0,
+          "records": [
+            {
+              "evidence_id": "ev_84eb596b2241b21bfc92ee1e70022963f3f7dbc5356f9cd666825c5f7fde4524",
+              "subject": {
+                "name": "fixture-go-macho",
+                "digest": {
+                  "sha256": "778698b8198949aaa5ce0e539e889addf766187b15d552f97163d8411307231a"
+                },
+                "format": "mach-o",
+                "architecture": "arm64",
+                "local_path": "$FIXTURES/fixture-go-macho"
+              },
+              "provider": {
+                "id": "native-macos",
+                "name": "macOS native inspection utilities",
+                "version": null
+              },
+              "operation": "inspect_plist",
+              "confidence": "observed",
+              "authority": "shipped-artifact",
+              "analysis_profile_digest": null,
+              "retention": "complete-record",
+              "limitation_count": 0,
+              "native_dossier": {
+                "available": false,
+                "reason": "different-operation"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "jsonrpc": "2.0",
+    "id": 16
+  }
+}

@@ -1,0 +1,189 @@
+{
+  "kind": "evidence",
+  "body": {
+    "evidence_id": "ev_6e8a99aa3f5abc3cc9103e698fce637b2dbed1cc80151f72e58c447d414ed9f6",
+    "subject": {
+      "name": "fixture-pe-certificate.exe",
+      "digest": {
+        "sha256": "5794077c2a6ee60dc410975c65db71721a20d31112b4a3992170fd3984b68391"
+      },
+      "format": "pe",
+      "architecture": "x86_64",
+      "local_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/pe/fixture-pe-certificate.exe"
+    },
+    "provider": {
+      "id": "pi-rea-in-process",
+      "name": "pi-rea in-process analysis",
+      "version": "0.1.0"
+    },
+    "analysis_profile": null,
+    "predicate_type": "rea.analysis",
+    "operation": "inspect_pe_certificates",
+    "parameters": {
+      "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/pe/fixture-pe-certificate.exe",
+      "max_file_bytes": 67108864,
+      "max_entries": 8
+    },
+    "raw_result": null,
+    "normalized_result": {
+      "artifact": {
+        "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/pe/fixture-pe-certificate.exe",
+        "sha256": "5794077c2a6ee60dc410975c65db71721a20d31112b4a3992170fd3984b68391",
+        "bytes": 2456
+      },
+      "format": "pe32-plus",
+      "machine": 34404,
+      "table": {
+        "location": {
+          "offset": 1024,
+          "bytes": 1432
+        },
+        "data_directory_location": {
+          "offset": 296,
+          "bytes": 8
+        }
+      },
+      "entries": [
+        {
+          "index": 0,
+          "location": {
+            "offset": 1024,
+            "bytes": 1432
+          },
+          "length": 1432,
+          "revision": 512,
+          "certificate_type": 2,
+          "certificate_type_name": "pkcs7",
+          "payload": {
+            "location": {
+              "offset": 1032,
+              "bytes": 1418
+            },
+            "bytes": 1418,
+            "sha256": "be0bf15a76bbbfca1e4e6497190ccee552c3c3a7fce9f26d377d90a7891161b8"
+          },
+          "pkcs7": {
+            "content_type_oid": "1.2.840.113549.1.7.2",
+            "content_type_name": "signedData",
+            "digest_algorithm_oids": [
+              "2.16.840.1.101.3.4.2.1"
+            ],
+            "certificates": [
+              {
+                "location": {
+                  "offset": 1101,
+                  "bytes": 800
+                },
+                "der_sha256": "a657afe5ff69f65b30b3b70f33b31e67ef2d0a828d1e6279afdcc0a03ade8699",
+                "serial_hex": "349e97196c398c877e6c21c0afc667c1214dba3d",
+                "issuer": {
+                  "attributes": [
+                    {
+                      "oid": "2.5.4.3",
+                      "oid_name": "commonName",
+                      "value": "Fixture"
+                    },
+                    {
+                      "oid": "2.5.4.10",
+                      "oid_name": "organizationName",
+                      "value": "Test"
+                    },
+                    {
+                      "oid": "2.5.4.6",
+                      "oid_name": "countryName",
+                      "value": "US"
+                    }
+                  ],
+                  "text": "commonName=Fixture, organizationName=Test, countryName=US"
+                },
+                "subject": {
+                  "attributes": [
+                    {
+                      "oid": "2.5.4.3",
+                      "oid_name": "commonName",
+                      "value": "Fixture"
+                    },
+                    {
+                      "oid": "2.5.4.10",
+                      "oid_name": "organizationName",
+                      "value": "Test"
+                    },
+                    {
+                      "oid": "2.5.4.6",
+                      "oid_name": "countryName",
+                      "value": "US"
+                    }
+                  ],
+                  "text": "commonName=Fixture, organizationName=Test, countryName=US"
+                },
+                "not_before": "261028035530Z",
+                "not_after": "261029035530Z",
+                "signature_algorithm_oid": "1.2.840.113549.1.1.11",
+                "signature_algorithm_name": "sha256WithRSAEncryption"
+              }
+            ],
+            "signers": [
+              {
+                "digest_algorithm_oid": "2.16.840.1.101.3.4.2.1",
+                "digest_algorithm_name": "sha256",
+                "signature_algorithm_oid": "1.2.840.113549.1.1.1",
+                "signature_algorithm_name": "rsaEncryption",
+                "issuer": {
+                  "attributes": [
+                    {
+                      "oid": "2.5.4.3",
+                      "oid_name": "commonName",
+                      "value": "Fixture"
+                    },
+                    {
+                      "oid": "2.5.4.10",
+                      "oid_name": "organizationName",
+                      "value": "Test"
+                    },
+                    {
+                      "oid": "2.5.4.6",
+                      "oid_name": "countryName",
+                      "value": "US"
+                    }
+                  ],
+                  "text": "commonName=Fixture, organizationName=Test, countryName=US"
+                },
+                "serial_hex": "349e97196c398c877e6c21c0afc667c1214dba3d",
+                "subject_key_identifier_hex": null,
+                "authenticated_attributes": true
+              }
+            ]
+          }
+        }
+      ],
+      "coverage": {
+        "status": "complete",
+        "examined_entries": 1,
+        "certificates": 1
+      },
+      "limitations": [
+        "This workflow does not verify signatures, certificate chains, timestamps, or Authenticode digest coverage of image bytes.",
+        "PKCS#7 fields are decoded structurally; cryptographic validity remains unobserved."
+      ]
+    },
+    "confidence": "observed",
+    "authority": "shipped-artifact",
+    "environment": null,
+    "limitations": [
+      "This workflow does not verify signatures, certificate chains, timestamps, or Authenticode digest coverage of image bytes.",
+      "PKCS#7 fields are decoded structurally; cryptographic validity remains unobserved."
+    ],
+    "locations": [
+      {
+        "kind": "artifact-path",
+        "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/pe/fixture-pe-certificate.exe"
+      },
+      {
+        "kind": "file-offset-range",
+        "start": 1024,
+        "end": 2456
+      }
+    ],
+    "evidence_links": []
+  }
+}

@@ -1,0 +1,127 @@
+{
+  "kind": "evidence",
+  "body": {
+    "evidence_id": "ev_bf8f479007daf3469fa21e1d47118e4f398bc68acaaa6b67046fe8bda061601a",
+    "subject": null,
+    "provider": {
+      "id": "rea-artifact-graph",
+      "name": "REA safe artifact graph provider",
+      "version": "1"
+    },
+    "analysis_profile": null,
+    "predicate_type": "rea.analysis",
+    "operation": "inspect_keyed_archive",
+    "parameters": {
+      "path": "Contents/Resources/archive.plist",
+      "offset": 0,
+      "limit": 20000,
+      "input_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/bundle/Fixture.app"
+    },
+    "raw_result": null,
+    "normalized_result": {
+      "target_sha256": null,
+      "resource_root": {
+        "caller_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/bundle/Fixture.app",
+        "canonical_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/bundle/Fixture.app",
+        "info_plist_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/bundle/Fixture.app/Contents/Info.plist",
+        "layout": "contents",
+        "executable_sha256": null
+      },
+      "archive_path": "Contents/Resources/archive.plist",
+      "archive_sha256": "3f8f3213da7c70fae60c636aacf2a170d0e108015d8ac2e09b6aa66f0062b898",
+      "archive_format": "xml-plist",
+      "roots": {
+        "root": {
+          "CF$UID": 1
+        }
+      },
+      "objects": [
+        {
+          "id": 0,
+          "kind": "nil",
+          "class_id": null,
+          "class_name": null,
+          "status": "nil",
+          "value": "$null"
+        },
+        {
+          "id": 1,
+          "kind": "archived-object",
+          "class_id": 2,
+          "class_name": "NSObject",
+          "status": "unknown-class",
+          "value": {
+            "$class": {
+              "CF$UID": 2
+            },
+            "name": "demo"
+          }
+        },
+        {
+          "id": 2,
+          "kind": "class-descriptor",
+          "class_id": null,
+          "class_name": null,
+          "status": "observed",
+          "value": {
+            "$classname": "NSObject",
+            "$classes": [
+              "NSObject"
+            ]
+          }
+        }
+      ],
+      "references": [
+        {
+          "source": null,
+          "path": [
+            "root"
+          ],
+          "target": 1,
+          "status": "resolved",
+          "raw": {
+            "CF$UID": 1
+          }
+        },
+        {
+          "source": 1,
+          "path": [
+            "$class"
+          ],
+          "target": 2,
+          "status": "resolved",
+          "raw": {
+            "CF$UID": 2
+          }
+        }
+      ],
+      "total_objects": 3,
+      "total_references": 2,
+      "offset": 0,
+      "next_offset": null,
+      "truncated": false,
+      "limitations": [
+        "Archive classes are never instantiated. Class names and serialized fields are observed; class-specific semantics are unknown.",
+        "Conditional references serialized as UID 0 cannot be distinguished from ordinary nil references. Missing fields remain absent in the raw serialized value.",
+        "Root selection selects the named $top entry; object pagination retains original indices and does not recursively expand references."
+      ]
+    },
+    "confidence": "observed",
+    "authority": "shipped-artifact",
+    "environment": null,
+    "limitations": [
+      "Artifact identity is unavailable for this observation.",
+      "Archive classes are never instantiated. Class names and serialized fields are observed; class-specific semantics are unknown.",
+      "Conditional references serialized as UID 0 cannot be distinguished from ordinary nil references. Missing fields remain absent in the raw serialized value.",
+      "Root selection selects the named $top entry; object pagination retains original indices and does not recursively expand references."
+    ],
+    "relationship_coverage": null,
+    "locations": [],
+    "evidence_links": [],
+    "caller_input_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/bundle/Fixture.app"
+  },
+  "meta": {
+    "command": "inspect-keyed-archive",
+    "duration": "150ms"
+  }
+}

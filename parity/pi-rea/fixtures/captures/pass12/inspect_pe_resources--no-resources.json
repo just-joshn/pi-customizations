@@ -1,0 +1,84 @@
+{
+  "request": {
+    "name": "inspect_pe_resources",
+    "arguments": {
+      "path": "$FIXTURES/pe/fixture-pe.exe"
+    }
+  },
+  "response": {
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "{\"evidence_id\":\"ev_5380640ee410dc35c06ac3bc1563ee9a6014e2ac937571f4341cc2409e4d4af3\",\"subject\":{\"name\":\"fixture-pe.exe\",\"digest\":{\"sha256\":\"a0c15a15db4af6ff996224c2b7dd37bb646811d1b00d097fc2f363e7037675a6\"},\"format\":\"pe\",\"architecture\":null,\"local_path\":\"$FIXTURES/pe/fixture-pe.exe\"},\"provider\":{\"id\":\"rea-pe-resources\",\"name\":\"REA PE resource parser\",\"version\":\"1\"},\"analysis_profile\":null,\"predicate_type\":\"rea.analysis\",\"operation\":\"inspect_pe_resources\",\"parameters\":{\"path\":\"$FIXTURES/pe/fixture-pe.exe\",\"max_file_bytes\":67108864,\"max_entries\":4096},\"raw_result\":null,\"normalized_result\":{\"artifact\":{\"path\":\"$FIXTURES/pe/fixture-pe.exe\",\"sha256\":\"a0c15a15db4af6ff996224c2b7dd37bb646811d1b00d097fc2f363e7037675a6\",\"bytes\":2504704},\"format\":\"pe32-plus\",\"machine\":34404,\"directory\":null,\"directories\":[],\"resources\":[],\"icon_groups\":[],\"coverage\":{\"status\":\"complete\",\"examined_entries\":0,\"resources\":0},\"limitations\":[\"Static PE32/PE32+ type/name/language resource inventory; payloads other than RT_GROUP_ICON remain opaque.\",\"Icon candidates are resource-table relationships. Language fallback, image decoding and actual shell/window loading are not observed.\",\"Exact shared byte ranges are retained; non-identical overlapping resource structures or payloads are rejected.\"]},\"confidence\":\"observed\",\"authority\":\"shipped-artifact\",\"environment\":null,\"limitations\":[\"Static PE32/PE32+ type/name/language resource inventory; payloads other than RT_GROUP_ICON remain opaque.\",\"Icon candidates are resource-table relationships. Language fallback, image decoding and actual shell/window loading are not observed.\",\"Exact shared byte ranges are retained; non-identical overlapping resource structures or payloads are rejected.\"],\"locations\":[{\"kind\":\"artifact-path\",\"path\":\"$FIXTURES/pe/fixture-pe.exe\"}],\"evidence_links\":[]}"
+        }
+      ],
+      "structuredContent": {
+        "evidence_id": "ev_5380640ee410dc35c06ac3bc1563ee9a6014e2ac937571f4341cc2409e4d4af3",
+        "subject": {
+          "name": "fixture-pe.exe",
+          "digest": {
+            "sha256": "a0c15a15db4af6ff996224c2b7dd37bb646811d1b00d097fc2f363e7037675a6"
+          },
+          "format": "pe",
+          "architecture": null,
+          "local_path": "$FIXTURES/pe/fixture-pe.exe"
+        },
+        "provider": {
+          "id": "rea-pe-resources",
+          "name": "REA PE resource parser",
+          "version": "1"
+        },
+        "analysis_profile": null,
+        "predicate_type": "rea.analysis",
+        "operation": "inspect_pe_resources",
+        "parameters": {
+          "path": "$FIXTURES/pe/fixture-pe.exe",
+          "max_file_bytes": 67108864,
+          "max_entries": 4096
+        },
+        "raw_result": null,
+        "normalized_result": {
+          "artifact": {
+            "path": "$FIXTURES/pe/fixture-pe.exe",
+            "sha256": "a0c15a15db4af6ff996224c2b7dd37bb646811d1b00d097fc2f363e7037675a6",
+            "bytes": 2504704
+          },
+          "format": "pe32-plus",
+          "machine": 34404,
+          "directory": null,
+          "directories": [],
+          "resources": [],
+          "icon_groups": [],
+          "coverage": {
+            "status": "complete",
+            "examined_entries": 0,
+            "resources": 0
+          },
+          "limitations": [
+            "Static PE32/PE32+ type/name/language resource inventory; payloads other than RT_GROUP_ICON remain opaque.",
+            "Icon candidates are resource-table relationships. Language fallback, image decoding and actual shell/window loading are not observed.",
+            "Exact shared byte ranges are retained; non-identical overlapping resource structures or payloads are rejected."
+          ]
+        },
+        "confidence": "observed",
+        "authority": "shipped-artifact",
+        "environment": null,
+        "limitations": [
+          "Static PE32/PE32+ type/name/language resource inventory; payloads other than RT_GROUP_ICON remain opaque.",
+          "Icon candidates are resource-table relationships. Language fallback, image decoding and actual shell/window loading are not observed.",
+          "Exact shared byte ranges are retained; non-identical overlapping resource structures or payloads are rejected."
+        ],
+        "locations": [
+          {
+            "kind": "artifact-path",
+            "path": "$FIXTURES/pe/fixture-pe.exe"
+          }
+        ],
+        "evidence_links": []
+      }
+    },
+    "jsonrpc": "2.0",
+    "id": 11
+  }
+}

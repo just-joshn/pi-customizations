@@ -1,0 +1,132 @@
+{
+  "kind": "error",
+  "body": {
+    "code": "provider_unavailable",
+    "category": "unavailable",
+    "message": "The selected analysis provider is unavailable. Review the reported local diagnostics or run `rea doctor`, then retry.",
+    "retryable": true,
+    "remediation": {
+      "action": "The selected analysis provider is unavailable. Review the reported local diagnostics or run `rea doctor`, then retry."
+    },
+    "details": {
+      "operation": "list_segments",
+      "selection_reason": "provider_unavailable",
+      "requested_provider_id": "auto",
+      "candidate_ids": [
+        "ghidra",
+        "hopper",
+        "ida",
+        "kuna"
+      ],
+      "rejections": [
+        {
+          "provider_id": "ghidra",
+          "code": "not_configured",
+          "reason": "Set GHIDRA_INSTALL_DIR to an extracted Ghidra 12.1.x release directory.",
+          "diagnostics": {
+            "install_dir": null,
+            "analyze_headless_path": null,
+            "native_decompiler_path": null,
+            "application_properties_path": null,
+            "provider_version": null,
+            "java_command": "/Users/josh-desktop/.local/share/mise/installs/java/temurin-25.0.4+101.0.LTS/bin/java",
+            "java_home": "/Users/josh-desktop/.local/share/mise/installs/java/temurin-25.0.4+101.0.LTS",
+            "java_version": null,
+            "java_vm_name": null,
+            "java_os_arch": null,
+            "java_os_name": null,
+            "platform": "darwin",
+            "architecture": "arm64",
+            "checks": [
+              {
+                "name": "configuration",
+                "ok": false,
+                "code": "not_configured",
+                "detail": "GHIDRA_INSTALL_DIR is not set"
+              },
+              {
+                "name": "platform",
+                "ok": true,
+                "code": null,
+                "detail": "darwin"
+              },
+              {
+                "name": "architecture",
+                "ok": true,
+                "code": null,
+                "detail": "arm64"
+              },
+              {
+                "name": "installation",
+                "ok": false,
+                "code": "executable_missing",
+                "detail": "Ghidra application properties unavailable"
+              },
+              {
+                "name": "version",
+                "ok": false,
+                "code": "version_unresolved",
+                "detail": "unknown"
+              },
+              {
+                "name": "headless",
+                "ok": false,
+                "code": "executable_missing",
+                "detail": "analyzeHeadless unavailable"
+              },
+              {
+                "name": "native_decompiler",
+                "ok": false,
+                "code": "executable_missing",
+                "detail": "Matching native decompiler for darwin/arm64 was not found"
+              },
+              {
+                "name": "java",
+                "ok": false,
+                "code": "version_unresolved",
+                "detail": "/Users/josh-desktop/.local/share/mise/installs/java/temurin-25.0.4+101.0.LTS/bin/java; application.properties is unavailable"
+              }
+            ]
+          }
+        },
+        {
+          "provider_id": "hopper",
+          "code": "executable_missing",
+          "reason": "Hopper launcher is missing or not executable: /Applications/Hopper Disassembler.app/Contents/MacOS/hopper",
+          "diagnostics": {
+            "launcher_path": "/Applications/Hopper Disassembler.app/Contents/MacOS/hopper",
+            "platform": "darwin"
+          }
+        },
+        {
+          "provider_id": "ida",
+          "code": "not_configured",
+          "reason": "REA configuration is invalid: Set REA_IDA_MCP_CONFIG to an upstream IDA MCP JSON registration; see docs/ida-provider.md.",
+          "diagnostics": {
+            "configured": false,
+            "registration_path": null,
+            "live_connection_probed": false,
+            "configuration_details": {
+              "settings": [
+                {
+                  "setting": "REA_IDA_MCP_CONFIG",
+                  "constraint": "Set REA_IDA_MCP_CONFIG to an upstream IDA MCP JSON registration; see docs/ida-provider.md."
+                }
+              ]
+            },
+            "configuration_remediation": "Correct REA_IDA_MCP_CONFIG in the environment that starts REA (your shell or the MCP client's registration), then rerun."
+          }
+        },
+        {
+          "provider_id": "kuna",
+          "code": "not_configured",
+          "reason": "Set REA_KUNA_COMMAND to the absolute path of a caller-supplied kuna executable (verified with 1.833). REA does not download, install or update Kuna.",
+          "diagnostics": {
+            "configured": false,
+            "version_probed": false
+          }
+        }
+      ]
+    }
+  }
+}

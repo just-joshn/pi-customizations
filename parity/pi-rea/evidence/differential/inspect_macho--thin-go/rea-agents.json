@@ -1,0 +1,1510 @@
+{
+  "kind": "evidence",
+  "body": {
+    "evidence_id": "ev_a9f9338ee67049fc42ca72569cd791c393f77dd82aebb1a3b6a22b47460217b1",
+    "subject": {
+      "name": "fixture-go-macho",
+      "digest": {
+        "sha256": "fb6fcf5aaf18e4c2990ce7e43d3f41c965952f32a6452b0c18c586053155a71e"
+      },
+      "local_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/fixture-go-macho",
+      "format": "mach-o",
+      "architecture": "arm64"
+    },
+    "provider": {
+      "id": "native-macos",
+      "name": "macOS native inspection utilities",
+      "version": null
+    },
+    "analysis_profile": null,
+    "predicate_type": "rea.analysis",
+    "operation": "inspect_macho",
+    "parameters": {
+      "input_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/fixture-go-macho"
+    },
+    "raw_result": null,
+    "normalized_result": {
+      "format": "mach-o",
+      "selected_architecture": {
+        "name": "arm64",
+        "container_file_offset": 0
+      },
+      "endian": "little",
+      "word_size": 64,
+      "file_type": "2",
+      "flags": [
+        "0x00200004"
+      ],
+      "uuid": "7D1703AD-DF80-3810-E965-B3205154FF0D",
+      "entrypoints": {
+        "items": [
+          {
+            "file_offset": 489280
+          }
+        ],
+        "total": 1,
+        "exhaustive": true,
+        "limitations": []
+      },
+      "architectures": {
+        "items": [
+          {
+            "name": "arm64",
+            "hidden": false,
+            "cpu_type": null,
+            "cpu_subtype": null,
+            "file_offset": null,
+            "size": null,
+            "alignment": null
+          }
+        ],
+        "total": 1,
+        "exhaustive": true,
+        "limitations": []
+      },
+      "build_metadata": {
+        "items": [
+          {
+            "platform": "MACOS",
+            "minimum_os": "12.0",
+            "sdk": "12.0",
+            "tools": []
+          }
+        ],
+        "total": 1,
+        "exhaustive": true,
+        "limitations": []
+      },
+      "load_commands": {
+        "items": [
+          {
+            "index": 0,
+            "kind": "LC_SEGMENT_64",
+            "fields": {
+              "cmd": "LC_SEGMENT_64",
+              "cmdsize": 72,
+              "segname": "__PAGEZERO",
+              "vmaddr": 0,
+              "vmsize": 4294967296,
+              "fileoff": 0,
+              "filesize": 0,
+              "maxprot": 0,
+              "initprot": 0,
+              "nsects": 0,
+              "flags": 0
+            }
+          },
+          {
+            "index": 1,
+            "kind": "LC_SEGMENT_64",
+            "fields": {
+              "cmd": "LC_SEGMENT_64",
+              "cmdsize": 392,
+              "segname": "__TEXT",
+              "vmaddr": 4294967296,
+              "vmsize": 1392640,
+              "fileoff": 0,
+              "filesize": 1392640,
+              "maxprot": 7,
+              "initprot": 5,
+              "nsects": 4,
+              "flags": 0
+            }
+          },
+          {
+            "index": 2,
+            "kind": "LC_SEGMENT_64",
+            "fields": {
+              "cmd": "LC_SEGMENT_64",
+              "cmdsize": 392,
+              "segname": "__DATA_CONST",
+              "vmaddr": 4296359936,
+              "vmsize": 172064,
+              "fileoff": 1392640,
+              "filesize": 172064,
+              "maxprot": 3,
+              "initprot": 3,
+              "nsects": 4,
+              "flags": 16
+            }
+          },
+          {
+            "index": 3,
+            "kind": "LC_SEGMENT_64",
+            "fields": {
+              "cmd": "LC_SEGMENT_64",
+              "cmdsize": 632,
+              "segname": "__DATA",
+              "vmaddr": 4296540160,
+              "vmsize": 223592,
+              "fileoff": 1572864,
+              "filesize": 48512,
+              "maxprot": 3,
+              "initprot": 3,
+              "nsects": 7,
+              "flags": 0
+            }
+          },
+          {
+            "index": 4,
+            "kind": "LC_SEGMENT_64",
+            "fields": {
+              "cmd": "LC_SEGMENT_64",
+              "cmdsize": 632,
+              "segname": "__DWARF",
+              "vmaddr": 4296769536,
+              "vmsize": 0,
+              "fileoff": 1622016,
+              "filesize": 715436,
+              "maxprot": 0,
+              "initprot": 0,
+              "nsects": 7,
+              "flags": 0
+            }
+          },
+          {
+            "index": 5,
+            "kind": "LC_SEGMENT_64",
+            "fields": {
+              "cmd": "LC_SEGMENT_64",
+              "cmdsize": 72,
+              "segname": "__LINKEDIT",
+              "vmaddr": 4296769536,
+              "vmsize": 166706,
+              "fileoff": 2342912,
+              "filesize": 166706,
+              "maxprot": 1,
+              "initprot": 1,
+              "nsects": 0,
+              "flags": 0
+            }
+          },
+          {
+            "index": 6,
+            "kind": "LC_BUILD_VERSION",
+            "fields": {
+              "cmd": "LC_BUILD_VERSION",
+              "cmdsize": 24,
+              "platform": 1,
+              "minos": "12.0",
+              "sdk": "12.0",
+              "ntools": 0
+            }
+          },
+          {
+            "index": 7,
+            "kind": "LC_MAIN",
+            "fields": {
+              "cmd": "LC_MAIN",
+              "cmdsize": 24,
+              "entryoff": 489280,
+              "stacksize": 0
+            }
+          },
+          {
+            "index": 8,
+            "kind": "LC_DYLD_INFO_ONLY",
+            "fields": {
+              "cmd": "LC_DYLD_INFO_ONLY",
+              "cmdsize": 48,
+              "rebase_off": 2342912,
+              "rebase_size": 35952,
+              "bind_off": 2378864,
+              "bind_size": 1168,
+              "weak_bind_off": 0,
+              "weak_bind_size": 0,
+              "lazy_bind_off": 0,
+              "lazy_bind_size": 0,
+              "export_off": 0,
+              "export_size": 0
+            }
+          },
+          {
+            "index": 9,
+            "kind": "LC_SYMTAB",
+            "fields": {
+              "cmd": "LC_SYMTAB",
+              "cmdsize": 24,
+              "symoff": 2380032,
+              "nsyms": 2615,
+              "stroff": 2422336,
+              "strsize": 67712
+            }
+          },
+          {
+            "index": 10,
+            "kind": "LC_DYSYMTAB",
+            "fields": {
+              "cmd": "LC_DYSYMTAB",
+              "cmdsize": 80,
+              "ilocalsym": 0,
+              "nlocalsym": 2557,
+              "iextdefsym": 2557,
+              "nextdefsym": 0,
+              "iundefsym": 2557,
+              "nundefsym": 58,
+              "tocoff": 0,
+              "ntoc": 0,
+              "modtaboff": 0,
+              "nmodtab": 0,
+              "extrefsymoff": 0,
+              "nextrefsyms": 0,
+              "indirectsymoff": 2421872,
+              "nindirectsyms": 116,
+              "extreloff": 0,
+              "nextrel": 0,
+              "locreloff": 0,
+              "nlocrel": 0
+            }
+          },
+          {
+            "index": 11,
+            "kind": "LC_LOAD_DYLINKER",
+            "fields": {
+              "cmd": "LC_LOAD_DYLINKER",
+              "cmdsize": 32,
+              "name": "/usr/lib/dyld (offset 12)"
+            }
+          },
+          {
+            "index": 12,
+            "kind": "LC_LOAD_DYLIB",
+            "fields": {
+              "cmd": "LC_LOAD_DYLIB",
+              "cmdsize": 56,
+              "name": "/usr/lib/libSystem.B.dylib (offset 24)",
+              "time stamp": "0 Wed Dec 31 16:00:00 1969",
+              "current version": "0.0.0",
+              "compatibility version": "0.0.0"
+            }
+          },
+          {
+            "index": 13,
+            "kind": "LC_LOAD_DYLIB",
+            "fields": {
+              "cmd": "LC_LOAD_DYLIB",
+              "cmdsize": 56,
+              "name": "/usr/lib/libresolv.9.dylib (offset 24)",
+              "time stamp": "0 Wed Dec 31 16:00:00 1969",
+              "current version": "0.0.0",
+              "compatibility version": "0.0.0"
+            }
+          },
+          {
+            "index": 14,
+            "kind": "LC_UUID",
+            "fields": {
+              "cmd": "LC_UUID",
+              "cmdsize": 24,
+              "uuid": "7D1703AD-DF80-3810-E965-B3205154FF0D"
+            }
+          },
+          {
+            "index": 15,
+            "kind": "LC_CODE_SIGNATURE",
+            "fields": {
+              "cmd": "LC_CODE_SIGNATURE",
+              "cmdsize": 16,
+              "dataoff": 2490048,
+              "datasize": 19570
+            }
+          }
+        ],
+        "total": 16,
+        "exhaustive": true,
+        "limitations": []
+      },
+      "dependencies": {
+        "items": [
+          {
+            "path": "/usr/lib/libSystem.B.dylib",
+            "kind": "LC_LOAD_DYLIB",
+            "current_version": "0.0.0",
+            "compatibility_version": "0.0.0"
+          },
+          {
+            "path": "/usr/lib/libresolv.9.dylib",
+            "kind": "LC_LOAD_DYLIB",
+            "current_version": "0.0.0",
+            "compatibility_version": "0.0.0"
+          }
+        ],
+        "total": 2,
+        "exhaustive": true,
+        "limitations": []
+      },
+      "imports": {
+        "items": [
+          {
+            "name": "___error",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "__exit",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_arc4random_buf",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_clock_gettime",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_close",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_closedir",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_dup",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_dup2",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_execve",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_fcntl",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_fdopendir",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_fstat",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_fstatat",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_getcwd",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_getpid",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_getrlimit",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_issetugid",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_kevent",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_kill",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_kqueue",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_lseek",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_lstat",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_mach_absolute_time",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_mach_timebase_info",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_madvise",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_mlock",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_mmap",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_munmap",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_notify_is_valid_token",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_open",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_pthread_attr_getstacksize",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_pthread_attr_init",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_pthread_attr_setdetachstate",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_pthread_cond_init",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_pthread_cond_signal",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_pthread_cond_timedwait_relative_np",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_pthread_cond_wait",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_pthread_create",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_pthread_key_create",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_pthread_kill",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_pthread_mutex_init",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_pthread_mutex_lock",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_pthread_mutex_unlock",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_pthread_self",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_pthread_setspecific",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_pthread_sigmask",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_raise",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_read",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_readdir_r",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_setrlimit",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_sigaction",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_sigaltstack",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_stat",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_sysctl",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_sysctlbyname",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_usleep",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_write",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          },
+          {
+            "name": "_xpc_date_create_from_current",
+            "raw_name": null,
+            "name_status": "exact",
+            "addend": null,
+            "address": null,
+            "weak": null,
+            "reexport": null,
+            "source": "<this-image>"
+          }
+        ],
+        "total": null,
+        "exhaustive": false,
+        "limitations": [
+          "dyld_info textual imports may omit chained or toolchain-unsupported metadata."
+        ]
+      },
+      "exports": {
+        "items": [],
+        "total": null,
+        "exhaustive": false,
+        "limitations": [
+          "Merged nm/dyld_info results may be incomplete for stripped binaries."
+        ]
+      },
+      "segments": {
+        "items": [
+          {
+            "name": "__PAGEZERO",
+            "vm_address": "0x0",
+            "vm_size": 4294967296,
+            "file_offset": 0,
+            "file_size": 0,
+            "maximum_permissions": {
+              "read": false,
+              "write": false,
+              "execute": false,
+              "raw": "0"
+            },
+            "initial_permissions": {
+              "read": false,
+              "write": false,
+              "execute": false,
+              "raw": "0"
+            },
+            "sections": {
+              "items": [],
+              "total": 0,
+              "exhaustive": true,
+              "limitations": []
+            }
+          },
+          {
+            "name": "__TEXT",
+            "vm_address": "0x100000000",
+            "vm_size": 1392640,
+            "file_offset": 0,
+            "file_size": 1392640,
+            "maximum_permissions": {
+              "read": true,
+              "write": true,
+              "execute": true,
+              "raw": "7"
+            },
+            "initial_permissions": {
+              "read": true,
+              "write": false,
+              "execute": true,
+              "raw": "5"
+            },
+            "sections": {
+              "items": [
+                {
+                  "segment": "__TEXT",
+                  "name": "__text",
+                  "address": "0x100001000",
+                  "size": 658484,
+                  "file_offset": 4096,
+                  "alignment": 16,
+                  "flags": [
+                    "2147484672"
+                  ]
+                },
+                {
+                  "segment": "__TEXT",
+                  "name": "__symbol_stub1",
+                  "address": "0x1000a1c40",
+                  "size": 696,
+                  "file_offset": 662592,
+                  "alignment": 32,
+                  "flags": [
+                    "2147484680"
+                  ]
+                },
+                {
+                  "segment": "__TEXT",
+                  "name": "__rodata",
+                  "address": "0x1000a1f00",
+                  "size": 44514,
+                  "file_offset": 663296,
+                  "alignment": 32,
+                  "flags": [
+                    "0"
+                  ]
+                },
+                {
+                  "segment": "__TEXT",
+                  "name": "__gopclntab",
+                  "address": "0x1000acce8",
+                  "size": 682257,
+                  "file_offset": 707816,
+                  "alignment": 8,
+                  "flags": [
+                    "0"
+                  ]
+                }
+              ],
+              "total": 4,
+              "exhaustive": true,
+              "limitations": []
+            }
+          },
+          {
+            "name": "__DATA_CONST",
+            "vm_address": "0x100154000",
+            "vm_size": 172064,
+            "file_offset": 1392640,
+            "file_size": 172064,
+            "maximum_permissions": {
+              "read": true,
+              "write": true,
+              "execute": false,
+              "raw": "3"
+            },
+            "initial_permissions": {
+              "read": true,
+              "write": true,
+              "execute": false,
+              "raw": "3"
+            },
+            "sections": {
+              "items": [
+                {
+                  "segment": "__DATA_CONST",
+                  "name": "__rodata",
+                  "address": "0x100154000",
+                  "size": 169280,
+                  "file_offset": 1392640,
+                  "alignment": 32,
+                  "flags": [
+                    "0"
+                  ]
+                },
+                {
+                  "segment": "__DATA_CONST",
+                  "name": "__got",
+                  "address": "0x10017d540",
+                  "size": 464,
+                  "file_offset": 1561920,
+                  "alignment": 4,
+                  "flags": [
+                    "6"
+                  ]
+                },
+                {
+                  "segment": "__DATA_CONST",
+                  "name": "__typelink",
+                  "address": "0x10017d720",
+                  "size": 2124,
+                  "file_offset": 1562400,
+                  "alignment": 32,
+                  "flags": [
+                    "0"
+                  ]
+                },
+                {
+                  "segment": "__DATA_CONST",
+                  "name": "__itablink",
+                  "address": "0x10017df80",
+                  "size": 160,
+                  "file_offset": 1564544,
+                  "alignment": 32,
+                  "flags": [
+                    "0"
+                  ]
+                }
+              ],
+              "total": 4,
+              "exhaustive": true,
+              "limitations": []
+            }
+          },
+          {
+            "name": "__DATA",
+            "vm_address": "0x100180000",
+            "vm_size": 223592,
+            "file_offset": 1572864,
+            "file_size": 48512,
+            "maximum_permissions": {
+              "read": true,
+              "write": true,
+              "execute": false,
+              "raw": "3"
+            },
+            "initial_permissions": {
+              "read": true,
+              "write": true,
+              "execute": false,
+              "raw": "3"
+            },
+            "sections": {
+              "items": [
+                {
+                  "segment": "__DATA",
+                  "name": "__go_buildinfo",
+                  "address": "0x100180000",
+                  "size": 480,
+                  "file_offset": 1572864,
+                  "alignment": 16,
+                  "flags": [
+                    "0"
+                  ]
+                },
+                {
+                  "segment": "__DATA",
+                  "name": "__go_fipsinfo",
+                  "address": "0x1001801e0",
+                  "size": 120,
+                  "file_offset": 1573344,
+                  "alignment": 32,
+                  "flags": [
+                    "0"
+                  ]
+                },
+                {
+                  "segment": "__DATA",
+                  "name": "__go_module",
+                  "address": "0x100180260",
+                  "size": 592,
+                  "file_offset": 1573472,
+                  "alignment": 32,
+                  "flags": [
+                    "0"
+                  ]
+                },
+                {
+                  "segment": "__DATA",
+                  "name": "__noptrdata",
+                  "address": "0x1001804c0",
+                  "size": 26114,
+                  "file_offset": 1574080,
+                  "alignment": 32,
+                  "flags": [
+                    "0"
+                  ]
+                },
+                {
+                  "segment": "__DATA",
+                  "name": "__data",
+                  "address": "0x100186ae0",
+                  "size": 21138,
+                  "file_offset": 1600224,
+                  "alignment": 32,
+                  "flags": [
+                    "0"
+                  ]
+                },
+                {
+                  "segment": "__DATA",
+                  "name": "__bss",
+                  "address": "0x10018bd80",
+                  "size": 158680,
+                  "file_offset": 0,
+                  "alignment": 32,
+                  "flags": [
+                    "1"
+                  ]
+                },
+                {
+                  "segment": "__DATA",
+                  "name": "__noptrbss",
+                  "address": "0x1001b2960",
+                  "size": 16392,
+                  "file_offset": 0,
+                  "alignment": 32,
+                  "flags": [
+                    "1"
+                  ]
+                }
+              ],
+              "total": 7,
+              "exhaustive": true,
+              "limitations": []
+            }
+          },
+          {
+            "name": "__DWARF",
+            "vm_address": "0x1001b8000",
+            "vm_size": 0,
+            "file_offset": 1622016,
+            "file_size": 715436,
+            "maximum_permissions": {
+              "read": false,
+              "write": false,
+              "execute": false,
+              "raw": "0"
+            },
+            "initial_permissions": {
+              "read": false,
+              "write": false,
+              "execute": false,
+              "raw": "0"
+            },
+            "sections": {
+              "items": [
+                {
+                  "segment": "__DWARF",
+                  "name": "__zdebug_abbrev",
+                  "address": "0x1001b8000",
+                  "size": 330,
+                  "file_offset": 1622016,
+                  "alignment": 1,
+                  "flags": [
+                    "33554432"
+                  ]
+                },
+                {
+                  "segment": "__DWARF",
+                  "name": "__zdebug_line",
+                  "address": "0x1001b814a",
+                  "size": 145518,
+                  "file_offset": 1622346,
+                  "alignment": 1,
+                  "flags": [
+                    "33554432"
+                  ]
+                },
+                {
+                  "segment": "__DWARF",
+                  "name": "__zdebug_frame",
+                  "address": "0x1001db9b8",
+                  "size": 30428,
+                  "file_offset": 1767864,
+                  "alignment": 1,
+                  "flags": [
+                    "33554432"
+                  ]
+                },
+                {
+                  "segment": "__DWARF",
+                  "name": "__debug_gdb_scri",
+                  "address": "0x1001e3094",
+                  "size": 85,
+                  "file_offset": 1798292,
+                  "alignment": 1,
+                  "flags": [
+                    "33554432"
+                  ]
+                },
+                {
+                  "segment": "__DWARF",
+                  "name": "__zdebug_info",
+                  "address": "0x1001e30e9",
+                  "size": 336773,
+                  "file_offset": 1798377,
+                  "alignment": 1,
+                  "flags": [
+                    "33554432"
+                  ]
+                },
+                {
+                  "segment": "__DWARF",
+                  "name": "__zdebug_loc",
+                  "address": "0x10023546e",
+                  "size": 151959,
+                  "file_offset": 2135150,
+                  "alignment": 1,
+                  "flags": [
+                    "33554432"
+                  ]
+                },
+                {
+                  "segment": "__DWARF",
+                  "name": "__zdebug_ranges",
+                  "address": "0x10025a605",
+                  "size": 50343,
+                  "file_offset": 2287109,
+                  "alignment": 1,
+                  "flags": [
+                    "33554432"
+                  ]
+                }
+              ],
+              "total": 7,
+              "exhaustive": true,
+              "limitations": []
+            }
+          },
+          {
+            "name": "__LINKEDIT",
+            "vm_address": "0x1001b8000",
+            "vm_size": 166706,
+            "file_offset": 2342912,
+            "file_size": 166706,
+            "maximum_permissions": {
+              "read": true,
+              "write": false,
+              "execute": false,
+              "raw": "1"
+            },
+            "initial_permissions": {
+              "read": true,
+              "write": false,
+              "execute": false,
+              "raw": "1"
+            },
+            "sections": {
+              "items": [],
+              "total": 0,
+              "exhaustive": true,
+              "limitations": []
+            }
+          }
+        ],
+        "total": 6,
+        "exhaustive": true,
+        "limitations": []
+      },
+      "provenance": [
+        {
+          "tool": "lipo",
+          "command": [
+            "/Library/Developer/CommandLineTools/usr/bin/lipo",
+            "-detailed_info",
+            "$ARTIFACT"
+          ],
+          "tool_version": null,
+          "version_reason": "Tool exposes no uniform stable version flag; executable SHA-256 is a prelaunch file sample and does not prove atomic OS image binding.",
+          "executable_sha256": "f9fefcc95e50e31a65e72f7c186d9da5938a6ec267f3c3fa4bf5074b6a20f020",
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "stdout_bytes": 264,
+          "stderr_bytes": 0
+        },
+        {
+          "tool": "otool",
+          "command": [
+            "/Library/Developer/CommandLineTools/usr/bin/llvm-otool",
+            "-h",
+            "-l",
+            "$ARTIFACT"
+          ],
+          "tool_version": null,
+          "version_reason": "Tool exposes no uniform stable version flag; executable SHA-256 is a prelaunch file sample and does not prove atomic OS image binding.",
+          "executable_sha256": "8353ad3c42743a93e9ca7d0d4e9d3df22305252d169c42c543ee22eeb8c33809",
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "stdout_bytes": 8301,
+          "stderr_bytes": 0
+        },
+        {
+          "tool": "nm",
+          "command": [
+            "/Library/Developer/CommandLineTools/usr/bin/llvm-nm",
+            "-gjU",
+            "--no-dyldinfo",
+            "$ARTIFACT"
+          ],
+          "tool_version": null,
+          "version_reason": "Tool exposes no uniform stable version flag; executable SHA-256 is a prelaunch file sample and does not prove atomic OS image binding.",
+          "executable_sha256": "82e9189ec1a359699d4b680601c0a2930a9cbea7376c7320947dff5e9862cfa8",
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "stdout_bytes": 0,
+          "stderr_bytes": 0
+        },
+        {
+          "tool": "dyld_info",
+          "command": [
+            "/Library/Developer/CommandLineTools/usr/bin/dyld_info",
+            "-imports",
+            "$ARTIFACT"
+          ],
+          "tool_version": null,
+          "version_reason": "Tool exposes no uniform stable version flag; executable SHA-256 is a prelaunch file sample and does not prove atomic OS image binding.",
+          "executable_sha256": "1312aaaac28bd7636fcd1b9347328db80003de8f6da27a03126b0ae716c3cf62",
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "stdout_bytes": 2444,
+          "stderr_bytes": 0
+        },
+        {
+          "tool": "dyld_info",
+          "command": [
+            "/Library/Developer/CommandLineTools/usr/bin/dyld_info",
+            "-exports",
+            "$ARTIFACT"
+          ],
+          "tool_version": null,
+          "version_reason": "Tool exposes no uniform stable version flag; executable SHA-256 is a prelaunch file sample and does not prove atomic OS image binding.",
+          "executable_sha256": "1312aaaac28bd7636fcd1b9347328db80003de8f6da27a03126b0ae716c3cf62",
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "stdout_bytes": 149,
+          "stderr_bytes": 0
+        },
+        {
+          "tool": "dwarfdump",
+          "command": [
+            "/Library/Developer/CommandLineTools/usr/bin/llvm-dwarfdump",
+            "--uuid",
+            "$ARTIFACT"
+          ],
+          "tool_version": null,
+          "version_reason": "Tool exposes no uniform stable version flag; executable SHA-256 is a prelaunch file sample and does not prove atomic OS image binding.",
+          "executable_sha256": "4aa5dcbab821ed16cbc51c0f291a7cc17d3de12b228fb8dd8d7c23999976deaa",
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "stdout_bytes": 150,
+          "stderr_bytes": 0
+        },
+        {
+          "tool": "vtool",
+          "command": [
+            "/Library/Developer/CommandLineTools/usr/bin/vtool",
+            "-show-build",
+            "$ARTIFACT"
+          ],
+          "tool_version": null,
+          "version_reason": "Tool exposes no uniform stable version flag; executable SHA-256 is a prelaunch file sample and does not prove atomic OS image binding.",
+          "executable_sha256": "0ac654efe667ee9fb542f929884918e91c0d166bcfb75f128c35479a2a57c71c",
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "stdout_bytes": 213,
+          "stderr_bytes": 0
+        }
+      ],
+      "limitations": [
+        "Imports and exports combine dyld_info and nm; stripped or toolchain-hidden symbols may be absent.",
+        "vtool output is retained as provenance but only otool build metadata is normalized."
+      ]
+    },
+    "confidence": "observed",
+    "authority": "shipped-artifact",
+    "environment": null,
+    "limitations": [
+      "Imports and exports combine dyld_info and nm; stripped or toolchain-hidden symbols may be absent.",
+      "vtool output is retained as provenance but only otool build metadata is normalized."
+    ],
+    "relationship_coverage": null,
+    "locations": [
+      {
+        "kind": "file-offset",
+        "offset": 489280
+      },
+      {
+        "kind": "file-offset-range",
+        "start": 0,
+        "end": 1392640
+      },
+      {
+        "kind": "file-offset-range",
+        "start": 1392640,
+        "end": 1564704
+      },
+      {
+        "kind": "file-offset-range",
+        "start": 1572864,
+        "end": 1621376
+      },
+      {
+        "kind": "file-offset-range",
+        "start": 1622016,
+        "end": 2337452
+      },
+      {
+        "kind": "file-offset-range",
+        "start": 2342912,
+        "end": 2509618
+      }
+    ],
+    "evidence_links": [],
+    "caller_input_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/fixture-go-macho"
+  },
+  "meta": {
+    "command": "inspect-macho",
+    "duration": "1151ms"
+  }
+}

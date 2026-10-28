@@ -1,0 +1,48 @@
+{
+  "kind": "evidence",
+  "body": {
+    "evidence_id": "ev_735bc4cd2b58cea8e81a9d6405fdf3cde6d70cf280574ee15854c488da512068",
+    "subject": null,
+    "provider": {
+      "id": "pi-rea-bundle-comparison",
+      "name": "pi-rea Evidence bundle comparison",
+      "version": "1"
+    },
+    "analysis_profile": null,
+    "predicate_type": "rea.bundle-comparison",
+    "operation": "compare_bundles",
+    "parameters": {
+      "left_bundle_sha256": "000bef2a45fbd4b17adc4e2ab0acd65b076ef5c25f0d8479244c8088730de9cd",
+      "right_bundle_sha256": "000bef2a45fbd4b17adc4e2ab0acd65b076ef5c25f0d8479244c8088730de9cd",
+      "record_pairs": []
+    },
+    "raw_result": null,
+    "normalized_result": {
+      "status": "unchanged",
+      "left_bundle_sha256": "000bef2a45fbd4b17adc4e2ab0acd65b076ef5c25f0d8479244c8088730de9cd",
+      "right_bundle_sha256": "000bef2a45fbd4b17adc4e2ab0acd65b076ef5c25f0d8479244c8088730de9cd",
+      "summary": {
+        "records_unchanged": 0,
+        "records_added": 0,
+        "records_removed": 0,
+        "records_changed": 0,
+        "unknowns_unchanged": 0,
+        "unknowns_added": 0,
+        "unknowns_removed": 0,
+        "unknowns_advanced": 0,
+        "unknowns_diverged": 0,
+        "unresolved": 0
+      },
+      "changes": [],
+      "limitations": []
+    },
+    "confidence": "derived",
+    "authority": "analyst-inference",
+    "environment": null,
+    "limitations": [
+      "Artifact identity is unavailable for this observation."
+    ],
+    "locations": [],
+    "evidence_links": []
+  }
+}

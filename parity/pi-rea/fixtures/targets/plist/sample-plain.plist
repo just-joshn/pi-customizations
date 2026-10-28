@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleName</key>
+	<string>Plain Fixture</string>
+	<key>CFBundleVersion</key>
+	<string>9</string>
+	<key>Flag</key>
+	<true/>
+	<key>Count</key>
+	<integer>-12</integer>
+	<key>Ratio</key>
+	<real>0.5</real>
+	<key>Items</key>
+	<array><string>one</string><integer>2</integer></array>
+</dict>
+</plist>

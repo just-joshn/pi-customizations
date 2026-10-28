@@ -1,0 +1,193 @@
+{
+  "kind": "evidence",
+  "body": {
+    "evidence_id": "ev_1acd073d6f10f34d71eb0a3c9294a47023bf320894c7c35f7dce05a4ab4e4cb5",
+    "subject": {
+      "name": "electron-app",
+      "digest": {
+        "sha256": "79078fd9d1e0b7414315c8725dc51b391a74148ce8e2a7264f84df693c9b732f"
+      },
+      "local_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/desktop/electron-app",
+      "format": "directory",
+      "architecture": null
+    },
+    "provider": {
+      "id": "rea-artifact-graph",
+      "name": "REA safe artifact graph provider",
+      "version": "1"
+    },
+    "analysis_profile": null,
+    "predicate_type": "rea.analysis",
+    "operation": "inspect_desktop_application",
+    "parameters": {
+      "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/desktop/electron-app",
+      "max_entries": 20000,
+      "max_probe_bytes": 8388608
+    },
+    "raw_result": null,
+    "normalized_result": {
+      "root": {
+        "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/desktop/electron-app",
+        "canonical_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/desktop/electron-app",
+        "namespace_id": "dsr_d716b5f4393d6de50ef2b17d9e4fde93dfb44e9f599209185ab45ca7e5083e24",
+        "identity": {
+          "device": "16777232",
+          "inode": "112249661"
+        },
+        "snapshot_sha256": "79078fd9d1e0b7414315c8725dc51b391a74148ce8e2a7264f84df693c9b732f",
+        "identity_scope": "examined-metadata-and-read-ranges"
+      },
+      "files": [
+        {
+          "file_id": "dsf_943d3bec49e01c9bc9475079a82aa2856b53d33077fe4e939a12178c81df6e3d",
+          "path": "main.js",
+          "local_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/desktop/electron-app/main.js",
+          "kind": "file",
+          "bytes": 20,
+          "identity": {
+            "device": "16777232",
+            "inode": "112249672",
+            "size": "20",
+            "mode": "33188",
+            "mtime_ns": "1793160668707138035",
+            "ctime_ns": "1793160668707138035"
+          },
+          "read_status": "not-selected",
+          "ranges": [],
+          "facts": [],
+          "issues": []
+        },
+        {
+          "file_id": "dsf_c80d71e5ca881d77ec5bbe74e842d77d3dd909d5718f510de93971411907200e",
+          "path": "package.json",
+          "local_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/desktop/electron-app/package.json",
+          "kind": "file",
+          "bytes": 95,
+          "identity": {
+            "device": "16777232",
+            "inode": "112249671",
+            "size": "95",
+            "mode": "33188",
+            "mtime_ns": "1793160668707030576",
+            "ctime_ns": "1793160668707030576"
+          },
+          "read_status": "not-selected",
+          "ranges": [],
+          "facts": [],
+          "issues": []
+        },
+        {
+          "file_id": "dsf_e3ac823812cf8569d297d414c36ddf95f92d621d68885ae948e21be133ce16b2",
+          "path": "resources",
+          "local_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/desktop/electron-app/resources",
+          "kind": "directory",
+          "bytes": null,
+          "identity": null,
+          "read_status": "not-selected",
+          "ranges": [],
+          "facts": [],
+          "issues": []
+        },
+        {
+          "file_id": "dsf_8a6a852a3351d0746d40b27ccdfc3fb62a0036441a0a8d56cfdc28ca1c3a6e13",
+          "path": "resources/app.asar",
+          "local_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/desktop/electron-app/resources/app.asar",
+          "kind": "file",
+          "bytes": 8,
+          "identity": {
+            "device": "16777232",
+            "inode": "112249673",
+            "size": "8",
+            "mode": "33188",
+            "mtime_ns": "1793160668707237994",
+            "ctime_ns": "1793160668707237994"
+          },
+          "read_status": "not-selected",
+          "ranges": [],
+          "facts": [
+            {
+              "kind": "electron-asar-convention",
+              "offset": null,
+              "value": "resources/app.asar"
+            }
+          ],
+          "issues": []
+        }
+      ],
+      "omissions": [],
+      "candidates": [
+        {
+          "candidate_id": "dsc_8125864b7ba87de8a762a689d521b3c0fced9fcfec2f03afa24c0ce7f5d781a0",
+          "family": "electron",
+          "confidence": "inferred",
+          "basis_file_ids": [
+            "dsf_8a6a852a3351d0746d40b27ccdfc3fb62a0036441a0a8d56cfdc28ca1c3a6e13"
+          ],
+          "rationale": "An app.asar in a resources directory suggests an Electron application; archive validity and execution are unverified."
+        }
+      ],
+      "components": [],
+      "next_probes": [
+        {
+          "probe_id": "dsp_aa230fc052d3d1fe22e8188a787e6c496039f750a3ca383ff381c5fa07e46212",
+          "operation": "open_binary",
+          "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/desktop/electron-app/resources/app.asar",
+          "file_id": "dsf_8a6a852a3351d0746d40b27ccdfc3fb62a0036441a0a8d56cfdc28ca1c3a6e13",
+          "rationale": "Select this ASAR target with open_binary, then call inspect_artifact to inventory it before selecting JavaScript sources.",
+          "confidence": "inferred"
+        },
+        {
+          "probe_id": "dsp_1efab833ad694d1c89849aae1226a0601a003d00ad0fd2d4ddb4895a94b40d30",
+          "operation": "analyze_javascript_application",
+          "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/desktop/electron-app/resources/app.asar",
+          "file_id": "dsf_8a6a852a3351d0746d40b27ccdfc3fb62a0036441a0a8d56cfdc28ca1c3a6e13",
+          "rationale": "Analyze the candidate application archive with the static JavaScript workflow.",
+          "confidence": "inferred"
+        }
+      ],
+      "coverage": {
+        "status": "complete-within-scan",
+        "entries_examined": 4,
+        "files_probed": 0,
+        "bytes_read": 0,
+        "symlinks_not_followed": 0,
+        "special_entries_omitted": 0,
+        "limits": {
+          "max_entries": 20000,
+          "max_probe_bytes": 8388608
+        }
+      },
+      "limitations": [
+        "Runtime candidates and component markers do not establish loaded code, execution, or build correspondence.",
+        "The directory SHA-256 commits only to retained paths, omission kinds, available filesystem metadata and read-range digests, not to every file's contents. Unread bytes are unknown.",
+        "Special-entry payloads are not read. Their paths and kinds are retained; other special-entry metadata is unavailable in this report.",
+        "Child symlinks are not followed. Executable section-embedded PCKs without a trailer and encrypted contents remain unexamined.",
+        "This is a sequence of stable entry observations, not an atomic snapshot of the entire directory.",
+        "Unity reference decoding stops after a witness in each Data/Managed directory; other assemblies' references are unexamined. Header facts remain per-file."
+      ]
+    },
+    "confidence": "observed",
+    "authority": "shipped-artifact",
+    "environment": null,
+    "limitations": [
+      "Runtime candidates and component markers do not establish loaded code, execution, or build correspondence.",
+      "The directory SHA-256 commits only to retained paths, omission kinds, available filesystem metadata and read-range digests, not to every file's contents. Unread bytes are unknown.",
+      "Special-entry payloads are not read. Their paths and kinds are retained; other special-entry metadata is unavailable in this report.",
+      "Child symlinks are not followed. Executable section-embedded PCKs without a trailer and encrypted contents remain unexamined.",
+      "This is a sequence of stable entry observations, not an atomic snapshot of the entire directory.",
+      "Unity reference decoding stops after a witness in each Data/Managed directory; other assemblies' references are unexamined. Header facts remain per-file."
+    ],
+    "relationship_coverage": null,
+    "locations": [
+      {
+        "kind": "artifact-path",
+        "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/desktop/electron-app"
+      }
+    ],
+    "evidence_links": []
+  },
+  "meta": {
+    "command": "inspect-desktop-application",
+    "duration": "9ms"
+  }
+}

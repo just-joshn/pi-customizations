@@ -1,0 +1,279 @@
+{
+  "kind": "evidence",
+  "body": {
+    "evidence_id": "ev_08be3d0f96ff9910a754cb3a2d64984f2af8d11e205ac736a57924725a34abd3",
+    "subject": null,
+    "provider": {
+      "id": "rea-javascript-application-workflows",
+      "name": "REA JavaScript application workflows",
+      "version": "1"
+    },
+    "analysis_profile": null,
+    "predicate_type": "rea.javascript-export-shape-comparison",
+    "operation": "compare_javascript_export_shapes",
+    "parameters": {
+      "left_evidence_id": "ev_10683a9dfde7326fa1a9f4ada131688a871aceb407f05724b98999bad00f8c44",
+      "right_evidence_id": "ev_9f46298f45070af498ccf6c8e2043cdfc7194683c3e4957ad2fa1b39f132503f",
+      "left_module_path": "src/main.js",
+      "left_export_name": "shape",
+      "right_module_path": "src/main.js",
+      "right_export_name": "shape"
+    },
+    "raw_result": null,
+    "normalized_result": {
+      "comparison_id": "jesc_95d535a9c713c06579395a41397e61f5f167bae314b7b9c56e5789baebfc6288",
+      "left": {
+        "evidence_id": "ev_10683a9dfde7326fa1a9f4ada131688a871aceb407f05724b98999bad00f8c44",
+        "graph_id": "jag_dd862a248dc29dfc7875679f92ef73bc2d12fcd2ee54e57efca5c8468db9becb",
+        "requested_module_path": "src/main.js",
+        "requested_export_name": "shape",
+        "candidates": [
+          {
+            "node_id": "jag_node_b4d5ca6806779f2d940f50c9c879bcddf0ba49f64f2d868488b4370c20bf217b",
+            "module_path": "src/main.js",
+            "export_name": "shape",
+            "matches_requested_module": true,
+            "matches_requested_export": true
+          }
+        ],
+        "omitted_candidates": 0,
+        "status": "selected",
+        "selected_node_id": "jag_node_b4d5ca6806779f2d940f50c9c879bcddf0ba49f64f2d868488b4370c20bf217b"
+      },
+      "right": {
+        "evidence_id": "ev_9f46298f45070af498ccf6c8e2043cdfc7194683c3e4957ad2fa1b39f132503f",
+        "graph_id": "jag_563778dcf75bff7990c9e9cf5dad07a5482b1d0844720e541f016fb13c947b64",
+        "requested_module_path": "src/main.js",
+        "requested_export_name": "shape",
+        "candidates": [
+          {
+            "node_id": "jag_node_2d180194f6ba3998395168269fbba521901e1064ac2fa33fabbc6a15bcf397ab",
+            "module_path": "src/main.js",
+            "export_name": "shape",
+            "matches_requested_module": true,
+            "matches_requested_export": true
+          }
+        ],
+        "omitted_candidates": 0,
+        "status": "selected",
+        "selected_node_id": "jag_node_2d180194f6ba3998395168269fbba521901e1064ac2fa33fabbc6a15bcf397ab"
+      },
+      "property_inventories": [
+        {
+          "side": "left",
+          "variant_index": 0,
+          "discriminant": {
+            "path": "/y",
+            "value": 2
+          },
+          "paired": true,
+          "source_range": {
+            "start": {
+              "line": 2,
+              "column": 20
+            },
+            "end": {
+              "line": 2,
+              "column": 42
+            }
+          },
+          "properties": [
+            "/x",
+            "/y"
+          ],
+          "property_coverage": [
+            {
+              "path": "",
+              "status": "complete"
+            }
+          ]
+        },
+        {
+          "side": "left",
+          "variant_index": 1,
+          "discriminant": {
+            "path": "/z",
+            "value": 3
+          },
+          "paired": true,
+          "source_range": {
+            "start": {
+              "line": 3,
+              "column": 2
+            },
+            "end": {
+              "line": 3,
+              "column": 24
+            }
+          },
+          "properties": [
+            "/x",
+            "/z"
+          ],
+          "property_coverage": [
+            {
+              "path": "",
+              "status": "complete"
+            }
+          ]
+        },
+        {
+          "side": "right",
+          "variant_index": 0,
+          "discriminant": {
+            "path": "/y",
+            "value": 2
+          },
+          "paired": true,
+          "source_range": {
+            "start": {
+              "line": 2,
+              "column": 20
+            },
+            "end": {
+              "line": 2,
+              "column": 42
+            }
+          },
+          "properties": [
+            "/x",
+            "/y"
+          ],
+          "property_coverage": [
+            {
+              "path": "",
+              "status": "complete"
+            }
+          ]
+        },
+        {
+          "side": "right",
+          "variant_index": 1,
+          "discriminant": {
+            "path": "/z",
+            "value": 3
+          },
+          "paired": true,
+          "source_range": {
+            "start": {
+              "line": 3,
+              "column": 2
+            },
+            "end": {
+              "line": 3,
+              "column": 30
+            }
+          },
+          "properties": [
+            "/w",
+            "/x",
+            "/z"
+          ],
+          "property_coverage": [
+            {
+              "path": "",
+              "status": "complete"
+            }
+          ]
+        }
+      ],
+      "summary": {
+        "added": 1,
+        "removed": 0,
+        "changed": 0,
+        "unknown": 0
+      },
+      "changes": [
+        {
+          "change_id": "jesc_change_942af3e2496e7b87a191dc2a9df260d60c2a337f28d92853cc760d08f7b0d3e2",
+          "status": "added",
+          "path": "/w",
+          "discriminant": {
+            "path": "/z",
+            "value": 3
+          },
+          "presence": {
+            "left": "absent",
+            "right": "present"
+          },
+          "left": {
+            "availability": "absent"
+          },
+          "right": {
+            "availability": "literal",
+            "value": 4
+          },
+          "left_source_range": {
+            "start": {
+              "line": 3,
+              "column": 2
+            },
+            "end": {
+              "line": 3,
+              "column": 24
+            }
+          },
+          "right_source_range": {
+            "start": {
+              "line": 3,
+              "column": 2
+            },
+            "end": {
+              "line": 3,
+              "column": 30
+            }
+          },
+          "evidence_links": [
+            "ev_10683a9dfde7326fa1a9f4ada131688a871aceb407f05724b98999bad00f8c44",
+            "ev_9f46298f45070af498ccf6c8e2043cdfc7194683c3e4957ad2fa1b39f132503f"
+          ],
+          "limitations": []
+        }
+      ],
+      "coverage": {
+        "status": "complete-within-inputs",
+        "left_graph_status": "complete",
+        "right_graph_status": "complete",
+        "paired_variants": 2,
+        "unpaired_left_variants": 0,
+        "unpaired_right_variants": 0,
+        "omitted_left_variants": 0,
+        "omitted_right_variants": 0,
+        "left_source_omitted_variants": 0,
+        "right_source_omitted_variants": 0,
+        "left_omitted_fields": 0,
+        "right_omitted_fields": 0,
+        "left_omitted_property_coverage": 0,
+        "right_omitted_property_coverage": 0,
+        "omitted_candidates": 0,
+        "omitted_changes": 0
+      },
+      "evidence_links": [
+        "ev_10683a9dfde7326fa1a9f4ada131688a871aceb407f05724b98999bad00f8c44",
+        "ev_9f46298f45070af498ccf6c8e2043cdfc7194683c3e4957ad2fa1b39f132503f"
+      ],
+      "limitations": [
+        "Dynamic values, incomplete object coverage, and ambiguous variants remain unknown.",
+        "Return shapes are inferred from inert syntax and do not prove runtime behavior.",
+        "Return variants are paired only by unique exact literal discriminants, never by source order.",
+        "This static comparison cannot establish runtime semantics; run behavioral probes directly against the relevant application versions when that evidence is required."
+      ]
+    },
+    "confidence": "inferred",
+    "authority": "analyst-inference",
+    "environment": null,
+    "limitations": [
+      "Artifact identity is unavailable for this observation.",
+      "Dynamic values, incomplete object coverage, and ambiguous variants remain unknown.",
+      "Return shapes are inferred from inert syntax and do not prove runtime behavior.",
+      "Return variants are paired only by unique exact literal discriminants, never by source order.",
+      "This static comparison cannot establish runtime semantics; run behavioral probes directly against the relevant application versions when that evidence is required."
+    ],
+    "relationship_coverage": null,
+    "locations": [],
+    "evidence_links": [
+      "ev_10683a9dfde7326fa1a9f4ada131688a871aceb407f05724b98999bad00f8c44",
+      "ev_9f46298f45070af498ccf6c8e2043cdfc7194683c3e4957ad2fa1b39f132503f"
+    ]
+  }
+}

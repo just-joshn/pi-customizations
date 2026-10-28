@@ -1,0 +1,122 @@
+{
+  "kind": "evidence",
+  "body": {
+    "evidence_id": "ev_b22344db010f7af0fa88c9797bf20b9fc1ff9627600eb5e0273d16fa8b7c9ef6",
+    "subject": {
+      "name": "fixture-go-pe.exe",
+      "digest": {
+        "sha256": "a0c15a15db4af6ff996224c2b7dd37bb646811d1b00d097fc2f363e7037675a6"
+      },
+      "format": "pe",
+      "architecture": "x86_64",
+      "local_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/pe/fixture-go-pe.exe"
+    },
+    "provider": {
+      "id": "pi-rea-in-process",
+      "name": "pi-rea in-process analysis",
+      "version": "0.1.0"
+    },
+    "analysis_profile": null,
+    "predicate_type": "rea.analysis",
+    "operation": "inspect_go_binary",
+    "parameters": {
+      "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/pe/fixture-go-pe.exe"
+    },
+    "raw_result": null,
+    "normalized_result": {
+      "artifact": {
+        "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/pe/fixture-go-pe.exe",
+        "sha256": "a0c15a15db4af6ff996224c2b7dd37bb646811d1b00d097fc2f363e7037675a6",
+        "bytes": 2504704
+      },
+      "format": "pe",
+      "architecture": "amd64",
+      "bits": 64,
+      "byte_order": "little",
+      "build_info": {
+        "header_offset": 1605120,
+        "encoding": "inline",
+        "go_version": "go1.26.8",
+        "go_version_bytes_base64": "Z28xLjI2Ljg=",
+        "module_text": "path\texample.com/parityfixture\nmod\texample.com/parityfixture\t(devel)\t\nbuild\t-buildmode=exe\nbuild\t-compiler=gc\nbuild\t-ldflags=\"-X main.banner=injected\"\nbuild\tCGO_ENABLED=0\nbuild\tGOARCH=amd64\nbuild\tGOOS=windows\nbuild\tGOAMD64=v1\n",
+        "module_bytes_base64": "MHevDJJ0CAJB4cEH5tYY5nBhdGgJZXhhbXBsZS5jb20vcGFyaXR5Zml4dHVyZQptb2QJZXhhbXBsZS5jb20vcGFyaXR5Zml4dHVyZQkoZGV2ZWwpCQpidWlsZAktYnVpbGRtb2RlPWV4ZQpidWlsZAktY29tcGlsZXI9Z2MKYnVpbGQJLWxkZmxhZ3M9Ii1YIG1haW4uYmFubmVyPWluamVjdGVkIgpidWlsZAlDR09fRU5BQkxFRD0wCmJ1aWxkCUdPQVJDSD1hbWQ2NApidWlsZAlHT09TPXdpbmRvd3MKYnVpbGQJR09BTUQ2ND12MQr5MkMxhhggcgCCQhBBFtjy",
+        "version_location": {
+          "offset": 1605153,
+          "bytes": 8
+        },
+        "module_location": {
+          "offset": 1605163,
+          "bytes": 258
+        },
+        "module": {
+          "path": "example.com/parityfixture",
+          "main": {
+            "path": "example.com/parityfixture",
+            "version": "(devel)",
+            "sum": "",
+            "replacement": null
+          },
+          "dependencies": [],
+          "settings": [
+            {
+              "key": "-buildmode",
+              "value": "exe"
+            },
+            {
+              "key": "-compiler",
+              "value": "gc"
+            },
+            {
+              "key": "-ldflags",
+              "value": "-X main.banner=injected"
+            },
+            {
+              "key": "CGO_ENABLED",
+              "value": "0"
+            },
+            {
+              "key": "GOARCH",
+              "value": "amd64"
+            },
+            {
+              "key": "GOOS",
+              "value": "windows"
+            },
+            {
+              "key": "GOAMD64",
+              "value": "v1"
+            }
+          ],
+          "unparsed_lines": [],
+          "unparsed_line_bytes_base64": [],
+          "complete": true
+        }
+      },
+      "limitations": [
+        "Embedded build metadata is observed file content, not proof of compiler identity, dependency authenticity or runtime behavior.",
+        "Only Go build information is inspected; function names, source mappings, type metadata and decompiled code are not recovered.",
+        "Resource guards bound stable artifact reads and cumulative header searches to 256 MiB each, aggregate embedded strings to 1 MiB, structural table decoding to 16 MiB and complete metadata payloads to 8 MiB; these are not operating-system memory or CPU limits."
+      ]
+    },
+    "confidence": "observed",
+    "authority": "shipped-artifact",
+    "environment": null,
+    "limitations": [
+      "Embedded build metadata is observed file content, not proof of compiler identity, dependency authenticity or runtime behavior.",
+      "Only Go build information is inspected; function names, source mappings, type metadata and decompiled code are not recovered.",
+      "Resource guards bound stable artifact reads and cumulative header searches to 256 MiB each, aggregate embedded strings to 1 MiB, structural table decoding to 16 MiB and complete metadata payloads to 8 MiB; these are not operating-system memory or CPU limits."
+    ],
+    "locations": [
+      {
+        "kind": "artifact-path",
+        "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/pe/fixture-go-pe.exe"
+      },
+      {
+        "kind": "file-offset-range",
+        "start": 1605120,
+        "end": 1605152
+      }
+    ],
+    "evidence_links": []
+  }
+}

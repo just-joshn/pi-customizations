@@ -1,0 +1,174 @@
+{
+  "kind": "evidence",
+  "body": {
+    "evidence_id": "ev_de06fb74cb072d7317eeec6e0c8ff5ff8976737c2b70bae90e1a7c60c73bcdc1",
+    "subject": null,
+    "provider": {
+      "id": "pi-rea-in-process",
+      "name": "pi-rea in-process analysis",
+      "version": "0.1.0"
+    },
+    "analysis_profile": null,
+    "predicate_type": "rea.analysis",
+    "operation": "decode_interface_builder",
+    "parameters": {
+      "max_documents": 64,
+      "max_objects": 20000,
+      "max_connections": 40000,
+      "input_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/bundle/Fixture.app"
+    },
+    "raw_result": null,
+    "normalized_result": {
+      "target_sha256": null,
+      "resource_root": {
+        "caller_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/bundle/Fixture.app",
+        "canonical_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/bundle/Fixture.app",
+        "info_plist_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/bundle/Fixture.app/Contents/Info.plist",
+        "layout": "contents",
+        "executable_sha256": null
+      },
+      "documents": [
+        {
+          "relative_path": "Contents/Resources/Base.lproj/MainMenu.nib",
+          "archive_sha256": "3f8f3213da7c70fae60c636aacf2a170d0e108015d8ac2e09b6aa66f0062b898",
+          "document_kind": "nib",
+          "object_count": 1,
+          "connection_count": 0,
+          "hierarchy_complete": true
+        }
+      ],
+      "graph": {
+        "target_sha256": null,
+        "provider": {
+          "id": "rea-artifact-graph",
+          "version": "1",
+          "tool_version": "rea-interface-builder/1"
+        },
+        "nodes": [
+          {
+            "id": "ib:\"Contents/Resources/Base.lproj/MainMenu.nib\":root",
+            "kind": "scene",
+            "name": "Contents/Resources/Base.lproj/MainMenu.nib",
+            "location": null,
+            "attributes": {
+              "document_kind": "nib"
+            },
+            "evidence": [
+              {
+                "kind": "interface_builder_resource",
+                "description": "compiled document",
+                "location": {
+                  "address": null,
+                  "file_offset": null
+                },
+                "artifact_path": "Contents/Resources/Base.lproj/MainMenu.nib",
+                "artifact_sha256": "3f8f3213da7c70fae60c636aacf2a170d0e108015d8ac2e09b6aa66f0062b898"
+              }
+            ]
+          },
+          {
+            "id": "ib:\"Contents/Resources/Base.lproj/MainMenu.nib\":object:[\"1\"]",
+            "kind": "unknown",
+            "name": "NSObject",
+            "location": null,
+            "attributes": {
+              "name": "demo",
+              "interface_builder_object_id": "1",
+              "class_name": "NSObject"
+            },
+            "evidence": [
+              {
+                "kind": "interface_builder_resource",
+                "description": "object 1",
+                "location": {
+                  "address": null,
+                  "file_offset": null
+                },
+                "artifact_path": "Contents/Resources/Base.lproj/MainMenu.nib",
+                "artifact_sha256": "3f8f3213da7c70fae60c636aacf2a170d0e108015d8ac2e09b6aa66f0062b898"
+              }
+            ]
+          }
+        ],
+        "edges": [
+          {
+            "id": "ib:\"Contents/Resources/Base.lproj/MainMenu.nib\":hierarchy:[\"ib:\\\"Contents/Resources/Base.lproj/MainMenu.nib\\\":root\",\"ib:\\\"Contents/Resources/Base.lproj/MainMenu.nib\\\":object:[\\\"1\\\"]\"]",
+            "from": "ib:\"Contents/Resources/Base.lproj/MainMenu.nib\":root",
+            "to": "ib:\"Contents/Resources/Base.lproj/MainMenu.nib\":object:[\"1\"]",
+            "relation": "contains",
+            "resolution": "observed",
+            "evidence": [
+              {
+                "kind": "interface_builder_resource",
+                "description": "hierarchy 1",
+                "location": {
+                  "address": null,
+                  "file_offset": null
+                },
+                "artifact_path": "Contents/Resources/Base.lproj/MainMenu.nib",
+                "artifact_sha256": "3f8f3213da7c70fae60c636aacf2a170d0e108015d8ac2e09b6aa66f0062b898"
+              }
+            ],
+            "limitations": []
+          }
+        ],
+        "coverage": [
+          {
+            "facet": "objects:Contents/Resources/Base.lproj/MainMenu.nib",
+            "status": "complete",
+            "reason": null,
+            "examined": 1,
+            "omitted": 0
+          },
+          {
+            "facet": "connections:Contents/Resources/Base.lproj/MainMenu.nib",
+            "status": "complete",
+            "reason": null,
+            "examined": 0,
+            "omitted": 0
+          },
+          {
+            "facet": "hierarchy:Contents/Resources/Base.lproj/MainMenu.nib",
+            "status": "complete",
+            "reason": null,
+            "examined": 1,
+            "omitted": 0
+          },
+          {
+            "facet": "classes:Contents/Resources/Base.lproj/MainMenu.nib",
+            "status": "complete",
+            "reason": null,
+            "examined": 1,
+            "omitted": 0
+          },
+          {
+            "facet": "archive_decode",
+            "status": "complete",
+            "reason": null,
+            "examined": 1,
+            "omitted": 0
+          }
+        ],
+        "truncated": false
+      },
+      "limitations": [
+        "The graph reflects recognized Interface Builder archive fields and connections; omitted private or unrecognized archive fields remain unknown.",
+        "A target-action selector is an Interface Builder observation and does not prove that the binary contains a matching implementation.",
+        "Decoded constraints, runtime visibility, dynamic UI creation, and pixel geometry are not inferred from these archives.",
+        "Compiled Interface Builder archives are private serialized object graphs. The decoder reports only recognized keyed-archive objects and connections; unrecognized object classes and fields remain unknown."
+      ]
+    },
+    "confidence": "observed",
+    "authority": "shipped-artifact",
+    "environment": null,
+    "limitations": [
+      "Artifact identity is unavailable for this observation.",
+      "The graph reflects recognized Interface Builder archive fields and connections; omitted private or unrecognized archive fields remain unknown.",
+      "A target-action selector is an Interface Builder observation and does not prove that the binary contains a matching implementation.",
+      "Decoded constraints, runtime visibility, dynamic UI creation, and pixel geometry are not inferred from these archives.",
+      "Compiled Interface Builder archives are private serialized object graphs. The decoder reports only recognized keyed-archive objects and connections; unrecognized object classes and fields remain unknown."
+    ],
+    "locations": [],
+    "evidence_links": []
+  }
+}

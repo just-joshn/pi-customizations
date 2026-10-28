@@ -1,0 +1,257 @@
+{
+  "kind": "evidence",
+  "body": {
+    "evidence_id": "ev_d9e147aaafa667323815def7cc8f493880fd62ce7bb6b61f28b944b7d9497a2a",
+    "subject": {
+      "name": "fixture.zip",
+      "digest": {
+        "sha256": "f70f0a427115616e2e85303698bc8e1fa3fdcb5e405b186c585128d33464455e"
+      },
+      "local_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/fixture.zip",
+      "format": "zip",
+      "architecture": null
+    },
+    "provider": {
+      "id": "rea-artifact-graph",
+      "name": "REA safe artifact graph provider",
+      "version": "1"
+    },
+    "analysis_profile": null,
+    "predicate_type": "rea.analysis",
+    "operation": "inspect_artifact",
+    "parameters": {
+      "integrity_policy": "fail",
+      "input_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/fixture.zip"
+    },
+    "raw_result": null,
+    "normalized_result": {
+      "inspection_id": "ai_aed62eaa3a0207db4d35c5b6077377864e1314f32e74624c37c95b5d851b713f",
+      "subject": {
+        "manifest_id": "agm_af6488bc1b57b8d7152b93b3e5849f3f227c6c81e8685f0ae662bf02fa3766c3",
+        "root_artifact_id": "art_047c81054bf618903997b7cf981f4d5b5fea99b72d35864547eac8831556e33b",
+        "root_sha256": "f70f0a427115616e2e85303698bc8e1fa3fdcb5e405b186c585128d33464455e",
+        "root_format": "zip"
+      },
+      "substeps": [
+        {
+          "substep_id": "ais_13b5ac413d828384552650eb342619955e05bdcbad33c1311e80901c0acf0a97",
+          "operation": "inventory_artifact",
+          "status": "completed",
+          "evidence_id": "ev_77b81812769dab28053f30c77d82998d55bd490415a4f2093e1b974a3cc7112a",
+          "evidence": {
+            "evidence_id": "ev_77b81812769dab28053f30c77d82998d55bd490415a4f2093e1b974a3cc7112a",
+            "subject": {
+              "name": "fixture.zip",
+              "digest": {
+                "sha256": "f70f0a427115616e2e85303698bc8e1fa3fdcb5e405b186c585128d33464455e"
+              },
+              "local_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/fixture.zip",
+              "format": "zip",
+              "architecture": null
+            },
+            "provider": {
+              "id": "rea-artifact-graph",
+              "name": "REA safe artifact graph provider",
+              "version": "1"
+            },
+            "analysis_profile": null,
+            "predicate_type": "rea.analysis",
+            "operation": "inventory_artifact",
+            "parameters": {
+              "integrity_policy": "fail"
+            },
+            "raw_result": null,
+            "normalized_result": {
+              "manifest": {
+                "manifest_id": "agm_af6488bc1b57b8d7152b93b3e5849f3f227c6c81e8685f0ae662bf02fa3766c3",
+                "root_artifact_id": "art_047c81054bf618903997b7cf981f4d5b5fea99b72d35864547eac8831556e33b",
+                "root_sha256": "f70f0a427115616e2e85303698bc8e1fa3fdcb5e405b186c585128d33464455e",
+                "root_format": "zip",
+                "graph_sha256": "f7dc31d74f26016e7e4ddcebcfc76eaef79d64c1ebfd79bca765159c867a6cfb",
+                "node_count": 3,
+                "occurrence_count": 3,
+                "edge_count": 2
+              },
+              "nodes": [
+                {
+                  "artifact_id": "art_047c81054bf618903997b7cf981f4d5b5fea99b72d35864547eac8831556e33b",
+                  "format": "zip",
+                  "sha256": "f70f0a427115616e2e85303698bc8e1fa3fdcb5e405b186c585128d33464455e",
+                  "size": 280,
+                  "media_type": null,
+                  "architecture": null,
+                  "content_state": "materialized",
+                  "limitations": []
+                },
+                {
+                  "artifact_id": "art_be7c96c451b8e62f6c81429b792a32e2375845061035f072842b6969c5a3fbee",
+                  "format": "file",
+                  "sha256": "fb1844ac4443a18175a1201111257c0aa72a26d6ec8627813b6d7925398ab3e0",
+                  "size": 40,
+                  "media_type": null,
+                  "architecture": null,
+                  "content_state": "embedded",
+                  "limitations": []
+                },
+                {
+                  "artifact_id": "art_e5af109ce4582c356e568a0bc9adddf3d39d714874aab0e57a0c95299529bf4b",
+                  "format": "file",
+                  "sha256": "a2098bd92b10bf8b816d24b7556b1ce8c49a879d130489065ef1051c17e042f6",
+                  "size": 26,
+                  "media_type": null,
+                  "architecture": null,
+                  "content_state": "embedded",
+                  "limitations": []
+                }
+              ],
+              "occurrences": [
+                {
+                  "occurrence_id": "occ_2055041333d6568e9ea197555d7af8b4256424fbf684224eee602512c491fa1f",
+                  "artifact_id": "art_047c81054bf618903997b7cf981f4d5b5fea99b72d35864547eac8831556e33b",
+                  "parent_occurrence_id": null,
+                  "logical_path": ".",
+                  "entry_kind": "file",
+                  "artifact_kind": "container",
+                  "artifact_format": "zip",
+                  "declared_size": 280,
+                  "compressed_size": null,
+                  "executable": false,
+                  "encrypted": false,
+                  "hash_status": "verified",
+                  "source_location": null,
+                  "limitations": []
+                },
+                {
+                  "occurrence_id": "occ_9e502f8deec4873803b8be16e752f2a2f16c7949efbcc6b6f527a068847656c0",
+                  "artifact_id": "art_e5af109ce4582c356e568a0bc9adddf3d39d714874aab0e57a0c95299529bf4b",
+                  "parent_occurrence_id": "occ_2055041333d6568e9ea197555d7af8b4256424fbf684224eee602512c491fa1f",
+                  "logical_path": "app.js",
+                  "entry_kind": "file",
+                  "artifact_kind": "javascript",
+                  "artifact_format": "javascript-bundle",
+                  "declared_size": 26,
+                  "compressed_size": 28,
+                  "executable": false,
+                  "encrypted": false,
+                  "hash_status": "verified",
+                  "source_location": null,
+                  "limitations": []
+                },
+                {
+                  "occurrence_id": "occ_2515c066a7ea188da2c474b6b7e32c5e7ba4da68b92c6a16c61ab724a5d68c20",
+                  "artifact_id": "art_be7c96c451b8e62f6c81429b792a32e2375845061035f072842b6969c5a3fbee",
+                  "parent_occurrence_id": "occ_2055041333d6568e9ea197555d7af8b4256424fbf684224eee602512c491fa1f",
+                  "logical_path": "manifest.json",
+                  "entry_kind": "file",
+                  "artifact_kind": "resource",
+                  "artifact_format": "file",
+                  "declared_size": 40,
+                  "compressed_size": 40,
+                  "executable": false,
+                  "encrypted": false,
+                  "hash_status": "verified",
+                  "source_location": null,
+                  "limitations": []
+                }
+              ],
+              "edges": [
+                {
+                  "edge_id": "edge_79ab797006e54ed30207bc1b73e7d2122a6f80d129a0fa10900e341691964bca",
+                  "ordinal": 0,
+                  "parent_artifact_id": "art_047c81054bf618903997b7cf981f4d5b5fea99b72d35864547eac8831556e33b",
+                  "relation": "contains",
+                  "occurrence_id": "occ_2515c066a7ea188da2c474b6b7e32c5e7ba4da68b92c6a16c61ab724a5d68c20",
+                  "producer": null
+                },
+                {
+                  "edge_id": "edge_f30d7b734a2970ca77ad127d203a83d611d790e1df41fe3c2be065aa69cf97a8",
+                  "ordinal": 1,
+                  "parent_artifact_id": "art_047c81054bf618903997b7cf981f4d5b5fea99b72d35864547eac8831556e33b",
+                  "relation": "contains",
+                  "occurrence_id": "occ_9e502f8deec4873803b8be16e752f2a2f16c7949efbcc6b6f527a068847656c0",
+                  "producer": null
+                }
+              ],
+              "provenance": [],
+              "integrity_contradictions": [],
+              "coverage": {
+                "scope": "container-entries",
+                "status": "complete"
+              },
+              "limitations": [
+                "ZIP inventory lists central-directory entries only. Non-entry bytes, including leading bytes before the first entry such as a self-extractor stub, an APK Signing Block before the central directory or a ZIP comment after it, are not occurrences."
+              ]
+            },
+            "confidence": "observed",
+            "authority": "shipped-artifact",
+            "environment": null,
+            "limitations": [
+              "ZIP inventory lists central-directory entries only. Non-entry bytes, including leading bytes before the first entry such as a self-extractor stub, an APK Signing Block before the central directory or a ZIP comment after it, are not occurrences."
+            ],
+            "relationship_coverage": null,
+            "locations": [],
+            "evidence_links": []
+          }
+        }
+      ],
+      "observations": [
+        {
+          "observation_id": "aio_41fedea7e4acdfc00bbbd22e356c5384b8289d8b9a924fac4cde1b4cf2aa2f86",
+          "kind": "root-manifest",
+          "subject": "art_047c81054bf618903997b7cf981f4d5b5fea99b72d35864547eac8831556e33b",
+          "value": {
+            "manifest_id": "agm_af6488bc1b57b8d7152b93b3e5849f3f227c6c81e8685f0ae662bf02fa3766c3",
+            "root_artifact_id": "art_047c81054bf618903997b7cf981f4d5b5fea99b72d35864547eac8831556e33b",
+            "root_sha256": "f70f0a427115616e2e85303698bc8e1fa3fdcb5e405b186c585128d33464455e",
+            "root_format": "zip",
+            "graph_sha256": "f7dc31d74f26016e7e4ddcebcfc76eaef79d64c1ebfd79bca765159c867a6cfb",
+            "node_count": 3,
+            "occurrence_count": 3,
+            "edge_count": 2
+          },
+          "evidence_id": "ev_77b81812769dab28053f30c77d82998d55bd490415a4f2093e1b974a3cc7112a"
+        }
+      ],
+      "hypotheses": [],
+      "contradictions": [],
+      "unexplored_branches": [],
+      "next_probes": [],
+      "coverage": {
+        "status": "complete-within-substeps",
+        "substeps_completed": 1,
+        "observations_retained": 1,
+        "observations_omitted": 0,
+        "hypotheses_retained": 0,
+        "hypotheses_omitted": 0,
+        "unexplored_branches_retained": 0,
+        "unexplored_branches_omitted": 0,
+        "next_probes_retained": 0,
+        "next_probes_omitted": 0
+      },
+      "evidence_links": [
+        "ev_77b81812769dab28053f30c77d82998d55bd490415a4f2093e1b974a3cc7112a"
+      ],
+      "limitations": [
+        "Inspection derives bounded static hypotheses and next probes; it does not execute the artifact or claim format-specific semantics.",
+        "ZIP inventory lists central-directory entries only. Non-entry bytes, including leading bytes before the first entry such as a self-extractor stub, an APK Signing Block before the central directory or a ZIP comment after it, are not occurrences."
+      ]
+    },
+    "confidence": "observed",
+    "authority": "shipped-artifact",
+    "environment": null,
+    "limitations": [
+      "Inspection derives bounded static hypotheses and next probes; it does not execute the artifact or claim format-specific semantics.",
+      "ZIP inventory lists central-directory entries only. Non-entry bytes, including leading bytes before the first entry such as a self-extractor stub, an APK Signing Block before the central directory or a ZIP comment after it, are not occurrences."
+    ],
+    "relationship_coverage": null,
+    "locations": [],
+    "evidence_links": [
+      "ev_77b81812769dab28053f30c77d82998d55bd490415a4f2093e1b974a3cc7112a"
+    ],
+    "caller_input_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/fixture.zip"
+  },
+  "meta": {
+    "command": "inspect-artifact",
+    "duration": "151ms"
+  }
+}

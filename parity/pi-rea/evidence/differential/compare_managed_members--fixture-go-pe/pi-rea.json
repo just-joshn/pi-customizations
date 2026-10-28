@@ -1,0 +1,110 @@
+{
+  "kind": "evidence",
+  "body": {
+    "evidence_id": "ev_925357d2b27d413f725e0082d6915ace7b6e0e3698749704a410d3f25bbd171c",
+    "subject": null,
+    "provider": {
+      "id": "pi-rea-dotnet-workflows",
+      "name": "pi-rea managed-code workflows",
+      "version": "1"
+    },
+    "analysis_profile": null,
+    "predicate_type": "rea.managed-member-comparison",
+    "operation": "compare_managed_members",
+    "parameters": {
+      "left_evidence_id": "ev_53190160737e726c6a071b8d2379da512731080967040bda2fa0dbf2f1f19907",
+      "right_evidence_id": "ev_5900dd0f3af1d23776633d17384a6bdb4858ce4233e3e42ee171aa0ebbc23659",
+      "left_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/pe/fixture-go-pe.exe",
+      "right_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/pe/fixture-go-pe-alt.exe"
+    },
+    "raw_result": null,
+    "normalized_result": {
+      "comparison_id": "mmc_fb6a1c4ea010caee8fc4a8baba1e64ae118f904f69ef4c0eb62158049df4315a",
+      "algorithm": {
+        "name": "rea-managed-member-comparison",
+        "token_identity": "build-local",
+        "name_matching": "exact-signature-fallback"
+      },
+      "left": {
+        "evidence_id": "ev_53190160737e726c6a071b8d2379da512731080967040bda2fa0dbf2f1f19907",
+        "artifact_sha256": "a0c15a15db4af6ff996224c2b7dd37bb646811d1b00d097fc2f363e7037675a6",
+        "mvid": null,
+        "module_name": null,
+        "metadata_status": "absent",
+        "methods_total": 0,
+        "fields_total": 0
+      },
+      "right": {
+        "evidence_id": "ev_5900dd0f3af1d23776633d17384a6bdb4858ce4233e3e42ee171aa0ebbc23659",
+        "artifact_sha256": "cd5f7f498f090e6fd0bdd5afce939e75b19c89a18913d79b6694e7c53cf14870",
+        "mvid": null,
+        "module_name": null,
+        "metadata_status": "absent",
+        "methods_total": 0,
+        "fields_total": 0
+      },
+      "summary": {
+        "unchanged": 0,
+        "changed": 0,
+        "added": 0,
+        "removed": 0,
+        "unknown": 0
+      },
+      "matching": {
+        "exact_il_signature": 0,
+        "exact_signature": 0,
+        "structural_method_shape": 0,
+        "field_signature": 0,
+        "ambiguous": 0,
+        "unmatched": 0
+      },
+      "methods": [],
+      "fields": [],
+      "coverage": {
+        "status": "partial",
+        "left_status": "unavailable",
+        "right_status": "unavailable"
+      },
+      "evidence_links": [
+        "ev_53190160737e726c6a071b8d2379da512731080967040bda2fa0dbf2f1f19907",
+        "ev_5900dd0f3af1d23776633d17384a6bdb4858ce4233e3e42ee171aa0ebbc23659"
+      ],
+      "limitations": [
+        "Metadata tokens are build-local coordinates; matched pairs are remaps, not persistent identities.",
+        "Methods pair within one declared type and name by exact CIL/signature, then signature, then structural shape; only then may exact CIL/signature or structural shape alone remap across declared types or names, never taking a member whose own declared type and name remain unpaired on the other side or whose declaring type is unresolved. Names alone are never a matching basis.",
+        "Fields pair by declared type, name, and signature, then remap by exact decoded signature alone under the same rule; an undecoded signature is compared only for an exact signature match, and an unmatched member with one stays unknown.",
+        "At least one managed member observation is partial.",
+        "At least one observation lacks a complete MethodDef row inventory; paged or unrecorded method scope cannot establish cross-build method absence. Row intervals are reported in method_rows and describe build-local selections.",
+        "At least one managed member observation did not examine ExportedType rows; its exported and forwarded types are unknown.",
+        "ldstr literals are not compared; normalized CIL keeps #US tokens rather than decoded text, so an unchanged method does not establish unchanged string literals."
+      ]
+    },
+    "confidence": "inferred",
+    "authority": "analyst-inference",
+    "environment": null,
+    "limitations": [
+      "Artifact identity is unavailable for this observation.",
+      "Metadata tokens are build-local coordinates; matched pairs are remaps, not persistent identities.",
+      "Methods pair within one declared type and name by exact CIL/signature, then signature, then structural shape; only then may exact CIL/signature or structural shape alone remap across declared types or names, never taking a member whose own declared type and name remain unpaired on the other side or whose declaring type is unresolved. Names alone are never a matching basis.",
+      "Fields pair by declared type, name, and signature, then remap by exact decoded signature alone under the same rule; an undecoded signature is compared only for an exact signature match, and an unmatched member with one stays unknown.",
+      "At least one managed member observation is partial.",
+      "At least one observation lacks a complete MethodDef row inventory; paged or unrecorded method scope cannot establish cross-build method absence. Row intervals are reported in method_rows and describe build-local selections.",
+      "At least one managed member observation did not examine ExportedType rows; its exported and forwarded types are unknown.",
+      "ldstr literals are not compared; normalized CIL keeps #US tokens rather than decoded text, so an unchanged method does not establish unchanged string literals."
+    ],
+    "locations": [
+      {
+        "kind": "artifact-path",
+        "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/pe/fixture-go-pe.exe"
+      },
+      {
+        "kind": "artifact-path",
+        "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/pe/fixture-go-pe-alt.exe"
+      }
+    ],
+    "evidence_links": [
+      "ev_53190160737e726c6a071b8d2379da512731080967040bda2fa0dbf2f1f19907",
+      "ev_5900dd0f3af1d23776633d17384a6bdb4858ce4233e3e42ee171aa0ebbc23659"
+    ]
+  }
+}

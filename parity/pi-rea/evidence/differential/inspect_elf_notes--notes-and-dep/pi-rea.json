@@ -1,0 +1,156 @@
+{
+  "kind": "evidence",
+  "body": {
+    "evidence_id": "ev_7cfc520048058c8a3266613af4e65a1d1c8d29b97706ecff249052a39ea986c6",
+    "subject": {
+      "name": "notes-and-dep.so",
+      "digest": {
+        "sha256": "c2b5dc3a5e37b0a28895699e756141868c406f4a16367438bf6170065b6772b2"
+      },
+      "format": "elf",
+      "architecture": "x86_64",
+      "local_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/elf/notes-and-dep.so"
+    },
+    "provider": {
+      "id": "pi-rea-in-process",
+      "name": "pi-rea in-process analysis",
+      "version": "0.1.0"
+    },
+    "analysis_profile": null,
+    "predicate_type": "rea.analysis",
+    "operation": "inspect_elf_notes",
+    "parameters": {
+      "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/elf/notes-and-dep.so",
+      "max_file_bytes": 67108864,
+      "max_entries": 32
+    },
+    "raw_result": null,
+    "normalized_result": {
+      "artifact": {
+        "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/elf/notes-and-dep.so",
+        "sha256": "c2b5dc3a5e37b0a28895699e756141868c406f4a16367438bf6170065b6772b2",
+        "bytes": 600
+      },
+      "format": "elf64",
+      "byte_order": "little",
+      "machine": 62,
+      "type": 2,
+      "type_name": "executable",
+      "tables": [
+        {
+          "kind": "program",
+          "index": 0,
+          "name": null,
+          "location": {
+            "offset": 120,
+            "bytes": 32
+          },
+          "alignment": 4
+        },
+        {
+          "kind": "section",
+          "index": 2,
+          "name": ".note.gnu.build-id",
+          "location": {
+            "offset": 120,
+            "bytes": 32
+          },
+          "alignment": 4
+        }
+      ],
+      "entries": [
+        {
+          "index": 0,
+          "table_kind": "program",
+          "table_index": 0,
+          "location": {
+            "offset": 120,
+            "bytes": 32
+          },
+          "namesz": 4,
+          "descsz": 16,
+          "type": 3,
+          "type_name": "gnu_build_id",
+          "owner": "GNU",
+          "owner_bytes_hex": "474e5500",
+          "descriptor": {
+            "location": {
+              "offset": 136,
+              "bytes": 16
+            },
+            "bytes": 16,
+            "sha256": "5dfbabeedf318bf33c0927c43d7630f51b82f351740301354fa3d7fc51f0132e",
+            "hex": "0102030405060708090a0b0c0d0e0f10"
+          },
+          "gnu": {
+            "build_id_hex": "0102030405060708090a0b0c0d0e0f10",
+            "abi_tag": null,
+            "gold_version": null
+          }
+        },
+        {
+          "index": 1,
+          "table_kind": "section",
+          "table_index": 2,
+          "location": {
+            "offset": 120,
+            "bytes": 32
+          },
+          "namesz": 4,
+          "descsz": 16,
+          "type": 3,
+          "type_name": "gnu_build_id",
+          "owner": "GNU",
+          "owner_bytes_hex": "474e5500",
+          "descriptor": {
+            "location": {
+              "offset": 136,
+              "bytes": 16
+            },
+            "bytes": 16,
+            "sha256": "5dfbabeedf318bf33c0927c43d7630f51b82f351740301354fa3d7fc51f0132e",
+            "hex": "0102030405060708090a0b0c0d0e0f10"
+          },
+          "gnu": {
+            "build_id_hex": "0102030405060708090a0b0c0d0e0f10",
+            "abi_tag": null,
+            "gold_version": null
+          }
+        }
+      ],
+      "coverage": {
+        "status": "complete",
+        "examined_tables": 2,
+        "examined_entries": 2
+      },
+      "limitations": [
+        "This workflow does not execute the image, resolve runtime notes, or verify GNU build-id uniqueness against package catalogs.",
+        "PT_NOTE and SHT_NOTE are examined independently; the same file range may appear twice when both tables declare it."
+      ]
+    },
+    "confidence": "observed",
+    "authority": "shipped-artifact",
+    "environment": null,
+    "limitations": [
+      "This workflow does not execute the image, resolve runtime notes, or verify GNU build-id uniqueness against package catalogs.",
+      "PT_NOTE and SHT_NOTE are examined independently; the same file range may appear twice when both tables declare it."
+    ],
+    "locations": [
+      {
+        "kind": "artifact-path",
+        "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/elf/notes-and-dep.so"
+      },
+      {
+        "kind": "file-offset-range",
+        "start": 120,
+        "end": 152
+      },
+      {
+        "kind": "file-offset-range",
+        "start": 120,
+        "end": 152
+      }
+    ],
+    "evidence_links": []
+  }
+}

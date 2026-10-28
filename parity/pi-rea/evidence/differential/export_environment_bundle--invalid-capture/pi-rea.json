@@ -1,0 +1,30 @@
+{
+  "kind": "error",
+  "body": {
+    "code": "invalid_request",
+    "category": "invalid_input",
+    "message": "The capture file is inspect_go_binary Evidence, not capture Evidence.",
+    "retryable": false,
+    "remediation": {
+      "action": "Read the declared input schema or CLI usage for environment-build; if using MCP and the catalog may be stale, call tools/list. Correct the listed fields, then retry. Do not repeat the unchanged call."
+    },
+    "recovery": {
+      "kind": "inspect_input_contract",
+      "operation": "environment-build"
+    },
+    "details": {
+      "operation": "environment-build",
+      "issues": [
+        {
+          "path": [
+            "capture",
+            "operation"
+          ],
+          "reason": "invalid_value",
+          "message": "Pass a HAR file, or capture Evidence JSON from inspect-web-network-capture (HAR) or capture-browser-scenario.",
+          "expected": "inspect_web_network_capture or capture_browser_scenario"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "kind": "error",
+  "body": {
+    "code": "unsupported_target",
+    "category": "unsupported_target",
+    "message": "Unsupported target for inspect_dart_aot at /Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/flutter/demo.apk: No recognizable legacy split Dart snapshot symbols were found: unsupported ELF class",
+    "retryable": false,
+    "remediation": {
+      "action": "Select a target supported by this operation or choose an operation supporting the reported target format."
+    },
+    "details": {
+      "operation": "inspect_dart_aot",
+      "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/flutter/demo.apk",
+      "reason": "No recognizable legacy split Dart snapshot symbols were found: unsupported ELF class"
+    }
+  }
+}

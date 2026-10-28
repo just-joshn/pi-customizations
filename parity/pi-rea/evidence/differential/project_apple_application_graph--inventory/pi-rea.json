@@ -1,0 +1,103 @@
+{
+  "kind": "evidence",
+  "body": {
+    "evidence_id": "ev_c23d45b4252cf33989b7a1986c8d543c633ab73491152b055198af1986ffa102",
+    "subject": null,
+    "provider": {
+      "id": "pi-rea-apple-workflows",
+      "name": "pi-rea Apple workflows",
+      "version": "1"
+    },
+    "analysis_profile": null,
+    "predicate_type": "rea.apple-application-graph",
+    "operation": "project_apple_application_graph",
+    "parameters": {
+      "source_evidence_ids": [
+        "ev_dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+      ]
+    },
+    "raw_result": null,
+    "normalized_result": {
+      "projection_id": "aap_fe717997e36a593cfd2612f32d0d9aa03633d16eede484af78f116c87d2a8e10",
+      "root_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "root_format": "directory",
+      "platforms": [
+        "macos"
+      ],
+      "source_evidence_ids": [
+        "ev_dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+      ],
+      "application_roots": [
+        "Fixture.app"
+      ],
+      "bundles": [
+        {
+          "path": "Fixture.app",
+          "parent_path": null,
+          "layout": "macos-deep",
+          "role": "application",
+          "role_basis": "path-convention",
+          "info_plist_path": "Fixture.app/Contents/Info.plist",
+          "executable_candidates": [
+            "Fixture.app/Contents/MacOS/Fixture"
+          ],
+          "signing_paths": []
+        },
+        {
+          "path": "Fixture.app/Contents/XPCServices/Helper.xpc",
+          "parent_path": "Fixture.app",
+          "layout": "macos-deep",
+          "role": "xpc-service",
+          "role_basis": "path-convention",
+          "info_plist_path": "Fixture.app/Contents/XPCServices/Helper.xpc/Contents/Info.plist",
+          "executable_candidates": [],
+          "signing_paths": []
+        }
+      ],
+      "components": {
+        "bundle_metadata": [
+          {
+            "path": "Fixture.app/Contents/Info.plist",
+            "artifact_id": "art_eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+            "format": "plist"
+          },
+          {
+            "path": "Fixture.app/Contents/XPCServices/Helper.xpc/Contents/Info.plist",
+            "artifact_id": "art_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "format": "plist"
+          }
+        ],
+        "launchd_plists": [],
+        "bridge_hypotheses": [
+          {
+            "path": "Fixture.app/Contents/XPCServices/Helper.xpc",
+            "kind": "xpc-service",
+            "basis": "path-convention"
+          }
+        ]
+      },
+      "limitations": [
+        "Roles follow path conventions only; Info.plist and CMS semantics are not parsed for this projection.",
+        "Bridge hypotheses are path-based and do not claim observed runtime calls.",
+        "Executable candidates are basename guesses under MacOS/ or the shallow bundle root when present in the inventory."
+      ],
+      "evidence_links": [
+        "ev_dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+      ]
+    },
+    "confidence": "derived",
+    "authority": "analyst-inference",
+    "environment": null,
+    "limitations": [
+      "Roles follow path conventions only; Info.plist and CMS semantics are not parsed for this projection.",
+      "Bridge hypotheses are path-based and do not claim observed runtime calls.",
+      "Executable candidates are basename guesses under MacOS/ or the shallow bundle root when present in the inventory."
+    ],
+    "locations": [],
+    "evidence_links": [
+      "ev_dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+    ]
+  }
+}

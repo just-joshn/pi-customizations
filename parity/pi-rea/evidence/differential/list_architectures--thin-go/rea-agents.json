@@ -1,0 +1,77 @@
+{
+  "kind": "evidence",
+  "body": {
+    "evidence_id": "ev_8b9f7265be54538841c27457d4c7265cc2072969edf8edbe6c35dff1990617c1",
+    "subject": {
+      "name": "fixture-go-macho",
+      "digest": {
+        "sha256": "fb6fcf5aaf18e4c2990ce7e43d3f41c965952f32a6452b0c18c586053155a71e"
+      },
+      "local_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/fixture-go-macho",
+      "format": "mach-o",
+      "architecture": "arm64"
+    },
+    "provider": {
+      "id": "native-macos",
+      "name": "macOS native inspection utilities",
+      "version": null
+    },
+    "analysis_profile": null,
+    "predicate_type": "rea.analysis",
+    "operation": "list_architectures",
+    "parameters": {
+      "input_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/fixture-go-macho"
+    },
+    "raw_result": null,
+    "normalized_result": {
+      "architectures": {
+        "items": [
+          {
+            "name": "arm64",
+            "hidden": false,
+            "cpu_type": null,
+            "cpu_subtype": null,
+            "file_offset": null,
+            "size": null,
+            "alignment": null
+          }
+        ],
+        "total": 1,
+        "exhaustive": true,
+        "limitations": []
+      },
+      "provenance": [
+        {
+          "tool": "lipo",
+          "command": [
+            "/Library/Developer/CommandLineTools/usr/bin/lipo",
+            "-detailed_info",
+            "$ARTIFACT"
+          ],
+          "tool_version": null,
+          "version_reason": "Tool exposes no uniform stable version flag; executable SHA-256 is a prelaunch file sample and does not prove atomic OS image binding.",
+          "executable_sha256": "f9fefcc95e50e31a65e72f7c186d9da5938a6ec267f3c3fa4bf5074b6a20f020",
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "stdout_bytes": 264,
+          "stderr_bytes": 0
+        }
+      ],
+      "limitations": []
+    },
+    "confidence": "observed",
+    "authority": "shipped-artifact",
+    "environment": null,
+    "limitations": [],
+    "relationship_coverage": null,
+    "locations": [],
+    "evidence_links": [],
+    "caller_input_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/fixture-go-macho"
+  },
+  "meta": {
+    "command": "list-architectures",
+    "duration": "952ms"
+  }
+}

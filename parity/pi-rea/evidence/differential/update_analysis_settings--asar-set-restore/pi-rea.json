@@ -1,0 +1,45 @@
+{
+  "kind": "configuration",
+  "body": {
+    "revision": 1,
+    "scope": "rea-runtime",
+    "active_values": {
+      "status": "not_observed"
+    },
+    "settings": [
+      {
+        "setting": "asar.max_header_bytes",
+        "value": 33554432,
+        "launch_value": 16777216,
+        "default_value": 16777216,
+        "source": "runtime",
+        "unit": "bytes",
+        "minimum": 1,
+        "maximum": 268435456,
+        "applies_at": "next_operation",
+        "provider": "rea-artifact-graph",
+        "operations": [
+          "open_binary",
+          "inspect_artifact",
+          "inventory_artifact",
+          "extract_artifact",
+          "analyze_javascript_application",
+          "inspect_electron_page",
+          "observe_javascript_runtime"
+        ],
+        "environment": "REA_ASAR_MAX_HEADER_BYTES",
+        "agent_editable": true
+      }
+    ],
+    "changed": true,
+    "changes": [
+      {
+        "setting": "asar.max_header_bytes",
+        "old_value": 16777216,
+        "new_value": 33554432
+      }
+    ],
+    "active_work_changed": false,
+    "rea_restart_required": false
+  }
+}

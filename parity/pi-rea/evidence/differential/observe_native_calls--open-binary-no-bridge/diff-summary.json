@@ -1,0 +1,13 @@
+{
+  "id": "observe_native_calls--open-binary-no-bridge",
+  "tool": "observe_native_calls",
+  "status": "pass",
+  "pi_kind": "error",
+  "oracle_kind": "error",
+  "contract_issues": [],
+  "diff_count": 0,
+  "documented_count": 0,
+  "undocumented_count": 0,
+  "undocumented": [],
+  "documented": []
+}

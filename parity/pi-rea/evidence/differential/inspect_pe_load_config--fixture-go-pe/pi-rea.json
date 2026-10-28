@@ -1,0 +1,69 @@
+{
+  "kind": "evidence",
+  "body": {
+    "evidence_id": "ev_eae504e058c7f2b73b6540c00554b1879fbde4036f8aaf4c2303e5721556ad61",
+    "subject": {
+      "name": "fixture-go-pe.exe",
+      "digest": {
+        "sha256": "a0c15a15db4af6ff996224c2b7dd37bb646811d1b00d097fc2f363e7037675a6"
+      },
+      "format": "pe",
+      "architecture": "x86_64",
+      "local_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/pe/fixture-go-pe.exe"
+    },
+    "provider": {
+      "id": "pi-rea-in-process",
+      "name": "pi-rea in-process analysis",
+      "version": "0.1.0"
+    },
+    "analysis_profile": null,
+    "predicate_type": "rea.analysis",
+    "operation": "inspect_pe_load_config",
+    "parameters": {
+      "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/pe/fixture-go-pe.exe",
+      "max_file_bytes": 67108864,
+      "max_callbacks": 64
+    },
+    "raw_result": null,
+    "normalized_result": {
+      "artifact": {
+        "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/pe/fixture-go-pe.exe",
+        "sha256": "a0c15a15db4af6ff996224c2b7dd37bb646811d1b00d097fc2f363e7037675a6",
+        "bytes": 2504704
+      },
+      "format": "pe32-plus",
+      "machine": 34404,
+      "bits": 64,
+      "architecture": "amd64",
+      "tls": null,
+      "load_config": null,
+      "examined_callbacks": 0,
+      "limitations": [
+        "TLS callbacks and load-config fields reproduce IMAGE_DIRECTORY_ENTRY_TLS and IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG. They do not establish that a callback runs or that a mitigation is enforced at load.",
+        "Claims such as CFG instrumentation are inferred from GuardFlags bits and are not observations of instrumented instructions.",
+        "A missing TLS or load-config directory is observed absence of that table, not proof the image never registered callbacks or mitigations through another mechanism.",
+        "SafeSEH table and count are reported only for PE32. PE32+ struct slots that share those names are not a SafeSEH table.",
+        "CHPE metadata and dynamic value relocation pointers are raw virtual addresses. Dynamic relocation table offset and section are separate source values; their target is not derived or decoded.",
+        "Load-config fields newer than GuardXFGCheckFunctionPointer stay unread. A Size larger than the fields this version knows does not fail the read."
+      ]
+    },
+    "confidence": "observed",
+    "authority": "shipped-artifact",
+    "environment": null,
+    "limitations": [
+      "TLS callbacks and load-config fields reproduce IMAGE_DIRECTORY_ENTRY_TLS and IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG. They do not establish that a callback runs or that a mitigation is enforced at load.",
+      "Claims such as CFG instrumentation are inferred from GuardFlags bits and are not observations of instrumented instructions.",
+      "A missing TLS or load-config directory is observed absence of that table, not proof the image never registered callbacks or mitigations through another mechanism.",
+      "SafeSEH table and count are reported only for PE32. PE32+ struct slots that share those names are not a SafeSEH table.",
+      "CHPE metadata and dynamic value relocation pointers are raw virtual addresses. Dynamic relocation table offset and section are separate source values; their target is not derived or decoded.",
+      "Load-config fields newer than GuardXFGCheckFunctionPointer stay unread. A Size larger than the fields this version knows does not fail the read."
+    ],
+    "locations": [
+      {
+        "kind": "artifact-path",
+        "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/pe/fixture-go-pe.exe"
+      }
+    ],
+    "evidence_links": []
+  }
+}

@@ -1,0 +1,115 @@
+{
+  "request": {
+    "name": "list_architectures",
+    "arguments": {}
+  },
+  "response": {
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "{\"evidence_id\":\"ev_3c54d29ba54c35b13c3cd68e125bc02a9727c0956518048d5cc1134b5658e30a\",\"subject\":{\"name\":\"ls\",\"digest\":{\"sha256\":\"13f44bfe1c4af602da4465c834dbe7b16a5441ccbd843178b36116ee23422bfb\"},\"format\":\"mach-o\",\"architecture\":\"arm64\",\"local_path\":\"/bin/ls\"},\"provider\":{\"id\":\"native-macos\",\"name\":\"macOS native inspection utilities\",\"version\":null},\"analysis_profile\":null,\"predicate_type\":\"rea.analysis\",\"operation\":\"list_architectures\",\"parameters\":{},\"raw_result\":null,\"normalized_result\":{\"architectures\":{\"items\":[{\"name\":\"x86_64\",\"cpu_type\":\"CPU_TYPE_X86_64\",\"cpu_subtype\":\"CPU_SUBTYPE_X86_ALL\",\"file_offset\":16384,\"size\":48128,\"alignment\":16384},{\"name\":\"arm64e\",\"cpu_type\":\"CPU_TYPE_ARM64\",\"cpu_subtype\":\"CPU_SUBTYPE_ARM64E\",\"file_offset\":65536,\"size\":88672,\"alignment\":16384},{\"name\":\"arm64e.x1\",\"cpu_type\":\"CPU_TYPE_ARM64\",\"cpu_subtype\":\"unknown arm64 cpusubtype\",\"file_offset\":163840,\"size\":88672,\"alignment\":16384}],\"total\":3,\"exhaustive\":true,\"limitations\":[]},\"provenance\":[{\"tool\":\"lipo\",\"command\":[\"/Library/Developer/CommandLineTools/usr/bin/lipo\",\"-detailed_info\",\"$ARTIFACT\"],\"tool_version\":null,\"version_reason\":\"Tool exposes no uniform stable version flag; executable SHA-256 is a prelaunch file sample and does not prove atomic OS image binding.\",\"executable_sha256\":\"f9fefcc95e50e31a65e72f7c186d9da5938a6ec267f3c3fa4bf5074b6a20f020\",\"exit\":{\"code\":0,\"signal\":null},\"stdout_bytes\":587,\"stderr_bytes\":0}],\"limitations\":[]},\"confidence\":\"observed\",\"authority\":\"shipped-artifact\",\"environment\":null,\"limitations\":[],\"locations\":[{\"kind\":\"file-offset-range\",\"start\":16384,\"end\":64512},{\"kind\":\"file-offset-range\",\"start\":65536,\"end\":154208},{\"kind\":\"file-offset-range\",\"start\":163840,\"end\":252512}],\"evidence_links\":[]}"
+        }
+      ],
+      "structuredContent": {
+        "evidence_id": "ev_3c54d29ba54c35b13c3cd68e125bc02a9727c0956518048d5cc1134b5658e30a",
+        "subject": {
+          "name": "ls",
+          "digest": {
+            "sha256": "13f44bfe1c4af602da4465c834dbe7b16a5441ccbd843178b36116ee23422bfb"
+          },
+          "format": "mach-o",
+          "architecture": "arm64",
+          "local_path": "/bin/ls"
+        },
+        "provider": {
+          "id": "native-macos",
+          "name": "macOS native inspection utilities",
+          "version": null
+        },
+        "analysis_profile": null,
+        "predicate_type": "rea.analysis",
+        "operation": "list_architectures",
+        "parameters": {},
+        "raw_result": null,
+        "normalized_result": {
+          "architectures": {
+            "items": [
+              {
+                "name": "x86_64",
+                "cpu_type": "CPU_TYPE_X86_64",
+                "cpu_subtype": "CPU_SUBTYPE_X86_ALL",
+                "file_offset": 16384,
+                "size": 48128,
+                "alignment": 16384
+              },
+              {
+                "name": "arm64e",
+                "cpu_type": "CPU_TYPE_ARM64",
+                "cpu_subtype": "CPU_SUBTYPE_ARM64E",
+                "file_offset": 65536,
+                "size": 88672,
+                "alignment": 16384
+              },
+              {
+                "name": "arm64e.x1",
+                "cpu_type": "CPU_TYPE_ARM64",
+                "cpu_subtype": "unknown arm64 cpusubtype",
+                "file_offset": 163840,
+                "size": 88672,
+                "alignment": 16384
+              }
+            ],
+            "total": 3,
+            "exhaustive": true,
+            "limitations": []
+          },
+          "provenance": [
+            {
+              "tool": "lipo",
+              "command": [
+                "/Library/Developer/CommandLineTools/usr/bin/lipo",
+                "-detailed_info",
+                "$ARTIFACT"
+              ],
+              "tool_version": null,
+              "version_reason": "Tool exposes no uniform stable version flag; executable SHA-256 is a prelaunch file sample and does not prove atomic OS image binding.",
+              "executable_sha256": "f9fefcc95e50e31a65e72f7c186d9da5938a6ec267f3c3fa4bf5074b6a20f020",
+              "exit": {
+                "code": 0,
+                "signal": null
+              },
+              "stdout_bytes": 587,
+              "stderr_bytes": 0
+            }
+          ],
+          "limitations": []
+        },
+        "confidence": "observed",
+        "authority": "shipped-artifact",
+        "environment": null,
+        "limitations": [],
+        "locations": [
+          {
+            "kind": "file-offset-range",
+            "start": 16384,
+            "end": 64512
+          },
+          {
+            "kind": "file-offset-range",
+            "start": 65536,
+            "end": 154208
+          },
+          {
+            "kind": "file-offset-range",
+            "start": 163840,
+            "end": 252512
+          }
+        ],
+        "evidence_links": []
+      }
+    },
+    "jsonrpc": "2.0",
+    "id": 11
+  }
+}

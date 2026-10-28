@@ -1,0 +1,17 @@
+{
+  "kind": "error",
+  "body": {
+    "code": "capability_unavailable",
+    "category": "unsupported_provider",
+    "message": "This analysis is unavailable for the current target. Choose another analysis or target.",
+    "retryable": false,
+    "remediation": {
+      "action": "This analysis is unavailable for the current target. Choose another analysis or target."
+    },
+    "details": {
+      "provider_id": "frida",
+      "operation": "list_frida_devices",
+      "reason": "Cannot load native addon because loading addons is disabled."
+    }
+  }
+}

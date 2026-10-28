@@ -1,0 +1,2 @@
+# Un-ignore this program's fixtures (parity/.gitignore ignores fixtures/).
+!fixtures/

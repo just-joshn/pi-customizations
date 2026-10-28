@@ -1,0 +1,13 @@
+{
+  "id": "inspect_il2cpp_metadata--global-metadata",
+  "tool": "inspect_il2cpp_metadata",
+  "status": "pass",
+  "pi_kind": "error",
+  "oracle_kind": "error",
+  "contract_issues": [],
+  "diff_count": 0,
+  "documented_count": 0,
+  "undocumented_count": 0,
+  "undocumented": [],
+  "documented": []
+}
