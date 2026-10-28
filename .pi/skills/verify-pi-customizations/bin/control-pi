@@ -185,14 +185,14 @@ async function runDoctor() {
   assert.ok(existsSync(pkgJsonPath), `package.json not found at ${pkgJsonPath}`);
   process.stdout.write(`✓ Workspace root verified at ${REPO_ROOT}\n`);
 
-  // 4. Test RPC startup with root package
+  // 4. Test RPC startup with the pstack extension package
   const scratchDir = await mkdtemp(join(tmpdir(), 'control-pi-doctor-'));
   try {
-    const session = createRpcSession(REPO_ROOT, scratchDir);
+    const session = createRpcSession(join(REPO_ROOT, 'extensions/pi-pstack'), scratchDir);
     try {
       const res = await session.send({ type: 'get_commands' });
       assert.ok(Array.isArray(res.commands), 'get_commands did not return array of commands');
-      process.stdout.write(`✓ Pi RPC initialized with root package (${res.commands.length} commands available)\n`);
+      process.stdout.write(`✓ Pi RPC initialized with extensions/pi-pstack (${res.commands.length} commands available)\n`);
     } finally {
       await session.close();
     }
@@ -228,10 +228,10 @@ async function drivePstackCommands(artifactDir) {
       // 2. /mode with no mode on reports through a UI notification.
       await session.send({ type: 'prompt', message: '/mode' });
       assert.ok(
-        session.notifications.some((n) => n.message === 'No Custom Mode is on.'),
-        'Expected UI notification "No Custom Mode is on." not observed',
+        session.notifications.some((n) => n.message === 'No mode is on.'),
+        'Expected UI notification "No mode is on." not observed',
       );
-      await writeFile(join(outDir, 'mode-status.txt'), 'No Custom Mode is on.\n', 'utf8');
+      await writeFile(join(outDir, 'mode-status.txt'), 'No mode is on.\n', 'utf8');
       process.stdout.write(`✓ Captured pstack command-surface evidence in ${outDir}\n`);
     } finally {
       await session.close();
@@ -255,8 +255,8 @@ async function drivePotetoMode(artifactDir) {
       // 1. Turn the mode on.
       await session.send({ type: 'prompt', message: '/mode poteto-mode' });
       assert.ok(
-        session.notifications.some((n) => n.message === 'Custom Mode on: poteto-mode. /mode off exits.'),
-        'Expected UI notification "Custom Mode on: poteto-mode. /mode off exits." not observed',
+        session.notifications.some((n) => n.message === 'Mode on: poteto-mode. /mode off exits.'),
+        'Expected UI notification "Mode on: poteto-mode. /mode off exits." not observed',
       );
       const onEntry = session.entries.find((e) => e.type === 'custom' && e.customType === 'pstack/mode');
       assert.ok(onEntry, 'Expected pstack/mode entry appended to branch');
@@ -266,8 +266,8 @@ async function drivePotetoMode(artifactDir) {
       const beforeOff = session.notifications.length;
       await session.send({ type: 'prompt', message: '/mode off' });
       assert.ok(
-        session.notifications.slice(beforeOff).some((n) => n.message === 'Custom Mode off.'),
-        'Expected UI notification "Custom Mode off." not observed',
+        session.notifications.slice(beforeOff).some((n) => n.message === 'Mode off.'),
+        'Expected UI notification "Mode off." not observed',
       );
       const offEntry = session.entries.filter((e) => e.type === 'custom' && e.customType === 'pstack/mode').at(-1);
       assert.ok(offEntry, 'Expected a second pstack/mode entry appended to branch');
@@ -279,36 +279,6 @@ async function drivePotetoMode(artifactDir) {
         'utf8',
       );
       process.stdout.write(`✓ Captured poteto mode on/off evidence in ${outDir}\n`);
-    } finally {
-      await session.close();
-    }
-  } finally {
-    await rm(scratchDir, { recursive: true, force: true });
-  }
-}
-
-async function driveStandaloneSkills(artifactDir) {
-  process.stdout.write('[drive:standalone-skills] Starting verification...\n');
-  const outDir = artifactDir ?? join(REPO_ROOT, 'artifacts/verify-pi-customizations/standalone-skills');
-  await mkdir(outDir, { recursive: true });
-
-  const scratchDir = await mkdtemp(join(tmpdir(), 'control-pi-skills-'));
-
-  try {
-    const session = createRpcSession(REPO_ROOT, scratchDir);
-    try {
-      const res = await session.send({ type: 'get_commands' });
-      const skills = res.commands.filter((c) => c.source === 'skill' && c.name.startsWith('skill:')).map((c) => c.name);
-
-      const expected = ['skill:port-harness-capability'];
-
-      for (const exp of expected) {
-        assert.ok(skills.includes(exp), `Expected standalone skill ${exp} not registered`);
-      }
-
-      await writeFile(join(outDir, 'skills.txt'), `${skills.join('\n')}\n`, 'utf8');
-      await writeFile(join(outDir, 'skills.json'), `${JSON.stringify(res.commands.filter((c) => c.source === 'skill'), null, 2)}\n`, 'utf8');
-      process.stdout.write(`✓ Captured standalone skills evidence in ${outDir} (${skills.length} skills)\n`);
     } finally {
       await session.close();
     }
@@ -378,17 +348,15 @@ async function main() {
         await drivePstackCommands(artifactDir);
       } else if (feature === 'poteto-mode') {
         await drivePotetoMode(artifactDir);
-      } else if (feature === 'standalone-skills') {
-        await driveStandaloneSkills(artifactDir);
       } else if (feature === 'oauth-providers') {
         await driveOauthProviders(artifactDir);
       } else {
-        throw new Error(`Unknown feature to drive: '${feature}'. Expected: pstack-commands, poteto-mode, standalone-skills, oauth-providers`);
+        throw new Error(`Unknown feature to drive: '${feature}'. Expected: pstack-commands, poteto-mode, oauth-providers`);
       }
     } else {
       process.stdout.write(`Usage:
   control-pi doctor
-  control-pi drive <pstack-commands | poteto-mode | standalone-skills | oauth-providers> [--out <dir>]
+  control-pi drive <pstack-commands | poteto-mode | oauth-providers> [--out <dir>]
 `);
       process.exit(1);
     }

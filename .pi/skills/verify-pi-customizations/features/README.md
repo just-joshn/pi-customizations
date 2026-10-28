@@ -1,10 +1,10 @@
 # pi-customizations verification map
 
-This directory is the maintained source for verifying the user-facing behavior of `pi-customizations` packages, extensions, and skills. Read this index before driving the app, then use the matching feature file as the recipe.
+This directory is the maintained source for verifying the user-facing behavior of `pi-customizations` extensions. Read this index before driving the app, then use the matching feature file as the recipe.
 
 ## Baseline preconditions
 
-- Ensure Node.js `>= 22.19.0` and `pi` CLI `>= 0.87.1` are installed and available on `PATH`.
+- Ensure Node.js `>= 22.19.0` and `pi` CLI `1.4.0` are installed and available on `PATH`.
 - Run `./.pi/skills/verify-pi-customizations/bin/control-pi doctor` to verify environment readiness.
 - `control-pi` creates a disposable scratch directory and sets `PI_CODING_AGENT_DIR` for each Pi process it starts. Do not set it manually for driver runs.
 - Never drive an instance not started by the verification run.
@@ -19,7 +19,7 @@ This directory is the maintained source for verifying the user-facing behavior o
 ## Proof and skip reporting
 
 - Proof for CLI commands includes exit code, stdout, and stderr.
-- Proof for RPC prompts includes custom messages (`pstack-status`), UI notifications (`notify`), and appended branch entries (`pstack-state`).
+- Proof for RPC prompts includes UI notifications (`notify`) and appended branch entries (`pstack/mode`).
 - Proof for model providers includes table listing of available models.
 - Record the feature ID and entry point used with every artifact.
 - Do not report a skipped entry point as verified through a different path.
@@ -35,7 +35,6 @@ Each feature file starts with an H1 title and one paragraph describing the user-
 
 ## Features
 
-- [pstack status and todos](./pstack-status.md) covers `/pstack status`, `/pstack todos`, direct `TodoWrite` replacement and merge, and the TUI todo widget.
+- [Pstack command surface](./pstack-commands.md) covers the `/mode` and `/loop` commands, the pstack skill commands, and the bare `/mode` report.
 - [Poteto mode](./poteto-mode.md) covers command and direct-tool mode changes, UI notifications, and branch state persistence.
-- [Standalone skills](./standalone-skills.md) covers discovery of repository skills (`port-harness-capability`).
-- [OAuth providers](./oauth-providers.md) covers subscription model provider registration for Claude and Antigravity.
+- [OAuth providers](./oauth-providers.md) covers subscription model provider registration for Claude, Antigravity, and Grok Build.

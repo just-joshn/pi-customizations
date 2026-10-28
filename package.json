@@ -9,16 +9,8 @@
   "workspaces": [
     "extensions/*"
   ],
-  "description": "Standalone Pi skill: port-harness-capability.",
+  "description": "Workspace root for the pi-customizations Pi extensions.",
   "license": "MIT",
-  "keywords": [
-    "pi-package"
-  ],
-  "pi": {
-    "skills": [
-      "./skills"
-    ]
-  },
   "scripts": {
     "test": "bun run --sequential --filter '*' test",
     "check:agents": "node scripts/check-agents-compliance.selftest.mjs && node scripts/check-agents-compliance.mjs",

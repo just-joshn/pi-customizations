@@ -1,6 +1,6 @@
 # pi-customizations
 
-Extensions and skills for [Pi](https://pi.dev), the coding agent by Earendil Works. This repository is a personal setup, published as is. Every piece installs separately, so you can take one extension or all of them.
+Extensions for [Pi](https://pi.dev), the coding agent by Earendil Works. This repository is a personal setup, published as is. Every extension installs separately, so you can take one or all of them.
 
 ## What is inside
 
@@ -11,8 +11,6 @@ Extensions and skills for [Pi](https://pi.dev), the coding agent by Earendil Wor
 | [`extensions/pi-antigravity-oauth`](extensions/pi-antigravity-oauth/README.md) | Restores the `google-antigravity` provider. Signs in with Google OAuth and talks to the Cloud Code Assist API. |
 | [`extensions/pi-xai-oauth`](extensions/pi-xai-oauth/README.md) | Lets a SuperGrok or X Premium subscription answer in Pi through the `grok-build` provider. |
 | [`extensions/pi-maintainer`](extensions/pi-maintainer/README.md) | Aider-parity edit, git, map, and lint on Pi 1.1.0. Declares runtime npm dependencies (`yaml`, `ignore`, `diff-match-patch`), so the workspace install below is required before Pi can load it. |
-| [`skills/port-harness-capability`](skills/port-harness-capability/) | Clean-room ports of capabilities from other AI coding harnesses, with a machine-checked parity ledger. |
-| [`skills/reverse-engineer-anything`](skills/reverse-engineer-anything/) | A Pi-native reimplementation of [REA](https://github.com/morluto/rea)'s investigation contract: Evidence records, a session store, a residual-unknown registry, and engine-free analyzers for JavaScript/Electron apps and ASARs, archives, Mach-O/ELF/PE binaries, Go metadata and retained HAR captures. Local-only, no analysis engine, no npm dependency. |
 
 ## Install
 
@@ -25,7 +23,7 @@ bun install
 pi install ./extensions/pi-pstack   # or any other extension directory
 ```
 
-The repository root is its own Pi package holding the standalone skill. Run `pi install .` from the clone root to install it. To update, run `git pull --ff-only` in the clone, then `bun install`, then `/reload` in Pi.
+To update, run `git pull --ff-only` in the clone, then `bun install`, then `/reload` in Pi.
 
 The OAuth extensions log you into paid subscriptions and send requests that identify as other clients. Read each extension's README before using one, and use them only with accounts you own.
 
@@ -38,7 +36,7 @@ bun install
 make verify
 ```
 
-`make verify` covers lint, agent-compliance checks, Pi mechanism checks, toolchain checks, test conventions, each extension's suite, a fresh-install check, and the standalone skill's tests. It needs [bun](https://bun.sh) and Node 22.19 or newer.
+`make verify` covers lint, agent-compliance checks, Pi mechanism checks, toolchain checks, test conventions, each extension's suite, and a fresh-install check. It needs [bun](https://bun.sh) and Node 22.19 or newer.
 
 The [Pi 1.0.2 migration audit](docs/pi-1.0.2-migration.md) records the package inventory, native API choices, verification paths, and remaining test limits. The [Pi 1.0.1 audit](docs/pi-1.0.1-migration.md) retains the previous migration's evidence.
 

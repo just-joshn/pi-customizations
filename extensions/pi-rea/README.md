@@ -47,11 +47,6 @@ every catalog name.
 | Deep-analysis providers (Hopper, Ghidra, IDA, Kuna) | Not bridged; session tools refuse with measured unavailable vocabulary |
 | Live process/browser/device capture | Not bridged; Frida/ADB/CDP handlers refuse closed |
 
-Installing both `extensions/pi-rea` and the repo-root
-`skills/reverse-engineer-anything` package can register two skills with the same
-name until cutover. Prefer the extension skill while this port is the active
-surface; the root skill remains until a later cutover unit deletes it.
-
 An unimplemented call answers with the canonical error envelope. It never
 returns a substitute result, so a coverage gap can never be mistaken for a
 finding about a target. `parity/pi-rea/` records the baseline and decisions.

@@ -1,6 +1,6 @@
-.PHONY: verify verify-lint verify-agents verify-mechanisms verify-toolchain verify-extension verify-oauth verify-test-conventions verify-install verify-skill-node verify-xai-oauth-live
+.PHONY: verify verify-lint verify-agents verify-mechanisms verify-toolchain verify-extension verify-oauth verify-test-conventions verify-install verify-xai-oauth-live
 
-verify: verify-lint verify-agents verify-mechanisms verify-toolchain verify-test-conventions verify-extension verify-oauth verify-install verify-skill-node
+verify: verify-lint verify-agents verify-mechanisms verify-toolchain verify-test-conventions verify-extension verify-oauth verify-install
 
 verify-lint:
 	bun run ci
@@ -39,6 +39,3 @@ verify-xai-oauth-live:
 
 verify-install:
 	node scripts/verify-fresh-install.mjs
-
-verify-skill-node:
-	node --test skills/*/tests/*.test.mjs

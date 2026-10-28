@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
-import { execFileSync, spawn } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import { existsSync, lstatSync } from 'node:fs';
-import { copyFile, mkdir, mkdtemp, readdir, rm, writeFile } from 'node:fs/promises';
+import { copyFile, mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -11,7 +11,6 @@ import { fileURLToPath } from 'node:url';
 // from a copy without node_modules, using only the modules Pi supplies.
 const root = fileURLToPath(new URL('..', import.meta.url));
 const cli = join(root, 'extensions/pi-pstack/node_modules/@earendil-works/pi-coding-agent/dist/bundle/cli.js');
-const RPC_TIMEOUT_MS = 60_000;
 const providers = [
   { dir: 'extensions/pi-anthropic-oauth', provider: 'claude-subscription' },
   { dir: 'extensions/pi-antigravity-oauth', provider: 'google-antigravity' },
@@ -60,62 +59,6 @@ function listModels(agentDir, packageDir, provider) {
   return output.split('\n').filter((line) => line.startsWith(`${provider} `)).length;
 }
 
-async function skillCommands(agentDir, packageDir) {
-  return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, [cli, '--mode', 'rpc', '--no-session', '--no-extensions', '-e', packageDir], {
-      cwd: agentDir,
-      env: { ...process.env, PI_CODING_AGENT_DIR: agentDir },
-      stdio: ['pipe', 'pipe', 'pipe'],
-    });
-    let buffer = '';
-    let stderr = '';
-    let answered = false;
-    const timer = setTimeout(() => {
-      child.kill('SIGKILL');
-      reject(new Error(`pi RPC did not answer get_commands within ${RPC_TIMEOUT_MS} ms${stderr ? `: ${stderr.slice(-400)}` : ''}`));
-    }, RPC_TIMEOUT_MS);
-    const onLine = (line) => {
-      try {
-        const record = JSON.parse(line);
-        if (record.type === 'response' && record.id === 'skills') {
-          answered = true;
-          clearTimeout(timer);
-          if (record.success) {
-            resolve(record.data.commands.filter((command) => command.source === 'skill').map((command) => command.name));
-            child.stdin.end();
-          } else {
-            reject(new Error(record.error ?? 'get_commands failed'));
-            child.kill('SIGKILL');
-          }
-        }
-      } catch (error) {
-        if (!(error instanceof SyntaxError)) throw error;
-      }
-    };
-    child.stdout.setEncoding('utf8');
-    child.stdout.on('data', (chunk) => {
-      buffer += chunk;
-      let index = buffer.indexOf('\n');
-      while (index >= 0) {
-        const line = buffer.slice(0, index).trim();
-        buffer = buffer.slice(index + 1);
-        if (line) onLine(line);
-        index = buffer.indexOf('\n');
-      }
-    });
-    child.stderr.setEncoding('utf8');
-    child.stderr.on('data', (chunk) => {
-      stderr += chunk;
-    });
-    child.on('error', reject);
-    child.stdin.write(`${JSON.stringify({ id: 'skills', type: 'get_commands' })}\n`);
-    child.on('close', () => {
-      clearTimeout(timer);
-      if (!answered) reject(new Error(`pi RPC exited before answering${stderr ? `: ${stderr.slice(-400)}` : ''}`));
-    });
-  });
-}
-
 const workspace = await mkdtemp(join(tmpdir(), 'pi-fresh-install-'));
 try {
   const tree = join(workspace, 'tree');
@@ -129,9 +72,6 @@ try {
     assert.ok(count > 0, `${dir} registers ${provider} models when loaded from a fresh copy`);
     process.stdout.write(`${dir}: ${count} ${provider} models from a fresh copy\n`);
   }
-  const skills = await skillCommands(agentDir, tree);
-  for (const name of await readdir(join(tree, 'skills'))) assert.ok(skills.includes(`skill:${name}`), `root package exposes /skill:${name} from a fresh copy`);
-  process.stdout.write(`repository root: ${skills.length} skills from a fresh copy\n`);
 } finally {
   await rm(workspace, { recursive: true, force: true });
 }
