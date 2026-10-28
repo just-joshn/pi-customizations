@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import type { Dirent } from 'node:fs';
 import { readdir, readFile, realpath, stat } from 'node:fs/promises';
 import { join, relative } from 'node:path';
 
@@ -93,12 +94,12 @@ const GRAPH_LIMITATIONS = [
 const COMPILED_ARCHIVE_LIMITATION =
   'Compiled Interface Builder archives are private serialized object graphs. The decoder reports only recognized keyed-archive objects and connections; unrecognized object classes and fields remain unknown.';
 
-const isPlainObject = (value: PlistValue): value is { [key: string]: PlistValue } => value !== null && typeof value === 'object' && !Array.isArray(value) && !('$plist_type' in value);
+const isPlainObject = (value: unknown): value is { [key: string]: PlistValue } => value !== null && typeof value === 'object' && !Array.isArray(value) && !('$plist_type' in value);
 
 const uidOf = (value: PlistValue): number | undefined => {
   if (!isPlainObject(value)) return undefined;
-  if (typeof value.CF$UID === 'number') return value.CF$UID;
-  if (typeof value.UID === 'number') return value.UID;
+  if (typeof value['CF$UID'] === 'number') return value['CF$UID'];
+  if (typeof value['UID'] === 'number') return value['UID'];
   return undefined;
 };
 
@@ -118,8 +119,9 @@ const walkFiles = async (root: string): Promise<string[]> => {
   const out: string[] = [];
   const stack = [root];
   while (stack.length > 0) {
-    const current = stack.pop()!;
-    let entries;
+    const current = stack.pop();
+    if (current === undefined) break;
+    let entries: Dirent[];
     try {
       entries = await readdir(current, { withFileTypes: true });
     } catch {
@@ -200,17 +202,17 @@ const projectKeyedArchive = (
   readonly coverage: InterfaceBuilderGraphCoverage[];
   readonly classes: number;
 } | null => {
-  if (!isPlainObject(raw) || raw.$archiver !== 'NSKeyedArchiver' || !Array.isArray(raw.$objects)) {
+  if (!isPlainObject(raw) || raw['$archiver'] !== 'NSKeyedArchiver' || !Array.isArray(raw['$objects'])) {
     return null;
   }
-  const objectTable = raw.$objects as PlistValue[];
+  const objectTable = raw['$objects'] as PlistValue[];
   const classNames = new Map<number, { readonly name: string | null; readonly chain: readonly string[] }>();
   for (const [index, entry] of objectTable.entries()) {
     if (!isPlainObject(entry)) continue;
-    if (typeof entry.$classname === 'string' || Array.isArray(entry.$classes)) {
-      const chain = Array.isArray(entry.$classes) ? entry.$classes.filter((item): item is string => typeof item === 'string') : [];
+    if (typeof entry['$classname'] === 'string' || Array.isArray(entry['$classes'])) {
+      const chain = Array.isArray(entry['$classes']) ? entry['$classes'].filter((item): item is string => typeof item === 'string') : [];
       classNames.set(index, {
-        name: typeof entry.$classname === 'string' ? entry.$classname : null,
+        name: typeof entry['$classname'] === 'string' ? entry['$classname'] : null,
         chain,
       });
     }
@@ -221,7 +223,7 @@ const projectKeyedArchive = (
   for (const [index, entry] of objectTable.entries()) {
     if (index === 0) continue;
     const row = isPlainObject(entry) ? entry : null;
-    const classUid = row === null ? undefined : uidOf(row.$class as PlistValue);
+    const classUid = row === null ? undefined : uidOf(row['$class'] as PlistValue);
     const classFacts = classUid === undefined ? undefined : classNames.get(classUid);
     const archivedClassName = classFacts?.name ?? null;
     if (archivedClassName === null && (row === null || !Object.hasOwn(row, '$class'))) continue;
@@ -240,7 +242,7 @@ const projectKeyedArchive = (
       id: String(index),
       kind: kind === 'other' ? 'unknown' : kind,
       class_name: className,
-      name: firstString(attributes.label, attributes.title, attributes.identifier, attributes.accessibilityLabel, className) ?? `object ${String(index)}`,
+      name: firstString(attributes['label'], attributes['title'], attributes['identifier'], attributes['accessibilityLabel'], className) ?? `object ${String(index)}`,
       attributes,
     });
   }
@@ -278,8 +280,8 @@ const projectKeyedArchive = (
 
   const edges: InterfaceBuilderGraphEdge[] = [];
   let hierarchyExamined = 0;
-  const top = isPlainObject(raw.$top) ? raw.$top : {};
-  const hierarchyRoot = Object.hasOwn(top, 'UINibTopLevelObjectsKey') ? top.UINibTopLevelObjectsKey : top.root;
+  const top = isPlainObject(raw['$top']) ? raw['$top'] : {};
+  const hierarchyRoot = Object.hasOwn(top, 'UINibTopLevelObjectsKey') ? top['UINibTopLevelObjectsKey'] : top['root'];
   const visit = (value: PlistValue): void => {
     const uid = uidOf(value);
     if (uid !== undefined) {

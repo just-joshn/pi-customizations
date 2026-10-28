@@ -46,7 +46,7 @@ export const inspectSignature = async (session: ReaSession, params: InspectSigna
     input_path: target.identity.path,
   };
   if (params.native_command_timeout_ms !== undefined) {
-    parameters.native_command_timeout_ms = params.native_command_timeout_ms;
+    parameters['native_command_timeout_ms'] = params.native_command_timeout_ms;
   }
   const record = createEvidence({
     subject: {

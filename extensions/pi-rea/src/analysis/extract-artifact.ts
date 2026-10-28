@@ -68,7 +68,7 @@ export const extractZipArtifact = async (
   },
 ): Promise<ExtractArtifactInspection> => {
   const integrityPolicy = options.integrityPolicy ?? 'fail';
-  let directory;
+  let directory: ReturnType<typeof readZipDirectory>;
   try {
     directory = readZipDirectory(bytes);
   } catch (error: unknown) {
@@ -89,7 +89,7 @@ export const extractZipArtifact = async (
     const safety = normalizeMemberPath(entry.logical_path);
     const occurrenceId = `occ_${digestOf(`${entry.logical_path}:${entry.local_header_offset}:${entry.compressed_size}`)}`;
     if (entry.is_directory || safety.safe === false) continue;
-    let member;
+    let member: ReturnType<typeof readZipMember>;
     try {
       member = readZipMember(bytes, entry);
     } catch (error: unknown) {

@@ -22,8 +22,6 @@ import {
   moduleNode,
   NATIVE_MEMBER_LIMITATION,
   ORACLE_BASE_LIMITATIONS,
-  PARSER_LIMITATION,
-  RELATION_LIMITATION,
   RETURN_SHAPE_LIMITATION,
   RUNTIME_RELATION_LIMITATION,
   SEMANTIC_ANALYSIS_LIMITATIONS,
@@ -1434,7 +1432,8 @@ function graphNodeForWindow({ logicalPath, sha256, window }) {
   });
 }
 
-function graphNodeForNativeRequest({ logicalPath, sha256, request, resolution }) {
+// Retained from the ported analyzer source; nothing in this build calls it.
+function _graphNodeForNativeRequest({ logicalPath, sha256, request, resolution }) {
   return fileNode({
     kind: 'native-export',
     logicalPath,
@@ -1508,7 +1507,7 @@ export function pairIpc(nodes) {
   return [...channels.values()].sort((left, right) => (left.channel < right.channel ? -1 : 1));
 }
 
-function buildSummary({ nodes, ipcPairs, nativeRequests, extraction = new Map() }) {
+function buildSummary({ nodes, ipcPairs: _ipcPairs, nativeRequests, extraction = new Map() }) {
   const handlers = nodes.filter((node) => node.kind === 'ipc-handler');
   const bySide = (side) => handlers.filter((node) => node.observations[0]?.properties.side === side);
   const literal = handlers.filter((node) => node.observations[0]?.properties.channel !== null && node.observations[0]?.properties.channel !== undefined);

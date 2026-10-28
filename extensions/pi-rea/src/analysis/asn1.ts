@@ -8,18 +8,22 @@ export interface DerNode {
 }
 
 export const readDerNode = (bytes: Buffer, offset: number): DerNode => {
-  if (offset >= bytes.length) throw new Error('truncated DER');
-  const tag = bytes[offset]!;
+  const tag = bytes[offset];
+  if (tag === undefined) throw new Error('truncated DER');
   let cursor = offset + 1;
-  if (cursor >= bytes.length) throw new Error('truncated DER length');
-  const first = bytes[cursor]!;
+  const first = bytes[cursor];
+  if (first === undefined) throw new Error('truncated DER length');
   cursor += 1;
   let length = 0;
   if ((first & 0x80) === 0) length = first;
   else {
     const count = first & 0x7f;
     if (count === 0 || count > 4 || cursor + count > bytes.length) throw new Error('invalid DER length');
-    for (let index = 0; index < count; index += 1) length = (length << 8) | bytes[cursor + index]!;
+    for (let index = 0; index < count; index += 1) {
+      const byte = bytes[cursor + index];
+      if (byte === undefined) throw new Error('invalid DER length');
+      length = (length << 8) | byte;
+    }
     cursor += count;
   }
   const contentOffset = cursor;
@@ -43,12 +47,15 @@ export const derChildren = (bytes: Buffer, node: DerNode): DerNode[] => {
 export const derOid = (bytes: Buffer, node: DerNode): string => {
   if (node.tag !== 0x06) throw new Error('expected OID');
   const body = bytes.subarray(node.contentOffset, node.end);
-  if (body.length === 0) return '';
-  const values = [Math.floor(body[0]! / 40), body[0]! % 40];
+  const firstByte = body[0];
+  if (firstByte === undefined) return '';
+  const values = [Math.floor(firstByte / 40), firstByte % 40];
   let value = 0;
   for (let index = 1; index < body.length; index += 1) {
-    value = (value << 7) | (body[index]! & 0x7f);
-    if ((body[index]! & 0x80) === 0) {
+    const byte = body[index];
+    if (byte === undefined) break;
+    value = (value << 7) | (byte & 0x7f);
+    if ((byte & 0x80) === 0) {
       values.push(value);
       value = 0;
     }

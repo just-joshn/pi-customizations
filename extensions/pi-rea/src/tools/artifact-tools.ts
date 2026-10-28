@@ -76,18 +76,18 @@ export const inspectArtifact = async (session: ReaSession, params: InspectArtifa
   session.evidence.record(inventoryEvidence);
 
   const manifest = inventoryResult.inventory.manifest;
-  const observationId = `aio_${digestOf(`observation:${manifest.manifest_id}:${inventoryEvidence.evidence_id}`)}`;
-  const substepId = `ais_${digestOf(`substep:${manifest.manifest_id}:${inventoryEvidence.evidence_id}`)}`;
-  const inspectionId = `ai_${digestOf(`inspection:${manifest.manifest_id}:${target.identity.sha256}`)}`;
+  const observationId = `aio_${digestOf(`observation:${manifest['manifest_id']}:${inventoryEvidence.evidence_id}`)}`;
+  const substepId = `ais_${digestOf(`substep:${manifest['manifest_id']}:${inventoryEvidence.evidence_id}`)}`;
+  const inspectionId = `ai_${digestOf(`inspection:${manifest['manifest_id']}:${target.identity.sha256}`)}`;
 
   const limitations = [INSPECTION_LIMITATION, inventoryResult.zip_limitation];
   const normalizedResult = {
     inspection_id: inspectionId,
     subject: {
-      manifest_id: manifest.manifest_id,
-      root_artifact_id: manifest.root_artifact_id,
-      root_sha256: manifest.root_sha256,
-      root_format: manifest.root_format,
+      manifest_id: manifest['manifest_id'],
+      root_artifact_id: manifest['root_artifact_id'],
+      root_sha256: manifest['root_sha256'],
+      root_format: manifest['root_format'],
     },
     substeps: [
       {
@@ -102,16 +102,16 @@ export const inspectArtifact = async (session: ReaSession, params: InspectArtifa
       {
         observation_id: observationId,
         kind: 'root-manifest',
-        subject: manifest.root_artifact_id,
+        subject: manifest['root_artifact_id'],
         value: {
-          manifest_id: manifest.manifest_id,
-          root_artifact_id: manifest.root_artifact_id,
-          root_sha256: manifest.root_sha256,
-          root_format: manifest.root_format,
-          graph_sha256: manifest.graph_sha256,
-          node_count: manifest.node_count,
-          occurrence_count: manifest.occurrence_count,
-          edge_count: manifest.edge_count,
+          manifest_id: manifest['manifest_id'],
+          root_artifact_id: manifest['root_artifact_id'],
+          root_sha256: manifest['root_sha256'],
+          root_format: manifest['root_format'],
+          graph_sha256: manifest['graph_sha256'],
+          node_count: manifest['node_count'],
+          occurrence_count: manifest['occurrence_count'],
+          edge_count: manifest['edge_count'],
         },
         evidence_id: inventoryEvidence.evidence_id,
       },

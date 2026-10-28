@@ -103,7 +103,9 @@ test('TOOL-060: the analysis is retained as Evidence and appears in the session'
   expect(session.evidence.size).toBe(1);
   const retained = session.evidence.get(record['evidence_id'] as string);
   expect(retained?.operation).toBe('inspect_plist');
-  const summary = (binarySession(session, {}).structuredContent as { result: { tool_availability: { name: string; available: boolean }[] } }).result.tool_availability.find((entry) => entry.name === 'inspect_plist');
+  const summary = (binarySession(session, {}).structuredContent as { result: { tool_availability: { groups: { names: string[]; available: boolean }[] } } }).result.tool_availability.groups.find((group) =>
+    group.names.includes('inspect_plist'),
+  );
   expect(summary?.available).toBe(true);
   expect(session.evidence.summary({ operation: 'inspect_plist' }).entries).toHaveLength(1);
   expect(closeBinary(session, {}).structuredContent).toStrictEqual({ result: null });

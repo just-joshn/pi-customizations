@@ -32,7 +32,7 @@ const isPowerOfTwo = (value: number): boolean => value > 0 && (value & (value - 
 export const shannonEntropy = (bytes: Uint8Array): number => {
   if (bytes.length === 0) return 0;
   const counts = new Array<number>(256).fill(0);
-  for (const value of bytes) counts[value]! += 1;
+  for (const value of bytes) counts[value] = (counts[value] ?? 0) + 1;
   let entropy = 0;
   const length = bytes.length;
   for (const count of counts) {

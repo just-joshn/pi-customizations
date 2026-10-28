@@ -3,6 +3,12 @@ import { createHash, X509Certificate } from 'node:crypto';
 import { type DerNode, derChildren, derIntegerHex, derOid, derUtf8, readDerNode } from './asn1.ts';
 import { DIR, type PeFileLocation, type PeImage, parsePeImage, peInputError, resolvePathBytes } from './pe-core.ts';
 
+const at = <T>(values: readonly T[], index: number): T => {
+  const value = values[index];
+  if (value === undefined) throw new Error(`missing DER child at index ${index}`);
+  return value;
+};
+
 export const DEFAULT_MAX_ENTRIES = 8;
 
 export interface PeCertificatesInspection {
@@ -150,7 +156,7 @@ const parsePkcs7 = (payload: Buffer, baseOffset: number): PePkcs7 => {
   const signedChildren = derChildren(payload, signedData);
   if (signedChildren.length < 4) throw new Error('PKCS#7 signedData lacks required fields');
 
-  const digestAlgs = derChildren(payload, signedChildren[1]!)
+  const digestAlgs = derChildren(payload, at(signedChildren, 1))
     .map((alg) => {
       const [oidNode] = derChildren(payload, alg);
       return oidNode === undefined ? '' : derOid(payload, oidNode);
@@ -197,32 +203,36 @@ const parsePkcs7 = (payload: Buffer, baseOffset: number): PePkcs7 => {
     }
   }
 
-  const signerInfos = signedChildren[signedChildren.length - 1]!;
+  const signerInfos = at(signedChildren, signedChildren.length - 1);
   for (const signer of derChildren(payload, signerInfos)) {
     const fields = derChildren(payload, signer);
     if (fields.length < 4) continue;
     const versionOk = fields[0];
     void versionOk;
-    const issuerAndSerial = derChildren(payload, fields[1]!);
+    const issuerAndSerialNode = at(fields, 1);
+    const digestAlgNode = at(fields, 2);
+    const issuerAndSerial = derChildren(payload, issuerAndSerialNode);
     let issuer: NameInfo | null = null;
     let serialHex: string | null = null;
     let ski: string | null = null;
-    if (issuerAndSerial.length >= 2 && fields[1]!.tag === 0x30) {
-      serialHex = derIntegerHex(payload, issuerAndSerial[1]!);
-      issuer = parseNameDer(payload, issuerAndSerial[0]!);
-    } else if ((fields[1]!.tag & 0xa0) === 0xa0) {
-      const skiNode = readDerNode(payload, fields[1]!.contentOffset);
+    if (issuerAndSerial.length >= 2 && issuerAndSerialNode.tag === 0x30) {
+      serialHex = derIntegerHex(payload, at(issuerAndSerial, 1));
+      issuer = parseNameDer(payload, at(issuerAndSerial, 0));
+    } else if ((issuerAndSerialNode.tag & 0xa0) === 0xa0) {
+      const skiNode = readDerNode(payload, issuerAndSerialNode.contentOffset);
       ski = payload.subarray(skiNode.contentOffset, skiNode.end).toString('hex');
     }
-    const digestAlg = derChildren(payload, fields[2]!);
+    const digestAlg = derChildren(payload, digestAlgNode);
     const digestOid = digestAlg[0] === undefined ? '' : derOid(payload, digestAlg[0]);
     let cursor = 3;
     let authenticated = false;
-    if (fields[cursor] !== undefined && (fields[cursor]!.tag & 0xa0) === 0xa0) {
+    const authenticatedField = fields[cursor];
+    if (authenticatedField !== undefined && (authenticatedField.tag & 0xa0) === 0xa0) {
       authenticated = true;
       cursor += 1;
     }
-    const signatureAlg = fields[cursor] === undefined ? [] : derChildren(payload, fields[cursor]!);
+    const signatureAlgNode = fields[cursor];
+    const signatureAlg = signatureAlgNode === undefined ? [] : derChildren(payload, signatureAlgNode);
     const signatureOid = signatureAlg[0] === undefined ? '' : derOid(payload, signatureAlg[0]);
     signers.push({
       digest_algorithm_oid: digestOid,

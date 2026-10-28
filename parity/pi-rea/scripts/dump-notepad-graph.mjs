@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
-import { readFileSync } from 'fs';
-import { join } from 'path';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 import { deepDiff } from './lib/diff.mjs';
 import { normalizeForCompare } from './lib/normalize.mjs';

@@ -119,12 +119,12 @@ export interface KernelModuleSubjectFields {
   readonly architecture: string | null;
 }
 
-export interface KernelModuleLocation {
+export type KernelModuleLocation = {
   readonly kind: 'artifact-path' | 'file-offset-range';
   readonly path?: string;
   readonly start?: number;
   readonly end?: number;
-}
+};
 
 const inputError = (path: string, reason: string, detail: string) =>
   invalidRequest('The inspection input is not usable. Check the argument and retry.', {
@@ -316,7 +316,7 @@ const emptyVersions = (status: 'absent' | 'not_applicable'): KernelModuleInspect
 });
 
 const limitationsFor = (signatureStatus: 'absent' | 'present' | 'not_applicable'): string[] => {
-  const base = [...KERNEL_MODULE_LIMITATIONS_BASE];
+  const base: string[] = [...KERNEL_MODULE_LIMITATIONS_BASE];
   if (signatureStatus === 'absent') base.push(SIGNATURE_ABSENT_LIMITATION);
   return base;
 };

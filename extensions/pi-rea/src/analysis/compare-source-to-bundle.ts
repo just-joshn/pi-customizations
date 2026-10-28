@@ -505,11 +505,12 @@ const classifyMapping = (
   digestComparable: (candidate: Candidate) => boolean,
 ): { status: MappingItem['status']; confidence: MappingItem['confidence']; currentNodeIds: string[]; limitations: string[] } => {
   const exact = candidates.filter((candidate) => hasSignal(candidate, 'exact-source-digest'));
-  if (exact.length === 1) {
+  const exactCandidate = exact[0];
+  if (exact.length === 1 && exactCandidate !== undefined) {
     return {
       status: 'unchanged',
       confidence: 'exact',
-      currentNodeIds: [exact[0]!.current_node_id],
+      currentNodeIds: [exactCandidate.current_node_id],
       limitations: ['Exact byte identity does not establish equivalent load context or runtime behavior.'],
     };
   }
@@ -524,8 +525,9 @@ const classifyMapping = (
   const pathCandidates = candidates.filter((candidate) => candidate.signals.some(({ kind }) => kind === 'source-map-original-path' || kind === 'current-path-exact' || kind === 'current-path-suffix'));
   const topScore = pathCandidates[0]?.score;
   const topPathCandidates = topScore === undefined ? [] : pathCandidates.filter(({ score }) => score === topScore);
-  if (topPathCandidates.length === 1) {
-    const candidate = topPathCandidates[0]!;
+  const topCandidate = topPathCandidates[0];
+  if (topPathCandidates.length === 1 && topCandidate !== undefined) {
+    const candidate = topCandidate;
     if (digestComparable(candidate)) {
       return {
         status: 'modified',
@@ -646,7 +648,8 @@ export const compareSourceToBundle = async (params: { readonly reference: unknow
   const sourcesByOccurrence = new Map<string, MappingItem[]>();
   for (const item of provisional) {
     if (item.status !== 'unchanged' || item.current_node_ids.length !== 1) continue;
-    const nodeId = item.current_node_ids[0]!;
+    const nodeId = item.current_node_ids[0];
+    if (nodeId === undefined) continue;
     const candidate = item.candidates.find((entry) => entry.current_node_id === nodeId);
     if (candidate === undefined) continue;
     const key = candidateIdentity(candidate);

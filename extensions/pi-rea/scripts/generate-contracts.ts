@@ -97,7 +97,8 @@ const humanize = (name: string): string => {
   const words = name.split('_').filter((part) => part.length > 0);
   if (words.length === 0) return 'REA tool';
   const [first, ...rest] = words;
-  return [first![0]!.toUpperCase() + first!.slice(1), ...rest].join(' ');
+  if (first === undefined) return 'REA tool';
+  return [first.charAt(0).toUpperCase() + first.slice(1), ...rest].join(' ');
 };
 
 const portDescription = (name: string, implementation: 'kernel' | 'unavailable', seed?: SeedTool): string => {
@@ -145,6 +146,24 @@ const emptyClientRequirements = (): Record<string, unknown> => ({
   missing_optional: [],
 });
 
+const propertyRecord = (value: unknown): Record<string, unknown> => (typeof value === 'object' && value !== null && !Array.isArray(value) ? (value as Record<string, unknown>) : {});
+
+const placeholderSchema = (value: unknown): boolean => {
+  const record = propertyRecord(value);
+  return Object.keys(record).length === 1 && Object.hasOwn(record, 'type');
+};
+
+const detailed = (candidate: unknown, alternative: unknown): unknown => (JSON.stringify(candidate).length >= JSON.stringify(alternative).length ? candidate : alternative);
+
+const mergeProperties = (seedProperties: Record<string, unknown>, oracleProperties: Record<string, unknown>): Record<string, unknown> => {
+  const merged: Record<string, unknown> = { ...seedProperties };
+  for (const [name, schema] of Object.entries(oracleProperties)) {
+    const seed = merged[name];
+    merged[name] = seed === undefined || placeholderSchema(schema) ? (seed ?? schema) : detailed(seed, schema);
+  }
+  return merged;
+};
+
 const chooseParameters = (oracleSchema: Record<string, unknown>, seed?: SeedTool): Record<string, unknown> => {
   const sanitized = sanitizeSchema(oracleSchema, false) as Record<string, unknown>;
   if (sanitized['type'] !== 'object') sanitized['type'] = 'object';
@@ -154,11 +173,10 @@ const chooseParameters = (oracleSchema: Record<string, unknown>, seed?: SeedTool
   const seedParameters = seed?.parameters;
   if (seedParameters === undefined) return sanitized;
 
-  const oracleText = JSON.stringify(sanitized);
-  const seedText = JSON.stringify(seedParameters);
-  const reduced = typeof oracleSchema['description'] === 'string' && String(oracleSchema['description']).includes('reduced form');
-  if (reduced || seedText.length > oracleText.length) return seedParameters;
-  return sanitized;
+  const merged: Record<string, unknown> = { ...sanitized };
+  merged['properties'] = mergeProperties(propertyRecord(seedParameters['properties']), propertyRecord(sanitized['properties']));
+  if (!Array.isArray(sanitized['required']) && Array.isArray(seedParameters['required'])) merged['required'] = seedParameters['required'];
+  return merged;
 };
 
 const main = (): void => {
@@ -203,10 +221,10 @@ const main = (): void => {
     const group = groupByName.get(wire.name);
     const implementation = kernel.has(wire.name) ? ('kernel' as const) : ('unavailable' as const);
     const annotations = {
-      readOnlyHint: seed?.annotations.readOnlyHint ?? wire.annotations?.readOnlyHint ?? false,
-      destructiveHint: seed?.annotations.destructiveHint ?? wire.annotations?.destructiveHint ?? false,
-      idempotentHint: seed?.annotations.idempotentHint ?? wire.annotations?.idempotentHint ?? false,
-      openWorldHint: seed?.annotations.openWorldHint ?? wire.annotations?.openWorldHint ?? false,
+      readOnlyHint: seed?.annotations['readOnlyHint'] ?? wire.annotations?.readOnlyHint ?? false,
+      destructiveHint: seed?.annotations['destructiveHint'] ?? wire.annotations?.destructiveHint ?? false,
+      idempotentHint: seed?.annotations['idempotentHint'] ?? wire.annotations?.idempotentHint ?? false,
+      openWorldHint: seed?.annotations['openWorldHint'] ?? wire.annotations?.openWorldHint ?? false,
     };
     const parameters = chooseParameters(wire.inputSchema ?? { type: 'object', properties: {}, additionalProperties: false }, seed);
 
@@ -253,7 +271,6 @@ const main = (): void => {
       method: 'black-box observation of the published tool interface (names, parameter names, types, bounds, structure, flags)',
       oracle: 'parity/pi-rea/rea-6.8.0-tools-list.json',
       capture_sha256: toolsSha256,
-      tools_sha256: toolsSha256,
       note: 'Interface facts only. No REA prose, examples, defaults or output schemas are included.',
     },
     counts: {

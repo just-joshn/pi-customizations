@@ -205,6 +205,8 @@ export interface RuntimeConstraint {
 
 export type SettingChange = { readonly setting: AnalysisSettingId; readonly action: 'set'; readonly value: number | null } | { readonly setting: AnalysisSettingId; readonly action: 'reset' };
 
+const isSettingChangeList = (value: unknown): value is readonly SettingChange[] => Array.isArray(value);
+
 export interface UpdateAnalysisSettingsParams {
   readonly changes: readonly SettingChange[];
   readonly expected_revision?: number;
@@ -354,7 +356,7 @@ export class AnalysisSettingsStore {
     readonly active_work_changed: false;
     readonly rea_restart_required: false;
   } {
-    if (!Array.isArray(params.changes) || params.changes.length === 0) {
+    if (!isSettingChangeList(params.changes) || params.changes.length === 0) {
       throw invalidRequest('update_analysis_settings requires a non-empty changes array.', { parameter: 'changes' });
     }
     if (params.changes.length > ANALYSIS_SETTING_IDS.length) {
@@ -433,7 +435,8 @@ export class AnalysisSettingsStore {
 
   private describe(id: AnalysisSettingId): SettingDescriptor {
     const definition = ANALYSIS_SETTING_DEFINITIONS[id];
-    const launch = this.#launch.get(id)!;
+    const launch = this.#launch.get(id);
+    if (launch === undefined) throw new Error(`analysis setting ${id} has no launch record`);
     const override = this.#overrides[id];
     if ('error' in launch) {
       return {

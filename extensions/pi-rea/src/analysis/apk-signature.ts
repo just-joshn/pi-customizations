@@ -80,7 +80,8 @@ const pkcs7ContentTypeError = (bytes: Buffer): string | null => {
   // ContentInfo ::= SEQUENCE { contentType OBJECT IDENTIFIER, ... }
   if (bytes.length < 4 || bytes[0] !== 0x30) return null;
   let cursor = 1;
-  const first = bytes[cursor]!;
+  const first = bytes[cursor];
+  if (first === undefined) return null;
   cursor += 1;
   if ((first & 0x80) === 0) {
     // short form length; contentType follows
@@ -89,8 +90,8 @@ const pkcs7ContentTypeError = (bytes: Buffer): string | null => {
     if (count === 0 || count > 4 || cursor + count > bytes.length) return null;
     cursor += count;
   }
-  if (cursor >= bytes.length) return null;
-  const tag = bytes[cursor]!;
+  const tag = bytes[cursor];
+  if (tag === undefined) return null;
   if (tag === 0x06) return null;
   return `malformed PKCS#7: contentType has tag 0x${tag.toString(16)}, expected 0x6`;
 };
@@ -247,7 +248,7 @@ const collectV1 = (bytes: Buffer): ApkSignatureInspection['schemes']['v1'] => {
     if (/^META-INF\/.+\.SF$/u.test(name)) signature_files.push(name);
     if (/^META-INF\/.+\.(RSA|DSA|EC)$/u.test(name)) block_files.push(name);
   }
-  const signers: ApkSignatureInspection['schemes']['v1']['signers'] = [];
+  const signers: ApkSignatureInspection['schemes']['v1']['signers'][number][] = [];
   for (const blockPath of block_files) {
     const base = blockPath.replace(/\.(RSA|DSA|EC)$/u, '');
     const sfPath = `${base}.SF`;
@@ -267,7 +268,11 @@ const collectV1 = (bytes: Buffer): ApkSignatureInspection['schemes']['v1'] => {
           }
           try {
             let cursor = offset + 1;
-            const first = buf[cursor]!;
+            const first = buf[cursor];
+            if (first === undefined) {
+              offset += 1;
+              continue;
+            }
             cursor += 1;
             let length = 0;
             if ((first & 0x80) === 0) length = first;
@@ -277,7 +282,11 @@ const collectV1 = (bytes: Buffer): ApkSignatureInspection['schemes']['v1'] => {
                 offset += 1;
                 continue;
               }
-              for (let i = 0; i < count; i += 1) length = (length << 8) | buf[cursor + i]!;
+              for (let i = 0; i < count; i += 1) {
+                const byte = buf[cursor + i];
+                if (byte === undefined) break;
+                length = (length << 8) | byte;
+              }
               cursor += count;
             }
             const end = cursor + length;
@@ -383,8 +392,8 @@ export const inspectApkSignatureFromPath = async (path: string, options: { reado
   if (blockSets.length > 0) {
     if (blockSets.some((set) => set === null)) schemes_agree_on_signer = null;
     else {
-      const [first, ...rest] = blockSets as Set<string>[];
-      schemes_agree_on_signer = rest.every((set) => set.size === first!.size && [...set].every((digest) => first!.has(digest)));
+      const [firstSet, ...rest] = blockSets as Set<string>[];
+      schemes_agree_on_signer = firstSet !== undefined && rest.every((set) => set.size === firstSet.size && [...set].every((digest) => firstSet.has(digest)));
     }
   }
   const record: ApkSignatureInspection = {

@@ -182,7 +182,9 @@ test('verify_unknown_resolution: open unknowns are not truth-verified', () => {
 test('verify_unknown_resolution: a verified resolution reports truthVerified', () => {
   const session = new ReaSession(runtime);
   const recorded = payloadOf(recordUnknown(session, draft()));
-  const mutationId = (recorded['mutation_evidence_ids'] as string[])[0]!;
+  const mutationIds = recorded['mutation_evidence_ids'] as string[];
+  const mutationId = mutationIds[0];
+  if (mutationId === undefined) throw new Error('expected a mutation Evidence id');
   const updated = payloadOf(
     updateUnknown(session, {
       unknown_id: recorded['unknown_id'] as string,

@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { evidenceIntegrityMismatch, ReaError, resourceConstraint } from '../src/contract/errors.ts';
-import { byteLength, DEFAULT_RESPONSE_BUDGET_BYTES, errorResult, evidenceResult, operationResult, responseBudgetBytes } from '../src/contract/results.ts';
+import { byteLength, configurationResult, DEFAULT_RESPONSE_BUDGET_BYTES, errorResult, evidenceResult, operationResult, responseBudgetBytes } from '../src/contract/results.ts';
 import { createEvidence } from '../src/session/evidence.ts';
 import { capture } from './support/fixtures.ts';
 
@@ -39,7 +39,7 @@ test('KERN-004: an Evidence result is the record at the top level, marked as tar
   const result = evidenceResult(record);
   expect(result.structuredContent).toStrictEqual(record);
   expect(JSON.parse(textOf(result))).toStrictEqual(record);
-  expect(result.details).toStrictEqual({ provenance: { untrusted_content: true, source: 'analysis_target' } });
+  expect(result.details).toStrictEqual({ evidence: record, provenance: { untrusted_content: true, source: 'analysis_target' } });
 });
 
 test('KERN-005: a failure carries the canonical error JSON, isError, and no structured content', () => {
@@ -92,22 +92,48 @@ test('KERN-040: a configured budget must be a safe decimal integer of at least t
   }
 });
 
-test('KERN-040: an oversized result is replaced by resource_constraint with the reported limits', () => {
+test('KERN-040: an oversized result is truncated to the budget with a marker and instructions', () => {
   const oversized = { blob: 'x'.repeat(DEFAULT_RESPONSE_BUDGET_BYTES + 1) };
-  let thrown: unknown;
-  try {
-    operationResult(oversized);
-  } catch (error) {
-    thrown = error;
-  }
-  expect(thrown).toBeInstanceOf(ReaError);
-  const payload = (thrown as ReaError).payload;
-  expect(payload.code).toBe('resource_constraint');
-  expect(payload.category).toBe('resource_constraint');
-  const reportedLimits = payload.details?.['reported_limits'];
-  expect(reportedLimits).toBeDefined();
-  expect((reportedLimits as { response_budget_bytes: number }).response_budget_bytes).toBe(DEFAULT_RESPONSE_BUDGET_BYTES);
-  expect(byteLength(JSON.stringify(oversized))).toBeGreaterThan(DEFAULT_RESPONSE_BUDGET_BYTES);
+  const result = operationResult(oversized);
+  const marker = (result.structuredContent as { result: Record<string, unknown> }).result;
+  expect(marker['truncated']).toBe(true);
+  expect(marker['response_budget_bytes']).toBe(DEFAULT_RESPONSE_BUDGET_BYTES - 1024);
+  expect(marker['required_bytes']).toBeGreaterThan(DEFAULT_RESPONSE_BUDGET_BYTES);
+  expect(String(marker['guidance'])).toContain('REA_MCP_MAX_RESPONSE_BYTES');
+  expect(byteLength(textOf(result))).toBeLessThan(DEFAULT_RESPONSE_BUDGET_BYTES);
+});
+
+test('KERN-040: an oversized Evidence result keeps the record in details and points at export_evidence_bundle', () => {
+  const record = createEvidence({
+    subject: null,
+    provider: { id: 'pi-rea', name: 'test', version: '1' },
+    analysis_profile: null,
+    predicate_type: 'rea.analysis',
+    operation: 'inspect_plist',
+    parameters: {},
+    raw_result: null,
+    normalized_result: { blob: 'x'.repeat(DEFAULT_RESPONSE_BUDGET_BYTES + 1) },
+    confidence: 'observed',
+    authority: 'shipped-artifact',
+    environment: null,
+    limitations: [],
+    locations: [],
+    evidence_links: [],
+  });
+  const result = evidenceResult(record);
+  const marker = result.structuredContent as Record<string, unknown>;
+  expect(marker['truncated']).toBe(true);
+  expect(String(marker['guidance'])).toContain('export_evidence_bundle');
+  expect((result.details as { evidence: { evidence_id: string } }).evidence.evidence_id).toBe(record.evidence_id);
+});
+
+test('KERN-040: an oversized configuration payload is truncated to the budget', () => {
+  const result = configurationResult({ blob: 'x'.repeat(DEFAULT_RESPONSE_BUDGET_BYTES + 1) });
+  const marker = result.structuredContent as Record<string, unknown>;
+  expect(marker['truncated']).toBe(true);
+  expect(marker['required_bytes']).toBeGreaterThan(DEFAULT_RESPONSE_BUDGET_BYTES);
+  expect(String(marker['guidance'])).toContain('response budget');
+  expect(result.details).toStrictEqual({});
 });
 
 test('KERN-004: a built error keeps a distinct remediation when one is supplied', () => {

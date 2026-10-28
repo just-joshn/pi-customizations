@@ -1,3 +1,4 @@
+// biome-ignore-all lint/correctness/noUndeclaredDependencies: design sketch kept as a frozen record; it imports Pi types only to sketch a shape and is never built or shipped.
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 
 export type EvidenceId = string & { readonly __brand: 'EvidenceId' };

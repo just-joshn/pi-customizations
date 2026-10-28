@@ -127,13 +127,22 @@ const inputError = (path: string, reason: string, detail: string) =>
 
 const sha256 = (bytes: Buffer): string => createHash('sha256').update(bytes).digest('hex');
 
+const firstByte = (bytes: Buffer): number => {
+  const value = bytes[0];
+  if (value === undefined) throw new Error('truncated primitive preview');
+  return value;
+};
+
 const product = (shape: readonly number[]): bigint => shape.reduce((acc, dim) => acc * BigInt(dim), 1n);
 
 const alignUp = (value: number, alignment: number): number => (alignment <= 1 ? value : (value + alignment - 1) & ~(alignment - 1));
 
 class Reader {
   offset = 0;
-  constructor(readonly buffer: Buffer) {}
+  readonly buffer: Buffer;
+  constructor(buffer: Buffer) {
+    this.buffer = buffer;
+  }
   need(n: number, label: string): void {
     if (this.offset + n > this.buffer.length) throw new Error(`truncated at ${label}`);
   }
@@ -189,7 +198,7 @@ class Reader {
 const readGgufValue = (reader: Reader, type: number): { typeName: string; value: unknown; elementType: string | null; elementCount: number | null; previewComplete: boolean } => {
   switch (type) {
     case 0:
-      return { typeName: 'UINT8', value: reader.take(1)[0]!, elementType: null, elementCount: null, previewComplete: true };
+      return { typeName: 'UINT8', value: firstByte(reader.take(1)), elementType: null, elementCount: null, previewComplete: true };
     case 1:
       return { typeName: 'INT8', value: reader.take(1).readInt8(0), elementType: null, elementCount: null, previewComplete: true };
     case 2:
@@ -203,7 +212,7 @@ const readGgufValue = (reader: Reader, type: number): { typeName: string; value:
     case 6:
       return { typeName: 'FLOAT32', value: reader.f32(), elementType: null, elementCount: null, previewComplete: true };
     case 7:
-      return { typeName: 'BOOL', value: reader.take(1)[0]! !== 0, elementType: null, elementCount: null, previewComplete: true };
+      return { typeName: 'BOOL', value: firstByte(reader.take(1)) !== 0, elementType: null, elementCount: null, previewComplete: true };
     case 8:
       return { typeName: 'STRING', value: reader.string(), elementType: null, elementCount: null, previewComplete: true };
     case 9: {

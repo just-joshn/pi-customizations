@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import type { BigIntStats } from 'node:fs';
+import type { BigIntStats, Dirent } from 'node:fs';
 import { lstat as lstatCallback, readdir, realpath, stat as statCallback } from 'node:fs/promises';
 import { isAbsolute, join, resolve } from 'node:path';
 
@@ -144,9 +144,10 @@ export const inspectDesktopApplicationFromPath = async (path: string, options: D
 
   const queue = [''];
   while (queue.length > 0) {
-    const rel = queue.shift()!;
+    const rel = queue.shift();
+    if (rel === undefined) break;
     const abs = rel.length === 0 ? resolvedPath : join(resolvedPath, rel);
-    let dirents;
+    let dirents: Dirent[];
     try {
       dirents = await readdir(abs, { withFileTypes: true });
     } catch (error) {

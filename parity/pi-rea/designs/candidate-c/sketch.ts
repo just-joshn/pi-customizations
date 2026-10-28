@@ -1,3 +1,4 @@
+// biome-ignore-all lint/suspicious/noConfusingVoidType: design sketch kept as a frozen record; void is the idiomatic branded-type marker here.
 declare const OperationIdBrand: unique symbol;
 export type OperationId = string & { readonly [OperationIdBrand]: void };
 

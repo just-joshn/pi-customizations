@@ -124,14 +124,24 @@ const decodeSentinel = (bytes: Buffer, sentinelOffset: number, sliceEnd: number)
   if (wireStart + 2 > sliceEnd) {
     return { sentinel_offset: sentinelOffset, wire_version: null, declared_length: null, fuses: [], complete: false };
   }
-  const wireVersion = bytes[wireStart]!;
-  const declaredLength = bytes[wireStart + 1]!;
+  const wireVersion = bytes[wireStart];
+  const declaredLength = bytes[wireStart + 1];
+  if (wireVersion === undefined || declaredLength === undefined) {
+    return {
+      sentinel_offset: sentinelOffset,
+      wire_version: null,
+      declared_length: null,
+      fuses: [],
+      complete: false,
+    };
+  }
   const fuseStart = wireStart + 2;
   const available = Math.max(0, sliceEnd - fuseStart);
   const take = Math.min(declaredLength, available);
   const fuses: ElectronFuse[] = [];
   for (let index = 0; index < take; index += 1) {
-    const raw = bytes[fuseStart + index]!;
+    const raw = bytes[fuseStart + index];
+    if (raw === undefined) break;
     fuses.push({
       index,
       name: electronFuseName(wireVersion, index),

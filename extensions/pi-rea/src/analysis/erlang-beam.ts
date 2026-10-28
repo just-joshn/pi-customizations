@@ -80,8 +80,8 @@ const decodeAtoms = (payload: Buffer, encoding: 'latin1' | 'utf8', maxAtoms: num
   const atoms: { index: number; name: string }[] = [];
   let offset = 4;
   for (let index = 1; index <= count; index += 1) {
-    if (offset >= payload.length) throw new Error('atom table truncated');
-    const length = payload[offset]!;
+    const length = payload[offset];
+    if (length === undefined) throw new Error('atom table truncated');
     offset += 1;
     if (offset + length > payload.length) throw new Error('atom table truncated');
     atoms.push({ index, name: payload.subarray(offset, offset + length).toString(encoding) });

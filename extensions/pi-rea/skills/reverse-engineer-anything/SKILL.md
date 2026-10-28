@@ -12,25 +12,26 @@ decompilation, passive runtime evidence, or a comparison against behavior no
 available source establishes. For ordinary analysis of a complete source
 repository, use your normal repository tools.
 
-If the repo-root `skills/reverse-engineer-anything` package is also installed,
-you may see two skills with the same name until cutover. Prefer this extension
-skill; it points at the expanded native tool set.
-
 ## Start from what is available
 
-pi-rea advertises REA's complete tool contract and registers all 229 tools as
-kernel handlers (session/Evidence, static analyzers, and fail-closed provider
-or engine-free gap refuses). A call that lacks a provider or parser answers with
-`capability_unavailable` or `provider_unavailable` instead of a substitute
-result. Never present that error as a finding about the target.
+pi-rea advertises REA's complete tool contract and registers all 229 tools. 63
+are implemented handlers (session/Evidence and static analyzers); the other 166
+are fail-closed provider or engine-free gap refuses. A call that lacks a
+provider or parser answers with `capability_unavailable` or
+`provider_unavailable` instead of a substitute result. Never present that error
+as a finding about the target.
 
 Call `binary_session` first when you do not yet know the state. It reports the
-open target, every tool's availability with its reason, the provider candidates,
-and the catalog identity. Read each entry's `available`, `reason` and
-`remediation` before choosing a tool.
+open target, `tool_availability` as `client_requirements` plus availability
+groups with a reason (`available`, `target_required`, `provider_unavailable`),
+the provider candidates, and the catalog identity. Read each group's
+`available`, `reason` and `remediation` before choosing a tool; a
+`target_required` group means `open_binary` comes first.
 
-Every catalog tool is declared directly. Refuse envelopes are coverage gaps in
-this port and never statements about the target.
+The 63 implemented tools are declared directly. The 166 refusing tools are
+`deferred`, so `tool_search` finds them while the prompt carries only what can
+run. Refuse envelopes are coverage gaps in this port and never statements about
+the target.
 
 | Tool | Use it for |
 | --- | --- |

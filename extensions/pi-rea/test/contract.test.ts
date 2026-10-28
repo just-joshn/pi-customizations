@@ -5,7 +5,8 @@ import { fileURLToPath } from 'node:url';
 import { expect, test } from 'vitest';
 import { catalogDigest, loadCatalog } from '../src/contract/catalog.ts';
 import { ERROR_CATEGORIES, ERROR_CODES } from '../src/contract/errors.ts';
-import { isDirect } from '../src/registry.ts';
+import { isDirect, KERNEL_TOOL_NAMES } from '../src/registry.ts';
+import { isProviderRefuseTool } from '../src/tools/provider-refuse-tools.ts';
 
 const catalog = loadCatalog();
 const manifest = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)), '../schemas/kernel-manifest.json'), 'utf8')) as { kernelToolNames: readonly string[] };
@@ -14,8 +15,8 @@ const kernelNames = [...manifest.kernelToolNames].toSorted();
 test('KERN-001: the contract carries 229 uniquely named tools', () => {
   expect(catalog.counts.tools).toBe(229);
   expect(catalog.counts.implemented).toBe(kernelNames.length);
-  expect(catalog.counts.kernel).toBe(229);
-  expect(catalog.counts.unavailable).toBe(0);
+  expect(catalog.counts.kernel).toBe(kernelNames.length);
+  expect(catalog.counts.unavailable).toBe(229 - kernelNames.length);
   expect(catalog.tools).toHaveLength(229);
   expect(new Set(catalog.tools.map((tool) => tool.name)).size).toBe(229);
   expect(catalog.tools.every((tool) => /^[a-z][a-z0-9_]*$/.test(tool.name))).toBe(true);
@@ -28,6 +29,10 @@ test('KERN-001: the implemented set matches kernel-manifest', () => {
       .map((tool) => tool.name)
       .toSorted(),
   ).toStrictEqual(kernelNames);
+});
+
+test('KERN-001: kernel-manifest matches the registered handler table', () => {
+  expect(kernelNames).toStrictEqual([...KERNEL_TOOL_NAMES]);
 });
 
 test('KERN-001: every tool advertises parameters, annotations, effects and a surface', () => {
@@ -122,13 +127,41 @@ test('KERN-002: nested parameter structure survives transcription', () => {
   expect(byName.size).toBe(229);
 });
 
-test('KERN-002: every catalog tool is marked kernel with no unavailable stub prose', () => {
-  const unimplemented = catalog.tools.filter((tool) => tool.implementation === 'unavailable');
-  expect(unimplemented).toHaveLength(0);
+test('KERN-002: the implementation flags match the handlers that answer the tool', () => {
+  const kernel = catalog.tools
+    .filter((tool) => tool.implementation === 'kernel')
+    .map((tool) => tool.name)
+    .toSorted();
+  const unavailable = catalog.tools
+    .filter((tool) => tool.implementation === 'unavailable')
+    .map((tool) => tool.name)
+    .toSorted();
+  expect(kernel).toStrictEqual([...KERNEL_TOOL_NAMES]);
+  expect(kernel).toHaveLength(63);
+  expect([...kernel, ...unavailable].toSorted()).toStrictEqual(catalog.tools.map((tool) => tool.name).toSorted());
+  for (const name of unavailable) expect(isProviderRefuseTool(name)).toBe(true);
   for (const tool of catalog.tools) {
-    expect(tool.implementation).toBe('kernel');
-    expect(tool.description).not.toContain('Not implemented in pi-rea yet');
+    if (tool.implementation === 'kernel') expect(tool.description).not.toContain('Not implemented in pi-rea yet');
+    else expect(tool.description).toContain('Not implemented in pi-rea yet');
   }
+});
+
+test('KERN-004: every parameter REA publishes is reachable in the catalog', () => {
+  const oracle = JSON.parse(readFileSync(new URL('../../../parity/pi-rea/rea-6.8.0-tools-list.json', import.meta.url), 'utf8')) as {
+    name: string;
+    inputSchema?: { properties?: Record<string, unknown> };
+  }[];
+  const byName = new Map(catalog.tools.map((tool) => [tool.name, tool]));
+  for (const published of oracle) {
+    const tool = byName.get(published.name);
+    if (tool === undefined) throw new Error(`the catalog lacks ${published.name}`);
+    const advertised = Object.keys((tool.parameters['properties'] as Record<string, unknown> | undefined) ?? {});
+    const missing = Object.keys(published.inputSchema?.properties ?? {}).filter((name) => !advertised.includes(name));
+    expect(missing, published.name).toStrictEqual([]);
+  }
+  const openBinary = byName.get('open_binary')?.parameters['properties'] as Record<string, unknown>;
+  expect(Object.keys(openBinary)).toContain('architecture');
+  expect(Object.keys(openBinary)).toContain('entry_point');
 });
 
 test('KERN-002: the contract records its provenance without claiming REA authorship', () => {
@@ -156,15 +189,15 @@ test('KERN-002: the host and provider inventories are recorded as interface fact
   }
 });
 
-test('KERN-003: every catalog tool is declared direct (kernel)', () => {
+test('KERN-003: implemented tools are direct and refusing tools are deferred', () => {
   const direct = catalog.tools.filter(isDirect).map((tool) => tool.name);
-  expect(direct).toHaveLength(229);
+  expect(direct.toSorted()).toStrictEqual([...KERNEL_TOOL_NAMES]);
   expect(direct).toContain('binary_session');
   expect(direct).toContain('export_evidence_bundle');
   expect(direct).toContain('inspect_plist');
   expect(direct).toContain('analyze_javascript_application');
-  expect(direct).toContain('inspect_wasm_artifact');
-  expect(catalog.tools.filter((tool) => !isDirect(tool))).toHaveLength(0);
+  expect(direct).not.toContain('inspect_wasm_artifact');
+  expect(catalog.tools.filter((tool) => !isDirect(tool))).toHaveLength(166);
 });
 
 test('KERN-004: error codes and categories are the reference vocabularies', () => {

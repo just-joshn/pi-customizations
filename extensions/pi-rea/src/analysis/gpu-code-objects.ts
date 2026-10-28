@@ -82,7 +82,7 @@ const parsePtx = (bytes: Buffer, path: string, analysis: 'inventory' | 'kernels'
     throw inputError(path, 'invalid_format', 'PTX text markers (.version/.target) were not observed.');
   }
   const target = text.match(/\.target\s+([A-Za-z0-9_]+)/)?.[1] ?? null;
-  const entryPoints = [...text.matchAll(/\.entry\s+([A-Za-z0-9_$]+)/g)].map((match) => match[1]!);
+  const entryPoints = [...text.matchAll(/\.entry\s+([A-Za-z0-9_$]+)/g)].flatMap((match) => (match[1] === undefined ? [] : [match[1]]));
   const digest = sha256(bytes);
   const objectId = 'file@0';
   const object: GpuCodeObject = {
@@ -172,7 +172,8 @@ const parseElfInventory = (bytes: Buffer, path: string, analysis: 'inventory' | 
   let examined = 0;
   let payloadBytes = 0;
   for (let sectionIndex = 0; sectionIndex < headers.length; sectionIndex += 1) {
-    const header = headers[sectionIndex]!;
+    const header = headers[sectionIndex];
+    if (header === undefined) continue;
     const name = nameAt(header.nameOffset);
     if (name.length === 0) continue;
     examined += 1;

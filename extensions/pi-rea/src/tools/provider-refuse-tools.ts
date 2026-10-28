@@ -44,14 +44,14 @@ const executableFile = (path: string): boolean => {
 };
 
 const javaHomeFromEnv = (): string | undefined => {
-  const home = process.env.JAVA_HOME;
+  const home = process.env['JAVA_HOME'];
   return home !== undefined && home.length > 0 ? home : undefined;
 };
 
 const javaCommandForHost = (javaHome: string | undefined, platform: NodeJS.Platform): string => {
   if (javaHome !== undefined) return join(javaHome, 'bin', platform === 'win32' ? 'java.exe' : 'java');
   if (platform !== 'darwin') return platform === 'win32' ? 'java.exe' : 'java';
-  const pathValue = process.env.PATH;
+  const pathValue = process.env['PATH'];
   if (pathValue !== undefined) {
     const found = pathValue.split(':').some((directory) => directory.length > 0 && executableFile(join(directory, 'java')));
     if (found) return 'java';
@@ -60,7 +60,7 @@ const javaCommandForHost = (javaHome: string | undefined, platform: NodeJS.Platf
 };
 
 const ghidraRejection = (): Record<string, unknown> => {
-  const installDir = process.env.GHIDRA_INSTALL_DIR;
+  const installDir = process.env['GHIDRA_INSTALL_DIR'];
   if (installDir !== undefined && installDir.length > 0) {
     return {
       provider_id: 'ghidra',
@@ -117,10 +117,10 @@ const ghidraRejection = (): Record<string, unknown> => {
 };
 
 const hopperLauncherPath = (): string => {
-  const configured = process.env.HOPPER_LAUNCHER_PATH;
+  const configured = process.env['HOPPER_LAUNCHER_PATH'];
   if (configured !== undefined && configured.length > 0) return configured;
   if (process.platform !== 'darwin') return MAC_HOPPER_SYSTEM_LAUNCHER;
-  const home = process.env.HOME ?? homedir();
+  const home = process.env['HOME'] ?? homedir();
   const candidates = [MAC_HOPPER_SYSTEM_LAUNCHER, posix.join(home, 'Applications', 'Hopper Disassembler.app', 'Contents/MacOS/hopper')];
   for (const candidate of candidates) {
     if (executableFile(candidate)) return candidate;
@@ -148,7 +148,7 @@ const hopperRejection = (): Record<string, unknown> => {
 };
 
 const idaRejection = (): Record<string, unknown> => {
-  const registrationPath = process.env.REA_IDA_MCP_CONFIG;
+  const registrationPath = process.env['REA_IDA_MCP_CONFIG'];
   if (registrationPath !== undefined && registrationPath.length > 0) {
     return {
       provider_id: 'ida',
@@ -179,7 +179,7 @@ const idaRejection = (): Record<string, unknown> => {
 };
 
 const kunaRejection = (): Record<string, unknown> => {
-  const command = process.env.REA_KUNA_COMMAND;
+  const command = process.env['REA_KUNA_COMMAND'];
   if (command !== undefined && command.length > 0) {
     return {
       provider_id: 'kuna',
@@ -553,6 +553,32 @@ export const PROVIDER_REFUSE_TOOL_NAMES: readonly string[] = [...PROVIDER_REFUSE
 
 export const isProviderRefuseTool = (name: string): boolean => PROVIDER_REFUSE_BY_NAME.has(name);
 
+export interface RefuseAvailability {
+  readonly reason: 'target_required' | 'provider_unavailable';
+  readonly remediation: string;
+}
+
+const OPEN_BINARY_REMEDIATION = 'Call open_binary with a supported local target.';
+
+const capabilityRemediation = (strategy: Extract<RefuseStrategy, { kind: 'capability' | 'target_then_capability' }>): string =>
+  strategy.providerId === 'rizin' ? RIZIN_REMEDIATION : strategy.providerId === 'wabt-artifact' ? WABT_REMEDIATION : strategy.message;
+
+export const providerRefuseAvailability = (session: ReaSession, name: string): RefuseAvailability => {
+  const strategy = PROVIDER_REFUSE_BY_NAME.get(name);
+  if (strategy === undefined) throw new Error(`providerRefuseAvailability called for unregistered tool ${name}`);
+  if ((strategy.kind === 'official_proxy' || strategy.kind === 'target_then_capability') && !session.open) {
+    return { reason: 'target_required', remediation: OPEN_BINARY_REMEDIATION };
+  }
+  if (strategy.kind === 'official_proxy') return { reason: 'provider_unavailable', remediation: OFFICIAL_PROXY_MESSAGE };
+  if (strategy.kind === 'cdp_endpoint') {
+    return {
+      reason: 'provider_unavailable',
+      remediation: `${name} could not reach the selected loopback debugging endpoint. Verify that the target process is running with debugging enabled and that the endpoint's port matches it, then retry.`,
+    };
+  }
+  return { reason: 'provider_unavailable', remediation: capabilityRemediation(strategy) };
+};
+
 const refuseOfficialProxy = (session: ReaSession, operation: string): never => {
   if (!session.open) {
     throw targetUnavailable(NO_APP_OPEN);
@@ -567,7 +593,7 @@ const refuseOfficialProxy = (session: ReaSession, operation: string): never => {
 };
 
 const refuseCapability = (operation: string, strategy: Extract<RefuseStrategy, { kind: 'capability' | 'target_then_capability' }>): never => {
-  const remediation = strategy.providerId === 'rizin' ? RIZIN_REMEDIATION : strategy.providerId === 'wabt-artifact' ? WABT_REMEDIATION : strategy.message;
+  const remediation = capabilityRemediation(strategy);
   throw capabilityUnavailable(
     strategy.message,
     {

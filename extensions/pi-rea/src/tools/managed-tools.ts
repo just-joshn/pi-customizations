@@ -33,7 +33,7 @@ export const inspectManagedArtifact = async (session: ReaSession, params: Inspec
   const parameters: Record<string, unknown> = {
     input_path: path,
   };
-  if (params.detail !== undefined) parameters.detail = params.detail;
+  if (params.detail !== undefined) parameters['detail'] = params.detail;
   const record = createEvidence({
     subject: {
       name: resolvedPath.split('/').pop() ?? resolvedPath,
@@ -79,8 +79,8 @@ export const inspectManagedMembers = async (session: ReaSession, params: Inspect
   const parameters: Record<string, unknown> = {
     input_path: path,
   };
-  if (params.detail !== undefined) parameters.detail = params.detail;
-  if (params.type_names !== undefined) parameters.type_names = params.type_names;
+  if (params.detail !== undefined) parameters['detail'] = params.detail;
+  if (params.type_names !== undefined) parameters['type_names'] = params.type_names;
   const record = createEvidence({
     subject: {
       name: resolvedPath.split('/').pop() ?? resolvedPath,

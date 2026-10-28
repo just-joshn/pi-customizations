@@ -44,7 +44,7 @@ test('KERN-002: the extension only imports Pi, typebox, Babel parser, and relati
   const sources = shippedFiles.filter((path) => path.endsWith('.ts') || path.endsWith('.mjs'));
   for (const file of sources) {
     for (const specifier of specifiers(read(file))) {
-      const allowed = specifier.startsWith('.') || specifier.startsWith('node:') || specifier === '@earendil-works/pi-coding-agent' || specifier === '@earendil-works/pi-ai' || specifier === '@babel/parser';
+      const allowed = specifier.startsWith('.') || specifier.startsWith('node:') || specifier === '@earendil-works/pi-coding-agent' || specifier === '@earendil-works/pi-ai' || specifier === '@babel/parser' || specifier === 'typebox';
       expect(allowed, `${file} imports ${specifier}`).toBe(true);
     }
   }

@@ -101,13 +101,24 @@ class MarshalReader {
   objects = 0;
   maxDepthSeen = 0;
   readonly refs: unknown[] = [];
-  constructor(
-    readonly buffer: Buffer,
-    readonly maxObjects: number,
-    readonly maxDepth: number,
-    readonly maxStringBytes: number,
-    readonly modernCode: boolean,
-  ) {}
+  readonly buffer: Buffer;
+  readonly maxObjects: number;
+  readonly maxDepth: number;
+  readonly maxStringBytes: number;
+  readonly modernCode: boolean;
+  constructor(buffer: Buffer, maxObjects: number, maxDepth: number, maxStringBytes: number, modernCode: boolean) {
+    this.buffer = buffer;
+    this.maxObjects = maxObjects;
+    this.maxDepth = maxDepth;
+    this.maxStringBytes = maxStringBytes;
+    this.modernCode = modernCode;
+  }
+
+  private byte(): number {
+    const value = this.buffer[this.offset];
+    if (value === undefined) throw new Error('marshal stream truncated');
+    return value;
+  }
 
   private need(n: number): void {
     if (this.offset + n > this.buffer.length) throw new Error('marshal stream truncated');
@@ -132,7 +143,7 @@ class MarshalReader {
     if (this.depth > this.maxDepth) throw new Error(`marshal exceeds max_depth=${this.maxDepth}`);
     try {
       this.need(1);
-      const flag = this.buffer[this.offset]!;
+      const flag = this.byte();
       this.offset += 1;
       const type = flag & 0x7f;
       const withRef = (flag & FLAG_REF) !== 0;
@@ -188,7 +199,7 @@ class MarshalReader {
       case 'z'.charCodeAt(0):
       case 'Z'.charCodeAt(0): {
         this.need(1);
-        const size = this.buffer[this.offset]!;
+        const size = this.byte();
         this.offset += 1;
         if (size > this.maxStringBytes) throw new Error('string length out of range');
         this.need(size);
@@ -198,7 +209,7 @@ class MarshalReader {
       }
       case ')'.charCodeAt(0): {
         this.need(1);
-        const size = this.buffer[this.offset]!;
+        const size = this.byte();
         this.offset += 1;
         const values: unknown[] = [];
         for (let index = 0; index < size; index += 1) values.push(this.read());

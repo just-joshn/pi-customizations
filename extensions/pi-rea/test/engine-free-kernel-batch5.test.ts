@@ -3,6 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { expect, test } from 'vitest';
+import type { ReaErrorPayload } from '../src/contract/errors.ts';
 import { ReaSession } from '../src/session/binary-session.ts';
 import { createEvidence } from '../src/session/evidence.ts';
 import { projectAppleApplicationGraphTool } from '../src/tools/apple-graph-tools.ts';
@@ -17,12 +18,12 @@ const normalized = async (run: () => { structuredContent?: unknown } | Promise<{
   return (result.structuredContent as { normalized_result: Record<string, unknown> }).normalized_result;
 };
 
-const asError = async (run: () => unknown): Promise<{ code: string; message: string }> => {
+const asError = async (run: () => unknown): Promise<ReaErrorPayload> => {
   try {
     await run();
     throw new Error('expected failure');
   } catch (error) {
-    const payload = (error as { payload?: { code: string; message: string } }).payload;
+    const payload = (error as { payload?: ReaErrorPayload }).payload;
     if (payload === undefined) throw error;
     return payload;
   }
@@ -115,8 +116,10 @@ test('compare_source_to_bundle: exact digest maps unchanged; missing source is r
   const appNr = (app.structuredContent as { normalized_result: Record<string, unknown> }).normalized_result;
   const graph = appNr['graph'] as { nodes: { kind: string; observations: { properties: { path?: string }; evidence: { artifact: { sha256: string } } }[] }[] };
   const asset = graph.nodes.find((node) => node.kind === 'javascript-asset' && node.observations[0]?.properties.path === 'src/main.js');
-  expect(asset).toBeDefined();
-  const sha = asset!.observations[0]!.evidence.artifact.sha256;
+  if (asset === undefined) throw new Error('expected a javascript-asset node for src/main.js');
+  const assetObservation = asset.observations[0];
+  if (assetObservation === undefined) throw new Error('expected an observation on the asset node');
+  const sha = assetObservation.evidence.artifact.sha256;
   const reference = {
     schema: 'HistoricalSourceGraph',
     authority: 'historical-reference',
@@ -180,8 +183,11 @@ test('export_web_scripts: writes retained script bytes when capture is full Evid
   );
   const record = await normalized(() => exportWebScriptsTool(session, { capture_path: capturePath, output_directory: output }));
   expect(record['capture_kind']).toBe('page-inspection');
-  expect((record['scripts'] as { relative_path: string }[]).length).toBe(1);
-  const body = await readFile(join(output, (record['scripts'] as { relative_path: string }[])[0]!.relative_path), 'utf8');
+  const exportedScripts = record['scripts'] as { relative_path: string }[];
+  expect(exportedScripts.length).toBe(1);
+  const firstScript = exportedScripts[0];
+  if (firstScript === undefined) throw new Error('expected one exported script');
+  const body = await readFile(join(output, firstScript.relative_path), 'utf8');
   expect(body).toBe('export const x = 1;\n');
   const closed = await asError(() => exportWebScriptsTool(session, { capture_path: capturePath, output_directory: output }));
   expect(closed.code).toBe('invalid_request');

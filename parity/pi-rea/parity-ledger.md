@@ -28,3 +28,19 @@ None. `mismatches.json` cases map is empty.
 ## js-compare analyze residual (not a DiffCase; measured vs oracle)
 
 Left/right fixture analyze after r18/r19 semantic_graph: **0 / 0**. Closed via fixture-scoped measured projection keyed by `root_artifact_sha256` (js-compare and notepad goldens). Unknown roots omit `semantic_graph`. This is not a full Babel semantic port (~18k LOC).
+
+## Session kernel coverage (offline oracle test, not a live DiffCase)
+
+`test/session-tools.test.ts` KERN-011 compares `binary_session` against the frozen
+`parity/pi-rea/rea-6.8.0-binary_session.json` capture: the top-level field set, the
+`tool_availability` shape (`client_requirements` plus `groups[]`), each group's reference
+fields, REA's reason vocabulary (`available`, `target_required`, `provider_unavailable`),
+REA's `target_required` remediation string, and the group partition over all 229 names.
+
+`binary_session`, `open_binary` and `close_binary` are deliberately absent from the live
+DiffCase table. An exact-envelope compare cannot pass honestly: pi-rea implements 63 of the
+229 catalog tools, so `result.tool_availability`, `result.capabilities` and
+`result.server_identity` carry pi-rea's measured state (63 kernel tools, provider-gated
+refuses) instead of the oracle's own availability on this host. Allowlisting those subtrees
+would leave a case that proves nothing. The offline test above is the parity evidence for the
+shape, and `schemas/tool-contracts.json` (`counts.implemented: 63`) is the measured coverage.

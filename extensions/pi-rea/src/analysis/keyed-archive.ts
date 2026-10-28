@@ -50,12 +50,12 @@ const inputError = (path: string, detail: string) =>
     issues: [{ path: ['path'], reason: 'invalid_value', message: `Cannot inspect ${path}: ${detail}` }],
   });
 
-const isPlainObject = (value: PlistValue): value is { [key: string]: PlistValue } => value !== null && typeof value === 'object' && !Array.isArray(value) && !('$plist_type' in value);
+const isPlainObject = (value: unknown): value is { [key: string]: PlistValue } => value !== null && typeof value === 'object' && !Array.isArray(value) && !('$plist_type' in value);
 
 const uidOf = (value: PlistValue): number | undefined => {
   if (!isPlainObject(value)) return undefined;
-  if (typeof value.CF$UID === 'number') return value.CF$UID;
-  if (typeof value.UID === 'number') return value.UID;
+  if (typeof value['CF$UID'] === 'number') return value['CF$UID'];
+  if (typeof value['UID'] === 'number') return value['UID'];
   return undefined;
 };
 
@@ -69,12 +69,12 @@ const classifyObject = (id: number, value: PlistValue, classNames: Map<number, s
   if (!isPlainObject(value)) {
     return { id, kind: 'scalar', class_id: null, class_name: null, status: 'observed', value };
   }
-  if (typeof value.$classname === 'string' || Array.isArray(value.$classes)) {
-    const name = typeof value.$classname === 'string' ? value.$classname : null;
+  if (typeof value['$classname'] === 'string' || Array.isArray(value['$classes'])) {
+    const name = typeof value['$classname'] === 'string' ? value['$classname'] : null;
     if (name !== null) classNames.set(id, name);
     return { id, kind: 'class-descriptor', class_id: null, class_name: null, status: 'observed', value };
   }
-  const classUid = uidOf(value.$class as PlistValue);
+  const classUid = uidOf(value['$class'] as PlistValue);
   if (classUid !== undefined) {
     const class_name = classNames.get(classUid) ?? null;
     return {
@@ -105,7 +105,9 @@ const collectReferences = (objects: readonly KeyedArchiveObject[], roots: Record
       return;
     }
     if (Array.isArray(value)) {
-      value.forEach((entry, index) => visit(source, [...path, index], entry));
+      value.forEach((entry, index) => {
+        visit(source, [...path, index], entry);
+      });
       return;
     }
     if (isPlainObject(value)) {
@@ -129,15 +131,15 @@ export const projectKeyedArchive = (
   if (!isPlainObject(decoded.value)) {
     throw inputError(archivePath, 'its root is not a dictionary');
   }
-  const archiver = decoded.value.$archiver;
+  const archiver = decoded.value['$archiver'];
   if (archiver !== 'NSKeyedArchiver') {
     throw inputError(archivePath, typeof archiver === 'string' ? `its $archiver is ${JSON.stringify(archiver)}` : 'it is not an NSKeyedArchiver plist');
   }
-  const objectsRaw = decoded.value.$objects;
+  const objectsRaw = decoded.value['$objects'];
   if (!Array.isArray(objectsRaw)) throw inputError(archivePath, 'it has no $objects array');
   const classNames = new Map<number, string>();
   objectsRaw.forEach((entry, id) => {
-    if (isPlainObject(entry) && typeof entry.$classname === 'string') classNames.set(id, entry.$classname);
+    if (isPlainObject(entry) && typeof entry['$classname'] === 'string') classNames.set(id, entry['$classname']);
   });
   const allObjects = objectsRaw.map((entry, id) => classifyObject(id, entry as PlistValue, classNames));
   const offset = selection.offset;
@@ -145,7 +147,7 @@ export const projectKeyedArchive = (
   const page = allObjects.slice(offset, offset + limit);
   const next = offset + limit < allObjects.length ? offset + limit : null;
   const roots: Record<string, PlistValue> = {};
-  const top = isPlainObject(decoded.value.$top) ? decoded.value.$top : null;
+  const top = isPlainObject(decoded.value['$top']) ? decoded.value['$top'] : null;
   if (top !== null) {
     for (const [key, value] of Object.entries(top)) {
       if (selection.root !== undefined && key !== selection.root) continue;

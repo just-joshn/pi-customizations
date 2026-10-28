@@ -29,7 +29,7 @@ export const recordUnknown = (session: ReaSession, params: unknown): AgentToolRe
   operationResult({ mutation: mutationEvidence });
   const mutation = session.evidence.record(mutationEvidence);
   const record = session.unknowns.record(draft, mutation.evidence_id);
-  return operationResult(record);
+  return operationResult(record, { details: { evidence: mutation, unknown: { action: 'record', draft, mutation_evidence_id: mutation.evidence_id } } });
 };
 
 const withReferenceDefaults = (draft: UnknownDraft): UnknownDraft => ({
@@ -86,7 +86,12 @@ export const updateUnknown = (session: ReaSession, params: UpdateUnknownParams):
   operationResult({ mutation: mutationEvidence });
   const mutation = session.evidence.record(mutationEvidence);
   const record = session.unknowns.update(params.unknown_id, params.expected_revision, changes, mutation.evidence_id);
-  return operationResult(record);
+  return operationResult(record, {
+    details: {
+      evidence: mutation,
+      unknown: { action: 'update', unknown_id: params.unknown_id, expected_revision: params.expected_revision, changes, mutation_evidence_id: mutation.evidence_id },
+    },
+  });
 };
 
 const assertResolution = (session: ReaSession, resolution: UnknownResolution | null | undefined): void => {

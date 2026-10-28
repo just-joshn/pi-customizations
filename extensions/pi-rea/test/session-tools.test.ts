@@ -6,7 +6,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { expect, test } from 'vitest';
-import { catalogDigest } from '../src/contract/catalog.ts';
+import { catalogDigest, loadCatalog } from '../src/contract/catalog.ts';
 import { ReaError } from '../src/contract/errors.ts';
 import { ReaSession } from '../src/session/binary-session.ts';
 import { binarySession, closeBinary, openBinary } from '../src/tools/session-tools.ts';
@@ -31,38 +31,67 @@ test('KERN-011: the session report keeps the reference field set', () => {
   const reference = referenceSessionReport();
   expect(Object.keys(report).toSorted()).toStrictEqual([...Object.keys(reference), 'runtime'].toSorted());
   expect(report['open']).toBe(false);
+  expect(report['cleanup_pending']).toBe(false);
   expect(report['analysis_run']).toBeNull();
   expect(report['analysis_provider_binding']).toBeNull();
   expect(report['analysis_activity']).toStrictEqual({ status: 'not_observed', providers: [] });
   expect(report['client_features']).toStrictEqual({ elicitation_form: false, elicitation_url: false, roots: false, sampling: false });
+  const referenceAvailability = reference['tool_availability'] as Record<string, unknown>;
+  const availability = report['tool_availability'] as Record<string, unknown>;
+  expect(Object.keys(availability).toSorted()).toStrictEqual(Object.keys(referenceAvailability).toSorted());
+  expect(availability['client_requirements']).toStrictEqual(referenceAvailability['client_requirements']);
 });
 
-test('KERN-011: availability has one entry per advertised tool with the reference fields', () => {
+test('KERN-011: availability groups partition the catalog with the reference fields', () => {
   const report = payloadOf(binarySession(new ReaSession(runtime), {}));
-  const availability = report['tool_availability'] as Record<string, unknown>[];
-  const reference = referenceSessionReport()['tool_availability'] as Record<string, unknown>[];
-  expect(availability).toHaveLength(229);
-  const referenceByName = new Map(reference.map((entry) => [entry['name'] as string, entry]));
-  const requiredKeys = Object.keys(reference[0] ?? {})
-    .map((key) => (key === 'remediation_present' ? 'remediation' : key))
-    .toSorted();
-  for (const entry of availability) {
-    const expected = referenceByName.get(entry['name'] as string);
-    const keys = Object.keys(entry).toSorted();
+  const availability = report['tool_availability'] as { groups: Record<string, unknown>[] };
+  const reference = referenceSessionReport()['tool_availability'] as { groups: Record<string, unknown>[] };
+  const requiredKeys = Object.keys(reference.groups[0] ?? {}).toSorted();
+  expect(Object.keys(availability.groups[0] ?? {}).toSorted()).toStrictEqual(requiredKeys);
+  const names: string[] = [];
+  for (const group of availability.groups) {
+    const keys = Object.keys(group).toSorted();
     expect(
       requiredKeys.every((key) => keys.includes(key)),
-      String(entry['name']),
+      JSON.stringify(group['names']),
     ).toBe(true);
-    expect(typeof entry['remediation'] === 'string' || entry['remediation'] === null).toBe(true);
-    expect(entry['remediation'] === null, String(entry['name'])).toBe(entry['available'] === true);
-    if (expected !== undefined) {
-      expect(typeof expected['remediation_present'], String(entry['name'])).toBe('boolean');
-    }
+    expect(typeof group['remediation'] === 'string' || group['remediation'] === null).toBe(true);
+    expect(group['remediation'] === null, JSON.stringify(group['names'])).toBe(group['available'] === true);
+    expect(group['available'] === true ? group['reason'] : typeof group['reason']).toBe(group['available'] === true ? 'available' : 'string');
+    names.push(...(group['names'] as string[]));
   }
-  const byName = new Map(availability.map((entry) => [entry['name'] as string, entry]));
-  const kernel = [...byName].filter(([, entry]) => entry['available'] === true).map(([name]) => name);
-  expect(kernel.toSorted()).toStrictEqual([...kernelManifestNames].toSorted());
-  expect([...byName.values()].filter((entry) => entry['reason'] === 'not_implemented')).toHaveLength(0);
+  expect(names.toSorted()).toStrictEqual(
+    loadCatalog()
+      .tools.map((tool) => tool.name)
+      .toSorted(),
+  );
+  expect(new Set(names).size).toBe(229);
+  const available = availability.groups.filter((group) => group['available'] === true).flatMap((group) => group['names'] as string[]);
+  expect(available.toSorted()).toStrictEqual(kernelManifestNames.filter((name) => name !== 'demangle_swift').toSorted());
+  expect(availability.groups.every((group) => group['reason'] !== 'not_implemented')).toBe(true);
+  const reasons = new Set(availability.groups.map((group) => group['reason']));
+  expect([...reasons].toSorted()).toStrictEqual(['available', 'provider_unavailable', 'target_required']);
+  const targetRequired = availability.groups.find((group) => group['reason'] === 'target_required');
+  expect(targetRequired?.['remediation']).toBe('Call open_binary with a supported local target.');
+  const targetRequiredNames = availability.groups.filter((group) => group['reason'] === 'target_required').flatMap((group) => group['names']);
+  expect(targetRequiredNames.length).toBeGreaterThan(30);
+  expect(targetRequiredNames).toContain('decompile_all');
+});
+
+test('KERN-011: an open target makes demangle_swift available', async ({ onTestFinished }) => {
+  const session = new ReaSession(runtime);
+  const dir = await mkdtemp(join(tmpdir(), 'pi-rea-availability-'));
+  onTestFinishedEarly(dir, onTestFinished);
+  const path = join(dir, 'thin.bin');
+  await writeFile(path, Buffer.from([0x7f, 0x45, 0x4c, 0x46]));
+  const closed = payloadOf(binarySession(session, {}));
+  const closedGroup = (closed['tool_availability'] as { groups: { names: string[]; available: boolean; reason: string | null }[] }).groups.find((group) => group.names.includes('demangle_swift'));
+  expect(closedGroup?.reason).toBe('target_required');
+  session.openTarget({ path, sha256: 'a'.repeat(64), format: 'file', kind: 'executable', architecture: null });
+  const opened = payloadOf(binarySession(session, {}));
+  const openedGroup = (opened['tool_availability'] as { groups: { names: string[]; available: boolean; reason: string | null }[] }).groups.find((group) => group.names.includes('demangle_swift'));
+  expect(openedGroup?.available).toBe(true);
+  expect(openedGroup?.reason).toBe('available');
 });
 
 test('KERN-011: the provider candidates are reported as unavailable by this port', () => {
@@ -208,15 +237,16 @@ test('KERN-013: closing a session with a removed working directory needs no file
   expect(closeBinary(session, {}).structuredContent).toStrictEqual({ result: null });
 });
 
-test('KERN-025: an available tool reports the reference reason and annotation vocabulary', () => {
+test('KERN-025: an available group reports the reference reason and annotation vocabulary', () => {
   const report = payloadOf(binarySession(new ReaSession(runtime), {}));
-  const availability = report['tool_availability'] as Record<string, unknown>[];
-  for (const entry of availability) {
-    if (entry['available'] === true) {
-      expect(entry['reason'], String(entry['name'])).toBe('available');
-      expect(entry['remediation']).toBeNull();
-      expect(Object.keys(entry['annotations'] as object).toSorted()).toStrictEqual(['destructive', 'idempotent', 'open_world', 'read_only']);
+  const availability = report['tool_availability'] as { groups: Record<string, unknown>[] };
+  for (const group of availability.groups) {
+    if (group['available'] === true) {
+      expect(group['reason'], JSON.stringify(group['names'])).toBe('available');
+      expect(group['remediation']).toBeNull();
     }
+    expect((group['annotations'] as string[]).every((name) => ['read_only', 'destructive', 'idempotent', 'open_world'].includes(name))).toBe(true);
+    expect((group['effects'] as string[]).every((name) => typeof name === 'string')).toBe(true);
   }
 });
 

@@ -405,7 +405,7 @@ export interface InspectDevicetreeParams {
   readonly max_depth?: number;
 }
 
-export const inspectDevicetreeFromPath = async (params: InspectDevicetreeParams, options: { readonly cwd?: string } = {}): Promise<{ readonly report: DevicetreeReport; readonly path: string; readonly resolvedPath: string }> => {
+export const inspectDevicetreeFromPath = async (params: InspectDevicetreeParams, _options: { readonly cwd?: string } = {}): Promise<{ readonly report: DevicetreeReport; readonly path: string; readonly resolvedPath: string }> => {
   if (typeof params.path !== 'string' || params.path.length === 0) {
     throw invalidRequest('Invalid arguments for tool inspect_devicetree: path: Invalid input: expected string, received undefined', {
       parameter: 'path',

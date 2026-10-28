@@ -18,11 +18,7 @@ export interface InspectGpuCodeObjectsParams {
 
 export const inspectGpuCodeObjects = async (session: ReaSession, params: InspectGpuCodeObjectsParams, context: ToolCallContext = {}): Promise<AgentToolResult<unknown>> => {
   const analysis = params.analysis === 'kernels' || params.analysis === 'inventory' ? params.analysis : undefined;
-  const {
-    record: inspection,
-    path,
-    resolvedPath,
-  } = await inspectGpuCodeObjectsFromPath(params.path, {
+  const { record: inspection, resolvedPath } = await inspectGpuCodeObjectsFromPath(params.path, {
     ...(analysis === undefined ? {} : { analysis }),
     ...(params.expected_sha256 === undefined ? {} : { expectedSha256: params.expected_sha256 }),
     ...(params.object_ids === undefined ? {} : { objectIds: params.object_ids }),

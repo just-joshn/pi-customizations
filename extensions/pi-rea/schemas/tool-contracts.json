@@ -5,14 +5,13 @@
     "method": "black-box observation of the published tool interface (names, parameter names, types, bounds, structure, flags)",
     "oracle": "parity/pi-rea/rea-6.8.0-tools-list.json",
     "capture_sha256": "ff663f85d83539e5f88d19142f7503418c03ed050eaf3c268ee673d3cffb8478",
-    "tools_sha256": "ff663f85d83539e5f88d19142f7503418c03ed050eaf3c268ee673d3cffb8478",
     "note": "Interface facts only. No REA prose, examples, defaults or output schemas are included."
   },
   "counts": {
     "tools": 229,
-    "implemented": 229,
-    "kernel": 229,
-    "unavailable": 0
+    "implemented": 63,
+    "kernel": 63,
+    "unavailable": 166
   },
   "hostCapabilities": [
     {
@@ -863,7 +862,7 @@
     },
     {
       "name": "annotate_native_function",
-      "description": "Annotate the native analysis provider.",
+      "description": "Annotate the native analysis provider. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -911,11 +910,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "inspect_native_load_image",
-      "description": "Read a native load image.",
+      "description": "Read a native load image. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {},
@@ -945,11 +944,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "inspect_native_data_type",
-      "description": "Read one native data type.",
+      "description": "Read one native data type. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -991,11 +990,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "inspect_native_instruction",
-      "description": "Read one native instruction.",
+      "description": "Read one native instruction. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -1036,11 +1035,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "resolve_native_call_targets",
-      "description": "Resolve the native analysis provider.",
+      "description": "Resolve the native analysis provider. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -1081,11 +1080,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "address_name",
-      "description": "Read the name bound to an address.",
+      "description": "Read the name bound to an address. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -1122,11 +1121,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "comment",
-      "description": "Read the comment at an address.",
+      "description": "Read the comment at an address. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -1163,11 +1162,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "current_address",
-      "description": "Read the provider's current address.",
+      "description": "Read the provider's current address. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -1201,11 +1200,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "current_procedure",
-      "description": "Read the provider's current procedure.",
+      "description": "Read the provider's current procedure. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -1239,11 +1238,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "current_document",
-      "description": "Read the provider's current document.",
+      "description": "Read the provider's current document. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {},
@@ -1273,11 +1272,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "goto_address",
-      "description": "Move the cursor to an address.",
+      "description": "Move the cursor to an address. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -1317,11 +1316,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "inline_comment",
-      "description": "Read the inline comment at an address.",
+      "description": "Read the inline comment at an address. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -1358,11 +1357,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "list_bookmarks",
-      "description": "List bookmarks via pi-rea's in-process analyzer for the active session.",
+      "description": "List bookmarks via pi-rea's in-process analyzer for the active session. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -1396,11 +1395,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "list_documents",
-      "description": "List documents via pi-rea's in-process analyzer for the active session.",
+      "description": "List documents via pi-rea's in-process analyzer for the active session. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {},
@@ -1430,11 +1429,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "list_names",
-      "description": "List names via pi-rea's in-process analyzer for the active session.",
+      "description": "List names via pi-rea's in-process analyzer for the active session. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -1478,11 +1477,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "list_procedures",
-      "description": "List procedures via pi-rea's in-process analyzer for the active session.",
+      "description": "List procedures via pi-rea's in-process analyzer for the active session. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -1523,11 +1522,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "list_segments",
-      "description": "List segments via pi-rea's in-process analyzer for the active session.",
+      "description": "List segments via pi-rea's in-process analyzer for the active session. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -1561,11 +1560,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "list_strings",
-      "description": "List strings via pi-rea's in-process analyzer for the active session.",
+      "description": "List strings via pi-rea's in-process analyzer for the active session. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -1609,11 +1608,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "next_address",
-      "description": "Advance to the next address.",
+      "description": "Advance to the next address. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -1650,11 +1649,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "prev_address",
-      "description": "Step back to the previous address.",
+      "description": "Step back to the previous address. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -1691,11 +1690,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "procedure_address",
-      "description": "Read the entry address of a procedure.",
+      "description": "Read the entry address of a procedure. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -1735,11 +1734,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "procedure_assembly",
-      "description": "Read the assembly of a procedure.",
+      "description": "Read the assembly of a procedure. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -1779,11 +1778,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "procedure_callees",
-      "description": "Read the procedures a procedure calls.",
+      "description": "Read the procedures a procedure calls. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -1823,11 +1822,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "procedure_callers",
-      "description": "Read the procedures that call a procedure.",
+      "description": "Read the procedures that call a procedure. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -1867,11 +1866,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "procedure_info",
-      "description": "Read a procedure's summary information.",
+      "description": "Read a procedure's summary information. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -1911,11 +1910,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "read_function_instructions",
-      "description": "Read the instructions of one analyzed function.",
+      "description": "Read the instructions of one analyzed function. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -1955,11 +1954,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "search_bytes",
-      "description": "Search bytes via pi-rea's in-process analyzer for the active session.",
+      "description": "Search bytes via pi-rea's in-process analyzer for the active session. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -2017,11 +2016,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "read_bytes",
-      "description": "Read exact provider memory bytes at an address.",
+      "description": "Read exact provider memory bytes at an address. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -2066,11 +2065,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "address_to_file_offset",
-      "description": "Resolve an analysis address to its original file byte offset.",
+      "description": "Resolve an analysis address to its original file byte offset. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -2110,11 +2109,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "procedure_references",
-      "description": "Read the references a procedure makes.",
+      "description": "Read the references a procedure makes. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -2161,11 +2160,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "procedure_pseudo_code",
-      "description": "Read the pseudocode of a procedure.",
+      "description": "Read the pseudocode of a procedure. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -2205,11 +2204,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "resolve_containing_procedure",
-      "description": "Resolve which procedure contains an address.",
+      "description": "Resolve which procedure contains an address. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -2249,11 +2248,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "search_procedures",
-      "description": "Search procedures via pi-rea's in-process analyzer for the active session.",
+      "description": "Search procedures via pi-rea's in-process analyzer for the active session. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -2311,11 +2310,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "search_strings",
-      "description": "Search strings via pi-rea's in-process analyzer for the active session.",
+      "description": "Search strings via pi-rea's in-process analyzer for the active session. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -2373,11 +2372,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "set_address_name",
-      "description": "Set address name via pi-rea's in-process analyzer for the active session.",
+      "description": "Set address name via pi-rea's in-process analyzer for the active session. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -2421,11 +2420,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "set_addresses_names",
-      "description": "Name several addresses.",
+      "description": "Name several addresses. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -2471,11 +2470,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "set_bookmark",
-      "description": "Set a bookmark at an address.",
+      "description": "Set a bookmark at an address. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -2518,11 +2517,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "set_comment",
-      "description": "Set the comment at an address.",
+      "description": "Set the comment at an address. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -2566,11 +2565,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "set_inline_comment",
-      "description": "Set the inline comment at an address.",
+      "description": "Set the inline comment at an address. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -2614,11 +2613,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "unset_bookmark",
-      "description": "Unset bookmark via pi-rea's in-process analyzer for the active session.",
+      "description": "Unset bookmark via pi-rea's in-process analyzer for the active session. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -2658,11 +2657,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "xrefs",
-      "description": "List references to the active target.",
+      "description": "List references to the active target. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -2699,11 +2698,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "trace_native_values",
-      "description": "Trace bounded native def-use and call dependencies.",
+      "description": "Trace bounded native def-use and call dependencies. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -2776,11 +2775,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "inspect_native_dispatch_metadata",
-      "description": "Read native dispatch metadata.",
+      "description": "Read native dispatch metadata. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -2831,11 +2830,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "get_objc_classes",
-      "description": "Read Objective-C classes from the active target.",
+      "description": "Read Objective-C classes from the active target. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -2869,11 +2868,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "get_objc_protocols",
-      "description": "Read Objective-C protocols from the active target.",
+      "description": "Read Objective-C protocols from the active target. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {},
@@ -2903,11 +2902,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "batch_decompile",
-      "description": "Decompile several procedures at once.",
+      "description": "Decompile several procedures at once. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -2944,11 +2943,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "decompile_all",
-      "description": "Decompile all via pi-rea's in-process analyzer for the active session.",
+      "description": "Decompile all via pi-rea's in-process analyzer for the active session. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -3006,11 +3005,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "get_call_graph",
-      "description": "Read the call graph around a procedure.",
+      "description": "Read the call graph around a procedure. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -3054,11 +3053,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "analyze_swift_types",
-      "description": "Analyze Swift type metadata.",
+      "description": "Analyze Swift type metadata. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -3103,11 +3102,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "find_xrefs_to_name",
-      "description": "Find references to a symbol name.",
+      "description": "Find references to a symbol name. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -3144,11 +3143,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "binary_overview",
-      "description": "Read inventory and metadata for the active binary.",
+      "description": "Read inventory and metadata for the active binary. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {},
@@ -3178,11 +3177,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "analyze_function",
-      "description": "Analyze one complete function and return its Evidence.",
+      "description": "Analyze one complete function and return its Evidence. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -3226,11 +3225,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "inspect_native_api",
-      "description": "Read the native API record of a procedure.",
+      "description": "Read the native API record of a procedure. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -3267,11 +3266,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "trace_feature",
-      "description": "Trace a literal feature through analyzed references.",
+      "description": "Trace a literal feature through analyzed references. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -3312,11 +3311,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "trace_call_path",
-      "description": "Trace a call path between procedures.",
+      "description": "Trace a call path between procedures. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -3363,11 +3362,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "trace_native_ui_action",
-      "description": "Trace a compiled UI action to its native handler.",
+      "description": "Trace a compiled UI action to its native handler. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -3420,11 +3419,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "observe_native_ui",
-      "description": "Observe one exact native application window.",
+      "description": "Observe one exact native application window. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -3485,11 +3484,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "capture_native_ui_scenario",
-      "description": "Run or observe a scenario in an exact native window.",
+      "description": "Run or observe a scenario in an exact native window. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -3621,12 +3620,15 @@
                 }
               ]
             }
+          },
+          "native_ui_deadline_ms": {
+            "type": "integer"
           }
         },
         "required": [
           "pid",
-          "steps",
-          "window_id"
+          "window_id",
+          "steps"
         ],
         "additionalProperties": false
       },
@@ -3654,11 +3656,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "observe_native_calls",
-      "description": "Record entries into selected native functions or methods.",
+      "description": "Record entries into selected native functions or methods. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -3725,8 +3727,15 @@
           "arguments": {
             "type": "array",
             "items": {
-              "type": "string",
-              "pattern": "^[^\\x00]*$"
+              "type": [
+                "null",
+                "boolean",
+                "object",
+                "array",
+                "number",
+                "string"
+              ],
+              "items": {}
             }
           },
           "environment": {
@@ -3796,7 +3805,7 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "inspect_macho",
@@ -3991,6 +4000,9 @@
                 }
               ]
             }
+          },
+          "native_command_timeout_ms": {
+            "type": "integer"
           }
         },
         "required": [
@@ -4272,7 +4284,7 @@
     },
     {
       "name": "trace_dylib_resolution",
-      "description": "Trace dyld load paths.",
+      "description": "Trace dyld load paths. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -4320,7 +4332,7 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "inspect_managed_artifact",
@@ -4441,7 +4453,7 @@
     },
     {
       "name": "inspect_managed_native_boundaries",
-      "description": "Inspect a managed assembly.",
+      "description": "Inspect a managed assembly. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -4484,7 +4496,7 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "compare_managed_members",
@@ -5291,7 +5303,7 @@
     },
     {
       "name": "verify_managed_native_boundaries",
-      "description": "Verify a managed assembly.",
+      "description": "Verify a managed assembly. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -6094,11 +6106,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "import_managed_reconstruction",
-      "description": "Import a managed assembly.",
+      "description": "Import a managed assembly. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -6644,15 +6656,22 @@
           "notes": {
             "type": "array",
             "items": {
-              "type": "string",
-              "minLength": 1
+              "type": [
+                "null",
+                "boolean",
+                "object",
+                "array",
+                "number",
+                "string"
+              ],
+              "items": {}
             }
           }
         },
         "required": [
+          "static_members",
           "decompiler",
-          "methods",
-          "static_members"
+          "methods"
         ],
         "additionalProperties": false
       },
@@ -6680,11 +6699,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "project_managed_application_graph",
-      "description": "Project a managed assembly.",
+      "description": "Project a managed assembly. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -8993,6 +9012,7 @@
             ]
           }
         },
+        "minProperties": 1,
         "additionalProperties": false
       },
       "annotations": {
@@ -9019,7 +9039,7 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "inspect_with_objdump",
@@ -9110,7 +9130,7 @@
     },
     {
       "name": "execute_rizin_command",
-      "description": "Execute rizin command.",
+      "description": "Execute rizin command. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -9159,11 +9179,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "list_frida_devices",
-      "description": "List frida devices via pi-rea's in-process analyzer for the active session.",
+      "description": "List frida devices via pi-rea's in-process analyzer for the active session. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -9225,11 +9245,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "list_frida_processes",
-      "description": "List frida processes.",
+      "description": "List frida processes. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -9295,11 +9315,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "start_frida_session",
-      "description": "Start frida session via pi-rea's in-process analyzer for the active session.",
+      "description": "Start frida session via pi-rea's in-process analyzer for the active session. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -9391,11 +9411,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "load_frida_script",
-      "description": "Load frida script via pi-rea's in-process analyzer for the active session.",
+      "description": "Load frida script via pi-rea's in-process analyzer for the active session. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -9450,11 +9470,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "resume_frida_session",
-      "description": "Resume frida session.",
+      "description": "Resume frida session. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -9493,11 +9513,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "unload_frida_script",
-      "description": "Unload frida script via pi-rea's in-process analyzer for the active session.",
+      "description": "Unload frida script via pi-rea's in-process analyzer for the active session. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -9542,11 +9562,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "frida_session_status",
-      "description": "Frida session status.",
+      "description": "Frida session status. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -9592,11 +9612,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "close_frida_session",
-      "description": "Close frida session via pi-rea's in-process analyzer for the active session.",
+      "description": "Close frida session via pi-rea's in-process analyzer for the active session. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -9635,11 +9655,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "instrument_with_frida",
-      "description": "Instrument with frida.",
+      "description": "Instrument with frida. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -9752,7 +9772,7 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "list_cutter_sessions",
@@ -9790,7 +9810,7 @@
     },
     {
       "name": "cutter_command",
-      "description": "Cutter command via pi-rea's in-process analyzer for the active session.",
+      "description": "Cutter command via pi-rea's in-process analyzer for the active session. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -9843,11 +9863,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "start_gdb_session",
-      "description": "Start gdb session via pi-rea's in-process analyzer for the active session.",
+      "description": "Start gdb session via pi-rea's in-process analyzer for the active session. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -9883,11 +9903,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "gdb_console",
-      "description": "Gdb console via pi-rea's in-process analyzer for the active session.",
+      "description": "Gdb console via pi-rea's in-process analyzer for the active session. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -9938,11 +9958,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "gdb_session_status",
-      "description": "Gdb session status via pi-rea's in-process analyzer for the active session.",
+      "description": "Gdb session status via pi-rea's in-process analyzer for the active session. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -9981,11 +10001,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "close_gdb_session",
-      "description": "Close gdb session via pi-rea's in-process analyzer for the active session.",
+      "description": "Close gdb session via pi-rea's in-process analyzer for the active session. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -10024,11 +10044,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "start_rizin_debug_session",
-      "description": "Start rizin debug session.",
+      "description": "Start rizin debug session. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -10077,11 +10097,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "rizin_debug_command",
-      "description": "Rizin debug command via pi-rea's in-process analyzer for the active session.",
+      "description": "Rizin debug command via pi-rea's in-process analyzer for the active session. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -10125,11 +10145,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "rizin_debug_session_status",
-      "description": "Rizin debug session status.",
+      "description": "Rizin debug session status. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -10168,11 +10188,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "close_rizin_debug_session",
-      "description": "Close rizin debug session.",
+      "description": "Close rizin debug session. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -10211,11 +10231,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "inspect_packet_capture",
-      "description": "Inspect packet capture.",
+      "description": "Inspect packet capture. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -10305,11 +10325,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "inspect_packet_fields",
-      "description": "Inspect packet fields.",
+      "description": "Inspect packet fields. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -10380,11 +10400,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "decode_signal_recording",
-      "description": "Decode signal recording.",
+      "description": "Decode signal recording. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -10446,11 +10466,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "inspect_signal_decoders",
-      "description": "Inspect signal decoders.",
+      "description": "Inspect signal decoders. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -10514,11 +10534,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "inspect_android_package",
-      "description": "Inspect an Android package.",
+      "description": "Inspect an Android package. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -10564,11 +10584,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "search_android_classes",
-      "description": "Search an Android package.",
+      "description": "Search an Android package. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -10611,11 +10631,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "inspect_android_class",
-      "description": "Inspect an Android package.",
+      "description": "Inspect an Android package. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -10659,11 +10679,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "inspect_android_method",
-      "description": "Inspect an Android package.",
+      "description": "Inspect an Android package. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -10717,11 +10737,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "trace_android_references",
-      "description": "Trace an Android package.",
+      "description": "Trace an Android package. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -10774,11 +10794,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "inspect_jeb_client",
-      "description": "Inspect a JEB project.",
+      "description": "Inspect a JEB project. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {},
@@ -10808,11 +10828,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "open_jeb_project",
-      "description": "Open jeb project via pi-rea's in-process analyzer for the active session.",
+      "description": "Open jeb project via pi-rea's in-process analyzer for the active session. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -10851,11 +10871,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "list_jeb_units",
-      "description": "List jeb units via pi-rea's in-process analyzer for the active session.",
+      "description": "List jeb units via pi-rea's in-process analyzer for the active session. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -10903,11 +10923,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "decompile_jeb_item",
-      "description": "Decompile a JEB project.",
+      "description": "Decompile a JEB project. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -10957,7 +10977,7 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "inspect_byte_entropy",
@@ -11040,6 +11060,9 @@
               "complete",
               "summary"
             ]
+          },
+          "pwntools_timeout_ms": {
+            "type": "integer"
           }
         },
         "required": [
@@ -12574,7 +12597,7 @@
     },
     {
       "name": "compare_wasm_interfaces",
-      "description": "Compare wasm interfaces.",
+      "description": "Compare wasm interfaces. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -12619,11 +12642,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "inspect_wasm_artifact",
-      "description": "Inspect wasm artifact.",
+      "description": "Inspect wasm artifact. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -12694,7 +12717,7 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "inspect_apk_signature",
@@ -12745,7 +12768,7 @@
     },
     {
       "name": "inspect_evm_interface",
-      "description": "Inspect EVM bytecode.",
+      "description": "Inspect EVM bytecode. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -12759,11 +12782,17 @@
               "raw",
               "hex"
             ]
+          },
+          "timeout_ms": {
+            "type": "integer"
+          },
+          "detail": {
+            "type": "string"
           }
         },
         "required": [
-          "encoding",
-          "path"
+          "path",
+          "encoding"
         ],
         "additionalProperties": false
       },
@@ -12791,7 +12820,7 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "inspect_sqlite_database",
@@ -12872,6 +12901,9 @@
           },
           "include_debugger_context": {
             "type": "boolean"
+          },
+          "pwntools_timeout_ms": {
+            "type": "integer"
           }
         },
         "required": [
@@ -12907,7 +12939,7 @@
     },
     {
       "name": "inspect_firmware_regions",
-      "description": "Inspect a firmware image.",
+      "description": "Inspect a firmware image. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -12915,6 +12947,9 @@
             "type": "string",
             "minLength": 1,
             "pattern": "^[^\\x00]*$"
+          },
+          "analysis_timeout_ms": {
+            "type": "integer"
           }
         },
         "required": [
@@ -12946,11 +12981,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "extract_firmware",
-      "description": "Extract a firmware image.",
+      "description": "Extract a firmware image. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -12998,11 +13033,17 @@
             "type": "integer",
             "minimum": 1,
             "maximum": 100000
+          },
+          "analysis_timeout_ms": {
+            "type": "integer"
+          },
+          "publication_timeout_ms": {
+            "type": "integer"
           }
         },
         "required": [
-          "output_directory",
-          "path"
+          "path",
+          "output_directory"
         ],
         "additionalProperties": false
       },
@@ -13030,11 +13071,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "trace_web_module_imports",
-      "description": "Trace web module imports via pi-rea's in-process analyzer for the active session.",
+      "description": "Trace web module imports via pi-rea's in-process analyzer for the active session. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -13113,12 +13154,12 @@
           ]
         }
       ],
-      "implementation": "kernel",
+      "implementation": "unavailable",
       "defaultModeAvailable": false
     },
     {
       "name": "trace_web_source_location",
-      "description": "Trace web source location via pi-rea's in-process analyzer for the active session.",
+      "description": "Trace web source location via pi-rea's in-process analyzer for the active session. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -13168,13 +13209,16 @@
               "column"
             ],
             "additionalProperties": false
+          },
+          "decode_timeout_ms": {
+            "type": "integer"
           }
         },
         "required": [
-          "generated_position",
           "manifest_path",
           "script_index",
-          "source_map"
+          "source_map",
+          "generated_position"
         ],
         "additionalProperties": false
       },
@@ -13202,11 +13246,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "observe_web_execution",
-      "description": "Observe web execution via pi-rea's in-process analyzer for the active session.",
+      "description": "Observe web execution via pi-rea's in-process analyzer for the active session. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -13266,11 +13310,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "inspect_web_event_listeners",
-      "description": "Inspect web event listeners via pi-rea's in-process analyzer for the active session.",
+      "description": "Inspect web event listeners via pi-rea's in-process analyzer for the active session. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -13330,7 +13374,7 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "inspect_web_network_capture",
@@ -13350,20 +13394,41 @@
             ]
           },
           "record_ordinals": {
-            "minItems": 1,
             "type": "array",
             "items": {
-              "type": "integer",
-              "minimum": 0,
-              "maximum": 9007199254740991
+              "type": [
+                "null",
+                "boolean",
+                "object",
+                "array",
+                "number",
+                "string"
+              ],
+              "items": {}
             }
           },
           "sensitive_values": {
             "type": "array",
             "items": {
-              "type": "string",
-              "minLength": 1
+              "type": [
+                "null",
+                "boolean",
+                "object",
+                "array",
+                "number",
+                "string"
+              ],
+              "items": {}
             }
+          },
+          "protobuf": {
+            "type": "object"
+          },
+          "capture_timeout_ms": {
+            "type": "integer"
+          },
+          "detail": {
+            "type": "string"
           }
         },
         "required": [
@@ -13400,7 +13465,7 @@
     },
     {
       "name": "recover_javascript_sources",
-      "description": "Recover a JavaScript or Electron application.",
+      "description": "Recover a JavaScript or Electron application. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -13470,11 +13535,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "inspect_adb_client",
-      "description": "Inspect an Android device.",
+      "description": "Inspect an Android device. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {},
@@ -13504,11 +13569,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "list_adb_devices",
-      "description": "List an Android device.",
+      "description": "List an Android device. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {},
@@ -13538,11 +13603,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "inspect_adb_device",
-      "description": "Inspect an Android device.",
+      "description": "Inspect an Android device. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -13582,11 +13647,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "list_adb_packages",
-      "description": "List an Android device.",
+      "description": "List an Android device. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -13634,11 +13699,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "pull_adb_package",
-      "description": "Pull an Android device.",
+      "description": "Pull an Android device. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -13691,11 +13756,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "read_adb_logcat",
-      "description": "Read an Android device.",
+      "description": "Read an Android device. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -13755,11 +13820,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "inspect_adb_package",
-      "description": "Inspect an Android device.",
+      "description": "Inspect an Android device. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -13806,11 +13871,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "pull_adb_file",
-      "description": "Pull an Android device.",
+      "description": "Pull an Android device. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -13862,11 +13927,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "push_adb_file",
-      "description": "Push an Android device.",
+      "description": "Push an Android device. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -13921,11 +13986,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "capture_adb_screen",
-      "description": "Capture an Android device.",
+      "description": "Capture an Android device. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -13971,11 +14036,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "list_adb_processes",
-      "description": "List an Android device.",
+      "description": "List an Android device. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -14015,11 +14080,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "list_adb_directory",
-      "description": "List an Android device.",
+      "description": "List an Android device. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -14065,11 +14130,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "list_adb_features",
-      "description": "List an Android device.",
+      "description": "List an Android device. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -14109,11 +14174,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "list_adb_services",
-      "description": "List an Android device.",
+      "description": "List an Android device. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -14153,11 +14218,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "inspect_adb_display",
-      "description": "Inspect an Android device.",
+      "description": "Inspect an Android device. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -14197,11 +14262,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "inspect_adb_window",
-      "description": "Inspect an Android device.",
+      "description": "Inspect an Android device. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -14241,11 +14306,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "read_adb_setting",
-      "description": "Read an Android device.",
+      "description": "Read an Android device. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -14301,11 +14366,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "collect_adb_bugreport",
-      "description": "Collect an Android device.",
+      "description": "Collect an Android device. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -14351,11 +14416,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "resolve_adb_packages",
-      "description": "Resolve an Android device.",
+      "description": "Resolve an Android device. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -14401,11 +14466,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "install_adb_package",
-      "description": "Install an Android device.",
+      "description": "Install an Android device. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -14454,11 +14519,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "uninstall_adb_package",
-      "description": "Uninstall an Android device.",
+      "description": "Uninstall an Android device. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -14505,11 +14570,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "start_adb_app",
-      "description": "Start an Android device.",
+      "description": "Start an Android device. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -14556,11 +14621,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "start_adb_activity",
-      "description": "Start an Android device.",
+      "description": "Start an Android device. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -14627,8 +14692,8 @@
           }
         },
         "required": [
-          "action",
-          "serial"
+          "serial",
+          "action"
         ],
         "additionalProperties": false
       },
@@ -14656,11 +14721,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "stop_adb_app",
-      "description": "Stop an Android device.",
+      "description": "Stop an Android device. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -14707,11 +14772,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "inspect_pcap_client",
-      "description": "Inspect pcap client via pi-rea's in-process analyzer for the active session.",
+      "description": "Inspect pcap client via pi-rea's in-process analyzer for the active session. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {},
@@ -14741,11 +14806,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "inspect_pcap_capture",
-      "description": "Inspect pcap capture.",
+      "description": "Inspect pcap capture. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -14791,7 +14856,7 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "identify_flutter_build",
@@ -14894,7 +14959,7 @@
     },
     {
       "name": "inspect_apktool_client",
-      "description": "Inspect an Android resource archive.",
+      "description": "Inspect an Android resource archive. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {},
@@ -14924,11 +14989,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "decode_android_resources",
-      "description": "Decode an Android package.",
+      "description": "Decode an Android package. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -14995,7 +15060,7 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "export_web_scripts",
@@ -15048,7 +15113,7 @@
     },
     {
       "name": "list_browser_targets",
-      "description": "List browser targets via pi-rea's in-process analyzer for the active session.",
+      "description": "List browser targets via pi-rea's in-process analyzer for the active session. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -15093,11 +15158,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "inspect_web_page",
-      "description": "Inspect web page via pi-rea's in-process analyzer for the active session.",
+      "description": "Inspect web page via pi-rea's in-process analyzer for the active session. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -15179,11 +15244,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "analyze_web_bundle",
-      "description": "Analyze web bundle via pi-rea's in-process analyzer for the active session.",
+      "description": "Analyze web bundle via pi-rea's in-process analyzer for the active session. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -15194,8 +15259,15 @@
           "allowed_origins": {
             "type": "array",
             "items": {
-              "type": "string",
-              "minLength": 1
+              "type": [
+                "null",
+                "boolean",
+                "object",
+                "array",
+                "number",
+                "string"
+              ],
+              "items": {}
             }
           },
           "target_id": {
@@ -15231,12 +15303,34 @@
           },
           "fetch_source_maps": {
             "type": "boolean"
+          },
+          "command_timeout_ms": {
+            "type": "integer"
+          },
+          "max_heap_mb": {
+            "type": "integer"
+          },
+          "analysis_timeout_ms": {
+            "type": "integer"
+          },
+          "total_analysis_timeout_ms": {
+            "type": "integer"
+          },
+          "source_map_fetch_timeout_ms": {
+            "type": "integer"
+          },
+          "detail": {
+            "type": "string"
+          },
+          "view": {
+            "type": "object"
           }
         },
         "required": [
           "cdp_endpoint",
           "target_id"
         ],
+        "minProperties": 2,
         "additionalProperties": false
       },
       "annotations": {
@@ -15263,11 +15357,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "observe_web_session",
-      "description": "Observe web session via pi-rea's in-process analyzer for the active session.",
+      "description": "Observe web session via pi-rea's in-process analyzer for the active session. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -15327,11 +15421,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "discover_webmcp_tools",
-      "description": "Discover webmcp tools.",
+      "description": "Discover webmcp tools. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -15391,11 +15485,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "compare_web_captures",
-      "description": "Compare web captures via pi-rea's in-process analyzer for the active session.",
+      "description": "Compare web captures via pi-rea's in-process analyzer for the active session. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -28820,6 +28914,7 @@
             "additionalProperties": false
           }
         },
+        "minProperties": 2,
         "additionalProperties": false
       },
       "annotations": {
@@ -28846,11 +28941,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "capture_web_screenshot",
-      "description": "Capture web screenshot via pi-rea's in-process analyzer for the active session.",
+      "description": "Capture web screenshot via pi-rea's in-process analyzer for the active session. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -28905,11 +29000,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "compare_web_screenshots",
-      "description": "Compare web screenshots via pi-rea's in-process analyzer for the active session.",
+      "description": "Compare web screenshots via pi-rea's in-process analyzer for the active session. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -29003,11 +29098,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "capture_browser_scenario",
-      "description": "Capture browser scenario via pi-rea's in-process analyzer for the active session.",
+      "description": "Capture browser scenario via pi-rea's in-process analyzer for the active session. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -30424,12 +30519,15 @@
               }
             },
             "additionalProperties": false
+          },
+          "command_timeout_ms": {
+            "type": "integer"
           }
         },
         "required": [
-          "actions",
           "browser",
-          "start_url"
+          "start_url",
+          "actions"
         ],
         "additionalProperties": false
       },
@@ -30457,7 +30555,7 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "inspect_electron_fuses",
@@ -30502,7 +30600,7 @@
     },
     {
       "name": "list_electron_targets",
-      "description": "List electron targets via pi-rea's in-process analyzer for the active session.",
+      "description": "List electron targets via pi-rea's in-process analyzer for the active session. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -30540,11 +30638,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "inspect_electron_page",
-      "description": "Inspect electron page.",
+      "description": "Inspect electron page. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -30601,7 +30699,7 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "analyze_javascript_application",
@@ -30645,11 +30743,41 @@
               "complete",
               "summary"
             ]
+          },
+          "source_paths": {
+            "type": "array",
+            "items": {
+              "type": [
+                "null",
+                "boolean",
+                "object",
+                "array",
+                "number",
+                "string"
+              ],
+              "items": {}
+            }
+          },
+          "max_semantic_nodes": {
+            "type": "integer"
+          },
+          "max_semantic_nodes_per_file": {
+            "type": "integer"
+          },
+          "max_semantic_unknowns": {
+            "type": "integer"
+          },
+          "max_semantic_unknowns_per_file": {
+            "type": "integer"
+          },
+          "view": {
+            "type": "object"
           }
         },
         "required": [
           "input_path"
         ],
+        "minProperties": 1,
         "additionalProperties": false
       },
       "annotations": {
@@ -30680,7 +30808,7 @@
     },
     {
       "name": "reconcile_javascript_runtime",
-      "description": "Reconcile a JavaScript or Electron application.",
+      "description": "Reconcile a JavaScript or Electron application. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -31524,8 +31652,8 @@
           }
         },
         "required": [
-          "runtime_observations",
-          "static_layers"
+          "static_layers",
+          "runtime_observations"
         ],
         "additionalProperties": false
       },
@@ -31553,11 +31681,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "capture_electron_scenario",
-      "description": "Capture electron scenario via pi-rea's in-process analyzer for the active session.",
+      "description": "Capture electron scenario via pi-rea's in-process analyzer for the active session. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -31579,8 +31707,15 @@
           "args": {
             "type": "array",
             "items": {
-              "type": "string",
-              "pattern": "^[^\\x00]*$"
+              "type": [
+                "null",
+                "boolean",
+                "object",
+                "array",
+                "number",
+                "string"
+              ],
+              "items": {}
             }
           },
           "actions": {
@@ -31726,8 +31861,8 @@
           }
         },
         "required": [
-          "application_path",
-          "executable_path"
+          "executable_path",
+          "application_path"
         ],
         "additionalProperties": false
       },
@@ -31755,11 +31890,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "list_javascript_runtime_targets",
-      "description": "List a JavaScript or Electron application.",
+      "description": "List a JavaScript or Electron application. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -31797,11 +31932,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "observe_javascript_runtime",
-      "description": "Observe a JavaScript or Electron application.",
+      "description": "Observe a JavaScript or Electron application. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -31858,11 +31993,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "trace_application_feature",
-      "description": "Trace an application graph.",
+      "description": "Trace an application graph. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -32745,8 +32880,8 @@
           }
         },
         "required": [
-          "application",
-          "seed"
+          "seed",
+          "application"
         ],
         "additionalProperties": false
       },
@@ -32774,11 +32909,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "trace_javascript_semantics",
-      "description": "Trace a JavaScript or Electron application.",
+      "description": "Trace a JavaScript or Electron application. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -33509,7 +33644,7 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "compare_application_versions",
@@ -36188,11 +36323,14 @@
                 "additionalProperties": false
               }
             ]
+          },
+          "view": {
+            "type": "object"
           }
         },
         "required": [
-          "application",
-          "reference"
+          "reference",
+          "application"
         ],
         "additionalProperties": false
       },
@@ -37054,12 +37192,12 @@
           }
         },
         "required": [
-          "left",
-          "left_export_name",
           "left_module_path",
-          "right",
+          "left_export_name",
+          "right_module_path",
           "right_export_name",
-          "right_module_path"
+          "left",
+          "right"
         ],
         "additionalProperties": false
       },
@@ -37091,7 +37229,7 @@
     },
     {
       "name": "build_reconstruction_obligation_ledger",
-      "description": "Build a reconstruction.",
+      "description": "Build a reconstruction. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -38484,8 +38622,8 @@
         },
         "required": [
           "evidence_bundle",
-          "manifest",
-          "reviewed_obligations"
+          "reviewed_obligations",
+          "manifest"
         ],
         "additionalProperties": false
       },
@@ -38513,11 +38651,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "evaluate_reconstruction_coverage",
-      "description": "Evaluate a reconstruction.",
+      "description": "Evaluate a reconstruction. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -40058,8 +40196,8 @@
           }
         },
         "required": [
-          "boundary_id",
-          "coverage"
+          "coverage",
+          "boundary_id"
         ],
         "additionalProperties": false
       },
@@ -40087,11 +40225,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "export_environment_bundle",
-      "description": "Export environment bundle.",
+      "description": "Export environment bundle. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -40155,11 +40293,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "project_android_application_graph",
-      "description": "Project an Android package.",
+      "description": "Project an Android package. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -40579,7 +40717,7 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "project_apple_application_graph",
@@ -41007,7 +41145,7 @@
     },
     {
       "name": "project_harmony_application_graph",
-      "description": "Project harmony application graph.",
+      "description": "Project harmony application graph. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -41055,7 +41193,7 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "open_bundle_resources",
@@ -41130,6 +41268,12 @@
             "type": "string",
             "minLength": 1,
             "pattern": "^[^\\x00]*$"
+          },
+          "architecture": {
+            "type": "string"
+          },
+          "entry_point": {
+            "type": "string"
           }
         },
         "required": [
@@ -41427,7 +41571,7 @@
     },
     {
       "name": "capture_process_scenario",
-      "description": "Capture a process scenario.",
+      "description": "Capture a process scenario. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -41708,11 +41852,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "compare_process_captures",
-      "description": "Compare a process scenario.",
+      "description": "Compare a process scenario. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -42797,7 +42941,7 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "compare_artifacts",
@@ -43604,7 +43748,7 @@
     },
     {
       "name": "compare_functions",
-      "description": "Compare functions via pi-rea's in-process analyzer for the active session.",
+      "description": "Compare functions via pi-rea's in-process analyzer for the active session. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -44403,11 +44547,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "match_native_functions",
-      "description": "Match native functions.",
+      "description": "Match native functions. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -44475,7 +44619,7 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "compare_bundles",
@@ -44548,7 +44692,7 @@
     },
     {
       "name": "find_changed_behavior",
-      "description": "Find changed behavior.",
+      "description": "Find changed behavior. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -44968,11 +45112,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "build_call_path",
-      "description": "Build call relationships.",
+      "description": "Build call relationships. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -45391,8 +45535,8 @@
         },
         "required": [
           "functions",
-          "goal",
-          "start"
+          "start",
+          "goal"
         ],
         "additionalProperties": false
       },
@@ -45420,11 +45564,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "correlate_static_and_runtime",
-      "description": "Call correlate_static_and_runtime on the active target.",
+      "description": "Call correlate_static_and_runtime on the active target. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -46335,9 +46479,9 @@
           }
         },
         "required": [
-          "mappings",
+          "static_comparisons",
           "runtime_comparisons",
-          "static_comparisons"
+          "mappings"
         ],
         "additionalProperties": false
       },
@@ -46365,11 +46509,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "verify_reconstruction",
-      "description": "Verify a reconstruction.",
+      "description": "Verify a reconstruction. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -46537,7 +46681,7 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     },
     {
       "name": "list_unknowns",
@@ -46899,15 +47043,29 @@
           "supporting_evidence_ids": {
             "type": "array",
             "items": {
-              "type": "string",
-              "pattern": "^ev_[a-f0-9]{64}$"
+              "type": [
+                "null",
+                "boolean",
+                "object",
+                "array",
+                "number",
+                "string"
+              ],
+              "items": {}
             }
           },
           "contradicting_evidence_ids": {
             "type": "array",
             "items": {
-              "type": "string",
-              "pattern": "^ev_[a-f0-9]{64}$"
+              "type": [
+                "null",
+                "boolean",
+                "object",
+                "array",
+                "number",
+                "string"
+              ],
+              "items": {}
             }
           },
           "required_authority": {
@@ -47113,18 +47271,18 @@
           }
         },
         "required": [
-          "contradicting_evidence_ids",
+          "unknown_id",
           "expected_revision",
-          "recommended_probes",
-          "relationships",
+          "status",
+          "severity",
+          "supporting_evidence_ids",
+          "contradicting_evidence_ids",
           "required_authority",
           "required_confidence",
           "required_environment",
-          "resolution",
-          "severity",
-          "status",
-          "supporting_evidence_ids",
-          "unknown_id"
+          "recommended_probes",
+          "relationships",
+          "resolution"
         ],
         "additionalProperties": false
       },
@@ -47198,7 +47356,7 @@
     },
     {
       "name": "get_navigation_context",
-      "description": "Read the current document, address and procedure together.",
+      "description": "Read the current document, address and procedure together. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -47251,12 +47409,12 @@
           ]
         }
       ],
-      "implementation": "kernel",
+      "implementation": "unavailable",
       "defaultModeAvailable": false
     },
     {
       "name": "inspect_address_context",
-      "description": "Inspect address context via pi-rea's in-process analyzer for the active session.",
+      "description": "Inspect address context via pi-rea's in-process analyzer for the active session. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -47298,7 +47456,7 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "kernel"
+      "implementation": "unavailable"
     }
   ]
 }

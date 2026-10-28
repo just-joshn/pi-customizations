@@ -68,14 +68,14 @@ test('official_proxy: closed session is target_unavailable; open is provider_una
     code: 'not_configured',
     reason: 'Set GHIDRA_INSTALL_DIR to an extracted Ghidra 12.1.x release directory.',
   });
-  expect(rejections[0]?.diagnostics).toMatchObject({
+  expect(rejections[0]?.['diagnostics']).toMatchObject({
     install_dir: null,
     platform: process.platform,
     architecture: process.arch,
   });
   expect(rejections[1]).toMatchObject({ provider_id: 'hopper' });
-  expect(rejections[1]?.diagnostics).toMatchObject({ platform: process.platform });
-  expect(['executable_missing', 'not_configured']).toContain(rejections[1]?.code);
+  expect(rejections[1]?.['diagnostics']).toMatchObject({ platform: process.platform });
+  expect(['executable_missing', 'not_configured']).toContain(rejections[1]?.['code']);
   expect(rejections[2]).toMatchObject({
     provider_id: 'ida',
     code: 'not_configured',

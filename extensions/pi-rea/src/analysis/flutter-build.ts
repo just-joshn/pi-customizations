@@ -11,8 +11,8 @@ const DART_SNAPSHOT_MAGIC = Buffer.from([0xf5, 0xf5, 0xdc, 0xdc]);
 const SNAPSHOT_HASH_OFFSET = 20;
 const SNAPSHOT_HASH_LENGTH = 32;
 const SNAPSHOT_HASH_PATTERN = /^[0-9a-f]{32}$/u;
-const DART_VERSION_PATTERN = /^Dart VM version:[^\x00\n]{0,200}$/u;
-const TOOLCHAIN_PATTERN = /^(?:Android \([^)\x00\n]{0,80}\) clang version [^\x00\n]{0,500}|based on LLVM \d[^\x00\n]{0,80})$/u;
+const DART_VERSION_PATTERN = /^Dart VM version:(?:[^\p{Cc}\n]|[\t\r]){0,200}$/u;
+const TOOLCHAIN_PATTERN = /^(?:Android \([^)\p{Cc}\n]{0,80}\) clang version (?:[^\p{Cc}\n]|[\t\r]){0,500}|based on LLVM \d(?:[^\p{Cc}\n]|[\t\r]){0,80})$/u;
 const MAX_TOOLCHAIN_LINES = 4;
 const MAX_SNAPSHOT_HASH_CANDIDATES = 64;
 
@@ -79,7 +79,10 @@ const inputError = (operation: string, path: string, detail: string) =>
   });
 
 class BoundedReader {
-  constructor(private readonly bytes: Buffer) {}
+  readonly bytes: Buffer;
+  constructor(bytes: Buffer) {
+    this.bytes = bytes;
+  }
   u8(offset: number): number | null {
     return offset < this.bytes.length ? this.bytes.readUInt8(offset) : null;
   }
@@ -278,7 +281,7 @@ export const identifyFlutterBuildFromPath = async (
   if (bytes.length > MAX_FILE_BYTES) {
     throw inputError('identify_flutter_build', path, `the archive is ${bytes.length} bytes, more than the ${MAX_FILE_BYTES} byte limit`);
   }
-  let directory;
+  let directory: ReturnType<typeof readZipDirectory>;
   try {
     directory = readZipDirectory(bytes);
   } catch (error) {
@@ -341,13 +344,13 @@ export const identifyFlutterBuildFromPath = async (
         elf_header_valid: elfValid,
         snapshot_hash_sources: hashScan.sources,
         snapshot_hash_candidates: hashScan.candidates,
-        snapshot_hash: hashScan.candidates.length === 1 ? hashScan.candidates[0]! : null,
+        snapshot_hash: hashScan.candidates.length === 1 ? (hashScan.candidates[0] ?? null) : null,
       },
       libflutter: {
         present: flutter.present,
         bytes: flutter.bytes,
         sha256: flutter.sha256,
-        build_id: buildIds.candidates.length === 1 && buildIds.failures.length === 0 ? buildIds.candidates[0]! : null,
+        build_id: buildIds.candidates.length === 1 && buildIds.failures.length === 0 ? (buildIds.candidates[0] ?? null) : null,
         build_id_candidates: buildIds.candidates,
         dart_version: labels.dart_version,
         toolchain_lines: labels.toolchain_lines,
@@ -449,7 +452,7 @@ export const inspectDartAotFromPath = async (
         { name: 'isolate_data', offset: null, size: null, magic: null, kind: null, length: null },
         { name: 'isolate_instructions', offset: null, size: null, magic: null, kind: null, length: null },
       ],
-      snapshot_hash: hashScan.candidates.length === 1 ? hashScan.candidates[0]! : null,
+      snapshot_hash: hashScan.candidates.length === 1 ? (hashScan.candidates[0] ?? null) : null,
       string_pool: {
         package_uris,
         dart_uris,

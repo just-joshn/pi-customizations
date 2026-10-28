@@ -2,7 +2,7 @@ import { capabilityUnavailable, ERROR_CATEGORIES, ERROR_CODES, invalidRequest, R
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null;
 
-export const mapAnalyzerError = (error: unknown): never => {
+export const mapAnalyzerError: (error: unknown) => never = (error) => {
   if (error instanceof ReaError) throw error;
 
   if (isRecord(error) && error['name'] === 'IntegrityPolicyError') {

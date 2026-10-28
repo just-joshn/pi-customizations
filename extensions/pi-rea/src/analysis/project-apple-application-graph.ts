@@ -228,17 +228,19 @@ export const projectAppleApplicationGraph = (params: { readonly inventory_eviden
   const applicationRoots = bundles.filter((bundle) => bundle.role === 'application' || bundle.parent_path === null).map((bundle) => bundle.path);
   const launchd = [...paths].filter((path) => /Launch(Agents|Daemons)\//.test(path) && path.endsWith('.plist')).sort();
 
-  const metadata = bundles
-    .filter((bundle) => bundle.info_plist_path !== null)
-    .map((bundle) => {
-      const occ = allOccurrences.find((row) => row.logical_path === bundle.info_plist_path);
-      return {
-        path: bundle.info_plist_path!,
+  const metadata = bundles.flatMap((bundle) => {
+    const plistPath = bundle.info_plist_path;
+    if (plistPath === null) return [];
+    const occ = allOccurrences.find((row) => row.logical_path === plistPath);
+    return [
+      {
+        path: plistPath,
         artifact_id: occ?.artifact_id ?? (occ?.sha256 === null || occ?.sha256 === undefined ? null : `art_${digestOf(`member:${occ.sha256}`)}`),
         sha256: occ?.sha256 ?? null,
         format: 'plist',
-      };
-    });
+      },
+    ];
+  });
 
   if (rootSha === null) rootSha = digestOf(JSON.stringify(allOccurrences.map((row) => row.logical_path).sort()));
 

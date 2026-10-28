@@ -264,7 +264,7 @@ const parseMetadata = (
     }
     const stringIndexSize = (heapSizes & 0x01) !== 0 ? 4 : 2;
     const guidIndexSize = (heapSizes & 0x02) !== 0 ? 4 : 2;
-    const readStr = (heap: Buffer, index: number): string => {
+    const readStr = (index: number): string => {
       if (stringsHeap === null || index <= 0 || index >= stringsHeap.length) return '';
       return readAscii(stringsHeap, index, stringsHeap.length);
     };
@@ -274,7 +274,7 @@ const parseMetadata = (
       const rowSize = 2 + stringIndexSize + guidIndexSize * 3;
       if (rowCursor + rowSize <= tablesHeap.length) {
         const nameIndex = stringIndexSize === 4 ? tablesHeap.readUInt32LE(rowCursor + 2) : tablesHeap.readUInt16LE(rowCursor + 2);
-        module = { name: readStr(tablesHeap, nameIndex), mvid: null };
+        module = { name: readStr(nameIndex), mvid: null };
       }
       rowCursor += rowSize * moduleRows;
     }
@@ -307,7 +307,7 @@ const inspectImage = (bytes: Buffer, path: string): ManagedArtifactInspection =>
   }
   const characteristics = bytes.readUInt16LE(image.peOffset + 22);
   const cliDir = image.directories[DIR.CLR];
-  const evidence: ManagedArtifactInspection['classification']['evidence'] = [];
+  const evidence: ManagedArtifactInspection['classification']['evidence'][number][] = [];
   if (cliDir === undefined || cliDir.rva === 0 || cliDir.size === 0) {
     return {
       artifact: artifactIdentity(path, bytes),

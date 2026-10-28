@@ -1,6 +1,6 @@
 import type { AgentToolResult } from '@earendil-works/pi-coding-agent';
 import type { EvidenceRecord } from '../session/evidence.ts';
-import { ReaError, resourceConstraint } from './errors.ts';
+import { ReaError } from './errors.ts';
 
 export const DEFAULT_RESPONSE_BUDGET_BYTES = 10_485_760;
 const ENVELOPE_RESERVE_BYTES = 1024;
@@ -39,11 +39,27 @@ const snapshotDetail = (details: object | undefined, provenance: boolean): Recor
   return provenance ? { ...(details as Record<string, unknown>), provenance: { untrusted_content: true, source: 'analysis_target' } } : (details as Record<string, unknown>);
 };
 
+const budgetBytes = (): number => responseBudgetBytes() - ENVELOPE_RESERVE_BYTES;
+
+const truncated = (requiredBytes: number, guidance: string): Record<string, unknown> => ({
+  truncated: true,
+  response_budget_bytes: budgetBytes(),
+  required_bytes: requiredBytes,
+  guidance,
+});
+
 export const operationResult = (payload: unknown, options: { readonly details?: Record<string, unknown>; readonly provenance?: boolean } = {}): AgentToolResult<unknown> => {
   const body = JSON.stringify({ result: payload });
-  const budget = responseBudgetBytes() - ENVELOPE_RESERVE_BYTES;
-  if (byteLength(body) > budget) throw oversized(body);
   const details = snapshotDetail(options.details, options.provenance === true);
+  if (byteLength(body) > budgetBytes()) {
+    const marker = truncated(byteLength(body), 'The complete payload was not returned because it exceeds the response budget. Narrow the request with its view or page parameters and retry, or raise REA_MCP_MAX_RESPONSE_BYTES.');
+    const truncatedBody = JSON.stringify({ result: marker });
+    return {
+      content: [{ type: 'text', text: truncatedBody }],
+      structuredContent: asStructuredContent(truncatedBody),
+      details: details ?? {},
+    };
+  }
   return {
     content: [{ type: 'text', text: body }],
     structuredContent: asStructuredContent(body),
@@ -55,34 +71,39 @@ const asStructuredContent = (body: string): NonNullable<AgentToolResult<unknown>
 
 export const evidenceResult = (record: EvidenceRecord): AgentToolResult<unknown> => {
   const body = JSON.stringify(record);
-  const budget = responseBudgetBytes() - ENVELOPE_RESERVE_BYTES;
-  if (byteLength(body) > budget) throw oversized(body);
+  if (byteLength(body) > budgetBytes()) {
+    const marker = truncated(byteLength(body), `Evidence ${record.evidence_id} is retained in this session. Call export_evidence_bundle, then read the exported bundle in pages, or raise REA_MCP_MAX_RESPONSE_BYTES.`);
+    const truncatedBody = JSON.stringify(marker);
+    return {
+      content: [{ type: 'text', text: truncatedBody }],
+      structuredContent: asStructuredContent(truncatedBody),
+      details: { evidence: record, truncated: true, provenance: { untrusted_content: true, source: 'analysis_target' } },
+    };
+  }
   return {
     content: [{ type: 'text', text: body }],
     structuredContent: asStructuredContent(body),
-    details: { provenance: { untrusted_content: true, source: 'analysis_target' } },
+    details: { evidence: record, provenance: { untrusted_content: true, source: 'analysis_target' } },
   };
 };
 
 export const configurationResult = (payload: unknown): AgentToolResult<unknown> => {
   const body = JSON.stringify(payload);
-  const budget = responseBudgetBytes() - ENVELOPE_RESERVE_BYTES;
-  if (byteLength(body) > budget) throw oversized(body);
+  if (byteLength(body) > budgetBytes()) {
+    const marker = truncated(byteLength(body), 'The complete payload was not returned because it exceeds the response budget. Narrow the request and retry, or raise REA_MCP_MAX_RESPONSE_BYTES.');
+    const truncatedBody = JSON.stringify(marker);
+    return {
+      content: [{ type: 'text', text: truncatedBody }],
+      structuredContent: asStructuredContent(truncatedBody),
+      details: {},
+    };
+  }
   return {
     content: [{ type: 'text', text: body }],
     structuredContent: asStructuredContent(body),
     details: {},
   };
 };
-
-const oversized = (body: string): ReaError =>
-  resourceConstraint(
-    `The response is ${byteLength(body)} bytes and does not fit the ${responseBudgetBytes()} byte response budget. Export the complete session with export_evidence_bundle and read it in pages, or raise REA_MCP_MAX_RESPONSE_BYTES.`,
-    {
-      resource: 'transport',
-      reported_limits: { response_budget_bytes: responseBudgetBytes(), required_bytes: byteLength(body) },
-    },
-  );
 
 export const errorResult = (error: unknown): AgentToolResult<unknown> => {
   const payload =

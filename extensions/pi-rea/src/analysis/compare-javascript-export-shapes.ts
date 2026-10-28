@@ -164,8 +164,9 @@ const selectSide = (record: EvidenceRecord, modulePath: string, exportName: stri
     });
   }
   const exact = candidates.filter((row) => row.matches_requested_module && row.matches_requested_export);
-  if (exact.length === 1) {
-    const selected = nodes.find((node) => node['node_id'] === exact[0]!.node_id);
+  const exactCandidate = exact[0];
+  if (exact.length === 1 && exactCandidate !== undefined) {
+    const selected = nodes.find((node) => node['node_id'] === exactCandidate.node_id);
     const shapes = selected === undefined ? [] : (exportMeta(selected)?.shapes ?? []);
     return {
       selection: {
@@ -176,7 +177,7 @@ const selectSide = (record: EvidenceRecord, modulePath: string, exportName: stri
         candidates: exact,
         omitted_candidates: 0,
         status: 'selected',
-        selected_node_id: exact[0]!.node_id,
+        selected_node_id: exactCandidate.node_id,
       },
       shapes,
     };
@@ -299,8 +300,9 @@ export const compareJavascriptExportShapes = (params: {
   };
 
   for (const pair of pairs) {
-    const leftShape = leftSide.shapes[pair.leftIndex]!;
-    const rightShape = rightSide.shapes[pair.rightIndex]!;
+    const leftShape = leftSide.shapes[pair.leftIndex];
+    const rightShape = rightSide.shapes[pair.rightIndex];
+    if (leftShape === undefined || rightShape === undefined) continue;
     leftInventories[pair.leftIndex] = inventoryFor('left', pair.leftIndex, leftShape, pair.discriminant, true);
     rightInventories[pair.rightIndex] = inventoryFor('right', pair.rightIndex, rightShape, pair.discriminant, true);
     const leftFields = fieldMap(leftShape);

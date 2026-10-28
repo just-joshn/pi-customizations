@@ -1,3 +1,4 @@
+// biome-ignore-all lint/correctness/noUndeclaredDependencies: design sketch kept as a frozen record; it imports Pi types only to sketch a shape and is never built or shipped.
 import type { AgentToolResult, ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 
 export type FamilyId = 'session-evidence' | 'static-inspectors' | 'native-session' | 'javascript-electron' | 'managed-dotnet' | 'frida' | 'offline-forensics' | 'android-mobile' | 'browser-web' | 'other';

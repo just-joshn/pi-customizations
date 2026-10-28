@@ -88,11 +88,11 @@ export const inspectManagedMembersFromPath = async (
     };
   }
 
-  const typeCount = artifact.metadata.table_row_counts.TypeDef ?? 0;
-  const methodCount = artifact.metadata.table_row_counts.MethodDef ?? 0;
-  const fieldCount = artifact.metadata.table_row_counts.Field ?? 0;
-  const memberRefCount = artifact.metadata.table_row_counts.MemberRef ?? 0;
-  const exportedCount = artifact.metadata.table_row_counts.ExportedType ?? 0;
+  const typeCount = artifact.metadata.table_row_counts['TypeDef'] ?? 0;
+  const methodCount = artifact.metadata.table_row_counts['MethodDef'] ?? 0;
+  const fieldCount = artifact.metadata.table_row_counts['Field'] ?? 0;
+  const memberRefCount = artifact.metadata.table_row_counts['MemberRef'] ?? 0;
+  const exportedCount = artifact.metadata.table_row_counts['ExportedType'] ?? 0;
   return {
     path: requested,
     resolvedPath,
