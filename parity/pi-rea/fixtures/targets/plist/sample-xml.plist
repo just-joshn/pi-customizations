@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleIdentifier</key>
+	<string>com.example.fixture</string>
+	<key>CFBundleName</key>
+	<string>Parity Fixture</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.2.3</string>
+	<key>CFBundleVersion</key>
+	<string>456</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>14.0</string>
+	<key>Nested</key>
+	<dict>
+		<key>flag</key>
+		<true/>
+		<key>count</key>
+		<integer>7</integer>
+	</dict>
+	<key>List</key>
+	<array>
+		<string>alpha</string>
+		<string>beta</string>
+		<data>aGVsbG8=</data>
+		<real>2.5</real>
+	</array>
+	<key>Nothing</key>
+	<false/>
+</dict>
+</plist>

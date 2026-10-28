@@ -1,0 +1,120 @@
+{
+  "artifacts": [
+    {
+      "architecture": "arm64",
+      "digest": {
+        "sha256": "778698b8198949aaa5ce0e539e889addf766187b15d552f97163d8411307231a"
+      },
+      "format": "mach-o"
+    }
+  ],
+  "captures": [],
+  "environments": [],
+  "providers": [
+    {
+      "id": "native-macos",
+      "name": "macOS native inspection utilities",
+      "version": null
+    }
+  ],
+  "records": [
+    {
+      "analysis_profile": null,
+      "authority": "shipped-artifact",
+      "confidence": "observed",
+      "environment": null,
+      "evidence_id": "ev_84eb596b2241b21bfc92ee1e70022963f3f7dbc5356f9cd666825c5f7fde4524",
+      "evidence_links": [],
+      "limitations": [],
+      "locations": [
+        {
+          "kind": "artifact-path",
+          "path": "/System/Library/CoreServices/SystemVersion.plist"
+        }
+      ],
+      "normalized_result": {
+        "bundle": {
+          "executable": null,
+          "identifier": null,
+          "name": null,
+          "short_version": null,
+          "version": null
+        },
+        "format": "xml",
+        "limitations": [],
+        "provenance": [
+          {
+            "command": [
+              "/usr/bin/file",
+              "-b",
+              "$PLIST"
+            ],
+            "executable_sha256": "$EXECUTABLE_SHA256",
+            "exit": {
+              "code": 0,
+              "signal": null
+            },
+            "stderr_bytes": 0,
+            "stdout_bytes": 34,
+            "tool": "file",
+            "tool_version": null,
+            "version_reason": "Tool exposes no uniform stable version flag; executable SHA-256 is a prelaunch file sample and does not prove atomic OS image binding."
+          },
+          {
+            "command": [
+              "/usr/bin/plutil",
+              "-convert",
+              "json",
+              "-o",
+              "-",
+              "--",
+              "$PLIST"
+            ],
+            "executable_sha256": "$EXECUTABLE_SHA256",
+            "exit": {
+              "code": 0,
+              "signal": null
+            },
+            "stderr_bytes": 0,
+            "stdout_bytes": 235,
+            "tool": "plutil",
+            "tool_version": null,
+            "version_reason": "Tool exposes no uniform stable version flag; executable SHA-256 is a prelaunch file sample and does not prove atomic OS image binding."
+          }
+        ],
+        "source_path": "/System/Library/CoreServices/SystemVersion.plist",
+        "value": {
+          "BuildID": "0B27979E-B7E7-11F1-B3D2-24EC53F49301",
+          "ProductBuildVersion": "26A434",
+          "ProductCopyright": "1983-2026 Apple Inc.",
+          "ProductName": "macOS",
+          "ProductUserVisibleVersion": "27.0.1",
+          "ProductVersion": "27.0.1",
+          "iOSSupportVersion": "27.0"
+        }
+      },
+      "operation": "inspect_plist",
+      "parameters": {
+        "path": "/System/Library/CoreServices/SystemVersion.plist"
+      },
+      "predicate_type": "rea.analysis",
+      "provider": {
+        "id": "native-macos",
+        "name": "macOS native inspection utilities",
+        "version": null
+      },
+      "raw_result": null,
+      "subject": {
+        "architecture": "arm64",
+        "digest": {
+          "sha256": "778698b8198949aaa5ce0e539e889addf766187b15d552f97163d8411307231a"
+        },
+        "format": "mach-o",
+        "local_path": "$FIXTURES/fixture-go-macho",
+        "name": "fixture-go-macho"
+      }
+    }
+  ],
+  "scenarios": [],
+  "unknowns": []
+}

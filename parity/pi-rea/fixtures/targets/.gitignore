@@ -1,0 +1,5 @@
+# Built on demand by parity/pi-rea/scripts (see README). Do not commit large binaries.
+fixture-go-macho
+fixture-go-macho-fat
+pe/fixture-go-pe-alt.exe
+crash/minimal.core

@@ -1,0 +1,91 @@
+{
+  "request": {
+    "name": "get_evidence_bundle",
+    "arguments": {}
+  },
+  "response": {
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "{\"result\":{\"artifacts\":[],\"providers\":[{\"id\":\"rea-unknown-registry\",\"name\":\"REA residual unknown registry\",\"version\":\"1\"}],\"environments\":[],\"scenarios\":[],\"captures\":[],\"unknowns\":[{\"unknown_id\":\"unk_ce1641b5a410cd96d0fc5c4c93929216bccc43d1268e65439e71825c9d3ab249\",\"revision\":1,\"previous_revision_digest\":null,\"revision_digest\":\"f2447c14d052681cdeb823748d3f8ff14a7e702928872f66905ff19601db5f50\",\"scope_digest\":null,\"question\":\"What does the mutation Evidence look like?\",\"status\":\"open\",\"severity\":\"low\",\"domain\":\"fixture\",\"supporting_evidence_ids\":[],\"contradicting_evidence_ids\":[],\"required_authority\":\"analyst-inference\",\"required_confidence\":\"inferred\",\"required_environment\":null,\"recommended_probes\":[],\"relationships\":[],\"resolution\":null,\"mutation_evidence_ids\":[\"ev_3661872566a16fe7e7b2069ac166d9f07ebbe07a5a26fb3b934e51bfbff56b96\"]}],\"records\":[{\"evidence_id\":\"ev_3661872566a16fe7e7b2069ac166d9f07ebbe07a5a26fb3b934e51bfbff56b96\",\"subject\":null,\"provider\":{\"id\":\"rea-unknown-registry\",\"name\":\"REA residual unknown registry\",\"version\":\"1\"},\"analysis_profile\":null,\"predicate_type\":\"rea.residual-unknown-mutation\",\"operation\":\"record_unknown\",\"parameters\":{\"domain\":\"fixture\",\"severity\":\"low\"},\"raw_result\":null,\"normalized_result\":{\"action\":\"record\",\"question\":\"What does the mutation Evidence look like?\",\"required_authority\":\"analyst-inference\",\"required_confidence\":\"inferred\"},\"confidence\":\"derived\",\"authority\":\"analyst-inference\",\"environment\":null,\"limitations\":[\"Artifact identity is unavailable for this observation.\",\"Registry mutation evidence records analyst intent, not proof of the answer.\"],\"locations\":[],\"evidence_links\":[]}]}}"
+        }
+      ],
+      "structuredContent": {
+        "result": {
+          "artifacts": [],
+          "providers": [
+            {
+              "id": "rea-unknown-registry",
+              "name": "REA residual unknown registry",
+              "version": "1"
+            }
+          ],
+          "environments": [],
+          "scenarios": [],
+          "captures": [],
+          "unknowns": [
+            {
+              "unknown_id": "unk_ce1641b5a410cd96d0fc5c4c93929216bccc43d1268e65439e71825c9d3ab249",
+              "revision": 1,
+              "previous_revision_digest": null,
+              "revision_digest": "f2447c14d052681cdeb823748d3f8ff14a7e702928872f66905ff19601db5f50",
+              "scope_digest": null,
+              "question": "What does the mutation Evidence look like?",
+              "status": "open",
+              "severity": "low",
+              "domain": "fixture",
+              "supporting_evidence_ids": [],
+              "contradicting_evidence_ids": [],
+              "required_authority": "analyst-inference",
+              "required_confidence": "inferred",
+              "required_environment": null,
+              "recommended_probes": [],
+              "relationships": [],
+              "resolution": null,
+              "mutation_evidence_ids": [
+                "ev_3661872566a16fe7e7b2069ac166d9f07ebbe07a5a26fb3b934e51bfbff56b96"
+              ]
+            }
+          ],
+          "records": [
+            {
+              "evidence_id": "ev_3661872566a16fe7e7b2069ac166d9f07ebbe07a5a26fb3b934e51bfbff56b96",
+              "subject": null,
+              "provider": {
+                "id": "rea-unknown-registry",
+                "name": "REA residual unknown registry",
+                "version": "1"
+              },
+              "analysis_profile": null,
+              "predicate_type": "rea.residual-unknown-mutation",
+              "operation": "record_unknown",
+              "parameters": {
+                "domain": "fixture",
+                "severity": "low"
+              },
+              "raw_result": null,
+              "normalized_result": {
+                "action": "record",
+                "question": "What does the mutation Evidence look like?",
+                "required_authority": "analyst-inference",
+                "required_confidence": "inferred"
+              },
+              "confidence": "derived",
+              "authority": "analyst-inference",
+              "environment": null,
+              "limitations": [
+                "Artifact identity is unavailable for this observation.",
+                "Registry mutation evidence records analyst intent, not proof of the answer."
+              ],
+              "locations": [],
+              "evidence_links": []
+            }
+          ]
+        }
+      }
+    },
+    "jsonrpc": "2.0",
+    "id": 16
+  }
+}

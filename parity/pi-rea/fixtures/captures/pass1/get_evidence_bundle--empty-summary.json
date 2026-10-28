@@ -1,0 +1,30 @@
+{
+  "request": {
+    "name": "get_evidence_bundle",
+    "arguments": {
+      "detail": "summary"
+    }
+  },
+  "response": {
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "{\"result\":{\"kind\":\"evidence-bundle-summary\",\"filters\":{},\"total_retained_records\":0,\"matching_records\":0,\"unknown_revisions\":0,\"records\":[]}}"
+        }
+      ],
+      "structuredContent": {
+        "result": {
+          "kind": "evidence-bundle-summary",
+          "filters": {},
+          "total_retained_records": 0,
+          "matching_records": 0,
+          "unknown_revisions": 0,
+          "records": []
+        }
+      }
+    },
+    "jsonrpc": "2.0",
+    "id": 11
+  }
+}
