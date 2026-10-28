@@ -2,7 +2,7 @@
 
 Source harness: Grok Build TUI `grok` 1.0.50 (`c58f321264ba`), the subscription OAuth that signs in to `auth.x.ai` and the request dependencies required for that token to be accepted by `https://cli-chat-proxy.grok.com/v1`.
 
-Target: `extensions/pi-xai-oauth`, loaded by Pi 1.1.0.
+Target: `extensions/pi-xai-oauth`, loaded by Pi 1.4.0.
 
 ## Sources
 
@@ -14,40 +14,41 @@ Target: `extensions/pi-xai-oauth`, loaded by Pi 1.1.0.
 | S4 | observation | Public `https://auth.x.ai/.well-known/openid-configuration` and device-authorization responses | Public OAuth metadata |
 | S5 | observation | Redacted credential shape and access-token claims after `grok login --device-auth` in an isolated `GROK_HOME` | Local observation; secret values were not copied |
 | S6 | observation | Status-only probes of `cli-chat-proxy.grok.com` | Black-box; tokens were not written to fixtures |
-| S7 | permitted source | Pi 1.1.0 `@earendil-works/pi-ai` `dist/auth/oauth/xai.js` and `dist/providers/xai.js` | MIT |
-| S8 | doc | Pi 1.1.0 `docs/custom-provider.md`, `docs/providers.md`, `docs/packages.md` | Installed Pi docs |
+| S7 | permitted source | Pi 1.4.0 `@earendil-works/pi-ai` `dist/auth/oauth/xai.js` and `dist/providers/xai.js` | MIT |
+| S8 | doc | Pi 1.4.0 `docs/custom-provider.md`, `docs/providers.md`, `docs/packages.md` | Installed Pi docs |
+| S9 | observation | `grok login --oauth` in an isolated `GROK_HOME`, with the process killed after it printed the authorize URL | Authorized black-box use of the installed harness; no login completed |
 
 ## Scope
 
 - In scope: browser and device-code login for the captured `auth.x.ai` client and scope, refresh before local expiry, logout, credential hot reload, file mode, the proxy headers and catalog call required for that token, and the 500000-token window through `models.json`.
 - Out of scope: Grove git credentials, MCP OAuth, customer IdP OIDC, external auth-provider binaries, named BYOK helpers, TUI, tools, doom-loop headers, telemetry, the built-in `xai` API-key provider at `api.x.ai`, and a second 401 retry loop. The retry is omitted under the native-gap gate in `decisions.md`.
-- Pi replacements: Pi `OAuthAuth` plus `AuthStorage` for login, refresh, and `auth.json`; `registerProvider` for the proxy; Pi's OpenAI Responses implementation for the body; `models.json` for base URL, header, and context-window overrides.
+- Pi replacements: Pi `OAuthAuth` refresh plus `AuthStorage` for refresh and `auth.json`; `registerProvider` for the proxy; Pi's OpenAI Responses implementation for the body; `models.json` for base URL, header, and context-window overrides. Login is the one Pi flow this package replaces, and `decisions.md` D5 records why.
 
 ## Requirements
 
 ### XAI-001: Browser login is the default
 - Trigger: `grok login` or `grok login --oauth`.
-- Input → expected output: Opens a loopback OIDC authorization-code flow at `https://auth.x.ai` with client `b1a00492-073a-47ea-816f-4c329264a828` and redirect `http://127.0.0.1:{port}/callback`.
-- Evidence: S3, **observation**, confidence high for issuer, client id, and redirect. Authorize query string is **unknown**.
-- Acceptance test: `extensions/pi-xai-oauth/test/login.test.ts::the authorize URL carries the captured Grok scope and PKCE fields`
+- Input → expected output: Opens a loopback OIDC authorization-code flow at `https://auth.x.ai` with client `b1a00492-073a-47ea-816f-4c329264a828` and redirect `http://127.0.0.1:{port}/callback`. The authorize query carries nine parameters in this order: `response_type`, `client_id`, `redirect_uri`, `scope`, `code_challenge`, `code_challenge_method=S256`, `state`, `nonce`, `referrer=grok-build`.
+- Evidence: S3 and S9, **observation**, confidence high. `extensions/pi-xai-oauth/test/fixtures/grok-1.0.50-authorize-url.json` records the URL Grok 1.0.50 printed. Four captures agreed on the parameter set and order; only the redirect port, PKCE challenge, state, and nonce differed. The query is encoded the way Grok encodes it, with `%20` between scope values rather than `+`.
+- Acceptance test: `extensions/pi-xai-oauth/test/login.test.ts::the authorize URL matches the captured Grok 1.0.50 request byte for byte`
 
 ### XAI-002: Device-code login uses the same client and endpoint
 - Trigger: `grok login --device-auth` or Pi `/login` for Grok Build.
 - Input → expected output: Device authorization at `https://auth.x.ai/oauth2/device/code` with that client id. Verification URL host is `https://accounts.x.ai/oauth2/device`. Polls the token endpoint until approved, denied, or expired.
 - Evidence: S3, S4, S7, **observation** plus permitted Pi source, confidence high.
-- Acceptance test: `extensions/pi-xai-oauth/test/provider.test.ts::a provider built from an xAI instance keeps that instance login and refresh`
+- Acceptance test: `extensions/pi-xai-oauth/test/login.test.ts::device login polls until the token endpoint completes`
 
 ### XAI-003: Granted scopes
 - Trigger: successful device login.
 - Input → expected output: A Grok-minted access token carried `openid profile email offline_access grok-cli:access api:access conversations:read conversations:write workspaces:read workspaces:write`. Pi's login requests the same string without the conversations and workspaces scopes.
-- Evidence: S5, S7, **observation** of the grant and **fact** of Pi's request. Whether the server adds scopes, and whether the proxy requires the extra scopes, are **unknown**.
+- Evidence: S5, S7, **observation** of the grant and **fact** of Pi's request. The package requests the full string; whether the server adds scopes, and whether the proxy requires the extra scopes, are **unknown**.
 - Acceptance test: `extensions/pi-xai-oauth/test/login.test.ts::device login polls until the token endpoint completes`
 
 ### XAI-004: Refresh before expiry
 - Trigger: stored refresh token, local expiry inside five minutes, or a later 401.
 - Input → expected output: `grant_type=refresh_token` at `https://auth.x.ai/oauth2/token` with the same client id. Grok's documented early window is 300 seconds. A 401 refreshes and retries once.
 - Evidence: S1, S7, **fact** for the endpoints and skew. The 401 retry is a documented fact, not re-observed with a revoked token.
-- Acceptance test: `extensions/pi-xai-oauth/test/provider.test.ts::a provider built from an xAI instance keeps that instance login and refresh` covers refresh delegation. The 401 retry is omitted under the native-gap gate.
+- Acceptance test: `extensions/pi-xai-oauth/test/provider.test.ts::login is the Grok Build flow and refresh stays on the given xAI client` covers refresh delegation. `extensions/pi-xai-oauth/test/login.test.ts::a fresh login expires five minutes before the server expiry` covers the skew on a first login. The 401 retry is omitted under the native-gap gate.
 
 ### XAI-005: Logout and file mode
 - Trigger: `grok logout` or Pi `/logout`.
@@ -59,7 +60,7 @@ Target: `extensions/pi-xai-oauth`, loaded by Pi 1.1.0.
 - Trigger: `POST /v1/responses`.
 - Input → expected output: Missing version or `1.0.12` returns HTTP 426 naming minimum `1.0.13`. `1.0.46` and `1.0.50` pass the gate. Grok 1.0.50 sends `1.0.50`. `GET /v1/models` does not enforce it.
 - Evidence: S6, **observation**, confidence high.
-- Acceptance test: `extensions/pi-xai-oauth/test/request.test.ts::the client version is the one the contract was measured against`
+- Acceptance test: `extensions/pi-xai-oauth/test/stream.test.ts::native streaming preserves the Grok Build identity and bearer token`
 
 ### XAI-007: CLI token-auth header
 - Trigger: inference request.
@@ -93,9 +94,9 @@ Target: `extensions/pi-xai-oauth`, loaded by Pi 1.1.0.
 
 ### XAI-012: Catalog shape
 - Trigger: a readable `/v1/models` body.
-- Input → expected output: `grok-4.7`, `grok-4.7-build-fast`, and `grok-4.6` offer low, medium, high, and xhigh. `grok-4.5` offers low, medium, and high. `api_backend` is `responses`. Default `context_window` is 256000.
-- Evidence: S3, **observation**, confidence high.
-- Acceptance test: `extensions/pi-xai-oauth/test/catalog.test.ts::the live-shaped body parses to the four served model ids`
+- Input → expected output: `grok-4.7`, `grok-4.7-build-fast`, and `grok-4.6` offer low, medium, high, and xhigh. `grok-4.5` offers low, medium, and high. `api_backend` is `responses`. Default `context_window` is 256000. Every reported effort that is one of Pi's seven thinking-level names becomes that Pi level, in Pi's order; a row that reports none of them is dropped.
+- Evidence: S3, **observation**, confidence high for the four rows. The remaining level names are Pi's vocabulary, not Grok's; no capture has reported them.
+- Acceptance test: `extensions/pi-xai-oauth/test/catalog.test.ts::every effort the catalog reports as a Pi level is kept`
 
 ### XAI-013: 401 refresh and retry
 - Trigger: proxy returns 401 for a previously accepted token.
@@ -150,7 +151,7 @@ Target: `extensions/pi-xai-oauth`, loaded by Pi 1.1.0.
 - Trigger: catalog field `context_windows: [256000, 500000]`.
 - Input → expected output: Pi selects 500000 with `models.json` `modelOverrides`. The port sends that window in `x-grok-context-window`. Grok's picker for the same window was not observed and is not reimplemented.
 - Evidence: S3, **observation** of the field. Pi `docs/models.md` and `applyModelOverride`, **fact**.
-- Acceptance test: `extensions/pi-xai-oauth/test/pi-owned-auth.test.ts::Pi creates auth.json owner-only, reloads an external rewrite, and logout clears it`
+- Acceptance test: `extensions/pi-xai-oauth/test/stream.test.ts::models.json still wins over the headers the package sends`
 
 ### XAI-023: Effort alias ids
 - Trigger: a tool asks for `grok-4.7-xhigh-fast`.
@@ -161,8 +162,8 @@ Target: `extensions/pi-xai-oauth`, loaded by Pi 1.1.0.
 
 | Question | Why it matters | How it could be resolved |
 |---|---|---|
-| Authorize URL query (scope, referrer, PKCE, extra params) | A custom browser login would guess the request | Capture the URL from a login that does not complete |
 | Whether Pi's shorter scope is granted extra scopes, and whether the proxy checks them | Could make Pi-minted tokens fail for workspace features | Complete one Pi device login and compare the scope claim, without logging the token |
 | Whether Grok's 401 retry still matches the user guide | Mid-session revocation | Revoke a probe token and watch one retry |
 | How the 500k window is selected in Grok | Users may expect it without `models.json` | Observe the model picker or a config key |
 | `reasoning.summary` value Grok sends | Pi sends `auto` | Recapture the body field, not the prompt text |
+| Whether xAI accepts the captured authorize query from another client | The package sends the same request, but only Grok has approved it | Approve one browser login opened by this package, without logging the token |

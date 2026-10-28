@@ -17,7 +17,8 @@ export function createGrokBuildProvider(xai: Provider): Provider {
     if (context.credential?.type !== 'oauth') throw new Error(NOT_LOGGED_IN);
     const { apiKey } = await oauth.toAuth(context.credential);
     if (!apiKey) throw new Error(NOT_LOGGED_IN);
-    const response = await fetch(`${PROXY_BASE_URL}/models`, { headers: { Authorization: `Bearer ${apiKey}` }, redirect: 'error', signal: context.signal });
+    const baseUrl = (context.baseUrl ?? PROXY_BASE_URL).replace(/\/+$/, '');
+    const response = await fetch(`${baseUrl}/models`, { headers: { Authorization: `Bearer ${apiKey}` }, redirect: 'error', signal: context.signal });
     if (!response.ok) throw catalogFailure(response.status);
     const parsed = parseCatalog(await response.json().catch(() => undefined));
     if (parsed.kind === 'unreadable') throw new Error('Grok Build returned a model list Pi cannot read.');

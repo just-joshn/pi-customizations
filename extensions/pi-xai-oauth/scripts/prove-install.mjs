@@ -8,7 +8,7 @@ const packageDir = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const userAgentDir = resolve(process.env.HOME ?? '', '.pi/agent');
 
 function run(args, agentDir) {
-  return new Promise((resolveRun, reject) => {
+  return new Promise((resolveRun) => {
     execFile('pi', args, { env: { ...process.env, PI_CODING_AGENT_DIR: agentDir }, timeout: 60_000 }, (error, stdout, stderr) => {
       const code = error === null ? 0 : typeof error.code === 'number' ? error.code : 1;
       resolveRun({ code, output: `${stdout}\n${stderr}` });

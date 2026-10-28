@@ -1,4 +1,9 @@
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+
 import { createModels, type Model } from '@earendil-works/pi-ai';
+import { ModelRuntime } from '@earendil-works/pi-coding-agent';
 import { expect } from 'vitest';
 import { createGrokBuildProvider } from '../src/index.ts';
 import { test as base } from './network-guard.ts';
@@ -65,4 +70,41 @@ test('native streaming applies default < level < request sampling precedence', (
 
 test('native streaming returns the server text', ({ exchange }) => {
   expect(exchange.message.content.map((block) => (block.type === 'text' ? block.text : ''))).toStrictEqual(['OK']);
+});
+
+test('models.json still wins over the headers the package sends', async ({ server }) => {
+  const dir = await mkdtemp(join(tmpdir(), 'pi-xai-oauth-wire-'));
+  const authPath = join(dir, 'auth.json');
+  const modelsPath = join(dir, 'models.json');
+  const credential = oauthCredential();
+  try {
+    await writeFile(authPath, JSON.stringify({ 'grok-build': credential }), { mode: 0o600 });
+    await writeFile(
+      modelsPath,
+      JSON.stringify({
+        providers: {
+          'grok-build': {
+            headers: { 'x-grok-client-version': '9.9.9' },
+            modelOverrides: { 'grok-4.7-build-fast': { contextWindow: 500000 } },
+          },
+        },
+      }),
+    );
+    const runtime = await ModelRuntime.create({ authPath, modelsPath, refreshOnCreate: false });
+    runtime.registerNativeProvider(createGrokBuildProvider(builtinXai()));
+    await runtime.refresh({ allowNetwork: false });
+    const listed = runtime.getModel('grok-build', 'grok-4.7-build-fast');
+    if (!listed) throw new Error('grok-build/grok-4.7-build-fast is not listed');
+    await runtime.streamSimple({ ...listed, baseUrl: server.baseUrl }, { messages: [{ role: 'user', content: 'ping', timestamp: 1 }] }, { sessionId: 'session-1' }).result();
+    expect(server.requests[0]?.headers).toMatchObject({
+      'x-grok-client-version': '9.9.9',
+      'x-xai-token-auth': 'xai-grok-cli',
+      'x-grok-model-override': 'grok-4.7-build-fast',
+      'x-grok-context-window': '500000',
+      'x-grok-conv-id': 'session-1',
+      authorization: `Bearer ${credential.access}`,
+    });
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
 });

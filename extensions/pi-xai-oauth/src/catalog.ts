@@ -1,11 +1,12 @@
-import type { Api, Model, ModelCost, ModelCostRates, ThinkingLevelMap } from '@earendil-works/pi-ai';
+import type { Api, Model, ModelCost, ModelCostRates, ModelThinkingLevel, ThinkingLevelMap } from '@earendil-works/pi-ai';
 import { Type } from 'typebox';
 import { Check } from 'typebox/value';
 
 export const PROVIDER_ID = 'grok-build';
 export const PROXY_BASE_URL = 'https://cli-chat-proxy.grok.com/v1';
-export const EFFORTS = ['low', 'medium', 'high', 'xhigh'] as const;
-export type Effort = (typeof EFFORTS)[number];
+/** Pi's thinking levels in Pi's order. A catalog effort is a level when its name matches. */
+const THINKING_LEVELS = ['off', 'minimal', 'low', 'medium', 'high', 'xhigh', 'max'] as const satisfies readonly ModelThinkingLevel[];
+export type Effort = (typeof THINKING_LEVELS)[number];
 
 const FAST_SUFFIX = '-build-fast';
 
@@ -57,12 +58,17 @@ function hasEffort(efforts: readonly Effort[]): efforts is [Effort, ...Effort[]]
   return efforts.length > 0;
 }
 
+/** Every level Pi can represent at all, marked unsupported when this model does not offer it. */
+function thinkingLevelMapFor(efforts: readonly Effort[]): ThinkingLevelMap {
+  return Object.fromEntries(THINKING_LEVELS.map((level) => [level, efforts.includes(level) ? level : null]));
+}
+
 function toGrokModel(row: unknown): GrokModel | undefined {
   if (!Check(Row, row)) return undefined;
-  if (/[\u0000-\u001F\u007F]/.test(row.name)) return undefined;
+  if (/\p{Cc}/u.test(row.name)) return undefined;
   if (row.api_backend !== undefined && row.api_backend !== 'responses') return undefined;
   const offered = new Set(row.reasoning_efforts.map((entry) => entry.value));
-  const efforts = EFFORTS.filter((effort) => offered.has(effort));
+  const efforts = THINKING_LEVELS.filter((level) => offered.has(level));
   if (!hasEffort(efforts)) return undefined;
   return { id: row.id, name: row.name, contextWindow: row.context_window, efforts };
 }
@@ -91,16 +97,6 @@ export function meteredCost(id: string, prices: ListPrices): ModelCost {
 }
 
 export function toPiModel(model: GrokModel, prices: ListPrices): Model<'openai-responses'> {
-  const offers = (effort: Effort) => (model.efforts.includes(effort) ? effort : null);
-  const thinkingLevelMap: ThinkingLevelMap = {
-    off: null,
-    minimal: null,
-    low: offers('low'),
-    medium: offers('medium'),
-    high: offers('high'),
-    xhigh: offers('xhigh'),
-    max: null,
-  };
   return {
     id: model.id,
     name: model.name,
@@ -112,7 +108,7 @@ export function toPiModel(model: GrokModel, prices: ListPrices): Model<'openai-r
     cost: meteredCost(model.id, prices),
     contextWindow: model.contextWindow,
     maxTokens: model.contextWindow,
-    thinkingLevelMap,
+    thinkingLevelMap: thinkingLevelMapFor(model.efforts),
     compat: { supportsLongCacheRetention: false },
   };
 }
@@ -121,7 +117,7 @@ export function effortAliases(models: readonly GrokModel[]): readonly EffortAlia
   return models
     .filter((model) => model.id.endsWith(FAST_SUFFIX))
     .flatMap((model) =>
-      EFFORTS.map((effort) => ({
+      model.efforts.map((effort) => ({
         id: `${model.id.slice(0, -FAST_SUFFIX.length)}-${effort}-fast`,
         name: `${model.name} (${effort})`,
         target: model.id,

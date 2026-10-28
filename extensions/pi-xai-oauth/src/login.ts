@@ -5,8 +5,12 @@ import type { OAuthCredential, ProviderAuthInteraction } from '@earendil-works/p
 
 export const GROK_OAUTH_CLIENT_ID = 'b1a00492-073a-47ea-816f-4c329264a828';
 export const GROK_OAUTH_SCOPE = 'openid profile email offline_access grok-cli:access api:access conversations:read conversations:write workspaces:read workspaces:write';
+/** Grok 1.0.50 sends this on the browser authorize request. */
+const GROK_OAUTH_REFERRER = 'grok-build';
 
 const AUTHORIZE_URL = 'https://auth.x.ai/oauth2/authorize';
+/** Pi refreshes a stored token this early, so a first login must expire this early too. */
+const REFRESH_SKEW_MS = 5 * 60 * 1000;
 const TOKEN_URL = 'https://auth.x.ai/oauth2/token';
 const DEVICE_URL = 'https://auth.x.ai/oauth2/device/code';
 const CALLBACK_PATH = '/callback';
@@ -15,17 +19,20 @@ const BROWSER_LIMIT_MS = 15 * 60 * 1000;
 
 type TokenResponse = { access: string; refresh: string; expiresIn: number };
 
+/** Byte-for-byte the query Grok 1.0.50 prints, including parameter order and %20 scope separators. */
 export function authorizeUrl(input: { redirectUri: string; challenge: string; state: string; nonce: string }): string {
-  const url = new URL(AUTHORIZE_URL);
-  url.searchParams.set('response_type', 'code');
-  url.searchParams.set('client_id', GROK_OAUTH_CLIENT_ID);
-  url.searchParams.set('redirect_uri', input.redirectUri);
-  url.searchParams.set('scope', GROK_OAUTH_SCOPE);
-  url.searchParams.set('code_challenge', input.challenge);
-  url.searchParams.set('code_challenge_method', 'S256');
-  url.searchParams.set('state', input.state);
-  url.searchParams.set('nonce', input.nonce);
-  return url.href;
+  const pairs: readonly (readonly [string, string])[] = [
+    ['response_type', 'code'],
+    ['client_id', GROK_OAUTH_CLIENT_ID],
+    ['redirect_uri', input.redirectUri],
+    ['scope', GROK_OAUTH_SCOPE],
+    ['code_challenge', input.challenge],
+    ['code_challenge_method', 'S256'],
+    ['state', input.state],
+    ['nonce', input.nonce],
+    ['referrer', GROK_OAUTH_REFERRER],
+  ];
+  return `${AUTHORIZE_URL}?${pairs.map(([name, value]) => `${name}=${encodeURIComponent(value)}`).join('&')}`;
 }
 
 export async function loginGrokBuild(interaction: ProviderAuthInteraction): Promise<OAuthCredential> {
@@ -136,7 +143,7 @@ function tokensFrom(body: unknown): TokenResponse {
 }
 
 function credentialFrom(tokens: TokenResponse): OAuthCredential {
-  return { type: 'oauth', access: tokens.access, refresh: tokens.refresh, expires: Date.now() + tokens.expiresIn * 1000 };
+  return { type: 'oauth', access: tokens.access, refresh: tokens.refresh, expires: Date.now() + tokens.expiresIn * 1000 - REFRESH_SKEW_MS };
 }
 
 function pollOutcome(status: number, body: unknown): 'complete' | 'pending' | 'slow_down' | 'failed' {

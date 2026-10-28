@@ -1,6 +1,10 @@
 import { randomUUID } from 'node:crypto';
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
 import { createModels, type RefreshModelsContext } from '@earendil-works/pi-ai';
+import { ModelRuntime } from '@earendil-works/pi-coding-agent';
 import { expect } from 'vitest';
 import { createGrokBuildProvider } from '../src/index.ts';
 import { test } from './network-guard.ts';
@@ -17,6 +21,37 @@ async function refreshed(reply: () => Response) {
   const result = await models.refresh({ allowNetwork: true, providers: ['grok-build'] });
   return { credential, endpoint, models, error: result.errors.get('grok-build') };
 }
+
+test.for([
+  { name: 'a plain base URL', baseUrl: 'http://127.0.0.1:9/v1', modelsUrl: 'http://127.0.0.1:9/v1/models' },
+  { name: 'a base URL with a trailing slash', baseUrl: 'http://127.0.0.1:9/v1/', modelsUrl: 'http://127.0.0.1:9/v1/models' },
+])('the refresh asks the base URL Pi reports, given $name', async ({ baseUrl, modelsUrl }) => {
+  const endpoint = stubCatalogEndpoint(() => Response.json(liveBody()), modelsUrl);
+  const context: RefreshModelsContext = { credential: oauthCredential(), allowNetwork: true, signal: new AbortController().signal, publish: async () => true, baseUrl };
+  await createGrokBuildProvider(builtinXai()).refreshModels?.(context);
+  expect(endpoint.requests.map((request) => request.url)).toStrictEqual([modelsUrl]);
+});
+
+test('a models.json base URL moves discovery to the same endpoint chat uses', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'pi-xai-oauth-base-'));
+  const authPath = join(dir, 'auth.json');
+  const modelsPath = join(dir, 'models.json');
+  const configured = 'http://127.0.0.1:9/v1';
+  const endpoint = stubCatalogEndpoint(() => Response.json(liveBody()), `${configured}/models`);
+  try {
+    await writeFile(authPath, JSON.stringify({ 'grok-build': oauthCredential() }), { mode: 0o600 });
+    await writeFile(modelsPath, JSON.stringify({ providers: { 'grok-build': { baseUrl: configured } } }));
+    const runtime = await ModelRuntime.create({ authPath, modelsPath, refreshOnCreate: false });
+    runtime.registerNativeProvider(createGrokBuildProvider(builtinXai()));
+    await runtime.refresh({ allowNetwork: false });
+    const result = await runtime.refresh({ allowNetwork: true, providers: ['grok-build'] });
+    expect(result.errors.get('grok-build')).toBeUndefined();
+    expect(endpoint.requests.map((request) => request.url)).toStrictEqual([`${configured}/models`]);
+    expect(runtime.getModel('grok-build', 'grok-4.7')?.baseUrl).toBe(configured);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
 
 test('the refresh sends the bearer token to the catalog endpoint', async () => {
   const { credential, endpoint, error } = await refreshed(() => Response.json(liveBody()));
