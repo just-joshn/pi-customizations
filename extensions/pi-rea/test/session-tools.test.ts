@@ -112,16 +112,27 @@ test('KERN-011: an expected catalog digest must be bare lowercase hex', () => {
   expect((thrown as ReaError).payload.code).toBe('invalid_request');
 });
 
-test('KERN-011: a mismatched expectation reports the exact mismatch', () => {
-  let thrown: unknown;
-  try {
-    binarySession(new ReaSession(runtime), { expected_catalog_digest: '0'.repeat(64) });
-  } catch (error) {
-    thrown = error;
-  }
-  const details = (thrown as ReaError).payload.details as { mismatches: { field: string }[] };
-  expect(details.mismatches[0]?.field).toBe('expected_catalog_digest');
-  expect(() => binarySession(new ReaSession(runtime), { expected_catalog_digest: catalogDigest() })).not.toThrow();
+test('KERN-011: a mismatched expectation reports the reference alignment state', () => {
+  const mismatched = payloadOf(binarySession(new ReaSession(runtime), { expected_catalog_digest: '0'.repeat(64) }));
+  expect((mismatched['server_identity'] as { alignment: unknown }).alignment).toStrictEqual({
+    state: 'mcp_server_restart_required',
+    reasons: ['catalog_digest_mismatch'],
+    remediation: 'Restart the registered MCP server/client, then compare identity again.',
+  });
+
+  const aligned = payloadOf(binarySession(new ReaSession(runtime), { expected_catalog_digest: catalogDigest() }));
+
+  expect((aligned['server_identity'] as { alignment: unknown }).alignment).toStrictEqual({ state: 'aligned', reasons: [], remediation: null });
+});
+
+test('KERN-011: an expectation-free session reports the reference unknown alignment', () => {
+  const report = payloadOf(binarySession(new ReaSession(runtime), {}));
+
+  expect((report['server_identity'] as { alignment: unknown }).alignment).toStrictEqual({
+    state: 'unknown',
+    reasons: [],
+    remediation: 'Supply expected package, catalog, or registration identity to compare the live server.',
+  });
 });
 
 test('KERN-012: open_binary returns the reference identity for the same Mach-O bytes', async () => {
@@ -226,7 +237,41 @@ test('KERN-013: close_binary on an empty session stays idempotent', () => {
   const session = new ReaSession(runtime);
   expect(closeBinary(session, {}).structuredContent).toStrictEqual({ result: null });
   expect(closeBinary(session, {}).structuredContent).toStrictEqual({ result: null });
-  expect(() => closeBinary(session, { snapshot_path: '/tmp/s.json' })).toThrowError(/snapshots/);
+  let thrown: unknown;
+  try {
+    closeBinary(session, { snapshot_path: '/tmp/s.json' });
+  } catch (error) {
+    thrown = error;
+  }
+  expect((thrown as ReaError).payload).toStrictEqual({
+    code: 'target_unavailable',
+    category: 'unavailable',
+    message: 'No app is open. Ask the user which app to investigate, then call open_binary with its local path.',
+    retryable: false,
+    remediation: { action: 'No app is open. Ask the user which app to investigate, then call open_binary with its local path.' },
+  });
+});
+
+test('KERN-013: close_binary refuses a profileless snapshot on an open session', async () => {
+  const session = new ReaSession(runtime);
+  await openBinary(session, { path: fixturePath('targets/minimal-elf.bin') });
+
+  let thrown: unknown;
+  try {
+    closeBinary(session, { snapshot_path: '/tmp/s.json' });
+  } catch (error) {
+    thrown = error;
+  }
+
+  expect((thrown as ReaError).payload).toStrictEqual({
+    code: 'evidence_integrity_mismatch',
+    category: 'integrity_mismatch',
+    message: 'Evidence is invalid or has changed. Recreate or re-import it, then try again.',
+    retryable: false,
+    remediation: { action: 'Evidence is invalid or has changed. Recreate or re-import it, then try again.' },
+    details: { reason: 'Profileless native snapshots may contain only current dispatch workflow observations' },
+  });
+  expect(session.open).toBe(true);
 });
 
 test('KERN-013: closing a session with a removed working directory needs no filesystem access', async ({ onTestFinished }) => {

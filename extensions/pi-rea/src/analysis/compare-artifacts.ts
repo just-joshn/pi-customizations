@@ -34,6 +34,7 @@ interface OccurrenceRow {
 interface InventoryView {
   readonly evidenceId: string;
   readonly manifestId: string | null;
+  readonly rootSha256: string | null;
   readonly occurrences: readonly OccurrenceRow[];
   readonly limitations: readonly string[];
   readonly truncated: boolean;
@@ -85,6 +86,7 @@ const inventoryFromEvidence = (record: EvidenceRecord, label: string): Inventory
     return {
       evidenceId: record.evidence_id,
       manifestId: rootSha === null ? null : `agm_${rootSha}`,
+      rootSha256: rootSha,
       occurrences,
       limitations,
       truncated: coverage?.truncated === true,
@@ -101,9 +103,11 @@ const inventoryFromEvidence = (record: EvidenceRecord, label: string): Inventory
   const manifest = (nestedNr['manifest'] as { manifest_id?: string } | undefined) ?? subject;
   const limitations = Array.isArray(nestedNr['limitations']) ? (nestedNr['limitations'] as string[]) : Array.isArray(nr['limitations']) ? (nr['limitations'] as string[]) : [];
   const coverage = nestedNr['coverage'] as { status?: string } | undefined;
+  const rootSha256 = typeof nestedNr['root_artifact_sha256'] === 'string' ? nestedNr['root_artifact_sha256'] : typeof subject?.root_sha256 === 'string' ? subject.root_sha256 : null;
   return {
     evidenceId: record.evidence_id,
     manifestId: typeof manifest?.manifest_id === 'string' ? manifest.manifest_id : null,
+    rootSha256,
     occurrences: occurrencesRaw
       .filter((entry) => entry['logical_path'] !== '.')
       .map((entry) => ({
@@ -176,7 +180,10 @@ export const compareArtifactInventories = (leftInput: unknown, rightInput: unkno
 
   if (left.manifestId !== null && right.manifestId !== null) {
     if (left.manifestId === right.manifestId) unchanged += 1;
-    else changed += 1;
+    else {
+      changed += 1;
+      changes.push({ logical_path: '.', kind: 'changed', left_sha256: left.rootSha256, right_sha256: right.rootSha256 });
+    }
   }
 
   const status = added + removed + changed + contradiction > 0 ? 'changed' : unknown > 0 ? 'unknown' : 'unchanged';

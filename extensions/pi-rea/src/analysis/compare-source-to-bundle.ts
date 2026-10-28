@@ -1,8 +1,8 @@
 import { readFile } from 'node:fs/promises';
 import { isAbsolute, posix } from 'node:path';
 
-import { invalidRequest } from '../contract/errors.ts';
-import type { EvidenceRecord } from '../session/evidence.ts';
+import { evidenceIntegrityMismatch, invalidRequest } from '../contract/errors.ts';
+import { type EvidenceRecord, isEvidenceRecord } from '../session/evidence.ts';
 import { canonicalJson, digestOf } from './canonical.mjs';
 
 const SOURCE_TO_BUNDLE_SIGNAL_WEIGHTS = [
@@ -131,6 +131,8 @@ const uniqueSorted = (values: readonly string[]): string[] => [...new Set(values
 
 const compositeKey = (parts: readonly string[]): string => parts.map((part) => JSON.stringify(part)).join('\u0000');
 
+const EVIDENCE_IDENTITY_FAILURE = 'Evidence validation failed at evidence_id: Evidence semantic identifier does not match its record';
+
 const asJsEvidence = (value: unknown): EvidenceRecord => {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) {
     throw invalidRequest('compare_source_to_bundle application must be an Evidence object.', {
@@ -150,6 +152,14 @@ const asJsEvidence = (value: unknown): EvidenceRecord => {
       operation: 'compare_source_to_bundle',
       parameter: 'application',
       observed_operation: record.operation,
+    });
+  }
+  const normalized = record.normalized_result;
+  if (typeof normalized !== 'object' || normalized === null || Array.isArray(normalized)) {
+    if (isEvidenceRecord(record)) throw evidenceIntegrityMismatch(EVIDENCE_IDENTITY_FAILURE, { reason: EVIDENCE_IDENTITY_FAILURE });
+    throw invalidRequest('compare_source_to_bundle application must carry a normalized_result inventory object.', {
+      operation: 'compare_source_to_bundle',
+      parameter: 'application',
     });
   }
   return record;

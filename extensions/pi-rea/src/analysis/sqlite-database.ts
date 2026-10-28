@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { open, stat } from 'node:fs/promises';
 import { isAbsolute, resolve } from 'node:path';
 
-import { capabilityUnavailable, invalidRequest } from '../contract/errors.ts';
+import { analysisInputInvalid, capabilityUnavailable, invalidRequest } from '../contract/errors.ts';
 
 export const SQLITE_LIMITATIONS = [
   'Inspects an offline stable file set. Filesystem identity checks detect observed acquisition changes; they do not establish an atomic snapshot of an actively changing database. Supply an application-created backup or quiescent database/WAL pair.',
@@ -138,8 +138,8 @@ const nodeSupportsSqliteLimits = async (): Promise<{ ok: boolean; version: strin
   }
 };
 
-const tableKind = (sql: string | null, name: string): SqliteTable['kind'] => {
-  if (sql === null) return name.startsWith('sqlite_') ? 'unknown' : 'unknown';
+const tableKind = (sql: string | null): SqliteTable['kind'] => {
+  if (sql === null) return 'unknown';
   const normalized = sql.replace(/\s+/g, ' ').trim().toLowerCase();
   if (normalized.includes('virtual table')) return 'virtual';
   return 'table';
@@ -176,6 +176,17 @@ export interface SqliteOptions {
   readonly schemaScope?: 'inventory' | 'selected_table' | 'database';
   readonly rowLimit?: number;
   readonly cwd?: string;
+}
+
+interface SqliteStatement {
+  all: (...params: unknown[]) => unknown[];
+  get: (...params: unknown[]) => unknown;
+  setReadBigInts?: (enabled: boolean) => void;
+}
+
+interface SqliteDatabase {
+  prepare: (sql: string) => SqliteStatement;
+  close: () => void;
 }
 
 export const inspectSqliteDatabaseFromPath = async (path: string, options: SqliteOptions = {}): Promise<{ record: SqliteInspection; path: string; resolvedPath: string }> => {
@@ -229,19 +240,10 @@ export const inspectSqliteDatabaseFromPath = async (path: string, options: Sqlit
   }
 
   const mod = await import('node:sqlite');
-  const DatabaseSync = (
-    mod as {
-      DatabaseSync: new (
-        path: string,
-        options?: { readOnly?: boolean },
-      ) => {
-        prepare: (sql: string) => { all: (...params: unknown[]) => unknown[]; get: (...params: unknown[]) => unknown };
-        close: () => void;
-      };
-    }
-  ).DatabaseSync;
-  const db = new DatabaseSync(resolvedPath, { readOnly: true });
+  const DatabaseSync = (mod as { DatabaseSync: new (path: string, options?: { readOnly?: boolean }) => SqliteDatabase }).DatabaseSync;
+  let db: SqliteDatabase | undefined;
   try {
+    db = new DatabaseSync(resolvedPath, { readOnly: true });
     const encodingRow = db.prepare('pragma encoding').get() as { encoding?: string } | undefined;
     const encodingRaw = encodingRow?.encoding ?? 'UTF-8';
     const database_encoding: SqliteInspection['database_encoding'] = encodingRaw === 'UTF-16le' || encodingRaw === 'UTF-16be' ? encodingRaw : 'UTF-8';
@@ -321,7 +323,7 @@ export const inspectSqliteDatabaseFromPath = async (path: string, options: Sqlit
       }
 
       const sqlLower = (entry.sql ?? '').toLowerCase();
-      const kindFromList = listed?.type === 'virtual' ? 'virtual' : listed?.type === 'table' ? 'table' : tableKind(entry.sql ?? null, entry.name);
+      const kindFromList = listed?.type === 'virtual' ? 'virtual' : listed?.type === 'table' ? 'table' : tableKind(entry.sql ?? null);
       const columnCount = listed === undefined ? null : listed.type === 'virtual' && listed.ncol === 0 ? null : listed.ncol;
       tables.push({
         name: entry.name,
@@ -353,7 +355,9 @@ export const inspectSqliteDatabaseFromPath = async (path: string, options: Sqlit
           : (db.prepare(`pragma table_xinfo(${quoteIdent(selected)})`).all() as { name: string; hidden: number }[]).filter((col) => col.hidden === 0).map((col) => col.name));
       if (columnNames.length === 0) throw inputError(path, 'invalid_value', 'no visible columns available to sample.');
       const sql = `select ${columnNames.map(quoteIdent).join(', ')} from ${quoteIdent(selected)} limit ?`;
-      const rawRows = db.prepare(sql).all(rowLimit) as Record<string, unknown>[];
+      const statement = db.prepare(sql);
+      statement.setReadBigInts?.(true);
+      const rawRows = statement.all(rowLimit) as Record<string, unknown>[];
       rows = {
         table: selected,
         columns: [...columnNames],
@@ -384,8 +388,14 @@ export const inspectSqliteDatabaseFromPath = async (path: string, options: Sqlit
       path,
       resolvedPath,
     };
+  } catch (error) {
+    if (error && typeof error === 'object' && 'payload' in error) throw error;
+    const detail = error instanceof Error ? error.message : String(error);
+    throw analysisInputInvalid('inspect_sqlite_database', [{ path: ['path'], reason: 'invalid_format', message: `Selected SQLite database is invalid (${detail}): ${resolvedPath}` }], {
+      captured_output: { stdout: '', stderr: '', truncated: false },
+    });
   } finally {
-    db.close();
+    db?.close();
   }
 };
 

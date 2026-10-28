@@ -263,6 +263,6 @@
   },
   "meta": {
     "command": "inspect-kernel-module",
-    "duration": "12ms"
+    "duration": "8ms"
   }
 }

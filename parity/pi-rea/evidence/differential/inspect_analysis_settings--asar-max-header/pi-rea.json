@@ -59,7 +59,7 @@
       {
         "control": "node.parent_heap",
         "authority": "operator",
-        "value": 1137049600,
+        "value": 1154744320,
         "unit": "bytes",
         "observation": "known",
         "recovery": "This is the current process heap ceiling, not available memory. On Node, change --max-old-space-size at launch and restart REA. Worker heap settings do not raise it."

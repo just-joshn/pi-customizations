@@ -1,7 +1,7 @@
 {
   "kind": "evidence",
   "body": {
-    "evidence_id": "ev_6389eff5143da17954ab49e6114f264f408b1e82ba74e9ac4895f7bbcfcfc49b",
+    "evidence_id": "ev_fa954f3f198f922b7f35a89d2c912abd935283b009eb9c33b576d5a09c6f9a54",
     "subject": {
       "name": "fixture.zip",
       "digest": {
@@ -22,7 +22,7 @@
     "parameters": {
       "integrity_policy": "fail",
       "input_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/fixture.zip",
-      "output_root": "/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pi-rea-extracted-w01QWm"
+      "output_root": "/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pi-rea-extracted-bpfZcD"
     },
     "raw_result": null,
     "normalized_result": {
@@ -37,7 +37,7 @@
         "edge_count": 2
       },
       "extraction_manifest": {
-        "extraction_id": "aex_f6df1be2cacad3d47b13187c99b889e900fe86f6d942e97ceb3f2f3e6d7c0bb8",
+        "extraction_id": "aex_0b84e24a0d4b60521ef4edc3fb7f4735fe40d202b5392668af7a34dd64b7ce96",
         "source_manifest_id": "agm_f70f0a427115616e2e85303698bc8e1fa3fdcb5e405b186c585128d33464455e",
         "selected_occurrence_ids": [
           "occ_c9924475b134b6344ac1144c548d8aa95299cb01f47ea79b4a6112623e8a6210",
@@ -46,7 +46,7 @@
         "files_sha256": "eeff40d7b850b32d6d25bc33c8900d3e985daa68defde316006f4e4780f95a52",
         "output_root_alias": "$OUTPUT_ROOT"
       },
-      "output_root": "/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pi-rea-extracted-w01QWm",
+      "output_root": "/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pi-rea-extracted-bpfZcD",
       "artifacts": [
         {
           "artifact_id": "art_a2098bd92b10bf8b816d24b7556b1ce8c49a879d130489065ef1051c17e042f6",

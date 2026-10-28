@@ -262,7 +262,7 @@ export class ReaSession {
       alignment: {
         state: 'unknown',
         reasons: [],
-        remediation: 'Supply an expected catalog or registration identity to compare the live pi-rea registration.',
+        remediation: 'Supply expected package, catalog, or registration identity to compare the live server.',
       },
       target: this.#target?.identity ?? null,
       bundle_resources: this.#bundleResources

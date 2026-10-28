@@ -1,0 +1,156 @@
+{
+  "kind": "evidence",
+  "body": {
+    "evidence_id": "ev_6b5050ac2f8f6251644967932ecad4b73f2d571e7c5149300f6f42d1d2686ffa",
+    "subject": {
+      "name": "bad-name.exe",
+      "digest": {
+        "sha256": "59e345a3343d33b27582fc25be539f1b598da9694a9087cb70c211e1929bcb24"
+      },
+      "local_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/pe/imports/bad-name.exe",
+      "format": "pe",
+      "architecture": "x86_64"
+    },
+    "provider": {
+      "id": "rea-pe-imports",
+      "name": "REA PE import parser",
+      "version": "1"
+    },
+    "analysis_profile": null,
+    "predicate_type": "rea.analysis",
+    "operation": "inspect_pe_imports",
+    "parameters": {
+      "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/pe/imports/bad-name.exe",
+      "max_file_bytes": 67108864,
+      "max_dlls": 256,
+      "max_functions": 8192
+    },
+    "raw_result": null,
+    "normalized_result": {
+      "artifact": {
+        "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/pe/imports/bad-name.exe",
+        "sha256": "59e345a3343d33b27582fc25be539f1b598da9694a9087cb70c211e1929bcb24",
+        "bytes": 1536
+      },
+      "format": "pe32-plus",
+      "machine": 34404,
+      "bits": 64,
+      "architecture": "amd64",
+      "import_directory": {
+        "rva": 4096,
+        "size": 60,
+        "locations": [
+          {
+            "offset": 512,
+            "bytes": 60
+          }
+        ]
+      },
+      "delay_import_directory": null,
+      "imports": [
+        {
+          "index": 0,
+          "name": "one.dll",
+          "name_rva": 4204,
+          "original_first_thunk_rva": 4156,
+          "first_thunk_rva": 4180,
+          "time_date_stamp": 0,
+          "forwarder_chain": 0,
+          "location": {
+            "offset": 512,
+            "bytes": 20
+          },
+          "functions": [
+            {
+              "hint": 0,
+              "name": "FuncA",
+              "ordinal": null,
+              "ilt_rva": 4156,
+              "iat_rva": 4180,
+              "thunk_hex": "1074"
+            },
+            {
+              "hint": 0,
+              "name": "FuncB",
+              "ordinal": null,
+              "ilt_rva": 4164,
+              "iat_rva": 4188,
+              "thunk_hex": "107c"
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "name": null,
+          "name_rva": 16777215,
+          "original_first_thunk_rva": 4228,
+          "first_thunk_rva": 4244,
+          "time_date_stamp": 0,
+          "forwarder_chain": 0,
+          "location": {
+            "offset": 532,
+            "bytes": 20
+          },
+          "functions": [
+            {
+              "hint": 0,
+              "name": "FuncC",
+              "ordinal": null,
+              "ilt_rva": 4228,
+              "iat_rva": 4244,
+              "thunk_hex": "10ac"
+            }
+          ]
+        }
+      ],
+      "delay_imports": [],
+      "imphash": {
+        "algorithm": "pefile",
+        "md5": null,
+        "reason": "The standard import table is incomplete (1 issue(s)); a hash of the retained rows would not be this image's import hash."
+      },
+      "coverage": {
+        "status": "partial",
+        "reason": "1 import table issue(s) affect reported rows or metadata; see issues",
+        "examined_dlls": 2,
+        "imports": 3,
+        "delay_imports": 0
+      },
+      "issues": [
+        {
+          "code": "name_unreadable",
+          "location": "0xffffff",
+          "message": "Import descriptor DLL name: Virtual address or string range is not file mapped"
+        }
+      ],
+      "limitations": [
+        "Rows reproduce the PE import and delay-load directories; they do not establish that an import is bound, forwarded or reachable at runtime.",
+        "Bound import snapshots, the import address table as loaded, and export-forward resolution in another DLL remain unobserved."
+      ]
+    },
+    "confidence": "observed",
+    "authority": "shipped-artifact",
+    "environment": null,
+    "limitations": [
+      "Rows reproduce the PE import and delay-load directories; they do not establish that an import is bound, forwarded or reachable at runtime.",
+      "Bound import snapshots, the import address table as loaded, and export-forward resolution in another DLL remain unobserved."
+    ],
+    "relationship_coverage": null,
+    "locations": [
+      {
+        "kind": "artifact-path",
+        "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/pe/imports/bad-name.exe"
+      },
+      {
+        "kind": "file-offset-range",
+        "start": 512,
+        "end": 572
+      }
+    ],
+    "evidence_links": []
+  },
+  "meta": {
+    "command": "inspect-pe-imports",
+    "duration": "8ms"
+  }
+}

@@ -176,7 +176,7 @@ const extractCertificatesFromSigner = (signer: Buffer): { readonly certificates:
   return { certificates, digests, minSdk, maxSdk, error: null };
 };
 
-const parseSchemeSigners = (pairs: Buffer, id: number): { readonly present: boolean; readonly signers: ApkBlockSigner[]; readonly uninterpreted_bytes: number } => {
+const parseSchemeSigners = (pairs: Buffer, id: number): { readonly present: boolean; readonly signers: ApkBlockSigner[]; readonly uninterpreted_bytes: number; readonly signers_known: boolean } => {
   let cursor = 0;
   let uninterpreted = 0;
   while (cursor + 12 <= pairs.length) {
@@ -191,7 +191,7 @@ const parseSchemeSigners = (pairs: Buffer, id: number): { readonly present: bool
     if (pairId === id) {
       const value = pairs.subarray(valueStart, valueEnd);
       const signersBlock = readLengthPrefixed(value, 0);
-      if (signersBlock === null) return { present: true, signers: [], uninterpreted_bytes: value.length };
+      if (signersBlock === null) return { present: true, signers: [], uninterpreted_bytes: value.length, signers_known: false };
       const signers: ApkBlockSigner[] = [];
       let sc = 0;
       let index = 0;
@@ -210,12 +210,12 @@ const parseSchemeSigners = (pairs: Buffer, id: number): { readonly present: bool
         index += 1;
         sc = one.next;
       }
-      uninterpreted += Math.max(0, signersBlock.value.length - sc);
-      return { present: true, signers, uninterpreted_bytes: uninterpreted };
+      uninterpreted += Math.max(0, value.length - 4 - sc);
+      return { present: true, signers, uninterpreted_bytes: uninterpreted, signers_known: true };
     }
     cursor = valueEnd;
   }
-  return { present: false, signers: [], uninterpreted_bytes: 0 };
+  return { present: false, signers: [], uninterpreted_bytes: 0, signers_known: true };
 };
 
 const parseSourceStamp = (pairs: Buffer): { readonly present: boolean; readonly certificate: ApkCertificate | null; readonly decode_error: string | null } => {
@@ -386,8 +386,17 @@ export const inspectApkSignatureFromPath = async (path: string, options: { reado
   const v3 = parseSchemeSigners(pairs, APK_SIG_V3);
   const v31 = parseSchemeSigners(pairs, APK_SIG_V31);
   const source_stamp = parseSourceStamp(pairs);
-  const schemes = { v1, v2, v3, 'v3.1': v31 };
-  const blockSets = [v2, v3, v31].filter((scheme) => scheme.present).map((scheme) => signerSet(scheme.signers));
+  const schemes = {
+    v1,
+    v2: { present: v2.present, signers: v2.signers, uninterpreted_bytes: v2.uninterpreted_bytes },
+    v3: { present: v3.present, signers: v3.signers, uninterpreted_bytes: v3.uninterpreted_bytes },
+    'v3.1': { present: v31.present, signers: v31.signers, uninterpreted_bytes: v31.uninterpreted_bytes },
+  };
+  const blockSets = [v2, v3, v31]
+    .filter((scheme) => scheme.present)
+    // An unreadable signers sequence keeps the analyzer's existing empty-set comparison rather than an unknown agreement.
+    .map((scheme) => (!scheme.signers_known ? new Set<string>() : scheme.signers.length === 0 ? null : signerSet(scheme.signers)));
+  const uninterpreted = v2.uninterpreted_bytes + v3.uninterpreted_bytes + v31.uninterpreted_bytes;
   let schemes_agree_on_signer: boolean | null = null;
   if (blockSets.length > 0) {
     if (blockSets.some((set) => set === null)) schemes_agree_on_signer = null;
@@ -415,7 +424,7 @@ export const inspectApkSignatureFromPath = async (path: string, options: { reado
       self_consistent: null,
     },
     runtime_execution: 'not-performed',
-    limitations: [...LIMITATIONS],
+    limitations: [...(uninterpreted === 0 ? [] : [`${uninterpreted} bytes outside known signing fields were not interpreted; suffixes do not by themselves establish malformed signing.`]), ...LIMITATIONS],
   };
   return { record, path, resolvedPath: canonical };
 };

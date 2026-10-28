@@ -1,0 +1,17 @@
+{
+  "kind": "error",
+  "body": {
+    "code": "target_unavailable",
+    "category": "unsupported_target",
+    "message": "Cannot open artifact: unsupported binary format.",
+    "retryable": false,
+    "remediation": {
+      "action": "Review the reported file-format reason and select a supported, well-formed target."
+    },
+    "details": {
+      "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/note.txt",
+      "reason": "unsupported binary format",
+      "constraint": "file_format_rejected"
+    }
+  }
+}

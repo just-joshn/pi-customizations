@@ -1,0 +1,12 @@
+{
+  "kind": "configuration",
+  "body": {
+    "result": {
+      "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/minimal-elf.bin",
+      "format": "elf",
+      "kind": "executable",
+      "sha256": "2bdfef8afade4eb81137a0dc23bcbca5f72d1cd4d5dafbbe1ebe95d9fe69d662",
+      "architecture": "x86_64"
+    }
+  }
+}

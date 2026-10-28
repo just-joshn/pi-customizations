@@ -18,12 +18,14 @@ envelopes. `binary_session` reports that split, and `schemas/tool-contracts.json
 records it as `counts.implemented: 63`, `counts.unavailable: 166`. Catalog size
 is not behavioral parity.
 
-Measured DiffCase parity lives under `parity/pi-rea/`: **93** frozen cases are
+Measured DiffCase parity lives under `parity/pi-rea/`: **108** frozen cases are
 exact vs `npx` `rea-agents` 6.8.0 envelopes on the Darwin host that ran the
-harness. That smoke includes fixture-scoped `semantic_graph` goldens for known
-roots and harness-aligned refuse prose for some missing providers. It does not
-prove a full Babel semantic port, live Frida/ADB bridges, or a DiffCase for
-every catalog name.
+harness, including `binary_session`, `open_binary`, `close_binary` and the PE
+import budget/boundary paths. That smoke includes fixture-scoped
+`semantic_graph` goldens for known roots and harness-aligned refuse prose for
+some missing providers. It does not prove a full Babel semantic port, live
+Frida/ADB bridges, or a DiffCase for every catalog name; measured residual
+envelope divergences are listed in `parity/pi-rea/parity-ledger.md`.
 
 ## What works today
 
@@ -134,15 +136,12 @@ bun run test
 bun run typecheck
 ```
 
-`bun run typecheck` exits 0. `bun run test` passes 255 tests in 28 files.
-`bun run test:coverage` does **not** meet its configured 80% thresholds: the
-measured suite covers 77.6% of lines, 74.0% of statements and 55.1% of branches.
-The shortfall is measured, not guessed: `src/analysis` (the absorbed static
-analyzers) covers 69.8% of statements and 50.6% of branches, while
-`src/contract` covers 100%, `src/targets` 96.2%, `src/tools` 86.3% and
-`src/session` 87.5%. Analyzer error paths have no unit tests; their successful
-paths are exercised through the DiffCase envelopes in `parity/pi-rea/`. The
-thresholds are unchanged.
+`bun run typecheck` exits 0. `bun run test` passes 1496 tests in 43 files.
+`bun run test:coverage` meets its configured 80% thresholds: the measured suite
+covers 97.49% of statements, 90.87% of branches, 98.21% of functions and 98.47%
+of lines. Behavior tests drive the absorbed analyzers through their public
+functions with synthetic bytes and real fixtures; the successful paths are also
+exercised through the DiffCase envelopes in `parity/pi-rea/`.
 
 Oracle captures, design notes and decisions live under
 [`parity/pi-rea/`](../../parity/pi-rea/).

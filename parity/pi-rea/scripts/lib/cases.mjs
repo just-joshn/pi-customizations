@@ -10,12 +10,13 @@ import {
   ensureGoMachoFixtures,
   ensureJsCompareFixtures,
   ensureMinimalElfCoreFixture,
+  ensurePeImportFixtures,
   ensureWebPageCaptureFixture,
   resetWebScriptOutputDirectory,
 } from './ensure-fixtures.mjs';
 import { createSession, openTarget, piHandlers } from './invoke-pi-rea.mjs';
 import { classifyOracle, invokeReaAgentsCli, invokeReaAgentsMcp, invokeReaAgentsMcpSession } from './invoke-rea-agents.mjs';
-import { NOTEPAD_APP, target } from './paths.mjs';
+import { NOTEPAD_APP, TARGETS, target } from './paths.mjs';
 
 const pathWithoutAndroidAdb = () => {
   const nodeDir = dirname(process.execPath);
@@ -73,7 +74,7 @@ const oracleMcp = async (toolName, args = {}) => {
   return { kind: result.kind, body: result.body };
 };
 
-/** @typedef {{ id: string, tool: string, prepare?: () => void | Promise<void>, runPiRea: () => Promise<{kind:string, body:unknown}>, runOracle: () => Promise<{kind:string, body:unknown}> }} DiffCase */
+/** @typedef {{ id: string, tool: string, compare_paths?: readonly string[], prepare?: () => void | Promise<void>, runPiRea: () => Promise<{kind:string, body:unknown}>, runOracle: () => Promise<{kind:string, body:unknown}> }} DiffCase */
 
 const SESSION_LIST_TOOLS = ['list_bookmarks', 'list_documents', 'list_names', 'list_procedures', 'list_segments', 'list_strings'];
 
@@ -103,8 +104,117 @@ const openBinaryNoBridgeListCases = () =>
     },
   }));
 
+const peImportCase = (id, fixtureKey, params = {}) => ({
+  id,
+  tool: 'inspect_pe_imports',
+  prepare: ensurePeImportFixtures,
+  runPiRea: async () => {
+    const fixtures = ensurePeImportFixtures();
+    return piHandlers.inspect_pe_imports(createSession(), { path: fixtures[fixtureKey], ...params });
+  },
+  runOracle: () => oracleCli(['inspect-pe-imports', ensurePeImportFixtures()[fixtureKey], ...Object.entries(params).flatMap(([key, value]) => [`--${key.replaceAll('_', '-')}`, String(value)])]),
+});
+
+const sessionKernelCases = () => [
+  {
+    id: 'binary_session--alignment-unknown',
+    tool: 'binary_session',
+    compare_paths: ['result.open', 'result.cleanup_pending', 'result.client_features', 'result.server_identity.alignment'],
+    runPiRea: async () => piHandlers.binary_session(createSession(), {}),
+    runOracle: () => oracleMcp('binary_session', {}),
+  },
+  {
+    id: 'binary_session--alignment-digest-mismatch',
+    tool: 'binary_session',
+    compare_paths: ['result.server_identity.alignment'],
+    runPiRea: async () => piHandlers.binary_session(createSession(), { expected_catalog_digest: 'a'.repeat(64) }),
+    runOracle: () => oracleMcp('binary_session', { expected_catalog_digest: 'a'.repeat(64) }),
+  },
+  {
+    id: 'binary_session--alignment-path-mismatch',
+    tool: 'binary_session',
+    compare_paths: ['result.server_identity.alignment'],
+    runPiRea: async () => piHandlers.binary_session(createSession(), { expected_server_path: '/tmp/not-rea' }),
+    runOracle: () => oracleMcp('binary_session', { expected_server_path: '/tmp/not-rea' }),
+  },
+  {
+    id: 'binary_session--alignment-version-mismatch',
+    tool: 'binary_session',
+    compare_paths: ['result.server_identity.alignment'],
+    runPiRea: async () => piHandlers.binary_session(createSession(), { expected_package_version: '9.9.9' }),
+    runOracle: () => oracleMcp('binary_session', { expected_package_version: '9.9.9' }),
+  },
+  {
+    id: 'open_binary--minimal-elf',
+    tool: 'open_binary',
+    runPiRea: async () => piHandlers.open_binary(createSession(), { path: target('minimal-elf.bin') }),
+    runOracle: () => oracleMcp('open_binary', { path: target('minimal-elf.bin') }),
+  },
+  {
+    id: 'open_binary--missing',
+    tool: 'open_binary',
+    runPiRea: async () => piHandlers.open_binary(createSession(), { path: target('no-such-target.bin') }),
+    runOracle: () => oracleMcp('open_binary', { path: target('no-such-target.bin') }),
+  },
+  {
+    id: 'open_binary--directory',
+    tool: 'open_binary',
+    runPiRea: async () => piHandlers.open_binary(createSession(), { path: TARGETS }),
+    runOracle: () => oracleMcp('open_binary', { path: TARGETS }),
+  },
+  {
+    id: 'open_binary--unsupported-format',
+    tool: 'open_binary',
+    runPiRea: async () => piHandlers.open_binary(createSession(), { path: target('note.txt') }),
+    runOracle: () => oracleMcp('open_binary', { path: target('note.txt') }),
+  },
+  {
+    id: 'close_binary--open-then-close',
+    tool: 'close_binary',
+    runPiRea: async () => {
+      const session = createSession();
+      await piHandlers.open_binary(session, { path: target('minimal-elf.bin') });
+      return piHandlers.close_binary(session, {});
+    },
+    runOracle: async () => {
+      const [, closed] = await invokeReaAgentsMcpSession([
+        ['open_binary', { path: target('minimal-elf.bin') }],
+        ['close_binary', {}],
+      ]);
+      return { kind: closed.kind, body: closed.body };
+    },
+  },
+  {
+    id: 'close_binary--snapshot-open',
+    tool: 'close_binary',
+    runPiRea: async () => {
+      const session = createSession();
+      await piHandlers.open_binary(session, { path: target('minimal-elf.bin') });
+      return piHandlers.close_binary(session, { snapshot_path: '/tmp/pi-rea-snapshot.json' });
+    },
+    runOracle: async () => {
+      const [, closed] = await invokeReaAgentsMcpSession([
+        ['open_binary', { path: target('minimal-elf.bin') }],
+        ['close_binary', { snapshot_path: '/tmp/pi-rea-snapshot.json' }],
+      ]);
+      return { kind: closed.kind, body: closed.body };
+    },
+  },
+  {
+    id: 'close_binary--snapshot-closed',
+    tool: 'close_binary',
+    runPiRea: async () => piHandlers.close_binary(createSession(), { snapshot_path: '/tmp/pi-rea-snapshot.json' }),
+    runOracle: () => oracleMcp('close_binary', { snapshot_path: '/tmp/pi-rea-snapshot.json' }),
+  },
+];
+
 /** @type {DiffCase[]} */
 export const CASES = [
+  peImportCase('inspect_pe_imports--budget-dlls', 'twoDll', { max_dlls: 1 }),
+  peImportCase('inspect_pe_imports--unreadable-name', 'badName'),
+  peImportCase('inspect_pe_imports--unmapped-directory', 'badDirectory'),
+  peImportCase('inspect_pe_imports--unreadable-thunk', 'badIlt'),
+  ...sessionKernelCases(),
   {
     id: 'inspect_plist--sample-xml',
     tool: 'inspect_plist',

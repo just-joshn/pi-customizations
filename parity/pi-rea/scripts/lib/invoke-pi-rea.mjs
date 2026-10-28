@@ -37,6 +37,7 @@ import { inspectPythonPyc } from '../../../../extensions/pi-rea/src/tools/python
 import { inspectRecordedCrash } from '../../../../extensions/pi-rea/src/tools/recorded-crash-tools.ts';
 import { inspectRustBinary } from '../../../../extensions/pi-rea/src/tools/rust-tools.ts';
 import { listBookmarks, listDocuments, listNames, listProcedures, listSegments, listStrings } from '../../../../extensions/pi-rea/src/tools/session-list-tools.ts';
+import { binarySession, closeBinary, openBinary } from '../../../../extensions/pi-rea/src/tools/session-tools.ts';
 import { inspectAnalysisSettings, updateAnalysisSettings } from '../../../../extensions/pi-rea/src/tools/settings-tools.ts';
 import { inspectSignature } from '../../../../extensions/pi-rea/src/tools/signature-tools.ts';
 import { inspectSqliteDatabase } from '../../../../extensions/pi-rea/src/tools/sqlite-tools.ts';
@@ -78,6 +79,9 @@ export const openTarget = async (session, path) => {
 const refuse = (name) => (session, params) => asResult(() => refuseProviderTool(session, name, params ?? {}));
 
 export const piHandlers = {
+  binary_session: (session, params) => asResult(() => binarySession(session, params ?? {}), 'configuration'),
+  open_binary: (session, params) => asResult(() => openBinary(session, params ?? {}, { cwd: process.cwd() }), 'configuration'),
+  close_binary: (session, params) => asResult(() => closeBinary(session, params ?? {}), 'configuration'),
   inspect_plist: (session, params) => asResult(() => inspectPlist(session, params)),
   inspect_macho: (session) => asResult(() => inspectMacho(session, {})),
   list_architectures: (session) => asResult(() => listArchitectures(session, {})),

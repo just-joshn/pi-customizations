@@ -122,6 +122,6 @@
   },
   "meta": {
     "command": "inspect-keyed-archive",
-    "duration": "150ms"
+    "duration": "159ms"
   }
 }

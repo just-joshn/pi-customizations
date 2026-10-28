@@ -1,0 +1,16 @@
+{
+  "kind": "error",
+  "body": {
+    "code": "target_unavailable",
+    "category": "unavailable",
+    "message": "Cannot open artifact: target does not exist or a path component is not a directory: ENOENT: no such file or directory, access '/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/no-such-target.bin'. Check that the path exists, is readable, and points to a supported file.",
+    "retryable": false,
+    "remediation": {
+      "action": "Cannot open artifact: target does not exist or a path component is not a directory: ENOENT: no such file or directory, access '/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/no-such-target.bin'. Check that the path exists, is readable, and points to a supported file."
+    },
+    "details": {
+      "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/no-such-target.bin",
+      "reason": "target does not exist or a path component is not a directory: ENOENT: no such file or directory, access '/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/no-such-target.bin'"
+    }
+  }
+}

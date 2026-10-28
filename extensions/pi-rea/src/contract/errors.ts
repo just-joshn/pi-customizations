@@ -89,7 +89,7 @@ export const evidenceIntegrityMismatch = (message: string, details?: Record<stri
 
 export const executionFailure = (message: string, details?: Record<string, unknown>, remediation?: string): ReaError => build('execution_failure', 'execution_failure', false, message, details, remediation);
 
-export const resourceConstraint = (message: string, details?: Record<string, unknown>): ReaError => build('resource_constraint', 'resource_constraint', false, message, details);
+export const resourceConstraint = (message: string, details?: Record<string, unknown>, remediation?: string): ReaError => build('resource_constraint', 'resource_constraint', false, message, details, remediation);
 
 export const cancelled = (message: string, details?: Record<string, unknown>): ReaError => build('cancelled', 'cancelled', true, message, details);
 

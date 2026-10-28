@@ -443,35 +443,39 @@ test('records an unreadable DLL name without an imphash', async () => {
 
   const { record } = await inspectPeImportsFromPath(path);
   expect(record.imports[0]?.name).toBeNull();
-  expect(record.issues).toStrictEqual([{ code: 'name_unreadable', location: 'imports/0', message: 'DLL name RVA does not map to a readable string.' }]);
-  expect(record.imphash).toStrictEqual({ algorithm: 'pefile', md5: null, reason: 'A DLL name was unreadable, so imphash is withheld.' });
+  expect(record.issues).toStrictEqual([{ code: 'name_unreadable', location: '0x9000', message: 'Import descriptor DLL name: Virtual address or string range is not file mapped' }]);
+  expect(record.imphash).toStrictEqual({ algorithm: 'pefile', md5: null, reason: "The standard import table is incomplete (1 issue(s)); a hash of the retained rows would not be this image's import hash." });
+  expect(record.coverage).toStrictEqual({ status: 'partial', reason: '1 import table issue(s) affect reported rows or metadata; see issues', examined_dlls: 1, imports: 1, delay_imports: 0 });
 });
 
-test('records an unreadable import name without an imphash', async () => {
+test('drops an import whose name is unreadable', async () => {
   const path = await withFile(importImage({ thunk: 0x9000n }));
 
   const { record } = await inspectPeImportsFromPath(path);
-  expect(record.imports[0]?.functions[0]).toStrictEqual({ hint: null, name: null, ordinal: null, ilt_rva: 0x1040, iat_rva: 0x1060, thunk_hex: '9000' });
-  expect(record.issues).toStrictEqual([{ code: 'name_unreadable', location: 'imports/0/function/0', message: 'Import name RVA does not map to a readable file range.' }]);
-  expect(record.imphash.reason).toBe('An imported function lacked both a name and an ordinal, so imphash is withheld.');
+  expect(record.imports[0]?.functions).toStrictEqual([]);
+  expect(record.issues).toStrictEqual([{ code: 'name_unreadable', location: '0x9000', message: 'Virtual address or string range is not file mapped' }]);
+  expect(record.coverage.status).toBe('partial');
+  expect(record.imphash.reason).toBe("The standard import table is incomplete (1 issue(s)); a hash of the retained rows would not be this image's import hash.");
 });
 
-test('records an import name past the file end without an imphash', async () => {
+test('drops an import name past the file end and marks coverage partial', async () => {
   const bytes = importImage({ thunk: 0x13fen }).subarray(0, 0x5ff);
   const path = await withFile(Buffer.from(bytes));
 
   const { record } = await inspectPeImportsFromPath(path);
-  expect(record.imports[0]?.functions[0]).toStrictEqual({ hint: null, name: null, ordinal: null, ilt_rva: 0x1040, iat_rva: 0x1060, thunk_hex: '13fe' });
-  expect(record.issues).toStrictEqual([{ code: 'name_unreadable', location: 'imports/0/function/0', message: 'Import name RVA does not map to a readable file range.' }]);
-  expect(record.coverage.status).toBe('complete');
+  expect(record.imports[0]?.functions).toStrictEqual([]);
+  expect(record.issues).toStrictEqual([{ code: 'name_unreadable', location: '0x13fe', message: 'Virtual address or string range is not file mapped' }]);
+  expect(record.coverage).toStrictEqual({ status: 'partial', reason: '1 import table issue(s) affect reported rows or metadata; see issues', examined_dlls: 1, imports: 0, delay_imports: 0 });
 });
 
-test('refuses an unmapped thunk table at the end of the file', async () => {
+test('drops an import name RVA that is not file mapped at the file end', async () => {
   const bytes = importImage({ thunk: 0x13fen, iatRva: 0x13fe }).subarray(0, 0x5ff);
   const path = await withFile(Buffer.from(bytes));
 
-  const payload = await payloadOf(() => inspectPeImportsFromPath(path));
-  expect(payload.details).toStrictEqual(inputDetails('inspect_pe_imports', path, 'invalid_value', 'the import tables exceed the configured budget (max_dlls=256, max_functions=8192) or contain unreadable entries.'));
+  const { record } = await inspectPeImportsFromPath(path);
+  expect(record.imports[0]?.functions).toStrictEqual([]);
+  expect(record.issues).toStrictEqual([{ code: 'name_unreadable', location: '0x13fe', message: 'Virtual address or string range is not file mapped' }]);
+  expect(record.coverage).toStrictEqual({ status: 'partial', reason: '1 import table issue(s) affect reported rows or metadata; see issues', examined_dlls: 1, imports: 0, delay_imports: 0 });
 });
 
 test('refuses an import table above the function budget', async () => {
@@ -481,14 +485,19 @@ test('refuses an import table above the function budget', async () => {
   const path = await withFile(bytes);
 
   const payload = await payloadOf(() => inspectPeImportsFromPath(path, { maxFunctions: 1 }));
-  expect(payload.details).toStrictEqual(inputDetails('inspect_pe_imports', path, 'invalid_value', 'the import tables exceed the configured budget (max_dlls=256, max_functions=1) or contain unreadable entries.'));
+  expect(payload).toMatchObject({ code: 'resource_constraint', category: 'resource_constraint', retryable: false });
+  expect(payload.details).toMatchObject({ operation: 'inspect_pe_imports', resource: 'capacity', reported_limits: { boundary: 'structure', maximum: 1, limit: 'functions' } });
+  expect(payload.details?.['reason']).toMatch(/: Import inventory declares 2 functions, above the 1-entry function allowance$/);
+  expect(payload.remediation.action).toBe('Raise max_functions above 1 or select a smaller artifact; the limit is the caller-selected function budget.');
 });
 
-test('refuses a delay-import directory that maps to no section', async () => {
+test('records a delay-import directory that maps to no section', async () => {
   const path = await withFile(sectionImage([{ index: 13, rva: 0x9000, size: 64 }]));
 
-  const payload = await payloadOf(() => inspectPeImportsFromPath(path));
-  expect(issueMessage(payload)).toBe(`Cannot inspect ${path}: the import tables exceed the configured budget (max_dlls=256, max_functions=8192) or contain unreadable entries.`);
+  const { record } = await inspectPeImportsFromPath(path);
+  expect(record.delay_import_directory).toStrictEqual({ rva: 0x9000, size: 64, locations: [] });
+  expect(record.issues).toStrictEqual([{ code: 'descriptor_unreadable', location: '0x9000', message: 'Import descriptor: Virtual address or string range is not file mapped' }]);
+  expect(record.coverage.status).toBe('partial');
 });
 
 test('records a delay import with an unreadable DLL name', async () => {
@@ -509,7 +518,8 @@ test('records a delay import with an unreadable DLL name', async () => {
   const { record } = await inspectPeImportsFromPath(path);
   expect(record.delay_imports[0]?.name).toBeNull();
   expect(record.delay_imports[0]?.functions[0]?.name).toBe('MessageBoxW');
-  expect(record.coverage.status).toBe('complete');
+  expect(record.coverage.status).toBe('partial');
+  expect(record.imphash.reason).toBe("The standard import table is incomplete (1 issue(s)); a hash of the retained rows would not be this image's import hash.");
 });
 
 test('resolves an imports path against the supplied directory', async () => {
@@ -558,42 +568,50 @@ test('inventories delay imports with their descriptors', async () => {
   expect(record.coverage).toStrictEqual({ status: 'complete', reason: null, examined_dlls: 1, imports: 0, delay_imports: 1 });
 });
 
-test('refuses an import descriptor past the end of the file', async () => {
+test('records an import descriptor past the end of the file', async () => {
   const path = await withFile(sectionImage([{ index: 1, rva: 0x13f0, size: 40 }]));
 
-  const payload = await payloadOf(() => inspectPeImportsFromPath(path));
-  expect(payload.details).toStrictEqual(inputDetails('inspect_pe_imports', path, 'invalid_value', 'the import tables exceed the configured budget (max_dlls=256, max_functions=8192) or contain unreadable entries.'));
+  const { record } = await inspectPeImportsFromPath(path);
+  expect(record.imports).toStrictEqual([]);
+  expect(record.issues).toStrictEqual([{ code: 'descriptor_unreadable', location: '0x13f0', message: 'Import descriptor: Virtual address or string range is not file mapped' }]);
+  expect(record.coverage.status).toBe('partial');
 });
 
-test('refuses a truncated delay-import descriptor', async () => {
+test('records a truncated delay-import descriptor', async () => {
   const path = await withFile(sectionImage([{ index: 13, rva: 0x13f0, size: 32 }]));
 
-  const payload = await payloadOf(() => inspectPeImportsFromPath(path));
-  expect(payload.details).toStrictEqual(inputDetails('inspect_pe_imports', path, 'invalid_value', 'the import tables exceed the configured budget (max_dlls=256, max_functions=8192) or contain unreadable entries.'));
+  const { record } = await inspectPeImportsFromPath(path);
+  expect(record.delay_imports).toStrictEqual([]);
+  expect(record.issues).toStrictEqual([{ code: 'descriptor_unreadable', location: '0x13f0', message: 'Import descriptor: Virtual address or string range is not file mapped' }]);
+  expect(record.coverage.status).toBe('partial');
 });
 
-test('refuses an import directory that maps to no section', async () => {
+test('records an import directory that maps to no section', async () => {
   const path = await withFile(sectionImage([{ index: 1, rva: 0x9000, size: 40 }]));
 
-  const payload = await payloadOf(() => inspectPeImportsFromPath(path));
-  expect(issueMessage(payload)).toBe(`Cannot inspect ${path}: the import tables exceed the configured budget (max_dlls=256, max_functions=8192) or contain unreadable entries.`);
+  const { record } = await inspectPeImportsFromPath(path);
+  expect(record.import_directory).toStrictEqual({ rva: 0x9000, size: 40, locations: [] });
+  expect(record.issues).toStrictEqual([{ code: 'descriptor_unreadable', location: '0x9000', message: 'Import descriptor: Virtual address or string range is not file mapped' }]);
+  expect(record.coverage.status).toBe('partial');
 });
 
-test('drops DLL descriptors past the max_dlls budget', async () => {
+test('refuses DLL descriptors past the max_dlls budget', async () => {
   const bytes = importImage({ thunk: 0x10a0n });
   bytes.copy(bytes, 0x214, 0x200, 0x214);
   const path = await withFile(bytes);
 
-  const { record } = await inspectPeImportsFromPath(path, { maxDlls: 1 });
-  expect(record.imports).toHaveLength(1);
-  expect(record.coverage).toStrictEqual({ status: 'complete', reason: null, examined_dlls: 1, imports: 1, delay_imports: 0 });
+  const payload = await payloadOf(() => inspectPeImportsFromPath(path, { maxDlls: 1 }));
+  expect(payload).toMatchObject({ code: 'resource_constraint', category: 'resource_constraint', retryable: false });
+  expect(payload.details).toMatchObject({ operation: 'inspect_pe_imports', resource: 'capacity', reported_limits: { boundary: 'structure', maximum: 1, limit: 'dlls' } });
+  expect(payload.details?.['reason']).toMatch(/: Import inventory declares 2 descriptors, above the 1-entry DLL allowance$/);
+  expect(payload.remediation.action).toBe('Raise max_dlls above 1 or select a smaller artifact; the limit is the caller-selected DLL budget.');
 });
 
 test.for([
-  { name: 'max_dlls below the floor', options: { maxDlls: 0 }, detail: 'max_dlls must be an integer between 1 and 65536.' },
-  { name: 'max_dlls above the ceiling', options: { maxDlls: 65_537 }, detail: 'max_dlls must be an integer between 1 and 65536.' },
-  { name: 'a fractional max_dlls', options: { maxDlls: 1.5 }, detail: 'max_dlls must be an integer between 1 and 65536.' },
-  { name: 'max_functions above the ceiling', options: { maxFunctions: 1_048_577 }, detail: 'max_functions must be an integer between 1 and 1048576.' },
+  { name: 'max_dlls below the floor', options: { maxDlls: 0 }, detail: 'max_dlls must be an integer between 1 and 4096.' },
+  { name: 'max_dlls above the ceiling', options: { maxDlls: 4097 }, detail: 'max_dlls must be an integer between 1 and 4096.' },
+  { name: 'a fractional max_dlls', options: { maxDlls: 1.5 }, detail: 'max_dlls must be an integer between 1 and 4096.' },
+  { name: 'max_functions above the ceiling', options: { maxFunctions: 262_145 }, detail: 'max_functions must be an integer between 1 and 262144.' },
 ])('rejects $name', async ({ options, detail }) => {
   const payload = await payloadOf(() => inspectPeImportsFromPath('x.exe', options));
 

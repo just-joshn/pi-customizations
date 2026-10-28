@@ -1,8 +1,8 @@
 import { createHash } from 'node:crypto';
-import { open, realpath, stat } from 'node:fs/promises';
+import { access, open, realpath, stat } from 'node:fs/promises';
 import { isAbsolute, resolve } from 'node:path';
 
-import { cancelled, targetUnavailable } from '../contract/errors.ts';
+import { cancelled, ReaError, targetUnavailable } from '../contract/errors.ts';
 
 export interface ArtifactIdentity {
   readonly path: string;
@@ -92,6 +92,7 @@ const resolveTarget = (path: string, cwd: string): string => (isAbsolute(path) ?
 export const inspectArtifactPath = async (path: string, cwd: string = process.cwd()): Promise<ArtifactPathFacts> => {
   let resolvedPath: string;
   try {
+    await access(resolveTarget(path, cwd));
     resolvedPath = await realpath(resolveTarget(path, cwd));
   } catch (error) {
     throw targetUnavailable(`Cannot open artifact: target does not exist or a path component is not a directory: ${(error as Error).message}. Check that the path exists, is readable, and points to a supported file.`, {
@@ -113,11 +114,15 @@ export const inspectArtifactPath = async (path: string, cwd: string = process.cw
 export const identifyArtifact = async (path: string, options: { readonly cwd?: string; readonly signal?: AbortSignal } = {}): Promise<ArtifactIdentity> => {
   const { resolvedPath, pathKind } = await inspectArtifactPath(path, options.cwd ?? process.cwd());
   if (pathKind === 'directory') {
-    throw targetUnavailable('open_binary accepts files and macOS app bundles. This target is a directory; JavaScript/Electron application directories can be analyzed directly with analyze_javascript_application.', {
-      path: resolvedPath,
-      reason: 'this opening route requires a file or app bundle',
-      constraint: 'directory_requires_file',
-    });
+    throw targetUnavailable(
+      'open_binary accepts files and macOS app bundles. This target is a directory; JavaScript/Electron application directories can be analyzed directly with analyze_javascript_application or `rea analyze <directory>`.',
+      {
+        path: resolvedPath,
+        reason: 'this opening route requires a file or app bundle',
+        constraint: 'directory_requires_file',
+      },
+      'For a JavaScript/Electron application directory, call analyze_javascript_application with input_path or run `rea analyze <directory>`. For binary analysis, select its executable file.',
+    );
   }
   const handle = await open(resolvedPath, 'r');
   try {
@@ -126,7 +131,14 @@ export const identifyArtifact = async (path: string, options: { readonly cwd?: s
     const magic = header.subarray(0, bytesRead);
     const detected = magic.length >= 4 ? formatOf(magic) : undefined;
     if (detected === undefined) {
-      throw targetUnavailable('Cannot open artifact: unsupported binary format. Check that the path exists, is readable, and points to a supported file.', { path: resolvedPath, reason: 'unsupported binary format' });
+      throw new ReaError({
+        code: 'target_unavailable',
+        category: 'unsupported_target',
+        message: 'Cannot open artifact: unsupported binary format.',
+        retryable: false,
+        remediation: { action: 'Review the reported file-format reason and select a supported, well-formed target.' },
+        details: { path: resolvedPath, reason: 'unsupported binary format', constraint: 'file_format_rejected' },
+      });
     }
     const hash = createHash('sha256');
     const chunk = Buffer.alloc(1024 * 1024);

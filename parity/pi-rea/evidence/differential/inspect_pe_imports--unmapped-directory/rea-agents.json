@@ -1,0 +1,91 @@
+{
+  "kind": "evidence",
+  "body": {
+    "evidence_id": "ev_7ac165f0b927892876685a8f072226330804a0d8a928b86e07c7164fd9e87322",
+    "subject": {
+      "name": "bad-dir.exe",
+      "digest": {
+        "sha256": "a2cf5727a03200de58714ad7d74c81a08f9187631cd7a43797e3afad1a96033d"
+      },
+      "local_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/pe/imports/bad-dir.exe",
+      "format": "pe",
+      "architecture": "x86_64"
+    },
+    "provider": {
+      "id": "rea-pe-imports",
+      "name": "REA PE import parser",
+      "version": "1"
+    },
+    "analysis_profile": null,
+    "predicate_type": "rea.analysis",
+    "operation": "inspect_pe_imports",
+    "parameters": {
+      "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/pe/imports/bad-dir.exe",
+      "max_file_bytes": 67108864,
+      "max_dlls": 256,
+      "max_functions": 8192
+    },
+    "raw_result": null,
+    "normalized_result": {
+      "artifact": {
+        "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/pe/imports/bad-dir.exe",
+        "sha256": "a2cf5727a03200de58714ad7d74c81a08f9187631cd7a43797e3afad1a96033d",
+        "bytes": 1536
+      },
+      "format": "pe32-plus",
+      "machine": 34404,
+      "bits": 64,
+      "architecture": "amd64",
+      "import_directory": {
+        "rva": 16776960,
+        "size": 60,
+        "locations": []
+      },
+      "delay_import_directory": null,
+      "imports": [],
+      "delay_imports": [],
+      "imphash": {
+        "algorithm": "pefile",
+        "md5": null,
+        "reason": "The standard import table is incomplete (1 issue(s)); a hash of the retained rows would not be this image's import hash."
+      },
+      "coverage": {
+        "status": "partial",
+        "reason": "1 import table issue(s) affect reported rows or metadata; see issues",
+        "examined_dlls": 0,
+        "imports": 0,
+        "delay_imports": 0
+      },
+      "issues": [
+        {
+          "code": "descriptor_unreadable",
+          "location": "0xffff00",
+          "message": "Import descriptor: Virtual address or string range is not file mapped"
+        }
+      ],
+      "limitations": [
+        "Rows reproduce the PE import and delay-load directories; they do not establish that an import is bound, forwarded or reachable at runtime.",
+        "Bound import snapshots, the import address table as loaded, and export-forward resolution in another DLL remain unobserved."
+      ]
+    },
+    "confidence": "observed",
+    "authority": "shipped-artifact",
+    "environment": null,
+    "limitations": [
+      "Rows reproduce the PE import and delay-load directories; they do not establish that an import is bound, forwarded or reachable at runtime.",
+      "Bound import snapshots, the import address table as loaded, and export-forward resolution in another DLL remain unobserved."
+    ],
+    "relationship_coverage": null,
+    "locations": [
+      {
+        "kind": "artifact-path",
+        "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/pe/imports/bad-dir.exe"
+      }
+    ],
+    "evidence_links": []
+  },
+  "meta": {
+    "command": "inspect-pe-imports",
+    "duration": "6ms"
+  }
+}

@@ -175,6 +175,6 @@
   },
   "meta": {
     "command": "decode-interface-builder",
-    "duration": "150ms"
+    "duration": "206ms"
   }
 }

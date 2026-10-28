@@ -1549,11 +1549,11 @@ describe('artifact identity', () => {
     const payload = await catchRejection(() => identifyArtifact(path));
     expect(payload).toStrictEqual({
       code: 'target_unavailable',
-      category: 'unavailable',
-      message: 'Cannot open artifact: unsupported binary format. Check that the path exists, is readable, and points to a supported file.',
+      category: 'unsupported_target',
+      message: 'Cannot open artifact: unsupported binary format.',
       retryable: false,
-      remediation: { action: 'Cannot open artifact: unsupported binary format. Check that the path exists, is readable, and points to a supported file.' },
-      details: { path: expect.stringMatching(/^\/.+/), reason: 'unsupported binary format' },
+      remediation: { action: 'Review the reported file-format reason and select a supported, well-formed target.' },
+      details: { path: expect.stringMatching(/^\/.+/), reason: 'unsupported binary format', constraint: 'file_format_rejected' },
     });
   });
 

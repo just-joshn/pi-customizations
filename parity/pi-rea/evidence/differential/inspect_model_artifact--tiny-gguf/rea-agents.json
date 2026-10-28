@@ -129,6 +129,6 @@
   },
   "meta": {
     "command": "inspect-model-artifact",
-    "duration": "7ms"
+    "duration": "8ms"
   }
 }

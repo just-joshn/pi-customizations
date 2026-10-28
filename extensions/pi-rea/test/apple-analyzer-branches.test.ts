@@ -489,7 +489,7 @@ test('inspectMachoSignatureBytes reports an image with no signature', () => {
     timestamp: null,
     hardened_runtime: null,
     provenance: [],
-    limitations: ['Inspected a digest-verified Mach-O byte snapshot; filesystem-bound signing context and trust validation are not examined.', 'No LC_CODE_SIGNATURE load command was present on the inspected image.'],
+    limitations: ['Artifact is not signed.', 'Inspected a digest-verified Mach-O byte snapshot; filesystem-bound signing context and trust validation are not examined.'],
   });
 });
 
@@ -497,7 +497,7 @@ test('inspectMachoSignatureBytes rejects bytes shorter than a fat header', () =>
   const inspection = inspectMachoSignatureBytes(Buffer.alloc(16, 0xff));
 
   expect(inspection.format).toBeNull();
-  expect(inspection.limitations[1]).toBe('No LC_CODE_SIGNATURE load command was present on the inspected image.');
+  expect(inspection.limitations[0]).toBe('Artifact is not signed.');
 });
 
 test('inspectMachoSignatureBytes decodes a hardened signature', () => {
@@ -567,7 +567,7 @@ test('inspectMachoSignatureBytes reports an empty signature region', () => {
 
   expect(inspection.signed).toBe(false);
   expect(inspection.format).toBeNull();
-  expect(inspection.limitations[1]).toBe('No LC_CODE_SIGNATURE load command was present on the inspected image.');
+  expect(inspection.limitations[0]).toBe('Artifact is not signed.');
 });
 
 test('inspectMachoSignatureBytes reports a signature offset past the file end', () => {
@@ -575,36 +575,32 @@ test('inspectMachoSignatureBytes reports a signature offset past the file end', 
 
   const inspection = inspectMachoSignatureBytes(image.subarray(0, image.length - 32));
 
-  expect(inspection.format).toBe('Mach-O thin (arm64)');
-  expect(inspection.limitations[1]).toBe('LC_CODE_SIGNATURE points past the end of the file.');
+  expect(inspection.format).toBeNull();
+  expect(inspection.limitations[0]).toBe('Artifact is not signed.');
 });
 
 test.for([
   {
     name: 'a foreign magic',
     signature: Buffer.alloc(16, 0),
-    reason: 'The code-signature region is not an embedded SuperBlob.',
   },
   {
     name: 'a declared length beyond the region',
     signature: Buffer.concat([Buffer.from([0xfa, 0xde, 0x0c, 0xc0, 0x00, 0x00, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00])]),
-    reason: 'The code-signature region is not an embedded SuperBlob.',
   },
   {
     name: 'more than 256 blob entries',
     signature: Buffer.concat([Buffer.from([0xfa, 0xde, 0x0c, 0xc0, 0x00, 0x00, 0x00, 0x0c, 0x00, 0x00, 0x01, 0x2c])]),
-    reason: 'The code-signature region is not an embedded SuperBlob.',
   },
   {
     name: 'no parseable code directory',
     signature: superBlob([{ type: 0, body: Buffer.from('not a code directory') }]),
-    reason: 'The SuperBlob contains no parseable CodeDirectory.',
   },
-])('inspectMachoSignatureBytes rejects a SuperBlob with $name', ({ signature, reason }) => {
+])('inspectMachoSignatureBytes rejects a SuperBlob with $name', ({ signature }) => {
   const inspection = inspectMachoSignatureBytes(thinMacho(signature));
 
   expect(inspection.signed).toBe(false);
-  expect(inspection.limitations[1]).toBe(reason);
+  expect(inspection.limitations[0]).toBe('Artifact is not signed.');
 });
 
 test('inspectMachoSignatureBytes skips blob entries outside the region', () => {
@@ -615,7 +611,7 @@ test('inspectMachoSignatureBytes skips blob entries outside the region', () => {
   const inspection = inspectMachoSignatureBytes(thinMacho(blob));
 
   expect(inspection.signed).toBe(false);
-  expect(inspection.limitations[1]).toBe('The SuperBlob contains no parseable CodeDirectory.');
+  expect(inspection.limitations[0]).toBe('Artifact is not signed.');
 });
 
 test('inspectMachoSignatureBytes ignores an unparseable entitlements blob', () => {
@@ -691,7 +687,7 @@ test('inspectMachoSignatureBytes ignores a universal slice past the file end', (
   const inspection = inspectMachoSignatureBytes(fatMacho(slice, { declaredSize: slice.length + 64 }));
 
   expect(inspection.signed).toBe(false);
-  expect(inspection.limitations[1]).toBe('No LC_CODE_SIGNATURE load command was present on the inspected image.');
+  expect(inspection.limitations[0]).toBe('Artifact is not signed.');
 });
 
 const keyedValue = (objects: readonly PlistValue[], top?: PlistValue): PlistValue => ({

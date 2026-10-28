@@ -78,60 +78,88 @@ const findCycles = (packages: readonly RustPackage[]): number[] => {
 };
 
 const PACKAGE_KEYS = new Set(['name', 'version', 'source', 'kind', 'dependencies', 'features', 'root']);
+const DOCUMENT_KEYS = new Set(['packages', 'format']);
+const MAX_FORMAT_VERSION = 0xffff_ffff;
 
-const assertAuditableDocument = (value: unknown, absolutePath: string): void => {
-  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
-    throw analysisInputInvalid('inspect_rust_binary', [
-      {
-        path: ['path'],
-        reason: 'invalid_format',
-        message: `Selected artifact ${absolutePath}: Dependency JSON does not match the package schema`,
-      },
-    ]);
+const FORMAT_SCHEMA = 'Dependency JSON does not match the format schema';
+const DOCUMENT_SCHEMA = 'Dependency JSON does not match the package schema';
+const MULTIPLE_ROOTS = 'Dependency JSON declares more than one root package';
+const packageSchema = (index: number): string => `Dependency package ${index} does not match the package schema`;
+const indexOutOfRange = (index: number, packageIndex: number): string => `Dependency index ${index} from package ${packageIndex} is outside the package list`;
+
+const auditableError = (absolutePath: string, detail: string) =>
+  analysisInputInvalid('inspect_rust_binary', [
+    {
+      path: ['path'],
+      reason: 'invalid_format',
+      message: `Selected artifact ${absolutePath}: ${detail}`,
+    },
+  ]);
+
+const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
+
+const readDependencies = (value: unknown): number[] | null => {
+  if (!Array.isArray(value)) return null;
+  const indices: number[] = [];
+  for (const entry of value) {
+    if (typeof entry !== 'number' || !Number.isInteger(entry) || entry < 0) return null;
+    indices.push(entry);
   }
-  const root = value as Record<string, unknown>;
-  for (const key of Object.keys(root)) {
-    if (key !== 'packages' && key !== 'format') {
-      throw analysisInputInvalid('inspect_rust_binary', [
-        {
-          path: ['path'],
-          reason: 'invalid_format',
-          message: `Selected artifact ${absolutePath}: Dependency JSON does not match the package schema`,
-        },
-      ]);
+  return indices;
+};
+
+const readFeatures = (value: unknown): string[] | null => {
+  if (!Array.isArray(value)) return null;
+  const features: string[] = [];
+  for (const entry of value) {
+    if (typeof entry !== 'string' || entry === '') return null;
+    features.push(entry);
+  }
+  return features;
+};
+
+const readPackage = (entry: unknown): RustPackage | null => {
+  if (!isRecord(entry)) return null;
+  if (Object.keys(entry).some((key) => !PACKAGE_KEYS.has(key))) return null;
+  const name = entry['name'];
+  const version = entry['version'];
+  const source = entry['source'];
+  if (typeof name !== 'string' || name === '' || typeof version !== 'string' || version === '' || typeof source !== 'string' || source === '') return null;
+  const kind = entry['kind'];
+  if (kind !== undefined && kind !== 'runtime' && kind !== 'build') return null;
+  const rawDependencies = entry['dependencies'];
+  const dependencies = rawDependencies === undefined ? [] : readDependencies(rawDependencies);
+  if (dependencies === null) return null;
+  const rawFeatures = entry['features'];
+  const features = rawFeatures === undefined ? null : readFeatures(rawFeatures);
+  if (rawFeatures !== undefined && features === null) return null;
+  const root = entry['root'];
+  if (root !== undefined && typeof root !== 'boolean') return null;
+  return { name, version, source, kind: kind ?? null, dependencies, features, root: root === true };
+};
+
+const readAuditableDocument = (value: unknown, absolutePath: string): { readonly format_version: number | null; readonly packages: readonly RustPackage[]; readonly root_package_index: number | null } => {
+  if (!isRecord(value)) throw auditableError(absolutePath, FORMAT_SCHEMA);
+  const document = value as Record<string, unknown>;
+  const format = document['format'];
+  if (format !== undefined && (typeof format !== 'number' || !Number.isInteger(format) || format < 0 || format > MAX_FORMAT_VERSION)) throw auditableError(absolutePath, FORMAT_SCHEMA);
+  const entries = document['packages'];
+  if (!Array.isArray(entries)) throw auditableError(absolutePath, DOCUMENT_SCHEMA);
+  const packages = entries.map((entry, index) => {
+    const pkg = readPackage(entry);
+    if (pkg === null) throw auditableError(absolutePath, packageSchema(index));
+    return pkg;
+  });
+  if (Object.keys(document).some((key) => !DOCUMENT_KEYS.has(key))) throw auditableError(absolutePath, DOCUMENT_SCHEMA);
+  if (packages.some((pkg) => pkg.dependencies.some((index) => !Number.isSafeInteger(index)))) throw auditableError(absolutePath, DOCUMENT_SCHEMA);
+  if (packages.filter((pkg) => pkg.root).length > 1) throw auditableError(absolutePath, MULTIPLE_ROOTS);
+  for (const [from, pkg] of packages.entries()) {
+    for (const to of pkg.dependencies) {
+      if (to >= packages.length) throw auditableError(absolutePath, indexOutOfRange(to, from));
     }
   }
-  if (!Array.isArray(root['packages'])) {
-    throw analysisInputInvalid('inspect_rust_binary', [
-      {
-        path: ['path'],
-        reason: 'invalid_format',
-        message: `Selected artifact ${absolutePath}: Dependency JSON does not match the package schema`,
-      },
-    ]);
-  }
-  for (const entry of root['packages']) {
-    if (typeof entry !== 'object' || entry === null || Array.isArray(entry)) {
-      throw analysisInputInvalid('inspect_rust_binary', [
-        {
-          path: ['path'],
-          reason: 'invalid_format',
-          message: `Selected artifact ${absolutePath}: Dependency JSON does not match the package schema`,
-        },
-      ]);
-    }
-    for (const key of Object.keys(entry as Record<string, unknown>)) {
-      if (!PACKAGE_KEYS.has(key)) {
-        throw analysisInputInvalid('inspect_rust_binary', [
-          {
-            path: ['path'],
-            reason: 'invalid_format',
-            message: `Selected artifact ${absolutePath}: Dependency JSON does not match the package schema`,
-          },
-        ]);
-      }
-    }
-  }
+  const rootIndex = packages.findIndex((pkg) => pkg.root);
+  return { format_version: typeof format === 'number' ? format : null, packages, root_package_index: rootIndex === -1 ? null : rootIndex };
 };
 
 const decodeAuditable = (payload: Buffer, sectionName: '.dep-v0' | '__DATA,.dep-v0', fileOffset: number, absolutePath: string): NonNullable<RustBinaryInspection['auditable_metadata']> => {
@@ -147,41 +175,19 @@ const decodeAuditable = (payload: Buffer, sectionName: '.dep-v0' | '__DATA,.dep-
   } catch {
     throw new Error('`.dep-v0` uncompressed payload is not JSON');
   }
-  assertAuditableDocument(parsed, absolutePath);
-  if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) throw new Error('`.dep-v0` JSON root must be an object');
-  const root = parsed as Record<string, unknown>;
-  const packagesRaw = Array.isArray(root['packages']) ? root['packages'] : null;
-  if (packagesRaw === null) throw new Error('`.dep-v0` JSON lacks packages');
-  const declaredRoot = typeof root['root'] === 'number' ? root['root'] : -1;
-  const packages: RustPackage[] = packagesRaw.map((entry, index) => {
-    const pkg = typeof entry === 'object' && entry !== null && !Array.isArray(entry) ? (entry as Record<string, unknown>) : {};
-    const deps = Array.isArray(pkg['dependencies']) ? pkg['dependencies'].filter((value): value is number => typeof value === 'number') : [];
-    const features = Array.isArray(pkg['features']) ? pkg['features'].filter((value): value is string => typeof value === 'string') : null;
-    const kindRaw = pkg['kind'];
-    const kind = kindRaw === 'build' || kindRaw === 'runtime' ? kindRaw : null;
-    return {
-      name: typeof pkg['name'] === 'string' ? pkg['name'] : '',
-      version: typeof pkg['version'] === 'string' ? pkg['version'] : '',
-      source: typeof pkg['source'] === 'string' ? pkg['source'] : '',
-      kind,
-      dependencies: deps,
-      features,
-      root: pkg['root'] === true || index === declaredRoot,
-    };
-  });
-  const edges = packages.flatMap((pkg, from) => pkg.dependencies.map((to) => ({ from_index: from, to_index: to })));
-  const rootIndex = declaredRoot >= 0 ? declaredRoot : packages.findIndex((pkg) => pkg.root);
+  const document = readAuditableDocument(parsed, absolutePath);
+  const edges = document.packages.flatMap((pkg, from) => pkg.dependencies.map((to) => ({ from_index: from, to_index: to })));
   return {
     section_name: sectionName,
     file_offset: fileOffset,
     section_bytes: payload.length,
     compressed_bytes: payload.length,
     uncompressed_bytes: uncompressed.length,
-    format_version: typeof root['format'] === 'number' ? root['format'] : null,
-    packages,
-    root_package_index: rootIndex >= 0 ? rootIndex : null,
+    format_version: document.format_version,
+    packages: document.packages,
+    root_package_index: document.root_package_index,
     dependency_edges: edges,
-    cyclic_dependency_indices: findCycles(packages),
+    cyclic_dependency_indices: findCycles(document.packages),
   };
 };
 

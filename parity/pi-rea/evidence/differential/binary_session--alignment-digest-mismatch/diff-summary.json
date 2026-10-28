@@ -1,0 +1,16 @@
+{
+  "id": "binary_session--alignment-digest-mismatch",
+  "tool": "binary_session",
+  "status": "pass",
+  "pi_kind": "configuration",
+  "oracle_kind": "configuration",
+  "contract_issues": [],
+  "diff_count": 0,
+  "compared_paths": [
+    "result.server_identity.alignment"
+  ],
+  "documented_count": 0,
+  "undocumented_count": 0,
+  "undocumented": [],
+  "documented": []
+}

@@ -27,6 +27,6 @@
   },
   "meta": {
     "command": "export-web-scripts",
-    "duration": "4ms"
+    "duration": "14ms"
   }
 }

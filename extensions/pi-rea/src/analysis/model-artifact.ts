@@ -190,7 +190,8 @@ class Reader {
   }
   string(): string {
     const length = Number(this.u64());
-    if (!Number.isSafeInteger(length) || length < 0 || length > 1_048_576) throw new Error('string length out of range');
+    if (!Number.isSafeInteger(length)) throw new Error('string length exceeds exact host offset precision');
+    if (length < 0 || length > 1_048_576) throw new Error('string length out of range');
     return this.take(length).toString('utf8');
   }
 }
@@ -218,7 +219,8 @@ const readGgufValue = (reader: Reader, type: number): { typeName: string; value:
     case 9: {
       const elementType = reader.u32();
       const count = Number(reader.u64());
-      if (!Number.isSafeInteger(count) || count < 0 || count > 1_048_576) throw new Error('array count out of range');
+      if (!Number.isSafeInteger(count)) throw new Error('array count exceeds exact host offset precision');
+      if (count < 0 || count > 1_048_576) throw new Error('array count out of range');
       const previewLimit = Math.min(count, 8);
       const values: unknown[] = [];
       for (let index = 0; index < count; index += 1) {
@@ -259,7 +261,10 @@ const parseGguf = (bytes: Buffer, path: string, hashMode: 'header' | 'full'): Mo
   if (version !== 2 && version !== 3) throw inputError(path, 'invalid_format', `unsupported GGUF version ${version}.`);
   const tensorCount = Number(reader.u64());
   const metadataCount = Number(reader.u64());
-  if (![tensorCount, metadataCount].every((value) => Number.isSafeInteger(value) && value >= 0 && value <= 1_048_576)) {
+  if (![tensorCount, metadataCount].every((value) => Number.isSafeInteger(value) && value >= 0)) {
+    throw inputError(path, 'invalid_format', 'GGUF header length/count exceeds exact host offset precision.');
+  }
+  if (![tensorCount, metadataCount].every((value) => value <= 1_048_576)) {
     throw inputError(path, 'invalid_format', 'GGUF counts are out of range.');
   }
 
@@ -298,7 +303,9 @@ const parseGguf = (bytes: Buffer, path: string, hashMode: 'header' | 'full'): Mo
     for (let dim = 0; dim < nDims; dim += 1) shapeDims.push(Number(reader.u64()));
     const shape = shapeDims.map((dim) => String(dim));
     const typeId = reader.u32();
-    const dataOffset = Number(reader.u64());
+    const dataOffsetRaw = reader.u64();
+    if (dataOffsetRaw > BigInt(Number.MAX_SAFE_INTEGER)) throw new Error('tensor data offset exceeds exact host offset precision');
+    const dataOffset = Number(dataOffsetRaw);
     const typeInfo = GGUF_TYPES[typeId];
     const typeName = typeInfo?.name ?? `GGML_${typeId}`;
     const params = product(shapeDims);

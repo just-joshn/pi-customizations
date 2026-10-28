@@ -302,7 +302,7 @@ test('counts differing manifest identifiers as a change', () => {
   expect(result.summary).toStrictEqual({ unchanged: 0, added: 0, removed: 0, changed: 1, unknown: 0, contradiction: 0 });
   expect(result.left_manifest_id).toBe(`agm_${sha('a')}`);
   expect(result.right_manifest_id).toBe(`agm_${sha('c')}`);
-  expect(result.changes).toStrictEqual([]);
+  expect(result.changes).toStrictEqual([{ logical_path: '.', kind: 'changed', left_sha256: sha('a'), right_sha256: sha('c') }]);
 });
 
 test('reports a file without a digest as an unknown change', () => {
@@ -381,7 +381,7 @@ test('reads a nested substep with outer limitation fallback', () => {
   expect(result.status).toBe('changed');
   expect(result.summary).toStrictEqual({ unchanged: 1, added: 0, removed: 0, changed: 1, unknown: 0, contradiction: 0 });
   expect(result.limitations).toStrictEqual(['Left: outer note']);
-  expect(result.changes).toStrictEqual([]);
+  expect(result.changes).toStrictEqual([{ logical_path: '.', kind: 'changed', left_sha256: null, right_sha256: sha('a') }]);
 });
 
 test.for([

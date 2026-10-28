@@ -351,8 +351,8 @@ const auditableDocument = (options: AuditableOptions = {}): Buffer => deflateJso
 
 const deepPackages = [
   { name: 'root-crate', version: '0.1.0', source: 'local', kind: 'runtime', dependencies: [1, 2], features: ['std'], root: true },
-  { name: 'dep-a', version: '1.2.3', source: 'registry+https://index.example/dep-a', kind: 'other', dependencies: [2], features: null, root: false },
-  { name: 'dep-b', version: '2.0.0', source: 'registry+https://index.example/dep-b', dependencies: [1, 'ignored'], features: ['std', 5], root: false },
+  { name: 'dep-a', version: '1.2.3', source: 'registry+https://index.example/dep-a', kind: 'build', dependencies: [2], root: false },
+  { name: 'dep-b', version: '2.0.0', source: 'registry+https://index.example/dep-b', dependencies: [1], features: ['std'], root: false },
 ];
 
 const deepTables = (): Buffer =>
@@ -441,7 +441,7 @@ test('reads cargo-auditable packages from a crafted 64-bit ELF', async () => {
     format_version: 1,
     packages: [
       { name: 'root-crate', version: '0.1.0', source: 'local', kind: 'runtime', dependencies: [1, 2], features: ['std'], root: true },
-      { name: 'dep-a', version: '1.2.3', source: 'registry+https://index.example/dep-a', kind: null, dependencies: [2], features: null, root: false },
+      { name: 'dep-a', version: '1.2.3', source: 'registry+https://index.example/dep-a', kind: 'build', dependencies: [2], features: null, root: false },
       { name: 'dep-b', version: '2.0.0', source: 'registry+https://index.example/dep-b', kind: null, dependencies: [1], features: ['std'], root: false },
     ],
     root_package_index: 0,
@@ -456,7 +456,7 @@ test('reads cargo-auditable packages from a crafted 64-bit ELF', async () => {
 });
 
 test('decodes the dependency JSON byte count after inflating', async () => {
-  const document = { format: 7, packages: [{ name: 'solo', version: '0.0.1' }] };
+  const document = { format: 7, packages: [{ name: 'solo', version: '0.0.1', source: 'local' }] };
   const text = JSON.stringify(document);
   const payload = deflateSync(Buffer.from(text, 'utf8'));
   const { record } = await inspectRustBytes(elfWithSection({ payload }));
@@ -464,7 +464,7 @@ test('decodes the dependency JSON byte count after inflating', async () => {
   expect(record.auditable_metadata?.uncompressed_bytes).toBe(Buffer.byteLength(text, 'utf8'));
   expect(record.auditable_metadata?.compressed_bytes).toBe(payload.length);
   expect(record.auditable_metadata?.format_version).toBe(7);
-  expect(record.auditable_metadata?.packages).toStrictEqual([{ name: 'solo', version: '0.0.1', source: '', kind: null, dependencies: [], features: null, root: false }]);
+  expect(record.auditable_metadata?.packages).toStrictEqual([{ name: 'solo', version: '0.0.1', source: 'local', kind: null, dependencies: [], features: null, root: false }]);
   expect(record.auditable_metadata?.root_package_index).toBeNull();
   expect(record.auditable_metadata?.cyclic_dependency_indices).toStrictEqual([]);
 });
@@ -482,7 +482,7 @@ test.for([
 });
 
 test('reads a 32-bit little-endian dep section', async () => {
-  const payload = auditableDocument({ packages: [{ name: 'smart', version: '9.9.9' }] });
+  const payload = auditableDocument({ packages: [{ name: 'smart', version: '9.9.9', source: 'local' }] });
   const { record } = await inspectRustBytes(elfWithSection({ payload, bits: 32, machine: 40 }));
 
   expect(record).toMatchObject({ format: 'elf', architecture: 'arm', bits: 32, byte_order: 'little' });
@@ -491,11 +491,11 @@ test('reads a 32-bit little-endian dep section', async () => {
 });
 
 test('reads a big-endian 64-bit dep section', async () => {
-  const payload = auditableDocument({ packages: [{ name: 'big', version: '1.0.0' }] });
+  const payload = auditableDocument({ packages: [{ name: 'big', version: '1.0.0', source: 'local' }] });
   const { record } = await inspectRustBytes(elfWithSection({ payload, bits: 64, little: false, machine: 183 }));
 
   expect(record).toMatchObject({ format: 'elf', architecture: 'aarch64', bits: 64, byte_order: 'big' });
-  expect(record.auditable_metadata?.packages).toStrictEqual([{ name: 'big', version: '1.0.0', source: '', kind: null, dependencies: [], features: null, root: false }]);
+  expect(record.auditable_metadata?.packages).toStrictEqual([{ name: 'big', version: '1.0.0', source: 'local', kind: null, dependencies: [], features: null, root: false }]);
 });
 
 test('reads a big-endian ELF without a dep section', async () => {
@@ -523,12 +523,12 @@ test.for([
 });
 
 test.for([
-  { name: 'array root', document: [] },
-  { name: 'extra root key', document: { packages: [], notes: 'x' } },
-  { name: 'packages not an array', document: { packages: {} } },
-  { name: 'package not an object', document: { packages: ['root'] } },
-  { name: 'package extra key', document: { packages: [{ name: 'root', license: 'MIT' }] } },
-])('rejects a dep document with an $name', async ({ document }) => {
+  { name: 'array root', document: [], detail: 'Dependency JSON does not match the format schema' },
+  { name: 'extra root key', document: { packages: [], notes: 'x' }, detail: 'Dependency JSON does not match the package schema' },
+  { name: 'packages not an array', document: { packages: {} }, detail: 'Dependency JSON does not match the package schema' },
+  { name: 'package not an object', document: { packages: ['root'] }, detail: 'Dependency package 0 does not match the package schema' },
+  { name: 'package extra key', document: { packages: [{ name: 'root', license: 'MIT' }] }, detail: 'Dependency package 0 does not match the package schema' },
+])('rejects a dep document with an $name', async ({ document, detail }) => {
   const targets = await tempTargets();
   const path = await targets.write('schema.elf', elfWithSection({ payload: deflateJson(document) }));
   const payload = await payloadOf(() => inspectRustBinaryFromPath(path));
@@ -544,7 +544,7 @@ test.for([
     recovery: { kind: 'inspect_input_contract', operation: 'inspect_rust_binary' },
     details: {
       operation: 'inspect_rust_binary',
-      issues: [{ path: ['path'], reason: 'invalid_format', message: `Selected artifact ${path}: Dependency JSON does not match the package schema` }],
+      issues: [{ path: ['path'], reason: 'invalid_format', message: `Selected artifact ${path}: ${detail}` }],
     },
   });
 });
@@ -567,37 +567,37 @@ test('reports a PE whose architecture option is set', async () => {
 });
 
 test('reads a dep section from an unknown-machine ELF', async () => {
-  const { record } = await inspectRustBytes(elfWithSection({ payload: auditableDocument({ packages: [{ name: 'odd' }] }), machine: 4242 }));
+  const { record } = await inspectRustBytes(elfWithSection({ payload: auditableDocument({ packages: [{ name: 'odd', version: '0.0.0', source: 'local' }] }), machine: 4242 }));
 
   expect(record).toMatchObject({ format: 'elf', architecture: 'unknown', bits: 64 });
   expect(record.auditable_metadata?.packages[0]?.name).toBe('odd');
 });
 
-test('defaults a package that declares no fields', async () => {
-  const { record } = await inspectRustBytes(elfWithSection({ payload: auditableDocument({ packages: [{}] }) }));
+test('rejects a dep package that omits required fields', async () => {
+  const targets = await tempTargets();
+  const path = await targets.write('defaults.elf', elfWithSection({ payload: auditableDocument({ packages: [{}] }) }));
+  const payload = await payloadOf(() => inspectRustBinaryFromPath(path));
 
-  expect(record.auditable_metadata?.packages).toStrictEqual([{ name: '', version: '', source: '', kind: null, dependencies: [], features: null, root: false }]);
-  expect(record.auditable_metadata?.format_version).toBeNull();
-  expect(record.auditable_metadata?.root_package_index).toBeNull();
+  expect(payload.details).toStrictEqual({ operation: 'inspect_rust_binary', issues: [{ path: ['path'], reason: 'invalid_format', message: `Selected artifact ${path}: Dependency package 0 does not match the package schema` }] });
 });
 
-test('keeps a dependency index that has no package', async () => {
-  const { record } = await inspectRustBytes(elfWithSection({ payload: auditableDocument({ packages: [{ name: 'solo', dependencies: [99] }] }) }));
+test('rejects a dependency index outside the package list', async () => {
+  const targets = await tempTargets();
+  const path = await targets.write('out-of-range.elf', elfWithSection({ payload: auditableDocument({ packages: [{ name: 'solo', version: '0.1.0', source: 'local', dependencies: [99] }] }) }));
+  const payload = await payloadOf(() => inspectRustBinaryFromPath(path));
 
-  expect(record.auditable_metadata?.dependency_edges).toStrictEqual([{ from_index: 0, to_index: 99 }]);
-  expect(record.auditable_metadata?.cyclic_dependency_indices).toStrictEqual([]);
-  expect(record.auditable_metadata?.root_package_index).toBeNull();
+  expect(payload.details).toStrictEqual({ operation: 'inspect_rust_binary', issues: [{ path: ['path'], reason: 'invalid_format', message: `Selected artifact ${path}: Dependency index 99 from package 0 is outside the package list` }] });
 });
 
 test('reads a dep section name that runs to the string table end', async () => {
-  const { record } = await inspectRustBytes(elfWithSection({ payload: auditableDocument({ packages: [{ name: 'unterminated' }] }), unterminatedNames: true }));
+  const { record } = await inspectRustBytes(elfWithSection({ payload: auditableDocument({ packages: [{ name: 'unterminated', version: '0.0.0', source: 'local' }] }), unterminatedNames: true }));
 
   expect(record.auditable_metadata?.section_name).toBe('.dep-v0');
   expect(record.auditable_metadata?.packages[0]?.name).toBe('unterminated');
 });
 
 test('reads a dep section from a 64-bit big-endian Mach-O', async () => {
-  const payload = auditableDocument({ packages: [{ name: 'big-macho', version: '0.5.0' }] });
+  const payload = auditableDocument({ packages: [{ name: 'big-macho', version: '0.5.0', source: 'local' }] });
   const bytes = machOThin({ bits: 64, little: false, cpuType: 16777223, sections: [{ name: '.dep-v0', bytes: payload }] });
   const { record } = await inspectRustBytes(bytes);
 
@@ -614,7 +614,7 @@ test('reads a thin 64-bit Mach-O slice descriptor', async () => {
 });
 
 test('reads a dep section from a Mach-O __DATA segment', async () => {
-  const payload = auditableDocument({ packages: [{ name: 'macho', version: '3.1.4' }] });
+  const payload = auditableDocument({ packages: [{ name: 'macho', version: '3.1.4', source: 'local' }] });
   const bytes = machOThin({ bits: 64, little: true, segmentName: '__DATA', sections: [{ name: '.dep-v0', bytes: payload }] });
   const { record } = await inspectRustBytes(bytes);
 
@@ -721,7 +721,7 @@ test('resolves a relative rust artifact path against the cwd option', async () =
 });
 
 test('reads a dep section from a PE image', async () => {
-  const payload = auditableDocument({ packages: [{ name: 'win-crate', version: '4.2.0' }] });
+  const payload = auditableDocument({ packages: [{ name: 'win-crate', version: '4.2.0', source: 'local' }] });
   const { record } = await inspectRustBytes(peWithSection('.dep-v0', payload));
 
   expect(record).toMatchObject({ format: 'pe', architecture: 'x86_64', bits: 64, byte_order: 'little', selected_slice: null });
@@ -838,11 +838,18 @@ test.for([
   expect(record.classification.evidence).toStrictEqual([{ code: 'cli-directory-absent', detail: 'The PE has no CLI data directory; managed metadata and CIL are unavailable.', file_offset: null }]);
 });
 
-test('maps a RISC-V PE architecture onto x86 when not managed', async () => {
-  const { record } = await inspectManagedBytes(cliPe({ directory: null, machine: 20580 }));
+test('refuses a RISC-V PE the way REA refuses an unsupported managed machine', async () => {
+  const targets = await tempTargets();
+  const path = await targets.write('riscv.exe', cliPe({ directory: null, machine: 20580 }));
 
-  expect(record.pe.architecture).toBe('x86');
-  expect(record.pe.machine).toBe(20580);
+  const payload = await payloadOf(() => inspectManagedArtifactFromPath(path));
+
+  expect(payload).toMatchObject({
+    code: 'target_unavailable',
+    category: 'unsupported_target',
+    message: 'Cannot open artifact: unsupported PE architecture (COFF machine 0x5064).',
+    details: { reason: 'unsupported PE architecture (COFF machine 0x5064)', constraint: 'file_format_rejected' },
+  });
 });
 
 test.for([
@@ -857,11 +864,17 @@ test.for([
   expect(record.classification.status).toBe('not-managed');
 });
 
-test('maps an unknown machine in the managed branch to x86', async () => {
-  const { record } = await inspectManagedBytes(cliPe({ metadata: metadataRoot(), machine: 0x1234 }));
+test('refuses an unknown machine in the managed branch', async () => {
+  const targets = await tempTargets();
+  const path = await targets.write('unknown.exe', cliPe({ metadata: metadataRoot(), machine: 0x1234 }));
 
-  expect(record.pe.architecture).toBe('x86');
-  expect(record.classification.status).toBe('managed');
+  const payload = await payloadOf(() => inspectManagedArtifactFromPath(path));
+
+  expect(payload).toMatchObject({
+    code: 'target_unavailable',
+    category: 'unsupported_target',
+    message: 'Cannot open artifact: unsupported PE architecture (COFF machine 0x1234).',
+  });
 });
 
 test('reads a version string longer than its declared length', async () => {
@@ -898,12 +911,14 @@ test.for([
   expect(record.coverage).toStrictEqual({ state: 'partial', issues: ['CLR header unmapped'] });
 });
 
-test('maps an unknown machine PE to x86 in the malformed branch', async () => {
-  const { record } = await inspectManagedBytes(cliPe({ directory: { rva: 0x9000, size: 72 }, machine: 0x1234 }));
+test('refuses an unknown machine before the malformed CLI branch', async () => {
+  const targets = await tempTargets();
+  const path = await targets.write('unknown-unmapped.exe', cliPe({ directory: { rva: 0x9000, size: 72 }, machine: 0x1234 }));
 
-  expect(record.pe.architecture).toBe('x86');
-  expect(record.pe.machine_hex).toBe('0x1234');
-  expect(record.classification.status).toBe('malformed');
+  const payload = await payloadOf(() => inspectManagedArtifactFromPath(path));
+
+  expect(payload.message).toBe('Cannot open artifact: unsupported PE architecture (COFF machine 0x1234).');
+  expect(payload.details?.['reason']).toBe('unsupported PE architecture (COFF machine 0x1234)');
 });
 
 test('reports managed metadata whose RVA does not map', async () => {
@@ -944,7 +959,7 @@ test('reports partial metadata when no tables stream exists', async () => {
   const { record } = await inspectManagedBytes(cliPe({ metadata: metadataRoot({ streams: [{ name: '#Strings', bytes: stringsHeap(['Only.dll']) }] }) }));
 
   expect(record.metadata).toStrictEqual({ status: 'partial', version: 'v4.0.30319', stream_names: ['#Strings'], table_row_counts: {} });
-  expect(record.coverage).toStrictEqual({ state: 'complete', issues: [] });
+  expect(record.coverage).toStrictEqual({ state: 'partial', issues: ['metadata stream is incomplete'] });
 });
 
 test('reports partial metadata when the tables heap declares no streams', async () => {
@@ -1328,7 +1343,7 @@ test('rejects comparing one evidence record with itself', () => {
 test('inspect_rust_binary records an ELF evidence record', async () => {
   const session = new ReaSession(RUNTIME);
   const targets = await tempTargets();
-  const bytes = elfWithSection({ payload: auditableDocument({ packages: [{ name: 'tool-crate', version: '1.4.0' }] }) });
+  const bytes = elfWithSection({ payload: auditableDocument({ packages: [{ name: 'tool-crate', version: '1.4.0', source: 'local' }] }) });
   const path = await targets.write('tool.elf', bytes);
   const result = await inspectRustBinary(session, { path, detail: 'complete' });
   const normalized = normalizedOf(result);

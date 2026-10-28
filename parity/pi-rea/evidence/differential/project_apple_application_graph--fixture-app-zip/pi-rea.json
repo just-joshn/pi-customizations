@@ -1,11 +1,11 @@
 {
   "kind": "evidence",
   "body": {
-    "evidence_id": "ev_d9a52a4e07d7c8f0517e3686c5788d8c41306d4b8ceffcf07de2e958dccc1726",
+    "evidence_id": "ev_f01f3bca55ffb26717619d4e22d3e907ea5b1b70cf341ea72499740599b937fc",
     "subject": {
       "name": "Fixture.app.zip",
       "digest": {
-        "sha256": "9ee55888cca01f9713ef4dabfa764680d32abe975505d268f1cba3434648cf50"
+        "sha256": "16426092261733ccbb3a2e738ad7c236f45ef04f7a9c2df762101139c24011b5"
       },
       "local_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/bundle/Fixture.app.zip",
       "format": "zip",
@@ -21,19 +21,19 @@
     "operation": "project_apple_application_graph",
     "parameters": {
       "inventory_evidence_ids": [
-        "ev_b0cd08bc8c1f51d74e7598ad953a3ab1e3a64f32a0c282b931fc16574720ea12"
+        "ev_b2550db9cbd6059ba05099e3e16358df24ab249bbf8fdbf4cbea28e9bd8595b0"
       ]
     },
     "raw_result": null,
     "normalized_result": {
-      "projection_id": "aap_f42a689cc193a50e8ead1d884cc060fa57d935933c119c3e5abd2a8b85c8c2c7",
-      "root_sha256": "9ee55888cca01f9713ef4dabfa764680d32abe975505d268f1cba3434648cf50",
+      "projection_id": "aap_99fac777a0c7e2d5d706e7f89527137df587c076b3a518a39c46774b696879e2",
+      "root_sha256": "16426092261733ccbb3a2e738ad7c236f45ef04f7a9c2df762101139c24011b5",
       "root_format": "zip",
       "platforms": [
         "macos"
       ],
       "source_evidence_ids": [
-        "ev_b0cd08bc8c1f51d74e7598ad953a3ab1e3a64f32a0c282b931fc16574720ea12"
+        "ev_b2550db9cbd6059ba05099e3e16358df24ab249bbf8fdbf4cbea28e9bd8595b0"
       ],
       "application_roots": [
         "Fixture.app"
@@ -106,7 +106,7 @@
     ],
     "locations": [],
     "evidence_links": [
-      "ev_b0cd08bc8c1f51d74e7598ad953a3ab1e3a64f32a0c282b931fc16574720ea12"
+      "ev_b2550db9cbd6059ba05099e3e16358df24ab249bbf8fdbf4cbea28e9bd8595b0"
     ]
   }
 }
