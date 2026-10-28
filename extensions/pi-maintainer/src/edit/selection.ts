@@ -151,7 +151,7 @@ async function admitEditable(matchedFile: string, state: SelectionState, env: Se
     env.host.error(`Can not add ${abs}, which is not within ${env.root}`);
     return state;
   }
-  if (env.git.repoRoot() !== null && (await env.git.isGitIgnored(matchedFile))) {
+  if (env.git.repoRoot() !== null && !env.git.addsGitignoredFiles() && (await env.git.isGitIgnored(matchedFile))) {
     env.host.error(`Can't add ${matchedFile} which is in gitignore`);
     return state;
   }

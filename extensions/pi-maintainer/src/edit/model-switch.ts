@@ -27,3 +27,12 @@ export function rolesAfterEditorModelSwitch(input: { readonly main: PhysicalMode
 } {
   return { main: input.main, editor: input.nextEditor, weak: input.weak };
 }
+
+/** Aider `cmd_weak_model` keeps main and editor models while replacing the weak model. */
+export function rolesAfterWeakModelSwitch(input: { readonly main: PhysicalModelRef; readonly editor: PhysicalModelRef | null; readonly nextWeak: PhysicalModelRef }): {
+  readonly main: PhysicalModelRef;
+  readonly editor: PhysicalModelRef | null;
+  readonly weak: PhysicalModelRef;
+} {
+  return { main: input.main, editor: input.editor, weak: input.nextWeak };
+}

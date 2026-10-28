@@ -19,6 +19,7 @@ export interface GitPolicySettings {
   readonly commitPrompt: string | null;
   readonly aiderIgnore: string | null;
   readonly subtreeOnly: boolean;
+  readonly addGitignoreFiles: boolean;
   readonly commitLanguage: string | null;
 }
 

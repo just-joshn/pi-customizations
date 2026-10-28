@@ -3,7 +3,7 @@ import { expect, test } from 'vitest';
 import { buildCommitMessageRequest, normalizeCommitMessage } from '../../src/git/commit-message.ts';
 import { createCommitMessageGenerator } from '../../src/git/commit-model.ts';
 
-const model = (id: string): Model<string> => ({
+const model = (id: string, contextWindow = 128000): Model<string> => ({
   provider: 'maintainer-test',
   id,
   name: id,
@@ -11,7 +11,7 @@ const model = (id: string): Model<string> => ({
   baseUrl: 'https://test.invalid',
   reasoning: false,
   input: ['text'],
-  contextWindow: 128000,
+  contextWindow,
   maxTokens: 4096,
   cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
 });
@@ -28,9 +28,9 @@ const reply = (text: string): AssistantMessage => ({
 });
 
 /** A registry that answers per model id, recording every request. */
-function scriptedRegistry(answers: Readonly<Record<string, string | Error>>) {
+function scriptedRegistry(answers: Readonly<Record<string, string | Error>>, windows: Readonly<Record<string, number>> = {}) {
   const calls: { model: string; context: Context }[] = [];
-  const models = new Map(Object.keys(answers).map((id) => [id, model(id)]));
+  const models = new Map(Object.keys(answers).map((id) => [id, model(id, windows[id] ?? 128000)]));
   return {
     calls,
     find: (provider: string, id: string) => (provider === 'maintainer-test' ? models.get(id) : undefined),
@@ -57,6 +57,22 @@ test('without a weak model the main model fills both ladder slots', { meta: { ai
   const generate = createCommitMessageGenerator({ registry, main: () => ({ provider: 'maintainer-test', id: 'strong' }), weak: () => null });
   expect(await generate(buildCommitMessageRequest('diff', null))).toBe('only message');
   expect(registry.calls.map((call) => call.model)).toEqual(['strong']);
+});
+
+test('an over-budget commit-message model is skipped without a call while the language reaches the prompt', {
+  meta: { evidence: ['ev-git/probe/commit-message-model-fallback'] },
+}, async () => {
+  const registry = scriptedRegistry({ tiny: 'never sent', good: '"feat: result"' }, { tiny: 4 });
+  const generate = createCommitMessageGenerator({
+    registry,
+    main: () => ({ provider: 'maintainer-test', id: 'good' }),
+    weak: () => ({ provider: 'maintainer-test', id: 'tiny' }),
+  });
+  const reply = await generate(buildCommitMessageRequest('synthetic diff', 'synthetic context', { userLanguage: 'French' }));
+  expect(normalizeCommitMessage(String(reply))).toBe('feat: result');
+  expect(registry.calls.map((call) => call.model)).toEqual(['good']);
+  const system = registry.calls[0]?.context.messages.find((message) => message.role === 'system');
+  expect(system && typeof system.content === 'string' ? system.content : '').toContain('French');
 });
 
 test('every model failing yields no message and a provider error does not stop the ladder', async () => {

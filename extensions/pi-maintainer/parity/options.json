@@ -2,8 +2,7 @@
   "aiderCommit": "5dc9490bb35f9729ef2c95d00a19ccd30c26339c",
   "options": {
     "--add-gitignore-files": {
-      "nonclaim": "not-ported",
-      "reason": "Aider appends every gitignored path to .aiderignore at startup; the maintainer reads .aiderignore but does not generate it from gitignore (aider/args.py:154-158, aider/main.py:398-402)."
+      "registered": "add-gitignore-files"
     },
     "--aiderignore": {
       "registered": "aiderignore"
@@ -85,8 +84,7 @@
       "reason": "Pi owns prompt cache warming"
     },
     "--cache-prompts": {
-      "nonclaim": "pi-owned",
-      "reason": "Pi owns prompt cache retention and cache warming"
+      "registered": "cache-prompts"
     },
     "--chat-history-file": {
       "nonclaim": "pi-owned",

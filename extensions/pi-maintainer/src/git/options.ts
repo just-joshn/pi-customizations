@@ -89,6 +89,13 @@ export const gitOptions = {
     help: 'Only consider files in the current subtree of the git repository',
     sar: 'git',
   }),
+  addGitignoreFiles: booleanOption({
+    name: 'add-gitignore-files',
+    defaultValue: false,
+    negatable: true,
+    help: "Enable/disable the addition of files listed in .gitignore to Aider's editing scope.",
+    sar: 'git',
+  }),
   commitLanguage: stringOption({
     name: 'commit-language',
     defaultValue: null,

@@ -1,4 +1,4 @@
-import type { ModelRegistry } from '@earendil-works/pi-coding-agent';
+import { estimateTokens, type ModelRegistry } from '@earendil-works/pi-coding-agent';
 import { textFromAssistantContent } from '../edit/reasoning.ts';
 import type { CommitMessageRequest } from './commit-message.ts';
 
@@ -22,9 +22,11 @@ export interface CommitMessageModelOptions {
 /**
  * Aider `get_commit_message`: try each commit-message model in order and keep the first
  * non-empty reply (`aider/repo.py:326-367`). `aider/models.py:622-623` lists the weak model
- * first and the main model second, the main model twice when no weak model is set.
- * Unlike `simple_send_with_retries`, one failed call advances the ladder; Pi owns provider
- * retry policy. Returns null when every model fails; the caller prints Aider's failure message.
+ * first and the main model second, the main model twice when no weak model is set. A model
+ * whose context cannot hold the request is skipped without a call, like Aider's
+ * `max_input_tokens` guard. Unlike `simple_send_with_retries`, one failed call advances the
+ * ladder; Pi owns provider retry policy. Returns null when every model fails; the caller prints
+ * Aider's failure message.
  */
 export function createCommitMessageGenerator(options: CommitMessageModelOptions): (request: CommitMessageRequest, signal?: AbortSignal) => Promise<string | null> {
   return async (request, signal) => {
@@ -35,9 +37,11 @@ export function createCommitMessageGenerator(options: CommitMessageModelOptions)
       { role: 'system' as const, content: request.system, timestamp },
       { role: 'user' as const, content: request.user, timestamp },
     ];
+    const requestTokens = messages.reduce((total, message) => total + estimateTokens(message), 0);
     for (const reference of [options.weak() ?? main, main]) {
       const model = options.registry.find(reference.provider, reference.id);
       if (!model || model.api === 'pi-virtual') continue;
+      if (model.contextWindow > 0 && requestTokens > model.contextWindow) continue;
       signal?.throwIfAborted();
       try {
         const response = await options.registry.complete(model, { messages }, signal ? { signal } : {});

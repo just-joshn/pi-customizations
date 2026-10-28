@@ -175,7 +175,7 @@ The flag adapters share the following gate answers. The table above identifies t
 4. **Why not omit.** Ledger row `lint.run.local-shell` requires that runner. Omitting leaves the row open.
 5. **Adapter.** `src/lint/shell.ts` runs command strings as `/bin/sh -c` through Host.exec. Lint language commands append an `oslex`-style quoted relative path. No pexpect path is started. That adapter is trusted shell under the user account (`lint.security.shell-trust`): filename `shellQuote` does not sandbox compound commands, redirections, or `;` chaining.
 6. **Authoritative Pi state.** Session lifecycle, permissions, and provider transport stay with Pi. Working-tree bytes stay with `WorkingTree`.
-7. **Verification.** Row `lint.run.local-shell` stays open (pexpect / interactive `shell=True` not claimed). `lint.security.shell-trust` is verified via `test/lint/security-bind.test.ts` against the `/bin/sh -c` adapter. Follow-up and options rows that only need Host.exec argv execution are verified separately.
+7. **Verification.** Row `lint.run.local-shell` stays open (pexpect / interactive `shell=True` not claimed), including Aider's `test_linter/TestLinter.test_run_cmd_win`, which Aider skips on every non-Windows host; pi-maintainer has no Windows `pexpect` path to verify. `lint.security.shell-trust` is verified via `test/lint/security-bind.test.ts` against the `/bin/sh -c` adapter. Follow-up and options rows that only need Host.exec argv execution are verified separately.
 8. **Delete when.** Pi exposes a documented interactive PTY exec and/or a safe shell-string exec that extensions may use for lint, test, and suggested shell commands, or the ledger drops the pexpect/`shell=True` claim.
 
 ## Python lint tree-sitter syntax checks
@@ -186,7 +186,7 @@ The flag adapters share the following gate answers. The table above identifies t
 4. **Why not omit.** Ledger rows `lint.python.checks`, `lint.tree-sitter.syntax-errors`, and `lint.diagnostics.context-render` require tree-sitter syntax and TreeContext slices. Omitting leaves those rows open.
 5. **Adapter.** None for tree-sitter syntax or TreeContext rendering. Configured `--lint-cmd` values run through Host.exec. Default Python combine path is not claimed. Plain diagnostic headers and extracted source lines remain on the Host.exec custom-cmd path.
 6. **Authoritative Pi state.** Unchanged.
-7. **Verification.** Rows `lint.python.checks`, `lint.tree-sitter.syntax-errors`, and `lint.diagnostics.context-render` stay open after this re-check. Expressible lint dispatch/diagnostics/line-extraction rows are verified separately.
+7. **Verification.** Rows `lint.python.checks`, `lint.tree-sitter.syntax-errors`, and `lint.diagnostics.context-render` stay open after this re-check, including the `ev-lint/probe/javascript-syntax` replay, whose JavaScript ERROR-node detection needs the same parser. Expressible lint dispatch/diagnostics/line-extraction rows are verified separately.
 8. **Delete when.** Parser recovery accepts a production bridge that can supply TreeContext-equivalent slices for lint, or the ledger drops the tree-sitter syntax and context-render claims.
 
 ## Callable test commands
@@ -208,7 +208,7 @@ The flag adapters share the following gate answers. The table above identifies t
 4. **Why not omit.** Ledger row `map.render.structural-context` requires parent context around definition lines. Filename-only rendering is the part that stays expressible without a parser.
 5. **Adapter.** None for structural context. `src/map/render.ts` emits Aider's filename-only entries and applies the same 100-character line cap to filename lists and to supplied excerpts (`renderFilenameMap`, `renderRankedMap`, `formatMapExcerpt`, `truncateMapLines`). Tag capture goes through an injected `QueryRuntime` that production leaves unavailable.
 6. **Authoritative Pi state.** Unchanged. The map holds no session, transcript, or provider state; Pi owns context assembly and model routing.
-7. **Verification.** `test/map/scaffold-bind.test.ts` proves filename-only rank order and the 100-character cap. Row `map.render.structural-context` stays open with empty `pi` / `src` / `tests` and `gap: "native"`; every expressible render row is verified separately.
+7. **Verification.** `test/map/scaffold-bind.test.ts` proves filename-only rank order and the 100-character cap, and `test/map/files-hints-bind.test.ts` proves rendered filename exclusion. Row `map.render.structural-context` stays open with empty `pi` / `src` / `tests` and `gap: "native"`; the Python symbol assertions of `test_repomap/TestRepoMap.test_get_repo_map_with_identifiers` stay with that open row. Every expressible render row is verified separately.
 8. **Delete when.** Pi exposes a public parser or AST bridge (or the parser recovery review accepts one) that can supply TreeContext-equivalent slices, or the ledger drops the structural-context claim.
 
 ## Console output without a UI

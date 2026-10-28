@@ -219,7 +219,9 @@ test('a new user binding clears edit tracking and the shared reflection budget',
   });
 });
 
-test('lint test and malformed reflections share one three-request budget', async () => {
+test('lint test and malformed reflections share one three-request budget', {
+  meta: { evidence: ['ev-lint/orchestration/reflection-limit'] },
+}, async () => {
   const h = await harness({
     lint: {
       lintEdited: async () => ({ kind: 'failed', report: 'lint found issues' }),

@@ -14,6 +14,7 @@ const disabledPolicy: GitPolicy = {
   needToAdd: async () => false,
   isGitIgnored: async () => false,
   isIgnored: async () => false,
+  addsGitignoredFiles: () => false,
   stageNewFile: async () => {},
   isDirty: async () => false,
   needsDirtyCommit: async () => false,
@@ -42,6 +43,7 @@ function pathMethods(s: GitSession, dirtyCommits: boolean) {
       const normalized = normalize(s, path);
       return outsideSubtree(s, normalized) || isAiderIgnored(s, normalized);
     },
+    addsGitignoredFiles: () => s.options.settings.addGitignoreFiles,
     stageNewFile: async (absPath: string) => {
       if (!s.options.settings.autoCommits) return;
       const added = await git(s, ['add', '--', absPath]);

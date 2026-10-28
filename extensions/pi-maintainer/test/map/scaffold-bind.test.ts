@@ -7,7 +7,7 @@ import { requestRepoMap } from '../../src/core/repo-map.ts';
 import { disabledGitPolicy, type MapRequest } from '../../src/feature.ts';
 import { effectiveMapBudget, getRepoMapTokens, resolveMapEnablement } from '../../src/map/budget.ts';
 import { createRepositoryContext } from '../../src/map/context.ts';
-import { mapFeature } from '../../src/map/feature.ts';
+import { effectiveMapRefresh, mapFeature } from '../../src/map/feature.ts';
 import { resolveUseRepoMap } from '../../src/map/mapping-policy.ts';
 import { mapOptions } from '../../src/map/options.ts';
 import { filenameOnlyEntries } from '../../src/map/rank.ts';
@@ -27,13 +27,22 @@ async function tempRoot(): Promise<string> {
   return root;
 }
 
-test('repository mapping defaults off unless packaged settings or heuristics enable it', () => {
+test('repository mapping defaults off unless packaged settings or heuristics enable it', {
+  meta: { aider: ['test_models/TestModels.test_configure_model_settings', 'test_models/TestModels.test_gpt_5_5_model_settings'] },
+}, () => {
   expect(resolveUseRepoMap('gpt-3.5-turbo')).toBe(false);
   expect(resolveUseRepoMap('unknown-local-model')).toBe(false);
   expect(resolveUseRepoMap('gpt-4o')).toBe(true);
   expect(resolveUseRepoMap('openai/gpt-4.1')).toBe(true);
   expect(resolveUseRepoMap('provider/custom-diff-model')).toBe(false);
   expect(resolveUseRepoMap('openai/o3-mini')).toBe(true);
+  for (const name of ['something/o1-mini', 'something/o1-preview', 'something/o1', 'deepseek-v3', 'deepseek-r1', 'someprovider/deepseek-r1', 'anotherprovider/deepseek-v3', 'llama3-70b', 'gpt-4', 'claude-3.5-sonnet', 'qwen-coder-2.5-32b']) {
+    expect(resolveUseRepoMap(name), name).toBe(true);
+  }
+  for (const name of ['gpt-5.5', 'gpt-5.5-chat-latest', 'openai/gpt-5.5', 'azure/gpt-5.5-chat-latest', 'openrouter/openai/gpt-5.5', 'gpt-5.5-pro', 'openai/gpt-5.5-pro', 'azure/gpt-5.5-pro', 'openrouter/openai/gpt-5.5-pro']) {
+    expect(resolveUseRepoMap(name), name).toBe(true);
+  }
+  expect(resolveUseRepoMap('o1-something')).toBe(false);
 });
 
 test('default map budget is one eighth of capacity clamped to 1024 through 4096', () => {
@@ -51,7 +60,18 @@ test('positive explicit map budget enables mapping when model policy would disab
   expect(resolveMapEnablement({ explicit: null, useRepoMap: true, maxInputTokens: 16_384 })).toEqual({ enabled: true, tokens: 2048 });
 });
 
-test('without chat files the configured multiplier expands the map budget subject to context capacity minus 4096', () => {
+test('without chat files the configured multiplier expands the map budget subject to context capacity minus 4096', {
+  meta: { evidence: ['ev-map/boundary/empty-chat-budget-with-6000-context'] },
+}, () => {
+  expect(
+    effectiveMapBudget({
+      maxMapTokens: 1024,
+      mapMulNoFiles: 8,
+      maxContextWindow: 6000,
+      chatFilesEmpty: true,
+      expandNoFilesBudget: false,
+    }),
+  ).toBe(1904);
   expect(
     effectiveMapBudget({
       maxMapTokens: 1024,
@@ -213,4 +233,32 @@ test('map feature exposes Aider map options and builds a port', () => {
     gitRoot: '/tmp',
   });
   expect(port.repoMap).toBeTypeOf('function');
+});
+
+test('--cache-prompts turns the automatic map refresh policy into files', {
+  meta: { aider: ['test_main/TestMain.test_sonnet_and_cache_options'] },
+}, async () => {
+  expect(effectiveMapRefresh('auto', true)).toBe('files');
+  expect(effectiveMapRefresh('auto', false)).toBe('auto');
+  expect(effectiveMapRefresh('always', true)).toBe('always');
+  expect(mapOptions.cachePrompts.name).toBe('cache-prompts');
+  expect(mapFeature.options).toContain(mapOptions.cachePrompts);
+
+  const root = await tempRoot();
+  await writeFile(join(root, 'other.py'), 'x = 1\n');
+  const port = mapFeature.create({
+    settings: {
+      value: (option: { readonly name: string; readonly defaultValue: unknown }) => (option.name === 'cache-prompts' ? true : option.name === 'map-tokens' ? 1024 : option.defaultValue),
+      source: () => 'default',
+    } as unknown as Parameters<typeof mapFeature.create>[0]['settings'],
+    host: { output: () => {}, warning: () => {}, error: () => {}, confirm: async () => false, select: async () => undefined, exec: async () => ({ stdout: '', stderr: '', code: 0, killed: false }) },
+    cwd: root,
+    gitRoot: root,
+  });
+  const request = { chatFiles: new Set<string>(), otherFiles: new Set([join(root, 'other.py')]), mentionedFnames: new Set<string>(), mentionedIdents: new Set<string>() };
+  const first = await port.repoMap(request);
+  expect(first).toContain('other.py');
+  await writeFile(join(root, 'extra.py'), 'y = 2\n');
+  const second = await port.repoMap(request);
+  expect(second).toBe(first);
 });

@@ -189,6 +189,8 @@ export interface GitPolicy {
   isGitIgnored(path: string): Promise<boolean>;
   /** `GitRepo.ignored_file`: aiderignore and --subtree-only, not gitignore. */
   isIgnored(path: string): Promise<boolean>;
+  /** Aider `add_gitignore_files`: explicitly named files may enter the chat despite .gitignore. */
+  addsGitignoredFiles(): boolean;
   /** Stages a file the edit created, when automatic commits are on. */
   stageNewFile(absPath: string): Promise<void>;
   /** `GitRepo.is_dirty`: pathless excludes untracked; a path absent from inventory is dirty. */
@@ -252,6 +254,7 @@ export const disabledGitPolicy: GitPolicy = {
   needToAdd: async () => false,
   isGitIgnored: async () => false,
   isIgnored: async () => false,
+  addsGitignoredFiles: () => false,
   stageNewFile: async () => {},
   isDirty: async () => false,
   needsDirtyCommit: async () => false,

@@ -15,6 +15,13 @@ export const mapOptions = {
     help: 'Control how often the repo map is refreshed. Options: auto, always, files, manual (default: auto)',
     sar: 'map',
   }),
+  cachePrompts: booleanOption({
+    name: 'cache-prompts',
+    defaultValue: false,
+    negatable: true,
+    help: 'Enable caching of prompts (default: False)',
+    sar: 'map',
+  }),
   mapMultiplierNoFiles: floatOption({
     name: 'map-multiplier-no-files',
     aliases: ['map-mul'],

@@ -19,6 +19,7 @@ const defaultSettings: GitPolicySettings = {
   commitPrompt: null,
   aiderIgnore: null,
   subtreeOnly: false,
+  addGitignoreFiles: false,
   commitLanguage: null,
 };
 

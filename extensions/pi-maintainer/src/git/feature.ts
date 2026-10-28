@@ -17,6 +17,7 @@ function settingsFromEnv(settings: ResolvedSettings): GitPolicySettings {
     commitPrompt: settings.value(gitOptions.commitPrompt),
     aiderIgnore: settings.value(gitOptions.aiderIgnore),
     subtreeOnly: settings.value(gitOptions.subtreeOnly),
+    addGitignoreFiles: settings.value(gitOptions.addGitignoreFiles),
     commitLanguage: settings.value(gitOptions.commitLanguage),
   };
 }

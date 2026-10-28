@@ -135,7 +135,14 @@ function resolveStartupMode(ports: Ports, modelDefault: EditFormatName): EditFor
 
 async function initialSnapshot(ports: Ports, cwd: string, append: (data: unknown) => void, host: ReturnType<typeof createHost>, allowCreation: boolean, owner: string, modelDefault: EditFormatName): Promise<Snapshot> {
   const tree = journaledTree(ports.edit.tree, owner, append, () => {});
-  const editable = await admitInitialEditable(ports.edit.initialFiles.editable, { cwd, tree, host, allowCreation });
+  const editable = await admitInitialEditable(ports.edit.initialFiles.editable, {
+    cwd,
+    tree,
+    host,
+    allowCreation,
+    isGitIgnored: (path) => ports.git.isGitIgnored(path),
+    addGitignoreFiles: ports.git.addsGitignoredFiles(),
+  });
   const root = ports.git.repoRoot() ?? findCommonRoot(editable, cwd);
   const readOnly: string[] = [];
   for (const path of ports.edit.initialFiles.readOnly) {

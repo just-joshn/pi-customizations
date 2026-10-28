@@ -131,3 +131,31 @@ test('/diff uses HEAD^ with fewer than two message checkpoints and the second-la
     expect(second.text).toContain('Final modified content');
   }
 });
+
+test('an untracked file is described as Added and the commit includes it', {
+  meta: { evidence: ['ev-git/probe/new-unstaged-file-message-input'] },
+}, async () => {
+  const root = await tempDir('git-diffs-untracked-');
+  const host = recordingHost();
+  await initRepo(root);
+  await commitFile(root, 'seed.txt', 's\n', 'seed');
+  await writeFile(join(root, 'brandnew.txt'), 'content not present in pre-stage diff\n');
+  const prompts: string[] = [];
+  const git = policyIn(
+    root,
+    host,
+    {},
+    {
+      generateCommitMessage: async (request) => {
+        prompts.push(request.user);
+        return 'feat: add brandnew';
+      },
+    },
+  );
+  expect(await git.getDiffs(['brandnew.txt'])).toBe('Added brandnew.txt\n');
+  const result = await git.autoCommit(new Set(['brandnew.txt']), { kind: 'conversation', text: 'add the file' });
+  expect(result).toMatchObject({ kind: 'committed' });
+  expect(prompts[0]).toContain('# Diffs:\nAdded brandnew.txt\n');
+  const show = await isolatedExec({ command: 'git', args: ['show', 'HEAD:brandnew.txt'], cwd: root }, envOf());
+  expect(show.stdout).toBe('content not present in pre-stage diff\n');
+});

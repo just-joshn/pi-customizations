@@ -229,6 +229,152 @@ test('after edits, lint then shell then test follow when each is enabled', async
   expect(order.filter((step) => step === 'lint' || step === 'shell' || step === 'test')).toEqual(['lint', 'shell', 'test']);
 });
 
+const BASH_ONLY = '```bash\necho hi\n```\n';
+const PY_REPLY = `target.py
+<<<<<<< SEARCH
+before
+=======
+after
+>>>>>>> REPLACE
+`;
+
+/** A controller over real lint validation that records each shell/lint/test command it runs. */
+async function followupHarness(options: {
+  readonly autoLint: boolean;
+  readonly autoTest: boolean;
+  readonly lintCmd: string | null;
+  readonly testCmd: string | null;
+  readonly lintExit?: number;
+  readonly answer?: (question: string) => boolean;
+}) {
+  const root = await tempRoot('lint-follow-');
+  await writeFile(join(root, 'target.py'), 'before\n');
+  const runs: { kind: string; command: string }[] = [];
+  const questions: string[] = [];
+  const host: Host = {
+    output: () => {},
+    warning: () => {},
+    error: () => {},
+    confirm: async (request) => {
+      questions.push(request.question);
+      return options.answer?.(request.question) ?? true;
+    },
+    select: async () => undefined,
+    exec: async (request) => {
+      const shell = request.command === '/bin/sh' ? String(request.args[1] ?? '') : `${request.command} ${request.args.join(' ')}`;
+      const kind = shell.startsWith('lint-cmd') ? 'lint' : shell.startsWith('test-cmd') ? 'test' : 'shell';
+      runs.push({ kind, command: shell });
+      if (kind === 'lint') return { stdout: options.lintExit === 0 ? '' : 'target.py:1: problem\n', stderr: '', code: options.lintExit ?? 1, killed: false };
+      return { stdout: '', stderr: '', code: 0, killed: false };
+    },
+  };
+  const lint = createValidation({
+    host,
+    root,
+    autoLint: options.autoLint,
+    autoTest: options.autoTest,
+    lintCmds: options.lintCmd ? new Map([[null, options.lintCmd]]) : new Map(),
+    testCmd: options.testCmd,
+  });
+  const controller = new ExchangeController(snapshot(root, [absRootPath(root, 'target.py')]), {
+    ports: {
+      edit: {
+        formats: new Map([['diff', diffFormat]]),
+        requestedFormat: 'diff',
+        initialFiles: { editable: [], readOnly: [] },
+        messageFile: null,
+        applyFile: null,
+        dryRun: false,
+        yesAlways: true,
+        autoAcceptArchitect: true,
+        editorModel: null,
+        chatLanguage: null,
+        editorEditFormat: 'editor-whole',
+        tree: createWorkingTree({ notices: host }),
+      },
+      git: disabledGitPolicy,
+      map: disabledRepositoryContext,
+      lint,
+    },
+    host,
+    source: {
+      get: async () => ({
+        mainSystem: 'MAIN',
+        systemReminder: 'REMINDER',
+        exampleMessages: [] as const,
+        filesContentPrefix: 'EDITABLE',
+        filesContentAssistantReply: 'Ok.',
+        filesNoFullFiles: 'NONE',
+        filesNoFullFilesWithRepoMap: '',
+        filesNoFullFilesWithRepoMapReply: '',
+        readOnlyFilesPrefix: 'READ ONLY',
+        filesContentGptEditsNoRepo: '',
+      }),
+    },
+    append: () => {},
+    suggestShellCommands: true,
+  });
+  await controller.projectRequest({
+    messages: [{ role: 'user', content: 'edit', timestamp: Date.now() }],
+    projection: [],
+    supportsImages: false,
+  });
+  return { root, controller, runs, questions };
+}
+
+test('both passing checks produce no repair request', {
+  meta: { evidence: ['ev-lint/orchestration/both-checks-pass'] },
+}, async () => {
+  const h = await followupHarness({ autoLint: true, autoTest: true, lintCmd: 'lint-cmd', testCmd: 'test-cmd', lintExit: 0 });
+  const decision = await h.controller.completeReply({ kind: 'complete', id: 'reply-pass', text: BASH_ONLY + PY_REPLY });
+  expect(h.runs.map((run) => run.kind)).toEqual(['lint', 'shell', 'test']);
+  expect(h.questions).not.toContain('Attempt to fix lint errors?');
+  expect(h.questions).not.toContain('Attempt to fix test errors?');
+  expect(decision.continue).toBe(false);
+});
+
+test('an accepted lint failure defers the shell and test follow-ups', {
+  meta: { evidence: ['ev-lint/orchestration/accepted-lint-failure-defers-test'] },
+}, async () => {
+  const h = await followupHarness({ autoLint: true, autoTest: true, lintCmd: 'lint-cmd', testCmd: 'test-cmd', answer: () => true });
+  const decision = await h.controller.completeReply({ kind: 'complete', id: 'reply-lint', text: BASH_ONLY + PY_REPLY });
+  expect(h.runs.map((run) => run.kind)).toEqual(['lint']);
+  expect(h.questions).toContain('Attempt to fix lint errors?');
+  expect(decision.continue).toBe(true);
+  expect(decision.dialogue.some((fact) => fact.text.includes('target.py:1: problem'))).toBe(true);
+});
+
+test('a declined lint failure continues to the shell and test follow-ups', {
+  meta: { evidence: ['ev-lint/orchestration/declined-lint-failure-runs-test'] },
+}, async () => {
+  const h = await followupHarness({ autoLint: true, autoTest: true, lintCmd: 'lint-cmd', testCmd: 'test-cmd', answer: (question) => question !== 'Attempt to fix lint errors?' });
+  const decision = await h.controller.completeReply({ kind: 'complete', id: 'reply-declined', text: BASH_ONLY + PY_REPLY });
+  expect(h.runs.map((run) => run.kind)).toEqual(['lint', 'shell', 'test']);
+  expect(decision.continue).toBe(false);
+});
+
+test('a reply with no edits runs suggested shell commands but no lint or test', {
+  meta: { evidence: ['ev-lint/orchestration/no-edits-no-checks'] },
+}, async () => {
+  const h = await followupHarness({ autoLint: true, autoTest: true, lintCmd: 'lint-cmd', testCmd: 'test-cmd' });
+  const decision = await h.controller.completeReply({ kind: 'complete', id: 'reply-shell', text: BASH_ONLY });
+  expect(h.runs.map((run) => run.kind)).toEqual(['shell']);
+  expect(h.runs[0]?.command).toBe('echo hi');
+  expect(decision.continue).toBe(false);
+});
+
+test('automatic lint off runs the test follow-up while automatic test off still lints', {
+  meta: { evidence: ['ev-lint/orchestration/disabled-lint-runs-test', 'ev-lint/orchestration/disabled-test-still-lints'] },
+}, async () => {
+  const noLint = await followupHarness({ autoLint: false, autoTest: true, lintCmd: 'lint-cmd', testCmd: 'test-cmd' });
+  await noLint.controller.completeReply({ kind: 'complete', id: 'reply-no-lint', text: BASH_ONLY + PY_REPLY });
+  expect(noLint.runs.map((run) => run.kind)).toEqual(['shell', 'test']);
+
+  const noTest = await followupHarness({ autoLint: true, autoTest: false, lintCmd: 'lint-cmd', testCmd: 'test-cmd', answer: (question) => question !== 'Attempt to fix lint errors?' });
+  await noTest.controller.completeReply({ kind: 'complete', id: 'reply-no-test', text: BASH_ONLY + PY_REPLY });
+  expect(noTest.runs.map((run) => run.kind)).toEqual(['lint', 'shell']);
+});
+
 test('a failed test report reflects after confirmation', async () => {
   const root = await tempRoot('lint-reflect-test-');
   await writeFile(join(root, 'target.txt'), 'before\n');

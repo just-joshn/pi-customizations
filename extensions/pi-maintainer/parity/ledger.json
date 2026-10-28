@@ -2535,7 +2535,10 @@
       ],
       "tests": [
         "test/git/authorize-bind.test.ts::an untracked approved path is staged when automatic commits are on",
-        "test/git/authorize-bind.test.ts::stageNewFile is a no-op when automatic commits are off"
+        "test/git/authorize-bind.test.ts::stageNewFile is a no-op when automatic commits are off",
+        "test/git/authorize-bind.test.ts::only in-chat paths are approved for editing, and a declined path stays out of the chat",
+        "test/git/authorize-bind.test.ts::editing an untracked existing file stages and commits it with an Added commit diff",
+        "test/git/authorize-bind.test.ts::an already tracked subdirectory file is never staged again"
       ]
     },
     {
@@ -2603,7 +2606,8 @@
         "src/git/cli.ts"
       ],
       "tests": [
-        "test/git/commit-bind.test.ts::a commit stages and commits the whole content of named files"
+        "test/git/commit-bind.test.ts::a commit stages and commits the whole content of named files",
+        "test/git/commit-bind.test.ts::a commit without named files includes tracked changes and staged additions but not untracked files"
       ]
     },
     {
@@ -2623,7 +2627,9 @@
         "src/git/policy.ts",
         "src/git/options.ts",
         "src/index.ts",
-        "src/git/commit-message.ts"
+        "src/git/commit-message.ts",
+        "src/edit/commands.ts",
+        "src/edit/model-switch.ts"
       ],
       "tests": [
         "test/git/commit-bind.test.ts::commit message generation sends the commit diff and the chat context",
@@ -2631,7 +2637,9 @@
         "test/git/commit-model.test.ts::the commit-message model ladder keeps the first non-empty reply and sends both models the same request",
         "test/git/commit-model.test.ts::surrounding quotes are stripped only as a matched pair",
         "test/git/commit-model.test.ts::a custom commit prompt replaces the default system prompt",
-        "test/core/commit-message.pi.test.ts::an assistant commit is authored by the weak model and trailers the main model"
+        "test/core/commit-message.pi.test.ts::an assistant commit is authored by the weak model and trailers the main model",
+        "test/git/commit-model.test.ts::an over-budget commit-message model is skipped without a call while the language reaches the prompt",
+        "test/edit/commands-residual.test.ts::/weak-model replaces only the weak selection used for commit messages and history summaries"
       ]
     },
     {
@@ -2697,7 +2705,9 @@
       ],
       "tests": [
         "test/git/undo-bind.test.ts::undo refuses without a repository, on the first commit, and when HEAD is not a session commit",
-        "test/git/undo-bind.test.ts::undo refuses when a changed file is dirty after the session commit"
+        "test/git/undo-bind.test.ts::undo refuses when a changed file is dirty after the session commit",
+        "test/git/undo-bind.test.ts::undo refuses a session commit that added a file",
+        "test/git/undo-bind.test.ts::undo refuses when the local origin branch reference equals HEAD"
       ]
     },
     {
@@ -2772,7 +2782,12 @@
       ],
       "tests": [
         "test/lint/followup-bind.test.ts::after edits, lint then shell then test follow when each is enabled",
-        "test/lint/followup-bind.test.ts::auto-lint off skips lintEdited work and auto-test off skips testEdited work"
+        "test/lint/followup-bind.test.ts::auto-lint off skips lintEdited work and auto-test off skips testEdited work",
+        "test/lint/followup-bind.test.ts::both passing checks produce no repair request",
+        "test/lint/followup-bind.test.ts::an accepted lint failure defers the shell and test follow-ups",
+        "test/lint/followup-bind.test.ts::a declined lint failure continues to the shell and test follow-ups",
+        "test/lint/followup-bind.test.ts::a reply with no edits runs suggested shell commands but no lint or test",
+        "test/lint/followup-bind.test.ts::automatic lint off runs the test follow-up while automatic test off still lints"
       ]
     },
     {
@@ -2821,7 +2836,8 @@
       ],
       "tests": [
         "test/lint/options-bind.test.ts::automatic lint defaults on and automatic tests default off",
-        "test/lint/options-bind.test.ts::cli and config can disable auto-lint and enable auto-test"
+        "test/lint/options-bind.test.ts::cli and config can disable auto-lint and enable auto-test",
+        "test/lint/followup-bind.test.ts::automatic lint off runs the test follow-up while automatic test off still lints"
       ]
     },
     {
@@ -3219,7 +3235,7 @@
       "tests": [
         "test/editblock-ports.test.ts::empty REPLACE that clears a file is failure not fallback",
         "test/editblock.oracle.test.ts::replace chunk replace/delete-all-is-failure",
-        "test/editblock.oracle.test.ts::perfect or whitespace perfect-or-whitespace/empty-result-is-f…",
+        "test/editblock.oracle.test.ts::perfect or whitespace perfect-or-whitespace/empty-result-is-f\u2026",
         "test/editblock.oracle.test.ts::apply edits apply/delete-whole-content-fails"
       ]
     },
@@ -3266,7 +3282,7 @@
       ],
       "tests": [
         "test/edit/prompts.test.ts::reminder admission double-counts cur tokens like Aider against the input budget",
-        "test/edit/prompts.oracle.test.ts::format_chat_chunks format_chat_chunks/reminder-sys-at-budg…"
+        "test/edit/prompts.oracle.test.ts::format_chat_chunks format_chat_chunks/reminder-sys-at-budg\u2026"
       ]
     },
     {
@@ -3953,10 +3969,13 @@
         "src/map/prompt-insertion.ts",
         "src/map/render.ts",
         "src/core/repo-map.ts",
-        "src/edit/prompts/format.ts"
+        "src/edit/prompts/format.ts",
+        "src/map/options.ts",
+        "src/map/feature.ts"
       ],
       "tests": [
-        "test/map/render-bind.test.ts::manual refresh reuses the last map, files refresh reuses file-set and budget keys, always recomputes, and auto reuses hint-sensitive keys when map processing exceeds one second"
+        "test/map/render-bind.test.ts::manual refresh reuses the last map, files refresh reuses file-set and budget keys, always recomputes, and auto reuses hint-sensitive keys when map processing exceeds one second",
+        "test/map/scaffold-bind.test.ts::--cache-prompts turns the automatic map refresh policy into files"
       ]
     },
     {
@@ -5032,7 +5051,9 @@
         "src/settings/config-files.ts"
       ],
       "tests": [
-        "test/git/startup-bind.test.ts::discoverGitRoot finds the repository from a subdirectory the way findGitRoot does"
+        "test/git/startup-bind.test.ts::discoverGitRoot finds the repository from a subdirectory the way findGitRoot does",
+        "test/git/startup-bind.test.ts::repository discovery accepts a missing path and an outside file, and rejects two repositories",
+        "test/git/startup-bind.test.ts::a repository directory plus an outside file path resolves to the single repository root"
       ]
     },
     {
@@ -5057,13 +5078,14 @@
         "src/settings/config-files.ts"
       ],
       "tests": [
-        "test/git/startup-bind.test.ts::setupGit offers init outside home, creates ignore patterns without a second confirm, and skips the home directory"
+        "test/git/startup-bind.test.ts::setupGit offers init outside home, creates ignore patterns without a second confirm, and skips the home directory",
+        "test/git/startup-bind.test.ts::two new files in an empty repository are created and admitted together"
       ]
     },
     {
       "id": "git.startup.sanity-check",
       "feature": "git",
-      "behavior": "Repository sanity checks refuse bare repositories, corrupt repos, unsupported index versions above 2 when unsafe, and continue carefully on detached HEAD.",
+      "behavior": "Repository sanity checks refuse bare repositories, corrupt repos, and an unreadable index that reports a version requirement outside 1 and 2, warn when the index version exceeds 3 while continuing, and accept detached HEAD.",
       "aider": [
         "aider/repo.py:62-129"
       ],
@@ -5082,7 +5104,7 @@
         "src/settings/config-files.ts"
       ],
       "tests": [
-        "test/git/startup-bind.test.ts::sanityCheckRepo refuses bare, corrupt, and index versions above 2, and accepts detached HEAD"
+        "test/git/startup-bind.test.ts::sanityCheckRepo refuses bare and corrupt repos and an unreadable index, warns above index version 3, and accepts detached HEAD"
       ]
     },
     {
@@ -5104,11 +5126,13 @@
         "src/git/options.ts",
         "src/index.ts",
         "src/core/exchange.ts",
-        "src/edit/selection.ts"
+        "src/edit/selection.ts",
+        "src/edit/startup-input.ts"
       ],
       "tests": [
         "test/git/filters-bind.test.ts::isGitIgnored matches git check-ignore for paths rejected from inventory and edits",
-        "test/git/authorize-bind.test.ts::gitignored paths are skipped with the Aider skip warning"
+        "test/git/authorize-bind.test.ts::gitignored paths are skipped with the Aider skip warning",
+        "test/git/filters-bind.test.ts::a gitignored file named on the command line or by /add joins the chat only with --add-gitignore-files"
       ]
     },
     {
@@ -5387,7 +5411,8 @@
         "test/git/diffs-bind.test.ts::commit-message diffs include staged and unstaged changes against HEAD",
         "test/git/diffs-bind.test.ts::commit-message diffs keep non-ASCII working-tree bytes for the model prompt",
         "test/git/diffs-bind.test.ts::unborn-branch diffs use cached and working-tree diffs without a HEAD comparison",
-        "test/git/diffs-bind.test.ts::diffCommits returns the patch between two revisions"
+        "test/git/diffs-bind.test.ts::diffCommits returns the patch between two revisions",
+        "test/git/diffs-bind.test.ts::an untracked file is described as Added and the commit includes it"
       ]
     },
     {
@@ -5646,7 +5671,8 @@
         "src/settings/config-files.ts"
       ],
       "tests": [
-        "test/git/startup-bind.test.ts::openSingleRoot returns one root and refuses zero or multiple roots"
+        "test/git/startup-bind.test.ts::openSingleRoot returns one root and refuses zero or multiple roots",
+        "test/git/startup-bind.test.ts::repository discovery accepts a missing path and an outside file, and rejects two repositories"
       ]
     },
     {
@@ -5768,7 +5794,7 @@
       ],
       "tests": [
         "test/git/startup-bind.test.ts::linked worktrees discover and pass sanity through the same Host.exec path",
-        "test/git/startup-bind.test.ts::sanityCheckRepo refuses bare, corrupt, and index versions above 2, and accepts detached HEAD"
+        "test/git/startup-bind.test.ts::sanityCheckRepo refuses bare and corrupt repos and an unreadable index, warns above index version 3, and accepts detached HEAD"
       ]
     },
     {
@@ -5809,7 +5835,8 @@
         "src/core/repo-map.ts"
       ],
       "tests": [
-        "test/map/files-hints-bind.test.ts::normal mapping partitions editable plus in-root read-only as chat files and excludes them from rendered map text"
+        "test/map/files-hints-bind.test.ts::normal mapping partitions editable plus in-root read-only as chat files and excludes them from rendered map text",
+        "test/map/files-hints-bind.test.ts::rendered map text lists other files and omits every chat file"
       ]
     },
     {
@@ -6289,7 +6316,8 @@
       ],
       "tests": [
         "test/lint/dispatch-bind.test.ts::without explicit override, filename recognition precedes the global command",
-        "test/lint/dispatch-bind.test.ts::language-specific command is used when no global command is configured"
+        "test/lint/dispatch-bind.test.ts::language-specific command is used when no global command is configured",
+        "test/lint/dispatch-bind.test.ts::the linter reads UTF-8, dispatches Python, and reports paths relative to its root"
       ]
     },
     {

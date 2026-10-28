@@ -6346,7 +6346,7 @@
   },
   "aider-test/test_main/TestMain.test_main_with_empty_git_dir_new_subdir_file": {
     "rows": [
-      "git.startup.setup-repo"
+      "git.authorize.stage-new-file"
     ]
   },
   "aider-test/test_main/TestMain.test_setup_git": {
@@ -6361,7 +6361,7 @@
   },
   "aider-test/test_main/TestMain.test_command_line_gitignore_files_flag": {
     "rows": [
-      "git.config.gitignore-offer"
+      "git.filter.gitignore"
     ]
   },
   "aider-test/test_main/TestMain.test_add_command_gitignore_files_flag": {
@@ -9531,7 +9531,7 @@
   },
   "aider-test/test_main/TestMain.test_sonnet_and_cache_options": {
     "rows": [
-      "map.model.mapping-policy"
+      "map.cache.rendered-policy"
     ]
   },
   "aider-test/test_main/TestMain.test_map_mul_option": {
@@ -9574,9 +9574,7 @@
   },
   "aider-test/test_repomap/TestRepoMap.test_get_repo_map_with_identifiers": {
     "rows": [
-      "map.hints.mention-extraction",
-      "map.rank.personalization",
-      "map.rank.weights"
+      "map.render.structural-context"
     ]
   },
   "aider-test/test_repomap/MyClass.test_get_repo_map_all_files": {
@@ -10986,7 +10984,7 @@
   "ev-lint/probe/javascript-syntax": {
     "rows": [
       "lint.tree-sitter.syntax-errors",
-      "lint.dispatch.precedence"
+      "lint.diagnostics.context-render"
     ]
   },
   "ev-lint/probe/typescript-skipped": {
@@ -11185,7 +11183,6 @@
   },
   "aider-test/test_linter/TestLinter.test_run_cmd_win": {
     "rows": [
-      "lint.custom.append-relpath",
       "lint.run.local-shell"
     ]
   },
