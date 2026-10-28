@@ -93,6 +93,9 @@ export function baselineModels(baseUrl: string): Model<Api>[] {
 
 export function createFetchModels(endpoint: string) {
   return async (context: RefreshModelsContext): Promise<Model<Api>[]> => {
+    // Pi refreshes offline at startup and after login, so the bundled snapshot is the catalog
+    // until a refresh is allowed to use the network.
+    if (!context.allowNetwork) return baselineModels(endpoint);
     if (context.credential?.type !== 'oauth') throw new Error('Google Antigravity is not logged in');
     const credential = parseCredential(context.credential);
     const data = await postCloudCode(endpoint, 'fetchAvailableModels', credential.access, { project: credential.projectId }, context.signal);

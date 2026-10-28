@@ -2,7 +2,7 @@ import type { ModelsPublication, Provider, RefreshModelsContext } from '@earendi
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { expect } from 'vitest';
 import extension, { createAntigravityProvider } from '../src/index.ts';
-import { catalogModels, parseVariant } from '../src/models.ts';
+import { catalogModels, createFetchModels, parseVariant } from '../src/models.ts';
 import { GOOGLE_OAUTH } from '../src/oauth.ts';
 import { fakeServer, json } from './fake-server.ts';
 import { test } from './network-guard.ts';
@@ -123,6 +123,17 @@ test('fetchModels adds the account catalog to the baseline', async () => {
     expect(server.requests[0]?.headers.authorization).toBe('Bearer ya29.t');
     expect(provider.getModels().map((model) => model.id)).toEqual([...BASELINE_IDS, 'gemini-3.9-flash', 'claude-opus-6']);
     expect(provider.getModels().find((model) => model.id === 'gemini-3.1-pro')?.thinkingLevelMap?.low).toBe(null);
+  } finally {
+    server.close();
+  }
+});
+
+test('fetchModels returns the bundled catalog when network access is disallowed', async () => {
+  const server = await fakeServer((_, res) => json(res, 200, AVAILABLE));
+  try {
+    const models = await createFetchModels(server.url)({ allowNetwork: false, signal: new AbortController().signal, publish: async () => true });
+    expect(server.requests).toEqual([]);
+    expect(models.map((model) => model.id)).toEqual(BASELINE_IDS);
   } finally {
     server.close();
   }

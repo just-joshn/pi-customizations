@@ -358,9 +358,12 @@ async function run(model: Model<Api>, context: TranscriptContext, options: Simpl
   try {
     const { level, variant } = resolveVariant(model, options?.reasoning);
     output.thinkingLevel = level;
+    // Pi passes the provider-scoped environment with every request, so `CLOUD_CODE_URL` set
+    // there replaces the provider endpoint exactly as the process environment variable does.
+    const baseUrl = options?.env?.['CLOUD_CODE_URL'] || model.baseUrl || endpoint;
     for (let empty = 0; ; empty++) {
       const init = await buildRequestInit(model, context, options, variant, empty);
-      const response = await openStream(endpoint, init, model, options);
+      const response = await openStream(baseUrl, init, model, options);
       const reducer = createReducer(output, stream);
       await readChunks(response, async (chunk) => {
         await options?.onProviderStreamEvent?.(chunk, model);

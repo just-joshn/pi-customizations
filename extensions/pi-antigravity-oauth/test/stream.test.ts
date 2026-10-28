@@ -98,6 +98,18 @@ test('text and thinking stream into balanced Pi events with usage', async () => 
   expect(message.usage.totalTokens).toBe(15);
 });
 
+test('the provider-scoped CLOUD_CODE_URL override replaces the model endpoint', async () => {
+  const override = await fakeServer((_, res) => stream(res, textAndThinking));
+  try {
+    const { server, message } = await run((_, res) => stream(res, textAndThinking), { stream: { env: { CLOUD_CODE_URL: override.url } } });
+    expect(server.requests).toEqual([]);
+    expect(override.requests.map((request) => request.path)).toEqual(['/v1internal:streamGenerateContent?alt=sse']);
+    expect(message.stopReason).toBe('stop');
+  } finally {
+    override.close();
+  }
+});
+
 test('the envelope matches the Antigravity CLI agent request for the selected effort', async () => {
   const { server } = await run((_, res) => stream(res, textAndThinking), { stream: { reasoning: 'high' } });
   const sent = body(server.requests[0]);

@@ -30,6 +30,7 @@ function convert(messages: Message[], id = googleModel.id) {
 
 test.for([
   { id: 'gemini-3.1-pro-preview', level: true, strict: true, ids: true },
+  { id: 'gemini-4-argon', level: true, strict: true, ids: true },
   { id: 'gemini-3-flash', level: true, strict: true, ids: true },
   { id: 'gemini-flash-latest', level: true, strict: false, ids: false },
   { id: 'gemini-flash-lite-latest', level: true, strict: false, ids: false },
@@ -124,7 +125,7 @@ test.for(['abc', '!!!!', '', undefined])('invalid thought signatures are omitted
   expect(convert([assistant({ content: [{ type: 'text', text: 'reply', ...(textSignature === undefined ? {} : { textSignature }) }] })])).toEqual([{ role: 'model', parts: [{ text: 'reply' }] }]);
 });
 
-test('cross-model conversion keeps visible reasoning as ordinary text', () => {
+test('cross-model conversion drops thinking from another model', () => {
   expect(
     convert([
       assistant({
@@ -135,7 +136,7 @@ test('cross-model conversion keeps visible reasoning as ordinary text', () => {
         ],
       }),
     ]),
-  ).toEqual([{ role: 'model', parts: [{ text: 'reason' }, { text: 'reply' }] }]);
+  ).toEqual([{ role: 'model', parts: [{ text: 'reply' }] }]);
 });
 
 test('empty assistant text does not emit an empty model turn', () => {
@@ -192,6 +193,29 @@ test('multimodal tool results nest images with a text fallback', () => {
       parts: [
         { functionResponse: { name: 'run', response: { output: '(see attached image)' }, parts: [{ inlineData: { mimeType: 'image/png', data: 'AA==' } }], id: 'a' } },
         { functionResponse: { name: 'run', response: { error: 'line1\nline2' }, id: 'b' } },
+      ],
+    },
+  ]);
+});
+
+test('Gemini 4 nests tool images inside the function response', () => {
+  expect(convert([{ role: 'toolResult', toolCallId: 'a', toolName: 'run', content: [image], isError: false, timestamp: 1 }], 'gemini-4-argon')).toEqual([
+    { role: 'user', parts: [{ functionResponse: { name: 'run', response: { output: '(see attached image)' }, parts: [{ inlineData: { mimeType: 'image/png', data: 'AA==' } }], id: 'a' } }] },
+  ]);
+});
+
+test('whitespace-only tool text counts as no text', () => {
+  expect(
+    convert([
+      { role: 'toolResult', toolCallId: 'a', toolName: 'run', content: [{ type: 'text', text: ' \n\t ' }], isError: false, timestamp: 1 },
+      { role: 'toolResult', toolCallId: 'b', toolName: 'run', content: [{ type: 'text', text: ' ' }, image], isError: false, timestamp: 2 },
+    ]),
+  ).toEqual([
+    {
+      role: 'user',
+      parts: [
+        { functionResponse: { name: 'run', response: { output: '' }, id: 'a' } },
+        { functionResponse: { name: 'run', response: { output: '(see attached image)' }, parts: [{ inlineData: { mimeType: 'image/png', data: 'AA==' } }], id: 'b' } },
       ],
     },
   ]);

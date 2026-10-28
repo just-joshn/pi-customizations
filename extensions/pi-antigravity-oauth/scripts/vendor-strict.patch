@@ -1,5 +1,5 @@
 diff --git a/extensions/pi-antigravity-oauth/src/pi-ai/constrained-sampling.ts b/extensions/pi-antigravity-oauth/src/pi-ai/constrained-sampling.ts
-index a937085..6e0293d 100644
+index 55555f0..e1662e4 100644
 --- a/extensions/pi-antigravity-oauth/src/pi-ai/constrained-sampling.ts
 +++ b/extensions/pi-antigravity-oauth/src/pi-ai/constrained-sampling.ts
 @@ -6,6 +6,11 @@ interface JsonSchemaObject {
@@ -59,7 +59,7 @@ index a937085..6e0293d 100644
  		};
  	} catch (error) {
 diff --git a/extensions/pi-antigravity-oauth/src/pi-ai/estimate.ts b/extensions/pi-antigravity-oauth/src/pi-ai/estimate.ts
-index a37ad29..088796c 100644
+index 416b5db..dca2004 100644
 --- a/extensions/pi-antigravity-oauth/src/pi-ai/estimate.ts
 +++ b/extensions/pi-antigravity-oauth/src/pi-ai/estimate.ts
 @@ -73,8 +73,7 @@ function getLastAssistantUsageInfo(messages: readonly Message[]): { usage: Usage
@@ -84,10 +84,10 @@ index a37ad29..088796c 100644
  		return { tokens: usageTokens + trailingTokens, usageTokens, trailingTokens, lastUsageIndex: usageInfo.index };
  	}
 diff --git a/extensions/pi-antigravity-oauth/src/pi-ai/google-shared.ts b/extensions/pi-antigravity-oauth/src/pi-ai/google-shared.ts
-index 4e99bd0..5e045b2 100644
+index aa02878..fab16b1 100644
 --- a/extensions/pi-antigravity-oauth/src/pi-ai/google-shared.ts
 +++ b/extensions/pi-antigravity-oauth/src/pi-ai/google-shared.ts
-@@ -174,8 +174,9 @@ export function requiresToolCallId(modelId: string): boolean {
+@@ -176,8 +176,9 @@ export function requiresToolCallId(modelId: string): boolean {
  
  function getGeminiMajorVersion(modelId: string): number | undefined {
  	const match = modelId.toLowerCase().match(/^gemini(?:-live)?-(\d+)/);
@@ -99,7 +99,7 @@ index 4e99bd0..5e045b2 100644
  }
  
  function supportsMultimodalFunctionResponse(modelId: string): boolean {
-@@ -502,15 +503,15 @@ export function retryGoogleRequest<T>(
+@@ -504,15 +505,15 @@ export function retryGoogleRequest<T>(
  				return await request();
  			} catch (error) {
  				if (error instanceof Error && "status" in error && !("headers" in error)) {
@@ -120,10 +120,10 @@ index 4e99bd0..5e045b2 100644
  	);
  }
 diff --git a/extensions/pi-antigravity-oauth/src/pi-ai/simple-options.ts b/extensions/pi-antigravity-oauth/src/pi-ai/simple-options.ts
-index 626ffd1..1eb58ef 100644
+index f443a94..3011d2c 100644
 --- a/extensions/pi-antigravity-oauth/src/pi-ai/simple-options.ts
 +++ b/extensions/pi-antigravity-oauth/src/pi-ai/simple-options.ts
-@@ -41,39 +41,40 @@ export function buildBaseOptions(
+@@ -41,40 +41,41 @@ export function buildBaseOptions(
  	apiKey?: string,
  ): StreamOptions {
  	const samplingParams = resolveSamplingParams(model, options?.reasoning ?? "off", options?.samplingParams);
@@ -135,13 +135,14 @@ index 626ffd1..1eb58ef 100644
 +		...(samplingParams !== undefined && { samplingParams }),
  		maxTokens: clampMaxTokensToContext(model, context, options?.maxTokens ?? model.maxTokens),
 -		signal: options?.signal,
--		telemetryContext: options?.telemetryContext,
+-		telemetry: options?.telemetry,
 -		apiKey: apiKey || options?.apiKey,
 -		fetch: options?.fetch,
 -		transport: options?.transport,
 -		cacheRetention: options?.cacheRetention,
 -		sessionId: options?.sessionId,
 -		headers: options?.headers,
+-		identity: options?.identity,
 -		onPayload: options?.onPayload,
 -		onResponse: options?.onResponse,
 -		onProviderStreamEvent: options?.onProviderStreamEvent,
@@ -152,13 +153,14 @@ index 626ffd1..1eb58ef 100644
 -		metadata: options?.metadata,
 -		env: options?.env,
 +		...(options?.signal !== undefined && { signal: options.signal }),
-+		...(options?.telemetryContext !== undefined && { telemetryContext: options.telemetryContext }),
++		...(options?.telemetry !== undefined && { telemetry: options.telemetry }),
 +		...(resolvedApiKey !== undefined && { apiKey: resolvedApiKey }),
 +		...(options?.fetch !== undefined && { fetch: options.fetch }),
 +		...(options?.transport !== undefined && { transport: options.transport }),
 +		...(options?.cacheRetention !== undefined && { cacheRetention: options.cacheRetention }),
 +		...(options?.sessionId !== undefined && { sessionId: options.sessionId }),
 +		...(options?.headers !== undefined && { headers: options.headers }),
++		...(options?.identity !== undefined && { identity: options.identity }),
 +		...(options?.onPayload !== undefined && { onPayload: options.onPayload }),
 +		...(options?.onResponse !== undefined && { onResponse: options.onResponse }),
 +		...(options?.onProviderStreamEvent !== undefined && { onProviderStreamEvent: options.onProviderStreamEvent }),
@@ -185,7 +187,7 @@ index 626ffd1..1eb58ef 100644
  
  export function clampReasoning(effort: ThinkingLevel | undefined): Exclude<ThinkingLevel, "xhigh" | "max"> | undefined {
  	return effort === "xhigh" || effort === "max" ? "high" : effort;
-@@ -81,8 +82,8 @@ export function clampReasoning(effort: ThinkingLevel | undefined): Exclude<Think
+@@ -82,8 +83,8 @@ export function clampReasoning(effort: ThinkingLevel | undefined): Exclude<Think
  
  export function thinkingBudgetForLevel(reasoningLevel: ThinkingLevel, customBudgets?: ThinkingBudgets): number {
  	const budgets = { ...DEFAULT_THINKING_BUDGETS, ...customBudgets };
@@ -197,10 +199,10 @@ index 626ffd1..1eb58ef 100644
  
  /** Cap a thinking budget so at least MIN_ANSWER_TOKENS remain under a shared response ceiling. */
 diff --git a/extensions/pi-antigravity-oauth/src/pi-ai/transform-messages.ts b/extensions/pi-antigravity-oauth/src/pi-ai/transform-messages.ts
-index 4382876..d1a2f7a 100644
+index abc004c..d6b1e1e 100644
 --- a/extensions/pi-antigravity-oauth/src/pi-ai/transform-messages.ts
 +++ b/extensions/pi-antigravity-oauth/src/pi-ai/transform-messages.ts
-@@ -186,8 +186,7 @@ export function transformMessages<TApi extends Api>(
+@@ -207,8 +207,7 @@ export function transformMessages<TApi extends Api>(
  		heldSystemMessages.length = 0;
  	};
  
@@ -210,7 +212,7 @@ index 4382876..d1a2f7a 100644
  
  		if (msg.role === "assistant") {
  			// If we have pending orphaned tool calls from a previous assistant, insert synthetic results now
-@@ -198,13 +197,13 @@ export function transformMessages<TApi extends Api>(
+@@ -219,13 +218,13 @@ export function transformMessages<TApi extends Api>(
  			// - May have partial content (reasoning without message, incomplete tool calls)
  			// - Replaying them can cause API errors (e.g., OpenAI "reasoning without following item")
  			// - The model should retry from the last valid state
