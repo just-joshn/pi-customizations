@@ -2,8 +2,9 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
+import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { describe, expect, onTestFinished, test } from 'vitest';
-import { modeBadge, modeFromBranch, modeSection, parseModeArgs } from '../src/mode.ts';
+import { modeBadge, modeFromBranch, modeSection, parseModeArgs, registerMode } from '../src/mode.ts';
 import { SKILLS_DIR } from '../src/paths.ts';
 
 describe('parseModeArgs (MODE-001, MODE-002)', () => {
@@ -44,7 +45,7 @@ describe('modeSection (MODE-001, MODE-004)', () => {
     const section = modeSection({ skill: 'poteto-mode', path });
     expect(section).not.toContain('New task?');
     expect(section.split('\n').slice(0, 3)).toEqual([
-      'Custom Mode poteto-mode is on for every turn until the user runs /mode off.',
+      'Mode poteto-mode is on for every turn until the user runs /mode off.',
       `<skill name="poteto-mode" location="${path}">`,
       `References are relative to ${join(SKILLS_DIR, 'poteto-mode')}.`,
     ]);
@@ -58,7 +59,7 @@ describe('modeSection (MODE-001, MODE-004)', () => {
   });
 
   test('says so when the skill file is gone', () => {
-    expect(modeSection({ skill: 'gone', path: '/nowhere/SKILL.md' })).toBe('Custom Mode gone is on, but its skill file /nowhere/SKILL.md no longer exists. Tell the user to run /mode off or /mode <skill>.');
+    expect(modeSection({ skill: 'gone', path: '/nowhere/SKILL.md' })).toBe('Mode gone is on, but its skill file /nowhere/SKILL.md no longer exists. Tell the user to run /mode off or /mode <skill>.');
   });
 });
 
@@ -82,7 +83,7 @@ describe('modeBadge (MODE-006)', () => {
     { icon: 'rocket', expected: '➶ mode: x' },
     { icon: 'no-such-icon', expected: '⚡ mode: x' },
   ])('the Cursor icon $icon shows as $expected', ({ icon, expected }) => {
-    expect(modeBadge({ skill: 'x' }, { 'cursor-icon': icon }).text).toBe(expected);
+    expect(modeBadge({ skill: 'x' }, { 'icon': icon }).text).toBe(expected);
   });
 
   test('a Pi skill written in Cursor format styles its badge from top-level icon and color', () => {
@@ -101,14 +102,39 @@ describe('modeBadge (MODE-006)', () => {
     { color: 'default', expected: undefined },
     { color: 'chartreuse', expected: undefined },
   ])('Cursor color $color maps to the $expected theme color', ({ color, expected }) => {
-    expect(modeBadge({ skill: 'x' }, { 'cursor-color': color }).color).toBe(expected);
+    expect(modeBadge({ skill: 'x' }, { 'color': color }).color).toBe(expected);
   });
 
   test.for(['constructor', 'toString', '__proto__'])('inherited key %s is not an icon or color (MODE-006)', (key) => {
-    expect(modeBadge({ skill: 'x' }, { 'cursor-icon': key, 'cursor-color': key })).toEqual({ text: '⚡ mode: x' });
+    expect(modeBadge({ skill: 'x' }, { 'icon': key, 'color': key })).toEqual({ text: '⚡ mode: x' });
   });
 
   test('an unknown icon name falls back to the default icon', () => {
-    expect(modeBadge({ skill: 'x' }, { 'cursor-icon': 'beaker-flask-unknown' }).text).toBe('⚡ mode: x');
+    expect(modeBadge({ skill: 'x' }, { 'icon': 'beaker-flask-unknown' }).text).toBe('⚡ mode: x');
   });
+});
+
+test('/mode notices name Mode, not Custom Mode', async () => {
+  const notices: string[] = [];
+  const commands = new Map<string, { handler: (args: string, ctx: { hasUI: boolean; ui: { notify: (text: string, type: string) => void; setStatus: (key: string, text: string | undefined) => void }; isIdle: () => boolean }) => Promise<void> }>();
+  const path = join(SKILLS_DIR, 'tdd/SKILL.md');
+  registerMode({
+    on: () => undefined,
+    getCommands: () => [{ source: 'skill', name: 'skill:tdd', sourceInfo: { path } }],
+    appendEntry: () => undefined,
+    registerCommand: (name: string, command: (typeof commands extends Map<string, infer V> ? V : never)) => commands.set(name, command),
+    sendUserMessage: () => undefined,
+  } as unknown as ExtensionAPI);
+  const ctx = {
+    hasUI: true,
+    ui: { notify: (text: string) => notices.push(text), setStatus: () => undefined },
+    isIdle: () => true,
+  };
+  const run = (args: string) => commands.get('mode')?.handler(args, ctx);
+  await run('');
+  expect(notices.at(-1)).toBe('No mode is on.');
+  await run('tdd');
+  expect(notices.at(-1)).toBe('Mode on: tdd. /mode off exits.');
+  await run('off');
+  expect(notices.at(-1)).toBe('Mode off.');
 });

@@ -4,7 +4,7 @@ import { basename, join } from 'node:path';
 import { parseFrontmatter } from '@earendil-works/pi-coding-agent';
 import { AGENTS_DIR } from '../paths.ts';
 
-/** A subagent type in Cursor's agent-file format: name, description, model, readonly, is_background, prompt body. */
+/** A subagent type from an agent file: name, description, model, readonly, is_background, prompt body. */
 export interface AgentDefinition {
   type: string;
   description: string;

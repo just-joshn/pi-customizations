@@ -1,8 +1,10 @@
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { type Static, Type } from 'typebox';
 
+import { canAsk } from './modes.ts';
+
 export const DONE_LABEL = '✓ Done selecting';
-// Cursor's question dialog ends every question with a typed answer (observed in cursor-agent 2026.10.01).
+// Every question ends with a typed-answer option.
 export const OTHER_LABEL = 'Other: (type to answer)';
 export const OTHER_ID = 'other';
 const SKIPPED = 'skipped (no one can answer questions in this session; decide yourself and say what you chose)';
@@ -96,7 +98,7 @@ function answerLine(question: Question, answer: Answer | undefined): string {
   return `${question.id}: ${parts.length === 0 ? 'none selected' : parts.join(', ')}`;
 }
 
-/** Cursor's IDE question tool (pstack: "Prefer AskQuestion over free text"), over Pi's select dialog. */
+/** Structured questions (pstack: "Prefer AskQuestion over free text"), over Pi's select dialog. */
 export function registerAskQuestion(pi: ExtensionAPI): void {
   pi.registerTool({
     name: 'AskQuestion',
@@ -110,9 +112,8 @@ export function registerAskQuestion(pi: ExtensionAPI): void {
     annotations: { readOnlyHint: true, openWorldHint: false },
     async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
       validateQuestions(params.questions);
-      // Cursor's print mode keeps the tool and reports the questions as skipped; Pi's print and JSON runs, including
-      // subagents, have no one to answer either.
-      if (!ctx.hasUI) {
+      // Print and JSON runs and subagents have no one to answer, so the questions come back skipped.
+      if (!canAsk(ctx)) {
         const text = params.questions.map((question) => `${question.id}: ${SKIPPED}`).join('\n');
         return { content: [{ type: 'text', text }], details: { answers: {}, skipped: params.questions.map((question) => question.id) } };
       }

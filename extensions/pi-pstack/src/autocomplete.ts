@@ -2,7 +2,7 @@ import type { AutocompleteItem, AutocompleteProvider, AutocompleteSuggestions } 
 
 const COMMAND_TOKEN = /^\/([a-z0-9-]*)$/;
 
-/** Adds the `/name` skill aliases to Pi's `/` menu, the way Cursor lists skills by name; everything else is Pi's. */
+/** Adds the `/name` skill aliases to Pi's `/` menu; everything else is Pi's. */
 export function aliasAutocomplete(current: AutocompleteProvider, aliases: ReadonlyMap<string, string>): AutocompleteProvider {
   return {
     ...(current.triggerCharacters === undefined ? {} : { triggerCharacters: current.triggerCharacters }),

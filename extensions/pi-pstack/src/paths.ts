@@ -3,6 +3,8 @@ import { fileURLToPath } from 'node:url';
 
 import { getAgentDir } from '@earendil-works/pi-coding-agent';
 
+import { childIdentity } from './child-env.ts';
+
 export const PACKAGE_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 export const SKILLS_DIR = join(PACKAGE_ROOT, 'skills');
 export const AGENTS_DIR = join(PACKAGE_ROOT, 'agents');
@@ -12,9 +14,14 @@ export function stateDir(): string {
   return join(getAgentDir(), 'pstack');
 }
 
-/** Pi home of the rule that Cursor keeps at ~/.cursor/rules/pstack-models.mdc. */
+/** The model rule: pstack's per-role model choices, added to every request's system prompt. */
 export function rulePath(): string {
-  return join(stateDir(), 'pstack-models.mdc');
+  return join(stateDir(), 'pstack-models.md');
+}
+
+/** Webhook routines' sender keys, one `<slug>/credentials.json` each. */
+export function routinesDir(): string {
+  return join(stateDir(), 'routines');
 }
 
 /** Pi's rule for a session folder name, so per-workspace state lines up with `<agentDir>/sessions/<slug>`. */
@@ -24,14 +31,27 @@ export function workspaceSlug(cwd: string): string {
     .replace(/[/\\:]/g, '-')}--`;
 }
 
-/** State for one working directory, so transcripts and stores never cross workspaces (pstack's own rule). */
-export function workspaceStateDir(cwd: string): string {
-  return join(stateDir(), 'workspaces', workspaceSlug(cwd));
+/**
+ * State for one working directory, so transcripts and stores never cross workspaces (pstack's own rule). A subagent
+ * uses its main chat's, so an isolated worker in its own worktree shares the tree's Projects, records, and transcripts.
+ */
+export function workspaceStateDir(cwd: string, inherited: string | undefined = childIdentity.workspaceState): string {
+  return inherited ?? join(stateDir(), 'workspaces', workspaceSlug(cwd));
 }
 
-/** Subagent transcripts, records, and run locks for this workspace; Cursor's equivalent is ~/.cursor/subagents/. */
+/** Subagent transcripts, records, and run locks for this workspace. */
 export function subagentDir(cwd: string): string {
   return join(workspaceStateDir(cwd), 'subagents');
+}
+
+/** Projects of this workspace: `<slug>/notes.md` is a project's tracker and `<slug>/store/` its store. */
+export function projectsDir(cwd: string): string {
+  return join(workspaceStateDir(cwd), 'projects');
+}
+
+/** Files a session's tools produce for the user, such as visualize's SVG charts. */
+export function artifactsDir(cwd: string, sessionId: string): string {
+  return join(workspaceStateDir(cwd), 'artifacts', sessionId);
 }
 
 export function worktreesDir(cwd: string): string {

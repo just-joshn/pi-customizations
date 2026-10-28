@@ -2,7 +2,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { afterEach, beforeEach, describe, expect, test } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { PACKAGE_ROOT } from '../../src/paths.ts';
 import { assistantTexts, contentText, makeSandbox, type PiEvent, runJson, type Sandbox, script, startRpc, toolEnds } from './harness.ts';
 
@@ -30,6 +30,16 @@ const idOf = (text: string | undefined) => {
   if (id === undefined) throw new Error(`no agent ID in: ${text}`);
   return id;
 };
+
+/** Sends one prompt to an RPC session and returns its events: up to its agent_settled, or its response for a command. */
+async function rpcPrompt(rpc: ReturnType<typeof startRpc>, message: string): Promise<PiEvent[]> {
+  const mark = rpc.events.length;
+  const id = `prompt-${mark}`;
+  rpc.send({ id, type: 'prompt', message });
+  const response = await rpc.waitFor((event) => event.type === 'response' && event['id'] === id);
+  if ((response['data'] as { disposition?: string } | undefined)?.disposition !== 'handled') await rpc.waitFor((event) => event.type === 'agent_settled' && rpc.events.indexOf(event) >= mark);
+  return rpc.events.slice(mark);
+}
 
 async function runTask(args: Record<string, unknown>) {
   const run = await runJson(sandbox, script([task(args)]), ['--no-session']);
@@ -200,7 +210,7 @@ describe('subagent types', () => {
 
   test("a child's system prompt names the main chat's store as the root agent's store (autopilot-full step 2)", async () => {
     const { result } = await runTask({ prompt: 'go\n@@sys' });
-    const current = /"The current agent's store" \(orchestrate's store layout\) is (\S+)\. /.exec(result.text)?.[1];
+    const current = /"The current agent's store" is (\S+)\. /.exec(result.text)?.[1];
     const root = /"The root agent's store" is (\S+), the store of the main chat/.exec(result.text)?.[1];
     expect([current?.split('/').at(-2), root?.split('/').at(-2), root === current]).toEqual(['store', 'store', false]);
   });
@@ -325,7 +335,7 @@ describe('usage accounting', () => {
 describe('resume over RPC', () => {
   const settledAfter = (rpc: ReturnType<typeof startRpc>, mark: number) => (event: PiEvent) => event.type === 'agent_settled' && rpc.events.indexOf(event) >= mark;
 
-  test('continues the same transcript, refuses running and unknown agents (TASK-005)', async () => {
+  test('continues the same transcript, steers a running agent, and refuses unknown agents (TASK-005, C-H4)', async () => {
     const rpc = startRpc(sandbox, ['--no-session']);
     try {
       const prompt = async (message: string) => {
@@ -341,12 +351,20 @@ describe('resume over RPC', () => {
       expect(resumed?.text.endsWith('Note: model "scripted/plain" was ignored; a resumed agent keeps its earlier model.')).toBe(true);
 
       const [slow] = await prompt(script([task({ prompt: 'go\n@@sleep 4000 SLOW', run_in_background: true })]));
-      const [busy] = await prompt(script([task({ prompt: 'x', resume: idOf(slow?.text) })]));
-      expect(busy?.text).toBe(`Agent ${idOf(slow?.text)} is still running. Wait for its completion notification before resuming it.`);
+      const [steered] = await prompt(script([task({ prompt: 'change course\n@@say STEERED', resume: idOf(slow?.text), model: 'scripted/plain' })]));
+      expect([steered?.isError, steered?.text.split('\n')]).toEqual([
+        false,
+        [
+          `Sent to agent ${idOf(slow?.text)} while it runs: it reads the message after its current step. Its final response still arrives as its launch said, as a completion notification for a background agent or as the waiting Task result for a foreground one, so do not wait or poll for it.`,
+          'Note: model "scripted/plain" was ignored; a resumed agent keeps its earlier model.',
+        ],
+      ]);
       const [unknown] = await prompt(script([task({ prompt: 'x', resume: '00000000-0000-4000-8000-000000000000' })]));
       expect(unknown?.text).toBe('Unknown agent ID 00000000-0000-4000-8000-000000000000. Resume needs an agent ID returned by an earlier Task call in this workspace.');
       const notice = await rpc.waitFor((event) => event.type === 'message_end' && (event['message'] as { role: string }).role === 'custom');
-      expect(contentText((notice['message'] as { content: string }).content)).toContain(`task_id: ${idOf(slow?.text)}\n`);
+      const text = contentText((notice['message'] as { content: string }).content);
+      expect([text.includes(`task_id: ${idOf(slow?.text)}\n`), text.includes('\ndetail: STEERED\n')]).toEqual([true, true]);
+      expect(transcriptOf(idOf(slow?.text)).filter((entry) => entry.message?.role === 'user').length).toBe(2);
     } finally {
       await rpc.close();
     }
@@ -371,12 +389,36 @@ describe('resume across processes and workspaces', () => {
     expect(toolEnds(second.events, 'Task')[0]?.text).toBe(`Unknown agent ID ${agentId}. Resume needs an agent ID returned by an earlier Task call in this workspace.`);
   });
 
-  test('two calls in one message that resume the same agent get one writer (review: security 3, architecture 2)', async () => {
+  test('two calls in one message that resume the same agent get one writer: the second steers the first (review: security 3, architecture 2; C-H4)', async () => {
     const first = await runJson(sandbox, script([task({ prompt: 'go\n@@say ONE' })]), ['--no-session']);
     const agentId = idOf(toolEnds(first.events, 'Task')[0]?.text);
     const second = await runJson(sandbox, script([[task({ prompt: 'a\n@@sleep 1500 A', resume: agentId }), task({ prompt: 'b\n@@say B', resume: agentId })]]), ['--no-session']);
-    const texts = toolEnds(second.events, 'Task').map((end) => end.text.split('\n')[0]);
-    expect(texts.toSorted()).toEqual([`Agent ${agentId} is still running. Wait for its completion notification before resuming it.`, 'This is the output of the subagent:']);
+    const ends = toolEnds(second.events, 'Task');
+    expect(ends.map((end) => end.text.split('\n')[0]?.slice(0, 32)).toSorted()).toEqual(['Sent to agent ' + agentId.slice(0, 18), 'This is the output of the subagent:'.slice(0, 32)]);
+    expect(ends.map((end) => /<response>\n(.*)\n<\/response>/.exec(end.text)?.[1]).filter((text) => text !== undefined)).toEqual(['B']);
+    expect(readdirSync(subagentDir()).filter((name) => name.endsWith(`_${agentId}.jsonl`))).toHaveLength(1);
+  });
+
+  test('a readonly call cannot steer a running agent that has write access (C-H4)', async () => {
+    const rpc = startRpc(sandbox, ['--no-session']);
+    try {
+      const [slow] = toolEnds(await rpcPrompt(rpc, script([task({ prompt: 'go\n@@sleep 3000 SLOW', run_in_background: true })])), 'Task');
+      const [refused] = toolEnds(await rpcPrompt(rpc, script([task({ prompt: 'x', resume: idOf(slow?.text), readonly: true })])), 'Task');
+      expect([refused?.isError, refused?.text]).toEqual([
+        true,
+        `Agent ${idOf(slow?.text)} is running with write access, so a readonly call cannot message it. Wait for its completion notification, or stop it with stop_agent.`,
+      ]);
+    } finally {
+      await rpc.close();
+    }
+  });
+
+  test('resume follows the subagent type background setting (C-M7)', async () => {
+    const first = await runJson(sandbox, script([task({ prompt: 'go\n@@say ONE', subagent_type: 'poteto-agent' })]), ['--no-session']);
+    const agentId = idOf(toolEnds(first.events, 'Task')[0]?.text);
+    const second = await runJson(sandbox, script([task({ prompt: 'again\n@@say TWO', resume: agentId })]), ['--no-session']);
+    const [resumed] = toolEnds(second.events, 'Task');
+    expect([resumed?.text.startsWith('Subagent is running in the background.'), resumed?.details]).toEqual([true, expect.objectContaining({ background: true, subagentType: 'poteto-agent' })]);
   });
 });
 
@@ -493,6 +535,112 @@ describe('resume edge cases', () => {
     const resumed = await runTask({ prompt: 'again\n@@tools-list', resume: grandchild });
     const tools = /<response>\n(.*)\n<\/response>/.exec(resumed.result.text)?.[1]?.split(',') ?? [];
     expect([tools.includes('TodoWrite'), tools.includes('Task')]).toEqual([true, false]);
+  });
+});
+
+describe('stop_agent (C-H4)', () => {
+  const alive = (pid: number) => {
+    try {
+      process.kill(pid, 0);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+  const stop = (agentId: string) => ({ tool: 'stop_agent', args: { agent_id: agentId } });
+
+  test('stops a background agent this chat runs; its notification reports the stop', async () => {
+    const rpc = startRpc(sandbox, ['--no-session']);
+    try {
+      const [launch] = toolEnds(await rpcPrompt(rpc, script([task({ prompt: 'go\n@@sleep 60000 SLOW', run_in_background: true })])), 'Task');
+      const { agentId, pid } = launch?.details as { agentId: string; pid: number };
+      const events = await rpcPrompt(rpc, script([stop(agentId)]));
+      const [stopped] = toolEnds(events, 'stop_agent');
+      expect([stopped?.isError, stopped?.text, alive(pid)]).toEqual([false, `Stopped agent ${agentId}: its run was aborted and its process has exited. Its result reports the stop; resume it with Task resume.`, false]);
+      const notice = await rpc.waitFor((event) => event.type === 'message_end' && (event['message'] as { role: string }).role === 'custom');
+      expect(contentText((notice['message'] as { content: string }).content).split('\n').filter((line) => /^(status|detail):/.test(line))).toEqual(['status: error', 'detail: Subagent was stopped with stop_agent']);
+      expect(readFileSync(join(subagentDir(), `${agentId}.json`), 'utf8')).toContain(agentId);
+    } finally {
+      await rpc.close();
+    }
+  });
+
+  test('stops an agent another Pi process runs, which Task resume there refuses to message, and leaves an idle agent alone', async () => {
+    const rpc = startRpc(sandbox, ['--no-session']);
+    try {
+      const [launch] = toolEnds(await rpcPrompt(rpc, script([task({ prompt: 'go\n@@sleep 60000 SLOW', run_in_background: true })])), 'Task');
+      const { agentId, pid } = launch?.details as { agentId: string; pid: number };
+      // Pi writes the transcript once the child takes its prompt; before that a resume finds no context to continue.
+      await vi.waitFor(() => expect(readdirSync(subagentDir()).some((name) => name.endsWith(`_${agentId}.jsonl`))).toBe(true), { timeout: 15_000, interval: 50 });
+      const resumed = await runJson(sandbox, script([task({ prompt: 'x', resume: agentId })]), ['--no-session']);
+      expect(toolEnds(resumed.events, 'Task')[0]?.text).toBe(`Agent ${agentId} is still running (pid ${pid}; lock ${join(subagentDir(), `${agentId}.lock`)}). Wait for its completion before resuming it.`);
+      const other = await runJson(sandbox, script([stop(agentId)]), ['--no-session']);
+      expect([toolEnds(other.events, 'stop_agent')[0]?.text, alive(pid)]).toEqual([
+        `Stopped agent ${agentId}: another Pi process ran it (pid ${pid}), so it got SIGTERM and has exited. That process reports the stop as the agent's result.`,
+        false,
+      ]);
+      const notice = await rpc.waitFor((event) => event.type === 'message_end' && (event['message'] as { role: string }).role === 'custom');
+      expect(contentText((notice['message'] as { content: string }).content)).toContain('status: error');
+      const again = await runJson(sandbox, script([stop(agentId)]), ['--no-session']);
+      expect(toolEnds(again.events, 'stop_agent')[0]?.text).toBe(`Agent ${agentId} is not running, so there is nothing to stop.`);
+    } finally {
+      await rpc.close();
+    }
+  });
+});
+
+describe('plan mode launches (C-H3, C-M1)', () => {
+  const git = (...args: string[]) => execFileSync('git', ['-C', sandbox.workDir, '-c', 'user.email=t@t', '-c', 'user.name=t', ...args], { encoding: 'utf8' }).trim();
+  const tools = (text: string | undefined) => /<response>\n(.*)\n<\/response>/.exec(text ?? '')?.[1]?.split(',') ?? [];
+
+  test('a cloud Task in plan mode runs here, readonly, and creates no worktree or branch', async () => {
+    git('init', '-q', '-b', 'main');
+    writeFileSync(join(sandbox.workDir, 'a.txt'), 'A');
+    git('add', 'a.txt');
+    git('commit', '-qm', 'first');
+    const rpc = startRpc(sandbox, ['--no-session']);
+    try {
+      await rpcPrompt(rpc, '/plan on');
+      const [result] = toolEnds(await rpcPrompt(rpc, script([task({ prompt: 'go\n@@tools-list', environment: 'cloud' })])), 'Task');
+      expect(result?.isError, result?.text).toBe(false);
+      expect([tools(result?.text).includes('write'), result?.details]).toEqual([false, expect.objectContaining({ readonly: true, worktree: null })]);
+      expect(result?.text).toContain('Note: environment "cloud" was ignored; plan mode runs subagents here, readonly.');
+      expect([git('branch', '--list', 'pstack/*'), existsSync(join(sandbox.agentDir, 'pstack/workspaces', slug(sandbox.workDir), 'worktrees'))]).toEqual(['', false]);
+    } finally {
+      await rpc.close();
+    }
+  });
+
+  test('a resume in plan mode runs readonly for that launch only, leaving the record writable', async () => {
+    const first = await runTask({ prompt: 'go\n@@say ONE' });
+    const agentId = idOf(first.result.text);
+    const rpc = startRpc(sandbox, ['--no-session']);
+    try {
+      await rpcPrompt(rpc, '/plan on');
+      const [planned] = toolEnds(await rpcPrompt(rpc, script([task({ prompt: 'again\n@@tools-list', resume: agentId })])), 'Task');
+      expect([tools(planned?.text).includes('write'), planned?.details]).toEqual([false, expect.objectContaining({ readonly: true })]);
+      expect(JSON.parse(readFileSync(join(subagentDir(), `${agentId}.json`), 'utf8')).readonly).toBe(false);
+      await rpcPrompt(rpc, '/plan off');
+      const [after] = toolEnds(await rpcPrompt(rpc, script([task({ prompt: 'again\n@@tools-list', resume: agentId })])), 'Task');
+      expect(tools(after?.text).includes('write')).toBe(true);
+    } finally {
+      await rpc.close();
+    }
+  });
+});
+
+describe('isolated workers share the root workspace (C-M2)', () => {
+  test("a cloud worker's own subagent is recorded in the root workspace, where agent_status in the root sees it", async () => {
+    execFileSync('git', ['init', '-q', '-b', 'main'], { cwd: sandbox.workDir });
+    execFileSync('git', ['-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-qm', 'first', '--allow-empty'], { cwd: sandbox.workDir });
+    const { result } = await runTask({ prompt: 'go\n@@task-chain 1', environment: 'cloud' });
+    const worker = (result.details as { agentId: string }).agentId;
+    const grandchild = idOf(/<response>\n([\s\S]*)\n<\/response>/.exec(result.text)?.[1]);
+    expect(worker).not.toBe(grandchild);
+    expect(readdirSync(subagentDir()).filter((name) => name.endsWith('.json')).toSorted()).toEqual([`${grandchild}.json`, `${worker}.json`].toSorted());
+    expect(readdirSync(join(sandbox.agentDir, 'pstack/workspaces'))).toEqual([slug(sandbox.workDir)]);
+    const status = await runJson(sandbox, script([{ tool: 'agent_status', args: {} }]), ['--no-session']);
+    expect(toolEnds(status.events, 'agent_status')[0]?.text.startsWith('2 subagents in this workspace:')).toBe(true);
   });
 });
 

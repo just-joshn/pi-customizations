@@ -4,20 +4,20 @@ import { join } from 'node:path';
 
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { PACKAGE_ROOT } from '../src/paths.ts';
-import { childArgs, resolveAttachments, startChild, validateAgentId } from '../src/task/runner.ts';
+import { childArgs, resolveAttachments, startChild, validateAgentId, withAttachments } from '../src/task/runner.ts';
 
 const FAKE_PI = join(PACKAGE_ROOT, 'test/fixtures/fake-pi.mjs');
 const base = { sessionDir: '/state/subagents', agentId: '11111111-2222-4333-8444-555555555555' };
 
 describe('childArgs (SEC-001, TASK-008)', () => {
-  test('always runs one JSON session per agent ID with this package loaded', () => {
-    expect(childArgs(base)).toEqual(['--mode', 'json', '--session-dir', '/state/subagents', '--session-id', base.agentId, '-e', PACKAGE_ROOT]);
+  test('always runs one RPC session per agent ID with this package loaded, so its owner can steer and stop it (C-H4)', () => {
+    expect(childArgs(base)).toEqual(['--mode', 'rpc', '--session-dir', '/state/subagents', '--session-id', base.agentId, '-e', PACKAGE_ROOT]);
   });
 
-  test('adds trust, model, thinking, readonly tools, and attachments in that order', () => {
-    expect(childArgs({ ...base, trusted: true, model: { provider: 'p', id: 'm', thinking: 'high' }, readonly: true, attachments: ['/w/a.png', '/w/b.txt'] })).toEqual([
+  test('adds trust, model, thinking, and readonly tools in that order', () => {
+    expect(childArgs({ ...base, trusted: true, model: { provider: 'p', id: 'm', thinking: 'high' }, readonly: true })).toEqual([
       '--mode',
-      'json',
+      'rpc',
       '--session-dir',
       '/state/subagents',
       '--session-id',
@@ -32,9 +32,32 @@ describe('childArgs (SEC-001, TASK-008)', () => {
       '--tools',
       'read,grep,find,ls,bash,TodoWrite',
       '--no-mcp',
-      '@/w/a.png',
-      '@/w/b.txt',
     ]);
+  });
+});
+
+test('a writable launch adds back the tools a plan-mode launch took; a readonly one never does (C-M1)', () => {
+  expect([childArgs({ ...base, restoreTools: ['edit', 'write'] }).slice(-2), childArgs({ ...base, readonly: true, restoreTools: ['edit'] }).includes('+edit')]).toEqual([['--tools', '+edit,+write'], false]);
+});
+
+describe('attachments (TASK-016)', () => {
+  let dir = '';
+  beforeEach(() => {
+    dir = mkdtempSync(join(tmpdir(), 'attach-'));
+  });
+  afterEach(() => rmSync(dir, { recursive: true, force: true }));
+
+  test("builds the message Pi builds from @file arguments: the prompt, each text file in a <file> block, images as attachments", () => {
+    const png = Buffer.from('89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c489', 'hex');
+    writeFileSync(join(dir, 'note.txt'), '\uFEFFhello\n');
+    writeFileSync(join(dir, 'empty.txt'), '');
+    writeFileSync(join(dir, 'shot.png'), png);
+    const input = withAttachments('  look at these\n', [join(dir, 'note.txt'), join(dir, 'empty.txt'), join(dir, 'shot.png')]);
+    expect(input).toEqual({
+      text: `look at these<file name="${join(dir, 'note.txt')}">\nhello\n\n</file>\n<file name="${join(dir, 'shot.png')}"></file>\n`,
+      images: [{ type: 'image', mimeType: 'image/png', data: png.toString('base64') }],
+    });
+    expect(withAttachments('plain', [])).toEqual({ text: 'plain', images: [] });
   });
 });
 
@@ -72,8 +95,8 @@ describe('input validation (SEC-001, TASK-016)', () => {
   });
 });
 
-function run(mode: string, prompt = 'hello', signal?: AbortSignal) {
-  return startChild({ command: [process.execPath, FAKE_PI], args: ['--x', 'y'], prompt, cwd: tmpdir(), env: { ...process.env, FAKE_PI_MODE: mode }, ...(signal ? { signal } : {}) });
+function run(mode: string, prompt = 'hello', signal?: AbortSignal, onEvent?: (event: { type: string }) => void) {
+  return startChild({ command: [process.execPath, FAKE_PI], args: ['--x', 'y'], prompt, cwd: tmpdir(), env: { ...process.env, FAKE_PI_MODE: mode }, ...(signal ? { signal } : {}), ...(onEvent ? { onEvent } : {}) });
 }
 
 const alive = (pid: number) => {
@@ -95,7 +118,7 @@ async function eventually(check: () => boolean, timeoutMs = 8_000): Promise<bool
 }
 
 describe('startChild', () => {
-  test('sends the prompt on stdin and returns the final assistant text with summed usage', async () => {
+  test('sends the prompt as an RPC prompt and returns the final assistant text with summed usage', async () => {
     const outcome = await run('echo', 'line one\n"quoted" $HOME').done;
     expect(outcome.finalText).toBe('GOT:line one\n"quoted" $HOME|ARGS:--x y');
     expect(outcome.usage).toEqual({ input: 20, output: 10, cacheRead: 2, cacheWrite: 4, totalTokens: 36, cost: { input: 0.2, output: 0.4, cacheRead: 0, cacheWrite: 0, total: 0.6 } });
@@ -178,5 +201,59 @@ describe('startChild', () => {
     handle.kill();
     expect((await handle.done).failure).toBe('Subagent was aborted');
     expect(await eventually(() => pids.every((pid) => !alive(pid)))).toBe(true);
+  });
+
+  test('sends attachment images with the prompt', async () => {
+    const outcome = await startChild({ command: [process.execPath, FAKE_PI], args: [], prompt: 'see', images: [{ type: 'image', mimeType: 'image/png', data: 'AA==' }], cwd: tmpdir(), env: { ...process.env, FAKE_PI_MODE: 'echo' } }).done;
+    expect(outcome.finalText).toBe('GOT:see|IMAGES:image/png|ARGS:');
+  });
+
+  test('answers a dialog request as dismissed, since nobody can answer a subagent (HOST-005)', async () => {
+    const outcome = await run('dialog').done;
+    expect(JSON.parse(outcome.finalText.slice('ANSWER:'.length))).toEqual({ type: 'extension_ui_response', id: 'dialog-1', cancelled: true });
+  });
+});
+
+describe('steer and stop (C-H4)', () => {
+  const started = (mode: string) => {
+    let begun: () => void = () => undefined;
+    const running = new Promise<void>((resolve) => {
+      begun = resolve;
+    });
+    const handle = run(mode, 'first', undefined, (event) => {
+      if (event.type === 'agent_start') begun();
+    });
+    return { handle, running };
+  };
+
+  test('steer delivers a message into the running turn, and the agent finishes with it', async () => {
+    const { handle, running } = started('wait');
+    await running;
+    await handle.steer('change course', []);
+    const outcome = await handle.done;
+    expect([outcome.finalText, outcome.failure]).toEqual(['STEERED:change course|steer', undefined]);
+  });
+
+  test('steer refuses once the agent has finished', async () => {
+    const handle = run('echo');
+    await handle.done;
+    await expect(handle.steer('too late', [])).rejects.toThrow('has finished');
+  });
+
+  test('stop aborts the run over RPC and the child exits', async () => {
+    const { handle, running } = started('wait');
+    await running;
+    handle.stop();
+    const outcome = await handle.done;
+    expect(outcome.failure).toBe('Subagent was stopped with stop_agent');
+  });
+
+  test('stop kills a child that ignores the abort after the grace period', async () => {
+    const { handle, running } = started('deaf');
+    await running;
+    const before = Date.now();
+    handle.stop();
+    const outcome = await handle.done;
+    expect([outcome.failure, Date.now() - before >= 2_500]).toEqual(['Subagent was stopped with stop_agent', true]);
   });
 });

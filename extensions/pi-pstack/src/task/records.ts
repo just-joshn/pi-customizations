@@ -1,6 +1,7 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
+import { SessionManager } from '@earendil-works/pi-coding-agent';
 import type { ModelSpec } from './models.ts';
 import type { Worktree } from './worktree.ts';
 
@@ -16,11 +17,18 @@ export interface AgentRecord {
   /** 1 for a subagent of the main chat, 2 for a subagent of a subagent; absent in records written before it existed. */
   depth?: number;
   worktree?: Worktree;
+  /** The agent whose transcript this one started as a copy of (Task `fork`). */
+  forkedFrom?: string;
 }
 
 function isWorktree(value: unknown): value is Worktree {
   const worktree = value as Partial<Worktree> | null;
   return typeof worktree === 'object' && worktree !== null && (['path', 'cwd', 'branch', 'base', 'commit'] as const).every((key) => typeof worktree[key] === 'string');
+}
+
+function isModel(value: unknown): value is ModelSpec {
+  const model = value as Partial<ModelSpec> | null;
+  return typeof model === 'object' && model !== null && typeof model.provider === 'string' && typeof model.id === 'string' && (model.thinking === undefined || typeof model.thinking === 'string');
 }
 
 function isRecord(value: unknown, agentId: string): value is AgentRecord {
@@ -33,8 +41,11 @@ function isRecord(value: unknown, agentId: string): value is AgentRecord {
     typeof record.type === 'string' &&
     typeof record.readonly === 'boolean' &&
     typeof record.cwd === 'string' &&
+    typeof record.createdAt === 'string' &&
+    (record.model === undefined || isModel(record.model)) &&
     (record.depth === undefined || Number.isInteger(record.depth)) &&
-    (record.worktree === undefined || isWorktree(record.worktree))
+    (record.worktree === undefined || isWorktree(record.worktree)) &&
+    (record.forkedFrom === undefined || typeof record.forkedFrom === 'string')
   );
 }
 
@@ -68,6 +79,67 @@ export function transcriptFor(dir: string, agentId: string): string | undefined 
   return file === undefined ? undefined : join(dir, file);
 }
 
+/** The working directory a Pi session file's header names, or undefined without a readable header. */
+function sessionCwd(file: string): string | undefined {
+  try {
+    const header = JSON.parse(readFileSync(file, 'utf8').split('\n', 1)[0] ?? '') as { type?: unknown; cwd?: unknown } | null;
+    return header?.type === 'session' && typeof header.cwd === 'string' ? header.cwd : undefined;
+  } catch (error) {
+    if (error instanceof SyntaxError) return undefined;
+    throw error;
+  }
+}
+
+/**
+ * Starts `agentId`'s transcript as a copy of `sourceId`'s, through Pi's own session fork: a new session ID in the
+ * header, the source as its parent session, and the source's working directory, so `--session-id` finds it where the
+ * source ran. Returns the new transcript path.
+ */
+export function forkTranscript(dir: string, sourceId: string, agentId: string, turns?: number): string {
+  const source = transcriptFor(dir, sourceId);
+  if (source === undefined) throw new Error(`Agent ${sourceId} has no transcript to fork.`);
+  const cwd = sessionCwd(source);
+  if (cwd === undefined) throw new Error(`Agent ${sourceId}'s transcript ${source} has no session header, so it cannot be forked.`);
+  const fork = SessionManager.forkFrom(source, cwd, dir, { id: agentId });
+  const file = fork.getSessionFile();
+  if (file === undefined) throw new Error(`Pi did not write a transcript for the fork of agent ${sourceId}.`);
+  if (turns !== undefined) keepFirstTurns(fork, file, turns);
+  return file;
+}
+
+/** Cuts the copy's active branch just before its (turns + 1)th user message, so the fork opens at the end of turn `turns`. */
+function keepFirstTurns(fork: SessionManager, file: string, turns: number): void {
+  const branch = fork.getBranch();
+  const cut = branch.filter((entry) => entry.type === 'message' && entry.message.role === 'user')[turns];
+  if (cut === undefined) return;
+  const kept = [fork.getHeader(), ...branch.slice(0, branch.indexOf(cut))];
+  writeFileSync(file, kept.map((entry) => `${JSON.stringify(entry)}\n`).join(''), { mode: 0o600 });
+}
+
+/**
+ * Tools a writable launch gives back: those a launch-only readonly run (plan mode) took from the agent's last writable
+ * loadout. Pi restores the tool loadout a session last recorded, so without them the agent would stay readonly.
+ */
+export function readonlyLaunchRestores(transcript: string): string[] {
+  const active = new Set<string>();
+  let writable: string[] = [];
+  for (const entry of SessionManager.open(transcript).getBranch()) {
+    if (entry.type !== 'message' || entry.message.role !== 'system') continue;
+    for (const tool of entry.message.toolsRemoved ?? []) active.delete(tool.name);
+    for (const tool of entry.message.toolsAdded ?? []) active.add(tool.name);
+    if (active.has('write') || active.has('edit')) writable = [...active];
+  }
+  return writable.filter((name) => !active.has(name));
+}
+
+/** IDs of every agent with a record in `dir`. */
+export function recordIds(dir: string): string[] {
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir)
+    .filter((name) => name.endsWith('.json'))
+    .map((name) => name.slice(0, -'.json'.length));
+}
+
 function alive(pid: number): boolean {
   try {
     process.kill(pid, 0);
@@ -78,6 +150,12 @@ function alive(pid: number): boolean {
 }
 
 const isPid = (value: number) => Number.isInteger(value) && value > 0;
+
+/** The live pid the agent's run lock names, or undefined when no live process holds it. */
+export function runningPid(dir: string, agentId: string): number | undefined {
+  const holder = holderOf(join(dir, `${agentId}.lock`));
+  return holder !== undefined && isPid(holder) && alive(holder) ? holder : undefined;
+}
 
 /** The pid a lock names: undefined when the file is gone, NaN when it holds no readable pid. */
 function holderOf(path: string): number | undefined {

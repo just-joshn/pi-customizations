@@ -47,7 +47,7 @@ function complete(item: TodoInput, existing: TodoItem | undefined): TodoItem {
   return { id: item.id, content, status };
 }
 
-/** Cursor's TodoWrite rule: merge updates by id and appends new ids; otherwise the call replaces the list. */
+/** TodoWrite: merge updates by id and appends new ids; otherwise the call replaces the list. */
 export function applyTodoWrite(current: readonly TodoItem[], todos: readonly TodoInput[], merge: boolean): TodoItem[] {
   const seen = new Set<string>();
   for (const item of todos) {

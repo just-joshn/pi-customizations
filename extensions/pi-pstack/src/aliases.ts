@@ -11,7 +11,7 @@ const SKILL_PREFIX = 'skill:';
 const isSkill = (command: SlashCommandInfo) => command.source === 'skill' && command.name.startsWith(SKILL_PREFIX);
 
 /**
- * Cursor-style `/name` aliases with their descriptions: every skill Pi loaded, as Cursor attaches any skill by name
+ * `/name` aliases with their descriptions: every skill Pi loaded, so any skill attaches by name
  * (pstack itself creates skills such as `/<handle>-mode`), minus any name a prompt template or extension command owns.
  * Settings that filter a skill out also drop its alias. Pi handles its built-in commands before the input event.
  */

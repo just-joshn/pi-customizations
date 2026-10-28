@@ -11,12 +11,12 @@ describe('subagent definitions', () => {
     expect(agents.map((agent) => agent.type)).toEqual(['generalPurpose', 'comment-sicko', 'poteto-agent']);
   });
 
-  test('reads Cursor frontmatter: name, description, is_background, and the prompt body (TASK-006, TASK-009)', () => {
+  test('reads agent frontmatter: name, description, is_background, and the prompt body (TASK-006, TASK-009)', () => {
     const poteto = findAgent(loadAgentDefinitions(), 'poteto-agent');
     expect(poteto).toMatchObject({ type: 'poteto-agent', background: true, readonly: false });
     expect(poteto.description.startsWith('Delegate subagent for code-writing and helper tasks spawned during a `/poteto-mode` run.')).toBe(true);
     expect(poteto.prompt).toBe(
-      "# Poteto subagent\n\nYou are operating as poteto-mode's full agent style. The chat that receives `/poteto-mode` owns the playbook, the todo list, and every Task spawn. You are one of its delegates. Read the `poteto-mode` skill's `SKILL.md` in full before doing any work, including its inline Principles index. Use the absolute path your parent gave you. With no path, before any other work, search `~/.cursor/plugins/` for a file whose path ends in `skills/poteto-mode/SKILL.md`. If more than one file matches, use the copy whose `.cursor-plugin/plugin.json` has the highest `version`. Your skill catalog hides this skill, so a missing catalog entry does not mean pstack is absent. If no such file exists, stop and tell your parent. Navigate to a leaf `principle-*` skill whenever you apply that principle.",
+      "# Poteto subagent\n\nYou are operating as poteto-mode's full agent style. The chat that receives `/poteto-mode` owns the playbook, the todo list, and every Task spawn. You are one of its delegates. Read the `poteto-mode` skill's `SKILL.md` in full before doing any work, including its inline Principles index. Use the absolute path your parent gave you. With no path, before any other work, read `skills/poteto-mode/SKILL.md` in the pi-pstack package directory the system prompt names. Your skill catalog hides this skill, so a missing catalog entry does not mean pstack is absent. If no such file exists, stop and tell your parent. Navigate to a leaf `principle-*` skill whenever you apply that principle.",
     );
     const sicko = findAgent(loadAgentDefinitions(), 'comment-sicko');
     expect(sicko).toMatchObject({ type: 'comment-sicko', background: false, readonly: false });

@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs';
 
 import type { SandboxRuntimeConfig } from '@anthropic-ai/sandbox-runtime';
-import { type BashSpawnContext, createBashTool, type ExtensionAPI, type ExtensionToolContext } from '@earendil-works/pi-coding-agent';
+import { type BashSpawnContext, createBashTool, type ExtensionAPI, type ExtensionToolContext, type ToolDefinition } from '@earendil-works/pi-coding-agent';
 
 // Cursor's readonly subagent: "no file edits, no state-changing shell commands". The OS sandbox enforces it:
 // nothing may be written and no host may be reached, so a pipe, substitution, or pager cannot get around it.
@@ -60,12 +60,19 @@ function strippedEnv(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
   return clean;
 }
 
-/** Replaces `bash` in a readonly subagent: every command runs inside the read-only OS sandbox, or not at all. */
-export function registerReadonlyShell(pi: ExtensionAPI): void {
-  pi.registerTool({
-    ...createBashTool(process.cwd()),
+type BashParameters = ReturnType<typeof createBashTool>['parameters'];
+
+/**
+ * The read-only shell as a tool definition: every command runs inside the read-only OS sandbox, or not at all.
+ * `name` lets a caller offer it next to Pi's own `bash` (plan mode does).
+ */
+export function createReadonlyBashTool(name = 'bash'): ToolDefinition<BashParameters> {
+  const base = createBashTool(process.cwd());
+  return {
+    ...base,
+    name,
     label: 'bash (read-only)',
-    description: `${createBashTool(process.cwd()).description}${NOTE}`,
+    description: `${base.description}${NOTE}`,
     async execute(toolCallId, params, signal, onUpdate, ctx: ExtensionToolContext) {
       // Fail closed: when the sandbox cannot start, the call fails here and nothing spawns.
       const sandbox = await sandboxReady();
@@ -79,13 +86,22 @@ export function registerReadonlyShell(pi: ExtensionAPI): void {
       });
       return bash.execute(toolCallId, params, signal, onUpdate);
     },
-  });
-  // On Linux the sandbox's socat bridges keep the event loop alive, so a readonly child never exits unless the
-  // sandbox is released.
-  pi.on('session_shutdown', async () => {
-    const started = ready;
-    ready = undefined;
-    const sandbox = await started?.catch(() => undefined);
-    await sandbox?.reset();
-  });
+  };
+}
+
+/**
+ * Releases the sandbox if it started. On Linux the sandbox's socat bridges keep the event loop alive, so a process
+ * that used the shell never exits unless the sandbox is released.
+ */
+export async function releaseReadonlySandbox(): Promise<void> {
+  const started = ready;
+  ready = undefined;
+  const sandbox = await started?.catch(() => undefined);
+  await sandbox?.reset();
+}
+
+/** Replaces `bash` in a readonly subagent. */
+export function registerReadonlyShell(pi: ExtensionAPI): void {
+  pi.registerTool(createReadonlyBashTool());
+  pi.on('session_shutdown', releaseReadonlySandbox);
 }

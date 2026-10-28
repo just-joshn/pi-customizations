@@ -1,5 +1,3 @@
-import { homedir } from 'node:os';
-
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { getAgentDir } from '@earendil-works/pi-coding-agent';
 import { aliasInputResult, aliasTable, packageSkillNames } from './aliases.ts';
@@ -8,25 +6,30 @@ import { aliasAutocomplete } from './autocomplete.ts';
 import { childIdentity } from './child-env.ts';
 import { registerLoop } from './loop.ts';
 import { registerMode } from './mode.ts';
-import { isOneShot } from './modes.ts';
-import { PACKAGE_ROOT, rootStoreDir, rulePath, SKILLS_DIR, storeDir, subagentDir } from './paths.ts';
+import { canAsk, isOneShot } from './modes.ts';
+import { registerPlanMode } from './plan.ts';
+import { artifactsDir, PACKAGE_ROOT, projectsDir, rootStoreDir, rulePath, SKILLS_DIR, storeDir, subagentDir } from './paths.ts';
 import { registerReadonlyShell } from './readonly-shell.ts';
-import { cursorRuleWriteReason, modelsSection, readRule } from './rule.ts';
+import { migrateLegacyRule, modelsSection, readRule } from './rule.ts';
 import { hostSection, subagentsSection } from './sections.ts';
 import { type AgentDefinition, loadAgentDefinitions } from './task/agents.ts';
+import { registerAgentStatus } from './task/status.ts';
 import { availableModels, parentModel, registerTask } from './task/tool.ts';
+import { registerSubscriptions } from './subscriptions/index.ts';
 import { registerTodoWrite } from './todo.ts';
+import { registerVisualize } from './visualize.ts';
 
 const WATCHDOG_MS = 1_000;
 const ORPHAN_EXIT_MS = 5_000;
 
-/** In a subagent, the agent definition body joins the system prompt, as Cursor uses an agent file's body as its prompt. */
+/** In a subagent, the agent definition body joins the system prompt as the agent's own instructions. */
 function agentSection(agents: readonly AgentDefinition[]): Record<string, string> {
   const prompt = agents.find((agent) => agent.type === childIdentity.agentType)?.prompt ?? '';
   return prompt === '' ? {} : { pstack_agent: prompt };
 }
 
 function hostSections(pi: ExtensionAPI, ctx: ExtensionContext, agents: readonly AgentDefinition[]): Record<string, string> {
+  const activeTools = pi.getActiveTools();
   return {
     pstack_host: hostSection({
       packageRoot: PACKAGE_ROOT,
@@ -39,10 +42,13 @@ function hostSections(pi: ExtensionAPI, ctx: ExtensionContext, agents: readonly 
       subagentDir: subagentDir(ctx.cwd),
       storeDir: storeDir(ctx.cwd, ctx.sessionManager.getSessionId()),
       rootStoreDir: rootStoreDir(ctx.cwd, ctx.sessionManager.getSessionId(), childIdentity.rootStore),
+      projectsDir: projectsDir(ctx.cwd),
+      artifactsDir: artifactsDir(ctx.cwd, ctx.sessionManager.getSessionId()),
       loopAvailable: !isOneShot(ctx.mode),
-      questionsAvailable: ctx.hasUI,
+      questionsAvailable: canAsk(ctx),
+      activeTools,
     }),
-    pstack_subagents: subagentsSection(agents, availableModels(ctx), parentModel(ctx)),
+    ...(activeTools.includes('Task') ? { pstack_subagents: subagentsSection(agents, availableModels(ctx), parentModel(ctx)) } : {}),
     pstack_models: modelsSection(readRule(rulePath()), rulePath()),
     ...agentSection(agents),
   };
@@ -89,7 +95,11 @@ export default function piPstack(pi: ExtensionAPI): void {
   });
 
   const mode = registerMode(pi);
-  const task = registerTask(pi, { agents, depth: childIdentity.depth });
+  const plan = registerPlanMode(pi);
+  registerVisualize(pi, { artifactsDir: (ctx) => artifactsDir(ctx.cwd, ctx.sessionManager.getSessionId()) });
+  const task = registerTask(pi, { agents, depth: childIdentity.depth, planMode: plan.enabled });
+  registerAgentStatus(pi);
+  registerSubscriptions(pi, { runFresh: async (prompt, name) => void (await task.startBackground(`timer ${name}`, prompt)) });
   const loop = registerLoop(pi, { hasPendingWork: task.hasBackgroundWork });
   registerTodoWrite(pi);
   registerAskQuestion(pi);
@@ -99,11 +109,9 @@ export default function piPstack(pi: ExtensionAPI): void {
   pi.on('before_agent_start', (event, ctx) => {
     const modeText = mode.section();
     const loopText = loop.section();
-    Object.assign(event.systemPromptOptions.sections, hostSections(pi, ctx, agents), modeText === undefined ? {} : { pstack_mode: modeText }, loopText === undefined ? {} : { pstack_loop: loopText });
+    const planText = plan.section();
+    Object.assign(event.systemPromptOptions.sections, hostSections(pi, ctx, agents), modeText === undefined ? {} : { pstack_mode: modeText }, loopText === undefined ? {} : { pstack_loop: loopText }, planText === undefined ? {} : { pstack_plan: planText });
   });
 
-  pi.on('tool_call', (event, ctx) => {
-    const reason = cursorRuleWriteReason(event.toolName, event.input, { cwd: ctx.cwd, home: homedir(), piRulePath: rulePath() });
-    return reason === undefined ? undefined : { block: true, reason };
-  });
+  pi.on('session_start', () => migrateLegacyRule(rulePath()));
 }

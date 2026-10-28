@@ -50,15 +50,15 @@ export function modeFromBranch(entries: readonly BranchEntry[]): ActiveMode | un
  * `/skill:name` expansion (agent-session.js `_expandSkillCommand`), which Pi does not export as a function.
  */
 export function modeSection(mode: ActiveMode): string {
-  if (mode.path === undefined) return `Custom Mode ${mode.skill} is on, but no loaded skill has that name. Tell the user to run /mode off or /mode <skill>.`;
-  if (!existsSync(mode.path)) return `Custom Mode ${mode.skill} is on, but its skill file ${mode.path} no longer exists. Tell the user to run /mode off or /mode <skill>.`;
-  // Cursor keeps the frontmatter `reminder` out of the model's context in a Custom Mode (observed, MODE-004).
+  if (mode.path === undefined) return `Mode ${mode.skill} is on, but no loaded skill has that name. Tell the user to run /mode off or /mode <skill>.`;
+  if (!existsSync(mode.path)) return `Mode ${mode.skill} is on, but its skill file ${mode.path} no longer exists. Tell the user to run /mode off or /mode <skill>.`;
+  // The frontmatter, including `reminder`, stays out of the model's context in a mode (MODE-004).
   const { body } = parseFrontmatter(readFileSync(mode.path, 'utf8'));
-  return [`Custom Mode ${mode.skill} is on for every turn until the user runs /mode off.`, `<skill name="${mode.skill}" location="${mode.path}">`, `References are relative to ${dirname(mode.path)}.`, '', body.trim(), '</skill>'].join('\n');
+  return [`Mode ${mode.skill} is on for every turn until the user runs /mode off.`, `<skill name="${mode.skill}" location="${mode.path}">`, `References are relative to ${dirname(mode.path)}.`, '', body.trim(), '</skill>'].join('\n');
 }
 
-// Cursor styles a mode's badge with the skill's `icon` (default: lightning) and `color`. A terminal has neither Cursor's
-// icon set nor its palette, so pstack's icon and the ones Cursor's skills docs name map to glyphs, and the colors to the nearest theme color.
+// A mode's badge shows the skill's `icon` (default: lightning) and `color`. Icon names map to terminal glyphs and
+// color names to the nearest theme color.
 const BADGE_ICONS: Record<string, string> = {
   crown: '♛',
   lightning: '⚡',
@@ -73,17 +73,17 @@ const BADGE_ICONS: Record<string, string> = {
 };
 const BADGE_COLORS: Record<string, ThemeColor> = { green: 'success', red: 'error', yellow: 'warning', orange: 'warning', cyan: 'accent', blue: 'accent', purple: 'accent', magenta: 'accent', brand: 'accent' };
 
-/** pstack's skills carry `icon` and `color` as metadata `cursor-icon` and `cursor-color`; a skill written for Cursor has them at the top level. */
+/** A skill carries `icon` and `color` under `metadata`, or at the top level of its frontmatter. */
 function skillMetadata(mode: ActiveMode): Record<string, unknown> {
   if (mode.path === undefined || !existsSync(mode.path)) return {};
   const { frontmatter } = parseFrontmatter(readFileSync(mode.path, 'utf8'));
   const metadata = typeof frontmatter['metadata'] === 'object' && frontmatter['metadata'] !== null ? (frontmatter['metadata'] as Record<string, unknown>) : {};
-  return { 'cursor-icon': frontmatter['icon'], 'cursor-color': frontmatter['color'], ...metadata };
+  return { icon: frontmatter['icon'], color: frontmatter['color'], ...metadata };
 }
 
 export function modeBadge(mode: ActiveMode, metadata: Record<string, unknown> = skillMetadata(mode)): { text: string; color?: ThemeColor } {
-  const iconName = String(metadata['cursor-icon']);
-  const colorName = String(metadata['cursor-color']);
+  const iconName = String(metadata['icon']);
+  const colorName = String(metadata['color']);
   const icon = Object.hasOwn(BADGE_ICONS, iconName) ? BADGE_ICONS[iconName] : BADGE_ICONS['lightning'];
   const color = Object.hasOwn(BADGE_COLORS, colorName) ? BADGE_COLORS[colorName] : undefined;
   return { text: `${icon} mode: ${mode.skill}`, ...(color === undefined ? {} : { color }) };
@@ -131,17 +131,17 @@ export function registerMode(pi: ExtensionAPI): { section: () => string | undefi
 
   const handle = (args: string, ctx: ExtensionCommandContext) => {
     const command = parseModeArgs(args);
-    if (command.kind === 'status') return ctx.ui.notify(active === undefined ? 'No Custom Mode is on.' : `Custom Mode: ${active.skill} (${active.path ?? 'no loaded skill has that name'})`, 'info');
+    if (command.kind === 'status') return ctx.ui.notify(active === undefined ? 'No mode is on.' : `Mode on: ${active.skill} (${active.path ?? 'no loaded skill has that name'}).`, 'info');
     active = command.kind === 'off' ? undefined : resolveSkill(command.skill);
     pi.appendEntry(MODE_ENTRY, active === undefined ? null : { skill: active.skill });
     show(ctx);
-    ctx.ui.notify(active === undefined ? 'Custom Mode off.' : `Custom Mode on: ${active.skill}. /mode off exits.`, 'info');
+    ctx.ui.notify(active === undefined ? 'Mode off.' : `Mode on: ${active.skill}. /mode off exits.`, 'info');
     if (command.kind === 'set' && command.task !== '') pi.sendUserMessage(command.task, { expandPromptTemplates: true, ...(ctx.isIdle() ? {} : { deliverAs: 'followUp' as const }) });
     return undefined;
   };
 
   pi.registerCommand('mode', {
-    description: "Keep a skill on every turn (Cursor's Custom Mode): /mode <skill> [task], /mode off, /mode",
+    description: "Keep a skill on every turn: /mode <skill> [task], /mode off, /mode",
     getArgumentCompletions: (prefix) => ['off', ...[...loadedSkills(pi).keys()].toSorted()].filter((name) => name.startsWith(prefix.trim())).map((name) => ({ value: name, label: name })),
     handler: async (args, ctx) => {
       try {

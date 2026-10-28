@@ -43,11 +43,11 @@ test('/mode keeps the skill on every turn until /mode off, with a status badge (
     expect(contentText((firstUser['message'] as { content: string }).content)).toBe('first task\n@@sys');
     const firstReply = rpc.events.find((event) => event.type === 'message_end' && (event['message'] as { role: string }).role === 'assistant');
     if (firstReply === undefined) throw new Error('no assistant reply');
-    expect(modeSectionOf(contentText((firstReply['message'] as { content: { type: string; text?: string }[] }).content))?.split('\n')[0]).toBe('Custom Mode poteto-mode is on for every turn until the user runs /mode off.');
+    expect(modeSectionOf(contentText((firstReply['message'] as { content: { type: string; text?: string }[] }).content))?.split('\n')[0]).toBe('Mode poteto-mode is on for every turn until the user runs /mode off.');
     expect(statuses(rpc).some((text) => typeof text === 'string' && text.replace(/\x1b\[[0-9;]*m/g, '') === '♛ mode: poteto-mode')).toBe(true);
 
     const second = modeSectionOf(await ask(rpc, 'second turn\n@@sys'));
-    expect(second?.startsWith('Custom Mode poteto-mode is on for every turn until the user runs /mode off.\n<skill name="poteto-mode"')).toBe(true);
+    expect(second?.startsWith('Mode poteto-mode is on for every turn until the user runs /mode off.\n<skill name="poteto-mode"')).toBe(true);
     expect(second).not.toContain('New task?');
     expect(second).toContain('# Poteto mode\n\nBundled skills live at `../<name>/SKILL.md` from this file');
     // The absolute path that 0.15.21's poteto-mode tells the parent to hand each poteto-agent (RES-010).
@@ -106,7 +106,7 @@ test('a mode whose stored skill path went stale is found again by name (recheck 
   const second = startRpc(sandbox, ['--session-dir', sessions, '--session', sessionFile]);
   try {
     const section = modeSectionOf(await ask(second, 'after the move\n@@sys'));
-    expect(section?.split('\n').slice(0, 2)).toEqual(['Custom Mode tdd is on for every turn until the user runs /mode off.', `<skill name="tdd" location="${join(PACKAGE_ROOT, 'skills/tdd/SKILL.md')}">`]);
+    expect(section?.split('\n').slice(0, 2)).toEqual(['Mode tdd is on for every turn until the user runs /mode off.', `<skill name="tdd" location="${join(PACKAGE_ROOT, 'skills/tdd/SKILL.md')}">`]);
   } finally {
     await second.close();
   }
@@ -133,7 +133,7 @@ test('a stored mode whose skill no longer loads never inlines the stored path (r
   const second = startRpc(sandbox, ['--session-dir', sessions, '--session', sessionFile]);
   try {
     const section = modeSectionOf(await ask(second, 'after\n@@sys'));
-    expect(section).toBe('Custom Mode gone-skill is on, but no loaded skill has that name. Tell the user to run /mode off or /mode <skill>.');
+    expect(section).toBe('Mode gone-skill is on, but no loaded skill has that name. Tell the user to run /mode off or /mode <skill>.');
   } finally {
     await second.close();
   }
@@ -145,7 +145,7 @@ test('the mode survives a restart of the same session (MODE-003)', async () => {
   let sessionFile = '';
   try {
     await command(first, '/mode tdd');
-    expect(modeSectionOf(await ask(first, 'check\n@@sys'))?.split('\n')[0]).toBe('Custom Mode tdd is on for every turn until the user runs /mode off.');
+    expect(modeSectionOf(await ask(first, 'check\n@@sys'))?.split('\n')[0]).toBe('Mode tdd is on for every turn until the user runs /mode off.');
     first.send({ id: 'state', type: 'get_state' });
     sessionFile = String(((await first.waitFor((event) => event['id'] === 'state'))['data'] as { sessionFile: string }).sessionFile);
   } finally {
@@ -153,7 +153,7 @@ test('the mode survives a restart of the same session (MODE-003)', async () => {
   }
   const second = startRpc(sandbox, ['--session-dir', sessions, '--session', sessionFile]);
   try {
-    expect(modeSectionOf(await ask(second, 'after restart\n@@sys'))?.split('\n')[0]).toBe('Custom Mode tdd is on for every turn until the user runs /mode off.');
+    expect(modeSectionOf(await ask(second, 'after restart\n@@sys'))?.split('\n')[0]).toBe('Mode tdd is on for every turn until the user runs /mode off.');
   } finally {
     await second.close();
   }
