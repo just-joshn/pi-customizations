@@ -49,7 +49,10 @@ test('KERN-011: availability has one entry per advertised tool with the referenc
   for (const entry of availability) {
     const expected = referenceByName.get(entry['name'] as string);
     const keys = Object.keys(entry).toSorted();
-    expect(requiredKeys.every((key) => keys.includes(key)), String(entry['name'])).toBe(true);
+    expect(
+      requiredKeys.every((key) => keys.includes(key)),
+      String(entry['name']),
+    ).toBe(true);
     expect(typeof entry['remediation'] === 'string' || entry['remediation'] === null).toBe(true);
     expect(entry['remediation'] === null, String(entry['name'])).toBe(entry['available'] === true);
     if (expected !== undefined) {

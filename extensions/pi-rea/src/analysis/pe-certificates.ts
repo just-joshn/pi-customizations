@@ -1,8 +1,7 @@
-
 import { createHash, X509Certificate } from 'node:crypto';
 
-import { derChildren, derIntegerHex, derOid, derUtf8, readDerNode, type DerNode } from './asn1.ts';
-import { DIR, parsePeImage, peInputError, resolvePathBytes, type PeFileLocation, type PeImage } from './pe-core.ts';
+import { type DerNode, derChildren, derIntegerHex, derOid, derUtf8, readDerNode } from './asn1.ts';
+import { DIR, type PeFileLocation, type PeImage, parsePeImage, peInputError, resolvePathBytes } from './pe-core.ts';
 
 export const DEFAULT_MAX_ENTRIES = 8;
 
@@ -120,12 +119,7 @@ const parseX509Fields = (payload: Buffer, certNode: DerNode) => {
   const issuerNode = tbsChildren[index++];
   const validityNode = tbsChildren[index++];
   const subjectNode = tbsChildren[index++];
-  if (
-    serialNode === undefined ||
-    issuerNode === undefined ||
-    validityNode === undefined ||
-    subjectNode === undefined
-  ) {
+  if (serialNode === undefined || issuerNode === undefined || validityNode === undefined || subjectNode === undefined) {
     throw new Error('X.509 TBSCertificate is truncated');
   }
   const [notBefore, notAfter] = derChildren(payload, validityNode);
@@ -156,10 +150,12 @@ const parsePkcs7 = (payload: Buffer, baseOffset: number): PePkcs7 => {
   const signedChildren = derChildren(payload, signedData);
   if (signedChildren.length < 4) throw new Error('PKCS#7 signedData lacks required fields');
 
-  const digestAlgs = derChildren(payload, signedChildren[1]!).map((alg) => {
-    const [oidNode] = derChildren(payload, alg);
-    return oidNode === undefined ? '' : derOid(payload, oidNode);
-  }).filter(Boolean);
+  const digestAlgs = derChildren(payload, signedChildren[1]!)
+    .map((alg) => {
+      const [oidNode] = derChildren(payload, alg);
+      return oidNode === undefined ? '' : derOid(payload, oidNode);
+    })
+    .filter(Boolean);
 
   const certificates: {
     location: PeFileLocation;
@@ -256,10 +252,7 @@ export interface PeCertificatesOptions {
   readonly cwd?: string;
 }
 
-export const inspectPeCertificatesFromPath = async (
-  path: string,
-  options: PeCertificatesOptions = {},
-): Promise<{ record: PeCertificatesInspection; path: string; resolvedPath: string }> => {
+export const inspectPeCertificatesFromPath = async (path: string, options: PeCertificatesOptions = {}): Promise<{ record: PeCertificatesInspection; path: string; resolvedPath: string }> => {
   const maxEntries = options.maxEntries ?? DEFAULT_MAX_ENTRIES;
   if (!Number.isInteger(maxEntries) || maxEntries < 1 || maxEntries > 4096) {
     throw peInputError('inspect_pe_certificates', path, 'invalid_value', 'max_entries must be an integer between 1 and 4096.');

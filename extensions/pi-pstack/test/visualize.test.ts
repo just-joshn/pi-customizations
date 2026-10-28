@@ -4,11 +4,18 @@ import { join } from 'node:path';
 
 import type { ExtensionAPI, ExtensionToolContext, ToolDefinition } from '@earendil-works/pi-coding-agent';
 import { expect, onTestFinished, test } from 'vitest';
-
 import { type Chart, chartError, chartSlug, MAX_POINTS, registerVisualize, renderChartSvg, renderChartText } from '../src/visualize.ts';
 
 const bar: Chart = { title: 'Latency by route', kind: 'bar', labels: ['/a', '/bb', '/c'], series: [{ name: 'p50', values: [10, 40, 0] }], unit: 'ms' };
-const line: Chart = { title: 'Load', kind: 'line', labels: ['mon', 'tue', 'wed', 'thu'], series: [{ name: 'cpu', values: [1, 5, 3, 9] }, { name: 'mem', values: [2, 2, 8, 4] }] };
+const line: Chart = {
+  title: 'Load',
+  kind: 'line',
+  labels: ['mon', 'tue', 'wed', 'thu'],
+  series: [
+    { name: 'cpu', values: [1, 5, 3, 9] },
+    { name: 'mem', values: [2, 2, 8, 4] },
+  ],
+};
 
 /** A minimal well-formedness check: every tag closes in order and every attribute is quoted. */
 function assertWellFormed(xml: string): void {

@@ -1,4 +1,3 @@
-
 import { createHash } from 'node:crypto';
 import { open, stat } from 'node:fs/promises';
 import { isAbsolute, resolve } from 'node:path';
@@ -110,12 +109,19 @@ const sha256File = async (path: string): Promise<{ sha256: string; bytes: number
 const nodeSupportsSqliteLimits = async (): Promise<{ ok: boolean; version: string | null; detail: string }> => {
   try {
     const mod = await import('node:sqlite');
-    const DatabaseSync = (mod as { DatabaseSync?: new (path: string, options?: { readOnly?: boolean }) => {
-      readonly limits?: unknown;
-      prepare: (sql: string) => { all: (...params: unknown[]) => unknown[]; get: (...params: unknown[]) => unknown };
-      exec: (sql: string) => void;
-      close: () => void;
-    } }).DatabaseSync;
+    const DatabaseSync = (
+      mod as {
+        DatabaseSync?: new (
+          path: string,
+          options?: { readOnly?: boolean },
+        ) => {
+          readonly limits?: unknown;
+          prepare: (sql: string) => { all: (...params: unknown[]) => unknown[]; get: (...params: unknown[]) => unknown };
+          exec: (sql: string) => void;
+          close: () => void;
+        };
+      }
+    ).DatabaseSync;
     if (DatabaseSync === undefined) return { ok: false, version: null, detail: 'node:sqlite DatabaseSync is unavailable' };
     const db = new DatabaseSync(':memory:');
     try {
@@ -172,16 +178,14 @@ export interface SqliteOptions {
   readonly cwd?: string;
 }
 
-export const inspectSqliteDatabaseFromPath = async (
-  path: string,
-  options: SqliteOptions = {},
-): Promise<{ record: SqliteInspection; path: string; resolvedPath: string }> => {
+export const inspectSqliteDatabaseFromPath = async (path: string, options: SqliteOptions = {}): Promise<{ record: SqliteInspection; path: string; resolvedPath: string }> => {
   const support = await nodeSupportsSqliteLimits();
   if (!support.ok) {
-    throw capabilityUnavailable(
-      `inspect_sqlite_database requires Node.js 24.x >=24.15 or 26+ with native DatabaseSync.limits support (${support.detail}).`,
-      { operation: 'inspect_sqlite_database', reason: 'runtime_prerequisite', detail: support.detail },
-    );
+    throw capabilityUnavailable(`inspect_sqlite_database requires Node.js 24.x >=24.15 or 26+ with native DatabaseSync.limits support (${support.detail}).`, {
+      operation: 'inspect_sqlite_database',
+      reason: 'runtime_prerequisite',
+      detail: support.detail,
+    });
   }
 
   const workerTimeoutMs = options.workerTimeoutMs ?? 30_000;
@@ -225,33 +229,31 @@ export const inspectSqliteDatabaseFromPath = async (
   }
 
   const mod = await import('node:sqlite');
-  const DatabaseSync = (mod as { DatabaseSync: new (path: string, options?: { readOnly?: boolean }) => {
-    prepare: (sql: string) => { all: (...params: unknown[]) => unknown[]; get: (...params: unknown[]) => unknown };
-    close: () => void;
-  } }).DatabaseSync;
+  const DatabaseSync = (
+    mod as {
+      DatabaseSync: new (
+        path: string,
+        options?: { readOnly?: boolean },
+      ) => {
+        prepare: (sql: string) => { all: (...params: unknown[]) => unknown[]; get: (...params: unknown[]) => unknown };
+        close: () => void;
+      };
+    }
+  ).DatabaseSync;
   const db = new DatabaseSync(resolvedPath, { readOnly: true });
   try {
     const encodingRow = db.prepare('pragma encoding').get() as { encoding?: string } | undefined;
     const encodingRaw = encodingRow?.encoding ?? 'UTF-8';
-    const database_encoding: SqliteInspection['database_encoding'] =
-      encodingRaw === 'UTF-16le' || encodingRaw === 'UTF-16be' ? encodingRaw : 'UTF-8';
+    const database_encoding: SqliteInspection['database_encoding'] = encodingRaw === 'UTF-16le' || encodingRaw === 'UTF-16be' ? encodingRaw : 'UTF-8';
 
-    const tableList = db
-      .prepare(`select name, type, ncol, wr, strict from pragma_table_list where schema = 'main'`)
-      .all() as { name: string; type: string; ncol: number; wr: number; strict: number }[];
+    const tableList = db.prepare(`select name, type, ncol, wr, strict from pragma_table_list where schema = 'main'`).all() as { name: string; type: string; ncol: number; wr: number; strict: number }[];
     const tableMeta = new Map(tableList.map((row) => [row.name, row]));
 
-    const scope: SqliteInspection['schema']['scope'] =
-      options.schemaScope ?? (options.table === undefined ? 'inventory' : 'selected_table');
+    const scope: SqliteInspection['schema']['scope'] = options.schemaScope ?? (options.table === undefined ? 'inventory' : 'selected_table');
     const selected = options.table;
     const declaration = scope === 'inventory' ? '' : ', sql';
-    const selection =
-      scope === 'selected_table' ? ` where tbl_name = ${quoteLiteral(selected ?? '')}` : '';
-    const master = db
-      .prepare(
-        `select type, name, tbl_name, rootpage${declaration} from main.sqlite_schema${selection}`,
-      )
-      .all() as { type: string; name: string; tbl_name: string; rootpage: number; sql?: string | null }[];
+    const selection = scope === 'selected_table' ? ` where tbl_name = ${quoteLiteral(selected ?? '')}` : '';
+    const master = db.prepare(`select type, name, tbl_name, rootpage${declaration} from main.sqlite_schema${selection}`).all() as { type: string; name: string; tbl_name: string; rootpage: number; sql?: string | null }[];
 
     const tables: SqliteTable[] = [];
     const indexes: SqliteIndex[] = [];
@@ -319,14 +321,8 @@ export const inspectSqliteDatabaseFromPath = async (
       }
 
       const sqlLower = (entry.sql ?? '').toLowerCase();
-      const kindFromList =
-        listed?.type === 'virtual' ? 'virtual' : listed?.type === 'table' ? 'table' : tableKind(entry.sql ?? null, entry.name);
-      const columnCount =
-        listed === undefined
-          ? null
-          : listed.type === 'virtual' && listed.ncol === 0
-            ? null
-            : listed.ncol;
+      const kindFromList = listed?.type === 'virtual' ? 'virtual' : listed?.type === 'table' ? 'table' : tableKind(entry.sql ?? null, entry.name);
+      const columnCount = listed === undefined ? null : listed.type === 'virtual' && listed.ncol === 0 ? null : listed.ncol;
       tables.push({
         name: entry.name,
         ...(scope === 'inventory' ? {} : { sql: entry.sql ?? null }),
@@ -354,9 +350,7 @@ export const inspectSqliteDatabaseFromPath = async (
         options.columns ??
         (table.columns.length > 0
           ? table.columns.filter((col) => col.hidden === 0).map((col) => col.name)
-          : ((db.prepare(`pragma table_xinfo(${quoteIdent(selected)})`).all() as { name: string; hidden: number }[])
-              .filter((col) => col.hidden === 0)
-              .map((col) => col.name)));
+          : (db.prepare(`pragma table_xinfo(${quoteIdent(selected)})`).all() as { name: string; hidden: number }[]).filter((col) => col.hidden === 0).map((col) => col.name));
       if (columnNames.length === 0) throw inputError(path, 'invalid_value', 'no visible columns available to sample.');
       const sql = `select ${columnNames.map(quoteIdent).join(', ')} from ${quoteIdent(selected)} limit ?`;
       const rawRows = db.prepare(sql).all(rowLimit) as Record<string, unknown>[];

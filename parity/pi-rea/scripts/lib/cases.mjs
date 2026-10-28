@@ -1,8 +1,7 @@
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
 import { tmpdir } from 'node:os';
+import { dirname, join } from 'node:path';
 
-import { NOTEPAD_APP, target } from './paths.mjs';
 import {
   ensureAltGoPeFixture,
   ensureDevicetreeFixture,
@@ -14,14 +13,13 @@ import {
   ensureWebPageCaptureFixture,
   resetWebScriptOutputDirectory,
 } from './ensure-fixtures.mjs';
-import { classifyOracle, invokeReaAgentsCli, invokeReaAgentsMcp, invokeReaAgentsMcpSession } from './invoke-rea-agents.mjs';
 import { createSession, openTarget, piHandlers } from './invoke-pi-rea.mjs';
+import { classifyOracle, invokeReaAgentsCli, invokeReaAgentsMcp, invokeReaAgentsMcpSession } from './invoke-rea-agents.mjs';
+import { NOTEPAD_APP, target } from './paths.mjs';
 
 const pathWithoutAndroidAdb = () => {
   const nodeDir = dirname(process.execPath);
-  const filtered = (process.env.PATH ?? '')
-    .split(':')
-    .filter((part) => part !== '' && !/Android\/sdk|platform-tools/i.test(part));
+  const filtered = (process.env.PATH ?? '').split(':').filter((part) => part !== '' && !/Android\/sdk|platform-tools/i.test(part));
   if (!filtered.includes(nodeDir)) filtered.unshift(nodeDir);
   return filtered.join(':');
 };
@@ -41,9 +39,7 @@ const READ_BYTES_ARGS = { address: '0x0', length: 1 };
 let cachedGoEvidence = null;
 const goBinaryEvidence = async () => {
   if (cachedGoEvidence !== null) return cachedGoEvidence;
-  const classified = classifyOracle(
-    (await invokeReaAgentsCli(['inspect-go-binary', target('pe/fixture-go-pe.exe')])).parsed,
-  );
+  const classified = classifyOracle((await invokeReaAgentsCli(['inspect-go-binary', target('pe/fixture-go-pe.exe')])).parsed);
   if (classified.kind !== 'evidence') throw new Error('inspect-go-binary fixture did not return Evidence');
   cachedGoEvidence = classified.body;
   return cachedGoEvidence;
@@ -79,14 +75,7 @@ const oracleMcp = async (toolName, args = {}) => {
 
 /** @typedef {{ id: string, tool: string, prepare?: () => void | Promise<void>, runPiRea: () => Promise<{kind:string, body:unknown}>, runOracle: () => Promise<{kind:string, body:unknown}> }} DiffCase */
 
-const SESSION_LIST_TOOLS = [
-  'list_bookmarks',
-  'list_documents',
-  'list_names',
-  'list_procedures',
-  'list_segments',
-  'list_strings',
-];
+const SESSION_LIST_TOOLS = ['list_bookmarks', 'list_documents', 'list_names', 'list_procedures', 'list_segments', 'list_strings'];
 
 const closedSessionListCases = () =>
   SESSION_LIST_TOOLS.map((tool) => ({
@@ -181,15 +170,7 @@ export const CASES = [
       const path = target('pe/fixture-pe-resources.exe');
       return piHandlers.inspect_pe_resources(session, { path, max_file_bytes: 67_108_864, max_entries: 4096 });
     },
-    runOracle: () =>
-      oracleCli([
-        'inspect-pe-resources',
-        target('pe/fixture-pe-resources.exe'),
-        '--max-file-bytes',
-        '67108864',
-        '--max-entries',
-        '4096',
-      ]),
+    runOracle: () => oracleCli(['inspect-pe-resources', target('pe/fixture-pe-resources.exe'), '--max-file-bytes', '67108864', '--max-entries', '4096']),
   },
   {
     id: 'inspect_pe_imports--fixture-go-pe',
@@ -378,8 +359,7 @@ export const CASES = [
   {
     id: 'inspect_analysis_settings--asar-max-header',
     tool: 'inspect_analysis_settings',
-    runPiRea: async () =>
-      piHandlers.inspect_analysis_settings(createSession(), { settings: ['asar.max_header_bytes'] }),
+    runPiRea: async () => piHandlers.inspect_analysis_settings(createSession(), { settings: ['asar.max_header_bytes'] }),
     runOracle: () => oracleMcp('inspect_analysis_settings', { settings: ['asar.max_header_bytes'] }),
   },
   {
@@ -399,10 +379,7 @@ export const CASES = [
     runOracle: async () => {
       const [updated] = await invokeReaAgentsMcpSession([
         ['update_analysis_settings', { changes: [{ setting: 'asar.max_header_bytes', action: 'set', value: 33_554_432 }] }],
-        [
-          'update_analysis_settings',
-          { changes: [{ setting: 'asar.max_header_bytes', action: 'reset' }], expected_revision: 1 },
-        ],
+        ['update_analysis_settings', { changes: [{ setting: 'asar.max_header_bytes', action: 'reset' }], expected_revision: 1 }],
       ]);
       return { kind: updated.kind, body: updated.body };
     },
@@ -410,8 +387,7 @@ export const CASES = [
   {
     id: 'verify_unknown_resolution--missing-id',
     tool: 'verify_unknown_resolution',
-    runPiRea: async () =>
-      piHandlers.verify_unknown_resolution(createSession(), { unknown_id: `unk_${'0'.repeat(64)}` }),
+    runPiRea: async () => piHandlers.verify_unknown_resolution(createSession(), { unknown_id: `unk_${'0'.repeat(64)}` }),
     runOracle: () => oracleMcp('verify_unknown_resolution', { unknown_id: `unk_${'0'.repeat(64)}` }),
   },
   ...closedSessionListCases(),
@@ -467,8 +443,7 @@ export const CASES = [
       await piHandlers.open_bundle_resources(session, { path: target('bundle/Fixture.app') });
       return piHandlers.inspect_keyed_archive(session, { path: 'Contents/Resources/archive.plist' });
     },
-    runOracle: () =>
-      oracleCli(['inspect-keyed-archive', target('bundle/Fixture.app'), 'Contents/Resources/archive.plist']),
+    runOracle: () => oracleCli(['inspect-keyed-archive', target('bundle/Fixture.app'), 'Contents/Resources/archive.plist']),
   },
   {
     id: 'inspect_asset_catalog--fixture-app',
@@ -483,29 +458,25 @@ export const CASES = [
   {
     id: 'inspect_managed_artifact--fixture-go-pe',
     tool: 'inspect_managed_artifact',
-    runPiRea: async () =>
-      piHandlers.inspect_managed_artifact(createSession(), { path: target('pe/fixture-go-pe.exe') }),
+    runPiRea: async () => piHandlers.inspect_managed_artifact(createSession(), { path: target('pe/fixture-go-pe.exe') }),
     runOracle: () => oracleCli(['inspect-managed-artifact', target('pe/fixture-go-pe.exe')]),
   },
   {
     id: 'inspect_managed_members--fixture-go-pe',
     tool: 'inspect_managed_members',
-    runPiRea: async () =>
-      piHandlers.inspect_managed_members(createSession(), { path: target('pe/fixture-go-pe.exe') }),
+    runPiRea: async () => piHandlers.inspect_managed_members(createSession(), { path: target('pe/fixture-go-pe.exe') }),
     runOracle: () => oracleCli(['inspect-managed-members', target('pe/fixture-go-pe.exe')]),
   },
   {
     id: 'identify_flutter_build--demo-apk',
     tool: 'identify_flutter_build',
-    runPiRea: async () =>
-      piHandlers.identify_flutter_build(createSession(), { path: target('flutter/demo.apk') }),
+    runPiRea: async () => piHandlers.identify_flutter_build(createSession(), { path: target('flutter/demo.apk') }),
     runOracle: () => oracleCli(['identify-flutter-build', target('flutter/demo.apk')]),
   },
   {
     id: 'inspect_dart_aot--demo-apk',
     tool: 'inspect_dart_aot',
-    runPiRea: async () =>
-      piHandlers.inspect_dart_aot(createSession(), { path: target('flutter/demo.apk'), abi: 'arm64-v8a' }),
+    runPiRea: async () => piHandlers.inspect_dart_aot(createSession(), { path: target('flutter/demo.apk'), abi: 'arm64-v8a' }),
     runOracle: () => oracleCli(['inspect-dart-aot', target('flutter/demo.apk'), '--abi', 'arm64-v8a']),
   },
   {
@@ -536,17 +507,7 @@ export const CASES = [
         max_connections: 40000,
       });
     },
-    runOracle: () =>
-      oracleCli([
-        'decode-interface-builder',
-        target('bundle/Fixture.app'),
-        '--max-documents',
-        '64',
-        '--max-objects',
-        '20000',
-        '--max-connections',
-        '40000',
-      ]),
+    runOracle: () => oracleCli(['decode-interface-builder', target('bundle/Fixture.app'), '--max-documents', '64', '--max-objects', '20000', '--max-connections', '40000']),
   },
   {
     id: 'extract_artifact--fixture-zip',
@@ -613,8 +574,7 @@ export const CASES = [
     id: 'inspect_recorded_crash--minimal-core',
     tool: 'inspect_recorded_crash',
     prepare: ensureMinimalElfCoreFixture,
-    runPiRea: async () =>
-      piHandlers.inspect_recorded_crash(createSession(), { path: ensureMinimalElfCoreFixture() }),
+    runPiRea: async () => piHandlers.inspect_recorded_crash(createSession(), { path: ensureMinimalElfCoreFixture() }),
     runOracle: () => oracleCli(['inspect-recorded-crash', ensureMinimalElfCoreFixture()]),
   },
   {
@@ -637,12 +597,8 @@ export const CASES = [
     },
     runOracle: async () => {
       const { left, right } = ensureJsCompareFixtures();
-      const leftEv = classifyOracle(
-        (await invokeReaAgentsCli(['analyze-javascript-application', left, '--artifact-format', 'directory'])).parsed,
-      );
-      const rightEv = classifyOracle(
-        (await invokeReaAgentsCli(['analyze-javascript-application', right, '--artifact-format', 'directory'])).parsed,
-      );
+      const leftEv = classifyOracle((await invokeReaAgentsCli(['analyze-javascript-application', left, '--artifact-format', 'directory'])).parsed);
+      const rightEv = classifyOracle((await invokeReaAgentsCli(['analyze-javascript-application', right, '--artifact-format', 'directory'])).parsed);
       return oracleMcp('compare_javascript_export_shapes', {
         left: leftEv.body,
         right: rightEv.body,
@@ -666,12 +622,8 @@ export const CASES = [
     },
     runOracle: async () => {
       const { left, right } = ensureJsCompareFixtures();
-      const leftEv = classifyOracle(
-        (await invokeReaAgentsCli(['analyze-javascript-application', left, '--artifact-format', 'directory'])).parsed,
-      );
-      const rightEv = classifyOracle(
-        (await invokeReaAgentsCli(['analyze-javascript-application', right, '--artifact-format', 'directory'])).parsed,
-      );
+      const leftEv = classifyOracle((await invokeReaAgentsCli(['analyze-javascript-application', left, '--artifact-format', 'directory'])).parsed);
+      const rightEv = classifyOracle((await invokeReaAgentsCli(['analyze-javascript-application', right, '--artifact-format', 'directory'])).parsed);
       return oracleMcp('compare_application_versions', { left: leftEv.body, right: rightEv.body });
     },
   },
@@ -689,9 +641,7 @@ export const CASES = [
     runOracle: async () => {
       const { left } = ensureJsCompareFixtures();
       const reference = await importHistoricalSourceGraph(left);
-      const app = classifyOracle(
-        (await invokeReaAgentsCli(['analyze-javascript-application', left, '--artifact-format', 'directory'])).parsed,
-      );
+      const app = classifyOracle((await invokeReaAgentsCli(['analyze-javascript-application', left, '--artifact-format', 'directory'])).parsed);
       return oracleMcp('compare_source_to_bundle', { reference, application: app.body });
     },
   },
@@ -726,9 +676,7 @@ export const CASES = [
     },
     runOracle: async () => {
       const zip = ensureFixtureAppZip();
-      const inventory = classifyOracle(
-        (await invokeReaAgentsCli(['inspect-artifact', zip, '--integrity-policy', 'fail'])).parsed,
-      );
+      const inventory = classifyOracle((await invokeReaAgentsCli(['inspect-artifact', zip, '--integrity-policy', 'fail'])).parsed);
       return oracleMcp('project_apple_application_graph', { inventory_evidence: [inventory.body] });
     },
   },
@@ -763,10 +711,8 @@ export const CASES = [
   {
     id: 'start_frida_session--missing',
     tool: 'start_frida_session',
-    runPiRea: async () =>
-      piHandlers.start_frida_session(createSession(), { mode: 'attach', device_id: 'local', pid: 999_999_999 }),
-    runOracle: () =>
-      oracleMcp('start_frida_session', { mode: 'attach', device_id: 'local', pid: 999_999_999 }),
+    runPiRea: async () => piHandlers.start_frida_session(createSession(), { mode: 'attach', device_id: 'local', pid: 999_999_999 }),
+    runOracle: () => oracleMcp('start_frida_session', { mode: 'attach', device_id: 'local', pid: 999_999_999 }),
   },
   {
     id: 'list_browser_targets--unreachable',
@@ -783,8 +729,7 @@ export const CASES = [
   {
     id: 'execute_rizin_command--missing',
     tool: 'execute_rizin_command',
-    runPiRea: async () =>
-      piHandlers.execute_rizin_command(createSession(), { path: target('minimal-elf.bin'), command: 'i' }),
+    runPiRea: async () => piHandlers.execute_rizin_command(createSession(), { path: target('minimal-elf.bin'), command: 'i' }),
     runOracle: () => oracleMcp('execute_rizin_command', { path: target('minimal-elf.bin'), command: 'i' }),
   },
   {
@@ -807,8 +752,7 @@ export const CASES = [
         path: target('minimal-elf.bin'),
         fields: ['frame.number'],
       }),
-    runOracle: () =>
-      oracleMcp('inspect_packet_capture', { path: target('minimal-elf.bin'), fields: ['frame.number'] }),
+    runOracle: () => oracleMcp('inspect_packet_capture', { path: target('minimal-elf.bin'), fields: ['frame.number'] }),
   },
   {
     id: 'inspect_pcap_client--missing',
@@ -825,8 +769,7 @@ export const CASES = [
   {
     id: 'inspect_evm_interface--missing',
     tool: 'inspect_evm_interface',
-    runPiRea: async () =>
-      piHandlers.inspect_evm_interface(createSession(), { path: target('minimal-elf.bin'), encoding: 'raw' }),
+    runPiRea: async () => piHandlers.inspect_evm_interface(createSession(), { path: target('minimal-elf.bin'), encoding: 'raw' }),
     runOracle: () => oracleMcp('inspect_evm_interface', { path: target('minimal-elf.bin'), encoding: 'raw' }),
   },
   {
@@ -859,8 +802,7 @@ export const CASES = [
         operation: 'file_headers',
         path: target('minimal-elf.bin'),
       }),
-    runOracle: () =>
-      oracleMcp('inspect_with_objdump', { operation: 'file_headers', path: target('minimal-elf.bin') }),
+    runOracle: () => oracleMcp('inspect_with_objdump', { operation: 'file_headers', path: target('minimal-elf.bin') }),
   },
   {
     id: 'list_cutter_sessions--missing',
@@ -891,8 +833,7 @@ export const CASES = [
   {
     id: 'inspect_firmware_regions--missing',
     tool: 'inspect_firmware_regions',
-    runPiRea: async () =>
-      piHandlers.inspect_firmware_regions(createSession(), { path: target('minimal-elf.bin') }),
+    runPiRea: async () => piHandlers.inspect_firmware_regions(createSession(), { path: target('minimal-elf.bin') }),
     runOracle: () => oracleMcp('inspect_firmware_regions', { path: target('minimal-elf.bin') }),
   },
   {
@@ -903,8 +844,7 @@ export const CASES = [
         path: target('apk/v1-only.apk'),
         class_name: 'a.b.C',
       }),
-    runOracle: () =>
-      oracleMcp('inspect_android_class', { path: target('apk/v1-only.apk'), class_name: 'a.b.C' }),
+    runOracle: () => oracleMcp('inspect_android_class', { path: target('apk/v1-only.apk'), class_name: 'a.b.C' }),
   },
   {
     id: 'list_frida_devices--missing',
@@ -937,8 +877,7 @@ export const CASES = [
   {
     id: 'inspect_native_exports--gap',
     tool: 'inspect_native_exports',
-    runPiRea: async () =>
-      piHandlers.inspect_native_exports(createSession(), { path: target('minimal-elf.bin') }),
+    runPiRea: async () => piHandlers.inspect_native_exports(createSession(), { path: target('minimal-elf.bin') }),
     runOracle: () => oracleMcp('inspect_native_exports', { path: target('minimal-elf.bin') }),
   },
   {
@@ -955,14 +894,12 @@ export const CASES = [
         path: target('minimal-elf.bin'),
         decoders: 'uart',
       }),
-    runOracle: () =>
-      oracleMcp('decode_signal_recording', { path: target('minimal-elf.bin'), decoders: 'uart' }),
+    runOracle: () => oracleMcp('decode_signal_recording', { path: target('minimal-elf.bin'), decoders: 'uart' }),
   },
   {
     id: 'inspect_pcap_capture--missing',
     tool: 'inspect_pcap_capture',
-    runPiRea: async () =>
-      piHandlers.inspect_pcap_capture(createSession(), { path: target('minimal-elf.bin') }),
+    runPiRea: async () => piHandlers.inspect_pcap_capture(createSession(), { path: target('minimal-elf.bin') }),
     runOracle: () => oracleMcp('inspect_pcap_capture', { path: target('minimal-elf.bin') }),
   },
   {
@@ -980,8 +917,7 @@ export const CASES = [
   {
     id: 'export_environment_bundle--invalid-capture',
     tool: 'export_environment_bundle',
-    runPiRea: async () =>
-      piHandlers.export_environment_bundle(createSession(), await invalidExportEnvironmentArgs()),
+    runPiRea: async () => piHandlers.export_environment_bundle(createSession(), await invalidExportEnvironmentArgs()),
     runOracle: async () => oracleMcp('export_environment_bundle', await invalidExportEnvironmentArgs()),
   },
 ];

@@ -5,13 +5,13 @@ import { artifactRef, coverage, edgeEvidence, graphEdge, graphNode } from '../en
 import { extractFromTokens, interpretArgument } from './javascript-graph.mjs';
 import { tokenize } from './javascript-lexer.mjs';
 import {
+  AST_COVERAGE_LIMITATION,
   artifactLocalIdentity,
   assetProperties,
-  AST_COVERAGE_LIMITATION,
   BARE_PACKAGE_LIMITATION,
+  COVERAGE_LIMITATION,
   contentDigestIdentity,
   digestFor,
-  COVERAGE_LIMITATION,
   ELECTRON_IDENTITY_LIMITATION,
   ELECTRON_LIMITATION,
   EXPOSE_EDGE_LIMITATIONS,
@@ -27,25 +27,18 @@ import {
   RETURN_SHAPE_LIMITATION,
   RUNTIME_RELATION_LIMITATION,
   SEMANTIC_ANALYSIS_LIMITATIONS,
+  STATIC_UNRESOLVED_LIMITATION,
   semanticImportEdgeLimitations,
   sortEdges,
   sortNodes,
   staticImportEdgeLimitations,
-  STATIC_UNRESOLVED_LIMITATION,
   WEB_PREFERENCES_LIMITATION,
 } from './javascript-nodes.mjs';
 
 const IPC_REGISTRATION_RANGES = new Map();
+
 import { countVisitedAstNodes } from './javascript-ast-count.mjs';
-import {
-  addBridgeInvokeCallPaths,
-  addFilesystemExpressionRenderers,
-  addNativeBindingEdges,
-  addNestedPackageNodes,
-  addSourceMapOriginals,
-  attachNativeAddonContains,
-  observationFingerprintIdentity,
-} from './javascript-electron-densify.mjs';
+import { addBridgeInvokeCallPaths, addFilesystemExpressionRenderers, addNativeBindingEdges, addNestedPackageNodes, addSourceMapOriginals, attachNativeAddonContains, observationFingerprintIdentity } from './javascript-electron-densify.mjs';
 import { buildRouteInventory } from './javascript-route-inventory.mjs';
 import { projectMeasuredSemanticGraph } from './javascript-semantic-graph.mjs';
 import { decodeText, extensionOf, isTextFile } from './target-source.mjs';
@@ -223,8 +216,7 @@ function extractFiles({ relevant, readFileBytes, statistics }) {
     if (decoded.invalid) statistics.invalid_utf8_files += 1;
     statistics.text_bytes_read += bytes.length;
     if (!isJavaScriptFile(logicalPath)) {
-      const htmlScripts =
-        extensionOf(logicalPath) === '.html' || extensionOf(logicalPath) === '.htm' ? extractHtmlScripts(text) : [];
+      const htmlScripts = extensionOf(logicalPath) === '.html' || extensionOf(logicalPath) === '.htm' ? extractHtmlScripts(text) : [];
       statistics.findings += htmlScripts.length;
       byFile.set(logicalPath, { bytes, sha256: digestFor(bytes), text, tokens: null, found: null, htmlScripts });
       continue;
@@ -240,23 +232,11 @@ function extractFiles({ relevant, readFileBytes, statistics }) {
 }
 
 function staticFindingCount(found) {
-  return (
-    found.browserWindows.length +
-    found.contextBridges.length +
-    found.ipcMain.length +
-    found.ipcRenderer.length +
-    found.nativeRequests.length +
-    found.loaders.length
-  );
+  return found.browserWindows.length + found.contextBridges.length + found.ipcMain.length + found.ipcRenderer.length + found.nativeRequests.length + found.loaders.length;
 }
 
 function moduleLinkCount(found) {
-  return (
-    found.imports.length +
-    (found.requireBindings?.length ?? 0) +
-    found.exports.length +
-    (found.commonjsExports?.length ?? 0)
-  );
+  return found.imports.length + (found.requireBindings?.length ?? 0) + found.exports.length + (found.commonjsExports?.length ?? 0);
 }
 
 function extractHtmlScripts(text) {
@@ -302,17 +282,7 @@ function resolveSpecifier({ specifier, fromPath, fileIndex }) {
   return { status: 'external', resolvedPath: null, targetFileKind: null };
 }
 
-function buildGraph({
-  source,
-  packageJson,
-  extraction,
-  fileIndex,
-  statistics,
-  readFileBytes,
-  rootArtifactSha256,
-  inventoryManifestId,
-  inventoryGraphSha256,
-}) {
+function buildGraph({ source, packageJson, extraction, fileIndex, statistics, readFileBytes, rootArtifactSha256, inventoryManifestId, inventoryGraphSha256 }) {
   const context = {
     nodes: [],
     edges: [],
@@ -386,11 +356,7 @@ function buildGraph({
   addHtmlRendererMapsTo(context);
   addIpcHandlerContains(context);
   if (packageNodeValue !== null && roles.main !== null) {
-    const mainRole = context.nodes.find(
-      (node) =>
-        node.kind === 'electron-main' &&
-        node.observations.some((observation) => observation.properties.resolved_path === roles.main),
-    );
+    const mainRole = context.nodes.find((node) => node.kind === 'electron-main' && node.observations.some((observation) => observation.properties.resolved_path === roles.main));
     if (mainRole !== undefined) {
       context.edges.push(
         graphEdge({
@@ -443,13 +409,7 @@ function buildGraph({
     }
   }
   const summary = buildSummary({ nodes: context.nodes, ipcPairs, nativeRequests, extraction });
-  const electronApiFindings =
-    summary.browser_windows +
-    summary.context_bridge_apis +
-    summary.ipc.operations +
-    summary.sender_validation_observations +
-    summary.utility_processes +
-    summary.native_addon_bindings;
+  const electronApiFindings = summary.browser_windows + summary.context_bridge_apis + summary.ipc.operations + summary.sender_validation_observations + summary.utility_processes + summary.native_addon_bindings;
   const parseComplete = statistics.parse_failures === 0 && statistics.skipped_javascript_files === 0;
   const hasSourceMaps = [...fileIndex.keys()].some((path) => extensionOf(path) === '.map');
   const coverageComplete = parseComplete && !hasSourceMaps && summary.native_addon_bindings === 0;
@@ -469,8 +429,7 @@ function buildGraph({
   ].sort((left, right) => (left < right ? -1 : left > right ? 1 : 0));
   const nodes = sortNodes(context.nodes);
   const edges = sortEdges(context.edges);
-  const rootNodeIdsValue =
-    packageNodeValue !== null ? [packageNodeValue.node_id] : rootNodeIds(context.nodes, packageJson);
+  const rootNodeIdsValue = packageNodeValue !== null ? [packageNodeValue.node_id] : rootNodeIds(context.nodes, packageJson);
   const graphContent = {
     schema: 'JavaScriptApplicationGraph',
     root_node_ids: rootNodeIdsValue,
@@ -561,30 +520,11 @@ function addFileFacts({ context, logicalPath, file, roles, readFileBytes }) {
     path: logicalPath,
     sha256: file.sha256,
   });
-  const fileKind =
-    logicalPath === 'package.json' || logicalPath.endsWith('/package.json')
-      ? 'package-json'
-      : extension === '.map'
-        ? 'source-map'
-        : isJavaScriptFile(logicalPath)
-          ? 'javascript'
-          : extension.replace('.', '') || 'unknown';
+  const fileKind = logicalPath === 'package.json' || logicalPath.endsWith('/package.json') ? 'package-json' : extension === '.map' ? 'source-map' : isJavaScriptFile(logicalPath) ? 'javascript' : extension.replace('.', '') || 'unknown';
   const electronObserved =
-    (file.found?.requiresElectron ?? false) ||
-    (file.found?.browserWindows?.length ?? 0) > 0 ||
-    (file.found?.contextBridges?.length ?? 0) > 0 ||
-    (file.found?.ipcMain?.length ?? 0) > 0 ||
-    (file.found?.ipcRenderer?.length ?? 0) > 0;
+    (file.found?.requiresElectron ?? false) || (file.found?.browserWindows?.length ?? 0) > 0 || (file.found?.contextBridges?.length ?? 0) > 0 || (file.found?.ipcMain?.length ?? 0) > 0 || (file.found?.ipcRenderer?.length ?? 0) > 0;
   const dynamicFindings = isMainProcessSurface(file);
-  const parseStatus = isJavaScriptFile(logicalPath)
-    ? file.found === null
-      ? null
-      : dynamicFindings
-        ? 'partial'
-        : 'complete'
-    : file.found === null
-      ? null
-      : 'included';
+  const parseStatus = isJavaScriptFile(logicalPath) ? (file.found === null ? null : dynamicFindings ? 'partial' : 'complete') : file.found === null ? null : 'included';
   const analysisCoverage = isJavaScriptFile(logicalPath)
     ? {
         syntax: { status: 'complete', error_count: 0 },
@@ -639,8 +579,7 @@ function addFileFacts({ context, logicalPath, file, roles, readFileBytes }) {
       }),
     }),
   );
-  const packageAnchorSha =
-    [...context.nodes].find((node) => node.kind === 'package')?.identity?.artifact_sha256 ?? file.sha256;
+  const packageAnchorSha = [...context.nodes].find((node) => node.kind === 'package')?.identity?.artifact_sha256 ?? file.sha256;
   addRoleNode(context, {
     logicalPath,
     sha256: packageAnchorSha,
@@ -673,12 +612,7 @@ function addFileFacts({ context, logicalPath, file, roles, readFileBytes }) {
 
 function addRoleNode(context, { logicalPath, sha256, kind, mechanism, when }) {
   if (!when) return;
-  const resolutionContext =
-    kind === 'electron-renderer' && extensionOf(logicalPath) === '.html'
-      ? 'html-reference'
-      : kind === 'preload-entrypoint'
-        ? 'browser-window'
-        : 'package-entrypoint';
+  const resolutionContext = kind === 'electron-renderer' && extensionOf(logicalPath) === '.html' ? 'html-reference' : kind === 'preload-entrypoint' ? 'browser-window' : 'package-entrypoint';
   context.nodes.push(
     fileNode({
       kind,
@@ -711,8 +645,7 @@ function moduleFormatFor(file) {
   if (extension === '.mjs') return 'esm';
   const found = file.found;
   if (found === null || found === undefined) return 'unknown';
-  const usesCommonJs =
-    (found.imports ?? []).some((entry) => entry.kind === 'require') || (found.commonjsExports ?? []).length > 0;
+  const usesCommonJs = (found.imports ?? []).some((entry) => entry.kind === 'require') || (found.commonjsExports ?? []).length > 0;
   if (usesCommonJs) return 'commonjs';
   if ((found.imports ?? []).some((entry) => entry.kind === 'import') || (found.exports ?? []).length > 0) return 'esm';
   return 'unknown';
@@ -728,10 +661,7 @@ function addSourceModule(context, logicalPath, file) {
   const esmExports = (file.found?.exports ?? []).map((entry) => entry.exportedName);
   const cjsExports = (file.found?.commonjsExports ?? []).map((entry) => entry.exportedName);
   const exportNames = [...new Set([...esmExports, ...cjsExports])].sort((left, right) => (left < right ? -1 : 1));
-  const importRelationships =
-    (file.found?.requireBindings?.length ?? 0) > 0
-      ? file.found.requireBindings.length
-      : (file.found?.imports ?? []).length;
+  const importRelationships = (file.found?.requireBindings?.length ?? 0) > 0 ? file.found.requireBindings.length : (file.found?.imports ?? []).length;
   const sourceRangeEnd = fileTextEnd(file.text ?? '');
   const source = moduleNode({
     namespace: 'source-module',
@@ -858,9 +788,7 @@ function addExportFacts(context, logicalPath, file) {
           module_path: logicalPath,
           exported_name: exported.exportedName,
           callable_id:
-            exported.callableKind === null || exported.callableOffsets === null || exported.callableOffsets === undefined
-              ? null
-              : `callable:${exported.callableKind}:${exported.callableOffsets.start}:${exported.callableOffsets.end}`,
+            exported.callableKind === null || exported.callableOffsets === null || exported.callableOffsets === undefined ? null : `callable:${exported.callableKind}:${exported.callableOffsets.start}:${exported.callableOffsets.end}`,
           callable_kind: exported.callableKind,
           static_return_shapes: exported.returnShapes,
           return_shape_coverage: {
@@ -879,13 +807,7 @@ function addExportFacts(context, logicalPath, file) {
         location: { available: true, value: { kind: 'source-range', source: logicalPath, start: exported.range.start, end: exported.range.end } },
         extractor: extractor('recover-export-return-shapes'),
         coverage: coverage({ status: 'complete', omittedCount: 0 }),
-        limitations: [
-          ...SEMANTIC_ANALYSIS_LIMITATIONS.slice(0, 3),
-          RETURN_SHAPE_LIMITATION,
-          SEMANTIC_ANALYSIS_LIMITATIONS[3],
-          RUNTIME_RELATION_LIMITATION,
-          SEMANTIC_ANALYSIS_LIMITATIONS[4],
-        ],
+        limitations: [...SEMANTIC_ANALYSIS_LIMITATIONS.slice(0, 3), RETURN_SHAPE_LIMITATION, SEMANTIC_ANALYSIS_LIMITATIONS[3], RUNTIME_RELATION_LIMITATION, SEMANTIC_ANALYSIS_LIMITATIONS[4]],
       });
     }
     const exportNode = graphNode({
@@ -948,9 +870,7 @@ function addImportFacts(context, logicalPath, file) {
 function appendStaticImportEdge({ context, owner, asset, request, resolution, logicalPath, file }) {
   const isNative = resolution.targetFileKind === 'native-addon' || request.specifier.endsWith('.node');
   if (isNative && resolution.status === 'resolved') {
-    const native = context.nodes.find(
-      (node) => node.kind === 'native-addon' && node.observations.some((observation) => observation.properties.path === resolution.resolvedPath),
-    );
+    const native = context.nodes.find((node) => node.kind === 'native-addon' && node.observations.some((observation) => observation.properties.path === resolution.resolvedPath));
     if (native !== undefined) {
       context.edges.push(
         graphEdge({
@@ -990,11 +910,7 @@ function appendStaticImportEdge({ context, owner, asset, request, resolution, lo
   if (resolution.status === 'resolved' && resolution.resolvedPath !== null) {
     targetNode =
       context.assetNodes.get(resolution.resolvedPath) ??
-      context.nodes.find(
-        (node) =>
-          (node.kind === 'javascript-asset' || node.kind === 'artifact') &&
-          node.observations.some((observation) => observation.properties.path === resolution.resolvedPath),
-      );
+      context.nodes.find((node) => (node.kind === 'javascript-asset' || node.kind === 'artifact') && node.observations.some((observation) => observation.properties.path === resolution.resolvedPath));
   } else if (resolution.status === 'external') {
     const cacheKey = `unresolved-reference:${file.sha256}:${request.kind}:${request.specifier}`;
     const created = !context.moduleNodes.has(cacheKey);
@@ -1096,9 +1012,7 @@ function appendSemanticImportEdge({ context, owner, request, binding, resolution
     );
     if (created) context.nodes.push(targetNode);
   } else if (resolution.status === 'resolved' && resolution.targetFileKind === 'native-addon') {
-    targetNode = context.nodes.find(
-      (node) => node.kind === 'native-addon' && node.observations.some((observation) => observation.properties.path === resolution.resolvedPath),
-    );
+    targetNode = context.nodes.find((node) => node.kind === 'native-addon' && node.observations.some((observation) => observation.properties.path === resolution.resolvedPath));
   } else if (resolution.status === 'resolved' && resolution.resolvedPath !== null) {
     targetNode = context.sourceModuleNodes.get(resolution.resolvedPath);
   }
@@ -1227,8 +1141,7 @@ function findNode(nodes, kind, key) {
   return nodes.find((node) => node.kind === kind && node.observations.some((observation) => observation.properties.path === key || observation.properties.resolved_path === key));
 }
 
-function addNativeRequestFacts(_context, _logicalPath, _file) {
-}
+function addNativeRequestFacts(_context, _logicalPath, _file) {}
 
 function addIpcFacts(context, logicalPath, file) {
   for (const call of file.found?.ipcMain ?? []) {
@@ -1242,12 +1155,7 @@ function addHtmlScriptEdges(context, extraction) {
       const resolved = resolveSpecifier({ specifier: `./${script.specifier}`, fromPath: logicalPath, fileIndex: context.fileIndex });
       if (resolved.status !== 'resolved') continue;
       const owner = context.nodes.find(
-        (node) =>
-          node.kind === 'electron-renderer' &&
-          node.observations.some(
-            (observation) =>
-              observation.properties.resolved_path === logicalPath && observation.properties.resolution_context === 'html-reference',
-          ),
+        (node) => node.kind === 'electron-renderer' && node.observations.some((observation) => observation.properties.resolved_path === logicalPath && observation.properties.resolution_context === 'html-reference'),
       );
       const target = context.assetNodes.get(resolved.resolvedPath);
       if (owner === undefined || target === undefined) continue;
@@ -1291,11 +1199,7 @@ function addHtmlRendererMapsTo(context) {
   for (const renderer of context.nodes.filter((node) => node.kind === 'electron-renderer')) {
     const props = renderer.observations[0]?.properties ?? {};
     if (props.resolution_context !== 'html-reference' || props.resolved_path === null) continue;
-    const target = context.nodes.find(
-      (node) =>
-        (node.kind === 'artifact' || node.kind === 'javascript-asset') &&
-        node.observations.some((observation) => observation.properties.path === props.resolved_path),
-    );
+    const target = context.nodes.find((node) => (node.kind === 'artifact' || node.kind === 'javascript-asset') && node.observations.some((observation) => observation.properties.path === props.resolved_path));
     if (target === undefined) continue;
     context.edges.push(
       graphEdge({
@@ -1359,12 +1263,7 @@ function addHtmlRendererContains(context, extraction) {
   for (const [logicalPath] of extraction) {
     if (extensionOf(logicalPath) !== '.html') continue;
     const renderer = context.nodes.find(
-      (node) =>
-        node.kind === 'electron-renderer' &&
-        node.observations.some(
-          (observation) =>
-            observation.properties.resolved_path === logicalPath && observation.properties.resolution_context === 'html-reference',
-        ),
+      (node) => node.kind === 'electron-renderer' && node.observations.some((observation) => observation.properties.resolved_path === logicalPath && observation.properties.resolution_context === 'html-reference'),
     );
     if (renderer === undefined) continue;
     context.edges.push(
@@ -1396,9 +1295,7 @@ function addRendererIpcTransmissions({ context, extraction }) {
     for (const call of file.found?.ipcRenderer ?? []) {
       if (call.channel.status !== 'literal') continue;
       const channel = call.channel.value;
-      const channelNode = channels.find((node) =>
-        node.observations.some((observation) => observation.properties.channel === channel),
-      );
+      const channelNode = channels.find((node) => node.observations.some((observation) => observation.properties.channel === channel));
       if (channelNode !== undefined) {
         context.edges.push(
           graphEdge({
@@ -1412,7 +1309,7 @@ function addRendererIpcTransmissions({ context, extraction }) {
               channel_expression: call.channel.expression,
               resolution: 'literal',
             },
-              evidence: edgeEvidence({
+            evidence: edgeEvidence({
               authority: 'static-relationship-inference',
               state: 'inferred',
               confidence: 'high',
@@ -1429,10 +1326,7 @@ function addRendererIpcTransmissions({ context, extraction }) {
       }
       const handler = handlers.find((node) => node.observations.some((observation) => observation.properties.channel === channel));
       if (handler !== undefined) {
-        const handlerPath =
-          handler.observations[0]?.evidence?.location?.value?.source ??
-          handler.observations[0]?.location?.value?.source ??
-          null;
+        const handlerPath = handler.observations[0]?.evidence?.location?.value?.source ?? handler.observations[0]?.location?.value?.source ?? null;
         context.edges.push(
           graphEdge({
             source: asset.node_id,
@@ -1619,18 +1513,10 @@ function buildSummary({ nodes, ipcPairs, nativeRequests, extraction = new Map() 
   const bySide = (side) => handlers.filter((node) => node.observations[0]?.properties.side === side);
   const literal = handlers.filter((node) => node.observations[0]?.properties.channel !== null && node.observations[0]?.properties.channel !== undefined);
   const rendererCalls = [...extraction.values()].flatMap((file) => file.found?.ipcRenderer ?? []);
-  const rendererTransmissions = rendererCalls.filter((call) =>
-    ['invoke', 'send', 'sendSync', 'postMessage'].includes(call.operation),
-  );
+  const rendererTransmissions = rendererCalls.filter((call) => ['invoke', 'send', 'sendSync', 'postMessage'].includes(call.operation));
   const rendererListeners = rendererCalls.filter((call) => ['on', 'once', 'addListener'].includes(call.operation));
-  const pairedChannels = new Set(
-    rendererTransmissions
-      .filter((call) => call.channel.status === 'literal' && handlers.some((node) => node.observations[0]?.properties.channel === call.channel.value))
-      .map((call) => call.channel.value),
-  );
-  const unpairedLiteral = rendererTransmissions.filter(
-    (call) => call.channel.status === 'literal' && !pairedChannels.has(call.channel.value),
-  ).length;
+  const pairedChannels = new Set(rendererTransmissions.filter((call) => call.channel.status === 'literal' && handlers.some((node) => node.observations[0]?.properties.channel === call.channel.value)).map((call) => call.channel.value));
+  const unpairedLiteral = rendererTransmissions.filter((call) => call.channel.status === 'literal' && !pairedChannels.has(call.channel.value)).length;
   return {
     browser_windows: nodes.filter((node) => node.kind === 'browser-window').length,
     explicit_web_preferences: nodes.filter((node) => node.kind === 'browser-window').flatMap((node) => node.observations[0]?.properties.web_preferences ?? []).length,
@@ -1639,13 +1525,8 @@ function buildSummary({ nodes, ipcPairs, nativeRequests, extraction = new Map() 
     exposed_api_members: nodes.filter((node) => node.kind === 'context-bridge-api').reduce((total, node) => total + (node.observations[0]?.properties.members ?? []).length, 0),
     ipc: {
       operations: handlers.length + rendererCalls.length,
-      literal_channels: new Set([
-        ...literal.map((node) => node.observations[0].properties.channel),
-        ...rendererCalls.filter((call) => call.channel.status === 'literal').map((call) => call.channel.value),
-      ]).size,
-      dynamic_channel_operations:
-        handlers.filter((node) => node.observations[0]?.properties.channel === null).length +
-        rendererCalls.filter((call) => call.channel.status !== 'literal').length,
+      literal_channels: new Set([...literal.map((node) => node.observations[0].properties.channel), ...rendererCalls.filter((call) => call.channel.status === 'literal').map((call) => call.channel.value)]).size,
+      dynamic_channel_operations: handlers.filter((node) => node.observations[0]?.properties.channel === null).length + rendererCalls.filter((call) => call.channel.status !== 'literal').length,
       renderer_transmissions: rendererTransmissions.length,
       renderer_listeners: rendererListeners.length,
       main_handlers: bySide('main').length,
@@ -1697,22 +1578,15 @@ export function appendChannelNodes({ nodes, edges, rootSha256 = null, extraction
   }
   for (const [channel, group] of groups) {
     const main = group.find((entry) => entry.properties.side === 'main') ?? group[0];
-    const sha256 =
-      main.handler?.observations[0]?.evidence?.artifact?.sha256 ?? main.sha256;
-    const identity =
-      rootSha256 === null
-        ? { ...contentDigestIdentity(sha256), key: channel, artifact_sha256: sha256 }
-        : observationFingerprintIdentity(rootSha256, 'electron-ipc-channel', `literal:${channel}`);
+    const sha256 = main.handler?.observations[0]?.evidence?.artifact?.sha256 ?? main.sha256;
+    const identity = rootSha256 === null ? { ...contentDigestIdentity(sha256), key: channel, artifact_sha256: sha256 } : observationFingerprintIdentity(rootSha256, 'electron-ipc-channel', `literal:${channel}`);
     const channelNode = graphNode({
       prefix: 'jag',
       kind: 'ipc-channel',
       identity,
       observations: group.map((entry) => {
         const registration = entry.handler === undefined ? undefined : IPC_REGISTRATION_RANGES.get(entry.handler.node_id);
-        const handlerSource =
-          entry.handler?.observations[0]?.evidence?.location?.value?.source ??
-          entry.logicalPath ??
-          null;
+        const handlerSource = entry.handler?.observations[0]?.evidence?.location?.value?.source ?? entry.logicalPath ?? null;
         const location =
           entry.location ??
           (registration !== undefined && handlerSource !== null

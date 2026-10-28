@@ -9,10 +9,7 @@ export interface ExportWebScriptsParams {
   readonly output_directory: string;
 }
 
-export const exportWebScriptsTool = async (
-  session: ReaSession,
-  params: ExportWebScriptsParams,
-): Promise<AgentToolResult<unknown>> => {
+export const exportWebScriptsTool = async (session: ReaSession, params: ExportWebScriptsParams): Promise<AgentToolResult<unknown>> => {
   const inspection = await exportWebScripts(params);
   const record = createEvidence({
     subject: null,

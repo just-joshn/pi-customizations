@@ -1,4 +1,3 @@
-
 import { chmod, link, mkdir, open as openFile, readFile, rename, rm, stat } from 'node:fs/promises';
 import { dirname, isAbsolute, join, resolve } from 'node:path';
 
@@ -9,8 +8,8 @@ import { capabilityUnavailable, evidenceIntegrityMismatch, executionFailure, inv
 import { byteLength, evidenceResult, operationResult } from '../contract/results.ts';
 import { PI_REA_VERSION, type ReaSession } from '../session/binary-session.ts';
 import { createEvidence } from '../session/evidence.ts';
-import type { ToolCallContext } from './session-tools.ts';
 import { ANALYZER_PROVIDER } from './analyzer-provider.ts';
+import type { ToolCallContext } from './session-tools.ts';
 
 const resolvePath = (path: string, cwd: string | undefined): string => (isAbsolute(path) ? path : resolve(cwd ?? process.cwd(), path));
 

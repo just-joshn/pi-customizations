@@ -1,4 +1,3 @@
-
 import { createHash } from 'node:crypto';
 import { readFile, realpath, stat } from 'node:fs/promises';
 import { isAbsolute, resolve } from 'node:path';
@@ -86,29 +85,7 @@ const parsePrstatus = (desc: Buffer, machine: number): Record<string, unknown> |
   const registers: Record<string, string> = {};
   // x86_64 user_regs_struct starts after pr_reg offset 112 on many kernels; keep raw window digest instead of inventing names when short.
   if (machine === EM_X86_64 && desc.length >= 112 + 27 * 8) {
-    const names = [
-      'r15',
-      'r14',
-      'r13',
-      'r12',
-      'rbp',
-      'rbx',
-      'r11',
-      'r10',
-      'r9',
-      'r8',
-      'rax',
-      'rcx',
-      'rdx',
-      'rsi',
-      'rdi',
-      'orig_rax',
-      'rip',
-      'cs',
-      'eflags',
-      'rsp',
-      'ss',
-    ];
+    const names = ['r15', 'r14', 'r13', 'r12', 'rbp', 'rbx', 'r11', 'r10', 'r9', 'r8', 'rax', 'rcx', 'rdx', 'rsi', 'rdi', 'orig_rax', 'rip', 'cs', 'eflags', 'rsp', 'ss'];
     for (const [index, name] of names.entries()) {
       const value = desc.readBigUInt64LE(112 + index * 8);
       registers[name] = `0x${value.toString(16)}`;
@@ -133,13 +110,7 @@ const parseSiginfo = (desc: Buffer): Record<string, unknown> | null => {
   };
 };
 
-const parseNotes = (
-  bytes: Buffer,
-  offset: number,
-  size: number,
-  machine: number,
-  maxNotes: number,
-): { readonly notes: RecordedCrashInspection['notes']; readonly threads: Record<string, unknown>[] } => {
+const parseNotes = (bytes: Buffer, offset: number, size: number, machine: number, maxNotes: number): { readonly notes: RecordedCrashInspection['notes']; readonly threads: Record<string, unknown>[] } => {
   const notes: RecordedCrashInspection['notes'][number][] = [];
   const threads: Record<string, unknown>[] = [];
   let cursor = offset;
@@ -276,9 +247,7 @@ export const inspectRecordedCrashFromPath = async (
 
   const limitations: string[] = [...LIMITATIONS];
   if (options.includeDebuggerContext === true) {
-    limitations.push(
-      'include_debugger_context was requested but BYO GDB/pwndbg mapping is not configured in this port; mapping candidates remain unknown.',
-    );
+    limitations.push('include_debugger_context was requested but BYO GDB/pwndbg mapping is not configured in this port; mapping candidates remain unknown.');
   }
 
   return {

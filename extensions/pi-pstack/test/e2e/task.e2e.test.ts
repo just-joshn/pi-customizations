@@ -404,10 +404,7 @@ describe('resume across processes and workspaces', () => {
     try {
       const [slow] = toolEnds(await rpcPrompt(rpc, script([task({ prompt: 'go\n@@sleep 3000 SLOW', run_in_background: true })])), 'Task');
       const [refused] = toolEnds(await rpcPrompt(rpc, script([task({ prompt: 'x', resume: idOf(slow?.text), readonly: true })])), 'Task');
-      expect([refused?.isError, refused?.text]).toEqual([
-        true,
-        `Agent ${idOf(slow?.text)} is running with write access, so a readonly call cannot message it. Wait for its completion notification, or stop it with stop_agent.`,
-      ]);
+      expect([refused?.isError, refused?.text]).toEqual([true, `Agent ${idOf(slow?.text)} is running with write access, so a readonly call cannot message it. Wait for its completion notification, or stop it with stop_agent.`]);
     } finally {
       await rpc.close();
     }
@@ -558,7 +555,11 @@ describe('stop_agent (C-H4)', () => {
       const [stopped] = toolEnds(events, 'stop_agent');
       expect([stopped?.isError, stopped?.text, alive(pid)]).toEqual([false, `Stopped agent ${agentId}: its run was aborted and its process has exited. Its result reports the stop; resume it with Task resume.`, false]);
       const notice = await rpc.waitFor((event) => event.type === 'message_end' && (event['message'] as { role: string }).role === 'custom');
-      expect(contentText((notice['message'] as { content: string }).content).split('\n').filter((line) => /^(status|detail):/.test(line))).toEqual(['status: error', 'detail: Subagent was stopped with stop_agent']);
+      expect(
+        contentText((notice['message'] as { content: string }).content)
+          .split('\n')
+          .filter((line) => /^(status|detail):/.test(line)),
+      ).toEqual(['status: error', 'detail: Subagent was stopped with stop_agent']);
       expect(readFileSync(join(subagentDir(), `${agentId}.json`), 'utf8')).toContain(agentId);
     } finally {
       await rpc.close();
@@ -637,7 +638,11 @@ describe('isolated workers share the root workspace (C-M2)', () => {
     const worker = (result.details as { agentId: string }).agentId;
     const grandchild = idOf(/<response>\n([\s\S]*)\n<\/response>/.exec(result.text)?.[1]);
     expect(worker).not.toBe(grandchild);
-    expect(readdirSync(subagentDir()).filter((name) => name.endsWith('.json')).toSorted()).toEqual([`${grandchild}.json`, `${worker}.json`].toSorted());
+    expect(
+      readdirSync(subagentDir())
+        .filter((name) => name.endsWith('.json'))
+        .toSorted(),
+    ).toEqual([`${grandchild}.json`, `${worker}.json`].toSorted());
     expect(readdirSync(join(sandbox.agentDir, 'pstack/workspaces'))).toEqual([slug(sandbox.workDir)]);
     const status = await runJson(sandbox, script([{ tool: 'agent_status', args: {} }]), ['--no-session']);
     expect(toolEnds(status.events, 'agent_status')[0]?.text.startsWith('2 subagents in this workspace:')).toBe(true);

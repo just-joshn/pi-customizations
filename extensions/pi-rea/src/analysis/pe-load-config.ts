@@ -1,18 +1,6 @@
-
 import { createHash } from 'node:crypto';
 
-import {
-  DIR,
-  formatVa,
-  mapRva,
-  parsePeImage,
-  peInputError,
-  resolvePathBytes,
-  sectionForRva,
-  vaToRva,
-  type PeFileLocation,
-  type PeImage,
-} from './pe-core.ts';
+import { DIR, formatVa, mapRva, type PeFileLocation, type PeImage, parsePeImage, peInputError, resolvePathBytes, sectionForRva, vaToRva } from './pe-core.ts';
 
 export const DEFAULT_MAX_CALLBACKS = 64;
 
@@ -125,8 +113,7 @@ const addressRef = (image: PeImage, va: bigint): AddressRef => {
   return { va: formatVa(va), rva, file_offset: fileOffset ?? null, section: section?.name ?? null };
 };
 
-const readWide = (bytes: Buffer, offset: number, bits: 32 | 64): bigint =>
-  bits === 64 ? bytes.readBigUInt64LE(offset) : BigInt(bytes.readUInt32LE(offset));
+const readWide = (bytes: Buffer, offset: number, bits: 32 | 64): bigint => (bits === 64 ? bytes.readBigUInt64LE(offset) : BigInt(bytes.readUInt32LE(offset)));
 
 export interface PeLoadConfigOptions {
   readonly maxFileBytes?: number;
@@ -134,10 +121,7 @@ export interface PeLoadConfigOptions {
   readonly cwd?: string;
 }
 
-export const inspectPeLoadConfigFromPath = async (
-  path: string,
-  options: PeLoadConfigOptions = {},
-): Promise<{ record: PeLoadConfigInspection; path: string; resolvedPath: string }> => {
+export const inspectPeLoadConfigFromPath = async (path: string, options: PeLoadConfigOptions = {}): Promise<{ record: PeLoadConfigInspection; path: string; resolvedPath: string }> => {
   const maxCallbacks = options.maxCallbacks ?? DEFAULT_MAX_CALLBACKS;
   if (!Number.isInteger(maxCallbacks) || maxCallbacks < 1 || maxCallbacks > 65_536) {
     throw peInputError('inspect_pe_load_config', path, 'invalid_value', 'max_callbacks must be an integer between 1 and 65536.');

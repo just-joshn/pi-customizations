@@ -42,16 +42,7 @@ const SCHEMA_KEYWORDS = new Set([
   'dependentRequired',
 ]);
 
-const EFFECT_KEYS = [
-  'mutatesTarget',
-  'mutatesSession',
-  'writesFilesystem',
-  'launchesProcess',
-  'accessesNetwork',
-  'changesUiState',
-  'mayDiscardData',
-  'idempotent',
-] as const;
+const EFFECT_KEYS = ['mutatesTarget', 'mutatesSession', 'writesFilesystem', 'launchesProcess', 'accessesNetwork', 'changesUiState', 'mayDiscardData', 'idempotent'] as const;
 
 type EffectKey = (typeof EFFECT_KEYS)[number];
 
@@ -165,8 +156,7 @@ const chooseParameters = (oracleSchema: Record<string, unknown>, seed?: SeedTool
 
   const oracleText = JSON.stringify(sanitized);
   const seedText = JSON.stringify(seedParameters);
-  const reduced =
-    typeof oracleSchema['description'] === 'string' && String(oracleSchema['description']).includes('reduced form');
+  const reduced = typeof oracleSchema['description'] === 'string' && String(oracleSchema['description']).includes('reduced form');
   if (reduced || seedText.length > oracleText.length) return seedParameters;
   return sanitized;
 };
@@ -206,8 +196,7 @@ const main = (): void => {
   try {
     const previous = readJson<{ tools: SeedTool[] }>(OUT_PATH);
     seedByName = new Map(previous.tools.map((tool) => [tool.name, tool]));
-  } catch {
-  }
+  } catch {}
 
   const tools = oracle.map((wire) => {
     const seed = seedByName.get(wire.name);

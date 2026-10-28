@@ -1,18 +1,14 @@
-import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { expect, test } from 'vitest';
 import { ReaSession } from '../src/session/binary-session.ts';
-import {
-  compareApplicationVersionsTool,
-  compareJavascriptExportShapesTool,
-  compareSourceToBundleTool,
-} from '../src/tools/compare-tools.ts';
-import { analyzeJavascriptApplication } from '../src/tools/javascript-tools.ts';
-import { projectAppleApplicationGraphTool } from '../src/tools/apple-graph-tools.ts';
-import { exportWebScriptsTool } from '../src/tools/web-script-tools.ts';
 import { createEvidence } from '../src/session/evidence.ts';
+import { projectAppleApplicationGraphTool } from '../src/tools/apple-graph-tools.ts';
+import { compareApplicationVersionsTool, compareJavascriptExportShapesTool, compareSourceToBundleTool } from '../src/tools/compare-tools.ts';
+import { analyzeJavascriptApplication } from '../src/tools/javascript-tools.ts';
+import { exportWebScriptsTool } from '../src/tools/web-script-tools.ts';
 
 const runtime = { name: 'pi-rea', version: '0.1.0', cwd: '/tmp' };
 

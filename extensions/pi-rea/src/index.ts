@@ -1,4 +1,3 @@
-
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { registerReaTools } from './registry.ts';
 import { PI_REA_VERSION, ReaSession, SERVER_NAME } from './session/binary-session.ts';

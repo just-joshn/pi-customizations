@@ -10,8 +10,8 @@ import { capabilityUnavailable, invalidRequest } from '../contract/errors.ts';
 import { evidenceResult } from '../contract/results.ts';
 import type { ReaSession } from '../session/binary-session.ts';
 import { createEvidence } from '../session/evidence.ts';
-import type { ToolCallContext } from './session-tools.ts';
 import { ANALYZER_PROVIDER } from './analyzer-provider.ts';
+import type { ToolCallContext } from './session-tools.ts';
 
 export interface InspectGoBinaryParams {
   readonly path: string;
@@ -34,11 +34,7 @@ const SUBJECT_ARCHITECTURE: Record<string, string> = {
   arm: 'arm',
 };
 
-export const inspectGoBinary = async (
-  session: ReaSession,
-  params: InspectGoBinaryParams,
-  context: ToolCallContext = {},
-): Promise<AgentToolResult<unknown>> => {
+export const inspectGoBinary = async (session: ReaSession, params: InspectGoBinaryParams, context: ToolCallContext = {}): Promise<AgentToolResult<unknown>> => {
   if (typeof params.path !== 'string' || params.path.length === 0) {
     throw invalidRequest('inspect_go_binary requires path.', { parameter: 'path' });
   }
@@ -57,14 +53,11 @@ export const inspectGoBinary = async (
   }
 
   if (!flat.present) {
-    throw capabilityUnavailable(
-      'No Go buildinfo marker was found in the searched bytes. That is not evidence that the binary is not a Go program.',
-      {
-        operation: 'inspect_go_binary',
-        path: subject.local_path,
-        searched_bytes: bytes.length,
-      },
-    );
+    throw capabilityUnavailable('No Go buildinfo marker was found in the searched bytes. That is not evidence that the binary is not a Go program.', {
+      operation: 'inspect_go_binary',
+      path: subject.local_path,
+      searched_bytes: bytes.length,
+    });
   }
 
   const goarch = flat.build_settings.find((entry: { key: string; value: string }) => entry.key === 'GOARCH')?.value ?? null;
@@ -106,10 +99,7 @@ export const inspectGoBinary = async (
     authority: 'shipped-artifact',
     environment: null,
     limitations: [...GO_LIMITATIONS],
-    locations: [
-      { kind: 'artifact-path', path: subject.local_path },
-      ...(header === undefined ? [] : [{ kind: 'file-offset-range', start: header.start, end: header.end }]),
-    ],
+    locations: [{ kind: 'artifact-path', path: subject.local_path }, ...(header === undefined ? [] : [{ kind: 'file-offset-range', start: header.start, end: header.end }])],
     evidence_links: [],
   });
 

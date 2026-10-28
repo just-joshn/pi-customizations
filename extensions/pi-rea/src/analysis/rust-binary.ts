@@ -1,4 +1,3 @@
-
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { isAbsolute, resolve } from 'node:path';
@@ -48,10 +47,7 @@ interface RustPackage {
   readonly root: boolean;
 }
 
-export const RUST_LIMITATIONS = [
-  'Reports cargo-auditable `.dep-v0` metadata when present; absence is not proof the binary was not built with Rust.',
-  'Universal Mach-O requires an explicit architecture; other formats reject architecture.',
-];
+export const RUST_LIMITATIONS = ['Reports cargo-auditable `.dep-v0` metadata when present; absence is not proof the binary was not built with Rust.', 'Universal Mach-O requires an explicit architecture; other formats reject architecture.'];
 
 const inputError = (path: string, reason: string, detail: string) =>
   invalidRequest('The inspection input is not usable. Check the argument and retry.', {
@@ -138,12 +134,7 @@ const assertAuditableDocument = (value: unknown, absolutePath: string): void => 
   }
 };
 
-const decodeAuditable = (
-  payload: Buffer,
-  sectionName: '.dep-v0' | '__DATA,.dep-v0',
-  fileOffset: number,
-  absolutePath: string,
-): NonNullable<RustBinaryInspection['auditable_metadata']> => {
+const decodeAuditable = (payload: Buffer, sectionName: '.dep-v0' | '__DATA,.dep-v0', fileOffset: number, absolutePath: string): NonNullable<RustBinaryInspection['auditable_metadata']> => {
   let uncompressed: Buffer;
   try {
     uncompressed = inflateSync(payload);
@@ -194,12 +185,9 @@ const decodeAuditable = (
   };
 };
 
-const ELF_MACHINES: Record<number, string> = { 3: 'x86', 0x3e: 'x86_64', 0x28: 'arm', 0xb7: 'aarch64' };
+const ELF_MACHINES: Record<number, string> = { 3: 'x86', 62: 'x86_64', 40: 'arm', 183: 'aarch64' };
 
-const readElfDep = (
-  bytes: Buffer,
-  absolutePath: string,
-): { metadata: RustBinaryInspection['auditable_metadata']; architecture: string; bits: 32 | 64; byte_order: 'little' | 'big' } => {
+const readElfDep = (bytes: Buffer, absolutePath: string): { metadata: RustBinaryInspection['auditable_metadata']; architecture: string; bits: 32 | 64; byte_order: 'little' | 'big' } => {
   if (bytes.length < 16 || bytes[0] !== 0x7f || bytes[1] !== 0x45 || bytes[2] !== 0x4c || bytes[3] !== 0x46) throw new Error('not elf');
   const bits: 32 | 64 = bytes[4] === 2 ? 64 : 32;
   const little = bytes[5] === 1;
@@ -233,10 +221,7 @@ const readElfDep = (
   return { metadata: null, architecture: ELF_MACHINES[machine] ?? 'unknown', bits, byte_order: little ? 'little' : 'big' };
 };
 
-const readPeDep = (
-  bytes: Buffer,
-  absolutePath: string,
-): { metadata: RustBinaryInspection['auditable_metadata']; architecture: string; bits: 32 | 64; byte_order: 'little' | 'big' } => {
+const readPeDep = (bytes: Buffer, absolutePath: string): { metadata: RustBinaryInspection['auditable_metadata']; architecture: string; bits: 32 | 64; byte_order: 'little' | 'big' } => {
   const image = parsePeImage(bytes);
   for (const section of image.sections) {
     if (section.name !== '.dep-v0') continue;
@@ -253,13 +238,13 @@ const readPeDep = (
 };
 
 const MACH_O_THIN: Record<number, { bits: 32 | 64; little: boolean }> = {
-  0xfeedface: { bits: 32, little: false },
-  0xcefaedfe: { bits: 32, little: true },
-  0xfeedfacf: { bits: 64, little: false },
-  0xcffaedfe: { bits: 64, little: true },
+  4277009102: { bits: 32, little: false },
+  3472551422: { bits: 32, little: true },
+  4277009103: { bits: 64, little: false },
+  3489328638: { bits: 64, little: true },
 };
 
-const MACH_O_CPUS: Record<number, string> = { 7: 'x86', 0x01000007: 'x86_64', 12: 'arm', 0x0100000c: 'arm64' };
+const MACH_O_CPUS: Record<number, string> = { 7: 'x86', 16777223: 'x86_64', 12: 'arm', 16777228: 'arm64' };
 
 const readMachODep = (
   bytes: Buffer,
@@ -292,12 +277,18 @@ const readMachODep = (
     const cmd = readU32(offset);
     const cmdsize = readU32(offset + 4);
     if (cmd === 0x1 || cmd === 0x19) {
-      const segname = bytes.subarray(offset + 8, offset + 24).toString('utf8').replace(/\0+$/, '');
+      const segname = bytes
+        .subarray(offset + 8, offset + 24)
+        .toString('utf8')
+        .replace(/\0+$/, '');
       const nsectsField = thin.bits === 64 ? offset + 64 : offset + 48;
       const nsects = readU32(nsectsField);
       let sect = thin.bits === 64 ? offset + 72 : offset + 56;
       for (let s = 0; s < nsects; s += 1) {
-        const sectname = bytes.subarray(sect, sect + 16).toString('utf8').replace(/\0+$/, '');
+        const sectname = bytes
+          .subarray(sect, sect + 16)
+          .toString('utf8')
+          .replace(/\0+$/, '');
         const size = thin.bits === 64 ? Number(little ? bytes.readBigUInt64LE(sect + 40) : bytes.readBigUInt64BE(sect + 40)) : readU32(sect + 36);
         const fileOffset = thin.bits === 64 ? readU32(sect + 48) : readU32(sect + 40);
         if (sectname === '.dep-v0' || (segname === '__DATA' && sectname === '.dep-v0')) {
@@ -330,10 +321,7 @@ export interface RustBinaryOptions {
   readonly cwd?: string;
 }
 
-export const inspectRustBinaryFromPath = async (
-  path: string,
-  options: RustBinaryOptions = {},
-): Promise<{ record: RustBinaryInspection; path: string; resolvedPath: string }> => {
+export const inspectRustBinaryFromPath = async (path: string, options: RustBinaryOptions = {}): Promise<{ record: RustBinaryInspection; path: string; resolvedPath: string }> => {
   const resolvedPath = isAbsolute(path) ? path : resolve(options.cwd ?? process.cwd(), path);
   let bytes: Buffer;
   try {

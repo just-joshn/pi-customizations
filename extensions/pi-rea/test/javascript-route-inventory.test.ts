@@ -1,5 +1,4 @@
 import { expect, test } from 'vitest';
-
 import { buildRouteInventory } from '../src/analysis/formats/javascript-route-inventory.mjs';
 
 test('buildRouteInventory: empty candidates seal the measured js-compare left inventory_id', () => {

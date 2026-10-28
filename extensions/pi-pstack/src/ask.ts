@@ -1,6 +1,5 @@
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { type Static, Type } from 'typebox';
-
 import { canAsk } from './modes.ts';
 
 export const DONE_LABEL = '✓ Done selecting';

@@ -1,4 +1,3 @@
-
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { isAbsolute, resolve } from 'node:path';
@@ -233,10 +232,7 @@ const parseElfInventory = (bytes: Buffer, path: string, analysis: 'inventory' | 
       examined_sections: examined,
       unknown_section_names: unknown,
     },
-    limitations: [
-      ...GPU_LIMITATIONS,
-      ...(analysis === 'kernels' ? ['Selected kernel decode for ELF fatbin payloads is not implemented in this port; inventory rows remain.'] : []),
-    ],
+    limitations: [...GPU_LIMITATIONS, ...(analysis === 'kernels' ? ['Selected kernel decode for ELF fatbin payloads is not implemented in this port; inventory rows remain.'] : [])],
   };
 };
 
@@ -248,10 +244,7 @@ export interface GpuOptions {
   readonly cwd?: string;
 }
 
-export const inspectGpuCodeObjectsFromPath = async (
-  path: string,
-  options: GpuOptions = {},
-): Promise<{ record: GpuCodeObjectsInspection; path: string; resolvedPath: string }> => {
+export const inspectGpuCodeObjectsFromPath = async (path: string, options: GpuOptions = {}): Promise<{ record: GpuCodeObjectsInspection; path: string; resolvedPath: string }> => {
   const analysis = options.analysis ?? 'inventory';
   if (analysis !== 'inventory' && analysis !== 'kernels') throw inputError(path, 'invalid_value', 'analysis must be inventory or kernels.');
   if (options.objectIds !== undefined && options.expectedSha256 === undefined) {
@@ -278,9 +271,7 @@ export const inspectGpuCodeObjectsFromPath = async (
       return {
         record: {
           ...record,
-          objects: record.objects.map((object) =>
-            selected.has(object.id) ? { ...object, inspection: 'kernels' as const } : object,
-          ),
+          objects: record.objects.map((object) => (selected.has(object.id) ? { ...object, inspection: 'kernels' as const } : object)),
           kernels: record.kernels.filter((kernel) => selected.has(String((kernel as { object_id?: string }).object_id))),
           coverage: { ...record.coverage, payloads: 'selected' },
         },

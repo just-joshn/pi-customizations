@@ -1,4 +1,3 @@
-
 import { readFile } from 'node:fs/promises';
 
 import type { AgentToolResult } from '@earendil-works/pi-coding-agent';
@@ -8,9 +7,7 @@ import { evidenceResult } from '../contract/results.ts';
 import { PI_REA_VERSION, type ReaSession } from '../session/binary-session.ts';
 import { createEvidence } from '../session/evidence.ts';
 
-const thinArchitecture = (
-  bytes: Buffer,
-): { name: string; hidden: false; cpu_type: null; cpu_subtype: null; file_offset: null; size: null; alignment: null } => {
+const thinArchitecture = (bytes: Buffer): { name: string; hidden: false; cpu_type: null; cpu_subtype: null; file_offset: null; size: null; alignment: null } => {
   const header = parseMachO(bytes);
   return {
     name: header.architectures.items[0]?.name ?? 'unknown',

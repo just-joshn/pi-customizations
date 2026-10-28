@@ -7,8 +7,7 @@ const OAUTH_ACCESS_TOKEN = /^sk-ant-oat01-[A-Za-z0-9_-]+$/;
 
 export const CLAUDE_AUTHORIZE_ORIGIN = 'https://claude.com';
 export const CLAUDE_AUTHORIZE_PATH = '/cai/oauth/authorize';
-export const CLAUDE_OAUTH_SCOPES =
-  'org:create_api_key user:profile user:inference user:sessions:claude_code user:mcp_servers user:file_upload user:plugins';
+export const CLAUDE_OAUTH_SCOPES = 'org:create_api_key user:profile user:inference user:sessions:claude_code user:mcp_servers user:file_upload user:plugins';
 const CLAUDE_COPY_CODE_LOGIN = 'copy_code';
 
 function tokenAuth(value: string, source: string, env?: ProviderEnv): AuthResult | undefined {

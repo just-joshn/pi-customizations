@@ -1,4 +1,3 @@
-
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { isAbsolute, resolve } from 'node:path';
@@ -18,14 +17,14 @@ export const PYC_LIMITATIONS = [
 ] as const;
 
 const MAGIC_TO_VERSION: Record<number, string> = {
-  0x0d0d0a33: '3.7',
-  0x0d0d0a42: '3.8',
-  0x0d0d0a55: '3.9',
-  0x0d0d0a6f: '3.10',
-  0x0a0d0c9e: '3.11',
-  0x0a0d0d6f: '3.12',
-  0x0a0d0df3: '3.13',
-  0x0a0d0e2b: '3.14',
+  218958387: '3.7',
+  218958402: '3.8',
+  218958421: '3.9',
+  218958447: '3.10',
+  168627358: '3.11',
+  168627567: '3.12',
+  168627699: '3.13',
+  168627755: '3.14',
 };
 
 const FLAG_REF = 0x80;
@@ -331,11 +330,9 @@ class MarshalReader {
   }
 }
 
-const asStringArray = (value: unknown): string[] =>
-  Array.isArray(value) ? value.filter((entry): entry is string => typeof entry === 'string') : [];
+const asStringArray = (value: unknown): string[] => (Array.isArray(value) ? value.filter((entry): entry is string => typeof entry === 'string') : []);
 
-const isCodeNode = (value: unknown): value is CodeNode =>
-  typeof value === 'object' && value !== null && 'bytecode' in value && 'name' in value && 'nested' in value;
+const isCodeNode = (value: unknown): value is CodeNode => typeof value === 'object' && value !== null && 'bytecode' in value && 'name' in value && 'nested' in value;
 
 const flattenCodeTree = (root: CodeNode): PycCodeObject[] => {
   const out: PycCodeObject[] = [];
@@ -359,10 +356,7 @@ export interface PycOptions {
   readonly cwd?: string;
 }
 
-export const inspectPythonPycFromPath = async (
-  path: string,
-  options: PycOptions = {},
-): Promise<{ record: PycInspection; path: string; resolvedPath: string }> => {
+export const inspectPythonPycFromPath = async (path: string, options: PycOptions = {}): Promise<{ record: PycInspection; path: string; resolvedPath: string }> => {
   const maxFileBytes = options.maxFileBytes ?? DEFAULT_MAX_FILE_BYTES;
   const maxObjects = options.maxObjects ?? DEFAULT_MAX_OBJECTS;
   const maxDepth = options.maxDepth ?? DEFAULT_MAX_DEPTH;

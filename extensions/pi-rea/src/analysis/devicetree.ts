@@ -147,10 +147,7 @@ export const parseDevicetree = (bytes: Buffer, artifact: DevicetreeArtifact, inp
   const admit = (size: number): void => {
     decodedBytes += size;
     if (decodedBytes > DECODED_BYTE_ALLOWANCE) {
-      throw new DevicetreeLimitError(
-        'decoded_bytes',
-        'Devicetree exceeds its fixed 32 MiB decoded representation allowance; select a smaller blob. This allowance has no runtime override.',
-      );
+      throw new DevicetreeLimitError('decoded_bytes', 'Devicetree exceeds its fixed 32 MiB decoded representation allowance; select a smaller blob. This allowance has no runtime override.');
     }
   };
 
@@ -164,10 +161,7 @@ export const parseDevicetree = (bytes: Buffer, artifact: DevicetreeArtifact, inp
 
   if (header.off_dt_struct % 4 || header.off_mem_rsvmap % 8) malformed('Misaligned FDT block');
   range(header.off_dt_strings, header.size_dt_strings);
-  const structEnd =
-    header.size_dt_struct === null
-      ? Math.min(end, ...[header.off_dt_strings, header.off_mem_rsvmap].filter((n) => n > header.off_dt_struct))
-      : header.off_dt_struct + header.size_dt_struct;
+  const structEnd = header.size_dt_struct === null ? Math.min(end, ...[header.off_dt_strings, header.off_mem_rsvmap].filter((n) => n > header.off_dt_struct)) : header.off_dt_struct + header.size_dt_struct;
   range(header.off_dt_struct, structEnd - header.off_dt_struct);
 
   const reservations: { offset: number; address: string; size: string }[] = [];
@@ -260,8 +254,7 @@ export const parseDevicetree = (bytes: Buffer, artifact: DevicetreeArtifact, inp
       if (!name || propertyMap?.has(name)) malformed('Empty or duplicate FDT property name');
       admit(name.length * 2 + Math.min(length, 256) * 2 + 256);
       const raw = bytes.subarray(cursor, cursor + length);
-      const stringProperty =
-        ['compatible', 'model', 'status', 'bootargs', 'stdout-path'].includes(name) || owner.node.path === '/aliases';
+      const stringProperty = ['compatible', 'model', 'status', 'bootargs', 'stdout-path'].includes(name) || owner.node.path === '/aliases';
       if (stringProperty) admit(raw.length * 4);
       let strings: string[] | null = null;
       if (stringProperty && raw.length > 0 && raw.at(-1) === 0 && raw.subarray(0, -1).every((c) => c === 0 || (c >= 0x20 && c <= 0x7e))) {
@@ -270,10 +263,7 @@ export const parseDevicetree = (bytes: Buffer, artifact: DevicetreeArtifact, inp
         admit(entries * 32);
         strings = raw.subarray(0, -1).toString('ascii').split('\0');
       }
-      const cells = ['phandle', 'linux,phandle', '#address-cells', '#size-cells', 'interrupt-parent', 'remote-endpoint', 'msi-parent'].includes(name) &&
-        length === 4
-        ? [raw.readUInt32BE(0)]
-        : null;
+      const cells = ['phandle', 'linux,phandle', '#address-cells', '#size-cells', 'interrupt-parent', 'remote-endpoint', 'msi-parent'].includes(name) && length === 4 ? [raw.readUInt32BE(0)] : null;
       const property: DevicetreeProperty = {
         name,
         offset: cursor,
@@ -325,9 +315,7 @@ export const parseDevicetree = (bytes: Buffer, artifact: DevicetreeArtifact, inp
     const conflict = declared.length === 2 && declared[0] !== declared[1];
     if (conflict) {
       admit(node.path.length * 2 + 256);
-      limitations.push(
-        `phandle at ${node.path} conflicts with linux,phandle (0x${declared[0]?.toString(16)} vs 0x${declared[1]?.toString(16)}); references to either value are unresolved.`,
-      );
+      limitations.push(`phandle at ${node.path} conflicts with linux,phandle (0x${declared[0]?.toString(16)} vs 0x${declared[1]?.toString(16)}); references to either value are unresolved.`);
     }
     const unambiguous = !malformedCanonical && !conflict;
     for (const handle of declared) {
@@ -344,14 +332,7 @@ export const parseDevicetree = (bytes: Buffer, artifact: DevicetreeArtifact, inp
     };
     const addresses = count('#address-cells', 2);
     const sizes = count('#size-cells', 1);
-    if (
-      addresses === undefined ||
-      sizes === undefined ||
-      addresses > 4 ||
-      sizes > 4 ||
-      addresses + sizes === 0 ||
-      reg.bytes % ((addresses + sizes) * 4) !== 0
-    ) {
+    if (addresses === undefined || sizes === undefined || addresses > 4 || sizes > 4 || addresses + sizes === 0 || reg.bytes % ((addresses + sizes) * 4) !== 0) {
       admit(node.path.length * 2 + 256);
       limitations.push(`reg at ${node.path} was not decoded: unsupported or malformed parent cell sizes or tuple length.`);
       continue;
@@ -424,10 +405,7 @@ export interface InspectDevicetreeParams {
   readonly max_depth?: number;
 }
 
-export const inspectDevicetreeFromPath = async (
-  params: InspectDevicetreeParams,
-  options: { readonly cwd?: string } = {},
-): Promise<{ readonly report: DevicetreeReport; readonly path: string; readonly resolvedPath: string }> => {
+export const inspectDevicetreeFromPath = async (params: InspectDevicetreeParams, options: { readonly cwd?: string } = {}): Promise<{ readonly report: DevicetreeReport; readonly path: string; readonly resolvedPath: string }> => {
   if (typeof params.path !== 'string' || params.path.length === 0) {
     throw invalidRequest('Invalid arguments for tool inspect_devicetree: path: Invalid input: expected string, received undefined', {
       parameter: 'path',

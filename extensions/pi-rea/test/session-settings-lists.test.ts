@@ -16,8 +16,7 @@ const runtime = { name: 'pi-rea', version: '0.1.0', cwd: '/tmp' };
 
 const configOf = (result: { structuredContent?: unknown }): Record<string, unknown> => result.structuredContent as Record<string, unknown>;
 
-const payloadOf = (result: { structuredContent?: unknown }): Record<string, unknown> =>
-  (result.structuredContent as { result: Record<string, unknown> }).result;
+const payloadOf = (result: { structuredContent?: unknown }): Record<string, unknown> => (result.structuredContent as { result: Record<string, unknown> }).result;
 
 const draft = () => ({
   question: 'Is the setting store session-scoped?',
@@ -97,13 +96,7 @@ test('inspect_analysis_settings: returns the published setting descriptors and c
     agent_editable: true,
   });
   const constraints = report['constraints'] as Record<string, unknown>[];
-  expect(constraints.map((entry) => entry['control'])).toStrictEqual([
-    'REA_MCP_MAX_RESPONSE_BYTES',
-    'mcp.client_deadline',
-    'mcp.client_receive_buffer',
-    'node.parent_heap',
-    'json.maximum_depth',
-  ]);
+  expect(constraints.map((entry) => entry['control'])).toStrictEqual(['REA_MCP_MAX_RESPONSE_BYTES', 'mcp.client_deadline', 'mcp.client_receive_buffer', 'node.parent_heap', 'json.maximum_depth']);
 });
 
 test('inspect_analysis_settings: filters intersect on setting id', () => {

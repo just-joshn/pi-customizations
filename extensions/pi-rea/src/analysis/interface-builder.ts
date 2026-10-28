@@ -1,4 +1,3 @@
-
 import { createHash } from 'node:crypto';
 import { readdir, readFile, realpath, stat } from 'node:fs/promises';
 import { join, relative } from 'node:path';
@@ -94,8 +93,7 @@ const GRAPH_LIMITATIONS = [
 const COMPILED_ARCHIVE_LIMITATION =
   'Compiled Interface Builder archives are private serialized object graphs. The decoder reports only recognized keyed-archive objects and connections; unrecognized object classes and fields remain unknown.';
 
-const isPlainObject = (value: PlistValue): value is { [key: string]: PlistValue } =>
-  value !== null && typeof value === 'object' && !Array.isArray(value) && !('$plist_type' in value);
+const isPlainObject = (value: PlistValue): value is { [key: string]: PlistValue } => value !== null && typeof value === 'object' && !Array.isArray(value) && !('$plist_type' in value);
 
 const uidOf = (value: PlistValue): number | undefined => {
   if (!isPlainObject(value)) return undefined;
@@ -158,9 +156,7 @@ const evidenceFor = (relativePath: string, archiveSha256: string, description: s
 });
 
 const classifyObjectKind = (className: string | null, classChain: readonly string[]): string => {
-  const connection =
-    className !== null &&
-    ((className.startsWith('NS') && className.endsWith('Connector')) || /^UIRuntime\w*Connection$/u.test(className));
+  const connection = className !== null && ((className.startsWith('NS') && className.endsWith('Connector')) || /^UIRuntime\w*Connection$/u.test(className));
   if (connection || classChain.includes('NSNibConnector')) return 'other';
   const bases: Array<[string, readonly string[]]> = [
     ['view_controller', ['UIViewController', 'NSViewController', 'NSWindowController']],
@@ -176,14 +172,7 @@ const classifyObjectKind = (className: string | null, classChain: readonly strin
   if (value.includes('placeholder') || value.includes('firstresponder') || value === 'uiproxyobject') return 'placeholder';
   if (value.includes('external')) return 'external_object';
   if (value.includes('viewcontroller') || value.includes('windowcontroller')) return 'view_controller';
-  if (
-    value.includes('button') ||
-    value.includes('control') ||
-    value.includes('textfield') ||
-    value.includes('slider') ||
-    value.includes('menuitem') ||
-    value.includes('colorwell')
-  ) {
+  if (value.includes('button') || value.includes('control') || value.includes('textfield') || value.includes('slider') || value.includes('menuitem') || value.includes('colorwell')) {
     return 'control';
   }
   if (value.includes('view') || value.includes('window') || value.includes('cell')) return 'view';
@@ -219,9 +208,7 @@ const projectKeyedArchive = (
   for (const [index, entry] of objectTable.entries()) {
     if (!isPlainObject(entry)) continue;
     if (typeof entry.$classname === 'string' || Array.isArray(entry.$classes)) {
-      const chain = Array.isArray(entry.$classes)
-        ? entry.$classes.filter((item): item is string => typeof item === 'string')
-        : [];
+      const chain = Array.isArray(entry.$classes) ? entry.$classes.filter((item): item is string => typeof item === 'string') : [];
       classNames.set(index, {
         name: typeof entry.$classname === 'string' ? entry.$classname : null,
         chain,
@@ -533,10 +520,6 @@ export const decodeInterfaceBuilderInBundle = async (
   };
 };
 
-export const INTERFACE_BUILDER_ENVELOPE_LIMITATIONS = [
-  'Artifact identity is unavailable for this observation.',
-  ...GRAPH_LIMITATIONS,
-  COMPILED_ARCHIVE_LIMITATION,
-] as const;
+export const INTERFACE_BUILDER_ENVELOPE_LIMITATIONS = ['Artifact identity is unavailable for this observation.', ...GRAPH_LIMITATIONS, COMPILED_ARCHIVE_LIMITATION] as const;
 
 export const INTERFACE_BUILDER_RESULT_LIMITATIONS = [...GRAPH_LIMITATIONS, COMPILED_ARCHIVE_LIMITATION] as const;

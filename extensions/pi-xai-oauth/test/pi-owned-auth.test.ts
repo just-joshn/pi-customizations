@@ -2,7 +2,7 @@ import { mkdtemp, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import { isRetryableAssistantError, type AssistantMessage } from '@earendil-works/pi-ai';
+import { type AssistantMessage, isRetryableAssistantError } from '@earendil-works/pi-ai';
 import { ModelRuntime, readStoredCredential } from '@earendil-works/pi-coding-agent';
 import { expect } from 'vitest';
 import { createGrokBuildProvider } from '../src/index.ts';

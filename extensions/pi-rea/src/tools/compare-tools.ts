@@ -2,10 +2,7 @@ import type { AgentToolResult } from '@earendil-works/pi-coding-agent';
 import { compareApplicationVersions } from '../analysis/compare-application-versions.ts';
 import { compareArtifactInventories } from '../analysis/compare-artifacts.ts';
 import { compareEvidenceBundles } from '../analysis/compare-bundles.ts';
-import {
-  compareJavascriptExportShapes,
-  EXPORT_SHAPE_ENVELOPE_LIMITATIONS,
-} from '../analysis/compare-javascript-export-shapes.ts';
+import { compareJavascriptExportShapes, EXPORT_SHAPE_ENVELOPE_LIMITATIONS } from '../analysis/compare-javascript-export-shapes.ts';
 import { compareManagedMemberEvidence } from '../analysis/compare-managed-members.ts';
 import { compareSourceToBundle } from '../analysis/compare-source-to-bundle.ts';
 import { invalidRequest } from '../contract/errors.ts';
@@ -138,10 +135,7 @@ export const compareManagedMembers = (session: ReaSession, params: CompareManage
     authority: 'analyst-inference',
     environment: null,
     limitations: ['Artifact identity is unavailable for this observation.', ...inspection.limitations],
-    locations: [
-      ...(leftPath === undefined ? [] : [{ kind: 'artifact-path' as const, path: leftPath }]),
-      ...(rightPath === undefined ? [] : [{ kind: 'artifact-path' as const, path: rightPath }]),
-    ],
+    locations: [...(leftPath === undefined ? [] : [{ kind: 'artifact-path' as const, path: leftPath }]), ...(rightPath === undefined ? [] : [{ kind: 'artifact-path' as const, path: rightPath }])],
     evidence_links: [...inspection.evidence_links],
   });
   session.evidence.record(record);
@@ -157,10 +151,7 @@ export interface CompareJavascriptExportShapesParams {
   readonly right_export_name: string;
 }
 
-export const compareJavascriptExportShapesTool = (
-  session: ReaSession,
-  params: CompareJavascriptExportShapesParams,
-): AgentToolResult<unknown> => {
+export const compareJavascriptExportShapesTool = (session: ReaSession, params: CompareJavascriptExportShapesParams): AgentToolResult<unknown> => {
   const left = resolveEvidenceArg(session, params.left, 'left');
   const right = resolveEvidenceArg(session, params.right, 'right');
   const inspection = compareJavascriptExportShapes({
@@ -205,10 +196,7 @@ export interface CompareApplicationVersionsParams {
   readonly right_native_observations?: readonly unknown[];
 }
 
-export const compareApplicationVersionsTool = (
-  session: ReaSession,
-  params: CompareApplicationVersionsParams,
-): AgentToolResult<unknown> => {
+export const compareApplicationVersionsTool = (session: ReaSession, params: CompareApplicationVersionsParams): AgentToolResult<unknown> => {
   const left = resolveEvidenceArg(session, params.left, 'left');
   const right = resolveEvidenceArg(session, params.right, 'right');
   const inspection = compareApplicationVersions({ left, right });
@@ -255,10 +243,7 @@ export interface CompareSourceToBundleParams {
   readonly view?: unknown;
 }
 
-export const compareSourceToBundleTool = async (
-  session: ReaSession,
-  params: CompareSourceToBundleParams,
-): Promise<AgentToolResult<unknown>> => {
+export const compareSourceToBundleTool = async (session: ReaSession, params: CompareSourceToBundleParams): Promise<AgentToolResult<unknown>> => {
   const application = resolveEvidenceArg(session, params.application, 'application');
   const inspection = await compareSourceToBundle({ reference: params.reference, application });
   const record = createEvidence({

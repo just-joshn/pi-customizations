@@ -15,16 +15,13 @@ export interface InspectSqliteDatabaseParams {
   readonly row_limit?: number;
 }
 
-export const inspectSqliteDatabase = async (
-  session: ReaSession,
-  params: InspectSqliteDatabaseParams,
-  context: ToolCallContext = {},
-): Promise<AgentToolResult<unknown>> => {
-  const schemaScope =
-    params.schema_scope === 'inventory' || params.schema_scope === 'selected_table' || params.schema_scope === 'database'
-      ? params.schema_scope
-      : undefined;
-  const { record: inspection, path, resolvedPath } = await inspectSqliteDatabaseFromPath(params.path, {
+export const inspectSqliteDatabase = async (session: ReaSession, params: InspectSqliteDatabaseParams, context: ToolCallContext = {}): Promise<AgentToolResult<unknown>> => {
+  const schemaScope = params.schema_scope === 'inventory' || params.schema_scope === 'selected_table' || params.schema_scope === 'database' ? params.schema_scope : undefined;
+  const {
+    record: inspection,
+    path,
+    resolvedPath,
+  } = await inspectSqliteDatabaseFromPath(params.path, {
     ...(params.worker_timeout_ms === undefined ? {} : { workerTimeoutMs: params.worker_timeout_ms }),
     ...(params.table === undefined ? {} : { table: params.table }),
     ...(params.columns === undefined ? {} : { columns: params.columns }),

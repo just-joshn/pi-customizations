@@ -1,4 +1,3 @@
-
 export const EVIDENCE_ID_PATTERN = /^ev_[a-f0-9]{64}$/;
 export const CONFIDENCES = new Set(['observed', 'derived', 'inferred']);
 export const AUTHORITIES = new Set(['shipped-artifact', 'controlled-replay', 'historical-reference', 'external-service', 'analyst-inference']);
@@ -59,5 +58,4 @@ export const evidenceContractFailure = (value, side = 'pi-rea') => {
   return null;
 };
 
-export const isErrorEnvelope = (value) =>
-  isObject(value) && typeof value.code === 'string' && typeof value.category === 'string' && typeof value.message === 'string';
+export const isErrorEnvelope = (value) => isObject(value) && typeof value.code === 'string' && typeof value.category === 'string' && typeof value.message === 'string';

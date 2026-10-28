@@ -4,8 +4,8 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { expect, test } from 'vitest';
-import { identifyArtifact } from '../src/targets/artifact-identity.ts';
 import { ReaSession } from '../src/session/binary-session.ts';
+import { identifyArtifact } from '../src/targets/artifact-identity.ts';
 import { inspectArtifact } from '../src/tools/artifact-tools.ts';
 import { inspectBinaryLayout } from '../src/tools/binary-layout-tools.ts';
 import { inspectGoBinary } from '../src/tools/go-binary-tools.ts';

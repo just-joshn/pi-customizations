@@ -1,4 +1,3 @@
-
 import { createHash } from 'node:crypto';
 
 import { architectureName } from './macho.ts';
@@ -21,8 +20,7 @@ const HASH_NAMES: Record<number, string> = {
   4: 'sha384',
 };
 
-const ORACLE_LIMITATION =
-  'Inspected a digest-verified Mach-O byte snapshot; filesystem-bound signing context and trust validation are not examined.';
+const ORACLE_LIMITATION = 'Inspected a digest-verified Mach-O byte snapshot; filesystem-bound signing context and trust validation are not examined.';
 
 export interface MachoSignatureInspection {
   readonly signed: boolean;
@@ -98,12 +96,7 @@ const parseCodeDirectory = (blob: Buffer, offset: number): CodeDirectoryFacts | 
     if (teamOffset !== 0) team = cString(blob, offset + teamOffset, end) || null;
   }
   const cdBytes = blob.subarray(offset, offset + length);
-  const digest =
-    hashType === 1
-      ? createHash('sha1').update(cdBytes).digest()
-      : hashType === 4
-        ? createHash('sha384').update(cdBytes).digest()
-        : createHash('sha256').update(cdBytes).digest();
+  const digest = hashType === 1 ? createHash('sha1').update(cdBytes).digest() : hashType === 4 ? createHash('sha384').update(cdBytes).digest() : createHash('sha256').update(cdBytes).digest();
   // codesign CDHash / CandidateCDHash displays the first 20 bytes.
   const cdhash = digest.subarray(0, 20).toString('hex');
   return {
@@ -170,14 +163,7 @@ const findCodeSignatureLink = (bytes: Buffer): SignatureLink | null => {
     }
     return null;
   }
-  const at = (offset: number, size: 4 | 8): number =>
-    size === 8
-      ? little
-        ? Number(bytes.readBigUInt64LE(offset))
-        : Number(bytes.readBigUInt64BE(offset))
-      : little
-        ? bytes.readUInt32LE(offset)
-        : bytes.readUInt32BE(offset);
+  const at = (offset: number, size: 4 | 8): number => (size === 8 ? (little ? Number(bytes.readBigUInt64LE(offset)) : Number(bytes.readBigUInt64BE(offset))) : little ? bytes.readUInt32LE(offset) : bytes.readUInt32BE(offset));
   const is64 = magicLe === 0xfeedfacf || magicBe === 0xfeedfacf;
   const headerSize = is64 ? 32 : 28;
   const ncmds = at(16, 4);

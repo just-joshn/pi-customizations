@@ -1,10 +1,9 @@
-
 import { createHash } from 'node:crypto';
 import { readFile, realpath } from 'node:fs/promises';
 import { isAbsolute, resolve } from 'node:path';
 
 import { invalidRequest } from '../contract/errors.ts';
-import { DIR, mapRva, parsePeImage, type PeImage } from './pe-core.ts';
+import { DIR, mapRva, type PeImage, parsePeImage } from './pe-core.ts';
 
 const MAX_FILE_BYTES = 64 * 1024 * 1024;
 
@@ -64,13 +63,9 @@ export interface ManagedArtifactInspection {
   readonly limitations: readonly string[];
 }
 
-const LIMITATIONS = [
-  'Managed metadata is inventoried without loading assemblies or executing CIL.',
-  'Custom attribute blobs and strong-name signatures are not verified.',
-] as const;
+const LIMITATIONS = ['Managed metadata is inventoried without loading assemblies or executing CIL.', 'Custom attribute blobs and strong-name signatures are not verified.'] as const;
 
-const NOT_MANAGED_LIMITATION =
-  'The PE has no CLI data directory; managed metadata and CIL are unavailable.';
+const NOT_MANAGED_LIMITATION = 'The PE has no CLI data directory; managed metadata and CIL are unavailable.';
 
 const artifactIdentity = (path: string, bytes: Buffer) => ({
   path,
@@ -128,13 +123,13 @@ const TABLE_NAMES = [
 ] as const;
 
 const FLAG_NAMES: Record<number, string> = {
-  0x1: 'ILOnly',
-  0x2: 'Requires32Bit',
-  0x4: 'ILLibrary',
-  0x8: 'StrongNameSigned',
-  0x10: 'NativeEntryPoint',
-  0x10000: 'TrackDebugEnabled',
-  0x20000: 'Prefer32Bit',
+  1: 'ILOnly',
+  2: 'Requires32Bit',
+  4: 'ILLibrary',
+  8: 'StrongNameSigned',
+  16: 'NativeEntryPoint',
+  65536: 'TrackDebugEnabled',
+  131072: 'Prefer32Bit',
 };
 
 const inputError = (path: string, detail: string) =>
@@ -244,7 +239,7 @@ const parseMetadata = (
   const tableRowCounts: number[] = [];
   let heapSizes = 0;
   let module: ManagedArtifactInspection['module'] = null;
-  let assembly: ManagedArtifactInspection['assembly'] = null;
+  const assembly: ManagedArtifactInspection['assembly'] = null;
   const references: { name: string; version: string | null }[] = [];
   const issues: string[] = [];
 
@@ -440,12 +435,7 @@ const inspectImage = (bytes: Buffer, path: string): ManagedArtifactInspection =>
         runtime_version: `${major}.${minor}`,
         flags,
         flag_names,
-        entry_point:
-          entryToken === 0
-            ? { kind: 'none', value: null }
-            : nativeEntry
-              ? { kind: 'native-rva', value: `0x${entryToken.toString(16)}` }
-              : { kind: 'metadata-token', value: `0x${entryToken.toString(16)}` },
+        entry_point: entryToken === 0 ? { kind: 'none', value: null } : nativeEntry ? { kind: 'native-rva', value: `0x${entryToken.toString(16)}` } : { kind: 'metadata-token', value: `0x${entryToken.toString(16)}` },
         metadata_rva: metaRva,
         metadata_size: metaSize,
         resources_rva,
@@ -477,10 +467,7 @@ const inspectImage = (bytes: Buffer, path: string): ManagedArtifactInspection =>
   };
 };
 
-export const inspectManagedArtifactFromPath = async (
-  path: string,
-  options: { readonly cwd?: string } = {},
-): Promise<{ readonly record: ManagedArtifactInspection; readonly path: string; readonly resolvedPath: string }> => {
+export const inspectManagedArtifactFromPath = async (path: string, options: { readonly cwd?: string } = {}): Promise<{ readonly record: ManagedArtifactInspection; readonly path: string; readonly resolvedPath: string }> => {
   const resolvedPath = isAbsolute(path) ? path : resolve(options.cwd ?? process.cwd(), path);
   let canonical = resolvedPath;
   try {

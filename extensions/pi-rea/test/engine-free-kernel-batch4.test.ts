@@ -1,10 +1,10 @@
-import { mkdtemp, writeFile, readFile, rm } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { expect, test } from 'vitest';
-import { mapDemangleOutputs } from '../src/analysis/swift-demangle.ts';
 import { minimalElf64CoreFixture } from '../src/analysis/recorded-crash.ts';
+import { mapDemangleOutputs } from '../src/analysis/swift-demangle.ts';
 import { ReaSession } from '../src/session/binary-session.ts';
 import { extractArtifact, inspectArtifact } from '../src/tools/artifact-tools.ts';
 import { openBundleResources } from '../src/tools/bundle-resource-tools.ts';

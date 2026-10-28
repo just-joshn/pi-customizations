@@ -12,18 +12,18 @@ export interface InspectElfNotesParams {
   readonly max_entries?: number;
 }
 
-export const inspectElfNotes = async (
-  session: ReaSession,
-  params: InspectElfNotesParams,
-  context: ToolCallContext = {},
-): Promise<AgentToolResult<unknown>> => {
-  const { record: inspection, path, resolvedPath } = await inspectElfNotesFromPath(params.path, {
+export const inspectElfNotes = async (session: ReaSession, params: InspectElfNotesParams, context: ToolCallContext = {}): Promise<AgentToolResult<unknown>> => {
+  const {
+    record: inspection,
+    path,
+    resolvedPath,
+  } = await inspectElfNotesFromPath(params.path, {
     ...(params.max_file_bytes === undefined ? {} : { maxFileBytes: params.max_file_bytes }),
     ...(params.max_entries === undefined ? {} : { maxEntries: params.max_entries }),
     ...(context.cwd === undefined ? {} : { cwd: context.cwd }),
   });
 
-  const ELF_MACHINES: Record<number, string> = { 3: 'x86', 0x3e: 'x86_64', 0x28: 'arm', 0xb7: 'aarch64' };
+  const ELF_MACHINES: Record<number, string> = { 3: 'x86', 62: 'x86_64', 40: 'arm', 183: 'aarch64' };
   const record = createEvidence({
     subject: {
       name: resolvedPath.split('/').pop() ?? resolvedPath,

@@ -1,8 +1,9 @@
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { TARGETS } from './paths.mjs';
+
 import { minimalElf64CoreFixture } from '../../../../extensions/pi-rea/src/analysis/recorded-crash.ts';
+import { TARGETS } from './paths.mjs';
 
 export const ensureDevicetreeFixture = () => {
   const dir = join(TARGETS, 'devicetree');

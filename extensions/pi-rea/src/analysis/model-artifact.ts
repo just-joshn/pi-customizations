@@ -1,12 +1,10 @@
-
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { isAbsolute, resolve } from 'node:path';
 
 import { invalidRequest } from '../contract/errors.ts';
 
-export const MODEL_HEADER_ENVELOPE_LIMITATION =
-  'Full-file identity is unknown in header-only mode; normalized_result.artifact records a scoped header SHA-256 and exact source path/extent.';
+export const MODEL_HEADER_ENVELOPE_LIMITATION = 'Full-file identity is unknown in header-only mode; normalized_result.artifact records a scoped header SHA-256 and exact source path/extent.';
 
 export const MODEL_RESULT_LIMITATIONS = [
   'Facts are file declarations; model behavior, weight values and compatibility with an inference runtime were not verified.',
@@ -238,21 +236,7 @@ const readGgufValue = (reader: Reader, type: number): { typeName: string; value:
 };
 
 const readGgufValueTypeName = (type: number): string => {
-  const names = [
-    'UINT8',
-    'INT8',
-    'UINT16',
-    'INT16',
-    'UINT32',
-    'INT32',
-    'FLOAT32',
-    'BOOL',
-    'STRING',
-    'ARRAY',
-    'UINT64',
-    'INT64',
-    'FLOAT64',
-  ];
+  const names = ['UINT8', 'INT8', 'UINT16', 'INT16', 'UINT32', 'INT32', 'FLOAT32', 'BOOL', 'STRING', 'ARRAY', 'UINT64', 'INT64', 'FLOAT64'];
   return names[type] ?? `TYPE_${type}`;
 };
 
@@ -525,10 +509,7 @@ export interface ModelArtifactOptions {
   readonly cwd?: string;
 }
 
-export const inspectModelArtifactFromPath = async (
-  path: string,
-  options: ModelArtifactOptions = {},
-): Promise<{ record: ModelArtifactInspection; path: string; resolvedPath: string }> => {
+export const inspectModelArtifactFromPath = async (path: string, options: ModelArtifactOptions = {}): Promise<{ record: ModelArtifactInspection; path: string; resolvedPath: string }> => {
   const hashMode = options.hash ?? 'header';
   if (hashMode !== 'header' && hashMode !== 'full') throw inputError(path, 'invalid_value', 'hash must be header or full.');
   const resolvedPath = isAbsolute(path) ? path : resolve(options.cwd ?? process.cwd(), path);

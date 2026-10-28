@@ -47,7 +47,19 @@ test('login is the Grok Build flow and refresh stays on the given xAI client', (
     throw new Error('not called');
   };
   const toAuth = async () => ({ apiKey: 'kept' });
-  const custom = { ...xai, auth: { oauth: { name: 'probe', login: async () => { throw new Error('not called'); }, refresh, toAuth } } };
+  const custom = {
+    ...xai,
+    auth: {
+      oauth: {
+        name: 'probe',
+        login: async () => {
+          throw new Error('not called');
+        },
+        refresh,
+        toAuth,
+      },
+    },
+  };
   const built = createGrokBuildProvider(custom);
   expect(built.auth.oauth?.login).toBe(loginGrokBuild);
   expect(built.auth.oauth?.refresh).toBe(refresh);

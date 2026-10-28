@@ -1,4 +1,3 @@
-
 import { createHash, randomUUID } from 'node:crypto';
 import { mkdir, mkdtemp, realpath, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -8,8 +7,7 @@ import { unsupportedTarget } from '../contract/errors.ts';
 import { sha256Hex } from '../session/evidence.ts';
 import { normalizeMemberPath, readZipDirectory, readZipMember, ZipError } from './formats/zip.mjs';
 
-const digestOf = (input: string | Uint8Array): string =>
-  typeof input === 'string' ? sha256Hex(input) : createHash('sha256').update(input).digest('hex');
+const digestOf = (input: string | Uint8Array): string => (typeof input === 'string' ? sha256Hex(input) : createHash('sha256').update(input).digest('hex'));
 
 export interface ExtractedArtifactRow {
   readonly artifact_id: string;

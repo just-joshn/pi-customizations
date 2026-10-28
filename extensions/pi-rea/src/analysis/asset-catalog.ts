@@ -1,4 +1,3 @@
-
 import { createHash } from 'node:crypto';
 import { readdir, readFile, realpath, stat } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -59,10 +58,7 @@ const walkForCar = async (root: string, budget: { remaining: number }): Promise<
   return found;
 };
 
-export const inspectAssetCatalogInBundle = async (
-  bundleRoot: string,
-  options: { readonly offset?: number; readonly limit?: number } = {},
-): Promise<AssetCatalogInspection> => {
+export const inspectAssetCatalogInBundle = async (bundleRoot: string, options: { readonly offset?: number; readonly limit?: number } = {}): Promise<AssetCatalogInspection> => {
   let canonical: string;
   try {
     canonical = await realpath(bundleRoot);

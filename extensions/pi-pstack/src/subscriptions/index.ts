@@ -144,7 +144,11 @@ const TimerParams = Type.Object({
   cron: Type.Optional(Type.String({ description: '5-field cron in local time: minute hour day-of-month month day-of-week, with *, lists, ranges, and steps. Pass cron or delaySeconds, not both.' })),
   delaySeconds: Type.Optional(Type.Integer({ minimum: 1, description: 'Fire this many seconds from now, and again every delaySeconds after that unless once is true.' })),
   once: Type.Optional(Type.Boolean({ description: 'Fire only once, then end the timer. Default false.' })),
-  sessionStrategy: Type.Optional(StringEnum(['wake_self', 'new_session'] as const, { description: 'wake_self (default): wake this session with the prompt. new_session: run the prompt in a fresh background subagent each fire; its result arrives as a Task notification.' })),
+  sessionStrategy: Type.Optional(
+    StringEnum(['wake_self', 'new_session'] as const, {
+      description: 'wake_self (default): wake this session with the prompt. new_session: run the prompt in a fresh background subagent each fire; its result arrives as a Task notification.',
+    }),
+  ),
   expiresInHours: Type.Optional(Type.Number({ description: `Hours until the timer ends; default 168 (7 days), at most ${MAX_EXPIRY_HOURS}.` })),
 });
 
@@ -270,7 +274,19 @@ export function createSubscriptions(pi: ExtensionAPI, options: SubscriptionOptio
       if (!active || !owns(entry)) return;
       if (entry.baseline !== undefined) {
         const blocks = await pollChanges(gh, target, entry.baseline, after);
-        if (blocks.length > 0 && owns(entry)) wake(entry, [`[github] ${entry.sub.name}`, ...blocks].join('\n\n'), blocks.map((block) => block.replace(/ \(https?:\/\/\S+\)/, '').replace(/\n- /g, ': ').replace(/\n/g, '; ')).join(' | '));
+        if (blocks.length > 0 && owns(entry))
+          wake(
+            entry,
+            [`[github] ${entry.sub.name}`, ...blocks].join('\n\n'),
+            blocks
+              .map((block) =>
+                block
+                  .replace(/ \(https?:\/\/\S+\)/, '')
+                  .replace(/\n- /g, ': ')
+                  .replace(/\n/g, '; '),
+              )
+              .join(' | '),
+          );
       }
       if (!owns(entry)) return;
       entry.baseline = after;
@@ -324,7 +340,8 @@ export function createSubscriptions(pi: ExtensionAPI, options: SubscriptionOptio
     const { sub } = entry;
     const { config } = sub;
     const base = { id: sub.id, name: sub.name, kind: config.kind, createdAt: iso(sub.createdAt), expiresAt: iso(sub.expiresAt) };
-    if (config.kind === 'timer') return { ...base, target: timerTarget(config), prompt: config.prompt, sessionStrategy: config.strategy, ...(config.cron === undefined ? { delaySeconds: config.delaySeconds } : { cron: config.cron }), once: config.once };
+    if (config.kind === 'timer')
+      return { ...base, target: timerTarget(config), prompt: config.prompt, sessionStrategy: config.strategy, ...(config.cron === undefined ? { delaySeconds: config.delaySeconds } : { cron: config.cron }), once: config.once };
     if (config.kind === 'github') return { ...base, target: targetText(config.target), ...config.target, sessionStrategy: 'wake_self' as Strategy };
     return { ...base, target: entry.url ?? `(not listening) /routines/${config.slug}`, url: entry.url, credentialFile: credentialFile(dir, config.slug), slug: config.slug, prompt: config.prompt, sessionStrategy: 'wake_self' as Strategy };
   };

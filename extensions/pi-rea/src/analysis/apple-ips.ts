@@ -1,4 +1,3 @@
-
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { isAbsolute, resolve } from 'node:path';
@@ -33,7 +32,10 @@ export interface AppleIpsInspection {
     readonly parent_pid: { readonly decimal: string; readonly hex: string | null } | null;
     readonly cpu_type: string | null;
     readonly translated: boolean | null;
-    readonly os_version: { readonly form: string; readonly text: string } | { readonly form: string; readonly train: string | null; readonly build: string | null; readonly release_type: string | null; readonly is_embedded: boolean | null; readonly unlisted_keys: readonly string[] } | null;
+    readonly os_version:
+      | { readonly form: string; readonly text: string }
+      | { readonly form: string; readonly train: string | null; readonly build: string | null; readonly release_type: string | null; readonly is_embedded: boolean | null; readonly unlisted_keys: readonly string[] }
+      | null;
   };
   readonly exception: {
     readonly type: string | null;
@@ -122,23 +124,7 @@ const SOURCE_MEANING: Record<string, string> = {
 };
 
 const KNOWN_META = new Set(['bug_type', 'timestamp', 'os_version', 'bundleID', 'incident_id', 'name', 'build_version', 'platform']);
-const KNOWN_BODY = new Set([
-  'procName',
-  'procPath',
-  'pid',
-  'parentProc',
-  'parentPid',
-  'cpuType',
-  'translated',
-  'osVersion',
-  'exception',
-  'termination',
-  'faultingThread',
-  'threads',
-  'usedImages',
-  'bug_type',
-  'isCorpse',
-]);
+const KNOWN_BODY = new Set(['procName', 'procPath', 'pid', 'parentProc', 'parentPid', 'cpuType', 'translated', 'osVersion', 'exception', 'termination', 'faultingThread', 'threads', 'usedImages', 'bug_type', 'isCorpse']);
 
 const inputError = (path: string, reason: string, detail: string) =>
   invalidRequest('The inspection input is not usable. Check the argument and retry.', {
@@ -207,10 +193,7 @@ export interface AppleIpsOptions {
   readonly cwd?: string;
 }
 
-export const inspectAppleIpsFromPath = async (
-  path: string,
-  options: AppleIpsOptions = {},
-): Promise<{ record: AppleIpsInspection; path: string; resolvedPath: string }> => {
+export const inspectAppleIpsFromPath = async (path: string, options: AppleIpsOptions = {}): Promise<{ record: AppleIpsInspection; path: string; resolvedPath: string }> => {
   const maxFileBytes = options.maxFileBytes ?? DEFAULT_MAX_FILE_BYTES;
   const maxThreads = options.maxThreads ?? DEFAULT_MAX_THREADS;
   const maxFrames = options.maxFrames ?? DEFAULT_MAX_FRAMES;

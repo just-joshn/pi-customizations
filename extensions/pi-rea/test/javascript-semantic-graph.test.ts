@@ -1,11 +1,5 @@
 import { expect, test } from 'vitest';
-
-import {
-  assertSealed,
-  projectMeasuredSemanticGraph,
-  semanticGraphId,
-  semanticNodeId,
-} from '../src/analysis/formats/javascript-semantic-graph.mjs';
+import { assertSealed, projectMeasuredSemanticGraph, semanticGraphId, semanticNodeId } from '../src/analysis/formats/javascript-semantic-graph.mjs';
 
 const LEFT_ROOT = 'ab140656924ac82690ec8be06424257028dc07ca2c227e72de6c418b3caaca2f';
 const LEFT_APP = 'jag_dd862a248dc29dfc7875679f92ef73bc2d12fcd2ee54e57efca5c8468db9becb';

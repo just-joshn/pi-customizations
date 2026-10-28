@@ -8,10 +8,7 @@ import { ensureJsCompareFixtures } from './lib/ensure-fixtures.mjs';
 import { classifyOracle, invokeReaAgentsCli } from './lib/invoke-rea-agents.mjs';
 import { NOTEPAD_APP } from './lib/paths.mjs';
 
-const OUT = join(
-  dirname(fileURLToPath(import.meta.url)),
-  '../../../extensions/pi-rea/src/analysis/formats/semantic-graph-fixtures/encoded.mjs',
-);
+const OUT = join(dirname(fileURLToPath(import.meta.url)), '../../../extensions/pi-rea/src/analysis/formats/semantic-graph-fixtures/encoded.mjs');
 
 function sealOk(graph) {
   const { graph_id: identifier, ...semantic } = graph;
@@ -24,16 +21,11 @@ function sealOk(graph) {
 }
 
 async function measureSemanticGraph(label, path) {
-  const oracle = classifyOracle(
-    (await invokeReaAgentsCli(['analyze-javascript-application', path, '--artifact-format', 'directory']))
-      .parsed,
-  );
+  const oracle = classifyOracle((await invokeReaAgentsCli(['analyze-javascript-application', path, '--artifact-format', 'directory'])).parsed);
   const graph = oracle.body.normalized_result.semantic_graph;
   if (graph === undefined || graph === null) throw new Error(`${label}: oracle missing semantic_graph`);
   sealOk(graph);
-  process.stdout.write(
-    `${label}: root=${graph.root_artifact_sha256} nodes=${graph.nodes.length} relations=${graph.relations.length}\n`,
-  );
+  process.stdout.write(`${label}: root=${graph.root_artifact_sha256} nodes=${graph.nodes.length} relations=${graph.relations.length}\n`);
   return graph;
 }
 

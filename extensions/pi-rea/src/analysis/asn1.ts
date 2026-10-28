@@ -1,4 +1,3 @@
-
 export interface DerNode {
   readonly tag: number;
   readonly offset: number;

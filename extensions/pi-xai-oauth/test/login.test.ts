@@ -1,6 +1,6 @@
 import type { AuthEvent, ProviderAuthInteraction } from '@earendil-works/pi-ai';
 import { expect, vi } from 'vitest';
-import { GROK_OAUTH_SCOPE, authorizeUrl, loginGrokBuild } from '../src/login.ts';
+import { authorizeUrl, GROK_OAUTH_SCOPE, loginGrokBuild } from '../src/login.ts';
 import { test } from './network-guard.ts';
 
 const TOKEN = {

@@ -1,4 +1,3 @@
-
 import type { ExtensionAPI, ToolDefinition } from '@earendil-works/pi-coding-agent';
 import { expect, test } from 'vitest';
 import { loadCatalog } from '../src/contract/catalog.ts';

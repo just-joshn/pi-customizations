@@ -1,9 +1,5 @@
 import type { AgentToolResult } from '@earendil-works/pi-coding-agent';
-import {
-  MODEL_HEADER_ENVELOPE_LIMITATION,
-  MODEL_RESULT_LIMITATIONS,
-  inspectModelArtifactFromPath,
-} from '../analysis/model-artifact.ts';
+import { inspectModelArtifactFromPath, MODEL_HEADER_ENVELOPE_LIMITATION, MODEL_RESULT_LIMITATIONS } from '../analysis/model-artifact.ts';
 import { evidenceResult } from '../contract/results.ts';
 import type { ReaSession } from '../session/binary-session.ts';
 import { createEvidence } from '../session/evidence.ts';
@@ -17,21 +13,14 @@ export interface InspectModelArtifactParams {
   readonly view?: Record<string, unknown>;
 }
 
-export const inspectModelArtifact = async (
-  session: ReaSession,
-  params: InspectModelArtifactParams,
-  context: ToolCallContext = {},
-): Promise<AgentToolResult<unknown>> => {
+export const inspectModelArtifact = async (session: ReaSession, params: InspectModelArtifactParams, context: ToolCallContext = {}): Promise<AgentToolResult<unknown>> => {
   const hashMode = params.hash === 'full' ? 'full' : 'header';
   const { record: inspection, path } = await inspectModelArtifactFromPath(params.path, {
     hash: hashMode,
     ...(context.cwd === undefined ? {} : { cwd: context.cwd }),
   });
 
-  const envelopeLimitations =
-    hashMode === 'header'
-      ? [MODEL_HEADER_ENVELOPE_LIMITATION, ...MODEL_RESULT_LIMITATIONS]
-      : [...MODEL_RESULT_LIMITATIONS];
+  const envelopeLimitations = hashMode === 'header' ? [MODEL_HEADER_ENVELOPE_LIMITATION, ...MODEL_RESULT_LIMITATIONS] : [...MODEL_RESULT_LIMITATIONS];
 
   const record = createEvidence({
     subject: null,

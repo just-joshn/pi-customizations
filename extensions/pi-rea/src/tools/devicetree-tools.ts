@@ -1,14 +1,5 @@
 import type { AgentToolResult } from '@earendil-works/pi-coding-agent';
-import {
-  DEFAULT_MAX_DEPTH,
-  DEFAULT_MAX_FILE_BYTES,
-  DEFAULT_MAX_NODES,
-  DEFAULT_MAX_PROPERTIES,
-  DevicetreeFormatError,
-  DevicetreeLimitError,
-  inspectDevicetreeFromPath,
-  type InspectDevicetreeParams,
-} from '../analysis/devicetree.ts';
+import { DEFAULT_MAX_DEPTH, DEFAULT_MAX_FILE_BYTES, DEFAULT_MAX_NODES, DEFAULT_MAX_PROPERTIES, DevicetreeFormatError, DevicetreeLimitError, type InspectDevicetreeParams, inspectDevicetreeFromPath } from '../analysis/devicetree.ts';
 import { mapAnalyzerError } from '../analysis/map-analyzer-error.ts';
 import { resourceConstraint, unsupportedTarget } from '../contract/errors.ts';
 import { evidenceResult } from '../contract/results.ts';
@@ -17,11 +8,7 @@ import { createEvidence } from '../session/evidence.ts';
 import { ANALYZER_PROVIDER } from './analyzer-provider.ts';
 import type { ToolCallContext } from './session-tools.ts';
 
-export const inspectDevicetree = async (
-  session: ReaSession,
-  params: InspectDevicetreeParams,
-  context: ToolCallContext = {},
-): Promise<AgentToolResult<unknown>> => {
+export const inspectDevicetree = async (session: ReaSession, params: InspectDevicetreeParams, context: ToolCallContext = {}): Promise<AgentToolResult<unknown>> => {
   let inspection: Awaited<ReturnType<typeof inspectDevicetreeFromPath>>;
   try {
     inspection = await inspectDevicetreeFromPath(params, {

@@ -36,11 +36,7 @@ declare module '*zip.mjs' {
 }
 
 declare module '*artifact.mjs' {
-  export function inspectArtifact(args: {
-    readonly bytes: Uint8Array;
-    readonly subject: Record<string, unknown>;
-    readonly integrityPolicy?: string;
-  }): {
+  export function inspectArtifact(args: { readonly bytes: Uint8Array; readonly subject: Record<string, unknown>; readonly integrityPolicy?: string }): {
     readonly inventory: {
       readonly manifest: Record<string, unknown>;
       readonly nodes: readonly unknown[];
@@ -55,11 +51,7 @@ declare module '*artifact.mjs' {
 
 declare module '*javascript.mjs' {
   export const JS_LIMITATIONS: readonly string[];
-  export function analyzeJavaScriptApplication(args: {
-    readonly source: unknown;
-    readonly subject: Record<string, unknown>;
-    readonly integrityPolicy?: string;
-  }): Promise<Record<string, unknown>>;
+  export function analyzeJavaScriptApplication(args: { readonly source: unknown; readonly subject: Record<string, unknown>; readonly integrityPolicy?: string }): Promise<Record<string, unknown>>;
 }
 
 declare module '*target-source.mjs' {

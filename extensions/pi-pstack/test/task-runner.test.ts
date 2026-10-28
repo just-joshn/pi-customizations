@@ -47,7 +47,7 @@ describe('attachments (TASK-016)', () => {
   });
   afterEach(() => rmSync(dir, { recursive: true, force: true }));
 
-  test("builds the message Pi builds from @file arguments: the prompt, each text file in a <file> block, images as attachments", () => {
+  test('builds the message Pi builds from @file arguments: the prompt, each text file in a <file> block, images as attachments', () => {
     const png = Buffer.from('89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c489', 'hex');
     writeFileSync(join(dir, 'note.txt'), '\uFEFFhello\n');
     writeFileSync(join(dir, 'empty.txt'), '');

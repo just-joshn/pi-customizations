@@ -1,16 +1,6 @@
 import { parse } from '@babel/parser';
 
-const SKIP_KEYS = new Set([
-  'loc',
-  'start',
-  'end',
-  'range',
-  'leadingComments',
-  'trailingComments',
-  'innerComments',
-  'errors',
-  'comments',
-]);
+const SKIP_KEYS = new Set(['loc', 'start', 'end', 'range', 'leadingComments', 'trailingComments', 'innerComments', 'errors', 'comments']);
 
 export function countVisitedAstNodes(source, sourcePath) {
   let file;
@@ -20,9 +10,7 @@ export function countVisitedAstNodes(source, sourcePath) {
       errorRecovery: true,
       attachComment: false,
       plugins: parserPluginsForPath(sourcePath),
-      ...( /\.cjs$/iu.test(sourcePath)
-        ? { allowReturnOutsideFunction: true, allowNewTargetOutsideFunction: true }
-        : {}),
+      ...(/\.cjs$/iu.test(sourcePath) ? { allowReturnOutsideFunction: true, allowNewTargetOutsideFunction: true } : {}),
     });
   } catch {
     return 0;

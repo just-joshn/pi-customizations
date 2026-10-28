@@ -3,61 +3,54 @@ import { loadCatalog, type ToolContract } from './contract/catalog.ts';
 import { cancelled, capabilityUnavailable, type ReaError } from './contract/errors.ts';
 import { errorResult } from './contract/results.ts';
 import type { ReaSession } from './session/binary-session.ts';
+import { inspectApkSignature } from './tools/apk-signature-tools.ts';
+import { projectAppleApplicationGraphTool } from './tools/apple-graph-tools.ts';
+import { inspectAppleIps } from './tools/apple-ips-tools.ts';
 import { listArchitectures } from './tools/arch-tools.ts';
 import { extractArtifact, inspectArtifact } from './tools/artifact-tools.ts';
-import { inspectApkSignature } from './tools/apk-signature-tools.ts';
 import { inspectBinaryLayout } from './tools/binary-layout-tools.ts';
 import { inspectAssetCatalog, inspectKeyedArchive, openBundleResources } from './tools/bundle-resource-tools.ts';
-import { inspectAppleIps } from './tools/apple-ips-tools.ts';
-import { projectAppleApplicationGraphTool } from './tools/apple-graph-tools.ts';
-import {
-  compareApplicationVersionsTool,
-  compareArtifacts,
-  compareBundles,
-  compareJavascriptExportShapesTool,
-  compareManagedMembers,
-  compareSourceToBundleTool,
-} from './tools/compare-tools.ts';
+import { compareApplicationVersionsTool, compareArtifacts, compareBundles, compareJavascriptExportShapesTool, compareManagedMembers, compareSourceToBundleTool } from './tools/compare-tools.ts';
+import { listCutterSessions } from './tools/cutter-tools.ts';
 import { demangleSwift } from './tools/demangle-tools.ts';
-import { exportEvidenceBundle, getEvidenceBundle, importEvidenceBundle, inspectAnalysisView } from './tools/evidence-tools.ts';
-import { inspectElectronFuses } from './tools/electron-fuse-tools.ts';
-import { identifyFlutterBuild, inspectDartAot } from './tools/flutter-tools.ts';
-import { inspectGoBinary } from './tools/go-binary-tools.ts';
-import { inspectWebNetworkCapture } from './tools/har-tools.ts';
-import { decodeInterfaceBuilder } from './tools/interface-builder-tools.ts';
-import { analyzeJavascriptApplication } from './tools/javascript-tools.ts';
-import { inspectMacho } from './tools/macho-tools.ts';
 import { inspectDesktopApplication } from './tools/desktop-application-tools.ts';
+import { inspectDevicetree } from './tools/devicetree-tools.ts';
+import { inspectElectronFuses } from './tools/electron-fuse-tools.ts';
 import { inspectElfNotes } from './tools/elf-tools.ts';
 import { inspectByteEntropy } from './tools/entropy-tools.ts';
 import { inspectErlangBeam } from './tools/erlang-beam-tools.ts';
+import { exportEvidenceBundle, getEvidenceBundle, importEvidenceBundle, inspectAnalysisView } from './tools/evidence-tools.ts';
+import { identifyFlutterBuild, inspectDartAot } from './tools/flutter-tools.ts';
+import { inspectGoBinary } from './tools/go-binary-tools.ts';
 import { inspectGpuCodeObjects } from './tools/gpu-code-object-tools.ts';
+import { inspectWebNetworkCapture } from './tools/har-tools.ts';
 import { inspectIl2CppMetadata } from './tools/il2cpp-tools.ts';
+import { decodeInterfaceBuilder } from './tools/interface-builder-tools.ts';
+import { analyzeJavascriptApplication } from './tools/javascript-tools.ts';
 import { inspectKernelModule } from './tools/kernel-module-tools.ts';
+import { inspectMacho } from './tools/macho-tools.ts';
 import { inspectManagedArtifact, inspectManagedMembers } from './tools/managed-tools.ts';
 import { inspectModelArtifact } from './tools/model-artifact-tools.ts';
+import { inspectNativeExports } from './tools/native-exports-tools.ts';
+import { inspectWithObjdump } from './tools/objdump-tools.ts';
 import { inspectPeCertificates, inspectPeImports, inspectPeLoadConfig, inspectPeResources } from './tools/pe-tools.ts';
 import { inspectPlist } from './tools/plist-tools.ts';
+import { isProviderRefuseTool, refuseProviderTool } from './tools/provider-refuse-tools.ts';
 import { inspectPythonPyc } from './tools/python-pyc-tools.ts';
 import { inspectRecordedCrash } from './tools/recorded-crash-tools.ts';
 import { inspectRustBinary } from './tools/rust-tools.ts';
-import { inspectSignature } from './tools/signature-tools.ts';
-import { inspectSqliteDatabase } from './tools/sqlite-tools.ts';
 import type { ToolCallContext } from './tools/session-tools.ts';
 import { binarySession, closeBinary, openBinary } from './tools/session-tools.ts';
-import { inspectDevicetree } from './tools/devicetree-tools.ts';
-import { listCutterSessions } from './tools/cutter-tools.ts';
-import { inspectNativeExports } from './tools/native-exports-tools.ts';
-import { inspectWithObjdump } from './tools/objdump-tools.ts';
-import { isProviderRefuseTool, refuseProviderTool } from './tools/provider-refuse-tools.ts';
 import { inspectAnalysisSettings, updateAnalysisSettings } from './tools/settings-tools.ts';
+import { inspectSignature } from './tools/signature-tools.ts';
+import { inspectSqliteDatabase } from './tools/sqlite-tools.ts';
 import { listUnknowns, recordUnknown, updateUnknown, verifyUnknownResolution } from './tools/unknown-tools.ts';
 import { exportWebScriptsTool } from './tools/web-script-tools.ts';
 
 export const isDirect = (contract: ToolContract): boolean => contract.implementation === 'kernel';
 
 export const ROUTING_GUIDELINE =
-    'pi-rea implements the session/Evidence kernel plus in-process analyzers (JavaScript/ASAR export-shape and version compares, source-to-bundle, web-script export, Apple application graph projection, ZIP inventory/extract, binary layout, Go buildinfo, HAR, PE/ELF/Rust/IPS/entropy/core, model/SQLite/BEAM/desktop/GPU/IL2CPP/pyc/kernel-module/devicetree, APK signature, Electron fuses, Mach-O signature, keyed archive, asset catalog, Interface Builder, Swift demangle, managed PE/CLI compare, artifact/bundle compare, Flutter/Dart AOT, analysis settings, and fail-closed provider-gated families: official-proxy/Ghidra-IDA-Hopper-Kuna session tools, Frida, ADB, CDP/Electron page, JEB, Rizin, GDB, Cutter, apktool, binwalk, Wakaru, jadx Android inspect, selected compare_*, WABT/TShark/pcap/sigrok/EVM, native-macos observe/dylib, and remaining engine-free surfaces that refuse closed until parsers land). Every catalog tool is registered; a capability_unavailable or provider_unavailable answer is a coverage gap, not a finding about the target. Prefer binary_session then the matching tool; tool_search remains available when enabled.';
+  'pi-rea implements the session/Evidence kernel plus in-process analyzers (JavaScript/ASAR export-shape and version compares, source-to-bundle, web-script export, Apple application graph projection, ZIP inventory/extract, binary layout, Go buildinfo, HAR, PE/ELF/Rust/IPS/entropy/core, model/SQLite/BEAM/desktop/GPU/IL2CPP/pyc/kernel-module/devicetree, APK signature, Electron fuses, Mach-O signature, keyed archive, asset catalog, Interface Builder, Swift demangle, managed PE/CLI compare, artifact/bundle compare, Flutter/Dart AOT, analysis settings, and fail-closed provider-gated families: official-proxy/Ghidra-IDA-Hopper-Kuna session tools, Frida, ADB, CDP/Electron page, JEB, Rizin, GDB, Cutter, apktool, binwalk, Wakaru, jadx Android inspect, selected compare_*, WABT/TShark/pcap/sigrok/EVM, native-macos observe/dylib, and remaining engine-free surfaces that refuse closed until parsers land). Every catalog tool is registered; a capability_unavailable or provider_unavailable answer is a coverage gap, not a finding about the target. Prefer binary_session then the matching tool; tool_search remains available when enabled.';
 
 export const REA_NAMESPACE = {
   name: 'rea',

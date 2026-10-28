@@ -9,8 +9,8 @@ import { invalidRequest, unsupportedTarget } from '../contract/errors.ts';
 import { evidenceResult } from '../contract/results.ts';
 import type { ReaSession } from '../session/binary-session.ts';
 import { createEvidence } from '../session/evidence.ts';
-import type { ToolCallContext } from './session-tools.ts';
 import { ANALYZER_PROVIDER } from './analyzer-provider.ts';
+import type { ToolCallContext } from './session-tools.ts';
 
 export interface InspectWebNetworkCaptureParams {
   readonly capture_path: string;
@@ -21,11 +21,7 @@ export interface InspectWebNetworkCaptureParams {
 
 const resolvePath = (path: string, cwd: string | undefined): string => (isAbsolute(path) ? path : resolve(cwd ?? process.cwd(), path));
 
-export const inspectWebNetworkCapture = async (
-  session: ReaSession,
-  params: InspectWebNetworkCaptureParams,
-  context: ToolCallContext = {},
-): Promise<AgentToolResult<unknown>> => {
+export const inspectWebNetworkCapture = async (session: ReaSession, params: InspectWebNetworkCaptureParams, context: ToolCallContext = {}): Promise<AgentToolResult<unknown>> => {
   if (typeof params.capture_path !== 'string' || params.capture_path.length === 0) {
     throw invalidRequest('inspect_web_network_capture requires capture_path.', { parameter: 'capture_path' });
   }

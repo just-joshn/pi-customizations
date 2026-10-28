@@ -1,17 +1,16 @@
-
 import { invalidRequest } from '../contract/errors.ts';
 
 export const DOS_MAGIC = 0x5a4d;
 export const DEFAULT_MAX_FILE_BYTES = 64 * 1024 * 1024;
 
 export const PE_MACHINES: Record<number, string> = {
-  0x014c: 'x86',
-  0x8664: 'x86_64',
-  0xaa64: 'arm64',
-  0x01c0: 'arm',
-  0x01c4: 'arm',
-  0x5032: 'riscv',
-  0x5064: 'riscv64',
+  332: 'x86',
+  34404: 'x86_64',
+  43620: 'arm64',
+  448: 'arm',
+  452: 'arm',
+  20530: 'riscv',
+  20580: 'riscv64',
 };
 
 export const DIR = {

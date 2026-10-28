@@ -13,8 +13,7 @@ import { ANALYZER_PROVIDER } from './analyzer-provider.ts';
 
 const ZIP_FAMILY = new Set(['zip', 'apk', 'ipa', 'msix']);
 
-const INSPECTION_LIMITATION =
-  'Inspection derives bounded static hypotheses and next probes; it does not execute the artifact or claim format-specific semantics.';
+const INSPECTION_LIMITATION = 'Inspection derives bounded static hypotheses and next probes; it does not execute the artifact or claim format-specific semantics.';
 
 export interface ExtractArtifactParams {
   readonly integrity_policy?: 'fail' | 'record-and-continue';
@@ -25,8 +24,7 @@ export interface InspectArtifactParams {
   readonly detail?: 'complete' | 'summary';
 }
 
-const digestOf = (input: string | Uint8Array): string =>
-  typeof input === 'string' ? sha256Hex(input) : createHash('sha256').update(input).digest('hex');
+const digestOf = (input: string | Uint8Array): string => (typeof input === 'string' ? sha256Hex(input) : createHash('sha256').update(input).digest('hex'));
 
 export const inspectArtifact = async (session: ReaSession, params: InspectArtifactParams = {}): Promise<AgentToolResult<unknown>> => {
   const target = session.target;

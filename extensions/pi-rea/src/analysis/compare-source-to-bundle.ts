@@ -1,11 +1,9 @@
-
-import { posix } from 'node:path';
 import { readFile } from 'node:fs/promises';
-import { isAbsolute } from 'node:path';
+import { isAbsolute, posix } from 'node:path';
 
-import { canonicalJson, digestOf } from './canonical.mjs';
 import { invalidRequest } from '../contract/errors.ts';
 import type { EvidenceRecord } from '../session/evidence.ts';
+import { canonicalJson, digestOf } from './canonical.mjs';
 
 const SOURCE_TO_BUNDLE_SIGNAL_WEIGHTS = [
   ['exact-source-digest', 100],
@@ -259,9 +257,7 @@ const normalizeCurrentPath = (raw: string, format: 'artifact' | 'reference'): st
 };
 
 const uniquePaths = (paths: readonly PathFact[]): PathFact[] =>
-  [
-    ...new Map(paths.map((path) => [compositeKey([path.kind, path.value, String(path.allowSuffix)]), path])).values(),
-  ].sort((left, right) => compareUnicode(compositeKey([left.kind, left.value]), compositeKey([right.kind, right.value])));
+  [...new Map(paths.map((path) => [compositeKey([path.kind, path.value, String(path.allowSuffix)]), path])).values()].sort((left, right) => compareUnicode(compositeKey([left.kind, left.value]), compositeKey([right.kind, right.value])));
 
 const addPath = (paths: PathFact[], kind: string, raw: string, format: 'artifact' | 'reference'): void => {
   const value = normalizeCurrentPath(raw, format);
@@ -293,19 +289,16 @@ const projectCurrentNode = (node: GraphNode): NodeProjection => {
       if (key === 'declared_path' && typeof properties['resolved_path'] === 'string') continue;
       const raw = properties[key];
       if (typeof raw !== 'string') continue;
-      const format =
-        key === 'resolved_path' || ((key === 'path' || key === 'module_path') && !SCHEME_URL.test(raw)) ? 'artifact' : 'reference';
+      const format = key === 'resolved_path' || ((key === 'path' || key === 'module_path') && !SCHEME_URL.test(raw)) ? 'artifact' : 'reference';
       addPath(paths, 'observation-path', raw, format);
     }
   }
   return { node, representations: [node.node_id], digests, paths: uniquePaths(paths) };
 };
 
-const fileOccurrenceKey = (occurrence: FileOccurrence): string =>
-  compositeKey(['file-occurrence', occurrence.container_sha256, occurrence.path, occurrence.sha256]);
+const fileOccurrenceKey = (occurrence: FileOccurrence): string => compositeKey(['file-occurrence', occurrence.container_sha256, occurrence.path, occurrence.sha256]);
 
-const projectionKey = (projection: NodeProjection): string =>
-  projection.occurrence === undefined ? projection.node.node_id : fileOccurrenceKey(projection.occurrence);
+const projectionKey = (projection: NodeProjection): string => (projection.occurrence === undefined ? projection.node.node_id : fileOccurrenceKey(projection.occurrence));
 
 const parseOccurrence = (value: unknown): FileOccurrence | null => {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) return null;
@@ -428,10 +421,7 @@ const candidateIdsForSource = (source: SourceEntry, index: ReturnType<typeof bui
   return output;
 };
 
-const matchingPaths = (sourcePath: string, currentPaths: readonly PathFact[]): string[] =>
-  currentPaths
-    .filter(({ value, allowSuffix }) => value === sourcePath || (allowSuffix && value.endsWith(`/${sourcePath}`)))
-    .map(({ value }) => value);
+const matchingPaths = (sourcePath: string, currentPaths: readonly PathFact[]): string[] => currentPaths.filter(({ value, allowSuffix }) => value === sourcePath || (allowSuffix && value.endsWith(`/${sourcePath}`))).map(({ value }) => value);
 
 const matchingUnicodePaths = (sourcePath: string, currentPaths: readonly PathFact[]): string[] => {
   const canonicalSource = sourcePath.normalize('NFC');
@@ -473,9 +463,7 @@ const candidateSignals = (source: SourceEntry, current: NodeProjection): Signal[
   const otherPaths = current.paths.filter(({ kind }) => kind !== 'source-map-original');
   const exactPaths = otherPaths.filter(({ value }) => value === source.path).map(({ value }) => value);
   if (exactPaths.length > 0) signals.push(makeSignal('current-path-exact', source.path, exactPaths));
-  const suffixPaths = otherPaths
-    .filter(({ value, allowSuffix }) => allowSuffix && value !== source.path && value.endsWith(`/${source.path}`))
-    .map(({ value }) => value);
+  const suffixPaths = otherPaths.filter(({ value, allowSuffix }) => allowSuffix && value !== source.path && value.endsWith(`/${source.path}`)).map(({ value }) => value);
   if (suffixPaths.length > 0) signals.push(makeSignal('current-path-suffix', source.path, suffixPaths));
   const basename = posix.basename(source.path);
   const basenamePaths = current.paths.filter(({ value }) => posix.basename(value) === basename).map(({ value }) => value);
@@ -507,8 +495,7 @@ const scoreCandidate = (source: SourceEntry, nodeId: string, index: ReturnType<t
   };
 };
 
-const candidateIdentity = (candidate: Candidate): string =>
-  candidate.current_file_occurrence === undefined ? candidate.current_node_id : fileOccurrenceKey(candidate.current_file_occurrence);
+const candidateIdentity = (candidate: Candidate): string => (candidate.current_file_occurrence === undefined ? candidate.current_node_id : fileOccurrenceKey(candidate.current_file_occurrence));
 
 const hasSignal = (candidate: Candidate, kind: SignalKind): boolean => candidate.signals.some((signal) => signal.kind === kind);
 
@@ -534,9 +521,7 @@ const classifyMapping = (
       limitations: ['The same historical source digest occurs in multiple current source occurrences.'],
     };
   }
-  const pathCandidates = candidates.filter((candidate) =>
-    candidate.signals.some(({ kind }) => kind === 'source-map-original-path' || kind === 'current-path-exact' || kind === 'current-path-suffix'),
-  );
+  const pathCandidates = candidates.filter((candidate) => candidate.signals.some(({ kind }) => kind === 'source-map-original-path' || kind === 'current-path-exact' || kind === 'current-path-suffix'));
   const topScore = pathCandidates[0]?.score;
   const topPathCandidates = topScore === undefined ? [] : pathCandidates.filter(({ score }) => score === topScore);
   if (topPathCandidates.length === 1) {
@@ -561,9 +546,7 @@ const classifyMapping = (
       status: 'split',
       confidence: 'medium',
       currentNodeIds: uniqueSorted(topPathCandidates.map(({ current_node_id: nodeId }) => nodeId)),
-      limitations: [
-        'Multiple equally scored current source occurrences retain the historical source path; this is a static split inference, not runtime proof.',
-      ],
+      limitations: ['Multiple equally scored current source occurrences retain the historical source path; this is a static split inference, not runtime proof.'],
     };
   }
   if (candidates.length > 0) {
@@ -593,8 +576,7 @@ const classifyMapping = (
       };
 };
 
-const mappingId = (referenceRoot: string, graphId: string, item: Omit<MappingItem, 'mapping_id'>): string =>
-  `stbc_item_${digestOf(canonicalJson({ reference_root_sha256: referenceRoot, application_graph_id: graphId, ...item }))}`;
+const mappingId = (referenceRoot: string, graphId: string, item: Omit<MappingItem, 'mapping_id'>): string => `stbc_item_${digestOf(canonicalJson({ reference_root_sha256: referenceRoot, application_graph_id: graphId, ...item }))}`;
 
 const applicationGraph = (
   record: EvidenceRecord,
@@ -618,11 +600,7 @@ const applicationGraph = (
     .filter((node) => node.node_id.length > 0)
     .sort((left, right) => compareUnicode(left.node_id, right.node_id));
   const coverage = (graph['coverage'] as Record<string, unknown> | undefined) ?? {};
-  const limitations = Array.isArray(graph['limitations'])
-    ? (graph['limitations'] as unknown[]).map(String)
-    : Array.isArray(nr['limitations'])
-      ? (nr['limitations'] as unknown[]).map(String)
-      : [];
+  const limitations = Array.isArray(graph['limitations']) ? (graph['limitations'] as unknown[]).map(String) : Array.isArray(nr['limitations']) ? (nr['limitations'] as unknown[]).map(String) : [];
   return {
     graph_id: typeof graph['graph_id'] === 'string' ? graph['graph_id'] : `jag_${digestOf(record.evidence_id)}`,
     root: typeof nr['root_artifact_sha256'] === 'string' ? nr['root_artifact_sha256'] : digestOf(record.evidence_id),
@@ -632,10 +610,7 @@ const applicationGraph = (
   };
 };
 
-export const compareSourceToBundle = async (params: {
-  readonly reference: unknown;
-  readonly application: unknown;
-}): Promise<SourceToBundleInspection> => {
+export const compareSourceToBundle = async (params: { readonly reference: unknown; readonly application: unknown }): Promise<SourceToBundleInspection> => {
   const application = asJsEvidence(params.application);
   const reference = await parseHistoricalSourceGraph(params.reference);
   const app = applicationGraph(application);
@@ -677,11 +652,7 @@ export const compareSourceToBundle = async (params: {
     const key = candidateIdentity(candidate);
     sourcesByOccurrence.set(key, [...(sourcesByOccurrence.get(key) ?? []), item]);
   }
-  const mergedSources = new Set(
-    [...sourcesByOccurrence.values()]
-      .filter((group) => group.length > 1)
-      .flatMap((group) => group.map(({ source_path: path }) => path)),
-  );
+  const mergedSources = new Set([...sourcesByOccurrence.values()].filter((group) => group.length > 1).flatMap((group) => group.map(({ source_path: path }) => path)));
   const items = provisional.map((item) => {
     if (!mergedSources.has(item.source_path)) return item;
     const { mapping_id: _previous, ...base } = item;
@@ -696,15 +667,11 @@ export const compareSourceToBundle = async (params: {
   });
 
   const mappedCurrentIds = new Set(
-    items.flatMap(({ current_node_ids: nodeIds, candidates }) => [
-      ...nodeIds,
-      ...candidates.filter((candidate) => nodeIds.includes(candidate.current_node_id)).flatMap((candidate) => candidate.representation_node_ids ?? []),
-    ]),
+    items.flatMap(({ current_node_ids: nodeIds, candidates }) => [...nodeIds, ...candidates.filter((candidate) => nodeIds.includes(candidate.current_node_id)).flatMap((candidate) => candidate.representation_node_ids ?? [])]),
   );
   const unmapped = app.nodes.map(({ node_id }) => node_id).filter((nodeId) => !mappedCurrentIds.has(nodeId));
   const countStatus = (status: MappingItem['status']): number => items.filter((item) => item.status === status).length;
-  const coverageStatus =
-    reference.inventory_state === 'complete' && app.coverageStatus === 'complete' ? ('complete-within-inputs' as const) : ('partial' as const);
+  const coverageStatus = reference.inventory_state === 'complete' && app.coverageStatus === 'complete' ? ('complete-within-inputs' as const) : ('partial' as const);
   const limitations = uniqueSorted([
     'Static digest and location signals do not establish runtime behavior, semantic equivalence, or absence of dynamically generated modules.',
     ...reference.limitations,

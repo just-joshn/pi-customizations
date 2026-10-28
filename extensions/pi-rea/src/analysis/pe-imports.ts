@@ -1,16 +1,6 @@
-
 import { createHash } from 'node:crypto';
 
-import {
-  DIR,
-  mapRva,
-  parsePeImage,
-  peInputError,
-  readCString,
-  resolvePathBytes,
-  type PeFileLocation,
-  type PeImage,
-} from './pe-core.ts';
+import { DIR, mapRva, type PeFileLocation, type PeImage, parsePeImage, peInputError, readCString, resolvePathBytes } from './pe-core.ts';
 
 export const DEFAULT_MAX_DLLS = 256;
 export const DEFAULT_MAX_FUNCTIONS = 8192;
@@ -88,8 +78,7 @@ const highBit = (bits: 32 | 64): bigint => (bits === 64 ? 0x8000_0000_0000_0000n
 
 const thunkHex = (raw: bigint): string => raw.toString(16);
 
-const readThunk = (bytes: Buffer, offset: number, bits: 32 | 64): bigint =>
-  bits === 64 ? bytes.readBigUInt64LE(offset) : BigInt(bytes.readUInt32LE(offset));
+const readThunk = (bytes: Buffer, offset: number, bits: 32 | 64): bigint => (bits === 64 ? bytes.readBigUInt64LE(offset) : BigInt(bytes.readUInt32LE(offset)));
 
 const readFunctions = (
   bytes: Buffer,
@@ -118,8 +107,7 @@ const readFunctions = (
       break;
     }
     const raw = readThunk(bytes, iatOffset, bits);
-    const iltRaw =
-      iltOffset !== undefined && iltOffset + entrySize <= bytes.length ? readThunk(bytes, iltOffset, bits) : raw;
+    const iltRaw = iltOffset !== undefined && iltOffset + entrySize <= bytes.length ? readThunk(bytes, iltOffset, bits) : raw;
     if (iltRaw === 0n && raw === 0n) break;
     remaining.count -= 1;
     const source = nameTableRva !== 0 ? iltRaw : raw;
@@ -169,13 +157,7 @@ const imphashOf = (imports: readonly PeImportDll[]): { md5: string | null; reaso
   return { md5: createHash('md5').update(parts.join(',')).digest('hex'), reason: null };
 };
 
-const readImportDirectory = (
-  bytes: Buffer,
-  image: PeImage,
-  maxDlls: number,
-  remaining: { count: number },
-  issues: { code: string; location: string | null; message: string }[],
-): { imports: PeImportDll[]; truncated: boolean } => {
+const readImportDirectory = (bytes: Buffer, image: PeImage, maxDlls: number, remaining: { count: number }, issues: { code: string; location: string | null; message: string }[]): { imports: PeImportDll[]; truncated: boolean } => {
   const directory = image.directories[DIR.IMPORT];
   if (directory === undefined || (directory.rva === 0 && directory.size === 0)) return { imports: [], truncated: false };
   const base = mapRva(image.sections, directory.rva);
@@ -222,13 +204,7 @@ const readImportDirectory = (
   return { imports, truncated };
 };
 
-const readDelayImports = (
-  bytes: Buffer,
-  image: PeImage,
-  maxDlls: number,
-  remaining: { count: number },
-  issues: { code: string; location: string | null; message: string }[],
-): { delayImports: PeDelayImportDll[]; truncated: boolean } => {
+const readDelayImports = (bytes: Buffer, image: PeImage, maxDlls: number, remaining: { count: number }, issues: { code: string; location: string | null; message: string }[]): { delayImports: PeDelayImportDll[]; truncated: boolean } => {
   const directory = image.directories[DIR.DELAY_IMPORT];
   if (directory === undefined || (directory.rva === 0 && directory.size === 0)) return { delayImports: [], truncated: false };
   const base = mapRva(image.sections, directory.rva);
@@ -287,10 +263,7 @@ export interface PeImportsOptions {
   readonly cwd?: string;
 }
 
-export const inspectPeImportsFromPath = async (
-  path: string,
-  options: PeImportsOptions = {},
-): Promise<{ record: PeImportsInspection; path: string; resolvedPath: string }> => {
+export const inspectPeImportsFromPath = async (path: string, options: PeImportsOptions = {}): Promise<{ record: PeImportsInspection; path: string; resolvedPath: string }> => {
   const maxDlls = options.maxDlls ?? DEFAULT_MAX_DLLS;
   const maxFunctions = options.maxFunctions ?? DEFAULT_MAX_FUNCTIONS;
   if (!Number.isInteger(maxDlls) || maxDlls < 1 || maxDlls > 65_536) {
@@ -319,21 +292,14 @@ export const inspectPeImportsFromPath = async (
   const { delayImports, truncated: delayTruncated } = readDelayImports(bytes, image, maxDlls, remaining, issues);
   const truncated = importTruncated || delayTruncated;
   if (truncated) {
-    throw peInputError(
-      'inspect_pe_imports',
-      path,
-      'invalid_value',
-      `the import tables exceed the configured budget (max_dlls=${maxDlls}, max_functions=${maxFunctions}) or contain unreadable entries.`,
-    );
+    throw peInputError('inspect_pe_imports', path, 'invalid_value', `the import tables exceed the configured budget (max_dlls=${maxDlls}, max_functions=${maxFunctions}) or contain unreadable entries.`);
   }
 
   const importDir = image.directories[DIR.IMPORT];
   const delayDir = image.directories[DIR.DELAY_IMPORT];
   const hash = imphashOf(imports);
-  const importTableOffset =
-    importDir === undefined || (importDir.rva === 0 && importDir.size === 0) ? undefined : mapRva(image.sections, importDir.rva);
-  const delayTableOffset =
-    delayDir === undefined || (delayDir.rva === 0 && delayDir.size === 0) ? undefined : mapRva(image.sections, delayDir.rva);
+  const importTableOffset = importDir === undefined || (importDir.rva === 0 && importDir.size === 0) ? undefined : mapRva(image.sections, importDir.rva);
+  const delayTableOffset = delayDir === undefined || (delayDir.rva === 0 && delayDir.size === 0) ? undefined : mapRva(image.sections, delayDir.rva);
 
   return {
     path,

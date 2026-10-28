@@ -66,5 +66,12 @@ export function createSubagentRegistry(pi: ExtensionAPI) {
     return background;
   };
 
-  return { isRunning: (agentId: string) => running.has(agentId), get: (agentId: string): Pick<Running, 'handle' | 'readonly'> | undefined => running.get(agentId), hasBackgroundWork: () => backgroundRunning().length > 0, track, beforeSettle, shutdown };
+  return {
+    isRunning: (agentId: string) => running.has(agentId),
+    get: (agentId: string): Pick<Running, 'handle' | 'readonly'> | undefined => running.get(agentId),
+    hasBackgroundWork: () => backgroundRunning().length > 0,
+    track,
+    beforeSettle,
+    shutdown,
+  };
 }

@@ -1,4 +1,3 @@
-
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { isAbsolute, resolve } from 'node:path';
@@ -102,10 +101,7 @@ export interface Il2CppOptions {
   readonly cwd?: string;
 }
 
-export const inspectIl2CppMetadataFromPath = async (
-  path: string,
-  options: Il2CppOptions = {},
-): Promise<{ record: Il2CppMetadataInspection; path: string; resolvedPath: string }> => {
+export const inspectIl2CppMetadataFromPath = async (path: string, options: Il2CppOptions = {}): Promise<{ record: Il2CppMetadataInspection; path: string; resolvedPath: string }> => {
   if (options.genericInstances === true && options.binaryPath === undefined) {
     throw inputError(path, 'invalid_value', 'generic_instances requires binary_path.');
   }

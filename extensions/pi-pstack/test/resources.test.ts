@@ -38,7 +38,8 @@ function shippedFiles(predicate: (path: string) => boolean): string[] {
  * Words that name Cursor's host rather than something a Pi user has. Nothing shipped may name Cursor (lowercase
  * "cursor" is a text or loop cursor) except the spans listed in OUTSIDE_DATA, each on its own file with the reason.
  */
-const CURSOR_HOST_TERMS = /~\/\.cursor|\.cursor\/|\.cursor-plugin|\.mdc\b|Option\+Enter|Alt\+Enter|agent-transcripts|cursor\.com|github\.com\/cursor\/|api2\.cursor|update_state|SendToUser|add-plugin|Custom Mode|cloud agent|cloud VM|cursor-team-kit|Grok Bot/i;
+const CURSOR_HOST_TERMS =
+  /~\/\.cursor|\.cursor\/|\.cursor-plugin|\.mdc\b|Option\+Enter|Alt\+Enter|agent-transcripts|cursor\.com|github\.com\/cursor\/|api2\.cursor|update_state|SendToUser|add-plugin|Custom Mode|cloud agent|cloud VM|cursor-team-kit|Grok Bot/i;
 const OUTSIDE_DATA: { file: string; span: RegExp; reason: string }[] = [
   { file: 'README.md', span: /A `pstack-models\.mdc` from an earlier version is moved there once, without its frontmatter, and kept as `pstack-models\.mdc\.migrated`\./, reason: 'names the legacy rule file pi-pstack migrates' },
   { file: 'README.md', span: /`licenses\/cursor-team-kit\.LICENSE`/, reason: 'names the shipped MIT notice of deslop, control-cli, and control-ui' },
@@ -141,7 +142,12 @@ describe('shipped resources', () => {
 
   test('shipped text names Pi, not Cursor host features (RES-012)', () => {
     const offending = shippedFiles(() => true).flatMap((file) => hostTermLines(file, readFileSync(join(root, file), 'utf8')));
-    const stale = OUTSIDE_DATA.filter((entry) => !readFileSync(join(root, entry.file), 'utf8').split('\n').some((line) => entry.span.test(line)));
+    const stale = OUTSIDE_DATA.filter(
+      (entry) =>
+        !readFileSync(join(root, entry.file), 'utf8')
+          .split('\n')
+          .some((line) => entry.span.test(line)),
+    );
     expect({ offending, stale: stale.map((entry) => `${entry.file}: ${entry.reason}`) }).toEqual({ offending: [], stale: [] });
   });
 

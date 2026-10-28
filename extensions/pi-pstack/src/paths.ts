@@ -2,7 +2,6 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { getAgentDir } from '@earendil-works/pi-coding-agent';
-
 import { childIdentity } from './child-env.ts';
 
 export const PACKAGE_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');

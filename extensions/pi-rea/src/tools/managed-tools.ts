@@ -19,11 +19,7 @@ export interface InspectManagedMembersParams {
   readonly type_names?: readonly string[];
 }
 
-export const inspectManagedArtifact = async (
-  session: ReaSession,
-  params: InspectManagedArtifactParams,
-  context: ToolCallContext = {},
-): Promise<AgentToolResult<unknown>> => {
+export const inspectManagedArtifact = async (session: ReaSession, params: InspectManagedArtifactParams, context: ToolCallContext = {}): Promise<AgentToolResult<unknown>> => {
   const path = params.path ?? session.target?.identity.path;
   if (typeof path !== 'string' || path.length === 0 || !path.startsWith('/')) {
     throw invalidRequest('inspect_managed_artifact requires an absolute path or an open PE target.', {
@@ -64,11 +60,7 @@ export const inspectManagedArtifact = async (
   return evidenceResult(record);
 };
 
-export const inspectManagedMembers = async (
-  session: ReaSession,
-  params: InspectManagedMembersParams,
-  context: ToolCallContext = {},
-): Promise<AgentToolResult<unknown>> => {
+export const inspectManagedMembers = async (session: ReaSession, params: InspectManagedMembersParams, context: ToolCallContext = {}): Promise<AgentToolResult<unknown>> => {
   const path = params.path ?? session.target?.identity.path;
   if (typeof path !== 'string' || path.length === 0 || !path.startsWith('/')) {
     throw invalidRequest('inspect_managed_members requires an absolute path or an open PE target.', {
@@ -76,7 +68,11 @@ export const inspectManagedMembers = async (
       parameter: 'path',
     });
   }
-  const { record: inspection, resolvedPath, architecture } = await inspectManagedMembersFromPath(path, {
+  const {
+    record: inspection,
+    resolvedPath,
+    architecture,
+  } = await inspectManagedMembersFromPath(path, {
     ...(context.cwd === undefined ? {} : { cwd: context.cwd }),
     ...(params.type_names === undefined ? {} : { type_names: params.type_names }),
   });

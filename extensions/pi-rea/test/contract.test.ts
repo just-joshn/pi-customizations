@@ -1,15 +1,14 @@
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+
 import { expect, test } from 'vitest';
 import { catalogDigest, loadCatalog } from '../src/contract/catalog.ts';
 import { ERROR_CATEGORIES, ERROR_CODES } from '../src/contract/errors.ts';
 import { isDirect } from '../src/registry.ts';
 
 const catalog = loadCatalog();
-const manifest = JSON.parse(
-  readFileSync(join(dirname(fileURLToPath(import.meta.url)), '../schemas/kernel-manifest.json'), 'utf8'),
-) as { kernelToolNames: readonly string[] };
+const manifest = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)), '../schemas/kernel-manifest.json'), 'utf8')) as { kernelToolNames: readonly string[] };
 const kernelNames = [...manifest.kernelToolNames].toSorted();
 
 test('KERN-001: the contract carries 229 uniquely named tools', () => {

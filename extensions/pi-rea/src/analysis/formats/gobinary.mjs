@@ -82,10 +82,8 @@ function presentResult(buf, marker, decoded, parsed) {
   const versionLocation = decoded.versionLocation ?? (goVersion === null || goVersion === undefined ? null : { offset: decoded.headerEnd, bytes: versionBytes.length });
   const textWindow = decoded.modinfo;
   const bytesWindow = decoded.modinfoRaw ?? decoded.modinfo;
-  const moduleText =
-    textWindow === null || textWindow === undefined ? '' : buf.toString('latin1', textWindow.start, textWindow.end);
-  const moduleBytes =
-    bytesWindow === null || bytesWindow === undefined ? Buffer.alloc(0) : buf.subarray(bytesWindow.start, bytesWindow.end);
+  const moduleText = textWindow === null || textWindow === undefined ? '' : buf.toString('latin1', textWindow.start, textWindow.end);
+  const moduleBytes = bytesWindow === null || bytesWindow === undefined ? Buffer.alloc(0) : buf.subarray(bytesWindow.start, bytesWindow.end);
   const main = parsed.modules.find((entry) => entry.main) ?? null;
   const dependencies = parsed.modules
     .filter((entry) => !entry.main)
@@ -112,10 +110,7 @@ function presentResult(buf, marker, decoded, parsed) {
       module_text: moduleText,
       module_bytes_base64: moduleBytes.toString('base64'),
       version_location: versionLocation,
-      module_location:
-        bytesWindow === null || bytesWindow === undefined
-          ? null
-          : { offset: bytesWindow.start, bytes: bytesWindow.end - bytesWindow.start },
+      module_location: bytesWindow === null || bytesWindow === undefined ? null : { offset: bytesWindow.start, bytes: bytesWindow.end - bytesWindow.start },
       module: {
         path: main?.path ?? parsed.modules[0]?.path ?? '',
         main: main === null ? null : { path: main.path, version: main.version, sum: main.sum, replacement: main.replacement },

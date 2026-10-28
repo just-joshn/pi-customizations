@@ -1,13 +1,5 @@
 import type { AgentToolResult } from '@earendil-works/pi-coding-agent';
-import {
-  DEFAULT_MAX_FILE_BYTES,
-  DEFAULT_MAX_FRAMES,
-  DEFAULT_MAX_IMAGES,
-  DEFAULT_MAX_INTEGER_TEXT_BYTES,
-  DEFAULT_MAX_REGISTERS,
-  DEFAULT_MAX_THREADS,
-  inspectAppleIpsFromPath,
-} from '../analysis/apple-ips.ts';
+import { DEFAULT_MAX_FILE_BYTES, DEFAULT_MAX_FRAMES, DEFAULT_MAX_IMAGES, DEFAULT_MAX_INTEGER_TEXT_BYTES, DEFAULT_MAX_REGISTERS, DEFAULT_MAX_THREADS, inspectAppleIpsFromPath } from '../analysis/apple-ips.ts';
 import { evidenceResult } from '../contract/results.ts';
 import type { ReaSession } from '../session/binary-session.ts';
 import { createEvidence } from '../session/evidence.ts';
@@ -24,12 +16,12 @@ export interface InspectAppleIpsParams {
   readonly max_integer_text_bytes?: number;
 }
 
-export const inspectAppleIps = async (
-  session: ReaSession,
-  params: InspectAppleIpsParams,
-  context: ToolCallContext = {},
-): Promise<AgentToolResult<unknown>> => {
-  const { record: inspection, path, resolvedPath } = await inspectAppleIpsFromPath(params.path, {
+export const inspectAppleIps = async (session: ReaSession, params: InspectAppleIpsParams, context: ToolCallContext = {}): Promise<AgentToolResult<unknown>> => {
+  const {
+    record: inspection,
+    path,
+    resolvedPath,
+  } = await inspectAppleIpsFromPath(params.path, {
     ...(params.max_file_bytes === undefined ? {} : { maxFileBytes: params.max_file_bytes }),
     ...(params.max_threads === undefined ? {} : { maxThreads: params.max_threads }),
     ...(params.max_frames === undefined ? {} : { maxFrames: params.max_frames }),

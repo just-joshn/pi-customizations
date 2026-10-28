@@ -41,9 +41,7 @@ export const TaskParams = Type.Object({
         'Agent ID from an earlier Task call in this workspace. Starts a new agent (new ID) whose context begins as a copy of that agent transcript and that runs in the same directory (its git worktree when it had one), so it sees that checkout and its uncommitted changes. The prompt is the new task. subagent_type, model, and readonly default to the source agent; readonly can be added, never lifted. Fails while the source is running. Cannot be combined with resume, environment, or cloud_base_branch.',
     }),
   ),
-  fork_turns: Type.Optional(
-    Type.Integer({ minimum: 1, description: 'With fork: copy only the first N user turns of the source agent, so the fork starts from that point in its conversation. Defaults to the whole transcript.' }),
-  ),
+  fork_turns: Type.Optional(Type.Integer({ minimum: 1, description: 'With fork: copy only the first N user turns of the source agent, so the fork starts from that point in its conversation. Defaults to the whole transcript.' })),
   run_in_background: Type.Optional(
     Type.Boolean({ description: 'Return at once with the agent ID; the final response arrives as a notification after your turn ends. When false, block until the agent finishes. Defaults to the subagent type setting, else false.' }),
   ),
@@ -162,7 +160,22 @@ function planResume(params: TaskInput, ctx: ExtensionContext, agents: readonly A
   // An agent never runs shallower than it was created or than its caller allows: a grandchild resumed from the main chat
   // and a main-chat agent resumed from a subagent both run at depth 2. A call can add readonly but not lift it, and a
   // type that has since become readonly restricts an older writable record too.
-  return { kind: 'resume', agentId, agent, model: record.model, readonly, planMode, workspace: record.cwd, worktree, rootStore: rootStoreOf(ctx), depth: Math.max(record.depth ?? 0, depth + 1), trusted: ctx.isProjectTrusted(), attachments, notes, description: params.description };
+  return {
+    kind: 'resume',
+    agentId,
+    agent,
+    model: record.model,
+    readonly,
+    planMode,
+    workspace: record.cwd,
+    worktree,
+    rootStore: rootStoreOf(ctx),
+    depth: Math.max(record.depth ?? 0, depth + 1),
+    trusted: ctx.isProjectTrusted(),
+    attachments,
+    notes,
+    description: params.description,
+  };
 }
 
 /**
@@ -187,7 +200,23 @@ export function planFork(params: TaskInput, ctx: ExtensionContext, agents: reado
   const attachments = resolveAttachments(params.file_attachments ?? [], ctx.cwd);
   const turns = params.fork_turns === undefined ? '' : `, keeping its first ${params.fork_turns} user turn${params.fork_turns === 1 ? '' : 's'}`;
   const notes = [`Forked from agent ${sourceId}${turns}.`, ...(worktree === undefined ? [] : [worktreeLine(worktree)])];
-  return { kind: 'fork', agentId, forkedFrom: sourceId, agent, model, readonly, planMode, workspace: record.cwd, worktree, rootStore: rootStoreOf(ctx), depth: Math.max(record.depth ?? 0, depth + 1), trusted: ctx.isProjectTrusted(), attachments, notes, description: params.description };
+  return {
+    kind: 'fork',
+    agentId,
+    forkedFrom: sourceId,
+    agent,
+    model,
+    readonly,
+    planMode,
+    workspace: record.cwd,
+    worktree,
+    rootStore: rootStoreOf(ctx),
+    depth: Math.max(record.depth ?? 0, depth + 1),
+    trusted: ctx.isProjectTrusted(),
+    attachments,
+    notes,
+    description: params.description,
+  };
 }
 
 function launchChild(plan: Launch, prompt: string, signal: AbortSignal | undefined) {
@@ -257,7 +286,19 @@ function transcriptOf(plan: Launch): string {
 }
 
 function details(plan: Launch, background: boolean, status: string, pid?: number) {
-  return { agentId: plan.agentId, forkedFrom: plan.forkedFrom ?? null, subagentType: plan.agent.type, model: plan.model ?? null, readonly: runsReadonly(plan), background, status, transcript: transcriptOf(plan), pid: pid ?? null, worktree: plan.worktree ?? null, description: plan.description };
+  return {
+    agentId: plan.agentId,
+    forkedFrom: plan.forkedFrom ?? null,
+    subagentType: plan.agent.type,
+    model: plan.model ?? null,
+    readonly: runsReadonly(plan),
+    background,
+    status,
+    transcript: transcriptOf(plan),
+    pid: pid ?? null,
+    worktree: plan.worktree ?? null,
+    description: plan.description,
+  };
 }
 
 function foregroundResult(plan: Launch, outcome: ChildOutcome) {

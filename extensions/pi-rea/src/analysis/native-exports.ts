@@ -27,7 +27,7 @@ export interface NativeExportsInspection {
   readonly limitations: readonly string[];
 }
 
-const ELF_MACHINES: Record<number, string> = { 3: 'x86', 0x3e: 'amd64', 0x28: 'arm', 0xb7: 'aarch64' };
+const ELF_MACHINES: Record<number, string> = { 3: 'x86', 62: 'amd64', 40: 'arm', 183: 'aarch64' };
 
 export const inspectNativeExportsFromPath = async (
   path: string,
@@ -69,8 +69,7 @@ export const inspectNativeExportsFromPath = async (
           exports: [],
           coverage: {
             status: 'unsupported',
-            reason:
-              'The ELF has no section headers; enumerating dynamic symbols from the dynamic segment is not implemented',
+            reason: 'The ELF has no section headers; enumerating dynamic symbols from the dynamic segment is not implemented',
             examined_entries: 0,
             exports: 0,
           },
@@ -95,10 +94,7 @@ export const inspectNativeExportsFromPath = async (
           exports: 0,
         },
         issues: [],
-        limitations: [
-          'The ELF has no dynamic symbol table, so it exports no dynamic symbols.',
-          ...ELF_EXPORT_LIMITATIONS,
-        ],
+        limitations: ['The ELF has no dynamic symbol table, so it exports no dynamic symbols.', ...ELF_EXPORT_LIMITATIONS],
       },
     };
   }

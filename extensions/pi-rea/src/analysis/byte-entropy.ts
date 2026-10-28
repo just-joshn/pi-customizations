@@ -1,4 +1,3 @@
-
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { isAbsolute, resolve } from 'node:path';
@@ -57,10 +56,7 @@ export interface ByteEntropyOptions {
   readonly cwd?: string;
 }
 
-export const inspectByteEntropyFromPath = async (
-  path: string,
-  options: ByteEntropyOptions = {},
-): Promise<{ record: ByteEntropyInspection; path: string; resolvedPath: string }> => {
+export const inspectByteEntropyFromPath = async (path: string, options: ByteEntropyOptions = {}): Promise<{ record: ByteEntropyInspection; path: string; resolvedPath: string }> => {
   const blockSize = options.blockSize ?? DEFAULT_BLOCK_SIZE;
   if (!Number.isInteger(blockSize) || blockSize < 256 || blockSize > 65_536 || !isPowerOfTwo(blockSize)) {
     throw inputError(path, 'invalid_value', 'block_size must be a power of two between 256 and 65536.');
@@ -94,8 +90,7 @@ export const inspectByteEntropyFromPath = async (
   const runs: { offset: number; length: number; classification: 'high' | 'low' }[] = [];
   let current: { offset: number; length: number; classification: 'high' | 'low' } | null = null;
   for (const block of blocks) {
-    const classification: 'high' | 'low' | null =
-      block.entropy >= HIGH_THRESHOLD ? 'high' : block.entropy <= LOW_THRESHOLD ? 'low' : null;
+    const classification: 'high' | 'low' | null = block.entropy >= HIGH_THRESHOLD ? 'high' : block.entropy <= LOW_THRESHOLD ? 'low' : null;
     if (classification === null) {
       if (current !== null) runs.push(current);
       current = null;

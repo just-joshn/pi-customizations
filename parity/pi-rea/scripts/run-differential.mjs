@@ -84,8 +84,7 @@ const main = async () => {
       else undocumented.push(diff);
     }
 
-    const status =
-      contractIssues.length > 0 ? 'fail_contract' : undocumented.length > 0 ? 'fail_undocumented' : diffs.length === 0 ? 'pass' : 'pass_documented';
+    const status = contractIssues.length > 0 ? 'fail_contract' : undocumented.length > 0 ? 'fail_undocumented' : diffs.length === 0 ? 'pass' : 'pass_documented';
 
     const report = {
       id: testCase.id,

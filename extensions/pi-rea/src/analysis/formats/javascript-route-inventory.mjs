@@ -17,14 +17,7 @@ export function buildRouteInventory(inputs) {
   let partial = false;
 
   for (const input of inputs) {
-    const id = lookupId('jss', [
-      input.key,
-      input.path,
-      input.url,
-      input.sha256,
-      input.container_sha256,
-      ...(input.next_app_context === undefined ? [] : [input.next_app_context]),
-    ]);
+    const id = lookupId('jss', [input.key, input.path, input.url, input.sha256, input.container_sha256, ...(input.next_app_context === undefined ? [] : [input.next_app_context])]);
     manifestIds.push(id);
     sources.push({
       id,
@@ -53,12 +46,7 @@ export function buildRouteInventory(inputs) {
     capacity: null,
     coverage: {
       scope: 'provided-code-sources',
-      source_parsing:
-        sources.length === 0
-          ? 'unknown'
-          : sources.some((source) => source.status !== 'complete')
-            ? 'partial'
-            : 'complete',
+      source_parsing: sources.length === 0 ? 'unknown' : sources.some((source) => source.status !== 'complete') ? 'partial' : 'complete',
       candidate_enumeration: partial ? 'partial' : 'complete',
       application_routes: 'unknown',
     },

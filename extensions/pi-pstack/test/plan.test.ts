@@ -1,6 +1,5 @@
 import type { ExtensionAPI, ToolDefinition } from '@earendil-works/pi-coding-agent';
 import { expect, test } from 'vitest';
-
 import { PLAN_BASH, PLAN_ENTRY, parsePlanArgs, planBlockReason, planFromBranch, planSection, planTools, registerPlanMode } from '../src/plan.ts';
 
 type Handler = (event: unknown, ctx: unknown) => unknown;

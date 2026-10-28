@@ -10,12 +10,12 @@ export interface InspectElectronFusesParams {
   readonly path: string;
 }
 
-export const inspectElectronFuses = async (
-  session: ReaSession,
-  params: InspectElectronFusesParams,
-  context: ToolCallContext = {},
-): Promise<AgentToolResult<unknown>> => {
-  const { record: inspection, path, resolvedPath } = await inspectElectronFusesFromPath(params.path, {
+export const inspectElectronFuses = async (session: ReaSession, params: InspectElectronFusesParams, context: ToolCallContext = {}): Promise<AgentToolResult<unknown>> => {
+  const {
+    record: inspection,
+    path,
+    resolvedPath,
+  } = await inspectElectronFusesFromPath(params.path, {
     ...(context.cwd === undefined ? {} : { cwd: context.cwd }),
   });
   const record = createEvidence({
@@ -37,12 +37,7 @@ export const inspectElectronFuses = async (
     authority: 'shipped-artifact',
     environment: null,
     limitations: [...inspection.limitations],
-    locations: [
-      { kind: 'artifact-path', path },
-      ...inspection.slices.flatMap((slice) =>
-        slice.sentinels.map((sentinel) => ({ kind: 'file-offset' as const, offset: sentinel.sentinel_offset })),
-      ),
-    ],
+    locations: [{ kind: 'artifact-path', path }, ...inspection.slices.flatMap((slice) => slice.sentinels.map((sentinel) => ({ kind: 'file-offset' as const, offset: sentinel.sentinel_offset })))],
     evidence_links: [],
   });
   session.evidence.record(record);

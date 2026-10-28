@@ -1,6 +1,7 @@
 #!/usr/bin/env bun
 import { readFileSync } from 'fs';
 import { join } from 'path';
+
 import { deepDiff } from './lib/diff.mjs';
 import { normalizeForCompare } from './lib/normalize.mjs';
 
@@ -54,12 +55,18 @@ for (const edge of P.edges) {
   if (candidates.shift() === undefined) unmatched_soft += 1;
 }
 
-console.log(JSON.stringify({
-  nodes: { pi: P.nodes.length, oracle: O.nodes.length, pi_kinds: hist(P.nodes, (n) => n.kind), oracle_kinds: hist(O.nodes, (n) => n.kind) },
-  edges: { pi: P.edges.length, oracle: O.edges.length, pi_relations: hist(P.edges, (e) => e.relation), oracle_relations: hist(O.edges, (e) => e.relation) },
-  unmatched_oracle_edges: O.edges.map(edgeKey).filter((k) => !new Set(P.edges.map(edgeKey)).has(k)).length,
-  unmatched_pi_edges: P.edges.map(edgeKey).filter((k) => !new Set(O.edges.map(edgeKey)).has(k)).length,
-  unmatched_soft_property_edges: unmatched_soft,
-  diff_count: diffs.length,
-  top_families,
-}, null, 2));
+console.log(
+  JSON.stringify(
+    {
+      nodes: { pi: P.nodes.length, oracle: O.nodes.length, pi_kinds: hist(P.nodes, (n) => n.kind), oracle_kinds: hist(O.nodes, (n) => n.kind) },
+      edges: { pi: P.edges.length, oracle: O.edges.length, pi_relations: hist(P.edges, (e) => e.relation), oracle_relations: hist(O.edges, (e) => e.relation) },
+      unmatched_oracle_edges: O.edges.map(edgeKey).filter((k) => !new Set(P.edges.map(edgeKey)).has(k)).length,
+      unmatched_pi_edges: P.edges.map(edgeKey).filter((k) => !new Set(O.edges.map(edgeKey)).has(k)).length,
+      unmatched_soft_property_edges: unmatched_soft,
+      diff_count: diffs.length,
+      top_families,
+    },
+    null,
+    2,
+  ),
+);

@@ -154,7 +154,8 @@ export function renderChartSvg(chart: Chart): string {
     const labelY = margin.top + plotHeight + 16;
     parts.push(`<text x="${x}" y="${labelY}" text-anchor="end" font-size="11" transform="rotate(-30 ${x} ${labelY})">${escapeXml(label)}</text>`);
   });
-  if (chart.unit !== undefined && chart.unit !== '') parts.push(`<text x="18" y="${margin.top + plotHeight / 2}" text-anchor="middle" font-size="12" transform="rotate(-90 18 ${margin.top + plotHeight / 2})">${escapeXml(chart.unit)}</text>`);
+  if (chart.unit !== undefined && chart.unit !== '')
+    parts.push(`<text x="18" y="${margin.top + plotHeight / 2}" text-anchor="middle" font-size="12" transform="rotate(-90 18 ${margin.top + plotHeight / 2})">${escapeXml(chart.unit)}</text>`);
 
   chart.series.forEach((series, index) => {
     const color = PALETTE[index % PALETTE.length];
@@ -163,7 +164,9 @@ export function renderChartSvg(chart: Chart): string {
       series.values.forEach((value, point) => {
         const x = round(margin.left + band * point + band * 0.1 + barWidth * index);
         const top = Math.min(y(value), y(0));
-        parts.push(`<rect x="${x}" y="${top}" width="${round(barWidth)}" height="${round(Math.abs(y(value) - y(0)))}" fill="${color}"><title>${escapeXml(`${series.name} ${chart.labels[point]}: ${formatValue(value, chart.unit)}`)}</title></rect>`);
+        parts.push(
+          `<rect x="${x}" y="${top}" width="${round(barWidth)}" height="${round(Math.abs(y(value) - y(0)))}" fill="${color}"><title>${escapeXml(`${series.name} ${chart.labels[point]}: ${formatValue(value, chart.unit)}`)}</title></rect>`,
+        );
       });
     } else {
       const points = series.values.map((value, point) => `${xCenter(point)},${y(value)}`).join(' ');
@@ -178,7 +181,14 @@ export function renderChartSvg(chart: Chart): string {
     parts.push(`<text x="${x + 18}" y="52" font-size="12">${escapeXml(series.name)}</text>`);
   });
 
-  return [`<?xml version="1.0" encoding="UTF-8"?>`, `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" font-family="sans-serif">`, `<rect width="${width}" height="${height}" fill="#ffffff"/>`, ...parts, '</svg>', ''].join('\n');
+  return [
+    `<?xml version="1.0" encoding="UTF-8"?>`,
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" font-family="sans-serif">`,
+    `<rect width="${width}" height="${height}" fill="#ffffff"/>`,
+    ...parts,
+    '</svg>',
+    '',
+  ].join('\n');
 }
 
 export function chartSlug(title: string): string {
@@ -192,7 +202,10 @@ export function chartSlug(title: string): string {
 }
 
 function timestamp(date: Date): string {
-  return date.toISOString().replace(/[-:]/g, '').replace(/\.\d+Z$/, 'Z');
+  return date
+    .toISOString()
+    .replace(/[-:]/g, '')
+    .replace(/\.\d+Z$/, 'Z');
 }
 
 export interface VisualizeOptions {

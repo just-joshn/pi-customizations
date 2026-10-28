@@ -1,8 +1,8 @@
 import type { AgentToolResult } from '@earendil-works/pi-coding-agent';
+import { inspectPeCertificatesFromPath, DEFAULT_MAX_ENTRIES as PE_CERT_MAX_ENTRIES } from '../analysis/pe-certificates.ts';
 import { PE_MACHINES } from '../analysis/pe-core.ts';
-import { DEFAULT_MAX_ENTRIES as PE_CERT_MAX_ENTRIES, inspectPeCertificatesFromPath } from '../analysis/pe-certificates.ts';
-import { DEFAULT_MAX_CALLBACKS, inspectPeLoadConfigFromPath } from '../analysis/pe-load-config.ts';
 import { DEFAULT_MAX_DLLS, DEFAULT_MAX_FUNCTIONS, inspectPeImportsFromPath } from '../analysis/pe-imports.ts';
+import { DEFAULT_MAX_CALLBACKS, inspectPeLoadConfigFromPath } from '../analysis/pe-load-config.ts';
 import { DEFAULT_MAX_ENTRIES, DEFAULT_MAX_FILE_BYTES, inspectPeResourcesFromPath } from '../analysis/pe-resources.ts';
 import { evidenceResult } from '../contract/results.ts';
 import { PI_REA_VERSION, type ReaSession } from '../session/binary-session.ts';
@@ -78,7 +78,11 @@ const recordPeEvidence = (
 };
 
 export const inspectPeResources = async (session: ReaSession, params: InspectPeResourcesParams, context: PeToolContext = {}): Promise<AgentToolResult<unknown>> => {
-  const { record: inspection, path, resolvedPath } = await inspectPeResourcesFromPath(params.path, {
+  const {
+    record: inspection,
+    path,
+    resolvedPath,
+  } = await inspectPeResourcesFromPath(params.path, {
     ...(params.max_file_bytes === undefined ? {} : { maxFileBytes: params.max_file_bytes }),
     ...(params.max_entries === undefined ? {} : { maxEntries: params.max_entries }),
     ...(context.cwd === undefined ? {} : { cwd: context.cwd }),
@@ -101,7 +105,11 @@ export const inspectPeResources = async (session: ReaSession, params: InspectPeR
 };
 
 export const inspectPeImports = async (session: ReaSession, params: InspectPeImportsParams, context: PeToolContext = {}): Promise<AgentToolResult<unknown>> => {
-  const { record: inspection, path, resolvedPath } = await inspectPeImportsFromPath(params.path, {
+  const {
+    record: inspection,
+    path,
+    resolvedPath,
+  } = await inspectPeImportsFromPath(params.path, {
     ...(params.max_file_bytes === undefined ? {} : { maxFileBytes: params.max_file_bytes }),
     ...(params.max_dlls === undefined ? {} : { maxDlls: params.max_dlls }),
     ...(params.max_functions === undefined ? {} : { maxFunctions: params.max_functions }),
@@ -123,14 +131,16 @@ export const inspectPeImports = async (session: ReaSession, params: InspectPeImp
     inspection as unknown as Record<string, unknown>,
     inspection.limitations,
     PE_MACHINES[inspection.machine] ?? null,
-    importRange === undefined
-      ? []
-      : [{ kind: 'file-offset-range', start: importRange.offset, end: importRange.offset + importRange.bytes }],
+    importRange === undefined ? [] : [{ kind: 'file-offset-range', start: importRange.offset, end: importRange.offset + importRange.bytes }],
   );
 };
 
 export const inspectPeCertificates = async (session: ReaSession, params: InspectPeCertificatesParams, context: PeToolContext = {}): Promise<AgentToolResult<unknown>> => {
-  const { record: inspection, path, resolvedPath } = await inspectPeCertificatesFromPath(params.path, {
+  const {
+    record: inspection,
+    path,
+    resolvedPath,
+  } = await inspectPeCertificatesFromPath(params.path, {
     ...(params.max_file_bytes === undefined ? {} : { maxFileBytes: params.max_file_bytes }),
     ...(params.max_entries === undefined ? {} : { maxEntries: params.max_entries }),
     ...(context.cwd === undefined ? {} : { cwd: context.cwd }),
@@ -150,14 +160,16 @@ export const inspectPeCertificates = async (session: ReaSession, params: Inspect
     inspection as unknown as Record<string, unknown>,
     inspection.limitations,
     PE_MACHINES[inspection.machine] ?? null,
-    first === undefined
-      ? []
-      : [{ kind: 'file-offset-range', start: first.location.offset, end: first.location.offset + first.location.bytes }],
+    first === undefined ? [] : [{ kind: 'file-offset-range', start: first.location.offset, end: first.location.offset + first.location.bytes }],
   );
 };
 
 export const inspectPeLoadConfig = async (session: ReaSession, params: InspectPeLoadConfigParams, context: PeToolContext = {}): Promise<AgentToolResult<unknown>> => {
-  const { record: inspection, path, resolvedPath } = await inspectPeLoadConfigFromPath(params.path, {
+  const {
+    record: inspection,
+    path,
+    resolvedPath,
+  } = await inspectPeLoadConfigFromPath(params.path, {
     ...(params.max_file_bytes === undefined ? {} : { maxFileBytes: params.max_file_bytes }),
     ...(params.max_callbacks === undefined ? {} : { maxCallbacks: params.max_callbacks }),
     ...(context.cwd === undefined ? {} : { cwd: context.cwd }),

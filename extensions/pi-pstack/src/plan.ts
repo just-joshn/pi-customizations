@@ -1,5 +1,4 @@
 import type { ExtensionAPI, ExtensionCommandContext, ExtensionContext } from '@earendil-works/pi-coding-agent';
-
 import { createReadonlyBashTool, releaseReadonlySandbox } from './readonly-shell.ts';
 
 export const PLAN_ENTRY = 'pstack/plan';

@@ -61,9 +61,7 @@ export async function digestDirectory(_root, entries) {
       parent_path: parentLogicalPath(file.path),
     });
   }
-  const directoryPaths = [...new Set(files.flatMap((file) => ancestorDirectoryPaths(file.path)))].sort(
-    (left, right) => depth(right) - depth(left) || (left < right ? -1 : left > right ? 1 : 0),
-  );
+  const directoryPaths = [...new Set(files.flatMap((file) => ancestorDirectoryPaths(file.path)))].sort((left, right) => depth(right) - depth(left) || (left < right ? -1 : left > right ? 1 : 0));
   for (const directoryPath of directoryPaths) {
     const children = occurrences
       .filter((occurrence) => occurrence.parent_path === directoryPath)
@@ -81,9 +79,7 @@ export async function digestDirectory(_root, entries) {
       parent_path: parentLogicalPath(directoryPath),
     });
   }
-  const children = [...occurrences]
-    .map(({ logical_path, artifact_id }) => ({ logical_path, artifact_id }))
-    .sort((left, right) => (left.logical_path < right.logical_path ? -1 : left.logical_path > right.logical_path ? 1 : 0));
+  const children = [...occurrences].map(({ logical_path, artifact_id }) => ({ logical_path, artifact_id })).sort((left, right) => (left.logical_path < right.logical_path ? -1 : left.logical_path > right.logical_path ? 1 : 0));
   return digestOf(canonicalJson({ kind: 'directory-root', children }));
 }
 

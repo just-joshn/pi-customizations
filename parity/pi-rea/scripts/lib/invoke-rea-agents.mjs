@@ -109,8 +109,7 @@ const classifyMcpToolResponse = (response, stderr = '') => {
   return { kind: 'configuration', body: structured, raw: response, stderr };
 };
 
-export const invokeReaAgentsMcp = (toolName, args, options = {}) =>
-  invokeReaAgentsMcpSession([[toolName, args ?? {}]], options).then((results) => results[0]);
+export const invokeReaAgentsMcp = (toolName, args, options = {}) => invokeReaAgentsMcpSession([[toolName, args ?? {}]], options).then((results) => results[0]);
 
 export const invokeReaAgentsMcpSession = (calls, options = {}) =>
   new Promise((resolve, reject) => {
@@ -137,8 +136,7 @@ export const invokeReaAgentsMcpSession = (calls, options = {}) =>
               pending.get(message.id)(message);
               pending.delete(message.id);
             }
-          } catch {
-          }
+          } catch {}
         }
         index = buffer.indexOf('\n');
       }

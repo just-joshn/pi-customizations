@@ -1,4 +1,3 @@
-
 import { createHash } from 'node:crypto';
 import { readFile, realpath } from 'node:fs/promises';
 import { isAbsolute, resolve } from 'node:path';
@@ -13,8 +12,7 @@ const SNAPSHOT_HASH_OFFSET = 20;
 const SNAPSHOT_HASH_LENGTH = 32;
 const SNAPSHOT_HASH_PATTERN = /^[0-9a-f]{32}$/u;
 const DART_VERSION_PATTERN = /^Dart VM version:[^\x00\n]{0,200}$/u;
-const TOOLCHAIN_PATTERN =
-  /^(?:Android \([^)\x00\n]{0,80}\) clang version [^\x00\n]{0,500}|based on LLVM \d[^\x00\n]{0,80})$/u;
+const TOOLCHAIN_PATTERN = /^(?:Android \([^)\x00\n]{0,80}\) clang version [^\x00\n]{0,500}|based on LLVM \d[^\x00\n]{0,80})$/u;
 const MAX_TOOLCHAIN_LINES = 4;
 const MAX_SNAPSHOT_HASH_CANDIDATES = 64;
 
@@ -138,32 +136,14 @@ const readElfHeader = (bytes: Buffer, totalBytes = bytes.length): ElfHeaderResul
   const ePhentsize = reader.u16(is64 ? 0x36 : 0x2a);
   const ePhnum = reader.u16(is64 ? 0x38 : 0x2c);
   const tableFits = (offset: number | null, width: number | null, count: number | null, minimumWidth: number) =>
-    offset !== null &&
-    width !== null &&
-    count !== null &&
-    offset >= headerSize &&
-    offset <= totalBytes &&
-    width >= minimumWidth &&
-    count > 0 &&
-    count <= Math.floor((totalBytes - offset) / width);
+    offset !== null && width !== null && count !== null && offset >= headerSize && offset <= totalBytes && width >= minimumWidth && count > 0 && count <= Math.floor((totalBytes - offset) / width);
   const minShent = is64 ? 64 : 40;
   const sectionTableAbsent = eType === 3 && eShoff === 0 && eShnum === 0;
-  if (
-    eShoff === null ||
-    eShentsize === null ||
-    eShnum === null ||
-    (!sectionTableAbsent && !tableFits(eShoff, eShentsize, eShnum, minShent))
-  ) {
+  if (eShoff === null || eShentsize === null || eShnum === null || (!sectionTableAbsent && !tableFits(eShoff, eShentsize, eShnum, minShent))) {
     return { failure: { reason: 'ELF section header table is missing or out of bounds' } };
   }
   const minPhent = is64 ? 56 : 32;
-  if (
-    ePhoff === null ||
-    ePhentsize === null ||
-    ePhnum === null ||
-    ePhnum === 0xffff ||
-    !tableFits(ePhoff, ePhentsize, ePhnum, minPhent)
-  ) {
+  if (ePhoff === null || ePhentsize === null || ePhnum === null || ePhnum === 0xffff || !tableFits(ePhoff, ePhentsize, ePhnum, minPhent)) {
     return { failure: { reason: 'ELF program header table is missing or out of bounds' } };
   }
   return { header: true };
@@ -178,9 +158,7 @@ const findSnapshotHashes = (bytes: Buffer): { readonly sources: number; readonly
     const magic = bytes.indexOf(DART_SNAPSHOT_MAGIC, offset);
     if (magic < 0) break;
     if (magic + SNAPSHOT_HASH_OFFSET + SNAPSHOT_HASH_LENGTH > bytes.length) break;
-    const candidate = bytes
-      .subarray(magic + SNAPSHOT_HASH_OFFSET, magic + SNAPSHOT_HASH_OFFSET + SNAPSHOT_HASH_LENGTH)
-      .toString('latin1');
+    const candidate = bytes.subarray(magic + SNAPSHOT_HASH_OFFSET, magic + SNAPSHOT_HASH_OFFSET + SNAPSHOT_HASH_LENGTH).toString('latin1');
     if (SNAPSHOT_HASH_PATTERN.test(candidate)) {
       sources += 1;
       if (!candidateSet.has(candidate) && candidates.length < MAX_SNAPSHOT_HASH_CANDIDATES) {
@@ -255,30 +233,14 @@ const abiFromLibPath = (logicalPath: string): string | null => {
   return match?.[1] ?? null;
 };
 
-const buildIdentifyLimitations = (
-  abis: readonly FlutterAbiFacts[],
-  buildIdFailures: ReadonlyMap<string, readonly string[]>,
-  flutterDetected: boolean,
-): string[] => [
+const buildIdentifyLimitations = (abis: readonly FlutterAbiFacts[], buildIdFailures: ReadonlyMap<string, readonly string[]>, flutterDetected: boolean): string[] => [
   'The APK is read through an owned read-only snapshot; concurrent changes to the original cannot mix into this observation',
   'The snapshot hash identifies a Dart SDK build only against an external mapping dataset; REA performs no lookup',
   'Release engine builds often carry no labeled Dart version string; absence is reported, not guessed',
   'Engine build IDs come only from ELF-declared PT_NOTE/SHT_NOTE records; conflicting or incompletely examined notes preserve candidates and report partial coverage',
-  ...[...buildIdFailures.entries()].flatMap(([abi, failures]) =>
-    failures.map((reason) => `lib/${abi}/libflutter.so: ${reason}`),
-  ),
-  ...abis
-    .filter((entry) => entry.libflutter.toolchain_capped)
-    .map(
-      (entry) =>
-        `lib/${entry.abi}/libflutter.so has toolchain labels omitted by the complete-label grammar or the 4-line projection`,
-    ),
-  ...abis
-    .filter((entry) => entry.libflutter.dart_version_capped)
-    .map(
-      (entry) =>
-        `lib/${entry.abi}/libflutter.so has Dart version labels omitted by the complete-label grammar or the single-version projection`,
-    ),
+  ...[...buildIdFailures.entries()].flatMap(([abi, failures]) => failures.map((reason) => `lib/${abi}/libflutter.so: ${reason}`)),
+  ...abis.filter((entry) => entry.libflutter.toolchain_capped).map((entry) => `lib/${entry.abi}/libflutter.so has toolchain labels omitted by the complete-label grammar or the 4-line projection`),
+  ...abis.filter((entry) => entry.libflutter.dart_version_capped).map((entry) => `lib/${entry.abi}/libflutter.so has Dart version labels omitted by the complete-label grammar or the single-version projection`),
   'The snapshot hash sits 20 bytes after each snapshot magic in the AOT payload; findings are observations of that layout',
   'ELF header validity checks the supported header layout and declared table extents; identification does not resolve symbols or validate table contents',
   ...abis
@@ -289,10 +251,7 @@ const buildIdentifyLimitations = (
     ),
   ...abis
     .filter((entry) => entry.libapp.present && entry.libapp.elf_header_valid !== true)
-    .map(
-      (entry) =>
-        `lib/${entry.abi}/libapp.so has a truncated, malformed, or unsupported ELF header or table extent; byte-scanned hashes remain observations only`,
-    ),
+    .map((entry) => `lib/${entry.abi}/libapp.so has a truncated, malformed, or unsupported ELF header or table extent; byte-scanned hashes remain observations only`),
   ...(flutterDetected ? [] : ['No lib/*/libapp.so was found; the target does not carry a Flutter AOT payload']),
 ];
 
@@ -361,13 +320,8 @@ export const identifyFlutterBuildFromPath = async (
     const app = readLib(libs.libapp);
     const flutter = readLib(libs.libflutter);
     const hashScan = app.content === null ? { sources: 0, candidates: [] as string[] } : findSnapshotHashes(app.content);
-    const elfValid =
-      app.content === null
-        ? null
-        : 'header' in
-            readElfHeader(app.content.subarray(0, Math.min(app.content.length, ELF_HEADER_MAX_BYTES)), app.content.length);
-    const buildIds =
-      flutter.content === null ? { candidates: [] as string[], failures: [] as string[] } : findGnuBuildIds(flutter.content);
+    const elfValid = app.content === null ? null : 'header' in readElfHeader(app.content.subarray(0, Math.min(app.content.length, ELF_HEADER_MAX_BYTES)), app.content.length);
+    const buildIds = flutter.content === null ? { candidates: [] as string[], failures: [] as string[] } : findGnuBuildIds(flutter.content);
     if (buildIds.failures.length > 0) buildIdFailures.set(abi, [...buildIds.failures]);
     const labels =
       flutter.content === null
@@ -405,10 +359,7 @@ export const identifyFlutterBuildFromPath = async (
   const flutterDetected = abis.some((entry) => entry.libapp.present);
   const partial = abis.some(
     (entry) =>
-      (entry.libapp.present &&
-        (entry.libapp.snapshot_hash === null ||
-          entry.libapp.snapshot_hash_sources !== 2 ||
-          entry.libapp.elf_header_valid !== true)) ||
+      (entry.libapp.present && (entry.libapp.snapshot_hash === null || entry.libapp.snapshot_hash_sources !== 2 || entry.libapp.elf_header_valid !== true)) ||
       entry.libflutter.toolchain_capped ||
       entry.libflutter.dart_version_capped ||
       entry.libapp.present !== entry.libflutter.present,
@@ -454,17 +405,18 @@ export const inspectDartAotFromPath = async (
   const entry = directory.entries.find((candidate) => candidate.logical_path === `lib/${selected.abi}/libapp.so`);
   if (entry === undefined) throw inputError('inspect_dart_aot', path, 'libapp.so entry disappeared');
   const member = readZipMember(bytes, entry);
-  const elfAdmission = readElfHeader(
-    member.bytes.subarray(0, Math.min(member.bytes.length, ELF_HEADER_MAX_BYTES)),
-    member.bytes.length,
-  );
+  const elfAdmission = readElfHeader(member.bytes.subarray(0, Math.min(member.bytes.length, ELF_HEADER_MAX_BYTES)), member.bytes.length);
   if ('failure' in elfAdmission) {
     const reason = `No recognizable legacy split Dart snapshot symbols were found: ${elfAdmission.failure.reason}`;
-    throw unsupportedTarget(`Unsupported target for inspect_dart_aot at ${resolvedPath}: ${reason}`, {
-      operation: 'inspect_dart_aot',
-      path: resolvedPath,
-      reason,
-    }, 'Select a target supported by this operation or choose an operation supporting the reported target format.');
+    throw unsupportedTarget(
+      `Unsupported target for inspect_dart_aot at ${resolvedPath}: ${reason}`,
+      {
+        operation: 'inspect_dart_aot',
+        path: resolvedPath,
+        reason,
+      },
+      'Select a target supported by this operation or choose an operation supporting the reported target format.',
+    );
   }
   const hashScan = findSnapshotHashes(member.bytes);
   const package_uris: string[] = [];
@@ -506,15 +458,9 @@ export const inspectDartAotFromPath = async (
       },
       coverage: {
         state: 'partial',
-        issues: [
-          'Legacy split VM/isolate export offsets are not recovered without a full dynamic-symbol walk in this unit.',
-          `Snapshot hash candidates observed: ${hashScan.candidates.length}`,
-        ],
+        issues: ['Legacy split VM/isolate export offsets are not recovered without a full dynamic-symbol walk in this unit.', `Snapshot hash candidates observed: ${hashScan.candidates.length}`],
       },
-      limitations: [
-        ...identified.limitations,
-        'String-pool entries are byte-pattern observations, not deserialized cluster semantics.',
-      ],
+      limitations: [...identified.limitations, 'String-pool entries are byte-pattern observations, not deserialized cluster semantics.'],
     },
   };
 };

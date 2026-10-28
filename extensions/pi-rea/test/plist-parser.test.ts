@@ -72,14 +72,7 @@ test('TOOL-060: the binary decoder reads every scalar encoding', () => {
 });
 
 test('TOOL-060: the binary decoder reads arrays, sets, dictionaries and UIDs', () => {
-  const objects = [
-    Buffer.from([0x51, 0x61]),
-    Buffer.from([0x51, 0x62]),
-    Buffer.from([0xa2, 0x00, 0x01]),
-    Buffer.from([0xc1, 0x00]),
-    Buffer.from([0xd2, 0x00, 0x01, 0x01, 0x00]),
-    Buffer.from([0x80, 0x07]),
-  ];
+  const objects = [Buffer.from([0x51, 0x61]), Buffer.from([0x51, 0x62]), Buffer.from([0xa2, 0x00, 0x01]), Buffer.from([0xc1, 0x00]), Buffer.from([0xd2, 0x00, 0x01, 0x01, 0x00]), Buffer.from([0x80, 0x07])];
   expect(parseBinaryPlist(binary(objects, 2))).toStrictEqual(['a', 'b']);
   expect(parseBinaryPlist(binary(objects, 3))).toStrictEqual(['a']);
   expect(parseBinaryPlist(binary(objects, 4))).toStrictEqual({ a: 'b', b: 'a' });

@@ -10,12 +10,12 @@ export interface InspectNativeExportsParams {
   readonly max_file_bytes?: number;
 }
 
-export const inspectNativeExports = async (
-  session: ReaSession,
-  params: InspectNativeExportsParams,
-  context: ToolCallContext = {},
-): Promise<AgentToolResult<unknown>> => {
-  const { record: inspection, path, resolvedPath } = await inspectNativeExportsFromPath(params.path, {
+export const inspectNativeExports = async (session: ReaSession, params: InspectNativeExportsParams, context: ToolCallContext = {}): Promise<AgentToolResult<unknown>> => {
+  const {
+    record: inspection,
+    path,
+    resolvedPath,
+  } = await inspectNativeExportsFromPath(params.path, {
     ...(context.cwd === undefined ? {} : { cwd: context.cwd }),
     ...(params.max_file_bytes === undefined ? {} : { max_file_bytes: params.max_file_bytes }),
   });

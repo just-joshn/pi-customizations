@@ -1,7 +1,7 @@
-import { canonicalJson, digestOf, sha256Hex } from './canonical.mjs';
-import { edgeEvidence, graphEdge } from './envelope.mjs';
 import { invalidRequest } from '../contract/errors.ts';
 import type { EvidenceRecord } from '../session/evidence.ts';
+import { canonicalJson, digestOf, sha256Hex } from './canonical.mjs';
+import { edgeEvidence, graphEdge } from './envelope.mjs';
 
 export interface ApplicationVersionCompareInspection {
   readonly comparison_id: string;
@@ -450,7 +450,7 @@ const mergeNodesById = (nodes: readonly Record<string, unknown>[]): Record<strin
       ...existing,
       observations: [...observations.values()].sort((left, right) =>
         String((left as Record<string, unknown>)['observation_id'] ?? '') <
-        String((right as Record<string, unknown>)['observation_id'] ?? '')
+        string((right as Record<string, unknown>)['observation_id'] ?? '')
           ? -1
           : 1,
       ),

@@ -1,6 +1,7 @@
 import { accessSync, constants, readFileSync, statSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join, posix } from 'node:path';
+
 import type { AgentToolResult } from '@earendil-works/pi-coding-agent';
 import { capabilityUnavailable, providerUnavailable, ReaError, targetUnavailable } from '../contract/errors.ts';
 import type { ReaSession } from '../session/binary-session.ts';
@@ -23,11 +24,9 @@ export type RefuseStrategy =
     }
   | { readonly kind: 'cdp_endpoint' };
 
-const NO_APP_OPEN =
-  'No app is open. Ask the user which app to investigate, then call open_binary with its local path.';
+const NO_APP_OPEN = 'No app is open. Ask the user which app to investigate, then call open_binary with its local path.';
 
-const OFFICIAL_PROXY_MESSAGE =
-  'The selected analysis provider is unavailable. Review the reported local diagnostics or run `rea doctor`, then retry.';
+const OFFICIAL_PROXY_MESSAGE = 'The selected analysis provider is unavailable. Review the reported local diagnostics or run `rea doctor`, then retry.';
 
 const CANDIDATE_IDS = ['ghidra', 'hopper', 'ida', 'kuna'] as const;
 
@@ -122,10 +121,7 @@ const hopperLauncherPath = (): string => {
   if (configured !== undefined && configured.length > 0) return configured;
   if (process.platform !== 'darwin') return MAC_HOPPER_SYSTEM_LAUNCHER;
   const home = process.env.HOME ?? homedir();
-  const candidates = [
-    MAC_HOPPER_SYSTEM_LAUNCHER,
-    posix.join(home, 'Applications', 'Hopper Disassembler.app', 'Contents/MacOS/hopper'),
-  ];
+  const candidates = [MAC_HOPPER_SYSTEM_LAUNCHER, posix.join(home, 'Applications', 'Hopper Disassembler.app', 'Contents/MacOS/hopper')];
   for (const candidate of candidates) {
     if (executableFile(candidate)) return candidate;
   }
@@ -177,8 +173,7 @@ const idaRejection = (): Record<string, unknown> => {
       configuration_details: {
         settings: [{ setting: 'REA_IDA_MCP_CONFIG', constraint }],
       },
-      configuration_remediation:
-        'Correct REA_IDA_MCP_CONFIG in the environment that starts REA (your shell or the MCP client\'s registration), then rerun.',
+      configuration_remediation: "Correct REA_IDA_MCP_CONFIG in the environment that starts REA (your shell or the MCP client's registration), then rerun.",
     },
   };
 };
@@ -196,24 +191,16 @@ const kunaRejection = (): Record<string, unknown> => {
   return {
     provider_id: 'kuna',
     code: 'not_configured',
-    reason:
-      'Set REA_KUNA_COMMAND to the absolute path of a caller-supplied kuna executable (verified with 1.833). REA does not download, install or update Kuna.',
+    reason: 'Set REA_KUNA_COMMAND to the absolute path of a caller-supplied kuna executable (verified with 1.833). REA does not download, install or update Kuna.',
     diagnostics: { configured: false, version_probed: false },
   };
 };
 
-const officialProxyRejections = (): readonly Record<string, unknown>[] => [
-  ghidraRejection(),
-  hopperRejection(),
-  idaRejection(),
-  kunaRejection(),
-];
+const officialProxyRejections = (): readonly Record<string, unknown>[] => [ghidraRejection(), hopperRejection(), idaRejection(), kunaRejection()];
 
-const assign = (names: readonly string[], strategy: RefuseStrategy): ReadonlyArray<readonly [string, RefuseStrategy]> =>
-  names.map((name) => [name, strategy] as const);
+const assign = (names: readonly string[], strategy: RefuseStrategy): ReadonlyArray<readonly [string, RefuseStrategy]> => names.map((name) => [name, strategy] as const);
 
-const ADB_MESSAGE =
-  'The selected adb binary was not found: adb. Set REA_ADB_PATH to an absolute path to an existing adb binary.';
+const ADB_MESSAGE = 'The selected adb binary was not found: adb. Set REA_ADB_PATH to an absolute path to an existing adb binary.';
 
 const ADB_DIAGNOSTICS = {
   selected_binary: 'adb',
@@ -221,8 +208,7 @@ const ADB_DIAGNOSTICS = {
   remediation: 'Set REA_ADB_PATH to an absolute path to an existing adb binary',
 } as const;
 
-const JEB_MESSAGE =
-  'Start a JEB client serving MCP (default http://127.0.0.1:8425/mcp) or set REA_JEB_MCP_URL to the running endpoint.';
+const JEB_MESSAGE = 'Start a JEB client serving MCP (default http://127.0.0.1:8425/mcp) or set REA_JEB_MCP_URL to the running endpoint.';
 
 const RIZIN_MESSAGE = 'Could not launch the selected rizin executable "rizin" (ENOENT).';
 const RIZIN_REASON = 'Unable to run configured command (ENOENT)';
@@ -231,23 +217,17 @@ const RIZIN_DIAGNOSTICS = {
   command: 'rizin',
   system_code: 'ENOENT',
 } as const;
-const RIZIN_REMEDIATION =
-  'Set REA_RIZIN_COMMAND to an installed executable Rizin command, or make that command available on PATH. Check execute permission on the command and search permission on its parent directories before retrying.';
+const RIZIN_REMEDIATION = 'Set REA_RIZIN_COMMAND to an installed executable Rizin command, or make that command available on PATH. Check execute permission on the command and search permission on its parent directories before retrying.';
 
-const GDB_MESSAGE =
-  'This analysis is unavailable for the current target. Choose another analysis or target.';
-const GDB_REASON =
-  'Persistent GDB sessions are available only on Linux because REA verifies live inferior output descriptors through /proc.';
+const GDB_MESSAGE = 'This analysis is unavailable for the current target. Choose another analysis or target.';
+const GDB_REASON = 'Persistent GDB sessions are available only on Linux because REA verifies live inferior output descriptors through /proc.';
 
-const FRIDA_UNAVAILABLE_MESSAGE =
-  'This analysis is unavailable for the current target. Choose another analysis or target.';
+const FRIDA_UNAVAILABLE_MESSAGE = 'This analysis is unavailable for the current target. Choose another analysis or target.';
 const FRIDA_ADDON_DISABLED_REASON = 'Cannot load native addon because loading addons is disabled.';
 
-const CUTTER_MESSAGE =
-  'pi-rea has no Cutter bridge. No live cutter-bridge session directory is configured for this port.';
+const CUTTER_MESSAGE = 'pi-rea has no Cutter bridge. No live cutter-bridge session directory is configured for this port.';
 
-const APKTOOL_MESSAGE =
-  'The selected apktool launcher was not found: apktool. Set REA_APKTOOL_COMMAND to an absolute apktool launcher (the upstream wrapper or a java -jar script).';
+const APKTOOL_MESSAGE = 'The selected apktool launcher was not found: apktool. Set REA_APKTOOL_COMMAND to an absolute apktool launcher (the upstream wrapper or a java -jar script).';
 const APKTOOL_DIAGNOSTICS = {
   filesystem_error: 'ENOENT',
   selected_command: 'apktool',
@@ -255,14 +235,11 @@ const APKTOOL_DIAGNOSTICS = {
   remediation: 'Set REA_APKTOOL_COMMAND to an absolute apktool launcher (the upstream wrapper or a java -jar script)',
 } as const;
 
-const BINWALK_MESSAGE =
-  'This integration requires Linux and an absolute REA_BINWALK_COMMAND path to the caller-supplied tool';
+const BINWALK_MESSAGE = 'This integration requires Linux and an absolute REA_BINWALK_COMMAND path to the caller-supplied tool';
 
-const WAKARU_MESSAGE =
-  'Provide an absolute REA_WAKARU_COMMAND pointing to a Wakaru ^1.13.0 Linux x64 binary (verified with 1.14.0); no tool is installed by REA. See docs/javascript-recovery.md#install-wakaru.';
+const WAKARU_MESSAGE = 'Provide an absolute REA_WAKARU_COMMAND pointing to a Wakaru ^1.13.0 Linux x64 binary (verified with 1.14.0); no tool is installed by REA. See docs/javascript-recovery.md#install-wakaru.';
 
-const JADX_MESSAGE =
-  'Set REA_JADX_MCP_JAR to the absolute path of a caller-supplied jadx-headless-mcp 0.7.1 JAR. REA does not download or install it.';
+const JADX_MESSAGE = 'Set REA_JADX_MCP_JAR to the absolute path of a caller-supplied jadx-headless-mcp 0.7.1 JAR. REA does not download or install it.';
 const JADX_DIAGNOSTICS = {
   jar_configured: false,
   failure_kind: 'jar',
@@ -275,32 +252,25 @@ const WABT_REMEDIATION =
 
 const TSHARK_MESSAGE =
   'Packet inspection requires Linux with util-linux prlimit and TShark 4.x (on PATH or through absolute REA_TSHARK_COMMAND) so expanded captures are processed under an enforced address-space limit. On Linux, supply TShark 4.x on PATH or through absolute REA_TSHARK_COMMAND, and util-linux prlimit through REA_TSHARK_PRLIMIT_COMMAND (default /usr/bin/prlimit).';
-const TSHARK_REASON =
-  'Packet inspection requires Linux with util-linux prlimit and TShark 4.x (on PATH or through absolute REA_TSHARK_COMMAND) so expanded captures are processed under an enforced address-space limit.';
+const TSHARK_REASON = 'Packet inspection requires Linux with util-linux prlimit and TShark 4.x (on PATH or through absolute REA_TSHARK_COMMAND) so expanded captures are processed under an enforced address-space limit.';
 
 const PCAP_MESSAGE =
   'tshark was not found in an absolute PATH entry; add it to PATH or set REA_TSHARK_COMMAND to its absolute path. Supply Wireshark 4.x tshark and capinfos on PATH or through absolute REA_TSHARK_COMMAND and REA_CAPINFOS_COMMAND; REA does not install them.';
-const PCAP_REASON =
-  'tshark was not found in an absolute PATH entry; add it to PATH or set REA_TSHARK_COMMAND to its absolute path';
+const PCAP_REASON = 'tshark was not found in an absolute PATH entry; add it to PATH or set REA_TSHARK_COMMAND to its absolute path';
 
 const SIGROK_MESSAGE =
   'Signal decoding requires Linux with util-linux prlimit and REA_SIGROK_COMMAND so expanded recordings are processed under an enforced address-space limit. On Linux, configure sigrok-cli 0.7.2 through REA_SIGROK_COMMAND and util-linux prlimit through REA_SIGROK_PRLIMIT_COMMAND (default /usr/bin/prlimit).';
-const SIGROK_REASON =
-  'Signal decoding requires Linux with util-linux prlimit and REA_SIGROK_COMMAND so expanded recordings are processed under an enforced address-space limit.';
+const SIGROK_REASON = 'Signal decoding requires Linux with util-linux prlimit and REA_SIGROK_COMMAND so expanded recordings are processed under an enforced address-space limit.';
 
 const EVM_MESSAGE = 'Initial real-verified offline EVM interface profile supports Linux x64 only.';
 
-const NATIVE_MACOS_MESSAGE =
-  'pi-rea has no LLDB/native-macos observe bridge. Configure debugging for the upstream REA host, or track the gap in parity/pi-rea/.';
+const NATIVE_MACOS_MESSAGE = 'pi-rea has no LLDB/native-macos observe bridge. Configure debugging for the upstream REA host, or track the gap in parity/pi-rea/.';
 
-const NATIVE_MACOS_UNAVAILABLE_MESSAGE =
-  'This analysis is unavailable for the current target. Choose another analysis or target.';
+const NATIVE_MACOS_UNAVAILABLE_MESSAGE = 'This analysis is unavailable for the current target. Choose another analysis or target.';
 
-const NATIVE_MACOS_NON_MACHO_REASON =
-  'Native call observation launches a Mach-O executable; the active target is not one';
+const NATIVE_MACOS_NON_MACHO_REASON = 'Native call observation launches a Mach-O executable; the active target is not one';
 
-const ENGINE_FREE_GAP_MESSAGE =
-  'pi-rea has not implemented this engine-free surface yet, so the call fails closed instead of returning a substitute result. parity/pi-rea/ tracks the gap.';
+const ENGINE_FREE_GAP_MESSAGE = 'pi-rea has not implemented this engine-free surface yet, so the call fails closed instead of returning a substitute result. parity/pi-rea/ tracks the gap.';
 
 const OFFICIAL_PROXY_NAMES = [
   'address_name',
@@ -390,27 +360,11 @@ const ADB_NAMES = [
   'uninstall_adb_package',
 ] as const;
 
-const FRIDA_NAMES = [
-  'close_frida_session',
-  'frida_session_status',
-  'instrument_with_frida',
-  'list_frida_devices',
-  'list_frida_processes',
-  'load_frida_script',
-  'resume_frida_session',
-  'start_frida_session',
-  'unload_frida_script',
-] as const;
+const FRIDA_NAMES = ['close_frida_session', 'frida_session_status', 'instrument_with_frida', 'list_frida_devices', 'list_frida_processes', 'load_frida_script', 'resume_frida_session', 'start_frida_session', 'unload_frida_script'] as const;
 
 const JEB_NAMES = ['decompile_jeb_item', 'inspect_jeb_client', 'list_jeb_units', 'open_jeb_project'] as const;
 
-const RIZIN_NAMES = [
-  'close_rizin_debug_session',
-  'execute_rizin_command',
-  'rizin_debug_command',
-  'rizin_debug_session_status',
-  'start_rizin_debug_session',
-] as const;
+const RIZIN_NAMES = ['close_rizin_debug_session', 'execute_rizin_command', 'rizin_debug_command', 'rizin_debug_session_status', 'start_rizin_debug_session'] as const;
 
 const GDB_NAMES = ['close_gdb_session', 'gdb_console', 'gdb_session_status', 'start_gdb_session'] as const;
 
@@ -436,24 +390,13 @@ const CDP_NAMES = [
   'reconcile_javascript_runtime',
 ] as const;
 
-const ANDROID_NAMES = [
-  'inspect_android_class',
-  'inspect_android_method',
-  'inspect_android_package',
-  'search_android_classes',
-  'trace_android_references',
-] as const;
+const ANDROID_NAMES = ['inspect_android_class', 'inspect_android_method', 'inspect_android_package', 'search_android_classes', 'trace_android_references'] as const;
 
 const APKTOOL_NAMES = ['decode_android_resources', 'inspect_apktool_client'] as const;
 
 const FIRMWARE_NAMES = ['extract_firmware', 'inspect_firmware_regions'] as const;
 
-const COMPARE_FAIL_CLOSED_NAMES = [
-  'compare_functions',
-  'compare_process_captures',
-  'compare_wasm_interfaces',
-  'find_changed_behavior',
-] as const;
+const COMPARE_FAIL_CLOSED_NAMES = ['compare_functions', 'compare_process_captures', 'compare_wasm_interfaces', 'find_changed_behavior'] as const;
 
 const WABT_NAMES = ['inspect_wasm_artifact'] as const;
 const TSHARK_NAMES = ['inspect_packet_capture', 'inspect_packet_fields'] as const;
@@ -461,12 +404,7 @@ const PCAP_NAMES = ['inspect_pcap_capture', 'inspect_pcap_client'] as const;
 const SIGROK_NAMES = ['decode_signal_recording', 'inspect_signal_decoders'] as const;
 const EVM_NAMES = ['inspect_evm_interface'] as const;
 
-const NATIVE_OBSERVE_NAMES = [
-  'capture_native_ui_scenario',
-  'observe_native_calls',
-  'observe_native_ui',
-  'trace_dylib_resolution',
-] as const;
+const NATIVE_OBSERVE_NAMES = ['capture_native_ui_scenario', 'observe_native_calls', 'observe_native_ui', 'trace_dylib_resolution'] as const;
 
 const ENGINE_FREE_GAP_NAMES = [
   'build_call_path',
@@ -560,8 +498,7 @@ const buildTable = (): ReadonlyMap<string, RefuseStrategy> => {
     ...assign(COMPARE_FAIL_CLOSED_NAMES, {
       kind: 'capability',
       providerId: 'compare',
-      message:
-        'pi-rea has no provider bridge for this compare surface yet, so the call fails closed instead of returning a substitute result. parity/pi-rea/ tracks the gap.',
+      message: 'pi-rea has no provider bridge for this compare surface yet, so the call fails closed instead of returning a substitute result. parity/pi-rea/ tracks the gap.',
       reason: 'not_implemented',
     }),
     ...assign(WABT_NAMES, {
@@ -629,29 +566,21 @@ const refuseOfficialProxy = (session: ReaSession, operation: string): never => {
   });
 };
 
-const refuseCapability = (
-  operation: string,
-  strategy: Extract<RefuseStrategy, { kind: 'capability' | 'target_then_capability' }>,
-): never => {
-  const remediation =
-    strategy.providerId === 'rizin'
-      ? RIZIN_REMEDIATION
-      : strategy.providerId === 'wabt-artifact'
-        ? WABT_REMEDIATION
-        : strategy.message;
-  throw capabilityUnavailable(strategy.message, {
-    provider_id: strategy.providerId,
-    operation,
-    reason: strategy.reason,
-    ...(strategy.diagnostics === undefined ? {} : { diagnostics: strategy.diagnostics }),
-  }, remediation);
+const refuseCapability = (operation: string, strategy: Extract<RefuseStrategy, { kind: 'capability' | 'target_then_capability' }>): never => {
+  const remediation = strategy.providerId === 'rizin' ? RIZIN_REMEDIATION : strategy.providerId === 'wabt-artifact' ? WABT_REMEDIATION : strategy.message;
+  throw capabilityUnavailable(
+    strategy.message,
+    {
+      provider_id: strategy.providerId,
+      operation,
+      reason: strategy.reason,
+      ...(strategy.diagnostics === undefined ? {} : { diagnostics: strategy.diagnostics }),
+    },
+    remediation,
+  );
 };
 
-const refuseTargetThenCapability = (
-  session: ReaSession,
-  operation: string,
-  strategy: Extract<RefuseStrategy, { kind: 'target_then_capability' }>,
-): never => {
+const refuseTargetThenCapability = (session: ReaSession, operation: string, strategy: Extract<RefuseStrategy, { kind: 'target_then_capability' }>): never => {
   if (!session.open) {
     throw targetUnavailable(NO_APP_OPEN);
   }
@@ -707,10 +636,11 @@ const refuseCompareFunctions = (params: Record<string, unknown>): never => {
       });
     }
   }
-  throw capabilityUnavailable(
-    'pi-rea has no provider bridge for this compare surface yet, so the call fails closed instead of returning a substitute result. parity/pi-rea/ tracks the gap.',
-    { provider_id: 'compare', operation: 'compare_functions', reason: 'not_implemented' },
-  );
+  throw capabilityUnavailable('pi-rea has no provider bridge for this compare surface yet, so the call fails closed instead of returning a substitute result. parity/pi-rea/ tracks the gap.', {
+    provider_id: 'compare',
+    operation: 'compare_functions',
+    reason: 'not_implemented',
+  });
 };
 
 const refuseExportEnvironmentBundle = (params: Record<string, unknown>): never => {
@@ -734,8 +664,7 @@ const refuseExportEnvironmentBundle = (params: Record<string, unknown>): never =
                 {
                   path: ['capture', 'operation'],
                   reason: 'invalid_value',
-                  message:
-                    'Pass a HAR file, or capture Evidence JSON from inspect-web-network-capture (HAR) or capture-browser-scenario.',
+                  message: 'Pass a HAR file, or capture Evidence JSON from inspect-web-network-capture (HAR) or capture-browser-scenario.',
                   expected: 'inspect_web_network_capture or capture_browser_scenario',
                 },
               ],
@@ -747,10 +676,11 @@ const refuseExportEnvironmentBundle = (params: Record<string, unknown>): never =
       if (error instanceof ReaError) throw error;
     }
   }
-  throw capabilityUnavailable(
-    'pi-rea has not implemented this engine-free surface yet, so the call fails closed instead of returning a substitute result. parity/pi-rea/ tracks the gap.',
-    { provider_id: 'engine-free', operation: 'export_environment_bundle', reason: 'not_implemented' },
-  );
+  throw capabilityUnavailable('pi-rea has not implemented this engine-free surface yet, so the call fails closed instead of returning a substitute result. parity/pi-rea/ tracks the gap.', {
+    provider_id: 'engine-free',
+    operation: 'export_environment_bundle',
+    reason: 'not_implemented',
+  });
 };
 
 const refuseFrida = (name: string, params: Record<string, unknown>): never => {

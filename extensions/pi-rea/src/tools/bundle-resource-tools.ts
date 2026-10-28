@@ -1,5 +1,5 @@
-import { createHash } from 'node:crypto';
 import { execFile } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { access, realpath, stat } from 'node:fs/promises';
 import { isAbsolute, join, relative, resolve } from 'node:path';
 import { promisify } from 'node:util';
@@ -48,11 +48,7 @@ const resolveInfoPlist = async (root: string): Promise<{ readonly infoPlistPath:
   }
 };
 
-export const openBundleResources = async (
-  session: ReaSession,
-  params: OpenBundleResourcesParams,
-  context: ToolCallContext = {},
-): Promise<AgentToolResult<unknown>> => {
+export const openBundleResources = async (session: ReaSession, params: OpenBundleResourcesParams, context: ToolCallContext = {}): Promise<AgentToolResult<unknown>> => {
   if (typeof params.path !== 'string' || params.path.length === 0) {
     throw invalidRequest('Invalid arguments for tool open_bundle_resources: path: Invalid input: expected string, received undefined', {
       parameter: 'path',
@@ -94,22 +90,14 @@ export const openBundleResources = async (
   );
 };
 
-export const inspectKeyedArchive = async (
-  session: ReaSession,
-  params: InspectKeyedArchiveParams,
-  context: ToolCallContext = {},
-): Promise<AgentToolResult<unknown>> => {
+export const inspectKeyedArchive = async (session: ReaSession, params: InspectKeyedArchiveParams, context: ToolCallContext = {}): Promise<AgentToolResult<unknown>> => {
   const bundle = session.bundleResources;
   if (bundle === undefined) {
     throw targetUnavailable('No bundle-resource session is open. Call open_bundle_resources first.');
   }
   const relative = params.path ?? '.';
   const archivePath = isAbsolute(relative) ? relative : resolve(bundle.canonicalPath, relative);
-  const displayPath = isAbsolute(relative)
-    ? relative.startsWith(`${bundle.canonicalPath}/`)
-      ? relative.slice(bundle.canonicalPath.length + 1)
-      : relative
-    : relative;
+  const displayPath = isAbsolute(relative) ? (relative.startsWith(`${bundle.canonicalPath}/`) ? relative.slice(bundle.canonicalPath.length + 1) : relative) : relative;
   const { record: inspection } = await inspectKeyedArchiveFromPath(archivePath, {
     ...(context.cwd === undefined ? {} : { cwd: context.cwd }),
     ...(params.root === undefined ? {} : { root: params.root }),
@@ -153,10 +141,7 @@ export const inspectKeyedArchive = async (
   return evidenceResult(record);
 };
 
-export const inspectAssetCatalog = async (
-  session: ReaSession,
-  params: InspectAssetCatalogParams = {},
-): Promise<AgentToolResult<unknown>> => {
+export const inspectAssetCatalog = async (session: ReaSession, params: InspectAssetCatalogParams = {}): Promise<AgentToolResult<unknown>> => {
   const bundle = session.bundleResources;
   if (bundle === undefined) {
     throw targetUnavailable('No bundle-resource session is open. Call open_bundle_resources first.');
@@ -193,15 +178,12 @@ export const inspectAssetCatalog = async (
       exitCode = typeof failure.status === 'number' ? failure.status : typeof failure.code === 'number' ? failure.code : 1;
       signal = typeof failure.signal === 'string' ? failure.signal : null;
       if (failure.code === 'ENOENT') {
-        throw unreadableOutput(
-          'Analysis returned an unreadable result. Run `rea doctor` and review the reported details; repeating the unchanged request is not expected to succeed.',
-          {
-            operation: 'inspect_asset_catalog',
-            reason: 'macOS assetutil is unavailable',
-            diagnostics: { catalog_path: catalogRelative },
-            provider_diagnostics: { catalog_path: catalogRelative },
-          },
-        );
+        throw unreadableOutput('Analysis returned an unreadable result. Run `rea doctor` and review the reported details; repeating the unchanged request is not expected to succeed.', {
+          operation: 'inspect_asset_catalog',
+          reason: 'macOS assetutil is unavailable',
+          diagnostics: { catalog_path: catalogRelative },
+          provider_diagnostics: { catalog_path: catalogRelative },
+        });
       }
     }
     const usableJson = (() => {
@@ -214,24 +196,21 @@ export const inspectAssetCatalog = async (
     })();
     if (!usableJson) {
       const reason = `assetutil did not produce usable catalog metadata for ${catalogRelative}`;
-      throw unreadableOutput(
-        'Analysis returned an unreadable result. Run `rea doctor` and review the reported details; repeating the unchanged request is not expected to succeed.',
-        {
-          operation: 'inspect_asset_catalog',
-          reason,
-          diagnostics: { catalog_path: catalogRelative },
-          provider_diagnostics: { catalog_path: catalogRelative },
-          captured_output: {
-            stdout,
-            stderr,
-            stdout_bytes: Buffer.byteLength(stdout),
-            stderr_bytes: Buffer.byteLength(stderr),
-            exit_code: exitCode,
-            signal,
-            truncated: false,
-          },
+      throw unreadableOutput('Analysis returned an unreadable result. Run `rea doctor` and review the reported details; repeating the unchanged request is not expected to succeed.', {
+        operation: 'inspect_asset_catalog',
+        reason,
+        diagnostics: { catalog_path: catalogRelative },
+        provider_diagnostics: { catalog_path: catalogRelative },
+        captured_output: {
+          stdout,
+          stderr,
+          stdout_bytes: Buffer.byteLength(stdout),
+          stderr_bytes: Buffer.byteLength(stderr),
+          exit_code: exitCode,
+          signal,
+          truncated: false,
         },
-      );
+      });
     }
   }
   const digest = inspection.catalogs[0]?.sha256 ?? createEmptyDigest(bundle.canonicalPath);

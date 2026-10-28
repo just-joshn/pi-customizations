@@ -1,4 +1,3 @@
-
 import { createHash } from 'node:crypto';
 import { readFile, realpath } from 'node:fs/promises';
 import { isAbsolute, resolve } from 'node:path';
@@ -51,8 +50,7 @@ const inputError = (path: string, detail: string) =>
     issues: [{ path: ['path'], reason: 'invalid_value', message: `Cannot inspect ${path}: ${detail}` }],
   });
 
-const isPlainObject = (value: PlistValue): value is { [key: string]: PlistValue } =>
-  value !== null && typeof value === 'object' && !Array.isArray(value) && !('$plist_type' in value);
+const isPlainObject = (value: PlistValue): value is { [key: string]: PlistValue } => value !== null && typeof value === 'object' && !Array.isArray(value) && !('$plist_type' in value);
 
 const uidOf = (value: PlistValue): number | undefined => {
   if (!isPlainObject(value)) return undefined;
@@ -61,11 +59,7 @@ const uidOf = (value: PlistValue): number | undefined => {
   return undefined;
 };
 
-const classifyObject = (
-  id: number,
-  value: PlistValue,
-  classNames: Map<number, string>,
-): KeyedArchiveObject => {
+const classifyObject = (id: number, value: PlistValue, classNames: Map<number, string>): KeyedArchiveObject => {
   if (value === null || value === '$null' || value === 'null') {
     return { id, kind: 'nil', class_id: null, class_name: null, status: 'nil', value: '$null' };
   }
@@ -95,10 +89,7 @@ const classifyObject = (
   return { id, kind: 'dictionary', class_id: null, class_name: null, status: 'observed', value };
 };
 
-const collectReferences = (
-  objects: readonly KeyedArchiveObject[],
-  roots: Record<string, PlistValue>,
-): KeyedArchiveReference[] => {
+const collectReferences = (objects: readonly KeyedArchiveObject[], roots: Record<string, PlistValue>): KeyedArchiveReference[] => {
   const references: KeyedArchiveReference[] = [];
   const visit = (source: number | null, path: readonly (string | number)[], value: PlistValue): void => {
     const uid = uidOf(value);
@@ -140,10 +131,7 @@ export const projectKeyedArchive = (
   }
   const archiver = decoded.value.$archiver;
   if (archiver !== 'NSKeyedArchiver') {
-    throw inputError(
-      archivePath,
-      typeof archiver === 'string' ? `its $archiver is ${JSON.stringify(archiver)}` : 'it is not an NSKeyedArchiver plist',
-    );
+    throw inputError(archivePath, typeof archiver === 'string' ? `its $archiver is ${JSON.stringify(archiver)}` : 'it is not an NSKeyedArchiver plist');
   }
   const objectsRaw = decoded.value.$objects;
   if (!Array.isArray(objectsRaw)) throw inputError(archivePath, 'it has no $objects array');

@@ -1,15 +1,6 @@
 import type { AgentToolResult } from '@earendil-works/pi-coding-agent';
-import {
-  DEFAULT_MAX_FILE_BYTES,
-  DEFAULT_MAX_NOTES,
-  DEFAULT_MAX_SEGMENTS,
-  inspectRecordedCrashFromPath,
-} from '../analysis/recorded-crash.ts';
-import {
-  capabilityUnavailable,
-  PWNTTOOLS_LINUX_X64_ONLY,
-  pwntoolsHostSupported,
-} from '../contract/errors.ts';
+import { DEFAULT_MAX_FILE_BYTES, DEFAULT_MAX_NOTES, DEFAULT_MAX_SEGMENTS, inspectRecordedCrashFromPath } from '../analysis/recorded-crash.ts';
+import { capabilityUnavailable, PWNTTOOLS_LINUX_X64_ONLY, pwntoolsHostSupported } from '../contract/errors.ts';
 import { evidenceResult } from '../contract/results.ts';
 import type { ReaSession } from '../session/binary-session.ts';
 import { createEvidence } from '../session/evidence.ts';
@@ -22,11 +13,7 @@ export interface InspectRecordedCrashParams {
   readonly pwntools_timeout_ms?: number;
 }
 
-export const inspectRecordedCrash = async (
-  session: ReaSession,
-  params: InspectRecordedCrashParams,
-  context: ToolCallContext = {},
-): Promise<AgentToolResult<unknown>> => {
+export const inspectRecordedCrash = async (session: ReaSession, params: InspectRecordedCrashParams, context: ToolCallContext = {}): Promise<AgentToolResult<unknown>> => {
   void params.pwntools_timeout_ms;
   if (!pwntoolsHostSupported()) {
     throw capabilityUnavailable(PWNTTOOLS_LINUX_X64_ONLY, {
@@ -35,7 +22,11 @@ export const inspectRecordedCrash = async (
       reason: PWNTTOOLS_LINUX_X64_ONLY,
     });
   }
-  const { record: inspection, path, resolvedPath } = await inspectRecordedCrashFromPath(params.path, {
+  const {
+    record: inspection,
+    path,
+    resolvedPath,
+  } = await inspectRecordedCrashFromPath(params.path, {
     ...(context.cwd === undefined ? {} : { cwd: context.cwd }),
     ...(params.include_debugger_context === undefined ? {} : { includeDebuggerContext: params.include_debugger_context }),
   });

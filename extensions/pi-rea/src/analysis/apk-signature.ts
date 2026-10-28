@@ -1,4 +1,3 @@
-
 import { createHash, X509Certificate } from 'node:crypto';
 import { readFile, realpath } from 'node:fs/promises';
 import { isAbsolute, resolve } from 'node:path';
@@ -73,7 +72,7 @@ const LIMITATIONS = [
   'Static structural inspection only. No Android code executes, no device or adb is involved, and odex/vdex/oat/cdex are not read.',
   'No signature is verified: signer, rotation-lineage and source-stamp signatures are NOT cryptographically checked, and certificate chains, revocation and authenticity are NOT evaluated. Certificates and lineages are what the APK declares.',
   'matches_apk and self_consistent only show that the declared content digest equals the digest of the current bytes. This is not a signature verification: anyone who changes the bytes can recompute the digest and write it into the signed data. SHA-256 identifies the exact bytes, not the producer.',
-  'v1 signers are what each signature block\'s PKCS#7 SignedData declares: its signatures, the .SF and MANIFEST.MF digests and entry coverage are NOT verified.',
+  "v1 signers are what each signature block's PKCS#7 SignedData declares: its signatures, the .SF and MANIFEST.MF digests and entry coverage are NOT verified.",
   'Not read: v4 .apk.idsig, verity digests (matches_apk null), and the v1 X-Android-APK-Signed marker, so v1_only cannot distinguish a v1-only APK from one whose v2/v3 block was removed.',
 ] as const;
 
@@ -292,11 +291,9 @@ const collectV1 = (bytes: Buffer): ApkSignatureInspection['schemes']['v1'] => {
               void parsed;
               certificates.push(certFromDer(Buffer.from(slice)));
               offset = end;
-              continue;
             } catch {
               collectDerCerts(buf.subarray(cursor, end), depth + 1);
               offset = end;
-              continue;
             }
           } catch {
             offset += 1;
@@ -311,10 +308,7 @@ const collectV1 = (bytes: Buffer): ApkSignatureInspection['schemes']['v1'] => {
         certificate: certificates[0] ?? null,
         certificates,
         signer_infos: [],
-        decode_error:
-          certificates.length === 0
-            ? (contentTypeError ?? 'no X.509 certificates decoded from the PKCS#7 block')
-            : null,
+        decode_error: certificates.length === 0 ? (contentTypeError ?? 'no X.509 certificates decoded from the PKCS#7 block') : null,
       });
     } catch (error) {
       signers.push({
@@ -353,10 +347,7 @@ const signerSet = (signers: readonly { readonly certificates: readonly ApkCertif
   return digests;
 };
 
-export const inspectApkSignatureFromPath = async (
-  path: string,
-  options: { readonly cwd?: string } = {},
-): Promise<{ readonly record: ApkSignatureInspection; readonly path: string; readonly resolvedPath: string }> => {
+export const inspectApkSignatureFromPath = async (path: string, options: { readonly cwd?: string } = {}): Promise<{ readonly record: ApkSignatureInspection; readonly path: string; readonly resolvedPath: string }> => {
   const resolvedPath = isAbsolute(path) ? path : resolve(options.cwd ?? process.cwd(), path);
   let canonical = resolvedPath;
   try {
@@ -393,9 +384,7 @@ export const inspectApkSignatureFromPath = async (
     if (blockSets.some((set) => set === null)) schemes_agree_on_signer = null;
     else {
       const [first, ...rest] = blockSets as Set<string>[];
-      schemes_agree_on_signer = rest.every(
-        (set) => set.size === first!.size && [...set].every((digest) => first!.has(digest)),
-      );
+      schemes_agree_on_signer = rest.every((set) => set.size === first!.size && [...set].every((digest) => first!.has(digest)));
     }
   }
   const record: ApkSignatureInspection = {

@@ -1,4 +1,3 @@
-
 import { invalidRequest } from '../contract/errors.ts';
 import type { EvidenceRecord } from '../session/evidence.ts';
 
@@ -98,17 +97,9 @@ const inventoryFromEvidence = (record: EvidenceRecord, label: string): Inventory
   const nestedNr = (nested?.normalized_result ?? nr) as Record<string, unknown>;
   const occurrencesRaw = (nestedNr['occurrences'] as readonly Record<string, unknown>[] | undefined) ?? [];
   const nodes = (nestedNr['nodes'] as readonly Record<string, unknown>[] | undefined) ?? [];
-  const shaByArtifact = new Map(
-    nodes
-      .filter((node) => typeof node['artifact_id'] === 'string' && typeof node['sha256'] === 'string')
-      .map((node) => [String(node['artifact_id']), String(node['sha256'])]),
-  );
+  const shaByArtifact = new Map(nodes.filter((node) => typeof node['artifact_id'] === 'string' && typeof node['sha256'] === 'string').map((node) => [String(node['artifact_id']), String(node['sha256'])]));
   const manifest = (nestedNr['manifest'] as { manifest_id?: string } | undefined) ?? subject;
-  const limitations = Array.isArray(nestedNr['limitations'])
-    ? (nestedNr['limitations'] as string[])
-    : Array.isArray(nr['limitations'])
-      ? (nr['limitations'] as string[])
-      : [];
+  const limitations = Array.isArray(nestedNr['limitations']) ? (nestedNr['limitations'] as string[]) : Array.isArray(nr['limitations']) ? (nr['limitations'] as string[]) : [];
   const coverage = nestedNr['coverage'] as { status?: string } | undefined;
   return {
     evidenceId: record.evidence_id,
@@ -132,8 +123,7 @@ const inventoryFromEvidence = (record: EvidenceRecord, label: string): Inventory
   };
 };
 
-const prefixLimitations = (side: 'Left' | 'Right', lines: readonly string[]): string[] =>
-  lines.map((line) => `${side}: ${line}`);
+const prefixLimitations = (side: 'Left' | 'Right', lines: readonly string[]): string[] => lines.map((line) => `${side}: ${line}`);
 
 export const compareArtifactInventories = (leftInput: unknown, rightInput: unknown): ArtifactCompareInspection => {
   const leftRecord = asRecord(leftInput, 'left');
@@ -151,7 +141,7 @@ export const compareArtifactInventories = (leftInput: unknown, rightInput: unkno
   let removed = 0;
   let changed = 0;
   let unknown = 0;
-  let contradiction = 0;
+  const contradiction = 0;
 
   for (const logical_path of paths) {
     const leftRow = leftMap.get(logical_path);

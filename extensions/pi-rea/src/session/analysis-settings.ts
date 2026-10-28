@@ -50,15 +50,7 @@ export const ANALYSIS_SETTING_DEFINITIONS: Readonly<Record<AnalysisSettingId, An
     appliesAt: 'next_operation',
     provider: 'rea-artifact-graph',
     relatedProviders: ['rea-javascript-application', 'rea-cdp-electron', 'rea-v8-inspector'],
-    operations: [
-      'open_binary',
-      'inspect_artifact',
-      'inventory_artifact',
-      'extract_artifact',
-      'analyze_javascript_application',
-      'inspect_electron_page',
-      'observe_javascript_runtime',
-    ],
+    operations: ['open_binary', 'inspect_artifact', 'inventory_artifact', 'extract_artifact', 'analyze_javascript_application', 'inspect_electron_page', 'observe_javascript_runtime'],
     environment: 'REA_ASAR_MAX_HEADER_BYTES',
   },
   'ghidra.startup_timeout_ms': {
@@ -69,19 +61,7 @@ export const ANALYSIS_SETTING_DEFINITIONS: Readonly<Record<AnalysisSettingId, An
     unit: 'ms',
     appliesAt: 'next_startup',
     provider: 'ghidra',
-    operations: [
-      'binary_overview',
-      'list_documents',
-      'list_procedures',
-      'search_procedures',
-      'list_strings',
-      'search_strings',
-      'procedure_pseudo_code',
-      'procedure_assembly',
-      'analyze_function',
-      'decompile_all',
-      'trace_native_values',
-    ],
+    operations: ['binary_overview', 'list_documents', 'list_procedures', 'search_procedures', 'list_strings', 'search_strings', 'procedure_pseudo_code', 'procedure_assembly', 'analyze_function', 'decompile_all', 'trace_native_values'],
     environment: 'REA_GHIDRA_STARTUP_TIMEOUT_MS',
   },
   'hopper.startup_timeout_ms': {
@@ -92,19 +72,7 @@ export const ANALYSIS_SETTING_DEFINITIONS: Readonly<Record<AnalysisSettingId, An
     unit: 'ms',
     appliesAt: 'next_startup',
     provider: 'hopper',
-    operations: [
-      'binary_overview',
-      'list_documents',
-      'list_procedures',
-      'search_procedures',
-      'list_strings',
-      'search_strings',
-      'procedure_pseudo_code',
-      'procedure_assembly',
-      'analyze_function',
-      'decompile_all',
-      'trace_native_values',
-    ],
+    operations: ['binary_overview', 'list_documents', 'list_procedures', 'search_procedures', 'list_strings', 'search_strings', 'procedure_pseudo_code', 'procedure_assembly', 'analyze_function', 'decompile_all', 'trace_native_values'],
     environment: 'REA_HOPPER_STARTUP_TIMEOUT_MS',
   },
   'ghidra.decompile_timeout_seconds': {
@@ -127,13 +95,7 @@ export const ANALYSIS_SETTING_DEFINITIONS: Readonly<Record<AnalysisSettingId, An
     unit: 'ms',
     appliesAt: 'next_operation',
     provider: 'jadx',
-    operations: [
-      'inspect_android_package',
-      'search_android_classes',
-      'inspect_android_class',
-      'inspect_android_method',
-      'trace_android_references',
-    ],
+    operations: ['inspect_android_package', 'search_android_classes', 'inspect_android_class', 'inspect_android_method', 'trace_android_references'],
     environment: 'REA_JADX_OPERATION_TIMEOUT_MS',
   },
   'regex.matching_deadline_ms': {
@@ -241,22 +203,16 @@ export interface RuntimeConstraint {
   readonly recovery: string;
 }
 
-export type SettingChange =
-  | { readonly setting: AnalysisSettingId; readonly action: 'set'; readonly value: number | null }
-  | { readonly setting: AnalysisSettingId; readonly action: 'reset' };
+export type SettingChange = { readonly setting: AnalysisSettingId; readonly action: 'set'; readonly value: number | null } | { readonly setting: AnalysisSettingId; readonly action: 'reset' };
 
 export interface UpdateAnalysisSettingsParams {
   readonly changes: readonly SettingChange[];
   readonly expected_revision?: number;
 }
 
-const isSettingId = (value: unknown): value is AnalysisSettingId =>
-  typeof value === 'string' && (ANALYSIS_SETTING_IDS as readonly string[]).includes(value);
+const isSettingId = (value: unknown): value is AnalysisSettingId => typeof value === 'string' && (ANALYSIS_SETTING_IDS as readonly string[]).includes(value);
 
-const parseLaunch = (
-  definition: AnalysisSettingDefinition,
-  environment: NodeJS.ProcessEnv,
-): { readonly value: number | null; readonly source: AnalysisSettingSource } | { readonly error: Record<string, unknown> } => {
+const parseLaunch = (definition: AnalysisSettingDefinition, environment: NodeJS.ProcessEnv): { readonly value: number | null; readonly source: AnalysisSettingSource } | { readonly error: Record<string, unknown> } => {
   if (definition.environment === undefined) {
     return { value: definition.defaultValue, source: 'default' };
   }
@@ -376,11 +332,7 @@ export class AnalysisSettingsStore {
     const settings = ANALYSIS_SETTING_IDS.filter((id) => {
       const definition = ANALYSIS_SETTING_DEFINITIONS[id];
       if (input.settings !== undefined && !input.settings.includes(id)) return false;
-      if (
-        input.provider !== undefined &&
-        input.provider !== definition.provider &&
-        definition.relatedProviders?.includes(input.provider) !== true
-      ) {
+      if (input.provider !== undefined && input.provider !== definition.provider && definition.relatedProviders?.includes(input.provider) !== true) {
         return false;
       }
       if (input.operation !== undefined && !definition.operations.includes(input.operation)) return false;

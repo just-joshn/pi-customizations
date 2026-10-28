@@ -1,5 +1,4 @@
 import type { ExtensionContext } from '@earendil-works/pi-coding-agent';
-
 import { childIdentity } from './child-env.ts';
 
 /** Print and JSON runs exit once the agent settles, and so does every subagent, an RPC child that its owner closes then. */

@@ -117,7 +117,11 @@ export async function fetchPrs(gh: GhRunner, target: GithubTarget): Promise<Map<
   const args = ['pr', 'list', '--repo', target.repo, ...(target.scope === 'author' ? ['--author', target.author] : []), '--state', 'open', '--limit', '100', '--json', PR_FIELDS];
   const raw = parseJson(await gh(args));
   if (!Array.isArray(raw)) throw new Error('gh pr list returned no list.');
-  return new Map(list(raw).map((item) => snapshotOf(item)).map((pr) => [pr.number, pr]));
+  return new Map(
+    list(raw)
+      .map((item) => snapshotOf(item))
+      .map((pr) => [pr.number, pr]),
+  );
 }
 
 /**

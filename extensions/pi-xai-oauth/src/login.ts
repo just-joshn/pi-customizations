@@ -1,5 +1,6 @@
-import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { randomBytes, randomUUID, timingSafeEqual } from 'node:crypto';
+import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
+
 import type { OAuthCredential, ProviderAuthInteraction } from '@earendil-works/pi-ai';
 
 export const GROK_OAUTH_CLIENT_ID = 'b1a00492-073a-47ea-816f-4c329264a828';
@@ -33,7 +34,7 @@ export async function loginGrokBuild(interaction: ProviderAuthInteraction): Prom
     type: 'select',
     message: 'Sign in to Grok Build',
     options: [
-      { id: 'browser', label: 'Browser', description: 'Opens auth.x.ai. This is Grok Build\'s default.' },
+      { id: 'browser', label: 'Browser', description: "Opens auth.x.ai. This is Grok Build's default." },
       { id: 'device', label: 'Device code', description: 'For a remote or headless machine.' },
     ],
   });

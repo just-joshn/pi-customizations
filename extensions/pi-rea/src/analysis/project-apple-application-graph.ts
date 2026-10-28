@@ -1,6 +1,6 @@
-import { digestOf } from './canonical.mjs';
 import { invalidRequest } from '../contract/errors.ts';
 import type { EvidenceRecord } from '../session/evidence.ts';
+import { digestOf } from './canonical.mjs';
 
 export interface AppleApplicationGraphInspection {
   readonly projection_id: string;
@@ -39,19 +39,7 @@ interface AppleBundle {
   readonly path: string;
   readonly parent_path: string | null;
   readonly layout: 'shallow' | 'macos-deep' | 'versioned-framework';
-  readonly role:
-    | 'application'
-    | 'app-extension'
-    | 'xpc-service'
-    | 'framework'
-    | 'login-item'
-    | 'system-extension'
-    | 'driver-extension'
-    | 'plug-in'
-    | 'resource-bundle'
-    | 'bundle'
-    | 'helper-application'
-    | 'nested-application';
+  readonly role: 'application' | 'app-extension' | 'xpc-service' | 'framework' | 'login-item' | 'system-extension' | 'driver-extension' | 'plug-in' | 'resource-bundle' | 'bundle' | 'helper-application' | 'nested-application';
   readonly role_basis: 'path-convention';
   readonly info_plist_path: string | null;
   readonly executable_candidates: readonly string[];
@@ -121,16 +109,12 @@ const occurrencesFrom = (record: EvidenceRecord): { rootSha: string | null; form
         ? (nr['members'] as Record<string, unknown>[])
         : [];
   const nodes = Array.isArray(nested['nodes']) ? (nested['nodes'] as Record<string, unknown>[]) : [];
-  const shaByArtifact = new Map(
-    nodes
-      .filter((node) => typeof node['artifact_id'] === 'string' && typeof node['sha256'] === 'string')
-      .map((node) => [String(node['artifact_id']), String(node['sha256'])]),
-  );
+  const shaByArtifact = new Map(nodes.filter((node) => typeof node['artifact_id'] === 'string' && typeof node['sha256'] === 'string').map((node) => [String(node['artifact_id']), String(node['sha256'])]));
   const manifest = nested['manifest'] as { root_sha256?: string; root_format?: string } | undefined;
 
   if (rows.length === 0 && Array.isArray(nr['resources'])) {
     return {
-      rootSha: typeof nr['root_artifact_sha256'] === 'string' ? nr['root_artifact_sha256'] : record.subject?.digest.sha256 ?? null,
+      rootSha: typeof nr['root_artifact_sha256'] === 'string' ? nr['root_artifact_sha256'] : (record.subject?.digest.sha256 ?? null),
       format: record.subject?.format ?? 'directory',
       occurrences: (nr['resources'] as Record<string, unknown>[]).map((entry) => ({
         logical_path: String(entry['relative_path'] ?? entry['path'] ?? ''),
@@ -142,13 +126,8 @@ const occurrencesFrom = (record: EvidenceRecord): { rootSha: string | null; form
   }
 
   return {
-    rootSha:
-      typeof manifest?.root_sha256 === 'string'
-        ? manifest.root_sha256
-        : typeof nr['root_artifact_sha256'] === 'string'
-          ? nr['root_artifact_sha256']
-          : record.subject?.digest.sha256 ?? null,
-    format: typeof manifest?.root_format === 'string' ? manifest.root_format : typeof nested['format'] === 'string' ? nested['format'] : record.subject?.format ?? null,
+    rootSha: typeof manifest?.root_sha256 === 'string' ? manifest.root_sha256 : typeof nr['root_artifact_sha256'] === 'string' ? nr['root_artifact_sha256'] : (record.subject?.digest.sha256 ?? null),
+    format: typeof manifest?.root_format === 'string' ? manifest.root_format : typeof nested['format'] === 'string' ? nested['format'] : (record.subject?.format ?? null),
     occurrences: rows
       .filter((entry) => entry['logical_path'] !== '.')
       .map((entry) => ({
@@ -224,9 +203,7 @@ export const projectAppleApplicationGraph = (params: { readonly inventory_eviden
   }
 
   const paths = new Set(allOccurrences.map((row) => row.logical_path.replace(/\/+$/, '')));
-  const bundlePaths = [...paths]
-    .filter((path) => /\.(app|appex|framework|xpc|bundle|systemextension|dext|plugin)$/i.test(path.split('/').pop() ?? ''))
-    .sort();
+  const bundlePaths = [...paths].filter((path) => /\.(app|appex|framework|xpc|bundle|systemextension|dext|plugin)$/i.test(path.split('/').pop() ?? '')).sort();
 
   if (bundlePaths.some((path) => path.endsWith('.app') && path.includes('/Payload/'))) platforms.add('ios');
   if (bundlePaths.some((path) => paths.has(`${path}/Contents/Info.plist`))) platforms.add('macos');
@@ -234,20 +211,8 @@ export const projectAppleApplicationGraph = (params: { readonly inventory_eviden
 
   const bundles: AppleBundle[] = bundlePaths.map((bundlePath) => {
     const layout = layoutFor(bundlePath, paths);
-    const info =
-      layout === 'macos-deep'
-        ? paths.has(`${bundlePath}/Contents/Info.plist`)
-          ? `${bundlePath}/Contents/Info.plist`
-          : null
-        : paths.has(`${bundlePath}/Info.plist`)
-          ? `${bundlePath}/Info.plist`
-          : null;
-    const signingPaths = [...paths].filter(
-      (path) =>
-        path === `${bundlePath}/Contents/_CodeSignature/CodeResources` ||
-        path === `${bundlePath}/_CodeSignature/CodeResources` ||
-        path.endsWith('/embedded.mobileprovision'),
-    );
+    const info = layout === 'macos-deep' ? (paths.has(`${bundlePath}/Contents/Info.plist`) ? `${bundlePath}/Contents/Info.plist` : null) : paths.has(`${bundlePath}/Info.plist`) ? `${bundlePath}/Info.plist` : null;
+    const signingPaths = [...paths].filter((path) => path === `${bundlePath}/Contents/_CodeSignature/CodeResources` || path === `${bundlePath}/_CodeSignature/CodeResources` || path.endsWith('/embedded.mobileprovision'));
     return {
       path: bundlePath,
       parent_path: parentBundle(bundlePath, bundlePaths),
@@ -269,9 +234,7 @@ export const projectAppleApplicationGraph = (params: { readonly inventory_eviden
       const occ = allOccurrences.find((row) => row.logical_path === bundle.info_plist_path);
       return {
         path: bundle.info_plist_path!,
-        artifact_id:
-          occ?.artifact_id ??
-          (occ?.sha256 === null || occ?.sha256 === undefined ? null : `art_${digestOf(`member:${occ.sha256}`)}`),
+        artifact_id: occ?.artifact_id ?? (occ?.sha256 === null || occ?.sha256 === undefined ? null : `art_${digestOf(`member:${occ.sha256}`)}`),
         sha256: occ?.sha256 ?? null,
         format: 'plist',
       };

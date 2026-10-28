@@ -141,7 +141,7 @@ export function registerMode(pi: ExtensionAPI): { section: () => string | undefi
   };
 
   pi.registerCommand('mode', {
-    description: "Keep a skill on every turn: /mode <skill> [task], /mode off, /mode",
+    description: 'Keep a skill on every turn: /mode <skill> [task], /mode off, /mode',
     getArgumentCompletions: (prefix) => ['off', ...[...loadedSkills(pi).keys()].toSorted()].filter((name) => name.startsWith(prefix.trim())).map((name) => ({ value: name, label: name })),
     handler: async (args, ctx) => {
       try {
