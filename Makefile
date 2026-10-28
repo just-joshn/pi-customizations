@@ -17,8 +17,6 @@ verify-toolchain:
 verify-test-conventions:
 	bun run check:tests
 
-# check:upstream also exists but needs a cursor/plugins checkout at the pinned commit:
-#   bun run --filter pi-pstack check:upstream -- --source /tmp/cursor-plugins
 verify-extension:
 	bun run --filter pi-pstack typecheck
 	bun run --filter pi-pstack test:coverage
