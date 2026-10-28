@@ -14,20 +14,19 @@ beforeEach(() => {
 afterEach(() => rmSync(scratch, { recursive: true, force: true }));
 
 describe('bundled scripts run from the package (SCRIPT-001)', () => {
-  test("upstream's own test script (orch, watch-pr, check-plan) passes once the CLIs' bootstrap has installed their dependencies", () => {
+  test("the scripts' own test script (watch-pr, check-plan) passes once the CLIs' bootstrap has installed their dependencies", () => {
     const bootstrap = spawnSync('bun', ['-e', "(await import('./bootstrap.ts')).ensureDependenciesInstalled()"], { cwd: SCRIPTS, encoding: 'utf8', timeout: 120_000 });
     expect(bootstrap.status).toBe(0);
     const result = spawnSync('bun', ['run', 'test'], { cwd: SCRIPTS, encoding: 'utf8', timeout: 120_000 });
-    expect(result.stderr).toMatch(/\n 82 pass\n 0 fail\n/);
+    expect(result.stderr).toMatch(/\n 61 pass\n 0 fail\n/);
     expect(result.status).toBe(0);
   });
 
-  test('watch-pr and orch start and print usage', () => {
+  test('watch-pr starts and prints usage, and orch is gone (pstack 0.15.36 runs orchestrate with agent tools)', () => {
     const watch = spawnSync(join(SCRIPTS, 'watch-pr/watch-pr'), ['--help'], { encoding: 'utf8', timeout: 60_000 });
     expect(watch.stdout.split('\n')[0]).toBe('Usage: watch-pr [options]');
-    const orch = spawnSync(join(SCRIPTS, 'orch/orch.ts'), ['--help'], { encoding: 'utf8', timeout: 60_000 });
-    expect(orch.stdout).toMatch(/^Usage: orch /);
-    expect([watch.status, orch.status]).toEqual([0, 0]);
+    expect(watch.status).toBe(0);
+    expect(existsSync(join(SCRIPTS, 'orch'))).toBe(false);
   });
 
   test('check-plan reports a plan that lacks the required sections', () => {

@@ -1,6 +1,4 @@
-// Cursor runs an environment "cloud" subagent in its own VM clone on its own branch. Pi has no subagent isolation API
-// and Task already spawns each subagent as a child process, so the closest local form is a git worktree on a new
-// branch, the mapping upstream pstack's Claude Code adapter uses (isolation: "worktree").
+// An environment "cloud" subagent is an isolated worker: a child process in its own git worktree on a new branch.
 import { execFile, execFileSync } from 'node:child_process';
 import { join } from 'node:path';
 

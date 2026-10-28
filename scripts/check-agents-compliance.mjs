@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 // Enforces the root AGENTS.md rules that a static scan can decide.
 //
-// Scope is authored code. The generated resources (pi-pstack/skills) are verified
-// by check:upstream, are never hand-edited, and are excluded
-// here because a style edit would be overwritten by the next generate.
+// Scope is the port's own extension code. pi-pstack/skills holds pstack's skill
+// scripts (watch-pr, statechart, check-plan) kept in their original style and
+// covered by their own test suites, so it is excluded here.
 //
 // Severity split. A `violation` is a rule the AGENTS.md checklist states as a hard
 // requirement. A `note` is a judgement rule that still needs a reviewer's read.

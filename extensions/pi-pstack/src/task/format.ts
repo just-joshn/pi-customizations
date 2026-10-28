@@ -1,5 +1,5 @@
-// Model-facing texts. The structure follows what Cursor's Task returns (fixtures F2, F3): a <response> block,
-// an "Agent ID:" line that names `resume`, and a <task> notification block with the same fields. Wording is the port's own.
+// Model-facing texts: a <response> block, an "Agent ID:" line that names `resume`, and a <task> notification block
+// with the same fields.
 import type { Usage } from '@earendil-works/pi-ai';
 import { DEFAULT_MAX_BYTES, formatSize, truncateHead } from '@earendil-works/pi-coding-agent';
 import type { Worktree } from './worktree.ts';
@@ -41,6 +41,13 @@ export function backgroundText(agentId: string, transcript: string | undefined, 
     '',
     agentIdLine(agentId),
     ...transcriptLine(transcript),
+    ...notes,
+  ].join('\n');
+}
+
+export function steerText(agentId: string, notes: readonly string[] = []): string {
+  return [
+    `Sent to agent ${agentId} while it runs: it reads the message after its current step. Its final response still arrives as its launch said, as a completion notification for a background agent or as the waiting Task result for a foreground one, so do not wait or poll for it.`,
     ...notes,
   ].join('\n');
 }

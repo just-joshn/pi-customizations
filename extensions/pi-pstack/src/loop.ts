@@ -78,7 +78,7 @@ function createLoopController(pi: ExtensionAPI, options: LoopOptions) {
     if (loop === undefined) return;
     const { timer: _timer, nextWakeMs: _wake, ...rest } = loop;
     loop = { ...rest, iteration: rest.iteration + 1 };
-    // Expansion lets a loop run a skill or template each time, as Cursor's /loop runs "a prompt or skill".
+    // Expansion lets a loop run a skill or template each time.
     pi.sendUserMessage(loop.prompt, { expandPromptTemplates: true, ...(lastCtx === undefined || lastCtx.isIdle() ? {} : { deliverAs: 'followUp' as const }) });
   };
   const settled = (ctx: ExtensionContext, aborted: boolean) => {
@@ -163,7 +163,7 @@ function registerLoopTool(pi: ExtensionAPI, controller: LoopController): void {
     name: 'Loop',
     label: 'Loop',
     description:
-      "Cursor's /loop for you: start a loop that re-sends a prompt at a fixed interval or at wakes you pick, schedule the next wake of an agent-paced loop, or stop the loop once its goal is met. Use it when a playbook says to arm /loop.",
+      "/loop for you: start a loop that re-sends a prompt at a fixed interval or at wakes you pick, schedule the next wake of an agent-paced loop, or stop the loop once its goal is met. Use it when a playbook says to arm /loop.",
     promptSnippet: 'Start a /loop, schedule its next wake, or stop it',
     parameters: LoopParams,
     annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
@@ -173,7 +173,7 @@ function registerLoopTool(pi: ExtensionAPI, controller: LoopController): void {
   });
 }
 
-/** Cursor's built-in /loop: run a prompt at a fixed interval, or at wakes the agent picks, until stopped. */
+/** /loop: run a prompt at a fixed interval, or at wakes the agent picks, until stopped. */
 export function registerLoop(pi: ExtensionAPI, options: LoopOptions): { section: () => string | undefined } {
   const controller = createLoopController(pi, options);
   pi.on('session_start', (_event, ctx) => {

@@ -1,23 +1,20 @@
 # benny
 
-benny gives you two cursor automations for slack issue reports. one triages each report. the other reproduces confirmed bugs and may prepare a small draft fix.
+benny gives you two pi automations for slack issue reports. one triages each report. the other reproduces confirmed bugs and may prepare a small draft fix.
+
+a pi automation is a pi-pstack subscription in a long-running pi session rooted in the target repository. a scheduled sweep is `subscribe_timer` with a cron schedule. each fire wakes that session, which hands one report to a background subagent on the automation's model. a push trigger is `subscribe_webhook`: a slack app or relay you run posts each new report to the local routine url. slack reads and writes go through a slack mcp server configured in pi (`pi mcp list`). durable memory is plain files in a directory setup names, such as `~/.pi/agent/pstack/automations/benny/memories/`.
 
 the files in this directory are dormant setup and automation sources. they do not appear as slash skills.
 
 ## set it up
 
-1. point cursor at [`FOR_AGENTS.md`](./FOR_AGENTS.md) and name the target repository.
-2. let setup merge this whole directory into the target at `.cursor/automations/benny/`. it must preserve destination-only files and review conflicts instead of overwriting local edits.
-3. let setup enable pstack in the target repository's `.cursor/settings.json` for shared dependencies:
+1. install pi-pstack (`pi install <path-to-pi-pstack>`) and configure a slack mcp server in pi. `pi mcp list` must show it.
+2. start pi in the target repository and point it at [`FOR_AGENTS.md`](./FOR_AGENTS.md).
+3. let setup merge this whole directory into the target at `.pi/automations/benny/`. it must preserve destination-only files and review conflicts instead of overwriting local edits.
+4. keep user-owned configuration outside the copied pack, for example in `.pi/benny/`. adapt [`configuration.example.yaml`](./templates/configuration.example.yaml) and [`feature-map.example.md`](./skills/reproduce-and-fix-issues/references/feature-map.example.md).
+5. commit `.pi/automations/benny/` and any secret-free configuration, so pack refreshes stay reviewable.
+6. when you ask, setup creates the two subscriptions and checks them with `list_subscriptions`. then send a harmless test report and verify every source-channel post stays in the original thread.
 
-```json
-{
-	"plugins": {
-		"pstack": { "enabled": true }
-	}
-}
-```
+## what differs from hosted automations
 
-4. keep user-owned configuration outside the copied pack, for example in `.cursor/benny/`. adapt [`configuration.example.yaml`](./templates/configuration.example.yaml) and [`feature-map.example.md`](./skills/reproduce-and-fix-issues/references/feature-map.example.md).
-5. commit `.cursor/settings.json`, `.cursor/automations/benny/`, and any secret-free configuration before enabling either automation.
-6. review each new automation draft or update existing automations in their editors. then send a harmless test report and verify every source-channel post stays in the original thread.
+subscriptions live in the pi process. they run only while the session that created them runs, so keep it open, for example in tmux, and keep the machine awake. they come back when you resume that session after a restart. they expire after seven days by default: `list_subscriptions` shows `expiresAt`, and renewing one means `unsubscribe`, then subscribing again with the same name. a webhook routine listens on `127.0.0.1` only, so slack cannot reach it directly. a push trigger needs a relay you run.

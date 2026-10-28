@@ -37,55 +37,44 @@ async function rpcSystemPrompt(): Promise<string> {
 }
 
 describe('host map (HOST-001)', () => {
-  test('names the skills, rule, transcript, and subagent locations', async () => {
+  test('names the skills, rule, transcript, store, project, and subagent locations in Pi terms', async () => {
     const host = section(await systemPrompt(), 'pstack_host');
     const skills = join(PACKAGE_ROOT, 'skills');
+    const workspace = join(sandbox.agentDir, 'pstack/workspaces', `--${sandbox.workDir.replace(/^\//, '').replaceAll('/', '-')}--`);
+    expect(host).toContain(`pstack runs here through the pi-pstack package at ${PACKAGE_ROOT}.`);
     expect(host).toContain(`<SKILLS> = ${skills}`);
     expect(host).toContain('"the X skill", "/X", and "principle-X" mean <SKILLS>/X/SKILL.md');
-    expect(host).toContain(`\`~/.cursor/rules/pstack-models.mdc\` means ${join(sandbox.agentDir, 'pstack/pstack-models.mdc')}`);
-    const workspace = join(sandbox.agentDir, 'pstack/workspaces', `--${sandbox.workDir.replace(/^\//, '').replaceAll('/', '-')}--`);
+    expect(host).toContain('a delegate that needs poteto-mode reads <SKILLS>/poteto-mode/SKILL.md');
+    expect(host).toContain(`- The model rule is ${join(sandbox.agentDir, 'pstack/pstack-models.md')}. Its current content is in <pstack_models>.`);
+    expect(host).toContain(`- Skill folders: project \`.pi/skills/\`, personal \`${join(sandbox.agentDir, 'skills')}/\`.`);
     expect(host).toContain(`Subagent transcripts for this workspace: ${join(workspace, 'subagents')}/*_<agent id>.jsonl. A subagent is still running while ${join(workspace, 'subagents')}/<agent id>.lock exists and names a live pid.`);
-    expect(host).toMatch(new RegExp(`"The current agent's store" \\(orchestrate's store layout\\) is ${join(workspace, 'store')}/[0-9a-f-]+\\. Create it when a playbook needs it, and pass it to orch as --store\\.`));
-    expect(host).toContain(
-      "- Image generation (the image tool teach reaches for, ketchup's generated image): Pi generates images through codemode's models.generateImages() when codemode is on and an image model is configured. Otherwise say no image tool is available and use a mermaid diagram or a table. Cursor's `/visualize` charts have no Pi counterpart, so draw a chart as a mermaid diagram (xychart-beta for numbers).",
-    );
+    expect(host).toMatch(new RegExp(`"The current agent's store" is ${join(workspace, 'store')}/[0-9a-f-]+\\. Create it when a playbook needs it\\.`));
+    expect(host).toContain(`- Projects: a program's Project is ${join(workspace, 'projects')}/<project-slug>/, with notes.md as its Project tracker and store/ as its Project store.`);
+    expect(host).toMatch(new RegExp(`- Files a tool makes for the user, such as visualize charts, go in ${join(workspace, 'artifacts')}/[0-9a-f-]+\\.`));
+    expect(host).toContain(`- Transcripts: this workspace's Pi session files are in ${join(sandbox.agentDir, 'sessions')}/--${sandbox.workDir.replace(/^\//, '').replaceAll('/', '-')}--.`);
     expect(host).toContain('Installed skills (62): architect, arena, automate-me,');
-    expect(host).toContain('ketchup-video');
-    expect(host).toContain('statechart');
-    expect(host).toContain(
-      `\`agent-transcripts/\` and \`~/.cursor/projects/<slug>/agent-transcripts/\` mean ${join(sandbox.agentDir, 'sessions')}/--${sandbox.workDir.replace(/^\//, '').replaceAll('/', '-')}--, Pi session JSONL files for this workspace. Each line is an entry: the first is a session header, and conversation turns have type "message" (the opening prompt is the first user message).`,
-    );
-    expect(host).toContain('MCP tools are named mcp__<server>__<tool>; `pi mcp list` shows the servers. Cursor\'s available-tools map and its `mcps/` directory both mean `pi mcp list`.');
-    expect(host).toContain(
-      "- Media in a reply: Pi's chat renders no image or video inside a reply. To show the user a screenshot or a frame, read the image file with the read tool, which displays it inline in terminals that support images, and name its path. A video cannot play in Pi, so give the video's path and read one frame from each slide.",
-    );
-    expect(host).toContain(`Pi usage is in ${join(PACKAGE_ROOT, 'README.md')}. Cursor's \`/add-plugin pstack\` and Customize sidebar mean \`pi install\` with this package, as that README describes. Cursor's Plan Mode has no Pi counterpart.`);
-    expect(host).toContain("Cursor's built-in create-skill skill is <SKILLS>/create-skill/SKILL.md. `.cursor/skills/` means `.pi/skills/`;");
-    expect(host).toContain(
-      '- Cloud subagents (environment "cloud") run on this machine in their own git worktree on branch pstack/<agent id>, created from cloud_base_branch or this checkout\'s HEAD commit, so uncommitted changes do not reach them. The Task result names the worktree and branch; merge that branch to take the subagent\'s work. Pi never deletes these worktrees or branches; the worktree-cleanup playbook prunes them. Grok Bot routines (update_state, SendToUser) and Cursor Automations (routines, api2.cursor.sh/automations webhooks, routine wakes) have no Pi counterpart, so a step that needs one gets the Skipped in Pi line.',
-    );
+    expect(host).toContain('agent_status reads a subagent\'s state without waking it.');
+    expect(host).toContain('- The user keeps a skill on every turn with `/mode <skill>` (exit `/mode off`) and plans without edits with `/plan` (exit `/plan off`).');
+    expect(host).toContain('- MCP tools are named mcp__<server>__<tool>; `pi mcp list` shows the servers.');
+    expect(host).toContain('- Isolated workers (Task environment "cloud") run on this machine in their own git worktree on branch pstack/<agent id>');
+  });
+
+  test('names no Cursor host feature (HOST-008)', async () => {
+    const prompt = await systemPrompt(['--no-session']);
+    const names = ['pstack_host', 'pstack_subagents', 'pstack_models', 'pstack_mode', 'pstack_plan', 'pstack_loop'];
+    const pstack = names.map((name) => new RegExp(`<${name}>\\n([\\s\\S]*?)\\n</${name}>`).exec(prompt)?.[1] ?? '').join('\n');
+    expect(pstack).not.toMatch(/cursor/i);
+  });
+
+  test('tells a one-shot run it cannot subscribe, and a long-lived session how subscriptions wake it (HOST-010)', async () => {
+    const [rpc, oneShot] = [section(await rpcSystemPrompt(), 'pstack_host'), section(await systemPrompt(['--no-session']), 'pstack_host')];
+    expect([rpc.includes('- Subscriptions (subscribe_github_pr, subscribe_timer, subscribe_webhook) wake this chat'), oneShot.includes('- Subscriptions: this run ends when it settles, so nothing can wake it')]).toEqual([true, true]);
   });
 
   test("names the main chat's own store as the root agent's store", async () => {
     const host = section(await systemPrompt(['--no-session']), 'pstack_host');
-    const current = /"The current agent's store" \(orchestrate's store layout\) is (\S+)\. /.exec(host)?.[1];
+    const current = /"The current agent's store" is (\S+)\. /.exec(host)?.[1];
     expect(host).toContain(`"The root agent's store" is ${current}, the store of the main chat that started this subagent tree; in the main chat it is the current agent's store.`);
-  });
-
-  test('maps the Cursor tool names and transcript shapes that pstack text relies on (HOST-008)', async () => {
-    const host = section(await systemPrompt(['--no-session']), 'pstack_host');
-    expect(host).toContain(
-      '- Cursor tool names in pstack text: Read is read, Grep is grep, Glob is find, Shell is bash. A skill under `~/.cursor/plugins/` is one under <SKILLS>, and this package is the only pstack copy, so a search of `~/.cursor/plugins/` for `skills/<name>/SKILL.md` ends at <SKILLS>/<name>/SKILL.md. In a Pi transcript a tool call is a toolCall part of an assistant message (tool name plus arguments), and an attached skill is a <skill name="..." location="..."> block in a user message.',
-    );
-  });
-
-  test("maps the non-Cursor conventions from upstream's harness adapter (HOST-009)", async () => {
-    const host = section(await systemPrompt(['--no-session']), 'pstack_host');
-    expect([
-      host.includes(`- A link to \`https://github.com/cursor/plugins/blob/main/pstack/<path>\` means ${PACKAGE_ROOT}/<path> when that file exists (skills/, agents/, docs/).`),
-      host.includes('- Bugbot comments on a GitHub PR are ordinary review threads, so triage them with the forge command the step gives.'),
-      host.includes('- A step that needs a Cursor-only feature with no Pi counterpart gets one line in your reply, `Skipped in Pi: <step>. <reason>.`, and you go on to the next step without stopping, asking, or retrying.'),
-    ]).toEqual([true, true, true]);
   });
 
   test('names AskQuestion only where a user can answer (HOST-005; review r2: parity 4)', async () => {
@@ -110,10 +99,10 @@ describe('host map (HOST-001)', () => {
     );
   });
 
-  test('frames an attached skill as the workflow to follow, as Cursor does for /name', async () => {
+  test('frames an attached skill as the workflow to follow', async () => {
     const host = section(await systemPrompt(), 'pstack_host');
     expect(host).toContain(
-      '- A <skill> block in a user message means the user attached that skill to this request (Cursor: a manually attached skill). Follow its workflow from its first step, including the steps it says to take before answering, instead of answering directly.',
+      '- A <skill> block in a user message means the user attached that skill to this request. Follow its workflow from its first step, including the steps it says to take before answering, instead of answering directly.',
     );
   });
 
@@ -137,23 +126,33 @@ describe('subagent catalog (HOST-002)', () => {
     expect(catalog).toContain('- inherit (default): the parent model and thinking level. auto and inherit-parent mean the same.');
     expect(catalog).toMatch(/^- This chat runs scripted\/echo(:\w+)?\. pstack's model families \(claude-\*, grok-\*\) go by the model id after its provider\.$/m);
     expect(catalog).toContain('Available models: scripted/echo (thinking: off, minimal, low, medium, high), scripted/plain');
-    expect(catalog).toContain('- A Cursor-style slug <model-id>[-<effort>][-fast], effort one of the thinking levels the model lists below or none for off; the effort becomes the thinking level and -fast is ignored.');
+    expect(catalog).toContain('- A Pi model <provider>/<model-id> or <model-id>, optionally with :<level> from the thinking levels the model lists below. A level the model does not list is rejected.');
+  });
+});
+
+describe('capability-aware sections (C-M4)', () => {
+  test('a readonly subagent gets no subagent catalog and no Task or stop_agent lines; its parent gets both', async () => {
+    const run = await runJson(sandbox, script([{ tool: 'Task', args: { description: 'probe', prompt: 'go\n@@sys', readonly: true } }]), ['--no-session']);
+    const child = toolEnds(run.events, 'Task')[0]?.text ?? '';
+    const parentHost = section(await systemPrompt(['--no-session']), 'pstack_host');
+    expect([child.includes('<pstack_host>'), child.includes('<pstack_subagents>'), section(child, 'pstack_host').includes('Task'), section(child, 'pstack_host').includes('stop_agent')]).toEqual([true, false, false, false]);
+    expect([parentHost.includes('- Subagents: call the Task tool'), parentHost.includes('stop_agent stops a running agent.')]).toEqual([true, true]);
   });
 });
 
 describe('model rule (RULE-001)', () => {
   test('reports the default when no rule exists', async () => {
     const models = section(await systemPrompt(['--no-session']), 'pstack_models');
-    expect(models).toBe(`No pstack model rule exists at ${join(sandbox.agentDir, 'pstack/pstack-models.mdc')}. Every role uses its skill default until /setup-pstack writes one.`);
+    expect(models).toBe(`No pstack model rule exists at ${join(sandbox.agentDir, 'pstack/pstack-models.md')}. Every role uses its skill default until /setup-pstack writes one.`);
   });
 
   test('applies the rule on every request when it exists', async () => {
     mkdirSync(join(sandbox.agentDir, 'pstack'), { recursive: true });
-    writeFileSync(join(sandbox.agentDir, 'pstack/pstack-models.mdc'), '---\nalwaysApply: true\n---\n# budget: small (medium)\nswarm workers: scripted/plain\n');
+    writeFileSync(join(sandbox.agentDir, 'pstack/pstack-models.md'), '# budget: small (medium)\nswarm workers: scripted/plain\n');
     const run = await runJson(sandbox, ['first\n@@sys', 'second\n@@sys'], ['--no-session']);
     const prompts = assistantTexts(run.events);
     expect(prompts).toHaveLength(2);
-    for (const prompt of prompts) expect(section(prompt, 'pstack_models')).toBe(`Path: ${join(sandbox.agentDir, 'pstack/pstack-models.mdc')}\n# budget: small (medium)\nswarm workers: scripted/plain`);
+    for (const prompt of prompts) expect(section(prompt, 'pstack_models')).toBe(`Path: ${join(sandbox.agentDir, 'pstack/pstack-models.md')}\n# budget: small (medium)\nswarm workers: scripted/plain`);
   });
 });
 
@@ -176,10 +175,10 @@ describe('tool listing', () => {
 });
 
 describe('image generation (HOST-006)', () => {
-  test('the path the host map names generates an image when an image model is configured', async () => {
+  test('the path the host section names generates an image when an image model is configured', async () => {
     const images = makeSandbox({ extensions: [join(PACKAGE_ROOT, 'test/fixtures/scripted-model.ts'), join(PACKAGE_ROOT, 'test/fixtures/image-model.ts')] });
     try {
-      // The script follows the host map line: codemode's models.generateImages(), shown with image().
+      // The script follows the host section line: codemode's models.generateImages(), shown with image().
       const code =
         'const [painter] = await models.getAvailableOfType("image");\nconst result = await models.generateImages(painter, { input: [{ type: "text", text: "a fox" }] });\nfor (const block of result.output) if (block.type === "image") image(block);\nreturn painter.provider + "/" + painter.id + " " + result.stopReason;';
       const run = await runJson(images, script([{ tool: 'codemode', args: { code } }]), ['--no-session', '--tools', '+codemode']);

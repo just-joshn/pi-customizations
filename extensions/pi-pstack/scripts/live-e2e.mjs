@@ -2,7 +2,7 @@
 // Runs pstack scenarios against a real model through the Pi CLI and records what the model did.
 // Usage: live-e2e.mjs [--model provider/id] [--scenario poteto|delegate|nocomments|setup|all] [--out <dir>] [--tag <name>]
 //                     [--rule <file>] [--providers claude-subscription]
-// --rule copies a pstack-models.mdc into the throwaway agent directory first, for example to bound subagent cost.
+// --rule copies a pstack-models.md into the throwaway agent directory first, for example to bound subagent cost.
 // --providers loads extra provider packages so their models are available without driving the run.
 // It needs credentials in the user's Pi auth.json. Each scenario uses a throwaway workspace, HOME, and agent
 // directory, and auth.json is symlinked rather than copied. Pi writes refreshed OAuth tokens through that symlink,
@@ -63,7 +63,7 @@ function sandbox(model, ruleFile, providers) {
   writeFileSync(join(agentDir, 'settings.json'), JSON.stringify({ packages, quietStartup: true, defaultProvider: model.split('/')[0], defaultModel: model.split('/')[1] }));
   if (ruleFile !== undefined) {
     mkdirSync(join(agentDir, 'pstack'));
-    writeFileSync(join(agentDir, 'pstack/pstack-models.mdc'), readFileSync(ruleFile));
+    writeFileSync(join(agentDir, 'pstack/pstack-models.md'), readFileSync(ruleFile));
   }
   const git = (...args) => execFileSync('git', ['-C', work, ...args], { stdio: 'ignore' });
   git('init', '-q', '-b', 'main');
@@ -179,7 +179,7 @@ const SCENARIOS = {
       "/setup-pstack Use the large budget and keep the skill's mapping. For a role whose default model is not available, use the closest available model of the same family, else inherit-parent. Do not ask me anything; write the rule now.",
     prepare: () => undefined,
     check: (_calls, box, model) => {
-      const rule = join(box.agentDir, 'pstack/pstack-models.mdc');
+      const rule = join(box.agentDir, 'pstack/pstack-models.md');
       const text = existsSync(rule) ? readFileSync(rule, 'utf8') : '';
       const missing = ROLES.filter((role) => !text.split('\n').some((line) => line.startsWith(`${role}:`)));
       const values = text
@@ -199,11 +199,10 @@ const SCENARIOS = {
       });
       return {
         ruleWritten: text !== '',
-        alwaysApply: /alwaysApply: true/.test(text),
+        noFrontmatter: !text.startsWith('---'),
         missingRoles: missing,
         distinctValues: [...new Set(values)],
         unresolvedValues: unresolved,
-        wroteCursorRule: existsSync(join(box.root, 'home/.cursor/rules/pstack-models.mdc')),
         rule: text,
       };
     },

@@ -14,7 +14,7 @@ function isCardDetails(details: unknown): details is CardDetails {
   return typeof details === 'object' && details !== null && 'subagentType' in details && 'model' in details;
 }
 
-/** Cursor's subagent task card is named by the Task description and shows which model ran; this card heads the result with both. */
+/** Heads the Task result with the Task description and the model that ran. */
 export function taskCardText(result: Pick<AgentToolResult<unknown>, 'content' | 'details'>, expanded: boolean): string {
   const text = result.content.map((part) => (part.type === 'text' ? part.text : '')).join('\n');
   const lines = text.split('\n');

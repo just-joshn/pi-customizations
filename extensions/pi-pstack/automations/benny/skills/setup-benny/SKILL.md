@@ -1,51 +1,44 @@
 ---
 name: setup-benny
-description: Configure Benny and prepare its triage and repro automations. Use when installing Benny or changing its Slack, tracker, repository, routing, control, model, or budget settings.
+description: Configure Benny and prepare its triage and repro automations. Use when installing Benny or changing its Slack, tracker, repository, routing, control, model, trigger, memory, or budget settings.
 disable-model-invocation: true
 ---
 
 # Set up Benny
 
-Benny ships as a dormant automation pack inside pstack. The plugin manifest exposes only pstack's normal skill root; this file and the two operational files are not slash skills.
+Benny ships as a dormant automation pack inside pi-pstack. Pi discovers only pi-pstack's normal skill root; this file and the two operational files are not slash skills.
 
-The human enters setup by pointing Cursor at the pack's `FOR_AGENTS.md`. The bootstrap flow copies the whole pack into the target repository, then reads this file directly at `.cursor/automations/benny/skills/setup-benny/SKILL.md`.
+The human enters setup by pointing Pi at the pack's `FOR_AGENTS.md`. The bootstrap flow copies the whole pack into the target repository, then reads this file directly at `.pi/automations/benny/skills/setup-benny/SKILL.md`.
 
-Benny needs external configuration and two live Cursor automations.
+Benny needs external configuration and two live automations. Each automation is a pi-pstack subscription owned by a long-running Pi session rooted in the target repository:
 
-Do not create or update an automation until the user explicitly asks. Never put a secret value in plugin files, prompts, or committed configuration.
+- Timer mode (default): `subscribe_timer` with a 5-field `cron`. Each fire wakes the owning session, which sweeps the source channel, claims one report, and hands it to one background `Task` on the automation's configured model. The run's result arrives as a Task notification.
+- Webhook mode: `subscribe_webhook`. Each POST to the local routine URL wakes the owning session with a `[routine]` turn, and the prompt hands the event to one background `Task` on the automation's configured model.
 
-## 1. Copy the pack and enable shared pstack skills
+Subscriptions live in the Pi process. They stop when that session exits, return when it is resumed, and expire (default seven days). Tell the user this before creating anything.
 
-Do this before asking for Benny configuration and before invoking the built-in `/automate` skill.
+Do not create or update a subscription until the user explicitly asks. Never put a secret value in pack files, prompts, memory, or committed configuration.
 
-Ask which repository will run the automations. The source pack is the directory containing `FOR_AGENTS.md`. The destination is `<target-repository>/.cursor/automations/benny/`.
+## 1. Copy the pack and check shared pi-pstack skills
+
+Do this before asking for Benny configuration and before creating any subscription.
+
+Ask which repository will run the automations. The source pack is the directory containing `FOR_AGENTS.md`. The destination is `<target-repository>/.pi/automations/benny/`.
 
 Merge the entire source pack into the destination:
 
 1. Create the destination when it is absent.
 2. Copy every source file to the same relative path.
 3. Preserve destination-only files. Never delete unrelated files during install or refresh.
-4. Keep user-owned configuration, feature maps, and routing maps outside the destination. Never overwrite them.
+4. Keep user-owned configuration, feature maps, routing maps, and memory outside the destination. Never overwrite them.
 5. When an existing source-managed file differs, inspect the diff and merge without discarding local edits. If ownership is ambiguous, stop and ask before replacing it.
 6. Verify that the destination contains `FOR_AGENTS.md`, this setup file, both operational files, their references, and the templates.
 
 If this file is already being read from the target destination, treat the copy as complete and run the same verification before continuing.
 
-Add pstack to the target repository's `.cursor/settings.json`. If the file or `.cursor` directory does not exist, create it.
+Confirm that pi-pstack is installed in Pi. A personal install (`pi install <path-to-pi-pstack>`) serves every repository on this machine. A project install (`pi install -l <path-to-pi-pstack>`) writes the target repository's `.pi/settings.json`; preserve every unrelated setting and package entry when that file exists, and validate it after editing.
 
-Merge this entry into the existing JSON or JSONC:
-
-```json
-{
-	"plugins": {
-		"pstack": { "enabled": true }
-	}
-}
-```
-
-Preserve every unrelated top-level setting and every other plugin entry. If `plugins.pstack` already exists, change only its `enabled` value. Preserve comments and valid JSONC syntax when the file uses JSONC. Validate the file after editing it.
-
-Reload the target project or start a fresh agent rooted there. Verify that these shared pstack skills resolve from project scope:
+This setup session must run in the target repository, because a `Task` subagent starts in its parent's working directory. If it does not, stop and tell the user to start Pi in the target repository and point it at `FOR_AGENTS.md` again. Start a fresh `Task` subagent with `readonly: true`. Ask it which of these skills its system prompt lists as installed:
 
 - `how`
 - `why`
@@ -58,15 +51,17 @@ Reload the target project or start a fresh agent rooted there. Verify that these
 - `principle-fix-root-causes`
 - `principle-prove-it-works`
 
-Do not count a skill loaded from the current session or a user-scoped plugin. The check must show that a fresh agent in the target repository receives pstack through project settings.
+Do not count a skill this session read by hand. The check must show that a fresh subagent in the target repository receives pi-pstack.
 
-If project-scoped plugin installation is unavailable or any shared dependency does not resolve, stop and explain the failure.
+If pi-pstack or any shared dependency does not resolve, stop and explain the failure.
 
-The Benny files are read directly from `.cursor/automations/benny/`. Do not add that directory to a plugin manifest or expect its `SKILL.md` files to appear in the slash-skill list.
+Confirm that `pi mcp list` shows the Slack MCP server the user names, and that it exposes thread read, thread reply, and, when needed, file download and message edit tools. If it does not, stop and explain what is missing.
 
-Tell the user that `.cursor/settings.json`, `.cursor/automations/benny/`, and any referenced secret-free configuration must be committed before either automation is enabled. Do not commit them unless the user asks.
+The Benny files are read directly from `<target-repository>/.pi/automations/benny/`. Do not move that directory into `.pi/skills/` or expect its `SKILL.md` files to appear in the slash-skill list.
 
-Once this check passes, live automation prompts may read the committed operational files by their stable repository-relative paths. They must not embed a plugin cache path or copy the file contents.
+Tell the user to commit `.pi/automations/benny/` and any referenced secret-free configuration, so pack refreshes stay reviewable. Do not commit them unless the user asks.
+
+Once this check passes, subscription prompts read the operational files by their absolute paths in the target checkout. They must not embed a pi-pstack package path or copy the file contents.
 
 ## 2. Adapt the configuration
 
@@ -75,11 +70,11 @@ Open these copied examples:
 - `../../templates/configuration.example.yaml`
 - `../reproduce-and-fix-issues/references/feature-map.example.md`
 
-Create user-owned copies outside `.cursor/automations/benny/`. These are configuration files, not pack files. Example locations:
+Create user-owned copies outside `.pi/automations/benny/`. These are configuration files, not pack files. Example locations:
 
-- Project config, such as `.cursor/benny/configuration.yaml`
-- Project feature map, such as `.cursor/benny/feature-map.md`
-- Project routing map, such as `.cursor/benny/routing.md`
+- Project config, such as `.pi/benny/configuration.yaml`
+- Project feature map, such as `.pi/benny/feature-map.md`
+- Project routing map, such as `.pi/benny/routing.md`
 - User config, such as `~/.config/benny/configuration.yaml`
 - User feature map, such as `~/.config/benny/feature-map.md`
 
@@ -87,9 +82,9 @@ Fill one feature-map section for every user-facing feature the automation may re
 
 Do not edit the copied examples. Pack refreshes may update source-managed files after conflict review, but they must never touch the user-owned copies.
 
-Prefer committed, secret-free files in the target repository when a fresh automation checkout must read them. Otherwise paraphrase the required values into the live prompt. Reference a repository file only after the built-in `/automate` skill confirms that the file is committed in the repository where the automation runs.
+Create the memory directory named by `memory.directory`, such as `<pstack dir>/automations/benny/memories/`, where `<pstack dir>` is the directory of the model rule the system prompt names (`~/.pi/agent/pstack` by default), with an empty `ledger.tsv` and a `MEMORIES.md`. Write into `MEMORIES.md` only operating notes a run needs: the target repository path, the configuration path, the subscription names, and, in webhook mode, each routine's URL and credential file path. Never write a key, a token, or report text into memory. Keep the directory out of the repository.
 
-Use stable repository-relative paths for committed pack and configuration files. Never reference the plugin source directory or a plugin cache path from a live automation.
+Use absolute paths for the pack, configuration, and memory in subscription prompts. Never reference the pi-pstack package directory from a subscription prompt.
 
 ## 3. Fill the required choices
 
@@ -98,7 +93,9 @@ Ask for or confirm:
 - Source Slack channel ID
 - Optional operations or status channel ID
 - Repository URL and default branch
+- Absolute path of the target repository checkout
 - Triage identity or Slack user ID
+- Slack MCP server name and the exact tool for each Slack action
 - Issue tracker type, team, project, labels, and intake status
 - Tracker adapter skill or MCP actions
 - Optional routing map path
@@ -106,14 +103,16 @@ Ask for or confirm:
 - Required user-facing feature-map path
 - Status emoji strings
 - Pull request URL format
+- Trigger mode, and the cron schedules for timer mode
+- Memory directory
 - Polling and effort budgets
-- Model slug for triage, repro, code work, and media review
+- Model for triage, repro, code work, and media review
 
-Use only model slugs shown as available in the user's Cursor model picker or supported model list. Do not guess a slug and do not carry over a private default.
+Use only model specs that `pi --list-models` shows, with a thinking level that model lists, such as `provider/model:high`. Do not guess a model and do not carry over a private default.
 
-The source channel, triage identity, repository, tracker adapter, control skill, and feature map must be explicit. Fail setup if any required value stays ambiguous.
+The source channel, triage identity, repository, Slack MCP tools, tracker adapter, control skill, and feature map must be explicit. Fail setup if any required value stays ambiguous.
 
-Use pstack's `unslop` skill on the final automation names, descriptions, and prompt shims before saving them.
+Use pi-pstack's `unslop` skill on the final subscription names and prompts before creating them.
 
 ## 4. Check integration capabilities
 
@@ -130,10 +129,10 @@ The repro automation needs:
 - Thread-reply access in the source channel
 - Optional post and edit access in the configured operations channel
 - Repository read and history access
-- A pull request action that can open a draft pull request
+- `gh` authenticated for the repository, so `gh pr create --draft` can open a draft pull request
 - The configured control-adapter skill
 
-Prefer configured Cursor Slack actions for reads and posts. The optional `BENNY_SLACK_BOT_TOKEN` may fill a narrow gap such as editing one operations status message or downloading an attachment. Store the value in a secret manager or environment, not in YAML.
+Prefer the configured Slack MCP tools for reads and posts. The optional `BENNY_SLACK_BOT_TOKEN` may fill a narrow gap such as editing one operations status message or downloading an attachment. Store the value in a secret manager or the owning session's environment, not in YAML. A writable subagent inherits that environment, which is one reason Benny's workers run readonly.
 
 Do not use undocumented integration endpoints.
 
@@ -141,7 +140,7 @@ Do not use undocumented integration endpoints.
 
 If the user wants reroutes or owner pings:
 
-1. Copy `../triage-issue-reports/references/routing.example.md` outside `.cursor/automations/benny/`.
+1. Copy `../triage-issue-reports/references/routing.example.md` outside `.pi/automations/benny/`.
 2. Replace every placeholder with public or organization-local values.
 3. Keep owner pings off by default.
 4. Allow a ping only for a configured feature owner or a confirmed likely regression author.
@@ -162,96 +161,83 @@ Confirm that the named skill can:
 - Start and stop a recording
 - Clean up its processes and temporary data
 
-If any capability is missing, leave the repro automation disabled. It must fail closed rather than claim a reproduction it did not perform.
+If any capability is missing, do not create the repro subscription. It must fail closed rather than claim a reproduction it did not perform.
 
 ## 7. Prepare the live automations
 
-Ask whether this is first-time creation or configuration of existing automations.
+Ask whether this is first-time creation or configuration of existing subscriptions.
 
 Read `../../FOR_AGENTS.md` from the copied pack as the primary user-intent source for either path. Use it to understand the two triggers, tools, instructions, outcomes, and shared rules.
 
+The owning session must be interactive or RPC, rooted in the target repository, and expected to keep running. A print or JSON run cannot own a subscription. Suggest a dedicated tmux window, such as `tmux new -s benny 'cd <target-repository> && pi'`. In both trigger modes, each fire hands its report to one background `Task` with the automation's configured `model`, so one owning session serves both automations, whatever model that session runs on.
+
 ### First-time creation
 
-Create one automation at a time.
+Create one subscription at a time.
 
 For each automation:
 
-1. Read the matching copied prompt template as secondary internal source material.
-2. Turn `FOR_AGENTS.md`, the finished Benny configuration, and the template intent into a complete natural-language request.
-3. Tell the live prompt to read and follow its exact committed operational file under `.cursor/automations/benny/`.
-4. Use the stable repository-relative path, not a plugin source or cache path. Do not copy the operational file contents into the live prompt.
-5. Read and follow the built-in `automate` skill.
-6. Let `automate` discover Slack channels, the repository, and connected integrations.
-7. Let `automate` confirm that the copied pack and any referenced configuration files are committed in the same repository where the automation will run.
-8. Let `automate` show its draft table, obtain approval, ask readiness, and open the Automations editor.
-9. Finish the editor handoff for this automation before starting the next one.
+1. Read the matching copied prompt template.
+2. Fill every `{{...}}` value from the finished configuration. Keep only the trigger block for the chosen mode.
+3. Check that the prompt reads its exact operational file under `<target-repository>/.pi/automations/benny/`, by absolute path. Do not copy the operational file contents into the prompt.
+4. Show the user the subscription name, mode, schedule, and full prompt, and get approval.
+5. Create the subscription:
+   - Timer mode: `subscribe_timer` with `name`, `prompt`, and `cron`. Keep the default `sessionStrategy`, `wake_self`, so each fire reaches the owning session, which starts the `Task` on the configured model.
+   - Webhook mode: `subscribe_webhook` with `name` and `prompt`. It returns the local URL (`http://127.0.0.1:<port>/routines/<slug>`, where the slug is the kebab-case form of the name) and the credential file path. The key stays in that file. Never print it, paste it into chat, or copy it into the configuration.
+6. Run `list_subscriptions`. Confirm the subscription appears with the expected name, schedule or URL, and `expiresAt`. A result of `created: false` means a subscription with that name already exists and kept its old prompt; follow the existing-subscription path instead.
+7. Finish the thread-safety checks that apply to this automation before creating the next one.
 
-Give `automate` this complete triage intent, filled from configuration:
+The triage subscription must:
 
-- Name `benny-triage`.
-- Read and follow `.cursor/automations/benny/skills/triage-issue-reports/SKILL.md` for every run.
-- Trigger on each new top-level report in the configured source Slack channel.
+- Be named `benny-triage`.
+- Read and follow `<target-repository>/.pi/automations/benny/skills/triage-issue-reports/SKILL.md` for every run.
+- Start on each new top-level report in the configured source Slack channel, one report per run, claimed in the ledger.
 - Read the triggering thread and reply only inside it.
 - Use the configured issue-tracker integration.
 - Classify, inspect evidence, trace cause, dedupe, and create only clear new bugs.
 - End one thread-only verdict with the configured `[benny:bug]`, `[benny:performance]`, or `[benny:other]` marker and optional tracker URL.
 - Never post a source-channel root message.
 
-After the triage editor handoff is complete, give `automate` this complete repro and fix intent:
+After the triage subscription passes its checks, the repro subscription must:
 
-- Name `benny-reproduce`.
-- Read and follow `.cursor/automations/benny/skills/reproduce-and-fix-issues/SKILL.md` for every run.
-- Trigger on the same new top-level reports in the configured source Slack channel.
-- Use the configured repository and default branch.
+- Be named `benny-reproduce`.
+- Read and follow `<target-repository>/.pi/automations/benny/skills/reproduce-and-fix-issues/SKILL.md` for every run.
+- Start on the same new top-level reports in the configured source Slack channel, one report per run, claimed in the ledger.
+- Use the configured repository and default branch, in a fresh worktree from the default branch.
 - Read the source thread and reply only inside it.
-- Include pull request creation and the configured tracker, control-adapter, and feature-map requirements. Paraphrase mapped user paths and states unless `automate` confirms an eligible committed file in the same repository.
+- Include draft pull request creation and the configured tracker, control-adapter, and feature-map requirements.
 - Wait for a trusted triage marker before acting.
 - Reproduce the exact symptom twice through the mapped real UI and capture evidence.
 - Verify an existing fix without authoring over it.
 - Attempt an optional bounded fix only after confirmed repro, then open a draft pull request when proof and checks pass.
 - Never post a source-channel root message.
 
-Do not duplicate `automate`'s Slack, repository, integration, completeness, authentication, draft-review, approval, readiness, or editor-handoff work.
+In webhook mode, Benny ships no relay. Slack cannot reach `127.0.0.1`, so the user runs a Slack app or relay that receives Slack events, verifies them, keeps only new top-level messages in the source channel, and POSTs `{"source_channel_id", "message_ts", "thread_ts"}` as JSON to both routine URLs, with `Authorization: Bearer <key>` read from each credential file. `/routines` lists each routine with its URL, credential file, and status.
 
-### Existing automations
+### Existing subscriptions
 
-The built-in `automate` skill is creation-only. Do not use it to search for, inspect, or update existing automations.
+Run `list_subscriptions` to find them. Subscribing again with an existing name does not update it.
 
-Finish configuration, routing, control-adapter, and feature-map validation. Then give the user this concise editor checklist.
+Finish configuration, routing, control-adapter, and feature-map validation. Then, for each subscription that must change:
 
-For the existing triage automation, update:
+1. Fill the new prompt from the template, as in first-time creation, and get approval.
+2. `unsubscribe` the old subscription.
+3. Create it again with the same name and the new prompt. A webhook routine keeps its slug, so check whether its URL or credential file changed and tell the user to update the relay.
+4. Run `list_subscriptions` and confirm exactly one subscription per name.
 
-- Name and description
-- Direct instruction to read `.cursor/automations/benny/skills/triage-issue-reports/SKILL.md`
-- New top-level Slack report trigger and source channel
-- Slack thread read and reply capabilities
-- Issue-tracker integration
-- Paraphrased triage instructions, thread-only rule, and Benny verdict markers
-
-For the existing repro automation, update:
-
-- Name and description
-- Direct instruction to read `.cursor/automations/benny/skills/reproduce-and-fix-issues/SKILL.md`
-- Matching Slack trigger and source channel
-- Repository and default branch
-- Slack thread read and reply capabilities
-- Pull request action
-- Tracker, control-adapter, and feature-map requirements
-- Paraphrased marker wait, evidence, verification, and bounded-fix instructions
-
-Ask the user to update each existing automation directly in its Automations editor. Do not create replacements or duplicates.
+To renew an expiring subscription, do the same with the unchanged prompt. Do not create replacements under new names.
 
 ### Creation boundary
 
-Never call a direct automation backend service or backend automation tool. Never use a browser URL that carries draft fields. Never build or open a Cursor protocol deep link. For new automations, the only finish path is the built-in `automate` skill's reviewed Automations editor handoff.
+Create Benny's automations only with pi-pstack's `subscribe_timer` and `subscribe_webhook` tools in the owning session. Never start a scheduler outside Pi, such as `cron` or `launchd`, and never expose the routine listener beyond `127.0.0.1` from this setup.
 
-Do not enable either automation until the thread-safety test passes after the editor save.
+Do not let either automation handle normal traffic until the thread-safety test passes.
 
 ## 8. Test thread safety
 
-Use a test channel or a harmless test report.
+Create both subscriptions with a test channel as the source channel, or test with a harmless report.
 
-Before testing, confirm that the target repository's `.cursor/settings.json`, `.cursor/automations/benny/`, and every referenced secret-free configuration file are committed on the branch used by the automation checkout. Confirm that both live prompts point at their exact committed operational files. If any check fails, stop. Tell the user that the automation cannot be enabled yet.
+Before testing, confirm that both subscription prompts point at their exact operational files in the target checkout, that the memory directory exists, and that `list_subscriptions` shows both subscriptions. If any check fails, stop. Tell the user that the automation cannot handle traffic yet.
 
 Verify:
 
@@ -260,7 +246,8 @@ Verify:
 3. Repro accepts the marker only from the configured triage identity.
 4. Repro keeps the same immutable source coordinates.
 5. No source-channel root message appears.
-6. A delegated worker cannot use any Slack write action.
+6. A delegated worker cannot use any Slack write action: it runs as a `readonly` `Task`, so it has no MCP tools.
 7. Missing coordinates, a deleted parent, or a failed preflight produces no post and no tracker issue.
+8. A second fire, or a repeated webhook POST, for the same report does no work, because the ledger already lists it.
 
-Enable normal traffic only after all seven checks pass.
+Handle normal traffic only after all eight checks pass. If the checks ran against a test channel, set the real source channel in the configuration and recreate both subscriptions through the existing-subscription path.

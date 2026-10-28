@@ -1,99 +1,23 @@
-import { existsSync, mkdirSync, mkdtempSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { spawn } from 'node:child_process';
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
-import { cursorRuleWriteReason, modelsSection } from '../src/rule.ts';
-import { makeSandbox, runJson, type Sandbox, script, toolEnds } from './e2e/harness.ts';
+import { migrateLegacyRule, modelsSection } from '../src/rule.ts';
 
-const home = '/home/u';
-const piRule = '/home/u/.pi/agent/pstack/pstack-models.mdc';
-
-describe('Cursor rule guard (RULE-002)', () => {
-  test.for([
-    { toolName: 'write', path: '~/.cursor/rules/pstack-models.mdc', cwd: '/w' },
-    { toolName: 'edit', path: '/home/u/.cursor/rules/pstack-models.mdc', cwd: '/w' },
-    { toolName: 'write', path: '../.cursor/rules/pstack-models.mdc', cwd: '/home/u/project' },
-    { toolName: 'write', path: '/home/u/.cursor/rules/../rules/pstack-models.mdc', cwd: '/w' },
-  ])('blocks $toolName on $path', ({ toolName, path, cwd }) => {
-    expect(cursorRuleWriteReason(toolName, { path }, { cwd, home, piRulePath: piRule })).toBe(`pstack's model rule lives at ${piRule} in Pi. Write that file instead; ~/.cursor/rules/pstack-models.mdc belongs to Cursor.`);
-  });
-
-  test('allows every other target and tool', () => {
-    const calls = [
-      { toolName: 'write', path: piRule },
-      { toolName: 'read', path: '~/.cursor/rules/pstack-models.mdc' },
-      { toolName: 'write', path: '~/.cursor/rules/other.mdc' },
-      { toolName: 'write', path: 42 },
-      { toolName: 'edit', path: '~/.cursor/rules/pstack-models.mdc' },
-    ];
-    const reasons = calls.map(({ toolName, path }) => cursorRuleWriteReason(toolName, { path }, { cwd: '/w', home, piRulePath: piRule }));
-    expect(reasons.map((reason) => (reason === undefined ? 'allowed' : 'blocked'))).toEqual(['allowed', 'allowed', 'allowed', 'allowed', 'blocked']);
-  });
-});
-
-describe('guard against the paths Pi write and edit resolve (RULE-002; review: security 1)', () => {
-  let home = '';
-  let piRulePath = '';
-  beforeEach(() => {
-    home = realpathSync(mkdtempSync(join(tmpdir(), 'guard-home-')));
-    mkdirSync(join(home, '.cursor/rules'), { recursive: true });
-    writeFileSync(join(home, '.cursor/rules/pstack-models.mdc'), 'cursor rule');
-    mkdirSync(join(home, 'work'));
-    symlinkSync(join(home, '.cursor/rules/pstack-models.mdc'), join(home, 'work/link.mdc'));
-    piRulePath = join(home, '.pi/agent/pstack/pstack-models.mdc');
-  });
-  afterEach(() => rmSync(home, { recursive: true, force: true }));
-
-  test('blocks @-prefixed, file:// URL, symlinked, and case-variant spellings of the Cursor rule', () => {
-    const caseInsensitive = process.platform === 'darwin' || process.platform === 'win32';
-    const spellings = [
-      '@~/.cursor/rules/pstack-models.mdc',
-      pathToFileURL(join(home, '.cursor/rules/pstack-models.mdc')).href,
-      'link.mdc',
-      '~/.cursor/rules/Pstack-Models.mdc',
-      '~/.CURSOR/rules/pstack-models.mdc',
-      '~/.cursor/rules/pstack\u00a0models.mdc',
-    ];
-    const verdicts = spellings.map((path) => (cursorRuleWriteReason('edit', { path }, { cwd: join(home, 'work'), home, piRulePath }) === undefined ? 'allowed' : 'blocked'));
-    expect(verdicts).toEqual(['blocked', 'blocked', 'blocked', caseInsensitive ? 'blocked' : 'allowed', caseInsensitive ? 'blocked' : 'allowed', 'allowed']);
-  });
-});
-
-describe('guard when the rule folder does not exist yet (review r2: security)', () => {
-  let home = '';
-  beforeEach(() => {
-    home = realpathSync(mkdtempSync(join(tmpdir(), 'guard-link-')));
-    mkdirSync(join(home, 'real-cursor'));
-    symlinkSync(join(home, 'real-cursor'), join(home, '.cursor'));
-  });
-  afterEach(() => rmSync(home, { recursive: true, force: true }));
-
-  test('blocks the real target behind a symlinked ~/.cursor before rules/ exists', () => {
-    const verdicts = ['~/.cursor/rules/pstack-models.mdc', join(home, 'real-cursor/rules/pstack-models.mdc')].map((path) =>
-      cursorRuleWriteReason('write', { path }, { cwd: home, home, piRulePath: join(home, '.pi/agent/pstack/pstack-models.mdc') }) === undefined ? 'allowed' : 'blocked',
-    );
-    expect(verdicts).toEqual(['blocked', 'blocked']);
-  });
-});
+const piRule = '/home/u/.pi/agent/pstack/pstack-models.md';
 
 describe('models section (RULE-001)', () => {
-  test('carries the rule body without its frontmatter', () => {
-    const text = '---\ndescription: pstack per-role model choices\nalwaysApply: true\n---\n# budget: large (xhigh)\narena runners: claude-opus-5-5-xhigh, grok-4.7-xhigh-fast\n';
-    expect(modelsSection(text, piRule)).toBe(`Path: ${piRule}\n# budget: large (xhigh)\narena runners: claude-opus-5-5-xhigh, grok-4.7-xhigh-fast`);
+  test('carries the rule body', () => {
+    const text = '# budget: large (xhigh)\narena runners: claude-opus-5-5:xhigh, grok-4.7:xhigh\n';
+    expect(modelsSection(text, piRule)).toBe(`Path: ${piRule}\n# budget: large (xhigh)\narena runners: claude-opus-5-5:xhigh, grok-4.7:xhigh`);
   });
 
-  test('treats alwaysApply: false with a description as a rule the agent applies when relevant', () => {
-    const text = '---\ndescription: pstack per-role model choices\nalwaysApply: false\n---\narena runners: grok-4.7-xhigh-fast\n';
-    expect(modelsSection(text, piRule)).toBe(
-      `The rule at ${piRule} is not always applied (alwaysApply: false). Its description: pstack per-role model choices. Read it when that description applies. Until then every role uses its skill default.`,
-    );
-  });
-
-  test('treats alwaysApply: false without a description as a manual rule', () => {
-    const text = '---\nalwaysApply: false\n---\narena runners: grok-4.7-xhigh-fast\n';
-    expect(modelsSection(text, piRule)).toBe(`The rule at ${piRule} applies only when the user attaches it (alwaysApply: false, no description). Every role uses its skill default.`);
+  test('drops a stray frontmatter block', () => {
+    const text = '---\ndescription: old\n---\n# budget: small (medium)\n';
+    expect(modelsSection(text, piRule)).toBe(`Path: ${piRule}\n# budget: small (medium)`);
   });
 
   test('says defaults apply when the rule is absent', () => {
@@ -107,18 +31,58 @@ describe('models section (RULE-001)', () => {
   });
 });
 
-describe('guard through Pi (RULE-002)', () => {
-  let sandbox: Sandbox;
+describe('legacy rule migration (RULE-003)', () => {
+  let dir = '';
   beforeEach(() => {
-    sandbox = makeSandbox();
+    dir = mkdtempSync(join(tmpdir(), 'pstack-rule-'));
   });
-  afterEach(() => sandbox.dispose());
+  afterEach(() => rmSync(dir, { recursive: true, force: true }));
 
-  test('a scripted write to Cursor rule is blocked and the file is never created', async () => {
-    const run = await runJson(sandbox, script([{ tool: 'write', args: { path: '~/.cursor/rules/pstack-models.mdc', content: 'clobbered' } }]), ['--no-session']);
-    const [result] = toolEnds(run.events, 'write');
-    expect(result?.isError).toBe(true);
-    expect(result?.text).toContain(`pstack's model rule lives at ${join(sandbox.agentDir, 'pstack/pstack-models.mdc')} in Pi.`);
-    expect(existsSync(join(sandbox.root, '.cursor/rules/pstack-models.mdc'))).toBe(false);
+  test('moves the body of pstack-models.mdc to pstack-models.md once and keeps the old file aside', () => {
+    writeFileSync(join(dir, 'pstack-models.mdc'), '---\ndescription: x\nalwaysApply: true\n---\n# budget: large (xhigh)\nbug-fix: grok-4.7:xhigh\n');
+    const path = join(dir, 'pstack-models.md');
+    migrateLegacyRule(path);
+    expect(readFileSync(path, 'utf8')).toBe('# budget: large (xhigh)\nbug-fix: grok-4.7:xhigh\n');
+    expect(existsSync(join(dir, 'pstack-models.mdc'))).toBe(false);
+    expect(existsSync(join(dir, 'pstack-models.mdc.migrated'))).toBe(true);
+  });
+
+  test('never overwrites an existing rule', () => {
+    writeFileSync(join(dir, 'pstack-models.mdc'), 'old\n');
+    writeFileSync(join(dir, 'pstack-models.md'), 'new\n');
+    migrateLegacyRule(join(dir, 'pstack-models.md'));
+    expect(readFileSync(join(dir, 'pstack-models.md'), 'utf8')).toBe('new\n');
+    expect(existsSync(join(dir, 'pstack-models.mdc'))).toBe(true);
+  });
+
+  test('does not overwrite an existing .migrated file', () => {
+    writeFileSync(join(dir, 'pstack-models.mdc'), '---\ndescription: x\n---\n# budget: large\n');
+    writeFileSync(join(dir, 'pstack-models.mdc.migrated'), 'keep-me\n');
+    migrateLegacyRule(join(dir, 'pstack-models.md'));
+    expect(readFileSync(join(dir, 'pstack-models.mdc.migrated'), 'utf8')).toBe('keep-me\n');
+    expect(readFileSync(join(dir, 'pstack-models.md'), 'utf8')).toBe('# budget: large\n');
+    expect(existsSync(join(dir, 'pstack-models.mdc'))).toBe(true);
+  });
+
+  test('two processes migrate once without throwing', async () => {
+    writeFileSync(join(dir, 'pstack-models.mdc'), '---\ndescription: x\n---\n# budget: large\n');
+    const source = pathToFileURL(join(import.meta.dirname, '../src/rule.ts')).href;
+    const runner = join(dir, 'migrate.mts');
+    const path = join(dir, 'pstack-models.md');
+    writeFileSync(runner, `import { migrateLegacyRule } from ${JSON.stringify(source)};\nmigrateLegacyRule(${JSON.stringify(path)});\n`);
+    const codes = await Promise.all(
+      Array.from({ length: 8 }, () => new Promise<number>((resolve, reject) => {
+        const child = spawn(process.execPath, ['--experimental-strip-types', runner], { stdio: ['ignore', 'ignore', 'pipe'] });
+        let err = '';
+        child.stderr.setEncoding('utf8');
+        child.stderr.on('data', (chunk: string) => (err += chunk));
+        child.on('error', reject);
+        child.on('close', (code) => (code === 0 ? resolve(0) : reject(new Error(err || `exit ${code}`))));
+      })),
+    );
+    expect(codes).toEqual(Array.from({ length: 8 }, () => 0));
+    expect(readFileSync(path, 'utf8')).toBe('# budget: large\n');
+    expect(existsSync(join(dir, 'pstack-models.mdc'))).toBe(false);
+    expect(existsSync(join(dir, 'pstack-models.mdc.migrated'))).toBe(true);
   });
 });

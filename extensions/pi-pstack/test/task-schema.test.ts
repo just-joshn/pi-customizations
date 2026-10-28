@@ -8,9 +8,10 @@ describe('Task parameters (TASK-001)', () => {
 
   test('accepts Cursor parameters plus the readonly and environment fields pstack passes', () => {
     const schema = JSON.parse(JSON.stringify(TaskParams)) as { properties: Record<string, { type?: string; enum?: string[] }> };
-    expect(Object.keys(schema.properties).toSorted()).toEqual(['cloud_base_branch', 'description', 'environment', 'file_attachments', 'model', 'prompt', 'readonly', 'resume', 'run_in_background', 'subagent_type']);
+    expect(Object.keys(schema.properties).toSorted()).toEqual(['cloud_base_branch', 'description', 'environment', 'file_attachments', 'fork', 'fork_turns', 'model', 'prompt', 'readonly', 'resume', 'run_in_background', 'subagent_type']);
     expect(schema.properties['environment']?.enum).toEqual(['local', 'cloud']);
     expect(schema.properties['run_in_background']?.type).toBe('boolean');
+    expect(schema.properties['fork_turns']).toMatchObject({ type: 'integer', minimum: 1 });
   });
 });
 

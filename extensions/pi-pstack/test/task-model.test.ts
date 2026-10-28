@@ -94,6 +94,17 @@ describe('resolveSubagentModel (TASK-007)', () => {
     expect(() => resolveSubagentModel('grok-4.7[effort=max]', available, parent)).toThrow('grok-build/grok-4.7 does not support thinking level max; it supports low, medium, high, xhigh.');
   });
 
+  test("an id that two providers share resolves to the parent chat's provider in every form (C-M5)", () => {
+    const deepseekParent = { provider: 'deepseek', id: 'deepseek-flash', thinking: 'high' as const };
+    expect(['deepseek-flash', 'deepseek-flash:max', 'deepseek-flash[effort=low]', 'deepseek-flash-max'].map((value) => resolveSubagentModel(value, available, deepseekParent))).toEqual([
+      { provider: 'deepseek', id: 'deepseek-flash' },
+      { provider: 'deepseek', id: 'deepseek-flash', thinking: 'max' },
+      { provider: 'deepseek', id: 'deepseek-flash', thinking: 'low' },
+      { provider: 'deepseek', id: 'deepseek-flash', thinking: 'max' },
+    ]);
+    expect(resolveSubagentModel('deepseek-flash', available, { provider: 'other', id: 'x' })).toEqual({ provider: 'other', id: 'deepseek-flash' });
+  });
+
   test('rejects an id that two providers share, naming both', () => {
     expect(() => resolveSubagentModel('deepseek-flash', available, parent)).toThrow('Model "deepseek-flash" matches more than one provider: deepseek/deepseek-flash, other/deepseek-flash. Use <provider>/<model-id>.');
   });
@@ -110,7 +121,7 @@ describe('resolveSubagentModel (TASK-007)', () => {
         '- deepseek/deepseek-flash (thinking: off, low, high, max)',
         '- other/deepseek-flash',
         '',
-        'Cursor-style slugs such as claude-opus-5-5-xhigh resolve to these models with a thinking level.',
+        'Add a thinking level as <model>:<level>, for example claude-opus-5-5:xhigh, or as <model>[effort=<level>].',
         'The `model` parameter is optional. If omitted, the subagent uses the same model as the parent agent.',
       ].join('\n'),
     );

@@ -7,7 +7,9 @@ export const NOTIFICATION_TYPE = 'pstack/task';
 
 interface Running {
   settled: Promise<void>;
-  kill: () => void;
+  handle: ChildHandle;
+  /** How the child runs now, which can be stricter than its record (plan mode). */
+  readonly: boolean;
   background: boolean;
 }
 
@@ -21,7 +23,7 @@ export interface BackgroundNotice {
 /**
  * Every running child of this runtime, foreground and background, so one agent ID never has two writers here.
  * Background completions become notices: a follow-up message in long-lived sessions, and a settle-time entry in
- * one-shot print and JSON runs, which wait for them as Cursor's print mode does.
+ * one-shot print and JSON runs, which wait for them before exiting.
  */
 export function createSubagentRegistry(pi: ExtensionAPI) {
   const running = new Map<string, Running>();
@@ -34,7 +36,7 @@ export function createSubagentRegistry(pi: ExtensionAPI) {
   };
 
   /** Registers synchronously, before any await in the caller, so a sibling call in the same message sees it. */
-  const track = (agentId: string, handle: ChildHandle, release: () => void, notice?: BackgroundNotice) => {
+  const track = (agentId: string, handle: ChildHandle, release: () => void, readonly: boolean, notice?: BackgroundNotice) => {
     const settled = handle.done.then((outcome) => {
       running.delete(agentId);
       release();
@@ -42,7 +44,7 @@ export function createSubagentRegistry(pi: ExtensionAPI) {
       if (retired || notice === undefined) return;
       deliver({ ...notice.detailFor(outcome), agentId, title: notice.title, toolCallId: notice.toolCallId }, notice.mode);
     });
-    running.set(agentId, { settled, kill: handle.kill, background: notice !== undefined });
+    running.set(agentId, { settled, handle, readonly, background: notice !== undefined });
   };
 
   const backgroundRunning = () => [...running.values()].filter((entry) => entry.background);
@@ -58,11 +60,11 @@ export function createSubagentRegistry(pi: ExtensionAPI) {
   const shutdown = (): number => {
     retired = true;
     const background = backgroundRunning().length;
-    for (const entry of running.values()) entry.kill();
+    for (const entry of running.values()) entry.handle.kill();
     running.clear();
     pending.splice(0);
     return background;
   };
 
-  return { isRunning: (agentId: string) => running.has(agentId), hasBackgroundWork: () => backgroundRunning().length > 0, track, beforeSettle, shutdown };
+  return { isRunning: (agentId: string) => running.has(agentId), get: (agentId: string): Pick<Running, 'handle' | 'readonly'> | undefined => running.get(agentId), hasBackgroundWork: () => backgroundRunning().length > 0, track, beforeSettle, shutdown };
 }
