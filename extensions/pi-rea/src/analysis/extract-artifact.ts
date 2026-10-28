@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from 'node:crypto';
-import { mkdir, mkdtemp, realpath, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, realpath, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve, sep } from 'node:path';
 
@@ -85,58 +85,63 @@ export const extractZipArtifact = async (
   const integrityContradictions: unknown[] = [];
   const fileDigests: string[] = [];
 
-  for (const entry of directory.entries) {
-    const safety = normalizeMemberPath(entry.logical_path);
-    const occurrenceId = `occ_${digestOf(`${entry.logical_path}:${entry.local_header_offset}:${entry.compressed_size}`)}`;
-    if (entry.is_directory || safety.safe === false) continue;
-    let member: ReturnType<typeof readZipMember>;
-    try {
-      member = readZipMember(bytes, entry);
-    } catch (error: unknown) {
-      if (error instanceof ZipError) {
+  try {
+    for (const entry of directory.entries) {
+      const safety = normalizeMemberPath(entry.logical_path);
+      const occurrenceId = `occ_${digestOf(`${entry.logical_path}:${entry.local_header_offset}:${entry.compressed_size}`)}`;
+      if (entry.is_directory || safety.safe === false) continue;
+      let member: ReturnType<typeof readZipMember>;
+      try {
+        member = readZipMember(bytes, entry);
+      } catch (error: unknown) {
+        if (error instanceof ZipError) {
+          integrityContradictions.push({
+            logical_path: entry.logical_path,
+            reason: error.code,
+            check: 'member-read',
+          });
+          if (integrityPolicy === 'fail') {
+            throw unsupportedTarget(`Declared artifact integrity does not match for ${entry.logical_path}.`, {
+              reason: error.code,
+            });
+          }
+          continue;
+        }
+        throw error;
+      }
+      if (member.crc_ok === false) {
         integrityContradictions.push({
           logical_path: entry.logical_path,
-          reason: error.code,
-          check: 'member-read',
+          reason: 'crc32',
+          check: 'crc32',
+          calculated_sha256: digestOf(member.bytes),
         });
         if (integrityPolicy === 'fail') {
           throw unsupportedTarget(`Declared artifact integrity does not match for ${entry.logical_path}.`, {
-            reason: error.code,
+            reason: 'crc32',
           });
         }
-        continue;
       }
-      throw error;
-    }
-    if (member.crc_ok === false) {
-      integrityContradictions.push({
-        logical_path: entry.logical_path,
-        reason: 'crc32',
-        check: 'crc32',
-        calculated_sha256: digestOf(member.bytes),
-      });
-      if (integrityPolicy === 'fail') {
-        throw unsupportedTarget(`Declared artifact integrity does not match for ${entry.logical_path}.`, {
-          reason: 'crc32',
-        });
-      }
-    }
 
-    const relativePath = safety.path;
-    const destination = join(canonicalRoot, relativePath);
-    assertInsideRoot(canonicalRoot, destination);
-    await mkdir(dirname(destination), { recursive: true });
-    await writeFile(destination, member.bytes, { flag: 'wx' });
-    const sha256 = createHash('sha256').update(member.bytes).digest('hex');
-    fileDigests.push(`${relativePath}:${sha256}`);
-    selectedOccurrenceIds.push(occurrenceId);
-    artifacts.push({
-      artifact_id: `art_${sha256}`,
-      relative_path: relativePath,
-      sha256,
-      bytes_written: member.bytes.length,
-      created: true,
-    });
+      const relativePath = safety.path;
+      const destination = join(canonicalRoot, relativePath);
+      assertInsideRoot(canonicalRoot, destination);
+      await mkdir(dirname(destination), { recursive: true });
+      await writeFile(destination, member.bytes, { flag: 'wx' });
+      const sha256 = createHash('sha256').update(member.bytes).digest('hex');
+      fileDigests.push(`${relativePath}:${sha256}`);
+      selectedOccurrenceIds.push(occurrenceId);
+      artifacts.push({
+        artifact_id: `art_${sha256}`,
+        relative_path: relativePath,
+        sha256,
+        bytes_written: member.bytes.length,
+        created: true,
+      });
+    }
+  } catch (error) {
+    await rm(outputRoot, { recursive: true, force: true });
+    throw error;
   }
 
   let containmentVerified = true;
