@@ -1,11 +1,12 @@
 # OAuth providers
 
-OAuth extensions register Claude (`claude-subscription` via `pi-anthropic-oauth`) and Antigravity (`google-antigravity` via `pi-antigravity-oauth`) providers when they load. Pi lists models when native auth resolution reports the provider configured. Claude supports stored credentials and ambient subscription tokens. The harness below checks fixture-backed CLI model visibility.
+OAuth extensions register Claude (`claude-subscription` via `pi-anthropic-oauth`), Antigravity (`google-antigravity` via `pi-antigravity-oauth`), and Grok Build (`grok-build` via `pi-xai-oauth`) providers when they load. Pi lists models when native auth resolution reports the provider configured. Claude supports stored credentials and ambient subscription tokens. The harness below checks fixture-backed CLI model visibility.
 
 ## Sub-features
 
 - `claude-provider` exposes Claude subscription models in Pi model pickers and `--list-models` output.
 - `antigravity-provider` exposes Google Antigravity subscription models in Pi model pickers and `--list-models` output.
+- `grok-build-provider` exposes Grok Build subscription models in Pi model pickers and `--list-models` output.
 - `auth-discovery` uses Pi's native credential resolution. Claude also accepts subscription tokens from `CLAUDE_CODE_OAUTH_TOKEN`, `ANTHROPIC_OAUTH_TOKEN`, and `ANTHROPIC_AUTH_TOKEN` when no stored credential owns the provider. The Antigravity provider reads `projectId` from its credential record.
 
 ## How to get to it (user POV)
@@ -29,7 +30,7 @@ Preconditions:
 ## Gotchas
 
 - Providers register when their extensions load, whether or not credentials exist. Stored OAuth fixtures configure all providers in this drive. Claude can also resolve an ambient subscription token. Listing does not prove that a token is valid.
-- Provider keys are `claude-subscription` and `google-antigravity`.
+- Provider keys are `claude-subscription`, `google-antigravity`, and `grok-build`.
 - Pi core reads `auth.json`; the Antigravity provider reads `projectId` from its credential record.
 - The harness creates its own disposable scratch directory and supplies synthetic, unexpired OAuth records for CLI listing. These are not active subscription credentials, and no manual initialization is needed.
 - The harness writes fixture `auth.json` with mode `0600` as secure setup, not as a test of permission rejection. Pi's read path does not require that file mode.

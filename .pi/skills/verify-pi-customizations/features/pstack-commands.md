@@ -1,6 +1,6 @@
 # Pstack command surface
 
-The pstack extension registers two extension commands, `/mode` and `/loop`, and ships its skills for Pi to load. `/mode` with no mode on reports `No mode is on.` through a UI notification.
+The pstack extension registers four extension commands, `/mode`, `/loop`, `/plan`, and `/routines`, and ships its skills for Pi to load. This drive checks `/mode` and `/loop`. `/mode` with no mode on reports `No mode is on.` through a UI notification.
 
 ## Sub-features
 
@@ -30,6 +30,6 @@ Preconditions:
 ## Gotchas
 
 - `/mode` reports through `ctx.ui.notify`, which appears as an `extension_ui_request` over RPC, not as a chat message.
-- The command list also carries skills from the repository root package and your agent directory; the driver asserts the pstack entries, not the whole list.
+- The command list can also carry skills from your agent directory; the driver asserts the pstack entries, not the whole list.
 - `/loop` and `/mode` need an interactive or RPC session; print and JSON runs have no `Loop` tool and no mode persistence surface.
 - This drive does not exercise `Task`, `TodoWrite`, or `AskQuestion`; those are model-called tools, not commands.
