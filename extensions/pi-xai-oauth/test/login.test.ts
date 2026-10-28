@@ -153,12 +153,10 @@ test('aborting login rejects and stops waiting', async () => {
   await expect(pending).rejects.toThrow('Login cancelled');
 });
 
-async function waitForUrl(events: AuthEvent[]): Promise<string> {
-  const started = Date.now();
-  while (Date.now() - started < 2000) {
+function waitForUrl(events: AuthEvent[]): Promise<string> {
+  return vi.waitFor(() => {
     const found = events.find((event) => event.type === 'auth_url');
-    if (found && found.type === 'auth_url') return found.url;
-    await new Promise((resolve) => setTimeout(resolve, 10));
-  }
-  throw new Error('authorize URL was not shown');
+    if (found?.type !== 'auth_url') throw new Error('authorize URL was not shown');
+    return found.url;
+  }, 2000);
 }

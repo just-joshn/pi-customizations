@@ -104,9 +104,9 @@ test('compare_application_versions: distinct graphs produce added/removed or cha
       right: right.structuredContent,
     }),
   );
-  const summary = record['summary'] as { added: number; removed: number; changed: number; unchanged: number };
-  expect(summary.added + summary.removed + summary.changed + summary.unchanged).toBeGreaterThan(0);
-  expect((record['items'] as unknown[]).length).toBeGreaterThan(0);
+  const summary = record['summary'];
+  expect(summary).toEqual({ unchanged: 1, added: 4, removed: 3, changed: 1, unknown: 2 });
+  expect((record['items'] as { status: string }[]).filter((item) => item.status === 'added')).toHaveLength(4);
   await rm(leftDir, { recursive: true, force: true });
   await rm(rightDir, { recursive: true, force: true });
 });
