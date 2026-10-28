@@ -1,0 +1,129 @@
+{
+  "kind": "evidence",
+  "body": {
+    "evidence_id": "ev_552f2903b090cb8a73b31d40faa982a2f4e28668542b4bab5f517581c586f43b",
+    "subject": null,
+    "provider": {
+      "id": "pi-rea-in-process",
+      "name": "pi-rea in-process analysis",
+      "version": "0.1.0"
+    },
+    "analysis_profile": null,
+    "predicate_type": "rea.analysis",
+    "operation": "inspect_model_artifact",
+    "parameters": {
+      "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/models/tiny.gguf",
+      "hash": "header"
+    },
+    "raw_result": null,
+    "normalized_result": {
+      "artifact": {
+        "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/models/tiny.gguf",
+        "file_size": 176,
+        "header_sha256": "528a95714b63c16d031bf74f46d796446e35f3954797f6b9270822dbaa44d98c",
+        "header_length": 150,
+        "sha256": null,
+        "bytes_read": 150,
+        "read_scope": "header"
+      },
+      "format": "gguf",
+      "version": 3,
+      "byte_order": "little",
+      "alignment": 32,
+      "tensor_data_offset": 160,
+      "metadata": [
+        {
+          "index": 0,
+          "key": "general.architecture",
+          "type": "STRING",
+          "value": "demo",
+          "element_type": null,
+          "element_count": null,
+          "preview_complete": true,
+          "source_offset": 24,
+          "source_length": 44,
+          "json_pointer": null
+        },
+        {
+          "index": 1,
+          "key": "general.name",
+          "type": "STRING",
+          "value": "tiny",
+          "element_type": null,
+          "element_count": null,
+          "preview_complete": true,
+          "source_offset": 68,
+          "source_length": 36,
+          "json_pointer": null
+        }
+      ],
+      "tensors": [
+        {
+          "index": 0,
+          "name": "weight",
+          "type": "F32",
+          "type_id": 0,
+          "shape": [
+            "2",
+            "2"
+          ],
+          "data_offset": 0,
+          "file_offset": 160,
+          "byte_length": 16,
+          "parameter_count": "4",
+          "byte_length_state": "derived",
+          "storage_validation": "consistent",
+          "source_offset": 104,
+          "source_length": 46,
+          "json_pointer": null
+        }
+      ],
+      "totals": {
+        "confidence": "derived",
+        "parameter_count": "4",
+        "tensor_bytes": 16,
+        "by_type": [
+          {
+            "type": "F32",
+            "tensors": 1,
+            "parameter_count": "4",
+            "bytes": 16
+          }
+        ]
+      },
+      "coverage": {
+        "header": "complete",
+        "tensor_data": "not-interpreted",
+        "array_values": "complete",
+        "tensor_ranges": "complete",
+        "storage_sizes": "complete"
+      },
+      "limitations": [
+        "Facts are file declarations; model behavior, weight values and compatibility with an inference runtime were not verified.",
+        "Header SHA-256 commits only to the recorded prefix; file size is a separate observation. Different weights may share these declarations.",
+        "Full-file SHA-256 is unknown because tensor data was not read."
+      ]
+    },
+    "confidence": "observed",
+    "authority": "shipped-artifact",
+    "environment": null,
+    "limitations": [
+      "Full-file identity is unknown in header-only mode; normalized_result.artifact records a scoped header SHA-256 and exact source path/extent.",
+      "Facts are file declarations; model behavior, weight values and compatibility with an inference runtime were not verified.",
+      "Header SHA-256 commits only to the recorded prefix; file size is a separate observation. Different weights may share these declarations.",
+      "Full-file SHA-256 is unknown because tensor data was not read."
+    ],
+    "locations": [
+      {
+        "kind": "artifact-path",
+        "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/models/tiny.gguf"
+      },
+      {
+        "kind": "file-offset-range",
+        "start": 0,
+        "end": 150
+      }
+    ],
+    "evidence_links": []
+  }
+}

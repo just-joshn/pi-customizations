@@ -1,0 +1,17 @@
+{
+  "kind": "error",
+  "body": {
+    "code": "capability_unavailable",
+    "category": "unsupported_provider",
+    "message": "This analysis is unavailable for the current target. Choose another analysis or target.",
+    "retryable": false,
+    "remediation": {
+      "action": "This analysis is unavailable for the current target. Choose another analysis or target."
+    },
+    "details": {
+      "provider_id": "native-macos",
+      "operation": "observe_native_calls",
+      "reason": "Native call observation launches a Mach-O executable; the active target is not one"
+    }
+  }
+}

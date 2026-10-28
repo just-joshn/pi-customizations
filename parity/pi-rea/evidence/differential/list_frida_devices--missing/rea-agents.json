@@ -1,0 +1,37 @@
+{
+  "kind": "error",
+  "body": {
+    "code": "capability_unavailable",
+    "category": "unsupported_provider",
+    "message": "This analysis is unavailable for the current target. Choose another analysis or target.",
+    "retryable": false,
+    "remediation": {
+      "action": "This analysis is unavailable for the current target. Choose another analysis or target."
+    },
+    "details": {
+      "provider_id": "frida",
+      "operation": "list_frida_devices",
+      "reason": "Cannot load native addon because loading addons is disabled."
+    }
+  },
+  "raw": {
+    "result": {
+      "_meta": {
+        "provenance": {
+          "untrusted_content": true,
+          "source": "analysis_target"
+        }
+      },
+      "content": [
+        {
+          "type": "text",
+          "text": "{\"error\":{\"code\":\"capability_unavailable\",\"category\":\"unsupported_provider\",\"message\":\"This analysis is unavailable for the current target. Choose another analysis or target.\",\"retryable\":false,\"remediation\":{\"action\":\"This analysis is unavailable for the current target. Choose another analysis or target.\"},\"details\":{\"provider_id\":\"frida\",\"operation\":\"list_frida_devices\",\"reason\":\"Cannot load native addon because loading addons is disabled.\"}}}"
+        }
+      ],
+      "isError": true
+    },
+    "jsonrpc": "2.0",
+    "id": 2
+  },
+  "stderr": "{\"level\":40,\"time\":1793183548035,\"application\":\"rea\",\"mode\":\"mcp\",\"layer\":\"server\",\"tool\":\"list_frida_devices\",\"durationMs\":2.16,\"status\":\"error\",\"msg\":\"MCP tool execution completed\"}\n"
+}

@@ -1,0 +1,32 @@
+{
+  "kind": "error",
+  "body": {
+    "code": "invalid_request",
+    "category": "invalid_input",
+    "message": "Analysis input is invalid. Check the arguments and try again.",
+    "retryable": false,
+    "remediation": {
+      "action": "Read the declared input schema or CLI usage for inspect_rust_binary; if using MCP and the catalog may be stale, call tools/list. Correct the listed fields, then retry. Do not repeat the unchanged call."
+    },
+    "recovery": {
+      "kind": "inspect_input_contract",
+      "operation": "inspect_rust_binary"
+    },
+    "details": {
+      "operation": "inspect_rust_binary",
+      "issues": [
+        {
+          "path": [
+            "path"
+          ],
+          "reason": "invalid_format",
+          "message": "Selected artifact /Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/rust/auditable.elf: Dependency JSON does not match the package schema"
+        }
+      ]
+    }
+  },
+  "meta": {
+    "command": "inspect-rust-binary",
+    "duration": "6ms"
+  }
+}

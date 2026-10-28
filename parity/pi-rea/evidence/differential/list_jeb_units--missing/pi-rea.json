@@ -1,0 +1,17 @@
+{
+  "kind": "error",
+  "body": {
+    "code": "capability_unavailable",
+    "category": "unsupported_provider",
+    "message": "Start a JEB client serving MCP (default http://127.0.0.1:8425/mcp) or set REA_JEB_MCP_URL to the running endpoint.",
+    "retryable": false,
+    "remediation": {
+      "action": "Start a JEB client serving MCP (default http://127.0.0.1:8425/mcp) or set REA_JEB_MCP_URL to the running endpoint."
+    },
+    "details": {
+      "provider_id": "jeb",
+      "operation": "list_jeb_units",
+      "reason": "fetch failed"
+    }
+  }
+}

@@ -1,0 +1,188 @@
+{
+  "kind": "evidence",
+  "body": {
+    "evidence_id": "ev_6aebdcbc795d76294b32a5dbeddd55637768ef5fecbc4335cf24a7cde75af37a",
+    "subject": null,
+    "provider": {
+      "id": "rea-javascript-application-workflows",
+      "name": "REA JavaScript application workflows",
+      "version": "1"
+    },
+    "analysis_profile": null,
+    "predicate_type": "rea.source-to-bundle-comparison",
+    "operation": "compare_source_to_bundle",
+    "parameters": {
+      "reference_root_sha256": "22b1ed5fcf1031a04f14edd8e8d11b532e82d7b741eb46d0b28e2ec217574086",
+      "application_evidence_id": "ev_10683a9dfde7326fa1a9f4ada131688a871aceb407f05724b98999bad00f8c44"
+    },
+    "raw_result": null,
+    "normalized_result": {
+      "comparison_id": "stbc_3d9cdc0dc5ce4b578e48ef12a12fa6716dff96af9b2130c8031ad597316d63a2",
+      "reference": {
+        "root_sha256": "22b1ed5fcf1031a04f14edd8e8d11b532e82d7b741eb46d0b28e2ec217574086",
+        "inventory_state": "partial"
+      },
+      "application": {
+        "evidence_id": "ev_10683a9dfde7326fa1a9f4ada131688a871aceb407f05724b98999bad00f8c44",
+        "graph_id": "jag_dd862a248dc29dfc7875679f92ef73bc2d12fcd2ee54e57efca5c8468db9becb",
+        "root_artifact_sha256": "ab140656924ac82690ec8be06424257028dc07ca2c227e72de6c418b3caaca2f"
+      },
+      "scoring": {
+        "algorithm": "rea-source-to-bundle-signals",
+        "minimum_candidate_score": 20,
+        "weights": [
+          {
+            "signal": "exact-source-digest",
+            "weight": 100
+          },
+          {
+            "signal": "source-map-original-path",
+            "weight": 70
+          },
+          {
+            "signal": "current-path-exact",
+            "weight": 60
+          },
+          {
+            "signal": "current-path-suffix",
+            "weight": 40
+          },
+          {
+            "signal": "unicode-equivalent-path",
+            "weight": 20
+          },
+          {
+            "signal": "basename-match",
+            "weight": 20
+          },
+          {
+            "signal": "language-extension",
+            "weight": 5
+          }
+        ]
+      },
+      "summary": {
+        "unchanged": 1,
+        "modified": 0,
+        "removed": 0,
+        "split": 0,
+        "merged": 0,
+        "duplicated": 0,
+        "unknown": 0
+      },
+      "items": [
+        {
+          "mapping_id": "stbc_item_db73f70578778e9695f84e051092c15c9d0f3305a50ba1a9f160b7c88b560e2e",
+          "source_path": "src/main.js",
+          "source_sha256": "e7e2a42b20204248a9330eb6ec9aeaecb72fe12aab2c009c91330456cc69361e",
+          "source_language": "JavaScript",
+          "status": "unchanged",
+          "confidence": "exact",
+          "current_node_ids": [
+            "jag_node_29f25a4943e98b70b83e192e3a7d5cfe398481046192dd3bcc89d45ed217c58b"
+          ],
+          "candidates": [
+            {
+              "current_file_occurrence": {
+                "container_sha256": "ab140656924ac82690ec8be06424257028dc07ca2c227e72de6c418b3caaca2f",
+                "path": "src/main.js",
+                "sha256": "e7e2a42b20204248a9330eb6ec9aeaecb72fe12aab2c009c91330456cc69361e"
+              },
+              "representation_node_ids": [
+                "jag_node_29f25a4943e98b70b83e192e3a7d5cfe398481046192dd3bcc89d45ed217c58b",
+                "jag_node_9ce0f80baf73e3142cf5345e55b692d803e43c67c92474aafe4c5ca03689c830",
+                "jag_node_b4d5ca6806779f2d940f50c9c879bcddf0ba49f64f2d868488b4370c20bf217b",
+                "jag_node_eda87fbdc70eaad5cdf68d98ed7b4b0e2bc53c6d4602fe245ef909c92ba99d20"
+              ],
+              "current_node_id": "jag_node_29f25a4943e98b70b83e192e3a7d5cfe398481046192dd3bcc89d45ed217c58b",
+              "current_node_kind": "javascript-module",
+              "score": 185,
+              "confidence": "exact",
+              "signals": [
+                {
+                  "kind": "exact-source-digest",
+                  "weight": 100,
+                  "source_value": "e7e2a42b20204248a9330eb6ec9aeaecb72fe12aab2c009c91330456cc69361e",
+                  "current_values": [
+                    "e7e2a42b20204248a9330eb6ec9aeaecb72fe12aab2c009c91330456cc69361e"
+                  ]
+                },
+                {
+                  "kind": "current-path-exact",
+                  "weight": 60,
+                  "source_value": "src/main.js",
+                  "current_values": [
+                    "src/main.js"
+                  ]
+                },
+                {
+                  "kind": "basename-match",
+                  "weight": 20,
+                  "source_value": "main.js",
+                  "current_values": [
+                    "src/main.js"
+                  ]
+                },
+                {
+                  "kind": "language-extension",
+                  "weight": 5,
+                  "source_value": ".js",
+                  "current_values": [
+                    "src/main.js"
+                  ]
+                }
+              ]
+            }
+          ],
+          "limitations": [
+            "Exact byte identity does not establish equivalent load context or runtime behavior."
+          ]
+        }
+      ],
+      "unmapped_current_node_ids": [
+        "jag_node_1ca308f4a7549bb7e47a336a3122644c201db90e285633b28453d2f6d449a7ef",
+        "jag_node_4e59ae7cfe9aafd16ba50b0c4fcf5e81b9ed119f8b2ed995bea8dbc6be3f9e33"
+      ],
+      "coverage": {
+        "status": "partial",
+        "reference_inventory_state": "partial",
+        "application_graph_status": "complete",
+        "retained_source_files": 1,
+        "retained_application_nodes": 6,
+        "candidate_evaluations": 1
+      },
+      "evidence_links": [
+        "ev_10683a9dfde7326fa1a9f4ada131688a871aceb407f05724b98999bad00f8c44"
+      ],
+      "limitations": [
+        "CommonJS and ESM binding relationships were recovered from inert syntax and resolved only within the inventoried artifact container.",
+        "Historical source inventory is partial; unmatched files remain unknown.",
+        "JavaScript and HTML were parsed as inert text; bundle bootstrap code was never executed.",
+        "Path identity is revalidated around operations; Node lacks portable descriptor-relative openat traversal, so a syscall-boundary pathname race remains.",
+        "Static digest and location signals do not establish runtime behavior, semantic equivalence, or absence of dynamically generated modules.",
+        "Static imports, entrypoints, workers, endpoints, and storage relationships do not prove runtime execution.",
+        "Static paths and relationships may remain unresolved when expressions are dynamic or obfuscated.",
+        "Webpack/Rspack factories were recovered from AST literals; REA did not invoke push handlers or bundle bootstrap code."
+      ]
+    },
+    "confidence": "inferred",
+    "authority": "analyst-inference",
+    "environment": null,
+    "limitations": [
+      "Artifact identity is unavailable for this observation.",
+      "CommonJS and ESM binding relationships were recovered from inert syntax and resolved only within the inventoried artifact container.",
+      "Historical source inventory is partial; unmatched files remain unknown.",
+      "JavaScript and HTML were parsed as inert text; bundle bootstrap code was never executed.",
+      "Path identity is revalidated around operations; Node lacks portable descriptor-relative openat traversal, so a syscall-boundary pathname race remains.",
+      "Static digest and location signals do not establish runtime behavior, semantic equivalence, or absence of dynamically generated modules.",
+      "Static imports, entrypoints, workers, endpoints, and storage relationships do not prove runtime execution.",
+      "Static paths and relationships may remain unresolved when expressions are dynamic or obfuscated.",
+      "Webpack/Rspack factories were recovered from AST literals; REA did not invoke push handlers or bundle bootstrap code."
+    ],
+    "relationship_coverage": null,
+    "locations": [],
+    "evidence_links": [
+      "ev_10683a9dfde7326fa1a9f4ada131688a871aceb407f05724b98999bad00f8c44"
+    ]
+  }
+}

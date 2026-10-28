@@ -1,0 +1,112 @@
+{
+  "kind": "evidence",
+  "body": {
+    "evidence_id": "ev_9f492b0c7a4e1e2b56d430858cfa8f66f876add2e65b9572c2d456b36d362d70",
+    "subject": {
+      "name": "board.dtb",
+      "digest": {
+        "sha256": "dcdff09d0b557d355238a82f05a3cf80ae952de94ebadc69c5900dd4f315f0b7"
+      },
+      "local_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/devicetree/board.dtb",
+      "format": "file",
+      "architecture": null
+    },
+    "provider": {
+      "id": "rea-devicetree",
+      "name": "REA flattened devicetree parser",
+      "version": "1"
+    },
+    "analysis_profile": null,
+    "predicate_type": "rea.analysis",
+    "operation": "inspect_devicetree",
+    "parameters": {
+      "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/devicetree/board.dtb",
+      "max_file_bytes": 4194304,
+      "max_nodes": 8192,
+      "max_properties": 32768,
+      "max_depth": 64
+    },
+    "raw_result": null,
+    "normalized_result": {
+      "artifact": {
+        "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/devicetree/board.dtb",
+        "sha256": "dcdff09d0b557d355238a82f05a3cf80ae952de94ebadc69c5900dd4f315f0b7",
+        "bytes": 104
+      },
+      "header": {
+        "magic": 3490578157,
+        "totalsize": 104,
+        "off_dt_struct": 56,
+        "off_dt_strings": 92,
+        "off_mem_rsvmap": 40,
+        "version": 17,
+        "last_comp_version": 16,
+        "boot_cpuid_phys": 0,
+        "size_dt_strings": 12,
+        "size_dt_struct": 36
+      },
+      "reservations": [],
+      "nodes": [
+        {
+          "path": "/",
+          "parent": null,
+          "offset": 56,
+          "properties": [
+            {
+              "name": "model",
+              "offset": 76,
+              "bytes": 6,
+              "hex": "626f61726400",
+              "truncated": false,
+              "derived": {
+                "confidence": "derived",
+                "strings": [
+                  "board"
+                ],
+                "cells": null,
+                "reg": null
+              }
+            }
+          ]
+        }
+      ],
+      "references": [],
+      "summary": {
+        "confidence": "derived",
+        "compatible": null,
+        "model": "board",
+        "bootargs": null,
+        "stdout_path": null,
+        "aliases": []
+      },
+      "coverage": {
+        "status": "complete",
+        "examined_nodes": 1,
+        "examined_properties": 1
+      },
+      "limitations": [
+        "Raw property previews are limited to 256 bytes; offsets and lengths identify complete values in the hashed artifact.",
+        "Phandle references cover only single-cell interrupt-parent, remote-endpoint and msi-parent; binding-specific arrays and overlays are not resolved."
+      ]
+    },
+    "confidence": "observed",
+    "authority": "shipped-artifact",
+    "environment": null,
+    "limitations": [
+      "Raw property previews are limited to 256 bytes; offsets and lengths identify complete values in the hashed artifact.",
+      "Phandle references cover only single-cell interrupt-parent, remote-endpoint and msi-parent; binding-specific arrays and overlays are not resolved."
+    ],
+    "relationship_coverage": null,
+    "locations": [
+      {
+        "kind": "artifact-path",
+        "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/devicetree/board.dtb"
+      }
+    ],
+    "evidence_links": []
+  },
+  "meta": {
+    "command": "inspect-devicetree",
+    "duration": "6ms"
+  }
+}

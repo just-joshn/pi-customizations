@@ -1,0 +1,90 @@
+{
+  "kind": "evidence",
+  "body": {
+    "evidence_id": "ev_fb2aad5b4726b56bfa0d88cf13df5b115be0ef657f8279986a6e759b1b45de91",
+    "subject": {
+      "name": "mixed.bin",
+      "digest": {
+        "sha256": "4bd602a98a975e59c9f4006df444161963ea591620fcbdf0aaf8c16f00101ccd"
+      },
+      "format": "file",
+      "architecture": null,
+      "local_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/entropy/mixed.bin"
+    },
+    "provider": {
+      "id": "pi-rea-in-process",
+      "name": "pi-rea in-process analysis",
+      "version": "0.1.0"
+    },
+    "analysis_profile": null,
+    "predicate_type": "rea.analysis",
+    "operation": "inspect_byte_entropy",
+    "parameters": {
+      "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/entropy/mixed.bin",
+      "block_size": 4096,
+      "offset": 0
+    },
+    "raw_result": null,
+    "normalized_result": {
+      "artifact": {
+        "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/entropy/mixed.bin",
+        "bytes": 8192,
+        "sha256": "4bd602a98a975e59c9f4006df444161963ea591620fcbdf0aaf8c16f00101ccd"
+      },
+      "block_size": 4096,
+      "window": {
+        "offset": 0,
+        "length": 8192
+      },
+      "file_entropy": 4.9816,
+      "thresholds": {
+        "high": 7.2,
+        "low": 1
+      },
+      "blocks": [
+        {
+          "offset": 0,
+          "length": 4096,
+          "entropy": 0
+        },
+        {
+          "offset": 4096,
+          "length": 4096,
+          "entropy": 8
+        }
+      ],
+      "runs": [
+        {
+          "offset": 0,
+          "length": 4096,
+          "classification": "low"
+        },
+        {
+          "offset": 4096,
+          "length": 4096,
+          "classification": "high"
+        }
+      ],
+      "limitations": [
+        "Entropy does not prove encryption; compressed and encrypted bytes cannot be distinguished by this measure.",
+        "Entropy is rounded to four decimal places; thresholds classify those reported values. Small blocks can underestimate entropy.",
+        "The file-wide hash and entropy cover the entire file; blocks and runs cover only the selected window. Empty input has entropy 0 by convention."
+      ]
+    },
+    "confidence": "observed",
+    "authority": "shipped-artifact",
+    "environment": null,
+    "limitations": [
+      "Entropy does not prove encryption; compressed and encrypted bytes cannot be distinguished by this measure.",
+      "Entropy is rounded to four decimal places; thresholds classify those reported values. Small blocks can underestimate entropy.",
+      "The file-wide hash and entropy cover the entire file; blocks and runs cover only the selected window. Empty input has entropy 0 by convention."
+    ],
+    "locations": [
+      {
+        "kind": "artifact-path",
+        "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/entropy/mixed.bin"
+      }
+    ],
+    "evidence_links": []
+  }
+}

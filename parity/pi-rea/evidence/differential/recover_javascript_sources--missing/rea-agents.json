@@ -1,0 +1,17 @@
+{
+  "kind": "error",
+  "body": {
+    "code": "capability_unavailable",
+    "category": "unsupported_provider",
+    "message": "Provide an absolute REA_WAKARU_COMMAND pointing to a Wakaru ^1.13.0 Linux x64 binary (verified with 1.14.0); no tool is installed by REA. See docs/javascript-recovery.md#install-wakaru.",
+    "retryable": false,
+    "remediation": {
+      "action": "Provide an absolute REA_WAKARU_COMMAND pointing to a Wakaru ^1.13.0 Linux x64 binary (verified with 1.14.0); no tool is installed by REA. See docs/javascript-recovery.md#install-wakaru."
+    },
+    "details": {
+      "provider_id": "wakaru",
+      "operation": "recover_javascript_sources",
+      "reason": "Provide an absolute REA_WAKARU_COMMAND pointing to a Wakaru ^1.13.0 Linux x64 binary (verified with 1.14.0); no tool is installed by REA. See docs/javascript-recovery.md#install-wakaru."
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "id": "update_analysis_settings--asar-set-restore",
+  "tool": "update_analysis_settings",
+  "status": "pass",
+  "pi_kind": "configuration",
+  "oracle_kind": "configuration",
+  "contract_issues": [],
+  "diff_count": 0,
+  "documented_count": 0,
+  "undocumented_count": 0,
+  "undocumented": [],
+  "documented": []
+}

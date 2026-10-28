@@ -1,0 +1,101 @@
+{
+  "kind": "evidence",
+  "body": {
+    "evidence_id": "ev_01f9e43548032fa0efb7f5a54935f929ac3238b545e14954fb40cd90029a82ed",
+    "subject": {
+      "name": "fixture.zip",
+      "digest": {
+        "sha256": "f70f0a427115616e2e85303698bc8e1fa3fdcb5e405b186c585128d33464455e"
+      },
+      "local_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/fixture.zip",
+      "format": "zip",
+      "architecture": null
+    },
+    "provider": {
+      "id": "rea-artifact-graph",
+      "name": "REA safe artifact graph provider",
+      "version": "1"
+    },
+    "analysis_profile": null,
+    "predicate_type": "rea.analysis",
+    "operation": "extract_artifact",
+    "parameters": {
+      "integrity_policy": "fail",
+      "output_root": "/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/rea-extracted-064c22ec-cf67-4158-a66a-d6837fc9a117",
+      "input_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/fixture.zip"
+    },
+    "raw_result": null,
+    "normalized_result": {
+      "manifest": {
+        "manifest_id": "agm_af6488bc1b57b8d7152b93b3e5849f3f227c6c81e8685f0ae662bf02fa3766c3",
+        "root_artifact_id": "art_047c81054bf618903997b7cf981f4d5b5fea99b72d35864547eac8831556e33b",
+        "root_sha256": "f70f0a427115616e2e85303698bc8e1fa3fdcb5e405b186c585128d33464455e",
+        "root_format": "zip",
+        "graph_sha256": "f7dc31d74f26016e7e4ddcebcfc76eaef79d64c1ebfd79bca765159c867a6cfb",
+        "node_count": 3,
+        "occurrence_count": 3,
+        "edge_count": 2
+      },
+      "extraction_manifest": {
+        "extraction_id": "aex_a63b258b68c7f48e3a263a44680a9277bf1282bfecb209dc279afbdd0a669aa1",
+        "source_manifest_id": "agm_af6488bc1b57b8d7152b93b3e5849f3f227c6c81e8685f0ae662bf02fa3766c3",
+        "selected_occurrence_ids": [
+          "occ_2515c066a7ea188da2c474b6b7e32c5e7ba4da68b92c6a16c61ab724a5d68c20",
+          "occ_9e502f8deec4873803b8be16e752f2a2f16c7949efbcc6b6f527a068847656c0"
+        ],
+        "files_sha256": "934d0ae13eed24f93db3d7444cc8e9e10e8414e17f6f07a556b58229e575284f",
+        "output_root_alias": "$OUTPUT_ROOT"
+      },
+      "output_root": "/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/rea-extracted-064c22ec-cf67-4158-a66a-d6837fc9a117",
+      "artifacts": [
+        {
+          "artifact_id": "art_e5af109ce4582c356e568a0bc9adddf3d39d714874aab0e57a0c95299529bf4b",
+          "relative_path": "app.js",
+          "sha256": "a2098bd92b10bf8b816d24b7556b1ce8c49a879d130489065ef1051c17e042f6",
+          "bytes_written": 26,
+          "created": true
+        },
+        {
+          "artifact_id": "art_be7c96c451b8e62f6c81429b792a32e2375845061035f072842b6969c5a3fbee",
+          "relative_path": "manifest.json",
+          "sha256": "fb1844ac4443a18175a1201111257c0aa72a26d6ec8627813b6d7925398ab3e0",
+          "bytes_written": 40,
+          "created": true
+        }
+      ],
+      "containment_verified": true,
+      "cleanup": {
+        "attempted": false,
+        "verified": true,
+        "residual_paths": []
+      },
+      "coverage": {
+        "scope": "container-entries",
+        "status": "complete"
+      },
+      "provenance": [],
+      "integrity_contradictions": [],
+      "limitations": [
+        "ZIP inventory lists central-directory entries only. Non-entry bytes, including leading bytes before the first entry such as a self-extractor stub, an APK Signing Block before the central directory or a ZIP comment after it, are not occurrences.",
+        "All regular files exposed by the active artifact reader were materialized.",
+        "Publication verifies the selected inventoried regular files; it does not establish complete content decoding."
+      ]
+    },
+    "confidence": "observed",
+    "authority": "shipped-artifact",
+    "environment": null,
+    "limitations": [
+      "ZIP inventory lists central-directory entries only. Non-entry bytes, including leading bytes before the first entry such as a self-extractor stub, an APK Signing Block before the central directory or a ZIP comment after it, are not occurrences.",
+      "All regular files exposed by the active artifact reader were materialized.",
+      "Publication verifies the selected inventoried regular files; it does not establish complete content decoding."
+    ],
+    "relationship_coverage": null,
+    "locations": [],
+    "evidence_links": [],
+    "caller_input_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/fixture.zip"
+  },
+  "meta": {
+    "command": "extract-artifact",
+    "duration": "160ms"
+  }
+}

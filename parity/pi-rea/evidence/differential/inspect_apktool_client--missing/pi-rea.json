@@ -1,0 +1,23 @@
+{
+  "kind": "error",
+  "body": {
+    "code": "capability_unavailable",
+    "category": "unsupported_provider",
+    "message": "The selected apktool launcher was not found: apktool. Set REA_APKTOOL_COMMAND to an absolute apktool launcher (the upstream wrapper or a java -jar script).",
+    "retryable": false,
+    "remediation": {
+      "action": "The selected apktool launcher was not found: apktool. Set REA_APKTOOL_COMMAND to an absolute apktool launcher (the upstream wrapper or a java -jar script)."
+    },
+    "details": {
+      "provider_id": "apktool",
+      "operation": "inspect_apktool_client",
+      "reason": "The selected apktool launcher was not found: apktool. Set REA_APKTOOL_COMMAND to an absolute apktool launcher (the upstream wrapper or a java -jar script).",
+      "diagnostics": {
+        "filesystem_error": "ENOENT",
+        "selected_command": "apktool",
+        "command_source": "path",
+        "remediation": "Set REA_APKTOOL_COMMAND to an absolute apktool launcher (the upstream wrapper or a java -jar script)"
+      }
+    }
+  }
+}

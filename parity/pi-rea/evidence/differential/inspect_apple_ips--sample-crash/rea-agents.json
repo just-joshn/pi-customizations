@@ -1,0 +1,214 @@
+{
+  "kind": "evidence",
+  "body": {
+    "evidence_id": "ev_759b31d5c891e80580baec9532fdc7f2190092dddde91a31cc800b806e6055d8",
+    "subject": {
+      "name": "sample-crash.ips",
+      "digest": {
+        "sha256": "6cdd3805bb3a5777d86ebf14a74c3b9748995dd3717c97a736c4ec36bbdb025b"
+      },
+      "local_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/ips/sample-crash.ips",
+      "format": "file",
+      "architecture": null
+    },
+    "provider": {
+      "id": "rea-apple-ips",
+      "name": "REA Apple IPS parser",
+      "version": "1"
+    },
+    "analysis_profile": null,
+    "predicate_type": "rea.analysis",
+    "operation": "inspect_apple_ips",
+    "parameters": {
+      "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/ips/sample-crash.ips",
+      "max_file_bytes": 1048576,
+      "max_threads": 256,
+      "max_frames": 8192,
+      "max_images": 1024,
+      "max_registers": 16384,
+      "max_integer_text_bytes": 8388608
+    },
+    "raw_result": null,
+    "normalized_result": {
+      "artifact": {
+        "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/ips/sample-crash.ips",
+        "sha256": "6cdd3805bb3a5777d86ebf14a74c3b9748995dd3717c97a736c4ec36bbdb025b",
+        "bytes": 1227
+      },
+      "metadata": {
+        "bug_type": "309",
+        "timestamp": "2024-01-02 03:04:05.678 +0000",
+        "os_version": "23A344",
+        "bundle_id": "com.example.app",
+        "incident_id": "ABC-123",
+        "name": "Example",
+        "build_version": "1.0",
+        "platform": {
+          "decimal": "2",
+          "hex": "0x2"
+        },
+        "unlisted_keys": []
+      },
+      "process": {
+        "name": "Example",
+        "path": "/Applications/Example.app/Contents/MacOS/Example",
+        "pid": {
+          "decimal": "4242",
+          "hex": "0x1092"
+        },
+        "parent": "launchd",
+        "parent_pid": {
+          "decimal": "1",
+          "hex": "0x1"
+        },
+        "cpu_type": "ARM-64",
+        "translated": false,
+        "os_version": {
+          "form": "structured",
+          "train": "23A344",
+          "build": "23A344",
+          "release_type": "User",
+          "is_embedded": false,
+          "unlisted_keys": []
+        }
+      },
+      "exception": {
+        "type": "EXC_BAD_ACCESS",
+        "signal": "SIGSEGV",
+        "subtype": "KERN_INVALID_ADDRESS",
+        "codes": "0x1, 0x0",
+        "message": null,
+        "unlisted_keys": []
+      },
+      "termination": {
+        "namespace": "SIGNAL",
+        "code": {
+          "decimal": "11",
+          "hex": "0xb"
+        },
+        "indicator": null,
+        "flags": {
+          "decimal": "0",
+          "hex": "0x0"
+        },
+        "by_pid": {
+          "decimal": "4242",
+          "hex": "0x1092"
+        },
+        "by_proc": "Example",
+        "reasons": [],
+        "unlisted_keys": []
+      },
+      "faulting_thread": 0,
+      "threads": [
+        {
+          "index": 0,
+          "id": {
+            "decimal": "1",
+            "hex": "0x1"
+          },
+          "triggered": true,
+          "name": "main",
+          "queue": null,
+          "frames": [
+            {
+              "thread_index": 0,
+              "frame_index": 0,
+              "image_index": 0,
+              "image_offset": {
+                "decimal": "100",
+                "hex": "0x64"
+              },
+              "runtime_address": {
+                "decimal": "4294967396",
+                "hex": "0x100000064"
+              },
+              "role": "faulting_instruction",
+              "inline": null,
+              "recorded_symbol": "main",
+              "symbol_location": null
+            },
+            {
+              "thread_index": 0,
+              "frame_index": 1,
+              "image_index": 0,
+              "image_offset": {
+                "decimal": "50",
+                "hex": "0x32"
+              },
+              "runtime_address": {
+                "decimal": "4294967346",
+                "hex": "0x100000032"
+              },
+              "role": "return_address",
+              "inline": null,
+              "recorded_symbol": null,
+              "symbol_location": null
+            }
+          ],
+          "state_flavor": null,
+          "registers": []
+        }
+      ],
+      "images": [
+        {
+          "index": 0,
+          "source": "P",
+          "source_meaning": "process",
+          "arch": "arm64",
+          "base": {
+            "decimal": "4294967296",
+            "hex": "0x100000000"
+          },
+          "size": {
+            "decimal": "65536",
+            "hex": "0x10000"
+          },
+          "uuid": "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE",
+          "uuid_unknown": false,
+          "name": "Example",
+          "path": "/Applications/Example.app/Contents/MacOS/Example"
+        }
+      ],
+      "classification": {
+        "status": "unclassified",
+        "matches": []
+      },
+      "coverage": {
+        "status": "complete",
+        "reason": null,
+        "threads": 1,
+        "frames": 2,
+        "images": 1,
+        "registers": 0,
+        "type_mismatches": []
+      },
+      "unlisted_body_keys": [],
+      "limitations": [
+        "Rows reproduce the selected .ips JSON; they do not establish that the process still exists or that a live kernel agrees with the recorded state.",
+        "Opened Mach-O and dSYM UUID joins remain unobserved.",
+        "Symbol names printed inside the report are recorded claims and are not verified."
+      ]
+    },
+    "confidence": "observed",
+    "authority": "shipped-artifact",
+    "environment": null,
+    "limitations": [
+      "Rows reproduce the selected .ips JSON; they do not establish that the process still exists or that a live kernel agrees with the recorded state.",
+      "Opened Mach-O and dSYM UUID joins remain unobserved.",
+      "Symbol names printed inside the report are recorded claims and are not verified."
+    ],
+    "relationship_coverage": null,
+    "locations": [
+      {
+        "kind": "artifact-path",
+        "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/ips/sample-crash.ips"
+      }
+    ],
+    "evidence_links": []
+  },
+  "meta": {
+    "command": "inspect-apple-ips",
+    "duration": "8ms"
+  }
+}

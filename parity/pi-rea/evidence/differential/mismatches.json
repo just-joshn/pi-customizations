@@ -1,0 +1,5 @@
+{
+  "version": 1,
+  "notes": "Documented field-level deviations between extensions/pi-rea and npx rea-agents@6.8.0. Undocumented diffs fail the harness. Volatile identity fields (evidence_id, provider, provenance, caller_input_path, relationship_coverage) are scrubbed before compare and do not need entries here.",
+  "cases": {}
+}

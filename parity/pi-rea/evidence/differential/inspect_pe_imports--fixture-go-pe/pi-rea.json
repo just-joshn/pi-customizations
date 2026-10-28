@@ -1,0 +1,482 @@
+{
+  "kind": "evidence",
+  "body": {
+    "evidence_id": "ev_3611aa9e11f96316291905d82f22b05c8504ed89f49a830634d129193e03c6fd",
+    "subject": {
+      "name": "fixture-go-pe.exe",
+      "digest": {
+        "sha256": "a0c15a15db4af6ff996224c2b7dd37bb646811d1b00d097fc2f363e7037675a6"
+      },
+      "format": "pe",
+      "architecture": "x86_64",
+      "local_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/pe/fixture-go-pe.exe"
+    },
+    "provider": {
+      "id": "pi-rea-in-process",
+      "name": "pi-rea in-process analysis",
+      "version": "0.1.0"
+    },
+    "analysis_profile": null,
+    "predicate_type": "rea.analysis",
+    "operation": "inspect_pe_imports",
+    "parameters": {
+      "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/pe/fixture-go-pe.exe",
+      "max_file_bytes": 67108864,
+      "max_dlls": 256,
+      "max_functions": 8192
+    },
+    "raw_result": null,
+    "normalized_result": {
+      "artifact": {
+        "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/pe/fixture-go-pe.exe",
+        "sha256": "a0c15a15db4af6ff996224c2b7dd37bb646811d1b00d097fc2f363e7037675a6",
+        "bytes": 2504704
+      },
+      "format": "pe32-plus",
+      "machine": 34404,
+      "bits": 64,
+      "architecture": "amd64",
+      "import_directory": {
+        "rva": 2703360,
+        "size": 1370,
+        "locations": [
+          {
+            "offset": 2367488,
+            "bytes": 40
+          }
+        ]
+      },
+      "delay_import_directory": null,
+      "imports": [
+        {
+          "index": 0,
+          "name": "kernel32.dll",
+          "name_rva": 2703400,
+          "original_first_thunk_rva": 2704346,
+          "first_thunk_rva": 1614272,
+          "time_date_stamp": 0,
+          "forwarder_chain": 0,
+          "location": {
+            "offset": 2367488,
+            "bytes": 20
+          },
+          "functions": [
+            {
+              "hint": 0,
+              "name": "GetProcAddress",
+              "ordinal": null,
+              "ilt_rva": 2704346,
+              "iat_rva": 1614272,
+              "thunk_hex": "294036"
+            },
+            {
+              "hint": 0,
+              "name": "LoadLibraryExW",
+              "ordinal": null,
+              "ilt_rva": 2704354,
+              "iat_rva": 1614280,
+              "thunk_hex": "294048"
+            },
+            {
+              "hint": 0,
+              "name": "WriteFile",
+              "ordinal": null,
+              "ilt_rva": 2704362,
+              "iat_rva": 1614288,
+              "thunk_hex": "29405a"
+            },
+            {
+              "hint": 0,
+              "name": "WriteConsoleW",
+              "ordinal": null,
+              "ilt_rva": 2704370,
+              "iat_rva": 1614296,
+              "thunk_hex": "294066"
+            },
+            {
+              "hint": 0,
+              "name": "WerSetFlags",
+              "ordinal": null,
+              "ilt_rva": 2704378,
+              "iat_rva": 1614304,
+              "thunk_hex": "294076"
+            },
+            {
+              "hint": 0,
+              "name": "WerGetFlags",
+              "ordinal": null,
+              "ilt_rva": 2704386,
+              "iat_rva": 1614312,
+              "thunk_hex": "294084"
+            },
+            {
+              "hint": 0,
+              "name": "WaitForMultipleObjects",
+              "ordinal": null,
+              "ilt_rva": 2704394,
+              "iat_rva": 1614320,
+              "thunk_hex": "294092"
+            },
+            {
+              "hint": 0,
+              "name": "WaitForSingleObject",
+              "ordinal": null,
+              "ilt_rva": 2704402,
+              "iat_rva": 1614328,
+              "thunk_hex": "2940ac"
+            },
+            {
+              "hint": 0,
+              "name": "VirtualQuery",
+              "ordinal": null,
+              "ilt_rva": 2704410,
+              "iat_rva": 1614336,
+              "thunk_hex": "2940c2"
+            },
+            {
+              "hint": 0,
+              "name": "VirtualFree",
+              "ordinal": null,
+              "ilt_rva": 2704418,
+              "iat_rva": 1614344,
+              "thunk_hex": "2940d2"
+            },
+            {
+              "hint": 0,
+              "name": "VirtualAlloc",
+              "ordinal": null,
+              "ilt_rva": 2704426,
+              "iat_rva": 1614352,
+              "thunk_hex": "2940e0"
+            },
+            {
+              "hint": 0,
+              "name": "TlsAlloc",
+              "ordinal": null,
+              "ilt_rva": 2704434,
+              "iat_rva": 1614360,
+              "thunk_hex": "2940f0"
+            },
+            {
+              "hint": 0,
+              "name": "SwitchToThread",
+              "ordinal": null,
+              "ilt_rva": 2704442,
+              "iat_rva": 1614368,
+              "thunk_hex": "2940fc"
+            },
+            {
+              "hint": 0,
+              "name": "SuspendThread",
+              "ordinal": null,
+              "ilt_rva": 2704450,
+              "iat_rva": 1614376,
+              "thunk_hex": "29410e"
+            },
+            {
+              "hint": 0,
+              "name": "SetWaitableTimer",
+              "ordinal": null,
+              "ilt_rva": 2704458,
+              "iat_rva": 1614384,
+              "thunk_hex": "29411e"
+            },
+            {
+              "hint": 0,
+              "name": "SetProcessPriorityBoost",
+              "ordinal": null,
+              "ilt_rva": 2704466,
+              "iat_rva": 1614392,
+              "thunk_hex": "294132"
+            },
+            {
+              "hint": 0,
+              "name": "SetEvent",
+              "ordinal": null,
+              "ilt_rva": 2704474,
+              "iat_rva": 1614400,
+              "thunk_hex": "29414c"
+            },
+            {
+              "hint": 0,
+              "name": "SetErrorMode",
+              "ordinal": null,
+              "ilt_rva": 2704482,
+              "iat_rva": 1614408,
+              "thunk_hex": "294158"
+            },
+            {
+              "hint": 0,
+              "name": "SetConsoleCtrlHandler",
+              "ordinal": null,
+              "ilt_rva": 2704490,
+              "iat_rva": 1614416,
+              "thunk_hex": "294168"
+            },
+            {
+              "hint": 0,
+              "name": "RtlVirtualUnwind",
+              "ordinal": null,
+              "ilt_rva": 2704498,
+              "iat_rva": 1614424,
+              "thunk_hex": "294180"
+            },
+            {
+              "hint": 0,
+              "name": "RtlLookupFunctionEntry",
+              "ordinal": null,
+              "ilt_rva": 2704506,
+              "iat_rva": 1614432,
+              "thunk_hex": "294194"
+            },
+            {
+              "hint": 0,
+              "name": "ResumeThread",
+              "ordinal": null,
+              "ilt_rva": 2704514,
+              "iat_rva": 1614440,
+              "thunk_hex": "2941ae"
+            },
+            {
+              "hint": 0,
+              "name": "RaiseFailFastException",
+              "ordinal": null,
+              "ilt_rva": 2704522,
+              "iat_rva": 1614448,
+              "thunk_hex": "2941be"
+            },
+            {
+              "hint": 0,
+              "name": "PostQueuedCompletionStatus",
+              "ordinal": null,
+              "ilt_rva": 2704530,
+              "iat_rva": 1614456,
+              "thunk_hex": "2941d8"
+            },
+            {
+              "hint": 0,
+              "name": "LoadLibraryExW",
+              "ordinal": null,
+              "ilt_rva": 2704538,
+              "iat_rva": 1614464,
+              "thunk_hex": "2941f6"
+            },
+            {
+              "hint": 0,
+              "name": "SetThreadContext",
+              "ordinal": null,
+              "ilt_rva": 2704546,
+              "iat_rva": 1614472,
+              "thunk_hex": "294208"
+            },
+            {
+              "hint": 0,
+              "name": "GetThreadContext",
+              "ordinal": null,
+              "ilt_rva": 2704554,
+              "iat_rva": 1614480,
+              "thunk_hex": "29421c"
+            },
+            {
+              "hint": 0,
+              "name": "GetSystemInfo",
+              "ordinal": null,
+              "ilt_rva": 2704562,
+              "iat_rva": 1614488,
+              "thunk_hex": "294230"
+            },
+            {
+              "hint": 0,
+              "name": "GetSystemDirectoryA",
+              "ordinal": null,
+              "ilt_rva": 2704570,
+              "iat_rva": 1614496,
+              "thunk_hex": "294240"
+            },
+            {
+              "hint": 0,
+              "name": "GetStdHandle",
+              "ordinal": null,
+              "ilt_rva": 2704578,
+              "iat_rva": 1614504,
+              "thunk_hex": "294256"
+            },
+            {
+              "hint": 0,
+              "name": "GetQueuedCompletionStatusEx",
+              "ordinal": null,
+              "ilt_rva": 2704586,
+              "iat_rva": 1614512,
+              "thunk_hex": "294266"
+            },
+            {
+              "hint": 0,
+              "name": "GetProcessAffinityMask",
+              "ordinal": null,
+              "ilt_rva": 2704594,
+              "iat_rva": 1614520,
+              "thunk_hex": "294284"
+            },
+            {
+              "hint": 0,
+              "name": "GetProcAddress",
+              "ordinal": null,
+              "ilt_rva": 2704602,
+              "iat_rva": 1614528,
+              "thunk_hex": "29429e"
+            },
+            {
+              "hint": 0,
+              "name": "GetErrorMode",
+              "ordinal": null,
+              "ilt_rva": 2704610,
+              "iat_rva": 1614536,
+              "thunk_hex": "2942b0"
+            },
+            {
+              "hint": 0,
+              "name": "GetEnvironmentStringsW",
+              "ordinal": null,
+              "ilt_rva": 2704618,
+              "iat_rva": 1614544,
+              "thunk_hex": "2942c0"
+            },
+            {
+              "hint": 0,
+              "name": "GetCurrentThreadId",
+              "ordinal": null,
+              "ilt_rva": 2704626,
+              "iat_rva": 1614552,
+              "thunk_hex": "2942da"
+            },
+            {
+              "hint": 0,
+              "name": "GetConsoleMode",
+              "ordinal": null,
+              "ilt_rva": 2704634,
+              "iat_rva": 1614560,
+              "thunk_hex": "2942f0"
+            },
+            {
+              "hint": 0,
+              "name": "FreeEnvironmentStringsW",
+              "ordinal": null,
+              "ilt_rva": 2704642,
+              "iat_rva": 1614568,
+              "thunk_hex": "294302"
+            },
+            {
+              "hint": 0,
+              "name": "ExitProcess",
+              "ordinal": null,
+              "ilt_rva": 2704650,
+              "iat_rva": 1614576,
+              "thunk_hex": "29431c"
+            },
+            {
+              "hint": 0,
+              "name": "DuplicateHandle",
+              "ordinal": null,
+              "ilt_rva": 2704658,
+              "iat_rva": 1614584,
+              "thunk_hex": "29432a"
+            },
+            {
+              "hint": 0,
+              "name": "CreateWaitableTimerExW",
+              "ordinal": null,
+              "ilt_rva": 2704666,
+              "iat_rva": 1614592,
+              "thunk_hex": "29433c"
+            },
+            {
+              "hint": 0,
+              "name": "CreateThread",
+              "ordinal": null,
+              "ilt_rva": 2704674,
+              "iat_rva": 1614600,
+              "thunk_hex": "294356"
+            },
+            {
+              "hint": 0,
+              "name": "CreateIoCompletionPort",
+              "ordinal": null,
+              "ilt_rva": 2704682,
+              "iat_rva": 1614608,
+              "thunk_hex": "294366"
+            },
+            {
+              "hint": 0,
+              "name": "CreateEventA",
+              "ordinal": null,
+              "ilt_rva": 2704690,
+              "iat_rva": 1614616,
+              "thunk_hex": "294380"
+            },
+            {
+              "hint": 0,
+              "name": "CloseHandle",
+              "ordinal": null,
+              "ilt_rva": 2704698,
+              "iat_rva": 1614624,
+              "thunk_hex": "294390"
+            },
+            {
+              "hint": 0,
+              "name": "AddVectoredExceptionHandler",
+              "ordinal": null,
+              "ilt_rva": 2704706,
+              "iat_rva": 1614632,
+              "thunk_hex": "29439e"
+            },
+            {
+              "hint": 0,
+              "name": "AddVectoredContinueHandler",
+              "ordinal": null,
+              "ilt_rva": 2704714,
+              "iat_rva": 1614640,
+              "thunk_hex": "2943bc"
+            }
+          ]
+        }
+      ],
+      "delay_imports": [],
+      "imphash": {
+        "algorithm": "pefile",
+        "md5": "9b763104e1c7e7b7334a1e9ed4235cd3",
+        "reason": null
+      },
+      "coverage": {
+        "status": "complete",
+        "reason": null,
+        "examined_dlls": 1,
+        "imports": 47,
+        "delay_imports": 0
+      },
+      "issues": [],
+      "limitations": [
+        "Rows reproduce the PE import and delay-load directories; they do not establish that an import is bound, forwarded or reachable at runtime.",
+        "Bound import snapshots, the import address table as loaded, and export-forward resolution in another DLL remain unobserved."
+      ]
+    },
+    "confidence": "observed",
+    "authority": "shipped-artifact",
+    "environment": null,
+    "limitations": [
+      "Rows reproduce the PE import and delay-load directories; they do not establish that an import is bound, forwarded or reachable at runtime.",
+      "Bound import snapshots, the import address table as loaded, and export-forward resolution in another DLL remain unobserved."
+    ],
+    "locations": [
+      {
+        "kind": "artifact-path",
+        "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/pe/fixture-go-pe.exe"
+      },
+      {
+        "kind": "file-offset-range",
+        "start": 2367488,
+        "end": 2367528
+      }
+    ],
+    "evidence_links": []
+  }
+}

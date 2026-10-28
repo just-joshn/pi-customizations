@@ -1,0 +1,13 @@
+{
+  "id": "goto_address--open-binary-no-bridge",
+  "tool": "goto_address",
+  "status": "pass",
+  "pi_kind": "error",
+  "oracle_kind": "error",
+  "contract_issues": [],
+  "diff_count": 0,
+  "documented_count": 0,
+  "undocumented_count": 0,
+  "undocumented": [],
+  "documented": []
+}

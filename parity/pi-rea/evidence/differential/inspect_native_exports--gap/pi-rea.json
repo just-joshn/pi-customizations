@@ -1,0 +1,67 @@
+{
+  "kind": "evidence",
+  "body": {
+    "evidence_id": "ev_a0a9fa2430d99ababe86e0f174c2a48a0340ea47015780f2e5680e5030d2f0fb",
+    "subject": {
+      "name": "minimal-elf.bin",
+      "digest": {
+        "sha256": "2bdfef8afade4eb81137a0dc23bcbca5f72d1cd4d5dafbbe1ebe95d9fe69d662"
+      },
+      "format": "elf",
+      "architecture": null,
+      "local_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/minimal-elf.bin"
+    },
+    "provider": {
+      "id": "rea-native-exports",
+      "name": "REA PE/ELF export table reader",
+      "version": "1"
+    },
+    "analysis_profile": null,
+    "predicate_type": "rea.analysis",
+    "operation": "inspect_native_exports",
+    "parameters": {
+      "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/minimal-elf.bin",
+      "max_file_bytes": 268435456
+    },
+    "raw_result": null,
+    "normalized_result": {
+      "artifact": {
+        "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/minimal-elf.bin",
+        "sha256": "2bdfef8afade4eb81137a0dc23bcbca5f72d1cd4d5dafbbe1ebe95d9fe69d662",
+        "bytes": 64
+      },
+      "format": "elf",
+      "architecture": "amd64",
+      "bits": 64,
+      "byte_order": "little",
+      "exports": [],
+      "coverage": {
+        "status": "unsupported",
+        "reason": "The ELF has no section headers; enumerating dynamic symbols from the dynamic segment is not implemented",
+        "examined_entries": 0,
+        "exports": 0
+      },
+      "issues": [],
+      "limitations": [
+        "Rows list defined default- or protected-visibility global, weak and unique dynamic symbols; local, hidden, internal and undefined symbols are not exports.",
+        "A hidden symbol version is not the default version that a by-name dlsym lookup selects.",
+        "Rows reproduce the dynamic symbol table; they do not establish that a symbol is reachable, safe to call or loaded at runtime."
+      ]
+    },
+    "confidence": "observed",
+    "authority": "shipped-artifact",
+    "environment": null,
+    "limitations": [
+      "Rows list defined default- or protected-visibility global, weak and unique dynamic symbols; local, hidden, internal and undefined symbols are not exports.",
+      "A hidden symbol version is not the default version that a by-name dlsym lookup selects.",
+      "Rows reproduce the dynamic symbol table; they do not establish that a symbol is reachable, safe to call or loaded at runtime."
+    ],
+    "locations": [
+      {
+        "kind": "artifact-path",
+        "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/minimal-elf.bin"
+      }
+    ],
+    "evidence_links": []
+  }
+}

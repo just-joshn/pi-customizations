@@ -1,0 +1,754 @@
+{
+  "started_at": "2026-10-28T10:30:30.935Z",
+  "rea_agents": "6.8.0",
+  "cases": [
+    {
+      "id": "inspect_plist--sample-xml",
+      "tool": "inspect_plist",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_macho--thin-go",
+      "tool": "inspect_macho",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "list_architectures--thin-go",
+      "tool": "list_architectures",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "list_architectures--fat-go",
+      "tool": "list_architectures",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_pe_resources--resources",
+      "tool": "inspect_pe_resources",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_pe_imports--fixture-go-pe",
+      "tool": "inspect_pe_imports",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_pe_certificates--signed",
+      "tool": "inspect_pe_certificates",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_pe_load_config--fixture-go-pe",
+      "tool": "inspect_pe_load_config",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_elf_notes--notes-and-dep",
+      "tool": "inspect_elf_notes",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_rust_binary--auditable",
+      "tool": "inspect_rust_binary",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_apple_ips--sample-crash",
+      "tool": "inspect_apple_ips",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_byte_entropy--mixed",
+      "tool": "inspect_byte_entropy",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "analyze_javascript_application--notepad",
+      "tool": "analyze_javascript_application",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_artifact--fixture-zip",
+      "tool": "inspect_artifact",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_binary_layout--minimal-elf",
+      "tool": "inspect_binary_layout",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_go_binary--fixture-go-pe",
+      "tool": "inspect_go_binary",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_web_network_capture--sample-har",
+      "tool": "inspect_web_network_capture",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_model_artifact--tiny-gguf",
+      "tool": "inspect_model_artifact",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_sqlite_database--fixture-db",
+      "tool": "inspect_sqlite_database",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_erlang_beam--demo",
+      "tool": "inspect_erlang_beam",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_desktop_application--electron-app",
+      "tool": "inspect_desktop_application",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_gpu_code_objects--sample-ptx",
+      "tool": "inspect_gpu_code_objects",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_il2cpp_metadata--global-metadata",
+      "tool": "inspect_il2cpp_metadata",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_python_pyc--sample",
+      "tool": "inspect_python_pyc",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_kernel_module--demo-ko",
+      "tool": "inspect_kernel_module",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_analysis_settings--asar-max-header",
+      "tool": "inspect_analysis_settings",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "update_analysis_settings--asar-set-restore",
+      "tool": "update_analysis_settings",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "verify_unknown_resolution--missing-id",
+      "tool": "verify_unknown_resolution",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "list_bookmarks--closed-session",
+      "tool": "list_bookmarks",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "list_documents--closed-session",
+      "tool": "list_documents",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "list_names--closed-session",
+      "tool": "list_names",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "list_procedures--closed-session",
+      "tool": "list_procedures",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "list_segments--closed-session",
+      "tool": "list_segments",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "list_strings--closed-session",
+      "tool": "list_strings",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "list_bookmarks--open-binary-no-bridge",
+      "tool": "list_bookmarks",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "list_documents--open-binary-no-bridge",
+      "tool": "list_documents",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "list_names--open-binary-no-bridge",
+      "tool": "list_names",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "list_procedures--open-binary-no-bridge",
+      "tool": "list_procedures",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "list_segments--open-binary-no-bridge",
+      "tool": "list_segments",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "list_strings--open-binary-no-bridge",
+      "tool": "list_strings",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_devicetree--board-dtb",
+      "tool": "inspect_devicetree",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_apk_signature--v1-only",
+      "tool": "inspect_apk_signature",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_electron_fuses--fuse-thin",
+      "tool": "inspect_electron_fuses",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_signature--thin-go",
+      "tool": "inspect_signature",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "open_bundle_resources--fixture-app",
+      "tool": "open_bundle_resources",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_keyed_archive--fixture-app",
+      "tool": "inspect_keyed_archive",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_asset_catalog--fixture-app",
+      "tool": "inspect_asset_catalog",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_managed_artifact--fixture-go-pe",
+      "tool": "inspect_managed_artifact",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_managed_members--fixture-go-pe",
+      "tool": "inspect_managed_members",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "identify_flutter_build--demo-apk",
+      "tool": "identify_flutter_build",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_dart_aot--demo-apk",
+      "tool": "inspect_dart_aot",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "demangle_swift--thin-go",
+      "tool": "demangle_swift",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "decode_interface_builder--fixture-app",
+      "tool": "decode_interface_builder",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "extract_artifact--fixture-zip",
+      "tool": "extract_artifact",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "compare_artifacts--fixture-zip",
+      "tool": "compare_artifacts",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "compare_bundles--empty",
+      "tool": "compare_bundles",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "compare_managed_members--fixture-go-pe",
+      "tool": "compare_managed_members",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_recorded_crash--minimal-core",
+      "tool": "inspect_recorded_crash",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "compare_javascript_export_shapes--js-compare",
+      "tool": "compare_javascript_export_shapes",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "compare_application_versions--js-compare",
+      "tool": "compare_application_versions",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "compare_source_to_bundle--js-compare",
+      "tool": "compare_source_to_bundle",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "export_web_scripts--page-capture",
+      "tool": "export_web_scripts",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "project_apple_application_graph--fixture-app-zip",
+      "tool": "project_apple_application_graph",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "goto_address--closed-session",
+      "tool": "goto_address",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "goto_address--open-binary-no-bridge",
+      "tool": "goto_address",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "list_adb_devices--missing",
+      "tool": "list_adb_devices",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "start_frida_session--missing",
+      "tool": "start_frida_session",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "list_browser_targets--unreachable",
+      "tool": "list_browser_targets",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "list_jeb_units--missing",
+      "tool": "list_jeb_units",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "execute_rizin_command--missing",
+      "tool": "execute_rizin_command",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "start_gdb_session--missing",
+      "tool": "start_gdb_session",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_wasm_artifact--missing",
+      "tool": "inspect_wasm_artifact",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_packet_capture--missing",
+      "tool": "inspect_packet_capture",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_pcap_client--missing",
+      "tool": "inspect_pcap_client",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_signal_decoders--missing",
+      "tool": "inspect_signal_decoders",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_evm_interface--missing",
+      "tool": "inspect_evm_interface",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "observe_native_calls--closed-session",
+      "tool": "observe_native_calls",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "observe_native_calls--open-binary-no-bridge",
+      "tool": "observe_native_calls",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_with_objdump--gap",
+      "tool": "inspect_with_objdump",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "list_cutter_sessions--missing",
+      "tool": "list_cutter_sessions",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_apktool_client--missing",
+      "tool": "inspect_apktool_client",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "recover_javascript_sources--missing",
+      "tool": "recover_javascript_sources",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_firmware_regions--missing",
+      "tool": "inspect_firmware_regions",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_android_class--missing",
+      "tool": "inspect_android_class",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "list_frida_devices--missing",
+      "tool": "list_frida_devices",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "read_bytes--closed-session",
+      "tool": "read_bytes",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "read_bytes--open-binary-no-bridge",
+      "tool": "read_bytes",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_native_exports--gap",
+      "tool": "inspect_native_exports",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_packet_fields--missing",
+      "tool": "inspect_packet_fields",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "decode_signal_recording--missing",
+      "tool": "decode_signal_recording",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_pcap_capture--missing",
+      "tool": "inspect_pcap_capture",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "compare_functions--gap",
+      "tool": "compare_functions",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "export_environment_bundle--invalid-capture",
+      "tool": "export_environment_bundle",
+      "status": "pass",
+      "diff_count": 0,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    }
+  ],
+  "pass": 93,
+  "fail": 0,
+  "documented": 0,
+  "finished_at": "2026-10-28T10:32:37.895Z"
+}

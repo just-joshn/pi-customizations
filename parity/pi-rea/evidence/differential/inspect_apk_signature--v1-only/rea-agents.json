@@ -1,0 +1,109 @@
+{
+  "kind": "evidence",
+  "body": {
+    "evidence_id": "ev_3e8d15bdfd929a66e22e49ae5a78b5132d9cb04c3be7d3ec08c020a8daba1634",
+    "subject": {
+      "name": "v1-only.apk",
+      "digest": {
+        "sha256": "9eb81b903f5aaf386716fb0d69fc9309359825feb6d0343df97d1e061e5c8eef"
+      },
+      "local_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/apk/v1-only.apk",
+      "format": "apk",
+      "architecture": null
+    },
+    "provider": {
+      "id": "apk-signature",
+      "name": "REA APK signature reader",
+      "version": null
+    },
+    "analysis_profile": null,
+    "predicate_type": "rea.analysis",
+    "operation": "inspect_apk_signature",
+    "parameters": {
+      "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/apk/v1-only.apk"
+    },
+    "raw_result": null,
+    "normalized_result": {
+      "artifact": {
+        "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/apk/v1-only.apk",
+        "sha256": "9eb81b903f5aaf386716fb0d69fc9309359825feb6d0343df97d1e061e5c8eef",
+        "bytes": 508
+      },
+      "schemes": {
+        "v1": {
+          "present": true,
+          "has_manifest": true,
+          "signature_files": [
+            "META-INF/CERT.SF"
+          ],
+          "block_files": [
+            "META-INF/CERT.RSA"
+          ],
+          "signers": [
+            {
+              "signature_file": "META-INF/CERT.SF",
+              "block_file": "META-INF/CERT.RSA",
+              "certificate": null,
+              "certificates": [],
+              "signer_infos": [],
+              "decode_error": "malformed PKCS#7: contentType has tag 0x2, expected 0x6"
+            }
+          ]
+        },
+        "v2": {
+          "present": false,
+          "signers": [],
+          "uninterpreted_bytes": 0
+        },
+        "v3": {
+          "present": false,
+          "signers": [],
+          "uninterpreted_bytes": 0
+        },
+        "v3.1": {
+          "present": false,
+          "signers": [],
+          "uninterpreted_bytes": 0
+        }
+      },
+      "source_stamp": {
+        "present": false,
+        "certificate": null,
+        "decode_error": null
+      },
+      "posture": {
+        "v1_only": true,
+        "schemes_agree_on_signer": null,
+        "signer_change_declared_by_rotation": false,
+        "v1_signers_match_block_signers": null,
+        "rotation_present": false,
+        "source_stamp_present": false,
+        "strongest_scheme": "v1",
+        "self_consistent": null
+      },
+      "runtime_execution": "not-performed"
+    },
+    "confidence": "observed",
+    "authority": "shipped-artifact",
+    "environment": null,
+    "limitations": [
+      "Static structural inspection only. No Android code executes, no device or adb is involved, and odex/vdex/oat/cdex are not read.",
+      "No signature is verified: signer, rotation-lineage and source-stamp signatures are NOT cryptographically checked, and certificate chains, revocation and authenticity are NOT evaluated. Certificates and lineages are what the APK declares.",
+      "matches_apk and self_consistent only show that the declared content digest equals the digest of the current bytes. This is not a signature verification: anyone who changes the bytes can recompute the digest and write it into the signed data. SHA-256 identifies the exact bytes, not the producer.",
+      "v1 signers are what each signature block's PKCS#7 SignedData declares: its signatures, the .SF and MANIFEST.MF digests and entry coverage are NOT verified.",
+      "Not read: v4 .apk.idsig, verity digests (matches_apk null), and the v1 X-Android-APK-Signed marker, so v1_only cannot distinguish a v1-only APK from one whose v2/v3 block was removed."
+    ],
+    "relationship_coverage": null,
+    "locations": [
+      {
+        "kind": "artifact-path",
+        "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/apk/v1-only.apk"
+      }
+    ],
+    "evidence_links": []
+  },
+  "meta": {
+    "command": "inspect-apk-signature",
+    "duration": "8ms"
+  }
+}

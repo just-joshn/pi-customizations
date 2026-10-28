@@ -1,0 +1,13 @@
+{
+  "id": "start_gdb_session--missing",
+  "tool": "start_gdb_session",
+  "status": "pass",
+  "pi_kind": "error",
+  "oracle_kind": "error",
+  "contract_issues": [],
+  "diff_count": 0,
+  "documented_count": 0,
+  "undocumented_count": 0,
+  "undocumented": [],
+  "documented": []
+}

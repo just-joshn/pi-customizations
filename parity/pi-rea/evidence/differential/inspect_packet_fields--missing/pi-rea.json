@@ -1,0 +1,17 @@
+{
+  "kind": "error",
+  "body": {
+    "code": "capability_unavailable",
+    "category": "unsupported_provider",
+    "message": "Packet inspection requires Linux with util-linux prlimit and TShark 4.x (on PATH or through absolute REA_TSHARK_COMMAND) so expanded captures are processed under an enforced address-space limit. On Linux, supply TShark 4.x on PATH or through absolute REA_TSHARK_COMMAND, and util-linux prlimit through REA_TSHARK_PRLIMIT_COMMAND (default /usr/bin/prlimit).",
+    "retryable": false,
+    "remediation": {
+      "action": "Packet inspection requires Linux with util-linux prlimit and TShark 4.x (on PATH or through absolute REA_TSHARK_COMMAND) so expanded captures are processed under an enforced address-space limit. On Linux, supply TShark 4.x on PATH or through absolute REA_TSHARK_COMMAND, and util-linux prlimit through REA_TSHARK_PRLIMIT_COMMAND (default /usr/bin/prlimit)."
+    },
+    "details": {
+      "provider_id": "tshark-capture",
+      "operation": "inspect_packet_fields",
+      "reason": "Packet inspection requires Linux with util-linux prlimit and TShark 4.x (on PATH or through absolute REA_TSHARK_COMMAND) so expanded captures are processed under an enforced address-space limit."
+    }
+  }
+}

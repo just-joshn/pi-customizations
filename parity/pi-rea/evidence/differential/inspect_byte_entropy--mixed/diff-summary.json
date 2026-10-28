@@ -1,0 +1,13 @@
+{
+  "id": "inspect_byte_entropy--mixed",
+  "tool": "inspect_byte_entropy",
+  "status": "pass",
+  "pi_kind": "evidence",
+  "oracle_kind": "evidence",
+  "contract_issues": [],
+  "diff_count": 0,
+  "documented_count": 0,
+  "undocumented_count": 0,
+  "undocumented": [],
+  "documented": []
+}

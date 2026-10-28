@@ -1,0 +1,18 @@
+{
+  "id": "project_apple_application_graph--inventory",
+  "pi_kind": "evidence",
+  "oracle_kind": "error",
+  "contract": [],
+  "diff_count": 1,
+  "paths": [
+    "$kind"
+  ],
+  "diffs": [
+    {
+      "path": "$kind",
+      "left": "evidence",
+      "right": "error",
+      "kind": "kind_mismatch"
+    }
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "kind": "evidence",
+  "body": {
+    "evidence_id": "ev_b0828c1f74ed6c66faf084642e7652103d846b2f398637e148359aa60cb364e0",
+    "subject": null,
+    "provider": {
+      "id": "pi-rea-artifact-comparison",
+      "name": "pi-rea artifact comparison",
+      "version": "1"
+    },
+    "analysis_profile": null,
+    "predicate_type": "rea.artifact-comparison",
+    "operation": "compare_artifacts",
+    "parameters": {
+      "left_evidence_ids": [
+        "ev_50141e54edc643cb3afbafbe737fd7b49451fb0bb670aa53802fcf7e8e0b83b4"
+      ],
+      "right_evidence_ids": [
+        "ev_50141e54edc643cb3afbafbe737fd7b49451fb0bb670aa53802fcf7e8e0b83b4"
+      ]
+    },
+    "raw_result": null,
+    "normalized_result": {
+      "status": "unchanged",
+      "left_manifest_id": "agm_a7ff37bf149c9b9e983f2c630616a2e3daf36a71dee5fbf3ba287fa7af41acea",
+      "right_manifest_id": "agm_a7ff37bf149c9b9e983f2c630616a2e3daf36a71dee5fbf3ba287fa7af41acea",
+      "summary": {
+        "unchanged": 3,
+        "added": 0,
+        "removed": 0,
+        "changed": 0,
+        "unknown": 0,
+        "contradiction": 0
+      },
+      "changes": [],
+      "integrity_mismatch_evidence_ids": [],
+      "limitations": [
+        "Left: ZIP inventory lists central-directory entries only. Non-entry bytes, including leading bytes before the first entry such as a self-extractor stub, an APK Signing Block before the central directory or a ZIP comment after it, are not occurrences.",
+        "Right: ZIP inventory lists central-directory entries only. Non-entry bytes, including leading bytes before the first entry such as a self-extractor stub, an APK Signing Block before the central directory or a ZIP comment after it, are not occurrences."
+      ]
+    },
+    "confidence": "derived",
+    "authority": "analyst-inference",
+    "environment": null,
+    "limitations": [
+      "Artifact identity is unavailable for this observation.",
+      "Left: ZIP inventory lists central-directory entries only. Non-entry bytes, including leading bytes before the first entry such as a self-extractor stub, an APK Signing Block before the central directory or a ZIP comment after it, are not occurrences.",
+      "Right: ZIP inventory lists central-directory entries only. Non-entry bytes, including leading bytes before the first entry such as a self-extractor stub, an APK Signing Block before the central directory or a ZIP comment after it, are not occurrences."
+    ],
+    "locations": [],
+    "evidence_links": [
+      "ev_50141e54edc643cb3afbafbe737fd7b49451fb0bb670aa53802fcf7e8e0b83b4",
+      "ev_50141e54edc643cb3afbafbe737fd7b49451fb0bb670aa53802fcf7e8e0b83b4"
+    ]
+  }
+}

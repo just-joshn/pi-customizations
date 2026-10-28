@@ -1,0 +1,323 @@
+{
+  "client_requirements": {
+    "required": [],
+    "optional": [],
+    "missing_required": [],
+    "missing_optional": []
+  },
+  "status_counts": {},
+  "group_ids": [
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    },
+    {
+      "id": null,
+      "tool_count": 0
+    }
+  ]
+}

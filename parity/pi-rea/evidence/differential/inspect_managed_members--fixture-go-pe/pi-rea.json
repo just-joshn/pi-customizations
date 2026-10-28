@@ -1,0 +1,79 @@
+{
+  "kind": "evidence",
+  "body": {
+    "evidence_id": "ev_53190160737e726c6a071b8d2379da512731080967040bda2fa0dbf2f1f19907",
+    "subject": {
+      "name": "fixture-go-pe.exe",
+      "digest": {
+        "sha256": "a0c15a15db4af6ff996224c2b7dd37bb646811d1b00d097fc2f363e7037675a6"
+      },
+      "format": "pe",
+      "architecture": "x86_64",
+      "local_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/pe/fixture-go-pe.exe"
+    },
+    "provider": {
+      "id": "pi-rea-in-process",
+      "name": "pi-rea in-process analysis",
+      "version": "0.1.0"
+    },
+    "analysis_profile": null,
+    "predicate_type": "rea.analysis",
+    "operation": "inspect_managed_members",
+    "parameters": {
+      "input_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/pe/fixture-go-pe.exe"
+    },
+    "raw_result": null,
+    "normalized_result": {
+      "signature_resolution": "type-names-v1",
+      "artifact": {
+        "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/pe/fixture-go-pe.exe",
+        "sha256": "a0c15a15db4af6ff996224c2b7dd37bb646811d1b00d097fc2f363e7037675a6",
+        "byte_length": 2504704,
+        "format": "pe"
+      },
+      "module": null,
+      "assembly": null,
+      "metadata": {
+        "status": "absent",
+        "version": null,
+        "table_row_counts": {}
+      },
+      "identity_scope": {
+        "token_identity": "build-local",
+        "requires_artifact_sha256": "a0c15a15db4af6ff996224c2b7dd37bb646811d1b00d097fc2f363e7037675a6",
+        "requires_mvid": null
+      },
+      "types": [],
+      "nesting_read": false,
+      "exported_types": null,
+      "fields": [],
+      "methods": [],
+      "member_refs": [],
+      "call_edges": [],
+      "field_accesses": [],
+      "user_strings": null,
+      "selection": null,
+      "method_rows": null,
+      "coverage": {
+        "state": "unavailable",
+        "issues": []
+      },
+      "limitations": [
+        "The PE has no admitted CLI metadata; managed member inspection is unavailable."
+      ]
+    },
+    "confidence": "observed",
+    "authority": "shipped-artifact",
+    "environment": null,
+    "limitations": [
+      "The PE has no admitted CLI metadata; managed member inspection is unavailable."
+    ],
+    "locations": [
+      {
+        "kind": "file-offset",
+        "offset": 0
+      }
+    ],
+    "evidence_links": []
+  }
+}

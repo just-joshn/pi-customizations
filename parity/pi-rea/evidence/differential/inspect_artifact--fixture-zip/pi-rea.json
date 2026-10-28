@@ -1,0 +1,250 @@
+{
+  "kind": "evidence",
+  "body": {
+    "evidence_id": "ev_50141e54edc643cb3afbafbe737fd7b49451fb0bb670aa53802fcf7e8e0b83b4",
+    "subject": {
+      "name": "fixture.zip",
+      "digest": {
+        "sha256": "f70f0a427115616e2e85303698bc8e1fa3fdcb5e405b186c585128d33464455e"
+      },
+      "format": "zip",
+      "architecture": null,
+      "local_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/fixture.zip"
+    },
+    "provider": {
+      "id": "pi-rea-in-process",
+      "name": "pi-rea in-process analysis",
+      "version": "0.1.0"
+    },
+    "analysis_profile": null,
+    "predicate_type": "rea.analysis",
+    "operation": "inspect_artifact",
+    "parameters": {
+      "integrity_policy": "fail",
+      "input_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/fixture.zip"
+    },
+    "raw_result": null,
+    "normalized_result": {
+      "inspection_id": "ai_9196f379ac15bd41c3a36df8d744d4c8c34204b3443ef4e50bffb7babef8fa95",
+      "subject": {
+        "manifest_id": "agm_a7ff37bf149c9b9e983f2c630616a2e3daf36a71dee5fbf3ba287fa7af41acea",
+        "root_artifact_id": "art_816e0cd232d22e022407c35843778e308c6d81442754fa57a2c3b116eee5ad09",
+        "root_sha256": "f70f0a427115616e2e85303698bc8e1fa3fdcb5e405b186c585128d33464455e",
+        "root_format": "zip"
+      },
+      "substeps": [
+        {
+          "substep_id": "ais_9d0d64d1bbbb6929a8422953a63ec5d3079009eb71131bbc358c3e30553a0358",
+          "operation": "inventory_artifact",
+          "status": "completed",
+          "evidence_id": "ev_1b330c92df61557b01034387466e5173b80fc75fea4db989d5ed207b2ec5f7de",
+          "evidence": {
+            "evidence_id": "ev_1b330c92df61557b01034387466e5173b80fc75fea4db989d5ed207b2ec5f7de",
+            "subject": {
+              "name": "fixture.zip",
+              "digest": {
+                "sha256": "f70f0a427115616e2e85303698bc8e1fa3fdcb5e405b186c585128d33464455e"
+              },
+              "format": "zip",
+              "architecture": null,
+              "local_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/fixture.zip"
+            },
+            "provider": {
+              "id": "pi-rea-in-process",
+              "name": "pi-rea in-process analysis",
+              "version": "0.1.0"
+            },
+            "analysis_profile": null,
+            "predicate_type": "rea.analysis",
+            "operation": "inventory_artifact",
+            "parameters": {
+              "integrity_policy": "fail"
+            },
+            "raw_result": null,
+            "normalized_result": {
+              "manifest": {
+                "manifest_id": "agm_a7ff37bf149c9b9e983f2c630616a2e3daf36a71dee5fbf3ba287fa7af41acea",
+                "root_artifact_id": "art_816e0cd232d22e022407c35843778e308c6d81442754fa57a2c3b116eee5ad09",
+                "root_sha256": "f70f0a427115616e2e85303698bc8e1fa3fdcb5e405b186c585128d33464455e",
+                "root_format": "zip",
+                "graph_sha256": "c6584362544f3a872cea14e30b7daf68471be43d6f926a1ee40baa24c91cfc87",
+                "node_count": 3,
+                "occurrence_count": 3,
+                "edge_count": 2
+              },
+              "nodes": [
+                {
+                  "artifact_id": "art_816e0cd232d22e022407c35843778e308c6d81442754fa57a2c3b116eee5ad09",
+                  "format": "zip",
+                  "sha256": "f70f0a427115616e2e85303698bc8e1fa3fdcb5e405b186c585128d33464455e",
+                  "size": 280,
+                  "media_type": null,
+                  "architecture": null,
+                  "content_state": "materialized",
+                  "limitations": []
+                },
+                {
+                  "artifact_id": "art_666747c1ab8ad8af7e8e508ce46cb203d313360a8335859c7be3e5b2c6e692b8",
+                  "format": "file",
+                  "sha256": "fb1844ac4443a18175a1201111257c0aa72a26d6ec8627813b6d7925398ab3e0",
+                  "size": 40,
+                  "media_type": null,
+                  "architecture": null,
+                  "content_state": "embedded",
+                  "limitations": []
+                },
+                {
+                  "artifact_id": "art_8ba1c16e117b61996b8bcb73fbf6845f9c5abbcb0383b12d08b0b7b98625a4af",
+                  "format": "file",
+                  "sha256": "a2098bd92b10bf8b816d24b7556b1ce8c49a879d130489065ef1051c17e042f6",
+                  "size": 26,
+                  "media_type": null,
+                  "architecture": null,
+                  "content_state": "embedded",
+                  "limitations": []
+                }
+              ],
+              "occurrences": [
+                {
+                  "occurrence_id": "occ_05ea0a732bbf3f4967321beca94bfef61939729fe326cb5df28fc06afe624b88",
+                  "artifact_id": "art_816e0cd232d22e022407c35843778e308c6d81442754fa57a2c3b116eee5ad09",
+                  "parent_occurrence_id": null,
+                  "logical_path": ".",
+                  "entry_kind": "file",
+                  "artifact_kind": "container",
+                  "artifact_format": "zip",
+                  "declared_size": 280,
+                  "compressed_size": null,
+                  "executable": false,
+                  "encrypted": false,
+                  "hash_status": "verified",
+                  "source_location": null,
+                  "limitations": []
+                },
+                {
+                  "occurrence_id": "occ_c9924475b134b6344ac1144c548d8aa95299cb01f47ea79b4a6112623e8a6210",
+                  "artifact_id": "art_8ba1c16e117b61996b8bcb73fbf6845f9c5abbcb0383b12d08b0b7b98625a4af",
+                  "parent_occurrence_id": "occ_05ea0a732bbf3f4967321beca94bfef61939729fe326cb5df28fc06afe624b88",
+                  "logical_path": "app.js",
+                  "entry_kind": "file",
+                  "artifact_kind": "javascript",
+                  "artifact_format": "javascript-bundle",
+                  "declared_size": 26,
+                  "compressed_size": 28,
+                  "executable": false,
+                  "encrypted": false,
+                  "hash_status": "verified",
+                  "source_location": null,
+                  "limitations": []
+                },
+                {
+                  "occurrence_id": "occ_6f170a877558a3f1797ef6729c93974a93bc218ca26b14abace94d1476fe70fc",
+                  "artifact_id": "art_666747c1ab8ad8af7e8e508ce46cb203d313360a8335859c7be3e5b2c6e692b8",
+                  "parent_occurrence_id": "occ_05ea0a732bbf3f4967321beca94bfef61939729fe326cb5df28fc06afe624b88",
+                  "logical_path": "manifest.json",
+                  "entry_kind": "file",
+                  "artifact_kind": "resource",
+                  "artifact_format": "file",
+                  "declared_size": 40,
+                  "compressed_size": 40,
+                  "executable": false,
+                  "encrypted": false,
+                  "hash_status": "verified",
+                  "source_location": null,
+                  "limitations": []
+                }
+              ],
+              "edges": [
+                {
+                  "edge_id": "edge_0f5e3328e5d50e970513f557d3aae6717cca1bc9d2183e79306b901057548e73",
+                  "ordinal": 0,
+                  "parent_artifact_id": "art_816e0cd232d22e022407c35843778e308c6d81442754fa57a2c3b116eee5ad09",
+                  "relation": "contains",
+                  "occurrence_id": "occ_6f170a877558a3f1797ef6729c93974a93bc218ca26b14abace94d1476fe70fc",
+                  "producer": null
+                },
+                {
+                  "edge_id": "edge_7a7287426c3704f572ae4ac224333c06ff08404f33dd9a33b04656af0200ef4b",
+                  "ordinal": 1,
+                  "parent_artifact_id": "art_816e0cd232d22e022407c35843778e308c6d81442754fa57a2c3b116eee5ad09",
+                  "relation": "contains",
+                  "occurrence_id": "occ_c9924475b134b6344ac1144c548d8aa95299cb01f47ea79b4a6112623e8a6210",
+                  "producer": null
+                }
+              ],
+              "provenance": [],
+              "integrity_contradictions": [],
+              "coverage": {
+                "scope": "container-entries",
+                "status": "complete"
+              },
+              "limitations": [
+                "ZIP inventory lists central-directory entries only. Non-entry bytes, including leading bytes before the first entry such as a self-extractor stub, an APK Signing Block before the central directory or a ZIP comment after it, are not occurrences."
+              ]
+            },
+            "confidence": "observed",
+            "authority": "shipped-artifact",
+            "environment": null,
+            "limitations": [
+              "ZIP inventory lists central-directory entries only. Non-entry bytes, including leading bytes before the first entry such as a self-extractor stub, an APK Signing Block before the central directory or a ZIP comment after it, are not occurrences."
+            ],
+            "locations": [],
+            "evidence_links": []
+          }
+        }
+      ],
+      "observations": [
+        {
+          "observation_id": "aio_d03ea3734c09bf67ec042336d66d54a99da3d57dbb746cf17bd20d8f8b97b61f",
+          "kind": "root-manifest",
+          "subject": "art_816e0cd232d22e022407c35843778e308c6d81442754fa57a2c3b116eee5ad09",
+          "value": {
+            "manifest_id": "agm_a7ff37bf149c9b9e983f2c630616a2e3daf36a71dee5fbf3ba287fa7af41acea",
+            "root_artifact_id": "art_816e0cd232d22e022407c35843778e308c6d81442754fa57a2c3b116eee5ad09",
+            "root_sha256": "f70f0a427115616e2e85303698bc8e1fa3fdcb5e405b186c585128d33464455e",
+            "root_format": "zip",
+            "graph_sha256": "c6584362544f3a872cea14e30b7daf68471be43d6f926a1ee40baa24c91cfc87",
+            "node_count": 3,
+            "occurrence_count": 3,
+            "edge_count": 2
+          },
+          "evidence_id": "ev_1b330c92df61557b01034387466e5173b80fc75fea4db989d5ed207b2ec5f7de"
+        }
+      ],
+      "hypotheses": [],
+      "contradictions": [],
+      "unexplored_branches": [],
+      "next_probes": [],
+      "coverage": {
+        "status": "complete-within-substeps",
+        "substeps_completed": 1,
+        "observations_retained": 1,
+        "observations_omitted": 0,
+        "hypotheses_retained": 0,
+        "hypotheses_omitted": 0,
+        "unexplored_branches_retained": 0,
+        "unexplored_branches_omitted": 0,
+        "next_probes_retained": 0,
+        "next_probes_omitted": 0
+      },
+      "evidence_links": [
+        "ev_1b330c92df61557b01034387466e5173b80fc75fea4db989d5ed207b2ec5f7de"
+      ],
+      "limitations": [
+        "Inspection derives bounded static hypotheses and next probes; it does not execute the artifact or claim format-specific semantics.",
+        "ZIP inventory lists central-directory entries only. Non-entry bytes, including leading bytes before the first entry such as a self-extractor stub, an APK Signing Block before the central directory or a ZIP comment after it, are not occurrences."
+      ]
+    },
+    "confidence": "observed",
+    "authority": "shipped-artifact",
+    "environment": null,
+    "limitations": [
+      "Inspection derives bounded static hypotheses and next probes; it does not execute the artifact or claim format-specific semantics.",
+      "ZIP inventory lists central-directory entries only. Non-entry bytes, including leading bytes before the first entry such as a self-extractor stub, an APK Signing Block before the central directory or a ZIP comment after it, are not occurrences."
+    ],
+    "locations": [],
+    "evidence_links": [
+      "ev_1b330c92df61557b01034387466e5173b80fc75fea4db989d5ed207b2ec5f7de"
+    ]
+  }
+}

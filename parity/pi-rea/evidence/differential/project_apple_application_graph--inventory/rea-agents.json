@@ -1,0 +1,26 @@
+{
+  "kind": "error",
+  "body": {
+    "code": "invalid_request",
+    "category": "invalid_input",
+    "message": "The arguments for MCP tool project_apple_application_graph do not match its advertised input schema.",
+    "retryable": false,
+    "remediation": {
+      "action": "Read the declared input schema or CLI usage for project_apple_application_graph; if using MCP and the catalog may be stale, call tools/list. Correct the listed fields, then retry. Do not repeat the unchanged call."
+    },
+    "recovery": {
+      "kind": "inspect_input_contract",
+      "operation": "project_apple_application_graph"
+    },
+    "details": {
+      "operation": "project_apple_application_graph",
+      "issues": [
+        {
+          "path": [],
+          "reason": "invalid_value",
+          "message": "inventory_evidence.0.relationship_coverage: Invalid input: expected object, received undefined"
+        }
+      ]
+    }
+  }
+}

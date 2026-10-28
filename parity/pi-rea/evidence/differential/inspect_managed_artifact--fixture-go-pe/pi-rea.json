@@ -1,0 +1,90 @@
+{
+  "kind": "evidence",
+  "body": {
+    "evidence_id": "ev_c20b76420c759e4d8afc8815efcf949bb80619f4d777e67888d44aebb70174f4",
+    "subject": {
+      "name": "fixture-go-pe.exe",
+      "digest": {
+        "sha256": "a0c15a15db4af6ff996224c2b7dd37bb646811d1b00d097fc2f363e7037675a6"
+      },
+      "format": "pe",
+      "architecture": "x86_64",
+      "local_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/pe/fixture-go-pe.exe"
+    },
+    "provider": {
+      "id": "pi-rea-in-process",
+      "name": "pi-rea in-process analysis",
+      "version": "0.1.0"
+    },
+    "analysis_profile": null,
+    "predicate_type": "rea.analysis",
+    "operation": "inspect_managed_artifact",
+    "parameters": {
+      "input_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/pe/fixture-go-pe.exe"
+    },
+    "raw_result": null,
+    "normalized_result": {
+      "artifact": {
+        "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/pe/fixture-go-pe.exe",
+        "sha256": "a0c15a15db4af6ff996224c2b7dd37bb646811d1b00d097fc2f363e7037675a6",
+        "byte_length": 2504704,
+        "format": "pe"
+      },
+      "pe": {
+        "machine": 34404,
+        "machine_hex": "0x8664",
+        "architecture": "x86_64",
+        "optional_header": "pe32-plus",
+        "section_count": 16,
+        "characteristics": 34,
+        "cli": null
+      },
+      "classification": {
+        "status": "not-managed",
+        "container": "pe",
+        "runtime_family": "unknown",
+        "implementation": "not-managed",
+        "managed_architecture": "unknown",
+        "evidence": [
+          {
+            "code": "cli-directory-absent",
+            "detail": "The PE has no CLI data directory; managed metadata and CIL are unavailable.",
+            "file_offset": null
+          }
+        ]
+      },
+      "metadata": {
+        "status": "absent",
+        "version": null,
+        "stream_names": [],
+        "table_row_counts": {}
+      },
+      "module": null,
+      "assembly": null,
+      "target_frameworks": [],
+      "references": [],
+      "resources": [],
+      "attributes": [],
+      "coverage": {
+        "state": "unavailable",
+        "issues": []
+      },
+      "limitations": [
+        "The PE has no CLI data directory; managed metadata and CIL are unavailable."
+      ]
+    },
+    "confidence": "observed",
+    "authority": "shipped-artifact",
+    "environment": null,
+    "limitations": [
+      "The PE has no CLI data directory; managed metadata and CIL are unavailable."
+    ],
+    "locations": [
+      {
+        "kind": "file-offset",
+        "offset": 0
+      }
+    ],
+    "evidence_links": []
+  }
+}

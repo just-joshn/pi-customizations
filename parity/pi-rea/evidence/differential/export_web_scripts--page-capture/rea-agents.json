@@ -1,0 +1,32 @@
+{
+  "kind": "error",
+  "body": {
+    "code": "invalid_request",
+    "category": "invalid_input",
+    "message": "Analysis input is invalid. Check the arguments and try again.",
+    "retryable": false,
+    "remediation": {
+      "action": "Read the declared input schema or CLI usage for export_web_scripts; if using MCP and the catalog may be stale, call tools/list. Correct the listed fields, then retry. Do not repeat the unchanged call."
+    },
+    "recovery": {
+      "kind": "inspect_input_contract",
+      "operation": "export_web_scripts"
+    },
+    "details": {
+      "operation": "export_web_scripts",
+      "issues": [
+        {
+          "path": [
+            "capture_path"
+          ],
+          "reason": "invalid_format",
+          "message": "[\n  {\n    \"code\": \"invalid_type\",\n    \"expected\": \"object\",\n    \"path\": [\n      \"subject\"\n    ],\n    \"message\": \"Invalid input: expected object, received undefined\"\n  },\n  {\n    \"expected\": \"object\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"provider\"\n    ],\n    \"message\": \"Invalid input: expected object, received undefined\"\n  },\n  {\n    \"expected\": \"object\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"analysis_profile\"\n    ],\n    \"message\": \"Invalid input: expected object, received undefined\"\n  },\n  {\n    \"expected\": \"string\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"predicate_type\"\n    ],\n    \"message\": \"Invalid input: expected string, received undefined\"\n  },\n  {\n    \"code\": \"invalid_type\",\n    \"expected\": \"nonoptional\",\n    \"path\": [\n      \"parameters\"\n    ],\n    \"message\": \"Invalid input: expected nonoptional, received undefined\"\n  },\n  {\n    \"code\": \"invalid_type\",\n    \"expected\": \"nonoptional\",\n    \"path\": [\n      \"raw_result\"\n    ],\n    \"message\": \"Invalid input: expected nonoptional, received undefined\"\n  },\n  {\n    \"code\": \"invalid_value\",\n    \"values\": [\n      \"observed\",\n      \"derived\",\n      \"inferred\"\n    ],\n    \"path\": [\n      \"confidence\"\n    ],\n    \"message\": \"Invalid option: expected one of \\\"observed\\\"|\\\"derived\\\"|\\\"inferred\\\"\"\n  },\n  {\n    \"code\": \"invalid_value\",\n    \"values\": [\n      \"shipped-artifact\",\n      \"controlled-replay\",\n      \"historical-reference\",\n      \"external-service\",\n      \"analyst-inference\"\n    ],\n    \"path\": [\n      \"authority\"\n    ],\n    \"message\": \"Invalid option: expected one of \\\"shipped-artifact\\\"|\\\"controlled-replay\\\"|\\\"historical-reference\\\"|\\\"external-service\\\"|\\\"analyst-inference\\\"\"\n  },\n  {\n    \"expected\": \"object\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"environment\"\n    ],\n    \"message\": \"Invalid input: expected object, received undefined\"\n  },\n  {\n    \"expected\": \"array\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"limitations\"\n    ],\n    \"message\": \"Invalid input: expected array, received undefined\"\n  },\n  {\n    \"code\": \"invalid_type\",\n    \"expected\": \"object\",\n    \"path\": [\n      \"relationship_coverage\"\n    ],\n    \"message\": \"Invalid input: expected object, received undefined\"\n  },\n  {\n    \"expected\": \"array\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"locations\"\n    ],\n    \"message\": \"Invalid input: expected array, received undefined\"\n  },\n  {\n    \"expected\": \"array\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"evidence_links\"\n    ],\n    \"message\": \"Invalid input: expected array, received undefined\"\n  }\n]"
+        }
+      ]
+    }
+  },
+  "meta": {
+    "command": "export-web-scripts",
+    "duration": "4ms"
+  }
+}

@@ -1,0 +1,195 @@
+{
+  "kind": "evidence",
+  "body": {
+    "evidence_id": "ev_2965088dd93ee2116dbe6005f122e8c3fbc8ccdab89ff6504378e5697926ee01",
+    "subject": {
+      "name": "demo.beam",
+      "digest": {
+        "sha256": "d4249afdbe2eb0e60bee32f676cd46142ede243b5caf4036167ceccdab51d840"
+      },
+      "format": "file",
+      "architecture": null,
+      "local_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/beam/demo.beam"
+    },
+    "provider": {
+      "id": "pi-rea-in-process",
+      "name": "pi-rea in-process analysis",
+      "version": "0.1.0"
+    },
+    "analysis_profile": null,
+    "predicate_type": "rea.analysis",
+    "operation": "inspect_erlang_beam",
+    "parameters": {
+      "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/beam/demo.beam",
+      "max_file_bytes": 67108864,
+      "max_chunks": 64,
+      "max_atoms": 4096
+    },
+    "raw_result": null,
+    "normalized_result": {
+      "artifact": {
+        "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/beam/demo.beam",
+        "sha256": "d4249afdbe2eb0e60bee32f676cd46142ede243b5caf4036167ceccdab51d840",
+        "bytes": 136
+      },
+      "form": {
+        "location": {
+          "offset": 0,
+          "bytes": 136
+        },
+        "size": 128
+      },
+      "chunks": [
+        {
+          "index": 0,
+          "name": "AtU8",
+          "location": {
+            "offset": 12,
+            "bytes": 48
+          },
+          "payload": {
+            "location": {
+              "offset": 20,
+              "bytes": 38
+            },
+            "bytes": 38,
+            "sha256": "befd0111e2fa1b70b0ff7fe79fe3c85a0e12370e7ae7ee67d8bd2c07b8d1567f"
+          }
+        },
+        {
+          "index": 1,
+          "name": "ExpT",
+          "location": {
+            "offset": 60,
+            "bytes": 24
+          },
+          "payload": {
+            "location": {
+              "offset": 68,
+              "bytes": 16
+            },
+            "bytes": 16,
+            "sha256": "1bd976dae8d1aeabf86d9d14887f8869b69de3f34a81a22a7bcee7a9e7275d65"
+          }
+        },
+        {
+          "index": 2,
+          "name": "ImpT",
+          "location": {
+            "offset": 84,
+            "bytes": 24
+          },
+          "payload": {
+            "location": {
+              "offset": 92,
+              "bytes": 16
+            },
+            "bytes": 16,
+            "sha256": "331fc6b606a47eb739107390aee95d98f718815c229774c0a3698f98daa3160b"
+          }
+        },
+        {
+          "index": 3,
+          "name": "Code",
+          "location": {
+            "offset": 108,
+            "bytes": 28
+          },
+          "payload": {
+            "location": {
+              "offset": 116,
+              "bytes": 20
+            },
+            "bytes": 20,
+            "sha256": "720bf5cf964e4f1731a42d652c0598fad8420f9d6417d602f48de8759e417c6c"
+          }
+        }
+      ],
+      "atoms": [
+        {
+          "index": 1,
+          "name": "module"
+        },
+        {
+          "index": 2,
+          "name": "demo"
+        },
+        {
+          "index": 3,
+          "name": "foo"
+        },
+        {
+          "index": 4,
+          "name": "bar"
+        },
+        {
+          "index": 5,
+          "name": "erlang"
+        },
+        {
+          "index": 6,
+          "name": "length"
+        }
+      ],
+      "atom_encoding": "utf8",
+      "exports": [
+        {
+          "function_index": 3,
+          "function": "foo",
+          "arity": 1,
+          "label": 1
+        }
+      ],
+      "imports": [
+        {
+          "module_index": 5,
+          "module": "erlang",
+          "function_index": 6,
+          "function": "length",
+          "arity": 1
+        }
+      ],
+      "lambdas": null,
+      "code": {
+        "instruction_set": 0,
+        "opcode_max": 0,
+        "labels": 1,
+        "functions": 1,
+        "extra_header_bytes": 0,
+        "instructions": {
+          "offset": 136,
+          "bytes": 0
+        }
+      },
+      "module": "module",
+      "coverage": {
+        "status": "complete",
+        "examined_chunks": 4,
+        "atoms": 6
+      },
+      "limitations": [
+        "This workflow does not execute BEAM bytecode, inflate LitT literals, or decode Attr/CInf external-term payloads.",
+        "Atom names are structural table entries; they do not authenticate the originating compiler or module checksum."
+      ]
+    },
+    "confidence": "observed",
+    "authority": "shipped-artifact",
+    "environment": null,
+    "limitations": [
+      "This workflow does not execute BEAM bytecode, inflate LitT literals, or decode Attr/CInf external-term payloads.",
+      "Atom names are structural table entries; they do not authenticate the originating compiler or module checksum."
+    ],
+    "locations": [
+      {
+        "kind": "artifact-path",
+        "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/beam/demo.beam"
+      },
+      {
+        "kind": "file-offset-range",
+        "start": 0,
+        "end": 136
+      }
+    ],
+    "evidence_links": []
+  }
+}

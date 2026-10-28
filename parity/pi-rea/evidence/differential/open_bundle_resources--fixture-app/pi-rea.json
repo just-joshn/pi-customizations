@@ -1,0 +1,13 @@
+{
+  "kind": "configuration",
+  "body": {
+    "result": {
+      "caller_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/bundle/Fixture.app",
+      "canonical_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/bundle/Fixture.app",
+      "info_plist_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/bundle/Fixture.app/Contents/Info.plist",
+      "layout": "contents",
+      "executable_sha256": null,
+      "run_id": "4af46290-8c30-4ff0-9d67-7511cc9a1c3c"
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "kind": "error",
+  "body": {
+    "code": "execution_failure",
+    "category": "execution_failure",
+    "message": "The requested residual unknown does not exist in this session. Check the unknown_id and try again.",
+    "retryable": false,
+    "remediation": {
+      "action": "Check that the unknown_id belongs to this session, then retry."
+    },
+    "details": {
+      "reason": "not-found"
+    }
+  }
+}

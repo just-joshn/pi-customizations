@@ -1,0 +1,17 @@
+{
+  "kind": "error",
+  "body": {
+    "code": "capability_unavailable",
+    "category": "unsupported_provider",
+    "message": "Initial real-verified offline EVM interface profile supports Linux x64 only.",
+    "retryable": false,
+    "remediation": {
+      "action": "Initial real-verified offline EVM interface profile supports Linux x64 only."
+    },
+    "details": {
+      "provider_id": "evmole-interface",
+      "operation": "inspect_evm_interface",
+      "reason": "Initial real-verified offline EVM interface profile supports Linux x64 only."
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "id": "inspect_apk_signature--v1-only",
+  "tool": "inspect_apk_signature",
+  "status": "pass",
+  "pi_kind": "evidence",
+  "oracle_kind": "evidence",
+  "contract_issues": [],
+  "diff_count": 0,
+  "documented_count": 0,
+  "undocumented_count": 0,
+  "undocumented": [],
+  "documented": []
+}
