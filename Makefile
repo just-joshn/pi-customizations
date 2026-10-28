@@ -1,6 +1,6 @@
-.PHONY: verify verify-lint verify-mechanisms verify-toolchain verify-extension verify-oauth verify-test-conventions verify-install verify-xai-oauth-live
+.PHONY: verify verify-lint verify-mechanisms verify-toolchain verify-extension verify-maintainer verify-rea verify-oauth verify-test-conventions verify-install verify-xai-oauth-live
 
-verify: verify-lint verify-mechanisms verify-toolchain verify-test-conventions verify-extension verify-oauth verify-install
+verify: verify-lint verify-mechanisms verify-toolchain verify-test-conventions verify-extension verify-maintainer verify-rea verify-oauth verify-install
 
 verify-lint:
 	bun run ci
@@ -17,6 +17,14 @@ verify-test-conventions:
 verify-extension:
 	bun run --filter pi-pstack typecheck
 	bun run --filter pi-pstack test:coverage
+
+verify-maintainer:
+	bun run --filter pi-maintainer typecheck
+	bun run --filter pi-maintainer test:coverage
+
+verify-rea:
+	bun run --filter pi-rea typecheck
+	bun run --filter pi-rea test:coverage
 
 verify-oauth:
 	bun run --filter pi-anthropic-oauth typecheck
