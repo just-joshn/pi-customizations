@@ -28,6 +28,44 @@ test('uniqueItems is removed recursively', () => {
   });
 });
 
+test('a union of same-type literal branches becomes one enum', () => {
+  expect(
+    sanitizeOpenApiParameters({
+      type: 'object',
+      properties: {
+        kind: {
+          description: 'Chart kind',
+          anyOf: [
+            { type: 'string', enum: ['bar'] },
+            { type: 'string', enum: ['line'] },
+          ],
+        },
+      },
+    }),
+  ).toEqual({
+    type: 'object',
+    properties: {
+      kind: { type: 'string', enum: ['bar', 'line'], description: 'Chart kind' },
+    },
+  });
+});
+
+test('a union of different types stays a union', () => {
+  expect(
+    sanitizeOpenApiParameters({
+      anyOf: [
+        { type: 'string', enum: ['x'] },
+        { type: 'number', enum: [1] },
+      ],
+    }),
+  ).toEqual({
+    anyOf: [
+      { type: 'string', enum: ['x'] },
+      { type: 'number', enum: [1] },
+    ],
+  });
+});
+
 test('anyOf and allOf are preserved while nested keys are sanitized', () => {
   expect(
     sanitizeOpenApiParameters({

@@ -128,6 +128,23 @@ test('fetchModels adds the account catalog to the baseline', async () => {
   }
 });
 
+test('a live catalog hides snapshot models it no longer lists', async () => {
+  const server = await fakeServer((_, res) => json(res, 200, AVAILABLE));
+  try {
+    const provider = createAntigravityProvider({ ...GOOGLE_OAUTH, cloudCode: server.url });
+    expect(provider.filterModels?.(provider.getModels(), CREDENTIAL)?.map((model) => model.id)).toEqual(BASELINE_IDS);
+
+    await provider.refreshModels?.(refreshContext(CREDENTIAL));
+
+    const listed = provider.getModels().map((model) => model.id);
+    expect(listed).toContain('gemini-3.7-flash');
+    const available = provider.filterModels?.(provider.getModels(), CREDENTIAL)?.map((model) => model.id) ?? [];
+    expect([...available].sort()).toEqual(['claude-opus-6', 'gemini-3.1-pro', 'gemini-3.9-flash', 'gpt-oss-120b']);
+  } finally {
+    server.close();
+  }
+});
+
 test('fetchModels returns the bundled catalog when network access is disallowed', async () => {
   const server = await fakeServer((_, res) => json(res, 200, AVAILABLE));
   try {

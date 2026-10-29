@@ -85,6 +85,34 @@ test('browser login exchanges the callback code and does not leak the token', as
   expect(JSON.stringify(events)).not.toContain('access-token');
 });
 
+test.for([
+  { name: 'with a description', description: 'The user denied access', state: 'valid', message: 'xAI OAuth callback was rejected: access_denied: The user denied access' },
+  { name: 'without a description', description: undefined, state: 'valid', message: 'xAI OAuth callback was rejected: access_denied' },
+  { name: 'before a state check', description: 'x', state: 'wrong', message: 'xAI OAuth callback was rejected: access_denied: x' },
+])('a denied loopback callback reports $name', async ({ description, state, message }) => {
+  const { login, events } = interaction('browser');
+  const pending = loginGrokBuild(login);
+  const failure = pending.then(
+    () => {
+      throw new Error('login resolved');
+    },
+    (error: unknown) => error,
+  );
+  const authorize = new URL(await waitForUrl(events));
+  const redirect = new URL(authorize.searchParams.get('redirect_uri') ?? '');
+  redirect.searchParams.set('error', 'access_denied');
+  if (description !== undefined) redirect.searchParams.set('error_description', description);
+  redirect.searchParams.set('state', state === 'valid' ? (authorize.searchParams.get('state') ?? '') : 'wrong-state');
+  const response = await fetch(redirect);
+  expect(response.status).toBe(200);
+  const page = await response.text();
+  expect(page).toContain('Access denied');
+  expect(page).toContain('Close this window and try again.');
+  const error = await failure;
+  expect(error).toBeInstanceOf(Error);
+  expect((error as Error).message).toBe(message);
+});
+
 test('a pasted redirect URL completes browser login', async () => {
   const calls = tokenFetch(() => TOKEN);
   let pasted = '';
@@ -104,6 +132,31 @@ test('a pasted redirect URL completes browser login', async () => {
   const credential = await pending;
   expect(credential.refresh).toBe('refresh-token');
   expect(calls.at(-1)?.body.get('code')).toBe('pasted-code');
+});
+
+test('a denied pasted redirect URL reports the OAuth error', async () => {
+  let providePaste: (value: string) => void = () => undefined;
+  const paste = new Promise<string>((resolve) => {
+    providePaste = resolve;
+  });
+  const { login, events } = interaction('browser');
+  login.prompt = async (prompt) => (prompt.type === 'select' ? 'browser' : paste);
+  const pending = loginGrokBuild(login);
+  const failure = pending.then(
+    () => {
+      throw new Error('login resolved');
+    },
+    (error: unknown) => error,
+  );
+  const authorize = new URL(await waitForUrl(events));
+  const redirect = new URL(authorize.searchParams.get('redirect_uri') ?? '');
+  redirect.searchParams.set('error', 'access_denied');
+  redirect.searchParams.set('error_description', 'The user denied access');
+  redirect.searchParams.set('state', authorize.searchParams.get('state') ?? '');
+  providePaste(redirect.href);
+  const error = await failure;
+  expect(error).toBeInstanceOf(Error);
+  expect((error as Error).message).toBe('xAI OAuth callback was rejected: access_denied: The user denied access');
 });
 
 test('device login polls until the token endpoint completes', async () => {

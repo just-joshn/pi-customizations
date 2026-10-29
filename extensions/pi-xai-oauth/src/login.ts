@@ -14,6 +14,7 @@ const REFRESH_SKEW_MS = 5 * 60 * 1000;
 const TOKEN_URL = 'https://auth.x.ai/oauth2/token';
 const DEVICE_URL = 'https://auth.x.ai/oauth2/device/code';
 const CALLBACK_PATH = '/callback';
+const CALLBACK_REJECTED = 'xAI OAuth callback was rejected';
 const DEVICE_HOST = 'accounts.x.ai';
 const BROWSER_LIMIT_MS = 15 * 60 * 1000;
 
@@ -211,12 +212,19 @@ function handleCallback(request: IncomingMessage, response: ServerResponse, expe
     response.writeHead(404).end();
     return;
   }
+  const denial = rejectionError(url.searchParams);
+  if (denial !== undefined) {
+    response.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
+    response.end('<!doctype html><title>Access denied</title><h1>Access denied</h1><p>Close this window and try again.</p>');
+    fail(new Error(denial));
+    return;
+  }
   const state = url.searchParams.get('state') ?? '';
   const code = url.searchParams.get('code') ?? '';
   if (!sameSecret(state, expectedState) || code.length === 0) {
     response.writeHead(400, { 'content-type': 'text/html; charset=utf-8' });
     response.end('<!doctype html><title>Sign-in failed</title><p>Sign-in failed. Return to Pi and try again.</p>');
-    fail(new Error('xAI OAuth callback was rejected'));
+    fail(new Error(CALLBACK_REJECTED));
     return;
   }
   response.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
@@ -227,16 +235,26 @@ function handleCallback(request: IncomingMessage, response: ServerResponse, expe
 function parsePastedCode(value: string, expectedState: string): string | undefined {
   const trimmed = value.trim();
   if (trimmed.length === 0) return undefined;
+  let url: URL;
   try {
-    const url = new URL(trimmed);
-    const code = url.searchParams.get('code') ?? '';
-    const state = url.searchParams.get('state') ?? '';
-    if (!sameSecret(state, expectedState) || code.length === 0) throw new Error('xAI OAuth callback was rejected');
-    return code;
-  } catch (error) {
-    if (error instanceof Error && error.message === 'xAI OAuth callback was rejected') throw error;
+    url = new URL(trimmed);
+  } catch {
+    throw new Error('Paste the redirect URL');
   }
-  throw new Error('Paste the redirect URL');
+  const denial = rejectionError(url.searchParams);
+  if (denial !== undefined) throw new Error(denial);
+  const code = url.searchParams.get('code') ?? '';
+  const state = url.searchParams.get('state') ?? '';
+  if (!sameSecret(state, expectedState) || code.length === 0) throw new Error(CALLBACK_REJECTED);
+  return code;
+}
+
+/** RFC 6749 section 4.1.2.1 puts the reason the server refused in these query parameters. */
+function rejectionError(params: URLSearchParams): string | undefined {
+  const error = params.get('error');
+  if (!error) return undefined;
+  const description = params.get('error_description');
+  return `${CALLBACK_REJECTED}: ${error}${description ? `: ${description}` : ''}`;
 }
 
 function sameSecret(left: string, right: string): boolean {
