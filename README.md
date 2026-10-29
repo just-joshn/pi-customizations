@@ -30,7 +30,7 @@ pi install npm:@justjoshn/pi-maintainer
 pi install npm:@justjoshn/pi-rea
 ```
 
-These names exist on npm only after you publish them. From a checkout, run `npm publish --access public` inside each `extensions/<dir>` that you want to publish.
+To release a new version, bump `version` in that package's `package.json`, then run `npm publish --access public` inside its `extensions/<dir>`.
 
 ### Install from git
 
