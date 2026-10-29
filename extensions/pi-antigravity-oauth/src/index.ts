@@ -7,12 +7,15 @@ import { createAntigravityOAuth, GOOGLE_OAUTH, type OAuthEndpoints } from './oau
 import { createCloudCodeStream } from './stream.ts';
 
 export function createAntigravityProvider(oauth: OAuthEndpoints = GOOGLE_OAUTH): Provider {
+  const baseline = baselineModels(oauth.cloudCode);
   return createProvider({
     id: PROVIDER_ID,
     name: 'Google Antigravity',
     baseUrl: oauth.cloudCode,
     auth: { oauth: createAntigravityOAuth(oauth) },
-    models: baselineModels(oauth.cloudCode),
+    models: baseline,
+    // A live model replaces the same-id baseline object, so object identity separates the two.
+    filterModels: (models) => (models.some((model) => !baseline.includes(model)) ? models.filter((model) => !baseline.includes(model)) : models),
     fetchModels: createFetchModels(oauth.cloudCode),
     api: createCloudCodeStream(oauth.cloudCode),
   });

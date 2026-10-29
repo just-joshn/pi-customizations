@@ -18,7 +18,7 @@ Then run `/login` and choose **Sign in with Google (Antigravity)**. Pi opens Goo
 
 Pick a model with `/model` and an effort with Pi's thinking level. `agy` lists one model id per effort, such as `claude-sonnet-5-5-low`, and asks for `--model claude-sonnet-5-5 --effort low`. Pi shows the same split. The model is `claude-sonnet-5-5`, and the thinking levels `low`, `medium`, and `high` choose the effort. A level the model lacks moves to the nearest one it has. Every Antigravity model thinks, so thinking `off` selects the lowest effort.
 
-Before login, Pi lists the agent models from a snapshot in `src/catalog-snapshot.ts`. After login, Pi asks Cloud Code which models the account can use (`fetchAvailableModels`) and adds the ones `agy` offers as agent models. `/antigravity` shows the signed-in email, the project, the subscription tier, and the quota groups that `agy` reads from `retrieveUserQuotaSummary`.
+Before login, Pi lists the agent models from a snapshot in `src/catalog-snapshot.ts`. After login, Pi asks Cloud Code which models the account can use (`fetchAvailableModels`) and lists the ones `agy` offers as agent models, so a snapshot model the account no longer has stops appearing. `/antigravity` shows the signed-in email, the project, the subscription tier, and the quota groups that `agy` reads from `retrieveUserQuotaSummary`.
 
 To keep the package for later sessions, run `pi install npm:@justjoshn/pi-antigravity-oauth`, or `pi install` with the path to this directory.
 
