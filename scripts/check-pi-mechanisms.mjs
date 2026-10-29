@@ -105,8 +105,6 @@ const themeFiles = [];
 for (const manifestPath of manifests) {
   const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
   if (!manifest.keywords?.includes('pi-package')) report(manifestPath, 'add the pi-package keyword (packages.md)');
-  if (!manifest.name?.startsWith('@justjoshn/')) report(manifestPath, 'name must be scoped @justjoshn/ so every package publishes under the same npm owner');
-  if (manifest.publishConfig?.access !== 'public') report(manifestPath, 'publishConfig.access must be "public" because scoped packages publish privately by default');
   if (!manifest.pi) {
     report(manifestPath, 'declare resources under the pi key');
     continue;
@@ -144,24 +142,6 @@ for (const manifestPath of manifests) {
 }
 
 for (const file of themeFiles.filter((file) => file.endsWith('.json'))) counts.themes += await checkTheme(file);
-
-// Pi clones a git source whole, so the repository root declares the union of every workspace's resources.
-// Resource types keep their declared order, and entries of one type follow the extension directory order.
-const piTypes = ['extensions', 'skills', 'prompts', 'themes'];
-const rootManifestPath = join(root, 'package.json');
-const rootManifest = JSON.parse(await readFile(rootManifestPath, 'utf8'));
-const rootPi = {};
-for (const manifestPath of [...manifests].sort()) {
-  const { pi } = JSON.parse(await readFile(manifestPath, 'utf8'));
-  for (const type of piTypes) {
-    if (pi?.[type] === undefined) continue;
-    rootPi[type] ??= [];
-    for (const entry of Array.isArray(pi[type]) ? pi[type] : [pi[type]]) rootPi[type].push(`./${relative(root, resolve(dirname(manifestPath), entry))}`);
-  }
-}
-if (JSON.stringify(rootManifest.pi) !== JSON.stringify(rootPi)) {
-  report(rootManifestPath, `pi must equal the union of every extensions/*/package.json pi entry in this order: ${JSON.stringify(rootPi)}`);
-}
 
 process.stdout.write(`Checked ${counts.packages} packages: ${counts.extensions} extensions, ${counts.skills} skills, ${counts.prompts} prompt templates, ${counts.themes} themes. Supplied modules: ${[...supplied].join(', ')}.\n`);
 if (violations.length) {

@@ -10,7 +10,7 @@ Extensions for [Pi](https://pi.dev), the coding agent by Earendil Works. This re
 | [`extensions/pi-anthropic-oauth`](extensions/pi-anthropic-oauth/README.md) | Lets a Claude Pro or Max subscription answer in Pi through a separate `claude-subscription` provider. |
 | [`extensions/pi-antigravity-oauth`](extensions/pi-antigravity-oauth/README.md) | Restores the `google-antigravity` provider. Signs in with Google OAuth and talks to the Cloud Code Assist API. |
 | [`extensions/pi-xai-oauth`](extensions/pi-xai-oauth/README.md) | Lets a SuperGrok or X Premium subscription answer in Pi through the `grok-build` provider. |
-| [`extensions/pi-maintainer`](extensions/pi-maintainer/README.md) | Aider's edit formats, git integration, repository map, and lint and test loop, rebuilt on Pi's extension API. Declares runtime npm dependencies (`yaml`, `ignore`, `diff-match-patch`), so the workspace install below is required before Pi can load it. |
+| [`extensions/pi-maintainer`](extensions/pi-maintainer/README.md) | Aider's edit formats, git integration, repository map, and lint and test loop, rebuilt on Pi's extension API. Declares runtime npm dependencies (`yaml`, `ignore`, `diff-match-patch`), so a local-path install needs the workspace install below before Pi can load it. |
 | [`extensions/pi-rea`](extensions/pi-rea/README.md) | REA (Reverse Engineer Anything) for Pi: REA's tool contract, its Evidence and session kernel, its workflow skill, and its prompt templates. Declares a runtime npm dependency (`@babel/parser`). |
 
 ## Install
@@ -69,7 +69,7 @@ pi install ./extensions/pi-pstack   # one package
 pi install .                        # or the repository root, for all six
 ```
 
-To update an installed source, run `pi update --extensions`. After `git pull` in a local checkout, run `bun install` again and `/reload` in Pi.
+To update an installed source, run `pi update --extensions`. After `git pull --ff-only` in a local checkout, run `bun install` again and `/reload` in Pi.
 
 The OAuth extensions log you into paid subscriptions and send requests that identify as other clients. Read each extension's README before using one, and use them only with accounts you own.
 
