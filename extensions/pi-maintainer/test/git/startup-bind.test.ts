@@ -8,13 +8,16 @@ import { expect, test } from 'vitest';
 const canon = (path: string) => realpathSync(path);
 
 import { BRANDING } from '../../src/branding.ts';
+import { absRootPath } from '../../src/core/chat-files.ts';
 import type { Host } from '../../src/core/host.ts';
 import { isolatedExec } from '../../src/core/isolated-exec.ts';
+import { admitInitialEditable } from '../../src/edit/startup-input.ts';
+import { createWorkingTree } from '../../src/edit/working-tree.ts';
 import { createGitPolicy } from '../../src/git/policy.ts';
 import { checkGitignore, discoverGitRoot, openSingleRoot, prepareGitRepository, sanityCheckRepo, setupGit } from '../../src/git/startup.ts';
 import { findGitRoot } from '../../src/settings/config-files.ts';
 import { defined } from '../support/defined.ts';
-import { commitFile, initRepo, recordingHost, tempDir } from './support.ts';
+import { commitFile, initRepo, policyIn, recordingHost, tempDir } from './support.ts';
 
 function confirmingHost(answer: boolean | ((question: string) => boolean) = true): Host & {
   readonly outputs: string[];
@@ -83,7 +86,7 @@ test('setupGit offers init outside home, creates ignore patterns without a secon
   expect(homeHost.confirms).toEqual([]);
 });
 
-test('sanityCheckRepo refuses bare, corrupt, and index versions above 2, and accepts detached HEAD', {
+test('sanityCheckRepo refuses bare and corrupt repos and an unreadable index, warns above index version 3, and accepts detached HEAD', {
   meta: {
     aider: [
       'test_sanity_check_repo/test_bare_repository',
@@ -91,6 +94,7 @@ test('sanityCheckRepo refuses bare, corrupt, and index versions above 2, and acc
       'test_sanity_check_repo/test_git_index_version_greater_than_2',
       'test_sanity_check_repo/test_detached_head_state',
     ],
+    evidence: ['ev-git/probe/index-version-3', 'ev-git/probe/index-version-4'],
   },
 }, async () => {
   const bare = await tempDir('git-bare-');
@@ -117,10 +121,28 @@ test('sanityCheckRepo refuses bare, corrupt, and index versions above 2, and acc
   buf.writeUInt32BE(3, 4);
   await writeFile(indexPath, buf);
   const indexHost = recordingHost();
-  expect(await sanityCheckRepo(indexHost, indexed)).toBe(false);
-  expect(indexHost.errors).toContain('Aider only works with git repos with version number 1 or 2.');
-  expect(indexHost.outputs).toContain('You may be able to convert your repo: git update-index --index-version=2');
-  expect(indexHost.outputs).toContain('Or run aider --no-git to proceed without using git.');
+  expect(await sanityCheckRepo(indexHost, indexed)).toBe(true);
+  expect(indexHost.errors).toEqual([]);
+
+  const version4 = await tempDir('git-index4-');
+  await initRepo(version4);
+  await commitFile(version4, 'README.md', '# hi');
+  await git(version4, ['update-index', '--index-version=4']);
+  const version4Host = recordingHost();
+  expect(await sanityCheckRepo(version4Host, version4)).toBe(true);
+  expect(version4Host.errors).toEqual(['Unable to read staged files: Unsupported git index version 4, only 1, 2, and 3 are supported']);
+
+  const unreadable = await tempDir('git-index-refused-');
+  await initRepo(unreadable);
+  const unreadableBase = recordingHost();
+  const unreadableHost = {
+    ...unreadableBase,
+    exec: async (request: Parameters<Host['exec']>[0]) => (request.command === 'git' && request.args[0] === 'ls-files' ? { stdout: '', stderr: 'index version in (1, 2) is required', code: 1, killed: false } : unreadableBase.exec(request)),
+  };
+  expect(await sanityCheckRepo(unreadableHost, unreadable)).toBe(false);
+  expect(unreadableHost.errors).toContain('Aider only works with git repos with version number 1 or 2.');
+  expect(unreadableHost.outputs).toContain('You may be able to convert your repo: git update-index --index-version=2');
+  expect(unreadableHost.outputs).toContain('Or run aider --no-git to proceed without using git.');
 
   const detached = await tempDir('git-detach-');
   await initRepo(detached);
@@ -197,13 +219,14 @@ test('prepareGitRepository disables when git is off or the executable is missing
       commitPrompt: null,
       aiderIgnore: null,
       subtreeOnly: false,
+      addGitignoreFiles: false,
       commitLanguage: null,
     },
   });
   expect(policy.repoRoot()).toBe(canon(root));
 });
 
-test('linked worktrees discover and pass sanity through the same Host.exec path', { meta: { aider: ['ev-git/probe/linked-worktree'] } }, async () => {
+test('linked worktrees discover and pass sanity through the same Host.exec path', { meta: { evidence: ['ev-git/probe/linked-worktree'] } }, async () => {
   const main = await tempDir('git-wt-main-');
   await initRepo(main);
   await commitFile(main, 'tracked.txt', 'ok');
@@ -230,8 +253,61 @@ test('linked worktrees discover and pass sanity through the same Host.exec path'
       commitPrompt: null,
       aiderIgnore: null,
       subtreeOnly: false,
+      addGitignoreFiles: false,
       commitLanguage: null,
     },
   });
   expect(await policy.trackedFiles()).toContain('tracked.txt');
+});
+
+test('repository discovery accepts a missing path and an outside file, and rejects two repositories', {
+  meta: { evidence: ['ev-git/probe/repository-discovery'] },
+}, async () => {
+  const root = await tempDir('git-discovery-');
+  await initRepo(root);
+  await commitFile(root, 'a.txt', 'a\n');
+  const outsider = await tempDir('git-discovery-outside-');
+  await writeFile(join(outsider, 'outside.txt'), 'o\n');
+  const host = recordingHost();
+  expect(await openSingleRoot(host, [join(root, 'missing.txt'), join(outsider, 'outside.txt')])).toEqual({ kind: 'ok', root: canon(root) });
+
+  const second = await tempDir('git-discovery-second-');
+  await initRepo(second);
+  await commitFile(second, 'a.txt', 'a\n');
+  expect(await openSingleRoot(host, [join(root, 'a.txt'), join(second, 'a.txt')])).toEqual({ kind: 'multiple' });
+});
+
+test('a repository directory plus an outside file path resolves to the single repository root', {
+  meta: { aider: ['test_main/TestMain.test_main_with_dname_and_fname'] },
+}, async () => {
+  const parent = await tempDir('git-dname-');
+  const subdir = join(parent, 'subdir');
+  await mkdir(subdir, { recursive: true });
+  await initRepo(subdir);
+  await commitFile(subdir, 'a.txt', 'a\n');
+  await writeFile(join(parent, 'foo.txt'), 'f\n');
+  const host = recordingHost();
+  expect(await openSingleRoot(host, [subdir, join(parent, 'foo.txt')])).toEqual({ kind: 'ok', root: canon(subdir) });
+});
+
+test('two new files in an empty repository are created and admitted together', {
+  meta: { aider: ['test_main/TestMain.test_main_with_empty_git_dir_new_files'] },
+}, async () => {
+  const root = await tempDir('git-empty-new-files-');
+  await initRepo(root);
+  const host = recordingHost();
+  const tree = createWorkingTree({ notices: host });
+  const git = policyIn(root, host);
+  const admitted = await admitInitialEditable(['foo.txt', 'bar.txt'], {
+    cwd: root,
+    tree,
+    host,
+    allowCreation: true,
+    isGitIgnored: (path) => git.isGitIgnored(path),
+    addGitignoreFiles: false,
+  });
+  expect(admitted).toEqual([absRootPath(root, 'foo.txt'), absRootPath(root, 'bar.txt')]);
+  expect(await tree.exists(absRootPath(root, 'foo.txt'))).toBe(true);
+  expect(await tree.exists(absRootPath(root, 'bar.txt'))).toBe(true);
+  expect(host.outputs).toEqual(['Creating empty file foo.txt', 'Creating empty file bar.txt']);
 });

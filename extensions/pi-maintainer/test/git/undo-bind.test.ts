@@ -1,4 +1,4 @@
-import { writeFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 import { expect, test } from 'vitest';
@@ -43,7 +43,12 @@ test('undo refuses when a changed file is dirty after the session commit', { met
   });
 });
 
-test('undo checks out files from the parent, soft-resets, and reports Removed', { meta: { aider: ['test_commands/TestCommands.test_cmd_undo_with_newly_committed_file'] } }, async () => {
+test('undo checks out files from the parent, soft-resets, and reports Removed', {
+  meta: {
+    aider: ['test_commands/TestCommands.test_cmd_undo_with_newly_committed_file'],
+    evidence: ['ev-git/probe/undo-preserves-unrelated-dirt'],
+  },
+}, async () => {
   const root = await tempDir('git-undo-ok-');
   const host = recordingHost();
   await initRepo(root);
@@ -62,6 +67,7 @@ test('undo checks out files from the parent, soft-resets, and reports Removed', 
   const committed = await git.autoCommit(new Set(['a.txt']), { kind: 'conversation', text: 'change' });
   expect(committed.kind).toBe('committed');
   if (committed.kind !== 'committed') throw new Error('expected commit');
+  await writeFile(join(root, 'unrelated.txt'), 'unrelated dirty\n');
   const undone = await git.undo();
   expect(undone).toMatchObject({
     kind: 'removed',
@@ -73,4 +79,40 @@ test('undo checks out files from the parent, soft-resets, and reports Removed', 
   const env = Object.fromEntries(Object.entries(process.env).filter((entry): entry is [string, string] => entry[1] !== undefined));
   const head = await isolatedExec({ command: 'git', args: ['show', 'HEAD:a.txt'], cwd: root }, env);
   expect(head.stdout).toBe('a\n');
+  expect(await readFile(join(root, 'unrelated.txt'), 'utf8')).toBe('unrelated dirty\n');
+});
+
+test('undo refuses a session commit that added a file', {
+  meta: { evidence: ['ev-git/probe/undo-refuses-added-file'] },
+}, async () => {
+  const root = await tempDir('git-undo-added-');
+  const host = recordingHost();
+  await initRepo(root);
+  await commitFile(root, 'a.txt', 'a\n', 'first');
+  await writeFile(join(root, 'new.txt'), 'added\n');
+  const hashes = new Set<string>();
+  const git = policyIn(root, host, {}, { sessionCommitHashes: hashes, generateCommitMessage: async () => 'feat: add file' });
+  expect(await git.autoCommit(new Set(['new.txt']), { kind: 'conversation', text: 'add' })).toMatchObject({ kind: 'committed' });
+  const env = Object.fromEntries(Object.entries(process.env).filter((entry): entry is [string, string] => entry[1] !== undefined));
+  const before = (await isolatedExec({ command: 'git', args: ['rev-parse', 'HEAD'], cwd: root }, env)).stdout.trim();
+  expect(await git.undo()).toEqual({ kind: 'refused', message: 'The file new.txt was not in the repository in the previous commit. Cannot undo safely.' });
+  expect((await isolatedExec({ command: 'git', args: ['rev-parse', 'HEAD'], cwd: root }, env)).stdout.trim()).toBe(before);
+});
+
+test('undo refuses when the local origin branch reference equals HEAD', {
+  meta: { evidence: ['ev-git/probe/undo-remote-tracking-equality-guard'] },
+}, async () => {
+  const root = await tempDir('git-undo-origin-');
+  const host = recordingHost();
+  await initRepo(root);
+  await commitFile(root, 'a.txt', 'a\n', 'first');
+  await writeFile(join(root, 'a.txt'), 'b\n');
+  const git = policyIn(root, host, {}, { sessionCommitHashes: new Set<string>(), generateCommitMessage: async () => 'feat: bump a' });
+  expect(await git.autoCommit(new Set(['a.txt']), { kind: 'conversation', text: 'change' })).toMatchObject({ kind: 'committed' });
+  const env = Object.fromEntries(Object.entries(process.env).filter((entry): entry is [string, string] => entry[1] !== undefined));
+  const branch = (await isolatedExec({ command: 'git', args: ['rev-parse', '--abbrev-ref', 'HEAD'], cwd: root }, env)).stdout.trim();
+  const head = (await isolatedExec({ command: 'git', args: ['rev-parse', 'HEAD'], cwd: root }, env)).stdout.trim();
+  await isolatedExec({ command: 'git', args: ['update-ref', `refs/remotes/origin/${branch}`, head], cwd: root }, env);
+  expect(await git.undo()).toEqual({ kind: 'refused', message: 'The last commit has already been pushed to the origin. Undoing is not possible.' });
+  expect((await isolatedExec({ command: 'git', args: ['rev-parse', 'HEAD'], cwd: root }, env)).stdout.trim()).toBe(head);
 });

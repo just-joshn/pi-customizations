@@ -12,12 +12,12 @@ export interface InspectApkSignatureParams {
   readonly view?: Record<string, unknown>;
 }
 
-export const inspectApkSignature = async (
-  session: ReaSession,
-  params: InspectApkSignatureParams,
-  context: ToolCallContext = {},
-): Promise<AgentToolResult<unknown>> => {
-  const { record: inspection, path, resolvedPath } = await inspectApkSignatureFromPath(params.path, {
+export const inspectApkSignature = async (session: ReaSession, params: InspectApkSignatureParams, context: ToolCallContext = {}): Promise<AgentToolResult<unknown>> => {
+  const {
+    record: inspection,
+    path,
+    resolvedPath,
+  } = await inspectApkSignatureFromPath(params.path, {
     ...(context.cwd === undefined ? {} : { cwd: context.cwd }),
   });
   const { limitations, ...normalized } = inspection;

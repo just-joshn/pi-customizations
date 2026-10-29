@@ -8,8 +8,8 @@ import { fileURLToPath } from 'node:url';
 
 // Pi supplies extensions with only the pi-ai root, compat, oauth, and
 // providers/all entry points. The Cloud Code stream needs Pi's internal Google
-// conversion modules, so this copies their TypeScript sources out of the pinned
-// devDependency's source maps. Import rewrites, the reviewed strict-policy patch,
+// conversion modules, so this copies their TypeScript sources out of the Pi
+// host's pi-ai source maps. Import rewrites, the reviewed strict-policy patch,
 // and root formatting are applied reproducibly before integrity comparison.
 const root = fileURLToPath(new URL('..', import.meta.url));
 // The package manager may link the Pi install instead of copying it. Resolving
@@ -66,6 +66,20 @@ function genaiPackageRoot(piAiManifest) {
   return directory;
 }
 
+// Pi aliases @earendil-works/pi-ai to the copy its own install ships, so the
+// copy this package vendors is only correct for the version the installed Pi
+// host loads. The host pins that version exactly, so compare it with the pi-ai
+// devDependency and reject a mismatch.
+async function piHostAiVersion() {
+  const manifestPath = join(root, 'node_modules/@earendil-works/pi-coding-agent/package.json');
+  const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
+  const declared = manifest.dependencies?.['@earendil-works/pi-ai'];
+  if (!/^\d+\.\d+\.\d+$/.test(declared)) {
+    throw new Error(`${manifestPath} does not pin @earendil-works/pi-ai to an exact version.`);
+  }
+  return declared;
+}
+
 async function vendored(source, piAiVersion) {
   const map = JSON.parse(await readFile(join(piAi, 'dist', `${source}.js.map`), 'utf8'));
   const text = map.sourcesContent[0].replace(/(from |import\()"([^"]+)"/g, (match, prefix, specifier) => {
@@ -117,6 +131,10 @@ async function adaptedModules(original) {
 }
 
 const piAiVersion = await version(piAi);
+const hostAiVersion = await piHostAiVersion();
+if (hostAiVersion !== piAiVersion) {
+  throw new Error(`Vendored @earendil-works/pi-ai ${piAiVersion} differs from the ${hostAiVersion} the installed Pi host loads. Align the pi-ai and pi-coding-agent devDependencies before vendoring.`);
+}
 const original = new Map([['genai.ts', await genaiShim()]]);
 for (const source of sources) original.set(`${source.split('/').at(-1)}.ts`, await vendored(source, piAiVersion));
 const expected = await adaptedModules(original);

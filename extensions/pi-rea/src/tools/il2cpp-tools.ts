@@ -14,12 +14,12 @@ export interface InspectIl2CppMetadataParams {
   readonly generic_instances?: boolean;
 }
 
-export const inspectIl2CppMetadata = async (
-  session: ReaSession,
-  params: InspectIl2CppMetadataParams,
-  context: ToolCallContext = {},
-): Promise<AgentToolResult<unknown>> => {
-  const { record: inspection, path, resolvedPath } = await inspectIl2CppMetadataFromPath(params.path, {
+export const inspectIl2CppMetadata = async (session: ReaSession, params: InspectIl2CppMetadataParams, context: ToolCallContext = {}): Promise<AgentToolResult<unknown>> => {
+  const {
+    record: inspection,
+    path,
+    resolvedPath,
+  } = await inspectIl2CppMetadataFromPath(params.path, {
     ...(params.binary_path === undefined ? {} : { binaryPath: params.binary_path }),
     ...(params.binary_architecture === undefined ? {} : { binaryArchitecture: params.binary_architecture }),
     ...(params.generic_instances === undefined ? {} : { genericInstances: params.generic_instances }),

@@ -1,5 +1,5 @@
 import { EDIT_FORMAT_NAMES } from '../feature.ts';
-import { booleanOption, listOption, stringOption, tristateOption } from '../settings/spec.ts';
+import { booleanOption, intOption, listOption, stringOption, tristateOption } from '../settings/spec.ts';
 
 /** The edit SAR's options from `aider/args.py`, with Aider's defaults and help text. */
 export const editOptions = {
@@ -13,6 +13,18 @@ export const editOptions = {
     sar: 'edit',
   }),
   autoAcceptArchitect: booleanOption({ name: 'auto-accept-architect', defaultValue: true, negatable: true, help: 'Enable/disable automatic acceptance of architect changes (default: True)', sar: 'edit' }),
+  weakModel: stringOption({
+    name: 'weak-model',
+    defaultValue: null,
+    help: 'Specify the model to use for commit messages and chat history summarization (default depends on --model)',
+    sar: 'edit',
+  }),
+  maxChatHistoryTokens: intOption({
+    name: 'max-chat-history-tokens',
+    defaultValue: null,
+    help: "Soft limit on tokens for chat history, after which summarization begins. If unspecified, defaults to the model's max_chat_history_tokens.",
+    sar: 'edit',
+  }),
   editorModel: stringOption({ name: 'editor-model', defaultValue: null, help: 'Specify the model to use for editor tasks (default depends on --model)', sar: 'edit' }),
   editorEditFormat: stringOption({ name: 'editor-edit-format', defaultValue: null, choices: EDIT_FORMAT_NAMES, help: 'Specify the edit format for the editor model (default: depends on editor model)', sar: 'edit' }),
   yesAlways: tristateOption({ name: 'yes-always', negatable: false, help: 'Always say yes to every confirmation', sar: 'edit' }),

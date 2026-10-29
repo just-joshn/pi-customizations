@@ -1505,6 +1505,6 @@
   },
   "meta": {
     "command": "inspect-macho",
-    "duration": "1151ms"
+    "duration": "1123ms"
   }
 }

@@ -1,9 +1,5 @@
 import type { AgentToolResult } from '@earendil-works/pi-coding-agent';
-import {
-  decodeInterfaceBuilderInBundle,
-  INTERFACE_BUILDER_ENVELOPE_LIMITATIONS,
-  INTERFACE_BUILDER_RESULT_LIMITATIONS,
-} from '../analysis/interface-builder.ts';
+import { decodeInterfaceBuilderInBundle, INTERFACE_BUILDER_ENVELOPE_LIMITATIONS, INTERFACE_BUILDER_RESULT_LIMITATIONS } from '../analysis/interface-builder.ts';
 import { targetUnavailable } from '../contract/errors.ts';
 import { evidenceResult } from '../contract/results.ts';
 import type { ReaSession } from '../session/binary-session.ts';
@@ -17,10 +13,7 @@ export interface DecodeInterfaceBuilderParams {
   readonly detail?: 'complete' | 'summary';
 }
 
-export const decodeInterfaceBuilder = async (
-  session: ReaSession,
-  params: DecodeInterfaceBuilderParams = {},
-): Promise<AgentToolResult<unknown>> => {
+export const decodeInterfaceBuilder = async (session: ReaSession, params: DecodeInterfaceBuilderParams = {}): Promise<AgentToolResult<unknown>> => {
   const bundle = session.bundleResources;
   const appPath = bundle?.canonicalPath ?? (session.target?.identity.format === 'app' ? session.target.identity.path : undefined);
   if (appPath === undefined || bundle === undefined) {

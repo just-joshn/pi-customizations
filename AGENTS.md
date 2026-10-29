@@ -1,17 +1,16 @@
 # AGENTS.md
 
-# Karpathy Coding Guidelines
+Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
 
-Behavioral guidelines to reduce common LLM coding mistakes, derived from Andrej Karpathy's observations on LLM coding pitfalls. These principles bias toward caution over speed — for trivial tasks, use judgment.
+**Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
 
 ## 1. Think Before Coding
 
 **Don't assume. Don't hide confusion. Surface tradeoffs.**
 
 Before implementing:
-
 - State your assumptions explicitly. If uncertain, ask.
-- If multiple interpretations exist, present them — don't pick silently.
+- If multiple interpretations exist, present them - don't pick silently.
 - If a simpler approach exists, say so. Push back when warranted.
 - If something is unclear, stop. Name what's confusing. Ask.
 
@@ -32,14 +31,12 @@ Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, sim
 **Touch only what you must. Clean up only your own mess.**
 
 When editing existing code:
-
 - Don't "improve" adjacent code, comments, or formatting.
 - Don't refactor things that aren't broken.
 - Match existing style, even if you'd do it differently.
-- If you notice unrelated dead code, mention it — don't delete it.
+- If you notice unrelated dead code, mention it - don't delete it.
 
 When your changes create orphans:
-
 - Remove imports/variables/functions that YOUR changes made unused.
 - Don't remove pre-existing dead code unless asked.
 
@@ -50,13 +47,11 @@ The test: Every changed line should trace directly to the user's request.
 **Define success criteria. Loop until verified.**
 
 Transform tasks into verifiable goals:
-
 - "Add validation" → "Write tests for invalid inputs, then make them pass"
 - "Fix the bug" → "Write a test that reproduces it, then make it pass"
 - "Refactor X" → "Ensure tests pass before and after"
 
 For multi-step tasks, state a brief plan:
-
 ```
 1. [Step] → verify: [check]
 2. [Step] → verify: [check]
@@ -65,281 +60,90 @@ For multi-step tasks, state a brief plan:
 
 Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
 
-# Performance Rules
+---
 
-## Context Window Management
+**These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
+## 5. Vitest
 
-Avoid last 20% of context window for:
+These rules cover the Vitest suites under `extensions/*/test`. They restate the official Vitest 5 guide (vitest.dev, `docs/guide` at tag `v5.0.5`) for this repository: Node-only Pi extensions and CLI scripts, `environment: 'node'`, `globals: false`, `pool: 'forks'`, `isolate: true`, V8 coverage. Browser mode and DOM environments do not apply here.
 
-- Large-scale refactoring
-- Feature implementation spanning multiple files
-- Debugging complex interactions
+Run tests with each package's own scripts (`bun run test`, `bun run test:coverage`), or `bun run test` at the root for every workspace. A package's `test` script runs `vitest run`, never watch mode. `bun run check:tests` enforces the rules below that a static scan can decide. Follow the existing conventions: `test` rather than `it`, explicit imports from `vitest`, `*.test.ts` files in each package's `test/` directory.
 
-## Algorithm Efficiency
+### What to test
 
-Before implementing:
+- Test what callers can observe: return values, thrown errors, side effects, and output. Do not assert private helpers, intermediate variables, or which internal options were passed.
+- Keep each test on one behavior. Name it after that behavior, such as "rejects an expired token", never "works correctly".
+- Cover the main behavior, then boundaries, error paths, and the inputs the code realistically receives. Do not chase every possible input.
+- Fix a bug by first writing a test that fails because of it, then changing the code. Never make a failing test pass by weakening the test.
+- Do not depend on test order, generated IDs, shared module-level counters, or wall-clock timing.
 
-- [ ] Consider time complexity
-- [ ] Avoid O(n^2) when O(n log n) possible
-- [ ] Use appropriate data structures
-- [ ] Cache expensive computations
+### Structure
 
-# Coding Style Rules
+- Use Arrange, Act, Assert. Section comments are not needed.
+- Keep `describe` nesting to one or two levels. Drop `describe` when it adds no context.
+- Use `test.for` for parameterized cases, not Jest-style `test.each`. Use named case objects once a case has more than two or three values.
+- Never commit `.only`. Use `.skip`, `.skipIf`, and `.todo` only when the reason is visible to the next reader.
+- Use Vitest APIs (`vi.fn`, `vi.mock`), never Jest names (`jest.fn`, `jest.mock`).
 
-## Immutability (CRITICAL)
+### Isolation and setup
 
-ALWAYS create new objects, NEVER mutate:
+- Every test must pass alone and in any order. Create fresh mutable state per test.
+- Prefer `test.extend` fixtures for reusable setup and teardown over `let` variables shared through hooks. Keep fixtures test-scoped unless sharing is intended.
+- Use `beforeEach`/`afterEach` for per-test work and `beforeAll`/`afterAll` only for resources that are deliberately shared. Scope hooks to the smallest `describe`.
+- Put cleanup next to the resource it releases with `onTestFinished`. Use `using` with `vi.spyOn`, `vi.fn`, or `vi.doMock` when a spy should be restored at the end of a block (Node 24+ or a TypeScript target that supports explicit resource management).
+- Restore every process-wide change: environment variables (`vi.stubEnv` plus `vi.unstubAllEnvs`), globals (`vi.stubGlobal` plus `vi.unstubAllGlobals`), fake timers, temp directories, servers, child processes, and `process` listeners.
+- Keep `isolate: true`. Turning isolation off is only safe for files that do not mutate module-level state, stub globals or env, patch prototypes, register long-lived listeners, or need a fresh module for `vi.mock`. Prove it by running with `--sequence.shuffle` more than once.
 
-```javascript
-// WRONG: Mutation
-function updateUser(user, name) {
-  user.name = name  // MUTATION!
-  return user
-}
+### Async work
 
-// CORRECT: Immutability
-function updateUser(user, name) {
-  return { ...user, name }
-}
-```
+- Write async tests with `async`/`await`. Always `await` `expect(...).resolves` and `expect(...).rejects`. Vitest fails a test that leaves an assertion unawaited.
+- Await every promise the test starts. An unhandled rejection fails the run. Do not silence it.
+- Add `expect.hasAssertions()` or `expect.assertions(n)` only where assertions sit inside callbacks, loops, or branches that might not run.
+- Pass the test context `signal` to `fetch`, `spawn`, timers, and any helper that takes an `AbortSignal`, so a timed-out or cancelled test releases its work.
+- Never wait with a fixed `setTimeout` sleep. Use `expect.poll` when the condition is an assertion, `vi.waitFor` when the work itself throws until ready, and `vi.waitUntil` when a lookup may be falsy and a throw should fail fast.
+- When the code depends on time, use `vi.useFakeTimers()`, advance time explicitly, and call `vi.useRealTimers()` afterwards.
+- Raise a timeout only for work that is genuinely slow, never to hide an unresolved promise.
 
-## File Organization
+### Assertions
 
-MANY SMALL FILES > FEW LARGE FILES:
+- Pick the matcher that states the requirement: `toBe` for primitives and identity, `toEqual` for structure, `toStrictEqual` when `undefined` keys, classes, or sparse arrays matter, `toBeCloseTo` for floats.
+- Use `toMatchObject`, `toHaveProperty`, and asymmetric matchers (`expect.any`, `expect.objectContaining`, `expect.stringMatching`) when only part of a value is the contract.
+- Every test makes at least one assertion. A weak matcher (`toBeDefined`, `toBeTruthy`, `toBeFalsy`, `not.toThrow`, `toHaveBeenCalled`, `toBeGreaterThan(0)`) is never a test's only check. Assert the value the code produces.
+- Assert exact values: `toBe(true)` and `toBe(false)`, not `toBeTruthy()` and `toBeFalsy()`.
+- Wrap the call in a function for `toThrow`: `expect(() => parse(input)).toThrow(/expected/)`.
+- Use `expect.soft` only for independent checks where seeing every failure helps.
+- `mock.calls` holds references, not copies. Assert before the argument is mutated, or copy it first.
 
-- High cohesion, low coupling
-- 200-400 lines typical, 800 max
-- Extract utilities from large components
-- Organize by feature/domain, not by type
+### Mocking
 
-## Error Handling
+- Prefer real implementations when they are fast and deterministic: pure functions, in-memory structures, temp directories.
+- Never mock the unit under test. Mock its boundaries: network, the Pi host, the clock, child processes.
+- Use `vi.fn()` for new functions and `vi.spyOn()` to observe or replace an existing method. Use `mockResolvedValue` and `mockRejectedValue` for async results, and `vi.when()` when the result depends on the arguments.
+- Write module mocks as `vi.mock(import('./module.js'), factory)` so TypeScript checks the path and types `importOriginal`. Remember `vi.mock` is hoisted above imports; values its factory needs must come from `vi.hoisted`.
+- `clearMocks` defaults to `true` in Vitest 5, so call history resets before each test. Implementations are not reset and spies are not restored unless `restoreMocks` is enabled or the test restores them. Do not enable `restoreMocks`, `unstubEnvs`, or `unstubGlobals` globally for files that use `test.concurrent`; each one undoes state for tests still running.
+- For HTTP, use the package's existing approach (a fake fetch or a local server). If a new suite needs network mocking, Vitest recommends Mock Service Worker over hand-written fetch stubs. For heavy file-system mocking, Vitest recommends `memfs`; a real temp directory is usually simpler here.
 
-ALWAYS handle errors comprehensively:
+### Snapshots
 
-```typescript
-try {
-  const result = await riskyOperation()
-  return result
-} catch (error) {
-  console.error('Operation failed:', error)
-  throw new Error('User-friendly error message')
-}
-```
+- Snapshot only stable output where the whole shape matters. Use targeted assertions when a few fields matter.
+- Prefer `toMatchInlineSnapshot` for small values and `toMatchSnapshot` or `toMatchFileSnapshot` for large ones.
+- Replace IDs, timestamps, and absolute paths with property matchers or normalization before snapshotting.
+- Read every snapshot diff before running with `-u`. Commit `.snap` files with the test.
+- In `test.concurrent` tests, use the `expect` from the test context so snapshots attach to the right test.
 
-## Input Validation
+### Parallelism and performance
 
-ALWAYS validate user input:
+- Tests inside a file run sequentially by default. Use `test.concurrent` only for independent tests that spend time waiting.
+- Keep file parallelism on. Serialize only the files that share an exclusive resource, through a separate project with `fileParallelism: false`, not by turning it off for the whole package.
+- Do not change `pool`, `isolate`, or worker counts because a suite feels slow. Measure first: read the transform, import, and tests timings Vitest prints, profile with `execArgv: ['--cpu-prof']`, or compare configurations with `vitest doctor`.
 
-```typescript
-import { z } from 'zod';
+### Coverage and types
 
-const schema = z.object({
-    email: z.string().email(),
-    age: z.number().int().min(0).max(150)
-});
+- Use the V8 provider and keep `coverage.include` pointed at `src/**/*.ts` so untested files appear in the report. Keep each package's existing thresholds; do not invent new ones.
+- Vitest strips types without checking them. Run the package's `bun run typecheck` when types matter.
+- When a type is the contract, test it with `expectTypeOf` or `assertType` in a `*.test-d.ts` file run with `vitest --typecheck`.
 
-const validated = schema.parse(input);
-```
+### Before you finish
 
-## Code Quality Checklist
-
-Before marking work complete:
-
-- [ ] Code is readable and well-named
-- [ ] Functions are small (<50 lines)
-- [ ] Files are focused (<800 lines)
-- [ ] No deep nesting (>4 levels)
-- [ ] Proper error handling
-- [ ] No console.log statements
-- [ ] No hardcoded values
-- [ ] Immutable patterns used
-
-# Testing Rules
-
-## Minimum Test Coverage: 80%
-
-Test Types (ALL required):
-
-1. **Unit Tests** - Individual functions, utilities, components
-
-## Test-Driven Development
-
-MANDATORY workflow:
-
-1. Write test first (RED)
-2. Run test - it should FAIL
-3. Write minimal implementation (GREEN)
-4. Run test - it should PASS
-5. Refactor (IMPROVE)
-6. Verify coverage (80%+)
-
-## Edge Cases to Test
-
-Every function must be tested with:
-
-- [ ] Null/undefined inputs
-- [ ] Empty arrays/strings
-- [ ] Invalid types
-- [ ] Boundary values (min/max)
-- [ ] Error conditions
-
-## Test Quality Checklist
-
-- [ ] Tests are independent (no shared state)
-- [ ] Test names describe behavior
-- [ ] Mocks used for external dependencies
-- [ ] Both happy path and error paths tested
-- [ ] No flaky tests
-
-# Security Rules
-
-## Mandatory Security Checks
-
-Before ANY commit:
-
-- [ ] No hardcoded secrets (API keys, passwords, tokens)
-- [ ] All user inputs validated
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] XSS prevention (sanitized HTML)
-- [ ] CSRF protection enabled
-- [ ] Authentication/authorization verified
-- [ ] Rate limiting on all endpoints
-- [ ] Error messages don't leak sensitive data
-
-## Secret Management
-
-```typescript
-// NEVER: Hardcoded secrets
-const apiKey = "sk-proj-xxxxx"
-
-// ALWAYS: Environment variables
-const apiKey = process.env.API_KEY
-if (!apiKey) throw new Error('API_KEY not configured')
-```
-
-## Security Response Protocol
-
-If security issue found:
-
-1. STOP immediately
-2. Fix CRITICAL issues before continuing
-3. Rotate any exposed secrets
-4. Review entire codebase for similar issues
-
-# Vitest Unit Test Best Practices
-
-## Scope
-
-These instructions govern Vitest unit tests under this directory. Follow a nearer `AGENTS.md` or `AGENTS.override.md` when it provides more specific rules.
-
-Use the current stable Vitest documentation as the source of truth for Vitest APIs and configuration. Follow the repository's existing package manager, test scripts, file layout, and `test` versus `it` convention. Do not invent project commands or change those conventions just to satisfy this file.
-
-## Test behavior, not implementation
-
-- Test the contract visible to callers: inputs, outputs, side effects, and errors.
-- Do not assert private implementation details when the same behavior can be verified through the public contract.
-- Keep each test focused on one behavior. Split tests whose names naturally describe several independent behaviors.
-- Name tests after observable behavior, not internal methods or branches.
-- Cover the main behavior first, then meaningful boundaries, error cases, and unusual valid inputs.
-- When fixing a bug, add a regression test that reproduces the failure and passes with the fix.
-- Prefer stable assertions over assumptions about incidental global state, generated IDs, test order, or execution timing.
-
-## Structure tests for readability
-
-- Use Arrange, Act, Assert as the natural test flow. Add section comments only when they improve readability.
-- Keep `describe` nesting shallow. Omit `describe` when grouping adds no useful context.
-- Split very large test files by behavior or feature rather than building deeply nested suites.
-- Prefer `test.for` over Jest-compatible `test.each` in new parameterized tests.
-- Prefer named case objects when parameterized cases contain enough positional values to become hard to read.
-- Use `.only` only while developing locally. Never leave focused tests in the finished change.
-- Use `.skip` and `.todo` only when the skipped or unfinished behavior is intentional and visible to maintainers.
-
-## Keep tests independent
-
-- Each test must be able to run by itself and in any order.
-- Create fresh mutable state for each test unless sharing is an explicit part of the test design.
-- Use `beforeEach` and `afterEach` for per-test setup and cleanup.
-- Use `beforeAll` and `afterAll` only for resources intentionally shared across the suite.
-- Scope hooks to the smallest relevant suite.
-- Prefer `test.extend` fixtures for reusable setup and cleanup instead of coordinating shared mutable `let` variables through hooks.
-- Keep fixtures test-scoped by default. Use broader scopes only when the resource is intentionally shared.
-- Use `onTestFinished` when cleanup belongs next to the resource created inside the test.
-- Clean up stubbed globals, environment variables, timers, servers, files, and other process-wide state.
-
-## Test asynchronous code explicitly
-
-- Prefer `async` and `await` for asynchronous tests.
-- Await promise assertions such as `resolves` and `rejects`.
-- Await all asynchronous work that must finish before the test completes.
-- Use `expect.hasAssertions()` or `expect.assertions(n)` when callbacks, loops, branches, or promise chains could allow the test to finish without executing the intended assertions.
-- Do not add assertion counting to straightforward tests that already use direct awaited assertions.
-- Treat unhandled promise rejections as failures. Do not suppress them unless the rejection is intentional and handled by the test.
-- Increase a timeout only when the operation is legitimately slow. Do not use larger timeouts to hide unfinished asynchronous work.
-- Use fake timers when time is the dependency. Advance time explicitly and restore real timers after the test.
-
-## Use precise assertions
-
-- Choose the matcher that expresses the requirement most directly.
-- Use `toBe` for primitive equality or reference identity.
-- Use `toEqual` for structural equality.
-- Use `toStrictEqual` when prototypes, types, sparse arrays, or explicit `undefined` values are part of the contract.
-- Use `toBeCloseTo` for floating-point calculations.
-- Prefer `toBeDefined` or another specific matcher over broad truthiness when the exact condition matters.
-- Use `toMatchObject` or `toHaveProperty` when only part of an object is contractual.
-- Pass a function to `toThrow` so Vitest can capture the thrown error.
-- Use `expect.soft` only when the assertions are independent and collecting several failures is useful.
-
-## Mock only at real boundaries
-
-- Prefer real implementations when they are fast, deterministic, and safe.
-- Mock dependencies around the subject under test. Do not mock the behavior the test is supposed to verify.
-- Use `vi.fn()` to create a mock function.
-- Use `vi.spyOn()` to observe or temporarily replace an existing method.
-- Use `mockResolvedValue` and `mockRejectedValue` for asynchronous mocks.
-- Use `vi.when()` when mock behavior depends on arguments instead of writing substantial argument-routing logic inside `mockImplementation`.
-- For module mocks, use `vi.mock(import('./module.js'), factory)`, not a plain string module path.
-- Remember that `vi.mock` is hoisted. Do not write module-mock setup that depends on normal source-order execution.
-- Keep mock state from leaking between tests. Preserve the repository's cleanup configuration unless a change is required.
-- Prefer global `restoreMocks: true` over repetitive `afterEach(() => vi.restoreAllMocks())` when the suite is sequential and the repository wants automatic spy restoration.
-- Do not rely on global mock cleanup for async concurrent tests without checking for races. Automatic clear or restore operations can affect another test that is still running.
-- Remember that `mock.calls` stores argument references, not snapshots. Assert before later mutation or capture the value explicitly when call-time state matters.
-- For request mocking, use the repository's existing request-mocking approach. If choosing a Vitest-recommended approach for a new setup, use Mock Service Worker rather than handwritten network stubs.
-
-## Keep snapshots intentional
-
-- Use snapshots for stable, structured output when protecting the whole output is useful.
-- Prefer targeted assertions when only a few fields or properties matter.
-- Prefer inline snapshots for small focused values. Use external or file snapshots when the output is large enough that inline data hurts readability.
-- Use snapshot property matchers for dynamic values such as IDs and timestamps.
-- Review snapshot diffs before updating them. Never update snapshots only to make a failing test pass.
-- Commit snapshot files that are part of the test contract.
-- In concurrent snapshot tests, use the test-context `expect` so Vitest associates the snapshot with the correct test.
-
-## Preserve safe parallelism and isolation
-
-- Keep tests within a file sequential unless they are genuinely independent.
-- Use `test.concurrent` for independent tests when concurrency provides a real benefit, especially for asynchronous waiting.
-- Opt tests out of inherited concurrency when they use a shared resource that cannot overlap safely.
-- Keep file parallelism enabled unless an external shared resource requires serialization.
-- Do not disable parallelism globally to solve a problem that belongs to a small subset of tests. Isolate those tests or use a dedicated project when possible.
-- Keep test-file isolation enabled unless the suite is proven safe to share a module graph.
-- Before setting `isolate: false`, verify that affected tests do not mutate module-level state, stub globals or environment variables, patch prototypes, register long-lived process listeners, or require fresh module evaluation for mocks.
-- If isolation is disabled for a unit-test project, run the suite with shuffling more than once to check for order-dependent state leaks.
-- Do not change pools, worker counts, isolation, or parallelism only because a suite feels slow. Measure first. Use Vitest performance tooling such as `vitest doctor` when investigating runner performance.
-
-## Coverage, environments, and TypeScript
-
-- Use the V8 coverage provider unless the runtime or project requirements call for another provider. V8 is Vitest's default and recommended provider on supported V8 runtimes.
-- Configure coverage to include untested source files when those files must appear in coverage results.
-- Do not introduce an arbitrary coverage percentage as a Vitest requirement. Follow the repository's documented thresholds.
-- Use the test environment that matches the APIs under test. Keep Node tests in `node`; use a DOM-capable environment only when the code requires DOM APIs.
-- A normal Vitest run transforms TypeScript but does not replace TypeScript type checking. Run the repository's existing type-check command when type correctness is part of the change.
-- Use Vitest type tests when the TypeScript type API itself is part of the contract.
-
-## Verify the change without unnecessary work
-
-- Start with the narrowest existing test command that exercises the changed behavior.
-- Run the affected test file or affected unit-test set after the implementation is stable.
-- Run the full test suite only when the change is broad, repository policy requires it, or narrower runs cannot establish confidence.
-- Run existing type, lint, or coverage checks when the change affects those guarantees. Do not add unrelated checks to every task.
-- Before finishing, confirm that no focused `.only` tests remain, expected cleanup runs, snapshots were reviewed, and failures caused by the requested change are resolved.
+- Run the narrowest test file first, then the package suite. Run the root `make verify` for changes that cross packages.
+- Confirm no `.only` remains, every resource your tests open is closed, and every snapshot change was reviewed.

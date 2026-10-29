@@ -1,4 +1,4 @@
-import { REPO_ROOT, PARITY_ROOT, TARGETS, NOTEPAD_APP } from './paths.mjs';
+import { NOTEPAD_APP, PARITY_ROOT, REPO_ROOT, TARGETS } from './paths.mjs';
 
 const REPLACEMENTS = [
   [REPO_ROOT, '$REPO'],
@@ -30,8 +30,7 @@ const DROP_ALWAYS = new Set(['evidence_id', 'caller_input_path', 'relationship_c
 
 const EVIDENCE_ID_RE = /^ev_[0-9a-f]{64}$/i;
 const COMPARISON_ID_RE = /^(?:mmc|javc)_[0-9a-f]{64}$/i;
-const GRAPH_ID_RE =
-  /^(?:art|agm|aex|occ|ai|aio|ais|edge|dsf|dsc|dsp|dsr|dso|aap|jag|jag_node|jag_edge|jag_observation|jesc|jesc_change|javc_item|stbc|stbc_item)_[0-9a-f]{64}$/i;
+const GRAPH_ID_RE = /^(?:art|agm|aex|occ|ai|aio|ais|edge|dsf|dsc|dsp|dsr|dso|aap|jag|jag_node|jag_edge|jag_observation|jesc|jesc_change|javc_item|stbc|stbc_item)_[0-9a-f]{64}$/i;
 const HEX64_RE = /^[0-9a-f]{64}$/i;
 const VOLATILE_HEX_KEYS = new Set([
   'files_sha256',
@@ -137,9 +136,7 @@ const graphNodeSortKey = (node) => {
   if (node === null || typeof node !== 'object' || Array.isArray(node)) return '';
   const identity = node.identity !== null && typeof node.identity === 'object' && !Array.isArray(node.identity) ? node.identity : {};
   const observations = Array.isArray(node.observations) ? node.observations : [];
-  const labels = observations.map((observation) =>
-    observation !== null && typeof observation === 'object' && !Array.isArray(observation) ? observation.label ?? null : null,
-  );
+  const labels = observations.map((observation) => (observation !== null && typeof observation === 'object' && !Array.isArray(observation) ? (observation.label ?? null) : null));
   return JSON.stringify({
     kind: node.kind ?? null,
     strategy: identity.strategy ?? null,
@@ -166,12 +163,8 @@ const sortGraphCollections = (value) => {
   if (nr === null || typeof nr !== 'object' || Array.isArray(nr)) return value;
   const graph = nr.graph;
   if (graph === null || typeof graph !== 'object' || Array.isArray(graph)) return value;
-  const nodes = Array.isArray(graph.nodes)
-    ? [...graph.nodes].sort((left, right) => graphNodeSortKey(left).localeCompare(graphNodeSortKey(right)))
-    : graph.nodes;
-  const edges = Array.isArray(graph.edges)
-    ? [...graph.edges].sort((left, right) => graphEdgeSortKey(left).localeCompare(graphEdgeSortKey(right)))
-    : graph.edges;
+  const nodes = Array.isArray(graph.nodes) ? [...graph.nodes].sort((left, right) => graphNodeSortKey(left).localeCompare(graphNodeSortKey(right))) : graph.nodes;
+  const edges = Array.isArray(graph.edges) ? [...graph.edges].sort((left, right) => graphEdgeSortKey(left).localeCompare(graphEdgeSortKey(right))) : graph.edges;
   return {
     ...value,
     normalized_result: {
@@ -211,12 +204,4 @@ const scrubErrorDetails = (details) => {
   return scrubIdentityTree(details);
 };
 
-export const VOLATILE_FIELDS = [
-  ...DROP_ALWAYS,
-  'provider',
-  'normalized_result.provenance',
-  'evidence_links',
-  'comparison_id',
-  'left_evidence_id',
-  'right_evidence_id',
-];
+export const VOLATILE_FIELDS = [...DROP_ALWAYS, 'provider', 'normalized_result.provenance', 'evidence_links', 'comparison_id', 'left_evidence_id', 'right_evidence_id'];

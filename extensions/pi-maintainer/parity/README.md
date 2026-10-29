@@ -10,7 +10,7 @@ Each SAR is gated on its own slice of the census. Its local contracts can pass b
 | --- | --- | --- |
 | `node scripts/check-parity.mjs` | every census unit | none |
 | `node scripts/check-parity.mjs --feature <sar>` | the units in the slice of `<sar>` | every row whose `feature` is `<sar>`, except disposed NATIVE-GAP opens (`status: open` and `gap: "native"`, documented in `docs/NATIVE-GAPS.md`) |
-| `node scripts/check-parity.mjs --final` | every census unit | every row |
+| `node scripts/check-parity.mjs --final` | every census unit | every row, including disposed native gaps, so it stays red while any row is open |
 
 Every run prints one progress line per SAR: slice size, covered units, uncovered units, rows, and verified rows. Every run, including `--fragment`, fails when a shared-module test unit has no owner, when an owner is not a SAR, or when `test-owners.json` names a unit that is not a shared-module test in the census.
 
@@ -20,6 +20,8 @@ Every run prints one progress line per SAR: slice size, covered units, uncovered
 - `test-owners.json` maps each test unit of the shared modules `test_coder`, `test_commands`, `test_main`, and `test_models` to one SAR.
 - `ledger.json` holds the rows. A row is one observable Aider behavior contract.
 - `coverage.json` maps every census unit to rows or to a non-claim.
+- `options.aider.json` is the captured long-option list of `aider/args.py` at the pinned commit; `node scripts/capture-aider-options.mjs --write` refreshes it.
+- `options.json` disposes of every Aider option as `registered` (the Pi flag spelling) or as a `pi-owned`, `out-of-scope`, or `not-ported` non-claim with a reason. `test/settings/option-inventory.test.ts` fails when an option has no disposition or a registered spelling does not exist, which is how behavior outside the four documents becomes an obligation.
 - `../scripts/census.mjs` enumerates the units. Run `node scripts/census.mjs` for counts and `--json` for the full list.
 - `../scripts/check-parity.mjs` is the gate.
 

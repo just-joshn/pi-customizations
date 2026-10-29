@@ -1,0 +1,427 @@
+{
+  "aiderCommit": "5dc9490bb35f9729ef2c95d00a19ccd30c26339c",
+  "options": {
+    "--add-gitignore-files": {
+      "registered": "add-gitignore-files"
+    },
+    "--aiderignore": {
+      "registered": "aiderignore"
+    },
+    "--alias": {
+      "nonclaim": "pi-owned",
+      "reason": "Pi model aliases live in models.json"
+    },
+    "--analytics": {
+      "nonclaim": "out-of-scope",
+      "reason": "Aider's analytics collection; pi-maintainer sends no telemetry."
+    },
+    "--analytics-disable": {
+      "nonclaim": "out-of-scope",
+      "reason": "Aider's analytics collection; pi-maintainer sends no telemetry."
+    },
+    "--analytics-log": {
+      "nonclaim": "out-of-scope",
+      "reason": "Aider's analytics collection; pi-maintainer sends no telemetry."
+    },
+    "--analytics-posthog-host": {
+      "nonclaim": "out-of-scope",
+      "reason": "Aider's analytics collection; pi-maintainer sends no telemetry."
+    },
+    "--analytics-posthog-project-api-key": {
+      "nonclaim": "out-of-scope",
+      "reason": "Aider's analytics collection; pi-maintainer sends no telemetry."
+    },
+    "--anthropic-api-key": {
+      "nonclaim": "pi-owned",
+      "reason": "Pi owns provider credentials"
+    },
+    "--api-key": {
+      "registered": "api-key"
+    },
+    "--apply": {
+      "registered": "apply"
+    },
+    "--apply-clipboard-edits": {
+      "nonclaim": "not-ported",
+      "reason": "Aider applies edits from the clipboard; Pi exposes no clipboard API to extensions (aider/args.py:147-151)."
+    },
+    "--architect": {
+      "registered": "architect"
+    },
+    "--assistant-output-color": {
+      "nonclaim": "out-of-scope",
+      "reason": "Aider's terminal colours"
+    },
+    "--attribute-author": {
+      "registered": "attribute-author"
+    },
+    "--attribute-co-authored-by": {
+      "registered": "attribute-co-authored-by"
+    },
+    "--attribute-commit-message-author": {
+      "registered": "attribute-commit-message-author"
+    },
+    "--attribute-commit-message-committer": {
+      "registered": "attribute-commit-message-committer"
+    },
+    "--attribute-committer": {
+      "registered": "attribute-committer"
+    },
+    "--auto-accept-architect": {
+      "registered": "auto-accept-architect"
+    },
+    "--auto-commits": {
+      "registered": "auto-commits"
+    },
+    "--auto-lint": {
+      "registered": "auto-lint"
+    },
+    "--auto-test": {
+      "registered": "auto-test"
+    },
+    "--cache-keepalive-pings": {
+      "nonclaim": "pi-owned",
+      "reason": "Pi owns prompt cache warming"
+    },
+    "--cache-prompts": {
+      "registered": "cache-prompts"
+    },
+    "--chat-history-file": {
+      "nonclaim": "pi-owned",
+      "reason": "Pi session storage owns chat history files"
+    },
+    "--chat-language": {
+      "registered": "chat-language"
+    },
+    "--check-model-accepts-settings": {
+      "nonclaim": "pi-owned",
+      "reason": "Pi owns model capability metadata"
+    },
+    "--check-update": {
+      "nonclaim": "out-of-scope",
+      "reason": "Aider updates its own installation; Pi manages its own releases."
+    },
+    "--code-theme": {
+      "nonclaim": "out-of-scope",
+      "reason": "Aider's terminal colours"
+    },
+    "--commit": {
+      "nonclaim": "not-ported",
+      "reason": "Aider commits dirty files and exits after the one-shot message; the maintainer commits each edit turn and /commit covers manual commits. Ending the process from a turn hook is a Pi session-lifecycle difference recorded in docs/NATIVE-GAPS.md."
+    },
+    "--commit-language": {
+      "registered": "commit-language"
+    },
+    "--commit-prompt": {
+      "registered": "commit-prompt"
+    },
+    "--completion-menu-bg-color": {
+      "nonclaim": "out-of-scope",
+      "reason": "Aider's terminal colours"
+    },
+    "--completion-menu-color": {
+      "nonclaim": "out-of-scope",
+      "reason": "Aider's terminal colours"
+    },
+    "--completion-menu-current-bg-color": {
+      "nonclaim": "out-of-scope",
+      "reason": "Aider's terminal colours"
+    },
+    "--completion-menu-current-color": {
+      "nonclaim": "out-of-scope",
+      "reason": "Aider's terminal colours"
+    },
+    "--copy-paste": {
+      "nonclaim": "out-of-scope",
+      "reason": "Aider's terminal clipboard integration"
+    },
+    "--dark-mode": {
+      "nonclaim": "out-of-scope",
+      "reason": "Aider's terminal colours"
+    },
+    "--detect-urls": {
+      "nonclaim": "not-ported",
+      "reason": "Aider offers to open URLs found in model output; Pi exposes no URL-open API to extensions (aider/args.py:330-336)."
+    },
+    "--dirty-commits": {
+      "registered": "dirty-commits"
+    },
+    "--disable-playwright": {
+      "nonclaim": "out-of-scope",
+      "reason": "Aider's Playwright web scraping; outside the four ported features."
+    },
+    "--dry-run": {
+      "registered": "dry-run"
+    },
+    "--edit-format": {
+      "registered": "edit-format"
+    },
+    "--editor": {
+      "nonclaim": "out-of-scope",
+      "reason": "Aider's external editor integration"
+    },
+    "--editor-edit-format": {
+      "registered": "editor-edit-format"
+    },
+    "--editor-model": {
+      "registered": "editor-model"
+    },
+    "--encoding": {
+      "registered": "encoding"
+    },
+    "--env-file": {
+      "registered": "env-file"
+    },
+    "--exit": {
+      "nonclaim": "pi-owned",
+      "reason": "Pi runs one-shot prompts with --print or --no-session"
+    },
+    "--fancy-input": {
+      "nonclaim": "out-of-scope",
+      "reason": "Aider's terminal input mode"
+    },
+    "--file": {
+      "registered": "file"
+    },
+    "--git": {
+      "registered": "git"
+    },
+    "--git-commit-verify": {
+      "registered": "git-commit-verify"
+    },
+    "--gitignore": {
+      "registered": "gitignore"
+    },
+    "--gui": {
+      "nonclaim": "out-of-scope",
+      "reason": "Aider's Streamlit browser GUI; Pi provides its own terminal interface."
+    },
+    "--input-history-file": {
+      "nonclaim": "pi-owned",
+      "reason": "Pi owns input history storage"
+    },
+    "--install-main-branch": {
+      "nonclaim": "out-of-scope",
+      "reason": "Aider updates its own installation; Pi manages its own releases."
+    },
+    "--just-check-update": {
+      "nonclaim": "out-of-scope",
+      "reason": "Aider updates its own installation; Pi manages its own releases."
+    },
+    "--light-mode": {
+      "nonclaim": "out-of-scope",
+      "reason": "Aider's terminal colours"
+    },
+    "--line-endings": {
+      "registered": "line-endings"
+    },
+    "--lint": {
+      "registered": "lint"
+    },
+    "--lint-cmd": {
+      "registered": "lint-cmd"
+    },
+    "--list-models": {
+      "nonclaim": "pi-owned",
+      "reason": "Pi lists models through /model"
+    },
+    "--llm-history-file": {
+      "nonclaim": "pi-owned",
+      "reason": "Pi session storage contains the provider transcript"
+    },
+    "--load": {
+      "nonclaim": "pi-owned",
+      "reason": "Pi loads its own resource files and offers no extension command-script loader"
+    },
+    "--map-multiplier-no-files": {
+      "registered": "map-multiplier-no-files"
+    },
+    "--map-refresh": {
+      "registered": "map-refresh"
+    },
+    "--map-tokens": {
+      "registered": "map-tokens"
+    },
+    "--max-chat-history-tokens": {
+      "registered": "max-chat-history-tokens"
+    },
+    "--message": {
+      "nonclaim": "pi-owned",
+      "reason": "Pi takes the prompt as a positional argument"
+    },
+    "--message-file": {
+      "registered": "message-file"
+    },
+    "--model": {
+      "nonclaim": "pi-owned",
+      "reason": "Pi selects the session model and the maintainer reads it from ctx.modelRegistry"
+    },
+    "--model-metadata-file": {
+      "nonclaim": "pi-owned",
+      "reason": "Pi owns the model catalog and modelOverrides"
+    },
+    "--model-settings-file": {
+      "nonclaim": "pi-owned",
+      "reason": "Pi owns model settings in models.json"
+    },
+    "--multiline": {
+      "nonclaim": "out-of-scope",
+      "reason": "Aider's terminal input mode"
+    },
+    "--notifications": {
+      "nonclaim": "out-of-scope",
+      "reason": "Aider's desktop notifications"
+    },
+    "--notifications-command": {
+      "nonclaim": "out-of-scope",
+      "reason": "Aider's desktop notifications"
+    },
+    "--openai-api-base": {
+      "nonclaim": "pi-owned",
+      "reason": "Pi owns provider endpoints in models.json"
+    },
+    "--openai-api-deployment-id": {
+      "nonclaim": "pi-owned",
+      "reason": "Pi owns provider protocols in models.json"
+    },
+    "--openai-api-key": {
+      "nonclaim": "pi-owned",
+      "reason": "Pi owns provider credentials"
+    },
+    "--openai-api-type": {
+      "nonclaim": "pi-owned",
+      "reason": "Pi owns provider protocols in models.json"
+    },
+    "--openai-api-version": {
+      "nonclaim": "pi-owned",
+      "reason": "Pi owns provider protocols in models.json"
+    },
+    "--openai-organization-id": {
+      "nonclaim": "pi-owned",
+      "reason": "Pi owns provider credentials"
+    },
+    "--pretty": {
+      "nonclaim": "out-of-scope",
+      "reason": "Aider's own output formatting"
+    },
+    "--read": {
+      "registered": "read"
+    },
+    "--reasoning-effort": {
+      "nonclaim": "pi-owned",
+      "reason": "Pi owns thinking levels per model"
+    },
+    "--restore-chat-history": {
+      "nonclaim": "pi-owned",
+      "reason": "Pi owns history restore through sessions"
+    },
+    "--set-env": {
+      "registered": "set-env"
+    },
+    "--shell-completions": {
+      "nonclaim": "out-of-scope",
+      "reason": "Aider's own shell integration"
+    },
+    "--show-diffs": {
+      "nonclaim": "pi-owned",
+      "reason": "Pi renders transcript diffs itself and exposes no extension surface for them"
+    },
+    "--show-model-warnings": {
+      "nonclaim": "pi-owned",
+      "reason": "Pi owns model warnings"
+    },
+    "--show-prompts": {
+      "nonclaim": "not-ported",
+      "reason": "Aider prints its system prompt and examples then exits; the maintainer builds prompts through PromptSource and Pi owns process exit (aider/args.py:341-346, aider/main.py:1050-1060)."
+    },
+    "--show-release-notes": {
+      "nonclaim": "out-of-scope",
+      "reason": "Aider updates its own installation; Pi manages its own releases."
+    },
+    "--show-repo-map": {
+      "registered": "show-repo-map"
+    },
+    "--skip-sanity-check-repo": {
+      "nonclaim": "not-ported",
+      "reason": "Aider can skip its repository sanity checks; the maintainer always runs sanityCheckRepo so a corrupt or bare repository degrades to no Git instead of being trusted (aider/args.py:264-269, aider/main.py:700-710)."
+    },
+    "--stream": {
+      "nonclaim": "pi-owned",
+      "reason": "Pi streams every provider response through its model runtime"
+    },
+    "--subtree-only": {
+      "registered": "subtree-only"
+    },
+    "--suggest-shell-commands": {
+      "registered": "suggest-shell-commands"
+    },
+    "--test": {
+      "registered": "test"
+    },
+    "--test-cmd": {
+      "registered": "test-cmd"
+    },
+    "--thinking-tokens": {
+      "nonclaim": "pi-owned",
+      "reason": "Pi owns thinking budgets per model"
+    },
+    "--timeout": {
+      "nonclaim": "pi-owned",
+      "reason": "Pi owns provider request timeouts (retry.provider.timeoutMs)"
+    },
+    "--tool-error-color": {
+      "nonclaim": "out-of-scope",
+      "reason": "Aider's terminal colours"
+    },
+    "--tool-output-color": {
+      "nonclaim": "out-of-scope",
+      "reason": "Aider's terminal colours"
+    },
+    "--tool-warning-color": {
+      "nonclaim": "out-of-scope",
+      "reason": "Aider's terminal colours"
+    },
+    "--upgrade": {
+      "nonclaim": "out-of-scope",
+      "reason": "Aider updates its own installation; Pi manages its own releases."
+    },
+    "--user-input-color": {
+      "nonclaim": "out-of-scope",
+      "reason": "Aider's terminal colours"
+    },
+    "--verify-ssl": {
+      "nonclaim": "pi-owned",
+      "reason": "Pi owns provider transport TLS settings"
+    },
+    "--version": {
+      "nonclaim": "pi-owned",
+      "reason": "Pi reports its own version with pi --version"
+    },
+    "--vim": {
+      "nonclaim": "out-of-scope",
+      "reason": "Aider's terminal input mode"
+    },
+    "--voice-format": {
+      "nonclaim": "out-of-scope",
+      "reason": "Aider transcribes voice input in its app shell; Pi has no voice input."
+    },
+    "--voice-input-device": {
+      "nonclaim": "out-of-scope",
+      "reason": "Aider transcribes voice input in its app shell; Pi has no voice input."
+    },
+    "--voice-language": {
+      "nonclaim": "out-of-scope",
+      "reason": "Aider transcribes voice input in its app shell; Pi has no voice input."
+    },
+    "--watch-files": {
+      "nonclaim": "not-ported",
+      "reason": "Aider watches files for AI comments; the watch host attachment is a documented native gap in docs/NATIVE-GAPS.md (aider/args.py:166-170)."
+    },
+    "--weak-model": {
+      "registered": "weak-model"
+    },
+    "--yes-always": {
+      "registered": "yes-always"
+    }
+  }
+}

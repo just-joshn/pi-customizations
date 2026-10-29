@@ -1,7 +1,7 @@
-import { canonicalJson, digestOf, sha256Hex } from './canonical.mjs';
-import { edgeEvidence, graphEdge } from './envelope.mjs';
 import { invalidRequest } from '../contract/errors.ts';
 import type { EvidenceRecord } from '../session/evidence.ts';
+import { canonicalJson, digestOf, sha256Hex } from './canonical.mjs';
+import { edgeEvidence, graphEdge } from './envelope.mjs';
 
 export interface ApplicationVersionCompareInspection {
   readonly comparison_id: string;
@@ -92,11 +92,9 @@ const RESULT_LIMITATIONS = [
   'The comparison reads retained graphs and Evidence only; it does not execute either application.',
 ] as const;
 
-const RELATIONSHIP_LIMITATION =
-  'Relationship target identity remains unresolved; equal node kinds do not establish cross-version alignment.';
+const RELATIONSHIP_LIMITATION = 'Relationship target identity remains unresolved; equal node kinds do not establish cross-version alignment.';
 
-const SEMANTIC_KEY_LIMITATION =
-  'Semantic-key pairing is a deterministic inference and is never promoted to exact identity.';
+const SEMANTIC_KEY_LIMITATION = 'Semantic-key pairing is a deterministic inference and is never promoted to exact identity.';
 
 const BASIS_TO_MATCHING_KEY = {
   'exact-node-identity': 'exact_node_identity',
@@ -152,16 +150,10 @@ const indexGraph = (record: EvidenceRecord): GraphView => {
   const graph = (nr['graph'] as Record<string, unknown> | undefined) ?? {};
   const nodesRaw = Array.isArray(graph['nodes']) ? (graph['nodes'] as Record<string, unknown>[]) : [];
   const edgesRaw = Array.isArray(graph['edges']) ? (graph['edges'] as Record<string, unknown>[]) : [];
-  const rootIds = Array.isArray(graph['root_node_ids'])
-    ? (graph['root_node_ids'] as unknown[]).filter((id): id is string => typeof id === 'string')
-    : [];
-  const graphLimitations = Array.isArray(graph['limitations'])
-    ? (graph['limitations'] as unknown[]).filter((row): row is string => typeof row === 'string')
-    : [];
+  const rootIds = Array.isArray(graph['root_node_ids']) ? (graph['root_node_ids'] as unknown[]).filter((id): id is string => typeof id === 'string') : [];
+  const graphLimitations = Array.isArray(graph['limitations']) ? (graph['limitations'] as unknown[]).filter((row): row is string => typeof row === 'string') : [];
   const coverageBlock = (graph['coverage'] as Record<string, unknown> | undefined) ?? {};
-  const coverageLimits = Array.isArray(coverageBlock['limits'])
-    ? (coverageBlock['limits'] as Record<string, unknown>[])
-    : [];
+  const coverageLimits = Array.isArray(coverageBlock['limits']) ? (coverageBlock['limits'] as Record<string, unknown>[]) : [];
   const root = typeof nr['root_artifact_sha256'] === 'string' ? nr['root_artifact_sha256'] : digestOf(record.evidence_id);
   const graphId = typeof graph['graph_id'] === 'string' ? graph['graph_id'] : `jag_${digestOf(record.evidence_id)}`;
   const coverage = graphCoverage(graph);
@@ -169,24 +161,12 @@ const indexGraph = (record: EvidenceRecord): GraphView => {
     const identity = (node['identity'] as Record<string, unknown> | undefined) ?? {};
     const observations = Array.isArray(node['observations']) ? (node['observations'] as Record<string, unknown>[]) : [];
     const first = (observations[0]?.['properties'] as Record<string, unknown> | undefined) ?? {};
-    const artifact =
-      ((observations[0]?.['evidence'] as Record<string, unknown> | undefined)?.['artifact'] as Record<string, unknown> | undefined) ??
-      {};
+    const artifact = ((observations[0]?.['evidence'] as Record<string, unknown> | undefined)?.['artifact'] as Record<string, unknown> | undefined) ?? {};
     const contentDigest =
-      typeof identity['sha256'] === 'string'
-        ? identity['sha256']
-        : typeof artifact['sha256'] === 'string'
-          ? (artifact['sha256'] as string)
-          : typeof identity['artifact_sha256'] === 'string'
-            ? (identity['artifact_sha256'] as string)
-            : null;
-    const moduleSourceDigest =
-      typeof first['module_source_digest'] === 'string' ? first['module_source_digest'] : null;
+      typeof identity['sha256'] === 'string' ? identity['sha256'] : typeof artifact['sha256'] === 'string' ? (artifact['sha256'] as string) : typeof identity['artifact_sha256'] === 'string' ? (identity['artifact_sha256'] as string) : null;
+    const moduleSourceDigest = typeof first['module_source_digest'] === 'string' ? first['module_source_digest'] : null;
     const pathKey = typeof first['path'] === 'string' ? first['path'] : null;
-    const semanticKey =
-      typeof identity['namespace'] === 'string' && identity['key'] !== undefined
-        ? `${identity['namespace']}:${typeof identity['key'] === 'string' ? identity['key'] : JSON.stringify(identity['key'])}`
-        : pathKey;
+    const semanticKey = typeof identity['namespace'] === 'string' && identity['key'] !== undefined ? `${identity['namespace']}:${typeof identity['key'] === 'string' ? identity['key'] : JSON.stringify(identity['key'])}` : pathKey;
     return {
       node_id: String(node['node_id'] ?? ''),
       kind: String(node['kind'] ?? 'unknown'),
@@ -290,9 +270,7 @@ export const compareApplicationVersions = (params: { readonly left: unknown; rea
     }
   };
 
-  applyTier('exact-node-identity', (node) =>
-    node.identityStrategy === 'artifact-local-key' ? node.node_id : null,
-  );
+  applyTier('exact-node-identity', (node) => (node.identityStrategy === 'artifact-local-key' ? node.node_id : null));
   applyTier('exact-content-digest', (node) => node.contentDigest);
   applyTier('exact-module-source-digest', (node) => node.moduleSourceDigest);
   applyTier('structural-fingerprint', (node) => node.fingerprint);
@@ -311,10 +289,7 @@ export const compareApplicationVersions = (params: { readonly left: unknown; rea
   for (const pair of pairs) {
     const confidence = matchConfidence(pair.basis);
     const sameFingerprint = pair.left.fingerprint === pair.right.fingerprint;
-    const neighbors = new Set([
-      ...neighborIds(retainedEdges, pair.left.node_id),
-      ...neighborIds(retainedEdges, pair.right.node_id),
-    ]);
+    const neighbors = new Set([...neighborIds(retainedEdges, pair.left.node_id), ...neighborIds(retainedEdges, pair.right.node_id)]);
     const unresolvedNeighbor = [...neighbors].some((id) => !matchedIds.has(id));
 
     let status: VersionItem['status'];
@@ -416,13 +391,10 @@ export const compareApplicationVersions = (params: { readonly left: unknown; rea
   };
 };
 
-const uniqueSortedStrings = (values: readonly string[]): string[] =>
-  [...new Set(values)].sort((left, right) => (left < right ? -1 : left > right ? 1 : 0));
+const uniqueSortedStrings = (values: readonly string[]): string[] => [...new Set(values)].sort((left, right) => (left < right ? -1 : left > right ? 1 : 0));
 
 const uniqueEdgesById = (edges: readonly Record<string, unknown>[]): Record<string, unknown>[] =>
-  [...new Map(edges.map((edge) => [String(edge['edge_id'] ?? ''), edge])).values()].sort((left, right) =>
-    String(left['edge_id'] ?? '') < String(right['edge_id'] ?? '') ? -1 : 1,
-  );
+  [...new Map(edges.map((edge) => [String(edge['edge_id'] ?? ''), edge])).values()].sort((left, right) => (String(left['edge_id'] ?? '') < String(right['edge_id'] ?? '') ? -1 : 1));
 
 const mergeNodesById = (nodes: readonly Record<string, unknown>[]): Record<string, unknown>[] => {
   const byId = new Map<string, Record<string, unknown>>();
@@ -448,59 +420,34 @@ const mergeNodesById = (nodes: readonly Record<string, unknown>[]): Record<strin
     }
     byId.set(id, {
       ...existing,
-      observations: [...observations.values()].sort((left, right) =>
-        String((left as Record<string, unknown>)['observation_id'] ?? '') <
-        String((right as Record<string, unknown>)['observation_id'] ?? '')
-          ? -1
-          : 1,
-      ),
+      observations: [...observations.values()].sort((left, right) => {
+        const leftId = String((left as Record<string, unknown>)['observation_id'] ?? '');
+        const rightId = String((right as Record<string, unknown>)['observation_id'] ?? '');
+        return leftId < rightId ? -1 : leftId > rightId ? 1 : 0;
+      }),
     });
   }
-  return [...byId.values()].sort((left, right) =>
-    String(left['node_id'] ?? '') < String(right['node_id'] ?? '') ? -1 : 1,
-  );
+  return [...byId.values()].sort((left, right) => (String(left['node_id'] ?? '') < String(right['node_id'] ?? '') ? -1 : 1));
 };
 
-const buildChangeGraph = ({
-  left,
-  right,
-  items,
-}: {
-  left: GraphView;
-  right: GraphView;
-  items: readonly VersionItem[];
-}): Record<string, unknown> => {
-  const required = new Set<string>([
-    ...left.rootNodeIds,
-    ...right.rootNodeIds,
-    ...items.flatMap((item) => [item.left_node_id, item.right_node_id].filter((id): id is string => id !== null)),
-  ]);
-  const mergedNodes = mergeNodesById(
-    [...left.rawNodes, ...right.rawNodes].filter((node) => required.has(String(node['node_id'] ?? ''))),
-  );
+const buildChangeGraph = ({ left, right, items }: { left: GraphView; right: GraphView; items: readonly VersionItem[] }): Record<string, unknown> => {
+  const required = new Set<string>([...left.rootNodeIds, ...right.rootNodeIds, ...items.flatMap((item) => [item.left_node_id, item.right_node_id].filter((id): id is string => id !== null))]);
+  const mergedNodes = mergeNodesById([...left.rawNodes, ...right.rawNodes].filter((node) => required.has(String(node['node_id'] ?? ''))));
   const retained = new Set(mergedNodes.map((node) => String(node['node_id'] ?? '')));
-  const preferredRoots = uniqueSortedStrings([...right.rootNodeIds, ...left.rootNodeIds]).filter((id) =>
-    retained.has(id),
-  );
-  const sourceEdges = uniqueEdgesById([...left.rawEdges, ...right.rawEdges]).filter(
-    (edge) => retained.has(String(edge['source_node_id'] ?? '')) && retained.has(String(edge['target_node_id'] ?? '')),
-  );
+  const preferredRoots = uniqueSortedStrings([...right.rootNodeIds, ...left.rootNodeIds]).filter((id) => retained.has(id));
+  const sourceEdges = uniqueEdgesById([...left.rawEdges, ...right.rawEdges]).filter((edge) => retained.has(String(edge['source_node_id'] ?? '')) && retained.has(String(edge['target_node_id'] ?? '')));
   const leftById = new Map(left.rawNodes.map((node) => [String(node['node_id'] ?? ''), node]));
   const rightById = new Map(right.rawNodes.map((node) => [String(node['node_id'] ?? ''), node]));
-  const comparisonEdges = items.flatMap((item) =>
-    changedFromEdge(item, left, right, retained, leftById, rightById),
-  );
+  const comparisonEdges = items.flatMap((item) => changedFromEdge(item, left, right, retained, leftById, rightById));
   const edges = uniqueEdgesById([...sourceEdges, ...comparisonEdges]);
-  const rootNodeIds =
-    preferredRoots.length > 0 ? preferredRoots : mergedNodes[0] === undefined ? [] : [String(mergedNodes[0]['node_id'])];
+  const rootNodeIds = preferredRoots.length > 0 ? preferredRoots : mergedNodes[0] === undefined ? [] : [String(mergedNodes[0]['node_id'])];
   const coverage =
     left.coverageStatus === 'complete' && right.coverageStatus === 'complete'
       ? { status: 'complete', truncated: false, omitted_count: 0, limits: mergeCoverageLimits(left, right) }
       : {
           status: 'partial',
           truncated: left.coverageTruncated || right.coverageTruncated,
-          omitted_count:
-            left.omittedCount === null || right.omittedCount === null ? null : left.omittedCount + right.omittedCount,
+          omitted_count: left.omittedCount === null || right.omittedCount === null ? null : left.omittedCount + right.omittedCount,
           limits: mergeCoverageLimits(left, right),
         };
   const limitations = uniqueSortedStrings([
@@ -529,36 +476,17 @@ const mergeCoverageLimits = (left: GraphView, right: GraphView): Record<string, 
   return [...byKey.values()].sort((a, b) => (String(a['name'] ?? '') < String(b['name'] ?? '') ? -1 : 1));
 };
 
-const changedFromEdge = (
-  item: VersionItem,
-  left: GraphView,
-  right: GraphView,
-  retained: Set<string>,
-  leftById: Map<string, Record<string, unknown>>,
-  rightById: Map<string, Record<string, unknown>>,
-): Record<string, unknown>[] => {
+const changedFromEdge = (item: VersionItem, left: GraphView, right: GraphView, retained: Set<string>, leftById: Map<string, Record<string, unknown>>, rightById: Map<string, Record<string, unknown>>): Record<string, unknown>[] => {
   const leftId = item.left_node_id;
   const rightId = item.right_node_id;
-  const nonLocationCoverageOnly =
-    item.status === 'unknown' &&
-    !item.dimensions.some((dimension) => dimension !== 'location' && dimension !== 'coverage');
-  if (
-    item.match.status !== 'matched' ||
-    item.status === 'unchanged' ||
-    nonLocationCoverageOnly ||
-    leftId === null ||
-    rightId === null ||
-    leftId === rightId ||
-    !retained.has(leftId) ||
-    !retained.has(rightId)
-  ) {
+  const nonLocationCoverageOnly = item.status === 'unknown' && !item.dimensions.some((dimension) => dimension !== 'location' && dimension !== 'coverage');
+  if (item.match.status !== 'matched' || item.status === 'unchanged' || nonLocationCoverageOnly || leftId === null || rightId === null || leftId === rightId || !retained.has(leftId) || !retained.has(rightId)) {
     return [];
   }
   const rightNode = rightById.get(rightId);
   const leftNode = leftById.get(leftId);
   const sourceObs =
-    ((rightNode?.['observations'] as Record<string, unknown>[] | undefined)?.[0] as Record<string, unknown> | undefined) ??
-    ((leftNode?.['observations'] as Record<string, unknown>[] | undefined)?.[0] as Record<string, unknown> | undefined);
+    ((rightNode?.['observations'] as Record<string, unknown>[] | undefined)?.[0] as Record<string, unknown> | undefined) ?? ((leftNode?.['observations'] as Record<string, unknown>[] | undefined)?.[0] as Record<string, unknown> | undefined);
   const sourceEvidence = (sourceObs?.['evidence'] as Record<string, unknown> | undefined) ?? {};
   const complete = left.coverageStatus === 'complete' && right.coverageStatus === 'complete';
   return [
@@ -598,16 +526,10 @@ const changedFromEdge = (
           : {
               status: 'partial',
               truncated: left.coverageTruncated || right.coverageTruncated,
-              omitted_count:
-                left.omittedCount === null || right.omittedCount === null
-                  ? null
-                  : left.omittedCount + right.omittedCount,
+              omitted_count: left.omittedCount === null || right.omittedCount === null ? null : left.omittedCount + right.omittedCount,
               limits: mergeCoverageLimits(left, right),
             },
-        limitations: [
-          'Cross-version pairing is inferred from the stated match basis; changed_from does not prove runtime reachability.',
-          ...item.limitations,
-        ],
+        limitations: ['Cross-version pairing is inferred from the stated match basis; changed_from does not prove runtime reachability.', ...item.limitations],
         evidenceIds: [left.side.evidence_id, right.side.evidence_id],
       }),
     }),

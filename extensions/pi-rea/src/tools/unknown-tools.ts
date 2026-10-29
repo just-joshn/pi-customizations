@@ -1,8 +1,8 @@
 import type { AgentToolResult } from '@earendil-works/pi-coding-agent';
 import { executionFailure, invalidRequest } from '../contract/errors.ts';
 import { operationResult } from '../contract/results.ts';
-import { UNKNOWN_ID_PATTERN } from '../session/evidence.ts';
 import type { ReaSession } from '../session/binary-session.ts';
+import { UNKNOWN_ID_PATTERN } from '../session/evidence.ts';
 import { type UnknownDraft, type UnknownResolution, type UnknownSeverity, type UnknownStatus, validateUnknownDraft } from '../session/unknown-ledger.ts';
 import { unknownMutationEvidence } from '../session/unknown-mutation-evidence.ts';
 
@@ -29,7 +29,7 @@ export const recordUnknown = (session: ReaSession, params: unknown): AgentToolRe
   operationResult({ mutation: mutationEvidence });
   const mutation = session.evidence.record(mutationEvidence);
   const record = session.unknowns.record(draft, mutation.evidence_id);
-  return operationResult(record);
+  return operationResult(record, { details: { evidence: mutation, unknown: { action: 'record', draft, mutation_evidence_id: mutation.evidence_id } } });
 };
 
 const withReferenceDefaults = (draft: UnknownDraft): UnknownDraft => ({
@@ -86,7 +86,12 @@ export const updateUnknown = (session: ReaSession, params: UpdateUnknownParams):
   operationResult({ mutation: mutationEvidence });
   const mutation = session.evidence.record(mutationEvidence);
   const record = session.unknowns.update(params.unknown_id, params.expected_revision, changes, mutation.evidence_id);
-  return operationResult(record);
+  return operationResult(record, {
+    details: {
+      evidence: mutation,
+      unknown: { action: 'update', unknown_id: params.unknown_id, expected_revision: params.expected_revision, changes, mutation_evidence_id: mutation.evidence_id },
+    },
+  });
 };
 
 const assertResolution = (session: ReaSession, resolution: UnknownResolution | null | undefined): void => {
@@ -120,11 +125,7 @@ export const verifyUnknownResolution = (session: ReaSession, params: VerifyUnkno
   }
   const unknown = session.unknowns.get(params.unknown_id);
   if (unknown === undefined) {
-    throw executionFailure(
-      'The requested residual unknown does not exist in this session. Check the unknown_id and try again.',
-      { reason: 'not-found' },
-      'Check that the unknown_id belongs to this session, then retry.',
-    );
+    throw executionFailure('The requested residual unknown does not exist in this session. Check the unknown_id and try again.', { reason: 'not-found' }, 'Check that the unknown_id belongs to this session, then retry.');
   }
   return operationResult({
     valid: unknown.status === 'resolved',

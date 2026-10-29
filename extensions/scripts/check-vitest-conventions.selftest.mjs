@@ -45,6 +45,12 @@ test('concurrent work', () => {
 it.concurrent('parallel case', () => {
   expect(3).toBe(3);
 });
+test.only('focused', () => {
+  expect(5).toBe(5);
+});
+test.each([1])('jest each %s', (value) => {
+  expect(value).toBe(1);
+});
 describe('outer', () => {
   describe('middle', () => {
     describe('inner', () => {
@@ -57,12 +63,12 @@ describe('outer', () => {
 `;
 
 const clean = `
-import { describe, expect, it, test, vi } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 
 vi.mock('node:fs', () => ({ readFileSync: () => '' }));
 
 describe('parseArgs', () => {
-  it('returns the parsed value', () => {
+  test('returns the parsed value', () => {
     expect(parseArgs(['--count', '2'])).toEqual({ count: 2 });
   });
 });
@@ -128,6 +134,9 @@ for (const rule of [
   'snapshot',
   'concurrent-test',
   'describe-nesting',
+  'focused-test',
+  'jest-each',
+  'it-alias',
 ]) {
   assert.ok(badRules.has(rule), `expected ${rule} to fire on the bad fixture`);
 }

@@ -1,4 +1,3 @@
-
 import { invalidRequest } from '../contract/errors.ts';
 import type { EvidenceRecord } from '../session/evidence.ts';
 
@@ -35,6 +34,7 @@ interface OccurrenceRow {
 interface InventoryView {
   readonly evidenceId: string;
   readonly manifestId: string | null;
+  readonly rootSha256: string | null;
   readonly occurrences: readonly OccurrenceRow[];
   readonly limitations: readonly string[];
   readonly truncated: boolean;
@@ -86,6 +86,7 @@ const inventoryFromEvidence = (record: EvidenceRecord, label: string): Inventory
     return {
       evidenceId: record.evidence_id,
       manifestId: rootSha === null ? null : `agm_${rootSha}`,
+      rootSha256: rootSha,
       occurrences,
       limitations,
       truncated: coverage?.truncated === true,
@@ -98,21 +99,15 @@ const inventoryFromEvidence = (record: EvidenceRecord, label: string): Inventory
   const nestedNr = (nested?.normalized_result ?? nr) as Record<string, unknown>;
   const occurrencesRaw = (nestedNr['occurrences'] as readonly Record<string, unknown>[] | undefined) ?? [];
   const nodes = (nestedNr['nodes'] as readonly Record<string, unknown>[] | undefined) ?? [];
-  const shaByArtifact = new Map(
-    nodes
-      .filter((node) => typeof node['artifact_id'] === 'string' && typeof node['sha256'] === 'string')
-      .map((node) => [String(node['artifact_id']), String(node['sha256'])]),
-  );
+  const shaByArtifact = new Map(nodes.filter((node) => typeof node['artifact_id'] === 'string' && typeof node['sha256'] === 'string').map((node) => [String(node['artifact_id']), String(node['sha256'])]));
   const manifest = (nestedNr['manifest'] as { manifest_id?: string } | undefined) ?? subject;
-  const limitations = Array.isArray(nestedNr['limitations'])
-    ? (nestedNr['limitations'] as string[])
-    : Array.isArray(nr['limitations'])
-      ? (nr['limitations'] as string[])
-      : [];
+  const limitations = Array.isArray(nestedNr['limitations']) ? (nestedNr['limitations'] as string[]) : Array.isArray(nr['limitations']) ? (nr['limitations'] as string[]) : [];
   const coverage = nestedNr['coverage'] as { status?: string } | undefined;
+  const rootSha256 = typeof nestedNr['root_artifact_sha256'] === 'string' ? nestedNr['root_artifact_sha256'] : typeof subject?.root_sha256 === 'string' ? subject.root_sha256 : null;
   return {
     evidenceId: record.evidence_id,
     manifestId: typeof manifest?.manifest_id === 'string' ? manifest.manifest_id : null,
+    rootSha256,
     occurrences: occurrencesRaw
       .filter((entry) => entry['logical_path'] !== '.')
       .map((entry) => ({
@@ -132,8 +127,7 @@ const inventoryFromEvidence = (record: EvidenceRecord, label: string): Inventory
   };
 };
 
-const prefixLimitations = (side: 'Left' | 'Right', lines: readonly string[]): string[] =>
-  lines.map((line) => `${side}: ${line}`);
+const prefixLimitations = (side: 'Left' | 'Right', lines: readonly string[]): string[] => lines.map((line) => `${side}: ${line}`);
 
 export const compareArtifactInventories = (leftInput: unknown, rightInput: unknown): ArtifactCompareInspection => {
   const leftRecord = asRecord(leftInput, 'left');
@@ -151,7 +145,7 @@ export const compareArtifactInventories = (leftInput: unknown, rightInput: unkno
   let removed = 0;
   let changed = 0;
   let unknown = 0;
-  let contradiction = 0;
+  const contradiction = 0;
 
   for (const logical_path of paths) {
     const leftRow = leftMap.get(logical_path);
@@ -186,7 +180,10 @@ export const compareArtifactInventories = (leftInput: unknown, rightInput: unkno
 
   if (left.manifestId !== null && right.manifestId !== null) {
     if (left.manifestId === right.manifestId) unchanged += 1;
-    else changed += 1;
+    else {
+      changed += 1;
+      changes.push({ logical_path: '.', kind: 'changed', left_sha256: left.rootSha256, right_sha256: right.rootSha256 });
+    }
   }
 
   const status = added + removed + changed + contradiction > 0 ? 'changed' : unknown > 0 ? 'unknown' : 'unchanged';

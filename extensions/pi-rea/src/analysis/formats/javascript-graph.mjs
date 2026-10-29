@@ -195,7 +195,20 @@ function readCommonJsExport(tokens, index, lineStarts) {
     if (value === '}' || value === ')' || value === ']') depth -= 1;
     end = tokens[cursor].end;
     cursor += 1;
-    if (depth === 0 && (tokens[cursor]?.value === ';' || tokens[cursor] === undefined || tokens[cursor]?.value === 'module' || tokens[cursor]?.value === 'exports' || tokens[cursor]?.value === 'const' || tokens[cursor]?.value === 'let' || tokens[cursor]?.value === 'var' || tokens[cursor]?.value === 'function' || tokens[cursor]?.value === 'class' || tokens[cursor]?.value === 'export' || tokens[cursor]?.value === 'import')) {
+    if (
+      depth === 0 &&
+      (tokens[cursor]?.value === ';' ||
+        tokens[cursor] === undefined ||
+        tokens[cursor]?.value === 'module' ||
+        tokens[cursor]?.value === 'exports' ||
+        tokens[cursor]?.value === 'const' ||
+        tokens[cursor]?.value === 'let' ||
+        tokens[cursor]?.value === 'var' ||
+        tokens[cursor]?.value === 'function' ||
+        tokens[cursor]?.value === 'class' ||
+        tokens[cursor]?.value === 'export' ||
+        tokens[cursor]?.value === 'import')
+    ) {
       if (tokens[cursor]?.value === ';') cursor += 1;
       break;
     }
@@ -245,12 +258,8 @@ function readIpcCall({ tokens, index, chain, lineStarts, side }) {
   const call = findCallArguments(tokens, chain.endIndex + 1);
   const channel = call?.args[0] === undefined ? absent() : interpretArgument(call.args[0]);
   const handlerTokens = call?.args[1];
-  const handlerKind =
-    handlerTokens === undefined ? null : handlerTokens[0]?.value === '(' || handlerTokens[0]?.value === 'async' ? 'inline-function' : 'reference';
-  const handlerLocation =
-    handlerTokens === undefined || handlerTokens.length === 0
-      ? null
-      : rangeBetween(lineStarts, handlerTokens[0].start, handlerTokens[handlerTokens.length - 1].end);
+  const handlerKind = handlerTokens === undefined ? null : handlerTokens[0]?.value === '(' || handlerTokens[0]?.value === 'async' ? 'inline-function' : 'reference';
+  const handlerLocation = handlerTokens === undefined || handlerTokens.length === 0 ? null : rangeBetween(lineStarts, handlerTokens[0].start, handlerTokens[handlerTokens.length - 1].end);
   return {
     side,
     operation: chain.members[chain.members.length - 1],

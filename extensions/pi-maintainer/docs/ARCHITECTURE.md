@@ -2,6 +2,8 @@
 
 pi-maintainer runs Aider's coder inside Pi. The model writes Aider's edit formats in its reply. The extension applies them, checkpoints and commits through Git, supplies a ranked repository map, and asks for lint and test repairs. The target is behavioral parity with Aider at commit `5dc9490bb35f9729ef2c95d00a19ccd30c26339c`, as described by the four reconstructions pinned in `parity/sources.json`.
 
+Behavior that Pi's public API cannot express is a ledger row with `gap: "native"` and an eight-answer entry in `docs/NATIVE-GAPS.md`; `node scripts/check-parity.mjs --final` stays red until those rows verify. `parity/options.json` disposes of every Aider long option as registered or explicitly nonclaimed.
+
 This file is the contract every contributor and delegate builds against. `parity/PORTING.md` is the recipe for porting one Aider module. `parity/README.md` defines the ledger and the gate.
 
 ## Binding operator decisions
@@ -41,7 +43,7 @@ parity/
 
 Rules that keep the symmetry real:
 
-- Only `src/core/` calls `pi.on`, `pi.registerCommand`, `pi.registerFlag`, `pi.registerVirtualModel`, `pi.appendEntry`, `pi.sendMessage`, `pi.sendUserMessage`, and `pi.setActiveTools`. A SAR declares options, commands, and its port. The core registers them. This keeps one Pi adapter, so `extensions/AGENTS.md` compliance is reviewed in one place.
+- Only `src/core/` calls `pi.on`, `pi.registerCommand`, `pi.registerFlag`, `pi.registerVirtualModel`, `pi.appendEntry`, `pi.sendMessage`, `pi.sendUserMessage`, and `pi.setActiveTools`. A SAR declares options, commands, and its port. The core registers them. This keeps one Pi adapter, so Pi-native compliance is reviewed in one place.
 - Ports never import Pi. They receive what they need (a `WorkingTree`, a `Host` with UI and process capabilities, resolved settings) as arguments.
 - Every SAR registers through the same three lists: `options`, `commands`, and one port. No SAR has a private registration path.
 
@@ -81,7 +83,7 @@ Every edit format implements one `EditFormat` interface, mirroring Aider's coder
 3. The YAML config files `.pi-maintainer.conf.yml` in the home directory, the Git root, and the working directory, later files winning, as Aider reads `.aider.conf.yml`.
 4. Aider's default.
 
-`.env` files are read in Aider's order (home, Git root, working directory, override). They feed option resolution and the environment of commands pi-maintainer runs. They never change Pi's own process environment, because provider credentials are Pi-owned. Where `pi.registerFlag` cannot express an Aider option kind (repeatable or negated flags), the gap and its adapter go in `docs/NATIVE-GAPS.md`.
+`.env` files are read in Aider's order (home, Git root, working directory, override). They feed option resolution and the environment of commands pi-maintainer runs, including Git, `/git`, attribution commits, lint, test, and shell suggestions, through `Host.exec`. They never change Pi's own process environment, because provider credentials are Pi-owned. Where `pi.registerFlag` cannot express an Aider option kind (repeatable or negated flags), the gap and its adapter go in `docs/NATIVE-GAPS.md`.
 
 ## Lifecycle mapping
 
@@ -95,23 +97,24 @@ The lifecycle base design is candidate 2 of the lifecycle arena, an exchange con
 | `format_messages` and `ChatChunks` | `context_with_system`, a documented gap because Pi has no mid-run structured prompt setter |
 | Main, editor, and weak models | `pi.registerVirtualModel` routing to physical models from `ctx.modelRegistry` |
 | Provider transport, streaming, retries, cost | Pi-owned |
-| Chat history summarization | Pi compaction, Pi-owned |
+| Done-history summarization | `ctx.compact()` at `--max-chat-history-tokens`, summarized through `session_before_compact` with Aider's prompt and the weak model (`docs/NATIVE-GAPS.md`) |
 | Chat file sets, mode, assistant commit hashes | `pi.appendEntry` snapshots, restored from `ctx.sessionManager.getBranch()` on `session_start` and `session_tree` |
 | Confirmations | `ctx.ui.confirm` and `ctx.ui.select` through the core `Host`, with Aider's non-interactive answers when `ctx.hasUI` is false |
-| Shell, lint, test, and Git commands | `pi.exec`, or a documented gap where Aider needs a PTY or an environment Pi cannot pass |
-| Commit messages | `ctx.modelRegistry`, weak model first, then main |
+| Shell, lint, test, and Git commands | `pi.exec`, or the documented `Host.exec` environment adapter; a documented gap where Aider needs an interactive PTY |
+| Commit messages | `ctx.modelRegistry.complete`, Aider's commit prompt, weak model first then main, main model name in the Co-authored-by trailer |
+| Console output (`tool_output`, `tool_warning`, `tool_error`) | `ctx.ui.notify` with a UI, stderr in print and JSON, always a session notice entry (`docs/NATIVE-GAPS.md`) |
 | No tools for the model | `pi.setActiveTools([])` while a maintainer coder is active, and `tool_call` blocks a stray call |
 | File writes | `WorkingTree`, inside `withFileMutationQueue` |
 
 ## Native gaps
 
-`docs/NATIVE-GAPS.md` lists every custom adapter with the eight answers that `extensions/AGENTS.md` requires. A custom adapter without an entry fails review.
+`docs/NATIVE-GAPS.md` lists every custom adapter with the eight native-gap answers that file defines. A custom adapter without an entry fails review.
 
 ## Test layers
 
 1. **Oracle ports.** Each ported function matches Aider's own Python on recorded goldens, per `parity/PORTING.md`.
 2. **Pi integration.** Vitest drives the real Pi SDK in process (an `AgentSession` over `SessionManager.inMemory()` with a scripted provider), so hooks, entries, continuation, and branch restore are exercised, not mocked.
-3. **Journeys.** `parity/journeys/<sar>/` scripts run the real `pi` binary in print and RPC modes with a scripted provider and save their artifacts.
+3. **Journeys.** `parity/journeys/<sar>/` scripts run the real `pi` binary in print and RPC modes with a scripted provider, load the shipped factory from `src/index.ts`, and save their artifacts. `bun run journey:edit` proves edit, Git checkpointing, commit-message generation, and console output end to end.
 
 ## Code rules
 

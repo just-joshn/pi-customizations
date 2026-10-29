@@ -1,4 +1,3 @@
-
 import { createHash } from 'node:crypto';
 import { readFile, realpath, stat } from 'node:fs/promises';
 import { isAbsolute, resolve } from 'node:path';
@@ -30,12 +29,9 @@ const MAX_FILE_BYTES = 1024 * 1024 * 1024;
 const SENTINEL_SEARCH_WINDOW = 262_144;
 const MAX_SENTINELS_PER_SLICE = 32;
 
-const OTHER_MEANS_LIMITATION =
-  'Fuse state does not prove the application enables Inspector through other means, such as app.commandLine or a remote-debugging switch in application code.';
-const MISSING_SENTINEL_LIMITATION =
-  'A missing sentinel means fuse state is unknown, not that every fuse is disabled.';
-const ADMISSION_LIMITATION =
-  'The selected file is admitted as one regular file of at most 1 GiB. Sentinel search uses 262144-byte windows, and each slice keeps at most 32 sentinels.';
+const OTHER_MEANS_LIMITATION = 'Fuse state does not prove the application enables Inspector through other means, such as app.commandLine or a remote-debugging switch in application code.';
+const MISSING_SENTINEL_LIMITATION = 'A missing sentinel means fuse state is unknown, not that every fuse is disabled.';
+const ADMISSION_LIMITATION = 'The selected file is admitted as one regular file of at most 1 GiB. Sentinel search uses 262144-byte windows, and each slice keeps at most 32 sentinels.';
 
 export type ElectronFuseState = 'enabled' | 'disabled' | 'removed' | 'unknown';
 export type ElectronFuseFormat = 'mach-o' | 'mach-o-universal' | 'pe' | 'elf';
@@ -68,11 +64,7 @@ export interface ElectronFuseImplication {
   readonly relationship: 'derivation';
   readonly slice_index: number;
   readonly sentinel_offset: number;
-  readonly subject:
-    | 'node_cli_inspect_arguments'
-    | 'electron_run_as_node'
-    | 'embedded_asar_integrity_validation'
-    | 'only_load_app_from_asar';
+  readonly subject: 'node_cli_inspect_arguments' | 'electron_run_as_node' | 'embedded_asar_integrity_validation' | 'only_load_app_from_asar';
   readonly fuse_index: 0 | 3 | 4 | 5;
   readonly outcome: string;
 }
@@ -91,10 +83,10 @@ export interface ElectronFuseInspection {
 }
 
 const MACH_ARCH: Record<number, string> = {
-  0x00000007: 'x86',
-  0x0000000c: 'arm',
-  0x01000007: 'x86_64',
-  0x0100000c: 'arm64',
+  7: 'x86',
+  12: 'arm',
+  16777223: 'x86_64',
+  16777228: 'arm64',
 };
 
 const inputError = (path: string, detail: string) =>
@@ -110,8 +102,7 @@ export const electronFuseState = (byte: number): ElectronFuseState => {
   return 'unknown';
 };
 
-export const electronFuseName = (wireVersion: number, index: number): string | null =>
-  wireVersion === 1 ? (ELECTRON_FUSE_V1_NAMES[index] ?? null) : null;
+export const electronFuseName = (wireVersion: number, index: number): string | null => (wireVersion === 1 ? (ELECTRON_FUSE_V1_NAMES[index] ?? null) : null);
 
 const findSentinelOffsets = (bytes: Buffer, start: number, end: number): number[] => {
   const offsets: number[] = [];
@@ -133,14 +124,24 @@ const decodeSentinel = (bytes: Buffer, sentinelOffset: number, sliceEnd: number)
   if (wireStart + 2 > sliceEnd) {
     return { sentinel_offset: sentinelOffset, wire_version: null, declared_length: null, fuses: [], complete: false };
   }
-  const wireVersion = bytes[wireStart]!;
-  const declaredLength = bytes[wireStart + 1]!;
+  const wireVersion = bytes[wireStart];
+  const declaredLength = bytes[wireStart + 1];
+  if (wireVersion === undefined || declaredLength === undefined) {
+    return {
+      sentinel_offset: sentinelOffset,
+      wire_version: null,
+      declared_length: null,
+      fuses: [],
+      complete: false,
+    };
+  }
   const fuseStart = wireStart + 2;
   const available = Math.max(0, sliceEnd - fuseStart);
   const take = Math.min(declaredLength, available);
   const fuses: ElectronFuse[] = [];
   for (let index = 0; index < take; index += 1) {
-    const raw = bytes[fuseStart + index]!;
+    const raw = bytes[fuseStart + index];
+    if (raw === undefined) break;
     fuses.push({
       index,
       name: electronFuseName(wireVersion, index),
@@ -202,10 +203,7 @@ const detectContainer = (bytes: Buffer): { readonly format: ElectronFuseFormat; 
   throw new Error('unsupported container');
 };
 
-const implicationsFor = (
-  slices: readonly ElectronFuseSlice[],
-  format: ElectronFuseFormat,
-): { readonly runtime_implications: ElectronFuseImplication[]; readonly limitations: string[] } => {
+const implicationsFor = (slices: readonly ElectronFuseSlice[], format: ElectronFuseFormat): { readonly runtime_implications: ElectronFuseImplication[]; readonly limitations: string[] } => {
   const runtime_implications: ElectronFuseImplication[] = [];
   const limitations = [OTHER_MEANS_LIMITATION, MISSING_SENTINEL_LIMITATION, ADMISSION_LIMITATION];
   const rules = [
@@ -227,15 +225,11 @@ const implicationsFor = (
   ];
   for (const slice of slices) {
     if (slice.sentinel_count === 0) {
-      limitations.push(
-        `Slice ${slice.index} at file offset ${slice.file_offset} contains no Electron fuse sentinel; fuse state for that slice is unknown, not disabled.`,
-      );
+      limitations.push(`Slice ${slice.index} at file offset ${slice.file_offset} contains no Electron fuse sentinel; fuse state for that slice is unknown, not disabled.`);
       continue;
     }
     if (slice.sentinel_count > 1) {
-      limitations.push(
-        `Slice ${slice.index} at file offset ${slice.file_offset} contains ${slice.sentinel_count} Electron fuse sentinels; every sentinel is reported and none is selected.`,
-      );
+      limitations.push(`Slice ${slice.index} at file offset ${slice.file_offset} contains ${slice.sentinel_count} Electron fuse sentinels; every sentinel is reported and none is selected.`);
     }
     for (const sentinel of slice.sentinels) {
       for (const rule of rules) {
@@ -286,10 +280,7 @@ const resolveSelectedFile = async (path: string, cwd?: string): Promise<string> 
   return canonical;
 };
 
-export const inspectElectronFusesFromPath = async (
-  path: string,
-  options: { readonly cwd?: string } = {},
-): Promise<{ readonly record: ElectronFuseInspection; readonly path: string; readonly resolvedPath: string }> => {
+export const inspectElectronFusesFromPath = async (path: string, options: { readonly cwd?: string } = {}): Promise<{ readonly record: ElectronFuseInspection; readonly path: string; readonly resolvedPath: string }> => {
   const resolvedPath = await resolveSelectedFile(path, options.cwd);
   let bytes: Buffer;
   try {

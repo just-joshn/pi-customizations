@@ -99,7 +99,7 @@ async function checkTheme(file) {
   return 1;
 }
 
-const manifests = [join(root, 'package.json'), ...(await readdir(join(root, 'extensions'))).map((name) => join(root, 'extensions', name, 'package.json'))].filter(existsSync);
+const manifests = (await readdir(join(root, 'extensions'))).map((name) => join(root, 'extensions', name, 'package.json')).filter(existsSync);
 const counts = { packages: manifests.length, extensions: 0, skills: 0, prompts: 0, themes: 0 };
 const themeFiles = [];
 for (const manifestPath of manifests) {

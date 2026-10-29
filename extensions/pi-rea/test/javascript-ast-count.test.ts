@@ -1,5 +1,4 @@
 import { expect, test } from 'vitest';
-
 import { countVisitedAstNodes } from '../src/analysis/formats/javascript-ast-count.mjs';
 
 test('countVisitedAstNodes: matches measured 6.8.0 visit count for js-compare left main', () => {

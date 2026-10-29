@@ -107,7 +107,11 @@ export function forkTranscript(dir: string, sourceId: string, agentId: string, t
   return file;
 }
 
-/** Cuts the copy's active branch just before its (turns + 1)th user message, so the fork opens at the end of turn `turns`. */
+/**
+ * Cuts the copy's active branch just before its (turns + 1)th user message, so the fork opens at the end of turn `turns`.
+ * `SessionManager.createBranchedSession(leafId)` mints its own session ID and file name, so it cannot truncate the file
+ * `forkFrom(..., { id: agentId })` wrote under the agent's ID (docs/native-gaps.md).
+ */
 function keepFirstTurns(fork: SessionManager, file: string, turns: number): void {
   const branch = fork.getBranch();
   const cut = branch.filter((entry) => entry.type === 'message' && entry.message.role === 'user')[turns];

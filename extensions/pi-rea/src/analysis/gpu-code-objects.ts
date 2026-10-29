@@ -1,4 +1,3 @@
-
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { isAbsolute, resolve } from 'node:path';
@@ -83,7 +82,7 @@ const parsePtx = (bytes: Buffer, path: string, analysis: 'inventory' | 'kernels'
     throw inputError(path, 'invalid_format', 'PTX text markers (.version/.target) were not observed.');
   }
   const target = text.match(/\.target\s+([A-Za-z0-9_]+)/)?.[1] ?? null;
-  const entryPoints = [...text.matchAll(/\.entry\s+([A-Za-z0-9_$]+)/g)].map((match) => match[1]!);
+  const entryPoints = [...text.matchAll(/\.entry\s+([A-Za-z0-9_$]+)/g)].flatMap((match) => (match[1] === undefined ? [] : [match[1]]));
   const digest = sha256(bytes);
   const objectId = 'file@0';
   const object: GpuCodeObject = {
@@ -173,7 +172,8 @@ const parseElfInventory = (bytes: Buffer, path: string, analysis: 'inventory' | 
   let examined = 0;
   let payloadBytes = 0;
   for (let sectionIndex = 0; sectionIndex < headers.length; sectionIndex += 1) {
-    const header = headers[sectionIndex]!;
+    const header = headers[sectionIndex];
+    if (header === undefined) continue;
     const name = nameAt(header.nameOffset);
     if (name.length === 0) continue;
     examined += 1;
@@ -233,10 +233,7 @@ const parseElfInventory = (bytes: Buffer, path: string, analysis: 'inventory' | 
       examined_sections: examined,
       unknown_section_names: unknown,
     },
-    limitations: [
-      ...GPU_LIMITATIONS,
-      ...(analysis === 'kernels' ? ['Selected kernel decode for ELF fatbin payloads is not implemented in this port; inventory rows remain.'] : []),
-    ],
+    limitations: [...GPU_LIMITATIONS, ...(analysis === 'kernels' ? ['Selected kernel decode for ELF fatbin payloads is not implemented in this port; inventory rows remain.'] : [])],
   };
 };
 
@@ -248,10 +245,7 @@ export interface GpuOptions {
   readonly cwd?: string;
 }
 
-export const inspectGpuCodeObjectsFromPath = async (
-  path: string,
-  options: GpuOptions = {},
-): Promise<{ record: GpuCodeObjectsInspection; path: string; resolvedPath: string }> => {
+export const inspectGpuCodeObjectsFromPath = async (path: string, options: GpuOptions = {}): Promise<{ record: GpuCodeObjectsInspection; path: string; resolvedPath: string }> => {
   const analysis = options.analysis ?? 'inventory';
   if (analysis !== 'inventory' && analysis !== 'kernels') throw inputError(path, 'invalid_value', 'analysis must be inventory or kernels.');
   if (options.objectIds !== undefined && options.expectedSha256 === undefined) {
@@ -278,9 +272,7 @@ export const inspectGpuCodeObjectsFromPath = async (
       return {
         record: {
           ...record,
-          objects: record.objects.map((object) =>
-            selected.has(object.id) ? { ...object, inspection: 'kernels' as const } : object,
-          ),
+          objects: record.objects.map((object) => (selected.has(object.id) ? { ...object, inspection: 'kernels' as const } : object)),
           kernels: record.kernels.filter((kernel) => selected.has(String((kernel as { object_id?: string }).object_id))),
           coverage: { ...record.coverage, payloads: 'selected' },
         },

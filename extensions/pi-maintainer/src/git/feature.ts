@@ -17,6 +17,7 @@ function settingsFromEnv(settings: ResolvedSettings): GitPolicySettings {
     commitPrompt: settings.value(gitOptions.commitPrompt),
     aiderIgnore: settings.value(gitOptions.aiderIgnore),
     subtreeOnly: settings.value(gitOptions.subtreeOnly),
+    addGitignoreFiles: settings.value(gitOptions.addGitignoreFiles),
     commitLanguage: settings.value(gitOptions.commitLanguage),
   };
 }
@@ -26,12 +27,14 @@ export const gitFeature: Feature<GitPolicy> & { readonly name: 'git' } = {
   name: 'git',
   options: gitOptionList,
   commands: gitCommands,
-  create({ settings, host, cwd, gitRoot }) {
+  create({ settings, host, cwd, gitRoot, generateCommitMessage, mainModelName }) {
     return createGitPolicy({
       host,
       cwd,
       settings: settingsFromEnv(settings),
       ...(gitRoot !== undefined ? { repoRoot: gitRoot } : {}),
+      ...(generateCommitMessage ? { generateCommitMessage } : {}),
+      ...(mainModelName ? { mainModelName } : {}),
     });
   },
 };

@@ -1,12 +1,159 @@
 {
-  "started_at": "2026-10-28T10:30:30.935Z",
+  "started_at": "2026-10-28T21:41:23.727Z",
   "rea_agents": "6.8.0",
   "cases": [
+    {
+      "id": "inspect_pe_imports--budget-dlls",
+      "tool": "inspect_pe_imports",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_pe_imports--unreadable-name",
+      "tool": "inspect_pe_imports",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_pe_imports--unmapped-directory",
+      "tool": "inspect_pe_imports",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_pe_imports--unreadable-thunk",
+      "tool": "inspect_pe_imports",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "binary_session--alignment-unknown",
+      "tool": "binary_session",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": [
+        "result.open",
+        "result.cleanup_pending",
+        "result.client_features",
+        "result.server_identity.alignment"
+      ],
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "binary_session--alignment-digest-mismatch",
+      "tool": "binary_session",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": [
+        "result.server_identity.alignment"
+      ],
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "binary_session--alignment-path-mismatch",
+      "tool": "binary_session",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": [
+        "result.server_identity.alignment"
+      ],
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "binary_session--alignment-version-mismatch",
+      "tool": "binary_session",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": [
+        "result.server_identity.alignment"
+      ],
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "open_binary--minimal-elf",
+      "tool": "open_binary",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "open_binary--missing",
+      "tool": "open_binary",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "open_binary--directory",
+      "tool": "open_binary",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "open_binary--unsupported-format",
+      "tool": "open_binary",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "close_binary--open-then-close",
+      "tool": "close_binary",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "close_binary--snapshot-open",
+      "tool": "close_binary",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "close_binary--snapshot-closed",
+      "tool": "close_binary",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
     {
       "id": "inspect_plist--sample-xml",
       "tool": "inspect_plist",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -15,6 +162,7 @@
       "tool": "inspect_macho",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -23,6 +171,7 @@
       "tool": "list_architectures",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -31,6 +180,7 @@
       "tool": "list_architectures",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -39,6 +189,7 @@
       "tool": "inspect_pe_resources",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -47,6 +198,7 @@
       "tool": "inspect_pe_imports",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -55,6 +207,7 @@
       "tool": "inspect_pe_certificates",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -63,6 +216,7 @@
       "tool": "inspect_pe_load_config",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -71,6 +225,7 @@
       "tool": "inspect_elf_notes",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -79,6 +234,7 @@
       "tool": "inspect_rust_binary",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -87,6 +243,7 @@
       "tool": "inspect_apple_ips",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -95,6 +252,7 @@
       "tool": "inspect_byte_entropy",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -103,6 +261,7 @@
       "tool": "analyze_javascript_application",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -111,6 +270,7 @@
       "tool": "inspect_artifact",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -119,6 +279,7 @@
       "tool": "inspect_binary_layout",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -127,6 +288,7 @@
       "tool": "inspect_go_binary",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -135,6 +297,7 @@
       "tool": "inspect_web_network_capture",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -143,6 +306,7 @@
       "tool": "inspect_model_artifact",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -151,6 +315,7 @@
       "tool": "inspect_sqlite_database",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -159,6 +324,7 @@
       "tool": "inspect_erlang_beam",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -167,6 +333,7 @@
       "tool": "inspect_desktop_application",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -175,6 +342,7 @@
       "tool": "inspect_gpu_code_objects",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -183,6 +351,7 @@
       "tool": "inspect_il2cpp_metadata",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -191,6 +360,7 @@
       "tool": "inspect_python_pyc",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -199,6 +369,7 @@
       "tool": "inspect_kernel_module",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -207,6 +378,7 @@
       "tool": "inspect_analysis_settings",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -215,6 +387,7 @@
       "tool": "update_analysis_settings",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -223,6 +396,7 @@
       "tool": "verify_unknown_resolution",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -231,6 +405,7 @@
       "tool": "list_bookmarks",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -239,6 +414,7 @@
       "tool": "list_documents",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -247,6 +423,7 @@
       "tool": "list_names",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -255,6 +432,7 @@
       "tool": "list_procedures",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -263,6 +441,7 @@
       "tool": "list_segments",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -271,6 +450,7 @@
       "tool": "list_strings",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -279,6 +459,7 @@
       "tool": "list_bookmarks",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -287,6 +468,7 @@
       "tool": "list_documents",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -295,6 +477,7 @@
       "tool": "list_names",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -303,6 +486,7 @@
       "tool": "list_procedures",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -311,6 +495,7 @@
       "tool": "list_segments",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -319,6 +504,7 @@
       "tool": "list_strings",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -327,6 +513,7 @@
       "tool": "inspect_devicetree",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -335,6 +522,7 @@
       "tool": "inspect_apk_signature",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -343,6 +531,7 @@
       "tool": "inspect_electron_fuses",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -351,6 +540,7 @@
       "tool": "inspect_signature",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -359,6 +549,7 @@
       "tool": "open_bundle_resources",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -367,6 +558,7 @@
       "tool": "inspect_keyed_archive",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -375,6 +567,7 @@
       "tool": "inspect_asset_catalog",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -383,6 +576,7 @@
       "tool": "inspect_managed_artifact",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -391,6 +585,7 @@
       "tool": "inspect_managed_members",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -399,6 +594,7 @@
       "tool": "identify_flutter_build",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -407,6 +603,7 @@
       "tool": "inspect_dart_aot",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -415,6 +612,7 @@
       "tool": "demangle_swift",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -423,6 +621,7 @@
       "tool": "decode_interface_builder",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -431,6 +630,7 @@
       "tool": "extract_artifact",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -439,6 +639,7 @@
       "tool": "compare_artifacts",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -447,6 +648,7 @@
       "tool": "compare_bundles",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -455,6 +657,7 @@
       "tool": "compare_managed_members",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -463,6 +666,7 @@
       "tool": "inspect_recorded_crash",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -471,6 +675,7 @@
       "tool": "compare_javascript_export_shapes",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -479,6 +684,7 @@
       "tool": "compare_application_versions",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -487,6 +693,7 @@
       "tool": "compare_source_to_bundle",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -495,6 +702,7 @@
       "tool": "export_web_scripts",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -503,6 +711,7 @@
       "tool": "project_apple_application_graph",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -511,6 +720,7 @@
       "tool": "goto_address",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -519,6 +729,7 @@
       "tool": "goto_address",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -527,6 +738,7 @@
       "tool": "list_adb_devices",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -535,6 +747,7 @@
       "tool": "start_frida_session",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -543,6 +756,7 @@
       "tool": "list_browser_targets",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -551,6 +765,7 @@
       "tool": "list_jeb_units",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -559,6 +774,7 @@
       "tool": "execute_rizin_command",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -567,6 +783,7 @@
       "tool": "start_gdb_session",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -575,6 +792,7 @@
       "tool": "inspect_wasm_artifact",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -583,6 +801,7 @@
       "tool": "inspect_packet_capture",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -591,6 +810,7 @@
       "tool": "inspect_pcap_client",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -599,6 +819,7 @@
       "tool": "inspect_signal_decoders",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -607,6 +828,7 @@
       "tool": "inspect_evm_interface",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -615,6 +837,7 @@
       "tool": "observe_native_calls",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -623,6 +846,7 @@
       "tool": "observe_native_calls",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -631,6 +855,7 @@
       "tool": "inspect_with_objdump",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -639,6 +864,7 @@
       "tool": "list_cutter_sessions",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -647,6 +873,7 @@
       "tool": "inspect_apktool_client",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -655,6 +882,7 @@
       "tool": "recover_javascript_sources",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -663,6 +891,7 @@
       "tool": "inspect_firmware_regions",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -671,6 +900,7 @@
       "tool": "inspect_android_class",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -679,6 +909,7 @@
       "tool": "list_frida_devices",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -687,6 +918,7 @@
       "tool": "read_bytes",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -695,6 +927,7 @@
       "tool": "read_bytes",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -703,6 +936,7 @@
       "tool": "inspect_native_exports",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -711,6 +945,7 @@
       "tool": "inspect_packet_fields",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -719,6 +954,7 @@
       "tool": "decode_signal_recording",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -727,6 +963,7 @@
       "tool": "inspect_pcap_capture",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -735,6 +972,7 @@
       "tool": "compare_functions",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     },
@@ -743,12 +981,13 @@
       "tool": "export_environment_bundle",
       "status": "pass",
       "diff_count": 0,
+      "compared_paths": null,
       "undocumented_count": 0,
       "contract_issues": 0
     }
   ],
-  "pass": 93,
+  "pass": 108,
   "fail": 0,
   "documented": 0,
-  "finished_at": "2026-10-28T10:32:37.895Z"
+  "finished_at": "2026-10-28T21:44:01.662Z"
 }

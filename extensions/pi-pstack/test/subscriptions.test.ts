@@ -72,7 +72,9 @@ describe('subscribe_timer', () => {
     await vi.advanceTimersByTimeAsync(59_000);
     expect(fake.sent).toEqual([]);
     await vi.advanceTimersByTimeAsync(1_000);
-    expect(fake.sent).toEqual([{ message: { customType: WAKE_TYPE, content: '[timer] nudge\n\ncheck the deploy', display: true, details: { id: details['id'], kind: 'timer', name: 'nudge' } }, options: { triggerTurn: true, deliverAs: 'followUp' } }]);
+    expect(fake.sent).toEqual([
+      { message: { customType: WAKE_TYPE, content: '[timer] nudge\n\ncheck the deploy', display: true, details: { id: details['id'], kind: 'timer', name: 'nudge' } }, options: { triggerTurn: true, deliverAs: 'followUp' } },
+    ]);
     await vi.advanceTimersByTimeAsync(600_000);
     expect(fake.sent).toHaveLength(1);
     expect((await fake.call('list_subscriptions', {})).text).toBe('No subscriptions.');
@@ -242,7 +244,10 @@ describe('subscribe_github_pr', () => {
     (prs.get(1) as Pr).state = 'MERGED';
     await vi.advanceTimersByTimeAsync(1_000);
     const blocks = [...(wakes(fake)[0] ?? '').matchAll(/<github_event>\n([\s\S]*?)\n<\/github_event>/g)].map((match) => JSON.parse(match[1] ?? '') as { number: number; changes: string[] });
-    expect(blocks).toEqual([{ number: 2, title: 'Fix 2', url: 'https://github.com/o/r/pull/2', changes: ['opened'] }, { number: 1, title: 'Fix 1', url: 'https://github.com/o/r/pull/1', changes: ['merged'] }]);
+    expect(blocks).toEqual([
+      { number: 2, title: 'Fix 2', url: 'https://github.com/o/r/pull/2', changes: ['opened'] },
+      { number: 1, title: 'Fix 1', url: 'https://github.com/o/r/pull/1', changes: ['merged'] },
+    ]);
     expect(calls.at(-1)).toEqual(['pr', 'view', '1', '--repo', 'o/r', '--json', expect.any(String)]);
   });
 
@@ -329,11 +334,13 @@ describe('subscribe_github_pr', () => {
     fake.emit('session_tree');
     expect(waiters).toHaveLength(2);
     hold = false;
-    waiters.splice(0).forEach((release) => release());
+    waiters.splice(0).forEach((release) => {
+      release();
+    });
     await vi.advanceTimersByTimeAsync(0);
     const stored = fake.entries.filter((entry) => entry.customType === SUBSCRIPTIONS_ENTRY).at(-1);
     const data = structuredClone(stored?.data) as { subscriptions: { expiresAt: number }[] };
-    data.subscriptions[0]!.expiresAt = Date.now() + 60_000;
+    (data.subscriptions[0] as { expiresAt: number }).expiresAt = Date.now() + 60_000;
     fake.entries.push({ type: 'custom', customType: SUBSCRIPTIONS_ENTRY, data });
     fake.emit('session_tree');
     await vi.advanceTimersByTimeAsync(0);
@@ -535,17 +542,21 @@ describe('subscribe_webhook', () => {
       `const fs = require('fs');\nconst orig = fs.writeFileSync;\nfs.writeFileSync = function (path, data, options) {\n  if (String(path).endsWith('credentials.json')) Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 40);\n  return orig.call(fs, path, data, options);\n};\n`,
     );
     const keys = await Promise.all(
-      Array.from({ length: 8 }, () => new Promise<string>((resolve, reject) => {
-        const child = spawn(process.execPath, ['--require', delay, '--experimental-strip-types', runner], { stdio: ['ignore', 'pipe', 'pipe'] });
-        let out = '';
-        let err = '';
-        child.stdout.setEncoding('utf8');
-        child.stderr.setEncoding('utf8');
-        child.stdout.on('data', (chunk: string) => (out += chunk));
-        child.stderr.on('data', (chunk: string) => (err += chunk));
-        child.on('error', reject);
-        child.on('close', (code) => (code === 0 ? resolve(out) : reject(new Error(err || `exit ${code}`))));
-      })),
+      Array.from(
+        { length: 8 },
+        () =>
+          new Promise<string>((resolve, reject) => {
+            const child = spawn(process.execPath, ['--require', delay, '--experimental-strip-types', runner], { stdio: ['ignore', 'pipe', 'pipe'] });
+            let out = '';
+            let err = '';
+            child.stdout.setEncoding('utf8');
+            child.stderr.setEncoding('utf8');
+            child.stdout.on('data', (chunk: string) => (out += chunk));
+            child.stderr.on('data', (chunk: string) => (err += chunk));
+            child.on('error', reject);
+            child.on('close', (code) => (code === 0 ? resolve(out) : reject(new Error(err || `exit ${code}`))));
+          }),
+      ),
     );
     expect(new Set(keys).size).toBe(1);
     expect(keys[0]).toMatch(/^[0-9a-f]{64}$/);
@@ -554,7 +565,9 @@ describe('subscribe_webhook', () => {
   test('/routines lists URL, credential file, and status; unsubscribe frees the route', async () => {
     const { url } = await create();
     const listing = await fake.command('routines');
-    expect(listing).toBe(`Bot UI [enabled]\n  url: ${url}\n  credential file: ${join(dir, 'bot-ui', 'credentials.json')}\n  expires: ${new Date(JSON.parse(JSON.stringify(fake.entries.at(-1)?.data)).subscriptions[0].expiresAt).toISOString()}`);
+    expect(listing).toBe(
+      `Bot UI [enabled]\n  url: ${url}\n  credential file: ${join(dir, 'bot-ui', 'credentials.json')}\n  expires: ${new Date(JSON.parse(JSON.stringify(fake.entries.at(-1)?.data)).subscriptions[0].expiresAt).toISOString()}`,
+    );
     await fake.call('unsubscribe', { subscription: 'Bot UI' });
     await expect(post(url, '{}')).rejects.toThrow();
     expect(await fake.command('routines')).toBe('No webhook routines.');

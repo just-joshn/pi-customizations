@@ -1,0 +1,22 @@
+{
+  "kind": "error",
+  "body": {
+    "code": "resource_constraint",
+    "category": "resource_constraint",
+    "message": "Selected artifact /Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/pe/imports/two-dll.exe: Import inventory declares 2 descriptors, above the 1-entry DLL allowance",
+    "retryable": false,
+    "remediation": {
+      "action": "Raise max_dlls above 1 or select a smaller artifact; the limit is the caller-selected DLL budget."
+    },
+    "details": {
+      "operation": "inspect_pe_imports",
+      "resource": "capacity",
+      "reason": "Selected artifact /Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/pe/imports/two-dll.exe: Import inventory declares 2 descriptors, above the 1-entry DLL allowance",
+      "reported_limits": {
+        "boundary": "structure",
+        "maximum": 1,
+        "limit": "dlls"
+      }
+    }
+  }
+}

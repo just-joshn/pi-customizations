@@ -71,14 +71,18 @@ describe('legacy rule migration (RULE-003)', () => {
     const path = join(dir, 'pstack-models.md');
     writeFileSync(runner, `import { migrateLegacyRule } from ${JSON.stringify(source)};\nmigrateLegacyRule(${JSON.stringify(path)});\n`);
     const codes = await Promise.all(
-      Array.from({ length: 8 }, () => new Promise<number>((resolve, reject) => {
-        const child = spawn(process.execPath, ['--experimental-strip-types', runner], { stdio: ['ignore', 'ignore', 'pipe'] });
-        let err = '';
-        child.stderr.setEncoding('utf8');
-        child.stderr.on('data', (chunk: string) => (err += chunk));
-        child.on('error', reject);
-        child.on('close', (code) => (code === 0 ? resolve(0) : reject(new Error(err || `exit ${code}`))));
-      })),
+      Array.from(
+        { length: 8 },
+        () =>
+          new Promise<number>((resolve, reject) => {
+            const child = spawn(process.execPath, ['--experimental-strip-types', runner], { stdio: ['ignore', 'ignore', 'pipe'] });
+            let err = '';
+            child.stderr.setEncoding('utf8');
+            child.stderr.on('data', (chunk: string) => (err += chunk));
+            child.on('error', reject);
+            child.on('close', (code) => (code === 0 ? resolve(0) : reject(new Error(err || `exit ${code}`))));
+          }),
+      ),
     );
     expect(codes).toEqual(Array.from({ length: 8 }, () => 0));
     expect(readFileSync(path, 'utf8')).toBe('# budget: large\n');

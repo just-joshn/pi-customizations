@@ -13,12 +13,12 @@ export interface InspectDesktopApplicationParams {
   readonly detail?: string;
 }
 
-export const inspectDesktopApplication = async (
-  session: ReaSession,
-  params: InspectDesktopApplicationParams,
-  context: ToolCallContext = {},
-): Promise<AgentToolResult<unknown>> => {
-  const { record: inspection, path, resolvedPath } = await inspectDesktopApplicationFromPath(params.path, {
+export const inspectDesktopApplication = async (session: ReaSession, params: InspectDesktopApplicationParams, context: ToolCallContext = {}): Promise<AgentToolResult<unknown>> => {
+  const {
+    record: inspection,
+    path,
+    resolvedPath,
+  } = await inspectDesktopApplicationFromPath(params.path, {
     ...(params.max_entries === undefined ? {} : { maxEntries: params.max_entries }),
     ...(params.max_probe_bytes === undefined ? {} : { maxProbeBytes: params.max_probe_bytes }),
     ...(context.cwd === undefined ? {} : { cwd: context.cwd }),

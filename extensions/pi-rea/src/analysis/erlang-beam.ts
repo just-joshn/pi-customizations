@@ -1,4 +1,3 @@
-
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { isAbsolute, resolve } from 'node:path';
@@ -29,19 +28,23 @@ export interface BeamInspection {
   }[];
   readonly atoms: readonly { readonly index: number; readonly name: string }[] | null;
   readonly atom_encoding: 'latin1' | 'utf8' | null;
-  readonly exports: readonly {
-    readonly function: string | null;
-    readonly arity: number;
-    readonly label: number;
-    readonly function_index: number;
-  }[] | null;
-  readonly imports: readonly {
-    readonly module: string | null;
-    readonly function: string | null;
-    readonly arity: number;
-    readonly module_index: number;
-    readonly function_index: number;
-  }[] | null;
+  readonly exports:
+    | readonly {
+        readonly function: string | null;
+        readonly arity: number;
+        readonly label: number;
+        readonly function_index: number;
+      }[]
+    | null;
+  readonly imports:
+    | readonly {
+        readonly module: string | null;
+        readonly function: string | null;
+        readonly arity: number;
+        readonly module_index: number;
+        readonly function_index: number;
+      }[]
+    | null;
   readonly lambdas: readonly { readonly function: string | null; readonly arity: number; readonly atom_index: number }[] | null;
   readonly code: {
     readonly instruction_set: number;
@@ -70,19 +73,15 @@ const resolveAtom = (atoms: BeamInspection['atoms'], index: number): string | nu
   return entry?.name ?? null;
 };
 
-const decodeAtoms = (
-  payload: Buffer,
-  encoding: 'latin1' | 'utf8',
-  maxAtoms: number,
-): { atoms: NonNullable<BeamInspection['atoms']>; encoding: 'latin1' | 'utf8' } => {
+const decodeAtoms = (payload: Buffer, encoding: 'latin1' | 'utf8', maxAtoms: number): { atoms: NonNullable<BeamInspection['atoms']>; encoding: 'latin1' | 'utf8' } => {
   if (payload.length < 4) throw new Error('atom table truncated');
   const count = payload.readUInt32BE(0);
   if (count > maxAtoms) throw new Error(`atom table exceeds max_atoms=${maxAtoms}`);
   const atoms: { index: number; name: string }[] = [];
   let offset = 4;
   for (let index = 1; index <= count; index += 1) {
-    if (offset >= payload.length) throw new Error('atom table truncated');
-    const length = payload[offset]!;
+    const length = payload[offset];
+    if (length === undefined) throw new Error('atom table truncated');
     offset += 1;
     if (offset + length > payload.length) throw new Error('atom table truncated');
     atoms.push({ index, name: payload.subarray(offset, offset + length).toString(encoding) });
@@ -98,10 +97,7 @@ export interface BeamOptions {
   readonly cwd?: string;
 }
 
-export const inspectErlangBeamFromPath = async (
-  path: string,
-  options: BeamOptions = {},
-): Promise<{ record: BeamInspection; path: string; resolvedPath: string }> => {
+export const inspectErlangBeamFromPath = async (path: string, options: BeamOptions = {}): Promise<{ record: BeamInspection; path: string; resolvedPath: string }> => {
   const maxFileBytes = options.maxFileBytes ?? DEFAULT_MAX_FILE_BYTES;
   const maxChunks = options.maxChunks ?? DEFAULT_MAX_CHUNKS;
   const maxAtoms = options.maxAtoms ?? DEFAULT_MAX_ATOMS;
@@ -152,11 +148,7 @@ export const inspectErlangBeamFromPath = async (
   let atomEncoding: BeamInspection['atom_encoding'] = null;
   if (atomChunk !== undefined) {
     try {
-      const decoded = decodeAtoms(
-        bytes.subarray(atomChunk.payload.location.offset, atomChunk.payload.location.offset + atomChunk.payload.location.bytes),
-        atomChunk.name === 'AtU8' ? 'utf8' : 'latin1',
-        maxAtoms,
-      );
+      const decoded = decodeAtoms(bytes.subarray(atomChunk.payload.location.offset, atomChunk.payload.location.offset + atomChunk.payload.location.bytes), atomChunk.name === 'AtU8' ? 'utf8' : 'latin1', maxAtoms);
       atoms = decoded.atoms;
       atomEncoding = decoded.encoding;
     } catch (error) {
@@ -167,10 +159,7 @@ export const inspectErlangBeamFromPath = async (
   const exportChunk = chunks.find((chunk) => chunk.name === 'ExpT');
   let exports: BeamInspection['exports'] = null;
   if (exportChunk !== undefined) {
-    const payload = bytes.subarray(
-      exportChunk.payload.location.offset,
-      exportChunk.payload.location.offset + exportChunk.payload.location.bytes,
-    );
+    const payload = bytes.subarray(exportChunk.payload.location.offset, exportChunk.payload.location.offset + exportChunk.payload.location.bytes);
     if (payload.length >= 4) {
       const count = payload.readUInt32BE(0);
       const rows: NonNullable<BeamInspection['exports']>[number][] = [];
@@ -192,10 +181,7 @@ export const inspectErlangBeamFromPath = async (
   const importChunk = chunks.find((chunk) => chunk.name === 'ImpT');
   let imports: BeamInspection['imports'] = null;
   if (importChunk !== undefined) {
-    const payload = bytes.subarray(
-      importChunk.payload.location.offset,
-      importChunk.payload.location.offset + importChunk.payload.location.bytes,
-    );
+    const payload = bytes.subarray(importChunk.payload.location.offset, importChunk.payload.location.offset + importChunk.payload.location.bytes);
     if (payload.length >= 4) {
       const count = payload.readUInt32BE(0);
       const rows: NonNullable<BeamInspection['imports']>[number][] = [];
@@ -219,10 +205,7 @@ export const inspectErlangBeamFromPath = async (
   const lambdaChunk = chunks.find((chunk) => chunk.name === 'FunT');
   let lambdas: BeamInspection['lambdas'] = null;
   if (lambdaChunk !== undefined) {
-    const payload = bytes.subarray(
-      lambdaChunk.payload.location.offset,
-      lambdaChunk.payload.location.offset + lambdaChunk.payload.location.bytes,
-    );
+    const payload = bytes.subarray(lambdaChunk.payload.location.offset, lambdaChunk.payload.location.offset + lambdaChunk.payload.location.bytes);
     if (payload.length >= 4) {
       const count = payload.readUInt32BE(0);
       const rows: NonNullable<BeamInspection['lambdas']>[number][] = [];

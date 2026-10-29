@@ -229,12 +229,7 @@ test('TOOL-058: the classic symbol table yields imports and exports', () => {
     buffer.writeUInt16LE(descriptor, 6);
     return buffer;
   };
-  const table = Buffer.concat([
-    entry(at('_undefined_ext'), 0x01, 0x0040),
-    entry(at('_defined_ext'), 0x0f, 0x0080),
-    entry(at('_local'), 0x0e),
-    entry(0, 0x0e),
-  ]);
+  const table = Buffer.concat([entry(at('_undefined_ext'), 0x01, 0x0040), entry(at('_defined_ext'), 0x0f, 0x0080), entry(at('_local'), 0x0e), entry(0, 0x0e)]);
   const symtab = command(
     0x02,
     (() => {
@@ -260,9 +255,7 @@ test('TOOL-058: the classic symbol table yields imports and exports', () => {
     exhaustive: false,
     limitations: [expect.stringContaining('dyld_info textual imports')],
   });
-  expect(decoded.exports.items).toStrictEqual([
-    { name: '_defined_ext', raw_name: null, name_status: 'exact', addend: null, address: null, weak: true, reexport: false, source: '<this-image>' },
-  ]);
+  expect(decoded.exports.items).toStrictEqual([{ name: '_defined_ext', raw_name: null, name_status: 'exact', addend: null, address: null, weak: true, reexport: false, source: '<this-image>' }]);
   expect(decoded.exports.total).toBeNull();
   expect(decoded.exports.exhaustive).toBe(false);
 });

@@ -16,8 +16,7 @@ const runtime = { name: 'pi-rea', version: '0.1.0', cwd: '/tmp' };
 
 const configOf = (result: { structuredContent?: unknown }): Record<string, unknown> => result.structuredContent as Record<string, unknown>;
 
-const payloadOf = (result: { structuredContent?: unknown }): Record<string, unknown> =>
-  (result.structuredContent as { result: Record<string, unknown> }).result;
+const payloadOf = (result: { structuredContent?: unknown }): Record<string, unknown> => (result.structuredContent as { result: Record<string, unknown> }).result;
 
 const draft = () => ({
   question: 'Is the setting store session-scoped?',
@@ -97,13 +96,7 @@ test('inspect_analysis_settings: returns the published setting descriptors and c
     agent_editable: true,
   });
   const constraints = report['constraints'] as Record<string, unknown>[];
-  expect(constraints.map((entry) => entry['control'])).toStrictEqual([
-    'REA_MCP_MAX_RESPONSE_BYTES',
-    'mcp.client_deadline',
-    'mcp.client_receive_buffer',
-    'node.parent_heap',
-    'json.maximum_depth',
-  ]);
+  expect(constraints.map((entry) => entry['control'])).toStrictEqual(['REA_MCP_MAX_RESPONSE_BYTES', 'mcp.client_deadline', 'mcp.client_receive_buffer', 'node.parent_heap', 'json.maximum_depth']);
 });
 
 test('inspect_analysis_settings: filters intersect on setting id', () => {
@@ -189,7 +182,9 @@ test('verify_unknown_resolution: open unknowns are not truth-verified', () => {
 test('verify_unknown_resolution: a verified resolution reports truthVerified', () => {
   const session = new ReaSession(runtime);
   const recorded = payloadOf(recordUnknown(session, draft()));
-  const mutationId = (recorded['mutation_evidence_ids'] as string[])[0]!;
+  const mutationIds = recorded['mutation_evidence_ids'] as string[];
+  const mutationId = mutationIds[0];
+  if (mutationId === undefined) throw new Error('expected a mutation Evidence id');
   const updated = payloadOf(
     updateUnknown(session, {
       unknown_id: recorded['unknown_id'] as string,

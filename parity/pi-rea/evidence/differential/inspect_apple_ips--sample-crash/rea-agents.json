@@ -209,6 +209,6 @@
   },
   "meta": {
     "command": "inspect-apple-ips",
-    "duration": "8ms"
+    "duration": "14ms"
   }
 }

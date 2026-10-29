@@ -1,5 +1,4 @@
-
-
+// biome-ignore-all lint/suspicious/noConfusingVoidType: design sketch kept as a frozen record; void is the idiomatic branded-type marker here.
 declare const OperationIdBrand: unique symbol;
 export type OperationId = string & { readonly [OperationIdBrand]: void };
 
@@ -13,23 +12,10 @@ declare const Sha256Brand: unique symbol;
 export type Sha256 = string & { readonly [Sha256Brand]: void };
 
 export type ImplementationStatus = 'kernel' | 'unavailable';
-export type AvailabilityCode =
-  | 'not_implemented'
-  | 'missing_prerequisite'
-  | 'unsupported_host'
-  | 'unsupported_format'
-  | 'unsupported_target'
-  | 'target_required';
+export type AvailabilityCode = 'not_implemented' | 'missing_prerequisite' | 'unsupported_host' | 'unsupported_format' | 'unsupported_target' | 'target_required';
 
 export type Confidence = 'derived' | 'observed' | 'inferred' | 'unknown';
-export type Authority =
-  | 'shipped-artifact'
-  | 'runtime-observation'
-  | 'user-supplied'
-  | 'artifact-bytes'
-  | 'ast-static-analysis'
-  | 'static-relationship-inference'
-  | 'toolchain-observation';
+export type Authority = 'shipped-artifact' | 'runtime-observation' | 'user-supplied' | 'artifact-bytes' | 'ast-static-analysis' | 'static-relationship-inference' | 'toolchain-observation';
 
 export interface SubjectDigest {
   readonly sha256: Sha256;
@@ -205,28 +191,15 @@ export function parseArgv(_argv: readonly string[], _booleanFlags: ReadonlySet<s
   throw new Error('not implemented');
 }
 
-export async function runCommand(_input: {
-  readonly argv: readonly string[];
-  readonly storeDir?: string;
-  readonly cwd?: string;
-  readonly signal?: AbortSignal;
-}): Promise<CommandResult> {
+export async function runCommand(_input: { readonly argv: readonly string[]; readonly storeDir?: string; readonly cwd?: string; readonly signal?: AbortSignal }): Promise<CommandResult> {
   throw new Error('not implemented');
 }
 
-export async function invokeKernel(_input: {
-  readonly operation: OperationId;
-  readonly args: Readonly<Record<string, unknown>>;
-  readonly storeRoot: string;
-  readonly cwd?: string;
-  readonly signal?: AbortSignal;
-}): Promise<KernelOutcome> {
+export async function invokeKernel(_input: { readonly operation: OperationId; readonly args: Readonly<Record<string, unknown>>; readonly storeRoot: string; readonly cwd?: string; readonly signal?: AbortSignal }): Promise<KernelOutcome> {
   throw new Error('not implemented');
 }
 
-export type KernelOutcome =
-  | { readonly ok: true; readonly payload: EvidenceEnvelope | unknown; readonly plain?: string }
-  | { readonly ok: false; readonly error: ReaErrorEnvelope };
+export type KernelOutcome = { readonly ok: true; readonly payload: EvidenceEnvelope | unknown; readonly plain?: string } | { readonly ok: false; readonly error: ReaErrorEnvelope };
 
 export interface ReaErrorEnvelope {
   readonly error: true;
@@ -260,11 +233,7 @@ export function inspectPeResources(_bytes: Uint8Array, _opts?: Readonly<Record<s
   throw new Error('not implemented');
 }
 
-export function analyzeJavaScriptApplication(_input: {
-  readonly source: unknown;
-  readonly subject: Subject;
-  readonly integrityPolicy: 'fail' | 'record-and-continue';
-}): Promise<unknown> {
+export function analyzeJavaScriptApplication(_input: { readonly source: unknown; readonly subject: Subject; readonly integrityPolicy: 'fail' | 'record-and-continue' }): Promise<unknown> {
   throw new Error('not implemented');
 }
 
@@ -304,7 +273,10 @@ export interface CapabilityEntry {
   readonly limitations: readonly string[];
 }
 
-export function capabilityMatrix(_catalog: ToolCatalog, _opts?: { version?: string }): {
+export function capabilityMatrix(
+  _catalog: ToolCatalog,
+  _opts?: { version?: string },
+): {
   readonly open: boolean;
   readonly provider: { readonly id: string; readonly name: string; readonly version: string };
   readonly capabilities: readonly CapabilityEntry[];
@@ -312,20 +284,18 @@ export function capabilityMatrix(_catalog: ToolCatalog, _opts?: { version?: stri
   throw new Error('not implemented');
 }
 
-export interface PiRegisterTool {
-  (tool: {
-    readonly name: string;
-    readonly label: string;
-    readonly description: string;
-    readonly parameters: unknown;
-    readonly annotations: ToolAnnotations;
-    readonly namespace: unknown;
-    readonly exposure: 'direct' | 'deferred';
-    readonly executionMode: 'sequential' | 'parallel';
-    readonly promptGuidelines?: readonly string[];
-    execute: (...args: never[]) => Promise<unknown>;
-  }): void;
-}
+export type PiRegisterTool = (tool: {
+  readonly name: string;
+  readonly label: string;
+  readonly description: string;
+  readonly parameters: unknown;
+  readonly annotations: ToolAnnotations;
+  readonly namespace: unknown;
+  readonly exposure: 'direct' | 'deferred';
+  readonly executionMode: 'sequential' | 'parallel';
+  readonly promptGuidelines?: readonly string[];
+  execute: (...args: never[]) => Promise<unknown>;
+}) => void;
 
 export interface AdapterDeps {
   readonly getStoreRoot: () => string;

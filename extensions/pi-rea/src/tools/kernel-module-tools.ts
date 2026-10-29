@@ -1,11 +1,5 @@
 import type { AgentToolResult } from '@earendil-works/pi-coding-agent';
-import {
-  DEFAULT_MAX_ENTRIES,
-  DEFAULT_MAX_FILE_BYTES,
-  inspectKernelModuleFromPath,
-  locationsForKernelModule,
-  subjectFieldsForKernelModule,
-} from '../analysis/kernel-module.ts';
+import { DEFAULT_MAX_ENTRIES, DEFAULT_MAX_FILE_BYTES, inspectKernelModuleFromPath, locationsForKernelModule, subjectFieldsForKernelModule } from '../analysis/kernel-module.ts';
 import { evidenceResult } from '../contract/results.ts';
 import type { ReaSession } from '../session/binary-session.ts';
 import { createEvidence } from '../session/evidence.ts';
@@ -18,12 +12,12 @@ export interface InspectKernelModuleParams {
   readonly max_entries?: number;
 }
 
-export const inspectKernelModule = async (
-  session: ReaSession,
-  params: InspectKernelModuleParams,
-  context: ToolCallContext = {},
-): Promise<AgentToolResult<unknown>> => {
-  const { record: inspection, path, resolvedPath } = await inspectKernelModuleFromPath(params.path, {
+export const inspectKernelModule = async (session: ReaSession, params: InspectKernelModuleParams, context: ToolCallContext = {}): Promise<AgentToolResult<unknown>> => {
+  const {
+    record: inspection,
+    path,
+    resolvedPath,
+  } = await inspectKernelModuleFromPath(params.path, {
     ...(params.max_file_bytes === undefined ? {} : { maxFileBytes: params.max_file_bytes }),
     ...(params.max_entries === undefined ? {} : { maxEntries: params.max_entries }),
     ...(context.cwd === undefined ? {} : { cwd: context.cwd }),

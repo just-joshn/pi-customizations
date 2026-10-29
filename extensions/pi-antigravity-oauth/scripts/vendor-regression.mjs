@@ -14,7 +14,11 @@ try {
   await mkdir(join(fixture, 'scripts'), { recursive: true });
   await mkdir(join(fixture, 'src/pi-ai'), { recursive: true });
   await writeFile(join(fixture, 'package.json'), await readFile(join(root, 'package.json')));
-  await symlink(join(root, 'node_modules'), join(fixture, 'node_modules'));
+  const modules = join(fixture, 'node_modules');
+  await mkdir(join(modules, '@earendil-works/pi-coding-agent'), { recursive: true });
+  await symlink(join(root, 'node_modules/@earendil-works/pi-ai'), join(modules, '@earendil-works/pi-ai'));
+  const hostManifest = join(modules, '@earendil-works/pi-coding-agent/package.json');
+  await writeFile(hostManifest, await readFile(join(root, 'node_modules/@earendil-works/pi-coding-agent/package.json')));
   await symlink(join(repository, 'node_modules'), join(scratch, 'node_modules'));
   await writeFile(join(scratch, 'biome.json'), await readFile(join(repository, 'biome.json')));
   await writeFile(join(scratch, '.gitignore'), '');
@@ -54,7 +58,10 @@ try {
   assert.throws(() => generate());
   assert.deepEqual((await readdir(tmpdir())).filter((name) => name.startsWith('pi-ai-vendor-')).sort(), before);
   assert.equal(await readFile(drift, 'utf8'), 'deliberate drift\n');
-  process.stdout.write('Vendor outputs satisfy shared Biome, reproduce exactly, reject drift read-only, and clean up failed patch application.\n');
+  const staleHost = join(modules, '@earendil-works/pi-coding-agent/package.json');
+  await writeFile(staleHost, JSON.stringify({ dependencies: { '@earendil-works/pi-ai': '1.3.0' } }));
+  assert.throws(() => generate('--check'), /differs from the 1\.3\.0 the installed Pi host loads/);
+  process.stdout.write('Vendor outputs satisfy shared Biome, reproduce exactly, reject drift read-only, reject a Pi host pi-ai version mismatch, and clean up failed patch application.\n');
 } finally {
   await rm(scratch, { recursive: true, force: true });
 }

@@ -1,4 +1,4 @@
-// Vendored from @earendil-works/pi-ai 1.1.0 src/api/google-shared.ts (MIT) by scripts/vendor-pi-ai.mjs. Import specifiers, reviewed strict-TypeScript adaptations and shared formatting differ. Do not edit.
+// Vendored from @earendil-works/pi-ai 1.4.0 src/api/google-shared.ts (MIT) by scripts/vendor-pi-ai.mjs. Import specifiers, reviewed strict-TypeScript adaptations and shared formatting differ. Do not edit.
 /**
  * Shared utilities for Google Generative AI and Google Vertex providers.
  */
@@ -54,6 +54,8 @@ export function usesGoogleThinkingLevel<T extends GoogleApiType>(model: Model<T>
     // Match Gemini 3 Pro/Flash IDs with or without a minor version, such as
     // gemini-3-flash-preview, gemini-3.1-pro-preview, and gemini-3.8-flash.
     /gemini-3(?:\.\d+)?-(?:pro|flash)/.test(id) ||
+    // Match Gemini 4 and later, such as gemini-4-argon (#10890).
+    /gemini-(?:[4-9]|[1-9]\d)/.test(id) ||
     id === 'gemini-flash-latest' ||
     id === 'gemini-flash-lite-latest' ||
     // Match both hosted Gemma 4 naming forms: gemma-4-* and gemma4-*.
@@ -263,7 +265,7 @@ export function convertMessages<T extends GoogleApiType>(model: Model<T>, contex
       const textResult = textContent.map((c) => c.text).join('\n');
       const imageContent = model.input.includes('image') ? msg.content.filter((c): c is ImageContent => c.type === 'image') : [];
 
-      const hasText = textResult.length > 0;
+      const hasText = textResult.trim().length > 0;
       const hasImages = imageContent.length > 0;
 
       // Gemini 3+ models support multimodal function responses with images nested inside

@@ -19,6 +19,7 @@ const defaultSettings: GitPolicySettings = {
   commitPrompt: null,
   aiderIgnore: null,
   subtreeOnly: false,
+  addGitignoreFiles: false,
   commitLanguage: null,
 };
 
@@ -48,7 +49,7 @@ export function recordingHost(): Host & { readonly outputs: string[]; readonly e
     },
     confirm: async () => true,
     select: async () => undefined,
-    exec: (request) => isolatedExec(request, env),
+    exec: (request) => isolatedExec(request, { ...env, ...request.env }),
   };
 }
 
@@ -94,6 +95,7 @@ export function policyIn(
   extras: {
     readonly cwd?: string;
     readonly generateCommitMessage?: (request: { readonly system: string; readonly user: string }) => Promise<string | null>;
+    readonly mainModelName?: () => string;
     readonly sessionCommitHashes?: Set<string>;
   } = {},
 ) {

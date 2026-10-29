@@ -70,7 +70,7 @@ test('a message without cache counts reports zero cache usage', async ({ models,
   expect(message.usage).toMatchObject({ input: 5, output: 3, cacheRead: 0, cacheWrite: 0, totalTokens: 8 });
 });
 
-test('a thinking turn from another provider is replayed as text', async ({ models, model, server }) => {
+test('thinking from another provider is dropped before replay', async ({ models, model, server }) => {
   const foreignId = 'call_1|fc 2.x';
   const handoff = toolCallTurn(foreignId, {
     api: 'openai-responses',
@@ -86,10 +86,7 @@ test('a thinking turn from another provider is replayed as text', async ({ model
   expect(messagesOf(soleRequest(server).body).slice(1)).toMatchObject([
     {
       role: 'assistant',
-      content: [
-        { type: 'text', text: 'plan the read' },
-        { type: 'tool_use', id: 'call_1_fc_2_x', name: 'Read' },
-      ],
+      content: [{ type: 'tool_use', id: 'call_1_fc_2_x', name: 'Read', input: { path: 'a.txt' } }],
     },
     { role: 'user', content: [{ type: 'tool_result', tool_use_id: 'call_1_fc_2_x' }] },
   ]);

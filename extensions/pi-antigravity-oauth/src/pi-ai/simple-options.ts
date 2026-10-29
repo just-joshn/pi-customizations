@@ -1,4 +1,4 @@
-// Vendored from @earendil-works/pi-ai 1.1.0 src/api/simple-options.ts (MIT) by scripts/vendor-pi-ai.mjs. Import specifiers, reviewed strict-TypeScript adaptations and shared formatting differ. Do not edit.
+// Vendored from @earendil-works/pi-ai 1.4.0 src/api/simple-options.ts (MIT) by scripts/vendor-pi-ai.mjs. Import specifiers, reviewed strict-TypeScript adaptations and shared formatting differ. Do not edit.
 
 import type { Api, Model, ModelThinkingLevel, SamplingParams, SimpleStreamOptions, StreamOptions, ThinkingBudgets, ThinkingLevel, TranscriptContext } from '@earendil-works/pi-ai';
 import { clampThinkingLevel } from '@earendil-works/pi-ai';
@@ -27,13 +27,14 @@ export function buildBaseOptions(model: Model<Api>, context: TranscriptContext, 
     ...(samplingParams !== undefined && { samplingParams }),
     maxTokens: clampMaxTokensToContext(model, context, options?.maxTokens ?? model.maxTokens),
     ...(options?.signal !== undefined && { signal: options.signal }),
-    ...(options?.telemetryContext !== undefined && { telemetryContext: options.telemetryContext }),
+    ...(options?.telemetry !== undefined && { telemetry: options.telemetry }),
     ...(resolvedApiKey !== undefined && { apiKey: resolvedApiKey }),
     ...(options?.fetch !== undefined && { fetch: options.fetch }),
     ...(options?.transport !== undefined && { transport: options.transport }),
     ...(options?.cacheRetention !== undefined && { cacheRetention: options.cacheRetention }),
     ...(options?.sessionId !== undefined && { sessionId: options.sessionId }),
     ...(options?.headers !== undefined && { headers: options.headers }),
+    ...(options?.identity !== undefined && { identity: options.identity }),
     ...(options?.onPayload !== undefined && { onPayload: options.onPayload }),
     ...(options?.onResponse !== undefined && { onResponse: options.onResponse }),
     ...(options?.onProviderStreamEvent !== undefined && { onProviderStreamEvent: options.onProviderStreamEvent }),

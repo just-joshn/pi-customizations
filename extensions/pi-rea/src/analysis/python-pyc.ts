@@ -1,4 +1,3 @@
-
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { isAbsolute, resolve } from 'node:path';
@@ -18,14 +17,14 @@ export const PYC_LIMITATIONS = [
 ] as const;
 
 const MAGIC_TO_VERSION: Record<number, string> = {
-  0x0d0d0a33: '3.7',
-  0x0d0d0a42: '3.8',
-  0x0d0d0a55: '3.9',
-  0x0d0d0a6f: '3.10',
-  0x0a0d0c9e: '3.11',
-  0x0a0d0d6f: '3.12',
-  0x0a0d0df3: '3.13',
-  0x0a0d0e2b: '3.14',
+  218958387: '3.7',
+  218958402: '3.8',
+  218958421: '3.9',
+  218958447: '3.10',
+  168627358: '3.11',
+  168627567: '3.12',
+  168627699: '3.13',
+  168627755: '3.14',
 };
 
 const FLAG_REF = 0x80;
@@ -102,13 +101,24 @@ class MarshalReader {
   objects = 0;
   maxDepthSeen = 0;
   readonly refs: unknown[] = [];
-  constructor(
-    readonly buffer: Buffer,
-    readonly maxObjects: number,
-    readonly maxDepth: number,
-    readonly maxStringBytes: number,
-    readonly modernCode: boolean,
-  ) {}
+  readonly buffer: Buffer;
+  readonly maxObjects: number;
+  readonly maxDepth: number;
+  readonly maxStringBytes: number;
+  readonly modernCode: boolean;
+  constructor(buffer: Buffer, maxObjects: number, maxDepth: number, maxStringBytes: number, modernCode: boolean) {
+    this.buffer = buffer;
+    this.maxObjects = maxObjects;
+    this.maxDepth = maxDepth;
+    this.maxStringBytes = maxStringBytes;
+    this.modernCode = modernCode;
+  }
+
+  private byte(): number {
+    const value = this.buffer[this.offset];
+    if (value === undefined) throw new Error('marshal stream truncated');
+    return value;
+  }
 
   private need(n: number): void {
     if (this.offset + n > this.buffer.length) throw new Error('marshal stream truncated');
@@ -133,7 +143,7 @@ class MarshalReader {
     if (this.depth > this.maxDepth) throw new Error(`marshal exceeds max_depth=${this.maxDepth}`);
     try {
       this.need(1);
-      const flag = this.buffer[this.offset]!;
+      const flag = this.byte();
       this.offset += 1;
       const type = flag & 0x7f;
       const withRef = (flag & FLAG_REF) !== 0;
@@ -189,7 +199,7 @@ class MarshalReader {
       case 'z'.charCodeAt(0):
       case 'Z'.charCodeAt(0): {
         this.need(1);
-        const size = this.buffer[this.offset]!;
+        const size = this.byte();
         this.offset += 1;
         if (size > this.maxStringBytes) throw new Error('string length out of range');
         this.need(size);
@@ -199,7 +209,7 @@ class MarshalReader {
       }
       case ')'.charCodeAt(0): {
         this.need(1);
-        const size = this.buffer[this.offset]!;
+        const size = this.byte();
         this.offset += 1;
         const values: unknown[] = [];
         for (let index = 0; index < size; index += 1) values.push(this.read());
@@ -331,11 +341,9 @@ class MarshalReader {
   }
 }
 
-const asStringArray = (value: unknown): string[] =>
-  Array.isArray(value) ? value.filter((entry): entry is string => typeof entry === 'string') : [];
+const asStringArray = (value: unknown): string[] => (Array.isArray(value) ? value.filter((entry): entry is string => typeof entry === 'string') : []);
 
-const isCodeNode = (value: unknown): value is CodeNode =>
-  typeof value === 'object' && value !== null && 'bytecode' in value && 'name' in value && 'nested' in value;
+const isCodeNode = (value: unknown): value is CodeNode => typeof value === 'object' && value !== null && 'bytecode' in value && 'name' in value && 'nested' in value;
 
 const flattenCodeTree = (root: CodeNode): PycCodeObject[] => {
   const out: PycCodeObject[] = [];
@@ -359,10 +367,7 @@ export interface PycOptions {
   readonly cwd?: string;
 }
 
-export const inspectPythonPycFromPath = async (
-  path: string,
-  options: PycOptions = {},
-): Promise<{ record: PycInspection; path: string; resolvedPath: string }> => {
+export const inspectPythonPycFromPath = async (path: string, options: PycOptions = {}): Promise<{ record: PycInspection; path: string; resolvedPath: string }> => {
   const maxFileBytes = options.maxFileBytes ?? DEFAULT_MAX_FILE_BYTES;
   const maxObjects = options.maxObjects ?? DEFAULT_MAX_OBJECTS;
   const maxDepth = options.maxDepth ?? DEFAULT_MAX_DEPTH;

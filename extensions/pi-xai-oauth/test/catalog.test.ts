@@ -47,13 +47,23 @@ test('a row missing context_window is skipped', () => {
 });
 
 test('unknown effort values are dropped, the rest are ordered', () => {
-  const reasoning_efforts = [{ value: 'high' }, { value: 'max' }, { value: 'low' }];
+  const reasoning_efforts = [{ value: 'high' }, { value: 'ultra' }, { value: 'low' }];
   expect(parsedModels({ data: [liveEntry('grok-4.7', { reasoning_efforts })] })[0]?.efforts).toStrictEqual(['low', 'high']);
 });
 
+test('every effort the catalog reports as a Pi level is kept', () => {
+  const reasoning_efforts = [{ value: 'max' }, { value: 'minimal' }, { value: 'high' }];
+  expect(parsedModels({ data: [liveEntry('grok-4.7', { reasoning_efforts })] })[0]?.efforts).toStrictEqual(['minimal', 'high', 'max']);
+});
+
 test('a row whose only effort is unknown is skipped', () => {
-  const body = { data: [liveEntry('grok-4.7', { reasoning_efforts: [{ value: 'max' }] }), liveEntry('grok-4.6')] };
+  const body = { data: [liveEntry('grok-4.7', { reasoning_efforts: [{ value: 'ultra' }] }), liveEntry('grok-4.6')] };
   expect(parsedModels(body).map((model) => model.id)).toStrictEqual(['grok-4.6']);
+});
+
+test('a row offering only max keeps max', () => {
+  const body = { data: [liveEntry('grok-4.7', { reasoning_efforts: [{ value: 'max' }] })] };
+  expect(parsedModels(body)[0]?.efforts).toStrictEqual(['max']);
 });
 
 test('an id containing a slash is skipped', () => {
@@ -166,6 +176,16 @@ test('the fast model supports four thinking levels', () => {
   expect(getSupportedThinkingLevels(toPiModel(baseline('grok-4.7-build-fast'), prices))).toStrictEqual(['low', 'medium', 'high', 'xhigh']);
 });
 
+test('a model that offers minimal and max exposes both to Pi', () => {
+  const model = toPiModel({ id: 'grok-4.8', name: 'Grok 4.8', contextWindow: 256000, efforts: ['minimal', 'low', 'max'] }, prices);
+  expect(model.thinkingLevelMap).toStrictEqual({ off: null, minimal: 'minimal', low: 'low', medium: null, high: null, xhigh: null, max: 'max' });
+  expect(getSupportedThinkingLevels(model)).toStrictEqual(['minimal', 'low', 'max']);
+});
+
+test('a model that offers no level Pi can send is not representable', () => {
+  expect(parsedModels({ data: [liveEntry('grok-4.7', { reasoning_efforts: [{ value: 'turbo' }] })] })).toStrictEqual([]);
+});
+
 test('effort aliases cover the fast model at each effort', () => {
   const aliases = effortAliases(BASELINE);
   expect(aliases.map((alias) => alias.id)).toStrictEqual(['grok-4.7-low-fast', 'grok-4.7-medium-fast', 'grok-4.7-high-fast', 'grok-4.7-xhigh-fast']);
@@ -176,6 +196,11 @@ test('effort aliases cover the fast model at each effort', () => {
 test('a model without the fast suffix gets no alias', () => {
   const aliases = effortAliases([baseline('grok-4.7'), baseline('grok-4.7-build-fast')]);
   expect(aliases.map((alias) => alias.target)).toStrictEqual(Array(4).fill('grok-4.7-build-fast'));
+});
+
+test('aliases cover only the efforts the fast model reports', () => {
+  const aliases = effortAliases([{ id: 'grok-4.8-build-fast', name: 'Grok 4.8 Fast', contextWindow: 256000, efforts: ['minimal', 'high'] }]);
+  expect(aliases.map((alias) => alias.id)).toStrictEqual(['grok-4.8-minimal-fast', 'grok-4.8-high-fast']);
 });
 
 test('a 401 asks the user to log in again', () => {

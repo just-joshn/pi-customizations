@@ -297,17 +297,14 @@ test('KERN-010: filters narrow by severity and status', () => {
   expect(payloadOf(listUnknowns(session, { domain: 'absent' }))['total']).toBe(0);
 });
 
-test('KERN-061: an unknown whose result cannot fit leaves the ledgers unchanged', () => {
+test('KERN-061: an unknown whose result cannot fit is retained and answered with a truncation marker', () => {
   const session = new ReaSession(runtime);
   const huge = { ...draft(), question: 'x'.repeat(10_485_760) };
-  let thrown: unknown;
-  try {
-    recordUnknown(session, huge);
-  } catch (error) {
-    thrown = error;
-  }
-  expect((thrown as ReaError).payload.code).toBe('resource_constraint');
-  expect(session.evidence.size).toBe(0);
-  expect(session.unknowns.size).toBe(0);
+  const result = recordUnknown(session, huge);
+  const marker = (result.structuredContent as { result: Record<string, unknown> }).result;
+  expect(marker['truncated']).toBe(true);
+  expect(String(marker['guidance'])).toContain('REA_MCP_MAX_RESPONSE_BYTES');
+  expect(session.evidence.size).toBe(1);
+  expect(session.unknowns.size).toBe(1);
   expect(payloadOf(recordUnknown(session, draft()))['revision']).toBe(1);
 });

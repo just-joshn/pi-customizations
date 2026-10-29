@@ -15,6 +15,10 @@ export interface FeatureEnv {
   readonly cwd: string;
   /** Pre-validated git root from startup. `null` disables Git. Omitted means discover from `cwd`. */
   readonly gitRoot?: string | null;
+  /** Aider's commit-message model ladder, wired by the extension host. Used by the git feature. */
+  readonly generateCommitMessage?: (request: { readonly system: string; readonly user: string }, signal?: AbortSignal) => Promise<string | null>;
+  /** `coder.main_model.name` for assistant commit trailers. Used by the git feature. */
+  readonly mainModelName?: () => string;
 }
 
 export interface Feature<Port> {
@@ -185,6 +189,8 @@ export interface GitPolicy {
   isGitIgnored(path: string): Promise<boolean>;
   /** `GitRepo.ignored_file`: aiderignore and --subtree-only, not gitignore. */
   isIgnored(path: string): Promise<boolean>;
+  /** Aider `add_gitignore_files`: explicitly named files may enter the chat despite .gitignore. */
+  addsGitignoredFiles(): boolean;
   /** Stages a file the edit created, when automatic commits are on. */
   stageNewFile(absPath: string): Promise<void>;
   /** `GitRepo.is_dirty`: pathless excludes untracked; a path absent from inventory is dirty. */
@@ -248,6 +254,7 @@ export const disabledGitPolicy: GitPolicy = {
   needToAdd: async () => false,
   isGitIgnored: async () => false,
   isIgnored: async () => false,
+  addsGitignoredFiles: () => false,
   stageNewFile: async () => {},
   isDirty: async () => false,
   needsDirtyCommit: async () => false,

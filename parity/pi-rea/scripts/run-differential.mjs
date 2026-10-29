@@ -29,6 +29,26 @@ const patternsFor = (mismatches, caseId) => {
 
 const kindMismatchAllowed = (mismatches, caseId) => mismatches.cases?.[caseId]?.kind_mismatch === true;
 
+const readPath = (value, path) => path.split('.').reduce((current, key) => (current === null || typeof current !== 'object' ? undefined : current[key]), value);
+
+const writePath = (target, path, value) => {
+  const keys = path.split('.');
+  let cursor = target;
+  for (const [index, key] of keys.entries()) {
+    if (index === keys.length - 1) cursor[key] = value;
+    else {
+      cursor[key] ??= {};
+      cursor = cursor[key];
+    }
+  }
+};
+
+const projectPaths = (body, paths) => {
+  const out = {};
+  for (const path of paths) writePath(out, path, readPath(body, path));
+  return out;
+};
+
 const main = async () => {
   mkdirSync(EVIDENCE_DIR, { recursive: true });
   const mismatches = loadMismatches();
@@ -68,8 +88,11 @@ const main = async () => {
       contractIssues.push({ side: 'rea-agents', reason: 'error envelope missing code/category/message' });
     }
 
-    const left = normalizeForCompare(pi.kind, pi.body);
-    const right = normalizeForCompare(oracle.kind, oracle.body);
+    const normalizedLeft = normalizeForCompare(pi.kind, pi.body);
+    const normalizedRight = normalizeForCompare(oracle.kind, oracle.body);
+    const comparedPaths = Array.isArray(testCase.compare_paths) && testCase.compare_paths.length > 0 ? testCase.compare_paths : null;
+    const left = comparedPaths === null ? normalizedLeft : projectPaths(normalizedLeft, comparedPaths);
+    const right = comparedPaths === null ? normalizedRight : projectPaths(normalizedRight, comparedPaths);
     const diffs = pi.kind === oracle.kind ? deepDiff(left, right) : [{ path: '$kind', left: pi.kind, right: oracle.kind, kind: 'kind_mismatch' }];
 
     const allowedPatterns = patternsFor(mismatches, testCase.id);
@@ -84,8 +107,7 @@ const main = async () => {
       else undocumented.push(diff);
     }
 
-    const status =
-      contractIssues.length > 0 ? 'fail_contract' : undocumented.length > 0 ? 'fail_undocumented' : diffs.length === 0 ? 'pass' : 'pass_documented';
+    const status = contractIssues.length > 0 ? 'fail_contract' : undocumented.length > 0 ? 'fail_undocumented' : diffs.length === 0 ? 'pass' : 'pass_documented';
 
     const report = {
       id: testCase.id,
@@ -95,13 +117,14 @@ const main = async () => {
       oracle_kind: oracle.kind,
       contract_issues: contractIssues,
       diff_count: diffs.length,
+      compared_paths: comparedPaths,
       documented_count: documented.length,
       undocumented_count: undocumented.length,
       undocumented: undocumented.slice(0, 40),
       documented: documented.slice(0, 40),
     };
     writeJson(join(caseDir, 'diff-summary.json'), report);
-    summary.cases.push({ id: testCase.id, tool: testCase.tool, status, diff_count: diffs.length, undocumented_count: undocumented.length, contract_issues: contractIssues.length });
+    summary.cases.push({ id: testCase.id, tool: testCase.tool, status, diff_count: diffs.length, compared_paths: comparedPaths, undocumented_count: undocumented.length, contract_issues: contractIssues.length });
     if (status === 'pass' || status === 'pass_documented') {
       summary.pass += 1;
       if (status === 'pass_documented') summary.documented += 1;

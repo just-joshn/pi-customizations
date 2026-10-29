@@ -1,4 +1,3 @@
-
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { isAbsolute, resolve } from 'node:path';
@@ -102,17 +101,7 @@ const readU64 = (bytes: Buffer, offset: number, little: boolean): number => {
   return Number(value);
 };
 
-const parseNotes = (
-  bytes: Buffer,
-  start: number,
-  size: number,
-  alignment: number,
-  little: boolean,
-  tableKind: 'program' | 'section',
-  tableIndex: number,
-  maxEntries: number,
-  entries: ElfNoteEntry[],
-): void => {
+const parseNotes = (bytes: Buffer, start: number, size: number, alignment: number, little: boolean, tableKind: 'program' | 'section', tableIndex: number, maxEntries: number, entries: ElfNoteEntry[]): void => {
   let offset = start;
   const end = start + size;
   while (offset + 12 <= end) {
@@ -179,10 +168,7 @@ export interface ElfNotesOptions {
   readonly cwd?: string;
 }
 
-export const inspectElfNotesFromPath = async (
-  path: string,
-  options: ElfNotesOptions = {},
-): Promise<{ record: ElfNotesInspection; path: string; resolvedPath: string }> => {
+export const inspectElfNotesFromPath = async (path: string, options: ElfNotesOptions = {}): Promise<{ record: ElfNotesInspection; path: string; resolvedPath: string }> => {
   const maxFileBytes = options.maxFileBytes ?? DEFAULT_MAX_FILE_BYTES;
   const maxEntries = options.maxEntries ?? DEFAULT_MAX_ENTRIES;
   if (!Number.isInteger(maxFileBytes) || maxFileBytes < 64 || maxFileBytes > 536_870_912) {

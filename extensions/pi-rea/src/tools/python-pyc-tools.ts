@@ -1,11 +1,5 @@
 import type { AgentToolResult } from '@earendil-works/pi-coding-agent';
-import {
-  DEFAULT_MAX_DEPTH,
-  DEFAULT_MAX_FILE_BYTES,
-  DEFAULT_MAX_OBJECTS,
-  DEFAULT_MAX_STRING_BYTES,
-  inspectPythonPycFromPath,
-} from '../analysis/python-pyc.ts';
+import { DEFAULT_MAX_DEPTH, DEFAULT_MAX_FILE_BYTES, DEFAULT_MAX_OBJECTS, DEFAULT_MAX_STRING_BYTES, inspectPythonPycFromPath } from '../analysis/python-pyc.ts';
 import { evidenceResult } from '../contract/results.ts';
 import type { ReaSession } from '../session/binary-session.ts';
 import { createEvidence } from '../session/evidence.ts';
@@ -22,11 +16,7 @@ export interface InspectPythonPycParams {
   readonly view?: Record<string, unknown>;
 }
 
-export const inspectPythonPyc = async (
-  session: ReaSession,
-  params: InspectPythonPycParams,
-  context: ToolCallContext = {},
-): Promise<AgentToolResult<unknown>> => {
+export const inspectPythonPyc = async (session: ReaSession, params: InspectPythonPycParams, context: ToolCallContext = {}): Promise<AgentToolResult<unknown>> => {
   const { record: inspection, resolvedPath } = await inspectPythonPycFromPath(params.path, {
     ...(params.max_file_bytes === undefined ? {} : { maxFileBytes: params.max_file_bytes }),
     ...(params.max_objects === undefined ? {} : { maxObjects: params.max_objects }),

@@ -163,6 +163,6 @@ test('TOOL-061: the open_binary availability report reflects the target format',
   const session = new ReaSession(runtime);
   await openBinary(session, { path });
   const report = payloadOf((await import('../src/tools/session-tools.ts')).binarySession(session, {}));
-  const availability = (report['tool_availability'] as { name: string; available: boolean }[]).find((entry) => entry.name === 'list_architectures');
+  const availability = (report['tool_availability'] as { groups: { names: string[]; available: boolean }[] }).groups.find((group) => group.names.includes('list_architectures'));
   expect(availability?.available).toBe(true);
 });

@@ -1,0 +1,2260 @@
+{
+  "kind": "configuration",
+  "body": {
+    "result": {
+      "open": false,
+      "cleanup_pending": false,
+      "capabilities": [
+        {
+          "operation": "capture_native_ui_scenario",
+          "available": false,
+          "reason": "not_implemented",
+          "availability_code": "not_implemented",
+          "effects": {
+            "mutates_artifact": false,
+            "launches_process": true,
+            "may_show_ui": true,
+            "may_access_network": true,
+            "may_write_filesystem": true,
+            "changes_permissions": false,
+            "requires_root": false
+          },
+          "limitations": [
+            "pi-rea has not implemented this host capability; parity/pi-rea/ records the gap."
+          ]
+        },
+        {
+          "operation": "observe_native_calls",
+          "available": false,
+          "reason": "not_implemented",
+          "availability_code": "not_implemented",
+          "effects": {
+            "mutates_artifact": false,
+            "launches_process": true,
+            "may_show_ui": true,
+            "may_access_network": true,
+            "may_write_filesystem": true,
+            "changes_permissions": false,
+            "requires_root": false
+          },
+          "limitations": [
+            "pi-rea has not implemented this host capability; parity/pi-rea/ records the gap."
+          ]
+        },
+        {
+          "operation": "demangle_swift",
+          "available": false,
+          "reason": "not_implemented",
+          "availability_code": "not_implemented",
+          "effects": {
+            "mutates_artifact": false,
+            "launches_process": true,
+            "may_show_ui": false,
+            "may_access_network": false,
+            "may_write_filesystem": false,
+            "changes_permissions": false,
+            "requires_root": false
+          },
+          "limitations": [
+            "pi-rea has not implemented this host capability; parity/pi-rea/ records the gap."
+          ]
+        },
+        {
+          "operation": "inspect_macho",
+          "available": false,
+          "reason": "not_implemented",
+          "availability_code": "not_implemented",
+          "effects": {
+            "mutates_artifact": false,
+            "launches_process": true,
+            "may_show_ui": false,
+            "may_access_network": false,
+            "may_write_filesystem": false,
+            "changes_permissions": false,
+            "requires_root": false
+          },
+          "limitations": [
+            "pi-rea has not implemented this host capability; parity/pi-rea/ records the gap."
+          ]
+        },
+        {
+          "operation": "inspect_plist",
+          "available": false,
+          "reason": "not_implemented",
+          "availability_code": "not_implemented",
+          "effects": {
+            "mutates_artifact": false,
+            "launches_process": true,
+            "may_show_ui": false,
+            "may_access_network": false,
+            "may_write_filesystem": false,
+            "changes_permissions": false,
+            "requires_root": false
+          },
+          "limitations": [
+            "pi-rea has not implemented this host capability; parity/pi-rea/ records the gap."
+          ]
+        },
+        {
+          "operation": "list_architectures",
+          "available": false,
+          "reason": "not_implemented",
+          "availability_code": "not_implemented",
+          "effects": {
+            "mutates_artifact": false,
+            "launches_process": true,
+            "may_show_ui": false,
+            "may_access_network": false,
+            "may_write_filesystem": false,
+            "changes_permissions": false,
+            "requires_root": false
+          },
+          "limitations": [
+            "pi-rea has not implemented this host capability; parity/pi-rea/ records the gap."
+          ]
+        },
+        {
+          "operation": "inspect_native_dispatch_metadata",
+          "available": false,
+          "reason": "not_implemented",
+          "availability_code": "not_implemented",
+          "effects": {
+            "mutates_artifact": false,
+            "launches_process": false,
+            "may_show_ui": false,
+            "may_access_network": false,
+            "may_write_filesystem": false,
+            "changes_permissions": false,
+            "requires_root": false
+          },
+          "limitations": [
+            "pi-rea has not implemented this host capability; parity/pi-rea/ records the gap."
+          ]
+        },
+        {
+          "operation": "inspect_signature",
+          "available": false,
+          "reason": "not_implemented",
+          "availability_code": "not_implemented",
+          "effects": {
+            "mutates_artifact": false,
+            "launches_process": true,
+            "may_show_ui": false,
+            "may_access_network": false,
+            "may_write_filesystem": true,
+            "changes_permissions": false,
+            "requires_root": false
+          },
+          "limitations": [
+            "pi-rea has not implemented this host capability; parity/pi-rea/ records the gap."
+          ]
+        },
+        {
+          "operation": "observe_native_ui",
+          "available": false,
+          "reason": "not_implemented",
+          "availability_code": "not_implemented",
+          "effects": {
+            "mutates_artifact": false,
+            "launches_process": true,
+            "may_show_ui": false,
+            "may_access_network": false,
+            "may_write_filesystem": true,
+            "changes_permissions": false,
+            "requires_root": false
+          },
+          "limitations": [
+            "pi-rea has not implemented this host capability; parity/pi-rea/ records the gap."
+          ]
+        },
+        {
+          "operation": "decode_interface_builder",
+          "available": false,
+          "reason": "not_implemented",
+          "availability_code": "not_implemented",
+          "effects": {
+            "mutates_artifact": false,
+            "launches_process": false,
+            "may_show_ui": false,
+            "may_access_network": false,
+            "may_write_filesystem": false,
+            "changes_permissions": false,
+            "requires_root": false
+          },
+          "limitations": [
+            "pi-rea has not implemented this host capability; parity/pi-rea/ records the gap."
+          ]
+        },
+        {
+          "operation": "inspect_keyed_archive",
+          "available": false,
+          "reason": "not_implemented",
+          "availability_code": "not_implemented",
+          "effects": {
+            "mutates_artifact": false,
+            "launches_process": false,
+            "may_show_ui": false,
+            "may_access_network": false,
+            "may_write_filesystem": false,
+            "changes_permissions": false,
+            "requires_root": false
+          },
+          "limitations": [
+            "pi-rea has not implemented this host capability; parity/pi-rea/ records the gap."
+          ]
+        },
+        {
+          "operation": "trace_dylib_resolution",
+          "available": false,
+          "reason": "not_implemented",
+          "availability_code": "not_implemented",
+          "effects": {
+            "mutates_artifact": false,
+            "launches_process": false,
+            "may_show_ui": false,
+            "may_access_network": false,
+            "may_write_filesystem": false,
+            "changes_permissions": false,
+            "requires_root": false
+          },
+          "limitations": [
+            "pi-rea has not implemented this host capability; parity/pi-rea/ records the gap."
+          ]
+        },
+        {
+          "operation": "extract_artifact",
+          "available": false,
+          "reason": "not_implemented",
+          "availability_code": "not_implemented",
+          "effects": {
+            "mutates_artifact": false,
+            "launches_process": true,
+            "may_show_ui": false,
+            "may_access_network": false,
+            "may_write_filesystem": true,
+            "changes_permissions": false,
+            "requires_root": false
+          },
+          "limitations": [
+            "pi-rea has not implemented this host capability; parity/pi-rea/ records the gap."
+          ]
+        },
+        {
+          "operation": "inspect_artifact",
+          "available": false,
+          "reason": "not_implemented",
+          "availability_code": "not_implemented",
+          "effects": {
+            "mutates_artifact": false,
+            "launches_process": true,
+            "may_show_ui": false,
+            "may_access_network": false,
+            "may_write_filesystem": true,
+            "changes_permissions": false,
+            "requires_root": false
+          },
+          "limitations": [
+            "pi-rea has not implemented this host capability; parity/pi-rea/ records the gap."
+          ]
+        },
+        {
+          "operation": "inspect_asset_catalog",
+          "available": false,
+          "reason": "not_implemented",
+          "availability_code": "not_implemented",
+          "effects": {
+            "mutates_artifact": false,
+            "launches_process": true,
+            "may_show_ui": false,
+            "may_access_network": false,
+            "may_write_filesystem": false,
+            "changes_permissions": false,
+            "requires_root": false
+          },
+          "limitations": [
+            "pi-rea has not implemented this host capability; parity/pi-rea/ records the gap."
+          ]
+        },
+        {
+          "operation": "inspect_managed_artifact",
+          "available": false,
+          "reason": "not_implemented",
+          "availability_code": "not_implemented",
+          "effects": {
+            "mutates_artifact": false,
+            "launches_process": false,
+            "may_show_ui": false,
+            "may_access_network": false,
+            "may_write_filesystem": false,
+            "changes_permissions": false,
+            "requires_root": false
+          },
+          "limitations": [
+            "pi-rea has not implemented this host capability; parity/pi-rea/ records the gap."
+          ]
+        },
+        {
+          "operation": "inspect_managed_members",
+          "available": false,
+          "reason": "not_implemented",
+          "availability_code": "not_implemented",
+          "effects": {
+            "mutates_artifact": false,
+            "launches_process": false,
+            "may_show_ui": false,
+            "may_access_network": false,
+            "may_write_filesystem": false,
+            "changes_permissions": false,
+            "requires_root": false
+          },
+          "limitations": [
+            "pi-rea has not implemented this host capability; parity/pi-rea/ records the gap."
+          ]
+        },
+        {
+          "operation": "inspect_managed_native_boundaries",
+          "available": false,
+          "reason": "not_implemented",
+          "availability_code": "not_implemented",
+          "effects": {
+            "mutates_artifact": false,
+            "launches_process": false,
+            "may_show_ui": false,
+            "may_access_network": false,
+            "may_write_filesystem": false,
+            "changes_permissions": false,
+            "requires_root": false
+          },
+          "limitations": [
+            "pi-rea has not implemented this host capability; parity/pi-rea/ records the gap."
+          ]
+        }
+      ],
+      "analysis_provider_binding": null,
+      "analysis_provider_candidates": [
+        {
+          "provider": {
+            "id": "ghidra",
+            "name": "Ghidra",
+            "version": null
+          },
+          "availability": {
+            "status": "unavailable",
+            "code": "not_implemented",
+            "reason": "pi-rea has no deep-analysis provider bridge; parity/pi-rea/ records the scope boundary."
+          }
+        },
+        {
+          "provider": {
+            "id": "hopper",
+            "name": "Hopper Disassembler",
+            "version": null
+          },
+          "availability": {
+            "status": "unavailable",
+            "code": "not_implemented",
+            "reason": "pi-rea has no deep-analysis provider bridge; parity/pi-rea/ records the scope boundary."
+          }
+        },
+        {
+          "provider": {
+            "id": "ida",
+            "name": "IDA MCP adapter",
+            "version": "1"
+          },
+          "availability": {
+            "status": "unavailable",
+            "code": "not_implemented",
+            "reason": "pi-rea has no deep-analysis provider bridge; parity/pi-rea/ records the scope boundary."
+          }
+        },
+        {
+          "provider": {
+            "id": "kuna",
+            "name": "Kuna",
+            "version": null
+          },
+          "availability": {
+            "status": "unavailable",
+            "code": "not_implemented",
+            "reason": "pi-rea has no deep-analysis provider bridge; parity/pi-rea/ records the scope boundary."
+          }
+        }
+      ],
+      "analysis_run": null,
+      "analysis_activity": {
+        "status": "not_observed",
+        "providers": []
+      },
+      "provider_operation_health": null,
+      "tool_availability": {
+        "client_requirements": {
+          "required": [],
+          "optional": [],
+          "missing_required": [],
+          "missing_optional": []
+        },
+        "groups": [
+          {
+            "surface": "adb-provider",
+            "effects": [
+              "mutatesSession",
+              "writesFilesystem",
+              "launchesProcess",
+              "accessesNetwork"
+            ],
+            "annotations": [
+              "open_world"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "The selected adb binary was not found: adb. Set REA_ADB_PATH to an absolute path to an existing adb binary.",
+            "names": [
+              "capture_adb_screen",
+              "collect_adb_bugreport",
+              "pull_adb_file",
+              "pull_adb_package"
+            ]
+          },
+          {
+            "surface": "adb-provider",
+            "effects": [
+              "mutatesSession",
+              "launchesProcess",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent",
+              "open_world"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "The selected adb binary was not found: adb. Set REA_ADB_PATH to an absolute path to an existing adb binary.",
+            "names": [
+              "inspect_adb_client"
+            ]
+          },
+          {
+            "surface": "adb-provider",
+            "effects": [
+              "mutatesSession",
+              "launchesProcess",
+              "accessesNetwork",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent",
+              "open_world"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "The selected adb binary was not found: adb. Set REA_ADB_PATH to an absolute path to an existing adb binary.",
+            "names": [
+              "inspect_adb_device",
+              "inspect_adb_display",
+              "inspect_adb_package",
+              "inspect_adb_window",
+              "list_adb_devices",
+              "list_adb_directory",
+              "list_adb_features",
+              "list_adb_packages",
+              "list_adb_processes",
+              "list_adb_services",
+              "read_adb_logcat",
+              "read_adb_setting",
+              "resolve_adb_packages"
+            ]
+          },
+          {
+            "surface": "adb-provider",
+            "effects": [
+              "mutatesTarget",
+              "mutatesSession",
+              "launchesProcess",
+              "accessesNetwork"
+            ],
+            "annotations": [
+              "open_world"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "The selected adb binary was not found: adb. Set REA_ADB_PATH to an absolute path to an existing adb binary.",
+            "names": [
+              "install_adb_package",
+              "start_adb_activity",
+              "start_adb_app",
+              "stop_adb_app",
+              "uninstall_adb_package"
+            ]
+          },
+          {
+            "surface": "adb-provider",
+            "effects": [
+              "mutatesTarget",
+              "mutatesSession",
+              "writesFilesystem",
+              "launchesProcess",
+              "accessesNetwork"
+            ],
+            "annotations": [
+              "open_world"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "The selected adb binary was not found: adb. Set REA_ADB_PATH to an absolute path to an existing adb binary.",
+            "names": [
+              "push_adb_file"
+            ]
+          },
+          {
+            "surface": "android-provider",
+            "effects": [
+              "mutatesSession",
+              "writesFilesystem",
+              "launchesProcess",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent",
+              "open_world"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "Set REA_JADX_MCP_JAR to the absolute path of a caller-supplied jadx-headless-mcp 0.7.1 JAR. REA does not download or install it.",
+            "names": [
+              "inspect_android_class",
+              "inspect_android_method",
+              "inspect_android_package",
+              "search_android_classes",
+              "trace_android_references"
+            ]
+          },
+          {
+            "surface": "apktool-provider",
+            "effects": [
+              "mutatesSession",
+              "writesFilesystem",
+              "launchesProcess",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent",
+              "open_world"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "The selected apktool launcher was not found: apktool. Set REA_APKTOOL_COMMAND to an absolute apktool launcher (the upstream wrapper or a java -jar script).",
+            "names": [
+              "decode_android_resources"
+            ]
+          },
+          {
+            "surface": "apktool-provider",
+            "effects": [
+              "mutatesSession",
+              "launchesProcess",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent",
+              "open_world"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "The selected apktool launcher was not found: apktool. Set REA_APKTOOL_COMMAND to an absolute apktool launcher (the upstream wrapper or a java -jar script).",
+            "names": [
+              "inspect_apktool_client"
+            ]
+          },
+          {
+            "surface": "application",
+            "effects": [
+              "mutatesSession",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "pi-rea has not implemented this engine-free surface yet, so the call fails closed instead of returning a substitute result. parity/pi-rea/ tracks the gap.",
+            "names": [
+              "build_reconstruction_obligation_ledger",
+              "import_managed_reconstruction",
+              "project_android_application_graph",
+              "project_harmony_application_graph",
+              "project_managed_application_graph",
+              "trace_application_feature",
+              "trace_javascript_semantics",
+              "verify_managed_native_boundaries"
+            ]
+          },
+          {
+            "surface": "application",
+            "effects": [
+              "mutatesSession",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent"
+            ],
+            "available": true,
+            "reason": "available",
+            "remediation": null,
+            "names": [
+              "compare_application_versions",
+              "compare_javascript_export_shapes",
+              "compare_managed_members",
+              "compare_source_to_bundle",
+              "inspect_analysis_view",
+              "project_apple_application_graph",
+              "update_analysis_settings"
+            ]
+          },
+          {
+            "surface": "application",
+            "effects": [
+              "mutatesSession",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "pi-rea has no provider bridge for this compare surface yet, so the call fails closed instead of returning a substitute result. parity/pi-rea/ tracks the gap.",
+            "names": [
+              "compare_wasm_interfaces"
+            ]
+          },
+          {
+            "surface": "application",
+            "effects": [
+              "idempotent"
+            ],
+            "annotations": [
+              "read_only",
+              "idempotent"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "pi-rea has not implemented this engine-free surface yet, so the call fails closed instead of returning a substitute result. parity/pi-rea/ tracks the gap.",
+            "names": [
+              "evaluate_reconstruction_coverage"
+            ]
+          },
+          {
+            "surface": "application",
+            "effects": [
+              "writesFilesystem"
+            ],
+            "annotations": [],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "pi-rea has not implemented this engine-free surface yet, so the call fails closed instead of returning a substitute result. parity/pi-rea/ tracks the gap.",
+            "names": [
+              "export_environment_bundle"
+            ]
+          },
+          {
+            "surface": "application",
+            "effects": [
+              "mutatesSession",
+              "writesFilesystem"
+            ],
+            "annotations": [],
+            "available": true,
+            "reason": "available",
+            "remediation": null,
+            "names": [
+              "export_web_scripts"
+            ]
+          },
+          {
+            "surface": "application",
+            "effects": [
+              "idempotent"
+            ],
+            "annotations": [
+              "read_only",
+              "idempotent"
+            ],
+            "available": true,
+            "reason": "available",
+            "remediation": null,
+            "names": [
+              "inspect_analysis_settings"
+            ]
+          },
+          {
+            "surface": "application",
+            "effects": [
+              "mutatesSession",
+              "writesFilesystem",
+              "launchesProcess"
+            ],
+            "annotations": [
+              "open_world"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "Provide an absolute REA_WAKARU_COMMAND pointing to a Wakaru ^1.13.0 Linux x64 binary (verified with 1.14.0); no tool is installed by REA. See docs/javascript-recovery.md#install-wakaru.",
+            "names": [
+              "recover_javascript_sources"
+            ]
+          },
+          {
+            "surface": "application",
+            "effects": [
+              "mutatesSession",
+              "writesFilesystem",
+              "launchesProcess",
+              "accessesNetwork",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent",
+              "open_world"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "pi-rea has not implemented this engine-free surface yet, so the call fails closed instead of returning a substitute result. parity/pi-rea/ tracks the gap.",
+            "names": [
+              "trace_web_module_imports"
+            ]
+          },
+          {
+            "surface": "application",
+            "effects": [
+              "mutatesSession",
+              "writesFilesystem",
+              "launchesProcess",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent",
+              "open_world"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "pi-rea has not implemented this engine-free surface yet, so the call fails closed instead of returning a substitute result. parity/pi-rea/ tracks the gap.",
+            "names": [
+              "trace_web_source_location"
+            ]
+          },
+          {
+            "surface": "artifact-provider",
+            "effects": [
+              "mutatesSession",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent"
+            ],
+            "available": true,
+            "reason": "available",
+            "remediation": null,
+            "names": [
+              "decode_interface_builder",
+              "inspect_apk_signature",
+              "inspect_desktop_application",
+              "inspect_electron_fuses",
+              "inspect_erlang_beam",
+              "inspect_go_binary",
+              "inspect_gpu_code_objects",
+              "inspect_il2cpp_metadata",
+              "inspect_keyed_archive",
+              "inspect_model_artifact",
+              "inspect_python_pyc",
+              "inspect_rust_binary"
+            ]
+          },
+          {
+            "surface": "artifact-provider",
+            "effects": [
+              "mutatesSession",
+              "writesFilesystem",
+              "launchesProcess",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent",
+              "open_world"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "Signal decoding requires Linux with util-linux prlimit and REA_SIGROK_COMMAND so expanded recordings are processed under an enforced address-space limit. On Linux, configure sigrok-cli 0.7.2 through REA_SIGROK_COMMAND and util-linux prlimit through REA_SIGROK_PRLIMIT_COMMAND (default /usr/bin/prlimit).",
+            "names": [
+              "decode_signal_recording",
+              "inspect_signal_decoders"
+            ]
+          },
+          {
+            "surface": "artifact-provider",
+            "effects": [
+              "mutatesSession",
+              "writesFilesystem",
+              "launchesProcess"
+            ],
+            "annotations": [
+              "open_world"
+            ],
+            "available": true,
+            "reason": "available",
+            "remediation": null,
+            "names": [
+              "extract_artifact"
+            ]
+          },
+          {
+            "surface": "artifact-provider",
+            "effects": [
+              "mutatesSession",
+              "writesFilesystem",
+              "launchesProcess",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent",
+              "open_world"
+            ],
+            "available": true,
+            "reason": "available",
+            "remediation": null,
+            "names": [
+              "inspect_artifact",
+              "inspect_sqlite_database"
+            ]
+          },
+          {
+            "surface": "artifact-provider",
+            "effects": [
+              "mutatesSession",
+              "launchesProcess",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent",
+              "open_world"
+            ],
+            "available": true,
+            "reason": "available",
+            "remediation": null,
+            "names": [
+              "inspect_asset_catalog"
+            ]
+          },
+          {
+            "surface": "artifact-provider",
+            "effects": [
+              "mutatesSession",
+              "writesFilesystem",
+              "launchesProcess",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent",
+              "open_world"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "Initial real-verified offline EVM interface profile supports Linux x64 only.",
+            "names": [
+              "inspect_evm_interface"
+            ]
+          },
+          {
+            "surface": "artifact-provider",
+            "effects": [
+              "mutatesSession",
+              "writesFilesystem",
+              "launchesProcess",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent",
+              "open_world"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "Packet inspection requires Linux with util-linux prlimit and TShark 4.x (on PATH or through absolute REA_TSHARK_COMMAND) so expanded captures are processed under an enforced address-space limit. On Linux, supply TShark 4.x on PATH or through absolute REA_TSHARK_COMMAND, and util-linux prlimit through REA_TSHARK_PRLIMIT_COMMAND (default /usr/bin/prlimit).",
+            "names": [
+              "inspect_packet_capture",
+              "inspect_packet_fields"
+            ]
+          },
+          {
+            "surface": "artifact-provider",
+            "effects": [
+              "mutatesSession",
+              "writesFilesystem",
+              "launchesProcess",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent",
+              "open_world"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "Set absolute REA_WABT_BIN_DIRECTORY to a directory that contains wasm-validate, wasm-objdump and wasm2wat from WABT 1.0.42; each --version must report 1.0.42 on stdout with empty stderr. Correct the reported tool path, access or release before retrying, not the WASM input. Set this in the shell for the next CLI call, or in the MCP server launch environment and restart that server; a shell export does not update a running MCP server. Do not repeat the unchanged call or install tools implicitly.",
+            "names": [
+              "inspect_wasm_artifact"
+            ]
+          },
+          {
+            "surface": "artifact-provider",
+            "effects": [
+              "mutatesSession",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent"
+            ],
+            "available": false,
+            "reason": "target_required",
+            "remediation": "Call open_binary with a supported local target.",
+            "names": [
+              "trace_dylib_resolution"
+            ]
+          },
+          {
+            "surface": "browser-provider",
+            "effects": [
+              "mutatesSession",
+              "accessesNetwork",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent",
+              "open_world"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "analyze_web_bundle could not reach the selected loopback debugging endpoint. Verify that the target process is running with debugging enabled and that the endpoint's port matches it, then retry.",
+            "names": [
+              "analyze_web_bundle"
+            ]
+          },
+          {
+            "surface": "browser-provider",
+            "effects": [
+              "mutatesTarget",
+              "mutatesSession",
+              "writesFilesystem",
+              "launchesProcess",
+              "accessesNetwork",
+              "changesUiState",
+              "mayDiscardData"
+            ],
+            "annotations": [
+              "destructive",
+              "open_world"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "capture_browser_scenario could not reach the selected loopback debugging endpoint. Verify that the target process is running with debugging enabled and that the endpoint's port matches it, then retry.",
+            "names": [
+              "capture_browser_scenario"
+            ]
+          },
+          {
+            "surface": "browser-provider",
+            "effects": [
+              "mutatesSession",
+              "accessesNetwork",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent",
+              "open_world"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "capture_web_screenshot could not reach the selected loopback debugging endpoint. Verify that the target process is running with debugging enabled and that the endpoint's port matches it, then retry.",
+            "names": [
+              "capture_web_screenshot"
+            ]
+          },
+          {
+            "surface": "browser-provider",
+            "effects": [
+              "mutatesSession",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "compare_web_captures could not reach the selected loopback debugging endpoint. Verify that the target process is running with debugging enabled and that the endpoint's port matches it, then retry.",
+            "names": [
+              "compare_web_captures"
+            ]
+          },
+          {
+            "surface": "browser-provider",
+            "effects": [
+              "mutatesSession",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "compare_web_screenshots could not reach the selected loopback debugging endpoint. Verify that the target process is running with debugging enabled and that the endpoint's port matches it, then retry.",
+            "names": [
+              "compare_web_screenshots"
+            ]
+          },
+          {
+            "surface": "browser-provider",
+            "effects": [
+              "mutatesSession",
+              "accessesNetwork",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent",
+              "open_world"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "discover_webmcp_tools could not reach the selected loopback debugging endpoint. Verify that the target process is running with debugging enabled and that the endpoint's port matches it, then retry.",
+            "names": [
+              "discover_webmcp_tools"
+            ]
+          },
+          {
+            "surface": "browser-provider",
+            "effects": [
+              "mutatesSession",
+              "accessesNetwork",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent",
+              "open_world"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "inspect_web_event_listeners could not reach the selected loopback debugging endpoint. Verify that the target process is running with debugging enabled and that the endpoint's port matches it, then retry.",
+            "names": [
+              "inspect_web_event_listeners"
+            ]
+          },
+          {
+            "surface": "browser-provider",
+            "effects": [
+              "mutatesSession",
+              "writesFilesystem",
+              "launchesProcess",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent",
+              "open_world"
+            ],
+            "available": true,
+            "reason": "available",
+            "remediation": null,
+            "names": [
+              "inspect_web_network_capture"
+            ]
+          },
+          {
+            "surface": "browser-provider",
+            "effects": [
+              "mutatesSession",
+              "accessesNetwork",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent",
+              "open_world"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "inspect_web_page could not reach the selected loopback debugging endpoint. Verify that the target process is running with debugging enabled and that the endpoint's port matches it, then retry.",
+            "names": [
+              "inspect_web_page"
+            ]
+          },
+          {
+            "surface": "browser-provider",
+            "effects": [
+              "mutatesSession",
+              "accessesNetwork",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent",
+              "open_world"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "list_browser_targets could not reach the selected loopback debugging endpoint. Verify that the target process is running with debugging enabled and that the endpoint's port matches it, then retry.",
+            "names": [
+              "list_browser_targets"
+            ]
+          },
+          {
+            "surface": "browser-provider",
+            "effects": [
+              "mutatesTarget",
+              "mutatesSession",
+              "accessesNetwork",
+              "mayDiscardData"
+            ],
+            "annotations": [
+              "destructive",
+              "open_world"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "observe_web_execution could not reach the selected loopback debugging endpoint. Verify that the target process is running with debugging enabled and that the endpoint's port matches it, then retry.",
+            "names": [
+              "observe_web_execution"
+            ]
+          },
+          {
+            "surface": "browser-provider",
+            "effects": [
+              "mutatesSession",
+              "accessesNetwork",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent",
+              "open_world"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "observe_web_session could not reach the selected loopback debugging endpoint. Verify that the target process is running with debugging enabled and that the endpoint's port matches it, then retry.",
+            "names": [
+              "observe_web_session"
+            ]
+          },
+          {
+            "surface": "electron-provider",
+            "effects": [
+              "mutatesSession",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent"
+            ],
+            "available": true,
+            "reason": "available",
+            "remediation": null,
+            "names": [
+              "analyze_javascript_application"
+            ]
+          },
+          {
+            "surface": "electron-provider",
+            "effects": [
+              "mutatesTarget",
+              "mutatesSession",
+              "writesFilesystem",
+              "launchesProcess",
+              "accessesNetwork",
+              "changesUiState",
+              "mayDiscardData"
+            ],
+            "annotations": [
+              "destructive",
+              "open_world"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "capture_electron_scenario could not reach the selected loopback debugging endpoint. Verify that the target process is running with debugging enabled and that the endpoint's port matches it, then retry.",
+            "names": [
+              "capture_electron_scenario"
+            ]
+          },
+          {
+            "surface": "electron-provider",
+            "effects": [
+              "mutatesSession",
+              "accessesNetwork",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent",
+              "open_world"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "inspect_electron_page could not reach the selected loopback debugging endpoint. Verify that the target process is running with debugging enabled and that the endpoint's port matches it, then retry.",
+            "names": [
+              "inspect_electron_page"
+            ]
+          },
+          {
+            "surface": "electron-provider",
+            "effects": [
+              "mutatesSession",
+              "accessesNetwork",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent",
+              "open_world"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "list_electron_targets could not reach the selected loopback debugging endpoint. Verify that the target process is running with debugging enabled and that the endpoint's port matches it, then retry.",
+            "names": [
+              "list_electron_targets"
+            ]
+          },
+          {
+            "surface": "electron-provider",
+            "effects": [
+              "mutatesSession",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "reconcile_javascript_runtime could not reach the selected loopback debugging endpoint. Verify that the target process is running with debugging enabled and that the endpoint's port matches it, then retry.",
+            "names": [
+              "reconcile_javascript_runtime"
+            ]
+          },
+          {
+            "surface": "enhanced",
+            "effects": [
+              "mutatesSession",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent"
+            ],
+            "available": false,
+            "reason": "target_required",
+            "remediation": "Call open_binary with a supported local target.",
+            "names": [
+              "analyze_function",
+              "analyze_swift_types",
+              "batch_decompile",
+              "binary_overview",
+              "find_xrefs_to_name",
+              "get_call_graph",
+              "get_objc_classes",
+              "get_objc_protocols",
+              "inspect_native_dispatch_metadata",
+              "trace_native_ui_action",
+              "trace_native_values"
+            ]
+          },
+          {
+            "surface": "enhanced",
+            "effects": [
+              "mutatesSession",
+              "writesFilesystem"
+            ],
+            "annotations": [],
+            "available": false,
+            "reason": "target_required",
+            "remediation": "Call open_binary with a supported local target.",
+            "names": [
+              "decompile_all"
+            ]
+          },
+          {
+            "surface": "enhanced",
+            "effects": [
+              "mutatesSession"
+            ],
+            "annotations": [],
+            "available": false,
+            "reason": "target_required",
+            "remediation": "Call open_binary with a supported local target.",
+            "names": [
+              "inspect_native_api",
+              "trace_call_path",
+              "trace_feature"
+            ]
+          },
+          {
+            "surface": "firmware-provider",
+            "effects": [
+              "mutatesSession",
+              "writesFilesystem",
+              "launchesProcess"
+            ],
+            "annotations": [
+              "open_world"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "This integration requires Linux and an absolute REA_BINWALK_COMMAND path to the caller-supplied tool",
+            "names": [
+              "extract_firmware"
+            ]
+          },
+          {
+            "surface": "firmware-provider",
+            "effects": [
+              "mutatesSession",
+              "writesFilesystem",
+              "launchesProcess",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent",
+              "open_world"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "This integration requires Linux and an absolute REA_BINWALK_COMMAND path to the caller-supplied tool",
+            "names": [
+              "inspect_firmware_regions"
+            ]
+          },
+          {
+            "surface": "flutter-provider",
+            "effects": [
+              "mutatesSession",
+              "writesFilesystem",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent"
+            ],
+            "available": true,
+            "reason": "available",
+            "remediation": null,
+            "names": [
+              "identify_flutter_build",
+              "inspect_dart_aot"
+            ]
+          },
+          {
+            "surface": "jeb-provider",
+            "effects": [
+              "mutatesSession",
+              "accessesNetwork",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent",
+              "open_world"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "Start a JEB client serving MCP (default http://127.0.0.1:8425/mcp) or set REA_JEB_MCP_URL to the running endpoint.",
+            "names": [
+              "decompile_jeb_item",
+              "inspect_jeb_client",
+              "list_jeb_units"
+            ]
+          },
+          {
+            "surface": "jeb-provider",
+            "effects": [
+              "mutatesSession",
+              "accessesNetwork"
+            ],
+            "annotations": [
+              "open_world"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "Start a JEB client serving MCP (default http://127.0.0.1:8425/mcp) or set REA_JEB_MCP_URL to the running endpoint.",
+            "names": [
+              "open_jeb_project"
+            ]
+          },
+          {
+            "surface": "managed-provider",
+            "effects": [
+              "mutatesSession",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent"
+            ],
+            "available": true,
+            "reason": "available",
+            "remediation": null,
+            "names": [
+              "inspect_managed_artifact",
+              "inspect_managed_members"
+            ]
+          },
+          {
+            "surface": "managed-provider",
+            "effects": [
+              "mutatesSession",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "pi-rea has not implemented this engine-free surface yet, so the call fails closed instead of returning a substitute result. parity/pi-rea/ tracks the gap.",
+            "names": [
+              "inspect_managed_native_boundaries"
+            ]
+          },
+          {
+            "surface": "native-provider",
+            "effects": [
+              "mutatesTarget",
+              "mutatesSession",
+              "writesFilesystem",
+              "launchesProcess",
+              "accessesNetwork",
+              "changesUiState",
+              "mayDiscardData"
+            ],
+            "annotations": [
+              "destructive",
+              "open_world"
+            ],
+            "available": false,
+            "reason": "target_required",
+            "remediation": "Call open_binary with a supported local target.",
+            "names": [
+              "capture_native_ui_scenario"
+            ]
+          },
+          {
+            "surface": "native-provider",
+            "effects": [
+              "mutatesTarget",
+              "mutatesSession",
+              "launchesProcess",
+              "accessesNetwork"
+            ],
+            "annotations": [
+              "destructive",
+              "open_world"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "This analysis is unavailable for the current target. Choose another analysis or target.",
+            "names": [
+              "close_frida_session",
+              "instrument_with_frida",
+              "load_frida_script",
+              "resume_frida_session"
+            ]
+          },
+          {
+            "surface": "native-provider",
+            "effects": [
+              "mutatesTarget",
+              "mutatesSession",
+              "launchesProcess"
+            ],
+            "annotations": [
+              "destructive",
+              "open_world"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "This analysis is unavailable for the current target. Choose another analysis or target.",
+            "names": [
+              "close_gdb_session"
+            ]
+          },
+          {
+            "surface": "native-provider",
+            "effects": [
+              "mutatesTarget",
+              "mutatesSession",
+              "launchesProcess",
+              "idempotent"
+            ],
+            "annotations": [
+              "destructive",
+              "idempotent",
+              "open_world"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "Set REA_RIZIN_COMMAND to an installed executable Rizin command, or make that command available on PATH. Check execute permission on the command and search permission on its parent directories before retrying.",
+            "names": [
+              "close_rizin_debug_session"
+            ]
+          },
+          {
+            "surface": "native-provider",
+            "effects": [
+              "mutatesTarget",
+              "mutatesSession",
+              "writesFilesystem",
+              "launchesProcess",
+              "accessesNetwork",
+              "changesUiState"
+            ],
+            "annotations": [
+              "destructive",
+              "open_world"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "pi-rea has no Cutter bridge. No live cutter-bridge session directory is configured for this port.",
+            "names": [
+              "cutter_command"
+            ]
+          },
+          {
+            "surface": "native-provider",
+            "effects": [
+              "mutatesSession",
+              "launchesProcess",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent",
+              "open_world"
+            ],
+            "available": false,
+            "reason": "target_required",
+            "remediation": "Call open_binary with a supported local target.",
+            "names": [
+              "demangle_swift"
+            ]
+          },
+          {
+            "surface": "native-provider",
+            "effects": [
+              "mutatesTarget",
+              "mutatesSession",
+              "writesFilesystem",
+              "launchesProcess",
+              "accessesNetwork",
+              "mayDiscardData"
+            ],
+            "annotations": [
+              "destructive",
+              "open_world"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "Set REA_RIZIN_COMMAND to an installed executable Rizin command, or make that command available on PATH. Check execute permission on the command and search permission on its parent directories before retrying.",
+            "names": [
+              "execute_rizin_command"
+            ]
+          },
+          {
+            "surface": "native-provider",
+            "effects": [
+              "mutatesSession",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "This analysis is unavailable for the current target. Choose another analysis or target.",
+            "names": [
+              "frida_session_status"
+            ]
+          },
+          {
+            "surface": "native-provider",
+            "effects": [
+              "mutatesTarget",
+              "mutatesSession",
+              "writesFilesystem",
+              "launchesProcess",
+              "accessesNetwork"
+            ],
+            "annotations": [
+              "destructive",
+              "open_world"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "This analysis is unavailable for the current target. Choose another analysis or target.",
+            "names": [
+              "gdb_console"
+            ]
+          },
+          {
+            "surface": "native-provider",
+            "effects": [
+              "idempotent"
+            ],
+            "annotations": [
+              "read_only",
+              "idempotent"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "This analysis is unavailable for the current target. Choose another analysis or target.",
+            "names": [
+              "gdb_session_status"
+            ]
+          },
+          {
+            "surface": "native-provider",
+            "effects": [
+              "mutatesSession",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent"
+            ],
+            "available": true,
+            "reason": "available",
+            "remediation": null,
+            "names": [
+              "inspect_apple_ips",
+              "inspect_byte_entropy",
+              "inspect_devicetree",
+              "inspect_elf_notes",
+              "inspect_kernel_module",
+              "inspect_native_exports",
+              "inspect_pe_certificates",
+              "inspect_pe_imports",
+              "inspect_pe_load_config",
+              "inspect_pe_resources"
+            ]
+          },
+          {
+            "surface": "native-provider",
+            "effects": [
+              "mutatesSession",
+              "writesFilesystem",
+              "launchesProcess",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent",
+              "open_world"
+            ],
+            "available": true,
+            "reason": "available",
+            "remediation": null,
+            "names": [
+              "inspect_binary_layout",
+              "inspect_recorded_crash"
+            ]
+          },
+          {
+            "surface": "native-provider",
+            "effects": [
+              "mutatesSession",
+              "launchesProcess",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent",
+              "open_world"
+            ],
+            "available": true,
+            "reason": "available",
+            "remediation": null,
+            "names": [
+              "inspect_macho",
+              "inspect_plist",
+              "inspect_signature",
+              "inspect_with_objdump",
+              "list_architectures"
+            ]
+          },
+          {
+            "surface": "native-provider",
+            "effects": [
+              "accessesNetwork",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent",
+              "open_world"
+            ],
+            "available": true,
+            "reason": "available",
+            "remediation": null,
+            "names": [
+              "list_cutter_sessions"
+            ]
+          },
+          {
+            "surface": "native-provider",
+            "effects": [
+              "launchesProcess",
+              "accessesNetwork",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent",
+              "open_world"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "This analysis is unavailable for the current target. Choose another analysis or target.",
+            "names": [
+              "list_frida_devices",
+              "list_frida_processes"
+            ]
+          },
+          {
+            "surface": "native-provider",
+            "effects": [
+              "mutatesSession",
+              "writesFilesystem",
+              "launchesProcess",
+              "accessesNetwork",
+              "changesUiState"
+            ],
+            "annotations": [
+              "open_world"
+            ],
+            "available": false,
+            "reason": "target_required",
+            "remediation": "Call open_binary with a supported local target.",
+            "names": [
+              "observe_native_calls"
+            ]
+          },
+          {
+            "surface": "native-provider",
+            "effects": [
+              "mutatesSession",
+              "writesFilesystem",
+              "launchesProcess",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent",
+              "open_world"
+            ],
+            "available": false,
+            "reason": "target_required",
+            "remediation": "Call open_binary with a supported local target.",
+            "names": [
+              "observe_native_ui"
+            ]
+          },
+          {
+            "surface": "native-provider",
+            "effects": [
+              "mutatesTarget",
+              "mutatesSession",
+              "writesFilesystem",
+              "launchesProcess",
+              "accessesNetwork",
+              "changesUiState",
+              "mayDiscardData"
+            ],
+            "annotations": [
+              "destructive",
+              "open_world"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "Set REA_RIZIN_COMMAND to an installed executable Rizin command, or make that command available on PATH. Check execute permission on the command and search permission on its parent directories before retrying.",
+            "names": [
+              "rizin_debug_command"
+            ]
+          },
+          {
+            "surface": "native-provider",
+            "effects": [
+              "mutatesSession",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "Set REA_RIZIN_COMMAND to an installed executable Rizin command, or make that command available on PATH. Check execute permission on the command and search permission on its parent directories before retrying.",
+            "names": [
+              "rizin_debug_session_status"
+            ]
+          },
+          {
+            "surface": "native-provider",
+            "effects": [
+              "mutatesTarget",
+              "mutatesSession",
+              "launchesProcess",
+              "accessesNetwork"
+            ],
+            "annotations": [
+              "open_world"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "This analysis is unavailable for the current target. Choose another analysis or target.",
+            "names": [
+              "start_frida_session",
+              "unload_frida_script"
+            ]
+          },
+          {
+            "surface": "native-provider",
+            "effects": [
+              "mutatesSession",
+              "launchesProcess"
+            ],
+            "annotations": [
+              "open_world"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "This analysis is unavailable for the current target. Choose another analysis or target.",
+            "names": [
+              "start_gdb_session"
+            ]
+          },
+          {
+            "surface": "native-provider",
+            "effects": [
+              "mutatesTarget",
+              "mutatesSession",
+              "launchesProcess"
+            ],
+            "annotations": [
+              "destructive",
+              "open_world"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "Set REA_RIZIN_COMMAND to an installed executable Rizin command, or make that command available on PATH. Check execute permission on the command and search permission on its parent directories before retrying.",
+            "names": [
+              "start_rizin_debug_session"
+            ]
+          },
+          {
+            "surface": "official-proxy",
+            "effects": [
+              "mutatesSession",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent"
+            ],
+            "available": false,
+            "reason": "target_required",
+            "remediation": "Call open_binary with a supported local target.",
+            "names": [
+              "address_name",
+              "address_to_file_offset",
+              "comment",
+              "current_address",
+              "current_document",
+              "current_procedure",
+              "inline_comment",
+              "inspect_native_data_type",
+              "inspect_native_instruction",
+              "inspect_native_load_image",
+              "list_bookmarks",
+              "list_documents",
+              "list_names",
+              "list_procedures",
+              "list_segments",
+              "list_strings",
+              "next_address",
+              "prev_address",
+              "procedure_address",
+              "procedure_assembly",
+              "procedure_callees",
+              "procedure_callers",
+              "procedure_info",
+              "procedure_pseudo_code",
+              "procedure_references",
+              "read_bytes",
+              "read_function_instructions",
+              "resolve_containing_procedure",
+              "resolve_native_call_targets",
+              "search_bytes",
+              "search_procedures",
+              "search_strings",
+              "xrefs"
+            ]
+          },
+          {
+            "surface": "official-proxy",
+            "effects": [
+              "mutatesTarget",
+              "mutatesSession",
+              "writesFilesystem",
+              "launchesProcess",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent",
+              "open_world"
+            ],
+            "available": false,
+            "reason": "target_required",
+            "remediation": "Call open_binary with a supported local target.",
+            "names": [
+              "annotate_native_function"
+            ]
+          },
+          {
+            "surface": "official-proxy",
+            "effects": [
+              "mutatesSession",
+              "changesUiState",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent"
+            ],
+            "available": false,
+            "reason": "target_required",
+            "remediation": "Call open_binary with a supported local target.",
+            "names": [
+              "goto_address"
+            ]
+          },
+          {
+            "surface": "official-proxy",
+            "effects": [
+              "mutatesTarget",
+              "mutatesSession",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent"
+            ],
+            "available": false,
+            "reason": "target_required",
+            "remediation": "Call open_binary with a supported local target.",
+            "names": [
+              "set_address_name",
+              "set_addresses_names",
+              "set_bookmark",
+              "set_comment",
+              "set_inline_comment"
+            ]
+          },
+          {
+            "surface": "official-proxy",
+            "effects": [
+              "mutatesTarget",
+              "mutatesSession",
+              "mayDiscardData",
+              "idempotent"
+            ],
+            "annotations": [
+              "destructive",
+              "idempotent"
+            ],
+            "available": false,
+            "reason": "target_required",
+            "remediation": "Call open_binary with a supported local target.",
+            "names": [
+              "unset_bookmark"
+            ]
+          },
+          {
+            "surface": "pcap-provider",
+            "effects": [
+              "mutatesSession",
+              "writesFilesystem",
+              "launchesProcess",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent",
+              "open_world"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "tshark was not found in an absolute PATH entry; add it to PATH or set REA_TSHARK_COMMAND to its absolute path. Supply Wireshark 4.x tshark and capinfos on PATH or through absolute REA_TSHARK_COMMAND and REA_CAPINFOS_COMMAND; REA does not install them.",
+            "names": [
+              "inspect_pcap_capture",
+              "inspect_pcap_client"
+            ]
+          },
+          {
+            "surface": "runtime-provider",
+            "effects": [
+              "mutatesSession",
+              "accessesNetwork",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent",
+              "open_world"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "list_javascript_runtime_targets could not reach the selected loopback debugging endpoint. Verify that the target process is running with debugging enabled and that the endpoint's port matches it, then retry.",
+            "names": [
+              "list_javascript_runtime_targets"
+            ]
+          },
+          {
+            "surface": "runtime-provider",
+            "effects": [
+              "mutatesSession",
+              "accessesNetwork",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent",
+              "open_world"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "observe_javascript_runtime could not reach the selected loopback debugging endpoint. Verify that the target process is running with debugging enabled and that the endpoint's port matches it, then retry.",
+            "names": [
+              "observe_javascript_runtime"
+            ]
+          },
+          {
+            "surface": "session",
+            "effects": [
+              "idempotent"
+            ],
+            "annotations": [
+              "read_only",
+              "idempotent"
+            ],
+            "available": true,
+            "reason": "available",
+            "remediation": null,
+            "names": [
+              "binary_session",
+              "get_evidence_bundle",
+              "list_unknowns",
+              "verify_unknown_resolution"
+            ]
+          },
+          {
+            "surface": "session",
+            "effects": [
+              "mutatesSession",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "pi-rea has not implemented this engine-free surface yet, so the call fails closed instead of returning a substitute result. parity/pi-rea/ tracks the gap.",
+            "names": [
+              "build_call_path",
+              "correlate_static_and_runtime",
+              "match_native_functions",
+              "verify_reconstruction"
+            ]
+          },
+          {
+            "surface": "session",
+            "effects": [
+              "mutatesSession",
+              "writesFilesystem",
+              "launchesProcess",
+              "accessesNetwork"
+            ],
+            "annotations": [
+              "open_world"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "pi-rea has not implemented this engine-free surface yet, so the call fails closed instead of returning a substitute result. parity/pi-rea/ tracks the gap.",
+            "names": [
+              "capture_process_scenario"
+            ]
+          },
+          {
+            "surface": "session",
+            "effects": [
+              "mutatesSession",
+              "writesFilesystem",
+              "mayDiscardData"
+            ],
+            "annotations": [
+              "destructive"
+            ],
+            "available": true,
+            "reason": "available",
+            "remediation": null,
+            "names": [
+              "close_binary"
+            ]
+          },
+          {
+            "surface": "session",
+            "effects": [
+              "mutatesSession",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent"
+            ],
+            "available": true,
+            "reason": "available",
+            "remediation": null,
+            "names": [
+              "compare_artifacts",
+              "compare_bundles",
+              "import_evidence_bundle",
+              "open_bundle_resources"
+            ]
+          },
+          {
+            "surface": "session",
+            "effects": [
+              "mutatesSession",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent"
+            ],
+            "available": false,
+            "reason": "provider_unavailable",
+            "remediation": "pi-rea has no provider bridge for this compare surface yet, so the call fails closed instead of returning a substitute result. parity/pi-rea/ tracks the gap.",
+            "names": [
+              "compare_functions",
+              "compare_process_captures",
+              "find_changed_behavior"
+            ]
+          },
+          {
+            "surface": "session",
+            "effects": [
+              "writesFilesystem",
+              "mayDiscardData",
+              "idempotent"
+            ],
+            "annotations": [
+              "destructive",
+              "idempotent"
+            ],
+            "available": true,
+            "reason": "available",
+            "remediation": null,
+            "names": [
+              "export_evidence_bundle"
+            ]
+          },
+          {
+            "surface": "session",
+            "effects": [
+              "mutatesSession",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent"
+            ],
+            "available": false,
+            "reason": "target_required",
+            "remediation": "Call open_binary with a supported local target.",
+            "names": [
+              "get_navigation_context",
+              "inspect_address_context"
+            ]
+          },
+          {
+            "surface": "session",
+            "effects": [
+              "mutatesSession",
+              "launchesProcess",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent",
+              "open_world"
+            ],
+            "available": true,
+            "reason": "available",
+            "remediation": null,
+            "names": [
+              "open_binary"
+            ]
+          },
+          {
+            "surface": "session",
+            "effects": [
+              "mutatesSession"
+            ],
+            "annotations": [],
+            "available": true,
+            "reason": "available",
+            "remediation": null,
+            "names": [
+              "record_unknown",
+              "update_unknown"
+            ]
+          }
+        ]
+      },
+      "client_features": {
+        "elicitation_form": false,
+        "elicitation_url": false,
+        "roots": false,
+        "sampling": false
+      },
+      "server_identity": {
+        "package": {
+          "name": "pi-rea",
+          "version": "0.1.0",
+          "root_path": "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-rea/",
+          "build_commit": null
+        },
+        "server": {
+          "name": "pi-rea",
+          "version": "0.1.0",
+          "started_at": "2026-10-28T21:41:27.875Z",
+          "command_path": null
+        },
+        "sdk": {
+          "server": null,
+          "client_test": null,
+          "core": null
+        },
+        "negotiated_protocol_version": null,
+        "client": {
+          "name": "pi",
+          "version": null
+        },
+        "skill": {
+          "name": "reverse-engineer-anything",
+          "expected_version": null
+        },
+        "catalog": {
+          "counts": {
+            "cli_commands": null,
+            "mcp_tools": 229,
+            "mcp_prompts": 6,
+            "implemented_tools": 63
+          },
+          "digests": {
+            "tools_sha256": "491f90ab7faf9765acabd97011c805422b6542f585f3221ece1647b3c0f9daa0",
+            "prompts_sha256": null,
+            "combined_sha256": null
+          }
+        },
+        "protocol_features": {
+          "progress": false,
+          "cancellation": true,
+          "elicitation": false
+        },
+        "alignment": {
+          "state": "unknown",
+          "reasons": [],
+          "remediation": "Supply expected package, catalog, or registration identity to compare the live server."
+        },
+        "target": null,
+        "bundle_resources": null
+      },
+      "runtime": {
+        "kind": "pi-extension",
+        "name": "pi-rea-differential",
+        "version": "0.1.0",
+        "cwd": "/Users/josh-desktop/src/personal/pi-customizations"
+      }
+    }
+  }
+}

@@ -607,10 +607,7 @@ const THIS_IMAGE = '<this-image>';
 
 const readBigInt = (bytes: Buffer, offset: number, littleEndian: boolean): bigint => (littleEndian ? bytes.readBigUInt64LE(offset) : bytes.readBigUInt64BE(offset));
 
-export const MACHO_LIMITATIONS = [
-  'Imports and exports combine dyld_info and nm; stripped or toolchain-hidden symbols may be absent.',
-  'vtool output is retained as provenance but only otool build metadata is normalized.',
-];
+export const MACHO_LIMITATIONS = ['Imports and exports combine dyld_info and nm; stripped or toolchain-hidden symbols may be absent.', 'vtool output is retained as provenance but only otool build metadata is normalized.'];
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const;
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] as const;

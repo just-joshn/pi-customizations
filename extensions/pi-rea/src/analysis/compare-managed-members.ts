@@ -1,6 +1,5 @@
-
 import { invalidRequest } from '../contract/errors.ts';
-import { sha256Hex, type EvidenceRecord } from '../session/evidence.ts';
+import { type EvidenceRecord, sha256Hex } from '../session/evidence.ts';
 
 export interface ManagedMemberCompareInspection {
   readonly comparison_id: string;
@@ -88,14 +87,7 @@ const sideOf = (record: EvidenceRecord): SideSummary => {
   const methods = Array.isArray(nr['methods']) ? nr['methods'] : [];
   const fields = Array.isArray(nr['fields']) ? nr['fields'] : [];
   const classification = (nr['classification'] ?? {}) as Record<string, unknown>;
-  const metadataStatus =
-    typeof classification['status'] === 'string'
-      ? classification['status'] === 'managed'
-        ? 'present'
-        : 'absent'
-      : methods.length > 0 || fields.length > 0
-        ? 'present'
-        : 'absent';
+  const metadataStatus = typeof classification['status'] === 'string' ? (classification['status'] === 'managed' ? 'present' : 'absent') : methods.length > 0 || fields.length > 0 ? 'present' : 'absent';
   return {
     evidence_id: record.evidence_id,
     artifact_sha256: typeof identity['artifact_sha256'] === 'string' ? identity['artifact_sha256'] : typeof artifact['sha256'] === 'string' ? artifact['sha256'] : null,

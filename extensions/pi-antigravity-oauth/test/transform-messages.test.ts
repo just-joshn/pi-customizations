@@ -45,7 +45,7 @@ test('same-model replay preserves signed reasoning including opaque blocks', () 
   ]);
 });
 
-test('cross-model replay removes signatures while keeping visible reasoning', () => {
+test('cross-model replay drops thinking from another model', () => {
   const message = assistant({
     model: 'other',
     content: [
@@ -55,10 +55,7 @@ test('cross-model replay removes signatures while keeping visible reasoning', ()
       { type: 'text', text: 'reply', textSignature: 'BBBB' },
     ],
   });
-  expect(transformMessages([message], googleModel)[0]?.content).toEqual([
-    { type: 'text', text: 'reason' },
-    { type: 'text', text: 'reply' },
-  ]);
+  expect(transformMessages([message], googleModel)[0]?.content).toEqual([{ type: 'text', text: 'reply' }]);
 });
 
 test('cross-model tool ID normalization also updates results', () => {

@@ -1,6 +1,6 @@
 import type { AgentToolResult } from '@earendil-works/pi-coding-agent';
 import { demangleSwiftSymbols } from '../analysis/swift-demangle.ts';
-import { invalidRequest } from '../contract/errors.ts';
+import { invalidRequest, targetUnavailable } from '../contract/errors.ts';
 import { evidenceResult } from '../contract/results.ts';
 import type { ReaSession } from '../session/binary-session.ts';
 import { createEvidence } from '../session/evidence.ts';
@@ -15,12 +15,15 @@ export const demangleSwift = async (session: ReaSession, params: DemangleSwiftPa
   if (params === null || typeof params !== 'object') {
     throw invalidRequest('demangle_swift requires a parameters object.', { operation: 'demangle_swift' });
   }
+  const target = session.target;
   const inspection = await demangleSwiftSymbols(params.symbols, {
-    hasOpenTarget: session.target !== undefined,
+    hasOpenTarget: target !== undefined,
     requireOpenTarget: true,
     ...(params.native_command_timeout_ms === undefined ? {} : { timeoutMs: params.native_command_timeout_ms }),
   });
-  const target = session.target!;
+  if (target === undefined) {
+    throw targetUnavailable('No app is open. Ask the user which app to investigate, then call open_binary with its local path.');
+  }
   const record = createEvidence({
     subject: {
       name: target.identity.path.split('/').pop() ?? target.identity.path,

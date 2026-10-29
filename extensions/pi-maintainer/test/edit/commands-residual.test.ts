@@ -169,6 +169,26 @@ test('/editor-model preserves main and weak selections on the snapshot', {
   });
 });
 
+test('/weak-model replaces only the weak selection used for commit messages and history summaries', {
+  meta: { aider: ['test_commands/TestCommands.test_cmd_weak_model'] },
+}, async () => {
+  const weak = editCommands.find((command) => command.name === 'weak-model');
+  const errors: string[] = [];
+  const { env, saves } = commandEnv({ snapshot: baseSnapshot() });
+  await defined(weak).run('gpt-4', { ...env, host: { ...env.host, error: (text: string) => errors.push(text) } });
+  expect(saves.at(-1)).toMatchObject({
+    physicalModel: { provider: 'p', id: 'gpt-3.5' },
+    editorModel: { provider: 'p', id: 'editor' },
+    weakModel: { provider: 'p', id: 'gpt-4' },
+  });
+  expect(errors).toEqual([]);
+
+  const before = saves.length;
+  await defined(weak).run('', { ...env, host: { ...env.host, error: (text: string) => errors.push(text) } });
+  expect(saves).toHaveLength(before);
+  expect(errors).toEqual(['Please provide a weak model name.']);
+});
+
 test('/tokens lists selected editable and read-only files with estimates and a drop hint', {
   meta: { aider: ['test_commands/TestCommands.test_cmd_tokens'] },
 }, async () => {

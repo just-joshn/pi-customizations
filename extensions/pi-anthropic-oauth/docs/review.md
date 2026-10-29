@@ -1,12 +1,12 @@
 # Independent review receipt
 
-The final production source was reviewed by `deepseek/deepseek-v4-pro`. The reviewer found no new code bugs or security flaws. Its transcript records the DeepSeek provider and model. Implementation and design workers inherited OpenAI from the active model-role configuration.
+The production source was reviewed by `deepseek/deepseek-v4-pro` before the `2.1.311` identity update. That review found no new code bugs or security flaws. Its transcript records the DeepSeek provider and model. Implementation and design workers inherited OpenAI from the active model-role configuration.
 
 The review covered source, tests, probes, captured reference data, the parity matrix, the decision trail, and matching public Pi declarations. It audited the parent transcript without reading credential files or Keychain.
 
 ## Attention
 
-- The captured Claude Code attribution is pinned to `2.1.288`. Its public salt and sample indices can change. The parity matrix now states the update risk and does not infer permission under Anthropic's terms. The decision trail records this choice explicitly.
+- The captured Claude Code attribution is pinned to `2.1.311`. Its public salt and sample indices can change. The parity matrix now states the update risk and does not infer permission under Anthropic's terms. The decision trail records this choice explicitly.
 - Live browser login, subscription entitlement, billing acceptance, and cache acceptance remain inconclusive. Local request equality does not establish these external outcomes. The matrix also distinguishes tested copy-code exchange from the untested complete browser-callback flow.
 - `ANTHROPIC_AUTH_TOKEN` must contain a subscription-shaped token on this OAuth-only provider. API keys are rejected without exposure. This differs from configurations where Claude Code accepts an API key in that variable.
 - The request-path probe intentionally pins its fixed prompt's expected fingerprint. A changed prompt must fail that assertion until a new independent vector is verified. Computing the expectation with the implementation under test would weaken the regression.
@@ -14,10 +14,10 @@ The review covered source, tests, probes, captured reference data, the parity ma
 
 ## Verification
 
-The merged targeted suite passes 136 tests in 16 files, including the upstream tool-transition regressions. Typecheck, coverage, shuffled tests, repository-wide tests and typechecks, Biome, agent rules, test conventions, and native-mechanism checks pass.
+The merged targeted suite passed 136 tests in 16 files. The current checkout passes 253 tests in 21 files, and `bun run typecheck`, Biome, the test-convention check, and the native-mechanism check pass on it.
 
-Current host evidence is Pi `1.1.0`, matching the package `devDependencies` pins. `verification/pi-1.1.0-native.json` and `verification/pi-1.1.0-paths.json` cover print, JSON, RPC, ambient authentication without credential persistence, request identity, session correlation, fork, reload, session replacement, native tools, cancellation, usage, compaction, virtual routing, and explicit header overrides. `scripts/prove-context-guard.ts --expect green` also passes on that host. Older `verification/pi-1.0.0-*.json` and `verification/pi-1.0.1-*.json` receipts are historical.
+Host evidence now covers Pi `1.4.0`, the current `devDependencies` pin. `verification/pi-1.4.0-native.json` and `verification/pi-1.4.0-paths.json` cover print, JSON, RPC, ambient authentication without credential persistence, request identity, the Claude session header on every request path, fork, reload, session replacement, native tools, cancellation, usage, compaction, virtual routing, and explicit header overrides. `scripts/prove-context-guard.ts --expect green` also passes on that host. The `verification/pi-1.0.0-*.json`, `pi-1.0.1-*.json`, and `pi-1.1.0-*.json` receipts are historical.
 
-The packaging and disclosure follow-up did not change the original reviewed production source. The request-local tool-transition compatibility fix remains. Runtime reports for the pinned host were regenerated on Pi `1.1.0`.
+The packaging and disclosure follow-up did not change the original reviewed production source. The request-local tool-transition compatibility fix remains. Runtime reports for the pinned host were regenerated on Pi `1.4.0`.
 
 No complete live authentication or Anthropic inference was performed.

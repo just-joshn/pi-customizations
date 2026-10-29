@@ -1,9 +1,10 @@
 import { spawnSync } from 'node:child_process';
 import { chmodSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { basename, join } from 'node:path';
 
-import { afterEach, beforeEach, describe, expect, test } from 'vitest';
+import { SessionManager } from '@earendil-works/pi-coding-agent';
+import { afterEach, beforeEach, describe, expect, onTestFinished, test, vi } from 'vitest';
 import { storeDir, subagentDir, workspaceSlug, workspaceStateDir, worktreesDir } from '../src/paths.ts';
 import { acquireRunLock, readonlyLaunchRestores, readRecord, writeRecord } from '../src/task/records.ts';
 
@@ -94,6 +95,14 @@ describe('agent records (review r2: architecture 5)', () => {
 describe('per-workspace state (review: parity 4)', () => {
   test('names a workspace the way Pi names a session folder', () => {
     expect([workspaceSlug('/Users/me/src/app'), workspaceSlug('/w/a:b')]).toEqual(['--Users-me-src-app--', '--w-a-b--']);
+  });
+
+  test('the workspace folder name stays the default session folder Pi gives that directory', () => {
+    vi.stubEnv('PI_CODING_AGENT_DIR', dir);
+    onTestFinished(() => {
+      vi.unstubAllEnvs();
+    });
+    for (const cwd of ['/Users/me/src/app', '/w/a:b']) expect(basename(SessionManager.create(cwd).getSessionDir())).toBe(workspaceSlug(cwd));
   });
 
   test("a subagent uses its main chat's workspace state, wherever it runs (C-M2)", () => {

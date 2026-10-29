@@ -119,6 +119,6 @@
   },
   "meta": {
     "command": "inspect-signature",
-    "duration": "1244ms"
+    "duration": "1166ms"
   }
 }

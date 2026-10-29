@@ -1,4 +1,3 @@
-
 import { createHash } from 'node:crypto';
 
 import { architectureName } from './macho.ts';
@@ -21,8 +20,8 @@ const HASH_NAMES: Record<number, string> = {
   4: 'sha384',
 };
 
-const ORACLE_LIMITATION =
-  'Inspected a digest-verified Mach-O byte snapshot; filesystem-bound signing context and trust validation are not examined.';
+const ORACLE_LIMITATION = 'Inspected a digest-verified Mach-O byte snapshot; filesystem-bound signing context and trust validation are not examined.';
+const NOT_SIGNED_LIMITATION = 'Artifact is not signed.';
 
 export interface MachoSignatureInspection {
   readonly signed: boolean;
@@ -98,12 +97,7 @@ const parseCodeDirectory = (blob: Buffer, offset: number): CodeDirectoryFacts | 
     if (teamOffset !== 0) team = cString(blob, offset + teamOffset, end) || null;
   }
   const cdBytes = blob.subarray(offset, offset + length);
-  const digest =
-    hashType === 1
-      ? createHash('sha1').update(cdBytes).digest()
-      : hashType === 4
-        ? createHash('sha384').update(cdBytes).digest()
-        : createHash('sha256').update(cdBytes).digest();
+  const digest = hashType === 1 ? createHash('sha1').update(cdBytes).digest() : hashType === 4 ? createHash('sha384').update(cdBytes).digest() : createHash('sha256').update(cdBytes).digest();
   // codesign CDHash / CandidateCDHash displays the first 20 bytes.
   const cdhash = digest.subarray(0, 20).toString('hex');
   return {
@@ -170,14 +164,7 @@ const findCodeSignatureLink = (bytes: Buffer): SignatureLink | null => {
     }
     return null;
   }
-  const at = (offset: number, size: 4 | 8): number =>
-    size === 8
-      ? little
-        ? Number(bytes.readBigUInt64LE(offset))
-        : Number(bytes.readBigUInt64BE(offset))
-      : little
-        ? bytes.readUInt32LE(offset)
-        : bytes.readUInt32BE(offset);
+  const at = (offset: number, size: 4 | 8): number => (size === 8 ? (little ? Number(bytes.readBigUInt64LE(offset)) : Number(bytes.readBigUInt64BE(offset))) : little ? bytes.readUInt32LE(offset) : bytes.readUInt32BE(offset));
   const is64 = magicLe === 0xfeedfacf || magicBe === 0xfeedfacf;
   const headerSize = is64 ? 32 : 28;
   const ncmds = at(16, 4);
@@ -200,11 +187,11 @@ const findCodeSignatureLink = (bytes: Buffer): SignatureLink | null => {
   return null;
 };
 
-const unsigned = (format: string | null, extra: string): MachoSignatureInspection => ({
+const unsigned = (): MachoSignatureInspection => ({
   signed: false,
   identifier: null,
   team_identifier: null,
-  format,
+  format: null,
   cdhashes: [],
   hash_algorithms: [],
   authorities: [],
@@ -213,7 +200,7 @@ const unsigned = (format: string | null, extra: string): MachoSignatureInspectio
   timestamp: null,
   hardened_runtime: null,
   provenance: [],
-  limitations: [ORACLE_LIMITATION, extra],
+  limitations: [NOT_SIGNED_LIMITATION, ORACLE_LIMITATION],
 });
 
 const preferCodeDirectory = (candidates: CodeDirectoryFacts[]): CodeDirectoryFacts | null => {
@@ -227,17 +214,11 @@ const preferCodeDirectory = (candidates: CodeDirectoryFacts[]): CodeDirectoryFac
 
 export const inspectMachoSignatureBytes = (bytes: Buffer): MachoSignatureInspection => {
   const link = findCodeSignatureLink(bytes);
-  if (link === null || link.datasize === 0) {
-    return unsigned(null, 'No LC_CODE_SIGNATURE load command was present on the inspected image.');
-  }
-  if (link.dataoff + link.datasize > bytes.length) {
-    return unsigned(link.format, 'LC_CODE_SIGNATURE points past the end of the file.');
-  }
+  if (link === null || link.datasize === 0) return unsigned();
+  if (link.dataoff + link.datasize > bytes.length) return unsigned();
   const blob = bytes.subarray(link.dataoff, link.dataoff + link.datasize);
   const superBlob = parseSuperBlob(blob);
-  if (superBlob === null) {
-    return unsigned(link.format, 'The code-signature region is not an embedded SuperBlob.');
-  }
+  if (superBlob === null) return unsigned();
 
   const codeDirectories: CodeDirectoryFacts[] = [];
   let entitlements: unknown = null;
@@ -254,9 +235,7 @@ export const inspectMachoSignatureBytes = (bytes: Buffer): MachoSignatureInspect
   }
 
   const selected = preferCodeDirectory(codeDirectories);
-  if (selected === null) {
-    return unsigned(link.format, 'The SuperBlob contains no parseable CodeDirectory.');
-  }
+  if (selected === null) return unsigned();
 
   return {
     signed: true,

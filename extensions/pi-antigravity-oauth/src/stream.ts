@@ -250,7 +250,7 @@ function usageFor(model: Model<Api>, metadata: Record<string, number | undefined
   return usage;
 }
 
-// agents-compliance-ignore parameter-mutation: the pi-ai contract carries this message as the shared live partial, so its fields update in place
+// The pi-ai contract carries this message as the shared live partial, so its fields update in place.
 function applyChunkState(output: AssistantMessage, model: Model<Api>, response: CloudCodeResponse): void {
   const candidate = response.candidates?.[0];
   if (candidate?.finishReason) {
@@ -269,7 +269,7 @@ function createReducer(output: AssistantMessage, stream: AssistantMessageEventSt
     chunk(model: Model<Api>, chunk: CloudCodeChunk) {
       const response = chunk.response;
       if (!response) return;
-      // agents-compliance-ignore parameter-mutation: pi-ai consumers share this live partial, including its first known response ID
+      // pi-ai consumers share this live partial, including its first known response ID.
       if (!output.responseId && response.responseId !== undefined) output.responseId = response.responseId;
       for (const part of response.candidates?.[0]?.content?.parts ?? []) {
         if (part.text !== undefined) applyTextPart(stream, output, part as GeminiPart & { text: string });
@@ -358,9 +358,12 @@ async function run(model: Model<Api>, context: TranscriptContext, options: Simpl
   try {
     const { level, variant } = resolveVariant(model, options?.reasoning);
     output.thinkingLevel = level;
+    // Pi passes the provider-scoped environment with every request, so `CLOUD_CODE_URL` set
+    // there replaces the provider endpoint exactly as the process environment variable does.
+    const baseUrl = options?.env?.['CLOUD_CODE_URL'] || model.baseUrl || endpoint;
     for (let empty = 0; ; empty++) {
       const init = await buildRequestInit(model, context, options, variant, empty);
-      const response = await openStream(endpoint, init, model, options);
+      const response = await openStream(baseUrl, init, model, options);
       const reducer = createReducer(output, stream);
       await readChunks(response, async (chunk) => {
         await options?.onProviderStreamEvent?.(chunk, model);

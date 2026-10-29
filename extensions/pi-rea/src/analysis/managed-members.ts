@@ -1,4 +1,3 @@
-
 import { inspectManagedArtifactFromPath, type ManagedArtifactInspection } from './managed-artifact.ts';
 
 export interface ManagedMembersInspection {
@@ -37,8 +36,7 @@ const MEMBER_LIMITATIONS = [
   'Metadata tokens remain build-local coordinates bound to the artifact digest and MVID when present.',
 ] as const;
 
-const NOT_MANAGED_MEMBER_LIMITATION =
-  'The PE has no admitted CLI metadata; managed member inspection is unavailable.';
+const NOT_MANAGED_MEMBER_LIMITATION = 'The PE has no admitted CLI metadata; managed member inspection is unavailable.';
 
 export const inspectManagedMembersFromPath = async (
   path: string,
@@ -90,11 +88,11 @@ export const inspectManagedMembersFromPath = async (
     };
   }
 
-  const typeCount = artifact.metadata.table_row_counts.TypeDef ?? 0;
-  const methodCount = artifact.metadata.table_row_counts.MethodDef ?? 0;
-  const fieldCount = artifact.metadata.table_row_counts.Field ?? 0;
-  const memberRefCount = artifact.metadata.table_row_counts.MemberRef ?? 0;
-  const exportedCount = artifact.metadata.table_row_counts.ExportedType ?? 0;
+  const typeCount = artifact.metadata.table_row_counts['TypeDef'] ?? 0;
+  const methodCount = artifact.metadata.table_row_counts['MethodDef'] ?? 0;
+  const fieldCount = artifact.metadata.table_row_counts['Field'] ?? 0;
+  const memberRefCount = artifact.metadata.table_row_counts['MemberRef'] ?? 0;
+  const exportedCount = artifact.metadata.table_row_counts['ExportedType'] ?? 0;
   return {
     path: requested,
     resolvedPath,
@@ -119,13 +117,7 @@ export const inspectManagedMembersFromPath = async (
       method_rows: null,
       coverage: {
         state: 'partial',
-        issues: [
-          ...artifact.coverage.issues,
-          `TypeDef rows declared: ${typeCount}`,
-          `MethodDef rows declared: ${methodCount}`,
-          `Field rows declared: ${fieldCount}`,
-          `MemberRef rows declared: ${memberRefCount}`,
-        ],
+        issues: [...artifact.coverage.issues, `TypeDef rows declared: ${typeCount}`, `MethodDef rows declared: ${methodCount}`, `Field rows declared: ${fieldCount}`, `MemberRef rows declared: ${memberRefCount}`],
       },
       limitations: [...artifact.limitations, ...MEMBER_LIMITATIONS],
     },

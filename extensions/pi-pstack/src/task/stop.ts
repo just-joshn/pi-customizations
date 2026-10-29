@@ -5,8 +5,8 @@ import { join } from 'node:path';
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
 import { subagentDir } from '../paths.ts';
-import { agentStatus } from './status.ts';
 import { type ChildHandle, KILL_GRACE_MS, signalGroup, validateAgentId } from './runner.ts';
+import { agentStatus } from './status.ts';
 
 // A subagent starts a moment before its owner writes its pid into the run lock.
 const LOCK_AFTER_START_MS = 3_000;

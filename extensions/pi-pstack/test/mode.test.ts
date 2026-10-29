@@ -83,7 +83,7 @@ describe('modeBadge (MODE-006)', () => {
     { icon: 'rocket', expected: '➶ mode: x' },
     { icon: 'no-such-icon', expected: '⚡ mode: x' },
   ])('the Cursor icon $icon shows as $expected', ({ icon, expected }) => {
-    expect(modeBadge({ skill: 'x' }, { 'icon': icon }).text).toBe(expected);
+    expect(modeBadge({ skill: 'x' }, { icon: icon }).text).toBe(expected);
   });
 
   test('a Pi skill written in Cursor format styles its badge from top-level icon and color', () => {
@@ -102,27 +102,30 @@ describe('modeBadge (MODE-006)', () => {
     { color: 'default', expected: undefined },
     { color: 'chartreuse', expected: undefined },
   ])('Cursor color $color maps to the $expected theme color', ({ color, expected }) => {
-    expect(modeBadge({ skill: 'x' }, { 'color': color }).color).toBe(expected);
+    expect(modeBadge({ skill: 'x' }, { color: color }).color).toBe(expected);
   });
 
   test.for(['constructor', 'toString', '__proto__'])('inherited key %s is not an icon or color (MODE-006)', (key) => {
-    expect(modeBadge({ skill: 'x' }, { 'icon': key, 'color': key })).toEqual({ text: '⚡ mode: x' });
+    expect(modeBadge({ skill: 'x' }, { icon: key, color: key })).toEqual({ text: '⚡ mode: x' });
   });
 
   test('an unknown icon name falls back to the default icon', () => {
-    expect(modeBadge({ skill: 'x' }, { 'icon': 'beaker-flask-unknown' }).text).toBe('⚡ mode: x');
+    expect(modeBadge({ skill: 'x' }, { icon: 'beaker-flask-unknown' }).text).toBe('⚡ mode: x');
   });
 });
 
 test('/mode notices name Mode, not Custom Mode', async () => {
   const notices: string[] = [];
-  const commands = new Map<string, { handler: (args: string, ctx: { hasUI: boolean; ui: { notify: (text: string, type: string) => void; setStatus: (key: string, text: string | undefined) => void }; isIdle: () => boolean }) => Promise<void> }>();
+  const commands = new Map<
+    string,
+    { handler: (args: string, ctx: { hasUI: boolean; ui: { notify: (text: string, type: string) => void; setStatus: (key: string, text: string | undefined) => void }; isIdle: () => boolean }) => Promise<void> }
+  >();
   const path = join(SKILLS_DIR, 'tdd/SKILL.md');
   registerMode({
     on: () => undefined,
     getCommands: () => [{ source: 'skill', name: 'skill:tdd', sourceInfo: { path } }],
     appendEntry: () => undefined,
-    registerCommand: (name: string, command: (typeof commands extends Map<string, infer V> ? V : never)) => commands.set(name, command),
+    registerCommand: (name: string, command: typeof commands extends Map<string, infer V> ? V : never) => commands.set(name, command),
     sendUserMessage: () => undefined,
   } as unknown as ExtensionAPI);
   const ctx = {

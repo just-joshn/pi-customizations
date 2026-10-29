@@ -4,9 +4,9 @@ Poteto mode is Cursor's Custom Mode: `/mode poteto-mode` keeps the skill in the 
 
 ## Sub-features
 
-- `mode-on` turns the mode on with `/mode poteto-mode` and notifies `Custom Mode on: poteto-mode. /mode off exits.`
+- `mode-on` turns the mode on with `/mode poteto-mode` and notifies `Mode on: poteto-mode. /mode off exits.`
 - `mode-entry` appends a `pstack/mode` custom entry with `data.skill: "poteto-mode"` when the mode turns on.
-- `mode-off` turns the mode off with `/mode off`, notifies `Custom Mode off.`, and appends a `pstack/mode` entry with `data: null`.
+- `mode-off` turns the mode off with `/mode off`, notifies `Mode off.`, and appends a `pstack/mode` entry with `data: null`.
 - `mode-status` reflects the mode in the footer status under the key `pstack-mode`.
 
 ## How to get to it (user POV)

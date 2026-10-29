@@ -1,4 +1,3 @@
-
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { isAbsolute, resolve } from 'node:path';
@@ -48,10 +47,7 @@ interface RustPackage {
   readonly root: boolean;
 }
 
-export const RUST_LIMITATIONS = [
-  'Reports cargo-auditable `.dep-v0` metadata when present; absence is not proof the binary was not built with Rust.',
-  'Universal Mach-O requires an explicit architecture; other formats reject architecture.',
-];
+export const RUST_LIMITATIONS = ['Reports cargo-auditable `.dep-v0` metadata when present; absence is not proof the binary was not built with Rust.', 'Universal Mach-O requires an explicit architecture; other formats reject architecture.'];
 
 const inputError = (path: string, reason: string, detail: string) =>
   invalidRequest('The inspection input is not usable. Check the argument and retry.', {
@@ -82,68 +78,91 @@ const findCycles = (packages: readonly RustPackage[]): number[] => {
 };
 
 const PACKAGE_KEYS = new Set(['name', 'version', 'source', 'kind', 'dependencies', 'features', 'root']);
+const DOCUMENT_KEYS = new Set(['packages', 'format']);
+const MAX_FORMAT_VERSION = 0xffff_ffff;
 
-const assertAuditableDocument = (value: unknown, absolutePath: string): void => {
-  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
-    throw analysisInputInvalid('inspect_rust_binary', [
-      {
-        path: ['path'],
-        reason: 'invalid_format',
-        message: `Selected artifact ${absolutePath}: Dependency JSON does not match the package schema`,
-      },
-    ]);
+const FORMAT_SCHEMA = 'Dependency JSON does not match the format schema';
+const DOCUMENT_SCHEMA = 'Dependency JSON does not match the package schema';
+const MULTIPLE_ROOTS = 'Dependency JSON declares more than one root package';
+const packageSchema = (index: number): string => `Dependency package ${index} does not match the package schema`;
+const indexOutOfRange = (index: number, packageIndex: number): string => `Dependency index ${index} from package ${packageIndex} is outside the package list`;
+
+const auditableError = (absolutePath: string, detail: string) =>
+  analysisInputInvalid('inspect_rust_binary', [
+    {
+      path: ['path'],
+      reason: 'invalid_format',
+      message: `Selected artifact ${absolutePath}: ${detail}`,
+    },
+  ]);
+
+const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
+
+const readDependencies = (value: unknown): number[] | null => {
+  if (!Array.isArray(value)) return null;
+  const indices: number[] = [];
+  for (const entry of value) {
+    if (typeof entry !== 'number' || !Number.isInteger(entry) || entry < 0) return null;
+    indices.push(entry);
   }
-  const root = value as Record<string, unknown>;
-  for (const key of Object.keys(root)) {
-    if (key !== 'packages' && key !== 'format') {
-      throw analysisInputInvalid('inspect_rust_binary', [
-        {
-          path: ['path'],
-          reason: 'invalid_format',
-          message: `Selected artifact ${absolutePath}: Dependency JSON does not match the package schema`,
-        },
-      ]);
-    }
-  }
-  if (!Array.isArray(root['packages'])) {
-    throw analysisInputInvalid('inspect_rust_binary', [
-      {
-        path: ['path'],
-        reason: 'invalid_format',
-        message: `Selected artifact ${absolutePath}: Dependency JSON does not match the package schema`,
-      },
-    ]);
-  }
-  for (const entry of root['packages']) {
-    if (typeof entry !== 'object' || entry === null || Array.isArray(entry)) {
-      throw analysisInputInvalid('inspect_rust_binary', [
-        {
-          path: ['path'],
-          reason: 'invalid_format',
-          message: `Selected artifact ${absolutePath}: Dependency JSON does not match the package schema`,
-        },
-      ]);
-    }
-    for (const key of Object.keys(entry as Record<string, unknown>)) {
-      if (!PACKAGE_KEYS.has(key)) {
-        throw analysisInputInvalid('inspect_rust_binary', [
-          {
-            path: ['path'],
-            reason: 'invalid_format',
-            message: `Selected artifact ${absolutePath}: Dependency JSON does not match the package schema`,
-          },
-        ]);
-      }
-    }
-  }
+  return indices;
 };
 
-const decodeAuditable = (
-  payload: Buffer,
-  sectionName: '.dep-v0' | '__DATA,.dep-v0',
-  fileOffset: number,
-  absolutePath: string,
-): NonNullable<RustBinaryInspection['auditable_metadata']> => {
+const readFeatures = (value: unknown): string[] | null => {
+  if (!Array.isArray(value)) return null;
+  const features: string[] = [];
+  for (const entry of value) {
+    if (typeof entry !== 'string' || entry === '') return null;
+    features.push(entry);
+  }
+  return features;
+};
+
+const readPackage = (entry: unknown): RustPackage | null => {
+  if (!isRecord(entry)) return null;
+  if (Object.keys(entry).some((key) => !PACKAGE_KEYS.has(key))) return null;
+  const name = entry['name'];
+  const version = entry['version'];
+  const source = entry['source'];
+  if (typeof name !== 'string' || name === '' || typeof version !== 'string' || version === '' || typeof source !== 'string' || source === '') return null;
+  const kind = entry['kind'];
+  if (kind !== undefined && kind !== 'runtime' && kind !== 'build') return null;
+  const rawDependencies = entry['dependencies'];
+  const dependencies = rawDependencies === undefined ? [] : readDependencies(rawDependencies);
+  if (dependencies === null) return null;
+  const rawFeatures = entry['features'];
+  const features = rawFeatures === undefined ? null : readFeatures(rawFeatures);
+  if (rawFeatures !== undefined && features === null) return null;
+  const root = entry['root'];
+  if (root !== undefined && typeof root !== 'boolean') return null;
+  return { name, version, source, kind: kind ?? null, dependencies, features, root: root === true };
+};
+
+const readAuditableDocument = (value: unknown, absolutePath: string): { readonly format_version: number | null; readonly packages: readonly RustPackage[]; readonly root_package_index: number | null } => {
+  if (!isRecord(value)) throw auditableError(absolutePath, FORMAT_SCHEMA);
+  const document = value as Record<string, unknown>;
+  const format = document['format'];
+  if (format !== undefined && (typeof format !== 'number' || !Number.isInteger(format) || format < 0 || format > MAX_FORMAT_VERSION)) throw auditableError(absolutePath, FORMAT_SCHEMA);
+  const entries = document['packages'];
+  if (!Array.isArray(entries)) throw auditableError(absolutePath, DOCUMENT_SCHEMA);
+  const packages = entries.map((entry, index) => {
+    const pkg = readPackage(entry);
+    if (pkg === null) throw auditableError(absolutePath, packageSchema(index));
+    return pkg;
+  });
+  if (Object.keys(document).some((key) => !DOCUMENT_KEYS.has(key))) throw auditableError(absolutePath, DOCUMENT_SCHEMA);
+  if (packages.some((pkg) => pkg.dependencies.some((index) => !Number.isSafeInteger(index)))) throw auditableError(absolutePath, DOCUMENT_SCHEMA);
+  if (packages.filter((pkg) => pkg.root).length > 1) throw auditableError(absolutePath, MULTIPLE_ROOTS);
+  for (const [from, pkg] of packages.entries()) {
+    for (const to of pkg.dependencies) {
+      if (to >= packages.length) throw auditableError(absolutePath, indexOutOfRange(to, from));
+    }
+  }
+  const rootIndex = packages.findIndex((pkg) => pkg.root);
+  return { format_version: typeof format === 'number' ? format : null, packages, root_package_index: rootIndex === -1 ? null : rootIndex };
+};
+
+const decodeAuditable = (payload: Buffer, sectionName: '.dep-v0' | '__DATA,.dep-v0', fileOffset: number, absolutePath: string): NonNullable<RustBinaryInspection['auditable_metadata']> => {
   let uncompressed: Buffer;
   try {
     uncompressed = inflateSync(payload);
@@ -156,50 +175,25 @@ const decodeAuditable = (
   } catch {
     throw new Error('`.dep-v0` uncompressed payload is not JSON');
   }
-  assertAuditableDocument(parsed, absolutePath);
-  if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) throw new Error('`.dep-v0` JSON root must be an object');
-  const root = parsed as Record<string, unknown>;
-  const packagesRaw = Array.isArray(root['packages']) ? root['packages'] : null;
-  if (packagesRaw === null) throw new Error('`.dep-v0` JSON lacks packages');
-  const declaredRoot = typeof root['root'] === 'number' ? root['root'] : -1;
-  const packages: RustPackage[] = packagesRaw.map((entry, index) => {
-    const pkg = typeof entry === 'object' && entry !== null && !Array.isArray(entry) ? (entry as Record<string, unknown>) : {};
-    const deps = Array.isArray(pkg['dependencies']) ? pkg['dependencies'].filter((value): value is number => typeof value === 'number') : [];
-    const features = Array.isArray(pkg['features']) ? pkg['features'].filter((value): value is string => typeof value === 'string') : null;
-    const kindRaw = pkg['kind'];
-    const kind = kindRaw === 'build' || kindRaw === 'runtime' ? kindRaw : null;
-    return {
-      name: typeof pkg['name'] === 'string' ? pkg['name'] : '',
-      version: typeof pkg['version'] === 'string' ? pkg['version'] : '',
-      source: typeof pkg['source'] === 'string' ? pkg['source'] : '',
-      kind,
-      dependencies: deps,
-      features,
-      root: pkg['root'] === true || index === declaredRoot,
-    };
-  });
-  const edges = packages.flatMap((pkg, from) => pkg.dependencies.map((to) => ({ from_index: from, to_index: to })));
-  const rootIndex = declaredRoot >= 0 ? declaredRoot : packages.findIndex((pkg) => pkg.root);
+  const document = readAuditableDocument(parsed, absolutePath);
+  const edges = document.packages.flatMap((pkg, from) => pkg.dependencies.map((to) => ({ from_index: from, to_index: to })));
   return {
     section_name: sectionName,
     file_offset: fileOffset,
     section_bytes: payload.length,
     compressed_bytes: payload.length,
     uncompressed_bytes: uncompressed.length,
-    format_version: typeof root['format'] === 'number' ? root['format'] : null,
-    packages,
-    root_package_index: rootIndex >= 0 ? rootIndex : null,
+    format_version: document.format_version,
+    packages: document.packages,
+    root_package_index: document.root_package_index,
     dependency_edges: edges,
-    cyclic_dependency_indices: findCycles(packages),
+    cyclic_dependency_indices: findCycles(document.packages),
   };
 };
 
-const ELF_MACHINES: Record<number, string> = { 3: 'x86', 0x3e: 'x86_64', 0x28: 'arm', 0xb7: 'aarch64' };
+const ELF_MACHINES: Record<number, string> = { 3: 'x86', 62: 'x86_64', 40: 'arm', 183: 'aarch64' };
 
-const readElfDep = (
-  bytes: Buffer,
-  absolutePath: string,
-): { metadata: RustBinaryInspection['auditable_metadata']; architecture: string; bits: 32 | 64; byte_order: 'little' | 'big' } => {
+const readElfDep = (bytes: Buffer, absolutePath: string): { metadata: RustBinaryInspection['auditable_metadata']; architecture: string; bits: 32 | 64; byte_order: 'little' | 'big' } => {
   if (bytes.length < 16 || bytes[0] !== 0x7f || bytes[1] !== 0x45 || bytes[2] !== 0x4c || bytes[3] !== 0x46) throw new Error('not elf');
   const bits: 32 | 64 = bytes[4] === 2 ? 64 : 32;
   const little = bytes[5] === 1;
@@ -233,10 +227,7 @@ const readElfDep = (
   return { metadata: null, architecture: ELF_MACHINES[machine] ?? 'unknown', bits, byte_order: little ? 'little' : 'big' };
 };
 
-const readPeDep = (
-  bytes: Buffer,
-  absolutePath: string,
-): { metadata: RustBinaryInspection['auditable_metadata']; architecture: string; bits: 32 | 64; byte_order: 'little' | 'big' } => {
+const readPeDep = (bytes: Buffer, absolutePath: string): { metadata: RustBinaryInspection['auditable_metadata']; architecture: string; bits: 32 | 64; byte_order: 'little' | 'big' } => {
   const image = parsePeImage(bytes);
   for (const section of image.sections) {
     if (section.name !== '.dep-v0') continue;
@@ -253,13 +244,13 @@ const readPeDep = (
 };
 
 const MACH_O_THIN: Record<number, { bits: 32 | 64; little: boolean }> = {
-  0xfeedface: { bits: 32, little: false },
-  0xcefaedfe: { bits: 32, little: true },
-  0xfeedfacf: { bits: 64, little: false },
-  0xcffaedfe: { bits: 64, little: true },
+  4277009102: { bits: 32, little: false },
+  3472551422: { bits: 32, little: true },
+  4277009103: { bits: 64, little: false },
+  3489328638: { bits: 64, little: true },
 };
 
-const MACH_O_CPUS: Record<number, string> = { 7: 'x86', 0x01000007: 'x86_64', 12: 'arm', 0x0100000c: 'arm64' };
+const MACH_O_CPUS: Record<number, string> = { 7: 'x86', 16777223: 'x86_64', 12: 'arm', 16777228: 'arm64' };
 
 const readMachODep = (
   bytes: Buffer,
@@ -292,12 +283,18 @@ const readMachODep = (
     const cmd = readU32(offset);
     const cmdsize = readU32(offset + 4);
     if (cmd === 0x1 || cmd === 0x19) {
-      const segname = bytes.subarray(offset + 8, offset + 24).toString('utf8').replace(/\0+$/, '');
+      const segname = bytes
+        .subarray(offset + 8, offset + 24)
+        .toString('utf8')
+        .replace(/\0+$/, '');
       const nsectsField = thin.bits === 64 ? offset + 64 : offset + 48;
       const nsects = readU32(nsectsField);
       let sect = thin.bits === 64 ? offset + 72 : offset + 56;
       for (let s = 0; s < nsects; s += 1) {
-        const sectname = bytes.subarray(sect, sect + 16).toString('utf8').replace(/\0+$/, '');
+        const sectname = bytes
+          .subarray(sect, sect + 16)
+          .toString('utf8')
+          .replace(/\0+$/, '');
         const size = thin.bits === 64 ? Number(little ? bytes.readBigUInt64LE(sect + 40) : bytes.readBigUInt64BE(sect + 40)) : readU32(sect + 36);
         const fileOffset = thin.bits === 64 ? readU32(sect + 48) : readU32(sect + 40);
         if (sectname === '.dep-v0' || (segname === '__DATA' && sectname === '.dep-v0')) {
@@ -330,10 +327,7 @@ export interface RustBinaryOptions {
   readonly cwd?: string;
 }
 
-export const inspectRustBinaryFromPath = async (
-  path: string,
-  options: RustBinaryOptions = {},
-): Promise<{ record: RustBinaryInspection; path: string; resolvedPath: string }> => {
+export const inspectRustBinaryFromPath = async (path: string, options: RustBinaryOptions = {}): Promise<{ record: RustBinaryInspection; path: string; resolvedPath: string }> => {
   const resolvedPath = isAbsolute(path) ? path : resolve(options.cwd ?? process.cwd(), path);
   let bytes: Buffer;
   try {

@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { expect, test } from 'vitest';
 import { absRootPath, addableRelativeFiles, allRelativeFiles, type ChatFiles } from '../../src/core/chat-files.ts';
 import { addFiles, type SelectionEnv, type SelectionState } from '../../src/edit/selection.ts';
+import { admitInitialEditable } from '../../src/edit/startup-input.ts';
 import { createWorkingTree } from '../../src/edit/working-tree.ts';
 import { resolveAiderIgnorePath } from '../../src/git/policy.ts';
 import { commitFile, initRepo, policyIn, recordingHost, tempDir } from './support.ts';
@@ -146,4 +147,27 @@ test('add refuses gitignored paths and skips aiderignored paths with Aider warni
   const afterAiderignore = await addFiles('skip_me.py', empty, env);
   expect(afterAiderignore.editable).toEqual([]);
   expect(host.warnings.some((text) => text.includes('Skipping') && text.includes('skip_me.py') && text.includes('aiderignore or --subtree-only'))).toBe(true);
+});
+
+test('a gitignored file named on the command line or by /add joins the chat only with --add-gitignore-files', {
+  meta: { aider: ['test_main/TestMain.test_command_line_gitignore_files_flag'] },
+}, async () => {
+  const root = await tempDir('git-filter-add-gitignore-files-');
+  const host = recordingHost();
+  await initRepo(root);
+  await commitFile(root, 'keep.py', 'k\n', 'keep');
+  await writeFile(join(root, '.gitignore'), 'ignored.txt\n');
+  await writeFile(join(root, 'ignored.txt'), 'ignored body\n');
+  const tree = createWorkingTree({ notices: host });
+  const git = policyIn(root, host);
+  const admit = (addGitignoreFiles: boolean) => admitInitialEditable(['ignored.txt'], { cwd: root, tree, host, allowCreation: false, isGitIgnored: (path) => git.isGitIgnored(path), addGitignoreFiles });
+
+  expect(await admit(false)).toEqual([]);
+  expect(host.warnings).toContain('Skipping ignored.txt that matches gitignore spec.');
+  expect(await admit(true)).toEqual([absRootPath(root, 'ignored.txt')]);
+
+  const empty: SelectionState = { editable: [], readOnly: [], originalReadOnly: [] };
+  const adding = { ...git, addsGitignoredFiles: () => true };
+  expect((await addFiles('ignored.txt', empty, { root, host, tree, git, autoCommits: true, supportsImages: true })).editable).toEqual([]);
+  expect((await addFiles('ignored.txt', empty, { root, host, tree, git: adding, autoCommits: true, supportsImages: true })).editable).toEqual([absRootPath(root, 'ignored.txt')]);
 });

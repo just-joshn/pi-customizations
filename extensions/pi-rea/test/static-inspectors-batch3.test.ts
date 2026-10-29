@@ -3,8 +3,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { expect, test } from 'vitest';
+import { ELECTRON_FUSE_STATE_BYTES, thinMachoFuseFixture } from '../src/analysis/electron-fuses.ts';
 import type { ReaError } from '../src/contract/errors.ts';
-import { thinMachoFuseFixture, ELECTRON_FUSE_STATE_BYTES } from '../src/analysis/electron-fuses.ts';
 import { ReaSession } from '../src/session/binary-session.ts';
 import { inspectApkSignature } from '../src/tools/apk-signature-tools.ts';
 import { inspectAssetCatalog, inspectKeyedArchive, openBundleResources } from '../src/tools/bundle-resource-tools.ts';
@@ -67,9 +67,7 @@ test('inspect_signature: reads SuperBlob facts from a signed Mach-O session', as
   expect(record['cdhashes']).toStrictEqual(['d8864aa4c955875d2575294cd891f196f9fa7abd']);
   expect(record['hash_algorithms']).toStrictEqual(['sha256']);
   expect(record['designated_requirement']).toBe('cdhash H"d8864aa4c955875d2575294cd891f196f9fa7abd"');
-  expect(record['limitations']).toStrictEqual([
-    'Inspected a digest-verified Mach-O byte snapshot; filesystem-bound signing context and trust validation are not examined.',
-  ]);
+  expect(record['limitations']).toStrictEqual(['Inspected a digest-verified Mach-O byte snapshot; filesystem-bound signing context and trust validation are not examined.']);
 });
 
 test('open_bundle_resources + inspect_keyed_archive: projects NSKeyedArchiver object table', async () => {
@@ -102,24 +100,18 @@ test('inspect_asset_catalog: fixture Assets.car refuses with unreadable_output l
 
 test('inspect_managed_artifact: classifies a non-CLI PE as not-managed', async () => {
   const session = new ReaSession(runtime);
-  const record = await normalized(() =>
-    inspectManagedArtifact(session, { path: fixturePath('targets/pe/fixture-go-pe.exe') }),
-  );
+  const record = await normalized(() => inspectManagedArtifact(session, { path: fixturePath('targets/pe/fixture-go-pe.exe') }));
   expect((record['classification'] as { status: string }).status).toBe('not-managed');
   expect((record['pe'] as { cli: null }).cli).toBeNull();
 });
 
 test('inspect_managed_members: retains not-managed coverage without inventing members', async () => {
   const session = new ReaSession(runtime);
-  const record = await normalized(() =>
-    inspectManagedMembers(session, { path: fixturePath('targets/pe/fixture-go-pe.exe') }),
-  );
+  const record = await normalized(() => inspectManagedMembers(session, { path: fixturePath('targets/pe/fixture-go-pe.exe') }));
   expect(record['types']).toStrictEqual([]);
   expect(record['methods']).toStrictEqual([]);
   expect(record['coverage']).toStrictEqual({ state: 'unavailable', issues: [] });
-  expect(record['limitations']).toStrictEqual([
-    'The PE has no admitted CLI metadata; managed member inspection is unavailable.',
-  ]);
+  expect(record['limitations']).toStrictEqual(['The PE has no admitted CLI metadata; managed member inspection is unavailable.']);
 });
 
 test('identify_flutter_build + inspect_dart_aot: identify succeeds; dart AOT refuses unsupported ELF class', async () => {

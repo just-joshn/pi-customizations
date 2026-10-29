@@ -72,14 +72,7 @@ test('TOOL-060: the binary decoder reads every scalar encoding', () => {
 });
 
 test('TOOL-060: the binary decoder reads arrays, sets, dictionaries and UIDs', () => {
-  const objects = [
-    Buffer.from([0x51, 0x61]),
-    Buffer.from([0x51, 0x62]),
-    Buffer.from([0xa2, 0x00, 0x01]),
-    Buffer.from([0xc1, 0x00]),
-    Buffer.from([0xd2, 0x00, 0x01, 0x01, 0x00]),
-    Buffer.from([0x80, 0x07]),
-  ];
+  const objects = [Buffer.from([0x51, 0x61]), Buffer.from([0x51, 0x62]), Buffer.from([0xa2, 0x00, 0x01]), Buffer.from([0xc1, 0x00]), Buffer.from([0xd2, 0x00, 0x01, 0x01, 0x00]), Buffer.from([0x80, 0x07])];
   expect(parseBinaryPlist(binary(objects, 2))).toStrictEqual(['a', 'b']);
   expect(parseBinaryPlist(binary(objects, 3))).toStrictEqual(['a']);
   expect(parseBinaryPlist(binary(objects, 4))).toStrictEqual({ a: 'b', b: 'a' });
@@ -186,4 +179,40 @@ test('TOOL-060: decoding reports typed values and the bundle projection', () => 
     version: '2',
     short_version: '1',
   });
+});
+
+test('TOOL-060: duplicate dictionary keys collapse to one sorted entry', () => {
+  const objects = [Buffer.from([0x51, 0x61]), Buffer.from([0x51, 0x62]), Buffer.from([0xd2, 0x00, 0x00, 0x01, 0x01])];
+  expect(parseBinaryPlist(binary(objects, 2))).toStrictEqual({ a: 'b' });
+});
+
+test('TOOL-060: a null marker decodes to null', () => {
+  expect(parseBinaryPlist(binary([Buffer.from([0x00])]))).toBeNull();
+});
+
+test('TOOL-060: an eight-byte integer inside the safe range decodes as a number', () => {
+  const wide = Buffer.concat([Buffer.from([0x13]), Buffer.alloc(7), Buffer.from([0x05])]);
+  expect(parseBinaryPlist(binary([wide]))).toBe(5);
+});
+
+test('TOOL-060: the binary decoder rejects an unsupported real width', () => {
+  expect(() => parseBinaryPlist(binary([Buffer.from([0x21, 0x01, 0x02])]))).toThrowError(/unsupported real width/);
+});
+
+test('TOOL-060: the binary decoder rejects a date marker outside four bytes', () => {
+  expect(() => parseBinaryPlist(binary([Buffer.from([0x31, ...Buffer.alloc(8)])]))).toThrowError(/unsupported object marker 0x31/);
+});
+
+test('TOOL-060: a self-referencing collection is refused as too deep', () => {
+  expect(() => parseBinaryPlist(binary([Buffer.from([0xa1, 0x00])]))).toThrowError(/nests too deeply/);
+});
+
+test('TOOL-060: an unknown XML entity decodes literally', () => {
+  expect(parseXmlPlist('<plist version="1.0"><string>&bogus;</string></plist>')).toBe('&bogus;');
+});
+
+test('TOOL-060: unterminated XML declarations fail before the plist root', () => {
+  expect(() => parseXmlPlist('<?xml version="1.0"')).toThrowError(/no <plist> element/);
+  expect(() => parseXmlPlist('<!-- unterminated comment')).toThrowError(/no <plist> element/);
+  expect(() => parseXmlPlist('<!DOCTYPE plist PUBLIC unterminated')).toThrowError(/no <plist> element/);
 });

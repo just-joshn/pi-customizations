@@ -181,14 +181,7 @@
     "project_managed_application_graph",
     "verify_managed_native_boundaries"
   ],
-  "frida": [
-    "frida_session_status",
-    "instrument_with_frida",
-    "load_frida_script",
-    "resume_frida_session",
-    "start_frida_session",
-    "unload_frida_script"
-  ],
+  "frida": ["frida_session_status", "instrument_with_frida", "load_frida_script", "resume_frida_session", "start_frida_session", "unload_frida_script"],
   "offline-forensics": [
     "decode_signal_recording",
     "extract_firmware",

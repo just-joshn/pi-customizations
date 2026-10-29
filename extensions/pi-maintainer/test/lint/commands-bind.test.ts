@@ -232,8 +232,8 @@ test('/test with neither argument nor configured command is a silent noop', { me
 
 test('/test runs the configured command and on failure adds repair output to chat', {
   meta: {
-    aider: ['test_commands/TestCommands.test_cmd_test_returns_output_on_failure'],
-    evidence: ['ev-lint/probe/test-failure-output-in-chat', 'ev-lint/probe/test-success-output-not-in-chat'],
+    aider: ['test_commands/TestCommands.test_cmd_test_returns_output_on_failure', 'test_commands/TestCommands.test_cmd_test_unbound_local_error'],
+    evidence: ['ev-lint/probe/test-failure-output-in-chat', 'ev-lint/probe/test-success-output-not-in-chat', 'ev-lint/probe/configured-test-fallback', 'ev-lint/probe/test-failure-empty-output-still-in-chat'],
   },
 }, async () => {
   const root = await tempRoot('lint-cmd-test-');
@@ -271,6 +271,19 @@ test('/test runs the configured command and on failure adds repair output to cha
   });
   await defined(run).run('', commandEnv({ root, host: okHost.host, lint: okLint, testCmd: 'true', messages: okMessages }));
   expect(okMessages).toEqual([]);
+
+  const silentMessages: string[] = [];
+  const silentHost = recordingHost(async () => ({ stdout: '', stderr: '', code: 4, killed: false }));
+  const silentLint = createValidation({
+    host: silentHost.host,
+    root,
+    autoLint: false,
+    autoTest: false,
+    lintCmds: new Map(),
+    testCmd: 'exit 4',
+  });
+  await defined(run).run('', commandEnv({ root, host: silentHost.host, lint: silentLint, testCmd: 'exit 4', messages: silentMessages }));
+  expect(silentMessages).toEqual([formatRunOutput('exit 4', '')]);
 });
 
 test('runSuggestedShell confirms each block, skips comments, and offers add-output-to-chat', { meta: { aider: ['base_coder.py:2434-2485'] } }, async () => {

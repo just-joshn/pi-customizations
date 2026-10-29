@@ -1,7 +1,6 @@
-
+import { spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { access, constants, readFile } from 'node:fs/promises';
-import { spawn } from 'node:child_process';
 
 import { capabilityUnavailable, executionFailure, invalidRequest, targetUnavailable } from '../contract/errors.ts';
 
@@ -30,13 +29,9 @@ export interface SwiftDemangleInspection {
   readonly limitations: readonly string[];
 }
 
-const VERSION_REASON =
-  'Tool exposes no uniform stable version flag; executable SHA-256 is a prelaunch file sample and does not prove atomic OS image binding.';
+const VERSION_REASON = 'Tool exposes no uniform stable version flag; executable SHA-256 is a prelaunch file sample and does not prove atomic OS image binding.';
 
-const CANDIDATES = [
-  '/Library/Developer/CommandLineTools/usr/bin/swift-demangle',
-  '/usr/bin/swift-demangle',
-] as const;
+const CANDIDATES = ['/Library/Developer/CommandLineTools/usr/bin/swift-demangle', '/usr/bin/swift-demangle'] as const;
 
 const resolveExecutable = async (): Promise<string> => {
   for (const candidate of CANDIDATES) {
@@ -53,17 +48,10 @@ const resolveExecutable = async (): Promise<string> => {
       return path;
     }
   } catch {}
-  throw capabilityUnavailable(
-    'swift-demangle is not available on this host. Install Xcode Command Line Tools or ensure xcrun can locate swift-demangle.',
-    { operation: 'demangle_swift', reason: 'swift-demangle_missing' },
-  );
+  throw capabilityUnavailable('swift-demangle is not available on this host. Install Xcode Command Line Tools or ensure xcrun can locate swift-demangle.', { operation: 'demangle_swift', reason: 'swift-demangle_missing' });
 };
 
-const runCapture = (
-  command: string,
-  args: readonly string[],
-  timeoutMs: number,
-): Promise<{ readonly stdout: string; readonly stderr: string; readonly code: number | null; readonly signal: string | null }> =>
+const runCapture = (command: string, args: readonly string[], timeoutMs: number): Promise<{ readonly stdout: string; readonly stderr: string; readonly code: number | null; readonly signal: string | null }> =>
   new Promise((resolve, reject) => {
     const child = spawn(command, [...args], { stdio: ['ignore', 'pipe', 'pipe'] });
     let stdout = '';
@@ -129,10 +117,7 @@ export const mapDemangleOutputs = (symbols: readonly string[], stdout: string): 
   });
 };
 
-export const demangleSwiftSymbols = async (
-  symbolsInput: unknown,
-  options: { readonly timeoutMs?: number; readonly requireOpenTarget?: boolean; readonly hasOpenTarget?: boolean } = {},
-): Promise<SwiftDemangleInspection> => {
+export const demangleSwiftSymbols = async (symbolsInput: unknown, options: { readonly timeoutMs?: number; readonly requireOpenTarget?: boolean; readonly hasOpenTarget?: boolean } = {}): Promise<SwiftDemangleInspection> => {
   if (options.requireOpenTarget !== false && options.hasOpenTarget !== true) {
     throw targetUnavailable('No app is open. Ask the user which app to investigate, then call open_binary with its local path.');
   }

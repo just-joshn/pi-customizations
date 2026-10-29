@@ -195,6 +195,6 @@
   },
   "meta": {
     "command": "inspect-erlang-beam",
-    "duration": "12ms"
+    "duration": "7ms"
   }
 }

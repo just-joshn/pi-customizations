@@ -1,4 +1,3 @@
-
 const ENTRY_CAP = 5000;
 const REDACTED = '[redacted]';
 const ABSOLUTE_URL = /^([a-zA-Z][a-zA-Z0-9+.-]*:)\/\//;
@@ -6,24 +5,7 @@ const VERSION = /^1\.\d+$/;
 const AUTHORITY_END = /[/?#]/;
 const PATH_END = /[?#]/;
 const PATH_SEGMENT_ID = /^(?:\d+|[0-9a-fA-F]{8,})$/;
-const CREDENTIAL_NAME_PARTS = [
-  'authorization',
-  'proxy-authorization',
-  'cookie',
-  'set-cookie',
-  'token',
-  'secret',
-  'api-key',
-  'apikey',
-  'auth',
-  'key',
-  'credential',
-  'signature',
-  'access-key',
-  'password',
-  'passwd',
-  'session-id',
-];
+const CREDENTIAL_NAME_PARTS = ['authorization', 'proxy-authorization', 'cookie', 'set-cookie', 'token', 'secret', 'api-key', 'apikey', 'auth', 'key', 'credential', 'signature', 'access-key', 'password', 'passwd', 'session-id'];
 const CREDENTIAL_QUERY_PARTS = ['token', 'secret', 'key', 'password', 'passwd', 'sig', 'signature', 'auth', 'credential', 'session'];
 const HAR_ERROR_CODES = new Set(['unsupported_version', 'malformed']);
 
@@ -37,7 +19,7 @@ const CAPTURE_LIMITATIONS = Object.freeze([
   'This is retained producer evidence, without live browser transaction IDs, scenario provenance, execution attribution or deployment authenticity. Recorded URLs are never fetched.',
   'Every record is decoded before selection; no partial success is returned on malformed input or a resource limit.',
   'Known authentication headers/cookies and explicitly marked literal values are excluded. Unknown extension names do not establish sensitivity.',
-  'Complete evidence is bounded by a 33554432-byte input budget, a 100663296-byte reply budget, and a 64-level nesting cap. Those have no runtime override. capture_timeout_ms is 30000 ms (omitted means 30000). HAR/SAZ/qlog use a 192 MiB Node old-generation heap (source default). The effective REA_CAPTURE_DECODER_OLD_GENERATION_MIB value is 192 MiB (source default; default 192 MiB, floor 8 MiB, maximum 16384 MiB). Set REA_CAPTURE_DECODER_OLD_GENERATION_MIB in the environment that starts REA to a decimal integer from 8 to 16384, then restart REA. In a running MCP server, use update_analysis_settings with setting capture.decoder_old_generation_mib and action set instead; the new value applies to new work without a REA restart. On Node.js the decoder passes --max-old-space-size=192 and removes inherited NODE_OPTIONS, so additional host memory and NODE_OPTIONS do not raise this heap. The 8 MiB semi-space stays fixed. On Bun the V8 flags are ignored. Windows limits the decoder\'s committed memory to this value plus a 512 MiB reserve. Other Bun hosts enforce no decoder heap limit. Mitmproxy decoding uses a 768 MiB Linux address-space limit.',
+  "Complete evidence is bounded by a 33554432-byte input budget, a 100663296-byte reply budget, and a 64-level nesting cap. Those have no runtime override. capture_timeout_ms is 30000 ms (omitted means 30000). HAR/SAZ/qlog use a 192 MiB Node old-generation heap (source default). The effective REA_CAPTURE_DECODER_OLD_GENERATION_MIB value is 192 MiB (source default; default 192 MiB, floor 8 MiB, maximum 16384 MiB). Set REA_CAPTURE_DECODER_OLD_GENERATION_MIB in the environment that starts REA to a decimal integer from 8 to 16384, then restart REA. In a running MCP server, use update_analysis_settings with setting capture.decoder_old_generation_mib and action set instead; the new value applies to new work without a REA restart. On Node.js the decoder passes --max-old-space-size=192 and removes inherited NODE_OPTIONS, so additional host memory and NODE_OPTIONS do not raise this heap. The 8 MiB semi-space stays fixed. On Bun the V8 flags are ignored. Windows limits the decoder's committed memory to this value plus a 512 MiB reserve. Other Bun hosts enforce no decoder heap limit. Mitmproxy decoding uses a 768 MiB Linux address-space limit.",
 ]);
 
 const RECORD_LIMITATIONS = Object.freeze([

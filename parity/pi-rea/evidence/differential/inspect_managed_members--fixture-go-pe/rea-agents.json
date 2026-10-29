@@ -80,6 +80,6 @@
   },
   "meta": {
     "command": "inspect-managed-members",
-    "duration": "125ms"
+    "duration": "128ms"
   }
 }

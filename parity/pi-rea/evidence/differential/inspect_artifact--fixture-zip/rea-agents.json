@@ -252,6 +252,6 @@
   },
   "meta": {
     "command": "inspect-artifact",
-    "duration": "151ms"
+    "duration": "160ms"
   }
 }

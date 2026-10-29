@@ -16,6 +16,6 @@
   },
   "meta": {
     "command": "inspect-dart-aot",
-    "duration": "13ms"
+    "duration": "12ms"
   }
 }

@@ -33,5 +33,5 @@
     "jsonrpc": "2.0",
     "id": 2
   },
-  "stderr": "{\"level\":40,\"time\":1793183548035,\"application\":\"rea\",\"mode\":\"mcp\",\"layer\":\"server\",\"tool\":\"list_frida_devices\",\"durationMs\":2.16,\"status\":\"error\",\"msg\":\"MCP tool execution completed\"}\n"
+  "stderr": "{\"level\":40,\"time\":1793223830768,\"application\":\"rea\",\"mode\":\"mcp\",\"layer\":\"server\",\"tool\":\"list_frida_devices\",\"durationMs\":2.65,\"status\":\"error\",\"msg\":\"MCP tool execution completed\"}\n"
 }

@@ -10,8 +10,8 @@ import { invalidRequest, unsupportedTarget } from '../contract/errors.ts';
 import { evidenceResult } from '../contract/results.ts';
 import type { ReaSession } from '../session/binary-session.ts';
 import { createEvidence } from '../session/evidence.ts';
-import type { ToolCallContext } from './session-tools.ts';
 import { ANALYZER_PROVIDER } from './analyzer-provider.ts';
+import type { ToolCallContext } from './session-tools.ts';
 
 export interface AnalyzeJavaScriptApplicationParams {
   readonly input_path: string;
@@ -24,11 +24,7 @@ export interface AnalyzeJavaScriptApplicationParams {
 
 const resolvePath = (path: string, cwd: string | undefined): string => (isAbsolute(path) ? path : resolve(cwd ?? process.cwd(), path));
 
-export const analyzeJavascriptApplication = async (
-  session: ReaSession,
-  params: AnalyzeJavaScriptApplicationParams,
-  context: ToolCallContext = {},
-): Promise<AgentToolResult<unknown>> => {
+export const analyzeJavascriptApplication = async (session: ReaSession, params: AnalyzeJavaScriptApplicationParams, context: ToolCallContext = {}): Promise<AgentToolResult<unknown>> => {
   if (typeof params.input_path !== 'string' || params.input_path.length === 0) {
     throw invalidRequest('analyze_javascript_application requires input_path.', { parameter: 'input_path' });
   }
@@ -92,9 +88,7 @@ export const analyzeJavascriptApplication = async (
     confidence: 'derived',
     authority: 'shipped-artifact',
     environment: null,
-    limitations: Array.isArray(normalizedResult['limitations'])
-      ? [...(normalizedResult['limitations'] as string[])]
-      : [...JS_LIMITATIONS],
+    limitations: Array.isArray(normalizedResult['limitations']) ? [...(normalizedResult['limitations'] as string[])] : [...JS_LIMITATIONS],
     locations: [{ kind: 'artifact-path', path: 'artifact-root' }],
     evidence_links: [],
   });

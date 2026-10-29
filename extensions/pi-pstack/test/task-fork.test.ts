@@ -5,8 +5,8 @@ import { join } from 'node:path';
 import { type ExtensionContext, SessionManager } from '@earendil-works/pi-coding-agent';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { subagentDir } from '../src/paths.ts';
-import { GENERAL_PURPOSE, type AgentDefinition } from '../src/task/agents.ts';
-import { acquireRunLock, type AgentRecord, forkTranscript, transcriptFor, writeRecord } from '../src/task/records.ts';
+import { type AgentDefinition, GENERAL_PURPOSE } from '../src/task/agents.ts';
+import { type AgentRecord, acquireRunLock, forkTranscript, transcriptFor, writeRecord } from '../src/task/records.ts';
 import { planFork, prepareFork, taskPreflight } from '../src/task/tool.ts';
 import type { Worktree } from '../src/task/worktree.ts';
 
@@ -21,7 +21,8 @@ let workspace = '';
 let dir = '';
 let previousAgentDir: string | undefined;
 
-const ctx = () => ({ cwd: workspace, model: undefined, thinkingLevel: undefined, modelRegistry: { getAvailable: () => [] }, sessionManager: { getSessionId: () => 'parent-session' }, isProjectTrusted: () => true }) as unknown as ExtensionContext;
+const ctx = () =>
+  ({ cwd: workspace, model: undefined, thinkingLevel: undefined, modelRegistry: { getAvailable: () => [] }, sessionManager: { getSessionId: () => 'parent-session' }, isProjectTrusted: () => true }) as unknown as ExtensionContext;
 const params = (extra: Record<string, unknown> = {}) => ({ description: 'fork it', prompt: 'next task', fork: source, ...extra });
 
 function writeTranscript(agentId: string, cwd: string): string {
@@ -167,7 +168,11 @@ describe('forkTranscript: fork_turns', () => {
   test('copies only the first N user turns, and the copy opens at the end of turn N', () => {
     const sourcePath = writeTurns(3);
     const copy = forkTranscript(dir, source, forkId, 2);
-    expect(lines(copy).slice(1).map((entry) => entry['id'])).toEqual(['u0', 'a0', 'u1', 'a1']);
+    expect(
+      lines(copy)
+        .slice(1)
+        .map((entry) => entry['id']),
+    ).toEqual(['u0', 'a0', 'u1', 'a1']);
     expect(userTexts(copy)).toEqual(['task 0', 'task 1']);
     expect(userTexts(sourcePath)).toEqual(['task 0', 'task 1', 'task 2']);
   });
@@ -192,6 +197,16 @@ describe('prepareFork: plan mode', () => {
     writeSource();
     const { plan, lock } = prepareFork(params(), ctx(), { agents, depth: 0, planMode: () => true }, notRunning);
     expect([plan.planMode, plan.readonly, plan.worktree]).toEqual([true, false, undefined]);
+    lock.release();
+  });
+
+  test("a plan-mode fork of an isolated worker runs readonly in that worker's worktree", () => {
+    const tree = join(root, 'worktrees', source);
+    mkdirSync(tree, { recursive: true });
+    const worktree: Worktree = { path: tree, cwd: tree, branch: `pstack/${source}`, base: 'HEAD', commit: 'abc' };
+    writeSource({ worktree }, tree);
+    const { plan, lock } = prepareFork(params(), ctx(), { agents, depth: 0, planMode: () => true }, notRunning);
+    expect([plan.planMode, plan.readonly, plan.worktree]).toEqual([true, false, worktree]);
     lock.release();
   });
 });

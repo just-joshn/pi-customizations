@@ -1,7 +1,7 @@
 {
   "kind": "evidence",
   "body": {
-    "evidence_id": "ev_01f9e43548032fa0efb7f5a54935f929ac3238b545e14954fb40cd90029a82ed",
+    "evidence_id": "ev_46ca485a1a5e43cd7bcf504ef30585f95d1c321ca09639257786091faf2bedbd",
     "subject": {
       "name": "fixture.zip",
       "digest": {
@@ -21,7 +21,7 @@
     "operation": "extract_artifact",
     "parameters": {
       "integrity_policy": "fail",
-      "output_root": "/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/rea-extracted-064c22ec-cf67-4158-a66a-d6837fc9a117",
+      "output_root": "/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/rea-extracted-038e61ac-1f04-40ba-9f86-9dfa89eaf05a",
       "input_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/fixture.zip"
     },
     "raw_result": null,
@@ -46,7 +46,7 @@
         "files_sha256": "934d0ae13eed24f93db3d7444cc8e9e10e8414e17f6f07a556b58229e575284f",
         "output_root_alias": "$OUTPUT_ROOT"
       },
-      "output_root": "/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/rea-extracted-064c22ec-cf67-4158-a66a-d6837fc9a117",
+      "output_root": "/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/rea-extracted-038e61ac-1f04-40ba-9f86-9dfa89eaf05a",
       "artifacts": [
         {
           "artifact_id": "art_e5af109ce4582c356e568a0bc9adddf3d39d714874aab0e57a0c95299529bf4b",
@@ -96,6 +96,6 @@
   },
   "meta": {
     "command": "extract-artifact",
-    "duration": "160ms"
+    "duration": "183ms"
   }
 }

@@ -30,10 +30,7 @@ export interface ProjectAppleApplicationGraphParams {
   readonly inventory_evidence: readonly unknown[];
 }
 
-export const projectAppleApplicationGraphTool = (
-  session: ReaSession,
-  params: ProjectAppleApplicationGraphParams,
-): AgentToolResult<unknown> => {
+export const projectAppleApplicationGraphTool = (session: ReaSession, params: ProjectAppleApplicationGraphParams): AgentToolResult<unknown> => {
   if (!Array.isArray(params.inventory_evidence)) {
     throw invalidRequest('project_apple_application_graph requires inventory_evidence array.', {
       parameter: 'inventory_evidence',

@@ -1,5 +1,6 @@
 import { homedir } from 'node:os';
 import { join } from 'node:path';
+
 import type { AgentToolResult } from '@earendil-works/pi-coding-agent';
 import { configurationResult } from '../contract/results.ts';
 import type { ReaSession } from '../session/binary-session.ts';

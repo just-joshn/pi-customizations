@@ -321,8 +321,9 @@
     ]
   },
   "edit/history-images-and-prompt-caching/p2": {
-    "nonclaim": "pi-owned",
-    "note": "Pi compaction summarizes older history and keeps a recent tail, so pi-maintainer runs no history summarizer"
+    "rows": [
+      "edit.history.summary-budget"
+    ]
   },
   "edit/history-images-and-prompt-caching/p3": {
     "rows": [
@@ -951,28 +952,34 @@
     ]
   },
   "aider-test/test_history/TestChatSummary.test_initialization": {
-    "nonclaim": "pi-owned",
-    "note": "Pi compaction replaces Aider's ChatSummary history summarizer"
+    "rows": [
+      "edit.history.summary-budget"
+    ]
   },
   "aider-test/test_history/TestChatSummary.test_too_big": {
-    "nonclaim": "pi-owned",
-    "note": "Pi compaction decides when history is too large"
+    "rows": [
+      "edit.history.summary-budget"
+    ]
   },
   "aider-test/test_history/TestChatSummary.test_tokenize": {
-    "nonclaim": "pi-owned",
-    "note": "Pi compaction estimates history tokens"
+    "rows": [
+      "edit.history.summary-budget"
+    ]
   },
   "aider-test/test_history/TestChatSummary.test_summarize_all": {
-    "nonclaim": "pi-owned",
-    "note": "Pi compaction summarizes history"
+    "rows": [
+      "edit.history.summary-budget"
+    ]
   },
   "aider-test/test_history/TestChatSummary.test_summarize": {
-    "nonclaim": "pi-owned",
-    "note": "Pi compaction keeps a recent tail and summarizes the rest"
+    "rows": [
+      "edit.history.recent-tail-split"
+    ]
   },
   "aider-test/test_history/TestChatSummary.test_fallback_to_second_model": {
-    "nonclaim": "pi-owned",
-    "note": "Pi compaction chooses and retries its summarization model"
+    "rows": [
+      "edit.history.summary-budget"
+    ]
   },
   "edit/provenance-evidence-methodology-and-scope/p1": {
     "nonclaim": "provenance",
@@ -6339,7 +6346,7 @@
   },
   "aider-test/test_main/TestMain.test_main_with_empty_git_dir_new_subdir_file": {
     "rows": [
-      "git.startup.setup-repo"
+      "git.authorize.stage-new-file"
     ]
   },
   "aider-test/test_main/TestMain.test_setup_git": {
@@ -6354,7 +6361,7 @@
   },
   "aider-test/test_main/TestMain.test_command_line_gitignore_files_flag": {
     "rows": [
-      "git.config.gitignore-offer"
+      "git.filter.gitignore"
     ]
   },
   "aider-test/test_main/TestMain.test_add_command_gitignore_files_flag": {
@@ -6515,7 +6522,7 @@
   },
   "aider-test/test_repo/TestRepo.test_get_commit_message_uses_system_prompt_prefix": {
     "rows": [
-      "git.commit.message-context"
+      "git.commit.model-prefix"
     ]
   },
   "aider-test/test_sanity_check_repo/test_detached_head_state": {
@@ -9524,7 +9531,7 @@
   },
   "aider-test/test_main/TestMain.test_sonnet_and_cache_options": {
     "rows": [
-      "map.model.mapping-policy"
+      "map.cache.rendered-policy"
     ]
   },
   "aider-test/test_main/TestMain.test_map_mul_option": {
@@ -9567,9 +9574,7 @@
   },
   "aider-test/test_repomap/TestRepoMap.test_get_repo_map_with_identifiers": {
     "rows": [
-      "map.hints.mention-extraction",
-      "map.rank.personalization",
-      "map.rank.weights"
+      "map.render.structural-context"
     ]
   },
   "aider-test/test_repomap/MyClass.test_get_repo_map_all_files": {
@@ -10979,7 +10984,7 @@
   "ev-lint/probe/javascript-syntax": {
     "rows": [
       "lint.tree-sitter.syntax-errors",
-      "lint.dispatch.precedence"
+      "lint.diagnostics.context-render"
     ]
   },
   "ev-lint/probe/typescript-skipped": {
@@ -11178,7 +11183,6 @@
   },
   "aider-test/test_linter/TestLinter.test_run_cmd_win": {
     "rows": [
-      "lint.custom.append-relpath",
       "lint.run.local-shell"
     ]
   },

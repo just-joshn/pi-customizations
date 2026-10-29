@@ -2,7 +2,7 @@
 
 Independent reviews: `reviews/parity.md` and `reviews/security.md`, from fresh `pi -p --no-session` processes. Architecture: `reviews/architecture.md` is a self-review because that `pi -p` produced no output.
 
-## Fixed
+## Fixed before the parity audit of 2026-10-28
 
 - Identity test could pass by ignoring its argument and using the builtin singleton. `provider.test.ts` now passes distinct `login`, `refresh`, and `toAuth` functions and expects those same functions back.
 - XAI-006 and XAI-008 cited tests that did not read the headers they named. Citations now point at `stream.test.ts` "native streaming preserves the Grok Build identity and bearer token", which checks `x-grok-client-version`, `x-xai-token-auth`, and `x-grok-model-override` on the request the local server receives.
@@ -17,11 +17,10 @@ Independent reviews: `reviews/parity.md` and `reviews/security.md`, from fresh `
 
 ## Already recorded, not fixed
 
-- XAI-001 browser login remains NOT VERIFIED. The authorize query is still unknown.
-- XAI-013 401 refresh-and-retry remains NOT VERIFIED. Adding a retry outside Pi's credential lock could rotate a refresh token twice.
-- XAI-003 scope difference remains INCONCLUSIVE. Treating 403 as "log in again" is the same gap: a shorter scope would not be fixed by repeating Pi's login.
+- XAI-003 scope difference remains INCONCLUSIVE, and the ledger and report now say so. The package requests the full captured scope; whether the server grants or requires the extra scopes is unobserved.
+- XAI-013 401 refresh-and-retry is NOT APPLICABLE in the ledger. Adding a retry outside Pi's credential lock could rotate a refresh token twice, and Pi does not treat that 401 as retryable.
 
 ## Left as suspicion
 
 - `context_window` has no upper bound. A hostile catalog could publish an extreme window. No observed maximum above 500000, so a cap would be invented.
-- `fetchModels` assumes `toAuth` returns `apiKey`. That matches Pi 1.1.0's xAI oauth. A future Pi change is a maintenance risk, noted in the architecture self-review.
+- `fetchModels` assumes `toAuth` returns `apiKey`. That matches Pi 1.4.0's xAI oauth. A future Pi change is a maintenance risk, noted in the architecture self-review.

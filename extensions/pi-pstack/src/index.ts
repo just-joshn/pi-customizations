@@ -7,15 +7,15 @@ import { childIdentity } from './child-env.ts';
 import { registerLoop } from './loop.ts';
 import { registerMode } from './mode.ts';
 import { canAsk, isOneShot } from './modes.ts';
-import { registerPlanMode } from './plan.ts';
 import { artifactsDir, PACKAGE_ROOT, projectsDir, rootStoreDir, rulePath, SKILLS_DIR, storeDir, subagentDir } from './paths.ts';
+import { registerPlanMode } from './plan.ts';
 import { registerReadonlyShell } from './readonly-shell.ts';
 import { migrateLegacyRule, modelsSection, readRule } from './rule.ts';
 import { hostSection, subagentsSection } from './sections.ts';
+import { registerSubscriptions } from './subscriptions/index.ts';
 import { type AgentDefinition, loadAgentDefinitions } from './task/agents.ts';
 import { registerAgentStatus } from './task/status.ts';
 import { availableModels, parentModel, registerTask } from './task/tool.ts';
-import { registerSubscriptions } from './subscriptions/index.ts';
 import { registerTodoWrite } from './todo.ts';
 import { registerVisualize } from './visualize.ts';
 
@@ -110,7 +110,13 @@ export default function piPstack(pi: ExtensionAPI): void {
     const modeText = mode.section();
     const loopText = loop.section();
     const planText = plan.section();
-    Object.assign(event.systemPromptOptions.sections, hostSections(pi, ctx, agents), modeText === undefined ? {} : { pstack_mode: modeText }, loopText === undefined ? {} : { pstack_loop: loopText }, planText === undefined ? {} : { pstack_plan: planText });
+    Object.assign(
+      event.systemPromptOptions.sections,
+      hostSections(pi, ctx, agents),
+      modeText === undefined ? {} : { pstack_mode: modeText },
+      loopText === undefined ? {} : { pstack_loop: loopText },
+      planText === undefined ? {} : { pstack_plan: planText },
+    );
   });
 
   pi.on('session_start', () => migrateLegacyRule(rulePath()));

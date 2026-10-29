@@ -1,7 +1,6 @@
-
 import { createHash } from 'node:crypto';
+import type { BigIntStats, Dirent } from 'node:fs';
 import { lstat as lstatCallback, readdir, realpath, stat as statCallback } from 'node:fs/promises';
-import type { BigIntStats } from 'node:fs';
 import { isAbsolute, join, resolve } from 'node:path';
 
 import { invalidRequest } from '../contract/errors.ts';
@@ -93,7 +92,9 @@ const inputError = (path: string, reason: string, detail: string) =>
   });
 
 const sha256 = (bytes: Buffer | string): string =>
-  createHash('sha256').update(typeof bytes === 'string' ? Buffer.from(bytes) : bytes).digest('hex');
+  createHash('sha256')
+    .update(typeof bytes === 'string' ? Buffer.from(bytes) : bytes)
+    .digest('hex');
 
 const branded = (prefix: 'dsf' | 'dsc' | 'dsp' | 'dsr' | 'dso', material: string): string => `${prefix}_${sha256(material)}`;
 
@@ -115,10 +116,7 @@ export interface DesktopOptions {
   readonly cwd?: string;
 }
 
-export const inspectDesktopApplicationFromPath = async (
-  path: string,
-  options: DesktopOptions = {},
-): Promise<{ record: DesktopApplicationInspection; path: string; resolvedPath: string }> => {
+export const inspectDesktopApplicationFromPath = async (path: string, options: DesktopOptions = {}): Promise<{ record: DesktopApplicationInspection; path: string; resolvedPath: string }> => {
   const maxEntries = options.maxEntries ?? DEFAULT_MAX_ENTRIES;
   const maxProbeBytes = options.maxProbeBytes ?? DEFAULT_MAX_PROBE_BYTES;
   if (!Number.isInteger(maxEntries) || maxEntries < 1) throw inputError(path, 'invalid_value', 'max_entries must be a positive integer.');
@@ -146,9 +144,10 @@ export const inspectDesktopApplicationFromPath = async (
 
   const queue = [''];
   while (queue.length > 0) {
-    const rel = queue.shift()!;
+    const rel = queue.shift();
+    if (rel === undefined) break;
     const abs = rel.length === 0 ? resolvedPath : join(resolvedPath, rel);
-    let dirents;
+    let dirents: Dirent[];
     try {
       dirents = await readdir(abs, { withFileTypes: true });
     } catch (error) {

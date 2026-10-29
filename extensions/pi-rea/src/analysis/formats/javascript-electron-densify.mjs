@@ -1,8 +1,12 @@
-import { artifactLocalIdentity, contentDigestIdentity, extractor, fileNode, fileOccurrence } from './javascript-nodes.mjs';
-import { artifactRef, coverage, edgeEvidence, graphEdge, graphNode } from '../envelope.mjs';
 import { digestOf } from '../canonical.mjs';
+import { artifactRef, coverage, edgeEvidence, graphEdge, graphNode } from '../envelope.mjs';
 import {
   AST_COVERAGE_LIMITATION,
+  artifactLocalIdentity,
+  contentDigestIdentity,
+  extractor,
+  fileNode,
+  fileOccurrence,
   LEXICAL_WRAPPER_LIMITATION,
   NATIVE_EXPORT_OBSERVE_LIMITATION,
   NATIVE_REQUEST_EDGE_LIMITATION,
@@ -12,8 +16,7 @@ import {
 import { extensionOf } from './target-source.mjs';
 
 const PARTIAL_EDGE_COVERAGE = coverage({ status: 'partial', omittedCount: null });
-const LOADFILE_BASE_UNKNOWN =
-  'Inventoried package metadata does not establish one application root for this source; the loadFile base is unknown.';
+const LOADFILE_BASE_UNKNOWN = 'Inventoried package metadata does not establish one application root for this source; the loadFile base is unknown.';
 
 export function observationFingerprintIdentity(rootSha256, scope, key) {
   return {
@@ -160,15 +163,11 @@ export function addSourceMapOriginals(context, extraction) {
       continue;
     }
     const sources = Array.isArray(parsed?.sources) ? parsed.sources : [];
-    const sourceMapNode = context.nodes.find(
-      (node) => node.kind === 'source-map' && node.observations.some((observation) => observation.properties.path === logicalPath),
-    );
+    const sourceMapNode = context.nodes.find((node) => node.kind === 'source-map' && node.observations.some((observation) => observation.properties.path === logicalPath));
     if (sourceMapNode === undefined) continue;
     sources.forEach((originalSource, sourceIndex) => {
       const mapDir = logicalPath.includes('/') ? logicalPath.slice(0, logicalPath.lastIndexOf('/') + 1) : '';
-      const artifactRelative = originalSource.includes('/')
-        ? originalSource.replace(/^\.\//, '')
-        : `${mapDir}${originalSource}`;
+      const artifactRelative = originalSource.includes('/') ? originalSource.replace(/^\.\//, '') : `${mapDir}${originalSource}`;
       const node = graphNode({
         prefix: 'jag',
         kind: 'source-module',
@@ -430,28 +429,13 @@ export function addNativeBindingEdges(context, extraction, rootSha256) {
   for (const [logicalPath, file] of extraction) {
     for (const request of file.found?.nativeRequests ?? []) {
       const locationKey = `${request.range.start.line}:${request.range.start.column}-${request.range.end.line}:${request.range.end.column}`;
-      const measuredLocationKey =
-        request.range.start.column > 6
-          ? `${request.range.start.line}:6-${request.range.end.line}:${request.range.end.column}`
-          : locationKey;
+      const measuredLocationKey = request.range.start.column > 6 ? `${request.range.start.line}:6-${request.range.end.line}:${request.range.end.column}` : locationKey;
       const identity = observationFingerprintIdentity(
         rootSha256,
         'javascript-requested-native-export',
-        JSON.stringify([
-          logicalPath,
-          request.specifier,
-          'require',
-          request.requestedMembers,
-          request.namespaceAccess ?? null,
-          request.dynamicMemberAccess ?? null,
-          measuredLocationKey,
-        ]),
+        JSON.stringify([logicalPath, request.specifier, 'require', request.requestedMembers, request.namespaceAccess ?? null, request.dynamicMemberAccess ?? null, measuredLocationKey]),
       );
-      const resolutionPath = context.nodes.find(
-        (node) =>
-          node.kind === 'native-addon' &&
-          node.observations.some((observation) => observation.properties.path?.endsWith('index.node')),
-      );
+      const resolutionPath = context.nodes.find((node) => node.kind === 'native-addon' && node.observations.some((observation) => observation.properties.path?.endsWith('index.node')));
       const resolvedPath = resolutionPath?.observations[0]?.properties.path ?? null;
       const exportNode = graphNode({
         prefix: 'jag',

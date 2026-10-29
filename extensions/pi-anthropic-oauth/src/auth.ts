@@ -7,8 +7,7 @@ const OAUTH_ACCESS_TOKEN = /^sk-ant-oat01-[A-Za-z0-9_-]+$/;
 
 export const CLAUDE_AUTHORIZE_ORIGIN = 'https://claude.com';
 export const CLAUDE_AUTHORIZE_PATH = '/cai/oauth/authorize';
-export const CLAUDE_OAUTH_SCOPES =
-  'org:create_api_key user:profile user:inference user:sessions:claude_code user:mcp_servers user:file_upload user:plugins';
+export const CLAUDE_OAUTH_SCOPES = 'org:create_api_key user:profile user:inference user:sessions:claude_code user:mcp_servers user:file_upload user:plugins';
 const CLAUDE_COPY_CODE_LOGIN = 'copy_code';
 
 function tokenAuth(value: string, source: string, env?: ProviderEnv): AuthResult | undefined {
@@ -44,7 +43,9 @@ function withForcedPasteCodeLogin(interaction: ProviderAuthInteraction): Provide
   return {
     signal: interaction.signal,
     prompt: async (prompt) => {
-      if (prompt.type === 'select') return CLAUDE_COPY_CODE_LOGIN;
+      // Answer only the method option Pi offers, so a selector for something else
+      // reaches the user instead of being answered with a stale id.
+      if (prompt.type === 'select' && prompt.options.some((option) => option.id === CLAUDE_COPY_CODE_LOGIN)) return CLAUDE_COPY_CODE_LOGIN;
       return interaction.prompt(prompt);
     },
     notify: (event: AuthEvent) => {
@@ -63,6 +64,7 @@ export function subscriptionAuth(oauth: OAuthAuth): ProviderAuth {
     oauth: {
       ...oauth,
       name: 'Claude subscription (Provider CLI)',
+      loginLabel: 'Claude subscription (Provider CLI)',
       login: async (interaction, options) => {
         interaction.signal.throwIfAborted();
         try {

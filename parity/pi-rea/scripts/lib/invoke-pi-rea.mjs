@@ -1,67 +1,48 @@
-import { ReaSession } from '../../../../extensions/pi-rea/src/session/binary-session.ts';
+import { ReaError } from '../../../../extensions/pi-rea/src/contract/errors.ts';
+import { PI_REA_VERSION, ReaSession } from '../../../../extensions/pi-rea/src/session/binary-session.ts';
 import { identifyArtifact } from '../../../../extensions/pi-rea/src/targets/artifact-identity.ts';
-import { listArchitectures } from '../../../../extensions/pi-rea/src/tools/arch-tools.ts';
-import { inspectAppleIps } from '../../../../extensions/pi-rea/src/tools/apple-ips-tools.ts';
-import { extractArtifact, inspectArtifact } from '../../../../extensions/pi-rea/src/tools/artifact-tools.ts';
-import {
-  compareApplicationVersionsTool,
-  compareArtifacts,
-  compareBundles,
-  compareJavascriptExportShapesTool,
-  compareManagedMembers,
-  compareSourceToBundleTool,
-} from '../../../../extensions/pi-rea/src/tools/compare-tools.ts';
+import { inspectApkSignature } from '../../../../extensions/pi-rea/src/tools/apk-signature-tools.ts';
 import { projectAppleApplicationGraphTool } from '../../../../extensions/pi-rea/src/tools/apple-graph-tools.ts';
-import { exportWebScriptsTool } from '../../../../extensions/pi-rea/src/tools/web-script-tools.ts';
-import { demangleSwift } from '../../../../extensions/pi-rea/src/tools/demangle-tools.ts';
-import { decodeInterfaceBuilder } from '../../../../extensions/pi-rea/src/tools/interface-builder-tools.ts';
-import { inspectRecordedCrash } from '../../../../extensions/pi-rea/src/tools/recorded-crash-tools.ts';
+import { inspectAppleIps } from '../../../../extensions/pi-rea/src/tools/apple-ips-tools.ts';
+import { listArchitectures } from '../../../../extensions/pi-rea/src/tools/arch-tools.ts';
+import { extractArtifact, inspectArtifact } from '../../../../extensions/pi-rea/src/tools/artifact-tools.ts';
 import { inspectBinaryLayout } from '../../../../extensions/pi-rea/src/tools/binary-layout-tools.ts';
+import { inspectAssetCatalog, inspectKeyedArchive, openBundleResources } from '../../../../extensions/pi-rea/src/tools/bundle-resource-tools.ts';
+import { compareApplicationVersionsTool, compareArtifacts, compareBundles, compareJavascriptExportShapesTool, compareManagedMembers, compareSourceToBundleTool } from '../../../../extensions/pi-rea/src/tools/compare-tools.ts';
+import { listCutterSessions } from '../../../../extensions/pi-rea/src/tools/cutter-tools.ts';
+import { demangleSwift } from '../../../../extensions/pi-rea/src/tools/demangle-tools.ts';
+import { inspectDesktopApplication } from '../../../../extensions/pi-rea/src/tools/desktop-application-tools.ts';
+import { inspectDevicetree } from '../../../../extensions/pi-rea/src/tools/devicetree-tools.ts';
+import { inspectElectronFuses } from '../../../../extensions/pi-rea/src/tools/electron-fuse-tools.ts';
 import { inspectElfNotes } from '../../../../extensions/pi-rea/src/tools/elf-tools.ts';
 import { inspectByteEntropy } from '../../../../extensions/pi-rea/src/tools/entropy-tools.ts';
-import { inspectGoBinary } from '../../../../extensions/pi-rea/src/tools/go-binary-tools.ts';
-import { inspectWebNetworkCapture } from '../../../../extensions/pi-rea/src/tools/har-tools.ts';
-import { analyzeJavascriptApplication } from '../../../../extensions/pi-rea/src/tools/javascript-tools.ts';
-import { inspectMacho } from '../../../../extensions/pi-rea/src/tools/macho-tools.ts';
-import {
-  inspectPeCertificates,
-  inspectPeImports,
-  inspectPeLoadConfig,
-  inspectPeResources,
-} from '../../../../extensions/pi-rea/src/tools/pe-tools.ts';
-import { inspectPlist } from '../../../../extensions/pi-rea/src/tools/plist-tools.ts';
-import { inspectRustBinary } from '../../../../extensions/pi-rea/src/tools/rust-tools.ts';
-import { inspectDesktopApplication } from '../../../../extensions/pi-rea/src/tools/desktop-application-tools.ts';
 import { inspectErlangBeam } from '../../../../extensions/pi-rea/src/tools/erlang-beam-tools.ts';
-import { inspectGpuCodeObjects } from '../../../../extensions/pi-rea/src/tools/gpu-code-object-tools.ts';
-import { inspectIl2CppMetadata } from '../../../../extensions/pi-rea/src/tools/il2cpp-tools.ts';
-import { inspectKernelModule } from '../../../../extensions/pi-rea/src/tools/kernel-module-tools.ts';
-import { inspectModelArtifact } from '../../../../extensions/pi-rea/src/tools/model-artifact-tools.ts';
-import { inspectPythonPyc } from '../../../../extensions/pi-rea/src/tools/python-pyc-tools.ts';
-import { inspectSqliteDatabase } from '../../../../extensions/pi-rea/src/tools/sqlite-tools.ts';
-import { inspectDevicetree } from '../../../../extensions/pi-rea/src/tools/devicetree-tools.ts';
-import { inspectApkSignature } from '../../../../extensions/pi-rea/src/tools/apk-signature-tools.ts';
-import { inspectElectronFuses } from '../../../../extensions/pi-rea/src/tools/electron-fuse-tools.ts';
-import { inspectAssetCatalog, inspectKeyedArchive, openBundleResources } from '../../../../extensions/pi-rea/src/tools/bundle-resource-tools.ts';
 import { identifyFlutterBuild, inspectDartAot } from '../../../../extensions/pi-rea/src/tools/flutter-tools.ts';
+import { inspectGoBinary } from '../../../../extensions/pi-rea/src/tools/go-binary-tools.ts';
+import { inspectGpuCodeObjects } from '../../../../extensions/pi-rea/src/tools/gpu-code-object-tools.ts';
+import { inspectWebNetworkCapture } from '../../../../extensions/pi-rea/src/tools/har-tools.ts';
+import { inspectIl2CppMetadata } from '../../../../extensions/pi-rea/src/tools/il2cpp-tools.ts';
+import { decodeInterfaceBuilder } from '../../../../extensions/pi-rea/src/tools/interface-builder-tools.ts';
+import { analyzeJavascriptApplication } from '../../../../extensions/pi-rea/src/tools/javascript-tools.ts';
+import { inspectKernelModule } from '../../../../extensions/pi-rea/src/tools/kernel-module-tools.ts';
+import { inspectMacho } from '../../../../extensions/pi-rea/src/tools/macho-tools.ts';
 import { inspectManagedArtifact, inspectManagedMembers } from '../../../../extensions/pi-rea/src/tools/managed-tools.ts';
-import { inspectSignature } from '../../../../extensions/pi-rea/src/tools/signature-tools.ts';
-import {
-  listBookmarks,
-  listDocuments,
-  listNames,
-  listProcedures,
-  listSegments,
-  listStrings,
-} from '../../../../extensions/pi-rea/src/tools/session-list-tools.ts';
-import { listCutterSessions } from '../../../../extensions/pi-rea/src/tools/cutter-tools.ts';
+import { inspectModelArtifact } from '../../../../extensions/pi-rea/src/tools/model-artifact-tools.ts';
 import { inspectNativeExports } from '../../../../extensions/pi-rea/src/tools/native-exports-tools.ts';
 import { inspectWithObjdump } from '../../../../extensions/pi-rea/src/tools/objdump-tools.ts';
+import { inspectPeCertificates, inspectPeImports, inspectPeLoadConfig, inspectPeResources } from '../../../../extensions/pi-rea/src/tools/pe-tools.ts';
+import { inspectPlist } from '../../../../extensions/pi-rea/src/tools/plist-tools.ts';
 import { refuseProviderTool } from '../../../../extensions/pi-rea/src/tools/provider-refuse-tools.ts';
+import { inspectPythonPyc } from '../../../../extensions/pi-rea/src/tools/python-pyc-tools.ts';
+import { inspectRecordedCrash } from '../../../../extensions/pi-rea/src/tools/recorded-crash-tools.ts';
+import { inspectRustBinary } from '../../../../extensions/pi-rea/src/tools/rust-tools.ts';
+import { listBookmarks, listDocuments, listNames, listProcedures, listSegments, listStrings } from '../../../../extensions/pi-rea/src/tools/session-list-tools.ts';
+import { binarySession, closeBinary, openBinary } from '../../../../extensions/pi-rea/src/tools/session-tools.ts';
 import { inspectAnalysisSettings, updateAnalysisSettings } from '../../../../extensions/pi-rea/src/tools/settings-tools.ts';
+import { inspectSignature } from '../../../../extensions/pi-rea/src/tools/signature-tools.ts';
+import { inspectSqliteDatabase } from '../../../../extensions/pi-rea/src/tools/sqlite-tools.ts';
 import { verifyUnknownResolution } from '../../../../extensions/pi-rea/src/tools/unknown-tools.ts';
-import { ReaError } from '../../../../extensions/pi-rea/src/contract/errors.ts';
-import { PI_REA_VERSION } from '../../../../extensions/pi-rea/src/session/binary-session.ts';
+import { exportWebScriptsTool } from '../../../../extensions/pi-rea/src/tools/web-script-tools.ts';
 
 const runtime = () => ({ name: 'pi-rea-differential', version: PI_REA_VERSION, cwd: process.cwd() });
 
@@ -98,6 +79,9 @@ export const openTarget = async (session, path) => {
 const refuse = (name) => (session, params) => asResult(() => refuseProviderTool(session, name, params ?? {}));
 
 export const piHandlers = {
+  binary_session: (session, params) => asResult(() => binarySession(session, params ?? {}), 'configuration'),
+  open_binary: (session, params) => asResult(() => openBinary(session, params ?? {}, { cwd: process.cwd() }), 'configuration'),
+  close_binary: (session, params) => asResult(() => closeBinary(session, params ?? {}), 'configuration'),
   inspect_plist: (session, params) => asResult(() => inspectPlist(session, params)),
   inspect_macho: (session) => asResult(() => inspectMacho(session, {})),
   list_architectures: (session) => asResult(() => listArchitectures(session, {})),

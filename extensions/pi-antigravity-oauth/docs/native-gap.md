@@ -1,6 +1,6 @@
 # Native API gaps
 
-This package fills two Pi public-API gaps. `bun run check:native-gap` fails when this record drifts from the adapters on disk. `bun run check:vendor` separately fails when `src/pi-ai/` drifts from the pinned pi-ai sources. `bun run vendor` regenerates those copies.
+This package fills two Pi public-API gaps. `bun run check:native-gap` fails when this record drifts from the adapters on disk. `bun run check:vendor` separately fails when `src/pi-ai/` drifts from the pi-ai sources of the version the installed Pi loads. `bun run vendor` regenerates those copies.
 
 ```native-gap-files
 src/stream.ts
@@ -64,7 +64,7 @@ Importing conversion helpers from `@earendil-works/pi-ai` public entry points.
 
 ### 3. Why the public API cannot express the requirement
 
-Pi exports only the pi-ai root, compat, oauth, and providers/all surfaces. Google message/tool conversion modules are not public to extensions.
+Pi's extension loader aliases only `@earendil-works/pi-ai`, `/compat`, `/models`, `/oauth`, and `/providers/all`, and applies each alias as a prefix rewrite (`pi-coding-agent/dist/core/extensions/loader.js`). The package itself also exports `./api/*` and `./utils/*`, but `@earendil-works/pi-ai/api/google-shared` resolves to `dist/compat.js/api/google-shared` and fails, so the Google conversion modules are unreachable from an extension. `docs/packages.md` adds that a physical copy of a host package can bypass Pi's module mapping and create duplicate registries.
 
 ### 4. Why omitting the feature is unacceptable
 
@@ -72,7 +72,7 @@ Reimplementing conversion would fork Pi's Google semantics. Omitting conversion 
 
 ### 5. The smallest adapter that fills only the gap
 
-Verbatim copies under `src/pi-ai/` from the pinned `@earendil-works/pi-ai` source maps, plus a tiny `genai.ts` enum/type shim. `scripts/vendor-pi-ai.mjs` regenerates them; `check:vendor` compares.
+Verbatim copies under `src/pi-ai/` from the source maps of the `@earendil-works/pi-ai` version the installed Pi loads, plus a tiny `genai.ts` enum/type shim. `scripts/vendor-pi-ai.mjs` regenerates them; `check:vendor` compares, and rejects a devDependency that differs from that version.
 
 ### 6. Which Pi-owned state remains authoritative
 
@@ -80,7 +80,7 @@ Pi still owns transcript helpers, cost accounting, and model types imported from
 
 ### 7. Verification
 
-`bun run check:vendor` against the pin. Unit tests under `test/google-shared.test.ts`, `test/transform-messages.test.ts`, and related files exercise the copies through the stream path.
+`bun run check:vendor` against the `@earendil-works/pi-ai` version the installed Pi loads. Unit tests under `test/google-shared.test.ts`, `test/transform-messages.test.ts`, and related files exercise the copies through the stream path.
 
 ### 8. Delete when
 

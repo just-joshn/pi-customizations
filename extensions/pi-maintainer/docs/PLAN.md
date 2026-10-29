@@ -1,6 +1,6 @@
 # pi-maintainer run plan
 
-This is the workflow the coordinator runs. `docs/ARCHITECTURE.md` is the design contract. `docs/decisions.tsv` is the decision trail.
+This is the workflow the coordinator ran. `docs/ARCHITECTURE.md` is the design contract. `docs/decisions.tsv` is the decision trail. This document is the plan, not the current status: the gates in the README measure current state.
 
 ## Definition of done
 
@@ -9,6 +9,8 @@ The run is done when all of these hold on the branch head.
 - `node scripts/check-parity.mjs --final` passes. Every census unit maps to verified ledger rows or to a justified non-claim.
 - Each SAR passed its own gate, listed below, before the next SAR started.
 - A PR for `feat/pi-maintainer-2` is open.
+
+Current status (measured, not planned): `check-parity` passes, `--feature edit` passes, `--feature git`, `--feature map`, `--feature lint`, and `--final` fail on open rows and on census units whose ported test is not yet tagged. The open rows are documented native gaps in `docs/NATIVE-GAPS.md`; each needs either an implementation Pi's API can express or the ledger must stop claiming it. No PR is open.
 
 ## Rigor
 

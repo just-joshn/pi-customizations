@@ -57,3 +57,26 @@ test('buildCommitMessageRequest places context above the diffs block', () => {
   expect(request.user.startsWith('chat context here\n# Diffs:\n')).toBe(true);
   expect(request.user).toContain('diff text');
 });
+
+test('a commit without named files includes tracked changes and staged additions but not untracked files', {
+  meta: { evidence: ['ev-git/probe/all-file-commit-uses-tracked-changes-and-staged-additions'] },
+}, async () => {
+  const root = await tempDir('git-all-files-');
+  const host = recordingHost();
+  await initRepo(root);
+  await commitFile(root, 'a.txt', 'baseline\n', 'baseline');
+  await commitFile(root, 'staged.txt', 'before\n', 'staged seed');
+  await writeFile(join(root, 'a.txt'), 'tracked change\n');
+  await writeFile(join(root, 'staged.txt'), 'included\n');
+  await isolatedExec({ command: 'git', args: ['add', '--', 'staged.txt'], cwd: root }, Object.fromEntries(Object.entries(process.env).filter((entry): entry is [string, string] => entry[1] !== undefined)));
+  await writeFile(join(root, 'untracked.txt'), 'excluded\n');
+  const git = policyIn(root, host);
+  expect(await git.commitDirty('all tracked')).toMatchObject({ kind: 'committed' });
+  const env = Object.fromEntries(Object.entries(process.env).filter((entry): entry is [string, string] => entry[1] !== undefined));
+  const showTracked = await isolatedExec({ command: 'git', args: ['show', 'HEAD:a.txt'], cwd: root }, env);
+  expect(showTracked.stdout).toBe('tracked change\n');
+  const showStaged = await isolatedExec({ command: 'git', args: ['show', 'HEAD:staged.txt'], cwd: root }, env);
+  expect(showStaged.stdout).toBe('included\n');
+  const tree = await isolatedExec({ command: 'git', args: ['ls-tree', '--name-only', 'HEAD'], cwd: root }, env);
+  expect(tree.stdout.split('\n')).not.toContain('untracked.txt');
+});

@@ -1,11 +1,10 @@
-
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { isAbsolute } from 'node:path';
 
 import { evidenceIntegrityMismatch, invalidRequest } from '../contract/errors.ts';
-import { parseBundle, serializeBundle, type EvidenceBundle } from '../session/evidence-ledger.ts';
 import { canonicalJson, type EvidenceRecord } from '../session/evidence.ts';
+import { type EvidenceBundle, parseBundle, serializeBundle } from '../session/evidence-ledger.ts';
 
 export interface BundleCompareInspection {
   readonly status: 'unchanged' | 'changed' | 'unknown';
@@ -125,22 +124,14 @@ export const compareEvidenceBundles = async (
     }
   }
 
-  const leftUnknowns = new Map(
-    left.bundle.unknowns
-      .map((entry) => [unknownId(entry), entry] as const)
-      .filter((entry): entry is readonly [string, Record<string, unknown>] => entry[0] !== null),
-  );
-  const rightUnknowns = new Map(
-    right.bundle.unknowns
-      .map((entry) => [unknownId(entry), entry] as const)
-      .filter((entry): entry is readonly [string, Record<string, unknown>] => entry[0] !== null),
-  );
+  const leftUnknowns = new Map(left.bundle.unknowns.map((entry) => [unknownId(entry), entry] as const).filter((entry): entry is readonly [string, Record<string, unknown>] => entry[0] !== null));
+  const rightUnknowns = new Map(right.bundle.unknowns.map((entry) => [unknownId(entry), entry] as const).filter((entry): entry is readonly [string, Record<string, unknown>] => entry[0] !== null));
   const unknownIds = [...new Set([...leftUnknowns.keys(), ...rightUnknowns.keys()])].sort();
 
   let unknowns_unchanged = 0;
   let unknowns_added = 0;
   let unknowns_removed = 0;
-  let unknowns_advanced = 0;
+  const unknowns_advanced = 0;
   let unknowns_diverged = 0;
 
   for (const id of unknownIds) {
@@ -165,10 +156,7 @@ export const compareEvidenceBundles = async (
     }
   }
 
-  const status =
-    records_added + records_removed + records_changed + unknowns_added + unknowns_removed + unknowns_advanced + unknowns_diverged > 0
-      ? 'changed'
-      : 'unchanged';
+  const status = records_added + records_removed + records_changed + unknowns_added + unknowns_removed + unknowns_advanced + unknowns_diverged > 0 ? 'changed' : 'unchanged';
 
   return {
     parameters: {

@@ -1,6 +1,5 @@
 import type { ExtensionAPI, ToolDefinition } from '@earendil-works/pi-coding-agent';
 import { expect, test } from 'vitest';
-
 import { PLAN_BASH, PLAN_ENTRY, parsePlanArgs, planBlockReason, planFromBranch, planSection, planTools, registerPlanMode } from '../src/plan.ts';
 
 type Handler = (event: unknown, ctx: unknown) => unknown;
@@ -33,7 +32,7 @@ function harness(initialTools = ['read', 'bash', 'edit', 'write', 'Task', 'TodoW
   };
   const plan = registerPlanMode(pi);
   const emit = (event: string, payload: unknown = {}) => (handlers.get(event) ?? []).map((handler) => handler(payload, ctx));
-  const run = (args: string) => commands.get('plan')!.handler(args, ctx);
+  const run = (args: string) => (commands.get('plan') as { handler: (args: string, ctx: unknown) => Promise<void> }).handler(args, ctx);
   return { plan, tools, entries, sent, notes, status, emit, run, active: () => active, setActive: (names: string[]) => (active = names) };
 }
 
@@ -105,7 +104,7 @@ test('blocks writers and unknown tools, and lets Task run unchanged for it to re
 test('restores plan mode from the session and drops a stray plan shell when off', async () => {
   const h = harness();
   await h.run('on');
-  const saved = h.entries.at(-1)!.data as { toolsBefore: string[] };
+  const saved = (h.entries.at(-1) as { data: unknown }).data as { toolsBefore: string[] };
   h.setActive(['read', 'bash', 'edit']);
   h.emit('session_start');
   expect(h.active()).toContain(PLAN_BASH);

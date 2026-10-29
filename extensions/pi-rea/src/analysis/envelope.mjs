@@ -5,15 +5,7 @@ export const PROVIDER = Object.freeze({ id: 'pi-rea', name: 'pi reverse-engineer
 export const CONFIDENCE = new Set(['derived', 'observed', 'inferred', 'unknown']);
 export const OBSERVATION_CONFIDENCE = new Set(['low', 'medium', 'high', 'exact']);
 export const AUTHORITY = new Set(['shipped-artifact', 'runtime-observation', 'user-supplied', 'artifact-bytes', 'ast-static-analysis', 'static-relationship-inference', 'toolchain-observation']);
-export const EVIDENCE_AUTHORITY = new Set([
-  'artifact-bytes',
-  'ast-static-analysis',
-  'static-relationship-inference',
-  'runtime-observation',
-  'toolchain-observation',
-  'user-supplied',
-  'cross-version-comparison',
-]);
+export const EVIDENCE_AUTHORITY = new Set(['artifact-bytes', 'ast-static-analysis', 'static-relationship-inference', 'runtime-observation', 'toolchain-observation', 'user-supplied', 'cross-version-comparison']);
 export const STATE = Object.freeze({ observed: 'observed', inferred: 'inferred', unknown: 'unknown' });
 export const COVERAGE_STATUS = new Set(['complete', 'partial', 'unavailable']);
 
@@ -85,8 +77,7 @@ export function observation({
     },
     identifier_strategy: identifierStrategy,
   };
-  const observationKey =
-    nodeIdentifier === null ? { label, properties } : { node_id: nodeIdentifier, ...semantic };
+  const observationKey = nodeIdentifier === null ? { label, properties } : { node_id: nodeIdentifier, ...semantic };
   return {
     ...semantic,
     observation_id: observationId(prefix, observationKey),
@@ -141,9 +132,7 @@ export function createEnvelope({
 export function graphNode({ prefix = 'jag', kind, identity, observations = [] }) {
   const resolvedIdentity = { stability: 'artifact-version', ...identity };
   const identifier = nodeId(prefix, { kind, identity: resolvedIdentity });
-  const resolvedObservations = observations
-    .map((item) => observation({ prefix, nodeIdentifier: identifier, ...item }))
-    .sort((left, right) => (left.observation_id < right.observation_id ? -1 : 1));
+  const resolvedObservations = observations.map((item) => observation({ prefix, nodeIdentifier: identifier, ...item })).sort((left, right) => (left.observation_id < right.observation_id ? -1 : 1));
   return {
     node_id: identifier,
     kind,
@@ -152,20 +141,9 @@ export function graphNode({ prefix = 'jag', kind, identity, observations = [] })
   };
 }
 
-const uniqueSortedStrings = (values) =>
-  [...new Set(values.map((value) => String(value)))].sort((left, right) => (left < right ? -1 : left > right ? 1 : 0));
+const uniqueSortedStrings = (values) => [...new Set(values.map((value) => String(value)))].sort((left, right) => (left < right ? -1 : left > right ? 1 : 0));
 
-export function edgeEvidence({
-  authority,
-  state,
-  confidence,
-  artifact,
-  location,
-  extractor,
-  resultCoverage = null,
-  limitations = [],
-  evidenceIds = [],
-}) {
+export function edgeEvidence({ authority, state, confidence, artifact, location, extractor, resultCoverage = null, limitations = [], evidenceIds = [] }) {
   const coverageBlock = resultCoverage ?? coverage({ status: 'complete', omittedCount: 0 });
   return {
     authority,
@@ -189,15 +167,7 @@ export function edgeEvidence({
   };
 }
 
-export function graphEdge({
-  source,
-  target,
-  relation,
-  properties = {},
-  evidence = null,
-  prefix = 'jag',
-  edgeId = null,
-}) {
+export function graphEdge({ source, target, relation, properties = {}, evidence = null, prefix = 'jag', edgeId = null }) {
   const identifierStrategy = { strategy: 'semantic-content-sha256', stability: 'relationship-exact' };
   const normalizedEvidence =
     evidence === null

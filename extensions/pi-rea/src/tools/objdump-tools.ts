@@ -12,12 +12,12 @@ export interface InspectWithObjdumpParams {
   readonly provider_executable?: string;
 }
 
-export const inspectWithObjdump = async (
-  session: ReaSession,
-  params: InspectWithObjdumpParams,
-  context: ToolCallContext = {},
-): Promise<AgentToolResult<unknown>> => {
-  const { record: inspection, path, resolvedPath } = await inspectWithObjdumpFromPath(params.path, {
+export const inspectWithObjdump = async (session: ReaSession, params: InspectWithObjdumpParams, context: ToolCallContext = {}): Promise<AgentToolResult<unknown>> => {
+  const {
+    record: inspection,
+    path,
+    resolvedPath,
+  } = await inspectWithObjdumpFromPath(params.path, {
     ...(context.cwd === undefined ? {} : { cwd: context.cwd }),
     ...(params.operation === undefined ? {} : { operation: params.operation }),
     ...(params.follow_debug_links === undefined ? {} : { follow_debug_links: params.follow_debug_links }),

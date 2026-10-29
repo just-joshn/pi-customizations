@@ -8,7 +8,7 @@ import { type EditFormatName, isEditFormatName } from '../feature.ts';
 import { formatRepositoryMapTokenLine, tokensRepoMapContent } from '../map/tokens-map.ts';
 import { transferModeSelection } from './factory.ts';
 import { fileTokenRows, formatFileTokenLines } from './file-token-listing.ts';
-import { editFormatAfterModelSwitch, rolesAfterEditorModelSwitch, rolesAfterMainModelSwitch } from './model-switch.ts';
+import { editFormatAfterModelSwitch, rolesAfterEditorModelSwitch, rolesAfterMainModelSwitch, rolesAfterWeakModelSwitch } from './model-switch.ts';
 import { addFiles, applySelection, dropAll, dropMatches, ModeSwitchError, readOnlyFiles, type SelectionEnv, saveSelectionCommands, selectionFromSnapshot } from './selection.ts';
 
 function selectionEnv(env: CommandEnv): SelectionEnv {
@@ -63,7 +63,7 @@ async function dispatchSlash(line: string, env: CommandEnv): Promise<void> {
   const args = space === -1 ? '' : trimmed.slice(space + 1);
   const command = editCommands.find((entry) => entry.name === name);
   if (!command) throw new ModeSwitchError(trimmed);
-  if (name === 'ask' || name === 'code' || name === 'architect' || name === 'context' || name === 'model' || name === 'editor-model' || name === 'tokens') {
+  if (name === 'ask' || name === 'code' || name === 'architect' || name === 'context' || name === 'model' || name === 'editor-model' || name === 'weak-model' || name === 'tokens') {
     throw new ModeSwitchError(trimmed);
   }
   await command.run(args, env);
@@ -255,6 +255,29 @@ export const editCommands: readonly CommandSpec[] = [
         weakModel: roles.weak,
       });
       env.host.output(`Editor model set to ${found.provider}/${found.id} for the next architect editor frame.`);
+    },
+  },
+  {
+    name: 'weak-model',
+    description: 'Switch the Weak Model to a new LLM',
+    async run(args, env) {
+      const modelName = args.trim();
+      if (!modelName) {
+        env.host.error('Please provide a weak model name.');
+        return;
+      }
+      const found = env.findPhysicalModel(modelName);
+      if (!found) {
+        env.host.error(`Model ${modelName} not found`);
+        return;
+      }
+      const main = env.snapshot.physicalModel;
+      if (!main) {
+        env.host.error('No physical model selected.');
+        return;
+      }
+      const roles = rolesAfterWeakModelSwitch({ main, editor: env.snapshot.editorModel, nextWeak: found });
+      env.save({ ...env.snapshot, physicalModel: roles.main, editorModel: roles.editor, weakModel: roles.weak });
     },
   },
   {

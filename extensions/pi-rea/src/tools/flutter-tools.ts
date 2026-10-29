@@ -16,12 +16,13 @@ export interface InspectDartAotParams {
   readonly detail?: 'complete' | 'summary';
 }
 
-export const identifyFlutterBuild = async (
-  session: ReaSession,
-  params: IdentifyFlutterBuildParams,
-  context: ToolCallContext = {},
-): Promise<AgentToolResult<unknown>> => {
-  const { record: inspection, limitations, path, resolvedPath } = await identifyFlutterBuildFromPath(params.path, {
+export const identifyFlutterBuild = async (session: ReaSession, params: IdentifyFlutterBuildParams, context: ToolCallContext = {}): Promise<AgentToolResult<unknown>> => {
+  const {
+    record: inspection,
+    limitations,
+    path,
+    resolvedPath,
+  } = await identifyFlutterBuildFromPath(params.path, {
     ...(context.cwd === undefined ? {} : { cwd: context.cwd }),
   });
   const record = createEvidence({
@@ -50,12 +51,12 @@ export const identifyFlutterBuild = async (
   return evidenceResult(record);
 };
 
-export const inspectDartAot = async (
-  session: ReaSession,
-  params: InspectDartAotParams,
-  context: ToolCallContext = {},
-): Promise<AgentToolResult<unknown>> => {
-  const { record: inspection, path, resolvedPath } = await inspectDartAotFromPath(params.path, {
+export const inspectDartAot = async (session: ReaSession, params: InspectDartAotParams, context: ToolCallContext = {}): Promise<AgentToolResult<unknown>> => {
+  const {
+    record: inspection,
+    path,
+    resolvedPath,
+  } = await inspectDartAotFromPath(params.path, {
     ...(context.cwd === undefined ? {} : { cwd: context.cwd }),
     ...(params.abi === undefined ? {} : { abi: params.abi }),
     ...(params.detail === undefined ? {} : { detail: params.detail }),

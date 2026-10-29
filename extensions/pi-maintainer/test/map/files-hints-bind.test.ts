@@ -7,6 +7,7 @@ import { type ContextMessage, getCurMessageText } from '../../src/core/context.t
 import { getFileMentions } from '../../src/core/mentions.ts';
 import { getIdentFilenameMatches, getIdentMentions, type RepoMapEnv, requestRepoMap } from '../../src/core/repo-map.ts';
 import { disabledGitPolicy, type MapRequest } from '../../src/feature.ts';
+import { createRepositoryContext } from '../../src/map/context.ts';
 import { commitFile, initRepo, policyIn, recordingHost, tempDir } from '../git/support.ts';
 import { defined } from '../support/defined.ts';
 
@@ -103,4 +104,42 @@ test('mention hints come from current messages only via path, unique punctuated 
   const mentioned = new Set([...getFileMentions({ content: text, addable, inchat: [], readOnly: [], ignoreCurrent: false }), ...getIdentFilenameMatches(getIdentMentions(text), addable)]);
   expect(mentioned.has('unique_file.py')).toBe(true);
   expect(mentioned.has('gone.py')).toBe(false);
+});
+
+test('rendered map text lists other files and omits every chat file', {
+  meta: {
+    aider: ['test_repomap/MyClass.test_get_repo_map_excludes_added_files'],
+    evidence: ['ev-map/probe/map-with-chat-file'],
+  },
+}, async () => {
+  const root = await tempDir('map-files-rendered-');
+  for (const [name, body] of [
+    ['chat.py', 'x = 1\n'],
+    ['other.py', 'y = 2\n'],
+    ['notes.md', '# notes\n'],
+    ['data.json', '{}\n'],
+  ] as const) {
+    await writeFile(join(root, name), body);
+  }
+  const map = createRepositoryContext({
+    root,
+    mapTokens: 1024,
+    useRepoMap: true,
+    maxInputTokens: 16_384,
+    maxContextWindow: 32_768,
+    mapMulNoFiles: 8,
+    mapRefresh: 'always',
+    repoContentPrefix: null,
+    readText: async (path) => (await import('node:fs/promises')).readFile(path, 'utf8'),
+  });
+  const text = await map.repoMap({
+    chatFiles: new Set([join(root, 'chat.py')]),
+    otherFiles: new Set([join(root, 'other.py'), join(root, 'notes.md'), join(root, 'data.json')]),
+    mentionedFnames: new Set(),
+    mentionedIdents: new Set(),
+  });
+  expect(text).toContain('other.py');
+  expect(text).toContain('notes.md');
+  expect(text).toContain('data.json');
+  expect(text).not.toContain('chat.py');
 });

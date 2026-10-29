@@ -12,10 +12,7 @@ export interface InspectSignatureParams {
   readonly native_command_timeout_ms?: number;
 }
 
-export const inspectSignature = async (
-  session: ReaSession,
-  params: InspectSignatureParams = {},
-): Promise<AgentToolResult<unknown>> => {
+export const inspectSignature = async (session: ReaSession, params: InspectSignatureParams = {}): Promise<AgentToolResult<unknown>> => {
   const target = session.target;
   if (target === undefined) {
     throw targetUnavailable('No target is open. Call open_binary with a local Mach-O path before inspecting a code signature.');
@@ -49,7 +46,7 @@ export const inspectSignature = async (
     input_path: target.identity.path,
   };
   if (params.native_command_timeout_ms !== undefined) {
-    parameters.native_command_timeout_ms = params.native_command_timeout_ms;
+    parameters['native_command_timeout_ms'] = params.native_command_timeout_ms;
   }
   const record = createEvidence({
     subject: {

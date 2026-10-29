@@ -1,6 +1,6 @@
-import { existsSync, realpathSync } from 'node:fs';
+import { existsSync, realpathSync, statSync } from 'node:fs';
 import { readFile, writeFile } from 'node:fs/promises';
-import { isAbsolute, join, resolve } from 'node:path';
+import { dirname, isAbsolute, join, resolve } from 'node:path';
 
 import { BRANDING } from '../branding.ts';
 import type { Host } from '../core/host.ts';
@@ -19,6 +19,15 @@ function canonical(path: string): string {
   }
 }
 
+/** Aider discovers the repository from a named file's parent directory. */
+function isDirectory(path: string): boolean {
+  try {
+    return statSync(path).isDirectory();
+  } catch {
+    return false;
+  }
+}
+
 /** The directory holding `.git` at or above `cwd`, as Aider's `get_git_root` finds the repository. */
 export function discoverGitRoot(cwd: string): string | null {
   const found = findGitRoot(cwd);
@@ -31,7 +40,7 @@ async function gitExec(host: Host, cwd: string, args: readonly string[]) {
 
 async function resolveToplevel(host: Host, path: string): Promise<string | null> {
   const probe = resolve(path);
-  const cwd = existsSync(probe) ? probe : resolve(probe, '..');
+  const cwd = isDirectory(probe) ? probe : dirname(probe);
   const shown = await gitExec(host, cwd, ['rev-parse', '--show-toplevel']);
   if (shown.code !== 0) return null;
   const root = shown.stdout.trim();
@@ -89,7 +98,12 @@ function refuseIndexVersion(host: Host): false {
   return false;
 }
 
-/** Refuse bare, corrupt, and index versions above 2; accept detached HEAD. */
+/** GitPython reads index versions 1 through 3 and reports a staging warning above that (`aider/repo.py:479-484`). */
+function warnUnreadableStaging(host: Host, version: number): void {
+  host.error(`Unable to read staged files: Unsupported git index version ${version}, only 1, 2, and 3 are supported`);
+}
+
+/** Refuse bare, corrupt, and unreadable indexes; accept detached HEAD and degraded index versions. */
 export async function sanityCheckRepo(host: Host, root: string): Promise<boolean> {
   const bare = await gitExec(host, root, ['rev-parse', '--is-bare-repository']);
   if (bare.code === 0 && bare.stdout.trim() === 'true') {
@@ -99,7 +113,7 @@ export async function sanityCheckRepo(host: Host, root: string): Promise<boolean
   const inside = await gitExec(host, root, ['rev-parse', '--is-inside-work-tree']);
   if (inside.code === 0 && inside.stdout.trim() === 'true') {
     const version = await indexVersion(host, root);
-    if (version !== null && version > 2) return refuseIndexVersion(host);
+    if (version !== null && version > 3) warnUnreadableStaging(host, version);
     const listed = await gitExec(host, root, ['ls-files', '--cached']);
     if (listed.code !== 0) {
       const errorMsg = listed.stderr.trim() || listed.stdout.trim() || 'Unable to read git repository';

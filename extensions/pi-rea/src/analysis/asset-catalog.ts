@@ -1,5 +1,5 @@
-
 import { createHash } from 'node:crypto';
+import type { Dirent } from 'node:fs';
 import { readdir, readFile, realpath, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 
@@ -39,9 +39,10 @@ const walkForCar = async (root: string, budget: { remaining: number }): Promise<
   const found: string[] = [];
   const stack = [root];
   while (stack.length > 0 && budget.remaining > 0) {
-    const current = stack.pop()!;
+    const current = stack.pop();
+    if (current === undefined) break;
     budget.remaining -= 1;
-    let entries;
+    let entries: Dirent[];
     try {
       entries = await readdir(current, { withFileTypes: true });
     } catch {
@@ -59,10 +60,7 @@ const walkForCar = async (root: string, budget: { remaining: number }): Promise<
   return found;
 };
 
-export const inspectAssetCatalogInBundle = async (
-  bundleRoot: string,
-  options: { readonly offset?: number; readonly limit?: number } = {},
-): Promise<AssetCatalogInspection> => {
+export const inspectAssetCatalogInBundle = async (bundleRoot: string, options: { readonly offset?: number; readonly limit?: number } = {}): Promise<AssetCatalogInspection> => {
   let canonical: string;
   try {
     canonical = await realpath(bundleRoot);

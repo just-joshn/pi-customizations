@@ -1,12 +1,10 @@
-
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { isAbsolute, resolve } from 'node:path';
 
 import { invalidRequest } from '../contract/errors.ts';
 
-export const MODEL_HEADER_ENVELOPE_LIMITATION =
-  'Full-file identity is unknown in header-only mode; normalized_result.artifact records a scoped header SHA-256 and exact source path/extent.';
+export const MODEL_HEADER_ENVELOPE_LIMITATION = 'Full-file identity is unknown in header-only mode; normalized_result.artifact records a scoped header SHA-256 and exact source path/extent.';
 
 export const MODEL_RESULT_LIMITATIONS = [
   'Facts are file declarations; model behavior, weight values and compatibility with an inference runtime were not verified.',
@@ -129,13 +127,22 @@ const inputError = (path: string, reason: string, detail: string) =>
 
 const sha256 = (bytes: Buffer): string => createHash('sha256').update(bytes).digest('hex');
 
+const firstByte = (bytes: Buffer): number => {
+  const value = bytes[0];
+  if (value === undefined) throw new Error('truncated primitive preview');
+  return value;
+};
+
 const product = (shape: readonly number[]): bigint => shape.reduce((acc, dim) => acc * BigInt(dim), 1n);
 
 const alignUp = (value: number, alignment: number): number => (alignment <= 1 ? value : (value + alignment - 1) & ~(alignment - 1));
 
 class Reader {
   offset = 0;
-  constructor(readonly buffer: Buffer) {}
+  readonly buffer: Buffer;
+  constructor(buffer: Buffer) {
+    this.buffer = buffer;
+  }
   need(n: number, label: string): void {
     if (this.offset + n > this.buffer.length) throw new Error(`truncated at ${label}`);
   }
@@ -183,7 +190,8 @@ class Reader {
   }
   string(): string {
     const length = Number(this.u64());
-    if (!Number.isSafeInteger(length) || length < 0 || length > 1_048_576) throw new Error('string length out of range');
+    if (!Number.isSafeInteger(length)) throw new Error('string length exceeds exact host offset precision');
+    if (length < 0 || length > 1_048_576) throw new Error('string length out of range');
     return this.take(length).toString('utf8');
   }
 }
@@ -191,7 +199,7 @@ class Reader {
 const readGgufValue = (reader: Reader, type: number): { typeName: string; value: unknown; elementType: string | null; elementCount: number | null; previewComplete: boolean } => {
   switch (type) {
     case 0:
-      return { typeName: 'UINT8', value: reader.take(1)[0]!, elementType: null, elementCount: null, previewComplete: true };
+      return { typeName: 'UINT8', value: firstByte(reader.take(1)), elementType: null, elementCount: null, previewComplete: true };
     case 1:
       return { typeName: 'INT8', value: reader.take(1).readInt8(0), elementType: null, elementCount: null, previewComplete: true };
     case 2:
@@ -205,13 +213,14 @@ const readGgufValue = (reader: Reader, type: number): { typeName: string; value:
     case 6:
       return { typeName: 'FLOAT32', value: reader.f32(), elementType: null, elementCount: null, previewComplete: true };
     case 7:
-      return { typeName: 'BOOL', value: reader.take(1)[0]! !== 0, elementType: null, elementCount: null, previewComplete: true };
+      return { typeName: 'BOOL', value: firstByte(reader.take(1)) !== 0, elementType: null, elementCount: null, previewComplete: true };
     case 8:
       return { typeName: 'STRING', value: reader.string(), elementType: null, elementCount: null, previewComplete: true };
     case 9: {
       const elementType = reader.u32();
       const count = Number(reader.u64());
-      if (!Number.isSafeInteger(count) || count < 0 || count > 1_048_576) throw new Error('array count out of range');
+      if (!Number.isSafeInteger(count)) throw new Error('array count exceeds exact host offset precision');
+      if (count < 0 || count > 1_048_576) throw new Error('array count out of range');
       const previewLimit = Math.min(count, 8);
       const values: unknown[] = [];
       for (let index = 0; index < count; index += 1) {
@@ -238,21 +247,7 @@ const readGgufValue = (reader: Reader, type: number): { typeName: string; value:
 };
 
 const readGgufValueTypeName = (type: number): string => {
-  const names = [
-    'UINT8',
-    'INT8',
-    'UINT16',
-    'INT16',
-    'UINT32',
-    'INT32',
-    'FLOAT32',
-    'BOOL',
-    'STRING',
-    'ARRAY',
-    'UINT64',
-    'INT64',
-    'FLOAT64',
-  ];
+  const names = ['UINT8', 'INT8', 'UINT16', 'INT16', 'UINT32', 'INT32', 'FLOAT32', 'BOOL', 'STRING', 'ARRAY', 'UINT64', 'INT64', 'FLOAT64'];
   return names[type] ?? `TYPE_${type}`;
 };
 
@@ -266,7 +261,10 @@ const parseGguf = (bytes: Buffer, path: string, hashMode: 'header' | 'full'): Mo
   if (version !== 2 && version !== 3) throw inputError(path, 'invalid_format', `unsupported GGUF version ${version}.`);
   const tensorCount = Number(reader.u64());
   const metadataCount = Number(reader.u64());
-  if (![tensorCount, metadataCount].every((value) => Number.isSafeInteger(value) && value >= 0 && value <= 1_048_576)) {
+  if (![tensorCount, metadataCount].every((value) => Number.isSafeInteger(value) && value >= 0)) {
+    throw inputError(path, 'invalid_format', 'GGUF header length/count exceeds exact host offset precision.');
+  }
+  if (![tensorCount, metadataCount].every((value) => value <= 1_048_576)) {
     throw inputError(path, 'invalid_format', 'GGUF counts are out of range.');
   }
 
@@ -305,7 +303,9 @@ const parseGguf = (bytes: Buffer, path: string, hashMode: 'header' | 'full'): Mo
     for (let dim = 0; dim < nDims; dim += 1) shapeDims.push(Number(reader.u64()));
     const shape = shapeDims.map((dim) => String(dim));
     const typeId = reader.u32();
-    const dataOffset = Number(reader.u64());
+    const dataOffsetRaw = reader.u64();
+    if (dataOffsetRaw > BigInt(Number.MAX_SAFE_INTEGER)) throw new Error('tensor data offset exceeds exact host offset precision');
+    const dataOffset = Number(dataOffsetRaw);
     const typeInfo = GGUF_TYPES[typeId];
     const typeName = typeInfo?.name ?? `GGML_${typeId}`;
     const params = product(shapeDims);
@@ -525,10 +525,7 @@ export interface ModelArtifactOptions {
   readonly cwd?: string;
 }
 
-export const inspectModelArtifactFromPath = async (
-  path: string,
-  options: ModelArtifactOptions = {},
-): Promise<{ record: ModelArtifactInspection; path: string; resolvedPath: string }> => {
+export const inspectModelArtifactFromPath = async (path: string, options: ModelArtifactOptions = {}): Promise<{ record: ModelArtifactInspection; path: string; resolvedPath: string }> => {
   const hashMode = options.hash ?? 'header';
   if (hashMode !== 'header' && hashMode !== 'full') throw inputError(path, 'invalid_value', 'hash must be header or full.');
   const resolvedPath = isAbsolute(path) ? path : resolve(options.cwd ?? process.cwd(), path);

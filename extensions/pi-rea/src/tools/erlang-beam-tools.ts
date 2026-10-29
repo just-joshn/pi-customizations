@@ -15,12 +15,12 @@ export interface InspectErlangBeamParams {
   readonly view?: Record<string, unknown>;
 }
 
-export const inspectErlangBeam = async (
-  session: ReaSession,
-  params: InspectErlangBeamParams,
-  context: ToolCallContext = {},
-): Promise<AgentToolResult<unknown>> => {
-  const { record: inspection, path, resolvedPath } = await inspectErlangBeamFromPath(params.path, {
+export const inspectErlangBeam = async (session: ReaSession, params: InspectErlangBeamParams, context: ToolCallContext = {}): Promise<AgentToolResult<unknown>> => {
+  const {
+    record: inspection,
+    path,
+    resolvedPath,
+  } = await inspectErlangBeamFromPath(params.path, {
     ...(params.max_file_bytes === undefined ? {} : { maxFileBytes: params.max_file_bytes }),
     ...(params.max_chunks === undefined ? {} : { maxChunks: params.max_chunks }),
     ...(params.max_atoms === undefined ? {} : { maxAtoms: params.max_atoms }),

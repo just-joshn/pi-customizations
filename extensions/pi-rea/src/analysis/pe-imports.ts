@@ -1,19 +1,12 @@
-
 import { createHash } from 'node:crypto';
 
-import {
-  DIR,
-  mapRva,
-  parsePeImage,
-  peInputError,
-  readCString,
-  resolvePathBytes,
-  type PeFileLocation,
-  type PeImage,
-} from './pe-core.ts';
+import { resourceConstraint } from '../contract/errors.ts';
+import { DIR, mapRva, type PeFileLocation, type PeImage, parsePeImage, peInputError, readCString, resolvePathBytes } from './pe-core.ts';
 
 export const DEFAULT_MAX_DLLS = 256;
 export const DEFAULT_MAX_FUNCTIONS = 8192;
+const MAX_DLLS = 4096;
+const MAX_FUNCTIONS = 262_144;
 
 export const peImportsArchitecture = (architecture: string): string => {
   if (architecture === 'x86_64') return 'amd64';
@@ -88,8 +81,7 @@ const highBit = (bits: 32 | 64): bigint => (bits === 64 ? 0x8000_0000_0000_0000n
 
 const thunkHex = (raw: bigint): string => raw.toString(16);
 
-const readThunk = (bytes: Buffer, offset: number, bits: 32 | 64): bigint =>
-  bits === 64 ? bytes.readBigUInt64LE(offset) : BigInt(bytes.readUInt32LE(offset));
+const readThunk = (bytes: Buffer, offset: number, bits: 32 | 64): bigint => (bits === 64 ? bytes.readBigUInt64LE(offset) : BigInt(bytes.readUInt32LE(offset)));
 
 const readFunctions = (
   bytes: Buffer,
@@ -99,30 +91,22 @@ const readFunctions = (
   bits: 32 | 64,
   remaining: { count: number },
   issues: { code: string; location: string | null; message: string }[],
-  locationPrefix: string,
-): { functions: PeImportFunction[]; truncated: boolean } => {
+  functionBudget: () => Error,
+): PeImportFunction[] => {
   const functions: PeImportFunction[] = [];
   const entrySize = bits === 64 ? 8 : 4;
   const bit = highBit(bits);
-  let truncated = false;
   for (let index = 0; ; index += 1) {
-    if (remaining.count <= 0) {
-      truncated = true;
+    const entryRva = (nameTableRva === 0 ? addressTableRva : nameTableRva) + index * entrySize;
+    const entryOffset = mapRva(image.sections, entryRva);
+    if (entryOffset === undefined || entryOffset + entrySize > bytes.length) {
+      issues.push({ code: 'thunk_unreadable', location: `0x${entryRva.toString(16)}`, message: 'Virtual address or string range is not file mapped' });
       break;
     }
-    const iltOffset = nameTableRva === 0 ? undefined : mapRva(image.sections, nameTableRva + index * entrySize);
-    const iatOffset = mapRva(image.sections, addressTableRva + index * entrySize);
-    if (iatOffset === undefined || iatOffset + entrySize > bytes.length) {
-      issues.push({ code: 'thunk_unreadable', location: `${locationPrefix}/function/${index}`, message: 'IAT thunk does not map to a readable file range.' });
-      truncated = true;
-      break;
-    }
-    const raw = readThunk(bytes, iatOffset, bits);
-    const iltRaw =
-      iltOffset !== undefined && iltOffset + entrySize <= bytes.length ? readThunk(bytes, iltOffset, bits) : raw;
-    if (iltRaw === 0n && raw === 0n) break;
+    const source = readThunk(bytes, entryOffset, bits);
+    if (source === 0n) break;
+    if (remaining.count <= 0) throw functionBudget();
     remaining.count -= 1;
-    const source = nameTableRva !== 0 ? iltRaw : raw;
     let hint: number | null = null;
     let name: string | null = null;
     let ordinal: number | null = null;
@@ -132,11 +116,11 @@ const readFunctions = (
       const nameRva = Number(source & (bits === 64 ? 0x7fff_ffff_ffff_ffffn : 0x7fff_ffffn));
       const nameOffset = mapRva(image.sections, nameRva);
       if (nameOffset === undefined || nameOffset + 2 > bytes.length) {
-        issues.push({ code: 'name_unreadable', location: `${locationPrefix}/function/${index}`, message: 'Import name RVA does not map to a readable file range.' });
-      } else {
-        hint = bytes.readUInt16LE(nameOffset);
-        name = readCString(bytes, nameOffset + 2);
+        issues.push({ code: 'name_unreadable', location: `0x${nameRva.toString(16)}`, message: 'Virtual address or string range is not file mapped' });
+        continue;
       }
+      hint = bytes.readUInt16LE(nameOffset);
+      name = readCString(bytes, nameOffset + 2);
     }
     functions.push({
       hint,
@@ -147,10 +131,13 @@ const readFunctions = (
       thunk_hex: thunkHex(source),
     });
   }
-  return { functions, truncated };
+  return functions;
 };
 
-const imphashOf = (imports: readonly PeImportDll[]): { md5: string | null; reason: string | null } => {
+const imphashOf = (imports: readonly PeImportDll[], issueCount: number): { md5: string | null; reason: string | null } => {
+  if (issueCount > 0) {
+    return { md5: null, reason: `The standard import table is incomplete (${issueCount} issue(s)); a hash of the retained rows would not be this image's import hash.` };
+  }
   const parts: string[] = [];
   for (const dll of imports) {
     if (dll.name === null) return { md5: null, reason: 'A DLL name was unreadable, so imphash is withheld.' };
@@ -175,21 +162,21 @@ const readImportDirectory = (
   maxDlls: number,
   remaining: { count: number },
   issues: { code: string; location: string | null; message: string }[],
-): { imports: PeImportDll[]; truncated: boolean } => {
+  descriptorBudget: () => Error,
+  functionBudget: () => Error,
+): PeImportDll[] => {
   const directory = image.directories[DIR.IMPORT];
-  if (directory === undefined || (directory.rva === 0 && directory.size === 0)) return { imports: [], truncated: false };
+  if (directory === undefined || (directory.rva === 0 && directory.size === 0)) return [];
   const base = mapRva(image.sections, directory.rva);
   if (base === undefined) {
-    issues.push({ code: 'descriptor_unreadable', location: 'import_directory', message: 'Import directory RVA does not map to a readable file range.' });
-    return { imports: [], truncated: true };
+    issues.push({ code: 'descriptor_unreadable', location: `0x${directory.rva.toString(16)}`, message: 'Import descriptor: Virtual address or string range is not file mapped' });
+    return [];
   }
   const imports: PeImportDll[] = [];
-  let truncated = false;
-  for (let index = 0; index < maxDlls; index += 1) {
+  for (let index = 0; index <= maxDlls; index += 1) {
     const descriptor = base + index * 20;
     if (descriptor + 20 > bytes.length) {
-      issues.push({ code: 'descriptor_unreadable', location: `imports/${index}`, message: 'Import descriptor is truncated.' });
-      truncated = true;
+      issues.push({ code: 'descriptor_unreadable', location: `0x${(directory.rva + index * 20).toString(16)}`, message: 'Import descriptor: Virtual address or string range is not file mapped' });
       break;
     }
     const originalFirstThunk = bytes.readUInt32LE(descriptor);
@@ -198,15 +185,10 @@ const readImportDirectory = (
     const nameRva = bytes.readUInt32LE(descriptor + 12);
     const firstThunk = bytes.readUInt32LE(descriptor + 16);
     if (originalFirstThunk === 0 && nameRva === 0 && firstThunk === 0) break;
-    if (imports.length >= maxDlls) {
-      truncated = true;
-      break;
-    }
+    if (index === maxDlls) throw descriptorBudget();
     const nameOffset = mapRva(image.sections, nameRva);
     const name = nameOffset === undefined ? null : readCString(bytes, nameOffset);
-    if (name === null) issues.push({ code: 'name_unreadable', location: `imports/${index}`, message: 'DLL name RVA does not map to a readable string.' });
-    const { functions, truncated: fnTruncated } = readFunctions(bytes, image, originalFirstThunk, firstThunk, image.bits, remaining, issues, `imports/${index}`);
-    truncated = truncated || fnTruncated;
+    if (name === null) issues.push({ code: 'name_unreadable', location: `0x${nameRva.toString(16)}`, message: 'Import descriptor DLL name: Virtual address or string range is not file mapped' });
     imports.push({
       index,
       name,
@@ -216,10 +198,10 @@ const readImportDirectory = (
       time_date_stamp: timeDateStamp,
       forwarder_chain: forwarderChain,
       location: { offset: descriptor, bytes: 20 },
-      functions,
+      functions: readFunctions(bytes, image, originalFirstThunk, firstThunk, image.bits, remaining, issues, functionBudget),
     });
   }
-  return { imports, truncated };
+  return imports;
 };
 
 const readDelayImports = (
@@ -228,21 +210,21 @@ const readDelayImports = (
   maxDlls: number,
   remaining: { count: number },
   issues: { code: string; location: string | null; message: string }[],
-): { delayImports: PeDelayImportDll[]; truncated: boolean } => {
+  descriptorBudget: () => Error,
+  functionBudget: () => Error,
+): PeDelayImportDll[] => {
   const directory = image.directories[DIR.DELAY_IMPORT];
-  if (directory === undefined || (directory.rva === 0 && directory.size === 0)) return { delayImports: [], truncated: false };
+  if (directory === undefined || (directory.rva === 0 && directory.size === 0)) return [];
   const base = mapRva(image.sections, directory.rva);
   if (base === undefined) {
-    issues.push({ code: 'descriptor_unreadable', location: 'delay_import_directory', message: 'Delay-import directory RVA does not map to a readable file range.' });
-    return { delayImports: [], truncated: true };
+    issues.push({ code: 'descriptor_unreadable', location: `0x${directory.rva.toString(16)}`, message: 'Import descriptor: Virtual address or string range is not file mapped' });
+    return [];
   }
   const delayImports: PeDelayImportDll[] = [];
-  let truncated = false;
-  for (let index = 0; index < maxDlls; index += 1) {
+  for (let index = 0; index <= maxDlls; index += 1) {
     const descriptor = base + index * 32;
     if (descriptor + 32 > bytes.length) {
-      issues.push({ code: 'descriptor_unreadable', location: `delay_imports/${index}`, message: 'Delay-import descriptor is truncated.' });
-      truncated = true;
+      issues.push({ code: 'descriptor_unreadable', location: `0x${(directory.rva + index * 32).toString(16)}`, message: 'Import descriptor: Virtual address or string range is not file mapped' });
       break;
     }
     const attributes = bytes.readUInt32LE(descriptor);
@@ -254,14 +236,10 @@ const readDelayImports = (
     const unloadRva = bytes.readUInt32LE(descriptor + 24);
     const timeDateStamp = bytes.readUInt32LE(descriptor + 28);
     if (attributes === 0 && nameRva === 0 && iatRva === 0 && intRva === 0) break;
-    if (delayImports.length >= maxDlls) {
-      truncated = true;
-      break;
-    }
+    if (index === maxDlls) throw descriptorBudget();
     const nameOffset = mapRva(image.sections, nameRva);
     const name = nameOffset === undefined ? null : readCString(bytes, nameOffset);
-    const { functions, truncated: fnTruncated } = readFunctions(bytes, image, intRva, iatRva, image.bits, remaining, issues, `delay_imports/${index}`);
-    truncated = truncated || fnTruncated;
+    if (name === null) issues.push({ code: 'name_unreadable', location: `0x${nameRva.toString(16)}`, message: 'Import descriptor DLL name: Virtual address or string range is not file mapped' });
     delayImports.push({
       index,
       name,
@@ -274,10 +252,10 @@ const readDelayImports = (
       module_handle_rva: moduleHandleRva,
       time_date_stamp: timeDateStamp,
       location: { offset: descriptor, bytes: 32 },
-      functions,
+      functions: readFunctions(bytes, image, intRva, iatRva, image.bits, remaining, issues, functionBudget),
     });
   }
-  return { delayImports, truncated };
+  return delayImports;
 };
 
 export interface PeImportsOptions {
@@ -287,17 +265,14 @@ export interface PeImportsOptions {
   readonly cwd?: string;
 }
 
-export const inspectPeImportsFromPath = async (
-  path: string,
-  options: PeImportsOptions = {},
-): Promise<{ record: PeImportsInspection; path: string; resolvedPath: string }> => {
+export const inspectPeImportsFromPath = async (path: string, options: PeImportsOptions = {}): Promise<{ record: PeImportsInspection; path: string; resolvedPath: string }> => {
   const maxDlls = options.maxDlls ?? DEFAULT_MAX_DLLS;
   const maxFunctions = options.maxFunctions ?? DEFAULT_MAX_FUNCTIONS;
-  if (!Number.isInteger(maxDlls) || maxDlls < 1 || maxDlls > 65_536) {
-    throw peInputError('inspect_pe_imports', path, 'invalid_value', 'max_dlls must be an integer between 1 and 65536.');
+  if (!Number.isInteger(maxDlls) || maxDlls < 1 || maxDlls > MAX_DLLS) {
+    throw peInputError('inspect_pe_imports', path, 'invalid_value', `max_dlls must be an integer between 1 and ${MAX_DLLS}.`);
   }
-  if (!Number.isInteger(maxFunctions) || maxFunctions < 1 || maxFunctions > 1_048_576) {
-    throw peInputError('inspect_pe_imports', path, 'invalid_value', 'max_functions must be an integer between 1 and 1048576.');
+  if (!Number.isInteger(maxFunctions) || maxFunctions < 1 || maxFunctions > MAX_FUNCTIONS) {
+    throw peInputError('inspect_pe_imports', path, 'invalid_value', `max_functions must be an integer between 1 and ${MAX_FUNCTIONS}.`);
   }
 
   const { bytes, resolvedPath } = await resolvePathBytes(path, {
@@ -315,25 +290,31 @@ export const inspectPeImportsFromPath = async (
 
   const issues: { code: string; location: string | null; message: string }[] = [];
   const remaining = { count: maxFunctions };
-  const { imports, truncated: importTruncated } = readImportDirectory(bytes, image, maxDlls, remaining, issues);
-  const { delayImports, truncated: delayTruncated } = readDelayImports(bytes, image, maxDlls, remaining, issues);
-  const truncated = importTruncated || delayTruncated;
-  if (truncated) {
-    throw peInputError(
-      'inspect_pe_imports',
-      path,
-      'invalid_value',
-      `the import tables exceed the configured budget (max_dlls=${maxDlls}, max_functions=${maxFunctions}) or contain unreadable entries.`,
+  const descriptorBudget = () => {
+    const message = `Selected artifact ${resolvedPath}: Import inventory declares ${maxDlls + 1} descriptors, above the ${maxDlls}-entry DLL allowance`;
+    return resourceConstraint(
+      message,
+      { operation: 'inspect_pe_imports', resource: 'capacity', reason: message, reported_limits: { boundary: 'structure', maximum: maxDlls, limit: 'dlls' } },
+      `Raise max_dlls above ${maxDlls} or select a smaller artifact; the limit is the caller-selected DLL budget.`,
     );
-  }
+  };
+  const functionBudget = () => {
+    const message = `Selected artifact ${resolvedPath}: Import inventory declares ${maxFunctions + 1} functions, above the ${maxFunctions}-entry function allowance`;
+    return resourceConstraint(
+      message,
+      { operation: 'inspect_pe_imports', resource: 'capacity', reason: message, reported_limits: { boundary: 'structure', maximum: maxFunctions, limit: 'functions' } },
+      `Raise max_functions above ${maxFunctions} or select a smaller artifact; the limit is the caller-selected function budget.`,
+    );
+  };
+  const imports = readImportDirectory(bytes, image, maxDlls, remaining, issues, descriptorBudget, functionBudget);
+  const delayImports = readDelayImports(bytes, image, maxDlls, remaining, issues, descriptorBudget, functionBudget);
 
   const importDir = image.directories[DIR.IMPORT];
   const delayDir = image.directories[DIR.DELAY_IMPORT];
-  const hash = imphashOf(imports);
-  const importTableOffset =
-    importDir === undefined || (importDir.rva === 0 && importDir.size === 0) ? undefined : mapRva(image.sections, importDir.rva);
-  const delayTableOffset =
-    delayDir === undefined || (delayDir.rva === 0 && delayDir.size === 0) ? undefined : mapRva(image.sections, delayDir.rva);
+  const hash = imphashOf(imports, issues.length);
+  const coverageReason = issues.length === 0 ? null : `${issues.length} import table issue(s) affect reported rows or metadata; see issues`;
+  const importTableOffset = importDir === undefined || (importDir.rva === 0 && importDir.size === 0) ? undefined : mapRva(image.sections, importDir.rva);
+  const delayTableOffset = delayDir === undefined || (delayDir.rva === 0 && delayDir.size === 0) ? undefined : mapRva(image.sections, delayDir.rva);
 
   return {
     path,
@@ -345,27 +326,27 @@ export const inspectPeImportsFromPath = async (
       bits: image.bits,
       architecture: peImportsArchitecture(image.architecture),
       import_directory:
-        importDir === undefined || (importDir.rva === 0 && importDir.size === 0) || importTableOffset === undefined
+        importDir === undefined || (importDir.rva === 0 && importDir.size === 0)
           ? null
           : {
               rva: importDir.rva,
               size: importDir.size,
-              locations: [{ offset: importTableOffset, bytes: (imports.length + 1) * 20 }],
+              locations: importTableOffset === undefined ? [] : [{ offset: importTableOffset, bytes: (imports.length + 1) * 20 }],
             },
       delay_import_directory:
-        delayDir === undefined || (delayDir.rva === 0 && delayDir.size === 0) || delayTableOffset === undefined
+        delayDir === undefined || (delayDir.rva === 0 && delayDir.size === 0)
           ? null
           : {
               rva: delayDir.rva,
               size: delayDir.size,
-              locations: [{ offset: delayTableOffset, bytes: (delayImports.length + 1) * 32 }],
+              locations: delayTableOffset === undefined ? [] : [{ offset: delayTableOffset, bytes: (delayImports.length + 1) * 32 }],
             },
       imports,
       delay_imports: delayImports,
       imphash: { algorithm: 'pefile', md5: hash.md5, reason: hash.reason },
       coverage: {
-        status: 'complete',
-        reason: null,
+        status: issues.length === 0 ? 'complete' : 'partial',
+        reason: coverageReason,
         examined_dlls: imports.length + delayImports.length,
         imports: imports.reduce((sum, dll) => sum + dll.functions.length, 0),
         delay_imports: delayImports.reduce((sum, dll) => sum + dll.functions.length, 0),

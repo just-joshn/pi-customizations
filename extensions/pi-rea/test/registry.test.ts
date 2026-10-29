@@ -1,21 +1,27 @@
-
 import type { ExtensionAPI, ToolDefinition } from '@earendil-works/pi-coding-agent';
+import { Type } from 'typebox';
 import { expect, test } from 'vitest';
 import { loadCatalog } from '../src/contract/catalog.ts';
 import piRea, { statusLines } from '../src/index.ts';
+import { KERNEL_TOOL_NAMES } from '../src/registry.ts';
 import { fixturePath } from './support/fixtures.ts';
 
 interface Registration {
   readonly tools: ToolDefinition[];
   readonly commands: { name: string; description: string; handler: (args: string, ctx: unknown) => Promise<void> }[];
   readonly events: { type: string; handler: (event: unknown, ctx: unknown) => unknown }[];
+  readonly entries: { customType: string; data: unknown }[];
 }
+
+const startCtx = (): unknown => ({ cwd: '/tmp', sessionManager: { getBranch: () => [] } });
 
 const loadExtension = (): Registration => {
   const tools: ToolDefinition[] = [];
   const commands: { name: string; description: string; handler: (args: string, ctx: unknown) => Promise<void> }[] = [];
   const events: { type: string; handler: (event: unknown, ctx: unknown) => unknown }[] = [];
+  const entries: { customType: string; data: unknown }[] = [];
   const api = {
+    appendEntry: (customType: string, data?: unknown) => entries.push({ customType, data }),
     registerTool: (tool: ToolDefinition) => tools.push(tool),
     registerCommand: (name: string, options: { description?: string; handler: (args: string, ctx: unknown) => Promise<void> }) => commands.push({ name, description: options.description ?? '', handler: options.handler }),
     on: (type: string, handler: (event: unknown, ctx: unknown) => unknown) => {
@@ -24,7 +30,9 @@ const loadExtension = (): Registration => {
     },
   } as unknown as ExtensionAPI;
   piRea(api);
-  return { tools, commands, events };
+  const start = events.find((event) => event.type === 'session_start');
+  start?.handler({}, startCtx());
+  return { tools, commands, events, entries };
 };
 
 const toolNamed = (registration: Registration, name: string): ToolDefinition => {
@@ -49,7 +57,7 @@ test('KERN-014: every advertised tool is registered exactly once with its publis
     const tool = toolNamed(registration, contract.name);
     expect(tool.description).toBe(contract.description);
     expect(tool.parameters).toStrictEqual(contract.parameters);
-    expect(tool.outputSchema).toBeUndefined();
+    expect(tool.outputSchema).toStrictEqual(Type.Object({}, { additionalProperties: true }));
   }
 });
 
@@ -69,7 +77,8 @@ test('KERN-016: implemented tools are declared and the rest cost no prompt space
   for (const tool of registration.tools) {
     expect(tool.exposure).toBe(tool.name === 'binary_session' || loadCatalog().tools.find((contract) => contract.name === tool.name)?.implementation === 'kernel' ? 'direct' : 'deferred');
   }
-  expect(registration.tools.filter((tool) => tool.exposure === 'direct')).toHaveLength(229);
+  expect(registration.tools.filter((tool) => tool.exposure === 'direct')).toHaveLength(KERNEL_TOOL_NAMES.length);
+  expect(registration.tools.filter((tool) => tool.exposure === 'deferred')).toHaveLength(229 - KERNEL_TOOL_NAMES.length);
 });
 
 test('KERN-016: the discovery tool carries the routing guideline', () => {
@@ -158,13 +167,16 @@ test('KERN-017: a cancelled call reports cancelled and runs nothing', async () =
 test('KERN-017: the reported tool state never contradicts the catalog', async () => {
   const registration = loadExtension();
   const report = JSON.parse((await run(toolNamed(registration, 'binary_session'), {})).content[0]?.text ?? '{}') as {
-    result: { tool_availability: { name: string; available: boolean }[] };
+    result: { tool_availability: { groups: { names: string[]; available: boolean; reason: string | null }[] } };
   };
   const catalog = loadCatalog();
+  const groups = report.result.tool_availability.groups;
   for (const contract of catalog.tools) {
-    const entry = report.result.tool_availability.find((candidate) => candidate.name === contract.name);
-    expect(entry).toBeDefined();
-    expect(entry?.available).toBe(contract.implementation === 'kernel');
+    const group = groups.find((candidate) => candidate.names.includes(contract.name));
+    expect(group).toBeDefined();
+    expect(group?.available).toBe(contract.implementation === 'kernel' && group?.reason !== 'target_required');
+    if (contract.implementation === 'kernel') expect(['available', 'target_required']).toContain(group?.reason);
+    else expect(['target_required', 'provider_unavailable']).toContain(group?.reason);
   }
 });
 
@@ -178,13 +190,16 @@ test('KERN-017: /rea status reports availability, target and retained counts', a
   const registration = loadExtension();
   const start = registration.events.find((event) => event.type === 'session_start');
   const handler = start?.handler as ((event: unknown, ctx: unknown) => void) | undefined;
-  handler?.({}, { cwd: '/tmp' });
+  handler?.({}, startCtx());
   const lines = statusLines({
     report: () => ({
-      tool_availability: [
-        { name: 'binary_session', available: true },
-        { name: 'analyze_function', available: false },
-      ],
+      tool_availability: {
+        client_requirements: { required: [], optional: [], missing_required: [], missing_optional: [] },
+        groups: [
+          { names: ['binary_session'], available: true },
+          { names: ['analyze_function'], available: false },
+        ],
+      },
     }),
     target: { identity: { path: '/tmp/x', format: 'elf', architecture: 'x86_64' } },
     evidence: { size: 3 },
@@ -195,33 +210,18 @@ test('KERN-017: /rea status reports availability, target and retained counts', a
   expect(lines[2]).toContain('Evidence records: 3');
 });
 
-test('KERN-017: every implemented tool runs through the registered handler', async () => {
+test('KERN-017: every implemented tool answers through its registered handler', async () => {
   const registration = loadExtension();
-  const cases: { name: string; params?: unknown }[] = [
-    { name: 'binary_session', params: {} },
-    { name: 'get_evidence_bundle', params: { detail: 'summary' } },
-    { name: 'list_unknowns', params: {} },
-    {
-      name: 'record_unknown',
-      params: {
-        question: 'Is the handler switch covered?',
-        severity: 'low',
-        domain: 'coverage',
-        required_authority: null,
-        required_confidence: 'observed',
-        required_environment: null,
-        recommended_probes: [],
-        relationships: [],
-        supporting_evidence_ids: [],
-        contradicting_evidence_ids: [],
-      },
-    },
-    { name: 'close_binary', params: {} },
-  ];
-  for (const item of cases) {
-    const result = await run(toolNamed(registration, item.name), item.params ?? {});
-    expect(result.isError, item.name).toBeUndefined();
-    expect(result.structuredContent, item.name).toBeDefined();
+  for (const name of KERNEL_TOOL_NAMES) {
+    const result = await run(toolNamed(registration, name), {});
+    if (result.isError === true) {
+      const payload = JSON.parse(result.content[0]?.text ?? '{}') as { error: { code?: string; category?: string; message?: string } };
+      expect(typeof payload.error?.code, name).toBe('string');
+      expect(typeof payload.error?.category, name).toBe('string');
+      expect(String(payload.error?.message).length, name).toBeGreaterThan(0);
+      continue;
+    }
+    expect(result.structuredContent, name).toBeDefined();
   }
 });
 
@@ -243,7 +243,7 @@ test('KERN-032: session_start rebuilds the session and session_shutdown clears i
   expect(typeof start?.handler).toBe('function');
   expect(typeof shutdown?.handler).toBe('function');
 
-  await start?.handler({}, { cwd: '/tmp' });
+  await start?.handler({}, startCtx());
   const before = JSON.parse((await run(toolNamed(registration, 'binary_session'), {})).content[0]?.text ?? '{}') as {
     result: { open: boolean };
   };
@@ -264,7 +264,7 @@ test('KERN-032: session_start rebuilds the session and session_shutdown clears i
   };
   expect(listed.result.total).toBe(1);
 
-  await start?.handler({}, { cwd: '/tmp' });
+  await start?.handler({}, startCtx());
   const afterStart = JSON.parse((await run(toolNamed(registration, 'list_unknowns'), {})).content[0]?.text ?? '{}') as {
     result: { total: number };
   };

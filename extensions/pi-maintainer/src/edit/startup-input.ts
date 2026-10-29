@@ -9,6 +9,10 @@ export interface AdmitInitialEditableOptions {
   readonly host: Notices;
   readonly allowCreation: boolean;
   readonly isOrdinaryFile?: (path: string) => Promise<boolean>;
+  /** Aider `self.repo.git_ignored_file`: skip explicitly named ignored files unless admitted. */
+  readonly isGitIgnored?: (path: string) => Promise<boolean>;
+  /** Aider `add_gitignore_files`, which lets an explicitly named ignored file join the chat. */
+  readonly addGitignoreFiles?: boolean;
 }
 
 async function defaultIsOrdinaryFile(path: string): Promise<boolean> {
@@ -25,6 +29,10 @@ export async function admitInitialEditable(paths: readonly string[], options: Ad
   const editable: string[] = [];
   for (const path of paths) {
     const full = absRootPath(options.cwd, path);
+    if (options.isGitIgnored && !options.addGitignoreFiles && (await options.isGitIgnored(path))) {
+      options.host.warning(`Skipping ${path} that matches gitignore spec.`);
+      continue;
+    }
     if (!(await options.tree.exists(full))) {
       if (!options.allowCreation) {
         options.host.warning(`Recovery refused startup creation of ${path}.`);

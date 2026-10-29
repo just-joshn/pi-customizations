@@ -1,4 +1,3 @@
-
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { isAbsolute, resolve } from 'node:path';
@@ -230,10 +229,7 @@ export const inspectPeResourcesFromPath = async (path: string, options: PeResour
 
   const callerPath = path;
   const resourceBase = directoryOffset ?? 0;
-  const walk = (
-    offset: number,
-    node: { type?: PeResourceName; name?: PeResourceName; pathNames: readonly PeResourceName[]; locations: PeFileLocation[] },
-  ): void => {
+  const walk = (offset: number, node: { type?: PeResourceName; name?: PeResourceName; pathNames: readonly PeResourceName[]; locations: PeFileLocation[] }): void => {
     const directory = readDirectory(offset, node.pathNames, node.locations);
     const total = entryCount(directory);
     examinedEntries += total;

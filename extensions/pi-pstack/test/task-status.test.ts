@@ -4,8 +4,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
-import { writeRecord } from '../src/task/records.ts';
 import { subagentDir } from '../src/paths.ts';
+import { writeRecord } from '../src/task/records.ts';
 import { agentStatus, lastAssistantText, listAgentStatuses, registerAgentStatus, statusText } from '../src/task/status.ts';
 
 const idOf = (n: number) => `${String(n).padStart(8, '0')}-2222-4333-8444-555555555555`;
@@ -19,7 +19,13 @@ function addAgent(n: number, extra: Record<string, unknown> = {}): string {
 
 function addTranscript(agentId: string, texts: string[]): string {
   const header = { type: 'session', version: 3, id: agentId, timestamp: '2026-10-28T10:00:00.000Z', cwd: '/w/app' };
-  const messages = texts.map((text, index) => ({ type: 'message', id: `e${index}`, parentId: index === 0 ? null : `e${index - 1}`, timestamp: '2026-10-28T10:00:01.000Z', message: { role: index % 2 === 0 ? 'user' : 'assistant', content: [{ type: 'text', text }] } }));
+  const messages = texts.map((text, index) => ({
+    type: 'message',
+    id: `e${index}`,
+    parentId: index === 0 ? null : `e${index - 1}`,
+    timestamp: '2026-10-28T10:00:01.000Z',
+    message: { role: index % 2 === 0 ? 'user' : 'assistant', content: [{ type: 'text', text }] },
+  }));
   const path = join(dir, `2026-10-28T10-00-00-000Z_${agentId}.jsonl`);
   writeFileSync(path, `${[header, ...messages].map((entry) => JSON.stringify(entry)).join('\n')}\n`);
   return path;

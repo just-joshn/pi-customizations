@@ -1,4 +1,3 @@
-
 import { invalidRequest, revisionConflict } from '../contract/errors.ts';
 import { AUTHORITIES, type Authority, CONFIDENCES, type Confidence, canonicalJson, type EvidenceEnvironment, ISOLATIONS, sha256Hex, UNKNOWN_ID_PATTERN } from './evidence.ts';
 

@@ -1,23 +1,18 @@
+// biome-ignore-all lint/correctness/noUndeclaredDependencies: design sketch kept as a frozen record; it imports Pi types only to sketch a shape and is never built or shipped.
+import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 
-import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
+export type EvidenceId = string & { readonly __brand: 'EvidenceId' };
 
-export type EvidenceId = string & { readonly __brand: "EvidenceId" };
+export type UnknownId = string & { readonly __brand: 'UnknownId' };
 
-export type UnknownId = string & { readonly __brand: "UnknownId" };
+export type AbsolutePath = string & { readonly __brand: 'AbsolutePath' };
 
-export type AbsolutePath = string & { readonly __brand: "AbsolutePath" };
+export type McpServerName = 'rea';
 
-export type McpServerName = "rea";
+export type Confidence = 'observed' | 'derived' | 'inferred';
+export type Authority = 'shipped-artifact' | 'controlled-replay' | 'historical-reference' | 'external-service' | 'analyst-inference';
 
-export type Confidence = "observed" | "derived" | "inferred";
-export type Authority =
-  | "shipped-artifact"
-  | "controlled-replay"
-  | "historical-reference"
-  | "external-service"
-  | "analyst-inference";
-
-export type ToolImplementation = "kernel" | "analyzer" | "unavailable";
+export type ToolImplementation = 'kernel' | 'analyzer' | 'unavailable';
 
 export interface ToolAnnotations {
   readonly readOnlyHint: boolean;
@@ -48,9 +43,9 @@ export interface PromptContract {
 }
 
 export interface ToolCatalog {
-  readonly kind: "pi-rea-tool-contracts";
+  readonly kind: 'pi-rea-tool-contracts';
   readonly oracle: {
-    readonly release: "6.8.0";
+    readonly release: '6.8.0';
     readonly tools_sha256: string;
     readonly prompts_sha256: string;
     readonly combined_sha256: string;
@@ -85,7 +80,7 @@ export interface EvidenceRecord {
   } | null;
   readonly provider: { readonly id: string; readonly name: string; readonly version: string | null };
   readonly analysis_profile: Record<string, unknown> | null;
-  readonly predicate_type: "rea.analysis" | "rea.residual-unknown-mutation";
+  readonly predicate_type: 'rea.analysis' | 'rea.residual-unknown-mutation';
   readonly operation: string;
   readonly parameters: Record<string, unknown>;
   readonly raw_result: unknown;
@@ -108,9 +103,7 @@ export interface EvidenceBundle {
   readonly unknowns: readonly Record<string, unknown>[];
 }
 
-export type SessionPhase =
-  | { readonly kind: "closed" }
-  | { readonly kind: "open"; readonly target: TargetBinding };
+export type SessionPhase = { readonly kind: 'closed' } | { readonly kind: 'open'; readonly target: TargetBinding };
 
 export interface AvailabilityEntry {
   readonly names: readonly string[];
@@ -128,27 +121,27 @@ export interface BinarySessionReport {
     readonly groups: readonly AvailabilityEntry[];
   };
   readonly server_identity: {
-    readonly package: { readonly name: "pi-rea"; readonly version: string; readonly root_path: string };
+    readonly package: { readonly name: 'pi-rea'; readonly version: string; readonly root_path: string };
     readonly server: { readonly name: McpServerName; readonly version: string; readonly started_at: string };
-    readonly catalog: ToolCatalog["oracle"] & { readonly counts: ToolCatalog["counts"] };
-    readonly skill: { readonly name: "reverse-engineer-anything"; readonly expected_version: string };
+    readonly catalog: ToolCatalog['oracle'] & { readonly counts: ToolCatalog['counts'] };
+    readonly skill: { readonly name: 'reverse-engineer-anything'; readonly expected_version: string };
   };
   readonly [key: string]: unknown;
 }
 
 export type ReaErrorCode =
-  | "invalid_request"
-  | "capability_unavailable"
-  | "unsupported_target"
-  | "target_unavailable"
-  | "provider_unavailable"
-  | "resource_constraint"
-  | "cancelled"
-  | "evidence_integrity_mismatch"
-  | "configuration_invalid"
-  | "execution_failure"
-  | "revision_conflict"
-  | "timeout";
+  | 'invalid_request'
+  | 'capability_unavailable'
+  | 'unsupported_target'
+  | 'target_unavailable'
+  | 'provider_unavailable'
+  | 'resource_constraint'
+  | 'cancelled'
+  | 'evidence_integrity_mismatch'
+  | 'configuration_invalid'
+  | 'execution_failure'
+  | 'revision_conflict'
+  | 'timeout';
 
 export interface ReaErrorPayload {
   readonly code: ReaErrorCode;
@@ -163,29 +156,26 @@ export class ReaError extends Error {
   readonly payload: ReaErrorPayload;
   constructor(payload: ReaErrorPayload) {
     super(payload.message);
-    this.name = "ReaError";
+    this.name = 'ReaError';
     this.payload = payload;
   }
 }
 
-export type ToolOutcome =
-  | { readonly kind: "operation"; readonly result: unknown }
-  | { readonly kind: "evidence"; readonly record: EvidenceRecord }
-  | { readonly kind: "error"; readonly error: ReaError };
+export type ToolOutcome = { readonly kind: 'operation'; readonly result: unknown } | { readonly kind: 'evidence'; readonly record: EvidenceRecord } | { readonly kind: 'error'; readonly error: ReaError };
 
-export const REA_MCP_SERVER_NAME: McpServerName = "rea";
+export const REA_MCP_SERVER_NAME: McpServerName = 'rea';
 
-export const KERNEL_TOOL_EXPOSURE: Readonly<Record<string, "direct">> = {
-  binary_session: "direct",
-  open_binary: "direct",
-  close_binary: "direct",
-  get_evidence_bundle: "direct",
-  export_evidence_bundle: "direct",
-  import_evidence_bundle: "direct",
-  inspect_analysis_view: "direct",
-  list_unknowns: "direct",
-  record_unknown: "direct",
-  update_unknown: "direct",
+export const KERNEL_TOOL_EXPOSURE: Readonly<Record<string, 'direct'>> = {
+  binary_session: 'direct',
+  open_binary: 'direct',
+  close_binary: 'direct',
+  get_evidence_bundle: 'direct',
+  export_evidence_bundle: 'direct',
+  import_evidence_bundle: 'direct',
+  inspect_analysis_view: 'direct',
+  list_unknowns: 'direct',
+  record_unknown: 'direct',
+  update_unknown: 'direct',
 };
 
 export interface HostPaths {
@@ -195,18 +185,18 @@ export interface HostPaths {
 
 export function resolveHostPaths(fromImportMetaUrl: string): HostPaths {
   void fromImportMetaUrl;
-  throw new Error("not implemented");
+  throw new Error('not implemented');
 }
 
 export function registerReaMcpServer(pi: ExtensionAPI, paths?: HostPaths): void {
   void pi;
   void paths;
-  throw new Error("not implemented");
+  throw new Error('not implemented');
 }
 
 export function registerReaCommand(pi: ExtensionAPI): void {
   void pi;
-  throw new Error("not implemented");
+  throw new Error('not implemented');
 }
 
 export default function piRea(pi: ExtensionAPI): void {
@@ -228,11 +218,11 @@ export interface McpRuntime {
 
 export function createMcpRuntime(options: McpRuntimeOptions): Promise<McpRuntime> {
   void options;
-  throw new Error("not implemented");
+  throw new Error('not implemented');
 }
 
 export function loadCatalog(): ToolCatalog {
-  throw new Error("not implemented");
+  throw new Error('not implemented');
 }
 
 export interface ReaSession {
@@ -247,19 +237,14 @@ export interface ReaSession {
   bundle(): EvidenceBundle;
 }
 
-export function createReaSession(input: {
-  readonly cwd: string;
-  readonly version: string;
-  readonly packageRoot: string;
-  readonly catalog: ToolCatalog;
-}): ReaSession {
+export function createReaSession(input: { readonly cwd: string; readonly version: string; readonly packageRoot: string; readonly catalog: ToolCatalog }): ReaSession {
   void input;
-  throw new Error("not implemented");
+  throw new Error('not implemented');
 }
 
 export interface EvidenceLedger {
   readonly size: number;
-  append(draft: Omit<EvidenceRecord, "evidence_id">): EvidenceRecord;
+  append(draft: Omit<EvidenceRecord, 'evidence_id'>): EvidenceRecord;
   get(id: EvidenceId): EvidenceRecord | undefined;
   list(): readonly EvidenceRecord[];
   clear(): void;
@@ -274,60 +259,46 @@ export interface UnknownLedger {
   clear(): void;
 }
 
-export type ToolHandler = (
-  session: ReaSession,
-  args: Record<string, unknown>,
-  context: { readonly cwd: string; readonly signal?: AbortSignal },
-) => Promise<ToolOutcome>;
+export type ToolHandler = (session: ReaSession, args: Record<string, unknown>, context: { readonly cwd: string; readonly signal?: AbortSignal }) => Promise<ToolOutcome>;
 
 export type HandlerRegistry = ReadonlyMap<string, ToolHandler>;
 
 export function buildHandlerRegistry(catalog: ToolCatalog): HandlerRegistry {
   void catalog;
-  throw new Error("not implemented");
+  throw new Error('not implemented');
 }
 
-export async function dispatchTool(
-  registry: HandlerRegistry,
-  session: ReaSession,
-  name: string,
-  rawArgs: unknown,
-  context: { readonly cwd: string; readonly signal?: AbortSignal },
-): Promise<ToolOutcome> {
+export async function dispatchTool(registry: HandlerRegistry, session: ReaSession, name: string, rawArgs: unknown, context: { readonly cwd: string; readonly signal?: AbortSignal }): Promise<ToolOutcome> {
   void registry;
   void session;
   void name;
   void rawArgs;
   void context;
-  throw new Error("not implemented");
+  throw new Error('not implemented');
 }
 
-export function renderPrompt(
-  catalog: ToolCatalog,
-  name: string,
-  args: Record<string, string>,
-): { readonly description: string; readonly messages: readonly { readonly role: "user" | "assistant"; readonly content: string }[] } {
+export function renderPrompt(catalog: ToolCatalog, name: string, args: Record<string, string>): { readonly description: string; readonly messages: readonly { readonly role: 'user' | 'assistant'; readonly content: string }[] } {
   void catalog;
   void name;
   void args;
-  throw new Error("not implemented");
+  throw new Error('not implemented');
 }
 
 export function toCallToolResult(outcome: ToolOutcome, budgetBytes: number): unknown {
   void outcome;
   void budgetBytes;
-  throw new Error("not implemented");
+  throw new Error('not implemented');
 }
 
 export function parseAbsolutePath(raw: unknown, cwd: string): AbsolutePath {
   void raw;
   void cwd;
-  throw new Error("not implemented");
+  throw new Error('not implemented');
 }
 
 export function responseBudgetBytes(env: NodeJS.ProcessEnv): number {
   void env;
-  throw new Error("not implemented");
+  throw new Error('not implemented');
 }
 
 export interface AnalyzerModule {
@@ -339,7 +310,7 @@ export interface AnalyzerModule {
 }
 
 export function loadSiblingAnalyzers(): AnalyzerModule {
-  throw new Error("not implemented");
+  throw new Error('not implemented');
 }
 
 export interface SkillEngineAdapters {
@@ -352,7 +323,7 @@ export interface SkillEngineAdapters {
 
 export function loadSkillEngineAdapters(skillRoot: AbsolutePath): SkillEngineAdapters {
   void skillRoot;
-  throw new Error("not implemented");
+  throw new Error('not implemented');
 }
 
 export function _lifecycleReminder(_ctx: ExtensionContext): void {

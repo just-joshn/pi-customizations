@@ -10,6 +10,11 @@ function asRefresh(value: string | null): MapRefresh {
   return 'auto';
 }
 
+/** Aider `main.py:954`: `--cache-prompts` turns the automatic refresh policy into `files`. */
+export function effectiveMapRefresh(refresh: MapRefresh, cachePrompts: boolean): MapRefresh {
+  return cachePrompts && refresh === 'auto' ? 'files' : refresh;
+}
+
 /** The map SAR: `RepositoryContext` over Host/fs with Aider's map options. */
 export const mapFeature: Feature<RepositoryContext> & { readonly name: 'map' } = {
   name: 'map',
@@ -18,7 +23,11 @@ export const mapFeature: Feature<RepositoryContext> & { readonly name: 'map' } =
   create({ settings, cwd, gitRoot }) {
     const root = gitRoot ?? cwd;
     const mapTokens = settings.value(mapOptions.mapTokens);
-    return createRepositoryContext({
+    const cachePrompts = settings.value(mapOptions.cachePrompts);
+    const requestedRefresh = asRefresh(settings.value(mapOptions.mapRefresh));
+    const mapRefresh = effectiveMapRefresh(requestedRefresh, cachePrompts);
+    const cacheRefresh: 'files' | null = mapRefresh === requestedRefresh ? null : 'files';
+    const context = createRepositoryContext({
       root,
       mapTokens,
       // Model-name wiring lands with install-time policy; explicit tokens still enable the port.
@@ -26,7 +35,7 @@ export const mapFeature: Feature<RepositoryContext> & { readonly name: 'map' } =
       maxInputTokens: null,
       maxContextWindow: null,
       mapMulNoFiles: settings.value(mapOptions.mapMultiplierNoFiles) ?? 2,
-      mapRefresh: asRefresh(settings.value(mapOptions.mapRefresh)),
+      mapRefresh,
       repoContentPrefix: 'Here are summaries of some {other}files present in my git repository.\n\n',
       readText: async (absPath) => {
         try {
@@ -36,6 +45,9 @@ export const mapFeature: Feature<RepositoryContext> & { readonly name: 'map' } =
         }
       },
     });
+    return {
+      repoMap: (request, signal) => context.repoMap(cacheRefresh !== null && (request.refresh ?? 'auto') === 'auto' ? { ...request, refresh: cacheRefresh } : request, signal),
+    };
   },
 };
 

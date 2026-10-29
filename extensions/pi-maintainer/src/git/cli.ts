@@ -1,7 +1,6 @@
 import { relative, resolve, sep } from 'node:path';
 
 import type { ExecOutcome, Host } from '../core/host.ts';
-import { isolatedExec } from '../core/isolated-exec.ts';
 
 /** Normalize a repo-relative path the way Aider's `normalize_path` does on POSIX. */
 export function normalizeRepoPath(root: string, path: string): string {
@@ -12,13 +11,10 @@ export function normalizeRepoPath(root: string, path: string): string {
 
 export type GitRun = (args: readonly string[], options?: { readonly signal?: AbortSignal; readonly env?: Readonly<Record<string, string>> }) => Promise<ExecOutcome>;
 
-/** Run git via Host.exec; attribution env overlays use isolatedExec. */
+/** Run git via Host.exec; an attribution overlay layers over the resolved maintainer environment. */
 export function createGitRun(host: Host, root: string): GitRun {
   return async (args, options = {}) => {
-    if (options.env && Object.keys(options.env).length > 0) {
-      const base = Object.fromEntries(Object.entries(process.env).filter((entry): entry is [string, string] => entry[1] !== undefined));
-      return isolatedExec({ command: 'git', args, cwd: root, ...(options.signal ? { signal: options.signal } : {}) }, { ...base, ...options.env });
-    }
-    return host.exec({ command: 'git', args, cwd: root, ...(options.signal ? { signal: options.signal } : {}) });
+    const env = options.env && Object.keys(options.env).length > 0 ? options.env : undefined;
+    return host.exec({ command: 'git', args, cwd: root, ...(env ? { env } : {}), ...(options.signal ? { signal: options.signal } : {}) });
   };
 }

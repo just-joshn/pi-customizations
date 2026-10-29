@@ -12,7 +12,7 @@ From this directory, start Pi:
 pi -e .
 ```
 
-Run `/login` and choose **Claude subscription (Provider CLI)**. Login opens Claude Code's paste-code authorize URL (`https://claude.com/cai/oauth/authorize` with the measured scope set, including `user:plugins`). Complete sign-in in the browser, then paste the code into Pi. Select a `claude-subscription` model with `/model`.
+Run `/login`, choose **Claude subscription**, then **Claude subscription (Provider CLI)**. Login opens Claude Code's paste-code authorize URL (`https://claude.com/cai/oauth/authorize` with the measured scope set, including `user:plugins`). Complete sign-in in the browser, then paste the code into Pi. Select a `claude-subscription` model with `/model`.
 
 To install the package, run `pi install` with this directory's path.
 
@@ -54,7 +54,7 @@ Read the [parity matrix](docs/claude-oauth-parity.md) for verified behavior, del
 
 ## Tool-name limits
 
-OAuth tool renaming can fold names such as `Task` and `task`. The first declaration wins, so rename one tool if both are required. Pi `1.0.2` sends tool changes inline on capable models. When a transcript has colliding identities, the package preserves the upstream request-local compatibility adjustment that selects Pi's current-tool path. Other transcripts keep native inline tool changes. This trades inline cache reuse for consistent declarations and reply dispatch.
+OAuth tool renaming can fold names such as `Task` and `task`. The first declaration wins, so rename one tool if both are required. Pi `1.4.0` sends tool changes inline on capable models. When a transcript has colliding identities, the package preserves the upstream request-local compatibility adjustment that selects Pi's current-tool path. Other transcripts keep native inline tool changes. This trades inline cache reuse for consistent declarations and reply dispatch.
 
 ## Verify the integration
 
@@ -76,11 +76,11 @@ bunx vitest run --sequence.shuffle
 bun run prove
 ```
 
-From the repository root, `make verify-oauth` runs typecheck, coverage, and `bun run prove` for this package. The prove scripts use the pinned `@earendil-works/pi-coding-agent` `1.1.0` CLI bundle and local HTTP peers. They stay offline and do not need a separate `pi` install.
+From the repository root, `make verify-oauth` runs typecheck, coverage, and `bun run prove` for this package. The prove scripts use the pinned `@earendil-works/pi-coding-agent` `1.4.0` CLI bundle and local HTTP peers. They stay offline and do not need a separate `pi` install.
 
-The tests use native Pi providers, authentication, and streams against local HTTP peers. `prove-request-paths.ts` verifies normal prompts, compaction, virtual routing, and `models.json` header overrides. `prove-context-guard.ts` reproduces the cross-provider context-limit wedge with `--expect red` on the parent commit and verifies that the guard keeps every request under the window with `--expect green`. `prove-native.ts` verifies print, JSON, RPC, ambient authentication, session correlation, fork, reload, session replacement, tool execution, native Bash output, and cancellation.
+The tests use native Pi providers, authentication, and streams against local HTTP peers. `prove-request-paths.ts` verifies normal prompts, compaction, virtual routing, the default identity header on every path, the Claude session header, and `models.json` header overrides. `prove-context-guard.ts` reproduces the cross-provider context-limit wedge with `--expect red` on the parent commit and verifies that the guard keeps every request under the window with `--expect green`. `prove-native.ts` verifies print, JSON, RPC, ambient authentication, session correlation, fork, reload, session replacement, tool execution, native Bash output, and cancellation.
 
-These probes use disposable Pi directories and synthetic tokens. They do not contact Anthropic for inference or inspect your credentials. Set `PI_OAUTH_CLI_PATH` to an installed Pi's `dist/bundle/cli.js` to repeat them against that host. They otherwise use the package's pinned Pi `1.1.0` test dependency. Historical receipts for Pi `1.0.0` and `1.0.1` remain under `docs/verification/`.
+These probes use disposable Pi directories and synthetic tokens. They do not contact Anthropic for inference or inspect your credentials. Set `PI_OAUTH_CLI_PATH` to an installed Pi's `dist/bundle/cli.js` to repeat them against that host. They otherwise use the package's pinned Pi `1.4.0` test dependency. The `1.4.0` receipts and the historical `1.0.0`, `1.0.1`, and `1.1.0` receipts live under `docs/verification/`.
 
 Capture the installed Claude Code reference with Python 3:
 
@@ -96,7 +96,6 @@ From the repository root, run the packaging and style checks:
 
 ```bash
 bunx biome ci extensions/pi-anthropic-oauth --error-on-warnings --max-diagnostics=none
-bun run check:agents
 bun run check:tests
 node scripts/check-pi-mechanisms.mjs
 ```

@@ -62,6 +62,7 @@ function extent(values: Iterable<number>): { min: number; max: number } {
   return { min, max };
 }
 
+// A rendered chart is a validated chart: chartError rejected every series whose value count differs from the labels.
 function barText(chart: Chart): string[] {
   const max = maxAbs(chart);
   let labelWidth = 0;
@@ -69,10 +70,10 @@ function barText(chart: Chart): string[] {
   const lines: string[] = [];
   chart.labels.forEach((label, point) => {
     chart.series.forEach((series, index) => {
-      const value = series.values[point]!;
+      const value = series.values[point] as number;
       const cells = max === 0 ? 0 : Math.max(value === 0 ? 0 : 1, Math.round((Math.abs(value) / max) * BAR_WIDTH));
       const name = index === 0 ? label.padEnd(labelWidth) : ' '.repeat(labelWidth);
-      lines.push(`${name} │${BAR_FILLS[index % BAR_FILLS.length]!.repeat(cells)} ${formatValue(value, chart.unit)}`);
+      lines.push(`${name} │${(BAR_FILLS[index % BAR_FILLS.length] as string).repeat(cells)} ${formatValue(value, chart.unit)}`);
     });
   });
   return [...lines, ...legend(chart, BAR_FILLS)];
@@ -86,7 +87,7 @@ function lineText(chart: Chart): string[] {
     series.values.forEach((value, point) => {
       const column = chart.labels.length === 1 ? 0 : Math.round((point / (chart.labels.length - 1)) * (columns - 1));
       const row = max === min ? Math.floor(PLOT_HEIGHT / 2) : Math.round(((max - value) / (max - min)) * (PLOT_HEIGHT - 1));
-      grid[row]![column] = LINE_MARKS[index % LINE_MARKS.length]!;
+      (grid[row] as string[])[column] = LINE_MARKS[index % LINE_MARKS.length] as string;
     });
   });
   const top = formatValue(max, chart.unit);
@@ -96,8 +97,8 @@ function lineText(chart: Chart): string[] {
     const tick = row === 0 ? top : row === PLOT_HEIGHT - 1 ? bottom : '';
     return `${tick.padStart(axisWidth)} ${row === 0 || row === PLOT_HEIGHT - 1 ? '┤' : '│'}${cells.join('')}`;
   });
-  const first = chart.labels[0]!;
-  const last = chart.labels.at(-1)!;
+  const first = chart.labels[0] as string;
+  const last = chart.labels.at(-1) as string;
   const xLabels = chart.labels.length === 1 ? first : `${first}${' '.repeat(Math.max(1, columns - first.length - last.length))}${last}`;
   return [...rows, `${' '.repeat(axisWidth)} └${'─'.repeat(columns)}`, `${' '.repeat(axisWidth + 2)}${xLabels}`, ...legend(chart, LINE_MARKS)];
 }
@@ -109,8 +110,10 @@ export function renderChartText(chart: Chart): string {
 
 const PALETTE = ['#4e79a7', '#f28e2b', '#e15759', '#76b7b2', '#59a14f', '#edc948', '#b07aa1', '#ff9da7'];
 
+const XML_ESCAPES: Record<string, string> = { '<': '&lt;', '>': '&gt;', '&': '&amp;', "'": '&apos;', '"': '&quot;' };
+
 export function escapeXml(text: string): string {
-  return text.replace(/[<>&'"]/g, (char) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', "'": '&apos;', '"': '&quot;' })[char]!);
+  return text.replace(/[<>&'"]/g, (char) => XML_ESCAPES[char] as string);
 }
 
 const round = (value: number) => Math.round(value * 100) / 100;
@@ -149,12 +152,14 @@ export function renderChartSvg(chart: Chart): string {
   parts.push(`<line x1="${margin.left}" y1="${y(Math.max(min, Math.min(0, max)))}" x2="${width - margin.right}" y2="${y(Math.max(min, Math.min(0, max)))}" stroke="#333"/>`);
   const labelEvery = Math.max(1, Math.ceil(count / 20));
   chart.labels.forEach((label, point) => {
-    if (point % labelEvery !== 0) return;
-    const x = xCenter(point);
-    const labelY = margin.top + plotHeight + 16;
-    parts.push(`<text x="${x}" y="${labelY}" text-anchor="end" font-size="11" transform="rotate(-30 ${x} ${labelY})">${escapeXml(label)}</text>`);
+    if (point % labelEvery === 0) {
+      const x = xCenter(point);
+      const labelY = margin.top + plotHeight + 16;
+      parts.push(`<text x="${x}" y="${labelY}" text-anchor="end" font-size="11" transform="rotate(-30 ${x} ${labelY})">${escapeXml(label)}</text>`);
+    }
   });
-  if (chart.unit !== undefined && chart.unit !== '') parts.push(`<text x="18" y="${margin.top + plotHeight / 2}" text-anchor="middle" font-size="12" transform="rotate(-90 18 ${margin.top + plotHeight / 2})">${escapeXml(chart.unit)}</text>`);
+  if (chart.unit !== undefined && chart.unit !== '')
+    parts.push(`<text x="18" y="${margin.top + plotHeight / 2}" text-anchor="middle" font-size="12" transform="rotate(-90 18 ${margin.top + plotHeight / 2})">${escapeXml(chart.unit)}</text>`);
 
   chart.series.forEach((series, index) => {
     const color = PALETTE[index % PALETTE.length];
@@ -163,12 +168,17 @@ export function renderChartSvg(chart: Chart): string {
       series.values.forEach((value, point) => {
         const x = round(margin.left + band * point + band * 0.1 + barWidth * index);
         const top = Math.min(y(value), y(0));
-        parts.push(`<rect x="${x}" y="${top}" width="${round(barWidth)}" height="${round(Math.abs(y(value) - y(0)))}" fill="${color}"><title>${escapeXml(`${series.name} ${chart.labels[point]}: ${formatValue(value, chart.unit)}`)}</title></rect>`);
+        parts.push(
+          `<rect x="${x}" y="${top}" width="${round(barWidth)}" height="${round(Math.abs(y(value) - y(0)))}" fill="${color}"><title>${escapeXml(`${series.name} ${chart.labels[point]}: ${formatValue(value, chart.unit)}`)}</title></rect>`,
+        );
       });
     } else {
       const points = series.values.map((value, point) => `${xCenter(point)},${y(value)}`).join(' ');
       parts.push(`<polyline points="${points}" fill="none" stroke="${color}" stroke-width="2"/>`);
-      if (count <= 60) series.values.forEach((value, point) => parts.push(`<circle cx="${xCenter(point)}" cy="${y(value)}" r="3" fill="${color}"/>`));
+      if (count <= 60)
+        series.values.forEach((value, point) => {
+          parts.push(`<circle cx="${xCenter(point)}" cy="${y(value)}" r="3" fill="${color}"/>`);
+        });
     }
   });
 
@@ -178,7 +188,14 @@ export function renderChartSvg(chart: Chart): string {
     parts.push(`<text x="${x + 18}" y="52" font-size="12">${escapeXml(series.name)}</text>`);
   });
 
-  return [`<?xml version="1.0" encoding="UTF-8"?>`, `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" font-family="sans-serif">`, `<rect width="${width}" height="${height}" fill="#ffffff"/>`, ...parts, '</svg>', ''].join('\n');
+  return [
+    `<?xml version="1.0" encoding="UTF-8"?>`,
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" font-family="sans-serif">`,
+    `<rect width="${width}" height="${height}" fill="#ffffff"/>`,
+    ...parts,
+    '</svg>',
+    '',
+  ].join('\n');
 }
 
 export function chartSlug(title: string): string {
@@ -192,7 +209,10 @@ export function chartSlug(title: string): string {
 }
 
 function timestamp(date: Date): string {
-  return date.toISOString().replace(/[-:]/g, '').replace(/\.\d+Z$/, 'Z');
+  return date
+    .toISOString()
+    .replace(/[-:]/g, '')
+    .replace(/\.\d+Z$/, 'Z');
 }
 
 export interface VisualizeOptions {

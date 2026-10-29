@@ -1,6 +1,6 @@
 import type { AgentToolResult } from '@earendil-works/pi-coding-agent';
 import { catalogDigest } from '../contract/catalog.ts';
-import { capabilityUnavailable, invalidRequest, unsupportedTarget } from '../contract/errors.ts';
+import { capabilityUnavailable, evidenceIntegrityMismatch, invalidRequest, targetUnavailable } from '../contract/errors.ts';
 import { operationResult, responseBudgetBytes } from '../contract/results.ts';
 import type { ReaSession } from '../session/binary-session.ts';
 import { PI_REA_VERSION } from '../session/binary-session.ts';
@@ -35,10 +35,30 @@ export const binarySession = (session: ReaSession, params: BinarySessionParams):
   if (params.expected_server_path !== undefined && params.expected_server_path !== session.serverPath) {
     mismatches.push({ field: 'expected_server_path', expected: params.expected_server_path, actual: session.serverPath });
   }
-  if (mismatches.length > 0) {
-    throw invalidRequest(`The live session does not match the caller's expectation: ${mismatches.map((entry) => `${entry.field} expected ${entry.expected}, found ${entry.actual}`).join('; ')}.`, { mismatches });
+  const report = session.report();
+  const serverIdentity = report['server_identity'] as Record<string, unknown>;
+  return operationResult({
+    ...report,
+    server_identity: {
+      ...serverIdentity,
+      alignment: alignmentFor(params, mismatches),
+    },
+  });
+};
+
+const ALIGNMENT_REMEDIATION = 'Restart the registered MCP server/client, then compare identity again.';
+
+const alignmentFor = (params: BinarySessionParams, mismatches: readonly { readonly field: string }[]): Record<string, unknown> => {
+  if (params.expected_package_version === undefined && params.expected_catalog_digest === undefined && params.expected_server_path === undefined) {
+    return {
+      state: 'unknown',
+      reasons: [],
+      remediation: 'Supply expected package, catalog, or registration identity to compare the live server.',
+    };
   }
-  return operationResult(session.report());
+  if (mismatches.length === 0) return { state: 'aligned', reasons: [], remediation: null };
+  const reasons = mismatches.map((entry) => (entry.field === 'expected_package_version' ? 'package_version_mismatch' : entry.field === 'expected_catalog_digest' ? 'catalog_digest_mismatch' : 'registration_path_mismatch'));
+  return { state: 'mcp_server_restart_required', reasons, remediation: ALIGNMENT_REMEDIATION };
 };
 
 export interface OpenBinaryParams {
@@ -98,10 +118,11 @@ export interface CloseBinaryParams {
 
 export const closeBinary = (session: ReaSession, params: CloseBinaryParams): AgentToolResult<unknown> => {
   if (params.snapshot_path !== undefined) {
-    throw unsupportedTarget('pi-rea does not implement provider-neutral analysis snapshots yet.', {
-      operation: 'close_binary',
-      parameter: 'snapshot_path',
-      reason: 'not_implemented',
+    if (!session.open) {
+      throw targetUnavailable('No app is open. Ask the user which app to investigate, then call open_binary with its local path.');
+    }
+    throw evidenceIntegrityMismatch('Evidence is invalid or has changed. Recreate or re-import it, then try again.', {
+      reason: 'Profileless native snapshots may contain only current dispatch workflow observations',
     });
   }
   session.closeTarget();

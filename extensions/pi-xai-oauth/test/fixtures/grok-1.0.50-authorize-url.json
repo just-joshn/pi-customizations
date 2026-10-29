@@ -1,0 +1,20 @@
+{
+  "capturedAt": "2026-10-28T13:10:00Z",
+  "grokVersion": "1.0.50",
+  "grokCommit": "c58f321264ba",
+  "command": "GROK_HOME=<empty temp dir> grok login --oauth, killed after it printed its sign-in prompt",
+  "method": "The URL is read from the CLI's own stdout prompt. No browser was opened, no code was approved, and the isolated GROK_HOME was deleted. Repeat captures (4 runs) produced the same parameter set, the same order, and the same values except redirect_uri port, code_challenge, state, and nonce.",
+  "authorizeUrl": "https://auth.x.ai/oauth2/authorize?response_type=code&client_id=b1a00492-073a-47ea-816f-4c329264a828&redirect_uri=http%3A%2F%2F127.0.0.1%3A58689%2Fcallback&scope=openid%20profile%20email%20offline_access%20grok-cli%3Aaccess%20api%3Aaccess%20conversations%3Aread%20conversations%3Awrite%20workspaces%3Aread%20workspaces%3Awrite&code_challenge=S3hDqxe6seFDCMcpf9YTYAFXRnkYtxMUME0P7bA1NR4&code_challenge_method=S256&state=01a1841f-da96-76f2-8ff2-37a499a6a865&nonce=01a1841f-da97-7fb3-b736-443e26839080&referrer=grok-build",
+  "queryParameterOrder": ["response_type", "client_id", "redirect_uri", "scope", "code_challenge", "code_challenge_method", "state", "nonce", "referrer"],
+  "stableParameters": {
+    "response_type": "code",
+    "client_id": "b1a00492-073a-47ea-816f-4c329264a828",
+    "scope": "openid profile email offline_access grok-cli:access api:access conversations:read conversations:write workspaces:read workspaces:write",
+    "code_challenge_method": "S256",
+    "referrer": "grok-build"
+  },
+  "perRunParameters": ["redirect_uri", "code_challenge", "state", "nonce"],
+  "redirectUriPattern": "http://127.0.0.1:{port}/callback",
+  "stateAndNonceShape": "UUID; both values in one run share a timestamp prefix",
+  "notes": "No access token, refresh token, email, or user id is recorded. The authorize URL is a request the CLI would open; it was never approved. This copy is committed so the test that compares against it runs from a clean clone; parity/pi-xai-oauth/report.md names it as the XAI-001 evidence."
+}

@@ -14,6 +14,9 @@
       "!!parity/reference",
       "!!parity/fixtures",
       "!!parity/evidence",
+      "!!parity/*/evidence",
+      "!!parity/pi-rea/rea-6.8.0-*.json",
+      "!!extensions/pi-rea/schemas/tool-contracts.json",
       "!!parity/private",
       "!!parity/artifacts",
       "!!parity/research",
@@ -30,8 +33,7 @@
       "!!extensions/pi-pstack/upstream.lock.json",
       "!!extensions/pi-maintainer/parity/coverage.json",
       "!!extensions/pi-maintainer/parity/ledger.json",
-      "!!extensions/pi-maintainer/test/fixtures/watch",
-      "!!parity/reverse-engineer-anything/verification.json"
+      "!!extensions/pi-maintainer/test/fixtures/watch"
     ]
   },
   "formatter": {

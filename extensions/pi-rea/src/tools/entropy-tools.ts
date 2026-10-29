@@ -14,12 +14,12 @@ export interface InspectByteEntropyParams {
   readonly detail?: 'complete' | 'summary';
 }
 
-export const inspectByteEntropy = async (
-  session: ReaSession,
-  params: InspectByteEntropyParams,
-  context: ToolCallContext = {},
-): Promise<AgentToolResult<unknown>> => {
-  const { record: inspection, path, resolvedPath } = await inspectByteEntropyFromPath(params.path, {
+export const inspectByteEntropy = async (session: ReaSession, params: InspectByteEntropyParams, context: ToolCallContext = {}): Promise<AgentToolResult<unknown>> => {
+  const {
+    record: inspection,
+    path,
+    resolvedPath,
+  } = await inspectByteEntropyFromPath(params.path, {
     ...(params.block_size === undefined ? {} : { blockSize: params.block_size }),
     ...(params.offset === undefined ? {} : { offset: params.offset }),
     ...(params.length === undefined ? {} : { length: params.length }),

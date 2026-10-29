@@ -5,6 +5,7 @@ import { type AssistantMessage, type Context, createAssistantMessageEventStream,
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 
 const WHOLEFILE = 'hello.txt\n```\nafter-print\n```\n';
+const COMMIT = 'feat: journey edit';
 const EDITBLOCK = `hello.txt
 <<<<<<< SEARCH
 before-rpc
@@ -12,6 +13,11 @@ before-rpc
 after-rpc
 >>>>>>> REPLACE
 `;
+
+/** Aider's commit prompt is the only request with `commit_system` text. */
+function isCommitMessageRequest(context: Context): boolean {
+  return context.messages.some((message) => message.role === 'system' && (typeof message.content === 'string' ? message.content : message.content.map((block) => block.text).join('')).includes('one-line Git commit messages'));
+}
 
 function lastUserText(context: Context): string {
   for (const message of context.messages.toReversed()) {
@@ -42,7 +48,7 @@ function scriptedReply(model: Model<string>, context: Context) {
     );
   }
 
-  const text = replyFor(lastUserText(context).trim());
+  const text = isCommitMessageRequest(context) ? COMMIT : replyFor(lastUserText(context).trim());
   const message: AssistantMessage = {
     role: 'assistant',
     api: model.api,

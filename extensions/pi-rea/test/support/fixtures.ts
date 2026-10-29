@@ -22,9 +22,9 @@ export interface CapturedCall {
 export const capture = (pass: string, name: string): CapturedCall => readFixture<CapturedCall>(`captures/${pass}/${name}.json`);
 
 export const referenceSessionReport = (): Record<string, unknown> => {
-  const structured = capture('pass1', 'binary_session--empty').response.result?.structuredContent;
-  if (structured === undefined) throw new Error('the reference session capture has no structured content');
-  return (structured as { result: Record<string, unknown> }).result;
+  const measured = readFileSync(new URL('../../../../parity/pi-rea/rea-6.8.0-binary_session.json', import.meta.url), 'utf8');
+  const structured = (JSON.parse(measured) as { result: { structuredContent: { result: Record<string, unknown> } } }).result.structuredContent;
+  return structured.result;
 };
 
 export const referenceTools = (): {

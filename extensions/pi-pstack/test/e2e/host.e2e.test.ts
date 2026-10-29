@@ -53,7 +53,7 @@ describe('host map (HOST-001)', () => {
     expect(host).toMatch(new RegExp(`- Files a tool makes for the user, such as visualize charts, go in ${join(workspace, 'artifacts')}/[0-9a-f-]+\\.`));
     expect(host).toContain(`- Transcripts: this workspace's Pi session files are in ${join(sandbox.agentDir, 'sessions')}/--${sandbox.workDir.replace(/^\//, '').replaceAll('/', '-')}--.`);
     expect(host).toContain('Installed skills (62): architect, arena, automate-me,');
-    expect(host).toContain('agent_status reads a subagent\'s state without waking it.');
+    expect(host).toContain("agent_status reads a subagent's state without waking it.");
     expect(host).toContain('- The user keeps a skill on every turn with `/mode <skill>` (exit `/mode off`) and plans without edits with `/plan` (exit `/plan off`).');
     expect(host).toContain('- MCP tools are named mcp__<server>__<tool>; `pi mcp list` shows the servers.');
     expect(host).toContain('- Isolated workers (Task environment "cloud") run on this machine in their own git worktree on branch pstack/<agent id>');

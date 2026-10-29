@@ -1,17 +1,8 @@
-import {
-  ERROR_CATEGORIES,
-  ERROR_CODES,
-  ReaError,
-  capabilityUnavailable,
-  invalidRequest,
-  type ReaErrorCategory,
-  type ReaErrorCode,
-  unsupportedTarget,
-} from '../contract/errors.ts';
+import { capabilityUnavailable, ERROR_CATEGORIES, ERROR_CODES, invalidRequest, ReaError, type ReaErrorCategory, type ReaErrorCode, unsupportedTarget } from '../contract/errors.ts';
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null;
 
-export const mapAnalyzerError = (error: unknown): never => {
+export const mapAnalyzerError: (error: unknown) => never = (error) => {
   if (error instanceof ReaError) throw error;
 
   if (isRecord(error) && error['name'] === 'IntegrityPolicyError') {

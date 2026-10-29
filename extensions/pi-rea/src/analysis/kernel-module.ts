@@ -1,4 +1,3 @@
-
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { isAbsolute, resolve } from 'node:path';
@@ -10,9 +9,9 @@ export const DEFAULT_MAX_ENTRIES = 8192;
 
 const ELF_MACHINES: Record<number, string> = {
   3: 'x86',
-  0x3e: 'x86_64',
-  0x28: 'arm',
-  0xb7: 'aarch64',
+  62: 'x86_64',
+  40: 'arm',
+  183: 'aarch64',
 };
 
 export const KERNEL_MODULE_LIMITATIONS_BASE = [
@@ -23,8 +22,7 @@ export const KERNEL_MODULE_LIMITATIONS_BASE = [
   'Metadata strings use a byte-preserving Latin1 projection; their original text encoding is unobserved.',
 ] as const;
 
-const SIGNATURE_ABSENT_LIMITATION =
-  "No '~Module signature appended~' trailer was present. That is not proof the module is unsigned in another container.";
+const SIGNATURE_ABSENT_LIMITATION = "No '~Module signature appended~' trailer was present. That is not proof the module is unsigned in another container.";
 
 const MODULE_SIGNATURE_MAGIC = '~Module signature appended~';
 
@@ -121,12 +119,12 @@ export interface KernelModuleSubjectFields {
   readonly architecture: string | null;
 }
 
-export interface KernelModuleLocation {
+export type KernelModuleLocation = {
   readonly kind: 'artifact-path' | 'file-offset-range';
   readonly path?: string;
   readonly start?: number;
   readonly end?: number;
-}
+};
 
 const inputError = (path: string, reason: string, detail: string) =>
   invalidRequest('The inspection input is not usable. Check the argument and retry.', {
@@ -153,7 +151,9 @@ interface ElfSection {
   readonly size: number;
 }
 
-const parseElfSections = (bytes: Buffer): {
+const parseElfSections = (
+  bytes: Buffer,
+): {
   format: 'elf32' | 'elf64';
   byte_order: 'little' | 'big';
   machine: number;
@@ -170,8 +170,7 @@ const parseElfSections = (bytes: Buffer): {
   const readU64 = (offset: number) => Number(little ? bytes.readBigUInt64LE(offset) : bytes.readBigUInt64BE(offset));
   const type = readU16(16);
   const machine = readU16(18);
-  const typeName: KernelModuleInspection['type_name'] =
-    type === 1 ? 'relocatable' : type === 2 ? 'executable' : type === 3 ? 'shared' : type === 4 ? 'core' : 'unknown';
+  const typeName: KernelModuleInspection['type_name'] = type === 1 ? 'relocatable' : type === 2 ? 'executable' : type === 3 ? 'shared' : type === 4 ? 'core' : 'unknown';
   const shoff = bits === 64 ? readU64(40) : readU32(32);
   const shentsize = readU16(bits === 64 ? 58 : 46);
   const shnum = readU16(bits === 64 ? 60 : 48);
@@ -219,11 +218,7 @@ const parseElfSections = (bytes: Buffer): {
   };
 };
 
-const parseModinfo = (
-  payload: Buffer,
-  sectionOffset: number,
-  maxEntries: number,
-): KernelModinfoEntry[] => {
+const parseModinfo = (payload: Buffer, sectionOffset: number, maxEntries: number): KernelModinfoEntry[] => {
   const entries: KernelModinfoEntry[] = [];
   let start = 0;
   while (start < payload.length) {
@@ -264,12 +259,7 @@ const versionsLayout = (format: 'elf32' | 'elf64'): { layout: string; entryBytes
   return { layout: 'elf32_unsigned_long_name60', entryBytes: 64, crcBytes: 4, nameBytes: 60 };
 };
 
-const parseVersions = (
-  payload: Buffer,
-  sectionOffset: number,
-  format: 'elf32' | 'elf64',
-  maxEntries: number,
-): KernelVersionEntry[] => {
+const parseVersions = (payload: Buffer, sectionOffset: number, format: 'elf32' | 'elf64', maxEntries: number): KernelVersionEntry[] => {
   const { entryBytes, crcBytes } = versionsLayout(format);
   const entries: KernelVersionEntry[] = [];
   for (let offset = 0; offset + entryBytes <= payload.length; offset += entryBytes) {
@@ -278,10 +268,7 @@ const parseVersions = (
     const end = nameBuf.indexOf(0);
     const name = nameBuf.subarray(0, end === -1 ? nameBuf.length : end).toString('latin1');
     if (name.length === 0) continue;
-    const crcHex =
-      format === 'elf64'
-        ? record.readBigUInt64LE(0).toString(16).padStart(16, '0')
-        : record.readUInt32LE(0).toString(16).padStart(8, '0');
+    const crcHex = format === 'elf64' ? record.readBigUInt64LE(0).toString(16).padStart(16, '0') : record.readUInt32LE(0).toString(16).padStart(8, '0');
     entries.push({
       index: entries.length,
       location: { offset: sectionOffset + offset, bytes: entryBytes },
@@ -295,9 +282,7 @@ const parseVersions = (
   return entries;
 };
 
-const findSignature = (
-  bytes: Buffer,
-): KernelModuleInspection['signature'] => {
+const findSignature = (bytes: Buffer): KernelModuleInspection['signature'] => {
   const magicBuf = Buffer.from(MODULE_SIGNATURE_MAGIC, 'ascii');
   const index = bytes.lastIndexOf(magicBuf);
   if (index === -1) {
@@ -331,13 +316,12 @@ const emptyVersions = (status: 'absent' | 'not_applicable'): KernelModuleInspect
 });
 
 const limitationsFor = (signatureStatus: 'absent' | 'present' | 'not_applicable'): string[] => {
-  const base = [...KERNEL_MODULE_LIMITATIONS_BASE];
+  const base: string[] = [...KERNEL_MODULE_LIMITATIONS_BASE];
   if (signatureStatus === 'absent') base.push(SIGNATURE_ABSENT_LIMITATION);
   return base;
 };
 
-const span = (section: ElfSection | undefined): FileSpan | null =>
-  section === undefined ? null : { offset: section.offset, bytes: section.size };
+const span = (section: ElfSection | undefined): FileSpan | null => (section === undefined ? null : { offset: section.offset, bytes: section.size });
 
 export interface KernelModuleOptions {
   readonly maxFileBytes?: number;
@@ -345,9 +329,7 @@ export interface KernelModuleOptions {
   readonly cwd?: string;
 }
 
-export const subjectFieldsForKernelModule = (
-  inspection: KernelModuleInspection,
-): KernelModuleSubjectFields => ({
+export const subjectFieldsForKernelModule = (inspection: KernelModuleInspection): KernelModuleSubjectFields => ({
   format: inspection.format === null ? 'bytes' : 'elf',
   architecture: inspection.machine === null ? null : (ELF_MACHINES[inspection.machine] ?? null),
 });
@@ -373,10 +355,7 @@ export const locationsForKernelModule = (path: string, inspection: KernelModuleI
   return locations;
 };
 
-export const inspectKernelModuleFromPath = async (
-  path: string,
-  options: KernelModuleOptions = {},
-): Promise<{ record: KernelModuleInspection; path: string; resolvedPath: string }> => {
+export const inspectKernelModuleFromPath = async (path: string, options: KernelModuleOptions = {}): Promise<{ record: KernelModuleInspection; path: string; resolvedPath: string }> => {
   const maxFileBytes = options.maxFileBytes ?? DEFAULT_MAX_FILE_BYTES;
   const maxEntries = options.maxEntries ?? DEFAULT_MAX_ENTRIES;
   const resolvedPath = isAbsolute(path) ? path : resolve(options.cwd ?? process.cwd(), path);
@@ -465,11 +444,7 @@ export const inspectKernelModuleFromPath = async (
   let modinfoEntries: KernelModinfoEntry[] = [];
   if (modinfoSection !== undefined) {
     try {
-      modinfoEntries = parseModinfo(
-        bytes.subarray(modinfoSection.offset, modinfoSection.offset + modinfoSection.size),
-        modinfoSection.offset,
-        maxEntries,
-      );
+      modinfoEntries = parseModinfo(bytes.subarray(modinfoSection.offset, modinfoSection.offset + modinfoSection.size), modinfoSection.offset, maxEntries);
     } catch (error) {
       throw inputError(path, 'invalid_value', error instanceof Error ? error.message : 'modinfo parse failed');
     }
@@ -479,12 +454,7 @@ export const inspectKernelModuleFromPath = async (
   const versionMeta = versionsLayout(elf.format);
   if (versionsSection !== undefined) {
     try {
-      versionEntries = parseVersions(
-        bytes.subarray(versionsSection.offset, versionsSection.offset + versionsSection.size),
-        versionsSection.offset,
-        elf.format,
-        maxEntries,
-      );
+      versionEntries = parseVersions(bytes.subarray(versionsSection.offset, versionsSection.offset + versionsSection.size), versionsSection.offset, elf.format, maxEntries);
     } catch (error) {
       throw inputError(path, 'invalid_value', error instanceof Error ? error.message : 'versions parse failed');
     }
@@ -514,10 +484,7 @@ export const inspectKernelModuleFromPath = async (
       modinfo: {
         status: modinfoSection === undefined ? 'absent' : 'present',
         location: span(modinfoSection),
-        sha256:
-          modinfoSection === undefined
-            ? null
-            : sha256(bytes.subarray(modinfoSection.offset, modinfoSection.offset + modinfoSection.size)),
+        sha256: modinfoSection === undefined ? null : sha256(bytes.subarray(modinfoSection.offset, modinfoSection.offset + modinfoSection.size)),
         entries: modinfoEntries,
         reason: null,
       },
@@ -526,10 +493,7 @@ export const inspectKernelModuleFromPath = async (
         layout: versionsSection === undefined ? null : versionMeta.layout,
         entry_bytes: versionsSection === undefined ? null : versionMeta.entryBytes,
         location: span(versionsSection),
-        sha256:
-          versionsSection === undefined
-            ? null
-            : sha256(bytes.subarray(versionsSection.offset, versionsSection.offset + versionsSection.size)),
+        sha256: versionsSection === undefined ? null : sha256(bytes.subarray(versionsSection.offset, versionsSection.offset + versionsSection.size)),
         entries: versionEntries,
         reason: null,
       },

@@ -110,6 +110,6 @@
   },
   "meta": {
     "command": "compare-managed-members",
-    "duration": "16ms"
+    "duration": "17ms"
   }
 }

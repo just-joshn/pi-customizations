@@ -12,3 +12,4 @@ parity/fixtures/candidate-baseline/
 
 # pi-rea session store (working state, not a deliverable)
 .rea/
+coverage/

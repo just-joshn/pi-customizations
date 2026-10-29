@@ -162,8 +162,7 @@ function registerLoopTool(pi: ExtensionAPI, controller: LoopController): void {
   pi.registerTool({
     name: 'Loop',
     label: 'Loop',
-    description:
-      "/loop for you: start a loop that re-sends a prompt at a fixed interval or at wakes you pick, schedule the next wake of an agent-paced loop, or stop the loop once its goal is met. Use it when a playbook says to arm /loop.",
+    description: '/loop for you: start a loop that re-sends a prompt at a fixed interval or at wakes you pick, schedule the next wake of an agent-paced loop, or stop the loop once its goal is met. Use it when a playbook says to arm /loop.',
     promptSnippet: 'Start a /loop, schedule its next wake, or stop it',
     parameters: LoopParams,
     annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },

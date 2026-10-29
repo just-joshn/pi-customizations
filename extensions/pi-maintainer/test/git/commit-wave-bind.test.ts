@@ -131,10 +131,10 @@ test('assistant commits apply co-authored-by and optional name attribution from 
   await initRepo(root);
   await commitFile(root, 'file.txt', 'old\n', 'seed');
   await writeFile(join(root, 'file.txt'), 'new\n');
-  const coauthored = policyIn(root, host, { attributeCoAuthoredBy: true, attributeAuthor: null, attributeCommitter: null }, { generateCommitMessage: async () => 'Aider edit' });
+  const coauthored = policyIn(root, host, { attributeCoAuthoredBy: true, attributeAuthor: null, attributeCommitter: null }, { generateCommitMessage: async () => 'Aider edit', mainModelName: () => 'gpt-4o' });
   expect(await coauthored.autoCommit(new Set(['file.txt']), { kind: 'conversation', text: 'edit' })).toMatchObject({ kind: 'committed' });
   const message = await git(root, ['log', '-1', '--pretty=%B']);
-  expect(message).toContain(coAuthoredBy('unknown-model'));
+  expect(message).toContain(coAuthoredBy('gpt-4o'));
   expect((await git(root, ['log', '-1', '--pretty=%an'])).trim()).toBe('Test User');
   expect((await git(root, ['log', '-1', '--pretty=%cn'])).trim()).toBe('Test User');
 

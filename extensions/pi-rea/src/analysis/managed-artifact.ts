@@ -1,10 +1,9 @@
-
 import { createHash } from 'node:crypto';
 import { readFile, realpath } from 'node:fs/promises';
 import { isAbsolute, resolve } from 'node:path';
 
-import { invalidRequest } from '../contract/errors.ts';
-import { DIR, mapRva, parsePeImage, type PeImage } from './pe-core.ts';
+import { invalidRequest, ReaError } from '../contract/errors.ts';
+import { DIR, mapRva, type PeImage, parsePeImage } from './pe-core.ts';
 
 const MAX_FILE_BYTES = 64 * 1024 * 1024;
 
@@ -64,13 +63,9 @@ export interface ManagedArtifactInspection {
   readonly limitations: readonly string[];
 }
 
-const LIMITATIONS = [
-  'Managed metadata is inventoried without loading assemblies or executing CIL.',
-  'Custom attribute blobs and strong-name signatures are not verified.',
-] as const;
+const LIMITATIONS = ['Managed metadata is inventoried without loading assemblies or executing CIL.', 'Custom attribute blobs and strong-name signatures are not verified.'] as const;
 
-const NOT_MANAGED_LIMITATION =
-  'The PE has no CLI data directory; managed metadata and CIL are unavailable.';
+const NOT_MANAGED_LIMITATION = 'The PE has no CLI data directory; managed metadata and CIL are unavailable.';
 
 const artifactIdentity = (path: string, bytes: Buffer) => ({
   path,
@@ -128,13 +123,13 @@ const TABLE_NAMES = [
 ] as const;
 
 const FLAG_NAMES: Record<number, string> = {
-  0x1: 'ILOnly',
-  0x2: 'Requires32Bit',
-  0x4: 'ILLibrary',
-  0x8: 'StrongNameSigned',
-  0x10: 'NativeEntryPoint',
-  0x10000: 'TrackDebugEnabled',
-  0x20000: 'Prefer32Bit',
+  1: 'ILOnly',
+  2: 'Requires32Bit',
+  4: 'ILLibrary',
+  8: 'StrongNameSigned',
+  16: 'NativeEntryPoint',
+  65536: 'TrackDebugEnabled',
+  131072: 'Prefer32Bit',
 };
 
 const inputError = (path: string, detail: string) =>
@@ -147,6 +142,24 @@ const readAscii = (bytes: Buffer, offset: number, end: number): string => {
   const zero = bytes.indexOf(0, offset);
   const stop = zero === -1 || zero > end ? end : zero;
   return bytes.subarray(offset, stop).toString('utf8');
+};
+
+const formatManagedGuid = (heap: Buffer | null, index: number): string | null => {
+  if (heap === null || index <= 0) return null;
+  const offset = (index - 1) * 16;
+  if (offset + 16 > heap.length) return null;
+  const data1 = heap.readUInt32LE(offset).toString(16).padStart(8, '0');
+  const data2 = heap
+    .readUInt16LE(offset + 4)
+    .toString(16)
+    .padStart(4, '0');
+  const data3 = heap
+    .readUInt16LE(offset + 6)
+    .toString(16)
+    .padStart(4, '0');
+  const data4 = heap.subarray(offset + 8, offset + 10).toString('hex');
+  const data5 = heap.subarray(offset + 10, offset + 16).toString('hex');
+  return `${data1}-${data2}-${data3}-${data4}-${data5}`;
 };
 
 const parseMetadata = (
@@ -238,13 +251,15 @@ const parseMetadata = (
   }
   const strings = streams.get('#Strings');
   const tables = streams.get('#~') ?? streams.get('#-');
+  const guids = streams.get('#GUID');
   const stringsHeap = strings === undefined ? null : bytes.subarray(strings.offset, strings.offset + strings.size);
   const tablesHeap = tables === undefined ? null : bytes.subarray(tables.offset, tables.offset + tables.size);
+  const guidHeap = guids === undefined ? null : bytes.subarray(guids.offset, guids.offset + guids.size);
   const table_row_counts: Record<string, number> = {};
   const tableRowCounts: number[] = [];
   let heapSizes = 0;
   let module: ManagedArtifactInspection['module'] = null;
-  let assembly: ManagedArtifactInspection['assembly'] = null;
+  const assembly: ManagedArtifactInspection['assembly'] = null;
   const references: { name: string; version: string | null }[] = [];
   const issues: string[] = [];
 
@@ -269,7 +284,7 @@ const parseMetadata = (
     }
     const stringIndexSize = (heapSizes & 0x01) !== 0 ? 4 : 2;
     const guidIndexSize = (heapSizes & 0x02) !== 0 ? 4 : 2;
-    const readStr = (heap: Buffer, index: number): string => {
+    const readStr = (index: number): string => {
       if (stringsHeap === null || index <= 0 || index >= stringsHeap.length) return '';
       return readAscii(stringsHeap, index, stringsHeap.length);
     };
@@ -279,7 +294,9 @@ const parseMetadata = (
       const rowSize = 2 + stringIndexSize + guidIndexSize * 3;
       if (rowCursor + rowSize <= tablesHeap.length) {
         const nameIndex = stringIndexSize === 4 ? tablesHeap.readUInt32LE(rowCursor + 2) : tablesHeap.readUInt16LE(rowCursor + 2);
-        module = { name: readStr(tablesHeap, nameIndex), mvid: null };
+        const mvidOffset = rowCursor + 2 + stringIndexSize;
+        const mvidIndex = guidIndexSize === 4 ? tablesHeap.readUInt32LE(mvidOffset) : tablesHeap.readUInt16LE(mvidOffset);
+        module = { name: readStr(nameIndex), mvid: formatManagedGuid(guidHeap, mvidIndex) };
       }
       rowCursor += rowSize * moduleRows;
     }
@@ -303,6 +320,8 @@ const parseMetadata = (
 
 void parseMetadata;
 
+const MANAGED_PE_MACHINES = new Set([332, 34404, 448, 452, 43620]);
+
 const inspectImage = (bytes: Buffer, path: string): ManagedArtifactInspection => {
   let image: PeImage;
   try {
@@ -310,9 +329,21 @@ const inspectImage = (bytes: Buffer, path: string): ManagedArtifactInspection =>
   } catch (error) {
     throw inputError(path, `it is not a PE image (${(error as Error).message})`);
   }
+  if (!MANAGED_PE_MACHINES.has(image.machine)) {
+    const machineHex = `0x${image.machine.toString(16).padStart(4, '0')}`;
+    const reason = `unsupported PE architecture (COFF machine ${machineHex})`;
+    throw new ReaError({
+      code: 'target_unavailable',
+      category: 'unsupported_target',
+      message: `Cannot open artifact: ${reason}.`,
+      retryable: false,
+      remediation: { action: 'Review the reported file-format reason and select a supported, well-formed target.' },
+      details: { path, reason, constraint: 'file_format_rejected' },
+    });
+  }
   const characteristics = bytes.readUInt16LE(image.peOffset + 22);
   const cliDir = image.directories[DIR.CLR];
-  const evidence: ManagedArtifactInspection['classification']['evidence'] = [];
+  const evidence: ManagedArtifactInspection['classification']['evidence'][number][] = [];
   if (cliDir === undefined || cliDir.rva === 0 || cliDir.size === 0) {
     return {
       artifact: artifactIdentity(path, bytes),
@@ -421,6 +452,7 @@ const inspectImage = (bytes: Buffer, path: string): ManagedArtifactInspection =>
     issues.push('metadata RVA unmapped');
     metadata = { status: 'malformed', version: null, stream_names: [], table_row_counts: {} };
   }
+  const coverageIssues = metadata.status === 'complete' || issues.length > 0 ? issues : ['metadata stream is incomplete'];
   const ilOnly = (flags & 0x1) !== 0;
   const requires32 = (flags & 0x2) !== 0;
   const prefer32 = (flags & 0x20000) !== 0;
@@ -440,12 +472,7 @@ const inspectImage = (bytes: Buffer, path: string): ManagedArtifactInspection =>
         runtime_version: `${major}.${minor}`,
         flags,
         flag_names,
-        entry_point:
-          entryToken === 0
-            ? { kind: 'none', value: null }
-            : nativeEntry
-              ? { kind: 'native-rva', value: `0x${entryToken.toString(16)}` }
-              : { kind: 'metadata-token', value: `0x${entryToken.toString(16)}` },
+        entry_point: entryToken === 0 ? { kind: 'none', value: null } : nativeEntry ? { kind: 'native-rva', value: `0x${entryToken.toString(16)}` } : { kind: 'metadata-token', value: `0x${entryToken.toString(16)}` },
         metadata_rva: metaRva,
         metadata_size: metaSize,
         resources_rva,
@@ -472,15 +499,12 @@ const inspectImage = (bytes: Buffer, path: string): ManagedArtifactInspection =>
     references,
     resources: [],
     attributes: [],
-    coverage: { state: issues.length === 0 ? 'complete' : 'partial', issues },
+    coverage: { state: metadata.status === 'complete' ? 'complete' : 'partial', issues: coverageIssues },
     limitations: [...LIMITATIONS],
   };
 };
 
-export const inspectManagedArtifactFromPath = async (
-  path: string,
-  options: { readonly cwd?: string } = {},
-): Promise<{ readonly record: ManagedArtifactInspection; readonly path: string; readonly resolvedPath: string }> => {
+export const inspectManagedArtifactFromPath = async (path: string, options: { readonly cwd?: string } = {}): Promise<{ readonly record: ManagedArtifactInspection; readonly path: string; readonly resolvedPath: string }> => {
   const resolvedPath = isAbsolute(path) ? path : resolve(options.cwd ?? process.cwd(), path);
   let canonical = resolvedPath;
   try {

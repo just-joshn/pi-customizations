@@ -1,6 +1,6 @@
-import { digestOf } from './canonical.mjs';
 import { invalidRequest } from '../contract/errors.ts';
 import type { EvidenceRecord } from '../session/evidence.ts';
+import { digestOf } from './canonical.mjs';
 
 export interface ExportShapeCompareInspection {
   readonly comparison_id: string;
@@ -87,10 +87,7 @@ export const EXPORT_SHAPE_RESULT_LIMITATIONS = [
   'This static comparison cannot establish runtime semantics; run behavioral probes directly against the relevant application versions when that evidence is required.',
 ] as const;
 
-export const EXPORT_SHAPE_ENVELOPE_LIMITATIONS = [
-  'Artifact identity is unavailable for this observation.',
-  ...EXPORT_SHAPE_RESULT_LIMITATIONS,
-] as const;
+export const EXPORT_SHAPE_ENVELOPE_LIMITATIONS = ['Artifact identity is unavailable for this observation.', ...EXPORT_SHAPE_RESULT_LIMITATIONS] as const;
 
 const asJsEvidence = (value: unknown, label: string): EvidenceRecord => {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) {
@@ -167,8 +164,9 @@ const selectSide = (record: EvidenceRecord, modulePath: string, exportName: stri
     });
   }
   const exact = candidates.filter((row) => row.matches_requested_module && row.matches_requested_export);
-  if (exact.length === 1) {
-    const selected = nodes.find((node) => node['node_id'] === exact[0]!.node_id);
+  const exactCandidate = exact[0];
+  if (exact.length === 1 && exactCandidate !== undefined) {
+    const selected = nodes.find((node) => node['node_id'] === exactCandidate.node_id);
     const shapes = selected === undefined ? [] : (exportMeta(selected)?.shapes ?? []);
     return {
       selection: {
@@ -179,7 +177,7 @@ const selectSide = (record: EvidenceRecord, modulePath: string, exportName: stri
         candidates: exact,
         omitted_candidates: 0,
         status: 'selected',
-        selected_node_id: exact[0]!.node_id,
+        selected_node_id: exactCandidate.node_id,
       },
       shapes,
     };
@@ -216,8 +214,7 @@ const exclusiveLiterals = (shape: ReturnShape, siblings: readonly ReturnShape[])
     .sort((left, right) => (left.path < right.path ? -1 : left.path > right.path ? 1 : 0));
 };
 
-const fieldMap = (shape: ReturnShape): Map<string, (typeof shape.fields)[number]> =>
-  new Map(shape.fields.map((field) => [field.path, field]));
+const fieldMap = (shape: ReturnShape): Map<string, (typeof shape.fields)[number]> => new Map(shape.fields.map((field) => [field.path, field]));
 
 export const compareJavascriptExportShapes = (params: {
   readonly left: unknown;
@@ -288,13 +285,7 @@ export const compareJavascriptExportShapes = (params: {
     }
   });
 
-  const inventoryFor = (
-    side: 'left' | 'right',
-    index: number,
-    shape: ReturnShape,
-    discriminant: { path: string; value: unknown } | null,
-    paired: boolean,
-  ): PropertyInventory => ({
+  const inventoryFor = (side: 'left' | 'right', index: number, shape: ReturnShape, discriminant: { path: string; value: unknown } | null, paired: boolean): PropertyInventory => ({
     side,
     variant_index: index,
     discriminant,
@@ -309,8 +300,9 @@ export const compareJavascriptExportShapes = (params: {
   };
 
   for (const pair of pairs) {
-    const leftShape = leftSide.shapes[pair.leftIndex]!;
-    const rightShape = rightSide.shapes[pair.rightIndex]!;
+    const leftShape = leftSide.shapes[pair.leftIndex];
+    const rightShape = rightSide.shapes[pair.rightIndex];
+    if (leftShape === undefined || rightShape === undefined) continue;
     leftInventories[pair.leftIndex] = inventoryFor('left', pair.leftIndex, leftShape, pair.discriminant, true);
     rightInventories[pair.rightIndex] = inventoryFor('right', pair.rightIndex, rightShape, pair.discriminant, true);
     const leftFields = fieldMap(leftShape);
@@ -382,35 +374,20 @@ export const compareJavascriptExportShapes = (params: {
     if (pairedLeft.has(index)) return;
     unknown += 1;
     const discriminant = exclusiveLiterals(shape, leftSide.shapes)[0] ?? null;
-    leftInventories[index] = inventoryFor(
-      'left',
-      index,
-      shape,
-      discriminant === null ? null : { path: discriminant.path, value: discriminant.value },
-      false,
-    );
+    leftInventories[index] = inventoryFor('left', index, shape, discriminant === null ? null : { path: discriminant.path, value: discriminant.value }, false);
   });
   rightSide.shapes.forEach((shape, index) => {
     if (pairedRight.has(index)) return;
     unknown += 1;
     const discriminant = exclusiveLiterals(shape, rightSide.shapes)[0] ?? null;
-    rightInventories[index] = inventoryFor(
-      'right',
-      index,
-      shape,
-      discriminant === null ? null : { path: discriminant.path, value: discriminant.value },
-      false,
-    );
+    rightInventories[index] = inventoryFor('right', index, shape, discriminant === null ? null : { path: discriminant.path, value: discriminant.value }, false);
   });
 
   if (leftSide.selection.status !== 'selected' || rightSide.selection.status !== 'selected') {
     unknown += 1;
   }
 
-  const inventories = [
-    ...leftInventories.filter((row): row is PropertyInventory => row !== undefined),
-    ...rightInventories.filter((row): row is PropertyInventory => row !== undefined),
-  ];
+  const inventories = [...leftInventories.filter((row): row is PropertyInventory => row !== undefined), ...rightInventories.filter((row): row is PropertyInventory => row !== undefined)];
 
   return {
     comparison_id: `jesc_${digestOf(`${left.evidence_id}:${right.evidence_id}:${params.left_module_path}:${params.left_export_name}:${params.right_module_path}:${params.right_export_name}`)}`,

@@ -28,9 +28,7 @@ test('TOOL-087: the reference fixture yields the captured resource inventory', a
   expect(normalized['resources']).toStrictEqual(reference['resources']);
   expect(normalized['icon_groups']).toStrictEqual(reference['icon_groups']);
   const directories = normalized['directories'] as Record<string, unknown>[];
-  expect(
-    directories.map(({ path: _path, entry_locations: _entries, ...rest }) => rest),
-  ).toStrictEqual(reference['directories']);
+  expect(directories.map(({ path: _path, entry_locations: _entries, ...rest }) => rest)).toStrictEqual(reference['directories']);
   expect(directories[0]).toMatchObject({ path: [], entry_locations: [] });
   expect(directories[1]).toMatchObject({
     path: [{ kind: 'id', id: 24 }],

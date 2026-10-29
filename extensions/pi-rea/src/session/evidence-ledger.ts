@@ -1,4 +1,3 @@
-
 import { evidenceIntegrityMismatch, invalidRequest } from '../contract/errors.ts';
 import { canonicalJson, type EvidenceRecord, type EvidenceSummaryEntry, evidenceSummaryEntry, isEvidenceRecord, verifyEvidenceIdentity } from './evidence.ts';
 

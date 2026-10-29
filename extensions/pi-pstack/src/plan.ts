@@ -1,5 +1,4 @@
 import type { ExtensionAPI, ExtensionCommandContext, ExtensionContext } from '@earendil-works/pi-coding-agent';
-
 import { createReadonlyBashTool, releaseReadonlySandbox } from './readonly-shell.ts';
 
 export const PLAN_ENTRY = 'pstack/plan';
@@ -61,7 +60,7 @@ export function planBlockReason(toolName: string): string | undefined {
 export function planSection(): string {
   return [
     'Plan mode is on until the user runs /plan off. Do not change files or state.',
-    `Your tools are read-only: read, grep, find, ls, ${PLAN_BASH} (a shell in an OS sandbox that denies writes and network access), AskQuestion, TodoWrite, agent_status, and Task, whose subagents always run readonly and in this checkout, never in a worktree. write and edit are blocked.`,
+    `Your tools are read-only: read, grep, find, ls, ${PLAN_BASH} (a shell in an OS sandbox that denies writes and network access), AskQuestion, TodoWrite, agent_status, and Task, whose subagents always run readonly: a fresh one runs in this checkout, never in a worktree, and a resume or fork stays where its agent ran. write and edit are blocked.`,
     'Investigate the code and context the task needs. When a real decision belongs to the user (a product choice or a tradeoff you cannot settle from evidence), ask with AskQuestion; settle facts yourself.',
     'Finish with a plan: the goal; numbered steps, each with how to verify it; and the risks and open questions.',
     'The user leaves plan mode with /plan off to execute the plan.',

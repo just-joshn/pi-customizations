@@ -13,12 +13,12 @@ export interface InspectRustBinaryParams {
   readonly view?: Record<string, unknown>;
 }
 
-export const inspectRustBinary = async (
-  session: ReaSession,
-  params: InspectRustBinaryParams,
-  context: ToolCallContext = {},
-): Promise<AgentToolResult<unknown>> => {
-  const { record: inspection, path, resolvedPath } = await inspectRustBinaryFromPath(params.path, {
+export const inspectRustBinary = async (session: ReaSession, params: InspectRustBinaryParams, context: ToolCallContext = {}): Promise<AgentToolResult<unknown>> => {
+  const {
+    record: inspection,
+    path,
+    resolvedPath,
+  } = await inspectRustBinaryFromPath(params.path, {
     ...(params.architecture === undefined ? {} : { architecture: params.architecture }),
     ...(context.cwd === undefined ? {} : { cwd: context.cwd }),
   });

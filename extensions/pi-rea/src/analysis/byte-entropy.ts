@@ -1,4 +1,3 @@
-
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { isAbsolute, resolve } from 'node:path';
@@ -33,7 +32,7 @@ const isPowerOfTwo = (value: number): boolean => value > 0 && (value & (value - 
 export const shannonEntropy = (bytes: Uint8Array): number => {
   if (bytes.length === 0) return 0;
   const counts = new Array<number>(256).fill(0);
-  for (const value of bytes) counts[value]! += 1;
+  for (const value of bytes) counts[value] = (counts[value] ?? 0) + 1;
   let entropy = 0;
   const length = bytes.length;
   for (const count of counts) {
@@ -57,10 +56,7 @@ export interface ByteEntropyOptions {
   readonly cwd?: string;
 }
 
-export const inspectByteEntropyFromPath = async (
-  path: string,
-  options: ByteEntropyOptions = {},
-): Promise<{ record: ByteEntropyInspection; path: string; resolvedPath: string }> => {
+export const inspectByteEntropyFromPath = async (path: string, options: ByteEntropyOptions = {}): Promise<{ record: ByteEntropyInspection; path: string; resolvedPath: string }> => {
   const blockSize = options.blockSize ?? DEFAULT_BLOCK_SIZE;
   if (!Number.isInteger(blockSize) || blockSize < 256 || blockSize > 65_536 || !isPowerOfTwo(blockSize)) {
     throw inputError(path, 'invalid_value', 'block_size must be a power of two between 256 and 65536.');
@@ -94,8 +90,7 @@ export const inspectByteEntropyFromPath = async (
   const runs: { offset: number; length: number; classification: 'high' | 'low' }[] = [];
   let current: { offset: number; length: number; classification: 'high' | 'low' } | null = null;
   for (const block of blocks) {
-    const classification: 'high' | 'low' | null =
-      block.entropy >= HIGH_THRESHOLD ? 'high' : block.entropy <= LOW_THRESHOLD ? 'low' : null;
+    const classification: 'high' | 'low' | null = block.entropy >= HIGH_THRESHOLD ? 'high' : block.entropy <= LOW_THRESHOLD ? 'low' : null;
     if (classification === null) {
       if (current !== null) runs.push(current);
       current = null;

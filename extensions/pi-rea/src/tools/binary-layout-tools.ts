@@ -5,17 +5,12 @@ import type { AgentToolResult } from '@earendil-works/pi-coding-agent';
 import { readBinaryLayout } from '../analysis/formats/binary.mjs';
 import { mapAnalyzerError } from '../analysis/map-analyzer-error.ts';
 import { describeSubject } from '../analysis/target.mjs';
-import {
-  capabilityUnavailable,
-  invalidRequest,
-  PWNTTOOLS_LINUX_X64_ONLY,
-  pwntoolsHostSupported,
-} from '../contract/errors.ts';
+import { capabilityUnavailable, invalidRequest, PWNTTOOLS_LINUX_X64_ONLY, pwntoolsHostSupported } from '../contract/errors.ts';
 import { evidenceResult } from '../contract/results.ts';
 import type { ReaSession } from '../session/binary-session.ts';
 import { createEvidence } from '../session/evidence.ts';
-import type { ToolCallContext } from './session-tools.ts';
 import { ANALYZER_PROVIDER } from './analyzer-provider.ts';
+import type { ToolCallContext } from './session-tools.ts';
 
 export interface InspectBinaryLayoutParams {
   readonly path: string;
@@ -26,11 +21,7 @@ const resolvePath = (path: string, cwd: string | undefined): string => (isAbsolu
 
 const STATIC_LIMITATION = 'Static facts only; the port performs no execution and opens no disassembler.';
 
-export const inspectBinaryLayout = async (
-  session: ReaSession,
-  params: InspectBinaryLayoutParams,
-  context: ToolCallContext = {},
-): Promise<AgentToolResult<unknown>> => {
+export const inspectBinaryLayout = async (session: ReaSession, params: InspectBinaryLayoutParams, context: ToolCallContext = {}): Promise<AgentToolResult<unknown>> => {
   if (typeof params.path !== 'string' || params.path.length === 0) {
     throw invalidRequest('inspect_binary_layout requires path.', { parameter: 'path' });
   }

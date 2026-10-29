@@ -1,14 +1,12 @@
 import { homedir } from 'node:os';
 import { join } from 'node:path';
+
 import { expect, test } from 'vitest';
 import { ReaError } from '../src/contract/errors.ts';
 import { ReaSession } from '../src/session/binary-session.ts';
 import { listCutterSessions } from '../src/tools/cutter-tools.ts';
+import { PROVIDER_REFUSE_TOOL_NAMES, refuseProviderTool } from '../src/tools/provider-refuse-tools.ts';
 import { openBinary } from '../src/tools/session-tools.ts';
-import {
-  PROVIDER_REFUSE_TOOL_NAMES,
-  refuseProviderTool,
-} from '../src/tools/provider-refuse-tools.ts';
 import { fixturePath } from './support/fixtures.ts';
 
 const runtime = { name: 'pi-rea', version: '0.1.0', cwd: '/tmp' };
@@ -70,14 +68,14 @@ test('official_proxy: closed session is target_unavailable; open is provider_una
     code: 'not_configured',
     reason: 'Set GHIDRA_INSTALL_DIR to an extracted Ghidra 12.1.x release directory.',
   });
-  expect(rejections[0]?.diagnostics).toMatchObject({
+  expect(rejections[0]?.['diagnostics']).toMatchObject({
     install_dir: null,
     platform: process.platform,
     architecture: process.arch,
   });
   expect(rejections[1]).toMatchObject({ provider_id: 'hopper' });
-  expect(rejections[1]?.diagnostics).toMatchObject({ platform: process.platform });
-  expect(['executable_missing', 'not_configured']).toContain(rejections[1]?.code);
+  expect(rejections[1]?.['diagnostics']).toMatchObject({ platform: process.platform });
+  expect(['executable_missing', 'not_configured']).toContain(rejections[1]?.['code']);
   expect(rejections[2]).toMatchObject({
     provider_id: 'ida',
     code: 'not_configured',
@@ -129,9 +127,7 @@ test('frida/jeb/rizin/gdb/cutter/wakaru/apktool/binwalk/jadx capability envelope
     });
     if ('message' in item) expect(payload.message, item.name).toBe(item.message);
   }
-  const start = catchPayload(() =>
-    refuseProviderTool(new ReaSession(runtime), 'start_frida_session', { mode: 'attach', pid: 999_999_999 }),
-  );
+  const start = catchPayload(() => refuseProviderTool(new ReaSession(runtime), 'start_frida_session', { mode: 'attach', pid: 999_999_999 }));
   expect(start.details).toMatchObject({
     provider_id: 'frida',
     operation: 'start_frida_session',

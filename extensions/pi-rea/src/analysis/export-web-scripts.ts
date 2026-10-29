@@ -2,8 +2,8 @@ import { createHash } from 'node:crypto';
 import { access, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, isAbsolute, join } from 'node:path';
 
-import { digestOf } from './canonical.mjs';
 import { analysisInputInvalid, invalidRequest } from '../contract/errors.ts';
+import { digestOf } from './canonical.mjs';
 
 export interface WebScriptExportInspection {
   readonly capture_path: string;
@@ -196,17 +196,13 @@ const unwrapCapture = (raw: unknown): { kind: 'page-inspection' | 'browser-scena
   }
   const record = value as Record<string, unknown>;
   const operation = typeof record['operation'] === 'string' ? record['operation'] : null;
-  const normalized =
-    record['normalized_result'] !== undefined && typeof record['normalized_result'] === 'object' && record['normalized_result'] !== null
-      ? (record['normalized_result'] as Record<string, unknown>)
-      : record;
-  const kind: 'page-inspection' | 'browser-scenario' =
-    operation === 'capture_browser_scenario' || normalized['scenario'] !== undefined ? 'browser-scenario' : 'page-inspection';
+  const normalized = record['normalized_result'] !== undefined && typeof record['normalized_result'] === 'object' && record['normalized_result'] !== null ? (record['normalized_result'] as Record<string, unknown>) : record;
+  const kind: 'page-inspection' | 'browser-scenario' = operation === 'capture_browser_scenario' || normalized['scenario'] !== undefined ? 'browser-scenario' : 'page-inspection';
   if (operation !== null && operation !== 'inspect_web_page' && operation !== 'capture_browser_scenario') {
-    throw invalidRequest(
-      'Expected a valid inspect_web_page or capture_browser_scenario capture, with retained script sources or response bytes. Evidence envelopes must have a matching operation and semantic identifier.',
-      { operation: 'export_web_scripts', parameter: 'capture_path' },
-    );
+    throw invalidRequest('Expected a valid inspect_web_page or capture_browser_scenario capture, with retained script sources or response bytes. Evidence envelopes must have a matching operation and semantic identifier.', {
+      operation: 'export_web_scripts',
+      parameter: 'capture_path',
+    });
   }
   return {
     kind,
@@ -221,14 +217,7 @@ const collectScripts = (body: Record<string, unknown>): { scripts: { url: string
   const sources = Array.isArray(body['script_sources']) ? (body['script_sources'] as Record<string, unknown>[]) : [];
   for (const entry of sources) {
     const url = typeof entry['url'] === 'string' ? entry['url'] : typeof entry['source_url'] === 'string' ? entry['source_url'] : null;
-    const text =
-      typeof entry['text'] === 'string'
-        ? entry['text']
-        : typeof entry['source'] === 'string'
-          ? entry['source']
-          : typeof entry['bytes_utf8'] === 'string'
-            ? entry['bytes_utf8']
-            : null;
+    const text = typeof entry['text'] === 'string' ? entry['text'] : typeof entry['source'] === 'string' ? entry['source'] : typeof entry['bytes_utf8'] === 'string' ? entry['bytes_utf8'] : null;
     if (text === null) {
       unavailable.push({ url, reason: 'script_source_bytes_absent' });
       continue;
@@ -236,19 +225,10 @@ const collectScripts = (body: Record<string, unknown>): { scripts: { url: string
     scripts.push({ url: url ?? `inline-${scripts.length}.js`, text, source: 'script_sources' });
   }
 
-  const network = Array.isArray(body['network_requests'])
-    ? (body['network_requests'] as Record<string, unknown>[])
-    : Array.isArray(body['network'])
-      ? (body['network'] as Record<string, unknown>[])
-      : [];
+  const network = Array.isArray(body['network_requests']) ? (body['network_requests'] as Record<string, unknown>[]) : Array.isArray(body['network']) ? (body['network'] as Record<string, unknown>[]) : [];
   for (const entry of network) {
     const url = typeof entry['url'] === 'string' ? entry['url'] : null;
-    const bodyText =
-      typeof entry['response_body'] === 'string'
-        ? entry['response_body']
-        : typeof entry['response_body_text'] === 'string'
-          ? entry['response_body_text']
-          : null;
+    const bodyText = typeof entry['response_body'] === 'string' ? entry['response_body'] : typeof entry['response_body_text'] === 'string' ? entry['response_body_text'] : null;
     const mime = typeof entry['mime_type'] === 'string' ? entry['mime_type'] : typeof entry['resource_type'] === 'string' ? entry['resource_type'] : '';
     if (bodyText === null) continue;
     if (!mime.includes('javascript') && !(url ?? '').endsWith('.js')) continue;
@@ -286,10 +266,7 @@ const relativePathFor = (url: string, used: Set<string>): string => {
   }
 };
 
-export const exportWebScripts = async (params: {
-  readonly capture_path: string;
-  readonly output_directory: string;
-}): Promise<WebScriptExportInspection> => {
+export const exportWebScripts = async (params: { readonly capture_path: string; readonly output_directory: string }): Promise<WebScriptExportInspection> => {
   if (typeof params.capture_path !== 'string' || params.capture_path.length === 0 || !isAbsolute(params.capture_path)) {
     throw invalidRequest('export_web_scripts capture_path must be an absolute local path.', {
       operation: 'export_web_scripts',

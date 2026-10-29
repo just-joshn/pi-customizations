@@ -2,87 +2,41 @@ import { artifactIdForContent, digestOf } from '../canonical.mjs';
 import { artifactRef, coverage, graphEdge, graphNode } from '../envelope.mjs';
 import { isTextFile } from './target-source.mjs';
 
-export const STATIC_LIMITATION =
-  'JavaScript and HTML were parsed as inert text; bundle bootstrap code was never executed.';
-export const RELATION_LIMITATION =
-  'Static imports, entrypoints, workers, endpoints, and storage relationships do not prove runtime execution.';
-export const BINDING_LIMITATION =
-  'CommonJS and ESM binding relationships were recovered from inert syntax and resolved only within the inventoried artifact container.';
-export const DYNAMIC_PATH_LIMITATION =
-  'Static paths and relationships may remain unresolved when expressions are dynamic or obfuscated.';
-export const WEBPACK_LIMITATION =
-  'Webpack/Rspack factories were recovered from AST literals; REA did not invoke push handlers or bundle bootstrap code.';
-export const ELECTRON_LIMITATION =
-  'Electron relationships are derived from inert syntax; runtime registration, reachability, defaults, and enforcement remain unproven.';
+export const STATIC_LIMITATION = 'JavaScript and HTML were parsed as inert text; bundle bootstrap code was never executed.';
+export const RELATION_LIMITATION = 'Static imports, entrypoints, workers, endpoints, and storage relationships do not prove runtime execution.';
+export const BINDING_LIMITATION = 'CommonJS and ESM binding relationships were recovered from inert syntax and resolved only within the inventoried artifact container.';
+export const DYNAMIC_PATH_LIMITATION = 'Static paths and relationships may remain unresolved when expressions are dynamic or obfuscated.';
+export const WEBPACK_LIMITATION = 'Webpack/Rspack factories were recovered from AST literals; REA did not invoke push handlers or bundle bootstrap code.';
+export const ELECTRON_LIMITATION = 'Electron relationships are derived from inert syntax; runtime registration, reachability, defaults, and enforcement remain unproven.';
 export const ELECTRON_IDENTITY_LIMITATION =
   'Electron API identity follows proven lexical module aliases and structurally verified module-namespace interop. Other reassignments, dynamic selections, and visibly overwritten namespace members are unresolved; missing findings do not establish absence. Arbitrary call side effects and runtime registration are not evaluated.';
-export const COVERAGE_LIMITATION =
-  'Graph coverage is incomplete; unavailable facts remain explicit and must not be read as absence.';
-export const NATIVE_MEMBER_LIMITATION =
-  'Native member names are requested by JavaScript syntax and are not verified binary exports in this workflow.';
-export const PARSER_LIMITATION =
-  'This port scans tokens with its own lexer rather than the reference parser; counts describe this scan and a differently ordered expression may stay unresolved.';
-export const RUNTIME_RELATION_LIMITATION =
-  'Static syntax does not prove that this relationship executes at runtime.';
-export const SEMANTIC_VALUE_LIMITATION =
-  'Values and aliases were recovered from inert syntax only; no JavaScript was executed.';
-export const SEMANTIC_MUTATION_LIMITATION =
-  'Cross-function mutation and dynamic property resolution remain unknown.';
-export const SEMANTIC_CALL_LIMITATION =
-  'Local call, argument, return, and closure relations are static candidates and do not prove runtime invocation.';
-export const SEMANTIC_PROMISE_LIMITATION =
-  'Promise ownership covers explicit unshadowed Promise construction, static factories, aggregation, chaining, and await syntax only.';
-export const SEMANTIC_RETURN_LIMITATION =
-  'Return sites include only direct callable returns; nested callable returns remain separate.';
-export const RETURN_SHAPE_LIMITATION =
-  'Return shapes are inferred from inert syntax and do not prove runtime behavior.';
-export const AST_COVERAGE_LIMITATION =
-  'AST coverage is incomplete; omitted or dynamic facts must not be interpreted as absence.';
-export const BARE_PACKAGE_LIMITATION =
-  'No matching bare package was inventoried in an enclosing node_modules directory.';
-export const NATIVE_SYMBOL_LIMITATION =
-  'The .node artifact path is resolved, but requested JavaScript members have not been verified against native symbols.';
-export const NATIVE_REQUEST_EDGE_LIMITATION =
-  'Requested JavaScript members are not verified native exports.';
-export const IPC_LITERAL_PAIR_LIMITATION =
-  'Literal channel equality does not prove that the handler is registered or reachable at runtime.';
-export const WEB_PREFERENCES_LIMITATION =
-  'Only explicitly present webPreferences are reported; omitted properties are not interpreted as Electron defaults.';
-export const LEXICAL_WRAPPER_LIMITATION =
-  'Lexical wrapper substitution is a static candidate; guards, runtime overrides and execution remain unverified.';
-export const STATIC_UNRESOLVED_LIMITATION =
-  'The static reference could not be resolved within the inventoried artifact.';
-export const NATIVE_EXPORT_OBSERVE_LIMITATION =
-  'JavaScript syntax identifies requested member names; it does not prove that the native binary exports or implements them.';
+export const COVERAGE_LIMITATION = 'Graph coverage is incomplete; unavailable facts remain explicit and must not be read as absence.';
+export const NATIVE_MEMBER_LIMITATION = 'Native member names are requested by JavaScript syntax and are not verified binary exports in this workflow.';
+export const PARSER_LIMITATION = 'This port scans tokens with its own lexer rather than the reference parser; counts describe this scan and a differently ordered expression may stay unresolved.';
+export const RUNTIME_RELATION_LIMITATION = 'Static syntax does not prove that this relationship executes at runtime.';
+export const SEMANTIC_VALUE_LIMITATION = 'Values and aliases were recovered from inert syntax only; no JavaScript was executed.';
+export const SEMANTIC_MUTATION_LIMITATION = 'Cross-function mutation and dynamic property resolution remain unknown.';
+export const SEMANTIC_CALL_LIMITATION = 'Local call, argument, return, and closure relations are static candidates and do not prove runtime invocation.';
+export const SEMANTIC_PROMISE_LIMITATION = 'Promise ownership covers explicit unshadowed Promise construction, static factories, aggregation, chaining, and await syntax only.';
+export const SEMANTIC_RETURN_LIMITATION = 'Return sites include only direct callable returns; nested callable returns remain separate.';
+export const RETURN_SHAPE_LIMITATION = 'Return shapes are inferred from inert syntax and do not prove runtime behavior.';
+export const AST_COVERAGE_LIMITATION = 'AST coverage is incomplete; omitted or dynamic facts must not be interpreted as absence.';
+export const BARE_PACKAGE_LIMITATION = 'No matching bare package was inventoried in an enclosing node_modules directory.';
+export const NATIVE_SYMBOL_LIMITATION = 'The .node artifact path is resolved, but requested JavaScript members have not been verified against native symbols.';
+export const NATIVE_REQUEST_EDGE_LIMITATION = 'Requested JavaScript members are not verified native exports.';
+export const IPC_LITERAL_PAIR_LIMITATION = 'Literal channel equality does not prove that the handler is registered or reachable at runtime.';
+export const WEB_PREFERENCES_LIMITATION = 'Only explicitly present webPreferences are reported; omitted properties are not interpreted as Electron defaults.';
+export const LEXICAL_WRAPPER_LIMITATION = 'Lexical wrapper substitution is a static candidate; guards, runtime overrides and execution remain unverified.';
+export const STATIC_UNRESOLVED_LIMITATION = 'The static reference could not be resolved within the inventoried artifact.';
+export const NATIVE_EXPORT_OBSERVE_LIMITATION = 'JavaScript syntax identifies requested member names; it does not prove that the native binary exports or implements them.';
 
-export const SEMANTIC_ANALYSIS_LIMITATIONS = [
-  SEMANTIC_MUTATION_LIMITATION,
-  SEMANTIC_CALL_LIMITATION,
-  SEMANTIC_PROMISE_LIMITATION,
-  SEMANTIC_RETURN_LIMITATION,
-  SEMANTIC_VALUE_LIMITATION,
-];
+export const SEMANTIC_ANALYSIS_LIMITATIONS = [SEMANTIC_MUTATION_LIMITATION, SEMANTIC_CALL_LIMITATION, SEMANTIC_PROMISE_LIMITATION, SEMANTIC_RETURN_LIMITATION, SEMANTIC_VALUE_LIMITATION];
 
-export const EXPOSE_EDGE_LIMITATIONS = [
-  SEMANTIC_MUTATION_LIMITATION,
-  SEMANTIC_CALL_LIMITATION,
-  SEMANTIC_PROMISE_LIMITATION,
-  SEMANTIC_RETURN_LIMITATION,
-  RUNTIME_RELATION_LIMITATION,
-  SEMANTIC_VALUE_LIMITATION,
-];
+export const EXPOSE_EDGE_LIMITATIONS = [SEMANTIC_MUTATION_LIMITATION, SEMANTIC_CALL_LIMITATION, SEMANTIC_PROMISE_LIMITATION, SEMANTIC_RETURN_LIMITATION, RUNTIME_RELATION_LIMITATION, SEMANTIC_VALUE_LIMITATION];
 
 export function semanticImportEdgeLimitations(resolutionStatus) {
   if (resolutionStatus === 'external') {
-    return [
-      SEMANTIC_MUTATION_LIMITATION,
-      SEMANTIC_CALL_LIMITATION,
-      BARE_PACKAGE_LIMITATION,
-      SEMANTIC_PROMISE_LIMITATION,
-      SEMANTIC_RETURN_LIMITATION,
-      RUNTIME_RELATION_LIMITATION,
-      SEMANTIC_VALUE_LIMITATION,
-    ];
+    return [SEMANTIC_MUTATION_LIMITATION, SEMANTIC_CALL_LIMITATION, BARE_PACKAGE_LIMITATION, SEMANTIC_PROMISE_LIMITATION, SEMANTIC_RETURN_LIMITATION, RUNTIME_RELATION_LIMITATION, SEMANTIC_VALUE_LIMITATION];
   }
   return [...EXPOSE_EDGE_LIMITATIONS];
 }
@@ -94,13 +48,7 @@ export function staticImportEdgeLimitations(resolutionStatus) {
   return [RUNTIME_RELATION_LIMITATION];
 }
 
-export const ORACLE_BASE_LIMITATIONS = [
-  BINDING_LIMITATION,
-  STATIC_LIMITATION,
-  RELATION_LIMITATION,
-  DYNAMIC_PATH_LIMITATION,
-  WEBPACK_LIMITATION,
-];
+export const ORACLE_BASE_LIMITATIONS = [BINDING_LIMITATION, STATIC_LIMITATION, RELATION_LIMITATION, DYNAMIC_PATH_LIMITATION, WEBPACK_LIMITATION];
 
 const jsPrefix = 'jag';
 
@@ -264,16 +212,7 @@ export function importsEdge(sourceNodeId, targetNodeId, request, resolution, art
   });
 }
 
-export function assetProperties({
-  logicalPath,
-  bytes,
-  sha256,
-  parseStatus,
-  fileKind,
-  jsonTopLevelKeys = null,
-  analysisCoverage = null,
-  omittedJsonTopLevelKeys = 0,
-}) {
+export function assetProperties({ logicalPath, bytes, sha256, parseStatus, fileKind, jsonTopLevelKeys = null, analysisCoverage = null, omittedJsonTopLevelKeys = 0 }) {
   return {
     path: logicalPath,
     bytes,
