@@ -1,4 +1,4 @@
-.PHONY: verify verify-lint verify-mechanisms verify-toolchain verify-extension verify-maintainer verify-rea verify-oauth verify-test-conventions verify-install verify-xai-oauth-live
+.PHONY: verify verify-lint verify-mechanisms verify-toolchain verify-extension verify-maintainer verify-rea verify-oauth verify-test-conventions verify-install verify-sources verify-xai-oauth-live
 
 verify: verify-lint verify-mechanisms verify-toolchain verify-test-conventions verify-extension verify-maintainer verify-rea verify-oauth verify-install
 
@@ -44,3 +44,7 @@ verify-xai-oauth-live:
 
 verify-install:
 	node scripts/verify-fresh-install.mjs
+
+# Needs network (npx verdaccio plus the npm registry proxy), so it stays out of `verify`.
+verify-sources:
+	node scripts/verify-install-sources.mjs
