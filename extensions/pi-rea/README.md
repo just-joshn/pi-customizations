@@ -59,7 +59,12 @@ finding about a target. `parity/pi-rea/` records the baseline and decisions.
 ## Install
 
 ```sh
-# from a clone of this repository
+pi install npm:@justjoshn/pi-rea
+```
+
+Or, from a clone of this repository:
+
+```sh
 pi install ./extensions/pi-rea
 ```
 

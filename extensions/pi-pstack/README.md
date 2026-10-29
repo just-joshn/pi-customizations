@@ -13,7 +13,7 @@ pi-pstack is pstack 0.15.36 for Pi 1.4.0: rigorous agent workflows (`/poteto-mod
    pi install ./extensions/pi-pstack
    ```
 
-   Pi does not install dependencies for a local package, so `bun install` (or `npm install` in `extensions/pi-pstack`) fetches the one runtime dependency, `@anthropic-ai/sandbox-runtime`, which the read-only shell loads (readonly subagents and `/plan`). Without it everything else works, and a read-only shell command fails instead of running unsandboxed. To try it for one session without installing, run `pi -e ./extensions/pi-pstack`.
+   Pi does not install dependencies for a local package, so `bun install` (or `npm install` in `extensions/pi-pstack`) fetches the one runtime dependency, `@anthropic-ai/sandbox-runtime`, which the read-only shell loads (readonly subagents and `/plan`). Without it everything else works, and a read-only shell command fails instead of running unsandboxed. To try it for one session without installing, run `pi -e ./extensions/pi-pstack`. To install the published package instead, run `pi install npm:@justjoshn/pi-pstack`.
    Installing loads pi-pstack's tools and system-prompt sections at once, but no skill runs until you invoke it. 57 pstack skills stay out of the model's automatic skill list; only `/setup-pstack`, `create-skill`, `deslop`, `control-cli`, and `control-ui` can load from your words alone.
 2. Run `/setup-pstack`. It lists the models the `Task` tool can use, asks for a reasoning budget, maps a model to each role, and writes the model rule. A new rule applies from the next request.
 3. Start real work with `/poteto-mode`, a goal, and a check that can pass or fail.

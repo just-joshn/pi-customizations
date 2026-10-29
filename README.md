@@ -15,16 +15,61 @@ Extensions for [Pi](https://pi.dev), the coding agent by Earendil Works. This re
 
 ## Install
 
-Clone the repository, install workspace dependencies, then install a package from the checkout. Pi loads local packages in place and does not install their npm dependencies for you, so keep the clone where it is and run `bun install` after clone or pull.
+Every package installs from npm, from git, or from a local checkout.
+
+### Install from npm
+
+Each package publishes separately. Install the ones you want:
+
+```sh
+pi install npm:@justjoshn/pi-pstack
+pi install npm:@justjoshn/pi-anthropic-oauth
+pi install npm:@justjoshn/pi-antigravity-oauth
+pi install npm:@justjoshn/pi-xai-oauth
+pi install npm:@justjoshn/pi-maintainer
+pi install npm:@justjoshn/pi-rea
+```
+
+These names exist on npm only after you publish them. From a checkout, run `npm publish --access public` inside each `extensions/<dir>` that you want to publish.
+
+### Install from git
+
+One source installs all six extensions, their skills, and pi-rea's prompt templates:
+
+```sh
+pi install git:github.com/just-joshn/pi-customizations
+```
+
+To load only part of the repository, replace the package entry in `~/.pi/agent/settings.json` with the object form and filter by resource type. This entry loads pi-pstack's extension and skills and nothing else:
+
+```json
+{
+  "packages": [
+    {
+      "source": "git:github.com/just-joshn/pi-customizations",
+      "extensions": ["extensions/pi-pstack/src/index.ts"],
+      "skills": ["extensions/pi-pstack/skills/*"],
+      "prompts": []
+    }
+  ]
+}
+```
+
+An empty array loads none of that type. `pi list` marks a filtered package with `(filtered)`.
+
+### Install from a local checkout
+
+Pi loads local packages in place and does not install their npm dependencies, so keep the clone where it is and run `bun install` after clone or pull.
 
 ```sh
 git clone https://github.com/just-joshn/pi-customizations.git
 cd pi-customizations
 bun install
-pi install ./extensions/pi-pstack   # or any other extension directory
+pi install ./extensions/pi-pstack   # one package
+pi install .                        # or the repository root, for all six
 ```
 
-To update, run `git pull --ff-only` in the clone, then `bun install`, then `/reload` in Pi.
+To update an installed source, run `pi update --extensions`. After `git pull` in a local checkout, run `bun install` again and `/reload` in Pi.
 
 The OAuth extensions log you into paid subscriptions and send requests that identify as other clients. Read each extension's README before using one, and use them only with accounts you own.
 
@@ -38,6 +83,8 @@ make verify
 ```
 
 `make verify` runs Biome, the Pi package-mechanism check, the bun toolchain check, the Vitest conventions check from [`AGENTS.md`](AGENTS.md), every extension's typecheck and test suite with coverage, the OAuth extensions' offline proof scripts, and a fresh-install check. It needs [bun](https://bun.sh) and Node 22.19 or newer. Every extension targets Pi 1.4.0.
+
+`make verify-sources` installs every package from npm, git, and a local path. It needs network access, so it stays out of `make verify`.
 
 ## Repository notes
 

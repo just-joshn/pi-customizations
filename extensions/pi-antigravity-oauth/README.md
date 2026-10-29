@@ -20,7 +20,7 @@ Pick a model with `/model` and an effort with Pi's thinking level. `agy` lists o
 
 Before login, Pi lists the agent models from a snapshot in `src/catalog-snapshot.ts`. After login, Pi asks Cloud Code which models the account can use (`fetchAvailableModels`) and adds the ones `agy` offers as agent models. `/antigravity` shows the signed-in email, the project, the subscription tier, and the quota groups that `agy` reads from `retrieveUserQuotaSummary`.
 
-To keep the package for later sessions, run `pi install` with the path to this directory, or publish the package and install that npm name.
+To keep the package for later sessions, run `pi install npm:@justjoshn/pi-antigravity-oauth`, or `pi install` with the path to this directory.
 
 ## What Google sees
 
